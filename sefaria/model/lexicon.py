@@ -19,12 +19,17 @@ class WordForm(abst.AbstractMongoRecord):
     required_attrs = [
         "form",
         "lookups",
-        "lang"
+    ]
+
+    optional_attrs = [
+        "c_form",
+        "refs",
+        "language_code"
     ]
 
     def load(self, query, proj=None):
         if 'form' in query:
-            query['form'] = {"$regex" : query['form'], "$options": "i"}
+            query['form'] = {"$regex" : "^"+query['form']+"$", "$options": "i"}
         return super(WordForm, self).load(query, proj=None)
 
 
@@ -57,19 +62,17 @@ class LexiconEntry(abst.AbstractMongoRecord):
         "content"
     ]
 
+    def factory(self, lexicon_name):
+        pass
+
 
 class DictionaryEntry(LexiconEntry):
-    required_attrs = [
-        "headword",
-        "parent_lexicon",
-        "content"
-    ]
 
     optional_attrs = [
         "transliteration",
         "pronunciation",
         "morphology",
-        "language-code",
+        "language_code",
         'refs',
     ]
 

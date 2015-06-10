@@ -1519,8 +1519,7 @@ class Ref(object):
             if getattr(self.index_node, "checkFirst", None) and self.index_node.checkFirst.get(self._lang):
                 try:
                     check_node = library.get_schema_node(self.index_node.checkFirst[self._lang], self._lang)
-                    re_string = '^' + regex.escape(title) + check_node.after_title_delimiter_re + check_node.regex(self._lang, strict=True)
-                    reg = regex.compile(re_string, regex.VERBOSE)
+                    reg = check_node.full_regex(title, self._lang, strict=True)
                     self.sections = self.__get_sections(reg, base)
                 except InputError: # Regex doesn't work
                     pass
@@ -1564,9 +1563,7 @@ class Ref(object):
             return
 
         try:
-            #todo: factor out these two lines to a method
-            re_string = '^' + regex.escape(title) + self.index_node.after_title_delimiter_re + self.index_node.regex(self._lang)
-            reg = regex.compile(re_string, regex.VERBOSE)
+            reg = self.index_node.full_regex(title, self._lang)
         except AttributeError:
             matched = self.index_node.full_title(self._lang)
             msg = u"Partial reference match for '{}' - failed to find continuation for '{}'.\nValid continuations are:\n".format(self.tref, matched)
@@ -1583,8 +1580,7 @@ class Ref(object):
                 self.index_node = reduce(lambda a, i: a.children[i], [s - 1 for s in struct_indexes], self.index_node)
                 title = self.book = self.index_node.full_title("en")
                 base = regex.sub(reg, title, base)
-                re_string = '^' + regex.escape(title) + self.index_node.after_title_delimiter_re + self.index_node.regex(self._lang)
-                reg = regex.compile(re_string, regex.VERBOSE)
+                reg = self.index_node.full_regex(title, self._lang)
             except InputError:
                 pass
             #todo: ranges that cross structures
@@ -1617,8 +1613,7 @@ class Ref(object):
                             return
 
                     try:  # Some structure nodes don't have .regex() methods.
-                        re_string = '^' + regex.escape(title) + alt_struct_node.after_title_delimiter_re + alt_struct_node.regex(self._lang)
-                        reg = regex.compile(re_string, regex.VERBOSE)
+                        reg = alt_struct_node.full_regex(title, self._lang)
                     except AttributeError:
                         pass
                     else:
@@ -1629,8 +1624,7 @@ class Ref(object):
                                 alt_struct_node = reduce(lambda a, i: a.children[i], [s - 1 for s in struct_indexes], alt_struct_node)
                                 title = alt_struct_node.full_title("en")
                                 base = regex.sub(reg, title, base)
-                                re_string = '^' + regex.escape(title) + alt_struct_node.after_title_delimiter_re + alt_struct_node.regex(self._lang)
-                                reg = regex.compile(re_string, regex.VERBOSE)
+                                reg = alt_struct_node.full_regex(title, self._lang)
                             except InputError:
                                 pass
 
@@ -2757,6 +2751,36 @@ class Library(object):
 
     local_cache = {}
 
+    def all_titles_regex_string(self, lang="en", commentary=False, with_terms=False, for_js=False):
+        key = "all_titles_regex_string" + lang
+        key += "_commentary" if commentary else ""
+        key += "_terms" if with_terms else ""
+        key += "_js" if for_js else ""
+        re_string = self.local_cache.get(key)
+        if not re_string:
+            re_string = u""
+            simple_books = map(re.escape, self.full_title_list(lang, with_commentators=False, with_terms=with_terms))
+            simple_book_part = ur'|'.join(sorted(simple_books, key=len, reverse=True))  # Match longer titles first
+
+            re_string += ur'(?:^|[ ([{>,-]+)' if for_js else u''  # Why don't we check for word boundaries internally as well?
+            re_string += ur'(?:\u05d5?(?:\u05d1|\u05de|\u05dc|\u05e9|\u05d8|\u05d8\u05e9)?)' if for_js and lang == "he" else u'' # likewise leading characters in Hebrew?
+            re_string += ur'(' if for_js else ur'(?P<title>'
+            if not commentary:
+                re_string += simple_book_part
+            else:
+                if lang == "he":
+                    raise InputError("No support for Hebrew Commentatory Ref Objects")
+                first_part = ur'|'.join(map(re.escape, self.get_commentator_titles(with_variants=True)))
+                if for_js:
+                    re_string += ur"(" + first_part + ur") on (" + simple_book_part + ur")"
+                else:
+                    re_string += ur"(?P<commentor>" + first_part + ur") on (?P<commentee>" + simple_book_part + ur")"
+            re_string += ur')'
+            re_string += ur'($|[:., <]+)'
+            self.local_cache[key] = re_string
+
+        return re_string
+
     #WARNING: Do NOT put the compiled re2 object into redis.  It gets corrupted.
     def all_titles_regex(self, lang="en", commentary=False, with_terms=False):
         """
@@ -2775,23 +2799,11 @@ class Library(object):
         key += "_terms" if with_terms else ""
         reg = self.local_cache.get(key)
         if not reg:
-            simple_books = map(re.escape, self.full_title_list(lang, with_commentators=False, with_terms=with_terms))
-            simple_book_part = u'|'.join(sorted(simple_books, key=len, reverse=True))  # Match longer titles first
-
-            reg = u'(?P<title>'
-            if not commentary:
-                reg += simple_book_part
-            else:
-                if lang == "he":
-                    raise InputError("No support for Hebrew Commentatory Ref Objects")
-                first_part = u'|'.join(map(re.escape, self.get_commentator_titles(with_variants=True)))
-                reg += u"(?P<commentor>" + first_part + u") on (?P<commentee>" + simple_book_part + u")"
-            reg += u')'
-            reg += ur'($|[:., ]+)'
+            re_string = self.all_titles_regex_string(lang, commentary, with_terms)
             try:
-                reg = re.compile(reg, max_mem= 256 * 1024 * 1024)
+                reg = re.compile(re_string, max_mem= 256 * 1024 * 1024)
             except TypeError:
-                reg = re.compile(reg)
+                reg = re.compile(re_string)
             self.local_cache[key] = reg
         return reg
 
@@ -2943,15 +2955,15 @@ class Library(object):
         return None
     '''
 
-    def get_text_titles_json(self):
+    def get_text_titles_json(self, lang="en"):
         """
         :return: JSON of full texts list, (cached)
         """
+        key = 'texts_titles_json' + ("_he" if lang == "he" else "")
+        if not scache.get_cache_elem(key):
+            scache.set_cache_elem(key, json.dumps(self.full_title_list(lang=lang, with_commentary=True)))
 
-        if not scache.get_cache_elem('texts_titles_json'):
-            scache.set_cache_elem('texts_titles_json', json.dumps(self.full_title_list(with_commentary=True)))
-
-        return scache.get_cache_elem('texts_titles_json')
+        return scache.get_cache_elem(key)
 
     def get_text_categories(self):
         """
@@ -3063,6 +3075,24 @@ class Library(object):
                 refs += res
         return refs
 
+    # do we want to move this to the schema node? We'd still have to pass the title...
+    def get_regex_string(self, title, lang, for_js=False):
+        node = self.get_schema_node(title, lang)
+
+        if lang == "en" or for_js:  # Javascript doesn't support look behinds.
+            return node.full_regex(title, lang, for_js=for_js, match_range=for_js, compiled=False, anchored=(not for_js))
+
+        elif lang == "he":
+            return ur"""(?<=							# look behind for opening brace
+                    [({]										# literal '(', brace,
+                    [^})]*										# anything but a closing ) or brace
+                )
+                """ + regex.escape(title) + node.after_title_delimiter_re + node.address_regex(lang, for_js=for_js) + ur"""
+                (?=												# look ahead for closing brace
+                    [^({]*										# match of anything but an opening '(' or brace
+                    [)}]										# zero-width: literal ')' or brace
+                )"""
+
     #todo: handle ranges in inline refs
     def _build_ref_from_string(self, title=None, st=None, lang="en"):
         """
@@ -3075,7 +3105,7 @@ class Library(object):
         node = self.get_schema_node(title, lang)
 
         try:
-            re_string = '^' + regex.escape(title) + node.after_title_delimiter_re + node.regex(lang)
+            re_string = self.get_regex_string(title, lang)
         except AttributeError as e:
             logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
             return []
@@ -3119,15 +3149,7 @@ class Library(object):
 
         refs = []
         try:
-            re_string = ur"""(?<=							# look behind for opening brace
-                    [({]										# literal '(', brace,
-                    [^})]*										# anything but a closing ) or brace
-                )
-                """ + regex.escape(title) + node.after_title_delimiter_re + node.regex(lang) + ur"""
-                (?=												# look ahead for closing brace
-                    [^({]*										# match of anything but an opening '(' or brace
-                    [)}]										# zero-width: literal ')' or brace
-                )"""
+            re_string = self.get_regex_string(title, lang)
         except AttributeError as e:
             logger.warning(u"Library._build_all_refs_from_string() failed to create regex for: {}.  {}".format(title, e))
             return refs

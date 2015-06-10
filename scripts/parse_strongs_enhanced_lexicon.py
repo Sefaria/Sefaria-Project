@@ -3,15 +3,178 @@
 import argparse
 import sys
 import json
+import csv
 import re
 import os, errno
 import os.path
+import requests
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
 
 from sefaria.model import *
+
+class WLCStrongParser(object):
+    data_dir = '../data/tmp/hebmorphwlc'
+    raw_github_url = 'https://raw.githubusercontent.com/openscriptures/morphhb/master/wlc/'
+
+
+    hebmorph_shorthands = {
+        'Genesis' : 'Gen',
+        'Exodus' : 'Exod',
+        'Leviticus' : 'Lev',
+        'Numbers' : 'Num',
+        'Deuteronomy' : 'Deut',
+        'Joshua' : 'Josh',
+        'Judges' : 'Judg',
+        'I Samuel' : '1Sam',
+        'II Samuel' : '2Sam',
+        'I Kings' : '1Kgs',
+        'II Kings': '2Kgs',
+        'Isaiah' : 'Isa',
+        'Jeremiah': 'Jer',
+        'Ezekiel' : 'Ezek',
+        'Hosea' : 'Hos',
+        'Joel' : 'Joel',
+        'Amos': 'Amos',
+        'Obadiah' : 'Obad',
+        'Jonah' : 'Jonah',
+        'Micah' : 'Mic',
+        'Nahum' : 'Nah',
+        'Habakkuk' : 'Hab',
+        'Zephaniah' : 'Zeph',
+        'Haggai' : 'Hag',
+        'Zechariah': 'Zech',
+        'Malachi' : 'Mal',
+        'Psalms' : 'Ps',
+        'Proverbs' : 'Prov',
+        'Job': 'Job',
+        'Song of Songs' : 'Song',
+        'Ruth' : 'Ruth',
+        'Lamentations' : 'Lam',
+        'Ecclesiastes': 'Eccl',
+        'Esther': 'Esth',
+        'Daniel' : 'Dan',
+        'Ezra': 'Ezra',
+        'Nehemiah' : 'Neh',
+        'I Chronicles' : '1Chr',
+        'II Chronicles' : '2Chr'
+    }
+
+    def __init__(self):
+        self._mkdir_p(self.data_dir)
+
+
+    def build_word_csv_dict(self):
+        pass
+
+
+
+    def parse_forms_in_books(self):
+        for book in self.hebmorph_shorthands:
+            print book
+            word_form_book_parser = WLCStrongWordFormBookParser(self, book)
+            word_form_book_parser.parse_word_forms()
+
+    def _mkdir_p(self, path):
+        try:
+            os.makedirs(path)
+        except OSError as exc: # Python >2.5
+            if exc.errno == errno.EEXIST and os.path.isdir(path):
+                pass
+            else: raise
+
+
+class WLCStrongWordFormBookParser(object):
+
+    def __init__(self, parent_parser, book):
+        self.parent_parser = parent_parser
+        self.book = book
+        self.xml_book_name = self.parent_parser.hebmorph_shorthands[self.book]
+        self.namespace = {'strong': 'http://www.bibletechnologies.net/2003/OSIS/namespace'}
+        self.strip_cantillation_vowel_regex = re.compile(ur"[\u0591-\u05bd\u05bf-\u05c5\u05c7]|\([\u0590-\u05ea]\)", re.UNICODE)
+        self.strip_cantillation_regex = re.compile(ur"[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]|\([\u0590-\u05ea]\)", re.UNICODE)
+        self.strong_num_regex = re.compile(ur"[0-9]+")
+        xmlp = ET.parse(self._get_wlc_file(self.xml_book_name + '.xml'))
+        self.xml_contents = xmlp.getroot().find("strong:osisText/strong:div[@type='book']", self.namespace)
+
+    def _get_wlc_file(self, filename):
+        full_file = os.path.join(self.parent_parser.data_dir, filename)
+        if not os.path.isfile(full_file):
+            fileurl = self.parent_parser.raw_github_url + filename
+            r = requests.get(fileurl)
+            f = open(full_file,'w')
+            f.write(r.content)
+        return full_file
+
+    def parse_word_forms(self):
+        for chap_num, chapter_node in enumerate(self.xml_contents.findall('strong:chapter', self.namespace),1):
+            for v_num,verse_node in enumerate(chapter_node.findall('strong:verse', self.namespace),1):
+                #print "verse ", v_num, ": ", verse_node.get('osisID').encode('utf-8')
+                verse = verse_node.get('osisID')
+                verse_ref = Ref(verse.replace('.', ' ').replace(self.xml_book_name, self.book)).normal()
+                for w_num, word in enumerate(verse_node.findall('.//strong:w', self.namespace),1):
+
+                    word_form_text = self._make_vowel_text(self._strip_wlc_morph_notation(word.text))
+                    strong_number = self._extract_strong_number(word.get('lemma'))
+                    strong_entry = StrongsDictionaryEntry().load({'strong_number': strong_number})
+                    if strong_entry:
+                        #first look to see if we have an exact word form mapping already
+                        word_form_obj = WordForm().load({'form': word_form_text,
+                                                            'language_code' : strong_entry.language_code,
+                                                            'lookups': {
+                                                                "headword" : strong_entry.headword,
+                                                                "lexicon" : "BDB Augmented Strong"
+                                                        }})
+                        if not word_form_obj: #else, look for just the form
+                            word_form_obj = WordForm().load({'form': word_form_text, 'language_code' : strong_entry.language_code})
+                            if word_form_obj:
+                                word_form_obj.lookups.append({"headword" : strong_entry.headword,"lexicon" : "BDB Augmented Strong"})
+                            else: #create a whole new one
+                                word_form_obj = WordForm({'form': word_form_text,
+                                                          'c_form' : self._make_consonantal_text(word_form_text),
+                                                          'language_code' : strong_entry.language_code,
+                                                          'lookups': [{
+                                                                "headword" : strong_entry.headword,
+                                                                "lexicon" : "BDB Augmented Strong"
+                                                            }]}).save()
+                        word_form_obj.refs = word_form_obj.refs + [verse_ref] if hasattr(word_form_obj, 'refs') else [verse_ref]
+                        word_form_obj.save()
+
+
+
+    def _extract_strong_number(self, strong_str):
+        match = self.strong_num_regex.search(strong_str)
+        if match:
+            return match.group(0)
+        else:
+            return None
+
+    def _strip_wlc_morph_notation(self, word_text):
+        #strip the slash that denotes a morphological separator
+        return re.sub(ur"\u002f", "", word_text)
+
+    def _make_consonantal_text(self, word_text):
+        return self._make_derived_text(word_text, self.strip_cantillation_vowel_regex)
+
+    def _make_vowel_text(self, word_text):
+        return self._make_derived_text(word_text, self.strip_cantillation_regex)
+
+    def _make_derived_text(self, word_text, regex):
+        return regex.sub('', word_text).strip()
+
+    def _add_shorthand_as_title_variant(self):
+        pass
+
+
+    def calculate_coverage_vs_csv(self):
+        pass
+
+
+
+
+
 
 
 class StrongHebrewGLexiconXMLParser(object):
@@ -30,10 +193,15 @@ class StrongHebrewGLexiconXMLParser(object):
 
     def parse_contents(self):
         print "BEGIN PARSING"
+        self._make_lexicon_obj()
         for entry in self.entries_xml:
             le = self._make_dictionary_entry(entry)
             self.entries.append(le)
             StrongsDictionaryEntry(le).save()
+
+    def _make_lexicon_obj(self):
+        strongs = Lexicon({'name': 'BDB Augmented Strong', 'language': 'heb.biblical', 'to_language': 'eng' })
+        strongs.save()
 
 
     def _make_dictionary_entry(self, entry):
@@ -49,7 +217,7 @@ class StrongHebrewGLexiconXMLParser(object):
         self._current_entry['headword'] = headword_xml.get('lemma')
         self._current_entry['pronunciation'] = headword_xml.get('POS')
         self._current_entry['transliteration'] = headword_xml.get('xlit')
-        self._current_entry['language-code'] = headword_xml.get('{http://www.w3.org/XML/1998/namespace}lang')
+        self._current_entry['language_code'] = headword_xml.get('{http://www.w3.org/XML/1998/namespace}lang')
         defs = [x.text for x in entry.findall('strong:list/strong:item', self.namespace)]
         odefs = [self._parse_item_depth(x) for x in defs]
         self._current_entry['content'] = {}
@@ -110,12 +278,18 @@ class StrongHebrewGLexiconXMLParser(object):
 """ The main function, runs when called from the CLI"""
 if __name__ == '__main__':
     print "INIT LEXICON"
+    #os.chdir(os.path.dirname(sys.argv[0]))
     #parser = argparse.ArgumentParser()
     #parser.add_argument("title", help="title of existing index record")
     #parser.add_argument("schema_file", help="path to json schema file")
     #parser.add_argument("mapping_file", help="title of existing index record")
     #args = parser.parse_args()
-    strongparser = StrongHebrewGLexiconXMLParser()
+
     print "parse lexicon"
-    strongparser.parse_contents()
+    #strongparser = StrongHebrewGLexiconXMLParser()
+    #strongparser.parse_contents()
+
+    print 'parsing word forms from wlc'
+    wordformparser = WLCStrongParser()
+    wordformparser.parse_forms_in_books()
 

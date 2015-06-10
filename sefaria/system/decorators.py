@@ -41,7 +41,7 @@ def catch_error_as_http(func):
         except exps.InputError as e:
             logger.exception(u"An exception occurred while running {}. Caught as HTTP".format(func.__name__))
             return render_to_response('static/generic.html',
-                             {"content": u"There was an error processing your request: {}".format(str(e))},
+                             {"content": u"There was an error processing your request: {}".format(unicode(e))},
                              RequestContext(args[0]))
         return result
     return wrapper
@@ -54,7 +54,7 @@ def log(func):
         """Assumes that function doesn't change input data"""
         #logger.debug("Calling: " + func + "(" + args + kwargs + ")")
         result = func(*args, **kwargs)
-        msg = func.__name__ + "(" + ",".join([str(a) for a in args])
+        msg = func.__name__ + "(" + ",".join([unicode(a) for a in args])
         msg += ", " + str(kwargs) if kwargs else ""
         msg += "):\n\t" + str(result)
         logger.debug(msg)

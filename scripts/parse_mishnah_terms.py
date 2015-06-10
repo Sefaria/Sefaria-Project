@@ -4,7 +4,7 @@ from sefaria.model import *
 import csv
 
 def create_word_form(form, lang, lookups):
-    return WordForm({'form': form, 'lang': lang, 'lookups': lookups})
+    return WordForm({'form': form, 'language_code': lang, 'lookups': lookups})
 
 
 with open('data/tmp/Halachic Terminology Berachot.tsv', 'rb') as csvfile:

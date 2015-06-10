@@ -389,7 +389,7 @@ class JaggedArray(object):
 
 class JaggedTextArray(JaggedArray):
 
-    def __init__(self, ja=[]):
+    def __init__(self, ja=None):
         JaggedArray.__init__(self, ja)
         self.w_count = None
         self.c_count = None

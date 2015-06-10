@@ -164,10 +164,6 @@ urlpatterns += patterns('reader.views',
     (r'^api/notifications/read', 'notifications_read_api'),
 )
 
-urlpatterns += patterns('sefaria.views',
-    (r'^linker\.js$', 'linker_js')
-)
-
 # Messages API
 urlpatterns += patterns('reader.views',
     (r'^api/messages/?$', 'messages_api'),
@@ -204,7 +200,7 @@ urlpatterns += patterns('reader.views',
     url(r'^$', 'home', name="home"),
     (r'^metrics/?$', 'metrics'),
     (r'^digitized-by-sefaria/?$', 'digitized_by_sefaria'),
-    (r'^(about|donate|strategy|supporters|translation-guidelines|transliteration-guidelines|even-haezer-guidelines|related-projects|jobs|terms|privacy-policy|meetup1|meetup2|random-walk-through-torah|shraga-silverstein)/?$', 'serve_static'),
+    (r'^(about|donate|strategy|supporters|translation-guidelines|transliteration-guidelines|even-haezer-guidelines|related-projects|jobs|terms|privacy-policy|meetup1|meetup2|random-walk-through-torah|shraga-silverstein|linker)/?$', 'serve_static'),
 )
 
 # Explore
@@ -228,6 +224,13 @@ urlpatterns += patterns('',
     (r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/blockspeiser/Sefaria-Project/wiki/Guide-to-Contributing')),
     (r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/blockspeiser/Sefaria-Project/wiki#frequently-asked-questions')),
 
+)
+
+# Linker js
+urlpatterns += patterns('sefaria.views',
+    (r'^linker\.js$', 'linker_js'),
+    (r'^api/regexs/(?P<titles>.+)$', 'title_regex_api'),
+    (r'^api/bulktext/(?P<refs>.+)$', 'bulktext_api')
 )
 
 # Email Subscribe 

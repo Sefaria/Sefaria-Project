@@ -45,7 +45,7 @@
             <div id="featuredRequests">
                 <h3>{{ featured_current }} Featured Requests</h3>
                 <div class='sub alert alert-success'>
-                    <a class="btn btn-info" href="http://blog.sefaria.org/contests" target="_blank">View Prizes</a> <b>Weekly Contests</b> - Help translate featured requests and you'll be automatically entered in a lottery for weekly prizes.
+                    <a class="btn btn-info" href="http://blog.sefaria.org/contests" target="_blank">View Prizes</a> <b>Monthly Contests</b> - Help translate featured requests and you'll be automatically entered in a lottery for monthly prizes.
                 </div>
                 {% for trans_request in featured %}
                     {% if forloop.counter0 < featured_current or request.user.is_staff %}
