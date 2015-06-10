@@ -101,8 +101,10 @@ def clear_exports():
 	Deletes all files from any export directory listed in export_formats.
 	"""
 	for format in export_formats:
-		if os.path.exists(SEFARIA_DATA_PATH + "/" + format[0]):
-			rmtree(SEFARIA_DATA_PATH + "/" + format[0])
+		if os.path.exists(SEFARIA_DATA_PATH + "/export/" + format[0]):
+			rmtree(SEFARIA_DATA_PATH + "/export/" + format[0])
+	if os.path.exists(SEFARIA_DATA_PATH + "/export/schemas"):
+		rmtree(SEFARIA_DATA_PATH + "/export/schemas")
 
 
 def export_text_doc(doc):
@@ -183,9 +185,9 @@ def export_merged(title, lang=None):
 	if text_docs.count() == 0:
 		return
 	elif text_docs.count() == 1:
-		text_doc = text_docs.next()
-		doc["text"]          = text_doc["chapter"]  # todo: sort complex according to Index
-		doc["versions"]      = [(text_doc["versionTitle"], text_doc["versionSource"])]
+		text_doc         = text_docs.next()
+		doc["text"]      = text_doc["chapter"]  # TODO: sort complex according to Index
+		doc["versions"]  = [(text_doc["versionTitle"], text_doc["versionSource"])]
 	else:
 		texts = []
 		sources = []
@@ -221,8 +223,8 @@ def export_all_merged():
 def export_schemas():
 	for i in model.IndexSet():
 		title = i.title.replace(" ", "_")
-		with open(SEFARIA_DATA_PATH + "/export/schemas/" + title, "w") as f:
-			f.write(make_json(i.contents()))		
+		with open(SEFARIA_DATA_PATH + "/export/schemas/" + title + ".json", "w") as f:
+			f.write(make_json(i.contents(v2=True)).encode('utf-8'))		
 
 
 def export_toc():
@@ -231,7 +233,7 @@ def export_toc():
 	"""
 	toc = get_toc()
 	with open(SEFARIA_DATA_PATH + "/export/table_of_contents.json", "w") as f:
-		f.write(make_json(toc))
+		f.write(make_json(toc).encode('utf-8'))
 
 
 def export_links():
@@ -251,7 +253,7 @@ def export_links():
 						 ])
 		links = db.links.find().sort([["refs.0", 1]])
 		for link in links:
-			if random() > .99:
+			if random() > .999:
 				print link["refs"][0]
 
 			try:
