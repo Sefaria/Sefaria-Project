@@ -130,6 +130,11 @@ def export_text(text):
 		print "Skipping %s - %s" % (text["title"], e.message)
 		return
 
+	if index.is_complex():
+		# TODO handle export of complex texts
+		print "Skipping Complex Text: %s - " % (text["title"])
+		return		
+
 	text["heTitle"]      = index.nodes.primary_title("he")
 	text["categories"]   = index.categories
 	text["sectionNames"] = index.schema["sectionNames"]
