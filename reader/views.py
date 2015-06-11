@@ -266,18 +266,20 @@ def text_toc(request, oref):
             if depth == 0:
                 return ""
             linked = "linked" if node.is_leaf() and node.depth == 1 else ""
+            default = node.is_default()
             url = "/" + node.ref().url()
             en_icon = '<i class="schema-node-control fa ' + ('fa-angle-right' if linked else 'fa-angle-down') + '"></i>'
             he_icon = '<i class="schema-node-control fa ' + ('fa-angle-left' if linked else 'fa-angle-down') + '"></i>'
             html = '<a href="' + urlquote(url) + '"' if linked else "<div "
             html += ' class="schema-node-toc depth' + str(depth) + ' ' + linked + '">'
-            html += '<span class="schema-node-title">'
-            html +=    '<span class="en">' + node.primary_title() + en_icon + '</span>'
-            html +=    '<span class="he">' + node.primary_title(lang='he') + he_icon + '</span>'
-            html += '</span>'
+            if not default:
+                html += '<span class="schema-node-title">'
+                html +=    '<span class="en">' + node.primary_title() + en_icon + '</span>'
+                html +=    '<span class="he">' + node.primary_title(lang='he') + he_icon + '</span>'
+                html += '</span>'
             if node.is_leaf():
                 focused = node is req_node
-                html += '<div class="schema-node-contents ' + ('open' if focused else 'closed') + '">'
+                html += '<div class="schema-node-contents ' + ('open' if focused or default else 'closed') + '">'
                 node_state = StateNode(snode=node)
                 #Todo, handle Talmud and other address types, as well as commentary
                 zoom = 0 if node.depth == 1 else 1
@@ -682,14 +684,20 @@ def text_preview_api(request, title):
     response = oref.index.contents(v2=True)
     response['node_title'] = oref.index_node.full_title()
 
-    if not oref.index_node.has_children():
-        text = TextFamily(oref, pad=False, commentary=False)
+    def get_preview(prev_oref):
+        text = TextFamily(prev_oref, pad=False, commentary=False)
 
-        if oref.index_node.depth == 1:
+        if prev_oref.index_node.depth == 1:
             # Give deeper previews for texts with depth 1 (boring to look at otherwise)
             text.text, text.he = [[i] for i in text.text], [[i] for i in text.he]
         preview = text_preview(text.text, text.he) if (text.text or text.he) else []
-        response['preview'] = preview if isinstance(preview, list) else [preview]
+        return preview if isinstance(preview, list) else [preview]
+
+    if not oref.index_node.has_children():
+        response['preview'] = get_preview(oref)
+    elif oref.index_node.has_default_child():
+        r = oref.index_node.get_default_child().ref()  # Get ref through ref() to get default leaf node and avoid getting parent node
+        response['preview'] = get_preview(r)
 
     return jsonResponse(response, callback=request.GET.get("callback", None))
 

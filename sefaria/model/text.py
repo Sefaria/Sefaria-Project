@@ -19,7 +19,7 @@ except ImportError:
     import re
 
 from . import abstract as abst
-from schema import deserialize_tree, JaggedArrayNode, TitledTreeNode, AddressTalmud, TermSet, TitleGroup
+from schema import deserialize_tree, SchemaNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, TermSet, TitleGroup
 
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError
@@ -1383,19 +1383,19 @@ class RefCachingType(type):
                 return cls.__cache[tref]
             else:
                 result = super(RefCachingType, cls).__call__(*args, **kwargs)
-                if result.normal() in cls.__cache:
+                if result.uid() in cls.__cache:
                     #del result  #  Do we need this to keep memory clean?
-                    cls.__cache[tref] = cls.__cache[result.normal()]
-                    return cls.__cache[result.normal()]
-                cls.__cache[result.normal()] = result
+                    cls.__cache[tref] = cls.__cache[result.uid()]
+                    return cls.__cache[result.uid()]
+                cls.__cache[result.uid()] = result
                 cls.__cache[tref] = result
                 return result
         elif obj_arg:
             result = super(RefCachingType, cls).__call__(*args, **kwargs)
-            if result.normal() in cls.__cache:
+            if result.uid() in cls.__cache:
                 #del result  #  Do we need this to keep memory clean?
-                return cls.__cache[result.normal()]
-            cls.__cache[result.normal()] = result
+                return cls.__cache[result.uid()]
+            cls.__cache[result.uid()] = result
             return result
         else:  # Default.  Shouldn't be used.
             return super(RefCachingType, cls).__call__(*args, **kwargs)
@@ -1421,7 +1421,7 @@ class Ref(object):
         """
         Object is generally initialized with a textual reference - ``tref``
 
-        Internally, the _obj argument can be used to instancate a ref with a complete dict composing the Ref data
+        Internally, the _obj argument can be used to instantiate a ref with a complete dict composing the Ref data
         """
         self.index = None
         self.book = None
@@ -1504,7 +1504,7 @@ class Ref(object):
         match = library.all_titles_regex(self._lang, with_terms=True).match(base)
         if match:
             title = match.group('title')
-            self.index_node = library.get_schema_node(title, self._lang)
+            self.index_node = library.get_schema_node(title, self._lang)  # May be SchemaNode or JaggedArrayNode
 
             if not self.index_node:
                 # No Index node - Is this a term?
@@ -1519,14 +1519,17 @@ class Ref(object):
             if getattr(self.index_node, "checkFirst", None) and self.index_node.checkFirst.get(self._lang):
                 try:
                     check_node = library.get_schema_node(self.index_node.checkFirst[self._lang], self._lang)
+                    assert isinstance(check_node, JaggedArrayNode)  # Initially used with Mishnah records.  Assumes JaggedArray.
                     reg = check_node.full_regex(title, self._lang, strict=True)
                     self.sections = self.__get_sections(reg, base)
-                except InputError: # Regex doesn't work
+                except InputError:  # Regex doesn't work
                     pass
-                except AttributeError: # Can't find node for check_node
+                except AttributeError:  # Can't find node for check_node
                     pass
                 else:
                     self.index_node = check_node
+
+            assert isinstance(self.index_node, SchemaNode)
 
             self.index = self.index_node.index
             self.book = self.index_node.full_title("en")
@@ -1535,13 +1538,14 @@ class Ref(object):
             match = library.all_titles_regex(self._lang, commentary=True).match(base)
             if match:
                 title = match.group('title')
-                self.index_node = library.get_schema_node(title, with_commentary=True)
+                self.index_node = library.get_schema_node(title, with_commentary=True)  # May be SchemaNode or JaggedArrayNode
                 if not self.index_node:  # This may be a new version, try to build a schema node.
-                    on_node = library.get_schema_node(match.group('commentee'))
+                    on_node = library.get_schema_node(match.group('commentee'))  # May be SchemaNode or JaggedArrayNode
                     i = get_index(match.group('commentor') + " on " + on_node.index.title)
                     self.index_node = i.nodes.title_dict(self._lang).get(title)
                     if not self.index_node:
                         raise BookNameError(u"Can not find index record for {}".format(title))
+                assert isinstance(self.index_node, SchemaNode)
                 self.index = self.index_node.index
                 self.book = self.index_node.full_title("en")
                 if not self.index.is_commentary():
@@ -1563,7 +1567,7 @@ class Ref(object):
             return
 
         try:
-            reg = self.index_node.full_regex(title, self._lang)
+            reg = self.index_node.full_regex(title, self._lang)  # Try to treat this as a JaggedArray
         except AttributeError:
             matched = self.index_node.full_title(self._lang)
             msg = u"Partial reference match for '{}' - failed to find continuation for '{}'.\nValid continuations are:\n".format(self.tref, matched)
@@ -1605,7 +1609,7 @@ class Ref(object):
                     title = match.group('title')
                     alt_struct_node = self.index.get_alt_struct_node(title, self._lang)
 
-                    #Exact match alt structure node
+                    # Exact match alt structure node
                     if title == base:
                         new_tref = alt_struct_node.get_ref_from_sections([])
                         if new_tref:
@@ -2659,6 +2663,13 @@ class Ref(object):
 
         return self._he_normal
 
+    def uid(self):
+        """
+        To handle the fact that default nodes have the same name as their parents
+        :return:
+        """
+        return self.normal() + ("<d>" if self.index_node.is_default() else "")
+
     def normal(self):
         """
         :return string: Normal English string form
@@ -3075,6 +3086,7 @@ class Library(object):
     # do we want to move this to the schema node? We'd still have to pass the title...
     def get_regex_string(self, title, lang, for_js=False):
         node = self.get_schema_node(title, lang)
+        assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
         if lang == "en" or for_js:  # Javascript doesn't support look behinds.
             return node.full_regex(title, lang, for_js=for_js, match_range=for_js, compiled=False, anchored=(not for_js))
@@ -3100,6 +3112,7 @@ class Library(object):
         :return: Ref
         """
         node = self.get_schema_node(title, lang)
+        assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
         try:
             re_string = self.get_regex_string(title, lang)
@@ -3143,6 +3156,7 @@ class Library(object):
         :return: list of Refs
         """
         node = self.get_schema_node(title, lang)
+        assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
         refs = []
         try:

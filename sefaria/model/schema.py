@@ -217,6 +217,7 @@ class TreeNode(object):
     """
     A single node in a tree.
     These trees are hierarchies - each node can have 1 or 0 parents.
+    In this class, node relationships, node navigation, and general serialization are handled.
     """
     required_param_keys = []
     optional_param_keys = []
@@ -365,7 +366,6 @@ class TreeNode(object):
             d["nodeType"] = self.__class__.__name__
             d.update(params)
 
-
         return d
 
     def copy(self, callback=None):
@@ -484,7 +484,9 @@ class TitledTreeNode(TreeNode):
         :return string: The full title of this node, from the root node.
         """
         if not self._full_title.get(lang):
-            if self.parent:
+            if self.is_default():
+                self._full_title[lang] = self.parent.full_title(lang)
+            elif self.parent:
                 self._full_title[lang] = self.parent.full_title(lang) + ", " + self.primary_title(lang)
             else:
                 self._full_title[lang] = self.primary_title(lang)
@@ -497,6 +499,15 @@ class TitledTreeNode(TreeNode):
         """
         return self.default
 
+    def has_default_child(self):
+        return any([c for c in self.children if c.is_default()])
+
+    def get_default_child(self):
+        for child in self.children:
+            if child.is_default():
+                return child
+        return None
+
     def has_titled_continuation(self):
         """
         :return: True if any normal forms of this node continue with a title.  Used in regex building.
@@ -506,7 +517,7 @@ class TitledTreeNode(TreeNode):
     def has_numeric_continuation(self):
         """
         True if any of the normal forms of this node continue with numbers.  Used in regex building.
-        Overriden in subclasses.
+        Overridden in subclasses.
         :return:
         """
         #overidden in subclasses

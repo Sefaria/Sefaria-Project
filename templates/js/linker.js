@@ -241,7 +241,9 @@
                         });
                     }
                 }
-
+                if (ns.matches.length == 0) {
+                    return;
+                }
                 atomic.get(base_url + "api/bulktext/" + ns.matches.join("|"))
                     .success(function (data, xhr) {
                         //Put text data into sefaria.sources
