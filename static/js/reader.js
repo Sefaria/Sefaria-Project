@@ -157,7 +157,7 @@ sjs.Init.handlers = function() {
 		$(".zipBox").hide();
 		$(".navBack").hide();
 		$(".navBox").show();
-		$("#lexiconModal").remove();
+		sjs.lexicon.reset();
 
 		lowlightOff();
 		sjs.selected = null;
@@ -369,7 +369,6 @@ sjs.Init.handlers = function() {
 		sjs._$sourcesWrapper.html(sourcesHtml(sjs.current.commentary, start, end));
 	}
 
-	//TODO: Add handling for the lexicon param. 
 
 	// --------- Switching Sidebar views (Sheet / Notes / Layers) ---------------
 	sjs.switchSidebarMode = function(e) {
@@ -1161,72 +1160,6 @@ $(function() {
 		}
 	});
 
-	// ----------------- Lexicon --------------------------
-	sjs.getLexiconLookup = function(e){
-		$("#lexiconModal").remove();
-		console.log($(this).text())
-		var word = $(this).text();
-		var $anchor = $(this);
-		$.getJSON("/api/words/" + word).done(function(data){
-			console.log(data);
-			var $html = $('<div id="lexicon-results">');
-			$('<h6>'+word+'</h6>').appendTo($html);
-			if("error" in data){
-				$html.append('<span>'+ data.error + '</span>')
-			}
-			for(var i=0; i<data.length; i++) {
-				$entry = $('<div class="entry">');
-				$entry.append('<div class="headword">' + data[i]['headword'] + '</div>');
-				$entry.append('<div class="definition">' + data[i]['content']['definition'] + '</div>');
-				$entry.appendTo($html);
-			}
-			var $modal = $('<div id="lexiconModal">').append($html).appendTo("body");
-			$modal.position({my: "center top", at: "center bottom", of: $anchor})
-				.click(function(e){ e.stopPropagation(); });
-
-		});
-
-	}
-
-
-	sjs.makeLexicon = function(e) {
-		$("#lexiconModal").remove();
-		var word = $(this).text();
-		var $anchor = $(this);
-		$.getJSON("/api/words/" + word, function(data) {
-			var html = "<div id='lexiconModal'>";
-			if (data.length == 0) {
-				html += "<i>?</i>";
-				setTimeout(function() {
-					$("#lexiconModal").remove();
-				}, 400);
-			}
-			for (var i = 0; i < data.length; i++) {
-				var entry = data[i];
-				html += "<div class='entry'>" +
-						"<div class='word'>" + entry.term + "</div>";
-				for (var j = 0; j < entry.senses.length; j++) {
-					var sense = entry.senses[j];
-					html += "<div class='sense'>" +
-						"<div class='definition'><span class='pos'>[" + sense.pos + "]</span> "
-							 + sense.definition + "</div>" +
-						(sense.source === "CAL Lexicon" ? "<a href='http://www.dukhrana.com/lexicon/Jastrow/page.php?p=" + sense.jastrow_page + "' target='_blank'>" +
-							"Jastrow<span class='ui-icon ui-icon-extlink'></span></a>" : "") +
-						"</div>";			 
-				}
-				html += (sense.source === "CAL Lexicon" ? "<i class='definitionSource'>Definitions courtesry of <a href='http://cal1.cn.huc.edu/browseheaders.php?first3=" + entry.term + "' target='_blank'>" +
-							"CAL Project</a></i>" : "" );
-				html += "</div>";
-			}
-			html += "</div>";
-			console.log(html);
-			$(html).appendTo("body");
-			$("#lexiconModal").position({my: "center top", at: "center bottom", of: $anchor})
-				.click(function(e){ e.stopPropagation(); });
-		});
-	}
-	$(document).on("click", ".lexiconLink", sjs.getLexiconLookup);
-
 
 	// --------------- Locking Texts --------------------
 
@@ -1306,11 +1239,158 @@ $(function() {
 
 	// Delete an Index
 	$(document).on("click", "#deleteText", sjs.deleteTextButtonHandler);		
-
+	sjs.lexicon.init();
 
 }); // ---------------- End DOM Ready --------------------------
 
 
+/************************ LEXICON **********************************************/
+sjs.lexicon = {
+
+	enabledCategories : {
+		'en' :  ['Mishnah'],
+		'he' : ['Tanach']
+	},
+
+	//----------------------- INIT --------------------------------
+
+	init: function(){
+		sjs.lexicon.reset();
+		$(document).on("click", ".lexiconLink", sjs.lexicon.getLexiconLookup);
+	},
+
+	reset: function(){
+		$("#lexiconModal").remove();
+	},
+
+	// ---------------------preparation functions--------------------------
+	isLexiconEnabled: function (currentText, lang, params){
+		console.log(currentText);
+		return params['url_enabled'] && sjs.lexicon.enabledCategories[lang].indexOf(currentText.categories[0]) > -1
+	},
+
+
+	wrapHebArcLexiconLookups : function (text) {
+		// Wraps words in text with a tags
+		// to online Aramaic dictionary
+		if (typeof text !== "string") {
+			return text;
+		}
+		wrapped = "";
+		words = text.split(/[ ]+/);
+		for (var i = 0; i < words.length; i++ ) {
+			wrapped += "<span class='lexiconLink'>" + words[i] + "</span> ";
+		}
+		return wrapped;
+	},
+
+
+	wrapEngLexiconLookups : function (text) {
+		// Wraps words in text with a tags
+		// to lexicon links
+		if (typeof text !== "string") {
+			return text;
+		}
+		var parsedText = $("<p>").html(text);
+		parsedText.find('i').wrap("<span class='lexiconLink'></span>");
+		return parsedText.html();
+	},
+
+	// ----------------- Lexicon lookup--------------------------
+	getLexiconLookup : function(e){
+		e.stopPropagation();
+		$("#lexiconModal").remove();
+		console.log($(this).text())
+		var word = $(this).text();
+		var $anchor = $(this);
+		$.getJSON("/api/words/" + word).done(function(data){
+			console.log(data);
+			$html = sjs.lexicon.renderLexiconLookup(data, word);
+			var $modal = $('<div id="lexiconModal">').append($html).appendTo("body");
+			$modal.position({my: "center top", at: "center bottom", of: $anchor})
+				.click(function(e){ e.stopPropagation(); });
+
+		});
+
+	},
+
+	//--------------------- formatting ----------------------------
+
+	renderLexiconLookup: function(data, word){
+		var $html = $('<div id="lexicon-results">');
+		$('<h6>'+word+'</h6>').appendTo($html);
+		if("error" in data){
+			return $html.append('<span>'+ data.error + '</span>')
+		}
+		for(var i=0; i<data.length; i++) {
+			$entry = $('<div class="entry">');
+			$entry.append('<div class="headword">' + data[i]['headword'] + '</div>');
+			$entry.append('<ul class="definition">' + sjs.lexicon.renderLexiconEntrySenses(data[i]['content']) + '</ul>');
+			$entry.appendTo($html);
+		}
+		return $html;
+	},
+
+	renderLexiconEntrySenses: function(content){
+		var html = ''
+		html += '<li class="sense">';
+		if('grammar' in content){
+			 html += '('+ content['grammar']['verbal_stem'] + ') '
+		}
+		if('definition' in content){
+			 html += content['definition']
+		}
+		if('senses' in content){
+			html += '<ul class="senses">';
+			for(var i= 0; i< content['senses'].length; i++) { //recursion
+				html += sjs.lexicon.renderLexiconEntrySenses(content['senses'][i]);
+			}
+			html += '</ul>'
+		}
+		html += '</li>';
+		return html;
+	},
+
+	makeLexicon : function(e) {
+		e.stopPropagation();
+		$("#lexiconModal").remove();
+		var word = $(this).text();
+		var $anchor = $(this);
+		$.getJSON("/api/words/" + word, function(data) {
+			var html = "<div id='lexiconModal'>";
+			if (data.length == 0) {
+				html += "<i>?</i>";
+				setTimeout(function() {
+					$("#lexiconModal").remove();
+				}, 400);
+			}
+			for (var i = 0; i < data.length; i++) {
+				var entry = data[i];
+				html += "<div class='entry'>" +
+						"<div class='word'>" + entry.term + "</div>";
+				for (var j = 0; j < entry.senses.length; j++) {
+					var sense = entry.senses[j];
+					html += "<div class='sense'>" +
+						"<div class='definition'><span class='pos'>[" + sense.pos + "]</span> "
+							 + sense.definition + "</div>" +
+						(sense.source === "CAL Lexicon" ? "<a href='http://www.dukhrana.com/lexicon/Jastrow/page.php?p=" + sense.jastrow_page + "' target='_blank'>" +
+							"Jastrow<span class='ui-icon ui-icon-extlink'></span></a>" : "") +
+						"</div>";
+				}
+				html += (sense.source === "CAL Lexicon" ? "<i class='definitionSource'>Definitions courtesry of <a href='http://cal1.cn.huc.edu/browseheaders.php?first3=" + entry.term + "' target='_blank'>" +
+							"CAL Project</a></i>" : "" );
+				html += "</div>";
+			}
+			html += "</div>";
+			console.log(html);
+			$(html).appendTo("body");
+			$("#lexiconModal").position({my: "center top", at: "center bottom", of: $anchor})
+				.click(function(e){ e.stopPropagation(); });
+		});
+	},
+}
+
+/*************************************** end lexicon **********************************************/
 
 sjs.bind = {
 	// Beginning to pull all event bindings into one place here
@@ -1765,6 +1845,10 @@ function basetextHtml(en, he, prefix, alts, sectionName) {
 	he.pad(length, "");
 
     var highlighted = false;
+	var lexicon_enabled ={ 'en' : sjs.lexicon.isLexiconEnabled(sjs.current, 'en', {'url_enabled': 'lexicon' in getUrlVars()}),
+							'he' : sjs.lexicon.isLexiconEnabled(sjs.current, 'he', {'url_enabled': 'lexicon' in getUrlVars()})};
+	console.log(lexicon_enabled);
+
     if (sjs.current.new_preferred_version && sjs.current.query_highlight) {
         highlighted = true;
         var highlight_lang = sjs.current.new_preferred_version.lang;
@@ -1789,13 +1873,13 @@ function basetextHtml(en, he, prefix, alts, sectionName) {
         }
         var enButton = "<div class='btn addThis' data-lang='en' data-num='" + (i+1) +"'>" +
 			"Add English for " + sectionName +  " " + (i+1) + "</div>";
-		var enText = ('lexicon' in getUrlVars() ? sjs.wrapEngLexiconLookups(sjs.wrapRefLinks(en[i])) : sjs.wrapRefLinks(en[i])) || enButton;
+		var enText = (lexicon_enabled['en'] ? sjs.lexicon.wrapEngLexiconLookups(sjs.wrapRefLinks(en[i])) : sjs.wrapRefLinks(en[i])) || enButton;
 		var enClass = en[i] ? "en" : "en empty";
 
 		var heButton = "<div class='btn addThis' data-lang='he' data-num='"+ (i+1) + "'>" +
 			"Add Hebrew for " + sectionName + " " + (i+1) + "</div>";
 
-		var heText =  (sjs.current.categories[0] === "Talmud" && 'lexicon' in getUrlVars() ? sjs.wrapAramaicWords(he[i]) : he[i]) || heButton;
+		var heText =  (lexicon_enabled['he'] ? sjs.lexicon.wrapHebArcLexiconLookups(he[i]) : he[i]) || heButton;
 		var heClass = he[i] ? "he" : "he empty";
 
 		var n = prefix + (i+1);

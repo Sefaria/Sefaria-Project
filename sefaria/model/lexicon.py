@@ -2,7 +2,7 @@
 translation_request.py
 Writes to MongoDB Collection:
 """
-
+import re
 from . import abstract as abst
 from . import text
 from . import history
@@ -15,6 +15,7 @@ class Lookup(object):
 
 
 class WordForm(abst.AbstractMongoRecord):
+
     collection = 'word_form'
     required_attrs = [
         "form",
@@ -28,7 +29,7 @@ class WordForm(abst.AbstractMongoRecord):
     ]
 
     def load(self, query, proj=None):
-        if 'form' in query:
+        if 'form' in query and isinstance(query['form'], basestring):
             query['form'] = {"$regex" : "^"+query['form']+"$", "$options": "i"}
         return super(WordForm, self).load(query, proj=None)
 

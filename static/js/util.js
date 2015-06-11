@@ -1283,32 +1283,6 @@ sjs.sheetTagger = {
 	}
 };
 
-sjs.wrapAramaicWords = function (text) {
-	// Wraps words in text with a tags
-	// to online Aramaic dictionary
-	if (typeof text !== "string") {
-		return text;
-	}
-	wrapped = "";
-	words = text.split(/ +/);
-	for (var i = 0; i < words.length; i++ ) {
-		wrapped += "<span class='lexiconLink'>" + words[i] + "</span> ";
-	}
-	return wrapped;
-}
-
-
-sjs.wrapEngLexiconLookups = function (text) {
-	// Wraps words in text with a tags
-	// to lexicon links
-	if (typeof text !== "string") {
-		return text;
-	}
-	var parsedText = $("<p>").html(text);
-	parsedText.find('i').wrap("<span class='lexiconLink'></span>");
-	return parsedText.html();
-}
-
 
 sjs._parseRef = {};
 function parseRef(q) {
@@ -1331,7 +1305,7 @@ function parseRef(q) {
 	
 	for (var i = first.length; i >= 0; i--) {
 		var book   = first.slice(0, i);
-		console.log(book);
+		//console.log(book);
 		var bookOn = book.split(" on ");
 		if (book in sjs.booksDict || 
 			(bookOn.length == 2 && bookOn[0] in sjs.booksDict && bookOn[1] in sjs.booksDict)) { 
