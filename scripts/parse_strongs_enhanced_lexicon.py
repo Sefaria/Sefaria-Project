@@ -152,21 +152,22 @@ class WLCStrongWordFormBookParser(object):
 
                     word_form_text = self._make_vowel_text(self._strip_wlc_morph_notation(word.text))
                     strong_number = self._extract_strong_number(word.get('lemma'))
-                    if compare_mode:
-                        self.compare_word_forms(word_form_text, strong_number)
-                    else:
-                        self.parse_word_forms(word_form_text, strong_number, verse_ref)
+                    if strong_number:
+                        if compare_mode:
+                            self.compare_word_forms(word_form_text, strong_number)
+                        else:
+                            self.parse_word_forms(word_form_text, strong_number, verse_ref)
 
     def parse_word_forms(self, word_form_text, strong_number, verse_ref):
         strong_entry = StrongsDictionaryEntry().load({'strong_number': strong_number})
         if strong_entry:
             #first look to see if we have an exact word form mapping already
             word_form_obj = WordForm().load({'form': word_form_text,
-                                                'language_code' : strong_entry.language_code,
-                                                'lookups': {
-                                                    "headword" : strong_entry.headword,
-                                                    "lexicon" : "BDB Augmented Strong"
-                                            }})
+                                             'language_code' : strong_entry.language_code,
+                                             'lookups': {
+                                                 "headword" : strong_entry.headword,
+                                                 "lexicon" : "BDB Augmented Strong"
+                                             }})
             if not word_form_obj: #else, look for just the form
                 word_form_obj = WordForm().load({'form': word_form_text, 'language_code' : strong_entry.language_code})
                 if word_form_obj:
