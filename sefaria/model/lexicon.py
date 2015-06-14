@@ -10,10 +10,6 @@ from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
 
-class Lookup(object):
-    pass
-
-
 class WordForm(abst.AbstractMongoRecord):
 
     collection = 'word_form'
@@ -50,7 +46,6 @@ class Lexicon(abst.AbstractMongoRecord):
         'source'
     ]
 
-
 class Dictionary(Lexicon):
     pass
 
@@ -81,7 +76,36 @@ class StrongsDictionaryEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["strong_number"]
 
 
+class LexiconEntrySubClassMapping(object):
+    lexicon_class_map = {
+        'BDB Augmented Strong' : StrongsDictionaryEntry,
+    }
+
+    @classmethod
+    def class_factory(cls, name):
+        if name in cls.lexicon_class_map:
+            return cls.lexicon_class_map[name]
+        else:
+            return LexiconEntry
+
+    @classmethod
+    def instance_factory(cls, name, attrs=None):
+        return cls.class_factory(name)(attrs)
+
+    @classmethod
+    def instance_from_record_factory(cls, record):
+        return cls.instance_factory(record['parent_lexicon'], record)
+
+
+
 class LexiconEntrySet(abst.AbstractMongoSet):
     recordClass = LexiconEntry
+
+    def _read_records(self):
+        if self.records is None:
+            self.records = []
+            for rec in self.raw_records:
+                self.records.append(LexiconEntrySubClassMapping.instance_from_record_factory(rec))
+            self.max = len(self.records)
 
 

@@ -1309,7 +1309,7 @@ sjs.lexicon = {
 		var word = $(this).text();
 		var $anchor = $(this);
 		$.getJSON("/api/words/" + word).done(function(data){
-			//console.log(data);
+			console.log(data);
 			$html = sjs.lexicon.renderLexiconLookup(data, word);
 			var $modal = $('<div id="lexiconModal">').append($html).appendTo("body");
 			$modal.position({my: "center top", at: "center bottom", of: $anchor, collision: 'flipfit flipfit'})

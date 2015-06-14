@@ -331,17 +331,20 @@ class StrongHebrewGLexiconXMLParser(object):
 if __name__ == '__main__':
     print "INIT LEXICON"
     #os.chdir(os.path.dirname(sys.argv[0]))
-    #parser = argparse.ArgumentParser()
-    #parser.add_argument("title", help="title of existing index record")
-    #parser.add_argument("schema_file", help="path to json schema file")
-    #parser.add_argument("mapping_file", help="title of existing index record")
-    #args = parser.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-l", "--lexicon", help="Parse lexicon",
+                    action="store_true")
+    parser.add_argument("-w", "--wordform", help="Parse word forms",
+                    action="store_true")
+    args = parser.parse_args()
 
-    print "parse lexicon"
-    #strongparser = StrongHebrewGLexiconXMLParser()
-    #strongparser.parse_contents()
 
-    print 'parsing word forms from wlc'
-    wordformparser = WLCStrongParser(True)
-    wordformparser.parse_forms_in_books()
+    if args.lexicon:
+        print "parse lexicon"
+        strongparser = StrongHebrewGLexiconXMLParser()
+        strongparser.parse_contents()
+    if args.wordform:
+        print 'parsing word forms from wlc'
+        wordformparser = WLCStrongParser(True)
+        wordformparser.parse_forms_in_books()
 
