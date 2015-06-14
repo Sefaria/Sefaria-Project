@@ -1801,7 +1801,7 @@ function basetextHtml(en, he, prefix, alts, sectionName) {
 		var n = prefix + (i+1);
 
         var alts_html = "";
-        if(alts[i]) {
+        if(alts && alts.length > i && alts[i]) {
             alts_html += "<div class='alts_group" + (("whole" in alts[i]) ? " whole":"") +"'>";
             for(var k = 0; k < alts[i]["he"].length; k++) {
                 alts_html += "<span class='alt_title he'>" + alts[i]["he"][k] + "</span>";
