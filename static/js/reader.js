@@ -1252,6 +1252,8 @@ sjs.lexicon = {
 		'he' : ['Tanach']
 	},
 
+	enabledTexts : {}, //TODO: if we want a more specific activation mechanism, we might need to store info server side.
+
 	//----------------------- INIT --------------------------------
 
 	init: function(){
@@ -1307,10 +1309,10 @@ sjs.lexicon = {
 		var word = $(this).text();
 		var $anchor = $(this);
 		$.getJSON("/api/words/" + word).done(function(data){
-			console.log(data);
+			//console.log(data);
 			$html = sjs.lexicon.renderLexiconLookup(data, word);
 			var $modal = $('<div id="lexiconModal">').append($html).appendTo("body");
-			$modal.position({my: "center top", at: "center bottom", of: $anchor})
+			$modal.position({my: "center top", at: "center bottom", of: $anchor, collision: 'flipfit flipfit'})
 				.click(function(e){ e.stopPropagation(); });
 
 		});
