@@ -567,6 +567,8 @@ def index_api(request, title, v2=False, raw=False):
             node = library.get_schema_node(title)  # If the request were for v1 and fails, this falls back to v2.
             if not node:
                 raise e
+            if node.is_default():
+                node = node.parent
             i = node.as_index_contents()
 
         return jsonResponse(i, callback=request.GET.get("callback", None))

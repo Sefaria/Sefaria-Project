@@ -1595,13 +1595,30 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 					sjs.ref.index = data;
 					var variantsRe = "(" + data.titleVariants.join("|") + ")";
 					$ok.addClass("inactive");
+                    var hasDefault = false;
+
+                    // If there's a default node, copy section info from default node to parent
+                    if (data.schema
+                        && data.schema.nodes
+                        && data.schema.nodes.some(function(e) { return e.default; }) // test for default child
+                    ) {
+                        hasDefault = true;
+                        var sn = new sjs.SchemaNode(data.schema);
+                        var defNode = sn.get_default_child();
+                        data.sectionNames = defNode.sectionNames;
+                    }
 
                     // ------- Intermediate node of complex text ---
-                    if (data.schema && data.schema.nodes) {
-							sjs.ref.tests.push(
-								{test: new RegExp("^" + variantsRe + ",? ?$", "i"),
-								 msg: "Enter a section of " + data.title,
-								 action: "pass"});
+                    if (data.schema
+                        && data.schema.nodes
+                        && !hasDefault // test for default child - allow numbered continuation
+                    ) {
+                        sjs.ref.tests.push(
+                            {test: new RegExp("^" + variantsRe + ",? ?$", "i"),
+                             msg: "Enter a section of " + data.title,
+                             action: "pass"});
+
+
 
                     // ------- Commetator Name Entered -------------
                     } else if (data.categories[0] == "Commentary") {
