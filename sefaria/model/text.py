@@ -1151,6 +1151,7 @@ class TextFamily(object):
         :param alts: Adds notes of where alt elements begin
         :return:
         """
+
         oref                = oref.padded_ref() if pad else oref
         self.ref            = oref.normal()
         self.heRef          = oref.he_normal()
@@ -1898,6 +1899,20 @@ class Ref(object):
             "sections": self.sections[:],
             "toSections": self.toSections[:]
         }
+
+    def has_default_child(self):
+        return self.index_node.has_default_child()
+
+    def default_child_ref(self):
+        """
+        Return ref to the default node underneath this node
+        :return:
+        """
+        if not self.has_default_child():
+            return self
+        d = self._core_dict()
+        d["index_node"] = self.index_node.get_default_child()
+        return Ref(_obj=d)
 
     def surrounding_ref(self, size=1):
         """

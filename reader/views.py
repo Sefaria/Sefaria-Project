@@ -453,8 +453,12 @@ def texts_api(request, tref, lang=None, version=None):
         layer_name = request.GET.get("layer", None)
         alts       = bool(int(request.GET.get("alts", True)))
 
-        #text = get_text(tref, version=version, lang=lang, commentary=commentary, context=context, pad=pad)
-        text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
+        try:
+            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
+        except AttributeError as e:
+            oref = oref.default_child_ref()
+            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
+
 
         # Use a padded ref for calculating next and prev
         # TODO: what if pad is false and the ref is of an entire book?
@@ -483,6 +487,8 @@ def texts_api(request, tref, lang=None, version=None):
         j = request.POST.get("json")
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
+
+        oref = oref.default_child_ref()  # Make sure we're on the textual child
 
         # Parameters to suppress some costly operations after save
         count_after = int(request.GET.get("count_after", 1))
