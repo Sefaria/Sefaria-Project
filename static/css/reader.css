@@ -948,27 +948,113 @@ body.newText #newTextCompare {
 #lexiconModal {
 	position: absolute;
 	z-index: 100;
-	background: white;
+	background-color: #AFAFAF;
 	border-radius: 4px;
 	border: 1px solid #666;
 	padding: 8px 12px;
-	width: 10%;
+	min-width: 10%;
+	max-width: 25%;
+	max-height: 25%;
+	box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.5);
+	transition: opacity 0.5s linear;
+	background-clip: padding-box;
+	overflow-y: auto;
+}
+
+#lexiconModal::-webkit-scrollbar-track {
+      background-color: #b46868;
+} /* the new scrollbar will have a flat appearance with the set background color */
+
+#lexiconModal::-webkit-scrollbar-thumb {
+      background-color: rgba(0, 0, 0, 0.2);
+} /* this will style the thumb, ignoring the track */
+
+#lexiconModal::-webkit-scrollbar-button {
+      background-color: #7c2929;
+} /* optionally, you can style the top and the bottom buttons (left and right for horizontal bars) */
+
+#lexiconModal::-webkit-scrollbar-corner {
+      background-color: black;
+} /*
+
+/*#lexiconModal:before, #lexiconModal:after {
+	content: "";
+	position: absolute;
+	background-color: #AFAFAF;
+	border-left: 10px solid transparent;
+	border-right: 10px solid transparent;
+	bottom: 100%;
+	left: 50%;
+	margin-left: -10px;
+}
+
+#lexiconModal:before{
+	border-top: 10px solid rgba(0, 0, 0, 0.5);
+	margin-top: 5px;
+}
+
+#lexiconModal:after{
+	border-top: 10px solid #DDD;
+	margin-top: -2px;
+	z-index: 1;
+}*/
+
+#lexicon-results{
+	/*overflow-y:scroll;*/
+}
+
+#lexicon-results h4{
+	font-size: 1.2em;
+	margin: 1px 1px 1px 1px;
+}
+
+#lexicon-results .entry{
+
 }
 
 #lexiconModal .word {
 	font-weight: bold;
 }
 
-.entry + .entry {
+#lexicon-results .entry + #lexicon-results .entry {
 	margin-top: 3px;
-	padding-top: 9px;
+	padding-top: 3px;
 	border-top: 1px solid #eee;
 }
 
-.sense + .sense {
+#lexicon-results .entry .headword{
+	font-weight: bold;
+}
+
+#lexicon-results .entry .definition{
+	font-size: 0.9em;
+}
+
+#lexicon-results ol {
+	list-style-position: inside;
+}
+
+#lexicon-results .entry .definition li.sense{
+	margin-left: 15px;
+	/*padding-left: 2px;*/
+	/*margin: 0;*/
+}
+
+#lexicon-results .entry .definition ol.senses{
+	/*list-style-type: none;*/
+	padding-left: 15px;
+}
+
+#lexicon-results .entry ol.definition {
+	list-style-type: none;
+	margin-top: 2px;
+	padding-left: 0px;
+}
+
+/*.sense + .sense {
 	margin-top: 3px;
 	padding-top: 3px;
-	border-top: 1px solid #eee;}
+	border-top: 1px solid #eee;}*/
 
 #lexiconModal .pos { 
 	font-size: 12px;
@@ -979,8 +1065,8 @@ body.newText #newTextCompare {
 	font-size: 12px;
 }
 
-#lexiconModal .definitionSource {
-	font-size: 12px;
+/*#lexiconModal .definitionSource {
+	font-size: 12px;*/
 }
 .refLink:hover {
 	text-decoration: underline;

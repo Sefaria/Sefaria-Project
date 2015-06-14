@@ -1277,10 +1277,13 @@ sjs.lexicon = {
 			return text;
 		}
 		wrapped = "";
-		words = text.split(/[ ]+/);
-		for (var i = 0; i < words.length; i++ ) {
+		//words = text.split(/[ ]+/);
+		//regex to match hebrew, but not spaces, colons, maqqaf or parshiya indicator (פ) or (ס)
+		var regexs = /([\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05f4]+)(?!\))/g;
+		wrapped = text.replace(regexs, "<span class='lexiconLink'>$1</span>")
+		/*for (var i = 0; i < words.length; i++ ) {
 			wrapped += "<span class='lexiconLink'>" + words[i] + "</span> ";
-		}
+		}*/
 		return wrapped;
 	},
 
@@ -1318,14 +1321,18 @@ sjs.lexicon = {
 
 	renderLexiconLookup: function(data, word){
 		var $html = $('<div id="lexicon-results">');
-		$('<h6>'+word+'</h6>').appendTo($html);
+		$('<h4>'+word+'</h4>').appendTo($html);
 		if("error" in data){
 			return $html.append('<span>'+ data.error + '</span>')
 		}
 		for(var i=0; i<data.length; i++) {
 			$entry = $('<div class="entry">');
-			$entry.append('<div class="headword">' + data[i]['headword'] + '</div>');
-			$entry.append('<ul class="definition">' + sjs.lexicon.renderLexiconEntrySenses(data[i]['content']) + '</ul>');
+			entryHeadStr =  '<span class="headword">'+data[i]['headword']+'</span>';
+			if('morphology' in data[i]['content']){
+				entryHeadStr += '<span class="morphology"><em> ('+ data[i]['content']['morphology'] + ') </em></span>'
+			}
+			$entry.append('<div class="headword">' + entryHeadStr + '</div>');
+			$entry.append('<ol class="definition">' + sjs.lexicon.renderLexiconEntrySenses(data[i]['content']) + '</ol>');
 			$entry.appendTo($html);
 		}
 		return $html;
@@ -1341,17 +1348,58 @@ sjs.lexicon = {
 			 html += content['definition']
 		}
 		if('senses' in content){
-			html += '<ul class="senses">';
+			html += '<ol class="senses">';
 			for(var i= 0; i< content['senses'].length; i++) { //recursion
 				html += sjs.lexicon.renderLexiconEntrySenses(content['senses'][i]);
 			}
-			html += '</ul>'
+			html += '</ol>'
 		}
 		html += '</li>';
 		return html;
 	},
+	//TODO: complete this
+	expandMorphCodes: function(code){
+		var code_map = {
+			"n-m":'Noun m.',
+			"n-pr-m": 'Noun, Private m.',
+			"v": 'verb',
+			"n-f": 'Noun f.',
+			"n-pr-loc": 'Noun, Private, location',
+			"inj": '',
+			"n-pr-f": 'Noun, Private f.',
+			"a-m": '',
+			"a": '',
+			"adv": '',
+			"n": '',
+			"conj": '',
+			"prt": '',
+			"n-pr": '',
+			"np": '',
+			"d": '',
+			"prep": '',
+			"p":'' ,
+			"n-pr-loc n-pr-m": '',
+			"n-pr-m n-m": '',
+			"n-pr-m n-pr-loc": '',
+			"a n-pr-m": '',
+			"r": '',
+			"n-pr-m a": '',
+			"n-m n-pr-m": '',
+			"n-pr-m n-pr-f": '',
+			"dp": '',
+			"n-m-loc":'',
+			"n-pr-f n-pr-m":'',
+			"a-f":'',
+			"n-pr-m n-pr loc":'',
+			"n-pr-m n-pr-loc n-m":'',
+			"i":'',
+			"x":'',
+			"pron":'',
+			"n-pr-m m-pr-f" :''
+		}
+	},
 
-	makeLexicon : function(e) {
+	/*makeLexicon : function(e) {
 		e.stopPropagation();
 		$("#lexiconModal").remove();
 		var word = $(this).text();
@@ -1387,7 +1435,7 @@ sjs.lexicon = {
 			$("#lexiconModal").position({my: "center top", at: "center bottom", of: $anchor})
 				.click(function(e){ e.stopPropagation(); });
 		});
-	},
+	},*/
 }
 
 /*************************************** end lexicon **********************************************/
