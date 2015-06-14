@@ -2623,6 +2623,9 @@ class Ref(object):
         del d["title"]
         return d
 
+    def he_book(self):
+        return self.index.get_title(lang="he")
+
     def he_normal(self):
         """
         :return string: Normal Hebrew string form
