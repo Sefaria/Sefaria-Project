@@ -345,6 +345,6 @@ if __name__ == '__main__':
         strongparser.parse_contents()
     if args.wordform:
         print 'parsing word forms from wlc'
-        wordformparser = WLCStrongParser(True)
+        wordformparser = WLCStrongParser()
         wordformparser.parse_forms_in_books()
 
