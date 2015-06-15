@@ -1267,7 +1267,7 @@ sjs.lexicon = {
 
 	// ---------------------preparation functions--------------------------
 	isLexiconEnabled: function (currentText, lang, params){
-		console.log(currentText);
+		//console.log(currentText);
 		return params['url_enabled'] && sjs.lexicon.enabledCategories[lang].indexOf(currentText.categories[0]) > -1
 	},
 
@@ -1897,7 +1897,6 @@ function basetextHtml(en, he, prefix, alts, sectionName) {
     var highlighted = false;
 	var lexicon_enabled ={ 'en' : sjs.lexicon.isLexiconEnabled(sjs.current, 'en', {'url_enabled': 'lexicon' in getUrlVars()}),
 							'he' : sjs.lexicon.isLexiconEnabled(sjs.current, 'he', {'url_enabled': 'lexicon' in getUrlVars()})};
-	console.log(lexicon_enabled);
 
     if (sjs.current.new_preferred_version && sjs.current.query_highlight) {
         highlighted = true;
