@@ -253,7 +253,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             if d["categories"][0] == "Talmud":
                 node.addressTypes = ["Talmud", "Integer"]
                 if d["categories"][1] == "Bavli" and d.get("heTitle"):
-                    node.checkFirst = {"he": u"משנה" + " " + d.get("heTitle")}
+                    node.checkFirst = {
+                        "he": u"משנה" + " " + d.get("heTitle"),
+                        "en": "Mishnah " + d.get("title")
+                    }
             elif d["categories"][0] == "Mishnah":
                 node.addressTypes = ["Perek", "Mishnah"]
             else:
@@ -1520,13 +1523,24 @@ class Ref(object):
                 try:
                     check_node = library.get_schema_node(self.index_node.checkFirst[self._lang], self._lang)
                     reg = check_node.full_regex(title, self._lang, strict=True)
-                    self.sections = self.__get_sections(reg, base)
-                except InputError: # Regex doesn't work
+
+                    self.sections = self.__get_sections(reg, base, use_node=check_node)
+                except InputError:  # Regex doesn't work
                     pass
                 except AttributeError: # Can't find node for check_node
                     pass
                 else:
+                    old_index_node = self.index_node
+
                     self.index_node = check_node
+                    self.index = self.index_node.index
+                    self.book = self.index_node.full_title("en")
+
+                    try:
+                        self._validate()
+                    except InputError:  # created Ref doesn't validate, back it out
+                        self.index_node = old_index_node
+                        self.sections = []
 
             self.index = self.index_node.index
             self.book = self.index_node.full_title("en")
@@ -1655,17 +1669,18 @@ class Ref(object):
                     except (ValueError, IndexError):
                         raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
 
-    def __get_sections(self, reg, tref):
+    def __get_sections(self, reg, tref, use_node=None):
+        use_node = use_node or self.index_node
         sections = []
         ref_match = reg.match(tref)
         if not ref_match:
             raise InputError(u"Can not parse ref: {}".format(tref))
 
         gs = ref_match.groupdict()
-        for i in range(0, self.index_node.depth):
+        for i in range(0, use_node.depth):
             gname = u"a{}".format(i)
             if gs.get(gname) is not None:
-                sections.append(self.index_node._addressTypes[i].toNumber(self._lang, gs.get(gname)))
+                sections.append(use_node._addressTypes[i].toNumber(self._lang, gs.get(gname)))
         return sections
 
     def __parse_talmud_range(self, range_part):
