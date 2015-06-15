@@ -351,10 +351,12 @@ class Test_term_refs(object):
         assert Ref("Shemot") == Ref("Exodus")  # This behavior may change, if we spec it more carefully
 
 
-class Test_Mishnah_Forms(object):
+class Test_Ambiguous_Forms(object):
     def test_mishnah_check_first(self):
         assert Ref("Shabbat 8:7") == Ref('Mishnah Shabbat 8:7')
         assert Ref("Shabbat 28:7").normal() == u'Shabbat 28a:7'
+        assert Ref("Shabbat 7") == Ref("Shabbat 7a")
+        assert Ref("Shabbat 7a:1") != Ref("Shabbat 7:1")
 
 
 class Test_comparisons(object):
