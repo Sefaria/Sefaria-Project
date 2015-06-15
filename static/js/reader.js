@@ -1258,7 +1258,7 @@ sjs.lexicon = {
 
 	init: function(){
 		sjs.lexicon.reset();
-		$(document).on("click", ".lexiconLink", sjs.lexicon.getLexiconLookup);
+		$(document).on("dblclick", ".lexiconLink", sjs.lexicon.getLexiconLookup);
 	},
 
 	reset: function(){
