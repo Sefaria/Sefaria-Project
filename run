@@ -20,6 +20,7 @@ fi
 
 if [ $# -eq 1 ]; then
     python $script
-elif [ $# -eq 2 ]; then
-    python $script $2
+elif [ $# -ge 2 ]; then
+    passargs="${@:2}"
+    python $script $passargs
 fi
