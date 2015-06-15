@@ -1801,7 +1801,7 @@ function basetextHtml(en, he, prefix, alts, sectionName) {
 		var n = prefix + (i+1);
 
         var alts_html = "";
-        if(alts[i]) {
+        if(alts && alts.length > i && alts[i]) {
             alts_html += "<div class='alts_group" + (("whole" in alts[i]) ? " whole":"") +"'>";
             for(var k = 0; k < alts[i]["he"].length; k++) {
                 alts_html += "<span class='alt_title he'>" + alts[i]["he"][k] + "</span>";
@@ -1878,9 +1878,6 @@ function buildCommentary(commentary) {
 		} else {
 			if (!c.text.length && c.he) classStr = "heOnly";
 			if (!c.he.length && c.text) classStr = "enOnly";			
-			if (c.category === "Commentary" && c.commentator.match(" on ")) {
-				c.category = "Quoting Commentary";
-			}
 		}
 
 		// Set English / Hebrew Text

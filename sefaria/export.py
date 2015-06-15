@@ -17,7 +17,7 @@ import sefaria.model as model
 from sefaria.model.text import merge_texts
 from sefaria.utils.talmud import section_to_daf
 from sefaria.system.exceptions import InputError
-from summaries import order, get_toc
+from summaries import ORDER, get_toc
 from local_settings import SEFARIA_DATA_PATH
 from sefaria.system.database import db
 
@@ -32,7 +32,7 @@ def make_path(doc, format):
 	"""
 	Returns the full path and file name for exporting 'doc' in 'format'.
 	"""
-	if doc["categories"][0] not in order and doc["categories"][0] != "Commentary":
+	if doc["categories"][0] not in ORDER and doc["categories"][0] != "Commentary":
 		doc["categories"].insert(0, "Other")
 	path = "%s/export/%s/%s/%s/%s/%s.%s" % (SEFARIA_DATA_PATH,
 									 format,
