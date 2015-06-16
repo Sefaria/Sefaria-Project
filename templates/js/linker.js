@@ -228,6 +228,7 @@
                                 ns.matches.push(matched_ref);
 
                                 var node = document.createElement("a");
+                                node.target = "_blank";
                                 node.className = "sefaria-ref";
                                 node.href = base_url + matched_ref;
                                 node.setAttribute('data-ref', matched_ref);
@@ -255,7 +256,8 @@
                                 e.setAttribute('href',"");  // todo - unwrap the 'a' tag if there's an error in the ref
                                 return;
                             }
-                            e.setAttribute('href', base_url + ns.sources[e.getAttribute('data-ref')].url);
+                            var source = ns.sources[e.getAttribute('data-ref')];
+                            e.setAttribute('href', base_url + source.url + "?lang=" + (source.lang == "en"?"he-en":"he"));
                             if (mode == "popup-hover") {
                                 e.addEventListener('mouseover', function(event) {
                                     showPopup(this, mode);
