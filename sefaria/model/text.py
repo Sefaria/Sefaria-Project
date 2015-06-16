@@ -2989,12 +2989,15 @@ class Library(object):
     def get_indexes_in_category(self, category, include_commentary=False):
         """
         :param string category: Name of category
-        :param bool include_commentary:
+        :param bool include_commentary: If false, does not exludes records of Commentary and Targum
         :return: :class:`IndexSet` of :class:`Index` records in the specified category
         """
-        q = {"categories": category}
+
         if not include_commentary:
-            q["categories.0"] = {"$ne": "Commentary"}
+            q = {"$and": [{"categories": category}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Commentary2"}}, {"categories": {"$ne": "Targum"}}]}
+        else:
+            q = {"categories": category}
+
         return IndexSet(q).distinct("title")
 
     def get_commentator_titles(self, lang="en", with_variants=False):
