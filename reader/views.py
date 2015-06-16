@@ -23,7 +23,7 @@ from sefaria.history import text_history, get_maximal_collapsed_activity, top_co
 from sefaria.system.decorators import catch_error_as_json, catch_error_as_http
 from sefaria.workflows import *
 from sefaria.reviews import *
-from sefaria.summaries import get_toc, flatten_toc, get_or_make_summary_node
+from sefaria.summaries import get_toc, flatten_toc, get_or_make_summary_node, REORDER_RULES
 from sefaria.model import *
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 from sefaria.utils.users import user_link, user_started_text
@@ -394,9 +394,13 @@ def text_toc(request, oref):
             # Trust a flag if its set instead
             toc_html = toc_html.replace("heSome", "heAll")
 
+    index = index.contents(v2=True)
+    if index["categories"][0] in REORDER_RULES:
+        index["categories"] = REORDER_RULES[index["categories"][0]] + index["categories"][1:]
+
     return render_to_response('text_toc.html',
                              {
-                             "index":         index.contents(v2 = True),
+                             "index":         index,
                              "versions":      versions,
                              "commentaries":  commentaries,
                              "heComplete":    state.get_flag("heComplete"),
