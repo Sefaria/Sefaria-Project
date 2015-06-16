@@ -103,12 +103,6 @@ Some of the most important code is found in:
 - `sefaria/sheets.py` - backend for source sheets
 - `sefaria/model/` - Class based resource and logical models for almost all Sefaria data
 
-Some still used code that is on its way to being retired is found in:
-
-- `sefaria/history.py` - revision history for texts
-- `sefaria/texts.py` - backend core for manipulating texts
-
-
 ### Command Line Interface
 
 The shell script `cli` will invoke a python interpreter with the core models loaded, and can be used as a standalone interface to texts or for testing.
