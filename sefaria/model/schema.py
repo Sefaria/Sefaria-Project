@@ -695,7 +695,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
         reg = ur"^" if anchored else ""
         reg += regex.escape(title) + self.after_title_delimiter_re
         reg += ur'(?:(?:' + self.address_regex(lang, **kwargs) + ur')|(?:[\[({]' + self.address_regex(lang, **kwargs) + ur'[\])}]))'  # Match expressions with internal parenthesis around the address portion
-        reg += ur"(?=\W|$)" if not kwargs.get("for_js") else ur"(?=[.,:;?! })<]|$)"
+        reg += ur"(?=\W|$)" if not kwargs.get("for_js") else ur"(?=[.,:;?! })\]<]|$)"
         return regex.compile(reg, regex.VERBOSE) if compiled else reg
 
     def address_regex(self, lang, **kwargs):
