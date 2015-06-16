@@ -1041,13 +1041,18 @@ body.newText #newTextCompare {
 
 #lexicon-results .entry .definition li.sense{
 	margin-left: 15px;
-	/*padding-left: 2px;*/
+	padding: 0px;
 	/*margin: 0;*/
 }
 
 #lexicon-results .entry .definition ol.senses{
 	/*list-style-type: none;*/
-	padding-left: 15px;
+	padding-left: 0px;
+}
+
+#lexicon-results .entry .definition > li.sense{
+	/*list-style-type: none;*/
+	margin-left: 0px;
 }
 
 #lexicon-results .entry ol.definition {
