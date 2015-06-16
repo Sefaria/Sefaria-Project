@@ -1657,15 +1657,26 @@ class Ref(object):
 
         self.toSections = self.sections[:]
 
-        if self._lang == "en" and len(parts) == 2:  # we still don't support he ranges
-            if self.index_node.addressTypes[0] == "Talmud":
-                self.__parse_talmud_range(parts[1])
-            else:
-                range_part = re.split("[.:, ]+", parts[1])
-                delta = len(self.sections) - len(range_part)
+        if len(parts) == 2:
+            self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
+            if self._lang == "en":
+                if self.index_node.addressTypes[0] == "Talmud":
+                    self.__parse_talmud_range(parts[1])
+                else:
+                    range_parts = re.split("[.:, ]+", parts[1])
+                    delta = len(self.sections) - len(range_parts)
+                    for i in range(delta, len(self.sections)):
+                        try:
+                            self.toSections[i] = int(range_parts[i - delta])
+                        except (ValueError, IndexError):
+                            raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
+            elif self._lang == "he":     # in process. developing logic that should work for all languages / texts
+                # todo: handle sections names in "to" part.  Handle talmud יד א - ב kind of cases.
+                range_parts = re.split("[., ]+", parts[1])
+                delta = len(self.sections) - len(range_parts)
                 for i in range(delta, len(self.sections)):
                     try:
-                        self.toSections[i] = int(range_part[i - delta])
+                        self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang, range_parts[i - delta])
                     except (ValueError, IndexError):
                         raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
 
@@ -3105,7 +3116,7 @@ class Library(object):
                     [({]										# literal '(', brace,
                     [^})]*										# anything but a closing ) or brace
                 )
-                """ + regex.escape(title) + node.after_title_delimiter_re + node.address_regex(lang, for_js=for_js) + ur"""
+                """ + regex.escape(title) + node.after_title_delimiter_re + node.address_regex(lang, for_js=for_js, match_range=for_js) + ur"""
                 (?=												# look ahead for closing brace
                     [^({]*										# match of anything but an opening '(' or brace
                     [)}]										# zero-width: literal ')' or brace

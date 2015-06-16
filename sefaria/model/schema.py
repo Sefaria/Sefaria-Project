@@ -710,7 +710,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
                     reg += u"?"
 
         if kwargs.get("match_range"):
-            reg += ur"(?:-"  # maybe there's a dash and a range
+            reg += ur"(?:\s*-\s*"  # maybe there's a dash and a range
             group = "ar0" if not kwargs.get("for_js") else None
             reg += self._addressTypes[0].regex(lang, group, **kwargs)
             if not self._addressTypes[0].stop_parsing(lang):
