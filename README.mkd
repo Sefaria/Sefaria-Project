@@ -103,7 +103,7 @@ Some of the most important code is found in:
 - `sefaria/sheets.py` - backend for source sheets
 - `sefaria/model/` - Class based resource and logical models for almost all Sefaria data
 
-### Command Line Interface
+## Command Line Interface
 
 The shell script `cli` will invoke a python interpreter with the core models loaded, and can be used as a standalone interface to texts or for testing.
 
