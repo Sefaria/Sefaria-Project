@@ -266,12 +266,12 @@ def text_toc(request, oref):
             if depth == 0:
                 return ""
             linked = "linked" if node.is_leaf() and node.depth == 1 else ""
-            default = node.is_default()
+            default = "default" if node.is_default() else ""
             url = "/" + node.ref().url()
             en_icon = '<i class="schema-node-control fa ' + ('fa-angle-right' if linked else 'fa-angle-down') + '"></i>'
             he_icon = '<i class="schema-node-control fa ' + ('fa-angle-left' if linked else 'fa-angle-down') + '"></i>'
             html = '<a href="' + urlquote(url) + '"' if linked else "<div "
-            html += ' class="schema-node-toc depth' + str(depth) + ' ' + linked + '">'
+            html += ' class="schema-node-toc depth' + str(depth) + ' ' + linked + ' ' + default + '">'
             if not default:
                 html += '<span class="schema-node-title">'
                 html +=    '<span class="en">' + node.primary_title() + en_icon + '</span>'
