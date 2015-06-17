@@ -68,6 +68,7 @@ SECRET_KEY = ''
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
+    'django_mobile.loader.Loader',
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
 #     'django.template.loaders.eggs.Loader',
@@ -82,6 +83,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.tz",
     "django.contrib.messages.context_processors.messages",
     "django.core.context_processors.request",
+    "django_mobile.context_processors.flavour",
 	"sefaria.system.context_processors.global_settings",
 	"sefaria.system.context_processors.titles_json",
 	"sefaria.system.context_processors.toc",
@@ -99,7 +101,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django_mobile.middleware.MobileDetectionMiddleware',
     'sefaria.system.middleware.ProfileMiddleware',
+    'django_mobile.middleware.SetFlavourMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
 )
@@ -120,6 +124,7 @@ INSTALLED_APPS = (
     'emailusernames',
     'reader',
     'sheets',
+    'django_mobile',
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',

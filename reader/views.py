@@ -57,6 +57,9 @@ def reader(request, tref, lang=None, version=None):
         if uref and tref != uref:
             return reader_redirect(uref, lang, version)
 
+        if request.flavour == "mobile":
+            return s2(request, ref=tref)
+
         # Return Text TOC if this is a bare text title
         if (not getattr(oref.index_node, "depth", None)) or (oref.sections == [] and oref.index_node.depth > 1):
             return text_toc(request, oref)
