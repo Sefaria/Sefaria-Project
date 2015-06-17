@@ -221,10 +221,7 @@ def get_link_counts(cat1, cat2):
 
     queries = []
     for c in [cat1, cat2]:
-        if c == "Tanach" or c == "Torah" or c == "Prophets" or c == "Writings":
-            queries.append({"$and": [{"categories": c}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Targum"}}]})
-        else:
-            queries.append({"categories": c})
+        queries.append({"$and": [{"categories": c}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Commentary2"}}, {"categories": {"$ne": "Targum"}}]})
 
     titles = []
     for q in queries:
@@ -253,10 +250,7 @@ def get_book_category_linkset(book, cat):
     :param cat: String
     :return:
     """
-    if cat == "Tanach" or cat == "Torah" or cat == "Prophets" or cat == "Writings":
-        query = {"$and": [{"categories": cat}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Targum"}}]}
-    else:
-        query = {"categories": cat}
+    query = {"$and": [{"categories": cat}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Commentary2"}}, {"categories": {"$ne": "Targum"}}]}
 
     titles = text.IndexSet(query).distinct("title")
     if len(titles) == 0:
