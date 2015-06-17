@@ -1331,7 +1331,6 @@ function parseRef(q) {
 	
 	for (var i = first.length; i >= 0; i--) {
 		var book   = first.slice(0, i);
-		console.log(book);
 		var bookOn = book.split(" on ");
 		if (book in sjs.booksDict || 
 			(bookOn.length == 2 && bookOn[0] in sjs.booksDict && bookOn[1] in sjs.booksDict)) { 
