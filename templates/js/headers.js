@@ -294,6 +294,7 @@
                     "</div></div>";
 			} else {
 				// Breadcumbs
+                var default_offset = 0;  // If we pass a default node, offset section names to reflect that.
 				var cats = [];
 				cats.push("<div class='tocCat tocCatHeader' data-path=''><i class='fa fa-home'></i></div>");
 				for (var i = 0; i < path.length; i++) {
@@ -314,9 +315,14 @@
                         if (altsActive) {
                             crumb = n["title"]
                         } else if(schema.is_node_from_indexes(sections.slice(1, i+1))) {
-                            crumb = schema.get_node_from_indexes(sections.slice(1, i+1))["title"];
+                            var snode = schema.get_node_from_indexes(sections.slice(1, i+1));
+                            if (snode.default) {  // Defaults don't get breadcrumbs
+                                default_offset++;
+                                continue;
+                            }
+                            crumb = snode["title"];
                         } else {
-                            crumb = schema_node.sectionNames[i-1] + " " + sections[i]
+                            crumb = schema_node.sectionNames[i - 1 - default_offset] + " " + sections[i]
                         }
                     }
 
