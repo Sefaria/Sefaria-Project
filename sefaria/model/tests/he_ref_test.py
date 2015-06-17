@@ -214,6 +214,7 @@ class Test_parse_he_ref(object):
     def test_repr_on_hebrew(self):
         repr(m.Ref(u'טהרות פרק ג משנה ב'))
 
+
 class Test_Hebrew_Quoting_Styles(object):
     def test_leading_geresh(self):
         assert m.Ref(u"שמות י׳ י״ב") == m.Ref('Exodus 10:12')
