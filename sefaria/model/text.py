@@ -1476,7 +1476,7 @@ class Ref(object):
             if self.toSections > self.sections:
                 break
             if self.toSections < self.sections:
-                raise InputError(u"{} is an invalid range.  Ranges must move forward.".format(self.normal()))
+                raise InputError(u"{} is an invalid range.  Ranges must end later than they begin.".format(self.normal()))
 
     def __clean_tref(self):
         self.tref = self.tref.strip().replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
