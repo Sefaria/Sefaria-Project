@@ -1472,6 +1472,11 @@ class Ref(object):
                 if check[0] > self.index_node.lengths[0] + offset:
                     display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0] + offset)
                     raise InputError(u"{} ends at {} {}.".format(self.book, self.index_node.sectionNames[0], display_size))
+        for i in range(len(self.sections)):
+            if self.toSections > self.sections:
+                break
+            if self.toSections < self.sections:
+                raise InputError(u"{} is an invalid range.  Ranges must move forward.".format(self.normal()))
 
     def __clean_tref(self):
         self.tref = self.tref.strip().replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
