@@ -1541,6 +1541,7 @@ class Ref(object):
                     self.index_node = check_node
                     self.index = self.index_node.index
                     self.book = self.index_node.full_title("en")
+                    self.toSections = self.sections[:]
 
                     try:
                         self._validate()

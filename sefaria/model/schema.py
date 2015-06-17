@@ -705,7 +705,8 @@ class NumberedTitledTreeNode(TitledTreeNode):
         """
         reg = ur"^" if anchored else ""
         reg += regex.escape(title) + self.after_title_delimiter_re
-        reg += ur'(?:(?:' + self.address_regex(lang, **kwargs) + ur')|(?:[\[({]' + self.address_regex(lang, **kwargs) + ur'[\])}]))'  # Match expressions with internal parenthesis around the address portion
+        addr_regex = self.address_regex(lang, **kwargs)
+        reg += ur'(?:(?:' + addr_regex + ur')|(?:[\[({]' + addr_regex + ur'[\])}]))'  # Match expressions with internal parenthesis around the address portion
         reg += ur"(?=\W|$)" if not kwargs.get("for_js") else ur"(?=[.,:;?! })\]<]|$)"
         return regex.compile(reg, regex.VERBOSE) if compiled else reg
 
@@ -1087,12 +1088,12 @@ class AddressType(object):
                 [\u05e7-\u05ea]?(?:"|\u05f4|'')?	    # One or zero kuf-tav (100-400), maybe dbl quote
                 [\u05d8-\u05e6]?(?:"|\u05f4|'')?	    # One or zero tet-tzaddi (9-90), maybe dbl quote
                 [\u05d0-\u05d8]?					    # One or zero alef-tet (1-9)															#
-            |(?=[\u05d0-\u05ea])						    # (2: no punc) Lookahead: at least one Hebrew letter
+            |[\u05d0-\u05ea]['\u05f3]					# (2: ') single letter, followed by a single quote or geresh
+            |(?=[\u05d0-\u05ea])					    # (3: no punc) Lookahead: at least one Hebrew letter
                 \u05ea*								    # Many Tavs (400)
                 [\u05e7-\u05ea]?					    # One or zero kuf-tav (100-400)
                 [\u05d8-\u05e6]?					    # One or zero tet-tzaddi (9-90)
                 [\u05d0-\u05d8]?					    # One or zero alef-tet (1-9)
-            |[\u05d0-\u05ea]['\u05f3]					    # (3: ') single letter, followed by a single quote or geresh
         )"""
 
     def stop_parsing(self, lang):
