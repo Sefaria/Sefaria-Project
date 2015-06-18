@@ -37,6 +37,10 @@
                         <a href="/translation-requests/completed">{{ complete_count|intcomma }} requests</a> have been completed.
                     </div>
 
+                    <div class="count">
+                        <a href="/translation-requests/featured-completed">{{ featured_complete|intcomma }} featured requests</a> have been completed.
+                    </div>
+
                 <div class="clear"></div>
 
                 </div>   
@@ -60,13 +64,16 @@
 
             <div id="translationRequests">
                 <h3>
-                    {% if not completed and not page_offset %}
+                    {% if not completed_only and not page_offset %}
                         All Requests
-                    {% elif not completed and page_offset %}
+                    {% elif not completed_only and page_offset %}
                         Requests {{ page_offset }}-{{ page_offset|add:99 }}
                         <a href="/translation-requests">back to top</a>
-                    {% else %}
+                    {% elif complete_only and not featured_only %}
                         Completed Requests
+                        <a href="/translation-requests">all requests</a>
+                    {% elif completed_only and featured_only % }
+                        Completed Featured Requests
                         <a href="/translation-requests">all requests</a>
                     {% endif %}
                 </h3>

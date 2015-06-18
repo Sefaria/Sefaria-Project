@@ -264,6 +264,12 @@ body.embeded #top {
     margin-bottom: 4px;
 }
 
+#navToc .inline-default-node .sectionName {
+    text-align: start;
+    padding: 8px 40px 3px;
+    margin: 0px;
+}
+
 #navToc .tocCat {
   line-height: 18px;
 }
