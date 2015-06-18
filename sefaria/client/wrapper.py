@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
 import re
 
-from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.model import *
+from sefaria.datatype.jagged_array import JaggedTextArray
+from sefaria.summaries import REORDER_RULES
 from sefaria.system.exceptions import InputError
 from sefaria.utils.users import user_link
 
@@ -32,22 +34,22 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     com["commentaryNum"] = linkRef.sections[-1] if linkRef.type == "Commentary" else 0
     com["anchorText"]    = getattr(link, "anchorText", "")
 
+    if com["category"] in REORDER_RULES:
+        com["category"] = REORDER_RULES[com["category"]][0]
+
     if with_text:
-        #from sefaria.texts import get_text
-        #text             = get_text(linkRef.normal(), context=0, commentary=False)
         text             = TextFamily(linkRef, context=0, commentary=False)
-        #com["text"]      = text["text"] if text["text"] else ""
-        #com["he"]        = text["he"] if text["he"] else ""
         com["text"]      = JaggedTextArray(text.text).flatten_to_array()
         com["he"]        = JaggedTextArray(text.he).flatten_to_array()
 
-    # strip redundant verse ref for commentators
-    # if the ref we're looking for appears exactly in the commentary ref, strip redundant info
-    #todo: this comparison - ref in linkRef.normal() - seems brittle.  Make it rigorous.
-    if com["category"] == "Commentary" and ref in linkRef.normal():
-        com["commentator"] = linkRef.index.commentator
-        com["heCommentator"] = linkRef.index.heCommentator if getattr(linkRef.index, "heCommentator", None) else com["commentator"]
+    # if the the link is commentary, strip redundant info (e.g. "Rashi on Genesis 4:2" -> "Rashi")
+    print com
+    if com["type"] == "commentary":
+        com["commentator"]   = linkRef.book.split(" on ")[0]
+        com["heCommentator"] = linkRef.he_book().split(u" על ")[0]
     else:
+        if com["category"] == "Commentary":
+            com["category"] = "Quoting Commentary"
         com["commentator"] = linkRef.book
         com["heCommentator"] = linkRef.index_node.primary_title("he") if linkRef.index_node.primary_title("he") else com["commentator"]
 

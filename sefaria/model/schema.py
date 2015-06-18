@@ -217,6 +217,7 @@ class TreeNode(object):
     """
     A single node in a tree.
     These trees are hierarchies - each node can have 1 or 0 parents.
+    In this class, node relationships, node navigation, and general serialization are handled.
     """
     required_param_keys = []
     optional_param_keys = []
@@ -365,7 +366,6 @@ class TreeNode(object):
             d["nodeType"] = self.__class__.__name__
             d.update(params)
 
-
         return d
 
     def copy(self, callback=None):
@@ -484,7 +484,9 @@ class TitledTreeNode(TreeNode):
         :return string: The full title of this node, from the root node.
         """
         if not self._full_title.get(lang):
-            if self.parent:
+            if self.is_default():
+                self._full_title[lang] = self.parent.full_title(lang)
+            elif self.parent:
                 self._full_title[lang] = self.parent.full_title(lang) + ", " + self.primary_title(lang)
             else:
                 self._full_title[lang] = self.primary_title(lang)
@@ -497,6 +499,15 @@ class TitledTreeNode(TreeNode):
         """
         return self.default
 
+    def has_default_child(self):
+        return any([c for c in self.children if c.is_default()])
+
+    def get_default_child(self):
+        for child in self.children:
+            if child.is_default():
+                return child
+        return None
+
     def has_titled_continuation(self):
         """
         :return: True if any normal forms of this node continue with a title.  Used in regex building.
@@ -506,7 +517,7 @@ class TitledTreeNode(TreeNode):
     def has_numeric_continuation(self):
         """
         True if any of the normal forms of this node continue with numbers.  Used in regex building.
-        Overriden in subclasses.
+        Overridden in subclasses.
         :return:
         """
         #overidden in subclasses
@@ -694,8 +705,9 @@ class NumberedTitledTreeNode(TitledTreeNode):
         """
         reg = ur"^" if anchored else ""
         reg += regex.escape(title) + self.after_title_delimiter_re
-        reg += ur'(?:(?:' + self.address_regex(lang, **kwargs) + ur')|(?:[\[({]' + self.address_regex(lang, **kwargs) + ur'[\])}]))'  # Match expressions with internal parenthesis around the address portion
-        reg += ur"(?=\W|$)" if not kwargs.get("for_js") else ur"(?=[.,:;?! })<]|$)"
+        addr_regex = self.address_regex(lang, **kwargs)
+        reg += ur'(?:(?:' + addr_regex + ur')|(?:[\[({]' + addr_regex + ur'[\])}]))'  # Match expressions with internal parenthesis around the address portion
+        reg += ur"(?=\W|$)" if not kwargs.get("for_js") else ur"(?=[.,:;?! })\]<]|$)"
         return regex.compile(reg, regex.VERBOSE) if compiled else reg
 
     def address_regex(self, lang, **kwargs):
@@ -710,7 +722,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
                     reg += u"?"
 
         if kwargs.get("match_range"):
-            reg += ur"(?:-"  # maybe there's a dash and a range
+            reg += ur"(?:\s*-\s*"  # maybe there's a dash and a range
             group = "ar0" if not kwargs.get("for_js") else None
             reg += self._addressTypes[0].regex(lang, group, **kwargs)
             if not self._addressTypes[0].stop_parsing(lang):
@@ -1076,12 +1088,12 @@ class AddressType(object):
                 [\u05e7-\u05ea]?(?:"|\u05f4|'')?	    # One or zero kuf-tav (100-400), maybe dbl quote
                 [\u05d8-\u05e6]?(?:"|\u05f4|'')?	    # One or zero tet-tzaddi (9-90), maybe dbl quote
                 [\u05d0-\u05d8]?					    # One or zero alef-tet (1-9)															#
-            |(?=[\u05d0-\u05ea])						    # (2: no punc) Lookahead: at least one Hebrew letter
+            |[\u05d0-\u05ea]['\u05f3]					# (2: ') single letter, followed by a single quote or geresh
+            |(?=[\u05d0-\u05ea])					    # (3: no punc) Lookahead: at least one Hebrew letter
                 \u05ea*								    # Many Tavs (400)
                 [\u05e7-\u05ea]?					    # One or zero kuf-tav (100-400)
                 [\u05d8-\u05e6]?					    # One or zero tet-tzaddi (9-90)
                 [\u05d0-\u05d8]?					    # One or zero alef-tet (1-9)
-            |[\u05d0-\u05ea]['\u05f3]					    # (3: ') single letter, followed by a single quote or geresh
         )"""
 
     def stop_parsing(self, lang):
@@ -1250,7 +1262,7 @@ class AddressAliyah(AddressInteger):
 
 class AddressPerek(AddressInteger):
     section_patterns = {
-        "en": ur"""(?:(?:Chapter|chapter|Perek|perek)\s*)""",
+        "en": ur"""(?:(?:Chapter|chapter|Perek|perek)?\s*)""",  #  the internal ? is a hack to allow an non match, even if 'strict'
         "he": ur"""(?:
             \u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
             |\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space

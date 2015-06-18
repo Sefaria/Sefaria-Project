@@ -105,6 +105,7 @@ def rebuild_commentary_links(tref, user, **kwargs):
             link.delete()
     add_commentary_links(tref, user, **kwargs)
 
+
 # todo: Currently supports only
 def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
     """

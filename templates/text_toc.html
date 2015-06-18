@@ -185,7 +185,7 @@
             });
 
             $(".schema-node-toc").click(function(e) {
-                if (!$(this).hasClass("linked")) {
+                if (!$(this).hasClass("linked") && !$(this).hasClass("default")) {
                     e.preventDefault();
                     $(this).find(".schema-node-contents").toggleClass("open closed");
                 }

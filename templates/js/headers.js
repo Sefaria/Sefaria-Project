@@ -294,6 +294,7 @@
                     "</div></div>";
 			} else {
 				// Breadcumbs
+                var default_offset = 0;  // If we pass a default node, offset section names to reflect that.
 				var cats = [];
 				cats.push("<div class='tocCat tocCatHeader' data-path=''><i class='fa fa-home'></i></div>");
 				for (var i = 0; i < path.length; i++) {
@@ -314,9 +315,14 @@
                         if (altsActive) {
                             crumb = n["title"]
                         } else if(schema.is_node_from_indexes(sections.slice(1, i+1))) {
-                            crumb = schema.get_node_from_indexes(sections.slice(1, i+1))["title"];
+                            var snode = schema.get_node_from_indexes(sections.slice(1, i+1));
+                            if (snode.default) {  // Defaults don't get breadcrumbs
+                                default_offset++;
+                                continue;
+                            }
+                            crumb = snode["title"];
                         } else {
-                            crumb = schema_node.sectionNames[i-1] + " " + sections[i]
+                            crumb = schema_node.sectionNames[i - 1 - default_offset] + " " + sections[i]
                         }
                     }
 
@@ -363,7 +369,7 @@
 					}
 				}
 			} else if (altsActive) {
-                if ("nodes" in current_node) {   // Structure
+                if ("nodes" in current_node) {   // Structure - todo: handle default in alts?
                     html += "<div class='sectionName'>" + hebrewPlural(sjs.navPanel._structure) + "</div>";
                     for (var i = 0; i < current_node["nodes"].length; i++) {
                         var nod = current_node["nodes"][i];
@@ -419,83 +425,100 @@
                 //html += "<div class='sectionName'>" + hebrewPlural(sjs.navPanel._structure) + "</div>";
                 for (var i = 0; i < schema_node["nodes"].length; i++) {
                     var nod = schema_node["nodes"][i];
-                    html += "<div class='tocCat' data-path='" + basePath + "'" +
-                    "data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + i + "'>" +
-                    "<i class='tocCatCaret fa fa-angle-" +
-                    ($("#navToc").hasClass("hebrew") ? "left" : "right") +
-                    "'></i>" +
-                    "<span class='en'>" + nod["title"] + "</span>" +
-                    "<span class='he'>" + nod["heTitle"] + "</span>" +
-                    "</div>";
+                    if (nod.default) {
+                        html += "<div class='inline-default-node'>" + makeSectionContent.call(this, nod, sections.concat(i)) + "</div>";
+                    } else {
+                        html += "<div class='tocCat' data-path='" + basePath + "'" +
+                        "data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + i + "'>" +
+                        "<i class='tocCatCaret fa fa-angle-" +
+                        ($("#navToc").hasClass("hebrew") ? "left" : "right") +
+                        "'></i>" +
+                        "<span class='en'>" + nod["title"] + "</span>" +
+                        "<span class='he'>" + nod["heTitle"] + "</span>" +
+                        "</div>";
+                    }
+
                 }
             } else {
-				// Sections & Section Previews
-				var isTalmud       = schema_node.addressTypes  && schema_node.addressTypes[0] == "Talmud";  //was $.inArray("Talmud", path) >- 1;
-				var isCommentary   = $.inArray("Commentary", path) > -1;
-				var previewSection = this._preview.preview;
-				for (var i = 1; i < previewDepth; i++) {
-                    indx = sections.length - previewDepth + i;
-					// Zoom in to the right section of the preview
-					var j = (isTalmud && isCommentary && i === 1) ? dafToInt(sections[1]) : sections[indx] - 1;
-					previewSection = previewSection[j];
-				}
-				if (previewDepth >= schema_node.sectionNames.length - 1 ) {
-					// Section Preview (terminal depth, preview text)
-					html += "<div class='sectionName'>" + hebrewPlural(schema_node.sectionNames.slice(-2)[0]) + "</div>";
-					if (!this._showPreviews) { html += "<div id='numLinkBox'>"}
-					for (var i=1; i <= previewSection.length; i++) {
-						var num   = isTalmud && !isCommentary ? intToDaf(i-1) : i;
-						var heNum = isTalmud && !isCommentary ? encodeHebrewDaf(intToDaf(i-1)) : encodeHebrewNumeral(i);
-						//var url   = ("/" + sections.join(".") + "." + num).replace(/\'/g, "&apos;");
-						var url   = "/" + this._preview.schema.get_node_url_from_indexes(sections.slice(1).concat(num));
-                        var he    = previewSection[i-1].he;
-						var en    = previewSection[i-1].en;
-						if (!en && !he) { continue; }
-						var klass = (he ? "" : "enOnly") + " " + (en ? "" : "heOnly");
+                html += makeSectionContent.call(this, schema_node, sections);
+            }
+            function makeSectionContent(node, sects) {
+                var html = "";
+                // Sections & Section Previews
+                var isTalmud = node.addressTypes && node.addressTypes[0] == "Talmud";  //was $.inArray("Talmud", path) >- 1;
+                var isCommentary = $.inArray("Commentary", path) > -1;
+                var previewSection = this._preview.preview;
+                for (var i = 1; i < previewDepth; i++) {
+                    var indx = sects.length - previewDepth + i;
+                    // Zoom in to the right section of the preview
+                    var j = (isTalmud && isCommentary && i === 1) ? dafToInt(sects[1]) : sects[indx] - 1;
+                    previewSection = previewSection[j];
+                }
+                if (previewDepth >= node.sectionNames.length - 1) {
+                    // Section Preview (terminal depth, preview text)
+                    html += "<div class='sectionName'>" + hebrewPlural(node.sectionNames.slice(-2)[0]) + "</div>";
+                    if (!this._showPreviews) {
+                        html += "<div id='numLinkBox'>"
+                    }
+                    for (var i = 1; i <= previewSection.length; i++) {
+                        var num = isTalmud && !isCommentary ? intToDaf(i - 1) : i;
+                        var heNum = isTalmud && !isCommentary ? encodeHebrewDaf(intToDaf(i - 1)) : encodeHebrewNumeral(i);
+                        //var url   = ("/" + sects.join(".") + "." + num).replace(/\'/g, "&apos;");
+                        var url = "/" + this._preview.schema.get_node_url_from_indexes(sects.slice(1).concat(num));
+                        var he = previewSection[i - 1].he;
+                        var en = previewSection[i - 1].en;
+                        if (!en && !he) {
+                            continue;
+                        }
+                        var klass = (he ? "" : "enOnly") + " " + (en ? "" : "heOnly");
 
-						if (this._showPreviews) {
-							html += "<a class='tocLink previewLink " + klass + "' href='" + url + "'>" +
-										"<i class='tocCatCaret fa fa-angle-" +
-									 		($("#navToc").hasClass("hebrew") ? "left" : "right") +
-									 	"'></i>" +
-										"<div class='en'><span class='segmentNumber'>" + num + ".</span>" + en + "</div>" +
-										"<div class='he'><span class='segmentNumber'>" + heNum + ".</span>" + he + "</div>" +
-									"</a>";							
-						} else {
-							html += "<a class='tocLink numLink " + klass + "' href='" + url + "'>" +
-										"<span class='en'>" + num + "</span>" +
-										"<span class='he'>" + heNum + "</span>" +
-									"</a>";
-						}
+                        if (this._showPreviews) {
+                            html += "<a class='tocLink previewLink " + klass + "' href='" + url + "'>" +
+                            "<i class='tocCatCaret fa fa-angle-" +
+                            ($("#navToc").hasClass("hebrew") ? "left" : "right") +
+                            "'></i>" +
+                            "<div class='en'><span class='segmentNumber'>" + num + ".</span>" + en + "</div>" +
+                            "<div class='he'><span class='segmentNumber'>" + heNum + ".</span>" + he + "</div>" +
+                            "</a>";
+                        } else {
+                            html += "<a class='tocLink numLink " + klass + "' href='" + url + "'>" +
+                            "<span class='en'>" + num + "</span>" +
+                            "<span class='he'>" + heNum + "</span>" +
+                            "</a>";
+                        }
 
-					}
-					if (!previewSection.length) {
-						html += "<br><center><i>No text available.</i></center>";
-					}
-					if (!this._showPreviews) { html += "</div>"}
+                    }
+                    if (!previewSection.length) {
+                        html += "<br><center><i>No text available.</i></center>";
+                    }
+                    if (!this._showPreviews) {
+                        html += "</div>"
+                    }
 
-				} else {
-					// Sections List ("Chapter 1, Chapter 2")
-					for (var i=0; i < previewSection.length; i++) {
-						var ps = previewSection[i];
-						console.log(ps);
-						if (typeof ps == "object" && ps.en == "" && ps.he == "") {
-							console.log("skip")
-							continue; // Skip sections with no content
-						}
-						var num   = isTalmud && isCommentary ? intToDaf(i) : (i+1);
-						var heNum = isTalmud && isCommentary ? encodeHebrewDaf(intToDaf(i)) : encodeHebrewNumeral(i+1);
-						html += "<div class='tocCat' data-path='" + basePath + "'" +
-									"data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + num + "'>" +
-										"<i class='tocCatCaret fa fa-angle-" +
-									 		($("#navToc").hasClass("hebrew") ? "left" : "right") +
-									 	"'></i>" +
-										"<span class='en'>" + schema_node.sectionNames[previewDepth-1] + " " + num + "</span>" +
-										"<span class='he'>" + schema_node.heSectionNames[previewDepth-1] + " " + heNum + "</span>" +
-								"</div>";
-					}
-				}
-			}
+                } else {
+                    // Sections List ("Chapter 1, Chapter 2")
+                    for (var i = 0; i < previewSection.length; i++) {
+                        var ps = previewSection[i];
+                        console.log(ps);
+                        if (typeof ps == "object" && ps.en == "" && ps.he == "") {
+                            console.log("skip")
+                            continue; // Skip sections with no content
+                        }
+                        var num = isTalmud && isCommentary ? intToDaf(i) : (i + 1);
+                        var heNum = isTalmud && isCommentary ? encodeHebrewDaf(intToDaf(i)) : encodeHebrewNumeral(i + 1);
+                        html += "<div class='tocCat' data-path='" + basePath + "'" +
+                        "data-sections='" + sects.join("/").replace(/\'/g, "&apos;") + "/" + num + "'>" +
+                        "<i class='tocCatCaret fa fa-angle-" +
+                        ($("#navToc").hasClass("hebrew") ? "left" : "right") +
+                        "'></i>" +
+                        "<span class='en'>" + node.sectionNames[previewDepth - 1] + " " + num + "</span>" +
+                        "<span class='he'>" + node.heSectionNames[previewDepth - 1] + " " + heNum + "</span>" +
+                        "</div>";
+                    }
+                }
+                return html;
+            }
+
 			return html;
 		},
 		getTocNode: function(path, toc) {

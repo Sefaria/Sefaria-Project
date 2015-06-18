@@ -19,7 +19,7 @@ except ImportError:
     import re
 
 from . import abstract as abst
-from schema import deserialize_tree, JaggedArrayNode, TitledTreeNode, AddressTalmud, TermSet, TitleGroup
+from schema import deserialize_tree, SchemaNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, TermSet, TitleGroup
 
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError
@@ -253,7 +253,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             if d["categories"][0] == "Talmud":
                 node.addressTypes = ["Talmud", "Integer"]
                 if d["categories"][1] == "Bavli" and d.get("heTitle"):
-                    node.checkFirst = {"he": u"משנה" + " " + d.get("heTitle")}
+                    node.checkFirst = {
+                        "he": u"משנה" + " " + d.get("heTitle"),
+                        "en": "Mishnah " + d.get("title")
+                    }
             elif d["categories"][0] == "Mishnah":
                 node.addressTypes = ["Perek", "Mishnah"]
             else:
@@ -1151,6 +1154,7 @@ class TextFamily(object):
         :param alts: Adds notes of where alt elements begin
         :return:
         """
+
         oref                = oref.padded_ref() if pad else oref
         self.ref            = oref.normal()
         self.heRef          = oref.he_normal()
@@ -1383,19 +1387,19 @@ class RefCachingType(type):
                 return cls.__cache[tref]
             else:
                 result = super(RefCachingType, cls).__call__(*args, **kwargs)
-                if result.normal() in cls.__cache:
+                if result.uid() in cls.__cache:
                     #del result  #  Do we need this to keep memory clean?
-                    cls.__cache[tref] = cls.__cache[result.normal()]
-                    return cls.__cache[result.normal()]
-                cls.__cache[result.normal()] = result
+                    cls.__cache[tref] = cls.__cache[result.uid()]
+                    return cls.__cache[result.uid()]
+                cls.__cache[result.uid()] = result
                 cls.__cache[tref] = result
                 return result
         elif obj_arg:
             result = super(RefCachingType, cls).__call__(*args, **kwargs)
-            if result.normal() in cls.__cache:
+            if result.uid() in cls.__cache:
                 #del result  #  Do we need this to keep memory clean?
-                return cls.__cache[result.normal()]
-            cls.__cache[result.normal()] = result
+                return cls.__cache[result.uid()]
+            cls.__cache[result.uid()] = result
             return result
         else:  # Default.  Shouldn't be used.
             return super(RefCachingType, cls).__call__(*args, **kwargs)
@@ -1421,7 +1425,7 @@ class Ref(object):
         """
         Object is generally initialized with a textual reference - ``tref``
 
-        Internally, the _obj argument can be used to instancate a ref with a complete dict composing the Ref data
+        Internally, the _obj argument can be used to instantiate a ref with a complete dict composing the Ref data
         """
         self.index = None
         self.book = None
@@ -1469,6 +1473,11 @@ class Ref(object):
                 if check[0] > self.index_node.lengths[0] + offset:
                     display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0] + offset)
                     raise InputError(u"{} ends at {} {}.".format(self.book, self.index_node.sectionNames[0], display_size))
+        for i in range(len(self.sections)):
+            if self.toSections > self.sections:
+                break
+            if self.toSections < self.sections:
+                raise InputError(u"{} is an invalid range.  Ranges must end later than they begin.".format(self.normal()))
 
     def __clean_tref(self):
         self.tref = self.tref.strip().replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
@@ -1504,7 +1513,7 @@ class Ref(object):
         match = library.all_titles_regex(self._lang, with_terms=True).match(base)
         if match:
             title = match.group('title')
-            self.index_node = library.get_schema_node(title, self._lang)
+            self.index_node = library.get_schema_node(title, self._lang)  # May be SchemaNode or JaggedArrayNode
 
             if not self.index_node:
                 # No Index node - Is this a term?
@@ -1519,14 +1528,28 @@ class Ref(object):
             if getattr(self.index_node, "checkFirst", None) and self.index_node.checkFirst.get(self._lang):
                 try:
                     check_node = library.get_schema_node(self.index_node.checkFirst[self._lang], self._lang)
+                    assert isinstance(check_node, JaggedArrayNode)  # Initially used with Mishnah records.  Assumes JaggedArray.
                     reg = check_node.full_regex(title, self._lang, strict=True)
-                    self.sections = self.__get_sections(reg, base)
-                except InputError: # Regex doesn't work
+                    self.sections = self.__get_sections(reg, base, use_node=check_node)
+                except InputError:  # Regex doesn't work
                     pass
-                except AttributeError: # Can't find node for check_node
+                except AttributeError:  # Can't find node for check_node
                     pass
                 else:
+                    old_index_node = self.index_node
+
                     self.index_node = check_node
+                    self.index = self.index_node.index
+                    self.book = self.index_node.full_title("en")
+                    self.toSections = self.sections[:]
+
+                    try:
+                        self._validate()
+                    except InputError:  # created Ref doesn't validate, back it out
+                        self.index_node = old_index_node
+                        self.sections = []
+
+            assert isinstance(self.index_node, SchemaNode)
 
             self.index = self.index_node.index
             self.book = self.index_node.full_title("en")
@@ -1535,13 +1558,14 @@ class Ref(object):
             match = library.all_titles_regex(self._lang, commentary=True).match(base)
             if match:
                 title = match.group('title')
-                self.index_node = library.get_schema_node(title, with_commentary=True)
+                self.index_node = library.get_schema_node(title, with_commentary=True)  # May be SchemaNode or JaggedArrayNode
                 if not self.index_node:  # This may be a new version, try to build a schema node.
-                    on_node = library.get_schema_node(match.group('commentee'))
+                    on_node = library.get_schema_node(match.group('commentee'))  # May be SchemaNode or JaggedArrayNode
                     i = get_index(match.group('commentor') + " on " + on_node.index.title)
                     self.index_node = i.nodes.title_dict(self._lang).get(title)
                     if not self.index_node:
                         raise BookNameError(u"Can not find index record for {}".format(title))
+                assert isinstance(self.index_node, SchemaNode)
                 self.index = self.index_node.index
                 self.book = self.index_node.full_title("en")
                 if not self.index.is_commentary():
@@ -1563,7 +1587,7 @@ class Ref(object):
             return
 
         try:
-            reg = self.index_node.full_regex(title, self._lang)
+            reg = self.index_node.full_regex(title, self._lang)  # Try to treat this as a JaggedArray
         except AttributeError:
             matched = self.index_node.full_title(self._lang)
             msg = u"Partial reference match for '{}' - failed to find continuation for '{}'.\nValid continuations are:\n".format(self.tref, matched)
@@ -1605,7 +1629,7 @@ class Ref(object):
                     title = match.group('title')
                     alt_struct_node = self.index.get_alt_struct_node(title, self._lang)
 
-                    #Exact match alt structure node
+                    # Exact match alt structure node
                     if title == base:
                         new_tref = alt_struct_node.get_ref_from_sections([])
                         if new_tref:
@@ -1643,29 +1667,41 @@ class Ref(object):
 
         self.toSections = self.sections[:]
 
-        if self._lang == "en" and len(parts) == 2:  # we still don't support he ranges
-            if self.index_node.addressTypes[0] == "Talmud":
-                self.__parse_talmud_range(parts[1])
-            else:
-                range_part = re.split("[.:, ]+", parts[1])
-                delta = len(self.sections) - len(range_part)
+        if len(parts) == 2:
+            self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
+            if self._lang == "en":
+                if self.index_node.addressTypes[0] == "Talmud":
+                    self.__parse_talmud_range(parts[1])
+                else:
+                    range_parts = re.split("[.:, ]+", parts[1])
+                    delta = len(self.sections) - len(range_parts)
+                    for i in range(delta, len(self.sections)):
+                        try:
+                            self.toSections[i] = int(range_parts[i - delta])
+                        except (ValueError, IndexError):
+                            raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
+            elif self._lang == "he":     # in process. developing logic that should work for all languages / texts
+                # todo: handle sections names in "to" part.  Handle talmud יד א - ב kind of cases.
+                range_parts = re.split("[., ]+", parts[1])
+                delta = len(self.sections) - len(range_parts)
                 for i in range(delta, len(self.sections)):
                     try:
-                        self.toSections[i] = int(range_part[i - delta])
+                        self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang, range_parts[i - delta])
                     except (ValueError, IndexError):
                         raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
 
-    def __get_sections(self, reg, tref):
+    def __get_sections(self, reg, tref, use_node=None):
+        use_node = use_node or self.index_node
         sections = []
         ref_match = reg.match(tref)
         if not ref_match:
             raise InputError(u"Can not parse ref: {}".format(tref))
 
         gs = ref_match.groupdict()
-        for i in range(0, self.index_node.depth):
+        for i in range(0, use_node.depth):
             gname = u"a{}".format(i)
             if gs.get(gname) is not None:
-                sections.append(self.index_node._addressTypes[i].toNumber(self._lang, gs.get(gname)))
+                sections.append(use_node._addressTypes[i].toNumber(self._lang, gs.get(gname)))
         return sections
 
     def __parse_talmud_range(self, range_part):
@@ -1689,7 +1725,7 @@ class Ref(object):
         self.toSections = [int(x) for x in self.toSections]
 
     def __eq__(self, other):
-        return self.normal() == other.normal()
+        return self.uid() == other.uid()
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -1894,6 +1930,20 @@ class Ref(object):
             "sections": self.sections[:],
             "toSections": self.toSections[:]
         }
+
+    def has_default_child(self):
+        return self.index_node.has_default_child()
+
+    def default_child_ref(self):
+        """
+        Return ref to the default node underneath this node
+        :return:
+        """
+        if not self.has_default_child():
+            return self
+        d = self._core_dict()
+        d["index_node"] = self.index_node.get_default_child()
+        return Ref(_obj=d)
 
     def surrounding_ref(self, size=1):
         """
@@ -2602,10 +2652,10 @@ class Ref(object):
 
     """ String Representations """
     def __str__(self):
-        return self.normal()
+        return self.uid()
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
-        return self.__class__.__name__ + "('" + str(self.normal()) + "')"
+        return self.__class__.__name__ + "('" + str(self.uid()) + "')"
 
     def old_dict_format(self):
         """
@@ -2623,68 +2673,65 @@ class Ref(object):
         del d["title"]
         return d
 
+    def he_book(self):
+        return self.index.get_title(lang="he")
+
+    def _get_normal(self, lang):
+        normal = self.index_node.full_title(lang)
+        if not normal:
+            if lang != "en":
+                return self.normal()
+            else:
+                raise InputError("Failed to get English normal form for ref")
+
+        if len(self.sections) == 0:
+            return normal
+
+        if self.type == "Commentary" and not getattr(self.index, "commentaryCategories", None):
+            return normal
+
+        normal += u" "
+
+        normal += u":".join(
+            [self.index_node.address_class(i).toStr(lang, n) for i, n in enumerate(self.sections)]
+        )
+
+        for i in range(len(self.sections)):
+            if not self.sections[i] == self.toSections[i]:
+                normal += u"-{}".format(
+                    u":".join(
+                        [self.index_node.address_class(i + j).toStr(lang, n) for j, n in enumerate(self.toSections[i:])]
+                    )
+                )
+                break
+
+        return normal
+
     def he_normal(self):
         """
         :return string: Normal Hebrew string form
         """
+        '''
+            18 June 2015: Removed the special casing for Hebrew Talmud sub daf numerals
+            Previously, talmud lines had been normalised as arabic numerals
+        '''
         if not self._he_normal:
-
-            self._he_normal = self.index_node.full_title("he")
-            if not self._he_normal:  # Missing Hebrew titles
-                self._he_normal = self.normal()
-                return self._he_normal
-
-            if self.type == "Commentary" and not getattr(self.index, "commentaryCategories", None):
-                return self._he_normal
-
-            elif self.is_talmud():
-                self._he_normal += u" " + section_to_daf(self.sections[0], lang="he") if len(self.sections) > 0 else ""
-                self._he_normal += u" " + u" ".join([unicode(s) for s in self.sections[1:]]) if len(self.sections) > 1 else ""
-
-            else:
-                sects = u":".join([encode_hebrew_numeral(s) for s in self.sections])
-                if len(sects):
-                    self._he_normal += u" " + sects
-
-            for i in range(len(self.sections)):
-                if not self.sections[i] == self.toSections[i]:
-                    if self.is_talmud():
-                        if i == 0:
-                            self._he_normal += u"-{}".format((u" ".join([unicode(s) for s in [section_to_daf(self.toSections[0], lang="he")] + self.toSections[i + 1:]])))
-                        else:
-                            self._he_normal += u"-{}".format((u" ".join([unicode(s) for s in self.toSections[i:]])))
-                    else:
-                        self._he_normal += u"-{}".format(u":".join([encode_hebrew_numeral(s) for s in self.toSections[i:]]))
-                    break
-
+            self._he_normal = self._get_normal("he")
         return self._he_normal
+
+    def uid(self):
+        """
+        To handle the fact that default nodes have the same name as their parents
+        :return:
+        """
+        return self.normal() + ("<d>" if self.index_node.is_default() else "")
 
     def normal(self):
         """
         :return string: Normal English string form
         """
         if not self._normal:
-            self._normal = self.index_node.full_title()
-            if self.type == "Commentary" and not getattr(self.index, "commentaryCategories", None):
-                return self._normal
-
-            elif self.is_talmud():
-                self._normal += " " + section_to_daf(self.sections[0]) if len(self.sections) > 0 else ""
-                self._normal += ":" + ":".join([str(s) for s in self.sections[1:]]) if len(self.sections) > 1 else ""
-
-            else:
-                sects = ":".join([str(s) for s in self.sections])
-                if len(sects):
-                    self._normal += " " + sects
-
-            for i in range(len(self.sections)):
-                if not self.sections[i] == self.toSections[i]:
-                    if i == 0 and self.is_talmud():
-                        self._normal += "-{}".format((":".join([str(s) for s in [section_to_daf(self.toSections[0])] + self.toSections[i + 1:]])))
-                    else:
-                        self._normal += "-{}".format(":".join([str(s) for s in self.toSections[i:]]))
-                    break
-
+            self._normal = self._get_normal("en")
         return self._normal
 
     def text(self, lang="en", vtitle=None):
@@ -2971,12 +3018,15 @@ class Library(object):
     def get_indexes_in_category(self, category, include_commentary=False):
         """
         :param string category: Name of category
-        :param bool include_commentary:
+        :param bool include_commentary: If false, does not exludes records of Commentary and Targum
         :return: :class:`IndexSet` of :class:`Index` records in the specified category
         """
-        q = {"categories": category}
+
         if not include_commentary:
-            q["categories.0"] = {"$ne": "Commentary"}
+            q = {"$and": [{"categories": category}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Commentary2"}}, {"categories": {"$ne": "Targum"}}]}
+        else:
+            q = {"categories": category}
+
         return IndexSet(q).distinct("title")
 
     def get_commentator_titles(self, lang="en", with_variants=False):
@@ -3079,6 +3129,7 @@ class Library(object):
     # do we want to move this to the schema node? We'd still have to pass the title...
     def get_regex_string(self, title, lang, for_js=False):
         node = self.get_schema_node(title, lang)
+        assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
         if lang == "en" or for_js:  # Javascript doesn't support look behinds.
             return node.full_regex(title, lang, for_js=for_js, match_range=for_js, compiled=False, anchored=(not for_js))
@@ -3088,7 +3139,7 @@ class Library(object):
                     [({]										# literal '(', brace,
                     [^})]*										# anything but a closing ) or brace
                 )
-                """ + regex.escape(title) + node.after_title_delimiter_re + node.address_regex(lang, for_js=for_js) + ur"""
+                """ + regex.escape(title) + node.after_title_delimiter_re + node.address_regex(lang, for_js=for_js, match_range=for_js) + ur"""
                 (?=												# look ahead for closing brace
                     [^({]*										# match of anything but an opening '(' or brace
                     [)}]										# zero-width: literal ')' or brace
@@ -3104,6 +3155,7 @@ class Library(object):
         :return: Ref
         """
         node = self.get_schema_node(title, lang)
+        assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
         try:
             re_string = self.get_regex_string(title, lang)
@@ -3147,6 +3199,7 @@ class Library(object):
         :return: list of Refs
         """
         node = self.get_schema_node(title, lang)
+        assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
         refs = []
         try:

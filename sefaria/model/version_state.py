@@ -367,6 +367,7 @@ class StateNode(object):
     lang_map = {lang: "_" + lang for lang in ["he", "en", "all"]}
     lang_keys = lang_map.values()
 
+    #todo: self.snode could be a SchemaNode, but get_available_counts_dict() assumes JaggedArrayNode
     def __init__(self, title=None, snode=None, _obj=None):
         if title:
             snode = library.get_schema_node(title)

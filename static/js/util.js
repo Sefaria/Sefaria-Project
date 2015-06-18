@@ -867,8 +867,12 @@ sjs.textBrowser = {
         var html        = "";
 
         for (var i = 0; i < children.length; i++) {
-            var name = children[i].title;
-			html += "<div class='browserNavItem section'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
+            if (children[i].default) {
+                html += this.getSectionPreviews(children[i], this._currentText.preview, true, (children[i].addressTypes[0] == "Talmud"));
+            } else {
+                var name = children[i].title;
+    			html += "<div class='browserNavItem section'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
+            }
 		}
 
 		$("#browserNav").html(html);
@@ -897,10 +901,17 @@ sjs.textBrowser = {
 			var j = (isTalmud && isCommentary && i === 0) ? dafToInt(sections[0]) : sections[i] - 1;
 			previewSection = previewSection[j];
 		}
+        html += this.getSectionPreviews(node, previewSection, isComplex, isTalmud);
+
+		$("#browserNav").html(html);
+	},
+
+    getSectionPreviews: function(node, previewSection, isComplex, isTalmud) {
+        var html = "";
 		for (var i = 0; i < previewSection.length; i++) {
 			if ((isArray(previewSection[i]) && !previewSection[i].length) ||
 				(!isArray(previewSection[i]) && !previewSection[i].he && !previewSection[i].en)) {
-				 continue; 
+				 continue;
 			} // Skip empty sections
             var name = "";
             if (isComplex) {  // todo: Can this method work for both?
@@ -910,14 +921,15 @@ sjs.textBrowser = {
             }
 			html += "<div class='browserNavItem section'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
 		}
-		$("#browserNav").html(html);
-	},
+        return html;
+    },
+
 	getTextInfo: function(title) {
 		// Lookup counts from the API for 'title', then build a text nav
 		$.getJSON("/api/preview/" + title, function(data) {
 			sjs.textBrowser._currentText = data;
             sjs.textBrowser._currentSchema = new sjs.SchemaNode(data.schema);
-            if(!(data.preview) && sjs.textBrowser._currentSchema.has_children()) {
+            if(sjs.textBrowser._currentSchema.has_children()) {
                 sjs.textBrowser.buildComplexTextNav()
             } else {
     			sjs.textBrowser.buildTextNav();
@@ -1314,7 +1326,7 @@ sjs._parseRef = {};
 function parseRef(q) {
 	q = q || ""; 
 	q = q.replace(/_/g, " ").replace(/[.:]/g, " ").replace(/ +/, " ");
-	q = q.trim().toProperCase();
+	q = q.trim().toFirstCapital();
 	if (q in sjs._parseRef) { return sjs._parseRef[q]; }
 	var response = {book: false, 
 					sections: [],
@@ -1331,7 +1343,6 @@ function parseRef(q) {
 	
 	for (var i = first.length; i >= 0; i--) {
 		var book   = first.slice(0, i);
-		console.log(book);
 		var bookOn = book.split(" on ");
 		if (book in sjs.booksDict || 
 			(bookOn.length == 2 && bookOn[0] in sjs.booksDict && bookOn[1] in sjs.booksDict)) { 
@@ -1583,13 +1594,30 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 					sjs.ref.index = data;
 					var variantsRe = "(" + data.titleVariants.join("|") + ")";
 					$ok.addClass("inactive");
+                    var hasDefault = false;
+
+                    // If there's a default node, copy section info from default node to parent
+                    if (data.schema
+                        && data.schema.nodes
+                        && data.schema.nodes.some(function(e) { return e.default; }) // test for default child
+                    ) {
+                        hasDefault = true;
+                        var sn = new sjs.SchemaNode(data.schema);
+                        var defNode = sn.get_default_child();
+                        data.sectionNames = defNode.sectionNames;
+                    }
 
                     // ------- Intermediate node of complex text ---
-                    if (data.schema && data.schema.nodes) {
-							sjs.ref.tests.push(
-								{test: new RegExp("^" + variantsRe + ",? ?$", "i"),
-								 msg: "Enter a section of " + data.title,
-								 action: "pass"});
+                    if (data.schema
+                        && data.schema.nodes
+                        && !hasDefault // test for default child - allow numbered continuation
+                    ) {
+                        sjs.ref.tests.push(
+                            {test: new RegExp("^" + variantsRe + ",? ?$", "i"),
+                             msg: "Enter a section of " + data.title,
+                             action: "pass"});
+
+
 
                     // ------- Commetator Name Entered -------------
                     } else if (data.categories[0] == "Commentary") {
@@ -1939,6 +1967,18 @@ sjs.SchemaNode.prototype.child_by_index = function(indx) {
     return new sjs.SchemaNode(this.nodes[indx])
 };
 
+sjs.SchemaNode.prototype.get_default_child = function() {
+    if (!this.nodes) {
+        return null;
+    }
+    for (var i = 0; i < this.nodes.length; i++) {
+        if (this.nodes[i].default) {
+            return new sjs.SchemaNode(this.nodes[i])
+        }
+    }
+    return null;
+};
+
 sjs.SchemaNode.prototype.child_by_title = function(title) {
     if (!this.nodes) {
         return null;
@@ -1964,7 +2004,12 @@ sjs.SchemaNode.prototype.get_node_from_titles = function(titles) {
 
 sjs.SchemaNode.prototype.get_node_and_sections_from_titles = function(titles) {
     var sections = [];
+    var is_default = false;
     var node = titles.reduce(function(previousValue, currentValue, index, array) {
+
+        is_default = (("nodes" in previousValue) && !(previousValue.child_by_title(currentValue)));
+        if (is_default) previousValue = previousValue.get_default_child();
+
         if (!("nodes" in previousValue)) {
             sections.push(currentValue);
             return previousValue;
@@ -1972,7 +2017,7 @@ sjs.SchemaNode.prototype.get_node_and_sections_from_titles = function(titles) {
             return previousValue.child_by_title(currentValue);
         }
     }, this);
-    return {node: node, sections: sections};
+    return {node: node, sections: sections, is_default: is_default};
 };
 
 
@@ -2006,7 +2051,9 @@ sjs.SchemaNode.prototype.get_node_url_from_titles = function(indxs, trim) {
     // trim : do we assume section names are spelled out (as in text browser)
     var full_url = this.title;
     indxs.reduce(function(previousValue, currentValue, index, array) {
-        if ((false == previousValue) || (!("nodes" in previousValue))) {
+        if ((false == previousValue)
+         || (!("nodes" in previousValue))
+         || (!(previousValue.child_by_title(currentValue)))) {
             if (trim) {
                 currentValue = currentValue.slice(currentValue.lastIndexOf(" ") + 1);
             }
@@ -2014,7 +2061,7 @@ sjs.SchemaNode.prototype.get_node_url_from_titles = function(indxs, trim) {
             return false;
         } else {
             var next_value = previousValue.child_by_title(currentValue);
-            full_url += ",_" + next_value["title"];
+            if (!(next_value["default"])) full_url += ",_" + next_value["title"];
             return next_value;
         }
     }, this);
@@ -2030,7 +2077,7 @@ sjs.SchemaNode.prototype.get_node_url_from_indexes = function(indxs) {
             return false
         } else {
             var next_value = previousValue.child_by_index(currentValue);
-            full_url += ",_" + next_value["title"];
+            if (!(next_value["default"])) full_url += ",_" + next_value["title"];
             return next_value;
         }
     }, this);
@@ -2044,7 +2091,7 @@ sjs.SchemaNode.prototype.get_node_title_from_indexes = function(indxs) {
             return false;
         } else {
             var next_value = previousValue.child_by_index(currentValue);
-            full_title += ", " + next_value["title"];
+            if (!(next_value["default"]))  full_title += ", " + next_value["title"];
             return next_value;
         }
     }, this);
@@ -2401,33 +2448,46 @@ function clone(obj) {
 
 
 String.prototype.toProperCase = function() {
-  var i, j, str, lowers, uppers;
-  str = this.replace(/([^\W_]+[^\s-]*) */g, function(txt) {
-    return txt.charAt(0).toUpperCase() + txt.substr(1);
-    // We're not lowercasing the end of the string because of cases like "HaRambam"
-  });
-
-  // Certain minor words should be left lowercase unless 
-  // they are the first or last words in the string
-  lowers = ['A', 'An', 'The', 'And', 'But', 'Or', 'For', 'Nor', 'As', 'At', 
-  'By', 'For', 'From', 'In', 'Into', 'Near', 'Of', 'On', 'Onto', 'To', 'With'];
-  for (i = 0, j = lowers.length; i < j; i++) {
-    str = str.replace(new RegExp('\\s' + lowers[i] + '\\s', 'g'), 
-      function(txt) {
-        return txt.toLowerCase();
-      });
-   }
-
-  // Certain words such as initialisms or acronyms should be left uppercase
-  uppers = ['Id', 'Tv', 'Ii', 'Iii', "Iv"];
-  for (i = 0, j = uppers.length; i < j; i++) {
-    str = str.replace(new RegExp('\\b' + uppers[i] + '\\b', 'g'), 
-      uppers[i].toUpperCase());
-  }
   
-  return str;
+  // Treat anything after ", " as a new clause
+  // so that titles like "Orot, The Ideals of Israel" keep a capital The
+  var clauses = this.split(", ");
+
+  for (var n = 0; n < clauses.length; n++) {
+	  var i, j, str, lowers, uppers;
+	  str = clauses[n].replace(/([^\W_]+[^\s-]*) */g, function(txt) {
+	    // We're not lowercasing the end of the string because of cases like "HaRambam"
+	    return txt.charAt(0).toUpperCase() + txt.substr(1);
+	  });
+
+	  // Certain minor words should be left lowercase unless 
+	  // they are the first or last words in the string
+	  lowers = ['A', 'An', 'The', 'And', 'But', 'Or', 'For', 'Nor', 'As', 'At', 
+	  'By', 'For', 'From', 'Is', 'In', 'Into', 'Near', 'Of', 'On', 'Onto', 'To', 'With'];
+	  for (i = 0, j = lowers.length; i < j; i++) {
+	    str = str.replace(new RegExp('\\s' + lowers[i] + '\\s', 'g'), 
+	      function(txt) {
+	        return txt.toLowerCase();
+	      });
+	   }
+
+	  // Certain words such as initialisms or acronyms should be left uppercase
+	  uppers = ['Id', 'Tv', 'Ii', 'Iii', "Iv"];
+	  for (i = 0, j = uppers.length; i < j; i++) {
+	    str = str.replace(new RegExp('\\b' + uppers[i] + '\\b', 'g'), 
+	      uppers[i].toUpperCase());
+	  }
+
+	  clauses[n] = str;  	
+  }
+
+  return clauses.join(", ");
+
 };
 
+String.prototype.toFirstCapital = function() {
+	return this.charAt(0).toUpperCase() + this.substr(1);
+};
 
 String.prototype.stripHtml = function() {
    var tmp = document.createElement("div");
