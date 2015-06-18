@@ -2486,7 +2486,7 @@ String.prototype.toProperCase = function() {
 };
 
 String.prototype.toFirstCapital = function() {
-	return txt.charAt(0).toUpperCase() + txt.substr(1);
+	return this.charAt(0).toUpperCase() + this.substr(1);
 };
 
 String.prototype.stripHtml = function() {
