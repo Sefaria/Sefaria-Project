@@ -1326,7 +1326,7 @@ sjs._parseRef = {};
 function parseRef(q) {
 	q = q || ""; 
 	q = q.replace(/_/g, " ").replace(/[.:]/g, " ").replace(/ +/, " ");
-	q = q.trim().toProperCase();
+	q = q.trim().toFirstCapital();
 	if (q in sjs._parseRef) { return sjs._parseRef[q]; }
 	var response = {book: false, 
 					sections: [],
@@ -2449,7 +2449,7 @@ function clone(obj) {
 
 String.prototype.toProperCase = function() {
   
-  // Treat anything after ", " as a new claus
+  // Treat anything after ", " as a new clause
   // so that titles like "Orot, The Ideals of Israel" keep a capital The
   var clauses = this.split(", ");
 
@@ -2485,6 +2485,9 @@ String.prototype.toProperCase = function() {
 
 };
 
+String.prototype.toFirstCapital = function() {
+	return txt.charAt(0).toUpperCase() + txt.substr(1);
+};
 
 String.prototype.stripHtml = function() {
    var tmp = document.createElement("div");
