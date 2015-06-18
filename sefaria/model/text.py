@@ -1725,7 +1725,7 @@ class Ref(object):
         self.toSections = [int(x) for x in self.toSections]
 
     def __eq__(self, other):
-        return self.normal() == other.normal()
+        return self.uid() == other.uid()
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -2652,10 +2652,10 @@ class Ref(object):
 
     """ String Representations """
     def __str__(self):
-        return self.normal()
+        return self.uid()
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
-        return self.__class__.__name__ + "('" + str(self.normal()) + "')"
+        return self.__class__.__name__ + "('" + str(self.uid()) + "')"
 
     def old_dict_format(self):
         """
@@ -2676,40 +2676,47 @@ class Ref(object):
     def he_book(self):
         return self.index.get_title(lang="he")
 
+    def _get_normal(self, lang):
+        normal = self.index_node.full_title(lang)
+        if not normal:
+            if lang != "en":
+                return self.normal()
+            else:
+                raise InputError("Failed to get English normal form for ref")
+
+        if len(self.sections) == 0:
+            return normal
+
+        if self.type == "Commentary" and not getattr(self.index, "commentaryCategories", None):
+            return normal
+
+        normal += u" "
+
+        normal += u":".join(
+            [self.index_node.address_class(i).toStr(lang, n) for i, n in enumerate(self.sections)]
+        )
+
+        for i in range(len(self.sections)):
+            if not self.sections[i] == self.toSections[i]:
+                normal += u"-{}".format(
+                    u":".join(
+                        [self.index_node.address_class(i + j).toStr(lang, n) for j, n in enumerate(self.toSections[i:])]
+                    )
+                )
+                break
+
+        return normal
+
     def he_normal(self):
         """
         :return string: Normal Hebrew string form
         """
+        '''
+            18 June 2015: Removed the special casing for Hebrew Talmud sub daf numerals
+            Previously, talmud lines had been normalised as arabic numerals
+        '''
         if not self._he_normal:
-
-            self._he_normal = self.index_node.full_title("he")
-            if not self._he_normal:  # Missing Hebrew titles
-                self._he_normal = self.normal()
-                return self._he_normal
-
-            if self.type == "Commentary" and not getattr(self.index, "commentaryCategories", None):
-                return self._he_normal
-
-            elif self.is_talmud():
-                self._he_normal += u" " + section_to_daf(self.sections[0], lang="he") if len(self.sections) > 0 else ""
-                self._he_normal += u" " + u" ".join([unicode(s) for s in self.sections[1:]]) if len(self.sections) > 1 else ""
-
-            else:
-                sects = u":".join([encode_hebrew_numeral(s) for s in self.sections])
-                if len(sects):
-                    self._he_normal += u" " + sects
-
-            for i in range(len(self.sections)):
-                if not self.sections[i] == self.toSections[i]:
-                    if self.is_talmud():
-                        if i == 0:
-                            self._he_normal += u"-{}".format((u" ".join([unicode(s) for s in [section_to_daf(self.toSections[0], lang="he")] + self.toSections[i + 1:]])))
-                        else:
-                            self._he_normal += u"-{}".format((u" ".join([unicode(s) for s in self.toSections[i:]])))
-                    else:
-                        self._he_normal += u"-{}".format(u":".join([encode_hebrew_numeral(s) for s in self.toSections[i:]]))
-                    break
-
+            self._he_normal = self._get_normal("he")
         return self._he_normal
 
     def uid(self):
@@ -2724,27 +2731,7 @@ class Ref(object):
         :return string: Normal English string form
         """
         if not self._normal:
-            self._normal = self.index_node.full_title()
-            if self.type == "Commentary" and not getattr(self.index, "commentaryCategories", None):
-                return self._normal
-
-            elif self.is_talmud():
-                self._normal += " " + section_to_daf(self.sections[0]) if len(self.sections) > 0 else ""
-                self._normal += ":" + ":".join([str(s) for s in self.sections[1:]]) if len(self.sections) > 1 else ""
-
-            else:
-                sects = ":".join([str(s) for s in self.sections])
-                if len(sects):
-                    self._normal += " " + sects
-
-            for i in range(len(self.sections)):
-                if not self.sections[i] == self.toSections[i]:
-                    if i == 0 and self.is_talmud():
-                        self._normal += "-{}".format((":".join([str(s) for s in [section_to_daf(self.toSections[0])] + self.toSections[i + 1:]])))
-                    else:
-                        self._normal += "-{}".format(":".join([str(s) for s in self.toSections[i:]]))
-                    break
-
+            self._normal = self._get_normal("en")
         return self._normal
 
     def text(self, lang="en", vtitle=None):
