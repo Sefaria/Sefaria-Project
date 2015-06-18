@@ -74,7 +74,6 @@ var ReaderApp = React.createClass({
   },
   handleScroll: function(event) {
     if (this.state.contents.length) {
-      console.log(this.state.contents)
       var scrollTop = $(window).scrollTop();
       this.state.contents.slice(-1)[0].scrollTop = scrollTop;
     }
