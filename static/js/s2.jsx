@@ -21,12 +21,12 @@ var ReaderApp = React.createClass({
     var hist = this.makeHistoryState()
     history.replaceState(hist.state, hist.title, hist.url);
   },
-  componentDidUpdate: function() {
-    this.updateHistoryState();
-  },
   componentWillUnmount: function() {
     window.removeEventListener("popstate", this.handlePopState);
     window.removeEventListener("scroll", this.handleScroll);
+  },
+  componentDidUpdate: function() {
+    this.updateHistoryState();
   },
   shouldHistoryUpdate: function() {
     if (!history.state) { return true; }
@@ -68,10 +68,13 @@ var ReaderApp = React.createClass({
     }
   },
   handlePopState: function(event) {
-    this.setState({contents: [event.state]});
+    if (event.state) {
+      this.setState({contents: [event.state]});
+    }
   },
   handleScroll: function(event) {
     if (this.state.contents.length) {
+      console.log(this.state.contents)
       var scrollTop = $(window).scrollTop();
       this.state.contents.slice(-1)[0].scrollTop = scrollTop;
     }
