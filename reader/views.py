@@ -1465,28 +1465,27 @@ def dashboard(request):
 
 @catch_error_as_http
 @ensure_csrf_cookie
-def translation_requests(request, completed=False):
+def translation_requests(request, completed_only=False, featured_only=False):
     """
     Page listing all outstnading translation requests.
     """
-    page             = int(request.GET.get("page", 1)) - 1
-    page_size        = 100
-    query            = {"completed": False, "section_level": False} if not completed else {"completed": True}
-    requests         = TranslationRequestSet(query, limit=page_size, page=page, sort=[["request_count", -1]])
-    request_count    = TranslationRequestSet({"completed": False, "section_level": False}).count()
-    complete_count   = TranslationRequestSet({"completed": True}).count()
-    next_page        = page + 2 if True or requests.count() == page_size else 0
-    featured_query   = {"featured": True, "featured_until": { "$gt": datetime.now() } }
-    featured         = TranslationRequestSet(featured_query, sort=[["completed", 1], ["featured_until", 1]])
-    today            = datetime.today()
-    featured_end     = today + timedelta(7 - ((today.weekday()+1) % 7)) # This coming Sunday
-    featured_end     = featured_end.replace(hour=0, minute=0)  # At midnight
-    current          = [d.featured_until <= featured_end for d in featured]
-    featured_current = sum(current)
-    show_featured    = not completed and not page and ((request.user.is_staff and featured.count()) or (featured_current))
-
-    print featured_end
-    print [d.featured_until for d in featured]
+    page              = int(request.GET.get("page", 1)) - 1
+    page_size         = 100
+    query             = {"completed": False, "section_level": False} if not completed_only else {"completed": True}
+    query             = {"completed": True, "featured": True} if completed_only and featured_only else query
+    requests          = TranslationRequestSet(query, limit=page_size, page=page, sort=[["request_count", -1]])
+    request_count     = TranslationRequestSet({"completed": False, "section_level": False}).count()
+    complete_count    = TranslationRequestSet({"completed": True}).count()
+    featured_complete = TranslationRequestSet({"completed": True, "featured": True}).count()
+    next_page         = page + 2 if True or requests.count() == page_size else 0
+    featured_query    = {"featured": True, "featured_until": { "$gt": datetime.now() } }
+    featured          = TranslationRequestSet(featured_query, sort=[["completed", 1], ["featured_until", 1]])
+    today             = datetime.today()
+    featured_end      = today + timedelta(7 - ((today.weekday()+1) % 7)) # This coming Sunday
+    featured_end      = featured_end.replace(hour=0, minute=0)  # At midnight
+    current           = [d.featured_until <= featured_end for d in featured]
+    featured_current  = sum(current)
+    show_featured     = not completed_only and not page and ((request.user.is_staff and featured.count()) or (featured_current))
 
     return render_to_response('translation_requests.html',
                                 {
@@ -1495,8 +1494,10 @@ def translation_requests(request, completed=False):
                                     "show_featured": show_featured,
                                     "requests": requests,
                                     "request_count": request_count,
-                                    "completed": completed,
+                                    "completed_only": completed_only,
                                     "complete_count": complete_count,
+                                    "featured_complete": featured_complete,
+                                    "featured_only": featured_only,
                                     "next_page": next_page,
                                     "page_offset": page * page_size
                                 },
@@ -1507,7 +1508,14 @@ def completed_translation_requests(request):
     """
     Wrapper for listing completed translations requests.
     """
-    return translation_requests(request, completed=True)
+    return translation_requests(request, completed_only=True)
+
+
+def completed_featured_translation_requests(request):
+    """
+    Wrapper for listing completed translations requests.
+    """
+    return translation_requests(request, completed_only=True, featured_only=True)
 
 
 def translation_request_api(request, tref):
