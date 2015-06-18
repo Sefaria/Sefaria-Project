@@ -1,16 +1,41 @@
 # -*- coding: utf-8 -*-
 
+import sys
+import urllib
+import urllib2
+from urllib2 import URLError, HTTPError
+import json
+
+sys.path.append("C:\\Users\\Izzy\\git\\Sefaria-Project")
 from sefaria.model import *
-# from sefaria.tracker import add
+
+apikey = ''
+server = 'dev.sefaria.org'
+
+def post_texts_api(text_obj, ref):
+    url = 'http://' + server + '/api/v2/raw/index/{}'.format(ref)
+    json_text = json.dumps(text_obj)
+    values = {
+        'json': json_text,
+        'apikey': apikey
+    }
+    data = urllib.urlencode(values)
+    req = urllib2.Request(url, data)
+    try:
+        response = urllib2.urlopen(req)
+        print response.read()
+    except HTTPError, e:
+        print 'Error code: ', e.code
+        print e.read()
 
 root = SchemaNode()
-root.add_title("Mekhilta d'Rabbi Shimon Bar Yochai", "en", primary=True)
-root.add_title("Mekhilta d'Rabbi Shimon", "en", primary=False)
-root.add_title("Mekhilta d'Rashbi", "en", primary=False)
+root.add_title("Mekhilta DeRabbi Shimon Bar Yochai", "en", primary=True)
+root.add_title("Mekhilta DeRabbi Shimon", "en", primary=False)
+root.add_title("Mekhilta DeRashbi", "en", primary=False)
 root.add_title(u"מכילתא דרבי שמעון בר יוחאי", "he", primary=True)
 root.add_title(u"מכילתא דרבי שמעון ", "he", primary=False)
-root.add_title(u"מכילתא דרשב\"יָ", "he", primary=False)
-root.key = "Mekhilta d'Rabbi Shimon Bar Yochai"
+root.add_title(u"מכילתא דרשב\"י", "he", primary=False)
+root.key = "Mekhilta DeRabbi Shimon Bar Yochai"
 
 # Main Body of the text
 main_body = JaggedArrayNode()
@@ -35,18 +60,19 @@ root.append(additions)
 root.validate()
 
 indx = {
-    "title": "Mekhilta d'Rabbi Shimon Bar Yochai",
+    "title": "Mekhilta DeRabbi Shimon Bar Yochai",
     "categories": ["Midrash", "Halachic Midrash"],
     "schema": root.serialize()
 }
 
-Index(indx).save()
-
+# Index(indx).save()
+post_texts_api(indx, "Mekhilta%20DeRabbi%20Shimon%20Bar%20Yochai")
 
 # Footnote Index
 footnote_index = {
-    "title": "Footnotes on Mekhilta d'Rabbi Shimon Bar Yochai",
+    "title": "Footnotes",
     "categories": ["Commentary"]
 }
 
-Index(footnote_index).save()
+# CommentaryIndex(footnote_index).save()
+post_texts_api(footnote_index, "Footnotes")

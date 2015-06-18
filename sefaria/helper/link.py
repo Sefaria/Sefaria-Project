@@ -13,7 +13,13 @@ def add_commentary_links(tref, user, **kwargs):
     for each segment of text (comment) that is in 'Sforno on Kohelet 3:2'.
     """
     oref = Ref(tref)
-    text = TextFamily(oref, commentary=0, context=0, pad=False).contents()
+    #TODO: Fix this block so that it can handle structure nodes, instead of skipping them
+    try:
+        text = TextFamily(oref, commentary=0, context=0, pad=False).contents()
+    except AssertionError:
+        print "Text Family can't handle structure nodes"
+        return
+
     tref = oref.normal()
 
     book = tref[tref.find(" on ") + 4:]
