@@ -23,7 +23,7 @@ from sefaria.history import text_history, get_maximal_collapsed_activity, top_co
 from sefaria.system.decorators import catch_error_as_json, catch_error_as_http
 from sefaria.workflows import *
 from sefaria.reviews import *
-from sefaria.summaries import get_toc, flatten_toc, get_or_make_summary_node
+from sefaria.summaries import get_toc, flatten_toc, get_or_make_summary_node, REORDER_RULES
 from sefaria.model import *
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 from sefaria.utils.users import user_link, user_started_text
@@ -266,18 +266,20 @@ def text_toc(request, oref):
             if depth == 0:
                 return ""
             linked = "linked" if node.is_leaf() and node.depth == 1 else ""
+            default = "default" if node.is_default() else ""
             url = "/" + node.ref().url()
             en_icon = '<i class="schema-node-control fa ' + ('fa-angle-right' if linked else 'fa-angle-down') + '"></i>'
             he_icon = '<i class="schema-node-control fa ' + ('fa-angle-left' if linked else 'fa-angle-down') + '"></i>'
             html = '<a href="' + urlquote(url) + '"' if linked else "<div "
-            html += ' class="schema-node-toc depth' + str(depth) + ' ' + linked + '">'
-            html += '<span class="schema-node-title">'
-            html +=    '<span class="en">' + node.primary_title() + en_icon + '</span>'
-            html +=    '<span class="he">' + node.primary_title(lang='he') + he_icon + '</span>'
-            html += '</span>'
+            html += ' class="schema-node-toc depth' + str(depth) + ' ' + linked + ' ' + default + '">'
+            if not default:
+                html += '<span class="schema-node-title">'
+                html +=    '<span class="en">' + node.primary_title() + en_icon + '</span>'
+                html +=    '<span class="he">' + node.primary_title(lang='he') + he_icon + '</span>'
+                html += '</span>'
             if node.is_leaf():
                 focused = node is req_node
-                html += '<div class="schema-node-contents ' + ('open' if focused else 'closed') + '">'
+                html += '<div class="schema-node-contents ' + ('open' if focused or default else 'closed') + '">'
                 node_state = StateNode(snode=node)
                 #Todo, handle Talmud and other address types, as well as commentary
                 zoom = 0 if node.depth == 1 else 1
@@ -394,9 +396,13 @@ def text_toc(request, oref):
             # Trust a flag if its set instead
             toc_html = toc_html.replace("heSome", "heAll")
 
+    index = index.contents(v2=True)
+    if index["categories"][0] in REORDER_RULES:
+        index["categories"] = REORDER_RULES[index["categories"][0]] + index["categories"][1:]
+
     return render_to_response('text_toc.html',
                              {
-                             "index":         index.contents(v2 = True),
+                             "index":         index,
                              "versions":      versions,
                              "commentaries":  commentaries,
                              "heComplete":    state.get_flag("heComplete"),
@@ -451,8 +457,12 @@ def texts_api(request, tref, lang=None, version=None):
         layer_name = request.GET.get("layer", None)
         alts       = bool(int(request.GET.get("alts", True)))
 
-        #text = get_text(tref, version=version, lang=lang, commentary=commentary, context=context, pad=pad)
-        text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
+        try:
+            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
+        except AttributeError as e:
+            oref = oref.default_child_ref()
+            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
+
 
         # Use a padded ref for calculating next and prev
         # TODO: what if pad is false and the ref is of an entire book?
@@ -481,6 +491,8 @@ def texts_api(request, tref, lang=None, version=None):
         j = request.POST.get("json")
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
+
+        oref = oref.default_child_ref()  # Make sure we're on the textual child
 
         # Parameters to suppress some costly operations after save
         count_after = int(request.GET.get("count_after", 1))
@@ -565,6 +577,8 @@ def index_api(request, title, v2=False, raw=False):
             node = library.get_schema_node(title)  # If the request were for v1 and fails, this falls back to v2.
             if not node:
                 raise e
+            if node.is_default():
+                node = node.parent
             i = node.as_index_contents()
 
         return jsonResponse(i, callback=request.GET.get("callback", None))
@@ -682,14 +696,20 @@ def text_preview_api(request, title):
     response = oref.index.contents(v2=True)
     response['node_title'] = oref.index_node.full_title()
 
-    if not oref.index_node.has_children():
-        text = TextFamily(oref, pad=False, commentary=False)
+    def get_preview(prev_oref):
+        text = TextFamily(prev_oref, pad=False, commentary=False)
 
-        if oref.index_node.depth == 1:
+        if prev_oref.index_node.depth == 1:
             # Give deeper previews for texts with depth 1 (boring to look at otherwise)
             text.text, text.he = [[i] for i in text.text], [[i] for i in text.he]
         preview = text_preview(text.text, text.he) if (text.text or text.he) else []
-        response['preview'] = preview if isinstance(preview, list) else [preview]
+        return preview if isinstance(preview, list) else [preview]
+
+    if not oref.index_node.has_children():
+        response['preview'] = get_preview(oref)
+    elif oref.index_node.has_default_child():
+        r = oref.index_node.get_default_child().ref()  # Get ref through ref() to get default leaf node and avoid getting parent node
+        response['preview'] = get_preview(r)
 
     return jsonResponse(response, callback=request.GET.get("callback", None))
 

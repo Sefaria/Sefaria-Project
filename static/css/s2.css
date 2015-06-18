@@ -12,8 +12,57 @@ body {
   direction: rtl;
   text-align: right;
 }
+.bilingual .en .heOnly,
+.bilingual .he .enOnly {
+  display: none;
+}
 #languageToggle {
   display: inline;
+}
+#showOptions {
+  visibility: hidden;
+}
+#top #right #accountBox {
+  display: none;
+}
+#readerControls {
+  position: fixed;
+  direction: ltr;
+  right: 0;
+  top: 0;
+  z-index: 101;
+  height: 48px;
+  line-height: 48px;
+  border-bottom: 1px solid #ddd;
+  background-color: white;
+}
+#readerControls .controlsButton {
+  cursor: pointer;
+  display: inline-block;
+  margin: 0 4px;
+  color: #999;
+  font-size: 16px;
+  border: 1px solid #CCC;
+  border-radius: 8px;
+  width: 38px;
+  height: 32px;
+  line-height: 32px;
+  text-align: center;
+}
+#readerControls .controlsButton:hover,
+#readerControls .controlsButton:active {
+  background-color: #eee;
+  color: #555;
+}
+#readerControls #readerPrevious {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  margin-right: -1px;
+}
+#readerControls #readerNext {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  margin-left: 0;
 }
 .textRange.basetext {
   width: 100%;
@@ -25,15 +74,18 @@ body {
 }
 .textRange.basetext .title {
   font-weight: bold;
-  background-color: #F7F7F7;
   padding: 16px 8px;
-  margin-bottom: 16px;
   text-align: center;
-  border-bottom: 1px solid #CCC;
   font-weight: lighter;
   font-family: Helvetica, sans-serif;
   text-transform: uppercase;
   letter-spacing: 1px;
+}
+
+.bilingual .textRange.basetext .title .he,
+.bilingual .textRange.basetext .title .en {
+  display: inline-block;
+  margin: 4px 8px;
 }
 .previousSection, .nextSection {
   color: #C6C6C6;
@@ -64,7 +116,25 @@ body {
   display: inline;
   margin: 0;
 }
-.basetext .segment:hover {
+.bilingual .basetext .segment {
+  margin-bottom: 14px;
+  display: block;
+}
+.bilingual .segment .he,
+.bilingual .segment .en { 
+  display: block;
+}
+.bilingual .segment .en { 
+  margin-top: 6px;
+}
+.bilingual .basetext .segment .en { 
+  margin-top: 10px;
+  color: #888;
+}
+
+.basetext .segment:hover,
+.basetext .segment:active,
+.basetext .segment:focus {
   background-color: #eee;
 }
 .segment .segmentNumber, .segment .linkCount {
@@ -129,6 +199,7 @@ body {
   padding: 0 0 10px 10px;
 }
 .textList .anchorText .textRange .title {
+  display: none;
   text-align: center;
   text-transform: uppercase;
   font-family: Helvetica, sans-serif;
@@ -214,6 +285,10 @@ body {
   cursor: pointer;
   border-radius: 3px;
   margin: 16px 0;
+}
+.textList .textListMessage {
+  padding: 20px;
+  color: #aaa;
 }
 .textList .texts .textRange {
   font-size: 14px;

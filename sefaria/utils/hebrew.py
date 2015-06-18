@@ -452,6 +452,7 @@ def hebrew_term(s):
 		"Letter":           u"אות",
 		"Halacha":          u"הלכה",
 		"Seif Katan":       u"סעיף קטן",
+		"Se'if Katan":	    u"סעיף קטן",
 		"Volume":           u"כרך",
 		"Book":             u"ספר",
 		"Shar":             u"שער",
