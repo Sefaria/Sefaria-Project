@@ -285,7 +285,7 @@ def text_toc(request, oref):
                 zoom = 0 if node.depth == 1 else 1
                 zoom = int(request.GET.get("zoom", zoom))
                 he_counts, en_counts = node_state.var("he", "availableTexts"), node_state.var("en", "availableTexts")
-                content = make_toc_html(he_counts, en_counts, node.sectionNames, node.full_title(), talmud=False, zoom=zoom)
+                content = make_toc_html(he_counts, en_counts, node.sectionNames, node.addressTypes, node.full_title(), zoom=zoom)
                 content = content or "<div class='emptyMessage'>No text here.</div>"
                 html += content + '</div>'
             html += "</a>" if linked else "</div>"
@@ -294,7 +294,7 @@ def text_toc(request, oref):
         html = index.nodes.traverse_to_string(node_line)
         return html
 
-    def make_toc_html(he_toc, en_toc, labels, ref, talmud=False, zoom=1):
+    def make_toc_html(he_toc, en_toc, labels, addresses, ref, zoom=1):
         """
         Returns HTML corresponding to jagged count arrays he_toc and en_toc.
         Runs recursively.
@@ -312,6 +312,9 @@ def text_toc(request, oref):
         length = len(he_toc)
         assert(list_depth(he_toc, deep=True) == list_depth(en_toc, deep=True))
         depth = list_depth(he_toc, deep=True)
+
+        # todo: have this use the address classes in schema.py
+        talmud = (addresses[0] == "Talmud")
 
         html = ""
         if depth == zoom + 1:
@@ -339,8 +342,7 @@ def text_toc(request, oref):
             # We're above terminal level, list sections and recur
             for i in range(length):
                 section = section_to_daf(i + 1) if talmud else str(i + 1)
-                # Talmud is set to false because we only ever use Talmud numbering at top (daf) level
-                section_html = make_toc_html(he_toc[i], en_toc[i], labels[1:], ref + "." + section, talmud=False, zoom=zoom)
+                section_html = make_toc_html(he_toc[i], en_toc[i], labels[1:], addresses[1:], ref + "." + section, zoom=zoom)
                 if section_html:
                     he_section = encode_hebrew_daf(section) if talmud else encode_hebrew_numeral(int(section), punctuation=False)
                     html += "<div class='tocSection'>"
@@ -381,7 +383,7 @@ def text_toc(request, oref):
         zoom = 0 if index.nodes.depth == 1 else 2 if "Commentary" in index.categories else 1
         zoom = int(request.GET.get("zoom", zoom))
         he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
-        toc_html = make_toc_html(he_counts, en_counts, index.nodes.sectionNames, title, talmud=talmud, zoom=zoom)
+        toc_html = make_toc_html(he_counts, en_counts, index.nodes.sectionNames, index.nodes.addressTypes, title, zoom=zoom)
 
         count_strings = {
             "en": ", ".join([str(state.get_available_counts("en")[i]) + " " + hebrew_plural(index.nodes.sectionNames[i]) for i in range(index.nodes.depth)]),
