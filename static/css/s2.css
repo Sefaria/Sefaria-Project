@@ -214,7 +214,7 @@ body {
   left: 0;
   width: 100%;
   height: 40px;
-  background: linear-gradient(to bottom, transparent, #F7F7F7);
+  background: linear-gradient(to bottom, rgba(247,247,247,0), #F7F7F7);
 }
 .filterSet {
 
