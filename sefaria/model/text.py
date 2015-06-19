@@ -3117,8 +3117,12 @@ class Library(object):
         if lang == "he":
             unique_titles = {title: 1 for title in self.get_titles_in_string(st, lang)}
             for title in unique_titles.iterkeys():
-                res = self._build_all_refs_from_string(title, st)
-                refs += res
+                try:
+                    res = self._build_all_refs_from_string(title, st)
+                except:
+                    print "Skipping Schema Nodes"
+                else:
+                    refs += res
         else:  # lang == "en"
             for match in self.all_titles_regex(lang, commentary=False).finditer(st):
                 title = match.group('title')
