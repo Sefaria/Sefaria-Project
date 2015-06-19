@@ -1303,18 +1303,22 @@ class TextFamily(object):
                         else:
                             d[val[language]] = val.get("default")
 
-        # replace ints with daf strings (3->"2a") if text is Talmud or commentary on Talmud
-        if self._context_oref.is_talmud() and len(d["sections"]) > 0:
-            daf = d["sections"][0]
-            d["sections"][0] = AddressTalmud.toStr("en", daf)
-            d["title"] = d["book"] + " " + d["sections"][0]
+        # replace ints with daf strings (3->"2a") for Talmud addresses
+        # this could be simpler if was done for every value - but would be slower.
+        if "Talmud" in self._inode.addressTypes:
+            for i in range(len(d["sections"])):
+                if self._inode.addressTypes[i] == "Talmud":
+                    d["sections"][i] = AddressTalmud.toStr("en", d["sections"][i])
+                    if "toSections" in d:
+                        d["toSections"][i] = AddressTalmud.toStr("en", d["toSections"][i])
+
+            d["title"] = self._context_oref.normal()
             if "heTitle" in d:
                 d["heBook"] = d["heTitle"]
-                d["heTitle"] = d["heTitle"] + " " + AddressTalmud.toStr("he", daf)
-            if d["type"] == "Commentary" and len(d["sections"]) > 1:
+                d["heTitle"] = self._context_oref.he_normal()
+
+            if d["type"] == "Commentary" and self._context_oref.is_talmud() and len(d["sections"]) > 1:
                 d["title"] = "%s Line %d" % (d["title"], d["sections"][1])
-            if "toSections" in d:
-                d["toSections"] = [d["sections"][0]] + d["toSections"][1:]
 
         elif self._context_oref.is_commentary():
             dep = len(d["sections"]) if len(d["sections"]) < 2 else 2
