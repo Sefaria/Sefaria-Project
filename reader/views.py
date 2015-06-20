@@ -61,7 +61,10 @@ def reader(request, tref, lang=None, version=None):
             return s2(request, ref=tref)
 
         # Return Text TOC if this is a bare text title
-        if (not getattr(oref.index_node, "depth", None)) or (oref.sections == [] and oref.index_node.depth > 1):
+        # or a schema node with multip sections underneath it
+        if (not getattr(oref.index_node, "depth", None) 
+                or (oref.sections == [] and 
+                    (oref.index.title == uref or oref.index_node.depth > 1))):
             return text_toc(request, oref)
 
         # BANDAID - for spanning refs, return the first section

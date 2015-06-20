@@ -12,6 +12,26 @@ body {
   direction: rtl;
   text-align: right;
 }
+.hebrew {
+  direction: rtl;
+}
+.english .he {
+  display: none;
+}
+.english .en {
+  display: inline;
+}
+.hebrew .he {
+  display: inline;
+  font-size: 120%;
+  text-align: right;
+}
+.hebrew .he .enInHe {
+  font-size: 83%;
+}
+.hebrew .en {
+  display: none;
+}
 .bilingual .en .heOnly,
 .bilingual .he .enOnly {
   display: none;
@@ -35,6 +55,10 @@ body {
   line-height: 48px;
   border-bottom: 1px solid #ddd;
   background-color: white;
+  -moz-user-select: none; 
+  -khtml-user-select: none; 
+  -webkit-user-select: none; 
+  -o-user-select: none; 
 }
 #readerControls .controlsButton {
   cursor: pointer;
@@ -64,6 +88,42 @@ body {
   border-bottom-left-radius: 0;
   margin-left: 0;
 }
+#readerOptionsPanel {
+  position: fixed;
+  width: 100%;
+  top: 49px;
+  padding: 20px;
+  box-sizing: border-box;
+  direction: ltr;
+  background: white;
+  border-bottom: 1px solid #ccc;
+  z-index: 103;
+}
+.toggleSet {
+  display: inline-block;
+  width: 100%;
+  margin: 7px 0;
+  margin-left: 1px;
+}
+.toggleOption {
+  box-sizing: border-box;
+  text-align: center;
+  border: 1px solid #ccc;
+  margin-left: -1px;
+  padding: 4px;
+  height: auto;
+}
+.toggleOption.on, .toggleOption:hover {
+  background-color: #eee;
+}
+#mask {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 102;
+}
+
 .textRange.basetext {
   width: 100%;
   box-sizing: border-box;
@@ -82,8 +142,8 @@ body {
   letter-spacing: 1px;
 }
 
-.bilingual .textRange.basetext .title .he,
-.bilingual .textRange.basetext .title .en {
+.textRange.basetext.bilingual .title .he,
+.textRange.basetext.bilingual .title .en {
   display: inline-block;
   margin: 4px 8px;
 }
@@ -112,11 +172,11 @@ body {
   display: block;
   margin-bottom: 26px;
 }
-.basetext.flowLayout .segment{
+.basetext.continuous .segment{
   display: inline;
   margin: 0;
 }
-.bilingual .basetext .segment {
+.basetext.bilingual .segment {
   margin-bottom: 14px;
   display: block;
 }
@@ -127,7 +187,7 @@ body {
 .bilingual .segment .en { 
   margin-top: 6px;
 }
-.bilingual .basetext .segment .en { 
+.basetext.bilingual  .segment .en { 
   margin-top: 10px;
   color: #888;
 }
@@ -244,7 +304,7 @@ body {
   width: 100%;
   height: 38px;
 }
-.topFilters .textFilter span {
+.topFilters .textFilter > div {
   display: table-cell;
   vertical-align: middle;
 }
@@ -272,6 +332,10 @@ body {
 }
 .topFilters .textFilter.showMoreFilters {
   color: #999;
+}
+.bilingual .textFilter .he,
+.bilingual .categoryFilter .he {
+  display: none;
 }
 .fullFilterView {
 }

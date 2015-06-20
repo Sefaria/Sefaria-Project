@@ -43,7 +43,6 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
         com["he"]        = JaggedTextArray(text.he).flatten_to_array()
 
     # if the the link is commentary, strip redundant info (e.g. "Rashi on Genesis 4:2" -> "Rashi")
-    print com
     if com["type"] == "commentary":
         com["commentator"]   = linkRef.book.split(" on ")[0]
         com["heCommentator"] = linkRef.he_book().split(u" על ")[0]
