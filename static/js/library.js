@@ -75,14 +75,13 @@ sjs.library = {
       this._texts[ref] = segment_data;
     }
   },
-  _textCategories: {},
-  textCategory: function(text, category) {
-    // Cache for text -> category mappings
-    // TODO evolve this into a cache for index records generally
-    if (!category) {
-      return this._textCategories[text];
+  _index: {},
+  index: function(text, index) {
+    // Cache for text index records
+    if (!index) {
+      return this._index[text];
     } else {
-      this._textCategories[text] = category;
+      this._index[text] = index;
     }
   },
   _links: {},
@@ -100,11 +99,21 @@ sjs.library = {
             return;
           }
           this._links[ref] = data;
-          for (var i=0; i<data.length; i++) {
-            this.textCategory(data[i].commentator, data[i].category);
-          }
+          this.cacheIndexFromLinks(data);
           cb(data);
         }.bind(this));
+    }
+  },
+  cacheIndexFromLinks: function(links) {
+    for (var i=0; i< links.length; i++) {
+      // Cache partial index information
+      if (this.index(links[i].commentator)) { continue; }
+      var index = {
+        title: links[i].commentator,
+        heTitle: links[i].heCommentator,
+        categories: [links[i].category],
+      }
+      this.index(links[i].commentator, index);
     }
   },
   bulkLoadLinks: function(ref, cb) {
@@ -121,8 +130,6 @@ sjs.library = {
         // TODO account for links to ranges
         for (var i=0; i < data.length; i++) {
           var newRef = data[i].anchorRef;
-          this.textCategory(data[i].commentator, data[i].category);
-
           if (newRef in newLinks) {
             newLinks[newRef].push(data[i]);
           } else {
@@ -135,6 +142,7 @@ sjs.library = {
           }
         }
         this._links[ref] = true; // Mark this bulk ref as loaded
+        this.cacheIndexFromLinks(data);
         cb();
       }.bind(this));         
     }
@@ -171,12 +179,17 @@ sjs.library = {
     summary = $.map(summary, function(value, category) {
       value.category = category;
       value.books = $.map(value.books, function(value, book) {
-        value.book = book;
+        var index      = sjs.library.index(book);
+        value.book     = index.title;
+        value.heBook   = index.heTitle;
+        value.category = index.categories[0];
         return value;
       });
+      // Sort the books in the category
       value.books.sort(function(a,b) { return b.count - a.count; });
       return value;
     });
+    // Sort the categories
     summary.sort(function(a,b) { return b.count - a.count; });
     return summary;
   },
@@ -185,7 +198,6 @@ sjs.library = {
     var summary = sjs.library.linkSummary(ref);
     var booksByCat = summary.map(function(cat) { 
       return cat.books.map(function(book) {
-        book.category = cat.category;
         return book;
       });
     });
@@ -194,11 +206,61 @@ sjs.library = {
     return books;     
   },
   topLinks: function(ref) {
-    // Return up to 5 top recommend link filters
+    // Return up to 5 top recommended link filters
     // TODO add text specific content rules here (e.g., privlege Tosafot for Bavli)
     var books = this.flatLinkSummary(ref);
     books.sort(function(a,b) { return b.count - a.count; });
     books = books.slice(0, 5);
     return books;
   },
+  hebrewCategory: function(cat) {
+    categories = {
+      "Torah":                "תורה",
+      "Tanach":               'תנ"ך',
+      "Tanakh":               'תנ"ך',
+      "Prophets":             "נביאים",
+      "Writings":             "כתובים",
+      "Commentary":           "מפרשים",
+      "Quoting Commentary":   "פרשנות מצטטת",
+      "Targum":               "תרגומים",
+      "Mishnah":              "משנה",
+      "Tosefta":              "תוספתא",
+      "Talmud":               "תלמוד",
+      "Bavli":                "בבלי",
+      "Yerushalmi":           "ירושלמי",
+      "Rif":                  'רי"ף',
+      "Kabbalah":             "קבלה",
+      "Halakha":              "הלכה",
+      "Halakhah":             "הלכה",
+      "Midrash":              "מדרש",
+      "Aggadic Midrash":      "מדרש אגדה",
+      "Halachic Midrash":     "מדרש הלכה",
+      "Midrash Rabbah":       "מדרש רבה",
+      "Responsa":             'שו"ת',
+      "Rashba":               'רשב"א',
+      "Rambam":               'רמב"ם',
+      "Other":                "אחר",
+      "Siddur":               "סידור",
+      "Liturgy":              "תפילה",
+      "Piyutim":              "פיוטים",
+      "Musar":                "ספרי מוסר",
+      "Chasidut":             "חסידות",
+      "Parshanut":            "פרשנות",
+      "Philosophy":           "מחשבת ישראל",
+      "Apocrypha":            "ספרים חיצונים",
+      "Seder Zeraim":         "סדר זרעים",
+      "Seder Moed":           "סדר מועד",
+      "Seder Nashim":         "סדר נשים",
+      "Seder Nezikin":        "סדר נזיקין",
+      "Seder Kodashim":       "סדר קדשים",
+      "Seder Toharot":        "סדר טהרות",
+      "Seder Tahorot":        "סדר טהרות",
+      "Dictionary":           "מילון",
+      "Early Jewish Thought": "מחשבת ישראל קדומה",
+      "Minor Tractates":      "מסכתות קטנות",
+      "Rosh":                 'ר"אש',
+      "Maharsha":             'מהרשא'
+    }
+    return cat in categories ? categories[cat] : cat;
+  }
 };

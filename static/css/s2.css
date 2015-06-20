@@ -244,7 +244,7 @@ body {
   width: 100%;
   height: 38px;
 }
-.topFilters .textFilter span {
+.topFilters .textFilter > div {
   display: table-cell;
   vertical-align: middle;
 }
@@ -272,6 +272,10 @@ body {
 }
 .topFilters .textFilter.showMoreFilters {
   color: #999;
+}
+body.bilingual .textFilter .he,
+body.bilingual .categoryFilter .he {
+  display: none;
 }
 .fullFilterView {
 }

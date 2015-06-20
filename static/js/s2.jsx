@@ -529,14 +529,18 @@ var TopFilterSet = React.createClass({
   render: function() {
     var topLinks = sjs.library.topLinks(this.props.sref);
 
-    // Filter top links for items already in recent filter
+    // Filter top links to exclude items already in recent filter
     topLinks = topLinks.filter(function(link) {
       return ($.inArray(link.book, this.props.recentFilters) == -1);
     }.bind(this));
     
     // Annotate filter texts with category            
     var recentFilters = this.props.recentFilters.map(function(filter) {
-      return {book: filter, category: sjs.library.textCategory(filter) };
+      var index = sjs.library.index(filter);
+      return {
+          book: filter,
+          heBook: index ? index.heTitle : sjs.library.hebrewCategory(filter),
+          category: index ? index.categories[0] : filter };
     });
     topLinks = recentFilters.concat(topLinks).slice(0,5);
 
@@ -548,17 +552,19 @@ var TopFilterSet = React.createClass({
             topLinks[i].category == filter ) { break; }
       }
       if (i == topLinks.length) {
-        var annotatedFilter = {book: filter, category: sjs.library.textCategory(filter) };
+        var index = sjs.library.index(filter);
+        var annotatedFilter = {book: filter, heBook: index.heTitle, category: index.categories[0] };
         topLinks = [annotatedFilter].concat(topLinks).slice(0,5);
       } else {
         // topLinks.move(i, 0); 
       }        
     }
-
+    console.log(topLinks);
     var topFilters = topLinks.map(function(book) {
      return (<TextFilter 
                 key={book.book} 
-                book={book.book} 
+                book={book.book}
+                heBook={book.heBook}
                 category={book.category}
                 hideCounts={true}
                 count={book.count}
@@ -573,8 +579,11 @@ var TopFilterSet = React.createClass({
       topFilters.push(<div className="showMoreFilters textFilter" 
                           style={style}
                           onClick={this.props.showAllFilters}>
-                            <span>More &gt;</span>
-                    </div>);
+                            <div>
+                              <span className="en">More &gt;</span>
+                              <span className="he">עוד &gt;</span>
+                            </div>                    
+                      </div>);
     }
 
     return (
@@ -601,7 +610,8 @@ var AllFilterSet = React.createClass({
       return (
         <CategoryFilter 
           key={i}
-          category={cat.category} 
+          category={cat.category}
+          heCategory={sjs.library.hebrewCategory(cat.category)}
           count={cat.count} 
           books={cat.books}
           filter={this.props.filter}
@@ -629,7 +639,8 @@ var CategoryFilter = React.createClass({
     var textFilters = this.props.books.map(function(book, i) {
      return (<TextFilter 
                 key={book.book} 
-                book={book.book} 
+                book={book.book}
+                heBook={book.heBook} 
                 count={book.count}
                 category={this.props.category}
                 hideColors={true}
@@ -639,13 +650,15 @@ var CategoryFilter = React.createClass({
                 on={$.inArray(book.book, this.props.filter) !== -1} />);
     }.bind(this));
     
-    var color = sjs.categoryColors[this.props.category] || sjs.palette.pink;
-    var style = {"borderTop": "4px solid " + color};
+    var color   = sjs.categoryColors[this.props.category] || sjs.palette.pink;
+    var style   = {"borderTop": "4px solid " + color};
     var classes = cx({categoryFilter: 1, on: this.props.on});
+    var count   = (<span className="enInHe">{this.props.count}</span>);
     return (
       <div className="categoryFilterGroup" style={style}>
         <div className={classes} onClick={this.handleClick}>
-          {this.props.category} | {this.props.count}
+          <span className="en">{this.props.category} | {count}</span>
+          <span className="he">{this.props.heCategory} | {count}</span>
         </div>
         <TwoBox content={ textFilters } />
       </div>
@@ -668,15 +681,18 @@ var TextFilter = React.createClass({
       var color = sjs.categoryColors[this.props.category] || sjs.palette.pink;
       var style = {"borderTop": "4px solid " + color};
     }
-    var count = this.props.hideCounts ? "" : 
-      ( <span> ({this.props.count})</span>);
+    var name = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
+    var count = this.props.hideCounts ? "" : ( <span className="enInHe"> ({this.props.count})</span>);
     return (
       <div 
         className={classes} 
         key={this.props.book} 
         style={style}
         onClick={this.handleClick}>
-        {this.props.book}{count}
+          <div>  
+            <span className="en">{name}{count}</span>
+            <span className="he">{this.props.heBook}{count}</span>
+          </div>
       </div>
     );
   }
