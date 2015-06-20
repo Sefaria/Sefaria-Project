@@ -11,7 +11,11 @@ var ReaderApp = React.createClass({
     return {
       currentFilter: this.props.initialFilter || [],
       recentFilters: [],
-      contents: contents
+      contents: contents,
+      settings: {
+        language: "english",
+        layout: "continuous"
+      }
     }
   },
   componentDidMount: function() {
@@ -168,7 +172,15 @@ var ReaderApp = React.createClass({
   navPrevious: function() {
     this.navigateReader("prev");
   },
+  setOption: function(option, value) {
+    this.state.settings[option] = value;
+    this.setState({settings: this.state.settings});
+  },
   render: function() {
+    var classes = {};
+    classes[this.state.settings.layout] = 1;
+    classes[this.state.settings.language] = 1;
+    classes = cx(classes);
     var items = this.state.contents.slice(-1).map(function(item, i) {
       if (item.type === "TextColumn") {
         return item.refs.map(function(ref, k) {
@@ -177,6 +189,8 @@ var ReaderApp = React.createClass({
             basetext={true}
             loadLinks={true}
             prefetchNextPrev={true}
+            settings={this.state.settings}
+            setOption={this.setOption}
             showBaseText={this.showBaseText} 
             showTextList={this.showTextList} 
             key={ref} />);      
@@ -196,38 +210,123 @@ var ReaderApp = React.createClass({
       }
     }.bind(this));
     return (
-      <div id="readerApp">
+      <div id="readerApp" className={classes}>
         <ReaderControls 
           navNext={this.navNext}
-          navPrevious={this.navPrevious} />
+          navPrevious={this.navPrevious}
+          settings={this.state.settings}
+          setOption={this.setOption} />
         {items}
       </div>
     );
   }
 });
 
+
 var ReaderControls = React.createClass({
   getInitialState: function() {
-    return { 
+    return {
+      open: false
     };
   },
   showOptions: function(e) {
-    setTimeout(function() { sjs.showOptionsBar(); }, 5);
+//    setTimeout(function() { sjs.showOptionsBar(); }, 5);
+    this.setState({open: true});
+  },
+  hideOptions: function() {
+    this.setState({open: false});
   },
   render: function() {
+    var languageOptions = [
+      {name: "english", image: "/static/img/english.png" },
+      {name: "bilingual", image: "/static/img/bilingual.png" },
+      {name: "hebrew", image: "/static/img/hebrew.png" }
+    ];
+    var layoutOptions = [
+      {name: "continuous", image: "/static/img/paragraph.png" },
+      {name: "segmented", image: "/static/img/lines.png" },
+    ];
+    var readerOptions = !this.state.open ? "" : (
+      <div id="readerOptionsPanel">
+        <ToggleSet
+          name="language"
+          options={languageOptions}
+          setOption={this.props.setOption}
+          settings={this.props.settings} />
+        <ToggleSet
+          name="layout"
+          options={layoutOptions}
+          setOption={this.props.setOption}
+          settings={this.props.settings} />
+      </div>);
+
     return (
-      <div id="readerControls">
-        <div id="readerPrevious"
-              className="controlsButton"
-              onClick={this.props.navPrevious}><i className="fa fa-caret-up"></i></div>
-        <div id="readerNext" 
-              className="controlsButton" 
-              onClick={this.props.navNext}><i className="fa fa-caret-down"></i></div>
-        <div id="readerOptions"
-              className="controlsButton"
-              onClick={this.showOptions}><i className="fa fa-bars"></i></div>
+      <div>
+        <div id="readerControls">
+          <div id="readerPrevious"
+                className="controlsButton"
+                onClick={this.props.navPrevious}><i className="fa fa-caret-up"></i></div>
+          <div id="readerNext" 
+                className="controlsButton" 
+                onClick={this.props.navNext}><i className="fa fa-caret-down"></i></div>
+          <div id="readerOptions"
+                className="controlsButton"
+                onClick={this.showOptions}><i className="fa fa-bars"></i></div>
+        </div>
+        {readerOptions}
+        {this.state.open ? (<div id="mask" onClick={this.hideOptions}></div>) : ""}
       </div>
+
     );
+  }
+});
+
+
+var ToggleSet = React.createClass({
+  getInitialState: function() {
+    return {};
+  },
+  render: function() {
+    var classes = cx({toggleSet: 1 });
+    var style = {width: (100.0/this.props.options.length) + "%"};
+    return (
+      <div id={this.props.name} className={classes}>
+        {
+          this.props.options.map(function(option) {
+            return (
+              <ToggleOption
+                name={option.name}
+                set={this.props.name}
+                on={this.props.settings[this.props.name] == option.name}
+                setOption={this.props.setOption}
+                style={style}
+                image={option.image}
+                content={option.content} />);
+          }.bind(this))
+        }
+      </div>);
+  }
+});
+
+
+var ToggleOption = React.createClass({
+  getInitialState: function() {
+    return {};
+  },
+  handleClick: function() {
+    this.props.setOption(this.props.set, this.props.name);
+  },
+  render: function() {
+    var classes = cx({toggleOption: 1, on: this.props.on });
+    var content = this.props.image ? (<img src={this.props.image} />) : this.props.content;
+    return (
+      <div
+        id={this.props.name}
+        className={classes}
+        style={this.props.style}
+        onClick={this.handleClick}>
+        {content}
+      </div>);
   }
 });
 
@@ -238,7 +337,6 @@ var TextRange = React.createClass({
       segments: [],
       sref: this.props.sref,
       data: {ref: this.props.sref},
-      flowLayout: true
     };
   },
   componentDidMount: function() {
@@ -280,14 +378,15 @@ var TextRange = React.createClass({
         linkCount: sjs.library.linkCount(ref)
       });
     }
-    var flowLayout = data.categories[0] === "Tanach" ||
-                      data.categories[0] === "Talmud" &&
-                      data.book !== "Psalms";
+
+    if (this.props.basetext && data.categories[0] === "Talmud" && data.categories[1] === "Bavli") {
+      this.props.setOption("layout", "continuous");
+    }
+
     this.setState({
       data: data,
       segments: segments,
       sref: data.ref,
-      flowLayout: flowLayout
     });
 
     if (this.props.loadLinks && !sjs.library.linksLoaded(data.ref)) {
@@ -355,7 +454,12 @@ var TextRange = React.createClass({
             showTextList={this.props.showTextList} />
       );
     }.bind(this));
-    var classes = cx({textRange: 1, basetext: this.props.basetext, flowLayout: this.state.flowLayout });
+    var classes = {textRange: 1, basetext: this.props.basetext };
+    if (this.props.settings) {
+      classes[this.props.settings.layout] = 1;
+      classes[this.props.settings.language] = 1;
+    }
+    classes = cx(classes);
     return (
       <div className={classes} onClick={this.handleClick}>
         <div className="title">
