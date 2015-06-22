@@ -1267,6 +1267,10 @@ sjs.lexicon = {
 		$("#lexiconModal").remove();
 	},
 
+	/*on: function(target){
+		return;
+	},*/
+
 	// ---------------------preparation functions--------------------------
 	isLexiconEnabled: function (currentText, lang, params){
 		//console.log(currentText);
@@ -1310,7 +1314,7 @@ sjs.lexicon = {
 		//console.log($(this).text())
 		var word = $(this).text();
 		var $anchor = $(this);
-		$.getJSON("/api/words/" + word).done(function(data){
+		$.getJSON("/api/words/" + encodeURIComponent(word)).done(function(data){
 			//console.log(data);
 			$html = sjs.lexicon.renderLexiconLookup(data, word);
 			var $modal = $('<div id="lexiconModal">').append($html).appendTo("body");
