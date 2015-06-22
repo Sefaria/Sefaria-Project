@@ -298,6 +298,8 @@ sjs.Init.handlers = function() {
 
 		if (cat === "all") {
 			sjs._$commentaryViewPort.find(".commentary").removeClass("hidden");
+			// Special treatment for Modern Works -- don't show by default
+			$(".commentary[data-category~='Modern-Works']").addClass("hidden");
 		} else if (cat === "Layer") {
 			// pass
 		} else {

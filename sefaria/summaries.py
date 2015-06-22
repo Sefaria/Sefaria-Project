@@ -104,6 +104,7 @@ ORDER = [
         "Rambam",
     'Apocrypha',
     'Elucidation',
+    'Modern Works',
     'Other',
 ]
 
