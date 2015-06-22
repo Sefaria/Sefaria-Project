@@ -14,7 +14,8 @@ var ReaderApp = React.createClass({
       contents: contents,
       settings: {
         language: "english",
-        layout: "continuous"
+        layout: "segmented",
+        color: "light"
       }
     }
   },
@@ -175,11 +176,15 @@ var ReaderApp = React.createClass({
   setOption: function(option, value) {
     this.state.settings[option] = value;
     this.setState({settings: this.state.settings});
+    if (option === "color") {
+      $("body").removeClass("white sepia dark").addClass(value);
+    }
   },
   render: function() {
     var classes = {};
-    classes[this.state.settings.layout] = 1;
+    classes[this.state.settings.layout]   = 1;
     classes[this.state.settings.language] = 1;
+    classes[this.state.settings.color]    = 1;
     classes = cx(classes);
     var items = this.state.contents.slice(-1).map(function(item, i) {
       if (item.type === "TextColumn") {
@@ -236,42 +241,75 @@ var ReaderControls = React.createClass({
   hideOptions: function() {
     this.setState({open: false});
   },
+  openNav: function(e) {
+    console.log("test");
+    e.stopPropagation();
+    $("#navPanel").addClass("navPanelOpen")
+  },
   render: function() {
     var languageOptions = [
       {name: "english", image: "/static/img/english.png" },
       {name: "bilingual", image: "/static/img/bilingual.png" },
       {name: "hebrew", image: "/static/img/hebrew.png" }
     ];
-    var layoutOptions = [
-      {name: "continuous", image: "/static/img/paragraph.png" },
-      {name: "segmented", image: "/static/img/lines.png" },
-    ];
-    var readerOptions = !this.state.open ? "" : (
-      <div id="readerOptionsPanel">
+    var languageToggle = (
         <ToggleSet
           name="language"
           options={languageOptions}
           setOption={this.props.setOption}
-          settings={this.props.settings} />
-        <ToggleSet
+          settings={this.props.settings} />);
+    
+    var layoutOptions = [
+      {name: "continuous", image: "/static/img/paragraph.png" },
+      {name: "segmented", image: "/static/img/lines.png" },
+    ];
+    var layoutToggle = this.props.settings.language !== "bilingual" ? 
+      (<ToggleSet
           name="layout"
           options={layoutOptions}
           setOption={this.props.setOption}
-          settings={this.props.settings} />
+          settings={this.props.settings} />) : "";
+
+    var colorOptions = [
+      {name: "light", content: "" },
+      {name: "sepia", content: "" },
+      {name: "dark", content: "" }
+    ];
+    var colorToggle = (
+        <ToggleSet
+          name="color"
+          separated={true}
+          options={colorOptions}
+          setOption={this.props.setOption}
+          settings={this.props.settings} />);
+
+
+    var readerOptions = !this.state.open ? "" : (
+      <div id="readerOptionsPanel">
+        {languageToggle}
+        {layoutToggle}
+        {colorToggle}
       </div>);
 
     return (
       <div>
         <div id="readerControls">
-          <div id="readerPrevious"
-                className="controlsButton"
-                onClick={this.props.navPrevious}><i className="fa fa-caret-up"></i></div>
-          <div id="readerNext" 
-                className="controlsButton" 
-                onClick={this.props.navNext}><i className="fa fa-caret-down"></i></div>
-          <div id="readerOptions"
-                className="controlsButton"
-                onClick={this.showOptions}><i className="fa fa-bars"></i></div>
+          <div id="readerControlsRight">
+            <div id="readerPrevious"
+                  className="controlsButton"
+                  onClick={this.props.navPrevious}><i className="fa fa-caret-up"></i></div>
+            <div id="readerNext" 
+                  className="controlsButton" 
+                  onClick={this.props.navNext}><i className="fa fa-caret-down"></i></div>
+            <div id="readerOptions"
+                  className="controlsButton"
+                  onClick={this.showOptions}><i className="fa fa-bars"></i></div>
+          </div>
+          <div id="readerControlsLeft">
+            <div id="readerNav"
+                  className="controlsButton"
+                  onClick={this.openNav}><i className="fa fa-search"></i></div>
+          </div>
         </div>
         {readerOptions}
         {this.state.open ? (<div id="mask" onClick={this.hideOptions}></div>) : ""}
@@ -287,8 +325,9 @@ var ToggleSet = React.createClass({
     return {};
   },
   render: function() {
-    var classes = cx({toggleSet: 1 });
-    var style = {width: (100.0/this.props.options.length) + "%"};
+    var classes = cx({toggleSet: 1, separated: this.props.separated });
+    var width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
+    var style = {width: (width/this.props.options.length) + "%"};
     return (
       <div id={this.props.name} className={classes}>
         {
@@ -377,10 +416,6 @@ var TextRange = React.createClass({
         ref: ref,
         linkCount: sjs.library.linkCount(ref)
       });
-    }
-
-    if (this.props.basetext && data.categories[0] === "Talmud" && data.categories[1] === "Bavli") {
-      this.props.setOption("layout", "continuous");
     }
 
     this.setState({
