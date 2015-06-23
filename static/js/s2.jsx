@@ -14,7 +14,9 @@ var ReaderApp = React.createClass({
       contents: contents,
       settings: {
         language: "english",
-        layout: "continuous"
+        layout: "segmented",
+        color: "light",
+        fontSize: 100
       }
     }
   },
@@ -90,7 +92,6 @@ var ReaderApp = React.createClass({
       var lastTop      = $lastText.offset().top;
       var lastBottom   =  lastTop + $lastText.outerHeight();
       var windowBottom = $(window).scrollTop() + $(window).height();
-      //console.log("lt: " + lastTop + ", lb: " + lastBottom + ", wb: " + windowBottom)
       if (lastTop > (windowBottom + 100) && current.refs.length > 1) { 
         // Remove a section scroll out of view on bottom
         current.refs = current.refs.slice(0,-1);
@@ -173,14 +174,27 @@ var ReaderApp = React.createClass({
     this.navigateReader("prev");
   },
   setOption: function(option, value) {
-    this.state.settings[option] = value;
+    if (option === "fontSize") {
+      var step = value === "smaller" ? -20 : 20;
+      this.state.settings.fontSize += step;
+    } else {
+      this.state.settings[option] = value;
+    }
+
     this.setState({settings: this.state.settings});
+
+    if (option === "color") {
+      // Needed because of the footer space left by base.html, remove after switching bases
+      $("body").removeClass("white sepia dark").addClass(value);
+    }
   },
   render: function() {
     var classes = {};
-    classes[this.state.settings.layout] = 1;
+    classes[this.state.settings.layout]   = 1;
     classes[this.state.settings.language] = 1;
+    classes[this.state.settings.color]    = 1;
     classes = cx(classes);
+    style = {"font-size": this.state.settings.fontSize + "%"};
     var items = this.state.contents.slice(-1).map(function(item, i) {
       if (item.type === "TextColumn") {
         return item.refs.map(function(ref, k) {
@@ -216,7 +230,9 @@ var ReaderApp = React.createClass({
           navPrevious={this.navPrevious}
           settings={this.state.settings}
           setOption={this.setOption} />
-        {items}
+          <div id="readerContent" style={style}>
+            {items}
+          </div>
       </div>
     );
   }
@@ -236,42 +252,85 @@ var ReaderControls = React.createClass({
   hideOptions: function() {
     this.setState({open: false});
   },
+  openNav: function(e) {
+    e.stopPropagation();
+    $("#navPanel").addClass("navPanelOpen")
+  },
   render: function() {
     var languageOptions = [
       {name: "english", image: "/static/img/english.png" },
       {name: "bilingual", image: "/static/img/bilingual.png" },
       {name: "hebrew", image: "/static/img/hebrew.png" }
     ];
-    var layoutOptions = [
-      {name: "continuous", image: "/static/img/paragraph.png" },
-      {name: "segmented", image: "/static/img/lines.png" },
-    ];
-    var readerOptions = !this.state.open ? "" : (
-      <div id="readerOptionsPanel">
+    var languageToggle = (
         <ToggleSet
           name="language"
           options={languageOptions}
           setOption={this.props.setOption}
-          settings={this.props.settings} />
-        <ToggleSet
+          settings={this.props.settings} />);
+    
+    var layoutOptions = [
+      {name: "continuous", image: "/static/img/paragraph.png" },
+      {name: "segmented", image: "/static/img/lines.png" },
+    ];
+    var layoutToggle = this.props.settings.language !== "bilingual" ? 
+      (<ToggleSet
           name="layout"
           options={layoutOptions}
           setOption={this.props.setOption}
-          settings={this.props.settings} />
+          settings={this.props.settings} />) : "";
+
+    var colorOptions = [
+      {name: "light", content: "" },
+      {name: "sepia", content: "" },
+      {name: "dark", content: "" }
+    ];
+    var colorToggle = (
+        <ToggleSet
+          name="color"
+          separated={true}
+          options={colorOptions}
+          setOption={this.props.setOption}
+          settings={this.props.settings} />);
+
+    var sizeOptions = [
+      {name: "smaller", content: "Aa" },
+      {name: "larger", content: "Aa"  }
+    ];
+    var sizeToggle = (
+        <ToggleSet
+          name="fontSize"
+          options={sizeOptions}
+          setOption={this.props.setOption}
+          settings={this.props.settings} />);
+
+    var readerOptions = !this.state.open ? "" : (
+      <div id="readerOptionsPanel">
+        {languageToggle}
+        {layoutToggle}
+        <div className="line"></div>
+        {colorToggle}
       </div>);
 
     return (
       <div>
         <div id="readerControls">
-          <div id="readerPrevious"
-                className="controlsButton"
-                onClick={this.props.navPrevious}><i className="fa fa-caret-up"></i></div>
-          <div id="readerNext" 
-                className="controlsButton" 
-                onClick={this.props.navNext}><i className="fa fa-caret-down"></i></div>
-          <div id="readerOptions"
-                className="controlsButton"
-                onClick={this.showOptions}><i className="fa fa-bars"></i></div>
+          <div id="readerControlsRight">
+            <div id="readerPrevious"
+                  className="controlsButton"
+                  onClick={this.props.navPrevious}><i className="fa fa-caret-up"></i></div>
+            <div id="readerNext" 
+                  className="controlsButton" 
+                  onClick={this.props.navNext}><i className="fa fa-caret-down"></i></div>
+            <div id="readerOptions"
+                  className="controlsButton"
+                  onClick={this.showOptions}><i className="fa fa-bars"></i></div>
+          </div>
+          <div id="readerControlsLeft">
+            <div id="readerNav"
+                  className="controlsButton"
+                  onClick={this.openNav}><i className="fa fa-search"></i></div>
+          </div>
         </div>
         {readerOptions}
         {this.state.open ? (<div id="mask" onClick={this.hideOptions}></div>) : ""}
@@ -287,8 +346,9 @@ var ToggleSet = React.createClass({
     return {};
   },
   render: function() {
-    var classes = cx({toggleSet: 1 });
-    var style = {width: (100.0/this.props.options.length) + "%"};
+    var classes = cx({toggleSet: 1, separated: this.props.separated });
+    var width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
+    var style = {width: (width/this.props.options.length) + "%"};
     return (
       <div id={this.props.name} className={classes}>
         {
@@ -377,10 +437,6 @@ var TextRange = React.createClass({
         ref: ref,
         linkCount: sjs.library.linkCount(ref)
       });
-    }
-
-    if (this.props.basetext && data.categories[0] === "Talmud" && data.categories[1] === "Bavli") {
-      this.props.setOption("layout", "continuous");
     }
 
     this.setState({
@@ -663,7 +719,6 @@ var TopFilterSet = React.createClass({
         // topLinks.move(i, 0); 
       }        
     }
-    console.log(topLinks);
     var topFilters = topLinks.map(function(book) {
      return (<TextFilter 
                 key={book.book} 
