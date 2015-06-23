@@ -16,7 +16,7 @@ var ReaderApp = React.createClass({
         language: "english",
         layout: "segmented",
         color: "light",
-        fontSize: 100
+        fontSize: 62.5
       }
     }
   },
@@ -175,8 +175,10 @@ var ReaderApp = React.createClass({
   },
   setOption: function(option, value) {
     if (option === "fontSize") {
-      var step = value === "smaller" ? -20 : 20;
-      this.state.settings.fontSize += step;
+      var step = 1.15;
+      var size = this.state.settings.fontSize;
+      size = value === "smaller" ? size/step : size*step;
+      this.state.settings.fontSize = size;
     } else {
       this.state.settings[option] = value;
     }
@@ -310,6 +312,7 @@ var ReaderControls = React.createClass({
         {layoutToggle}
         <div className="line"></div>
         {colorToggle}
+        {sizeToggle}
       </div>);
 
     return (
