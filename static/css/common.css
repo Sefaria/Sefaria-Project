@@ -5,6 +5,32 @@ html,p,span,div,a,ul,ol,li,body,h1,h2,h3,h4 {
     -webkit-tap-hightlight-color: rgba(0,0,0,0);
 }
 
+@font-face {
+  font-family: 'Rashi Script';
+  src: url('/static/fonts/Mekorot-Rashi.ttf');
+}
+
+@font-face {
+  font-family: 'Taamey Frank';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf');
+}
+@font-face {
+  font-family: 'Taamey Frank';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Bold.ttf');
+  font-weight: bold;
+}
+@font-face {
+  font-family: 'Taamey Frank';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-MediumOblique.ttf');
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Taamey Frank';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-BoldOblique.ttf');
+  font-style: italic;
+  font-weight: bold;
+}
+
 /* Avoid Flash of Unstyled Text with Google Web Font Loader */
 .wf-loading {
     visibility: hidden;
