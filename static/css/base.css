@@ -54,6 +54,9 @@ body.hebrew .biReady .he {
 	font-size: 120%;
 	text-align: right;
 }
+body.hebrew .biReady .he .enInHe {
+  font-size: 83%;
+}
 body.hebrew .biReady .en {
 	display: none;
 }

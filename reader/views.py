@@ -135,7 +135,7 @@ def reader(request, tref, lang=None, version=None):
     layout      = request.GET.get("layout") if request.GET.get("layout") in ("heLeft", "heRight") else "heLeft"
     sidebarLang = request.GET.get('sidebarLang', None) or request.COOKIES.get('sidebarLang', "all")
     sidebarLang = {"all": "sidebarAll", "he": "sidebarHebrew", "en": "sidebarEnglish"}.get(sidebarLang, "sidebarAll")
-    lexicon = request.GET.get('lexicon', 0)
+    lexicon     = request.GET.get('lexicon', 0)
 
     template_vars = {'text': text,
                      'hasSidebar': hasSidebar,
@@ -163,11 +163,18 @@ def reader(request, tref, lang=None, version=None):
     return render_to_response('reader.html', template_vars, RequestContext(request))
 
 
-def s2(request, ref="Genesis 1"):
+def s2(request, ref="Genesis 1", version=None, lang=None):
     """
     New interfaces in development
     """
-    return render_to_response('s2.html', {"ref": ref}, RequestContext(request))
+    oref         = Ref(ref)
+    text         = TextFamily(oref, version=version, lang=lang, commentary=False, context=False, pad=True, alts=True).contents()
+    text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+    text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+    return render_to_response('s2.html', {
+                                            "ref": ref,
+                                            "data": text
+                                        }, RequestContext(request))
 
 
 @catch_error_as_http

@@ -11,7 +11,13 @@ var ReaderApp = React.createClass({
     return {
       currentFilter: this.props.initialFilter || [],
       recentFilters: [],
-      contents: contents
+      contents: contents,
+      settings: {
+        language: "english",
+        layout: "segmented",
+        color: "light",
+        fontSize: 100
+      }
     }
   },
   componentDidMount: function() {
@@ -86,7 +92,6 @@ var ReaderApp = React.createClass({
       var lastTop      = $lastText.offset().top;
       var lastBottom   =  lastTop + $lastText.outerHeight();
       var windowBottom = $(window).scrollTop() + $(window).height();
-      //console.log("lt: " + lastTop + ", lb: " + lastBottom + ", wb: " + windowBottom)
       if (lastTop > (windowBottom + 100) && current.refs.length > 1) { 
         // Remove a section scroll out of view on bottom
         current.refs = current.refs.slice(0,-1);
@@ -168,7 +173,28 @@ var ReaderApp = React.createClass({
   navPrevious: function() {
     this.navigateReader("prev");
   },
+  setOption: function(option, value) {
+    if (option === "fontSize") {
+      var step = value === "smaller" ? -20 : 20;
+      this.state.settings.fontSize += step;
+    } else {
+      this.state.settings[option] = value;
+    }
+
+    this.setState({settings: this.state.settings});
+
+    if (option === "color") {
+      // Needed because of the footer space left by base.html, remove after switching bases
+      $("body").removeClass("white sepia dark").addClass(value);
+    }
+  },
   render: function() {
+    var classes = {};
+    classes[this.state.settings.layout]   = 1;
+    classes[this.state.settings.language] = 1;
+    classes[this.state.settings.color]    = 1;
+    classes = cx(classes);
+    style = {"font-size": this.state.settings.fontSize + "%"};
     var items = this.state.contents.slice(-1).map(function(item, i) {
       if (item.type === "TextColumn") {
         return item.refs.map(function(ref, k) {
@@ -177,6 +203,8 @@ var ReaderApp = React.createClass({
             basetext={true}
             loadLinks={true}
             prefetchNextPrev={true}
+            settings={this.state.settings}
+            setOption={this.setOption}
             showBaseText={this.showBaseText} 
             showTextList={this.showTextList} 
             key={ref} />);      
@@ -196,38 +224,169 @@ var ReaderApp = React.createClass({
       }
     }.bind(this));
     return (
-      <div id="readerApp">
+      <div id="readerApp" className={classes}>
         <ReaderControls 
           navNext={this.navNext}
-          navPrevious={this.navPrevious} />
-        {items}
+          navPrevious={this.navPrevious}
+          settings={this.state.settings}
+          setOption={this.setOption} />
+          <div id="readerContent" style={style}>
+            {items}
+          </div>
       </div>
     );
   }
 });
 
+
 var ReaderControls = React.createClass({
   getInitialState: function() {
-    return { 
+    return {
+      open: false
     };
   },
   showOptions: function(e) {
-    setTimeout(function() { sjs.showOptionsBar(); }, 5);
+//    setTimeout(function() { sjs.showOptionsBar(); }, 5);
+    this.setState({open: true});
+  },
+  hideOptions: function() {
+    this.setState({open: false});
+  },
+  openNav: function(e) {
+    e.stopPropagation();
+    $("#navPanel").addClass("navPanelOpen")
   },
   render: function() {
+    var languageOptions = [
+      {name: "english", image: "/static/img/english.png" },
+      {name: "bilingual", image: "/static/img/bilingual.png" },
+      {name: "hebrew", image: "/static/img/hebrew.png" }
+    ];
+    var languageToggle = (
+        <ToggleSet
+          name="language"
+          options={languageOptions}
+          setOption={this.props.setOption}
+          settings={this.props.settings} />);
+    
+    var layoutOptions = [
+      {name: "continuous", image: "/static/img/paragraph.png" },
+      {name: "segmented", image: "/static/img/lines.png" },
+    ];
+    var layoutToggle = this.props.settings.language !== "bilingual" ? 
+      (<ToggleSet
+          name="layout"
+          options={layoutOptions}
+          setOption={this.props.setOption}
+          settings={this.props.settings} />) : "";
+
+    var colorOptions = [
+      {name: "light", content: "" },
+      {name: "sepia", content: "" },
+      {name: "dark", content: "" }
+    ];
+    var colorToggle = (
+        <ToggleSet
+          name="color"
+          separated={true}
+          options={colorOptions}
+          setOption={this.props.setOption}
+          settings={this.props.settings} />);
+
+    var sizeOptions = [
+      {name: "smaller", content: "Aa" },
+      {name: "larger", content: "Aa"  }
+    ];
+    var sizeToggle = (
+        <ToggleSet
+          name="fontSize"
+          options={sizeOptions}
+          setOption={this.props.setOption}
+          settings={this.props.settings} />);
+
+    var readerOptions = !this.state.open ? "" : (
+      <div id="readerOptionsPanel">
+        {languageToggle}
+        {layoutToggle}
+        <div className="line"></div>
+        {colorToggle}
+      </div>);
+
     return (
-      <div id="readerControls">
-        <div id="readerPrevious"
-              className="controlsButton"
-              onClick={this.props.navPrevious}><i className="fa fa-caret-up"></i></div>
-        <div id="readerNext" 
-              className="controlsButton" 
-              onClick={this.props.navNext}><i className="fa fa-caret-down"></i></div>
-        <div id="readerOptions"
-              className="controlsButton"
-              onClick={this.showOptions}><i className="fa fa-bars"></i></div>
+      <div>
+        <div id="readerControls">
+          <div id="readerControlsRight">
+            <div id="readerPrevious"
+                  className="controlsButton"
+                  onClick={this.props.navPrevious}><i className="fa fa-caret-up"></i></div>
+            <div id="readerNext" 
+                  className="controlsButton" 
+                  onClick={this.props.navNext}><i className="fa fa-caret-down"></i></div>
+            <div id="readerOptions"
+                  className="controlsButton"
+                  onClick={this.showOptions}><i className="fa fa-bars"></i></div>
+          </div>
+          <div id="readerControlsLeft">
+            <div id="readerNav"
+                  className="controlsButton"
+                  onClick={this.openNav}><i className="fa fa-search"></i></div>
+          </div>
+        </div>
+        {readerOptions}
+        {this.state.open ? (<div id="mask" onClick={this.hideOptions}></div>) : ""}
       </div>
+
     );
+  }
+});
+
+
+var ToggleSet = React.createClass({
+  getInitialState: function() {
+    return {};
+  },
+  render: function() {
+    var classes = cx({toggleSet: 1, separated: this.props.separated });
+    var width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
+    var style = {width: (width/this.props.options.length) + "%"};
+    return (
+      <div id={this.props.name} className={classes}>
+        {
+          this.props.options.map(function(option) {
+            return (
+              <ToggleOption
+                name={option.name}
+                set={this.props.name}
+                on={this.props.settings[this.props.name] == option.name}
+                setOption={this.props.setOption}
+                style={style}
+                image={option.image}
+                content={option.content} />);
+          }.bind(this))
+        }
+      </div>);
+  }
+});
+
+
+var ToggleOption = React.createClass({
+  getInitialState: function() {
+    return {};
+  },
+  handleClick: function() {
+    this.props.setOption(this.props.set, this.props.name);
+  },
+  render: function() {
+    var classes = cx({toggleOption: 1, on: this.props.on });
+    var content = this.props.image ? (<img src={this.props.image} />) : this.props.content;
+    return (
+      <div
+        id={this.props.name}
+        className={classes}
+        style={this.props.style}
+        onClick={this.handleClick}>
+        {content}
+      </div>);
   }
 });
 
@@ -238,7 +397,6 @@ var TextRange = React.createClass({
       segments: [],
       sref: this.props.sref,
       data: {ref: this.props.sref},
-      flowLayout: true
     };
   },
   componentDidMount: function() {
@@ -280,14 +438,11 @@ var TextRange = React.createClass({
         linkCount: sjs.library.linkCount(ref)
       });
     }
-    var flowLayout = data.categories[0] === "Tanach" ||
-                      data.categories[0] === "Talmud" &&
-                      data.book !== "Psalms";
+
     this.setState({
       data: data,
       segments: segments,
       sref: data.ref,
-      flowLayout: flowLayout
     });
 
     if (this.props.loadLinks && !sjs.library.linksLoaded(data.ref)) {
@@ -355,7 +510,12 @@ var TextRange = React.createClass({
             showTextList={this.props.showTextList} />
       );
     }.bind(this));
-    var classes = cx({textRange: 1, basetext: this.props.basetext, flowLayout: this.state.flowLayout });
+    var classes = {textRange: 1, basetext: this.props.basetext };
+    if (this.props.settings) {
+      classes[this.props.settings.layout] = 1;
+      classes[this.props.settings.language] = 1;
+    }
+    classes = cx(classes);
     return (
       <div className={classes} onClick={this.handleClick}>
         <div className="title">
@@ -529,14 +689,18 @@ var TopFilterSet = React.createClass({
   render: function() {
     var topLinks = sjs.library.topLinks(this.props.sref);
 
-    // Filter top links for items already in recent filter
+    // Filter top links to exclude items already in recent filter
     topLinks = topLinks.filter(function(link) {
       return ($.inArray(link.book, this.props.recentFilters) == -1);
     }.bind(this));
     
     // Annotate filter texts with category            
     var recentFilters = this.props.recentFilters.map(function(filter) {
-      return {book: filter, category: sjs.library.textCategory(filter) };
+      var index = sjs.library.index(filter);
+      return {
+          book: filter,
+          heBook: index ? index.heTitle : sjs.library.hebrewCategory(filter),
+          category: index ? index.categories[0] : filter };
     });
     topLinks = recentFilters.concat(topLinks).slice(0,5);
 
@@ -548,17 +712,18 @@ var TopFilterSet = React.createClass({
             topLinks[i].category == filter ) { break; }
       }
       if (i == topLinks.length) {
-        var annotatedFilter = {book: filter, category: sjs.library.textCategory(filter) };
+        var index = sjs.library.index(filter);
+        var annotatedFilter = {book: filter, heBook: index.heTitle, category: index.categories[0] };
         topLinks = [annotatedFilter].concat(topLinks).slice(0,5);
       } else {
         // topLinks.move(i, 0); 
       }        
     }
-
     var topFilters = topLinks.map(function(book) {
      return (<TextFilter 
                 key={book.book} 
-                book={book.book} 
+                book={book.book}
+                heBook={book.heBook}
                 category={book.category}
                 hideCounts={true}
                 count={book.count}
@@ -573,8 +738,11 @@ var TopFilterSet = React.createClass({
       topFilters.push(<div className="showMoreFilters textFilter" 
                           style={style}
                           onClick={this.props.showAllFilters}>
-                            <span>More &gt;</span>
-                    </div>);
+                            <div>
+                              <span className="en">More &gt;</span>
+                              <span className="he">עוד &gt;</span>
+                            </div>                    
+                      </div>);
     }
 
     return (
@@ -601,7 +769,8 @@ var AllFilterSet = React.createClass({
       return (
         <CategoryFilter 
           key={i}
-          category={cat.category} 
+          category={cat.category}
+          heCategory={sjs.library.hebrewCategory(cat.category)}
           count={cat.count} 
           books={cat.books}
           filter={this.props.filter}
@@ -629,7 +798,8 @@ var CategoryFilter = React.createClass({
     var textFilters = this.props.books.map(function(book, i) {
      return (<TextFilter 
                 key={book.book} 
-                book={book.book} 
+                book={book.book}
+                heBook={book.heBook} 
                 count={book.count}
                 category={this.props.category}
                 hideColors={true}
@@ -639,13 +809,15 @@ var CategoryFilter = React.createClass({
                 on={$.inArray(book.book, this.props.filter) !== -1} />);
     }.bind(this));
     
-    var color = sjs.categoryColors[this.props.category] || sjs.palette.pink;
-    var style = {"borderTop": "4px solid " + color};
+    var color   = sjs.categoryColors[this.props.category] || sjs.palette.pink;
+    var style   = {"borderTop": "4px solid " + color};
     var classes = cx({categoryFilter: 1, on: this.props.on});
+    var count   = (<span className="enInHe">{this.props.count}</span>);
     return (
       <div className="categoryFilterGroup" style={style}>
         <div className={classes} onClick={this.handleClick}>
-          {this.props.category} | {this.props.count}
+          <span className="en">{this.props.category} | {count}</span>
+          <span className="he">{this.props.heCategory} | {count}</span>
         </div>
         <TwoBox content={ textFilters } />
       </div>
@@ -668,15 +840,18 @@ var TextFilter = React.createClass({
       var color = sjs.categoryColors[this.props.category] || sjs.palette.pink;
       var style = {"borderTop": "4px solid " + color};
     }
-    var count = this.props.hideCounts ? "" : 
-      ( <span> ({this.props.count})</span>);
+    var name = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
+    var count = this.props.hideCounts ? "" : ( <span className="enInHe"> ({this.props.count})</span>);
     return (
       <div 
         className={classes} 
         key={this.props.book} 
         style={style}
         onClick={this.handleClick}>
-        {this.props.book}{count}
+          <div>  
+            <span className="en">{name}{count}</span>
+            <span className="he">{this.props.heBook}{count}</span>
+          </div>
       </div>
     );
   }
