@@ -18,16 +18,20 @@
     <script src="/static/js/JSXTransformer.js"></script>
     <script type="text/jsx" src="/static/js/s2.jsx"></script>
     <script type="text/jsx">
-      var urlVars = getUrlVars();
-      var filter  = "with" in urlVars ? urlVars["with"].replace(/_/g, " ").split("+") : null;
-      if (filter && filter.length === 1 && filter[0] === "all") { filter = []; }
-      
-      sjs.library._saveText({{ data|jsonify }});
+      $(function() {
+        var urlVars = getUrlVars();
+        var filter  = "with" in urlVars ? urlVars["with"].replace(/_/g, " ").split("+") : null;
+        if (filter && filter.length === 1 && filter[0] === "all") { filter = []; }
+        
+        $("body").removeClass("hebrew bilingual").addClass("english");
 
-      React.render(
-        <ReaderApp initialRef={humanRef("{{ ref }}")} initialFilter={filter} />,
-        document.getElementById('s2')
-      );
+        sjs.library._saveText({{ data|jsonify }});
+
+        React.render(
+          <ReaderApp initialRef={humanRef("{{ ref }}")} initialFilter={filter} />,
+          document.getElementById('s2')
+        );
+      });
     </script>
 {% endblock %}
 

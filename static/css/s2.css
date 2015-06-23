@@ -15,6 +15,7 @@ body.dark {
   max-width: 700px;
   margin: 0 auto;
   min-height: 100%;
+  background-color: inherit;
   font-family: Georgia, serif;
 }
 #s2 .he, #s2 .heOnly {
@@ -101,6 +102,7 @@ body.dark {
   width: 38px;
   height: 32px;
   line-height: 32px;
+  vertical-align: middle;
   text-align: center;
 }
 #readerControls .controlsButton:hover,
@@ -133,6 +135,10 @@ body.dark {
   background: white;
   border-bottom: 1px solid #ccc;
   z-index: 103;
+  -moz-user-select: none; 
+  -khtml-user-select: none; 
+  -webkit-user-select: none; 
+  -o-user-select: none; 
 }
 .dark #readerOptionsPanel {
   color: black;
@@ -203,9 +209,10 @@ body.dark {
 .textRange.basetext {
   width: 100%;
   box-sizing: border-box;
-  font-size: 16px;
+  font-size: 1.8em;
   line-height: 1.6;
   text-align: justify;
+  background-color: inherit;
   margin: 0 auto;
 }
 .textRange.basetext .title {
@@ -224,10 +231,12 @@ body.dark {
 }
 .basetext .text {
   padding: 0 30px;
+  background-color: inherit;
 }
 .basetext .segment {
   cursor: pointer;
   display: block;
+  background-color: inherit;
   margin-bottom: 26px;
 }
 .basetext.continuous .segment{
@@ -260,6 +269,13 @@ body.dark {
   background-color: #555;
 }
 
+.textRange {
+  line-height: 1.4;
+  font-size: 1.6em;
+}
+.segment {
+
+}
 .segment .segmentNumber, .segment .linkCount {
   font-family: Helvetica, sans-serif;
   color: #999;
@@ -283,7 +299,10 @@ body.dark {
   border: 1px solid #999;
   border-radius: 30px;
   text-align: center;
-  margin: 5px 0 0 -25px;
+  margin: 3px 0 0 -25px;
+}
+.hebrew .segment .linkCount {
+  margin-top: 4px;
 }
 .textList.main {
   width: 100%;
@@ -383,6 +402,7 @@ body.dark {
 .textFilter {
   padding: 8px 4px;
   text-align: center;
+  font-size: 13px;
   line-height: 1.2;
   display: block;
 }
@@ -421,7 +441,7 @@ body.dark {
   color: #aaa;
 }
 .textList .texts .textRange {
-  font-size: 14px;
+  font-size: 1.4em;
   padding: 8px 0;
   margin: 12px 16px;
   border-bottom: 1px solid #CCC;

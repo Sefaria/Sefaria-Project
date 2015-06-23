@@ -16,7 +16,7 @@ var ReaderApp = React.createClass({
         language: "english",
         layout: "segmented",
         color: "light",
-        fontSize: 100
+        fontSize: 62.5
       }
     }
   },
@@ -175,8 +175,10 @@ var ReaderApp = React.createClass({
   },
   setOption: function(option, value) {
     if (option === "fontSize") {
-      var step = value === "smaller" ? -20 : 20;
-      this.state.settings.fontSize += step;
+      var step = 1.15;
+      var size = this.state.settings.fontSize;
+      size = value === "smaller" ? size/step : size*step;
+      this.state.settings.fontSize = size;
     } else {
       this.state.settings[option] = value;
     }
@@ -188,13 +190,19 @@ var ReaderApp = React.createClass({
       $("body").removeClass("white sepia dark").addClass(value);
     }
   },
+  currentBook: function() {
+    var item = this.state.contents.slice(-1)[0];
+    var ref  = item.ref || item.refs.slice(-1)[0];
+    var book = sjs.library.text(ref).book;
+    return book;
+  },
   render: function() {
     var classes = {};
     classes[this.state.settings.layout]   = 1;
     classes[this.state.settings.language] = 1;
     classes[this.state.settings.color]    = 1;
     classes = cx(classes);
-    style = {"font-size": this.state.settings.fontSize + "%"};
+    style = {"fontSize": this.state.settings.fontSize + "%"};
     var items = this.state.contents.slice(-1).map(function(item, i) {
       if (item.type === "TextColumn") {
         return item.refs.map(function(ref, k) {
@@ -225,9 +233,10 @@ var ReaderApp = React.createClass({
     }.bind(this));
     return (
       <div id="readerApp" className={classes}>
-        <ReaderControls 
+        <ReaderControls
           navNext={this.navNext}
           navPrevious={this.navPrevious}
+          currentBook={this.currentBook}
           settings={this.state.settings}
           setOption={this.setOption} />
           <div id="readerContent" style={style}>
@@ -246,7 +255,6 @@ var ReaderControls = React.createClass({
     };
   },
   showOptions: function(e) {
-//    setTimeout(function() { sjs.showOptionsBar(); }, 5);
     this.setState({open: true});
   },
   hideOptions: function() {
@@ -255,6 +263,11 @@ var ReaderControls = React.createClass({
   openNav: function(e) {
     e.stopPropagation();
     $("#navPanel").addClass("navPanelOpen")
+  },
+  openTextToc: function() {
+    var book = this.props.currentBook();
+    var url  = normRef(book);
+    window.location = "/" + url;
   },
   render: function() {
     var languageOptions = [
@@ -310,6 +323,7 @@ var ReaderControls = React.createClass({
         {layoutToggle}
         <div className="line"></div>
         {colorToggle}
+        {sizeToggle}
       </div>);
 
     return (
@@ -326,10 +340,14 @@ var ReaderControls = React.createClass({
                   className="controlsButton"
                   onClick={this.showOptions}><i className="fa fa-bars"></i></div>
           </div>
+
           <div id="readerControlsLeft">
             <div id="readerNav"
                   className="controlsButton"
                   onClick={this.openNav}><i className="fa fa-search"></i></div>
+            <div id="readerTextToc"
+                  className="controlsButton"
+                  onClick={this.openTextToc}><i className="fa fa-book"></i></div>
           </div>
         </div>
         {readerOptions}
