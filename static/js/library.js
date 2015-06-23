@@ -49,6 +49,7 @@ sjs.library = {
         if (data.ref == data.sectionRef) {
           this._splitTextSection(data);
         }
+        // TODO store index record
   },
   _splitTextSection: function(data) {
     // Takes data for a section level text and populates cache with segment levels
