@@ -99,7 +99,7 @@ body {
 	left: 16px;
 	left: 50%;
 	margin-left: -455px;
-	z-index: 1;
+	z-index: 5;
 	text-align: left;
 }
 
@@ -140,7 +140,7 @@ body {
 	background: white;
 	font-size: 17px;
 	border: 1px solid #ccc;
-	z-index: 1;
+	z-index: 5;
 	width: 220px;
 	top: -20px;
 	right: auto;
