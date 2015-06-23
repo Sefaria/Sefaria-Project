@@ -57,15 +57,15 @@ def reader(request, tref, lang=None, version=None):
         if uref and tref != uref:
             return reader_redirect(uref, lang, version)
 
-        if request.flavour == "mobile":
-            return s2(request, ref=tref)
-
         # Return Text TOC if this is a bare text title
         # or a schema node with multip sections underneath it
         if (not getattr(oref.index_node, "depth", None) 
                 or (oref.sections == [] and 
                     (oref.index.title == uref or oref.index_node.depth > 1))):
             return text_toc(request, oref)
+
+        if request.flavour == "mobile":
+            return s2(request, ref=tref)
 
         # BANDAID - for spanning refs, return the first section
         oref = oref.padded_ref()
