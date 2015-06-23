@@ -1,4 +1,4 @@
 from sefaria.model import *
 
-links = LinkSet({"type": {"$in": ["Maharsha in Talmud", "Rif in Talmud", "Rosh in Talmud"]}})
-links.update({"type": "commentary"}).save()
+links = LinkSet({"type": {"$in": ["Maharsha in Talmud", "Rif in Talmud", "Rosh in Talmud", "Commentary"]}})
+links.update({"type": "commentary"})
