@@ -27,8 +27,18 @@
 
         sjs.library._saveText({{ data|jsonify }});
 
+        var settings = {
+          language: "{{ contentLang }}",
+          layout: $.cookie("layout") || "segmented",
+          color: $.cookie("color") || "light",
+          fontSize: $.cookie("fontSize") || 62.5
+        }
+        console.log(settings);
         React.render(
-          <ReaderApp initialRef={humanRef("{{ ref }}")} initialFilter={filter} />,
+          <ReaderApp 
+            initialRef={humanRef("{{ ref }}")}
+            initialFilter={filter}
+            initialSettings={settings} />,
           document.getElementById('s2')
         );
       });

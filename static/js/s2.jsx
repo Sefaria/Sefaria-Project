@@ -12,7 +12,7 @@ var ReaderApp = React.createClass({
       currentFilter: this.props.initialFilter || [],
       recentFilters: [],
       contents: contents,
-      settings: {
+      settings: this.props.initialSettings || {
         language: "english",
         layout: "segmented",
         color: "light",
@@ -177,13 +177,17 @@ var ReaderApp = React.createClass({
     if (option === "fontSize") {
       var step = 1.15;
       var size = this.state.settings.fontSize;
-      size = value === "smaller" ? size/step : size*step;
-      this.state.settings.fontSize = size;
+      value = (value === "smaller" ? size/step : size*step);
+      this.state.settings.fontSize = value;
     } else {
       this.state.settings[option] = value;
     }
 
     this.setState({settings: this.state.settings});
+    $.cookie(option, value);
+    if (option === "language") {
+      $.cookie("contentLang", value);
+    }
 
     if (option === "color") {
       // Needed because of the footer space left by base.html, remove after switching bases
