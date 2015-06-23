@@ -7,8 +7,13 @@ body.sepia {
 body.dark {
   background-color: #333; 
 }
+#right {
+  display: none;
+}
 #s2 {
   padding: 0 0 30px 0;
+  max-width: 700px;
+  margin: 0 auto;
   min-height: 100%;
   font-family: Georgia, serif;
 }
@@ -42,12 +47,8 @@ body.dark {
 .bilingual .he .enOnly {
   display: none;
 }
-
 #languageToggle {
   display: inline;
-}
-#showOptions {
-  visibility: hidden;
 }
 #top #right #accountBox {
   display: none;
@@ -62,7 +63,6 @@ body.dark {
   background-color: #333;
   color: white;
 }
-
 #readerControls {
   position: fixed;
   direction: ltr;
@@ -125,12 +125,17 @@ body.dark {
   position: fixed;
   width: 100%;
   top: 49px;
+  right: 0;
+  max-width: 500px;
   padding: 20px;
   box-sizing: border-box;
   direction: ltr;
   background: white;
   border-bottom: 1px solid #ccc;
   z-index: 103;
+}
+.dark #readerOptionsPanel {
+  color: black;
 }
 .toggleSet {
   display: inline-block;
@@ -171,6 +176,20 @@ body.dark {
 #color #dark, #color #dark.on {
   background-color: #333;
 }
+#smaller, #larger {
+  line-height: 28px;
+  vertical-align: middle;
+}
+#smaller {
+  font-size: 12px;
+}
+#larger {
+  font-size: 22px;
+}
+#readerOptionsPanel .line {
+  margin: 20px 0;
+  border-top: 1px solid #ddd;
+}
 #mask {
   position: fixed;
   top: 0;
@@ -178,7 +197,9 @@ body.dark {
   height: 100%;
   z-index: 102;
 }
-
+#readerContent {
+  background-color: inherit;
+}
 .textRange.basetext {
   width: 100%;
   box-sizing: border-box;
@@ -196,7 +217,6 @@ body.dark {
   text-transform: uppercase;
   letter-spacing: 1px;
 }
-
 .textRange.basetext.bilingual .title .he,
 .textRange.basetext.bilingual .title .en {
   display: inline-block;

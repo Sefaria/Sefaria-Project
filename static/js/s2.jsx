@@ -15,7 +15,8 @@ var ReaderApp = React.createClass({
       settings: {
         language: "english",
         layout: "segmented",
-        color: "light"
+        color: "light",
+        fontSize: 100
       }
     }
   },
@@ -91,7 +92,6 @@ var ReaderApp = React.createClass({
       var lastTop      = $lastText.offset().top;
       var lastBottom   =  lastTop + $lastText.outerHeight();
       var windowBottom = $(window).scrollTop() + $(window).height();
-      //console.log("lt: " + lastTop + ", lb: " + lastBottom + ", wb: " + windowBottom)
       if (lastTop > (windowBottom + 100) && current.refs.length > 1) { 
         // Remove a section scroll out of view on bottom
         current.refs = current.refs.slice(0,-1);
@@ -174,9 +174,17 @@ var ReaderApp = React.createClass({
     this.navigateReader("prev");
   },
   setOption: function(option, value) {
-    this.state.settings[option] = value;
+    if (option === "fontSize") {
+      var step = value === "smaller" ? -20 : 20;
+      this.state.settings.fontSize += step;
+    } else {
+      this.state.settings[option] = value;
+    }
+
     this.setState({settings: this.state.settings});
+
     if (option === "color") {
+      // Needed because of the footer space left by base.html, remove after switching bases
       $("body").removeClass("white sepia dark").addClass(value);
     }
   },
@@ -186,6 +194,7 @@ var ReaderApp = React.createClass({
     classes[this.state.settings.language] = 1;
     classes[this.state.settings.color]    = 1;
     classes = cx(classes);
+    style = {"font-size": this.state.settings.fontSize + "%"};
     var items = this.state.contents.slice(-1).map(function(item, i) {
       if (item.type === "TextColumn") {
         return item.refs.map(function(ref, k) {
@@ -221,7 +230,9 @@ var ReaderApp = React.createClass({
           navPrevious={this.navPrevious}
           settings={this.state.settings}
           setOption={this.setOption} />
-        {items}
+          <div id="readerContent" style={style}>
+            {items}
+          </div>
       </div>
     );
   }
@@ -242,7 +253,6 @@ var ReaderControls = React.createClass({
     this.setState({open: false});
   },
   openNav: function(e) {
-    console.log("test");
     e.stopPropagation();
     $("#navPanel").addClass("navPanelOpen")
   },
@@ -283,11 +293,22 @@ var ReaderControls = React.createClass({
           setOption={this.props.setOption}
           settings={this.props.settings} />);
 
+    var sizeOptions = [
+      {name: "smaller", content: "Aa" },
+      {name: "larger", content: "Aa"  }
+    ];
+    var sizeToggle = (
+        <ToggleSet
+          name="fontSize"
+          options={sizeOptions}
+          setOption={this.props.setOption}
+          settings={this.props.settings} />);
 
     var readerOptions = !this.state.open ? "" : (
       <div id="readerOptionsPanel">
         {languageToggle}
         {layoutToggle}
+        <div className="line"></div>
         {colorToggle}
       </div>);
 
@@ -698,7 +719,6 @@ var TopFilterSet = React.createClass({
         // topLinks.move(i, 0); 
       }        
     }
-    console.log(topLinks);
     var topFilters = topLinks.map(function(book) {
      return (<TextFilter 
                 key={book.book} 
