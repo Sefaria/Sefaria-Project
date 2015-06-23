@@ -186,9 +186,17 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     '''         Alternate Title Structures          '''
     def set_alt_structure(self, name, struct_obj):
+        """
+        :param name: String
+        :param struct_obj:  :py.class:`TitledTreeNode`
+        :return:
+        """
         self.struct_objs[name] = struct_obj
 
     def get_alt_structure(self, name):
+        """
+        :returns: :py.class:`TitledTreeNode`
+        """
         return self.struct_objs.get(name)
 
     def get_alt_structures(self):
@@ -769,14 +777,16 @@ class VersionSet(abst.AbstractMongoSet):
     def verse_count(self):
         return sum([v.verse_count() for v in self])
 
-    def merge(self, attr="chapter"):
+    def merge(self, node=None):
         """
         Returns merged result, but does not change underlying data
         """
         for v in self:
             if not getattr(v, "versionTitle", None):
                 logger.error("No version title for Version: {}".format(vars(v)))
-        return merge_texts([getattr(v, attr, []) for v in self], [getattr(v, "versionTitle", None) for v in self])
+        if node is None:
+            return merge_texts([getattr(v, "chapter", []) for v in self], [getattr(v, "versionTitle", None) for v in self])
+        return merge_texts([v.content_node(node) for v in self], [getattr(v, "versionTitle", None) for v in self])
 
 
 # used in VersionSet.merge(), merge_text_versions(), and export.export_merged()
@@ -880,8 +890,7 @@ class TextChunk(AbstractTextRecord):
                 self.text = self.trim_text(v.content_node(oref.index_node))
                 #todo: Should this instance, and the non-merge below, be made saveable?
             else:  # multiple versions available, merge
-                #todo: does the below work for complex texts?
-                merged_text, sources = vset.merge(oref.storage_address())  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
+                merged_text, sources = vset.merge(oref.index_node)  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
                 self.text = self.trim_text(merged_text)
                 if len(set(sources)) == 1:
                     for v in vset:
