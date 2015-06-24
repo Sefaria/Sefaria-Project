@@ -19,7 +19,7 @@ body.dark {
   font-family: Georgia, serif;
 }
 #s2 .he, #s2 .heOnly {
-  font-family: "Times New Roman", serif;
+  font-family: "Taamey Frank", "Times New Roman", serif;
   font-size: 125%;
   direction: rtl;
   text-align: right;
@@ -281,11 +281,15 @@ body.dark {
   font-family: Helvetica, sans-serif;
   color: #999;
   position: absolute;
-  line-height: 24px;
   background-color: inherit;
   width: 30px;
   text-align: center;
   font-weight: lighter;
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  line-height: 18px;
+  border-radius: 30px;
 }
 .segment .segmentNumber {
   font-size: 12px;
@@ -297,8 +301,8 @@ body.dark {
   height: 18px;
   font-size: 10px;
   line-height: 18px;
-  border: 1px solid #999;
   border-radius: 30px;
+  border: 1px solid #999;
   text-align: center;
   margin: 3px 0 0 -25px;
 }
@@ -401,7 +405,7 @@ body.dark {
   border-bottom: 1px solid #CCC;
 }
 .textFilter {
-  padding: 8px 4px;
+  padding: 10px 4px;
   text-align: center;
   font-size: 13px;
   line-height: 1.2;

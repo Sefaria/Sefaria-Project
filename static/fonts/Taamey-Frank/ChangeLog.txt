@@ -1,0 +1,18 @@
+02/09/10
+1 Name changed to "Taamey Frank CLM"
+2 Some small bugs fixed
+3 Release changed to 0.110 to be in line with Culmus release
+
+
+23/09/09
+1. Initial Version. The version number 0.103 was choosen to keep it same
+   as the David-YG fonts.
+   The font includes Oblique, Bold and BoldOblique weights of the 
+   font.
+2. The Cantillation Mark Layout logic (Copyright (c) 2003 & 2007, Ralph Hancock
+   & John Hudson.) is the same as in the David-YG fonts and should properely
+   position both vowels and "Taamim" in most cases.
+3. The Bold versions of the font will not display the cantillation marks
+   (not enough place above and under letters) but existance of the marks
+   in the text will not cause any disorder. The text will be displayed with
+   the vowel marks (and meteg) properely positioned.
