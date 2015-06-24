@@ -23,6 +23,7 @@ var ReaderApp = React.createClass({
   componentDidMount: function() {
     window.addEventListener("popstate", this.handlePopState);
     window.addEventListener("scroll", this.handleScroll);
+    window.addEventListener("click", this.handleClick);
 
     var hist = this.makeHistoryState()
     history.replaceState(hist.state, hist.title, hist.url);
@@ -30,6 +31,7 @@ var ReaderApp = React.createClass({
   componentWillUnmount: function() {
     window.removeEventListener("popstate", this.handlePopState);
     window.removeEventListener("scroll", this.handleScroll);
+    window.removeEventListener("click", this.handleClick);
   },
   componentDidUpdate: function() {
     this.updateHistoryState();
@@ -85,6 +87,14 @@ var ReaderApp = React.createClass({
     }
     this.adjustInfiniteScroll();
   },
+  handleClick: function(event) {
+    if ($(event.target).hasClass("refLink")) {
+      var ref = $(event.target).attr("data-ref");
+      this.showBaseText(ref);
+      event.stopPropagation();
+      event.preventDefault();
+    }
+  },
   adjustInfiniteScroll: function() {
     var current = this.state.contents[this.state.contents.length-1];
     if (current.type === "TextColumn") {
@@ -99,9 +109,9 @@ var ReaderApp = React.createClass({
       } else if ( lastBottom < (windowBottom + 0)) {
         // Add the next section
         currentRef = current.refs.slice(-1)[0];
-        nextRef    = sjs.library.text(currentRef).next;
-        if (nextRef) {
-          current.refs.push(nextRef);
+        data       = sjs.library.text(currentRef);
+        if (data && data.next) {
+          current.refs.push(data.next);
           this.setState({contents: this.state.contents});
         }
       }
@@ -151,7 +161,7 @@ var ReaderApp = React.createClass({
       } else {
         var sectionRef = sjs.library.text(current.ref)[direction];
         if (sectionRef) {
-          sjs.library.text(sectionRef, function(data) {
+          sjs.library.text(sectionRef, {}, function(data) {
               if (direction === "prev") {
                 var segment = Math.max(data.text.length, data.he.length);
                 var segment = sjs.library.text(sectionRef + ":" + segment);
@@ -213,6 +223,7 @@ var ReaderApp = React.createClass({
           return (<TextRange 
             sref={ref}
             basetext={true}
+            withContext={true}
             loadLinks={true}
             prefetchNextPrev={true}
             settings={this.state.settings}
@@ -438,7 +449,10 @@ var TextRange = React.createClass({
     window.removeEventListener('resize', this.handleResize);
   },
   getText: function() {
-    sjs.library.text(this.state.sref, this.loadText);
+    settings = {
+      context: this.props.withContext
+    };
+    sjs.library.text(this.state.sref, settings, this.loadText);
   },
   makeSegments: function(data) {
     // Returns a flat list of annotated segments objects,
@@ -452,7 +466,8 @@ var TextRange = React.createClass({
     en = en.pad(length, "");
     he = he.pad(length, "");
 
-    var start = data.textDepth == data.sections.length ? data.sections.slice(-1)[0] : 1;
+    var start = (data.textDepth == data.sections.length && !this.props.withContext ?
+                  data.sections.slice(-1)[0] : 1);
 
     if (!data.isSpanning) {
       for (var i = 0; i < topLength; i++) {
@@ -498,14 +513,14 @@ var TextRange = React.createClass({
       sref: data.ref,
     });
 
-    if (this.props.loadLinks && !sjs.library.linksLoaded(data.ref)) {
+    if (this.props.loadLinks && !sjs.library.linksLoaded(data.sectionRef)) {
       // Calling when links are loaded will overwrite state.segments
-      sjs.library.bulkLoadLinks(data.ref, this.loadLinkCounts);
+      sjs.library.bulkLoadLinks(data.sectionRef, this.loadLinkCounts);
     }
 
     if (this.props.prefetchNextPrev) {
-      if (data.next) { sjs.library.text(data.next, function() {}); }
-      if (data.prev) { sjs.library.text(data.prev, function() {}); }
+      if (data.next) { sjs.library.text(data.next, {}, function() {}); }
+      if (data.prev) { sjs.library.text(data.prev, {}, function() {}); }
     }
   },
   loadLinkCounts: function() {
@@ -532,8 +547,7 @@ var TextRange = React.createClass({
   },
   handleClick: function() {
     if (this.props.openOnClick) {
-      var sectionRef = sjs.library.text(this.props.sref).sectionRef;
-      this.props.showBaseText(sectionRef);
+      this.props.showBaseText(this.props.sref);
     }
   },
   nextSection: function() {
@@ -590,7 +604,8 @@ var TextSegment = React.createClass({
     var linkCount = this.props.linkCount ? (<span className="linkCount">{this.props.linkCount}</span>) : "";
     var segmentNumber = this.props.segmentNumber ? (<span className="segmentNumber">{this.props.segmentNumber}</span>) : "";          
     var he = this.props.he || "<span class='enOnly'>" + this.props.en + "</span>";
-    var en = this.props.en || "<span class='heOnly'>" + this.props.he + "</span>";
+    var en = sjs.wrapRefLinks(this.props.en);
+    var en = en || "<span class='heOnly'>" + this.props.he + "</span>";
 
     return (
       <span className="segment" onClick={this.handleClick}>
