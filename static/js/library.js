@@ -187,7 +187,7 @@ sjs.library = {
         return value;
       });
       // Sort the books in the category
-      value.books.sort(function(a,b) { return b.count - a.count; });
+      value.books.sort(function(a,b) { return a.book > b.book; });
       return value;
     });
     // Sort the categories

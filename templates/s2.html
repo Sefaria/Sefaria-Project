@@ -29,11 +29,12 @@
 
         var settings = {
           language: "{{ contentLang }}",
-          layout: $.cookie("layout") || "segmented",
-          color: $.cookie("color") || "light",
+          layout:   $.cookie("layout")   || "segmented",
+          color:    $.cookie("color")    || "light",
           fontSize: $.cookie("fontSize") || 62.5
         }
-        console.log(settings);
+        $("body").addClass(settings.color);
+
         React.render(
           <ReaderApp 
             initialRef={humanRef("{{ ref }}")}

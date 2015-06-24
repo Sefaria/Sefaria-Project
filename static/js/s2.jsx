@@ -191,7 +191,7 @@ var ReaderApp = React.createClass({
 
     if (option === "color") {
       // Needed because of the footer space left by base.html, remove after switching bases
-      $("body").removeClass("white sepia dark").addClass(value);
+      $("body").removeClass("light sepia dark").addClass(value);
     }
   },
   currentBook: function() {
@@ -378,6 +378,7 @@ var ToggleSet = React.createClass({
             return (
               <ToggleOption
                 name={option.name}
+                key={option.name}
                 set={this.props.name}
                 on={this.props.settings[this.props.name] == option.name}
                 setOption={this.props.setOption}
@@ -439,28 +440,58 @@ var TextRange = React.createClass({
   getText: function() {
     sjs.library.text(this.state.sref, this.loadText);
   },
-  loadText: function(data) {
+  makeSegments: function(data) {
+    // Returns a flat list of annotated segments objects,
+    // derived from the walking the text in data
+    var segments = [];
+
     var wrap = (typeof data.text == "string");
     var en = wrap ? [data.text] : data.text;
     var he = wrap ? [data.he] : data.he;
-
-    // Pad the shorter array to make stepping through them easier.
-    var length = Math.max(en.length, he.length);
+    var topLength = Math.max(en.length, he.length);
     en = en.pad(length, "");
     he = he.pad(length, "");
 
-    var segments = [];
-    var start = data.textDepth == data.sections.length ? data.sections[data.textDepth] : 1;
-    for (var i = 0; i < length; i++) {
-      var ref = data.ref + ":" + (i+start);
-      segments.push({
-        en: en[i], 
-        he: he[i], 
-        ref: ref,
-        linkCount: sjs.library.linkCount(ref)
-      });
-    }
+    var start = data.textDepth == data.sections.length ? data.sections.slice(-1)[0] : 1;
 
+    if (!data.isSpanning) {
+      for (var i = 0; i < topLength; i++) {
+        var ref = data.ref + ":" + (i+start);
+        segments.push({
+          en: en[i], 
+          he: he[i],
+          number: (i+start),
+          ref: ref,
+          linkCount: sjs.library.linkCount(ref)
+        });
+      }      
+    } else {
+      for (var n = 0; n < topLength; n++) {
+        var wrap = (typeof en == "string");
+        var en2 = wrap ? [en[n]] : en[n];
+        var he2 = wrap ? [he[n]] : he[n];
+        var length = Math.max(en2.length, he2.length);
+        en2 = en2.pad(length, "");
+        he2 = he2.pad(length, "");
+        var baseRef = data.book + " " + data.sections.slice(0,-1).join(":");
+        start = (n == 0 ? start : 1);
+        for (var i = 0; i < length; i++) {
+          var ref = baseRef + ":" + (i+start);
+          segments.push({
+            en: en2[i], 
+            he: he2[i],
+            number: (i+start),
+            ref: ref,
+            linkCount: sjs.library.linkCount(ref)
+          });
+        }
+      }
+    }
+    return segments;
+  },
+  loadText: function(data) {
+    var segments = this.makeSegments(data);
+    
     this.setState({
       data: data,
       segments: segments,
@@ -473,12 +504,8 @@ var TextRange = React.createClass({
     }
 
     if (this.props.prefetchNextPrev) {
-      if (data.next) {
-        sjs.library.text(data.next, function() {});
-      }
-      if (data.prev) {
-        sjs.library.text(data.prev, function() {});
-      }
+      if (data.next) { sjs.library.text(data.next, function() {}); }
+      if (data.prev) { sjs.library.text(data.prev, function() {}); }
     }
   },
   loadLinkCounts: function() {
@@ -527,7 +554,7 @@ var TextRange = React.createClass({
             sref={segment.ref}
             en={segment.en}
             he={segment.he}
-            segmentNumber={this.props.basetext ? i+1 : 0}
+            segmentNumber={this.props.basetext ? segment.number : 0}
             linkCount={segment.linkCount}
             showTextList={this.props.showTextList} />
       );
@@ -569,7 +596,7 @@ var TextSegment = React.createClass({
       <span className="segment" onClick={this.handleClick}>
         {segmentNumber}
         {linkCount}
-        <span className="he" dangerouslySetInnerHTML={ {__html: he+ " "} }></span>
+        <span className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></span>
         <span className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></span>
       </span>
     );
@@ -618,11 +645,11 @@ var TextList = React.createClass({
   },
   showAllFilters: function() {
     this.setState({showAllFilters: true});
+    $(window).scrollTop(0);
   },
   hideAllFilters: function() {
     this.setState({showAllFilters: false});
     $(window).scrollTop(0);
-
   },
   backToText: function() {
     this.props.showBaseText();
@@ -638,7 +665,9 @@ var TextList = React.createClass({
                 $.inArray(link.commentator, this.props.currentFilter) !== -1 );
     }.bind(this)).map(function(link) { 
       return link.sourceRef; 
-    }).sort();
+    }).sort(function(a, b) {
+      return a > b;
+    });
     var texts = this.state.loaded ? 
                   (refs.length ? 
                   refs.map(function(ref) {

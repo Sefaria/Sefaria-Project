@@ -1298,6 +1298,8 @@ class TextFamily(object):
         d["isComplex"]  = self.isComplex
         d["indexTitle"] = self._inode.index.title
         d["sectionRef"] = self._original_oref.section_ref().normal()
+        d["isSpanning"] = self._original_oref.is_spanning()
+
 
         for language, attr in self.text_attr_map.items():
             chunk = self._chunks.get(language)
