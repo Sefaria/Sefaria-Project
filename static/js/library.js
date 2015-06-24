@@ -25,29 +25,46 @@ sjs.categoryColors = {
 
 sjs.library = {
   _texts: {},
-  text: function(ref, cb) {
+  text: function(ref, settings, cb) {
+    var key = this._textKey(ref, settings);
     if (!cb) {
-      return this._texts[ref] || [];
+      return this._texts[key];
     }          
-    if (ref in this._texts) {
-      cb(this._texts[ref]);
-      return this._texts[ref];
+    if (key in this._texts) {
+      cb(this._texts[key]);
+      return this._texts[key];
     } else {
-       var url = "/api/texts/" + normRef(ref) + "?commentary=0&context=0";
+       params = "?commentary=0" + (settings && settings.context ? "&context=1" : "&context=0");
+       var url = "/api/texts/" + normRef(ref) + params;
        $.getJSON(url, function(data) {
-          this._saveText(data);
+          this._saveText(data, settings);
           cb(data);
         }.bind(this));
     }
   },
-  _saveText: function(data) {
+  _textKey: function(ref, settings) {
+    var key = ref;
+    if (settings) {
+      key = settings.context ? key + "|CONTEXT" : key;
+    }
+    return key;
+  },
+  _saveText: function(data, settings) {
         if ("error" in data) { 
           sjs.alert.message(data.error);
           return;
         }
-        this._texts[data.ref] = data;
+        settings = settings || {};
+        key = this._textKey(data.ref, settings);
+        this._texts[key] = data;
         if (data.ref == data.sectionRef) {
           this._splitTextSection(data);
+        } else if (settings.context) {
+          newData            = clone(data);
+          newData.ref        = data.sectionRef;
+          newData.sections   = data.sections.slice(0,-1);
+          newData.toSections = data.toSections.slice(0,-1);
+          this._saveText(newData);
         }
         // TODO store index record
   },
@@ -60,7 +77,7 @@ sjs.library = {
     en = en.pad(length, "");
     he = he.pad(length, "");
 
-    var start = data.textDepth == data.sections.length ? data.sections[data.textDepth] : 1;
+    var start = data.textDepth == data.sections.length ? data.sections[data.textDepth-1] : 1;
     for (var i = 0; i < length; i++) {
       var ref = data.ref + ":" + (i+start);
       var segment_data   = clone(data);

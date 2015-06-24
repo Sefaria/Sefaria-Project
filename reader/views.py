@@ -172,7 +172,7 @@ def s2(request, ref="Genesis 1", version=None, lang=None):
     text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
     text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
     return render_to_response('s2.html', {
-                                            "ref": ref,
+                                            "ref": oref.normal(),
                                             "data": text
                                         }, RequestContext(request))
 
