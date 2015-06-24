@@ -402,6 +402,7 @@ body.dark {
   text-transform: uppercase;
   padding: 12px;
   text-align: center;
+  font-size: 13px;
   border-bottom: 1px solid #CCC;
 }
 .textFilter {
