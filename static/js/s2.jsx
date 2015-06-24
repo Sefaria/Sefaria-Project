@@ -638,7 +638,7 @@ var TextList = React.createClass({
     this.setState({filter: this.state.filter.toggle(filter)});
   },
   setTopPadding: function() {
-    var $textList = $(React.findDOMNode(this));
+    var $textList    = $(React.findDOMNode(this));
     var $textListTop = $textList.find(".textListTop");
     var top = $textListTop.outerHeight();
     $textList.css({paddingTop: top});
@@ -668,19 +668,18 @@ var TextList = React.createClass({
     }).sort(function(a, b) {
       return a > b;
     });
-    var texts = this.state.loaded ? 
-                  (refs.length ? 
-                  refs.map(function(ref) {
-                  return (
-                    <TextRange 
-                      sref={ref}
-                      key={ref} 
-                      basetext={false}
-                      showBaseText={this.props.showBaseText}
-                      openOnClick={true} />
-                    );
-                 }, this) : (<div className='textListMessage'>No connections known.</div>)) : 
-                            (<div className='textListMessage'>Loading...</div>);
+    var message = !this.state.loaded ? (<div className='textListMessage'>Loading...</div>)  : 
+                    (refs.length == 0 ? (<div className='textListMessage'>No connections known.</div>) : "");
+    var texts = (refs.map(function(ref) {
+                      return (
+                        <TextRange 
+                          sref={ref}
+                          key={ref} 
+                          basetext={false}
+                          showBaseText={this.props.showBaseText}
+                          openOnClick={true} />
+                        );
+                    }, this)); 
     return (
       <div className={classes}>
         <div className="textListTop">
@@ -702,6 +701,7 @@ var TextList = React.createClass({
             setTopPadding={this.setTopPadding}
             summary={summary}
             totalCount={count} />}
+        {message}
         </div>
         {this.state.showAllFilters ?
         <AllFilterSet 
