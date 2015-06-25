@@ -1260,11 +1260,12 @@ sjs.lexicon = {
 
 	init: function(){
 		sjs.lexicon.reset();
-		$(document).on("dblclick", ".lexiconLink", sjs.lexicon.getLexiconLookup);
+		$(document).on("dblclick", ".lexicon-link", sjs.lexicon.getLexiconLookup);
+		$(document).on("click", ".lexicon-close", sjs.lexicon.reset);
 	},
 
 	reset: function(){
-		$("#lexiconModal").remove();
+		$("#lexicon-modal").remove();
 	},
 
 	/*on: function(target){
@@ -1288,7 +1289,7 @@ sjs.lexicon = {
 		//words = text.split(/[ ]+/);
 		//regex to match hebrew, but not spaces, colons, maqqaf or parshiya indicator (פ) or (ס)
 		var regexs = /([\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05f4]+)(?!\))/g;
-		wrapped = text.replace(regexs, "<span class='lexiconLink'>$1</span>")
+		wrapped = text.replace(regexs, "<span class='lexicon-link'>$1</span>")
 		/*for (var i = 0; i < words.length; i++ ) {
 			wrapped += "<span class='lexiconLink'>" + words[i] + "</span> ";
 		}*/
@@ -1303,21 +1304,22 @@ sjs.lexicon = {
 			return text;
 		}
 		var parsedText = $("<p>").html(text);
-		parsedText.find('i').wrap("<span class='lexiconLink'></span>");
+		parsedText.find('i').wrap("<span class='lexicon-link'></span>");
 		return parsedText.html();
 	},
 
 	// ----------------- Lexicon lookup--------------------------
 	getLexiconLookup : function(e){
 		e.stopPropagation();
-		$("#lexiconModal").remove();
+		sjs.lexicon.reset();
 		//console.log($(this).text())
 		var word = $(this).text();
 		var $anchor = $(this);
 		$.getJSON("/api/words/" + encodeURIComponent(word)).done(function(data){
 			//console.log(data);
 			$html = sjs.lexicon.renderLexiconLookup(data, word);
-			var $modal = $('<div id="lexiconModal">').append($html).appendTo("body");
+			var $modal = $('<div id="lexicon-modal">').append($html).appendTo("body");
+			$modal.on("click", ".lexicon-close", sjs.lexicon.reset);
 			$modal.position({my: "center top", at: "center bottom", of: $anchor, collision: 'flipfit flipfit'})
 				.click(function(e){ e.stopPropagation(); });
 
@@ -1328,11 +1330,12 @@ sjs.lexicon = {
 	//--------------------- formatting ----------------------------
 
 	renderLexiconLookup: function(data, word){
-		var $html = $('<div id="lexicon-results">');
-		$('<h4>'+word+'</h4>').appendTo($html);
+		var $html = $('<div class="lexicon-content">');
+		var $headerhtml = $('<div class="lexicon-header"><i class="fa fa-times lexicon-close"></i><h4>'+word+'</h4></div>').appendTo($html);
 		if("error" in data){
 			return $html.append('<span>'+ data.error + '</span>')
 		}
+		var $contenthtml = $('<div class="lexicon-results">');
 		for(var i=0; i<data.length; i++) {
 			$entry = $('<div class="entry">');
 			entryHeadStr =  '<span class="headword">'+data[i]['headword']+'</span>';
@@ -1341,8 +1344,9 @@ sjs.lexicon = {
 			}
 			$entry.append('<div class="headword">' + entryHeadStr + '</div>');
 			$entry.append('<ol class="definition">' + sjs.lexicon.renderLexiconEntrySenses(data[i]['content']) + '</ol>');
-			$entry.appendTo($html);
+			$entry.appendTo($contenthtml);
 		}
+		$contenthtml.appendTo($html);
 		return $html;
 	},
 
