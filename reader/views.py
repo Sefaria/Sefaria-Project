@@ -135,7 +135,7 @@ def reader(request, tref, lang=None, version=None):
     layout      = request.GET.get("layout") if request.GET.get("layout") in ("heLeft", "heRight") else "heLeft"
     sidebarLang = request.GET.get('sidebarLang', None) or request.COOKIES.get('sidebarLang', "all")
     sidebarLang = {"all": "sidebarAll", "he": "sidebarHebrew", "en": "sidebarEnglish"}.get(sidebarLang, "sidebarAll")
-    lexicon = request.GET.get('lexicon', 0)
+    lexicon     = request.GET.get('lexicon', 0)
 
     template_vars = {'text': text,
                      'hasSidebar': hasSidebar,
@@ -163,11 +163,18 @@ def reader(request, tref, lang=None, version=None):
     return render_to_response('reader.html', template_vars, RequestContext(request))
 
 
-def s2(request, ref="Genesis 1"):
+def s2(request, ref="Genesis 1", version=None, lang=None):
     """
     New interfaces in development
     """
-    return render_to_response('s2.html', {"ref": ref}, RequestContext(request))
+    oref         = Ref(ref)
+    text         = TextFamily(oref, version=version, lang=lang, commentary=False, context=False, pad=True, alts=True).contents()
+    text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+    text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+    return render_to_response('s2.html', {
+                                            "ref": ref,
+                                            "data": text
+                                        }, RequestContext(request))
 
 
 @catch_error_as_http
@@ -304,9 +311,9 @@ def text_toc(request, oref):
         :param he_toc - jagged int array of available counts in hebrew
         :param en_toc - jagged int array of available counts in english
         :param labels - list of section names for levels corresponding to toc
+        :param addresses - list of address types, from Index record
         :param ref - text to prepend to final links. Starts with text title, recursively adding sections.
-        :param talmud = whether to create final refs with daf numbers
-        :param zoom - sets how many levels of final depth to summarize 
+        :param zoom - sets how many levels of final depth to summarize
         (e.g., 1 will hide verses and only show chapter level)
         """
         he_toc = [] if isinstance(he_toc, int) else he_toc
@@ -317,7 +324,7 @@ def text_toc(request, oref):
         depth = list_depth(he_toc, deep=True)
 
         # todo: have this use the address classes in schema.py
-        talmud = (addresses[0] == "Talmud")
+        talmudBase = (len(addresses) > 0 and addresses[0] == "Talmud")
 
         html = ""
         if depth == zoom + 1:
@@ -326,12 +333,12 @@ def text_toc(request, oref):
                 klass = "he%s en%s" %(available_class(he_toc[i]), available_class(en_toc[i]))
                 if klass == "heNone enNone":
                     continue
-                en_section   = section_to_daf(i+1) if talmud else str(i+1)
-                he_section   = encode_hebrew_daf(en_section) if talmud else encode_hebrew_numeral(int(en_section), punctuation=False)
+                en_section   = section_to_daf(i+1) if talmudBase else str(i+1)
+                he_section   = encode_hebrew_daf(en_section) if talmudBase else encode_hebrew_numeral(int(en_section), punctuation=False)
                 section_html = "<span class='en'>%s</span><span class='he'>%s</span>" % (en_section, he_section)
                 path = "%s.%s" % (ref, en_section)
                 if zoom > 1:  # Make links point to first available content
-                    prev_section = section_to_daf(i) if talmud else str(i)
+                    prev_section = section_to_daf(i) if talmudBase else str(i)
                     path = Ref(ref + "." + prev_section).next_section_ref().url()
                 html += '<a class="sectionLink %s" href="/%s">%s</a>' % (klass, urlquote(path), section_html)
             if html:
@@ -344,10 +351,10 @@ def text_toc(request, oref):
         else:
             # We're above terminal level, list sections and recur
             for i in range(length):
-                section = section_to_daf(i + 1) if talmud else str(i + 1)
+                section = section_to_daf(i + 1) if talmudBase else str(i + 1)
                 section_html = make_toc_html(he_toc[i], en_toc[i], labels[1:], addresses[1:], ref + "." + section, zoom=zoom)
                 if section_html:
-                    he_section = encode_hebrew_daf(section) if talmud else encode_hebrew_numeral(int(section), punctuation=False)
+                    he_section = encode_hebrew_daf(section) if talmudBase else encode_hebrew_numeral(int(section), punctuation=False)
                     html += "<div class='tocSection'>"
                     html += "<div class='sectionName'>"
                     html += "<span class='en'>" + labels[0] + " " + section + "</span>"

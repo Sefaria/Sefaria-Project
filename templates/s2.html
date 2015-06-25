@@ -1,11 +1,12 @@
 {% extends "base.html" %}
+{% load sefaria_tags %}
 
-{% block title %}S2{% endblock %}
+{% block title %}{{ ref }}{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="/static/css/s2.css">
 
-<div id="s2" class="biReady"></div>
+<div id="s2"></div>
 
 <div id="overlay"></div>
 
@@ -17,14 +18,31 @@
     <script src="/static/js/JSXTransformer.js"></script>
     <script type="text/jsx" src="/static/js/s2.jsx"></script>
     <script type="text/jsx">
-      var urlVars = getUrlVars();
-      var filter  = "with" in urlVars ? urlVars["with"].replace(/_/g, " ").split("+") : null;
-      if (filter && filter.length === 1 && filter[0] === "all") { filter = []; }
-      
-      React.render(
-        <ReaderApp initialRef={humanRef("{{ ref }}")} initialFilter={filter} />,
-        document.getElementById('s2')
-      );
+      $(function() {
+        var urlVars = getUrlVars();
+        var filter  = "with" in urlVars ? urlVars["with"].replace(/_/g, " ").split("+") : null;
+        if (filter && filter.length === 1 && filter[0] === "all") { filter = []; }
+        
+        $("body").removeClass("hebrew bilingual").addClass("english");
+
+        sjs.library._saveText({{ data|jsonify }});
+
+        var settings = {
+          language: "{{ contentLang }}",
+          layout:   $.cookie("layout")   || "segmented",
+          color:    $.cookie("color")    || "light",
+          fontSize: $.cookie("fontSize") || 62.5
+        }
+        $("body").addClass(settings.color);
+
+        React.render(
+          <ReaderApp 
+            initialRef={humanRef("{{ ref }}")}
+            initialFilter={filter}
+            initialSettings={settings} />,
+          document.getElementById('s2')
+        );
+      });
     </script>
 {% endblock %}
 

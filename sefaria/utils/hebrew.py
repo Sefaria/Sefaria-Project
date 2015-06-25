@@ -389,6 +389,7 @@ def hebrew_term(s):
 		"Chasidut":         u"חסידות",
 		"Parshanut":        u"פרשנות",
 		"Philosophy":       u"מחשבת ישראל",
+		"Maharal":	    u'מהר"ל מפראג',
 		"Apocrypha":        u"ספרים חיצונים",
 		"Seder Zeraim":     u"סדר זרעים",
 		"Seder Moed":       u"סדר מועד",

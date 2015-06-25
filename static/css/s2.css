@@ -1,16 +1,48 @@
 body {
   padding: 0;
 }
+body.sepia {
+  background-color: #F7F7F7; 
+}
+body.dark {
+  background-color: #333; 
+}
+#right {
+  display: none;
+}
 #s2 {
   padding: 0 0 30px 0;
+  max-width: 700px;
+  margin: 0 auto;
   min-height: 100%;
+  background-color: inherit;
   font-family: Georgia, serif;
 }
 #s2 .he, #s2 .heOnly {
-  font-family: "Times New Roman", serif;
+  font-family: "Taamey Frank", "Times New Roman", serif;
   font-size: 125%;
   direction: rtl;
   text-align: right;
+}
+.hebrew {
+  direction: rtl;
+}
+.english .he {
+  display: none;
+}
+.english .en {
+  display: inline;
+}
+.hebrew .he {
+  display: inline;
+  font-size: 120%;
+  text-align: right;
+}
+.hebrew .he .enInHe {
+  font-size: 83%;
+}
+.hebrew .en {
+  display: none;
 }
 .bilingual .en .heOnly,
 .bilingual .he .enOnly {
@@ -19,22 +51,45 @@ body {
 #languageToggle {
   display: inline;
 }
-#showOptions {
-  visibility: hidden;
-}
 #top #right #accountBox {
   display: none;
+}
+#readerApp.light {
+  background-color: white;
+}
+#readerApp.sepia {
+  background-color: #f7f7f7;
+}
+#readerApp.dark {
+  background-color: #333;
+  color: white;
 }
 #readerControls {
   position: fixed;
   direction: ltr;
   right: 0;
   top: 0;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 4px;
   z-index: 101;
-  height: 48px;
+  height: 49px;
   line-height: 48px;
   border-bottom: 1px solid #ddd;
   background-color: white;
+  -moz-user-select: none; 
+  -khtml-user-select: none; 
+  -webkit-user-select: none; 
+  -o-user-select: none; 
+}
+.dark #readerControls {
+  background-color: #333;
+  color: white;
+  border-color: #666;
+}
+#readerControlsRight {
+  float: right;
 }
 #readerControls .controlsButton {
   cursor: pointer;
@@ -47,12 +102,16 @@ body {
   width: 38px;
   height: 32px;
   line-height: 32px;
+  vertical-align: middle;
   text-align: center;
 }
 #readerControls .controlsButton:hover,
 #readerControls .controlsButton:active {
   background-color: #eee;
   color: #555;
+}
+.dark #readerControls .controlsButton {
+  border-color: #666;
 }
 #readerControls #readerPrevious {
   border-top-right-radius: 0;
@@ -64,12 +123,97 @@ body {
   border-bottom-left-radius: 0;
   margin-left: 0;
 }
+#readerOptionsPanel {
+  position: fixed;
+  width: 100%;
+  top: 49px;
+  right: 0;
+  max-width: 500px;
+  padding: 20px;
+  box-sizing: border-box;
+  direction: ltr;
+  background: white;
+  border-bottom: 1px solid #ccc;
+  z-index: 103;
+  -moz-user-select: none; 
+  -khtml-user-select: none; 
+  -webkit-user-select: none; 
+  -o-user-select: none; 
+}
+.dark #readerOptionsPanel {
+  color: black;
+}
+.toggleSet {
+  display: inline-block;
+  width: 100%;
+  margin: 7px 0;
+  margin-left: 1px;
+}
+.toggleOption {
+  box-sizing: border-box;
+  text-align: center;
+  border: 1px solid #ccc;
+  margin-left: -1px;
+  padding: 4px;
+  height: auto;
+}
+.toggleOption.on, .toggleOption:hover {
+  background-color: #eee;
+}
+.toggleSet.separated .toggleOption {
+  margin-right: 3%;
+}
+.toggleSet.separated .toggleOption:last-child {
+  margin-right: 0;
+}
+#color .toggleOption {
+  border-radius: 5px;
+  height: 38px;
+}
+#color .toggleOption.on {
+  border-color: black;
+}
+#color #light, #color #light.con {
+  background-color: white;
+}
+#color #sepia, #color #sepia.on {
+  background-color: #f7f7f7;
+}
+#color #dark, #color #dark.on {
+  background-color: #333;
+}
+#smaller, #larger {
+  line-height: 28px;
+  vertical-align: middle;
+}
+#smaller {
+  font-size: 12px;
+}
+#larger {
+  font-size: 22px;
+}
+#readerOptionsPanel .line {
+  margin: 20px 0;
+  border-top: 1px solid #ddd;
+}
+#mask {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 102;
+  cursor: pointer;
+}
+#readerContent {
+  background-color: inherit;
+}
 .textRange.basetext {
   width: 100%;
   box-sizing: border-box;
-  font-size: 16px;
+  font-size: 1.8em;
   line-height: 1.6;
   text-align: justify;
+  background-color: inherit;
   margin: 0 auto;
 }
 .textRange.basetext .title {
@@ -81,42 +225,26 @@ body {
   text-transform: uppercase;
   letter-spacing: 1px;
 }
-
-.bilingual .textRange.basetext .title .he,
-.bilingual .textRange.basetext .title .en {
+.textRange.basetext.bilingual .title .he,
+.textRange.basetext.bilingual .title .en {
   display: inline-block;
   margin: 4px 8px;
 }
-.previousSection, .nextSection {
-  color: #C6C6C6;
-  cursor: pointer;
-  font-size: 24px;
-  margin-top: -6px;
-}
-.previousSection:hover, .nextSection:hover {
-  color: #999;
-}
-.previousSection {
-  float: left;
-  padding: 0 15px 15px 3px;
-}
-.nextSection {
-  float: right;
-  padding: 0 3px 15px 15px;
-}
 .basetext .text {
   padding: 0 30px;
+  background-color: inherit;
 }
 .basetext .segment {
   cursor: pointer;
   display: block;
+  background-color: inherit;
   margin-bottom: 26px;
 }
-.basetext.flowLayout .segment{
+.basetext.continuous .segment{
   display: inline;
   margin: 0;
 }
-.bilingual .basetext .segment {
+.basetext.bilingual .segment {
   margin-bottom: 14px;
   display: block;
 }
@@ -127,25 +255,41 @@ body {
 .bilingual .segment .en { 
   margin-top: 6px;
 }
-.bilingual .basetext .segment .en { 
+.basetext.bilingual  .segment .en { 
   margin-top: 10px;
   color: #888;
 }
-
 .basetext .segment:hover,
 .basetext .segment:active,
 .basetext .segment:focus {
   background-color: #eee;
 }
+.dark .basetext .segment:hover,
+.dark .basetext .segment:active,
+.dark .basetext .segment:focus {
+  background-color: #555;
+}
+
+.textRange {
+  line-height: 1.4;
+  font-size: 1.6em;
+}
+.segment {
+
+}
 .segment .segmentNumber, .segment .linkCount {
   font-family: Helvetica, sans-serif;
   color: #999;
   position: absolute;
-  line-height: 24px;
-  background-color: white;
+  background-color: inherit;
   width: 30px;
   text-align: center;
   font-weight: lighter;
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  line-height: 18px;
+  border-radius: 30px;
 }
 .segment .segmentNumber {
   font-size: 12px;
@@ -157,22 +301,26 @@ body {
   height: 18px;
   font-size: 10px;
   line-height: 18px;
-  border: 1px solid #999;
   border-radius: 30px;
+  border: 1px solid #999;
   text-align: center;
-  margin: 2px 0 0 -25px;
+  margin: 3px 0 0 -25px;
+}
+.hebrew .segment .linkCount {
+  margin-top: 4px;
 }
 .textList.main {
   width: 100%;
   text-align: justify;
   margin: 0 auto;
+  background-color: inherit;
 }
 .textListTop {
   position: fixed;
   top: 49px;
   left: 0;
   width: 100%;
-  background-color: white;
+  background-color: inherit;
 }
 .textList .anchorText {
   background-color: #F7F7F7;
@@ -181,22 +329,12 @@ body {
   border-bottom: 1px solid #CCC;
   max-height: 100px;
   position: relative;
+  overflow-x: hidden;
+  overflow-y: scroll;
   overflow: hidden;
 }
-.textList .anchorText .previousSegment, .textList .anchorText .nextSegment {
-  color: #C6C6C6;
-  font-size: 18px;
-}
-.textList .anchorText .previousSegment:hover, .textList .anchorText .nextSegment:hover {
-  color: #999;
-}
-.textList .anchorText .previousSegment {
-  float: left;
-  padding: 0 10px 10px 0;
-}
-.textList .anchorText .nextSegment {
-  float: right;
-  padding: 0 0 10px 10px;
+.dark .textList .anchorText {
+  background-color: #333;
 }
 .textList .anchorText .textRange .title {
   display: none;
@@ -216,6 +354,9 @@ body {
   height: 40px;
   background: linear-gradient(to bottom, rgba(247,247,247,0), #F7F7F7);
 }
+.dark .textListTop .anchorText .fader {
+  background: linear-gradient(to bottom, rgba(51,51,51,0), #333);
+}
 .filterSet {
 
 }
@@ -228,6 +369,9 @@ body {
   padding: 0;
   width: 33.3333%;
   border: 1px solid #CCC;
+}
+.dark .filterSet td {
+  border-color: #555;
 }
 .filterSet td.empty {
   border: 1px solid transparent;
@@ -244,7 +388,10 @@ body {
   width: 100%;
   height: 38px;
 }
-.topFilters .textFilter span {
+.dark .topFilters .textFilter {
+  color: white;
+}
+.topFilters .textFilter > div {
   display: table-cell;
   vertical-align: middle;
 }
@@ -255,11 +402,13 @@ body {
   text-transform: uppercase;
   padding: 12px;
   text-align: center;
+  font-size: 13px;
   border-bottom: 1px solid #CCC;
 }
 .textFilter {
-  padding: 8px 4px;
+  padding: 10px 4px;
   text-align: center;
+  font-size: 13px;
   line-height: 1.2;
   display: block;
 }
@@ -270,8 +419,15 @@ body {
   background-color: #F7F7F7;
   color: black;
 }
+.dark .categoryFilter.on, .dark .textFilter.on {
+  background-color: #666
+}
 .topFilters .textFilter.showMoreFilters {
   color: #999;
+}
+.bilingual .textFilter .he,
+.bilingual .categoryFilter .he {
+  display: none;
 }
 .fullFilterView {
 }
@@ -291,7 +447,7 @@ body {
   color: #aaa;
 }
 .textList .texts .textRange {
-  font-size: 14px;
+  font-size: 1.4em;
   padding: 8px 0;
   margin: 12px 16px;
   border-bottom: 1px solid #CCC;
