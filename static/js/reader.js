@@ -1316,7 +1316,7 @@ sjs.lexicon = {
 		var word = $(this).text();
 		var $anchor = $(this);
 		$.getJSON("/api/words/" + encodeURIComponent(word)).done(function(data){
-			//console.log(data);
+			console.log(data);
 			$html = sjs.lexicon.renderLexiconLookup(data, word);
 			var $modal = $('<div id="lexicon-modal">').append($html).appendTo("body");
 			$modal.on("click", ".lexicon-close", sjs.lexicon.reset);
@@ -1344,6 +1344,7 @@ sjs.lexicon = {
 			}
 			$entry.append('<div class="headword">' + entryHeadStr + '</div>');
 			$entry.append('<ol class="definition">' + sjs.lexicon.renderLexiconEntrySenses(data[i]['content']) + '</ol>');
+			$entry.append(sjs.lexicon.renderLexiconAttribution(data[i]));
 			$entry.appendTo($contenthtml);
 		}
 		$contenthtml.appendTo($html);
@@ -1369,6 +1370,29 @@ sjs.lexicon = {
 		html += '</li>';
 		return html;
 	},
+
+	renderLexiconAttribution: function(entry){
+		console.log(entry);
+		lexicon_dtls = entry['parent_lexicon_details'];
+		if('source_url' in lexicon_dtls){
+			sourceLink = $('<a>',{
+				text: ('source' in lexicon_dtls ? lexicon_dtls['source'] : lexicon_dtls['source_url']),
+				href: lexicon_dtls['source_url']
+			});
+		}else{
+			sourceLink = '';
+		}
+		if('attribution_url' in lexicon_dtls){
+			attributionLink = $('<a>',{
+				text: 'Created by: ' + ('attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']),
+				href: lexicon_dtls['attribution_url']
+			});
+		}else if ('attribution' in lexicon_dtls){
+			attributionLink = lexicon_dtls['attribution'];
+		}
+		return $('<small class="attribution">').append(sourceLink).append('</br>').append(attributionLink);
+	},
+
 	//TODO: complete this
 	expandMorphCodes: function(code){
 		var code_map = {

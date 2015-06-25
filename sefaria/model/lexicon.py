@@ -43,7 +43,10 @@ class Lexicon(abst.AbstractMongoRecord):
         'pub_date',
         'editor',
         'year',
-        'source'
+        'source',
+        'source_url',
+        'attribution',
+        'attribution_url'
     ]
 
 class Dictionary(Lexicon):
@@ -60,6 +63,12 @@ class LexiconEntry(abst.AbstractMongoRecord):
 
     def factory(self, lexicon_name):
         pass
+
+    def contents(self, **kwargs):
+        cts = super(LexiconEntry, self).contents()
+        parent_lexicon = Lexicon().load({'name': self.parent_lexicon})
+        cts['parent_lexicon_details'] = parent_lexicon.contents()
+        return cts
 
 
 class DictionaryEntry(LexiconEntry):

@@ -958,6 +958,8 @@ body.newText #newTextCompare {
 	box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.5);
 	background-clip: padding-box;
 	overflow: hidden;
+	min-width: 10%;
+	max-width: 25%;
 }
 
 #lexicon-modal .lexicon-results{
@@ -989,14 +991,11 @@ body.newText #newTextCompare {
 	margin: 0px;
 }
 
-.lexicon-results .entry{
 
-}
-
-.lexicon-results .entry + .lexicon-results .entry {
-	margin-top: 3px;
-	padding-top: 3px;
-	border-top: 1px solid #eee;
+.entry + .entry {
+	margin-top: 10px;
+  	padding-top: 3px;
+  	border-top: 1px inset #AAAAAA;
 }
 
 .lexicon-results .entry .headword{
