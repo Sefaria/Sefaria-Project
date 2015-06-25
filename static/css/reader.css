@@ -952,11 +952,12 @@ body.newText #newTextCompare {
 	position: absolute;
 	z-index: 100;
 	background-color: #eff1f1;
-	border-radius: 4px;
+	border-radius: 10px;
 	border: 1px solid #666;
 	padding: 0px;
 	box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.5);
 	background-clip: padding-box;
+	overflow: hidden;
 }
 
 #lexicon-modal .lexicon-results{
