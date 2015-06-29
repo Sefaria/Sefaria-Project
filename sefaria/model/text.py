@@ -101,6 +101,12 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "transliteratedTitle" # optional for old style
     ]
 
+    def __str__(self):
+        return u"Index: {}".format(self.title)
+
+    def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
+        return u"{}().load({{'title': '{}'}})".format(self.__class__.__name__, self.title)
+
     def save(self):
         if DISABLE_INDEX_SAVE:
             raise InputError("Index saving has been disabled on this system.")
@@ -534,6 +540,13 @@ class CommentaryIndex(AbstractIndex):
         if getattr(self.nodes, "lengths", None):   #seems superfluous w/ nodes above
             self.length = self.nodes.lengths[0]
 
+    def __str__(self):
+        return u"{}: {} on {}".format(self.__class__.__name__, self.c_index.title, self.b_index.title)
+
+    def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
+        return u"{}({}, {})".format(self.__class__.__name__, self.c_index.title, self.b_index.title)
+
+
     def is_commentary(self):
         return True
 
@@ -736,6 +749,12 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         "versionUrl"  # bad data?
     ]
 
+    def __str__(self):
+        return u"Version: {} <{}>".format(self.title, self.versionTitle)
+
+    def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
+        return u"{}().load({{'title': '{}', 'versionTitle': '{}'}})".format(self.__class__.__name__, self.title, self.versionTitle)
+
     def _validate(self):
         assert super(Version, self)._validate()
         """
@@ -903,6 +922,18 @@ class TextChunk(AbstractTextRecord):
                     self._versions = vset.array()
         else:
             raise Exception("TextChunk requires a language.")
+
+    def __str__(self):
+        args = u"{}, {}".format(self._oref, self.lang)
+        if self.vtitle:
+            args += u", {}".format(self.vtitle)
+        return args
+
+    def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
+        args = u"{}, {}".format(self._oref, self.lang)
+        if self.vtitle:
+            args += u", {}".format(self.vtitle)
+        return u"{}({})".format(self.__class__.__name__, args)
 
     def is_empty(self):
         return bool(self.text)
@@ -1684,7 +1715,16 @@ class Ref(object):
 
         if len(parts) == 2:
             self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
-            if self._lang == "en":
+            if self._lang == "he" or any([a != "Integer" for a in self.index_node.addressTypes[1:]]):     # in process. developing logic that should work for all languages / texts
+                # todo: handle sections names in "to" part.  Handle talmud יד א - ב kind of cases.
+                range_parts = re.split("[., ]+", parts[1])
+                delta = len(self.sections) - len(range_parts)
+                for i in range(delta, len(self.sections)):
+                    try:
+                        self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang, range_parts[i - delta])
+                    except (ValueError, IndexError):
+                        raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
+            elif self._lang == "en":
                 if self.index_node.addressTypes[0] == "Talmud":
                     self.__parse_talmud_range(parts[1])
                 else:
@@ -1695,15 +1735,7 @@ class Ref(object):
                             self.toSections[i] = int(range_parts[i - delta])
                         except (ValueError, IndexError):
                             raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
-            elif self._lang == "he":     # in process. developing logic that should work for all languages / texts
-                # todo: handle sections names in "to" part.  Handle talmud יד א - ב kind of cases.
-                range_parts = re.split("[., ]+", parts[1])
-                delta = len(self.sections) - len(range_parts)
-                for i in range(delta, len(self.sections)):
-                    try:
-                        self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang, range_parts[i - delta])
-                    except (ValueError, IndexError):
-                        raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
+
 
     def __get_sections(self, reg, tref, use_node=None):
         use_node = use_node or self.index_node
