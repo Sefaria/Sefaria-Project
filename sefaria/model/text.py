@@ -1715,7 +1715,16 @@ class Ref(object):
 
         if len(parts) == 2:
             self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
-            if self._lang == "en":
+            if self._lang == "he" or any([a != "Integer" for a in self.index_node.addressTypes[1:]]):     # in process. developing logic that should work for all languages / texts
+                # todo: handle sections names in "to" part.  Handle talmud יד א - ב kind of cases.
+                range_parts = re.split("[., ]+", parts[1])
+                delta = len(self.sections) - len(range_parts)
+                for i in range(delta, len(self.sections)):
+                    try:
+                        self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang, range_parts[i - delta])
+                    except (ValueError, IndexError):
+                        raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
+            elif self._lang == "en":
                 if self.index_node.addressTypes[0] == "Talmud":
                     self.__parse_talmud_range(parts[1])
                 else:
@@ -1726,15 +1735,7 @@ class Ref(object):
                             self.toSections[i] = int(range_parts[i - delta])
                         except (ValueError, IndexError):
                             raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
-            elif self._lang == "he":     # in process. developing logic that should work for all languages / texts
-                # todo: handle sections names in "to" part.  Handle talmud יד א - ב kind of cases.
-                range_parts = re.split("[., ]+", parts[1])
-                delta = len(self.sections) - len(range_parts)
-                for i in range(delta, len(self.sections)):
-                    try:
-                        self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang, range_parts[i - delta])
-                    except (ValueError, IndexError):
-                        raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
+
 
     def __get_sections(self, reg, tref, use_node=None):
         use_node = use_node or self.index_node

@@ -267,7 +267,7 @@ $.extend(sjs, {
                     }
                     sjs.search.post(true, true)
                 });
-                $(".filter-parent span").click(function (e) {
+                $(".filter-parent span").click(function (e) {  // If text is clicked, propgate click to checkbox
                     $(this).closest("li").find(".filter").first().trigger('click');
                 });
                 $("li.filter-parent ul").hide(); //hide the child lists
