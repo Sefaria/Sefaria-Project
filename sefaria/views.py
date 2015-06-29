@@ -218,7 +218,7 @@ def bulktext_api(request, refs):
                     'heRef': oref.he_normal(),
                     'url': oref.url()
                 }
-            except InputError as e:
+            except (InputError, ValueError) as e:
                 referer = request.META.get("HTTP_REFERER", "unknown page")
                 logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
                 res[tref] = {"error": 1}
