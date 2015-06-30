@@ -1295,32 +1295,6 @@ sjs.sheetTagger = {
 	}
 };
 
-sjs.wrapAramaicWords = function (text) {
-	// Wraps words in text with a tags
-	// to online Aramaic dictionary
-	if (typeof text !== "string") {
-		return text;
-	}
-	wrapped = "";
-	words = text.split(/ +/);
-	for (var i = 0; i < words.length; i++ ) {
-		wrapped += "<span class='lexiconLink'>" + words[i] + "</span> ";
-	}
-	return wrapped;
-}
-
-
-sjs.wrapEngLexiconLookups = function (text) {
-	// Wraps words in text with a tags
-	// to lexicon links
-	if (typeof text !== "string") {
-		return text;
-	}
-	var parsedText = $("<p>").html(text);
-	parsedText.find('i').wrap("<span class='lexiconLink'></span>");
-	return parsedText.html();
-}
-
 
 sjs._parseRef = {};
 function parseRef(q) {

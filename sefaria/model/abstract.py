@@ -267,14 +267,14 @@ class AbstractMongoSet(collections.Iterable):
         self._local_iter = None
 
     def __iter__(self):
-        self.__read_records()
+        self._read_records()
         return iter(self.records)
 
     def __getitem__(self, item):
-        self.__read_records()
+        self._read_records()
         return self.records[item]
 
-    def __read_records(self):
+    def _read_records(self):
         if self.records is None:
             self.records = []
             for rec in self.raw_records:
@@ -288,7 +288,7 @@ class AbstractMongoSet(collections.Iterable):
             return self.raw_records.count()
 
     def array(self):
-        self.__read_records()
+        self._read_records()
         return self.records
 
     def distinct(self, field):

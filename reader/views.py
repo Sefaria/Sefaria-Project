@@ -28,7 +28,7 @@ from sefaria.model import *
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 from sefaria.utils.users import user_link, user_started_text
 from sefaria.utils.util import list_depth, text_preview
-from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf
+from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
 import sefaria.utils.calendars
 import sefaria.tracker as tracker
@@ -939,6 +939,8 @@ def lock_text_api(request, title, lang, version):
 
 @catch_error_as_json
 def dictionary_api(request, word):
+    if is_hebrew(word):
+        word = strip_cantillation(word)
     form = WordForm().load({"form": word})
     if form:
         result = []
