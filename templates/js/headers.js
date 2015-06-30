@@ -373,14 +373,26 @@
                     html += "<div class='sectionName'>" + hebrewPlural(sjs.navPanel._structure) + "</div>";
                     for (var i = 0; i < current_node["nodes"].length; i++) {
                         var nod = current_node["nodes"][i];
-                        html += "<div class='tocCat' data-path='" + basePath + "'" +
-                        "data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + i + "'>" +
-                        "<i class='tocCatCaret fa fa-angle-" +
-                        ($("#navToc").hasClass("hebrew") ? "left" : "right") +
-                        "'></i>" +
-                        "<span class='en'>" + nod["title"] + "</span>" +
-                        "<span class='he'>" + nod["heTitle"] + "</span>" +
-                        "</div>";
+                        if (nod.depth == 0) {
+                            var ref = nod["wholeRef"];
+                            var url = "/" + ref;
+                            html += "<a class='tocLink previewLink' href='" + url + "'>" +
+                            "<i class='tocCatCaret fa fa-angle-" +
+                            ($("#navToc").hasClass("hebrew") ? "left" : "right") +
+                            "'></i>" +
+                            "<span class='en'>" + nod["title"] + "</span>" +
+                            "<span class='he'>" + nod["heTitle"] + "</span>" +
+                            "</a>";
+                        } else {
+                            html += "<div class='tocCat' data-path='" + basePath + "'" +
+                            "data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + i + "'>" +
+                            "<i class='tocCatCaret fa fa-angle-" +
+                            ($("#navToc").hasClass("hebrew") ? "left" : "right") +
+                            "'></i>" +
+                            "<span class='en'>" + nod["title"] + "</span>" +
+                            "<span class='he'>" + nod["heTitle"] + "</span>" +
+                            "</div>";
+                        }
                     }
                 }
                 else if ("refsPreview" in current_node) { // Content - todo: doesn't yet work beyond depth 1
