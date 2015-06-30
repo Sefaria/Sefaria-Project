@@ -16,9 +16,19 @@ def remove_refs_with_false():
     """
     model.LinkSet({"refs": False}).delete()
     model.HistorySet({"new.refs": False}).delete()
-    #db.links.remove({"refs": False})
-    #db.history.remove({"new.refs": False})
-    #db.history.find({"new.refs": False})
+
+
+def remove_bad_links():
+    """
+    Remove any links that contain Refs we can't understand.
+    """
+    links = model.LinkSet()
+    for link in links:
+        try:
+            model.Ref(link.refs[0])
+            mode.Ref(link.refs[1])
+        except:
+            link.delete()
 
 
 def remove_old_counts():
@@ -63,3 +73,16 @@ def remove_trailing_empty_segments():
             text.chapter = new_text
             text.save()
             model.VersionState(text.title).refresh()
+
+
+def remove_bad_translation_requests():
+    """
+    Deletes translation requests that contain Refs we don't understand.
+    """
+    trs = model.TranslationRequestSet()
+    for tr in trs:
+        try:
+            model.Ref(tr.ref)
+        except Exception, e:
+            print tr.ref + "\n*** " + str(e)
+            tr.delete()
