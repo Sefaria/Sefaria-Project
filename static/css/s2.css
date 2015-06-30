@@ -261,12 +261,14 @@ body.dark {
 }
 .basetext .segment:hover,
 .basetext .segment:active,
-.basetext .segment:focus {
+.basetext .segment:focus,
+.basetext .segment.highlight {
   background-color: #eee;
 }
 .dark .basetext .segment:hover,
 .dark .basetext .segment:active,
-.dark .basetext .segment:focus {
+.dark .basetext .segment:focus,
+.dark .basetext .segment.highlight {
   background-color: #555;
 }
 

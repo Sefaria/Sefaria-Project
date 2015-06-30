@@ -127,8 +127,8 @@ sjs.library = {
       // Cache partial index information
       if (this.index(links[i].commentator)) { continue; }
       var index = {
-        title: links[i].commentator,
-        heTitle: links[i].heCommentator,
+        title:      links[i].commentator,
+        heTitle:    links[i].heCommentator,
         categories: [links[i].category],
       }
       this.index(links[i].commentator, index);
