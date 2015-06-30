@@ -16,7 +16,7 @@ except ImportError:
 from sefaria.model import *
 
 class WLCStrongParser(object):
-    data_dir = '../data/tmp/hebmorphwlc'
+    data_dir = 'data/tmp/hebmorphwlc'
     raw_github_url = 'https://raw.githubusercontent.com/openscriptures/morphhb/master/'
 
 
@@ -231,7 +231,7 @@ class WLCStrongWordFormBookParser(object):
 
 
 class StrongHebrewGLexiconXMLParser(object):
-    data_dir = '../data/tmp'
+    data_dir = 'data/tmp'
     filename = 'StrongHebrewG.xml'
     heb_stems = ["qal","niphal","piel","pual","hiphil","hophal","hithpael","polel","polal","hithpolel","poel","poal","palel","pulal","qal passive","pilpel","polpal","hithpalpel","nithpael","pealal","pilel","hothpaal","tiphil","hishtaphel","nithpalel","nithpoel","hithpoel"]
     arc_stems = ["P'al","peal","peil","hithpeel","pael","ithpaal","hithpaal","aphel","haphel","saphel","shaphel","hophal","ithpeel","hishtaphel","ishtaphel","hithaphel","polel","","ithpoel","hithpolel","hithpalpel","hephal","tiphel","poel","palpel","ithpalpel","ithpolel","ittaphal"]
