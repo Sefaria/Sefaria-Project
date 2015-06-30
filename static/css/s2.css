@@ -261,12 +261,14 @@ body.dark {
 }
 .basetext .segment:hover,
 .basetext .segment:active,
-.basetext .segment:focus {
+.basetext .segment:focus,
+.basetext .segment.highlight {
   background-color: #eee;
 }
 .dark .basetext .segment:hover,
 .dark .basetext .segment:active,
-.dark .basetext .segment:focus {
+.dark .basetext .segment:focus,
+.dark .basetext .segment.highlight {
   background-color: #555;
 }
 
@@ -308,6 +310,14 @@ body.dark {
 }
 .hebrew .segment .linkCount {
   margin-top: 4px;
+}
+.segment .refLink {
+  font-size: .7em;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+.refLink:hover {
+  text-decoration: underline;
 }
 .textList.main {
   width: 100%;

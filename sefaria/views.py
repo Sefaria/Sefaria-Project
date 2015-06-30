@@ -218,7 +218,7 @@ def bulktext_api(request, refs):
                     'heRef': oref.he_normal(),
                     'url': oref.url()
                 }
-            except InputError as e:
+            except (InputError, ValueError) as e:
                 referer = request.META.get("HTTP_REFERER", "unknown page")
                 logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
                 res[tref] = {"error": 1}
@@ -330,9 +330,11 @@ def list_contest_results(request):
     List results for last week's mini contest on translation requests.
     """
     today            = datetime.today()
-    contest_end      = today - timedelta((today.weekday()+1) % 7) # last Sunday
-    contest_end      = contest_end.replace(hour=0, minute=0)  # At midnight
-    contest_start    = contest_end - timedelta(7) # Sunday before last
+    end_month        = today.month if today.day >= 28 else today.month - 1
+    end_month        = 12 if end_month == 0 else end_month
+    contest_end      = today.replace(month=end_month, day=28, hour=0, minute=0) 
+    start_month      = end_month - 1 if end_month > 1 else 12
+    contest_start    = contest_end.replace(month=start_month)
     requests_query   = {"completed": True, "featured": True, "completed_date": { "$gt": contest_start, "$lt": contest_end } }
     requests         = model.TranslationRequestSet(requests_query, sort=[["featured", 1]])
     user_points      = defaultdict(int)
@@ -355,10 +357,11 @@ def list_contest_results(request):
         results += "%s: completed %d requests for %d points (%s)<br>" % (profile.full_name, user_requests[user], user_points[user], profile.email)
         lottery += ([user] * user_points[user])
 
-    winner = choice(lottery)
-    winner = model.user_profile.UserProfile(id=winner)
+    if len(lottery):
+        winner = choice(lottery)
+        winner = model.user_profile.UserProfile(id=winner)
 
-    results += "<br>The winner is: %s (%s)" % (winner.full_name, winner.email)
+        results += "<br>The winner is: %s (%s)" % (winner.full_name, winner.email)
 
     return HttpResponse(results)
 

@@ -558,6 +558,12 @@ class Test_Talmud_at_Second_Place(object):
         assert Ref("New Zohar 1.50a - 3.15b").toSections[1] == 30
         assert Ref("New Zohar 1.50a - 3.15a").toSections[1] == 29
 
+    def test_FAILING_range_short_form(self):
+        assert Ref("New Zohar 2.15a - 15b").sections[1] == 29
+        assert Ref("New Zohar 2.15a - 15b").toSections[1] == 30
+        assert Ref("New Zohar 2.15a - b").sections[1] == 29
+        assert Ref("New Zohar 2.15a - b").toSections[1] == 30
+
 class Test_set_construction_from_ref(object):
     def test_ref_noteset(self):
         pass

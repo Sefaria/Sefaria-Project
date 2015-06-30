@@ -373,14 +373,26 @@
                     html += "<div class='sectionName'>" + hebrewPlural(sjs.navPanel._structure) + "</div>";
                     for (var i = 0; i < current_node["nodes"].length; i++) {
                         var nod = current_node["nodes"][i];
-                        html += "<div class='tocCat' data-path='" + basePath + "'" +
-                        "data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + i + "'>" +
-                        "<i class='tocCatCaret fa fa-angle-" +
-                        ($("#navToc").hasClass("hebrew") ? "left" : "right") +
-                        "'></i>" +
-                        "<span class='en'>" + nod["title"] + "</span>" +
-                        "<span class='he'>" + nod["heTitle"] + "</span>" +
-                        "</div>";
+                        if (nod.depth == 0) {
+                            var ref = nod["wholeRef"];
+                            var url = "/" + ref;
+                            html += "<a class='tocLink previewLink' href='" + url + "'>" +
+                            "<i class='tocCatCaret fa fa-angle-" +
+                            ($("#navToc").hasClass("hebrew") ? "left" : "right") +
+                            "'></i>" +
+                            "<span class='en'>" + nod["title"] + "</span>" +
+                            "<span class='he'>" + nod["heTitle"] + "</span>" +
+                            "</a>";
+                        } else {
+                            html += "<div class='tocCat' data-path='" + basePath + "'" +
+                            "data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + i + "'>" +
+                            "<i class='tocCatCaret fa fa-angle-" +
+                            ($("#navToc").hasClass("hebrew") ? "left" : "right") +
+                            "'></i>" +
+                            "<span class='en'>" + nod["title"] + "</span>" +
+                            "<span class='he'>" + nod["heTitle"] + "</span>" +
+                            "</div>";
+                        }
                     }
                 }
                 else if ("refsPreview" in current_node) { // Content - todo: doesn't yet work beyond depth 1
@@ -456,13 +468,14 @@
                 }
                 if (previewDepth >= node.sectionNames.length - 1) {
                     // Section Preview (terminal depth, preview text)
+                    var isTalmmudAddress = node.addressTypes.slice(-2)[0] == "Talmud";  // still hacky. reworking the isTalmud logic
                     html += "<div class='sectionName'>" + hebrewPlural(node.sectionNames.slice(-2)[0]) + "</div>";
                     if (!this._showPreviews) {
                         html += "<div id='numLinkBox'>"
                     }
                     for (var i = 1; i <= previewSection.length; i++) {
-                        var num = isTalmud && !isCommentary ? intToDaf(i - 1) : i;
-                        var heNum = isTalmud && !isCommentary ? encodeHebrewDaf(intToDaf(i - 1)) : encodeHebrewNumeral(i);
+                        var num = isTalmmudAddress ? intToDaf(i - 1) : i;
+                        var heNum = isTalmmudAddress ? encodeHebrewDaf(intToDaf(i - 1)) : encodeHebrewNumeral(i);
                         //var url   = ("/" + sects.join(".") + "." + num).replace(/\'/g, "&apos;");
                         var url = "/" + this._preview.schema.get_node_url_from_indexes(sects.slice(1).concat(num));
                         var he = previewSection[i - 1].he;

@@ -1724,25 +1724,34 @@ function buildView(data) {
 	
 	// Make a Fancy Title String
 	var sectionsString = "";
+    var basetextHeTitle;
+    var basetextTitle;
+
 	if (data.title) {
-		var basetextTitle = data.title;
+        basetextTitle = data.title;
 	} else {
-		var sectionNames = []
+		var sectionNames = [];
 		for (var i = 0; i < data.sectionNames.length-1; i++) {
 			sectionNames.push(data.sectionNames[i] + " " + data.sections[i]);
 		}
 		sectionsString = sectionNames.join(" : ");
-		var basetextTitle = data.book.replace(/_/g, " ") + " " + sectionsString;
+		basetextTitle = data.book.replace(/_/g, " ") + " " + sectionsString;
 	}
+
 	if (data.heTitle) {
-		var start = data.sectionNames.length > 1 ? 0 : 1;
-		var end = data.sectionNames.length - 1;
-		var basetextHeTitle = data.heTitle + " " + data.sections.slice(start,end).map(encodeHebrewNumeral).join(", ");
+        if ($.inArray("Talmud", data.addressTypes)) {
+            basetextHeTitle = data.heTitle;
+        } else {
+            var start = data.sectionNames.length > 1 ? 0 : 1;
+            var end = data.sectionNames.length - 1;
+            basetextHeTitle = data.heTitle + " " + data.sections.slice(start,end).map(encodeHebrewNumeral).join(", ");
+        }
+
 	} else {
-		var basetextHeTitle = basetextTitle;
+        basetextHeTitle = basetextTitle;
 	}
 	
-	// Add the fancy titles to the bastext	
+	// Add the fancy titles to the basetext
 	basetext = "<div class='sectionTitle'>" + 
 					"<span class='en'>" + basetextTitle + "</span>" +
 					"<span class='he" + (basetextTitle === basetextHeTitle ? " enOnly" : "") + "'>" + 

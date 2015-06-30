@@ -2187,18 +2187,24 @@ class Ref(object):
 
     def _iter_text_section(self, forward=True, depth_up=1):
         """
-        Used to iterate forwards or backwards to the next available ref in a text
+        Iterate forwards or backwards to the next available ref in a text
 
-        :param pRef: the ref object
         :param forward: Boolean indicating direction to iterate
         :depth_up: if we want to traverse the text at a higher level than most granular. defaults to one level above
-        :return: a ref
+        
+        :return: :class:`Ref`
         """
         if self.index_node.depth <= depth_up:  # if there is only one level of text, don't even waste time iterating.
             return None
 
         #arrays are 0 based. text sections are 1 based. so shift the numbers back.
-        starting_points = [s - 1 for s in self.sections[:self.index_node.depth - depth_up]]
+        if not forward:
+            # Going backward, start from begginning of Ref
+            starting_points = [s - 1 for s in self.sections[:self.index_node.depth - depth_up]]
+        else:
+            # Going forward start form end of Ref
+            starting_points = [s - 1 for s in self.toSections[:self.index_node.depth - depth_up]]
+
 
         #start from the next one
         if len(starting_points) > 0:
