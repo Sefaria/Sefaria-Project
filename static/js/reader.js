@@ -1929,8 +1929,8 @@ function buildView(data) {
 
 function basetextHtml(en, he, prefix, alts, sectionName) {
 	var basetext = "";
-	en = en || [];
-	he = he || [];
+	en = (en || []).slice(0);
+	he = (he || []).slice(0);
 
 	// Pad the shorter array to make stepping through them easier.
 	var length = Math.max(en.length, he.length);
@@ -1970,7 +1970,6 @@ function basetextHtml(en, he, prefix, alts, sectionName) {
 
 		var heButton = "<div class='btn addThis' data-lang='he' data-num='"+ (i+1) + "'>" +
 			"Add Hebrew for " + sectionName + " " + (i+1) + "</div>";
-
 		var heText =  (lexicon_enabled['he'] ? sjs.lexicon.wrapHebArcLexiconLookups(he[i]) : he[i]) || heButton;
 		var heClass = he[i] ? "he" : "he empty";
 
