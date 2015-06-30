@@ -65,12 +65,14 @@ var ReaderApp = React.createClass({
   },
   updateHistoryState: function() {
     if (this.shouldHistoryUpdate()) {
+      /*
       var current = this.state.contents.slice(-1)[0];
       if (current.type !== "TextColumn" || (history.state && history.state.type !== "TextColumn")) {
         // TODO - figure how do to without this timer which is needed because this function 
         // gets called before the TextSegments containted within are rendered.
         setTimeout(function() { $(window).scrollTop(current.scrollTop) }.bind(this), 5);        
       }
+      */
       var hist = this.makeHistoryState();
       history.pushState(hist.state, hist.title, hist.url);
     }
@@ -175,7 +177,6 @@ var ReaderApp = React.createClass({
         }
       }
     }
-    $(window).scrollTop(0);
   },
   navNext: function() {
     this.navigateReader("next");
@@ -204,6 +205,17 @@ var ReaderApp = React.createClass({
       $("body").removeClass("light sepia dark").addClass(value);
     }
   },
+  setScrollTop: function() {
+    var current = this.state.contents.slice(-1)[0];
+    if (current.scrollTop) {
+      $(window).scrollTop(current.scrollTop);
+    } else if ($(".segment.highlight").length) {
+      var top = $(".segment.highlight").first().position().top - ($(window).height() / 3);
+      $(window).scrollTop(top);
+    } else {
+      $(window).scrollTop(0);
+    }
+  },
   currentBook: function() {
     var item = this.state.contents.slice(-1)[0];
     var ref  = item.ref || item.refs.slice(-1)[0];
@@ -228,6 +240,7 @@ var ReaderApp = React.createClass({
             prefetchNextPrev={true}
             settings={this.state.settings}
             setOption={this.setOption}
+            setScrollTop={this.setScrollTop}
             showBaseText={this.showBaseText} 
             showTextList={this.showTextList} 
             key={ref} />);      
@@ -240,6 +253,7 @@ var ReaderApp = React.createClass({
             currentFilter={this.state.currentFilter}
             recentFilters={this.state.recentFilters}
             setFilter={this.setFilter}
+            setScrollTop={this.setScrollTop}
             showTextList={this.showTextList}
             showBaseText={this.showBaseText} 
             key={item.ref} />
@@ -430,6 +444,7 @@ var TextRange = React.createClass({
     return { 
       segments: [],
       sref: this.props.sref,
+      loaded: false,
       data: {ref: this.props.sref},
     };
   },
@@ -437,12 +452,16 @@ var TextRange = React.createClass({
     this.getText();
     if (this.props.basetext) { 
       this.placeSegmentNumbers();
+      this.props.setScrollTop();
     }
     window.addEventListener('resize', this.handleResize);
   },
-  componentDidUpdate: function() {
+  componentDidUpdate: function(prevProps, prevState) {
     if (this.props.basetext) { 
       this.placeSegmentNumbers();
+    }
+    if (this.props.basetext && !prevState.loaded) {
+      this.props.setScrollTop();
     }
   },
   componentWillUnmount: function() {
@@ -455,10 +474,10 @@ var TextRange = React.createClass({
     sjs.library.text(this.state.sref, settings, this.loadText);
   },
   makeSegments: function(data) {
-    // Returns a flat list of annotated segments objects,
+    // Returns a flat list of annotated segment objects,
     // derived from the walking the text in data
-    var segments = [];
-
+    var segments  = [];
+    var highlight = data.sections.length === data.textDepth; 
     var wrap = (typeof data.text == "string");
     var en = wrap ? [data.text] : data.text;
     var he = wrap ? [data.he] : data.he;
@@ -471,13 +490,15 @@ var TextRange = React.createClass({
 
     if (!data.isSpanning) {
       for (var i = 0; i < topLength; i++) {
-        var ref = data.ref + ":" + (i+start);
+        var number = i+start;
+        var ref = data.sectionRef + ":" + number;
         segments.push({
+          ref: ref,
           en: en[i], 
           he: he[i],
-          number: (i+start),
-          ref: ref,
-          linkCount: sjs.library.linkCount(ref)
+          number: number,
+          highlight: highlight && number >= data.sections.slice(-1)[0] && number <= data.toSections.slice(-1)[0],
+          linkCount: this.props.basetext ? sjs.library.linkCount(ref) : 0
         });
       }      
     } else {
@@ -488,16 +509,23 @@ var TextRange = React.createClass({
         var length = Math.max(en2.length, he2.length);
         en2 = en2.pad(length, "");
         he2 = he2.pad(length, "");
-        var baseRef = data.book + " " + data.sections.slice(0,-1).join(":");
+        var baseRef = data.book + " " + data.sections.slice(0,-2).join(":");
+        console.log(baseRef);
         start = (n == 0 ? start : 1);
         for (var i = 0; i < length; i++) {
-          var ref = baseRef + ":" + (i+start);
+          var section = n+data.sections.slice(-2)[0];
+          var number  = i+start;
+          var ref = baseRef + ":" + section + ":" + number;
           segments.push({
+            ref: ref,
             en: en2[i], 
             he: he2[i],
-            number: (i+start),
-            ref: ref,
-            linkCount: sjs.library.linkCount(ref)
+            number: number,
+            highlight: highlight && 
+                        ((n == 0 && number >= data.sections.slice(-1)[0]) || 
+                         (n == topLength-1 && number <= data.toSections.slice(-1)[0]) ||
+                         (n > 0 && n < topLength -1)),
+            linkCount: this.props.basetext ? sjs.library.linkCount(ref) : 0
           });
         }
       }
@@ -505,11 +533,12 @@ var TextRange = React.createClass({
     return segments;
   },
   loadText: function(data) {
-    var segments = this.makeSegments(data);
-    
+    var segments  = this.makeSegments(data);
+
     this.setState({
       data: data,
       segments: segments,
+      loaded: true,
       sref: data.ref,
     });
 
@@ -550,16 +579,6 @@ var TextRange = React.createClass({
       this.props.showBaseText(this.props.sref);
     }
   },
-  nextSection: function() {
-    if (this.state.data.next) {
-      this.props.showBaseText(this.state.data.next);
-    }
-  },
-  previousSection: function () {
-    if (this.state.data.prev) {
-      this.props.showBaseText(this.state.data.prev);
-    }
-  },
   render: function() {
     var textSegments = this.state.segments.map(function (segment, i) {
       return (
@@ -568,6 +587,7 @@ var TextRange = React.createClass({
             sref={segment.ref}
             en={segment.en}
             he={segment.he}
+            highlight={segment.highlight}
             segmentNumber={this.props.basetext ? segment.number : 0}
             linkCount={segment.linkCount}
             showTextList={this.props.showTextList} />
@@ -606,9 +626,9 @@ var TextSegment = React.createClass({
     var he = this.props.he || "<span class='enOnly'>" + this.props.en + "</span>";
     var en = sjs.wrapRefLinks(this.props.en);
     var en = en || "<span class='heOnly'>" + this.props.he + "</span>";
-
+    var classes=cx({segment: 1, highlight: this.props.highlight});
     return (
-      <span className="segment" onClick={this.handleClick}>
+      <span className={classes} onClick={this.handleClick}>
         {segmentNumber}
         {linkCount}
         <span className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></span>
@@ -637,7 +657,7 @@ var TextList = React.createClass({
   componentDidMount: function() {
     this.loadConnections();
     if (this.props.main) {
-      $(window).scrollTop(0);
+      this.props.setScrollTop();
       this.setTopPadding();
     }
   },
@@ -647,7 +667,7 @@ var TextList = React.createClass({
     }
   },
   componetWillUpdate: function() {
-    $(window).scrollTop(0);
+    this.props.setScrollTop();
   },
   toggleFilter: function(filter) {
     this.setState({filter: this.state.filter.toggle(filter)});
