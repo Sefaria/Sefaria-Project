@@ -26,7 +26,7 @@ def remove_bad_links():
     for link in links:
         try:
             model.Ref(link.refs[0])
-            mode.Ref(link.refs[1])
+            model.Ref(link.refs[1])
         except:
             link.delete()
 
