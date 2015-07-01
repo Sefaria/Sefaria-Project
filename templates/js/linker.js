@@ -191,12 +191,13 @@
         var popupStyles = options.popupStyles || {};
         var selector = options.selector || "body";
         var mode = options.mode || "popup-hover"; // "link", "popup-hover", "popup-click"
+        if (window.screen.width < 820) { mode = "link"; }  // If the screen is small, fallback to link mode
 
         setupPopup(popupStyles, mode);
 
         var elems = document.querySelectorAll(selector);
 
-        //Find text titles in the document
+        // Find text titles in the document
         // todo: hold locations of title matches?
         var full_text = [].reduce.call(elems, function(prev, current) { return prev + current.textContent; }, "");
         var matchedTitles = bookTitles.filter(function(title) {
@@ -237,7 +238,12 @@
                                 return node;
                             },
                             filterElements: function(el) {
-                                return !(hasOwn.call(findAndReplaceDOMText.NON_PROSE_ELEMENTS, el.nodeName.toLowerCase()) ||  (el.className && el.className.split(' ').indexOf("sefaria-ref")>=0));
+                                return !(
+                                    hasOwn.call(findAndReplaceDOMText.NON_PROSE_ELEMENTS, el.nodeName.toLowerCase())
+                                    || (el.tagName == "A")
+                                    // The below test is subsumed in the more simple test above
+                                    //|| (el.className && el.className.split(' ').indexOf("sefaria-ref")>=0)
+                                );
                             }
                         });
                     }
