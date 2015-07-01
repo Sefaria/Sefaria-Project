@@ -1316,7 +1316,7 @@ sjs.lexicon = {
 		var word = $(this).text();
 		var $anchor = $(this);
 		$.getJSON("/api/words/" + encodeURIComponent(word)).done(function(data){
-			console.log(data);
+			//console.log(data);
 			$html = sjs.lexicon.renderLexiconLookup(data, word);
 			var $modal = $('<div id="lexicon-modal">').append($html).appendTo("body");
 			$modal.on("click", ".lexicon-close", sjs.lexicon.reset);
@@ -1372,23 +1372,23 @@ sjs.lexicon = {
 	},
 
 	renderLexiconAttribution: function(entry){
-		console.log(entry);
-		lexicon_dtls = entry['parent_lexicon_details'];
+		//console.log(entry);
+		var lexicon_dtls = entry['parent_lexicon_details'];
 		if('source_url' in lexicon_dtls){
-			sourceLink = $('<a>',{
-				text: ('source' in lexicon_dtls ? lexicon_dtls['source'] : lexicon_dtls['source_url']),
+			var sourceLink = $('<a>',{
+				text: 'Definitions from: ' + ('source' in lexicon_dtls ? lexicon_dtls['source'] : lexicon_dtls['source_url']),
 				href: lexicon_dtls['source_url']
 			});
 		}else{
-			sourceLink = '';
+			var sourceLink = '';
 		}
 		if('attribution_url' in lexicon_dtls){
-			attributionLink = $('<a>',{
+			var attributionLink = $('<a>',{
 				text: 'Created by: ' + ('attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']),
 				href: lexicon_dtls['attribution_url']
 			});
 		}else if ('attribution' in lexicon_dtls){
-			attributionLink = lexicon_dtls['attribution'];
+			var attributionLink = lexicon_dtls['attribution'];
 		}
 		return $('<small class="attribution">').append(sourceLink).append('</br>').append(attributionLink);
 	},
