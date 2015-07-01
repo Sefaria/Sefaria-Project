@@ -2249,6 +2249,12 @@ class Ref(object):
         d["toSections"] += [subsection]
         return Ref(_obj=d)
 
+    def subrefs(self, length):
+        l = []
+        for i in range(length):
+            l.append(self.subref(i + 1))
+        return l
+
     def context_ref(self, level=1):
         """
         :return: :class:`Ref` that is more general than this Ref.
