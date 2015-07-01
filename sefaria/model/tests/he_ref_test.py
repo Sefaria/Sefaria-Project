@@ -115,6 +115,9 @@ class Test_parse_he_ref(object):
         assert r.sections[0] == 1
         assert len(r.sections) == 1
 
+        r = m.Ref(u"אסתר א, סי")
+        assert r.sections[0] == 1
+        assert len(r.sections) == 1
 
     def test_talmud_word_end(self):
         r = m.Ref(u"מנחות כט בג")
@@ -125,6 +128,10 @@ class Test_parse_he_ref(object):
         with pytest.raises(InputError):
             r = m.Ref(u"מנחות כטר")
 
+    def test_midrash_word_end(self):
+        # Assumes that Esther Rabbah Petichta
+        with pytest.raises(InputError):
+            r = m.Ref(u"אסתר רבה פתיחתא")
 
     def test_pehmem_form(self):
         r = m.Ref(u'פרה פ"ח מ"ז')

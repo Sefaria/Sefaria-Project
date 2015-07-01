@@ -3168,15 +3168,19 @@ class Library(object):
             for title in unique_titles.iterkeys():
                 try:
                     res = self._build_all_refs_from_string(title, st)
-                except:
-                    print "Skipping Schema Nodes"
+                except AssertionError as e:
+                    logger.info(u"Skipping Schema Node: {}".format(title))
                 else:
                     refs += res
         else:  # lang == "en"
             for match in self.all_titles_regex(lang, commentary=False).finditer(st):
                 title = match.group('title')
-                res = self._build_ref_from_string(title, st[match.start():])  # Slice string from title start
-                refs += res
+                try:
+                    res = self._build_ref_from_string(title, st[match.start():])  # Slice string from title start
+                except AssertionError as e:
+                    logger.info(u"Skipping Schema Node: {}".format(title))
+                else:
+                    refs += res
         return refs
 
     # do we want to move this to the schema node? We'd still have to pass the title...
@@ -3193,6 +3197,7 @@ class Library(object):
                     [^})]*										# anything but a closing ) or brace
                 )
                 """ + regex.escape(title) + node.after_title_delimiter_re + node.address_regex(lang, for_js=for_js, match_range=for_js) + ur"""
+                (?=\W|$)                                        # look ahead for non-word char
                 (?=												# look ahead for closing brace
                     [^({]*										# match of anything but an opening '(' or brace
                     [)}]										# zero-width: literal ')' or brace
