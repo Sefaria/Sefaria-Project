@@ -277,7 +277,6 @@ class Test_Ref(object):
         assert len(Ref("Shabbat").version_list()) > 4
         assert len(Ref("Shabbat").version_list()) > len(Ref("Shabbat 5b").version_list())
 
-
     def test_in_terms_of(self):
         Ref("Genesis 6:3").in_terms_of(Ref("Genesis 6")) == [3]
         Ref("Genesis 6:3").in_terms_of(Ref("Genesis")) == [6, 3]
