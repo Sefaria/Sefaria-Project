@@ -156,7 +156,6 @@ sjs.track = {
 		// Generic event tracker
 		_gaq.push(['_trackEvent', category, action, label]);
 		//mixpanel.track(category + " " + action);
-		console.log(category + " " + action + " " + label);
 	},
 	pageview: function(url) {
         _gaq.push(['_trackPageview', url]);

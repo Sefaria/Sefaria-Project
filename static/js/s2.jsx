@@ -713,8 +713,19 @@ var TextList = React.createClass({
     }).sort(function(a, b) {
       return a > b;
     });
-    var message = !this.state.loaded ? (<div className='textListMessage'>Loading...</div>)  : 
-                    (refs.length == 0 ? (<div className='textListMessage'>No connections known.</div>) : "");
+    var filter = this.props.currentFilter;
+    var emptyMessageEn = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";
+    var emptyMessageHe = "אין קשרים ידועים"        + (filter.length ? " ל" + filter.join(", ") : "") + ".";
+    var message = !this.state.loaded ? 
+                    (<div className='textListMessage'>
+                      <span className="en">Loading...</span>
+                      <span className="he">טעינה...</span>
+                      </div>)  : 
+                  (refs.length == 0 ? 
+                    (<div className='textListMessage'>
+                      <span className="en">{emptyMessageEn}</span>
+                      <span className="he">{emptyMessageHe}</span>
+                    </div>) : "");
     var texts = (refs.map(function(ref) {
                       return (
                         <TextRange 
@@ -809,7 +820,12 @@ var TopFilterSet = React.createClass({
       }
       if (i == topLinks.length) {
         var index = sjs.library.index(filter);
-        var annotatedFilter = {book: filter, heBook: index.heTitle, category: index.categories[0] };
+        if (index) {
+          var annotatedFilter = {book: filter, heBook: index.heTitle, category: index.categories[0] };
+        } else {
+          var annotatedFilter = {book: filter, heBook: filter, category: "Other" };
+        }
+
         topLinks = [annotatedFilter].concat(topLinks).slice(0,5);
       } else {
         // topLinks.move(i, 0); 
