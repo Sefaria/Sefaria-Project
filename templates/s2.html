@@ -35,13 +35,19 @@
         }
         $("body").addClass(settings.color);
 
+        var ref = humanRef("{{ ref }}")
         React.render(
           <ReaderApp 
-            initialRef={humanRef("{{ ref }}")}
+            initialRef={ref}
             initialFilter={filter}
             initialSettings={settings} />,
           document.getElementById('s2')
         );
+        if (filter === null) {
+          sjs.track.open(ref);
+        } else {
+          sjs.track.event("Reader", "Open Close Reader", ref);
+        }
       });
     </script>
 {% endblock %}

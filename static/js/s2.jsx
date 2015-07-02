@@ -37,14 +37,21 @@ var ReaderApp = React.createClass({
     this.updateHistoryState();
   },
   shouldHistoryUpdate: function() {
-    if (!history.state) { return true; }
+    if (!history.state) { 
+      return true;
+    }
     var current = this.state.contents.slice(-1)[0];
-    if (history.state.type !== current.type) { return true; }
+    if (history.state.type !== current.type) { 
+      return true;
+    }
     if (current.type === "TextColumn") {
-      if (current.refs.slice(-1)[0] !== history.state.refs.slice(-1)[0]) { return true; }
-    }  
-    if (current.type === "TextList") {
-      if (current.ref !== history.state.ref) { return true; }
+      if (current.refs.slice(-1)[0] !== history.state.refs.slice(-1)[0]) {
+        return true;
+      }
+    } else if (current.type === "TextList") {
+      if (current.ref !== history.state.ref) {
+        return true;
+      }
     }
     return false;  
   },
@@ -65,16 +72,13 @@ var ReaderApp = React.createClass({
   },
   updateHistoryState: function() {
     if (this.shouldHistoryUpdate()) {
-      /*
-      var current = this.state.contents.slice(-1)[0];
-      if (current.type !== "TextColumn" || (history.state && history.state.type !== "TextColumn")) {
-        // TODO - figure how do to without this timer which is needed because this function 
-        // gets called before the TextSegments containted within are rendered.
-        setTimeout(function() { $(window).scrollTop(current.scrollTop) }.bind(this), 5);        
-      }
-      */
       var hist = this.makeHistoryState();
       history.pushState(hist.state, hist.title, hist.url);
+      if (hist.state.type == "TextColumn") {
+        sjs.track.open(hist.title);
+      } else if (hist.state.type == "TextList") {
+        sjs.track.event("Reader", "Open Close Reader", hist.title);
+      }      
     }
   },
   handlePopState: function(event) {
@@ -93,6 +97,7 @@ var ReaderApp = React.createClass({
     if ($(event.target).hasClass("refLink")) {
       var ref = $(event.target).attr("data-ref");
       this.showBaseText(ref);
+      sjs.track.event("Reader", "Ref Link Click", ref)
       event.stopPropagation();
       event.preventDefault();
     }
@@ -116,6 +121,7 @@ var ReaderApp = React.createClass({
           current.refs.push(data.next);
           this.setState({contents: this.state.contents});
         }
+        sjs.track.event("Reader", "Infinite Scroll", "Down");
       }
     }
   },
@@ -124,17 +130,15 @@ var ReaderApp = React.createClass({
     this.setState({contents: this.state.contents });
   },
   showBaseText: function(ref) {
-    if (ref) {
-      this.setState({
-        contents: [{type: "TextColumn", refs: [ref], scrollTop: 0 }],
-        currentFilter: [],
-        recentFilters: []
-      });
-
-    } else {
-      this.state.contents = [this.state.contents[0]];
-      this.setState({contents: this.state.contents});
-    }
+    this.setState({
+      contents: [{type: "TextColumn", refs: [ref], scrollTop: 0 }],
+      currentFilter: [],
+      recentFilters: []
+    });
+  },
+  backToText: function() {
+    this.state.contents = [this.state.contents[0]];
+    this.setState({contents: this.state.contents});
   },
   setFilter: function(filter, updateRecent) {
     if (updateRecent) {
@@ -256,6 +260,7 @@ var ReaderApp = React.createClass({
             setScrollTop={this.setScrollTop}
             showTextList={this.showTextList}
             showBaseText={this.showBaseText} 
+            backToText={this.backToText} 
             key={item.ref} />
         );
       }
@@ -423,6 +428,7 @@ var ToggleOption = React.createClass({
   },
   handleClick: function() {
     this.props.setOption(this.props.set, this.props.name);
+    sjs.track.event("Reader", "Display Option Click", this.props.set + " - " + this.props.name);
   },
   render: function() {
     var classes = cx({toggleOption: 1, on: this.props.on });
@@ -577,6 +583,7 @@ var TextRange = React.createClass({
   handleClick: function() {
     if (this.props.openOnClick) {
       this.props.showBaseText(this.props.sref);
+      sjs.track.event("Reader", "Click Text from TextList", this.props.sref);
     }
   },
   render: function() {
@@ -618,6 +625,7 @@ var TextSegment = React.createClass({
   handleClick: function() {
     if (this.props.showTextList) {
       this.props.showTextList(this.props.sref);
+      sjs.track.event("Reader", "Text Segment Click", this.props.sref);
     }
   },
   render: function() {
@@ -681,13 +689,15 @@ var TextList = React.createClass({
   showAllFilters: function() {
     this.setState({showAllFilters: true});
     $(window).scrollTop(0);
+    sjs.track.event("Reader", "More > Click", "1");
   },
   hideAllFilters: function() {
     this.setState({showAllFilters: false});
     $(window).scrollTop(0);
   },
   backToText: function() {
-    this.props.showBaseText();
+    this.props.backToText();
+    sjs.track.event("Reader", "Back To Text", "Anchor Text Click");
   },
   render: function() {
     var ref     = this.props.sref;
@@ -815,7 +825,8 @@ var TopFilterSet = React.createClass({
                 count={book.count}
                 updateRecent={false}
                 setFilter={this.props.setFilter}
-                on={$.inArray(book.book, this.props.filter) !== -1} />);
+                on={$.inArray(book.book, this.props.filter) !== -1}
+                onClick={function(){ sjs.track.event("Reader", "Top Filter Click", "1");}} />);
     }.bind(this));
 
     // Add "More >" button if needed 
@@ -879,6 +890,7 @@ var CategoryFilter = React.createClass({
   handleClick: function() {
     this.props.setFilter(this.props.category, this.props.updateRecent);
     this.props.hideAllFilters();
+    sjs.track.event("Reader", "Category Filter Click", this.props.category);
   },
   render: function() {
     var textFilters = this.props.books.map(function(book, i) {
@@ -915,6 +927,7 @@ var CategoryFilter = React.createClass({
 var TextFilter = React.createClass({
   handleClick: function() {
     this.props.setFilter(this.props.book, this.props.updateRecent);
+    sjs.track.event("Reader", "Text Filter Click", this.props.book);
     if (this.props.hideAllFilters) {
       this.props.hideAllFilters();
     }
