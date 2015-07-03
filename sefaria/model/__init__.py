@@ -27,6 +27,6 @@ from translation_request import TranslationRequest, TranslationRequestSet
 from following import FollowRelationship, FollowersSet, FolloweesSet
 from user_profile import UserProfile, annotate_user_list
 from version_state import VersionState, VersionStateSet, StateNode, refresh_all_states
-from lexicon import Lookup, Lexicon, LexiconEntry, LexiconEntrySet, Dictionary, DictionaryEntry, StrongsDictionaryEntry, WordForm
+from lexicon import Lexicon, LexiconEntry, LexiconEntrySet, Dictionary, DictionaryEntry, StrongsDictionaryEntry, WordForm
 
 import dependencies

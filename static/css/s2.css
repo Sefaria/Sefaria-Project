@@ -7,6 +7,9 @@ body.sepia {
 body.dark {
   background-color: #333; 
 }
+#sefaria > .fa-caret-down {
+  display: none;
+}
 #right {
   display: none;
 }

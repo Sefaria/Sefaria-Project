@@ -16,8 +16,8 @@ except ImportError:
 from sefaria.model import *
 
 class WLCStrongParser(object):
-    data_dir = '../data/tmp/hebmorphwlc'
-    raw_github_url = 'https://raw.githubusercontent.com/openscriptures/morphhb/master/wlc/'
+    data_dir = 'data/tmp/hebmorphwlc'
+    raw_github_url = 'https://raw.githubusercontent.com/openscriptures/morphhb/master/'
 
 
     hebmorph_shorthands = {
@@ -62,12 +62,40 @@ class WLCStrongParser(object):
         'II Chronicles' : '2Chr'
     }
 
-    def __init__(self):
+    def __init__(self, compare_to_csv=False):
         self._mkdir_p(self.data_dir)
+        self.compare_mode = compare_to_csv
+        if self.compare_mode:
+            self.word_list = self.build_word_csv_dict()
 
 
     def build_word_csv_dict(self):
-        pass
+        word_list = {}
+        csv_list = self.get_morphhb_file('Words.csv', 'WlcWordList')
+        with open(csv_list, 'rb') as infile:
+            input_csv = csv.reader(infile, delimiter=',')
+            for row in input_csv:
+                word = row[1]
+                s_num = row[0]
+                if word in word_list:
+                    if s_num == word_list[word]['strong_n']:
+                        word_list[word]['list_occur'] +=1
+                    else:
+                        raise Exception(u'double word {} but not same numbers'.format(word.encode('utf-8')))
+                else:
+                    word_list[word] = {'strong_n': s_num, 'list_occur': 1, 'found_in_wlc': False, 'found_word_form': False}
+        return word_list
+
+    def write_word_csv_dict(self):
+         with open(os.path.join(self.data_dir, "Words-Comparison.csv"), 'wb+')  as outfile:
+            result_csv = csv.writer(outfile, delimiter=',')
+            result_csv.writerow(['word', 'strong number', 'times in orig list', 'found in wlc', 'found form in db'])
+            for result in sorted(self.word_list):
+                result_csv.writerow([result,
+                                     self.word_list[result]['strong_n'],
+                                     self.word_list[result]['list_occur'],
+                                     self.word_list[result]['found_in_wlc'],
+                                     self.word_list[result]['found_word_form']])
 
 
 
@@ -75,7 +103,9 @@ class WLCStrongParser(object):
         for book in self.hebmorph_shorthands:
             print book
             word_form_book_parser = WLCStrongWordFormBookParser(self, book)
-            word_form_book_parser.parse_word_forms()
+            word_form_book_parser.iterate_over_text(self.compare_mode)
+        if self.compare_mode:
+            self.write_word_csv_dict()
 
     def _mkdir_p(self, path):
         try:
@@ -85,6 +115,15 @@ class WLCStrongParser(object):
                 pass
             else: raise
 
+    def get_morphhb_file(self, filename, sub_dir='wlc'):
+        full_file = os.path.join(self.data_dir, filename)
+        if not os.path.isfile(full_file):
+            fileurl = os.path.join(self.raw_github_url,sub_dir,filename)
+            r = requests.get(fileurl)
+            f = open(full_file,'w')
+            f.write(r.content)
+        return full_file
+
 
 class WLCStrongWordFormBookParser(object):
 
@@ -93,22 +132,17 @@ class WLCStrongWordFormBookParser(object):
         self.book = book
         self.xml_book_name = self.parent_parser.hebmorph_shorthands[self.book]
         self.namespace = {'strong': 'http://www.bibletechnologies.net/2003/OSIS/namespace'}
-        self.strip_cantillation_vowel_regex = re.compile(ur"[\u0591-\u05bd\u05bf-\u05c5\u05c7]|\([\u0590-\u05ea]\)", re.UNICODE)
-        self.strip_cantillation_regex = re.compile(ur"[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]|\([\u0590-\u05ea]\)", re.UNICODE)
+        self.strip_cantillation_vowel_regex = re.compile(ur"[\u0591-\u05bd\u05bf-\u05c5\u05c7]", re.UNICODE)
+        self.strip_cantillation_regex = re.compile(ur"[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]", re.UNICODE)
         self.strong_num_regex = re.compile(ur"[0-9]+")
-        xmlp = ET.parse(self._get_wlc_file(self.xml_book_name + '.xml'))
+        xmlp = ET.parse(self.parent_parser.get_morphhb_file(self.xml_book_name + '.xml'))
         self.xml_contents = xmlp.getroot().find("strong:osisText/strong:div[@type='book']", self.namespace)
 
-    def _get_wlc_file(self, filename):
-        full_file = os.path.join(self.parent_parser.data_dir, filename)
-        if not os.path.isfile(full_file):
-            fileurl = self.parent_parser.raw_github_url + filename
-            r = requests.get(fileurl)
-            f = open(full_file,'w')
-            f.write(r.content)
-        return full_file
 
-    def parse_word_forms(self):
+    def add_shorthand_as_title_variant_to_index(self):
+        Index().load({'title': self.book}).nodes.add_title(self.xml_book_name, 'en')
+
+    def iterate_over_text(self, compare_mode=False):
         for chap_num, chapter_node in enumerate(self.xml_contents.findall('strong:chapter', self.namespace),1):
             for v_num,verse_node in enumerate(chapter_node.findall('strong:verse', self.namespace),1):
                 #print "verse ", v_num, ": ", verse_node.get('osisID').encode('utf-8')
@@ -118,29 +152,48 @@ class WLCStrongWordFormBookParser(object):
 
                     word_form_text = self._make_vowel_text(self._strip_wlc_morph_notation(word.text))
                     strong_number = self._extract_strong_number(word.get('lemma'))
-                    strong_entry = StrongsDictionaryEntry().load({'strong_number': strong_number})
-                    if strong_entry:
-                        #first look to see if we have an exact word form mapping already
-                        word_form_obj = WordForm().load({'form': word_form_text,
-                                                            'language_code' : strong_entry.language_code,
-                                                            'lookups': {
-                                                                "headword" : strong_entry.headword,
-                                                                "lexicon" : "BDB Augmented Strong"
-                                                        }})
-                        if not word_form_obj: #else, look for just the form
-                            word_form_obj = WordForm().load({'form': word_form_text, 'language_code' : strong_entry.language_code})
-                            if word_form_obj:
-                                word_form_obj.lookups.append({"headword" : strong_entry.headword,"lexicon" : "BDB Augmented Strong"})
-                            else: #create a whole new one
-                                word_form_obj = WordForm({'form': word_form_text,
-                                                          'c_form' : self._make_consonantal_text(word_form_text),
-                                                          'language_code' : strong_entry.language_code,
-                                                          'lookups': [{
-                                                                "headword" : strong_entry.headword,
-                                                                "lexicon" : "BDB Augmented Strong"
-                                                            }]}).save()
-                        word_form_obj.refs = word_form_obj.refs + [verse_ref] if hasattr(word_form_obj, 'refs') else [verse_ref]
-                        word_form_obj.save()
+                    if strong_number:
+                        if compare_mode:
+                            self.compare_word_forms(word_form_text, strong_number)
+                        else:
+                            self.parse_word_forms(word_form_text, strong_number, verse_ref)
+
+    def parse_word_forms(self, word_form_text, strong_number, verse_ref):
+        strong_entry = StrongsDictionaryEntry().load({'strong_number': strong_number})
+        if strong_entry:
+            #first look to see if we have an exact word form mapping already
+            word_form_obj = WordForm().load({'form': word_form_text,
+                                             'language_code' : strong_entry.language_code,
+                                             'lookups': {
+                                                 "headword" : strong_entry.headword,
+                                                 "lexicon" : "BDB Augmented Strong"
+                                             }})
+            if not word_form_obj: #else, look for just the form
+                word_form_obj = WordForm().load({'form': word_form_text, 'language_code' : strong_entry.language_code})
+                if word_form_obj:
+                    word_form_obj.lookups.append({"headword" : strong_entry.headword,"lexicon" : "BDB Augmented Strong"})
+                else: #create a whole new one
+                    word_form_obj = WordForm({'form': word_form_text,
+                                              'c_form' : self._make_consonantal_text(word_form_text),
+                                              'language_code' : strong_entry.language_code,
+                                              'lookups': [{
+                                                    "headword" : strong_entry.headword,
+                                                    "lexicon" : "BDB Augmented Strong"
+                                                }]}).save()
+            word_form_obj.refs = word_form_obj.refs + [verse_ref] if hasattr(word_form_obj, 'refs') else [verse_ref]
+            word_form_obj.save()
+
+
+    def compare_word_forms(self, word_form_text, strong_number):
+        word_form_obj = WordForm().load({'form': word_form_text})
+        if word_form_obj:
+             self.parent_parser.word_list[word_form_text]['found_word_form'] = True
+        try:
+            self.parent_parser.word_list[word_form_text]['found_in_wlc'] = True
+        except Exception as e:
+            pass
+
+
 
 
 
@@ -178,7 +231,7 @@ class WLCStrongWordFormBookParser(object):
 
 
 class StrongHebrewGLexiconXMLParser(object):
-    data_dir = '../data/tmp'
+    data_dir = 'data/tmp'
     filename = 'StrongHebrewG.xml'
     heb_stems = ["qal","niphal","piel","pual","hiphil","hophal","hithpael","polel","polal","hithpolel","poel","poal","palel","pulal","qal passive","pilpel","polpal","hithpalpel","nithpael","pealal","pilel","hothpaal","tiphil","hishtaphel","nithpalel","nithpoel","hithpoel"]
     arc_stems = ["P'al","peal","peil","hithpeel","pael","ithpaal","hithpaal","aphel","haphel","saphel","shaphel","hophal","ithpeel","hishtaphel","ishtaphel","hithaphel","polel","","ithpoel","hithpolel","hithpalpel","hephal","tiphel","poel","palpel","ithpalpel","ithpolel","ittaphal"]
@@ -279,17 +332,20 @@ class StrongHebrewGLexiconXMLParser(object):
 if __name__ == '__main__':
     print "INIT LEXICON"
     #os.chdir(os.path.dirname(sys.argv[0]))
-    #parser = argparse.ArgumentParser()
-    #parser.add_argument("title", help="title of existing index record")
-    #parser.add_argument("schema_file", help="path to json schema file")
-    #parser.add_argument("mapping_file", help="title of existing index record")
-    #args = parser.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-l", "--lexicon", help="Parse lexicon",
+                    action="store_true")
+    parser.add_argument("-w", "--wordform", help="Parse word forms",
+                    action="store_true")
+    args = parser.parse_args()
 
-    print "parse lexicon"
-    #strongparser = StrongHebrewGLexiconXMLParser()
-    #strongparser.parse_contents()
 
-    print 'parsing word forms from wlc'
-    wordformparser = WLCStrongParser()
-    wordformparser.parse_forms_in_books()
+    if args.lexicon:
+        print "parse lexicon"
+        strongparser = StrongHebrewGLexiconXMLParser()
+        strongparser.parse_contents()
+    if args.wordform:
+        print 'parsing word forms from wlc'
+        wordformparser = WLCStrongParser()
+        wordformparser.parse_forms_in_books()
 

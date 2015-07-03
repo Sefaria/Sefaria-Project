@@ -940,46 +940,113 @@ body.newText #newTextCompare {
 	letter-spacing: 1px;
 }
 
-.lexiconLink:hover {
+.lexicon-link:hover {
 	text-decoration: underline;
 }
 
-#lexiconModal {
+#lexicon-modal {
+	transform: translateZ(0);
+	transition-duration: 0.3s;
+	transition-property: box-shadow, transform;
 	position: absolute;
 	z-index: 100;
-	background: white;
-	border-radius: 4px;
+	background-color: #eff1f1;
+	border-radius: 10px;
 	border: 1px solid #666;
-	padding: 8px 12px;
-	width: 10%;
+	padding: 0px;
+	box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.5);
+	background-clip: padding-box;
+	overflow: hidden;
+	min-width: 10%;
+	max-width: 25%;
 }
 
-#lexiconModal .word {
+#lexicon-modal .lexicon-results{
+	min-height: 50px;
+	max-height: 150px;
+	overflow-y:scroll;
+	padding: 10px;
+}
+
+#lexicon-modal .lexicon-header {
+	padding: 10px;
+	border-bottom: 1px solid #e5e5e5;
+	background-color: #AAAAAA;
+}
+
+#lexicon-modal .lexicon-header .lexicon-close {
+  	float: right;
+	display: inline-block;
+  	cursor: pointer;
+  	font-size: 18px;
+}
+
+#lexicon-modal .lexicon-header .lexicon-close:hover {
+	color: #08c;
+}
+
+.lexicon-header h4{
+	font-size: 1.2em;
+	margin: 0px;
+}
+
+
+.entry + .entry {
+	margin-top: 10px;
+  	padding-top: 3px;
+  	border-top: 1px inset #AAAAAA;
+}
+
+.lexicon-results .entry .headword{
 	font-weight: bold;
 }
 
-.entry + .entry {
-	margin-top: 3px;
-	padding-top: 9px;
-	border-top: 1px solid #eee;
+.lexicon-results .entry .definition{
+	font-size: 0.9em;
 }
 
-.sense + .sense {
+.lexicon-results ol {
+	list-style-position: inside;
+}
+
+.lexicon-results .entry .definition li.sense{
+	margin-left: 15px;
+	padding: 0px;
+	/*margin: 0;*/
+}
+
+.lexicon-results .entry .definition ol.senses{
+	/*list-style-type: none;*/
+	padding-left: 0px;
+}
+
+.lexicon-results .entry .definition > li.sense{
+	/*list-style-type: none;*/
+	margin-left: 0px;
+}
+
+.lexicon-results .entry ol.definition {
+	list-style-type: none;
+	margin-top: 2px;
+	padding-left: 0px;
+}
+
+/*.sense + .sense {
 	margin-top: 3px;
 	padding-top: 3px;
-	border-top: 1px solid #eee;}
+	border-top: 1px solid #eee;}*/
 
-#lexiconModal .pos { 
+#lexicon-modal .pos { 
 	font-size: 12px;
 	color: #777;
 }
 
-#lexiconModal a {
+#lexicon-modal a {
 	font-size: 12px;
 }
 
-#lexiconModal .definitionSource {
-	font-size: 12px;
+/*#lexicon-modal .definitionSource {
+	font-size: 12px;*/
 }
 .refLink:hover {
 	text-decoration: underline;

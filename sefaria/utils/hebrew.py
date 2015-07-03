@@ -319,6 +319,13 @@ def is_hebrew(s):
 		return True
 	return False
 
+def strip_cantillation(text, strip_vowels=False):
+	if strip_vowels:
+		strip_regex = re.compile(ur"[\u0591-\u05bd\u05bf-\u05c5\u05c7]", re.UNICODE)
+	else:
+		strip_regex = re.compile(ur"[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]", re.UNICODE)
+	return strip_regex.sub('', text)
+
 
 def hebrew_plural(s):
 	"""
@@ -470,7 +477,7 @@ def hebrew_term(s):
 	words = dict(categories.items() + pseudo_categories.items() + section_names.items())
 
 	if s in words:
-		return words[s] 
+		return words[s]
 
 	# If s is a text title, look for a stored Hebrew title
 	i = db.index.find_one({"title": s})

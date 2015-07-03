@@ -252,6 +252,17 @@ class Test_Ref(object):
         with pytest.raises(InputError):
             Ref("Exodus 15:12-16:1").range_list()
 
+    def test_subref(self):
+        assert Ref("Exodus").subref(5) == Ref("Exodus 5")
+        assert Ref("Exodus 5").subref(5) == Ref("Exodus 5:5")
+        assert Ref("Rashi on Exodus").subref(5) == Ref("Rashi on Exodus 5")
+        assert Ref("Rashi on Exodus 5").subref(5) == Ref("Rashi on Exodus 5:5")
+        assert Ref("Rashi on Exodus 5:5").subref(5) == Ref("Rashi on Exodus 5:5:5")
+        assert Ref("Shabbat").subref(10) == Ref("Shabbat 5b")
+        assert Ref("Shabbat 5b").subref(10) == Ref("Shabbat 5b:10")
+        assert Ref("Rashi on Shabbat").subref(10) == Ref("Rashi on Shabbat 5b")
+        assert Ref("Rashi on Shabbat 5b").subref(10) == Ref("Rashi on Shabbat 5b:10")
+
     def test_ref_regex(self):
         assert Ref("Exodus 15").regex() == u'^Exodus( 15$| 15:| 15 \\d)'
         assert Ref("Exodus 15:15-17").regex() == u'^Exodus( 15:15$| 15:15:| 15:15 \\d| 15:16$| 15:16:| 15:16 \\d| 15:17$| 15:17:| 15:17 \\d)'
@@ -265,7 +276,6 @@ class Test_Ref(object):
         assert len(Ref("Exodus").version_list()) > len(Ref("Exodus 5").version_list())
         assert len(Ref("Shabbat").version_list()) > 4
         assert len(Ref("Shabbat").version_list()) > len(Ref("Shabbat 5b").version_list())
-
 
     def test_in_terms_of(self):
         Ref("Genesis 6:3").in_terms_of(Ref("Genesis 6")) == [3]

@@ -764,9 +764,8 @@ class ArrayMapNode(NumberedTitledTreeNode):
     Used as the leaf node of alternate structures of Index records.
     (e.g., Parsha structures of chapter/verse stored Tanach, or Perek structures of Daf/Line stored Talmud)
     """
-    #Is there a better way to inherit these from the super?
-    required_param_keys = ["depth", "addressTypes", "sectionNames", "wholeRef", "refs"]
-    optional_param_keys = ["lengths"]
+    required_param_keys = ["depth", "wholeRef"]
+    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
     has_key = False  # This is not used as schema for content
 
     def get_ref_from_sections(self, sections):
@@ -793,6 +792,19 @@ class ArrayMapNode(NumberedTitledTreeNode):
             d["wholeRefPreview"] = expand_ref(self.wholeRef)
             d["refsPreview"] = map(expand_ref, self.refs)
         return d
+
+    def validate(self):
+        if getattr(self, "depth", None) is None:
+            raise IndexSchemaError("Missing Parameter 'depth' in {}".format(self.__class__.__name__))
+        if self.depth == 0:
+            TitledTreeNode.validate(self)  # Skip over NumberedTitledTreeNode validation, which requires fields we don't have
+        elif self.depth > 0:
+            for k in ["addressTypes", "sectionNames", "refs"]:
+                if getattr(self, k, None) is None:
+                    raise IndexSchemaError("Missing Parameter '{}' in {}".format(k, self.__class__.__name__))
+            super(ArrayMapNode, self).validate()
+
+
 """
                 -------------------------
                  Index Schema Tree Nodes
