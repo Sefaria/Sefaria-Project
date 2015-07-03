@@ -199,9 +199,9 @@ var ReaderApp = React.createClass({
     }
 
     this.setState({settings: this.state.settings});
-    $.cookie(option, value);
+    $.cookie(option, value, {path: "/"});
     if (option === "language") {
-      $.cookie("contentLang", value);
+      $.cookie("contentLang", value, {path: "/"});
     }
 
     if (option === "color") {
@@ -516,7 +516,7 @@ var TextRange = React.createClass({
         en2 = en2.pad(length, "");
         he2 = he2.pad(length, "");
         var baseRef = data.book + " " + data.sections.slice(0,-2).join(":");
-        console.log(baseRef);
+
         start = (n == 0 ? start : 1);
         for (var i = 0; i < length; i++) {
           var section = n+data.sections.slice(-2)[0];
