@@ -741,11 +741,11 @@ var TextList = React.createClass({
     return (
       <div className={classes}>
         <div className="textListTop">
-          <div className="anchorText">
-            <div className="textBox" onClick={this.backToText}>
+          <div className="anchorText" onClick={this.backToText}>
+            <div className="textBox">
               <TextRange sref={this.props.sref} />
-              <div className="fader"></div>
             </div>
+            <div className="fader"></div>
           </div>
           {this.state.showAllFilters ? "" : 
           <TopFilterSet 
