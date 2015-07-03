@@ -23,7 +23,6 @@ var ReaderApp = React.createClass({
   componentDidMount: function() {
     window.addEventListener("popstate", this.handlePopState);
     window.addEventListener("scroll", this.handleScroll);
-    window.addEventListener("click", this.handleClick);
 
     var hist = this.makeHistoryState()
     history.replaceState(hist.state, hist.title, hist.url);
@@ -31,7 +30,6 @@ var ReaderApp = React.createClass({
   componentWillUnmount: function() {
     window.removeEventListener("popstate", this.handlePopState);
     window.removeEventListener("scroll", this.handleScroll);
-    window.removeEventListener("click", this.handleClick);
   },
   componentDidUpdate: function() {
     this.updateHistoryState();
@@ -92,15 +90,6 @@ var ReaderApp = React.createClass({
       this.state.contents.slice(-1)[0].scrollTop = scrollTop;
     }
     this.adjustInfiniteScroll();
-  },
-  handleClick: function(event) {
-    if ($(event.target).hasClass("refLink")) {
-      var ref = $(event.target).attr("data-ref");
-      this.showBaseText(ref);
-      sjs.track.event("Reader", "Ref Link Click", ref)
-      event.stopPropagation();
-      event.preventDefault();
-    }
   },
   adjustInfiniteScroll: function() {
     var current = this.state.contents[this.state.contents.length-1];
@@ -577,11 +566,15 @@ var TextRange = React.createClass({
       $(this).css({top: top, left: right});
     });
   },
-  handleResize: function(e) {
+  handleResize: function() {
     if (this.props.basetext) { this.placeSegmentNumbers(); }
   },
-  handleClick: function() {
-    if (this.props.openOnClick) {
+  handleClick: function(event) {
+    if ($(event.target).hasClass("refLink")) {
+      var ref = $(event.target).attr("data-ref");
+      this.props.showBaseText(ref);
+      sjs.track.event("Reader", "Ref Link Click", ref)
+    } else if (this.props.openOnClick) {
       this.props.showBaseText(this.props.sref);
       sjs.track.event("Reader", "Click Text from TextList", this.props.sref);
     }
