@@ -700,18 +700,27 @@ var TextList = React.createClass({
     sjs.track.event("Reader", "Back To Text", "Anchor Text Click");
   },
   render: function() {
-    var ref     = this.props.sref;
-    var summary = sjs.library.linkSummary(ref);
-    var count   = sjs.library.linkCount(ref);        
-    var classes = cx({textList: 1, main: this.props.main });
+    var ref      = this.props.sref;
+    var summary  = sjs.library.linkSummary(ref);
+    var count    = sjs.library.linkCount(ref);        
+    var classes  = cx({textList: 1, main: this.props.main });
+    var topLinks = sjs.library.topLinks(ref).map(function(link){ return link.book; });
     var refs = this.state.links.filter(function(link) {
         return (this.props.currentFilter.length == 0 ||
                 $.inArray(link.category, this.props.currentFilter) !== -1 || 
                 $.inArray(link.commentator, this.props.currentFilter) !== -1 );
-    }.bind(this)).map(function(link) { 
+    }.bind(this)).sort(function(a, b) {
+      var ia = topLinks.indexOf(a.commentator);
+      var ib = topLinks.indexOf(b.commentator);
+      var ia = ia === -1 ? 9999 : ia;
+      var ib = ib === -1 ? 9999 : ib;
+      if ( ia === ib ) {
+        return a.sourceRef > b.sourceRef;
+      } else {
+        return ia > ib;
+      }
+    }).map(function(link) { 
       return link.sourceRef; 
-    }).sort(function(a, b) {
-      return a > b;
     });
     var filter = this.props.currentFilter;
     var emptyMessageEn = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";
