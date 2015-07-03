@@ -261,11 +261,22 @@ def make_toc_html(oref, zoom=1):
     """
     index = oref.index
     if index.is_complex():
-        return make_complex_toc_html(oref)
+        html = make_complex_toc_html(oref)
     else:
         state = StateNode(index.title)
         he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
-        return make_simple_toc_html(he_counts, en_counts, index.nodes.sectionNames, index.nodes.addressTypes, index.title, zoom=zoom)
+        html = make_simple_toc_html(he_counts, en_counts, index.nodes.sectionNames, index.nodes.addressTypes, index.title, zoom=zoom)
+
+    if index.has_alt_structures():
+        html = "<div class='altStruct'>" + html + "</div>"
+        default_name = index.nodes.sectionNames[0] if not index.is_complex() else "Contents"
+        toggle = "<div class='altStructToggle active'>" + default_name + "</div>"
+        alts = index.get_alt_structures().items()
+        for alt in alts:
+            html   += "<div class='altStruct' style='display:none'>" + make_alt_toc_html(alt[1]) + "</div>"
+            toggle += " | <div class='altStructToggle'>" + alt[0] + "</div>"
+        html = "<div id='structToggles'>" + toggle + "</div>" + html
+    return html
 
 
 def make_complex_toc_html(oref):
@@ -302,6 +313,47 @@ def make_complex_toc_html(oref):
         return html
 
     html = index.nodes.traverse_to_string(node_line)
+    return html
+
+
+def make_alt_toc_html(alt):
+    """
+    Returns HTML Table of Contents for an alternate structure.
+    :param alt - a TitledTreeNode representing an alternate structure.
+    """
+    def node_line(node, depth, **kwargs):
+        if depth == 0:
+            return ""
+        includeSections = getattr(node, "includeSections", False)
+        linked  = "linked" if not node.refs and not includeSections else ""
+        default = "default" if node.is_default() else ""
+        url     = "/" + Ref(node.wholeRef).url()
+        en_icon = '<i class="schema-node-control fa ' + ('fa-angle-right' if linked else 'fa-angle-down') + '"></i>'
+        he_icon = '<i class="schema-node-control fa ' + ('fa-angle-left' if linked else 'fa-angle-down') + '"></i>'
+        html    = '<a href="' + urlquote(url) + '"' if linked else "<div "
+        html   += ' class="schema-node-toc depth' + str(depth) + ' ' + linked + ' ' + default + '" >'
+        if not default:
+            html += '<span class="schema-node-title">'
+            html +=    '<span class="en">' + node.primary_title() + en_icon + '</span>'
+            html +=    '<span class="he">' + node.primary_title(lang='he') + he_icon + '</span>'
+            html += '</span>'            
+        if node.refs:
+            # todo handle refs with depth > 1
+            html += "<div class='schema-node-contents closed'>"
+            html +=   "<div class='sectionName'>"
+            html +=     "<span class='en'>" + hebrew_plural(node.sectionNames[0]) + "</span>"
+            html +=     "<span class='he'>" + hebrew_term(node.sectionNames[0]) + "</span>"
+            html +=   "</div>" 
+            for i in range(len(node.refs)):
+                html += '<a class="sectionLink enAll heAll" href="/%s">%s</a>' % (urlquote(node.refs[i]), (i+1))
+            html += "</div>"
+        if includeSections:
+            # Display each section included in node.wholeRef
+            pass
+        html += "</a>" if linked else "</div>"
+        return html
+
+    html = "<div class='tocLevel'>" + alt.traverse_to_string(node_line) + "</div>"
     return html
 
 
@@ -348,7 +400,6 @@ def make_simple_toc_html(he_toc, en_toc, labels, addresses, ref, zoom=1):
             sectionName += "<span class='he'>" + hebrew_term(labels[0]) + "</span>"
             sectionName += "</div>" 
             html = sectionName + html
-
     else:
         # We're above terminal level, list sections and recur
         for i in range(length):

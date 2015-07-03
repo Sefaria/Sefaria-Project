@@ -27,6 +27,7 @@
             <span id="heTitle" class='he'>{{ index.heTitle }}</span> <span id="title" class='en'>{{ index.title }}</span>
         </h1>
 
+        <!-- Hidden for style
         <div id="textCategories" class="biReady">
             {% for cat in index.categories %}
                 <span class='textCategory'>
@@ -57,6 +58,7 @@
                     {% endfor %}
             </div>
         {%  endif %}
+        -->
 
         <div id="textToc" class="biReady textTocSection {% if complex %}complex{% else %}simple{% endif %}">
 
@@ -179,6 +181,14 @@
             {% if request.user.is_staff %}
             $("#deleteText").click(sjs.deleteTextButtonHandler);
             {% endif %}
+
+            $(".altStructToggle").click(function(){
+                $(".altStructToggle").removeClass("active");
+                $(this).addClass("active");
+                var i = $(this).index();
+                $(".altStruct").hide();
+                $(".altStruct").eq(i).show();
+            });
 
             $(".sectionLink").click(function(e) {
                 e.stopPropagation();

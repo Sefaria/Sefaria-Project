@@ -353,6 +353,13 @@ class TreeNode(object):
         """
         return not self.parent and not self.children
 
+    def traverse_to_string(self, callback, depth=0, **kwargs):
+        st = callback(self, depth, **kwargs)
+        if self.has_children():
+            for child in self.children:
+                st += child.traverse_to_string(callback, depth + 1, **kwargs)
+        return st
+
     def serialize(self, **kwargs):
         d = {}
         if self.has_children():
@@ -848,12 +855,6 @@ class SchemaNode(TitledTreeNode):
 
         if self.default and self.key != "default":
             raise IndexSchemaError("'default' nodes need to have key name 'default'")
-
-    def traverse_to_string(self, callback, depth=0, **kwargs):
-        st = callback(self, depth, **kwargs)
-        for child in self.children:
-            st += child.traverse_to_string(callback, depth + 1, **kwargs)
-        return st
 
     def create_content(self, callback=None, *args, **kwargs):
         """
