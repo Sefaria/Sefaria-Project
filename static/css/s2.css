@@ -337,17 +337,19 @@ body.dark {
 }
 .textList .anchorText {
   background-color: #F7F7F7;
-  padding: 20px;
   cursor: pointer;
   border-bottom: 1px solid #CCC;
-  max-height: 100px;
   position: relative;
-  overflow-x: hidden;
-  overflow-y: scroll;
   /*overflow: hidden;*/
 }
 .dark .textList .anchorText {
   background-color: #333;
+}
+.textList .anchorText .textBox {
+  padding: 20px;
+  max-height: 100px;
+  overflow-x: hidden;
+  overflow-y: scroll; 
 }
 .textList .anchorText .textRange .title {
   display: none;
@@ -361,7 +363,7 @@ body.dark {
 }
 .textListTop .anchorText .fader {
   position: absolute;
-  top: 100px;
+  bottom: 0px;
   left: 0;
   width: 100%;
   height: 40px;
