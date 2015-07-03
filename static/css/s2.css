@@ -344,7 +344,7 @@ body.dark {
   position: relative;
   overflow-x: hidden;
   overflow-y: scroll;
-  overflow: hidden;
+  /*overflow: hidden;*/
 }
 .dark .textList .anchorText {
   background-color: #333;
