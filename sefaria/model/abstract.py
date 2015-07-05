@@ -422,9 +422,9 @@ def notify(inst, action, **kwargs):
 
     if action == "attributeChange":
         callbacks = deps.get((type(inst), action, kwargs["attr"]), None)
-        logger.debug("Notify: " + str(inst) + "." + kwargs["attr"] + ": " + kwargs["old"] + " is becoming " + kwargs["new"])
+        logger.debug("Notify: " + str(inst).encode('utf-8') + "." + kwargs["attr"] + ": " + kwargs["old"] + " is becoming " + kwargs["new"])
     else:
-        logger.debug("Notify: " + str(inst) + " is being " + action + "d.")
+        logger.debug("Notify: " + str(inst).encode('utf-8') + " is being " + action + "d.")
         callbacks = deps.get((type(inst), action, None), [])
 
     for callback in callbacks:
