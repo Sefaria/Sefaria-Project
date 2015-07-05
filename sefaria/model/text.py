@@ -101,8 +101,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "transliteratedTitle" # optional for old style
     ]
 
-    def __str__(self):
+    def __unicode__(self):
         return u"Index: {}".format(self.title)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return u"{}().load({{'title': '{}'}})".format(self.__class__.__name__, self.title)
@@ -540,8 +543,12 @@ class CommentaryIndex(AbstractIndex):
         if getattr(self.nodes, "lengths", None):   #seems superfluous w/ nodes above
             self.length = self.nodes.lengths[0]
 
-    def __str__(self):
+
+    def __unicode__(self):
         return u"{}: {} on {}".format(self.__class__.__name__, self.c_index.title, self.b_index.title)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return u"{}({}, {})".format(self.__class__.__name__, self.c_index.title, self.b_index.title)
@@ -926,11 +933,14 @@ class TextChunk(AbstractTextRecord):
         else:
             raise Exception("TextChunk requires a language.")
 
-    def __str__(self):
+    def __unicode__(self):
         args = u"{}, {}".format(self._oref, self.lang)
         if self.vtitle:
             args += u", {}".format(self.vtitle)
         return args
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         args = u"{}, {}".format(self._oref, self.lang)
