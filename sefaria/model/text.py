@@ -2338,8 +2338,10 @@ class Ref(object):
 
         ""
 
-            >>> Ref("Shabbat 13b-14b")
+            >>> Ref("Shabbat 13b-14b").split_spanning_ref()
             [Ref("Shabbat 13b"), Ref("Shabbat 14a"), Ref("Shabbat 14b")]
+            >>> Ref("Shabbat 13b:3 - 14b:3").split_spanning_ref()
+            [Ref('Shabbat 13b:3-50'), Ref('Shabbat 14a'), Ref('Shabbat 14b:1-3')]
 
         """
         if not self._spanned_refs:
@@ -2366,9 +2368,14 @@ class Ref(object):
                         d["sections"] = self.sections[0:self.range_index()] + [n]
                         d["toSections"] = self.sections[0:self.range_index()] + [n]
 
-                        for i in range(self.range_index() + 1, ref_depth):
-                            d["sections"] += [1]
-                            d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
+                        '''  If we find that we need to expand inner refs, add this arg.
+                        # It will require handling on cached ref and passing on the recursive call below.
+                        if expand_middle:
+                            for i in range(self.range_index() + 1, ref_depth):
+                                d["sections"] += [1]
+                                d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
+                        '''
+
                     if d["toSections"][-1]:  # to filter out, e.g. non-existant Rashi's, where the last index is 0
                         refs.append(Ref(_obj=d))
 

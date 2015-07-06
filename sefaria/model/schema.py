@@ -789,7 +789,10 @@ class ArrayMapNode(NumberedTitledTreeNode):
 
                 return preview
 
-            d["wholeRefPreview"] = expand_ref(self.wholeRef)
+            # The below is expensive, particularly for Zohar, and is not used on front end.
+            # If we need the wholeRefPreview, we'll need to speed of Zohar parsha text fetch.
+            # We can do that by coding the mongo aggregation pipeline to return sub-text from the second level of an array.
+            # d["wholeRefPreview"] = expand_ref(self.wholeRef)
             d["refsPreview"] = map(expand_ref, self.refs)
         return d
 
