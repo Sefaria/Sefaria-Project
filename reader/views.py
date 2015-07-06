@@ -270,11 +270,17 @@ def make_toc_html(oref, zoom=1):
     if index.has_alt_structures():
         html = "<div class='altStruct'>" + html + "</div>"
         default_name = index.nodes.sectionNames[0] if not index.is_complex() else "Contents"
-        toggle = "<div class='altStructToggle active'>" + default_name + "</div>"
+        toggle =  "<div class='altStructToggle active'>"
+        toggle +=   "<span class='en'>" + default_name + "</span>" 
+        toggle +=   "<span class='he'>" + hebrew_term(default_name) + "</span>" 
+        toggle += "</div>"
         alts = index.get_alt_structures().items()
         for alt in alts:
             html   += "<div class='altStruct' style='display:none'>" + make_alt_toc_html(alt[1]) + "</div>"
-            toggle += " | <div class='altStructToggle'>" + alt[0] + "</div>"
+            toggle += " | <div class='altStructToggle'>"
+            toggle +=   "<span class='en'>" + alt[0] + "</span>" 
+            toggle +=   "<span class='he'>" + hebrew_term(alt[0]) + "</span>" 
+            toggle += "</div>"
         html = "<div id='structToggles'>" + toggle + "</div>" + html
     return html
 
