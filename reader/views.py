@@ -30,6 +30,7 @@ from sefaria.utils.users import user_link, user_started_text
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
+from sefaria.datatype.jagged_array import JaggedArray
 import sefaria.utils.calendars
 import sefaria.tracker as tracker
 
@@ -255,9 +256,11 @@ def edit_text_info(request, title=None, new_title=None):
 
 def make_toc_html(oref, zoom=1):
     """
-    Returns the HTML of the texts Table of Contents.
+    Returns the HTML of a text's Table of Contents, including any alternate structures.
     :param oref - Ref of the tex to create. Ref is used instead of Index to allow
-    for a different table of contents focusing on a single node of a complex text. 
+    for a different table of contents focusing on a single node of a complex text.
+    :param zoom - integar specifying the level of granularity to show. 0 = Segment level,
+    1 = Section level etc. 
     """
     index = oref.index
     if index.is_complex():
@@ -286,7 +289,11 @@ def make_toc_html(oref, zoom=1):
 
 
 def make_complex_toc_html(oref):
-
+    """
+    Returns the HTML of a complex text's Table of Contents.
+    :param oref - Ref of the text to create. Ref is used instead of Index to allow
+    for a different table of contents focusing on a single node.
+    """
     index    = oref.index
     req_node = oref.index_node
 
@@ -353,17 +360,34 @@ def make_alt_toc_html(alt):
             for i in range(len(node.refs)):
                 html += '<a class="sectionLink enAll heAll" href="/%s">%s</a>' % (urlquote(node.refs[i]), (i+1))
             html += "</div>"
-        if includeSections:
+        elif includeSections:
             # Display each section included in node.wholeRef
-            pass
+            # todo handle case where wholeRef points to complex node
+            refs = Ref(node.wholeRef).split_spanning_ref()
+            first, last = refs[0], refs[-1]
+            offsets      = (first.sections[-2] if first.is_range() else first.sections[-1],
+                            last.sections[-2] if last.is_range() else last.sections[-1])
+            offset_lines = (first.normal().rsplit(":", 1)[0] if first.is_range() else "", 
+                            last.normal().rsplit(":", 1)[0] if last.is_range() else "")
+            he           = JaggedArray(he_counts).subarray_with_ref(Ref(node.wholeRef)).array()
+            en           = JaggedArray(en_counts).subarray_with_ref(Ref(node.wholeRef)).array()
+            depth        = len(first.index.nodes.sectionNames) - len(first.section_ref().sections)
+            sectionNames = first.index.nodes.sectionNames[depth:]
+            addressTypes = first.index.nodes.addressTypes[depth:]
+            ref          = first.context_ref(level=2) if first.is_range() else first.context_ref()
+            content = make_simple_toc_html(he, en, sectionNames, addressTypes, ref, offsets=offsets, offset_lines=offset_lines)
+            html += "<div class='schema-node-contents open'>" + content + "</div>"
+
         html += "</a>" if linked else "</div>"
         return html
-
+    
+    state = StateNode(alt.primary_title())
+    he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
     html = "<div class='tocLevel'>" + alt.traverse_to_string(node_line) + "</div>"
     return html
 
 
-def make_simple_toc_html(he_toc, en_toc, labels, addresses, ref, zoom=1):
+def make_simple_toc_html(he_toc, en_toc, labels, addresses, ref, zoom=1, offsets=None, offset_lines=None):
     """
     Returns HTML Table of Contents corresponding to jagged count arrays he_toc and en_toc.
     Runs recursively.
@@ -374,6 +398,9 @@ def make_simple_toc_html(he_toc, en_toc, labels, addresses, ref, zoom=1):
     :param ref - text to prepend to final links. Starts with text title, recursively adding sections.
     :param zoom - sets how many levels of final depth to summarize
     (e.g., 1 will hide verses and only show chapter level)
+    :param offsets - a tuple of ints specifying which sections to start and end from
+    :param offset_lines - tuple of strings to be appended to the URL of the first and last
+    sections when offsets are used. (allows pointing to spans inside a section).
     """
     he_toc = [] if isinstance(he_toc, int) else he_toc
     en_toc = [] if isinstance(en_toc, int) else en_toc
@@ -384,11 +411,15 @@ def make_simple_toc_html(he_toc, en_toc, labels, addresses, ref, zoom=1):
 
     # todo: have this use the address classes in schema.py
     talmudBase = (len(addresses) > 0 and addresses[0] == "Talmud")
+    if talmudBase:
+        pass
 
     html = ""
     if depth == zoom + 1:
         # We're at the terminal level, list sections links
         for i in range(length):
+            if offsets and ((i+1) < offsets[0] or (i+1) > offsets[1]):
+                continue 
             klass = "he%s en%s" %(toc_availability_class(he_toc[i]), toc_availability_class(en_toc[i]))
             if klass == "heNone enNone":
                 continue # Don't display sections with no content
