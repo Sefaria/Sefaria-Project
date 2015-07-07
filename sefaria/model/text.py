@@ -1517,6 +1517,7 @@ class Ref(object):
         self._prev = None
         self._padded = None
         self._context = {}
+        self._first_spanned_ref = None
         self._spanned_refs = []
         self._ranged_refs = []
         self._range_depth = None
@@ -2344,23 +2345,29 @@ class Ref(object):
 
         :return: :py:class:`Ref`
         """
-        if self._spanned_refs:
-            return self._spanned_refs[0]
+        if not self._first_spanned_ref:
 
-        if self.index_node.depth == 1 or not self.is_spanning():
-            return self
+            if self._spanned_refs:
+                self._first_spanned_ref = self._spanned_refs[0]
 
-        ref_depth = len(self.sections)
+            elif self.index_node.depth == 1 or not self.is_spanning():
+                self._first_spanned_ref = self
 
-        d = self._core_dict()
-        d["toSections"] = self.sections[0:self.range_index() + 1]
-        for i in range(self.range_index() + 1, ref_depth):
-            d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
+            else:
+                ref_depth = len(self.sections)
 
-        r = Ref(_obj=d)
-        if self.range_depth() > 2:
-            return r.first_spanned_ref()
-        return r
+                d = self._core_dict()
+                d["toSections"] = self.sections[0:self.range_index() + 1]
+                for i in range(self.range_index() + 1, ref_depth):
+                    d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
+
+                r = Ref(_obj=d)
+                if self.range_depth() > 2:
+                    self._first_spanned_ref = r.first_spanned_ref()
+                else:
+                    self._first_spanned_ref = r
+
+        return self._first_spanned_ref
 
     def split_spanning_ref(self):
         """
