@@ -95,6 +95,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "heTitleVariants",    # optional for old style
         "maps",               # optional for old style
         "alt_structs",        # optional for new style
+        "default_struct",     # optional for new style
         "order",              # optional for old style and new
         "length",             # optional for old style
         "lengths",            # optional for old style

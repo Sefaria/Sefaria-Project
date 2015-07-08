@@ -271,20 +271,25 @@ def make_toc_html(oref, zoom=1):
         html = make_simple_toc_html(he_counts, en_counts, index.nodes.sectionNames, index.nodes.addressTypes, index.title, zoom=zoom)
 
     if index.has_alt_structures():
-        html = "<div class='altStruct'>" + html + "</div>"
-        default_name = index.nodes.sectionNames[0] if not index.is_complex() else "Contents"
-        toggle =  "<div class='altStructToggle active'>"
-        toggle +=   "<span class='en'>" + default_name + "</span>" 
-        toggle +=   "<span class='he'>" + hebrew_term(default_name) + "</span>" 
-        toggle += "</div>"
-        alts = index.get_alt_structures().items()
+        default_name   = index.nodes.sectionNames[0] if not index.is_complex() else "Contents"
+        default_struct = getattr(index, "default_struct", default_name)
+        structs        = {default_name: html } # store HTML for each structure
+        alts           = index.get_alt_structures().items()
         for alt in alts:
-            html   += "<div class='altStruct' style='display:none'>" + make_alt_toc_html(alt[1]) + "</div>"
-            toggle += " | <div class='altStructToggle'>"
-            toggle +=   "<span class='en'>" + alt[0] + "</span>" 
-            toggle +=   "<span class='he'>" + hebrew_term(alt[0]) + "</span>" 
+            structs[alt[0]] = make_alt_toc_html(alt[1])
+
+        items  = sorted(structs.items(), key=lambda x: 0 if x[0] == default_struct else 1)
+        toggle, tocs = "", ""
+
+        for item in items:
+            toggle += " | " if item[0] != default_struct else ""
+            toggle += "<div class='altStructToggle" + (" active" if item[0] == default_struct else "") + "'>"
+            toggle +=   "<span class='en'>" + item[0] + "</span>" 
+            toggle +=   "<span class='he'>" + hebrew_term(item[0]) + "</span>" 
             toggle += "</div>"
-        html = "<div id='structToggles'>" + toggle + "</div>" + html
+            tocs   += "<div class='altStruct' " + ("style='display:none'" if item[0] != default_struct else "") + ">" + item[1] + "</div>"
+
+        html = "<div id='structToggles'>" + toggle + "</div>" + tocs
     return html
 
 
@@ -379,11 +384,6 @@ def make_alt_toc_html(alt):
             ref          = first.context_ref(level=2) if first.is_segment_level() else first.context_ref()
             content = make_simple_toc_html(he, en, sectionNames, addressTypes, ref.url(), offset=offset, offset_lines=offset_lines)
             html += "<div class='schema-node-contents open'>" + content + "</div>"
-            print node.primary_title()
-            print node.wholeRef
-            print offset
-            print offset_lines
-            print he
 
         html += "</a>" if linked else "</div>"
         return html
