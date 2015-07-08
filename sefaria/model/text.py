@@ -1282,30 +1282,31 @@ class TextFamily(object):
 
                         alts_ja.set_element(indxs, val)
 
-                    for i, r in enumerate(n.refs):
-                        # hack to skip Rishon
-                        if i==0:
-                            continue;
-                        subRef = Ref(r)
-                        subRefStart = subRef.starting_ref()
-                        if oref.contains(subRefStart) and not oref == subRefStart:
-                            indxs = [k - 1 for k in subRefStart.in_terms_of(oref)]
-                            val = {"en":[], "he":[]}
+                    if getattr(n, "refs", None):
+                        for i, r in enumerate(n.refs):
+                            # hack to skip Rishon
+                            if i==0:
+                                continue;
+                            subRef = Ref(r)
+                            subRefStart = subRef.starting_ref()
+                            if oref.contains(subRefStart) and not oref == subRefStart:
+                                indxs = [k - 1 for k in subRefStart.in_terms_of(oref)]
+                                val = {"en":[], "he":[]}
 
-                            try:
-                                a = alts_ja.get_element(indxs)
-                                if a:
-                                    val = a
-                            except IndexError:
-                                pass
+                                try:
+                                    a = alts_ja.get_element(indxs)
+                                    if a:
+                                        val = a
+                                except IndexError:
+                                    pass
 
-                            val["en"] += [n.sectionString([i + 1], "en", title=False)]
-                            val["he"] += [n.sectionString([i + 1], "he", title=False)]
+                                val["en"] += [n.sectionString([i + 1], "en", title=False)]
+                                val["he"] += [n.sectionString([i + 1], "he", title=False)]
 
-                            alts_ja.set_element(indxs, val)
+                                alts_ja.set_element(indxs, val)
 
-                        elif subRefStart.follows(oref):
-                            break
+                            elif subRefStart.follows(oref):
+                                break
 
             self._alts = alts_ja.array()
 

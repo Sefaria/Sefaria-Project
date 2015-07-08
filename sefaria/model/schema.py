@@ -800,7 +800,7 @@ class ArrayMapNode(NumberedTitledTreeNode):
             # If we need the wholeRefPreview, we'll need to speed of Zohar parsha text fetch.
             # We can do that by coding the mongo aggregation pipeline to return sub-text from the second level of an array.
             # d["wholeRefPreview"] = expand_ref(self.wholeRef)
-            d["refsPreview"] = map(expand_ref, self.refs)
+            d["refsPreview"] = map(expand_ref, self.refs) if getattr(self, "refs", None) else None
         return d
 
     def validate(self):
