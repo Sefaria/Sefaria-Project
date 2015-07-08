@@ -29,6 +29,7 @@ from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE
 from sefaria.model.user_profile import UserProfile
 from sefaria.model.group import GroupSet
+from sefaria.model.translation_request import count_completed_translation_requests
 from sefaria.export import export_all as start_export_all
 from sefaria.datatype.jagged_array import JaggedTextArray
 
@@ -365,5 +366,7 @@ def list_contest_results(request):
 
     return HttpResponse(results)
 
-
+@staff_member_required
+def translation_requests_stats(request):
+    return HttpResponse(count_completed_translation_requests().replace("\n", "<br>"))
 
