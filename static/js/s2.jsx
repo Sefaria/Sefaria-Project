@@ -624,10 +624,10 @@ var TextSegment = React.createClass({
   render: function() {
     var linkCount = this.props.linkCount ? (<span className="linkCount">{this.props.linkCount}</span>) : "";
     var segmentNumber = this.props.segmentNumber ? (<span className="segmentNumber">{this.props.segmentNumber}</span>) : "";          
-    var he = this.props.he || "<span class='enOnly'>" + this.props.en + "</span>";
+    var he = this.props.he || this.props.en;
     var en = sjs.wrapRefLinks(this.props.en);
-    var en = en || "<span class='heOnly'>" + this.props.he + "</span>";
-    var classes=cx({segment: 1, highlight: this.props.highlight});
+    var en = en || this.props.he;
+    var classes=cx({segment: 1, highlight: this.props.highlight, heOnly: !this.props.en, enOnly: !this.props.he});
     return (
       <span className={classes} onClick={this.handleClick}>
         {segmentNumber}
