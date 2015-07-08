@@ -1519,6 +1519,7 @@ class Ref(object):
         self._prev = None
         self._padded = None
         self._context = {}
+        self._first_spanned_ref = None
         self._spanned_refs = []
         self._ranged_refs = []
         self._range_depth = None
@@ -2333,6 +2334,42 @@ class Ref(object):
                 d["toSections"].append(1)  # todo: is this valid in all cases?
             self._padded = Ref(_obj=d)
         return self._padded
+
+    def first_spanned_ref(self):
+        """
+        Returns the first section portion of a spanning reference.
+        Designed to cut the wasted cost of running ref.split_spanning_ref[0]
+
+        >>> Ref("Shabbat 6b-9a").first_spanned_ref()
+        Ref('Shabbat 6b')
+        >>> Ref("Shabbat 6b.12-9a.7").first_spanned_ref()
+        Ref('Shabbat 6b:12-47')
+
+        :return: :py:class:`Ref`
+        """
+        if not self._first_spanned_ref:
+
+            if self._spanned_refs:
+                self._first_spanned_ref = self._spanned_refs[0]
+
+            elif self.index_node.depth == 1 or not self.is_spanning():
+                self._first_spanned_ref = self
+
+            else:
+                ref_depth = len(self.sections)
+
+                d = self._core_dict()
+                d["toSections"] = self.sections[0:self.range_index() + 1]
+                for i in range(self.range_index() + 1, ref_depth):
+                    d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
+
+                r = Ref(_obj=d)
+                if self.range_depth() > 2:
+                    self._first_spanned_ref = r.first_spanned_ref()
+                else:
+                    self._first_spanned_ref = r
+
+        return self._first_spanned_ref
 
     def split_spanning_ref(self):
         """
