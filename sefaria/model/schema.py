@@ -782,15 +782,30 @@ class ArrayMapNode(NumberedTitledTreeNode):
     def serialize(self, **kwargs):
         d = super(ArrayMapNode, self).serialize(**kwargs)
         if kwargs.get("expand_refs"):
+            if getattr(self, "includeSections", None):
+                from . import text
+
+                refs         = text.Ref(self.wholeRef).split_spanning_ref()
+                first, last  = refs[0], refs[-1]
+                offset       = first.sections[-2]-1 if first.is_segment_level() else first.sections[-1]-1
+                depth        = len(first.index.nodes.sectionNames) - len(first.section_ref().sections)
+
+                d["refs"] = [r.normal() for r in refs]
+                d["addressTypes"] = d.get("addressTypes", []) + first.index.nodes.addressTypes[depth:]
+                d["sectionNames"] = d.get("sectionNames", []) + first.index.nodes.sectionNames[depth:]
+                d["depth"] += 1
+                d["offset"] = offset
+
             d["wholeRefPreview"] = self.expand_ref(self.wholeRef, kwargs.get("he_text_ja"), kwargs.get("en_text_ja"))
-            if getattr(self, "refs", None):
+            if d.get("refs"):
                 d["refsPreview"] = []
-                for r in self.refs:
+                for r in d["refs"]:
                     d["refsPreview"].append(self.expand_ref(r, kwargs.get("he_text_ja"), kwargs.get("en_text_ja")))
             else:
                 d["refsPreview"] = None
         return d
 
+    # Move this over to Ref and cache it?
     def expand_ref(self, tref, he_text_ja = None, en_text_ja = None):
         from . import text
         from sefaria.utils.util import text_preview

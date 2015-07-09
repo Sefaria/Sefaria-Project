@@ -89,8 +89,8 @@ def text_preview(en, he):
     text merging what's available in jagged string arrays 'en' and 'he'.
     """
     n_chars = 80
-    en = [""] if en == [] or not isinstance(en, list) else en
-    he = [""] if he == [] or not isinstance(he, list) else he
+    en = [en] if isinstance(en, basestring) else [""] if en == [] or not isinstance(en, list) else en
+    he = [he] if isinstance(he, basestring) else [""] if he == [] or not isinstance(he, list) else he
 
     def preview(section):
         """Returns a preview string for list section"""
