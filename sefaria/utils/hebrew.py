@@ -472,6 +472,8 @@ def hebrew_term(s):
 		"Mitzvah":          u"מצוה",
 		"Tefillah":         u"תפילה",
 		"Torah":            u"תורה",
+		"Perush":	    u"פירוש",
+		"Peirush":	    u"פירוש",
 	}
 
 	words = dict(categories.items() + pseudo_categories.items() + section_names.items())
