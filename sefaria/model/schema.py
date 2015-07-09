@@ -17,7 +17,6 @@ from . import abstract as abst
 from sefaria.system.exceptions import InputError, IndexSchemaError
 from sefaria.utils.hebrew import decode_hebrew_numeral, encode_hebrew_numeral, hebrew_term
 
-
 """
                 -----------------------------------------
                  Titles, Terms, and Term Schemes
@@ -783,25 +782,29 @@ class ArrayMapNode(NumberedTitledTreeNode):
     def serialize(self, **kwargs):
         d = super(ArrayMapNode, self).serialize(**kwargs)
         if kwargs.get("expand_refs"):
-
-            def expand_ref(tref):
-                from . import text
-                from sefaria.utils.util import text_preview
-
-                oref = text.Ref(tref)
-                if oref.is_spanning():
-                    oref = oref.first_spanned_ref()
-                t = text.TextFamily(oref, context=0, pad=False, commentary=False)
-                preview = text_preview(t.text, t.he) if (t.text or t.he) else []
-
-                return preview
-
-            # The below is expensive, particularly for Zohar, and is not used on front end.
-            # If we need the wholeRefPreview, we'll need to speed up Zohar parsha text fetch.
-            # We can do that by coding the mongo aggregation pipeline to return sub-text from the second level of an array.
-            # d["wholeRefPreview"] = expand_ref(self.wholeRef)
-            d["refsPreview"] = map(expand_ref, self.refs) if getattr(self, "refs", None) else None
+            d["wholeRefPreview"] = self.expand_ref(self.wholeRef, kwargs.get("he_text_ja"), kwargs.get("en_text_ja"))
+            if getattr(self, "refs", None):
+                d["refsPreview"] = []
+                for r in self.refs:
+                    d["refsPreview"].append(self.expand_ref(r, kwargs.get("he_text_ja"), kwargs.get("en_text_ja")))
+            else:
+                d["refsPreview"] = None
         return d
+
+    def expand_ref(self, tref, he_text_ja = None, en_text_ja = None):
+        from . import text
+        from sefaria.utils.util import text_preview
+
+        oref = text.Ref(tref)
+        if oref.is_spanning():
+            oref = oref.first_spanned_ref()
+        if he_text_ja is None and en_text_ja is None:
+            t = text.TextFamily(oref, context=0, pad=False, commentary=False)
+            preview = text_preview(t.text, t.he) if (t.text or t.he) else []
+        else:
+            preview = text_preview(en_text_ja.subarray_with_ref(oref).array(), he_text_ja.subarray_with_ref(oref).array())
+
+        return preview
 
     def validate(self):
         if getattr(self, "depth", None) is None:
@@ -920,8 +923,14 @@ class SchemaNode(TitledTreeNode):
             res["heTitleVariants"] = self.full_titles("he")
         if self.index.has_alt_structures():
             res['alts'] = {}
+            if not self.has_children(): #preload text and pass it down to the preview generation
+                from . import text
+                he_text_ja = text.TextChunk(self.ref(), "he").ja()
+                en_text_ja = text.TextChunk(self.ref(), "en").ja()
+            else:
+                he_text_ja = en_text_ja = None
             for key, struct in self.index.get_alt_structures().iteritems():
-                res['alts'][key] = struct.serialize(expand_shared=True, expand_refs=True, expand_titles=True)
+                res['alts'][key] = struct.serialize(expand_shared=True, expand_refs=True, he_text_ja=he_text_ja, en_text_ja=en_text_ja, expand_titles=True)
             del res['alt_structs']
         return res
 

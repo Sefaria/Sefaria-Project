@@ -952,6 +952,9 @@ class TextChunk(AbstractTextRecord):
     def is_empty(self):
         return bool(self.text)
 
+    def ja(self):
+        return JaggedTextArray(self.text)
+
     def save(self):
         assert self._saveable, u"Tried to save a read-only text: {}".format(self._oref.normal())
         assert not self._oref.is_range(), u"Only non-range references can be saved: {}".format(self._oref.normal())
@@ -1345,7 +1348,6 @@ class TextFamily(object):
         d["indexTitle"] = self._inode.index.title
         d["sectionRef"] = self._original_oref.section_ref().normal()
         d["isSpanning"] = self._original_oref.is_spanning()
-
 
         for language, attr in self.text_attr_map.items():
             chunk = self._chunks.get(language)
@@ -1751,7 +1753,6 @@ class Ref(object):
                             self.toSections[i] = int(range_parts[i - delta])
                         except (ValueError, IndexError):
                             raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
-
 
     def __get_sections(self, reg, tref, use_node=None):
         use_node = use_node or self.index_node
