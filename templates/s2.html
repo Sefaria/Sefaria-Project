@@ -15,9 +15,13 @@
 {% block js %}
     <script src="/static/js/library.js"></script>
     <script src="/static/js/react-with-addons.js"></script>
+    {% if DEBUG %}
     <script src="/static/js/JSXTransformer.js"></script>
     <script type="text/jsx" src="/static/js/s2.jsx"></script>
-    <script type="text/jsx">
+    {% else %}
+    <script src="/static/js/s2.js"></script>
+    {% endif %}
+    <script {% if DEBUG %}type="text/jsx"{% endif %}>
       $(function() {
         var urlVars = getUrlVars();
         var filter  = "with" in urlVars ? urlVars["with"].replace(/_/g, " ").split("+") : null;
@@ -34,13 +38,12 @@
           fontSize: $.cookie("fontSize") || 62.5
         }
         $("body").addClass(settings.color);
-        console.log(settings)
         var ref = humanRef("{{ ref }}")
         React.render(
-          <ReaderApp 
-            initialRef={ref}
-            initialFilter={filter}
-            initialSettings={settings} />,
+          React.createElement(ReaderApp, {
+            initialRef: ref,
+            initialFilter: filter,
+            initialSettings: settings}),
           document.getElementById('s2')
         );
         if (filter === null) {

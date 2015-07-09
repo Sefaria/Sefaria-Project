@@ -744,27 +744,30 @@ $(function() {
 				var categorySum = {}
 				for (var i = 0; i < data.commentary.length; i++) {
 					var c = data.commentary[i];
-					if (categorySum[c.category]) {
-						categorySum[c.category]++;
+					if (categorySum[c.commentator]) {
+						categorySum[c.commentator]++;
 					} else {
-						categorySum[c.category] = 1;
+						categorySum[c.commentator] = 1;
 					}
 				}
 				var categories = [];
 				for(var k in categorySum) { categories.push(k); }
+				categories.sort();
 
 				var labels = [];
 				for(var k in categorySum) { labels.push(k + " (" + categorySum[k] + ")"); }
+				labels.sort();
+
 				sjs.alert.multi({message: "Add all connections from:", 
 									values: categories,
 									labels: labels,
-									default: true
+									default: false
 								},
 				 function(categoriesToAdd) {
 					var count = 0;
 					for (var i = 0; i < data.commentary.length; i++) {
 						var c = data.commentary[i];
-						if ($.inArray(c.category, categoriesToAdd) == -1) {
+						if ($.inArray(c.commentator, categoriesToAdd) == -1) {
 							continue;
 						}
 						var source = {
@@ -780,6 +783,7 @@ $(function() {
 					}
 					var msg = count == 1 ? "1 Source Added." : count + " Sources Added."
 					sjs.alert.message(msg);
+					autoSave();
 				});
 
 
