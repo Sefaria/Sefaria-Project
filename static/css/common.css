@@ -1482,6 +1482,8 @@ body #keyboardInputMaster thead tr th div {
   width: 90%;
   padding: 10px;
   margin: 0 auto 20px ;
+  max-height: 350px;
+  overflow-y: scroll;
 }
 
 .alertBox .multiOptions input {
