@@ -83,6 +83,8 @@ var ReaderApp = React.createClass({
   },
   handlePopState: function(event) {
     if (event.state) {
+      var kind = this.state.contents.slice(-1)[0].type + " to " + event.state.type;
+      sjs.track.event("Reader", "Pop State", kind);
       this.setState({contents: [event.state]});
     }
   },
