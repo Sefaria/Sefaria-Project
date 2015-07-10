@@ -101,8 +101,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "transliteratedTitle" # optional for old style
     ]
 
-    def __str__(self):
+    def __unicode__(self):
         return u"Index: {}".format(self.title)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return u"{}().load({{'title': '{}'}})".format(self.__class__.__name__, self.title)
@@ -540,8 +543,12 @@ class CommentaryIndex(AbstractIndex):
         if getattr(self.nodes, "lengths", None):   #seems superfluous w/ nodes above
             self.length = self.nodes.lengths[0]
 
-    def __str__(self):
+
+    def __unicode__(self):
         return u"{}: {} on {}".format(self.__class__.__name__, self.c_index.title, self.b_index.title)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return u"{}({}, {})".format(self.__class__.__name__, self.c_index.title, self.b_index.title)
@@ -749,8 +756,11 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         "versionUrl"  # bad data?
     ]
 
-    def __str__(self):
+    def __unicode__(self):
         return u"Version: {} <{}>".format(self.title, self.versionTitle)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return u"{}().load({{'title': '{}', 'versionTitle': '{}'}})".format(self.__class__.__name__, self.title, self.versionTitle)
@@ -923,11 +933,14 @@ class TextChunk(AbstractTextRecord):
         else:
             raise Exception("TextChunk requires a language.")
 
-    def __str__(self):
+    def __unicode__(self):
         args = u"{}, {}".format(self._oref, self.lang)
         if self.vtitle:
             args += u", {}".format(self.vtitle)
         return args
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         args = u"{}, {}".format(self._oref, self.lang)
@@ -1504,6 +1517,7 @@ class Ref(object):
         self._prev = None
         self._padded = None
         self._context = {}
+        self._first_spanned_ref = None
         self._spanned_refs = []
         self._ranged_refs = []
         self._range_depth = None
@@ -2319,14 +2333,52 @@ class Ref(object):
             self._padded = Ref(_obj=d)
         return self._padded
 
+    def first_spanned_ref(self):
+        """
+        Returns the first section portion of a spanning reference.
+        Designed to cut the wasted cost of running ref.split_spanning_ref[0]
+
+        >>> Ref("Shabbat 6b-9a").first_spanned_ref()
+        Ref('Shabbat 6b')
+        >>> Ref("Shabbat 6b.12-9a.7").first_spanned_ref()
+        Ref('Shabbat 6b:12-47')
+
+        :return: :py:class:`Ref`
+        """
+        if not self._first_spanned_ref:
+
+            if self._spanned_refs:
+                self._first_spanned_ref = self._spanned_refs[0]
+
+            elif self.index_node.depth == 1 or not self.is_spanning():
+                self._first_spanned_ref = self
+
+            else:
+                ref_depth = len(self.sections)
+
+                d = self._core_dict()
+                d["toSections"] = self.sections[0:self.range_index() + 1]
+                for i in range(self.range_index() + 1, ref_depth):
+                    d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
+
+                r = Ref(_obj=d)
+                if self.range_depth() > 2:
+                    self._first_spanned_ref = r.first_spanned_ref()
+                else:
+                    self._first_spanned_ref = r
+
+        return self._first_spanned_ref
+
     def split_spanning_ref(self):
         """
         :return: List of non-spanning :class:`Ref` objects which completely cover the area of this Ref
 
         ""
 
-            >>> Ref("Shabbat 13b-14b")
+            >>> Ref("Shabbat 13b-14b").split_spanning_ref()
             [Ref("Shabbat 13b"), Ref("Shabbat 14a"), Ref("Shabbat 14b")]
+            >>> Ref("Shabbat 13b:3 - 14b:3").split_spanning_ref()
+            [Ref('Shabbat 13b:3-50'), Ref('Shabbat 14a'), Ref('Shabbat 14b:1-3')]
 
         """
         if not self._spanned_refs:
@@ -2353,9 +2405,14 @@ class Ref(object):
                         d["sections"] = self.sections[0:self.range_index()] + [n]
                         d["toSections"] = self.sections[0:self.range_index()] + [n]
 
-                        for i in range(self.range_index() + 1, ref_depth):
-                            d["sections"] += [1]
-                            d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
+                        '''  If we find that we need to expand inner refs, add this arg.
+                        # It will require handling on cached ref and passing on the recursive call below.
+                        if expand_middle:
+                            for i in range(self.range_index() + 1, ref_depth):
+                                d["sections"] += [1]
+                                d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
+                        '''
+
                     if d["toSections"][-1]:  # to filter out, e.g. non-existant Rashi's, where the last index is 0
                         refs.append(Ref(_obj=d))
 

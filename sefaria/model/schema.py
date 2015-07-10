@@ -783,13 +783,16 @@ class ArrayMapNode(NumberedTitledTreeNode):
 
                 oref = text.Ref(tref)
                 if oref.is_spanning():
-                    oref = oref.split_spanning_ref()[0]
+                    oref = oref.first_spanned_ref()
                 t = text.TextFamily(oref, context=0, pad=False, commentary=False)
                 preview = text_preview(t.text, t.he) if (t.text or t.he) else []
 
                 return preview
 
-            d["wholeRefPreview"] = expand_ref(self.wholeRef)
+            # The below is expensive, particularly for Zohar, and is not used on front end.
+            # If we need the wholeRefPreview, we'll need to speed up Zohar parsha text fetch.
+            # We can do that by coding the mongo aggregation pipeline to return sub-text from the second level of an array.
+            # d["wholeRefPreview"] = expand_ref(self.wholeRef)
             d["refsPreview"] = map(expand_ref, self.refs)
         return d
 

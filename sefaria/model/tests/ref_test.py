@@ -233,7 +233,7 @@ class Test_Ref(object):
         assert Ref("Rashi on Exodus 3:1-4:10").span_size() == 2
 
     def test_split_spanning_ref(self):
-        assert Ref("Leviticus 15:3 - 17:12").split_spanning_ref() == [Ref('Leviticus 15:3-33'), Ref('Leviticus 16:1-34'), Ref('Leviticus 17:1-12')]
+        assert Ref("Leviticus 15:3 - 17:12").split_spanning_ref() == [Ref('Leviticus 15:3-33'), Ref('Leviticus 16'), Ref('Leviticus 17:1-12')]
         assert Ref("Leviticus 15-17").split_spanning_ref() == [Ref('Leviticus 15'), Ref('Leviticus 16'), Ref('Leviticus 17')]
         assert Ref("Leviticus 15:17-21").split_spanning_ref() == [Ref('Leviticus 15:17-21')]
         assert Ref("Leviticus 15:17").split_spanning_ref() == [Ref('Leviticus 15:17')]
@@ -242,6 +242,21 @@ class Test_Ref(object):
         assert Ref("Shabbat 15a:15-15b:13").split_spanning_ref() == [Ref('Shabbat 15a:15-55'), Ref('Shabbat 15b:1-13')]
         assert Ref("Rashi on Exodus 5:3-6:7").split_spanning_ref() == [Ref('Rashi on Exodus 5:3'), Ref('Rashi on Exodus 5:4'), Ref('Rashi on Exodus 5:5'), Ref('Rashi on Exodus 5:6'), Ref('Rashi on Exodus 5:7'), Ref('Rashi on Exodus 5:8'), Ref('Rashi on Exodus 5:9'), Ref('Rashi on Exodus 5:10'), Ref('Rashi on Exodus 5:11'), Ref('Rashi on Exodus 5:12'), Ref('Rashi on Exodus 5:13'), Ref('Rashi on Exodus 5:14'), Ref('Rashi on Exodus 5:15'), Ref('Rashi on Exodus 5:16'), Ref('Rashi on Exodus 5:17'), Ref('Rashi on Exodus 5:18'), Ref('Rashi on Exodus 5:19'), Ref('Rashi on Exodus 5:20'), Ref('Rashi on Exodus 5:21'), Ref('Rashi on Exodus 5:22'), Ref('Rashi on Exodus 5:23'), Ref('Rashi on Exodus 6:1'), Ref('Rashi on Exodus 6:2'), Ref('Rashi on Exodus 6:3'), Ref('Rashi on Exodus 6:4'), Ref('Rashi on Exodus 6:5'), Ref('Rashi on Exodus 6:6'), Ref('Rashi on Exodus 6:7')]
         assert Ref('Targum Neofiti 5-7').split_spanning_ref() == [Ref('Targum Neofiti 5'), Ref('Targum Neofiti 6'), Ref('Targum Neofiti 7')]
+
+    def test_first_spanned_ref(self):
+        tests = [
+            Ref("Exodus 15:3 - 17:12"),
+            Ref("Rashi on Genesis 5:3-6:7"),
+            Ref("Gittin 15a:15-15b:13"),
+            Ref("Rashi on Gittin 2b:1-7a:3"),
+            Ref("Shabbat 6b-9a")
+        ]
+        for ref in tests:
+            first = ref.first_spanned_ref()
+            assert first == ref.split_spanning_ref()[0]
+
+    def test_FAILING_split_spanning_ref_expanded(self):
+        assert Ref("Leviticus 15:3 - 17:12").split_spanning_ref(True) == [Ref('Leviticus 15:3-33'), Ref('Leviticus 16:1-34'), Ref('Leviticus 17:1-12')]
 
     def test_range_refs(self):
         assert Ref("Leviticus 15:12-17").range_list() ==  [Ref('Leviticus 15:12'), Ref('Leviticus 15:13'), Ref('Leviticus 15:14'), Ref('Leviticus 15:15'), Ref('Leviticus 15:16'), Ref('Leviticus 15:17')]
@@ -270,11 +285,15 @@ class Test_Ref(object):
         assert Ref("Yoma 14a:12-15").regex() == u'^Yoma( 14a:12$| 14a:12:| 14a:12 \\d| 14a:13$| 14a:13:| 14a:13 \\d| 14a:14$| 14a:14:| 14a:14 \\d| 14a:15$| 14a:15:| 14a:15 \\d)'
         assert Ref("Yoma").regex() == u'^Yoma($|:| \\d)'  # This is as legacy had it
 
+    def test_spanning_ref_regex(self):
+        assert Ref("Exodus 4:30-6:2").regex() == u'^Exodus( 4:30$| 4:30:| 4:30 \\d| 4:31$| 4:31:| 4:31 \\d| 5$| 5:| 5 \\d| 6:1$| 6:1:| 6:1 \\d| 6:2$| 6:2:| 6:2 \\d)'
+
+
     #todo: devise a better test of version_list()
     def test_version_list(self):
         assert len(Ref("Exodus").version_list()) > 3
         assert len(Ref("Exodus").version_list()) > len(Ref("Exodus 5").version_list())
-        assert len(Ref("Shabbat").version_list()) > 4
+        assert len(Ref("Shabbat").version_list()) > 3
         assert len(Ref("Shabbat").version_list()) > len(Ref("Shabbat 5b").version_list())
 
     def test_in_terms_of(self):

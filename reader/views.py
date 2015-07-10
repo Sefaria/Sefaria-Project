@@ -70,7 +70,7 @@ def reader(request, tref, lang=None, version=None):
         # BANDAID - for spanning refs, return the first section
         oref = oref.padded_ref()
         if oref.is_spanning():
-            first_oref = oref.split_spanning_ref()[0]
+            first_oref = oref.first_spanned_ref()
             return reader_redirect(first_oref.url(), lang, version)
 
         version = version.replace("_", " ") if version else None

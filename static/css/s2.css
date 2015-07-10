@@ -23,9 +23,11 @@ body.dark {
 }
 #s2 .he, #s2 .heOnly {
   font-family: "Taamey Frank", "Times New Roman", serif;
-  font-size: 125%;
   direction: rtl;
   text-align: right;
+}
+.he, .heOnly .en {
+  font-size: 120%;
 }
 .hebrew {
   direction: rtl;
@@ -38,7 +40,6 @@ body.dark {
 }
 .hebrew .he {
   display: inline;
-  font-size: 120%;
   text-align: right;
 }
 .hebrew .he .enInHe {
@@ -47,8 +48,8 @@ body.dark {
 .hebrew .en {
   display: none;
 }
-.bilingual .en .heOnly,
-.bilingual .he .enOnly {
+body .bilingual .heOnly .en,
+body .bilingual .enOnly .he {
   display: none;
 }
 #languageToggle {
@@ -243,7 +244,7 @@ body.dark {
   background-color: inherit;
   margin-bottom: 26px;
 }
-.basetext.continuous .segment{
+.continuous .basetext .segment{
   display: inline;
   margin: 0;
 }
@@ -371,6 +372,9 @@ body.dark {
 }
 .dark .textListTop .anchorText .fader {
   background: linear-gradient(to bottom, rgba(51,51,51,0), #333);
+}
+.textList .heOnly {
+  display: block;
 }
 .filterSet {
 
