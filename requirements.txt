@@ -14,3 +14,4 @@ pytest
 mailchimp
 redis
 django-redis
+django_mobile==0.3.0
