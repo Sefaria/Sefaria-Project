@@ -64,6 +64,9 @@ def reader(request, tref, lang=None, version=None):
                     (oref.index.title == uref or oref.index_node.depth > 1))):
             return text_toc(request, oref)
 
+        if request.flavour == "mobile":
+            return s2(request, ref=tref)
+
         # BANDAID - for spanning refs, return the first section
         oref = oref.padded_ref()
         if oref.is_spanning():
