@@ -18,17 +18,38 @@ def remove_refs_with_false():
     model.HistorySet({"new.refs": False}).delete()
 
 
+"""
+Detect any links that contain Refs we can't understand.
+"""
+def broken_links(auto_links = False, manual_links = False, delete_links = False):
+    links = model.LinkSet()
+    broken_links_list = []
+    for link in links:
+        first = False
+        second = False
+        try:
+            model.Ref(link.refs[0])
+            first = True
+            model.Ref(link.refs[1])
+            second = True
+        except:
+            if link.auto:
+                if auto_links is False:
+                    continue
+            else:
+                if manual_links is False:
+                    continue
+            broken_links_list.append("{}\t{}\t{}".format(link.refs, "refs[0]" if not first else "refs[1]", "auto" if link.auto else "manual"))
+            if delete_links:
+                link.delete()
+    return broken_links_list
+
+
 def remove_bad_links():
     """
     Remove any links that contain Refs we can't understand.
     """
-    links = model.LinkSet()
-    for link in links:
-        try:
-            model.Ref(link.refs[0])
-            model.Ref(link.refs[1])
-        except:
-            link.delete()
+    broken_links(True, True, True)
 
 
 def remove_old_counts():
