@@ -201,7 +201,7 @@ urlpatterns += patterns('reader.views',
     url(r'^$', 'home', name="home"),
     (r'^metrics/?$', 'metrics'),
     (r'^digitized-by-sefaria/?$', 'digitized_by_sefaria'),
-    (r'^(about|donate|strategy|supporters|translation-guidelines|transliteration-guidelines|even-haezer-guidelines|related-projects|jobs|terms|privacy-policy|meetup1|meetup2|random-walk-through-torah|shraga-silverstein|linker)/?$', 'serve_static'),
+    (r'^(about|donate|strategy|supporters|team|translation-guidelines|transliteration-guidelines|even-haezer-guidelines|related-projects|jobs|terms|privacy-policy|meetup1|meetup2|random-walk-through-torah|shraga-silverstein|linker)/?$', 'serve_static'),
 )
 
 # Explore
