@@ -2,6 +2,7 @@
 translation_request.py
 Writes to MongoDB Collection: requests
 """
+import re
 from datetime import datetime, timedelta
 
 from . import abstract as abst
@@ -182,6 +183,15 @@ def process_version_state_change_in_translation_requests(version, **kwargs):
     requests = TranslationRequestSet({"ref": {"$regex": text.Ref(version.title).regex()}, "completed": False})
     for request in requests:
         request.check_complete()
+
+
+def process_index_delete_in_translation_requests(indx, **kwargs):
+    if indx.is_commentary():
+        pattern = ur'^{} on '.format(re.escape(indx.title))
+    else:
+        commentators = text.IndexSet({"categories.0": "Commentary"}).distinct("title")
+        pattern = ur"(^{} \d)|^({}) on {} \d".format(re.escape(indx.title), "|".join(commentators), re.escape(indx.title))
+    TranslationRequestSet({"refs": {"$regex": pattern}}).delete()
 
 
 def count_completed_translation_requests():
