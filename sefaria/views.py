@@ -36,6 +36,7 @@ from sefaria.datatype.jagged_array import JaggedTextArray
 # noinspection PyUnresolvedReferences
 from sefaria.utils.users import user_links
 from sefaria.system.exceptions import InputError
+from sefaria.system.database import db
 from sefaria.utils.hebrew import is_hebrew
 
 import logging
@@ -373,7 +374,25 @@ def list_contest_results(request):
 
     return HttpResponse(results)
 
+
 @staff_member_required
 def translation_requests_stats(request):
     return HttpResponse(count_completed_translation_requests().replace("\n", "<br>"))
+
+
+@staff_member_required
+def sheet_stats(request):
+    from dateutil.relativedelta import relativedelta
+    html  = ""
+    start = datetime.today().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    months = 30
+    for i in range(months):
+        end   = start
+        start = end - relativedelta(months=1)
+        query = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
+        n = db.sheets.find(query).distinct("owner")
+        html = "%s: %d\n%s" % (start.strftime("%b %y"), len(n), html)
+
+    html = "Unique Source Sheet creators per month:\n\n" + html
+    return HttpResponse("<pre>" + html + "<pre>")
 
