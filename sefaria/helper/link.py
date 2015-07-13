@@ -122,15 +122,16 @@ def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
 
     text["text"] may be a list of segments, an individual segment, or None.
 
-    Lev - added return on 13 July 2014
+    Returns a list of links added.
     """
     if not text:
         return []
     elif isinstance(text, list):
-        links = []
+        oref    = Ref(ref)
+        subrefs = oref.subrefs(len(text))
+        links   = []
         for i in range(len(text)):
-            subtext = text[i]
-            single = add_links_from_text("%s:%d" % (ref, i + 1), lang, subtext, text_id, user, **kwargs)
+            single = add_links_from_text(subrefs[i].normal(), lang, text[i], text_id, user, **kwargs)
             links += single
         return links
     elif isinstance(text, basestring):
@@ -148,6 +149,7 @@ def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
 
         for oref in refs:
             link = {
+                # Note -- ref of the citing text is in the first position
                 "refs": [ref, oref.normal()],
                 "type": "",
                 "auto": True,
@@ -173,15 +175,24 @@ def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
         return links
 
 
+def delete_links_from_text(title, user):
+    """
+    Deletes all of the citation generated links from text 'title'
+    """
+    regex    = Ref(title).regex()
+    links    = LinkSet({"refs.0": {"$regex": regex}, "generated_by": "add_links_from_text"})
+    for link in links:
+        tracker.delete(user, Link, link._id)
+
+
 def rebuild_links_from_text(title, user):
     """
-    Deletes all of the citatation generated links from 'title'
+    Deletes all of the citation generated links from text 'title'
     then rebuilds them. 
     """
-    title = Ref(title).normal()
+    delete_links_from_text(title, user)
+    title    = Ref(title).normal()
     versions = VersionSet({"title": title})
-    links = LinkSet({"title": title, "generated_by": "add_links_from_text"})
-    links.delete()
 
     for version in versions:
         add_links_from_text(title, version.language, version.chapter, version._id, user)

@@ -284,6 +284,13 @@ def rebuild_citation_links(request, title):
 
 
 @staff_member_required
+def delete_citation_links(request, title):
+    from sefaria.helper.link import delete_links_from_text
+    delete_links_from_text(title, request.user.id)
+    return HttpResponseRedirect("/?m=Citation-Links-Deleted-on-%s" % title)
+
+
+@staff_member_required
 def cache_stats(request):
     resp = {
         'ref_cache_size': model.Ref.cache_size()
