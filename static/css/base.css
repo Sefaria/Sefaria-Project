@@ -494,6 +494,9 @@ body.hebrew #home #homeConnect .followButton .fa {
     #home #homeTitle #sub {
       font-size: 16px;
     }
+    #home #homeTitle #homeTitleBox {
+      padding: 50px 0;
+    }
     #home #donateButton {
       display: none;
     }
