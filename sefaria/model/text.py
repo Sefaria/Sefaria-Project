@@ -3246,6 +3246,8 @@ class Library(object):
                     res = self._build_ref_from_string(title, st[match.start():])  # Slice string from title start
                 except AssertionError as e:
                     logger.info(u"Skipping Schema Node: {}".format(title))
+                except InputError as e:
+                    logger.info(u"Input Error searching for refs in string: {}".format(e))
                 else:
                     refs += res
         return refs
