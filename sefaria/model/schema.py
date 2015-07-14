@@ -67,6 +67,11 @@ class TitleGroup(object):
             return [t["text"] for t in self.titles]
         return [t["text"] for t in self.titles if t["lang"] == lang]
 
+    def secondary_titles(self, lang=None):
+        if lang is None:
+            raise Exception("TitleGroup.secondary_titles() needs a lang")
+        return [t for t in self.all_titles(lang) if t != self.primary_title(lang)]
+
     def remove_title(self, text, lang):
         self.titles = [t for t in self.titles if not (t["lang"] == lang and t["text"] == text)]
         return self
