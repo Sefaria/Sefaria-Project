@@ -446,7 +446,7 @@ class TitledTreeNode(TreeNode):
         """
         return self.title_dict(lang).keys()
 
-    def title_dict(self, lang="en", baselist=[]):
+    def title_dict(self, lang="en", baselist=None):
         """
         Recursive function that generates a map from title to node
         :param node: the node to start from
@@ -454,10 +454,15 @@ class TitledTreeNode(TreeNode):
         :param baselist: list of starting strings that lead to this node
         :return: map from title to node
         """
+        if baselist is None:
+            baselist = []
+
         title_dict = {}
         thisnode = self
 
         this_node_titles = [title["text"] for title in self.get_titles() if title["lang"] == lang and title.get("presentation") != "alone"]
+        if not len(this_node_titles):
+            raise IndexSchemaError(u'No "{}" title found for schema node: "{}", child of "{}"'.format(lang, self.key, self.parent.full_title("en")))
         if baselist:
             node_title_list = [baseName + sep + title for baseName in baselist for sep in self.title_separators for title in this_node_titles]
         else:
