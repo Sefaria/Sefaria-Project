@@ -1564,6 +1564,7 @@ class Ref(object):
 
     def __reinit_tref(self, new_tref):
         self.tref = new_tref
+        self.__clean_tref()
         self._lang = "en"
         self.__init_tref()
 

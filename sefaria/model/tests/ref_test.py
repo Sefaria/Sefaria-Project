@@ -587,6 +587,10 @@ class Test_Talmud_at_Second_Place(object):
         assert Ref("Zohar 1.50a - 3.15b").toSections[1] == 30
         assert Ref("Zohar 1.50a - 3.15a").toSections[1] == 29
 
+    def test_Zohar_Parsha_ref(self):
+        assert Ref("Zohar Lech Lecha")
+        assert Ref("Zohar Bo")
+
     def test_FAILING_range_short_form(self):
         assert Ref("Zohar 2.15a - 15b").sections[1] == 29
         assert Ref("Zohar 2.15a - 15b").toSections[1] == 30
