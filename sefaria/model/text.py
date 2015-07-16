@@ -951,7 +951,7 @@ class TextChunk(AbstractTextRecord):
         return u"{}({})".format(self.__class__.__name__, args)
 
     def is_empty(self):
-        return not bool(self.text)
+        return self.ja().is_empty()
 
     def ja(self):
         return JaggedTextArray(self.text)
