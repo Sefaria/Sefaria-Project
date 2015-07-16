@@ -127,6 +127,7 @@ def test_index_update():
 
     i = model.Index({
         "title": ti,
+        "heTitle": u"כבכב",
         "titleVariants": [ti],
         "sectionNames": ["Chapter", "Paragraph"],
         "categories": ["Musar"],
@@ -138,6 +139,7 @@ def test_index_update():
 
     i = model.Index().update({"title": ti}, {
         "title": ti,
+        "heTitle": u"כבכב",
         "titleVariants": [ti],
         "sectionNames": ["Chapter", "Paragraph"],
         "categories": ["Philosophy"]

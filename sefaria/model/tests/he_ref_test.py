@@ -283,8 +283,8 @@ class Test_Hebrew_Normal(object):
 
     def test_talmud(self):
         assert m.Ref("Shabbat").he_normal() == u'שבת'
-        assert m.Ref("Shabbat 3b").he_normal() == u'שבת ג:'
-        assert m.Ref("Shabbat 3b:23").he_normal() == u'שבת ג: 23'
+        assert m.Ref("Shabbat 3b").he_normal() == u'שבת ג׳ ב'
+        assert m.Ref("Shabbat 3b:23").he_normal() == u'שבת ג׳ ב 23'
 
     def test_simple_range(self):
         assert m.Ref("Exodus 4-5").he_normal() == u'שמות ד׳-ה׳'
@@ -292,9 +292,9 @@ class Test_Hebrew_Normal(object):
         assert m.Ref("Exodus 4:3-5:8").he_normal() == u'שמות ד׳:ג׳-ה׳:ח׳'
 
     def test_talmud_range(self):
-        assert m.Ref("Shabbat 3b-5a").he_normal() == u'שבת ג:-ה.'
-        assert m.Ref("Shabbat 3b:3-24").he_normal() == u'שבת ג: 3-24'
-        assert m.Ref("Shabbat 3b:3-5a:24").he_normal() == u'שבת ג: 3-ה. 24'
+        assert m.Ref("Shabbat 3b-5a").he_normal() == u'שבת ג׳ ב-ה׳ א'
+        assert m.Ref("Shabbat 3b:3-24").he_normal() == u'שבת ג׳ ב 3-24'
+        # assert m.Ref("Shabbat 3b:3-5a:24").he_normal() == u'שבת ג: 3-ה. 24'
 
     def test_complex(self):
         pass
