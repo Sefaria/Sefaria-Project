@@ -461,7 +461,7 @@ class TitledTreeNode(TreeNode):
         thisnode = self
 
         this_node_titles = [title["text"] for title in self.get_titles() if title["lang"] == lang and title.get("presentation") != "alone"]
-        if not len(this_node_titles):
+        if (not len(this_node_titles)) and (not self.is_default()):
             error = u'No "{}" title found for schema node: "{}"'.format(lang, self.key)
             error += u', child of "{}"'.format(self.parent.full_title("en")) if self.parent else ""
             raise IndexSchemaError(error)
