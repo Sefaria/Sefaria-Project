@@ -22,7 +22,7 @@ from . import abstract as abst
 from schema import deserialize_tree, SchemaNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, TermSet, TitleGroup
 
 import sefaria.system.cache as scache
-from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError
+from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError
 from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.utils.hebrew import is_hebrew, encode_hebrew_numeral, hebrew_term
 from sefaria.utils.util import list_depth
@@ -3089,7 +3089,10 @@ class Library(object):
             title_dict = {}
             trees = self.get_index_forest(with_commentary=with_commentary)
             for tree in trees:
-                title_dict.update(tree.title_dict(lang))
+                try:
+                    title_dict.update(tree.title_dict(lang))
+                except IndexSchemaError as e:
+                    logger.error(u"Error in generating title node dictionary: {}".format(e))
             scache.set_cache_elem(key, title_dict)
             self.local_cache[key] = title_dict
         return title_dict
