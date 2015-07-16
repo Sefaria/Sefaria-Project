@@ -546,52 +546,52 @@ class Test_comparisons(object):
 
 class Test_Talmud_at_Second_Place(object):
     def test_simple_ref(self):
-        assert Ref("New Zohar 1.15b.3").sections[1] == 30
-        assert Ref("New Zohar 1.15a.3").sections[1] == 29
-        assert Ref("New Zohar 2.15b.3").sections[1] == 30
-        assert Ref("New Zohar 2.15a.3").sections[1] == 29
-        assert Ref("New Zohar 3.15b.3").sections[1] == 30
-        assert Ref("New Zohar 3.15a.3").sections[1] == 29
+        assert Ref("Zohar 1.15b.3").sections[1] == 30
+        assert Ref("Zohar 1.15a.3").sections[1] == 29
+        assert Ref("Zohar 2.15b.3").sections[1] == 30
+        assert Ref("Zohar 2.15a.3").sections[1] == 29
+        assert Ref("Zohar 3.15b.3").sections[1] == 30
+        assert Ref("Zohar 3.15a.3").sections[1] == 29
 
-        assert Ref("New Zohar 1.15b").sections[1] == 30
-        assert Ref("New Zohar 1.15a").sections[1] == 29
-        assert Ref("New Zohar 2.15b").sections[1] == 30
-        assert Ref("New Zohar 2.15a").sections[1] == 29
-        assert Ref("New Zohar 3.15b").sections[1] == 30
-        assert Ref("New Zohar 3.15a").sections[1] == 29
+        assert Ref("Zohar 1.15b").sections[1] == 30
+        assert Ref("Zohar 1.15a").sections[1] == 29
+        assert Ref("Zohar 2.15b").sections[1] == 30
+        assert Ref("Zohar 2.15a").sections[1] == 29
+        assert Ref("Zohar 3.15b").sections[1] == 30
+        assert Ref("Zohar 3.15a").sections[1] == 29
 
-        assert Ref("New Zohar 1.15b.3").sections[2] == 3
-        assert Ref("New Zohar 2.15b.3").sections[2] == 3
-        assert Ref("New Zohar 3.15b.3").sections[2] == 3
+        assert Ref("Zohar 1.15b.3").sections[2] == 3
+        assert Ref("Zohar 2.15b.3").sections[2] == 3
+        assert Ref("Zohar 3.15b.3").sections[2] == 3
 
     def test_range(self):
-        assert Ref("New Zohar 1.10a:1 - 15b.3").toSections[1] == 30
-        assert Ref("New Zohar 1.10a:1 - 15a.3").toSections[1] == 29
-        assert Ref("New Zohar 2.10a:1 - 15b.3").toSections[1] == 30
-        assert Ref("New Zohar 2.10a:1 - 15a.3").toSections[1] == 29
-        assert Ref("New Zohar 3.10a:1 - 15b.3").toSections[1] == 30
-        assert Ref("New Zohar 3.10a:1 - 15a.3").toSections[1] == 29
+        assert Ref("Zohar 1.10a:1 - 15b.3").toSections[1] == 30
+        assert Ref("Zohar 1.10a:1 - 15a.3").toSections[1] == 29
+        assert Ref("Zohar 2.10a:1 - 15b.3").toSections[1] == 30
+        assert Ref("Zohar 2.10a:1 - 15a.3").toSections[1] == 29
+        assert Ref("Zohar 3.10a:1 - 15b.3").toSections[1] == 30
+        assert Ref("Zohar 3.10a:1 - 15a.3").toSections[1] == 29
 
-        assert Ref("New Zohar 1.10a - 15b").toSections[1] == 30
-        assert Ref("New Zohar 1.10a - 15a").toSections[1] == 29
-        assert Ref("New Zohar 2.10a - 15b").toSections[1] == 30
-        assert Ref("New Zohar 2.10a - 15a").toSections[1] == 29
-        assert Ref("New Zohar 3.10a - 15b").toSections[1] == 30
-        assert Ref("New Zohar 3.10a - 15a").toSections[1] == 29
+        assert Ref("Zohar 1.10a - 15b").toSections[1] == 30
+        assert Ref("Zohar 1.10a - 15a").toSections[1] == 29
+        assert Ref("Zohar 2.10a - 15b").toSections[1] == 30
+        assert Ref("Zohar 2.10a - 15a").toSections[1] == 29
+        assert Ref("Zohar 3.10a - 15b").toSections[1] == 30
+        assert Ref("Zohar 3.10a - 15a").toSections[1] == 29
 
     def test_cross_volume_range(self):
-        assert Ref("New Zohar 1.50a - 2.15b").toSections[1] == 30
-        assert Ref("New Zohar 1.50a - 2.15a").toSections[1] == 29
-        assert Ref("New Zohar 2.50a - 3.15b").toSections[1] == 30
-        assert Ref("New Zohar 2.50a - 3.15a").toSections[1] == 29
-        assert Ref("New Zohar 1.50a - 3.15b").toSections[1] == 30
-        assert Ref("New Zohar 1.50a - 3.15a").toSections[1] == 29
+        assert Ref("Zohar 1.50a - 2.15b").toSections[1] == 30
+        assert Ref("Zohar 1.50a - 2.15a").toSections[1] == 29
+        assert Ref("Zohar 2.50a - 3.15b").toSections[1] == 30
+        assert Ref("Zohar 2.50a - 3.15a").toSections[1] == 29
+        assert Ref("Zohar 1.50a - 3.15b").toSections[1] == 30
+        assert Ref("Zohar 1.50a - 3.15a").toSections[1] == 29
 
     def test_FAILING_range_short_form(self):
-        assert Ref("New Zohar 2.15a - 15b").sections[1] == 29
-        assert Ref("New Zohar 2.15a - 15b").toSections[1] == 30
-        assert Ref("New Zohar 2.15a - b").sections[1] == 29
-        assert Ref("New Zohar 2.15a - b").toSections[1] == 30
+        assert Ref("Zohar 2.15a - 15b").sections[1] == 29
+        assert Ref("Zohar 2.15a - 15b").toSections[1] == 30
+        assert Ref("Zohar 2.15a - b").sections[1] == 29
+        assert Ref("Zohar 2.15a - b").toSections[1] == 30
 
 class Test_set_construction_from_ref(object):
     def test_ref_noteset(self):
