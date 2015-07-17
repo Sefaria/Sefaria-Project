@@ -1254,6 +1254,7 @@ sjs.lexicon = {
 		'he' : ['Tanach']
 	},
 
+
 	enabledTexts : {}, //TODO: if we want a more specific activation mechanism, we might need to store info server side.
 
 	//----------------------- INIT --------------------------------
@@ -1275,7 +1276,14 @@ sjs.lexicon = {
 	// ---------------------preparation functions--------------------------
 	isLexiconEnabled: function (currentText, lang, params){
 		//console.log(currentText);
-		return params['url_enabled'] && sjs.lexicon.enabledCategories[lang].indexOf(currentText.categories[0]) > -1
+		if (params['url_enabled']){
+			if(sjs.lexicon.enabledCategories[lang].indexOf(currentText.categories[0]) > -1) {
+				return true;
+			}else if('commentator' in currentText && currentText['commentator'] == 'Rashi' && lang == 'he'){//hack. find better way
+				return true;
+			}
+		}
+		return false;
 	},
 
 
@@ -1288,7 +1296,7 @@ sjs.lexicon = {
 		wrapped = "";
 		//words = text.split(/[ ]+/);
 		//regex to match hebrew, but not spaces, colons, maqqaf or parshiya indicator (פ) or (ס)
-		var regexs = /([\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05f4]+)(?!\))/g;
+		var regexs = /([\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05f3\'\"]+)(?!\))/g;
 		wrapped = text.replace(regexs, "<span class='lexicon-link'>$1</span>")
 		/*for (var i = 0; i < words.length; i++ ) {
 			wrapped += "<span class='lexiconLink'>" + words[i] + "</span> ";
@@ -1360,6 +1368,9 @@ sjs.lexicon = {
 		if('definition' in content){
 			 html += content['definition']
 		}
+		if('notes' in content){
+			html+='<span class="notes">' + content['notes'] + '</span>';
+		}
 		if('senses' in content){
 			html += '<ol class="senses">';
 			for(var i= 0; i< content['senses'].length; i++) { //recursion
@@ -1374,17 +1385,18 @@ sjs.lexicon = {
 	renderLexiconAttribution: function(entry){
 		//console.log(entry);
 		var lexicon_dtls = entry['parent_lexicon_details'];
+		var sourceLink = '', attributionLink = '';
 		if('source_url' in lexicon_dtls){
 			var sourceLink = $('<a>',{
 				text: 'Definitions from: ' + ('source' in lexicon_dtls ? lexicon_dtls['source'] : lexicon_dtls['source_url']),
 				href: lexicon_dtls['source_url']
 			});
-		}else{
-			var sourceLink = '';
+		}else if ('source' in lexicon_dtls){
+			var sourceLink = lexicon_dtls['source'];
 		}
 		if('attribution_url' in lexicon_dtls){
 			var attributionLink = $('<a>',{
-				text: 'Created by: ' + ('attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']),
+				text: ('attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']),
 				href: lexicon_dtls['attribution_url']
 			});
 		}else if ('attribution' in lexicon_dtls){
