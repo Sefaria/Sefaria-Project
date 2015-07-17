@@ -1325,6 +1325,7 @@ class TextFamily(object):
 
         d["textDepth"]       = getattr(self._inode, "depth", None)
         d["sectionNames"]    = getattr(self._inode, "sectionNames", None)
+        d["addressTypes"]    = getattr(self._inode, "addressTypes", None)
         if getattr(self._inode, "lengths", None):
             d["lengths"]     = getattr(self._inode, "lengths")
             if len(d["lengths"]):
