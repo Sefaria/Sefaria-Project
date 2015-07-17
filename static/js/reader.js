@@ -1178,7 +1178,7 @@ $(function() {
 			return;
 		}
 
-		var url = "/api/locktext/" + sjs.current.book + "/" + lang + "/" + version;
+		var url = "/api/locktext/" + sjs.current.indexTitle + "/" + lang + "/" + version;
 		var unlocking = $(this).hasClass("unlock");
 		if (unlocking) {
 			url += "?action=unlock";
