@@ -54,7 +54,7 @@ sjs.library = {
           sjs.alert.message(data.error);
           return;
         }
-        settings = settings || {};
+        var settings = settings || {};
         key = this._textKey(data.ref, settings);
         this._texts[key] = data;
         if (data.ref == data.sectionRef) {

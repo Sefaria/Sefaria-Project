@@ -9,21 +9,22 @@ var ReaderApp = React.createClass({
       contents.push({type: "TextList", ref: this.props.initialRef, scrollTop: 0 });
     }
     return {
+      contents: contents,
       currentFilter: this.props.initialFilter || [],
       recentFilters: [],
-      contents: contents,
       settings: this.props.initialSettings || {
-        language: "english",
-        layout: "segmented",
-        color: "light",
-        fontSize: 62.5
+        language:      "english",
+        layoutDefault: "segmented",
+        layoutTalmud:  "continuous",
+        layoutTanach:  "segmented",
+        color:         "light",
+        fontSize:      62.5
       }
     }
   },
   componentDidMount: function() {
     window.addEventListener("popstate", this.handlePopState);
     window.addEventListener("scroll", this.handleScroll);
-    window.addEventListener("click", this.handleClick);
 
     var hist = this.makeHistoryState()
     history.replaceState(hist.state, hist.title, hist.url);
@@ -31,20 +32,26 @@ var ReaderApp = React.createClass({
   componentWillUnmount: function() {
     window.removeEventListener("popstate", this.handlePopState);
     window.removeEventListener("scroll", this.handleScroll);
-    window.removeEventListener("click", this.handleClick);
   },
   componentDidUpdate: function() {
     this.updateHistoryState();
   },
   shouldHistoryUpdate: function() {
-    if (!history.state) { return true; }
+    if (!history.state) { 
+      return true;
+    }
     var current = this.state.contents.slice(-1)[0];
-    if (history.state.type !== current.type) { return true; }
+    if (history.state.type !== current.type) { 
+      return true;
+    }
     if (current.type === "TextColumn") {
-      if (current.refs.slice(-1)[0] !== history.state.refs.slice(-1)[0]) { return true; }
-    }  
-    if (current.type === "TextList") {
-      if (current.ref !== history.state.ref) { return true; }
+      if (current.refs.slice(-1)[0] !== history.state.refs.slice(-1)[0]) {
+        return true;
+      }
+    } else if (current.type === "TextList") {
+      if (current.ref !== history.state.ref) {
+        return true;
+      }
     }
     return false;  
   },
@@ -65,20 +72,19 @@ var ReaderApp = React.createClass({
   },
   updateHistoryState: function() {
     if (this.shouldHistoryUpdate()) {
-      /*
-      var current = this.state.contents.slice(-1)[0];
-      if (current.type !== "TextColumn" || (history.state && history.state.type !== "TextColumn")) {
-        // TODO - figure how do to without this timer which is needed because this function 
-        // gets called before the TextSegments containted within are rendered.
-        setTimeout(function() { $(window).scrollTop(current.scrollTop) }.bind(this), 5);        
-      }
-      */
       var hist = this.makeHistoryState();
       history.pushState(hist.state, hist.title, hist.url);
+      if (hist.state.type == "TextColumn") {
+        sjs.track.open(hist.title);
+      } else if (hist.state.type == "TextList") {
+        sjs.track.event("Reader", "Open Close Reader", hist.title);
+      }      
     }
   },
   handlePopState: function(event) {
     if (event.state) {
+      var kind = this.state.contents.slice(-1)[0].type + " to " + event.state.type;
+      sjs.track.event("Reader", "Pop State", kind);
       this.setState({contents: [event.state]});
     }
   },
@@ -88,14 +94,6 @@ var ReaderApp = React.createClass({
       this.state.contents.slice(-1)[0].scrollTop = scrollTop;
     }
     this.adjustInfiniteScroll();
-  },
-  handleClick: function(event) {
-    if ($(event.target).hasClass("refLink")) {
-      var ref = $(event.target).attr("data-ref");
-      this.showBaseText(ref);
-      event.stopPropagation();
-      event.preventDefault();
-    }
   },
   adjustInfiniteScroll: function() {
     var current = this.state.contents[this.state.contents.length-1];
@@ -116,6 +114,7 @@ var ReaderApp = React.createClass({
           current.refs.push(data.next);
           this.setState({contents: this.state.contents});
         }
+        sjs.track.event("Reader", "Infinite Scroll", "Down");
       }
     }
   },
@@ -124,17 +123,15 @@ var ReaderApp = React.createClass({
     this.setState({contents: this.state.contents });
   },
   showBaseText: function(ref) {
-    if (ref) {
-      this.setState({
-        contents: [{type: "TextColumn", refs: [ref], scrollTop: 0 }],
-        currentFilter: [],
-        recentFilters: []
-      });
-
-    } else {
-      this.state.contents = [this.state.contents[0]];
-      this.setState({contents: this.state.contents});
-    }
+    this.setState({
+      contents: [{type: "TextColumn", refs: [ref], scrollTop: 0 }],
+      currentFilter: [],
+      recentFilters: []
+    });
+  },
+  backToText: function() {
+    this.state.contents = [this.state.contents[0]];
+    this.setState({contents: this.state.contents});
   },
   setFilter: function(filter, updateRecent) {
     if (updateRecent) {
@@ -189,15 +186,16 @@ var ReaderApp = React.createClass({
       var step = 1.15;
       var size = this.state.settings.fontSize;
       value = (value === "smaller" ? size/step : size*step);
-      this.state.settings.fontSize = value;
-    } else {
-      this.state.settings[option] = value;
+    } else if (option === "layout") {
+      var category = this.currentCategory();
+      var option = category === "Tanach" || category === "Talmud" ? "layout" + category : "layoutDefault";
     }
 
+    this.state.settings[option] = value;
     this.setState({settings: this.state.settings});
-    $.cookie(option, value);
+    $.cookie(option, value, {path: "/"});
     if (option === "language") {
-      $.cookie("contentLang", value);
+      $.cookie("contentLang", value, {path: "/"});
     }
 
     if (option === "color") {
@@ -216,15 +214,27 @@ var ReaderApp = React.createClass({
       $(window).scrollTop(0);
     }
   },
-  currentBook: function() {
+  currentData: function() {
     var item = this.state.contents.slice(-1)[0];
     var ref  = item.ref || item.refs.slice(-1)[0];
-    var book = sjs.library.text(ref).book;
-    return book;
+    var data = sjs.library.text(ref);
+    return data; 
+  },
+  currentBook: function() {
+    return this.currentData().book;
+  },
+  currentCategory: function() {
+    var data = this.currentData();
+    return data ? data.categories[0] : null;
+  },
+  currentLayout: function() {
+    var category = this.currentCategory();
+    var option = category === "Tanach" || category === "Talmud" ? "layout" + category : "layoutDefault";
+    return this.state.settings[option];  
   },
   render: function() {
-    var classes = {};
-    classes[this.state.settings.layout]   = 1;
+    var classes  = {};
+    classes[this.currentLayout()]         = 1;
     classes[this.state.settings.language] = 1;
     classes[this.state.settings.color]    = 1;
     classes = cx(classes);
@@ -256,6 +266,7 @@ var ReaderApp = React.createClass({
             setScrollTop={this.setScrollTop}
             showTextList={this.showTextList}
             showBaseText={this.showBaseText} 
+            backToText={this.backToText} 
             key={item.ref} />
         );
       }
@@ -267,7 +278,8 @@ var ReaderApp = React.createClass({
           navPrevious={this.navPrevious}
           currentBook={this.currentBook}
           settings={this.state.settings}
-          setOption={this.setOption} />
+          setOption={this.setOption}
+          currentLayout={this.currentLayout} />
           <div id="readerContent" style={style}>
             {items}
           </div>
@@ -320,6 +332,7 @@ var ReaderControls = React.createClass({
           name="layout"
           options={layoutOptions}
           setOption={this.props.setOption}
+          currentLayout={this.props.currentLayout}
           settings={this.props.settings} />) : "";
 
     var colorOptions = [
@@ -394,6 +407,7 @@ var ToggleSet = React.createClass({
   },
   render: function() {
     var classes = cx({toggleSet: 1, separated: this.props.separated });
+    var value = this.props.name === "layout" ? this.props.currentLayout() : this.props.settings[this.props.name];
     var width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
     var style = {width: (width/this.props.options.length) + "%"};
     return (
@@ -405,7 +419,7 @@ var ToggleSet = React.createClass({
                 name={option.name}
                 key={option.name}
                 set={this.props.name}
-                on={this.props.settings[this.props.name] == option.name}
+                on={value == option.name}
                 setOption={this.props.setOption}
                 style={style}
                 image={option.image}
@@ -423,6 +437,7 @@ var ToggleOption = React.createClass({
   },
   handleClick: function() {
     this.props.setOption(this.props.set, this.props.name);
+    sjs.track.event("Reader", "Display Option Click", this.props.set + " - " + this.props.name);
   },
   render: function() {
     var classes = cx({toggleOption: 1, on: this.props.on });
@@ -510,7 +525,7 @@ var TextRange = React.createClass({
         en2 = en2.pad(length, "");
         he2 = he2.pad(length, "");
         var baseRef = data.book + " " + data.sections.slice(0,-2).join(":");
-        console.log(baseRef);
+
         start = (n == 0 ? start : 1);
         for (var i = 0; i < length; i++) {
           var section = n+data.sections.slice(-2)[0];
@@ -571,12 +586,17 @@ var TextRange = React.createClass({
       $(this).css({top: top, left: right});
     });
   },
-  handleResize: function(e) {
+  handleResize: function() {
     if (this.props.basetext) { this.placeSegmentNumbers(); }
   },
-  handleClick: function() {
-    if (this.props.openOnClick) {
+  handleClick: function(event) {
+    if ($(event.target).hasClass("refLink")) {
+      var ref = $(event.target).attr("data-ref");
+      this.props.showBaseText(ref);
+      sjs.track.event("Reader", "Ref Link Click", ref)
+    } else if (this.props.openOnClick) {
       this.props.showBaseText(this.props.sref);
+      sjs.track.event("Reader", "Click Text from TextList", this.props.sref);
     }
   },
   render: function() {
@@ -594,10 +614,6 @@ var TextRange = React.createClass({
       );
     }.bind(this));
     var classes = {textRange: 1, basetext: this.props.basetext };
-    if (this.props.settings) {
-      classes[this.props.settings.layout] = 1;
-      classes[this.props.settings.language] = 1;
-    }
     classes = cx(classes);
     return (
       <div className={classes} onClick={this.handleClick}>
@@ -618,15 +634,16 @@ var TextSegment = React.createClass({
   handleClick: function() {
     if (this.props.showTextList) {
       this.props.showTextList(this.props.sref);
+      sjs.track.event("Reader", "Text Segment Click", this.props.sref);
     }
   },
   render: function() {
     var linkCount = this.props.linkCount ? (<span className="linkCount">{this.props.linkCount}</span>) : "";
     var segmentNumber = this.props.segmentNumber ? (<span className="segmentNumber">{this.props.segmentNumber}</span>) : "";          
-    var he = this.props.he || "<span class='enOnly'>" + this.props.en + "</span>";
+    var he = this.props.he || this.props.en;
     var en = sjs.wrapRefLinks(this.props.en);
-    var en = en || "<span class='heOnly'>" + this.props.he + "</span>";
-    var classes=cx({segment: 1, highlight: this.props.highlight});
+    var en = en || this.props.he;
+    var classes=cx({segment: 1, highlight: this.props.highlight, heOnly: !this.props.en, enOnly: !this.props.he});
     return (
       <span className={classes} onClick={this.handleClick}>
         {segmentNumber}
@@ -681,30 +698,52 @@ var TextList = React.createClass({
   showAllFilters: function() {
     this.setState({showAllFilters: true});
     $(window).scrollTop(0);
+    sjs.track.event("Reader", "More > Click", "1");
   },
   hideAllFilters: function() {
     this.setState({showAllFilters: false});
     $(window).scrollTop(0);
   },
   backToText: function() {
-    this.props.showBaseText();
+    this.props.backToText();
+    sjs.track.event("Reader", "Back To Text", "Anchor Text Click");
   },
   render: function() {
-    var ref     = this.props.sref;
-    var summary = sjs.library.linkSummary(ref);
-    var count   = sjs.library.linkCount(ref);        
-    var classes = cx({textList: 1, main: this.props.main });
+    var ref      = this.props.sref;
+    var summary  = sjs.library.linkSummary(ref);
+    var count    = sjs.library.linkCount(ref);        
+    var classes  = cx({textList: 1, main: this.props.main });
+    var topLinks = sjs.library.topLinks(ref).map(function(link){ return link.book; });
     var refs = this.state.links.filter(function(link) {
         return (this.props.currentFilter.length == 0 ||
                 $.inArray(link.category, this.props.currentFilter) !== -1 || 
                 $.inArray(link.commentator, this.props.currentFilter) !== -1 );
-    }.bind(this)).map(function(link) { 
+    }.bind(this)).sort(function(a, b) {
+      var ia = topLinks.indexOf(a.commentator);
+      var ib = topLinks.indexOf(b.commentator);
+      var ia = ia === -1 ? 9999 : ia;
+      var ib = ib === -1 ? 9999 : ib;
+      if ( ia === ib ) {
+        return a.sourceRef > b.sourceRef;
+      } else {
+        return ia > ib;
+      }
+    }).map(function(link) { 
       return link.sourceRef; 
-    }).sort(function(a, b) {
-      return a > b;
     });
-    var message = !this.state.loaded ? (<div className='textListMessage'>Loading...</div>)  : 
-                    (refs.length == 0 ? (<div className='textListMessage'>No connections known.</div>) : "");
+    var filter = this.props.currentFilter;
+    var emptyMessageEn = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";
+    var emptyMessageHe = "אין קשרים ידועים"        + (filter.length ? " ל" + filter.join(", ") : "") + ".";
+    var message = !this.state.loaded ? 
+                    (<div className='textListMessage'>
+                      <span className="en">Loading...</span>
+                      <span className="he">טעינה...</span>
+                      </div>)  : 
+                  (refs.length == 0 ? 
+                    (<div className='textListMessage'>
+                      <span className="en">{emptyMessageEn}</span>
+                      <span className="he">{emptyMessageHe}</span>
+                    </div>) : "");
     var texts = (refs.map(function(ref) {
                       return (
                         <TextRange 
@@ -718,11 +757,11 @@ var TextList = React.createClass({
     return (
       <div className={classes}>
         <div className="textListTop">
-          <div className="anchorText">
-            <div className="textBox" onClick={this.backToText}>
+          <div className="anchorText" onClick={this.backToText}>
+            <div className="textBox">
               <TextRange sref={this.props.sref} />
-              <div className="fader"></div>
             </div>
+            <div className="fader"></div>
           </div>
           {this.state.showAllFilters ? "" : 
           <TopFilterSet 
@@ -799,7 +838,12 @@ var TopFilterSet = React.createClass({
       }
       if (i == topLinks.length) {
         var index = sjs.library.index(filter);
-        var annotatedFilter = {book: filter, heBook: index.heTitle, category: index.categories[0] };
+        if (index) {
+          var annotatedFilter = {book: filter, heBook: index.heTitle, category: index.categories[0] };
+        } else {
+          var annotatedFilter = {book: filter, heBook: filter, category: "Other" };
+        }
+
         topLinks = [annotatedFilter].concat(topLinks).slice(0,5);
       } else {
         // topLinks.move(i, 0); 
@@ -815,7 +859,8 @@ var TopFilterSet = React.createClass({
                 count={book.count}
                 updateRecent={false}
                 setFilter={this.props.setFilter}
-                on={$.inArray(book.book, this.props.filter) !== -1} />);
+                on={$.inArray(book.book, this.props.filter) !== -1}
+                onClick={function(){ sjs.track.event("Reader", "Top Filter Click", "1");}} />);
     }.bind(this));
 
     // Add "More >" button if needed 
@@ -879,6 +924,7 @@ var CategoryFilter = React.createClass({
   handleClick: function() {
     this.props.setFilter(this.props.category, this.props.updateRecent);
     this.props.hideAllFilters();
+    sjs.track.event("Reader", "Category Filter Click", this.props.category);
   },
   render: function() {
     var textFilters = this.props.books.map(function(book, i) {
@@ -915,6 +961,7 @@ var CategoryFilter = React.createClass({
 var TextFilter = React.createClass({
   handleClick: function() {
     this.props.setFilter(this.props.book, this.props.updateRecent);
+    sjs.track.event("Reader", "Text Filter Click", this.props.book);
     if (this.props.hideAllFilters) {
       this.props.hideAllFilters();
     }

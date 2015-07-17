@@ -92,6 +92,7 @@ ORDER = [
             'Sefer Shoftim',
         "Shulchan Arukh",
     "Kabbalah",
+        "Zohar",
     'Liturgy',
         'Siddur',
         'Piyutim',

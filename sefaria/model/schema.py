@@ -17,7 +17,6 @@ from . import abstract as abst
 from sefaria.system.exceptions import InputError, IndexSchemaError
 from sefaria.utils.hebrew import decode_hebrew_numeral, encode_hebrew_numeral, hebrew_term
 
-
 """
                 -----------------------------------------
                  Titles, Terms, and Term Schemes
@@ -67,6 +66,11 @@ class TitleGroup(object):
         if lang is None:
             return [t["text"] for t in self.titles]
         return [t["text"] for t in self.titles if t["lang"] == lang]
+
+    def secondary_titles(self, lang=None):
+        if lang is None:
+            raise Exception("TitleGroup.secondary_titles() needs a lang")
+        return [t for t in self.all_titles(lang) if t != self.primary_title(lang)]
 
     def remove_title(self, text, lang):
         self.titles = [t for t in self.titles if not (t["lang"] == lang and t["text"] == text)]
@@ -353,6 +357,13 @@ class TreeNode(object):
         """
         return not self.parent and not self.children
 
+    def traverse_to_string(self, callback, depth=0, **kwargs):
+        st = callback(self, depth, **kwargs)
+        if self.has_children():
+            for child in self.children:
+                st += child.traverse_to_string(callback, depth + 1, **kwargs)
+        return st
+
     def serialize(self, **kwargs):
         d = {}
         if self.has_children():
@@ -435,7 +446,7 @@ class TitledTreeNode(TreeNode):
         """
         return self.title_dict(lang).keys()
 
-    def title_dict(self, lang="en", baselist=[]):
+    def title_dict(self, lang="en", baselist=None):
         """
         Recursive function that generates a map from title to node
         :param node: the node to start from
@@ -443,10 +454,17 @@ class TitledTreeNode(TreeNode):
         :param baselist: list of starting strings that lead to this node
         :return: map from title to node
         """
+        if baselist is None:
+            baselist = []
+
         title_dict = {}
         thisnode = self
 
         this_node_titles = [title["text"] for title in self.get_titles() if title["lang"] == lang and title.get("presentation") != "alone"]
+        if (not len(this_node_titles)) and (not self.is_default()):
+            error = u'No "{}" title found for schema node: "{}"'.format(lang, self.key)
+            error += u', child of "{}"'.format(self.parent.full_title("en")) if self.parent else ""
+            raise IndexSchemaError(error)
         if baselist:
             node_title_list = [baseName + sep + title for baseName in baselist for sep in self.title_separators for title in this_node_titles]
         else:
@@ -764,9 +782,8 @@ class ArrayMapNode(NumberedTitledTreeNode):
     Used as the leaf node of alternate structures of Index records.
     (e.g., Parsha structures of chapter/verse stored Tanach, or Perek structures of Daf/Line stored Talmud)
     """
-    #Is there a better way to inherit these from the super?
-    required_param_keys = ["depth", "addressTypes", "sectionNames", "wholeRef", "refs"]
-    optional_param_keys = ["lengths"]
+    required_param_keys = ["depth", "wholeRef"]
+    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
     has_key = False  # This is not used as schema for content
 
     def get_ref_from_sections(self, sections):
@@ -777,22 +794,57 @@ class ArrayMapNode(NumberedTitledTreeNode):
     def serialize(self, **kwargs):
         d = super(ArrayMapNode, self).serialize(**kwargs)
         if kwargs.get("expand_refs"):
-
-            def expand_ref(tref):
+            if getattr(self, "includeSections", None):
                 from . import text
-                from sefaria.utils.util import text_preview
 
-                oref = text.Ref(tref)
-                if oref.is_spanning():
-                    oref = oref.split_spanning_ref()[0]
-                t = text.TextFamily(oref, context=0, pad=False, commentary=False)
-                preview = text_preview(t.text, t.he) if (t.text or t.he) else []
+                refs         = text.Ref(self.wholeRef).split_spanning_ref()
+                first, last  = refs[0], refs[-1]
+                offset       = first.sections[-2]-1 if first.is_segment_level() else first.sections[-1]-1
+                depth        = len(first.index.nodes.sectionNames) - len(first.section_ref().sections)
 
-                return preview
+                d["refs"] = [r.normal() for r in refs]
+                d["addressTypes"] = d.get("addressTypes", []) + first.index.nodes.addressTypes[depth:]
+                d["sectionNames"] = d.get("sectionNames", []) + first.index.nodes.sectionNames[depth:]
+                d["depth"] += 1
+                d["offset"] = offset
 
-            d["wholeRefPreview"] = expand_ref(self.wholeRef)
-            d["refsPreview"] = map(expand_ref, self.refs)
+            d["wholeRefPreview"] = self.expand_ref(self.wholeRef, kwargs.get("he_text_ja"), kwargs.get("en_text_ja"))
+            if d.get("refs"):
+                d["refsPreview"] = []
+                for r in d["refs"]:
+                    d["refsPreview"].append(self.expand_ref(r, kwargs.get("he_text_ja"), kwargs.get("en_text_ja")))
+            else:
+                d["refsPreview"] = None
         return d
+
+    # Move this over to Ref and cache it?
+    def expand_ref(self, tref, he_text_ja = None, en_text_ja = None):
+        from . import text
+        from sefaria.utils.util import text_preview
+
+        oref = text.Ref(tref)
+        if oref.is_spanning():
+            oref = oref.first_spanned_ref()
+        if he_text_ja is None and en_text_ja is None:
+            t = text.TextFamily(oref, context=0, pad=False, commentary=False)
+            preview = text_preview(t.text, t.he) if (t.text or t.he) else []
+        else:
+            preview = text_preview(en_text_ja.subarray_with_ref(oref).array(), he_text_ja.subarray_with_ref(oref).array())
+
+        return preview
+
+    def validate(self):
+        if getattr(self, "depth", None) is None:
+            raise IndexSchemaError("Missing Parameter 'depth' in {}".format(self.__class__.__name__))
+        if self.depth == 0:
+            TitledTreeNode.validate(self)  # Skip over NumberedTitledTreeNode validation, which requires fields we don't have
+        elif self.depth > 0:
+            for k in ["addressTypes", "sectionNames", "refs"]:
+                if getattr(self, k, None) is None:
+                    raise IndexSchemaError("Missing Parameter '{}' in {}".format(k, self.__class__.__name__))
+            super(ArrayMapNode, self).validate()
+
+
 """
                 -------------------------
                  Index Schema Tree Nodes
@@ -836,12 +888,6 @@ class SchemaNode(TitledTreeNode):
 
         if self.default and self.key != "default":
             raise IndexSchemaError("'default' nodes need to have key name 'default'")
-
-    def traverse_to_string(self, callback, depth=0, **kwargs):
-        st = callback(self, depth, **kwargs)
-        for child in self.children:
-            st += child.traverse_to_string(callback, depth + 1, **kwargs)
-        return st
 
     def create_content(self, callback=None, *args, **kwargs):
         """
@@ -904,8 +950,14 @@ class SchemaNode(TitledTreeNode):
             res["heTitleVariants"] = self.full_titles("he")
         if self.index.has_alt_structures():
             res['alts'] = {}
+            if not self.has_children(): #preload text and pass it down to the preview generation
+                from . import text
+                he_text_ja = text.TextChunk(self.ref(), "he").ja()
+                en_text_ja = text.TextChunk(self.ref(), "en").ja()
+            else:
+                he_text_ja = en_text_ja = None
             for key, struct in self.index.get_alt_structures().iteritems():
-                res['alts'][key] = struct.serialize(expand_shared=True, expand_refs=True, expand_titles=True)
+                res['alts'][key] = struct.serialize(expand_shared=True, expand_refs=True, he_text_ja=he_text_ja, en_text_ja=en_text_ja, expand_titles=True)
             del res['alt_structs']
         return res
 

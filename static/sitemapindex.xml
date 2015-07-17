@@ -2,33 +2,43 @@
 		<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 		
 		   <sitemap>
-		      <loc>http://www.sefaria.org/static/static-sitemap.txt</loc>
-		      <lastmod>2014-09-09T13:55:29.549827</lastmod>
+			  <loc>http://www.sefaria.org/static/static-sitemap.txt</loc>
+			  <lastmod>2015-07-06T12:39:41.373520</lastmod>
 		   </sitemap>
 		   
 		   <sitemap>
-		      <loc>http://www.sefaria.org/static/sheets-sitemap.txt</loc>
-		      <lastmod>2014-09-09T13:55:29.549827</lastmod>
+			  <loc>http://www.sefaria.org/static/sheets-sitemap.txt</loc>
+			  <lastmod>2015-07-06T12:39:41.373520</lastmod>
 		   </sitemap>
 		   
 		   <sitemap>
-		      <loc>http://www.sefaria.org/static/texts-sitemap0.txt</loc>
-		      <lastmod>2014-09-09T13:55:29.549827</lastmod>
+			  <loc>http://www.sefaria.org/static/texts-sitemap0.txt</loc>
+			  <lastmod>2015-07-06T12:39:41.373520</lastmod>
 		   </sitemap>
 		   
 		   <sitemap>
-		      <loc>http://www.sefaria.org/static/texts-sitemap1.txt</loc>
-		      <lastmod>2014-09-09T13:55:29.549827</lastmod>
+			  <loc>http://www.sefaria.org/static/texts-sitemap1.txt</loc>
+			  <lastmod>2015-07-06T12:39:41.373520</lastmod>
 		   </sitemap>
 		   
 		   <sitemap>
-		      <loc>http://www.sefaria.org/static/texts-sitemap2.txt</loc>
-		      <lastmod>2014-09-09T13:55:29.549827</lastmod>
+			  <loc>http://www.sefaria.org/static/texts-sitemap2.txt</loc>
+			  <lastmod>2015-07-06T12:39:41.373520</lastmod>
 		   </sitemap>
 		   
 		   <sitemap>
-		      <loc>http://www.sefaria.org/static/texts-sitemap3.txt</loc>
-		      <lastmod>2014-09-09T13:55:29.549827</lastmod>
+			  <loc>http://www.sefaria.org/static/texts-sitemap3.txt</loc>
+			  <lastmod>2015-07-06T12:39:41.373520</lastmod>
+		   </sitemap>
+		   
+		   <sitemap>
+			  <loc>http://www.sefaria.org/static/texts-sitemap4.txt</loc>
+			  <lastmod>2015-07-06T12:39:41.373520</lastmod>
+		   </sitemap>
+		   
+		   <sitemap>
+			  <loc>http://www.sefaria.org/static/texts-sitemap5.txt</loc>
+			  <lastmod>2015-07-06T12:39:41.373520</lastmod>
 		   </sitemap>
 		   
 		</sitemapindex>

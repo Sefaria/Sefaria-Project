@@ -16,9 +16,58 @@ def remove_refs_with_false():
     """
     model.LinkSet({"refs": False}).delete()
     model.HistorySet({"new.refs": False}).delete()
-    #db.links.remove({"refs": False})
-    #db.history.remove({"new.refs": False})
-    #db.history.find({"new.refs": False})
+
+
+"""
+Detect any links that contain Refs we can't understand.
+"""
+def broken_links(auto_links = False, manual_links = False, delete_links = False, check_text_exists=False):
+    links = model.LinkSet()
+    broken_links_list = []
+    for link in links:
+        errors = [0,0,0,0]
+        second = False
+        try:
+            rf1 = model.Ref(link.refs[0])
+            errors[0] = 1
+            if check_text_exists and rf1.text().is_empty():
+                raise Exception("no text at this Ref")
+            errors[1] = 1
+            rf2 = model.Ref(link.refs[1])
+            errors[2] = 1
+            if check_text_exists and rf2.text().is_empty():
+                raise Exception("no text at this Ref")
+            errors[3] = 1
+        except:
+            if link.auto:
+                if auto_links is False:
+                    continue
+            else:
+                if manual_links is False:
+                    continue
+            link_type = "auto" if link.auto else "manual"
+            error_code = sum(errors)
+            if error_code == 0:
+                error_msg = "Ref 1 is bad"
+            elif error_code == 1:
+                error_msg = "Ref 1 has no text in the system"
+            elif error_code == 2:
+                error_msg = "Ref 2 is bad"
+            elif error_code == 3:
+                error_msg = "Ref 2 has no text in the system"
+
+            broken_links_list.append("{}\t{}\t{}".format(link.refs, link_type, error_msg))
+            if delete_links:
+                link.delete()
+
+    return broken_links_list
+
+
+def remove_bad_links():
+    """
+    Remove any links that contain Refs we can't understand.
+    """
+    broken_links(True, True, True)
 
 
 def remove_old_counts():
@@ -63,3 +112,16 @@ def remove_trailing_empty_segments():
             text.chapter = new_text
             text.save()
             model.VersionState(text.title).refresh()
+
+
+def remove_bad_translation_requests():
+    """
+    Deletes translation requests that contain Refs we don't understand.
+    """
+    trs = model.TranslationRequestSet()
+    for tr in trs:
+        try:
+            model.Ref(tr.ref)
+        except Exception, e:
+            print tr.ref + "\n*** " + str(e)
+            tr.delete()

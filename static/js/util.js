@@ -155,7 +155,7 @@ sjs.track = {
 	event: function(category, action, label) {
 		// Generic event tracker
 		_gaq.push(['_trackEvent', category, action, label]);
-		mixpanel.track(category + " " + action);
+		//mixpanel.track(category + " " + action);
 	},
 	pageview: function(url) {
         _gaq.push(['_trackPageview', url]);
@@ -373,7 +373,7 @@ sjs.availableTextLength = function(counts, depth) {
 	// Pad the shorter of en, he and length with 0s
 	var max = Math.max(en.length, he.length, counts.length, 1);
 	return max;
-}
+};
 
 // No longer used, depends on old version of counts api
 sjs.makeTextDetails = function(data) {
@@ -810,18 +810,23 @@ sjs.textBrowser = {
             var isCommentary = ($.inArray("Commentary", this._currentText.categories) > -1);
             var schema = sjs.textBrowser._currentSchema;
             var isComplex = schema.has_children();
+            var node = schema;
+            var sections;
+            var maxDepth;
 
             if (isComplex) {
         		var titles = this._path.slice(this._currentText.categories.length + 1);
                 var node_and_sections = schema.get_node_and_sections_from_titles(titles);
-                if (node_and_sections.node.has_children()) {
+                node = node_and_sections.node;
+                sections = node_and_sections.sections;
+                if (node.has_children()) {
                     atSectionLevel = false;
                 } else {
-                    var maxDepth = node_and_sections.node.depth - (isCommentary ? 2 : 1);
-                    atSectionLevel = node_and_sections.sections.length >= maxDepth;
+                    maxDepth = node.depth - (isCommentary ? 2 : 1);
+                    atSectionLevel = sections.length >= maxDepth;
                 }
             } else {
-    			var maxDepth = this._currentText.depth - (isCommentary ? 3 : 2);
+    			maxDepth = this._currentText.depth - (isCommentary ? 3 : 2);
                 atSectionLevel = this._currentDepth >= maxDepth;
             }
 
@@ -829,19 +834,17 @@ sjs.textBrowser = {
                 this.previewText(this.ref());
             } else {
 				// We're not at section level, build another level of section navs
-                if (isComplex && (node_and_sections.sections.length == 0)) {
+                if (isComplex && (sections.length == 0)) {
                     // We're in the middle of a complex text
                     this._currentSections.push(to);
-                    if (node_and_sections.node.has_children()) {
+                    if (node.has_children()) {
                         this.buildComplexTextNav();
                     } else {
                         this.getTextInfo(schema.get_node_url_from_titles(titles));
                     }
     			} else {
-                    var isTalmud      = $.inArray("Talmud", this._currentText.categories) > -1;
-                    var isCommentary  = $.inArray("Commentary", this._currentText.categories) > -1;
                     var section = to.slice(to.lastIndexOf(" "));
-                    section = isTalmud && this._currentDepth == 0 ? dafToInt(section) : parseInt(section);
+                    section = node.addressTypes[this._currentDepth] == "Talmud" ? dafToInt(section) : parseInt(section);
                     this._currentSections.push(section);
                     this._currentDepth = this._currentSections.length;
                     this.buildTextNav();
@@ -880,10 +883,8 @@ sjs.textBrowser = {
 	buildTextNav: function() {
 		// Build the side nav for an individual text's contents
 		// looks at this._currentSections to determine what level of section to show
-		var html          = "";
-		var isTalmud      = $.inArray("Talmud", this._currentText.categories) > -1 && this._currentDepth == 0;   //todo: update to support Marasha, etc.
-		var isBavli       = $.inArray("Bavli", this._currentText.categories) > -1;
-		var isCommentary  = $.inArray("Commentary", this._currentText.categories) > -1;
+		// var isBavli       = $.inArray("Bavli", this._currentText.categories) > -1;
+		// var isCommentary  = $.inArray("Commentary", this._currentText.categories) > -1;
         var schema        = sjs.textBrowser._currentSchema;
         var isComplex     = schema.has_children();
 
@@ -891,17 +892,19 @@ sjs.textBrowser = {
 		//var max = sjs.availableTextLength(this._currentText, depth);
 		var previewSection = this._currentText.preview;
 		var sections       = this._currentSections;
+        var node = schema;
         if (isComplex) {
             var node_and_sections = schema.get_node_and_sections_from_titles(sections);
             sections = node_and_sections.sections;
-            var node = node_and_sections.node;
+            node = node_and_sections.node;
         }
 		for (var i = 0; i < sections.length; i++) {
 			// Zoom in to the right section of the preview
-			var j = (isTalmud && isCommentary && i === 0) ? dafToInt(sections[0]) : sections[i] - 1;
+            var j = node.addressTypes[i] == "Talmud" ? dafToInt(sections[i]) : sections[i] - 1;
 			previewSection = previewSection[j];
 		}
-        html += this.getSectionPreviews(node, previewSection, isComplex, isTalmud);
+        var isTalmud = node.addressTypes[this._currentDepth] == "Talmud";
+        var html = this.getSectionPreviews(node, previewSection, isComplex, isTalmud);
 
 		$("#browserNav").html(html);
 	},
@@ -913,12 +916,7 @@ sjs.textBrowser = {
 				(!isArray(previewSection[i]) && !previewSection[i].he && !previewSection[i].en)) {
 				 continue;
 			} // Skip empty sections
-            var name = "";
-            if (isComplex) {  // todo: Can this method work for both?
-                name = node.sectionNames[this._currentDepth] + " " + (isTalmud ? intToDaf(i) : i+1);
-            } else {
-    			name  = this._currentText.sectionNames[this._currentDepth] + " " + (isTalmud ? intToDaf(i) : i+1);
-            }
+            var name = node.sectionNames[this._currentDepth] + " " + (isTalmud ? intToDaf(i) : i+1);
 			html += "<div class='browserNavItem section'><i class='ui-icon ui-icon-carat-1-e'></i>" + name + "</div>";
 		}
         return html;
@@ -984,7 +982,7 @@ sjs.textBrowser = {
 			html = "<div class='empty'>No text available.</div>";
 		}
 		var isCommentary = ($.inArray("Commentary", sjs.textBrowser._currentText.categories) > -1);
-		var isTalmud = ($.inArray("Talmud", sjs.textBrowser._currentText.categories) > -1);
+		var isTalmud = ($.inArray("Talmud", sjs.textBrowser._currentText.categories) > -1); // In this case, we can leave the old logic.  Only talmud has no line numbers displayed on preview.
 		for (var i = 0; i < longer.length; i++) {
 			if (isCommentary) {
 				var heLength = data.he[i] ? data.he[i].length : 0;
@@ -1148,7 +1146,7 @@ sjs.getFirstExistingTextSection = function(counts){
     //finds the first available text in a chapter element.
     return sjs.findFirst(counts);
 
-}
+};
 
 sjs.findFirst = function(arr){
     //iterates and recures until finds non empty text elem.
@@ -1171,7 +1169,7 @@ sjs.findFirst = function(arr){
         }
 	}
     return false;
-}
+};
 
 sjs.deleteTextButtonHandler = function(e) {
 	// handle a click to a deleteVersionButton
@@ -1403,7 +1401,7 @@ sjs.makeRefRe = function(titles) {
 	var books = "(" + titles.map(RegExp.escape).join("|")+ ")";
 	var refReStr = books + " (\\d+[ab]?)(?:[:., ]+)?(\\d+)?(?:(?:[\\-–])?(\\d+[ab]?)?(?:[:., ]+)?(\\d+)?)?";
 	return new RegExp(refReStr, "gi");	
-}
+};
 
 
 sjs.titlesInText = function(text) {
@@ -1411,7 +1409,7 @@ sjs.titlesInText = function(text) {
 	return sjs.books.filter(function(title) {
 		return (text.indexOf(title) > -1);
 	});
-}
+};
 
 
 sjs.wrapRefLinks = function(text) {
@@ -1450,12 +1448,12 @@ sjs.wrapRefLinks = function(text) {
         return r;
     };
 	return text.replace(refRe, replacer);
-}
+};
 
 
 function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	
-	/* check the user inputed text ref
+	/* check the user inputted text ref
 	   give feedback to make it correct to a certain level of specificity
 	   talk to the server when needed to find section names
 		* level -- how deep the ref should go - (0: segment, 1: section, etc)
@@ -1570,6 +1568,52 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 					$ok.addClass("inactive");
                     var hasDefault = false;
 
+                    function addTalmudTests(startingRe, seperator, promptAddition) {
+                        sjs.ref.tests.push(
+                            {test: RegExp("^" + startingRe, "i"),
+                             msg: "Enter a <b>Daf</b> of " + data.title + " to add, e.g. " +
+                                data.title + promptAddition + "4b",
+                             action: "pass"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab]$", "i"),
+                             msg: "OK. Click <b>add</b> to continue.",
+                             action: "ok"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+a-b$", "i"),
+                             msg: "OK. Click <b>add</b> to continue.",
+                             action: "ok"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab]-\\d+[ab]$", "i"),
+                             msg: "OK. Click <b>add</b> to continue.",
+                             action: "ok"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]$", "i"),
+                             msg: "Enter a starting <b>segment</b>, e.g. " +
+                                data.title + " 4b:1",
+                             action: "pass"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]\\d+$", "i"),
+                             msg: "OK, or use '-' to select  range, e.g. " +
+                                data.title + " 4b:1-5",
+                             action: "ok"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]\\d+-$", "i"),
+                             msg: "Enter an ending <b>segment</b>, e.g. " +
+                                data.title + " 4b:1-5",
+                             action: "pass"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]\\d+-\\d+$", "i"),
+                             msg: "",
+                             action: "ok"});
+                    }
+
                     // If there's a default node, copy section info from default node to parent
                     if (data.schema
                         && data.schema.nodes
@@ -1598,79 +1642,50 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						if (commentatorOnly) {
 							// Only looking for a Commtator name, will insert current ref
 							sjs.ref.tests.push(
-								{test: new RegExp("^" + variantsRe + "$", "i"), 
-								 msg: "", 
+								{test: new RegExp("^" + variantsRe + "$", "i"),
+								 msg: "",
 								 action: "insertRef"});
 							sjs.ref.tests.push(
-								{test: new RegExp("^" + variantsRe + " on " + sjs.add.source.ref + "$", "i"), 
-								 msg: "", 
+								{test: new RegExp("^" + variantsRe + " on " + sjs.add.source.ref + "$", "i"),
+								 msg: "",
 								 action: "ok"});
-							
+
 						} else {
 							// Commentator entered, need a text name to Look up
 							var commentatorRe = new RegExp("^" + variantsRe, "i")
 							sjs.ref.tests.push(
-								{test: commentatorRe, 
-								 msg: "Enter a <b>Text</b> that " + data.title + " comments on, e.g. <b>" + data.title + " on Genesis</b>.", 
+								{test: commentatorRe,
+								 msg: "Enter a <b>Text</b> that " + data.title + " comments on, e.g. <b>" + data.title + " on Genesis</b>.",
 								 action: "pass"});
-							
+
 							var commentaryReStr = "^" + variantsRe + " on " + booksReStr + "$";
 							var commentaryRe = new RegExp(commentaryReStr, "i");
 							sjs.ref.tests.push(
 								{test: commentaryRe,
 								 msg: "Looking up text information...",
 								 action: "getCommentaryBook"});
-					
+
 						}
 
+                    // ------- Zohar or anyother position 2 Talmud text.  Assumes position 1 is Int.  ------
+					} else if (data.addressTypes && data.addressTypes.length > 1 && data.addressTypes[1] == "Talmud") {
+                        var bookRe = new RegExp("^" + variantsRe + " ?$", "i");
+                        sjs.ref.tests.push(
+                            {test: bookRe,
+                             msg: "Enter a <b>" + data.sectionNames[0] + "</b> of " + data.title +
+                                " to add, e.g., " + data.title + " 3",
+                             action: "pass"});
+
+						var reStr = "^" + variantsRe + " \\d+";
+                        addTalmudTests(reStr, "[ .:]", " 3:");
+
+
 					// ------- Talmud Mesechet Entered -------------
-					} else if ((data.categories[0] == "Talmud")
-                        || (data.schema && data.schema.adressTypes && data.schema.addressTypes[0] == "Talmud")) {
-						sjs.ref.tests.push(
-							{test: RegExp("^" + variantsRe, "i"),
-							 msg: "Enter a <b>Daf</b> of Tractate " + data.title + " to add, e.g. " +
-							 	data.title + " 4b",
-							 action: "pass"});
-				
-						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab]$", "i"),
-							 msg: "OK. Click <b>add</b> to continue.",
-							 action: "ok"});
-						
-						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+a-b$", "i"),
-							 msg: "OK. Click <b>add</b> to continue.",
-							 action: "ok"});
-						
-						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab]-\\d+[ab]$", "i"),
-							 msg: "OK. Click <b>add</b> to continue.",
-							 action: "ok"});				
+                    } else if ((data.categories[0] == "Talmud")
+                        || (data.addressTypes && data.addressTypes[0] == "Talmud")) {
 
-						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]$", "i"),
-							 msg: "Enter a starting <b>segment</b>, e.g. " + 
-							 	data.title + " 4b:1",
-							 action: "pass"});
+                            addTalmudTests(variantsRe, " ", " ");
 
-						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]\\d+$", "i"),
-							 msg: "OK, or use '-' to select  range, e.g. " +
-							 	data.title + " 4b:1-5",
-							 action: "ok"});	
-
-						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]\\d+-$", "i"),
-							 msg: "Enter an ending <b>segment</b>, e.g. " +
-							 	data.title + " 4b:1-5",
-							 action: "pass"});	
-
-						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]\\d+-\\d+$", "i"),
-							 msg: "",
-							 action: "ok"});
-						
-						
 					// -------- All Other Texts ------------
 					} else {
 						var bookRe = new RegExp("^" + variantsRe + " ?$", "i");

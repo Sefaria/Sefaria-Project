@@ -3,6 +3,8 @@ Object history tracker
 Accepts change requests for model objects, passes the changes to the models, and records the changes in history
 
 """
+import logging
+logger = logging.getLogger(__name__)
 
 import sefaria.model as model
 from sefaria.utils.users import is_user_staff
@@ -34,7 +36,7 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
         from sefaria.helper.link import add_commentary_links, add_links_from_text
         # Commentaries generate links to their base text automatically
         if oref.type == "Commentary":
-            add_commentary_links(oref.normal(), user, **kwargs)
+            add_commentary_links(oref, user, **kwargs)
         # scan text for links to auto add
         add_links_from_text(oref.normal(), lang, chunk.text, chunk.full_version._id, user, **kwargs)
 

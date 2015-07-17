@@ -22,7 +22,7 @@ from . import abstract as abst
 from schema import deserialize_tree, SchemaNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, TermSet, TitleGroup
 
 import sefaria.system.cache as scache
-from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError
+from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError
 from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.utils.hebrew import is_hebrew, encode_hebrew_numeral, hebrew_term
 from sefaria.utils.util import list_depth
@@ -94,15 +94,19 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "heTitle",            # optional for old style
         "heTitleVariants",    # optional for old style
         "maps",               # optional for old style
-        "alt_structs",         # optional for new style
+        "alt_structs",        # optional for new style
+        "default_struct",     # optional for new style
         "order",              # optional for old style and new
         "length",             # optional for old style
         "lengths",            # optional for old style
         "transliteratedTitle" # optional for old style
     ]
 
-    def __str__(self):
+    def __unicode__(self):
         return u"Index: {}".format(self.title)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return u"{}().load({{'title': '{}'}})".format(self.__class__.__name__, self.title)
@@ -139,7 +143,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def legacy_form(self):
         """
         :return: Returns an Index object as a flat dictionary, in version one form.
-        :raise: Expction if the Index can not be expressed in the old form
+        :raise: Exception if the Index can not be expressed in the old form
         """
         if not self.nodes.is_flat():
             raise InputError("Index record {} can not be converted to legacy API form".format(self.title))
@@ -150,7 +154,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             "titleVariants": self.nodes.all_node_titles("en"),
             "sectionNames": self.nodes.sectionNames,
             "heSectionNames": map(hebrew_term, self.nodes.sectionNames),
-            "textDepth": len(self.nodes.sectionNames)
+            "textDepth": len(self.nodes.sectionNames),
+            "addressTypes": self.nodes.addressTypes  # This isn't legacy, but it was needed for checkRef
         }
 
         if getattr(self, "maps", None):
@@ -540,8 +545,12 @@ class CommentaryIndex(AbstractIndex):
         if getattr(self.nodes, "lengths", None):   #seems superfluous w/ nodes above
             self.length = self.nodes.lengths[0]
 
-    def __str__(self):
+
+    def __unicode__(self):
         return u"{}: {} on {}".format(self.__class__.__name__, self.c_index.title, self.b_index.title)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return u"{}({}, {})".format(self.__class__.__name__, self.c_index.title, self.b_index.title)
@@ -749,8 +758,11 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         "versionUrl"  # bad data?
     ]
 
-    def __str__(self):
+    def __unicode__(self):
         return u"Version: {} <{}>".format(self.title, self.versionTitle)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return u"{}().load({{'title': '{}', 'versionTitle': '{}'}})".format(self.__class__.__name__, self.title, self.versionTitle)
@@ -923,11 +935,14 @@ class TextChunk(AbstractTextRecord):
         else:
             raise Exception("TextChunk requires a language.")
 
-    def __str__(self):
+    def __unicode__(self):
         args = u"{}, {}".format(self._oref, self.lang)
         if self.vtitle:
             args += u", {}".format(self.vtitle)
         return args
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         args = u"{}, {}".format(self._oref, self.lang)
@@ -936,7 +951,10 @@ class TextChunk(AbstractTextRecord):
         return u"{}({})".format(self.__class__.__name__, args)
 
     def is_empty(self):
-        return bool(self.text)
+        return self.ja().is_empty()
+
+    def ja(self):
+        return JaggedTextArray(self.text)
 
     def save(self):
         assert self._saveable, u"Tried to save a read-only text: {}".format(self._oref.normal())
@@ -1269,30 +1287,31 @@ class TextFamily(object):
 
                         alts_ja.set_element(indxs, val)
 
-                    for i, r in enumerate(n.refs):
-                        # hack to skip Rishon
-                        if i==0:
-                            continue;
-                        subRef = Ref(r)
-                        subRefStart = subRef.starting_ref()
-                        if oref.contains(subRefStart) and not oref == subRefStart:
-                            indxs = [k - 1 for k in subRefStart.in_terms_of(oref)]
-                            val = {"en":[], "he":[]}
+                    if getattr(n, "refs", None):
+                        for i, r in enumerate(n.refs):
+                            # hack to skip Rishon
+                            if i==0:
+                                continue;
+                            subRef = Ref(r)
+                            subRefStart = subRef.starting_ref()
+                            if oref.contains(subRefStart) and not oref == subRefStart:
+                                indxs = [k - 1 for k in subRefStart.in_terms_of(oref)]
+                                val = {"en":[], "he":[]}
 
-                            try:
-                                a = alts_ja.get_element(indxs)
-                                if a:
-                                    val = a
-                            except IndexError:
-                                pass
+                                try:
+                                    a = alts_ja.get_element(indxs)
+                                    if a:
+                                        val = a
+                                except IndexError:
+                                    pass
 
-                            val["en"] += [n.sectionString([i + 1], "en", title=False)]
-                            val["he"] += [n.sectionString([i + 1], "he", title=False)]
+                                val["en"] += [n.sectionString([i + 1], "en", title=False)]
+                                val["he"] += [n.sectionString([i + 1], "he", title=False)]
 
-                            alts_ja.set_element(indxs, val)
+                                alts_ja.set_element(indxs, val)
 
-                        elif subRefStart.follows(oref):
-                            break
+                            elif subRefStart.follows(oref):
+                                break
 
             self._alts = alts_ja.array()
 
@@ -1330,7 +1349,6 @@ class TextFamily(object):
         d["indexTitle"] = self._inode.index.title
         d["sectionRef"] = self._original_oref.section_ref().normal()
         d["isSpanning"] = self._original_oref.is_spanning()
-
 
         for language, attr in self.text_attr_map.items():
             chunk = self._chunks.get(language)
@@ -1504,6 +1522,7 @@ class Ref(object):
         self._prev = None
         self._padded = None
         self._context = {}
+        self._first_spanned_ref = None
         self._spanned_refs = []
         self._ranged_refs = []
         self._range_depth = None
@@ -1545,6 +1564,7 @@ class Ref(object):
 
     def __reinit_tref(self, new_tref):
         self.tref = new_tref
+        self.__clean_tref()
         self._lang = "en"
         self.__init_tref()
 
@@ -1735,7 +1755,6 @@ class Ref(object):
                             self.toSections[i] = int(range_parts[i - delta])
                         except (ValueError, IndexError):
                             raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
-
 
     def __get_sections(self, reg, tref, use_node=None):
         use_node = use_node or self.index_node
@@ -2249,6 +2268,12 @@ class Ref(object):
         d["toSections"] += [subsection]
         return Ref(_obj=d)
 
+    def subrefs(self, length):
+        l = []
+        for i in range(length):
+            l.append(self.subref(i + 1))
+        return l
+
     def context_ref(self, level=1):
         """
         :return: :class:`Ref` that is more general than this Ref.
@@ -2313,14 +2338,52 @@ class Ref(object):
             self._padded = Ref(_obj=d)
         return self._padded
 
+    def first_spanned_ref(self):
+        """
+        Returns the first section portion of a spanning reference.
+        Designed to cut the wasted cost of running ref.split_spanning_ref[0]
+
+        >>> Ref("Shabbat 6b-9a").first_spanned_ref()
+        Ref('Shabbat 6b')
+        >>> Ref("Shabbat 6b.12-9a.7").first_spanned_ref()
+        Ref('Shabbat 6b:12-47')
+
+        :return: :py:class:`Ref`
+        """
+        if not self._first_spanned_ref:
+
+            if self._spanned_refs:
+                self._first_spanned_ref = self._spanned_refs[0]
+
+            elif self.index_node.depth == 1 or not self.is_spanning():
+                self._first_spanned_ref = self
+
+            else:
+                ref_depth = len(self.sections)
+
+                d = self._core_dict()
+                d["toSections"] = self.sections[0:self.range_index() + 1]
+                for i in range(self.range_index() + 1, ref_depth):
+                    d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
+
+                r = Ref(_obj=d)
+                if self.range_depth() > 2:
+                    self._first_spanned_ref = r.first_spanned_ref()
+                else:
+                    self._first_spanned_ref = r
+
+        return self._first_spanned_ref
+
     def split_spanning_ref(self):
         """
         :return: List of non-spanning :class:`Ref` objects which completely cover the area of this Ref
 
         ""
 
-            >>> Ref("Shabbat 13b-14b")
+            >>> Ref("Shabbat 13b-14b").split_spanning_ref()
             [Ref("Shabbat 13b"), Ref("Shabbat 14a"), Ref("Shabbat 14b")]
+            >>> Ref("Shabbat 13b:3 - 14b:3").split_spanning_ref()
+            [Ref('Shabbat 13b:3-50'), Ref('Shabbat 14a'), Ref('Shabbat 14b:1-3')]
 
         """
         if not self._spanned_refs:
@@ -2347,9 +2410,14 @@ class Ref(object):
                         d["sections"] = self.sections[0:self.range_index()] + [n]
                         d["toSections"] = self.sections[0:self.range_index()] + [n]
 
-                        for i in range(self.range_index() + 1, ref_depth):
-                            d["sections"] += [1]
-                            d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
+                        '''  If we find that we need to expand inner refs, add this arg.
+                        # It will require handling on cached ref and passing on the recursive call below.
+                        if expand_middle:
+                            for i in range(self.range_index() + 1, ref_depth):
+                                d["sections"] += [1]
+                                d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
+                        '''
+
                     if d["toSections"][-1]:  # to filter out, e.g. non-existant Rashi's, where the last index is 0
                         refs.append(Ref(_obj=d))
 
@@ -3022,7 +3090,10 @@ class Library(object):
             title_dict = {}
             trees = self.get_index_forest(with_commentary=with_commentary)
             for tree in trees:
-                title_dict.update(tree.title_dict(lang))
+                try:
+                    title_dict.update(tree.title_dict(lang))
+                except IndexSchemaError as e:
+                    logger.error(u"Error in generating title node dictionary: {}".format(e))
             scache.set_cache_elem(key, title_dict)
             self.local_cache[key] = title_dict
         return title_dict
@@ -3168,15 +3239,21 @@ class Library(object):
             for title in unique_titles.iterkeys():
                 try:
                     res = self._build_all_refs_from_string(title, st)
-                except:
-                    print "Skipping Schema Nodes"
+                except AssertionError as e:
+                    logger.info(u"Skipping Schema Node: {}".format(title))
                 else:
                     refs += res
         else:  # lang == "en"
             for match in self.all_titles_regex(lang, commentary=False).finditer(st):
                 title = match.group('title')
-                res = self._build_ref_from_string(title, st[match.start():])  # Slice string from title start
-                refs += res
+                try:
+                    res = self._build_ref_from_string(title, st[match.start():])  # Slice string from title start
+                except AssertionError as e:
+                    logger.info(u"Skipping Schema Node: {}".format(title))
+                except InputError as e:
+                    logger.info(u"Input Error searching for refs in string: {}".format(e))
+                else:
+                    refs += res
         return refs
 
     # do we want to move this to the schema node? We'd still have to pass the title...
@@ -3193,6 +3270,7 @@ class Library(object):
                     [^})]*										# anything but a closing ) or brace
                 )
                 """ + regex.escape(title) + node.after_title_delimiter_re + node.address_regex(lang, for_js=for_js, match_range=for_js) + ur"""
+                (?=\W|$)                                        # look ahead for non-word char
                 (?=												# look ahead for closing brace
                     [^({]*										# match of anything but an opening '(' or brace
                     [)}]										# zero-width: literal ')' or brace

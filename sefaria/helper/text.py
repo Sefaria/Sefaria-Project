@@ -1,6 +1,7 @@
 # coding=utf-8
-from sefaria.model import *
+import re
 import sefaria.summaries as summaries
+from sefaria.model import *
 from sefaria.system import cache as scache
 from sefaria.system.database import db
 from sefaria.datatype.jagged_array import JaggedTextArray
@@ -228,3 +229,38 @@ def merge_text(a, b):
     length = max(len(a), len(b))
     out = [a[n] if n < len(a) and (a[n] or not n < len(b)) else b[n] for n in range(length)]
     return out
+
+
+def modify_text_by_function(title, vtitle, lang, func, uid):
+    """
+    Walks ever segment contained in title, calls func on the text and saves the result.
+    """
+    from sefaria.tracker import modify_text
+    section_refs = VersionStateSet({"title": title}).all_refs()
+    for section_ref in section_refs:
+        section = section_ref.text(vtitle=vtitle, lang=lang)
+        segment_refs = section_ref.subrefs(len(section.text))
+        for i in range(len(section.text)):
+            text = func(section.text[i])
+            modify_text(uid, segment_refs[i], vtitle, lang, text)
+
+
+def replace_roman_numerals(text):
+    """
+    Replaces any roman numerals in 'text' with digits.
+    Currently only looks for a roman numeral followed by a comma or period, then a space, then a digit.
+    e.g. (Isa. Iv. 10) --> (Isa. 4:10)
+    """
+    import roman
+    regex = re.compile(" (M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))([.,] )(\d)", re.I)
+    def replace_roman_numerals_in_match(m):
+        s = m.group(1)
+        s = s.upper()
+        try:
+            if s:
+                return " %s:%s" % (roman.fromRoman(s), m.group(6))
+        except:
+            return m.group(0)
+
+    return re.sub(regex, replace_roman_numerals_in_match, text)
+

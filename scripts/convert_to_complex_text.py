@@ -101,7 +101,7 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
             VersionState(dRef.index.title).refresh()
             #links
             if dRef.is_commentary():
-                add_commentary_links(dRef.normal(), 8646)
+                add_commentary_links(dRef, 8646)
             add_links_from_text(dRef.normal(), new_version.language, new_tc.text, new_version._id, 8646)
             migrate_links_of_ref(orRef, dRef)
             #version history

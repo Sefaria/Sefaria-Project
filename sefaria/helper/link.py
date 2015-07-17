@@ -1,24 +1,28 @@
 # -*- coding: utf-8 -*-
+
+import logging
+logger = logging.getLogger(__name__)
+
 from sefaria.model import *
 from sefaria.system.exceptions import DuplicateRecordError, InputError
 from sefaria.utils.talmud import section_to_daf
 import sefaria.tracker as tracker
 
 #TODO: should all the functions here be decoupled from the need to enter a userid?
-def add_commentary_links(tref, user, **kwargs):
+def add_commentary_links(oref, user, **kwargs):
     """
     Automatically add links for each comment in the commentary text denoted by 'tref'.
     E.g., for the ref 'Sforno on Kohelet 3:2', automatically set links for
     Kohelet 3:2 <-> Sforno on Kohelet 3:2:1, Kohelet 3:2 <-> Sforno on Kohelet 3:2:2, etc.
     for each segment of text (comment) that is in 'Sforno on Kohelet 3:2'.
     """
-    oref = Ref(tref)
-    #TODO: Fix this block so that it can handle structure nodes, instead of skipping them
     try:
         text = TextFamily(oref, commentary=0, context=0, pad=False).contents()
     except AssertionError:
-        print "Text Family can't handle structure nodes"
+        logger.warning(u"Structure node passed to add_commentary_links: {}".format(oref.normal()))
         return
+
+    assert oref.is_commentary()
 
     tref = oref.normal()
 
@@ -63,8 +67,9 @@ def add_commentary_links(tref, user, **kwargs):
         # in order to be able to match the commentary to the basic parent text units,
         # recur on each section
         length = max(len(text["text"]), len(text["he"]))
-        for i in range(length):
-            add_commentary_links("%s:%d" % (tref, i + 1), user)
+        for r in oref.subrefs(length):
+            add_commentary_links(r, user, **kwargs)
+
     else:
         #This is a special case of the above, where the sections length is 0 and that means this is
         # a whole text that has been posted. For  this we need a better way than get_text() to get the correct length of
@@ -72,11 +77,14 @@ def add_commentary_links(tref, user, **kwargs):
         # We use the counts document for that.
         #text_counts = counts.count_texts(tref)
         #length = len(text_counts["counts"])
+
         sn = StateNode(tref)
+        if not sn.versionState.is_new_state:
+            sn.versionState.refresh()  # Needed when saving multiple nodes in a complex text.  This may be moderately inefficient.
+            sn = StateNode(tref)
         length = sn.ja('all').length()
-        for i in range(length):
-            section = section_to_daf(i+1) if oref.is_talmud() else str(i+1)
-            add_commentary_links("%s:%s" % (tref, section), user)
+        for r in oref.subrefs(length):
+            add_commentary_links(r, user, **kwargs)
 
 
 def rebuild_commentary_links(tref, user, **kwargs):
@@ -103,7 +111,7 @@ def rebuild_commentary_links(tref, user, **kwargs):
         if not (t1.text + t1.he) or not (t2.text + t2.he):
             # Delete any link that doesn't have some textual content on one side or the other
             link.delete()
-    add_commentary_links(tref, user, **kwargs)
+    add_commentary_links(oref, user, **kwargs)
 
 
 # todo: Currently supports only
@@ -114,15 +122,16 @@ def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
 
     text["text"] may be a list of segments, an individual segment, or None.
 
-    Lev - added return on 13 July 2014
+    Returns a list of links added.
     """
     if not text:
         return []
     elif isinstance(text, list):
-        links = []
+        oref    = Ref(ref)
+        subrefs = oref.subrefs(len(text))
+        links   = []
         for i in range(len(text)):
-            subtext = text[i]
-            single = add_links_from_text("%s:%d" % (ref, i + 1), lang, subtext, text_id, user, **kwargs)
+            single = add_links_from_text(subrefs[i].normal(), lang, text[i], text_id, user, **kwargs)
             links += single
         return links
     elif isinstance(text, basestring):
@@ -140,6 +149,7 @@ def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
 
         for oref in refs:
             link = {
+                # Note -- ref of the citing text is in the first position
                 "refs": [ref, oref.normal()],
                 "type": "",
                 "auto": True,
@@ -165,15 +175,24 @@ def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
         return links
 
 
+def delete_links_from_text(title, user):
+    """
+    Deletes all of the citation generated links from text 'title'
+    """
+    regex    = Ref(title).regex()
+    links    = LinkSet({"refs.0": {"$regex": regex}, "generated_by": "add_links_from_text"})
+    for link in links:
+        tracker.delete(user, Link, link._id)
+
+
 def rebuild_links_from_text(title, user):
     """
-    Deletes all of the citatation generated links from 'title'
+    Deletes all of the citation generated links from text 'title'
     then rebuilds them. 
     """
-    title = Ref(title).normal()
+    delete_links_from_text(title, user)
+    title    = Ref(title).normal()
     versions = VersionSet({"title": title})
-    links = LinkSet({"title": title, "generated_by": "add_links_from_text"})
-    links.delete()
 
     for version in versions:
         add_links_from_text(title, version.language, version.chapter, version._id, user)
