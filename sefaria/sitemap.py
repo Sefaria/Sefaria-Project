@@ -44,7 +44,7 @@ def generate_texts_sitemaps():
 	"""
 	#refs = generate_refs_list()
 	refs = library.ref_list()
-	urls = ["http://www.sefaria.org/" + Ref(tref).url() for tref in refs]
+	urls = ["http://www.sefaria.org/" + oref.url() for oref in refs]
 
 	maps = list(chunks(urls, 40000))
 

@@ -3000,7 +3000,7 @@ class Library(object):
         :return: list of all section-level Refs in the library
         """
         from version_state import VersionStateSet
-        return [r.normal() for r in VersionStateSet().all_refs()]
+        return VersionStateSet().all_refs()
 
     def get_term_dict(self, lang="en"):
         """
