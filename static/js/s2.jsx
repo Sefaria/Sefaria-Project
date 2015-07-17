@@ -9,14 +9,16 @@ var ReaderApp = React.createClass({
       contents.push({type: "TextList", ref: this.props.initialRef, scrollTop: 0 });
     }
     return {
+      contents: contents,
       currentFilter: this.props.initialFilter || [],
       recentFilters: [],
-      contents: contents,
       settings: this.props.initialSettings || {
-        language: "english",
-        layout: "segmented",
-        color: "light",
-        fontSize: 62.5
+        language:      "english",
+        layoutDefault: "segmented",
+        layoutTalmud:  "continuous",
+        layoutTanach:  "segmented",
+        color:         "light",
+        fontSize:      62.5
       }
     }
   },
@@ -81,6 +83,8 @@ var ReaderApp = React.createClass({
   },
   handlePopState: function(event) {
     if (event.state) {
+      var kind = this.state.contents.slice(-1)[0].type + " to " + event.state.type;
+      sjs.track.event("Reader", "Pop State", kind);
       this.setState({contents: [event.state]});
     }
   },
@@ -182,11 +186,12 @@ var ReaderApp = React.createClass({
       var step = 1.15;
       var size = this.state.settings.fontSize;
       value = (value === "smaller" ? size/step : size*step);
-      this.state.settings.fontSize = value;
-    } else {
-      this.state.settings[option] = value;
+    } else if (option === "layout") {
+      var category = this.currentCategory();
+      var option = category === "Tanach" || category === "Talmud" ? "layout" + category : "layoutDefault";
     }
 
+    this.state.settings[option] = value;
     this.setState({settings: this.state.settings});
     $.cookie(option, value, {path: "/"});
     if (option === "language") {
@@ -209,15 +214,27 @@ var ReaderApp = React.createClass({
       $(window).scrollTop(0);
     }
   },
-  currentBook: function() {
+  currentData: function() {
     var item = this.state.contents.slice(-1)[0];
     var ref  = item.ref || item.refs.slice(-1)[0];
-    var book = sjs.library.text(ref).book;
-    return book;
+    var data = sjs.library.text(ref);
+    return data; 
+  },
+  currentBook: function() {
+    return this.currentData().book;
+  },
+  currentCategory: function() {
+    var data = this.currentData();
+    return data ? data.categories[0] : null;
+  },
+  currentLayout: function() {
+    var category = this.currentCategory();
+    var option = category === "Tanach" || category === "Talmud" ? "layout" + category : "layoutDefault";
+    return this.state.settings[option];  
   },
   render: function() {
-    var classes = {};
-    classes[this.state.settings.layout]   = 1;
+    var classes  = {};
+    classes[this.currentLayout()]         = 1;
     classes[this.state.settings.language] = 1;
     classes[this.state.settings.color]    = 1;
     classes = cx(classes);
@@ -261,7 +278,8 @@ var ReaderApp = React.createClass({
           navPrevious={this.navPrevious}
           currentBook={this.currentBook}
           settings={this.state.settings}
-          setOption={this.setOption} />
+          setOption={this.setOption}
+          currentLayout={this.currentLayout} />
           <div id="readerContent" style={style}>
             {items}
           </div>
@@ -314,6 +332,7 @@ var ReaderControls = React.createClass({
           name="layout"
           options={layoutOptions}
           setOption={this.props.setOption}
+          currentLayout={this.props.currentLayout}
           settings={this.props.settings} />) : "";
 
     var colorOptions = [
@@ -388,6 +407,7 @@ var ToggleSet = React.createClass({
   },
   render: function() {
     var classes = cx({toggleSet: 1, separated: this.props.separated });
+    var value = this.props.name === "layout" ? this.props.currentLayout() : this.props.settings[this.props.name];
     var width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
     var style = {width: (width/this.props.options.length) + "%"};
     return (
@@ -399,7 +419,7 @@ var ToggleSet = React.createClass({
                 name={option.name}
                 key={option.name}
                 set={this.props.name}
-                on={this.props.settings[this.props.name] == option.name}
+                on={value == option.name}
                 setOption={this.props.setOption}
                 style={style}
                 image={option.image}
@@ -594,10 +614,6 @@ var TextRange = React.createClass({
       );
     }.bind(this));
     var classes = {textRange: 1, basetext: this.props.basetext };
-    if (this.props.settings) {
-      classes[this.props.settings.layout] = 1;
-      classes[this.props.settings.language] = 1;
-    }
     classes = cx(classes);
     return (
       <div className={classes} onClick={this.handleClick}>

@@ -56,6 +56,7 @@ class Test_Toc(object):
         #test that the index
         new_index = model.Index({
             "title": "New Toc Test",
+            "heTitle": u"פםפם",
             "titleVariants": [],
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Philosophy"]
@@ -69,6 +70,7 @@ class Test_Toc(object):
         #commentator alone should not be in the toc
         new_commentator = model.Index({
             "title": "New Toc Commentator Test",
+            "heTitle": u"םפםפכ",
             "titleVariants": [],
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Commentary"]
@@ -80,6 +82,7 @@ class Test_Toc(object):
 
         new_other_index = model.Index({
             "title": "New Toc Test",
+            "heTitle": u"פםפם",
             "titleVariants": [],
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Testing"]

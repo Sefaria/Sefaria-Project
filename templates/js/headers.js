@@ -191,6 +191,8 @@
 					} else {
 						sjs.navPanel._preview = data;
                         sjs.navPanel._preview.schema = new sjs.SchemaNode(data.schema);
+                        sjs.navPanel._structure = sjs.navPanel._preview.default_struct || "default";
+
 						sjs.navPanel.setNavContent();
 					}
 				});
@@ -396,17 +398,23 @@
                     }
                 }
                 else if ("refsPreview" in current_node) { // Content - todo: doesn't yet work beyond depth 1
-                    var alt_section_names = current_node["sectionNames"];
+
+                    var isTalmudAddress = current_node.addressTypes[0] == "Talmud";  // still hacky. reworking the isTalmud logic
+                    var offset = current_node.offset || 0;
+
+                    var alt_section_names = current_node["sectionNames"][0];
                     html += "<div class='sectionName'>" + hebrewPlural(alt_section_names) + "</div>";
                     var refs_preview = current_node["refsPreview"];
                     if (!this._showPreviews) {
                         html += "<div id='numLinkBox'>"
                     }
                     for (var i = 1; i <= current_node["refs"].length; i++) {
+                        var io = i + offset;
+                        var num = isTalmudAddress ? intToDaf(io - 1) : io;
+                        var heNum = isTalmudAddress ? encodeHebrewDaf(intToDaf(io - 1)) : encodeHebrewNumeral(io);
+
                         var ref = current_node["refs"][i - 1];
                         var url = "/" + ref;
-                        var num = i;
-                        var heNum = encodeHebrewNumeral(i);
                         var he = refs_preview[i - 1].he;
                         var en = refs_preview[i - 1].en;
                         if (!en && !he) {

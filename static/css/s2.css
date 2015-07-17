@@ -244,7 +244,7 @@ body .bilingual .enOnly .he {
   background-color: inherit;
   margin-bottom: 26px;
 }
-.basetext.continuous .segment{
+.continuous .basetext .segment{
   display: inline;
   margin: 0;
 }

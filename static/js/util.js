@@ -1453,7 +1453,7 @@ sjs.wrapRefLinks = function(text) {
 
 function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	
-	/* check the user inputed text ref
+	/* check the user inputted text ref
 	   give feedback to make it correct to a certain level of specificity
 	   talk to the server when needed to find section names
 		* level -- how deep the ref should go - (0: segment, 1: section, etc)
@@ -1568,6 +1568,52 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 					$ok.addClass("inactive");
                     var hasDefault = false;
 
+                    function addTalmudTests(startingRe, seperator, promptAddition) {
+                        sjs.ref.tests.push(
+                            {test: RegExp("^" + startingRe, "i"),
+                             msg: "Enter a <b>Daf</b> of " + data.title + " to add, e.g. " +
+                                data.title + promptAddition + "4b",
+                             action: "pass"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab]$", "i"),
+                             msg: "OK. Click <b>add</b> to continue.",
+                             action: "ok"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+a-b$", "i"),
+                             msg: "OK. Click <b>add</b> to continue.",
+                             action: "ok"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab]-\\d+[ab]$", "i"),
+                             msg: "OK. Click <b>add</b> to continue.",
+                             action: "ok"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]$", "i"),
+                             msg: "Enter a starting <b>segment</b>, e.g. " +
+                                data.title + " 4b:1",
+                             action: "pass"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]\\d+$", "i"),
+                             msg: "OK, or use '-' to select  range, e.g. " +
+                                data.title + " 4b:1-5",
+                             action: "ok"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]\\d+-$", "i"),
+                             msg: "Enter an ending <b>segment</b>, e.g. " +
+                                data.title + " 4b:1-5",
+                             action: "pass"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]\\d+-\\d+$", "i"),
+                             msg: "",
+                             action: "ok"});
+                    }
+
                     // If there's a default node, copy section info from default node to parent
                     if (data.schema
                         && data.schema.nodes
@@ -1596,79 +1642,50 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						if (commentatorOnly) {
 							// Only looking for a Commtator name, will insert current ref
 							sjs.ref.tests.push(
-								{test: new RegExp("^" + variantsRe + "$", "i"), 
-								 msg: "", 
+								{test: new RegExp("^" + variantsRe + "$", "i"),
+								 msg: "",
 								 action: "insertRef"});
 							sjs.ref.tests.push(
-								{test: new RegExp("^" + variantsRe + " on " + sjs.add.source.ref + "$", "i"), 
-								 msg: "", 
+								{test: new RegExp("^" + variantsRe + " on " + sjs.add.source.ref + "$", "i"),
+								 msg: "",
 								 action: "ok"});
-							
+
 						} else {
 							// Commentator entered, need a text name to Look up
 							var commentatorRe = new RegExp("^" + variantsRe, "i")
 							sjs.ref.tests.push(
-								{test: commentatorRe, 
-								 msg: "Enter a <b>Text</b> that " + data.title + " comments on, e.g. <b>" + data.title + " on Genesis</b>.", 
+								{test: commentatorRe,
+								 msg: "Enter a <b>Text</b> that " + data.title + " comments on, e.g. <b>" + data.title + " on Genesis</b>.",
 								 action: "pass"});
-							
+
 							var commentaryReStr = "^" + variantsRe + " on " + booksReStr + "$";
 							var commentaryRe = new RegExp(commentaryReStr, "i");
 							sjs.ref.tests.push(
 								{test: commentaryRe,
 								 msg: "Looking up text information...",
 								 action: "getCommentaryBook"});
-					
+
 						}
 
+                    // ------- Zohar or anyother position 2 Talmud text.  Assumes position 1 is Int.  ------
+					} else if (data.addressTypes && data.addressTypes.length > 1 && data.addressTypes[1] == "Talmud") {
+                        var bookRe = new RegExp("^" + variantsRe + " ?$", "i");
+                        sjs.ref.tests.push(
+                            {test: bookRe,
+                             msg: "Enter a <b>" + data.sectionNames[0] + "</b> of " + data.title +
+                                " to add, e.g., " + data.title + " 3",
+                             action: "pass"});
+
+						var reStr = "^" + variantsRe + " \\d+";
+                        addTalmudTests(reStr, "[ .:]", " 3:");
+
+
 					// ------- Talmud Mesechet Entered -------------
-					} else if ((data.categories[0] == "Talmud")
-                        || (data.schema && data.schema.adressTypes && data.schema.addressTypes[0] == "Talmud")) {
-						sjs.ref.tests.push(
-							{test: RegExp("^" + variantsRe, "i"),
-							 msg: "Enter a <b>Daf</b> of Tractate " + data.title + " to add, e.g. " +
-							 	data.title + " 4b",
-							 action: "pass"});
-				
-						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab]$", "i"),
-							 msg: "OK. Click <b>add</b> to continue.",
-							 action: "ok"});
-						
-						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+a-b$", "i"),
-							 msg: "OK. Click <b>add</b> to continue.",
-							 action: "ok"});
-						
-						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab]-\\d+[ab]$", "i"),
-							 msg: "OK. Click <b>add</b> to continue.",
-							 action: "ok"});				
+                    } else if ((data.categories[0] == "Talmud")
+                        || (data.addressTypes && data.addressTypes[0] == "Talmud")) {
 
-						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]$", "i"),
-							 msg: "Enter a starting <b>segment</b>, e.g. " + 
-							 	data.title + " 4b:1",
-							 action: "pass"});
+                            addTalmudTests(variantsRe, " ", " ");
 
-						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]\\d+$", "i"),
-							 msg: "OK, or use '-' to select  range, e.g. " +
-							 	data.title + " 4b:1-5",
-							 action: "ok"});	
-
-						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]\\d+-$", "i"),
-							 msg: "Enter an ending <b>segment</b>, e.g. " +
-							 	data.title + " 4b:1-5",
-							 action: "pass"});	
-
-						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]\\d+-\\d+$", "i"),
-							 msg: "",
-							 action: "ok"});
-						
-						
 					// -------- All Other Texts ------------
 					} else {
 						var bookRe = new RegExp("^" + variantsRe + " ?$", "i");

@@ -494,6 +494,9 @@ body.hebrew #home #homeConnect .followButton .fa {
     #home #homeTitle #sub {
       font-size: 16px;
     }
+    #home #homeTitle #homeTitleBox {
+      padding: 50px 0;
+    }
     #home #donateButton {
       display: none;
     }
@@ -832,8 +835,6 @@ body.hebrew #aboutPage .span5 {
   margin: 6px 6px -4px;
 }
 
-
-
 #textTocPage.doc {
   margin-top: 0px;
 }
@@ -847,9 +848,8 @@ body.hebrew #aboutPage .span5 {
     font-family: "Times New Roman", serif;
 }
 
-
-#textToc.complex .schema-node-toc.depth1 {
-    margin: 10px 20px 0;
+#textToc .schema-node-toc {
+  display: block;
 }
 
 #textTocPage #textCategories {
@@ -881,6 +881,21 @@ body.hebrew #aboutPage .span5 {
 	font-size: 12px;
 }
 
+#structToggles {
+  text-align: center;
+}
+
+#structToggles .altStructToggle {
+  display: inline-block;
+  color: #08c;
+  cursor: pointer;
+  margin: 0 8px;
+}
+
+#structToggles .altStructToggle.active {
+  color: black;
+}
+
 #textToc {
   margin-bottom: 30px;
 }
@@ -907,40 +922,40 @@ body.hebrew #aboutPage .span5 {
   text-decoration: none;
 }
 
-#textToc.complex .schema-node-toc {
+#textToc .schema-node-toc {
     margin-top: 6px;
     display: block;
     color: black;
 }
 
-#textToc.complex .schema-node-toc.depth1 {
-    margin: 10px 20px 0;
+#textToc  .schema-node-toc.depth1 {
+    margin: 10px 0px 0;
 }
 
-#textToc.complex .schema-node-toc.depth2 {
+#textToc  .schema-node-toc.depth2 {
+    margin: 6px 20px 0;
+}
+
+#textToc .schema-node-toc.depth3 {
     margin: 6px 40px 0;
 }
 
-#textToc.complex .schema-node-toc.depth3 {
+#textToc .schema-node-toc.depth4 {
     margin: 6px 60px 0;
 }
 
-#textToc.complex .schema-node-toc.depth4 {
-    margin: 6px 80px 0;
-}
-
-#textToc.complex .schema-node-title {
+#textToc .schema-node-title {
     font-size: 16px;
     font-family: Georgia, Serif;
     cursor: pointer;
 }
 
-#textToc.complex .schema-node-title:hover {
+#textToc .schema-node-title:hover {
     text-decoration: underline;
 }
 
 
-#textToc.complex .depth1 .schema-node-title {
+#textToc .depth1 .schema-node-title {
     font-size: 18px;
     font-weight: bold;
 }
@@ -949,20 +964,20 @@ body.hebrew #aboutPage .span5 {
 
 }
 
-#textToc.complex .sectionName {
+#textToc .sectionName {
     font-size: 12px;
     font-weight: normal;
 }
 
-#textToc.complex .schema-node-contents.closed {
+#textToc .schema-node-contents.closed {
     display: none;
 }
 
-#textToc.complex .schema-node-contents.open {
+#textToc .schema-node-contents.open {
     display: block;
 }
 
-#textToc.complex .schema-node-control {
+#textToc .schema-node-control {
     margin: 0 7px;
     color: #555;
 }

@@ -1739,7 +1739,7 @@ function buildView(data) {
 	}
 
 	if (data.heTitle) {
-        if ($.inArray("Talmud", data.addressTypes)) {
+        if ($.inArray("Talmud", data.addressTypes) > -1) {
             basetextHeTitle = data.heTitle;
         } else {
             var start = data.sectionNames.length > 1 ? 0 : 1;

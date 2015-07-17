@@ -22,7 +22,7 @@ from . import abstract as abst
 from schema import deserialize_tree, SchemaNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, TermSet, TitleGroup
 
 import sefaria.system.cache as scache
-from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError
+from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError
 from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.utils.hebrew import is_hebrew, encode_hebrew_numeral, hebrew_term
 from sefaria.utils.util import list_depth
@@ -94,7 +94,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "heTitle",            # optional for old style
         "heTitleVariants",    # optional for old style
         "maps",               # optional for old style
-        "alt_structs",         # optional for new style
+        "alt_structs",        # optional for new style
+        "default_struct",     # optional for new style
         "order",              # optional for old style and new
         "length",             # optional for old style
         "lengths",            # optional for old style
@@ -142,7 +143,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def legacy_form(self):
         """
         :return: Returns an Index object as a flat dictionary, in version one form.
-        :raise: Expction if the Index can not be expressed in the old form
+        :raise: Exception if the Index can not be expressed in the old form
         """
         if not self.nodes.is_flat():
             raise InputError("Index record {} can not be converted to legacy API form".format(self.title))
@@ -153,7 +154,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             "titleVariants": self.nodes.all_node_titles("en"),
             "sectionNames": self.nodes.sectionNames,
             "heSectionNames": map(hebrew_term, self.nodes.sectionNames),
-            "textDepth": len(self.nodes.sectionNames)
+            "textDepth": len(self.nodes.sectionNames),
+            "addressTypes": self.nodes.addressTypes  # This isn't legacy, but it was needed for checkRef
         }
 
         if getattr(self, "maps", None):
@@ -949,7 +951,10 @@ class TextChunk(AbstractTextRecord):
         return u"{}({})".format(self.__class__.__name__, args)
 
     def is_empty(self):
-        return bool(self.text)
+        return self.ja().is_empty()
+
+    def ja(self):
+        return JaggedTextArray(self.text)
 
     def save(self):
         assert self._saveable, u"Tried to save a read-only text: {}".format(self._oref.normal())
@@ -1282,30 +1287,31 @@ class TextFamily(object):
 
                         alts_ja.set_element(indxs, val)
 
-                    for i, r in enumerate(n.refs):
-                        # hack to skip Rishon
-                        if i==0:
-                            continue;
-                        subRef = Ref(r)
-                        subRefStart = subRef.starting_ref()
-                        if oref.contains(subRefStart) and not oref == subRefStart:
-                            indxs = [k - 1 for k in subRefStart.in_terms_of(oref)]
-                            val = {"en":[], "he":[]}
+                    if getattr(n, "refs", None):
+                        for i, r in enumerate(n.refs):
+                            # hack to skip Rishon
+                            if i==0:
+                                continue;
+                            subRef = Ref(r)
+                            subRefStart = subRef.starting_ref()
+                            if oref.contains(subRefStart) and not oref == subRefStart:
+                                indxs = [k - 1 for k in subRefStart.in_terms_of(oref)]
+                                val = {"en":[], "he":[]}
 
-                            try:
-                                a = alts_ja.get_element(indxs)
-                                if a:
-                                    val = a
-                            except IndexError:
-                                pass
+                                try:
+                                    a = alts_ja.get_element(indxs)
+                                    if a:
+                                        val = a
+                                except IndexError:
+                                    pass
 
-                            val["en"] += [n.sectionString([i + 1], "en", title=False)]
-                            val["he"] += [n.sectionString([i + 1], "he", title=False)]
+                                val["en"] += [n.sectionString([i + 1], "en", title=False)]
+                                val["he"] += [n.sectionString([i + 1], "he", title=False)]
 
-                            alts_ja.set_element(indxs, val)
+                                alts_ja.set_element(indxs, val)
 
-                        elif subRefStart.follows(oref):
-                            break
+                            elif subRefStart.follows(oref):
+                                break
 
             self._alts = alts_ja.array()
 
@@ -1319,6 +1325,7 @@ class TextFamily(object):
 
         d["textDepth"]       = getattr(self._inode, "depth", None)
         d["sectionNames"]    = getattr(self._inode, "sectionNames", None)
+        d["addressTypes"]    = getattr(self._inode, "addressTypes", None)
         if getattr(self._inode, "lengths", None):
             d["lengths"]     = getattr(self._inode, "lengths")
             if len(d["lengths"]):
@@ -1343,7 +1350,6 @@ class TextFamily(object):
         d["indexTitle"] = self._inode.index.title
         d["sectionRef"] = self._original_oref.section_ref().normal()
         d["isSpanning"] = self._original_oref.is_spanning()
-
 
         for language, attr in self.text_attr_map.items():
             chunk = self._chunks.get(language)
@@ -1559,6 +1565,7 @@ class Ref(object):
 
     def __reinit_tref(self, new_tref):
         self.tref = new_tref
+        self.__clean_tref()
         self._lang = "en"
         self.__init_tref()
 
@@ -1749,7 +1756,6 @@ class Ref(object):
                             self.toSections[i] = int(range_parts[i - delta])
                         except (ValueError, IndexError):
                             raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
-
 
     def __get_sections(self, reg, tref, use_node=None):
         use_node = use_node or self.index_node
@@ -2995,7 +3001,7 @@ class Library(object):
         :return: list of all section-level Refs in the library
         """
         from version_state import VersionStateSet
-        return [r.normal() for r in VersionStateSet().all_refs()]
+        return VersionStateSet().all_refs()
 
     def get_term_dict(self, lang="en"):
         """
@@ -3085,7 +3091,10 @@ class Library(object):
             title_dict = {}
             trees = self.get_index_forest(with_commentary=with_commentary)
             for tree in trees:
-                title_dict.update(tree.title_dict(lang))
+                try:
+                    title_dict.update(tree.title_dict(lang))
+                except IndexSchemaError as e:
+                    logger.error(u"Error in generating title node dictionary: {}".format(e))
             scache.set_cache_elem(key, title_dict)
             self.local_cache[key] = title_dict
         return title_dict
@@ -3242,6 +3251,8 @@ class Library(object):
                     res = self._build_ref_from_string(title, st[match.start():])  # Slice string from title start
                 except AssertionError as e:
                     logger.info(u"Skipping Schema Node: {}".format(title))
+                except InputError as e:
+                    logger.info(u"Input Error searching for refs in string: {}".format(e))
                 else:
                     refs += res
         return refs

@@ -348,6 +348,7 @@ def hebrew_plural(s):
 		"Pasuk":    "Psukim",
 		"Midrash":  "Midrashim",
 		"Teshuva":  "Teshuvot",
+		"Aliyah":   "Aliyot",
 	}
 
 	return known[s] if s in known else str(s) + "s"
@@ -474,6 +475,7 @@ def hebrew_term(s):
 		"Torah":            u"תורה",
 		"Perush":	    u"פירוש",
 		"Peirush":	    u"פירוש",
+		"Aliyah":	    u"עלייה",
 	}
 
 	words = dict(categories.items() + pseudo_categories.items() + section_names.items())
