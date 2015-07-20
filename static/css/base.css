@@ -3147,7 +3147,6 @@ ul.board {
 	margin: 0 0 25px 0;
 }
 
-
 #strategy {
 	text-align: center;
 }
@@ -3195,6 +3194,19 @@ ul.board {
 	margin-top: -12px;
 	font-weight: bold;
 	margin-bottom: 28px;
+}
+
+#teamPage h1 {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+#teamPage .teamMember {
+  margin-bottom: 24px;
+}
+
+#teamPage .teamBoardMember {
+  margin-bottom: 8px;
 }
 
 #faq h1 {
