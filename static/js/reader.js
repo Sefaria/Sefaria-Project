@@ -1178,7 +1178,7 @@ $(function() {
 			return;
 		}
 
-		var url = "/api/locktext/" + sjs.current.book + "/" + lang + "/" + version;
+		var url = "/api/locktext/" + sjs.current.indexTitle + "/" + lang + "/" + version;
 		var unlocking = $(this).hasClass("unlock");
 		if (unlocking) {
 			url += "?action=unlock";
@@ -1739,7 +1739,7 @@ function buildView(data) {
 	}
 
 	if (data.heTitle) {
-        if ($.inArray("Talmud", data.addressTypes)) {
+        if ($.inArray("Talmud", data.addressTypes) > -1) {
             basetextHeTitle = data.heTitle;
         } else {
             var start = data.sectionNames.length > 1 ? 0 : 1;

@@ -951,7 +951,7 @@ class TextChunk(AbstractTextRecord):
         return u"{}({})".format(self.__class__.__name__, args)
 
     def is_empty(self):
-        return not bool(self.text)
+        return self.ja().is_empty()
 
     def ja(self):
         return JaggedTextArray(self.text)
@@ -1325,6 +1325,7 @@ class TextFamily(object):
 
         d["textDepth"]       = getattr(self._inode, "depth", None)
         d["sectionNames"]    = getattr(self._inode, "sectionNames", None)
+        d["addressTypes"]    = getattr(self._inode, "addressTypes", None)
         if getattr(self._inode, "lengths", None):
             d["lengths"]     = getattr(self._inode, "lengths")
             if len(d["lengths"]):
@@ -3000,7 +3001,7 @@ class Library(object):
         :return: list of all section-level Refs in the library
         """
         from version_state import VersionStateSet
-        return [r.normal() for r in VersionStateSet().all_refs()]
+        return VersionStateSet().all_refs()
 
     def get_term_dict(self, lang="en"):
         """
