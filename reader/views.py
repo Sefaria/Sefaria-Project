@@ -355,6 +355,8 @@ def make_alt_toc_html(alt):
         he_icon = '<i class="schema-node-control fa ' + ('fa-angle-left' if linked else 'fa-angle-down') + '"></i>'
         html    = '<a href="' + urlquote(url) + '"' if linked else "<div "
         html   += ' class="schema-node-toc depth' + str(depth) + ' ' + linked + ' ' + default + '" >'
+        wrap_counts  = lambda counts: counts if list_depth(counts) == 2 else wrap_counts([counts])
+        # wrap counts to ensure they are as though at section level, handles segment level refs
         if not default:
             html += '<span class="schema-node-title">'
             html +=    '<span class="en">' + node.primary_title() + en_icon + '</span>'
@@ -368,7 +370,12 @@ def make_alt_toc_html(alt):
             html +=     "<span class='he'>" + hebrew_term(node.sectionNames[0]) + "</span>"
             html +=   "</div>" 
             for i in range(len(node.refs)):
-                html += '<a class="sectionLink enAll heAll" href="/%s">%s</a>' % (urlquote(node.refs[i]), (i+1))
+                if not node.refs[i]:
+                    continue
+                he    = wrap_counts(JaggedArray(he_counts).subarray_with_ref(Ref(node.refs[i])).array())
+                en    = wrap_counts(JaggedArray(en_counts).subarray_with_ref(Ref(node.refs[i])).array())
+                klass = "en%s he%s" % (toc_availability_class(en), toc_availability_class(he))
+                html += '<a class="sectionLink %s" href="/%s">%s</a>' % (klass, urlquote(node.refs[i]), (i+1))
             html += "</div>"
         elif includeSections:
             # Display each section included in node.wholeRef
@@ -378,8 +385,6 @@ def make_alt_toc_html(alt):
             offset       = first.sections[-2]-1 if first.is_segment_level() else first.sections[-1]-1
             offset_lines = (first.normal().rsplit(":", 1)[1] if first.is_segment_level() else "", 
                             last.normal().rsplit(":", 1)[1] if last.is_segment_level() else "")
-            wrap_counts  = lambda counts: counts if list_depth(counts) == 2 else wrap_counts([counts])
-            # wrap counts to ensure they are as though at section level, handles segment level refs
             he           = wrap_counts(JaggedArray(he_counts).subarray_with_ref(Ref(node.wholeRef)).array())
             en           = wrap_counts(JaggedArray(en_counts).subarray_with_ref(Ref(node.wholeRef)).array())
             depth        = len(first.index.nodes.sectionNames) - len(first.section_ref().sections)
