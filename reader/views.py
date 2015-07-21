@@ -59,11 +59,12 @@ def reader(request, tref, lang=None, version=None):
             return reader_redirect(uref, lang, version)
 
         # Return Text TOC if this is a bare text title
-        # or a schema node with multip sections underneath it
-        if (not getattr(oref.index_node, "depth", None) 
-                or (oref.sections == [] and 
-                    (oref.index.title == uref or oref.index_node.depth > 1))):
+        if oref.sections == [] and (oref.index.title == oref.normal() or oref.index_node.depth > 1):
             return text_toc(request, oref)
+        # or if this is a schema node with multiple sections underneath it
+        if (not getattr(oref.index_node, "depth", None)):
+            return text_toc(request, oref)
+
 
         if request.flavour == "mobile":
             return s2(request, ref=tref)
