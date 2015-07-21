@@ -349,6 +349,7 @@ def hebrew_plural(s):
 		"Midrash":  "Midrashim",
 		"Teshuva":  "Teshuvot",
 		"Aliyah":   "Aliyot",
+		"Tikun":    "Tikunim",
 	}
 
 	return known[s] if s in known else str(s) + "s"
