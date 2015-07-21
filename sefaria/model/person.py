@@ -3,13 +3,8 @@ Person.py
 Writes to MongoDB Collection: links
 """
 
-import regex as re
-from bson.objectid import ObjectId
-
-from sefaria.system.database import db
 from . import abstract as abst
 from . import schema
-from . import text
 
 import logging
 logger = logging.getLogger(__name__)
@@ -17,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 class Person(abst.AbstractMongoRecord):
     """
-    A link between two texts (or more specifically, two references)
+    Homo Sapiens
     """
     collection = 'person'
     name_group = None
@@ -26,12 +21,14 @@ class Person(abst.AbstractMongoRecord):
         "names"
     ]
     optional_attrs = [
-
+        "era"
     ]
 
     # Names
+    # This is the same as on TimePeriod, and very similar to Terms - abstract out
     def _set_derived_attributes(self):
-        self.set_names(self.names)
+        if getattr(self, "names", None):
+            self.set_names(self.names)
 
     def set_names(self, names):
         self.name_group = schema.TitleGroup(names)

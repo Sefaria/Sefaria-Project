@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class Garden(abst.AbstractMongoRecord):
     """
-    A link between two texts (or more specifically, two references)
+    https://saravanamudaliar.files.wordpress.com/2014/03/102_5996.jpg
     """
     collection = 'garden'
 
