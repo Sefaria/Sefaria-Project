@@ -2967,7 +2967,7 @@ class Library(object):
         if not reg:
             re_string = self.all_titles_regex_string(lang, commentary, with_terms)
             try:
-                reg = re.compile(re_string, max_mem= 256 * 1024 * 1024)
+                reg = re.compile(re_string, max_mem=256 * 1024 * 1024)
             except TypeError:
                 reg = re.compile(re_string)
             self.local_cache[key] = reg
