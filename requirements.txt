@@ -13,6 +13,6 @@ regex
 pytest
 mailchimp
 redis
-django-redis
+django-redis==3.8.4
 django_mobile==0.3.0
 roman
