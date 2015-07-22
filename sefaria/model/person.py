@@ -15,26 +15,52 @@ class Person(abst.AbstractMongoRecord):
     Homo Sapiens
     """
     collection = 'person'
-    name_group = None
+    track_pkeys = True
+    pkeys = ["versionTitle"]
 
     required_attrs = [
+        "key",
         "names"
     ]
     optional_attrs = [
-        "era"
+        "era",  # A key to a TimePeriod of type Era
+        "generation",  # A key to a TimePeriod of type Generation
+        "birthYear",
+        "birthYearIsApprox",
+        "birthPlace",
+        "deathYear",
+        "deathYearIsApprox",
+        "deathPlace",
+        "enBio",
+        "heBio",
+        "enWikiLink",
+        "heWikiLink",
+        "enJeLink",
+        "sex",
+        "rels"  # list of ... type and list of targets ... (two way?)
     ]
+
+    def _normalize(self):
+        super(self, Person)._normalize()
+        self.names = self.name_group.titles
+        if not self.key and self.primary_name("en"):
+            self.key = self.primary_name("en")
+
+    def _validate(self):
+        super(self, Person)._validate()
+        assert self.key
 
     # Names
     # This is the same as on TimePeriod, and very similar to Terms - abstract out
+    def _init_defaults(self):
+        self.name_group = None
+
     def _set_derived_attributes(self):
         if getattr(self, "names", None):
             self.set_names(self.names)
 
     def set_names(self, names):
         self.name_group = schema.TitleGroup(names)
-
-    def _normalize(self):
-        self.names = self.name_group.titles
 
     def all_names(self, lang=None):
         return self.name_group.all_titles(lang)
