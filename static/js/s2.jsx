@@ -591,10 +591,12 @@ var TextRange = React.createClass({
   },
   handleClick: function(event) {
     if ($(event.target).hasClass("refLink")) {
+      //Click of citation
       var ref = $(event.target).attr("data-ref");
       this.props.showBaseText(ref);
       sjs.track.event("Reader", "Ref Link Click", ref)
     } else if (this.props.openOnClick) {
+      //Click on the body of the TextRange itself
       this.props.showBaseText(this.props.sref);
       sjs.track.event("Reader", "Click Text from TextList", this.props.sref);
     }
