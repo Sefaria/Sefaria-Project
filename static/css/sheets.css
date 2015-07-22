@@ -931,8 +931,7 @@ a:active {
 	}
 
 	#controls {
-		left: 0px;
-		margin-left: -12px;
+		display: none;
 	}
 
 	#addSourceModal {

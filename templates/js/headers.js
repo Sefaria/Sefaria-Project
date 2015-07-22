@@ -569,7 +569,7 @@
 							return tag;
 						}
 					});
-				response(matches);
+				response(matches.slice(0, 30)); // limits return to 30 items
 			}
 		}).keypress(function(e) {
 			if (e.keyCode == 13) {
