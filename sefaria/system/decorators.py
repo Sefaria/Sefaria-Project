@@ -2,7 +2,7 @@
 
 from functools import wraps
 
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 
@@ -39,6 +39,9 @@ def catch_error_as_http(func):
         try:
             result = func(*args, **kwargs)
         except exps.InputError as e:
+            logger.warning(u'{}'.format(e))
+            raise Http404
+        except Exception as e:
             logger.exception(u"An exception occurred while running {}. Caught as HTTP".format(func.__name__))
             return render_to_response('static/generic.html',
                              {"content": u"There was an error processing your request: {}".format(unicode(e))},
