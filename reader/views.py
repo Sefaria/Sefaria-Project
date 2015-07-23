@@ -1693,8 +1693,6 @@ def translation_request_api(request, tref):
         else:
             tr = TranslationRequest.make_request(ref, request.user.id)
             response = tr.contents()
-            if response.get("featured", False):
-                response["featured_until"] = response["featured_until"].isoformat() 
 
     return jsonResponse(response)
 
