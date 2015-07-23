@@ -329,6 +329,11 @@ def export_all(request):
 @staff_member_required
 def cause_error(request):
     resp = {}
+    logger.error("This is a simple error")
+    try:
+        erorr = excepting
+    except Exception as e:
+        logger.exception('An Exception has occured in thre code')
     erorr = error
     return jsonResponse(resp)
 

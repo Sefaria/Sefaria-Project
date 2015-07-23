@@ -130,7 +130,7 @@ sjs.library = {
         title:      links[i].commentator,
         heTitle:    links[i].heCommentator,
         categories: [links[i].category],
-      }
+      };
       this.index(links[i].commentator, index);
     }
   },
@@ -278,7 +278,7 @@ sjs.library = {
       "Minor Tractates":      "מסכתות קטנות",
       "Rosh":                 'ר"אש',
       "Maharsha":             'מהרשא'
-    }
+    };
     return cat in categories ? categories[cat] : cat;
   }
 };

@@ -3140,10 +3140,11 @@ class Library(object):
         """
         return IndexSet().distinct("categories")
 
-    def get_indexes_in_category(self, category, include_commentary=False):
+    def get_indexes_in_category(self, category, include_commentary=False, full_records=False):
         """
         :param string category: Name of category
         :param bool include_commentary: If false, does not exludes records of Commentary and Targum
+        :param bool full_records: If True will return the actual :class: 'IndexSet' otherwise just the titles
         :return: :class:`IndexSet` of :class:`Index` records in the specified category
         """
 
@@ -3152,7 +3153,7 @@ class Library(object):
         else:
             q = {"categories": category}
 
-        return IndexSet(q).distinct("title")
+        return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
     def get_commentator_titles(self, lang="en", with_variants=False):
         """

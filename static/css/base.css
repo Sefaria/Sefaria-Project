@@ -944,6 +944,22 @@ body.hebrew #aboutPage .span5 {
     margin: 6px 60px 0;
 }
 
+#textToc .schema-node-toc.depth5 {
+    margin: 6px 80px 0;
+}
+
+#textToc .schema-node-toc.depth6 {
+    margin: 6px 100px 0;
+}
+
+#textToc .schema-node-toc.depth7 {
+    margin: 6px 120px 0;
+}
+
+#textToc .schema-node-toc.depth8 {
+    margin: 6px 140px 0;
+}
+
 #textToc .schema-node-title {
     font-size: 16px;
     font-family: Georgia, Serif;
