@@ -57,6 +57,10 @@ Loaded from MySQL DB with Sefaria-Data/sources/Sages_DB/parse_eras_from_sages.py
 """
 
 class TimePeriod(abst.AbstractMongoRecord):
+    '''
+    TimePeriod is used both for the saved time periods - Eras and Generations
+    and for the adhoc in memory TimePeriods generated from e.g. the Person model
+    '''
     collection = 'time_period'
 
     required_attrs = [
@@ -66,7 +70,9 @@ class TimePeriod(abst.AbstractMongoRecord):
     ]
     optional_attrs = [
         "start",
+        "startIsApprox",
         "end",
+        "endIsApprox",
         "order",
         "range_string"
     ]

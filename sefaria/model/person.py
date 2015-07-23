@@ -5,6 +5,7 @@ Writes to MongoDB Collection: links
 
 from . import abstract as abst
 from . import schema
+from . import time
 
 import logging
 logger = logging.getLogger(__name__)
@@ -28,9 +29,11 @@ class Person(abst.AbstractMongoRecord):
         "birthYear",
         "birthYearIsApprox",
         "birthPlace",
+        "birthPlaceGeo"
         "deathYear",
         "deathYearIsApprox",
         "deathPlace",
+        "deathPlaceGeo",
         "enBio",
         "heBio",
         "enWikiLink",
@@ -72,7 +75,22 @@ class Person(abst.AbstractMongoRecord):
         return self.name_group.secondary_titles(lang)
 
     # Dates
-
+    # A person may have an era, a generation, or a specific birth and death years, which each may be approximate.
+    # They may also have none of these...
+    def mostAccurateTimePeriod(self):
+        if getattr(self, "birthYear", None) and getattr(self, "deathYear", None):
+            return time.TimePeriod( {
+                "start": self.birthYear,
+                "startIsApprox": getattr(self, "birthYearIsApprox", False),
+                "end": self.deathYear,
+                "endIsApprox": getattr(self, "deathYearIsApprox", False)
+            })
+        elif getattr(self, "generation", None):
+            return time.TimePerido().load({"symbol": self.generation})
+        elif getattr(self, "era", None):
+            return time.TimePerido().load({"symbol": self.era})
+        else:
+            return None
 
 
 class PersonSet(abst.AbstractMongoSet):
