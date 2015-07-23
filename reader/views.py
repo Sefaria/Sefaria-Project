@@ -110,9 +110,8 @@ def reader(request, tref, lang=None, version=None):
         return reader_redirect(matched_ref.url(), lang, version)
 
     except InputError, e:
-        logger.exception(u'{}'.format(e))
-        text = {"error": unicode(e)}
-        hasSidebar = False
+        logger.warning(u'{}'.format(e))
+        raise Http404
 
     if lang and version:
         text['new_preferred_version'] = {'lang': lang, 'version': version}
