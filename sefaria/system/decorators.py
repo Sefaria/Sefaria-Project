@@ -24,7 +24,7 @@ def catch_error_as_json(func):
             result = func(*args, **kwargs)
         except exps.InputError as e:
             #logging an exception in a catch clause logs the stack trace automatically.
-            logger.exception(u"An exception occurred while running {}. Caught as JSON".format(func.__name__))
+            logger.warning(u"An exception occurred while running {}. Caught as JSON".format(func.__name__))
             return jsonResponse({"error": unicode(e)})
         return result
     return wrapper
