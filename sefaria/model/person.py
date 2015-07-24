@@ -38,19 +38,18 @@ class Person(abst.AbstractMongoRecord):
         "heBio",
         "enWikiLink",
         "heWikiLink",
-        "enJeLink",
-        "sex",
-        "rels"  # list of ... type and list of targets ... (two way?)
+        "jeLink",
+        "sex",  # M or F (or ...)
     ]
 
     def _normalize(self):
-        super(self, Person)._normalize()
+        super(Person, self)._normalize()
         self.names = self.name_group.titles
         if not self.key and self.primary_name("en"):
             self.key = self.primary_name("en")
 
     def _validate(self):
-        super(self, Person)._validate()
+        super(Person, self)._validate()
         assert self.key
 
     # Names
@@ -59,11 +58,7 @@ class Person(abst.AbstractMongoRecord):
         self.name_group = None
 
     def _set_derived_attributes(self):
-        if getattr(self, "names", None):
-            self.set_names(self.names)
-
-    def set_names(self, names):
-        self.name_group = schema.TitleGroup(names)
+        self.name_group = schema.TitleGroup(getattr(self, "names", None))
 
     def all_names(self, lang=None):
         return self.name_group.all_titles(lang)
@@ -107,9 +102,48 @@ class PersonRelationship(abst.AbstractMongoRecord):
     ]
     optional_attrs = []
 
-class PersonRelationshipSet(abst.AbstractMongoRecord):
+class PersonRelationshipSet(abst.AbstractMongoSet):
     recordClass = PersonRelationship
 
+
+class PersonRelationshipType(abst.AbstractMongoRecord):
+    collection = 'person_rel_type'
+    track_pkeys = True
+    pkeys = ["key"]
+
+    required_attrs = [
+        "key",
+        "forward_names",
+        "reverse_names"
+    ]
+
+    def _init_defaults(self):
+        self.forward_group = None
+        self.reverse_group = None
+
+    def _set_derived_attributes(self):
+        self.forward_group = schema.TitleGroup(getattr(self, "forward_names", None))
+        self.reverse_group = schema.TitleGroup(getattr(self, "reverse_names", None))
+
+    def _normalize(self):
+        super(PersonRelationshipType, self)._normalize()
+        self.forward_names = self.forward_group.titles
+        self.reverse_names = self.reverse_group.titles
+
+    def set_forward_name(self, text, lang):
+        self.forward_group.add_title(text, lang, primary=True, replace_primary=True)
+
+    def set_reverse_name(self, text, lang):
+        self.reverse_group.add_title(text, lang, primary=True, replace_primary=True)
+
+    def get_forward_name(self, lang):
+        return self.forward_group.primary_title(lang)
+
+    def get_reverse_name(self, lang):
+        return self.reverse_group.primary_title(lang)
+
+class PersonRelationshipTypeSet(abst.AbstractMongoSet):
+    recordClass = PersonRelationshipType
 
 """
 def process_index_title_change_in_gardens(indx, **kwargs):

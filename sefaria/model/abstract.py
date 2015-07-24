@@ -35,10 +35,11 @@ class AbstractMongoRecord(object):
     second_save = False  # Does this object need a two stage save?  Uses _prepare_second_save()
 
     def __init__(self, attrs=None):
+        if attrs is None:
+            attrs = {}
         self._init_defaults()
         self.pkeys_orig_values = {}
-        if attrs:
-            self.load_from_dict(attrs, True)
+        self.load_from_dict(attrs, True)
 
     def load_by_id(self, _id=None):
         if _id is None:

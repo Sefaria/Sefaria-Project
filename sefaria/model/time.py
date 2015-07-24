@@ -62,6 +62,8 @@ class TimePeriod(abst.AbstractMongoRecord):
     and for the adhoc in memory TimePeriods generated from e.g. the Person model
     '''
     collection = 'time_period'
+    track_pkeys = True
+    pkeys = ["symbol"]
 
     required_attrs = [
         "symbol",
@@ -86,10 +88,7 @@ class TimePeriod(abst.AbstractMongoRecord):
         self.name_group = None
 
     def _set_derived_attributes(self):
-        self.set_names(getattr(self, "names", None))
-
-    def set_names(self, names):
-        self.name_group = schema.TitleGroup(names)
+        self.name_group = schema.TitleGroup(getattr(self, "names", None))
 
     def _normalize(self):
         self.names = self.name_group.titles

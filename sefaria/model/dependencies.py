@@ -2,7 +2,7 @@
 dependencies.py -- list cross model dependencies and subscribe listeners to changes.
 """
 
-from . import abstract, link, note, history, schema, text, layer, version_state, translation_request, person
+from . import abstract, link, note, history, schema, text, layer, version_state, translation_request, time, person
 
 from abstract import subscribe, cascade
 import sefaria.system.cache as scache
@@ -40,10 +40,14 @@ subscribe(cascade(schema.TermSet, "scheme"),                              schema
 # Version Save
 subscribe(translation_request.process_version_state_change_in_translation_requests, version_state.VersionState, "save")
 
+# Time
+subscribe(cascade(person.PersonSet, "era"),                              time.TimePeriod, "attributeChange", "symbol")
+subscribe(cascade(person.PersonSet, "generation"),                              time.TimePeriod, "attributeChange", "symbol")
+
 # Person
 subscribe(cascade(person.PersonRelationshipSet, "to_key"),                              person.Person, "attributeChange", "key")
 subscribe(cascade(person.PersonRelationshipSet, "from_key"),                              person.Person, "attributeChange", "key")
-
+subscribe(cascade(person.PersonRelationshipSet, "type"),                                person.PersonRelationshipType, "attributeChange", "key")
 
 
 # todo: notes? reviews?
