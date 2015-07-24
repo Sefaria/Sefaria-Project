@@ -17,7 +17,7 @@ class Person(abst.AbstractMongoRecord):
     """
     collection = 'person'
     track_pkeys = True
-    pkeys = ["versionTitle"]
+    pkeys = ["key"]
 
     required_attrs = [
         "key",
@@ -96,6 +96,19 @@ class Person(abst.AbstractMongoRecord):
 class PersonSet(abst.AbstractMongoSet):
     recordClass = Person
 
+
+class PersonRelationship(abst.AbstractMongoRecord):
+    collection = 'person_rel'
+
+    required_attrs = [
+        "from_key",
+        "to_key",
+        "type"
+    ]
+    optional_attrs = []
+
+class PersonRelationshipSet(abst.AbstractMongoRecord):
+    recordClass = PersonRelationship
 
 
 """
