@@ -14,14 +14,28 @@ sjs.palette = {
 
 sjs.categoryColors = {
   "Commentary": sjs.palette.blue,
-  "Tanach" : sjs.palette.darkgreen,
-  "Midrash": sjs.palette.green,
-  "Mishnah": sjs.palette.lightblue,
-  "Talmud": sjs.palette.tan,
-  "Halakha": sjs.palette.red,
-  "Philosophy": sjs.palette.grape
-
+  "Tanach" :    sjs.palette.darkgreen,
+  "Midrash":    sjs.palette.green,
+  "Mishnah":    sjs.palette.lightblue,
+  "Talmud":     sjs.palette.tan,
+  "Halakhah":   sjs.palette.red,
+  "Philosophy": sjs.palette.grape,
+  "Liturgy":    sjs.palette.blue,
+  "Tosefta":    sjs.palette.darkgreen,
+  "Parshanut":  sjs.palette.green,
+  "Chasidut":   sjs.palette.lightblue,
+  "Musar":      sjs.palette.tan,
+  "Responsa":   sjs.palette.red,
+  "Apocrapha":  sjs.palette.grape,
+  "Other":      sjs.palette.blue
 };
+
+sjs.categoryColor = function(cat) {
+  if (cat in sjs.categoryColors) {
+    return sjs.categoryColors[cat];
+  }
+  return sjs.palette.pink;
+}
 
 sjs.library = {
   _texts: {},

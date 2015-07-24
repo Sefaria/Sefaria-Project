@@ -68,6 +68,122 @@ body .bilingual .enOnly .he {
   background-color: #333;
   color: white;
 }
+.readerNavMenu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  z-index: 100;
+  background-color: #F9F9F7;
+}
+.readerNavTop {
+  padding: 20px;
+}
+.readerNavTop .readerSearch {
+  margin: 0;
+  width: 84%;
+  border-color: #F2F2F2;
+  padding: 10px 10px;
+}
+.readerNavTop .fa {
+  color: #BFBFBF;
+  font-size: 20px;
+  vertical-align: middle;
+  cursor: pointer;
+}
+.readerNavTop .fa-search {
+  margin-left: -30px;
+}
+.readerNavTop .fa-times {
+  position: absolute;
+  right: 10px;
+  top: 28px;
+}
+.readerNavMenu .content {
+  padding: 10px;
+}
+.readerNavMenu h2, .readerNavMenu h3 {
+  text-transform: uppercase;
+  text-align: center;
+  font-size: 15px;
+  font-weight: lighter;
+  font-family: "Montserrat", "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
+  color: #9B9B9B;
+  margin-bottom: 10px;
+}
+.readerNavMenu h3 {
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+.readerNavCategories {
+  width: 100%;
+  margin-bottom: 25px;
+}
+.readerNavCategories .threeBox td {
+  border: none;
+}
+.readerNavCategory {
+  color: white;
+  text-transform: uppercase;
+  font-family: Georgia;
+  text-align: center;
+  padding: 10px 10px;
+  margin: 1px;
+  cursor: pointer;
+}
+.readerNavMenu .sheetsLink {
+  display: inline-block;
+  color: black;
+  width: 98%;
+  margin: 0 1%;
+  background-color: white;
+  text-align: center;
+  padding: 12px 0;
+  text-transform: uppercase;
+}
+.readerNavMenu .sheetsLink .fa {
+  margin-right: 4px;
+  color: #999;
+}
+.readerNavCategoryMenu {
+  height: 100%;
+}
+.readerNavTopFixed {
+  position: absolute;
+  width: 100%;
+  background-color: #F9F9F7;
+}
+.readerNavTopFixed .readerNavTop {
+  padding: 12px 20px;
+}
+.readerNavTopFixed h2 {
+  margin-bottom: none;
+}
+.readerNavCategoryMenu .content {
+  padding: 74px 10px 10px;
+  box-sizing: border-box;
+  height: 100%;
+  overflow-y: scroll;
+}
+.readerNavCategoryMenu .content .category {
+  margin-bottom: 20px;
+}
+.readerNavMenu .refLink {
+  display: inline-block;
+  width: 48%;
+  margin: 1%;
+  padding: 8px 0;
+  background-color: white;
+  cursor: pointer;
+  vertical-align: middle;
+  text-align: center;
+}
+.categoryColorLine {
+  width: 100%;
+  height: 8px;
+}
 #readerControls {
   position: fixed;
   direction: ltr;
@@ -319,6 +435,7 @@ body .bilingual .enOnly .he {
   font-size: .7em;
   font-weight: bold;
   letter-spacing: 1px;
+  cursor: pointer;
 }
 .refLink:hover {
   text-decoration: underline;
@@ -376,15 +493,15 @@ body .bilingual .enOnly .he {
 .textList .heOnly {
   display: block;
 }
-.filterSet {
-
+.threeBox {
+  width: 100%;
 }
-.filterSet table {
+.threeBox table {
   width: 100%;
   border-style: hidden;
   border-collapse: collapse;
 }
-.filterSet td {
+.threeBox td {
   padding: 0;
   width: 33.3333%;
   border: 1px solid #CCC;

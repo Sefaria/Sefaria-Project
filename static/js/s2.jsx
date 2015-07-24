@@ -276,6 +276,7 @@ var ReaderApp = React.createClass({
         <ReaderControls
           navNext={this.navNext}
           navPrevious={this.navPrevious}
+          showBaseText={this.showBaseText}
           currentBook={this.currentBook}
           settings={this.state.settings}
           setOption={this.setOption}
@@ -292,18 +293,23 @@ var ReaderApp = React.createClass({
 var ReaderControls = React.createClass({
   getInitialState: function() {
     return {
-      open: false
+      optionsOpen: false,
+      navigationOpen: true
     };
   },
   showOptions: function(e) {
-    this.setState({open: true});
+    this.setState({optionsOpen: true});
   },
   hideOptions: function() {
-    this.setState({open: false});
+    this.setState({optionsOpen: false});
   },
   openNav: function(e) {
-    e.stopPropagation();
-    $("#navPanel").addClass("navPanelOpen")
+    //e.stopPropagation();
+    //$("#navPanel").addClass("navPanelOpen");
+    this.setState({navigationOpen: true});
+  },
+  closeNav: function() {
+    this.setState({navigationOpen: false});
   },
   openTextToc: function() {
     var book = this.props.currentBook();
@@ -359,7 +365,7 @@ var ReaderControls = React.createClass({
           setOption={this.props.setOption}
           settings={this.props.settings} />);
 
-    var readerOptions = !this.state.open ? "" : (
+    var readerOptions = !this.state.optionsOpen ? "" : (
       <div id="readerOptionsPanel">
         {languageToggle}
         {layoutToggle}
@@ -368,7 +374,12 @@ var ReaderControls = React.createClass({
         {sizeToggle}
       </div>);
 
-    return (
+    if (this.state.navigationOpen) {
+      return (<ReaderNavigationMenu 
+                closeNav={this.closeNav}
+                showBaseText={this.props.showBaseText} />);
+    } else {
+      return (
       <div>
         <div id="readerControls">
           <div id="readerControlsRight">
@@ -393,10 +404,134 @@ var ReaderControls = React.createClass({
           </div>
         </div>
         {readerOptions}
-        {this.state.open ? (<div id="mask" onClick={this.hideOptions}></div>) : ""}
-      </div>
+        {this.state.optionsOpen ? (<div id="mask" onClick={this.hideOptions}></div>) : ""}
+      </div>);
+    }
+  }
+});
 
-    );
+
+var ReaderNavigationMenu = React.createClass({
+  getInitialState: function() {
+    return {
+      category: null,
+      showMore: false
+    };
+  },
+  setCategory: function(category) {
+    this.setState({category: category});
+  },
+  showMore: function() {
+    this.setState({showMore: true});
+  },
+  handleClick: function(event) {
+    if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
+      var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
+      this.props.showBaseText(ref);
+      sjs.track.event("Reader", "Navigation Text Click", ref)
+      this.props.closeNav();
+    }  
+  },
+  render: function() {
+    if (this.state.category) {
+      return (<div className="readerNavMenu" onClick={this.handleClick} >
+                      <ReaderNavigationCategoryMenu 
+                        category={this.state.category}
+                        closeNav={this.props.closeNav} 
+                        setCategory={this.setCategory} />
+                      </div>);
+    } else {
+      var categories = [
+        "Tanach",
+        "Mishnah",
+        "Talmud",
+        "Midrash",
+        "Halakhah",
+        "Kabbalah",
+        "Liturgy",
+        "Philosophy",
+        "Tosefta",
+        "Parshanut",
+        "Chasidut",
+        "Musar",
+        "Responsa",
+        "Apocrapha",
+        "Other"
+      ];
+      categories = categories.map(function(cat) {
+        var style = {"backgroundColor": sjs.categoryColor(cat)};
+        var openCat = function() {this.setCategory(cat)}.bind(this);
+        return (<div className="readerNavCategory" style={style} onClick={openCat}>{cat}</div>);
+      }.bind(this));;
+      var more = (<div className="readerNavCategory" style={{"backgroundColor": sjs.palette.navy}} onClick={this.showMore}>
+                      <span className="en">More &gt;</span>
+                      <span className="he">עוד &gt;</span>
+                  </div>);
+      categories = this.state.showMore ? categories : categories.slice(0,8).concat(more);
+      categories = (<div className="readerNavCategories"><ThreeBox content={categories} /></div>);
+
+      return(<div className="readerNavMenu">
+        <div className="readerNavTop">
+          <input className="readerSearch" placeholder="Search" />
+          <i className="fa fa-search"></i>
+          <i className="fa fa-times" onClick={this.props.closeNav}></i>
+        </div>
+        <div className="content">
+            <h2>Browse Texts</h2>
+            {categories}
+            <h2>Calendar</h2>
+            <h2>Community</h2>
+            <a className="sheetsLink" href="/sheets"><i className="fa fa-file-text-o"></i> Source Sheets</a>
+
+        </div>
+      </div>);
+    }
+  }
+});
+
+
+var ReaderNavigationCategoryMenu = React.createClass({
+  render: function() {
+
+    var catContents = sjs.toc.filter(function(item) {
+      return this.props.category == item.category;
+    }.bind(this))[0];
+
+    var makeCatContents = function(contents) {
+      var html = "";
+      for (var i = 0; i < contents.length; i++) {
+        var item = contents[i];
+        if (item.category) {
+          if (item.category == "Commentary") { continue; }
+          html += "<div class='category'><h3>" + 
+                    "<span class='en'>" + item.category + "</span>" + 
+                    "<span class='he'>" + item.heCategory + "</span></h3>" +
+                    makeCatContents(item.contents) +
+                  "</div>";
+        } else {
+          var title   = item.title.replace(/(Mishneh Torah|Shulchan Arukh|Jerusalem Talmud), /, "");
+          var heTitle = item.heTitle.replace(/(משנה תורה,|תלמוד ירושלמי) /, "");
+          
+          html += '<span class=refLink sparse' + item.sparseness + '" data-ref="' + item.title + '">' + 
+                    "<span class='en'>" + title + "</span>" + 
+                    "<span class='he'>" + heTitle + "</span></span>";
+        }
+      }
+      return html;
+    };
+
+    var contents = makeCatContents(catContents.contents);
+    var lineStyle = {backgroundColor: sjs.categoryColor(this.props.category)};
+    return (<div className="readerNavCategoryMenu">
+              <div className="readerNavTopFixed">
+                <div className="categoryColorLine" style={lineStyle}></div>
+                <div className="readerNavTop">
+                  <i className="fa fa-times" onClick={this.props.closeNav}></i>
+                  <h2>{this.props.category}</h2>
+                </div>
+              </div>
+              <div className="content" dangerouslySetInnerHTML={ {__html: contents} }></div>
+            </div>);
   }
 });
 
@@ -943,7 +1078,7 @@ var CategoryFilter = React.createClass({
                 on={$.inArray(book.book, this.props.filter) !== -1} />);
     }.bind(this));
     
-    var color   = sjs.categoryColors[this.props.category] || sjs.palette.pink;
+    var color   = sjs.categoryColor(this.props.category);
     var style   = {"borderTop": "4px solid " + color};
     var classes = cx({categoryFilter: 1, on: this.props.on});
     var count   = (<span className="enInHe">{this.props.count}</span>);
@@ -972,7 +1107,7 @@ var TextFilter = React.createClass({
     var classes = cx({textFilter: 1, on: this.props.on});
 
     if (!this.props.hideColors) {
-      var color = sjs.categoryColors[this.props.category] || sjs.palette.pink;
+      var color = sjs.categoryColor(this.props.category)
       var style = {"borderTop": "4px solid " + color};
     }
     var name = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
@@ -1007,7 +1142,7 @@ var ThreeBox = React.createClass({
         threes.push([content[i], content[i+1], content[i+2]]);
       }
       return (
-        <table>
+        <table className="threeBox">
           <tbody>
           { 
             threes.map(function(row, i) {
