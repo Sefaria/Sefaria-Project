@@ -945,9 +945,6 @@ body.newText #newTextCompare {
 }
 
 #lexicon-modal {
-	transform: translateZ(0);
-	transition-duration: 0.3s;
-	transition-property: box-shadow, transform;
 	position: absolute;
 	z-index: 100;
 	background-color: #eff1f1;
