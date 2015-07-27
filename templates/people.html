@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+
+{% block title %}People on Sefaria{% endblock %}
+
+{% block css %}
+    #languageToggle {
+        display: inline;
+    }
+    #languageToggle #bilingual {
+        display: none;
+    }
+{% endblock %}
+
+{% block content %}
+
+    
+<div id="peoplePage" class="container doc">
+    <span class="row">
+        <span class="span8 offset2">
+            {% for person in people %}
+                <a href="/person/{{ person.key }}">
+                    <div class='person'>
+                        <span class='en'>{{ person.en }}</span>
+                        <span class='he'>{{ person.he }}</span>
+                    </div>
+                </a>
+            {% endfor %}
+        </span>
+    </span>
+</div>
+
+{% endblock %}

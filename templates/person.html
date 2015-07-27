@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+
+{% block title %}{{ enName }} on Sefaria{% endblock %}
+
+{% block css %}
+    #languageToggle {
+        display: inline;
+    }
+    #languageToggle #bilingual {
+        display: none;
+    }
+{% endblock %}
+
+{% block content %}
+
+    
+<div id="textTocPage" class="container doc">
+    <span class="row">
+        <span class="span8 offset2">
+            <h1>
+                <span class='en'>{{ primary_name.en }}</span>
+                <span class='he'>{{ primary_name.he }}</span>
+            </h1>
+            <h3>
+                <span class='en'>{{ time_period.en }}</span>
+            </h3>
+            <div id="bio">
+                <span class='en'>{{ enBio }}</span>
+                <span class='he'>{{ heBio }}</span>
+            </div>
+
+
+    </span>
+    </span>
+</div>
+
+{% endblock %}

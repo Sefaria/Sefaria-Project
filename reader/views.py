@@ -1993,3 +1993,37 @@ def explore(request, book1, book2, lang=None):
         template_vars["contentLang"] = "hebrew"
 
     return render_to_response('explore.html', template_vars, RequestContext(request))
+
+@catch_error_as_http
+def person_page(request, name):
+    person = Person().load({"key": name})
+    if not person:
+        raise Http404
+
+    template_vars = person.contents()
+    template_vars["primary_name"] = {
+        "en": person.primary_name("en"),
+        "he": person.primary_name("he")
+    }
+    template_vars["secondary_names"] = {
+        "en": person.secondary_names("en"),
+        "he": person.secondary_names("he")
+    }
+    template_vars["time_period"] = {
+        "en": person.mostAccurateTimePeriod().html("en"),
+        "he": person.mostAccurateTimePeriod().html("he")
+    }
+
+    return render_to_response('person.html', template_vars, RequestContext(request))
+
+
+def person_index(request):
+
+    template_vars = {"people": [{
+                                   'key': p.key,
+                                   'en': p.primary_name("en"),
+                                   'he': p.primary_name('he')
+                               } for p in PersonSet()]
+    }
+    return render_to_response('people.html', template_vars, RequestContext(request))
+

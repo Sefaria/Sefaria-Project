@@ -214,6 +214,8 @@ urlpatterns += patterns('reader.views',
 urlpatterns += patterns('reader.views',
     (r'^s2$', 's2'),
     (r'^s2/(?P<ref>.+)$', 's2'),
+    (r'^person/(?P<name>.+)$', 'person_page'),
+    (r'^people/?$', 'person_index')
 )
 
 # Redirects to Forum, Wiki

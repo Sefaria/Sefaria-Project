@@ -105,6 +105,14 @@ class TimePeriod(abst.AbstractMongoRecord):
     def add_name(self, name, lang, primary=False, replace_primary=False):
         return self.name_group.add_title(name, lang, primary=primary, replace_primary=replace_primary)
 
+    def html(self, lang):
+        name = u""
+        if getattr(self, "names", None):
+            name += self.primary_name(lang)
+        if getattr(self, "start", None) and getattr(self, "end", None):
+            name += u" ({} - {})".format(self.start, self.end)
+        return name
+
 
 class TimePeriodSet(abst.AbstractMongoSet):
     recordClass = TimePeriod
