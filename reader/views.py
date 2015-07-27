@@ -59,7 +59,7 @@ def reader(request, tref, lang=None, version=None):
             return reader_redirect(uref, lang, version)
 
         # Return Text TOC if this is a bare text title
-        if oref.sections == [] and (oref.index.title == oref.normal() or oref.index_node.depth > 1):
+        if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
             return text_toc(request, oref)
         # or if this is a schema node with multiple sections underneath it
         if (not getattr(oref.index_node, "depth", None)):
@@ -110,9 +110,8 @@ def reader(request, tref, lang=None, version=None):
         return reader_redirect(matched_ref.url(), lang, version)
 
     except InputError, e:
-        logger.exception(u'{}'.format(e))
-        text = {"error": unicode(e)}
-        hasSidebar = False
+        logger.warning(u'{}'.format(e))
+        raise Http404
 
     if lang and version:
         text['new_preferred_version'] = {'lang': lang, 'version': version}
@@ -1693,8 +1692,6 @@ def translation_request_api(request, tref):
         else:
             tr = TranslationRequest.make_request(ref, request.user.id)
             response = tr.contents()
-            if response.get("featured", False):
-                response["featured_until"] = response["featured_until"].isoformat() 
 
     return jsonResponse(response)
 
