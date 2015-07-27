@@ -85,7 +85,7 @@
 						<div class="optionItem groupOption" data-group="None">
 							<i class="fa fa-check"></i> <i>None</i></div>
 						{% for group in owner_groups %}
-						<div class="optionItem groupOption" data-group="{{ group.name }}">
+						<div class="optionItem groupOption" data-group="{{ group.name }}" data-image="{{ group.headerUrl }}">
 							<i class="fa fa-check hidden"></i> {{ group.name }}</div>
 						{% endfor %}
 					</div>
@@ -157,11 +157,11 @@
 	<div id="bsdHeader">בס"ד</div>
 	<div id="sheetHeader" {% if sheet_group == None %}style="display:none"{% endif %}>
 		{% if sheet_group %}
-		<a href="/partners/{{ sheet_group|url_safe }}">
-			<img id="partnerLogo" src="/static/partner/{{ sheet_group|url_safe }}/header.png" />
+		<a href="/partners/{{ sheet_group.name|url_safe }}">
+			<img id="partnerLogo" src="{{ sheet_group.headerUrl }}" />
 		</a>
 		{% else %}
-		<img id="partnerLogo" style="display:none;" />
+			<img id="partnerLogo" style="display:none;" />
 		{% endif %}
 	</div>
 	<div id="title">

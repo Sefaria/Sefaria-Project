@@ -1183,6 +1183,7 @@ body.hebrew #aboutPage .span5 {
 
 #sheetListPage #partnerLogo {
     margin: 40px 0;
+    max-width: 100%;
 }
 
 #sheetListPage #groupSheetsRow thead,
