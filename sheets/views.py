@@ -374,7 +374,7 @@ def sheets_tag(request, tag, public=True, group=None):
 	else:
 		sheets = get_sheets_by_tag(tag, uid=request.user.id)
 
-	in_group = request.user.is_authenticated() and group in [group.name for group in request.user.groups.all()]
+	in_group = request.user.is_authenticated() and group in [g.name for g in request.user.groups.all()]
 	groupCover = Group().load({"name": group}).coverUrl if Group().load({"name": group}) else None
 	
 	return render_to_response('tag.html', {
