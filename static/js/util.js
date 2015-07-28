@@ -138,7 +138,7 @@ sjs.cache = {
 	},
 
 	getPreferredTextVersion: function(book){
-		book = book ? book.toLowerCase() : null;
+		book = book ? book.toLowerCase().replace(/ /g, "_") : null;
 		if(book in this._preferredVersions){
 			return this._preferredVersions[book]
 		}
