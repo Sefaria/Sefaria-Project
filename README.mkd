@@ -40,7 +40,7 @@ If you don't already have it in your Python installation, install [pip](http://w
 
 If you are not using virtualenv, run it with sudo: `sudo pip install -r requirements.txt`
 
-If you see an error when running `pip install -r requirements.txt` about a missing 'python.h' file, you'll need to install the Python development libraries. 
+If you see an error about a missing 'python.h' file, you'll need to install the Python development libraries. 
 
 On Debian systems: 
 
@@ -109,7 +109,7 @@ Some of the most important code is found in:
 - `sefaria/sheets.py` - backend for source sheets
 - `sefaria/model/` - Class based resource and logical models for almost all Sefaria data
 
-Documentation of the python `sefaria.model.text` class is available at http://sefaria-project.readthedocs.org/en/latest/
+Documentation for the main python `sefaria.model.text` class is available at http://sefaria-project.readthedocs.org/en/latest/
 
 ## Command Line Interface
 
