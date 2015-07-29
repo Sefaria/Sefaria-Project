@@ -36,9 +36,11 @@ Now you should see `(venv)` in front of your command prompt. The second command 
 #### Pip: 
 If you don't already have it in your Python installation, install [pip](http://www.pip-installer.org/en/latest/installing.html). Then use it to install the required Python packages.
 
-    pip install -r requirements.txt
+	pip install -r requirements.txt
 
-If you see an error when running `pip install -r requirements.txt` about a missing 'python.h' file, you'll need to install the Python development libraries.  
+If you are not using virtualenv, run it with sudo: `sudo pip install -r requirements.txt`
+
+If you see an error when running `pip install -r requirements.txt` about a missing 'python.h' file, you'll need to install the Python development libraries. 
 
 On Debian systems: 
 
@@ -92,6 +94,10 @@ Django auth features run on a seperate database. To init this database and set u
 
     python manage.py runserver
 
+You can also make it publically available by specifying 0.0.0.0 for the host:
+    
+    python manage.py runserver 0.0.0.0:8000
+
 ## Exploring the Code
 
 Some of the most important code is found in:
@@ -103,6 +109,8 @@ Some of the most important code is found in:
 - `sefaria/sheets.py` - backend for source sheets
 - `sefaria/model/` - Class based resource and logical models for almost all Sefaria data
 
+Documentation of the python `sefaria.model.text` class is available at http://sefaria-project.readthedocs.org/en/latest/
+
 ## Command Line Interface
 
 The shell script `cli` will invoke a python interpreter with the core models loaded, and can be used as a standalone interface to texts or for testing.
@@ -111,12 +119,6 @@ The shell script `cli` will invoke a python interpreter with the core models loa
     >>> p = LinkSet(Ref("Genesis 13"))
     >>> p.count()
     226
-
-Though soon to be retired, some functionality is still in `texts.py` which can also be accessed from the cli as `texts`.
-
-    $ ./cli
-    >>> texts.get_text("Kohelet 4:9")
-
 
 ## License
 
