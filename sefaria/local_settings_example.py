@@ -33,7 +33,7 @@ DATABASES = {
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': '/path/to/your/django_cache/',
+        'LOCATION': '/path/to/your/django_cache/',  # can be any accessible path, not necessarily a path inside sefaria eg. /home/user/data/django_cache.
     }
 }
 
