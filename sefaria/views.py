@@ -220,7 +220,7 @@ def bulktext_api(request, refs):
                     'heRef': oref.he_normal(),
                     'url': oref.url()
                 }
-            except (InputError, ValueError) as e:
+            except (InputError, ValueError, AttributeError) as e:
                 referer = request.META.get("HTTP_REFERER", "unknown page")
                 logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
                 res[tref] = {"error": 1}
@@ -329,6 +329,11 @@ def export_all(request):
 @staff_member_required
 def cause_error(request):
     resp = {}
+    logger.error("This is a simple error")
+    try:
+        erorr = excepting
+    except Exception as e:
+        logger.exception('An Exception has occured in thre code')
     erorr = error
     return jsonResponse(resp)
 

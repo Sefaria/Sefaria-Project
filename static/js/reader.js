@@ -1178,7 +1178,7 @@ $(function() {
 			return;
 		}
 
-		var url = "/api/locktext/" + sjs.current.book + "/" + lang + "/" + version;
+		var url = "/api/locktext/" + sjs.current.indexTitle + "/" + lang + "/" + version;
 		var unlocking = $(this).hasClass("unlock");
 		if (unlocking) {
 			url += "?action=unlock";
@@ -1388,6 +1388,7 @@ sjs.lexicon = {
 		var sourceLink = '', attributionLink = '';
 		if('source_url' in lexicon_dtls){
 			var sourceLink = $('<a>',{
+				target: "nw",
 				text: 'Definitions from: ' + ('source' in lexicon_dtls ? lexicon_dtls['source'] : lexicon_dtls['source_url']),
 				href: lexicon_dtls['source_url']
 			});
@@ -1396,7 +1397,8 @@ sjs.lexicon = {
 		}
 		if('attribution_url' in lexicon_dtls){
 			var attributionLink = $('<a>',{
-				text: ('attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']),
+				target: "nw",
+				text: 'Created by: ' + ('attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']),
 				href: lexicon_dtls['attribution_url']
 			});
 		}else if ('attribution' in lexicon_dtls){
@@ -1751,7 +1753,7 @@ function buildView(data) {
 	}
 
 	if (data.heTitle) {
-        if ($.inArray("Talmud", data.addressTypes)) {
+        if ($.inArray("Talmud", data.addressTypes) > -1) {
             basetextHeTitle = data.heTitle;
         } else {
             var start = data.sectionNames.length > 1 ? 0 : 1;

@@ -1325,6 +1325,7 @@ class TextFamily(object):
 
         d["textDepth"]       = getattr(self._inode, "depth", None)
         d["sectionNames"]    = getattr(self._inode, "sectionNames", None)
+        d["addressTypes"]    = getattr(self._inode, "addressTypes", None)
         if getattr(self._inode, "lengths", None):
             d["lengths"]     = getattr(self._inode, "lengths")
             if len(d["lengths"]):
@@ -2966,7 +2967,7 @@ class Library(object):
         if not reg:
             re_string = self.all_titles_regex_string(lang, commentary, with_terms)
             try:
-                reg = re.compile(re_string, max_mem= 256 * 1024 * 1024)
+                reg = re.compile(re_string, max_mem=256 * 1024 * 1024)
             except TypeError:
                 reg = re.compile(re_string)
             self.local_cache[key] = reg
@@ -3000,7 +3001,7 @@ class Library(object):
         :return: list of all section-level Refs in the library
         """
         from version_state import VersionStateSet
-        return [r.normal() for r in VersionStateSet().all_refs()]
+        return VersionStateSet().all_refs()
 
     def get_term_dict(self, lang="en"):
         """
@@ -3139,10 +3140,11 @@ class Library(object):
         """
         return IndexSet().distinct("categories")
 
-    def get_indexes_in_category(self, category, include_commentary=False):
+    def get_indexes_in_category(self, category, include_commentary=False, full_records=False):
         """
         :param string category: Name of category
         :param bool include_commentary: If false, does not exludes records of Commentary and Targum
+        :param bool full_records: If True will return the actual :class: 'IndexSet' otherwise just the titles
         :return: :class:`IndexSet` of :class:`Index` records in the specified category
         """
 
@@ -3151,7 +3153,7 @@ class Library(object):
         else:
             q = {"categories": category}
 
-        return IndexSet(q).distinct("title")
+        return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
     def get_commentator_titles(self, lang="en", with_variants=False):
         """
