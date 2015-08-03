@@ -67,7 +67,7 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
                     "title": new_version_title
                 }
             )
-        for attr in ['status', 'license', 'licenseVetted']:
+        for attr in ['status', 'license', 'licenseVetted', 'method', 'versionNotes', 'priority', "digitizedBySefaria", "heversionSource"]:
             value = getattr(version, attr, None)
             if value:
                 setattr(new_version, attr, value)

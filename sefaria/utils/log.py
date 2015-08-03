@@ -44,7 +44,7 @@ class ErrorTypeFilter(logging.Filter):
 
 
 class SlackLogHandler(logging.Handler):
-    def __init__(self, logging_url="", channel="", stack_trace=False):
+    def __init__(self, logging_url="", channel="@slackbot", stack_trace=False):
         logging.Handler.__init__(self)
         self.logging_url = logging_url
         self.channel = channel

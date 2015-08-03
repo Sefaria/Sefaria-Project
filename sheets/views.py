@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 
 from django.template import RequestContext
 from django.shortcuts import render_to_response, redirect
+from django.http import Http404
 
 # noinspection PyUnresolvedReferences
 from django.http import HttpResponse, HttpResponseRedirect
@@ -47,15 +48,14 @@ def new_sheet(request):
 	"""
 	View an new, empty source sheet.
 	"""
-	viewer_groups = get_user_groups(request.user)
+	owner_groups  = get_user_groups(request.user)
 	query         = {"owner": request.user.id or -1 }
 	hide_video    = db.sheets.find(query).count() > 2
 	return render_to_response('sheets.html', {"can_edit": True,
 												"new_sheet": True,
 												"is_owner": True,
 												"hide_video": hide_video,
-												"viewer_groups": viewer_groups,
-												"owner_groups": viewer_groups,
+												"owner_groups": owner_groups,
 												"current_url": request.get_full_path,
 												},
 												RequestContext(request))
@@ -96,7 +96,7 @@ def get_user_groups(user):
 	Returns a list of Groups that user belongs to.
 	"""
 	groups = [g.name for g in user.groups.all()]
-	return GroupSet({"name": {"$in": groups }})
+	return GroupSet({"name": {"$in": groups }}, sort=[["name", 1]])
 
 
 def make_sheet_class_string(sheet):
@@ -142,12 +142,12 @@ def view_sheet(request, sheet_id):
 	sheet_class     = make_sheet_class_string(sheet)
 	can_edit_flag   = can_edit(request.user, sheet)
 	can_add_flag    = can_add(request.user, sheet)
-	sheet_group     = sheet["group"] if sheet["status"] in GROUP_SHEETS and sheet["group"] != "None" else None
-	viewer_groups   = get_user_groups(request.user)
+	sheet_group     = Group().load({"name": sheet["group"]}) if sheet["status"] in GROUP_SHEETS and sheet["group"] != "None" else None
 	embed_flag      = "embed" in request.GET
 	likes           = sheet.get("likes", [])
 	like_count      = len(likes)
 	viewer_is_liker = request.user.id in likes
+
 
 	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet), 
 												"sheet": sheet,
@@ -160,7 +160,6 @@ def view_sheet(request, sheet_id):
 												"is_public": sheet["status"] in LISTED_SHEETS,
 												"owner_groups": owner_groups,
 												"sheet_group":  sheet_group,
-												"viewer_groups": viewer_groups,
 												"like_count": like_count,
 												"viewer_is_liker": viewer_is_liker,
 												"current_url": request.get_full_path,
@@ -216,7 +215,7 @@ def order_tags_for_user(tag_counts, uid):
 			tag_counts = sorted(tag_counts, key=lambda x: tag_order.index(x["tag"]))
 		except:
 			pass
-	print tag_counts
+
 	return tag_counts
 
 
@@ -298,16 +297,16 @@ def partner_page(request, partner):
 	Views the partner page for 'partner' which lists sheets in the partner group.
 	"""
 	partner = partner.replace("-", " ").replace("_", " ")
-	group = Group().load({"name": partner})
+	group   = Group().load({"name": partner})
 	if not group:
-		return redirect("home")
+		raise Http404
 
-	if not request.user.is_authenticated() or group.name not in request.user.groups.all():
-		in_group = False
-		query = {"status": 7, "group": group.name}
-	else:
+	if request.user.is_authenticated() and group.name in [g.name for g in request.user.groups.all()]:
 		in_group = True
 		query = {"status": {"$in": [6,7]}, "group": group.name}
+	else:
+		in_group = False
+		query = {"status": 7, "group": group.name}
 
 
 	sheets = db.sheets.find(query).sort([["title", 1]])
@@ -375,7 +374,7 @@ def sheets_tag(request, tag, public=True, group=None):
 	else:
 		sheets = get_sheets_by_tag(tag, uid=request.user.id)
 
-	in_group = request.user.is_authenticated() and group in request.user.groups.all()
+	in_group = request.user.is_authenticated() and group in [g.name for g in request.user.groups.all()]
 	groupCover = Group().load({"name": group}).coverUrl if Group().load({"name": group}) else None
 	
 	return render_to_response('tag.html', {

@@ -265,7 +265,7 @@ $(function() {
 		if (group != "None") {
 			sjs.track.sheets("Share with Group: " + group);
 			var groupUrl = group.replace(/ /g, "_");
-			$("#partnerLogo").attr("src", "/static/partner/" + groupUrl + "/header.png").show()
+			$("#partnerLogo").attr("src", $(this).attr("data-image")).show()
 				.closest("a").attr("href", "/partners/" + groupUrl );
 			$("#sheetHeader").show();
 		} else {
@@ -1230,7 +1230,8 @@ function buildSheet(data){
 	if (data.status === 6 || data.status === 7) {
 		$(".groupOption[data-group='"+ data.group + "'] .fa-check").removeClass("hidden");
 		var groupUrl = data.group.replace(/ /g, "_");
-		$("#partnerLogo").attr("src", "/static/partner/" + groupUrl + "/header.png".replace(/ /g, "-")).show();
+		var groupImage = $(".groupOption[data-group='"+ data.group + "']").attr("data-image"); 
+		$("#partnerLogo").attr("src", groupImage).show();
 	} else {
 		$(".groupOption[data-group='None'] .fa-check").removeClass("hidden");
 	}

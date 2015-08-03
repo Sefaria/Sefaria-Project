@@ -1376,6 +1376,7 @@ sjs.lexicon = {
 		var lexicon_dtls = entry['parent_lexicon_details'];
 		if('source_url' in lexicon_dtls){
 			var sourceLink = $('<a>',{
+				target: "nw",
 				text: 'Definitions from: ' + ('source' in lexicon_dtls ? lexicon_dtls['source'] : lexicon_dtls['source_url']),
 				href: lexicon_dtls['source_url']
 			});
@@ -1384,6 +1385,7 @@ sjs.lexicon = {
 		}
 		if('attribution_url' in lexicon_dtls){
 			var attributionLink = $('<a>',{
+				target: "nw",
 				text: 'Created by: ' + ('attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']),
 				href: lexicon_dtls['attribution_url']
 			});
