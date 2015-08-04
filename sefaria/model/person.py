@@ -8,6 +8,7 @@ from . import schema
 from . import time
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -74,7 +75,7 @@ class Person(abst.AbstractMongoRecord):
     # They may also have none of these...
     def mostAccurateTimePeriod(self):
         if getattr(self, "birthYear", None) and getattr(self, "deathYear", None):
-            return time.TimePeriod( {
+            return time.TimePeriod({
                 "start": self.birthYear,
                 "startIsApprox": getattr(self, "birthYearIsApprox", False),
                 "end": self.deathYear,
@@ -87,6 +88,11 @@ class Person(abst.AbstractMongoRecord):
         else:
             return None
 
+    def get_relationship_set(self):
+        return PersonRelationshipSet.load_by_key(self.key)
+
+    def get_grouped_relationships(self):
+        return PersonRelationshipSet.load_by_key(self.key).grouped(self.key)
 
 class PersonSet(abst.AbstractMongoSet):
     recordClass = Person
@@ -102,8 +108,61 @@ class PersonRelationship(abst.AbstractMongoRecord):
     ]
     optional_attrs = []
 
+    def get_type(self):
+        return PersonRelationshipType().load({"key": self.type})
+
+
 class PersonRelationshipSet(abst.AbstractMongoSet):
     recordClass = PersonRelationship
+
+    @staticmethod
+    def load_by_key(key):
+        return PersonRelationshipSet({"$or": [{"from_key": key}, {"to_key": key}]})
+
+    def grouped(self, origin_key):
+        """
+        Return the relationships to the Person identified by origin_key, grouped by relationship type
+        """
+        types = {}
+        for rel in self:
+            #todo: refactor duplicate code
+            if rel.from_key == origin_key:
+                target = Person().load({"key": rel.to_key})
+                if not target:
+                    raise Exception("Can not find person {}".format(rel.to_key))
+                type = rel.get_type()
+                group_key = (rel.get_type().key, "forward")
+                if not types.get(group_key):
+                    types[group_key] = {
+                        "en": type.get_forward_name("en"),
+                        "he": type.get_forward_name("he"),
+                        "people": []
+                    }
+                types[group_key]["people"].append({
+                    "object": target,
+                    "key": target.key,
+                    "en": target.primary_name("en"),
+                    "he": target.primary_name("he")
+                })
+            elif rel.to_key == origin_key:
+                target = Person().load({"key": rel.from_key})
+                if not target:
+                    raise Exception("Can not find person {}".format(rel.from_key))
+                type = rel.get_type()
+                group_key = (rel.get_type().key, "reverse")
+                if not types.get(group_key):
+                    types[group_key] = {
+                        "en": type.get_reverse_name("en"),
+                        "he": type.get_reverse_name("he"),
+                        "people": []
+                    }
+                types[group_key]["people"].append({
+                    "object": target,
+                    "key": target.key,
+                    "en": target.primary_name("en"),
+                    "he": target.primary_name("he")
+                })
+        return types
 
 
 class PersonRelationshipType(abst.AbstractMongoRecord):
@@ -142,8 +201,10 @@ class PersonRelationshipType(abst.AbstractMongoRecord):
     def get_reverse_name(self, lang):
         return self.reverse_group.primary_title(lang)
 
+
 class PersonRelationshipTypeSet(abst.AbstractMongoSet):
     recordClass = PersonRelationshipType
+
 
 """
 def process_index_title_change_in_gardens(indx, **kwargs):

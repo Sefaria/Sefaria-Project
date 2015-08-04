@@ -2010,6 +2010,7 @@ def person_page(request, name):
         "en": person.mostAccurateTimePeriod().html("en"),
         "he": person.mostAccurateTimePeriod().html("he")
     }
+    template_vars["relationships"] = person.get_grouped_relationships()
 
     return render_to_response('person.html', template_vars, RequestContext(request))
 

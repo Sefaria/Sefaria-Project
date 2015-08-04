@@ -2,7 +2,7 @@
 
 {% load sefaria_tags %}
 
-{% block title %}{{ enName }} on Sefaria{% endblock %}
+{% block title %}{{ primary_name.en }}{% endblock %}
 
 {% block css %}
     #languageToggle {
@@ -30,8 +30,20 @@
                 <span class='en'>{{ enBio }}</span>
                 <span class='he'>{{ heBio }}</span>
             </div>
-
-
+            <div id="relationships">
+                 {% for k, rel_type in relationships.items %}
+                 <h3>
+                     <span class='en'>{{ rel_type.en }}</span>
+                     <span class='he'>{{ rel_type.he }}</span>
+                 </h3>
+                     {% for person in rel_type.people %}
+                         <a href="/person/{{ person.key }}">
+                             <span class='en'>{{ person.en }}</span>
+                             <span class='he'>{{ person.he }}</span>
+                         </a>
+                     {% endfor %}
+                 {% endfor %}
+            </div>
     </span>
     </span>
 </div>
