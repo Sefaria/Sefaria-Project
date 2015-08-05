@@ -94,6 +94,10 @@ class Person(abst.AbstractMongoRecord):
     def get_grouped_relationships(self):
         return PersonRelationshipSet.load_by_key(self.key).grouped(self.key)
 
+    def get_indexes(self):
+        from . import text
+        return text.IndexSet({"authors": self.key})
+
 class PersonSet(abst.AbstractMongoSet):
     recordClass = Person
 
