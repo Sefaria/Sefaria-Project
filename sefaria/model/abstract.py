@@ -68,7 +68,6 @@ class AbstractMongoRecord(object):
         del attrs[self.id_field]
         return self.__class__(copy.deepcopy(attrs))
 
-
     def load_from_dict(self, d, is_init=False):
         """
         Add values from a dict to an existing object.
@@ -448,3 +447,18 @@ def cascade(set_class, attr):
     :return: a function that will update 'attr' in 'set_class' and can be passed to subscribe()
     """
     return lambda obj, kwargs: set_class({attr: kwargs["old"]}).update({attr: kwargs["new"]})
+
+
+def cascade_to_list(set_class, attr):
+    """
+    Handles generic value cascading, for keys in attributes that hold lists of keys.
+    See examples in dependencies.py
+    :param set_class: The set class of the impacted model
+    :param attr: The name of the impacted class attribute (fk) that holds the list of references to the changed attribute (pk)
+    :return: a function that will update 'attr' in 'set_class' and can be passed to subscribe()
+    """
+    def foo(obj, kwargs):
+        for rec in set_class({attr: kwargs["old"]}):
+            setattr(rec, attr, [kwargs["new"] if e == kwargs["old"] else e for e in getattr(rec, attr)])
+
+    return foo

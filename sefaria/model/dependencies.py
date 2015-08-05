@@ -4,7 +4,7 @@ dependencies.py -- list cross model dependencies and subscribe listeners to chan
 
 from . import abstract, link, note, history, schema, text, layer, version_state, translation_request, time, person
 
-from abstract import subscribe, cascade
+from abstract import subscribe, cascade, cascade_to_list
 import sefaria.system.cache as scache
 
 # Index Save / Create
@@ -48,7 +48,7 @@ subscribe(cascade(person.PersonSet, "generation"),                              
 subscribe(cascade(person.PersonRelationshipSet, "to_key"),                              person.Person, "attributeChange", "key")
 subscribe(cascade(person.PersonRelationshipSet, "from_key"),                              person.Person, "attributeChange", "key")
 subscribe(cascade(person.PersonRelationshipSet, "type"),                                person.PersonRelationshipType, "attributeChange", "key")
-
+subscribe(cascade_to_list(text.IndexSet, "authors"),                                    person.Person, "attributeChange", "key")
 
 # todo: notes? reviews?
 # todo: Scheme name change in Index
