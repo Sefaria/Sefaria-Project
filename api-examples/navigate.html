@@ -9,11 +9,9 @@
 			}
 			
 			button {
-				width: 100%;
+				margin-left: 10px;
 			}
-			td {
-				padding-right: 20px;
-			}
+			
 			#sefaria-nav {
 				margin: 20px;
 			}
@@ -34,38 +32,27 @@
 		
 		
 		<script type="text/javascript">
-			$(document).ready(function () {
-				sefariaModule.init(
-					$("#sefaria-nav"),
-					$("#sefaria-output"),
-					{
-						//host: "http://10.0.0.4:8000", //optional - the host for api calls. Will default to http://sefaria.org
-						titlestart: "Bereishit" //optional - to open a specific title immediately
-					}
-				);
-			});		
-
 			var sefariaModule = (function () {
-			var config;
-			return {
-				init : function (navContainer, outputContainer, options) {
-					config = $.extend(true, {
+				var config;
+				return {
+					init : function (navContainer, outputContainer, options) {
+						config = $.extend(true, {
 							navContainer : navContainer,
 							outputContainer : outputContainer
 						}, options);
-					config.API_ENDPOINT = (config.host == undefined ? "http://www.sefaria.org" : config.host.replace(/\/+$/, "")) + "/api/"; //also strip trailing slashes
+						
+						config.API_ENDPOINT = (config.host == undefined ? "https://www.sefaria.org" : config.host.replace(/\/+$/, "")) + "/api/"; //also strip trailing slashes
 
-					$.ajax({
-						url : config.API_ENDPOINT + "index/titles",
-						dataType : 'jsonp'
-					}).done(gotTitles);
+						$.ajax({
+							url : config.API_ENDPOINT + "index/titles",
+							dataType : 'jsonp'
+						}).done(gotTitles);
+					}
 				}
-			}
 		
 			function gotTitles(retObj) {
 				var selector = $('<select/>');
-				var button = $('<button type="button">Show Book</button>');
-				var container = $('<tr/>');
+				var container = $('<div/>');
 		
 				if (config.titlestart == undefined) {
 					selector.append('<option value="" disabled selected>Select something...');
@@ -79,15 +66,10 @@
 					}).appendTo(selector);
 				}
 		
-				container.append($('<td/>').append(button));
-				container.append($('<td/>').append(selector));
+				container.append(selector);
 		
 				config.navContainer.append(container);
-		
-				button.click(function () {
-					getText(selector.val());
-				});
-		
+				
 				if (config.titlestart != undefined) {
 					selector.val(config.titlestart);
 					changedTitle(selector.val());
@@ -167,7 +149,7 @@
 			}
 		
 			function makePicker(sectionName, sectionIndex, max) {
-				var container = $('<tr class="sefariaPickerContainer" id="sefariaPickerContainer_' + sectionIndex + '" />');
+				var container = $('<div class="sefariaPickerContainer" id="sefariaPickerContainer_' + sectionIndex + '" />');
 				var selector = $('<select id="sefariaPickerSelector_' + sectionIndex + '"/>');
 				var button = $('<button type="button">Show ' + sectionName + '</button>');
 		
@@ -178,9 +160,9 @@
 						}));
 				}
 		
-				container.append($("<td/>").append(button));
-				container.append($("<td/>").append(selector));
-		
+				container.append(selector);
+				container.append(button);
+				
 				config.navContainer.append(container);
 		
 				return ({
@@ -248,6 +230,16 @@
 			}
 		
 		}());			
+			$(document).ready(function () {
+				sefariaModule.init(
+					$("#sefaria-nav"),
+					$("#sefaria-output"),
+					{
+						//host: "http://10.0.0.4:8000", //optional - the host for api calls. Will default to http://sefaria.org
+						titlestart: "Bereishit" //optional - to open a specific title immediately
+					}
+				);
+			});		
 		</script>
 	</body>
 </html>
