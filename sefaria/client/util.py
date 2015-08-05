@@ -25,13 +25,13 @@ def jsonResponse(data, callback=None, status=200):
             if isinstance(data[key], datetime):
                 data[key] = data[key].isoformat()
 
-    return HttpResponse(json.dumps(data), content_type="application/json", status=status)
+    return HttpResponse(json.dumps(data), mimetype="application/json", status=status)
 
 
 def jsonpResponse(data, callback, status=200):
     if "_id" in data:
         data["_id"] = str(data["_id"])
-    return HttpResponse("%s(%s)" % (callback, json.dumps(data)), content_type="application/javascript", status=status)
+    return HttpResponse("%s(%s)" % (callback, json.dumps(data)), mimetype="application/javascript", status=status)
 
 
 def subscribe_to_announce(email, first_name=None, last_name=None):
