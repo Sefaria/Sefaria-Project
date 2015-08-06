@@ -111,7 +111,6 @@ body .bilingual .enOnly .he {
   font-weight: lighter;
   font-family: "Montserrat", "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
   color: #9B9B9B;
-  margin-bottom: 10px;
 }
 .readerNavMenu h3 {
   font-size: 13px;
@@ -154,21 +153,22 @@ body .bilingual .enOnly .he {
   position: absolute;
   width: 100%;
   background-color: #F9F9F7;
+  border-bottom: 1px solid #E2E2E1;
 }
 .readerNavTopFixed .readerNavTop {
   padding: 12px 20px;
 }
-.readerNavTopFixed h2 {
+.readerNavTopFixed .readerNavTop h2 {
   margin-bottom: none;
 }
 .readerNavCategoryMenu .content {
-  padding: 74px 10px 10px;
+  padding: 100px 10px 10px;
   box-sizing: border-box;
   height: 100%;
   overflow-y: scroll;
 }
 .readerNavCategoryMenu .content .category {
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 .readerNavMenu .refLink {
   display: inline-block;
@@ -192,12 +192,11 @@ body .bilingual .enOnly .he {
   left: 0;
   width: 100%;
   box-sizing: border-box;
-  padding: 0 4px;
+  padding: 0;
   z-index: 101;
-  height: 49px;
   line-height: 48px;
   border-bottom: 1px solid #ddd;
-  background-color: white;
+  background-color: #F9F9F7;
   -moz-user-select: none; 
   -khtml-user-select: none; 
   -webkit-user-select: none; 

@@ -217,10 +217,12 @@ var ReaderApp = React.createClass({
   currentData: function() {
     var item = this.state.contents.slice(-1)[0];
     var ref  = item.ref || item.refs.slice(-1)[0];
-    var data = sjs.library.text(ref);
+    var data = sjs.library.text(ref, {context: 1});
+    console.log(ref);
     return data; 
   },
   currentBook: function() {
+    console.log(this.currentData());
     return this.currentData().book;
   },
   currentCategory: function() {
@@ -277,6 +279,7 @@ var ReaderApp = React.createClass({
           navNext={this.navNext}
           navPrevious={this.navPrevious}
           showBaseText={this.showBaseText}
+          currentCategory={this.currentCategory}
           currentBook={this.currentBook}
           settings={this.state.settings}
           setOption={this.setOption}
@@ -374,6 +377,8 @@ var ReaderControls = React.createClass({
         {sizeToggle}
       </div>);
 
+    var lineStyle = {backgroundColor: sjs.categoryColor(this.props.currentCategory())};
+
     if (this.state.navigationOpen) {
       return (<ReaderNavigationMenu 
                 closeNav={this.closeNav}
@@ -382,6 +387,7 @@ var ReaderControls = React.createClass({
       return (
       <div>
         <div id="readerControls">
+          <div className="categoryColorLine" style={lineStyle}></div>
           <div id="readerControlsRight">
             <div id="readerPrevious"
                   className="controlsButton"
@@ -512,7 +518,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
           var title   = item.title.replace(/(Mishneh Torah|Shulchan Arukh|Jerusalem Talmud), /, "");
           var heTitle = item.heTitle.replace(/(משנה תורה,|תלמוד ירושלמי) /, "");
           
-          html += '<span class=refLink sparse' + item.sparseness + '" data-ref="' + item.title + '">' + 
+          html += '<span class=refLink sparse' + item.sparseness + '" data-ref="' + item.firstSection + '">' + 
                     "<span class='en'>" + title + "</span>" + 
                     "<span class='he'>" + heTitle + "</span></span>";
         }
