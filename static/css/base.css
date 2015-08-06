@@ -1507,6 +1507,8 @@ body.hebrew #aboutPage .span5 {
 .sheetTag {
     display: inline-block;
     width: 150px;
+    max-width: 45%;
+    box-sizing: border-box;
     padding: 6px;
     border: 1px solid #ddd;
     background-color: white;
@@ -1523,6 +1525,7 @@ body.hebrew #aboutPage .span5 {
 
 .sheetTag .tagName {
   width: 100px;
+  max-width: 65%;
   margin-left: 3px;
   vertical-align: middle;
   display: inline-block;
