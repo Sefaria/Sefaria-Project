@@ -99,8 +99,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "order",              # optional for old style and new
         "length",             # optional for old style
         "lengths",            # optional for old style
-        "transliteratedTitle", # optional for old style
-        "authors"
+        "transliteratedTitle",# optional for old style
+        "authors",
+        "enDesc",
+        "heDesc",
+        "pubDate",
+        "errorMargin",
+        "placeName",
+        "placeGeo",
+        "era",
     ]
 
     def __unicode__(self):
