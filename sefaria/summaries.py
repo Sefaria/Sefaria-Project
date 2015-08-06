@@ -255,22 +255,6 @@ def recur_delete_element_from_toc(ref, toc):
     return toc
 
 
-def make_simple_index_dict(index):
-    if not index.is_new_style() or index.is_commentary():
-        indx_dict = {
-            "title": index.title,
-            "heTitle": index.heTitle,
-            "categories": index.categories
-        }
-    else:
-        indx_dict = {
-            "title": index.nodes.primary_title("en"),
-            "heTitle": index.nodes.primary_title("he"),
-            "categories": index.categories
-        }
-    return indx_dict
-
-
 def update_summaries_on_change(bookname, old_ref=None, recount=True):
     """
     Update text summary docs to account for change or insertion of 'text'

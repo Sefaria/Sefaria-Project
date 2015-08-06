@@ -429,10 +429,12 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             self.maps[i]["to"] = nref
 
     def toc_contents(self):
+        firstSection = Ref(self.title).first_available_section_ref()
         toc_contents_dict = {
             "title": self.get_title(),
             "heTitle": self.get_title("he"),
-            "categories": self.categories
+            "categories": self.categories,
+            "firstSection": firstSection.normal() if firstSection else None
         }
         if hasattr(self,"order"):
             toc_contents_dict["order"] = self.order
