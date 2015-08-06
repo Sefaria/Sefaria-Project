@@ -789,6 +789,20 @@ def link_count_api(request, cat1, cat2):
 
 
 @catch_error_as_json
+def word_count_api(request, title, version, language):
+    """
+    Return a count document with the number of links between every text in cat1 and every text in cat2
+    """
+    if request.method == "GET":
+        counts = VersionSet({"title": title, "versionTitle": version, "language": language}).word_count()
+        resp = jsonResponse({"wordCount": counts})
+        return resp
+
+    elif request.method == "POST":
+        return jsonResponse({"error": "Not implemented."})
+
+
+@catch_error_as_json
 def counts_api(request, title):
     """
     API for retrieving the counts document for a given text node.
