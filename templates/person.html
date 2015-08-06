@@ -16,7 +16,7 @@
 {% block content %}
 
     
-<div id="textTocPage" class="container doc">
+<div id="personPage" class="container doc biReady">
     <span class="row">
         <span class="span8 offset2">
             <h1>
@@ -37,13 +37,22 @@
                      <span class='he'>{{ rel_type.he }}</span>
                  </h3>
                      {% for person in rel_type.people %}
-                         <a href="/person/{{ person.key }}">
-                             <span class='en'>{{ person.en }}</span>
-                             <span class='he'>{{ person.he }}</span>
-                         </a>
+                         {{ person|person_link }}
                      {% endfor %}
                  {% endfor %}
             </div>
+
+            {% if indexes|length %}
+            <div id="indexes">
+                <h3>
+                     <span class='en'>Works</span>
+                     <span class='he'>ספרים</span>
+                </h3>
+                {% for indx in indexes %}
+                    {{ indx|text_toc_link }}
+                {% endfor %}
+            </div>
+            {% endif %}
     </span>
     </span>
 </div>

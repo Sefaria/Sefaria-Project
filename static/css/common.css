@@ -916,6 +916,24 @@ body.embeded #top {
   color: #08c;  
 }
 
+/****   Person    ****/
+
+#personPage {
+  margin-top: 0;
+}
+
+.hebrew #personPage {
+  direction: rtl;
+  font-size: 145%;
+}
+
+#personPage #relationships a,
+#personPage #indexes a,
+#peoplePage a {
+  display: block;
+}
+
+/****        Search         ****/
 
 #gotoBox {
   float: left;
@@ -1229,15 +1247,6 @@ body #keyboardInputMaster thead tr th div {
     margin-right: 3px;
 }
 
-/*
-.english #searchFilters {
-    margin: 0 0 0 30px;
-}
-
-.hebrew #searchFilters {
-    margin: 0 30px 0 0;
-}
-*/
 
 .hebrew #searchFilters { float:right;   direction: rtl;}
 .hebrew #searchFilters  .en {  display: none;  }
@@ -1336,6 +1345,9 @@ body #keyboardInputMaster thead tr th div {
 #searchResults .moreResults:hover {
   text-decoration: underline;
 }
+
+/****                       ****/
+
 
 .textSyncBox {
   position: relative;

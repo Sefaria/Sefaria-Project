@@ -858,6 +858,10 @@ body.hebrew #aboutPage .span5 {
   text-align: center;
 }
 
+#textTocPage #authors {
+  text-align: center;
+}
+
 .textCategoryDelimiter {
   display: inline-block;
   margin: 0 4px;

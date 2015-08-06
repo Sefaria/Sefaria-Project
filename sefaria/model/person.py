@@ -40,6 +40,7 @@ class Person(abst.AbstractMongoRecord):
         "enWikiLink",
         "heWikiLink",
         "jeLink",
+        "brillLink",
         "sex",  # M or F (or ...)
     ]
 
@@ -115,6 +116,7 @@ class PersonRelationship(abst.AbstractMongoRecord):
     def get_type(self):
         return PersonRelationshipType().load({"key": self.type})
 
+    #todo: handle reversable functions (what is that called again?) like 'opposed'
 
 class PersonRelationshipSet(abst.AbstractMongoSet):
     recordClass = PersonRelationship
@@ -142,12 +144,7 @@ class PersonRelationshipSet(abst.AbstractMongoSet):
                         "he": type.get_forward_name("he"),
                         "people": []
                     }
-                types[group_key]["people"].append({
-                    "object": target,
-                    "key": target.key,
-                    "en": target.primary_name("en"),
-                    "he": target.primary_name("he")
-                })
+                types[group_key]["people"].append(target)
             elif rel.to_key == origin_key:
                 target = Person().load({"key": rel.from_key})
                 if not target:
@@ -160,12 +157,7 @@ class PersonRelationshipSet(abst.AbstractMongoSet):
                         "he": type.get_reverse_name("he"),
                         "people": []
                     }
-                types[group_key]["people"].append({
-                    "object": target,
-                    "key": target.key,
-                    "en": target.primary_name("en"),
-                    "he": target.primary_name("he")
-                })
+                types[group_key]["people"].append(target)
         return types
 
 

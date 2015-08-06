@@ -190,6 +190,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def is_commentary(self):
         return self.categories[0] == "Commentary"
 
+    def author_objects(self):
+        from . import person
+        return [person.Person().load({"key": k}) for k in self.authors]
+
     def all_titles(self, lang):
         if self.nodes:
             return self.nodes.all_tree_titles(lang)

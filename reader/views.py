@@ -530,6 +530,7 @@ def text_toc(request, oref):
             # Trust a flag if its set instead
             toc_html = toc_html.replace("heSome", "heAll")
 
+    auths = index.author_objects()
     index = index.contents(v2=True)
     if index["categories"][0] in REORDER_RULES:
         index["categories"] = REORDER_RULES[index["categories"][0]] + index["categories"][1:]
@@ -537,6 +538,7 @@ def text_toc(request, oref):
     return render_to_response('text_toc.html',
                              {
                              "index":         index,
+                             "authors":       auths,
                              "versions":      versions,
                              "commentaries":  commentaries,
                              "heComplete":    state.get_flag("heComplete"),
@@ -1994,8 +1996,10 @@ def explore(request, book1, book2, lang=None):
 @catch_error_as_http
 def person_page(request, name):
     person = Person().load({"key": name})
+
     if not person:
         raise Http404
+    assert isinstance(person, Person)
 
     template_vars = person.contents()
     template_vars["primary_name"] = {
@@ -2011,17 +2015,13 @@ def person_page(request, name):
         "he": person.mostAccurateTimePeriod().html("he")
     }
     template_vars["relationships"] = person.get_grouped_relationships()
+    template_vars["indexes"] = person.get_indexes()
 
     return render_to_response('person.html', template_vars, RequestContext(request))
 
 
 def person_index(request):
 
-    template_vars = {"people": [{
-                                   'key': p.key,
-                                   'en': p.primary_name("en"),
-                                   'he': p.primary_name('he')
-                               } for p in PersonSet()]
-    }
+    template_vars = {"people": [p for p in PersonSet()]}
     return render_to_response('people.html', template_vars, RequestContext(request))
 

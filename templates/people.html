@@ -16,16 +16,11 @@
 {% block content %}
 
     
-<div id="peoplePage" class="container doc">
+<div id="peoplePage" class="container doc biReady">
     <span class="row">
         <span class="span8 offset2">
             {% for person in people %}
-                <a href="/person/{{ person.key }}">
-                    <div class='person'>
-                        <span class='en'>{{ person.en }}</span>
-                        <span class='he'>{{ person.he }}</span>
-                    </div>
-                </a>
+               {{ person|person_link }}
             {% endfor %}
         </span>
     </span>

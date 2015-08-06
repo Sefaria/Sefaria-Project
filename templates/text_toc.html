@@ -27,6 +27,14 @@
             <span id="heTitle" class='he'>{{ index.heTitle }}</span> <span id="title" class='en'>{{ index.title }}</span>
         </h1>
 
+        {% if authors|length %}
+        <div id="authors" class="biReady">
+            {% for author in authors %}
+                {{ author|person_link }}
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <!-- Hidden for style
         <div id="textCategories" class="biReady">
             {% for cat in index.categories %}

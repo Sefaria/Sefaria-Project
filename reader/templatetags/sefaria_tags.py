@@ -97,7 +97,7 @@ def he_parasha(value):
 	"""
 	if not value:
 		return ""
-	
+
 	def hebrew_parasha(p):
 		try:
 			term    = m.Term().load({"name": p, "scheme": "Parasha"})
@@ -119,6 +119,31 @@ def version_link(v):
 	link = u'<a href="/{}.{}/{}/{}">{}</a>'.format(v.title, section, v.language, v.versionTitle.replace(" ", "_"), v.versionTitle)
 	return mark_safe(link)
 
+@register.filter(is_safe=True)
+def text_toc_link(indx):
+	"""
+	Return an <a> tag linking to the text TOC for the Index
+	"""
+	link = u'''
+		<a href="/{}">
+			<span class='en'>{}</span>
+			<span class='he'>{}</span>
+		</a>
+	'''.format(indx.title, indx.nodes.primary_title("en"), indx.nodes.primary_title("he"))
+	return mark_safe(link)
+
+@register.filter(is_safe=True)
+def person_link(person):
+	"""
+	Return an <a> tag linking to the first availabe text of a particular version.
+	"""
+	link = u'''
+		 <a href="/person/{}">
+			 <span class='en'>{}</span>
+			 <span class='he'>{}</span>
+		 </a>
+	'''.format(person.key, person.primary_name("en"), person.primary_name("he"))
+	return mark_safe(link)
 
 @register.filter(is_safe=True)
 def version_source_link(v):
@@ -176,7 +201,7 @@ def text_category(text):
 	try:
 		i = m.get_index(text)
 		result = mark_safe(getattr(i, "categories", ["[no cats]"])[0])
-	except: 
+	except:
 		result = "[text not found]"
 	return result
 
@@ -291,10 +316,10 @@ def abbreviate_number(value):
 
 	if n > 1000000000:
 		abbr = "%dB" % ( n / 1000000000 )
-	
+
 	elif n > 1000000:
 		abbr = "%dM" % ( n / 1000000 )
-	
+
 	elif n > 1000:
 		abbr = "%dk" % ( n / 1000 )
 
