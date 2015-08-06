@@ -431,7 +431,7 @@ def make_simple_toc_html(he_toc, en_toc, labels, addresses, ref, zoom=1, offset=
     if depth == zoom + 1:
         # We're at the terminal level, list sections links
         for i in range(length):
-            klass = "he%s en%s" %(toc_availability_class(he_toc[i]), toc_availability_class(en_toc[i]))
+            klass = "he%s en%s" % (toc_availability_class(he_toc[i]), toc_availability_class(en_toc[i]))
             if klass == "heNone enNone":
                 continue # Don't display sections with no content
             en_section   = section_to_daf(i+offset+1) if talmudBase else str(i+offset+1)
@@ -443,8 +443,8 @@ def make_simple_toc_html(he_toc, en_toc, labels, addresses, ref, zoom=1, offset=
             elif offset_lines and (i+1) == length and offset_lines[1]:
                 path += "." + offset_lines[1]
             if zoom > 1:  # Make links point to first available content
-                prev_section = section_to_daf(i) if talmudBase else str(i)
-                path = Ref(ref + "." + prev_section).next_section_ref().url()
+                available = Ref(ref).first_available_section_ref()
+                path = available.url() if available else path
             html += '<a class="sectionLink %s" href="/%s">%s</a>' % (klass, urlquote(path), section_html)
         if html:
             sectionName = "<div class='sectionName'>"

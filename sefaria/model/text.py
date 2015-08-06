@@ -2169,6 +2169,25 @@ class Ref(object):
         if prev_ref:
             prev_ref._next = self if add_self else next_ref
 
+    def first_available_section_ref(self):
+        """
+        Returns a Ref of the first section inside of or following this Ref that has some content.
+        Returns None if self is empty and now following Ref has content.
+        :return: :class:`Ref`
+        """
+        if isinstance(self.index_node, JaggedArrayNode):
+            r = self.padded_ref()
+        elif isinstance(self.index_node, SchemaNode):
+            nodes = self.index_node.get_leaf_nodes()
+            if not len(nodes):
+                return None
+            r = nodes[0].ref().padded_ref()
+        else:
+            return None
+
+        return r.next_section_ref() if r.is_empty() else r
+
+
     #Don't store results on Ref cache - state objects change, and don't yet propogate to this Cache
     def get_state_node(self):
         """
