@@ -76,6 +76,10 @@ body {
 	margin-left: -40px;
 }
 
+#sheetHeader #partnerLogo {
+	max-width: 100%;
+}
+
 #bsdHeader {
 	display: none;
 	direction: rtl;

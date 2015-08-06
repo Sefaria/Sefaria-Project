@@ -1506,7 +1506,7 @@ body #keyboardInputMaster thead tr th div {
   font-family: Georgia, serif;
   border-collapse: collapse;
   color: #888;
-  padding: 5px;
+  padding: 5px 0px;
   margin-bottom: 5px;
   position: relative;
 }
@@ -1626,8 +1626,11 @@ body #keyboardInputMaster thead tr th div {
     left: -9999px;
   }
   
-  .sheetTable .sheetRow .title { width: 100%; }
-  .sheetTable td:nth-of-type(2) {  }
+  .sheetTable .sheetRow td.title { 
+    width: 100%; 
+    box-sizing: border-box;
+  }
+  .sheetTable td:nth-of-type(2) { padding: 0px 5px 5px; }
   .sheetTable td:nth-of-type(3) { display: none; }
   .sheetTable td:nth-of-type(4) { display: none; }
   .sheetTable td:nth-of-type(5) { display: none; }

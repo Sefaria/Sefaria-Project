@@ -30,12 +30,12 @@ def broken_links(auto_links = False, manual_links = False, delete_links = False,
         try:
             rf1 = model.Ref(link.refs[0])
             errors[0] = 1
-            if check_text_exists and rf1.text().is_empty():
+            if check_text_exists and rf1.is_empty():
                 raise Exception("no text at this Ref")
             errors[1] = 1
             rf2 = model.Ref(link.refs[1])
             errors[2] = 1
-            if check_text_exists and rf2.text().is_empty():
+            if check_text_exists and rf2.is_empty():
                 raise Exception("no text at this Ref")
             errors[3] = 1
         except:

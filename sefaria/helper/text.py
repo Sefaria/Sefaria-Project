@@ -231,7 +231,7 @@ def merge_text(a, b):
     return out
 
 
-def modify_text_by_function(title, vtitle, lang, func, uid):
+def modify_text_by_function(title, vtitle, lang, func, uid, **kwargs):
     """
     Walks ever segment contained in title, calls func on the text and saves the result.
     """
@@ -239,10 +239,12 @@ def modify_text_by_function(title, vtitle, lang, func, uid):
     section_refs = VersionStateSet({"title": title}).all_refs()
     for section_ref in section_refs:
         section = section_ref.text(vtitle=vtitle, lang=lang)
-        segment_refs = section_ref.subrefs(len(section.text))
-        for i in range(len(section.text)):
-            text = func(section.text[i])
-            modify_text(uid, segment_refs[i], vtitle, lang, text)
+        segment_refs = section_ref.subrefs(len(section.text) if section.text else 0)
+        if segment_refs:
+            for i in range(len(section.text)):
+                if section.text[i] and len(section.text[i]):
+                    text = func(section.text[i])
+                    modify_text(uid, segment_refs[i], vtitle, lang, text, **kwargs)
 
 
 def replace_roman_numerals(text):
