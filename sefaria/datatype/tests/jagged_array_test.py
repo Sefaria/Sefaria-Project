@@ -33,6 +33,14 @@ def setup_module(module):
         ],
     ]
 
+class Test_Jaged_Array(object):
+
+    def test_ja_normalize(self):
+        input_ja = ["a",[],["","a", ["c"]],["",""],["b"]]
+        output_ja = [[["a"]],[],[[],["a"], ["c"]],[[],[]],[["b"]]]
+        jaobj = ja.JaggedArray(input_ja)
+        jaobj.normalize()
+        assert jaobj.array() == output_ja
 
 class Test_Jagged_Text_Array(object):
 
