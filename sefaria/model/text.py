@@ -2223,6 +2223,13 @@ class Ref(object):
         """
         return self.is_text_fully_available("en")
 
+    def is_empty(self):
+        """
+        Checks if Ref has any versions for it
+        :return: Bool True is there is not text at this ref in any language
+        """
+        return not len(self.versionset())
+
     def _iter_text_section(self, forward=True, depth_up=1):
         """
         Iterate forwards or backwards to the next available ref in a text

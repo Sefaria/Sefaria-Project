@@ -1066,9 +1066,12 @@ def dictionary_api(request, word):
     if is_hebrew(word):
         word = strip_cantillation(word)
     form = WordForm().load({"form": word})
+    if not form:
+        WordForm().load({"c_form": strip_cantillation(word, strip_vowels=True)})
     if form:
         result = []
         for lookup in form.lookups:
+            #TODO: if we want the 'lookups' in wf to be a dict we can pass as is to the lexiconentry, we need to change the key 'lexicon' to 'parent_lxicon' in word forms
             ls = LexiconEntrySet({'headword': lookup['headword']})
             for l in ls:
                 result.append(l.contents())
