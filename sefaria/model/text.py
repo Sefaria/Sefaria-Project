@@ -1535,6 +1535,8 @@ class Ref(object):
             offset = 2
         checks = [self.sections, self.toSections]
         for check in checks:
+            if 0 in check:
+                raise InputError(u"{} {} must be greater than 0".format(self.book, self.index_node.sectionNames[check.index(0)]))
             if getattr(self.index_node, "lengths", None) and len(check):
                 if check[0] > self.index_node.lengths[0] + offset:
                     display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0] + offset)
