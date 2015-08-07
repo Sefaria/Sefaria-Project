@@ -835,7 +835,7 @@ var TextList = React.createClass({
     return {
       links: [],
       loaded: false,
-      showAllFilters: false
+      showAllFilters: this.props.currentFilter.length == 0
     }
   },
   loadConnections: function() {
@@ -913,7 +913,7 @@ var TextList = React.createClass({
                       <span className="en">Loading...</span>
                       <span className="he">טעינה...</span>
                       </div>)  : 
-                  (refs.length == 0 ? 
+                  (refs.length == 0 && !this.state.showAllFilters ? 
                     (<div className='textListMessage'>
                       <span className="en">{emptyMessageEn}</span>
                       <span className="he">{emptyMessageHe}</span>
@@ -986,7 +986,7 @@ var TopFilterSet = React.createClass({
     this.props.hideAllFilters();
   },
   render: function() {
-    var topLinks = sjs.library.topLinks(this.props.sref);
+    var topLinks = []; // sjs.library.topLinks(this.props.sref);
 
     // Filter top links to exclude items already in recent filter
     topLinks = topLinks.filter(function(link) {
@@ -1037,18 +1037,16 @@ var TopFilterSet = React.createClass({
                 onClick={function(){ sjs.track.event("Reader", "Top Filter Click", "1");}} />);
     }.bind(this));
 
-    // Add "More >" button if needed 
-    if (topFilters.length == 5) {
-      var style = {"borderTop": "4px solid " + sjs.palette.navy};
-      topFilters.push(<div className="showMoreFilters textFilter" 
-                          style={style}
-                          onClick={this.props.showAllFilters}>
-                            <div>
-                              <span className="en">More &gt;</span>
-                              <span className="he">עוד &gt;</span>
-                            </div>                    
-                      </div>);
-    }
+    // Add "More >" button
+    var style = {"borderTop": "4px solid " + sjs.palette.navy};
+    topFilters.push(<div className="showMoreFilters textFilter" 
+                        style={style}
+                        onClick={this.props.showAllFilters}>
+                          <div>
+                            <span className="en">More &gt;</span>
+                            <span className="he">עוד &gt;</span>
+                          </div>                    
+                    </div>);
 
     return (
       <div className="topFilters filterSet">
