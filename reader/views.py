@@ -9,7 +9,7 @@ import dateutil.parser
 from bson.json_util import dumps
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.utils.http import urlquote
 from django.utils.encoding import iri_to_uri
@@ -547,6 +547,13 @@ def text_toc(request, oref):
                              "complex":       complex,
                              },
                              RequestContext(request))
+
+
+def text_toc_html_fragment(request, title):
+    """
+    Returns an HTML fragment of the Text TOC for title
+    """
+    return HttpResponse(make_toc_html(Ref(title)))    
 
 
 @ensure_csrf_cookie
