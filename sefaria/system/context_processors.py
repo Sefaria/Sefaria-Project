@@ -75,7 +75,11 @@ def calendar_links(request):
     daf_yomi_link = "<a href='/%s'>%s</a>" % (daf["url"], daf["name"])
 
     return {
-        "parasha_link": parasha_link, 
-        "haftara_link": haftara_link,
-        "daf_yomi_link": daf_yomi_link
+            "parasha_link":  parasha_link, 
+            "haftara_link":  haftara_link,
+            "daf_yomi_link": daf_yomi_link,
+            "parasha_ref":   parasha["ref"],
+            "parasha_name": parasha["parasha"],
+            "haftara_ref":   parasha["haftara"][0],
+            "daf_yomi_ref":  daf["url"]
         }

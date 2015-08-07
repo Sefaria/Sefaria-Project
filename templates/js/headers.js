@@ -10,6 +10,12 @@
 		_uid:          {{ request.user.id|default:"null" }},
 		books:         {{ titlesJSON|default:"[]" }},
         booksDict:     {}, // populated below
+        calendar:      {
+                            parasha: "{{ parasha_ref }}",
+                            parashaName: "{{ parasha_name }}",
+                            haftara: "{{ haftara_ref }}",
+                            daf_yomi: "{{ daf_yomi_ref }}"
+                       },
 		toc:           {{ toc_json|default:"null" }},
 		searchBaseUrl: '{{ SEARCH_URL|default:"http://localhost:9200" }}',
 		searchIndex:   '{{ SEARCH_INDEX_NAME }}',

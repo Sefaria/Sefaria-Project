@@ -13,28 +13,30 @@ sjs.palette = {
 };
 
 sjs.categoryColors = {
-  "Commentary": sjs.palette.blue,
-  "Tanach" :    sjs.palette.darkgreen,
-  "Midrash":    sjs.palette.green,
-  "Mishnah":    sjs.palette.lightblue,
-  "Talmud":     sjs.palette.tan,
-  "Halakhah":   sjs.palette.red,
-  "Philosophy": sjs.palette.grape,
-  "Liturgy":    sjs.palette.blue,
-  "Tosefta":    sjs.palette.darkgreen,
-  "Parshanut":  sjs.palette.green,
-  "Chasidut":   sjs.palette.lightblue,
-  "Musar":      sjs.palette.tan,
-  "Responsa":   sjs.palette.red,
-  "Apocrapha":  sjs.palette.grape,
-  "Other":      sjs.palette.blue
+  "Commentary":         sjs.palette.blue,
+  "Tanach" :            sjs.palette.darkgreen,
+  "Midrash":            sjs.palette.green,
+  "Mishnah":            sjs.palette.lightblue,
+  "Talmud":             sjs.palette.tan,
+  "Halakhah":           sjs.palette.red,
+  "Kabbalah":           sjs.palette.pink,
+  "Philosophy":         sjs.palette.grape,
+  "Liturgy":            sjs.palette.blue,
+  "Tosefta":            sjs.palette.darkgreen,
+  "Parshanut":          sjs.palette.tan,
+  "Chasidut":           sjs.palette.green,
+  "Musar":              sjs.palette.lightblue,
+  "Responsa":           sjs.palette.red,
+  "Apocrapha":          sjs.palette.pink,
+  "Other":              sjs.palette.blue,
+  "Quoting Commentary": sjs.palette.lightblue
 };
 
 sjs.categoryColor = function(cat) {
   if (cat in sjs.categoryColors) {
     return sjs.categoryColors[cat];
   }
-  return sjs.palette.pink;
+  return "transparent";
 }
 
 sjs.library = {

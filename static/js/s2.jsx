@@ -36,6 +36,9 @@ var ReaderApp = React.createClass({
   componentDidUpdate: function() {
     this.updateHistoryState();
   },
+  rerender: function() {
+    this.setState({});
+  },
   shouldHistoryUpdate: function() {
     if (!history.state) { 
       return true;
@@ -147,8 +150,7 @@ var ReaderApp = React.createClass({
     var current = this.state.contents.slice(-1)[0];
     if (current.type === "TextColumn") {
       // Navigate Sections in text view
-      var ref = $(window).scrollTop() === 0 ? current.refs[0] : current.refs.slice(-1)[0];
-      var data = sjs.library.text(ref);
+      var data = this.currentData();
       if (direction in data && data[direction]) {
         this.showBaseText(data[direction]);
       }
@@ -217,12 +219,10 @@ var ReaderApp = React.createClass({
   currentData: function() {
     var item = this.state.contents.slice(-1)[0];
     var ref  = item.ref || item.refs.slice(-1)[0];
-    var data = sjs.library.text(ref, {context: 1});
-    console.log(ref);
+    var data = sjs.library.text(ref, {context: 1}) || sjs.library.text(ref);
     return data; 
   },
   currentBook: function() {
-    console.log(this.currentData());
     return this.currentData().book;
   },
   currentCategory: function() {
@@ -254,7 +254,8 @@ var ReaderApp = React.createClass({
             setOption={this.setOption}
             setScrollTop={this.setScrollTop}
             showBaseText={this.showBaseText} 
-            showTextList={this.showTextList} 
+            showTextList={this.showTextList}
+            rerender={this.rerender} 
             key={ref} />);      
         }.bind(this));
       } else if (item.type === "TextList") {
@@ -297,7 +298,7 @@ var ReaderControls = React.createClass({
   getInitialState: function() {
     return {
       optionsOpen: false,
-      navigationOpen: true
+      navigationOpen: false
     };
   },
   showOptions: function(e) {
@@ -377,6 +378,7 @@ var ReaderControls = React.createClass({
         {sizeToggle}
       </div>);
 
+    console.log(this.props.currentCategory());
     var lineStyle = {backgroundColor: sjs.categoryColor(this.props.currentCategory())};
 
     if (this.state.navigationOpen) {
@@ -427,6 +429,9 @@ var ReaderNavigationMenu = React.createClass({
   setCategory: function(category) {
     this.setState({category: category});
   },
+  navHome: function() {
+    this.setState({category: null});
+  },
   showMore: function() {
     this.setState({showMore: true});
   },
@@ -443,8 +448,9 @@ var ReaderNavigationMenu = React.createClass({
       return (<div className="readerNavMenu" onClick={this.handleClick} >
                       <ReaderNavigationCategoryMenu 
                         category={this.state.category}
-                        closeNav={this.props.closeNav} 
-                        setCategory={this.setCategory} />
+                        closeNav={this.props.closeNav}
+                        setCategory={this.setCategory}
+                        navHome={this.navHome} />
                       </div>);
     } else {
       var categories = [
@@ -476,19 +482,37 @@ var ReaderNavigationMenu = React.createClass({
       categories = this.state.showMore ? categories : categories.slice(0,8).concat(more);
       categories = (<div className="readerNavCategories"><ThreeBox content={categories} /></div>);
 
-      return(<div className="readerNavMenu">
+      var siteLinks = sjs._uid ? 
+                    [(<a className="siteLink" href="/my/profile"><i className="fa fa-user"></i> My Profile</a>), "•",
+                     (<a className="siteLink" href="/">Sefaria Home</a>), "•", 
+                     (<a className="siteLink" href="/logout">Logout</a>)] :
+                    
+                    [(<a className="siteLink" href="/">Sefaria Home</a>), "•",
+                     (<a className="siteLink" href="/logout">Log In</a>)];
+
+
+      var calendar = [(<a className="calendarLink refLink" data-ref={sjs.calendar.parasha}>{sjs.calendar.parashaName}</a>),
+                      (<a className="calendarLink refLink" data-ref={sjs.calendar.haftara}>Haftara</a>),
+                      (<a className="calendarLink refLink" data-ref={sjs.calendar.daf_yomi}>Daf Yomi</a>)];
+      calendar = (<div className="readerNavCalendar"><ThreeBox content={calendar} /></div>);
+
+
+      return(<div className="readerNavMenu" onClick={this.handleClick}>
         <div className="readerNavTop">
-          <input className="readerSearch" placeholder="Search" />
           <i className="fa fa-search"></i>
+          <input className="readerSearch" placeholder="Search" />
           <i className="fa fa-times" onClick={this.props.closeNav}></i>
         </div>
         <div className="content">
             <h2>Browse Texts</h2>
             {categories}
             <h2>Calendar</h2>
+            {calendar}
             <h2>Community</h2>
             <a className="sheetsLink" href="/sheets"><i className="fa fa-file-text-o"></i> Source Sheets</a>
-
+            <div className="siteLinks">
+            {siteLinks}
+            </div>
         </div>
       </div>);
     }
@@ -532,6 +556,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
               <div className="readerNavTopFixed">
                 <div className="categoryColorLine" style={lineStyle}></div>
                 <div className="readerNavTop">
+                  <i className="fa fa-search" onClick={this.props.navHome}></i>
                   <i className="fa fa-times" onClick={this.props.closeNav}></i>
                   <h2>{this.props.category}</h2>
                 </div>
@@ -706,6 +731,12 @@ var TextRange = React.createClass({
     if (this.props.prefetchNextPrev) {
       if (data.next) { sjs.library.text(data.next, {}, function() {}); }
       if (data.prev) { sjs.library.text(data.prev, {}, function() {}); }
+    }
+
+    if (this.props.basetext) {
+      // Rerend the full app, because we now know the category and color for the header,
+      // which we might not have known before the API call returned. 
+      this.props.rerender();
     }
   },
   loadLinkCounts: function() {
@@ -1148,7 +1179,7 @@ var ThreeBox = React.createClass({
         threes.push([content[i], content[i+1], content[i+2]]);
       }
       return (
-        <table className="threeBox">
+        <table className="gridBox threeBox">
           <tbody>
           { 
             threes.map(function(row, i) {
@@ -1182,7 +1213,7 @@ var TwoBox = React.createClass({
         threes.push([content[i], content[i+1]]);
       }
       return (
-        <table>
+        <table className="gridBox twoBox">
           <tbody>
           { 
             threes.map(function(row, i) {

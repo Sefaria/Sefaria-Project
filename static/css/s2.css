@@ -80,12 +80,13 @@ body .bilingual .enOnly .he {
 }
 .readerNavTop {
   padding: 20px;
+  border-bottom: 1px solid #E2E2E1;
 }
 .readerNavTop .readerSearch {
   margin: 0;
-  width: 84%;
+  width: 77%;
   border-color: #F2F2F2;
-  padding: 10px 10px;
+  padding: 7px 10px 7px 40px;
 }
 .readerNavTop .fa {
   color: #BFBFBF;
@@ -94,12 +95,19 @@ body .bilingual .enOnly .he {
   cursor: pointer;
 }
 .readerNavTop .fa-search {
-  margin-left: -30px;
+  position: absolute;
+  top: 26px;
+  left: 33px;
+}
+.readerNavTopFixed .readerNavTop .fa-search {
+  left: 10px;
+  top: 25px;
+  margin: 0px;
 }
 .readerNavTop .fa-times {
   position: absolute;
   right: 10px;
-  top: 28px;
+  top: 25px;
 }
 .readerNavMenu .content {
   padding: 10px;
@@ -111,6 +119,8 @@ body .bilingual .enOnly .he {
   font-weight: lighter;
   font-family: "Montserrat", "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
   color: #9B9B9B;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
 }
 .readerNavMenu h3 {
   font-size: 13px;
@@ -118,7 +128,7 @@ body .bilingual .enOnly .he {
 }
 .readerNavCategories {
   width: 100%;
-  margin-bottom: 25px;
+  margin-bottom: 30px;
 }
 .readerNavCategories .threeBox td {
   border: none;
@@ -128,23 +138,49 @@ body .bilingual .enOnly .he {
   text-transform: uppercase;
   font-family: Georgia;
   text-align: center;
-  padding: 10px 10px;
+  padding: 14px 10px;
   margin: 1px;
   cursor: pointer;
 }
-.readerNavMenu .sheetsLink {
+.readerNavCalendar {
+  margin-bottom: 30px;
+}
+.readerNavCalendar .gridBox td {
+  border: 6px solid transparent;
+}
+.readerNavCalendar .gridBox td:first-child {
+  border-left: 0;
+}
+.readerNavCalendar .gridBox td:last-child {
+  border-right: 0;
+}
+.readerNavMenu .calendarLink.refLink, .readerNavMenu .sheetsLink {
   display: inline-block;
   color: black;
-  width: 98%;
-  margin: 0 1%;
   background-color: white;
   text-align: center;
   padding: 12px 0;
+  width: 100%;
+}
+.readerNavMenu .sheetsLink {
+  width: 98%;
+  margin: 0 1%;
   text-transform: uppercase;
 }
 .readerNavMenu .sheetsLink .fa {
   margin-right: 4px;
   color: #999;
+}
+.readerNavMenu .siteLinks {
+  margin-top: 20px;
+  text-align: center;
+}
+.readerNavMenu .siteLinks .siteLink {
+  color: #999;
+  text-transform: uppercase;
+  display: inline-block;
+  margin: 0 8px;
+  font-size: 12px;
 }
 .readerNavCategoryMenu {
   height: 100%;
@@ -153,13 +189,12 @@ body .bilingual .enOnly .he {
   position: absolute;
   width: 100%;
   background-color: #F9F9F7;
-  border-bottom: 1px solid #E2E2E1;
 }
 .readerNavTopFixed .readerNavTop {
   padding: 12px 20px;
 }
-.readerNavTopFixed .readerNavTop h2 {
-  margin-bottom: none;
+.readerNavMenu .readerNavTopFixed h2 {
+  margin-bottom: 0px;
 }
 .readerNavCategoryMenu .content {
   padding: 100px 10px 10px;
@@ -245,7 +280,7 @@ body .bilingual .enOnly .he {
 #readerOptionsPanel {
   position: fixed;
   width: 100%;
-  top: 49px;
+  top: 57px;
   right: 0;
   max-width: 500px;
   padding: 20px;
@@ -453,7 +488,6 @@ body .bilingual .enOnly .he {
   background-color: inherit;
 }
 .textList .anchorText {
-  background-color: #F7F7F7;
   cursor: pointer;
   border-bottom: 1px solid #CCC;
   position: relative;
@@ -484,7 +518,7 @@ body .bilingual .enOnly .he {
   left: 0;
   width: 100%;
   height: 40px;
-  background: linear-gradient(to bottom, rgba(247,247,247,0), #F7F7F7);
+  background: linear-gradient(to bottom, rgba(255,255,255,0), white);
 }
 .dark .textListTop .anchorText .fader {
   background: linear-gradient(to bottom, rgba(51,51,51,0), #333);
@@ -492,24 +526,32 @@ body .bilingual .enOnly .he {
 .textList .heOnly {
   display: block;
 }
-.threeBox {
+.gridBox {
   width: 100%;
 }
-.threeBox table {
+.gridBox table {
   width: 100%;
   border-style: hidden;
   border-collapse: collapse;
 }
-.threeBox td {
+.gridBox td {
   padding: 0;
-  width: 33.3333%;
   border: 1px solid #CCC;
 }
+.twoBox td {
+  width: 50%;
+}
+.threeBox td {
+  width: 33.333333%;
+}
+
 .dark .filterSet td {
   border-color: #555;
 }
 .filterSet td.empty {
-  border: 1px solid transparent;
+  border-left: 1px solid transparent;
+  border-right: 1px solid transparent;
+
 }
 .topFilters {
   margin-top: -1px;
@@ -518,10 +560,14 @@ body .bilingual .enOnly .he {
   border-style: none;
 }
 .topFilters .textFilter {
-  color: black;
+  color: #999;
   display: table;
   width: 100%;
   height: 38px;
+  background-color: #F9F9F7;
+}
+.topFilters .textFilter.on {
+  color: black;
 }
 .dark .topFilters .textFilter {
   color: white;
@@ -530,15 +576,11 @@ body .bilingual .enOnly .he {
   display: table-cell;
   vertical-align: middle;
 }
-.categoryFilterGroup:last-child {
-  border-bottom: 1px solid #CCC;
-}
 .categoryFilter {
   text-transform: uppercase;
   padding: 12px;
   text-align: center;
   font-size: 13px;
-  border-bottom: 1px solid #CCC;
 }
 .textFilter {
   padding: 10px 4px;
