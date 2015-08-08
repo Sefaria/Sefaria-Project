@@ -223,7 +223,8 @@ var ReaderApp = React.createClass({
     return data; 
   },
   currentBook: function() {
-    return this.currentData().book;
+    var data = this.currentData();
+    return data ? data.book : null;
   },
   currentCategory: function() {
     var data = this.currentData();
@@ -295,10 +296,21 @@ var ReaderApp = React.createClass({
 
 
 var ReaderControls = React.createClass({
+  propTypes: {
+    settings:        React.PropTypes.object.isRequired,
+    navNext:         React.PropTypes.func.isRequired,
+    navPrevious:     React.PropTypes.func.isRequired,
+    showBaseText:    React.PropTypes.func.isRequired,
+    currentCategory: React.PropTypes.func.isRequired,
+    currentBook:     React.PropTypes.func.isRequired,
+    setOption:       React.PropTypes.func.isRequired,
+    currentLayout:   React.PropTypes.func.isRequired
+  },
   getInitialState: function() {
     return {
       optionsOpen: false,
-      navigationOpen: false
+      navigationOpen: false,
+      tocOpen: false
     };
   },
   showOptions: function(e) {
@@ -308,17 +320,19 @@ var ReaderControls = React.createClass({
     this.setState({optionsOpen: false});
   },
   openNav: function(e) {
-    //e.stopPropagation();
-    //$("#navPanel").addClass("navPanelOpen");
     this.setState({navigationOpen: true});
   },
   closeNav: function() {
     this.setState({navigationOpen: false});
   },
   openTextToc: function() {
-    var book = this.props.currentBook();
-    var url  = normRef(book);
-    window.location = "/" + url;
+    //var book = this.props.currentBook();
+    //var url  = normRef(book);
+    //window.location = "/" + url;
+    this.setState({tocOpen: true});
+  },
+  closeTextToc: function () {
+    this.setState({tocOpen: false});
   },
   render: function() {
     var languageOptions = [
@@ -378,12 +392,17 @@ var ReaderControls = React.createClass({
         {sizeToggle}
       </div>);
 
-    console.log(this.props.currentCategory());
     var lineStyle = {backgroundColor: sjs.categoryColor(this.props.currentCategory())};
 
     if (this.state.navigationOpen) {
       return (<ReaderNavigationMenu 
                 closeNav={this.closeNav}
+                showBaseText={this.props.showBaseText} />);
+    } else if (this.state.tocOpen) {
+      return (<ReaderTextTableOfContents 
+                close={this.closeTextToc}
+                text={this.props.currentBook()}
+                category={this.props.currentCategory()}
                 showBaseText={this.props.showBaseText} />);
     } else {
       return (
@@ -522,7 +541,6 @@ var ReaderNavigationMenu = React.createClass({
 
 var ReaderNavigationCategoryMenu = React.createClass({
   render: function() {
-
     var catContents = sjs.toc.filter(function(item) {
       return this.props.category == item.category;
     }.bind(this))[0];
@@ -562,6 +580,55 @@ var ReaderNavigationCategoryMenu = React.createClass({
                 </div>
               </div>
               <div className="content" dangerouslySetInnerHTML={ {__html: contents} }></div>
+            </div>);
+  }
+});
+
+
+var ReaderTextTableOfContents = React.createClass({
+  propTypes: {
+    text:         React.PropTypes.string.isRequired,
+    category:     React.PropTypes.string.isRequired,
+    close:        React.PropTypes.func.isRequired,
+    showBaseText: React.PropTypes.func.isRequired
+  },
+  handleClick: function(e) {
+    var $a = $(e.target).closest("a");
+    console.log($a);
+    if ($a.length) {
+      var ref = $a.attr("data-ref");
+      console.log(ref)
+      ref = decodeURIComponent(ref);
+      console.log(ref)
+      ref = humanRef(ref);
+      console.log(ref);
+      this.props.showBaseText(ref);
+      e.preventDefault();
+      this.props.close();
+    }
+  },
+  render: function() {
+    var tocHtml = sjs.library.textTocHtml(this.props.text, function() {
+      this.setState({});
+    }.bind(this));
+    tocHtml = tocHtml || (<div className='loadingMessage'>
+                            <span className="en">Loading...</span>
+                            <span className="he">טעינה...</span>
+                          </div>) ;
+
+    var lineStyle = {backgroundColor: sjs.categoryColor(this.props.category)};
+    return (<div className="readerTextTableOfContents" onClick={this.handleClick}>
+              <div className="readerNavTopFixed">
+                <div className="categoryColorLine" style={lineStyle}></div>
+                <div className="readerNavTop">
+                  <i className="fa fa-times" onClick={this.props.close}></i>
+                  <h2>Table of Contents</h2>
+                </div>
+              </div>
+              <div className="content">
+                <div className="tocTitle">{this.props.text}</div>
+                <div className="tocContent" dangerouslySetInnerHTML={ {__html: tocHtml} }></div>
+              </div>
             </div>);
   }
 });
@@ -787,6 +854,12 @@ var TextRange = React.createClass({
             showTextList={this.props.showTextList} />
       );
     }.bind(this));
+    textSegments = textSegments.length ? 
+                    textSegments : 
+                    (<div className='loadingMessage'>
+                      <span className="en">Loading...</span>
+                      <span className="he">טעינה...</span>
+                      </div>);
     var classes = {textRange: 1, basetext: this.props.basetext };
     classes = cx(classes);
     return (

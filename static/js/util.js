@@ -1378,8 +1378,9 @@ function normRef(ref) {
 
 
 function humanRef(ref) {
+	console.log(ref)
 	var pRef = parseRef(ref);
-	var book = pRef.book.replace(/_/g, " ") + " ";
+	var book = pRef.book + " ";
 	var nRef = pRef.ref;
 	var hRef = nRef.replace(/ /g, ":");
 	return book + hRef.slice(book.length);

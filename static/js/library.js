@@ -247,6 +247,23 @@ sjs.library = {
     books = books.slice(0, 5);
     return books;
   },
+  textTocHtml: function(title, cb) {
+    if (title in this._textTocHtml) {
+      return this._textTocHtml[title]
+    } else {
+      $.ajax({
+        url: "/api/toc-html/" + title,
+        dataType: "html",
+        success: function(html) {
+          html = html.replace(/ href="\//g, ' data-ref="');
+          this._textTocHtml[title] = html;
+          cb(html);
+        }.bind(this)
+      });
+      return null;
+    } 
+  },
+  _textTocHtml: {},
   hebrewCategory: function(cat) {
     categories = {
       "Torah":                "תורה",
