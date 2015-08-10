@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 abstract.py - abstract classes for Sefaria models
 """
@@ -418,17 +420,17 @@ def notify(inst, action, **kwargs):
 
     for arg in actions_reqs[action]:
         if not kwargs.get(arg, None):
-            raise Exception("Missing required argument {} in notify {}, {}".format(arg, inst, action))
+            raise Exception(u"Missing required argument {} in notify {}, {}".format(arg, inst, action))
 
     if action == "attributeChange":
         callbacks = deps.get((type(inst), action, kwargs["attr"]), None)
-        logger.debug("Notify: " + str(inst) + "." + kwargs["attr"] + ": " + kwargs["old"] + " is becoming " + kwargs["new"])
+        logger.debug(u"Notify: " + unicode(inst) + u"." + kwargs["attr"] + u": " + kwargs["old"] + u" is becoming " + kwargs["new"])
     else:
-        logger.debug("Notify: " + str(inst) + " is being " + action + "d.")
+        logger.debug(u"Notify: " + unicode(inst) + u" is being " + action + u"d.")
         callbacks = deps.get((type(inst), action, None), [])
 
     for callback in callbacks:
-        logger.debug("Notify: Calling " + callback.__name__ + "() for " + inst.__class__.__name__ + " " + action)
+        logger.debug(u"Notify: Calling " + callback.__name__ + u"() for " + inst.__class__.__name__ + " " + action)
         callback(inst, **kwargs)
 
 
