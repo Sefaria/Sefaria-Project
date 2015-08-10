@@ -171,7 +171,7 @@ def linker_js(request):
         "book_titles": json.dumps(model.library.full_title_list("en", with_commentary=True, with_commentators=False)
                       + model.library.full_title_list("he", with_commentary=True, with_commentators=False))
     }
-    return render_to_response("js/linker.js", attrs, RequestContext(request), content_type= "text/javascript")
+    return render_to_response("js/linker.js", attrs, RequestContext(request), mimetype= "text/javascript")
 
 
 def title_regex_api(request, titles):

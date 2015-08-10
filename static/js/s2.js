@@ -591,10 +591,12 @@ var TextRange = React.createClass({displayName: "TextRange",
   },
   handleClick: function(event) {
     if ($(event.target).hasClass("refLink")) {
+      //Click of citation
       var ref = $(event.target).attr("data-ref");
       this.props.showBaseText(ref);
       sjs.track.event("Reader", "Ref Link Click", ref)
     } else if (this.props.openOnClick) {
+      //Click on the body of the TextRange itself
       this.props.showBaseText(this.props.sref);
       sjs.track.event("Reader", "Click Text from TextList", this.props.sref);
     }
@@ -661,7 +663,7 @@ var TextList = React.createClass({displayName: "TextList",
     return {
       links: [],
       loaded: false,
-      showAllFilters: false
+      showAllFilters: this.props.currentFilter.length == 0
     }
   },
   loadConnections: function() {
@@ -739,7 +741,7 @@ var TextList = React.createClass({displayName: "TextList",
                       React.createElement("span", {className: "en"}, "Loading..."), 
                       React.createElement("span", {className: "he"}, "טעינה...")
                       ))  : 
-                  (refs.length == 0 ? 
+                  (refs.length == 0 && !this.state.showAllFilters ? 
                     (React.createElement("div", {className: "textListMessage"}, 
                       React.createElement("span", {className: "en"}, emptyMessageEn), 
                       React.createElement("span", {className: "he"}, emptyMessageHe)
@@ -812,7 +814,7 @@ var TopFilterSet = React.createClass({displayName: "TopFilterSet",
     this.props.hideAllFilters();
   },
   render: function() {
-    var topLinks = sjs.library.topLinks(this.props.sref);
+    var topLinks = []; // sjs.library.topLinks(this.props.sref);
 
     // Filter top links to exclude items already in recent filter
     topLinks = topLinks.filter(function(link) {
@@ -863,18 +865,16 @@ var TopFilterSet = React.createClass({displayName: "TopFilterSet",
                 onClick: function(){ sjs.track.event("Reader", "Top Filter Click", "1");}}));
     }.bind(this));
 
-    // Add "More >" button if needed 
-    if (topFilters.length == 5) {
-      var style = {"borderTop": "4px solid " + sjs.palette.navy};
-      topFilters.push(React.createElement("div", {className: "showMoreFilters textFilter", 
-                          style: style, 
-                          onClick: this.props.showAllFilters}, 
-                            React.createElement("div", null, 
-                              React.createElement("span", {className: "en"}, "More >"), 
-                              React.createElement("span", {className: "he"}, "עוד >")
-                            )
-                      ));
-    }
+    // Add "More >" button
+    var style = {"borderTop": "4px solid " + sjs.palette.navy};
+    topFilters.push(React.createElement("div", {className: "showMoreFilters textFilter", 
+                        style: style, 
+                        onClick: this.props.showAllFilters}, 
+                          React.createElement("div", null, 
+                            React.createElement("span", {className: "en"}, "More >"), 
+                            React.createElement("span", {className: "he"}, "עוד >")
+                          )
+                    ));
 
     return (
       React.createElement("div", {className: "topFilters filterSet"}, 

@@ -37,6 +37,7 @@ class Lexicon(abst.AbstractMongoRecord):
     ]
 
     optional_attrs = [
+        'title',
         'language',
         'to_language',
         'pub_location',
@@ -84,10 +85,15 @@ class DictionaryEntry(LexiconEntry):
 class StrongsDictionaryEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["strong_number"]
 
+class RashiDictionaryEntry(DictionaryEntry):
+    required_attrs = DictionaryEntry.required_attrs + ["orig_word", "orig_ref", "catane_number"]
+
+
 
 class LexiconEntrySubClassMapping(object):
     lexicon_class_map = {
         'BDB Augmented Strong' : StrongsDictionaryEntry,
+        'Rashi Foreign Lexicon' : RashiDictionaryEntry
     }
 
     @classmethod

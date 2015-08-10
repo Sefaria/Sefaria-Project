@@ -208,7 +208,7 @@ class JaggedArray(object):
         if _cur is None:
             if not self._store:
                 return 0
-            return self.depth(_cur=self._store)
+            return self.depth(_cur=self._store, deep=deep)
         if not isinstance(_cur, list):
             return 0
         elif len(_cur) > 0 and (deep or all(map(lambda y: isinstance(y, list), _cur))):
@@ -279,6 +279,36 @@ class JaggedArray(object):
                 self._downsize()
         self._reinit()
         return self
+
+    def normalize(self, terminal_depth=None, _cur=None, depth=1):
+        """
+        :param terminal_depth: The desired depth before whcih everything should be arrays
+        :return: Bool if there were any actual modifications made or not. 
+        Normalizes the array so on any given depth, there are either arrays (incl empty) or primitives, not both.
+        e.g. [[], ""] becomes [[], []]
+        """
+        normalized = False
+        if not terminal_depth:
+            terminal_depth = self.depth(deep=True)
+        if _cur is None:
+            if not self._store:
+                return normalized
+            return self.normalize(terminal_depth=terminal_depth, _cur=self._store)
+        if depth < terminal_depth:
+            for i,elem in enumerate(_cur):
+                if not isinstance(_cur[i], list):
+                    if isinstance(_cur[i], basestring) and not len(_cur[i].strip()):
+                        _cur[i] = []
+                    else:
+                        for _ in range(depth, terminal_depth):
+                            _cur[i] = [_cur[i]]
+                    normalized = True
+                else:
+                    res = self.normalize(terminal_depth=terminal_depth, _cur=_cur[i], depth=depth+1)
+                    normalized = normalized or res
+        return normalized
+
+
 
     def _upsize(self, _cur=None):
         """
