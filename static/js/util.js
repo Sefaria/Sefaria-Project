@@ -1296,15 +1296,16 @@ sjs.sheetTagger = {
 
 sjs._parseRef = {};
 function parseRef(q) {
-	q = q || ""; 
+	q = q || "";
+	q = decodeURIComponent(q);
 	q = q.replace(/_/g, " ").replace(/[.:]/g, " ").replace(/ +/, " ");
 	q = q.trim().toFirstCapital();
 	if (q in sjs._parseRef) { return sjs._parseRef[q]; }
+	
 	var response = {book: false, 
 					sections: [],
 					toSections: [],
-					ref: ""};
-					
+					ref: ""};				
 	if (!q) { 
 		sjs._parseRef[q] = response;
 		return response;
@@ -1378,8 +1379,8 @@ function normRef(ref) {
 
 
 function humanRef(ref) {
-	console.log(ref)
 	var pRef = parseRef(ref);
+	if (pRef.sections.length == 0) { return pRef.book; }
 	var book = pRef.book + " ";
 	var nRef = pRef.ref;
 	var hRef = nRef.replace(/ /g, ":");

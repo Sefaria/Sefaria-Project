@@ -22,6 +22,7 @@
     <script src="/static/js/s2.js"></script>
     {% endif %}
     <script {% if DEBUG %}type="text/jsx"{% endif %}>
+      {% autoescape off %}
       $(function() {
         var urlVars = getUrlVars();
         var filter  = "with" in urlVars ? urlVars["with"].replace(/_/g, " ").split("+") : null;
@@ -54,6 +55,7 @@
           sjs.track.event("Reader", "Open Close Reader", ref);
         }
       });
+      {% endautoescape %}
     </script>
 {% endblock %}
 

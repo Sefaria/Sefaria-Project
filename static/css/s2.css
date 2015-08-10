@@ -81,6 +81,7 @@ body .bilingual .enOnly .he {
 .readerNavTop {
   padding: 20px;
   border-bottom: 1px solid #E2E2E1;
+  direction: ltr;
 }
 .readerNavTop .readerSearch {
   margin: 0;
@@ -226,20 +227,20 @@ body .bilingual .enOnly .he {
   line-height: 1.3;
 }
 .readerTextTableOfContents .content {
-  padding: 100px 10px 10px;
+  padding: 90px 10px 10px;
   box-sizing: border-box;
   height: 100%;
   overflow-y: scroll;
-  font-family: Helvetica, sans-serif;
   text-align: center;
 }
 .readerTextTableOfContents .content .sectionLink {
   display: inline-block;
-  height: 32px;
-  min-width: 32px;
-  line-height: 32px;
+  height: 38px;
+  min-width: 38px;
+  line-height: 38px;
   vertical-align: middle;
-  font-size: 12px;
+  font-size: 13px;
+  font-family: Helvetica, sans-serif;
   font-weight: lighter;
   margin: 3px;
   text-align: center;
@@ -255,18 +256,73 @@ body .bilingual .enOnly .he {
 }
 .readerTextTableOfContents .content .tocSection > .sectionName {
   font-size: 12px;
-  margin-bottom: 4px;
+  margin: 0 3px 4px;
   color: #666;
   display: block;
 }
+.readerTextTableOfContents .content .tocContent {
+  text-align: left;
+} 
 .readerTextTableOfContents .content .tocSection {
   margin-bottom: 22px;
+  display: inline-block;
+  text-align: left;
 }
 .readerTextTableOfContents .content .schema-node-contents {
   margin-bottom: 22px;
 }
-.readerTextTableOfContents .content .schema-node-contents.closed .tocContent {
+.readerTextTableOfContents .content .schema-node-title {
+  color: black;
+  font-size: 16px;
+}
+.readerTextTableOfContents .content .schema-node-toc {
+  display: block;
+}
+.readerTextTableOfContents .content .schema-node-toc.linked {
+  cursor: pointer;
+}
+.readerTextTableOfContents .content .schema-node-contents.closed {
   display: none;
+}
+.readerTextTableOfContents .content .schema-node-control {
+  margin: 0 4px;
+}
+.readerTextTableOfContents .content .tocLevel {
+
+}
+.readerTextTableOfContents .schema-node-toc.depth1 {
+    margin: 10px 0px 0;
+}
+.readerTextTableOfContents .schema-node-toc.depth2 {
+    margin: 6px 20px 0;
+}
+
+.readerTextTableOfContents .schema-node-toc.depth3 {
+    margin: 6px 40px 0;
+}
+
+.readerTextTableOfContents .schema-node-toc.depth4 {
+    margin: 6px 60px 0;
+}
+
+.readerTextTableOfContents .schema-node-toc.depth5 {
+    margin: 6px 80px 0;
+}
+
+.readerTextTableOfContents .schema-node-toc.depth6 {
+    margin: 6px 100px 0;
+}
+
+.readerTextTableOfContents .schema-node-toc.depth7 {
+    margin: 6px 120px 0;
+}
+
+.readerTextTableOfContents .schema-node-toc.depth8 {
+    margin: 6px 140px 0;
+}
+.hebrew .readerTextTableOfContents .content .tocSection,
+.hebrew .readerTextTableOfContents .content .tocContent {
+  text-align: right;
 }
 
 #readerControls {

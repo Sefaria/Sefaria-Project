@@ -224,7 +224,7 @@ var ReaderApp = React.createClass({
   },
   currentBook: function() {
     var data = this.currentData();
-    return data ? data.book : null;
+    return data ? data.indexTitle : null;
   },
   currentCategory: function() {
     var data = this.currentData();
@@ -492,7 +492,11 @@ var ReaderNavigationMenu = React.createClass({
       categories = categories.map(function(cat) {
         var style = {"backgroundColor": sjs.categoryColor(cat)};
         var openCat = function() {this.setCategory(cat)}.bind(this);
-        return (<div className="readerNavCategory" style={style} onClick={openCat}>{cat}</div>);
+        var heCat   = sjs.library.hebrewCategory(cat);
+        return (<div className="readerNavCategory" style={style} onClick={openCat}>
+                  <span className="en">{cat}</span>
+                  <span className="he">{heCat}</span>
+                </div>);
       }.bind(this));;
       var more = (<div className="readerNavCategory" style={{"backgroundColor": sjs.palette.navy}} onClick={this.showMore}>
                       <span className="en">More &gt;</span>
@@ -559,7 +563,6 @@ var ReaderNavigationCategoryMenu = React.createClass({
         } else {
           var title   = item.title.replace(/(Mishneh Torah|Shulchan Arukh|Jerusalem Talmud), /, "");
           var heTitle = item.heTitle.replace(/(משנה תורה,|תלמוד ירושלמי) /, "");
-          
           html += '<span class=refLink sparse' + item.sparseness + '" data-ref="' + item.firstSection + '">' + 
                     "<span class='en'>" + title + "</span>" + 
                     "<span class='he'>" + heTitle + "</span></span>";
@@ -594,14 +597,10 @@ var ReaderTextTableOfContents = React.createClass({
   },
   handleClick: function(e) {
     var $a = $(e.target).closest("a");
-    console.log($a);
     if ($a.length) {
       var ref = $a.attr("data-ref");
-      console.log(ref)
       ref = decodeURIComponent(ref);
-      console.log(ref)
       ref = humanRef(ref);
-      console.log(ref);
       this.props.showBaseText(ref);
       e.preventDefault();
       this.props.close();
@@ -614,8 +613,10 @@ var ReaderTextTableOfContents = React.createClass({
     tocHtml = tocHtml || (<div className='loadingMessage'>
                             <span className="en">Loading...</span>
                             <span className="he">טעינה...</span>
-                          </div>) ;
+                          </div>);
 
+    var title     = this.props.text;
+    var heTitle   = sjs.library.index(title) ? sjs.library.index(title).heTitle : title;
     var lineStyle = {backgroundColor: sjs.categoryColor(this.props.category)};
     return (<div className="readerTextTableOfContents" onClick={this.handleClick}>
               <div className="readerNavTopFixed">
@@ -626,7 +627,10 @@ var ReaderTextTableOfContents = React.createClass({
                 </div>
               </div>
               <div className="content">
-                <div className="tocTitle">{this.props.text}</div>
+                <div className="tocTitle">
+                  <span className="en">{title}</span>
+                  <span className="he">{heTitle}</span>
+                </div>
                 <div className="tocContent" dangerouslySetInnerHTML={ {__html: tocHtml} }></div>
               </div>
             </div>);
@@ -798,6 +802,7 @@ var TextRange = React.createClass({
     if (this.props.prefetchNextPrev) {
       if (data.next) { sjs.library.text(data.next, {}, function() {}); }
       if (data.prev) { sjs.library.text(data.prev, {}, function() {}); }
+      if (data.book) { sjs.library.textTocHtml(data.book, function() {}); }
     }
 
     if (this.props.basetext) {

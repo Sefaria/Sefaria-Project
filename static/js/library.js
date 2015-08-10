@@ -76,13 +76,18 @@ sjs.library = {
         if (data.ref == data.sectionRef) {
           this._splitTextSection(data);
         } else if (settings.context) {
-          newData            = clone(data);
+          var newData         = clone(data);
           newData.ref        = data.sectionRef;
           newData.sections   = data.sections.slice(0,-1);
           newData.toSections = data.toSections.slice(0,-1);
           this._saveText(newData);
         }
-        // TODO store index record
+        var index = {
+          title:      data.indexTitle,
+          heTitle:    data.heTitle, // This is incorrect for complex texts
+          categories: data.categories
+        };
+        this.index(index.title, index);
   },
   _splitTextSection: function(data) {
     // Takes data for a section level text and populates cache with segment levels
@@ -93,17 +98,18 @@ sjs.library = {
     en = en.pad(length, "");
     he = he.pad(length, "");
 
+    var delim = data.ref === data.book ? " " : ":";
     var start = data.textDepth == data.sections.length ? data.sections[data.textDepth-1] : 1;
     for (var i = 0; i < length; i++) {
-      var ref = data.ref + ":" + (i+start);
+      var ref = data.ref + delim + (i+start);
       var segment_data   = clone(data);
       $.extend(segment_data, {
         ref: ref,
-        heRef: data.heRef + ":" + encodeHebrewNumeral(i+start),
+        heRef: data.heRef + delim + encodeHebrewNumeral(i+start),
         text: en[i],
         he: he[i],
-        nextSegment: i+start == length ? null : data.ref + ":" + (i+start+1),
-        prevSegment: i+start == 1      ? null : data.ref + ":" + (i+start-1),
+        nextSegment: i+start == length ? null : data.ref + delim + (i+start+1),
+        prevSegment: i+start == 1      ? null : data.ref + delim + (i+start-1),
       });
 
       this._texts[ref] = segment_data;
@@ -117,6 +123,9 @@ sjs.library = {
     } else {
       this._index[text] = index;
     }
+  },
+  _cacheIndexFromToc: function() {
+    // Unpacks contents of sjs.toc and stores it in index cache.
   },
   _links: {},
   links: function(ref, cb) {
@@ -248,6 +257,8 @@ sjs.library = {
     return books;
   },
   textTocHtml: function(title, cb) {
+    // Returns an HTML fragment of the table of contents of the text 'title'
+    if (!title) { return "[empty title]"; }
     if (title in this._textTocHtml) {
       return this._textTocHtml[title]
     } else {

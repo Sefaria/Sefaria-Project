@@ -198,6 +198,7 @@ def merge_multiple_text_versions(versions, text_title, language, warn=False):
             count += 1
     return {"status": "ok", "merged": count + 1}
 
+
 def merge_text_versions_by_source(text_title, language, warn=False):
     """
     Merges all texts of text_title in langauge that share the same value for versionSource.
