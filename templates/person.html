@@ -23,12 +23,39 @@
                 <span class='en'>{{ primary_name.en }}</span>
                 <span class='he'>{{ primary_name.he }}</span>
             </h1>
-            <h3>
+            <div id="yearLine">
                 <span class='en'>{{ time_period.en }}</span>
-            </h3>
+            </div>
+
+            {% if enBio or heBio %}
             <div id="bio">
                 <span class='en'>{{ enBio }}</span>
                 <span class='he'>{{ heBio }}</span>
+            </div>
+            {% endif %}
+
+            <div id="external_links">
+                {% if enWikiLink and heWikiLink %}
+                    <span class="en"><a href="{{ enWikiLink }}">Wikipedia</a></span>
+                    <span class="he"><a href="{{ heWikiLink }}">וויקיפדיה</a></span>
+                {% elif enWikiLink %}
+                    <span class="en"><a href="{{ enWikiLink }}">Wikipedia</a></span>
+                    <span class="he"><a href="{{ enWikiLink }}">וויקיפדיה (אנגלית)</a></span>
+                {% elif heWikiLink %}
+                    <span class="en"><a href="{{ heWikiLink }}">Wikipedia (Hebrew)</a></span>
+                    <span class="he"><a href="{{ heWikiLink }}">וויקיפדיה</a></span>
+                {% endif %}
+
+                {% if jeLink %}
+                    <a href="{{ jeLink }}">
+                        <span class="en">Jewish Encyclopedia</span>
+                        <span class="he">האנציקלופדיה היהודית (אנגלית)</span>
+                    </a>
+                {% endif %}
+
+                {% if brillLink %}
+                    <a href="{{ brillLink }}">Brill Reference Works</a>
+                {% endif %}
             </div>
             <div id="relationships">
                  {% for k, rel_type in relationships.items %}

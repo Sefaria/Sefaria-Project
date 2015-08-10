@@ -30,7 +30,7 @@ class Person(abst.AbstractMongoRecord):
         "birthYear",
         "birthYearIsApprox",
         "birthPlace",
-        "birthPlaceGeo"
+        "birthPlaceGeo",
         "deathYear",
         "deathYearIsApprox",
         "deathPlace",
@@ -40,7 +40,6 @@ class Person(abst.AbstractMongoRecord):
         "enWikiLink",
         "heWikiLink",
         "jeLink",
-        "brillLink",
         "sex",  # M or F (or ...)
     ]
 

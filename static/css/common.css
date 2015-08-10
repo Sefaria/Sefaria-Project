@@ -922,13 +922,23 @@ body.embeded #top {
   margin-top: 0;
 }
 
+#personPage #yearLine {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+#personPage #bio {
+  margin-bottom: 10px;
+}
+
 .hebrew #personPage {
   direction: rtl;
-  font-size: 145%;
+  /* font-size: 145%; */
 }
 
 #personPage #relationships a,
 #personPage #indexes a,
+#personPage #external_links a,
 #peoplePage a {
   display: block;
 }
