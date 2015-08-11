@@ -57,10 +57,10 @@ Loaded from MySQL DB with Sefaria-Data/sources/Sages_DB/parse_eras_from_sages.py
 """
 
 class TimePeriod(abst.AbstractMongoRecord):
-    '''
+    """
     TimePeriod is used both for the saved time periods - Eras and Generations
     and for the adhoc in memory TimePeriods generated from e.g. the Person model
-    '''
+    """
     collection = 'time_period'
     track_pkeys = True
     pkeys = ["symbol"]
@@ -105,12 +105,39 @@ class TimePeriod(abst.AbstractMongoRecord):
     def add_name(self, name, lang, primary=False, replace_primary=False):
         return self.name_group.add_title(name, lang, primary=primary, replace_primary=replace_primary)
 
+    def getYearLabels(self, lang):
+        if not getattr(self, "start", None) or not getattr(self, "end", None):
+            return u"", u""
+
+        if self.start < 0 < self.end:
+            return (u"BCE ", u"CE") if lang == "en" else (u'לפנה"ס' + u' ', u"לספירה")
+        elif self.end > 0:
+            return (u"", u"CE") if lang == "en" else (u"", u'לפנה"ס')
+        else:  # self.end < 0
+            return (u"", u"BCE") if lang == "en" else (u"", u'לפנה"ס')
+
+    def getApproximateMarkers(self, lang):
+        marker = u"c." if lang == "en" else u"סביבות "
+        return (
+            marker if getattr(self, "startIsApprox", None) else u"",
+            marker if getattr(self, "endIsApprox", None) else u""
+        )
+
     def html(self, lang):
         name = u""
         if getattr(self, "names", None):
             name += self.primary_name(lang)
         if getattr(self, "start", None) and getattr(self, "end", None):
-            name += u" ({} - {})".format(self.start, self.end)
+            labels = self.getYearLabels(lang)
+            approxMarker = self.getApproximateMarkers(lang)
+
+            name += u" ({}{} {}- {}{} {})".format(
+                approxMarker[0],
+                abs(self.start),
+                labels[0],
+                approxMarker[1],
+                abs(self.end),
+                labels[1])
         return name
 
 
