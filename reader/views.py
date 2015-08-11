@@ -2042,3 +2042,16 @@ def person_index(request):
     template_vars = {"people": [p for p in PersonSet()]}
     return render_to_response('people.html', template_vars, RequestContext(request))
 
+def talmud_person_index(request):
+    gens = TimePeriodSet.get_generations(True)
+    template_vars = {
+        "gens": []
+    }
+    for gen in gens:
+        people = PersonSet({"generation": gen.symbol})
+        template_vars["gens"].append({
+            "en": gen.html("en"),
+            "he": gen.html("he"),
+            "people": [p for p in people]
+        })
+    return render_to_response('talmud_people.html', template_vars, RequestContext(request))

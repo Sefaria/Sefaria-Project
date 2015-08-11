@@ -939,8 +939,14 @@ body.embeded #top {
 #personPage #relationships a,
 #personPage #indexes a,
 #personPage #external_links a,
-#peoplePage a {
+#peoplePage a,
+#talmudicPeoplePage a {
   display: block;
+}
+
+#talmudicPeoplePage .talmudic-generation {
+  width: 300px;
+  float: left;
 }
 
 /****        Search         ****/

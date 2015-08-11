@@ -133,10 +133,10 @@ class TimePeriod(abst.AbstractMongoRecord):
 
             name += u" ({}{} {}- {}{} {})".format(
                 approxMarker[0],
-                abs(self.start),
+                abs(int(self.start)),
                 labels[0],
                 approxMarker[1],
-                abs(self.end),
+                abs(int(self.end)),
                 labels[1])
         return name
 
@@ -153,6 +153,7 @@ class TimePeriodSet(abst.AbstractMongoSet):
         return TimePeriodSet._get_typed_set("Era")
 
     @staticmethod
-    def get_generations():
-        return TimePeriodSet._get_typed_set("Generation")
+    def get_generations(include_doubles = False):
+        arg = {"$in": ["Generation", "Two Generations"]} if include_doubles else "Generation"
+        return TimePeriodSet._get_typed_set(arg)
 
