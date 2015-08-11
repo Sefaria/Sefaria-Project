@@ -140,7 +140,7 @@ class Term(abst.AbstractMongoRecord):
     ]
 
     def _set_derived_attributes(self):
-        self.set_titles(self.titles)
+        self.set_titles(getattr(self, "titles", None))
 
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
