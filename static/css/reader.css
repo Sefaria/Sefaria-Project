@@ -670,6 +670,10 @@ body.newText #newTextCompare {
 	color: black;
 }
 
+.verse br {
+   line-height: 170%;
+}
+
 .basetext.lines .verse {
 	display: block;
 	margin-bottom: 24px;
