@@ -443,7 +443,7 @@ def make_simple_toc_html(he_toc, en_toc, labels, addresses, ref, zoom=1, offset=
             elif offset_lines and (i+1) == length and offset_lines[1]:
                 path += "." + offset_lines[1]
             if zoom > 1:  # Make links point to first available content
-                available = Ref(ref).first_available_section_ref()
+                available = Ref(ref + "." + en_section).first_available_section_ref()
                 path = available.url() if available else path
             html += '<a class="sectionLink %s" href="/%s">%s</a>' % (klass, urlquote(path), section_html)
         if html:
