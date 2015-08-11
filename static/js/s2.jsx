@@ -28,6 +28,13 @@ var ReaderApp = React.createClass({
 
     var hist = this.makeHistoryState()
     history.replaceState(hist.state, hist.title, hist.url);
+
+    // Headroom, hiding header
+    var myElement = document.getElementById("readerControls");
+    var headroom  = new Headroom(myElement);
+    headroom.init(); 
+
+    $("#top").hide();
   },
   componentWillUnmount: function() {
     window.removeEventListener("popstate", this.handlePopState);
@@ -314,22 +321,20 @@ var ReaderControls = React.createClass({
     };
   },
   showOptions: function(e) {
-    this.setState({optionsOpen: true});
+    this.setState({optionsOpen: true, navigationOpen: false, tocOpen: false});
   },
   hideOptions: function() {
     this.setState({optionsOpen: false});
   },
   openNav: function(e) {
-    this.setState({navigationOpen: true});
+    console.log("on")
+    this.setState({navigationOpen: true, optionsOpen: false, tocOpen: false});
   },
   closeNav: function() {
     this.setState({navigationOpen: false});
   },
   openTextToc: function() {
-    //var book = this.props.currentBook();
-    //var url  = normRef(book);
-    //window.location = "/" + url;
-    this.setState({tocOpen: true});
+    this.setState({tocOpen: true, navigationOpen: false, optionsOpen: false});
   },
   closeTextToc: function () {
     this.setState({tocOpen: false});
@@ -392,6 +397,7 @@ var ReaderControls = React.createClass({
         {sizeToggle}
       </div>);
 
+    console.log(this.props.currentCategory());
     var lineStyle = {backgroundColor: sjs.categoryColor(this.props.currentCategory())};
 
     if (this.state.navigationOpen) {
@@ -403,11 +409,12 @@ var ReaderControls = React.createClass({
                 close={this.closeTextToc}
                 text={this.props.currentBook()}
                 category={this.props.currentCategory()}
+                openNav={this.openNav}
                 showBaseText={this.props.showBaseText} />);
     } else {
       return (
       <div>
-        <div id="readerControls">
+        <div id="readerControls" className="headroom">
           <div className="categoryColorLine" style={lineStyle}></div>
           <div id="readerControlsRight">
             <div id="readerPrevious"
@@ -439,6 +446,10 @@ var ReaderControls = React.createClass({
 
 
 var ReaderNavigationMenu = React.createClass({
+  propTypes: {
+    closeNav:      React.PropTypes.func.isRequired,
+    showBaseText: React.PropTypes.func.isRequired
+  },
   getInitialState: function() {
     return {
       category: null,
@@ -461,6 +472,13 @@ var ReaderNavigationMenu = React.createClass({
       sjs.track.event("Reader", "Navigation Text Click", ref)
       this.props.closeNav();
     }  
+  },
+  handleSearchKeyUp: function(event) {
+    console.log(event);
+    if (event.keyCode === 13) {
+      var query = $(event.target).val();
+      window.location = "/search?q=" + query.replace(/ /g, "+");
+    }
   },
   render: function() {
     if (this.state.category) {
@@ -523,7 +541,7 @@ var ReaderNavigationMenu = React.createClass({
       return(<div className="readerNavMenu" onClick={this.handleClick}>
         <div className="readerNavTop">
           <i className="fa fa-search"></i>
-          <input className="readerSearch" placeholder="Search" />
+          <input className="readerSearch" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
           <i className="fa fa-times" onClick={this.props.closeNav}></i>
         </div>
         <div className="content">
@@ -593,7 +611,19 @@ var ReaderTextTableOfContents = React.createClass({
     text:         React.PropTypes.string.isRequired,
     category:     React.PropTypes.string.isRequired,
     close:        React.PropTypes.func.isRequired,
+    openNav:      React.PropTypes.func.isRequired,
     showBaseText: React.PropTypes.func.isRequired
+  },
+  componentDidMount: function() {
+    // Toggling TOC Alt structures
+    $(".altStructToggle").click(function(){
+        console.log("click"); 
+        $(".altStructToggle").removeClass("active");
+        $(this).addClass("active");
+        var i = $(this).index();
+        $(".altStruct").hide();
+        $(".altStruct").eq(i).show();
+    });
   },
   handleClick: function(e) {
     var $a = $(e.target).closest("a");
@@ -610,18 +640,20 @@ var ReaderTextTableOfContents = React.createClass({
     var tocHtml = sjs.library.textTocHtml(this.props.text, function() {
       this.setState({});
     }.bind(this));
-    tocHtml = tocHtml || (<div className='loadingMessage'>
-                            <span className="en">Loading...</span>
-                            <span className="he">טעינה...</span>
-                          </div>);
+    tocHtml = tocHtml || "<div class='loadingMessage'>" +
+                            "<span class='en'>Loading...</span>" +
+                            "<span class='he'>טעינה...</span>" + 
+                          "</div>";
 
     var title     = this.props.text;
     var heTitle   = sjs.library.index(title) ? sjs.library.index(title).heTitle : title;
     var lineStyle = {backgroundColor: sjs.categoryColor(this.props.category)};
+
     return (<div className="readerTextTableOfContents" onClick={this.handleClick}>
               <div className="readerNavTopFixed">
                 <div className="categoryColorLine" style={lineStyle}></div>
                 <div className="readerNavTop">
+                  <i className="fa fa-search" onClick={this.props.openNav}></i>
                   <i className="fa fa-times" onClick={this.props.close}></i>
                   <h2>Table of Contents</h2>
                 </div>
@@ -807,7 +839,8 @@ var TextRange = React.createClass({
 
     if (this.props.basetext) {
       // Rerend the full app, because we now know the category and color for the header,
-      // which we might not have known before the API call returned. 
+      // which we might not have known before the API call returned.
+      // Can be removed when catgoires are exctracted from sjs.toc on every page
       this.props.rerender();
     }
   },
@@ -836,7 +869,7 @@ var TextRange = React.createClass({
   handleClick: function(event) {
     if ($(event.target).hasClass("refLink")) {
       //Click of citation
-      var ref = $(event.target).attr("data-ref");
+      var ref = humanRef($(event.target).attr("data-ref"));
       this.props.showBaseText(ref);
       sjs.track.event("Reader", "Ref Link Click", ref)
     } else if (this.props.openOnClick) {

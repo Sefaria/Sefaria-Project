@@ -55,6 +55,19 @@ body .bilingual .enOnly .he {
 #languageToggle {
   display: inline;
 }
+.loadingMessage {
+  font-size: 13px;
+  font-variant: italic;
+}
+.headroom {
+    transition: transform 200ms linear;
+}
+.headroom--pinned {
+    transform: translateY(0%);
+}
+.headroom--unpinned {
+    transform: translateY(-100%);
+}
 #top #right #accountBox {
   display: none;
 }
@@ -249,7 +262,13 @@ body .bilingual .enOnly .he {
   cursor: pointer;
 }
 .readerTextTableOfContents .content #structToggles {
-  margin-bottom: 10px;
+  margin-bottom: 20px;
+}
+.readerTextTableOfContents #structToggles .altStructToggle.active {
+  color: black;
+}
+.readerTextTableOfContents #structToggles .altStructToggle {
+  color: #999;
 }
 .readerTextTableOfContents .content .sectionName {
   display: none;
@@ -274,6 +293,8 @@ body .bilingual .enOnly .he {
 .readerTextTableOfContents .content .schema-node-title {
   color: black;
   font-size: 16px;
+  display: inline-block;
+  margin-bottom: 4px;
 }
 .readerTextTableOfContents .content .schema-node-toc {
   display: block;
@@ -284,11 +305,14 @@ body .bilingual .enOnly .he {
 .readerTextTableOfContents .content .schema-node-contents.closed {
   display: none;
 }
+.readerTextTableOfContents .content .schema-node-toc .schema-node-contents.closed {
+  display: block;
+}
 .readerTextTableOfContents .content .schema-node-control {
   margin: 0 4px;
 }
 .readerTextTableOfContents .content .tocLevel {
-
+  text-align: center;
 }
 .readerTextTableOfContents .schema-node-toc.depth1 {
     margin: 10px 0px 0;
@@ -324,7 +348,6 @@ body .bilingual .enOnly .he {
 .hebrew .readerTextTableOfContents .content .tocContent {
   text-align: right;
 }
-
 #readerControls {
   position: fixed;
   direction: ltr;
@@ -515,7 +538,7 @@ body .bilingual .enOnly .he {
 .bilingual .segment .en { 
   margin-top: 6px;
 }
-.basetext.bilingual  .segment .en { 
+.bilingual .basetext .segment .en { 
   margin-top: 10px;
   color: #888;
 }
