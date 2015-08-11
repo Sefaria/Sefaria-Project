@@ -124,12 +124,14 @@ def text_toc_link(indx):
 	"""
 	Return an <a> tag linking to the text TOC for the Index
 	"""
+	en = indx.nodes.primary_title("en") if not indx.is_commentary() else indx.title
+	he = indx.nodes.primary_title("he") if not indx.is_commentary() else indx.heTitle
 	link = u'''
 		<a href="/{}">
 			<span class='en'>{}</span>
 			<span class='he'>{}</span>
 		</a>
-	'''.format(indx.title, indx.nodes.primary_title("en"), indx.nodes.primary_title("he"))
+	'''.format(indx.title, en, he)
 	return mark_safe(link)
 
 @register.filter(is_safe=True)

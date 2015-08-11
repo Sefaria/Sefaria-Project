@@ -94,9 +94,19 @@ class Person(abst.AbstractMongoRecord):
     def get_grouped_relationships(self):
         return PersonRelationshipSet.load_by_key(self.key).grouped(self.key)
 
-    def get_indexes(self):
+    def get_indexes(self, include_commentary=True):
         from . import text
-        return text.IndexSet({"authors": self.key})
+        indxs = text.IndexSet({"authors": self.key})
+        if include_commentary:
+            processed_indxs = []
+            for i in indxs:
+                if i.is_commentary():
+                    processed_indxs += i.get_commentary_indexes()
+                else:
+                    processed_indxs += [i]
+            return processed_indxs
+        else:
+            return indxs
 
 class PersonSet(abst.AbstractMongoSet):
     recordClass = Person

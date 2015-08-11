@@ -23,8 +23,8 @@ from schema import deserialize_tree, SchemaNode, JaggedArrayNode, TitledTreeNode
 
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError
-from sefaria.utils.talmud import section_to_daf, daf_to_section
-from sefaria.utils.hebrew import is_hebrew, encode_hebrew_numeral, hebrew_term
+from sefaria.utils.talmud import daf_to_section
+from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE
@@ -65,6 +65,10 @@ class AbstractIndex(object):
                 self.nodes.remove_title(old_primary, lang)
 
     title = property(get_title, set_title)
+
+    def author_objects(self):
+        from . import person
+        return [person.Person().load({"key": k}) for k in self.authors]
 
 
 class Index(abst.AbstractMongoRecord, AbstractIndex):
@@ -197,9 +201,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def is_commentary(self):
         return self.categories[0] == "Commentary"
 
-    def author_objects(self):
-        from . import person
-        return [person.Person().load({"key": k}) for k in self.authors]
+    def get_commentary_indexes(self):
+        if not self.is_commentary():
+            return [self]
+        return list({v.get_index() for v in library.get_commentary_versions(self.title)})
 
     def all_titles(self, lang):
         if self.nodes:
@@ -258,6 +263,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         """
         return getattr(self, "maps", [])
         #todo: term schemes
+
+    # Index changes behavior of load_from_dict, so this circumvents that changed behavior to call load_from_dict on the abstract superclass
+    def update_from_dict(self, d):
+        return super(Index, self).load_from_dict(d, is_init=False)
 
     def load_from_dict(self, d, is_init=False):
         if d:
@@ -462,6 +471,11 @@ class IndexSet(abst.AbstractMongoSet):
     A set of :class:`Index` objects.
     """
     recordClass = Index
+
+    # Index changes behavior of load_from_dict, so this circumvents that changed behavior to call load_from_dict on the abstract superclass
+    def update(self, attrs):
+        for rec in self:
+            rec.update_from_dict(attrs).save()
 
 
 class CommentaryIndex(AbstractIndex):
