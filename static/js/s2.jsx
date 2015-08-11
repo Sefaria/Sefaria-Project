@@ -320,6 +320,12 @@ var ReaderControls = React.createClass({
       tocOpen: false
     };
   },
+  componentDidUpdate: function() {
+    // Headroom, hiding header
+    var myElement = document.getElementById("readerControls");
+    var headroom  = new Headroom(myElement);
+    headroom.init(); 
+  },
   showOptions: function(e) {
     this.setState({optionsOpen: true, navigationOpen: false, tocOpen: false});
   },
@@ -327,7 +333,6 @@ var ReaderControls = React.createClass({
     this.setState({optionsOpen: false});
   },
   openNav: function(e) {
-    console.log("on")
     this.setState({navigationOpen: true, optionsOpen: false, tocOpen: false});
   },
   closeNav: function() {
@@ -397,7 +402,6 @@ var ReaderControls = React.createClass({
         {sizeToggle}
       </div>);
 
-    console.log(this.props.currentCategory());
     var lineStyle = {backgroundColor: sjs.categoryColor(this.props.currentCategory())};
 
     if (this.state.navigationOpen) {
@@ -474,7 +478,6 @@ var ReaderNavigationMenu = React.createClass({
     }  
   },
   handleSearchKeyUp: function(event) {
-    console.log(event);
     if (event.keyCode === 13) {
       var query = $(event.target).val();
       window.location = "/search?q=" + query.replace(/ /g, "+");
@@ -617,7 +620,6 @@ var ReaderTextTableOfContents = React.createClass({
   componentDidMount: function() {
     // Toggling TOC Alt structures
     $(".altStructToggle").click(function(){
-        console.log("click"); 
         $(".altStructToggle").removeClass("active");
         $(this).addClass("active");
         var i = $(this).index();
