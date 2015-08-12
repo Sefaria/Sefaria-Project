@@ -1,4 +1,13 @@
 # -*- coding: utf-8 -*-
+
+"""
+takes 3 command line arguments
+first argument :: filename.opml
+-t :: stores all items nodes in opml as shared terms (not including root)
+-v :: saves any text stored in opml as notes to a single version
+"""
+
+
 import string
 import xml.etree.ElementTree as ET
 import urllib
@@ -19,28 +28,27 @@ def save_shared_terms(root):
     skip = True
     for element in root.iter('outline'):
 
-        # ugly way to skip the rootNode
+        # ugly way to skip the root node
         if skip:
             skip = False
             continue
 
         titles = parse_titles(element)
 
-        term = Term()
-        term.name = titles["enPrim"]
-        term.scheme = ts.name
+        if not Term().load({"name": titles["enPrim"]}):
+            term = Term()
+            term.name = titles["enPrim"]
+            term.scheme = ts.name
 
-        if not any([term.name is not existingTerm.name for existingTerm in TermScheme({"name": "Siddur"}).get_terms()]):
-            termTitles = [{"lang": "en", "text": titles["enPrim"], "primary": True}]
+            term.title_group.add_title(titles["enPrim"], "en", True)
             if "hePrim" in titles:
-                termTitles.append({"lang": "he", "text": titles["hePrim"], "primary": True})
+                term.title_group.add_title(titles["hePrim"], "he", True)
             if "enAltList" in titles:
                 for title in titles["enAltList"]:
-                    termTitles.append({"lang": "en", "text": title})
+                    term.title_group.add_title(title, "en")
             if "heAltList" in titles:
                 for title in titles["heAltList"]:
-                    termTitles.append({"lang": "he", "text": title})
-            term.set_titles(termTitles)
+                    term.title_group.add_title(title, "he")
             term.save()
 
 
@@ -81,14 +89,12 @@ def add_titles(titles, n):
         if "heAltList" in titles:
             for title in titles["heAltList"]:
                 n.add_title(title, 'he')
-        return n
+    return n
 
 
 # object tree of each with jagged array nodes at the lowest level (recursive)
 def build_index(element):
-    # print len(element)
     if len(element) == 0:  # length of child nodes
-        # print "JA node"
         n = JaggedArrayNode()
         n.sectionNames = ['Paragraph']
         n.addressTypes = ['Integer']
@@ -145,7 +151,7 @@ def build_post_text(tree):
 
 # posts to api
 def post_api(ref, j, form):
-    server = u"dev.sefaria.org" # server = u"localhost:8000"
+    server = u"localhost:8000"  # server = u"dev.sefaria.org"
     json_text = json.dumps(j)
     if form == "index":
         url = 'http://' + server + '/api/v2/raw/index/{}'.format(ref)
@@ -168,23 +174,29 @@ def post_api(ref, j, form):
         print e.read()
 
 
-def main(filename, flags):
+def traverse(o, tree_types=(list, tuple)):
+    if isinstance(o, tree_types):
+        for value in o:
+            for subvalue in traverse(value):
+                yield subvalue
+    else:
+        yield o
+
+
+def main():
+    filename = sys.argv[1]
+    flags = sys.argv[2:]
     tree = ET.parse(filename)
     tree = tree.getroot()[1][0]
+    # for element in tree.iter('outline'):
+    #     print parse_titles(element)["enPrim"]
     if '-t' in flags:
         save_shared_terms(tree)
     build_post_index(tree)
     if '-v' in flags:
         build_post_text(tree)
 
-'''
-takes 3 command line arguments
-first argument :: filename.opml
--t :: stores all items nodes in opml as shared terms (not including root)
--v :: saves any text stored in opml as notes to a single version
-'''
 
-main(sys.argv[1], sys.argv[2:])
-
-
+if __name__ == "__main__":
+    main()
 
