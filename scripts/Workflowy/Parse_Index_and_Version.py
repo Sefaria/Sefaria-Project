@@ -151,7 +151,8 @@ def build_post_text(tree):
 
 # posts to api
 def post_api(ref, j, form):
-    server = u"localhost:8000"  # server = u"dev.sefaria.org"
+   # server = u"localhost:8000"  
+    server = u"dev.sefaria.org"
     json_text = json.dumps(j)
     if form == "index":
         url = 'http://' + server + '/api/v2/raw/index/{}'.format(ref)
