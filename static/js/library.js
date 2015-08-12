@@ -240,7 +240,7 @@ sjs.library = {
     // Modifies Text TOC HTML received from server
     // Replaces links and adds commentary setion
     html = html.replace(/ href="\//g, ' data-ref="');
-    var commentaryList  = this._commentaryList(title);
+    var commentaryList  = this.commentaryList(title);
     if (commentaryList.length) {
       var commentaryHtml = "<div class='altStruct' style='display:none'>" + 
                               commentaryList.map(function(item) {
@@ -273,16 +273,16 @@ sjs.library = {
     return html;
   },
   _textTocHtml: {},
-  _commentaryList: function(title) {
+  commentaryList: function(title) {
     // Returns the list of commentaries for 'title' which are found in sjs.toc
     var index = this.index(title);
     if (!index) { return []; }
     var cats = index.categories;
     cats.splice(1, 0, "Commentary")
     cats = cats.concat(title);
-    return this._tocItemsByCategories(cats);
+    return this.tocItemsByCategories(cats);
   },
-  _tocItemsByCategories: function(cats) {
+  tocItemsByCategories: function(cats) {
     // Returns the TOC items that correspond to the list of categories 'cats'
     var list = clone(sjs.toc);
     for (var i = 0; i < cats.length; i++) {

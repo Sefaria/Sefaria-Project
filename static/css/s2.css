@@ -220,11 +220,13 @@ body .bilingual .enOnly .he {
   margin-bottom: 30px;
 }
 .readerNavMenu .refLink,
+.readerNavMenu .catLink,
 .readerTextTableOfContents .refLink {
   display: inline-block;
   width: 48%;
   margin: 1%;
-  padding: 8px 0;
+  padding: 8px;
+  box-sizing: border-box;
   color: black;
   background-color: white;
   cursor: pointer;
@@ -564,7 +566,8 @@ body .bilingual .enOnly .he {
 .segment {
 
 }
-.segment .segmentNumber, .segment .linkCount {
+.segment .segmentNumber,
+.segment .linkCount {
   font-family: Helvetica, sans-serif;
   color: #999;
   position: absolute;
@@ -577,6 +580,8 @@ body .bilingual .enOnly .he {
   font-size: 10px;
   line-height: 18px;
   border-radius: 30px;
+  margin-top: 4px;
+
 }
 .segment .segmentNumber {
   font-size: 12px;
@@ -591,10 +596,20 @@ body .bilingual .enOnly .he {
   border-radius: 30px;
   border: 1px solid #999;
   text-align: center;
-  margin: 3px 0 0 -25px;
 }
-.hebrew .segment .linkCount {
-  margin-top: 4px;
+#readerApp.english .segment .segmentNumber {
+  left: 5px;
+}
+#readerApp.hebrew .segment .segmentNumber,
+#readerApp.bilingual .segment .segmentNumber {
+  right: 5px;
+}
+#readerApp.english .segment .linkCount {
+  right: 5px;
+}
+#readerApp.hebrew .segment .linkCount,
+#readerApp.bilingual .segment .linkCount {
+  left: 5px;
 }
 .segment .refLink {
   font-size: .7em;

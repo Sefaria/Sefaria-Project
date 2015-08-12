@@ -3,6 +3,11 @@ var cx  = React.addons.classSet;
 
 
 var ReaderApp = React.createClass({
+  propTypes: {
+    initialRef:  React.PropTypes.string.isRequired,
+    initialFilter:  React.PropTypes.array,
+    initialSettings:  React.PropTypes.object
+  },
   getInitialState: function() {
     var contents = [{type: "TextColumn", refs: [this.props.initialRef], scrollTop: 0 }];
     if (this.props.initialFilter) {
@@ -30,10 +35,11 @@ var ReaderApp = React.createClass({
     history.replaceState(hist.state, hist.title, hist.url);
 
     // Headroom, hiding header
-    var header = document.getElementById("readerControls");
-    if (header) {
-      var headroom  = new Headroom(header);
-      headroom.init();       
+    var mode = this.currentMode();
+    if (mode == "TextList") {
+      $("#readerControls").headroom("destroy");
+    } else {
+      $("#readerControls").headroom();
     }
 
     $("#top").hide();
@@ -44,9 +50,16 @@ var ReaderApp = React.createClass({
   },
   componentDidUpdate: function() {
     this.updateHistoryState();
+    var mode = this.currentMode();
+    if (mode === "TextList") {
+      $("#readerControls").headroom("destroy");
+    } else {
+      $("#readerControls").headroom();
+    }
   },
   rerender: function() {
     this.setState({});
+    this.adjustInfiniteScroll();
   },
   shouldHistoryUpdate: function() {
     if (!history.state) { 
@@ -225,8 +238,17 @@ var ReaderApp = React.createClass({
       $(window).scrollTop(0);
     }
   },
+  currentContent: function() {
+    // Returns the current content item
+    return this.state.contents.slice(-1)[0];
+  },
+  currentMode: function () {
+    // Returns the type of the current reader item - TextColumn, TextList
+    return this.currentContent().type;
+  },
   currentData: function() {
-    var item = this.state.contents.slice(-1)[0];
+    // Returns the data from the library of the current ref
+    var item = this.currentContent();
     var ref  = item.ref || item.refs.slice(-1)[0];
     var data = sjs.library.text(ref, {context: 1}) || sjs.library.text(ref);
     return data; 
@@ -290,6 +312,7 @@ var ReaderApp = React.createClass({
           navNext={this.navNext}
           navPrevious={this.navPrevious}
           showBaseText={this.showBaseText}
+          currentMode={this.currentMode}
           currentCategory={this.currentCategory}
           currentBook={this.currentBook}
           settings={this.state.settings}
@@ -305,11 +328,14 @@ var ReaderApp = React.createClass({
 
 
 var ReaderControls = React.createClass({
+  // The Header of a Reader panel which contains controls for 
+  // display, navigation etc.
   propTypes: {
     settings:        React.PropTypes.object.isRequired,
     navNext:         React.PropTypes.func.isRequired,
     navPrevious:     React.PropTypes.func.isRequired,
     showBaseText:    React.PropTypes.func.isRequired,
+    currentMode:     React.PropTypes.func.isRequired,
     currentCategory: React.PropTypes.func.isRequired,
     currentBook:     React.PropTypes.func.isRequired,
     setOption:       React.PropTypes.func.isRequired,
@@ -321,14 +347,6 @@ var ReaderControls = React.createClass({
       navigationOpen: false,
       tocOpen: false
     };
-  },
-  componentDidUpdate: function() {
-    // Headroom, hiding header
-    var header = document.getElementById("readerControls");
-    if (header) {
-      var headroom  = new Headroom(header);
-      headroom.init();       
-    }
   },
   showOptions: function(e) {
     this.setState({optionsOpen: true, navigationOpen: false, tocOpen: false});
@@ -454,21 +472,22 @@ var ReaderControls = React.createClass({
 
 
 var ReaderNavigationMenu = React.createClass({
+  // The Navigation menu for broswing and search texts, other side links.
   propTypes: {
-    closeNav:      React.PropTypes.func.isRequired,
+    closeNav:     React.PropTypes.func.isRequired,
     showBaseText: React.PropTypes.func.isRequired
   },
   getInitialState: function() {
     return {
-      category: null,
+      categories: null,
       showMore: false
     };
   },
-  setCategory: function(category) {
-    this.setState({category: category});
+  setCategories: function(categories) {
+    this.setState({categories: categories});
   },
   navHome: function() {
-    this.setState({category: null});
+    this.setState({categories: null});
   },
   showMore: function() {
     this.setState({showMore: true});
@@ -479,6 +498,11 @@ var ReaderNavigationMenu = React.createClass({
       this.props.showBaseText(ref);
       sjs.track.event("Reader", "Navigation Text Click", ref)
       this.props.closeNav();
+    } else if ($(event.target).hasClass("catLink") || $(event.target).parent().hasClass("catLink")) {
+      var cats = $(event.target).attr("data-cats") || $(event.target).parent().attr("data-cats");
+      cats = cats.split("|");
+      this.setCategories(cats);
+      sjs.track.event("Reader", "Navigation Sub Category Click", cats.join(" / "));
     }  
   },
   handleSearchKeyUp: function(event) {
@@ -488,12 +512,13 @@ var ReaderNavigationMenu = React.createClass({
     }
   },
   render: function() {
-    if (this.state.category) {
+    if (this.state.categories) {
       return (<div className="readerNavMenu" onClick={this.handleClick} >
-                      <ReaderNavigationCategoryMenu 
-                        category={this.state.category}
+                      <ReaderNavigationCategoryMenu
+                        categories={this.state.categories}
+                        category={this.state.categories.slice(-1)[0]}
                         closeNav={this.props.closeNav}
-                        setCategory={this.setCategory}
+                        setCategories={this.setCategories}
                         navHome={this.navHome} />
                       </div>);
     } else {
@@ -516,7 +541,7 @@ var ReaderNavigationMenu = React.createClass({
       ];
       categories = categories.map(function(cat) {
         var style = {"backgroundColor": sjs.categoryColor(cat)};
-        var openCat = function() {this.setCategory(cat)}.bind(this);
+        var openCat = function() {this.setCategories([cat])}.bind(this);
         var heCat   = sjs.library.hebrewCategory(cat);
         return (<div className="readerNavCategory" style={style} onClick={openCat}>
                   <span className="en">{cat}</span>
@@ -536,7 +561,7 @@ var ReaderNavigationMenu = React.createClass({
                      (<a className="siteLink" key='logout' href="/logout">Logout</a>)] :
                     
                     [(<a className="siteLink" key='home' href="/">Sefaria Home</a>), "•",
-                     (<a className="siteLink" key='login' href="/logout">Log In</a>)];
+                     (<a className="siteLink" key='login' href="/login">Log In</a>)];
 
 
       var calendar = [(<a className="calendarLink refLink" data-ref={sjs.calendar.parasha}>{sjs.calendar.parashaName}</a>),
@@ -569,26 +594,41 @@ var ReaderNavigationMenu = React.createClass({
 
 
 var ReaderNavigationCategoryMenu = React.createClass({
+  // Navigation Menu for a single category of texts
+  propTypes: {
+    category:      React.PropTypes.string.isRequired,
+    categories:    React.PropTypes.array.isRequired,
+    closeNav:      React.PropTypes.func.isRequired,
+    setCategories: React.PropTypes.func.isRequired,
+    navHome:       React.PropTypes.func.isRequired
+  },
   render: function() {
-    var catContents = sjs.toc.filter(function(item) {
-      return this.props.category == item.category;
-    }.bind(this))[0];
-
-    var makeCatContents = function(contents) {
+    var makeCatContents = function(contents, cats) {
+      // Returns HTML for TOC category contents
       var html = "";
+      cats = cats || [];
       for (var i = 0; i < contents.length; i++) {
         var item = contents[i];
         if (item.category) {
           if (item.category == "Commentary") { continue; }
+          var newCats = cats.concat(item.category);
+          // Special Case categories which should nest
+          var subcats = [ "Mishneh Torah", "Shulchan Arukh", "Midrash Rabbah", "Maharal" ];
+          if ($.inArray(item.category, subcats) > -1) {
+            html += '<span class="catLink" data-cats="' + newCats.join("|") + '">' + 
+                    "<span class='en'>" + item.category + "</span>" + 
+                    "<span class='he'>" + item.hebrewCategory + "</span></span>";
+            continue;
+          }
           html += "<div class='category'><h3>" + 
                     "<span class='en'>" + item.category + "</span>" + 
                     "<span class='he'>" + item.heCategory + "</span></h3>" +
-                    makeCatContents(item.contents) +
+                    makeCatContents(item.contents, newCats) +
                   "</div>";
         } else {
-          var title   = item.title.replace(/(Mishneh Torah|Shulchan Arukh|Jerusalem Talmud), /, "");
+          var title   = item.title.replace(/(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud) /, "");
           var heTitle = item.heTitle.replace(/(משנה תורה,|תלמוד ירושלמי) /, "");
-          html += '<span class=refLink sparse' + item.sparseness + '" data-ref="' + item.firstSection + '">' + 
+          html += '<span class="refLink sparse' + item.sparseness + '" data-ref="' + item.firstSection + '">' + 
                     "<span class='en'>" + title + "</span>" + 
                     "<span class='he'>" + heTitle + "</span></span>";
         }
@@ -596,8 +636,10 @@ var ReaderNavigationCategoryMenu = React.createClass({
       return html;
     };
 
-    var contents = makeCatContents(catContents.contents);
-    var lineStyle = {backgroundColor: sjs.categoryColor(this.props.category)};
+    var catContents = sjs.library.tocItemsByCategories(this.props.categories);
+    var contents    = makeCatContents(catContents, this.props.categories);
+    var lineStyle   = {backgroundColor: sjs.categoryColor(this.props.categories[0])};
+
     return (<div className="readerNavCategoryMenu">
               <div className="readerNavTopFixed">
                 <div className="categoryColorLine" style={lineStyle}></div>
@@ -614,6 +656,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
 
 
 var ReaderTextTableOfContents = React.createClass({
+  // Menu for the Table of Contents for a single text
   propTypes: {
     text:         React.PropTypes.string.isRequired,
     category:     React.PropTypes.string.isRequired,
@@ -677,6 +720,7 @@ var ReaderTextTableOfContents = React.createClass({
 
 
 var ToggleSet = React.createClass({
+  // A set of options grouped together.
   getInitialState: function() {
     return {};
   },
@@ -707,6 +751,7 @@ var ToggleSet = React.createClass({
 
 
 var ToggleOption = React.createClass({
+  // A single option in a ToggleSet
   getInitialState: function() {
     return {};
   },
@@ -730,6 +775,8 @@ var ToggleOption = React.createClass({
 
 
 var TextRange = React.createClass({
+  // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
+  // This component is responsible for retrieving data from sjs.library for the ref that defines it.
   getInitialState: function() {
     return { 
       segments: [],
@@ -862,11 +909,11 @@ var TextRange = React.createClass({
     var right = left + $text.outerWidth();
     $text.find(".segmentNumber").each(function(){
       var top = $(this).parent().offset().top;
-      $(this).css({top: top, left: left});
+      $(this).css({top: top});
     });
     $text.find(".linkCount").each(function(){
       var top = $(this).parent().offset().top;
-      $(this).css({top: top, left: right});
+      $(this).css({top: top});
     });
   },
   handleResize: function() {
