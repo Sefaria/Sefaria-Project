@@ -28,7 +28,7 @@ from sefaria.model import *
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
 from sefaria.utils.users import user_link, user_started_text
 from sefaria.utils.util import list_depth, text_preview
-from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation
+from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.datatype.jagged_array import JaggedArray
 import sefaria.utils.calendars
@@ -1075,11 +1075,21 @@ def lock_text_api(request, title, lang, version):
 
 @catch_error_as_json
 def dictionary_api(request, word):
+    lookup_ref=request.GET.get("lookup_ref", None)
+    wform_pkey = 'form'
     if is_hebrew(word):
         word = strip_cantillation(word)
-    form = WordForm().load({"form": word})
+        if not has_cantillation(word, detect_vowels=True):
+            wform_pkey = 'c_form'
+
+    query_obj = {wform_pkey: word}
+    if lookup_ref:
+        nref = Ref(lookup_ref).normal()
+        query_obj["refs"] = {'$regex': '^{}'.format(nref)}
+    form = WordForm().load(query_obj)
     if not form:
-        WordForm().load({"c_form": strip_cantillation(word, strip_vowels=True)})
+        del query_obj["refs"]
+        form = WordForm().load(query_obj)
     if form:
         result = []
         for lookup in form.lookups:

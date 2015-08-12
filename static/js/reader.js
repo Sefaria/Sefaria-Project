@@ -1322,8 +1322,9 @@ sjs.lexicon = {
 		sjs.lexicon.reset();
 		//console.log($(this).text())
 		var word = $(this).text();
+		var current_ref = sjs.selected ? sjs.selected : sjs.current.pageRef;
 		var $anchor = $(this);
-		$.getJSON("/api/words/" + encodeURIComponent(word)).done(function(data){
+		$.getJSON("/api/words/" + encodeURIComponent(word), {"lookup_ref": current_ref}).done(function(data){
 			//console.log(data);
 			$html = sjs.lexicon.renderLexiconLookup(data, word);
 			var $modal = $('<div id="lexicon-modal">').append($html).appendTo("body");
