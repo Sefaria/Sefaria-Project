@@ -2027,9 +2027,13 @@ def person_page(request, name):
         "en": person.secondary_names("en"),
         "he": person.secondary_names("he")
     }
+    template_vars["time_period_name"] = {
+        "en": person.mostAccurateTimePeriod().primary_name("en"),
+        "he": person.mostAccurateTimePeriod().primary_name("he")
+    }
     template_vars["time_period"] = {
-        "en": person.mostAccurateTimePeriod().html("en"),
-        "he": person.mostAccurateTimePeriod().html("he")
+        "en": person.mostAccurateTimePeriod().year_string("en"),
+        "he": person.mostAccurateTimePeriod().year_string("he")
     }
     template_vars["relationships"] = person.get_grouped_relationships()
     template_vars["indexes"] = person.get_indexes()
@@ -2043,15 +2047,17 @@ def person_index(request):
     return render_to_response('people.html', template_vars, RequestContext(request))
 
 def talmud_person_index(request):
-    gens = TimePeriodSet.get_generations(True)
+    gens = TimePeriodSet.get_generations()
     template_vars = {
         "gens": []
     }
     for gen in gens:
-        people = PersonSet({"generation": gen.symbol})
+        people = gen.get_people_in_generation()
         template_vars["gens"].append({
-            "en": gen.html("en"),
-            "he": gen.html("he"),
+            "name_en": gen.primary_name("en"),
+            "name_he": gen.primary_name("he"),
+            "years_en": gen.year_string("en"),
+            "years_he": gen.year_string("he"),
             "people": [p for p in people]
         })
     return render_to_response('talmud_people.html', template_vars, RequestContext(request))

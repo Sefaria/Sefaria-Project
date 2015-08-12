@@ -23,6 +23,14 @@
                 <span class='en'>{{ primary_name.en }}</span>
                 <span class='he'>{{ primary_name.he }}</span>
             </h1>
+
+            {% if time_period_name.en or time_period_name.he %}
+            <div id="periodNameLine">
+                <span class='en'>{{ time_period_name.en }}</span>
+                <span class='he'>{{ time_period_name.he }}</span>
+            </div>
+            {% endif %}
+
             <div id="yearLine">
                 <span class='en'>{{ time_period.en }}</span>
                 <span class='he'>{{ time_period.he }}</span>

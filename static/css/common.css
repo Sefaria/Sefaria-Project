@@ -946,6 +946,12 @@ body.embeded #top {
 
 #talmudicPeoplePage .talmudic-generation {
   width: 300px;
+}
+
+.hebrew #talmudicPeoplePage .talmudic-generation {
+  float: right;
+}
+.english  #talmudicPeoplePage .talmudic-generation {
   float: left;
 }
 

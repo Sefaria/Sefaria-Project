@@ -123,10 +123,8 @@ class TimePeriod(abst.AbstractMongoRecord):
             marker if getattr(self, "endIsApprox", None) else u""
         )
 
-    def html(self, lang):
+    def year_string(self, lang):
         name = u""
-        if getattr(self, "names", None):
-            name += self.primary_name(lang)
         if getattr(self, "start", None) and getattr(self, "end", None):
             labels = self.getYearLabels(lang)
             approxMarker = self.getApproximateMarkers(lang)
@@ -140,6 +138,13 @@ class TimePeriod(abst.AbstractMongoRecord):
                 labels[1])
         return name
 
+    def get_people_in_generation(self, include_doubles = True):
+        from . import person
+        if self.type == "Generation":
+            if include_doubles:
+                return person.PersonSet({"generation": {"$regex": self.symbol}})
+            else:
+                return person.PersonSet({"generation": self.symbol})
 
 class TimePeriodSet(abst.AbstractMongoSet):
     recordClass = TimePeriod
