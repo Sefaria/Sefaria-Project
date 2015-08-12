@@ -30,9 +30,11 @@ var ReaderApp = React.createClass({
     history.replaceState(hist.state, hist.title, hist.url);
 
     // Headroom, hiding header
-    var myElement = document.getElementById("readerControls");
-    var headroom  = new Headroom(myElement);
-    headroom.init(); 
+    var header = document.getElementById("readerControls");
+    if (header) {
+      var headroom  = new Headroom(header);
+      headroom.init();       
+    }
 
     $("#top").hide();
   },
@@ -322,9 +324,11 @@ var ReaderControls = React.createClass({
   },
   componentDidUpdate: function() {
     // Headroom, hiding header
-    var myElement = document.getElementById("readerControls");
-    var headroom  = new Headroom(myElement);
-    headroom.init(); 
+    var header = document.getElementById("readerControls");
+    if (header) {
+      var headroom  = new Headroom(header);
+      headroom.init();       
+    }
   },
   showOptions: function(e) {
     this.setState({optionsOpen: true, navigationOpen: false, tocOpen: false});
@@ -527,12 +531,12 @@ var ReaderNavigationMenu = React.createClass({
       categories = (<div className="readerNavCategories"><ThreeBox content={categories} /></div>);
 
       var siteLinks = sjs._uid ? 
-                    [(<a className="siteLink" href="/my/profile"><i className="fa fa-user"></i> My Profile</a>), "•",
-                     (<a className="siteLink" href="/">Sefaria Home</a>), "•", 
-                     (<a className="siteLink" href="/logout">Logout</a>)] :
+                    [(<a className="siteLink" key='profile' href="/my/profile"><i className="fa fa-user"></i> My Profile</a>), "•",
+                     (<a className="siteLink" key='home' href="/">Sefaria Home</a>), "•", 
+                     (<a className="siteLink" key='logout' href="/logout">Logout</a>)] :
                     
-                    [(<a className="siteLink" href="/">Sefaria Home</a>), "•",
-                     (<a className="siteLink" href="/logout">Log In</a>)];
+                    [(<a className="siteLink" key='home' href="/">Sefaria Home</a>), "•",
+                     (<a className="siteLink" key='login' href="/logout">Log In</a>)];
 
 
       var calendar = [(<a className="calendarLink refLink" data-ref={sjs.calendar.parasha}>{sjs.calendar.parashaName}</a>),

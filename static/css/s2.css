@@ -15,7 +15,7 @@ body.dark {
 }
 #s2 {
   padding: 0 0 30px 0;
-  max-width: 700px;
+  max-width: 800px;
   margin: 0 auto;
   min-height: 100%;
   background-color: inherit;
@@ -219,11 +219,13 @@ body .bilingual .enOnly .he {
 .readerNavCategoryMenu .content .category {
   margin-bottom: 30px;
 }
-.readerNavMenu .refLink {
+.readerNavMenu .refLink,
+.readerTextTableOfContents .refLink {
   display: inline-block;
   width: 48%;
   margin: 1%;
   padding: 8px 0;
+  color: black;
   background-color: white;
   cursor: pointer;
   vertical-align: middle;
@@ -284,7 +286,7 @@ body .bilingual .enOnly .he {
 } 
 .readerTextTableOfContents .content .tocSection {
   margin-bottom: 22px;
-  display: inline-block;
+  display: block;
   text-align: left;
 }
 .readerTextTableOfContents .content .schema-node-contents {

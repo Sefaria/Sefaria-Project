@@ -438,6 +438,12 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         }
         if hasattr(self,"order"):
             toc_contents_dict["order"] = self.order
+        print self.get_title()
+        print self.categories
+        if self.categories[0] == u"Commentary2":
+            print "yes"
+            toc_contents_dict["commentator"]   = self.get_title().split(" on ")[0]
+            toc_contents_dict["heCommentator"] = self.get_title("he").split(u" על ")[0]
         return toc_contents_dict
 
 
@@ -577,10 +583,14 @@ class CommentaryIndex(AbstractIndex):
         return copy.deepcopy(self)
 
     def toc_contents(self):
+        firstSection = Ref(self.title).first_available_section_ref()
         return {
             "title": self.title,
             "heTitle": getattr(self, "heTitle", None),
-            "categories": self.categories
+            "commentator": self.commentator,
+            "heCommentator": self.heCommentator,
+            "categories": self.categories,
+            "firstSection": firstSection.normal() if firstSection else None
         }
 
     #todo: this needs help

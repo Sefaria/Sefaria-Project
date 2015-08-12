@@ -183,20 +183,21 @@ def update_table_of_contents():
 
     # Add an entry for every text we know about
     indices = IndexSet()
-    for i in indices:
-        print i.categories
-        if i.is_commentary():
+    for index in indices:
+        if index.is_commentary():
             # Special case commentary below
             continue
-        if i.categories[0] in REORDER_RULES:
-            i.categories = REORDER_RULES[i.categories[0]] + i.categories[1:]
-            if i.categories[0] == "Commentary":
-                i.categories[0], i.categories[1] = i.categories[1], i.categories[0]
-        if i.categories[0] not in ORDER:
-            i.categories.insert(0, "Other")
 
-        node = get_or_make_summary_node(toc, i.categories)
-        text = add_counts_to_index(i.toc_contents())
+        i = index.toc_contents()
+        if i["categories"][0] in REORDER_RULES:
+            i["categories"] = REORDER_RULES[i["categories"][0]] + i["categories"][1:]
+            if i["categories"][0] == "Commentary":
+                i["categories"][0], i["categories"][1] = i["categories"][1], i["categories"][0]
+        if i["categories"][0] not in ORDER:
+            i["categories"].insert(0, "Other")
+
+        node = get_or_make_summary_node(toc, i["categories"])
+        text = add_counts_to_index(i)
         node.append(text)
 
     # Special handling to list available commentary texts which do not have

@@ -1,43 +1,5 @@
 sjs = sjs || {};
 
-sjs.palette = {
-  "green": "#77A485",
-  "blue": "#6588C7",
-  "tan": "#D3BE90",
-  "red": "#D86F6D",
-  "navy": "#222F4F",
-  "pink": "#D9C6D4",
-  "grape": "#7B426E",
-  "lightblue": "#95C6D2",
-  "darkgreen": "#095868"
-};
-
-sjs.categoryColors = {
-  "Commentary":         sjs.palette.blue,
-  "Tanach" :            sjs.palette.darkgreen,
-  "Midrash":            sjs.palette.green,
-  "Mishnah":            sjs.palette.lightblue,
-  "Talmud":             sjs.palette.tan,
-  "Halakhah":           sjs.palette.red,
-  "Kabbalah":           sjs.palette.pink,
-  "Philosophy":         sjs.palette.grape,
-  "Liturgy":            sjs.palette.blue,
-  "Tosefta":            sjs.palette.darkgreen,
-  "Parshanut":          sjs.palette.tan,
-  "Chasidut":           sjs.palette.green,
-  "Musar":              sjs.palette.lightblue,
-  "Responsa":           sjs.palette.red,
-  "Apocrapha":          sjs.palette.pink,
-  "Other":              sjs.palette.blue,
-  "Quoting Commentary": sjs.palette.lightblue
-};
-
-sjs.categoryColor = function(cat) {
-  if (cat in sjs.categoryColors) {
-    return sjs.categoryColors[cat];
-  }
-  return "transparent";
-}
 
 sjs.library = {
   _texts: {},
@@ -258,7 +220,7 @@ sjs.library = {
   },
   textTocHtml: function(title, cb) {
     // Returns an HTML fragment of the table of contents of the text 'title'
-    if (!title) { return "[empty title]"; }
+    if (!title) { return "[error: empty title]"; }
     if (title in this._textTocHtml) {
       return this._textTocHtml[title]
     } else {
@@ -266,7 +228,7 @@ sjs.library = {
         url: "/api/toc-html/" + title,
         dataType: "html",
         success: function(html) {
-          html = html.replace(/ href="\//g, ' data-ref="');
+          html = this._makeTextTocHtml(html, title);
           this._textTocHtml[title] = html;
           cb(html);
         }.bind(this)
@@ -274,7 +236,68 @@ sjs.library = {
       return null;
     } 
   },
+  _makeTextTocHtml: function(html, title) {
+    // Modifies Text TOC HTML received from server
+    // Replaces links and adds commentary setion
+    html = html.replace(/ href="\//g, ' data-ref="');
+    var commentaryList  = this._commentaryList(title);
+    if (commentaryList.length) {
+      var commentaryHtml = "<div class='altStruct' style='display:none'>" + 
+                              commentaryList.map(function(item) {
+                                  return "<a class='refLink' data-ref='" + item.firstSection + "'>" + 
+                                            "<span class='en'>" + item.commentator + "</span>" +
+                                            "<span class='he'>" + item.heCommentator + "</span>" +
+                                          "</a>";
+                              }).join("") +
+                            "</div>";
+      var $html = $("<div>" + html + "</div>");
+      var commentaryToggleHtml = "<div class='altStructToggle'>" +
+                                    "<span class='en'>Commentary</span>" +
+                                    "<span class='he'>מפרשים</span>" +
+                                  "</div>";      
+      if ($html.find("#structToggles").length) {
+        $html.find("#structToggles").append(" | " + commentaryToggleHtml);  
+      } else {
+        var togglesHtml = "<div id='structToggles'>" +
+                            "<div class='altStructToggle active'>" +
+                                "<span class='en'>Text</span>" +
+                                "<span class='he'>טקסט</span>" +
+                              "</div> | " + commentaryToggleHtml +
+                          "</div>";
+        $html = $("<div><div class='altStruct'>" + html + "</div></div>");
+        $html.prepend(togglesHtml);   
+      }
+      $html.append(commentaryHtml);
+      html = $html.html();
+    }
+    return html;
+  },
   _textTocHtml: {},
+  _commentaryList: function(title) {
+    // Returns the list of commentaries for 'title' which are found in sjs.toc
+    var index = this.index(title);
+    if (!index) { return []; }
+    var cats = index.categories;
+    cats.splice(1, 0, "Commentary")
+    cats = cats.concat(title);
+    return this._tocItemsByCategories(cats);
+  },
+  _tocItemsByCategories: function(cats) {
+    // Returns the TOC items that correspond to the list of categories 'cats'
+    var list = clone(sjs.toc);
+    for (var i = 0; i < cats.length; i++) {
+      var found = false;
+      for (var k = 0; k < list.length; k++) {
+        if (list[k].category == cats[i]) { 
+          list = clone(list[k].contents);
+          found = true;
+          break;
+        }
+      }
+      if (!found) { return []; }
+    }
+    return list;
+  },
   hebrewCategory: function(cat) {
     categories = {
       "Torah":                "תורה",
@@ -326,3 +349,44 @@ sjs.library = {
     return cat in categories ? categories[cat] : cat;
   }
 };
+
+
+sjs.palette = {
+  "green": "#77A485",
+  "blue": "#6588C7",
+  "tan": "#D3BE90",
+  "red": "#D86F6D",
+  "navy": "#222F4F",
+  "pink": "#D9C6D4",
+  "grape": "#7B426E",
+  "lightblue": "#95C6D2",
+  "darkgreen": "#095868"
+};
+
+sjs.categoryColors = {
+  "Commentary":         sjs.palette.blue,
+  "Tanach" :            sjs.palette.darkgreen,
+  "Midrash":            sjs.palette.green,
+  "Mishnah":            sjs.palette.lightblue,
+  "Talmud":             sjs.palette.tan,
+  "Halakhah":           sjs.palette.red,
+  "Kabbalah":           sjs.palette.pink,
+  "Philosophy":         sjs.palette.grape,
+  "Liturgy":            sjs.palette.blue,
+  "Tosefta":            sjs.palette.darkgreen,
+  "Parshanut":          sjs.palette.tan,
+  "Chasidut":           sjs.palette.green,
+  "Musar":              sjs.palette.lightblue,
+  "Responsa":           sjs.palette.red,
+  "Apocrapha":          sjs.palette.pink,
+  "Other":              sjs.palette.blue,
+  "Quoting Commentary": sjs.palette.lightblue,
+  "Commentary2":         sjs.palette.blue
+};
+
+sjs.categoryColor = function(cat) {
+  if (cat in sjs.categoryColors) {
+    return sjs.categoryColors[cat];
+  }
+  return "transparent";
+}
