@@ -1340,9 +1340,12 @@ sjs.lexicon = {
 	renderLexiconLookup: function(data, word){
 		var $html = $('<div class="lexicon-content">');
 		var $headerhtml = $('<div class="lexicon-header"><i class="fa fa-times lexicon-close"></i><h4>'+word+'</h4></div>').appendTo($html);
+		var ga_data = sjs.current.categories.join("/") + "/" + sjs.current.book;
 		if("error" in data){
+			sjs.track.event("Lexicon", "Open No Result / " + ga_data + " / " + getUrlVars()['lang'], word);
 			return $html.append('<span>'+ data.error + '</span>')
 		}
+		sjs.track.event("Lexicon", "Open / " + ga_data + " / " + getUrlVars()['lang'], word);
 		var $contenthtml = $('<div class="lexicon-results">');
 		for(var i=0; i<data.length; i++) {
 			$entry = $('<div class="entry">');

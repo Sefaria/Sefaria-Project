@@ -6,6 +6,7 @@ from fuzzywuzzy import process, fuzz
 from fuzzywuzzy import utils as fuzzyutils
 from sefaria.model import *
 
+url_base = 'http://www.sefaria.org/'
 
 def laaz_process(s):
     return fuzzyutils.full_process(re.sub(ur'[\":]','', s), False)
@@ -48,10 +49,11 @@ def narrow_search_by_word_existence(text_rows, keywords):
     return filter(kwfilter, text_rows)
 
 
-def find_closest_match(text_rows, word, filter_words_with_quotation_marks=True):
+def find_closest_match(text_rows, word, default_compare=True, filter_words_with_quotation_marks=True):
     #Todo: if the headword is more than one owrd, must look through ngrams instead of just split single words.
     results = []
     headword_size = len(word.split())
+    scorer = fuzz.UWRatio if default_compare else fuzz.UQRatio
     for row in text_rows:
         text_words = row[1].split()
         if headword_size > 1:
@@ -59,10 +61,14 @@ def find_closest_match(text_rows, word, filter_words_with_quotation_marks=True):
         if filter_words_with_quotation_marks:
             text_words = [w for w in text_words if '"' in w]
         if len(text_words):
-            matched_word, score = process.extractOne(word.replace('"', ''), text_words, processor=laaz_process, scorer=fuzz.UWRatio)
+            matched_word, score = process.extractOne(word.replace('"', ''), text_words, processor=laaz_process, scorer=scorer)
             results.append((row[0], row[1], matched_word, score))
-    results = sorted(results, key=lambda x: x[-1], reverse=True)
-    return results[0] if len(results) else None
+    sresults = sorted(results, key=lambda x: x[-1], reverse=True)
+    top_res = sresults[0] if len(sresults) else None
+    # if strings are not similar enough in length, use a different comparison
+    if top_res and len(word) and default_compare and float(max(len(top_res[2]), len(word))) / min(len(top_res[2]), len(word)) >= 2:
+        top_res = find_closest_match(text_rows, word, default_compare=False)
+    return top_res
 
 
 
@@ -78,8 +84,8 @@ print "{})\t[{}]\t{}\t{}\t{}\t{}".format("Catane Number",
 for entry in laaz_rashi_entries:
     results = []
     only_in_print_str = u'מצוי רק בדפוס'
-    not_in_print_str = u'מצוי רק ב'
-    if only_in_print_str in entry.content['notes'] or not_in_print_str not in entry.content['notes']:
+    not_in_print_str = [u'מצוי רק ב', u'לא בדפוסי', u'חסר בדפוסי', u'חסרה בדפוסי', u'אינה נמצאת בדפוסי', u'בדפוסים המלה חסרה', u'אינה בדפוסי']
+    if only_in_print_str in entry.content['notes'] or all(s not in entry.content['notes'] for s in not_in_print_str):
         oref = Ref("Rashi on {}".format(entry.orig_ref))
         level_of_uncertainity = 1
         headword = entry.headword
@@ -90,14 +96,14 @@ for entry in laaz_rashi_entries:
             level_of_uncertainity +=1
             filtered_text_rows = text_rows
         #filter comments that have the word לעז in them.
-        keywd_filtered_text_rows = narrow_search_by_word_existence(filtered_text_rows, [u'\u05DC\u05E2\"\u05D6', u'\u05DC\u05E2\u05D6'])
+        """keywd_filtered_text_rows = narrow_search_by_word_existence(filtered_text_rows, [u'לע"ז', u'לעז']) #u'שקורין'
         if not len(keywd_filtered_text_rows):
             level_of_uncertainity +=1
-            keywd_filtered_text_rows = filtered_text_rows
-        best_match = find_closest_match(keywd_filtered_text_rows, entry.headword)
+            keywd_filtered_text_rows = filtered_text_rows"""
+        best_match = find_closest_match(filtered_text_rows, entry.headword)
         if not best_match:
             level_of_uncertainity +=2
-            best_match = find_closest_match(keywd_filtered_text_rows, entry.headword, False)
+            best_match = find_closest_match(filtered_text_rows, entry.headword, filter_words_with_quotation_marks=False)
         if best_match:
             print "{})\t[{}]\t{}\t{}\t{}\t{}".format(entry.catane_number.encode('utf-8'),
                                                entry.orig_word.encode('utf-8'),
