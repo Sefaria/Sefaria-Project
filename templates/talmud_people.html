@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+
+{% block title %}Talmudic Personalities on Sefaria{% endblock %}
+
+{% block css %}
+    #languageToggle {
+        display: inline;
+    }
+    #languageToggle #bilingual {
+        display: none;
+    }
+{% endblock %}
+
+{% block content %}
+
+    
+<div id="talmudicPeoplePage" class="container doc biReady">
+    <span class="row">
+        <span class="span10 offset1">
+            {% for gen in gens %}
+                <div class="talmudic-generation">
+                <h3>
+                    <span class="en">{{ gen.name_en }}</span>
+                    <span class="he">{{ gen.name_he }}</span>
+                </h3>
+                <h4>
+                    <span class="en">{{ gen.years_en }}</span>
+                    <span class="he">{{ gen.years_he }}</span>
+                </h4>
+                {% for person in gen.people %}
+                   {{ person|person_link }}
+                {% endfor %}
+                </div>
+            {% endfor %}
+        </span>
+    </span>
+</div>
+
+{% endblock %}
