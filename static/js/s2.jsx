@@ -126,8 +126,9 @@ var ReaderApp = React.createClass({
     if (current.type === "TextColumn") {
       var $lastText    = $(".textRange.basetext").last();
       var lastTop      = $lastText.offset().top;
-      var lastBottom   =  lastTop + $lastText.outerHeight();
-      var windowBottom = $(window).scrollTop() + $(window).height();
+      var lastBottom   = lastTop + $lastText.outerHeight();
+      var windowTop    = $(window).scrollTop();
+      var windowBottom = windowTop + $(window).height();
       if (lastTop > (windowBottom + 100) && current.refs.length > 1) { 
         // Remove a section scroll out of view on bottom
         current.refs = current.refs.slice(0,-1);
@@ -142,7 +143,18 @@ var ReaderApp = React.createClass({
         }
         sjs.track.event("Reader", "Infinite Scroll", "Down");
       } else {
-
+        // no dice
+      }
+      /*
+      if (windowTop == 0) {
+        topRef = current.refs[0];
+        data   = sjs.library.text(topRef);
+        if (data && data.prev) {
+          current.refs.splice(current.refs, 0, data.prev);
+          this.setState({contents: this.state.contents});
+        }
+        sjs.track.event("Reader", "Infinite Scroll", "Up");
+        */
       }
     }
   },
@@ -231,7 +243,7 @@ var ReaderApp = React.createClass({
     }
   },
   setScrollTop: function() {
-    var current = this.state.contents.slice(-1)[0];
+    var current = this.currentContent();
     if (current.scrollTop) {
       $(window).scrollTop(current.scrollTop);
     } else if ($(".segment.highlight").length) {
