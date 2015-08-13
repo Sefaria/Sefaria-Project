@@ -55,7 +55,8 @@ def migrate_to_complex_structure(title, schema, mappings):
     return [[mapping[0].replace(orig_title_component, text_title), mapping[1].replace(orig_title_component, text_title).replace(orig_title_component, temp_title_component)] for mapping in mappings]"""
 
 def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_index):
-    for version in versions:
+    for i, version in enumerate(versions):
+        print version.versionTitle.encode('utf-8')
         new_version_title = version.title.replace(orig_title, new_title)
         print new_version_title
         new_version = Version(
@@ -103,7 +104,8 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
             if dRef.is_commentary():
                 add_commentary_links(dRef, 8646)
             add_links_from_text(dRef.normal(), new_version.language, new_tc.text, new_version._id, 8646)
-            migrate_links_of_ref(orRef, dRef)
+            if i == 0: #links are the same across versions
+                migrate_links_of_ref(orRef, dRef)
             #version history
             text_hist = HistorySet({"ref": {"$regex": orRef.regex()}, 'version': version.versionTitle })
             for h in text_hist:
@@ -120,7 +122,6 @@ def translate_ref(ref, originScopeRef, destScopeRef):
     cdict["toSections"]= curEndRef.in_terms_of(originScopeRef)
     return Ref(_obj=cdict)
 
-
 #TODO: adapt to be able to remap links for the commentaries as well
 def migrate_links_of_ref(orRef, destRef):
     query = {"$and" : [{ "refs": {"$regex": orRef.regex(), "$options": 'i'}}, { "$or" : [ { "auto" : False }, { "auto" : 0 }, {"auto" :{ "$exists": False}} ] } ]}
@@ -132,22 +133,24 @@ def migrate_links_of_ref(orRef, destRef):
         linkRef2 = Ref(link.refs[1])
         curLinkRef = linkRef1 if orRef.contains(linkRef1) else linkRef2 #make sure we manipulate the right ref
         tranlsatedLinkRef = translate_ref(curLinkRef, orRef, destRef)
-        newrefs = [tranlsatedLinkRef.normal(), linkRef2.normal() if linkRef1 == curLinkRef else linkRef1.normal()]
-        print newrefs
+        newrefs = [tranlsatedLinkRef.normal(), linkRef2.normal()] if linkRef1 == curLinkRef else [linkRef1.normal(), tranlsatedLinkRef.normal()]
         tranlsatedLink = Link({'refs': newrefs, 'type': curLinkRef.type})
         try:
             tranlsatedLink.save()
-            link_history = HistorySet({"new.refs": curLinkRef.normal(),'rev_type': {"$regex": 'link'}})
-            for h in link_history:
-                new_h = h.copy()
-                new_h.new["refs"] = [r.replace(curLinkRef.normal(), tranlsatedLinkRef.normal(), 1) for r in h.new["refs"]]
-                if getattr(h,'old', None):
-                    new_h.old["refs"] = [r.replace(curLinkRef.normal(), tranlsatedLinkRef.normal(), 1) for r in h.old["refs"]]
-                new_h.save()
+            make_link_history_record(curLinkRef, tranlsatedLinkRef)
+            print newrefs
         except DuplicateRecordError:
-            pass
+            print "SUCH A LINK ALREADY EXISTS: {}".format(newrefs)
 
 
+def make_link_history_record(curLinkRef, tranlsatedLinkRef):
+    link_history = HistorySet({"new.refs": curLinkRef.normal(),'rev_type': {"$regex": 'link'}})
+    for h in link_history:
+        new_h = h.copy()
+        new_h.new["refs"] = [r.replace(curLinkRef.normal(), tranlsatedLinkRef.normal(), 1) for r in h.new["refs"]]
+        if getattr(h,'old', None):
+            new_h.old["refs"] = [r.replace(curLinkRef.normal(), tranlsatedLinkRef.normal(), 1) for r in h.old["refs"]]
+        new_h.save()
 
 
 

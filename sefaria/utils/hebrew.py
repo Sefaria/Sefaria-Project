@@ -326,6 +326,14 @@ def strip_cantillation(text, strip_vowels=False):
 		strip_regex = re.compile(ur"[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]", re.UNICODE)
 	return strip_regex.sub('', text)
 
+def has_cantillation(text, detect_vowels=False):
+	if detect_vowels:
+		rgx = re.compile(ur"[\u0591-\u05bd\u05bf-\u05c5\u05c7]", re.UNICODE)
+	else:
+		rgx = re.compile(ur"[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]", re.UNICODE)
+	return bool(rgx.search(text))
+
+
 
 def hebrew_plural(s):
 	"""
