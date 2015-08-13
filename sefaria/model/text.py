@@ -1290,8 +1290,8 @@ class TextFamily(object):
 
                     if getattr(n, "refs", None):
                         for i, r in enumerate(n.refs):
-                            # hack to skip Rishon
-                            if i==0:
+                            # hack to skip Rishon, skip empty refs
+                            if i==0 or not r:
                                 continue;
                             subRef = Ref(r)
                             subRefStart = subRef.starting_ref()
