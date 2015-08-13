@@ -1359,10 +1359,11 @@ class TextFamily(object):
         if self._context_oref.is_commentary():
             for attr in ["commentaryBook", "commentaryCategories", "commentator", "heCommentator"]:
                 d[attr] = getattr(self._inode.index, attr, "")
-        d["isComplex"]  = self.isComplex
-        d["indexTitle"] = self._inode.index.title
-        d["sectionRef"] = self._original_oref.section_ref().normal()
-        d["isSpanning"] = self._original_oref.is_spanning()
+        d["isComplex"]    = self.isComplex
+        d["indexTitle"]   = self._inode.index.title
+        d["heIndexTitle"] = self._inode.index.get_title("he")
+        d["sectionRef"]   = self._original_oref.section_ref().normal()
+        d["isSpanning"]   = self._original_oref.is_spanning()
 
         for language, attr in self.text_attr_map.items():
             chunk = self._chunks.get(language)

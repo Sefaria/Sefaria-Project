@@ -246,10 +246,13 @@ var ReaderApp = React.createClass({
     // Returns the type of the current reader item - TextColumn, TextList
     return this.currentContent().type;
   },
+  currentRef: function() {
+    var item = this.currentContent();
+    return item.ref || item.refs.slice(-1)[0];
+  },
   currentData: function() {
     // Returns the data from the library of the current ref
-    var item = this.currentContent();
-    var ref  = item.ref || item.refs.slice(-1)[0];
+    var ref  = this.currentRef();
     var data = sjs.library.text(ref, {context: 1}) || sjs.library.text(ref);
     return data; 
   },
@@ -312,6 +315,7 @@ var ReaderApp = React.createClass({
           navNext={this.navNext}
           navPrevious={this.navPrevious}
           showBaseText={this.showBaseText}
+          currentRef={this.currentRef}
           currentMode={this.currentMode}
           currentCategory={this.currentCategory}
           currentBook={this.currentBook}
@@ -335,10 +339,11 @@ var ReaderControls = React.createClass({
     navNext:         React.PropTypes.func.isRequired,
     navPrevious:     React.PropTypes.func.isRequired,
     showBaseText:    React.PropTypes.func.isRequired,
+    setOption:       React.PropTypes.func.isRequired,
+    currentRef:      React.PropTypes.func.isRequired,
     currentMode:     React.PropTypes.func.isRequired,
     currentCategory: React.PropTypes.func.isRequired,
     currentBook:     React.PropTypes.func.isRequired,
-    setOption:       React.PropTypes.func.isRequired,
     currentLayout:   React.PropTypes.func.isRequired
   },
   getInitialState: function() {
@@ -435,6 +440,7 @@ var ReaderControls = React.createClass({
                 close={this.closeTextToc}
                 text={this.props.currentBook()}
                 category={this.props.currentCategory()}
+                currentRef={this.props.currentRef()}
                 openNav={this.openNav}
                 showBaseText={this.props.showBaseText} />);
     } else {
@@ -660,6 +666,7 @@ var ReaderTextTableOfContents = React.createClass({
   propTypes: {
     text:         React.PropTypes.string.isRequired,
     category:     React.PropTypes.string.isRequired,
+    currentRef:   React.PropTypes.string.isRequired,
     close:        React.PropTypes.func.isRequired,
     openNav:      React.PropTypes.func.isRequired,
     showBaseText: React.PropTypes.func.isRequired
@@ -696,6 +703,10 @@ var ReaderTextTableOfContents = React.createClass({
 
     var title     = this.props.text;
     var heTitle   = sjs.library.index(title) ? sjs.library.index(title).heTitle : title;
+
+    var section   = sjs.library.sectionString(this.props.currentRef).en;
+    var heSection = sjs.library.sectionString(this.props.currentRef).he;
+
     var lineStyle = {backgroundColor: sjs.categoryColor(this.props.category)};
 
     return (<div className="readerTextTableOfContents" onClick={this.handleClick}>
@@ -711,6 +722,10 @@ var ReaderTextTableOfContents = React.createClass({
                 <div className="tocTitle">
                   <span className="en">{title}</span>
                   <span className="he">{heTitle}</span>
+                  <div className="currentSection">
+                    <span className="en">{section}</span>
+                    <span className="he">{heSection}</span>
+                  </div>
                 </div>
                 <div className="tocContent" dangerouslySetInnerHTML={ {__html: tocHtml} }></div>
               </div>
@@ -777,6 +792,19 @@ var ToggleOption = React.createClass({
 var TextRange = React.createClass({
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
   // This component is responsible for retrieving data from sjs.library for the ref that defines it.
+  propTypes: {
+    sref:             React.PropTypes.string.isRequired,
+    basetext:         React.PropTypes.bool,
+    withContext:      React.PropTypes.bool,
+    loadLinks:        React.PropTypes.bool,
+    prefetchNextPrev: React.PropTypes.bool,
+    openOnClick:      React.PropTypes.bool,
+    settings:         React.PropTypes.object,
+    showBaseText:     React.PropTypes.func,
+    setScrollTop:     React.PropTypes.func,
+    rerender:         React.PropTypes.func,
+    showTextList:     React.PropTypes.func,
+  },
   getInitialState: function() {
     return { 
       segments: [],
@@ -920,6 +948,7 @@ var TextRange = React.createClass({
     if (this.props.basetext) { this.placeSegmentNumbers(); }
   },
   handleClick: function(event) {
+    if (!this.props.showBaseText) { return; }
     if ($(event.target).hasClass("refLink")) {
       //Click of citation
       var ref = humanRef($(event.target).attr("data-ref"));
@@ -1097,7 +1126,7 @@ var TextList = React.createClass({
         <div className="textListTop">
           <div className="anchorText" onClick={this.backToText}>
             <div className="textBox">
-              <TextRange sref={this.props.sref} />
+              <TextRange sref={this.props.sref} showBaseText={this.props.showBaseText}/>
             </div>
             <div className="fader"></div>
           </div>

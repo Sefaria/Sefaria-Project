@@ -46,7 +46,7 @@ sjs.library = {
         }
         var index = {
           title:      data.indexTitle,
-          heTitle:    data.heTitle, // This is incorrect for complex texts
+          heTitle:    data.heIndexTitle, // This is incorrect for complex texts
           categories: data.categories
         };
         this.index(index.title, index);
@@ -271,6 +271,37 @@ sjs.library = {
       html = $html.html();
     }
     return html;
+  },
+  sectionString: function(ref) {
+    // Returns a pair of nice strings (en, he) of the sections indicated in ref. e.g.,
+    // "Genesis 4" -> "Chapter 4", "Guide for the Perplexed, Introduction" - > "Introduction"
+    var data = this.text(ref) || this.text(ref, {context: 1});
+    if (!data) { return ""; }
+    var result = {};
+
+    var sections = ref.slice(data.indexTitle.length+1);
+    var name = data.sectionNames.length > 1 ? data.sectionNames[0] + " " : "";
+    if (data.isComplex) {
+      var numberedSections = data.ref.slice(data.book.length+1);
+      var namedSections    = sections.slice(0, -(numberedSections.length+1));
+      var string           = namedSections + ", " + name +  numberedSections;
+    } else {
+      var string = name + sections;
+    }
+    result["en"] = string;
+
+    var sections = data.heRef.slice(data.heIndexTitle.length+1);
+    var name = ""; // missing he section names // data.sectionNames.length > 1 ? " " + data.sectionNames[0] : "";
+    if (data.isComplex) {
+      var numberedSections = data.heRef.slice(data.heTitle.length+1);
+      var namedSections    = sections.slice(0, -(numberedSections.length+1));
+      var string           = namedSections + ", " + name + " " + numberedSections;
+    } else {
+      var string = name + sections;
+    }
+    result["he"] = string;
+
+    return result;
   },
   _textTocHtml: {},
   commentaryList: function(title) {
