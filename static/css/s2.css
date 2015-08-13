@@ -71,6 +71,9 @@ body .bilingual .enOnly .he {
 #top #right #accountBox {
   display: none;
 }
+#readerApp {
+  padding-top: 10px;
+}
 #readerApp.light {
   background-color: white;
 }
@@ -369,7 +372,7 @@ body .bilingual .enOnly .he {
   box-sizing: border-box;
   padding: 0;
   z-index: 101;
-  line-height: 48px;
+  line-height: 47px;
   border-bottom: 1px solid #ddd;
   background-color: #F9F9F7;
   -moz-user-select: none; 
@@ -382,8 +385,29 @@ body .bilingual .enOnly .he {
   color: white;
   border-color: #666;
 }
-#readerControlsRight {
-  float: right;
+#readerControls #readerNav, #readerControls #readerTextToc, #readerControls #readerOptions {
+  text-align: center;
+  display: inline-block;
+  cursor: pointer;
+  vertical-align: middle;
+}
+#readerControls #readerNav, #readerControls #readerOptions  {
+  width: 10%;
+  color: #BFBFBF;
+  font-size: 20px;
+  box-sizing: border-box;
+  padding: 0 14px;
+  text-align: left;
+}
+#readerControls #readerTextToc {
+  width: 80%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  font-size: 18px;
+}
+#readerControls #readerOptions {
+  text-align: right;
 }
 #readerControls .controlsButton {
   cursor: pointer;
@@ -512,7 +536,8 @@ body .bilingual .enOnly .he {
 }
 .textRange.basetext .title {
   font-weight: bold;
-  padding: 16px 8px;
+  padding: 22px 8px;
+  color: #999;
   text-align: center;
   font-weight: lighter;
   font-family: Helvetica, sans-serif;

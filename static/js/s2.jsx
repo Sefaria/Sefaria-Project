@@ -117,11 +117,12 @@ var ReaderApp = React.createClass({
     if (this.state.contents.length) {
       var scrollTop = $(window).scrollTop();
       this.state.contents.slice(-1)[0].scrollTop = scrollTop;
+      // will this be saved? this.setState({contents: this.state.contents});
     }
     this.adjustInfiniteScroll();
   },
   adjustInfiniteScroll: function() {
-    var current = this.state.contents[this.state.contents.length-1];
+    var current = this.currentContent();
     if (current.type === "TextColumn") {
       var $lastText    = $(".textRange.basetext").last();
       var lastTop      = $lastText.offset().top;
@@ -140,6 +141,8 @@ var ReaderApp = React.createClass({
           this.setState({contents: this.state.contents});
         }
         sjs.track.event("Reader", "Infinite Scroll", "Down");
+      } else {
+
       }
     }
   },
@@ -444,30 +447,19 @@ var ReaderControls = React.createClass({
                 openNav={this.openNav}
                 showBaseText={this.props.showBaseText} />);
     } else {
+      var title = this.props.currentBook();
+      var index = sjs.library.index(title);
+      var heTitle = index ? index.heTitle : "";
       return (
       <div>
         <div id="readerControls" className="headroom">
           <div className="categoryColorLine" style={lineStyle}></div>
-          <div id="readerControlsRight">
-            <div id="readerPrevious"
-                  className="controlsButton"
-                  onClick={this.props.navPrevious}><i className="fa fa-caret-up"></i></div>
-            <div id="readerNext" 
-                  className="controlsButton" 
-                  onClick={this.props.navNext}><i className="fa fa-caret-down"></i></div>
-            <div id="readerOptions"
-                  className="controlsButton"
-                  onClick={this.showOptions}><i className="fa fa-bars"></i></div>
+          <div id="readerNav"  onClick={this.openNav}><i className="fa fa-search"></i></div>
+          <div id="readerTextToc" onClick={this.openTextToc}>
+            <span className="en">{title}</span>
+            <span className="he">{heTitle}</span>
           </div>
-
-          <div id="readerControlsLeft">
-            <div id="readerNav"
-                  className="controlsButton"
-                  onClick={this.openNav}><i className="fa fa-search"></i></div>
-            <div id="readerTextToc"
-                  className="controlsButton"
-                  onClick={this.openTextToc}><i className="fa fa-book"></i></div>
-          </div>
+          <div id="readerOptions" onClick={this.showOptions}><i className="fa fa-bars"></i></div>
         </div>
         {readerOptions}
         {this.state.optionsOpen ? (<div id="mask" onClick={this.hideOptions}></div>) : ""}
@@ -961,6 +953,15 @@ var TextRange = React.createClass({
     }
   },
   render: function() {
+    if (this.props.basetext) {
+      var sectionStrings = sjs.library.sectionString(this.state.data.ref);
+      var title          = sectionStrings.en || "Loading...";
+      var heTitle        = sectionStrings.he || "טעינה...";      
+    } else {
+      var title   = this.state.data.ref;
+      var heTitle = this.state.data.heRef; 
+    }
+
     var textSegments = this.state.segments.map(function (segment, i) {
       return (
         <TextSegment 
@@ -985,8 +986,8 @@ var TextRange = React.createClass({
     return (
       <div className={classes} onClick={this.handleClick}>
         <div className="title">
-          <span className="en" >{this.state.data.ref}</span>
-          <span className="he">{this.state.data.heRef}</span>
+          <span className="en" >{title}</span>
+          <span className="he">{heTitle}</span>
         </div>
         <div className="text">
           { textSegments }
