@@ -154,9 +154,10 @@ var ReaderApp = React.createClass({
           this.setState({contents: this.state.contents});
         }
         sjs.track.event("Reader", "Infinite Scroll", "Up");
-        */
+        
       }
-    }
+      */
+    } 
   },
   showTextList: function(ref) {
     this.state.contents.push({type: "TextList", ref: ref, scrollTop: 0});
@@ -842,7 +843,7 @@ var TextRange = React.createClass({
     showBaseText:     React.PropTypes.func,
     setScrollTop:     React.PropTypes.func,
     rerender:         React.PropTypes.func,
-    showTextList:     React.PropTypes.func,
+    showTextList:     React.PropTypes.func
   },
   getInitialState: function() {
     return { 
@@ -1264,6 +1265,7 @@ var TopFilterSet = React.createClass({
         // topLinks.move(i, 0); 
       }        
     }
+    var category = topLinks[0].category;
     var topFilters = topLinks.map(function(book) {
      return (<TextFilter 
                 key={book.book} 
@@ -1271,6 +1273,7 @@ var TopFilterSet = React.createClass({
                 heBook={book.heBook}
                 category={book.category}
                 hideCounts={true}
+                hideColors={true}
                 count={book.count}
                 updateRecent={false}
                 setFilter={this.props.setFilter}
@@ -1279,7 +1282,6 @@ var TopFilterSet = React.createClass({
     }.bind(this));
 
     // Add "More >" button
-    var style = {"borderTop": "4px solid " + sjs.palette.navy};
     topFilters.push(<div className="showMoreFilters textFilter" 
                         style={style}
                         onClick={this.props.showAllFilters}>
@@ -1289,9 +1291,10 @@ var TopFilterSet = React.createClass({
                           </div>                    
                     </div>);
 
+    var style = {"borderTop": "4px solid " + sjs.categoryColor(category)};
     return (
-      <div className="topFilters filterSet">
-        <ThreeBox content={topFilters} />
+      <div className="topFilters filterSet" style={style}>
+        {topFilters}
       </div>
     );
   }
