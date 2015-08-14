@@ -126,7 +126,7 @@ var ReaderApp = React.createClass({
       } else if ( lastBottom < (windowBottom + 0)) {
         // Add the next section
         currentRef = current.refs.slice(-1)[0];
-        data       = sjs.library.text(currentRef);
+        data       = sjs.library.text(currentRef) || sjs.library.text(currentRef, {context:1});
         if (data && data.next) {
           current.refs.push(data.next);
           this.setState({contents: this.state.contents});

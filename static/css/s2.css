@@ -701,7 +701,7 @@ body .bilingual .enOnly .he {
 }
 .textList .anchorText .textBox {
   padding: 20px;
-  max-height: 175px;
+  max-height: 150px;
   overflow-x: hidden;
   overflow-y: scroll; 
 }
