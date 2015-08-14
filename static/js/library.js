@@ -330,7 +330,7 @@ sjs.library = {
     return list;
   },
   hebrewCategory: function(cat) {
-    categories = {
+    var categories = {
       "Torah":                "תורה",
       "Tanach":               'תנ"ך',
       "Tanakh":               'תנ"ך',
