@@ -68,6 +68,9 @@ body .bilingual .enOnly .he {
 .headroom--unpinned {
     transform: translateY(-100%);
 }
+.headroomOff.headroom--unpinned {
+    transform: translateY(0%);
+}
 #top #right #accountBox {
   display: none;
 }
@@ -418,10 +421,12 @@ body .bilingual .enOnly .he {
 }
 #readerControls #readerTextToc {
   width: 80%;
+  padding: 0px 8px;
+  box-sizing: border-box;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  font-size: 18px;
+  font-size: 17px;
 }
 #readerControls #readerNav {
   padding-left: 10px;
@@ -690,14 +695,13 @@ body .bilingual .enOnly .he {
   cursor: pointer;
   border-bottom: 1px solid #CCC;
   position: relative;
-  /*overflow: hidden;*/
 }
 .dark .textList .anchorText {
   background-color: #333;
 }
 .textList .anchorText .textBox {
   padding: 20px;
-  max-height: 100px;
+  max-height: 175px;
   overflow-x: hidden;
   overflow-y: scroll; 
 }
@@ -754,13 +758,15 @@ body .bilingual .enOnly .he {
 }
 .topFilters {
   margin: -1px;
+  padding: 4px 10px;
+  line-height: 0px;
   background-color: #F9F9F7;
   border-bottom: 1px solid #D5D5D4;
 }
 .topFilters .textFilter {
   color: #999;
   display: inline-block;
-  padding: 10px 16px;
+  padding: 10px 8px;
 }
 .topFilters .textFilter.on {
   color: black;
@@ -771,6 +777,18 @@ body .bilingual .enOnly .he {
 .topFilters .textFilter > div {
   display: table-cell;
   vertical-align: middle;
+}
+.topFiltersInner {
+  display: inline-block;
+  max-width: 75%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+.showMoreFilters {
+  vertical-align: middle;
+  color: #BBBBB9;
 }
 .categoryFilter {
   text-transform: uppercase;
@@ -789,7 +807,6 @@ body .bilingual .enOnly .he {
   cursor: pointer;
 }
 .categoryFilter.on, .textFilter.on {
-  background-color: #F7F7F7;
   color: black;
 }
 .dark .categoryFilter.on, .dark .textFilter.on {
@@ -806,12 +823,15 @@ body .bilingual .enOnly .he {
   background-color: #F9F9F7;
   padding: 20px;
 }
+.fullFilterView td {
+  background-color: white;
+  border: 2px solid #F9F9F7;
+}
 .fullFilterView .categoryFilter {
   margin-bottom: 2px;
   background-color: white;
 }
 .fullFilterView .textFilter {
-  background-color: white;
 }
 .fullFilterView .categoryFilterGroup {
   margin-bottom: 20px;
@@ -830,6 +850,7 @@ body .bilingual .enOnly .he {
 .textList .textListMessage {
   padding: 20px;
   color: #aaa;
+  font-size: 13px;
 }
 .textList .texts .textRange {
   font-size: 1.4em;

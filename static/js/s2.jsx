@@ -34,13 +34,8 @@ var ReaderApp = React.createClass({
     var hist = this.makeHistoryState()
     history.replaceState(hist.state, hist.title, hist.url);
 
-    // Headroom, hiding header
-    var mode = this.currentMode();
-    if (mode == "TextList") {
-      $("#readerControls").headroom("destroy");
-    } else {
-      $("#readerControls").headroom();
-    }
+    $("#readerControls").headroom();
+    this.updateHeadroom();
 
     $("#top").hide();
   },
@@ -50,12 +45,7 @@ var ReaderApp = React.createClass({
   },
   componentDidUpdate: function() {
     this.updateHistoryState();
-    var mode = this.currentMode();
-    if (mode === "TextList") {
-      $("#readerControls").headroom("destroy");
-    } else {
-      $("#readerControls").headroom();
-    }
+    this.updateHeadroom();
   },
   rerender: function() {
     this.setState({});
@@ -158,6 +148,14 @@ var ReaderApp = React.createClass({
       }
       */
     } 
+  },
+  updateHeadroom: function() {
+    var mode = this.currentMode();
+    if (mode === "TextList") {
+      $("#readerControls").addClass("headroomOff");
+    } else {
+      $("#readerControls").removeClass("headroomOff");
+    }
   },
   showTextList: function(ref) {
     this.state.contents.push({type: "TextList", ref: ref, scrollTop: 0});
@@ -1278,20 +1276,21 @@ var TopFilterSet = React.createClass({
                 onClick={function(){ sjs.track.event("Reader", "Top Filter Click", "1");}} />);
     }.bind(this));
 
-    // Add "More >" button
-    topFilters.push(<div className="showMoreFilters textFilter" 
-                        style={style}
+    var moreButton = (<div className="showMoreFilters textFilter" style={style}
                         onClick={this.props.showAllFilters}>
                           <div>
-                            <span className="en">More &gt;</span>
-                            <span className="he">עוד &gt;</span>
+                            <span className="dot">●</span>
+                            <span className="dot">●</span>
+                            <span className="dot">●</span>
                           </div>                    
                     </div>);
-
+                            //<span className="en">More &gt;</span>
+                            //<span className="he">עוד &gt;</span>
     var style = {"borderTop": "4px solid " + sjs.categoryColor(category)};
     return (
       <div className="topFilters filterSet" style={style}>
-        {topFilters}
+        <div className="topFiltersInner">{topFilters}</div>
+        {moreButton}
       </div>
     );
   }
