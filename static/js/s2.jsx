@@ -608,9 +608,6 @@ var ReaderNavigationCategoryMenu = React.createClass({
     setCategories: React.PropTypes.func.isRequired,
     navHome:       React.PropTypes.func.isRequired
   },
-  getInitialState: function() {
-    return {categories: this.props.categories};
-  },
   render: function() {
     var makeCatContents = function(contents, cats) {
       // Returns HTML for TOC category contents
@@ -646,15 +643,15 @@ var ReaderNavigationCategoryMenu = React.createClass({
     };
 
     // Show Talmud with Toggles
-    var categories  = this.state.categories[0] === "Talmud" && this.state.categories.length == 1 ? 
-                        ["Talmud", "Bavli"] : this.state.categories;
+    var categories  = this.props.categories[0] === "Talmud" && this.props.categories.length == 1 ? 
+                        ["Talmud", "Bavli"] : this.props.categories;
 
     if (categories[0] === "Talmud") {
       var setBavli = function() {
-        this.setState({categories: ["Talmud", "Bavli"]});
+        this.props.setCategories(["Talmud", "Bavli"]);
       }.bind(this);
       var setYerushalmi = function() {
-        this.setState({categories: ["Talmud", "Yerushalmi"]});
+        this.props.setCategories(["Talmud", "Yerushalmi"]);
       }.bind(this);
       var bClasses = cx({navToggle:1, active: categories[1] === "Bavli"});
       var yClasses = cx({navToggle:1, active: categories[1] === "Yerushalmi"});
