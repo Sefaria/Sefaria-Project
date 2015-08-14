@@ -604,13 +604,16 @@ var ReaderNavigationMenu = React.createClass({
 
 
 var ReaderNavigationCategoryMenu = React.createClass({
-  // Navigation Menu for a single category of texts
+  // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
   propTypes: {
     category:      React.PropTypes.string.isRequired,
     categories:    React.PropTypes.array.isRequired,
     closeNav:      React.PropTypes.func.isRequired,
     setCategories: React.PropTypes.func.isRequired,
     navHome:       React.PropTypes.func.isRequired
+  },
+  getInitialState: function() {
+    return {categories: this.props.categories};
   },
   render: function() {
     var makeCatContents = function(contents, cats) {
@@ -646,9 +649,38 @@ var ReaderNavigationCategoryMenu = React.createClass({
       return html;
     };
 
-    var catContents = sjs.library.tocItemsByCategories(this.props.categories);
-    var contents    = makeCatContents(catContents, this.props.categories);
-    var lineStyle   = {backgroundColor: sjs.categoryColor(this.props.categories[0])};
+    // Show Talmud with Toggles
+    var categories  = this.state.categories[0] === "Talmud" && this.state.categories.length == 1 ? 
+                        ["Talmud", "Bavli"] : this.state.categories;
+
+    if (categories[0] === "Talmud") {
+      var setBavli = function() {
+        this.setState({categories: ["Talmud", "Bavli"]});
+      }.bind(this);
+      var setYerushalmi = function() {
+        this.setState({categories: ["Talmud", "Yerushalmi"]});
+      }.bind(this);
+      var bClasses = cx({navToggle:1, active: categories[1] === "Bavli"});
+      var yClasses = cx({navToggle:1, active: categories[1] === "Yerushalmi"});
+
+      var toggle =(<div className="navToggles">
+                            <span className={bClasses} onClick={setBavli}>
+                              <span className="en">Bavli</span>
+                              <span className="he">בבלי</span>
+                            </span> | 
+                            <span className={yClasses} onClick={setYerushalmi}>
+                              <span className="en">Yerushalmi</span>
+                              <span className="he">ירושלמי</span>
+                            </span>
+                         </div>);
+
+    } else {
+      var toggle = "";
+    }
+
+    var catContents = sjs.library.tocItemsByCategories(categories);
+    var contents    = makeCatContents(catContents, categories);
+    var lineStyle   = {backgroundColor: sjs.categoryColor(categories[0])};
 
     return (<div className="readerNavCategoryMenu">
               <div className="readerNavTopFixed">
@@ -659,7 +691,10 @@ var ReaderNavigationCategoryMenu = React.createClass({
                   <h2>{this.props.category}</h2>
                 </div>
               </div>
-              <div className="content" dangerouslySetInnerHTML={ {__html: contents} }></div>
+              <div className="content">
+                {toggle}
+                <div dangerouslySetInnerHTML={ {__html: contents} }></div>
+              </div>
             </div>);
   }
 });
