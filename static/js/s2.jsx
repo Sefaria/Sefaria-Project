@@ -1052,8 +1052,7 @@ var TextSegment = React.createClass({
     var linkCount = this.props.linkCount ? (<span className="linkCount">{this.props.linkCount}</span>) : "";
     var segmentNumber = this.props.segmentNumber ? (<span className="segmentNumber">{this.props.segmentNumber}</span>) : "";          
     var he = this.props.he || this.props.en;
-    var en = sjs.wrapRefLinks(this.props.en);
-    var en = en || this.props.he;
+    var en = this.props.en || this.props.he;
     var classes=cx({segment: 1, highlight: this.props.highlight, heOnly: !this.props.en, enOnly: !this.props.he});
     return (
       <span className={classes} onClick={this.handleClick}>
@@ -1150,7 +1149,7 @@ var TextList = React.createClass({
                       <span className="en">Loading...</span>
                       <span className="he">טעינה...</span>
                       </div>)  : 
-                  (refs.length == 0 && !this.state.showAllFilters ? 
+                  (refs.length == 0 ? 
                     (<div className='textListMessage'>
                       <span className="en">{emptyMessageEn}</span>
                       <span className="he">{emptyMessageHe}</span>

@@ -33,6 +33,7 @@ sjs.library = {
           return;
         }
         var settings = settings || {};
+        data = this._wrapRefs(data);
         key = this._textKey(data.ref, settings);
         this._texts[key] = data;
         if (data.ref == data.sectionRef) {
@@ -50,6 +51,15 @@ sjs.library = {
           categories: data.categories
         };
         this.index(index.title, index);
+  },
+  _wrapRefs: function(data) {
+    // Wraps citations found in text of data
+    if (typeof data.text === "string") {
+      data.text = sjs.wrapRefLinks(data.text);
+    } else {
+      data.text = data.text.map(sjs.wrapRefLinks);
+    }
+    return data;
   },
   _splitTextSection: function(data) {
     // Takes data for a section level text and populates cache with segment levels
