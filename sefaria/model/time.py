@@ -93,13 +93,13 @@ class TimePeriod(abst.AbstractMongoRecord):
     def _normalize(self):
         self.names = self.name_group.titles
 
-    def all_names(self, lang=None):
+    def all_names(self, lang="en"):
         return self.name_group.all_titles(lang)
 
-    def primary_name(self, lang=None):
+    def primary_name(self, lang="en"):
         return self.name_group.primary_title(lang)
 
-    def secondary_names(self, lang=None):
+    def secondary_names(self, lang="en"):
         return self.name_group.secondary_titles(lang)
 
     def add_name(self, name, lang, primary=False, replace_primary=False):
