@@ -137,7 +137,7 @@ def migrate_links_of_ref(orRef, destRef):
         tranlsatedLink = Link({'refs': newrefs, 'type': curLinkRef.type})
         try:
             tranlsatedLink.save()
-            #make_link_history_record(curLinkRef, tranlsatedLinkRef)
+            make_link_history_record(curLinkRef, tranlsatedLinkRef)
             print newrefs
         except DuplicateRecordError:
             print "SUCH A LINK ALREADY EXISTS: {}".format(newrefs)
@@ -151,8 +151,6 @@ def make_link_history_record(curLinkRef, tranlsatedLinkRef):
         if getattr(h,'old', None):
             new_h.old["refs"] = [r.replace(curLinkRef.normal(), tranlsatedLinkRef.normal(), 1) for r in h.old["refs"]]
         new_h.save()
-
-
 
 
 

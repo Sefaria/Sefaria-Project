@@ -1276,13 +1276,13 @@ sjs.lexicon = {
 	// ---------------------preparation functions--------------------------
 	isLexiconEnabled: function (currentText, lang, params){
 		//console.log(currentText);
-		if (params['url_enabled']){
-			if(sjs.lexicon.enabledCategories[lang].indexOf(currentText.categories[0]) > -1) {
-				return true;
-			}else if('commentator' in currentText && currentText['commentator'] == 'Rashi' && lang == 'he'){//hack. find better way
-				return true;
-			}
-		}
+		/*if (params['url_enabled']){*/
+		if(sjs.lexicon.enabledCategories[lang].indexOf(currentText.categories[0]) > -1) {
+			return true;
+		}/*else if('commentator' in currentText && currentText['commentator'] == 'Rashi' && lang == 'he'){//hack. find better way
+			return true;
+		}*/
+		/*}*/
 		return false;
 	},
 
@@ -1319,11 +1319,11 @@ sjs.lexicon = {
 	// ----------------- Lexicon lookup--------------------------
 	getLexiconLookup : function(e){
 		e.stopPropagation();
-		sjs.lexicon.reset();
 		//console.log($(this).text())
 		var word = $(this).text();
+		var current_ref = sjs.selected ? sjs.selected : sjs.current.pageRef;
 		var $anchor = $(this);
-		$.getJSON("/api/words/" + encodeURIComponent(word)).done(function(data){
+		$.getJSON("/api/words/" + encodeURIComponent(word), {"lookup_ref": current_ref}).done(function(data){
 			//console.log(data);
 			$html = sjs.lexicon.renderLexiconLookup(data, word);
 			var $modal = $('<div id="lexicon-modal">').append($html).appendTo("body");
@@ -1338,6 +1338,7 @@ sjs.lexicon = {
 	//--------------------- formatting ----------------------------
 
 	renderLexiconLookup: function(data, word){
+		sjs.lexicon.reset();
 		var $html = $('<div class="lexicon-content">');
 		var $headerhtml = $('<div class="lexicon-header"><i class="fa fa-times lexicon-close"></i><h4>'+word+'</h4></div>').appendTo($html);
 		var ga_data = sjs.current.categories.join("/") + "/" + sjs.current.book;
