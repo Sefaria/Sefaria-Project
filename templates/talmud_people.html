@@ -17,10 +17,10 @@
 
     
 <div id="talmudicPeoplePage" class="container doc biReady">
-    <span class="row">
-        <span class="span10 offset1">
-            {% for gen in gens %}
-                <div class="talmudic-generation">
+    {% for r in gens|partition_by:"4" %}
+        <div class="row">
+            {% for gen in r %}
+                <div class="talmudic-generation span3">
                 <h3>
                     <span class="en">{{ gen.name_en }}</span>
                     <span class="he">{{ gen.name_he }}</span>
@@ -34,8 +34,8 @@
                 {% endfor %}
                 </div>
             {% endfor %}
-        </span>
-    </span>
+        </div>
+    {% endfor %}
 </div>
 
 {% endblock %}

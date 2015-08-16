@@ -945,14 +945,11 @@ body.embeded #top {
 }
 
 #talmudicPeoplePage .talmudic-generation {
-  width: 240px;
+  margin-bottom: 20px;
 }
 
 .hebrew #talmudicPeoplePage .talmudic-generation {
   float: right;
-}
-.english  #talmudicPeoplePage .talmudic-generation {
-  float: left;
 }
 
 /****        Search         ****/
