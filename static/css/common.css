@@ -948,7 +948,13 @@ body.embeded #top {
   margin-bottom: 20px;
 }
 
-.hebrew #talmudicPeoplePage .talmudic-generation {
+#peoplePage .subtitle {
+  font-size: 70%;
+  font-weight: normal;
+}
+
+.hebrew #talmudicPeoplePage .talmudic-generation,
+.hebrew #peoplePage .author {
   float: right;
 }
 

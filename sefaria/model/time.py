@@ -82,6 +82,9 @@ class TimePeriod(abst.AbstractMongoRecord):
     def __str__(self):
         return self.primary_name("en") + u" ({})".format(self.type)
 
+    def __repr__(self):
+        return self.__str__()
+
     # Names
     # todo: This is the same as on Person, and very similar to Terms - abstract out
     def _init_defaults(self):

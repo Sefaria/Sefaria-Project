@@ -2053,7 +2053,22 @@ def person_page(request, name):
 
 def person_index(request):
 
-    template_vars = {"people": [p for p in PersonSet()]}
+    eras = ["GN", "RI", "AH", "CO"]
+    template_vars = {
+        "eras": []
+    }
+    for era in eras:
+        tp = TimePeriod().load({"symbol": era})
+        template_vars["eras"].append(
+            {
+                "name_en": tp.primary_name("en"),
+                "name_he": tp.primary_name("he"),
+                "years_en": tp.year_string("en"),
+                "years_he": tp.year_string("he"),
+                "people": [p for p in PersonSet({"era": era})]
+            }
+        )
+
     return render_to_response('people.html', template_vars, RequestContext(request))
 
 def talmud_person_index(request):

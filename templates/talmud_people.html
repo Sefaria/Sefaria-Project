@@ -2,7 +2,7 @@
 
 {% load sefaria_tags %}
 
-{% block title %}Talmudic Personalities on Sefaria{% endblock %}
+{% block title %}People in the Talmud{% endblock %}
 
 {% block css %}
     #languageToggle {
@@ -17,6 +17,10 @@
 
     
 <div id="talmudicPeoplePage" class="container doc biReady">
+    <h1>
+        <span class="en">People in the Talmud</span>
+        <span class="he">אנשים בתלמוד</span>
+    </h1>
     {% for r in gens|partition_by:"4" %}
         <div class="row">
             {% for gen in r %}

@@ -2,7 +2,7 @@
 
 {% load sefaria_tags %}
 
-{% block title %}People on Sefaria{% endblock %}
+{% block title %}Authors on Sefaria{% endblock %}
 
 {% block css %}
     #languageToggle {
@@ -17,13 +17,35 @@
 
     
 <div id="peoplePage" class="container doc biReady">
-    <span class="row">
-        <span class="span8 offset2">
-            {% for person in people %}
-               {{ person|person_link }}
-            {% endfor %}
+    <h1>
+        <span class="en">Authors</span>
+        <span class="he">מחברים</span>
+    </h1>
+
+    {% for era in eras %}
+
+    <div class="row">
+        <span class="span12">
+            <h2>
+                <span class="en">{{ era.name_en }} <span class="subtitle">{{ era.years_en }}</span> </span>
+                <span class="he">{{ era.name_he }} <span class="subtitle">{{ era.years_he }}</span> </span>
+            </h2>
         </span>
-    </span>
+    </div>
+
+    {% for r in era.people|partition_by:"3" %}
+        <div class="row">
+            {%  for person in r %}
+                <span class="author span4">
+                   {{ person|person_link }}
+                </span>
+            {%  endfor %}
+        </div>
+    {% endfor %}
+
+
+    {% endfor %}
+
 </div>
 
 {% endblock %}
