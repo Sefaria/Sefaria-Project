@@ -5,6 +5,8 @@ Custom Sefaria Tags for Django Templates
 import json
 import re
 import dateutil.parser
+import urllib
+from urlparse import urlparse
 
 from django import template
 from django.template.defaultfilters import stringfilter
@@ -16,7 +18,9 @@ from django.contrib.sites.models import Site
 from sefaria.sheets import get_sheet
 from sefaria.utils.users import user_link as ulink
 from sefaria.utils.util import strip_tags as strip_tags_func
-from sefaria.utils.hebrew import hebrew_plural
+from sefaria.utils.hebrew import hebrew_plural, hebrew_term
+from sefaria.utils.hebrew import hebrew_term as translate_hebrew_term
+
 import sefaria.model.text
 import sefaria.model as m
 
@@ -46,6 +50,91 @@ def ref_link(value, absolute=False):
 		link = value
 	ref_link_cache[value] = mark_safe(link)
 	return ref_link_cache[value]
+
+
+he_ref_link_cache = {} # simple cache for ref links
+@register.filter(is_safe=True)
+@stringfilter
+def he_ref_link(value, absolute=False):
+	"""
+	Transform a ref into an <a> tag linking to that ref in Hebrew.
+	e.g. "Genesis 1:3" -> "<a href='/Genesis.1.2'>בראשית, א, ב</a>"
+	"""
+	if value in he_ref_link_cache:
+		return he_ref_link_cache[value]
+	if not value:
+		return ""
+	try:
+		oref = m.Ref(value)
+		link = '<a class="heRef" href="/' + oref.url() + '">' + re.sub(r"\d+(-\d+)?", "", oref.he_normal()) + '</a>'
+	except:
+		link = '<a class="heRef" href="#invalid-ref">' + value + '</a>'
+	he_ref_link_cache[value] = mark_safe(link)
+	return he_ref_link_cache[value]
+
+
+@register.filter(is_safe=True)
+@stringfilter
+def he_ref(value):
+	"""
+	Returns a Hebrew ref for the english ref passed in.
+	"""
+	if not value:
+		return ""
+	try:
+		oref = m.Ref(value)
+		he   = oref.he_normal()
+	except:
+		he   = value
+
+	return he
+
+@register.filter(is_safe=True)
+@stringfilter
+def he_parasha(value):
+	"""
+	Returns a Hebrew ref for the english ref passed in.
+	"""
+	if not value:
+		return ""
+	
+	def hebrew_parasha(p):
+		try:
+			term    = m.Term().load({"name": p, "scheme": "Parasha"})
+			parasha = term.get_titles(lang="he")[0]
+		except Exception, e:
+			print e
+			parasha   = p
+		return parasha
+	names = value.split("-")
+	return ("-").join(map(hebrew_parasha, names)) if value != "Lech-Lecha" else hebrew_parasha(value)
+
+
+@register.filter(is_safe=True)
+def version_link(v):
+	"""
+	Return an <a> tag linking to the first availabe text of a particular version.
+	"""
+	section = "1"
+	link = u'<a href="/{}.{}/{}/{}">{}</a>'.format(v.title, section, v.language, v.versionTitle.replace(" ", "_"), v.versionTitle)
+	return mark_safe(link)
+
+
+@register.filter(is_safe=True)
+def version_source_link(v):
+	"""
+	Return an <a> tag linking to the versionSource, or to a Google Search for the source.
+	"""
+	if " " in v.versionSource or "." not in v.versionSource:
+		href       = "http://www.google.com/search?q=" + urllib.quote(v.versionSource.encode('utf8'))
+		val        = v.versionSource
+	else:
+		parsed_uri = urlparse( v.versionSource )
+		href       = v.versionSource
+		val        = parsed_uri.netloc
+
+	link = u'<a class="versionSource" href="{}" target="_blank">{}</a>'.format(href, val)
+	return mark_safe(link)
 
 
 @register.filter(is_safe=True)
@@ -157,6 +246,23 @@ def absolute_link(value):
 	return mark_safe(absolute)
 
 
+@register.filter(is_safe=True)
+def license_link(value):
+	"""
+	Returns the text of an <a> tag linking to a page explaining a license.
+	"""
+	links = {
+		"Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
+		"CC0":           "http://creativecommons.org/publicdomain/zero/1.0/",
+		"CC-BY":         "http://creativecommons.org/licenses/by/3.0/",
+		"CC-BY-SA":      "http://creativecommons.org/licenses/by-sa/3.0/",
+	}
+
+	if value not in links:
+		return mark_safe(value)
+
+	return mark_safe("<a href='%s' target='_blank'>%s</a>" % (links[value], value))
+
 
 @register.filter(is_safe=True)
 @stringfilter
@@ -204,6 +310,11 @@ def sum_counts(counts):
 
 
 @register.filter(is_safe=True)
+def percent_available(array, key):
+	return array[key]["percentAvailable"]
+
+
+@register.filter(is_safe=True)
 def pluralize(value):
 	"""
 	Hebrew friendly plurals
@@ -212,22 +323,11 @@ def pluralize(value):
 
 
 @register.filter(is_safe=True)
-def text_progress_bars(text):
-	if text.percentAvailable:
-		html = """
-		<div class="progressBar heAvailable" style="width:{{ text.percentAvailable.he|floatformat|default:'0' }}%">
-		</div>
-		<div class="progressBar enAvailable" style="width:{{ text.percentAvailable.en|floatformat|default:'0' }}%">
-		</div>
-		"""
-	else:
-		html = """
-		<div class="progressBar heAvailable" style="width:{{ text.availableCounts.he|sum_counts }}%">
-		</div>
-		<div class="progressBar enAvailable" style="width:{{ text.availableCounts.en|sum_counts }}%">
-		</div>
-		"""
-	return sum(counts.values())
+def hebrew_term(value):
+	"""
+	Hebrew friendly plurals
+	"""
+	return mark_safe(translate_hebrew_term(value))
 
 
 @register.filter(is_safe=True)

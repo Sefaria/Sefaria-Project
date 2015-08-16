@@ -69,3 +69,7 @@ class TestNikkudUtils():
 
     def text_strip_nikkud(self):
         assert h.strip_nikkud(u'הַדְּבָרִים אֲשֶׁר') == u'הדברים אשר'
+
+class TestIsHebrew():
+    def test_is_hebrew(self):
+        assert h.is_hebrew(u"ג")

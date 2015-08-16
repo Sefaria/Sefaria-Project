@@ -2,12 +2,14 @@ import hashlib
 import urllib
 import re
 import bleach
+import sys
 
-from django.contrib.auth.models import User
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string
-from django.core.validators import URLValidator, EmailValidator
-from django.core.exceptions import ValidationError
+if not hasattr(sys, '_doc_build'):
+	from django.contrib.auth.models import User
+	from django.core.mail import EmailMultiAlternatives
+	from django.template.loader import render_to_string
+	from django.core.validators import URLValidator, EmailValidator
+	from django.core.exceptions import ValidationError
 
 from sefaria.model.following import FollowersSet, FolloweesSet
 from sefaria.model.notification import NotificationSet
@@ -41,7 +43,7 @@ class UserProfile(object):
 		self._id                = None  # Mongo ID of profile doc
 		self.id                 = id    # user ID
 		self.slug               = ""
- 		self.position           = ""
+		self.position           = ""
 		self.organization       = ""
 		self.jewish_education   = []
 		self.bio                = ""
@@ -76,6 +78,9 @@ class UserProfile(object):
 		self.gravatar_url       = gravatar_base + urllib.urlencode({'d':default_image, 's':str(250)})
 		self.gravatar_url_small = gravatar_base + urllib.urlencode({'d':default_image, 's':str(80)})
 
+	@property
+	def full_name(self):
+		return self.first_name + " " + self.last_name
 
 	def update(self, obj):
 		"""
@@ -198,6 +203,7 @@ class UserProfile(object):
 			"youtube":          self.youtube,
 			"pinned_sheets":    self.pinned_sheets,
 			"settings":         self.settings,
+			"tag_order":       getattr(self, "tag_order", None),
 		}
 		return dictionary
 
@@ -231,7 +237,7 @@ def email_unread_notifications(timeframe):
 		message_html = render_to_string("email/notifications_email.html", { "notifications": notifications, "recipient": user.first_name })
 		#message_text = util.strip_tags(message_html)
 		subject      = "New Activity on Sefaria from %s" % notifications.actors_string()
-		from_email   = "The Sefaria Project <hello@sefaria.org>"
+		from_email   = "Sefaria <hello@sefaria.org>"
 		to           = user.email
 
 		msg = EmailMultiAlternatives(subject, message_html, from_email, [to])

@@ -7,6 +7,9 @@
 
 {% block content %}
 
+<a href="/" id="textTocLink" class="white">&laquo; Home</a>
+
+
 <div id="textsPage">
 
 <h1>The Sefaria Library</h1>
@@ -30,26 +33,7 @@
 		sjs._uid = {{ request.user.id|default:"null" }};
 
 		$(function() {
-
-			// Show / Hide text or category stats
-			$("#textsList .showStats").toggle(function() {
-					$(this).text("[hide stats]").closest("li").find(".counts").first().show();
-					var $bars = $(this).closest("li").find(".progressBar");
-					var max = 0;
-					$bars.each(function(){
-						var width = $(this).width();
-						if (width > max) { max = width }
-					});
-					var multiple = 95 / max;
-					if (max > 1) {
-						$bars.each(function(){
-							$(this).width($(this).width() * multiple + "%");
-						});					
-					}
-				}, function() {
-					$(this).text("[stats]").closest("li").find(".counts").first().hide();
-				});
-
+			
 			// Alphabetize Page
 			$("#alpha").click(function(e) {
 				$("#textsPage .text").each(function(){
@@ -62,30 +46,6 @@
 				$(this).text("Sort texts by category").attr("href", "/texts")
 					.unbind("click");
 				e.preventDefault();
-			});
-
-			// Click "hebrew title" to be prompted to add a hebrew title
-			$(".heTitle.empty").on("click", function() {
-				if (!sjs._uid) {
-					window.location = "/login?next=/texts";
-					return;
-				}
-				var title = $(this).closest("table").attr("data-title");
-				var he = prompt("Enter the Hebrew title of " + title + ":");
-				console.log(he);
-				if (he) {
-					$(this).text(he);
-					var postJSON = JSON.stringify({title: title, heTitle: he});
-					var title = title.replace(/ /g, "_");
-					$.post("/api/index/" + title + "?update=1",  {"json": postJSON}, function(data) {
-						console.log(data);
-						if ("error" in data) {
-							console.log(data["error"]);
-						} else {
-
-						}
-					});
-				}
 			});
 
 		});

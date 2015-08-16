@@ -3,7 +3,6 @@ export.py - functions for exporting texts to various text formats.
 
 Exports to the directory specified in SEFARIA_DATA_PATH.
 """
-
 import sys
 import os
 import csv
@@ -11,18 +10,17 @@ import re
 import json
 from shutil import rmtree
 from random import random
-from sefaria.utils.talmud import section_to_daf
+from pprint import pprint
+from datetime import datetime
 
 import sefaria.model as model
+from sefaria.model.text import merge_texts
+from sefaria.utils.talmud import section_to_daf
 from sefaria.system.exceptions import InputError
-from texts import merge_translations
-from summaries import order
+from summaries import ORDER, get_toc
 from local_settings import SEFARIA_DATA_PATH
 from sefaria.system.database import db
-import sefaria.model.text
 
-# To allow these files to be run from command line
-os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 lang_codes = {
 	"he": "Hebrew",
@@ -32,11 +30,11 @@ lang_codes = {
 
 def make_path(doc, format):
 	"""
-	Returns the full path and file name for exporting doc.
+	Returns the full path and file name for exporting 'doc' in 'format'.
 	"""
-	if doc["categories"][0] not in order and doc["categories"][0] != "Commentary":
+	if doc["categories"][0] not in ORDER and doc["categories"][0] != "Commentary":
 		doc["categories"].insert(0, "Other")
-	path = "%s/%s/%s/%s/%s/%s.%s" % (SEFARIA_DATA_PATH,
+	path = "%s/export/%s/%s/%s/%s/%s.%s" % (SEFARIA_DATA_PATH,
 									 format,
 									 "/".join(doc["categories"]),
 									 doc["title"],
@@ -54,9 +52,9 @@ def remove_illegal_file_chars(filename_str):
 
 def make_json(doc):
 	"""
-	Exports doc as JSON (as is).
+	Returns JSON of 'doc' with export settings.
 	"""
-	return json.dumps(doc, indent=4, ensure_ascii=False)
+	return json.dumps(doc, indent=4, encoding='utf-8', ensure_ascii=False)
 
 
 def make_text(doc):
@@ -103,8 +101,10 @@ def clear_exports():
 	Deletes all files from any export directory listed in export_formats.
 	"""
 	for format in export_formats:
-		if os.path.exists(SEFARIA_DATA_PATH + "/" + format[0]):
-			rmtree(SEFARIA_DATA_PATH + "/" + format[0])
+		if os.path.exists(SEFARIA_DATA_PATH + "/export/" + format[0]):
+			rmtree(SEFARIA_DATA_PATH + "/export/" + format[0])
+	if os.path.exists(SEFARIA_DATA_PATH + "/export/schemas"):
+		rmtree(SEFARIA_DATA_PATH + "/export/schemas")
 
 
 def export_text_doc(doc):
@@ -122,8 +122,8 @@ def export_text_doc(doc):
 
 def export_text(text):
 	"""
-	Iterates through all text documents, writing a document to disk
-	according to formats in export_formats
+	Exports 'text' (a document from the texts collection, or virtual merged document) 
+	by preparing it as a export document and passing to 'export_text_doc'.
 	"""
 	print text["title"]
 	try:
@@ -132,9 +132,19 @@ def export_text(text):
 		print "Skipping %s - %s" % (text["title"], e.message)
 		return
 
-	text.update(index.contents())
-	del text["_id"]
-	text["text"] = text.pop("chapter")
+	if index.is_complex():
+		# TODO handle export of complex texts
+		print "Skipping Complex Text: %s - " % (text["title"])
+		return		
+
+	text["heTitle"]      = index.nodes.primary_title("he")
+	text["categories"]   = index.categories
+	text["sectionNames"] = index.schema["sectionNames"]
+	text["text"]         = text.get("text", None) or text.get("chapter", "")
+
+	if "_id" in text:
+		del text["_id"]
+		del text["chapter"]
 
 	export_text_doc(text)
 
@@ -162,15 +172,12 @@ def export_merged(title, lang=None):
 			export_merged(title, lang=lang)
 		return
 
-	#todo: move to new Ref format
-	doc = model.Ref(title).old_dict_format()
-
-	doc.update({
-		"title": title,
-		"language": lang,
-		"versionTitle": "merged",
-		"versionSource": "http://www.sefaria.org/%s" % title.replace(" ", "_"),
-	})
+	doc = {
+			"title": title,
+			"language": lang,
+			"versionTitle": "merged",
+			"versionSource": "http://www.sefaria.org/%s" % title.replace(" ", "_"),
+			}
 	text_docs = db.texts.find({"title": title, "language": lang})
 
 	print "%d versions in %s" %(text_docs.count(), lang)
@@ -178,9 +185,9 @@ def export_merged(title, lang=None):
 	if text_docs.count() == 0:
 		return
 	elif text_docs.count() == 1:
-		text_doc = text_docs.next()
-		doc["text"]          = text_doc["chapter"]
-		doc["versions"]      = [(text_doc["versionTitle"], text_doc["versionSource"])]
+		text_doc         = text_docs.next()
+		doc["text"]      = text_doc["chapter"]  # TODO: sort complex according to Index
+		doc["versions"]  = [(text_doc["versionTitle"], text_doc["versionSource"])]
 	else:
 		texts = []
 		sources = []
@@ -188,7 +195,7 @@ def export_merged(title, lang=None):
 			texts.append(text["chapter"])
 			sources.append((text["versionTitle"], text["versionSource"]))
 
-		merged, merged_sources = merge_translations(texts, sources)
+		merged, merged_sources = merge_texts(texts, sources)
 		merged_sources = list(set(merged_sources))
 
 		doc.update({
@@ -196,7 +203,7 @@ def export_merged(title, lang=None):
 			"versions": merged_sources,
 		})
 
-	export_text_doc(doc)
+	export_text(doc)
 
 
 def export_all_merged():
@@ -213,11 +220,27 @@ def export_all_merged():
 		export_merged(title)
 
 
+def export_schemas():
+	for i in model.IndexSet():
+		title = i.title.replace(" ", "_")
+		with open(SEFARIA_DATA_PATH + "/export/schemas/" + title + ".json", "w") as f:
+			f.write(make_json(i.contents(v2=True)).encode('utf-8'))		
+
+
+def export_toc():
+	"""
+	Exports the TOC to a JSON file.
+	"""
+	toc = get_toc()
+	with open(SEFARIA_DATA_PATH + "/export/table_of_contents.json", "w") as f:
+		f.write(make_json(toc).encode('utf-8'))
+
+
 def export_links():
 	"""
 	Creates a single CSV file containing all links known to Sefaria.
 	"""
-	with open(SEFARIA_DATA_PATH + "/links/links.csv", 'wb') as csvfile:
+	with open(SEFARIA_DATA_PATH + "/export/links/links.csv", 'wb') as csvfile:
 		writer = csv.writer(csvfile)
 		writer.writerow([
 							"Citation 1",
@@ -230,7 +253,7 @@ def export_links():
 						 ])
 		links = db.links.find().sort([["refs.0", 1]])
 		for link in links:
-			if random() > .99:
+			if random() > .999:
 				print link["refs"][0]
 
 			try:
@@ -250,10 +273,24 @@ def export_links():
 			])
 
 
+def make_export_log():
+	"""
+	Exports a file that logs the last export time.
+	"""
+	with open(SEFARIA_DATA_PATH + "/export/last_export.txt", "w") as f:
+		f.write(datetime.now().isoformat())
+
+
 def export_all():
 	"""
-	Export all texts and links.
+	Export all texts, merged texts, links, schemas, toc, links & export log.
 	"""
+	clear_exports()
 	export_texts()
 	export_all_merged()
 	export_links()
+	export_schemas()
+	export_toc()
+	make_export_log()
+
+

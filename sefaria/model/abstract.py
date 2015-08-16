@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 abstract.py - abstract classes for Sefaria models
 """
@@ -31,15 +33,15 @@ class AbstractMongoRecord(object):
     optional_attrs = []  # list of names of optional attributes
     track_pkeys = False
     pkeys = []   # list of fields that others may depend on
-    readonly = False
     history_noun = None  # Label for history records
     second_save = False  # Does this object need a two stage save?  Uses _prepare_second_save()
 
     def __init__(self, attrs=None):
+        if attrs is None:
+            attrs = {}
         self._init_defaults()
         self.pkeys_orig_values = {}
-        if attrs:
-            self.load_from_dict(attrs, True)
+        self.load_from_dict(attrs, True)
 
     def load_by_id(self, _id=None):
         if _id is None:
@@ -64,7 +66,10 @@ class AbstractMongoRecord(object):
 
     # careful that this doesn't defeat itself, if/when a cache catches constructor calls
     def copy(self):
-        return self.__class__(copy.deepcopy(self._saveable_attrs()))
+        attrs = self._saveable_attrs()
+        del attrs[self.id_field]
+        return self.__class__(copy.deepcopy(attrs))
+
 
     def load_from_dict(self, d, is_init=False):
         """
@@ -99,11 +104,10 @@ class AbstractMongoRecord(object):
         On completion, will emit a 'save' notification.  If a tracked attribute has changed, will emit an 'attributeChange' notification.
         :return: the object
         """
-        assert not self.readonly, "Can not save. {} objects are read-only.".format(type(self).__name__)
         is_new_obj = self.is_new()
 
         self._normalize()
-        assert self._validate()
+        self._validate()
         self._pre_save()
 
         props = self._saveable_attrs()
@@ -112,22 +116,28 @@ class AbstractMongoRecord(object):
             if not (len(self.pkeys_orig_values) == len(self.pkeys)):
                 raise Exception("Aborted unsafe {} save. {} not fully tracked.".format(type(self).__name__, self.pkeys))
 
-        _id = getattr(db, self.collection).save(props)
+        _id = getattr(db, self.collection).save(props, w=1)
 
         if is_new_obj:
             self._id = _id
 
         if self.second_save:
             self._prepare_second_save()
-            getattr(db, self.collection).save(props)
+            getattr(db, self.collection).save(props, w=1)
 
+        # Not sure about the order of these notifications firing.
         if self.track_pkeys and not is_new_obj:
             for key, old_value in self.pkeys_orig_values.items():
                 if old_value != getattr(self, key):
                     notify(self, "attributeChange", attr=key, old=old_value, new=getattr(self, key))
 
+        ''' Not yet used
         self._post_save()
+        '''
+
         notify(self, "save", orig_vals=self.pkeys_orig_values)
+        if is_new_obj:
+            notify(self, "create")
 
         #Set new values as pkey_orig_values so that future changes will be caught
         if self.track_pkeys:
@@ -165,7 +175,7 @@ class AbstractMongoRecord(object):
     def _saveable_attrs(self):
         return {k: getattr(self, k) for k in self._saveable_attr_keys() if hasattr(self, k)}
 
-    def contents(self):
+    def contents(self, **kwargs):
         """ Build a savable/portable dictionary from the object
         Extended by subclasses with derived attributes passed along with portable object
         :return: dict
@@ -201,7 +211,8 @@ class AbstractMongoRecord(object):
         """
 
         for attr in self.required_attrs:
-            if attr not in attrs:
+            #properties. which are virtual instance members, do not get returned by vars()
+            if attr not in attrs and not getattr(self, attr, None):
                 raise InputError(type(self).__name__ + "._validate(): Required attribute: " + attr + " not in " + ", ".join(attrs))
 
         """ This check seems like a good idea, but stumbles as soon as we have internal attrs
@@ -222,8 +233,10 @@ class AbstractMongoRecord(object):
     def _pre_save(self):
         pass
 
+    ''' Not yet used.
     def _post_save(self, *args, **kwargs):
         pass
+    '''
 
     def same_record(self, other):
         if getattr(self, "_id", None) and getattr(other, "_id", None):
@@ -248,26 +261,38 @@ class AbstractMongoSet(collections.Iterable):
     """
     recordClass = AbstractMongoRecord
 
-    def __init__(self, query={}, page=0, limit=0, sort=[["_id", 1]] ):
-        self.raw_records = getattr(db, self.recordClass.collection).find(query).sort(sort).skip(page * limit).limit(limit)
-        self.has_more = self.raw_records.count() == limit
+    def __init__(self, query={}, page=0, limit=0, sort=[["_id", 1]], proj=None):
+        self.raw_records = getattr(db, self.recordClass.collection).find(query, proj).sort(sort).skip(page * limit).limit(limit)
+        self.has_more = limit != 0 and self.raw_records.count() == limit
         self.records = None
         self.current = 0
         self.max = None
+        self._local_iter = None
 
     def __iter__(self):
+        self._read_records()
+        return iter(self.records)
+
+    def __getitem__(self, item):
+        self._read_records()
+        return self.records[item]
+
+    def _read_records(self):
         if self.records is None:
             self.records = []
             for rec in self.raw_records:
-                self.records.append(self.recordClass().load_from_dict(rec, True))
+                self.records.append(self.recordClass(attrs=rec))
             self.max = len(self.records)
-        return iter(self.records)
 
     def __len__(self):
         if self.max:
             return self.max
         else:
             return self.raw_records.count()
+
+    def array(self):
+        self._read_records()
+        return self.records
 
     def distinct(self, field):
         return self.raw_records.distinct(field)
@@ -299,7 +324,7 @@ def get_subclasses(c):
 def get_record_classes(concrete=True):
     sc = get_subclasses(AbstractMongoRecord)
     if concrete:
-        return [s for s in sc if s.collection is not None and s.readonly is False]
+        return [s for s in sc if s.collection is not None]
     else:
         return sc
 
@@ -382,30 +407,31 @@ deps = {}
 def notify(inst, action, **kwargs):
     """
     :param inst: An object instance
-    :param action: Currently used: "save", "attributeChange", "delete", ... could also be "new", "change"
+    :param action: Currently used: "save", "attributeChange", "delete", "create", ... could also be "change"
     """
 
     actions_reqs = {
         "attributeChange": ["attr", "old", "new"],
         "save": [],
-        "delete": []
+        "delete": [],
+        "create": []
     }
     assert inst
     assert action in actions_reqs.keys()
 
     for arg in actions_reqs[action]:
         if not kwargs.get(arg, None):
-            raise Exception("Missing required argument {} in notify {}, {}".format(arg, inst, action))
+            raise Exception(u"Missing required argument {} in notify {}, {}".format(arg, inst, action))
 
     if action == "attributeChange":
         callbacks = deps.get((type(inst), action, kwargs["attr"]), None)
-        logger.debug("Notify: " + str(inst) + "." + kwargs["attr"] + ": " + kwargs["old"] + " is becoming " + kwargs["new"])
+        logger.debug(u"Notify: " + unicode(inst) + u"." + kwargs["attr"] + u": " + kwargs["old"] + u" is becoming " + kwargs["new"])
     else:
-        logger.debug("Notify: " + str(inst) + " is being " + action + "d.")
+        logger.debug(u"Notify: " + unicode(inst) + u" is being " + action + u"d.")
         callbacks = deps.get((type(inst), action, None), [])
 
     for callback in callbacks:
-        logger.debug("Notify: Calling " + callback.__name__ + "() for " + inst.__class__.__name__ + " " + action)
+        logger.debug(u"Notify: Calling " + callback.__name__ + u"() for " + inst.__class__.__name__ + " " + action)
         callback(inst, **kwargs)
 
 
@@ -413,3 +439,14 @@ def subscribe(callback, klass, action, attr=None):
     if not deps.get((klass, action, attr), None):
         deps[(klass, action, attr)] = []
     deps[(klass, action, attr)].append(callback)
+
+
+def cascade(set_class, attr):
+    """
+    Handles generic value cascading, for simple key reference changes.
+    See examples in dependencies.py
+    :param set_class: The set class of the impacted model
+    :param attr: The name of the impacted class attribute (fk) that holds the references to the changed attribute (pk)
+    :return: a function that will update 'attr' in 'set_class' and can be passed to subscribe()
+    """
+    return lambda obj, kwargs: set_class({attr: kwargs["old"]}).update({attr: kwargs["new"]})

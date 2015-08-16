@@ -1,6 +1,7 @@
 
 import json
 from rauth import OAuth2Service
+from datetime import datetime
 
 from django.http import HttpResponse
 
@@ -18,6 +19,12 @@ def jsonResponse(data, callback=None, status=200):
 
     if "_id" in data:
         data["_id"] = str(data["_id"])
+
+    if isinstance(data, dict):
+        for key in data.keys():
+            if isinstance(data[key], datetime):
+                data[key] = data[key].isoformat()
+
     return HttpResponse(json.dumps(data), mimetype="application/json", status=status)
 
 

@@ -28,7 +28,7 @@
 
 {% block content %}
 
-<div id="splash">
+<div id="splash" class='biReady'>
 
 <div class="container">
 
@@ -75,9 +75,9 @@
 			<span class='en'>Help</span>
 			<span class='he'>עזרה</span>
 		</a><!--
-		--><a class="gradient" href="/faq">
-			<span class='en'>FAQ</span>
-			<span class='he'>שאלות נפוצות</span>
+		--><a class="gradient" href="/wiki">
+			<span class='en'>Wiki</span>
+			<span class='he'>ויקי</span>
 		</a><!--
 		--><a class="gradient" href="/developers">
 			<span class='en'>Developers</span>
@@ -107,11 +107,11 @@
 		</h3>
 
 		<a href="/Genesis.1">Genesis</a>
+		<a href="/Pesach_Haggadah">Pesach Haggadah</a>
 		<a href="/Pirkei_Avot.1">Pirkei Avot</a>
 		<a href="/Sukkah.2a">Talmud Bavli, Sukkah</a>
 		<a href="/Mishnah_Berakhot.1">Mishnah Berakhot</a>
 		<a href="/Bereishit_Rabbah.1">Bereishit Rabbah</a>
-		<a href="/Arbaah_Turim.1.1">Arbaah Turim</a>
 		<a href="/Messilat_Yesharim.1">Messilat Yesharim</a>
 
 	</div>
@@ -122,13 +122,13 @@
 			<span class='he'>דפי מקורות מומלצים</span>
 		</h3>
 
-		{{ 6642|sheet_link}}
-		{{ 6629|sheet_link}}
-		{{ 6612|sheet_link}}
-		{{ 3322|sheet_link}}
-		{{ 6495|sheet_link}}
-		{{ 5770|sheet_link}}
-		{{ 6685|sheet_link}}
+		{{ 9485|sheet_link}}
+		{{ 9551|sheet_link}}
+		{{ 9527|sheet_link}}
+		{{ 3193|sheet_link}}
+		{{ 7367|sheet_link}}
+		{{ 8076|sheet_link}}
+		{{ 9689|sheet_link}}
 
 	</div>
 
@@ -362,8 +362,8 @@
 					<span class='he'>מחנכים</span>
 				</h2>
 				<p>
-					<span class='en'>Sefaria is a free, interactive resource for you and your students.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-					<span class='he'>ספאריה היא אמצעי אינטראקטיבי חינמי לכם ולתלמידים שלכם.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+					<span class='en'>Sefaria is a free, interactive resource for you and your students.</span>
+					<span class='he'>ספאריה היא אמצעי אינטראקטיבי חינמי לכם ולתלמידים שלכם.</span>
 				</p>
 				<div class="">
 					<a href="/educators" class="btn btn-info btn-large">
@@ -473,6 +473,12 @@
 			</li>
 			<li>
 				<h2>
+					<span class='en'>Check out our <a href="http://blog.sefaria.org">Blog</a></span>
+					<span class='he'>בקר <a href="http://blog.sefaria.org">בבלוג</a></span>
+				</h2>
+			</li>
+			<li>
+				<h2>
 					<span class='en'>Follow <a href="http://www.twitter.com/SefariaProject">@SefariaProject</a></span>
 					<span class='he'>עקוב אחרי <a href="http://www.twitter.com/SefariaProject">ספאריה בטוויטר</a></span>
 				</h2>
@@ -480,7 +486,7 @@
 			<li>
 				<h2>
 					<span class='en'>Like us on <a href="http://www.facebook.com/sefaria.org">Facebook</a></span>
-					<span class='he'>עשה לנו <a href="http://www.facebook.com/sefaria.org">"לייק" בפייסבוק</a></span>
+					<span class='he'>אהוב אותנו <a href="http://www.facebook.com/sefaria.org">בפייסבוק</a></span>
 				</h2>
 			</li>
 		</ul>
@@ -503,18 +509,6 @@
 
 		$(function() {
 
-			$("#english").click(function(){
-				$("#languageToggle #hebrew").removeClass("active");
-				$(this).addClass("active");
-				$("body").removeClass("hebrew").addClass("english");
-			});
-
-			$("#hebrew").click(function(){
-				$("#languageToggle #english").removeClass("active");
-				$(this).addClass("active");
-				$("body").removeClass("english").addClass("hebrew");
-			});
-
 			$("#videoImgBox").click(function(){
 				sjs.help.open();
 				sjs.help.openVideo("intro");
@@ -527,6 +521,7 @@
 				sjs.track.event("Homepage", "About click", "");
 			});
 
+			// Email List
 			$("#subscribe").click(function() {
 				var email = $("#email").val();
 				if (isValidEmailAddress(email)) {
@@ -541,12 +536,17 @@
 					$("#subscribeMsg").text("Sorry, that's not a valid email address.");
 				}
 			});
-
 			$("#email").keyup(function(e){
 				if (e.keyCode === 13) {
 					$("#subscribe").trigger("click");	
 				}
 			});
+
+			// Open Nav through URL Hash
+			if (window.location.hash === "#nav") {
+				$("#sefaria").trigger("click");
+			}
+
 		});
 
 	</script>

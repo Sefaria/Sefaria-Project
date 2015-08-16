@@ -1,19 +1,29 @@
 import json
+from bson.son import SON
+from datetime import datetime, timedelta
 
 from django.template import RequestContext
 from django.shortcuts import render_to_response, redirect
+from django.http import Http404
 
 # noinspection PyUnresolvedReferences
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 
 # noinspection PyUnresolvedReferences
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User
+from django.contrib.auth.models import Group as DjangoGroup
+
 
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse, HttpResponse
 from sefaria.sheets import *
+from sefaria.model.user_profile import *
+from sefaria.model.group import Group, GroupSet
 from sefaria.utils.users import user_link
+from sefaria.system.exceptions import InputError
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
 # noinspection PyUnresolvedReferences
@@ -38,15 +48,17 @@ def new_sheet(request):
 	"""
 	View an new, empty source sheet.
 	"""
-	viewer_groups = get_viewer_groups(request.user)
+	owner_groups  = get_user_groups(request.user)
+	query         = {"owner": request.user.id or -1 }
+	hide_video    = db.sheets.find(query).count() > 2
 	return render_to_response('sheets.html', {"can_edit": True,
 												"new_sheet": True,
 												"is_owner": True,
-												"viewer_groups": viewer_groups,
-												"owner_groups": viewer_groups,
-											    "current_url": request.get_full_path,
-											    },
-											    RequestContext(request))
+												"hide_video": hide_video,
+												"owner_groups": owner_groups,
+												"current_url": request.get_full_path,
+												},
+												RequestContext(request))
 
 
 def can_edit(user, sheet):
@@ -79,11 +91,12 @@ def can_add(user, sheet):
 	return False
 
 
-def get_viewer_groups(user):
+def get_user_groups(user):
 	"""
-	Returns a list of names of groups that user belongs to.
+	Returns a list of Groups that user belongs to.
 	"""
-	return [g.name for g in user.groups.all()] if user.is_authenticated() else None
+	groups = [g.name for g in user.groups.all()]
+	return GroupSet({"name": {"$in": groups }}, sort=[["name", 1]])
 
 
 def make_sheet_class_string(sheet):
@@ -94,7 +107,7 @@ def make_sheet_class_string(sheet):
 	classes = []
 	classes.append(o.get("language", "bilingual"))
 	classes.append(o.get("layout", "sideBySide"))
-	classes.append(o.get("langLayout", ""))
+	classes.append(o.get("langLayout", "heRight"))
 
 	if o.get("numbered", False):  classes.append("numbered")
 	if o.get("boxed", False):     classes.append("boxed")
@@ -121,7 +134,7 @@ def view_sheet(request, sheet_id):
 	try:
 		owner = User.objects.get(id=sheet["owner"])
 		author = owner.first_name + " " + owner.last_name
-		owner_groups = [g.name for g in owner.groups.all()] if sheet["owner"] == request.user.id else None
+		owner_groups = get_user_groups(request.user) if sheet["owner"] == request.user.id else None
 	except User.DoesNotExist:
 		author = "Someone Mysterious"
 		owner_groups = None
@@ -129,12 +142,12 @@ def view_sheet(request, sheet_id):
 	sheet_class     = make_sheet_class_string(sheet)
 	can_edit_flag   = can_edit(request.user, sheet)
 	can_add_flag    = can_add(request.user, sheet)
-	sheet_group     = sheet["group"] if sheet["status"] in GROUP_SHEETS and sheet["group"] != "None" else None
-	viewer_groups   = get_viewer_groups(request.user)
+	sheet_group     = Group().load({"name": sheet["group"]}) if sheet["status"] in GROUP_SHEETS and sheet["group"] != "None" else None
 	embed_flag      = "embed" in request.GET
 	likes           = sheet.get("likes", [])
 	like_count      = len(likes)
 	viewer_is_liker = request.user.id in likes
+
 
 	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet), 
 												"sheet": sheet,
@@ -147,7 +160,6 @@ def view_sheet(request, sheet_id):
 												"is_public": sheet["status"] in LISTED_SHEETS,
 												"owner_groups": owner_groups,
 												"sheet_group":  sheet_group,
-												"viewer_groups": viewer_groups,
 												"like_count": like_count,
 												"viewer_is_liker": viewer_is_liker,
 												"current_url": request.get_full_path,
@@ -171,80 +183,176 @@ def delete_sheet_api(request, sheet_id):
 	return jsonResponse({"status": "ok"})
 
 
+def sheet_tag_counts(query):
+	"""
+	Returns tags ordered by count for sheets matching query.
+	"""
+	tags = db.sheets.aggregate([
+		{"$match": query },
+		{"$unwind": "$tags"},
+		{"$group": {"_id": "$tags", "count": {"$sum": 1}}},
+		{"$sort": SON([("count", -1), ("_id", -1)])},
+		{"$project": { "_id": 0, "tag": "$_id", "count": "$count" }}
+	])
+	return tags["result"]
+
+
+def order_tags_for_user(tag_counts, uid):
+	"""
+	Returns of list of tag/count dicts order according to user's preference,
+	Adds empty tags if any appear in user's sort list but not in tags passed in
+	"""
+	profile   = UserProfile(id=uid)
+	tag_order = getattr(profile, "tag_order", None)
+	if tag_order:
+		empty_tags = tag_order[:]
+		tags = [tag_count["tag"] for tag_count in tag_counts]		
+		empty_tags = [tag for tag in tag_order if tag not in tags]
+		
+		for tag in empty_tags:
+			tag_counts.append({"tag": tag, "count": 0})
+		try:
+			tag_counts = sorted(tag_counts, key=lambda x: tag_order.index(x["tag"]))
+		except:
+			pass
+
+	return tag_counts
+
+
+def recent_public_tags(days=14, ntags=10):
+	"""
+	Returns list of tag/counts on public sheets modified in the last 'days'.
+	"""
+	cutoff      = datetime.now() - timedelta(days=days)
+	query       = {"status": {"$in": LISTED_SHEETS}, "dateModified": { "$gt": cutoff.isoformat() } }
+	tags        = sheet_tag_counts(query)[:ntags]
+
+	return tags
+
 
 def sheets_list(request, type=None):
 	"""
 	List of all public/your/all sheets
 	either as a full page or as an HTML fragment
 	"""
-	response = {
-		"status": 0,
-	}
-
 	if not type:
 		# Sheet Splash page
-		query = {"status": {"$in": LISTED_SHEETS}}
-		public = db.sheets.find(query).sort([["dateModified", -1]])
+		query       = {"status": {"$in": LISTED_SHEETS}}
+		public      = db.sheets.find(query).sort([["dateModified", -1]]).limit(32)
+		public_tags = recent_public_tags()
 
-		query = {"owner": request.user.id}
-		your = db.sheets.find(query).sort([["dateModified", -1]])
-		return render_to_response('sheets_splash.html', {"public_sheets": public,
-															"your_sheets": your,
-															"collapse_private": your.count() > 3,
-															"groups": get_viewer_groups(request.user)
-														}, 
-													RequestContext(request))
+		if request.user.is_authenticated():
+			query       = {"owner": request.user.id}
+			your        = db.sheets.find(query).sort([["dateModified", -1]]).limit(3)
+			your_tags   = sheet_tag_counts(query)
+			your_tags   = order_tags_for_user(your_tags, request.user.id)
+			collapse    = your.count() > 3
+		else:
+			your = your_tags = collapse = None
+
+		return render_to_response('sheets_splash.html',
+									{
+										"public_sheets": public,
+										"public_tags": public_tags,
+										"your_sheets": your,
+										"your_tags":   your_tags,
+										"collapse_private": collapse,
+										"groups": get_user_groups(request.user)
+									}, 
+									RequestContext(request))
+
+	response = { "status": 0 }
 
 	if type == "public":
-		query = {"status": {"$in": LISTED_SHEETS}}
-		response["title"] = "Public Source Sheets"
+		query              = {"status": {"$in": LISTED_SHEETS}}
+		response["title"]  = "Public Source Sheets"
+		response["public"] = True
+		tags               = recent_public_tags()
+
 	elif type == "private":
-		query = {"owner": request.user.id or -1 }
-		response["title"] = "Your Source Sheets"
+		query              = {"owner": request.user.id or -1 }
+		response["title"]  = "Your Source Sheets"
+		response["groups"] = get_user_groups(request.user)
+		tags               = sheet_tag_counts(query)
+		tags               = order_tags_for_user(tags, request.user.id)
 
 	elif type == "allz":
-		query = {}
-		response["title"] = "All Source Sheets"
+		query              = {}
+		response["title"]  = "All Source Sheets"
+		response["public"] = True
+		tags               = []
 
-
-	topics = db.sheets.find(query).sort([["dateModified", -1]])
+	sheets = db.sheets.find(query).sort([["dateModified", -1]])
 	if "fragment" in request.GET:
-		return render_to_response('elements/sheet_table.html', {"sheets": topics})
-	else:
-		response["topics"] = topics
-		return render_to_response('topics.html', response, RequestContext(request))
+		return render_to_response('elements/sheet_table.html', {"sheets": sheets})
+
+	response["sheets"] = sheets
+	response["tags"]   = tags
+
+	return render_to_response('sheets_list.html', response, RequestContext(request))
 
 
 def partner_page(request, partner):
 	"""
 	Views the partner page for 'partner' which lists sheets in the partner group.
 	"""
-
 	partner = partner.replace("-", " ").replace("_", " ")
-	try:
-		group = Group.objects.get(name__iexact=partner)
-	except Group.DoesNotExist:
-		return redirect("home")
+	group   = Group().load({"name": partner})
+	if not group:
+		raise Http404
 
-	if not request.user.is_authenticated() or group not in request.user.groups.all():
-		in_group = False
-		query = {"status": 7, "group": partner}
-	else:
+	if request.user.is_authenticated() and group.name in [g.name for g in request.user.groups.all()]:
 		in_group = True
-		query = {"status": {"$in": [6,7]}, "group": partner}
+		query = {"status": {"$in": [6,7]}, "group": group.name}
+	else:
+		in_group = False
+		query = {"status": 7, "group": group.name}
 
 
-	topics = db.sheets.find(query).sort([["title", 1]])
-	return render_to_response('topics.html', {"topics": topics,
+	sheets = db.sheets.find(query).sort([["title", 1]])
+	tags   = sheet_tag_counts(query)
+	return render_to_response('sheets_list.html', {"sheets": sheets,
+												"tags": tags,
 												"status": 6,
-												"group": group.name,
+												"group": group,
 												"in_group": in_group,
-												"title": "%s's Topics" % group.name,
+												"title": "%s on Sefaria" % group.name,
 											}, RequestContext(request))
+
+
+def groups_page(request):
+    groups = GroupSet(sort=[["name", 1]])
+    return render_to_response("groups.html",
+                                {"groups": groups},
+                                RequestContext(request))
+
+
+@staff_member_required
+def groups_api(request):
+	j = request.POST.get("json")
+	if not j:
+		return jsonResponse({"error": "No JSON given in post data."})
+	group = json.loads(j)
+	if request.method == "POST":
+		existing = GroupSet({"name": group["name"]})
+		if len(existing):
+			existing.update(group)
+			existing.save()
+		else:
+			Group(group).save()
+			DjangoGroup.objects.create(name=group["name"])
+		return jsonResponse({"status": "ok"})
+
+	elif request.method == "DELETE":
+		GroupSet(group).delete()
+		return jsonResponse({"status": "ok"})
+	
+	else:
+		return jsonResponse({"error": "Unsupported HTTP method."})
+
 
 def sheet_stats(request):
 	pass
-
 
 
 def sheets_tags_list(request):
@@ -255,17 +363,46 @@ def sheets_tags_list(request):
 	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))	
 
 
-def sheets_tag(request, tag):
+def sheets_tag(request, tag, public=True, group=None):
 	"""
-	View public sheets for a particular tag.
+	View sheets for a particular tag.
 	"""
-	sheets = get_sheets_by_tag(tag)
+	if public:
+		sheets = get_sheets_by_tag(tag)
+	elif group:
+		sheets = get_sheets_by_tag(tag, group=group)
+	else:
+		sheets = get_sheets_by_tag(tag, uid=request.user.id)
+
+	in_group = request.user.is_authenticated() and group in [g.name for g in request.user.groups.all()]
+	groupCover = Group().load({"name": group}).coverUrl if Group().load({"name": group}) else None
+	
 	return render_to_response('tag.html', {
 											"tag": tag,
 											"sheets": sheets,
+											"public": public,
+											"group": group,
+											"groupCover": groupCover,
+											"in_group": in_group,
 										 }, RequestContext(request))	
 
 	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))	
+
+
+@login_required
+def private_sheets_tag(request, tag):
+	"""
+	Wrapper for sheet_tag for user tags
+	"""
+	return sheets_tag(request, tag, public=False)
+
+
+def partner_sheets_tag(request, partner, tag):
+	"""
+	Wrapper for sheet_tag for partner tags
+	"""
+	group = partner.replace("_", " ")
+	return sheets_tag(request, tag, public=False, group=group)
 
 
 def sheet_list_api(request):
@@ -273,7 +410,7 @@ def sheet_list_api(request):
 	API for listing available sheets
 	"""
 	if request.method == "GET":
-		return jsonResponse(sheet_list())
+		return jsonResponse(sheet_list(), callback=request.GET.get("callback", None))
 
 	# Save a sheet
 	if request.method == "POST":
@@ -306,7 +443,7 @@ def user_sheet_list_api(request, user_id):
 	"""
 	if int(user_id) != request.user.id:
 		return jsonResponse({"error": "You are not authorized to view that."})
-	return jsonResponse(sheet_list(user_id))
+	return jsonResponse(sheet_list(user_id), callback=request.GET.get("callback", None))
 
 
 def sheet_api(request, sheet_id):
@@ -315,7 +452,7 @@ def sheet_api(request, sheet_id):
 	"""
 	if request.method == "GET":
 		sheet = get_sheet(int(sheet_id))
-		return jsonResponse(sheet)
+		return jsonResponse(sheet, callback=request.GET.get("callback", None))
 
 	if request.method == "POST":
 		return jsonResponse({"error": "TODO - save to sheet by id"})
@@ -327,20 +464,21 @@ def check_sheet_modified_api(request, sheet_id, timestamp):
 	If modified, return the new sheet. 
 	"""
 	sheet_id = int(sheet_id)
+	callback=request.GET.get("callback", None)
 	last_mod = get_last_updated_time(sheet_id)
 	if not last_mod:
-		return jsonResponse({"error": "Couldn't find last modified time."})
+		return jsonResponse({"error": "Couldn't find last modified time."}, callback)
 
 	if timestamp >= last_mod:
-		return jsonResponse({"modified": False})
+		return jsonResponse({"modified": False}, callback)
 
 	sheet = get_sheet(sheet_id)
 	if "error" in sheet:
-		return jsonResponse(sheet)
+		return jsonResponse(sheet, callback)
 
 	sheet["modified"] = True
 	sheet["sources"] = annotate_user_links(sheet["sources"])
-	return jsonResponse(sheet)	
+	return jsonResponse(sheet, callback)
 
 
 def add_source_to_sheet_api(request, sheet_id):
@@ -374,6 +512,7 @@ def add_ref_to_sheet_api(request, sheet_id):
 	return jsonResponse(add_ref_to_sheet(int(sheet_id), ref))
 
 
+@login_required
 def update_sheet_tags_api(request, sheet_id):
 	"""
 	API to update tags for sheet_id. 
@@ -413,4 +552,14 @@ def sheet_likers_api(request, sheet_id):
 	API to retrieve the list of peopke who like sheet_id.
 	"""
 	response = {"likers": likers_list_for_sheet(sheet_id)}
-	return jsonResponse(response)
+	return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
+@login_required
+def make_sheet_from_text_api(request, ref, sources=None):
+	"""
+	API to generate a sheet from a ref with optional sources.
+	"""
+	sources = sources.replace("_", " ").split("+") if sources else None
+	sheet = make_sheet_from_text(ref, sources=sources, uid=request.user.id, generatedBy=None, title=None)
+	return redirect("/sheets/%d" % sheet["id"])

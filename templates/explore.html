@@ -15,12 +15,11 @@
 	}
 
     svg {
-      font: 10px sans-serif;
+      font-size: 9px;
     }
 
     #page-title {
         font-size: 20px;
-        font-family: Georgia, serif;
     }
 
     .book {
@@ -243,8 +242,6 @@ function swithToEnglishAndRecordState() {
     pushLanguageChange();
 }
 function switchToEnglish(){
-    $("#languageToggle #hebrew").removeClass("active");
-    $("#languageToggle #english").addClass("active");
     lang = "en";
 }
 
@@ -255,8 +252,6 @@ function swithToHebrewAndRecordState() {
     pushLanguageChange();
 }
 function switchToHebrew(){
-    $("#languageToggle #english").removeClass("active");
-    $("#languageToggle #hebrew").addClass("active");
     lang = "he";
 }
 
@@ -264,7 +259,7 @@ function switchToHebrew(){
 
 var books = {{ books|safe }}; //Books specified on URL - 0, 1, or 2
 
-if ("{{ lang }}" == "he") {
+if ("{{ contentLang }}" == "hebrew") {
     switchToHebrew();
 } else {
     switchToEnglish();

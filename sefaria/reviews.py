@@ -5,8 +5,7 @@ from bson.objectid import ObjectId
 import sefaria.model as model
 from sefaria.utils.users import user_link
 from sefaria.utils.util import *
-import texts
-
+from sefaria.system.database import db
 
 def save_review(review, uid):
 	validate = validate_review(review)
@@ -30,7 +29,7 @@ def save_review(review, uid):
 		# Overwrite the existing review if present
 		review["_id"] = existing["_id"]
 
-	texts.db.history.save(review)
+	db.history.save(review)
 	
 	review["_id"] = str(review["_id"])
 	review["date"] = review["date"].isoformat()
@@ -57,12 +56,12 @@ def validate_review(review):
 
 
 def delete_review(review_id, uid):
-	review = texts.db.history.find_one({"_id": ObjectId(review_id)})
+	review = db.history.find_one({"_id": ObjectId(review_id)})
 	if not review:
 		return {"error": "Review not found."}
 	if review["user"] != uid:
 		return {"error": "You do not have permissions to delete this review."}
-	texts.db.history.remove(review)
+	db.history.remove(review)
 	return {"status": "ok"}
 
 
@@ -73,7 +72,7 @@ def get_reviews(tref, lang, version):
 	reviews = []
 	tref = model.Ref(tref).normal()
 	refRe = '^%s$|^%s:' % (tref, tref)
-	cursor = texts.db.history.find({"ref": {"$regex": refRe}, "language": lang, "version": version, "rev_type": "review"}).sort([["date", -1]])
+	cursor = db.history.find({"ref": {"$regex": refRe}, "language": lang, "version": version, "rev_type": "review"}).sort([["date", -1]])
 	for r in cursor:
 		r["_id"] = str(r["_id"])
 		r["userLink"] = user_link(r["user"])
@@ -90,7 +89,7 @@ def get_last_edit(tref, lang, version):
 	query = {"ref": {"$regex": refRe}, "language": lang, "version": version, 
 					"rev_type": {"$in": ["edit text", "add text", "revert text"]}}
 	
-	edit = texts.db.history.find(query).sort([["date", -1]]).limit(1)	
+	edit = db.history.find(query).sort([["date", -1]]).limit(1)
 
 	if edit.count():
 		return edit[0]
@@ -130,7 +129,7 @@ def get_current_review(uid, ref, lang, version):
 	"""
 	date = get_last_edit_date(ref, lang, version)
 	query = {"user": uid, "ref": ref, "language": lang, "version": version}
-	result = texts.db.history.find(query).sort([["date", -1]]).limit(1)
+	result = db.history.find(query).sort([["date", -1]]).limit(1)
 
 	if result.count():
 		review = result[0]

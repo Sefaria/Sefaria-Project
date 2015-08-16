@@ -1,58 +1,40 @@
 # noinspection PyUnresolvedReferences
 from datetime import datetime, timedelta
 from sets import Set
-from random import randint
+from random import choice
+from pprint import pprint
+import json
+import dateutil.parser
 
 from bson.json_util import dumps
-from pprint import pprint
-
-# noinspection PyUnresolvedReferences
-import json
-
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
-# noinspection PyUnresolvedReferences
-from django.http import HttpResponse, Http404
+from django.http import Http404
 from django.contrib.auth.decorators import login_required
-from django.utils.http import urlquote, urlquote_plus, force_unicode
+from django.utils.http import urlquote
 from django.utils.encoding import iri_to_uri
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
-# noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
-
+from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError
+# noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse
-# noinspection PyUnresolvedReferences
-from sefaria.model.user_profile import UserProfile
-# noinspection PyUnresolvedReferences
-from sefaria.texts import get_text, get_book_link_collection
-# noinspection PyUnresolvedReferences
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision
-# noinspection PyUnresolvedReferences
-# from sefaria.utils.util import *
 from sefaria.system.decorators import catch_error_as_json, catch_error_as_http
-from sefaria.system.exceptions import BookNameError
 from sefaria.workflows import *
 from sefaria.reviews import *
-from sefaria.summaries import get_toc, flatten_toc, get_or_make_summary_node
-from sefaria.counts import get_percent_available, get_translated_count_by_unit, get_untranslated_count_by_unit, set_counts_flag, get_link_counts, get_counts_doc
-from sefaria.model.text import get_index, Index, Version, VersionSet, Ref
-from sefaria.model.notification import Notification, NotificationSet
-from sefaria.model.following import FollowRelationship, FollowersSet, FolloweesSet
-from sefaria.model.layer import Layer, LayerSet
-from sefaria.model.user_profile import annotate_user_list
+from sefaria.summaries import get_toc, flatten_toc, get_or_make_summary_node, REORDER_RULES
+from sefaria.model import *
 from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
-from sefaria.datatype.jagged_array import JaggedArray
 from sefaria.utils.users import user_link, user_started_text
-from sefaria.utils.util import list_depth
-from sefaria.utils.hebrew import hebrew_plural
+from sefaria.utils.util import list_depth, text_preview
+from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
+from sefaria.utils.talmud import section_to_daf, daf_to_section
+from sefaria.datatype.jagged_array import JaggedArray
 import sefaria.utils.calendars
 import sefaria.tracker as tracker
 
-# import the logging library
 import logging
-
-# Get an instance of a logger
 logger = logging.getLogger(__name__)
 
 
@@ -60,40 +42,45 @@ logger = logging.getLogger(__name__)
 def reader(request, tref, lang=None, version=None):
     # Redirect to standard URLs
     # Let unknown refs pass through
+    def reader_redirect(uref, lang, version):
+        url = "/" + uref
+        if lang and version:
+            url += "/%s/%s" % (lang, version)
+
+        response = redirect(iri_to_uri(url), permanent=True)
+        params = request.GET.urlencode()
+        response['Location'] += "?%s" % params if params else ""
+        return response
+
     try:
         oref = model.Ref(tref)
         uref = oref.url()
         if uref and tref != uref:
-            url = "/" + uref
-            if lang and version:
-                url += "/%s/%s" % (lang, version)
-
-            response = redirect(iri_to_uri(url), permanent=True)
-            params = request.GET.urlencode()
-            response['Location'] += "?%s" % params if params else ""
-            return response
+            return reader_redirect(uref, lang, version)
 
         # Return Text TOC if this is a bare text title
-        if oref.sections == []:
-            return text_toc(request, oref.normal())
+        if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
+            return text_toc(request, oref)
+        # or if this is a schema node with multiple sections underneath it
+        if (not getattr(oref.index_node, "depth", None)):
+            return text_toc(request, oref)
+
+
+        if request.flavour == "mobile":
+            return s2(request, ref=tref)
 
         # BANDAID - for spanning refs, return the first section
         oref = oref.padded_ref()
         if oref.is_spanning():
-            first_oref = oref.split_spanning_ref()[0]
-            url = "/" + first_oref.url()
-            if lang and version:
-                url += "/%s/%s" % (lang, version)
-            response = redirect(iri_to_uri(url))
-            params = request.GET.urlencode()
-            response['Location'] += "?%s" % params if params else ""
-            return response
+            first_oref = oref.first_spanned_ref()
+            return reader_redirect(first_oref.url(), lang, version)
 
         version = version.replace("_", " ") if version else None
 
         layer_name = request.GET.get("layer", None)
         if layer_name:
-            text = get_text(tref, lang=lang, version=version, commentary=False)
+            #text = get_text(tref, lang=lang, version=version, commentary=False)
+            text = TextFamily(Ref(tref), lang=lang, version=version, commentary=False, alts=True).contents()
             if not "error" in text:
                 layer = Layer().load({"urlkey": layer_name})
                 if not layer:
@@ -107,7 +94,7 @@ def reader(request, tref, lang=None, version=None):
                 text["_loadSources"] = True
                 hasSidebar = True if len(text["layer"]) else False
         else:
-            text = get_text(tref, lang=lang, version=version, commentary=True)
+            text = TextFamily(Ref(tref), lang=lang, version=version, commentary=True, alts=True).contents()
             hasSidebar = True if len(text["commentary"]) else False
             if not "error" in text:
                 text["notes"]  = get_notes(oref, uid=request.user.id)
@@ -116,14 +103,18 @@ def reader(request, tref, lang=None, version=None):
         text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
         text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
         text["ref"] = Ref(text["ref"]).normal()
+
+    except PartialRefInputError as e:
+        logger.warning(u'{}'.format(e))
+        matched_ref = Ref(e.matched_part)
+        return reader_redirect(matched_ref.url(), lang, version)
+
     except InputError, e:
-        logger.exception(u'{}'.format(e))
-        text = {"error": unicode(e)}
-        hasSidebar = False
+        logger.warning(u'{}'.format(e))
+        raise Http404
 
-    initJSON = json.dumps(text)
-
-    lines = True if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else False
+    if lang and version:
+        text['new_preferred_version'] = {'lang': lang, 'version': version}
 
     zipped_text = map(None, text["text"], text["he"]) if not "error" in text else []
     if "error" not in text:
@@ -143,33 +134,51 @@ def reader(request, tref, lang=None, version=None):
     else:
         description_text = "Unknown Text."
 
-    # Pull language setting from cookie or Accept-Lanugage header
-    langMode = request.COOKIES.get('langMode') or request.LANGUAGE_CODE or 'en'
-    langMode = 'he' if langMode == 'he-il' else langMode
-    # URL parameter trumps cookie
-    langMode = request.GET.get("lang", langMode)
-    langMode = "bi" if langMode in ("he-en", "en-he") else langMode
-    # Don't allow languages other than what we currently handle
-    langMode = 'en' if langMode not in ('en', 'he', 'bi') else langMode
-    # Substitue language mode if text not available in that language
-    if not "error" in text:
-        if is_text_empty(text["text"]) and not langMode == "he":
-            langMode = "he"
-        if is_text_empty(text["he"]) and not langMode == "en":
-            langMode = "en"
-    langClass = {"en": "english", "he": "hebrew", "bi": "bilingual heLeft"}[langMode]
+    initJSON    = json.dumps(text)
+    lines       = request.GET.get("layout", None) or "lines" if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else "block"
+    layout      = request.GET.get("layout") if request.GET.get("layout") in ("heLeft", "heRight") else "heLeft"
+    sidebarLang = request.GET.get('sidebarLang', None) or request.COOKIES.get('sidebarLang', "all")
+    sidebarLang = {"all": "sidebarAll", "he": "sidebarHebrew", "en": "sidebarEnglish"}.get(sidebarLang, "sidebarAll")
+    lexicon     = request.GET.get('lexicon', 0)
 
-    return render_to_response('reader.html',
-                             {'text': text,
-                              'hasSidebar': hasSidebar,
-                             'initJSON': initJSON,
-                             'zipped_text': zipped_text,
-                             'description_text': description_text,
-                             'langClass': langClass,
-                             'page_title': oref.normal() if "error" not in text else "Unknown Text",
-                             'title_variants': "(%s)" % ", ".join(text.get("titleVariants", []) + [text.get("heTitle", "")]),
-                             },
-                             RequestContext(request))
+    template_vars = {'text': text,
+                     'hasSidebar': hasSidebar,
+                     'initJSON': initJSON,
+                     'zipped_text': zipped_text,
+                     'description_text': description_text,
+                     'page_title': oref.normal() if "error" not in text else "Unknown Text",
+                     'title_variants': "(%s)" % ", ".join(text.get("titleVariants", []) + text.get("heTitleVariants", [])),
+                     'sidebarLang': sidebarLang,
+                     'lines': lines,
+                     'layout': layout,
+                     'lexicon': lexicon,
+                    }
+
+    if "error" not in text:
+    # Override Content Language Settings if text not available in given langauge
+        if is_text_empty(text["text"]):
+            template_vars["contentLang"] = "hebrew"
+        if is_text_empty(text["he"]):
+            template_vars["contentLang"] = "english"
+    # Override if a specfic version was requested
+        if lang:
+            template_vars["contentLang"] = {"he": "hebrew", "en": "english"}[lang]
+
+    return render_to_response('reader.html', template_vars, RequestContext(request))
+
+
+def s2(request, ref="Genesis 1", version=None, lang=None):
+    """
+    New interfaces in development
+    """
+    oref         = Ref(ref)
+    text         = TextFamily(oref, version=version, lang=lang, commentary=False, context=False, pad=True, alts=True).contents()
+    text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+    text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+    return render_to_response('s2.html', {
+                                            "ref": oref.normal(),
+                                            "data": text
+                                        }, RequestContext(request))
 
 
 @catch_error_as_http
@@ -179,22 +188,29 @@ def edit_text(request, ref=None, lang=None, version=None):
     Opens a view directly to adding, editing or translating a given text.
     """
     if ref is not None:
-        oref = Ref(ref)
-        if oref.sections == []:
-            # Only text name specified, let them chose section first
-            initJSON = json.dumps({"mode": "add new", "newTitle": oref.normal()})
-            mode = "Add"
-        else:
-            # Pull a particular section to edit
-            version = version.replace("_", " ") if version else None
-            text = get_text(ref, lang=lang, version=version)
-            text["mode"] = request.path.split("/")[1]
-            mode = text["mode"].capitalize()
-            initJSON = json.dumps(text)
+        try:
+            oref = Ref(ref)
+            if oref.sections == []:
+                # Only text name specified, let them chose section first
+                initJSON = json.dumps({"mode": "add new", "newTitle": oref.normal()})
+                mode = "Add"
+            else:
+                # Pull a particular section to edit
+                version = version.replace("_", " ") if version else None
+                #text = get_text(ref, lang=lang, version=version)
+                text = TextFamily(Ref(ref), lang=lang, version=version).contents()
+                text["mode"] = request.path.split("/")[1]
+                mode = text["mode"].capitalize()
+                initJSON = json.dumps(text)
+        except:
+            index = get_index(ref)
+            if index: # a commentator titlein
+                ref = None
+                initJSON = json.dumps({"mode": "add new", "newTitle": index.contents()['title']})
     else:
         initJSON = json.dumps({"mode": "add new"})
 
-    titles = json.dumps(model.get_text_titles())
+    titles = json.dumps(model.library.full_title_list())
     page_title = "%s %s" % (mode, ref) if ref else "Add a New Text"
 
     return render_to_response('reader.html',
@@ -214,7 +230,9 @@ def edit_text_info(request, title=None, new_title=None):
         # Edit Existing
         title = title.replace("_", " ")
         i = get_index(title)
-        indexJSON = json.dumps(i.contents())
+        if not (request.user.is_staff or user_started_text(request.user.id, title)):
+            return render_to_response('static/generic.html', {"title": "Permission Denied", "content": "The Text Info for %s is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed." % title}, RequestContext(request))
+        indexJSON = json.dumps(i.contents(v2=True) if "toc" in request.GET else i.contents())
         versions = VersionSet({"title": title})
         text_exists = versions.count() > 0
         new = False
@@ -239,112 +257,294 @@ def edit_text_info(request, title=None, new_title=None):
                              RequestContext(request))
 
 
+def make_toc_html(oref, zoom=1):
+    """
+    Returns the HTML of a text's Table of Contents, including any alternate structures.
+    :param oref - Ref of the tex to create. Ref is used instead of Index to allow
+    for a different table of contents focusing on a single node of a complex text.
+    :param zoom - integar specifying the level of granularity to show. 0 = Segment level,
+    1 = Section level etc. 
+    """
+    index = oref.index
+    if index.is_complex():
+        html = make_complex_toc_html(oref)
+    else:
+        state = StateNode(index.title)
+        he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
+        html = make_simple_toc_html(he_counts, en_counts, index.nodes.sectionNames, index.nodes.addressTypes, index.title, zoom=zoom)
+
+    if index.has_alt_structures():
+        default_name   = index.nodes.sectionNames[0] if not index.is_complex() else "Contents"
+        default_struct = getattr(index, "default_struct", default_name)
+        structs        = {default_name: html } # store HTML for each structure
+        alts           = index.get_alt_structures().items()
+        for alt in alts:
+            structs[alt[0]] = make_alt_toc_html(alt[1])
+
+        items  = sorted(structs.items(), key=lambda x: 0 if x[0] == default_struct else 1)
+        toggle, tocs = "", ""
+
+        for item in items:
+            toggle += " | " if item[0] != default_struct else ""
+            toggle += "<div class='altStructToggle" + (" active" if item[0] == default_struct else "") + "'>"
+            toggle +=   "<span class='en'>" + item[0] + "</span>" 
+            toggle +=   "<span class='he'>" + hebrew_term(item[0]) + "</span>" 
+            toggle += "</div>"
+            tocs   += "<div class='altStruct' " + ("style='display:none'" if item[0] != default_struct else "") + ">" + item[1] + "</div>"
+
+        html = "<div id='structToggles'>" + toggle + "</div>" + tocs
+    return html
+
+
+def make_complex_toc_html(oref):
+    """
+    Returns the HTML of a complex text's Table of Contents.
+    :param oref - Ref of the text to create. Ref is used instead of Index to allow
+    for a different table of contents focusing on a single node.
+    """
+    index    = oref.index
+    req_node = oref.index_node
+
+    def node_line(node, depth, **kwargs):
+        if depth == 0:
+            return ""
+        linked = "linked" if node.is_leaf() and node.depth == 1 else ""
+        default = "default" if node.is_default() else ""
+        url = "/" + node.ref().url()
+        en_icon = '<i class="schema-node-control fa ' + ('fa-angle-right' if linked else 'fa-angle-down') + '"></i>'
+        he_icon = '<i class="schema-node-control fa ' + ('fa-angle-left' if linked else 'fa-angle-down') + '"></i>'
+        html = '<a href="' + urlquote(url) + '"' if linked else "<div "
+        html += ' class="schema-node-toc depth' + str(depth) + ' ' + linked + ' ' + default + '">'
+        if not default:
+            html += '<span class="schema-node-title">'
+            html +=    '<span class="en">' + node.primary_title() + en_icon + '</span>'
+            html +=    '<span class="he">' + node.primary_title(lang='he') + he_icon + '</span>'
+            html += '</span>'
+        if node.is_leaf():
+            focused = node is req_node
+            html += '<div class="schema-node-contents ' + ('open' if focused or default else 'closed') + '">'
+            node_state = StateNode(snode=node)
+            #Todo, handle Talmud and other address types, as well as commentary
+            zoom = 0 if node.depth == 1 else 1
+            he_counts, en_counts = node_state.var("he", "availableTexts"), node_state.var("en", "availableTexts")
+            content = make_simple_toc_html(he_counts, en_counts, node.sectionNames, node.addressTypes, node.full_title(), zoom=zoom)
+            content = content or "<div class='emptyMessage'>No text here.</div>"
+            html += content + '</div>'
+        html += "</a>" if linked else "</div>"
+        return html
+
+    html = index.nodes.traverse_to_string(node_line)
+    return html
+
+
+def make_alt_toc_html(alt):
+    """
+    Returns HTML Table of Contents for an alternate structure.
+    :param alt - a TitledTreeNode representing an alternate structure.
+    """
+    def node_line(node, depth, **kwargs):
+        if depth == 0:
+            return ""
+        refs            = getattr(node, "refs", False)
+        includeSections = getattr(node, "includeSections", False)
+        linked  = "linked" if not refs and not includeSections else ""
+        default = "default" if node.is_default() else ""
+        url     = "/" + Ref(node.wholeRef).url()
+        en_icon = '<i class="schema-node-control fa ' + ('fa-angle-right' if linked else 'fa-angle-down') + '"></i>'
+        he_icon = '<i class="schema-node-control fa ' + ('fa-angle-left' if linked else 'fa-angle-down') + '"></i>'
+        html    = '<a href="' + urlquote(url) + '"' if linked else "<div "
+        html   += ' class="schema-node-toc depth' + str(depth) + ' ' + linked + ' ' + default + '" >'
+        wrap_counts  = lambda counts: counts if list_depth(counts) == 2 else wrap_counts([counts])
+        # wrap counts to ensure they are as though at section level, handles segment level refs
+        if not default:
+            html += '<span class="schema-node-title">'
+            html +=    '<span class="en">' + node.primary_title() + en_icon + '</span>'
+            html +=    '<span class="he">' + node.primary_title(lang='he') + he_icon + '</span>'
+            html += '</span>'            
+        if refs:
+            # todo handle refs with depth > 1
+            html += "<div class='schema-node-contents closed'>"
+            html +=   "<div class='sectionName'>"
+            html +=     "<span class='en'>" + hebrew_plural(node.sectionNames[0]) + "</span>"
+            html +=     "<span class='he'>" + hebrew_term(node.sectionNames[0]) + "</span>"
+            html +=   "</div>" 
+            for i in range(len(node.refs)):
+                if not node.refs[i]:
+                    continue
+                he    = wrap_counts(JaggedArray(he_counts).subarray_with_ref(Ref(node.refs[i])).array())
+                en    = wrap_counts(JaggedArray(en_counts).subarray_with_ref(Ref(node.refs[i])).array())
+                klass = "en%s he%s" % (toc_availability_class(en), toc_availability_class(he))
+                html += '<a class="sectionLink %s" href="/%s">%s</a>' % (klass, urlquote(node.refs[i]), (i+1))
+            html += "</div>"
+        elif includeSections:
+            # Display each section included in node.wholeRef
+            # todo handle case where wholeRef points to complex node
+            refs         = Ref(node.wholeRef).split_spanning_ref()
+            first, last  = refs[0], refs[-1]
+            offset       = first.sections[-2]-1 if first.is_segment_level() else first.sections[-1]-1
+            offset_lines = (first.normal().rsplit(":", 1)[1] if first.is_segment_level() else "", 
+                            last.normal().rsplit(":", 1)[1] if last.is_segment_level() else "")
+            he           = wrap_counts(JaggedArray(he_counts).subarray_with_ref(Ref(node.wholeRef)).array())
+            en           = wrap_counts(JaggedArray(en_counts).subarray_with_ref(Ref(node.wholeRef)).array())
+            depth        = len(first.index.nodes.sectionNames) - len(first.section_ref().sections)
+            sectionNames = first.index.nodes.sectionNames[depth:]
+            addressTypes = first.index.nodes.addressTypes[depth:]
+            ref          = first.context_ref(level=2) if first.is_segment_level() else first.context_ref()
+            content = make_simple_toc_html(he, en, sectionNames, addressTypes, ref.url(), offset=offset, offset_lines=offset_lines)
+            html += "<div class='schema-node-contents open'>" + content + "</div>"
+
+        html += "</a>" if linked else "</div>"
+        return html
+    
+    state = StateNode(alt.primary_title())
+    he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
+    html = "<div class='tocLevel'>" + alt.traverse_to_string(node_line) + "</div>"
+    return html
+
+
+def make_simple_toc_html(he_toc, en_toc, labels, addresses, ref, zoom=1, offset=0, offset_lines=None):
+    """
+    Returns HTML Table of Contents corresponding to jagged count arrays he_toc and en_toc.
+    Runs recursively.
+    :param he_toc - jagged int array of available counts in hebrew
+    :param en_toc - jagged int array of available counts in english
+    :param labels - list of section names for levels corresponding to toc
+    :param addresses - list of address types, from Index record
+    :param ref - text to prepend to final links. Starts with text title, recursively adding sections.
+    :param zoom - sets how many levels of final depth to summarize
+    (e.g., 1 will hide verses and only show chapter level)
+    :param offset - int to add to each listed section
+    :param offset_lines - tuple of strings to be appended to the URL of the first and last
+    section (allows pointing to spans inside a section).
+    """
+    he_toc = [] if isinstance(he_toc, int) else he_toc
+    en_toc = [] if isinstance(en_toc, int) else en_toc
+    assert(len(he_toc) == len(en_toc))
+    length = len(he_toc)
+    assert(list_depth(he_toc, deep=True) == list_depth(en_toc, deep=True))
+    depth = list_depth(he_toc, deep=True)
+
+    # todo: have this use the address classes in schema.py
+    talmudBase = (len(addresses) > 0 and addresses[0] == "Talmud")
+
+    html = ""
+    if depth == zoom + 1:
+        # We're at the terminal level, list sections links
+        for i in range(length):
+            klass = "he%s en%s" % (toc_availability_class(he_toc[i]), toc_availability_class(en_toc[i]))
+            if klass == "heNone enNone":
+                continue # Don't display sections with no content
+            en_section   = section_to_daf(i+offset+1) if talmudBase else str(i+offset+1)
+            he_section   = encode_hebrew_daf(en_section) if talmudBase else encode_hebrew_numeral(int(en_section), punctuation=False)
+            section_html = "<span class='en'>%s</span><span class='he'>%s</span>" % (en_section, he_section)
+            path = "%s.%s" % (ref, en_section)
+            if offset_lines and i == 0 and offset_lines[0]:
+                path += "." + offset_lines[0]
+            elif offset_lines and (i+1) == length and offset_lines[1]:
+                path += "." + offset_lines[1]
+            if zoom > 1:  # Make links point to first available content
+                available = Ref(ref + "." + en_section).first_available_section_ref()
+                path = available.url() if available else path
+            html += '<a class="sectionLink %s" href="/%s">%s</a>' % (klass, urlquote(path), section_html)
+        if html:
+            sectionName = "<div class='sectionName'>"
+            sectionName += "<span class='en'>" + hebrew_plural(labels[0]) + "</span>"
+            sectionName += "<span class='he'>" + hebrew_term(labels[0]) + "</span>"
+            sectionName += "</div>" 
+            html = sectionName + html
+    else:
+        # We're above terminal level, list sections and recur
+        for i in range(length):
+            section = section_to_daf(i + 1) if talmudBase else str(i + 1)
+            section_html = make_simple_toc_html(he_toc[i], en_toc[i], labels[1:], addresses[1:], ref + "." + section, zoom=zoom)
+            if section_html:
+                he_section = encode_hebrew_daf(section) if talmudBase else encode_hebrew_numeral(int(section), punctuation=False)
+                html += "<div class='tocSection'>"
+                html += "<div class='sectionName'>"
+                html += "<span class='en'>" + labels[0] + " " + section + "</span>"
+                html += "<span class='he'>" + hebrew_term(labels[0]) + " " + he_section + "</span>"
+                html += "</div>" + section_html + "</div>"
+
+    html = "<div class='tocLevel'>" + html + "</div>" if html else ""
+    return html
+
+
+def toc_availability_class(toc):
+    """
+    Returns the string of a class name in ("All", "Some", "None") 
+    according to how much content is available in toc, 
+    which may be either a list of ints or an int representing available counts.
+    """
+    if isinstance(toc, int):
+        return "All" if toc else "None"
+    else:
+        counts = set([toc_availability_class(x) for x in toc])
+        if counts == set(["All"]):
+            return "All"
+        elif "Some" in counts or counts == set(["All", "None"]):
+            return "Some"
+        else:
+            return "None"
+
+
 @ensure_csrf_cookie
-def text_toc(request, title):
+def text_toc(request, oref):
     """
-    Page representing a single text, showing it's table of contents.
+    Page representing a single text, showing its Table of Contents and related info.
     """
-    index        = get_index(title)
-    counts       = model.Ref(title).get_count()
-    counts       = counts.contents() if counts else {}
-    versions     = VersionSet({"title": title}, sort=[["language", -1]])
-    cats = index.categories[:] # Make a list of categories which will let us pull a commentary node from TOC
+    index         = oref.index
+    title         = index.title
+    heTitle       = index.get_title(lang='he')
+    state         = StateNode(title)
+    versions      = VersionSet({"title": title}, sort=[["language", -1]])
+    cats          = index.categories[:] # Make a list of categories which will let us pull a commentary node from TOC
     cats.insert(1, "Commentary")
     cats.append(index.title)
     toc           = get_toc()
     commentaries  = get_or_make_summary_node(toc, cats)
 
-    def make_toc_html(he_toc, en_toc, labels, ref, talmud=False, zoom=1):
-        """
-        Returns HTML corresponding to jagged count arrays he_toc and en_toc.
-        Runs recurrisvely.
-        :param he_toc - jagged int array of available counts in hebrew
-        :param en_toc - jagged int array of available counts in english
-        :param labels - list of section names for levels corresponding to toc
-        :param ref - text to prepend to final links. Starts with text title, recusively adding sections.
-        :param talmud = whether to create final refs with daf numbers
-        :param zoom - sets how many levels of final depth to summarize 
-        (e.g., 1 will hide verses and only show chapter level)
-        """
-        he_toc = [] if isinstance(he_toc, int) else he_toc
-        en_toc = [] if isinstance(en_toc, int) else en_toc
-        length = max(len(he_toc), len(en_toc))
-        depth  = max(list_depth(he_toc, deep=True), list_depth(en_toc, deep=True))
+    if index.is_complex():
+        zoom = 1
+    else:
+        zoom = 0 if index.nodes.depth == 1 else 2 if "Commentary" in index.categories else 1
+        zoom = int(request.GET.get("zoom", zoom))
+    toc_html = make_toc_html(oref, zoom=zoom)
 
-        html = ""
-        if depth == zoom + 1:
-            # We're at the terminal level, list sections links
-            for i in range(length):
-                klass = "he%s en%s" %(available_class(he_toc[i]), available_class(en_toc[i]))
-                if klass == "heNone enNone":
-                    continue
-                section = section_to_daf(i+1) if talmud else str(i+1)
-                path = "%s.%s" % (ref, section)
-                if zoom > 1: # Make links point to first available content
-                    prev_section = section_to_daf(i) if talmud else str(i)
-                    path = Ref(ref + "." + prev_section).next_section_ref().url()
-                html += '<a class="sectionLink %s" href="/%s">%s</a>' % (klass, urlquote(path), section)
-            html = "<div class='sectionName'>" + hebrew_plural(labels[0]) + "</div>" + html if html else ""
+    if index.is_complex():
+        count_strings = False
+        complex = True
+        zoom = 1
+    else: # simple text
+        complex = False
+        talmud = Ref(index.title).is_talmud()
+        count_strings = {
+            "en": ", ".join([str(state.get_available_counts("en")[i]) + " " + hebrew_plural(index.nodes.sectionNames[i]) for i in range(index.nodes.depth)]),
+            "he": ", ".join([str(state.get_available_counts("he")[i]) + " " + hebrew_plural(index.nodes.sectionNames[i]) for i in range(index.nodes.depth)]),
+        } if state else None  #why the condition?
 
-        else:
-            # We're above terminal level, list sections and recur
-            for i in range(length):
-                section = section_to_daf(i+1) if talmud else str(i+1)
-                # Talmud is set to false beceause we only ever use Talmud numbering at top (daf) level
-                section_html = make_toc_html(he_toc[i], en_toc[i], labels[1:], ref+"."+section, talmud=False, zoom=zoom)
-                if section_html:
-                    html += "<div class='tocSection'>"
-                    html += "<div class='sectionName'>" + labels[0] + " " + str(section) + "</div>"
-                    html += section_html + "</div>"
+        if talmud and count_strings:
+            count_strings["he"] = count_strings["he"].replace("Dappim", "Amudim")
+            count_strings["en"] = count_strings["en"].replace("Dappim", "Amudim")
+        if "Commentary" in index.categories and state.get_flag("heComplete"):
+            # Because commentary text is sparse, the code in make_toc_hmtl doens't work for completeness
+            # Trust a flag if its set instead
+            toc_html = toc_html.replace("heSome", "heAll")
 
-        html = "<div class='tocLevel'>" + html + "</div>" if html else ""
-        return html
-
-    def available_class(toc):
-        """
-        Returns the string of a class name in ("All", "Some", "None") 
-        according to how much content is available in toc, 
-        which may be either a list of ints or an int representing available counts.
-        """
-        if isinstance(toc, int):
-            return "All" if toc else "None"
-        else:
-            counts = set([available_class(x) for x in toc])
-            if counts == set(["All"]):
-                return "All"
-            elif "Some" in counts or counts == set(["All", "None"]):
-                return "Some"
-            else:
-                return "None"
-
-    talmud = "Talmud" in index.categories
-    zoom = 0 if index.textDepth == 1 else 2 if "Commentary" in index.categories else 1
-    zoom = int(request.GET.get("zoom", zoom))
-    he_counts, en_counts = counts.get("availableTexts", {}).get("he", []), counts.get("availableTexts", {}).get("en", [])
-    toc_html = make_toc_html(he_counts, en_counts, index.sectionNames, title, talmud=talmud, zoom=zoom)
-
-    count_strings = {
-        "en": ", ".join([str(counts["availableCounts"]["en"][i]) + " " + hebrew_plural(index.sectionNames[i]) for i in range(index.textDepth)]),
-        "he": ", ".join([str(counts["availableCounts"]["he"][i]) + " " + hebrew_plural(index.sectionNames[i]) for i in range(index.textDepth)]),
-    } if counts != {} else None
-
-    if talmud and count_strings:
-        count_strings["he"] = count_strings["he"].replace("Dappim", "Amudim")
-        count_strings["en"] = count_strings["en"].replace("Dappim", "Amudim")
-    if "Commentary" in index.categories and counts.get("flags", {}).get("heComplete", False):
-        # Because commentary text is sparse, the code in make_toc_hmtl doens't work for completeness
-        # Trust a flag if its set instead
-        toc_html = toc_html.replace("heSome", "heAll")
+    index = index.contents(v2=True)
+    if index["categories"][0] in REORDER_RULES:
+        index["categories"] = REORDER_RULES[index["categories"][0]] + index["categories"][1:]
 
     return render_to_response('text_toc.html',
                              {
                              "index":         index,
                              "versions":      versions,
                              "commentaries":  commentaries,
-                             "counts":        counts,
+                             "heComplete":    state.get_flag("heComplete"),
+                             "enComplete":    state.get_flag("enComplete"),
                              "count_strings": count_strings,
                              "zoom":          zoom,
                              "toc_html":      toc_html,
+                             "complex":       complex,
                              },
                              RequestContext(request))
 
@@ -361,9 +561,27 @@ def search(request):
                              {},
                              RequestContext(request))
 
+
+#todo: is this used elsewhere? move it?
+def count_and_index(c_oref, c_lang, vtitle, to_count=1, to_index=1):
+    # count available segments of text
+    if to_count:
+        summaries.update_summaries_on_change(c_oref.book)
+
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE and to_index:
+        model.IndexQueue({
+            "ref": c_oref.normal(),
+            "lang": c_lang,
+            "version": vtitle,
+            "type": "ref",
+        }).save()
+
+
 @catch_error_as_json
 @csrf_exempt
 def texts_api(request, tref, lang=None, version=None):
+    oref = Ref(tref)
     if request.method == "GET":
         cb         = request.GET.get("callback", None)
         context    = int(request.GET.get("context", 1))
@@ -371,16 +589,19 @@ def texts_api(request, tref, lang=None, version=None):
         pad        = bool(int(request.GET.get("pad", 1)))
         version    = version.replace("_", " ") if version else None
         layer_name = request.GET.get("layer", None)
+        alts       = bool(int(request.GET.get("alts", True)))
 
-        text = get_text(tref, version=version, lang=lang, commentary=commentary, context=context, pad=pad)
+        try:
+            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
+        except AttributeError as e:
+            oref = oref.default_child_ref()
+            text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
 
-        if "error" in text:
-            return jsonResponse(text, cb)
 
         # Use a padded ref for calculating next and prev
         # TODO: what if pad is false and the ref is of an entire book?
         # Should next_section_ref return None in that case?
-        oref               = model.Ref(tref).padded_ref() if pad else model.Ref(tref)
+        oref               = oref.padded_ref() if pad else oref
         text["next"]       = oref.next_section_ref().normal() if oref.next_section_ref() else None
         text["prev"]       = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
         text["commentary"] = text.get("commentary", [])
@@ -405,9 +626,12 @@ def texts_api(request, tref, lang=None, version=None):
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
 
+        oref = oref.default_child_ref()  # Make sure we're on the textual child
+
         # Parameters to suppress some costly operations after save
         count_after = int(request.GET.get("count_after", 1))
         index_after = int(request.GET.get("index_after", 1))
+
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
@@ -415,13 +639,17 @@ def texts_api(request, tref, lang=None, version=None):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            response = save_text(tref, json.loads(j), apikey["uid"], method="API", count_after=count_after, index_after=index_after)
-            return jsonResponse(response)
+            t = json.loads(j)
+            chunk = tracker.modify_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], method="API")
+            count_and_index(oref, chunk.lang, chunk.vtitle, count_after, index_after)
+            return jsonResponse({"status": "ok"})
         else:
             @csrf_protect
             def protected_post(request):
-                response = save_text(tref, json.loads(j), request.user.id, count_after=count_after, index_after=index_after)
-                return jsonResponse(response)
+                t = json.loads(j)
+                chunk = tracker.modify_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"], t["versionSource"])
+                count_and_index(oref, chunk.lang, chunk.vtitle, count_after, index_after)
+                return jsonResponse({"status": "ok"})
             return protected_post(request)
 
     if request.method == "DELETE":
@@ -450,27 +678,44 @@ def parashat_hashavua_api(request):
     callback = request.GET.get("callback", None)
     p = sefaria.utils.calendars.this_weeks_parasha(datetime.now())
     p["date"] = p["date"].isoformat()
-    p.update(get_text(p["ref"]))
+    #p.update(get_text(p["ref"]))
+    p.update(TextFamily(Ref(p["ref"])).contents())
     return jsonResponse(p, callback)
+
 
 @catch_error_as_json
 def table_of_contents_api(request):
-    return jsonResponse(get_toc())
+    return jsonResponse(get_toc(), callback=request.GET.get("callback", None))
+
 
 @catch_error_as_json
 def text_titles_api(request):
-    return jsonResponse({"books": model.get_text_titles()})
+    return jsonResponse({"books": model.library.full_title_list(with_commentary=True)}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
 @csrf_exempt
-def index_api(request, title):
+def index_node_api(request, title):
+    pass
+
+@catch_error_as_json
+@csrf_exempt
+def index_api(request, title, v2=False, raw=False):
     """
     API for manipulating text index records (aka "Text Info")
     """
     if request.method == "GET":
-        i = model.get_index(title).contents()
-        return jsonResponse(i)
+        try:
+            i = model.get_index(title).contents(v2=v2, raw=raw)
+        except InputError as e:
+            node = library.get_schema_node(title)  # If the request were for v1 and fails, this falls back to v2.
+            if not node:
+                raise e
+            if node.is_default():
+                node = node.parent
+            i = node.as_index_contents()
+
+        return jsonResponse(i, callback=request.GET.get("callback", None))
 
     if request.method == "POST":
         # use the update function if update is in the params
@@ -486,14 +731,19 @@ def index_api(request, title):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            return jsonResponse(func(apikey["uid"], model.Index, j, method="API").contents())
-        elif j.get("oldTitle"):
-            if not request.user.is_staff and not user_started_text(request.user.id, j["oldTitle"]):
-                return jsonResponse({"error": "Title of '{}' is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(j["oldTitle"])})
+            return jsonResponse(func(apikey["uid"], model.Index, j, method="API", v2=v2, raw=raw).contents(v2=v2, raw=raw))
+        else:
+            title = j.get("oldTitle", j.get("title"))
+            try:
+                i = get_index(title) # Only allow staff and the person who submitted a text to edit
+                if not request.user.is_staff and not user_started_text(request.user.id, title):
+                   return jsonResponse({"error": "{} is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(title)})
+            except BookNameError:
+                pass # if this is a new text, allow any logged in user to submit
         @csrf_protect
         def protected_index_post(request):
             return jsonResponse(
-                func(request.user.id, model.Index, j).contents()
+                func(request.user.id, model.Index, j, v2=v2, raw=raw).contents(v2=v2, raw=raw)
             )
         return protected_index_post(request)
 
@@ -511,16 +761,18 @@ def index_api(request, title):
 
     return jsonResponse({"error": "Unsuported HTTP method."})
 
+
 @catch_error_as_json
 def bare_link_api(request, book, cat):
 
     if request.method == "GET":
-        resp = jsonResponse(get_book_link_collection(book, cat))
+        resp = jsonResponse(get_book_link_collection(book, cat), callback=request.GET.get("callback", None))
         resp['Content-Type'] = "application/json; charset=utf-8"
         return resp
 
     elif request.method == "POST":
         return jsonResponse({"error": "Not implemented."})
+
 
 @catch_error_as_json
 def link_count_api(request, cat1, cat2):
@@ -535,13 +787,31 @@ def link_count_api(request, cat1, cat2):
     elif request.method == "POST":
         return jsonResponse({"error": "Not implemented."})
 
+
+@catch_error_as_json
+def word_count_api(request, title, version, language):
+    """
+    Return a count document with the number of links between every text in cat1 and every text in cat2
+    """
+    if request.method == "GET":
+        counts = VersionSet({"title": title, "versionTitle": version, "language": language}).word_count()
+        resp = jsonResponse({"wordCount": counts})
+        return resp
+
+    elif request.method == "POST":
+        return jsonResponse({"error": "Not implemented."})
+
+
 @catch_error_as_json
 def counts_api(request, title):
     """
-    API for retrieving the counts document for a given text.
+    API for retrieving the counts document for a given text node.
+    :param title: A valid node title
     """
+    title = title.replace("_", " ")
+
     if request.method == "GET":
-        return jsonResponse(model.Ref(title).get_count().contents())
+        return jsonResponse(StateNode(title).contents(), callback=request.GET.get("callback", None))
 
     elif request.method == "POST":
         if not request.user.is_staff:
@@ -551,14 +821,45 @@ def counts_api(request, title):
             flag = request.GET.get("flag", None)
             if not flag:
                 return jsonResponse({"error": "'flag' parameter missing."})
-            val  = request.GET.get("val", None)
+            val = request.GET.get("val", None)
             val = True if val == "true" else False
 
-            set_counts_flag(title, flag, val)
+            vs = VersionState(title)
+            if not vs:
+                raise InputError("State not found for : {}".format(title))
+            vs.set_flag(flag, val).save()
 
             return jsonResponse({"status": "ok"})
 
         return jsonResponse({"error": "Not implemented."})
+
+
+@catch_error_as_json
+def text_preview_api(request, title):
+    """
+    API for retrieving a document that gives preview text (first characters of each section)
+    for text 'title'
+    """
+    oref = Ref(title)
+    response = oref.index.contents(v2=True)
+    response['node_title'] = oref.index_node.full_title()
+
+    def get_preview(prev_oref):
+        text = TextFamily(prev_oref, pad=False, commentary=False)
+
+        if prev_oref.index_node.depth == 1:
+            # Give deeper previews for texts with depth 1 (boring to look at otherwise)
+            text.text, text.he = [[i] for i in text.text], [[i] for i in text.he]
+        preview = text_preview(text.text, text.he) if (text.text or text.he) else []
+        return preview if isinstance(preview, list) else [preview]
+
+    if not oref.index_node.has_children():
+        response['preview'] = get_preview(oref)
+    elif oref.index_node.has_default_child():
+        r = oref.index_node.get_default_child().ref()  # Get ref through ref() to get default leaf node and avoid getting parent node
+        response['preview'] = get_preview(r)
+
+    return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -570,13 +871,14 @@ def links_api(request, link_id_or_ref=None):
     """
     #TODO: can we distinguish between a link_id (mongo id) for POSTs and a ref for GETs?
     if request.method == "GET":
+        callback=request.GET.get("callback", None)
         if link_id_or_ref is None:
-            return jsonResponse({"error": "Missing text identifier"})
+            return jsonResponse({"error": "Missing text identifier"}, callback)
         #The Ref instanciation is just to validate the Ref and let an error bubble up.
         #TODO is there are better way to validate the ref from GET params?
         model.Ref(link_id_or_ref)
         with_text = int(request.GET.get("with_text", 1))
-        return jsonResponse(get_links(link_id_or_ref, with_text))
+        return jsonResponse(get_links(link_id_or_ref, with_text), callback)
 
     if request.method == "POST":
         # delegate according to single/multiple objects posted
@@ -631,6 +933,18 @@ def post_single_link(request, link):
             return resp
         response = protected_link_post(request)
     return response
+
+
+@catch_error_as_json
+@csrf_exempt
+def link_summary_api(request, ref):
+    """
+    Returns a summary of links available for ref.
+    """
+    oref    = Ref(ref)
+    summary = oref.linkset().summary(oref)
+    return jsonResponse(summary)
+
 
 @catch_error_as_json
 @csrf_exempt
@@ -710,7 +1024,7 @@ def versions_api(request, tref):
             "langauge": v.language
         })
 
-    return jsonResponse(results)
+    return jsonResponse(results, callback=request.GET.get("callback", None))
 
 @catch_error_as_json
 def set_lock_api(request, tref, lang, version):
@@ -746,10 +1060,48 @@ def lock_text_api(request, title, lang, version):
     if not request.user.is_staff:
         return {"error": "Only Sefaria Moderators can lock texts."}
 
+    title   = title.replace("_", " ")
+    version = version.replace("_", " ")
+    vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
+
     if request.GET.get("action", None) == "unlock":
-        return jsonResponse(set_text_version_status(title, lang, version, status=None))
+        vobj.status = None
     else:
-        return jsonResponse(set_text_version_status(title, lang, version, status="locked"))
+        vobj.status = "locked"
+
+    vobj.save()
+    return jsonResponse({"status": "ok"})
+
+
+@catch_error_as_json
+def dictionary_api(request, word):
+    lookup_ref=request.GET.get("lookup_ref", None)
+    wform_pkey = 'form'
+    if is_hebrew(word):
+        word = strip_cantillation(word)
+        if not has_cantillation(word, detect_vowels=True):
+            wform_pkey = 'c_form'
+
+    query_obj = {wform_pkey: word}
+    if lookup_ref:
+        nref = Ref(lookup_ref).normal()
+        query_obj["refs"] = {'$regex': '^{}'.format(nref)}
+    form = WordForm().load(query_obj)
+    if not form:
+        del query_obj["refs"]
+        form = WordForm().load(query_obj)
+    if form:
+        result = []
+        for lookup in form.lookups:
+            #TODO: if we want the 'lookups' in wf to be a dict we can pass as is to the lexiconentry, we need to change the key 'lexicon' to 'parent_lxicon' in word forms
+            ls = LexiconEntrySet({'headword': lookup['headword']})
+            for l in ls:
+                result.append(l.contents())
+        return jsonResponse(result)
+    else:
+        return jsonResponse({"error": "No information found for given word."})
+
+
 
 @catch_error_as_json
 def notifications_api(request):
@@ -905,6 +1257,7 @@ def texts_history_api(request, tref, lang=None, version=None):
 @catch_error_as_json
 def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
     if request.method == "GET":
+        callback=request.GET.get("callback", None)
         if tref and lang and version:
             nref = model.Ref(tref).normal()
             version = version.replace("_", " ")
@@ -928,7 +1281,7 @@ def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
         elif review_id:
             response = {}
 
-        return jsonResponse(response)
+        return jsonResponse(response, callback)
 
     elif request.method == "POST":
         if not request.user.is_authenticated():
@@ -990,11 +1343,12 @@ def segment_history(request, tref, lang, version):
     """
     View revision history for the text segment named by ref / lang / version.
     """
-    nref = model.Ref(tref).normal()
+    oref = model.Ref(tref)
+    nref = oref.normal()
 
     version = version.replace("_", " ")
     filter_type = request.GET.get("type", None)
-    history = text_history(nref, version, lang, filter_type=filter_type)
+    history = text_history(oref, version, lang, filter_type=filter_type)
 
     email = request.user.email if request.user.is_authenticated() else False
     return render_to_response('activity.html',
@@ -1021,20 +1375,13 @@ def revert_api(request, tref, lang, version, revision):
 
     revision = int(revision)
     version = version.replace("_", " ")
-    tref = model.Ref(tref).normal()
+    oref = model.Ref(tref)
 
-    existing = get_text(tref, commentary=0, version=version, lang=lang)
-    if "error" in existing:
-        return jsonResponse(existing)
+    new_text = text_at_revision(oref.normal(), version, lang, revision)
 
-    text = {
-        "versionTitle": version,
-        "versionSource": existing["versionSource"] if lang == "en" else existing["heVersionSource"],
-        "language": lang,
-        "text": text_at_revision(tref, version, lang, revision)
-    }
+    tracker.modify_text(request.user.id, oref, version, lang, new_text, type="revert")
 
-    return jsonResponse(save_text(tref, text, request.user.id, type="revert text"))
+    return jsonResponse({"status": "ok"})
 
 
 @ensure_csrf_cookie
@@ -1175,9 +1522,6 @@ def splash(request):
     metrics            = db.metrics.find().sort("timestamp", -1).limit(1)[0]
     activity, page     = get_maximal_collapsed_activity(query={}, page_size=5, page=1)
 
-    # Pull language setting from Accept-Lanugage header
-    langClass = 'hebrew' if request.LANGUAGE_CODE in ('he', 'he-il') else 'english'
-
     return render_to_response('static/splash.html',
                              {
                               "activity": activity,
@@ -1185,10 +1529,28 @@ def splash(request):
                               "daf_today": daf_today,
                               "daf_tomorrow": daf_tomorrow,
                               "parasha": parasha,
-                              "langClass": langClass,
                               },
                               RequestContext(request))
 
+
+@ensure_csrf_cookie
+def home(request):
+    """
+    Homepage
+    """
+    daf_today          = sefaria.utils.calendars.daf_yomi(datetime.now())
+    daf_tomorrow       = sefaria.utils.calendars.daf_yomi(datetime.now() + timedelta(1))
+    parasha            = sefaria.utils.calendars.this_weeks_parasha(datetime.now())
+    metrics            = db.metrics.find().sort("timestamp", -1).limit(1)[0]
+
+    return render_to_response('static/home.html',
+                             {
+                              "metrics": metrics,
+                              "daf_today": daf_today,
+                              "daf_tomorrow": daf_tomorrow,
+                              "parasha": parasha,
+                              },
+                              RequestContext(request))
 
 @ensure_csrf_cookie
 def discussions(request):
@@ -1231,14 +1593,19 @@ def new_discussion_api(request):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+@catch_error_as_http
 @ensure_csrf_cookie
 def dashboard(request):
     """
     Dashboard page -- table view of all content
     """
-    counts = db.counts.find({"title": {"$exists": 1}},
-        {"title": 1, "flags": 1, "linksCount": 1, "percentAvailable": 1})
+    #counts = db.counts.find({"title": {"$exists": 1}},
+    #    {"title": 1, "flags": 1, "linksCount": 1, "percentAvailable": 1})
 
+    states = VersionStateSet(
+        {},
+        proj={"title": 1, "flags": 1, "linksCount": 1, "content._en.percentAvailable": 1, "content._he.percentAvailable": 1}
+    ).array()
     toc = get_toc()
     flat_toc = flatten_toc(toc)
 
@@ -1248,13 +1615,112 @@ def dashboard(request):
         except:
             return 9999
 
-    counts = sorted(counts, key=toc_sort)
+    states = sorted(states, key=toc_sort)
 
     return render_to_response('dashboard.html',
                                 {
-                                    "counts": counts,
+                                    "states": states,
                                 },
                                 RequestContext(request))
+
+
+@catch_error_as_http
+@ensure_csrf_cookie
+def translation_requests(request, completed_only=False, featured_only=False):
+    """
+    Page listing all outstnading translation requests.
+    """
+    page              = int(request.GET.get("page", 1)) - 1
+    page_size         = 100
+    query             = {"completed": False, "section_level": False} if not completed_only else {"completed": True}
+    query             = {"completed": True, "featured": True} if completed_only and featured_only else query
+    requests          = TranslationRequestSet(query, limit=page_size, page=page, sort=[["request_count", -1]])
+    request_count     = TranslationRequestSet({"completed": False, "section_level": False}).count()
+    complete_count    = TranslationRequestSet({"completed": True}).count()
+    featured_complete = TranslationRequestSet({"completed": True, "featured": True}).count()
+    next_page         = page + 2 if True or requests.count() == page_size else 0
+    featured_query    = {"featured": True, "featured_until": { "$gt": datetime.now() } }
+    featured          = TranslationRequestSet(featured_query, sort=[["completed", 1], ["featured_until", 1]])
+    today             = datetime.today()
+    featured_end      = today + timedelta(7 - ((today.weekday()+1) % 7)) # This coming Sunday
+    featured_end      = featured_end.replace(hour=0, minute=0)  # At midnight
+    current           = [d.featured_until <= featured_end for d in featured]
+    featured_current  = sum(current)
+    show_featured     = not completed_only and not page and ((request.user.is_staff and featured.count()) or (featured_current))
+
+    return render_to_response('translation_requests.html',
+                                {
+                                    "featured": featured,
+                                    "featured_current": featured_current,
+                                    "show_featured": show_featured,
+                                    "requests": requests,
+                                    "request_count": request_count,
+                                    "completed_only": completed_only,
+                                    "complete_count": complete_count,
+                                    "featured_complete": featured_complete,
+                                    "featured_only": featured_only,
+                                    "next_page": next_page,
+                                    "page_offset": page * page_size
+                                },
+                                RequestContext(request))
+
+
+def completed_translation_requests(request):
+    """
+    Wrapper for listing completed translations requests.
+    """
+    return translation_requests(request, completed_only=True)
+
+
+def completed_featured_translation_requests(request):
+    """
+    Wrapper for listing completed translations requests.
+    """
+    return translation_requests(request, completed_only=True, featured_only=True)
+
+
+def translation_request_api(request, tref):
+    """
+    API for requesting a text segment for translation.
+    """
+    if not request.user.is_authenticated():
+        return jsonResponse({"error": "You must be logged in to request a translation."})
+
+    oref = Ref(tref)
+    ref = oref.normal()
+    
+    if "unrequest" in request.POST:
+        TranslationRequest.remove_request(ref, request.user.id)
+        response = {"status": "ok"}
+    
+    elif "feature" in request.POST:
+        if not request.user.is_staff:
+            response = {"error": "Only admins can feature requests."}
+        else:
+            tr                = TranslationRequest().load({"ref": ref})
+            tr.featured       = True
+            tr.featured_until = dateutil.parser.parse(request.POST.get("feature"))
+            tr.save()
+            response = {"status": "ok"}
+
+    elif "unfeature" in request.POST:
+        if not request.user.is_staff:
+            response = {"error": "Only admins can unfeature requests."}
+        else:
+            tr = TranslationRequest().load({"ref": ref})
+            tr.featured       = False
+            tr.featured_until = None
+            tr.save()
+            response = {"status": "ok"}       
+        
+    else:
+        if oref.is_text_translated():
+            response = {"error": "Sefaria already has a translation for %s." % ref}
+        else:
+            tr = TranslationRequest.make_request(ref, request.user.id)
+            response = tr.contents()
+
+    return jsonResponse(response)
 
 
 @ensure_csrf_cookie
@@ -1265,7 +1731,7 @@ def translation_flow(request, tref):
     """
     tref = tref.replace("_", " ")
     generic_response = { "title": "Help Translate %s" % tref, "content": "" }
-    categories = model.get_text_categories()
+    categories = model.library.get_text_categories()
     next_text = None
     next_section = None
 
@@ -1274,7 +1740,7 @@ def translation_flow(request, tref):
 
     try:
         oref = model.Ref(tref)
-    except BookNameError:
+    except InputError:
         oref = False
     if oref and len(oref.sections) == 0:
         # tref is an exact text Title
@@ -1284,13 +1750,19 @@ def translation_flow(request, tref):
             return redirect("/translate/%s" % oref.url(), permanent=True)
 
         # Check for completion
-        if get_percent_available(oref.normal()) == 100:
+        if oref.get_state_node().get_percent_available("en") == 100:
             generic_response["content"] = "<h3>Sefaria now has a complete translation of %s</h3>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % tref
             return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
         if "random" in request.GET:
             # choose a ref from a random section within this text
-            skip = int(request.GET.get("skip")) if "skip" in request.GET else None
+            if "skip" in request.GET:
+                if oref.is_talmud():
+                    skip = int(daf_to_section(request.GET.get("skip")))
+                else:
+                    skip = int(request.GET.get("skip"))
+            else:
+                skip = None
             assigned_ref = random_untranslated_ref_in_text(oref.normal(), skip=skip)
 
             if assigned_ref:
@@ -1314,8 +1786,10 @@ def translation_flow(request, tref):
         # for now, send this to the edit_text view
         return edit_text(request, tref)
 
-    elif tref in categories:
+    elif tref in categories:  #todo: Fix me to work with Version State!
         # ref is a text Category
+        raise InputError("This function is under repair.  Our Apologies.")
+        '''
         cat = tref
 
         # Check for completion
@@ -1332,9 +1806,10 @@ def translation_flow(request, tref):
 
         elif "text" in request.GET:
             # choose the next text requested in URL
-            text = model.Ref(request.GET["text"]).normal()
+            oref = model.Ref(request.GET["text"])
+            text = oref.normal()
             next_text = text
-            if get_percent_available(text) == 100:
+            if oref.get_state_node().get_percent_available("en") == 100:
                 generic_response["content"] = "%s is complete! Work on <a href='/translate/%s'>another text</a>." % (text, tref)
                 return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
@@ -1358,14 +1833,14 @@ def translation_flow(request, tref):
                     pass
                 else:
                     success = 1
-
+        '''
     else:
         # we don't know what this is
         generic_response["content"] = "<b>%s</b> isn't a known text or category.<br>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % (tref)
         return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
     # get the assigned text
-    assigned = get_text(assigned_ref, context=0, commentary=False)
+    assigned = TextFamily(Ref(assigned_ref), context=0, commentary=False).contents()
 
     # Put a lock on this assignment
     user = request.user.id if request.user.is_authenticated() else 0
@@ -1378,9 +1853,9 @@ def translation_flow(request, tref):
 
     # get percentage and remaining counts
     # percent   = get_percent_available(assigned["book"])
-    translated = get_translated_count_by_unit(assigned["book"], unit=assigned["sectionNames"][-1])
-    remaining = get_untranslated_count_by_unit(assigned["book"], unit=assigned["sectionNames"][-1])
-    percent = 100 * translated / float(translated + remaining)
+    translated = StateNode(assigned["book"]).get_translated_count_by_unit(assigned["sectionNames"][-1])
+    remaining = StateNode(assigned["book"]).get_untranslated_count_by_unit(assigned["sectionNames"][-1])
+    percent    = 100 * translated / float(translated + remaining)
 
 
     return render_to_response('translate_campaign.html',
@@ -1395,7 +1870,7 @@ def translation_flow(request, tref):
                                     "remaining": remaining,
                                     "percent": percent,
                                     "thanks": "thank" in request.GET,
-                                    "random_param": "&skip=%d" % assigned["sections"][0] if request.GET.get("random") else "",
+                                    "random_param": "&skip={}".format(assigned["sections"][0]) if request.GET.get("random") else "",
                                     "next_text": next_text,
                                     "next_section": next_section,
                                     },
@@ -1464,6 +1939,61 @@ def metrics(request):
                                 },
                                 RequestContext(request))
 
+
+@ensure_csrf_cookie
+def digitized_by_sefaria(request):
+    """
+    Metrics page. Shows graphs of core metrics.
+    """
+    texts = VersionSet({"digitizedBySefaria": True}, sort=[["title", 1]])
+    return render_to_response('static/digitized-by-sefaria.html',
+                                {
+                                    "texts": texts,
+                                },
+                                RequestContext(request))
+
+
+def random_ref():
+    """
+    Returns a valid random ref within the Sefaria library.
+    """
+
+    # refs = library.ref_list()
+    # ref  = choice(refs)
+
+    # picking by text first biases towards short texts
+    text = choice(VersionSet().distinct("title"))
+    try:
+        # ref  = choice(VersionStateSet({"title": text}).all_refs()) # check for orphaned texts
+        ref = Ref(text).normal()
+    except Exception:
+        return random_ref()
+    return ref
+
+
+def random_redirect(request):
+    """
+    Redirect to a random text page.
+    """
+    response = redirect(iri_to_uri("/" + random_ref()), permanent=False)
+    return response
+
+
+def random_text_page(request):
+    """
+    Page for generating random texts.
+    """
+    return render_to_response('random.html', {}, RequestContext(request))
+
+
+def random_text_api(request):
+    """
+    Return Texts API data for a random ref.
+    """
+    response = redirect(iri_to_uri("/api/texts/" + random_ref()) + "?commentary=0", permanent=False)
+    return response
+
+
 @ensure_csrf_cookie
 def serve_static(request, page):
     """
@@ -1482,13 +2012,8 @@ def explore(request, book1, book2, lang=None):
         if book:
             books.append(book)
 
-    if lang != "he":
-        lang = "en"
+    template_vars =  {"books": json.dumps(books)}
+    if lang == "he": # Override language settings if 'he' is in URL
+        template_vars["contentLang"] = "hebrew"
 
-    return render_to_response('explore.html',
-                              {
-                                "books": json.dumps(books),
-                                "lang": lang
-                              },
-                              RequestContext(request)
-    )
+    return render_to_response('explore.html', template_vars, RequestContext(request))

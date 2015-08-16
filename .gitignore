@@ -55,6 +55,7 @@ dump.rdb
 
 #  Virtualenv Files #
 venv/
+.pycharm-bash
 
 # Partner files #
 /static/partner
@@ -62,15 +63,15 @@ venv/
 # Enviornment Specific Mongo Dumps
 system.users.bson
 
-# Sitemap
-/data/sitemap.txt
-
 # Robots.txt
 /static/robots.txt
-
 
 # Backed up Data
 /data/backup
 
 #Logs
 /logs
+/log
+
+#Docs
+/doc/_build

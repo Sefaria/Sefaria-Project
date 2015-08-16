@@ -11,15 +11,31 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-# look in data/scripts/ by default
-if [ -e $DIR/data/scripts/$1 ]; then
-    script="$DIR/data/scripts/$1"
+if [ "$1" = "--profile" ] ; then
+    profilescript=true
+    shift
+fi
+
+# look in scripts/ by default
+if [ -e $DIR/scripts/$1 ]; then
+    script="$DIR/scripts/$1"
 else
     script=$1
 fi
 
 if [ $# -eq 1 ]; then
-    python $script
-elif [ $# -eq 2 ]; then
-    python $script $2
+    if [ "$profilescript" = true ] ; then
+        echo "profiling"
+        python -m cProfile $script
+    else
+        python $script
+    fi
+elif [ $# -ge 2 ]; then
+    passargs=("${@:2}")
+    if [ "$profilescript" = true ] ; then
+        echo "profiling"
+        python -m cProfile $script "${passargs[@]}"
+    else
+        python $script "${passargs[@]}"
+    fi
 fi

@@ -1,18 +1,29 @@
 {% extends "base.html" %}
+{% load sefaria_tags %}
 
 {% block title %}Texts Digitized by Sefaria{% endblock %}
 
 {% block content %}
 
-<div id="" class="container doc">
+<div id="digitizedBySefaria" class="container doc">
 
 <span class="row">
 <span class="span8 offset2">
 
 <h2> Texts Digitized by Sefaria</h2>
-    <p>Texts on Sefaria which link to this page were scanned and/or digitized directly by Sefaria or by one of Sefaria's contractors from public domain books or book images. Source files for digitization may be available on request.</p>
+    <p>For the Jewish people, our texts are our collective treasure. They belong to everyone and we want them to be available to everyone, to use in any manner. Sefaria tries to provide only <a href="http://en.wikipedia.org/wiki/Public_domain">public domain</a> or freely licensed works. Sefaria digitizes many older books whose copyrights have expired and provides the text to the public, for free, with no use restrictions whatsoever. This is just one of the ways that Sefaria is trying to contribute to the public good – by digitizing these works and allowing anyone to use them.</p>
 
-    <p>Since the original book is in the <a href="http://en.wikipedia.org/wiki/Public_domain">public domain</a>, this digital text is also in the <a href="http://en.wikipedia.org/wiki/Public_domain">public domain</a>.<p> 
+    <p>To date, the following works have been digitized by Sefaria and are included in our system. You are welcome to copy, share, print, or adapt these works as you see fit. Source files for digitization may be available on request.</p>
+
+<ul id="texts">
+    {% for text in texts %}
+        <li>
+            <div>{{ text.title|ref_link }}</div>
+            <div class='sub'>{{ text.versionTitle }} ({{ text.language|lang_code }})</div>
+        </li>
+    {% endfor %}
+</ul>
+
 
 </span>
 </span>

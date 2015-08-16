@@ -3,12 +3,12 @@
 
 <table data-title="{{ text.title }}">
 	<tr>
-		<td class="title sparse{{ text.isSparse }}" id="{{ text.title.split|join:'_' }}">
+		<td class="title sparse{{ text.sparseness }}" id="{{ text.title.split|join:'_' }}">
 			<a href="/{{ text.title|url_safe|urlencode }}">{{ text.title|trim_title }}</a>
 		</td>
 		{% if text.heTitle %}
 		<td class="heTitle">
-			{{ text.heTitle|trim_title }}
+			<a href="/{{ text.title|url_safe|urlencode }}">{{ text.heTitle|trim_title }}</a>
 		</td>
 		{% else %}
 		<td class="heTitle empty">
