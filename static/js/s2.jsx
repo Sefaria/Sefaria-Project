@@ -132,21 +132,18 @@ var ReaderApp = React.createClass({
           this.setState({contents: this.state.contents});
         }
         sjs.track.event("Reader", "Infinite Scroll", "Down");
-      } else {
-        // no dice
-      }
-      /*
-      if (windowTop == 0) {
+      } else if (windowTop == 0 && !this.state.loadingContentAtTop) {
+        // Scroll up for previous
         topRef = current.refs[0];
-        data   = sjs.library.text(topRef);
+        data   = sjs.library.text(topRef) || sjs.library.text(topRef, {context:1});
         if (data && data.prev) {
           current.refs.splice(current.refs, 0, data.prev);
-          this.setState({contents: this.state.contents});
+          this.setState({contents: this.state.contents, loadingContentAtTop: true});
         }
         sjs.track.event("Reader", "Infinite Scroll", "Up");
-        
+      } else {
+        // nothing happens
       }
-      */
     } 
   },
   updateHeadroom: function() {
@@ -163,7 +160,7 @@ var ReaderApp = React.createClass({
   },
   showBaseText: function(ref) {
     this.setState({
-      contents: [{type: "TextColumn", refs: [ref], scrollTop: 0 }],
+      contents: [{type: "TextColumn", refs: [ref], scrollTop: 5 }],
       currentFilter: [],
       recentFilters: []
     });
@@ -243,14 +240,22 @@ var ReaderApp = React.createClass({
   },
   setScrollTop: function() {
     var current = this.currentContent();
-    if (current.scrollTop) {
-      $(window).scrollTop(current.scrollTop);
+    if (this.state.loadingContentAtTop) {
+      // After adding content by infinite scrolling up, scroll back to what the user was just seeing
+      var $el    = $(React.findDOMNode(this));
+      var adjust = $el.offset().top + $el.css("padding-top").replace("px", "");
+      var top    = $(".basetext").eq(1).position().top - 59;
+      this.setState({loadingContentAtTop: false});
+    } else if (current.scrollTop) {
+      // restore the previously saved scrollTop
+      var top = current.scrollTop;
     } else if ($(".segment.highlight").length) {
+      // scroll to highlighted segment
       var top = $(".segment.highlight").first().position().top - ($(window).height() / 3);
-      $(window).scrollTop(top);
     } else {
-      $(window).scrollTop(0);
+      var top = 5; // below zero to give room to scroll up for previous
     }
+    $(window).scrollTop(top)
   },
   currentContent: function() {
     // Returns the current content item
@@ -852,7 +857,6 @@ var TextRange = React.createClass({
     this.getText();
     if (this.props.basetext) { 
       this.placeSegmentNumbers();
-      this.props.setScrollTop();
     }
     window.addEventListener('resize', this.handleResize);
   },
@@ -948,8 +952,8 @@ var TextRange = React.createClass({
     }
 
     if (this.props.prefetchNextPrev) {
-      if (data.next) { sjs.library.text(data.next, {}, function() {}); }
-      if (data.prev) { sjs.library.text(data.prev, {}, function() {}); }
+      if (data.next) { sjs.library.text(data.next, {context: 1}, function() {}); }
+      if (data.prev) { sjs.library.text(data.prev, {context: 1}, function() {}); }
       if (data.book) { sjs.library.textTocHtml(data.book, function() {}); }
     }
 
