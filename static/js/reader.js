@@ -2596,7 +2596,7 @@ sjs.updateUrlParams = function() {
 	var base        = sjs.selected ? sjs.selected : sjs.current.pageRef;
 	var versionInfo = sjs.cache.getPreferredTextVersion(sjs.current.book);
 	var versionPath = versionInfo ? "/" + versionInfo['lang'] + "/" + versionInfo['version'].replace(/ +/g, "_") : '';
-	var paramStr    = $.param(params) ? "/" + encodeURIComponent(normRef(base) + versionPath) + "?" + $.param(params) : encodeURIComponent(normRef(base));
+	var paramStr    = $.param(params) ? "/" + normRef(base) + versionPath + "?" + $.param(params) : normRef(base);
 
 	var state = History.getState();
 	sjs.flags.localUrlChange = true;
