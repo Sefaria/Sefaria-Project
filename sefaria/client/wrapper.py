@@ -49,8 +49,8 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     else:
         if com["category"] == "Commentary":
             com["category"] = "Quoting Commentary"
-        com["commentator"] = linkRef.book
-        com["heCommentator"] = linkRef.index_node.primary_title("he") if linkRef.index_node.primary_title("he") else com["commentator"]
+        com["commentator"] = linkRef.index.title
+        com["heCommentator"] = linkRef.index.get_title("he") if linkRef.index.get_title("he") else com["commentator"]
 
     if linkRef.index_node.primary_title("he"):
         com["heTitle"] = linkRef.index_node.primary_title("he")
