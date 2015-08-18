@@ -379,6 +379,7 @@ def make_alt_toc_html(alt):
         elif includeSections:
             # Display each section included in node.wholeRef
             # todo handle case where wholeRef points to complex node
+            # todo handle case where wholeRef points to book name (root of simple index or commentary index)
             refs         = Ref(node.wholeRef).split_spanning_ref()
             first, last  = refs[0], refs[-1]
             offset       = first.sections[-2]-1 if first.is_segment_level() else first.sections[-1]-1
