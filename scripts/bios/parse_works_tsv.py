@@ -3,6 +3,10 @@
 from sefaria.model import *
 import csv
 
+# To clear out all earlier author data:
+# db.getCollection('index').update({},{$unset:{"authors":1}},{multi:1})
+
+
 """
 0 Primary English Title
 1 Author
@@ -34,9 +38,10 @@ with open("Torah Commentators - Bios - Works.tsv") as tsv:
     for l in csv.reader(tsv, dialect="excel-tab"):
         if l[1] in commentaries_handled:
             continue
-        i = get_index(l[0])
-        if not i:
-            print "Count not load {}".format(l[0])
+        try:
+            i = get_index(l[0])
+        except Exception as e:
+            print "Count not load {}. {}".format(l[0], e)
             continue
         aus = getattr(i, "authors", []) or []
         for a in l[1].split(","):
