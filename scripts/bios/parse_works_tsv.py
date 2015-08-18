@@ -41,7 +41,7 @@ with open("Torah Commentators - Bios - Works.tsv") as tsv:
         try:
             i = get_index(l[0])
         except Exception as e:
-            print "Count not load {}. {}".format(l[0], e)
+            print u"Count not load {}. {}".format(l[0], e)
             continue
         aus = getattr(i, "authors", []) or []
         for a in l[1].split(","):
@@ -50,7 +50,11 @@ with open("Torah Commentators - Bios - Works.tsv") as tsv:
                 aus.append(a)
         if i.is_commentary():
             #todo: Do we handle extended info for commentaries?
-            c = i.c_index
+            try:
+                c = i.c_index
+            except Exception as e:
+                print u"Failed to get commentary index for {}. {}".format(l[0],e)
+                continue
             _(c, "authors", aus)
             print "-"
             c.save()
