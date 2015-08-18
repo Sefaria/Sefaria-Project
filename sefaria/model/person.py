@@ -108,6 +108,21 @@ class Person(abst.AbstractMongoRecord):
         else:
             return indxs
 
+    def get_era(self):
+        if getattr(self, "era", False):
+            return time.TimePeriod().load({"symbol": self.era})
+        else:
+            g = self.get_generation()
+            if g:
+                return g.get_era()
+        return None
+
+    def get_generation(self):
+        if not getattr(self, "generation", False):
+            return None
+
+        return time.TimePeriod().load({"symbol": self.generation})
+
 class PersonSet(abst.AbstractMongoSet):
     recordClass = Person
 

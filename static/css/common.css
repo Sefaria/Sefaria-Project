@@ -922,6 +922,10 @@ body.embeded #top {
   margin-top: 0;
 }
 
+#personPage #periodNameLine {
+  text-align: center;
+}
+
 #personPage #yearLine {
   text-align: center;
   margin-bottom: 10px;

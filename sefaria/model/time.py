@@ -95,6 +95,11 @@ class TimePeriod(abst.AbstractMongoRecord):
 
     def _normalize(self):
         self.names = self.name_group.titles
+        if getattr(self, "start", False):
+            self.start = int(self.start)
+
+        if getattr(self, "end", False):
+            self.end = int(self.end)
 
     def all_names(self, lang="en"):
         return self.name_group.all_titles(lang)
@@ -140,6 +145,20 @@ class TimePeriod(abst.AbstractMongoRecord):
                 abs(int(self.end)),
                 labels[1])
         return name
+
+    def get_era(self):
+        """
+        Given a generation, get the Era for that generation
+        :return:
+        """
+        #This info should be stored on Generations.  It doesn't change.
+        if self.type == "Era":
+            return self
+        t = TimePeriod().load({"type": "Era",
+                        "start": {"$lte": self.start},
+                        "end": {"$gte": self.end}})
+
+        return t or None
 
     def get_people_in_generation(self, include_doubles = True):
         from . import person
