@@ -465,3 +465,30 @@ def cascade_to_list(set_class, attr):
             rec.save()
 
     return foo
+
+def cascade_delete(set_class, fk_attr, pk_attr):
+    """
+    Handles generic delete cascading, for simple key reference changes.
+    See examples in dependencies.py
+    :param set_class: The set class of the impacted model
+    :param fk_attr: The name of the impacted class attribute (fk) that holds the references to the primary identifier (pk)
+    :return: a function that will delete values of 'set_class' where 'attr' matches
+    """
+    return lambda obj, **kwargs: set_class({fk_attr: getattr(obj, pk_attr)}).delete()
+
+
+def cascade_delete_to_list(set_class, fk_attr, pk_attr):
+    """
+    Handles generic delete cascading, for keys in attributes that hold lists of keys.
+    See examples in dependencies.py
+    :param set_class: The set class of the impacted model
+    :param fk_attr: The name of the impacted class attribute (fk) that holds the list of references to the primary identifier (pk)
+    :param pk_attr:
+    :return: a function that will update 'attr' in 'set_class' and can be passed to subscribe()
+    """
+    def foo(obj, **kwargs):
+        for rec in set_class({fk_attr: getattr(obj, pk_attr)}):
+            setattr(rec, fk_attr, [e for e in getattr(rec, fk_attr) if e != getattr(obj, pk_attr)])
+            rec.save()
+
+    return foo

@@ -4,7 +4,7 @@ dependencies.py -- list cross model dependencies and subscribe listeners to chan
 
 from . import abstract, link, note, history, schema, text, layer, version_state, translation_request, time, person
 
-from abstract import subscribe, cascade, cascade_to_list
+from abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache
 
 # Index Save / Create
@@ -35,20 +35,27 @@ subscribe(scache.process_new_commentary_version_in_cache,               text.Ver
 subscribe(layer.process_note_deletion_in_layer,                         note.Note, "delete")
 
 # Term name change
-subscribe(cascade(schema.TermSet, "scheme"),                              schema.TermScheme, "attributeChange", "name")
+subscribe(cascade(schema.TermSet, "scheme"),                            schema.TermScheme, "attributeChange", "name")
 
 # Version Save
 subscribe(translation_request.process_version_state_change_in_translation_requests, version_state.VersionState, "save")
 
 # Time
 subscribe(cascade(person.PersonSet, "era"),                              time.TimePeriod, "attributeChange", "symbol")
-subscribe(cascade(person.PersonSet, "generation"),                              time.TimePeriod, "attributeChange", "symbol")
+subscribe(cascade(person.PersonSet, "generation"),                       time.TimePeriod, "attributeChange", "symbol")
 
-# Person
-subscribe(cascade(person.PersonRelationshipSet, "to_key"),                              person.Person, "attributeChange", "key")
-subscribe(cascade(person.PersonRelationshipSet, "from_key"),                              person.Person, "attributeChange", "key")
-subscribe(cascade(person.PersonRelationshipSet, "type"),                                person.PersonRelationshipType, "attributeChange", "key")
-subscribe(cascade_to_list(text.IndexSet, "authors"),                                    person.Person, "attributeChange", "key")
+# Person key change
+subscribe(cascade(person.PersonRelationshipSet, "to_key"),               person.Person, "attributeChange", "key")
+subscribe(cascade(person.PersonRelationshipSet, "from_key"),             person.Person, "attributeChange", "key")
+subscribe(cascade_to_list(text.IndexSet, "authors"),                     person.Person, "attributeChange", "key")
+
+subscribe(cascade(person.PersonRelationshipSet, "type"),                 person.PersonRelationshipType, "attributeChange", "key")
+
+# Person delete
+subscribe(cascade_delete(person.PersonRelationshipSet, "to_key", "key"), person.Person, "delete")
+subscribe(cascade_delete(person.PersonRelationshipSet, "from_key", "key"), person.Person, "delete")
+subscribe(cascade_delete_to_list(text.IndexSet, "authors", "key"),       person.Person, "delete")
+
 
 # todo: notes? reviews?
 # todo: Scheme name change in Index

@@ -68,7 +68,7 @@ class AbstractIndex(object):
 
     def author_objects(self):
         from . import person
-        return [person.Person().load({"key": k}) for k in getattr(self, "authors", [])]
+        return [person.Person().load({"key": k}) for k in getattr(self, "authors", []) if person.Person().load({"key": k})]
 
 
 class Index(abst.AbstractMongoRecord, AbstractIndex):
