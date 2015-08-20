@@ -75,7 +75,6 @@ body .bilingual .enOnly .he {
   display: none;
 }
 #readerApp {
-  padding-top: 30px;
 }
 #readerApp.light {
   background-color: white;
@@ -551,6 +550,9 @@ body .bilingual .enOnly .he {
 #readerContent {
   background-color: inherit;
 }
+.textColumn {
+  padding-top: 60px;
+}
 .textRange.basetext {
   width: 100%;
   box-sizing: border-box;
@@ -562,7 +564,7 @@ body .bilingual .enOnly .he {
 }
 .textRange.basetext .title {
   font-weight: bold;
-  padding: 22px 8px;
+  padding: 8px 8px 28px;
   color: #999;
   text-align: center;
   font-weight: lighter;

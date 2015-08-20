@@ -91,11 +91,9 @@ var ReaderApp = React.createClass({
     if (this.shouldHistoryUpdate()) {
       var hist = this.makeHistoryState();
       if (this.state.replaceHistory) {
-        console.log("replace " + hist.title)
         history.replaceState(hist.state, hist.title, hist.url);
         $("title").html(hist.title);
       } else {
-        console.log("push " + hist.title);
         history.pushState(hist.state, hist.title, hist.url);
         $("title").html(hist.title);
         if (hist.state.type == "TextColumn") {
@@ -110,7 +108,6 @@ var ReaderApp = React.createClass({
     var state = event.state;
     if (state) {
       var kind = this.currentContent().type + " to " + state.type;
-      console.log("pop " + typeof state.ref === "undefined" ? state.refs.slice(-1)[0] : state.ref);
       sjs.track.event("Reader", "Pop State", kind);
       this.setState({contents: [state]});
     }
@@ -141,7 +138,6 @@ var ReaderApp = React.createClass({
         currentRef = current.refs.slice(-1)[0];
         data       = sjs.library.ref(currentRef);
         if (data && data.next) {
-          console.log("scroll down adding " + data.next)
           current.refs.push(data.next);
           this.setState({contents: this.state.contents, replaceHistory: true});
         }
@@ -151,7 +147,6 @@ var ReaderApp = React.createClass({
         topRef = current.refs[0];
         data   = sjs.library.ref(topRef);
         if (data && data.prev) {
-          console.log("scroll up adding " + data.prev)
           current.refs.splice(current.refs, 0, data.prev);
           this.setState({contents: this.state.contents, replaceHistory: true, loadingContentAtTop: true});
         }
@@ -170,7 +165,6 @@ var ReaderApp = React.createClass({
     }
   },
   showTextList: function(ref) {
-    console.log("stt")
     this.state.contents.push({type: "TextList", ref: ref, scrollTop: 0});
     this.setState({contents: this.state.contents });
   },
@@ -187,7 +181,6 @@ var ReaderApp = React.createClass({
   },
   backToText: function() {
     // Return to the original text in the ReaderApp contents
-    console.log("btt");
     this.state.contents = [this.state.contents[0]];
     this.setState({contents: this.state.contents});
   },
@@ -266,9 +259,9 @@ var ReaderApp = React.createClass({
     var current = this.currentContent();
     if (this.state.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-      var $reader    = $(React.findDOMNode(this));
-      var adjust = $reader.offset().top + parseInt($reader.css("padding-top").replace("px", ""));
-      var top    = $(".basetext").eq(1).position().top - adjust;
+      var $reader = $(React.findDOMNode(this));
+      var adjust  = $reader.offset().top + parseInt($reader.find(".textColumn").css("padding-top").replace("px", ""));
+      var top     = $(".basetext").eq(1).position().top - adjust;
       this.setState({loadingContentAtTop: false});
     } else if (current.scrollTop !== 20) {
       // restore the previously saved scrollTop
@@ -321,7 +314,7 @@ var ReaderApp = React.createClass({
     style = {"fontSize": this.state.settings.fontSize + "%"};
     var items = this.state.contents.slice(-1).map(function(item, i) {
       if (item.type === "TextColumn") {
-        return item.refs.map(function(ref, k) {
+        var content = item.refs.map(function(ref, k) {
           return (<TextRange 
             sref={ref}
             basetext={true}
@@ -336,6 +329,7 @@ var ReaderApp = React.createClass({
             rerender={this.rerender} 
             key={ref} />);      
         }.bind(this));
+        return (<div className='textColumn'>{content}</div>);
       } else if (item.type === "TextList") {
         return (
           <TextList 
@@ -896,7 +890,6 @@ var TextRange = React.createClass({
     window.removeEventListener('resize', this.handleResize);
   },
   getText: function() {
-    console.log("getting text " + this.state.sref);
     settings = {
       context: this.props.withContext
     };
@@ -982,7 +975,6 @@ var TextRange = React.createClass({
       loaded: true,
       sref: data.ref,
     });
-    console.log("loaded text " + data.ref)
     if (this.props.loadLinks && !sjs.library.linksLoaded(data.sectionRef)) {
       // Calling when links are loaded will overwrite state.segments
       sjs.library.bulkLoadLinks(data.sectionRef, this.loadLinkCounts);
@@ -1143,7 +1135,7 @@ var TextList = React.createClass({
   setTopPadding: function() {
     var $textList    = $(React.findDOMNode(this));
     var $textListTop = $textList.find(".textListTop");
-    var top          = $textListTop.outerHeight() - 33;
+    var top          = $textListTop.outerHeight();
     $textList.css({paddingTop: top});
   },
   showAllFilters: function() {
