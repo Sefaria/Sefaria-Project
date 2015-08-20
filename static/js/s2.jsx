@@ -9,7 +9,7 @@ var ReaderApp = React.createClass({
     initialSettings:  React.PropTypes.object
   },
   getInitialState: function() {
-    var contents = [{type: "TextColumn", refs: [this.props.initialRef], scrollTop: 0 }];
+    var contents = [{type: "TextColumn", refs: [this.props.initialRef], scrollTop: 20 }];
     if (this.props.initialFilter) {
       contents.push({type: "TextList", ref: this.props.initialRef, scrollTop: 0 });
     }
@@ -52,19 +52,22 @@ var ReaderApp = React.createClass({
     this.adjustInfiniteScroll();
   },
   shouldHistoryUpdate: function() {
+    // Compare the current history state to the current content state,
+    // Return true if the change warrants pushing to history.
+    var state = history.state;
     if (!history.state) { 
       return true;
     }
-    var current = this.state.contents.slice(-1)[0];
-    if (history.state.type !== current.type) { 
+    var current = this.currentContent();
+    if (state.type !== current.type) { 
       return true;
     }
     if (current.type === "TextColumn") {
-      if (current.refs.slice(-1)[0] !== history.state.refs.slice(-1)[0]) {
+      if (current.refs.slice(-1)[0] !== state.refs.slice(-1)[0]) {
         return true;
       }
     } else if (current.type === "TextList") {
-      if (current.ref !== history.state.ref) {
+      if (current.ref !== state.ref) {
         return true;
       }
     }
@@ -72,8 +75,8 @@ var ReaderApp = React.createClass({
   },
   makeHistoryState: function() {
     // Returns an object with state, title and url params for the current state
-    var current = this.state.contents.slice(-1)[0];
-    var hist = {};
+    var current = this.currentContent();
+    var hist = {state: current};
     if (current.type === "TextColumn") {
       hist.title = current.refs.slice(-1)[0];
       hist.url = normRef(hist.title);
@@ -82,32 +85,41 @@ var ReaderApp = React.createClass({
       hist.url = normRef(hist.title);
       hist.url += "?with=" + (this.state.currentFilter.length ? this.state.currentFilter[0] : "all");
     }
-    hist.state = current;
     return hist;
   },
   updateHistoryState: function() {
     if (this.shouldHistoryUpdate()) {
       var hist = this.makeHistoryState();
-      history.pushState(hist.state, hist.title, hist.url);
-      if (hist.state.type == "TextColumn") {
-        sjs.track.open(hist.title);
-      } else if (hist.state.type == "TextList") {
-        sjs.track.event("Reader", "Open Close Reader", hist.title);
-      }      
+      if (this.state.replaceHistory) {
+        console.log("replace " + hist.title)
+        history.replaceState(hist.state, hist.title, hist.url);
+        $("title").html(hist.title);
+      } else {
+        console.log("push " + hist.title);
+        history.pushState(hist.state, hist.title, hist.url);
+        $("title").html(hist.title);
+        if (hist.state.type == "TextColumn") {
+          sjs.track.open(hist.title);
+        } else if (hist.state.type == "TextList") {
+          sjs.track.event("Reader", "Open Close Reader", hist.title);
+        }           
+      }
     }
   },
   handlePopState: function(event) {
-    if (event.state) {
-      var kind = this.state.contents.slice(-1)[0].type + " to " + event.state.type;
+    var state = event.state;
+    if (state) {
+      var kind = this.currentContent().type + " to " + state.type;
+      console.log("pop " + typeof state.ref === "undefined" ? state.refs.slice(-1)[0] : state.ref);
       sjs.track.event("Reader", "Pop State", kind);
-      this.setState({contents: [event.state]});
+      this.setState({contents: [state]});
     }
   },
   handleScroll: function(event) {
     if (this.state.contents.length) {
       var scrollTop = $(window).scrollTop();
-      this.state.contents.slice(-1)[0].scrollTop = scrollTop;
-      // will this be saved? this.setState({contents: this.state.contents});
+      this.currentContent().scrollTop = scrollTop;
+      this.setState({contents: this.state.contents});
     }
     this.adjustInfiniteScroll();
   },
@@ -125,20 +137,23 @@ var ReaderApp = React.createClass({
         this.setState({contents: this.state.contents});
       } else if ( lastBottom < (windowBottom + 0)) {
         // Add the next section
+        if ($lastText.hasClass("loading")) { return; }
         currentRef = current.refs.slice(-1)[0];
-        data       = sjs.library.text(currentRef) || sjs.library.text(currentRef, {context:1});
+        data       = sjs.library.ref(currentRef);
         if (data && data.next) {
+          console.log("scroll down adding " + data.next)
           current.refs.push(data.next);
-          this.setState({contents: this.state.contents});
+          this.setState({contents: this.state.contents, replaceHistory: true});
         }
         sjs.track.event("Reader", "Infinite Scroll", "Down");
-      } else if (windowTop == 0 && !this.state.loadingContentAtTop) {
+      } else if (windowTop < 10 && !this.state.loadingContentAtTop) {
         // Scroll up for previous
         topRef = current.refs[0];
-        data   = sjs.library.text(topRef) || sjs.library.text(topRef, {context:1});
+        data   = sjs.library.ref(topRef);
         if (data && data.prev) {
+          console.log("scroll up adding " + data.prev)
           current.refs.splice(current.refs, 0, data.prev);
-          this.setState({contents: this.state.contents, loadingContentAtTop: true});
+          this.setState({contents: this.state.contents, replaceHistory: true, loadingContentAtTop: true});
         }
         sjs.track.event("Reader", "Infinite Scroll", "Up");
       } else {
@@ -155,21 +170,30 @@ var ReaderApp = React.createClass({
     }
   },
   showTextList: function(ref) {
+    console.log("stt")
     this.state.contents.push({type: "TextList", ref: ref, scrollTop: 0});
     this.setState({contents: this.state.contents });
   },
-  showBaseText: function(ref) {
+  showBaseText: function(ref, replaceHistory) {
+    // Set the current primary text
+    // `replaceHistory` - bool whether to repalce browser history rather than push for this change
+    replaceHistory = typeof replaceHistory === "undefined" ? false : replaceHistory;
     this.setState({
-      contents: [{type: "TextColumn", refs: [ref], scrollTop: 5 }],
+      contents: [{type: "TextColumn", refs: [ref], scrollTop: 20 }],
       currentFilter: [],
-      recentFilters: []
+      recentFilters: [],
+      replaceHistory: replaceHistory
     });
   },
   backToText: function() {
+    // Return to the original text in the ReaderApp contents
+    console.log("btt");
     this.state.contents = [this.state.contents[0]];
     this.setState({contents: this.state.contents});
   },
   setFilter: function(filter, updateRecent) {
+    // Sets the current filter
+    // If updateRecent is true, include the curent setting in the list of recent filters.
     if (updateRecent) {
       if ($.inArray(filter, this.state.recentFilters) !== -1) {
         this.state.recentFilters.toggle(filter);
@@ -180,7 +204,7 @@ var ReaderApp = React.createClass({
     $(window).scrollTop(0);
   },
   navigateReader: function(direction) {
-    var current = this.state.contents.slice(-1)[0];
+    var current = this.currentContent();
     if (current.type === "TextColumn") {
       // Navigate Sections in text view
       var data = this.currentData();
@@ -242,20 +266,20 @@ var ReaderApp = React.createClass({
     var current = this.currentContent();
     if (this.state.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-      var $el    = $(React.findDOMNode(this));
-      var adjust = $el.offset().top + $el.css("padding-top").replace("px", "");
-      var top    = $(".basetext").eq(1).position().top - 59;
+      var $reader    = $(React.findDOMNode(this));
+      var adjust = $reader.offset().top + parseInt($reader.css("padding-top").replace("px", ""));
+      var top    = $(".basetext").eq(1).position().top - adjust;
       this.setState({loadingContentAtTop: false});
-    } else if (current.scrollTop) {
+    } else if (current.scrollTop !== 20) {
       // restore the previously saved scrollTop
       var top = current.scrollTop;
     } else if ($(".segment.highlight").length) {
       // scroll to highlighted segment
       var top = $(".segment.highlight").first().position().top - ($(window).height() / 3);
     } else {
-      var top = 5; // below zero to give room to scroll up for previous
+      var top = 20; // below zero to give room to scroll up for previous
     }
-    $(window).scrollTop(top)
+    $(window).scrollTop(top);
   },
   currentContent: function() {
     // Returns the current content item
@@ -272,7 +296,7 @@ var ReaderApp = React.createClass({
   currentData: function() {
     // Returns the data from the library of the current ref
     var ref  = this.currentRef();
-    var data = sjs.library.text(ref, {context: 1}) || sjs.library.text(ref);
+    var data = sjs.library.ref(ref);
     return data; 
   },
   currentBook: function() {
@@ -872,6 +896,7 @@ var TextRange = React.createClass({
     window.removeEventListener('resize', this.handleResize);
   },
   getText: function() {
+    console.log("getting text " + this.state.sref);
     settings = {
       context: this.props.withContext
     };
@@ -937,15 +962,27 @@ var TextRange = React.createClass({
     return segments;
   },
   loadText: function(data) {
-    var segments  = this.makeSegments(data);
+    // When data is actually available, load the text into the UI
 
+    if (this.props.basetext) {
+      if (this.props.sref !== data.ref) {
+        // Replace ReaderApp contents with the normalized form of the ref
+        this.props.showBaseText(data.ref, true);        
+      }
+      // Rerend the full app, because we now know the category and color for the header,
+      // which we might not have known before the API call returned.
+      // Can be removed when catgoires are exctracted from sjs.toc on every page
+      this.props.rerender();
+    }
+
+    var segments  = this.makeSegments(data);
     this.setState({
       data: data,
       segments: segments,
       loaded: true,
       sref: data.ref,
     });
-
+    console.log("loaded text " + data.ref)
     if (this.props.loadLinks && !sjs.library.linksLoaded(data.sectionRef)) {
       // Calling when links are loaded will overwrite state.segments
       sjs.library.bulkLoadLinks(data.sectionRef, this.loadLinkCounts);
@@ -956,21 +993,17 @@ var TextRange = React.createClass({
       if (data.prev) { sjs.library.text(data.prev, {context: 1}, function() {}); }
       if (data.book) { sjs.library.textTocHtml(data.book, function() {}); }
     }
-
-    if (this.props.basetext) {
-      // Rerend the full app, because we now know the category and color for the header,
-      // which we might not have known before the API call returned.
-      // Can be removed when catgoires are exctracted from sjs.toc on every page
-      this.props.rerender();
-    }
   },
   loadLinkCounts: function() {
+    // When link data has been loaded into sjs.library, load the counts into the UI
     for (var i=0; i < this.state.segments.length; i++) {
       this.state.segments[i].linkCount = sjs.library.linkCount(this.state.segments[i].ref);
     }
     this.setState({segments: this.state.segments});
   },
   placeSegmentNumbers: function() {
+    // Set the vertical offsets for segment numbers and link counts, which are dependent
+    // on the rendered height of the text of each segment.
     var $text = $(React.findDOMNode(this));
     var left  = $text.offset().left;
     var right = left + $text.outerWidth();
@@ -987,14 +1020,8 @@ var TextRange = React.createClass({
     if (this.props.basetext) { this.placeSegmentNumbers(); }
   },
   handleClick: function(event) {
-    if (!this.props.showBaseText) { return; }
-    if ($(event.target).hasClass("refLink")) {
-      //Click of citation
-      var ref = humanRef($(event.target).attr("data-ref"));
-      this.props.showBaseText(ref);
-      sjs.track.event("Reader", "Ref Link Click", ref)
-    } else if (this.props.openOnClick) {
-      //Click on the body of the TextRange itself
+    if (this.props.openOnClick && this.props.showBaseText) {
+      //Click on the body of the TextRange itself from TextList
       this.props.showBaseText(this.props.sref);
       sjs.track.event("Reader", "Click Text from TextList", this.props.sref);
     }
@@ -1019,6 +1046,7 @@ var TextRange = React.createClass({
             highlight={segment.highlight}
             segmentNumber={this.props.basetext ? segment.number : 0}
             linkCount={segment.linkCount}
+            showBaseText={this.props.showBaseText}
             showTextList={this.props.showTextList} />
       );
     }.bind(this));
@@ -1028,7 +1056,7 @@ var TextRange = React.createClass({
                       <span className="en">Loading...</span>
                       <span className="he">טעינה...</span>
                       </div>);
-    var classes = {textRange: 1, basetext: this.props.basetext };
+    var classes = {textRange: 1, basetext: this.props.basetext, loading: !this.state.loaded };
     classes = cx(classes);
     return (
       <div className={classes} onClick={this.handleClick}>
@@ -1046,8 +1074,17 @@ var TextRange = React.createClass({
 
 
 var TextSegment = React.createClass({
-  handleClick: function() {
-    if (this.props.showTextList) {
+  propTypes: {
+
+  },
+  handleClick: function(event) {
+    if ($(event.target).hasClass("refLink")) {
+      //Click of citation
+      var ref = humanRef($(event.target).attr("data-ref"));
+      this.props.showBaseText(ref);
+      event.stopPropagation();
+      sjs.track.event("Reader", "Ref Link Click", ref)
+    } else if (this.props.showTextList) {
       this.props.showTextList(this.props.sref);
       sjs.track.event("Reader", "Text Segment Click", this.props.sref);
     }
@@ -1106,7 +1143,7 @@ var TextList = React.createClass({
   setTopPadding: function() {
     var $textList    = $(React.findDOMNode(this));
     var $textListTop = $textList.find(".textListTop");
-    var top = $textListTop.outerHeight();
+    var top          = $textListTop.outerHeight() - 33;
     $textList.css({paddingTop: top});
   },
   showAllFilters: function() {

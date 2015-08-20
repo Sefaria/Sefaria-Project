@@ -99,6 +99,12 @@ sjs.library = {
   _cacheIndexFromToc: function() {
     // Unpacks contents of sjs.toc and stores it in index cache.
   },
+  ref: function(ref) {
+    // Returns parsed ref in for string `ref`. 
+    // This is currently a wrapper for sjs.library text for cases when the textual information is not important
+    // so that it can be called without worrying about the `settings` parameter for what is available in cache.
+    return this.text(ref) || this.text(ref, {context:1});
+  },
   _links: {},
   links: function(ref, cb) {
     if (!cb) {

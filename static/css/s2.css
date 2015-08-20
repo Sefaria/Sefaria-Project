@@ -75,7 +75,7 @@ body .bilingual .enOnly .he {
   display: none;
 }
 #readerApp {
-  padding-top: 10px;
+  padding-top: 30px;
 }
 #readerApp.light {
   background-color: white;
@@ -682,7 +682,7 @@ body .bilingual .enOnly .he {
   width: 100%;
   text-align: justify;
   margin: 0 auto;
-  background-color: inherit;
+  background-color: #F9F9F7;
 }
 .textListTop {
   position: fixed;
@@ -695,6 +695,10 @@ body .bilingual .enOnly .he {
   cursor: pointer;
   border-bottom: 1px solid #CCC;
   position: relative;
+  background-color: white;
+}
+.dark .textList.main {
+  background-color: #333;
 }
 .dark .textList .anchorText {
   background-color: #333;
@@ -821,7 +825,7 @@ body .bilingual .enOnly .he {
 }
 .fullFilterView {
   background-color: #F9F9F7;
-  padding: 20px;
+  padding: 40px 20px;
 }
 .fullFilterView td {
   background-color: white;
@@ -851,6 +855,9 @@ body .bilingual .enOnly .he {
   padding: 20px;
   color: #aaa;
   font-size: 13px;
+}
+.textList .texts {
+  background-color: white;
 }
 .textList .texts .textRange {
   font-size: 1.4em;
