@@ -549,9 +549,35 @@ def unlike_sheet_api(request, sheet_id):
 
 def sheet_likers_api(request, sheet_id):
 	"""
-	API to retrieve the list of peopke who like sheet_id.
+	API to retrieve the list of people who like sheet_id.
 	"""
 	response = {"likers": likers_list_for_sheet(sheet_id)}
+	return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
+def tag_list_api(request):
+	"""
+	API to retrieve the list of public tags ordered by count.
+	"""
+	response = sheet_tag_counts({"status": {"$in": LISTED_SHEETS}})
+	return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
+def trending_tags_api(request):
+	"""
+	API to retrieve the list of peopke who like sheet_id.
+	"""
+	response = recent_public_tags(days=14)
+	return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
+def sheets_by_tag_api(request, tag):
+	"""
+	API to retrieve the list of peopke who like sheet_id.
+	"""
+	sheets = get_sheets_by_tag(tag, public=True)
+	sheets = [{"title": s["title"], "id": s["id"], "owner": s["owner"], "views": s["views"]} for s in sheets]
+	response = {"tag": tag, "sheets": sheets}
 	return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
