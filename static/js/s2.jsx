@@ -24,8 +24,38 @@ var ReaderApp = React.createClass({
         layoutTanach:  "segmented",
         color:         "light",
         fontSize:      62.5
-      }
+      },
+      optionsOpen: false,
+      navigationOpen: false,
+      tocOpen: false,
+      sheetNavOpen: false,
+      navigationCaterogires: null,
+      navigationSheetTag: null
     }
+  },
+  closeMenus: function() {
+    this.setState({
+      optionsOpen: false,
+      navigationOpen: false,
+      tocOpen: false,
+      sheetNavOpen: false,
+    });
+  },
+  openMenu: function(menu) {
+    var state = {
+      optionsOpen: false,
+      navigationOpen: false,
+      tocOpen: false,
+      sheetNavOpen: false
+    };
+    state[menu + "Open"] = true;
+    this.setState(state);
+  },
+  setNavigationCategories: function(catgoires) {
+    this.setState({navigationCaterogires: categories});
+  },
+  setSheetTag: function (tag) {
+    this.setState({navigationSheetTag: tag});
   },
   componentDidMount: function() {
     window.addEventListener("popstate", this.handlePopState);
@@ -349,8 +379,6 @@ var ReaderApp = React.createClass({
     return (
       <div id="readerApp" className={classes}>
         <ReaderControls
-          navNext={this.navNext}
-          navPrevious={this.navPrevious}
           showBaseText={this.showBaseText}
           currentRef={this.currentRef}
           currentMode={this.currentMode}
@@ -358,6 +386,10 @@ var ReaderApp = React.createClass({
           currentBook={this.currentBook}
           settings={this.state.settings}
           setOption={this.setOption}
+          openMenu={this.openMenu}
+          closeMenus={this.closeMenus}
+          setNavigationCategories={this.setNavigationCategories}
+          setSheetTag={this.setSheetTag}
           currentLayout={this.currentLayout} />
           <div id="readerContent" style={style}>
             {items}
@@ -372,47 +404,24 @@ var ReaderControls = React.createClass({
   // The Header of a Reader panel which contains controls for 
   // display, navigation etc.
   propTypes: {
-    settings:        React.PropTypes.object.isRequired,
-    navNext:         React.PropTypes.func.isRequired,
-    navPrevious:     React.PropTypes.func.isRequired,
-    showBaseText:    React.PropTypes.func.isRequired,
-    setOption:       React.PropTypes.func.isRequired,
-    currentRef:      React.PropTypes.func.isRequired,
-    currentMode:     React.PropTypes.func.isRequired,
-    currentCategory: React.PropTypes.func.isRequired,
-    currentBook:     React.PropTypes.func.isRequired,
-    currentLayout:   React.PropTypes.func.isRequired
-  },
-  getInitialState: function() {
-    return {
-      optionsOpen: false,
-      navigationOpen: false,
-      tocOpen: false
-    };
-  },
-  showOptions: function(e) {
-    this.setState({optionsOpen: true, navigationOpen: false, tocOpen: false});
-  },
-  hideOptions: function() {
-    this.setState({optionsOpen: false});
-  },
-  openNav: function(e) {
-    this.setState({navigationOpen: true, optionsOpen: false, tocOpen: false});
-  },
-  closeNav: function() {
-    this.setState({navigationOpen: false});
-  },
-  openTextToc: function() {
-    this.setState({tocOpen: true, navigationOpen: false, optionsOpen: false});
-  },
-  closeTextToc: function () {
-    this.setState({tocOpen: false});
+    settings:                React.PropTypes.object.isRequired,
+    showBaseText:            React.PropTypes.func.isRequired,
+    setOption:               React.PropTypes.func.isRequired,
+    openMenu:                React.PropTypes.func.isRequired,
+    closeMenus:              React.PropTypes.func.isRequired,
+    setNavigationCategories: React.PropTypes.func.isRequired,
+    setSheetTag:             React.PropTypes.func.isRequired,
+    currentRef:              React.PropTypes.func.isRequired,
+    currentMode:             React.PropTypes.func.isRequired,
+    currentCategory:         React.PropTypes.func.isRequired,
+    currentBook:             React.PropTypes.func.isRequired,
+    currentLayout:           React.PropTypes.func.isRequired
   },
   render: function() {
     var languageOptions = [
-      {name: "english", image: "/static/img/english.png" },
+      {name: "english",   image: "/static/img/english.png" },
       {name: "bilingual", image: "/static/img/bilingual.png" },
-      {name: "hebrew", image: "/static/img/hebrew.png" }
+      {name: "hebrew",    image: "/static/img/hebrew.png" }
     ];
     var languageToggle = (
         <ToggleSet
@@ -469,11 +478,13 @@ var ReaderControls = React.createClass({
     var lineStyle = {backgroundColor: sjs.categoryColor(this.props.currentCategory())};
 
     if (this.state.navigationOpen) {
-      return (<ReaderNavigationMenu 
+      return (
+        <ReaderNavigationMenu 
                 closeNav={this.closeNav}
                 showBaseText={this.props.showBaseText} />);
     } else if (this.state.tocOpen) {
-      return (<ReaderTextTableOfContents 
+      return (
+        <ReaderTextTableOfContents 
                 close={this.closeTextToc}
                 text={this.props.currentBook()}
                 category={this.props.currentCategory()}
@@ -485,19 +496,19 @@ var ReaderControls = React.createClass({
       var index = sjs.library.index(title);
       var heTitle = index ? index.heTitle : "";
       return (
-      <div>
-        <div id="readerControls" className="headroom">
-          <div className="categoryColorLine" style={lineStyle}></div>
-          <div id="readerNav"  onClick={this.openNav}><i className="fa fa-search"></i></div>
-          <div id="readerTextToc" onClick={this.openTextToc}>
-            <span className="en">{title}</span>
-            <span className="he">{heTitle}</span>
+        <div>
+          <div id="readerControls" className="headroom">
+            <div className="categoryColorLine" style={lineStyle}></div>
+            <div id="readerNav"  onClick={this.openNav}><i className="fa fa-search"></i></div>
+            <div id="readerTextToc" onClick={this.openTextToc}>
+              <span className="en">{title}</span>
+              <span className="he">{heTitle}</span>
+            </div>
+            <div id="readerOptions" onClick={this.showOptions}><i className="fa fa-bars"></i></div>
           </div>
-          <div id="readerOptions" onClick={this.showOptions}><i className="fa fa-bars"></i></div>
-        </div>
-        {readerOptions}
-        {this.state.optionsOpen ? (<div id="mask" onClick={this.hideOptions}></div>) : ""}
-      </div>);
+          {readerOptions}
+          {this.state.optionsOpen ? (<div id="mask" onClick={this.hideOptions}></div>) : ""}
+        </div>);
     }
   }
 });
@@ -786,6 +797,50 @@ var ReaderTextTableOfContents = React.createClass({
                   </div>
                 </div>
                 <div className="tocContent" dangerouslySetInnerHTML={ {__html: tocHtml} }></div>
+              </div>
+            </div>);
+  }
+});
+
+
+var SheetsNav = React.createClass({
+  // Navigation for Sheets
+  propTypes: {
+    category:     React.PropTypes.string.isRequired,
+    tag:          React.PropTypes.tag,
+    close:        React.PropTypes.func.isRequired,
+    openNav:      React.PropTypes.func.isRequired
+  },
+  getInitialState: function() {
+    return {
+
+    };
+  }
+  componentDidMount: function() {
+
+  },
+  handleClick: function(e) {
+
+  },
+  showTag
+  rerender: function() {
+    this.setState({});
+  },
+  render: function() {
+    var title = this.props.tag || 
+
+    var lineStyle = {backgroundColor: sjs.categoryColor(this.props.category)};
+    return (<div className="readerSheetsNav">
+              <div className="readerNavTopFixed">
+                <div className="categoryColorLine" style={lineStyle}></div>
+                <div className="readerNavTop">
+                  <i className="fa fa-search" onClick={this.props.openNav}></i>
+                  <i className="fa fa-times" onClick={this.props.close}></i>
+                  <h2>Source Sheets</h2>
+                </div>
+              </div>
+              <div className="content">
+
               </div>
             </div>);
   }

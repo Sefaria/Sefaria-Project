@@ -345,6 +345,36 @@ sjs.library = {
     }
     return list;
   },
+  sheets: {
+    _trendingTags: null,
+    trendingTags: function(cb) {
+      var tags = this._trendingTags;
+      if (tags) {
+        cb(tags);
+      } else {
+        var url = "/api/sheets/trending-tags";
+         $.getJSON(url, function(data) {
+            this._trendingTags = data
+            cb(data);
+          }.bind(this));
+        }
+      return tags;
+    },
+    _tagList: null,
+    tagList: function(cb) {
+      var tags = this.tagList;
+      if (tags) {
+        cb(tags);
+      } else {
+        var url = "/api/sheets/tag-list";
+         $.getJSON(url, function(data) {
+            this._trendingTags = data
+            cb(data);
+          }.bind(this));
+        }
+      return tags;
+    },
+  },
   hebrewCategory: function(cat) {
     var categories = {
       "Torah":                "תורה",
