@@ -104,7 +104,7 @@ class PagesTest(SefariaTestCase):
 
     def test_get_text_unknown(self):
         response = c.get('/Gibbledeegoobledeemoop')
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(404, response.status_code)
 
     def test_sheets_splash(self):
         response = c.get('/sheets')
@@ -291,7 +291,7 @@ class PostV2IndexTest(SefariaTestCase):
         index = {
             "title": "Complex Book",
             "titleVariants": [],
-            "hetitle": "Hebrew Complex Book",
+            "heTitle": "Hebrew Complex Book",
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"],
         }
