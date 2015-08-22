@@ -437,6 +437,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         }
         if hasattr(self,"order"):
             toc_contents_dict["order"] = self.order
+        if self.categories[0] == u"Commentary2":
+            toc_contents_dict["commentator"]   = self.get_title().split(" on ")[0]
+            toc_contents_dict["heCommentator"] = self.get_title("he").split(u" על ")[0]
         return toc_contents_dict
 
 
@@ -579,6 +582,8 @@ class CommentaryIndex(AbstractIndex):
         return {
             "title": self.title,
             "heTitle": getattr(self, "heTitle", None),
+            "commentator": self.commentator,
+            "heCommentator": self.heCommentator,
             "categories": self.categories
         }
 
@@ -3196,7 +3201,11 @@ class Library(object):
             ("he", False): "heTitle",
             ("he", True): "heTitleVariants"
         }
-        return IndexSet({"categories.0": "Commentary"}).distinct(args[(lang, with_variants)])
+        commentators  = IndexSet({"categories.0": "Commentary"}).distinct(args[(lang, with_variants)])
+        commentary2   = IndexSet({"categories.0": "Commentary2"}).distinct(args[(lang, with_variants)])
+        commentators  = commentators + [s.split(" on ")[0].split(u" על ")[0] for s in commentary2]
+
+        return commentators
 
     def get_commentary_versions(self, commentators=None):
         """

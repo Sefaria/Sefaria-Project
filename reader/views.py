@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # noinspection PyUnresolvedReferences
 from datetime import datetime, timedelta
 from sets import Set
@@ -54,56 +56,6 @@ def reader(request, tref, lang=None, version=None):
 
     try:
         oref = model.Ref(tref)
-        uref = oref.url()
-        if uref and tref != uref:
-            return reader_redirect(uref, lang, version)
-
-        # Return Text TOC if this is a bare text title
-        if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
-            return text_toc(request, oref)
-        # or if this is a schema node with multiple sections underneath it
-        if (not getattr(oref.index_node, "depth", None)):
-            return text_toc(request, oref)
-
-
-        if request.flavour == "mobile":
-            return s2(request, ref=tref)
-
-        # BANDAID - for spanning refs, return the first section
-        oref = oref.padded_ref()
-        if oref.is_spanning():
-            first_oref = oref.first_spanned_ref()
-            return reader_redirect(first_oref.url(), lang, version)
-
-        version = version.replace("_", " ") if version else None
-
-        layer_name = request.GET.get("layer", None)
-        if layer_name:
-            #text = get_text(tref, lang=lang, version=version, commentary=False)
-            text = TextFamily(Ref(tref), lang=lang, version=version, commentary=False, alts=True).contents()
-            if not "error" in text:
-                layer = Layer().load({"urlkey": layer_name})
-                if not layer:
-                    raise InputError("Layer not found.")
-                layer_content      = [format_note_object_for_client(n) for n in layer.all(tref=tref)]
-                text["layer"]      = layer_content
-                text["layer_name"] = layer_name
-                text["commentary"] = []
-                text["notes"]      = []
-                text["sheets"]     = []
-                text["_loadSources"] = True
-                hasSidebar = True if len(text["layer"]) else False
-        else:
-            text = TextFamily(Ref(tref), lang=lang, version=version, commentary=True, alts=True).contents()
-            hasSidebar = True if len(text["commentary"]) else False
-            if not "error" in text:
-                text["notes"]  = get_notes(oref, uid=request.user.id)
-                text["sheets"] = get_sheets_for_ref(tref)
-                hasSidebar = True if len(text["notes"]) or len(text["sheets"]) else hasSidebar
-        text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-        text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
-        text["ref"] = Ref(text["ref"]).normal()
-
     except PartialRefInputError as e:
         logger.warning(u'{}'.format(e))
         matched_ref = Ref(e.matched_part)
@@ -112,6 +64,56 @@ def reader(request, tref, lang=None, version=None):
     except InputError, e:
         logger.warning(u'{}'.format(e))
         raise Http404
+
+    uref = oref.url()
+    if uref and tref != uref:
+        return reader_redirect(uref, lang, version)
+
+    # Return Text TOC if this is a bare text title
+    if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
+        return text_toc(request, oref)
+    # or if this is a schema node with multiple sections underneath it
+    if (not getattr(oref.index_node, "depth", None)):
+        return text_toc(request, oref)
+
+
+    if request.flavour == "mobile":
+        return s2(request, ref=tref)
+
+    # BANDAID - for spanning refs, return the first section
+    oref = oref.padded_ref()
+    if oref.is_spanning():
+        first_oref = oref.first_spanned_ref()
+        return reader_redirect(first_oref.url(), lang, version)
+
+    version = version.replace("_", " ") if version else None
+
+    layer_name = request.GET.get("layer", None)
+    if layer_name:
+        #text = get_text(tref, lang=lang, version=version, commentary=False)
+        text = TextFamily(Ref(tref), lang=lang, version=version, commentary=False, alts=True).contents()
+        if not "error" in text:
+            layer = Layer().load({"urlkey": layer_name})
+            if not layer:
+                raise InputError("Layer not found.")
+            layer_content      = [format_note_object_for_client(n) for n in layer.all(tref=tref)]
+            text["layer"]      = layer_content
+            text["layer_name"] = layer_name
+            text["commentary"] = []
+            text["notes"]      = []
+            text["sheets"]     = []
+            text["_loadSources"] = True
+            hasSidebar = True if len(text["layer"]) else False
+    else:
+        text = TextFamily(Ref(tref), lang=lang, version=version, commentary=True, alts=True).contents()
+        hasSidebar = True if len(text["commentary"]) else False
+        if not "error" in text:
+            text["notes"]  = get_notes(oref, uid=request.user.id)
+            text["sheets"] = get_sheets_for_ref(tref)
+            hasSidebar = True if len(text["notes"]) or len(text["sheets"]) else hasSidebar
+    text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+    text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+    text["ref"] = Ref(text["ref"]).normal()
 
     if lang and version:
         text['new_preferred_version'] = {'lang': lang, 'version': version}
@@ -498,11 +500,17 @@ def text_toc(request, oref):
     heTitle       = index.get_title(lang='he')
     state         = StateNode(title)
     versions      = VersionSet({"title": title}, sort=[["language", -1]])
-    cats          = index.categories[:] # Make a list of categories which will let us pull a commentary node from TOC
-    cats.insert(1, "Commentary")
-    cats.append(index.title)
-    toc           = get_toc()
-    commentaries  = get_or_make_summary_node(toc, cats)
+
+    categories    = index.categories[:]
+    if categories[0] in REORDER_RULES:
+        categories = REORDER_RULES[categories[0]] + categories[1:]
+    if categories[0] == "Commentary":
+        categories[0], categories[1] = categories[1], categories[0]
+    cat_slices    = [categories[:n+1] for n in range(len(categories))] # successive sublists of cats, for category links
+
+    c_titles      = model.library.get_commentary_version_titles_on_book(title)
+    c_indexes     = [get_index(commentary) for commentary in c_titles]
+    commentaries  = [i.toc_contents() for i in c_indexes]
 
     if index.is_complex():
         zoom = 1
@@ -545,6 +553,7 @@ def text_toc(request, oref):
                              "count_strings": count_strings,
                              "zoom":          zoom,
                              "toc_html":      toc_html,
+                             "cat_slices":    cat_slices,
                              "complex":       complex,
                              },
                              RequestContext(request))
@@ -552,8 +561,43 @@ def text_toc(request, oref):
 
 @ensure_csrf_cookie
 def texts_list(request):
+    """
+    Page listing every text in the library.
+    """
     return render_to_response('texts.html',
                              {},
+                             RequestContext(request))
+
+
+def texts_category_list(request, cats):
+    """
+    Page listing every text in category
+    """
+    cats       = cats.split("/")
+    toc        = get_toc()
+    cat_toc    = get_or_make_summary_node(toc, cats)
+
+    if (len(cat_toc) == 0):
+        raise Http404
+
+    category   = cats[-1]
+    heCategory = hebrew_term(category)
+
+    if category in ("Bavli", "Yerushalmi"):
+        category = "Talmud " + category
+        heCategory = hebrew_term("Talmud") + " " + heCategory
+    if "Commentary" in cats:
+        category   = "Commentary on " + category
+        heCategory = u"מפרשים על " + heCategory
+
+    return render_to_response('text_category.html',
+                             {
+                             "categories": cats,
+                             "category":   category,
+                             "heCategory": heCategory,
+                             "cat_toc": cat_toc,
+                             "cat_path": "/" + "/".join(cats),
+                             },
                              RequestContext(request))
 
 @ensure_csrf_cookie

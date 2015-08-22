@@ -184,7 +184,6 @@ def update_table_of_contents():
     # Add an entry for every text we know about
     indices = IndexSet()
     for i in indices:
-        print i.categories
         if i.is_commentary():
             # Special case commentary below
             continue
@@ -327,37 +326,38 @@ def update_summaries():
     scache.reset_texts_cache()
 
 
-def get_or_make_summary_node(summary, nodes):
+def get_or_make_summary_node(summary, nodes, contents_only=True):
     """
     Returns the node in 'summary' that is named by the list of categories in 'nodes',
     creates the node if it doesn't exist.
     Used recursively on sub-summaries.
     """
     if len(nodes) == 1:
-    # Basecase, only need to search through on level
+    # Basecase, only need to search through one level
         for node in summary:
             if node.get("category") == nodes[0]:
-                return node["contents"]
+                return node["contents"] if contents_only else node
         # we didn't find it, so let's add it
         summary.append({"category": nodes[0], "heCategory": hebrew_term(nodes[0]), "contents": []})
-        return summary[-1]["contents"]
+        return summary[-1]["contents"] if contents_only else summary[-1]
 
     # Look for the first category, or add it, then recur
     for node in summary:
         if node.get("category") == nodes[0]:
-            return get_or_make_summary_node(node["contents"], nodes[1:])
+            return get_or_make_summary_node(node["contents"], nodes[1:], contents_only=contents_only)
+    
     summary.append({"category": nodes[0], "heCategory": hebrew_term(nodes[0]), "contents": []})
-    return get_or_make_summary_node(summary[-1]["contents"], nodes[1:])
+    return get_or_make_summary_node(summary[-1]["contents"], nodes[1:], contents_only=contents_only)
 
 
 def add_counts_to_index(indx_dict):
     """
-    Returns a dictionary representing a text which includes index info,
-    and text counts.
+    Returns a dictionary which decorates `indx_dict` with a spareness score.
     """
     vs = StateNode(indx_dict["title"])
     indx_dict["sparseness"] = max(vs.get_sparseness("he"), vs.get_sparseness("en"))
     return indx_dict
+
 
 '''
 #not currently used

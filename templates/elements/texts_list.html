@@ -1,11 +1,11 @@
 {% load cache %}
 
-{% cache 600000 texts_list %}
+{% cache 1 texts_list %}
 {% spaceless %}
 <ul id="textsList" class="menu">
 	{% for cat in toc %}
 		<li class="category">
-			{% include "elements/texts_list_recur.html" with category=cat %}
+			{% include "elements/texts_list_recur.html" with category=cat cat_path="/"|add:cat.category %}
 		</li>
 	{% endfor %}
 	<li id="addTextRow">
