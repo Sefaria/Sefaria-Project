@@ -291,6 +291,7 @@ class PostV2IndexTest(SefariaTestCase):
         index = {
             "title": "Complex Book",
             "titleVariants": [],
+            "hetitle": "Hebrew Complex Book",
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"],
         }
@@ -427,6 +428,8 @@ class PostIndexTest(SefariaTestCase):
         index = {
             "title": "Book of Variants",
             "titleVariants": [],
+            "heTitle": u"Hebrew Book of Variants",
+            "heTitleVariants": [],
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"],
         }
@@ -440,6 +443,7 @@ class PostIndexTest(SefariaTestCase):
         # Post with variants field missing
         index = {
             "title": "Book of Variants",
+            "heTitle": "Hebrew Book of Variants",
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"],
         }
@@ -450,10 +454,12 @@ class PostIndexTest(SefariaTestCase):
         self.assertIn("titleVariants", data)
         self.assertIn("Book of Variants", data["titleVariants"])
 
-        # Post with non empty variants, missing title
+        # Post with non empty variants, missing title from variants
         index = {
             "title": "Book of Variants",
             "titleVariants": ["BOV"],
+            "heTitle": u"Hebrew Book of Variants",
+            "heTitleVariants": [],
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"],
         }
@@ -467,6 +473,7 @@ class PostIndexTest(SefariaTestCase):
         # Post Commentary index with empty variants
         index = {
             "title": "Reb Rabbit",
+            "heTitle": u"Hebrew Reb Rabbit",
             "titleVariants": [],
             "categories": ["Commentary"],
         }
@@ -516,6 +523,7 @@ class PostTextNameChange(SefariaTestCase):
         index = {
             "title": "Name Change Test",
             "titleVariants": ["The Book of Name Change Test"],
+            "heTitle": u'Hebrew Name Change Test',
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"],
         }
@@ -661,6 +669,7 @@ class PostCommentatorNameChange(SefariaTestCase):
     def test_change_commentator_name(self):
         index = {
             "title": "Ploni",
+            "heTitle": u"Hebrew Ploni",
             "titleVariants": ["Ploni"],
             "categories": ["Commentary"]
         }
@@ -750,6 +759,7 @@ class PostTextTest(SefariaTestCase):
         index = {
             "title": "Sefer Test",
             "titleVariants": ["The Book of Test"],
+            "heTitle": u"Hebrew Sefer Test",
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"],
         }
@@ -854,6 +864,7 @@ class PostTextTest(SefariaTestCase):
         """
         index = {
             "title": "Ploni",
+            "heTitle": "Hebrew Ploni",
             "titleVariants": ["Ploni"],
             "categories": ["Commentary"]
         }
