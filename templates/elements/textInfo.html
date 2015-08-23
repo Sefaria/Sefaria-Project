@@ -2,13 +2,26 @@
 {% load sefaria_tags %}
 
 <table data-title="{{ text.title }}">
+	<tbody>
 	<tr>
-		<td class="title sparse{{ text.sparseness }}" id="{{ text.title.split|join:'_' }}">
-			<a href="/{{ text.title|url_safe|urlencode }}">{{ text.title|trim_title }}</a>
+		<td class="title en sparse{{ text.sparseness }}" id="{{ text.title.split|join:'_' }}">
+			<a href="/{{ text.title|url_safe|urlencode }}">
+				{% if commentator_only %}
+					{{ text.commentator }}
+				{% else %}
+					{{ text.title|trim_title }}
+				{% endif %}
+			</a>
 		</td>
 		{% if text.heTitle %}
-		<td class="heTitle">
-			<a href="/{{ text.title|url_safe|urlencode }}">{{ text.heTitle|trim_title }}</a>
+		<td class="heTitle he">
+			<a href="/{{ text.title|url_safe|urlencode }}">
+				{% if commentator_only %}
+					{{ text.heCommentator }}
+				{% else %}
+					{{ text.heTitle|trim_title }}
+				{% endif %}
+			</a>
 		</td>
 		{% else %}
 		<td class="heTitle empty">
@@ -16,4 +29,5 @@
 		</td>
 		{% endif %}
 	</tr>
+	<tbody>
 </table>

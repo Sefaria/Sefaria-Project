@@ -25,28 +25,31 @@
 
         <h1 class="biReady">
             <span id="heTitle" class='he'>{{ index.heTitle }}</span> <span id="title" class='en'>{{ index.title }}</span>
+
+            {% if authors|length %}
+            <div id="authors" class="biReady">
+                {% for author in authors %}
+                    {{ author|person_link }}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div id="textCategories">
+                {% for cats in cat_slices %}
+                    <a href="/texts/{{ cats|join:'/' }}" class='textCategory'>
+                        <span class='en'>{{ cats|last }}</span>
+                        <span class='he'>{{ cats|last|hebrew_term }}</span>
+                    </a>
+                    {% if not forloop.last %}
+                    <span class='textCategoryDelimiter'></span>
+                    {% endif %}
+                {% endfor %}
+            </div>
         </h1>
 
-        {% if authors|length %}
-        <div id="authors" class="biReady">
-            {% for author in authors %}
-                {{ author|person_link }}
-            {% endfor %}
-        </div>
-        {% endif %}
+
 
         <!-- Hidden for style
-        <div id="textCategories" class="biReady">
-            {% for cat in index.categories %}
-                <span class='textCategory'>
-                    <span class='en'>{{ cat }}</span>
-                    <span class='he'>{{ cat|hebrew_term }}</span>
-                </span>
-                {% if not forloop.last %}
-                <span class='textCategoryDelimiter'></span>
-                {% endif %}
-            {% endfor %}
-        </div>
         {% if not complex %}
             <div id="textTocZoom" class="biReady">
                 <b><span class='en'>Show:</span><span class='he'>מציג:</span></b>&nbsp;
@@ -102,6 +105,19 @@
             {% endif %}
         </div>
 
+
+        {% if commentaries %}
+        <div id="textTocCommentaries" class="textTocSection biReady">
+            <h3>Available Commentaries</h3>
+            {% for content in commentaries %}
+                <div class="text">
+                    {% include "elements/textInfo.html" with text=content commentator_only=1 %}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+
         {% if versions|length %}
         <div id="textVersions" class="textTocSection">
         <h3>Available Text Versions</h3>
@@ -133,16 +149,6 @@
         </div>
         {% endif %}
 
-        {% if commentaries %}
-        <div id="textTocCommentaries" class="textTocSection">
-            <h3>Available Commentaries</h3>
-            {% for content in commentaries %}
-                <div class="text">
-                    {% include "elements/textInfo.html" with text=content %}
-                </div>
-            {% endfor %}
-        </div>
-        {% endif %}
 
         {% if count_strings %}
         <div id="textCounts" class="textTocSection">
@@ -157,6 +163,7 @@
             </div>
         </div>
         {% endif %}
+
 
         <div id="textTocTitleVariants" class="textTocSection">
             <h3>Title Variants</h3> 
