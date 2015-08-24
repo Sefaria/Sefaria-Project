@@ -184,13 +184,11 @@ def update_table_of_contents():
     # Add an entry for every text we know about
     indices = IndexSet()
     for i in indices:
-        if i.is_commentary():
+        if i.is_commentary() or i.categories[0] == "Commentary2":
             # Special case commentary below
             continue
         if i.categories[0] in REORDER_RULES:
             i.categories = REORDER_RULES[i.categories[0]] + i.categories[1:]
-            if i.categories[0] == "Commentary":
-                i.categories[0], i.categories[1] = i.categories[1], i.categories[0]
         if i.categories[0] not in ORDER:
             i.categories.insert(0, "Other")
 
@@ -207,6 +205,9 @@ def update_table_of_contents():
             i = get_index(c)
         except BookNameError:
             continue
+
+        if i.categories[0] in REORDER_RULES:
+            i.categories = REORDER_RULES[i.categories[0]] + i.categories[1:]
 
         if len(i.categories) >= 1 and i.categories[0] == "Commentary":
             cats = i.categories[1:2] + ["Commentary"] + i.categories[2:]
