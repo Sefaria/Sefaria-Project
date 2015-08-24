@@ -804,6 +804,17 @@ body.embeded #top {
 }
 
 @media screen and (max-width: 800px) {
+
+  /* Put search results on new line */
+  #searchContent {
+      clear: both;
+  }
+
+  /* Get rid of whitespace on search page */
+  #searchHeaderContainer {
+    display: none;
+  }
+
   #showOptions {
     display: inline-block;
   }
@@ -1268,6 +1279,7 @@ body #keyboardInputMaster thead tr th div {
 
 #searchFilters {
     display: none;
+    padding-bottom: 10px;
 }
 
 /* the checkbox itself */
@@ -1649,10 +1661,6 @@ body #keyboardInputMaster thead tr th div {
 
 @media screen and (max-width: 500px) {
 
-  /* Put search results on new line */
-  #searchContent {
-      clear: both;
-  }
 
   /* Force table to not be like tables anymore */
   .sheetTable, .sheetTable thead, .sheetTable tbody,

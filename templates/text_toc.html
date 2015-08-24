@@ -24,7 +24,8 @@
         <span class="span8 offset2">
 
         <h1 class="biReady">
-            <span id="heTitle" class='he'>{{ index.heTitle }}</span> <span id="title" class='en'>{{ index.title }}</span>
+            <span id="heTitle" lang='he' class='he'>{{ index.heTitle }}</span>
+            <span id="title" lang='en' class='en'>{{ index.title }}</span>
 
             {% if authors|length %}
             <div id="authors" class="biReady">
@@ -34,12 +35,15 @@
             </div>
             {% endif %}
 
-            <div id="textCategories">
+            <div id="textCategories" vocab="http://schema.org/" typeof="BreadcrumbList">
                 {% for cats in cat_slices %}
-                    <a href="/texts/{{ cats|join:'/' }}" class='textCategory'>
-                        <span class='en'>{{ cats|last }}</span>
-                        <span class='he'>{{ cats|last|hebrew_term }}</span>
-                    </a>
+                    <span property="itemListElement" typeof="ListItem">
+                        <a href="/texts/{{ cats|join:'/' }}" class='textCategory' property="item" typeof="WebPage">
+                            <span property="name" lang='en' class='en'>{{ cats|last }}</span>
+                            <span property="name" lang='he' class='he'>{{ cats|last|hebrew_term }}</span>
+                        </a>
+                        <meta property="position" content="{{ forloop.counter }}">
+                    </span>
                     {% if not forloop.last %}
                     <span class='textCategoryDelimiter'></span>
                     {% endif %}
