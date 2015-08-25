@@ -605,6 +605,11 @@ body.hebrew #aboutPage .span5 {
 	font-size: 44px;
 	letter-spacing: 1px;
 }
+#textsPage h1 .he {
+  font-family: "Times New Roman", serif;
+  font-size: 125%;
+  margin-bottom: 16px;
+}
 
 #textsPage #textsList {
 	margin-top: 20px;
@@ -619,12 +624,16 @@ body.hebrew #aboutPage .span5 {
   font-size: 24px;
   font-weight: bold;
   font-family: Georgia, serif;
+  display: block;
   cursor: pointer;
+  color: black;
   padding-bottom: 2px;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   border-bottom: 1px solid #999;
 }
-
+#textsList .categoryName:hover {
+  text-decoration: underline;
+}
 #textsList .categoryName .en {
   float: left;
   line-height: 34px;
@@ -671,7 +680,7 @@ body.hebrew #aboutPage .span5 {
 }
 
 #textsList table {
-  margin: 0px 8px;
+  padding: 0px 8px;
 }
 
 #textsList li.text .title {
@@ -726,6 +735,7 @@ body.hebrew #aboutPage .span5 {
 
 #textsList table {
   width: 100%;
+  box-sizing: border-box;
 }
 
 #textsList i {
@@ -807,11 +817,20 @@ body.hebrew #aboutPage .span5 {
   display: inline-block;
 }
 
-#textsList .text .title a, #textsList .text .heTitle a {
+#textsList .text .title a,
+#textsList .text .heTitle a {
   padding: 0;
   display: inline-block;
+}
+#textsList .text .title a,
+{
   text-indent: -20px;
   padding-left: 20px;
+}
+#textsList .text .heTitle a,
+{
+  text-indent: -20px;
+  padding-right: 20px;
 }
 
 #textsList .text .title.sparse1 a, #textsList .text .heTitle.sparse1 a {
@@ -853,8 +872,9 @@ body.hebrew #aboutPage .span5 {
 }
 
 #textTocPage #textCategories {
-  margin: -12px 0 4px;
-  font-size: 14px;
+  margin: 0px 0 8px;
+  font-size: 13px;
+  font-weight: normal;
   text-align: center;
 }
 

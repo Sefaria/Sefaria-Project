@@ -275,7 +275,12 @@ $.extend(sjs, {
                     $(this).toggleClass('fa-angle-down'); // toggle the font-awesome icon class on click
                     $(this).next("ul").toggle(); // toggle the visibility of the child list on click
                 });
-                $("#_root").closest(".filter-parent").children("i").trigger("click"); // Open first element
+
+                // todo - show or hide the full filter list on a resize event
+                if($( window ).width() >= 800) {
+                    $("#_root").closest(".filter-parent").children("i").trigger("click"); // Open first element
+                }
+
                 this.filters_rendered = true;
             }
         },
