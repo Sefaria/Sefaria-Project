@@ -10,7 +10,7 @@ def make_commentary2(commentator):
         i.save()
 
 #make_commentary2("Rosh")
-make_commentary2("Rif")
+#make_commentary2("Rif")
 #make_commentary2("Divrey Chamudot")
 #make_commentary2("Korban Netanel")
 #make_commentary2("Maadaney Yom Tov")

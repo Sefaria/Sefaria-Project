@@ -206,18 +206,19 @@ def update_table_of_contents():
         except BookNameError:
             continue
 
-        toc_contents = i.toc_contents()
-
         if i.categories[0] in REORDER_RULES:
-            i.categories = REORDER_RULES[i.categories[0]] + i.categories[1:]
+            cats = REORDER_RULES[i.categories[0]] + i.categories[1:]
+        else:
+            cats = i.categories[:]
 
         # if len(i.categories) >= 1 and i.categories[0] == "Commentary":
         #     cats = i.categories[1:2] + ["Commentary"] + i.categories[2:]
         # else:
         #    cats = i.categories[0:1] + ["Commentary"] + i.categories[1:]
 
+        toc_contents = i.toc_contents()
         commentator = toc_contents["commentator"]
-        cats = [i.categories[1], "Commentary", commentator]
+        cats = [cats[1], "Commentary", commentator]
         # cats = cats + map(lambda x: commentator + " on " + x, i.categories[2:-1])
 
         node = get_or_make_summary_node(toc, cats)
