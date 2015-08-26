@@ -6,7 +6,7 @@
 {% block content %}
 <link rel="stylesheet" href="/static/css/s2.css">
 
-<div id="s2-search"></div>
+<div id="searchPage" class="container-fluid"></div>
 
 <div id="overlay"></div>
 
@@ -24,6 +24,8 @@
     {% endif %}
     <script {% if DEBUG %}type="text/jsx"{% endif %}>
       $(function() {
+          $("body").addClass("searchPage");
+
           var urlVars = getUrlVars();
           var filter = "with" in urlVars ? urlVars["with"].replace(/_/g, " ").split("+") : null;
           if (filter && filter.length === 1 && filter[0] === "all") {
@@ -50,7 +52,7 @@
               React.createElement(SearchPage, {
                   initialSettings: settings
               }),
-              document.getElementById('s2-search')
+              document.getElementById('searchPage')
           );
       });
     </script>
