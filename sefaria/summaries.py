@@ -218,10 +218,10 @@ def update_table_of_contents():
 
         commentator = toc_contents["commentator"]
         cats = [i.categories[1], "Commentary", commentator]
-        cats = cats + map(lambda x: commentator + " on " + x, i.categories[2:-1])
+        # cats = cats + map(lambda x: commentator + " on " + x, i.categories[2:-1])
 
         node = get_or_make_summary_node(toc, cats)
-        text = add_counts_to_index(i.toc_contents())
+        text = add_counts_to_index(toc_contents)
         node.append(text)
 
 
@@ -423,7 +423,7 @@ def node_sort_key(a):
             return ORDER.index(a["title"])
         except ValueError:
             if "order" in a:
-                return a["order"][-1]
+                return a["order"][0]
             else:
                 return a["title"]
 

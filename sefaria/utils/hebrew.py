@@ -12,8 +12,6 @@ import re
 import regex
 import math
 
-from sefaria.system.database import db
-
 
 ### Change to all caps for constants
 GERESH = u"\u05F3"
@@ -496,10 +494,15 @@ def hebrew_term(s):
 
 	# If s is a text title, look for a stored Hebrew title
 	try:
+		from sefaria.model import get_index, IndexSet
+		from sefaria.system.exceptions import BookNameError
 		i = get_index(s)
 		return i.get_title("he")
-	except:
-		pass
+	except BookNameError:
+		# Try looking in the commentator section of a Commentary2 text
+		indexes = IndexSet({"title": {"$regex": "^" + s + " on "}})
+		for i in indexes:
+			return i.toc_contents()["heCommentator"]
 
 	return s
 
