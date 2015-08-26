@@ -482,11 +482,11 @@ def hebrew_term(s):
 		"Mitzvah":          u"מצוה",
 		"Tefillah":         u"תפילה",
 		"Torah":            u"תורה",
-		"Perush":	    u"פירוש",
-		"Peirush":	    u"פירוש",
-		"Aliyah":	    u"עלייה",
-		"Tikkun":       u"תיקון",
-		"Tikkunim":     u"תיקונים"
+		"Perush":	        u"פירוש",
+		"Peirush":	        u"פירוש",
+		"Aliyah":	        u"עלייה",
+		"Tikkun":           u"תיקון",
+		"Tikkunim":         u"תיקונים"
 	}
 
 	words = dict(categories.items() + pseudo_categories.items() + section_names.items())
@@ -495,11 +495,11 @@ def hebrew_term(s):
 		return words[s]
 
 	# If s is a text title, look for a stored Hebrew title
-	i = db.index.find_one({"title": s})
-	if i:
-		for title in i["schema"]["titles"]:
-			if title["lang"] == "he" and title.get("primary", False):
-				return title["text"]
+	try:
+		i = get_index(s)
+		return i.get_title("he")
+	except:
+		pass
 
 	return s
 
