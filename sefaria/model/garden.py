@@ -19,13 +19,26 @@ class Garden(abst.AbstractMongoRecord):
     https://saravanamudaliar.files.wordpress.com/2014/03/102_5996.jpg
     """
     collection = 'garden'
+    track_pkeys = True
+    pkeys = ["key"]
 
     required_attrs = [
-
+        'key',
+        'title',
+        'heTitle'
     ]
     optional_attrs = [
 
     ]
+
+    def _init_defaults(self):
+        self.stops = []
+        self.rels = []
+
+    def _set_derived_attributes(self):
+        if getattr(self, 'key', False):
+            self.stops = GardenStopSet({"garden": self.key}).array()
+            self.rels = GardenStopRelationshipSet({"garden": self.key}).array()
 
 
 
@@ -37,10 +50,10 @@ class GardenSet(abst.AbstractMongoSet):
 class GardenStop(abst.AbstractMongoRecord):
     collection = 'garden_stop'
     required_attrs = [
-
+        'garden'
     ]
     optional_attrs = [
-
+        'ref'
     ]
 
 class GardenStopSet(abst.AbstractMongoSet):
@@ -48,6 +61,12 @@ class GardenStopSet(abst.AbstractMongoSet):
 
 
 class GardenSourceStop(GardenStop):
+    required_attrs = [
+        'ref'
+    ]
+    optional_attrs = [
+        ''
+    ]
     pass
 
 
@@ -58,7 +77,7 @@ class GardenBlobStop(GardenStop):
 class GardenStopRelationship(abst.AbstractMongoRecord):
     collection = 'garden_rel'
     required_attrs = [
-
+        'garden'
     ]
     optional_attrs = [
 

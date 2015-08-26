@@ -2131,3 +2131,19 @@ def talmud_person_index(request):
             "people": [p for p in people]
         })
     return render_to_response('talmud_people.html', template_vars, RequestContext(request))
+
+def garden_page(request, key):
+    g = Garden().load({"key": key})
+    if not g:
+        raise Http404
+
+    template_vars = {
+        'title': g.title,
+        'heTitle': g.heTitle,
+        'key': g.key,
+        'stops': g.stops,
+        'rels': g.rels,
+    }
+
+    return render_to_response('garden.html', template_vars, RequestContext(request))
+
