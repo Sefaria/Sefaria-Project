@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block css %}
+    #languageToggle {
+        display: inline;
+    }
+    #languageToggle #bilingual {
+        display: none;
+    }
+{% endblock %}
+
+{% block content %}
+
+
+<div id="gardenPage" class="container doc biReady">
+    <span class="row">
+        <span class="span8 offset2">
+            <h1>
+                <span class='en'>{{ title }}</span>
+                <span class='he'>{{ heTitle }}</span>
+            </h1>
+        </span>
+    </span>
+</div>
+
+{% endblock %}
