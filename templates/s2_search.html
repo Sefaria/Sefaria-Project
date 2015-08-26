@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load sefaria_tags %}
+
+{% block title %}Search Jewish Texts | Sefaria.org{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="/static/css/s2.css">
+
+<div id="s2-search"></div>
+
+<div id="overlay"></div>
+
+{% endblock %}
+
+{% block js %}
+    <script src="/static/js/library.js"></script>
+    <script src="/static/js/search-utils.js"></script>
+    <script src="/static/js/react-with-addons.js"></script>
+    {% if DEBUG %}
+    <script src="/static/js/JSXTransformer.js"></script>
+    <script type="text/jsx" src="/static/js/s2-search.jsx"></script>
+    {% else %}
+    <script src="/static/js/s2.js"></script>
+    {% endif %}
+    <script {% if DEBUG %}type="text/jsx"{% endif %}>
+      $(function() {
+        var urlVars = getUrlVars();
+        var filter  = "with" in urlVars ? urlVars["with"].replace(/_/g, " ").split("+") : null;
+        if (filter && filter.length === 1 && filter[0] === "all") { filter = []; }
+
+        $("body").removeClass("hebrew bilingual").addClass("english");
+
+        sjs.library._saveText({{ data|jsonify }});
+
+        var settings = {
+          language: "{{ contentLang }}",
+          layoutDefault: $.cookie("layoutDefault") || "segmented",
+          layoutTalmud:  $.cookie("layoutTalmud")  || "continuous",
+          layoutTanach:  $.cookie("layoutTanach")  || "segmented",
+          color:         $.cookie("color")         || "light",
+          fontSize:      $.cookie("fontSize")      || 62.5
+        }
+        $("body").addClass(settings.color);
+        var ref = humanRef("{{ ref }}")
+        React.render(
+          React.createElement(ReaderApp, {
+            initialRef: ref,
+            initialFilter: filter,
+            initialSettings: settings}),
+          document.getElementById('s2')
+        );
+        if (filter === null) {
+          sjs.track.open(ref);
+        } else {
+          sjs.track.event("Reader", "Open Close Reader", ref);
+        }
+      });
+    </script>
+{% endblock %}
+
+{% block footer %}{% endblock %}

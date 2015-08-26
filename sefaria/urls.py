@@ -219,6 +219,7 @@ urlpatterns += patterns('reader.views',
 # Features under Development
 urlpatterns += patterns('reader.views',
     (r'^s2$', 's2'),
+    (r'^s2/search/?$', 's2_search'),
     (r'^s2/(?P<ref>.+)$', 's2'),
 )
 

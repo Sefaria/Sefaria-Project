@@ -183,6 +183,13 @@ def s2(request, ref="Genesis 1", version=None, lang=None):
                                         }, RequestContext(request))
 
 
+def s2_search(request):
+    """
+    Standalone page for new search interface
+    """
+    return render_to_response('s2_search.html', {}, RequestContext(request))
+
+
 @catch_error_as_http
 @ensure_csrf_cookie
 def edit_text(request, ref=None, lang=None, version=None):
