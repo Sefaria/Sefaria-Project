@@ -78,7 +78,7 @@ var SearchBar = React.createClass({
         return (
             <div>
                 <div id="lowerSearchBox" className="searchBox">
-                    <input id="lowerSearch" value={this.state.query} onKeyPress={this.handleKeypress} onChange={this.handleChange} defaultValue="Search" className="searchInput keyboardInput" />
+                    <input id="lowerSearch" value={this.state.query} onKeyPress={this.handleKeypress} onChange={this.handleChange} placeholder="Search" className="searchInput keyboardInput" />
                     <span id="lowerOpenText" className="searchButton ui-icon ui-icon-search"></span>
                 </div>
                 <div id="description"></div>
