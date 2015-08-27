@@ -91,6 +91,7 @@ urlpatterns += patterns('reader.views',
 # Texts Page
 urlpatterns += patterns('reader.views',
     (r'^texts/?$', 'texts_list'),
+    (r'^texts/(?P<cats>.+)?$', 'texts_category_list'),
 )
 
 # Search Page

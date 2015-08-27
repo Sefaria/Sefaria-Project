@@ -324,10 +324,24 @@ sjs.library = {
     // Returns the list of commentaries for 'title' which are found in sjs.toc
     var index = this.index(title);
     if (!index) { return []; }
-    var cats = index.categories;
-    cats.splice(1, 0, "Commentary")
-    cats = cats.concat(title);
-    return this.tocItemsByCategories(cats);
+    var cats   = [index.categories[0], "Commentary"];
+    var branch = this.tocItemsByCategories(cats);
+    var commentariesInBranch = function(title, branch) {
+      // Recursively walk a branch of TOC, return a list of all commentaries found on `title`.
+      var results = [];
+      for (var i=0; i < branch.length; i++) {
+        if (branch[i].title) {
+          var split = branch[i].title.split(" on ");
+          if (split.length == 2 && split[1] === title) {
+            results.push(branch[i]);
+          }
+        } else {
+          results = results.concat(commentariesInBranch(title, branch[i].contents));
+        }
+      }
+      return results;
+    };
+    return commentariesInBranch(title, branch);
   },
   tocItemsByCategories: function(cats) {
     // Returns the TOC items that correspond to the list of categories 'cats'
