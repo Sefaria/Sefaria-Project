@@ -411,14 +411,7 @@ def node_sort_key(a):
         try:
             return ORDER.index(a["category"])
         except ValueError:
-            # If there is a text with the exact name as this category
-            # (e.g., "Bava Metzia" as commentary category)
-            # sort by text's order
-            i = Index().load({"title": a["category"]})
-            if i and getattr(i, "order", None):
-                return i.order[-1]
-            else:
-                return 'zz' + a["category"]
+           return 'zz' + a["category"]
     elif "title" in a:
         try:
             return ORDER.index(a["title"])
