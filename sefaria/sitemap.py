@@ -117,7 +117,7 @@ def write_urls(urls, filename):
 
 
 def generate_sitemap_index(sitemaps):
-	now = datetime.now().isoformat()
+	now = datetime.now().strftime("%Y-%m-%d")
 	xml = ""
 	for m in sitemaps:
 		xml += """
