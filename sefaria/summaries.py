@@ -492,7 +492,7 @@ def flatten_toc(toc, include_categories=False, categories_in_titles=False, versi
     Returns an array of strings which corresponds to each category and text in the
     Table of Contents in order.
 
-    - categorie_in_titles: whether to include each category preceding a text title,
+    - categories_in_titles: whether to include each category preceding a text title,
         e.g., "Tanach > Torah > Genesis".
     - version_granularity: whether to include a seperate entry for every text version.
     """
