@@ -207,15 +207,22 @@ def update_table_of_contents():
             continue
 
         if i.categories[0] in REORDER_RULES:
-            i.categories = REORDER_RULES[i.categories[0]] + i.categories[1:]
-
-        if len(i.categories) >= 1 and i.categories[0] == "Commentary":
-            cats = i.categories[1:2] + ["Commentary"] + i.categories[2:]
+            cats = REORDER_RULES[i.categories[0]] + i.categories[1:]
         else:
-            cats = i.categories[0:1] + ["Commentary"] + i.categories[1:]
+            cats = i.categories[:]
+
+        # if len(i.categories) >= 1 and i.categories[0] == "Commentary":
+        #     cats = i.categories[1:2] + ["Commentary"] + i.categories[2:]
+        # else:
+        #    cats = i.categories[0:1] + ["Commentary"] + i.categories[1:]
+
+        toc_contents = i.toc_contents()
+        commentator = toc_contents["commentator"]
+        cats = [cats[1], "Commentary", commentator]
+        # cats = cats + map(lambda x: commentator + " on " + x, i.categories[2:-1])
 
         node = get_or_make_summary_node(toc, cats)
-        text = add_counts_to_index(i.toc_contents())
+        text = add_counts_to_index(toc_contents)
         node.append(text)
 
 
@@ -417,7 +424,7 @@ def node_sort_key(a):
             return ORDER.index(a["title"])
         except ValueError:
             if "order" in a:
-                return a["order"][-1]
+                return a["order"][0]
             else:
                 return a["title"]
 
