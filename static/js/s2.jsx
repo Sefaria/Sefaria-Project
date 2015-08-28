@@ -129,12 +129,14 @@ var ReaderApp = React.createClass({
       var windowTop    = $(window).scrollTop();
       var windowBottom = windowTop + $(window).height();
       if (lastTop > (windowBottom + 100) && current.refs.length > 1) { 
-        // Remove a section scroll out of view on bottom
+        // Remove a section scrolled out of view on bottom
         current.refs = current.refs.slice(0,-1);
         this.setState({contents: this.state.contents});
-      } else if ( lastBottom < (windowBottom + 0)) {
-        // Add the next section
-        if ($lastText.hasClass("loading")) { return; }
+      } else if ( lastBottom < windowBottom ) {
+        // Add the next section to bottom
+        if ($lastText.hasClass("loading")) { 
+          return;
+        }
         currentRef = current.refs.slice(-1)[0];
         data       = sjs.library.ref(currentRef);
         if (data && data.next) {
@@ -957,15 +959,10 @@ var TextRange = React.createClass({
   loadText: function(data) {
     // When data is actually available, load the text into the UI
 
-    if (this.props.basetext) {
-      if (this.props.sref !== data.ref) {
-        // Replace ReaderApp contents with the normalized form of the ref
-        this.props.showBaseText(data.ref, true);        
-      }
-      // Rerend the full app, because we now know the category and color for the header,
-      // which we might not have known before the API call returned.
-      // Can be removed when catgoires are exctracted from sjs.toc on every page
-      this.props.rerender();
+    if (this.props.basetext && this.props.sref !== data.ref) {
+      // Replace ReaderApp contents ref with the normalized form of the ref, if they differ
+      // Pass parameter to showBaseText to replaceHistory
+      this.props.showBaseText(data.ref, true);        
     }
 
     var segments  = this.makeSegments(data);
@@ -975,6 +972,15 @@ var TextRange = React.createClass({
       loaded: true,
       sref: data.ref,
     });
+
+    if (this.props.basetext) {
+      // Rerender the full app, because we now know the category and color for the header,
+      // which we might not have known before the API call returned.
+      // Can be removed when catgoires are exctracted from sjs.toc on every page
+      // This also triggers adjusting infinite scroll, once the text is loaded.
+      this.props.rerender();
+    }
+
     if (this.props.loadLinks && !sjs.library.linksLoaded(data.sectionRef)) {
       // Calling when links are loaded will overwrite state.segments
       sjs.library.bulkLoadLinks(data.sectionRef, this.loadLinkCounts);
