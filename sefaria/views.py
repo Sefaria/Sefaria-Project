@@ -38,6 +38,7 @@ from sefaria.utils.users import user_links
 from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
 from sefaria.utils.hebrew import is_hebrew
+from sefaria.helper.text import make_versions_csv
 
 import logging
 logger = logging.getLogger(__name__)
@@ -401,3 +402,7 @@ def sheet_stats(request):
     html = "Unique Source Sheet creators per month:\n\n" + html
     return HttpResponse("<pre>" + html + "<pre>")
 
+
+@staff_member_required
+def versions_csv(request):
+    return HttpResponse(make_versions_csv(), content_type="text/csv")

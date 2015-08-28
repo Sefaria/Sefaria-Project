@@ -354,7 +354,10 @@ $(function() {
 					
 					// Comment
 					} else if ($el.hasClass("comment")) {
-						$el.parent().remove();
+						if ($el.find("img").length == 0) {
+							// Don't remove a comment that just has an image
+							$el.parent().remove();
+						}
 					
 					// Outside (monolingual)
 					} else if ($el.hasClass("outside")) {

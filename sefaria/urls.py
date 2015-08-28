@@ -91,6 +91,7 @@ urlpatterns += patterns('reader.views',
 # Texts Page
 urlpatterns += patterns('reader.views',
     (r'^texts/?$', 'texts_list'),
+    (r'^texts/(?P<cats>.+)?$', 'texts_category_list'),
 )
 
 # Search Page
@@ -266,6 +267,7 @@ urlpatterns += patterns('',
     (r'^admin/contest-results', 'sefaria.views.list_contest_results'),
     (r'^admin/translation-requests-stats', 'sefaria.views.translation_requests_stats'),
     (r'^admin/sheet-stats', 'sefaria.views.sheet_stats'),
+    (r'^admin/versions-csv', 'sefaria.views.versions_csv'),
     (r'^admin/?', include(admin.site.urls)),
 )
 

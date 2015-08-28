@@ -601,6 +601,7 @@ body .bilingual .enOnly .he {
 }
 .bilingual .segment .en { 
   margin-top: 6px;
+  text-align: left;
 }
 .bilingual .basetext .segment .en { 
   margin-top: 10px;
