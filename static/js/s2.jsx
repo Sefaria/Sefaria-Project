@@ -1087,8 +1087,12 @@ var TextSegment = React.createClass({
       sjs.track.event("Reader", "Text Segment Click", this.props.sref);
     }
   },
-  render: function() {
-    var linkCount = this.props.linkCount ? (<span className="linkCount">{this.props.linkCount}</span>) : "";
+  render: function() {    
+    var minOpacity = 10, maxOpacity = 80;
+    var linkScore = Math.min(this.props.linkCount+minOpacity, maxOpacity) / 100.0;
+    var style = {opacity: linkScore};
+    var linkCount = this.props.linkCount ? (<span className="linkCount" style={style}></span>) : "";
+
     var segmentNumber = this.props.segmentNumber ? (<span className="segmentNumber">{this.props.segmentNumber}</span>) : "";          
     var he = this.props.he || this.props.en;
     var en = this.props.en || this.props.he;

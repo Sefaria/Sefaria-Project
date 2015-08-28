@@ -604,7 +604,7 @@ body .bilingual .enOnly .he {
   text-align: left;
 }
 .bilingual .basetext .segment .en { 
-  margin-top: 10px;
+  margin: 10px 0 20px;
   color: #888;
 }
 .basetext .segment:hover,
@@ -650,13 +650,11 @@ body .bilingual .enOnly .he {
 }
 .segment .linkCount {
   display: block;
-  width: 18px;
-  height: 18px;
-  font-size: 10px;
-  line-height: 18px;
-  border-radius: 30px;
-  border: 1px solid #999;
-  text-align: center;
+  width: 6px;
+  height: 6px;
+  border-radius: 12px;
+  background-color: black;
+  margin-top: 8px;
 }
 #readerApp.english .segment .segmentNumber {
   left: 5px;
@@ -666,11 +664,11 @@ body .bilingual .enOnly .he {
   right: 5px;
 }
 #readerApp.english .segment .linkCount {
-  right: 5px;
+  right: 11px;
 }
 #readerApp.hebrew .segment .linkCount,
 #readerApp.bilingual .segment .linkCount {
-  left: 5px;
+  left: 11px;
 }
 .segment .refLink {
   font-size: .7em;
