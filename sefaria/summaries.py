@@ -394,14 +394,7 @@ def node_sort_key(a):
         try:
             return ORDER.index(a["category"])
         except ValueError:
-            # If there is a text with the exact name as this category
-            # (e.g., "Bava Metzia" as commentary category)
-            # sort by text's order
-            i = Index().load({"title": a["category"]})
-            if i and getattr(i, "order", None):
-                return i.order[-1]
-            else:
-                return 'zz' + a["category"]
+           return 'zz' + a["category"]
     elif "title" in a:
         try:
             return ORDER.index(a["title"])
@@ -482,7 +475,7 @@ def flatten_toc(toc, include_categories=False, categories_in_titles=False, versi
     Returns an array of strings which corresponds to each category and text in the
     Table of Contents in order.
 
-    - categorie_in_titles: whether to include each category preceding a text title,
+    - categories_in_titles: whether to include each category preceding a text title,
         e.g., "Tanach > Torah > Genesis".
     - version_granularity: whether to include a seperate entry for every text version.
     """
