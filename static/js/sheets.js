@@ -410,6 +410,8 @@ $(function() {
 			// Don't init again, or while sorting
 			if ($(this).hasClass("cke_editable")) { return; }
 			if (sjs.flags.sorting) { return; }
+			// Don't init if the click began in another editable
+			if ($(e.target).find(".cke_editable").length) { return; }
 
 
 			// Remove any existing editors first
@@ -458,7 +460,10 @@ $(function() {
 
 		// Destroy editor on outside clicks 
 		// Without this, CKEeditor was not consistently closing itself
-		$("html").live("click", function(e) {
+		$("html").live("mousedown", function(e) {
+			if ($(e.target).closest(".cke_editable").length) {
+				return; // If the click began inside an editable don't remove
+			}
 			$('.cke_editable').each(function() {
 				sjs.removeCKEditorByElement(this);
 			});
