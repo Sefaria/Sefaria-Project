@@ -567,7 +567,9 @@ $(function() {
 							cancel: ':input, button, .cke_editable',
 							placeholder: 'sortPlaceholder',
 							revert: 100,
-							delay: 100,
+							delay: 300,
+							scrollSpeed: 40,
+							scrollSensitivity: 60,
 							opacity: 0.9
 						};
 							 
