@@ -130,7 +130,7 @@ var SearchResultList = React.createClass({
         }
         this.updateQueryInProcess(true);
 
-        sjs.search.execute_query({
+        sjs.library.search.execute_query({
             query: this.props.query,
             size: this.props.page * this.props.size,
             success: function(data) {

@@ -357,7 +357,7 @@ $.extend(sjs.search, {
             });
         },
         query_object: function () {
-            return this.get_query_object(this.query, !this.filters_rendered, this.filter_tree.hasAppliedFilters() && this.filter_tree.getAppliedFilters())
+            return sjs.library.search.get_query_object(this.query, !this.filters_rendered, this.filter_tree.hasAppliedFilters() && this.filter_tree.getAppliedFilters())
         },
         post: function (updateurl, push, leave_alive, hold_results) {
             if (sjs.search.active_post && !(leave_alive)) {
@@ -368,7 +368,7 @@ $.extend(sjs.search, {
 
             var qobj = this.query_object();
 
-            var url = sjs.search.searchUrl;
+            var url = sjs.library.search.baseUrl;
             if (!hold_results)
                 url += "?size=" + ((this.page + 1) * sjs.pageSize);
             else {

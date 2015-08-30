@@ -14,13 +14,12 @@
 
 {% block js %}
     <script src="/static/js/library.js"></script>
-    <script src="/static/js/search-utils.js"></script>
     <script src="/static/js/react-with-addons.js"></script>
     {% if DEBUG %}
     <script src="/static/js/JSXTransformer.js"></script>
     <script type="text/jsx" src="/static/js/s2-search.jsx"></script>
     {% else %}
-    <script src="/static/js/s2.js"></script>
+    <script src="/static/js/s2-search.js"></script>
     {% endif %}
     <script {% if DEBUG %}type="text/jsx"{% endif %}>
       $(function() {
