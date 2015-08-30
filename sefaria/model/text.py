@@ -155,7 +155,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def legacy_form(self):
         """
         :return: Returns an Index object as a flat dictionary, in version one form.
-        :raise: Exception if the Index can not be expressed in the old form
+        :raise: Exception if the Index cannot be expressed in the old form
         """
         if not self.nodes.is_flat():
             raise InputError("Index record {} can not be converted to legacy API form".format(self.title))
@@ -464,8 +464,13 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if hasattr(self,"order"):
             toc_contents_dict["order"] = self.order
         if self.categories[0] == u"Commentary2":
-            toc_contents_dict["commentator"]   = self.get_title().split(" on ")[0]
+            [commentator, book] = self.get_title().split(" on ")
+            toc_contents_dict["commentator"]   = commentator
             toc_contents_dict["heCommentator"] = self.get_title("he").split(u" על ")[0]
+            i = get_index(book)
+            if getattr(i, "order", None):
+                toc_contents_dict["order"] = i.order
+
         return toc_contents_dict
 
 
@@ -518,6 +523,8 @@ class CommentaryIndex(AbstractIndex):
         self.commentaryCategories = self.b_index.categories
         self.categories = ["Commentary"] + self.b_index.categories + [self.b_index.get_title()]
         self.commentator = commentor_name
+        if getattr(self.b_index, "order", None):
+            self.order = self.b_index.order
         if getattr(self, "heTitle", None):
             self.heCommentator = self.heBook = self.heTitle # why both?
 
@@ -610,13 +617,16 @@ class CommentaryIndex(AbstractIndex):
         return copy.deepcopy(self)
 
     def toc_contents(self):
-        return {
+        toc_contents_dict = {
             "title": self.title,
             "heTitle": getattr(self, "heTitle", None),
             "commentator": self.commentator,
             "heCommentator": self.heCommentator,
             "categories": self.categories
         }
+        if hasattr(self,"order"):
+            toc_contents_dict["order"] = self.order
+        return toc_contents_dict
 
     #todo: this needs help
     def contents(self, v2=False, raw=False, **kwargs):

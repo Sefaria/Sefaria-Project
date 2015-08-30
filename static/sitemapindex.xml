@@ -3,42 +3,57 @@
 		
 		   <sitemap>
 			  <loc>http://www.sefaria.org/static/static-sitemap.txt</loc>
-			  <lastmod>2015-07-06T12:39:41.373520</lastmod>
+			  <lastmod>2015-08-27</lastmod>
 		   </sitemap>
 		   
 		   <sitemap>
 			  <loc>http://www.sefaria.org/static/sheets-sitemap.txt</loc>
-			  <lastmod>2015-07-06T12:39:41.373520</lastmod>
+			  <lastmod>2015-08-27</lastmod>
+		   </sitemap>
+		   
+		   <sitemap>
+			  <loc>http://www.sefaria.org/static/text-toc-sitemap.txt</loc>
+			  <lastmod>2015-08-27</lastmod>
+		   </sitemap>
+		   
+		   <sitemap>
+			  <loc>http://www.sefaria.org/static/categories-sitemap.txt</loc>
+			  <lastmod>2015-08-27</lastmod>
 		   </sitemap>
 		   
 		   <sitemap>
 			  <loc>http://www.sefaria.org/static/texts-sitemap0.txt</loc>
-			  <lastmod>2015-07-06T12:39:41.373520</lastmod>
+			  <lastmod>2015-08-27</lastmod>
 		   </sitemap>
 		   
 		   <sitemap>
 			  <loc>http://www.sefaria.org/static/texts-sitemap1.txt</loc>
-			  <lastmod>2015-07-06T12:39:41.373520</lastmod>
+			  <lastmod>2015-08-27</lastmod>
 		   </sitemap>
 		   
 		   <sitemap>
 			  <loc>http://www.sefaria.org/static/texts-sitemap2.txt</loc>
-			  <lastmod>2015-07-06T12:39:41.373520</lastmod>
+			  <lastmod>2015-08-27</lastmod>
 		   </sitemap>
 		   
 		   <sitemap>
 			  <loc>http://www.sefaria.org/static/texts-sitemap3.txt</loc>
-			  <lastmod>2015-07-06T12:39:41.373520</lastmod>
+			  <lastmod>2015-08-27</lastmod>
 		   </sitemap>
 		   
 		   <sitemap>
 			  <loc>http://www.sefaria.org/static/texts-sitemap4.txt</loc>
-			  <lastmod>2015-07-06T12:39:41.373520</lastmod>
+			  <lastmod>2015-08-27</lastmod>
 		   </sitemap>
 		   
 		   <sitemap>
 			  <loc>http://www.sefaria.org/static/texts-sitemap5.txt</loc>
-			  <lastmod>2015-07-06T12:39:41.373520</lastmod>
+			  <lastmod>2015-08-27</lastmod>
+		   </sitemap>
+		   
+		   <sitemap>
+			  <loc>http://www.sefaria.org/static/texts-sitemap6.txt</loc>
+			  <lastmod>2015-08-27</lastmod>
 		   </sitemap>
 		   
 		</sitemapindex>

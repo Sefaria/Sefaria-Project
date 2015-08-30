@@ -505,7 +505,7 @@ def text_toc(request, oref):
     if categories[0] in REORDER_RULES:
         categories = REORDER_RULES[categories[0]] + categories[1:]
     if categories[0] == "Commentary":
-        categories[0], categories[1] = categories[1], categories[0]
+        categories = [categories[1], "Commentary", index.toc_contents()["commentator"]]
     cat_slices    = [categories[:n+1] for n in range(len(categories))] # successive sublists of cats, for category links
 
     c_titles      = model.library.get_commentary_version_titles_on_book(title)
@@ -589,8 +589,8 @@ def texts_category_list(request, cats):
         category = "Talmud " + category
         heCategory = hebrew_term("Talmud") + " " + heCategory
     if "Commentary" in cats:
-        category   = "Commentary on " + category
-        heCategory = u"מפרשים על " + heCategory
+        category   = category + " on " + cats[0]
+        heCategory = heCategory + u" על " + hebrew_term(cats[0])
 
     return render_to_response('text_category.html',
                              {

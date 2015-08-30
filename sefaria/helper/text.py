@@ -266,3 +266,31 @@ def replace_roman_numerals(text):
 
     return re.sub(regex, replace_roman_numerals_in_match, text)
 
+
+def make_versions_csv():
+    """
+    Returns a CSV of all version in the DB.
+    """
+    import csv
+    import io
+    output = io.BytesIO()
+    writer = csv.writer(output)
+    fields = [
+        "title",
+        "versionTitle",
+        "language",
+        "versionSource",
+        "status",
+        "priority",
+        "license",
+        "licenseVetted",
+        "versionNotes",
+        "digitizedBySefaria",
+        "method",
+    ]
+    writer.writerow(fields)
+    vs = VersionSet()
+    for v in vs:
+        writer.writerow([unicode(getattr(v, f, "")).encode("utf-8") for f in fields])
+
+    return output.getvalue()

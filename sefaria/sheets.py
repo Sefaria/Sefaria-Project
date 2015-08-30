@@ -15,6 +15,7 @@ from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import annotate_user_list
 from sefaria.utils.util import strip_tags, string_overlap
 from sefaria.utils.users import user_link
+from sefaria.system.exceptions import InputError
 from history import record_sheet_publication, delete_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE
 import search
@@ -279,9 +280,6 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 	Returns a list of sheets that include ref,
 	formating as need for the Client Sidebar.
 	"""
-	#tref = norm_ref(tref, pad=pad, context=context)
-	#ref_re = make_ref_re(tref)
-
 	oref = model.Ref(tref)
 	if pad:
 		oref = oref.padded_ref()
@@ -295,8 +293,12 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 								{"id": 1, "title": 1, "owner": 1, "included_refs": 1})
 	for sheet in sheets:
 		# Check for multiple matching refs within this sheet
-		matched_orefs = [model.Ref(r) for r in sheet["included_refs"] if regex.match(ref_re, r)]
-		for match in matched_orefs:
+		matched_refs = [r for r in sheet["included_refs"] if regex.match(ref_re, r)]
+		for match in matched_refs:
+			try:
+				match = model.Ref(match)
+			except InputError:
+				continue
 			com                = {}
 			com["category"]    = "Sheets"
 			com["type"]        = "sheet"
