@@ -15,7 +15,7 @@ body.dark {
 }
 #s2 {
   padding: 0 0 30px 0;
-  max-width: 700px;
+  max-width: 800px;
   margin: 0 auto;
   min-height: 100%;
   background-color: inherit;
@@ -55,8 +55,26 @@ body .bilingual .enOnly .he {
 #languageToggle {
   display: inline;
 }
+.loadingMessage {
+  font-size: 13px;
+  font-variant: italic;
+}
+.headroom {
+    transition: transform 200ms linear;
+}
+.headroom--pinned {
+    transform: translateY(0%);
+}
+.headroom--unpinned {
+    transform: translateY(-100%);
+}
+.headroomOff.headroom--unpinned {
+    transform: translateY(0%);
+}
 #top #right #accountBox {
   display: none;
+}
+#readerApp {
 }
 #readerApp.light {
   background-color: white;
@@ -68,6 +86,302 @@ body .bilingual .enOnly .he {
   background-color: #333;
   color: white;
 }
+.readerNavMenu, .readerTextTableOfContents {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  z-index: 100;
+  background-color: #F9F9F7;
+}
+.readerNavTop {
+  padding: 20px;
+  border-bottom: 1px solid #E2E2E1;
+  direction: ltr;
+}
+.readerNavTop .readerSearch {
+  margin: 0;
+  width: 77%;
+  border-color: #F2F2F2;
+  padding: 7px 10px 7px 40px;
+}
+.readerNavTop .fa {
+  color: #BFBFBF;
+  font-size: 20px;
+  vertical-align: middle;
+  cursor: pointer;
+}
+.readerNavTop .fa-search {
+  position: absolute;
+  top: 26px;
+  left: 33px;
+}
+.readerNavTopFixed .readerNavTop .fa-search {
+  left: 10px;
+  top: 25px;
+  margin: 0px;
+}
+.readerNavTop .fa-times {
+  position: absolute;
+  right: 10px;
+  top: 25px;
+}
+.readerNavMenu .navToggles {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.readerNavMenu .navToggle {
+  margin: 0 10px;
+  text-transform: uppercase;
+  color: #999;
+  font-size: 11px;
+  font-weight: lighter;
+  font-family: "Montserrat", "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+.readerNavMenu .navToggle.active {
+  color: black;
+}
+
+.readerNavMenu .content {
+  padding: 10px;
+}
+#readerApp h2, #readerApp h3 {
+  text-transform: uppercase;
+  text-align: center;
+  font-size: 15px;
+  font-weight: lighter;
+  font-family: "Montserrat", "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
+  color: #9B9B9B;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+.readerNavMenu h3 {
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+.readerNavCategories {
+  width: 100%;
+  margin-bottom: 30px;
+}
+.readerNavCategories .threeBox td {
+  border: none;
+}
+.readerNavCategory {
+  color: white;
+  text-transform: uppercase;
+  font-family: Georgia;
+  text-align: center;
+  padding: 14px 10px;
+  margin: 1px;
+  cursor: pointer;
+}
+.readerNavCalendar {
+  margin-bottom: 30px;
+}
+.readerNavCalendar .gridBox td {
+  border: 6px solid transparent;
+}
+.readerNavCalendar .gridBox td:first-child {
+  border-left: 0;
+}
+.readerNavCalendar .gridBox td:last-child {
+  border-right: 0;
+}
+.readerNavMenu .calendarLink.refLink, .readerNavMenu .sheetsLink {
+  display: inline-block;
+  color: black;
+  background-color: white;
+  text-align: center;
+  padding: 12px 0;
+  width: 100%;
+}
+.readerNavMenu .sheetsLink {
+  width: 98%;
+  margin: 0 1%;
+  text-transform: uppercase;
+}
+.readerNavMenu .sheetsLink .fa {
+  margin-right: 4px;
+  color: #999;
+}
+.readerNavMenu .siteLinks {
+  margin-top: 20px;
+  text-align: center;
+}
+.readerNavMenu .siteLinks .siteLink {
+  color: #999;
+  text-transform: uppercase;
+  display: inline-block;
+  margin: 0 8px;
+  font-size: 12px;
+}
+.readerNavCategoryMenu {
+  height: 100%;
+}
+.readerNavTopFixed {
+  position: absolute;
+  width: 100%;
+  background-color: #F9F9F7;
+}
+.readerNavTopFixed .readerNavTop {
+  padding: 12px 20px;
+}
+#readerApp .readerNavTopFixed h2 {
+  margin-bottom: 0px;
+}
+.readerNavCategoryMenu .content {
+  padding: 100px 10px 10px;
+  box-sizing: border-box;
+  height: 100%;
+  overflow-y: scroll;
+}
+.readerNavCategoryMenu .content .category {
+  margin-bottom: 30px;
+}
+.readerNavMenu .refLink,
+.readerNavMenu .catLink,
+.readerTextTableOfContents .refLink {
+  display: inline-block;
+  width: 48%;
+  margin: 1%;
+  padding: 10px 8px;
+  box-sizing: border-box;
+  color: black;
+  background-color: white;
+  cursor: pointer;
+  vertical-align: middle;
+  text-align: center;
+}
+.categoryColorLine {
+  width: 100%;
+  height: 8px;
+}
+.readerTextTableOfContents .tocTitle {
+  text-align: center;
+  font-size: 18px;
+  margin-bottom: 30px;
+  line-height: 1.3;
+}
+.readerTextTableOfContents .tocTitle .currentSection {
+  font-size: 12px;
+  color: #999;
+  font-family: Helvetica, sans-serif;
+  margin-top: 6px;
+  letter-spacing: 1px;
+}
+.readerTextTableOfContents .content {
+  padding: 90px 10px 10px;
+  box-sizing: border-box;
+  height: 100%;
+  overflow-y: scroll;
+  text-align: center;
+}
+.readerTextTableOfContents .content .sectionLink {
+  display: inline-block;
+  height: 38px;
+  min-width: 38px;
+  line-height: 38px;
+  vertical-align: middle;
+  font-size: 13px;
+  font-family: Helvetica, sans-serif;
+  font-weight: lighter;
+  margin: 3px;
+  text-align: center;
+  background-color: white;
+  color: #666;
+  cursor: pointer;
+}
+.readerTextTableOfContents .content #structToggles {
+  margin-bottom: 20px;
+}
+.readerTextTableOfContents #structToggles .altStructToggle.active {
+  color: black;
+}
+.readerTextTableOfContents #structToggles .altStructToggle {
+  color: #999;
+}
+.readerTextTableOfContents .content .sectionName {
+  display: none;
+}
+.readerTextTableOfContents .content .tocSection > .sectionName {
+  font-size: 12px;
+  margin: 0 3px 4px;
+  color: #666;
+  display: block;
+}
+.readerTextTableOfContents .content .tocContent {
+  text-align: left;
+} 
+.readerTextTableOfContents .content .tocSection {
+  margin-bottom: 22px;
+  display: block;
+  text-align: left;
+}
+.readerTextTableOfContents .content .schema-node-contents {
+  margin-bottom: 22px;
+}
+.readerTextTableOfContents .content .schema-node-title {
+  color: black;
+  font-size: 16px;
+  display: inline-block;
+  margin-bottom: 4px;
+}
+.readerTextTableOfContents .content .schema-node-toc {
+  display: block;
+}
+.readerTextTableOfContents .content .schema-node-toc.linked {
+  cursor: pointer;
+}
+.readerTextTableOfContents .content .schema-node-contents.closed {
+  display: none;
+}
+.readerTextTableOfContents .content .schema-node-toc .schema-node-contents.closed {
+  display: block;
+}
+.readerTextTableOfContents .content .schema-node-control {
+  margin: 0 4px;
+}
+.readerTextTableOfContents .content .tocLevel {
+  text-align: center;
+}
+.readerTextTableOfContents .schema-node-toc.depth1 {
+    margin: 10px 0px 0;
+}
+.readerTextTableOfContents .schema-node-toc.depth2 {
+    margin: 6px 20px 0;
+}
+
+.readerTextTableOfContents .schema-node-toc.depth3 {
+    margin: 6px 40px 0;
+}
+
+.readerTextTableOfContents .schema-node-toc.depth4 {
+    margin: 6px 60px 0;
+}
+
+.readerTextTableOfContents .schema-node-toc.depth5 {
+    margin: 6px 80px 0;
+}
+
+.readerTextTableOfContents .schema-node-toc.depth6 {
+    margin: 6px 100px 0;
+}
+
+.readerTextTableOfContents .schema-node-toc.depth7 {
+    margin: 6px 120px 0;
+}
+
+.readerTextTableOfContents .schema-node-toc.depth8 {
+    margin: 6px 140px 0;
+}
+.hebrew .readerTextTableOfContents .content .tocSection,
+.hebrew .readerTextTableOfContents .content .tocContent {
+  text-align: right;
+}
 #readerControls {
   position: fixed;
   direction: ltr;
@@ -76,12 +390,11 @@ body .bilingual .enOnly .he {
   left: 0;
   width: 100%;
   box-sizing: border-box;
-  padding: 0 4px;
+  padding: 0;
   z-index: 101;
-  height: 49px;
-  line-height: 48px;
+  line-height: 47px;
   border-bottom: 1px solid #ddd;
-  background-color: white;
+  background-color: #F9F9F7;
   -moz-user-select: none; 
   -khtml-user-select: none; 
   -webkit-user-select: none; 
@@ -92,8 +405,34 @@ body .bilingual .enOnly .he {
   color: white;
   border-color: #666;
 }
-#readerControlsRight {
-  float: right;
+#readerControls #readerNav, #readerControls #readerTextToc, #readerControls #readerOptions {
+  text-align: center;
+  display: inline-block;
+  cursor: pointer;
+  vertical-align: middle;
+}
+#readerControls #readerNav, #readerControls #readerOptions  {
+  width: 10%;
+  color: #BFBFBF;
+  font-size: 20px;
+  box-sizing: border-box;
+  text-align: left;
+}
+#readerControls #readerTextToc {
+  width: 80%;
+  padding: 0px 8px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  font-size: 17px;
+}
+#readerControls #readerNav {
+  padding-left: 10px;
+}
+#readerControls #readerOptions {
+  text-align: right;
+  padding-right: 10px;
 }
 #readerControls .controlsButton {
   cursor: pointer;
@@ -130,7 +469,7 @@ body .bilingual .enOnly .he {
 #readerOptionsPanel {
   position: fixed;
   width: 100%;
-  top: 49px;
+  top: 57px;
   right: 0;
   max-width: 500px;
   padding: 20px;
@@ -211,6 +550,9 @@ body .bilingual .enOnly .he {
 #readerContent {
   background-color: inherit;
 }
+.textColumn {
+  padding-top: 60px;
+}
 .textRange.basetext {
   width: 100%;
   box-sizing: border-box;
@@ -222,7 +564,8 @@ body .bilingual .enOnly .he {
 }
 .textRange.basetext .title {
   font-weight: bold;
-  padding: 16px 8px;
+  padding: 18px 8px;
+  color: #999;
   text-align: center;
   font-weight: lighter;
   font-family: Helvetica, sans-serif;
@@ -258,9 +601,10 @@ body .bilingual .enOnly .he {
 }
 .bilingual .segment .en { 
   margin-top: 6px;
+  text-align: left;
 }
-.basetext.bilingual  .segment .en { 
-  margin-top: 10px;
+.bilingual .basetext .segment .en { 
+  margin: 10px 0 20px;
   color: #888;
 }
 .basetext .segment:hover,
@@ -283,7 +627,8 @@ body .bilingual .enOnly .he {
 .segment {
 
 }
-.segment .segmentNumber, .segment .linkCount {
+.segment .segmentNumber,
+.segment .linkCount {
   font-family: Helvetica, sans-serif;
   color: #999;
   position: absolute;
@@ -296,6 +641,8 @@ body .bilingual .enOnly .he {
   font-size: 10px;
   line-height: 18px;
   border-radius: 30px;
+  margin-top: 4px;
+
 }
 .segment .segmentNumber {
   font-size: 12px;
@@ -303,22 +650,31 @@ body .bilingual .enOnly .he {
 }
 .segment .linkCount {
   display: block;
-  width: 18px;
-  height: 18px;
-  font-size: 10px;
-  line-height: 18px;
-  border-radius: 30px;
-  border: 1px solid #999;
-  text-align: center;
-  margin: 3px 0 0 -25px;
+  width: 6px;
+  height: 6px;
+  border-radius: 12px;
+  background-color: black;
+  margin-top: 8px;
 }
-.hebrew .segment .linkCount {
-  margin-top: 4px;
+#readerApp.english .segment .segmentNumber {
+  left: 5px;
+}
+#readerApp.hebrew .segment .segmentNumber,
+#readerApp.bilingual .segment .segmentNumber {
+  right: 5px;
+}
+#readerApp.english .segment .linkCount {
+  right: 11px;
+}
+#readerApp.hebrew .segment .linkCount,
+#readerApp.bilingual .segment .linkCount {
+  left: 11px;
 }
 .segment .refLink {
   font-size: .7em;
   font-weight: bold;
   letter-spacing: 1px;
+  cursor: pointer;
 }
 .refLink:hover {
   text-decoration: underline;
@@ -327,28 +683,30 @@ body .bilingual .enOnly .he {
   width: 100%;
   text-align: justify;
   margin: 0 auto;
-  background-color: inherit;
+  background-color: #F9F9F7;
 }
 .textListTop {
   position: fixed;
-  top: 49px;
+  top: 57px;
   left: 0;
   width: 100%;
   background-color: inherit;
 }
 .textList .anchorText {
-  background-color: #F7F7F7;
   cursor: pointer;
   border-bottom: 1px solid #CCC;
   position: relative;
-  /*overflow: hidden;*/
+  background-color: white;
+}
+.dark .textList.main {
+  background-color: #333;
 }
 .dark .textList .anchorText {
   background-color: #333;
 }
 .textList .anchorText .textBox {
   padding: 20px;
-  max-height: 100px;
+  max-height: 150px;
   overflow-x: hidden;
   overflow-y: scroll; 
 }
@@ -368,7 +726,7 @@ body .bilingual .enOnly .he {
   left: 0;
   width: 100%;
   height: 40px;
-  background: linear-gradient(to bottom, rgba(247,247,247,0), #F7F7F7);
+  background: linear-gradient(to bottom, rgba(255,255,255,0), white);
 }
 .dark .textListTop .anchorText .fader {
   background: linear-gradient(to bottom, rgba(51,51,51,0), #333);
@@ -376,36 +734,47 @@ body .bilingual .enOnly .he {
 .textList .heOnly {
   display: block;
 }
-.filterSet {
-
+.gridBox {
+  width: 100%;
 }
-.filterSet table {
+.gridBox table {
   width: 100%;
   border-style: hidden;
   border-collapse: collapse;
 }
-.filterSet td {
+.gridBox td {
   padding: 0;
-  width: 33.3333%;
-  border: 1px solid #CCC;
+  border: 2px solid transparent;
 }
+.twoBox td {
+  width: 50%;
+}
+.threeBox td {
+  width: 33.333333%;
+}
+
 .dark .filterSet td {
   border-color: #555;
 }
 .filterSet td.empty {
-  border: 1px solid transparent;
+  border-left: 1px solid transparent;
+  border-right: 1px solid transparent;
+
 }
 .topFilters {
-  margin-top: -1px;
-}
-.topFilters > table {
-  border-style: none;
+  margin: -1px;
+  padding: 4px 10px;
+  line-height: 0px;
+  background-color: #F9F9F7;
+  border-bottom: 1px solid #D5D5D4;
 }
 .topFilters .textFilter {
+  color: #999;
+  display: inline-block;
+  padding: 10px 8px;
+}
+.topFilters .textFilter.on {
   color: black;
-  display: table;
-  width: 100%;
-  height: 38px;
 }
 .dark .topFilters .textFilter {
   color: white;
@@ -414,15 +783,23 @@ body .bilingual .enOnly .he {
   display: table-cell;
   vertical-align: middle;
 }
-.categoryFilterGroup:last-child {
-  border-bottom: 1px solid #CCC;
+.topFiltersInner {
+  display: inline-block;
+  max-width: 75%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+.showMoreFilters {
+  vertical-align: middle;
+  color: #BBBBB9;
 }
 .categoryFilter {
   text-transform: uppercase;
   padding: 12px;
   text-align: center;
   font-size: 13px;
-  border-bottom: 1px solid #CCC;
 }
 .textFilter {
   padding: 10px 4px;
@@ -435,7 +812,6 @@ body .bilingual .enOnly .he {
   cursor: pointer;
 }
 .categoryFilter.on, .textFilter.on {
-  background-color: #F7F7F7;
   color: black;
 }
 .dark .categoryFilter.on, .dark .textFilter.on {
@@ -449,6 +825,21 @@ body .bilingual .enOnly .he {
   display: none;
 }
 .fullFilterView {
+  background-color: #F9F9F7;
+  padding: 40px 20px;
+}
+.fullFilterView td {
+  background-color: white;
+  border: 2px solid #F9F9F7;
+}
+.fullFilterView .categoryFilter {
+  margin-bottom: 2px;
+  background-color: white;
+}
+.fullFilterView .textFilter {
+}
+.fullFilterView .categoryFilterGroup {
+  margin-bottom: 20px;
 }
 .showSelectedFilters {
   background-color: #222F4F;
@@ -464,6 +855,10 @@ body .bilingual .enOnly .he {
 .textList .textListMessage {
   padding: 20px;
   color: #aaa;
+  font-size: 13px;
+}
+.textList .texts {
+  background-color: white;
 }
 .textList .texts .textRange {
   font-size: 1.4em;

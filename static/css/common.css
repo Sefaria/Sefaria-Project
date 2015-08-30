@@ -439,16 +439,16 @@ body.embeded #top {
     padding: 0;
 }
 
-#navPanel .sparse1 {
+.sparse1 {
     color: #bbb;
 }
-#navPanel .sparse2 {
+.sparse2 {
     color: #999;
 }
-#navPanel .sparse3 {
+.sparse3 {
     color: #777;
 }
-#navPanel .sparse4 {
+.sparse4 {
     color: #000;
 }
 

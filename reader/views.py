@@ -11,7 +11,7 @@ import dateutil.parser
 from bson.json_util import dumps
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.utils.http import urlquote
 from django.utils.encoding import iri_to_uri
@@ -512,7 +512,7 @@ def text_toc(request, oref):
     if categories[0] in REORDER_RULES:
         categories = REORDER_RULES[categories[0]] + categories[1:]
     if categories[0] == "Commentary":
-        categories[0], categories[1] = categories[1], categories[0]
+        categories = [categories[1], "Commentary", index.toc_contents()["commentator"]]
     cat_slices    = [categories[:n+1] for n in range(len(categories))] # successive sublists of cats, for category links
 
     c_titles      = model.library.get_commentary_version_titles_on_book(title)
@@ -566,6 +566,15 @@ def text_toc(request, oref):
                              RequestContext(request))
 
 
+def text_toc_html_fragment(request, title):
+    """
+    Returns an HTML fragment of the Text TOC for title
+    """
+    oref = Ref(title)
+    zoom = 0 if not oref.index.is_complex() and oref.index_node.depth == 1 else 1
+    return HttpResponse(make_toc_html(oref, zoom=zoom))    
+
+
 @ensure_csrf_cookie
 def texts_list(request):
     """
@@ -594,8 +603,8 @@ def texts_category_list(request, cats):
         category = "Talmud " + category
         heCategory = hebrew_term("Talmud") + " " + heCategory
     if "Commentary" in cats:
-        category   = "Commentary on " + category
-        heCategory = u"מפרשים על " + heCategory
+        category   = category + " on " + cats[0]
+        heCategory = heCategory + u" על " + hebrew_term(cats[0])
 
     return render_to_response('text_category.html',
                              {

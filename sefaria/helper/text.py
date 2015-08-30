@@ -198,6 +198,7 @@ def merge_multiple_text_versions(versions, text_title, language, warn=False):
             count += 1
     return {"status": "ok", "merged": count + 1}
 
+
 def merge_text_versions_by_source(text_title, language, warn=False):
     """
     Merges all texts of text_title in langauge that share the same value for versionSource.
@@ -266,3 +267,31 @@ def replace_roman_numerals(text):
 
     return re.sub(regex, replace_roman_numerals_in_match, text)
 
+
+def make_versions_csv():
+    """
+    Returns a CSV of all version in the DB.
+    """
+    import csv
+    import io
+    output = io.BytesIO()
+    writer = csv.writer(output)
+    fields = [
+        "title",
+        "versionTitle",
+        "language",
+        "versionSource",
+        "status",
+        "priority",
+        "license",
+        "licenseVetted",
+        "versionNotes",
+        "digitizedBySefaria",
+        "method",
+    ]
+    writer.writerow(fields)
+    vs = VersionSet()
+    for v in vs:
+        writer.writerow([unicode(getattr(v, f, "")).encode("utf-8") for f in fields])
+
+    return output.getvalue()

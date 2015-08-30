@@ -3,8 +3,13 @@ var cx  = React.addons.classSet;
 
 
 var ReaderApp = React.createClass({
+  propTypes: {
+    initialRef:  React.PropTypes.string.isRequired,
+    initialFilter:  React.PropTypes.array,
+    initialSettings:  React.PropTypes.object
+  },
   getInitialState: function() {
-    var contents = [{type: "TextColumn", refs: [this.props.initialRef], scrollTop: 0 }];
+    var contents = [{type: "TextColumn", refs: [this.props.initialRef], scrollTop: 20 }];
     if (this.props.initialFilter) {
       contents.push({type: "TextList", ref: this.props.initialRef, scrollTop: 0 });
     }
@@ -28,6 +33,11 @@ var ReaderApp = React.createClass({
 
     var hist = this.makeHistoryState()
     history.replaceState(hist.state, hist.title, hist.url);
+
+    $("#readerControls").headroom();
+    this.updateHeadroom();
+
+    $("#top").hide();
   },
   componentWillUnmount: function() {
     window.removeEventListener("popstate", this.handlePopState);
@@ -35,21 +45,29 @@ var ReaderApp = React.createClass({
   },
   componentDidUpdate: function() {
     this.updateHistoryState();
+    this.updateHeadroom();
+  },
+  rerender: function() {
+    this.setState({});
+    this.adjustInfiniteScroll();
   },
   shouldHistoryUpdate: function() {
+    // Compare the current history state to the current content state,
+    // Return true if the change warrants pushing to history.
+    var state = history.state;
     if (!history.state) { 
       return true;
     }
-    var current = this.state.contents.slice(-1)[0];
-    if (history.state.type !== current.type) { 
+    var current = this.currentContent();
+    if (state.type !== current.type) { 
       return true;
     }
     if (current.type === "TextColumn") {
-      if (current.refs.slice(-1)[0] !== history.state.refs.slice(-1)[0]) {
+      if (current.refs.slice(-1)[0] !== state.refs.slice(-1)[0]) {
         return true;
       }
     } else if (current.type === "TextList") {
-      if (current.ref !== history.state.ref) {
+      if (current.ref !== state.ref) {
         return true;
       }
     }
@@ -57,8 +75,8 @@ var ReaderApp = React.createClass({
   },
   makeHistoryState: function() {
     // Returns an object with state, title and url params for the current state
-    var current = this.state.contents.slice(-1)[0];
-    var hist = {};
+    var current = this.currentContent();
+    var hist = {state: current};
     if (current.type === "TextColumn") {
       hist.title = current.refs.slice(-1)[0];
       hist.url = normRef(hist.title);
@@ -67,73 +85,110 @@ var ReaderApp = React.createClass({
       hist.url = normRef(hist.title);
       hist.url += "?with=" + (this.state.currentFilter.length ? this.state.currentFilter[0] : "all");
     }
-    hist.state = current;
     return hist;
   },
   updateHistoryState: function() {
     if (this.shouldHistoryUpdate()) {
       var hist = this.makeHistoryState();
-      history.pushState(hist.state, hist.title, hist.url);
-      if (hist.state.type == "TextColumn") {
-        sjs.track.open(hist.title);
-      } else if (hist.state.type == "TextList") {
-        sjs.track.event("Reader", "Open Close Reader", hist.title);
-      }      
+      if (this.state.replaceHistory) {
+        history.replaceState(hist.state, hist.title, hist.url);
+        $("title").html(hist.title);
+      } else {
+        history.pushState(hist.state, hist.title, hist.url);
+        $("title").html(hist.title);
+        if (hist.state.type == "TextColumn") {
+          sjs.track.open(hist.title);
+        } else if (hist.state.type == "TextList") {
+          sjs.track.event("Reader", "Open Close Reader", hist.title);
+        }           
+      }
     }
   },
   handlePopState: function(event) {
-    if (event.state) {
-      var kind = this.state.contents.slice(-1)[0].type + " to " + event.state.type;
+    var state = event.state;
+    if (state) {
+      var kind = this.currentContent().type + " to " + state.type;
       sjs.track.event("Reader", "Pop State", kind);
-      this.setState({contents: [event.state]});
+      this.setState({contents: [state]});
     }
   },
   handleScroll: function(event) {
     if (this.state.contents.length) {
       var scrollTop = $(window).scrollTop();
-      this.state.contents.slice(-1)[0].scrollTop = scrollTop;
+      this.currentContent().scrollTop = scrollTop;
+      this.setState({contents: this.state.contents});
     }
     this.adjustInfiniteScroll();
   },
   adjustInfiniteScroll: function() {
-    var current = this.state.contents[this.state.contents.length-1];
+    var current = this.currentContent();
     if (current.type === "TextColumn") {
       var $lastText    = $(".textRange.basetext").last();
       var lastTop      = $lastText.offset().top;
-      var lastBottom   =  lastTop + $lastText.outerHeight();
-      var windowBottom = $(window).scrollTop() + $(window).height();
+      var lastBottom   = lastTop + $lastText.outerHeight();
+      var windowTop    = $(window).scrollTop();
+      var windowBottom = windowTop + $(window).height();
       if (lastTop > (windowBottom + 100) && current.refs.length > 1) { 
-        // Remove a section scroll out of view on bottom
+        // Remove a section scrolled out of view on bottom
         current.refs = current.refs.slice(0,-1);
         this.setState({contents: this.state.contents});
-      } else if ( lastBottom < (windowBottom + 0)) {
-        // Add the next section
+      } else if ( lastBottom < windowBottom ) {
+        // Add the next section to bottom
+        if ($lastText.hasClass("loading")) { 
+          return;
+        }
         currentRef = current.refs.slice(-1)[0];
-        data       = sjs.library.text(currentRef);
+        data       = sjs.library.ref(currentRef);
         if (data && data.next) {
           current.refs.push(data.next);
-          this.setState({contents: this.state.contents});
+          this.setState({contents: this.state.contents, replaceHistory: true});
         }
         sjs.track.event("Reader", "Infinite Scroll", "Down");
+      } else if (windowTop < 10 && !this.state.loadingContentAtTop) {
+        // Scroll up for previous
+        topRef = current.refs[0];
+        data   = sjs.library.ref(topRef);
+        if (data && data.prev) {
+          current.refs.splice(current.refs, 0, data.prev);
+          this.setState({contents: this.state.contents, replaceHistory: true, loadingContentAtTop: true});
+        }
+        sjs.track.event("Reader", "Infinite Scroll", "Up");
+      } else {
+        // nothing happens
       }
+    } 
+  },
+  updateHeadroom: function() {
+    var mode = this.currentMode();
+    if (mode === "TextList") {
+      $("#readerControls").addClass("headroomOff");
+    } else {
+      $("#readerControls").removeClass("headroomOff");
     }
   },
   showTextList: function(ref) {
     this.state.contents.push({type: "TextList", ref: ref, scrollTop: 0});
     this.setState({contents: this.state.contents });
   },
-  showBaseText: function(ref) {
+  showBaseText: function(ref, replaceHistory) {
+    // Set the current primary text
+    // `replaceHistory` - bool whether to repalce browser history rather than push for this change
+    replaceHistory = typeof replaceHistory === "undefined" ? false : replaceHistory;
     this.setState({
-      contents: [{type: "TextColumn", refs: [ref], scrollTop: 0 }],
+      contents: [{type: "TextColumn", refs: [ref], scrollTop: 20 }],
       currentFilter: [],
-      recentFilters: []
+      recentFilters: [],
+      replaceHistory: replaceHistory
     });
   },
   backToText: function() {
+    // Return to the original text in the ReaderApp contents
     this.state.contents = [this.state.contents[0]];
     this.setState({contents: this.state.contents});
   },
   setFilter: function(filter, updateRecent) {
+    // Sets the current filter
+    // If updateRecent is true, include the curent setting in the list of recent filters.
     if (updateRecent) {
       if ($.inArray(filter, this.state.recentFilters) !== -1) {
         this.state.recentFilters.toggle(filter);
@@ -144,11 +199,10 @@ var ReaderApp = React.createClass({
     $(window).scrollTop(0);
   },
   navigateReader: function(direction) {
-    var current = this.state.contents.slice(-1)[0];
+    var current = this.currentContent();
     if (current.type === "TextColumn") {
       // Navigate Sections in text view
-      var ref = $(window).scrollTop() === 0 ? current.refs[0] : current.refs.slice(-1)[0];
-      var data = sjs.library.text(ref);
+      var data = this.currentData();
       if (direction in data && data[direction]) {
         this.showBaseText(data[direction]);
       }
@@ -204,24 +258,45 @@ var ReaderApp = React.createClass({
     }
   },
   setScrollTop: function() {
-    var current = this.state.contents.slice(-1)[0];
-    if (current.scrollTop) {
-      $(window).scrollTop(current.scrollTop);
+    var current = this.currentContent();
+    if (this.state.loadingContentAtTop) {
+      // After adding content by infinite scrolling up, scroll back to what the user was just seeing
+      var $reader = $(React.findDOMNode(this));
+      var adjust  = $reader.offset().top + parseInt($reader.find(".textColumn").css("padding-top").replace("px", ""));
+      var top     = $(".basetext").eq(1).position().top - adjust;
+      this.setState({loadingContentAtTop: false});
+    } else if (current.scrollTop !== 20) {
+      // restore the previously saved scrollTop
+      var top = current.scrollTop;
     } else if ($(".segment.highlight").length) {
+      // scroll to highlighted segment
       var top = $(".segment.highlight").first().position().top - ($(window).height() / 3);
-      $(window).scrollTop(top);
     } else {
-      $(window).scrollTop(0);
+      var top = 20; // below zero to give room to scroll up for previous
     }
+    $(window).scrollTop(top);
+  },
+  currentContent: function() {
+    // Returns the current content item
+    return this.state.contents.slice(-1)[0];
+  },
+  currentMode: function () {
+    // Returns the type of the current reader item - TextColumn, TextList
+    return this.currentContent().type;
+  },
+  currentRef: function() {
+    var item = this.currentContent();
+    return item.ref || item.refs.slice(-1)[0];
   },
   currentData: function() {
-    var item = this.state.contents.slice(-1)[0];
-    var ref  = item.ref || item.refs.slice(-1)[0];
-    var data = sjs.library.text(ref);
+    // Returns the data from the library of the current ref
+    var ref  = this.currentRef();
+    var data = sjs.library.ref(ref);
     return data; 
   },
   currentBook: function() {
-    return this.currentData().book;
+    var data = this.currentData();
+    return data ? data.indexTitle : null;
   },
   currentCategory: function() {
     var data = this.currentData();
@@ -241,7 +316,7 @@ var ReaderApp = React.createClass({
     style = {"fontSize": this.state.settings.fontSize + "%"};
     var items = this.state.contents.slice(-1).map(function(item, i) {
       if (item.type === "TextColumn") {
-        return item.refs.map(function(ref, k) {
+        var content = item.refs.map(function(ref, k) {
           return (<TextRange 
             sref={ref}
             basetext={true}
@@ -252,9 +327,11 @@ var ReaderApp = React.createClass({
             setOption={this.setOption}
             setScrollTop={this.setScrollTop}
             showBaseText={this.showBaseText} 
-            showTextList={this.showTextList} 
+            showTextList={this.showTextList}
+            rerender={this.rerender} 
             key={ref} />);      
         }.bind(this));
+        return (<div className='textColumn'>{content}</div>);
       } else if (item.type === "TextList") {
         return (
           <TextList 
@@ -276,6 +353,10 @@ var ReaderApp = React.createClass({
         <ReaderControls
           navNext={this.navNext}
           navPrevious={this.navPrevious}
+          showBaseText={this.showBaseText}
+          currentRef={this.currentRef}
+          currentMode={this.currentMode}
+          currentCategory={this.currentCategory}
           currentBook={this.currentBook}
           settings={this.state.settings}
           setOption={this.setOption}
@@ -290,25 +371,44 @@ var ReaderApp = React.createClass({
 
 
 var ReaderControls = React.createClass({
+  // The Header of a Reader panel which contains controls for 
+  // display, navigation etc.
+  propTypes: {
+    settings:        React.PropTypes.object.isRequired,
+    navNext:         React.PropTypes.func.isRequired,
+    navPrevious:     React.PropTypes.func.isRequired,
+    showBaseText:    React.PropTypes.func.isRequired,
+    setOption:       React.PropTypes.func.isRequired,
+    currentRef:      React.PropTypes.func.isRequired,
+    currentMode:     React.PropTypes.func.isRequired,
+    currentCategory: React.PropTypes.func.isRequired,
+    currentBook:     React.PropTypes.func.isRequired,
+    currentLayout:   React.PropTypes.func.isRequired
+  },
   getInitialState: function() {
     return {
-      open: false
+      optionsOpen: false,
+      navigationOpen: false,
+      tocOpen: false
     };
   },
   showOptions: function(e) {
-    this.setState({open: true});
+    this.setState({optionsOpen: true, navigationOpen: false, tocOpen: false});
   },
   hideOptions: function() {
-    this.setState({open: false});
+    this.setState({optionsOpen: false});
   },
   openNav: function(e) {
-    e.stopPropagation();
-    $("#navPanel").addClass("navPanelOpen")
+    this.setState({navigationOpen: true, optionsOpen: false, tocOpen: false});
+  },
+  closeNav: function() {
+    this.setState({navigationOpen: false});
   },
   openTextToc: function() {
-    var book = this.props.currentBook();
-    var url  = normRef(book);
-    window.location = "/" + url;
+    this.setState({tocOpen: true, navigationOpen: false, optionsOpen: false});
+  },
+  closeTextToc: function () {
+    this.setState({tocOpen: false});
   },
   render: function() {
     var languageOptions = [
@@ -359,7 +459,7 @@ var ReaderControls = React.createClass({
           setOption={this.props.setOption}
           settings={this.props.settings} />);
 
-    var readerOptions = !this.state.open ? "" : (
+    var readerOptions = !this.state.optionsOpen ? "" : (
       <div id="readerOptionsPanel">
         {languageToggle}
         {layoutToggle}
@@ -368,40 +468,334 @@ var ReaderControls = React.createClass({
         {sizeToggle}
       </div>);
 
-    return (
-      <div>
-        <div id="readerControls">
-          <div id="readerControlsRight">
-            <div id="readerPrevious"
-                  className="controlsButton"
-                  onClick={this.props.navPrevious}><i className="fa fa-caret-up"></i></div>
-            <div id="readerNext" 
-                  className="controlsButton" 
-                  onClick={this.props.navNext}><i className="fa fa-caret-down"></i></div>
-            <div id="readerOptions"
-                  className="controlsButton"
-                  onClick={this.showOptions}><i className="fa fa-bars"></i></div>
-          </div>
+    var lineStyle = {backgroundColor: sjs.categoryColor(this.props.currentCategory())};
 
-          <div id="readerControlsLeft">
-            <div id="readerNav"
-                  className="controlsButton"
-                  onClick={this.openNav}><i className="fa fa-search"></i></div>
-            <div id="readerTextToc"
-                  className="controlsButton"
-                  onClick={this.openTextToc}><i className="fa fa-book"></i></div>
+    if (this.state.navigationOpen) {
+      return (<ReaderNavigationMenu 
+                closeNav={this.closeNav}
+                showBaseText={this.props.showBaseText} />);
+    } else if (this.state.tocOpen) {
+      return (<ReaderTextTableOfContents 
+                close={this.closeTextToc}
+                text={this.props.currentBook()}
+                category={this.props.currentCategory()}
+                currentRef={this.props.currentRef()}
+                openNav={this.openNav}
+                showBaseText={this.props.showBaseText} />);
+    } else {
+      var title = this.props.currentBook();
+      var index = sjs.library.index(title);
+      var heTitle = index ? index.heTitle : "";
+      return (
+      <div>
+        <div id="readerControls" className="headroom">
+          <div className="categoryColorLine" style={lineStyle}></div>
+          <div id="readerNav"  onClick={this.openNav}><i className="fa fa-search"></i></div>
+          <div id="readerTextToc" onClick={this.openTextToc}>
+            <span className="en">{title}</span>
+            <span className="he">{heTitle}</span>
           </div>
+          <div id="readerOptions" onClick={this.showOptions}><i className="fa fa-bars"></i></div>
         </div>
         {readerOptions}
-        {this.state.open ? (<div id="mask" onClick={this.hideOptions}></div>) : ""}
-      </div>
+        {this.state.optionsOpen ? (<div id="mask" onClick={this.hideOptions}></div>) : ""}
+      </div>);
+    }
+  }
+});
 
-    );
+
+var ReaderNavigationMenu = React.createClass({
+  // The Navigation menu for broswing and search texts, other side links.
+  propTypes: {
+    closeNav:     React.PropTypes.func.isRequired,
+    showBaseText: React.PropTypes.func.isRequired
+  },
+  getInitialState: function() {
+    return {
+      categories: null,
+      showMore: false
+    };
+  },
+  setCategories: function(categories) {
+    this.setState({categories: categories});
+  },
+  navHome: function() {
+    this.setState({categories: null});
+  },
+  showMore: function() {
+    this.setState({showMore: true});
+  },
+  handleClick: function(event) {
+    if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
+      var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
+      this.props.showBaseText(ref);
+      sjs.track.event("Reader", "Navigation Text Click", ref)
+      this.props.closeNav();
+    } else if ($(event.target).hasClass("catLink") || $(event.target).parent().hasClass("catLink")) {
+      var cats = $(event.target).attr("data-cats") || $(event.target).parent().attr("data-cats");
+      cats = cats.split("|");
+      this.setCategories(cats);
+      sjs.track.event("Reader", "Navigation Sub Category Click", cats.join(" / "));
+    }  
+  },
+  handleSearchKeyUp: function(event) {
+    if (event.keyCode === 13) {
+      var query = $(event.target).val();
+      window.location = "/search?q=" + query.replace(/ /g, "+");
+    }
+  },
+  render: function() {
+    if (this.state.categories) {
+      return (<div className="readerNavMenu" onClick={this.handleClick} >
+                      <ReaderNavigationCategoryMenu
+                        categories={this.state.categories}
+                        category={this.state.categories.slice(-1)[0]}
+                        closeNav={this.props.closeNav}
+                        setCategories={this.setCategories}
+                        navHome={this.navHome} />
+                      </div>);
+    } else {
+      var categories = [
+        "Tanach",
+        "Mishnah",
+        "Talmud",
+        "Midrash",
+        "Halakhah",
+        "Kabbalah",
+        "Liturgy",
+        "Philosophy",
+        "Tosefta",
+        "Parshanut",
+        "Chasidut",
+        "Musar",
+        "Responsa",
+        "Apocrapha",
+        "Other"
+      ];
+      categories = categories.map(function(cat) {
+        var style = {"backgroundColor": sjs.categoryColor(cat)};
+        var openCat = function() {this.setCategories([cat])}.bind(this);
+        var heCat   = sjs.library.hebrewCategory(cat);
+        return (<div className="readerNavCategory" style={style} onClick={openCat}>
+                  <span className="en">{cat}</span>
+                  <span className="he">{heCat}</span>
+                </div>);
+      }.bind(this));;
+      var more = (<div className="readerNavCategory" style={{"backgroundColor": sjs.palette.navy}} onClick={this.showMore}>
+                      <span className="en">More &gt;</span>
+                      <span className="he">עוד &gt;</span>
+                  </div>);
+      categories = this.state.showMore ? categories : categories.slice(0,8).concat(more);
+      categories = (<div className="readerNavCategories"><ThreeBox content={categories} /></div>);
+
+      var siteLinks = sjs._uid ? 
+                    [(<a className="siteLink" key='profile' href="/my/profile"><i className="fa fa-user"></i> My Profile</a>), "•",
+                     (<a className="siteLink" key='home' href="/">Sefaria Home</a>), "•", 
+                     (<a className="siteLink" key='logout' href="/logout">Logout</a>)] :
+                    
+                    [(<a className="siteLink" key='home' href="/">Sefaria Home</a>), "•",
+                     (<a className="siteLink" key='login' href="/login">Log In</a>)];
+
+
+      var calendar = [(<a className="calendarLink refLink" data-ref={sjs.calendar.parasha}>{sjs.calendar.parashaName}</a>),
+                      (<a className="calendarLink refLink" data-ref={sjs.calendar.haftara}>Haftara</a>),
+                      (<a className="calendarLink refLink" data-ref={sjs.calendar.daf_yomi}>Daf Yomi</a>)];
+      calendar = (<div className="readerNavCalendar"><ThreeBox content={calendar} /></div>);
+
+
+      return(<div className="readerNavMenu" onClick={this.handleClick}>
+        <div className="readerNavTop">
+          <i className="fa fa-search"></i>
+          <input className="readerSearch" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
+          <i className="fa fa-times" onClick={this.props.closeNav}></i>
+        </div>
+        <div className="content">
+            <h2>Browse Texts</h2>
+            {categories}
+            <h2>Calendar</h2>
+            {calendar}
+            <h2>Community</h2>
+            <a className="sheetsLink" href="/sheets"><i className="fa fa-file-text-o"></i> Source Sheets</a>
+            <div className="siteLinks">
+            {siteLinks}
+            </div>
+        </div>
+      </div>);
+    }
+  }
+});
+
+
+var ReaderNavigationCategoryMenu = React.createClass({
+  // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
+  propTypes: {
+    category:      React.PropTypes.string.isRequired,
+    categories:    React.PropTypes.array.isRequired,
+    closeNav:      React.PropTypes.func.isRequired,
+    setCategories: React.PropTypes.func.isRequired,
+    navHome:       React.PropTypes.func.isRequired
+  },
+  render: function() {
+    var makeCatContents = function(contents, cats) {
+      // Returns HTML for TOC category contents
+      var html = "";
+      cats = cats || [];
+      for (var i = 0; i < contents.length; i++) {
+        var item = contents[i];
+        if (item.category) {
+          if (item.category == "Commentary") { continue; }
+          var newCats = cats.concat(item.category);
+          // Special Case categories which should nest
+          var subcats = [ "Mishneh Torah", "Shulchan Arukh", "Midrash Rabbah", "Maharal" ];
+          if ($.inArray(item.category, subcats) > -1) {
+            html += '<span class="catLink" data-cats="' + newCats.join("|") + '">' + 
+                    "<span class='en'>" + item.category + "</span>" + 
+                    "<span class='he'>" + item.hebrewCategory + "</span></span>";
+            continue;
+          }
+          html += "<div class='category'><h3>" + 
+                    "<span class='en'>" + item.category + "</span>" + 
+                    "<span class='he'>" + item.heCategory + "</span></h3>" +
+                    makeCatContents(item.contents, newCats) +
+                  "</div>";
+        } else {
+          var title   = item.title.replace(/(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud) /, "");
+          var heTitle = item.heTitle.replace(/(משנה תורה,|תלמוד ירושלמי) /, "");
+          html += '<span class="refLink sparse' + item.sparseness + '" data-ref="' + item.firstSection + '">' + 
+                    "<span class='en'>" + title + "</span>" + 
+                    "<span class='he'>" + heTitle + "</span></span>";
+        }
+      }
+      return html;
+    };
+
+    // Show Talmud with Toggles
+    var categories  = this.props.categories[0] === "Talmud" && this.props.categories.length == 1 ? 
+                        ["Talmud", "Bavli"] : this.props.categories;
+
+    if (categories[0] === "Talmud") {
+      var setBavli = function() {
+        this.props.setCategories(["Talmud", "Bavli"]);
+      }.bind(this);
+      var setYerushalmi = function() {
+        this.props.setCategories(["Talmud", "Yerushalmi"]);
+      }.bind(this);
+      var bClasses = cx({navToggle:1, active: categories[1] === "Bavli"});
+      var yClasses = cx({navToggle:1, active: categories[1] === "Yerushalmi"});
+
+      var toggle =(<div className="navToggles">
+                            <span className={bClasses} onClick={setBavli}>
+                              <span className="en">Bavli</span>
+                              <span className="he">בבלי</span>
+                            </span> | 
+                            <span className={yClasses} onClick={setYerushalmi}>
+                              <span className="en">Yerushalmi</span>
+                              <span className="he">ירושלמי</span>
+                            </span>
+                         </div>);
+
+    } else {
+      var toggle = "";
+    }
+
+    var catContents = sjs.library.tocItemsByCategories(categories);
+    var contents    = makeCatContents(catContents, categories);
+    var lineStyle   = {backgroundColor: sjs.categoryColor(categories[0])};
+
+    return (<div className="readerNavCategoryMenu">
+              <div className="readerNavTopFixed">
+                <div className="categoryColorLine" style={lineStyle}></div>
+                <div className="readerNavTop">
+                  <i className="fa fa-search" onClick={this.props.navHome}></i>
+                  <i className="fa fa-times" onClick={this.props.closeNav}></i>
+                  <h2>{this.props.category}</h2>
+                </div>
+              </div>
+              <div className="content">
+                {toggle}
+                <div dangerouslySetInnerHTML={ {__html: contents} }></div>
+              </div>
+            </div>);
+  }
+});
+
+
+var ReaderTextTableOfContents = React.createClass({
+  // Menu for the Table of Contents for a single text
+  propTypes: {
+    text:         React.PropTypes.string.isRequired,
+    category:     React.PropTypes.string.isRequired,
+    currentRef:   React.PropTypes.string.isRequired,
+    close:        React.PropTypes.func.isRequired,
+    openNav:      React.PropTypes.func.isRequired,
+    showBaseText: React.PropTypes.func.isRequired
+  },
+  componentDidMount: function() {
+    // Toggling TOC Alt structures
+    $(".altStructToggle").click(function(){
+        $(".altStructToggle").removeClass("active");
+        $(this).addClass("active");
+        var i = $(this).index();
+        $(".altStruct").hide();
+        $(".altStruct").eq(i).show();
+    });
+  },
+  handleClick: function(e) {
+    var $a = $(e.target).closest("a");
+    if ($a.length) {
+      var ref = $a.attr("data-ref");
+      ref = decodeURIComponent(ref);
+      ref = humanRef(ref);
+      this.props.showBaseText(ref);
+      e.preventDefault();
+      this.props.close();
+    }
+  },
+  render: function() {
+    var tocHtml = sjs.library.textTocHtml(this.props.text, function() {
+      this.setState({});
+    }.bind(this));
+    tocHtml = tocHtml || "<div class='loadingMessage'>" +
+                            "<span class='en'>Loading...</span>" +
+                            "<span class='he'>טעינה...</span>" + 
+                          "</div>";
+
+    var title     = this.props.text;
+    var heTitle   = sjs.library.index(title) ? sjs.library.index(title).heTitle : title;
+
+    var section   = sjs.library.sectionString(this.props.currentRef).en;
+    var heSection = sjs.library.sectionString(this.props.currentRef).he;
+
+    var lineStyle = {backgroundColor: sjs.categoryColor(this.props.category)};
+
+    return (<div className="readerTextTableOfContents" onClick={this.handleClick}>
+              <div className="readerNavTopFixed">
+                <div className="categoryColorLine" style={lineStyle}></div>
+                <div className="readerNavTop">
+                  <i className="fa fa-search" onClick={this.props.openNav}></i>
+                  <i className="fa fa-times" onClick={this.props.close}></i>
+                  <h2>Table of Contents</h2>
+                </div>
+              </div>
+              <div className="content">
+                <div className="tocTitle">
+                  <span className="en">{title}</span>
+                  <span className="he">{heTitle}</span>
+                  <div className="currentSection">
+                    <span className="en">{section}</span>
+                    <span className="he">{heSection}</span>
+                  </div>
+                </div>
+                <div className="tocContent" dangerouslySetInnerHTML={ {__html: tocHtml} }></div>
+              </div>
+            </div>);
   }
 });
 
 
 var ToggleSet = React.createClass({
+  // A set of options grouped together.
   getInitialState: function() {
     return {};
   },
@@ -432,6 +826,7 @@ var ToggleSet = React.createClass({
 
 
 var ToggleOption = React.createClass({
+  // A single option in a ToggleSet
   getInitialState: function() {
     return {};
   },
@@ -455,6 +850,21 @@ var ToggleOption = React.createClass({
 
 
 var TextRange = React.createClass({
+  // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
+  // This component is responsible for retrieving data from sjs.library for the ref that defines it.
+  propTypes: {
+    sref:             React.PropTypes.string.isRequired,
+    basetext:         React.PropTypes.bool,
+    withContext:      React.PropTypes.bool,
+    loadLinks:        React.PropTypes.bool,
+    prefetchNextPrev: React.PropTypes.bool,
+    openOnClick:      React.PropTypes.bool,
+    settings:         React.PropTypes.object,
+    showBaseText:     React.PropTypes.func,
+    setScrollTop:     React.PropTypes.func,
+    rerender:         React.PropTypes.func,
+    showTextList:     React.PropTypes.func
+  },
   getInitialState: function() {
     return { 
       segments: [],
@@ -467,7 +877,6 @@ var TextRange = React.createClass({
     this.getText();
     if (this.props.basetext) { 
       this.placeSegmentNumbers();
-      this.props.setScrollTop();
     }
     window.addEventListener('resize', this.handleResize);
   },
@@ -548,8 +957,15 @@ var TextRange = React.createClass({
     return segments;
   },
   loadText: function(data) {
-    var segments  = this.makeSegments(data);
+    // When data is actually available, load the text into the UI
 
+    if (this.props.basetext && this.props.sref !== data.ref) {
+      // Replace ReaderApp contents ref with the normalized form of the ref, if they differ
+      // Pass parameter to showBaseText to replaceHistory
+      this.props.showBaseText(data.ref, true);        
+    }
+
+    var segments  = this.makeSegments(data);
     this.setState({
       data: data,
       segments: segments,
@@ -557,51 +973,67 @@ var TextRange = React.createClass({
       sref: data.ref,
     });
 
+    if (this.props.basetext) {
+      // Rerender the full app, because we now know the category and color for the header,
+      // which we might not have known before the API call returned.
+      // Can be removed when catgoires are exctracted from sjs.toc on every page
+      // This also triggers adjusting infinite scroll, once the text is loaded.
+      this.props.rerender();
+    }
+
     if (this.props.loadLinks && !sjs.library.linksLoaded(data.sectionRef)) {
       // Calling when links are loaded will overwrite state.segments
       sjs.library.bulkLoadLinks(data.sectionRef, this.loadLinkCounts);
     }
 
     if (this.props.prefetchNextPrev) {
-      if (data.next) { sjs.library.text(data.next, {}, function() {}); }
-      if (data.prev) { sjs.library.text(data.prev, {}, function() {}); }
+      if (data.next) { sjs.library.text(data.next, {context: 1}, function() {}); }
+      if (data.prev) { sjs.library.text(data.prev, {context: 1}, function() {}); }
+      if (data.book) { sjs.library.textTocHtml(data.book, function() {}); }
     }
   },
   loadLinkCounts: function() {
+    // When link data has been loaded into sjs.library, load the counts into the UI
     for (var i=0; i < this.state.segments.length; i++) {
       this.state.segments[i].linkCount = sjs.library.linkCount(this.state.segments[i].ref);
     }
     this.setState({segments: this.state.segments});
   },
   placeSegmentNumbers: function() {
+    // Set the vertical offsets for segment numbers and link counts, which are dependent
+    // on the rendered height of the text of each segment.
     var $text = $(React.findDOMNode(this));
     var left  = $text.offset().left;
     var right = left + $text.outerWidth();
     $text.find(".segmentNumber").each(function(){
       var top = $(this).parent().offset().top;
-      $(this).css({top: top, left: left});
+      $(this).css({top: top});
     });
     $text.find(".linkCount").each(function(){
       var top = $(this).parent().offset().top;
-      $(this).css({top: top, left: right});
+      $(this).css({top: top});
     });
   },
   handleResize: function() {
     if (this.props.basetext) { this.placeSegmentNumbers(); }
   },
   handleClick: function(event) {
-    if ($(event.target).hasClass("refLink")) {
-      //Click of citation
-      var ref = $(event.target).attr("data-ref");
-      this.props.showBaseText(ref);
-      sjs.track.event("Reader", "Ref Link Click", ref)
-    } else if (this.props.openOnClick) {
-      //Click on the body of the TextRange itself
+    if (this.props.openOnClick && this.props.showBaseText) {
+      //Click on the body of the TextRange itself from TextList
       this.props.showBaseText(this.props.sref);
       sjs.track.event("Reader", "Click Text from TextList", this.props.sref);
     }
   },
   render: function() {
+    if (this.props.basetext) {
+      var sectionStrings = sjs.library.sectionString(this.state.data.ref);
+      var title          = sectionStrings.en || "Loading...";
+      var heTitle        = sectionStrings.he || "טעינה...";      
+    } else {
+      var title   = this.state.data.ref;
+      var heTitle = this.state.data.heRef; 
+    }
+
     var textSegments = this.state.segments.map(function (segment, i) {
       return (
         <TextSegment 
@@ -612,16 +1044,23 @@ var TextRange = React.createClass({
             highlight={segment.highlight}
             segmentNumber={this.props.basetext ? segment.number : 0}
             linkCount={segment.linkCount}
+            showBaseText={this.props.showBaseText}
             showTextList={this.props.showTextList} />
       );
     }.bind(this));
-    var classes = {textRange: 1, basetext: this.props.basetext };
+    textSegments = textSegments.length ? 
+                    textSegments : 
+                    (<div className='loadingMessage'>
+                      <span className="en">Loading...</span>
+                      <span className="he">טעינה...</span>
+                      </div>);
+    var classes = {textRange: 1, basetext: this.props.basetext, loading: !this.state.loaded };
     classes = cx(classes);
     return (
       <div className={classes} onClick={this.handleClick}>
         <div className="title">
-          <span className="en" >{this.state.data.ref}</span>
-          <span className="he">{this.state.data.heRef}</span>
+          <span className="en" >{title}</span>
+          <span className="he">{heTitle}</span>
         </div>
         <div className="text">
           { textSegments }
@@ -633,18 +1072,30 @@ var TextRange = React.createClass({
 
 
 var TextSegment = React.createClass({
-  handleClick: function() {
-    if (this.props.showTextList) {
+  propTypes: {
+
+  },
+  handleClick: function(event) {
+    if ($(event.target).hasClass("refLink")) {
+      //Click of citation
+      var ref = humanRef($(event.target).attr("data-ref"));
+      this.props.showBaseText(ref);
+      event.stopPropagation();
+      sjs.track.event("Reader", "Ref Link Click", ref)
+    } else if (this.props.showTextList) {
       this.props.showTextList(this.props.sref);
       sjs.track.event("Reader", "Text Segment Click", this.props.sref);
     }
   },
-  render: function() {
-    var linkCount = this.props.linkCount ? (<span className="linkCount">{this.props.linkCount}</span>) : "";
+  render: function() {    
+    var minOpacity = 10, maxOpacity = 80;
+    var linkScore = Math.min(this.props.linkCount+minOpacity, maxOpacity) / 100.0;
+    var style = {opacity: linkScore};
+    var linkCount = this.props.linkCount ? (<span className="linkCount" style={style}></span>) : "";
+
     var segmentNumber = this.props.segmentNumber ? (<span className="segmentNumber">{this.props.segmentNumber}</span>) : "";          
     var he = this.props.he || this.props.en;
-    var en = sjs.wrapRefLinks(this.props.en);
-    var en = en || this.props.he;
+    var en = this.props.en || this.props.he;
     var classes=cx({segment: 1, highlight: this.props.highlight, heOnly: !this.props.en, enOnly: !this.props.he});
     return (
       <span className={classes} onClick={this.handleClick}>
@@ -694,7 +1145,7 @@ var TextList = React.createClass({
   setTopPadding: function() {
     var $textList    = $(React.findDOMNode(this));
     var $textListTop = $textList.find(".textListTop");
-    var top = $textListTop.outerHeight();
+    var top          = $textListTop.outerHeight();
     $textList.css({paddingTop: top});
   },
   showAllFilters: function() {
@@ -741,7 +1192,7 @@ var TextList = React.createClass({
                       <span className="en">Loading...</span>
                       <span className="he">טעינה...</span>
                       </div>)  : 
-                  (refs.length == 0 && !this.state.showAllFilters ? 
+                  (refs.length == 0 ? 
                     (<div className='textListMessage'>
                       <span className="en">{emptyMessageEn}</span>
                       <span className="he">{emptyMessageHe}</span>
@@ -761,7 +1212,7 @@ var TextList = React.createClass({
         <div className="textListTop">
           <div className="anchorText" onClick={this.backToText}>
             <div className="textBox">
-              <TextRange sref={this.props.sref} />
+              <TextRange sref={this.props.sref} showBaseText={this.props.showBaseText}/>
             </div>
             <div className="fader"></div>
           </div>
@@ -851,6 +1302,7 @@ var TopFilterSet = React.createClass({
         // topLinks.move(i, 0); 
       }        
     }
+    var category = topLinks[0].category;
     var topFilters = topLinks.map(function(book) {
      return (<TextFilter 
                 key={book.book} 
@@ -858,6 +1310,7 @@ var TopFilterSet = React.createClass({
                 heBook={book.heBook}
                 category={book.category}
                 hideCounts={true}
+                hideColors={true}
                 count={book.count}
                 updateRecent={false}
                 setFilter={this.props.setFilter}
@@ -865,20 +1318,21 @@ var TopFilterSet = React.createClass({
                 onClick={function(){ sjs.track.event("Reader", "Top Filter Click", "1");}} />);
     }.bind(this));
 
-    // Add "More >" button
-    var style = {"borderTop": "4px solid " + sjs.palette.navy};
-    topFilters.push(<div className="showMoreFilters textFilter" 
-                        style={style}
+    var moreButton = (<div className="showMoreFilters textFilter" style={style}
                         onClick={this.props.showAllFilters}>
                           <div>
-                            <span className="en">More &gt;</span>
-                            <span className="he">עוד &gt;</span>
+                            <span className="dot">●</span>
+                            <span className="dot">●</span>
+                            <span className="dot">●</span>
                           </div>                    
                     </div>);
-
+                            //<span className="en">More &gt;</span>
+                            //<span className="he">עוד &gt;</span>
+    var style = {"borderTop": "4px solid " + sjs.categoryColor(category)};
     return (
-      <div className="topFilters filterSet">
-        <ThreeBox content={topFilters} />
+      <div className="topFilters filterSet" style={style}>
+        <div className="topFiltersInner">{topFilters}</div>
+        {moreButton}
       </div>
     );
   }
@@ -941,7 +1395,7 @@ var CategoryFilter = React.createClass({
                 on={$.inArray(book.book, this.props.filter) !== -1} />);
     }.bind(this));
     
-    var color   = sjs.categoryColors[this.props.category] || sjs.palette.pink;
+    var color   = sjs.categoryColor(this.props.category);
     var style   = {"borderTop": "4px solid " + color};
     var classes = cx({categoryFilter: 1, on: this.props.on});
     var count   = (<span className="enInHe">{this.props.count}</span>);
@@ -970,7 +1424,7 @@ var TextFilter = React.createClass({
     var classes = cx({textFilter: 1, on: this.props.on});
 
     if (!this.props.hideColors) {
-      var color = sjs.categoryColors[this.props.category] || sjs.palette.pink;
+      var color = sjs.categoryColor(this.props.category)
       var style = {"borderTop": "4px solid " + color};
     }
     var name = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
@@ -1005,7 +1459,7 @@ var ThreeBox = React.createClass({
         threes.push([content[i], content[i+1], content[i+2]]);
       }
       return (
-        <table>
+        <table className="gridBox threeBox">
           <tbody>
           { 
             threes.map(function(row, i) {
@@ -1039,7 +1493,7 @@ var TwoBox = React.createClass({
         threes.push([content[i], content[i+1]]);
       }
       return (
-        <table>
+        <table className="gridBox twoBox">
           <tbody>
           { 
             threes.map(function(row, i) {

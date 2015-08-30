@@ -180,7 +180,6 @@ def save_toc_to_db():
 
 def update_table_of_contents():
     toc = []
-
     # Add an entry for every text we know about
     indices = IndexSet()
     for i in indices:
@@ -207,15 +206,22 @@ def update_table_of_contents():
             continue
 
         if i.categories[0] in REORDER_RULES:
-            i.categories = REORDER_RULES[i.categories[0]] + i.categories[1:]
-
-        if len(i.categories) >= 1 and i.categories[0] == "Commentary":
-            cats = i.categories[1:2] + ["Commentary"] + i.categories[2:]
+            cats = REORDER_RULES[i.categories[0]] + i.categories[1:]
         else:
-            cats = i.categories[0:1] + ["Commentary"] + i.categories[1:]
+            cats = i.categories[:]
+
+        # if len(i.categories) >= 1 and i.categories[0] == "Commentary":
+        #     cats = i.categories[1:2] + ["Commentary"] + i.categories[2:]
+        # else:
+        #    cats = i.categories[0:1] + ["Commentary"] + i.categories[1:]
+
+        toc_contents = i.toc_contents()
+        commentator = toc_contents["commentator"]
+        cats = [cats[1], "Commentary", commentator]
+        # cats = cats + map(lambda x: commentator + " on " + x, i.categories[2:-1])
 
         node = get_or_make_summary_node(toc, cats)
-        text = add_counts_to_index(i.toc_contents())
+        text = add_counts_to_index(toc_contents)
         node.append(text)
 
 
@@ -253,22 +259,6 @@ def recur_delete_element_from_toc(ref, toc):
             if not len(toc_elem['contents']):
                 toc_elem['to_delete'] = True
     return toc
-
-
-def make_simple_index_dict(index):
-    if not index.is_new_style() or index.is_commentary():
-        indx_dict = {
-            "title": index.title,
-            "heTitle": index.heTitle,
-            "categories": index.categories
-        }
-    else:
-        indx_dict = {
-            "title": index.nodes.primary_title("en"),
-            "heTitle": index.nodes.primary_title("he"),
-            "categories": index.categories
-        }
-    return indx_dict
 
 
 def update_summaries_on_change(bookname, old_ref=None, recount=True):
@@ -404,20 +394,13 @@ def node_sort_key(a):
         try:
             return ORDER.index(a["category"])
         except ValueError:
-            # If there is a text with the exact name as this category
-            # (e.g., "Bava Metzia" as commentary category)
-            # sort by text's order
-            i = Index().load({"title": a["category"]})
-            if i and getattr(i, "order", None):
-                return i.order[-1]
-            else:
-                return 'zz' + a["category"]
+           return 'zz' + a["category"]
     elif "title" in a:
         try:
             return ORDER.index(a["title"])
         except ValueError:
             if "order" in a:
-                return a["order"][-1]
+                return a["order"][0]
             else:
                 return a["title"]
 
@@ -492,7 +475,7 @@ def flatten_toc(toc, include_categories=False, categories_in_titles=False, versi
     Returns an array of strings which corresponds to each category and text in the
     Table of Contents in order.
 
-    - categorie_in_titles: whether to include each category preceding a text title,
+    - categories_in_titles: whether to include each category preceding a text title,
         e.g., "Tanach > Torah > Genesis".
     - version_granularity: whether to include a seperate entry for every text version.
     """

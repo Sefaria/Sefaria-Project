@@ -5,6 +5,8 @@
 
 {% block content %}
 <link rel="stylesheet" href="/static/css/s2.css">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
 <div id="s2"></div>
 
@@ -13,6 +15,7 @@
 {% endblock %}
 
 {% block js %}
+    <script src="/static/js/headroom.js"></script>
     <script src="/static/js/library.js"></script>
     <script src="/static/js/react-with-addons.js"></script>
     {% if DEBUG %}
@@ -22,6 +25,7 @@
     <script src="/static/js/s2.js"></script>
     {% endif %}
     <script {% if DEBUG %}type="text/jsx"{% endif %}>
+      {% autoescape off %}
       $(function() {
         var urlVars = getUrlVars();
         var filter  = "with" in urlVars ? urlVars["with"].replace(/_/g, " ").split("+") : null;
@@ -54,6 +58,7 @@
           sjs.track.event("Reader", "Open Close Reader", ref);
         }
       });
+      {% endautoescape %}
     </script>
 {% endblock %}
 

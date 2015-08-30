@@ -1,27 +1,5 @@
 sjs = sjs || {};
 
-sjs.palette = {
-  "green": "#77A485",
-  "blue": "#6588C7",
-  "tan": "#D3BE90",
-  "red": "#D86F6D",
-  "navy": "#222F4F",
-  "pink": "#D9C6D4",
-  "grape": "#7B426E",
-  "lightblue": "#95C6D2",
-  "darkgreen": "#095868"
-};
-
-sjs.categoryColors = {
-  "Commentary": sjs.palette.blue,
-  "Tanach" : sjs.palette.darkgreen,
-  "Midrash": sjs.palette.green,
-  "Mishnah": sjs.palette.lightblue,
-  "Talmud": sjs.palette.tan,
-  "Halakha": sjs.palette.red,
-  "Philosophy": sjs.palette.grape
-
-};
 
 sjs.library = {
   _texts: {},
@@ -55,18 +33,33 @@ sjs.library = {
           return;
         }
         var settings = settings || {};
+        data = this._wrapRefs(data);
         key = this._textKey(data.ref, settings);
         this._texts[key] = data;
         if (data.ref == data.sectionRef) {
           this._splitTextSection(data);
         } else if (settings.context) {
-          newData            = clone(data);
+          var newData         = clone(data);
           newData.ref        = data.sectionRef;
           newData.sections   = data.sections.slice(0,-1);
           newData.toSections = data.toSections.slice(0,-1);
           this._saveText(newData);
         }
-        // TODO store index record
+        var index = {
+          title:      data.indexTitle,
+          heTitle:    data.heIndexTitle, // This is incorrect for complex texts
+          categories: data.categories
+        };
+        this.index(index.title, index);
+  },
+  _wrapRefs: function(data) {
+    // Wraps citations found in text of data
+    if (typeof data.text === "string") {
+      data.text = sjs.wrapRefLinks(data.text);
+    } else {
+      data.text = data.text.map(sjs.wrapRefLinks);
+    }
+    return data;
   },
   _splitTextSection: function(data) {
     // Takes data for a section level text and populates cache with segment levels
@@ -77,17 +70,18 @@ sjs.library = {
     en = en.pad(length, "");
     he = he.pad(length, "");
 
+    var delim = data.ref === data.book ? " " : ":";
     var start = data.textDepth == data.sections.length ? data.sections[data.textDepth-1] : 1;
     for (var i = 0; i < length; i++) {
-      var ref = data.ref + ":" + (i+start);
+      var ref = data.ref + delim + (i+start);
       var segment_data   = clone(data);
       $.extend(segment_data, {
         ref: ref,
-        heRef: data.heRef + ":" + encodeHebrewNumeral(i+start),
+        heRef: data.heRef + delim + encodeHebrewNumeral(i+start),
         text: en[i],
         he: he[i],
-        nextSegment: i+start == length ? null : data.ref + ":" + (i+start+1),
-        prevSegment: i+start == 1      ? null : data.ref + ":" + (i+start-1),
+        nextSegment: i+start == length ? null : data.ref + delim + (i+start+1),
+        prevSegment: i+start == 1      ? null : data.ref + delim + (i+start-1),
       });
 
       this._texts[ref] = segment_data;
@@ -101,6 +95,15 @@ sjs.library = {
     } else {
       this._index[text] = index;
     }
+  },
+  _cacheIndexFromToc: function() {
+    // Unpacks contents of sjs.toc and stores it in index cache.
+  },
+  ref: function(ref) {
+    // Returns parsed ref in for string `ref`. 
+    // This is currently a wrapper for sjs.library text for cases when the textual information is not important
+    // so that it can be called without worrying about the `settings` parameter for what is available in cache.
+    return this.text(ref) || this.text(ref, {context:1});
   },
   _links: {},
   links: function(ref, cb) {
@@ -231,8 +234,133 @@ sjs.library = {
     books = books.slice(0, 5);
     return books;
   },
+  textTocHtml: function(title, cb) {
+    // Returns an HTML fragment of the table of contents of the text 'title'
+    if (!title) { return "[error: empty title]"; }
+    if (title in this._textTocHtml) {
+      return this._textTocHtml[title]
+    } else {
+      $.ajax({
+        url: "/api/toc-html/" + title,
+        dataType: "html",
+        success: function(html) {
+          html = this._makeTextTocHtml(html, title);
+          this._textTocHtml[title] = html;
+          cb(html);
+        }.bind(this)
+      });
+      return null;
+    } 
+  },
+  _makeTextTocHtml: function(html, title) {
+    // Modifies Text TOC HTML received from server
+    // Replaces links and adds commentary setion
+    html = html.replace(/ href="\//g, ' data-ref="');
+    var commentaryList  = this.commentaryList(title);
+    if (commentaryList.length) {
+      var commentaryHtml = "<div class='altStruct' style='display:none'>" + 
+                              commentaryList.map(function(item) {
+                                  return "<a class='refLink' data-ref='" + item.firstSection + "'>" + 
+                                            "<span class='en'>" + item.commentator + "</span>" +
+                                            "<span class='he'>" + item.heCommentator + "</span>" +
+                                          "</a>";
+                              }).join("") +
+                            "</div>";
+      var $html = $("<div>" + html + "</div>");
+      var commentaryToggleHtml = "<div class='altStructToggle'>" +
+                                    "<span class='en'>Commentary</span>" +
+                                    "<span class='he'>מפרשים</span>" +
+                                  "</div>";      
+      if ($html.find("#structToggles").length) {
+        $html.find("#structToggles").append(" | " + commentaryToggleHtml);  
+      } else {
+        var togglesHtml = "<div id='structToggles'>" +
+                            "<div class='altStructToggle active'>" +
+                                "<span class='en'>Text</span>" +
+                                "<span class='he'>טקסט</span>" +
+                              "</div> | " + commentaryToggleHtml +
+                          "</div>";
+        $html = $("<div><div class='altStruct'>" + html + "</div></div>");
+        $html.prepend(togglesHtml);   
+      }
+      $html.append(commentaryHtml);
+      html = $html.html();
+    }
+    return html;
+  },
+  sectionString: function(ref) {
+    // Returns a pair of nice strings (en, he) of the sections indicated in ref. e.g.,
+    // "Genesis 4" -> "Chapter 4", "Guide for the Perplexed, Introduction" - > "Introduction"
+    var data = this.text(ref) || this.text(ref, {context: 1});
+    if (!data) { return ""; }
+    var result = {};
+
+    var sections = ref.slice(data.indexTitle.length+1);
+    var name = data.sectionNames.length > 1 ? data.sectionNames[0] + " " : "";
+    if (data.isComplex) {
+      var numberedSections = data.ref.slice(data.book.length+1);
+      var namedSections    = sections.slice(0, -(numberedSections.length+1));
+      var string           = namedSections + ", " + name +  numberedSections;
+    } else {
+      var string = name + sections;
+    }
+    result["en"] = string;
+
+    var sections = data.heRef.slice(data.heIndexTitle.length+1);
+    var name = ""; // missing he section names // data.sectionNames.length > 1 ? " " + data.sectionNames[0] : "";
+    if (data.isComplex) {
+      var numberedSections = data.heRef.slice(data.heTitle.length+1);
+      var namedSections    = sections.slice(0, -(numberedSections.length+1));
+      var string           = namedSections + ", " + name + " " + numberedSections;
+    } else {
+      var string = name + sections;
+    }
+    result["he"] = string;
+
+    return result;
+  },
+  _textTocHtml: {},
+  commentaryList: function(title) {
+    // Returns the list of commentaries for 'title' which are found in sjs.toc
+    var index = this.index(title);
+    if (!index) { return []; }
+    var cats   = [index.categories[0], "Commentary"];
+    var branch = this.tocItemsByCategories(cats);
+    var commentariesInBranch = function(title, branch) {
+      // Recursively walk a branch of TOC, return a list of all commentaries found on `title`.
+      var results = [];
+      for (var i=0; i < branch.length; i++) {
+        if (branch[i].title) {
+          var split = branch[i].title.split(" on ");
+          if (split.length == 2 && split[1] === title) {
+            results.push(branch[i]);
+          }
+        } else {
+          results = results.concat(commentariesInBranch(title, branch[i].contents));
+        }
+      }
+      return results;
+    };
+    return commentariesInBranch(title, branch);
+  },
+  tocItemsByCategories: function(cats) {
+    // Returns the TOC items that correspond to the list of categories 'cats'
+    var list = clone(sjs.toc);
+    for (var i = 0; i < cats.length; i++) {
+      var found = false;
+      for (var k = 0; k < list.length; k++) {
+        if (list[k].category == cats[i]) { 
+          list = clone(list[k].contents);
+          found = true;
+          break;
+        }
+      }
+      if (!found) { return []; }
+    }
+    return list;
+  },
   hebrewCategory: function(cat) {
-    categories = {
+    var categories = {
       "Torah":                "תורה",
       "Tanach":               'תנ"ך',
       "Tanakh":               'תנ"ך',
@@ -282,3 +410,44 @@ sjs.library = {
     return cat in categories ? categories[cat] : cat;
   }
 };
+
+
+sjs.palette = {
+  "green": "#77A485",
+  "blue": "#6588C7",
+  "tan": "#D3BE90",
+  "red": "#D86F6D",
+  "navy": "#222F4F",
+  "pink": "#D9C6D4",
+  "grape": "#7B426E",
+  "lightblue": "#95C6D2",
+  "darkgreen": "#095868"
+};
+
+sjs.categoryColors = {
+  "Commentary":         sjs.palette.blue,
+  "Tanach" :            sjs.palette.darkgreen,
+  "Midrash":            sjs.palette.green,
+  "Mishnah":            sjs.palette.lightblue,
+  "Talmud":             sjs.palette.tan,
+  "Halakhah":           sjs.palette.red,
+  "Kabbalah":           sjs.palette.pink,
+  "Philosophy":         sjs.palette.grape,
+  "Liturgy":            sjs.palette.blue,
+  "Tosefta":            sjs.palette.darkgreen,
+  "Parshanut":          sjs.palette.tan,
+  "Chasidut":           sjs.palette.green,
+  "Musar":              sjs.palette.lightblue,
+  "Responsa":           sjs.palette.red,
+  "Apocrapha":          sjs.palette.pink,
+  "Other":              sjs.palette.blue,
+  "Quoting Commentary": sjs.palette.lightblue,
+  "Commentary2":         sjs.palette.blue
+};
+
+sjs.categoryColor = function(cat) {
+  if (cat in sjs.categoryColors) {
+    return sjs.categoryColors[cat];
+  }
+  return "transparent";
+}

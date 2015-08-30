@@ -16,5 +16,5 @@ def make_commentary2(commentator):
 #make_commentary2("Maadaney Yom Tov")
 #make_commentary2("Pilpula Charifta")
 #make_commentary2("Tiferet Shmuel")
-make_commentary2("Chidushei Agadot")
-make_commentary2("Chidushei Halachot")
+#make_commentary2("Chidushei Agadot")
+#make_commentary2("Chidushei Halachot")
