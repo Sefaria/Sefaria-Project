@@ -11,15 +11,19 @@ var SearchPage = React.createClass({
     getInitialState: function() {
         return {
             query: this.props.initialSettings.query,
-            page: this.props.initialSettings.page,
+            page: this.props.initialSettings.page || 1,
+            currentQuery: null,
             queryInProcess: false
         }
     },
     updateQuery: function(query) {
         this.setState({query: query});
     },
-    updateQueryInProcess: function(bool) {
-        this.setState({ queryInProcess: bool })
+    updateCurrentQuery: function(ajax) {
+        this.setState({
+            currentQuery: ajax,
+            queryInProcess: !!ajax
+        })
     },
     render: function () {
         return (
@@ -42,7 +46,7 @@ var SearchPage = React.createClass({
                         <SearchResultList
                             query = { this.state.query }
                             page = { this.state.page }
-                            updateQueryInProcess = { this.updateQueryInProcess }
+                            updateCurrentQuery = { this.updateCurrentQuery }
                         />
                     </div>
                 </div>
@@ -107,7 +111,7 @@ var SearchResultList = React.createClass({
         query: React.PropTypes.string,
         page: React.PropTypes.number,
         size: React.PropTypes.number,
-        updateQueryInProcess: React.PropTypes.func
+        updateCurrentQuery: React.PropTypes.func
     },
     getDefaultProps: function() {
         return {
@@ -117,52 +121,81 @@ var SearchResultList = React.createClass({
     },
     getInitialState: function() {
         return {
-            queryInProcess: false
+            currentQuery: null,
+            total: 0,
+            hits: [],
+            aggregations: null
         }
     },
-    updateQueryInProcess: function(bool) {
-        this.setState({queryInProcess: bool});
-        this.props.updateQueryInProcess(bool);
+    updateCurrentQuery: function(ajax) {
+        this.setState({currentQuery: ajax});
+        this.props.updateCurrentQuery(ajax);
     },
-    componentDidMount: function() {
+    _executeQuery: function() {
         if (!this.props.query) {
             return;
         }
-        this.updateQueryInProcess(true);
+        if(this.state.currentQuery) {
+            this.state.currentQuery.abort();
+        }
 
-        sjs.library.search.execute_query({
+        var currentQuery = sjs.library.search.execute_query({
             query: this.props.query,
             size: this.props.page * this.props.size,
             success: function(data) {
                 if (this.isMounted()) {
                     this.setState({
-                        hits: data.hits,
-                        aggregations: data.aggregations,
+                        hits: data.hits.hits,
+                        total: data.hits.total,
+                        aggregations: data.aggregations
                     });
-                    this.updateQueryInProcess(false);
+                    this.updateCurrentQuery(null);
                 }
             }.bind(this),
             error: function(jqXHR, textStatus, errorThrown) {
                 if (textStatus == "abort") {
-                    this.updateQueryInProcess(false);
+                    // Abort is immediately followed by new query, above.  Worried there would be a race if we call updateCurrentQuery(null) from here
+                    //this.updateCurrentQuery(null);
                     return;
                 }
                 if (this.isMounted()) {
                     this.setState({
-                        error: true,
+                        error: true
                     });
-                    this.updateQueryInProcess(false);
+                    this.updateCurrentQuery(null);
                 }
             }.bind(this)
         });
+        this.updateCurrentQuery(currentQuery);
+    },
+    componentDidMount: function() {
+       this._executeQuery()
+    },
+    componentWillReceiveProps: function(newProps) {
+        if(this.props.query != newProps.query) {
+           this.setState({
+               total: 0,
+               hits: []
+           });
+           this._executeQuery()
+        }
+        else if (
+            this.props.size != newProps.size
+            || this.props.page != newProps.page
+        ) {
+           this._executeQuery()
+        }
     },
     render: function () {
         if (!(this.props.query)) {  // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
             return null;
         }
+        if (this.state.currentQuery) {
+            return (<div>...</div>)
+        }
         return (
             <div>
-                <span>Results for {this.props.query}:</span>
+                <span>{this.state.total} results for {this.props.query}:</span>
                 <SearchResult />
                 <SearchResult />
                 <SearchResult />

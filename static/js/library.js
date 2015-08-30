@@ -434,15 +434,15 @@ sjs.library = {
               url += "&from=" + args.from;
           }
 
-          sjs.search.active_post = $.ajax({
+          return $.ajax({
               url: url,
               type: 'POST',
-              data: JSON.stringify(sjs.search.get_query_object(args.query, args.get_filters, args.applied_filters)),
+              data: JSON.stringify(sjs.library.search.get_query_object(args.query, args.get_filters, args.applied_filters)),
               crossDomain: true,
               processData: false,
               dataType: 'json',
-              success: success,
-              error: error
+              success: args.success,
+              error: args.error
           });
       },
 
