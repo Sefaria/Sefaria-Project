@@ -196,10 +196,10 @@ var SearchResultList = React.createClass({
         return (
             <div>
                 <span>{this.state.total} results for {this.props.query}:</span>
-                <SearchResult />
-                <SearchResult />
-                <SearchResult />
-                { this.state.hits }
+
+                {this.state.hits.map(function(result) {
+                    return <SearchResult data={result}/>;
+                })}
             </div>
 
         )
@@ -207,9 +207,35 @@ var SearchResultList = React.createClass({
 });
 
 var SearchResult = React.createClass({
+    propTypes: {
+        data: React.PropTypes.object
+    },
     render: function () {
+        var data = this.props.data;
+        var s = this.props.data._source;
+        var href = '/' + normRef(s.ref) + "/" + s.lang + "/" + s.version.replace(/ +/g, "_") + '?qh=' + this.query;
+
+        function get_snippet_markup() {
+            var snippet;
+            if (data.highlight && data.highlight["content"]) {
+                snippet = data.highlight["content"].join("...");
+            } else {
+                snippet = s["content"];
+            }
+            snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").html();
+            return {__html:snippet}
+        }
+
+
         return (
-            <div>Search Result</div>
+            <div className="result">
+                <a href="{href}">
+                    <span class="en">{s.ref}</span>
+                    <span class="he">{s.heRef}</span>
+                </a>
+                <div className="snippet" dangerouslySetInnerHTML={get_snippet_markup()}></div>
+                <div className="version">{s.version}</div>
+            </div>
         )
     }
 });
