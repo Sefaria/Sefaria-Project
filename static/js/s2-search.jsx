@@ -131,8 +131,11 @@ var SearchResultList = React.createClass({
         this.setState({currentQuery: ajax});
         this.props.updateCurrentQuery(ajax);
     },
-    _executeQuery: function() {
-        if (!this.props.query) {
+    _executeQuery: function(props) {
+        //This takes a props object, so as to be able to handle being called from componentWillReceiveProps
+        props = props || this.props;
+
+        if (!props.query) {
             return;
         }
         if(this.state.currentQuery) {
@@ -140,12 +143,12 @@ var SearchResultList = React.createClass({
         }
 
         var currentQuery = sjs.library.search.execute_query({
-            query: this.props.query,
-            size: this.props.page * this.props.size,
+            query: props.query,
+            size: props.page * props.size,
             success: function(data) {
                 if (this.isMounted()) {
                     this.setState({
-                        hits: data.hits.hits,
+                        hits: this._process_duplicate_hits(data.hits.hits),
                         total: data.hits.total,
                         aggregations: data.aggregations
                     });
@@ -168,6 +171,25 @@ var SearchResultList = React.createClass({
         });
         this.updateCurrentQuery(currentQuery);
     },
+    shouldComponentUpdate: function() {
+      return !this.state.currentQuery;
+    },
+    _process_duplicate_hits(hits) {
+        var comparingRef = null;
+        var newHits = [];
+        for(var i = 0, j = 0; i < hits.length; i++) {
+            var currentRef = hits[i]._source.ref;
+            if(currentRef == comparingRef) {
+                newHits[j - 1].duplicates = newHits[j-1].duplicates || [];
+                newHits[j - 1].duplicates.push(hits[i]);
+            } else {
+                newHits[j] = hits[i];
+                j++;
+                comparingRef = currentRef;
+            }
+        }
+        return newHits;
+    },
     componentDidMount: function() {
        this._executeQuery()
     },
@@ -175,15 +197,16 @@ var SearchResultList = React.createClass({
         if(this.props.query != newProps.query) {
            this.setState({
                total: 0,
-               hits: []
+               hits: [],
+               aggregations: null
            });
-           this._executeQuery()
+           this._executeQuery(newProps)
         }
         else if (
             this.props.size != newProps.size
             || this.props.page != newProps.page
         ) {
-           this._executeQuery()
+           this._executeQuery(newProps)
         }
     },
     render: function () {
@@ -198,8 +221,8 @@ var SearchResultList = React.createClass({
                 <span>{this.state.total} results for {this.props.query}:</span>
 
                 {this.state.hits.map(function(result) {
-                    return <SearchResult data={result}/>;
-                })}
+                    return <SearchResult data={result} query={this.props.query}/>;
+                }.bind(this))}
             </div>
 
         )
@@ -208,12 +231,13 @@ var SearchResultList = React.createClass({
 
 var SearchResult = React.createClass({
     propTypes: {
+        query: React.PropTypes.string,
         data: React.PropTypes.object
     },
     render: function () {
         var data = this.props.data;
         var s = this.props.data._source;
-        var href = '/' + normRef(s.ref) + "/" + s.lang + "/" + s.version.replace(/ +/g, "_") + '?qh=' + this.query;
+        var href = '/' + normRef(s.ref) + "/" + s.lang + "/" + s.version.replace(/ +/g, "_") + '?qh=' + this.props.query;
 
         function get_snippet_markup() {
             var snippet;
@@ -227,14 +251,30 @@ var SearchResult = React.createClass({
         }
 
 
+        var more_results_indicator = (!(data.duplicates)) ? "" :
+            <div>
+                <div className='similar-trigger-box'>
+                    <span className='similar-title he'> { data.duplicates.length } {(data.duplicates.length > 1) ? " גרסאות נוספות" : " גרסה נוספת"} </span>
+                    <span className='similar-title en'> { data.duplicates.length } more version {(data.duplicates.length > 1) ? "s" : ""} </span>
+                </div>
+                <div className='similar-box'>
+                    <div className='similar-results'>
+                        {data.duplicates.map(function(result) {
+                            return <SearchResult data={result}/>;
+                        })}
+                    </div>
+                </div>
+            </div>;
+
         return (
             <div className="result">
-                <a href="{href}">
-                    <span class="en">{s.ref}</span>
-                    <span class="he">{s.heRef}</span>
+                <a href={href}>
+                    <span className="en">{s.ref}</span>
+                    <span className="he">{s.heRef}</span>
                 </a>
                 <div className="snippet" dangerouslySetInnerHTML={get_snippet_markup()}></div>
                 <div className="version">{s.version}</div>
+                {more_results_indicator}
             </div>
         )
     }
