@@ -210,15 +210,9 @@ def update_table_of_contents():
         else:
             cats = i.categories[:]
 
-        # if len(i.categories) >= 1 and i.categories[0] == "Commentary":
-        #     cats = i.categories[1:2] + ["Commentary"] + i.categories[2:]
-        # else:
-        #    cats = i.categories[0:1] + ["Commentary"] + i.categories[1:]
-
         toc_contents = i.toc_contents()
         commentator = toc_contents["commentator"]
         cats = [cats[1], "Commentary", commentator]
-        # cats = cats + map(lambda x: commentator + " on " + x, i.categories[2:-1])
 
         node = get_or_make_summary_node(toc, cats)
         text = add_counts_to_index(toc_contents)
@@ -286,7 +280,8 @@ def update_summaries_on_change(bookname, old_ref=None, recount=True):
         node = get_or_make_summary_node(toc, indx_dict["categories"])
         text = add_counts_to_index(indx_dict)
     else:
-        cats = indx_dict["categories"][1:2] + ["Commentary"] + indx_dict["categories"][2:]
+        commentator = indx_dict["commentator"]
+        cats = [indx_dict["categories"][1], "Commentary", commentator]
         node = get_or_make_summary_node(toc, cats)
         text = add_counts_to_index(indx_dict)
 

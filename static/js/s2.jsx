@@ -4,8 +4,9 @@ var cx  = React.addons.classSet;
 
 var ReaderApp = React.createClass({
   propTypes: {
-    initialRef:  React.PropTypes.string.isRequired,
-    initialFilter:  React.PropTypes.array,
+    initialRef:       React.PropTypes.string.isRequired,
+    initialFilter:    React.PropTypes.array,
+    initialMenu:      React.PropTypes.string,
     initialSettings:  React.PropTypes.object
   },
   getInitialState: function() {
@@ -24,8 +25,25 @@ var ReaderApp = React.createClass({
         layoutTanach:  "segmented",
         color:         "light",
         fontSize:      62.5
-      }
+      },
+      menuOpen: this.props.initialMenu || null, // "navigation", "text toc", "display", "search", "sheets"
+      navigationCaterogires: null,
+      navigationSheetTag: null
     }
+  },
+  closeMenus: function() {
+    this.setState({
+      menuOpen: null
+    });
+  },
+  openMenu: function(menu) {
+    this.setState({menuOpen: menu});
+  },
+  setNavigationCategories: function(catgoires) {
+    this.setState({navigationCaterogires: categories});
+  },
+  setSheetTag: function (tag) {
+    this.setState({navigationSheetTag: tag});
   },
   componentDidMount: function() {
     window.addEventListener("popstate", this.handlePopState);
@@ -55,35 +73,56 @@ var ReaderApp = React.createClass({
     // Compare the current history state to the current content state,
     // Return true if the change warrants pushing to history.
     var state = history.state;
-    if (!history.state) { 
+    if (!state) { 
       return true;
     }
+    var hist    = state.contents.slice(-1)[0];
     var current = this.currentContent();
-    if (state.type !== current.type) { 
+
+    if (hist.type !== current.type) { 
       return true;
-    }
-    if (current.type === "TextColumn") {
-      if (current.refs.slice(-1)[0] !== state.refs.slice(-1)[0]) {
+    } else if (state.menuOpen !== this.state.menuOpen) {
+      if (state.menuOpen !== "display" && this.state.menuOpen !== "display") {
+       return true;
+      }
+    } else if (current.type === "TextColumn") {
+      if (current.refs.slice(-1)[0] !== hist.refs.slice(-1)[0]) {
         return true;
       }
     } else if (current.type === "TextList") {
-      if (current.ref !== state.ref) {
+      if (current.ref !== hist.ref) {
         return true;
       }
     }
+
     return false;  
   },
   makeHistoryState: function() {
     // Returns an object with state, title and url params for the current state
     var current = this.currentContent();
-    var hist = {state: current};
-    if (current.type === "TextColumn") {
+    var hist = {state: this.state};
+    if (this.state.menuOpen) {
+      hist.state.replaceHistory = false;
+      switch (this.state.menuOpen) {
+        case "navigation":
+          hist.title = "Texts | Sefaria";
+          hist.url   = "texts";
+          break;
+        case "text toc":
+          hist.title = this.currentBook();
+          hist.url   = this.currentBook().replace(/ /g, "_");
+          break;
+        case "sheets":
+          hist.title = "Sefaria Source Sheets";
+          hist.url   = "sheets";
+      }
+    } else if (current.type === "TextColumn") {
       hist.title = current.refs.slice(-1)[0];
       hist.url = normRef(hist.title);
     } else if (current.type == "TextList") {
-      hist.title = current.ref;
-      hist.url = normRef(hist.title);
-      hist.url += "?with=" + (this.state.currentFilter.length ? this.state.currentFilter[0] : "all");
+      var sources = this.state.currentFilter.length ? this.state.currentFilter[0] : "all";
+      hist.title = current.ref  + " with " + (sources === "all" ? "Connections" : sources);;
+      hist.url = normRef(hist.title) + "?with=" + sources;
     }
     return hist;
   },
@@ -91,9 +130,11 @@ var ReaderApp = React.createClass({
     if (this.shouldHistoryUpdate()) {
       var hist = this.makeHistoryState();
       if (this.state.replaceHistory) {
+        //console.log("replace " + hist.title)
         history.replaceState(hist.state, hist.title, hist.url);
         $("title").html(hist.title);
       } else {
+        //console.log("push " + hist.title)
         history.pushState(hist.state, hist.title, hist.url);
         $("title").html(hist.title);
         if (hist.state.type == "TextColumn") {
@@ -107,9 +148,9 @@ var ReaderApp = React.createClass({
   handlePopState: function(event) {
     var state = event.state;
     if (state) {
-      var kind = this.currentContent().type + " to " + state.type;
+      var kind = this.currentContent().type + " to " + state.contents.slice(-1)[0].type;
       sjs.track.event("Reader", "Pop State", kind);
-      this.setState({contents: [state]});
+      this.setState(state);
     }
   },
   handleScroll: function(event) {
@@ -187,7 +228,7 @@ var ReaderApp = React.createClass({
     this.setState({contents: this.state.contents});
   },
   setFilter: function(filter, updateRecent) {
-    // Sets the current filter
+    // Sets the current filter for Connected Texts (TextList)
     // If updateRecent is true, include the curent setting in the list of recent filters.
     if (updateRecent) {
       if ($.inArray(filter, this.state.recentFilters) !== -1) {
@@ -348,11 +389,31 @@ var ReaderApp = React.createClass({
         );
       }
     }.bind(this));
+    
+    if (this.state.menuOpen === "navigation") {
+      var menu = (<ReaderNavigationMenu 
+                    closeNav={this.closeMenus}
+                    showBaseText={this.showBaseText} />);
+    } else if (this.state.menuOpen === "text toc") {
+      var menu = (<ReaderTextTableOfContents 
+                    close={this.closeMenus}
+                    text={this.currentBook()}
+                    category={this.currentCategory()}
+                    currentRef={this.currentRef()}
+                    openNav={this.openMenu.bind(null, "navigation")}
+                    showBaseText={this.showBaseText} />);
+    } else if (this.state.menuOpen === "display") {
+      var menu = (<ReaderDisplayOptionsMenu
+                    settings={this.state.settings}
+                    setOption={this.setOption}
+                    currentLayout={this.currentLayout} />);
+    } else {
+      var menu = "";
+    }
+
     return (
       <div id="readerApp" className={classes}>
         <ReaderControls
-          navNext={this.navNext}
-          navPrevious={this.navPrevious}
           showBaseText={this.showBaseText}
           currentRef={this.currentRef}
           currentMode={this.currentMode}
@@ -360,10 +421,14 @@ var ReaderApp = React.createClass({
           currentBook={this.currentBook}
           settings={this.state.settings}
           setOption={this.setOption}
+          openMenu={this.openMenu}
+          closeMenus={this.closeMenus}
           currentLayout={this.currentLayout} />
           <div id="readerContent" style={style}>
             {items}
           </div>
+          {menu}
+          {this.state.menuOpen === "display" ? (<div id="mask" onClick={this.closeMenus}></div>) : ""}
       </div>
     );
   }
@@ -374,47 +439,49 @@ var ReaderControls = React.createClass({
   // The Header of a Reader panel which contains controls for 
   // display, navigation etc.
   propTypes: {
-    settings:        React.PropTypes.object.isRequired,
-    navNext:         React.PropTypes.func.isRequired,
-    navPrevious:     React.PropTypes.func.isRequired,
-    showBaseText:    React.PropTypes.func.isRequired,
-    setOption:       React.PropTypes.func.isRequired,
-    currentRef:      React.PropTypes.func.isRequired,
-    currentMode:     React.PropTypes.func.isRequired,
-    currentCategory: React.PropTypes.func.isRequired,
-    currentBook:     React.PropTypes.func.isRequired,
-    currentLayout:   React.PropTypes.func.isRequired
+    settings:                React.PropTypes.object.isRequired,
+    showBaseText:            React.PropTypes.func.isRequired,
+    setOption:               React.PropTypes.func.isRequired,
+    openMenu:                React.PropTypes.func.isRequired,
+    closeMenus:              React.PropTypes.func.isRequired,
+    currentRef:              React.PropTypes.func.isRequired,
+    currentMode:             React.PropTypes.func.isRequired,
+    currentCategory:         React.PropTypes.func.isRequired,
+    currentBook:             React.PropTypes.func.isRequired,
+    currentLayout:           React.PropTypes.func.isRequired
   },
-  getInitialState: function() {
-    return {
-      optionsOpen: false,
-      navigationOpen: false,
-      tocOpen: false
-    };
-  },
-  showOptions: function(e) {
-    this.setState({optionsOpen: true, navigationOpen: false, tocOpen: false});
-  },
-  hideOptions: function() {
-    this.setState({optionsOpen: false});
-  },
-  openNav: function(e) {
-    this.setState({navigationOpen: true, optionsOpen: false, tocOpen: false});
-  },
-  closeNav: function() {
-    this.setState({navigationOpen: false});
-  },
-  openTextToc: function() {
-    this.setState({tocOpen: true, navigationOpen: false, optionsOpen: false});
-  },
-  closeTextToc: function () {
-    this.setState({tocOpen: false});
+  render: function() {
+    var lineStyle = {backgroundColor: sjs.categoryColor(this.props.currentCategory())};
+    var title = this.props.currentBook();
+    var index = sjs.library.index(title);
+    var heTitle = index ? index.heTitle : "";
+    return (
+      <div>
+        <div id="readerControls" className="headroom">
+          <div className="categoryColorLine" style={lineStyle}></div>
+          <div id="readerNav"  onClick={this.props.openMenu.bind(null, "navigation")}><i className="fa fa-search"></i></div>
+          <div id="readerTextToc" onClick={this.props.openMenu.bind(null, "text toc")}>
+            <span className="en">{title}</span>
+            <span className="he">{heTitle}</span>
+          </div>
+          <div id="readerOptions" onClick={this.props.openMenu.bind(null, "display")}><i className="fa fa-bars"></i></div>
+        </div>        
+      </div>);
+  }
+});
+
+var ReaderDisplayOptionsMenu = React.createClass({
+  propTyps: {
+    setOption:     React.PropTypes.func.isRequired,
+    settings:      React.PropTypes.object.isRequired,
+    currentLayout: React.PropTypes.func.isRequired,
+
   },
   render: function() {
     var languageOptions = [
-      {name: "english", image: "/static/img/english.png" },
+      {name: "english",   image: "/static/img/english.png" },
       {name: "bilingual", image: "/static/img/bilingual.png" },
-      {name: "hebrew", image: "/static/img/hebrew.png" }
+      {name: "hebrew",    image: "/static/img/hebrew.png" }
     ];
     var languageToggle = (
         <ToggleSet
@@ -459,51 +526,16 @@ var ReaderControls = React.createClass({
           setOption={this.props.setOption}
           settings={this.props.settings} />);
 
-    var readerOptions = !this.state.optionsOpen ? "" : (
-      <div id="readerOptionsPanel">
+    return (<div id="readerOptionsPanel">
         {languageToggle}
         {layoutToggle}
         <div className="line"></div>
         {colorToggle}
         {sizeToggle}
       </div>);
-
-    var lineStyle = {backgroundColor: sjs.categoryColor(this.props.currentCategory())};
-
-    if (this.state.navigationOpen) {
-      return (<ReaderNavigationMenu 
-                closeNav={this.closeNav}
-                showBaseText={this.props.showBaseText} />);
-    } else if (this.state.tocOpen) {
-      return (<ReaderTextTableOfContents 
-                close={this.closeTextToc}
-                text={this.props.currentBook()}
-                category={this.props.currentCategory()}
-                currentRef={this.props.currentRef()}
-                openNav={this.openNav}
-                showBaseText={this.props.showBaseText} />);
-    } else {
-      var title = this.props.currentBook();
-      var index = sjs.library.index(title);
-      var heTitle = index ? index.heTitle : "";
-      return (
-      <div>
-        <div id="readerControls" className="headroom">
-          <div className="categoryColorLine" style={lineStyle}></div>
-          <div id="readerNav"  onClick={this.openNav}><i className="fa fa-search"></i></div>
-          <div id="readerTextToc" onClick={this.openTextToc}>
-            <span className="en">{title}</span>
-            <span className="he">{heTitle}</span>
-          </div>
-          <div id="readerOptions" onClick={this.showOptions}><i className="fa fa-bars"></i></div>
-        </div>
-        {readerOptions}
-        {this.state.optionsOpen ? (<div id="mask" onClick={this.hideOptions}></div>) : ""}
-      </div>);
-    }
   }
-});
 
+})
 
 var ReaderNavigationMenu = React.createClass({
   // The Navigation menu for broswing and search texts, other side links.
@@ -794,8 +826,56 @@ var ReaderTextTableOfContents = React.createClass({
 });
 
 
+var SheetsNav = React.createClass({
+  // Navigation for Sheets
+  propTypes: {
+    category:     React.PropTypes.string.isRequired,
+    tag:          React.PropTypes.string,
+    close:        React.PropTypes.func.isRequired,
+    openNav:      React.PropTypes.func.isRequired
+  },
+  getInitialState: function() {
+    return {
+
+    };
+  },
+  componentDidMount: function() {
+
+  },
+  handleClick: function(e) {
+
+  },
+  render: function() {
+    var title = this.props.tag || "Source Sheets";
+
+    var lineStyle = {backgroundColor: sjs.categoryColor(this.props.category)};
+    return (<div className="readerSheetsNav">
+              <div className="readerNavTopFixed">
+                <div className="categoryColorLine" style={lineStyle}></div>
+                <div className="readerNavTop">
+                  <i className="fa fa-search" onClick={this.props.openNav}></i>
+                  <i className="fa fa-times" onClick={this.props.close}></i>
+                  <h2>Source Sheets</h2>
+                </div>
+              </div>
+              <div className="content">
+
+              </div>
+            </div>);
+  }
+});
+
+
 var ToggleSet = React.createClass({
   // A set of options grouped together.
+  propTypes: {
+    name:          React.PropTypes.string.isRequired,
+    setOption:     React.PropTypes.func.isRequired,
+    currentLayout: React.PropTypes.func,
+    settings:      React.PropTypes.object.isRequired,
+    options:       React.PropTypes.array.isRequired,
+    separated:     React.PropTypes.bool
+  },
   getInitialState: function() {
     return {};
   },
