@@ -6,7 +6,8 @@ var SearchPage = React.createClass({
         initialSettings : React.PropTypes.shape({
             query: React.PropTypes.string,
             page: React.PropTypes.number
-        })
+        }),
+        close:            React.PropTypes.func
     },
     getInitialState: function() {
         return {
@@ -26,32 +27,28 @@ var SearchPage = React.createClass({
         })
     },
     render: function () {
-        return (
-            <div>
-                <div className="row-fluid">
-                    <div id="searchHeaderContainer" className="span3">
-                        <div id="searchHeader">{ this.state.isQueryRunning ? "Searching" : ""}</div>
-                    </div>
-                    <div id="lowerSearchBoxWrapper" className="span8">
+        return (<div className="readerNavMenuFixed">
+                  <div className="readerNavTopFixed">
+                    <div className="readerNavTop search">
+                      <i className="fa fa-times" onClick={this.props.close}></i>
                         <SearchBar
                             initialQuery = { this.state.query }
-                            updateQuery = { this.updateQuery }
-                        />
+                            updateQuery = { this.updateQuery } />
                     </div>
-                </div>
-                <div id="searchContentFrame" className="row-fluid">
-                    <div id="searchControlsBox" className="span3">
+                  </div>
+                  <div className="content">
+                    <div className="searchContentFrame">
+                        <div className="searchControlsBox">
+                        </div>
+                        <div className="searchContent">
+                            <SearchResultList
+                                query = { this.state.query }
+                                page = { this.state.page }
+                                updateRunningQuery = { this.updateRunningQuery } />
+                        </div>
                     </div>
-                    <div id="searchContent" className="span8">
-                        <SearchResultList
-                            query = { this.state.query }
-                            page = { this.state.page }
-                            updateRunningQuery = { this.updateRunningQuery }
-                        />
-                    </div>
-                </div>
-            </div>
-        )
+                  </div>
+                </div>);
     }
 });
 
@@ -96,9 +93,9 @@ var SearchBar = React.createClass({
     render: function () {
         return (
             <div>
-                <div id="lowerSearchBox" className="searchBox">
-                    <input id="lowerSearch" value={this.state.query} onKeyPress={this.handleKeypress} onChange={this.handleChange} placeholder="Search" className="searchInput keyboardInput" />
-                    <span id="lowerOpenText" className="searchButton ui-icon ui-icon-search"></span>
+                <div className="searchBox">
+                    <input className="readerSearch" value={this.state.query} onKeyPress={this.handleKeypress} onChange={this.handleChange} placeholder="Search"/>
+                    <span className="fa fa-search"></span>
                 </div>
                 <div id="description"></div>
             </div>

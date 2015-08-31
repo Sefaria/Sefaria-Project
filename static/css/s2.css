@@ -86,7 +86,9 @@ body .bilingual .enOnly .he {
   background-color: #333;
   color: white;
 }
-.readerNavMenu, .readerTextTableOfContents {
+.readerNavMenu, 
+.readerNavMenuFixed,
+.readerTextTableOfContents {
   position: fixed;
   top: 0;
   left: 0;
@@ -101,7 +103,11 @@ body .bilingual .enOnly .he {
   border-bottom: 1px solid #E2E2E1;
   direction: ltr;
 }
-.readerNavTop .readerSearch {
+.readerNavTopFixed .readerNavTop.search {
+  padding: 20px;
+}
+.readerNavMenu .readerSearch,
+.readerNavMenuFixed .readerSearch  {
   margin: 0;
   width: 77%;
   border-color: #F2F2F2;
@@ -123,10 +129,17 @@ body .bilingual .enOnly .he {
   top: 25px;
   margin: 0px;
 }
+.readerNavTopFixed .readerNavTop.search .fa-search {
+  top: 26px;
+  left: 33px; 
+}
 .readerNavTop .fa-times {
   position: absolute;
   right: 10px;
   top: 25px;
+}
+.readerNavMenu .content {
+  padding: 30px 10px 10px 10px;
 }
 .readerNavMenu .navToggles {
   text-align: center;
@@ -144,10 +157,6 @@ body .bilingual .enOnly .he {
 }
 .readerNavMenu .navToggle.active {
   color: black;
-}
-
-.readerNavMenu .content {
-  padding: 10px;
 }
 #readerApp h2, #readerApp h3 {
   text-transform: uppercase;
@@ -222,6 +231,12 @@ body .bilingual .enOnly .he {
 .readerNavCategoryMenu {
   height: 100%;
 }
+.readerNavMenuFixed .content {
+  box-sizing: border-box;
+  padding: 80px 10px 10px;
+  height: 100%;
+  overflow-y: scroll;
+}
 .readerNavTopFixed {
   position: absolute;
   width: 100%;
@@ -235,9 +250,6 @@ body .bilingual .enOnly .he {
 }
 .readerNavCategoryMenu .content {
   padding: 100px 10px 10px;
-  box-sizing: border-box;
-  height: 100%;
-  overflow-y: scroll;
 }
 .readerNavCategoryMenu .content .category {
   margin-bottom: 30px;
@@ -381,6 +393,12 @@ body .bilingual .enOnly .he {
 .hebrew .readerTextTableOfContents .content .tocSection,
 .hebrew .readerTextTableOfContents .content .tocContent {
   text-align: right;
+}
+.readerSearchInput {
+
+}
+.searchContent {
+  background-color: white;
 }
 #readerControls {
   position: fixed;

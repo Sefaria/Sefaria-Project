@@ -112,6 +112,9 @@ var ReaderApp = React.createClass({
           hist.title = this.currentBook();
           hist.url   = this.currentBook().replace(/ /g, "_");
           break;
+        case "search":
+          hist.title = "Sefaria Search";
+          hist.url   = "search";
         case "sheets":
           hist.title = "Sefaria Source Sheets";
           hist.url   = "sheets";
@@ -238,6 +241,12 @@ var ReaderApp = React.createClass({
     }
     this.setState({recentFilters: this.state.recentFilters, currentFilter: [filter]});
     $(window).scrollTop(0);
+  },
+  openSearch: function(query) {
+    this.setState({
+      menuOpen: "search",
+      searchQuery: query
+    });
   },
   navigateReader: function(direction) {
     var current = this.currentContent();
@@ -393,6 +402,7 @@ var ReaderApp = React.createClass({
     if (this.state.menuOpen === "navigation") {
       var menu = (<ReaderNavigationMenu 
                     closeNav={this.closeMenus}
+                    openSearch={this.openSearch}
                     showBaseText={this.showBaseText} />);
     } else if (this.state.menuOpen === "text toc") {
       var menu = (<ReaderTextTableOfContents 
@@ -407,6 +417,11 @@ var ReaderApp = React.createClass({
                     settings={this.state.settings}
                     setOption={this.setOption}
                     currentLayout={this.currentLayout} />);
+    } else if (this.state.menuOpen === "search") {
+      var settings = {query: this.state.searchQuery, page: 1};
+      var menu = (<SearchPage
+                    initialSettings={settings}
+                    close={this.closeMenus} />);
     } else {
       var menu = "";
     }
@@ -541,6 +556,7 @@ var ReaderNavigationMenu = React.createClass({
   // The Navigation menu for broswing and search texts, other side links.
   propTypes: {
     closeNav:     React.PropTypes.func.isRequired,
+    openSearch:   React.PropTypes.func.isRequired,
     showBaseText: React.PropTypes.func.isRequired
   },
   getInitialState: function() {
@@ -574,7 +590,8 @@ var ReaderNavigationMenu = React.createClass({
   handleSearchKeyUp: function(event) {
     if (event.keyCode === 13) {
       var query = $(event.target).val();
-      window.location = "/search?q=" + query.replace(/ /g, "+");
+      //window.location = "/search?q=" + query.replace(/ /g, "+");
+      this.props.openSearch(query);
     }
   },
   render: function() {
@@ -637,23 +654,23 @@ var ReaderNavigationMenu = React.createClass({
 
 
       return(<div className="readerNavMenu" onClick={this.handleClick}>
-        <div className="readerNavTop">
-          <i className="fa fa-search"></i>
-          <input className="readerSearch" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
-          <i className="fa fa-times" onClick={this.props.closeNav}></i>
-        </div>
-        <div className="content">
-            <h2>Browse Texts</h2>
-            {categories}
-            <h2>Calendar</h2>
-            {calendar}
-            <h2>Community</h2>
-            <a className="sheetsLink" href="/sheets"><i className="fa fa-file-text-o"></i> Source Sheets</a>
-            <div className="siteLinks">
-            {siteLinks}
-            </div>
-        </div>
-      </div>);
+              <div className="readerNavTop">
+                <i className="fa fa-search"></i>
+                <input className="readerSearch" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
+                <i className="fa fa-times" onClick={this.props.closeNav}></i>
+              </div>
+              <div className="content">
+                  <h2>Browse Texts</h2>
+                  {categories}
+                  <h2>Calendar</h2>
+                  {calendar}
+                  <h2>Community</h2>
+                  <a className="sheetsLink" href="/sheets"><i className="fa fa-file-text-o"></i> Source Sheets</a>
+                  <div className="siteLinks">
+                  {siteLinks}
+                  </div>
+              </div>
+            </div>);
     }
   }
 });
@@ -735,7 +752,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
     var contents    = makeCatContents(catContents, categories);
     var lineStyle   = {backgroundColor: sjs.categoryColor(categories[0])};
 
-    return (<div className="readerNavCategoryMenu">
+    return (<div className="readerNavCategoryMenu readerNavMenuFixed">
               <div className="readerNavTopFixed">
                 <div className="categoryColorLine" style={lineStyle}></div>
                 <div className="readerNavTop">
