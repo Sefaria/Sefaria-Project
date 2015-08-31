@@ -93,7 +93,7 @@ body .bilingual .enOnly .he {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  z-index: 100;
+  z-index: 101;
   background-color: #F9F9F7;
 }
 .readerNavTop {
@@ -391,7 +391,7 @@ body .bilingual .enOnly .he {
   width: 100%;
   box-sizing: border-box;
   padding: 0;
-  z-index: 101;
+  z-index: 100;
   line-height: 47px;
   border-bottom: 1px solid #ddd;
   background-color: #F9F9F7;
