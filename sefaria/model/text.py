@@ -438,12 +438,14 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if hasattr(self,"order"):
             toc_contents_dict["order"] = self.order
         if self.categories[0] == u"Commentary2":
-            [commentator, book] = self.get_title().split(" on ")
-            toc_contents_dict["commentator"]   = commentator
-            toc_contents_dict["heCommentator"] = self.get_title("he").split(u" על ")[0]
-            i = get_index(book)
-            if getattr(i, "order", None):
-                toc_contents_dict["order"] = i.order
+            on_split    = self.get_title().split(" on ")
+            he_on_split = self.get_title("he").split(u" על ")
+            toc_contents_dict["commentator"]   = on_split[0]
+            toc_contents_dict["heCommentator"] = he_on_split[0]
+            if len(on_split) == 2:
+                i = get_index(on_split[1])
+                if getattr(i, "order", None):
+                    toc_contents_dict["order"] = i.order
 
         return toc_contents_dict
 
