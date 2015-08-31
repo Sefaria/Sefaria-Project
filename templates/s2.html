@@ -31,8 +31,6 @@
         var filter  = "with" in urlVars ? urlVars["with"].replace(/_/g, " ").split("+") : null;
         if (filter && filter.length === 1 && filter[0] === "all") { filter = []; }
         
-        $("body").removeClass("hebrew bilingual").addClass("english");
-
         sjs.library._saveText({{ data|jsonify }});
 
         var settings = {

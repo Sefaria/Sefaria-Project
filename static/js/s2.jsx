@@ -73,35 +73,56 @@ var ReaderApp = React.createClass({
     // Compare the current history state to the current content state,
     // Return true if the change warrants pushing to history.
     var state = history.state;
-    if (!history.state) { 
+    if (!state) { 
       return true;
     }
+    var hist    = state.contents.slice(-1)[0];
     var current = this.currentContent();
-    if (state.type !== current.type) { 
+
+    if (hist.type !== current.type) { 
       return true;
-    }
-    if (current.type === "TextColumn") {
-      if (current.refs.slice(-1)[0] !== state.refs.slice(-1)[0]) {
+    } else if (state.menuOpen !== this.state.menuOpen) {
+      if (state.menuOpen !== "display" && this.state.menuOpen !== "display") {
+       return true;
+      }
+    } else if (current.type === "TextColumn") {
+      if (current.refs.slice(-1)[0] !== hist.refs.slice(-1)[0]) {
         return true;
       }
     } else if (current.type === "TextList") {
-      if (current.ref !== state.ref) {
+      if (current.ref !== hist.ref) {
         return true;
       }
     }
+
     return false;  
   },
   makeHistoryState: function() {
     // Returns an object with state, title and url params for the current state
     var current = this.currentContent();
-    var hist = {state: current};
-    if (current.type === "TextColumn") {
+    var hist = {state: this.state};
+    if (this.state.menuOpen) {
+      hist.state.replaceHistory = false;
+      switch (this.state.menuOpen) {
+        case "navigation":
+          hist.title = "Texts | Sefaria";
+          hist.url   = "texts";
+          break;
+        case "text toc":
+          hist.title = this.currentBook();
+          hist.url   = this.currentBook().replace(/ /g, "_");
+          break;
+        case "sheets":
+          hist.title = "Sefaria Source Sheets";
+          hist.url   = "sheets";
+      }
+    } else if (current.type === "TextColumn") {
       hist.title = current.refs.slice(-1)[0];
       hist.url = normRef(hist.title);
     } else if (current.type == "TextList") {
-      hist.title = current.ref;
-      hist.url = normRef(hist.title);
-      hist.url += "?with=" + (this.state.currentFilter.length ? this.state.currentFilter[0] : "all");
+      var sources = this.state.currentFilter.length ? this.state.currentFilter[0] : "all";
+      hist.title = current.ref  + " with " + (sources === "all" ? "Connections" : sources);;
+      hist.url = normRef(hist.title) + "?with=" + sources;
     }
     return hist;
   },
@@ -109,9 +130,11 @@ var ReaderApp = React.createClass({
     if (this.shouldHistoryUpdate()) {
       var hist = this.makeHistoryState();
       if (this.state.replaceHistory) {
+        //console.log("replace " + hist.title)
         history.replaceState(hist.state, hist.title, hist.url);
         $("title").html(hist.title);
       } else {
+        //console.log("push " + hist.title)
         history.pushState(hist.state, hist.title, hist.url);
         $("title").html(hist.title);
         if (hist.state.type == "TextColumn") {
@@ -125,9 +148,9 @@ var ReaderApp = React.createClass({
   handlePopState: function(event) {
     var state = event.state;
     if (state) {
-      var kind = this.currentContent().type + " to " + state.type;
+      var kind = this.currentContent().type + " to " + state.contents.slice(-1)[0].type;
       sjs.track.event("Reader", "Pop State", kind);
-      this.setState({contents: [state]});
+      this.setState(state);
     }
   },
   handleScroll: function(event) {
