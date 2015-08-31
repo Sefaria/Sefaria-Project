@@ -12,17 +12,17 @@ var SearchPage = React.createClass({
         return {
             query: this.props.initialSettings.query,
             page: this.props.initialSettings.page || 1,
-            currentQuery: null,
-            queryInProcess: false
+            runningQuery: null,
+            isQueryRunning: false
         }
     },
     updateQuery: function(query) {
         this.setState({query: query});
     },
-    updateCurrentQuery: function(ajax) {
+    updateRunningQuery: function(ajax) {
         this.setState({
-            currentQuery: ajax,
-            queryInProcess: !!ajax
+            runningQuery: ajax,
+            isQueryRunning: !!ajax
         })
     },
     render: function () {
@@ -30,7 +30,7 @@ var SearchPage = React.createClass({
             <div>
                 <div className="row-fluid">
                     <div id="searchHeaderContainer" className="span3">
-                        <div id="searchHeader">{ this.state.queryInProcess ? "Searching" : ""}</div>
+                        <div id="searchHeader">{ this.state.isQueryRunning ? "Searching" : ""}</div>
                     </div>
                     <div id="lowerSearchBoxWrapper" className="span8">
                         <SearchBar
@@ -46,7 +46,7 @@ var SearchPage = React.createClass({
                         <SearchResultList
                             query = { this.state.query }
                             page = { this.state.page }
-                            updateCurrentQuery = { this.updateCurrentQuery }
+                            updateRunningQuery = { this.updateRunningQuery }
                         />
                     </div>
                 </div>
@@ -111,7 +111,7 @@ var SearchResultList = React.createClass({
         query: React.PropTypes.string,
         page: React.PropTypes.number,
         size: React.PropTypes.number,
-        updateCurrentQuery: React.PropTypes.func
+        updateRunningQuery: React.PropTypes.func
     },
     getDefaultProps: function() {
         return {
@@ -121,28 +121,32 @@ var SearchResultList = React.createClass({
     },
     getInitialState: function() {
         return {
-            currentQuery: null,
+            runningQuery: null,
             total: 0,
             hits: [],
             aggregations: null
         }
     },
-    updateCurrentQuery: function(ajax) {
-        this.setState({currentQuery: ajax});
-        this.props.updateCurrentQuery(ajax);
+    updateRunningQuery: function(ajax) {
+        this.setState({runningQuery: ajax});
+        this.props.updateRunningQuery(ajax);
+    },
+    _abortRunningQuery: function() {
+        if(this.state.runningQuery) {
+            this.state.runningQuery.abort();
+        }
     },
     _executeQuery: function(props) {
-        //This takes a props object, so as to be able to handle being called from componentWillReceiveProps
+        //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
         props = props || this.props;
 
         if (!props.query) {
             return;
         }
-        if(this.state.currentQuery) {
-            this.state.currentQuery.abort();
-        }
 
-        var currentQuery = sjs.library.search.execute_query({
+        this._abortRunningQuery();
+
+        var runningQuery = sjs.library.search.execute_query({
             query: props.query,
             size: props.page * props.size,
             success: function(data) {
@@ -152,7 +156,7 @@ var SearchResultList = React.createClass({
                         total: data.hits.total,
                         aggregations: data.aggregations
                     });
-                    this.updateCurrentQuery(null);
+                    this.updateRunningQuery(null);
                 }
             }.bind(this),
             error: function(jqXHR, textStatus, errorThrown) {
@@ -165,14 +169,11 @@ var SearchResultList = React.createClass({
                     this.setState({
                         error: true
                     });
-                    this.updateCurrentQuery(null);
+                    this.updateRunningQuery(null);
                 }
             }.bind(this)
         });
-        this.updateCurrentQuery(currentQuery);
-    },
-    shouldComponentUpdate: function() {
-      return !this.state.currentQuery;
+        this.updateRunningQuery(runningQuery);
     },
     _process_duplicate_hits(hits) {
         var comparingRef = null;
@@ -191,7 +192,10 @@ var SearchResultList = React.createClass({
         return newHits;
     },
     componentDidMount: function() {
-       this._executeQuery()
+        this._executeQuery();
+    },
+    componentWillUnmount: function() {
+        this._abortRunningQuery();
     },
     componentWillReceiveProps: function(newProps) {
         if(this.props.query != newProps.query) {
@@ -213,7 +217,7 @@ var SearchResultList = React.createClass({
         if (!(this.props.query)) {  // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
             return null;
         }
-        if (this.state.currentQuery) {
+        if (this.state.runningQuery) {
             return (<div>...</div>)
         }
         return (
@@ -234,6 +238,16 @@ var SearchResult = React.createClass({
         query: React.PropTypes.string,
         data: React.PropTypes.object
     },
+    getInitialState: function() {
+        return {
+            duplicatesShown: false
+        }
+    },
+    toggleDuplicates: function(event) {
+        this.setState({
+            duplicatesShown: !this.state.duplicatesShown
+        });
+    },
     render: function () {
         var data = this.props.data;
         var s = this.props.data._source;
@@ -252,19 +266,21 @@ var SearchResult = React.createClass({
 
 
         var more_results_indicator = (!(data.duplicates)) ? "" :
-            <div>
                 <div className='similar-trigger-box'>
-                    <span className='similar-title he'> { data.duplicates.length } {(data.duplicates.length > 1) ? " גרסאות נוספות" : " גרסה נוספת"} </span>
-                    <span className='similar-title en'> { data.duplicates.length } more version {(data.duplicates.length > 1) ? "s" : ""} </span>
-                </div>
-                <div className='similar-box'>
-                    <div className='similar-results'>
-                        {data.duplicates.map(function(result) {
-                            return <SearchResult data={result}/>;
-                        })}
-                    </div>
-                </div>
-            </div>;
+                    <span className='similar-title he' onClick={this.toggleDuplicates}>
+                        { data.duplicates.length } {(data.duplicates.length > 1) ? " גרסאות נוספות" : " גרסה נוספת"}
+                    </span>
+                    <span className='similar-title en' onClick={this.toggleDuplicates}>
+                        { data.duplicates.length } more version{(data.duplicates.length > 1) ? "s" : ""}
+                    </span>
+                </div>;
+
+        var shown_duplicates = (data.duplicates && this.state.duplicatesShown) ?
+            (<div className='similar-results-box'>
+                    {data.duplicates.map(function(result) {
+                        return <SearchResult data={result}/>;
+                    })}
+            </div>) : "";
 
         return (
             <div className="result">
@@ -275,6 +291,7 @@ var SearchResult = React.createClass({
                 <div className="snippet" dangerouslySetInnerHTML={get_snippet_markup()}></div>
                 <div className="version">{s.version}</div>
                 {more_results_indicator}
+                {shown_duplicates}
             </div>
         )
     }
