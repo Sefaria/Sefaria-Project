@@ -414,6 +414,10 @@ body .bilingual .enOnly .he {
   border-top: thin solid #ddd;
 }
 
+.searchContent .result a:hover {
+  text-decoration: none;
+}
+
 .searchContent .similar-results {
   padding-left: 25px;
 }
@@ -430,6 +434,13 @@ body .bilingual .enOnly .he {
   font-size: 13px;
   display: block;
   padding: 15px 0 5px;
+}
+
+.searchContent .result .result-title:hover {
+  text-decoration: underline;
+}
+.searchContent .result .snippet {
+  color: #000;
 }
 
 .searchContent .similar-results .result .result-title {
@@ -453,6 +464,7 @@ body .bilingual .enOnly .he {
   letter-spacing: 1px;
   font-size: 11px;
   padding: 0 0 15px;
+  cursor: pointer;
 }
 
 .searchContent .result .similar-trigger-box i {

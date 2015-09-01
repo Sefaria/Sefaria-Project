@@ -304,17 +304,19 @@ var SearchResult = React.createClass({
                             query={this.props.query}
                             onResultClick={this.props.onResultClick}
                             />;
-                    })}
+                        }.bind(this))}
             </div>) : "";
 
         return (
             <div className="result">
-                <a className="result-title" href={href} onClick={this.handleResultClick}>
-                    <span className="en">{s.ref}</span>
-                    <span className="he">{s.heRef}</span>
+                <a  href={href} onClick={this.handleResultClick}>
+                    <div className="result-title">
+                        <span className="en">{s.ref}</span>
+                        <span className="he">{s.heRef}</span>
+                    </div>
+                    <div className="snippet" dangerouslySetInnerHTML={get_snippet_markup()} ></div>
+                    <div className="version" >{s.version}</div>
                 </a>
-                <div className="snippet" dangerouslySetInnerHTML={get_snippet_markup()}></div>
-                <div className="version">{s.version}</div>
                 {more_results_indicator}
                 {shown_duplicates}
             </div>
