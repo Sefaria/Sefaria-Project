@@ -398,8 +398,67 @@ body .bilingual .enOnly .he {
 
 }
 .searchContent {
-  background-color: white;
+  padding: 25px 10px 0;
 }
+
+.searchContent .results-count {
+  color: #999;
+  font-weight: lighter;
+  font-family: Helvetica, sans-serif;
+  letter-spacing: 1px;
+  font-size: 12px;
+  padding: 10px 0;
+}
+
+.searchContent .result {
+  border-top: thin solid #ddd;
+}
+
+.searchContent .similar-results {
+  padding-left: 25px;
+}
+
+.searchContent .similar-results .result {
+  border-top: none;
+}
+
+.searchContent .result .result-title {
+  color: #999;
+  font-weight: lighter;
+  font-family: Helvetica, sans-serif;
+  letter-spacing: 1px;
+  font-size: 13px;
+  display: block;
+  padding: 15px 0 5px;
+}
+
+.searchContent .similar-results .result .result-title {
+  padding: 0 0 5px;
+}
+
+.searchContent .result .version {
+  color: #bbb;
+  font-weight: lighter;
+  font-family: Helvetica, sans-serif;
+  letter-spacing: 1px;
+  font-size: 11px;
+  padding: 8px 0;
+}
+
+.searchContent .result .similar-trigger-box {
+  color: #999;
+  font-weight: lighter;
+  font-family: Helvetica, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 11px;
+  padding: 0 0 15px;
+}
+
+.searchContent .result .similar-trigger-box i {
+  padding-left: 5px;
+}
+
 #readerControls {
   position: fixed;
   direction: ltr;

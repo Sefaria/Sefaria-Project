@@ -217,12 +217,12 @@ var SearchResultList = React.createClass({
         if (this.state.runningQuery) {
             return (<div>...</div>)
         }
+        var totalWithCommas = this.state.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         return (
             <div>
-                <span>{this.state.total} results for {this.props.query}:</span>
-
+                <div className="results-count">{totalWithCommas} Results</div>
                 {this.state.hits.map(function(result) {
-                    return <SearchResult data={result} query={this.props.query}/>;
+                    return <SearchResult data={result} query={this.props.query} key={result.ref}/>;
                 }.bind(this))}
             </div>
 
@@ -233,7 +233,8 @@ var SearchResultList = React.createClass({
 var SearchResult = React.createClass({
     propTypes: {
         query: React.PropTypes.string,
-        data: React.PropTypes.object
+        data: React.PropTypes.object,
+        key: React.PropTypes.string
     },
     getInitialState: function() {
         return {
@@ -261,27 +262,33 @@ var SearchResult = React.createClass({
             return {__html:snippet}
         }
 
+        var more_results_caret =
+            (this.state.duplicatesShown)
+            ? <i className="fa fa-caret-down fa-angle-down"></i>
+            : <i className="fa fa-caret-down"></i>;
 
         var more_results_indicator = (!(data.duplicates)) ? "" :
-                <div className='similar-trigger-box'>
-                    <span className='similar-title he' onClick={this.toggleDuplicates}>
+                <div className='similar-trigger-box' onClick={this.toggleDuplicates}>
+                    <span className='similar-title he'>
                         { data.duplicates.length } {(data.duplicates.length > 1) ? " גרסאות נוספות" : " גרסה נוספת"}
                     </span>
-                    <span className='similar-title en' onClick={this.toggleDuplicates}>
+                    <span className='similar-title en'>
                         { data.duplicates.length } more version{(data.duplicates.length > 1) ? "s" : ""}
                     </span>
+                    {more_results_caret}
                 </div>;
 
         var shown_duplicates = (data.duplicates && this.state.duplicatesShown) ?
-            (<div className='similar-results-box'>
+            (<div className='similar-results'>
                     {data.duplicates.map(function(result) {
-                        return <SearchResult data={result}/>;
+                        var key = result._source.ref + "-" + result._source.version;
+                        return <SearchResult data={result} key={key}/>;
                     })}
             </div>) : "";
 
         return (
             <div className="result">
-                <a href={href}>
+                <a className="result-title" href={href}>
                     <span className="en">{s.ref}</span>
                     <span className="he">{s.heRef}</span>
                 </a>

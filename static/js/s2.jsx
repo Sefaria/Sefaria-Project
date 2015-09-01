@@ -115,9 +115,11 @@ var ReaderApp = React.createClass({
         case "search":
           hist.title = "Sefaria Search";
           hist.url   = "search";
+          break;
         case "sheets":
           hist.title = "Sefaria Source Sheets";
           hist.url   = "sheets";
+          break;
       }
     } else if (current.type === "TextColumn") {
       hist.title = current.refs.slice(-1)[0];
@@ -158,8 +160,7 @@ var ReaderApp = React.createClass({
   },
   handleScroll: function(event) {
     if (this.state.contents.length) {
-      var scrollTop = $(window).scrollTop();
-      this.currentContent().scrollTop = scrollTop;
+      this.currentContent().scrollTop = $(window).scrollTop();
       this.setState({contents: this.state.contents});
     }
     this.adjustInfiniteScroll();
@@ -550,7 +551,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
       </div>);
   }
 
-})
+});
 
 var ReaderNavigationMenu = React.createClass({
   // The Navigation menu for broswing and search texts, other side links.
