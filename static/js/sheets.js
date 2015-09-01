@@ -454,7 +454,7 @@ $(function() {
 
 		// So clicks on editor or editable area don't destroy editor
 		$("#title, .comment, .outside, .customTitle, .en, .he, #author, .cke, .cke_dialog, .cke_dialog_background_cover")
-			.live("click", function(e) { 
+			.live("mousedown", function(e) { 
 				e.stopPropagation();
 			 });
 
