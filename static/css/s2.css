@@ -419,7 +419,7 @@ body .bilingual .enOnly .he {
 }
 
 .searchContent .similar-results {
-  padding-left: 25px;
+  padding: 0 25px;
 }
 
 .searchContent .similar-results .result {
@@ -468,7 +468,7 @@ body .bilingual .enOnly .he {
 }
 
 .searchContent .result .similar-trigger-box i {
-  padding-left: 5px;
+  padding: 0 5px;
 }
 
 #readerControls {

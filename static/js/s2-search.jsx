@@ -224,7 +224,10 @@ var SearchResultList = React.createClass({
         var totalWithCommas = this.state.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         return (
             <div>
-                <div className="results-count">{totalWithCommas} Results</div>
+                <div className="results-count">
+                    <span className="en">{totalWithCommas} Results</span>
+                    <span className="he">{totalWithCommas} תוצאות</span>
+                </div>
                 {this.state.hits.map(function(result) {
                     return <SearchResult
                         data={result}
