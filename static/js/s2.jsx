@@ -27,7 +27,7 @@ var ReaderApp = React.createClass({
         fontSize:      62.5
       },
       menuOpen: this.props.initialMenu || null, // "navigation", "text toc", "display", "search", "sheets"
-      navigationCaterogires: null,
+      navigationCategories: null,
       navigationSheetTag: null
     }
   },
@@ -39,8 +39,8 @@ var ReaderApp = React.createClass({
   openMenu: function(menu) {
     this.setState({menuOpen: menu});
   },
-  setNavigationCategories: function(catgoires) {
-    this.setState({navigationCaterogires: categories});
+  setNavigationCategories: function(categories) {
+    this.setState({navigationCategories: categories});
   },
   setSheetTag: function (tag) {
     this.setState({navigationSheetTag: tag});

@@ -172,7 +172,7 @@ var SearchResultList = React.createClass({
         });
         this.updateRunningQuery(runningQuery);
     },
-    _process_duplicate_hits(hits) {
+    _process_duplicate_hits: function(hits) {
         var comparingRef = null;
         var newHits = [];
         for(var i = 0, j = 0; i < hits.length; i++) {
