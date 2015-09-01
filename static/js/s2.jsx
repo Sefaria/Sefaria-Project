@@ -217,13 +217,14 @@ var ReaderApp = React.createClass({
   },
   showBaseText: function(ref, replaceHistory) {
     // Set the current primary text
-    // `replaceHistory` - bool whether to repalce browser history rather than push for this change
+    // `replaceHistory` - bool whether to replace browser history rather than push for this change
     replaceHistory = typeof replaceHistory === "undefined" ? false : replaceHistory;
     this.setState({
       contents: [{type: "TextColumn", refs: [ref], scrollTop: 20 }],
       currentFilter: [],
       recentFilters: [],
-      replaceHistory: replaceHistory
+      replaceHistory: replaceHistory,
+      menuOpen: null
     });
   },
   backToText: function() {
@@ -422,6 +423,7 @@ var ReaderApp = React.createClass({
       var settings = {query: this.state.searchQuery, page: 1};
       var menu = (<SearchPage
                     initialSettings={settings}
+                    onResultClick={this.showBaseText}
                     close={this.closeMenus} />);
     } else {
       var menu = "";

@@ -7,7 +7,8 @@ var SearchPage = React.createClass({
             query: React.PropTypes.string,
             page: React.PropTypes.number
         }),
-        close:            React.PropTypes.func
+        close: React.PropTypes.func,
+        onResultClick: React.PropTypes.func
     },
     getInitialState: function() {
         return {
@@ -44,7 +45,9 @@ var SearchPage = React.createClass({
                             <SearchResultList
                                 query = { this.state.query }
                                 page = { this.state.page }
-                                updateRunningQuery = { this.updateRunningQuery } />
+                                updateRunningQuery = { this.updateRunningQuery }
+                                onResultClick={this.props.onResultClick}
+                                />
                         </div>
                     </div>
                   </div>
@@ -108,7 +111,8 @@ var SearchResultList = React.createClass({
         query: React.PropTypes.string,
         page: React.PropTypes.number,
         size: React.PropTypes.number,
-        updateRunningQuery: React.PropTypes.func
+        updateRunningQuery: React.PropTypes.func,
+        onResultClick: React.PropTypes.func
     },
     getDefaultProps: function() {
         return {
@@ -222,7 +226,12 @@ var SearchResultList = React.createClass({
             <div>
                 <div className="results-count">{totalWithCommas} Results</div>
                 {this.state.hits.map(function(result) {
-                    return <SearchResult data={result} query={this.props.query} key={result.ref}/>;
+                    return <SearchResult
+                        data={result}
+                        query={this.props.query}
+                        key={result.ref}
+                        onResultClick={this.props.onResultClick}
+                        />;
                 }.bind(this))}
             </div>
 
@@ -234,7 +243,8 @@ var SearchResult = React.createClass({
     propTypes: {
         query: React.PropTypes.string,
         data: React.PropTypes.object,
-        key: React.PropTypes.string
+        key: React.PropTypes.string,
+        onResultClick: React.PropTypes.func
     },
     getInitialState: function() {
         return {
@@ -245,6 +255,12 @@ var SearchResult = React.createClass({
         this.setState({
             duplicatesShown: !this.state.duplicatesShown
         });
+    },
+    handleResultClick: function(event) {
+        if(this.props.onResultClick) {
+            event.preventDefault();
+            this.props.onResultClick(this.props.data._source.ref);
+        }
     },
     render: function () {
         var data = this.props.data;
@@ -282,13 +298,18 @@ var SearchResult = React.createClass({
             (<div className='similar-results'>
                     {data.duplicates.map(function(result) {
                         var key = result._source.ref + "-" + result._source.version;
-                        return <SearchResult data={result} key={key}/>;
+                        return <SearchResult
+                            data={result}
+                            key={key}
+                            query={this.props.query}
+                            onResultClick={this.props.onResultClick}
+                            />;
                     })}
             </div>) : "";
 
         return (
             <div className="result">
-                <a className="result-title" href={href}>
+                <a className="result-title" href={href} onClick={this.handleResultClick}>
                     <span className="en">{s.ref}</span>
                     <span className="he">{s.heRef}</span>
                 </a>
