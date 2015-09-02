@@ -4,16 +4,22 @@ var cx  = React.addons.classSet;
 
 var ReaderApp = React.createClass({
   propTypes: {
-    initialRef:       React.PropTypes.string.isRequired,
+    initialRef:       React.PropTypes.string,
     initialFilter:    React.PropTypes.array,
     initialMenu:      React.PropTypes.string,
+    initialQuery:     React.PropTypes.string,
     initialSettings:  React.PropTypes.object
   },
   getInitialState: function() {
-    var contents = [{type: "TextColumn", refs: [this.props.initialRef], scrollTop: 20 }];
-    if (this.props.initialFilter) {
-      contents.push({type: "TextList", ref: this.props.initialRef, scrollTop: 0 });
+    if (this.props.initialRef) {
+      var contents = [{type: "TextColumn", refs: [this.props.initialRef], scrollTop: 20 }];
+      if (this.props.initialFilter) {
+        contents.push({type: "TextList", ref: this.props.initialRef, scrollTop: 0 });
+      }      
+    } else {
+      var contents = [];
     }
+
     return {
       contents: contents,
       currentFilter: this.props.initialFilter || [],
@@ -29,13 +35,13 @@ var ReaderApp = React.createClass({
       menuOpen: this.props.initialMenu || null, // "navigation", "text toc", "display", "search", "sheets"
       navigationCategories: null,
       navigationSheetTag: null,
-      searchQuery: null,
+      searchQuery: this.props.initialQuery || null
     }
   },
   closeMenus: function() {
-    this.setState({
-      menuOpen: null
-    });
+    // If there's no content to show, return to navigation
+    var state = this.state.contents.length ? { menuOpen: null } : { menuOpen: "navigation" };
+    this.setState(state);
   },
   openMenu: function(menu) {
     this.setState({menuOpen: menu});
@@ -76,13 +82,12 @@ var ReaderApp = React.createClass({
   shouldHistoryUpdate: function() {
     // Compare the current history state to the current content state,
     // Return true if the change warrants pushing to history.
-    var state = history.state;
-    if (!state) { 
-      return true;
-    }
+    var state   = history.state;
     var hist    = state.contents.slice(-1)[0];
     var current = this.currentContent();
-
+    if (!state || !hist || !current) { 
+      return true;
+    }
     if (hist.type !== current.type) { 
       return true;
     } else if (state.menuOpen !== this.state.menuOpen) {
@@ -159,7 +164,9 @@ var ReaderApp = React.createClass({
   handlePopState: function(event) {
     var state = event.state;
     if (state) {
-      var kind = this.currentContent().type + " to " + state.contents.slice(-1)[0].type;
+      var from = this.currentMode();
+      var to   = state.contents.slice(-1)[0] ? state.contents.slice(-1)[0].type : null
+      var kind = from + " to " + to;
       sjs.track.event("Reader", "Pop State", kind);
       this.setState(state);
     }
@@ -173,7 +180,7 @@ var ReaderApp = React.createClass({
   },
   adjustInfiniteScroll: function() {
     var current = this.currentContent();
-    if (current.type === "TextColumn") {
+    if (current && current.type === "TextColumn") {
       var $lastText    = $(".textRange.basetext").last();
       var lastTop      = $lastText.offset().top;
       var lastBottom   = lastTop + $lastText.outerHeight();
@@ -336,19 +343,20 @@ var ReaderApp = React.createClass({
   },
   currentContent: function() {
     // Returns the current content item
-    return this.state.contents.slice(-1)[0];
+    return this.state.contents.slice(-1)[0] || null;
   },
   currentMode: function () {
     // Returns the type of the current reader item - TextColumn, TextList
-    return this.currentContent().type;
+    return this.currentContent() ? this.currentContent.type : null;
   },
   currentRef: function() {
     var item = this.currentContent();
-    return item.ref || item.refs.slice(-1)[0];
+    return item ? (item.ref || item.refs.slice(-1)[0]) : null;
   },
   currentData: function() {
     // Returns the data from the library of the current ref
     var ref  = this.currentRef();
+    if (!ref) { return null; }
     var data = sjs.library.ref(ref);
     return data; 
   },
@@ -362,6 +370,7 @@ var ReaderApp = React.createClass({
   },
   currentLayout: function() {
     var category = this.currentCategory();
+    if (!category) { return null; }
     var option = category === "Tanach" || category === "Talmud" ? "layout" + category : "layoutDefault";
     return this.state.settings[option];  
   },
@@ -589,7 +598,6 @@ var ReaderNavigationMenu = React.createClass({
       var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
       this.props.showBaseText(ref);
       sjs.track.event("Reader", "Navigation Text Click", ref)
-      this.props.closeNav();
     } else if ($(event.target).hasClass("catLink") || $(event.target).parent().hasClass("catLink")) {
       var cats = $(event.target).attr("data-cats") || $(event.target).parent().attr("data-cats");
       cats = cats.split("|");

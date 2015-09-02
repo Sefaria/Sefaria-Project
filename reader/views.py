@@ -170,7 +170,7 @@ def reader(request, tref, lang=None, version=None):
     return render_to_response('reader.html', template_vars, RequestContext(request))
 
 
-def s2(request, ref="Genesis 1", version=None, lang=None):
+def s2(request, ref, version=None, lang=None):
     """
     New interfaces in development
     """
@@ -188,7 +188,9 @@ def s2_search(request):
     """
     Standalone page for new search interface
     """
-    return render_to_response('s2_search.html', {}, RequestContext(request))
+    return render_to_response('s2.html', {
+                                    "initialMenu": "search" 
+                                }, RequestContext(request))
 
 
 @catch_error_as_http

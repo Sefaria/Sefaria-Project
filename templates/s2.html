@@ -31,10 +31,8 @@
         var urlVars = getUrlVars();
         var filter  = "with" in urlVars ? urlVars["with"].replace(/_/g, " ").split("+") : null;
         if (filter && filter.length === 1 && filter[0] === "all") { filter = []; }
+        var query  = "q" in urlVars ? urlVars["q"] : null;
         
-        $("body").removeClass("english hebrew bilingual");
-
-        sjs.library._saveText({{ data|jsonify }});
 
         var settings = {
           language: "{{ contentLang }}",
@@ -45,17 +43,25 @@
           fontSize:      $.cookie("fontSize")      || 62.5
         }
         $("body").addClass(settings.color);
-        var ref = humanRef("{{ ref }}")
+        $("body").removeClass("english hebrew bilingual");
+       
+        var ref = "{{ ref }}";
+        if (ref) {
+          var ref = humanRef("{{ ref }}")
+          sjs.library._saveText({{ data|jsonify }});
+        }
         React.render(
           React.createElement(ReaderApp, {
             initialRef: ref,
             initialFilter: filter,
+            initialMenu: "{{ initialMenu }}",
+            initialQuery: query,
             initialSettings: settings}),
           document.getElementById('s2')
         );
-        if (filter === null) {
+        if (ref && filter === null) {
           sjs.track.open(ref);
-        } else {
+        } else if (ref) {
           sjs.track.event("Reader", "Open Close Reader", ref);
         }
       });
