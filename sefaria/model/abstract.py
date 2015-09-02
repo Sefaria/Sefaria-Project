@@ -70,7 +70,6 @@ class AbstractMongoRecord(object):
         del attrs[self.id_field]
         return self.__class__(copy.deepcopy(attrs))
 
-
     def load_from_dict(self, d, is_init=False):
         """
         Add values from a dict to an existing object.
@@ -261,7 +260,7 @@ class AbstractMongoSet(collections.Iterable):
     """
     recordClass = AbstractMongoRecord
 
-    def __init__(self, query={}, page=0, limit=0, sort=[["_id", 1]], proj=None):
+    def __init__(self, query={}, page=0, limit=0, sort=[("_id", 1)], proj=None):
         self.raw_records = getattr(db, self.recordClass.collection).find(query, proj).sort(sort).skip(page * limit).limit(limit)
         self.has_more = limit != 0 and self.raw_records.count() == limit
         self.records = None
