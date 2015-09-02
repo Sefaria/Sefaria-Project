@@ -21,7 +21,9 @@ var SearchPage = React.createClass({
     },
     updateQuery: function(query) {
         this.setState({query: query});
-        this.props.onQueryChange(query);
+        if (this.props.onQueryChange) {
+            this.props.onQueryChange(query);
+        }
     },
     updateRunningQuery: function(ajax) {
         this.setState({
@@ -85,6 +87,8 @@ var SearchBar = React.createClass({
     handleKeypress: function(event) {
         if (event.charCode == 13) {
             this.updateQuery();
+            // Blur search input to close keyboard
+            $(React.findDOMNode(this)).find(".readerSearch").blur();
         }
     },
     updateQuery: function() {
