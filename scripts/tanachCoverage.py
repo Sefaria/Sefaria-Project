@@ -42,7 +42,7 @@ print
 print "20 Most Frequent"
 for mc in freqs.most_common(20):
     ref = mc[0]
-    print "{} - {} occurrences".format(ref.normal, mc[1])
+    print "{} - {} occurrences".format(ref.normal(), mc[1])
     print ref.text("en").text
     print ref.text("he").text
     print
