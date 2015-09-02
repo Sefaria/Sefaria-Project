@@ -28,7 +28,8 @@ var ReaderApp = React.createClass({
       },
       menuOpen: this.props.initialMenu || null, // "navigation", "text toc", "display", "search", "sheets"
       navigationCategories: null,
-      navigationSheetTag: null
+      navigationSheetTag: null,
+      searchQuery: null,
     }
   },
   closeMenus: function() {
@@ -44,6 +45,9 @@ var ReaderApp = React.createClass({
   },
   setSheetTag: function (tag) {
     this.setState({navigationSheetTag: tag});
+  },
+  setSearchQuery: function (query) {
+    this.setState({searchQuery: query});
   },
   componentDidMount: function() {
     window.addEventListener("popstate", this.handlePopState);
@@ -85,6 +89,8 @@ var ReaderApp = React.createClass({
       if (state.menuOpen !== "display" && this.state.menuOpen !== "display") {
        return true;
       }
+    } else if (state.searchQuery !== this.state.searchQuery) {
+      return true;
     } else if (current.type === "TextColumn") {
       if (current.refs.slice(-1)[0] !== hist.refs.slice(-1)[0]) {
         return true;
@@ -114,7 +120,7 @@ var ReaderApp = React.createClass({
           break;
         case "search":
           hist.title = "Sefaria Search";
-          hist.url   = "search";
+          hist.url   = "search?q=" + this.state.searchQuery;
           break;
         case "sheets":
           hist.title = "Sefaria Source Sheets";
@@ -424,6 +430,7 @@ var ReaderApp = React.createClass({
       var menu = (<SearchPage
                     initialSettings={settings}
                     onResultClick={this.showBaseText}
+                    onQueryChange={this.setSearchQuery}
                     close={this.closeMenus} />);
     } else {
       var menu = "";

@@ -7,8 +7,9 @@ var SearchPage = React.createClass({
             query: React.PropTypes.string,
             page: React.PropTypes.number
         }),
-        close: React.PropTypes.func,
-        onResultClick: React.PropTypes.func
+        close:         React.PropTypes.func,
+        onResultClick: React.PropTypes.func,
+        onQueryChange: React.PropTypes.func
     },
     getInitialState: function() {
         return {
@@ -20,6 +21,7 @@ var SearchPage = React.createClass({
     },
     updateQuery: function(query) {
         this.setState({query: query});
+        this.props.onQueryChange(query);
     },
     updateRunningQuery: function(ajax) {
         this.setState({
