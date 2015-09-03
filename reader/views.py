@@ -345,7 +345,7 @@ def make_alt_toc_html(alt):
     :param alt - a TitledTreeNode representing an alternate structure.
     """
     def node_line(node, depth, **kwargs):
-        if depth == 0:
+        if depth == 0 and node.has_children():
             return ""
         refs            = getattr(node, "refs", False)
         includeSections = getattr(node, "includeSections", False)
@@ -358,14 +358,16 @@ def make_alt_toc_html(alt):
         html   += ' class="schema-node-toc depth' + str(depth) + ' ' + linked + ' ' + default + '" >'
         wrap_counts  = lambda counts: counts if list_depth(counts) == 2 else wrap_counts([counts])
         # wrap counts to ensure they are as though at section level, handles segment level refs
-        if not default:
+        if not default and depth > 0:
             html += '<span class="schema-node-title">'
             html +=    '<span class="en">' + node.primary_title() + en_icon + '</span>'
             html +=    '<span class="he">' + node.primary_title(lang='he') + he_icon + '</span>'
             html += '</span>'            
         if refs:
             # todo handle refs with depth > 1
-            html += "<div class='schema-node-contents closed'>"
+            html += "<div class='schema-node-contents"
+            html += " closed" if depth > 0 else ""
+            html += "'>"
             html +=   "<div class='sectionName'>"
             html +=     "<span class='en'>" + hebrew_plural(node.sectionNames[0]) + "</span>"
             html +=     "<span class='he'>" + hebrew_term(node.sectionNames[0]) + "</span>"

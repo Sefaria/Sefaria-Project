@@ -396,7 +396,6 @@ class JaggedArray(object):
                 flat += [el]
         return flat
 
-
     def last_index(self, depth):
         if depth > self.get_depth():
             depth = self.get_depth()
