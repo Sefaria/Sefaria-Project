@@ -108,6 +108,10 @@
             </h2>
             <div id="calendar">
                 <div class="calendarSection">
+                    <span class="calendarSectionTitle">
+                        <span class='en'>Parashat HaShavua</span>
+                        <span class='he'>פרשת השבוע</span>
+                    </span>
                     <a href="/{{ parasha.ref|url_safe }}">
                         <span class="en">{{ parasha.parasha }}</span>
                         <span class="he">{{ parasha.parasha|he_parasha }}</span>
@@ -141,22 +145,31 @@
                         </a>
                     {% endif %}
                     {{ parasha.shabbat_name|default:"" }}
-                    <span class="calendarSectionTitle">
-                        <span class='en'>Parashat HaShavua</span>
-                        <span class='he'>פרשת השבוע</span>
-                    </span>
                 </div>
                 <div class="line"></div>
                 <div class="calendarSection">
+                    <span class="calendarSectionTitle">
+                        <span class='en'>Daf Yomi</span>
+                        <span class='he'>דף יומי</span>
+                    </span>
                     <a href="/{{ daf_today.url }}">
                         <span class="en">{{ daf_today.name }}</span>
                         <span class="he">{{ daf_today.name|he_ref }}</span>
 
                     </a>
+                </div>
+                <div class="line"></div>
+                <div class="calendarSection">
                     <span class="calendarSectionTitle">
-                        <span class='en'>Daf Yomi</span>
-                        <span class='he'>דף יומי</span>
+                        <a href="http://www.929.org.il/" target="_blank">
+                        <span class='en'>Project 929</span>
+                        <span class='he'>פרויקט 929</span>
+                        </a>
                     </span>
+                    <div>
+                        <span class="en">{{ p929|ref_link }}</span>
+                        <span class="he">{{ p929|he_ref_link }}</span>
+                    </div>
                 </div>
             </div>             
         </div>

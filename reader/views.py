@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 
 # noinspection PyUnresolvedReferences
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from sets import Set
 from random import choice
 from pprint import pprint
 import json
 import dateutil.parser
-
 from bson.json_util import dumps
+import p929
+
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.http import Http404
@@ -1585,9 +1586,12 @@ def home(request):
     """
     Homepage
     """
-    daf_today          = sefaria.utils.calendars.daf_yomi(datetime.now())
-    daf_tomorrow       = sefaria.utils.calendars.daf_yomi(datetime.now() + timedelta(1))
+    today              = date.today()
+    daf_today          = sefaria.utils.calendars.daf_yomi(today)
+    daf_tomorrow       = sefaria.utils.calendars.daf_yomi(today + timedelta(1))
     parasha            = sefaria.utils.calendars.this_weeks_parasha(datetime.now())
+    p929_chapter       = p929.Perek(date = today)
+    p929_ref           = "%s %s" % (p929_chapter.book_name, p929_chapter.book_chapter)
     metrics            = db.metrics.find().sort("timestamp", -1).limit(1)[0]
 
     return render_to_response('static/home.html',
@@ -1596,6 +1600,7 @@ def home(request):
                               "daf_today": daf_today,
                               "daf_tomorrow": daf_tomorrow,
                               "parasha": parasha,
+                              "p929": p929_ref,
                               },
                               RequestContext(request))
 

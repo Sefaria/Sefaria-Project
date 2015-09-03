@@ -227,6 +227,7 @@ body.hebrew #home .homeColumn {
 
 #home #calendar {
     padding: 26px 50px;
+    margin-top: -12px;
 }
 
 #home #calendar a {
@@ -234,7 +235,6 @@ body.hebrew #home .homeColumn {
     display: block;
     font-size: 18px;
     line-height: 1.2;
-    margin-top: 6px;
 }
 
 #home #calendar a .ref {
@@ -253,14 +253,15 @@ body.hebrew #home .homeColumn {
     margin: 10px 0px;
 }
 
-#home #calendar .calendarSectionTitle {
-    font-size: 10px;
-    margin-top: 10px;
+#home #calendar .calendarSectionTitle,
+#home #calendar .calendarSectionTitle a {
+    font-size: 9px;
+    letter-spacing: 1px;
     display: block;
 }
 
 #home #calendar .line {
-    margin: 20px 0px;
+    margin: 5px 0px;
     border-bottom: 1px solid #404F56;
 }
 
