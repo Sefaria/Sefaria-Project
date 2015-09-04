@@ -104,6 +104,7 @@ body .bilingual .enOnly .he {
 .readerNavTop {
   padding: 20px;
   border-bottom: 1px solid #E2E2E1;
+  box-sizing: border-box;
   direction: ltr;
 }
 .readerNavTopFixed .readerNavTop.search {

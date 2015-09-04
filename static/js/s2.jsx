@@ -671,8 +671,8 @@ var ReaderNavigationMenu = React.createClass({
       calendar = (<div className="readerNavCalendar"><ThreeBox content={calendar} /></div>);
 
 
-      return(<div className="readerNavMenu" onClick={this.handleClick}>
-              <div className="readerNavTop">
+      return(<div className="readerNavMenu readerNavMenuFixed" onClick={this.handleClick}>
+              <div className="readerNavTop readerNavTopFixed">
                 <i className="fa fa-search"></i>
                 <input className="readerSearch" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
                 <i className="fa fa-times" onClick={this.props.closeNav}></i>
