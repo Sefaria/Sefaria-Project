@@ -659,7 +659,7 @@ body .bilingual .enOnly .he {
   background-color: inherit;
 }
 .textColumn {
-  padding-top: 60px;
+  padding-top: 20px;
 }
 .textRange.basetext {
   width: 100%;
@@ -670,9 +670,8 @@ body .bilingual .enOnly .he {
   background-color: inherit;
   margin: 0 auto;
 }
-.textRange.basetext .title {
-  font-weight: bold;
-  padding: 18px 8px;
+.textRange.basetext .title {  
+  padding: 34px 28px;
   color: #999;
   text-align: center;
   font-weight: lighter;
@@ -680,6 +679,12 @@ body .bilingual .enOnly .he {
   text-transform: uppercase;
   letter-spacing: 1px;
 }
+.textRange.basetext .title .titleBox {
+  display: inline-block;
+  border-bottom: 4px solid #E6E5E6;
+  padding: 0 6px 3px;
+}  
+
 .bilingual .textRange.basetext .title .he {
   display: none;
 }

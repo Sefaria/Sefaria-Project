@@ -299,8 +299,12 @@ sjs.library = {
     var name = data.sectionNames.length > 1 ? data.sectionNames[0] + " " : "";
     if (data.isComplex) {
       var numberedSections = data.ref.slice(data.book.length+1);
-      var namedSections    = sections.slice(0, -(numberedSections.length+1));
-      var string           = namedSections + ", " + name +  numberedSections;
+      if (numberedSections) {
+        var namedSections    = sections.slice(0, -(numberedSections.length+1));
+        var string           = namedSections + ", " + name +  numberedSections;        
+      } else {
+        var string = sections;
+      }
     } else {
       var string = name + sections;
     }
@@ -310,8 +314,13 @@ sjs.library = {
     var name = ""; // missing he section names // data.sectionNames.length > 1 ? " " + data.sectionNames[0] : "";
     if (data.isComplex) {
       var numberedSections = data.heRef.slice(data.heTitle.length+1);
-      var namedSections    = sections.slice(0, -(numberedSections.length+1));
-      var string           = namedSections + ", " + name + " " + numberedSections;
+      if (numberedSections) {
+        var namedSections    = sections.slice(0, -(numberedSections.length+1));
+        var string           = namedSections + ", " + name + " " + numberedSections;        
+      } else {
+        string = sections;
+      }
+
     } else {
       var string = name + sections;
     }
