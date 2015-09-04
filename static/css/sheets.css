@@ -889,6 +889,11 @@ body {
 	top: -14px;
 }
 
+.cke_editable {
+	position: relative;
+	z-index: 20;
+}
+
 .clear {
 	clear: both;
 }	
