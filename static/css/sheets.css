@@ -939,10 +939,6 @@ a:active {
 		box-shadow: none;
 	}
 
-	#controls {
-		display: none;
-	}
-
 	#addSourceModal {
 		width: 80%;
 	}
@@ -954,6 +950,11 @@ a:active {
 
 	#fileControls .btn {
 		top: -18px;
+	}
+
+	#controls {
+		margin-left: 0;
+		left: 0;
 	}
 
 	#bsdHeader {
@@ -984,6 +985,9 @@ a:active {
 	#sheet.bilingual.sideBySide .he {
 		text-align: right !important;
 		width: 100%;
+	}
+	#controls {
+		display: none;
 	}
 }
 
