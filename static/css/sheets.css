@@ -382,6 +382,7 @@ body {
 
 #sheet #sources .sheetItem .sourceNumber {
 	display: none;
+	font-size: 15px;
 }
 
 #sheet.numbered.hebrew #sources .sheetItem .sourceNumber.en {
@@ -406,7 +407,7 @@ body {
 	position: absolute;
 	width: 50px;
 	text-align: right;
-	top: 32px;
+	top: 35px;
 	left: -32px;
 }
 
@@ -414,8 +415,12 @@ body {
 	position: absolute;
 	width: 50px;
 	text-align: left;
-	top: 32px;
+	top: 37px;
 	right: -32px;
+}
+
+#sheet.boxed #sources .sheetItem .sourceNumber {
+	top: 17px;
 }
 
 #sheet #sources .sheetItem.hasCustom .sourceNumber {
@@ -978,6 +983,26 @@ a:active {
 }
 
 @media screen and (max-width: 520px) {
+	#sheet {
+		padding: 0 6px;
+	}
+	#sheet .sheetItem {
+		padding: 32px 16px;
+	}
+	#sheet #sources .sheetItem .sourceNumber.en {
+		left: -2px;
+		text-align: left;
+	}
+	#sheet #sources .sheetItem .sourceNumber.he {
+		right: -2px;
+		text-align: right;
+	}
+	#sheet.boxed #sources .sheetItem .sourceNumber.en {
+		left: 6px;
+	}
+	#sheet.boxed #sources .sheetItem .sourceNumber.he {
+		right: 6px;
+	}
 	#sheet.bilingual.sideBySide .en {
 		text-align: left !important;
 		width: 100%;
