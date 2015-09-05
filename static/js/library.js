@@ -561,38 +561,57 @@ sjs.library = {
   }
 };
 
-
 sjs.palette = {
-  "green": "#77A485",
-  "blue": "#6588C7",
-  "tan": "#D3BE90",
-  "red": "#D86F6D",
-  "navy": "#222F4F",
-  "pink": "#D9C6D4",
-  "grape": "#7B426E",
-  "lightblue": "#95C6D2",
-  "darkgreen": "#095868"
-};
+  navy:       "#102040",
+  purple1:    "#403060",
+  blue1:      "#203070",
+  teal1:      "#004060",
+  bluegreen1: "#005060",
+  green1:     "#405040",
+  tan1:       "#504030",
+  orange1:    "#604030",
+  red1:       "#803030",
+  pink1:      "#804060",
+  purple2:    "#6060a0",
+  blue2:      "#5070c0",
+  teal2:      "#5090b0",
+  bluegreen2: "#508080",
+  green2:     "#709070",
+  tan2:       "#b09050",
+  orange2:    "#c08050",
+  red2:       "#c06060",
+  pink2:      "#806080",
+  purple3:    "#b0b0e0",
+  blue3:      "#b0c0f0",
+  teal3:      "#90c0d0",
+  bluegreen3: "#90b0a0",
+  green3:     "#a0b090",
+  tan3:       "#c0b080",
+  orange3:    "#e0c0a0",
+  red3:       "#d0b0b0",
+  pink3:      "#d0c0d0"
 
+}
 sjs.categoryColors = {
-  "Commentary":         sjs.palette.blue,
-  "Tanach" :            sjs.palette.darkgreen,
-  "Midrash":            sjs.palette.green,
-  "Mishnah":            sjs.palette.lightblue,
-  "Talmud":             sjs.palette.tan,
-  "Halakhah":           sjs.palette.red,
-  "Kabbalah":           sjs.palette.pink,
-  "Philosophy":         sjs.palette.grape,
-  "Liturgy":            sjs.palette.blue,
-  "Tosefta":            sjs.palette.darkgreen,
-  "Parshanut":          sjs.palette.tan,
-  "Chasidut":           sjs.palette.green,
-  "Musar":              sjs.palette.lightblue,
-  "Responsa":           sjs.palette.red,
-  "Apocrapha":          sjs.palette.pink,
-  "Other":              sjs.palette.blue,
-  "Quoting Commentary": sjs.palette.lightblue,
-  "Commentary2":         sjs.palette.blue
+  "Commentary":         sjs.palette.blue2,
+  "Tanach" :            sjs.palette.bluegreen1,
+  "Midrash":            sjs.palette.green2,
+  "Mishnah":            sjs.palette.teal2,
+  "Talmud":             sjs.palette.tan3,
+  "Halakhah":           sjs.palette.red2,
+  "Kabbalah":           sjs.palette.purple3,
+  "Philosophy":         sjs.palette.purple1,
+  "Liturgy":            sjs.palette.teal3,
+  "Tosefta":            sjs.palette.bluegreen2,
+  "Parshanut":          sjs.palette.teal1,
+  "Chasidut":           sjs.palette.pink1,
+  "Musar":              sjs.palette.orange2,
+  "Responsa":           sjs.palette.red1,
+  "Apocrapha":          sjs.palette.bluegreen3,
+  "Other":              sjs.palette.navy,
+  "Quoting Commentary": sjs.palette.orange2,
+  "Commentary2":        sjs.palette.blue2,
+  "Sheets":             sjs.palette.purple3
 };
 
 sjs.categoryColor = function(cat) {
