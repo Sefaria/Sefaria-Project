@@ -8,6 +8,7 @@ var ReaderApp = React.createClass({
     initialFilter:    React.PropTypes.array,
     initialMenu:      React.PropTypes.string,
     initialQuery:     React.PropTypes.string,
+    initialSheetsTag: React.PropTypes.string,
     initialSettings:  React.PropTypes.object
   },
   getInitialState: function() {
@@ -35,25 +36,9 @@ var ReaderApp = React.createClass({
       menuOpen: this.props.initialMenu || null, // "navigation", "text toc", "display", "search", "sheets"
       navigationCategories: null,
       navigationSheetTag: null,
-      searchQuery: this.props.initialQuery || null
+      searchQuery: this.props.initialQuery || null,
+      navigationSheetTag: this.props.initialSheetsTag || null
     }
-  },
-  closeMenus: function() {
-    // If there's no content to show, return to navigation
-    var state = this.state.contents.length ? { menuOpen: null } : { menuOpen: "navigation" };
-    this.setState(state);
-  },
-  openMenu: function(menu) {
-    this.setState({menuOpen: menu});
-  },
-  setNavigationCategories: function(categories) {
-    this.setState({navigationCategories: categories});
-  },
-  setSheetTag: function (tag) {
-    this.setState({navigationSheetTag: tag});
-  },
-  setSearchQuery: function (query) {
-    this.setState({searchQuery: query});
   },
   componentDidMount: function() {
     window.addEventListener("popstate", this.handlePopState);
@@ -96,6 +81,8 @@ var ReaderApp = React.createClass({
       }
     } else if (state.searchQuery !== this.state.searchQuery) {
       return true;
+    } else if (state.navigationSheetTag !== this.state.navigationSheetTag) {
+      return true;
     } else if (current.type === "TextColumn") {
       if (current.refs.slice(-1)[0] !== hist.refs.slice(-1)[0]) {
         return true;
@@ -117,7 +104,7 @@ var ReaderApp = React.createClass({
       switch (this.state.menuOpen) {
         case "navigation":
           hist.title = "Texts | Sefaria";
-          hist.url   = "texts";
+          hist.url   = "/texts";
           break;
         case "text toc":
           hist.title = this.currentBook();
@@ -125,11 +112,17 @@ var ReaderApp = React.createClass({
           break;
         case "search":
           hist.title = "Sefaria Search";
-          hist.url   = "search?q=" + this.state.searchQuery;
+          hist.url   = "/search?q=" + this.state.searchQuery;
           break;
         case "sheets":
-          hist.title = "Sefaria Source Sheets";
-          hist.url   = "sheets";
+          if (this.state.navigationSheetTag) { 
+            hist.url   = "/sheets/tags/" + this.state.navigationSheetTag; 
+            hist.title = this.state.navigationSheetTag + " | Sefaria Source Sheets";
+          } else {
+            hist.url   = "/sheets";
+            hist.title = "Sefaria Source Sheets";
+          }
+          console.log(hist.url)
           break;
       }
     } else if (current.type === "TextColumn") {
@@ -138,19 +131,21 @@ var ReaderApp = React.createClass({
     } else if (current.type == "TextList") {
       var sources = this.state.currentFilter.length ? this.state.currentFilter[0] : "all";
       hist.title = current.ref  + " with " + (sources === "all" ? "Connections" : sources);;
-      hist.url = normRef(hist.title) + "?with=" + sources;
+      hist.url = "/" + normRef(hist.title) + "?with=" + sources;
     }
+    // for testing
+    if (window.location.pathname.indexOf("/s2") === 0) { hist.url = "/s2" + hist.url}
     return hist;
   },
   updateHistoryState: function() {
     if (this.shouldHistoryUpdate()) {
       var hist = this.makeHistoryState();
       if (this.state.replaceHistory) {
-        //console.log("replace " + hist.title)
+        console.log("replace " + hist.title)
         history.replaceState(hist.state, hist.title, hist.url);
         $("title").html(hist.title);
       } else {
-        //console.log("push " + hist.title)
+        console.log("push " + hist.title)
         history.pushState(hist.state, hist.title, hist.url);
         $("title").html(hist.title);
         if (hist.state.type == "TextColumn") {
@@ -244,6 +239,31 @@ var ReaderApp = React.createClass({
     // Return to the original text in the ReaderApp contents
     this.state.contents = [this.state.contents[0]];
     this.setState({contents: this.state.contents});
+  },  
+  closeMenus: function() {
+    // If there's no content to show, return to navigation
+    var state = {
+      menuOpen: this.state.contents.length ? null: "navigation",
+      searchQuery: null,
+      navigationSheetTag: null
+    }
+    this.setState(state);
+  },
+  openMenu: function(menu) {
+    this.setState({
+      menuOpen: menu,
+      searchQuery: null,
+      navigationSheetTag: null
+    });
+  },
+  setNavigationCategories: function(categories) {
+    this.setState({navigationCategories: categories});
+  },
+  setSheetTag: function (tag) {
+    this.setState({navigationSheetTag: tag});
+  },
+  setSearchQuery: function (query) {
+    this.setState({searchQuery: query});
   },
   setFilter: function(filter, updateRecent) {
     // Sets the current filter for Connected Texts (TextList)
@@ -347,7 +367,7 @@ var ReaderApp = React.createClass({
   },
   currentMode: function () {
     // Returns the type of the current reader item - TextColumn, TextList
-    return this.currentContent() ? this.currentContent.type : null;
+    return this.currentContent() ? this.currentContent().type : null;
   },
   currentRef: function() {
     var item = this.currentContent();
@@ -420,6 +440,7 @@ var ReaderApp = React.createClass({
       var menu = (<ReaderNavigationMenu 
                     closeNav={this.closeMenus}
                     openSearch={this.openSearch}
+                    openMenu={this.openMenu}
                     showBaseText={this.showBaseText} />);
     } else if (this.state.menuOpen === "text toc") {
       var menu = (<ReaderTextTableOfContents 
@@ -441,7 +462,13 @@ var ReaderApp = React.createClass({
                     onResultClick={this.showBaseText}
                     onQueryChange={this.setSearchQuery}
                     close={this.closeMenus} />);
-    } else {
+    } else if (this.state.menuOpen === "sheets") {
+      var menu = (<SheetsNav
+                    openNav={this.openMenu.bind(null, "navigation")}
+                    close={this.closeMenus}
+                    initialTag={this.state.navigationSheetTag}
+                    setSheetTag={this.setSheetTag} />);
+    }  else {
       var menu = "";
     }
 
@@ -683,7 +710,7 @@ var ReaderNavigationMenu = React.createClass({
                   <h2>Calendar</h2>
                   {calendar}
                   <h2>Community</h2>
-                  <a className="sheetsLink" href="/sheets"><i className="fa fa-file-text-o"></i> Source Sheets</a>
+                  <span className="sheetsLink" onClick={this.props.openMenu.bind(null, "sheets")}><i className="fa fa-file-text-o"></i> Source Sheets</span>
                   <div className="siteLinks">
                   {siteLinks}
                   </div>
@@ -864,38 +891,94 @@ var ReaderTextTableOfContents = React.createClass({
 var SheetsNav = React.createClass({
   // Navigation for Sheets
   propTypes: {
-    category:     React.PropTypes.string.isRequired,
-    tag:          React.PropTypes.string,
+    initialTag:   React.PropTypes.string,
     close:        React.PropTypes.func.isRequired,
-    openNav:      React.PropTypes.func.isRequired
+    openNav:      React.PropTypes.func.isRequired,
+    setSheetTag:  React.PropTypes.func.isRequired
   },
   getInitialState: function() {
     return {
-
+      trendingTags: [],
+      tagList: [],
+      sheets: [],
+      tag: this.props.initialTag
     };
   },
   componentDidMount: function() {
-
+    this.getTags();
+    if (this.props.initialTag) {
+      this.setTag(this.props.initialTag);
+    }
   },
-  handleClick: function(e) {
-
+  componentWillReceiveProps: function(nextProps) {
+    this.setState({tag: nextProps.initialTag, sheets: []});
+  },
+  getTags: function() {
+    sjs.library.sheets.trendingTags(this.loadTags);
+    sjs.library.sheets.tagList(this.loadTags);
+  },
+  loadTags: function() {
+    this.setState({
+      trendingTags: sjs.library.sheets.trendingTags() || [],
+      tagList:      sjs.library.sheets.tagList() || []
+    });
+  },
+  setTag: function(tag) {
+    this.setState({tag: tag});
+    sjs.library.sheets.sheetsByTag(tag, this.loadSheets);
+    this.props.setSheetTag(tag);
+  },
+  loadSheets: function(sheets) {
+    this.setState({sheets: sheets});
   },
   render: function() {
-    var title = this.props.tag || "Source Sheets";
+    var title = this.state.tag || "Source Sheets";
 
-    var lineStyle = {backgroundColor: sjs.categoryColor(this.props.category)};
-    return (<div className="readerSheetsNav">
+    if (this.state.tag) {
+      var sheets = this.state.sheets.map(function(sheet) {
+        var title = sheet.title.stripHtml();
+        var url   = "/sheets/" + sheet.id;
+        return (<a className="sheet" href={url}>
+                  <img className="sheetImg" src={sheet.ownerImageUrl} />
+                  <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
+                  <div className="sheetAuthor">{sheet.ownerName}</div>
+                  <div className="sheetTitle">{title}</div>
+                </a>);
+      });
+      sheets = sheets.length ? sheets : "Loading...";
+      var content = (<div className="content sheetList">{sheets}</div>);
+    } else {
+      var yourSheets  = ""
+      var makeTagButton = function(tag) {
+        var setThisTag = this.setTag.bind(null, tag.tag);
+        return (<div className="navButton" onClick={setThisTag}>{tag.tag} ({tag.count})</div>);
+      }.bind(this);
+      var trendingTags = this.state.trendingTags.slice(0,6).map(makeTagButton);
+      var tagList      = this.state.tagList.map(makeTagButton);
+
+      if (trendingTags.length && tagList.length) {
+        var content = (<div className="content">
+                        {yourSheets}
+                        <h2>Trending Tags</h2>
+                        {trendingTags}
+                        <br /><br />
+                        <h2>All Tags</h2>
+                        {tagList}
+                       </div>);
+      } else {
+        var content = (<div className="content">Loading...</div>);
+      }      
+    }
+
+    return (<div className="readerSheetsNav readerNavMenu readerNavMenuFixed">
               <div className="readerNavTopFixed">
-                <div className="categoryColorLine" style={lineStyle}></div>
                 <div className="readerNavTop">
                   <i className="fa fa-search" onClick={this.props.openNav}></i>
                   <i className="fa fa-times" onClick={this.props.close}></i>
-                  <h2>Source Sheets</h2>
+                  <h2>{title}</h2>
                 </div>
               </div>
-              <div className="content">
-
-              </div>
+              {content}
             </div>);
   }
 });
@@ -1443,8 +1526,7 @@ var TopFilterSet = React.createClass({
                             <span className="dot">●</span>
                           </div>                    
                     </div>);
-                            //<span className="en">More &gt;</span>
-                            //<span className="he">עוד &gt;</span>
+
     var style = {"borderTop": "4px solid " + sjs.categoryColor(category)};
     return (
       <div className="topFilters filterSet" style={style}>

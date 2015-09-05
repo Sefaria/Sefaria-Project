@@ -373,29 +373,43 @@ sjs.library = {
     trendingTags: function(cb) {
       var tags = this._trendingTags;
       if (tags) {
-        cb(tags);
+        if (cb) { cb(tags); }
       } else {
         var url = "/api/sheets/trending-tags";
          $.getJSON(url, function(data) {
-            this._trendingTags = data
-            cb(data);
+            this._trendingTags = data;
+            if (cb) { cb(data); }
           }.bind(this));
         }
       return tags;
     },
     _tagList: null,
     tagList: function(cb) {
-      var tags = this.tagList;
+      var tags = this._tagList;
       if (tags) {
-        cb(tags);
+        if (cb) { cb(tags); }
       } else {
         var url = "/api/sheets/tag-list";
          $.getJSON(url, function(data) {
-            this._trendingTags = data
-            cb(data);
+            this._tagList = data;
+            if (cb) { cb(data); }
           }.bind(this));
         }
       return tags;
+    },
+    _sheetsByTag: {},
+    sheetsByTag: function(tag, cb) {
+      var sheets = this._sheetsByTag[tag];
+      if (sheets) {
+        if (cb) { cb(sheets); }
+      } else {
+        var url = "/api/sheets/tag/" + tag;
+         $.getJSON(url, function(data) {
+            this._sheetsByTag[tag] = data.sheets;
+            if (cb) { cb(data.sheets); }
+          }.bind(this));
+        }
+      return sheets;
     },
   },
   hebrewCategory: function(cat) {

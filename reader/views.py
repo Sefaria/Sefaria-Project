@@ -193,6 +193,32 @@ def s2_search(request):
                                 }, RequestContext(request))
 
 
+def s2_texts(request):
+    """
+    Standalone page for new texts navigation
+    """
+    return render_to_response('s2.html', {
+                                    "initialMenu": "navigation" 
+                                }, RequestContext(request))
+
+
+def s2_sheets(request):
+    """
+    Standalone page for new sheets list
+    """
+    return render_to_response('s2.html', {
+                                    "initialMenu": "sheets" 
+                                }, RequestContext(request))
+
+def s2_sheets_by_tag(request, tag):
+    """
+    Standalone page for new sheets list
+    """
+    return render_to_response('s2.html', {
+                                    "initialMenu": "sheets",
+                                    "initialSheetsTag": tag,
+                                }, RequestContext(request))
+
 @catch_error_as_http
 @ensure_csrf_cookie
 def edit_text(request, ref=None, lang=None, version=None):
@@ -585,6 +611,8 @@ def texts_list(request):
     """
     Page listing every text in the library.
     """
+    if request.flavour == "mobile":
+        return s2_texts(request)
     return render_to_response('texts.html',
                              {},
                              RequestContext(request))
@@ -623,6 +651,8 @@ def texts_category_list(request, cats):
 
 @ensure_csrf_cookie
 def search(request):
+    if request.flavour == "mobile":
+        return s2_texts(request)
     return render_to_response('search.html',
                              {},
                              RequestContext(request))

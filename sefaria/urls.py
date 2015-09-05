@@ -221,6 +221,9 @@ urlpatterns += patterns('reader.views',
 urlpatterns += patterns('reader.views',
     (r'^s2$', 's2'),
     (r'^s2/search/?$', 's2_search'),
+    (r'^s2/texts/?$', 's2_texts'),
+    (r'^s2/sheets/?$', 's2_sheets'),
+    (r'^s2/sheets/tag/(?P<tag>.+)?$', 's2_sheets_by_tag'),
     (r'^s2/(?P<ref>.+)$', 's2'),
 )
 

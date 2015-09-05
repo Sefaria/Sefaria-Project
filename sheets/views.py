@@ -16,6 +16,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Group as DjangoGroup
 
+from reader.views import s2_sheets, s2_sheets_by_tag
 
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse, HttpResponse
@@ -237,6 +238,8 @@ def sheets_list(request, type=None):
 	"""
 	if not type:
 		# Sheet Splash page
+		if request.flavour == "mobile":
+			return s2_sheets(request)
 		query       = {"status": {"$in": LISTED_SHEETS}}
 		public      = db.sheets.find(query).sort([["dateModified", -1]]).limit(32)
 		public_tags = recent_public_tags()
@@ -357,7 +360,7 @@ def sheet_stats(request):
 
 def sheets_tags_list(request):
 	"""
-	View public sheets organied by tags.
+	View public sheets organized by tags.
 	"""
 	tags_list = make_sheet_list_by_tag()
 	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))	
@@ -368,6 +371,8 @@ def sheets_tag(request, tag, public=True, group=None):
 	View sheets for a particular tag.
 	"""
 	if public:
+		if request.flavour == "mobile":
+			return s2_sheets_by_tag(request, tag)
 		sheets = get_sheets_by_tag(tag)
 	elif group:
 		sheets = get_sheets_by_tag(tag, group=group)
@@ -577,6 +582,10 @@ def sheets_by_tag_api(request, tag):
 	"""
 	sheets = get_sheets_by_tag(tag, public=True)
 	sheets = [{"title": s["title"], "id": s["id"], "owner": s["owner"], "views": s["views"]} for s in sheets]
+	for sheet in sheets:
+		profile                = UserProfile(id=sheet["owner"])
+		sheet["ownerName"]     = profile.full_name
+		sheet["ownerImageUrl"] = profile.gravatar_url_small
 	response = {"tag": tag, "sheets": sheets}
 	return jsonResponse(response, callback=request.GET.get("callback", None))
 
