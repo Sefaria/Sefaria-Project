@@ -5,6 +5,7 @@ import sefaria.tracker as tracker
 from sefaria.system.exceptions import DuplicateRecordError
 
 import csv
+import re
 
 filename = '../data/Mishnah Map.csv'
 
@@ -19,11 +20,13 @@ filename = '../data/Mishnah Map.csv'
 
 books = {}  # title: [ref1, ref2, ...]
 
-lastBook = None
-lastChapter = None
 chapterStart = None
 chapterEnd = None
 lastrow = None
+
+versionTitle = "Wikisource Talmud Bavli"
+matni_re = re.compile(ur"(^|\s+)(" + u"מתנ" + u"י" + u"?" + ur"(?:'|" + u"׳" + u"|" + u"תין" + u"))" + ur"(?:$|\s+)(.*)")
+gemarah_re = re.compile(ur"(^|\s+)(" + u"גמ" + ur"(" + ur"\'" + u"|" + u"רא))" + ur"(?:$|\s+)(.*)")
 
 with open(filename, 'rb') as csvfile:
     next(csvfile)
@@ -31,18 +34,22 @@ with open(filename, 'rb') as csvfile:
 
         # Add link
         mishnaRef = Ref("{} {}:{}-{}".format(row[0], row[1], row[2], row[3]))
-        talmudRef = Ref("{} {}:{}-{}:{}".format(row[0], row[4], row[5], row[6], row[7]))
-        print mishnaRef.normal() + " ... " + talmudRef.normal()
+        mishnahInTalmudRef = Ref("{} {}:{}-{}:{}".format(row[0], row[4], row[5], row[6], row[7]))
+        print mishnaRef.normal() + " ... " + mishnahInTalmudRef.normal()
 
         try:
             tracker.add(28, Link, {
-                "refs": [mishnaRef.normal(), talmudRef.normal()],
+                "refs": [mishnaRef.normal(), mishnahInTalmudRef.normal()],
                 "auto": True,
                 "generated_by": "mishnah_map",
                 "type": "Mishnah in Talmud"
             })
         except DuplicateRecordError as e:
             print e
+
+        # Try highlighting Mishnah and Gemara
+        tc = mishnahInTalmudRef.starting_ref().text("he", versionTitle)
+
 
         # Compile Perek Data
         if not lastrow or row[1] != lastrow[1]:
