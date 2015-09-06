@@ -14,13 +14,12 @@ from pprint import pprint
 from datetime import datetime
 
 import sefaria.model as model
-from sefaria.model.text import merge_texts
+from sefaria.model.text import *
 from sefaria.utils.talmud import section_to_daf
 from sefaria.system.exceptions import InputError
 from summaries import ORDER, get_toc
 from local_settings import SEFARIA_DATA_PATH
 from sefaria.system.database import db
-
 
 lang_codes = {
 	"he": "Hebrew",
@@ -35,12 +34,12 @@ def make_path(doc, format):
 	if doc["categories"][0] not in ORDER and doc["categories"][0] != "Commentary":
 		doc["categories"].insert(0, "Other")
 	path = "%s/export/%s/%s/%s/%s/%s.%s" % (SEFARIA_DATA_PATH,
-									 format,
-									 "/".join(doc["categories"]),
-									 doc["title"],
-									 lang_codes[doc["language"]],
-									 remove_illegal_file_chars(doc["versionTitle"]),
-									 format)
+											format,
+											"/".join(doc["categories"]),
+											doc["title"],
+											lang_codes[doc["language"]],
+											remove_illegal_file_chars(doc["versionTitle"]),
+											format)
 	return path
 
 
@@ -60,13 +59,33 @@ def make_json(doc):
 def make_text(doc):
 	"""
 	Export doc into a simple text format.
+
+	if complex, go through nodes depth first,
+	at each node, output name of node
+	if node is leaf, run flatten on it
+
 	"""
+
+	index = model.get_index(doc["title"])
 	text = "\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], doc["versionSource"]])
+
+	version = Version().load({'title':doc["title"], 'versionTitle':doc["versionTitle"], 'language':doc["language"]})
 
 	if "versions" in doc:
 		text += "\nThis file contains merged sections from the following text versions:"
 		for version in doc["versions"]:
 			text += "\n-%s\n-%s" % (version[0], version[1])
+
+	def make_node(node, depth, **kwargs):
+
+		if node.is_leaf():
+			content = "\n\n%s" % node.primary_title(doc["language"])
+			#print dir(node)
+			content += flatten(version.content_node(node),node.sectionNames)
+			return "\n\n%s" % content
+		else:
+			return "\n\n%s" % node.primary_title(doc["language"])
+
 
 	def flatten(text, sectionNames):
 		text = text or ""
@@ -79,12 +98,16 @@ def make_text(doc):
 		for i in range(len(text)):
 			section = section_to_daf(i + 1) if sectionNames[0] == "Daf" else str(i + 1)
 			flat += "\n\n%s %s\n\n%s" % (sectionNames[0], section, flatten(text[i], sectionNames[1:]))
+
 		return flat
 
-	text += flatten(doc["text"], doc["sectionNames"])
+	text += index.nodes.traverse_to_string(make_node)
+	#return "yo"
+	#text += flatten(doc["text"], doc["sectionNames"])
+	#print text
+
 
 	return text
-
 
 """
 List of export format, consisting of a name and function.
@@ -95,6 +118,7 @@ export_formats = (
 	('json', make_json),
 	('txt', make_text),
 )
+
 
 def clear_exports():
 	"""
@@ -125,6 +149,7 @@ def export_text(text):
 	Exports 'text' (a document from the texts collection, or virtual merged document) 
 	by preparing it as a export document and passing to 'export_text_doc'.
 	"""
+	f = open(text["title"] + "-DUMP.json", "w")
 	print text["title"]
 	try:
 		index = model.get_index(text["title"])
@@ -132,19 +157,46 @@ def export_text(text):
 		print "Skipping %s - %s" % (text["title"], e.message)
 		return
 
-	if index.is_complex():
-		# TODO handle export of complex texts
-		print "Skipping Complex Text: %s - " % (text["title"])
-		return		
+	text["heTitle"] = index.nodes.primary_title("he")
+	text["categories"] = index.categories
+	text["text"] = text.get("text", None) or text.get("chapter", "")
 
-	text["heTitle"]      = index.nodes.primary_title("he")
-	text["categories"]   = index.categories
-	text["sectionNames"] = index.schema["sectionNames"]
-	text["text"]         = text.get("text", None) or text.get("chapter", "")
+	if index.is_complex():
+		def min_node_props(node,depth,**kwargs):
+			js = { "heTitle" : node.primary_title("he"),
+				   "enTitle" : node.primary_title("en"),
+				   "key": node.key}
+
+			return js
+
+		def key2title(text_node,schema_node):
+			count = 0
+			keys = text_node.keys()
+			for key in keys:
+				print key
+				temp_schema_node = schema_node[count]
+				new_key = temp_schema_node["enTitle"]
+				text_node[new_key] = text_node.pop(temp_schema_node["key"])
+				del temp_schema_node["key"]
+				count += 1
+				if "nodes" in temp_schema_node:
+					key2title(text_node[new_key],temp_schema_node["nodes"])
+
+
+
+		text["schema"] = index.nodes.traverse_to_json(min_node_props)
+		key2title(text["text"],text["schema"]["nodes"])
+
+	else:
+		text["sectionNames"] = index.schema["sectionNames"]
 
 	if "_id" in text:
 		del text["_id"]
 		del text["chapter"]
+
+	# dumpstr = json.dumps(text)
+	# f.write(dumpstr)
+	# f.close()
 
 	export_text_doc(text)
 
@@ -154,11 +206,14 @@ def export_texts():
 	Step through every text in the texts collection and export it with each format
 	listed in export_formats.
 	"""
-	clear_exports()
+	# clear_exports()
 
 	texts = db.texts.find()
+
 	for text in texts:
-		export_text(text)
+		if text["title"] == "Orot":
+			export_text(text)
+
 
 
 def export_merged(title, lang=None):
@@ -173,21 +228,21 @@ def export_merged(title, lang=None):
 		return
 
 	doc = {
-			"title": title,
-			"language": lang,
-			"versionTitle": "merged",
-			"versionSource": "http://www.sefaria.org/%s" % title.replace(" ", "_"),
-			}
+		"title": title,
+		"language": lang,
+		"versionTitle": "merged",
+		"versionSource": "http://www.sefaria.org/%s" % title.replace(" ", "_"),
+	}
 	text_docs = db.texts.find({"title": title, "language": lang})
 
-	print "%d versions in %s" %(text_docs.count(), lang)
+	print "%d versions in %s" % (text_docs.count(), lang)
 
 	if text_docs.count() == 0:
 		return
 	elif text_docs.count() == 1:
-		text_doc         = text_docs.next()
-		doc["text"]      = text_doc["chapter"]  # TODO: sort complex according to Index
-		doc["versions"]  = [(text_doc["versionTitle"], text_doc["versionSource"])]
+		text_doc = text_docs.next()
+		doc["text"] = text_doc["chapter"]  # TODO: sort complex according to Index
+		doc["versions"] = [(text_doc["versionTitle"], text_doc["versionSource"])]
 	else:
 		texts = []
 		sources = []
@@ -224,7 +279,7 @@ def export_schemas():
 	for i in model.IndexSet():
 		title = i.title.replace(" ", "_")
 		with open(SEFARIA_DATA_PATH + "/export/schemas/" + title + ".json", "w") as f:
-			f.write(make_json(i.contents(v2=True)).encode('utf-8'))		
+			f.write(make_json(i.contents(v2=True)).encode('utf-8'))
 
 
 def export_toc():
@@ -243,14 +298,14 @@ def export_links():
 	with open(SEFARIA_DATA_PATH + "/export/links/links.csv", 'wb') as csvfile:
 		writer = csv.writer(csvfile)
 		writer.writerow([
-							"Citation 1",
-							"Citation 2",
-							"Conection Type",
-							"Text 1",
-							"Text 2",
-							"Category 1",
-							"Category 2",
-						 ])
+			"Citation 1",
+			"Citation 2",
+			"Conection Type",
+			"Text 1",
+			"Text 2",
+			"Category 1",
+			"Category 2",
+		])
 		links = db.links.find().sort([["refs.0", 1]])
 		for link in links:
 			if random() > .999:
@@ -263,13 +318,13 @@ def export_links():
 				continue
 
 			writer.writerow([
-							link["refs"][0],
-							link["refs"][1],
-							link["type"],
-							oref1.book,
-							oref2.book,
-							oref1.index.categories[0],
-							oref2.index.categories[0],
+				link["refs"][0],
+				link["refs"][1],
+				link["type"],
+				oref1.book,
+				oref2.book,
+				oref1.index.categories[0],
+				oref2.index.categories[0],
 			])
 
 
@@ -292,5 +347,3 @@ def export_all():
 	export_schemas()
 	export_toc()
 	make_export_log()
-
-
