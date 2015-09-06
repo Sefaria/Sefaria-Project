@@ -18,6 +18,8 @@ filename = '../data/Mishnah Map.csv'
 # 6 End Daf
 # 7 End Line
 
+live = False
+
 books = {}  # title: [ref1, ref2, ...]
 
 chapterStart = None
@@ -25,8 +27,8 @@ chapterEnd = None
 lastrow = None
 
 versionTitle = "Wikisource Talmud Bavli"
-matni_re = re.compile(ur"(^|\s+)(" + u"מתנ" + u"י" + u"?" + ur"(?:'|" + u"׳" + u"|" + u"תין" + u"))" + ur"(?:$|\s+)(.*)")
-gemarah_re = re.compile(ur"(^|\s+)(" + u"גמ" + ur"(" + ur"\'" + u"|" + u"רא))" + ur"(?:$|\s+)(.*)")
+matni_re = re.compile(ur"(^|\s+)((?:" + u"מת" + u"נ" + u"?" + u"י" + u"?" + ur"(?:'|" + u"׳" + u"|" + u"תין" + u")?)|" + ur"משנה" + ur")" + ur"(?:$|:|\s+)(.*)")
+gemarah_re = re.compile(ur"(^|\s+)(" + u"גמ" + ur"(?:" + ur"\'" + u"|" + u"רא))" + ur"(?:$|:|\s+)(.*)")
 
 with open(filename, 'rb') as csvfile:
     next(csvfile)
@@ -37,19 +39,92 @@ with open(filename, 'rb') as csvfile:
         mishnahInTalmudRef = Ref("{} {}:{}-{}:{}".format(row[0], row[4], row[5], row[6], row[7]))
         print mishnaRef.normal() + " ... " + mishnahInTalmudRef.normal()
 
-        try:
-            tracker.add(28, Link, {
-                "refs": [mishnaRef.normal(), mishnahInTalmudRef.normal()],
-                "auto": True,
-                "generated_by": "mishnah_map",
-                "type": "Mishnah in Talmud"
-            })
-        except DuplicateRecordError as e:
-            print e
+        if live:
+            try:
+                tracker.add(28, Link, {
+                    "refs": [mishnaRef.normal(), mishnahInTalmudRef.normal()],
+                    "auto": True,
+                    "generated_by": "mishnah_map",
+                    "type": "Mishnah in Talmud"
+                })
+            except DuplicateRecordError as e:
+                print e
 
         # Try highlighting Mishnah and Gemara
-        tc = mishnahInTalmudRef.starting_ref().text("he", versionTitle)
+        """
+        10 Mishnah misses:
 
+        Missing Matni:
+            Berakhot 54a:1
+            Beitzah 15b:1
+            Beitzah 23b:22
+            Nazir.30b.26
+            Sotah.31a.26
+            Makkot.5b:73
+            Shevuot 19b:37
+            Nedarim.66b.66
+
+        Listed as Braita -
+            Mishnah Pesachim 4:9 ... Pesachim 56a:2-6
+
+        Mishnah at the end of Tamid -
+            Tamid 33b:1
+
+        -------
+        10 Gemara misses:
+
+        Pesachim Braita
+            Pesachim 56a:7
+
+        Mishnah with no Gemara:
+            Rosh Hashanah 22a:41
+            Nedarim 63b:19
+            Bekhorot 13a:20
+            Tamid 30b:35
+            Tamid 33a:14
+            Tamid 33a:31
+            Tamid 33b:38
+
+        ** Bad segmenting:
+            Nedarim 25b:10
+
+        ** Non-standard Gemara - "(גמ')"
+            Sotah 49b:5
+        
+        """
+        tc = mishnahInTalmudRef.starting_ref().text("he", versionTitle)
+        if matni_re.match(tc.text):
+            old = tc.text
+            tc.text = matni_re.sub(ur'\1<big><bold>\2</bold></big>\3', tc.text)
+            if live:
+                tc.save()
+            else:
+                print u"(m1) Replacing:\n{}\nwith\n{}\n".format(old,tc.text)
+        else:  # try the line earlier
+            if not mishnahInTalmudRef.starting_ref().prev_segment_ref():
+                continue
+            tc = mishnahInTalmudRef.starting_ref().prev_segment_ref().text("he", versionTitle)
+            if matni_re.match(tc.text):
+                old = tc.text
+                tc.text = matni_re.sub(ur'\1<big><bold>\2</bold></big>\3', tc.text)
+                if live:
+                    tc.save()
+                else:
+                    print u"(m2) Replacing:\n{}\nwith\n{}\n".format(old,tc.text)
+            else:
+                print u"(m0) Could not match {}".format(mishnahInTalmudRef.normal())
+
+        # Try highlighting Gemara
+        tc = mishnahInTalmudRef.ending_ref().next_segment_ref().text("he", versionTitle)
+        if gemarah_re.match(tc.text):
+            old = tc.text
+            tc.text = gemarah_re.sub(ur'\1<big><bold>\2</bold></big>\3', tc.text)
+            if live:
+                tc.save()
+            else:
+                print u"(g1) Replacing:\n{}\nwith\n{}\n".format(old,tc.text)
+        else:
+            print u"(g0) Could not match 'gemara' in {}".format(mishnahInTalmudRef.ending_ref().next_segment_ref().normal())
 
         # Compile Perek Data
         if not lastrow or row[1] != lastrow[1]:
@@ -76,18 +151,19 @@ with open(filename, 'rb') as csvfile:
         lastrow = row
 
 #process book records
-for bookname, chapters in books.iteritems():
-    i = get_index(bookname)
+if live:
+    for bookname, chapters in books.iteritems():
+        i = get_index(bookname)
 
-    a = ArrayMapNode()
-    a.refs = chapters
-    a.wholeRef = Ref(chapters[0]).to(Ref(chapters[-1])).normal()
-    a.sectionNames = ["Chapter"]
-    a.depth = 1
-    a.addressTypes = ["Integer"]
-    a.title_group = i.nodes.title_group
+        a = ArrayMapNode()
+        a.refs = chapters
+        a.wholeRef = Ref(chapters[0]).to(Ref(chapters[-1])).normal()
+        a.sectionNames = ["Chapter"]
+        a.depth = 1
+        a.addressTypes = ["Integer"]
+        a.title_group = i.nodes.title_group
 
-    i.set_alt_structure("Chapters", a)
+        i.set_alt_structure("Chapters", a)
 
-    i.save()
+        i.save()
 

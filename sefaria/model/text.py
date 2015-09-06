@@ -2190,6 +2190,7 @@ class Ref(object):
 
     def prev_segment_ref(self):
         """
+        Returns a ref to the next previous populated segment
         If this ref is not segment level, will return `self`
         :return:
         """
@@ -2211,6 +2212,7 @@ class Ref(object):
 
     def next_segment_ref(self):
         """
+        Returns a ref to the next populated segment
         If this ref is not segment level, will return `self`
         :return:
         """

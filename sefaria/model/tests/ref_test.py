@@ -184,7 +184,6 @@ class Test_Ref(object):
         assert Ref("Rashi on Shabbat 5b:37:1").next_segment_ref() == Ref("Rashi on Shabbat 6a:1:1")
         assert Ref("Rashi on Shabbat 7b:49:1").next_segment_ref() == Ref("Rashi on Shabbat 8a:3:1")
 
-
     def test_prev_segment_ref(self):
         assert Ref("Exodus 4:3").prev_segment_ref() == Ref("Exodus 4:2")
         assert Ref("Exodus 4:1").prev_segment_ref() == Ref("Exodus 3:22")
