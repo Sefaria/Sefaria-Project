@@ -108,7 +108,7 @@ var ReaderApp = React.createClass({
           break;
         case "text toc":
           hist.title = this.currentBook();
-          hist.url   = this.currentBook().replace(/ /g, "_");
+          hist.url   = "/" + this.currentBook().replace(/ /g, "_");
           break;
         case "search":
           hist.title = "Sefaria Search";
@@ -127,7 +127,7 @@ var ReaderApp = React.createClass({
       }
     } else if (current.type === "TextColumn") {
       hist.title = current.refs.slice(-1)[0];
-      hist.url = normRef(hist.title);
+      hist.url = "/" + normRef(hist.title);
     } else if (current.type == "TextList") {
       var sources = this.state.currentFilter.length ? this.state.currentFilter[0] : "all";
       hist.title = current.ref  + " with " + (sources === "all" ? "Connections" : sources);;
@@ -1180,7 +1180,7 @@ var TextRange = React.createClass({
 
     if (this.props.loadLinks && !sjs.library.linksLoaded(data.sectionRef)) {
       // Calling when links are loaded will overwrite state.segments
-      sjs.library.bulkLoadLinks(data.sectionRef, this.loadLinkCounts);
+      sjs.library.links(data.sectionRef, this.loadLinkCounts);
     }
 
     if (this.props.prefetchNextPrev) {
@@ -1317,13 +1317,6 @@ var TextList = React.createClass({
       showAllFilters: this.props.currentFilter.length == 0
     }
   },
-  loadConnections: function() {
-    sjs.library.links(this.props.sref, function(links) {
-      if (this.isMounted()) {
-        this.setState({links: links, loaded: true});
-      }
-    }.bind(this));
-  },
   componentDidMount: function() {
     this.loadConnections();
     if (this.props.main) {
@@ -1338,6 +1331,15 @@ var TextList = React.createClass({
   },
   componetWillUpdate: function() {
     this.props.setScrollTop();
+  },
+  loadConnections: function() {
+    var ref = sjs.library.ref(this.props.sref).sectionRef;
+    var ref = this.props.sref;
+    sjs.library.links(ref, function(links) {
+      if (this.isMounted()) {
+        this.setState({links: links, loaded: true});
+      }
+    }.bind(this));
   },
   toggleFilter: function(filter) {
     this.setState({filter: this.state.filter.toggle(filter)});

@@ -21,6 +21,7 @@ sjs.library = {
     }
   },
   _textKey: function(ref, settings) {
+    // Returns a string used as a key for the cache object of `ref` given `settings`.
     var key = ref;
     if (settings) {
       key = settings.context ? key + "|CONTEXT" : key;
@@ -120,14 +121,15 @@ sjs.library = {
             return;
           }
           this._links[ref] = data;
-          this.cacheIndexFromLinks(data);
+          this._saveLinksByRef(data);
+          this._cacheIndexFromLinks(data);
           cb(data);
         }.bind(this));
     }
   },
-  cacheIndexFromLinks: function(links) {
+  _cacheIndexFromLinks: function(links) {
+    // Cache partial index information (title, Hebrew title, categories) found in link data.
     for (var i=0; i< links.length; i++) {
-      // Cache partial index information
       if (this.index(links[i].commentator)) { continue; }
       var index = {
         title:      links[i].commentator,
@@ -137,36 +139,24 @@ sjs.library = {
       this.index(links[i].commentator, index);
     }
   },
-  bulkLoadLinks: function(ref, cb) {
-    if (ref in this._links) {
-      cb();
-    } else {
-      var url = "/api/links/" + normRef(ref) + "?with_text=0";
-      $.getJSON(url, function(data) {
-        if ("error" in data) { 
-          sjs.alert.message(data.error);
-          return;
-        }
-        var newLinks = {}; // Aggregate links on anchorRef
-        // TODO account for links to ranges
-        for (var i=0; i < data.length; i++) {
-          var newRef = data[i].anchorRef;
-          if (newRef in newLinks) {
-            newLinks[newRef].push(data[i]);
-          } else {
-            newLinks[newRef] = [data[i]];
-          }
-        }
-        for (var newRef in newLinks) {
-          if (newLinks.hasOwnProperty(newRef)) {
-            this._links[newRef] = newLinks[newRef];
-          }
-        }
-        this._links[ref] = true; // Mark this bulk ref as loaded
-        this.cacheIndexFromLinks(data);
-        cb();
-      }.bind(this));         
+  _saveLinksByRef: function(data) {
+    // For a set of links from the API, save each set split by the specific ref the link points to.
+    var newLinks = {}; // Aggregate links by anchorRef
+    // TODO account for links to ranges
+    for (var i=0; i < data.length; i++) {
+      var newRef = data[i].anchorRef;
+      if (newRef in newLinks) {
+        newLinks[newRef].push(data[i]);
+      } else {
+        newLinks[newRef] = [data[i]];
+      }
     }
+    for (var newRef in newLinks) {
+      if (newLinks.hasOwnProperty(newRef)) {
+        this._links[newRef] = newLinks[newRef];
+      }
+    }
+        
   },
   linksLoaded: function(ref) {
     return ref in this._links;
