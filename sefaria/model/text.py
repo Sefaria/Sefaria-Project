@@ -2229,6 +2229,11 @@ class Ref(object):
             return r.next_section_ref().subref(1)
 
     def last_segment_ref(self):
+        """
+        Returns the last segment in the current book (or complex book part).
+        Not to be confused with `ending_ref()`
+        :return:
+        """
         o = self._core_dict()
         o["sections"] = o["toSections"] = [i + 1 for i in self.get_state_ja().last_index(self.index_node.depth)]
         return Ref(_obj=o)
