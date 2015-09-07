@@ -652,7 +652,7 @@ def texts_category_list(request, cats):
 @ensure_csrf_cookie
 def search(request):
     if request.flavour == "mobile":
-        return s2_texts(request)
+        return s2_search(request)
     return render_to_response('search.html',
                              {},
                              RequestContext(request))
