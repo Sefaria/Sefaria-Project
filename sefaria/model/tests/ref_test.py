@@ -197,6 +197,11 @@ class Test_Ref(object):
         assert Ref("Rashi on Shabbat 6a:1:1").prev_segment_ref() == Ref("Rashi on Shabbat 5b:37:1")
         assert Ref("Rashi on Shabbat 8a:3:1").prev_segment_ref() == Ref("Rashi on Shabbat 7b:49:1")
 
+    def test_last_segment_ref(self):
+        assert Ref("Exodus").last_segment_ref() == Ref('Exodus 40:38')
+        assert Ref("Rashi on Exodus").last_segment_ref() == Ref('Rashi on Exodus 40:38:1')
+        assert Ref("Shabbat").last_segment_ref() == Ref('Shabbat 157b:10')
+        assert Ref("Rashi on Shabbat").last_segment_ref() == Ref("Rashi on Shabbat 157b:9:1")
 
     def test_range_depth(self):
         assert Ref("Leviticus 15:3 - 17:12").range_depth() == 2

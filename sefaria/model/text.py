@@ -2228,6 +2228,11 @@ class Ref(object):
         else:
             return r.next_section_ref().subref(1)
 
+    def last_segment_ref(self):
+        o = self._core_dict()
+        o["sections"] = o["toSections"] = [i + 1 for i in self.get_state_ja().last_index(self.index_node.depth)]
+        return Ref(_obj=o)
+
     def first_available_section_ref(self):
         """
         Returns a Ref of the first section inside of or following this Ref that has some content.
