@@ -1384,7 +1384,7 @@ var TextList = React.createClass({
   },
   scrollToHighlighted: function() {
     // Scroll 
-  }
+  },
   toggleFilter: function(filter) {
     this.setState({filter: this.state.filter.toggle(filter)});
   },
