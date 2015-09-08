@@ -2781,6 +2781,7 @@ sjs.shortCommentaryText = function (text, backup) {
 	var shortText = text.length > 0 ? text : (backup.length > 0 ? backup : "[no text available]");
 	shortText = (isArray(shortText) ? shortText.join(" ") : shortText);
 	shortText = shortText.stripHtml();
+	shortText = shortText.replace(/(\r|\n)/g, " ");
 	shortText = shortText.escapeHtml();
 	if (shortText.length > 180) {
 		shortText = shortText.substring(0,150)+"...";

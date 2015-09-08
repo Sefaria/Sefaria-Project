@@ -106,7 +106,7 @@ var SearchBar = React.createClass({
                     <input className="readerSearch" value={this.state.query} onKeyPress={this.handleKeypress} onChange={this.handleChange} placeholder="Search"/>
                     <span className="fa fa-search"></span>
                 </div>
-                <div id="description"></div>
+                <div className="description"></div>
             </div>
         )
     }
@@ -130,7 +130,10 @@ var SearchResultList = React.createClass({
         return {
             runningQuery: null,
             total: 0,
-            hits: [],
+            text_total: 0,
+            sheet_total: 0,
+            text_hits: [],
+            sheet_hits: [],
             aggregations: null
         }
     },
@@ -158,9 +161,13 @@ var SearchResultList = React.createClass({
             size: props.page * props.size,
             success: function(data) {
                 if (this.isMounted()) {
+                    var hitarrays = this._process_hits(data.hits.hits);
                     this.setState({
-                        hits: this._process_duplicate_hits(data.hits.hits),
+                        text_hits: hitarrays.texts,
+                        sheet_hits: hitarrays.sheets,
                         total: data.hits.total,
+                        text_total: hitarrays.texts.length,
+                        sheet_total: hitarrays.sheets.length,
                         aggregations: data.aggregations
                     });
                     this.updateRunningQuery(null);
@@ -182,10 +189,17 @@ var SearchResultList = React.createClass({
         });
         this.updateRunningQuery(runningQuery);
     },
-    _process_duplicate_hits: function(hits) {
+    _process_hits: function(hits) {
         var comparingRef = null;
         var newHits = [];
+        var sheetHits;
+
         for(var i = 0, j = 0; i < hits.length; i++) {
+            if (hits[i]._type == "sheet") { //Assume that the rest of the array is sheets, slice and return.
+                sheetHits = hits.slice(i);
+                break;
+            }
+
             var currentRef = hits[i]._source.ref;
             if(currentRef == comparingRef) {
                 newHits[j - 1].duplicates = newHits[j-1].duplicates || [];
@@ -196,7 +210,10 @@ var SearchResultList = React.createClass({
                 comparingRef = currentRef;
             }
         }
-        return newHits;
+        return {
+            texts: newHits,
+            sheets: sheetHits
+        };
     },
     componentDidMount: function() {
         this._executeQuery();
@@ -207,9 +224,12 @@ var SearchResultList = React.createClass({
     componentWillReceiveProps: function(newProps) {
         if(this.props.query != newProps.query) {
            this.setState({
-               total: 0,
-               hits: [],
-               aggregations: null
+                total: 0,
+                text_total: 0,
+                sheet_total: 0,
+                text_hits: [],
+                sheet_hits: [],
+                aggregations: null
            });
            this._executeQuery(newProps)
         }
@@ -227,19 +247,36 @@ var SearchResultList = React.createClass({
         if (this.state.runningQuery) {
             return (<div>...</div>)
         }
-        var totalWithCommas = this.state.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        var addCommas = function(number) { return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); };
+        var totalWithCommas = addCommas(this.state.total);
+        var totalSheetsWithCommas = addCommas(this.state.sheet_total);
+        var totalTextsWithCommas = addCommas(this.state.text_total);
+
+        var totalBreakdown = <span className="results-breakdown">&nbsp;
+            <span className="he">({totalTextsWithCommas} {(this.state.text_total > 1) ? "מקורות":"מקור"}, {totalSheetsWithCommas} {(this.state.sheet_total > 1)?"דפי מקורות":"דף מקורות"})</span>
+            <span className="en">({totalTextsWithCommas} {(this.state.text_total > 1) ? "Texts":"Text"}, {totalSheetsWithCommas} {(this.state.sheet_total > 1)?"Sheets":"Sheet"})</span>
+        </span>;
+
         return (
             <div>
                 <div className="results-count">
                     <span className="en">{totalWithCommas} Results</span>
                     <span className="he">{totalWithCommas} תוצאות</span>
+                    {(this.state.sheet_total > 0 && this.state.text_total > 0) ? totalBreakdown : ""}
                 </div>
-                {this.state.hits.map(function(result) {
-                    return <SearchResult
+                {this.state.text_hits.map(function(result) {
+                    return <SearchTextResult
                         data={result}
                         query={this.props.query}
                         key={result.ref}
                         onResultClick={this.props.onResultClick}
+                        />;
+                }.bind(this))}
+                {this.state.sheet_hits.map(function(result) {
+                    return <SearchSheetResult
+                        data={result}
+                        query={this.props.query}
+                        key={result._id}
                         />;
                 }.bind(this))}
             </div>
@@ -248,7 +285,7 @@ var SearchResultList = React.createClass({
     }
 });
 
-var SearchResult = React.createClass({
+var SearchTextResult = React.createClass({
     propTypes: {
         query: React.PropTypes.string,
         data: React.PropTypes.object,
@@ -307,7 +344,7 @@ var SearchResult = React.createClass({
             (<div className='similar-results'>
                     {data.duplicates.map(function(result) {
                         var key = result._source.ref + "-" + result._source.version;
-                        return <SearchResult
+                        return <SearchTextResult
                             data={result}
                             key={key}
                             query={this.props.query}
@@ -330,5 +367,31 @@ var SearchResult = React.createClass({
                 {shown_duplicates}
             </div>
         )
+    }
+});
+
+var SearchSheetResult = React.createClass({
+    propTypes: {
+        query: React.PropTypes.string,
+        data: React.PropTypes.object,
+        key: React.PropTypes.string
+    },
+    render: function() {
+        var data = this.props.data;
+        var s = this.props.data._source;
+
+        var snippet = data.highlight ? data.highlight.content.join("...") : s.content;
+        snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").text();
+
+        function get_version_markup() {
+            return {__html: s.version};
+        }
+        var clean_title = $("<span>" + s.title + "</span>").text();
+        var href = "/sheets/" + s.sheetId;
+        return (<div className='result'>
+            <a className='result-title' href={href}>{clean_title}</a>
+            <div className="snippet">{snippet}</div>
+            <div className='version' dangerouslySetInnerHTML={get_version_markup()} ></div>
+            </div>);
     }
 });

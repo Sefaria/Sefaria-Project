@@ -195,7 +195,7 @@ body .bilingual .enOnly .he {
 .bilingual .readerNavCategory .he {
   display: none;
 }
-.bilingual .readerNavMenu .refLink .he {
+.bilingual .readerNavMenu .he {
   display: none;
 }
 .readerNavCalendar {
@@ -550,12 +550,27 @@ body .bilingual .enOnly .he {
 }
 #readerControls #readerTextToc {
   width: 80%;
-  padding: 0px 8px;
+  font-size: 17px;
   box-sizing: border-box;
+}
+.hebrew #readerControls #readerTextToc {
+  direction: rtl;
+}
+#readerControls #readerTextToc .readerTextTocBox {
+  display: inline-block;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  font-size: 17px;
+  max-width: 82%;
+  vertical-align: middle;
+}
+#readerControls #readerTextToc .fa-caret-down {
+  color: #D4D4D2;
+  margin: 0 7px;
+  vertical-align: 0px;
+}
+#readerControls #readerTextToc .fa-caret-down.invisible {
+  visibility: none;
 }
 .bilingual #readerTextToc .he {
   display: none;
@@ -743,6 +758,10 @@ body .bilingual .enOnly .he {
   margin: 10px 0 20px;
   color: #888;
 }
+.continuous.bilingual .segment.heOnly .he,
+.continuous.bilingual .segment.enOnly .en {
+  display: inline;
+}
 .basetext .segment:hover,
 .basetext .segment:active,
 .basetext .segment:focus,
@@ -755,7 +774,6 @@ body .bilingual .enOnly .he {
 .dark .basetext .segment.highlight {
   background-color: #555;
 }
-
 .textRange {
   line-height: 1.4;
   font-size: 1.6em;
