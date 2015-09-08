@@ -1942,13 +1942,13 @@ class Ref(object):
 
         ::
 
-            >>> Ref("Shabbat 13a-b")
+            >>> Ref("Shabbat 13a-b").is_spanning()
             True
-            >>> Ref("Shabbat 13a:3-14")
+            >>> Ref("Shabbat 13a:3-14").is_spanning()
             False
-            >>> Ref("Job 4:3-5:3")
+            >>> Ref("Job 4:3-5:3").is_spanning()
             True
-            >>> Ref("Job 4:5-18")
+            >>> Ref("Job 4:5-18").is_spanning()
             False
 
         """
@@ -1995,6 +1995,20 @@ class Ref(object):
         """
         Is this Ref section (e.g. Chapter) level?
 
+        ::
+
+            >>> Ref("Leviticus 15:3").is_section_level()
+            False
+            >>> Ref("Leviticus 15").is_section_level()
+            True
+            >>> Ref("Rashi on Leviticus 15:3").is_section_level()
+            True
+            >>> Ref("Rashi on Leviticus 15:3:1").is_section_level()
+            False
+            >>> Ref("Leviticus 15-17").is_section_level()
+            True
+
+
         :return bool:
         """
         return len(self.sections) == self.index_node.depth - 1
@@ -2002,6 +2016,17 @@ class Ref(object):
     def is_segment_level(self):
         """
         Is this Ref segment (e.g. Verse) level?
+
+        ::
+
+            >>> Ref("Leviticus 15:3").is_segment_level()
+            True
+            >>> Ref("Leviticus 15").is_segment_level()
+            False
+            >>> Ref("Rashi on Leviticus 15:3").is_segment_level()
+            False
+            >>> Ref("Rashi on Leviticus 15:3:1").is_segment_level()
+            True
 
         :return bool:
         """
