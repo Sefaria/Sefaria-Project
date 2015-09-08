@@ -120,8 +120,8 @@ sjs.library = {
             sjs.alert.message(data.error);
             return;
           }
-          this._links[ref] = data;
           this._saveLinksByRef(data);
+          this._links[ref] = data;
           this._cacheIndexFromLinks(data);
           cb(data);
         }.bind(this));
@@ -156,7 +156,6 @@ sjs.library = {
         this._links[newRef] = newLinks[newRef];
       }
     }
-        
   },
   linksLoaded: function(ref) {
     return ref in this._links;
@@ -186,6 +185,18 @@ sjs.library = {
         category.books[link.commentator] = {count: 1};
       }
     }
+    // Add Zero counts for every commentator in this section not alredy in list
+    var sectionRef = sjs.library.ref(ref).sectionRef;
+    if (ref !== sectionRef) {
+      var sectionLinks = sjs.library.links(sectionRef);
+      for (var i = 0; i < sectionLinks.length; i++) {
+        var l = sectionLinks[i]; 
+        if (l.category === "Commentary" && !(l.commentator in summary["Commentary"].books)) {
+          summary["Commentary"].books[l.commentator] = {count: 0};
+        }
+      }
+    }
+
     // Convert object into ordered list
     summary = $.map(summary, function(value, category) {
       value.category = category;
@@ -197,7 +208,7 @@ sjs.library = {
         return value;
       });
       // Sort the books in the category
-      value.books.sort(function(a,b) { return a.book > b.book; });
+      value.books.sort(function(a,b) { return a.book > b.book ? 1 : -1; });
       return value;
     });
     // Sort the categories
@@ -590,8 +601,8 @@ sjs.categoryColors = {
   "Talmud":             sjs.palette.tan3,
   "Halakhah":           sjs.palette.red2,
   "Kabbalah":           sjs.palette.purple3,
-  "Philosophy":         sjs.palette.purple1,
-  "Liturgy":            sjs.palette.teal3,
+  "Philosophy":         sjs.palette.teal3,
+  "Liturgy":            sjs.palette.purple1,
   "Tosefta":            sjs.palette.bluegreen2,
   "Parshanut":          sjs.palette.teal1,
   "Chasidut":           sjs.palette.pink1,

@@ -760,6 +760,9 @@ body .bilingual .enOnly .he {
   line-height: 1.4;
   font-size: 1.6em;
 }
+.textRange.lowlight .text {
+  color: #999;
+}
 .segment {
 
 }
@@ -943,8 +946,6 @@ body .bilingual .enOnly .he {
   font-size: 13px;
   line-height: 1.2;
   display: block;
-}
-.categoryFilter, .textFilter {
   cursor: pointer;
 }
 .categoryFilter.on, .textFilter.on {
@@ -952,6 +953,9 @@ body .bilingual .enOnly .he {
 }
 .dark .categoryFilter.on, .dark .textFilter.on {
   background-color: #666
+}
+.textFilter.lowlight {
+  color: #999;
 }
 .topFilters .textFilter.showMoreFilters {
   color: #999;
