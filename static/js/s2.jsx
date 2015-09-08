@@ -122,7 +122,6 @@ var ReaderApp = React.createClass({
             hist.url   = "/sheets";
             hist.title = "Sefaria Source Sheets";
           }
-          console.log(hist.url)
           break;
       }
     } else if (current.type === "TextColumn") {
@@ -141,11 +140,11 @@ var ReaderApp = React.createClass({
     if (this.shouldHistoryUpdate()) {
       var hist = this.makeHistoryState();
       if (this.state.replaceHistory) {
-        console.log("replace " + hist.title)
+        //console.log("replace " + hist.title)
         history.replaceState(hist.state, hist.title, hist.url);
         $("title").html(hist.title);
       } else {
-        console.log("push " + hist.title)
+        //console.log("push " + hist.title)
         history.pushState(hist.state, hist.title, hist.url);
         $("title").html(hist.title);
         if (hist.state.type == "TextColumn") {
@@ -522,8 +521,13 @@ var ReaderControls = React.createClass({
           <div className="categoryColorLine" style={lineStyle}></div>
           <div id="readerNav"  onClick={this.props.openMenu.bind(null, "navigation")}><i className="fa fa-search"></i></div>
           <div id="readerTextToc" onClick={this.props.openMenu.bind(null, "text toc")}>
-            <span className="en">{title}</span>
-            <span className="he">{heTitle}</span>
+            { title ? (<i className="fa fa-caret-down invisible"></i>) : "" }
+            <div className="readerTextTocBox">
+              <span className="en">{title}</span>
+              <span className="he">{heTitle}</span>
+            </div>
+            { title ? (<i className="fa fa-caret-down"></i>) : "" }
+
           </div>
           <div id="readerOptions" onClick={this.props.openMenu.bind(null, "display")}><i className="fa fa-bars"></i></div>
         </div>        
