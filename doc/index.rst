@@ -83,6 +83,9 @@ Deriving Refs from Refs
 	.. automethod:: Ref.split_spanning_ref
 	.. automethod:: Ref.next_section_ref
 	.. automethod:: Ref.prev_section_ref
+	.. automethod:: Ref.next_segment_ref
+	.. automethod:: Ref.prev_segment_ref
+	.. automethod:: Ref.last_segment_ref
 	.. automethod:: Ref.surrounding_ref
 	.. automethod:: Ref.to
 
