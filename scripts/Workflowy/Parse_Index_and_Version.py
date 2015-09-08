@@ -15,6 +15,7 @@ import urllib2
 import json
 import regex as re
 import sys
+import pprint
 from sefaria.model import *
 
 
@@ -111,9 +112,7 @@ def build_index(element):
     return n
 
 
-def build_post_index(tree):
-    schema_root = build_index(tree)
-    schema_root.validate()
+def build_post_index(schema_root):
     index = {
         'title': 'Siddur A',
         'categories': ['Liturgy'],
@@ -193,10 +192,14 @@ def main():
     #     print parse_titles(element)["enPrim"]
     if '-t' in flags:
         save_shared_terms(tree)
-    build_post_index(tree)
-    if '-v' in flags:
-        build_post_text(tree)
-
+    schema_root = build_index(tree)
+    schema_root.validate()
+    if '-i' in flags:
+        build_post_index(schema_root)
+        if '-v' in flags:
+            build_post_text(tree)
+    else:
+        print pprint.pprint(schema_root.serialize())
 
 if __name__ == "__main__":
     main()

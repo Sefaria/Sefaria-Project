@@ -2066,7 +2066,6 @@ class Ref(object):
         d["toSections"] = d["toSections"][:-1] + [end]
         return Ref(_obj=d)
 
-
     def starting_ref(self):
         """
         For ranged Refs, return the starting Ref
@@ -2194,6 +2193,56 @@ class Ref(object):
             next_ref._prev = self if add_self else prev_ref
         if prev_ref:
             prev_ref._next = self if add_self else next_ref
+
+    def prev_segment_ref(self):
+        """
+        Returns a ref to the next previous populated segment
+        If this ref is not segment level, will return `self`
+        :return:
+        """
+        r = self.starting_ref()
+        if not r.is_segment_level():
+            return r
+        if r.sections[-1] > 1:
+            d = r._core_dict()
+            d["sections"] = d["toSections"] = r.sections[:-1] + [r.sections[-1] - 1]
+            return Ref(_obj=d)
+        else:
+            r = r.prev_section_ref()
+            if not r:
+                return None
+            d = r._core_dict()
+            newSections = r.sections + [self.get_state_ja().sub_array_length([i - 1 for i in r.sections])]
+            d["sections"] = d["toSections"] = newSections
+            return Ref(_obj=d)
+
+    def next_segment_ref(self):
+        """
+        Returns a ref to the next populated segment
+        If this ref is not segment level, will return `self`
+        :return:
+        """
+        r = self.ending_ref()
+        if not r.is_segment_level():
+            return r
+        sectionRef = r.section_ref()
+        sectionLength = self.get_state_ja().sub_array_length([i - 1 for i in sectionRef.sections])
+        if r.sections[-1] < sectionLength:
+            d = r._core_dict()
+            d["sections"] = d["toSections"] = r.sections[:-1] + [r.sections[-1] + 1]
+            return Ref(_obj=d)
+        else:
+            return r.next_section_ref().subref(1)
+
+    def last_segment_ref(self):
+        """
+        Returns the last segment in the current book (or complex book part).
+        Not to be confused with `ending_ref()`
+        :return:
+        """
+        o = self._core_dict()
+        o["sections"] = o["toSections"] = [i + 1 for i in self.get_state_ja().last_index(self.index_node.depth)]
+        return Ref(_obj=o)
 
     def first_available_section_ref(self):
         """
