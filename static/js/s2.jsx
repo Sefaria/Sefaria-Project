@@ -1227,13 +1227,18 @@ var TextRange = React.createClass({
   },
   render: function() {
     if (this.props.basetext) {
-      var sectionStrings = sjs.library.sectionString(this.state.data.ref);
-      var title          = this.state.loaded ? sectionStrings.en : "Loading...";
-      var heTitle        = this.state.loaded ? sectionStrings.he : "טעינה...";      
-    } else {
-      var title          = this.state.data.ref;
-      var heTitle        = this.state.data.heRef;
+      var sectionStrings   = sjs.library.sectionString(this.state.data.ref);
+      var title            = this.state.loaded ? sectionStrings.en : "Loading...";
+      var heTitle          = this.state.loaded ? sectionStrings.he : "טעינה...";      
+    } else {  
+      var title            = this.state.data.ref;
+      var heTitle          = this.state.data.heRef;
     }
+
+    var showSegmentNumbers = this.props.basetext &&
+                              this.state.data.categories &&
+                              this.state.data.categories[0] !== "Talmud" &&
+                              this.state.data.categories[0] !== "Liturgy";
 
     var textSegments = this.state.segments.map(function (segment, i) {
       return (
@@ -1243,7 +1248,7 @@ var TextRange = React.createClass({
             en={segment.en}
             he={segment.he}
             highlight={segment.highlight}
-            segmentNumber={this.props.basetext ? segment.number : 0}
+            segmentNumber={showSegmentNumbers ? segment.number : 0}
             linkCount={segment.linkCount}
             showBaseText={this.props.showBaseText}
             showTextList={this.props.showTextList} />
