@@ -1238,7 +1238,7 @@ var TextRange = React.createClass({
     var showSegmentNumbers = this.props.basetext &&
                               this.state.data.categories &&
                               this.state.data.categories[0] !== "Talmud" &&
-                              this.state.data.categories[0] !== "Liturgy";
+                              this.state.datag.categories[0] !== "Liturgy";
 
     var textSegments = this.state.segments.map(function (segment, i) {
       return (

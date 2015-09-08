@@ -758,6 +758,10 @@ body .bilingual .enOnly .he {
   margin: 10px 0 20px;
   color: #888;
 }
+.continuous.bilingual .segment.heOnly .he,
+.continuous.bilingual .segment.enOnly .en {
+  display: inline;
+}
 .basetext .segment:hover,
 .basetext .segment:active,
 .basetext .segment:focus,
@@ -770,7 +774,6 @@ body .bilingual .enOnly .he {
 .dark .basetext .segment.highlight {
   background-color: #555;
 }
-
 .textRange {
   line-height: 1.4;
   font-size: 1.6em;
