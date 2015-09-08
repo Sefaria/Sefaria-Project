@@ -387,9 +387,9 @@ var SearchSheetResult = React.createClass({
             return {__html: s.version};
         }
         var clean_title = $("<span>" + s.title + "</span>").text();
-
+        var href = "/sheets/" + s.sheetId;
         return (<div className='result'>
-            <a className='result-title' href="/sheets/{s.sheetId}">{clean_title}</a>
+            <a className='result-title' href={href}>{clean_title}</a>
             <div className="snippet">{snippet}</div>
             <div className='version' dangerouslySetInnerHTML={get_version_markup()} ></div>
             </div>);
