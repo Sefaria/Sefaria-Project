@@ -342,13 +342,15 @@ var ReaderApp = React.createClass({
     }
   },
   setScrollTop: function() {
+    console.log("set scroll top");
     var current = this.currentContent();
     if (current && current.type === "TextColumn") {
       if (this.state.loadingContentAtTop) {
+        console.log("loading at top")
         // After adding content by infinite scrolling up, scroll back to what the user was just seeing
         var $reader = $(React.findDOMNode(this));
         var adjust  = $reader.offset().top + parseInt($reader.find(".textColumn").css("padding-top").replace("px", ""));
-        var top     = $reader.find(".basetext").first().position().top - adjust;
+        var top     = $reader.find(".basetext").eq(1).position().top - adjust;
         this.setState({loadingContentAtTop: false});
       } else if (current.scrollTop !== 20) {
         // restore the previously saved scrollTop
@@ -366,6 +368,7 @@ var ReaderApp = React.createClass({
         var top = 0;
       }
     }
+    console.log(top);
     $(window).scrollTop(top);
   },
   currentContent: function() {
@@ -862,10 +865,7 @@ var ReaderTextTableOfContents = React.createClass({
     var tocHtml = sjs.library.textTocHtml(this.props.text, function() {
       this.setState({});
     }.bind(this));
-    tocHtml = tocHtml || "<div class='loadingMessage'>" +
-                            "<span class='en'>Loading...</span>" +
-                            "<span class='he'>טעינה...</span>" + 
-                          "</div>";
+    tocHtml = tocHtml || <LoadingMessage />
 
     var title     = this.props.text;
     var heTitle   = sjs.library.index(title) ? sjs.library.index(title).heTitle : title;
@@ -957,7 +957,7 @@ var SheetsNav = React.createClass({
                   <div className="sheetTitle">{title}</div>
                 </a>);
       });
-      sheets = sheets.length ? sheets : "Loading...";
+      sheets = sheets.length ? sheets : (<LoadingMessage />);
       var content = (<div className="content sheetList">{sheets}</div>);
     } else {
       var yourSheets  = ""
@@ -1270,11 +1270,7 @@ var TextRange = React.createClass({
     }.bind(this));
     textSegments = textSegments.length ? 
                     textSegments : 
-                      this.props.basetext ? "" :
-                      (<div className='loadingMessage'>
-                      <span className="en">Loading...</span>
-                      <span className="he">טעינה...</span>
-                      </div>);
+                      this.props.basetext ? "" : (<LoadingMessage />);
     var classes = {
                     textRange: 1,
                     basetext: this.props.basetext,
@@ -1375,7 +1371,19 @@ var TextList = React.createClass({
     }
   },
   componentWillReceiveProps: function(nextProps) {
-
+    // If the current filter is 
+    if (nextProps.filter.length == 1 && 
+        sjs.library.index(nextProps.filter[0]) && 
+        sjs.library.index(nextProps.filter[0]).categories == "Commentary") {
+      var basetext   = sjs.library.ref(this.props.sref).sectionRef;
+      var commentary = nextProps.filter[0] + " on " + basetext;
+      this.setState({textLoaded: false, waitForText: true});
+      sjs.library.text(commentary, {}, function() {
+        this.setState({"textLoaded": true});
+      }.bind(this));
+    } else {
+      this.setState({waitForText: false});
+    }
   },
   componetWillUpdate: function(nextProps) {
     this.props.setScrollTop();
@@ -1388,9 +1396,8 @@ var TextList = React.createClass({
     }
   },
   loadConnections: function() {
-    // Loading intial at section level for commentary
+    // Loading intially at section level for commentary
     var ref = sjs.library.ref(this.props.sref) ? sjs.library.ref(this.props.sref).sectionRef : this.props.sref;
-    //var ref = this.props.sref;
     sjs.library.links(ref, function(links) {
       if (this.isMounted()) {
         this.setState({links: links, loaded: true });
@@ -1398,6 +1405,7 @@ var TextList = React.createClass({
     }.bind(this));
   },
   scrollToHighlighted: function() {
+    console.log("scroll to high")
     var $highlighted = $(React.findDOMNode(this)).find(".texts .textRange").not(".lowlight").first();
     if ($highlighted.length) {
       var $top   = $(React.findDOMNode(this)).find(".textListTop");
@@ -1449,29 +1457,22 @@ var TextList = React.createClass({
     });
     var filter         = this.props.filter;
     var emptyMessageEn = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";
-    var emptyMessageHe = "אין קשרים ידועים"        + (filter.length ? " ל" + filter.join(", ") : "") + ".";
+    var emptyMessageHe = "אין קשרים ידועים"       + (filter.length ? " ל"    + filter.join(", ") : "") + ".";
     var message        = !this.state.loaded ? 
-                            (<div className='textListMessage'>
-                              <span className="en">Loading...</span>
-                              <span className="he">טעינה...</span>
-                              </div>)  : 
-                          (links.length == 0 ? 
-                            (<div className='textListMessage'>
-                              <span className="en">{emptyMessageEn}</span>
-                              <span className="he">{emptyMessageHe}</span>
-                            </div>) : "");
-    var texts = (links.map(function(link, i) {
-                      return (
-                        <TextRange 
-                          sref={link.sourceRef}
-                          key={i + link.sourceRef}
-                          lowlight={ref !== link.anchorRef}
-                          basetext={false}
-                          showBaseText={this.props.showBaseText}
-                          openOnClick={true} 
-                          onTextLoad={this.scrollToHighlighted} />
-                        );
-                    }, this)); 
+                            (<LoadingMessage />)  : 
+                              (links.length == 0 ? 
+                                (<LoadingMessage message={emptyMessageEn} heMessage={emptyMessageHe} />) : "");
+
+    var texts = links.map(function(link, i) {
+                      return (<TextRange 
+                                sref={link.sourceRef}
+                                key={i + link.sourceRef}
+                                lowlight={ref !== link.anchorRef}
+                                basetext={false}
+                                showBaseText={this.props.showBaseText}
+                                openOnClick={true} />);
+                    }, this);
+    texts = texts.length && this.state.waitForText && !this.state.textLoaded ? (<LoadingMessage />) : texts;
     return (
       <div className={classes}>
         <div className="textListTop">
@@ -1636,6 +1637,7 @@ var AllFilterSet = React.createClass({
 
 var CategoryFilter = React.createClass({
   handleClick: function() {
+    if (this.props.category === "Commentary") { return; }
     this.props.setFilter(this.props.category, this.props.updateRecent);
     this.props.hideAllFilters();
     sjs.track.event("Reader", "Category Filter Click", this.props.category);
@@ -1767,5 +1769,21 @@ var TwoBox = React.createClass({
           </tbody>
         </table>
       );
+  }
+});
+
+
+var LoadingMessage = React.createClass({
+  propTypes: {
+    message:   React.PropTypes.string,
+    heMessage: React.PropTypes.string
+  },
+  render: function() {
+    var message = this.props.messag || "Loading...";
+    var heMessage = this.props.heMessage || "טעינה...";
+    return (<div className='loadingMessage'>
+              <span className="en">{message}</span>
+              <span className="he">{heMessage}</span>
+            </div>);
   }
 });

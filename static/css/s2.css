@@ -57,7 +57,7 @@ body .bilingual .enOnly .he {
 }
 .loadingMessage {
   font-size: 13px;
-  font-variant: italic;
+  font-style: italic;
 }
 .bilingual .loadingMessage .he {
   display: none;
@@ -963,6 +963,7 @@ body .bilingual .enOnly .he {
   padding: 12px;
   text-align: center;
   font-size: 13px;
+  cursor: pointer;
 }
 .textFilter {
   padding: 10px 4px;
@@ -1016,7 +1017,8 @@ body .bilingual .enOnly .he {
   border-radius: 3px;
   margin: 16px 0;
 }
-.textList .textListMessage {
+.textList .textListTop > .loadingMessage,
+.textList .texts > .loadingMessage {
   padding: 20px;
   color: #aaa;
   font-size: 13px;

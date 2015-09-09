@@ -64,9 +64,11 @@ sjs.library = {
     // Takes data for a section level text and populates cache with segment levels.
     // Runs recursively for Refs above section level like "Rashi on Genesis 1".
     // Pad the shorter array to make stepping through them easier.
-    var en = data.text;
-    var he = data.he;
+    var en = typeof data.text == "string" ? [data.text] : data.text;
+    var he = typeof data.he == "string" ? [data.he] : data.he;
     var length = Math.max(en.length, he.length);
+    var superSectionLevel = data.textDepth == data.sections.length + 1;
+    var padContent = superSectionLevel ? [] : "";
     en = en.pad(length, "");
     he = he.pad(length, "");
 
@@ -74,7 +76,7 @@ sjs.library = {
     var start = data.textDepth == data.sections.length ? data.sections[data.textDepth-1] : 1;
     for (var i = 0; i < length; i++) {
       var ref          = data.ref + delim + (i+start);
-      var sectionRef   = data.textDepth == data.sections.length + 1 ? sectionRef : ref;
+      var sectionRef   = superSectionLevel ? sectionRef : ref;
       var segment_data = clone(data);
       $.extend(segment_data, {
         ref: ref,
