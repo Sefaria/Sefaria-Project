@@ -487,6 +487,12 @@ body.hebrew #home #homeConnect .followButton .fa {
   float: right;
   margin-top: 6px;
 }
+.hebrew #home #announcement h3 {
+  text-align: right;
+}
+.hebrew #home #announcement .btn {
+  float: left;
+}
 
 
 @media screen and (max-width: 830px) {
