@@ -186,7 +186,7 @@ sjs.library = {
       }
     }
     // Add Zero counts for every commentator in this section not alredy in list
-    var sectionRef = sjs.library.ref(ref).sectionRef;
+    var sectionRef = sjs.library.ref(ref) ? sjs.library.ref(ref).sectionRef : ref;
     if (ref !== sectionRef) {
       var sectionLinks = sjs.library.links(sectionRef);
       for (var i = 0; i < sectionLinks.length; i++) {

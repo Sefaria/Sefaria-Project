@@ -151,6 +151,9 @@ body .bilingual .enOnly .he {
 }
 .readerNavMenu .navToggle {
   margin: 0 10px;
+  width: 100px;
+  display: inline-block;
+  text-align: right;
   text-transform: uppercase;
   color: #999;
   font-size: 11px;
@@ -158,6 +161,9 @@ body .bilingual .enOnly .he {
   font-family: "Montserrat", "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
   letter-spacing: 1px;
   cursor: pointer;
+}
+.readerNavMenu .navToggle.second {
+  text-align: left;
 }
 .readerNavMenu .navToggle.active {
   color: black;
