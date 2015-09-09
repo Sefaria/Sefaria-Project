@@ -310,6 +310,10 @@ class Test_Ref(object):
         assert Ref("Rashi on Shabbat").subref(10) == Ref("Rashi on Shabbat 5b")
         assert Ref("Rashi on Shabbat 5b").subref(10) == Ref("Rashi on Shabbat 5b:10")
 
+    def test_all_subrefs(self):
+        assert Ref("Genesis").all_subrefs()[49] == Ref("Genesis 50")
+        assert Ref("Genesis 40").all_subrefs()[22] == Ref("Genesis 40:23")
+
     def test_ref_regex(self):
         assert Ref("Exodus 15").regex() == u'^Exodus( 15$| 15:| 15 \\d)'
         assert Ref("Exodus 15:15-17").regex() == u'^Exodus( 15:15$| 15:15:| 15:15 \\d| 15:16$| 15:16:| 15:16 \\d| 15:17$| 15:17:| 15:17 \\d)'
