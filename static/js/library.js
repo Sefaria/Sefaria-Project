@@ -173,8 +173,18 @@ sjs.library = {
   linksLoaded: function(ref) {
     return ref in this._links;
   },
-  linkCount: function(ref) {
-   return ref in this._links ? this._links[ref].length : 0;
+  linkCount: function(ref, filter) {
+    if (!(ref in this._links)) { return 0; }
+    var links = ref in this._links;
+    links = filter ? this._filterLinks(this._links[ref], filter) : links;
+    return links.length;
+  },
+  _filterLinks: function(links, filter) {
+     return links.filter(function(link){
+        return (filter.length == 0 ||
+                $.inArray(link.category, filter) !== -1 || 
+                $.inArray(link.commentator, filter) !== -1 );
+      }); 
   },
   _linkSummaries: {},
   linkSummary: function(ref) {

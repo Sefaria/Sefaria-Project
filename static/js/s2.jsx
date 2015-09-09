@@ -342,11 +342,9 @@ var ReaderApp = React.createClass({
     }
   },
   setScrollTop: function() {
-    console.log("set scroll top");
     var current = this.currentContent();
     if (current && current.type === "TextColumn") {
       if (this.state.loadingContentAtTop) {
-        console.log("loading at top")
         // After adding content by infinite scrolling up, scroll back to what the user was just seeing
         var $reader = $(React.findDOMNode(this));
         var adjust  = $reader.offset().top + parseInt($reader.find(".textColumn").css("padding-top").replace("px", ""));
@@ -368,7 +366,6 @@ var ReaderApp = React.createClass({
         var top = 0;
       }
     }
-    console.log(top);
     $(window).scrollTop(top);
   },
   currentContent: function() {
@@ -425,7 +422,8 @@ var ReaderApp = React.createClass({
             setScrollTop={this.setScrollTop}
             showBaseText={this.showBaseText} 
             showTextList={this.showTextList}
-            rerender={this.rerender} 
+            rerender={this.rerender}
+            filter={this.state.filter}
             key={k + ref} />);      
         }.bind(this));
         return (<div className='textColumn'>{content}</div>);
@@ -1134,7 +1132,7 @@ var TextRange = React.createClass({
           he: he[i],
           number: number,
           highlight: highlight && number >= data.sections.slice(-1)[0] && number <= data.toSections.slice(-1)[0],
-          linkCount: this.props.basetext ? sjs.library.linkCount(ref) : 0
+          linkCount: this.props.basetext ? sjs.library.linkCount(ref, this.props.filter) : 0
         });
       }      
     } else {
@@ -1160,7 +1158,7 @@ var TextRange = React.createClass({
                         ((n == 0 && number >= data.sections.slice(-1)[0]) || 
                          (n == topLength-1 && number <= data.toSections.slice(-1)[0]) ||
                          (n > 0 && n < topLength -1)),
-            linkCount: this.props.basetext ? sjs.library.linkCount(ref) : 0
+            linkCount: this.props.basetext ? sjs.library.linkCount(ref, this.props.filter) : 0
           });
         }
       }
@@ -1210,7 +1208,7 @@ var TextRange = React.createClass({
   loadLinkCounts: function() {
     // When link data has been loaded into sjs.library, load the counts into the UI
     for (var i=0; i < this.state.segments.length; i++) {
-      this.state.segments[i].linkCount = sjs.library.linkCount(this.state.segments[i].ref);
+      this.state.segments[i].linkCount = sjs.library.linkCount(this.state.segments[i].ref, this.props.filter);
     }
     this.setState({segments: this.state.segments});
   },
@@ -1319,7 +1317,7 @@ var TextSegment = React.createClass({
     }
   },
   render: function() {    
-    var minOpacity = 10, maxOpacity = 80;
+    var minOpacity = 20, maxOpacity = 70;
     var linkScore = Math.min(this.props.linkCount+minOpacity, maxOpacity) / 100.0;
     var style = {opacity: linkScore};
     var linkCount = this.props.linkCount ? (<span className="linkCount" style={style}></span>) : "";
@@ -1405,7 +1403,7 @@ var TextList = React.createClass({
     }.bind(this));
   },
   scrollToHighlighted: function() {
-    console.log("scroll to high")
+    //console.log("scroll to high")
     var $highlighted = $(React.findDOMNode(this)).find(".texts .textRange").not(".lowlight").first();
     if ($highlighted.length) {
       var $top   = $(React.findDOMNode(this)).find(".textListTop");
