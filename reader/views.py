@@ -1559,27 +1559,6 @@ def account_settings(request):
                               },
                              RequestContext(request))
 
-@ensure_csrf_cookie
-def splash(request):
-    """
-    Homepage a.k.a. Splash page.
-    """
-    daf_today          = sefaria.utils.calendars.daf_yomi(datetime.now())
-    daf_tomorrow       = sefaria.utils.calendars.daf_yomi(datetime.now() + timedelta(1))
-    parasha            = sefaria.utils.calendars.this_weeks_parasha(datetime.now())
-    metrics            = db.metrics.find().sort("timestamp", -1).limit(1)[0]
-    activity, page     = get_maximal_collapsed_activity(query={}, page_size=5, page=1)
-
-    return render_to_response('static/splash.html',
-                             {
-                              "activity": activity,
-                              "metrics": metrics,
-                              "daf_today": daf_today,
-                              "daf_tomorrow": daf_tomorrow,
-                              "parasha": parasha,
-                              },
-                              RequestContext(request))
-
 
 @ensure_csrf_cookie
 def home(request):
