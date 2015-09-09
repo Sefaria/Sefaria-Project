@@ -106,8 +106,8 @@ class LinkSet(abst.AbstractMongoSet):
     def filter(self, sources):
         """
         Filter LinkSet according to 'sources' which may be either
-        - a string, naming a text to include
-        - an array of strings, naming multiple texts to include
+        - a string, naming a text or category to include
+        - an array of strings, naming multiple texts or categories to include
 
         ! Returns a list of Links, not a LinkSet
         """

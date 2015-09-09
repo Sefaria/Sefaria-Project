@@ -2909,7 +2909,7 @@ class Ref(object):
         """
         :class:`VersionsSet` of :class:`Version` objects that have content for this Ref in lang
 
-        :param lang: "he" or "en"
+        :param lang: "he", "en", or None
         :return: :class:`VersionSet`
         """
         return VersionSet(self.condition_query(lang))
