@@ -942,7 +942,7 @@ body .bilingual .enOnly .he {
 }
 .topFiltersInner {
   display: inline-block;
-  max-width: 75%;
+  max-width: 85%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

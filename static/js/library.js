@@ -191,8 +191,13 @@ sjs.library = {
       var sectionLinks = sjs.library.links(sectionRef);
       for (var i = 0; i < sectionLinks.length; i++) {
         var l = sectionLinks[i]; 
-        if (l.category === "Commentary" && !(l.commentator in summary["Commentary"].books)) {
-          summary["Commentary"].books[l.commentator] = {count: 0};
+        if (l.category === "Commentary") {
+          if (!("Commentary" in summary)) {
+            summary["Commentary"] = {count: 0, books: {}};
+          }
+          if (!(l.commentator in summary["Commentary"].books)) {
+            summary["Commentary"].books[l.commentator] = {count: 0};
+          }
         }
       }
     }
@@ -208,11 +213,15 @@ sjs.library = {
         return value;
       });
       // Sort the books in the category
-      value.books.sort(function(a,b) { return a.book > b.book ? 1 : -1; });
+      value.books.sort(function(a, b) { return a.book > b.book ? 1 : -1; });
       return value;
     });
     // Sort the categories
-    summary.sort(function(a,b) { return b.count - a.count; });
+    summary.sort(function(a, b) { 
+      if      (a.category === "Commentary") { return -1; }
+      else if (b.category === "Commentary") { return  1; }
+      return b.count - a.count;
+    });
     return summary;
   },
   flatLinkSummary: function(ref) {
@@ -561,6 +570,7 @@ sjs.library = {
       }
   }
 };
+
 
 sjs.palette = {
   navy:       "#102040",
