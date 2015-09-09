@@ -2380,26 +2380,62 @@ class Ref(object):
         d["toSections"] = toref.toSections[:]
         return Ref(_obj=d)
 
-    def subref(self, subsection):
+    def subref(self, subsections):
         """
         Returns a more specific reference than the current Ref
 
-        :param int subsection: the subsection of the current Ref
+        :param subsection: int or list - the subsection(s) of the current Ref
         :return: :class:`Ref`
         """
-        assert self.index_node.depth > len(self.sections), u"Tried to get subref of bottom level ref: {}".format(self.normal())
+        if isinstance(subsections, int):
+            subsections = [subsections]
+        assert self.index_node.depth >= len(self.sections) + len(subsections), u"Tried to get subref of bottom level ref: {}".format(self.normal())
         assert not self.is_range(), u"Tried to get subref of ranged ref".format(self.normal())
 
         d = self._core_dict()
-        d["sections"] += [subsection]
-        d["toSections"] += [subsection]
+        d["sections"] += subsections
+        d["toSections"] += subsections
         return Ref(_obj=d)
 
     def subrefs(self, length):
+        """
+        :param length: Number of subrefs to return
+        Return a list of :class:`Ref`s one level deeper than this :class:`Ref`, from 1 to `length`.
+
+        ::
+
+            >>> Ref("Genesis").subrefs(4)
+            [Ref('Genesis 1'),
+             Ref('Genesis 2'),
+             Ref('Genesis 3'),
+             Ref('Genesis 4')]
+
+        :return: List of :class:`Ref`
+        """
         l = []
         for i in range(length):
             l.append(self.subref(i + 1))
         return l
+
+    def all_subrefs(self):
+        """
+        Return a list of all the valid :class:`Ref`s one level deeper than this :class:`Ref`.
+
+        ::
+
+            >>> Ref("Genesis").all_subrefs()
+            [Ref('Genesis 1'),
+             Ref('Genesis 2'),
+             Ref('Genesis 3'),
+             Ref('Genesis 4'),
+             ...]
+
+        :return: List of :class:`Ref`
+        """
+        assert not self.is_range(), "Ref.all_subrefs() is not intended for use on Ranges"
+
+        size = self.get_state_ja().sub_array_length([i - 1 for i in self.sections])
+        return self.subrefs(size)
 
     def context_ref(self, level=1):
         """
@@ -2879,7 +2915,7 @@ class Ref(object):
         """
         :class:`VersionsSet` of :class:`Version` objects that have content for this Ref in lang
 
-        :param lang: "he" or "en"
+        :param lang: "he", "en", or None
         :return: :class:`VersionSet`
         """
         return VersionSet(self.condition_query(lang))
