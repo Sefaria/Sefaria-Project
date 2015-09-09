@@ -2130,7 +2130,7 @@ class Ref(object):
 
         :return: :class:`Ref`
         """
-        if self.is_section_level():
+        if not self.is_segment_level():
             return self
         return self.padded_ref().context_ref()
 

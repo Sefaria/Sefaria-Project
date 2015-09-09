@@ -1105,7 +1105,7 @@ var TextRange = React.createClass({
   },
   getText: function() {
     settings = {
-      context: this.props.withContext
+      context: this.props.withContext ? 1 : 0
     };
     sjs.library.text(this.state.sref, settings, this.loadText);
   },

@@ -4,6 +4,12 @@ sjs = sjs || {};
 sjs.library = {
   _texts: {},
   text: function(ref, settings, cb) {
+    var settings = settings || {};
+    var settings = {
+      commentary: settings.commentary || 0,
+      context:    settings.context || 0,
+      pad:        settings.pad || 0
+    }
     var key = this._textKey(ref, settings);
     if (!cb) {
       return this._texts[key];
@@ -12,7 +18,7 @@ sjs.library = {
       cb(this._texts[key]);
       return this._texts[key];
     } else {
-       params = "?commentary=0" + (settings && settings.context ? "&context=1" : "&context=0");
+       params = "?" + $.param(settings);
        var url = "/api/texts/" + normRef(ref) + params;
        $.getJSON(url, function(data) {
           this._saveText(data, settings);
@@ -33,14 +39,15 @@ sjs.library = {
           sjs.alert.message(data.error);
           return;
         }
-        var settings = settings || {};
-        data = this._wrapRefs(data);
-        key = this._textKey(data.ref, settings);
+        var settings     = settings || {};
+        data             = this._wrapRefs(data);
+        key              = this._textKey(data.ref, settings);
         this._texts[key] = data;
         if (data.ref == data.sectionRef) {
           this._splitTextSection(data);
         } else if (settings.context) {
-          var newData         = clone(data);
+          // Save a copy of the data at context level
+          var newData        = clone(data);
           newData.ref        = data.sectionRef;
           newData.sections   = data.sections.slice(0,-1);
           newData.toSections = data.toSections.slice(0,-1);
@@ -53,17 +60,9 @@ sjs.library = {
         };
         this.index(index.title, index);
   },
-  _wrapRefs: function(data) {
-    // Wraps citations found in text of data
-    if (typeof data.text === "string") {
-      data.text = sjs.wrapRefLinks(data.text);
-    } else {
-      data.text = data.text.map(sjs.wrapRefLinks);
-    }
-    return data;
-  },
   _splitTextSection: function(data) {
-    // Takes data for a section level text and populates cache with segment levels
+    // Takes data for a section level text and populates cache with segment levels.
+    // Runs recursively for Refs above section level like "Rashi on Genesis 1".
     // Pad the shorter array to make stepping through them easier.
     var en = data.text;
     var he = data.he;
@@ -74,19 +73,31 @@ sjs.library = {
     var delim = data.ref === data.book ? " " : ":";
     var start = data.textDepth == data.sections.length ? data.sections[data.textDepth-1] : 1;
     for (var i = 0; i < length; i++) {
-      var ref = data.ref + delim + (i+start);
-      var segment_data   = clone(data);
+      var ref          = data.ref + delim + (i+start);
+      var sectionRef   = data.textDepth == data.sections.length + 1 ? sectionRef : ref;
+      var segment_data = clone(data);
       $.extend(segment_data, {
         ref: ref,
         heRef: data.heRef + delim + encodeHebrewNumeral(i+start),
         text: en[i],
         he: he[i],
+        sections: data.sections.concat(i+1),
+        sectionRef: sectionRef,
         nextSegment: i+start == length ? null : data.ref + delim + (i+start+1),
         prevSegment: i+start == 1      ? null : data.ref + delim + (i+start-1),
       });
 
-      this._texts[ref] = segment_data;
+      this._saveText(segment_data);
     }
+  },
+  _wrapRefs: function(data) {
+    // Wraps citations found in text of data
+    if (typeof data.text === "string") {
+      data.text = sjs.wrapRefLinks(data.text);
+    } else {
+      data.text = data.text.map(sjs.wrapRefLinks);
+    }
+    return data;
   },
   _index: {},
   index: function(text, index) {
