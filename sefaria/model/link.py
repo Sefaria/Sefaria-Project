@@ -103,7 +103,6 @@ class LinkSet(abst.AbstractMongoSet):
         except AttributeError:
             super(LinkSet, self).__init__(query_or_ref, page, limit)
 
-
     def filter(self, sources):
         """
         Filter LinkSet according to 'sources' which may be either

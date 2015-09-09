@@ -2374,19 +2374,21 @@ class Ref(object):
         d["toSections"] = toref.toSections[:]
         return Ref(_obj=d)
 
-    def subref(self, subsection):
+    def subref(self, subsections):
         """
         Returns a more specific reference than the current Ref
 
-        :param int subsection: the subsection of the current Ref
+        :param subsection: int or list - the subsection(s) of the current Ref
         :return: :class:`Ref`
         """
-        assert self.index_node.depth > len(self.sections), u"Tried to get subref of bottom level ref: {}".format(self.normal())
+        if isinstance(subsections, int):
+            subsections = [subsections]
+        assert self.index_node.depth >= len(self.sections) + len(subsections), u"Tried to get subref of bottom level ref: {}".format(self.normal())
         assert not self.is_range(), u"Tried to get subref of ranged ref".format(self.normal())
 
         d = self._core_dict()
-        d["sections"] += [subsection]
-        d["toSections"] += [subsection]
+        d["sections"] += subsections
+        d["toSections"] += subsections
         return Ref(_obj=d)
 
     def subrefs(self, length):
