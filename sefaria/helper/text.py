@@ -322,7 +322,7 @@ class NextIntoThisSegmentSplicer(object):
         self.removeBaseTextVersionSegments(self.next_ref)
         self.removeCommentaryVersionsSections(self.next_ref)
         self.rebuildVersionStates()
-        
+
         # Rewrite links to base text (including links from own commentary)
         # It takes longer, but we start at the base text, so as not to miss any ranged refs
         self.rewrite_linkset(LinkSet(self.book_ref))
@@ -340,10 +340,10 @@ class NextIntoThisSegmentSplicer(object):
 
     def _get_comment_section_lengths(self):
         ret = {}
-        for v in library.get_commentary_version_titles_on_book(self.ref.index.title):
-            commentator_book_ref = Ref(v.title)
+        for vtitle in library.get_commentary_version_titles_on_book(self.ref.index.title):
+            commentator_book_ref = Ref(vtitle)
             commentator_segment_ref = commentator_book_ref.subref(self.ref.sections)
-            ret[v.title] = len(commentator_segment_ref.get_state_ja().subarray_with_ref(commentator_segment_ref))
+            ret[vtitle] = len(commentator_segment_ref.get_state_ja().subarray_with_ref(commentator_segment_ref))
         return ret
 
     def rebuildVersionStates(self):
@@ -418,9 +418,9 @@ class NextIntoThisSegmentSplicer(object):
 
         def simple_needs_rewrite(old_simple_ref):
             assert isinstance(old_simple_ref, Ref)
-            if (len(old_simple_ref.sections) >= self.ref.index.depth
-                and old_simple_ref.sections[self.ref.index.depth - 2] == self.section_ref.sections[-1]
-                and old_simple_ref.sections[self.ref.index.depth - 1] > self.segment_number
+            if (len(old_simple_ref.sections) >= self.ref.index_node.depth
+                and old_simple_ref.sections[self.ref.index_node.depth - 2] == self.section_ref.sections[-1]
+                and old_simple_ref.sections[self.ref.index_node.depth - 1] > self.segment_number
                ):
                 return True
             return False
@@ -433,14 +433,14 @@ class NextIntoThisSegmentSplicer(object):
         assert isinstance(old_ref, Ref)
 
         def simple_rewrite(old_simple_ref):
-            if commentary and old_simple_ref.is_segment_level() and old_simple_ref.sections[self.ref.index.depth - 1] == self.next_segment_number:
+            if commentary and old_simple_ref.is_segment_level() and old_simple_ref.sections[self.ref.index_node.depth - 1] == self.next_segment_number:
                 # Position of comment has changed
                 d = old_simple_ref._core_dict()
-                d["sections"][-2] -= - 1
+                d["sections"][-2] -= 1
                 d["sections"][-1] += self.comment_section_lengths.get(old_simple_ref.index.title)
                 d["toSections"] = d["sections"]
                 return Ref(_obj=d)
-            elif old_simple_ref.sections[self.ref.index.depth - 1] > self.segment_number:
+            elif old_simple_ref.sections[self.ref.index_node.depth - 1] > self.segment_number:
                 if not commentary:
                     return old_simple_ref.prev_segment_ref()
                 else:

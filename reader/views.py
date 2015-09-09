@@ -511,7 +511,7 @@ def text_toc(request, oref):
         categories = [categories[1], "Commentary", index.toc_contents()["commentator"]]
     cat_slices    = [categories[:n+1] for n in range(len(categories))] # successive sublists of cats, for category links
 
-    c_titles      = model.library.get_commentary_version_titles_on_book(title)
+    c_titles      = model.library.get_commentary_version_titles_on_book(title, with_commentary2=True)
     c_indexes     = [get_index(commentary) for commentary in c_titles]
     commentaries  = [i.toc_contents() for i in c_indexes]
 
