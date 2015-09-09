@@ -73,8 +73,8 @@ def make_text(doc):
 
     if "versions" in doc:
         text += "\nThis file contains merged sections from the following text versions:"
-        for version in doc["versions"]:
-            text += "\n-%s\n-%s" % (version[0], version[1])
+        for v in doc["versions"]:
+            text += "\n-%s\n-%s" % (v[0], v[1])
 
     def make_node(node, depth, **kwargs):
 
