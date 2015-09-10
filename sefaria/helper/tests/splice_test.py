@@ -16,4 +16,4 @@ def test_rewrite():
 
 def test_report():
     n = Splicer().spliceNextIntoThis(Ref("Shabbat 45b:11"))
-    assert n.report()
+    n.report()
