@@ -79,6 +79,12 @@ def index_text(oref, version=None, lang=None, bavli_amud=True):
         except Exception, e:
             logger.error(u"ERROR indexing {} / {} / {} : {}".format(oref.normal(), version, lang, e))
 
+def delete_text(oref, version, lang):
+    try:
+        id = make_text_doc_id(oref.normal(), version, lang)
+        es.delete('sefaria', 'text', id)
+    except Exception, e:
+        logger.error(u"ERROR deleting {} / {} / {} : {}".format(oref.normal(), version, lang, e))
 
 def make_text_index_document(tref, version, lang):
     """
