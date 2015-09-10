@@ -148,9 +148,11 @@ def logout(request, next_page=None,
 
 
 def maintenance_message(request):
-    return render_to_response("static/maintenance.html",
+    resp = render_to_response("static/maintenance.html",
                                 {"message": MAINTENANCE_MESSAGE},
                                 RequestContext(request))
+    resp.status_code = 503
+    return resp
 
 
 def accounts(request):
