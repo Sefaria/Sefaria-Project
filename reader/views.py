@@ -183,32 +183,29 @@ def s2(request, ref, version=None, lang=None):
                                             "data": text
                                         }, RequestContext(request))
 
-
-def s2_search(request):
+def s2_page(request, page):
     """
-    Standalone page for new search interface
+    View into an S2 page
     """
     return render_to_response('s2.html', {
-                                    "initialMenu": "search" 
+                                    "initialMenu": page
                                 }, RequestContext(request))
+
+def s2_home(request):
+    return s2_page(request, "home")
+
+
+def s2_search(request):
+    return s2_page(request, "search")
 
 
 def s2_texts(request):
-    """
-    Standalone page for new texts navigation
-    """
-    return render_to_response('s2.html', {
-                                    "initialMenu": "navigation" 
-                                }, RequestContext(request))
+    return s2_page(request, "navigation")
 
 
 def s2_sheets(request):
-    """
-    Standalone page for new sheets list
-    """
-    return render_to_response('s2.html', {
-                                    "initialMenu": "sheets" 
-                                }, RequestContext(request))
+    return s2_page(request, "sheets")
+
 
 def s2_sheets_by_tag(request, tag):
     """
@@ -612,7 +609,7 @@ def texts_list(request):
     Page listing every text in the library.
     """
     if request.flavour == "mobile":
-        return s2_texts(request)
+        return s2_page(request, "texts")
     return render_to_response('texts.html',
                              {},
                              RequestContext(request))
@@ -652,7 +649,7 @@ def texts_category_list(request, cats):
 @ensure_csrf_cookie
 def search(request):
     if request.flavour == "mobile":
-        return s2_search(request)
+        return s2_page(request, "search")
     return render_to_response('search.html',
                              {},
                              RequestContext(request))
@@ -1613,6 +1610,9 @@ def home(request):
     """
     Homepage
     """
+    if request.flavour == "mobile":
+        return s2_page(request, "home")
+
     today              = date.today()
     daf_today          = sefaria.utils.calendars.daf_yomi(today)
     daf_tomorrow       = sefaria.utils.calendars.daf_yomi(today + timedelta(1))

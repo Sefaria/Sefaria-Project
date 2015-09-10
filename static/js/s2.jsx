@@ -102,6 +102,10 @@ var ReaderApp = React.createClass({
     if (this.state.menuOpen) {
       hist.state.replaceHistory = false;
       switch (this.state.menuOpen) {
+        case "home":
+          hist.title = "Sefaria: a Living Library of Jewish Texts Online";
+          hist.url   = "/";
+          break;
         case "navigation":
           hist.title = "Texts | Sefaria";
           hist.url   = "/texts";
@@ -116,7 +120,7 @@ var ReaderApp = React.createClass({
           break;
         case "sheets":
           if (this.state.navigationSheetTag) { 
-            hist.url   = "/sheets/tags/" + this.state.navigationSheetTag; 
+            hist.url   = "/sheets/tag/" + this.state.navigationSheetTag; 
             hist.title = this.state.navigationSheetTag + " | Sefaria Source Sheets";
           } else {
             hist.url   = "/sheets";
@@ -443,13 +447,23 @@ var ReaderApp = React.createClass({
         );
       }
     }.bind(this));
-    
-    if (this.state.menuOpen === "navigation") {
+
+    console.log(this.state)
+
+    if (this.state.menuOpen === "home") {
+      var menu = (<ReaderNavigationMenu
+                    home={true} 
+                    closeNav={this.closeMenus}
+                    openSearch={this.openSearch}
+                    openMenu={this.openMenu}
+                    showBaseText={this.showBaseText} />);
+    } else if (this.state.menuOpen === "navigation") {
       var menu = (<ReaderNavigationMenu 
                     closeNav={this.closeMenus}
                     openSearch={this.openSearch}
                     openMenu={this.openMenu}
                     showBaseText={this.showBaseText} />);
+
     } else if (this.state.menuOpen === "text toc") {
       var menu = (<ReaderTextTableOfContents 
                     close={this.closeMenus}
@@ -458,11 +472,13 @@ var ReaderApp = React.createClass({
                     currentRef={this.currentRef()}
                     openNav={this.openMenu.bind(null, "navigation")}
                     showBaseText={this.showBaseText} />);
+
     } else if (this.state.menuOpen === "display") {
       var menu = (<ReaderDisplayOptionsMenu
                     settings={this.state.settings}
                     setOption={this.setOption}
                     currentLayout={this.currentLayout} />);
+
     } else if (this.state.menuOpen === "search") {
       var settings = {query: this.state.searchQuery, page: 1};
       var menu = (<SearchPage
@@ -470,16 +486,18 @@ var ReaderApp = React.createClass({
                     onResultClick={this.showBaseText}
                     onQueryChange={this.setSearchQuery}
                     close={this.closeMenus} />);
+
     } else if (this.state.menuOpen === "sheets") {
       var menu = (<SheetsNav
                     openNav={this.openMenu.bind(null, "navigation")}
                     close={this.closeMenus}
                     initialTag={this.state.navigationSheetTag}
                     setSheetTag={this.setSheetTag} />);
-    }  else {
+
+    } else {
       var menu = "";
     }
-
+    console.log(menu)
     return (
       <div id="readerApp" className={classes}>
         <ReaderControls
@@ -614,6 +632,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
 var ReaderNavigationMenu = React.createClass({
   // The Navigation menu for broswing and search texts, other side links.
   propTypes: {
+    home:         React.PropTypes.bool,
     closeNav:     React.PropTypes.func.isRequired,
     openSearch:   React.PropTypes.func.isRequired,
     showBaseText: React.PropTypes.func.isRequired
@@ -698,10 +717,10 @@ var ReaderNavigationMenu = React.createClass({
 
       var siteLinks = sjs._uid ? 
                     [(<a className="siteLink" key='profile' href="/my/profile"><i className="fa fa-user"></i> My Profile</a>), "•",
-                     (<a className="siteLink" key='home' href="/">Sefaria Home</a>), "•", 
+                     (<a className="siteLink" key='about' href="/about">About Sefaria</a>), "•", 
                      (<a className="siteLink" key='logout' href="/logout">Logout</a>)] :
                     
-                    [(<a className="siteLink" key='home' href="/">Sefaria Home</a>), "•",
+                    [(<a className="siteLink" key='about' href="/about">About Sefaria</a>), "•",
                      (<a className="siteLink" key='login' href="/login">Log In</a>)];
 
 
@@ -711,13 +730,18 @@ var ReaderNavigationMenu = React.createClass({
       calendar = (<div className="readerNavCalendar"><ThreeBox content={calendar} /></div>);
 
 
-      return(<div className="readerNavMenu readerNavMenuFixed" onClick={this.handleClick}>
+      var classes = cx({readerNavMenu: 1, readerNavMenuFixed:1, home: this.props.home});
+      return(<div className={classes} onClick={this.handleClick}>
               <div className="readerNavTop readerNavTopFixed">
-                <i className="fa fa-search"></i>
-                <input className="readerSearch" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
-                <i className="fa fa-times" onClick={this.props.closeNav}></i>
+                <i className="fa fa-search" onClick={this.props.openMenu.bind(null, "navigation")}></i>
+                {this.props.home ? 
+                  (<div className='sefariaLogo'><img src="/static/img/sefaria.png" /></div>) :
+                  (<input className="readerSearch" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />)}
+
+                  <i className="fa fa-times" onClick={this.props.closeNav}></i>
               </div>
               <div className="content">
+                  <div className="tagline">{this.props.home ? "A Living Library of Jewish Texts" : ""}</div>
                   <h2>Browse Texts</h2>
                   {categories}
                   <h2>Calendar</h2>
