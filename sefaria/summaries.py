@@ -195,9 +195,8 @@ def update_table_of_contents():
         text = add_counts_to_index(i.toc_contents())
         node.append(text)
 
-    # Special handling to list available commentary texts which do not have
-    # individual index records
-    commentary_texts = library.get_commentary_version_titles()
+    # Special handling to list available commentary texts
+    commentary_texts = library.get_commentary_version_titles(with_commentary2=True)
     for c in commentary_texts:
 
         try:

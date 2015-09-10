@@ -3451,7 +3451,7 @@ sjs.showNewText = function () {
 	});
 
 	// Autocomplete version title with existing, autofill source for existing versions
-	$.getJSON("/api/texts/versions/" + sjs.editing.book, function(data) {
+	$.getJSON("/api/texts/versions/" + sjs.editing.indexTitle, function(data) {
 		if ("error" in data) { return; }
 		map = {};
 		titles = [];

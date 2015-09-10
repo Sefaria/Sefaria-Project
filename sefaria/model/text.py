@@ -3317,7 +3317,7 @@ class Library(object):
 
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
-    def get_commentator_titles(self, lang="en", with_variants=False):
+    def get_commentator_titles(self, lang="en", with_variants=False, with_commentary2=False):
         """
         :param lang: "he" or "en"
         :param with_variants: If True, includes titles variants along with the primary titles.
@@ -3330,12 +3330,13 @@ class Library(object):
             ("he", True): "heTitleVariants"
         }
         commentators  = IndexSet({"categories.0": "Commentary"}).distinct(args[(lang, with_variants)])
-        commentary2   = IndexSet({"categories.0": "Commentary2"}).distinct(args[(lang, with_variants)])
-        commentators  = commentators + [s.split(" on ")[0].split(u" על ")[0] for s in commentary2]
+        if with_commentary2:
+            commentary2   = IndexSet({"categories.0": "Commentary2"}).distinct(args[(lang, with_variants)])
+            commentators  = commentators + [s.split(" on ")[0].split(u" על ")[0] for s in commentary2]
 
         return commentators
 
-    def get_commentary_versions(self, commentators=None):
+    def get_commentary_versions(self, commentators=None, with_commentary2=False):
         """
         :param string|list commentators: A single commentator name, or a list of commentator names.
         :return: :class:`VersionSet` of :class:`Version` records for the specified commentators
@@ -3345,35 +3346,35 @@ class Library(object):
         if isinstance(commentators, basestring):
             commentators = [commentators]
         if not commentators:
-            commentators = self.get_commentator_titles()
+            commentators = self.get_commentator_titles(with_commentary2=with_commentary2)
         commentary_re = ur"^({}) on ".format("|".join(commentators))
         return VersionSet({"title": {"$regex": commentary_re}})
 
-    def get_commentary_version_titles(self, commentators=None):
+    def get_commentary_version_titles(self, commentators=None, with_commentary2=False):
         """
         :param string|list commentators: A single commentator name, or a list of commentator names.
         :return: list of titles of :class:`Version` records for the specified commentators
 
         If no commentators are provided, all commentary Versions will be returned.
         """
-        return self.get_commentary_versions(commentators).distinct("title")
+        return self.get_commentary_versions(commentators, with_commentary2=with_commentary2).distinct("title")
 
-    def get_commentary_versions_on_book(self, book=None):
+    def get_commentary_versions_on_book(self, book=None, with_commentary2=False):
         """
         :param string book: The primary name of a book
         :return: :class:`VersionSet` of :class:`Version` records that comment on the provided book
         """
         assert book
-        commentators = self.get_commentator_titles()
+        commentators = self.get_commentator_titles(with_commentary2=with_commentary2)
         commentary_re = ur"^({}) on {}".format("|".join(commentators), book)
         return VersionSet({"title": {"$regex": commentary_re}})
 
-    def get_commentary_version_titles_on_book(self, book):
+    def get_commentary_version_titles_on_book(self, book, with_commentary2=False):
         """
         :param string book: The primary name of a book
         :return: list of titles of :class:`Version` records that comment on the provided book
         """
-        return self.get_commentary_versions_on_book(book).distinct("title")
+        return self.get_commentary_versions_on_book(book, with_commentary2=with_commentary2).distinct("title")
 
     def get_titles_in_string(self, s, lang=None):
         """
