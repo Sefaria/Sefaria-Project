@@ -88,7 +88,7 @@ var ReaderApp = React.createClass({
         return true;
       }
     } else if (current.type === "TextList") {
-      if (current.ref !== hist.ref) {
+      if (current.ref !== hist.ref || !this.state.filter.compare(state.filter)) {
         return true;
       }
     }
@@ -677,7 +677,7 @@ var ReaderNavigationMenu = React.createClass({
         "Chasidut",
         "Musar",
         "Responsa",
-        "Apocrapha",
+        "Apocrypha",
         "Other"
       ];
       categories = categories.map(function(cat) {
@@ -1354,6 +1354,7 @@ var TextList = React.createClass({
     return {
       links: [],
       loaded: false,
+      textLoaded: false,
       filter: this.props.initialFilter,
       showAllFilters: this.props.filter.length == 0
     }
@@ -1363,34 +1364,21 @@ var TextList = React.createClass({
     if (this.props.main) {
       this.props.setScrollTop();
       this.setTopPadding();
-      window.requestAnimationFrame(function() {
-        this.scrollToHighlighted();
-      }.bind(this));
+      this.scrollToHighlighted();
     }
   },
   componentWillReceiveProps: function(nextProps) {
-    // If the current filter is 
-    if (nextProps.filter.length == 1 && 
-        sjs.library.index(nextProps.filter[0]) && 
-        sjs.library.index(nextProps.filter[0]).categories == "Commentary") {
-      var basetext   = sjs.library.ref(this.props.sref).sectionRef;
-      var commentary = nextProps.filter[0] + " on " + basetext;
-      this.setState({textLoaded: false, waitForText: true});
-      sjs.library.text(commentary, {}, function() {
-        this.setState({"textLoaded": true});
-      }.bind(this));
-    } else {
-      this.setState({waitForText: false});
-    }
+    this.preloadText(nextProps.filter);
   },
   componetWillUpdate: function(nextProps) {
     this.props.setScrollTop();
   },
   componentDidUpdate: function(prevProps, prevState) {
     if (!prevProps.filter.compare(this.props.filter)) {
-      window.requestAnimationFrame(function() {
-        this.scrollToHighlighted();
-      }.bind(this));
+      this.scrollToHighlighted();
+    }
+    if (!prevState.textLoaded && this.state.textLoaded) {
+      this.scrollToHighlighted();
     }
   },
   loadConnections: function() {
@@ -1398,19 +1386,36 @@ var TextList = React.createClass({
     var ref = sjs.library.ref(this.props.sref) ? sjs.library.ref(this.props.sref).sectionRef : this.props.sref;
     sjs.library.links(ref, function(links) {
       if (this.isMounted()) {
+        this.preloadText(this.props.filter);
         this.setState({links: links, loaded: true });
       }
     }.bind(this));
   },
-  scrollToHighlighted: function() {
-    //console.log("scroll to high")
-    var $highlighted = $(React.findDOMNode(this)).find(".texts .textRange").not(".lowlight").first();
-    if ($highlighted.length) {
-      var $top   = $(React.findDOMNode(this)).find(".textListTop");
-      var adjust = $top.outerHeight() + parseInt($top.css("top"));
-      var top    = $highlighted.offset().top;
-      $(window).scrollTop(top - adjust);
+  preloadText: function(filter) {
+    // Preload text of links if `filter` is a single commentary
+    if (filter.length == 1 && 
+        sjs.library.index(filter[0]) && 
+        sjs.library.index(filter[0]).categories == "Commentary") {
+      var basetext   = sjs.library.ref(this.props.sref).sectionRef;
+      var commentary = filter[0] + " on " + basetext;
+      this.setState({textLoaded: false, waitForText: true});
+      sjs.library.text(commentary, {}, function() {
+        this.setState({"textLoaded": true});
+      }.bind(this));
+    } else {
+      this.setState({waitForText: false, textLoaded: false});
     }
+  },
+  scrollToHighlighted: function() {
+    window.requestAnimationFrame(function() {
+      var $highlighted = $(React.findDOMNode(this)).find(".texts .textRange").not(".lowlight").first();
+      if ($highlighted.length) {
+        var $top   = $(React.findDOMNode(this)).find(".textListTop");
+        var adjust = $top.outerHeight() + parseInt($top.css("top"));
+        var top    = $highlighted.offset().top;
+        $(window).scrollTop(top - adjust);
+      }
+    }.bind(this));
   },
   setTopPadding: function() {
     var $textList    = $(React.findDOMNode(this));
@@ -1453,14 +1458,6 @@ var TextList = React.createClass({
             return a.sourceRef > b.sourceRef ? -1 : 1;
         }
     });
-    var filter         = this.props.filter;
-    var emptyMessageEn = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";
-    var emptyMessageHe = "אין קשרים ידועים"       + (filter.length ? " ל"    + filter.join(", ") : "") + ".";
-    var message        = !this.state.loaded ? 
-                            (<LoadingMessage />)  : 
-                              (links.length == 0 ? 
-                                (<LoadingMessage message={emptyMessageEn} heMessage={emptyMessageHe} />) : "");
-
     var texts = links.map(function(link, i) {
                       return (<TextRange 
                                 sref={link.sourceRef}
@@ -1470,7 +1467,19 @@ var TextList = React.createClass({
                                 showBaseText={this.props.showBaseText}
                                 openOnClick={true} />);
                     }, this);
+    var filter = this.props.filter;
+    var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";;
+    var he = "אין קשרים ידועים"  + (filter.length ? " ל"    + filter.join(", ") : "") + ".";;
+    var message = !this.state.loaded ? 
+                    (<LoadingMessage />) : 
+                      (texts.length == 0 ? 
+                        <LoadingMessage message={en} heMessage={he} /> : "");
+
+
     texts = texts.length && this.state.waitForText && !this.state.textLoaded ? (<LoadingMessage />) : texts;
+    
+    var showAllFilters = this.state.showAllFilters || texts.length == 0;;
+
     return (
       <div className={classes}>
         <div className="textListTop">
@@ -1480,7 +1489,7 @@ var TextList = React.createClass({
             </div>
             <div className="fader"></div>
           </div>
-          {this.state.showAllFilters ? "" : 
+          {showAllFilters ? "" : 
           <TopFilterSet 
             sref={this.props.sref}
             showText={this.props.showText}
@@ -1492,16 +1501,17 @@ var TextList = React.createClass({
             summary={summary} />}
         {message}
         </div>
-        {this.state.showAllFilters ?
-        <AllFilterSet 
-          sref={this.props.sref}
-          showText={this.props.showText}
-          filter={this.props.fitler}
-          recentFilters={this.props.recentFilters}
-          setFilter={this.props.setFilter}
-          hideAllFilters={this.hideAllFilters}
-          setTopPadding={this.setTopPadding}
-          summary={summary} /> :       
+        {showAllFilters ?
+          <AllFilterSet 
+            sref={this.props.sref}
+            showText={this.props.showText}
+            filter={this.props.fitler}
+            recentFilters={this.props.recentFilters}
+            setFilter={this.props.setFilter}
+            hideAllFilters={this.hideAllFilters}
+            setTopPadding={this.setTopPadding}
+            summary={summary} /> :       
+          
           <div className="texts">
             { texts }
           </div>}
@@ -1777,7 +1787,7 @@ var LoadingMessage = React.createClass({
     heMessage: React.PropTypes.string
   },
   render: function() {
-    var message = this.props.messag || "Loading...";
+    var message = this.props.message || "Loading...";
     var heMessage = this.props.heMessage || "טעינה...";
     return (<div className='loadingMessage'>
               <span className="en">{message}</span>

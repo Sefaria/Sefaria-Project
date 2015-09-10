@@ -641,7 +641,7 @@ sjs.categoryColors = {
   "Chasidut":           sjs.palette.pink1,
   "Musar":              sjs.palette.orange2,
   "Responsa":           sjs.palette.red1,
-  "Apocrapha":          sjs.palette.bluegreen3,
+  "Apocrypha":          sjs.palette.bluegreen3,
   "Other":              sjs.palette.navy,
   "Quoting Commentary": sjs.palette.orange2,
   "Commentary2":        sjs.palette.blue2,

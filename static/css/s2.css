@@ -834,7 +834,7 @@ body .bilingual .enOnly .he {
   left: 11px;
 }
 .segment .refLink {
-  font-size: .7em;
+  font-size: .8em;
   font-weight: bold;
   letter-spacing: 1px;
   cursor: pointer;
@@ -844,6 +844,7 @@ body .bilingual .enOnly .he {
 }
 .textList.main {
   width: 100%;
+  min-height: 500px;
   text-align: justify;
   margin: 0 auto;
   background-color: #F9F9F7;
@@ -1019,9 +1020,10 @@ body .bilingual .enOnly .he {
 }
 .textList .textListTop > .loadingMessage,
 .textList .texts > .loadingMessage {
-  padding: 20px;
+  padding: 14px 10px 0px;
   color: #aaa;
   font-size: 13px;
+  text-align: center;
 }
 .textList .texts {
   background-color: white;
