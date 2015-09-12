@@ -1,6 +1,4 @@
 var sjs = sjs || {};
-var cx  = React.addons.classSet;
-
 
 var ReaderApp = React.createClass({
   propTypes: {
@@ -171,14 +169,29 @@ var ReaderApp = React.createClass({
   },
   handleScroll: function(event) {
     if (this.state.contents.length) {
-      this.currentContent().scrollTop = $(window).scrollTop();
+      console.log("saving scrolltop " + $(window).scrollTop());
+      this.state.contents[0].scrollTop = $(window).scrollTop();
       this.setState({contents: this.state.contents});
     }
+
+    if (this.currentMode() === "TextList") {
+      this.adjustTextListHighlight();
+    }
+
     this.adjustInfiniteScroll();
   },
+  handleBaseSegmentClick: function(ref) {
+    var mode = this.currentMode();
+    if ( mode === "TextList") {
+      this.backToText();
+    } else if ( mode === "TextColumn") {
+      this.showTextList(ref);
+      this.scrollToHighlighted();
+    }
+  },
   adjustInfiniteScroll: function() {
-    var current = this.currentContent();
-    if (current && current.type === "TextColumn") {
+    if (this.state.contents.length) {
+      var current      = this.state.contents[0];
       var $lastText    = $(".textRange.basetext").last();
       var lastTop      = $lastText.offset().top;
       var lastBottom   = lastTop + $lastText.outerHeight();
@@ -204,6 +217,7 @@ var ReaderApp = React.createClass({
         // Scroll up for previous
         topRef = current.refs[0];
         data   = sjs.library.ref(topRef);
+        console.log("UP")
         if (data && data.prev) {
           current.refs.splice(current.refs, 0, data.prev);
           this.setState({contents: this.state.contents, replaceHistory: true, loadingContentAtTop: true});
@@ -214,7 +228,48 @@ var ReaderApp = React.createClass({
       }
     } 
   },
+  adjustTextListHighlight: function() {
+    window.requestAnimationFrame(function() {
+
+      console.log("adjust text list highlight")
+      var currentRef   = sjs.library.ref(this.currentRef());
+      var $container   = $(window);
+      var $readerApp   = $(React.findDOMNode(this));
+      var viewport     = $container.height() - $readerApp.find(".textList").outerHeight();
+      var center       = $container.scrollTop() + (viewport/2);
+
+      $readerApp.find(".basetext .segment").each(function(i, segment) {
+        var $segment = $(segment);
+        if ($segment.offset().top + $segment.outerHeight() > center) {
+          this.showTextList($segment.attr("data-ref"));
+          return false;
+        }
+      }.bind(this));
+    }.bind(this));
+
+    /*
+    var $current     = $readerApp.find(".segment.highlight");
+    var $before      = $readerApp.find(".segment[data-ref='" + currentRef.prevSegment + "']");
+    var $after       = $readerApp.find(".segment[data-ref='" + currentRef.nextSegment + "']");
+
+    if ($before.length) {
+      var beforeBottom = $before.offset().top + $before.outerHeight();
+      if (beforeBottom > center) {
+        this.showTextList(currentRef.prevSegment);
+        return;
+      } 
+    }
+    if ($after.length) {
+      var afterTop     = $after.offset().top;
+    if (afterTop < center) {
+        this.showTextList(currentRef.nextSegment);
+        return;
+      }
+    }
+    */
+  },
   updateHeadroom: function() {
+    return;
     var mode = this.currentMode();
     if (mode === "TextList") {
       $("#readerControls").addClass("headroomOff");
@@ -223,7 +278,7 @@ var ReaderApp = React.createClass({
     }
   },
   showTextList: function(ref) {
-    this.state.contents.push({type: "TextList", ref: ref, scrollTop: 0});
+    this.state.contents[1] = {type: "TextList", ref: ref, scrollTop: 0};
     this.setState({contents: this.state.contents });
   },
   showBaseText: function(ref, replaceHistory) {
@@ -271,14 +326,14 @@ var ReaderApp = React.createClass({
   setFilter: function(filter, updateRecent) {
     // Sets the current filter for Connected Texts (TextList)
     // If updateRecent is true, include the curent setting in the list of recent filters.
-    if (updateRecent) {
+    if (updateRecent && filter) {
       if ($.inArray(filter, this.state.recentFilters) !== -1) {
         this.state.recentFilters.toggle(filter);
       }
       this.state.recentFilters = [filter].concat(this.state.recentFilters);
     }
-    this.setState({recentFilters: this.state.recentFilters, filter: [filter]});
-    $(window).scrollTop(0);
+    filter = filter ? [filter] : [];
+    this.setState({recentFilters: this.state.recentFilters, filter: filter});
   },
   openSearch: function(query) {
     this.setState({
@@ -346,8 +401,8 @@ var ReaderApp = React.createClass({
     }
   },
   setScrollTop: function() {
-    var current = this.currentContent();
-    if (current && current.type === "TextColumn") {
+    if (this.state.contents.length) {
+      var current = this.state.contents[0];
       if (this.state.loadingContentAtTop) {
         // After adding content by infinite scrolling up, scroll back to what the user was just seeing
         var $reader = $(React.findDOMNode(this));
@@ -359,18 +414,28 @@ var ReaderApp = React.createClass({
         var top = current.scrollTop;
       } else if ($(".segment.highlight").length) {
         // scroll to highlighted segment
-        var top = $(".segment.highlight").first().position().top - ($(window).height() / 3);
+        this.scrollToHighlighted();
+        var top = 20; 
       } else {
         var top = 20; // below zero to give room to scroll up for previous
       }      
-    } else if (current && current.type === "TextList") {
-      if (current.scrollTop) {
-        var top = current.scrollTop;
-      } else {
-        var top = 0;
-      }
+      console.log("Set Scroll Top " + top)
+      $(window).scrollTop(top);
     }
-    $(window).scrollTop(top);
+  },
+  scrollToHighlighted: function() {
+    window.requestAnimationFrame(function() {
+      console.log("scroll to highlighted")
+      var $readerApp   = $(React.findDOMNode(this));
+      var $highlighted = $readerApp.find(".segment.highlight").first();
+      if ($highlighted.length) {
+        var $container = $(window);
+        var height     = $highlighted.outerHeight();
+        var viewport   = $container.height() - $readerApp.find(".textList").outerHeight();
+        var offset     = height > viewport + 30 ? 30 : (viewport - height) / 2;
+        $container.scrollTo($highlighted, 0, {offset: -offset});
+      }
+    }.bind(this));
   },
   currentContent: function() {
     // Returns the current content item
@@ -406,17 +471,13 @@ var ReaderApp = React.createClass({
     return this.state.settings[option];  
   },
   render: function() {
-    var classes  = {};
-    classes[this.currentLayout()]         = 1;
-    classes[this.state.settings.language] = 1;
-    classes[this.state.settings.color]    = 1;
-    classes = cx(classes);
-    style = {"fontSize": this.state.settings.fontSize + "%"};
-    var items = this.state.contents.slice(-1).map(function(item, i) {
+    var textListRef = this.currentMode() === "TextList" ? this.currentRef() : null;
+    var items = this.state.contents.map(function(item, i) {
       if (item.type === "TextColumn") {
         var content = item.refs.map(function(ref, k) {
           return (<TextRange 
             sref={ref}
+            textListRef={textListRef}
             basetext={true}
             withContext={true}
             loadLinks={true}
@@ -426,6 +487,7 @@ var ReaderApp = React.createClass({
             setScrollTop={this.setScrollTop}
             showBaseText={this.showBaseText} 
             showTextList={this.showTextList}
+            onBaseSegmentClick={this.handleBaseSegmentClick}
             rerender={this.rerender}
             filter={this.state.filter}
             key={k + ref} />);      
@@ -439,7 +501,6 @@ var ReaderApp = React.createClass({
             filter={this.state.filter}
             recentFilters={this.state.recentFilters}
             setFilter={this.setFilter}
-            setScrollTop={this.setScrollTop}
             showTextList={this.showTextList}
             showBaseText={this.showBaseText} 
             backToText={this.backToText} 
@@ -447,8 +508,6 @@ var ReaderApp = React.createClass({
         );
       }
     }.bind(this));
-
-    console.log(this.state)
 
     if (this.state.menuOpen === "home") {
       var menu = (<ReaderNavigationMenu
@@ -497,9 +556,15 @@ var ReaderApp = React.createClass({
     } else {
       var menu = "";
     }
-    console.log(menu)
+
+    var classes  = {readerApp: 1};
+    classes[this.currentLayout()]         = 1;
+    classes[this.state.settings.language] = 1;
+    classes[this.state.settings.color]    = 1;
+    classes = classNames(classes);
+    style = {"fontSize": this.state.settings.fontSize + "%"};
     return (
-      <div id="readerApp" className={classes}>
+      <div className={classes}>
         <ReaderControls
           showBaseText={this.showBaseText}
           currentRef={this.currentRef}
@@ -544,8 +609,8 @@ var ReaderControls = React.createClass({
     var heTitle = index ? index.heTitle : "";
     return (
       <div>
+        <div className="categoryColorLine" style={lineStyle}></div>
         <div id="readerControls" className="headroom">
-          <div className="categoryColorLine" style={lineStyle}></div>
           <div id="readerNav"  onClick={this.props.openMenu.bind(null, "navigation")}><i className="fa fa-search"></i></div>
           <div id="readerTextToc" onClick={this.props.openMenu.bind(null, "text toc")}>
             { title ? (<i className="fa fa-caret-down invisible"></i>) : "" }
@@ -730,7 +795,7 @@ var ReaderNavigationMenu = React.createClass({
       calendar = (<div className="readerNavCalendar"><ThreeBox content={calendar} /></div>);
 
 
-      var classes = cx({readerNavMenu: 1, readerNavMenuFixed:1, home: this.props.home});
+      var classes = classNames({readerNavMenu: 1, readerNavMenuFixed:1, home: this.props.home});
       return(<div className={classes} onClick={this.handleClick}>
               <div className="readerNavTop readerNavTopFixed">
                 <i className="fa fa-search" onClick={this.props.openMenu.bind(null, "navigation")}></i>
@@ -812,8 +877,8 @@ var ReaderNavigationCategoryMenu = React.createClass({
       var setYerushalmi = function() {
         this.props.setCategories(["Talmud", "Yerushalmi"]);
       }.bind(this);
-      var bClasses = cx({navToggle:1, active: categories[1] === "Bavli"});
-      var yClasses = cx({navToggle:1, active: categories[1] === "Yerushalmi", second: 1});
+      var bClasses = classNames({navToggle:1, active: categories[1] === "Bavli"});
+      var yClasses = classNames({navToggle:1, active: categories[1] === "Yerushalmi", second: 1});
 
       var toggle =(<div className="navToggles">
                             <span className={bClasses} onClick={setBavli}>
@@ -1032,7 +1097,7 @@ var ToggleSet = React.createClass({
     return {};
   },
   render: function() {
-    var classes = cx({toggleSet: 1, separated: this.props.separated });
+    var classes = classNames({toggleSet: 1, separated: this.props.separated });
     var value = this.props.name === "layout" ? this.props.currentLayout() : this.props.settings[this.props.name];
     var width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
     var style = {width: (width/this.props.options.length) + "%"};
@@ -1067,7 +1132,7 @@ var ToggleOption = React.createClass({
     sjs.track.event("Reader", "Display Option Click", this.props.set + " - " + this.props.name);
   },
   render: function() {
-    var classes = cx({toggleOption: 1, on: this.props.on });
+    var classes = classNames({toggleOption: 1, on: this.props.on });
     var content = this.props.image ? (<img src={this.props.image} />) : this.props.content;
     return (
       <div
@@ -1085,19 +1150,22 @@ var TextRange = React.createClass({
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
   // This component is responsible for retrieving data from sjs.library for the ref that defines it.
   propTypes: {
-    sref:             React.PropTypes.string.isRequired,
-    basetext:         React.PropTypes.bool,
-    withContext:      React.PropTypes.bool,
-    loadLinks:        React.PropTypes.bool,
-    prefetchNextPrev: React.PropTypes.bool,
-    openOnClick:      React.PropTypes.bool,
-    lowlight:         React.PropTypes.bool,
-    settings:         React.PropTypes.object,
-    showBaseText:     React.PropTypes.func,
-    setScrollTop:     React.PropTypes.func,
-    rerender:         React.PropTypes.func,
-    showTextList:     React.PropTypes.func,
-    onTextLoad:       React.PropTypes.func
+    sref:               React.PropTypes.string.isRequired,
+    textListRef:        React.PropTypes.string,
+    basetext:           React.PropTypes.bool,
+    withContext:        React.PropTypes.bool,
+    loadLinks:          React.PropTypes.bool,
+    prefetchNextPrev:   React.PropTypes.bool,
+    openOnClick:        React.PropTypes.bool,
+    lowlight:           React.PropTypes.bool,
+    settings:           React.PropTypes.object,
+    showBaseText:       React.PropTypes.func,
+    setScrollTop:       React.PropTypes.func,
+    rerender:           React.PropTypes.func,
+    showTextList:       React.PropTypes.func,
+    onTextLoad:         React.PropTypes.func,
+    onBaseSegmentClick: React.PropTypes.func,
+    onTextLoad:         React.PropTypes.func
   },
   getInitialState: function() {
     return { 
@@ -1277,15 +1345,18 @@ var TextRange = React.createClass({
                               this.state.data.categories[0] !== "Liturgy";
 
     var textSegments = this.state.segments.map(function (segment, i) {
+      var highlight = this.props.textListRef ? segment.ref === this.props.textListRef :
+                        this.props.basetext && segment.highlight;
       return (
         <TextSegment 
             key={i + segment.ref}
             sref={segment.ref}
             en={segment.en}
             he={segment.he}
-            highlight={this.props.basetext && segment.highlight}
+            highlight={highlight}
             segmentNumber={showSegmentNumbers ? segment.number : 0}
             linkCount={segment.linkCount}
+            handleClick={this.props.onBaseSegmentClick}
             showBaseText={this.props.showBaseText}
             showTextList={this.props.showTextList} />
       );
@@ -1299,7 +1370,7 @@ var TextRange = React.createClass({
                     loading: !this.state.loaded,
                     lowlight: this.props.lowlight
                   };
-    classes = cx(classes);
+    classes = classNames(classes);
     return (
       <div className={classes} onClick={this.handleClick}>
         <div className="title">
@@ -1319,14 +1390,14 @@ var TextRange = React.createClass({
 
 var TextSegment = React.createClass({
   propTypes: {
-    sref:            React.PropTypes.string,
-    en:              React.PropTypes.string,
-    he:              React.PropTypes.string,
-    highlight:       React.PropTypes.bool,
-    segmentNumber:   React.PropTypes.number,
-    linkCount:       React.PropTypes.number,
-    showBaseText:    React.PropTypes.func,
-    showTextList:    React.PropTypes.func
+    sref:              React.PropTypes.string,
+    en:                React.PropTypes.string,
+    he:                React.PropTypes.string,
+    highlight:         React.PropTypes.bool,
+    segmentNumber:     React.PropTypes.number,
+    linkCount:         React.PropTypes.number,
+    showBaseText:      React.PropTypes.func,
+    showTextList:      React.PropTypes.func
   },
   handleClick: function(event) {
     if ($(event.target).hasClass("refLink")) {
@@ -1335,8 +1406,8 @@ var TextSegment = React.createClass({
       this.props.showBaseText(ref);
       event.stopPropagation();
       sjs.track.event("Reader", "Ref Link Click", ref)
-    } else if (this.props.showTextList) {
-      this.props.showTextList(this.props.sref);
+    } else if (this.props.handleClick) {
+      this.props.handleClick(this.props.sref);
       sjs.track.event("Reader", "Text Segment Click", this.props.sref);
     }
   },
@@ -1349,9 +1420,12 @@ var TextSegment = React.createClass({
     var segmentNumber = this.props.segmentNumber ? (<span className="segmentNumber">{this.props.segmentNumber}</span>) : "";          
     var he = this.props.he || this.props.en;
     var en = this.props.en || this.props.he;
-    var classes=cx({segment: 1, highlight: this.props.highlight, heOnly: !this.props.en, enOnly: !this.props.he});
+    var classes=classNames({ segment: 1,
+                     highlight: this.props.highlight,
+                     heOnly: !this.props.en,
+                     enOnly: !this.props.he });
     return (
-      <span className={classes} onClick={this.handleClick}>
+      <span className={classes} onClick={this.handleClick} data-ref={this.props.sref}>
         {segmentNumber}
         {linkCount}
         <span className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></span>
@@ -1367,9 +1441,7 @@ var TextList = React.createClass({
     sref:          React.PropTypes.string.isRequired,
     filter:        React.PropTypes.array.isRequired,
     recentFilters: React.PropTypes.array.isRequired,
-    main:          React.PropTypes.bool,
     setFilter:     React.PropTypes.func,
-    setScrollTop:  React.PropTypes.func,
     showTextList:  React.PropTypes.func,
     showBaseText:  React.PropTypes.func,
     backToText:    React.PropTypes.func,
@@ -1379,29 +1451,31 @@ var TextList = React.createClass({
       links: [],
       loaded: false,
       textLoaded: false,
-      filter: this.props.initialFilter,
-      showAllFilters: this.props.filter.length == 0
     }
   },
   componentDidMount: function() {
     this.loadConnections();
-    if (this.props.main) {
-      this.props.setScrollTop();
-      this.setTopPadding();
-      this.scrollToHighlighted();
-    }
+    this.scrollToHighlighted();
   },
   componentWillReceiveProps: function(nextProps) {
     this.preloadText(nextProps.filter);
   },
   componetWillUpdate: function(nextProps) {
-    this.props.setScrollTop();
+
   },
   componentDidUpdate: function(prevProps, prevState) {
-    if (!prevProps.filter.compare(this.props.filter)) {
+    if (prevProps.filter.length && !this.props.filter.length) {
+      console.log("back from menu")
       this.scrollToHighlighted();
     }
-    if (!prevState.textLoaded && this.state.textLoaded) {
+    if (!prevProps.filter.compare(this.props.filter)) {
+      console.log("filter change")
+      this.scrollToHighlighted();
+    } else if (!prevState.textLoaded && this.state.textLoaded) {
+      console.log("text load")
+      this.scrollToHighlighted();
+    } else if (prevProps.sref !== this.props.sref) {
+      console.log("ref change")
       this.scrollToHighlighted();
     }
   },
@@ -1434,27 +1508,22 @@ var TextList = React.createClass({
     window.requestAnimationFrame(function() {
       var $highlighted = $(React.findDOMNode(this)).find(".texts .textRange").not(".lowlight").first();
       if ($highlighted.length) {
-        var $top   = $(React.findDOMNode(this)).find(".textListTop");
-        var adjust = $top.outerHeight() + parseInt($top.css("top"));
-        var top    = $highlighted.offset().top;
-        $(window).scrollTop(top - adjust);
+        var $texts = $(React.findDOMNode(this)).find(".texts")
+        var adjust = parseInt($texts.css("padding-top")) + 18;
+        $texts.scrollTo($highlighted, 0, {offset: -adjust});
       }
     }.bind(this));
   },
   setTopPadding: function() {
+    return; 
     var $textList    = $(React.findDOMNode(this));
     var $textListTop = $textList.find(".textListTop");
     var top          = $textListTop.outerHeight();
     $textList.css({paddingTop: top});
   },
   showAllFilters: function() {
-    this.setState({showAllFilters: true});
-    $(window).scrollTop(0);
-    sjs.track.event("Reader", "More > Click", "1");
-  },
-  hideAllFilters: function() {
-    this.setState({showAllFilters: false});
-    $(window).scrollTop(0);
+    this.props.setFilter(null);
+    sjs.track.event("Reader", "Show All Filters Click", "1");
   },
   backToText: function() {
     this.props.backToText();
@@ -1463,7 +1532,7 @@ var TextList = React.createClass({
   render: function() {
     var ref            = this.props.sref;
     var summary        = sjs.library.linkSummary(ref);
-    var classes        = cx({textList: 1, main: this.props.main });
+    var classes        = classNames({textList: 1, main: this.props.main });
     var links          = this.state.links.filter(function(link) {
       if (link.category !== "Commentary" && link.anchorRef !== this.props.sref) {
         // Only show section level links for commentary
@@ -1500,19 +1569,13 @@ var TextList = React.createClass({
                         <LoadingMessage message={en} heMessage={he} /> : "");
 
 
-    texts = texts.length && this.state.waitForText && !this.state.textLoaded ? (<LoadingMessage />) : texts;
+    texts = !texts.length || (this.state.waitForText && !this.state.textLoaded) ? message : texts;
     
-    var showAllFilters = this.state.showAllFilters || texts.length == 0;;
+    var showAllFilters = !this.props.filter.length;
 
     return (
       <div className={classes}>
         <div className="textListTop">
-          <div className="anchorText" onClick={this.backToText}>
-            <div className="textBox">
-              <TextRange sref={this.props.sref} showBaseText={this.props.showBaseText}/>
-            </div>
-            <div className="fader"></div>
-          </div>
           {showAllFilters ? "" : 
           <TopFilterSet 
             sref={this.props.sref}
@@ -1523,7 +1586,7 @@ var TextList = React.createClass({
             showAllFilters={this.showAllFilters}
             setTopPadding={this.setTopPadding}
             summary={summary} />}
-        {message}
+          {showAllFilters ? "" : message}
         </div>
         {showAllFilters ?
           <AllFilterSet 
@@ -1532,7 +1595,6 @@ var TextList = React.createClass({
             filter={this.props.fitler}
             recentFilters={this.props.recentFilters}
             setFilter={this.props.setFilter}
-            hideAllFilters={this.hideAllFilters}
             setTopPadding={this.setTopPadding}
             summary={summary} /> :       
           
@@ -1554,9 +1616,6 @@ var TopFilterSet = React.createClass({
   },
   toggleAllFilterView: function() {
     this.setState({showAllFilters: !this.state.showAllFilters});
-  },
-  hideAllFilterView: function() {
-    this.props.hideAllFilters();
   },
   render: function() {
     var topLinks = []; // sjs.library.topLinks(this.props.sref);
@@ -1639,9 +1698,6 @@ var AllFilterSet = React.createClass({
   componentDidUpdate: function() {
     this.props.setTopPadding();
   },
-  hideAllFilters: function() {
-    this.props.hideAllFilters();
-  },
   render: function() {
     var categories = this.props.summary.map(function(cat, i) {
       return (
@@ -1654,7 +1710,6 @@ var AllFilterSet = React.createClass({
           filter={this.props.filter}
           updateRecent={true}
           setFilter={this.props.setFilter}
-          hideAllFilters={this.props.hideAllFilters}
           on={$.inArray(cat.category, this.props.filter) !== -1} />
       );
     }.bind(this));
@@ -1671,7 +1726,6 @@ var CategoryFilter = React.createClass({
   handleClick: function() {
     if (this.props.category === "Commentary") { return; }
     this.props.setFilter(this.props.category, this.props.updateRecent);
-    this.props.hideAllFilters();
     sjs.track.event("Reader", "Category Filter Click", this.props.category);
   },
   render: function() {
@@ -1684,14 +1738,13 @@ var CategoryFilter = React.createClass({
                 category={this.props.category}
                 hideColors={true}
                 updateRecent={true}
-                hideAllFilters={this.props.hideAllFilters}
                 setFilter={this.props.setFilter}
                 on={$.inArray(book.book, this.props.filter) !== -1} />);
     }.bind(this));
     
     var color   = sjs.categoryColor(this.props.category);
     var style   = {"borderTop": "4px solid " + color};
-    var classes = cx({categoryFilter: 1, on: this.props.on});
+    var classes = classNames({categoryFilter: 1, on: this.props.on});
     var count   = (<span className="enInHe">{this.props.count}</span>);
     return (
       <div className="categoryFilterGroup" style={style}>
@@ -1710,12 +1763,9 @@ var TextFilter = React.createClass({
   handleClick: function() {
     this.props.setFilter(this.props.book, this.props.updateRecent);
     sjs.track.event("Reader", "Text Filter Click", this.props.book);
-    if (this.props.hideAllFilters) {
-      this.props.hideAllFilters();
-    }
   },
   render: function() {
-    var classes = cx({textFilter: 1, on: this.props.on, lowlight: this.props.count == 0});
+    var classes = classNames({textFilter: 1, on: this.props.on, lowlight: this.props.count == 0});
 
     if (!this.props.hideColors) {
       var color = sjs.categoryColor(this.props.category)

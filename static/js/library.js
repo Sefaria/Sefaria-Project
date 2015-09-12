@@ -85,7 +85,7 @@ sjs.library = {
         he: he[i],
         sections: data.sections.concat(i+1),
         sectionRef: sectionRef,
-        nextSegment: i+start == length ? null : data.ref + delim + (i+start+1),
+        nextSegment: i+start == length ? data.next + delim + 1 : data.ref + delim + (i+start+1),
         prevSegment: i+start == 1      ? null : data.ref + delim + (i+start-1),
       });
 
