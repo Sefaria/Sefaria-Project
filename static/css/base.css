@@ -244,8 +244,10 @@ body.hebrew #home .homeColumn {
 }
 
 #home #calendar a.haftara {
-    font-size: 13px;
-    margin-top: 10px;
+    font-size: 10px;
+    margin-top: 2px;
+    display: block;
+    float: none;
 }
 
 #home #calendar .calendarSection {
