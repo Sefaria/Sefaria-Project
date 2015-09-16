@@ -1,6 +1,8 @@
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 from sefaria.search import delete_text, index_text
+from sefaria.sheets import get_sheets_for_ref, get_sheet, save_sheet
+from sefaria.system.database import db
 
 class Splicer(object):
     """
@@ -28,6 +30,7 @@ class Splicer(object):
         self._save = False
         self._executed = False
         self._ready = False
+        self._sheets_to_update = []
 
     def _setup_refs(self):
         # Derive other refs and variables from from self.first_ref and self.second_ref
@@ -136,19 +139,60 @@ class Splicer(object):
 
         # Source sheet refs
         print u"\n---\nRewriting Source Sheet Refs\n---\n"
-        pass
+        self._find_sheets()
+        self._clean_sheets()
 
         # alt structs?
         print u"\n---\nRewriting Alt Struct Refs\n---\n"
         pass
 
-
         print u"\n---\nPushing changes to Elastic Search\n---\n"
         self._clean_elastisearch()
         pass
 
-
         #summaries.update_summaries_on_change(c_oref.book)
+
+    def _find_sheets(self):
+        def _get_sheets_with_ref(oref):
+            ref_re = oref.regex()
+            sheets = db.sheets.find({"included_refs": {"$regex": ref_re}}, {"id": 1})
+            return [s["id"] for s in sheets]
+
+        self._sheets_to_update += _get_sheets_with_ref(self.section_ref)
+        for commentary_title in self.commentary_titles:
+            commentator_book_ref = Ref(commentary_title)
+            commentator_chapter_ref = commentator_book_ref.subref(self.section_ref.sections)
+            self._sheets_to_update += _get_sheets_with_ref(commentator_chapter_ref)
+
+    def _clean_sheets(self):
+
+        def rewrite_source(source):
+            needs_save = False
+            if "ref" in source:
+                ref = Ref(source["ref"])
+                if self.needs_rewrite(ref, ref.is_commentary()):
+                    if self._report:
+                        print "Sheet refs - rewriting {} to {}".format(ref.normal(), self.rewrite(ref, ref.is_commentary()).normal())
+                    needs_save = True
+                    source["ref"] = self.rewrite(ref, ref.is_commentary()).normal()
+            if "subsources" in source:
+                for subsource in source["subsources"]:
+                    needs_save = rewrite_source(subsource) or needs_save
+            return needs_save
+        
+        for sid in self._sheets_to_update:
+            needs_save = False
+            sheet = db.sheets.find_one({"id": sid})
+            if not sheet:
+                print "Likely error - can't load sheet {}".format(sid)
+            for source in sheet["sources"]:
+                if rewrite_source(source):
+                    needs_save = True
+            if needs_save:
+                if self._report:
+                    print "Saving modified sheet #{}".format(sheet["id"])
+                if self._save:
+                    save_sheet(sheet, sheet["owner"])
 
     def _clean_elastisearch(self):
         """
@@ -200,7 +244,6 @@ class Splicer(object):
                             print "ElasticSearch: Deleting {} / {} / {}".format(comment_ref.normal(), v.versionTitle, v.language)
                         if self._save:
                             delete_text(comment_ref, v.versionTitle, v.language)
-
 
     def report(self):
         """

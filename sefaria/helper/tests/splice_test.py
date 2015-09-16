@@ -22,3 +22,9 @@ def test_es_cleanup():
     n = Splicer().spliceNextIntoThis(Ref("Shabbat 65a:11"))
     n._report = True
     n._clean_elastisearch()
+
+def test_sheet_cleanup():
+    n = Splicer().spliceNextIntoThis(Ref("Shabbat 25b:11"))
+    n._report = True
+    n._find_sheets()
+    n._clean_sheets()
