@@ -915,7 +915,6 @@ class SchemaNode(TitledTreeNode):
     def create_skeleton(self):
         return self.create_content(lambda n: [])
 
-
     def visit_content(self, callback, *contents, **kwargs):
         """
         Tree visitor for traversing content nodes of existing content trees based on this Index tree and passing them to callback.

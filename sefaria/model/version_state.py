@@ -179,12 +179,11 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
                 'sparseness': sum([contents[ckey][lkey]["sparseness"] for ckey in ckeys]) / len(ckeys),  # should be an int.  In Python 3 may need to int(round()) the result.
             }
 
-
     #todo: do we want to use an object here?
     def _content_node_visitor(self, snode, *contents, **kwargs):
         """
         :param snode: SchemaContentNode
-        :param contents: Array of two nodes - the current self.nodes node, and the self.counts node
+        :param contents: Array of one node - the self.counts node
         :param kwargs:
         :return:
         """
@@ -193,7 +192,6 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         depth = snode.depth  # This also acts as an assertion that we have a SchemaContentNode
         ja = {}  # JaggedIntArrays for each language and 'all'
         padded_ja = {}  # Padded JaggedIntArrays for each language
-
 
         # Get base counts for each language
         for lang, lkey in self.lang_map.items():
