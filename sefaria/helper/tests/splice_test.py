@@ -17,3 +17,8 @@ def test_rewrite():
 def test_report():
     n = Splicer().spliceNextIntoThis(Ref("Shabbat 45b:11"))
     n.report()
+
+def test_es_cleanup():
+    n = Splicer().spliceNextIntoThis(Ref("Shabbat 65a:11"))
+    n._report = True
+    n._clean_elastisearch()

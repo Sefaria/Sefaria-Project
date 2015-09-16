@@ -1,6 +1,6 @@
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
-from sefaria.search import delete_text
+from sefaria.search import delete_text, index_text
 
 class Splicer(object):
     """
@@ -37,6 +37,10 @@ class Splicer(object):
         self.first_segment_number = self.first_ref.sections[-1]
         self.second_segment_number = self.second_ref.sections[-1]
         self.comment_section_lengths = self._get_comment_section_lengths(self.first_ref)
+        self.commentary_titles = library.get_commentary_version_titles_on_book(self.first_ref.index.title)
+        self.versionSet = VersionSet({"title": self.first_ref.index.title})
+        self.last_segment_number = len(self.section_ref.get_state_ja().subarray_with_ref(self.section_ref))
+        self.last_segment_ref = self.section_ref.subref(self.last_segment_number)
         self._ready = True
 
     @staticmethod
@@ -111,9 +115,8 @@ class Splicer(object):
         self.generic_set_rewrite(HistorySet({"old.ref": {"$regex": self.book_ref.regex()}}), ref_attr_name="old", sub_ref_attr_name="ref")
         self.generic_set_rewrite(HistorySet({"old.refs": {"$regex": self.book_ref.regex()}}), ref_attr_name="old", sub_ref_attr_name="refs", is_set=True)
 
-
         print u"\n---\nRewriting Refs to Commentary\n---\n"
-        for commentary_title in library.get_commentary_version_titles_on_book(self.first_ref.index.title):
+        for commentary_title in self.commentary_titles:
             # Rewrite links to commentary (including to base text)
             print u"\n---\n{}\n---\n".format(commentary_title)
             print u"\n---\nRewriting Links\n---\n"
@@ -131,7 +134,6 @@ class Splicer(object):
             self.generic_set_rewrite(HistorySet({"old.ref": {"$regex": Ref(commentary_title).regex()}}), ref_attr_name="old", sub_ref_attr_name="ref", commentary=True)
             self.generic_set_rewrite(HistorySet({"old.refs": {"$regex": Ref(commentary_title).regex()}}), ref_attr_name="old", sub_ref_attr_name="refs", is_set=True, commentary=True)
 
-
         # Source sheet refs
         print u"\n---\nRewriting Source Sheet Refs\n---\n"
         pass
@@ -140,33 +142,65 @@ class Splicer(object):
         print u"\n---\nRewriting Alt Struct Refs\n---\n"
         pass
 
-        # ES - delete last segment that hangs off the edge of base text and commentaries after a merge
-        print u"\n---\nDeleting Dangling Last Segment from Elastic Search\n---\n"
+
+        print u"\n---\nPushing changes to Elastic Search\n---\n"
         self._clean_elastisearch()
         pass
 
-    def _clean_elastisearch(self):
-        last_segment = len(self.section_ref.get_state_ja().subarray_with_ref(self.section_ref))
-        last_segment_ref = self.section_ref.subref(last_segment)
-        vs = VersionSet({"title": self.first_ref.index.title})
-        for v in vs:
-            if self._report:
-                print "ElasticSearch: Deleting {} / {} / {}".format(last_segment_ref.normal, v.versionTitle, v.language)
-            if self._save:
-                delete_text(last_segment_ref, v.versionTitle, v.language)
 
-        #### not working!
-        for commentary_title in library.get_commentary_version_titles_on_book(self.first_ref.index.title):
+        #summaries.update_summaries_on_change(c_oref.book)
+
+    def _clean_elastisearch(self):
+        """
+        Re-index modified chapters in ES
+        Delete last segment that hangs off the edge of base text and commentaries after a merge
+        """
+
+        from sefaria.settings import SEARCH_INDEX_ON_SAVE
+        if not SEARCH_INDEX_ON_SAVE:
+            return
+
+        for v in self.versionSet:
+            if self._report:
+                print "ElasticSearch: Reindexing {} / {} / {}".format(self.section_ref.normal(), v.versionTitle, v.language)
+            if self._save:
+                index_text(self.section_ref, v.versionTitle, v.language)
+
+            # If this is not a Bavli ref, it's been indexed by segment.  Delete the last dangling segment
+            if not self.section_ref.is_bavli():
+                if self._report:
+                    print "ElasticSearch: Deleting {} / {} / {}".format(self.last_segment_ref.normal(), v.versionTitle, v.language)
+                if self._save:
+                    delete_text(self.last_segment_ref, v.versionTitle, v.language)
+
+        for commentary_title in self.commentary_titles:
             commentator_book_ref = Ref(commentary_title)
-            last_commentator_section_ref = commentator_book_ref.subref(last_segment_ref.sections)
-            last_segment = len(last_commentator_section_ref.get_state_ja().subarray_with_ref(last_commentator_section_ref))
-            for v in VersionSet({"title":commentary_title}):
-                for i in range(last_segment):
-                    ref = last_commentator_section_ref.subref(i + 1)
+            commentator_chapter_ref = commentator_book_ref.subref(self.section_ref.sections)
+            last_commentator_section_ref = commentator_book_ref.subref(self.last_segment_ref.sections)
+
+            for v in VersionSet({"title": commentary_title}):
+                for i in range(1, self.last_segment_number):  # no need to do the last one; it's deleted below
+                    commentor_section_ref = commentator_chapter_ref.subref(i)
                     if self._report:
-                        print "ElasticSearch: Deleting {} / {} / {}".format(ref.normal, v.versionTitle, v.language)
+                        print "ElasticSearch: Reindexing {} / {} / {}".format(commentor_section_ref.normal(), v.versionTitle, v.language)
                     if self._save:
-                        delete_text(ref, v.versionTitle, v.language)
+                        index_text(commentor_section_ref, v.versionTitle, v.language)
+
+                last_segment = len(last_commentator_section_ref.get_state_ja().subarray_with_ref(last_commentator_section_ref))
+
+                if commentator_book_ref.is_bavli() and last_segment > 0:
+                    if self._report:
+                        print "ElasticSearch: Deleting {} / {} / {}".format(last_commentator_section_ref.normal(), v.versionTitle, v.language)
+                    if self._save:
+                        delete_text(last_commentator_section_ref, v.versionTitle, v.language)
+                else:
+                    for i in range(last_segment):
+                        comment_ref = last_commentator_section_ref.subref(i+1)
+                        if self._report:
+                            print "ElasticSearch: Deleting {} / {} / {}".format(comment_ref.normal(), v.versionTitle, v.language)
+                        if self._save:
+                            delete_text(comment_ref, v.versionTitle, v.language)
+
 
     def report(self):
         """
@@ -202,8 +236,7 @@ class Splicer(object):
 
     def mergeBaseTextVersionSegments(self):
         # for each version, merge the text
-        vs = VersionSet({"title": self.first_ref.index.title})
-        for v in vs:
+        for v in self.versionSet:
             assert isinstance(v, Version)
             first_tc = TextChunk(self.first_ref, lang=v.language, vtitle=v.versionTitle)
             second_tc = TextChunk(self.second_ref, lang=v.language, vtitle=v.versionTitle)
@@ -217,7 +250,7 @@ class Splicer(object):
     def mergeCommentaryVersionSections(self):
         # Merge comments for all commentary on this text
         if not self.first_ref.is_commentary():
-            for v in library.get_commentary_versions_on_book(self.first_ref.index.title):
+            for v in  self.commentary_titles:
                 assert isinstance(v, Version)
                 commentator_book_ref = Ref(v.title)
                 commentator_section_ref = commentator_book_ref.subref(self.section_ref.sections)
@@ -258,7 +291,7 @@ class Splicer(object):
 
         # Remove segment from all commentary on this text
         if not local_ref.is_commentary():
-            for v in library.get_commentary_versions_on_book(local_ref.index.title):
+            for v in  self.commentary_titles:
                 assert isinstance(v, Version)
                 commentator_section_ref = Ref(v.title).subref(local_section_ref.sections)
                 commentator_segment_ref = Ref(v.title).subref(local_ref.sections)
@@ -366,7 +399,7 @@ class Splicer(object):
         # Refresh the version state of main text and commentary
         VersionState(self.first_ref.index).refresh()
         if not self.first_ref.is_commentary():
-            for vt in library.get_commentary_version_titles_on_book(self.first_ref.index.title):
+            for vt in  self.commentary_titles:
                 VersionState(vt).refresh()
 
     def __eq__(self, other):
@@ -379,4 +412,5 @@ class Splicer(object):
 def add_blank_segment_after(ref):
     assert ref.is_segment_level()
     assert not ref.is_range()
+    # generate list of what could be affected
 
