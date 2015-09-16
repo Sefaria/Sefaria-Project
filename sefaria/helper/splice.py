@@ -20,9 +20,15 @@ class Splicer(object):
         self.second_ref = None
         self.section_ref = None
         self.book_ref = None
+        self.index = None
         self.first_segment_number = None
         self.second_segment_number = None
         self.comment_section_lengths = None
+        self.commentary_titles = None
+        self.commentary_versions = None
+        self.versionSet = None
+        self.last_segment_number = None
+        self.last_segment_ref = None
         self._base_links_to_rewrite = []
         self._commentary_links_to_rewrite = []
         self._report = False
@@ -37,10 +43,12 @@ class Splicer(object):
         self.section_ref = self.first_ref.section_ref()
         assert self.section_ref == self.second_ref.section_ref(), "Not sure if this works across sections"
         self.book_ref = self.first_ref.context_ref(self.first_ref.index_node.depth)
+        self.index = self.book_ref.index
         self.first_segment_number = self.first_ref.sections[-1]
         self.second_segment_number = self.second_ref.sections[-1]
         self.comment_section_lengths = self._get_comment_section_lengths(self.first_ref)
         self.commentary_titles = library.get_commentary_version_titles_on_book(self.first_ref.index.title)
+        self.commentary_versions = library.get_commentary_versions_on_book(self.first_ref.index.title)
         self.versionSet = VersionSet({"title": self.first_ref.index.title})
         self.last_segment_number = len(self.section_ref.get_state_ja().subarray_with_ref(self.section_ref))
         self.last_segment_ref = self.section_ref.subref(self.last_segment_number)
@@ -55,6 +63,8 @@ class Splicer(object):
             commentator_segment_ref = commentator_book_ref.subref(ref.sections)
             ret[vtitle] = len(commentator_segment_ref.get_state_ja().subarray_with_ref(commentator_segment_ref))
         return ret
+
+    ####  Setup methods ####
 
     def spliceThisIntoNext(self, ref):
         assert ref.is_segment_level()
@@ -81,18 +91,53 @@ class Splicer(object):
     def spliceThisIntoPrev(self, ref):
         return self.splicePrevIntoThis(ref)
 
+    ### Execution Methods ####
+
+    def report(self):
+        """
+        Report what the splicer will do, but don't make any changes.
+        :return:
+        """
+        if self._executed:
+            print "Already executed"
+            return
+        if not self._ready:
+            print "No job given to Splicer"
+            return
+        self._report = True
+        self._save = False
+        self._run()
+        self._report = False
+
+    def execute(self):
+        """
+        Execute the splice.
+        :return:
+        """
+        if self._executed:
+            print "Already executed"
+            return
+        if not self._ready:
+            print "No job given to Splicer"
+            return
+        self._save = True
+        self._run()
+        self._rebuildVersionStates()
+        self._executed = True
+
+    ### Internal Methods ###
     def _run(self):
         print u"\n---\nMerging Base Text\n---\n"
-        self.mergeBaseTextVersionSegments()
+        self._mergeBaseTextVersionSegments()
 
         print u"\n---\nMerging Commentary Text\n---\n"
-        self.mergeCommentaryVersionSections()
+        self._mergeCommentaryVersionSections()
 
         print u"\n---\nRemoving Segment from Base Texts\n---\n"
-        self.removeBaseTextVersionSegments(self.second_ref)
+        self._removeBaseTextVersionSegments(self.second_ref)
 
         print u"\n---\nRemoving Section from Commentaries\n---\n"
-        self.removeCommentaryVersionsSections(self.second_ref)
+        self._removeCommentaryVersionsSections(self.second_ref)
 
         # For all of the below -
         # It takes longer, but we start at the base text, so as not to miss any ranged refs
@@ -100,42 +145,42 @@ class Splicer(object):
         # Rewrite links to base text (including links from own commentary)
         print u"\n---\nRewriting Refs to Base Text\n---\n"
         print u"\n---\nRewriting Links\n---\n"
-        self.generic_set_rewrite(LinkSet(self.book_ref), ref_attr_name="refs", is_set=True)
+        self._generic_set_rewrite(LinkSet(self.book_ref), ref_attr_name="refs", is_set=True)
 
         # Note refs
         print u"\n---\nRewriting Note Refs\n---\n"
-        self.generic_set_rewrite(NoteSet({"ref": {"$regex": self.book_ref.regex()}}))
+        self._generic_set_rewrite(NoteSet({"ref": {"$regex": self.book_ref.regex()}}))
 
         # Translation requests
         print u"\n---\nRewriting Translation Request Refs\n---\n"
-        self.generic_set_rewrite(TranslationRequestSet({"ref": {"$regex": self.book_ref.regex()}}))
+        self._generic_set_rewrite(TranslationRequestSet({"ref": {"$regex": self.book_ref.regex()}}))
 
         # History
         print u"\n---\nRewriting History Refs\n---\n"
-        self.generic_set_rewrite(HistorySet({"ref": {"$regex": self.book_ref.regex()}}))
-        self.generic_set_rewrite(HistorySet({"new.ref": {"$regex": self.book_ref.regex()}}), ref_attr_name="new", sub_ref_attr_name="ref")
-        self.generic_set_rewrite(HistorySet({"new.refs": {"$regex": self.book_ref.regex()}}), ref_attr_name="new", sub_ref_attr_name="refs", is_set=True)
-        self.generic_set_rewrite(HistorySet({"old.ref": {"$regex": self.book_ref.regex()}}), ref_attr_name="old", sub_ref_attr_name="ref")
-        self.generic_set_rewrite(HistorySet({"old.refs": {"$regex": self.book_ref.regex()}}), ref_attr_name="old", sub_ref_attr_name="refs", is_set=True)
+        self._generic_set_rewrite(HistorySet({"ref": {"$regex": self.book_ref.regex()}}))
+        self._generic_set_rewrite(HistorySet({"new.ref": {"$regex": self.book_ref.regex()}}), ref_attr_name="new", sub_ref_attr_name="ref")
+        self._generic_set_rewrite(HistorySet({"new.refs": {"$regex": self.book_ref.regex()}}), ref_attr_name="new", sub_ref_attr_name="refs", is_set=True)
+        self._generic_set_rewrite(HistorySet({"old.ref": {"$regex": self.book_ref.regex()}}), ref_attr_name="old", sub_ref_attr_name="ref")
+        self._generic_set_rewrite(HistorySet({"old.refs": {"$regex": self.book_ref.regex()}}), ref_attr_name="old", sub_ref_attr_name="refs", is_set=True)
 
         print u"\n---\nRewriting Refs to Commentary\n---\n"
         for commentary_title in self.commentary_titles:
             # Rewrite links to commentary (including to base text)
             print u"\n---\n{}\n---\n".format(commentary_title)
             print u"\n---\nRewriting Links\n---\n"
-            self.generic_set_rewrite(LinkSet(Ref(commentary_title)), ref_attr_name="refs", is_set=True, commentary=True)
+            self._generic_set_rewrite(LinkSet(Ref(commentary_title)), ref_attr_name="refs", is_set=True, commentary=True)
             print u"\n---\nRewriting Note Refs\n---\n"
-            self.generic_set_rewrite(NoteSet({"ref": {"$regex": Ref(commentary_title).regex()}}), commentary=True)
+            self._generic_set_rewrite(NoteSet({"ref": {"$regex": Ref(commentary_title).regex()}}), commentary=True)
             print u"\n---\nRewriting Translation Request Refs\n---\n"
-            self.generic_set_rewrite(TranslationRequestSet({"ref": {"$regex": Ref(commentary_title).regex()}}), commentary=True)
+            self._generic_set_rewrite(TranslationRequestSet({"ref": {"$regex": Ref(commentary_title).regex()}}), commentary=True)
 
             # History?
             print u"\n---\nRewriting History Refs\n---\n"
-            self.generic_set_rewrite(HistorySet({"ref": {"$regex": Ref(commentary_title).regex()}}), commentary=True)
-            self.generic_set_rewrite(HistorySet({"new.ref": {"$regex": Ref(commentary_title).regex()}}), ref_attr_name="new", sub_ref_attr_name="ref", commentary=True)
-            self.generic_set_rewrite(HistorySet({"new.refs": {"$regex": Ref(commentary_title).regex()}}), ref_attr_name="new", sub_ref_attr_name="refs", is_set=True, commentary=True)
-            self.generic_set_rewrite(HistorySet({"old.ref": {"$regex": Ref(commentary_title).regex()}}), ref_attr_name="old", sub_ref_attr_name="ref", commentary=True)
-            self.generic_set_rewrite(HistorySet({"old.refs": {"$regex": Ref(commentary_title).regex()}}), ref_attr_name="old", sub_ref_attr_name="refs", is_set=True, commentary=True)
+            self._generic_set_rewrite(HistorySet({"ref": {"$regex": Ref(commentary_title).regex()}}), commentary=True)
+            self._generic_set_rewrite(HistorySet({"new.ref": {"$regex": Ref(commentary_title).regex()}}), ref_attr_name="new", sub_ref_attr_name="ref", commentary=True)
+            self._generic_set_rewrite(HistorySet({"new.refs": {"$regex": Ref(commentary_title).regex()}}), ref_attr_name="new", sub_ref_attr_name="refs", is_set=True, commentary=True)
+            self._generic_set_rewrite(HistorySet({"old.ref": {"$regex": Ref(commentary_title).regex()}}), ref_attr_name="old", sub_ref_attr_name="ref", commentary=True)
+            self._generic_set_rewrite(HistorySet({"old.refs": {"$regex": Ref(commentary_title).regex()}}), ref_attr_name="old", sub_ref_attr_name="refs", is_set=True, commentary=True)
 
         # Source sheet refs
         print u"\n---\nRewriting Source Sheet Refs\n---\n"
@@ -144,13 +189,34 @@ class Splicer(object):
 
         # alt structs?
         print u"\n---\nRewriting Alt Struct Refs\n---\n"
-        pass
+        self._rewrite_alt_structs()
 
         print u"\n---\nPushing changes to Elastic Search\n---\n"
         self._clean_elastisearch()
-        pass
 
         #summaries.update_summaries_on_change(c_oref.book)
+
+    def _rewrite_alt_structs(self):
+        if not self.index.has_alt_structures():
+            return
+        needs_save = False
+        for name, struct in self.index.get_alt_structures().iteritems():
+            for map_node in struct.get_leaf_nodes():
+                assert map_node.depth <= 1, "Need to write some code to handle alt structs with depth > 1!"
+                wr = Ref(map_node.wholeRef)
+                if self._needs_rewrite(wr, wr.is_commentary()):
+                    needs_save = True
+                    map_node.wholeRef = self._rewrite(wr, wr.is_commentary()).normal()
+                for i, r in enumerate(map_node.refs):
+                    ref = Ref(r)
+                    if self._needs_rewrite(ref, ref.is_commentary()):
+                        needs_save = True
+                        map_node.refs[i] = self._rewrite(ref, ref.is_commentary()).normal()
+        if needs_save:
+            if self._report:
+                print "Saving {} alt structs".format(self.index.title)
+            if self._save:
+                self.index.save()
 
     def _find_sheets(self):
         def _get_sheets_with_ref(oref):
@@ -170,16 +236,16 @@ class Splicer(object):
             needs_save = False
             if "ref" in source:
                 ref = Ref(source["ref"])
-                if self.needs_rewrite(ref, ref.is_commentary()):
+                if self._needs_rewrite(ref, ref.is_commentary()):
                     if self._report:
-                        print "Sheet refs - rewriting {} to {}".format(ref.normal(), self.rewrite(ref, ref.is_commentary()).normal())
+                        print "Sheet refs - rewriting {} to {}".format(ref.normal(), self._rewrite(ref, ref.is_commentary()).normal())
                     needs_save = True
-                    source["ref"] = self.rewrite(ref, ref.is_commentary()).normal()
+                    source["ref"] = self._rewrite(ref, ref.is_commentary()).normal()
             if "subsources" in source:
                 for subsource in source["subsources"]:
                     needs_save = rewrite_source(subsource) or needs_save
             return needs_save
-        
+
         for sid in self._sheets_to_update:
             needs_save = False
             sheet = db.sheets.find_one({"id": sid})
@@ -245,39 +311,7 @@ class Splicer(object):
                         if self._save:
                             delete_text(comment_ref, v.versionTitle, v.language)
 
-    def report(self):
-        """
-        Report what the splicer will do, but don't make any changes.
-        :return:
-        """
-        if self._executed:
-            print "Already executed"
-            return
-        if not self._ready:
-            print "No job given to Splicer"
-            return
-        self._report = True
-        self._save = False
-        self._run()
-        self._report = False
-
-    def execute(self):
-        """
-        Execute the splice.
-        :return:
-        """
-        if self._executed:
-            print "Already executed"
-            return
-        if not self._ready:
-            print "No job given to Splicer"
-            return
-        self._save = True
-        self._run()
-        self.rebuildVersionStates()
-        self._executed = True
-
-    def mergeBaseTextVersionSegments(self):
+    def _mergeBaseTextVersionSegments(self):
         # for each version, merge the text
         for v in self.versionSet:
             assert isinstance(v, Version)
@@ -290,10 +324,10 @@ class Splicer(object):
                 if self._save:
                     first_tc.save()
 
-    def mergeCommentaryVersionSections(self):
+    def _mergeCommentaryVersionSections(self):
         # Merge comments for all commentary on this text
         if not self.first_ref.is_commentary():
-            for v in  self.commentary_titles:
+            for v in self.commentary_versions:
                 assert isinstance(v, Version)
                 commentator_book_ref = Ref(v.title)
                 commentator_section_ref = commentator_book_ref.subref(self.section_ref.sections)
@@ -311,7 +345,7 @@ class Splicer(object):
                 if self._save:
                     tc.save()
 
-    def removeBaseTextVersionSegments(self, local_ref):
+    def _removeBaseTextVersionSegments(self, local_ref):
         assert local_ref.is_segment_level()
         local_section_ref = local_ref.section_ref()
         local_segment_number = local_ref.sections[-1]
@@ -327,14 +361,14 @@ class Splicer(object):
             if self._save:
                 tc.save()
 
-    def removeCommentaryVersionsSections(self, local_ref):
+    def _removeCommentaryVersionsSections(self, local_ref):
         assert local_ref.is_segment_level()
         local_section_ref = local_ref.section_ref()
         local_segment_number = local_ref.sections[-1]
 
         # Remove segment from all commentary on this text
         if not local_ref.is_commentary():
-            for v in  self.commentary_titles:
+            for v in  self.commentary_versions:
                 assert isinstance(v, Version)
                 commentator_section_ref = Ref(v.title).subref(local_section_ref.sections)
                 commentator_segment_ref = Ref(v.title).subref(local_ref.sections)
@@ -347,12 +381,13 @@ class Splicer(object):
                 if self._save:
                     tc.save()
 
-    def needs_rewrite(self, old_ref, commentary=False):
+    def _needs_rewrite(self, old_ref, commentary=False):
         assert isinstance(old_ref, Ref)
 
         def simple_needs_rewrite(old_simple_ref):
             assert isinstance(old_simple_ref, Ref)
-            if (len(old_simple_ref.sections) >= self.first_ref.index_node.depth
+            if (old_simple_ref.index == self.first_ref.index
+                and len(old_simple_ref.sections) >= self.first_ref.index_node.depth
                 and old_simple_ref.sections[self.first_ref.index_node.depth - 2] == self.section_ref.sections[-1]
                 and old_simple_ref.sections[self.first_ref.index_node.depth - 1] > self.first_segment_number
                ):
@@ -365,7 +400,7 @@ class Splicer(object):
             return simple_needs_rewrite(old_ref.starting_ref()) or simple_needs_rewrite(old_ref.ending_ref())
         return simple_needs_rewrite(old_ref)
 
-    def rewrite(self, old_ref, commentary=False):
+    def _rewrite(self, old_ref, commentary=False):
         assert isinstance(old_ref, Ref)
 
         def simple_rewrite(old_simple_ref):
@@ -390,7 +425,7 @@ class Splicer(object):
             return simple_rewrite(old_ref.starting_ref()).to(simple_rewrite(old_ref.ending_ref()))
         return simple_rewrite(old_ref)
 
-    def generic_set_rewrite(self, model_set, commentary=False, ref_attr_name="ref", sub_ref_attr_name=None, is_set=False):
+    def _generic_set_rewrite(self, model_set, commentary=False, ref_attr_name="ref", sub_ref_attr_name=None, is_set=False):
         for n in model_set:
             needs_save = False
 
@@ -412,9 +447,9 @@ class Splicer(object):
                 continue
 
             for i, ref in enumerate(refs):
-                if self.needs_rewrite(ref, commentary=commentary):
+                if self._needs_rewrite(ref, commentary=commentary):
                     needs_save = True
-                    refs[i] = self.rewrite(ref, commentary=commentary)
+                    refs[i] = self._rewrite(ref, commentary=commentary)
 
             if needs_save:
                 if is_set:
@@ -438,7 +473,7 @@ class Splicer(object):
                 if self._save:
                     n.save()
 
-    def rebuildVersionStates(self):
+    def _rebuildVersionStates(self):
         # Refresh the version state of main text and commentary
         VersionState(self.first_ref.index).refresh()
         if not self.first_ref.is_commentary():
