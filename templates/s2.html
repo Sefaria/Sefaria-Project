@@ -1,14 +1,21 @@
-{% extends "base.html" %}
+{% extends "s2_base.html" %}
 {% load sefaria_tags %}
 
 {% block title %}{{ ref }}{% endblock %}
 
-{% block content %}
+{% block head %}
 <link rel="stylesheet" href="/static/css/s2.css">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+{% endblock %}
 
-<div id="s2"></div>
+{% block content %}
+
+<div id="s2">
+  <div id="sefaria">
+      {% include "elements/sefaria.logotype.svg" %}
+  </div>
+</div>
 
 <div id="overlay"></div>
 
@@ -18,12 +25,13 @@
     <script src="/static/js/headroom.js"></script>
     <script src="/static/js/jquery.scrollTo.js"></script>
     <script src="/static/js/library.js"></script>
-    <script src="/static/js/react-with-addons.js"></script>
     {% if DEBUG %}
+    <script src="/static/js/react.js"></script>
     <script src="/static/js/JSXTransformer.js"></script>
     <script type="text/jsx" src="/static/js/s2.jsx"></script>
     <script type="text/jsx" src="/static/js/s2-search.jsx"></script>
     {% else %}
+    <script src="/static/js/react.js"></script>
     <script src="/static/js/s2.js"></script>
     {% endif %}
     <script {% if DEBUG %}type="text/jsx"{% endif %}>

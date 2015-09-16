@@ -1,5 +1,6 @@
 body {
   padding: 0;
+  margin: 0;
 }
 body.sepia {
   background-color: #F7F7F7; 
@@ -7,19 +8,38 @@ body.sepia {
 body.dark {
   background-color: #333; 
 }
-#sefaria > .fa-caret-down {
-  display: none;
+
+#sefaria {
+  text-align: center: ;
 }
-#right {
-  display: none;
-}
+
 #s2 {
-  padding: 0 0 30px 0;
-  max-width: 800px;
-  margin: 0 auto;
-  min-height: 100%;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+.readerApp {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
   background-color: inherit;
   font-family: Georgia, serif;
+}
+.readerContent {
+  width: 100%;
+  height: 100%;
+  background-color: inherit;
+}
+.textColumn {
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll;
+  overflow-x: auto;
+  position: relative;
+  padding: 100px 0 100%;
+  box-sizing: border-box;
+  background-color: inherit;
 }
 .readerApp .he,
 .readerApp .heOnly {
@@ -77,8 +97,6 @@ body .bilingual .enOnly .he {
 }
 #top #right #accountBox {
   display: none;
-}
-.readerApp {
 }
 .readerApp.light {
   background-color: white;
@@ -312,7 +330,7 @@ body .bilingual .enOnly .he {
   text-align: center;
 }
 .categoryColorLine {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
@@ -359,12 +377,14 @@ body .bilingual .enOnly .he {
 }
 .readerTextTableOfContents .content #structToggles {
   margin-bottom: 20px;
+  text-align: center;
 }
 .readerTextTableOfContents #structToggles .altStructToggle.active {
   color: black;
 }
 .readerTextTableOfContents #structToggles .altStructToggle {
   color: #999;
+  display: inline-block;
 }
 .readerTextTableOfContents .content .sectionName {
   display: none;
@@ -543,11 +563,9 @@ body .bilingual .enOnly .he {
   font-size: 11px;
   font-family: "Helvetica Neue", "Helvetica", sans-serif;
 }
-
-#readerControls {
-  position: fixed;
+.readerControls {
+  position: absolute;
   direction: ltr;
-  right: 0;
   top: 0;
   left: 0;
   width: 100%;
@@ -557,40 +575,40 @@ body .bilingual .enOnly .he {
   line-height: 47px;
   border-bottom: 1px solid #ddd;
   background-color: #F9F9F7;
-  -moz-user-select: none; 
-  -khtml-user-select: none; 
-  -webkit-user-select: none; 
-  -o-user-select: none; 
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -o-user-select: none;
 }
-.dark #readerControls {
+.dark .readerControls {
   background-color: #333;
   color: white;
   border-color: #666;
 }
-#readerControls #readerNav,
-#readerControls #readerTextToc,
-#readerControls #readerOptions {
+.readerControls #readerNav,
+.readerControls #readerTextToc,
+.readerControls #readerOptions {
   text-align: center;
   display: inline-block;
   cursor: pointer;
   vertical-align: middle;
 }
-#readerControls #readerNav, #readerControls #readerOptions  {
+.readerControls #readerNav, .readerControls #readerOptions  {
   width: 10%;
   color: #BFBFBF;
   font-size: 20px;
   box-sizing: border-box;
   text-align: left;
 }
-#readerControls #readerTextToc {
+.readerControls #readerTextToc {
   width: 80%;
   font-size: 17px;
   box-sizing: border-box;
 }
-.hebrew #readerControls #readerTextToc {
+.hebrew .readerControls #readerTextToc {
   direction: rtl;
 }
-#readerControls #readerTextToc .readerTextTocBox {
+.readerControls #readerTextToc .readerTextTocBox {
   display: inline-block;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -598,25 +616,25 @@ body .bilingual .enOnly .he {
   max-width: 82%;
   vertical-align: middle;
 }
-#readerControls #readerTextToc .fa-caret-down {
+.readerControls #readerTextToc .fa-caret-down {
   color: #D4D4D2;
   margin: 0 7px;
   vertical-align: 0px;
 }
-#readerControls #readerTextToc .fa-caret-down.invisible {
-  visibility: none;
+.readerControls #readerTextToc .fa-caret-down.invisible {
+  visibility: hidden;
 }
 .bilingual #readerTextToc .he {
   display: none;
 }
-#readerControls #readerNav {
+.readerControls #readerNav {
   padding-left: 10px;
 }
-#readerControls #readerOptions {
+.readerControls #readerOptions {
   text-align: right;
   padding-right: 10px;
 }
-#readerControls .controlsButton {
+.readerControls .controlsButton {
   cursor: pointer;
   display: inline-block;
   margin: 0 4px;
@@ -630,20 +648,20 @@ body .bilingual .enOnly .he {
   vertical-align: middle;
   text-align: center;
 }
-#readerControls .controlsButton:hover,
-#readerControls .controlsButton:active {
+.readerControls .controlsButton:hover,
+.readerControls .controlsButton:active {
   background-color: #eee;
   color: #555;
 }
-.dark #readerControls .controlsButton {
+.dark .readerControls .controlsButton {
   border-color: #666;
 }
-#readerControls #readerPrevious {
+.readerControls #readerPrevious {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
   margin-right: -1px;
 }
-#readerControls #readerNext {
+.readerControls #readerNext {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
   margin-left: 0;
@@ -687,6 +705,7 @@ body .bilingual .enOnly .he {
 }
 .toggleSet.separated .toggleOption {
   margin-right: 3%;
+  border-right: 1px solid #aaa;
 }
 .toggleSet.separated .toggleOption:last-child {
   margin-right: 0;
@@ -729,12 +748,6 @@ body .bilingual .enOnly .he {
   z-index: 102;
   cursor: pointer;
 }
-#readerContent {
-  background-color: inherit;
-}
-.textColumn {
-  padding-top: 20px;
-}
 .textRange.basetext {
   width: 100%;
   box-sizing: border-box;
@@ -742,10 +755,10 @@ body .bilingual .enOnly .he {
   line-height: 1.6;
   text-align: justify;
   background-color: inherit;
-  margin: 0 auto;
+  margin: 0;
 }
-.textRange.basetext .title {  
-  padding: 34px 28px;
+.textRange.basetext .title {
+  padding: 12px 28px 34px;
   color: #999;
   text-align: center;
   font-weight: lighter;
@@ -796,6 +809,7 @@ body .bilingual .enOnly .he {
 .continuous.bilingual .segment.enOnly .en {
   display: inline;
 }
+.basetext .segment:hover,
 .basetext .segment:active,
 .basetext .segment:focus,
 .basetext .segment.highlight {
@@ -825,6 +839,7 @@ body .bilingual .enOnly .he {
   font-family: Helvetica, sans-serif;
   color: #999;
   position: absolute;
+  top: 0;
   background-color: inherit;
   width: 30px;
   text-align: center;
@@ -854,14 +869,14 @@ body .bilingual .enOnly .he {
 }
 .readerApp.hebrew .segment .segmentNumber,
 .readerApp.bilingual .segment .segmentNumber {
-  right: 5px;
+  right: 11px;
 }
 .readerApp.english .segment .linkCount {
   right: 11px;
 }
 .readerApp.hebrew .segment .linkCount,
 .readerApp.bilingual .segment .linkCount {
-  left: 11px;
+  left: 4px;
 }
 .segment .refLink {
   font-size: .8em;
@@ -890,6 +905,9 @@ body .bilingual .enOnly .he {
   overflow: hidden;
   overflow-y: scroll;
   padding-top: 40px;
+}
+.textList .fullFilterView {
+  padding-top: 25px;
 }
 .textListTop {
   position: absolute;

@@ -756,6 +756,7 @@ body.embeded #top {
   border-right: none;
   letter-spacing: 1px;
   font-size: 1px;
+  box-sizing: border-box;
 }
 
 .toggleOption img {

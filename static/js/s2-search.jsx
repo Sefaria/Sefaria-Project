@@ -1,5 +1,4 @@
 var sjs = sjs || {};
-var cx  = React.addons.classSet;
 
 var SearchPage = React.createClass({
     propTypes: {

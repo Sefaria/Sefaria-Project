@@ -591,7 +591,9 @@
 
 
 		// NavPanel
-		sjs.navPanel.init();
+		if ($("#navPanel").length) {
+            sjs.navPanel.init();
+        }
 
 		// Close menus on outside click
 		$(window).click(function(){
@@ -623,7 +625,9 @@
 
 
 		// Default tooltipster
-		$(".tooltipster").tooltipster();
+		if ($().tooltipster) {
+            $(".tooltipster").tooltipster();
+        }
 
 
 	    // Notifications - Mark as read

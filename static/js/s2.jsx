@@ -11,9 +11,9 @@ var ReaderApp = React.createClass({
   },
   getInitialState: function() {
     if (this.props.initialRef) {
-      var contents = [{type: "TextColumn", refs: [this.props.initialRef], scrollTop: 20 }];
+      var contents = [{type: "TextColumn", refs: [this.props.initialRef]}];
       if (this.props.initialFilter) {
-        contents.push({type: "TextList", ref: this.props.initialRef, scrollTop: 0 });
+        contents.push({type: "TextList", ref: this.props.initialRef});
       }      
     } else {
       var contents = [];
@@ -40,27 +40,23 @@ var ReaderApp = React.createClass({
   },
   componentDidMount: function() {
     window.addEventListener("popstate", this.handlePopState);
-    window.addEventListener("scroll", this.handleScroll);
 
     var hist = this.makeHistoryState()
     history.replaceState(hist.state, hist.title, hist.url);
-
-    $("#readerControls").headroom();
-    this.updateHeadroom();
-
-    $("#top").hide();
+    console.log($(React.findDOMNode(this)).find(".textColumn"))
+    $(React.findDOMNode(this)).find(".readerControls").headroom({scroller: $(React.findDOMNode(this)).find(".textColumn")[0]});
   },
   componentWillUnmount: function() {
     window.removeEventListener("popstate", this.handlePopState);
-    window.removeEventListener("scroll", this.handleScroll);
+  },
+  componentWillUpdate: function(nextProps, nextState) {
+
   },
   componentDidUpdate: function() {
     this.updateHistoryState();
-    this.updateHeadroom();
   },
   rerender: function() {
     this.setState({});
-    this.adjustInfiniteScroll();
   },
   shouldHistoryUpdate: function() {
     // Compare the current history state to the current content state,
@@ -167,117 +163,21 @@ var ReaderApp = React.createClass({
       this.setState(state);
     }
   },
-  handleScroll: function(event) {
-    if (this.state.contents.length) {
-      console.log("saving scrolltop " + $(window).scrollTop());
-      this.state.contents[0].scrollTop = $(window).scrollTop();
-      this.setState({contents: this.state.contents});
-    }
-
-    if (this.currentMode() === "TextList") {
-      this.adjustTextListHighlight();
-    }
-
-    this.adjustInfiniteScroll();
-  },
   handleBaseSegmentClick: function(ref) {
-    var mode = this.currentMode();
-    if ( mode === "TextList") {
-      this.backToText();
-    } else if ( mode === "TextColumn") {
-      this.showTextList(ref);
-      this.scrollToHighlighted();
-    }
-  },
-  adjustInfiniteScroll: function() {
-    if (this.state.contents.length) {
-      var current      = this.state.contents[0];
-      var $lastText    = $(".textRange.basetext").last();
-      var lastTop      = $lastText.offset().top;
-      var lastBottom   = lastTop + $lastText.outerHeight();
-      var windowTop    = $(window).scrollTop();
-      var windowBottom = windowTop + $(window).height();
-      if (lastTop > (windowBottom + 100) && current.refs.length > 1) { 
-        // Remove a section scrolled out of view on bottom
-        current.refs = current.refs.slice(0,-1);
-        this.setState({contents: this.state.contents});
-      } else if ( lastBottom < windowBottom ) {
-        // Add the next section to bottom
-        if ($lastText.hasClass("loading")) { 
-          return;
-        }
-        currentRef = current.refs.slice(-1)[0];
-        data       = sjs.library.ref(currentRef);
-        if (data && data.next) {
-          current.refs.push(data.next);
-          this.setState({contents: this.state.contents, replaceHistory: true});
-        }
-        sjs.track.event("Reader", "Infinite Scroll", "Down");
-      } else if (windowTop < 10 && !this.state.loadingContentAtTop) {
-        // Scroll up for previous
-        topRef = current.refs[0];
-        data   = sjs.library.ref(topRef);
-        console.log("UP")
-        if (data && data.prev) {
-          current.refs.splice(current.refs, 0, data.prev);
-          this.setState({contents: this.state.contents, replaceHistory: true, loadingContentAtTop: true});
-        }
-        sjs.track.event("Reader", "Infinite Scroll", "Up");
-      } else {
-        // nothing happens
-      }
-    } 
-  },
-  adjustTextListHighlight: function() {
-    window.requestAnimationFrame(function() {
-
-      console.log("adjust text list highlight")
-      var currentRef   = sjs.library.ref(this.currentRef());
-      var $container   = $(window);
-      var $readerApp   = $(React.findDOMNode(this));
-      var viewport     = $container.height() - $readerApp.find(".textList").outerHeight();
-      var center       = $container.scrollTop() + (viewport/2);
-
-      $readerApp.find(".basetext .segment").each(function(i, segment) {
-        var $segment = $(segment);
-        if ($segment.offset().top + $segment.outerHeight() > center) {
-          this.showTextList($segment.attr("data-ref"));
-          return false;
-        }
-      }.bind(this));
-    }.bind(this));
-
-    /*
-    var $current     = $readerApp.find(".segment.highlight");
-    var $before      = $readerApp.find(".segment[data-ref='" + currentRef.prevSegment + "']");
-    var $after       = $readerApp.find(".segment[data-ref='" + currentRef.nextSegment + "']");
-
-    if ($before.length) {
-      var beforeBottom = $before.offset().top + $before.outerHeight();
-      if (beforeBottom > center) {
-        this.showTextList(currentRef.prevSegment);
-        return;
-      } 
-    }
-    if ($after.length) {
-      var afterTop     = $after.offset().top;
-    if (afterTop < center) {
-        this.showTextList(currentRef.nextSegment);
-        return;
-      }
-    }
-    */
-  },
-  updateHeadroom: function() {
-    return;
+    console.log(ref)
     var mode = this.currentMode();
     if (mode === "TextList") {
-      $("#readerControls").addClass("headroomOff");
-    } else {
-      $("#readerControls").removeClass("headroomOff");
+      this.backToText();
+    } else if (mode === "TextColumn") {
+      this.showTextList(ref);
     }
   },
   showTextList: function(ref) {
+    if (this.state.contents.length == 2) {
+      this.setState({replaceHistory: true});
+    } else {
+      this.setState({replaceHistory: false});
+    }
     this.state.contents[1] = {type: "TextList", ref: ref, scrollTop: 0};
     this.setState({contents: this.state.contents });
   },
@@ -286,11 +186,19 @@ var ReaderApp = React.createClass({
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
     replaceHistory = typeof replaceHistory === "undefined" ? false : replaceHistory;
     this.setState({
-      contents: [{type: "TextColumn", refs: [ref], scrollTop: 20 }],
+      contents: [{type: "TextColumn", refs: [ref] }],
       filter: [],
       recentFilters: [],
       replaceHistory: replaceHistory,
       menuOpen: null
+    });
+  },
+  updateTextColumn: function(refs) {
+    // Change the refs in the current TextColumn, for infinite scroll up/down.
+    this.state.contents[0].refs = refs;
+    this.setState({
+      contents: this.state.contents,
+      replaceHistory: true
     });
   },
   backToText: function() {
@@ -299,8 +207,8 @@ var ReaderApp = React.createClass({
     this.setState({contents: this.state.contents});
   },  
   closeMenus: function() {
-    // If there's no content to show, return to navigation
     var state = {
+      // If there's no content to show, return to navigation
       menuOpen: this.state.contents.length ? null: "navigation",
       searchQuery: null,
       navigationSheetTag: null
@@ -394,48 +302,6 @@ var ReaderApp = React.createClass({
     if (option === "language") {
       $.cookie("contentLang", value, {path: "/"});
     }
-
-    if (option === "color") {
-      // Needed because of the footer space left by base.html, remove after switching bases
-      $("body").removeClass("light sepia dark").addClass(value);
-    }
-  },
-  setScrollTop: function() {
-    if (this.state.contents.length) {
-      var current = this.state.contents[0];
-      if (this.state.loadingContentAtTop) {
-        // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-        var $reader = $(React.findDOMNode(this));
-        var adjust  = $reader.offset().top + parseInt($reader.find(".textColumn").css("padding-top").replace("px", ""));
-        var top     = $reader.find(".basetext").eq(1).position().top - adjust;
-        this.setState({loadingContentAtTop: false});
-      } else if (current.scrollTop !== 20) {
-        // restore the previously saved scrollTop
-        var top = current.scrollTop;
-      } else if ($(".segment.highlight").length) {
-        // scroll to highlighted segment
-        this.scrollToHighlighted();
-        var top = 20; 
-      } else {
-        var top = 20; // below zero to give room to scroll up for previous
-      }      
-      console.log("Set Scroll Top " + top)
-      $(window).scrollTop(top);
-    }
-  },
-  scrollToHighlighted: function() {
-    window.requestAnimationFrame(function() {
-      console.log("scroll to highlighted")
-      var $readerApp   = $(React.findDOMNode(this));
-      var $highlighted = $readerApp.find(".segment.highlight").first();
-      if ($highlighted.length) {
-        var $container = $(window);
-        var height     = $highlighted.outerHeight();
-        var viewport   = $container.height() - $readerApp.find(".textList").outerHeight();
-        var offset     = height > viewport + 30 ? 30 : (viewport - height) / 2;
-        $container.scrollTo($highlighted, 0, {offset: -offset});
-      }
-    }.bind(this));
   },
   currentContent: function() {
     // Returns the current content item
@@ -474,25 +340,22 @@ var ReaderApp = React.createClass({
     var textListRef = this.currentMode() === "TextList" ? this.currentRef() : null;
     var items = this.state.contents.map(function(item, i) {
       if (item.type === "TextColumn") {
-        var content = item.refs.map(function(ref, k) {
-          return (<TextRange 
-            sref={ref}
+        return (<TextColumn
+            srefs={item.refs}
             textListRef={textListRef}
             basetext={true}
             withContext={true}
             loadLinks={true}
             prefetchNextPrev={true}
-            settings={this.state.settings}
+            settings={clone(this.state.settings)}
             setOption={this.setOption}
-            setScrollTop={this.setScrollTop}
             showBaseText={this.showBaseText} 
             showTextList={this.showTextList}
+            updateTextColumn={this.updateTextColumn}
             onBaseSegmentClick={this.handleBaseSegmentClick}
             rerender={this.rerender}
             filter={this.state.filter}
-            key={k + ref} />);      
-        }.bind(this));
-        return (<div className='textColumn'>{content}</div>);
+            key={i} />);   
       } else if (item.type === "TextList") {
         return (
           <TextList 
@@ -504,7 +367,7 @@ var ReaderApp = React.createClass({
             showTextList={this.showTextList}
             showBaseText={this.showBaseText} 
             backToText={this.backToText} 
-            key={1} />
+            key={i} />
         );
       }
     }.bind(this));
@@ -576,11 +439,11 @@ var ReaderApp = React.createClass({
           openMenu={this.openMenu}
           closeMenus={this.closeMenus}
           currentLayout={this.currentLayout} />
-          <div id="readerContent" style={style}>
-            {items}
-          </div>
-          {menu}
-          {this.state.menuOpen === "display" ? (<div id="mask" onClick={this.closeMenus}></div>) : ""}
+        <div className="readerContent" style={style}>
+          {items}
+        </div>
+        {menu}
+        {this.state.menuOpen === "display" ? (<div id="mask" onClick={this.closeMenus}></div>) : ""}
       </div>
     );
   }
@@ -610,7 +473,7 @@ var ReaderControls = React.createClass({
     return (
       <div>
         <div className="categoryColorLine" style={lineStyle}></div>
-        <div id="readerControls" className="headroom">
+        <div className="readerControls headroom">
           <div id="readerNav"  onClick={this.props.openMenu.bind(null, "navigation")}><i className="fa fa-search"></i></div>
           <div id="readerTextToc" onClick={this.props.openMenu.bind(null, "text toc")}>
             { title ? (<i className="fa fa-caret-down invisible"></i>) : "" }
@@ -1146,6 +1009,208 @@ var ToggleOption = React.createClass({
 });
 
 
+var TextColumn = React.createClass({
+  // An infinitely scrollable column of text, composed of TextRanges for each section.
+  propTypes: {
+    srefs:              React.PropTypes.array.isRequired,
+    textListRef:        React.PropTypes.string,
+    basetext:           React.PropTypes.bool,
+    withContext:        React.PropTypes.bool,
+    loadLinks:          React.PropTypes.bool,
+    prefetchNextPrev:   React.PropTypes.bool,
+    openOnClick:        React.PropTypes.bool,
+    lowlight:           React.PropTypes.bool,
+    settings:           React.PropTypes.object,
+    showBaseText:       React.PropTypes.func,
+    showTextList:       React.PropTypes.func,
+    updateTextColumn:   React.PropTypes.func,
+    rerender:           React.PropTypes.func,
+    onTextLoad:         React.PropTypes.func,
+    onBaseSegmentClick: React.PropTypes.func,
+    onTextLoad:         React.PropTypes.func
+  },
+  componentDidMount: function() {
+    console.log("text column mount")
+    this.initialScrollTopSet = false;
+    var node = this.getDOMNode();
+    node.addEventListener("scroll", this.handleScroll); //throttle(this.handleScroll, 1));
+  },
+  componentWillUnmount: function() {
+    var node = this.getDOMNode();
+    node.removeEventListener("scroll", this.handleScroll);
+  },
+  componentWillReceiveProps: function(nextProps) {
+    if (nextProps.srefs.length == 1 && $.inArray(nextProps.srefs[0], this.props.srefs) == -1) {
+      // If we are switching to a single ref no in the current textcolumn,
+      // treat it as a fresh open.
+      console.log("reset initial st")
+      this.initialScrollTopSet = false;
+    }
+  },
+  componentDidUpdate: function(prevProps, prevState) {
+    console.log("tc update")
+    this.setScrollPosition();
+  },
+  handleScroll: function(event) {
+    if (this.props.textListRef) {
+      this.adjustTextListHighlight();
+    }
+    this.adjustInfiniteScroll();   
+  },
+  handleTextLoad: function() {
+    
+  },
+  setScrollPosition: function() {
+    if (this.loadingContentAtTop) {
+      // After adding content by infinite scrolling up, scroll back to what the user was just seeing
+      console.log("Setting scroll top for Infinite UP")
+      var $node   = $(React.findDOMNode(this));
+      var adjust  = $node.css("padding-top").replace("px", "");
+      var top     = $node.find(".basetext").eq(1).position().top + $node.scrollTop() - adjust;
+      if (!$node.find(".basetext").eq(0).hasClass("loading")) {
+        this.loadingContentAtTop = false;
+      }
+      this.initialScrollTopSet = true;
+      console.log("Set Scroll Top " + top);
+      $node.scrollTop(top);
+    } else if (!this.initialScrollTopSet && $(".segment.highlight").length) {
+      // scroll to highlighted segment
+      this.scrollToHighlighted();
+      this.initialScrollTopSet = true;
+    } else if (!this.initialScrollTopSet) {
+      var node = this.getDOMNode();
+      node.scrollTop = 30;
+      this.initialScrollTopSet = true;
+    }
+  },
+  adjustInfiniteScroll: function() {
+    window.requestAnimationFrame(function() {
+      //if (this.state.loadingContentAtTop) { return; }
+      var node         = this.getDOMNode();
+      var refs         = this.props.srefs;
+      var $lastText    = $(node).find(".textRange.basetext").last();
+      var lastTop      = $lastText.position().top;
+      var lastBottom   = lastTop + $lastText.outerHeight();
+      var windowHeight = $(node).outerHeight();
+      var windowTop    = node.scrollTop;
+      var windowBottom = windowTop + windowHeight;
+      if (lastTop > (windowHeight + 100) && refs.length > 1) { 
+        // Remove a section scrolled out of view on bottom
+        refs = refs.slice(0,-1);
+        console.log("cull from bottom")
+        this.props.updateTextColumn(refs);
+      } else if ( lastBottom < windowHeight + 80 ) {
+        // Add the next section to bottom
+        if ($lastText.hasClass("loading")) { 
+          return;
+        }
+        currentRef = refs.slice(-1)[0];
+        data       = sjs.library.ref(currentRef);
+        if (data && data.next) {
+          console.log("DOWN")
+          refs.push(data.next);
+          this.props.updateTextColumn(refs);
+        }
+        sjs.track.event("Reader", "Infinite Scroll", "Down");
+      } else if (windowTop < 20) {
+        // Scroll up for previous
+        topRef = refs[0];
+        data   = sjs.library.ref(topRef);
+        console.log("UP")
+        if (data && data.prev) {
+          refs.splice(refs, 0, data.prev);
+          this.loadingContentAtTop = true;
+          this.props.updateTextColumn(refs);
+        }
+        sjs.track.event("Reader", "Infinite Scroll", "Up");
+      } else {
+        // nothing happens
+      }
+    }.bind(this));
+  },
+  adjustTextListHighlight: function() {
+    // When scrolling while the TextList is open, update which segment should be highlighted.
+    window.requestAnimationFrame(function() {
+      //console.log("adjust text list highlight")
+      var $container   = $(React.findDOMNode(this));
+      var $readerApp   = $container.closest(".readerApp");
+      var viewport     = $container.outerHeight() - $readerApp.find(".textList").outerHeight();
+      var center       = (viewport/2);
+      $container.find(".basetext .segment").each(function(i, segment) {
+        var $segment = $(segment);
+        if ($segment.position().top + $segment.outerHeight()> center) {
+          var ref = $segment.attr("data-ref");
+          this.props.showTextList(ref);
+          return false;
+        }
+      }.bind(this));
+      
+      /*
+      // Caching segment heights
+      // Incomplete, needs to update on infinite scroll, window resize
+      // Not clear there's a great perfomance benefit
+      if (!this.state.segmentHeights) {
+        this.state.segmentHeights = [];
+        $readerApp.find(".basetext .segment").each(function(i, segment) {
+          var $segment = $(segment);
+          var top = $segment.offset().top;
+          this.state.segmentHeights.push({
+              top: top,
+              bottom: top + $segment.outerHeight(),
+              ref: $segment.attr("data-ref")})
+        }.bind(this));
+        this.setState(this.state);    
+      }
+
+      for (var i = 0; i < this.state.segmentHeights.length; i++) {
+        var segment = this.state.segmentHeights[i];
+        if (segment.bottom > center) {
+          this.showTextList(segment.ref);
+          return;
+        }
+      }
+      */
+
+    }.bind(this));
+  },
+  scrollToHighlighted: function() {
+    window.requestAnimationFrame(function() {
+      console.log("scroll to highlighted")
+      var $container   = $(React.findDOMNode(this));
+      var $readerApp   = $container.closest(".readerApp");
+      var $highlighted = $container.find(".segment.highlight").first();
+      if ($highlighted.length) {
+        var height     = $highlighted.outerHeight();
+        var viewport   = $container.outerHeight() - $readerApp.find(".textList").outerHeight();
+        var offset     = height > viewport + 30 ? 30 : (viewport - height) / 2;
+        $container.scrollTo($highlighted, 0, {offset: -offset});
+      }
+    }.bind(this));
+  },
+  render: function() {
+    var content =  this.props.srefs.map(function(ref, k) {
+      return (<TextRange 
+        sref={ref}
+        textListRef={this.props.textListRef}
+        basetext={true}
+        withContext={true}
+        loadLinks={true}
+        prefetchNextPrev={true}
+        settings={this.props.settings}
+        setOption={this.props.setOption}
+        showBaseText={this.props.showBaseText} 
+        showTextList={this.props.showTextList}
+        onBaseSegmentClick={this.props.onBaseSegmentClick}
+        onTextLoad={this.handleTextLoad}
+        rerender={this.props.rerender}
+        filter={this.props.filter}
+        key={k + ref} />);      
+    }.bind(this));
+    return (<div className='textColumn'>{content}</div>);
+  }
+});
+
+
 var TextRange = React.createClass({
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
   // This component is responsible for retrieving data from sjs.library for the ref that defines it.
@@ -1160,12 +1225,10 @@ var TextRange = React.createClass({
     lowlight:           React.PropTypes.bool,
     settings:           React.PropTypes.object,
     showBaseText:       React.PropTypes.func,
-    setScrollTop:       React.PropTypes.func,
     rerender:           React.PropTypes.func,
     showTextList:       React.PropTypes.func,
     onTextLoad:         React.PropTypes.func,
     onBaseSegmentClick: React.PropTypes.func,
-    onTextLoad:         React.PropTypes.func
   },
   getInitialState: function() {
     return { 
@@ -1184,14 +1247,30 @@ var TextRange = React.createClass({
   },
   componentDidUpdate: function(prevProps, prevState) {
     if (this.props.basetext) { 
-      this.placeSegmentNumbers();
-    }
-    if (this.props.basetext && !prevState.loaded) {
-      this.props.setScrollTop();
+      if ((!prevState.loaded && this.state.loaded) ||
+          prevProps.settings.language !== this.props.settings.language ||
+          prevProps.settings.layout !== this.props.settings.layout ||
+          prevProps.settings.fontSize !== this.props.settings.fontSize) {
+            window.requestAnimationFrame(function() { 
+              if (this.isMounted()) {
+                this.placeSegmentNumbers();
+              }
+            }.bind(this));        
+      }
     }
   },
   componentWillUnmount: function() {
     window.removeEventListener('resize', this.handleResize);
+  },
+  handleResize: function() {
+    if (this.props.basetext) { this.placeSegmentNumbers(); }
+  },
+  handleClick: function(event) {
+    if (this.props.openOnClick && this.props.showBaseText) {
+      //Click on the body of the TextRange itself from TextList
+      this.props.showBaseText(this.props.sref);
+      sjs.track.event("Reader", "Click Text from TextList", this.props.sref);
+    }
   },
   getText: function() {
     settings = {
@@ -1259,9 +1338,9 @@ var TextRange = React.createClass({
   },
   loadText: function(data) {
     // When data is actually available, load the text into the UI
-
+    console.log("loadText " + data.ref)
     if (this.props.basetext && this.props.sref !== data.ref) {
-      // Replace ReaderApp contents ref with the normalized form of the ref, if they differ
+      // Replace ReaderApp contents ref with the normalized form of the ref, if they differ.
       // Pass parameter to showBaseText to replaceHistory
       this.props.showBaseText(data.ref, true);        
     }
@@ -1271,14 +1350,13 @@ var TextRange = React.createClass({
       data: data,
       segments: segments,
       loaded: true,
-      sref: data.ref,
+      sref: data.ref
     });
 
     if (this.props.basetext) {
       // Rerender the full app, because we now know the category and color for the header,
       // which we might not have known before the API call returned.
-      // Can be removed when catgoires are exctracted from sjs.toc on every page
-      // This also triggers adjusting infinite scroll, once the text is loaded.
+      // Can be removed when catgories are extracted from sjs.toc on every page
       this.props.rerender();
     }
 
@@ -1308,26 +1386,14 @@ var TextRange = React.createClass({
     // Set the vertical offsets for segment numbers and link counts, which are dependent
     // on the rendered height of the text of each segment.
     var $text = $(React.findDOMNode(this));
-    var left  = $text.offset().left;
-    var right = left + $text.outerWidth();
-    $text.find(".segmentNumber").each(function(){
-      var top = $(this).parent().offset().top;
-      $(this).css({top: top});
-    });
-    $text.find(".linkCount").each(function(){
-      var top = $(this).parent().offset().top;
-      $(this).css({top: top});
-    });
-  },
-  handleResize: function() {
-    if (this.props.basetext) { this.placeSegmentNumbers(); }
-  },
-  handleClick: function(event) {
-    if (this.props.openOnClick && this.props.showBaseText) {
-      //Click on the body of the TextRange itself from TextList
-      this.props.showBaseText(this.props.sref);
-      sjs.track.event("Reader", "Click Text from TextList", this.props.sref);
+    var $column = $text.closest(".textColumn");
+    var adjust = $column.length ? $column.scrollTop() : 0;
+    var setTop = function() {
+       var top = $(this).parent().position().top + adjust;
+      $(this).css({top: top});     
     }
+    $text.find(".segmentNumber").each(setTop);
+    $text.find(".linkCount").each(setTop);
   },
   render: function() {
     if (this.props.basetext) {
@@ -1397,7 +1463,8 @@ var TextSegment = React.createClass({
     segmentNumber:     React.PropTypes.number,
     linkCount:         React.PropTypes.number,
     showBaseText:      React.PropTypes.func,
-    showTextList:      React.PropTypes.func
+    showTextList:      React.PropTypes.func,
+    handleClick:       React.PropTypes.func
   },
   handleClick: function(event) {
     if ($(event.target).hasClass("refLink")) {
@@ -1476,6 +1543,7 @@ var TextList = React.createClass({
       this.scrollToHighlighted();
     } else if (prevProps.sref !== this.props.sref) {
       console.log("ref change")
+      this.loadConnections();
       this.scrollToHighlighted();
     }
   },
@@ -1551,28 +1619,29 @@ var TextList = React.createClass({
             return a.sourceRef > b.sourceRef ? -1 : 1;
         }
     });
-    var texts = links.map(function(link, i) {
-                      return (<TextRange 
-                                sref={link.sourceRef}
-                                key={i + link.sourceRef}
-                                lowlight={ref !== link.anchorRef}
-                                basetext={false}
-                                showBaseText={this.props.showBaseText}
-                                openOnClick={true} />);
-                    }, this);
+
+    var showAllFilters = !this.props.filter.length;
     var filter = this.props.filter;
     var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";;
-    var he = "אין קשרים ידועים"  + (filter.length ? " ל"    + filter.join(", ") : "") + ".";;
+    var he = "אין קשרים ידועים"       + (filter.length ? " ל"    + filter.join(", ") : "") + ".";;
     var message = !this.state.loaded ? 
                     (<LoadingMessage />) : 
-                      (texts.length == 0 ? 
+                      (links.length === 0 ? 
                         <LoadingMessage message={en} heMessage={he} /> : "");
-
-
-    texts = !texts.length || (this.state.waitForText && !this.state.textLoaded) ? message : texts;
-    
-    var showAllFilters = !this.props.filter.length;
-
+    if (!showAllFilters) {
+      var texts = links.length == 0 ? message :
+                    this.state.waitForText && !this.state.textLoaded ? 
+                      (<LoadingMessage />) : 
+                      links.map(function(link, i) {
+                          return (<TextRange 
+                                    sref={link.sourceRef}
+                                    key={i + link.sourceRef}
+                                    lowlight={ref !== link.anchorRef}
+                                    basetext={false}
+                                    showBaseText={this.props.showBaseText}
+                                    openOnClick={true} />);
+                        }, this);      
+    }
     return (
       <div className={classes}>
         <div className="textListTop">
@@ -1586,7 +1655,7 @@ var TextList = React.createClass({
             showAllFilters={this.showAllFilters}
             setTopPadding={this.setTopPadding}
             summary={summary} />}
-          {showAllFilters ? "" : message}
+          {showAllFilters ? message : ""}
         </div>
         {showAllFilters ?
           <AllFilterSet 
