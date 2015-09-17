@@ -16,13 +16,13 @@ class Splicer(object):
     """
     def __init__(self):
         self.joiner = u" "
-        self.first_ref = None
+        self.first_ref = None # In insert mode, this is the ref to insert after
         self.second_ref = None
         self.section_ref = None
         self.book_ref = None
         self.index = None
-        self.first_segment_number = None
-        self.second_segment_number = None
+        self.first_segment_number = None   # In insert mode, this is the segment to insert after
+        self.second_segment_number = None  # In insert mode, this is the segment inserted.
         self.comment_section_lengths = None
         self.commentary_titles = None
         self.commentary_versions = None
@@ -78,6 +78,7 @@ class Splicer(object):
         self._mode = "insert"
         self.first_ref = ref
         self._setup_refs()
+        self.second_segment_number = self.first_segment_number + 1
         self._ready = True
         return self
 
@@ -327,12 +328,13 @@ class Splicer(object):
                 tc.save()
 
     def _needs_rewrite(self, old_ref, commentary=False):
+        # There is no difference here between join and insert - anything after first_ref needs to be rewritten
         assert isinstance(old_ref, Ref)
 
         def simple_needs_rewrite(old_simple_ref):
             assert isinstance(old_simple_ref, Ref)
-            if (old_simple_ref.index == self.first_ref.index
-                and len(old_simple_ref.sections) >= self.first_ref.index_node.depth
+
+            if (len(old_simple_ref.sections) >= self.first_ref.index_node.depth
                 and old_simple_ref.sections[self.first_ref.index_node.depth - 2] == self.section_ref.sections[-1]
                 and old_simple_ref.sections[self.first_ref.index_node.depth - 1] > self.first_segment_number
                ):
@@ -341,6 +343,11 @@ class Splicer(object):
 
         if old_ref.is_commentary() != commentary:
             return False
+        if (not commentary) and (old_ref.index != self.first_ref.index):
+            return False
+        if commentary and old_ref.index.b_index != self.first_ref.index:
+            return False
+
         if old_ref.is_range():
             return simple_needs_rewrite(old_ref.starting_ref()) or simple_needs_rewrite(old_ref.ending_ref())
         return simple_needs_rewrite(old_ref)
@@ -348,27 +355,37 @@ class Splicer(object):
     def _rewrite(self, old_ref, commentary=False):
         assert isinstance(old_ref, Ref)
 
-        def simple_rewrite(old_simple_ref):
-            if commentary and old_simple_ref.is_segment_level() and old_simple_ref.sections[self.first_ref.index_node.depth - 1] == self.second_segment_number:
+        def insert_rewrite(old_simple_ref):
+            segment_depth = self.first_ref.index_node.depth - 1
+            if old_simple_ref.sections[segment_depth] > self.first_segment_number:
+                d = old_simple_ref._core_dict()
+                d["sections"][segment_depth] += 1
+                d["toSections"] = d["sections"]
+                return Ref(_obj=d)
+
+        def join_rewrite(old_simple_ref):
+            segment_depth = self.first_ref.index_node.depth - 1
+            if commentary and old_simple_ref.is_segment_level() and old_simple_ref.sections[segment_depth] == self.second_segment_number:
                 # Position of comment has changed
                 d = old_simple_ref._core_dict()
                 d["sections"][-2] -= 1
                 d["sections"][-1] += self.comment_section_lengths.get(old_simple_ref.index.title)
                 d["toSections"] = d["sections"]
                 return Ref(_obj=d)
-            elif old_simple_ref.sections[self.first_ref.index_node.depth - 1] > self.first_segment_number:
+            elif old_simple_ref.sections[segment_depth] > self.first_segment_number:
                 if not commentary:
                     return old_simple_ref.prev_segment_ref()
                 else:
                     d = old_simple_ref._core_dict()
-                    d["sections"][-2] -= 1
+                    d["sections"][segment_depth] -= 1
                     d["toSections"] = d["sections"]
                     return Ref(_obj=d)
             return old_simple_ref
 
+        _rewrite_method = insert_rewrite if self._mode == "insert" else join_rewrite
         if old_ref.is_range():
-            return simple_rewrite(old_ref.starting_ref()).to(simple_rewrite(old_ref.ending_ref()))
-        return simple_rewrite(old_ref)
+            return _rewrite_method(old_ref.starting_ref()).to(_rewrite_method(old_ref.ending_ref()))
+        return _rewrite_method(old_ref)
 
     def _generic_set_rewrite(self, model_set, commentary=False, ref_attr_name="ref", sub_ref_attr_name=None, is_set=False):
         for n in model_set:
