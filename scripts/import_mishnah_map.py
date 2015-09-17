@@ -53,6 +53,8 @@ def parse_and_bold_hadran(hadran_ref):
         return False
 
 
+
+
 with open(filename, 'rb') as csvfile:
     next(csvfile)
     for row in csv.reader(csvfile):
@@ -139,10 +141,10 @@ with open(filename, 'rb') as csvfile:
         if matni_re.match(tc.text):
             if is_new_perek:
                 print u"(mp) Perek Start line: {}".format(tc.text)
-                if not matni_re.match(tc.text).group(3):
-                    print u"(mp0) Bare Mishnah word"
+            if not matni_re.match(tc.text).group(3):
+                print u"(ma) Bare Mishnah word"
             old = tc.text
-            tc.text = matni_re.sub(ur'\1<big><bold>' + standard_mishnah_start + ur'</bold></big>\3', tc.text)
+            tc.text = matni_re.sub(ur'\1<big><bold>' + standard_mishnah_start + ur'</bold></big> \3', tc.text)
             if live:
                 tc.save()
             else:
@@ -153,7 +155,7 @@ with open(filename, 'rb') as csvfile:
             tc = mishnahInTalmudRef.starting_ref().prev_segment_ref().text("he", versionTitle)
             if matni_re.match(tc.text):
                 old = tc.text
-                tc.text = matni_re.sub(ur'\1<big><bold>' + standard_mishnah_start + ur'</bold></big>\3', tc.text)
+                tc.text = matni_re.sub(ur'\1<big><bold>' + standard_mishnah_start + ur'</bold></big> \3', tc.text)
                 if live:
                     tc.save()
                 else:
@@ -181,13 +183,16 @@ with open(filename, 'rb') as csvfile:
             Nedarim 25b:10
 
         ** Non-standard Gemara - "(גמ')"
+            Fixed by hand
             Sotah 49b:5
 
         """
         tc = mishnahInTalmudRef.ending_ref().next_segment_ref().text("he", versionTitle)
         if gemarah_re.match(tc.text):
+            if not gemarah_re.match(tc.text).group(3):
+                print u"(ga) Bare Gemara word"
             old = tc.text
-            tc.text = gemarah_re.sub(ur'\1<big><bold>' + standard_gemara_start + ur'</bold></big>\3', tc.text)
+            tc.text = gemarah_re.sub(ur'\1<big><bold>' + standard_gemara_start + ur'</bold></big> \3', tc.text)
             if live:
                 tc.save()
             else:
