@@ -69,6 +69,14 @@ def test_insert_rewrite():
     assert n._rewrite(Ref("Rashi on Shabbat 45b:15"), commentary=True) == Ref("Rashi on Shabbat 45b:16")
     assert n._rewrite(Ref("Rashi on Shabbat 45b:12:1"), commentary=True) == Ref("Rashi on Shabbat 45b:13:1")
 
+def test_page_spanning_range():
+    n = Splicer().insert_blank_segment_after(Ref("Chagigah 20b:13"))
+    assert n._needs_rewrite(Ref("Chagigah 20b:14-21a:1"))
+    assert n._rewrite(Ref("Chagigah 20b:14-21a:1")) == Ref("Chagigah 20b:15-21a:1")
+
+    n = Splicer().splice_this_into_next(Ref("Chagigah 20b:13"))
+    assert n._needs_rewrite(Ref("Chagigah 20b:14-21a:1"))
+    assert n._rewrite(Ref("Chagigah 20b:14-21a:1")) == Ref("Chagigah 20b:13-21a:1")
 
 def test_report():
     n = Splicer().splice_next_into_this(Ref("Shabbat 25b:11"))

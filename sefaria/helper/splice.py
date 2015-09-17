@@ -361,11 +361,15 @@ class Splicer(object):
 
         def insert_rewrite(old_simple_ref):
             segment_depth = self.first_ref.index_node.depth - 1
-            if old_simple_ref.sections[segment_depth] > self.first_segment_number:
+            section_depth = self.first_ref.index_node.depth - 2
+
+            if (old_simple_ref.sections[section_depth] == self.first_ref.sections[section_depth]
+                    and old_simple_ref.sections[segment_depth] > self.first_segment_number):
                 d = old_simple_ref._core_dict()
                 d["sections"][segment_depth] += 1
                 d["toSections"] = d["sections"]
                 return Ref(_obj=d)
+            return old_simple_ref
 
         def join_rewrite(old_simple_ref):
             segment_depth = self.first_ref.index_node.depth - 1
