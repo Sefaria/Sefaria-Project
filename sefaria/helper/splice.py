@@ -9,11 +9,18 @@ class Splicer(object):
     """
     Tool for either merging two segments together, or inserting a new segment.
 
-    Simple usage:
-    splicer = Splicer()
-    splicer.spliceThisIntoNext("Shabbat 7b:11")
-    splicer.report()  # optional, to check what it will do
-    splicer.execute()
+    Sample usage for merge:
+        splicer = Splicer()
+        splicer.splice_this_into_next("Shabbat 7b:11")
+        splicer.report()  # optional, to check what it will do
+        splicer.execute()
+    A merge can be setup with method splice_this_into_next, splice_next_into_this, splice_prev_into_this, or splice_this_into_prev
+
+    Sample usage for inserting a blank segment:
+        splicer = Splicer()
+        splicer.insert_blank_segment_after("Shabbat 7b:11")
+        splicer.report()  # optional, to check what it will do
+        splicer.execute()
 
     Code wise, this is built from the perspective of merging the second ref into the first, but after numbers get rewritten, it's all equivalent.
     """
@@ -44,7 +51,7 @@ class Splicer(object):
 
     ####  Setup methods ####
 
-    def spliceThisIntoNext(self, ref):
+    def splice_this_into_next(self, ref):
         assert ref.is_segment_level()
         assert not ref.is_range()
         assert not ref.is_commentary()
@@ -57,7 +64,7 @@ class Splicer(object):
         self._ready = True
         return self
 
-    def splicePrevIntoThis(self, ref):
+    def splice_prev_into_this(self, ref):
         assert ref.is_segment_level()
         assert not ref.is_range()
         assert not ref.is_commentary()
@@ -71,11 +78,11 @@ class Splicer(object):
         return self
 
     # It's a little counter-intuitive, but these are equivalent to their liguistic converse.
-    def spliceNextIntoThis(self, ref):
-        return self.spliceThisIntoNext(ref)
+    def splice_next_into_this(self, ref):
+        return self.splice_this_into_next(ref)
 
-    def spliceThisIntoPrev(self, ref):
-        return self.splicePrevIntoThis(ref)
+    def splice_this_into_prev(self, ref):
+        return self.splice_prev_into_this(ref)
 
     def insert_blank_segment_after(self, ref):
         assert ref.is_segment_level()
@@ -147,29 +154,29 @@ class Splicer(object):
             return
         self._save = True
         self._run()
-        self._rebuildVersionStates()
-        self._updateSummaries()
+        self._rebuild_version_states()
+        self._update_summaries()
         self._executed = True
 
     ### Internal Methods ###
     def _run(self):
         if self._mode == "join":
             print u"\n---\nMerging Base Text\n---\n"
-            self._mergeBaseTextVersionSegments()
+            self._merge_base_text_version_segments()
 
             print u"\n---\nMerging Commentary Text\n---\n"
-            self._mergeCommentaryVersionSections()
+            self._merge_commentary_version_sections()
 
             print u"\n---\nRemoving Segment from Base Texts\n---\n"
-            self._removeBaseTextVersionSegments(self.second_ref)
+            self._remove_base_text_version_segments(self.second_ref)
 
             print u"\n---\nRemoving Section from Commentaries\n---\n"
-            self._removeCommentaryVersionsSections(self.second_ref)
+            self._remove_commentary_versions_sections(self.second_ref)
         elif self._mode == "insert":
             print u"\n---\nInserting segment Base Text\n---\n"
-            self._insertBaseTextVersionSegments()
+            self._insert_base_text_version_segments()
             print u"\n---\nInserting Section Commentary Texts\n---\n"
-            self._insertCommentaryVersionSections()
+            self._insert_commentary_version_sections()
 
         else:
             print u"Error: unknown mode - {}".format(self._mode)
@@ -229,7 +236,7 @@ class Splicer(object):
         print u"\n---\nPushing changes to Elastic Search\n---\n"
         self._clean_elastisearch()
 
-    def _insertBaseTextVersionSegments(self):
+    def _insert_base_text_version_segments(self):
         # Inserts are self.first_ref
         for v in self.versionSet:
             assert isinstance(v, Version)
@@ -242,7 +249,7 @@ class Splicer(object):
             if self._save:
                 tc.save()
 
-    def _insertCommentaryVersionSections(self):
+    def _insert_commentary_version_sections(self):
         for v in self.commentary_versions:
             assert isinstance(v, Version)
             commentator_chapter_ref = Ref(v.title).subref(self.section_ref.sections)
@@ -256,7 +263,7 @@ class Splicer(object):
             if self._save:
                 tc.save()
 
-    def _mergeBaseTextVersionSegments(self):
+    def _merge_base_text_version_segments(self):
         # for each version, merge the text
         for v in self.versionSet:
             assert isinstance(v, Version)
@@ -269,7 +276,7 @@ class Splicer(object):
                 if self._save:
                     first_tc.save()
 
-    def _mergeCommentaryVersionSections(self):
+    def _merge_commentary_version_sections(self):
         # Merge comments for all commentary on this text
         for v in self.commentary_versions:
             assert isinstance(v, Version)
@@ -289,7 +296,7 @@ class Splicer(object):
             if self._save:
                 tc.save()
 
-    def _removeBaseTextVersionSegments(self, local_ref):
+    def _remove_base_text_version_segments(self, local_ref):
         assert local_ref.is_segment_level()
         local_section_ref = local_ref.section_ref()
         local_segment_number = local_ref.sections[-1]
@@ -305,7 +312,7 @@ class Splicer(object):
             if self._save:
                 tc.save()
 
-    def _removeCommentaryVersionsSections(self, local_ref):
+    def _remove_commentary_versions_sections(self, local_ref):
         assert local_ref.is_segment_level()
         local_section_ref = local_ref.section_ref()
         local_segment_number = local_ref.sections[-1]
@@ -549,13 +556,13 @@ class Splicer(object):
                             if self._save:
                                 delete_text(comment_ref, v.versionTitle, v.language)
 
-    def _rebuildVersionStates(self):
+    def _rebuild_version_states(self):
         # Refresh the version state of main text and commentary
         VersionState(self.first_ref.index).refresh()
         for vt in self.commentary_titles:
             VersionState(vt).refresh()
 
-    def _updateSummaries(self):
+    def _update_summaries(self):
         update_summaries_on_change(self.first_ref.index.title, recount=False)
         for vt in self.commentary_titles:
             update_summaries_on_change(vt, recount=False)
