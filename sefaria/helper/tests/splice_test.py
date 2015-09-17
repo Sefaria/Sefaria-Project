@@ -28,3 +28,7 @@ def test_sheet_cleanup():
     n._report = True
     n._find_sheets()
     n._clean_sheets()
+
+def test_insert():
+    n = Splicer().insert_blank_segment_after(Ref("Shabbat 25b:11"))
+    n.report()
