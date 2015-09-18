@@ -1027,8 +1027,9 @@ var TextColumn = React.createClass({
   },
   componentDidMount: function() {
     this.initialScrollTopSet = false;
+    this.throttledAdjustTextListHighlight = throttle(this.adjustTextListHighlight, 200);
     var node = this.getDOMNode();
-    node.addEventListener("scroll", this.handleScroll); //throttle(this.handleScroll, 1));
+    node.addEventListener("scroll", this.handleScroll);
   },
   componentWillUnmount: function() {
     var node = this.getDOMNode();
@@ -1048,7 +1049,7 @@ var TextColumn = React.createClass({
   },
   handleScroll: function(event) {
     if (this.props.textListRef) {
-      this.adjustTextListHighlight();
+      this.throttledAdjustTextListHighlight();
     }
     this.adjustInfiniteScroll();   
   },
