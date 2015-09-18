@@ -122,20 +122,37 @@ body .bilingual .enOnly .he {
   background-color: #F9F9F7;
 }
 .readerNavTop {
-  padding: 20px;
   border-bottom: 1px solid #E2E2E1;
   box-sizing: border-box;
   direction: ltr;
 }
 .readerNavTopFixed .readerNavTop.search {
-  padding: 20px;
+  padding: 0;
+}
+.readerNavTop.search .fa-search {
+  position: absolute;
+  top: 17px;
+  left: 12px;
+}
+.readerNavTop.search .fa-times {
+  position: absolute;
+  right: 10px;
+  top: 16px;
 }
 .readerNavMenu .readerSearch,
 .readerNavMenuFixed .readerSearch  {
   margin: 0;
-  width: 77%;
-  border-color: #F2F2F2;
-  padding: 7px 10px 7px 40px;
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  background-color: inherit;
+  padding: 12px 10px 12px 40px;
+  line-height: 30px;
+  font-size: 16px;
+}
+.readerNavMenu .readerSearch:focus,
+.readerNavMenuFixed .readerSearch:focus {
+  outline: 0;
 }
 .readerNavTop .fa {
   color: #BFBFBF;
@@ -145,22 +162,17 @@ body .bilingual .enOnly .he {
 }
 .readerNavTop .fa-search {
   position: absolute;
-  top: 26px;
-  left: 33px;
+  top: 21px;
+  left: 12px;
 }
 .readerNavTopFixed .readerNavTop .fa-search {
-  left: 10px;
-  top: 25px;
+  left: 12px;
   margin: 0px;
-}
-.readerNavTopFixed .readerNavTop.search .fa-search {
-  top: 26px;
-  left: 33px; 
 }
 .readerNavTop .fa-times {
   position: absolute;
   right: 10px;
-  top: 25px;
+  top: 20px;
 }
 .readerNavMenu.home .readerNavTop {
   border-bottom: none;
@@ -228,6 +240,7 @@ body .bilingual .enOnly .he {
 .readerNavCategories {
   width: 100%;
   margin-bottom: 30px;
+  font-size: 12px;
 }
 .readerNavCategories .threeBox td {
   border: none;
@@ -298,6 +311,7 @@ body .bilingual .enOnly .he {
   height: 100%;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
+  font-size: 12px;
 }
 .readerNavTopFixed {
   position: absolute;
@@ -466,9 +480,6 @@ body .bilingual .enOnly .he {
 .hebrew .readerTextTableOfContents .content .tocSection,
 .hebrew .readerTextTableOfContents .content .tocContent {
   text-align: right;
-}
-.readerSearchInput {
-
 }
 .searchContent {
   padding: 25px 10px 0;
@@ -895,7 +906,7 @@ body .bilingual .enOnly .he {
   height: 54%;
   bottom: 0;
   left: 0;
-  position: fixed;
+  position: absolute;
   text-align: justify;
   margin: 0 auto;
   background-color: #F9F9F7;
@@ -964,6 +975,7 @@ body .bilingual .enOnly .he {
 }
 .gridBox {
   width: 100%;
+  border-collapse: collapse;
 }
 .gridBox table {
   width: 100%;

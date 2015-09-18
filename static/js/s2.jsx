@@ -40,10 +40,8 @@ var ReaderApp = React.createClass({
   },
   componentDidMount: function() {
     window.addEventListener("popstate", this.handlePopState);
-
     var hist = this.makeHistoryState()
     history.replaceState(hist.state, hist.title, hist.url);
-    console.log($(React.findDOMNode(this)).find(".textColumn"))
     $(React.findDOMNode(this)).find(".readerControls").headroom({scroller: $(React.findDOMNode(this)).find(".textColumn")[0]});
   },
   componentWillUnmount: function() {
@@ -164,7 +162,6 @@ var ReaderApp = React.createClass({
     }
   },
   handleBaseSegmentClick: function(ref) {
-    console.log(ref)
     var mode = this.currentMode();
     if (mode === "TextList") {
       this.backToText();
@@ -660,7 +657,7 @@ var ReaderNavigationMenu = React.createClass({
 
       var classes = classNames({readerNavMenu: 1, readerNavMenuFixed:1, home: this.props.home});
       return(<div className={classes} onClick={this.handleClick}>
-              <div className="readerNavTop readerNavTopFixed">
+              <div className="readerNavTop readerNavTopFixed search">
                 <i className="fa fa-search" onClick={this.props.openMenu.bind(null, "navigation")}></i>
                 {this.props.home ? 
                   (<div className='sefariaLogo'><img src="/static/img/sefaria.png" /></div>) :
@@ -1030,7 +1027,6 @@ var TextColumn = React.createClass({
     onTextLoad:         React.PropTypes.func
   },
   componentDidMount: function() {
-    console.log("text column mount")
     this.initialScrollTopSet = false;
     var node = this.getDOMNode();
     node.addEventListener("scroll", this.handleScroll); //throttle(this.handleScroll, 1));
@@ -1043,12 +1039,10 @@ var TextColumn = React.createClass({
     if (nextProps.srefs.length == 1 && $.inArray(nextProps.srefs[0], this.props.srefs) == -1) {
       // If we are switching to a single ref no in the current textcolumn,
       // treat it as a fresh open.
-      console.log("reset initial st")
       this.initialScrollTopSet = false;
     }
   },
   componentDidUpdate: function(prevProps, prevState) {
-    console.log("tc update")
     this.setScrollPosition();
   },
   handleScroll: function(event) {
@@ -1338,7 +1332,6 @@ var TextRange = React.createClass({
   },
   loadText: function(data) {
     // When data is actually available, load the text into the UI
-    console.log("loadText " + data.ref)
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderApp contents ref with the normalized form of the ref, if they differ.
       // Pass parameter to showBaseText to replaceHistory
