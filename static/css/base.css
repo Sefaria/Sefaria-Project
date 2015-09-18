@@ -244,8 +244,10 @@ body.hebrew #home .homeColumn {
 }
 
 #home #calendar a.haftara {
-    font-size: 13px;
-    margin-top: 10px;
+    font-size: 10px;
+    margin-top: 2px;
+    display: block;
+    float: none;
 }
 
 #home #calendar .calendarSection {
@@ -481,6 +483,7 @@ body.hebrew #home #homeConnect .followButton .fa {
   background-color: white;
   width: 440px;
   text-align: left;
+  z-index: 50;
 }
 
 #home #announcement .btn {
@@ -1102,7 +1105,7 @@ body.hebrew #aboutPage .span5 {
 	}
 
 		#activityContent #contributors h4:after {
-		content: ' ▼';
+		content: ' â–¼';
 	}
 
 	#activityContent div#contributors .board {

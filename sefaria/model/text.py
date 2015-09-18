@@ -690,7 +690,7 @@ class AbstractSchemaContent(object):
         return self.sub_content(snode.version_address())
 
     #TODO: test me
-    def sub_content(self, key_list=[], indx_list=[], value=None):
+    def sub_content(self, key_list=None, indx_list=None, value=None):
         """
         Get's or sets values deep within the content of this version.
         This returns the result by reference, NOT by value.
@@ -699,6 +699,10 @@ class AbstractSchemaContent(object):
         :param indx_list: The indexes of the subsection to get/set
         :param value: The value to set.  If present, the method acts as a setter.  If None, it acts as a getter.
         """
+        if not key_list:
+            key_list = []
+        if not indx_list:
+            indx_list = []
         ja = reduce(lambda d, k: d[k], key_list, self.get_content())
         if indx_list:
             sa = reduce(lambda a, i: a[i], indx_list[:-1], ja)
