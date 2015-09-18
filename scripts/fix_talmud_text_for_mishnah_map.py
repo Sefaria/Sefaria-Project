@@ -53,6 +53,7 @@ missing_matni = ["Berakhot 54a:1",
     "Shevuot 19b:37",
     "Nedarim.66b.66",
     "Kiddushin 2a:1",
+     "Berakhot 2a:1",
      "Tamid 33b:1"]
 for r in missing_matni:
     tc = TextChunk(Ref(r), "he", versionTitle)
@@ -71,7 +72,7 @@ to_split = ["Nedarim.25b.9",
     "Zevachim 15b:17",
 ]
 for r in to_split:
-    s = Splicer().insert_blank_segment_after(Ref(r))
+    s = Splicer().insert_blank_segment_after(Ref(r)).bulk_mode()
     review_map(s)
     if live:
         s.execute()
@@ -85,51 +86,60 @@ to_merge = ["Zevachim.66a.23", # merge into previous 22
     "Arakhin 34a:30",
     "Keritot 28b:37"]
 for r in to_merge:
-    s = Splicer().splice_this_into_prev(Ref(r))
+    s = Splicer().splice_this_into_prev(Ref(r)).bulk_mode()
     review_map(s)
     if live:
         s.execute()
     else:
         print u"Merging {} into previous".format(r)
 
+ms = None
+gs = None
 for mishnah in mishnah_map:
-    ref = mishnah["new_ref"] or mishnah["orig_ref"]
-    ref = ref.starting_ref()
-    tc = ref.text("he", versionTitle)
+    mref = mishnah["new_ref"] or mishnah["orig_ref"]
+    mref = mref.starting_ref()
+    tc = mref.text("he", versionTitle)
     if matni_re.match(tc.text):
         if not matni_re.match(tc.text).group(3):
             print u"(ma) Bare Mishnah word"
             m_count += 1
             try:
-                s = Splicer().splice_this_into_next(ref)
-                review_map(s)
+                if gs and gs.section_ref == gref.section_ref():
+                    gs.refresh_states()
+                elif ms and ms.section_ref == gref.section_ref():
+                    ms.refresh_states()
+                ms = Splicer().splice_this_into_next(mref).bulk_mode()
+                review_map(ms)
                 if live:
-                    s.execute()
+                    ms.execute()
                 else:
-                    print u"Merging bare Mishnah at {} into next".format(ref.normal())
+                    print u"Merging bare Mishnah at {} into next".format(mref.normal())
             except Exception as e:
-                print "(mf) Failed to splice {} into next: {}".format(ref.normal(),e)
+                print "(mf) Failed to splice {} into next: {}".format(mref.normal(),e)
     else:
-        print u"(m0) Did not match mishnah {}".format(ref.normal())
-
-    ref = mishnah["new_ref"] or mishnah["orig_ref"]
-    ref = ref.ending_ref().next_segment_ref()
-    tc = ref.text("he", versionTitle)
+        print u"(m0) Did not match mishnah {}".format(mref.normal())
+    gref = mishnah["new_ref"] or mishnah["orig_ref"]
+    gref = gref.ending_ref().next_segment_ref()
+    tc = gref.text("he", versionTitle)
     if gemarah_re.match(tc.text):
         if not gemarah_re.match(tc.text).group(3):
             print u"(ga) Bare Gemara word"
             g_count += 1
             try:
-                s = Splicer().splice_this_into_next(ref)
-                review_map(s)
+                if ms and ms.section_ref == gref.section_ref():
+                    ms.refresh_states()
+                elif gs and gs.section_ref == gref.section_ref():
+                    gs.refresh_states()
+                gs = Splicer().splice_this_into_next(gref).bulk_mode()
+                review_map(gs)
                 if live:
-                    s.execute()
+                    gs.execute()
                 else:
-                    print u"Merging bare Gemara at {} into next".format(ref.normal())
+                    print u"Merging bare Gemara at {} into next".format(gref.normal())
             except Exception as e:
-                print "(gf) Failed to splice {} into next: {}".format(ref.normal(),e)
+                print "(gf) Failed to splice {} into next: {}".format(gref.normal(), e)
     else:
-        print u"(g0) Did not match 'Gemara' in {}".format(ref.normal())
+        print u"(g0) Did not match 'Gemara' in {}".format(gref.normal())
 
 print "Mishnah count: {}".format(m_count)
 print "Gemara count: {}".format(g_count)
