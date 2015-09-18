@@ -1022,7 +1022,6 @@ var TextColumn = React.createClass({
     showTextList:       React.PropTypes.func,
     updateTextColumn:   React.PropTypes.func,
     rerender:           React.PropTypes.func,
-    onTextLoad:         React.PropTypes.func,
     onBaseSegmentClick: React.PropTypes.func,
     onTextLoad:         React.PropTypes.func
   },
@@ -1037,9 +1036,11 @@ var TextColumn = React.createClass({
   },
   componentWillReceiveProps: function(nextProps) {
     if (nextProps.srefs.length == 1 && $.inArray(nextProps.srefs[0], this.props.srefs) == -1) {
-      // If we are switching to a single ref no in the current textcolumn,
+      // If we are switching to a single ref not in the current TextColumn,
       // treat it as a fresh open.
+      console.log("switching to new ref");
       this.initialScrollTopSet = false;
+      this.scrolledToHighlight = false;
     }
   },
   componentDidUpdate: function(prevProps, prevState) {
@@ -1051,13 +1052,18 @@ var TextColumn = React.createClass({
     }
     this.adjustInfiniteScroll();   
   },
-  handleTextLoad: function() {
-    
+  handleBaseSegmentClick: function(ref) {
+    if (!this.props.textListRef) {
+      // If we are entering into close reader mode, reset this flag
+      // so that we scroll to highlighted segment.
+      this.scrolledToHighlight = false;
+    }
+    this.props.onBaseSegmentClick(ref);
   },
   setScrollPosition: function() {
+    // Called on every update, checking flags on this to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-      console.log("Setting scroll top for Infinite UP")
       var $node   = $(React.findDOMNode(this));
       var adjust  = $node.css("padding-top").replace("px", "");
       var top     = $node.find(".basetext").eq(1).position().top + $node.scrollTop() - adjust;
@@ -1065,13 +1071,13 @@ var TextColumn = React.createClass({
         this.loadingContentAtTop = false;
       }
       this.initialScrollTopSet = true;
-      console.log("Set Scroll Top " + top);
       $node.scrollTop(top);
-    } else if (!this.initialScrollTopSet && $(".segment.highlight").length) {
+    } else if (!this.scrolledToHighlight && $(React.findDOMNode(this)).find(".segment.highlight").length) {
       // scroll to highlighted segment
       this.scrollToHighlighted();
-      this.initialScrollTopSet = true;
+      this.scrolledToHighlight = true;
     } else if (!this.initialScrollTopSet) {
+      // initial value set below 0 so you can scroll up for previous
       var node = this.getDOMNode();
       node.scrollTop = 30;
       this.initialScrollTopSet = true;
@@ -1194,7 +1200,7 @@ var TextColumn = React.createClass({
         setOption={this.props.setOption}
         showBaseText={this.props.showBaseText} 
         showTextList={this.props.showTextList}
-        onBaseSegmentClick={this.props.onBaseSegmentClick}
+        onBaseSegmentClick={this.handleBaseSegmentClick}
         onTextLoad={this.handleTextLoad}
         rerender={this.props.rerender}
         filter={this.props.filter}
@@ -1575,13 +1581,6 @@ var TextList = React.createClass({
       }
     }.bind(this));
   },
-  setTopPadding: function() {
-    return; 
-    var $textList    = $(React.findDOMNode(this));
-    var $textListTop = $textList.find(".textListTop");
-    var top          = $textListTop.outerHeight();
-    $textList.css({paddingTop: top});
-  },
   showAllFilters: function() {
     this.props.setFilter(null);
     sjs.track.event("Reader", "Show All Filters Click", "1");
@@ -1646,7 +1645,6 @@ var TextList = React.createClass({
             recentFilters={this.props.recentFilters}
             setFilter={this.props.setFilter}
             showAllFilters={this.showAllFilters}
-            setTopPadding={this.setTopPadding}
             summary={summary} />}
           {showAllFilters ? message : ""}
         </div>
@@ -1657,7 +1655,6 @@ var TextList = React.createClass({
             filter={this.props.fitler}
             recentFilters={this.props.recentFilters}
             setFilter={this.props.setFilter}
-            setTopPadding={this.setTopPadding}
             summary={summary} /> :       
           
           <div className="texts">
@@ -1670,12 +1667,6 @@ var TextList = React.createClass({
 
 
 var TopFilterSet = React.createClass({
-  componentDidMount: function() {
-    this.props.setTopPadding();
-  },
-  componentDidUpdate: function() {
-    this.props.setTopPadding();
-  },
   toggleAllFilterView: function() {
     this.setState({showAllFilters: !this.state.showAllFilters});
   },
@@ -1754,12 +1745,6 @@ var TopFilterSet = React.createClass({
 
 
 var AllFilterSet = React.createClass({
-  componentDidMount: function() {
-    this.props.setTopPadding();
-  },
-  componentDidUpdate: function() {
-    this.props.setTopPadding();
-  },
   render: function() {
     var categories = this.props.summary.map(function(cat, i) {
       return (
