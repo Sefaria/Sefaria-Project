@@ -44,10 +44,12 @@ class Splicer(object):
         self._report = False
         self._report_error = False
         self._save = False
+        self._save_text_only = False
         self._executed = False
         self._ready = False
         self._mode = None   # "join" or "insert"
         self._sheets_to_update = []
+        self._rebuild_toc = True
 
     ####  Setup methods ####
 
@@ -153,25 +155,27 @@ class Splicer(object):
             print "No job given to Splicer"
             return
         self._save = True
+        self._save_text_only = True  # debug
+        self._rebuild_toc = False # debug/time
+        self._report = True
         self._run()
         self._rebuild_version_states()
-        self._update_summaries()
+        if self._rebuild_toc:
+            self._update_summaries()
         self._executed = True
 
     ### Internal Methods ###
     def _run(self):
+        if self._report:
+            print u"Running Splicer in {} mode.\nFirst Ref: {}".format(self._mode, self.first_ref.normal())
+
         if self._mode == "join":
-            print u"\n---\nMerging Base Text\n---\n"
+            print u"\n---\nMerging Base Text and removing segment\n---\n"
             self._merge_base_text_version_segments()
 
-            print u"\n---\nMerging Commentary Text\n---\n"
+            print u"\n---\nMerging Commentary Text and removing section\n---\n"
             self._merge_commentary_version_sections()
 
-            print u"\n---\nRemoving Segment from Base Texts\n---\n"
-            self._remove_base_text_version_segments(self.second_ref)
-
-            print u"\n---\nRemoving Section from Commentaries\n---\n"
-            self._remove_commentary_versions_sections(self.second_ref)
         elif self._mode == "insert":
             print u"\n---\nInserting segment Base Text\n---\n"
             self._insert_base_text_version_segments()
@@ -184,57 +188,58 @@ class Splicer(object):
         # For all of the below -
         # It takes longer, but we start at the base text, so as not to miss any ranged refs
 
-        # Rewrite links to base text (including links from own commentary)
-        print u"\n---\nRewriting Refs to Base Text\n---\n"
-        print u"\n---\nRewriting Links\n---\n"
-        self._generic_set_rewrite(LinkSet(self.book_ref), ref_attr_name="refs", is_set=True)
-
-        # Note refs
-        print u"\n---\nRewriting Note Refs\n---\n"
-        self._generic_set_rewrite(NoteSet({"ref": {"$regex": self.book_ref.regex()}}))
-
-        # Translation requests
-        print u"\n---\nRewriting Translation Request Refs\n---\n"
-        self._generic_set_rewrite(TranslationRequestSet({"ref": {"$regex": self.book_ref.regex()}}))
-
-        # History
-        print u"\n---\nRewriting History Refs\n---\n"
-        self._generic_set_rewrite(HistorySet({"ref": {"$regex": self.book_ref.regex()}}))
-        self._generic_set_rewrite(HistorySet({"new.ref": {"$regex": self.book_ref.regex()}}), ref_attr_name="new", sub_ref_attr_name="ref")
-        self._generic_set_rewrite(HistorySet({"new.refs": {"$regex": self.book_ref.regex()}}), ref_attr_name="new", sub_ref_attr_name="refs", is_set=True)
-        self._generic_set_rewrite(HistorySet({"old.ref": {"$regex": self.book_ref.regex()}}), ref_attr_name="old", sub_ref_attr_name="ref")
-        self._generic_set_rewrite(HistorySet({"old.refs": {"$regex": self.book_ref.regex()}}), ref_attr_name="old", sub_ref_attr_name="refs", is_set=True)
-
-        print u"\n---\nRewriting Refs to Commentary\n---\n"
-        for commentary_title in self.commentary_titles:
-            # Rewrite links to commentary (including to base text)
-            print u"\n---\n{}\n---\n".format(commentary_title)
+        if not self._save_text_only:
+            # Rewrite links to base text (including links from own commentary)
+            print u"\n---\nRewriting Refs to Base Text\n---\n"
             print u"\n---\nRewriting Links\n---\n"
-            self._generic_set_rewrite(LinkSet(Ref(commentary_title)), ref_attr_name="refs", is_set=True, commentary=True)
+            self._generic_set_rewrite(LinkSet(self.book_ref), ref_attr_name="refs", is_set=True)
+
+            # Note refs
             print u"\n---\nRewriting Note Refs\n---\n"
-            self._generic_set_rewrite(NoteSet({"ref": {"$regex": Ref(commentary_title).regex()}}), commentary=True)
+            self._generic_set_rewrite(NoteSet({"ref": {"$regex": self.book_ref.regex()}}))
+
+            # Translation requests
             print u"\n---\nRewriting Translation Request Refs\n---\n"
-            self._generic_set_rewrite(TranslationRequestSet({"ref": {"$regex": Ref(commentary_title).regex()}}), commentary=True)
+            self._generic_set_rewrite(TranslationRequestSet({"ref": {"$regex": self.book_ref.regex()}}))
 
-            # History?
+            # History
             print u"\n---\nRewriting History Refs\n---\n"
-            self._generic_set_rewrite(HistorySet({"ref": {"$regex": Ref(commentary_title).regex()}}), commentary=True)
-            self._generic_set_rewrite(HistorySet({"new.ref": {"$regex": Ref(commentary_title).regex()}}), ref_attr_name="new", sub_ref_attr_name="ref", commentary=True)
-            self._generic_set_rewrite(HistorySet({"new.refs": {"$regex": Ref(commentary_title).regex()}}), ref_attr_name="new", sub_ref_attr_name="refs", is_set=True, commentary=True)
-            self._generic_set_rewrite(HistorySet({"old.ref": {"$regex": Ref(commentary_title).regex()}}), ref_attr_name="old", sub_ref_attr_name="ref", commentary=True)
-            self._generic_set_rewrite(HistorySet({"old.refs": {"$regex": Ref(commentary_title).regex()}}), ref_attr_name="old", sub_ref_attr_name="refs", is_set=True, commentary=True)
+            self._generic_set_rewrite(HistorySet({"ref": {"$regex": self.book_ref.regex()}}))
+            self._generic_set_rewrite(HistorySet({"new.ref": {"$regex": self.book_ref.regex()}}), ref_attr_name="new", sub_ref_attr_name="ref")
+            self._generic_set_rewrite(HistorySet({"new.refs": {"$regex": self.book_ref.regex()}}), ref_attr_name="new", sub_ref_attr_name="refs", is_set=True)
+            self._generic_set_rewrite(HistorySet({"old.ref": {"$regex": self.book_ref.regex()}}), ref_attr_name="old", sub_ref_attr_name="ref")
+            self._generic_set_rewrite(HistorySet({"old.refs": {"$regex": self.book_ref.regex()}}), ref_attr_name="old", sub_ref_attr_name="refs", is_set=True)
 
-        # Source sheet refs
-        print u"\n---\nRewriting Source Sheet Refs\n---\n"
-        self._find_sheets()
-        self._clean_sheets()
+            print u"\n---\nRewriting Refs to Commentary\n---\n"
+            for commentary_title in self.commentary_titles:
+                # Rewrite links to commentary (including to base text)
+                print u"\n---\n{}\n---\n".format(commentary_title)
+                print u"\n---\nRewriting Links\n---\n"
+                self._generic_set_rewrite(LinkSet(Ref(commentary_title)), ref_attr_name="refs", is_set=True, commentary=True)
+                print u"\n---\nRewriting Note Refs\n---\n"
+                self._generic_set_rewrite(NoteSet({"ref": {"$regex": Ref(commentary_title).regex()}}), commentary=True)
+                print u"\n---\nRewriting Translation Request Refs\n---\n"
+                self._generic_set_rewrite(TranslationRequestSet({"ref": {"$regex": Ref(commentary_title).regex()}}), commentary=True)
 
-        # alt structs?
-        print u"\n---\nRewriting Alt Struct Refs\n---\n"
-        self._rewrite_alt_structs()
+                # History?
+                print u"\n---\nRewriting History Refs\n---\n"
+                self._generic_set_rewrite(HistorySet({"ref": {"$regex": Ref(commentary_title).regex()}}), commentary=True)
+                self._generic_set_rewrite(HistorySet({"new.ref": {"$regex": Ref(commentary_title).regex()}}), ref_attr_name="new", sub_ref_attr_name="ref", commentary=True)
+                self._generic_set_rewrite(HistorySet({"new.refs": {"$regex": Ref(commentary_title).regex()}}), ref_attr_name="new", sub_ref_attr_name="refs", is_set=True, commentary=True)
+                self._generic_set_rewrite(HistorySet({"old.ref": {"$regex": Ref(commentary_title).regex()}}), ref_attr_name="old", sub_ref_attr_name="ref", commentary=True)
+                self._generic_set_rewrite(HistorySet({"old.refs": {"$regex": Ref(commentary_title).regex()}}), ref_attr_name="old", sub_ref_attr_name="refs", is_set=True, commentary=True)
 
-        print u"\n---\nPushing changes to Elastic Search\n---\n"
-        self._clean_elastisearch()
+            # Source sheet refs
+            print u"\n---\nRewriting Source Sheet Refs\n---\n"
+            self._find_sheets()
+            self._clean_sheets()
+
+            # alt structs?
+            print u"\n---\nRewriting Alt Struct Refs\n---\n"
+            self._rewrite_alt_structs()
+
+            print u"\n---\nPushing changes to Elastic Search\n---\n"
+            self._clean_elastisearch()
 
     def _insert_base_text_version_segments(self):
         # Inserts are self.first_ref
@@ -267,14 +272,36 @@ class Splicer(object):
         # for each version, merge the text
         for v in self.versionSet:
             assert isinstance(v, Version)
-            first_tc = TextChunk(self.first_ref, lang=v.language, vtitle=v.versionTitle)
-            second_tc = TextChunk(self.second_ref, lang=v.language, vtitle=v.versionTitle)
-            if not (first_tc.is_empty() and second_tc.is_empty()):
-                first_tc.text = first_tc.text + self.joiner + second_tc.text
-                if self._report:
-                    print u"{}: {} and {} merging to become {}".format(v.versionTitle, self.first_ref.normal(), self.second_ref.normal(), first_tc.text)
-                if self._save:
-                    first_tc.save()
+            tc = TextChunk(self.section_ref, lang=v.language, vtitle=v.versionTitle)
+            if len(tc.text) < self.second_segment_number:
+                continue
+            first_line = tc.text[self.first_segment_number - 1]
+            second_line = tc.text[self.second_segment_number - 1]
+            if first_line or second_line:
+                tc.text[self.first_segment_number - 1] = first_line.strip() + self.joiner + second_line.strip()
+            tc.text = tc.text[:self.first_segment_number] + tc.text[self.second_segment_number:]
+            if self._report:
+                print u"{}: {} and {} merging to become {}".format(v.versionTitle, self.first_ref.normal(), self.second_ref.normal(), self.first_segment_number - 1)
+            if self._save:
+                tc.save()
+
+    """  Logic moved  into _merge_base_text_version_segments
+    def _remove_base_text_version_segments(self, local_ref):
+        assert local_ref.is_segment_level()
+        local_section_ref = local_ref.section_ref()
+        local_segment_number = local_ref.sections[-1]
+
+        # Remove segment from all versions that have it
+        for v in local_section_ref.versionset():
+            tc = TextChunk(local_section_ref, lang=v.language, vtitle=v.versionTitle)
+            if len(tc.text) < local_segment_number:
+                continue
+            tc.text = tc.text[:local_segment_number - 1] + tc.text[local_segment_number:]
+            if self._report:
+                print u"Removing {} ({})".format(local_ref.normal(), v.versionTitle)
+            if self._save:
+                tc.save()
+    """
 
     def _merge_commentary_version_sections(self):
         # Merge comments for all commentary on this text
@@ -291,27 +318,15 @@ class Splicer(object):
             comment_section_length = self.comment_section_lengths.get(v.title)
             assert len(tc.text[self.first_segment_number - 1]) <= comment_section_length
             tc.text[self.first_segment_number - 1] = tc.text[self.first_segment_number - 1] + [list() for _ in range(len(tc.text[self.first_segment_number - 1]), comment_section_length)] + tc.text[self.second_segment_number - 1]
+            # remove second section
+            tc.text = tc.text[:self.first_segment_number] + tc.text[self.second_segment_number:]
+
             if self._report:
                 print u"{} ({}) becoming\n{}".format(commentator_segment_ref.normal(), v.versionTitle, tc.text[self.first_segment_number - 1])
             if self._save:
                 tc.save()
 
-    def _remove_base_text_version_segments(self, local_ref):
-        assert local_ref.is_segment_level()
-        local_section_ref = local_ref.section_ref()
-        local_segment_number = local_ref.sections[-1]
-
-        # Remove segment from all versions that have it
-        for v in local_section_ref.versionset():
-            tc = TextChunk(local_section_ref, lang=v.language, vtitle=v.versionTitle)
-            if len(tc.text) < local_segment_number:
-                continue
-            tc.text = tc.text[:local_segment_number - 1] + tc.text[local_segment_number:]
-            if self._report:
-                print u"Removing {} ({})".format(local_ref.normal(), v.versionTitle)
-            if self._save:
-                tc.save()
-
+    """  Logic moved  into _merge_commentary_version_sections
     def _remove_commentary_versions_sections(self, local_ref):
         assert local_ref.is_segment_level()
         local_section_ref = local_ref.section_ref()
@@ -330,6 +345,7 @@ class Splicer(object):
                 print u"Removing {} ({})".format(commentator_line_ref.normal(), v.versionTitle)
             if self._save:
                 tc.save()
+    """
 
     def _needs_rewrite(self, old_ref, commentary=False):
         # There is no difference here between join and insert - anything after first_ref needs to be rewritten
@@ -482,12 +498,16 @@ class Splicer(object):
         def rewrite_source(source):
             needs_save = False
             if "ref" in source:
-                ref = Ref(source["ref"])
-                if self._needs_rewrite(ref, ref.is_commentary()):
-                    if self._report:
-                        print "Sheet refs - rewriting {} to {}".format(ref.normal(), self._rewrite(ref, ref.is_commentary()).normal())
-                    needs_save = True
-                    source["ref"] = self._rewrite(ref, ref.is_commentary()).normal()
+                try:
+                    ref = Ref(source["ref"])
+                except InputError as e:
+                    print "Error: In _clean_sheets.rewrite_source: failed to instantiate Ref {}".format(source["ref"])
+                else:
+                    if self._needs_rewrite(ref, ref.is_commentary()):
+                        if self._report:
+                            print "Sheet refs - rewriting {} to {}".format(ref.normal(), self._rewrite(ref, ref.is_commentary()).normal())
+                        needs_save = True
+                        source["ref"] = self._rewrite(ref, ref.is_commentary()).normal()
             if "subsources" in source:
                 for subsource in source["subsources"]:
                     needs_save = rewrite_source(subsource) or needs_save
@@ -505,6 +525,7 @@ class Splicer(object):
                 if self._report:
                     print "Saving modified sheet #{}".format(sheet["id"])
                 if self._save:
+                    sheet["lastModified"] = sheet["dateModified"]
                     save_sheet(sheet, sheet["owner"])
 
     def _clean_elastisearch(self):
