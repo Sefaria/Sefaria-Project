@@ -10,5 +10,5 @@ for v in versions:
 
 versions = VersionSet({"versionTitle": "Wikisource Talmud Bavli"})
 for v in versions:
-    v.versionNotes = "The text is according to the Vilna Shas, and has been segmented according the punctuation of the <a href='http://www.korenpub.com/EN/categories/talmud' target='_blank'>Steinsalz Koren Gemara</a>, courtesy of <a href='http://www.korenpub.com/' target='_blank'>Koren Publishers</a>."
+    v.versionNotes = "The text is according to the Vilna Shas, and has been segmented according the punctuation of the <a href='http://www.korenpub.com/EN/categories/talmud' target='_blank'>Steinsaltz Koren Gemara</a>, courtesy of <a href='http://www.korenpub.com/' target='_blank'>Koren Publishers</a>."
     v.save()
