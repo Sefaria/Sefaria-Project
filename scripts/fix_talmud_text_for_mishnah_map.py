@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-
-from sefaria.model import *
-import sefaria.tracker as tracker
-from sefaria.system.exceptions import DuplicateRecordError
-from sefaria.helper.splice import Splicer
-
 import unicodecsv as csv
 import re
+from itertools import groupby
+
+from sefaria.model import *
+from sefaria.helper.splice import Splicer
+
+
 
 live = True
 writeMishnahMapChanges = True
@@ -19,6 +19,7 @@ standard_mishnah_start = u"מתני׳"
 standard_gemara_start = u"גמ׳"
 m_count = 0
 g_count = 0
+refresh_count = 0
 
 mishnah_map = []
 # Read in the old Mishnah Map
@@ -72,12 +73,15 @@ to_split = ["Nedarim.25b.9",
     "Zevachim 15b:17",
 ]
 for r in to_split:
-    s = Splicer().insert_blank_segment_after(Ref(r)).bulk_mode()
-    review_map(s)
+    s = Splicer().insert_blank_segment_after(Ref(r))
+    s._save_text_only = True
+    s._rebuild_toc = False
+    s._refresh_states = True
     if live:
         s.execute()
     else:
         print u"Adding blank segment after {}".format(r)
+    review_map(s)
 
 to_merge = ["Zevachim.66a.23", # merge into previous 22
     "Zevachim.83a.37", # merge into previous 36
@@ -86,76 +90,118 @@ to_merge = ["Zevachim.66a.23", # merge into previous 22
     "Arakhin 34a:30",
     "Keritot 28b:37"]
 for r in to_merge:
-    s = Splicer().splice_this_into_prev(Ref(r)).bulk_mode()
-    review_map(s)
+    s = Splicer().splice_this_into_prev(Ref(r))
+    s._save_text_only = True
+    s._rebuild_toc = False
+    s._refresh_states = True
     if live:
         s.execute()
     else:
         print u"Merging {} into previous".format(r)
+    review_map(s)
 
-ms = None
-gs = None
-for mishnah in mishnah_map:
-    mref = mishnah["new_ref"] or mishnah["orig_ref"]
-    mref = mref.starting_ref()
-    tc = mref.text("he", versionTitle)
-    if matni_re.match(tc.text):
-        if not matni_re.match(tc.text).group(3):
-            print u"(ma) Bare Mishnah word"
-            m_count += 1
-            try:
-                if gs and gs.section_ref == gref.section_ref():
-                    gs.refresh_states()
-                elif ms and ms.section_ref == gref.section_ref():
-                    ms.refresh_states()
-                ms = Splicer().splice_this_into_next(mref).bulk_mode()
-                review_map(ms)
-                if live:
-                    ms.execute()
+
+
+booklists = []
+for k, g in groupby(mishnah_map, lambda d: d["orig_ref"].index.title):
+    booklist = []
+    for mishnah in g:
+        booklist.append({
+            "ref": mishnah["orig_ref"].starting_ref(),
+            "type": "Mishnah"
+        })
+        booklist.append({
+            "ref": mishnah["orig_ref"].ending_ref().next_segment_ref(),
+            "type": "Gemara"
+        })
+    booklists.append(booklist)
+
+
+for booklist in booklists:
+    next_list = []
+    splc = None
+
+    while len(booklist) or len(next_list):
+        try:
+            # Process first element in booklist
+            change_made = False
+            current = booklist.pop(0)
+            if current["type"] == "Mishnah":
+                tc = current["ref"].text("he", versionTitle)
+                if matni_re.match(tc.text):
+                    if not matni_re.match(tc.text).group(3):
+                        print u"(ma) Bare Mishnah word"
+                        m_count += 1
+                        try:
+                            splc = Splicer().splice_this_into_next(current["ref"]).bulk_mode()
+                            if live:
+                                splc.execute()
+                            else:
+                                print u"Merging bare Mishnah at {} into next".format(current["ref"].normal())
+                            change_made = True
+                            review_map(splc)
+                        except Exception as e:
+                            print "(mf) Failed to splice {} into next: {}".format(current["ref"].normal(),e)
                 else:
-                    print u"Merging bare Mishnah at {} into next".format(mref.normal())
-            except Exception as e:
-                print "(mf) Failed to splice {} into next: {}".format(mref.normal(),e)
-    else:
-        print u"(m0) Did not match mishnah {}".format(mref.normal())
-    gref = mishnah["new_ref"] or mishnah["orig_ref"]
-    gref = gref.ending_ref().next_segment_ref()
-    tc = gref.text("he", versionTitle)
-    if gemarah_re.match(tc.text):
-        if not gemarah_re.match(tc.text).group(3):
-            print u"(ga) Bare Gemara word"
-            g_count += 1
-            try:
-                if ms and ms.section_ref == gref.section_ref():
-                    ms.refresh_states()
-                elif gs and gs.section_ref == gref.section_ref():
-                    gs.refresh_states()
-                gs = Splicer().splice_this_into_next(gref).bulk_mode()
-                review_map(gs)
-                if live:
-                    gs.execute()
+                    print u"(m0) Did not match mishnah {}".format(current["ref"].normal())
+            elif current["type"] == "Gemara":
+                tc = current["ref"].text("he", versionTitle)
+                if gemarah_re.match(tc.text):
+                    if not gemarah_re.match(tc.text).group(3):
+                        print u"(ga) Bare Gemara word"
+                        g_count += 1
+                        try:
+                            splc = Splicer().splice_this_into_next(current["ref"]).bulk_mode()
+                            if live:
+                                splc.execute()
+                            else:
+                                print u"Merging bare Gemara at {} into next".format(current["ref"].normal())
+                            review_map(splc)
+                            change_made = True
+
+                        except Exception as e:
+                            print "(gf) Failed to splice {} into next: {}".format(current["ref"].normal(), e)
                 else:
-                    print u"Merging bare Gemara at {} into next".format(gref.normal())
-            except Exception as e:
-                print "(gf) Failed to splice {} into next: {}".format(gref.normal(), e)
-    else:
-        print u"(g0) Did not match 'Gemara' in {}".format(gref.normal())
+                    print u"(g0) Did not match 'Gemara' in {}".format(current["ref"].normal())
+            else:
+                print "Unexpect type: {}".format(current["type"])
+                exit()
+
+            # Adjust any later elements
+            # Any element that needs adjustment, pop from booklist and put in next_list
+            if change_made:
+                for i, item in enumerate(booklist):
+                    if splc._needs_rewrite(item["ref"]):
+                        print "* Rewriting ref {} ...".format(item["ref"])
+                        item["ref"] = splc._rewrite(item["ref"])
+                        print "...to {}".format(item["ref"])
+                        next_list.append(item)
+                        booklist[i] = None
+                booklist = [n for n in booklist if n is not None]
+
+        except IndexError:
+            # once booklist is done, refresh counts, move next_list to booklist, start again
+            if splc:
+                refresh_count += 1
+                if live:
+                    splc.refresh_states()
+            booklist = next_list
+            next_list = []
 
 print "Mishnah count: {}".format(m_count)
 print "Gemara count: {}".format(g_count)
+print "Refresh count: {}".format(refresh_count)
 
 # Write out the new Mishnah Map
 if writeMishnahMapChanges:
-    with open(filename, "rb") as csvfile:
-        next(csvfile)
-        csvfile.truncate()
+    with open(filename, "wb") as csvfile:
         cwriter = csv.writer(csvfile)
+        cwriter.writerow(['Book','Mishnah Chapter','Start Mishnah','End Mishnah','Start Daf','Start Line','End Daf','End Line'])
         for row in mishnah_map:
             if row["new_ref"] and row["new_ref"] != row["orig_ref"]:
                 row["line"][5] = row["new_ref"].sections[1]
                 row["line"][7] = row["new_ref"].toSections[1]
             cwriter.writerow(row["line"])
-    cwriter.flush()
 
 
 """
