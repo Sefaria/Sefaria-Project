@@ -39,6 +39,14 @@ def test_join_rewrite():
     assert n._rewrite(Ref("Rashi on Shabbat 45b:15"), commentary=True) == Ref("Rashi on Shabbat 45b:14")
     assert n._rewrite(Ref("Rashi on Shabbat 45b:12:1"), commentary=True) == Ref("Rashi on Shabbat 45b:11:2")  # There's already one comment on 11
 
+def test_page_spanning_rewrite():
+    n = Splicer().splice_this_into_next(Ref("Meilah 19b:1"))
+    assert n._needs_rewrite(Ref("Meilah 19b:41-20a:5"))
+    assert n._rewrite(Ref("Meilah 19b:41-20a:5")) == Ref("Meilah 19b:40-20a:5")
+
+    n = Splicer().insert_blank_segment_after(Ref("Meilah 19b:1"))
+    assert n._needs_rewrite(Ref("Meilah 19b:41-20a:5"))
+    assert n._rewrite(Ref("Meilah 19b:41-20a:5")) == Ref("Meilah 19b:42-20a:5")
 
 def test_insert_rewrite():
     n = Splicer().insert_blank_segment_after(Ref("Shabbat 45b:11"))

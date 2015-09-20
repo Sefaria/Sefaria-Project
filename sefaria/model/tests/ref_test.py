@@ -646,6 +646,14 @@ class Test_set_construction_from_ref(object):
         pass
 
 
+class Test_Order_Id(object):
+    def test_order_id(self):
+        assert Ref("Shabbat 17b").order_id()
+        assert Ref("Job 15:13").order_id()
+        assert Ref("Shabbat 12a:14").order_id()
+        assert Ref("Rashi on Shabbat 17b:12").order_id()
+        assert Ref("Tosafot on Yoma 25a:24").order_id()
+
 
 '''
 class Test_ref_manipulations():

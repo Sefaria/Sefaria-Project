@@ -198,42 +198,43 @@ class Splicer(object):
             # Rewrite links to base text (including links from own commentary)
             print u"\n*** Rewriting Refs to Base Text"
             print u"\n*** Rewriting Links"
-            self._generic_set_rewrite(LinkSet(self.book_ref), ref_attr_name="refs", is_set=True)
+            self._generic_set_rewrite(LinkSet(self.section_ref), ref_attr_name="refs", is_set=True)
 
             # Note refs
             print u"\n*** Rewriting Note Refs"
-            self._generic_set_rewrite(NoteSet({"ref": {"$regex": self.book_ref.regex()}}))
+            self._generic_set_rewrite(NoteSet({"ref": {"$regex": self.section_ref.regex()}}))
 
             # Translation requests
             print u"\n*** Rewriting Translation Request Refs"
-            self._generic_set_rewrite(TranslationRequestSet({"ref": {"$regex": self.book_ref.regex()}}))
+            self._generic_set_rewrite(TranslationRequestSet({"ref": {"$regex": self.section_ref.regex()}}))
 
             # History
             print u"\n*** Rewriting History Refs"
-            self._generic_set_rewrite(HistorySet({"ref": {"$regex": self.book_ref.regex()}}))
-            self._generic_set_rewrite(HistorySet({"new.ref": {"$regex": self.book_ref.regex()}}), ref_attr_name="new", sub_ref_attr_name="ref")
-            self._generic_set_rewrite(HistorySet({"new.refs": {"$regex": self.book_ref.regex()}}), ref_attr_name="new", sub_ref_attr_name="refs", is_set=True)
-            self._generic_set_rewrite(HistorySet({"old.ref": {"$regex": self.book_ref.regex()}}), ref_attr_name="old", sub_ref_attr_name="ref")
-            self._generic_set_rewrite(HistorySet({"old.refs": {"$regex": self.book_ref.regex()}}), ref_attr_name="old", sub_ref_attr_name="refs", is_set=True)
+            self._generic_set_rewrite(HistorySet({"ref": {"$regex": self.section_ref.regex()}}))
+            self._generic_set_rewrite(HistorySet({"new.ref": {"$regex": self.section_ref.regex()}}), ref_attr_name="new", sub_ref_attr_name="ref")
+            self._generic_set_rewrite(HistorySet({"new.refs": {"$regex": self.section_ref.regex()}}), ref_attr_name="new", sub_ref_attr_name="refs", is_set=True)
+            self._generic_set_rewrite(HistorySet({"old.ref": {"$regex": self.section_ref.regex()}}), ref_attr_name="old", sub_ref_attr_name="ref")
+            self._generic_set_rewrite(HistorySet({"old.refs": {"$regex": self.section_ref.regex()}}), ref_attr_name="old", sub_ref_attr_name="refs", is_set=True)
 
             print u"\n*** Rewriting Refs to Commentary"
             for commentary_title in self.commentary_titles:
+                commentator_chapter_ref = Ref(commentary_title).subref(self.section_ref.sections)
                 # Rewrite links to commentary (including to base text)
-                print u"\n*** {}".format(commentary_title)
+                print u"\n*** {}".format(commentator_chapter_ref.normal())
                 print u"\n*** Rewriting Links"
-                self._generic_set_rewrite(LinkSet(Ref(commentary_title)), ref_attr_name="refs", is_set=True, commentary=True)
+                self._generic_set_rewrite(LinkSet(commentator_chapter_ref), ref_attr_name="refs", is_set=True, commentary=True)
                 print u"\n*** Rewriting Note Refs"
-                self._generic_set_rewrite(NoteSet({"ref": {"$regex": Ref(commentary_title).regex()}}), commentary=True)
+                self._generic_set_rewrite(NoteSet({"ref": {"$regex": commentator_chapter_ref.regex()}}), commentary=True)
                 print u"\n*** Rewriting Translation Request Refs"
-                self._generic_set_rewrite(TranslationRequestSet({"ref": {"$regex": Ref(commentary_title).regex()}}), commentary=True)
+                self._generic_set_rewrite(TranslationRequestSet({"ref": {"$regex": commentator_chapter_ref.regex()}}), commentary=True)
 
                 # History?
                 print u"\n*** Rewriting History Refs"
-                self._generic_set_rewrite(HistorySet({"ref": {"$regex": Ref(commentary_title).regex()}}), commentary=True)
-                self._generic_set_rewrite(HistorySet({"new.ref": {"$regex": Ref(commentary_title).regex()}}), ref_attr_name="new", sub_ref_attr_name="ref", commentary=True)
-                self._generic_set_rewrite(HistorySet({"new.refs": {"$regex": Ref(commentary_title).regex()}}), ref_attr_name="new", sub_ref_attr_name="refs", is_set=True, commentary=True)
-                self._generic_set_rewrite(HistorySet({"old.ref": {"$regex": Ref(commentary_title).regex()}}), ref_attr_name="old", sub_ref_attr_name="ref", commentary=True)
-                self._generic_set_rewrite(HistorySet({"old.refs": {"$regex": Ref(commentary_title).regex()}}), ref_attr_name="old", sub_ref_attr_name="refs", is_set=True, commentary=True)
+                self._generic_set_rewrite(HistorySet({"ref": {"$regex": commentator_chapter_ref.regex()}}), commentary=True)
+                self._generic_set_rewrite(HistorySet({"new.ref": {"$regex": commentator_chapter_ref.regex()}}), ref_attr_name="new", sub_ref_attr_name="ref", commentary=True)
+                self._generic_set_rewrite(HistorySet({"new.refs": {"$regex": commentator_chapter_ref.regex()}}), ref_attr_name="new", sub_ref_attr_name="refs", is_set=True, commentary=True)
+                self._generic_set_rewrite(HistorySet({"old.ref": {"$regex": commentator_chapter_ref.regex()}}), ref_attr_name="old", sub_ref_attr_name="ref", commentary=True)
+                self._generic_set_rewrite(HistorySet({"old.refs": {"$regex": commentator_chapter_ref.regex()}}), ref_attr_name="old", sub_ref_attr_name="refs", is_set=True, commentary=True)
 
             # Source sheet refs
             print u"\n*** Rewriting Source Sheet Refs"
@@ -254,7 +255,7 @@ class Splicer(object):
             tc = TextChunk(self.section_ref, lang=v.language, vtitle=v.versionTitle)
             if len(tc.text) <= self.first_segment_number:
                 continue
-            tc.text.insert(self.first_segment_number, "")
+            tc.text = tc.text[:self.first_segment_number] + [u""] + tc.text[self.first_segment_number:]
             if self._report:
                 print u"Inserting segment after {} ({})".format(self.first_ref.normal(), v.versionTitle)
             if self._save:
@@ -268,7 +269,7 @@ class Splicer(object):
             tc = TextChunk(commentator_chapter_ref, lang=v.language, vtitle=v.versionTitle)
             if len(tc.text) <= self.first_segment_number:
                 continue
-            tc.text.insert(self.first_segment_number, [])
+            tc.text = tc.text[:self.first_segment_number] + [[]] + tc.text[self.first_segment_number:]
             if self._report:
                 print u"Inserting commentary segment after {} ({})".format(commentator_line_ref.normal(), v.versionTitle)
             if self._save:
@@ -395,14 +396,20 @@ class Splicer(object):
 
         def join_rewrite(old_simple_ref):
             segment_depth = self.first_ref.index_node.depth - 1
-            if commentary and old_simple_ref.is_segment_level() and old_simple_ref.sections[segment_depth] == self.second_segment_number:
+            section_depth = self.first_ref.index_node.depth - 2
+
+            if (commentary
+              and old_simple_ref.is_segment_level()
+              and old_simple_ref.sections[section_depth] == self.first_ref.sections[section_depth]
+              and old_simple_ref.sections[segment_depth] == self.second_segment_number):
                 # Position of comment has changed
                 d = old_simple_ref._core_dict()
                 d["sections"][-2] -= 1
                 d["sections"][-1] += self.comment_section_lengths.get(old_simple_ref.index.title)
                 d["toSections"] = d["sections"]
                 return Ref(_obj=d)
-            elif old_simple_ref.sections[segment_depth] > self.first_segment_number:
+            elif (old_simple_ref.sections[segment_depth] > self.first_segment_number
+              and old_simple_ref.sections[section_depth] == self.first_ref.sections[section_depth]):
                 if not commentary:
                     return old_simple_ref.prev_segment_ref()
                 else:

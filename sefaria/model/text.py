@@ -485,7 +485,6 @@ class CommentaryIndex(AbstractIndex):
         if self.b_index.is_commentary():
             raise BookNameError(u"We don't yet support nested commentaries '{} on {}'.".format(commentor_name, book_name))
 
-
         # This whole dance is a bit of a mess.
         # Todo: see if we can clean it up a bit
         # could expose the b_index and c_index records to consumers of this object, and forget the renaming

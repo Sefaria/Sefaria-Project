@@ -18,7 +18,7 @@ filename = '../data/Mishnah Map.csv'
 # 6 End Daf
 # 7 End Line
 
-live = False
+live = True
 
 perek_refs = {}  # title: [ref1, ref2, ...]
 perek_names = {} # title: [name, name, name ...]
@@ -42,7 +42,7 @@ def parse_and_bold_hadran(hadran_ref):
     if match:
         perek_names[lastrow[0]] = perek_names.get(lastrow[0], []) + [match.group(3)]
         old = tc.text
-        tc.text = hadran_re.sub(ur'\1<big><bold>\2</bold></big>', tc.text)
+        tc.text = hadran_re.sub(ur'\1<big><strong>\2</strong></big>', tc.text)
         if live:
             tc.save()
         else:
@@ -144,18 +144,19 @@ with open(filename, 'rb') as csvfile:
             if not matni_re.match(tc.text).group(3):
                 print u"(ma) Bare Mishnah word"
             old = tc.text
-            tc.text = matni_re.sub(ur'\1<big><bold>' + standard_mishnah_start + ur'</bold></big> \3', tc.text)
+            tc.text = matni_re.sub(ur'\1<big><strong>' + standard_mishnah_start + ur'</strong></big> \3', tc.text)
             if live:
                 tc.save()
             else:
                 print u"(m1) Replacing:\n{}\nwith\n{}\n".format(old, tc.text)
         else:  # try the line earlier
             if not mishnahInTalmudRef.starting_ref().prev_segment_ref():
+                print u"(m0) No Mishnah word starting Mesechet: {}".format(mishnahInTalmudRef.starting_ref().normal())
                 continue
             tc = mishnahInTalmudRef.starting_ref().prev_segment_ref().text("he", versionTitle)
             if matni_re.match(tc.text):
                 old = tc.text
-                tc.text = matni_re.sub(ur'\1<big><bold>' + standard_mishnah_start + ur'</bold></big> \3', tc.text)
+                tc.text = matni_re.sub(ur'\1<big><strong>' + standard_mishnah_start + ur'</strong></big> \3', tc.text)
                 if live:
                     tc.save()
                 else:
@@ -192,7 +193,7 @@ with open(filename, 'rb') as csvfile:
             if not gemarah_re.match(tc.text).group(3):
                 print u"(ga) Bare Gemara word"
             old = tc.text
-            tc.text = gemarah_re.sub(ur'\1<big><bold>' + standard_gemara_start + ur'</bold></big> \3', tc.text)
+            tc.text = gemarah_re.sub(ur'\1<big><strong>' + standard_gemara_start + ur'</strong></big> \3', tc.text)
             if live:
                 tc.save()
             else:

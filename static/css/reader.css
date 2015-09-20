@@ -656,6 +656,10 @@ body.newText #newTextCompare {
 	direction: rtl;
 }
 
+.verse > .he big {
+	line-height: 46px;
+}
+
 .verse .clear {
 	display: none;
 }

@@ -36,10 +36,11 @@ with open(filename, 'rb') as csvfile:
 
 def review_map(splicer):
     for row in mishnah_map:
-        if row["new_ref"] and splicer._needs_rewrite(row["new_ref"]):
-            print "* Rewriting new_ref {} ...".format(row["new_ref"])
-            row["new_ref"] = splicer._rewrite(row["new_ref"])
-            print "...to {}".format(row["new_ref"])
+        if row["new_ref"]:
+            if splicer._needs_rewrite(row["new_ref"]):
+                print "* Rewriting new_ref {} ...".format(row["new_ref"])
+                row["new_ref"] = splicer._rewrite(row["new_ref"])
+                print "...to {}".format(row["new_ref"])
         elif splicer._needs_rewrite(row["orig_ref"]):
             print "* Rewriting orig_ref {} ...".format(row["orig_ref"])
             row["new_ref"] = splicer._rewrite(row["orig_ref"])
@@ -55,6 +56,7 @@ missing_matni = ["Berakhot 54a:1",
     "Nedarim.66b.66",
     "Kiddushin 2a:1",
      "Berakhot 2a:1",
+     "Beitzah 2a:1",
      "Tamid 33b:1"]
 for r in missing_matni:
     tc = TextChunk(Ref(r), "he", versionTitle)
@@ -85,7 +87,7 @@ for r in to_split:
 
 to_merge = ["Zevachim.66a.23", # merge into previous 22
     "Zevachim.83a.37", # merge into previous 36
-    "Bava_Batra.176b.6",
+    "Bava_Batra.176b.6",  # Slika on last line (and next 3)
     "Bekhorot 61a:47",
     "Arakhin 34a:30",
     "Keritot 28b:37"]
@@ -101,23 +103,26 @@ for r in to_merge:
     review_map(s)
 
 
+Ref.clear_cache()
 
 booklists = []
 for k, g in groupby(mishnah_map, lambda d: d["orig_ref"].index.title):
     booklist = []
     for mishnah in g:
+        ref = mishnah["new_ref"] if mishnah["new_ref"] else mishnah["orig_ref"]
         booklist.append({
-            "ref": mishnah["orig_ref"].starting_ref(),
+            "ref": ref.starting_ref(),
             "type": "Mishnah"
         })
         booklist.append({
-            "ref": mishnah["orig_ref"].ending_ref().next_segment_ref(),
+            "ref": ref.ending_ref().next_segment_ref(),
             "type": "Gemara"
         })
     booklists.append(booklist)
 
 
 for booklist in booklists:
+    needs_refresh = False
     next_list = []
     splc = None
 
@@ -139,6 +144,7 @@ for booklist in booklists:
                             else:
                                 print u"Merging bare Mishnah at {} into next".format(current["ref"].normal())
                             change_made = True
+                            needs_refresh = True
                             review_map(splc)
                         except Exception as e:
                             print "(mf) Failed to splice {} into next: {}".format(current["ref"].normal(),e)
@@ -158,7 +164,7 @@ for booklist in booklists:
                                 print u"Merging bare Gemara at {} into next".format(current["ref"].normal())
                             review_map(splc)
                             change_made = True
-
+                            needs_refresh = True
                         except Exception as e:
                             print "(gf) Failed to splice {} into next: {}".format(current["ref"].normal(), e)
                 else:
@@ -185,8 +191,15 @@ for booklist in booklists:
                 refresh_count += 1
                 if live:
                     splc.refresh_states()
+                    Ref.clear_cache()
+            needs_refresh = False
             booklist = next_list
             next_list = []
+    if splc and needs_refresh:
+        refresh_count += 1
+        if live:
+            splc.refresh_states()
+            Ref.clear_cache()
 
 print "Mishnah count: {}".format(m_count)
 print "Gemara count: {}".format(g_count)
