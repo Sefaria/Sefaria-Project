@@ -145,7 +145,7 @@ class Splicer(object):
         self._report = False
 
     def bulk_mode(self):
-        self._save_text_only = True  # debug
+        #self._save_text_only = True  # debug
         self._rebuild_toc = False  # debug/time
         self._refresh_states = False
         return self

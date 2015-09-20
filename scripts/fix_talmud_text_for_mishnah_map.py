@@ -76,7 +76,7 @@ to_split = ["Nedarim.25b.9",
 ]
 for r in to_split:
     s = Splicer().insert_blank_segment_after(Ref(r))
-    s._save_text_only = True
+    #s._save_text_only = True
     s._rebuild_toc = False
     s._refresh_states = True
     if live:
@@ -93,7 +93,7 @@ to_merge = ["Zevachim.66a.23", # merge into previous 22
     "Keritot 28b:37"]
 for r in to_merge:
     s = Splicer().splice_this_into_prev(Ref(r))
-    s._save_text_only = True
+    #s._save_text_only = True
     s._rebuild_toc = False
     s._refresh_states = True
     if live:
