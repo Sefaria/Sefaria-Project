@@ -418,12 +418,15 @@ class Splicer(object):
                     d["toSections"] = d["sections"]
                     return Ref(_obj=d)
             return old_simple_ref
-
-        _rewrite_method = insert_rewrite if self._mode == "insert" else join_rewrite
-        if old_ref.is_range():
-            return _rewrite_method(old_ref.starting_ref()).to(_rewrite_method(old_ref.ending_ref()))
-        return _rewrite_method(old_ref)
-
+        try:
+            _rewrite_method = insert_rewrite if self._mode == "insert" else join_rewrite
+            if old_ref.is_range():
+                return _rewrite_method(old_ref.starting_ref()).to(_rewrite_method(old_ref.ending_ref()))
+            return _rewrite_method(old_ref)
+        except Exception as e:
+            print u"Failed to rewrite {}".format(old_ref.normal())
+            return old_ref
+        
     def _generic_set_rewrite(self, model_set, commentary=False, ref_attr_name="ref", sub_ref_attr_name=None, is_set=False):
         for n in model_set:
             needs_save = False
