@@ -697,37 +697,54 @@ $(function() {
 
 	// Open Modal to override the sheet's default language/layout options for a specific source 
 	$(".switchSourceLayoutLang").live("click", function() { 
+
+		$("#overrideLayoutModal").data("target", $(this).closest(".sheetItem")).show().position({ of: $(window) });	
 		
 		//set buttons to current realities
 		if (!$(this).closest(".sheetItem").is("bilingual, english, hebrew, sideBySide, stacked, hebLeft, hebRight")  ) {
-			$("#"+$('#languageToggle').find('.active').attr('id')+"Source").addClass("active");
-			$("#"+$('#sheetLayoutToggle').find('.active').attr('id')+"Source").addClass("active")
-			$("#"+$('#biLayoutToggle').find('.active').attr('id')+"Source").addClass("active")		
-		}
-		
-		$("#bilingualSource, #hebrewSource, #englishSource").removeClass("active");
-		if ($(this).closest(".sheetItem").hasClass("bilingual")  ) {$("#bilingualSource").addClass("active")}
-		else if ($(this).closest(".sheetItem").hasClass("hebrew")  ) {$("#hebrewSource").addClass("active")}
-		else if ($(this).closest(".sheetItem").hasClass("english")  ) {$("#englishSource").addClass("active")}
-		else {$("#"+$('#languageToggle').find('.active').attr('id')+"Source").addClass("active")}
-
-		$("#sideBySideSource, #stackedSource").removeClass("active");
-		if ($(this).closest(".sheetItem").hasClass("sideBySide")  ) {$("#sideBySideSource").addClass("active")}
-		else if ($(this).closest(".sheetItem").hasClass("stacked")  ) {$("#stackedSource").addClass("active")}
-		else {$("#"+$('#sheetLayoutToggle').find('.active').attr('id')+"Source").addClass("active")}
-
+			$("#"+$('#languageToggle').find('.active').attr('id')+"Source").click();
+			$("#"+$('#sheetLayoutToggle').find('.active').attr('id')+"Source").click();
+			$("#"+$('#biLayoutToggle').find('.active').attr('id')+"Source").click();		
+		}	
 
 		$("#hebLeftSource, #hebRightSource").removeClass("active");
-		if ($(this).closest(".sheetItem").hasClass("hebRight")  ) {$("#hebRightSource").addClass("active")}
-		else if ($(this).closest(".sheetItem").hasClass("hebLeft")  ) {$("#hebLeftSource").addClass("active")}
+		if ($(this).closest(".sheetItem").hasClass("hebRight")  ) {$("#hebRightSource").click()}
+		else if ($(this).closest(".sheetItem").hasClass("hebLeft")  ) {$("#hebLeftSource").click()}
 		else {
-		   "heRight"==$("#biLayoutToggle").find(".active").attr("id")?$("#hebRightSource").addClass("active"):$("#hebLeftSource").addClass("active");		
-		}		
+		   "heRight"==$("#biLayoutToggle").find(".active").attr("id")?$("#hebRightSource").click():$("#hebLeftSource").click();		
+
+		}	
+
+		$("#sideBySideSource, #stackedSource").removeClass("active");
+		if ($(this).closest(".sheetItem").hasClass("sideBySide")  ) {$("#sideBySideSource").click()}
+		else if ($(this).closest(".sheetItem").hasClass("stacked")  ) {$("#stackedSource").click()}
+		else {$("#"+$('#sheetLayoutToggle').find('.active').attr('id')+"Source").click()}
+
+		$("#bilingualSource, #hebrewSource, #englishSource").removeClass("active");
+		if ($(this).closest(".sheetItem").hasClass("bilingual")  ) {$("#bilingualSource").click()}
+		else if ($(this).closest(".sheetItem").hasClass("hebrew")  ) {$("#hebrewSource").click()}
+		else if ($(this).closest(".sheetItem").hasClass("english")  ) {$("#englishSource").click()}
+		else {$("#"+$('#languageToggle').find('.active').attr('id')+"Source").click()}
+
+			
 		$("#overlay").show();
-		$("#overrideLayoutModal").data("target", $(this).closest(".sheetItem")).show().position({ of: $(window) });	
 	 });
  
 	$("#overrideLayoutModal .ok").click(function(){
+		
+		//check to see if current source layout matches sheet layout -- if so, remove classes & let the parent be in charge
+		if (
+		$("#sheetLayoutToggle").find(".active").attr("id") == $("#sheetLayoutToggleSource").find(".active").attr("id").replace("Source","")
+		&& $("#languageToggle").find(".active").attr("id") == $("#languageToggleSource").find(".active").attr("id").replace("Source","")
+		&& $("#biLayoutToggle").find(".active").attr("id").replace("he","heb") == $("#biLayoutToggleSource").find(".active").attr("id").replace("Source","")
+		) {
+			var $target = $("#overrideLayoutModal").data("target");
+			$target.removeClass("bilingual english hebrew sideBySide hebLeft hebRight stacked");
+		}
+		
+		
+		
+		
 		$("#overrideLayoutModal, #overlay").hide();
 		autoSave();
 	});
@@ -742,11 +759,11 @@ $(function() {
 		$target.removeClass("sideBySide stacked")
 			.addClass($(this).attr("id").replace("Source",""));
 		if ($(this).attr("id") == "stackedSource") {
-			$("#biLayoutToggleSource").css("visibility", "hidden");
+			$("#biLayoutToggleSource").addClass("disabled");
 			$target.removeClass("hebLeft hebRight")
 
 		} else {
-			$("#biLayoutToggleSource").css("visibility", "visible");
+			$("#biLayoutToggleSource").removeClass("disabled");
 		}
 	});
 
@@ -759,15 +776,16 @@ $(function() {
 		$("#languageToggleSource .toggleOption").removeClass("active");			
 		$(this).addClass("active");
 		if ($(this).attr("id") != "bilingualSource") {
-			$("#biLayoutToggleSource, #sheetLayoutToggleSource").css("visibility", "hidden");
+			$("#stackedSource").click();
+			$("#biLayoutToggleSource, #sheetLayoutToggleSource").addClass("disabled");
 			$target.removeClass("sideBySide hebLeft hebRight").addClass("stacked");
-			$("#stackedSource").addClass("active");
+
 
 
 		} else {
-			$("#sheetLayoutToggleSource").css("visibility", "visible");
+			$("#sheetLayoutToggleSource").removeClass("disabled");
 			if ($target.hasClass("sideBySide")) {
-				$("#biLayoutToggleSource").css("visibility", "visible");
+				$("#biLayoutToggleSource").removeClass("disabled");
 			}
 		}
 	});

@@ -1229,3 +1229,16 @@ margin-top:10px;
 text-decoration: underline;
 cursor: pointer;
 }
+
+.disabled { 
+pointer-events: none;
+opacity: .3;
+}
+
+#overrideLayoutModal .ok {
+margin-top: 25px;
+}
+
+#overrideLayoutModal .header {
+margin: 15px 0px 25px;
+}
