@@ -726,11 +726,6 @@ $(function() {
 		sjs.track.sheets("Open Source Layout Modal");
 	 });
  
-		 $("#overrideLayoutModal").on('hide', function () {
-		  alert('closed')
-		})
-
- 
 	$("#overrideLayoutModal .ok").click(function(){
 		
 		//check to see if current source layout matches sheet layout -- if so, remove classes & let the parent be in charge
