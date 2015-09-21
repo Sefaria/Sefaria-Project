@@ -722,6 +722,8 @@ $(function() {
 
 			
 		$("#overlay").show();
+
+		sjs.track.sheets("Open Source Layout Modal");
 	 });
  
 	$("#overrideLayoutModal .ok").click(function(){
@@ -736,12 +738,11 @@ $(function() {
 			$target.removeClass("bilingual english hebrew sideBySide hebLeft hebRight stacked");
 		}
 		
-		
-		
-		
 		$("#overrideLayoutModal, #overlay").hide();
 		autoSave();
 	});
+ 
+ 
  
 
 	// Change Source Layout via modal
@@ -759,6 +760,8 @@ $(function() {
 		} else {
 			$("#biLayoutToggleSource").removeClass("disabled");
 		}
+		autoSave();
+		sjs.track.sheets("Change Source Layout Button");
 	});
 
 
@@ -773,15 +776,14 @@ $(function() {
 			$("#stackedSource").click();
 			$("#biLayoutToggleSource, #sheetLayoutToggleSource").addClass("disabled");
 			$target.removeClass("sideBySide hebLeft hebRight").addClass("stacked");
-
-
-
 		} else {
 			$("#sheetLayoutToggleSource").removeClass("disabled");
 			if ($target.hasClass("sideBySide")) {
 				$("#biLayoutToggleSource").removeClass("disabled");
 			}
 		}
+		autoSave();		
+		sjs.track.sheets("Change Source Language Button");
 	});
 	
 	// Change Language Layout via modal
@@ -791,6 +793,8 @@ $(function() {
 		$(this).addClass("active");
 		$target.removeClass("hebLeft hebRight")
 			.addClass($(this).attr("id").replace("Source",""))
+		autoSave();	
+		sjs.track.sheets("Change Source Language Layout Button");
 	});
 
 	
@@ -802,6 +806,7 @@ $(function() {
 		$target.removeClass("bilingual english hebrew sideBySide hebLeft hebRight stacked");
 		$("#overrideLayoutModal, #overlay").hide();
 		autoSave();
+		sjs.track.sheets("Reset Source Layout to Default");
 	});
 
 
