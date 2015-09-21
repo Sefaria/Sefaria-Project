@@ -28,7 +28,7 @@ chapterEnd = None
 lastrow = None
 
 versionTitle = "Wikisource Talmud Bavli"
-matni_re = re.compile(ur"(^|\s+)((?:" + u"מת" + u"נ" + u"?" + u"י" + u"?" + ur"(?:'|" + u"׳" + u"|" + u"תין" + u")?)|" + ur"משנה" + ur")" + ur"(?:$|:|\s+)(.*)")
+matni_re = re.compile(ur"(^|\s+)((?:" + u"מת" + u"נ" + u"?" + u"י" + u"?" + ur"(?:'|" + u"׳" + u"|" + u"תין" + u")?)|" + ur"משנה" + ur")" + ur'(?:$|:|\s+)(([\u05d0-\u05f4"]*)(.*))')
 gemarah_re = re.compile(ur"(^|\s+)(" + u"גמ" + ur"(?:" + ur"\'" + u"|" + u"רא))" + ur"(?:$|:|\s+)(.*)")
 hadran_re = re.compile(ur'^(.*\s*)\(?(\u05d4\u05d3\u05e8\u05df \u05e2\u05dc\u05da\s+(.*?):?\s*(?:' + ur'וסליקא לה' + ur'.*?' + ur')?)\)?\s*$')
 
@@ -139,12 +139,14 @@ with open(filename, 'rb') as csvfile:
         """
         tc = mishnahInTalmudRef.starting_ref().text("he", versionTitle)
         if matni_re.match(tc.text):
-            if is_new_perek:
-                print u"(mp) Perek Start line: {}".format(tc.text)
             if not matni_re.match(tc.text).group(3):
                 print u"(ma) Bare Mishnah word"
             old = tc.text
-            tc.text = matni_re.sub(ur'\1<big><strong>' + standard_mishnah_start + ur'</strong></big> \3', tc.text)
+            if is_new_perek:
+                print u"(mp) Perek Start line: {}".format(tc.text)
+                tc.text = matni_re.sub(ur'\1' + standard_mishnah_start + ur' <big><strong>\4</strong></big>\5', tc.text)
+            else:
+                tc.text = matni_re.sub(ur'\1<big><strong>' + standard_mishnah_start + ur'</strong></big> \3', tc.text)
             if live:
                 tc.save()
             else:
@@ -156,7 +158,7 @@ with open(filename, 'rb') as csvfile:
             tc = mishnahInTalmudRef.starting_ref().prev_segment_ref().text("he", versionTitle)
             if matni_re.match(tc.text):
                 old = tc.text
-                tc.text = matni_re.sub(ur'\1<big><strong>' + standard_mishnah_start + ur'</strong></big> \3', tc.text)
+                tc.text = matni_re.sub(ur'\1' + standard_mishnah_start + ur' <big><strong>\4</strong></big>\5', tc.text)
                 if live:
                     tc.save()
                 else:
