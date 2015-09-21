@@ -877,12 +877,14 @@ body.embeded #top {
 #globalWarning {
   position: fixed;
   z-index: 99;
-  width: 50%;
+  width: 550px;
+  max-width: 100%;
+  box-sizing: border-box;
   left: 0;
   right: 0;
   margin: 0 auto;
   top: 40px;
-  padding: 8px 35px 8px 14px;
+  padding: 14px;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
   text-align: center;
   border: 1px solid #fbeed5;
@@ -890,6 +892,11 @@ body.embeded #top {
   background-color: #f2dede;
   border-color: #eed3d7;
   color: #b94a48;
+}
+
+#globalWarning .fa-times {
+  float: right;
+  cursor: pointer;
 }
 
 .enNone.heNone {

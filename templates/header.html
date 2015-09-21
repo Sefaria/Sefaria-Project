@@ -181,7 +181,10 @@
 
 {% if GLOBAL_WARNING %}
 	{% autoescape off %}
-	<div id="globalWarning"><i class="fa fa-warning"></i> {{ GLOBAL_WARNING_MESSAGE }}</div>
+	<div id="globalWarning">
+		<i class='fa fa-times' onClick="$('#globalWarning').remove();"></i>
+		<i class="fa fa-warning"></i> 
+		{{ GLOBAL_WARNING_MESSAGE }}</div>
 	{% endautoescape %}
 {% endif %}
 
