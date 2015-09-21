@@ -701,12 +701,6 @@ $(function() {
 		$("#overrideLayoutModal").data("target", $(this).closest(".sheetItem")).show().position({ of: $(window) });	
 		
 		//set buttons to current realities
-		if (!$(this).closest(".sheetItem").is("bilingual, english, hebrew, sideBySide, stacked, hebLeft, hebRight")  ) {
-			$("#"+$('#languageToggle').find('.active').attr('id')+"Source").click();
-			$("#"+$('#sheetLayoutToggle').find('.active').attr('id')+"Source").click();
-			$("#"+$('#biLayoutToggle').find('.active').attr('id')+"Source").click();		
-		}	
-
 		$("#hebLeftSource, #hebRightSource").removeClass("active");
 		if ($(this).closest(".sheetItem").hasClass("hebRight")  ) {$("#hebRightSource").click()}
 		else if ($(this).closest(".sheetItem").hasClass("hebLeft")  ) {$("#hebLeftSource").click()}
