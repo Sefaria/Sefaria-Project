@@ -85,16 +85,20 @@ body .bilingual .enOnly .he {
   display: none;
 }
 .headroom {
-    transition: transform 200ms linear;
+  transition: transform 200ms linear;
+  -webkit-transition: 200ms linear;
 }
 .headroom--pinned {
-    transform: translateY(0%);
+  transform: translateY(0%);
+  -webkit-transform: translateY(0%);
 }
 .headroom--unpinned {
-    transform: translateY(-100%);
+  transform: translateY(-100%);
+  -webkit-transform: translateY(-100%);
 }
 .headroomOff.headroom--unpinned {
-    transform: translateY(0%);
+  transform: translateY(0%);
+  -webkit-transform: translateY(0%);
 }
 #top #right #accountBox {
   display: none;
@@ -930,6 +934,7 @@ body .bilingual .enOnly .he {
   left: 0;
   width: 100%;
   background-color: inherit;
+  z-index: 1;
 }
 .textList .anchorText {
   cursor: pointer;
@@ -1120,4 +1125,5 @@ body .bilingual .enOnly .he {
   text-transform: uppercase;
   font-size: 24px;
   font-family: "Helvetica Neue", "Helvetica", sans-serif;
+  margin-top: 13px;
 }
