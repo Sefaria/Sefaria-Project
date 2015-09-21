@@ -857,8 +857,8 @@ var SheetsNav = React.createClass({
   },
   getInitialState: function() {
     return {
-      trendingTags: [],
-      tagList: [],
+      trendingTags: null,
+      tagList: null,
       sheets: [],
       tag: this.props.initialTag
     };
@@ -912,10 +912,10 @@ var SheetsNav = React.createClass({
         var setThisTag = this.setTag.bind(null, tag.tag);
         return (<div className="navButton" onClick={setThisTag}>{tag.tag} ({tag.count})</div>);
       }.bind(this);
-      var trendingTags = this.state.trendingTags.slice(0,6).map(makeTagButton);
-      var tagList      = this.state.tagList.map(makeTagButton);
 
-      if (trendingTags.length && tagList.length) {
+      if (this.state.trendingTags !== null && this.state.tagList !== null) {
+        var trendingTags = this.state.trendingTags.slice(0,6).map(makeTagButton);
+        var tagList      = this.state.tagList.map(makeTagButton);
         var content = (<div className="content">
                         {yourSheets}
                         <h2>Trending Tags</h2>

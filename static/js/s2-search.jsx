@@ -191,7 +191,7 @@ var SearchResultList = React.createClass({
     _process_hits: function(hits) {
         var comparingRef = null;
         var newHits = [];
-        var sheetHits;
+        var sheetHits = [];
 
         for(var i = 0, j = 0; i < hits.length; i++) {
             if (hits[i]._type == "sheet") { //Assume that the rest of the array is sheets, slice and return.
