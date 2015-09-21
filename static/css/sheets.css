@@ -1207,6 +1207,14 @@ input[type="file"] {
 }
 
 
+#sheet .source.bilingual .en,
+#sheet .source.bilingual .he,
+#sheet .source.english .en,
+#sheet .source.hebrew .he {
+	display: block;
+} 
+
+
 #sheet .source.english > .he {
 	display: none;
 }
@@ -1215,10 +1223,6 @@ input[type="file"] {
 	display: none;
 }
 
-#sheet .source.bilingual > .en,
-#sheet .source.bilingual > .he {
-	display: block;
-} 
 
 #resetToDefaults {
 margin-top:10px;
