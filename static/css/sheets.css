@@ -583,6 +583,7 @@ body {
 	float: right;
 }
 
+
 #sheet.bilingual.stacked .source > .en, 
 #sheet.bilingual.stacked .source > .he,
 #sheet.bilingual.stacked .outsideBi .en, 
@@ -1151,4 +1152,76 @@ input[type="file"] {
   /* For IE7, add top margin to align select with labels */
 
   line-height: 28px;
+}
+
+
+
+/* overrides for layout option by source */
+#sheet .source.sheetItem.sideBySide > .en {
+	float: left;
+	display: block;
+	width: 48%;
+
+}
+
+#sheet .source.sheetItem.sideBySide > .he {
+	float: right;
+	display: block;
+	width: 48%;
+}
+
+
+#sheet .source.sheetItem.sideBySide.hebLeft > .en {
+	float: right;
+	display: block;
+	width: 48%;
+}
+
+#sheet .source.sheetItem.sideBySide.hebLeft > .he {
+	float: left;
+	display: block;
+	width: 48%;
+}
+
+#sheet .source.sheetItem.sideBySide.hebRight > .he {
+	float: right;
+	display: block;
+	width: 48%;
+
+}
+
+#sheet .source.sheetItem.sideBySide.hebRight > .en {
+	float: left;
+	display: block;
+	width: 48%;
+
+}
+
+
+
+#sheet .source.sheetItem.stacked > .en, 
+#sheet .source.sheetItem.stacked > .he {	
+	float: none;
+	width: 100%;
+	margin-bottom: 12px;
+}
+
+
+#sheet .source.english > .he {
+	display: none;
+}
+
+#sheet .source.hebrew > .en {
+	display: none;
+}
+
+#sheet .source.bilingual > .en,
+#sheet .source.bilingual > .he {
+	display: block;
+} 
+
+#resetToDefaults {
+margin-top:10px;
+text-decoration: underline;
+cursor: pointer;
 }

@@ -281,6 +281,39 @@
 	<div class="btn ok">OK</div>
 </div>
 
+<div id="overrideLayoutModal" class="modal">
+	<div class="header">Override the page format for this source:</div>
+	<div class="sub">Choose the Language(s) to display &amp; the text layout</div>
+
+		<span id="biLayoutToggleSource" class="toggle"><span id="hebLeftSource" class="toggleOption"><img src="/static/img/backs.png"></span><span id="hebRightSource" class="toggleOption"><img src="/static/img/faces.png"></span></span>
+		
+		<span id="sheetLayoutToggleSource" class="toggle"><span id="sideBySideSource" class="toggleOption"><img src="/static/img/sideBySide.png"></span><span id="stackedSource" class="toggleOption"><img src="/static/img/stacked.png"></span></span>
+
+		<span id="languageToggleSource" class="toggle"><span id="englishSource" class="toggleOption"><img src="/static/img/english.png"></span><span id="bilingualSource" class="toggleOption"><img src="/static/img/bilingual.png"></span><span id="hebrewSource" class="toggleOption"><img src="/static/img/hebrew.png"></span></span>
+	<br/>
+
+		  <select class="form-control" id="languageSelect">
+			<option value='' disabled selected>Select Language</option>
+			<option value="bilingual">Bilingual</option>
+			<option value="english stacked">English</option>
+			<option value="hebrew stacked">Hebrew</option>
+		  </select>	
+
+
+		  <select class="form-control" id="layoutSelect">
+		  	<option value='' disabled selected>Select Layout</option>
+			<option value="sideBySide hebRight">Side-By-Side (Hebrew Right)</option>
+			<option value="sideBySide hebLeft">Side-By-Side (Hebrew Left)</option>
+			<option value="stacked">Stacked</option>
+		  </select>	
+		  <br/>
+
+	<div class="btn ok">OK</div>
+	<h6 id="resetToDefaults"><small>Reset to sheet defaults</small></h6>
+
+
+</div>
+
 
 <div id="publishPromptModal" class="modal">
 	<div id="prompt">
