@@ -853,9 +853,9 @@ body .bilingual .enOnly .he {
 
 }
 .segment .segmentNumber,
-.segment .linkCount {
+.segment .linkCount,
+.textRange .numberLabel {
   font-family: Helvetica, sans-serif;
-  color: #999;
   position: absolute;
   top: 0;
   background-color: inherit;
@@ -864,15 +864,15 @@ body .bilingual .enOnly .he {
   font-weight: lighter;
   width: 18px;
   height: 18px;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 18px;
   border-radius: 30px;
   margin-top: 4px;
-
 }
-.segment .segmentNumber {
-  font-size: 12px;
+.segment .segmentNumber,
+.textRagnge .numberLabel {
   color: #555;
+  top: 0;
 }
 .segment .linkCount {
   display: block;
@@ -881,13 +881,14 @@ body .bilingual .enOnly .he {
   border-radius: 12px;
   background-color: black;
   margin-top: 8px;
+  font-size: 10px;
 }
 .readerApp.english .segment .segmentNumber {
   left: 5px;
 }
 .readerApp.hebrew .segment .segmentNumber,
 .readerApp.bilingual .segment .segmentNumber {
-  right: 11px;
+  right: 8px;
 }
 .readerApp.english .segment .linkCount {
   right: 11px;
@@ -1008,7 +1009,7 @@ body .bilingual .enOnly .he {
 }
 .topFilters {
   margin: -1px;
-  padding: 4px 10px;
+  padding: 4px 22px;
   line-height: 0px;
   background-color: #F9F9F7;
   border-bottom: 1px solid #D5D5D4;
@@ -1038,7 +1039,6 @@ body .bilingual .enOnly .he {
 }
 .showMoreFilters {
   vertical-align: middle;
-  color: #BBBBB9;
 }
 .categoryFilter {
   text-transform: uppercase;
@@ -1109,16 +1109,36 @@ body .bilingual .enOnly .he {
 }
 .textList .texts {
   background-color: white;
+  padding: 40px 30px 0;
+  position: relative;
 }
 .textList .texts .textRange {
-  font-size: 1.4em;
+  font-size: 1.8em;
   padding: 8px 0;
-  margin: 12px 16px;
+  margin: 12px 0px;
   border-bottom: 1px solid #CCC;
   cursor: pointer;
+  position: relative;
 }
 .textList .texts .textRange .title {
   color: #999999;
+}
+.bilingual .textList .title .he {
+  display: none;
+}
+.textRange .numberLabel {
+  position: absolute;
+  top: 6px;
+}
+.english .textRange .numberLabel {
+  left: -24px;
+}
+.hebrew .textRange .numberLabel,
+.bilingual .textRange .numberLabel  {
+  right: -22px;
+}
+.textRange.lowlight .numberLabel {
+  color: #aaa;
 }
 .sefariaLogo {
   text-align: center;

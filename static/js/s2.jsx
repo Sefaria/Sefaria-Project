@@ -31,7 +31,7 @@ var ReaderApp = React.createClass({
         color:         "light",
         fontSize:      62.5
       },
-      menuOpen: this.props.initialMenu || null, // "navigation", "text toc", "display", "search", "sheets"
+      menuOpen: this.props.initialMenu || null, // "navigation", "text toc", "display", "search", "sheets", "home"
       navigationCategories: null,
       navigationSheetTag: null,
       searchQuery: this.props.initialQuery || null,
@@ -1220,10 +1220,12 @@ var TextRange = React.createClass({
     textListRef:        React.PropTypes.string,
     basetext:           React.PropTypes.bool,
     withContext:        React.PropTypes.bool,
+    hideTitle:          React.PropTypes.bool,
     loadLinks:          React.PropTypes.bool,
     prefetchNextPrev:   React.PropTypes.bool,
     openOnClick:        React.PropTypes.bool,
     lowlight:           React.PropTypes.bool,
+    numberLabel:        React.PropTypes.number,
     settings:           React.PropTypes.object,
     showBaseText:       React.PropTypes.func,
     rerender:           React.PropTypes.func,
@@ -1241,13 +1243,13 @@ var TextRange = React.createClass({
   },
   componentDidMount: function() {
     this.getText();
-    if (this.props.basetext) { 
+    if (this.props.basetext || this.props.segmentNumber) { 
       this.placeSegmentNumbers();
     }
     window.addEventListener('resize', this.handleResize);
   },
   componentDidUpdate: function(prevProps, prevState) {
-    if (this.props.basetext) { 
+    if (this.props.basetext || this.props.segmentNumber) { 
       if ((!prevState.loaded && this.state.loaded) ||
           prevProps.settings.language !== this.props.settings.language ||
           prevProps.settings.layout !== this.props.settings.layout ||
@@ -1264,7 +1266,9 @@ var TextRange = React.createClass({
     window.removeEventListener('resize', this.handleResize);
   },
   handleResize: function() {
-    if (this.props.basetext) { this.placeSegmentNumbers(); }
+    if (this.props.basetext || this.props.segmentNumber) { 
+      this.placeSegmentNumbers();
+    }
   },
   handleClick: function(event) {
     if (this.props.openOnClick && this.props.showBaseText) {
@@ -1385,12 +1389,12 @@ var TextRange = React.createClass({
   placeSegmentNumbers: function() {
     // Set the vertical offsets for segment numbers and link counts, which are dependent
     // on the rendered height of the text of each segment.
-    var $text = $(React.findDOMNode(this));
-    var $column = $text.closest(".textColumn");
-    var adjust = $column.length ? $column.scrollTop() : 0;
+    var $text      = $(React.findDOMNode(this));
+    var $container = $text.closest(".textColumn");
+    var adjust     = $container.length ? $container.scrollTop(): 0;
     var setTop = function() {
-       var top = $(this).parent().position().top + adjust;
-      $(this).css({top: top});     
+       var top  = $(this).parent().position().top + adjust;
+      $(this).css({top: top});   
     }
     $text.find(".segmentNumber").each(setTop);
     $text.find(".linkCount").each(setTop);
@@ -1420,7 +1424,7 @@ var TextRange = React.createClass({
             en={segment.en}
             he={segment.he}
             highlight={highlight}
-            segmentNumber={showSegmentNumbers ? segment.number : 0}
+            segmentNumber={showSegmentNumbers ? segment.number : 0} 
             linkCount={segment.linkCount}
             handleClick={this.props.onBaseSegmentClick}
             showBaseText={this.props.showBaseText}
@@ -1434,17 +1438,21 @@ var TextRange = React.createClass({
                     textRange: 1,
                     basetext: this.props.basetext,
                     loading: !this.state.loaded,
-                    lowlight: this.props.lowlight
+                    lowlight: this.props.lowlight,
                   };
     classes = classNames(classes);
     return (
       <div className={classes} onClick={this.handleClick}>
-        <div className="title">
+        {this.props.numberLabel ? 
+          (<span className="numberLabel">{this.props.numberLabel}</span>)
+          : ""}
+        {this.props.hideTitle ? "" :
+        (<div className="title">
           <div className="titleBox">
             <span className="en" >{title}</span>
             <span className="he">{heTitle}</span>
           </div>
-        </div>
+        </div>)}
         <div className="text">
           { textSegments }
         </div>
@@ -1593,7 +1601,7 @@ var TextList = React.createClass({
   render: function() {
     var ref            = this.props.sref;
     var summary        = sjs.library.linkSummary(ref);
-    var classes        = classNames({textList: 1, main: this.props.main });
+    var classes        = classNames({textList: 1});
     var links          = this.state.links.filter(function(link) {
       if (link.category !== "Commentary" && link.anchorRef !== this.props.sref) {
         // Only show section level links for commentary
@@ -1630,6 +1638,8 @@ var TextList = React.createClass({
                                     sref={link.sourceRef}
                                     key={i + link.sourceRef}
                                     lowlight={ref !== link.anchorRef}
+                                    hideTitle={link.category === "Commentary"}
+                                    numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
                                     basetext={false}
                                     showBaseText={this.props.showBaseText}
                                     openOnClick={true} />);
