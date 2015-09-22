@@ -1039,7 +1039,6 @@ var TextColumn = React.createClass({
     if (nextProps.srefs.length == 1 && $.inArray(nextProps.srefs[0], this.props.srefs) == -1) {
       // If we are switching to a single ref not in the current TextColumn,
       // treat it as a fresh open.
-      console.log("switching to new ref");
       this.initialScrollTopSet = false;
       this.scrolledToHighlight = false;
     }
@@ -1077,6 +1076,7 @@ var TextColumn = React.createClass({
       // scroll to highlighted segment
       this.scrollToHighlighted();
       this.scrolledToHighlight = true;
+      this.initialScrollTopSet = true;
     } else if (!this.initialScrollTopSet) {
       // initial value set below 0 so you can scroll up for previous
       var node = this.getDOMNode();
@@ -1108,7 +1108,6 @@ var TextColumn = React.createClass({
         currentRef = refs.slice(-1)[0];
         data       = sjs.library.ref(currentRef);
         if (data && data.next) {
-          console.log("DOWN")
           refs.push(data.next);
           this.props.updateTextColumn(refs);
         }
@@ -1117,7 +1116,6 @@ var TextColumn = React.createClass({
         // Scroll up for previous
         topRef = refs[0];
         data   = sjs.library.ref(topRef);
-        console.log("UP")
         if (data && data.prev) {
           refs.splice(refs, 0, data.prev);
           this.loadingContentAtTop = true;
@@ -1132,7 +1130,6 @@ var TextColumn = React.createClass({
   adjustTextListHighlight: function() {
     // When scrolling while the TextList is open, update which segment should be highlighted.
     window.requestAnimationFrame(function() {
-      //console.log("adjust text list highlight")
       var $container   = $(React.findDOMNode(this));
       var $readerApp   = $container.closest(".readerApp");
       var viewport     = $container.outerHeight() - $readerApp.find(".textList").outerHeight();
@@ -1189,6 +1186,7 @@ var TextColumn = React.createClass({
     }.bind(this));
   },
   render: function() {
+    var classes = classNames({textColumn: 1, connectionsOpen: !!this.props.textListRef});
     var content =  this.props.srefs.map(function(ref, k) {
       return (<TextRange 
         sref={ref}
@@ -1207,7 +1205,7 @@ var TextColumn = React.createClass({
         filter={this.props.filter}
         key={k + ref} />);      
     }.bind(this));
-    return (<div className='textColumn'>{content}</div>);
+    return (<div className={classes}>{content}</div>);
   }
 });
 
@@ -1400,19 +1398,25 @@ var TextRange = React.createClass({
     $text.find(".linkCount").each(setTop);
   },
   render: function() {
-    if (this.props.basetext) {
-      var sectionStrings   = sjs.library.sectionString(this.state.data.ref);
-      var title            = this.state.loaded ? sectionStrings.en : "Loading...";
-      var heTitle          = this.state.loaded ? sectionStrings.he : "טעינה...";      
+    if (this.props.basetext && this.state.loaded) {
+      var ref              = this.props.withContext ? this.state.data.sectionRef : this.state.data.ref;
+      var sectionStrings   = sjs.library.sectionString(ref);
+      var title            = sectionStrings.en;
+      var heTitle          = sectionStrings.he;   
+    } else if (this.props.basetext) {
+      var title            = "Loading...";
+      var heTitle          = "טעינה...";      
     } else {  
       var title            = this.state.data.ref;
       var heTitle          = this.state.data.heRef;
     }
 
-    var showSegmentNumbers = this.props.basetext &&
-                              this.state.data.categories &&
+    var showNumberLabel    = this.state.data.categories &&
                               this.state.data.categories[0] !== "Talmud" &&
                               this.state.data.categories[0] !== "Liturgy";
+
+    var showSegmentNumbers = showNumberLabel && this.props.basetext;
+                              
 
     var textSegments = this.state.segments.map(function (segment, i) {
       var highlight = this.props.textListRef ? segment.ref === this.props.textListRef :
@@ -1443,7 +1447,7 @@ var TextRange = React.createClass({
     classes = classNames(classes);
     return (
       <div className={classes} onClick={this.handleClick}>
-        {this.props.numberLabel ? 
+        {showNumberLabel && this.props.numberLabel ? 
           (<span className="numberLabel">{this.props.numberLabel}</span>)
           : ""}
         {this.props.hideTitle ? "" :
@@ -1540,17 +1544,13 @@ var TextList = React.createClass({
   },
   componentDidUpdate: function(prevProps, prevState) {
     if (prevProps.filter.length && !this.props.filter.length) {
-      console.log("back from menu")
       this.scrollToHighlighted();
     }
     if (!prevProps.filter.compare(this.props.filter)) {
-      console.log("filter change")
       this.scrollToHighlighted();
     } else if (!prevState.textLoaded && this.state.textLoaded) {
-      console.log("text load")
       this.scrollToHighlighted();
     } else if (prevProps.sref !== this.props.sref) {
-      console.log("ref change")
       this.loadConnections();
       this.scrollToHighlighted();
     }

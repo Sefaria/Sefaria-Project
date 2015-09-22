@@ -833,6 +833,11 @@ body .bilingual .enOnly .he {
 .basetext .segment.highlight {
   background-color: #eee;
 }
+.textColumn.connectionsOpen .segment:hover,
+.textColumn.connectionsOpen .basetext .segment:active,
+.textColumn.connectionsOpen .basetext .segment:focus {
+  background-color: inherit;
+}
 .dark .basetext .segment:hover,
 .dark .basetext .segment:active,
 .dark .basetext .segment:focus,
