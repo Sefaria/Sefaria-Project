@@ -760,7 +760,6 @@ $(function() {
 		} else {
 			$("#biLayoutToggleSource").removeClass("disabled");
 		}
-		autoSave();
 		sjs.track.sheets("Change Source Layout Button");
 	});
 
@@ -782,7 +781,6 @@ $(function() {
 				$("#biLayoutToggleSource").removeClass("disabled");
 			}
 		}
-		autoSave();		
 		sjs.track.sheets("Change Source Language Button");
 	});
 	
@@ -793,7 +791,6 @@ $(function() {
 		$(this).addClass("active");
 		$target.removeClass("hebLeft hebRight")
 			.addClass($(this).attr("id").replace("Source",""))
-		autoSave();	
 		sjs.track.sheets("Change Source Language Layout Button");
 	});
 
