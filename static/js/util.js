@@ -61,9 +61,12 @@ sjs.cache = {
 			});
 		}
 	},
+	cacheKey: function(ref) {
+		return normRef(ref).toLowerCase();
+	},
 	save: function(origData) {
 		var data = clone(origData);
-		var ref  = normRef(data.ref).toLowerCase();
+		var ref  = this.cacheKey(data.ref);
 
 		// Store data for book name alone (eg "Genesis") immediatley
 		// normalizing below will render this "Genesis.1" which we also store
@@ -122,7 +125,7 @@ sjs.cache = {
 		return str;
 	},
 	kill: function(ref) {
-		ref = makeRef(parseRef(ref));
+		ref = this.cacheKey(ref);
 		if (ref in this._cache) delete this._cache[ref];
 		else if (ref.indexOf(".") != ref.lastIndexOf(".")) {
 			ref = ref.slice(0, ref.lastIndexOf("."));

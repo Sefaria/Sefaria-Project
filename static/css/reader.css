@@ -1153,7 +1153,17 @@ body.noCommentary .aboutBarBox {
 	background: inherit;
 	z-index: 12;
 	overflow: hidden;
-	
+}
+
+.commentaryBox .loadingMessage {
+	text-align: center;
+	margin-top: 50px;
+	color: #777;
+}
+.commentaryBox .loadingMessage img {
+	width: 36px;
+	height: 36px;
+	margin-top: 8px;
 }
 
 .commentaryBox.noCommentary {
@@ -1631,9 +1641,10 @@ body.english .commentary .he {
 }
 
 .emptySidebarMessage {
-	padding-top: 20px;
+	padding-top: 50px;
 	color: #555;
 	text-align: center;
+	font-style: italic;
 }
 
 body .screen .commentaryBox .noteMessage {

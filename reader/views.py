@@ -89,29 +89,19 @@ def reader(request, tref, lang=None, version=None):
 
     version = version.replace("_", " ") if version else None
 
+    text = TextFamily(Ref(tref), lang=lang, version=version, commentary=False, alts=True).contents()
+    text.update({"commentary": [], "notes": [], "sheets": [], "layer": [], "connectionsLoadNeeded": True})
+    hasSidebar = True
+
+
     layer_name = request.GET.get("layer", None)
-    if layer_name:
-        #text = get_text(tref, lang=lang, version=version, commentary=False)
-        text = TextFamily(Ref(tref), lang=lang, version=version, commentary=False, alts=True).contents()
-        if not "error" in text:
-            layer = Layer().load({"urlkey": layer_name})
-            if not layer:
-                raise InputError("Layer not found.")
-            layer_content      = [format_note_object_for_client(n) for n in layer.all(tref=tref)]
-            text["layer"]      = layer_content
-            text["layer_name"] = layer_name
-            text["commentary"] = []
-            text["notes"]      = []
-            text["sheets"]     = []
-            text["_loadSources"] = True
-            hasSidebar = True if len(text["layer"]) else False
-    else:
-        text = TextFamily(Ref(tref), lang=lang, version=version, commentary=True, alts=True).contents()
-        hasSidebar = True if len(text["commentary"]) else False
-        if not "error" in text:
-            text["notes"]  = get_notes(oref, uid=request.user.id)
-            text["sheets"] = get_sheets_for_ref(tref)
-            hasSidebar = True if len(text["notes"]) or len(text["sheets"]) else hasSidebar
+    if layer_name and not "error" in text:
+        layer = Layer().load({"urlkey": layer_name})
+        if not layer:
+            raise InputError("Layer not found.")
+        text["layer"]        = [format_note_object_for_client(n) for n in layer.all(tref=tref)]
+        text["_loadSources"] = True
+
     text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
     text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
     text["ref"] = Ref(text["ref"]).normal()
