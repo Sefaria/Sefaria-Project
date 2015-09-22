@@ -440,7 +440,7 @@ var ReaderApp = React.createClass({
           {items}
         </div>
         {menu}
-        {this.state.menuOpen === "display" ? (<div id="mask" onClick={this.closeMenus}></div>) : ""}
+        {this.state.menuOpen === "display" ? (<div className="mask" onClick={this.closeMenus}></div>) : ""}
       </div>
     );
   }
@@ -471,8 +471,8 @@ var ReaderControls = React.createClass({
       <div>
         <div className="categoryColorLine" style={lineStyle}></div>
         <div className="readerControls headroom">
-          <div id="readerNav"  onClick={this.props.openMenu.bind(null, "navigation")}><i className="fa fa-search"></i></div>
-          <div id="readerTextToc" onClick={this.props.openMenu.bind(null, "text toc")}>
+          <div className="readerNav"  onClick={this.props.openMenu.bind(null, "navigation")}><i className="fa fa-search"></i></div>
+          <div className="readerTextToc" onClick={this.props.openMenu.bind(null, "text toc")}>
             { title ? (<i className="fa fa-caret-down invisible"></i>) : "" }
             <div className="readerTextTocBox">
               <span className="en">{title}</span>
@@ -481,7 +481,7 @@ var ReaderControls = React.createClass({
             { title ? (<i className="fa fa-caret-down"></i>) : "" }
 
           </div>
-          <div id="readerOptions" onClick={this.props.openMenu.bind(null, "display")}><i className="fa fa-bars"></i></div>
+          <div className="readerOptions" onClick={this.props.openMenu.bind(null, "display")}><i className="fa fa-bars"></i></div>
         </div>        
       </div>);
   }
@@ -543,7 +543,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
           setOption={this.props.setOption}
           settings={this.props.settings} />);
 
-    return (<div id="readerOptionsPanel">
+    return (<div className="readerOptionsPanel">
         {languageToggle}
         {layoutToggle}
         <div className="line"></div>
@@ -957,12 +957,14 @@ var ToggleSet = React.createClass({
     return {};
   },
   render: function() {
-    var classes = classNames({toggleSet: 1, separated: this.props.separated });
+    var classes = {toggleSet: 1, separated: this.props.separated };
+    classes[this.props.name] = 1;
+    classes = classNames(classes);
     var value = this.props.name === "layout" ? this.props.currentLayout() : this.props.settings[this.props.name];
     var width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
     var style = {width: (width/this.props.options.length) + "%"};
     return (
-      <div id={this.props.name} className={classes}>
+      <div className={classes}>
         {
           this.props.options.map(function(option) {
             return (
@@ -992,11 +994,12 @@ var ToggleOption = React.createClass({
     sjs.track.event("Reader", "Display Option Click", this.props.set + " - " + this.props.name);
   },
   render: function() {
-    var classes = classNames({toggleOption: 1, on: this.props.on });
+    var classes = {toggleOption: 1, on: this.props.on };
+    classes[this.props.name] = 1;
+    classes = classNames(classes);
     var content = this.props.image ? (<img src={this.props.image} />) : this.props.content;
     return (
       <div
-        id={this.props.name}
         className={classes}
         style={this.props.style}
         onClick={this.handleClick}>
