@@ -42,7 +42,7 @@ def parse_and_bold_hadran(hadran_ref):
     if match:
         perek_names[lastrow[0]] = perek_names.get(lastrow[0], []) + [match.group(3)]
         old = tc.text
-        tc.text = hadran_re.sub(ur'\1<big><strong>\2</strong></big>', tc.text)
+        tc.text = hadran_re.sub(ur'\1<br/><br/><big><strong>\2</strong></big><br/><br/>', tc.text)
         if live:
             tc.save()
         else:
