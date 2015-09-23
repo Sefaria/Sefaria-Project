@@ -193,9 +193,9 @@ $(function() {
 		if ($(this).attr("id") != "bilingual") {
 			$("#biLayoutToggle, #sheetLayoutToggle").hide();
 		} else {
-			$("#biLayoutToggle").show();
+			$("#sheetLayoutToggle").show();
 			if ($("#sheet").hasClass("sideBySide")) {
-				$("#sheetLayoutToggle").show();
+				$("#biLayoutToggle").show();
 			}
 		}
 		if (sjs.can_edit) {
@@ -588,6 +588,8 @@ $(function() {
 							"<div class='resetSource' title='Reset Source Text'><i class='fa fa-rotate-left'></i></div>" +
 							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
 							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +						
+							"<div class='switchSourceLayoutLang' title='Change Source Layout/Language'><i class='fa fa-ellipsis-h'></i></div>" +						
+
 						"</div>";
 
 	var adderControls = "<div id='sourceControls'>" + 
@@ -690,6 +692,120 @@ $(function() {
 		sjs.track.sheets("Reset Source");
 
 	 });
+
+
+
+	// Open Modal to override the sheet's default language/layout options for a specific source 
+	$(".switchSourceLayoutLang").live("click", function() { 
+
+		$("#overrideLayoutModal").data("target", $(this).closest(".sheetItem")).show().position({ of: $(window) });	
+		
+		//set buttons to current realities
+		$("#hebLeftSource, #hebRightSource").removeClass("active");
+		if ($(this).closest(".sheetItem").hasClass("hebRight")  ) {$("#hebRightSource").click()}
+		else if ($(this).closest(".sheetItem").hasClass("hebLeft")  ) {$("#hebLeftSource").click()}
+		else {
+		   "heRight"==$("#biLayoutToggle").find(".active").attr("id")?$("#hebRightSource").click():$("#hebLeftSource").click();		
+
+		}	
+
+		$("#sideBySideSource, #stackedSource").removeClass("active");
+		if ($(this).closest(".sheetItem").hasClass("sideBySide")  ) {$("#sideBySideSource").click()}
+		else if ($(this).closest(".sheetItem").hasClass("stacked")  ) {$("#stackedSource").click()}
+		else {$("#"+$('#sheetLayoutToggle').find('.active').attr('id')+"Source").click()}
+
+		$("#bilingualSource, #hebrewSource, #englishSource").removeClass("active");
+		if ($(this).closest(".sheetItem").hasClass("bilingual")  ) {$("#bilingualSource").click()}
+		else if ($(this).closest(".sheetItem").hasClass("hebrew")  ) {$("#hebrewSource").click()}
+		else if ($(this).closest(".sheetItem").hasClass("english")  ) {$("#englishSource").click()}
+		else {$("#"+$('#languageToggle').find('.active').attr('id')+"Source").click()}
+
+			
+		$("#overlay").show();
+
+		sjs.track.sheets("Open Source Layout Modal");
+	 });
+ 
+	$("#overrideLayoutModal .ok").click(function(){
+		
+		//check to see if current source layout matches sheet layout -- if so, remove classes & let the parent be in charge
+		if (
+		$("#sheetLayoutToggle").find(".active").attr("id") == $("#sheetLayoutToggleSource").find(".active").attr("id").replace("Source","")
+		&& $("#languageToggle").find(".active").attr("id") == $("#languageToggleSource").find(".active").attr("id").replace("Source","")
+		&& $("#biLayoutToggle").find(".active").attr("id").replace("he","heb") == $("#biLayoutToggleSource").find(".active").attr("id").replace("Source","")
+		) {
+			var $target = $("#overrideLayoutModal").data("target");
+			$target.removeClass("bilingual english hebrew sideBySide hebLeft hebRight stacked");
+		}
+		
+		$("#overrideLayoutModal, #overlay").hide();
+		autoSave();
+	});
+ 
+ 
+ 
+
+	// Change Source Layout via modal
+	
+	$("#sideBySideSource, #stackedSource").click(function(){
+		var $target = $("#overrideLayoutModal").data("target");
+		$("#sheetLayoutToggleSource .toggleOption").removeClass("active");
+		$(this).addClass("active");
+		$target.removeClass("sideBySide stacked")
+			.addClass($(this).attr("id").replace("Source",""));
+		if ($(this).attr("id") == "stackedSource") {
+			$("#biLayoutToggleSource").addClass("disabled");
+			$target.removeClass("hebLeft hebRight")
+
+		} else {
+			$("#biLayoutToggleSource").removeClass("disabled");
+		}
+		sjs.track.sheets("Change Source Layout Button");
+	});
+
+
+	// Change Source Language via modal
+	$("#hebrewSource, #englishSource, #bilingualSource").click(function(){
+		var $target = $("#overrideLayoutModal").data("target");
+		$target.removeClass("english bilingual hebrew")
+			.addClass($(this).attr("id").replace("Source",""));
+		$("#languageToggleSource .toggleOption").removeClass("active");			
+		$(this).addClass("active");
+		if ($(this).attr("id") != "bilingualSource") {
+			$("#stackedSource").click();
+			$("#biLayoutToggleSource, #sheetLayoutToggleSource").addClass("disabled");
+			$target.removeClass("sideBySide hebLeft hebRight").addClass("stacked");
+		} else {
+			$("#sheetLayoutToggleSource").removeClass("disabled");
+			if ($target.hasClass("sideBySide")) {
+				$("#biLayoutToggleSource").removeClass("disabled");
+			}
+		}
+		sjs.track.sheets("Change Source Language Button");
+	});
+	
+	// Change Language Layout via modal
+		$("#hebLeftSource, #hebRightSource").click(function(){
+		var $target = $("#overrideLayoutModal").data("target");
+		$("#biLayoutToggleSource .toggleOption").removeClass("active");			
+		$(this).addClass("active");
+		$target.removeClass("hebLeft hebRight")
+			.addClass($(this).attr("id").replace("Source",""))
+		sjs.track.sheets("Change Source Language Layout Button");
+	});
+
+	
+	
+
+	// Remove all custom source language/layout overrides:
+	$("#resetToDefaults").live("click", function() { 
+		var $target = $("#overrideLayoutModal").data("target");
+		$target.removeClass("bilingual english hebrew sideBySide hebLeft hebRight stacked");
+		$("#overrideLayoutModal, #overlay").hide();
+		autoSave();
+		sjs.track.sheets("Reset Source Layout to Default");
+	});
+
 
 
 	// Remove Source
@@ -1106,6 +1222,43 @@ function readSource($target) {
 		source["heRef"] = $target.attr("data-heRef");
 		source["text"] = {en: $target.find(".text").find(".en").html(), 
 						  he: $target.find(".text").find(".he").html()};
+
+		//Set source layout
+		if ($target.hasClass("stacked")) {
+			var sourceLayout = "stacked"
+		} else if ($target.hasClass("sideBySide")) {
+			var sourceLayout = "sideBySide"
+		} else {
+			var sourceLayout = ""
+		}
+		
+		
+		//Set source language layout		
+		if ($target.hasClass("hebLeft")) {
+			var sourceLangLayout = "hebLeft"
+		} else if ($target.hasClass("hebRight")) {
+			var sourceLangLayout = "hebRight"
+		} else {
+			var sourceLangLayout = ""
+		}
+
+		
+		//Set source language
+		if ($target.hasClass("bilingual")) {
+			var sourceLanguage = "bilingual"
+		} else if ($target.hasClass("hebrew")) {
+			var sourceLanguage = "hebrew"
+		} else if ($target.hasClass("english")) {
+			var sourceLanguage = "english"
+		} else {
+			var sourceLanguage = ""
+		}		
+		
+		source["options"] = {sourceLanguage: sourceLanguage,
+							 sourceLayout: sourceLayout,
+							 sourceLangLayout: sourceLangLayout};
+		
+		
 		var title = $(".customTitle", $target).eq(0).html();
 		if (title) { 
 			source["title"] = title; 
@@ -1274,6 +1427,11 @@ function buildSource($target, source) {
 		var q = parseRef(source.ref);
 		$("#addSourceModal").data("target", $target);
 		addSource(q, source);
+		
+		if ("options" in source) {
+			$(".sheetItem").last().addClass(source.options.sourceLayout+" "+source.options.sourceLanguage+" "+source.options.sourceLangLayout)
+		}
+
 		
 		if (source.title) {
 			$(".customTitle").last().html(source.title).css('display', 'inline-block');;
