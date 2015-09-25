@@ -1849,6 +1849,38 @@ var TextFilter = React.createClass({
 });
 
 
+
+var MultiPanelReader = React.createClass({
+  propTypes: {
+    panelCount:       React.PropTypes.number,
+    initialRef:       React.PropTypes.string,
+    initialFilter:    React.PropTypes.array,
+    initialMenu:      React.PropTypes.string,
+    initialQuery:     React.PropTypes.string,
+    initialSheetsTag: React.PropTypes.string,
+    initialSettings:  React.PropTypes.object
+  },
+  render: function() {
+    var width = 100.0/this.props.panelCount;
+    var panels = [];
+    for (var i=0; i < this.props.panelCount; i++) {
+      var style = {width: width + "%", left: (width * i) + "%"};
+      panels.push(<div className="readerPanel" style={style}>
+                <ReaderApp 
+                  initialRef={this.props.initialRef}
+                  initialFilter={this.props.initialFilter}
+                  initialMenu={this.props.initialMenu}
+                  initialQuery={this.props.intialQuery}
+                  initialSheetsTag={this.props.initialSheetsTag }
+                  initialSettings={this.props.settings}
+                  key={i} />
+              </div>);
+    }
+    return (<div className="multiPanelReader">{panels}</div>);
+  }
+});
+
+
 var ThreeBox = React.createClass({
   // Wrap a list of elements into a three column table
   render: function() {

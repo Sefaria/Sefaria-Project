@@ -39,7 +39,7 @@
         var filter  = "with" in urlVars ? urlVars["with"].replace(/_/g, " ").split("+") : null;
         if (filter && filter.length === 1 && filter[0] === "all") { filter = []; }
         var query  = "q" in urlVars ? urlVars["q"] : null;
-        
+        var panels = "panels" in urlVars ? parseInt(urlVars.panels) : 1;
 
         var settings = {
           language: "{{ contentLang }}",
@@ -49,8 +49,6 @@
           color:         $.cookie("color")         || "light",
           fontSize:      $.cookie("fontSize")      || 62.5
         }
-        $("body").addClass(settings.color);
-        $("body").removeClass("english hebrew bilingual");
        
         var ref = "{{ ref }}";
         if (ref) {
@@ -58,7 +56,8 @@
           sjs.library._saveText({{ data|jsonify }});
         }
         React.render(
-          React.createElement(ReaderApp, {
+          React.createElement(MultiPanelReader, {
+            panelCount: panels,
             initialRef: ref,
             initialFilter: filter,
             initialMenu: "{{ initialMenu }}",
