@@ -82,6 +82,12 @@ NATIONBUILDER_TOKEN = ""
 NATIONBUILDER_CLIENT_ID = ""
 NATIONBUILDER_CLIENT_SECRET = ""
 
+# Issue bans to Varnish on update.
+USE_VARNISH = False
+VARNISH_ADDR = "http://localhost:6082"
+# Use ESI for user box in header.
+USE_VARNISH_ESI = False
+
 # Prevent modification of Index records
 DISABLE_INDEX_SAVE = False
 

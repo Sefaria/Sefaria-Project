@@ -169,6 +169,9 @@ def reader(request, tref, lang=None, version=None):
 
     return render_to_response('reader.html', template_vars, RequestContext(request))
 
+def esi_account_box(request):
+    return render_to_response('elements/accountBox.html', {}, RequestContext(request))
+
 
 def s2(request, ref="Genesis 1", version=None, lang=None):
     """
@@ -644,7 +647,6 @@ def texts_api(request, tref, lang=None, version=None):
         except AttributeError as e:
             oref = oref.default_child_ref()
             text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
-
 
         # Use a padded ref for calculating next and prev
         # TODO: what if pad is false and the ref is of an entire book?

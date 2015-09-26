@@ -66,6 +66,11 @@ urlpatterns += patterns('reader.views',
     (r'^api/words/(?P<word>.+)$', 'dictionary_api'),
 )
 
+# ESI
+urlpatterns += patterns('reader.views',
+    (r'^esi/account_box/?$', 'esi_account_box'),
+)
+
 # Campaigns 
 urlpatterns += patterns('reader.views',
     (r'^translate/(?P<tref>.+)$', 'translation_flow'),
