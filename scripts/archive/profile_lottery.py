@@ -6,7 +6,6 @@ import hashlib
 from django.contrib.auth.models import User
 
 from sefaria.system.database import db
-from sefaria.sheets import LISTED_SHEETS
 from sefaria.model.user_profile import UserProfile
 
 contenders = db.profiles.find({"bio": {"$ne": ""}, "jewish_education": {"$ne": []}})
@@ -20,7 +19,7 @@ for contender in contenders:
     if r.getcode() == 404:
         points[user.id] = 0
     else:
-        sheets = db.sheets.find({"owner": user.id, "status": {"$in": LISTED_SHEETS}}).count()
+        sheets = db.sheets.find({"owner": user.id, "status": 3}).count()
         points[user.id] = 1 + sheets
 
 for i in range(contenders.count()):

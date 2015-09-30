@@ -351,8 +351,7 @@ def index_public_sheets():
     """
     Index all source sheets that are publically listed.
     """
-    from sheets import LISTED_SHEETS
-    ids = db.sheets.find({"status": {"$in": LISTED_SHEETS}}).distinct("id")
+    ids = db.sheets.find({"status": 3}).distinct("id")
     for id in ids:
         index_sheet(id)
 

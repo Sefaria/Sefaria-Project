@@ -21,18 +21,9 @@ from settings import SEARCH_INDEX_ON_SAVE
 import search
 
 
-PRIVATE_SHEET      = 0 # Only the owner can view or edit (NOTE currently 0 is treated as 1)
-LINK_SHEET_VIEW    = 1 # Anyone with the link can view
-LINK_SHEET_EDIT    = 2 # Anyone with the link can edit
-PUBLIC_SHEET_VIEW  = 3 # Listed publicly, anyone can view, owner can edit
-PUBLIC_SHEET_EDIT  = 4 # Listed publicly, anyone can edit or view
-TOPIC_SHEET        = 5 # Listed as a topic, anyone can edit
-GROUP_SHEET        = 6 # Sheet belonging to a group, visible and editable by group
-PUBLIC_GROUP_SHEET = 7 # Sheet belonging to a group, visible to all, editable by group
+# PRIVATE_SHEET      = 0  Only the owner can view or edit 
+# PUBLIC_SHEET_VIEW  = 3  Listed publicly, anyone can view, owner can edit
 
-LISTED_SHEETS      = (PUBLIC_SHEET_EDIT, PUBLIC_SHEET_VIEW, PUBLIC_GROUP_SHEET)
-EDITABLE_SHEETS    = (LINK_SHEET_EDIT, PUBLIC_SHEET_EDIT, TOPIC_SHEET)
-GROUP_SHEETS       = (GROUP_SHEET, PUBLIC_GROUP_SHEET)
 
 # Simple cache of the last updated time for sheets
 last_updated = {}
@@ -52,26 +43,13 @@ def get_sheet(id=None):
 
 
 
-def get_topic(topic=None):
-	"""
-	Returns the topic sheet with 'topic'. (OUTDATED)
-	"""
-	if topic is None:
-		return {"error": "No topic given."}
-	s = db.sheets.find_one({"status": 5, "url": topic})
-	if not s:
-		return {"error": "Couldn't find topic: %s" % (topic)}
-	s["_id"] = str(s["_id"])
-	return s
-
-
 def sheet_list(user_id=None):
 	"""
 	Returns a list of sheets belonging to user_id.
 	If user_id is None, returns a list of public sheets.
 	"""
 	if not user_id:
-		sheet_list = db.sheets.find({"status": {"$in": LISTED_SHEETS }}).sort([["dateModified", -1]])
+		sheet_list = db.sheets.find({"status": 3}).sort([["dateModified", -1]])
 	elif user_id:
 		sheet_list = db.sheets.find({"owner": int(user_id), "status": {"$ne": 5}}).sort([["dateModified", -1]])
 
@@ -123,17 +101,17 @@ def save_sheet(sheet, user_id):
 		else:
 			sheet["id"] = 1
 		if "status" not in sheet:
-			sheet["status"] = PRIVATE_SHEET
+			sheet["status"] = 0
 		sheet["owner"] = user_id
 		sheet["views"] = 1
 
 	if status_changed:
-		if sheet["status"] in LISTED_SHEETS and "datePublished" not in sheet:
+		if sheet["status"] is 3 and "datePublished" not in sheet:
 			# PUBLISH
 			sheet["datePublished"] = datetime.now().isoformat()
 			record_sheet_publication(sheet["id"], user_id)
 			broadcast_sheet_publication(user_id, sheet["id"])
-		if sheet["status"] not in LISTED_SHEETS:
+		if sheet["status"] is not 3:
 			# UNPUBLISH
 			delete_sheet_publication(sheet["id"], user_id)
 			NotificationSet({"type": "sheet publish",
@@ -143,7 +121,7 @@ def save_sheet(sheet, user_id):
 
 	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
 
-	if sheet["status"] in LISTED_SHEETS and SEARCH_INDEX_ON_SAVE:
+	if sheet["status"] is 3 and SEARCH_INDEX_ON_SAVE:
 		search.index_sheet(sheet["id"])
 
 	global last_updated
@@ -289,7 +267,7 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 	ref_re = oref.regex()
 
 	results = []
-	sheets = db.sheets.find({"included_refs": {"$regex": ref_re}, "status": {"$in": LISTED_SHEETS}},
+	sheets = db.sheets.find({"included_refs": {"$regex": ref_re}, "status": 3},
 								{"id": 1, "title": 1, "owner": 1, "included_refs": 1})
 	for sheet in sheets:
 		# Check for multiple matching refs within this sheet
@@ -348,7 +326,7 @@ def make_sheet_list_by_tag():
 	tags = {}
 	results = []
 
-	sheet_list = db.sheets.find({"status": {"$in": LISTED_SHEETS }})
+	sheet_list = db.sheets.find({"status": 3})
 	for sheet in sheet_list:
 		sheet_tags = sheet.get("tags", [])
 		for tag in sheet_tags:
@@ -377,7 +355,7 @@ def get_sheets_by_tag(tag, public=True, uid=None, group=None):
 	elif group:
 		query["group"] = group
 	elif public:
-		query["status"] = { "$in": LISTED_SHEETS }
+		query["status"] = 3
 
 	print query
 	sheets = db.sheets.find(query).sort([["views", -1]])

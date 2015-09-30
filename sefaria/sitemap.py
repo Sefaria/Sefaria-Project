@@ -9,7 +9,6 @@ from datetime import datetime
 from sefaria.model import *
 from sefaria.system.database import db
 from sefaria.summaries import get_toc, flatten_toc
-from sefaria.sheets import LISTED_SHEETS
 from settings import STATICFILES_DIRS
 
 
@@ -91,7 +90,7 @@ def generate_sheets_sitemap():
 	"""
 	Creates a sitemap for each public source sheet.
 	"""
-	query = {"status": {"$in": LISTED_SHEETS}}
+	query = {"status": 3}
 	public = db.sheets.find(query).distinct("id")
 	urls = ["http://www.sefaria.org/sheets/" + str(id) for id in public]
 

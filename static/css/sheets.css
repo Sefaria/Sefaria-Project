@@ -1242,3 +1242,38 @@ margin-top: 25px;
 #overrideLayoutModal .header {
 margin: 15px 0px 25px;
 }
+
+#sharingModal {
+width:500px;
+}
+
+#sharingModal .radio {
+text-align:left;
+margin:8px;
+}
+
+.sharingLabel {
+
+font-weight:bold;
+padding-left: 8px;
+
+
+
+}
+
+.sharingDesc {
+padding-left: 65px;
+display:block;
+margin-top: -8px;
+
+}
+
+.iconHolder {
+width:38px;
+display:inline-block;
+}
+
+
+.fa-onTop {
+margin-left:-5px;
+}
