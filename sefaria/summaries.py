@@ -211,8 +211,7 @@ def update_table_of_contents():
             cats = i.categories[:]
 
         toc_contents = i.toc_contents()
-        commentator = toc_contents["commentator"]
-        cats = [cats[1], "Commentary", commentator]
+        cats[0], cats[1] = cats[1], cats[0] # Swap "Commentary" with toplevel category (e.g., "Tanach")        
 
         node = get_or_make_summary_node(toc, cats)
         text = add_counts_to_index(toc_contents)
