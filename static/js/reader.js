@@ -1834,8 +1834,8 @@ function buildView(data) {
 						"</div>";
 		$commentaryViewPort.html(loadingHtml);
 		$commentaryBox.show();
-		sjs.cache.kill(data.ref);
-		sjs.cache.get(data.ref, buildCommentary);
+		sjs.cache.kill(data.sectionRef);
+		sjs.cache.get(data.sectionRef, buildCommentary);
 	} else {
 		buildCommentary(data);
 	}
@@ -1986,7 +1986,7 @@ function basetextHtml(en, he, prefix, alts, sectionName) {
 }
 
 function buildCommentary(data) {
-	if (data.ref !== sjs.current.ref) { 
+	if (data.sectionRef !== sjs.current.sectionRef) { 
 		return; // API call returned after navigating away
 	} else {
 		sjs.current = data;
