@@ -645,7 +645,8 @@ sjs.categoryColors = {
   "Other":              sjs.palette.navy,
   "Quoting Commentary": sjs.palette.orange2,
   "Commentary2":        sjs.palette.blue2,
-  "Sheets":             sjs.palette.purple3
+  "Sheets":             sjs.palette.purple3,
+  "Targum":             sjs.palette.red3
 };
 
 sjs.categoryColor = function(cat) {
