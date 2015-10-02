@@ -440,14 +440,16 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if hasattr(self,"order"):
             toc_contents_dict["order"] = self.order
         if self.categories[0] == u"Commentary2":
-            on_split    = self.get_title().split(" on ")
-            he_on_split = self.get_title("he").split(u" על ")
-            toc_contents_dict["commentator"]   = on_split[0]
-            toc_contents_dict["heCommentator"] = he_on_split[0]
+            toc_contents_dict["commentator"]   = self.categories[2]
+            toc_contents_dict["heCommentator"] = hebrew_term(self.categories[2])
+            on_split = self.get_title().split(" on ")
             if len(on_split) == 2:
-                i = get_index(on_split[1])
-                if getattr(i, "order", None):
-                    toc_contents_dict["order"] = i.order
+                try:
+                    i = get_index(on_split[1])
+                    if getattr(i, "order", None):
+                        toc_contents_dict["order"] = i.order
+                except BookNameError:
+                    pass
 
         return toc_contents_dict
 
@@ -463,21 +465,21 @@ class CommentaryIndex(AbstractIndex):
     """
     A virtual Index for commentary records.
 
-    :param commentor_name: A title variant of a commentator :class:`Index` record
+    :param commentator_name: A title variant of a commentator :class:`Index` record
     :param book_name:  A title variant of a book :class:`Index` record
     """
-    def __init__(self, commentor_name, book_name):
+    def __init__(self, commentator_name, book_name):
         """
-        :param commentor_name: A title variant of a commentator :class:Index record
+        :param commentator_name: A title variant of a commentator :class:Index record
         :param book_name:  A title variant of a book :class:Index record
         :return:
         """
         self.c_index = Index().load({
-            "titleVariants": commentor_name,
+            "titleVariants": commentator_name,
             "categories.0": "Commentary"
         })
         if not self.c_index:
-            raise BookNameError(u"No commentor named '{}'.".format(commentor_name))
+            raise BookNameError(u"No commentator named '{}'.".format(commentator_name))
 
         self.b_index = get_index(book_name)
 
@@ -485,7 +487,7 @@ class CommentaryIndex(AbstractIndex):
             raise BookNameError(u"No book named '{}'.".format(book_name))
 
         if self.b_index.is_commentary():
-            raise BookNameError(u"We don't yet support nested commentaries '{} on {}'.".format(commentor_name, book_name))
+            raise BookNameError(u"We don't yet support nested commentaries '{} on {}'.".format(commentator_name, book_name))
 
         # This whole dance is a bit of a mess.
         # Todo: see if we can clean it up a bit
@@ -493,8 +495,8 @@ class CommentaryIndex(AbstractIndex):
         self.__dict__.update(self.c_index.contents())
         self.commentaryBook = self.b_index.get_title()
         self.commentaryCategories = self.b_index.categories
-        self.categories = ["Commentary"] + self.b_index.categories + [self.b_index.get_title()]
-        self.commentator = commentor_name
+        self.categories = ["Commentary"] + [self.b_index.categories[0], commentator_name]
+        self.commentator = commentator_name
         if getattr(self.b_index, "order", None):
             self.order = self.b_index.order
         if getattr(self, "heTitle", None):
@@ -3351,7 +3353,15 @@ class Library(object):
         if not commentators:
             commentators = self.get_commentator_titles(with_commentary2=with_commentary2)
         commentary_re = ur"^({}) on ".format("|".join(commentators))
-        return VersionSet({"title": {"$regex": commentary_re}})
+        query = {"title": {"$regex": commentary_re}}
+        if with_commentary2:
+            # Handle Commentary2 texts that don't have "X on Y" titles (e.g., "Rambam's Introduction to the Mishnah")
+            if not commentators:
+                titles = IndexSet({"categories.0": "Commentary2"}).distinct("title")
+            else:
+                titles = IndexSet({"categories.0": "Commentary2", "categories.2": {"$in": commentators}}).distinct("title")
+            query = {"$or":[query, {"title": {"$in": titles}}]}
+        return VersionSet(query)
 
     def get_commentary_version_titles(self, commentators=None, with_commentary2=False):
         """
