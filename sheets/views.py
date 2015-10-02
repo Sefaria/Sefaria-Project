@@ -121,7 +121,7 @@ def make_sheet_class_string(sheet):
 	if o.get("numbered", False):  classes.append("numbered")
 	if o.get("boxed", False):     classes.append("boxed")
 
-	if sheet["status"] is 3: classes.append("public")
+	if sheet["status"] is "public": classes.append("public")
 
 	return " ".join(classes)
 
@@ -166,7 +166,7 @@ def view_sheet(request, sheet_id):
 												"title": sheet["title"],
 												"author": author,
 												"is_owner": request.user.id == sheet["owner"],
-												"is_public": sheet["status"] == 3,
+												"is_public": sheet["status"] == "public",
 												"owner_groups": owner_groups,
 												"sheet_group":  sheet_group,
 												"like_count": like_count,
@@ -233,7 +233,7 @@ def recent_public_tags(days=14, ntags=10):
 	Returns list of tag/counts on public sheets modified in the last 'days'.
 	"""
 	cutoff      = datetime.now() - timedelta(days=days)
-	query       = {"status": 3, "dateModified": { "$gt": cutoff.isoformat() } }
+	query       = {"status": "public", "dateModified": { "$gt": cutoff.isoformat() } }
 	tags        = sheet_tag_counts(query)[:ntags]
 
 	return tags
@@ -246,7 +246,7 @@ def sheets_list(request, type=None):
 	"""
 	if not type:
 		# Sheet Splash page
-		query       = {"status": 3}
+		query       = {"status": "public"}
 		public      = db.sheets.find(query).sort([["dateModified", -1]]).limit(32)
 		public_tags = recent_public_tags()
 
@@ -273,12 +273,12 @@ def sheets_list(request, type=None):
 	response = { "status": 0 }
 
 	if type == "public":
-		query              = {"status": 3}
+		query              = {"status": "public"}
 		response["title"]  = "Public Source Sheets"
 		response["public"] = True
 		tags               = recent_public_tags()
 
-	elif type == "private":
+	elif type == "unlisted":
 		query              = {"owner": request.user.id or -1 }
 		response["title"]  = "Your Source Sheets"
 		response["groups"] = get_user_groups(request.user)
@@ -312,17 +312,17 @@ def partner_page(request, partner):
 
 	if request.user.is_authenticated() and group.name in [g.name for g in request.user.groups.all()]:
 		in_group = True
-		query = {"status": {"$in": [0,3]}, "group": group.name}
+		query = {"status": {"$in": ["unlisted","public"]}, "group": group.name}
 	else:
 		in_group = False
-		query = {"status": 3, "group": group.name}
+		query = {"status": "public", "group": group.name}
 
 
 	sheets = db.sheets.find(query).sort([["title", 1]])
 	tags   = sheet_tag_counts(query)
 	return render_to_response('sheets_list.html', {"sheets": sheets,
 												"tags": tags,
-												"status": 0,
+												"status": "unlisted",
 												"group": group,
 												"in_group": in_group,
 												"title": "%s on Sefaria" % group.name,
@@ -568,7 +568,7 @@ def tag_list_api(request):
 	"""
 	API to retrieve the list of public tags ordered by count.
 	"""
-	response = sheet_tag_counts({"status": 3})
+	response = sheet_tag_counts({"status": "public"})
 	return jsonResponse(response, callback=request.GET.get("callback", None))
 
 

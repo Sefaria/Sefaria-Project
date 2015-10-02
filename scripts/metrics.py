@@ -13,7 +13,7 @@ sct    = VersionSet({"versionTitle": "Sefaria Community Translation"}).word_coun
 
 # Number of Contributors
 contributors = set(db.history.distinct("user"))
-contributors = contributors.union(set(db.sheets.find({"status": 3}).distinct("owner")))
+contributors = contributors.union(set(db.sheets.find({"status": "public"}).distinct("owner")))
 contributors = len(contributors)
 
 # Number of Links

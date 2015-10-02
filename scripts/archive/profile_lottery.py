@@ -19,7 +19,7 @@ for contender in contenders:
     if r.getcode() == 404:
         points[user.id] = 0
     else:
-        sheets = db.sheets.find({"owner": user.id, "status": 3}).count()
+        sheets = db.sheets.find({"owner": user.id, "status": "public"}).count()
         points[user.id] = 1 + sheets
 
 for i in range(contenders.count()):

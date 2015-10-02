@@ -28,7 +28,7 @@ def update_top_contributors(days=None):
     oldtime = datetime.now()
 
     # Tally points for Public Source Sheets
-    query = {"status": 3 }
+    query = {"status": "public" }
     if cutoff:
         query["$or"] = [
             {"dateCreated": {"$gt": cutoff.isoformat()}},

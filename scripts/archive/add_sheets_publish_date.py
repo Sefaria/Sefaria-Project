@@ -11,7 +11,7 @@ sys.path.insert(0, path + "/sefaria")
 
 from sefaria.system.database import db
 
-sheets = db.sheets.find({"status": 3})
+sheets = db.sheets.find({"status": "public"})
 for sheet in sheets:
 	sheet["datePublished"] = sheet["dateCreated"]
 	db.sheets.save(sheet)

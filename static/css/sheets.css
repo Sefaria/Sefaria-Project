@@ -1271,9 +1271,14 @@ margin-top: -8px;
 .iconHolder {
 width:38px;
 display:inline-block;
+padding-left: 10px;
 }
 
 
 .fa-onTop {
 margin-left:-5px;
+}
+
+.alertBox {
+z-index:101;
 }

@@ -56,7 +56,7 @@
 				</div>
 				<div class="line"></div>
 
-				{% if can_edit %}
+				{% if is_owner %}
 				<div class="optionGroup">
 					<div class="optionTitle" id="sharingModalTrigger"><i class="fa fa-share-alt"></i> Sharing</div>
 				</div>
@@ -249,14 +249,14 @@
 
 
 <div id="sharingModal" class="modal">
-	<div class="header">Share with others</div>
+	<div class="header">Sharing & Collaboration</div>
 	
 	<div class="radio">
 	  <label>
 		<input type="radio" name="sharingOptions" id="sharePrivate" value="private">
 		<span class="iconHolder"><i class="fa fa-user fa-2x fa-pull-left"></i></span>
 		<span class="sharingLabel">Private</span> 
-		<span class="sharingDesc">Only people with the direct link can view the source sheet<span>
+		<span class="sharingDesc">Only people with the direct link can view the source sheet.<span>
 	  </label>
 	</div>
 
@@ -265,8 +265,8 @@
 	  <label>
 		<input type="radio" name="sharingOptions" id="shareGroup" value="group">
 		<span class="iconHolder"><i class="fa fa-group fa-2x fa-pull-left"></i></span>
-		<span class="sharingLabel">Viewable by Group</span> 
-		<span class="sharingDesc">Anyone in <span class="groupName"></span> can find and view your source sheet<span>
+		<span class="sharingLabel">Listed for Group Members</span> 
+		<span class="sharingDesc">Anyone in <span class="groupName">your group</span> can find and view your source sheet.<span>
 	  </label>
 	</div>
 
@@ -275,8 +275,8 @@
 	  <label>
 		<input type="radio" name="sharingOptions" id="sharePublic" value="public">
 		<span class="iconHolder"><i class="fa fa-globe fa-2x fa-pull-left"></i></span>
-		<span class="sharingLabel">Viewable by All</span> 
-		<span class="sharingDesc">Anyone browsing Sefaria can find and view your source sheet</span>
+		<span class="sharingLabel">Listed for Sefaria Users</span> 
+		<span class="sharingDesc">Anyone browsing Sefaria can find and view your source sheet.</span>
 	  </label>
 	</div>
 	
@@ -284,8 +284,8 @@
 	  <label>
 		<input type="radio" name="sharingOptions" id="shareGroupAdd" value="groupAdd">
 		<span class="iconHolder"><i class="fa fa-group fa-2x fa-pull-left"></i> <i class="fa fa-plus-circle fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Sources Addable by Group</span> 
-		<span class="sharingDesc">Anyone in <span class="groupName"></span> can find and view and add sources to your sheet.</span>
+		<span class="sharingLabel">Group Members can Add</span> 
+		<span class="sharingDesc">Anyone in <span class="groupName">your group</span> can find and view and add sources & comments to your sheet.</span>
 	  </label>
 	</div>
 	
@@ -293,8 +293,8 @@
 	  <label>
 		<input type="radio" name="sharingOptions" id="sharePublicAdd" value="publicAdd">
 		<span class="iconHolder"><i class="fa fa-globe fa-2x fa-pull-left"></i> <i class="fa fa-plus-circle fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Sources Addable by All</span> 
-		<span class="sharingDesc">Anyone browsing Sefaria can find and view and add sources to your sheet.</span>
+		<span class="sharingLabel">Anyone can Add</span> 
+		<span class="sharingDesc">Anyone browsing Sefaria can find and view and add sources & comments to your sheet.</span>
 	  </label>
 	</div>
 
@@ -302,8 +302,8 @@
 	  <label>
 		<input type="radio" name="sharingOptions" id="sharePrivateAdd" value="privateAdd">
 		<span class="iconHolder"><i class="fa fa-link fa-2x fa-pull-left"></i> <i class="fa fa-plus-circle fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Sources Addable by All - Unlisted</span> 
-		<span class="sharingDesc">Anyone with the link to your sheet can view and add sources.</span>
+		<span class="sharingLabel">Anyone can Add - Unlisted</span> 
+		<span class="sharingDesc">Anyone with the link to your sheet can view and add sources & comments.</span>
 	  </label>
 	</div>
 
@@ -311,8 +311,8 @@
 	  <label>
 		<input type="radio" name="sharingOptions" id="shareGroupEdit" value="groupEdit">
 		<span class="iconHolder"><i class="fa fa-group fa-2x fa-pull-left"></i> <i class="fa fa-pencil fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Sources Editable by Group</span> 
-		<span class="sharingDesc">Anyone in <span class="groupName"></span> can make any change to your source sheet.</span>
+		<span class="sharingLabel">Group Members can Edit</span> 
+		<span class="sharingDesc">Anyone in <span class="groupName">your group</span> can make any change to your source sheet.</span>
 	  </label>
 	</div>
 
@@ -320,7 +320,7 @@
 	  <label>
 		<input type="radio" name="sharingOptions" id="sharePublicEdit" value="publicEdit">
 		<span class="iconHolder"><i class="fa fa-globe fa-2x fa-pull-left"></i> <i class="fa fa-pencil fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Sources Editable by All</span> 
+		<span class="sharingLabel">Anyone can Edit</span> 
 		<span class="sharingDesc">Anyone browsing Sefaria can make any change to your source sheet.</span>
 	  </label>
 	</div>
@@ -329,13 +329,13 @@
 	  <label>
 		<input type="radio" name="sharingOptions" id="sharePrivateEdit" value="privateEdit">
 		<span class="iconHolder"><i class="fa fa-link fa-2x fa-pull-left"></i> <i class="fa fa-pencil fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Sources Editable by All - Unlisted</span> 
+		<span class="sharingLabel">Anyone can Edit - Unlisted</span> 
 		<span class="sharingDesc">Anyone with the link to your sheet can make any change. The sheet will not be publicly listed.</span>
 	  </label>
 	</div>
 	
 	
-	<div class="btn ok">Done</div>
+	<div class="btn ok">Save</div>
 </div>
 
 

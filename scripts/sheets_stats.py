@@ -72,7 +72,7 @@ def count_sources(sources, sheet_id):
 
 sheets       = db.sheets.find()
 total        = sheets.count()
-public_total = db.sheets.find({"status": 3}).count()
+public_total = db.sheets.find({"status": "public"}).count()
 
 for sheet in sheets: 
 	global language

@@ -90,7 +90,7 @@ def generate_sheets_sitemap():
 	"""
 	Creates a sitemap for each public source sheet.
 	"""
-	query = {"status": 3}
+	query = {"status": "public"}
 	public = db.sheets.find(query).distinct("id")
 	urls = ["http://www.sefaria.org/sheets/" + str(id) for id in public]
 

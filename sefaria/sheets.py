@@ -21,10 +21,6 @@ from settings import SEARCH_INDEX_ON_SAVE
 import search
 
 
-# PRIVATE_SHEET      = 0  Only the owner can view or edit 
-# PUBLIC_SHEET_VIEW  = 3  Listed publicly, anyone can view, owner can edit
-
-
 # Simple cache of the last updated time for sheets
 last_updated = {}
 
@@ -49,7 +45,7 @@ def sheet_list(user_id=None):
 	If user_id is None, returns a list of public sheets.
 	"""
 	if not user_id:
-		sheet_list = db.sheets.find({"status": 3}).sort([["dateModified", -1]])
+		sheet_list = db.sheets.find({"status": "public"}).sort([["dateModified", -1]])
 	elif user_id:
 		sheet_list = db.sheets.find({"owner": int(user_id), "status": {"$ne": 5}}).sort([["dateModified", -1]])
 
@@ -101,17 +97,17 @@ def save_sheet(sheet, user_id):
 		else:
 			sheet["id"] = 1
 		if "status" not in sheet:
-			sheet["status"] = 0
+			sheet["status"] = "unlisted"
 		sheet["owner"] = user_id
 		sheet["views"] = 1
 
 	if status_changed:
-		if sheet["status"] is 3 and "datePublished" not in sheet:
+		if sheet["status"] is "public" and "datePublished" not in sheet:
 			# PUBLISH
 			sheet["datePublished"] = datetime.now().isoformat()
 			record_sheet_publication(sheet["id"], user_id)
 			broadcast_sheet_publication(user_id, sheet["id"])
-		if sheet["status"] is not 3:
+		if sheet["status"] is not "public":
 			# UNPUBLISH
 			delete_sheet_publication(sheet["id"], user_id)
 			NotificationSet({"type": "sheet publish",
@@ -121,7 +117,7 @@ def save_sheet(sheet, user_id):
 
 	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
 
-	if sheet["status"] is 3 and SEARCH_INDEX_ON_SAVE:
+	if sheet["status"] is "public" and SEARCH_INDEX_ON_SAVE:
 		search.index_sheet(sheet["id"])
 
 	global last_updated
@@ -267,7 +263,7 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 	ref_re = oref.regex()
 
 	results = []
-	sheets = db.sheets.find({"included_refs": {"$regex": ref_re}, "status": 3},
+	sheets = db.sheets.find({"included_refs": {"$regex": ref_re}, "status": "public"},
 								{"id": 1, "title": 1, "owner": 1, "included_refs": 1})
 	for sheet in sheets:
 		# Check for multiple matching refs within this sheet
@@ -355,7 +351,7 @@ def get_sheets_by_tag(tag, public=True, uid=None, group=None):
 	elif group:
 		query["group"] = group
 	elif public:
-		query["status"] = 3
+		query["status"] = "public"
 
 	print query
 	sheets = db.sheets.find(query).sort([["views", -1]])

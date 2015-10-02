@@ -243,6 +243,7 @@ $(function() {
 			$("#sheetHeader").show();
 			
 			$(".groupSharing").show();
+			$(".groupName").text(group);
 			$(".individualSharing").hide();
 
 			//if sheet is unlisted but editable/addable set sheet be visible to group & editable/addable 
@@ -270,7 +271,7 @@ $(function() {
 	$("#sharingModal input[type='radio'][name='sharingOptions']").change(
     function(){
          if(($("#sharingModal input[type='radio'][name='sharingOptions']:checked").val()).indexOf("Edit")>=0){
-    	alert('Consider making a copy of this source sheet before allowing anyone to edit.\n\nThere is no way to undo changes made by another editor');
+    	 sjs.alert.message('Please be advised: There is no way to track or undo changes made by other editors, including deletions.<br/><br/>Consider making a copy of this source sheet before allowing anyone to edit.',true);
   	  }
   	  }
 );          
@@ -709,6 +710,9 @@ $(function() {
 		$("#sharingModal, #overlay").hide();
 		
 		autoSave();
+		sjs.alert.flash("Sharing settings saved.")
+
+
 
 	});
 
@@ -966,7 +970,7 @@ $(function() {
 		// (or are published without being prompted), mark them as though they had
 		// already been prompted -- to avoid reprompting annoyingly if they make the sheet
 		// private again.
-		if (!sjs.current.promptedToPublish && sjs.current.status in {3:true}) {
+		if (!sjs.current.promptedToPublish && sjs.current.status in {"public":true}) {
 			sjs.current.promptedToPublish = Date();
 		}
 
@@ -1168,7 +1172,7 @@ function readSheet() {
 	sheet.title    = $("#title").html();
 	sheet.sources  = readSources($("#sources"));
 	sheet.options  = {};
-	sheet.status   = 0;
+	sheet.status   = "unlisted";
 	sheet.nextNode = sjs.current.nextNode;
 	sheet.tags     = sjs.sheetTagger.tags();
 
@@ -1196,50 +1200,50 @@ function readSheet() {
 
 		case 'private':
 			sheet.options.collaboration = "none";
-			sheet["status"] = 0;
+			sheet["status"] = "unlisted";
 			break;
 
 		case 'public':
 			sheet.options.collaboration = "none";
-			sheet["status"] = 3;
+			sheet["status"] = "public";
 			sjs.track.sheets("Make Public Click");
 			break;
 
 		case 'publicAdd':
 			sheet.options.collaboration = "anyone-can-add";
-			sheet["status"] = 3;
+			sheet["status"] = "public";
 			sjs.track.sheets("Make Public Click");
 			sjs.track.sheets("Anyone Can Add Click");
 			break;
 
 		case 'groupAdd':
 			sheet.options.collaboration = "group-can-add";
-			sheet["status"] = 0;
+			sheet["status"] = "unlisted";
 			sjs.track.sheets("Group Can Add Click");
 			break;
 
 		case 'privateAdd':
 			sheet.options.collaboration = "anyone-can-add";
-			sheet["status"] = 0;
+			sheet["status"] = "unlisted";
 			sjs.track.sheets("Anyone Can Add Click");
 			break;
 
 		case 'publicEdit':
 			sheet.options.collaboration = "anyone-can-edit";
-			sheet["status"] = 3;
+			sheet["status"] = "public";
 			sjs.track.sheets("Make Public Click");
 			sjs.track.sheets("Anyone Can Edit Click");
 			break;
 
 		case 'privateEdit':
 			sheet.options.collaboration = "anyone-can-edit";		
-			sheet["status"] = 0;
+			sheet["status"] = "unlisted";
 			sjs.track.sheets("Anyone Can Edit Click");
 			break;
 
 		case 'groupEdit':
 			sheet.options.collaboration = "group-can-edit";		
-			sheet["status"] = 0;
+			sheet["status"] = "unlisted";
 			sjs.track.sheets("Group Can Edit Click");
 			break;		
 		
@@ -1441,14 +1445,14 @@ function buildSheet(data){
 
 	if (!("collaboration" in data.options)) { data.options.collaboration = "none"}
 
-	if (data.options.collaboration == "none" && data.status == 0)  $("#sharingModal input[type='radio'][name='sharingOptions'][value='private']").attr('checked', 'checked');
-	else if (data.options.collaboration == "none" && data.status == 3) $("#sharingModal input[type='radio'][name='sharingOptions'][value='public']").attr('checked', 'checked');
-	else if (data.options.collaboration == "anyone-can-add" && data.status == 3) $("#sharingModal input[type='radio'][name='sharingOptions'][value='publicAdd']").attr('checked', 'checked');
-	else if (data.options.collaboration == "anyone-can-add" && data.status == 0) $("#sharingModal input[type='radio'][name='sharingOptions'][value='privateAdd']").attr('checked', 'checked');
-	else if (data.options.collaboration == "group-can-add" && data.status == 0) $("#sharingModal input[type='radio'][name='sharingOptions'][value='groupAdd']").attr('checked', 'checked');
-	else if (data.options.collaboration == "anyone-can-edit" && data.status == 3) $("#sharingModal input[type='radio'][name='sharingOptions'][value='publicEdit']").attr('checked', 'checked');
-	else if (data.options.collaboration == "anyone-can-edit" && data.status == 0) $("#sharingModal input[type='radio'][name='sharingOptions'][value='privateEdit']").attr('checked', 'checked');
-	else if (data.options.collaboration == "group-can-edit" && data.status == 0) $("#sharingModal input[type='radio'][name='sharingOptions'][value='groupEdit']").attr('checked', 'checked');
+	if (data.options.collaboration == "none" && data.status == "unlisted")  $("#sharingModal input[type='radio'][name='sharingOptions'][value='private']").attr('checked', 'checked');
+	else if (data.options.collaboration == "none" && data.status == "public") $("#sharingModal input[type='radio'][name='sharingOptions'][value='public']").attr('checked', 'checked');
+	else if (data.options.collaboration == "anyone-can-add" && data.status == "public") $("#sharingModal input[type='radio'][name='sharingOptions'][value='publicAdd']").attr('checked', 'checked');
+	else if (data.options.collaboration == "anyone-can-add" && data.status == "unlisted") $("#sharingModal input[type='radio'][name='sharingOptions'][value='privateAdd']").attr('checked', 'checked');
+	else if (data.options.collaboration == "group-can-add" && data.status == "unlisted") $("#sharingModal input[type='radio'][name='sharingOptions'][value='groupAdd']").attr('checked', 'checked');
+	else if (data.options.collaboration == "anyone-can-edit" && data.status == "public") $("#sharingModal input[type='radio'][name='sharingOptions'][value='publicEdit']").attr('checked', 'checked');
+	else if (data.options.collaboration == "anyone-can-edit" && data.status == "unlisted") $("#sharingModal input[type='radio'][name='sharingOptions'][value='privateEdit']").attr('checked', 'checked');
+	else if (data.options.collaboration == "group-can-edit" && data.status == "unlisted") $("#sharingModal input[type='radio'][name='sharingOptions'][value='groupEdit']").attr('checked', 'checked');
 
 	 
 	// Set Sheet Group
@@ -1614,6 +1618,8 @@ sjs.saveLastEdit = function($el) {
 	}
 
 	$el.removeClass("new");
+	
+
 };
 
 
@@ -1645,10 +1651,11 @@ sjs.replayLastEdit = function() {
 			source = {outsideBiText: {he: sjs.lastEdit.html, en: "<i>English</i>"}, isNew: true};
 			break;
 		case "edit hebrew":
-			$(".he", "li[data-node='" + sjs.lastEdit.node + "']").eq(0).html(sjs.lastEdit.html);
+			$("li[data-node='" + sjs.lastEdit.node + "']").find(".text > .he").first().html(sjs.lastEdit.html);
 			break;
 		case "edit english":
-			$(".en", "li[data-node='" + sjs.lastEdit.node + "']").eq(0).html(sjs.lastEdit.html);
+
+			$("li[data-node='" + sjs.lastEdit.node + "']").find(".text > .en").first().html(sjs.lastEdit.html);
 			break;
 		case "edit comment":
 			$(".comment", ".commentWrapper[data-node='" + sjs.lastEdit.node + "']").eq(0).html(sjs.lastEdit.html);
@@ -1657,6 +1664,9 @@ sjs.replayLastEdit = function() {
 			$(".outside", ".outsideWrapper[data-node='" + sjs.lastEdit.node + "']").eq(0).html(sjs.lastEdit.html);
 			break;
 	}
+	
+
+	
 	if (source) {
 		if (sjs.can_add) {
 			source.userLink = sjs._userLink;
@@ -1720,7 +1730,7 @@ function startPollingIfNeeded() {
 			needed = true;
 		}
 		// Poll if sheet is in a group 
-		else if  (sjs.current.status == 6 || sjs.current.status == 7) {
+		else if  (sjs.current.options.collaboration && sjs.current.options.collaboration === "anyone-can-edit") {
 			needed = true;
 		}
 	}	
@@ -1742,10 +1752,11 @@ function rebuildUpdatedSheet(data) {
 	}
 
 	sjs.alert.flash("Sheet updated.");
-	if ($(".cke").length) {
+	if ($(".cke_editable").length) {
 		// An editor is currently open -- save current changes as a lastEdit
-		sjs.saveLastEdit($(".cke").eq(0));
+		sjs.saveLastEdit($(".cke_editable").eq(0));
 	}
+
 	buildSheet(data);
 	sjs.replayLastEdit();
 }
@@ -1835,7 +1846,7 @@ $("#addToSheetModal .ok").click(function(){
 
 function copySheet() {
 	var sheet = readSheet();
-	sheet.status = 0;
+	sheet.status = "unlisted";
 	sheet.title = sheet.title + " (Copy)";
 	delete sheet.group;
 	delete sheet.id;
@@ -1925,7 +1936,7 @@ function promptToPublish() {
 	if (!sjs.current.id) { return; }                        // Don't prompt for unsaved sheet
 	if (!sjs.is_owner) { return; }                          // Only prompt the primary owner
 	if (sjs.current.promptedToPublish) { return; }          // Don't prompt if we've prompted already
-	if (sjs.current.status in {3:true}) { return; } // Don't prompt if sheet is already public
+	if (sjs.current.status in {"public":true}) { return; } // Don't prompt if sheet is already public
 	if (sjs.current.sources.length < 6) { return; }         // Don't prompt if the sheet has less than 3 sources
 	if ($("body").hasClass("embedded")) { return; }         // Don't prompt while a sheet is embedded
 
