@@ -111,7 +111,6 @@ ORDER = [
 
 REORDER_RULES = {
     "Commentary2": ["Commentary"],
-    #"Targum":      ["Tanach", "Targum"]
 }
 
 
@@ -418,7 +417,8 @@ def node_sort_key(a):
 
 
 def node_sort_sparse(a):
-    if "category" in a: # Category - sort to top
+    if "category" in a or "order" in a:
+        # Keep categories or texts with explicit orders at top
         score = -4
     else:
         score = -a.get('sparseness', 1)
