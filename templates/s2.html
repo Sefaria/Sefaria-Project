@@ -39,7 +39,9 @@
         var filter  = "with" in urlVars ? urlVars["with"].replace(/_/g, " ").split("+") : null;
         if (filter && filter.length === 1 && filter[0] === "all") { filter = []; }
         var query  = "q" in urlVars ? urlVars["q"] : null;
-        var panels = "panels" in urlVars ? parseInt(urlVars.panels) : 1;
+        var panels = "panels" in urlVars ? 
+                        parseInt(urlVars["q"]) :
+                        $(window).width() > 600 ? 2 : 1;
 
         var settings = {
           language: "{{ contentLang }}",

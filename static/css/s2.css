@@ -33,7 +33,6 @@ body.dark {
   overflow: hidden;
   background-color: inherit;
   font-family: Georgia, serif;
-  text-align: center;
 }
 .readerContent {
   width: 100%;
@@ -917,6 +916,11 @@ body .bilingual .enOnly .he {
   margin: 0 auto;
   background-color: #F9F9F7;
 }
+.textList.fullPanel {
+  height: 100%;
+  padding-top: 58px;
+  box-sizing: border-box;
+}
 .textList .texts,
 .textList .fullFilterView {
   height: 100%;
@@ -938,44 +942,14 @@ body .bilingual .enOnly .he {
   background-color: inherit;
   z-index: 1;
 }
-.textList .anchorText {
-  cursor: pointer;
-  border-bottom: 1px solid #CCC;
-  position: relative;
-  background-color: white;
+.textList.fullPanel .textListTop {
+
 }
-.dark .textList.main {
+.dark .textList {
   background-color: #333;
 }
 .dark .textList .anchorText {
   background-color: #333;
-}
-.textList .anchorText .textBox {
-  padding: 20px;
-  max-height: 150px;
-  overflow-x: hidden;
-  overflow-y: scroll; 
-}
-.textList .anchorText .textRange .title {
-  display: none;
-  text-align: center;
-  text-transform: uppercase;
-  font-family: Helvetica, sans-serif;
-  color: #999;
-  letter-spacing: 1px;
-  font-weight: lighter;
-  margin-bottom: 14px;
-}
-.textListTop .anchorText .fader {
-  position: absolute;
-  bottom: 0px;
-  left: 0;
-  width: 100%;
-  height: 40px;
-  background: linear-gradient(to bottom, rgba(255,255,255,0), white);
-}
-.dark .textListTop .anchorText .fader {
-  background: linear-gradient(to bottom, rgba(51,51,51,0), #333);
 }
 .textList .heOnly {
   display: block;
@@ -1012,7 +986,13 @@ body .bilingual .enOnly .he {
   padding: 4px 22px;
   line-height: 0px;
   background-color: #F9F9F7;
+  border-top: 4px solid transparent;
   border-bottom: 1px solid #D5D5D4;
+}
+.textList.fullPanel .topFilters {
+  margin: 0;
+  border-top: 8px solid transparent;
+  padding: 7px 22px;
 }
 .topFilters .textFilter {
   color: #999;
