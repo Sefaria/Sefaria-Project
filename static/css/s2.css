@@ -326,6 +326,7 @@ body .bilingual .enOnly .he {
   position: absolute;
   width: 100%;
   background-color: #F9F9F7;
+  z-index: 1;
 }
 .readerNavTopFixed .readerNavTop {
   padding: 12px 20px;
