@@ -118,9 +118,7 @@ body .bilingual .enOnly .he {
   background-color: #333;
   color: white;
 }
-.readerNavMenu, 
-.readerNavMenuFixed,
-.readerTextTableOfContents {
+.readerNavMenu {
   position: absolute;
   top: 0;
   left: 0;
@@ -130,12 +128,28 @@ body .bilingual .enOnly .he {
   z-index: 101;
   background-color: #F9F9F7;
 }
+.readerNavMenu .content {
+  box-sizing: border-box;
+  padding: 80px 10px 10px;
+  height: 100%;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  font-size: 12px;
+}
 .readerNavTop {
+  position: absolute;
+  width: 100%;
+  background-color: #F9F9F7;
   border-bottom: 1px solid #E2E2E1;
   box-sizing: border-box;
   direction: ltr;
+  z-index: 1;
+  padding: 12px 20px;
 }
-.readerNavTopFixed .readerNavTop.search {
+.readerApp .readerNavTop h2 {
+  margin-bottom: 0px;
+}
+.readerNavTop.search {
   padding: 0;
 }
 .readerNavTop.search .fa-search {
@@ -148,8 +162,7 @@ body .bilingual .enOnly .he {
   right: 10px;
   top: 16px;
 }
-.readerNavMenu .readerSearch,
-.readerNavMenuFixed .readerSearch  {
+.readerNavMenu .readerSearch {
   margin: 0;
   width: 100%;
   box-sizing: border-box;
@@ -159,8 +172,7 @@ body .bilingual .enOnly .he {
   line-height: 30px;
   font-size: 16px;
 }
-.readerNavMenu .readerSearch:focus,
-.readerNavMenuFixed .readerSearch:focus {
+.readerNavMenu .readerSearch:focus {
   outline: 0;
 }
 .readerNavTop .fa {
@@ -205,9 +217,6 @@ body .bilingual .enOnly .he {
   font-family: "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: lighter;
   letter-spacing: 1px;
-}
-.readerNavMenu .content {
-  padding: 30px 10px 10px 10px;
 }
 .readerNavMenu .navToggles {
   text-align: center;
@@ -313,26 +322,6 @@ body .bilingual .enOnly .he {
 }
 .readerNavCategoryMenu {
   height: 100%;
-}
-.readerNavMenuFixed .content {
-  box-sizing: border-box;
-  padding: 80px 10px 10px;
-  height: 100%;
-  overflow-y: scroll;
-  -webkit-overflow-scrolling: touch;
-  font-size: 12px;
-}
-.readerNavTopFixed {
-  position: absolute;
-  width: 100%;
-  background-color: #F9F9F7;
-  z-index: 1;
-}
-.readerNavTopFixed .readerNavTop {
-  padding: 12px 20px;
-}
-.readerApp .readerNavTopFixed h2 {
-  margin-bottom: 0px;
 }
 .readerNavCategoryMenu .content {
   padding: 100px 10px 10px;

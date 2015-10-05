@@ -60,7 +60,7 @@ var MultiPanelReader = React.createClass({
                       initialRef={this.state.panels[i].ref}
                       initialFilter={this.state.panels[i].filter}
                       initialMenu={this.props.initialMenu}
-                      initialQuery={this.props.intialQuery}
+                      initialQuery={this.props.initialQuery}
                       initialSheetsTag={this.props.initialSheetsTag }
                       initialSettings={clone(this.props.initialSettings)}
                       multiPanel={this.state.panels.length > 1}
@@ -92,6 +92,8 @@ var ReaderApp = React.createClass({
         var contents = [{type: "TextList", ref: this.props.initialRef}];
       } else if (this.props.initialRef) {
         var contents = [{type: "TextColumn", refs: [this.props.initialRef]}];
+      } else {
+        var contents = [];
       }
     } else if (!this.props.multiPanel && this.props.initialRef) {
       var contents = [{type: "TextColumn", refs: [this.props.initialRef]}];
@@ -580,7 +582,9 @@ var ReaderControls = React.createClass({
       <div>
         <div className="categoryColorLine" style={lineStyle}></div>
         <div className="readerControls headroom">
-          <div className="readerNav"  onClick={this.props.openMenu.bind(null, "navigation")}><i className="fa fa-search"></i></div>
+          <div className="readerNav"  onClick={this.props.openMenu.bind(null, "navigation")}>
+            <i className="fa fa-search"></i>
+          </div>
           <div className="readerTextToc" onClick={this.props.openMenu.bind(null, "text toc")}>
             { title ? (<i className="fa fa-caret-down invisible"></i>) : "" }
             <div className="readerTextTocBox">
@@ -590,7 +594,9 @@ var ReaderControls = React.createClass({
             { title ? (<i className="fa fa-caret-down"></i>) : "" }
 
           </div>
-          <div className="readerOptions" onClick={this.props.openMenu.bind(null, "display")}><i className="fa fa-bars"></i></div>
+          <div className="readerOptions" onClick={this.props.openMenu.bind(null, "display")}>
+            <i className="fa fa-bars"></i>
+          </div>
         </div>        
       </div>);
   }
@@ -764,9 +770,9 @@ var ReaderNavigationMenu = React.createClass({
       calendar = (<div className="readerNavCalendar"><ThreeBox content={calendar} /></div>);
 
 
-      var classes = classNames({readerNavMenu: 1, readerNavMenuFixed:1, home: this.props.home});
+      var classes = classNames({readerNavMenu: 1, readerNavMenu:1, home: this.props.home});
       return(<div className={classes} onClick={this.handleClick}>
-              <div className="readerNavTop readerNavTopFixed search">
+              <div className="readerNavTop readerNavTop search">
                 <i className="fa fa-search" onClick={this.props.openMenu.bind(null, "navigation")}></i>
                 {this.props.home ? 
                   (<div className='sefariaLogo'><img src="/static/img/sefaria.png" /></div>) :
@@ -868,14 +874,12 @@ var ReaderNavigationCategoryMenu = React.createClass({
     var contents    = makeCatContents(catContents, categories);
     var lineStyle   = {backgroundColor: sjs.categoryColor(categories[0])};
 
-    return (<div className="readerNavCategoryMenu readerNavMenuFixed">
-              <div className="readerNavTopFixed">
+    return (<div className="readerNavCategoryMenu readerNavMenu">
+              <div className="readerNavTop">
                 <div className="categoryColorLine" style={lineStyle}></div>
-                <div className="readerNavTop">
-                  <i className="fa fa-search" onClick={this.props.navHome}></i>
-                  <i className="fa fa-times" onClick={this.props.closeNav}></i>
-                  <h2>{this.props.category}</h2>
-                </div>
+                <i className="fa fa-search" onClick={this.props.navHome}></i>
+                <i className="fa fa-times" onClick={this.props.closeNav}></i>
+                <h2>{this.props.category}</h2>
               </div>
               <div className="content">
                 {toggle}
@@ -931,14 +935,12 @@ var ReaderTextTableOfContents = React.createClass({
 
     var lineStyle = {backgroundColor: sjs.categoryColor(this.props.category)};
 
-    return (<div className="readerTextTableOfContents" onClick={this.handleClick}>
-              <div className="readerNavTopFixed">
+    return (<div className="readerTextTableOfContents readerNavMenu" onClick={this.handleClick}>
+              <div className="readerNavTop">
                 <div className="categoryColorLine" style={lineStyle}></div>
-                <div className="readerNavTop">
-                  <i className="fa fa-search" onClick={this.props.openNav}></i>
-                  <i className="fa fa-times" onClick={this.props.close}></i>
-                  <h2>Table of Contents</h2>
-                </div>
+                <i className="fa fa-search" onClick={this.props.openNav}></i>
+                <i className="fa fa-times" onClick={this.props.close}></i>
+                <h2>Table of Contents</h2>
               </div>
               <div className="content">
                 <div className="tocTitle">
@@ -1038,13 +1040,11 @@ var SheetsNav = React.createClass({
       }      
     }
 
-    return (<div className="readerSheetsNav readerNavMenu readerNavMenuFixed">
-              <div className="readerNavTopFixed">
-                <div className="readerNavTop">
-                  <i className="fa fa-search" onClick={this.props.openNav}></i>
-                  <i className="fa fa-times" onClick={this.props.close}></i>
-                  <h2>{title}</h2>
-                </div>
+    return (<div className="readerSheetsNav readerNavMenu readerNavMenu">
+              <div className="readerNavTop">
+                <i className="fa fa-search" onClick={this.props.openNav}></i>
+                <i className="fa fa-times" onClick={this.props.close}></i>
+                <h2>{title}</h2>
               </div>
               {content}
             </div>);

@@ -31,15 +31,13 @@ var SearchPage = React.createClass({
         })
     },
     render: function () {
-        return (<div className="readerNavMenuFixed">
-                  <div className="readerNavTopFixed">
-                    <div className="readerNavTop search">
-                      <i className="fa fa-times" onClick={this.props.close}></i>
-                        <SearchBar
-                            initialQuery = { this.state.query }
-                            updateQuery = { this.updateQuery } />
-                    </div>
-                  </div>
+        return (<div className="readerNavMenu">
+                <div className="readerNavTop search">
+                  <i className="fa fa-times" onClick={this.props.close}></i>
+                    <SearchBar
+                        initialQuery = { this.state.query }
+                        updateQuery = { this.updateQuery } />
+                </div>
                   <div className="content">
                     <div className="searchContentFrame">
                         <div className="searchControlsBox">
