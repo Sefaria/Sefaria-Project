@@ -444,6 +444,20 @@ sjs.library = {
         }
       return sheets;
     },
+    _userSheets: {},
+    userSheets: function(uid, cb) {
+      var sheets = this._userSheets[uid];
+      if (sheets) {
+        if (cb) { cb(sheets); }
+      } else {
+        var url = "/api/sheets/user/" + uid;
+         $.getJSON(url, function(data) {
+            this._userSheets[uid] = data.sheets;
+            if (cb) { cb(data.sheets); }
+          }.bind(this));
+        }
+      return sheets;
+    },
   },
   hebrewCategory: function(cat) {
     var categories = {

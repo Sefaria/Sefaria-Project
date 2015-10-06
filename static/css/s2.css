@@ -533,6 +533,12 @@ body .bilingual .enOnly .he {
   background-color: white;
   padding: 80px 15px 15px;
 }
+.readerNavMenu .yourSheetsLink.navButton {
+  width: 98%;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  font-family: Helvetica, sans-serif;
+}
 .readerNavMenu .sheet {
   display: block;
   padding: 25px 0px;

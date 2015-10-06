@@ -27,7 +27,6 @@ var MultiPanelReader = React.createClass({
     };
   },
   handleTextChange: function(n, ref) {
-    console.log("HTC " + n +" "+ref)
     // When panel `n` navigates to a new text `ref`, reflect the change in the top level state.
     this.state.panels[n] = {ref: ref, filter: null};
     this.setState({panels: this.state.panels});
@@ -37,7 +36,6 @@ var MultiPanelReader = React.createClass({
     }
   },
   handleSegmentClick: function(n, ref) {
-     console.log("HSC " + n +" "+ref)
     // Handle a click on a text segment `ref` in from panel in position `n`
     if (n+1 == this.state.panels.length) {
       // Add new panel to end
@@ -1005,6 +1003,7 @@ var SheetsNav = React.createClass({
     return {
       trendingTags: null,
       tagList: null,
+      yourSheets: null,
       sheets: [],
       tag: this.props.initialTag
     };
@@ -1012,7 +1011,11 @@ var SheetsNav = React.createClass({
   componentDidMount: function() {
     this.getTags();
     if (this.props.initialTag) {
-      this.setTag(this.props.initialTag);
+      if (this.props.initialTag === "Your Sheets") {
+        this.showYourSheets();
+      } else {
+        this.setTag(this.props.initialTag);
+      }
     }
   },
   componentWillReceiveProps: function(nextProps) {
@@ -1036,6 +1039,11 @@ var SheetsNav = React.createClass({
   loadSheets: function(sheets) {
     this.setState({sheets: sheets});
   },
+  showYourSheets: function() {
+    this.setState({tag: "Your Sheets"});
+    sjs.library.sheets.userSheets(sjs._uid, this.loadSheets);
+    this.props.setSheetTag("Your Sheets");    
+  },
   render: function() {
     var title = this.state.tag || "Source Sheets";
 
@@ -1044,7 +1052,7 @@ var SheetsNav = React.createClass({
         var title = sheet.title.stripHtml();
         var url   = "/sheets/" + sheet.id;
         return (<a className="sheet" href={url}>
-                  <img className="sheetImg" src={sheet.ownerImageUrl} />
+                  {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl} />) : ""}
                   <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
                   <div className="sheetAuthor">{sheet.ownerName}</div>
                   <div className="sheetTitle">{title}</div>
@@ -1053,7 +1061,7 @@ var SheetsNav = React.createClass({
       sheets = sheets.length ? sheets : (<LoadingMessage />);
       var content = (<div className="content sheetList">{sheets}</div>);
     } else {
-      var yourSheets  = ""
+      var yourSheets  = sjs._uid ? (<div className="yourSheetsLink navButton" onClick={this.showYourSheets}>Your Source Sheets <i className="fa fa-chevron-right"></i></div>) : "";
       var makeTagButton = function(tag) {
         var setThisTag = this.setTag.bind(null, tag.tag);
         return (<div className="navButton" onClick={setThisTag}>{tag.tag} ({tag.count})</div>);
@@ -1071,7 +1079,7 @@ var SheetsNav = React.createClass({
                         {tagList}
                        </div>);
       } else {
-        var content = (<div className="content">Loading...</div>);
+        var content = (<div className="content"><LoadingMessage /></div>);
       }      
     }
 
@@ -1291,6 +1299,7 @@ var TextColumn = React.createClass({
   adjustTextListHighlight: function() {
     // When scrolling while the TextList is open, update which segment should be highlighted.
     window.requestAnimationFrame(function() {
+      //var start = new Date();
       var $container   = $(React.findDOMNode(this));
       var $readerApp   = $container.closest(".readerApp");
       var viewport     = $container.outerHeight() - $readerApp.find(".textList").outerHeight();
@@ -1306,6 +1315,9 @@ var TextColumn = React.createClass({
           } else {
             this.props.showTextList(ref);
           }
+          //var end = new Date();
+          //elapsed = end - start;
+          //console.log("Adjusted Text Highlight in: " + elapsed);
           return false;
         }
       }.bind(this));

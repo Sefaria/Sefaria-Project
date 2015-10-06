@@ -85,6 +85,7 @@ def sheet_list(user_id=None):
 		s["title"]    = sheet["title"] if "title" in sheet else "Untitled Sheet"
 		s["author"]   = sheet["owner"]
 		s["size"]     = len(sheet["sources"])
+		s["views"]    = sheet["views"]
 		s["modified"] = dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y")
 
 		response["sheets"].append(s)
