@@ -14,7 +14,7 @@ var MultiPanelReader = React.createClass({
   getInitialState: function() {
     var panels = [];
     for (var i=0; i < this.props.panelCount; i++) {
-      var filter = i == 0 ? null : (this.props.initialFilter || []);
+      var filter = i == 0 ? null : (this.props.initialRef ? (this.props.initialFilter || []) : null);
       panels.push({ref: this.props.initialRef, filter: filter});
     }
     return {
@@ -25,10 +25,12 @@ var MultiPanelReader = React.createClass({
     // When panel `n` navigates to a new text `ref`, reflect the change in the top level state.
     this.state.panels[n] = {ref: ref, filter: null};
     this.setState({panels: this.state.panels});
+    // Open TextList panel for new ref
+    this.handleSegmentClick(n, ref);
   },
   handleSegmentClick: function(n, ref) {
     // Handle a click on a text segment `ref` in from panel in position `n`
-    if (n == this.state.panels.length) {
+    if (n+1 == this.state.panels.length) {
       // Add new panel to end
       this.state.panels.push({ref: ref, filter: []});
       this.setState({panels: this.state.panels});
@@ -40,7 +42,8 @@ var MultiPanelReader = React.createClass({
         this.setState({panels: this.state.panels});
       } else {
         // Splice in new TextList
-        this.state.panels.splice(n+1, 0, {ref: ref, filter: []});
+        //this.state.panels.splice(n+1, 0, {ref: ref, filter: []});
+        this.state.panels[n+1] = {ref: ref, filter: []};
         this.setState({panels: this.state.panels});
       }
     }
@@ -49,12 +52,12 @@ var MultiPanelReader = React.createClass({
     var width = 100.0/this.state.panels.length;
     var panels = [];
     for (var i = 0; i < this.state.panels.length; i++) {
-      var style  = {width: width + "%", left: (width * i) + "%"};
-      var multi  = this.state.panels.length !== 1;
+      var style              = {width: width + "%", left: (width * i) + "%"};
+      var multi              = this.state.panels.length !== 1;
       var handleTextChange   = multi ? this.handleTextChange.bind(null, i) : null;
       var handleSegmentClick = multi ? this.handleSegmentClick.bind(null, i) : null;
-      var textListRef = this.state.panels.length > i+1 && this.state.panels[i+1].filter ? 
-                          this.state.panels[i+1].ref : null;
+      var textListRef        = this.state.panels.length > i+1 && this.state.panels[i+1].filter ? 
+                                this.state.panels[i+1].ref : null;
       panels.push(<div className="readerPanel" style={style}>
                     <ReaderApp 
                       initialRef={this.state.panels[i].ref}
@@ -404,7 +407,7 @@ var ReaderApp = React.createClass({
   },
   currentContent: function() {
     // Returns the current content item
-    return this.state.contents.slice(-1)[0] || null;
+    return this.state.contents && this.state.contents.length ? this.state.contents.slice(-1)[0] : null;
   },
   currentMode: function () {
     // Returns the type of the current reader item - TextColumn, TextList

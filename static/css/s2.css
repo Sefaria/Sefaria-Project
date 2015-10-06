@@ -814,9 +814,8 @@ body .bilingual .enOnly .he {
 }
 .basetext .segment:hover,
 .basetext .segment:active,
-.basetext .segment:focus,
-.basetext .segment.highlight {
-  background-color: #eee;
+.basetext .segment:focus {
+  background-color: #f1f1f1;
 }
 .textColumn.connectionsOpen .segment:hover,
 .textColumn.connectionsOpen .basetext .segment:active,
@@ -825,12 +824,14 @@ body .bilingual .enOnly .he {
 }
 .dark .basetext .segment:hover,
 .dark .basetext .segment:active,
-.dark .basetext .segment:focus,
-.dark .basetext .segment.highlight {
+.dark .basetext .segment:focus {
   background-color: #555;
 }
-.basetext .segment.textListHighlight {
-  background-color: #E6E5E6;
+.basetext .segment.highlight {
+  background-color: #E9E9E9;
+}
+.dark .basetext .segment.highlight {
+  background-color: #444;
 }
 .textRange {
   line-height: 1.4;
