@@ -607,6 +607,7 @@ var ReaderControls = React.createClass({
   }
 });
 
+
 var ReaderDisplayOptionsMenu = React.createClass({
   propTyps: {
     setOption:     React.PropTypes.func.isRequired,
@@ -674,8 +675,9 @@ var ReaderDisplayOptionsMenu = React.createClass({
 
 });
 
+
 var ReaderNavigationMenu = React.createClass({
-  // The Navigation menu for broswing and search texts, other side links.
+  // The Navigation menu for broswing and searching texts, plus site links.
   propTypes: {
     home:         React.PropTypes.bool,
     closeNav:     React.PropTypes.func.isRequired,
@@ -778,12 +780,11 @@ var ReaderNavigationMenu = React.createClass({
       var classes = classNames({readerNavMenu: 1, readerNavMenu:1, home: this.props.home});
       return(<div className={classes} onClick={this.handleClick}>
               <div className="readerNavTop readerNavTop search">
-                <i className="fa fa-search" onClick={this.props.openMenu.bind(null, "navigation")}></i>
+                <ReaderNavigationMenuSearchButton onClick={this.props.openMenu.bind(null, "navigation")} />
                 {this.props.home ? 
                   (<div className='sefariaLogo'><img src="/static/img/sefaria.png" /></div>) :
                   (<input className="readerSearch" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />)}
-
-                  <i className="fa fa-times" onClick={this.props.closeNav}></i>
+                {this.props.home ? "" : (<ReaderNavigationMenuCloseButton onClick={this.props.closeNav}/>)}
               </div>
               <div className="content">
                   <div className="tagline">{this.props.home ? "A Living Library of Jewish Texts" : ""}</div>
@@ -882,8 +883,8 @@ var ReaderNavigationCategoryMenu = React.createClass({
     return (<div className="readerNavCategoryMenu readerNavMenu">
               <div className="readerNavTop">
                 <div className="categoryColorLine" style={lineStyle}></div>
-                <i className="fa fa-search" onClick={this.props.navHome}></i>
-                <i className="fa fa-times" onClick={this.props.closeNav}></i>
+                <ReaderNavigationMenuSearchButton onClick={this.props.navHome} />
+                <ReaderNavigationMenuCloseButton onClick={this.props.closeNav}/>
                 <h2>{this.props.category}</h2>
               </div>
               <div className="content">
@@ -943,8 +944,8 @@ var ReaderTextTableOfContents = React.createClass({
     return (<div className="readerTextTableOfContents readerNavMenu" onClick={this.handleClick}>
               <div className="readerNavTop">
                 <div className="categoryColorLine" style={lineStyle}></div>
-                <i className="fa fa-search" onClick={this.props.openNav}></i>
-                <i className="fa fa-times" onClick={this.props.close}></i>
+                <ReaderNavigationMenuSearchButton onClick={this.props.openNav} />
+                <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
                 <h2>Table of Contents</h2>
               </div>
               <div className="content">
@@ -1047,8 +1048,8 @@ var SheetsNav = React.createClass({
 
     return (<div className="readerSheetsNav readerNavMenu readerNavMenu">
               <div className="readerNavTop">
-                <i className="fa fa-search" onClick={this.props.openNav}></i>
-                <i className="fa fa-times" onClick={this.props.close}></i>
+                <ReaderNavigationMenuSearchButton onClick={this.props.openNav} />
+                <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
                 <h2>{title}</h2>
               </div>
               {content}
@@ -1119,6 +1120,20 @@ var ToggleOption = React.createClass({
         onClick={this.handleClick}>
         {content}
       </div>);
+  }
+});
+
+
+var ReaderNavigationMenuSearchButton = React.createClass({
+  render: function() { 
+    return (<div className="readerNavMenuSearchButton" onClick={this.props.onClick}><i className="fa fa-search"></i></div>);
+  }
+});
+
+
+var ReaderNavigationMenuCloseButton = React.createClass({
+  render: function() { 
+    return (<div className="readerNavMenuCloseButton" onClick={this.props.onClick}><i className="fa fa-times"></i></div>);
   }
 });
 

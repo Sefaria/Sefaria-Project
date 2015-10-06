@@ -144,7 +144,7 @@ body .bilingual .enOnly .he {
   box-sizing: border-box;
   direction: ltr;
   z-index: 1;
-  padding: 12px 20px;
+  padding: 13px 20px;
 }
 .readerApp .readerNavTop h2 {
   margin-bottom: 0px;
@@ -152,23 +152,13 @@ body .bilingual .enOnly .he {
 .readerNavTop.search {
   padding: 0;
 }
-.readerNavTop.search .fa-search {
-  position: absolute;
-  top: 17px;
-  left: 12px;
-}
-.readerNavTop.search .fa-times {
-  position: absolute;
-  right: 10px;
-  top: 16px;
-}
 .readerNavMenu .readerSearch {
   margin: 0;
   width: 100%;
   box-sizing: border-box;
   border: none;
   background-color: inherit;
-  padding: 12px 10px 12px 40px;
+  padding: 17px 10px 10px 40px;
   line-height: 30px;
   font-size: 16px;
 }
@@ -181,19 +171,19 @@ body .bilingual .enOnly .he {
   vertical-align: middle;
   cursor: pointer;
 }
-.readerNavTop .fa-search {
+.readerNavTop .readerNavMenuSearchButton,
+.readerNavTop .readerNavMenuCloseButton {
   position: absolute;
-  top: 21px;
-  left: 12px;
+  text-align: center;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  width: 40px;
+  padding-top: 21px;
 }
-.readerNavTopFixed .readerNavTop .fa-search {
-  left: 12px;
-  margin: 0px;
-}
-.readerNavTop .fa-times {
-  position: absolute;
-  right: 10px;
-  top: 20px;
+.readerNavTop .readerNavMenuCloseButton {
+  right: 0;
+  left: auto;
 }
 .readerNavMenu.home .readerNavTop {
   border-bottom: none;
@@ -202,11 +192,8 @@ body .bilingual .enOnly .he {
 .readerNavMenu.home .sefariaLogo img {
   width: 110px;
 }
-.readerNavMenu.home .readerNavTop .fa-times {
-  display: none;
-}
 .readerNavMenu.home .readerNavTop .fa-search {
-  left: 10px;
+  /*left: 10px;*/
 }
 .readerNavMenu .tagline {
   text-align: center;

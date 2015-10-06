@@ -33,7 +33,7 @@ var SearchPage = React.createClass({
     render: function () {
         return (<div className="readerNavMenu">
                 <div className="readerNavTop search">
-                  <i className="fa fa-times" onClick={this.props.close}></i>
+                  <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
                     <SearchBar
                         initialQuery = { this.state.query }
                         updateQuery = { this.updateQuery } />
@@ -101,7 +101,7 @@ var SearchBar = React.createClass({
             <div>
                 <div className="searchBox">
                     <input className="readerSearch" value={this.state.query} onKeyPress={this.handleKeypress} onChange={this.handleChange} placeholder="Search"/>
-                    <span className="fa fa-search"></span>
+                    <ReaderNavigationMenuSearchButton />
                 </div>
                 <div className="description"></div>
             </div>
