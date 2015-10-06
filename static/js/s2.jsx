@@ -320,6 +320,7 @@ var ReaderApp = React.createClass({
       // If there's no content to show, return to home
       menuOpen: this.state.contents.length ? null: "home",
       searchQuery: null,
+      navigationCategories: null,
       navigationSheetTag: null
     }
     this.setState(state);
@@ -328,6 +329,7 @@ var ReaderApp = React.createClass({
     this.setState({
       menuOpen: menu,
       searchQuery: null,
+      navigationCategories: null,
       navigationSheetTag: null
     });
   },
@@ -486,14 +488,19 @@ var ReaderApp = React.createClass({
 
     if (this.state.menuOpen === "home") {
       var menu = (<ReaderNavigationMenu
-                    home={true} 
+                    home={true}
+                    initialCategories={null}
                     closeNav={this.closeMenus}
+                    openNav={this.openMenu.bind(null, "navigation")}
                     openSearch={this.openSearch}
                     openMenu={this.openMenu}
                     showBaseText={this.showBaseText} />);
+
     } else if (this.state.menuOpen === "navigation") {
       var menu = (<ReaderNavigationMenu 
+                    initialCategories={this.state.navigationCategories}
                     closeNav={this.closeMenus}
+                    openNav={this.openMenu.bind(null, "navigation")}                    
                     openSearch={this.openSearch}
                     openMenu={this.openMenu}
                     showBaseText={this.showBaseText} />);
@@ -677,7 +684,6 @@ var ReaderDisplayOptionsMenu = React.createClass({
         {sizeToggle}
       </div>);
   }
-
 });
 
 
@@ -686,13 +692,14 @@ var ReaderNavigationMenu = React.createClass({
   propTypes: {
     home:         React.PropTypes.bool,
     closeNav:     React.PropTypes.func.isRequired,
+    openNav:      React.PropTypes.func.isRequired,
     openSearch:   React.PropTypes.func.isRequired,
     showBaseText: React.PropTypes.func.isRequired
   },
   getInitialState: function() {
     return {
-      categories: null,
-      showMore: false
+      categories: this.props.initialCategories,
+      showMore: false,
     };
   },
   setCategories: function(categories) {
@@ -700,6 +707,11 @@ var ReaderNavigationMenu = React.createClass({
   },
   navHome: function() {
     this.setState({categories: null});
+    this.props.openNav();
+  },
+  closeNav: function() {
+    this.setState({categories: null});
+    this.props.closeNav();
   },
   showMore: function() {
     this.setState({showMore: true});
@@ -725,7 +737,9 @@ var ReaderNavigationMenu = React.createClass({
   },
   handleSearchButtonClick: function(event) {
     var query = $(React.findDOMNode(this)).find(".readerSearch").val();
-    this.props.openSearch(query);
+    if (query) {
+      this.props.openSearch(query);
+    }
   },  
   render: function() {
     if (this.state.categories) {
@@ -733,7 +747,7 @@ var ReaderNavigationMenu = React.createClass({
                       <ReaderNavigationCategoryMenu
                         categories={this.state.categories}
                         category={this.state.categories.slice(-1)[0]}
-                        closeNav={this.props.closeNav}
+                        closeNav={this.closeNav}
                         setCategories={this.setCategories}
                         navHome={this.navHome} />
                       </div>);
@@ -785,16 +799,20 @@ var ReaderNavigationMenu = React.createClass({
                       (<a className="calendarLink refLink" data-ref={sjs.calendar.daf_yomi}>Daf Yomi</a>)];
       calendar = (<div className="readerNavCalendar"><ThreeBox content={calendar} /></div>);
 
+      var topContent = this.props.home ?
+              (<div className="readerNavTop readerNavTop search">
+                <ReaderNavigationMenuSearchButton onClick={this.navHome} />
+                <div className='sefariaLogo'><img src="/static/img/sefaria.png" /></div>
+              </div>) :
+              (<div className="readerNavTop readerNavTop search">
+                <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
+                <input className="readerSearch" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
+                <ReaderNavigationMenuCloseButton onClick={this.closeNav}/>
+              </div>);
 
       var classes = classNames({readerNavMenu: 1, readerNavMenu:1, home: this.props.home});
       return(<div className={classes} onClick={this.handleClick}>
-              <div className="readerNavTop readerNavTop search">
-                <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
-                {this.props.home ? 
-                  (<div className='sefariaLogo'><img src="/static/img/sefaria.png" /></div>) :
-                  (<input className="readerSearch" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />)}
-                {this.props.home ? "" : (<ReaderNavigationMenuCloseButton onClick={this.props.closeNav}/>)}
-              </div>
+              {topContent}
               <div className="content">
                   <div className="tagline">{this.props.home ? "A Living Library of Jewish Texts" : ""}</div>
                   <h2>Browse Texts</h2>
@@ -1532,10 +1550,8 @@ var TextRange = React.createClass({
     // Set the vertical offsets for segment numbers and link counts, which are dependent
     // on the rendered height of the text of each segment.
     var $text      = $(React.findDOMNode(this));
-    var $container = $text.closest(".textColumn");
-    var adjust     = $container.length ? $container.scrollTop(): 0;
     var setTop = function() {
-       var top  = $(this).parent().position().top + adjust;
+       var top  = $(this).parent().position().top;
       $(this).css({top: top});   
     }
     $text.find(".segmentNumber").each(setTop);
@@ -1776,7 +1792,7 @@ var TextList = React.createClass({
     var filter = this.props.filter;
     var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";;
     var he = "אין קשרים ידועים"       + (filter.length ? " ל"    + filter.join(", ") : "") + ".";;
-    var sectionRef = sjs.library.ref(ref).sectionRef;
+    var sectionRef = sjs.library.ref(ref) ? sjs.library.ref(ref).sectionRef : ref;
     var loaded     = sjs.library.linksLoaded(sectionRef);
     var message = !loaded ? 
                     (<LoadingMessage />) : 
