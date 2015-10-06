@@ -86,7 +86,19 @@ def update(user, klass, attrs, **kwargs):
 
 
 def delete(user, klass, _id, **kwargs):
+    """
+    :param user:
+    :param klass:
+    :param _id:
+    :param kwargs:
+        "callback" - an optional function that will be run on the object before it's deleted
+        All other kwargs are passed to obj.contents()
+    :return:
+    """
     obj = klass().load_by_id(_id)
+    if kwargs.get("callback"):
+        kwargs.get("callback")(obj)
+        del kwargs["callback"]
     old_dict = obj.contents(**kwargs)
     obj.delete()
     model.log_delete(user, klass, old_dict, **kwargs)

@@ -27,7 +27,7 @@ from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.utils.hebrew import is_hebrew, encode_hebrew_numeral, hebrew_term
 from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.settings import DISABLE_INDEX_SAVE
+from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH
 
 """
                 ----------------------------------
@@ -1014,6 +1014,11 @@ class TextChunk(AbstractTextRecord):
 
         self.full_version.save()
         self._oref.recalibrate_next_prev_refs(len(self.text))
+
+        if USE_VARNISH:
+            from sefaria.system.sf_varnish import invalidate_ref
+            invalidate_ref(self._oref, lang=self.lang, version=self.vtitle, purge=True)
+
         return self
 
     def _pad(self, content):
@@ -2655,6 +2660,39 @@ class Ref(object):
 
         return "^%s(%s)" % (re.escape(self.book), "|".join(patterns))
 
+    def url_regex(self):
+        """
+        :return string: Returns a non-anchored regular expression part that will match normally formed URLs of this Ref and any more specific Ref.
+        E.g., "Genesis 1" yields an RE that match "Genesis.1" and "Genesis.1.3"
+        """
+
+        patterns = []
+
+        if self.is_range():
+            if self.is_spanning():
+                s_refs = self.split_spanning_ref()
+                normals = []
+                for s_ref in s_refs:
+                    normals += [r.normal() for r in s_ref.range_list()]
+            else:
+                normals = [r.normal() for r in self.range_list()]
+
+            for r in normals:
+                sections = re.sub("^%s" % re.escape(self.book), '', r).replace(":", r"\.").replace(" ", r"\.")
+                patterns.append("%s$" % sections)   # exact match
+                patterns.append(r"%s\." % sections)   # more granualar, exact match followed by .
+        else:
+            sections = re.sub("^%s" % re.escape(self.book), '', self.normal()).replace(":", r"\.").replace(" ", r"\.")
+            patterns.append("%s$" % sections)   # exact match
+            if self.index_node.has_titled_continuation():
+                patterns.append(u"{}({}).".format(sections, u"|".join([s.replace(" ","_") for s in self.index_node.title_separators])))
+
+            elif self.index_node.has_numeric_continuation():
+                patterns.append(r"%s\." % sections)   # more granualar, exact match followed by .
+
+        return "%s(%s)" % (re.escape(self.book).replace(" ","_"), "|".join(patterns))
+
+
     """ Comparisons """
     def overlaps(self, other):
         """
@@ -3044,7 +3082,6 @@ class Ref(object):
                 lref[last] = "."
                 self._url = "".join(lref)
         return self._url
-
 
     def noteset(self, public=True, uid=None):
         """

@@ -84,7 +84,9 @@ NATIONBUILDER_CLIENT_SECRET = ""
 
 # Issue bans to Varnish on update.
 USE_VARNISH = False
-VARNISH_ADDR = "http://localhost:6082"
+FRONT_END_URL = "localhost:8000"
+VARNISH_ADDR = "localhost:6082"
+VARNISH_SECRET = "/etc/varnish/secret"
 # Use ESI for user box in header.
 USE_VARNISH_ESI = False
 

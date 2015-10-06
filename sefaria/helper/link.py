@@ -7,6 +7,9 @@ from sefaria.model import *
 from sefaria.system.exceptions import DuplicateRecordError, InputError
 from sefaria.utils.talmud import section_to_daf
 import sefaria.tracker as tracker
+from sefaria.settings import USE_VARNISH
+if USE_VARNISH:
+    from sefaria.system.sf_varnish import invalidate_ref
 
 #TODO: should all the functions here be decoupled from the need to enter a userid?
 def add_commentary_links(oref, user, **kwargs):
@@ -26,13 +29,13 @@ def add_commentary_links(oref, user, **kwargs):
 
     tref = oref.normal()
 
-    book = tref[tref.find(" on ") + 4:]
+    base_tref = tref[tref.find(" on ") + 4:]
 
     if len(text["sections"]) == len(text["sectionNames"]):
         # this is a single comment, trim the last section number (comment) from ref
-        book = book[0:book.rfind(":")]
+        base_tref = base_tref[0:base_tref.rfind(":")]
         link = {
-            "refs": [book, tref],
+            "refs": [base_tref, tref],
             "type": "commentary",
             "anchorText": "",
             "auto": True,
@@ -50,7 +53,7 @@ def add_commentary_links(oref, user, **kwargs):
         length = max(len(text["text"]), len(text["he"]))
         for i in range(length):
                 link = {
-                    "refs": [book, tref + ":" + str(i + 1)],
+                    "refs": [base_tref, tref + ":" + str(i + 1)],
                     "type": "commentary",
                     "anchorText": "",
                     "auto": True,
@@ -86,6 +89,9 @@ def add_commentary_links(oref, user, **kwargs):
         for r in oref.subrefs(length):
             add_commentary_links(r, user, **kwargs)
 
+    if USE_VARNISH:
+        invalidate_ref(oref)
+        invalidate_ref(Ref(base_tref))
 
 def rebuild_commentary_links(tref, user, **kwargs):
     """
@@ -122,7 +128,10 @@ def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
 
     text["text"] may be a list of segments, an individual segment, or None.
 
-    Returns a list of links added.
+    The set of no longer supported links (`existingLinks` - `found`) is deleted.
+    If Varnish is used, all linked refs, old and new, are refreshed
+
+    Returns `links` - the list of links added.
     """
     if not text:
         return []
@@ -135,6 +144,15 @@ def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
             links += single
         return links
     elif isinstance(text, basestring):
+        """
+            Keeps three lists:
+            * existingLinks - The links that existed before the text was rescanned
+            * found - The links found in this scan of the text
+            * links - The new links added in this scan of the text
+
+            The set of no longer supported links (`existingLinks` - `found`) is deleted.
+            The set of all links (`existingLinks` + `Links`) is refreshed in Varnish.
+        """
         existingLinks = LinkSet({
             "refs": ref,
             "auto": True,
@@ -160,6 +178,8 @@ def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
             try:
                 tracker.add(user, Link, link, **kwargs)
                 links += [link]
+                if USE_VARNISH:
+                    invalidate_ref(oref)
             except InputError as e:
                 pass
 
@@ -168,6 +188,8 @@ def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
             for r in exLink.refs:
                 if r == ref:  # current base ref
                     continue
+                if USE_VARNISH:
+                    invalidate_ref(Ref(r))
                 if r not in found:
                     tracker.delete(user, Link, exLink._id)
                 break

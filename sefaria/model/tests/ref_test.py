@@ -329,6 +329,12 @@ class Test_Ref(object):
     def test_spanning_ref_regex(self):
         assert Ref("Exodus 4:30-6:2").regex() == u'^Exodus( 4:30$| 4:30:| 4:30 \\d| 4:31$| 4:31:| 4:31 \\d| 5$| 5:| 5 \\d| 6:1$| 6:1:| 6:1 \\d| 6:2$| 6:2:| 6:2 \\d)'
 
+    def test_url_regex(self):
+        assert Ref("Exodus 15").url_regex() == ur'Exodus(\.15$|\.15\.)'
+        assert Ref("Exodus 15:15-17").url_regex() == ur'Exodus(\.15\.15$|\.15\.15\.|\.15\.16$|\.15\.16\.|\.15\.17$|\.15\.17\.)'
+        assert Ref("Yoma 14a").url_regex() == ur'Yoma(\.14a$|\.14a\.)'
+        assert Ref("Yoma 14a:12-15").url_regex() == ur'Yoma(\.14a\.12$|\.14a\.12\.|\.14a\.13$|\.14a\.13\.|\.14a\.14$|\.14a\.14\.|\.14a\.15$|\.14a\.15\.)'
+        assert Ref("Yoma").url_regex() == ur'Yoma($|\.)'
 
     #todo: devise a better test of version_list()
     def test_version_list(self):

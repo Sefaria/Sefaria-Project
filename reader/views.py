@@ -36,6 +36,9 @@ from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.datatype.jagged_array import JaggedArray
 import sefaria.utils.calendars
 import sefaria.tracker as tracker
+from sefaria.settings import USE_VARNISH
+if USE_VARNISH:
+    from sefaria.system.sf_varnish import invalidate_ref
 
 import logging
 logger = logging.getLogger(__name__)
@@ -922,6 +925,10 @@ def text_preview_api(request, title):
 
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
+def revarnish_link(link):
+    if USE_VARNISH:
+        for ref in link.refs:
+            invalidate_ref(Ref(ref))
 
 @catch_error_as_json
 @csrf_exempt
@@ -963,7 +970,7 @@ def links_api(request, link_id_or_ref=None):
             return jsonResponse({"error": "No link id given for deletion."})
 
         return jsonResponse(
-            tracker.delete(request.user.id, model.Link, link_id_or_ref)
+            tracker.delete(request.user.id, model.Link, link_id_or_ref, callback=revarnish_link)
         )
 
     return jsonResponse({"error": "Unsuported HTTP method."})
@@ -982,15 +989,17 @@ def post_single_link(request, link):
         apikey = db.apikeys.find_one({"key": key})
         if not apikey:
             return {"error": "Unrecognized API key."}
-        response = format_object_for_client(
-            func(apikey["uid"], model.Link, link, method="API")
-        )
+        obj = func(apikey["uid"], model.Link, link, method="API")
+        if USE_VARNISH:
+            revarnish_link(obj)
+        response = format_object_for_client(obj)
     else:
         @csrf_protect
         def protected_link_post(req):
-            resp = format_object_for_client(
-                func(req.user.id, model.Link, link)
-            )
+            obj=func(req.user.id, model.Link, link)
+            if USE_VARNISH:
+                revarnish_link(obj)
+            resp = format_object_for_client(obj)
             return resp
         response = protected_link_post(request)
     return response
