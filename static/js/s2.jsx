@@ -13,10 +13,15 @@ var MultiPanelReader = React.createClass({
   },
   getInitialState: function() {
     var panels = [];
-    for (var i=0; i < this.props.panelCount; i++) {
-      var filter = i == 0 ? null : (this.props.initialRef ? (this.props.initialFilter || []) : null);
-      panels.push({ref: this.props.initialRef, filter: filter});
+    if (this.props.panelCount == 1) {
+      panels[0] = ({ref: this.props.initialRef, filter: this.props.initialFilter});
+    } else {
+      for (var i=0; i < this.props.panelCount; i++) {
+        var filter = i == 0 ? null : (this.props.initialRef ? (this.props.initialFilter || []) : null);
+        panels.push({ref: this.props.initialRef, filter: filter});
+      }      
     }
+
     return {
       panels: panels
     };
@@ -1675,7 +1680,6 @@ var TextList = React.createClass({
   getInitialState: function() {
     return {
       links: [],
-      loaded: false,
       textLoaded: false,
     }
   },
@@ -1708,7 +1712,7 @@ var TextList = React.createClass({
     sjs.library.links(ref, function(links) {
       if (this.isMounted()) {
         this.preloadText(this.props.filter);
-        this.setState({links: links, loaded: true });
+        this.setState({links: links});
       }
     }.bind(this));
   },
@@ -1772,7 +1776,9 @@ var TextList = React.createClass({
     var filter = this.props.filter;
     var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";;
     var he = "אין קשרים ידועים"       + (filter.length ? " ל"    + filter.join(", ") : "") + ".";;
-    var message = !this.state.loaded ? 
+    var sectionRef = sjs.library.ref(ref).sectionRef;
+    var loaded     = sjs.library.linksLoaded(sectionRef);
+    var message = !loaded ? 
                     (<LoadingMessage />) : 
                       (links.length === 0 ? 
                         <LoadingMessage message={en} heMessage={he} /> : "");

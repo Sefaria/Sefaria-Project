@@ -1065,6 +1065,10 @@ body .bilingual .enOnly .he {
   font-size: 13px;
   text-align: center;
 }
+.textList .textListTop > .loadingMessage {
+  position: relative;
+  top: 70px;
+}
 .textList .texts {
   background-color: white;
   padding: 40px 30px 0;
