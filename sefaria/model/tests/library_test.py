@@ -150,7 +150,7 @@ class Test_he_get_refs_in_text(object):
 
     def test_FAILING_huge_second_addr(self):
         st = u"""וכן הוא בב"ר (ילקוט שמעוני אסתר א, תתרמו) א"ר לוי בגדי כהונה"""
-        ref = library.get_refs_in_string(st)
+        ref = library.get_refs_in_string(st)[0]
         assert ref.sections[0] == 1
         assert len(ref.sections) == 1
 
