@@ -718,6 +718,10 @@ var ReaderNavigationMenu = React.createClass({
       this.props.openSearch(query);
     }
   },
+  handleSearchButtonClick: function(event) {
+    var query = $(React.findDOMNode(this)).find(".readerSearch").val();
+    this.props.openSearch(query);
+  },  
   render: function() {
     if (this.state.categories) {
       return (<div className="readerNavMenu" onClick={this.handleClick} >
@@ -780,7 +784,7 @@ var ReaderNavigationMenu = React.createClass({
       var classes = classNames({readerNavMenu: 1, readerNavMenu:1, home: this.props.home});
       return(<div className={classes} onClick={this.handleClick}>
               <div className="readerNavTop readerNavTop search">
-                <ReaderNavigationMenuSearchButton onClick={this.props.openMenu.bind(null, "navigation")} />
+                <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                 {this.props.home ? 
                   (<div className='sefariaLogo'><img src="/static/img/sefaria.png" /></div>) :
                   (<input className="readerSearch" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />)}

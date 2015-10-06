@@ -179,7 +179,7 @@ body .bilingual .enOnly .he {
   top: 0;
   left: 0;
   width: 40px;
-  padding-top: 21px;
+  padding: 21px 0;
 }
 .readerNavTop .readerNavMenuCloseButton {
   right: 0;

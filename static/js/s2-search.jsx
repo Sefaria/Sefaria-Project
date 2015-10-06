@@ -101,7 +101,7 @@ var SearchBar = React.createClass({
             <div>
                 <div className="searchBox">
                     <input className="readerSearch" value={this.state.query} onKeyPress={this.handleKeypress} onChange={this.handleChange} placeholder="Search"/>
-                    <ReaderNavigationMenuSearchButton />
+                    <ReaderNavigationMenuSearchButton onClick={this.updateQuery} />
                 </div>
                 <div className="description"></div>
             </div>
