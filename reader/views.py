@@ -633,7 +633,18 @@ def count_and_index(c_oref, c_lang, vtitle, to_count=1, to_index=1):
 @csrf_exempt
 def texts_api(request, tref, lang=None, version=None):
     oref = Ref(tref)
+
     if request.method == "GET":
+        uref = oref.url()
+        if uref and tref != uref:    # This is very similar to reader.reader_redirect subfunction, above.
+            url = "/api/texts/" + uref
+            if lang and version:
+                url += "/%s/%s" % (lang, version)
+            response = redirect(iri_to_uri(url), permanent=True)
+            params = request.GET.urlencode()
+            response['Location'] += "?%s" % params if params else ""
+            return response
+
         cb         = request.GET.get("callback", None)
         context    = int(request.GET.get("context", 1))
         commentary = bool(int(request.GET.get("commentary", True)))
