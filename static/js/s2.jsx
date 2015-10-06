@@ -25,8 +25,10 @@ var MultiPanelReader = React.createClass({
     // When panel `n` navigates to a new text `ref`, reflect the change in the top level state.
     this.state.panels[n] = {ref: ref, filter: null};
     this.setState({panels: this.state.panels});
-    // Open TextList panel for new ref
-    this.handleSegmentClick(n, ref);
+    // Open TextList panel for new ref, if there's another panel to the right already open
+    if (n+1 < this.state.panels.length) {
+      this.handleSegmentClick(n, ref);
+    }
   },
   handleSegmentClick: function(n, ref) {
     // Handle a click on a text segment `ref` in from panel in position `n`
