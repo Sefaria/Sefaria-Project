@@ -1118,3 +1118,14 @@ body .bilingual .enOnly .he {
   font-family: "Helvetica Neue", "Helvetica", sans-serif;
   margin-top: 13px;
 }
+#s2Loading {
+  text-align: center;
+  background-color: #F9F9F7;
+  height: 100%;
+  padding-top: 40%;
+  box-sizing: border-box;
+  color: #555;
+}
+#s2Loading img {
+  width: 150px;
+}

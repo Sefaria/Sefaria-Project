@@ -10,8 +10,12 @@
 {% block content %}
 
 <div id="s2">
-  <div id="sefaria">
-      {% include "elements/sefaria.logotype.svg" %}
+  <div id="s2Loading">
+      <img src="/static/img/sefaria.png" />
+      <div className='loadingMessage'>
+        <span className="en">Loading...</span>
+        <!--<span className="he">טעינה...</span>-->
+      </div>
   </div>
 </div>
 
@@ -50,13 +54,14 @@
           layoutTanach:  $.cookie("layoutTanach")  || "segmented",
           color:         $.cookie("color")         || "light",
           fontSize:      $.cookie("fontSize")      || 62.5
-        }
+        };
        
         var ref = "{{ ref }}";
         if (ref) {
           var ref = humanRef("{{ ref }}")
           sjs.library._saveText({{ data|jsonify }});
         }
+        return;
         React.render(
           React.createElement(MultiPanelReader, {
             panelCount: panels,
