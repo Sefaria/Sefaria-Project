@@ -27,6 +27,7 @@ var MultiPanelReader = React.createClass({
     };
   },
   handleTextChange: function(n, ref) {
+    console.log("HTC " + n +" "+ref)
     // When panel `n` navigates to a new text `ref`, reflect the change in the top level state.
     this.state.panels[n] = {ref: ref, filter: null};
     this.setState({panels: this.state.panels});
@@ -36,6 +37,7 @@ var MultiPanelReader = React.createClass({
     }
   },
   handleSegmentClick: function(n, ref) {
+     console.log("HSC " + n +" "+ref)
     // Handle a click on a text segment `ref` in from panel in position `n`
     if (n+1 == this.state.panels.length) {
       // Add new panel to end
@@ -1297,7 +1299,7 @@ var TextColumn = React.createClass({
       var threshhold   = this.props.multiPanel ? midTop : center;
       $container.find(".basetext .segment").each(function(i, segment) {
         var $segment = $(segment);
-        if ($segment.position().top + $segment.outerHeight() > threshhold) {
+        if ($segment.offset().top + $segment.outerHeight() > threshhold) {
           var ref = $segment.attr("data-ref");
           if (this.props.multiPanel) {
             this.props.onBaseSegmentClick(ref);
