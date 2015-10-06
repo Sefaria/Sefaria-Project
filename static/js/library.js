@@ -175,8 +175,8 @@ sjs.library = {
   },
   linkCount: function(ref, filter) {
     if (!(ref in this._links)) { return 0; }
-    var links = ref in this._links;
-    links = filter ? this._filterLinks(this._links[ref], filter) : links;
+    var links = this._links[ref];
+    links = filter ? this._filterLinks(links, filter) : links;
     return links.length;
   },
   _filterLinks: function(links, filter) {

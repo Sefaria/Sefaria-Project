@@ -613,7 +613,7 @@ body .bilingual .enOnly .he {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  max-width: 82%;
+  max-width: 75%;
   vertical-align: middle;
 }
 .readerControls .readerTextToc .fa-caret-down {
@@ -1109,9 +1109,12 @@ body .bilingual .enOnly .he {
   text-align: center;
   background-color: #F9F9F7;
   height: 100%;
-  padding-top: 40%;
-  box-sizing: border-box;
   color: #555;
+}
+#s2Loading .loadingMessage {
+  position: absolute;
+  width: 100%;
+  top: 32%;
 }
 #s2Loading img {
   width: 150px;

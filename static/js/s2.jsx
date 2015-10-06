@@ -1366,6 +1366,7 @@ var TextRange = React.createClass({
     lowlight:           React.PropTypes.bool,
     numberLabel:        React.PropTypes.number,
     settings:           React.PropTypes.object,
+    filter:             React.PropTypes.array,
     showBaseText:       React.PropTypes.func,
     rerender:           React.PropTypes.func,
     showTextList:       React.PropTypes.func,
@@ -1377,6 +1378,7 @@ var TextRange = React.createClass({
       segments: [],
       sref: this.props.sref,
       loaded: false,
+      linksLoaded: false,
       data: {ref: this.props.sref},
     };
   },
@@ -1390,6 +1392,7 @@ var TextRange = React.createClass({
   componentDidUpdate: function(prevProps, prevState) {
     if (this.props.basetext || this.props.segmentNumber) { 
       if ((!prevState.loaded && this.state.loaded) ||
+          (!prevState.linksLoaded && this.state.linksLoaded) ||
           prevProps.settings.language !== this.props.settings.language ||
           prevProps.settings.layout !== this.props.settings.layout ||
           prevProps.settings.fontSize !== this.props.settings.fontSize) {
@@ -1447,7 +1450,6 @@ var TextRange = React.createClass({
           he: he[i],
           number: number,
           highlight: highlight && number >= data.sections.slice(-1)[0] && number <= data.toSections.slice(-1)[0],
-          linkCount: this.props.basetext ? sjs.library.linkCount(ref, this.props.filter) : 0
         });
       }      
     } else {
@@ -1473,7 +1475,6 @@ var TextRange = React.createClass({
                         ((n == 0 && number >= data.sections.slice(-1)[0]) || 
                          (n == topLength-1 && number <= data.toSections.slice(-1)[0]) ||
                          (n > 0 && n < topLength -1)),
-            linkCount: this.props.basetext ? sjs.library.linkCount(ref, this.props.filter) : 0
           });
         }
       }
@@ -1520,10 +1521,7 @@ var TextRange = React.createClass({
   },
   loadLinkCounts: function() {
     // When link data has been loaded into sjs.library, load the counts into the UI
-    for (var i=0; i < this.state.segments.length; i++) {
-      this.state.segments[i].linkCount = sjs.library.linkCount(this.state.segments[i].ref, this.props.filter);
-    }
-    this.setState({segments: this.state.segments});
+    this.setState({linksLoaded: true});
   },
   placeSegmentNumbers: function() {
     // Set the vertical offsets for segment numbers and link counts, which are dependent
@@ -1569,8 +1567,9 @@ var TextRange = React.createClass({
             en={segment.en}
             he={segment.he}
             highlight={highlight}
-            segmentNumber={showSegmentNumbers ? segment.number : 0} 
-            linkCount={segment.linkCount}
+            segmentNumber={showSegmentNumbers ? segment.number : 0}
+            showLinkCount={this.props.basetext}
+            filter={this.props.filter}
             handleClick={this.props.onBaseSegmentClick}
             showBaseText={this.props.showBaseText}
             showTextList={this.props.showTextList} />
@@ -1614,7 +1613,8 @@ var TextSegment = React.createClass({
     he:                React.PropTypes.string,
     highlight:         React.PropTypes.bool,
     segmentNumber:     React.PropTypes.number,
-    linkCount:         React.PropTypes.number,
+    showLinkCount:     React.PropTypes.bool,
+    filter:            React.PropTypes.array,
     showBaseText:      React.PropTypes.func,
     showTextList:      React.PropTypes.func,
     handleClick:       React.PropTypes.func
@@ -1632,11 +1632,15 @@ var TextSegment = React.createClass({
     }
   },
   render: function() {    
-    var minOpacity = 20, maxOpacity = 70;
-    var linkScore = Math.min(this.props.linkCount+minOpacity, maxOpacity) / 100.0;
-    var style = {opacity: linkScore};
-    var linkCount = this.props.linkCount ? (<span className="linkCount" style={style}></span>) : "";
-
+    if (this.props.showLinkCount) {
+      var linkCount = sjs.library.linkCount(this.props.sref, this.props.filter);
+      var minOpacity = 20, maxOpacity = 70;
+      var linkScore = linkCount ? Math.min(linkCount+minOpacity, maxOpacity) / 100.0 : 0;
+      var style = {opacity: linkScore};
+      var linkCount = this.props.showLinkCount ? (<span className="linkCount" style={style}></span>) : "";      
+    } else {
+      var linkCount = "";
+    }
     var segmentNumber = this.props.segmentNumber ? (<span className="segmentNumber">{this.props.segmentNumber}</span>) : "";          
     var he = this.props.he || this.props.en;
     var en = this.props.en || this.props.he;
