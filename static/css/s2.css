@@ -915,7 +915,7 @@ body .bilingual .enOnly .he {
   overflow: hidden;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
-  padding-top: 40px;
+  padding: 40px 0 200px;
 }
 .textList .fullFilterView {
   padding-top: 25px;

@@ -1205,7 +1205,7 @@ var TextColumn = React.createClass({
   },
   componentDidMount: function() {
     this.initialScrollTopSet = false;
-    this.throttledAdjustTextListHighlight = throttle(this.adjustTextListHighlight, 200);
+    this.debouncedAdjustTextListHighlight = debounce(this.adjustTextListHighlight, 100);
     var node = this.getDOMNode();
     node.addEventListener("scroll", this.handleScroll);
   },
@@ -1226,7 +1226,7 @@ var TextColumn = React.createClass({
   },
   handleScroll: function(event) {
     if (this.props.textListRef) {
-      this.throttledAdjustTextListHighlight();
+      this.debouncedAdjustTextListHighlight();
     }
     this.adjustInfiniteScroll();   
   },
@@ -2102,6 +2102,19 @@ var TwoBox = React.createClass({
       );
   }
 });
+
+var TwoOrThreeBox = React.createClass({
+  // Wrap a list of elements into a two or three column table, depen
+  render: function() {
+
+      if ($(window).width() > 1000) {
+        return (<ThreeBox content={this.props.content} />);
+      } else {
+        return (<TwoBox content={this.props.content} />);
+      }
+  }
+});
+
 
 
 var LoadingMessage = React.createClass({
