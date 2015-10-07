@@ -26,12 +26,13 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
             manager.run("purge_url", "{}/api/texts/{}/{}/{}".format(FRONT_END_URL, section_oref.url(), lang, version))
         # Hacky to add these
         manager.run("purge_url", "{}/api/texts/{}?commentary=1&sheets=1&notes=1".format(FRONT_END_URL, section_oref.url()))
+        manager.run("purge_url", "{}/api/texts/{}?notes=1&sheets=1".format(FRONT_END_URL, section_oref.url()))
         manager.run("purge_url", "{}/api/texts/{}?commentary=0".format(FRONT_END_URL, section_oref.url()))
         if version and lang:
             manager.run("purge_url", "{}/api/texts/{}/{}/{}?commentary=0".format(FRONT_END_URL, section_oref.url(), lang, version))
 
     # Ban anything underneath this section
-    manager.run("ban", 'req.url ~ "{}"'.format(url_regex(oref.section_ref())), secret=secret)
+    manager.run("ban", 'req.url ~ "/api/texts/{}"'.format(url_regex(oref.section_ref())), secret=secret)
 
 
 def url_regex(ref):
