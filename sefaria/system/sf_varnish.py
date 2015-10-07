@@ -1,7 +1,7 @@
 import re
 from varnish import VarnishManager
 from sefaria.model import *
-from sefaria.local_settings import VARNISH_ADDR, VARNISH_SECRET, FRONT_END_URL
+from sefaria.local_settings import VARNISH_ADDR, VARNISH_SECRET
 
 with open (VARNISH_SECRET, "r") as sfile:
     secret=sfile.read().replace('\n', '')
@@ -21,15 +21,15 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
 
     if purge:
         # Purge this section level ref, so that immediate responses will return good results
-        manager.run("purge_url", "{}/api/texts/{}".format(FRONT_END_URL, section_oref.url()), secret=secret)
+        manager.run("purge_url", "/api/texts/{}".format(section_oref.url()), secret=secret)
         if version and lang:
-            manager.run("purge_url", "{}/api/texts/{}/{}/{}".format(FRONT_END_URL, section_oref.url(), lang, version), secret=secret)
+            manager.run("purge_url", "/api/texts/{}/{}/{}".format(section_oref.url(), lang, version), secret=secret)
         # Hacky to add these
-        manager.run("purge_url", "{}/api/texts/{}?commentary=1&sheets=1&notes=1".format(FRONT_END_URL, section_oref.url()), secret=secret)
-        manager.run("purge_url", "{}/api/texts/{}?notes=1&sheets=1".format(FRONT_END_URL, section_oref.url()), secret=secret)
-        manager.run("purge_url", "{}/api/texts/{}?commentary=0".format(FRONT_END_URL, section_oref.url()), secret=secret)
+        manager.run("purge_url", "/api/texts/{}?commentary=1&sheets=1&notes=1".format(section_oref.url()), secret=secret)
+        manager.run("purge_url", "/api/texts/{}?notes=1&sheets=1".format(section_oref.url()), secret=secret)
+        manager.run("purge_url", "/api/texts/{}?commentary=0".format(section_oref.url()), secret=secret)
         if version and lang:
-            manager.run("purge_url", "{}/api/texts/{}/{}/{}?commentary=0".format(FRONT_END_URL, section_oref.url(), lang, version), secret=secret)
+            manager.run("purge_url", "/api/texts/{}/{}/{}?commentary=0".format(section_oref.url(), lang, version), secret=secret)
 
     # Ban anything underneath this section
     manager.run("ban", 'req.url ~ "/api/texts/{}"'.format(url_regex(oref.section_ref())), secret=secret)
