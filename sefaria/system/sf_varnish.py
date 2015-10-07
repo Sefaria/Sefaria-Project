@@ -21,14 +21,14 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
 
     if purge:
         # Purge this section level ref, so that immediate responses will return good results
-        manager.purge_url("{}/api/texts/{}".format(FRONT_END_URL, section_oref.url()))
+        manager.run("purge_url", "{}/api/texts/{}".format(FRONT_END_URL, section_oref.url()))
         if version and lang:
-            manager.purge_url("{}/api/texts/{}/{}/{}".format(FRONT_END_URL, section_oref.url(), lang, version))
+            manager.run("purge_url", "{}/api/texts/{}/{}/{}".format(FRONT_END_URL, section_oref.url(), lang, version))
         # Hacky to add these
-        manager.purge_url("{}/api/texts/{}?commentary=1&sheets=1&notes=1".format(FRONT_END_URL, section_oref.url()))
-        manager.purge_url("{}/api/texts/{}?commentary=0".format(FRONT_END_URL, section_oref.url()))
+        manager.run("purge_url", "{}/api/texts/{}?commentary=1&sheets=1&notes=1".format(FRONT_END_URL, section_oref.url()))
+        manager.run("purge_url", "{}/api/texts/{}?commentary=0".format(FRONT_END_URL, section_oref.url()))
         if version and lang:
-            manager.purge_url("{}/api/texts/{}/{}/{}?commentary=0".format(FRONT_END_URL, section_oref.url(), lang, version))
+            manager.run("purge_url", "{}/api/texts/{}/{}/{}?commentary=0".format(FRONT_END_URL, section_oref.url(), lang, version))
 
     # Ban anything underneath this section
-    manager.ban('req.url ~ "{}"'.format(oref.section_ref().url_regex()), secret=secret)
+    manager.run("ban", 'req.url ~ "{}"'.format(oref.section_ref().url_regex()), secret=secret)
