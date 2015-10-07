@@ -31,7 +31,7 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
             manager.run("purge_url", "{}/api/texts/{}/{}/{}?commentary=0".format(FRONT_END_URL, section_oref.url(), lang, version))
 
     # Ban anything underneath this section
-    manager.run("ban", 'req.url ~ "{}"'.format(oref.section_ref().url_regex()), secret=secret)
+    manager.run("ban", 'req.url ~ "{}"'.format(url_regex(oref.section_ref())), secret=secret)
 
 
 def url_regex(ref):
