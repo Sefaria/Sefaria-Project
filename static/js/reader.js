@@ -229,6 +229,7 @@ sjs.Init.handlers = function() {
 	
 		} else {
 			// Opening the Sources Panel
+			if (sjs.current.connectionsLoadNeeded) { return; }
 			sjs._$sourcesList.addClass("opened");
 			sjs.track.ui("Show Source Filters");
 		}
@@ -385,8 +386,9 @@ sjs.Init.handlers = function() {
 				sjs.switchSidebarMode(e);
 			});
 			return;
-		}	
+		} else if (sjs.current.connectionsLoadNeeded) { return; }
 		var mode            = $(e.target).attr("data-sidebar");
+		if (!mode) { return; }
 		var data            = sjs.current[mode];
 		var newFilter       = mode === "commentary" ? "all" : mode.toProperCase();
 		var fromSourcesMode = !($.inArray(sjs.sourcesFilter, ["Notes", "Sheets", "Layer"]) > -1);
@@ -401,7 +403,7 @@ sjs.Init.handlers = function() {
 		} else {
 			sjs.sourcesFilter = newFilter;
 		}
-		buildCommentary(data);
+		buildCommentaryContent(data);
 		sjs.filterSources(sjs.sourcesFilter);
 		$(".sidebarMode").removeClass("active");
 		$(e.target).addClass("active");
@@ -440,7 +442,7 @@ sjs.Init.handlers = function() {
 			if (!$(this).find("."+lang+" .credits").children().length) {
 				var version = (lang === "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle);
 				if (!version) { continue; }
-				var url = "/api/history/" + sjs.current.pageRef.replace(" ", "_") + "/" +
+				var url = "/api/history/" + sjs.current.sectionRef.replace(" ", "_") + "/" +
 											lang + "/" +
 											version.replace(" ", "_");
 				
@@ -595,7 +597,7 @@ $(function() {
 
 		var title = (sjs.current.commentator || sjs.current.book);
 
-		window.location = ("/edit/textinfo/" + title + "?after=/" + sjs.current.pageRef).replace(/ /g, "_");
+		window.location = ("/edit/textinfo/" + title + "?after=/" + sjs.current.sectionRef).replace(/ /g, "_");
 	});
 
 
@@ -624,7 +626,7 @@ $(function() {
 			sjs.editing.sectionNames = sjs.editing.index.sectionNames;
 			sjs.editing.textDepth    = sjs.editing.sectionNames.length; 	
 			sjs.editing.text = [""];
-			sjs.current.pageRef = sjs.editing.ref;
+			sjs.current.sectionRef = sjs.editing.ref;
 			sjs.showNewText();	
 		}
 		$("#newTextCancel").trigger("click");	
@@ -1229,7 +1231,7 @@ $(function() {
 					sjs.alert.message(data.error)
 				} else {
 					sjs.alert.message("Text Version Deleted.");
-					window.location = "/" + normRef(sjs.current.pageRef);
+					window.location = "/" + normRef(sjs.current.sectionRef);
 				}
 			}
 		}).fail(function() {
@@ -1321,7 +1323,7 @@ sjs.lexicon = {
 		e.stopPropagation();
 		//console.log($(this).text())
 		var word = $(this).text();
-		var current_ref = sjs.selected ? sjs.selected : sjs.current.pageRef;
+		var current_ref = sjs.selected ? sjs.selected : sjs.current.sectionRef;
 		var $anchor = $(this);
 		$.getJSON("/api/words/" + encodeURIComponent(word), {"lookup_ref": current_ref}).done(function(data){
 			//console.log(data);
@@ -1588,7 +1590,7 @@ function actuallyGet(q) {
 							'<div class="commentaryViewPort"></div>'+
 							'<div class="sourcesBox">'+
 								'<div class="sourcesHeader">' +
-									'<span class="btn showSources sourcesCount sidebarMode" data-sidebar="commentary"></span>' +
+									'<span class="btn showSources sourcesCount sidebarMode" data-sidebar="commentary"> Sources</span>' +
 									'<span class="btn showNotes sidebarMode" data-sidebar="notes">' +
 										'<span class="notesCount"></span> Notes</span>' +
 										'<span class="btn sidebarButton">' +
@@ -1699,9 +1701,6 @@ function buildView(data) {
 	$("#about").removeClass("empty");
 	$(".open").remove();	
 	sjs.clearNewText();
-
-	// Set the ref for the whole page, which may differ from data.ref if a single segmented is highlighted
-	data.pageRef = (data.book + " " + data.sections.slice(0, data.sectionNames.length-1).join(":")).trim();
 
 	sjs.cache.save(data);
 	sjs.current = data;
@@ -1827,50 +1826,20 @@ function buildView(data) {
 	} else {
 		$("#prev").addClass("inactive");
 	}
+
+	if (data.connectionsLoadNeeded) {
+		var loadingHtml = "<div class='loadingMessage'>" +
+							"<span class='en'>Loading...</span>" +
+							"<span class='he'></span>" +
+						"</div>";
+		$commentaryViewPort.html(loadingHtml);
+		$commentaryBox.show();
+		sjs.cache.kill(data.sectionRef);
+		sjs.cache.get(data.sectionRef, buildCommentary);
+	} else {
+		buildCommentary(data);
+	}
 	
-	// Build Sidebar Content: Commentary, Notes, Sheets if any
-	var sidebarContent = (sjs.sourcesFilter === "Notes" ? data.notes :
-							sjs.sourcesFilter === "Sheets" ? data.sheets : 
-								sjs.sourcesFilter === "Layer" ? data.layer : 
-																	data.commentary);
-	buildCommentary(sidebarContent);
-	$("body").removeClass("noCommentary");
-	if (!sjs.current._loadSources && data.notes) {
-		$sourcesBox.find(".notesCount").html("<i class='fa fa-comment'></i> " + data.notes.length);
-	}
-	sjs.filterSources(sjs.sourcesFilter);
-	sjs.setSourcesPanel();
-	sjs.setSourcesCount();
-
-	if (!data.commentary.length && !data.notes.length && !data.sheets.length && sjs.sourcesFilter !== "Layer") {
-		var emptyHtml ='<div class="sourcesActions">' + 
-							'<br /><div>No Sources or Notes have been added for this text yet.</div><br />' +
-							'<span class="btn btn-success addSource"><i class="fa fa-link"></i> Add Source</span> ' +
-							'<span class="btn btn-success addNote"><i class="fa fa-comment"></i> Add Note</span>' +
-						'</div>' +
-						'<div class="btn hideSources"><i class="fa fa-caret-right"></i></div>';
-		$sourcesCount.text("0 Sources").show();
-		$basetext.addClass("noCommentary");
-		$sourcesBox.addClass("noCommentary");
-		$commentaryBox.addClass("noCommentary").show();
-		$sourcesWrapper.html(emptyHtml);
-		$(".hideCommentary").hide();
-		$("body").addClass("noCommentary");
-	}
-
-	// Add Sheets Panels if we have sheets
-	if (data.sheets && data.sheets.length) {
-		$(".showSheets").remove();
-		$sourcesBox.find(".showNotes").before("<div class='btn showSheets sidebarMode' data-sidebar='sheets'><i class='fa fa-file-text-o'></i> " + data.sheets.length + " Sheets</div>");
-	}
-	// Add Layer Panels if we have a layer
-	if (data.layer_name) {
-		$(".showLayer").remove();
-		$sourcesBox.find(".showSources").before("<div class='btn showLayer sidebarMode' data-sidebar='layer'><i class='fa fa-comment-o'></i> " + data.layer.length + " Discussion</div>");
-		if (sjs.sourcesFilter === "Layer") {
-			$(".showLayer").addClass("active");
-		}
-	}
 	/// Add Basetext to DOM
 	$basetext.html(basetext);
 	sjs._$verses = $basetext.find(".verse");
@@ -2016,8 +1985,61 @@ function basetextHtml(en, he, prefix, alts, sectionName) {
 	return basetext;
 }
 
+function buildCommentary(data) {
+	if (data.sectionRef !== sjs.current.sectionRef) { 
+		return; // API call returned after navigating away
+	} else {
+		sjs.current = data;
+	}
+	var $commentaryBox      = sjs._$commentaryBox;
+	var $commentaryViewPort = sjs._$commentaryViewPort;
+	var $sourcesWrapper     = sjs._$sourcesWrapper;
+	var $sourcesCount       = sjs._$sourcesCount;
+	var $sourcesBox         = sjs._$sourcesBox;
 
-function buildCommentary(commentary) {
+	// Build the sidebar content give current data and filters
+	var sidebarContent = (sjs.sourcesFilter === "Notes" ? data.notes :
+							sjs.sourcesFilter === "Sheets" ? data.sheets : 
+								sjs.sourcesFilter === "Layer" ? data.layer : 
+																	data.commentary);
+	buildCommentaryContent(sidebarContent);
+	$("body").removeClass("noCommentary");
+	sjs.filterSources(sjs.sourcesFilter);
+	sjs.setSourcesPanel();
+	sjs.setSourcesCount();
+
+	if (!data.commentary.length && !data.notes.length && !data.sheets.length && sjs.sourcesFilter !== "Layer") {
+		var emptyHtml ='<div class="sourcesActions">' + 
+							'<br /><div>No Sources or Notes have been added for this text yet.</div><br />' +
+							'<span class="btn btn-success addSource"><i class="fa fa-link"></i> Add Source</span> ' +
+							'<span class="btn btn-success addNote"><i class="fa fa-comment"></i> Add Note</span>' +
+						'</div>' +
+						'<div class="btn hideSources"><i class="fa fa-caret-right"></i></div>';
+		$sourcesCount.text("0 Sources").show();
+		$commentaryBox.show();
+		$sourcesWrapper.html(emptyHtml);
+	}
+
+	if (data.notes) {
+		$sourcesBox.find(".notesCount").html("<i class='fa fa-comment'></i> " + data.notes.length);
+	}
+
+	// Add Sheets Panels if we have sheets
+	if (data.sheets && data.sheets.length) {
+		$(".showSheets").remove();
+		$sourcesBox.find(".showNotes").before("<div class='btn showSheets sidebarMode' data-sidebar='sheets'><i class='fa fa-file-text-o'></i> " + data.sheets.length + " Sheets</div>");
+	}
+	// Add Layer Panels if we have a layer
+	if (data.layer_name) {
+		$(".showLayer").remove();
+		$sourcesBox.find(".showSources").before("<div class='btn showLayer sidebarMode' data-sidebar='layer'><i class='fa fa-comment-o'></i> " + data.layer.length + " Discussion</div>");
+		if (sjs.sourcesFilter === "Layer") {
+			$(".showLayer").addClass("active");
+		}
+	}	
+}
+
+function buildCommentaryContent(commentary) {
 	// Take a list of commentary objects and build them into the DOM
 	commentary = commentary || [];
 
@@ -2130,6 +2152,14 @@ function buildCommentary(commentary) {
 
 	for (var i = 0; i < commentaryObjects.length; i++) {
 		commentaryHtml += commentaryObjects[i].html;
+	}
+
+	if (commentaryHtml === "" && sjs.sourcesFilter !== "Layer" && sjs.sourcesFilter !== "Sheets" && sjs.sourcesFilter !== "Notes" ) {
+		commentaryHtml = "<div class='emptySidebarMessage'>No sources known.</div>";
+	}
+
+	if (commentaryHtml === "" && sjs.sourcesFilter === "Sheets") {
+		commentaryHtml = "<div class='emptySidebarMessage'>No source sheets for this text.</div>";
 	}
 
 	if (commentaryHtml === "" && sjs.sourcesFilter === "Layer") {
@@ -2405,7 +2435,7 @@ function aboutHtml(data) {
 						'<div class="aboutSource">Source: ' + sourceLink +'</div> ⋄ ') +
 						(version.license === "unknown" ? "" : '<div class="aboutLicense">License: ' + licenseLink + '</div> ⋄ ') +
 						'<div class="credits"></div> ⋄ ' +
-						'<a class="historyLink" href="/activity/'+data.pageRef.replace(/ /g, "_")+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
+						'<a class="historyLink" href="/activity/'+data.sectionRef.replace(/ /g, "_")+'/'+version.lang+'/'+version.title.replace(/ /g, "_")+'">Full history &raquo;</a>' + 
 						(version.digitizedBySefaria ? "<div class='digitizedBySefaria'>This text was <a href='/digitized-by-sefaria' target='_blank'>digitized by Sefaria</a>.</div>" : "" ) +
 						(version.notes ? "<div class='versionNotes'>" + version.notes + "</div>" : "" ) +
 						(version.status === "locked" ? 
@@ -2593,7 +2623,7 @@ sjs.updateUrlParams = function() {
 	else if ($("body").hasClass("sidebarEnglish")) { params["sidebarLang"] = "en" }	
 	else    									   { params["sidebarLang"] = "all" }	
 
-	var base        = sjs.selected ? sjs.selected : sjs.current.pageRef;
+	var base        = sjs.selected ? sjs.selected : sjs.current.sectionRef;
 	var versionInfo = sjs.cache.getPreferredTextVersion(sjs.current.book);
 	var versionPath = versionInfo ? "/" + versionInfo['lang'] + "/" + versionInfo['version'].replace(/ +/g, "_") : '';
 	var paramStr    = $.param(params) ? "/" + normRef(base) + versionPath + "?" + $.param(params) : normRef(base);
@@ -2816,7 +2846,7 @@ sjs.loadReview = function(lang) {
 	var version = (lang == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle);
 	// If this is a merged text, do nothing. 
 	if (!version) { return; }
-	var url = sjs.current.pageRef + "/" + lang + "/" + version;
+	var url = sjs.current.sectionRef + "/" + lang + "/" + version;
 
 	$.getJSON("/api/reviews/" + url, function(data) {
 		if ("error" in data) {
@@ -2990,7 +3020,7 @@ sjs.readReview = function() {
 	var review = {
 		comment: $("#reviewText").val(),
 		score: $("#raty").raty("score") / 5,
-		ref: sjs.current.pageRef,
+		ref: sjs.current.sectionRef,
 		language: lang,
 		version: lang == "en" ? sjs.current.versionTitle : sjs.current.heVersionTitle,
 	};
@@ -3035,9 +3065,9 @@ sjs.getReviewKey = function() {
 		lang = $("#reviewsModal").attr("data-lang");
 	}
 	if (lang == "en") {
-		var key = sjs.current.pageRef + "/en/" + sjs.current.versionTitle;
+		var key = sjs.current.sectionRef + "/en/" + sjs.current.versionTitle;
 	} else if (lang == "he") {
-		var key = sjs.current.pageRef + "/he/" + sjs.current.heVersionTitle; 
+		var key = sjs.current.sectionRef + "/he/" + sjs.current.heVersionTitle; 
 	}
 
 	return key.replace(/ /g, "_");
@@ -3847,7 +3877,7 @@ sjs.writeNote = function(source) {
 	if (!sjs._uid) {
 		return sjs.loginPrompt();
 	}
-	var anchor = sjs.selected ? "Note on " + sjs.selected : "Note on " + sjs.current.pageRef;
+	var anchor = sjs.selected ? "Note on " + sjs.selected : "Note on " + sjs.current.sectionRef;
 	var editor = "<div id='noteEditor'>" +
 					"<div id='noteAnchor'>" + anchor+ "</div>" +
 					"<textarea id='noteText'></textarea>" + 
@@ -3884,7 +3914,7 @@ sjs.saveNote = function() {
 
 	var note = {
 		text: $("#noteText").val(),
-		ref: sjs.selected || sjs.current.pageRef,
+		ref: sjs.selected || sjs.current.sectionRef,
 		anchorText: "",
 		type:  "note",
 		title: "",
@@ -3933,7 +3963,7 @@ function updateSources(source) {
 	}
 	sjs.cache.save(sjs.current);
 
-	buildCommentary(list);
+	buildCommentaryContent(list);
 	sjs._$commentary = $(".commentary");
 	$(".noCommentary").removeClass("noCommentary");
 	$highlight = sjs._$basetext.find(".verse").not(".lowlight").first();
@@ -4105,7 +4135,7 @@ function lowlightOff() {
 	$(".lowlight").removeClass("lowlight");
 	$(".verseControls").remove();
 	sjs.selected = null;
-	$("#noteAnchor").html("Note on " + sjs.current.pageRef);
+	$("#noteAnchor").html("Note on " + sjs.current.sectionRef);
 	if ("commentary" in sjs.current) {
 		sjs.setSourcesCount();
 		sjs.setSourcesPanel();
