@@ -71,6 +71,57 @@ $(function() {
 		$("#overlay").show();
 		sjs.track.sheets("Open Add Source Modal");
 	})
+	
+	$("#addMedia").click(function(e) { 
+
+		var source = {outsideText: "", isNew: true};
+		if (sjs.can_add || sjs.can_edit) { source.userLink = sjs._userLink; }
+
+		buildSource($("#sources"), source);
+		
+		sjs.track.sheets("Add Outside Text");
+		afterAction();
+		e.stopPropagation();
+
+		$("#addMediaModal").data("target", $("#sources").find(".outside").last()).show().position({of: $(window)}); 
+		$("#addMedia").focus() 
+		$("#overlay").show();
+//		sjs.track.sheets("Open Add Media Modal");
+
+
+	});
+	
+	
+	$( "#addMediaModal .ok" ).click(function() {
+
+
+    var re = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/; 
+    var m;
+     
+    if ((m = re.exec($("#addMediaInput").val())) !== null) {
+        if (m.index === re.lastIndex) {
+            re.lastIndex++;
+        }
+			var $target = $("#addMediaModal").data("target");
+
+			if (m.length>0) {
+			//	$("#mediaPreview").html('<iframe width="560" height="315" src="https://www.youtube.com/embed/'+m[m.length-1]+'?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>');
+				$target.html('<iframe width="560" height="315" src="https://www.youtube.com/embed/'+m[m.length-1]+'?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>');
+
+			}
+			
+			else {
+				$target.html('');
+			}
+
+	autoSave();
+    }
+
+	
+	});	
+	
+
+
 
 	$("#addBrowse").click(function() {
 		$("#closeAddSource").trigger("click");
