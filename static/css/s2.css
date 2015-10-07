@@ -915,7 +915,7 @@ body .bilingual .enOnly .he {
   overflow: hidden;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
-  padding: 40px 0 200px;
+  padding: 40px 30px 300px;
 }
 .textList .fullFilterView {
   padding-top: 25px;
@@ -1079,7 +1079,7 @@ body .bilingual .enOnly .he {
 }
 .textList .texts {
   background-color: white;
-  padding: 40px 30px 0;
+  padding: 40px 30px 300px;
   position: relative;
 }
 .textList .texts .textRange {
