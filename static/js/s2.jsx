@@ -65,13 +65,19 @@ var MultiPanelReader = React.createClass({
       var handleSegmentClick = multi ? this.handleSegmentClick.bind(null, i) : null;
       var textListRef        = this.state.panels.length > i+1 && this.state.panels[i+1].filter ? 
                                 this.state.panels[i+1].ref : null;
+      var panel = this.state.panels[i];
+      if (i == 0) {
+        panel.menu = this.props.initialMenu;
+        panel.query = this.props.initialQuery;
+        panel.sheetsTag = this.props.initialSheetsTag;
+      }
       panels.push(<div className="readerPanel" style={style}>
                     <ReaderApp 
-                      initialRef={this.state.panels[i].ref}
-                      initialFilter={this.state.panels[i].filter}
-                      initialMenu={this.props.initialMenu}
-                      initialQuery={this.props.initialQuery}
-                      initialSheetsTag={this.props.initialSheetsTag }
+                      initialRef={panel.ref}
+                      initialFilter={panel.filter}
+                      initialMenu={panel.menu}
+                      initialQuery={panel.query}
+                      initialSheetsTag={panel.sheetsTag}
                       initialSettings={clone(this.props.initialSettings)}
                       multiPanel={this.state.panels.length > 1}
                       handleTextChange={handleTextChange}
@@ -191,7 +197,7 @@ var ReaderApp = React.createClass({
   makeHistoryState: function() {
     // Returns an object with state, title and url params for the current state
     var current = this.currentContent();
-    var hist = {state: this.state};
+    var hist    = {state: this.state, url: ""};
     if (this.state.menuOpen) {
       hist.state.replaceHistory = false;
       switch (this.state.menuOpen) {
@@ -221,16 +227,18 @@ var ReaderApp = React.createClass({
           }
           break;
       }
-    } else if (current.type === "TextColumn") {
+    } else if (current && current.type === "TextColumn") {
       hist.title = current.refs.slice(-1)[0];
       hist.url = "/" + normRef(hist.title);
-    } else if (current.type == "TextList") {
+    } else if (current && current.type == "TextList") {
       var sources = this.state.filter.length ? this.state.filter[0] : "all";
       hist.title = current.ref  + " with " + (sources === "all" ? "Connections" : sources);;
       hist.url = "/" + normRef(current.ref) + "?with=" + sources;
-    }
+    } else {}
+
     // for testing
-    if (window.location.pathname.indexOf("/s2") === 0) { hist.url = "/s2" + hist.url}
+    if (window.location.pathname.indexOf("/s2") === 0) { hist.url = "/s2" + hist.url; }
+
     return hist;
   },
   updateHistoryState: function() {

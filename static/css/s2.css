@@ -1127,6 +1127,7 @@ body .bilingual .enOnly .he {
   position: absolute;
   width: 100%;
   top: 32%;
+  font-size: 18px;
 }
 #s2Loading img {
   width: 150px;
