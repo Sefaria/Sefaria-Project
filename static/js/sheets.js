@@ -113,6 +113,8 @@ $(function() {
 			else {
 				$target.html('');
 			}
+	
+	$("#addMediaModal, #overlay").hide();
 
 	autoSave();
     }
