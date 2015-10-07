@@ -38,6 +38,7 @@ def url_regex(ref):
     """
     :return string: Returns a non-anchored regular expression part that will match normally formed URLs of this Ref and any more specific Ref.
     E.g., "Genesis 1" yields an RE that match "Genesis.1" and "Genesis.1.3"
+    Result is hyper slashed, as Varnish likes.
     """
 
     assert isinstance(ref, Ref)
@@ -66,4 +67,4 @@ def url_regex(ref):
         elif ref.index_node.has_numeric_continuation():
             patterns.append(r"%s\\." % sections)   # more granualar, exact match followed by .
 
-    return "%s(%s)" % (re.escape(ref.book).replace(" ","_"), "|".join(patterns))
+    return r"%s(%s)" % (re.escape(ref.book).replace(" ","_").replace("\\", "\\\\"), "|".join(patterns))

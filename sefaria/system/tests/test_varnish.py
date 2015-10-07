@@ -10,3 +10,4 @@ class Test_Varnish(object):
         assert v.url_regex(Ref("Yoma 14a")) == ur'Yoma(\\.14a$|\\.14a\\.)'
         assert v.url_regex(Ref("Yoma 14a:12-15")) == ur'Yoma(\\.14a\\.12$|\\.14a\\.12\\.|\\.14a\\.13$|\\.14a\\.13\\.|\\.14a\\.14$|\\.14a\\.14\\.|\\.14a\\.15$|\\.14a\\.15\\.)'
         assert v.url_regex(Ref("Yoma")) == ur'Yoma($|\\.)'
+        assert v.url_regex(Ref("Rashi on Genesis 1.1")) == ur'Rashi\\_on\\_Genesis(\\.1\\.1$|\\.1\\.1\\.)'
