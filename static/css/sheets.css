@@ -1289,3 +1289,7 @@ max-width: 560px;
 .media {
 text-align:center;
 }
+#addMediaInput {
+padding-top:10px;
+width: 300px;
+}
