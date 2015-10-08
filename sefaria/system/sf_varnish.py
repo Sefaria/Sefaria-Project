@@ -26,13 +26,13 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
     version = version.replace(" ", "_")
     if purge:
         # Purge this section level ref, so that immediate responses will return good results
-        purge_url("/api/texts/{}".format(FRONT_END_URL, section_oref.url()))
+        purge_url("{}/api/texts/{}".format(FRONT_END_URL, section_oref.url()))
         if version and lang:
-            purge_url("/api/texts/{}/{}/{}".format(FRONT_END_URL, section_oref.url(), lang, version))
+            purge_url("{}/api/texts/{}/{}/{}".format(FRONT_END_URL, section_oref.url(), lang, version))
         # Hacky to add these
-        purge_url("/api/texts/{}?commentary=1&sheets=1&notes=1".format(FRONT_END_URL, section_oref.url()))
-        purge_url("/api/texts/{}?notes=1&sheets=1".format(FRONT_END_URL, section_oref.url()))
-        purge_url("/api/texts/{}?commentary=0".format(FRONT_END_URL, section_oref.url()))
+        purge_url("{}/api/texts/{}?commentary=1&sheets=1&notes=1".format(FRONT_END_URL, section_oref.url()))
+        purge_url("{}/api/texts/{}?notes=1&sheets=1".format(FRONT_END_URL, section_oref.url()))
+        purge_url("{}/api/texts/{}?commentary=0".format(FRONT_END_URL, section_oref.url()))
         if version and lang:
             purge_url("/api/texts/{}/{}/{}?commentary=0".format(FRONT_END_URL, section_oref.url(), lang, version))
 
