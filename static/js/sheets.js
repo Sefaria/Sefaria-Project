@@ -93,7 +93,7 @@ $(function() {
 	
 	$( "#addMediaModal .ok" ).click(function() {
 
-    var re = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/; 
+    var re = /(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i; 
     var m;
 	var $target = $("#addMediaModal").data("target");
 
