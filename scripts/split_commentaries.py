@@ -11,9 +11,10 @@ def pad_moved_ja(ja, padding_values):
     #pads the jagged array with the skeleton of the empty places up to this point in the ref
     if len(padding_values):
         padval = padding_values.pop(0)
-        ja = [[] for _ in range(padval-1)] + ja
+        for _ in range(padval-1):
+            ja.insert(0, [])
         pad_moved_ja(ja[padval-1], padding_values)
-    return ja
+        return ja
 
 #first text
 #create needed index and versions
@@ -38,8 +39,10 @@ dest_tc = TextChunk(whole_moved_ref, 'he', rashbam_bava_batra_he.versionTitle)
 
 #get the two slices of the whole text, corresponding to the new texts
 jatext_tostay = JaggedTextArray(orig_tc.text).subarray_with_ref(stay_section_ref).array()
+
 jatext_tomove = copy.deepcopy(JaggedTextArray(orig_tc.text).subarray_with_ref(move_section_ref).array())
 #the piece of text being moved needs to be padded so that its overall structure matches the original structure
+jatext_tostay = pad_moved_ja(jatext_tostay, stay_section_ref.sections)
 jatext_tomove = pad_moved_ja(jatext_tomove, move_section_ref.sections)
 
 orig_tc.text = jatext_tostay
@@ -87,6 +90,7 @@ dest_tc = TextChunk(whole_moved_ref, 'he', r_gershom_makkot_he.versionTitle)
 jatext_tostay = JaggedTextArray(orig_tc.text).subarray_with_ref(stay_section_ref).array()
 jatext_tomove = copy.deepcopy(JaggedTextArray(orig_tc.text).subarray_with_ref(move_section_ref).array())
 #the piece of text being moved needs to be padded so that its overall structure matches the original structure
+jatext_tostay = pad_moved_ja(jatext_tostay, stay_section_ref.sections)
 jatext_tomove = pad_moved_ja(jatext_tomove, move_section_ref.sections)
 
 orig_tc.text = jatext_tostay
