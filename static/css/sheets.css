@@ -1282,3 +1282,10 @@ margin-left:-5px;
 .alertBox {
 z-index:101;
 }
+
+.addedMedia {
+max-width: 560px;
+}
+.media {
+text-align:center;
+}

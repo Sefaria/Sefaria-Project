@@ -74,16 +74,15 @@ $(function() {
 	
 	$("#addMedia").click(function(e) { 
 
-		var source = {outsideText: "", isNew: true};
-		if (sjs.can_add || sjs.can_edit) { source.userLink = sjs._userLink; }
+		var source = {media: "", isNew: true};
+		if (sjs.can_add) { source.userLink = sjs._userLink; }
 
 		buildSource($("#sources"), source);
 		
-		sjs.track.sheets("Add Outside Text");
 		afterAction();
 		e.stopPropagation();
 
-		$("#addMediaModal").data("target", $("#sources").find(".outside").last()).show().position({of: $(window)}); 
+		$("#addMediaModal").data("target", $("#sources").find(".media").last()).show().position({of: $(window)}); 
 		$("#addMedia").focus() 
 		$("#overlay").show();
 //		sjs.track.sheets("Open Add Media Modal");
@@ -94,30 +93,36 @@ $(function() {
 	
 	$( "#addMediaModal .ok" ).click(function() {
 
-
     var re = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/; 
     var m;
-     
+	var $target = $("#addMediaModal").data("target");
+
     if ((m = re.exec($("#addMediaInput").val())) !== null) {
         if (m.index === re.lastIndex) {
             re.lastIndex++;
         }
-			var $target = $("#addMediaModal").data("target");
-
 			if (m.length>0) {
 			//	$("#mediaPreview").html('<iframe width="560" height="315" src="https://www.youtube.com/embed/'+m[m.length-1]+'?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>');
 				$target.html('<iframe width="560" height="315" src="https://www.youtube.com/embed/'+m[m.length-1]+'?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>');
 
 			}
 			
-			else {
-				$target.html('');
-			}
 	
+
+    }
+    
+    else if ( ($("#addMediaInput").val()).match(/\.(jpeg|jpg|gif|png)$/) != null ) {
+    			$target.html('<img class="addedMedia" src="'+$("#addMediaInput").val()+'" />');
+    }
+
+	else {
+		$target.parent().remove();
+		
+	}
+
 	$("#addMediaModal, #overlay").hide();
 
 	autoSave();
-    }
 
 	
 	});	
@@ -1407,6 +1412,11 @@ function readSource($target) {
 	} else if ($target.hasClass("outsideWrapper")) {
 		source["outsideText"] = $target.find(".outside").html();
 	}
+	
+	 else if ($target.hasClass("mediaWrapper")) {
+		source["media"] = $target.find(".media").html();
+	}
+	
 
 	// Add attributions info if present
 	var addedBy = $target.attr("data-added-by");
@@ -1610,6 +1620,15 @@ function buildSource($target, source) {
 						  "</li>";
 		$target.append(outsideHtml);
 	}
+	else if ("media" in source) {
+		var attributionData = attributionDataString(source.addedBy, source.isNew, "mediaWrapper");
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
+							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
+							"<div class='media " + (sjs.loading ? "" : "new") + "'>" + source.media + "</div>" +
+							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
+						  "</li>";
+		$target.append(outsideHtml);
+	}
 }
 
 function attributionDataString(uid, newItem, classStr) {
@@ -1668,6 +1687,7 @@ sjs.saveLastEdit = function($el) {
 	if ($el.hasClass("he") && $el.closest(".new").length)         { type = "add hebrew outside"; }
 	if ($el.hasClass("en") && $el.closest(".new").length)         { type = "add english outside"; }
 	if ($el.hasClass("outside") && $el.hasClass("new"))           { type = "add outside"; }
+	if ($el.hasClass("media") && $el.hasClass("new"))             { type = "add media"; }
 	if ($el.hasClass("comment"))                                  { type = "edit comment"; }
 	if ($el.hasClass("comment") && $el.hasClass("new"))           { type = "add comment"; }
 
@@ -1710,6 +1730,9 @@ sjs.replayLastEdit = function() {
 			break;
 		case "add outside":
 			source = {outsideText: sjs.lastEdit.html, isNew: true};
+			break;
+		case "add media":
+			source = {media: sjs.lastEdit.html, isNew: true};
 			break;
 		case "add english outside":
 			source = {outsideBiText: {en: sjs.lastEdit.html, he: "<i>עברית</i>"}, isNew: true};
