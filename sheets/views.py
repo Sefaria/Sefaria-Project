@@ -174,6 +174,53 @@ def view_sheet(request, sheet_id):
 												"current_url": request.get_full_path,
 											}, RequestContext(request))
 
+def view_visual_sheet(request, sheet_id):
+	"""
+	View the sheet with sheet_id.
+	"""
+	sheet = get_sheet(sheet_id)
+	if "error" in sheet:
+		return HttpResponse(sheet["error"])
+	
+	sheet["sources"] = annotate_user_links(sheet["sources"])
+
+	# Count this as a view
+	db.sheets.update({"id": int(sheet_id)}, {"$inc": {"views": 1}})
+
+	try:
+		owner = User.objects.get(id=sheet["owner"])
+		author = owner.first_name + " " + owner.last_name
+		owner_groups = get_user_groups(request.user) if sheet["owner"] == request.user.id else None
+	except User.DoesNotExist:
+		author = "Someone Mysterious"
+		owner_groups = None
+
+	sheet_class     = make_sheet_class_string(sheet)
+	can_edit_flag   = can_edit(request.user, sheet)
+	can_add_flag    = can_add(request.user, sheet)
+	sheet_group     = Group().load({"name": sheet["group"]}) if "group" in sheet and sheet["group"] != "None" else None
+	embed_flag      = "embed" in request.GET
+	likes           = sheet.get("likes", [])
+	like_count      = len(likes)
+	viewer_is_liker = request.user.id in likes
+
+
+	return render_to_response('sheets_visual.html',{"sheetJSON": json.dumps(sheet), 
+													"sheet": sheet,
+													"sheet_class": sheet_class,
+													"can_edit": can_edit_flag, 
+													"can_add": can_add_flag,
+													"title": sheet["title"],
+													"author": author,
+													"is_owner": request.user.id == sheet["owner"],
+													"is_public": sheet["status"] == "public",
+													"owner_groups": owner_groups,
+													"sheet_group":  sheet_group,
+													"like_count": like_count,
+													"viewer_is_liker": viewer_is_liker,
+													"current_url": request.get_full_path,
+											}, RequestContext(request))
+
 
 def delete_sheet_api(request, sheet_id):
 	"""

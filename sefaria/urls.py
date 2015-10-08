@@ -118,6 +118,8 @@ urlpatterns += patterns('sheets.views',
     (r'^sheets/private/tags/(?P<tag>.+)$', 'private_sheets_tag'),
     (r'^sheets/(?P<type>(public|private|allz))/?$', 'sheets_list'),
     (r'^sheets/(?P<sheet_id>\d+)$', 'view_sheet'),
+    (r'^sheets/visual/(?P<sheet_id>\d+)$', 'view_visual_sheet'),
+
 )
 
 # Source Sheets API
