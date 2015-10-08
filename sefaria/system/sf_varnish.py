@@ -22,8 +22,8 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
     """
     assert isinstance(oref, Ref)
     section_oref = oref.section_ref()
-
-    version = version.replace(" ", "_")
+    if version:
+        version = version.replace(" ", "_")
     if purge:
         # Purge this section level ref, so that immediate responses will return good results
         purge_url("{}/api/texts/{}".format(FRONT_END_URL, section_oref.url()))
