@@ -918,7 +918,7 @@ def text_preview_api(request, title):
 def revarnish_link(link):
     if USE_VARNISH:
         for ref in link.refs:
-            invalidate_ref(Ref(ref))
+            invalidate_ref(Ref(ref), purge=True)
 
 @catch_error_as_json
 @csrf_exempt
