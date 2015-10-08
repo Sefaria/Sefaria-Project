@@ -35,13 +35,3 @@ def daf_to_section(daf):
     if amud == "a": section -= 1
     return section
 
-
-def parse_daf_string(daf):
-    """
-    Take a string representing a daf ('55', amud ('55b')
-    or a line on a daf ('55b:2') and return of list parsing it in
-    ints.
-
-    '2a' -> [3], '2a:4' -> [3, 4]
-    """
-    return []
