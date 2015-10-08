@@ -97,7 +97,7 @@ $(function() {
     var m;
 	var $target = $("#addMediaModal").data("target");
 
-    if ((m = re.exec($("#addMediaInput").val())) !== null) {
+    if ((m = re.exec($("#addMediaInput").val().toLowerCase())) !== null) {
         if (m.index === re.lastIndex) {
             re.lastIndex++;
         }
@@ -111,9 +111,15 @@ $(function() {
 
     }
     
-    else if ( ($("#addMediaInput").val()).match(/\.(jpeg|jpg|gif|png)$/) != null ) {
+    else if ( ($("#addMediaInput").val()).toLowerCase().match(/\.(jpeg|jpg|gif|png)$/) != null ) {
     			$target.html('<img class="addedMedia" src="'+$("#addMediaInput").val()+'" />');
     }
+
+
+    else if ( ($("#addMediaInput").val()).toLowerCase().match(/\.(mp3)$/) != null ) {
+    			$target.html('<audio src="'+$("#addMediaInput").val()+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>')
+    }
+    
 
 	else {
 		$target.parent().remove();
@@ -1414,7 +1420,7 @@ function readSource($target) {
 	}
 	
 	 else if ($target.hasClass("mediaWrapper")) {
-		source["media"] = $target.find(".media iframe, .media img").attr("src");
+		source["media"] = $target.find(".media iframe, .media img, .media audio").attr("src");
 	}
 	
 
@@ -1623,12 +1629,16 @@ function buildSource($target, source) {
 	else if ("media" in source) {
 		var mediaLink;
 		
-		if (source.media.match(/\.(jpeg|jpg|gif|png)$/) != null) {
+		if (source.media.toLowerCase().match(/\.(jpeg|jpg|gif|png)$/) != null) {
 			mediaLink = '<img class="addedMedia" src="'+source.media+'" />';
 		}
 		
-		else if (source.media.indexOf('youtube') > 0) {
+		else if (source.media.toLowerCase().indexOf('youtube') > 0) {
 			mediaLink = '<iframe width="560" height="315" src='+source.media+' frameborder="0" allowfullscreen></iframe>'
+		}
+
+		else if (source.media.toLowerCase().match(/\.(mp3)$/) != null) {
+			mediaLink = '<audio src="'+source.media+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
 		}
 		
 		else {
