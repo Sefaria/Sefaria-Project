@@ -97,7 +97,7 @@ $(function() {
     var m;
 	var $target = $("#addMediaModal").data("target");
 
-    if ((m = re.exec($("#addMediaInput").val().toLowerCase())) !== null) {
+    if ((m = re.exec($("#addMediaInput").val())) !== null) {
         if (m.index === re.lastIndex) {
             re.lastIndex++;
         }
