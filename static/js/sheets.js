@@ -83,7 +83,7 @@ $(function() {
 		e.stopPropagation();
 
 		$("#addMediaModal").data("target", $("#sources").find(".media").last()).show().position({of: $(window)}); 
-		$("#addMedia").focus() 
+		$("#addMediaInput").focus() 
 		$("#overlay").show();
 //		sjs.track.sheets("Open Add Media Modal");
 
