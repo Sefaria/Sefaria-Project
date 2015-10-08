@@ -247,7 +247,10 @@ sjs.Init.handlers = function() {
 		// Stores merged content in cache
 		// call callback with data
 		sjs.alert.loadingSidebar();
-		$.getJSON("/api/texts/" + sjs.current.ref + "?commentary=1&sheets=1", function(data){
+		sjs.cache.params({commentary: 1, notes: 1, sheets: 1});
+		var layer = sjs.current.layer;
+		sjs.cache.kill(sjs.current.ref);
+		sjs.cache.get(sjs.current.ref, function(data){
 			if ("error" in data) {
 				sjs.alert.message(data);
 				return;
@@ -264,16 +267,9 @@ sjs.Init.handlers = function() {
 			sjs.setSourcesCount();
 			sjs.setSourcesPanel();
 		});
-		sjs.current._loadSources = false;
+		sjs.cache.params({commentary: 0, notes: 0, sheets: 0, layer: sjs.current.layer_name})
+		sjs.current._loadSourcesFromDiscussion = false;
 	};
-
-    $.getJSON("/api/notes/" + sjs.current.ref, function(data){
-			if ("error" in data) {
-				sjs.alert.message(data);
-				return;
-			}
-			sjs.current.notes      = data.notes;
-    });
 
 	// Commentary filtering by clicking on source category
 	$(document).on("click", ".source", function() {
@@ -295,7 +291,16 @@ sjs.Init.handlers = function() {
 
 		return false;
 	});
-		
+	
+	// Load the initial page notes, which were not included in initial pageview
+	// Subsequent notes calls are bundled with texts in sjs.cache
+	$.getJSON("/api/notes/" + sjs.current.ref, function(data){
+			if ("error" in data) {
+				sjs.alert.message(data);
+				return;
+			}
+			sjs.current.notes = data.notes;
+    });
 
 	sjs.filterSources = function(cat) {
 		// Filter sources for category 'cat'
@@ -336,7 +341,7 @@ sjs.Init.handlers = function() {
 		// Set the count of visible / highlighted sources
 		var $c   = sjs._$commentaryBox;
 		
-		if (sjs.current._loadSources) {
+		if (sjs.current._loadSourcesFromDiscussion) {
 			// Sources haven't been loaded, we don't know how many there are
 			text = "<i class='fa fa-link'></i> Sources";
 		} else if (sjs.sourcesFilter === 'all') {
@@ -384,7 +389,7 @@ sjs.Init.handlers = function() {
 	sjs.switchSidebarMode = function(e) {
 		// Switches the content of the sidebar, according to the present targets
 		// data-sidebar attribute
-		if (sjs.current._loadSources) {
+		if (sjs.current._loadSourcesFromDiscussion) {
 			sjs.alert.loadingSidebar();
 			$(".sidebarMode").removeClass("active");
 			$(e.target).addClass("active");
@@ -2014,7 +2019,7 @@ function buildCommentary(data) {
 	sjs.filterSources(sjs.sourcesFilter);
 	sjs.setSourcesPanel();
 	sjs.setSourcesCount();
-
+	data.notes = data.notes || [];
 	if (!data.commentary.length && !data.notes.length && !data.sheets.length && sjs.sourcesFilter !== "Layer") {
 		var emptyHtml ='<div class="sourcesActions">' + 
 							'<br /><div>No Sources or Notes have been added for this text yet.</div><br />' +

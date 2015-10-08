@@ -103,7 +103,7 @@ def reader(request, tref, lang=None, version=None):
         if not layer:
             raise InputError("Layer not found.")
         text["layer"]        = [format_note_object_for_client(n) for n in layer.all(tref=tref)]
-        text["_loadSources"] = True
+        text["_loadSourcesFromDiscussion"] = True
 
     text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
     text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
@@ -668,7 +668,7 @@ def texts_api(request, tref, lang=None, version=None):
             layer_content        = [format_note_object_for_client(n) for n in layer.all(tref=tref)]
             text["layer"]        = layer_content
             text["layer_name"]   = layer_name
-            text["_loadSources"] = True
+            text["_loadSourcesFromDiscussion"] = True
         else:
             text["layer"] = []
 
