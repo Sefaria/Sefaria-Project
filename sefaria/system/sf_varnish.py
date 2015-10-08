@@ -37,7 +37,7 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
             purge_url("{}/api/texts/{}/{}/{}?commentary=0".format(FRONT_END_URL, section_oref.url(), lang, version))
 
     # Ban anything underneath this section
-    manager.run("ban", 'req.url ~ "/api/texts/{}"'.format(url_regex(oref.section_ref())), secret=secret)
+    manager.run("ban", 'obj.http.url ~ "/api/texts/{}"'.format(url_regex(oref.section_ref())), secret=secret)
 
 #PyPi version of python-varnish has broken purge function.  We use this instead.
 def purge_url(url):
