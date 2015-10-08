@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
-from sefaria.sheets import save_sheet, LISTED_SHEETS
+from sefaria.sheets import save_sheet
 from sefaria.utils.util import strip_tags
 from sefaria.system.database import db
 
@@ -72,7 +72,7 @@ def count_sources(sources, sheet_id):
 
 sheets       = db.sheets.find()
 total        = sheets.count()
-public_total = db.sheets.find({"status": {"$in": LISTED_SHEETS}}).count()
+public_total = db.sheets.find({"status": "public"}).count()
 
 for sheet in sheets: 
 	global language

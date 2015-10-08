@@ -5,10 +5,6 @@ from collections import defaultdict
 from sefaria.history import make_leaderboard
 from sefaria.system.database import db
 
-# BANDAID for import issues from sheets.py
-LISTED_SHEETS = (3,4,7)
-
-
 def update_top_contributors(days=None):
     """
     Calculate leaderboard scores for the past n 'days', or all time if 'days' is None.
@@ -32,7 +28,7 @@ def update_top_contributors(days=None):
     oldtime = datetime.now()
 
     # Tally points for Public Source Sheets
-    query = {"status": {"$in": LISTED_SHEETS} }
+    query = {"status": "public" }
     if cutoff:
         query["$or"] = [
             {"dateCreated": {"$gt": cutoff.isoformat()}},
