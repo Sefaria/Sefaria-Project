@@ -659,7 +659,6 @@ def texts_api(request, tref, lang=None, version=None):
         text["next"]       = oref.next_section_ref().normal() if oref.next_section_ref() else None
         text["prev"]       = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
         text["commentary"] = text.get("commentary", [])
-        text["notes"]      = get_notes(oref, uid=request.user.id) if int(request.GET.get("notes", 0)) else []
         text["sheets"]     = get_sheets_for_ref(tref) if int(request.GET.get("sheets", 0)) else []
 
         if layer_name:
@@ -1008,11 +1007,18 @@ def link_summary_api(request, ref):
 
 @catch_error_as_json
 @csrf_exempt
-def notes_api(request, note_id):
+def notes_api(request, note_id_or_ref):
     """
     API for user notes.
-    Currently only handles deleting. Adding and editing are handled throughout the links API.
+    Is this still true? "Currently only handles deleting. Adding and editing are handled throughout the links API."
+    A called to this API with GET returns the list of public notes and private notes belong to the current user on this Ref. 
     """
+    if request.method == "GET":
+        oref = Ref(note_id_or_ref)
+        cb = request.GET.get("callback", None)
+        res = get_notes(oref, uid=request.user.id)
+        return jsonResponse(res, cb)
+
     if request.method == "POST":
         j = request.POST.get("json")
         if not j:
@@ -1064,7 +1070,7 @@ def notes_api(request, note_id):
         if not request.user.is_authenticated():
             return jsonResponse({"error": "You must be logged in to delete notes."})
         return jsonResponse(
-            tracker.delete(request.user.id, model.Note, note_id)
+            tracker.delete(request.user.id, model.Note, note_id_or_ref)
         )
 
     return jsonResponse({"error": "Unsuported HTTP method."})

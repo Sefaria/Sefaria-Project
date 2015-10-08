@@ -247,13 +247,12 @@ sjs.Init.handlers = function() {
 		// Stores merged content in cache
 		// call callback with data
 		sjs.alert.loadingSidebar();
-		$.getJSON("/api/texts/" + sjs.current.ref + "?commentary=1&sheets=1&notes=1", function(data){ 
+		$.getJSON("/api/texts/" + sjs.current.ref + "?commentary=1&sheets=1", function(data){
 			if ("error" in data) {
 				sjs.alert.message(data);
 				return;
 			}
 			sjs.current.commentary = data.commentary;
-			sjs.current.notes      = data.notes;
 			sjs.current.sheets     = data.sheets;
 
 			data["layer"] = sjs.current.layer;
@@ -267,6 +266,14 @@ sjs.Init.handlers = function() {
 		});
 		sjs.current._loadSources = false;
 	};
+
+    $.getJSON("/api/notes/" + sjs.current.ref, function(data){
+			if ("error" in data) {
+				sjs.alert.message(data);
+				return;
+			}
+			sjs.current.notes      = data.notes;
+    });
 
 	// Commentary filtering by clicking on source category
 	$(document).on("click", ".source", function() {
