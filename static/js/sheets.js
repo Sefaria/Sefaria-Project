@@ -230,33 +230,6 @@ $(function() {
 		}
 	});
 
-
-	// Sharing Options
-	$(".sharingOption").unbind("click").click(function() {
-		$(".sharingOption .fa-check").addClass("hidden");
-		$("span", $(this)).removeClass("hidden")
-		if (this.id === "public") { 
-			sjs.track.sheets("Make Public Click");
-			$("#sheet").addClass("public");
-		} else {
-			$("#sheet").removeClass("public");
-		}
-		if (sjs.can_edit) {
-			autoSave(); // Don't bother sending options changes from adders
-		}
-	});
-
-	// Collaboration Options
-	$(".collaborationOption").unbind("click").click(function() {
-		$(".collaborationOption .fa-check").addClass("hidden");
-		$(".fa-check", $(this)).removeClass("hidden")
-		if (this.id === "anyoneCanAdd") { 
-			sjs.track.sheets("Anyone Can Add Click");
-			autoSave(); 
-		}
-		autoSave();
-	});
-
 	// Group Options
 	$(".groupOption").unbind("click").click(function() {
 		$(".groupOption .fa-check").addClass("hidden");
@@ -268,12 +241,43 @@ $(function() {
 			$("#partnerLogo").attr("src", $(this).attr("data-image")).show()
 				.closest("a").attr("href", "/partners/" + groupUrl );
 			$("#sheetHeader").show();
+			
+			$(".groupSharing").show();
+			$(".groupName").text(group);
+			$(".individualSharing").hide();
+
+			//if sheet is unlisted but editable/addable set sheet be visible to group & editable/addable 
+			if ($("#sharingModal input[type='radio'][name='sharingOptions']:checked").val() == 'privateAdd') $("#sharingModal input[type='radio'][name='sharingOptions'][value='groupAdd']").attr('checked', 'checked')
+			else if ($("#sharingModal input[type='radio'][name='sharingOptions']:checked").val() == 'privateEdit') $("#sharingModal input[type='radio'][name='sharingOptions'][value='groupEdit']").attr('checked', 'checked')
+
+
+
+			
 		} else {
 			sjs.track.sheets("Unshare Sheet with Group");
 			$("#sheetHeader").hide();
+
+			$(".groupSharing").hide();
+			$(".individualSharing").show();
+
+			//if sheet is private but editable/addable to group set sheet to totally private on change 
+			if ($("#sharingModal input[type='radio'][name='sharingOptions']:checked").val() == 'groupAdd' || $("#sharingModal input[type='radio'][name='sharingOptions']:checked").val() == 'groupEdit') $("#sharingModal input[type='radio'][name='sharingOptions'][value='private']").attr('checked', 'checked')
+
 		}
 		autoSave(); 
 	});
+	
+	//Alert for collaboration anyone can edit change:
+	$("#sharingModal input[type='radio'][name='sharingOptions']").change(
+    function(){
+         if(($("#sharingModal input[type='radio'][name='sharingOptions']:checked").val()).indexOf("Edit")>=0){
+    	 sjs.alert.message('Please be advised: There is no way to track or undo changes made by other editors, including deletions.<br/><br/>Consider making a copy of this source sheet before allowing anyone to edit.',true);
+  	  }
+  	  }
+);          
+	
+
+	
 	
 	// Divine Names substitution Options
 	$(".divineNamesOption").unbind("click").click(function() {
@@ -615,7 +619,7 @@ $(function() {
 		
 		var isOwner = sjs.is_owner || $(this).attr("data-added-by") == String(sjs._uid);
 		var controlsHtml = "";
-		if (isOwner) {
+		if (isOwner||sjs.can_edit) {
 			if ($(this).hasClass("source")) {
 				controlsHtml = ownerControls;
 			} else {
@@ -693,6 +697,24 @@ $(function() {
 
 	 });
 
+
+
+	$("#sharingModalTrigger").live("click", function() { 
+		$("#sharingModal").show().position({of: window}); 
+		$("#overlay").show();
+
+	});
+
+	$("#sharingModal .ok").click(function(){
+
+		$("#sharingModal, #overlay").hide();
+		
+		autoSave();
+		sjs.alert.flash("Sharing settings saved.")
+
+
+
+	});
 
 
 	// Open Modal to override the sheet's default language/layout options for a specific source 
@@ -948,7 +970,7 @@ $(function() {
 		// (or are published without being prompted), mark them as though they had
 		// already been prompted -- to avoid reprompting annoyingly if they make the sheet
 		// private again.
-		if (!sjs.current.promptedToPublish && sjs.current.status in {3:true, 7:true}) {
+		if (!sjs.current.promptedToPublish && sjs.current.status in {"public":true}) {
 			sjs.current.promptedToPublish = Date();
 		}
 
@@ -1150,7 +1172,7 @@ function readSheet() {
 	sheet.title    = $("#title").html();
 	sheet.sources  = readSources($("#sources"));
 	sheet.options  = {};
-	sheet.status   = 0;
+	sheet.status   = "unlisted";
 	sheet.nextNode = sjs.current.nextNode;
 	sheet.tags     = sjs.sheetTagger.tags();
 
@@ -1170,32 +1192,76 @@ function readSheet() {
 		sheet.options.layout        = $("#sheet").hasClass("stacked") ? "stacked" : "sideBySide";
 		sheet.options.langLayout    = $("#sheet").hasClass("heLeft") ? "heLeft" : "heRight";
 		sheet.options.divineNames   = $(".divineNamesOption .fa-check").not(".hidden").parent().attr("id");
-		sheet.options.collaboration = $(".collaborationOption .fa-check").not(".hidden").parent().attr("data-collab-type");	
 	}
 
+	
 
-	var $sharing = $(".sharingOption .fa-check").not(".hidden").parent();
-	if (!$sharing.length) {
-		$sharing = [{id: "private"}];
+	switch ($("#sharingModal input[type='radio'][name='sharingOptions']:checked").val()) {
+
+		case 'private':
+			sheet.options.collaboration = "none";
+			sheet["status"] = "unlisted";
+			break;
+
+		case 'public':
+			sheet.options.collaboration = "none";
+			sheet["status"] = "public";
+			sjs.track.sheets("Make Public Click");
+			break;
+
+		case 'publicAdd':
+			sheet.options.collaboration = "anyone-can-add";
+			sheet["status"] = "public";
+			sjs.track.sheets("Make Public Click");
+			sjs.track.sheets("Anyone Can Add Click");
+			break;
+
+		case 'groupAdd':
+			sheet.options.collaboration = "group-can-add";
+			sheet["status"] = "unlisted";
+			sjs.track.sheets("Group Can Add Click");
+			break;
+
+		case 'privateAdd':
+			sheet.options.collaboration = "anyone-can-add";
+			sheet["status"] = "unlisted";
+			sjs.track.sheets("Anyone Can Add Click");
+			break;
+
+		case 'publicEdit':
+			sheet.options.collaboration = "anyone-can-edit";
+			sheet["status"] = "public";
+			sjs.track.sheets("Make Public Click");
+			sjs.track.sheets("Anyone Can Edit Click");
+			break;
+
+		case 'privateEdit':
+			sheet.options.collaboration = "anyone-can-edit";		
+			sheet["status"] = "unlisted";
+			sjs.track.sheets("Anyone Can Edit Click");
+			break;
+
+		case 'groupEdit':
+			sheet.options.collaboration = "group-can-edit";		
+			sheet["status"] = "unlisted";
+			sjs.track.sheets("Group Can Edit Click");
+			break;		
+		
 	}
+	
 	var group = $(".groupOption .fa-check").not(".hidden").parent().attr("data-group");
+
 	if (group === undefined && sjs.current && sjs.current.group !== "None") {
 		// When working on someone else's group sheet
 		group = sjs.current.group;
 	}
 
-	if ("status" in sjs.current && sjs.current.status === 5) {
-		// Topic sheet
-		sheet["status"] = 5;
-	} else if (group && group !== "None") {
+	if (group && group !== "None") {
 		// Group Sheet
 		sheet["group"] = group;
-		var st = {"private": 6, "public": 7};
-		sheet["status"] = st[$sharing[0].id];
 	} else {
 		// Individual Sheet
-		var st = {"private": 0, "public": 3};
-		sheet["status"] = st[$sharing[0].id];
+		sheet["group"] = "";
 	}
 
 	return sheet;
@@ -1378,25 +1444,30 @@ function buildSheet(data){
 	$("#" + data.options.langLayout).trigger("click");
 
 	if (!("collaboration" in data.options)) { data.options.collaboration = "none"}
-	$(".collaborationOption[data-collab-type=" + data.options.collaboration + "]").trigger("click");
-	
-	// Set Sheet Sharing
-	if (data.status === 3 || data.status === 7) {
-		$("#public .fa-check").removeClass("hidden");
-	}
-	if (data.status === 0 || data.status === 6) {
-		$("#private .fa-check").removeClass("hidden");
-	}
 
+	if (data.options.collaboration == "none" && data.status == "unlisted")  $("#sharingModal input[type='radio'][name='sharingOptions'][value='private']").attr('checked', 'checked');
+	else if (data.options.collaboration == "none" && data.status == "public") $("#sharingModal input[type='radio'][name='sharingOptions'][value='public']").attr('checked', 'checked');
+	else if (data.options.collaboration == "anyone-can-add" && data.status == "public") $("#sharingModal input[type='radio'][name='sharingOptions'][value='publicAdd']").attr('checked', 'checked');
+	else if (data.options.collaboration == "anyone-can-add" && data.status == "unlisted") $("#sharingModal input[type='radio'][name='sharingOptions'][value='privateAdd']").attr('checked', 'checked');
+	else if (data.options.collaboration == "group-can-add" && data.status == "unlisted") $("#sharingModal input[type='radio'][name='sharingOptions'][value='groupAdd']").attr('checked', 'checked');
+	else if (data.options.collaboration == "anyone-can-edit" && data.status == "public") $("#sharingModal input[type='radio'][name='sharingOptions'][value='publicEdit']").attr('checked', 'checked');
+	else if (data.options.collaboration == "anyone-can-edit" && data.status == "unlisted") $("#sharingModal input[type='radio'][name='sharingOptions'][value='privateEdit']").attr('checked', 'checked');
+	else if (data.options.collaboration == "group-can-edit" && data.status == "unlisted") $("#sharingModal input[type='radio'][name='sharingOptions'][value='groupEdit']").attr('checked', 'checked');
+
+	 
 	// Set Sheet Group
-	$(".groupOption .fa-check").addClass("hidden");
-	if (data.status === 6 || data.status === 7) {
+	if (data.group) {
+		$(".groupOption .fa-check").addClass("hidden");	
 		$(".groupOption[data-group='"+ data.group + "'] .fa-check").removeClass("hidden");
+		$(".groupSharing").show();
+		$(".groupName").text(data.group);
+		$(".individualSharing").hide();
 		var groupUrl = data.group.replace(/ /g, "_");
 		var groupImage = $(".groupOption[data-group='"+ data.group + "']").attr("data-image"); 
 		$("#partnerLogo").attr("src", groupImage).show();
 	} else {
-		$(".groupOption[data-group='None'] .fa-check").removeClass("hidden");
+		$(".groupSharing").hide();
+		$(".individualSharing").show();
 	}
 
 	sjs.sheetTagger.init(data.id, data.tags);
@@ -1547,6 +1618,8 @@ sjs.saveLastEdit = function($el) {
 	}
 
 	$el.removeClass("new");
+	
+
 };
 
 
@@ -1578,10 +1651,11 @@ sjs.replayLastEdit = function() {
 			source = {outsideBiText: {he: sjs.lastEdit.html, en: "<i>English</i>"}, isNew: true};
 			break;
 		case "edit hebrew":
-			$(".he", "li[data-node='" + sjs.lastEdit.node + "']").eq(0).html(sjs.lastEdit.html);
+			$("li[data-node='" + sjs.lastEdit.node + "']").find(".text > .he").first().html(sjs.lastEdit.html);
 			break;
 		case "edit english":
-			$(".en", "li[data-node='" + sjs.lastEdit.node + "']").eq(0).html(sjs.lastEdit.html);
+
+			$("li[data-node='" + sjs.lastEdit.node + "']").find(".text > .en").first().html(sjs.lastEdit.html);
 			break;
 		case "edit comment":
 			$(".comment", ".commentWrapper[data-node='" + sjs.lastEdit.node + "']").eq(0).html(sjs.lastEdit.html);
@@ -1590,6 +1664,9 @@ sjs.replayLastEdit = function() {
 			$(".outside", ".outsideWrapper[data-node='" + sjs.lastEdit.node + "']").eq(0).html(sjs.lastEdit.html);
 			break;
 	}
+	
+
+	
 	if (source) {
 		if (sjs.can_add) {
 			source.userLink = sjs._userLink;
@@ -1653,7 +1730,7 @@ function startPollingIfNeeded() {
 			needed = true;
 		}
 		// Poll if sheet is in a group 
-		else if  (sjs.current.status == 6 || sjs.current.status == 7) {
+		else if  (sjs.current.options.collaboration && sjs.current.options.collaboration === "anyone-can-edit") {
 			needed = true;
 		}
 	}	
@@ -1675,10 +1752,11 @@ function rebuildUpdatedSheet(data) {
 	}
 
 	sjs.alert.flash("Sheet updated.");
-	if ($(".cke").length) {
+	if ($(".cke_editable").length) {
 		// An editor is currently open -- save current changes as a lastEdit
-		sjs.saveLastEdit($(".cke").eq(0));
+		sjs.saveLastEdit($(".cke_editable").eq(0));
 	}
+
 	buildSheet(data);
 	sjs.replayLastEdit();
 }
@@ -1768,7 +1846,7 @@ $("#addToSheetModal .ok").click(function(){
 
 function copySheet() {
 	var sheet = readSheet();
-	sheet.status = 0;
+	sheet.status = "unlisted";
 	sheet.title = sheet.title + " (Copy)";
 	delete sheet.group;
 	delete sheet.id;
@@ -1858,7 +1936,7 @@ function promptToPublish() {
 	if (!sjs.current.id) { return; }                        // Don't prompt for unsaved sheet
 	if (!sjs.is_owner) { return; }                          // Only prompt the primary owner
 	if (sjs.current.promptedToPublish) { return; }          // Don't prompt if we've prompted already
-	if (sjs.current.status in {3:true, 7:true}) { return; } // Don't prompt if sheet is already public
+	if (sjs.current.status in {"public":true}) { return; } // Don't prompt if sheet is already public
 	if (sjs.current.sources.length < 6) { return; }         // Don't prompt if the sheet has less than 3 sources
 	if ($("body").hasClass("embedded")) { return; }         // Don't prompt while a sheet is embedded
 

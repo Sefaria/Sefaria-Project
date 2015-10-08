@@ -6,8 +6,6 @@ import datetime
 from sefaria.system.database import db
 from sefaria.model.text import VersionSet
 
-# BANDAID for import issues from sheets.py
-LISTED_SHEETS = (3,4,7)
 
 he     = VersionSet({"language": "he"}).word_count()
 trans  = VersionSet({"language": {"$ne": "he"}}).word_count()
@@ -15,7 +13,7 @@ sct    = VersionSet({"versionTitle": "Sefaria Community Translation"}).word_coun
 
 # Number of Contributors
 contributors = set(db.history.distinct("user"))
-contributors = contributors.union(set(db.sheets.find({"status": {"$in": LISTED_SHEETS}}).distinct("owner")))
+contributors = contributors.union(set(db.sheets.find({"status": "public"}).distinct("owner")))
 contributors = len(contributors)
 
 # Number of Links
