@@ -27,7 +27,7 @@ from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.utils.hebrew import is_hebrew, encode_hebrew_numeral, hebrew_term
 from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH
+from sefaria.settings import DISABLE_INDEX_SAVE
 
 """
                 ----------------------------------
@@ -1014,10 +1014,6 @@ class TextChunk(AbstractTextRecord):
 
         self.full_version.save()
         self._oref.recalibrate_next_prev_refs(len(self.text))
-
-        if USE_VARNISH:
-            from sefaria.system.sf_varnish import invalidate_ref
-            invalidate_ref(self._oref, lang=self.lang, version=self.vtitle, purge=True)
 
         return self
 
@@ -2659,7 +2655,6 @@ class Ref(object):
                 patterns.append("%s \d" % sections) # extra granularity following space
 
         return "^%s(%s)" % (re.escape(self.book), "|".join(patterns))
-
 
     """ Comparisons """
     def overlaps(self, other):
