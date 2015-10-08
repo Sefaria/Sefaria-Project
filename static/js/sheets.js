@@ -1414,7 +1414,7 @@ function readSource($target) {
 	}
 	
 	 else if ($target.hasClass("mediaWrapper")) {
-		source["media"] = $target.find(".media").html();
+		source["media"] = $target.find(".media iframe, .media img").attr("src");
 	}
 	
 
@@ -1621,10 +1621,24 @@ function buildSource($target, source) {
 		$target.append(outsideHtml);
 	}
 	else if ("media" in source) {
+		var mediaLink;
+		
+		if (source.media.match(/\.(jpeg|jpg|gif|png)$/) != null) {
+			mediaLink = '<img class="addedMedia" src="'+source.media+'" />';
+		}
+		
+		else if (source.media.indexOf('youtube') > 0) {
+			mediaLink = '<iframe width="560" height="315" src='+source.media+' frameborder="0" allowfullscreen></iframe>'
+		}
+		
+		else {
+			mediaLink = '';
+		}
+		
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "mediaWrapper");
 		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
-							"<div class='media " + (sjs.loading ? "" : "new") + "'>" + source.media + "</div>" +
+							"<div class='media " + (sjs.loading ? "" : "new") + "'>" + mediaLink + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</li>";
 		$target.append(outsideHtml);
