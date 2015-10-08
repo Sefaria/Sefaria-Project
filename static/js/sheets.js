@@ -1486,7 +1486,10 @@ function buildSheet(data){
 	} else {
 		$("#title").text("Untitled Source Sheet");
 	}
+	$("#sources").css("min-height",($("#sources").css("height"))); //To prevent 'jumping' as the sheet is rebuilt when polling is triggered we temporarily set the min-height, and remove it at the end of the function.
+
 	$("#sources").empty();
+
 	$("#addSourceModal").data("target", $("#sources"));
 
 	// Set options with binary value
@@ -1539,6 +1542,8 @@ function buildSheet(data){
 	$("#viewButtons").show();
 	sjs.current = data;
 	sjs.loading = false;
+
+	$("#sources").css("min-height","");
 }
 	
 
