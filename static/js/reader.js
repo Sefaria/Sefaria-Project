@@ -1743,7 +1743,9 @@ function buildView(data) {
 	// Build basetext
 	var emptyView = "<span class='btn addThis empty'>Add this Text</span>"+
 		"<i>No text available.</i>";
-	var basetext = basetextHtml(data.text, data.he, "", data.alts, data.sectionNames[data.sectionNames.length - 1]);
+	var hideNumbers = (data.categories[0] == "Talmud" && data.categories[1] == "Bavli") ||
+						data.categories[0] == "Liturgy";
+	var basetext = basetextHtml(data.text, data.he, "", data.alts, data.sectionNames[data.sectionNames.length - 1], hideNumbers);
 	if (!basetext) {
 		basetext = emptyView;
 		$("#about").addClass("empty");
@@ -1926,7 +1928,7 @@ function buildView(data) {
 } // ------- END Build View---------------
 
 
-function basetextHtml(en, he, prefix, alts, sectionName) {
+function basetextHtml(en, he, prefix, alts, sectionName, hideNumbers) {
 	var basetext = "";
 	en = (en || []).slice(0);
 	he = (he || []).slice(0);
@@ -1952,7 +1954,7 @@ function basetextHtml(en, he, prefix, alts, sectionName) {
 	// Step through both en and he together
 	for (var i = 0; i < Math.max(en.length, he.length); i++) {
         if (en[i] instanceof Array || he[i] instanceof Array) {
-            basetext += basetextHtml(en[i], he[i], (i+1) + ".", alts[i]);
+            basetext += basetextHtml(en[i], he[i], (i+1) + ".", alts[i], hideNumbers);
             continue;
         }
         if(highlighted) {
@@ -1973,6 +1975,7 @@ function basetextHtml(en, he, prefix, alts, sectionName) {
 		var heClass = he[i] ? "he" : "he empty";
 
 		var n = prefix + (i+1);
+		var verseNum = hideNumbers ? "" : n;
 
         var alts_html = "";
         if(alts && alts.length > i && alts[i]) {
@@ -1987,7 +1990,7 @@ function basetextHtml(en, he, prefix, alts, sectionName) {
         }
 
 		var verse =
-			"<div class='verseNum'> <span class='vnum'>" + n + "</span>" + alts_html + " </div>" +
+			"<div class='verseNum'> <span class='vnum'>" + verseNum + "</span>" + alts_html + " </div>" +
 			'<span class="'+enClass+'">' + enText + "</span>" +
 			'<span class="'+heClass+'">' + heText + '</span><div class="clear"></div>';
 
