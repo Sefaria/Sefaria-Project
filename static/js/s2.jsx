@@ -254,7 +254,8 @@ var ReaderApp = React.createClass({
           sjs.track.open(hist.title);
         } else if (hist.state.type == "TextList") {
           sjs.track.event("Reader", "Open Close Reader", hist.title);
-        }           
+        }
+        sjs.track.pageview(hist.url);
       }
     }
   },
@@ -321,7 +322,7 @@ var ReaderApp = React.createClass({
   backToText: function() {
     // Return to the original text in the ReaderApp contents
     this.state.contents = [this.state.contents[0]];
-    this.setState({contents: this.state.contents});
+    this.setState({contents: this.state.contents, replaceHistory: false});
   },  
   closeMenus: function() {
     var state = {
@@ -1782,10 +1783,6 @@ var TextList = React.createClass({
   showAllFilters: function() {
     this.props.setFilter(null);
     sjs.track.event("Reader", "Show All Filters Click", "1");
-  },
-  backToText: function() {
-    this.props.backToText();
-    sjs.track.event("Reader", "Back To Text", "Anchor Text Click");
   },
   render: function() {
     var ref            = this.props.sref;
