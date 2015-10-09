@@ -1284,6 +1284,7 @@ z-index:101;
 }
 
 .addedMedia {
+max-width: 100%;
 }
 .media {
 text-align:center;
