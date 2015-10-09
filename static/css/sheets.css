@@ -1274,16 +1274,18 @@ input[type="file"] {
 }
 
 .alertBox {
-z-index:101;
+	z-index:101;
 }
 
 .addedMedia {
-max-width: 100%;
+	max-width: 100%;
 }
+
 .media {
-text-align:center;
+	text-align:center;
 }
+
 #addMediaInput {
-margin-top:10px;
-width: 300px;
+	margin-top:10px;
+	width: 300px;
 }
