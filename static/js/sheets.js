@@ -144,17 +144,16 @@ $(function() {
 	$target.find('audio, img').error(function() {
 	    $target.parent().remove();
 		sjs.alert.flash("There was an error adding your media.")
-		autoSave();
 
 	  });
   
-	autoSave();
 
 	if (sjs.openRequests == 0) {
 		var top = $target.offset().top - 200;
 		$("html, body").animate({scrollTop: top}, 300);		
 	}
 
+	autoSave();
 	
 	});	
 	
