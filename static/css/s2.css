@@ -293,7 +293,7 @@ body .bilingual .enOnly .he {
   text-transform: uppercase;
 }
 .readerNavMenu .sheetsLink .fa {
-  margin-right: 4px;
+  margin: 0 5px;
   color: #999;
 }
 .readerNavMenu .siteLinks {
@@ -568,6 +568,9 @@ body .bilingual .enOnly .he {
   color: #bbb;
   font-size: 11px;
   font-family: "Helvetica Neue", "Helvetica", sans-serif;
+}
+.hebrew .readerSheetsNav {
+  direction: ltr;
 }
 .readerControls {
   position: absolute;

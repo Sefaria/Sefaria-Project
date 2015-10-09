@@ -805,9 +805,18 @@ var ReaderNavigationMenu = React.createClass({
                      (<a className="siteLink" key='login' href="/login">Log In</a>)];
 
 
-      var calendar = [(<a className="calendarLink refLink" data-ref={sjs.calendar.parasha}>{sjs.calendar.parashaName}</a>),
-                      (<a className="calendarLink refLink" data-ref={sjs.calendar.haftara}>Haftara</a>),
-                      (<a className="calendarLink refLink" data-ref={sjs.calendar.daf_yomi}>Daf Yomi</a>)];
+      var calendar = [(<a className="calendarLink refLink" data-ref={sjs.calendar.parasha}>
+                        <span className="en">{sjs.calendar.parashaName}</span>
+                        <span className="he">פרשה</span>
+                       </a>),
+                      (<a className="calendarLink refLink" data-ref={sjs.calendar.haftara}>
+                        <span className="en">Haftara</span>
+                        <span className="he">הפטרה</span>
+                       </a>),
+                      (<a className="calendarLink refLink" data-ref={sjs.calendar.daf_yomi}>
+                        <span className="en">Daf Yomi</span>
+                        <span className="he">דף יומי</span>
+                       </a>)];
       calendar = (<div className="readerNavCalendar"><ThreeBox content={calendar} /></div>);
 
       var topContent = this.props.home ?
@@ -831,7 +840,11 @@ var ReaderNavigationMenu = React.createClass({
                   <h2>Calendar</h2>
                   {calendar}
                   <h2>Community</h2>
-                  <span className="sheetsLink" onClick={this.props.openMenu.bind(null, "sheets")}><i className="fa fa-file-text-o"></i> Source Sheets</span>
+                  <span className="sheetsLink" onClick={this.props.openMenu.bind(null, "sheets")}>
+                    <i className="fa fa-file-text-o"></i>
+                    <span className="en">Source Sheets</span>
+                    <span className="he">דפי מקורות</span>
+                  </span>
                   <div className="siteLinks">
                   {siteLinks}
                   </div>
