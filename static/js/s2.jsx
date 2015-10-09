@@ -251,12 +251,19 @@ var ReaderApp = React.createClass({
   },
   updateHistoryState: function() {
     if (this.shouldHistoryUpdate()) {
+      if (this.justPopped) {
+        // Don't let a pop trigger a push
+        this.justPopped = false;
+        return;
+      }
       var hist = this.makeHistoryState();
       if (this.state.replaceHistory) {
         history.replaceState(hist.state, hist.title, hist.url);
+        console.log("Replace")
         $("title").html(hist.title);
       } else {
         history.pushState(hist.state, hist.title, hist.url);
+        console.log("Push")
         $("title").html(hist.title);
         if (hist.state.type == "TextColumn") {
           sjs.track.open(hist.title);
@@ -268,12 +275,14 @@ var ReaderApp = React.createClass({
     }
   },
   handlePopState: function(event) {
+    console.log("Pop")
     var state = event.state;
     if (state) {
       var from = this.currentMode();
       var to   = state.contents.slice(-1)[0] ? state.contents.slice(-1)[0].type : null
       var kind = from + " to " + to;
       sjs.track.event("Reader", "Pop State", kind);
+      this.justPopped = true;
       this.setState(state);
     }
   },
