@@ -2048,7 +2048,16 @@ function buildCommentary(data) {
 		if (sjs.sourcesFilter === "Layer") {
 			$(".showLayer").addClass("active");
 		}
-	}	
+	}
+
+	// Highligh highlighted commentaries
+	if (sjs._$verses.hasClass("lowlight")) {
+		var first = parseInt(sjs._$verses.not(".lowlight").first().attr("data-num"));
+		var last  = parseInt(sjs._$verses.not(".lowlight").last().attr("data-num"));
+		lowlightOn(first, last);	
+		// Scroll to highlighted commentaries, if any
+		updateVisible();
+	}
 }
 
 function buildCommentaryContent(commentary) {
@@ -2205,6 +2214,7 @@ function buildCommentaryContent(commentary) {
 							}).show();
 	$commentaryBox.show();
 
+	sjs._$commentary = $(".commentary");
 	// Clear DOM references
 	$commentaryBox = $commentaryViewPort = $sourcesWrapper = $sourcesCount = $sourcesBox = null;      
 }
@@ -2544,6 +2554,7 @@ function updateVisible() {
 		var vref = $first.attr("data-num");
 		
 		var $firstCom = $com.not(".lowlight").not(".hidden").eq(0);
+
 		if ($firstCom.length) {
 			sjs._$commentaryViewPort.clearQueue()
 				.scrollTo($firstCom, {duration: 0, offset: top, easing: "easeOutExpo"})				
