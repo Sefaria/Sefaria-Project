@@ -213,21 +213,23 @@ var ReaderApp = React.createClass({
           hist.url   = "/";
           break;
         case "navigation":
-          hist.title = "Texts | Sefaria";
           var cats   = this.state.navigationCategories ? "/" + this.state.navigationCategories.join("/") : "";
+          hist.title = cats ? this.state.navigationCategories.join(", ") + " | Sefaria" : "Texts | Sefaria";
           hist.url   = "/texts" + cats;
           break;
         case "text toc":
-          hist.title = this.currentBook() || "";
-          hist.url   = "/" + (this.currentBook() || this.props.initialText).replace(/ /g, "_");
+          var title  = this.currentBook() || this.props.initialText;
+          hist.title = title + " | Sefaria";
+          hist.url   = "/" + title.replace(/ /g, "_");
           break;
         case "search":
-          hist.title = "Sefaria Search";
-          hist.url   = "/search?q=" + this.state.searchQuery;
+          hist.title = this.state.searchQuery ? this.state.searchQuery + " | " : "";
+          hist.title += "Sefaria Search";
+          hist.url   = "/search" + this.state.searchQuery ? "?q=" + this.state.searchQuery : "";
           break;
         case "sheets":
           if (this.state.navigationSheetTag) { 
-            hist.url   = "/sheets/tag/" + this.state.navigationSheetTag; 
+            hist.url   = "/sheets/tags/" + this.state.navigationSheetTag; 
             hist.title = this.state.navigationSheetTag + " | Sefaria Source Sheets";
           } else {
             hist.url   = "/sheets";
