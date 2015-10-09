@@ -105,20 +105,20 @@ for entry in laaz_rashi_entries:
             level_of_uncertainity +=2
             best_match = find_closest_match(filtered_text_rows, entry.headword, filter_words_with_quotation_marks=False)
         if best_match:
-            print "{})\t[{}]\t{}\t{}\t{}\t{}".format(entry.catane_number.encode('utf-8'),
+            print "{}\t[{}]\t{}\t{}\t{}\t{}".format(entry.catane_number.encode('utf-8'),
                                                entry.orig_word.encode('utf-8'),
                                                entry.headword.encode('utf-8'),
-                                               best_match[0],
+                                               url_base + best_match[0],
                                                best_match[2].encode('utf-8'),
                                                      level_of_uncertainity)
         else:
-            print "{})\t[{}]\t{}\t{}\t{}\t{}".format(entry.catane_number.encode('utf-8'),
+            print "{}\t[{}]\t{}\t{}\t{}\t{}".format(entry.catane_number.encode('utf-8'),
                                                      entry.orig_word.encode('utf-8'),
                                                      entry.headword.encode('utf-8'),
-                                                     oref.normal(),
+                                                     url_base + oref.normal(),
                                                      'NO MATCH FOUND',-1)
     else:
-        print "{})\t[{}]\t{}\t{}\t{}\t{}".format(entry.catane_number.encode('utf-8'),
+        print "{}\t[{}]\t{}\t{}\t{}\t{}".format(entry.catane_number.encode('utf-8'),
                                     entry.orig_word.encode('utf-8'),
                                     entry.headword.encode('utf-8'),
                                     oref.normal(),

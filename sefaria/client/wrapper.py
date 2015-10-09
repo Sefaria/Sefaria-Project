@@ -52,6 +52,9 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
         com["commentator"] = linkRef.index.title
         com["heCommentator"] = linkRef.index.get_title("he") if linkRef.index.get_title("he") else com["commentator"]
 
+    if link.type == "targum":
+        com["category"] = "Targum"
+
     if linkRef.index_node.primary_title("he"):
         com["heTitle"] = linkRef.index_node.primary_title("he")
 
@@ -170,6 +173,8 @@ def get_links(tref, with_text=True):
                     if t not in com:
                         com[t] = res
                     else:
+                        if isinstance(com[t], basestring):
+                            com[t] = [com[t]]
                         com[t] += res
                     '''
                     next_section = grab_section_from_text(sections, texts[top_nref][t], toSections)
