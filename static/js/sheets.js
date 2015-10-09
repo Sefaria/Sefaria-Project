@@ -141,6 +141,13 @@ $(function() {
 
 	$("#addMediaModal, #overlay").hide();
 
+	$target.find('audio, img').error(function() {
+	    $target.parent().remove();
+		sjs.alert.flash("There was an error adding your media.")
+		autoSave();
+
+	  });
+  
 	autoSave();
 
 	if (sjs.openRequests == 0) {
