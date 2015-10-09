@@ -2339,13 +2339,14 @@ function isArray(a) {
 
 function isHebrew(text) {
 	// Returns true if text is (mostly) Hebrew
-	// Examines up to the first 40 characters, ignoring punctuation and numbers
+	// Examines up to the first 60 characters, ignoring punctuation and numbers
+    // 60 is needed to cover cases where a Hebrew text starts with 31 chars like: <big><strong>גמ׳</strong></big>
 
 	var heCount = 0;
 	var enCount = 0;
-	var punctuationRE = /[0-9 .,'"?!;:\-=@#$%^&*()]/
+	var punctuationRE = /[0-9 .,'"?!;:\-=@#$%^&*()/<>]/;
 
-	for (var i = 0; i < Math.min(40, text.length); i++) {
+	for (var i = 0; i < Math.min(60, text.length); i++) {
 		if (punctuationRE.test(text[i])) { continue; }
 		if ((text.charCodeAt(i) > 0x590) && (text.charCodeAt(i) < 0x5FF)) {
 			heCount++;

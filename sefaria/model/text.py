@@ -1856,7 +1856,10 @@ class Ref(object):
 
         :return bool:
         """
-        return u"Bavli" in self.index.categories
+        if self.is_commentary():
+            return u"Bavli" in self.index.b_index.categories
+        else:
+            return u"Bavli" in self.index.categories
 
     def is_commentary(self):
         """

@@ -28,7 +28,7 @@ from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc, get_or_make_summary_node, REORDER_RULES
 from sefaria.model import *
-from sefaria.sheets import LISTED_SHEETS, get_sheets_for_ref
+from sefaria.sheets import get_sheets_for_ref
 from sefaria.utils.users import user_link, user_started_text
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
@@ -1507,7 +1507,7 @@ def user_profile(request, username, page=1):
     scores         = db.leaders_alltime.find_one({"_id": profile.id})
     score          = int(scores["count"]) if scores else 0
     user_texts     = scores.get("texts", None) if scores else None
-    sheets         = db.sheets.find({"owner": profile.id, "status": {"$in": LISTED_SHEETS }}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
+    sheets         = db.sheets.find({"owner": profile.id, "status": "public"}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
 
     next_page      = apage + 1 if apage else None
     next_page      = "/profile/%s/%d" % (username, next_page) if next_page else None
@@ -1579,7 +1579,7 @@ def edit_profile(request):
     Page for managing a user's account settings.
     """
     profile = UserProfile(id=request.user.id)
-    sheets  = db.sheets.find({"owner": profile.id, "status": {"$in": LISTED_SHEETS }}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
+    sheets  = db.sheets.find({"owner": profile.id, "status": "public"}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
 
     return render_to_response('edit_profile.html',
                               {

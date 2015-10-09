@@ -173,6 +173,8 @@ def get_links(tref, with_text=True):
                     if t not in com:
                         com[t] = res
                     else:
+                        if isinstance(com[t], basestring):
+                            com[t] = [com[t]]
                         com[t] += res
                     '''
                     next_section = grab_section_from_text(sections, texts[top_nref][t], toSections)

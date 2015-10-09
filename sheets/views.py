@@ -66,12 +66,17 @@ def can_edit(user, sheet):
 	"""
 	Returns true if user can edit sheet.
 	"""
-	if sheet["owner"] == user.id or \
-		sheet["status"] in EDITABLE_SHEETS or \
-		sheet["status"] in GROUP_SHEETS and sheet["group"] in [group.name for group in user.groups.all()]:
-	
-		return True
-
+	if sheet["owner"] == user.id:
+		return True		
+	if "collaboration" not in sheet["options"]:
+		return False
+	if sheet["options"]["collaboration"] == "anyone-can-edit":
+		return True		
+	if sheet["options"]["collaboration"] == "group-can-edit":
+		if "group" in sheet:
+			if sheet["group"] in [group.name for group in user.groups.all()]:
+				return True
+					
 	return False
 
 
@@ -88,6 +93,10 @@ def can_add(user, sheet):
 		return False
 	if sheet["options"]["collaboration"] == "anyone-can-add":
 		return True
+	if sheet["options"]["collaboration"] == "group-can-add":
+		if "group" in sheet:
+			if sheet["group"] in [group.name for group in user.groups.all()]:
+				return True
 
 	return False
 
@@ -113,7 +122,7 @@ def make_sheet_class_string(sheet):
 	if o.get("numbered", False):  classes.append("numbered")
 	if o.get("boxed", False):     classes.append("boxed")
 
-	if sheet["status"] in LISTED_SHEETS: classes.append("public")
+	if sheet["status"] is "public": classes.append("public")
 
 	return " ".join(classes)
 
@@ -143,7 +152,7 @@ def view_sheet(request, sheet_id):
 	sheet_class     = make_sheet_class_string(sheet)
 	can_edit_flag   = can_edit(request.user, sheet)
 	can_add_flag    = can_add(request.user, sheet)
-	sheet_group     = Group().load({"name": sheet["group"]}) if sheet["status"] in GROUP_SHEETS and sheet["group"] != "None" else None
+	sheet_group     = Group().load({"name": sheet["group"]}) if "group" in sheet and sheet["group"] != "None" else None
 	embed_flag      = "embed" in request.GET
 	likes           = sheet.get("likes", [])
 	like_count      = len(likes)
@@ -158,7 +167,7 @@ def view_sheet(request, sheet_id):
 												"title": sheet["title"],
 												"author": author,
 												"is_owner": request.user.id == sheet["owner"],
-												"is_public": sheet["status"] in LISTED_SHEETS,
+												"is_public": sheet["status"] == "public",
 												"owner_groups": owner_groups,
 												"sheet_group":  sheet_group,
 												"like_count": like_count,
@@ -225,7 +234,7 @@ def recent_public_tags(days=14, ntags=10):
 	Returns list of tag/counts on public sheets modified in the last 'days'.
 	"""
 	cutoff      = datetime.now() - timedelta(days=days)
-	query       = {"status": {"$in": LISTED_SHEETS}, "dateModified": { "$gt": cutoff.isoformat() } }
+	query       = {"status": "public", "dateModified": { "$gt": cutoff.isoformat() } }
 	tags        = sheet_tag_counts(query)[:ntags]
 
 	return tags
@@ -238,9 +247,11 @@ def sheets_list(request, type=None):
 	"""
 	if not type:
 		# Sheet Splash page
+		
 		if request.flavour == "mobile":
 			return s2_sheets(request)
-		query       = {"status": {"$in": LISTED_SHEETS}}
+
+		query       = {"status": "public"}
 		public      = db.sheets.find(query).sort([["dateModified", -1]]).limit(32)
 		public_tags = recent_public_tags()
 
@@ -267,12 +278,12 @@ def sheets_list(request, type=None):
 	response = { "status": 0 }
 
 	if type == "public":
-		query              = {"status": {"$in": LISTED_SHEETS}}
+		query              = {"status": "public"}
 		response["title"]  = "Public Source Sheets"
 		response["public"] = True
 		tags               = recent_public_tags()
 
-	elif type == "private":
+	elif type == "unlisted":
 		query              = {"owner": request.user.id or -1 }
 		response["title"]  = "Your Source Sheets"
 		response["groups"] = get_user_groups(request.user)
@@ -306,17 +317,17 @@ def partner_page(request, partner):
 
 	if request.user.is_authenticated() and group.name in [g.name for g in request.user.groups.all()]:
 		in_group = True
-		query = {"status": {"$in": [6,7]}, "group": group.name}
+		query = {"status": {"$in": ["unlisted","public"]}, "group": group.name}
 	else:
 		in_group = False
-		query = {"status": 7, "group": group.name}
+		query = {"status": "public", "group": group.name}
 
 
 	sheets = db.sheets.find(query).sort([["title", 1]])
 	tags   = sheet_tag_counts(query)
 	return render_to_response('sheets_list.html', {"sheets": sheets,
 												"tags": tags,
-												"status": 6,
+												"status": "unlisted",
 												"group": group,
 												"in_group": in_group,
 												"title": "%s on Sefaria" % group.name,
@@ -564,7 +575,7 @@ def tag_list_api(request):
 	"""
 	API to retrieve the list of public tags ordered by count.
 	"""
-	response = sheet_tag_counts({"status": {"$in": LISTED_SHEETS}})
+	response = sheet_tag_counts({"status": "public"})
 	return jsonResponse(response, callback=request.GET.get("callback", None))
 
 

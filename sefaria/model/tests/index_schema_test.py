@@ -246,7 +246,7 @@ class Test_Schema(object):
                                 },
                                 {
                                 "lang": "en",
-                                "text": "Hilchot Teshuva",
+                                "text": "Hilchot TeshuvaX",
                                 "presentation": "alone"
                                 }
                             ],
