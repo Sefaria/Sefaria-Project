@@ -90,10 +90,18 @@ $(function() {
 
 	});
 	
+		$("#addMediaInput").keyup(checkAddSource).keyup(function(e) {
+			if (e.keyCode == 13) {
+				$( "#addMediaModal .ok" ).click()
+			}
+		});
+		
+
+	
 	
 	$( "#addMediaModal .ok" ).click(function() {
 
-    var re = /(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i; 
+    var re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i; 
     var m;
 	var $target = $("#addMediaModal").data("target");
 
@@ -111,24 +119,34 @@ $(function() {
 
     }
     
-    else if ( ($("#addMediaInput").val()).toLowerCase().match(/\.(jpeg|jpg|gif|png)$/) != null ) {
+    else if ( ($("#addMediaInput").val()).match(/https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null ) {
     			$target.html('<img class="addedMedia" src="'+$("#addMediaInput").val()+'" />');
     }
 
 
-    else if ( ($("#addMediaInput").val()).toLowerCase().match(/\.(mp3)$/) != null ) {
+    else if ( ($("#addMediaInput").val()).match(/https?:\/\/(www\.)?.+\.(mp3)$/i) != null ) {
     			$target.html('<audio src="'+$("#addMediaInput").val()+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>')
+    }
+
+    else if ( ($("#addMediaInput").val()).match(/https?:\/\/.*clyp\.it\/.+/i) != null ) {
+    			$target.html('<audio src="'+$("#addMediaInput").val()+'.mp3" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>')
     }
     
 
 	else {
 		$target.parent().remove();
+		sjs.alert.flash("We couldn't understand your link.<br/>No media added.")
 		
 	}
 
 	$("#addMediaModal, #overlay").hide();
 
 	autoSave();
+
+	if (sjs.openRequests == 0) {
+		var top = $target.offset().top - 200;
+		$("html, body").animate({scrollTop: top}, 300);		
+	}
 
 	
 	});	
@@ -1629,7 +1647,7 @@ function buildSource($target, source) {
 	else if ("media" in source) {
 		var mediaLink;
 		
-		if (source.media.toLowerCase().match(/\.(jpeg|jpg|gif|png)$/) != null) {
+		if (source.media.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
 			mediaLink = '<img class="addedMedia" src="'+source.media+'" />';
 		}
 		
@@ -1637,7 +1655,7 @@ function buildSource($target, source) {
 			mediaLink = '<iframe width="560" height="315" src='+source.media+' frameborder="0" allowfullscreen></iframe>'
 		}
 
-		else if (source.media.toLowerCase().match(/\.(mp3)$/) != null) {
+		else if (source.media.match(/\.(mp3)$/i) != null) {
 			mediaLink = '<audio src="'+source.media+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
 		}
 		
