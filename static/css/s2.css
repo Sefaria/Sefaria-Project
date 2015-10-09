@@ -590,7 +590,7 @@ body .bilingual .enOnly .he {
   -o-user-select: none;
 }
 .dark .readerControls {
-  background-color: #333;
+  background-color: #222;
   color: white;
   border-color: #666;
 }
@@ -670,12 +670,11 @@ body .bilingual .enOnly .he {
   width: 100%;
   top: 57px;
   right: 0;
-  max-width: 500px;
   padding: 20px;
   box-sizing: border-box;
   direction: ltr;
   background: white;
-  border: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
   z-index: 103;
   -moz-user-select: none;
   -khtml-user-select: none;
@@ -683,7 +682,10 @@ body .bilingual .enOnly .he {
   -o-user-select: none;
 }
 .dark .readerOptionsPanel {
-  color: black;
+  background-color: #333;
+}
+.sepia .readerOptionsPanel {
+  background-color: #F7F7F7;
 }
 .toggleSet {
   display: inline-block;
@@ -698,6 +700,8 @@ body .bilingual .enOnly .he {
   margin-left: -1px;
   padding: 4px;
   height: auto;
+  background-color: white;
+  color: black;
 }
 .toggleOption.on, .toggleOption:hover {
   background-color: #eee;
@@ -767,12 +771,17 @@ body .bilingual .enOnly .he {
   text-transform: uppercase;
   letter-spacing: 1px;
 }
+.dark .textRange.basetext .title {
+  color: #ccc;
+}
 .textRange.basetext .title .titleBox {
   display: inline-block;
   border-bottom: 4px solid #E6E5E6;
   padding: 0 6px 3px;
 }  
-
+.dark .textRange.basetext .title .titleBox {
+  border-bottom: 4px solid #666;
+}  
 .bilingual .textRange.basetext .title .he {
   display: none;
 }
@@ -823,7 +832,7 @@ body .bilingual .enOnly .he {
 .dark .basetext .segment:hover,
 .dark .basetext .segment:active,
 .dark .basetext .segment:focus {
-  background-color: #555;
+  background-color: #444;
 }
 .basetext .segment.highlight {
   background-color: #E9E9E9;
@@ -863,6 +872,10 @@ body .bilingual .enOnly .he {
   color: #555;
   top: 0;
 }
+.dark .segment .segmentNumber,
+.dark .textRagnge .numberLabel {
+  color: white;
+}
 .segment .linkCount {
   display: block;
   width: 6px;
@@ -871,6 +884,10 @@ body .bilingual .enOnly .he {
   background-color: black;
   margin-top: 8px;
   font-size: 10px;
+}
+.dark .segment .linkCount {
+  filter: invert(100%);
+  -webkit-filter: invert(100%);
 }
 .readerApp.english .segment .segmentNumber {
   left: 5px;
@@ -978,6 +995,10 @@ body .bilingual .enOnly .he {
   border-top: 4px solid transparent;
   border-bottom: 1px solid #D5D5D4;
 }
+.dark .topFilters {
+  background-color: #222;
+  border-bottom: 1px solid #666;
+}
 .textList.fullPanel .topFilters {
   margin: 0;
   border-top: 8px solid transparent;
@@ -992,7 +1013,7 @@ body .bilingual .enOnly .he {
   color: black;
 }
 .dark .topFilters .textFilter {
-  color: white;
+  color: #bbb;
 }
 .topFilters .textFilter > div {
   display: table-cell;
@@ -1028,7 +1049,7 @@ body .bilingual .enOnly .he {
   color: black;
 }
 .dark .categoryFilter.on, .dark .textFilter.on {
-  background-color: #666
+  color: white;
 }
 .textFilter.lowlight {
   color: #999;
@@ -1045,13 +1066,24 @@ body .bilingual .enOnly .he {
   background-color: #F9F9F7;
   padding: 40px 20px;
 }
+.dark .fullFilterView {
+  background-color: #222;
+}
 .fullFilterView td {
   background-color: white;
   border: 2px solid #F9F9F7;
 }
+.dark .fullFilterView td {
+  background-color: #333;
+  border-color: #222;
+  color: white;
+}
 .fullFilterView .categoryFilter {
   margin-bottom: 2px;
   background-color: white;
+}
+.dark .fullFilterView .categoryFilter {
+  background-color: #333;
 }
 .fullFilterView .textFilter {
 }
@@ -1085,6 +1117,9 @@ body .bilingual .enOnly .he {
   padding: 40px 30px 300px;
   position: relative;
 }
+.dark .textList .texts {
+  background-color: #333;
+}
 .textList .texts .textRange {
   font-size: 1.8em;
   padding: 8px 0;
@@ -1095,6 +1130,9 @@ body .bilingual .enOnly .he {
 }
 .textList .texts .textRange .title {
   color: #999999;
+}
+.dark .textList .texts .textRange .title {
+  color: #ddd;
 }
 .bilingual .textList .title .he {
   display: none;
