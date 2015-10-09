@@ -72,6 +72,7 @@
             initialSheetsTag: "{{ initialSheetsTag }}",
             initialText: "{{ initialText }}",
             initialCategory: "{{ initialCategory }}",
+            initialNavigationCategories: {{ initialNavigationCategories|default:"[]" }},
             initialSettings: settings}),
           document.getElementById('s2')
         );

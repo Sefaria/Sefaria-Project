@@ -3,13 +3,16 @@ var sjs = sjs || {};
 
 var MultiPanelReader = React.createClass({
   propTypes: {
-    panelCount:       React.PropTypes.number,
-    initialRef:       React.PropTypes.string,
-    initialFilter:    React.PropTypes.array,
-    initialMenu:      React.PropTypes.string,
-    initialQuery:     React.PropTypes.string,
-    initialSheetsTag: React.PropTypes.string,
-    initialSettings:  React.PropTypes.object
+    panelCount:                  React.PropTypes.number,
+    initialRef:                  React.PropTypes.string,
+    initialFilter:               React.PropTypes.array,
+    initialMenu:                 React.PropTypes.string,
+    initialQuery:                React.PropTypes.string,
+    initialSheetsTag:            React.PropTypes.string,
+    initialText:                 React.PropTypes.string,
+    initialCategory:             React.PropTypes.string,
+    initialNavigationCategories: React.PropTypes.array,
+    initialSettings:             React.PropTypes.object
   },
   getInitialState: function() {
     var panels = [];
@@ -71,7 +74,7 @@ var MultiPanelReader = React.createClass({
         panel.query     = this.props.initialQuery;
         panel.sheetsTag = this.props.initialSheetsTag;
       }
-      panels.push(<div className="readerPanel" style={style}>
+      panels.push(<div className="readerPanel" style={style} key={i}>
                     <ReaderApp 
                       initialRef={panel.ref}
                       initialFilter={panel.filter}
@@ -80,12 +83,12 @@ var MultiPanelReader = React.createClass({
                       initialSheetsTag={panel.sheetsTag}
                       initialText={this.props.initialText}
                       initialCategory={this.props.initialCategory}
+                      initialNavigationCategories={this.props.initialNavigationCategories}
                       initialSettings={clone(this.props.initialSettings)}
                       multiPanel={this.state.panels.length > 1}
                       handleTextChange={handleTextChange}
                       handleSegmentClick={handleSegmentClick}
-                      textListRef={textListRef}
-                      key={i} />
+                      textListRef={textListRef} />
                   </div>);
     }
     return (<div className="multiPanelReader">{panels}</div>);
@@ -134,11 +137,11 @@ var ReaderApp = React.createClass({
         color:         "light",
         fontSize:      62.5
       },
-      menuOpen: this.props.initialMenu || null, // "navigation", "text toc", "display", "search", "sheets", "home"
-      navigationCategories: null,
-      navigationSheetTag: null,
-      searchQuery: this.props.initialQuery || null,
-      navigationSheetTag: this.props.initialSheetsTag || null
+      menuOpen:             this.props.initialMenu || null, // "navigation", "text toc", "display", "search", "sheets", "home"
+      navigationCategories: this.props.initialNavigationCategories || [],
+      navigationSheetTag:   this.props.initialSheetsTag || null,
+      searchQuery:          this.props.initialQuery || null,
+      navigationSheetTag:   this.props.initialSheetsTag || null
     }
   },
   componentDidMount: function() {
@@ -184,6 +187,8 @@ var ReaderApp = React.createClass({
       return true;
     } else if (state.navigationSheetTag !== this.state.navigationSheetTag) {
       return true;
+    } else if (state.navigationCategories !== this.state.navigationCategories) {
+      return true;
     } else if (current.type === "TextColumn") {
       if (current.refs.slice(-1)[0] !== hist.refs.slice(-1)[0]) {
         return true;
@@ -209,7 +214,8 @@ var ReaderApp = React.createClass({
           break;
         case "navigation":
           hist.title = "Texts | Sefaria";
-          hist.url   = "/texts";
+          var cats   = this.state.navigationCategories ? "/" + this.state.navigationCategories.join("/") : "";
+          hist.url   = "/texts" + cats;
           break;
         case "text toc":
           hist.title = this.currentBook() || "";
@@ -346,7 +352,7 @@ var ReaderApp = React.createClass({
     });
   },
   setNavigationCategories: function(categories) {
-    this.setState({navigationCategories: categories});
+    this.setState({menuOpen: "navigation", navigationCategories: categories});
   },
   setSheetTag: function (tag) {
     this.setState({navigationSheetTag: tag});
@@ -501,7 +507,8 @@ var ReaderApp = React.createClass({
     if (this.state.menuOpen === "home") {
       var menu = (<ReaderNavigationMenu
                     home={true}
-                    initialCategories={null}
+                    categories={[]}
+                    setCategories={this.setNavigationCategories || []}
                     closeNav={this.closeMenus}
                     openNav={this.openMenu.bind(null, "navigation")}
                     openSearch={this.openSearch}
@@ -510,7 +517,8 @@ var ReaderApp = React.createClass({
 
     } else if (this.state.menuOpen === "navigation") {
       var menu = (<ReaderNavigationMenu 
-                    initialCategories={this.state.navigationCategories}
+                    categories={this.state.navigationCategories || []}
+                    setCategories={this.setNavigationCategories}
                     closeNav={this.closeMenus}
                     openNav={this.openMenu.bind(null, "navigation")}                    
                     openSearch={this.openSearch}
@@ -702,27 +710,25 @@ var ReaderDisplayOptionsMenu = React.createClass({
 var ReaderNavigationMenu = React.createClass({
   // The Navigation menu for broswing and searching texts, plus site links.
   propTypes: {
-    home:         React.PropTypes.bool,
-    closeNav:     React.PropTypes.func.isRequired,
-    openNav:      React.PropTypes.func.isRequired,
-    openSearch:   React.PropTypes.func.isRequired,
-    showBaseText: React.PropTypes.func.isRequired
+    home:          React.PropTypes.bool,
+    categories:    React.PropTypes.array.isRequired,
+    setCategories: React.PropTypes.func.isRequired,
+    closeNav:      React.PropTypes.func.isRequired,
+    openNav:       React.PropTypes.func.isRequired,
+    openSearch:    React.PropTypes.func.isRequired,
+    showBaseText:  React.PropTypes.func.isRequired
   },
   getInitialState: function() {
     return {
-      categories: this.props.initialCategories,
       showMore: false,
     };
   },
-  setCategories: function(categories) {
-    this.setState({categories: categories});
-  },
   navHome: function() {
-    this.setState({categories: null});
+    this.props.setCategories([])
     this.props.openNav();
   },
   closeNav: function() {
-    this.setState({categories: null});
+    this.props.setCategories([])
     this.props.closeNav();
   },
   showMore: function() {
@@ -736,7 +742,7 @@ var ReaderNavigationMenu = React.createClass({
     } else if ($(event.target).hasClass("catLink") || $(event.target).parent().hasClass("catLink")) {
       var cats = $(event.target).attr("data-cats") || $(event.target).parent().attr("data-cats");
       cats = cats.split("|");
-      this.setCategories(cats);
+      this.props.setCategories(cats);
       sjs.track.event("Reader", "Navigation Sub Category Click", cats.join(" / "));
     }  
   },
@@ -754,13 +760,13 @@ var ReaderNavigationMenu = React.createClass({
     }
   },  
   render: function() {
-    if (this.state.categories) {
+    if (this.props.categories.length) {
       return (<div className="readerNavMenu" onClick={this.handleClick} >
                       <ReaderNavigationCategoryMenu
-                        categories={this.state.categories}
-                        category={this.state.categories.slice(-1)[0]}
+                        categories={this.props.categories}
+                        category={this.props.categories.slice(-1)[0]}
                         closeNav={this.closeNav}
-                        setCategories={this.setCategories}
+                        setCategories={this.props.setCategories}
                         navHome={this.navHome} />
                       </div>);
     } else {
@@ -783,7 +789,7 @@ var ReaderNavigationMenu = React.createClass({
       ];
       categories = categories.map(function(cat) {
         var style = {"backgroundColor": sjs.categoryColor(cat)};
-        var openCat = function() {this.setCategories([cat])}.bind(this);
+        var openCat = function() {this.props.setCategories([cat])}.bind(this);
         var heCat   = sjs.library.hebrewCategory(cat);
         return (<div className="readerNavCategory" style={style} onClick={openCat}>
                   <span className="en">{cat}</span>
@@ -1076,7 +1082,7 @@ var SheetsNav = React.createClass({
       var sheets = this.state.sheets.map(function(sheet) {
         var title = sheet.title.stripHtml();
         var url   = "/sheets/" + sheet.id;
-        return (<a className="sheet" href={url}>
+        return (<a className="sheet" href={url} key={url}>
                   {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl} />) : ""}
                   <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
                   <div className="sheetAuthor">{sheet.ownerName}</div>

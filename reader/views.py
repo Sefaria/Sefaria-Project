@@ -188,13 +188,31 @@ def s2(request, ref, version=None, lang=None):
 
 def s2_text_toc(request, oref):
     """
-    Standalone page for new sheets list
+    Text table of contents
     """
     return render_to_response('s2.html', {
                                     "initialMenu": "text toc",
                                     "initialText": oref.normal(),
                                     "initialCategory": oref.index.categories[0],
                                 }, RequestContext(request))
+
+
+def s2_texts_category(request, cats):
+    """
+    Listing of texts in a category.
+    """
+    cats       = cats.split("/")
+    toc        = get_toc()
+    cat_toc    = get_or_make_summary_node(toc, cats)
+
+    if len(cat_toc) == 0:
+        return s2_texts(request)
+
+    return render_to_response('s2.html', {
+                                    "initialMenu": "navigation",
+                                    "initialNavigationCategories": json.dumps(cats),
+                                }, RequestContext(request))
+
 
 def s2_page(request, page):
     """
@@ -632,6 +650,8 @@ def texts_category_list(request, cats):
     """
     Page listing every text in category
     """
+    if request.flavour == "mobile":
+        return s2_texts_category(request, cats)
     cats       = cats.split("/")
     toc        = get_toc()
     cat_toc    = get_or_make_summary_node(toc, cats)
