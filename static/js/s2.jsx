@@ -284,6 +284,7 @@ var ReaderApp = React.createClass({
     }
   },
   setHeadroom: function() {
+    if (this.props.multiPanel) { return; }
     var $node    = $(React.findDOMNode(this));
     var scroller = $node.find(".textColumn")[0] || $node.find(".textList .texts")[0] || $node.find(".textList .fullFilterView")[0];
     $node.find(".readerControls").headroom({scroller: scroller});
