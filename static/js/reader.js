@@ -2003,6 +2003,9 @@ function buildCommentary(data) {
 	} else {
 		sjs.current = data;
 	}
+	if ($("body").hasClass("editMode")) { 
+		return; // API call returned after switching modes
+	}
 	var $commentaryBox      = sjs._$commentaryBox;
 	var $commentaryViewPort = sjs._$commentaryViewPort;
 	var $sourcesWrapper     = sjs._$sourcesWrapper;
