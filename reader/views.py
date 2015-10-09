@@ -175,13 +175,26 @@ def s2(request, ref, version=None, lang=None):
     New interfaces in development
     """
     oref         = Ref(ref)
+    if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
+        return s2_text_toc(request, oref)
+
     text         = TextFamily(oref, version=version, lang=lang, commentary=False, context=False, pad=True, alts=True).contents()
     text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
     text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
     return render_to_response('s2.html', {
                                             "ref": oref.normal(),
-                                            "data": text
+                                            "data": text,
                                         }, RequestContext(request))
+
+def s2_text_toc(request, oref):
+    """
+    Standalone page for new sheets list
+    """
+    return render_to_response('s2.html', {
+                                    "initialMenu": "text toc",
+                                    "initialText": oref.normal(),
+                                    "initialCategory": oref.index.categories[0],
+                                }, RequestContext(request))
 
 def s2_page(request, page):
     """

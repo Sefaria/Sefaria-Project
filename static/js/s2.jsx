@@ -67,8 +67,8 @@ var MultiPanelReader = React.createClass({
                                 this.state.panels[i+1].ref : null;
       var panel = this.state.panels[i];
       if (i == 0) {
-        panel.menu = this.props.initialMenu;
-        panel.query = this.props.initialQuery;
+        panel.menu      = this.props.initialMenu;
+        panel.query     = this.props.initialQuery;
         panel.sheetsTag = this.props.initialSheetsTag;
       }
       panels.push(<div className="readerPanel" style={style}>
@@ -78,6 +78,8 @@ var MultiPanelReader = React.createClass({
                       initialMenu={panel.menu}
                       initialQuery={panel.query}
                       initialSheetsTag={panel.sheetsTag}
+                      initialText={this.props.initialText}
+                      initialCategory={this.props.initialCategory}
                       initialSettings={clone(this.props.initialSettings)}
                       multiPanel={this.state.panels.length > 1}
                       handleTextChange={handleTextChange}
@@ -211,7 +213,7 @@ var ReaderApp = React.createClass({
           break;
         case "text toc":
           hist.title = this.currentBook() || "";
-          hist.url   = "/" + hist.title.replace(/ /g, "_");
+          hist.url   = "/" + (this.currentBook() || this.props.initialText).replace(/ /g, "_");
           break;
         case "search":
           hist.title = "Sefaria Search";
@@ -517,9 +519,9 @@ var ReaderApp = React.createClass({
     } else if (this.state.menuOpen === "text toc") {
       var menu = (<ReaderTextTableOfContents 
                     close={this.closeMenus}
-                    text={this.currentBook()}
-                    category={this.currentCategory()}
-                    currentRef={this.currentRef()}
+                    text={this.currentBook() || this.props.initialText}
+                    category={this.currentCategory() || this.props.initialCategory}
+                    currentRef={this.currentRef() || this.props.initialText} 
                     openNav={this.openMenu.bind(null, "navigation")}
                     showBaseText={this.showBaseText} />);
 
@@ -958,9 +960,9 @@ var ReaderTextTableOfContents = React.createClass({
       var ref = $a.attr("data-ref");
       ref = decodeURIComponent(ref);
       ref = humanRef(ref);
+      this.props.close();
       this.props.showBaseText(ref);
       e.preventDefault();
-      this.props.close();
     }
   },
   render: function() {
