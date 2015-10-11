@@ -33,11 +33,34 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
         purge_url("{}/api/texts/{}?commentary=1&sheets=1".format(FRONT_END_URL, section_oref.url()))
         purge_url("{}/api/texts/{}?sheets=1".format(FRONT_END_URL, section_oref.url()))
         purge_url("{}/api/texts/{}?commentary=0".format(FRONT_END_URL, section_oref.url()))
+        purge_url("{}/api/texts/{}?commentary=0&pad=0".format(FRONT_END_URL, section_oref.url()))
         if version and lang:
             purge_url("{}/api/texts/{}/{}/{}?commentary=0".format(FRONT_END_URL, section_oref.url(), lang, version))
 
+        purge_url("{}/api/links/{}".format(FRONT_END_URL, section_oref.url()))
+        purge_url("{}/api/links/{}?with_text=0".format(FRONT_END_URL, section_oref.url()))
+        purge_url("{}/api/links/{}?with_text=1".format(FRONT_END_URL, section_oref.url()))
+
     # Ban anything underneath this section
     manager.run("ban", 'obj.http.url ~ "/api/texts/{}"'.format(url_regex(oref.section_ref())), secret=secret)
+    manager.run("ban", 'obj.http.url ~ "/api/links/{}"'.format(url_regex(oref.section_ref())), secret=secret)
+
+def invalidate_counts(indx):
+    assert isinstance(indx, Index)
+
+    purge_url("{}/api/preview/{}".format(FRONT_END_URL, indx.title))
+    purge_url("{}/api/counts/{}".format(FRONT_END_URL, indx.title))
+
+    # Assume this is unnecesary, given that the specific URLs will have been purged/banned by he save action
+    # oref = Ref(indx.title)
+    # invalidate_ref(oref)
+
+def invalidate_index(indx):
+    assert isinstance(indx, Index)
+
+    purge_url("{}/api/index/{}".format(FRONT_END_URL, indx.title))
+    purge_url("{}/api/v2/raw/index/{}".format(FRONT_END_URL, indx.title))
+    purge_url("{}/api/v2/index/{}".format(FRONT_END_URL, indx.title))
 
 #PyPi version of python-varnish has broken purge function.  We use this instead.
 def purge_url(url):
