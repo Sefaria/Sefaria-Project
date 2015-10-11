@@ -278,7 +278,7 @@ def sheets_list(request, type=None):
 		response["public"] = True
 		tags               = recent_public_tags()
 
-	elif type == "unlisted":
+	elif type == "private":
 		query              = {"owner": request.user.id or -1 }
 		response["title"]  = "Your Source Sheets"
 		response["groups"] = get_user_groups(request.user)
