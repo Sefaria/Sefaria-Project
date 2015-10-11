@@ -46,7 +46,7 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
     manager.run("ban", 'obj.http.url ~ "/api/links/{}"'.format(url_regex(oref.section_ref())), secret=secret)
 
 def invalidate_counts(indx):
-    assert isinstance(indx, Index)
+    assert isinstance(indx, Index) or isinstance(indx, CommentaryIndex)
 
     purge_url("{}/api/preview/{}".format(FRONT_END_URL, indx.title))
     purge_url("{}/api/counts/{}".format(FRONT_END_URL, indx.title))
@@ -56,7 +56,7 @@ def invalidate_counts(indx):
     # invalidate_ref(oref)
 
 def invalidate_index(indx):
-    assert isinstance(indx, Index)
+    assert isinstance(indx, Index) or isinstance(indx, CommentaryIndex)
 
     purge_url("{}/api/index/{}".format(FRONT_END_URL, indx.title))
     purge_url("{}/api/v2/raw/index/{}".format(FRONT_END_URL, indx.title))
