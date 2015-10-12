@@ -75,7 +75,11 @@ def purge_url(url):
                        {'Host': '%s:%s' % (url.hostname, url.port) if url.port else url.hostname})
     response = connection.getresponse()
     if response.status != 200:
-        logger.error('Purge failed with status: %s' % response.status)
+        logger.error(u'Purge of {}{} on host {}:{} failed with status: {}'.format(path,
+                                                                                  u"?" + url.query if url.query else u'',
+                                                                                  url.hostname,
+                                                                                  url.port,
+                                                                                  response.status))
     return response
 
 
