@@ -7,6 +7,9 @@ from sefaria.model import *
 from sefaria.system.exceptions import DuplicateRecordError, InputError
 from sefaria.utils.talmud import section_to_daf
 import sefaria.tracker as tracker
+from sefaria.settings import USE_VARNISH
+if USE_VARNISH:
+    from sefaria.system.sf_varnish import invalidate_ref
 
 #TODO: should all the functions here be decoupled from the need to enter a userid?
 def add_commentary_links(oref, user, **kwargs):
@@ -85,6 +88,10 @@ def add_commentary_links(oref, user, **kwargs):
         length = sn.ja('all').length()
         for r in oref.subrefs(length):
             add_commentary_links(r, user, **kwargs)
+
+        if USE_VARNISH:
+            invalidate_ref(oref)
+            invalidate_ref(Ref(base_tref))
 
 def rebuild_commentary_links(tref, user, **kwargs):
     """
@@ -171,6 +178,8 @@ def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
             try:
                 tracker.add(user, Link, link, **kwargs)
                 links += [link]
+                if USE_VARNISH:
+                    invalidate_ref(oref)
             except InputError as e:
                 pass
 
@@ -179,6 +188,8 @@ def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
             for r in exLink.refs:
                 if r == ref:  # current base ref
                     continue
+                if USE_VARNISH:
+                    invalidate_ref(Ref(r))
                 if r not in found:
                     tracker.delete(user, Link, exLink._id)
                 break
