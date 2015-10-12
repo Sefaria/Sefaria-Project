@@ -21,29 +21,32 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
     todo: Tune this so as not to ban when the version changed is not a displayed version
     """
     assert isinstance(oref, Ref)
-    section_oref = oref.section_ref()
+    
+    if len(oref.sections) >= oref.index_node.depth - 1:
+        oref = oref.section_ref()
+
     if version:
         version = version.replace(" ", "_")
     if purge:
         # Purge this section level ref, so that immediate responses will return good results
-        purge_url("{}/api/texts/{}".format(FRONT_END_URL, section_oref.url()))
+        purge_url("{}/api/texts/{}".format(FRONT_END_URL, oref.url()))
         if version and lang:
-            purge_url("{}/api/texts/{}/{}/{}".format(FRONT_END_URL, section_oref.url(), lang, version))
+            purge_url("{}/api/texts/{}/{}/{}".format(FRONT_END_URL, oref.url(), lang, version))
         # Hacky to add these
-        purge_url("{}/api/texts/{}?commentary=1&sheets=1".format(FRONT_END_URL, section_oref.url()))
-        purge_url("{}/api/texts/{}?sheets=1".format(FRONT_END_URL, section_oref.url()))
-        purge_url("{}/api/texts/{}?commentary=0".format(FRONT_END_URL, section_oref.url()))
-        purge_url("{}/api/texts/{}?commentary=0&pad=0".format(FRONT_END_URL, section_oref.url()))
+        purge_url("{}/api/texts/{}?commentary=1&sheets=1".format(FRONT_END_URL, oref.url()))
+        purge_url("{}/api/texts/{}?sheets=1".format(FRONT_END_URL, oref.url()))
+        purge_url("{}/api/texts/{}?commentary=0".format(FRONT_END_URL, oref.url()))
+        purge_url("{}/api/texts/{}?commentary=0&pad=0".format(FRONT_END_URL, oref.url()))
         if version and lang:
-            purge_url("{}/api/texts/{}/{}/{}?commentary=0".format(FRONT_END_URL, section_oref.url(), lang, version))
+            purge_url("{}/api/texts/{}/{}/{}?commentary=0".format(FRONT_END_URL, oref.url(), lang, version))
 
-        purge_url("{}/api/links/{}".format(FRONT_END_URL, section_oref.url()))
-        purge_url("{}/api/links/{}?with_text=0".format(FRONT_END_URL, section_oref.url()))
-        purge_url("{}/api/links/{}?with_text=1".format(FRONT_END_URL, section_oref.url()))
+        purge_url("{}/api/links/{}".format(FRONT_END_URL, oref.url()))
+        purge_url("{}/api/links/{}?with_text=0".format(FRONT_END_URL, oref.url()))
+        purge_url("{}/api/links/{}?with_text=1".format(FRONT_END_URL, oref.url()))
 
     # Ban anything underneath this section
-    manager.run("ban", 'obj.http.url ~ "/api/texts/{}"'.format(url_regex(oref.section_ref())), secret=secret)
-    manager.run("ban", 'obj.http.url ~ "/api/links/{}"'.format(url_regex(oref.section_ref())), secret=secret)
+    manager.run("ban", 'obj.http.url ~ "/api/texts/{}"'.format(url_regex(oref)), secret=secret)
+    manager.run("ban", 'obj.http.url ~ "/api/links/{}"'.format(url_regex(oref)), secret=secret)
 
 def invalidate_counts(indx):
     assert isinstance(indx, Index) or isinstance(indx, CommentaryIndex)
