@@ -894,14 +894,14 @@ body .bilingual .enOnly .he {
 }
 .readerApp.hebrew .segment .segmentNumber,
 .readerApp.bilingual .segment .segmentNumber {
-  right: 8px;
+  right: 4px;
 }
 .readerApp.english .segment .linkCount {
   right: 11px;
 }
 .readerApp.hebrew .segment .linkCount,
 .readerApp.bilingual .segment .linkCount {
-  left: 4px;
+  left: 11px;
 }
 .segment .refLink {
   font-size: .8em;
