@@ -643,6 +643,11 @@ body .bilingual .enOnly .he {
   text-align: right;
   padding-right: 10px;
 }
+.readerControls .readerOptions img {
+  height: 26px;
+  vertical-align: middle;
+  margin-top: -4px;
+}
 .readerControls .controlsButton {
   cursor: pointer;
   display: inline-block;

@@ -651,7 +651,7 @@ var ReaderControls = React.createClass({
 
           </div>
           <div className="readerOptions" onClick={this.props.openMenu.bind(null, "display")}>
-            <i className="fa fa-bars"></i>
+            <img src="/static/img/bilingual2.png" />
           </div>
         </div>);
     return (
