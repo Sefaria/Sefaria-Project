@@ -858,6 +858,7 @@ body .bilingual .enOnly .he {
   top: 0;
   background-color: inherit;
   width: 30px;
+  visibility: hidden;
   text-align: center;
   font-weight: lighter;
   width: 18px;

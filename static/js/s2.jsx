@@ -1621,7 +1621,7 @@ var TextRange = React.createClass({
     var $text      = $(React.findDOMNode(this));
     var setTop = function() {
        var top  = $(this).parent().position().top;
-      $(this).css({top: top});   
+      $(this).css({top: top}).show();   
     }
     $text.find(".segmentNumber").each(setTop);
     $text.find(".linkCount").each(setTop);
