@@ -115,7 +115,7 @@ $(function() {
 
 			}
 			
-	
+		autoSave();
 
     }
     
@@ -136,16 +136,26 @@ $(function() {
 	else {
 		$target.parent().remove();
 		sjs.alert.flash("We couldn't understand your link.<br/>No media added.")
-		
+		autoSave();	
 	}
 
 	$("#addMediaModal, #overlay").hide();
 
-	$target.find('audio, img').error(function() {
-	    $target.parent().remove();
-		sjs.alert.flash("There was an error adding your media.")
 
-	  });
+
+
+	$target.find('audio, img').last()
+	    .on('load', function() { 
+	    console.log("media loaded correctly");
+	    autoSave();
+	     })
+	    .on('error', function() { 
+	    	$target.parent().remove();
+			sjs.alert.flash("There was an error adding your media.")
+			autoSave();
+	     })
+
+
   
 
 	if (sjs.openRequests == 0) {
@@ -153,7 +163,6 @@ $(function() {
 		$("html, body").animate({scrollTop: top}, 300);		
 	}
 
-	autoSave();
 	
 	});	
 	
