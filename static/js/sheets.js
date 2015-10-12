@@ -143,20 +143,27 @@ $(function() {
 
 
 
-
+	//if the image or audio is a bad link or can't be loaded
 	$target.find('audio, img').last()
-	    .on('load', function() { 
-	    console.log("media loaded correctly");
-	    autoSave();
-	     })
 	    .on('error', function() { 
 	    	$target.parent().remove();
 			sjs.alert.flash("There was an error adding your media.")
 			autoSave();
-	     })
+	     });     
+	   
+	//if the image is loaded    
+	$target.find('img').last()     
+	    .on('load', function() { 
+		    console.log("media loaded correctly");
+		    autoSave();
+	     });
 
-
-  
+	//if the audio starts to load    
+	$target.find('audio').last()
+	    .on('loadedmetadata', function() { 
+		    console.log("media loaded correctly");
+		    autoSave();
+	     });
 
 	if (sjs.openRequests == 0) {
 		var top = $target.offset().top - 200;
