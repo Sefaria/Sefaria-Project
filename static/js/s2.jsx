@@ -307,8 +307,11 @@ var ReaderApp = React.createClass({
   setHeadroom: function() {
     if (this.props.multiPanel) { return; }
     var $node    = $(React.findDOMNode(this));
-    var scroller = $node.find(".textColumn")[0] || $node.find(".textList .texts")[0] || $node.find(".textList .fullFilterView")[0];
-    $node.find(".readerControls").headroom({scroller: scroller});
+    var $header  = $node.find(".readerControls");
+    if (this.currentMode() !== "TextList") {
+      var scroller = $node.find(".textColumn")[0];
+      $header.headroom({scroller: scroller});
+    }
   },
   showTextList: function(ref) {
     if (this.state.contents.length == 2) {
@@ -590,6 +593,7 @@ var ReaderApp = React.createClass({
           currentMode={this.currentMode}
           currentCategory={this.currentCategory}
           currentBook={this.currentBook}
+          multiPanel={this.props.multiPanel}
           settings={this.state.settings}
           setOption={this.setOption}
           openMenu={this.openMenu}
@@ -630,10 +634,10 @@ var ReaderControls = React.createClass({
     var title = this.props.currentBook();
     var index = sjs.library.index(title);
     var heTitle = index ? index.heTitle : "";
-    return (
-      <div>
-        <div className="categoryColorLine" style={lineStyle}></div>
-        <div className="readerControls headroom">
+    var hideHeader = !this.props.multiPanel && this.props.currentMode() === "TextList";
+
+    var readerControls = hideHeader ? "" :
+        (<div className="readerControls headroom">
           <div className="readerNav"  onClick={this.props.openMenu.bind(null, "navigation")}>
             <i className="fa fa-search"></i>
           </div>
@@ -649,8 +653,13 @@ var ReaderControls = React.createClass({
           <div className="readerOptions" onClick={this.props.openMenu.bind(null, "display")}>
             <i className="fa fa-bars"></i>
           </div>
-        </div>        
-      </div>);
+        </div>);
+    return (
+      <div>
+        <div className="categoryColorLine" style={lineStyle}></div>
+        {readerControls}
+      </div>
+    );
   }
 });
 
