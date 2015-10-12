@@ -47,20 +47,22 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
 
 def invalidate_counts(indx):
     assert isinstance(indx, Index) or isinstance(indx, CommentaryIndex)
+    oref = Ref(indx.title)
 
-    purge_url("{}/api/preview/{}".format(FRONT_END_URL, indx.title))
-    purge_url("{}/api/counts/{}".format(FRONT_END_URL, indx.title))
+    purge_url("{}/api/preview/{}".format(FRONT_END_URL, oref.url()))
+    purge_url("{}/api/counts/{}".format(FRONT_END_URL, oref.url()))
 
-    # Assume this is unnecesary, given that the specific URLs will have been purged/banned by he save action
+    # Assume this is unnecesary, given that the specific URLs will have been purged/banned by the save action
     # oref = Ref(indx.title)
     # invalidate_ref(oref)
 
 def invalidate_index(indx):
     assert isinstance(indx, Index) or isinstance(indx, CommentaryIndex)
+    oref = Ref(indx.title)
 
-    purge_url("{}/api/index/{}".format(FRONT_END_URL, indx.title))
-    purge_url("{}/api/v2/raw/index/{}".format(FRONT_END_URL, indx.title))
-    purge_url("{}/api/v2/index/{}".format(FRONT_END_URL, indx.title))
+    purge_url("{}/api/index/{}".format(FRONT_END_URL, oref.url()))
+    purge_url("{}/api/v2/raw/index/{}".format(FRONT_END_URL, oref.url()))
+    purge_url("{}/api/v2/index/{}".format(FRONT_END_URL, oref.url()))
 
 #PyPi version of python-varnish has broken purge function.  We use this instead.
 def purge_url(url):
@@ -75,10 +77,10 @@ def purge_url(url):
                        {'Host': '%s:%s' % (url.hostname, url.port) if url.port else url.hostname})
     response = connection.getresponse()
     if response.status != 200:
-        logger.error(u'Purge of {}{} on host {}:{} failed with status: {}'.format(path,
+        logger.error(u'Purge of {}{} on host {}{} failed with status: {}'.format(path,
                                                                                   u"?" + url.query if url.query else u'',
                                                                                   url.hostname,
-                                                                                  url.port,
+                                                                                  u":" + url.port if url.port else u'',
                                                                                   response.status))
     return response
 
