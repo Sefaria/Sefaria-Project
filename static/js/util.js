@@ -50,20 +50,34 @@ sjs.cache = {
 			//do we have a cached preferred version for this text? get it
 			var versionInfo = this.getPreferredTextVersion(book);
 			var versionPath = versionInfo ? "/"+versionInfo['lang']+"/"+versionInfo['version'] : '';
-			$.getJSON("/api/texts/" + makeRef(pRef) + versionPath + paramString, function(data){
-				if(versionInfo){ // preferred version might not exist, so get default
-					var version_text_attr = versionInfo['lang'] == 'he' ? 'he' : 'text';
-					if(!data[version_text_attr] || !data[version_text_attr].length){
-						$.getJSON("/api/texts/" + makeRef(pRef) + paramString, callback);
-					}
-				}
-				callback(data);
-			});
+
+            var text_fetch = $.getJSON("/api/texts/" + makeRef(pRef) + versionPath + paramString)
+                .done(function (data) {
+                    if (versionInfo) { // preferred version might not exist, so get default
+                        var version_text_attr = versionInfo['lang'] == 'he' ? 'he' : 'text';
+                        if (!data[version_text_attr] || !data[version_text_attr].length) {
+                            return $.getJSON("/api/texts/" + makeRef(pRef) + paramString);
+                        }
+                    }
+                });
+            if (this._params.notes) {
+                var note_fetch = $.getJSON("/api/notes/" + makeRef(pRef));
+                $.when(text_fetch, note_fetch).done(function(textData, noteData) {
+                    textData[0]["notes"] = noteData[0];
+                    callback(textData[0]);
+                })
+
+            } else {
+                text_fetch.done(function(data) { callback(data) });
+            }
 		}
+	},
+	cacheKey: function(ref) {
+		return normRef(ref).toLowerCase();
 	},
 	save: function(origData) {
 		var data = clone(origData);
-		var ref  = normRef(data.ref).toLowerCase();
+		var ref  = this.cacheKey(data.ref);
 
 		// Store data for book name alone (eg "Genesis") immediatley
 		// normalizing below will render this "Genesis.1" which we also store
@@ -114,6 +128,9 @@ sjs.cache = {
 		// Returns the params string according to value in _params
 		var str = "";
 		for (p in this._params) {
+            if (p == "notes") {
+                continue;
+            }
 			str += "&" + p + "=" + this._params[p];
 		}
 		if (str.length) {
@@ -122,7 +139,7 @@ sjs.cache = {
 		return str;
 	},
 	kill: function(ref) {
-		ref = makeRef(parseRef(ref));
+		ref = this.cacheKey(ref);
 		if (ref in this._cache) delete this._cache[ref];
 		else if (ref.indexOf(".") != ref.lastIndexOf(".")) {
 			ref = ref.slice(0, ref.lastIndexOf("."));

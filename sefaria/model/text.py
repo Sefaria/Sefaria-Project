@@ -1019,6 +1019,7 @@ class TextChunk(AbstractTextRecord):
 
         self.full_version.save()
         self._oref.recalibrate_next_prev_refs(len(self.text))
+
         return self
 
     def _pad(self, content):
@@ -3051,7 +3052,6 @@ class Ref(object):
                 self._url = "".join(lref)
         return self._url
 
-
     def noteset(self, public=True, uid=None):
         """
         :return: :class:`NoteSet` for this Ref
@@ -3225,6 +3225,7 @@ class Library(object):
         :param bool with_commentary: If True, returns "X on Y" type titles as well
         """
         root_nodes = []
+        #todo: speed: does it matter that this skips the index cache?
         for i in IndexSet():
             if i.is_commentary():
                 continue

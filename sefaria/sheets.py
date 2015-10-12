@@ -323,7 +323,7 @@ def make_sheet_list_by_tag():
 	tags = {}
 	results = []
 
-	sheet_list = db.sheets.find({"status": 3})
+	sheet_list = db.sheets.find({"status": "public"})
 	for sheet in sheet_list:
 		sheet_tags = sheet.get("tags", [])
 		for tag in sheet_tags:

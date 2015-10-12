@@ -4,9 +4,13 @@
 	<div id="right" class="">
 		<div id="showOptions" class="">≡</div>
 		<div id="rightButtons">
-		
-			{% include "elements/accountBox.html" %}
-		
+
+            {% if USE_VARNISH_ESI %}
+                <esi:include src="/esi/account_box" />
+            {% else %}
+		    	{% include "elements/accountBox.html" %}
+    		{% endif %}
+
 			<div id="viewButtons">
 
 				<span id="biLayoutToggle" class="toggle"><span id="heLeft" class="toggleOption {% if layout == 'heLeft' %}active{% endif %}"><img src="/static/img/backs.png"></span><span id="heRight" class="toggleOption {% if layout == 'heRight' %}active{% endif %}"><img src="/static/img/faces.png"></span></span>
