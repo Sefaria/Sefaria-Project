@@ -174,6 +174,7 @@ var ReaderApp = React.createClass({
     var state   = history.state;
     var hist    = state.contents.slice(-1)[0];
     var current = this.currentContent();
+
     if (!state || !hist || !current) { 
       return true;
     }
@@ -188,7 +189,12 @@ var ReaderApp = React.createClass({
     } else if (state.navigationSheetTag !== this.state.navigationSheetTag) {
       return true;
     } else if (state.navigationCategories !== this.state.navigationCategories) {
-      return true;
+      // Handle array comparison, !== could mean one is null or both are arrays
+      if (!state.navigationCategories || !this.state.navigationCategories) {
+        return true; // They are not equal and one is null
+      } else if (!state.navigationCategories.compare(this.state.navigationCategories)) {
+        return true; // both are set, compare arrays
+      }
     } else if (current.type === "TextColumn") {
       if (current.refs.slice(-1)[0] !== hist.refs.slice(-1)[0]) {
         return true;
@@ -261,11 +267,9 @@ var ReaderApp = React.createClass({
       var hist = this.makeHistoryState();
       if (this.state.replaceHistory) {
         history.replaceState(hist.state, hist.title, hist.url);
-        console.log("Replace")
         $("title").html(hist.title);
       } else {
         history.pushState(hist.state, hist.title, hist.url);
-        console.log("Push")
         $("title").html(hist.title);
         if (hist.state.type == "TextColumn") {
           sjs.track.open(hist.title);
