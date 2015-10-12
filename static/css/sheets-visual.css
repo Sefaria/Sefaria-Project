@@ -1,0 +1,47 @@
+body {
+	background-color: #fff;
+	font-family: "Times New Roman", "Georgia", serif;
+
+}
+
+.source {
+  	width: 300px;
+	background-color:#eee;
+	position:absolute;
+	overflow:hidden;
+	min-width:200px;
+}
+
+#controls {
+	left:20px;
+	margin-left:0;
+}
+
+.zoomButton {
+	display: block;
+	text-align: center;
+	margin-bottom: 10px;
+	cursor: pointer;
+	color: white;
+	background-color: #06c;
+	position: relative;
+	font-size: 18px;
+	width: 60px;
+	height: 60px;
+	line-height: 60px;
+	vertical-align: middle;
+	border-radius: 50%;
+	box-shadow: 0 0 4px rgba(0,0,0,.14),0 4px 8px rgba(0,0,0,.28);
+
+}
+
+.zoomContainer .en {
+	direction: ltr;
+}
+.zoomContainer .he {
+	direction: rtl;
+	text-align: right;
+	font-family: "Times New Roman", Serif;
+	font-size: 24px;
+}
+
