@@ -1225,20 +1225,54 @@ input[type="file"] {
 
 
 #resetToDefaults {
-margin-top:10px;
-text-decoration: underline;
-cursor: pointer;
+	margin-top:10px;
+	text-decoration: underline;
+	cursor: pointer;
 }
 
 .disabled { 
-pointer-events: none;
-opacity: .3;
+	pointer-events: none;
+	opacity: .3;
 }
 
 #overrideLayoutModal .ok {
-margin-top: 25px;
+	margin-top: 25px;
 }
 
 #overrideLayoutModal .header {
-margin: 15px 0px 25px;
+	margin: 15px 0px 25px;
+}
+
+#sharingModal {
+	width:500px;
+}
+
+#sharingModal .radio {
+	text-align:left;
+	margin: 8px 8px 18px;
+}
+
+.sharingLabel {
+	font-weight:bold;
+	vertical-align: top;
+}
+
+.sharingDesc {
+	padding-left: 72px;
+	display:block;
+	margin-top: -22px;
+}
+
+.iconHolder {
+	width:38px;
+	display:inline-block;
+	padding: 0 5px 15px 10px;
+}
+
+.fa-onTop {
+	margin-left:-5px;
+}
+
+.alertBox {
+	z-index:101;
 }

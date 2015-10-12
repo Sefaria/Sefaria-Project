@@ -2,6 +2,8 @@
 import hashlib
 import sys
 
+from sefaria.local_settings import USE_VARNISH
+
 if not hasattr(sys, '_doc_build'):
     from django.core.cache import cache
 
@@ -74,6 +76,9 @@ def reset_texts_cache():
 
 def process_index_change_in_cache(indx, **kwargs):
     reset_texts_cache()
+    if USE_VARNISH:
+        from sefaria.system.sf_varnish import invalidate_index
+        invalidate_index(indx)
 
 
 def process_new_commentary_version_in_cache(ver, **kwargs):
