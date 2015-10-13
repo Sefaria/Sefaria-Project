@@ -41,7 +41,7 @@ with open("Torah Commentators - Bios - Works.tsv") as tsv:
     unhandled = set([i.primary_title() for i in library.get_index_forest(True)]) - set(indexes_handled)
     if len(unhandled) > 0:
         print "Indexes not covered in the sheet:"
-        for a in unhandled:
+        for a in sorted(unhandled):
             print a
 
     tsv.seek(0)

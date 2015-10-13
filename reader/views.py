@@ -2096,6 +2096,7 @@ def person_page(request, name):
     }
     template_vars["relationships"] = person.get_grouped_relationships()
     template_vars["indexes"] = person.get_indexes()
+    template_vars["post_talmudic"] = person.is_post_talmudic()
 
     return render_to_response('person.html', template_vars, RequestContext(request))
 
@@ -2114,7 +2115,7 @@ def person_index(request):
                 "name_he": tp.primary_name("he"),
                 "years_en": tp.year_string("en"),
                 "years_he": tp.year_string("he"),
-                "people": [p for p in PersonSet({"era": era})]
+                "people": [p for p in PersonSet({"era": era}, sort=[('deathYear', 1)]) if p.has_indexes()]
             }
         )
 

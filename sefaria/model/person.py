@@ -88,11 +88,19 @@ class Person(abst.AbstractMongoRecord):
         else:
             return None
 
+    def is_post_talmudic(self):
+        eras = ["GN", "RI", "AH", "CO"]
+        return getattr(self, "era", None) in eras
+
     def get_relationship_set(self):
         return PersonRelationshipSet.load_by_key(self.key)
 
     def get_grouped_relationships(self):
         return PersonRelationshipSet.load_by_key(self.key).grouped(self.key)
+
+    def has_indexes(self):
+        from . import text
+        return text.IndexSet({"authors": self.key}).count() > 0
 
     def get_indexes(self, include_commentary=True):
         from . import text

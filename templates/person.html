@@ -18,6 +18,21 @@
     
 <div id="personPage" class="container doc biReady">
     <span class="row">
+        <span class="span10 offset1">
+            {% if post_talmudic %}
+                <a href="/people">
+                    <span class='en'>&leftarrow; All Authors</span>
+                    <span class='he'>&rightarrow; כל המחברים</span>
+                </a>
+            {% else %}
+                <a href="/people/Talmud">
+                    <span class='en'>&leftarrow; People in the Talmud</span>
+                    <span class='he'>&rightarrow; אנשים בתלמוד</span>
+                </a>
+            {% endif %}
+        </span>
+    </span>
+    <span class="row">
         <span class="span8 offset2">
             <h1>
                 <span class='en'>{{ primary_name.en }}</span>

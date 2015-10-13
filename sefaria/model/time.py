@@ -139,7 +139,7 @@ class TimePeriod(abst.AbstractMongoRecord):
             approxMarker = self.getApproximateMarkers(lang)
 
             if lang == "en":
-                if self.symbol == "CO":
+                if getattr(self, "symbol", "") == "CO":
                     name += u" ({}{} {} - )".format(
                         approxMarker[0],
                         abs(int(self.start)),
@@ -153,7 +153,7 @@ class TimePeriod(abst.AbstractMongoRecord):
                         abs(int(self.end)),
                         labels[1])
             if lang == "he":
-                if self.symbol == "CO":
+                if getattr(self, "symbol", "") == "CO":
                     name += u" ({} {} {} - )".format(
                         abs(int(self.start)),
                         labels[1],
@@ -177,7 +177,7 @@ class TimePeriod(abst.AbstractMongoRecord):
                             u" " + labels[1] if labels[1] else u"",
                             u" " + approxMarker[1] if approxMarker[1] else u""
                         )
-                
+
         return name
 
     def get_era(self):
