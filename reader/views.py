@@ -36,6 +36,9 @@ from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.datatype.jagged_array import JaggedArray
 import sefaria.utils.calendars
 import sefaria.tracker as tracker
+from sefaria.settings import USE_VARNISH
+if USE_VARNISH:
+    from sefaria.system.sf_varnish import invalidate_ref
 
 import logging
 logger = logging.getLogger(__name__)
@@ -89,29 +92,19 @@ def reader(request, tref, lang=None, version=None):
 
     version = version.replace("_", " ") if version else None
 
+    text = TextFamily(Ref(tref), lang=lang, version=version, commentary=False, alts=True).contents()
+    text.update({"commentary": [], "notes": [], "sheets": [], "layer": [], "connectionsLoadNeeded": True})
+    hasSidebar = True
+
+
     layer_name = request.GET.get("layer", None)
-    if layer_name:
-        #text = get_text(tref, lang=lang, version=version, commentary=False)
-        text = TextFamily(Ref(tref), lang=lang, version=version, commentary=False, alts=True).contents()
-        if not "error" in text:
-            layer = Layer().load({"urlkey": layer_name})
-            if not layer:
-                raise InputError("Layer not found.")
-            layer_content      = [format_note_object_for_client(n) for n in layer.all(tref=tref)]
-            text["layer"]      = layer_content
-            text["layer_name"] = layer_name
-            text["commentary"] = []
-            text["notes"]      = []
-            text["sheets"]     = []
-            text["_loadSources"] = True
-            hasSidebar = True if len(text["layer"]) else False
-    else:
-        text = TextFamily(Ref(tref), lang=lang, version=version, commentary=True, alts=True).contents()
-        hasSidebar = True if len(text["commentary"]) else False
-        if not "error" in text:
-            text["notes"]  = get_notes(oref, uid=request.user.id)
-            text["sheets"] = get_sheets_for_ref(tref)
-            hasSidebar = True if len(text["notes"]) or len(text["sheets"]) else hasSidebar
+    if layer_name and not "error" in text:
+        layer = Layer().load({"urlkey": layer_name})
+        if not layer:
+            raise InputError("Layer not found.")
+        text["layer"]        = [format_note_object_for_client(n) for n in layer.all(tref=tref)]
+        text["_loadSourcesFromDiscussion"] = True
+
     text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
     text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
     text["ref"] = Ref(text["ref"]).normal()
@@ -168,6 +161,9 @@ def reader(request, tref, lang=None, version=None):
             template_vars["contentLang"] = {"he": "hebrew", "en": "english"}[lang]
 
     return render_to_response('reader.html', template_vars, RequestContext(request))
+
+def esi_account_box(request):
+    return render_to_response('elements/accountBox.html', {}, RequestContext(request))
 
 
 def s2(request, ref="Genesis 1", version=None, lang=None):
@@ -630,7 +626,18 @@ def count_and_index(c_oref, c_lang, vtitle, to_count=1, to_index=1):
 @csrf_exempt
 def texts_api(request, tref, lang=None, version=None):
     oref = Ref(tref)
+
     if request.method == "GET":
+        uref = oref.url()
+        if uref and tref != uref:    # This is very similar to reader.reader_redirect subfunction, above.
+            url = "/api/texts/" + uref
+            if lang and version:
+                url += "/%s/%s" % (lang, version)
+            response = redirect(iri_to_uri(url), permanent=True)
+            params = request.GET.urlencode()
+            response['Location'] += "?%s" % params if params else ""
+            return response
+
         cb         = request.GET.get("callback", None)
         context    = int(request.GET.get("context", 1))
         commentary = bool(int(request.GET.get("commentary", True)))
@@ -645,7 +652,6 @@ def texts_api(request, tref, lang=None, version=None):
             oref = oref.default_child_ref()
             text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
 
-
         # Use a padded ref for calculating next and prev
         # TODO: what if pad is false and the ref is of an entire book?
         # Should next_section_ref return None in that case?
@@ -653,7 +659,6 @@ def texts_api(request, tref, lang=None, version=None):
         text["next"]       = oref.next_section_ref().normal() if oref.next_section_ref() else None
         text["prev"]       = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
         text["commentary"] = text.get("commentary", [])
-        text["notes"]      = get_notes(oref, uid=request.user.id) if int(request.GET.get("notes", 0)) else []
         text["sheets"]     = get_sheets_for_ref(tref) if int(request.GET.get("sheets", 0)) else []
 
         if layer_name:
@@ -663,7 +668,7 @@ def texts_api(request, tref, lang=None, version=None):
             layer_content        = [format_note_object_for_client(n) for n in layer.all(tref=tref)]
             text["layer"]        = layer_content
             text["layer_name"]   = layer_name
-            text["_loadSources"] = True
+            text["_loadSourcesFromDiscussion"] = True
         else:
             text["layer"] = []
 
@@ -909,6 +914,10 @@ def text_preview_api(request, title):
 
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
+def revarnish_link(link):
+    if USE_VARNISH:
+        for ref in link.refs:
+            invalidate_ref(Ref(ref), purge=True)
 
 @catch_error_as_json
 @csrf_exempt
@@ -950,7 +959,7 @@ def links_api(request, link_id_or_ref=None):
             return jsonResponse({"error": "No link id given for deletion."})
 
         return jsonResponse(
-            tracker.delete(request.user.id, model.Link, link_id_or_ref)
+            tracker.delete(request.user.id, model.Link, link_id_or_ref, callback=revarnish_link)
         )
 
     return jsonResponse({"error": "Unsuported HTTP method."})
@@ -969,15 +978,17 @@ def post_single_link(request, link):
         apikey = db.apikeys.find_one({"key": key})
         if not apikey:
             return {"error": "Unrecognized API key."}
-        response = format_object_for_client(
-            func(apikey["uid"], model.Link, link, method="API")
-        )
+        obj = func(apikey["uid"], model.Link, link, method="API")
+        if USE_VARNISH:
+            revarnish_link(obj)
+        response = format_object_for_client(obj)
     else:
         @csrf_protect
         def protected_link_post(req):
-            resp = format_object_for_client(
-                func(req.user.id, model.Link, link)
-            )
+            obj=func(req.user.id, model.Link, link)
+            if USE_VARNISH:
+                revarnish_link(obj)
+            resp = format_object_for_client(obj)
             return resp
         response = protected_link_post(request)
     return response
@@ -996,11 +1007,18 @@ def link_summary_api(request, ref):
 
 @catch_error_as_json
 @csrf_exempt
-def notes_api(request, note_id):
+def notes_api(request, note_id_or_ref):
     """
     API for user notes.
-    Currently only handles deleting. Adding and editing are handled throughout the links API.
+    Is this still true? "Currently only handles deleting. Adding and editing are handled throughout the links API."
+    A called to this API with GET returns the list of public notes and private notes belong to the current user on this Ref. 
     """
+    if request.method == "GET":
+        oref = Ref(note_id_or_ref)
+        cb = request.GET.get("callback", None)
+        res = get_notes(oref, uid=request.user.id)
+        return jsonResponse(res, cb)
+
     if request.method == "POST":
         j = request.POST.get("json")
         if not j:
@@ -1052,7 +1070,7 @@ def notes_api(request, note_id):
         if not request.user.is_authenticated():
             return jsonResponse({"error": "You must be logged in to delete notes."})
         return jsonResponse(
-            tracker.delete(request.user.id, model.Note, note_id)
+            tracker.delete(request.user.id, model.Note, note_id_or_ref)
         )
 
     return jsonResponse({"error": "Unsuported HTTP method."})

@@ -296,8 +296,10 @@ def delete_citation_links(request, title):
 
 @staff_member_required
 def cache_stats(request):
+    import resource
     resp = {
-        'ref_cache_size': model.Ref.cache_size()
+        'ref_cache_size': model.Ref.cache_size(),
+        'memory usage': resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     }
     return jsonResponse(resp)
 

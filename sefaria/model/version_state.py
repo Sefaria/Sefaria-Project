@@ -14,6 +14,7 @@ from text import VersionSet, AbstractIndex, AbstractSchemaContent, IndexSet, lib
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedIntArray
 from sefaria.system.exceptions import InputError, BookNameError
 from sefaria.system.cache import delete_template_cache
+from sefaria.local_settings import USE_VARNISH
 
 '''
 old count docs were:
@@ -144,6 +145,10 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         self.index.nodes.visit_structure(self._aggregate_structure_state, self)
         self.linksCount = link.LinkSet(Ref(self.index.title)).count()
         self.save()
+
+        if USE_VARNISH:
+            from sefaria.system.sf_varnish import invalidate_counts
+            invalidate_counts(self.index)
 
     def get_flag(self, flag):
         return self.flags.get(flag, None)
