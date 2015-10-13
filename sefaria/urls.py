@@ -228,7 +228,7 @@ urlpatterns += patterns('reader.views',
     (r'^person/(?P<name>.+)$', 'person_page'),
     (r'^people/Talmud/?$', 'talmud_person_index'),
     (r'^people/?$', 'person_index'),
-    (r'garden/(?P<key>.+)$', 'garden_page')
+    (r'^garden/(?P<key>.+)$', 'garden_page')
 
 )
 

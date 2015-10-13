@@ -120,12 +120,12 @@ class TimePeriod(abst.AbstractMongoRecord):
         if self.start < 0 < self.end:
             return (u"BCE ", u"CE") if lang == "en" else (u'לפנה"ס' + u' ', u"לספירה")
         elif self.end > 0:
-            return (u"", u"CE") if lang == "en" else (u"", u'לפנה"ס')
+            return (u"", u"CE") if lang == "en" else (u"", u"לספירה")
         else:  # self.end < 0
             return (u"", u"BCE") if lang == "en" else (u"", u'לפנה"ס')
 
     def getApproximateMarkers(self, lang):
-        marker = u"c." if lang == "en" else u"סביבות "
+        marker = u"c." if lang == "en" else u"בקירוב"
         return (
             marker if getattr(self, "startIsApprox", None) else u"",
             marker if getattr(self, "endIsApprox", None) else u""
@@ -133,17 +133,51 @@ class TimePeriod(abst.AbstractMongoRecord):
 
     def year_string(self, lang):
         name = u""
+
         if getattr(self, "start", None) and getattr(self, "end", None):
             labels = self.getYearLabels(lang)
             approxMarker = self.getApproximateMarkers(lang)
 
-            name += u" ({}{} {}- {}{} {})".format(
-                approxMarker[0],
-                abs(int(self.start)),
-                labels[0],
-                approxMarker[1],
-                abs(int(self.end)),
-                labels[1])
+            if lang == "en":
+                if self.symbol == "CO":
+                    name += u" ({}{} {} - )".format(
+                        approxMarker[0],
+                        abs(int(self.start)),
+                        labels[1])
+                else:
+                    name += u" ({}{} {} - {}{} {})".format(
+                        approxMarker[0],
+                        abs(int(self.start)),
+                        labels[0],
+                        approxMarker[1],
+                        abs(int(self.end)),
+                        labels[1])
+            if lang == "he":
+                if self.symbol == "CO":
+                    name += u" ({} {} {} - )".format(
+                        abs(int(self.start)),
+                        labels[1],
+                        approxMarker[0])
+                else:
+                    both_approx = approxMarker[0] and approxMarker[1]
+                    if both_approx:
+                        name += u" ({}{} - {}{} {})".format(
+                            abs(int(self.start)),
+                            u" " + labels[0] if labels[0] else u"",
+                            abs(int(self.end)),
+                            u" " + labels[1] if labels[1] else u"",
+                            approxMarker[1]
+                        )
+                    else:
+                        name += u" ({}{}{} - {}{}{})".format(
+                            abs(int(self.start)),
+                            u" " + labels[0] if labels[0] else u"",
+                            u" " + approxMarker[0] if approxMarker[0] else u"",
+                            abs(int(self.end)),
+                            u" " + labels[1] if labels[1] else u"",
+                            u" " + approxMarker[1] if approxMarker[1] else u""
+                        )
+                
         return name
 
     def get_era(self):
