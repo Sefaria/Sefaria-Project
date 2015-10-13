@@ -39,7 +39,7 @@ def index_text(oref, version=None, lang=None, bavli_amud=True):
     """
     assert isinstance(oref, Ref)
 
-    # Recall this function for each specific text version, if non provided
+    # Recall this function for each specific text version, if none provided
     if not (version and lang):
         for v in oref.version_list():
             index_text(oref, version=v["versionTitle"], lang=v["language"], bavli_amud=bavli_amud)
@@ -47,7 +47,7 @@ def index_text(oref, version=None, lang=None, bavli_amud=True):
 
     # Index each segment of this document individually
     padded_oref = oref.padded_ref()
-    if bavli_amud and padded_oref.is_bavli(): # Index bavli by amud
+    if bavli_amud and padded_oref.is_bavli():  # Index bavli by amud. and commentaries by line
         pass
     elif len(padded_oref.sections) < len(padded_oref.index_node.sectionNames):
         t = TextChunk(oref, lang=lang, vtitle=version)
@@ -79,6 +79,12 @@ def index_text(oref, version=None, lang=None, bavli_amud=True):
         except Exception, e:
             logger.error(u"ERROR indexing {} / {} / {} : {}".format(oref.normal(), version, lang, e))
 
+def delete_text(oref, version, lang):
+    try:
+        id = make_text_doc_id(oref.normal(), version, lang)
+        es.delete('sefaria', 'text', id)
+    except Exception, e:
+        logger.error(u"ERROR deleting {} / {} / {} : {}".format(oref.normal(), version, lang, e))
 
 def make_text_index_document(tref, version, lang):
     """
@@ -345,8 +351,7 @@ def index_public_sheets():
     """
     Index all source sheets that are publically listed.
     """
-    from sheets import LISTED_SHEETS
-    ids = db.sheets.find({"status": {"$in": LISTED_SHEETS}}).distinct("id")
+    ids = db.sheets.find({"status": "public"}).distinct("id")
     for id in ids:
         index_sheet(id)
 

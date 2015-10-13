@@ -171,6 +171,38 @@ class Test_Ref(object):
         assert Ref("Ephod Bad on Pesach Haggadah, Hallel, Second Half of Hallel 2").prev_section_ref().normal() == "Ephod Bad on Pesach Haggadah, Magid, First Half of Hallel 4"
         assert Ref("Kos Shel Eliyahu on Pesach Haggadah, Magid, Ha Lachma Anya 3").prev_section_ref() is None
 
+    def test_next_segment_ref(self):
+        assert Ref("Exodus 4:1").next_segment_ref() == Ref("Exodus 4:2")
+        assert Ref("Exodus 3:22").next_segment_ref() == Ref("Exodus 4:1")
+        assert Ref("Rashi on Exodus 3:1:1").next_segment_ref() == Ref("Rashi on Exodus 3:1:2")
+        assert Ref("Rashi on Exodus 2:25:1").next_segment_ref() == Ref("Rashi on Exodus 3:1:1")
+        assert Ref("Rashi on Exodus 3:19:2").next_segment_ref() == Ref("Rashi on Exodus 3:21:1")
+        assert Ref("Shabbat 5b:12").next_segment_ref() == Ref("Shabbat 5b:13")
+        assert Ref("Shabbat 5b:38").next_segment_ref() == Ref("Shabbat 6a:1")
+        assert Ref("Rashi on Shabbat 5b:34:4").next_segment_ref() == Ref("Rashi on Shabbat 5b:34:5")
+        assert Ref("Rashi on Shabbat 5b:34:5").next_segment_ref() == Ref("Rashi on Shabbat 5b:37:1")
+        assert Ref("Rashi on Shabbat 5b:37:1").next_segment_ref() == Ref("Rashi on Shabbat 6a:1:1")
+        assert Ref("Rashi on Shabbat 7b:49:1").next_segment_ref() == Ref("Rashi on Shabbat 8a:3:1")
+
+    def test_prev_segment_ref(self):
+        assert Ref("Exodus 4:3").prev_segment_ref() == Ref("Exodus 4:2")
+        assert Ref("Exodus 4:1").prev_segment_ref() == Ref("Exodus 3:22")
+        assert Ref("Rashi on Exodus 3:1:2").prev_segment_ref() == Ref("Rashi on Exodus 3:1:1")
+        assert Ref("Rashi on Exodus 3:1:1").prev_segment_ref() == Ref("Rashi on Exodus 2:25:1")
+        assert Ref("Rashi on Exodus 3:21:1").prev_segment_ref() == Ref("Rashi on Exodus 3:19:2")
+        assert Ref("Shabbat 5b:13").prev_segment_ref() == Ref("Shabbat 5b:12")
+        assert Ref("Shabbat 6a:1").prev_segment_ref() == Ref("Shabbat 5b:38")
+        assert Ref("Rashi on Shabbat 5b:34:5").prev_segment_ref() == Ref("Rashi on Shabbat 5b:34:4")
+        assert Ref("Rashi on Shabbat 5b:37:1").prev_segment_ref() == Ref("Rashi on Shabbat 5b:34:5")
+        assert Ref("Rashi on Shabbat 6a:1:1").prev_segment_ref() == Ref("Rashi on Shabbat 5b:37:1")
+        assert Ref("Rashi on Shabbat 8a:3:1").prev_segment_ref() == Ref("Rashi on Shabbat 7b:49:1")
+
+    def test_last_segment_ref(self):
+        assert Ref("Exodus").last_segment_ref() == Ref('Exodus 40:38')
+        assert Ref("Rashi on Exodus").last_segment_ref() == Ref('Rashi on Exodus 40:38:1')
+        assert Ref("Shabbat").last_segment_ref() == Ref('Shabbat 157b:10')
+        assert Ref("Rashi on Shabbat").last_segment_ref() == Ref("Rashi on Shabbat 157b:9:1")
+
     def test_range_depth(self):
         assert Ref("Leviticus 15:3 - 17:12").range_depth() == 2
         assert Ref("Leviticus 15-17").range_depth() == 2
@@ -277,6 +309,15 @@ class Test_Ref(object):
         assert Ref("Shabbat 5b").subref(10) == Ref("Shabbat 5b:10")
         assert Ref("Rashi on Shabbat").subref(10) == Ref("Rashi on Shabbat 5b")
         assert Ref("Rashi on Shabbat 5b").subref(10) == Ref("Rashi on Shabbat 5b:10")
+
+        assert Ref("Exodus").subref([5, 8]) == Ref("Exodus 5:8")
+        assert Ref("Rashi on Exodus 5").subref([5,5]) == Ref("Rashi on Exodus 5:5:5")
+        assert Ref("Rashi on Exodus").subref([5,5,5]) == Ref("Rashi on Exodus 5:5:5")
+
+
+    def test_all_subrefs(self):
+        assert Ref("Genesis").all_subrefs()[49] == Ref("Genesis 50")
+        assert Ref("Genesis 40").all_subrefs()[22] == Ref("Genesis 40:23")
 
     def test_ref_regex(self):
         assert Ref("Exodus 15").regex() == u'^Exodus( 15$| 15:| 15 \\d)'
@@ -604,6 +645,14 @@ class Test_set_construction_from_ref(object):
     def test_ref_linkset(self):
         pass
 
+
+class Test_Order_Id(object):
+    def test_order_id(self):
+        assert Ref("Shabbat 17b").order_id()
+        assert Ref("Job 15:13").order_id()
+        assert Ref("Shabbat 12a:14").order_id()
+        assert Ref("Rashi on Shabbat 17b:12").order_id()
+        assert Ref("Tosafot on Yoma 25a:24").order_id()
 
 
 '''

@@ -75,6 +75,8 @@ Deriving Refs from Refs
 
 	.. automethod:: Ref.padded_ref
 	.. automethod:: Ref.subref
+	.. automethod:: Ref.subrefs
+	.. automethod:: Ref.all_subrefs
 	.. automethod:: Ref.context_ref
 	.. automethod:: Ref.section_ref
 	.. automethod:: Ref.top_section_ref
@@ -83,6 +85,9 @@ Deriving Refs from Refs
 	.. automethod:: Ref.split_spanning_ref
 	.. automethod:: Ref.next_section_ref
 	.. automethod:: Ref.prev_section_ref
+	.. automethod:: Ref.next_segment_ref
+	.. automethod:: Ref.prev_segment_ref
+	.. automethod:: Ref.last_segment_ref
 	.. automethod:: Ref.surrounding_ref
 	.. automethod:: Ref.to
 

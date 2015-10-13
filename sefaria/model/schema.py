@@ -364,6 +364,15 @@ class TreeNode(object):
                 st += child.traverse_to_string(callback, depth + 1, **kwargs)
         return st
 
+    def traverse_to_json(self, callback, depth=0, **kwargs):
+        js = callback(self, depth, **kwargs)
+        if self.has_children():
+            if self.children:
+                js["nodes"] = []
+            for child in self.children:
+                js["nodes"].append(child.traverse_to_json(callback, depth + 1, **kwargs))
+        return js
+
     def serialize(self, **kwargs):
         d = {}
         if self.has_children():

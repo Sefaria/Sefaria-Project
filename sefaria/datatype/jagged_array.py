@@ -402,8 +402,12 @@ class JaggedArray(object):
         res = []
         next = self
         for _ in range(depth):
-            res += [len(next.array()) - 1]
-            next = self.subarray(res[-1:])
+            try:
+                res += [len(next.array()) - 1]
+                next = next.subarray(res[-1:])
+            except IndexError:
+                # For sparse texts that end before the array ends
+                return self.prev_index(res)
         return res
 
     def __eq__(self, other):

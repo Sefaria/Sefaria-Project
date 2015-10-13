@@ -37,7 +37,7 @@ subscribe(layer.process_note_deletion_in_layer,                         note.Not
 # Term name change
 subscribe(cascade(schema.TermSet, "scheme"),                            schema.TermScheme, "attributeChange", "name")
 
-# Version Save
+# Version State Save
 subscribe(translation_request.process_version_state_change_in_translation_requests, version_state.VersionState, "save")
 
 # Time

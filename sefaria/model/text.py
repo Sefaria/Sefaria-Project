@@ -464,14 +464,16 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if hasattr(self,"order"):
             toc_contents_dict["order"] = self.order
         if self.categories[0] == u"Commentary2":
-            on_split    = self.get_title().split(" on ")
-            he_on_split = self.get_title("he").split(u" על ")
-            toc_contents_dict["commentator"]   = on_split[0]
-            toc_contents_dict["heCommentator"] = he_on_split[0]
+            toc_contents_dict["commentator"]   = self.categories[2]
+            toc_contents_dict["heCommentator"] = hebrew_term(self.categories[2])
+            on_split = self.get_title().split(" on ")
             if len(on_split) == 2:
-                i = get_index(on_split[1])
-                if getattr(i, "order", None):
-                    toc_contents_dict["order"] = i.order
+                try:
+                    i = get_index(on_split[1])
+                    if getattr(i, "order", None):
+                        toc_contents_dict["order"] = i.order
+                except BookNameError:
+                    pass
 
         return toc_contents_dict
 
@@ -492,21 +494,21 @@ class CommentaryIndex(AbstractIndex):
     """
     A virtual Index for commentary records.
 
-    :param commentor_name: A title variant of a commentator :class:`Index` record
+    :param commentator_name: A title variant of a commentator :class:`Index` record
     :param book_name:  A title variant of a book :class:`Index` record
     """
-    def __init__(self, commentor_name, book_name):
+    def __init__(self, commentator_name, book_name):
         """
-        :param commentor_name: A title variant of a commentator :class:Index record
+        :param commentator_name: A title variant of a commentator :class:Index record
         :param book_name:  A title variant of a book :class:Index record
         :return:
         """
         self.c_index = Index().load({
-            "titleVariants": commentor_name,
+            "titleVariants": commentator_name,
             "categories.0": "Commentary"
         })
         if not self.c_index:
-            raise BookNameError(u"No commentor named '{}'.".format(commentor_name))
+            raise BookNameError(u"No commentator named '{}'.".format(commentator_name))
 
         self.b_index = get_index(book_name)
 
@@ -514,8 +516,7 @@ class CommentaryIndex(AbstractIndex):
             raise BookNameError(u"No book named '{}'.".format(book_name))
 
         if self.b_index.is_commentary():
-            raise BookNameError(u"We don't yet support nested commentaries '{} on {}'.".format(commentor_name, book_name))
-
+            raise BookNameError(u"We don't yet support nested commentaries '{} on {}'.".format(commentator_name, book_name))
 
         # This whole dance is a bit of a mess.
         # Todo: see if we can clean it up a bit
@@ -523,8 +524,8 @@ class CommentaryIndex(AbstractIndex):
         self.__dict__.update(self.c_index.contents())
         self.commentaryBook = self.b_index.get_title()
         self.commentaryCategories = self.b_index.categories
-        self.categories = ["Commentary"] + self.b_index.categories + [self.b_index.get_title()]
-        self.commentator = commentor_name
+        self.categories = ["Commentary"] + [self.b_index.categories[0], commentator_name]
+        self.commentator = commentator_name
         if getattr(self.b_index, "order", None):
             self.order = self.b_index.order
         if getattr(self, "heTitle", None):
@@ -716,7 +717,7 @@ class AbstractSchemaContent(object):
         return self.sub_content(snode.version_address())
 
     #TODO: test me
-    def sub_content(self, key_list=[], indx_list=[], value=None):
+    def sub_content(self, key_list=None, indx_list=None, value=None):
         """
         Get's or sets values deep within the content of this version.
         This returns the result by reference, NOT by value.
@@ -725,6 +726,10 @@ class AbstractSchemaContent(object):
         :param indx_list: The indexes of the subsection to get/set
         :param value: The value to set.  If present, the method acts as a setter.  If None, it acts as a getter.
         """
+        if not key_list:
+            key_list = []
+        if not indx_list:
+            indx_list = []
         ja = reduce(lambda d, k: d[k], key_list, self.get_content())
         if indx_list:
             sa = reduce(lambda a, i: a[i], indx_list[:-1], ja)
@@ -1040,6 +1045,7 @@ class TextChunk(AbstractTextRecord):
 
         self.full_version.save()
         self._oref.recalibrate_next_prev_refs(len(self.text))
+
         return self
 
     def _pad(self, content):
@@ -1876,7 +1882,10 @@ class Ref(object):
 
         :return bool:
         """
-        return u"Bavli" in self.index.categories
+        if self.is_commentary():
+            return u"Bavli" in self.index.b_index.categories
+        else:
+            return u"Bavli" in self.index.categories
 
     def is_commentary(self):
         """
@@ -1973,13 +1982,13 @@ class Ref(object):
 
         ::
 
-            >>> Ref("Shabbat 13a-b")
+            >>> Ref("Shabbat 13a-b").is_spanning()
             True
-            >>> Ref("Shabbat 13a:3-14")
+            >>> Ref("Shabbat 13a:3-14").is_spanning()
             False
-            >>> Ref("Job 4:3-5:3")
+            >>> Ref("Job 4:3-5:3").is_spanning()
             True
-            >>> Ref("Job 4:5-18")
+            >>> Ref("Job 4:5-18").is_spanning()
             False
 
         """
@@ -2026,6 +2035,20 @@ class Ref(object):
         """
         Is this Ref section (e.g. Chapter) level?
 
+        ::
+
+            >>> Ref("Leviticus 15:3").is_section_level()
+            False
+            >>> Ref("Leviticus 15").is_section_level()
+            True
+            >>> Ref("Rashi on Leviticus 15:3").is_section_level()
+            True
+            >>> Ref("Rashi on Leviticus 15:3:1").is_section_level()
+            False
+            >>> Ref("Leviticus 15-17").is_section_level()
+            True
+
+
         :return bool:
         """
         return len(self.sections) == self.index_node.depth - 1
@@ -2033,6 +2056,17 @@ class Ref(object):
     def is_segment_level(self):
         """
         Is this Ref segment (e.g. Verse) level?
+
+        ::
+
+            >>> Ref("Leviticus 15:3").is_segment_level()
+            True
+            >>> Ref("Leviticus 15").is_segment_level()
+            False
+            >>> Ref("Rashi on Leviticus 15:3").is_segment_level()
+            False
+            >>> Ref("Rashi on Leviticus 15:3:1").is_segment_level()
+            True
 
         :return bool:
         """
@@ -2090,7 +2124,6 @@ class Ref(object):
         d["sections"] = d["sections"][:-1] + [start]
         d["toSections"] = d["toSections"][:-1] + [end]
         return Ref(_obj=d)
-
 
     def starting_ref(self):
         """
@@ -2220,6 +2253,56 @@ class Ref(object):
         if prev_ref:
             prev_ref._next = self if add_self else next_ref
 
+    def prev_segment_ref(self):
+        """
+        Returns a ref to the next previous populated segment
+        If this ref is not segment level, will return `self`
+        :return:
+        """
+        r = self.starting_ref()
+        if not r.is_segment_level():
+            return r
+        if r.sections[-1] > 1:
+            d = r._core_dict()
+            d["sections"] = d["toSections"] = r.sections[:-1] + [r.sections[-1] - 1]
+            return Ref(_obj=d)
+        else:
+            r = r.prev_section_ref()
+            if not r:
+                return None
+            d = r._core_dict()
+            newSections = r.sections + [self.get_state_ja().sub_array_length([i - 1 for i in r.sections])]
+            d["sections"] = d["toSections"] = newSections
+            return Ref(_obj=d)
+
+    def next_segment_ref(self):
+        """
+        Returns a ref to the next populated segment
+        If this ref is not segment level, will return `self`
+        :return:
+        """
+        r = self.ending_ref()
+        if not r.is_segment_level():
+            return r
+        sectionRef = r.section_ref()
+        sectionLength = self.get_state_ja().sub_array_length([i - 1 for i in sectionRef.sections])
+        if r.sections[-1] < sectionLength:
+            d = r._core_dict()
+            d["sections"] = d["toSections"] = r.sections[:-1] + [r.sections[-1] + 1]
+            return Ref(_obj=d)
+        else:
+            return r.next_section_ref().subref(1)
+
+    def last_segment_ref(self):
+        """
+        Returns the last segment in the current book (or complex book part).
+        Not to be confused with `ending_ref()`
+        :return:
+        """
+        o = self._core_dict()
+        o["sections"] = o["toSections"] = [i + 1 for i in self.get_state_ja().last_index(self.index_node.depth)]
+        return Ref(_obj=o)
+
     def first_available_section_ref(self):
         """
         Returns a Ref of the first section inside of or following this Ref that has some content.
@@ -2331,26 +2414,62 @@ class Ref(object):
         d["toSections"] = toref.toSections[:]
         return Ref(_obj=d)
 
-    def subref(self, subsection):
+    def subref(self, subsections):
         """
         Returns a more specific reference than the current Ref
 
-        :param int subsection: the subsection of the current Ref
+        :param subsection: int or list - the subsection(s) of the current Ref
         :return: :class:`Ref`
         """
-        assert self.index_node.depth > len(self.sections), u"Tried to get subref of bottom level ref: {}".format(self.normal())
+        if isinstance(subsections, int):
+            subsections = [subsections]
+        assert self.index_node.depth >= len(self.sections) + len(subsections), u"Tried to get subref of bottom level ref: {}".format(self.normal())
         assert not self.is_range(), u"Tried to get subref of ranged ref".format(self.normal())
 
         d = self._core_dict()
-        d["sections"] += [subsection]
-        d["toSections"] += [subsection]
+        d["sections"] += subsections
+        d["toSections"] += subsections
         return Ref(_obj=d)
 
     def subrefs(self, length):
+        """
+        :param length: Number of subrefs to return
+        Return a list of :class:`Ref`s one level deeper than this :class:`Ref`, from 1 to `length`.
+
+        ::
+
+            >>> Ref("Genesis").subrefs(4)
+            [Ref('Genesis 1'),
+             Ref('Genesis 2'),
+             Ref('Genesis 3'),
+             Ref('Genesis 4')]
+
+        :return: List of :class:`Ref`
+        """
         l = []
         for i in range(length):
             l.append(self.subref(i + 1))
         return l
+
+    def all_subrefs(self):
+        """
+        Return a list of all the valid :class:`Ref`s one level deeper than this :class:`Ref`.
+
+        ::
+
+            >>> Ref("Genesis").all_subrefs()
+            [Ref('Genesis 1'),
+             Ref('Genesis 2'),
+             Ref('Genesis 3'),
+             Ref('Genesis 4'),
+             ...]
+
+        :return: List of :class:`Ref`
+        """
+        assert not self.is_range(), "Ref.all_subrefs() is not intended for use on Ranges"
+
+        size = self.get_state_ja().sub_array_length([i - 1 for i in self.sections])
+        return self.subrefs(size)
 
     def context_ref(self, level=1):
         """
@@ -2830,7 +2949,7 @@ class Ref(object):
         """
         :class:`VersionsSet` of :class:`Version` objects that have content for this Ref in lang
 
-        :param lang: "he" or "en"
+        :param lang: "he", "en", or None
         :return: :class:`VersionSet`
         """
         return VersionSet(self.condition_query(lang))
@@ -2957,7 +3076,6 @@ class Ref(object):
                 lref[last] = "."
                 self._url = "".join(lref)
         return self._url
-
 
     def noteset(self, public=True, uid=None):
         """
@@ -3132,6 +3250,7 @@ class Library(object):
         :param bool with_commentary: If True, returns "X on Y" type titles as well
         """
         root_nodes = []
+        #todo: speed: does it matter that this skips the index cache?
         for i in IndexSet():
             if i.is_commentary():
                 continue
@@ -3232,7 +3351,7 @@ class Library(object):
 
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
-    def get_commentator_titles(self, lang="en", with_variants=False):
+    def get_commentator_titles(self, lang="en", with_variants=False, with_commentary2=False):
         """
         :param lang: "he" or "en"
         :param with_variants: If True, includes titles variants along with the primary titles.
@@ -3245,12 +3364,13 @@ class Library(object):
             ("he", True): "heTitleVariants"
         }
         commentators  = IndexSet({"categories.0": "Commentary"}).distinct(args[(lang, with_variants)])
-        commentary2   = IndexSet({"categories.0": "Commentary2"}).distinct(args[(lang, with_variants)])
-        commentators  = commentators + [s.split(" on ")[0].split(u" על ")[0] for s in commentary2]
+        if with_commentary2:
+            commentary2   = IndexSet({"categories.0": "Commentary2"}).distinct(args[(lang, with_variants)])
+            commentators  = commentators + [s.split(" on ")[0].split(u" על ")[0] for s in commentary2]
 
         return commentators
 
-    def get_commentary_versions(self, commentators=None):
+    def get_commentary_versions(self, commentators=None, with_commentary2=False):
         """
         :param string|list commentators: A single commentator name, or a list of commentator names.
         :return: :class:`VersionSet` of :class:`Version` records for the specified commentators
@@ -3260,35 +3380,43 @@ class Library(object):
         if isinstance(commentators, basestring):
             commentators = [commentators]
         if not commentators:
-            commentators = self.get_commentator_titles()
+            commentators = self.get_commentator_titles(with_commentary2=with_commentary2)
         commentary_re = ur"^({}) on ".format("|".join(commentators))
-        return VersionSet({"title": {"$regex": commentary_re}})
+        query = {"title": {"$regex": commentary_re}}
+        if with_commentary2:
+            # Handle Commentary2 texts that don't have "X on Y" titles (e.g., "Rambam's Introduction to the Mishnah")
+            if not commentators:
+                titles = IndexSet({"categories.0": "Commentary2"}).distinct("title")
+            else:
+                titles = IndexSet({"categories.0": "Commentary2", "categories.2": {"$in": commentators}}).distinct("title")
+            query = {"$or":[query, {"title": {"$in": titles}}]}
+        return VersionSet(query)
 
-    def get_commentary_version_titles(self, commentators=None):
+    def get_commentary_version_titles(self, commentators=None, with_commentary2=False):
         """
         :param string|list commentators: A single commentator name, or a list of commentator names.
         :return: list of titles of :class:`Version` records for the specified commentators
 
         If no commentators are provided, all commentary Versions will be returned.
         """
-        return self.get_commentary_versions(commentators).distinct("title")
+        return self.get_commentary_versions(commentators, with_commentary2=with_commentary2).distinct("title")
 
-    def get_commentary_versions_on_book(self, book=None):
+    def get_commentary_versions_on_book(self, book=None, with_commentary2=False):
         """
         :param string book: The primary name of a book
         :return: :class:`VersionSet` of :class:`Version` records that comment on the provided book
         """
         assert book
-        commentators = self.get_commentator_titles()
+        commentators = self.get_commentator_titles(with_commentary2=with_commentary2)
         commentary_re = ur"^({}) on {}".format("|".join(commentators), book)
         return VersionSet({"title": {"$regex": commentary_re}})
 
-    def get_commentary_version_titles_on_book(self, book):
+    def get_commentary_version_titles_on_book(self, book, with_commentary2=False):
         """
         :param string book: The primary name of a book
         :return: list of titles of :class:`Version` records that comment on the provided book
         """
-        return self.get_commentary_versions_on_book(book).distinct("title")
+        return self.get_commentary_versions_on_book(book, with_commentary2=with_commentary2).distinct("title")
 
     def get_titles_in_string(self, s, lang=None):
         """

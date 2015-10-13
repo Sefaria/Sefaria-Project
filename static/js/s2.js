@@ -497,8 +497,8 @@ var TextRange = React.createClass({displayName: "TextRange",
     var en = wrap ? [data.text] : data.text;
     var he = wrap ? [data.he] : data.he;
     var topLength = Math.max(en.length, he.length);
-    en = en.pad(length, "");
-    he = he.pad(length, "");
+    en = en.pad(topLength, "");
+    he = he.pad(topLength, "");
 
     var start = (data.textDepth == data.sections.length && !this.props.withContext ?
                   data.sections.slice(-1)[0] : 1);
@@ -518,9 +518,8 @@ var TextRange = React.createClass({displayName: "TextRange",
       }      
     } else {
       for (var n = 0; n < topLength; n++) {
-        var wrap = (typeof en == "string");
-        var en2 = wrap ? [en[n]] : en[n];
-        var he2 = wrap ? [he[n]] : he[n];
+        var en2 = typeof en[n] == "string" ? [en[n]] : en[n];
+        var he2 = typeof he[n] == "string" ? [he[n]] : he[n];
         var length = Math.max(en2.length, he2.length);
         en2 = en2.pad(length, "");
         he2 = he2.pad(length, "");

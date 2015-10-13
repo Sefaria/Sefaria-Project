@@ -1,5 +1,6 @@
 # coding=utf-8
 import re
+
 import sefaria.summaries as summaries
 from sefaria.model import *
 from sefaria.system import cache as scache
@@ -167,13 +168,31 @@ def merge_text_versions(version1, version2, text_title, language, warn=False):
         return {"error": "Version not found: %s" % version2 }
 
     if isinstance(v1.chapter, dict) or isinstance(v2.chapter, dict):
-        raise Exception("merge_text_versions doesn't yet handle complex records")
+        #raise Exception("merge_text_versions doesn't yet handle complex records")
+        i1 = v1.get_index()
+        i2 = v2.get_index()
+        assert i1 == i2
 
-    if warn and v1.ja().overlaps(v2.ja()):
-        print "WARNING - %s & %s have overlapping content. Aborting." % (version1, version2)
+        def content_node_merger(snode, *contents, **kwargs):
+            """
+            :param snode: SchemaContentNode
+            :param contents: Length two array of content.  Second is merged into first and returned.
+            :param kwargs: "sources": array of source names
+            :return:
+            """
+            assert len(contents) == 2
+            if warn and JaggedTextArray(contents[0]).overlaps(JaggedTextArray(contents[1])):
+                raise Exception("WARNING - overlapping content in {}".format(snode.full_title()))
+            merged_text, sources = merge_texts([contents[0], contents[1]], kwargs.get("sources"))
+            return merged_text
 
+        merged_text = i1.nodes.visit_content(content_node_merger, v1.chapter, v2.chapter, sources=[version1, version2])
 
-    merged_text, sources = merge_texts([v1.chapter, v2.chapter], [version1, version2])
+    else:  #this could be handled with the visitor and callback, above.
+        if warn and v1.ja().overlaps(v2.ja()):
+            print "WARNING - %s & %s have overlapping content. Aborting." % (version1, version2)
+
+        merged_text, sources = merge_texts([v1.chapter, v2.chapter], [version1, version2])
 
     v1.chapter = merged_text
     v1.save()
@@ -294,3 +313,6 @@ def make_versions_csv():
         writer.writerow([unicode(getattr(v, f, "")).encode("utf-8") for f in fields])
 
     return output.getvalue()
+
+
+
