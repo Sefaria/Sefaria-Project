@@ -1290,7 +1290,7 @@ var TextColumn = React.createClass({
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
       var $node   = $(React.findDOMNode(this));
-      var adjust  = $node.css("padding-top").replace("px", "");
+      var adjust  = 118; // Height of .loadingMessage.base
       var top     = $node.find(".basetext").eq(1).position().top + $node.scrollTop() - adjust;
       if (!$node.find(".basetext").eq(0).hasClass("loading")) {
         this.loadingContentAtTop = false;
@@ -1438,6 +1438,26 @@ var TextColumn = React.createClass({
         filter={this.props.filter}
         key={k + ref} />);      
     }.bind(this));
+
+    if (content.length) {
+      var first   = sjs.library.ref(this.props.srefs[0]);
+      var last    = sjs.library.ref(this.props.srefs.slice(-1)[0]);
+      var hasPrev = first && first.prev;
+      var hasNext = last && last.next;
+      var symbol  = " ";
+      if (hasPrev) {
+        content.splice(0, 0, (<LoadingMessage className="base prev"/>));
+      } else {
+        content.splice(0, 0, (<LoadingMessage message={symbol} heMessage={symbol} className="base prev"/>));        
+      }
+      if (hasNext) {
+        content.push((<LoadingMessage className="base next"/>));
+      } else {
+        content.push((<LoadingMessage message={symbol} heMessage={symbol} className="base next"/>));
+
+      }
+    }
+
     return (<div className={classes}>{content}</div>);
   }
 });
@@ -2163,12 +2183,14 @@ var TwoOrThreeBox = React.createClass({
 var LoadingMessage = React.createClass({
   propTypes: {
     message:   React.PropTypes.string,
-    heMessage: React.PropTypes.string
+    heMessage: React.PropTypes.string,
+    className: React.PropTypes.string
   },
   render: function() {
     var message = this.props.message || "Loading...";
     var heMessage = this.props.heMessage || "טעינה...";
-    return (<div className='loadingMessage'>
+    var classes = "loadingMessage " + (this.props.className || "");
+    return (<div className={classes}>
               <span className="en">{message}</span>
               <span className="he">{heMessage}</span>
             </div>);
