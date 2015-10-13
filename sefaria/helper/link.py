@@ -112,6 +112,10 @@ def rebuild_commentary_links(tref, user, **kwargs):
         try:
             oref1, oref2 = Ref(link.refs[0]), Ref(link.refs[1])
         except InputError:
+            link.delete()
+            if USE_VARNISH:
+                invalidate_ref(oref1)
+                invalidate_ref(oref2)
             continue
         t1, t2 = TextFamily(oref1, commentary=0, context=0), TextFamily(oref2, commentary=0, context=0)
         if not (t1.text + t1.he) or not (t2.text + t2.he):
