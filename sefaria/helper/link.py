@@ -117,6 +117,9 @@ def rebuild_commentary_links(tref, user, **kwargs):
         if not (t1.text + t1.he) or not (t2.text + t2.he):
             # Delete any link that doesn't have some textual content on one side or the other
             link.delete()
+            if USE_VARNISH:
+                invalidate_ref(oref1)
+                invalidate_ref(oref2)
     add_commentary_links(oref, user, **kwargs)
 
 
