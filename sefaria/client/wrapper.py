@@ -136,7 +136,7 @@ def get_links(tref, with_text=True):
     # for storing all the section level texts that need to be looked up
     texts = {}
 
-    linkset = LinkSet({"refs": {"$regex": reRef}})
+    linkset = LinkSet(oref)
     # For all links that mention ref (in any position)
     for link in linkset:
         # each link contins 2 refs in a list

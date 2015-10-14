@@ -9,12 +9,14 @@ import copy
 
 def pad_moved_ja(ja, padding_values):
     #pads the jagged array with the skeleton of the empty places up to this point in the ref
-    if len(padding_values):
+    if len(padding_values) > 0:
         padval = padding_values.pop(0)
-        for _ in range(padval-1):
-            ja.insert(0, [])
-        pad_moved_ja(ja[padval-1], padding_values)
+        if all(isinstance(y, list) for y in ja):
+            for _ in range(padval-1):
+                ja.insert(0, [])
+            pad_moved_ja(ja[padval-1], padding_values)
         return ja
+    elif
 
 #first text
 #create needed index and versions

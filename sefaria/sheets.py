@@ -263,8 +263,11 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 	ref_re = oref.regex()
 
 	results = []
-	sheets = db.sheets.find({"included_refs": {"$regex": ref_re}, "status": "public"},
-								{"id": 1, "title": 1, "owner": 1, "included_refs": 1})
+
+	regex_list = oref.regex(as_list=True)
+	ref_clauses = [{"included_refs": {"$regex": r}} for r in regex_list]
+	sheets = db.sheets.find({"$or": ref_clauses, "status": "public"},
+		{"id": 1, "title": 1, "owner": 1, "included_refs": 1})
 	for sheet in sheets:
 		# Check for multiple matching refs within this sheet
 		matched_refs = [r for r in sheet["included_refs"] if regex.match(ref_re, r)]
