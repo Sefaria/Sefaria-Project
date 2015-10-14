@@ -1842,17 +1842,25 @@ var TextList = React.createClass({
           return item.book;
         });
         this.setState({textLoaded: false, waitForText: true});
-        this.waitingFor = commentators;
-        for (var i = 0; i < commentators.length; i++) {
-          sjs.library.text(commentators[i] + " on " + basetext, {}, function(data) {
-            var index = this.waitingFor.indexOf(data.commentator);
-            if (index > -1) {
-                this.waitingFor.splice(index, 1);
-            }
-            if (this.waitingFor.length == 0) {
-              this.setState({textLoaded: true});
-            }
-          }.bind(this));          
+        commentators = commentators.filter(function(commentator) {
+          return !sjs.library.text(commentator + " on " + basetext);
+        });
+        if (commentators.length) {
+          this.waitingFor = commentators;
+          for (var i = 0; i < commentators.length; i++) {
+            sjs.library.text(commentators[i] + " on " + basetext, {}, function(data) {
+              var index = this.waitingFor.indexOf(data.commentator);
+              if (index > -1) {
+                  this.waitingFor.splice(index, 1);
+              }
+              if (this.waitingFor.length == 0) {
+                this.setState({textLoaded: true});
+              }
+            }.bind(this));          
+          }          
+        } else {
+          // All commentaries have been loaded already
+          this.setState({textLoaded: true});          
         }
       } else {
         // There were no commentaries to load
