@@ -37,10 +37,10 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
         if USE_VARNISH:
             invalidate_ref(oref, lang=lang, version=vtitle, purge=True)
         if not kwargs.get("skip_links", None):
-            from sefaria.helper.link import add_commentary_links, add_links_from_text
+            from sefaria.helper.link import add_commentary_links, add_links_from_text, rebuild_commentary_links
             # Commentaries generate links to their base text automatically
             if oref.type == "Commentary":
-                add_commentary_links(oref, user, **kwargs)
+                rebuild_commentary_links(oref.normal(), user, **kwargs)
             # scan text for links to auto add
             add_links_from_text(oref.normal(), lang, chunk.text, chunk.full_version._id, user, **kwargs)
 

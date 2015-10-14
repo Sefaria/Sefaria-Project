@@ -2627,7 +2627,7 @@ class Ref(object):
             self._ranged_refs = results
         return self._ranged_refs
 
-    def regex(self):
+    def regex(self, as_list=False):
         """
         :return string: for a Regular Expression which will find any refs that match this Ref exactly, or more specifically.
 
@@ -2660,7 +2660,11 @@ class Ref(object):
                 patterns.append("%s:" % sections)   # more granualar, exact match followed by :
                 patterns.append("%s \d" % sections) # extra granularity following space
 
-        return "^%s(%s)" % (re.escape(self.book), "|".join(patterns))
+        escaped_book = re.escape(self.book)
+        if as_list:
+            return ["^{}{}".format(escaped_book, p) for p in patterns]
+        else:
+            return "^%s(%s)" % (escaped_book, "|".join(patterns))
 
     """ Comparisons """
     def overlaps(self, other):

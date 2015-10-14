@@ -1392,7 +1392,12 @@ function makeRef(q) {
 
 
 function normRef(ref) {
-	return makeRef(parseRef(ref));
+	var norm = makeRef(parseRef(ref));
+	if (typeof norm == "object" && "error" in norm) {
+		// Return the original string if the ref doesn't parse
+		return ref;
+	}
+	return norm;
 }
 
 

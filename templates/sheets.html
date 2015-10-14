@@ -46,6 +46,7 @@
 				<div class="optionItem" id="addBiOutside"><i class='fa fa-columns'></i> Outside Text (Bilingual)</div>
 				<div class="optionItem" id="addOutside"><i class='fa fa-file-o'></i> Outside Text</div>
 				<div class="optionItem" id="addComment"><i class='fa fa-comment'></i> Comment</div>
+				<div class="optionItem" id="addMedia"><i class='fa fa-youtube-play'></i> Media</div>
 			</div>
 		</span>
 		{% endif %}
@@ -244,6 +245,13 @@
 			<div id="addBrowseBox">
 				<div id="addBrowse" class='btn btn-primary'>Browse Sources</div>
 			</div>
+</div>
+
+<div id="addMediaModal" class="modal">
+			<div class="header">Enter the URL of your image, YouTube video, or mp3 file:</div>
+			<input id="addMediaInput" placeholder="http://" />
+			<div id="mediaPreview"></div>
+			<div class='btn btn-primary ok'>Add</div>
 </div>
 
 
