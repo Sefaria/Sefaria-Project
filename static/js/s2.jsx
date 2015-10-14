@@ -1822,16 +1822,42 @@ var TextList = React.createClass({
     }.bind(this));
   },
   preloadText: function(filter) {
-    // Preload text of links if `filter` is a single commentary
+    // Preload text of links if `filter` is a single commentary, or al commentary
     if (filter.length == 1 && 
         sjs.library.index(filter[0]) && 
         sjs.library.index(filter[0]).categories == "Commentary") {
+      // Preload a single Commentary
       var basetext   = sjs.library.ref(this.props.sref).sectionRef;
       var commentary = filter[0] + " on " + basetext;
       this.setState({textLoaded: false, waitForText: true});
       sjs.library.text(commentary, {}, function() {
-        this.setState({"textLoaded": true});
+        this.setState({textLoaded: true});
       }.bind(this));
+    } else if (filter.length == 1 && filter[0] == "Commentary") {
+      // Preload all commentaries on this section
+      var basetext   = sjs.library.ref(this.props.sref).sectionRef;
+      var summary    = sjs.library.linkSummary(this.props.sref);
+      if (summary.length && summary[0].category == "Commentary") {
+        var commentators = summary[0].books.map(function(item) {
+          return item.book;
+        });
+        this.setState({textLoaded: false, waitForText: true});
+        this.waitingFor = commentators;
+        for (var i = 0; i < commentators.length; i++) {
+          sjs.library.text(commentators[i] + " on " + basetext, {}, function(data) {
+            var index = this.waitingFor.indexOf(data.commentator);
+            if (index > -1) {
+                this.waitingFor.splice(index, 1);
+            }
+            if (this.waitingFor.length == 0) {
+              this.setState({textLoaded: true});
+            }
+          }.bind(this));          
+        }
+      } else {
+        // There were no commentaries to load
+        this.setState({textLoaded: true});
+      }
     } else {
       this.setState({waitForText: false, textLoaded: false});
     }
@@ -1854,14 +1880,15 @@ var TextList = React.createClass({
     var ref            = this.props.sref;
     var summary        = sjs.library.linkSummary(ref);
     var classes        = classNames({textList: 1, fullPanel: this.props.fullPanel});
+    var filter         = this.props.filter;
     var links          = this.state.links.filter(function(link) {
-      if (link.category !== "Commentary" && link.anchorRef !== this.props.sref) {
-        // Only show section level links for commentary
+      if ((link.category !== "Commentary" || filter.length && filter[0] === "Commentary") && link.anchorRef !== this.props.sref) {
+        // Only show section level links for an individual commentary
         return false;
       }
-      return (this.props.filter.length == 0 ||
-              $.inArray(link.category, this.props.filter) !== -1 || 
-              $.inArray(link.commentator, this.props.filter) !== -1 );
+      return (filter.length == 0 ||
+              $.inArray(link.category, filter) !== -1 || 
+              $.inArray(link.commentator, filter) !== -1 );
 
       }.bind(this)).sort(function(a, b) {
         if (a.anchorVerse !== b.anchorVerse) {
@@ -1869,12 +1896,11 @@ var TextList = React.createClass({
         } else if ( a.commentaryNum !== b.commentaryNum) {
             return a.commentaryNum - b.commentaryNum;
         } else {
-            return a.sourceRef > b.sourceRef ? -1 : 1;
+            return a.sourceRef > b.sourceRef ? 1 : -1;
         }
     });
 
-    var showAllFilters = !this.props.filter.length;
-    var filter = this.props.filter;
+    var showAllFilters = !filter.length;
     var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";;
     var he = "אין קשרים ידועים"       + (filter.length ? " ל"    + filter.join(", ") : "") + ".";;
     var sectionRef = sjs.library.ref(ref) ? sjs.library.ref(ref).sectionRef : ref;
@@ -1888,11 +1914,12 @@ var TextList = React.createClass({
                     this.state.waitForText && !this.state.textLoaded ? 
                       (<LoadingMessage />) : 
                       links.map(function(link, i) {
+                          var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
                           return (<TextRange 
                                     sref={link.sourceRef}
                                     key={i + link.sourceRef}
                                     lowlight={ref !== link.anchorRef}
-                                    hideTitle={link.category === "Commentary"}
+                                    hideTitle={hideTitle}
                                     numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
                                     basetext={false}
                                     showBaseText={this.props.showBaseText}
@@ -2036,7 +2063,6 @@ var AllFilterSet = React.createClass({
 
 var CategoryFilter = React.createClass({
   handleClick: function() {
-    if (this.props.category === "Commentary") { return; }
     this.props.setFilter(this.props.category, this.props.updateRecent);
     sjs.track.event("Reader", "Category Filter Click", this.props.category);
   },
