@@ -1822,11 +1822,10 @@ var TextList = React.createClass({
     }.bind(this));
   },
   preloadText: function(filter) {
-    // Preload text of links if `filter` is a single commentary, or al commentary
+    // Preload text of links if `filter` is a single commentary, or all commentary
     if (filter.length == 1 && 
         sjs.library.index(filter[0]) && 
         sjs.library.index(filter[0]).categories == "Commentary") {
-      // Preload a single Commentary
       var basetext   = sjs.library.ref(this.props.sref).sectionRef;
       var commentary = filter[0] + " on " + basetext;
       this.setState({textLoaded: false, waitForText: true});
@@ -1838,11 +1837,18 @@ var TextList = React.createClass({
       var basetext   = sjs.library.ref(this.props.sref).sectionRef;
       var summary    = sjs.library.linkSummary(this.props.sref);
       if (summary.length && summary[0].category == "Commentary") {
+        this.setState({textLoaded: false, waitForText: true});
+        // Get a list of commentators on this section that we need don't have in the cache
+        var links = sjs.library.links(basetext);
         var commentators = summary[0].books.map(function(item) {
           return item.book;
-        });
-        this.setState({textLoaded: false, waitForText: true});
-        commentators = commentators.filter(function(commentator) {
+        }).filter(function(commentator) {
+          var link = sjs.library._filterLinks(links, [commentator])[0];
+          if (link.sourceRef.indexOf(link.anchorRef) == -1) {
+            // Check if this is Commentary2, exclude if so
+            return false;
+          }
+          // Exclude if we already have this in the cache
           return !sjs.library.text(commentator + " on " + basetext);
         });
         if (commentators.length) {

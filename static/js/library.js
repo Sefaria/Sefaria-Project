@@ -36,7 +36,7 @@ sjs.library = {
   },
   _saveText: function(data, settings) {
         if ("error" in data) { 
-          sjs.alert.message(data.error);
+          //sjs.alert.message(data.error);
           return;
         }
         var settings     = settings || {};
@@ -130,7 +130,7 @@ sjs.library = {
        var url = "/api/links/" + normRef(ref) + "?with_text=0";
        this._api(url, function(data) {
           if ("error" in data) { 
-            sjs.alert.message(data.error);
+            // sjs.alert.message(data.error);
             return;
           }
           this._saveLinksByRef(data);
