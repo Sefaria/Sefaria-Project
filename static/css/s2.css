@@ -589,6 +589,9 @@ body .bilingual .enOnly .he {
   font-size: 11px;
   font-family: "Helvetica Neue", "Helvetica", sans-serif;
 }
+.readerSheetsNav .loadingMessage {
+  text-align: center;
+}
 .hebrew .readerSheetsNav {
   direction: ltr;
 }

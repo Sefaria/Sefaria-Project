@@ -20,7 +20,7 @@ sjs.library = {
     } else {
        params = "?" + $.param(settings);
        var url = "/api/texts/" + normRef(ref) + params;
-       $.getJSON(url, function(data) {
+       this._api(url, function(data) {
           this._saveText(data, settings);
           cb(data);
         }.bind(this));
@@ -128,7 +128,7 @@ sjs.library = {
       cb(this._links[ref]);
     } else {
        var url = "/api/links/" + normRef(ref) + "?with_text=0";
-       $.getJSON(url, function(data) {
+       this._api(url, function(data) {
           if ("error" in data) { 
             sjs.alert.message(data.error);
             return;
@@ -409,7 +409,7 @@ sjs.library = {
         if (cb) { cb(tags); }
       } else {
         var url = "/api/sheets/trending-tags";
-         $.getJSON(url, function(data) {
+         sjs.library._api(url, function(data) {
             this._trendingTags = data;
             if (cb) { cb(data); }
           }.bind(this));
@@ -423,7 +423,7 @@ sjs.library = {
         if (cb) { cb(tags); }
       } else {
         var url = "/api/sheets/tag-list";
-         $.getJSON(url, function(data) {
+         sjs.library._api(url, function(data) {
             this._tagList = data;
             if (cb) { cb(data); }
           }.bind(this));
@@ -451,7 +451,7 @@ sjs.library = {
         if (cb) { cb(sheets); }
       } else {
         var url = "/api/sheets/user/" + uid;
-         $.getJSON(url, function(data) {
+         sjs.library._api(url, function(data) {
             this._userSheets[uid] = data.sheets;
             if (cb) { cb(data.sheets); }
           }.bind(this));
@@ -511,7 +511,6 @@ sjs.library = {
   },
   search: {
       baseUrl: sjs.searchBaseUrl + "/" + sjs.searchIndex + "/_search",
-
       execute_query: function (args) {
           // To replace sjs.search.post in search.js
 
@@ -545,7 +544,6 @@ sjs.library = {
               error: args.error
           });
       },
-
       get_query_object: function (query, get_filters, applied_filters) {
           // query: string
           // get_filters: boolean
@@ -605,7 +603,23 @@ sjs.library = {
           }
           return o;
       }
-  }
+  },
+  _api: function(url, callback) {
+    // Manage API calls and callbacks to prevent duplicate calls
+    if (url in this._apiCallbacks) {
+      this._apiCallbacks[url].push(callback);
+    } else {
+      this._apiCallbacks[url] = [callback];
+      $.getJSON(url, function(data) {
+        var callbacks = this._apiCallbacks[url];
+        for (var i = 0; i < callbacks.length; i++) {
+          callbacks[i](data);
+        }
+        delete this._apiCallbacks[url];
+      }.bind(this));
+    }
+  },
+  _apiCallbacks: {}
 };
 
 
