@@ -576,7 +576,9 @@ def tag_list_api(request):
 	API to retrieve the list of public tags ordered by count.
 	"""
 	response = sheet_tag_counts({"status": "public"})
-	return jsonResponse(response, callback=request.GET.get("callback", None))
+	response =  jsonResponse(response, callback=request.GET.get("callback", None))
+	response["Cache-Control"] = "max-age=3600"
+	return response
 
 
 def trending_tags_api(request):
@@ -603,6 +605,7 @@ def sheets_by_tag_api(request, tag):
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response
+
 
 @login_required
 def make_sheet_from_text_api(request, ref, sources=None):
