@@ -1634,20 +1634,21 @@ class Ref(object):
         base = parts[0]
         title = None
 
-        match = library.all_titles_regex(self._lang, with_terms=True).match(base)
-        if match:
-            title = match.group('title')
-            self.index_node = library.get_schema_node(title, self._lang)  # May be SchemaNode or JaggedArrayNode
+        #match = library.all_titles_regex(self._lang, with_terms=True).match(base)
+        tndict = library.get_title_node_dict(self._lang)
+        termdict = library.get_term_dict(self._lang)
+        for l in range(len(base), 0, -1):
+            self.index_node = tndict.get(base[0:l])
+            new_tref = termdict.get(base[0:l])
 
-            if not self.index_node:
-                # No Index node - Is this a term?
-                new_tref = library.get_term_dict(self._lang).get(title)
-                if new_tref:
-                    self.__reinit_tref(new_tref)
-                    return
-                else:
-                    raise InputError(u"Failed to find a record for {}".format(base))
+            if self.index_node:
+                title = base[0:l]
+                break
+            if new_tref:
+                self.__reinit_tref(new_tref)
+                return
 
+        if title:
             # checkFirst is used on Bavli records to check for a Mishnah pattern match first
             if getattr(self.index_node, "checkFirst", None) and self.index_node.checkFirst.get(self._lang):
                 try:
@@ -1679,16 +1680,17 @@ class Ref(object):
             self.book = self.index_node.full_title("en")
 
         elif self._lang == "en":  # Check for a Commentator
-            match = library.all_titles_regex(self._lang, commentary=True).match(base)
-            if match:
-                title = match.group('title')
-                self.index_node = library.get_schema_node(title, with_commentary=True)  # May be SchemaNode or JaggedArrayNode
-                if not self.index_node:  # This may be a new version, try to build a schema node.
-                    on_node = library.get_schema_node(match.group('commentee'))  # May be SchemaNode or JaggedArrayNode
-                    i = get_index(match.group('commentor') + " on " + on_node.index.title)
-                    self.index_node = i.nodes.title_dict(self._lang).get(title)
-                    if not self.index_node:
-                        raise BookNameError(u"Can not find index record for {}".format(title))
+            tdc = library.get_title_node_dict(self._lang, with_commentary=True)
+            for l in range(len(base), 0, -1):
+                self.index_node = tdc.get(base[0:l])
+                if self.index_node:
+                    title = base[0:l]
+                    break
+            #match = library.all_titles_regex(self._lang, commentary=True).match(base)
+            if title:
+                #title = match.group('title')
+                #self.index_node = library.get_schema_node(title, with_commentary=True)  # May be SchemaNode or JaggedArrayNode
+
                 assert isinstance(self.index_node, SchemaNode)
                 self.index = self.index_node.index
                 self.book = self.index_node.full_title("en")
@@ -1696,8 +1698,16 @@ class Ref(object):
                     raise InputError(u"Unrecognized non-commentary Index record: {}".format(base))
                 if not getattr(self.index, "commentaryBook", None):
                     raise InputError(u"Please specify a text that {} comments on.".format(self.index.title))
-            else:
-                raise InputError(u"Unrecognized Index record: {}".format(base))
+            else:  # This may be a new version, try to build a schema node.
+                match = library.all_titles_regex(self._lang, commentary=True).match(base)
+                if match:
+                    on_node = library.get_schema_node(match.group('commentee'))  # May be SchemaNode or JaggedArrayNode
+                    i = get_index(match.group('commentor') + " on " + on_node.index.title)
+                    self.index_node = i.nodes.title_dict(self._lang).get(title)
+                    if not self.index_node:
+                        raise BookNameError(u"Can not find index record for {}".format(title))
+                else:
+                    raise InputError(u"Unrecognized Index record: {}".format(base))
 
         if title is None:
             raise InputError(u"Could not resolve reference: {}".format(self.tref))

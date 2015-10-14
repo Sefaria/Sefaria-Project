@@ -39,12 +39,13 @@ class WorkflowyParser(object):
         #tree = tree.getroot()[1][0]
         # for element in tree.iter('outline'):
         #     print parse_titles(element)["enPrim"]
+        categories = self.extract_categories_from_title(self.outline)
         schema_root = self.build_index_schema(self.outline)
         self.parsed_schema = schema_root
         schema_root.validate()
         if self._c_index:
             print "Saving Index record"
-            self.create_index_from_schema()
+            self.create_index_from_schema(categories)
         else:
             print pprint.pprint(schema_root.serialize())
         if self._c_version:
@@ -123,8 +124,7 @@ class WorkflowyParser(object):
             return categories
         return None
 
-    def create_index_from_schema(self):
-        categories = self.extract_categories_from_title(self.outline)
+    def create_index_from_schema(self, categories=None):
         if not categories:
             categories = ["Other"]
         Index({

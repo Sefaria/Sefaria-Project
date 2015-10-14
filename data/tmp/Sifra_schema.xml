@@ -4,7 +4,7 @@
     <ownerEmail>ephraim@sefaria.org</ownerEmail>
   </head>
   <body>
-    <outline text="Sifra Test$ ספרא דוגמא %Midrash, Aggadic Midrash%" >
+    <outline text="Sifra$ ספרא %Midrash, Aggadic Midrash%" >
       <outline text="Braita d'Rabbi Yishmael$ ברייתא דרבי ישמעאל" />
       <outline text="Vayikra Dibbura d'Nedavah$ ויקרא דבורא דנדבה" >
         <outline text="Chapter 1$ פרק א" />
