@@ -55,6 +55,15 @@ $(function() {
 	
 	// ------------- Top Controls -------------------
 	
+		$( ".circleButton" ).hover(
+	  function() {
+		$('.cke_editable').each(function() {
+			sjs.removeCKEditorByElement(this);
+	  });
+	  }
+	);
+	
+	
 	$("#addSource, #addButton").click(function() { 
 		$("#addSourceModal").data("target", $("#sources")).show()
 			.position({of: $(window)}); 
@@ -62,6 +71,110 @@ $(function() {
 		$("#overlay").show();
 		sjs.track.sheets("Open Add Source Modal");
 	})
+	
+	$("#addMedia").click(function(e) { 
+
+		var source = {media: "", isNew: true};
+		if (sjs.can_add) { source.userLink = sjs._userLink; }
+
+		buildSource($("#sources"), source);
+		
+		afterAction();
+		e.stopPropagation();
+
+		$("#addMediaModal").data("target", $("#sources").find(".media").last()).show().position({of: $(window)}); 
+		$("#addMediaInput").focus() 
+		$("#overlay").show();
+//		sjs.track.sheets("Open Add Media Modal");
+
+
+	});
+	
+		$("#addMediaInput").keyup(checkAddSource).keyup(function(e) {
+			if (e.keyCode == 13) {
+				$( "#addMediaModal .ok" ).click()
+			}
+		});
+		
+
+	
+	
+	$( "#addMediaModal .ok" ).click(function() {
+
+    var re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i; 
+    var m;
+	var $target = $("#addMediaModal").data("target");
+
+    if ((m = re.exec($("#addMediaInput").val())) !== null) {
+        if (m.index === re.lastIndex) {
+            re.lastIndex++;
+        }
+			if (m.length>0) {
+			//	$("#mediaPreview").html('<iframe width="560" height="315" src="https://www.youtube.com/embed/'+m[m.length-1]+'?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>');
+				$target.html('<iframe width="560" height="315" src="https://www.youtube.com/embed/'+m[m.length-1]+'?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>');
+
+			}
+			
+		autoSave();
+
+    }
+    
+    else if ( ($("#addMediaInput").val()).match(/https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null ) {
+    			$target.html('<img class="addedMedia" src="'+$("#addMediaInput").val()+'" />');
+    }
+
+
+    else if ( ($("#addMediaInput").val()).match(/https?:\/\/(www\.)?.+\.(mp3)$/i) != null ) {
+    			$target.html('<audio src="'+$("#addMediaInput").val()+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>')
+    }
+
+    else if ( ($("#addMediaInput").val()).match(/https?:\/\/.*clyp\.it\/.+/i) != null ) {
+    			$target.html('<audio src="'+$("#addMediaInput").val()+'.mp3" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>')
+    }
+    
+
+	else {
+		$target.parent().remove();
+		sjs.alert.flash("We couldn't understand your link.<br/>No media added.")
+		autoSave();	
+	}
+
+	$("#addMediaModal, #overlay").hide();
+
+
+
+	//if the image or audio is a bad link or can't be loaded
+	$target.find('audio, img').last()
+	    .on('error', function() { 
+	    	$target.parent().remove();
+			sjs.alert.flash("There was an error adding your media.")
+			autoSave();
+	     });     
+	   
+	//if the image is loaded    
+	$target.find('img').last()     
+	    .on('load', function() { 
+		    console.log("media loaded correctly");
+		    autoSave();
+	     });
+
+	//if the audio starts to load    
+	$target.find('audio').last()
+	    .on('loadedmetadata', function() { 
+		    console.log("media loaded correctly");
+		    autoSave();
+	     });
+
+	if (sjs.openRequests == 0) {
+		var top = $target.offset().top - 200;
+		$("html, body").animate({scrollTop: top}, 300);		
+	}
+
+	
+	});	
+	
+
+
 
 	$("#addBrowse").click(function() {
 		$("#closeAddSource").trigger("click");
@@ -1345,6 +1458,11 @@ function readSource($target) {
 	} else if ($target.hasClass("outsideWrapper")) {
 		source["outsideText"] = $target.find(".outside").html();
 	}
+	
+	 else if ($target.hasClass("mediaWrapper")) {
+		source["media"] = $target.find(".media iframe, .media img, .media audio").attr("src");
+	}
+	
 
 	// Add attributions info if present
 	var addedBy = $target.attr("data-added-by");
@@ -1424,7 +1542,10 @@ function buildSheet(data){
 	} else {
 		$("#title").text("Untitled Source Sheet");
 	}
+	$("#sources").css("min-height",($("#sources").css("height"))); //To prevent 'jumping' as the sheet is rebuilt when polling is triggered we temporarily set the min-height, and remove it at the end of the function.
+
 	$("#sources").empty();
+
 	$("#addSourceModal").data("target", $("#sources"));
 
 	// Set options with binary value
@@ -1477,6 +1598,8 @@ function buildSheet(data){
 	$("#viewButtons").show();
 	sjs.current = data;
 	sjs.loading = false;
+
+	$("#sources").css("min-height","");
 }
 	
 
@@ -1543,6 +1666,33 @@ function buildSource($target, source) {
 						  "</li>";
 		$target.append(outsideHtml);
 	}
+	else if ("media" in source) {
+		var mediaLink;
+		
+		if (source.media.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
+			mediaLink = '<img class="addedMedia" src="'+source.media+'" />';
+		}
+		
+		else if (source.media.toLowerCase().indexOf('youtube') > 0) {
+			mediaLink = '<iframe width="560" height="315" src='+source.media+' frameborder="0" allowfullscreen></iframe>'
+		}
+
+		else if (source.media.match(/\.(mp3)$/i) != null) {
+			mediaLink = '<audio src="'+source.media+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
+		}
+		
+		else {
+			mediaLink = '';
+		}
+		
+		var attributionData = attributionDataString(source.addedBy, source.isNew, "mediaWrapper");
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
+							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
+							"<div class='media " + (sjs.loading ? "" : "new") + "'>" + mediaLink + "</div>" +
+							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
+						  "</li>";
+		$target.append(outsideHtml);
+	}
 }
 
 function attributionDataString(uid, newItem, classStr) {
@@ -1601,6 +1751,7 @@ sjs.saveLastEdit = function($el) {
 	if ($el.hasClass("he") && $el.closest(".new").length)         { type = "add hebrew outside"; }
 	if ($el.hasClass("en") && $el.closest(".new").length)         { type = "add english outside"; }
 	if ($el.hasClass("outside") && $el.hasClass("new"))           { type = "add outside"; }
+	if ($el.hasClass("media") && $el.hasClass("new"))             { type = "add media"; }
 	if ($el.hasClass("comment"))                                  { type = "edit comment"; }
 	if ($el.hasClass("comment") && $el.hasClass("new"))           { type = "add comment"; }
 
@@ -1643,6 +1794,9 @@ sjs.replayLastEdit = function() {
 			break;
 		case "add outside":
 			source = {outsideText: sjs.lastEdit.html, isNew: true};
+			break;
+		case "add media":
+			source = {media: sjs.lastEdit.html, isNew: true};
 			break;
 		case "add english outside":
 			source = {outsideBiText: {en: sjs.lastEdit.html, he: "<i>עברית</i>"}, isNew: true};
