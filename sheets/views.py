@@ -584,7 +584,9 @@ def trending_tags_api(request):
 	API to retrieve the list of peopke who like sheet_id.
 	"""
 	response = recent_public_tags(days=14)
-	return jsonResponse(response, callback=request.GET.get("callback", None))
+	response = jsonResponse(response, callback=request.GET.get("callback", None))
+	response["Cache-Control"] = "max-age=3600"
+	return response
 
 
 def sheets_by_tag_api(request, tag):
@@ -598,8 +600,9 @@ def sheets_by_tag_api(request, tag):
 		sheet["ownerName"]     = profile.full_name
 		sheet["ownerImageUrl"] = profile.gravatar_url_small
 	response = {"tag": tag, "sheets": sheets}
-	return jsonResponse(response, callback=request.GET.get("callback", None))
-
+	response = jsonResponse(response, callback=request.GET.get("callback", None))
+	response["Cache-Control"] = "max-age=3600"
+	return resposne
 
 @login_required
 def make_sheet_from_text_api(request, ref, sources=None):
