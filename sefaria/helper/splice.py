@@ -209,6 +209,7 @@ class Splicer(object):
             self._generic_set_rewrite(TranslationRequestSet({"ref": {"$regex": self.section_ref.regex()}}))
 
             # History
+            # these can be made faster by splitting up the regex
             print u"\n*** Rewriting History Refs"
             self._generic_set_rewrite(HistorySet({"ref": {"$regex": self.section_ref.regex()}}))
             self._generic_set_rewrite(HistorySet({"new.ref": {"$regex": self.section_ref.regex()}}), ref_attr_name="new", sub_ref_attr_name="ref")
@@ -229,6 +230,7 @@ class Splicer(object):
                 self._generic_set_rewrite(TranslationRequestSet({"ref": {"$regex": commentator_chapter_ref.regex()}}), commentary=True)
 
                 # History?
+                # these can be made faster by splitting up the regex
                 print u"\n*** Rewriting History Refs"
                 self._generic_set_rewrite(HistorySet({"ref": {"$regex": commentator_chapter_ref.regex()}}), commentary=True)
                 self._generic_set_rewrite(HistorySet({"new.ref": {"$regex": commentator_chapter_ref.regex()}}), ref_attr_name="new", sub_ref_attr_name="ref", commentary=True)
