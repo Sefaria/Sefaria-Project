@@ -833,12 +833,28 @@ var ReaderNavigationMenu = React.createClass({
       categories = (<div className="readerNavCategories"><ThreeBox content={categories} /></div>);
 
       var siteLinks = sjs._uid ? 
-                    [(<a className="siteLink" key='profile' href="/my/profile"><i className="fa fa-user"></i> My Profile</a>), "•",
-                     (<a className="siteLink" key='about' href="/about">About Sefaria</a>), "•", 
-                     (<a className="siteLink" key='logout' href="/logout">Logout</a>)] :
+                    [(<a className="siteLink" key='profile' href="/my/profile">
+                        <i className="fa fa-user"></i>
+                        <span className="en">Your Profile</span>
+                        <span className="he">הפרופיל שלך</span>
+                      </a>), "•",
+                     (<a className="siteLink" key='about' href="/about">
+                        <span className="en">About Sefaria</span>
+                        <span className="he">אודות ספאריה</span>
+                      </a>), "•", 
+                     (<a className="siteLink" key='logout' href="/logout">
+                        <span className="en">Logout</span>
+                        <span className="he">להתנתק</span>
+                      </a>)] :
                     
-                    [(<a className="siteLink" key='about' href="/about">About Sefaria</a>), "•",
-                     (<a className="siteLink" key='login' href="/login">Log In</a>)];
+                    [(<a className="siteLink" key='about' href="/about">
+                        <span className="en">About Sefaria</span>
+                        <span className="he">אודות ספאריה</span>
+                      </a>), "•",
+                     (<a className="siteLink" key='login' href="/login">
+                        <span className="en">Sign In</span>
+                        <span className="he">הירשם</span>
+                      </a>)];
 
 
       var calendar = [(<a className="calendarLink refLink" data-ref={sjs.calendar.parasha}>
@@ -872,12 +888,24 @@ var ReaderNavigationMenu = React.createClass({
       return(<div className={classes} onClick={this.handleClick}>
               {topContent}
               <div className="content">
-                  <div className="tagline">{this.props.home ? "A Living Library of Jewish Texts" : ""}</div>
-                  <h2>Browse Texts</h2>
+                  {this.props.home ? (<div className="tagline">
+                                        <span className="en">A Living Library of Jewish Texts</span>
+                                        <span className="he">ספריה חיה של טקסטים יהודיים</span>
+                                      </div>) : (<div className="tagline"></div>)}
+                  <h2>
+                    <span className="en">Browse Texts</span>
+                    <span className="he">לגלוש טקסטים</span>
+                  </h2>
                   {categories}
-                  <h2>Calendar</h2>
+                  <h2>
+                    <span className="en">Calendar</span>
+                    <span className="he">לוח יומי</span>
+                  </h2>
                   {calendar}
-                  <h2>Community</h2>
+                  <h2>
+                    <span className="en">Community</span>
+                    <span className="he">קהילה</span>
+                  </h2>
                   <span className="sheetsLink" onClick={this.props.openMenu.bind(null, "sheets")}>
                     <i className="fa fa-file-text-o"></i>
                     <span className="en">Source Sheets</span>
@@ -975,7 +1003,10 @@ var ReaderNavigationCategoryMenu = React.createClass({
                 <ReaderNavigationMenuCloseButton onClick={this.props.closeNav} />
                 <ReaderNavigationMenuSearchButton onClick={this.props.navHome} />
                 <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-                <h2>{this.props.category}</h2>
+                <h2>
+                  <span className="en">{this.props.category}</span>
+                  <span className="he">{sjs.library.hebrewCategory(this.props.category)}</span>
+                </h2>
               </div>
               <div className="content">
                 {toggle}
@@ -1037,7 +1068,10 @@ var ReaderTextTableOfContents = React.createClass({
                 <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
                 <ReaderNavigationMenuSearchButton onClick={this.props.openNav} />
                 <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-                <h2>Table of Contents</h2>
+                <h2>
+                  <span className="en">Table of Contents</span>
+                  <span className="he">תוכן העניינים</span>
+                </h2>
               </div>
               <div className="content">
                 <div className="tocTitle">

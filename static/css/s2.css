@@ -295,6 +295,7 @@ body .bilingual .enOnly .he {
 }
 .readerNavCalendar {
   margin-bottom: 30px;
+  margin-top: -8px;
 }
 .readerNavCalendar .gridBox td {
   border: 6px solid transparent;
@@ -334,6 +335,9 @@ body .bilingual .enOnly .he {
   display: inline-block;
   margin: 0 8px;
   font-size: 12px;
+}
+.readerNavMenu .siteLink .fa {
+  margin: 0 4px;
 }
 .readerNavCategoryMenu {
   height: 100%;

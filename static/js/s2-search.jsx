@@ -243,7 +243,7 @@ var SearchResultList = React.createClass({
             return null;
         }
         if (this.state.runningQuery) {
-            return (<div>...</div>)
+            return (<LoadingMessage />)
         }
         var addCommas = function(number) { return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); };
         var totalWithCommas = addCommas(this.state.total);
