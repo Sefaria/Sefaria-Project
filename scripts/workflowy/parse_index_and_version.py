@@ -34,12 +34,15 @@ class WorkflowyParser(object):
         self.outline = tree.getroot().find("./body/outline")
         self.comment_strip_re = re.compile(ur"</b>|<b>|"+self.comment_delim+".*"+self.comment_delim, re.UNICODE)
         self.parsed_schema = None
+        self.version_info = None
 
     def parse(self):
         #tree = tree.getroot()[1][0]
         # for element in tree.iter('outline'):
         #     print parse_titles(element)["enPrim"]
-        categories = self.extract_categories_from_title(self.outline)
+        categories = self.extract_categories_from_title()
+        if self._c_version:
+            self.version_info = {'info': self.extract_version_info(), 'text':[]}
         schema_root = self.build_index_schema(self.outline)
         self.parsed_schema = schema_root
         schema_root.validate()
@@ -71,8 +74,12 @@ class WorkflowyParser(object):
         titles = self.parse_titles(element)  # an array of titles
         n.key = titles["enPrim"]
         n = self.add_titles_to_node(n, titles)
-        if self._term_scheme and element != self.outline:
+
+        if self._term_scheme and element != self.outline: #add the node to a term scheme
             self.create_shared_term_for_scheme(n.title_group)
+
+        if self._c_version and element != self.outline: #get the text in the notes and store it with the proper Ref
+            self.version_info['text'].append({'ref': n.ref(), 'text': self.parse_text(element)})
         return n
 
     # en & he titles for each element > dict
@@ -114,15 +121,30 @@ class WorkflowyParser(object):
                     n.add_title(title, 'he')
         return n
 
-    def extract_categories_from_title(self, element):
+    def extract_categories_from_title(self):
         category_pattern = self.categories_delim+ur"(.*)"+self.categories_delim
-        title = element.get("text")
+        title = self.outline.get("text")
         category_str = re.search(category_pattern, title)
         if category_str:
             categories = [s.strip() for s in category_str.group(1).split(",")]
-            element.set('text', re.sub(category_pattern, "", title))
+            self.outline.set('text', re.sub(category_pattern, "", title))
             return categories
         return None
+
+    def extract_version_info(self):
+        vinfo_str = self.outline.get("_note")
+        if vinfo_str:
+            vinfo_dict = {elem.split(":",1)[0].strip():elem.split(":",1)[1].strip() for elem in str.split(",")}
+        else:
+            vinfo_dict = {'language': 'he',
+                          'versionSource': '',
+                          'versionTitle': 'pending'
+                          }
+        return vinfo_dict
+
+
+
+
 
     def create_index_from_schema(self, categories=None):
         if not categories:
@@ -157,12 +179,24 @@ class WorkflowyParser(object):
         n = re.sub(r'[/]', '<br>', n)
         n = re.sub(r'[(]', '<em><small>', n)
         n = re.sub(r'[)]', '</small></em>', n)
-        prayer = n.strip().splitlines()
-        return prayer
+        text = n.strip().splitlines()
+        return text
 
 
     # builds and posts text to api
-    def create_version_from_outline_notes(self, tree):
+    def create_version_from_outline_notes(self):
+        from sefaria.tracker import modify_text
+        for text_ref in self.version_info['text']:
+            ref = Ref(text_ref['ref'])
+            text = text_ref['text']
+            user = 8646
+            vtitle =  self.version_info['info']['versionTitle']
+            lang = self.version_info['info']['language']
+            vsource = self.version_info['info']['versionSource']
+            modify_text(user,ref,vtitle, lang, vsource, text)
+
+
+    """def create_version_from_outline_notes(self):
         j = {"versionTitle": "Siddur A", "versionSource": "daat", "language": "he"}
         parents = {c:p for p in tree.iter() for c in p}
         for e in tree.iter():
@@ -175,7 +209,7 @@ class WorkflowyParser(object):
                 layers = list(reversed(layers))
                 ref = "Siddur A, " + string.join(layers, ", ")
                 print ref
-                #post_api(ref, j, "text")
+                #post_api(ref, j, "text")"""
 
 
 if __name__ == '__main__':
