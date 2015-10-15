@@ -666,6 +666,7 @@ body {
 
 .comment {
 	font-size: 17px;
+	min-height: 30px;
 }
 
 .outsideBi {
