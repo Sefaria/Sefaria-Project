@@ -108,8 +108,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "enDesc",
         "heDesc",
         "pubDate",
+        "compDate",
+        "compPlace",
+        "pubPlace",
         "errorMargin",
-        "placeName",
         "placeGeo",
         "era",
     ]

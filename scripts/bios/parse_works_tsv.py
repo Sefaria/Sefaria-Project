@@ -8,14 +8,17 @@ import csv
 
 
 """
-0 Primary English Title
-1 Author
-2 English Description
-3 Hebrew Description
-4 First Publication / Appearence Year (loazi)
-5 Publication Year Margin of Error (+/- years)
-6 Place of appearence / publication
-7 Era
+0  Primary English Title
+1  Author
+2  English Description
+3  Hebrew Description
+4  Composition Year (loazi)
+5  Composition Year Margin of Error (+/- years)
+6  Place composed
+7  Year of first publication
+8  Place of first publication
+9  Geocode of first pub
+10 Era
 """
 eras = {
     "Gaonim": "GN",
@@ -74,11 +77,13 @@ with open("Torah Commentators - Bios - Works.tsv") as tsv:
             commentaries_handled.append(l[1])
             continue
         _(i, "authors", aus)
-        _(i,"enDesc",l[2])
-        _(i,"heDesc",l[3])
-        _(i,"pubDate",l[4])
-        _(i,"errorMargin",l[5])
-        _(i,"placeName",l[6])
-        _(i,"era",eras.get(l[7]))
+        _(i, "enDesc", l[2])
+        _(i, "heDesc", l[3])
+        _(i, "compDate", l[4])
+        _(i, "errorMargin", l[5])
+        _(i, "compPlace", l[6]) #composition place
+        _(i, "pubDate", l[7])
+        _(i, "pubPlace", l[8]) # publication place
+        _(i, "era", eras.get(l[10]))
         print "."
         i.save()
