@@ -138,6 +138,7 @@ var ReaderApp = React.createClass({
         fontSize:      62.5
       },
       menuOpen:             this.props.initialMenu || null, // "navigation", "text toc", "display", "search", "sheets", "home"
+      displaySettingsOpen:  false,
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag:   this.props.initialSheetsTag || null,
       searchQuery:          this.props.initialQuery || null,
@@ -396,6 +397,12 @@ var ReaderApp = React.createClass({
       searchQuery: query
     });
   },
+  openDisplaySettings: function() {
+    this.setState({displaySettingsOpen: true});
+  },
+  closeDisplaySettings: function() {
+    this.setState({displaySettingsOpen: false});
+  },
   navigateReader: function(direction) {
     var current = this.currentContent();
     if (current.type === "TextColumn") {
@@ -531,6 +538,7 @@ var ReaderApp = React.createClass({
                     openNav={this.openMenu.bind(null, "navigation")}
                     openSearch={this.openSearch}
                     openMenu={this.openMenu}
+                    openDisplaySettings={this.openDisplaySettings}
                     showBaseText={this.showBaseText} />);
 
     } else if (this.state.menuOpen === "navigation") {
@@ -541,6 +549,7 @@ var ReaderApp = React.createClass({
                     openNav={this.openMenu.bind(null, "navigation")}                    
                     openSearch={this.openSearch}
                     openMenu={this.openMenu}
+                    openDisplaySettings={this.openDisplaySettings}
                     showBaseText={this.showBaseText} />);
 
     } else if (this.state.menuOpen === "text toc") {
@@ -550,13 +559,8 @@ var ReaderApp = React.createClass({
                     category={this.currentCategory() || this.props.initialCategory}
                     currentRef={this.currentRef() || this.props.initialText} 
                     openNav={this.openMenu.bind(null, "navigation")}
+                    openDisplaySettings={this.openDisplaySettings}
                     showBaseText={this.showBaseText} />);
-
-    } else if (this.state.menuOpen === "display") {
-      var menu = (<ReaderDisplayOptionsMenu
-                    settings={this.state.settings}
-                    setOption={this.setOption}
-                    currentLayout={this.currentLayout} />);
 
     } else if (this.state.menuOpen === "search") {
       var settings = {query: this.state.searchQuery, page: 1};
@@ -564,6 +568,7 @@ var ReaderApp = React.createClass({
                     initialSettings={settings}
                     onResultClick={this.showBaseText}
                     onQueryChange={this.setSearchQuery}
+                    openDisplaySettings={this.openDisplaySettings}
                     close={this.closeMenus} />);
 
     } else if (this.state.menuOpen === "sheets") {
@@ -572,7 +577,6 @@ var ReaderApp = React.createClass({
                     close={this.closeMenus}
                     initialTag={this.state.navigationSheetTag}
                     setSheetTag={this.setSheetTag} />);
-
     } else {
       var menu = "";
     }
@@ -598,6 +602,7 @@ var ReaderApp = React.createClass({
           setOption={this.setOption}
           openMenu={this.openMenu}
           closeMenus={this.closeMenus}
+          openDisplaySettings={this.openDisplaySettings}
           currentLayout={this.currentLayout} />)}
 
         <div className="readerContent" style={style}>
@@ -606,7 +611,11 @@ var ReaderApp = React.createClass({
         </div>
 
         {menu}
-        {this.state.menuOpen === "display" ? (<div className="mask" onClick={this.closeMenus}></div>) : ""}
+        {this.state.displaySettingsOpen ? (<ReaderDisplayOptionsMenu
+                                              settings={this.state.settings}
+                                              setOption={this.setOption}
+                                              currentLayout={this.currentLayout} />) : ""}
+        {this.state.displaySettingsOpen ? (<div className="mask" onClick={this.closeDisplaySettings}></div>) : ""}
 
       </div>
     );
@@ -622,6 +631,7 @@ var ReaderControls = React.createClass({
     showBaseText:            React.PropTypes.func.isRequired,
     setOption:               React.PropTypes.func.isRequired,
     openMenu:                React.PropTypes.func.isRequired,
+    openDisplaySettings:     React.PropTypes.func.isRequired,
     closeMenus:              React.PropTypes.func.isRequired,
     currentRef:              React.PropTypes.func.isRequired,
     currentMode:             React.PropTypes.func.isRequired,
@@ -638,9 +648,7 @@ var ReaderControls = React.createClass({
 
     var readerControls = hideHeader ? "" :
         (<div className="readerControls headroom">
-          <div className="readerNav"  onClick={this.props.openMenu.bind(null, "navigation")}>
-            <i className="fa fa-search"></i>
-          </div>
+          <ReaderNavigationMenuSearchButton onClick={this.props.openMenu.bind(null, "navigation")} />
           <div className="readerTextToc" onClick={this.props.openMenu.bind(null, "text toc")}>
             { title ? (<i className="fa fa-caret-down invisible"></i>) : "" }
             <div className="readerTextTocBox">
@@ -648,11 +656,8 @@ var ReaderControls = React.createClass({
               <span className="he">{heTitle}</span>
             </div>
             { title ? (<i className="fa fa-caret-down"></i>) : "" }
-
           </div>
-          <div className="readerOptions" onClick={this.props.openMenu.bind(null, "display")}>
-            <img src="/static/img/bilingual2.png" />
-          </div>
+          <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
     return (
       <div>
@@ -669,7 +674,6 @@ var ReaderDisplayOptionsMenu = React.createClass({
     setOption:     React.PropTypes.func.isRequired,
     settings:      React.PropTypes.object.isRequired,
     currentLayout: React.PropTypes.func.isRequired,
-
   },
   render: function() {
     var languageOptions = [
@@ -791,6 +795,7 @@ var ReaderNavigationMenu = React.createClass({
                         category={this.props.categories.slice(-1)[0]}
                         closeNav={this.closeNav}
                         setCategories={this.props.setCategories}
+                        openDisplaySettings={this.props.openDisplaySettings}
                         navHome={this.navHome} />
                       </div>);
     } else {
@@ -851,14 +856,16 @@ var ReaderNavigationMenu = React.createClass({
       calendar = (<div className="readerNavCalendar"><ThreeBox content={calendar} /></div>);
 
       var topContent = this.props.home ?
-              (<div className="readerNavTop readerNavTop search">
+              (<div className="readerNavTop search">
                 <ReaderNavigationMenuSearchButton onClick={this.navHome} />
+                <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />                
                 <div className='sefariaLogo'><img src="/static/img/sefaria.png" /></div>
               </div>) :
-              (<div className="readerNavTop readerNavTop search">
-                <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
-                <input className="readerSearch" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
+              (<div className="readerNavTop search">
                 <ReaderNavigationMenuCloseButton onClick={this.closeNav}/>
+                <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
+                <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />                
+                <input className="readerSearch" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
               </div>);
 
       var classes = classNames({readerNavMenu: 1, readerNavMenu:1, home: this.props.home});
@@ -965,8 +972,9 @@ var ReaderNavigationCategoryMenu = React.createClass({
     return (<div className="readerNavCategoryMenu readerNavMenu">
               <div className="readerNavTop">
                 <div className="categoryColorLine" style={lineStyle}></div>
+                <ReaderNavigationMenuCloseButton onClick={this.props.closeNav} />
                 <ReaderNavigationMenuSearchButton onClick={this.props.navHome} />
-                <ReaderNavigationMenuCloseButton onClick={this.props.closeNav}/>
+                <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
                 <h2>{this.props.category}</h2>
               </div>
               <div className="content">
@@ -1026,8 +1034,9 @@ var ReaderTextTableOfContents = React.createClass({
     return (<div className="readerTextTableOfContents readerNavMenu" onClick={this.handleClick}>
               <div className="readerNavTop">
                 <div className="categoryColorLine" style={lineStyle}></div>
-                <ReaderNavigationMenuSearchButton onClick={this.props.openNav} />
                 <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
+                <ReaderNavigationMenuSearchButton onClick={this.props.openNav} />
+                <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
                 <h2>Table of Contents</h2>
               </div>
               <div className="content">
@@ -1140,8 +1149,8 @@ var SheetsNav = React.createClass({
 
     return (<div className="readerSheetsNav readerNavMenu readerNavMenu">
               <div className="readerNavTop">
-                <ReaderNavigationMenuSearchButton onClick={this.props.openNav} />
                 <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
+                <ReaderNavigationMenuSearchButton onClick={this.props.openNav} />
                 <h2>{title}</h2>
               </div>
               {content}
@@ -1225,10 +1234,16 @@ var ReaderNavigationMenuSearchButton = React.createClass({
 
 var ReaderNavigationMenuCloseButton = React.createClass({
   render: function() { 
-    return (<div className="readerNavMenuCloseButton" onClick={this.props.onClick}><i className="fa fa-times"></i></div>);
+    return (<div className="readerNavMenuCloseButton" onClick={this.props.onClick}>×</div>);
   }
 });
 
+
+var ReaderNavigationMenuDisplaySettingsButton = React.createClass({
+  render: function() { 
+    return (<div className="readerOptions" onClick={this.props.onClick}><img src="/static/img/bilingual2.png" /></div>);
+  }
+});
 
 var TextColumn = React.createClass({
   // An infinitely scrollable column of text, composed of TextRanges for each section.

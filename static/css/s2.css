@@ -178,7 +178,7 @@ body .bilingual .enOnly .he {
   box-sizing: border-box;
   border: none;
   background-color: inherit;
-  padding: 17px 10px 10px 40px;
+  padding: 18px 10px 10px 80px;
   line-height: 30px;
   font-size: 16px;
 }
@@ -186,34 +186,42 @@ body .bilingual .enOnly .he {
   outline: 0;
 }
 .readerNavTop .fa {
+
+}
+.readerNavTop .readerNavMenuSearchButton,
+.readerNavTop .readerNavMenuCloseButton,
+.readerNavTop .readerOptions {
+  position: absolute;
+  text-align: center;
+  top: 0;
+  left: 0;
+  width: 40px;
+  padding: 21px 0;
   color: #BFBFBF;
   font-size: 20px;
   vertical-align: middle;
   cursor: pointer;
 }
-.readerNavTop .readerNavMenuSearchButton,
-.readerNavTop .readerNavMenuCloseButton {
-  position: absolute;
-  text-align: center;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  width: 40px;
-  padding: 21px 0;
+.readerNavTop .readerNavMenuCloseButton{
+  font-size: 36px;
+  padding: 10px 0;
 }
-.readerNavTop .readerNavMenuCloseButton {
-  right: 0;
+.readerNavTop .readerNavMenuSearchButton {
+  left: 40px;
+}
+.readerNavTop .readerOptions {
   left: auto;
+  right: 0;
 }
 .readerNavMenu.home .readerNavTop {
   border-bottom: none;
   padding-bottom: 0px;
 }
+.readerNavMenu.home .readerNavMenuSearchButton {
+  left: 0;
+}
 .readerNavMenu.home .sefariaLogo img {
   width: 110px;
-}
-.readerNavMenu.home .readerNavTop .fa-search {
-  /*left: 10px;*/
 }
 .readerNavMenu .tagline {
   text-align: center;
@@ -617,7 +625,7 @@ body .bilingual .enOnly .he {
   color: white;
   border-color: #666;
 }
-.readerControls .readerNav,
+.readerControls .readerNavMenuSearchButton,
 .readerControls .readerTextToc,
 .readerControls .readerOptions {
   text-align: center;
@@ -625,7 +633,8 @@ body .bilingual .enOnly .he {
   cursor: pointer;
   vertical-align: middle;
 }
-.readerControls .readerNav, .readerControls .readerOptions  {
+.readerControls .readerNavMenuSearchButton,
+.readerControls .readerOptions  {
   width: 10%;
   color: #BFBFBF;
   font-size: 20px;
@@ -659,14 +668,14 @@ body .bilingual .enOnly .he {
 .bilingual .readerTextToc .he {
   display: none;
 }
-.readerControls .readerNav {
+.readerControls .readerNavMenuSearchButton {
   padding-left: 10px;
 }
 .readerControls .readerOptions {
   text-align: right;
   padding-right: 10px;
 }
-.readerControls .readerOptions img {
+.readerOptions img {
   height: 26px;
   vertical-align: middle;
   margin-top: -4px;
@@ -886,7 +895,6 @@ body .bilingual .enOnly .he {
   top: 0;
   background-color: inherit;
   width: 30px;
-  display: none;
   text-align: center;
   font-weight: lighter;
   width: 18px;
@@ -895,6 +903,10 @@ body .bilingual .enOnly .he {
   line-height: 18px;
   border-radius: 30px;
   margin-top: 4px;
+}
+.segment .segmentNumber,
+.segment .linkCount {
+  display: none;
 }
 .segment .segmentNumber,
 .textRagnge .numberLabel {
@@ -1187,7 +1199,7 @@ body .bilingual .enOnly .he {
   text-transform: uppercase;
   font-size: 24px;
   font-family: "Helvetica Neue", "Helvetica", sans-serif;
-  margin-top: 13px;
+  margin-top: 16px;
 }
 #s2Loading {
   text-align: center;
@@ -1206,10 +1218,13 @@ body .bilingual .enOnly .he {
 }
 ::-webkit-input-placeholder {
    font-style: italic;
+   font-family: Georgia, serif;
 }
 ::-moz-placeholder { 
    font-style: italic;
+   font-family: Georgia, serif;
 }
 :-ms-input-placeholder {  
    font-style: italic;
+   font-family: Georgia, serif;
 }

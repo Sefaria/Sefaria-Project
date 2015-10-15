@@ -34,9 +34,10 @@ var SearchPage = React.createClass({
         return (<div className="readerNavMenu">
                 <div className="readerNavTop search">
                   <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
-                    <SearchBar
-                        initialQuery = { this.state.query }
-                        updateQuery = { this.updateQuery } />
+                  <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+                  <SearchBar
+                    initialQuery = { this.state.query }
+                    updateQuery = { this.updateQuery } />
                 </div>
                   <div className="content">
                     <div className="searchContentFrame">
