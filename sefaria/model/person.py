@@ -1,14 +1,9 @@
-"""
-Person.py
-Writes to MongoDB Collection: links
-"""
 
 from . import abstract as abst
 from . import schema
 from . import time
 
 import logging
-
 logger = logging.getLogger(__name__)
 
 
@@ -54,7 +49,7 @@ class Person(abst.AbstractMongoRecord):
         assert self.key
 
     # Names
-    # This is the same as on TimePeriod, and very similar to Terms - abstract out
+    # This is the same as on TimePeriod, and very similar to Terms & Place - abstract out
     def _init_defaults(self):
         self.name_group = None
 

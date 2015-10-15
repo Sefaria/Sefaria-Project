@@ -39,6 +39,8 @@ class Place(abst.AbstractMongoRecord):
     def secondary_names(self, lang=None):
         return self.name_group.secondary_titles(lang)
 
+    ###
+
     def set_location(self, lat, lon):
         # Currently assuming point location
         self.loc = geojson.Point((lat, lon))

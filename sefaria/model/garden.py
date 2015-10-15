@@ -1,14 +1,8 @@
-"""
-garden.py
-Writes to MongoDB Collection: links
-"""
 
-import regex as re
-from bson.objectid import ObjectId
-
-from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
 from . import abstract as abst
 from . import text
+from . import place
 
 import logging
 logger = logging.getLogger(__name__)
@@ -51,10 +45,30 @@ class GardenStop(abst.AbstractMongoRecord):
     collection = 'garden_stop'
     required_attrs = [
         'garden'
+        'type'  #
     ]
     optional_attrs = [
         'ref'
+        'title',
+        'enVersionTitle',
+        'heVersionTitle',
+        'enText',
+        'heText',
+        'tags',
+        'yearIsApproximate',
+        'place'
     ]
+
+    def hasCustomText(self, lang):
+        assert lang, u"hasCustomText() requires a language code"
+        if lang == "en":
+            attr = 'enText'
+        elif lang == "he":
+            attr = 'heText'
+        else:
+            raise InputError(u"Unknown language: {}".format(lang))
+
+        return bool(getattr(self, attr, False))
 
 class GardenStopSet(abst.AbstractMongoSet):
     recordClass = GardenStop
@@ -62,12 +76,33 @@ class GardenStopSet(abst.AbstractMongoSet):
 
 class GardenSourceStop(GardenStop):
     required_attrs = [
-        'ref'
+        'garden'
+        'type'
     ]
     optional_attrs = [
-        ''
+        'ref'
+        'title',
+        'enVersionTitle',
+        'heVersionTitle',
+        'enText',
+        'heText',
+        'tags',
+        'year',
+        'yearIsApproximate',
+        'place'
     ]
-    pass
+
+    def __init__(self):
+        #
+        pass
+
+    def _derive_data_from_index(self):
+        if not getattr(self, "ref", None):
+            return
+        i = self.ref.index
+        assert isinstance(i, text.AbstractIndex)
+        if len(i.author_objects()) > 0:
+            pass
 
 
 class GardenBlobStop(GardenStop):
