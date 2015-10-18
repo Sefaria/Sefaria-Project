@@ -30,10 +30,72 @@ class Garden(abst.AbstractMongoRecord):
         self.rels = []
 
     def _set_derived_attributes(self):
+        self._reset_derived_attributes()
+
+    def _reset_derived_attributes(self):
         if getattr(self, 'key', False):
             self.stops = GardenStopSet({"garden": self.key}).array()
             self.rels = GardenStopRelationshipSet({"garden": self.key}).array()
 
+    def add_stop(self, attrs):
+        gs = GardenStop(attrs)
+        gs.garden = self.key
+        try:
+            gs.save()
+            self._reset_derived_attributes()
+        except Exception as e:
+            logger.warning("Failed to add stop to Garden {}. {}".format(self.title, e))
+
+    def add_relationship(self, attrs):
+        gs = GardenStopRelationship(attrs)
+        gs.garden = self.key
+        try:
+            gs.save()
+            self._reset_derived_attributes()
+        except Exception as e:
+            logger.warning("Failed to add relationship to Garden {}. {}".format(self.title, e))
+
+    def import_sheet(self, sheet_id):
+        from sefaria.sheets import Sheet, refine_ref_by_text
+
+        sheet = Sheet().load({"id":sheet_id})
+        if not sheet:
+            logger.warning("Failed to load sheet {}".format(sheet_id))
+
+        def process_sources(sources):
+            for source in sources:
+                if "ref" in source:
+                    text = source.get("text", {}).get("he", None)
+                    ref = refine_ref_by_text(source["ref"], text) if text else source["ref"]
+
+                    self.add_stop({
+                        "type": "inside_source",
+                        "ref": ref,
+                        "enText": source['text'].get("en"),
+                        "heText": source['text'].get("he"),
+                    })
+                elif "outsideBiText" in source:
+                    self.add_stop({
+                        "type": "outside_source",
+                        "enText": source['outsideBiText'].get("en"),
+                        "heText": source['outsideBiText'].get("he"),
+                    })
+                elif "outsideText" in source:
+                    self.add_stop({
+                        "type": "outside_source",
+                        "enText": source['outsideText']
+                    })
+                elif "comment" in sources:
+                    self.add_stop({
+                        "type": "outside_source",
+                        "enText": source['comment']
+                    })
+
+                if "subsources" in source:
+                    process_sources(source["subsources"])
+
+        process_sources(sheet.sources)
+        return self
 
 
 class GardenSet(abst.AbstractMongoSet):
@@ -44,11 +106,11 @@ class GardenSet(abst.AbstractMongoSet):
 class GardenStop(abst.AbstractMongoRecord):
     collection = 'garden_stop'
     required_attrs = [
-        'garden'
-        'type'  #
+        'garden',
+        'type'  # inside_source, outside_source, blob
     ]
     optional_attrs = [
-        'ref'
+        'ref',
         'title',
         'enVersionTitle',
         'heVersionTitle',
@@ -76,11 +138,11 @@ class GardenStopSet(abst.AbstractMongoSet):
 
 class GardenSourceStop(GardenStop):
     required_attrs = [
-        'garden'
+        'garden',
         'type'
     ]
     optional_attrs = [
-        'ref'
+        'ref',
         'title',
         'enVersionTitle',
         'heVersionTitle',
