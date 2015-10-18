@@ -3,6 +3,7 @@ from sefaria.system.exceptions import InputError
 from . import abstract as abst
 from . import text
 from . import place
+from . import time
 
 import logging
 logger = logging.getLogger(__name__)
@@ -102,7 +103,7 @@ class GardenSet(abst.AbstractMongoSet):
     recordClass = Garden
 
 
-
+#todo: Subclass these?
 class GardenStop(abst.AbstractMongoRecord):
     collection = 'garden_stop'
     required_attrs = [
@@ -117,8 +118,14 @@ class GardenStop(abst.AbstractMongoRecord):
         'enText',
         'heText',
         'tags',
-        'yearIsApproximate',
-        'place'
+        "start",
+        "startIsApprox",
+        "end",
+        "endIsApprox",
+        'placeKey'
+        'placeNameEn',
+        'placeNameHe',
+        'placeGeo'
     ]
 
     def hasCustomText(self, lang):
@@ -132,43 +139,49 @@ class GardenStop(abst.AbstractMongoRecord):
 
         return bool(getattr(self, attr, False))
 
-class GardenStopSet(abst.AbstractMongoSet):
-    recordClass = GardenStop
-
-
-class GardenSourceStop(GardenStop):
-    required_attrs = [
-        'garden',
-        'type'
-    ]
-    optional_attrs = [
-        'ref',
-        'title',
-        'enVersionTitle',
-        'heVersionTitle',
-        'enText',
-        'heText',
-        'tags',
-        'year',
-        'yearIsApproximate',
-        'place'
-    ]
-
-    def __init__(self):
-        #
-        pass
-
-    def _derive_data_from_index(self):
+    def _derive_metadata(self):
         if not getattr(self, "ref", None):
             return
         i = self.ref.index
         assert isinstance(i, text.AbstractIndex)
-        if len(i.author_objects()) > 0:
-            pass
+        author = i.author_objects()[0] if len(i.author_objects()) > 0 else {}  # Assume first is best
 
+        placeKey = getattr(i, "compPlace", None) or getattr(author, "deathPlace", None) or getattr(author, "birthPlace", None)
+        if placeKey:
+            pobj = place.Place().load({"key": placeKey})
+            self.placeKey = placeKey
+            self.placeNameEn = pobj.primary_name("en")
+            self.placeNameHe = pobj.primary_name("he")
+            self.placeGeo = pobj.get_location()
 
-class GardenBlobStop(GardenStop):
-    pass
+        if getattr(i, "compDate", None):
+            year = int(getattr(i, "compDate"))
+            errorMargin = int(getattr(i, "errorMargin", 0))
+            self.start = year - errorMargin
+            self.end = year + errorMargin
+            self.startIsApprox = self.endIsApprox = errorMargin > 0
+        elif author and author.mostAccurateTimePeriod():
+            tp = author.mostAccurateTimePeriod()
+            self.start = tp.start
+            self.end = tp.end
+            self.startIsApprox = tp.startIsApprox
+            self.endIsApprox = tp.endIsApprox
+
+    def time_period(self):
+        if not getattr(self, "start", False):
+            return None
+        return time.TimePeriod({
+            "start": self.start,
+            "startIsApprox": getattr(self, "startIsApprox", False),
+            "end": self.end,
+            "endIsApprox": getattr(self, "endIsApprox", False)
+        })
+
+    def place(self):
+        return place.Place().load({"key": self.placeKey})
+
+class GardenStopSet(abst.AbstractMongoSet):
+    recordClass = GardenStop
 
 
 class GardenStopRelationship(abst.AbstractMongoRecord):
