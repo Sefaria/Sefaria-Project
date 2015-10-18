@@ -22,7 +22,7 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
     """
     assert isinstance(oref, Ref)
     
-    if len(oref.sections) >= oref.index_node.depth - 1:
+    if getattr(oref.index_node, "depth", False) and len(oref.sections) >= oref.index_node.depth - 1:
         oref = oref.section_ref()
 
     if version:
@@ -111,10 +111,12 @@ def url_regex(ref):
         for r in normals:
             sections = re.sub("^%s" % re.escape(ref.book), '', r).replace(":", r"\\.").replace(" ", r"\\.")
             patterns.append("%s$" % sections)   # exact match
+            patterns.append(r"%s\\?" % sections) # Exact match with '?' afterwards
             patterns.append(r"%s\\." % sections)   # more granualar, exact match followed by .
     else:
         sections = re.sub("^%s" % re.escape(ref.book), '', ref.normal()).replace(":", r"\\.").replace(" ", r"\\.")
         patterns.append("%s$" % sections)   # exact match
+        patterns.append(r"%s\\?" % sections)  # Exact match with '?' afterwards
         if ref.index_node.has_titled_continuation():
             patterns.append(u"{}({}).".format(sections, u"|".join([s.replace(" ","_") for s in ref.index_node.title_separators])))
 
