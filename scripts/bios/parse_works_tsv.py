@@ -17,8 +17,8 @@ import csv
 6  Place composed
 7  Year of first publication
 8  Place of first publication
-9  Geocode of first pub
-10 Era
+X 9  Geocode of first pub
+9 Era
 """
 eras = {
     "Gaonim": "GN",
@@ -84,6 +84,6 @@ with open("Torah Commentators - Bios - Works.tsv") as tsv:
         _(i, "compPlace", l[6]) #composition place
         _(i, "pubDate", l[7])
         _(i, "pubPlace", l[8]) # publication place
-        _(i, "era", eras.get(l[10]))
+        _(i, "era", eras.get(l[9]))
         print "."
         i.save()

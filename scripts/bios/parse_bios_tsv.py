@@ -12,19 +12,19 @@ import re
 3 'Secondary Hebrew Names'
 4 'Birth Year '
 5 'Birth Place'
-6 'Birth lat/lon'
-7 'Death Year'
-8 'Death Place'
-9 'Death lat/lon'
-10'Halachic Era'
-11'English Biography'
-12'Hebrew Biography'
-13'English Wikipedia Link'
-14'Hebrew Wikipedia Link'
-15'Jewish Encyclopedia Link'
-16'Brill Online Reference Words (Encyclopedia of Jewish in the Islamic Encyclopedia of the Hebrew Language Encyclopedia of Judaism)'
+X 6 'Birth lat/lon'
+6 'Death Year'
+7 'Death Place'
+X 9 'Death lat/lon'
+8'Halachic Era'
+9'English Biography'
+10'Hebrew Biography'
+11'English Wikipedia Link'
+12'Hebrew Wikipedia Link'
+13'Jewish Encyclopedia Link'
+14'Brill Online Reference Words (Encyclopedia of Jewish in the Islamic Encyclopedia of the Hebrew Language Encyclopedia of Judaism)'
 ...
-25'Sex'
+23'Sex'
 """
 
 eras = {
@@ -63,37 +63,37 @@ with open("Torah Commentators - Bios - People.tsv") as tsv:
             m = re.search(r"\d+", l[4])
             if m:
                 p.birthYear = m.group(0)
-        if len(l[7]) > 0:
-            if "c" in l[7]:
+        if len(l[6]) > 0:
+            if "c" in l[6]:
                 p.deathYearIsApprox = True
             else:
                 p.deathYearIsApprox = False
-            m = re.search(r"\d+", l[7])
+            m = re.search(r"\d+", l[6])
             if m:
                 p.deathYear = m.group(0)
         _(p, "birthPlace", l[5])
-        _(p, "birthPlaceGeo", l[6]) # check format
-        _(p, "deathPlace", l[8])
-        _(p, "deathPlaceGeo", l[9])
-        _(p, "era", eras.get(l[10]))
-        _(p, "enBio", l[11])
-        _(p, "heBio", l[12])
-        _(p, "enWikiLink", l[13])
-        _(p, "heWikiLink", l[14])
-        _(p, "jeLink", l[15])
-        _(p, "sex", l[25])
+        #_(p, "birthPlaceGeo", l[6]) # check format
+        _(p, "deathPlace", l[7])
+        #_(p, "deathPlaceGeo", l[9])
+        _(p, "era", eras.get(l[8]))
+        _(p, "enBio", l[9])
+        _(p, "heBio", l[10])
+        _(p, "enWikiLink", l[11])
+        _(p, "heWikiLink", l[12])
+        _(p, "jeLink", l[13])
+        _(p, "sex", l[23])
         p.save()
 
     #Second Pass
     rowmap = {
-        17: 'child',
-        18: 'grandchild',
-        19: 'childinlaw',
-        20: 'student',
-        21: 'member',
-        22: 'correspondent',
-        23: 'opposed',
-        24: 'cousin',
+        15: 'child',
+        16: 'grandchild',
+        17: 'childinlaw',
+        18: 'student',
+        19: 'member',
+        20: 'correspondent',
+        21: 'opposed',
+        22: 'cousin',
     }
 
     tsv.seek(0)

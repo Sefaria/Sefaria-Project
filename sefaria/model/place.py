@@ -16,9 +16,9 @@ class Place(abst.AbstractMongoRecord):
     pkeys = ["key"]
 
     required_attrs = [
-        "key"
-        "names"
-        "loc"
+        "key",
+        "names",
+        "loc",
     ]
     optional_attrs = []
 
@@ -29,6 +29,12 @@ class Place(abst.AbstractMongoRecord):
 
     def _set_derived_attributes(self):
         self.name_group = schema.TitleGroup(getattr(self, "names", None))
+
+    def _normalize(self):
+        super(Place, self)._normalize()
+        self.names = self.name_group.titles
+        #if not self.key and self.primary_name("en"):
+        #    self.key = self.primary_name("en")
 
     def all_names(self, lang=None):
         return self.name_group.all_titles(lang)
@@ -41,6 +47,12 @@ class Place(abst.AbstractMongoRecord):
 
     ###
 
+    # Currently assuming point location
     def set_location(self, lat, lon):
-        # Currently assuming point location
         self.loc = geojson.Point((lat, lon))
+
+    def get_location(self):
+        return geojson.GeoJSON(self.loc)
+
+class PlaceSet(abst.AbstractMongoSet):
+    recordClass = Place

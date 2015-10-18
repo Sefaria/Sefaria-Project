@@ -12,7 +12,7 @@ symbols are then accessed directly as, e.g.:
 import abstract
 
 # not sure why we have to do this now - it wasn't previously required
-import history, text, link, note, layer, notification, queue, lock, following, user_profile, version_state, translation_request, lexicon, garden
+import history, text, link, note, layer, notification, queue, lock, following, user_profile, version_state, translation_request, lexicon, place, person, garden
 
 from history import History, HistorySet, log_add, log_delete, log_update, log_text
 from schema import deserialize_tree, Term, TermSet, TermScheme, TermSchemeSet, TitledTreeNode, SchemaNode, ArrayMapNode, JaggedArrayNode, NumberedTitledTreeNode
@@ -28,8 +28,9 @@ from following import FollowRelationship, FollowersSet, FolloweesSet
 from user_profile import UserProfile, annotate_user_list
 from version_state import VersionState, VersionStateSet, StateNode, refresh_all_states
 from time import TimePeriod, TimePeriodSet
-from person import Person, PersonSet, PersonRelationship, PersonRelationshipSet, PersonRelationshipType, PersonRelationshipTypeSet
 from lexicon import Lexicon, LexiconEntry, LexiconEntrySet, Dictionary, DictionaryEntry, StrongsDictionaryEntry, RashiDictionaryEntry, WordForm
+from place import Place, PlaceSet
+from person import Person, PersonSet, PersonRelationship, PersonRelationshipSet, PersonRelationshipType, PersonRelationshipTypeSet
 from garden import Garden, GardenStop, GardenStopRelationship
 
 import dependencies
