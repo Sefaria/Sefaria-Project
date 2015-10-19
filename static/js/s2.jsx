@@ -825,7 +825,7 @@ var ReaderNavigationMenu = React.createClass({
         "Other"
       ];
       categories = categories.map(function(cat) {
-        var style = {"backgroundColor": sjs.categoryColor(cat)};
+        var style = {"borderColor": sjs.categoryColor(cat)};
         var openCat = function() {this.props.setCategories([cat])}.bind(this);
         var heCat   = sjs.library.hebrewCategory(cat);
         return (<div className="readerNavCategory" style={style} onClick={openCat}>
@@ -833,7 +833,7 @@ var ReaderNavigationMenu = React.createClass({
                   <span className="he">{heCat}</span>
                 </div>);
       }.bind(this));;
-      var more = (<div className="readerNavCategory" style={{"backgroundColor": sjs.palette.navy}} onClick={this.showMore}>
+      var more = (<div className="readerNavCategory" style={{"borderColor": sjs.palette.darkblue}} onClick={this.showMore}>
                       <span className="en">More &gt;</span>
                       <span className="he">עוד &gt;</span>
                   </div>);
@@ -864,16 +864,17 @@ var ReaderNavigationMenu = React.createClass({
                         <span className="he">הירשם</span>
                       </a>)];
 
-
-      var calendar = [(<a className="calendarLink refLink" data-ref={sjs.calendar.parasha}>
+      var tanachStyle = {"borderColor": sjs.categoryColor("Tanach")};
+      var talmudStyle = {"borderColor": sjs.categoryColor("Talmud")};
+      var calendar = [(<a className="calendarLink refLink" data-ref={sjs.calendar.parasha} style={tanachStyle}>
                         <span className="en">{sjs.calendar.parashaName}</span>
                         <span className="he">פרשה</span>
                        </a>),
-                      (<a className="calendarLink refLink" data-ref={sjs.calendar.haftara}>
+                      (<a className="calendarLink refLink" data-ref={sjs.calendar.haftara} style={tanachStyle}>
                         <span className="en">Haftara</span>
                         <span className="he">הפטרה</span>
                        </a>),
-                      (<a className="calendarLink refLink" data-ref={sjs.calendar.daf_yomi}>
+                      (<a className="calendarLink refLink" data-ref={sjs.calendar.daf_yomi} style={talmudStyle}>
                         <span className="en">Daf Yomi</span>
                         <span className="he">דף יומי</span>
                        </a>)];

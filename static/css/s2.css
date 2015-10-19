@@ -261,11 +261,11 @@ body .bilingual .enOnly .he {
   text-transform: uppercase;
   text-align: center;
   font-size: 15px;
-  font-weight: lighter;
-  font-family: "Montserrat", "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
+  font-weight: 200;
+  font-family: "Helvetica Neue", Helvetica, Ariel, san-serif;
   color: #9B9B9B;
-  margin-bottom: 10px;
-  letter-spacing: 1px;
+  margin-bottom: 20px;
+  letter-spacing: 2px;
 }
 .readerNavMenu h3 {
   font-size: 13px;
@@ -280,13 +280,14 @@ body .bilingual .enOnly .he {
   border: none;
 }
 .readerNavCategory {
-  color: white;
+  background-color: white;
   text-transform: uppercase;
   font-family: Georgia;
   text-align: center;
-  padding: 14px 10px;
-  margin: 1px;
+  padding: 10px 10px 14px;
+  margin: 2px;
   cursor: pointer;
+  border-top: 4px solid transparent;
 }
 .bilingual .readerNavCategory .he {
   display: none;
@@ -313,7 +314,8 @@ body .bilingual .enOnly .he {
   color: black;
   background-color: white;
   text-align: center;
-  padding: 12px 0;
+  padding: 8px 0 12px;
+  border-top: 4px solid transparent;
   width: 100%;
   cursor: pointer;
 }
