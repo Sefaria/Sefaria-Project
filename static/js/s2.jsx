@@ -953,7 +953,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
           if ($.inArray(item.category, subcats) > -1) {
             html += '<span class="catLink" data-cats="' + newCats.join("|") + '">' + 
                     "<span class='en'>" + item.category + "</span>" + 
-                    "<span class='he'>" + item.hebrewCategory + "</span></span>";
+                    "<span class='he'>" + sjs.library.hebrewCategory(item.category) + "</span></span>";
             continue;
           }
           html += "<div class='category'><h3>" + 

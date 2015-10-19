@@ -505,7 +505,9 @@ sjs.library = {
       "Early Jewish Thought": "מחשבת ישראל קדומה",
       "Minor Tractates":      "מסכתות קטנות",
       "Rosh":                 'ר"אש',
-      "Maharsha":             'מהרשא'
+      "Maharsha":             'מהרשא',
+      "Mishneh Torah":        "משנה תורה",
+      "Shulchan Arukh":       "שולחן ערוך"
     };
     return cat in categories ? categories[cat] : cat;
   },
