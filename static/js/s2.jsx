@@ -844,7 +844,7 @@ var ReaderNavigationMenu = React.createClass({
                       </a>), "•", 
                      (<a className="siteLink" key='logout' href="/logout">
                         <span className="en">Logout</span>
-                        <span className="he">להתנתק</span>
+                        <span className="he">התנתק</span>
                       </a>)] :
                     
                     [(<a className="siteLink" key='about' href="/about">
@@ -894,7 +894,7 @@ var ReaderNavigationMenu = React.createClass({
                                       </div>) : (<div className="tagline"></div>)}
                   <h2>
                     <span className="en">Browse Texts</span>
-                    <span className="he">לגלוש טקסטים</span>
+                    <span className="he">טקסטים</span>
                   </h2>
                   {categories}
                   <h2>

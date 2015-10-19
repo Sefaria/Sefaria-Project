@@ -207,7 +207,7 @@ body .bilingual .enOnly .he {
   padding: 10px 0;
 }
 .readerNavTop .readerNavMenuSearchButton {
-  left: 40px;
+  left: 36px;
 }
 .readerNavTop .readerOptions {
   left: auto;
@@ -682,7 +682,8 @@ body .bilingual .enOnly .he {
 .readerOptions img {
   height: 26px;
   vertical-align: middle;
-  margin-top: -4px;
+  margin-top: -6px;
+  margin-right: 5px;
 }
 .readerControls .controlsButton {
   cursor: pointer;
