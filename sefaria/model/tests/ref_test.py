@@ -401,6 +401,11 @@ class Test_Cache(object):
         r2 = Ref("Ramban on Genesis 1")
         assert r1 is not r2
 
+    def test_tref_bleed(self):
+        Ref(u'שבת לא')
+        r = Ref("Shabbat 31a")
+        assert r.tref == "Shabbat 31a"
+
 
 class Test_normal_forms(object):
     def test_normal(self):

@@ -1479,7 +1479,9 @@ class RefCachingType(type):
 
         if tref:
             if tref in cls.__cache:
-                return cls.__cache[tref]
+                ref = cls.__cache[tref]
+                ref.tref = tref
+                return ref
             else:
                 result = super(RefCachingType, cls).__call__(*args, **kwargs)
                 if result.uid() in cls.__cache:

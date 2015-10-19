@@ -79,7 +79,9 @@ class WorkflowyParser(object):
             self.create_shared_term_for_scheme(n.title_group)
 
         if self._c_version and element != self.outline: #get the text in the notes and store it with the proper Ref
-            self.version_info['text'].append({'ref': n.ref(), 'text': self.parse_text(element)})
+            text = self.parse_text(element)
+            if text:
+                self.version_info['text'].append({'node': n, 'text': text})
         return n
 
     # en & he titles for each element > dict
@@ -142,10 +144,6 @@ class WorkflowyParser(object):
                           }
         return vinfo_dict
 
-
-
-
-
     def create_index_from_schema(self, categories=None):
         if not categories:
             categories = ["Other"]
@@ -175,25 +173,28 @@ class WorkflowyParser(object):
 
     # divides text into paragraphs and sentences > list
     def parse_text(self, element):
-        n = (element.attrib["_note"])
-        n = re.sub(r'[/]', '<br>', n)
-        n = re.sub(r'[(]', '<em><small>', n)
-        n = re.sub(r'[)]', '</small></em>', n)
-        text = n.strip().splitlines()
-        return text
+        if "_note" in element.attrib:
+            n = (element.attrib["_note"])
+            n = re.sub(r'[/]', '<br>', n)
+            n = re.sub(r'[(]', '<em><small>', n)
+            n = re.sub(r'[)]', '</small></em>', n)
+            text = n.strip().splitlines()
+            return text
+        return None
 
 
     # builds and posts text to api
     def create_version_from_outline_notes(self):
         from sefaria.tracker import modify_text
         for text_ref in self.version_info['text']:
-            ref = Ref(text_ref['ref'])
+            node = text_ref['node']
+            ref = Ref(node.full_title(force_update=True))
             text = text_ref['text']
             user = 8646
             vtitle =  self.version_info['info']['versionTitle']
             lang = self.version_info['info']['language']
             vsource = self.version_info['info']['versionSource']
-            modify_text(user,ref,vtitle, lang, vsource, text)
+            modify_text(user,ref,vtitle, lang, text, vsource)
 
 
     """def create_version_from_outline_notes(self):
