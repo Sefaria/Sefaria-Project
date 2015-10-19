@@ -998,9 +998,8 @@ var ReaderNavigationCategoryMenu = React.createClass({
     var lineStyle   = {backgroundColor: sjs.categoryColor(categories[0])};
 
     return (<div className="readerNavCategoryMenu readerNavMenu">
-              <div className="readerNavTop">
+              <div className="readerNavTop searchOnly">
                 <div className="categoryColorLine" style={lineStyle}></div>
-                <ReaderNavigationMenuCloseButton onClick={this.props.closeNav} />
                 <ReaderNavigationMenuSearchButton onClick={this.props.navHome} />
                 <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
                 <h2>
@@ -1066,7 +1065,6 @@ var ReaderTextTableOfContents = React.createClass({
               <div className="readerNavTop">
                 <div className="categoryColorLine" style={lineStyle}></div>
                 <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
-                <ReaderNavigationMenuSearchButton onClick={this.props.openNav} />
                 <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
                 <h2>
                   <span className="en">Table of Contents</span>
@@ -1181,9 +1179,8 @@ var SheetsNav = React.createClass({
       }      
     }
 
-    return (<div className="readerSheetsNav readerNavMenu readerNavMenu">
-              <div className="readerNavTop">
-                <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
+    return (<div className="readerSheetsNav readerNavMenu">
+              <div className="readerNavTop searchOnly">
                 <ReaderNavigationMenuSearchButton onClick={this.props.openNav} />
                 <h2>{title}</h2>
               </div>

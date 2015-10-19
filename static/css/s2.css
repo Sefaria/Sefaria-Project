@@ -217,7 +217,8 @@ body .bilingual .enOnly .he {
   border-bottom: none;
   padding-bottom: 0px;
 }
-.readerNavMenu.home .readerNavMenuSearchButton {
+.readerNavMenu.home .readerNavMenuSearchButton,
+.readerNavTop.searchOnly .readerNavMenuSearchButton {
   left: 0;
 }
 .readerNavMenu.home .sefariaLogo img {
