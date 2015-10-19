@@ -614,7 +614,8 @@ var ReaderApp = React.createClass({
         {this.state.displaySettingsOpen ? (<ReaderDisplayOptionsMenu
                                               settings={this.state.settings}
                                               setOption={this.setOption}
-                                              currentLayout={this.currentLayout} />) : ""}
+                                              currentLayout={this.currentLayout} 
+                                              menuOpen={this.state.menuOpen} />) : ""}
         {this.state.displaySettingsOpen ? (<div className="mask" onClick={this.closeDisplaySettings}></div>) : ""}
 
       </div>
@@ -674,6 +675,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
     setOption:     React.PropTypes.func.isRequired,
     settings:      React.PropTypes.object.isRequired,
     currentLayout: React.PropTypes.func.isRequired,
+    menuOpen:      React.PropTypes.string.isRequired
   },
   render: function() {
     var languageOptions = [
@@ -724,13 +726,19 @@ var ReaderDisplayOptionsMenu = React.createClass({
           setOption={this.props.setOption}
           settings={this.props.settings} />);
 
-    return (<div className="readerOptionsPanel">
-        {languageToggle}
-        {layoutToggle}
-        <div className="line"></div>
-        {colorToggle}
-        {sizeToggle}
-      </div>);
+    if (this.props.menuOpen) {
+      return (<div className="readerOptionsPanel">
+              {languageToggle}
+            </div>);
+    } else {
+      return (<div className="readerOptionsPanel">
+                {languageToggle}
+                {layoutToggle}
+                <div className="line"></div>
+                {colorToggle}
+                {sizeToggle}
+              </div>);
+    }
   }
 });
 
