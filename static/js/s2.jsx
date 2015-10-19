@@ -1610,7 +1610,8 @@ var TextRange = React.createClass({
     if (!data.isSpanning) {
       for (var i = 0; i < topLength; i++) {
         var number = i+start;
-        var ref = data.sectionRef + ":" + number;
+        var delim  = data.textDepth == 1 ? " " : ":";
+        var ref = data.sectionRef + delim + number;
         segments.push({
           ref: ref,
           en: en[i], 
