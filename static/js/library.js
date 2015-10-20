@@ -660,10 +660,11 @@ sjs.categoryColors = {
   "Responsa":           sjs.palette.orange,
   "Apocrypha":          sjs.palette.lightpink,
   "Other":              sjs.palette.darkblue,
-  "Quoting Commentary": sjs.palette.lightgreen,
+  "Quoting Commentary": sjs.palette.orange,
   "Commentary2":        sjs.palette.blue,
   "Sheets":             sjs.palette.rapsberry,
-  "Targum":             sjs.palette.lavender
+  "Targum":             sjs.palette.lavender,
+  "Modern Works":       sjs.palette.raspberry
 };
 
 sjs.categoryColor = function(cat) {

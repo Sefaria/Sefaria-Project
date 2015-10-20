@@ -1223,6 +1223,7 @@ body .bilingual .enOnly .he {
 }
 #s2Loading img {
   width: 150px;
+  height: 42px;
 }
 ::-webkit-input-placeholder {
    font-style: italic;
