@@ -1627,13 +1627,16 @@ var TextRange = React.createClass({
         var length = Math.max(en2.length, he2.length);
         en2 = en2.pad(length, "");
         he2 = he2.pad(length, "");
-        var baseRef = data.book + " " + data.sections.slice(0,-2).join(":");
+        var baseRef     = data.book;
+        var baseSection = data.sections.slice(0,-2).join(":");
+        var delim       = baseSection ? ":" : " ";
+        var baseRef     = baseSection ? baseRef + " " + baseSection : baseRef;
 
         start = (n == 0 ? start : 1);
         for (var i = 0; i < length; i++) {
           var section = n+data.sections.slice(-2)[0];
           var number  = i+start;
-          var ref = baseRef + ":" + section + ":" + number;
+          var ref = baseRef + delim + section + ":" + number;
           segments.push({
             ref: ref,
             en: en2[i], 
@@ -1869,7 +1872,9 @@ var TextList = React.createClass({
   },
   loadConnections: function() {
     // Loading intially at section level for commentary
+    console.log("I am " + this.props.sref)
     var ref = sjs.library.ref(this.props.sref) ? sjs.library.ref(this.props.sref).sectionRef : this.props.sref;
+    console.log("loading connections for " +ref);
     sjs.library.links(ref, function(links) {
       if (this.isMounted()) {
         this.preloadText(this.props.filter);
@@ -1882,7 +1887,7 @@ var TextList = React.createClass({
     if (filter.length == 1 && 
         sjs.library.index(filter[0]) && 
         sjs.library.index(filter[0]).categories == "Commentary") {
-      var basetext   = sjs.library.ref(this.props.sref).sectionRef;
+      var basetext   = sjs.library.ref(this.props.sref) ? sjs.library.ref(this.props.sref).sectionRef : this.props.sref;
       var commentary = filter[0] + " on " + basetext;
       this.setState({textLoaded: false, waitForText: true});
       sjs.library.text(commentary, {}, function() {
