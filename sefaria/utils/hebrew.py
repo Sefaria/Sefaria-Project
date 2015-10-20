@@ -419,6 +419,7 @@ def hebrew_term(s):
 		"Pilpula Charifta":     u"פילפולא חריפתא",
 		"Divrey Chamudot":      u"דברי חמודות",
 		"Maadaney Yom Tov":     u"מעדני יום טוב",
+		"Modern Works":		u"יצירות מודרניות",
 
 	}
 

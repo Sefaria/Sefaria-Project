@@ -505,12 +505,12 @@ class TitledTreeNode(TreeNode):
                 self._full_titles[lang] = self.all_node_titles(lang)
         return self._full_titles[lang]
 
-    def full_title(self, lang="en"):
+    def full_title(self, lang="en", force_update=False):
         """
         :param lang: "en" or "he"
         :return string: The full title of this node, from the root node.
         """
-        if not self._full_title.get(lang):
+        if not self._full_title.get(lang) or force_update:
             if self.is_default():
                 self._full_title[lang] = self.parent.full_title(lang)
             elif self.parent:

@@ -19,3 +19,4 @@ roman
 p929
 python-varnish
 geojson
+django-recaptcha
