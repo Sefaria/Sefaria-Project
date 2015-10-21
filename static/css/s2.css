@@ -17,17 +17,17 @@ body.dark {
   width: 100%;
   height: 100%;
 }
-.multiPanelReader {
+.readerApp {
   position: absolute;
   width: 100%;
   height: 100%;
+}
+.readerPanelBox {
+  position: absolute;
+  height: 100%;
+  width: 100%;
 }
 .readerPanel {
-  position: absolute;
-  height: 100%;
-  width: 100%;
-}
-.readerApp {
   position: relative;
   width: 100%;
   height: 100%;
@@ -71,8 +71,8 @@ body.dark {
 }
 
 
-.readerApp .he,
-.readerApp .heOnly {
+.readerPanel .he,
+.readerPanel .heOnly {
   font-family: "Taamey Frank", "Times New Roman", serif;
   direction: rtl;
   text-align: right;
@@ -129,13 +129,13 @@ body .bilingual .enOnly .he {
   transform: translateY(0%);
   -webkit-transform: translateY(0%);
 }
-.readerApp.light {
+.readerPanel.light {
   background-color: white;
 }
-.readerApp.sepia {
+.readerPanel.sepia {
   background-color: #f7f7f7;
 }
-.readerApp.dark {
+.readerPanel.dark {
   background-color: #333;
   color: white;
 }
@@ -167,7 +167,7 @@ body .bilingual .enOnly .he {
   z-index: 1;
   padding: 13px 20px;
 }
-.readerApp .readerNavTop h2 {
+.readerPanel .readerNavTop h2 {
   margin-bottom: 0px;
 }
 .readerNavTop.search {
@@ -262,7 +262,7 @@ body .bilingual .enOnly .he {
 .readerNavMenu .navToggle.active {
   color: black;
 }
-.readerApp h2, .readerApp h3 {
+.readerPanel h2, .readerPanel h3 {
   text-transform: uppercase;
   text-align: center;
   font-size: 15px;
@@ -943,18 +943,18 @@ body .bilingual .enOnly .he {
   filter: invert(100%);
   -webkit-filter: invert(100%);
 }
-.readerApp.english .segment .segmentNumber {
+.readerPanel.english .segment .segmentNumber {
   left: 5px;
 }
-.readerApp.hebrew .segment .segmentNumber,
-.readerApp.bilingual .segment .segmentNumber {
+.readerPanel.hebrew .segment .segmentNumber,
+.readerPanel.bilingual .segment .segmentNumber {
   right: 4px;
 }
-.readerApp.english .segment .linkCount {
+.readerPanel.english .segment .linkCount {
   right: 11px;
 }
-.readerApp.hebrew .segment .linkCount,
-.readerApp.bilingual .segment .linkCount {
+.readerPanel.hebrew .segment .linkCount,
+.readerPanel.bilingual .segment .linkCount {
   left: 11px;
 }
 .segment .refLink {

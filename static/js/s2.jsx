@@ -1,7 +1,7 @@
 var sjs = sjs || {};
 
 
-var MultiPanelReader = React.createClass({
+var ReaderApp = React.createClass({
   propTypes: {
     panelCount:                  React.PropTypes.number,
     initialRef:                  React.PropTypes.string,
@@ -74,8 +74,8 @@ var MultiPanelReader = React.createClass({
         panel.query     = this.props.initialQuery;
         panel.sheetsTag = this.props.initialSheetsTag;
       }
-      panels.push(<div className="readerPanel" style={style} key={i}>
-                    <ReaderApp 
+      panels.push(<div className="readerPanelBox" style={style} key={i}>
+                    <ReaderPanel 
                       initialRef={panel.ref}
                       initialFilter={panel.filter}
                       initialMenu={panel.menu}
@@ -91,12 +91,13 @@ var MultiPanelReader = React.createClass({
                       textListRef={textListRef} />
                   </div>);
     }
-    return (<div className="multiPanelReader">{panels}</div>);
+    var classes = classNames({readerApp: 1, multiPanel: panels.length > 1})
+    return (<div className={classes}>{panels}</div>);
   }
 });
 
 
-var ReaderApp = React.createClass({
+var ReaderPanel = React.createClass({
   propTypes: {
     initialRef:         React.PropTypes.string,
     initialFilter:      React.PropTypes.array,
@@ -347,7 +348,7 @@ var ReaderApp = React.createClass({
     });
   },
   backToText: function() {
-    // Return to the original text in the ReaderApp contents
+    // Return to the original text in the ReaderPanel contents
     this.state.contents = [this.state.contents[0]];
     this.setState({contents: this.state.contents, replaceHistory: false});
   },  
@@ -582,7 +583,7 @@ var ReaderApp = React.createClass({
       var menu = "";
     }
 
-    var classes  = {readerApp: 1};
+    var classes  = {readerPanel: 1};
     classes[this.currentLayout()]         = 1;
     classes[this.state.settings.language] = 1;
     classes[this.state.settings.color]    = 1;
@@ -1421,8 +1422,8 @@ var TextColumn = React.createClass({
     window.requestAnimationFrame(function() {
       //var start = new Date();
       var $container   = $(React.findDOMNode(this));
-      var $readerApp   = $container.closest(".readerApp");
-      var viewport     = $container.outerHeight() - $readerApp.find(".textList").outerHeight();
+      var $readerPanel   = $container.closest(".readerPanel");
+      var viewport     = $container.outerHeight() - $readerPanel.find(".textList").outerHeight();
       var center       = (viewport/2);
       var midTop       = 200;
       var threshhold   = this.props.multiPanel ? midTop : center;
@@ -1448,7 +1449,7 @@ var TextColumn = React.createClass({
       // Not clear there's a great perfomance benefit
       if (!this.state.segmentHeights) {
         this.state.segmentHeights = [];
-        $readerApp.find(".basetext .segment").each(function(i, segment) {
+        $readerPanel.find(".basetext .segment").each(function(i, segment) {
           var $segment = $(segment);
           var top = $segment.offset().top;
           this.state.segmentHeights.push({
@@ -1473,11 +1474,11 @@ var TextColumn = React.createClass({
   scrollToHighlighted: function() {
     window.requestAnimationFrame(function() {
       var $container   = $(React.findDOMNode(this));
-      var $readerApp   = $container.closest(".readerApp");
+      var $readerPanel   = $container.closest(".readerPanel");
       var $highlighted = $container.find(".segment.highlight").first();
       if ($highlighted.length) {
         var height     = $highlighted.outerHeight();
-        var viewport   = $container.outerHeight() - $readerApp.find(".textList").outerHeight();
+        var viewport   = $container.outerHeight() - $readerPanel.find(".textList").outerHeight();
         var offset     = height > viewport + 30 ? 30 : (viewport - height) / 2;
         $container.scrollTo($highlighted, 0, {offset: -offset});
       }
@@ -1665,7 +1666,7 @@ var TextRange = React.createClass({
   loadText: function(data) {
     // When data is actually available, load the text into the UI
     if (this.props.basetext && this.props.sref !== data.ref) {
-      // Replace ReaderApp contents ref with the normalized form of the ref, if they differ.
+      // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
       // Pass parameter to showBaseText to replaceHistory
       this.props.showBaseText(data.ref, true);        
     }
