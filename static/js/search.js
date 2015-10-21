@@ -1,3 +1,6 @@
+//  search-utils.js should be loaded before this file.
+//  Intention is for this file to be retired, and for search-utils to be the center of back end search logic
+
 sjs = sjs || {};
 
 sjs.pageSize = 100;
@@ -5,15 +8,31 @@ sjs.pageSize = 100;
 $.extend(sjs, {
     currentPage: "search",
     currentFacet: null,
-    searchUrl: sjs.searchBaseUrl + "/" + sjs.searchIndex + "/_search",
 
-    search: {
-        active_post: false,
+    //FilterTree object - for category filters
+    FilterNode: function() {
+        this.children = [];
+        this.parent = null;
+        this.selected = 0; //0 - not selected, 1 - selected, 2 - partially selected
+    },
+
+    FilterTree: function() {
+        sjs.FilterNode.call(this); //Inherits from FilterNode
+        this.path = "_root";
+        this.title = "All Sources";
+        this.heTitle = "כל המקורות";
+        this.rawTree = {};
+        this.registry = {};
+        this.orphanFilters = [];
+    }
+});
+
+sjs.search = sjs.search || {};
+$.extend(sjs.search, {
         filters_rendered: false,
         filter_tree: {},
         query_context: 1,
         presentation_context: 1,
-        query_field: "content",
         presentation_field: "content",
         content_fields: {
             1: "content",
@@ -29,8 +48,8 @@ $.extend(sjs, {
         $filters: $("#searchFilters"),
         $desc: $('#description'),
 
-        handleStateChange: function(event) {
-            if(!(event.state)) {
+        handleStateChange: function (event) {
+            if (!(event.state)) {
                 //new page load
                 return;
             }
@@ -40,8 +59,14 @@ $.extend(sjs, {
             sjs.search.filter_tree = new sjs.FilterTree();
 
             if ("lang" in state) {
-                if (state["lang"] == "he") { $("body").addClass("hebrew"); $("body").removeClass("english"); }
-                else if (state["lang"] == "en") { $("body").addClass("english"); $("body").removeClass("hebrew"); }
+                if (state["lang"] == "he") {
+                    $("body").addClass("hebrew");
+                    $("body").removeClass("english");
+                }
+                else if (state["lang"] == "en") {
+                    $("body").addClass("english");
+                    $("body").removeClass("hebrew");
+                }
             }
             if (!("q" in state)) {
                 sjs.search.show_empty();
@@ -52,13 +77,13 @@ $.extend(sjs, {
                 sjs.search.page = parseInt(vars["page"])
             }
             /*
-            if ("pctx" in state) {
-                sjs.search.set_presentation_context(parseInt(state["pctx"]));
-            }
-            if ("qctx" in state) {
-                sjs.search.set_query_context(state["qctx"]);
-            }
-            */
+             if ("pctx" in state) {
+             sjs.search.set_presentation_context(parseInt(state["pctx"]));
+             }
+             if ("qctx" in state) {
+             sjs.search.set_query_context(state["qctx"]);
+             }
+             */
             if ("q" in state) {
                 var query = state["q"].replace(/\+/g, " ");
                 $(".searchInput").val(query);
@@ -71,7 +96,7 @@ $.extend(sjs, {
             }
             sjs.search.post();
         },
-        get_lang: function() {
+        get_lang: function () {
             if ($("body").hasClass("english")) {
                 return "en";
             }
@@ -95,7 +120,7 @@ $.extend(sjs, {
             }
 
             var serializedParams = [];
-            for (var k in params){
+            for (var k in params) {
                 if (params.hasOwnProperty(k)) {
                     serializedParams.push(k + "=" + encodeURIComponent(params[k]));
                 }
@@ -103,11 +128,11 @@ $.extend(sjs, {
 
             var url = "/search?" + serializedParams.join("&");
 
-            var title =  this.get_page_title();
+            var title = this.get_page_title();
             $('title').text(title);
             this.$desc.text(this.get_description_line())
                 .css("color", "#8756aD")
-                .animate( { color: "black" }, 2000 );
+                .animate({color: "black"}, 2000);
 
             if (push) {
                 history.pushState(params, title, url);
@@ -115,17 +140,17 @@ $.extend(sjs, {
                 history.replaceState(params, title, url);
             }
         },
-        get_page_title: function() {
+        get_page_title: function () {
             var lang = this.get_lang();
             var cats = this.get_category_string();
 
-            if(!(this.query)) {
-                return (lang=="en")?"Search Jewish Texts | Sefaria.org":"חיפוש מקורות בספאריה";
+            if (!(this.query)) {
+                return (lang == "en") ? "Search Jewish Texts | Sefaria.org" : "חיפוש מקורות בספאריה";
             }
 
-            var line =  '"' + this.query + '" ';
+            var line = '"' + this.query + '" ';
             if (cats.length > 0) {
-                line += (lang == "en")?" in ":" ב";
+                line += (lang == "en") ? " in " : " ב";
                 line += cats;
                 line += ' (' + String(this.hits.total) + ')';
             } else {
@@ -138,48 +163,45 @@ $.extend(sjs, {
             }
             return line;
         },
-        get_description_line: function() {
-            if(!(this.query) || !(this.hits)) return "";  // the !this.hits clause is likely superfluous.
+        get_description_line: function () {
+            if (!(this.query) || !(this.hits)) return "";  // the !this.hits clause is likely superfluous.
             var lang = this.get_lang();
             var cats = this.get_category_string();
             var line;
             if (lang == "en") {
                 line = String(this.hits.total) + ' results for "' + this.query + '"';
-                if(cats.length > 0) {
+                if (cats.length > 0) {
                     line += " in " + cats;
                 }
             }
             else if (lang == "he") {
                 line = String(this.hits.total) + ' תוצאות עבור ' + '"' + this.query + '"';
-                if(cats.length > 0) {
+                if (cats.length > 0) {
                     line += " ב" + cats;
                 }
             }
             return line;
         },
-        get_category_string: function() {
+        get_category_string: function () {
             var lang = this.get_lang();
 
             var titles = this.filter_tree.getSelectedTitles(this.get_lang());
-            if(titles.length == 0) return "";
+            if (titles.length == 0) return "";
             else if (titles.length == 1) return titles[0];
 
-            var res = titles.slice(0,-1).join(", ");
-            res += ((lang == "en")?" and ":" ו") + titles.slice(-1);
+            var res = titles.slice(0, -1).join(", ");
+            res += ((lang == "en") ? " and " : " ו") + titles.slice(-1);
             return res;
         },
 
-        escape_query: function (raw_query) {
-            return raw_query.replace(/(\S)"(\S)/g, '$1\u05f4$2'); //Replace internal quotes with gershaim.
-        },
         /*
-        set_presentation_context: function (level) {
-            this.presentation_context = level;
-            this.presentation_field = this.content_fields[level];
-            this.updateUrlParams(true);
-            //this.render()
-        },
-        */
+         set_presentation_context: function (level) {
+         this.presentation_context = level;
+         this.presentation_field = this.content_fields[level];
+         this.updateUrlParams(true);
+         //this.render()
+         },
+         */
         resultsHtml: function (results) {
             var html = "";
             var previousRef = null;
@@ -195,13 +217,13 @@ $.extend(sjs, {
                     } else {
                         if (dups.length > 0) {  // Deal with the backlog of duplicates
                             var sTrig = "<div class='similar-trigger-box'>" +
-                                        "<span class='similar-title he'>" + dupCount + ((dupCount > 1)?" גרסאות נוספות":" גרסה נוספת") + "</span>" +
-                                        "<span class='similar-title en'>" + dupCount + " more version" + ((dupCount > 1)?"s":"") +"</span>" +
-                                        "</div>";
-                            html = html.slice(0,-6) + sTrig + html.slice(-6); // Insert before that last </div>.  This is brittle
+                                "<span class='similar-title he'>" + dupCount + ((dupCount > 1) ? " גרסאות נוספות" : " גרסה נוספת") + "</span>" +
+                                "<span class='similar-title en'>" + dupCount + " more version" + ((dupCount > 1) ? "s" : "") + "</span>" +
+                                "</div>";
+                            html = html.slice(0, -6) + sTrig + html.slice(-6); // Insert before that last </div>.  This is brittle
                             html += "<div class='similar-box'>" +
-                            "<div class='similar-results'>" + dups +
-                            "</div></div>";
+                                "<div class='similar-results'>" + dups +
+                                "</div></div>";
                             dups = "";
                             dupCount = 0;
                         }
@@ -215,9 +237,9 @@ $.extend(sjs, {
             }
             if (results.length == 0) {
                 html = "<div id='emptySearch' class='well'>" +
-                "<b>Sefaria Search is still under development.</b><br />" +
-                "Hebrew words are searched exactly as entered; different forms of the same word may produce different results." +
-                "</div>";
+                    "<b>Sefaria Search is still under development.</b><br />" +
+                    "Hebrew words are searched exactly as entered; different forms of the same word may produce different results." +
+                    "</div>";
             }
             return html;
         },
@@ -231,13 +253,13 @@ $.extend(sjs, {
             }
             snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").html();
             html = "<div class='result'>" +
-            '<a href="/' + normRef(s.ref) + "/" + s.lang + "/" + s.version.replace(/ +/g, "_") + '?qh='+ this.query + '">' +
-            '<span class="en">' + s.ref + '</span>' +
-            '<span class="he">' + s.heRef + '</span>' +
-            "</a>" +
-            "<div class='snippet'>" + snippet + "</div>" +
-            "<div class='version'>" + s.version + "</div>" +
-            "</div>";  // There is a process is resultsHtml that inserts before this last </div>.  This is brittle
+                '<a href="/' + normRef(s.ref) + "/" + s.lang + "/" + s.version.replace(/ +/g, "_") + '?qh=' + this.query + '">' +
+                '<span class="en">' + s.ref + '</span>' +
+                '<span class="he">' + s.heRef + '</span>' +
+                "</a>" +
+                "<div class='snippet'>" + snippet + "</div>" +
+                "<div class='version'>" + s.version + "</div>" +
+                "</div>";  // There is a process is resultsHtml that inserts before this last </div>.  This is brittle
             return html;
         },
 
@@ -246,10 +268,10 @@ $.extend(sjs, {
             var snippet = result.highlight ? result.highlight.content.join("...") : s.content;
             snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").html();
             html = "<div class='result'>" +
-            '<a href="/sheets/' + s.sheetId + '">' + s.title + "</a>" +
-            "<div class='snippet'>" + snippet + "</div>" +
-            "<div class='version'>" + s.version + "</div>" +
-            "</div>";
+                '<a href="/sheets/' + s.sheetId + '">' + s.title + "</a>" +
+                "<div class='snippet'>" + snippet + "</div>" +
+                "<div class='version'>" + s.version + "</div>" +
+                "</div>";
             return html;
         },
         render_filters: function () {
@@ -277,7 +299,7 @@ $.extend(sjs, {
                 });
 
                 // todo - show or hide the full filter list on a resize event
-                if($( window ).width() >= 800) {
+                if ($(window).width() >= 800) {
                     $("#_root").closest(".filter-parent").children("i").trigger("click"); // Open first element
                 }
 
@@ -295,14 +317,14 @@ $.extend(sjs, {
             this.filters_rendered = false;
         },
 
-        show_empty: function() {
+        show_empty: function () {
             sjs.search.$results.empty();
             sjs.search.$results.append("<div id='search-instructions' class='well'>" +
-            "<span class='en'>Enter a word or words to search for in the box above. Enclose phrases with quotes.  You can enter your search in either Hebrew or English.  After submitting a search, you can filter your search to specific categories or books.</span>" +
-            "<span class='he'>" +
-            'הקלידו מילה/ים לחיפוש בתיבה מעל. ניתן להקליד ביטויים ע"י הקפתם במרכאות. החיפוש יכול להיעשות באנגלית או בעברית. אחרי ביצוע החיפוש, ניתן לסנן את התוצאות לקטגוריות או ספרים מסויימים.'
-            + "</span>" +
-            "</div>");
+                "<span class='en'>Enter a word or words to search for in the box above. Enclose phrases with quotes.  You can enter your search in either Hebrew or English.  After submitting a search, you can filter your search to specific categories or books.</span>" +
+                "<span class='he'>" +
+                'הקלידו מילה/ים לחיפוש בתיבה מעל. ניתן להקליד ביטויים ע"י הקפתם במרכאות. החיפוש יכול להיעשות באנגלית או בעברית. אחרי ביצוע החיפוש, ניתן לסנן את התוצאות לקטגוריות או ספרים מסויימים.'
+                + "</span>" +
+                "</div>");
         },
 
         render: function (hold_results) {
@@ -329,70 +351,13 @@ $.extend(sjs, {
                 $(this).parent().parent().next(".similar-box").find(".similar-results").toggle();
             });
             $(".moreResults").click(function () {
-                $(".moreResults").off("click").css("color","grey");
+                $(".moreResults").off("click").css("color", "grey");
                 sjs.search.page = sjs.search.page + 1;
                 sjs.search.post(true, false, false, true);
             });
         },
         query_object: function () {
-            var core_query = {
-                "query_string": {
-                    "query": this.escape_query(this.query),
-                    "default_operator": "AND",
-                    "fields": [this.query_field]
-                }
-            };
-
-            var o = {
-                "sort": [{
-                    "order": {}                 // the sort field name is "order"
-                }],
-                "highlight": {
-                    "pre_tags": ["<b>"],
-                    "post_tags": ["</b>"],
-                    "fields": {
-                        "content": {"fragment_size": 200}
-//                        "context_3": {"fragment_size":600},
-//                        "context_7": {"fragment_size": 1400}
-                    }
-                }
-            };
-
-            if (!this.filters_rendered) {
-                //Initial, unfiltered query.  Get potential filters.
-                o['query'] = core_query;
-                o['aggs'] = {
-                    "category": {
-                        "terms": {
-                            "field": "path",
-                            "size": 0
-                        }
-                    }
-                };
-            } else if (!(this.filter_tree.hasAppliedFilters())) {
-                o['query'] = core_query;
-            } else {
-                //Filtered query.  Add clauses.  Don't re-request potential filters.
-                var clauses = [];
-                var appliedFilters = this.filter_tree.getAppliedFilters();
-                for (var i = 0; i < appliedFilters.length; i++) {
-                    clauses.push({
-                        "regexp": {
-                            "path": RegExp.escape(appliedFilters[i]) + ".*"
-                        }
-                    })
-                }
-                o['query'] = {
-                    "filtered": {
-                        "query": core_query,
-                        "filter": {
-                            "or": clauses
-                        }
-                    }
-                };
-            }
-
-            return o;
+            return sjs.library.search.get_query_object(this.query, !this.filters_rendered, this.filter_tree.hasAppliedFilters() && this.filter_tree.getAppliedFilters())
         },
         post: function (updateurl, push, leave_alive, hold_results) {
             if (sjs.search.active_post && !(leave_alive)) {
@@ -403,7 +368,7 @@ $.extend(sjs, {
 
             var qobj = this.query_object();
 
-            var url = sjs.searchUrl;
+            var url = sjs.library.search.baseUrl;
             if (!hold_results)
                 url += "?size=" + ((this.page + 1) * sjs.pageSize);
             else {
@@ -426,7 +391,7 @@ $.extend(sjs, {
                         sjs.search.filter_tree.updateAvailableFilters(data.aggregations.category.buckets);
                     }
                     sjs.search.render(hold_results);
-                    if(updateurl) sjs.search.updateUrlParams(push);
+                    if (updateurl) sjs.search.updateUrlParams(push);
                     sjs.search.active_post = false;
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
@@ -446,25 +411,9 @@ $.extend(sjs, {
 
             sjs.track.search(this.query);
         }
-    },
-    //FilterTree object - for category filters
-    FilterNode: function() {
-        this.children = [];
-        this.parent = null;
-        this.selected = 0; //0 - not selected, 1 - selected, 2 - partially selected
-    },
-
-    FilterTree: function() {
-        sjs.FilterNode.call(this); //Inherits from FilterNode
-        this.path = "_root";
-        this.title = "All Sources";
-        this.heTitle = "כל המקורות";
-        this.rawTree = {};
-        this.registry = {};
-        this.orphanFilters = [];
     }
+);
 
-});
 /* Working with filter trees:
 1) Add all Available Filters with addAvailableFilter
 2) _build

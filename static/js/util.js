@@ -173,6 +173,7 @@ sjs.track = {
 		// Generic event tracker
 		_gaq.push(['_trackEvent', category, action, label]);
 		//mixpanel.track(category + " " + action, {label: label});
+		//console.log([category, action, label].join(" / "));
 	},
 	pageview: function(url) {
         _gaq.push(['_trackPageview', url]);
@@ -1313,15 +1314,16 @@ sjs.sheetTagger = {
 
 sjs._parseRef = {};
 function parseRef(q) {
-	q = q || ""; 
+	q = q || "";
+	q = decodeURIComponent(q);
 	q = q.replace(/_/g, " ").replace(/[.:]/g, " ").replace(/ +/, " ");
 	q = q.trim().toFirstCapital();
 	if (q in sjs._parseRef) { return sjs._parseRef[q]; }
+	
 	var response = {book: false, 
 					sections: [],
 					toSections: [],
-					ref: ""};
-					
+					ref: ""};				
 	if (!q) { 
 		sjs._parseRef[q] = response;
 		return response;
@@ -1401,7 +1403,8 @@ function normRef(ref) {
 
 function humanRef(ref) {
 	var pRef = parseRef(ref);
-	var book = pRef.book.replace(/_/g, " ") + " ";
+	if (pRef.sections.length == 0) { return pRef.book; }
+	var book = pRef.book + " ";
 	var nRef = pRef.ref;
 	var hRef = nRef.replace(/ /g, ":");
 	return book + hRef.slice(book.length);
@@ -2458,6 +2461,33 @@ function clone(obj) {
     throw new Error("Unable to copy obj! Its type isn't supported.");
 }
 
+function throttle (callback, limit) {
+    var wait = false;                 // Initially, we're not waiting
+    return function () {              // We return a throttled function
+        if (!wait) {                  // If we're not waiting
+            callback.call();          // Execute users function
+            wait = true;              // Prevent future invocations
+            setTimeout(function () {  // After a period of time
+                wait = false;         // And allow future invocations
+            }, limit);
+        }
+    }
+}
+
+function debounce(func, wait, immediate) {
+	var timeout;
+	return function() {
+		var context = this, args = arguments;
+		var later = function() {
+			timeout = null;
+			if (!immediate) func.apply(context, args);
+		};
+		var callNow = immediate && !timeout;
+		clearTimeout(timeout);
+		timeout = setTimeout(later, wait);
+		if (callNow) func.apply(context, args);
+	};
+};
 
 String.prototype.toProperCase = function() {
   
@@ -3186,5 +3216,55 @@ window.findAndReplaceDOMText = (function() {
 	};
 
 	return exposed;
+
+}());
+
+/*!
+  Copyright (c) 2015 Jed Watson.
+  Licensed under the MIT License (MIT), see
+  http://jedwatson.github.io/classnames
+*/
+
+(function () {
+	'use strict';
+
+	function classNames () {
+
+		var classes = '';
+
+		for (var i = 0; i < arguments.length; i++) {
+			var arg = arguments[i];
+			if (!arg) continue;
+
+			var argType = typeof arg;
+
+			if ('string' === argType || 'number' === argType) {
+				classes += ' ' + arg;
+
+			} else if (Array.isArray(arg)) {
+				classes += ' ' + classNames.apply(null, arg);
+
+			} else if ('object' === argType) {
+				for (var key in arg) {
+					if (arg.hasOwnProperty(key) && arg[key]) {
+						classes += ' ' + key;
+					}
+				}
+			}
+		}
+
+		return classes.substr(1);
+	}
+
+	if (typeof module !== 'undefined' && module.exports) {
+		module.exports = classNames;
+	} else if (typeof define === 'function' && typeof define.amd === 'object' && define.amd){
+		// AMD. Register as an anonymous module.
+		define(function () {
+			return classNames;
+		});
+	} else {
+		window.classNames = classNames;
+	}
 
 }());

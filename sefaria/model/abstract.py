@@ -42,7 +42,7 @@ class AbstractMongoRecord(object):
         self._init_defaults()
         self.pkeys_orig_values = {}
         self.load_from_dict(attrs, True)
-
+            
     def load_by_id(self, _id=None):
         if _id is None:
             raise Exception(type(self).__name__ + ".load() expects an _id as an arguemnt. None provided.")

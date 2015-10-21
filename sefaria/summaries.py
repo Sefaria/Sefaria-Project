@@ -179,7 +179,6 @@ def save_toc_to_db():
 
 def update_table_of_contents():
     toc = []
-
     # Add an entry for every text we know about
     indices = IndexSet()
     for i in indices:
@@ -251,22 +250,6 @@ def recur_delete_element_from_toc(ref, toc):
             if not len(toc_elem['contents']):
                 toc_elem['to_delete'] = True
     return toc
-
-
-def make_simple_index_dict(index):
-    if not index.is_new_style() or index.is_commentary():
-        indx_dict = {
-            "title": index.title,
-            "heTitle": index.heTitle,
-            "categories": index.categories
-        }
-    else:
-        indx_dict = {
-            "title": index.nodes.primary_title("en"),
-            "heTitle": index.nodes.primary_title("he"),
-            "categories": index.categories
-        }
-    return indx_dict
 
 
 def update_summaries_on_change(bookname, old_ref=None, recount=True):

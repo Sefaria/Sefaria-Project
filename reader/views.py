@@ -12,7 +12,7 @@ import p929
 
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.utils.http import urlquote
 from django.utils.encoding import iri_to_uri
@@ -166,19 +166,82 @@ def esi_account_box(request):
     return render_to_response('elements/accountBox.html', {}, RequestContext(request))
 
 
-def s2(request, ref="Genesis 1", version=None, lang=None):
+def s2(request, ref, version=None, lang=None):
     """
     New interfaces in development
     """
     oref         = Ref(ref)
+    if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
+        return s2_text_toc(request, oref)
+
     text         = TextFamily(oref, version=version, lang=lang, commentary=False, context=False, pad=True, alts=True).contents()
     text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
     text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
     return render_to_response('s2.html', {
                                             "ref": oref.normal(),
-                                            "data": text
+                                            "data": text,
                                         }, RequestContext(request))
 
+def s2_text_toc(request, oref):
+    """
+    Text table of contents
+    """
+    return render_to_response('s2.html', {
+                                    "initialMenu": "text toc",
+                                    "initialText": oref.normal(),
+                                    "initialCategory": oref.index.categories[0],
+                                }, RequestContext(request))
+
+
+def s2_texts_category(request, cats):
+    """
+    Listing of texts in a category.
+    """
+    cats       = cats.split("/")
+    toc        = get_toc()
+    cat_toc    = get_or_make_summary_node(toc, cats)
+
+    if len(cat_toc) == 0:
+        return s2_texts(request)
+
+    return render_to_response('s2.html', {
+                                    "initialMenu": "navigation",
+                                    "initialNavigationCategories": json.dumps(cats),
+                                }, RequestContext(request))
+
+
+def s2_page(request, page):
+    """
+    View into an S2 page
+    """
+    return render_to_response('s2.html', {
+                                    "initialMenu": page
+                                }, RequestContext(request))
+
+def s2_home(request):
+    return s2_page(request, "home")
+
+
+def s2_search(request):
+    return s2_page(request, "search")
+
+
+def s2_texts(request):
+    return s2_page(request, "navigation")
+
+
+def s2_sheets(request):
+    return s2_page(request, "sheets")
+
+
+def s2_sheets_by_tag(request, tag):
+    """
+    Standalone page for new sheets list
+    """
+    return render_to_response('s2.html', {
+                                    "initialMenu": "sheets",
+                                    "initialSheetsTag": tag,
+                                }, RequestContext(request))
 
 @catch_error_as_http
 @ensure_csrf_cookie
@@ -560,11 +623,22 @@ def text_toc(request, oref):
                              RequestContext(request))
 
 
+def text_toc_html_fragment(request, title):
+    """
+    Returns an HTML fragment of the Text TOC for title
+    """
+    oref = Ref(title)
+    zoom = 0 if not oref.index.is_complex() and oref.index_node.depth == 1 else 1
+    return HttpResponse(make_toc_html(oref, zoom=zoom))    
+
+
 @ensure_csrf_cookie
 def texts_list(request):
     """
     Page listing every text in the library.
     """
+    if request.flavour == "mobile":
+        return s2_page(request, "texts")
     return render_to_response('texts.html',
                              {},
                              RequestContext(request))
@@ -574,6 +648,8 @@ def texts_category_list(request, cats):
     """
     Page listing every text in category
     """
+    if request.flavour == "mobile":
+        return s2_texts_category(request, cats)
     cats       = cats.split("/")
     toc        = get_toc()
     cat_toc    = get_or_make_summary_node(toc, cats)
@@ -603,6 +679,8 @@ def texts_category_list(request, cats):
 
 @ensure_csrf_cookie
 def search(request):
+    if request.flavour == "mobile":
+        return s2_page(request, "search")
     return render_to_response('search.html',
                              {},
                              RequestContext(request))
@@ -1585,6 +1663,9 @@ def home(request):
     """
     Homepage
     """
+    if request.flavour == "mobile":
+        return s2_page(request, "home")
+
     today              = date.today()
     daf_today          = sefaria.utils.calendars.daf_yomi(today)
     daf_tomorrow       = sefaria.utils.calendars.daf_yomi(today + timedelta(1))

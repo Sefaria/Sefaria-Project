@@ -458,10 +458,12 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             self.maps[i]["to"] = nref
 
     def toc_contents(self):
+        firstSection = Ref(self.title).first_available_section_ref()
         toc_contents_dict = {
             "title": self.get_title(),
             "heTitle": self.get_title("he"),
-            "categories": self.categories
+            "categories": self.categories,
+            "firstSection": firstSection.normal() if firstSection else None
         }
         if hasattr(self,"order"):
             toc_contents_dict["order"] = self.order
@@ -622,12 +624,15 @@ class CommentaryIndex(AbstractIndex):
         return copy.deepcopy(self)
 
     def toc_contents(self):
+        firstSection = Ref(self.title).first_available_section_ref()
+
         toc_contents_dict = {
             "title": self.title,
             "heTitle": getattr(self, "heTitle", None),
             "commentator": self.commentator,
             "heCommentator": self.heCommentator,
-            "categories": self.categories
+            "categories": self.categories,
+            "firstSection": firstSection.normal() if firstSection else None
         }
         if hasattr(self,"order"):
             toc_contents_dict["order"] = self.order
@@ -1403,10 +1408,11 @@ class TextFamily(object):
         if self._context_oref.is_commentary():
             for attr in ["commentaryBook", "commentaryCategories", "commentator", "heCommentator"]:
                 d[attr] = getattr(self._inode.index, attr, "")
-        d["isComplex"]  = self.isComplex
-        d["indexTitle"] = self._inode.index.title
-        d["sectionRef"] = self._original_oref.section_ref().normal()
-        d["isSpanning"] = self._original_oref.is_spanning()
+        d["isComplex"]    = self.isComplex
+        d["indexTitle"]   = self._inode.index.title
+        d["heIndexTitle"] = self._inode.index.get_title("he")
+        d["sectionRef"]   = self._original_oref.section_ref().normal()
+        d["isSpanning"]   = self._original_oref.is_spanning()
 
         for language, attr in self.text_attr_map.items():
             chunk = self._chunks.get(language)
@@ -2163,7 +2169,7 @@ class Ref(object):
 
         :return: :class:`Ref`
         """
-        if self.is_section_level():
+        if not self.is_segment_level():
             return self
         return self.padded_ref().context_ref()
 
