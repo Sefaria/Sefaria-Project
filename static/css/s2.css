@@ -26,6 +26,10 @@ body.dark {
   position: absolute;
   height: 100%;
   width: 100%;
+  box-sizing: border-box;
+}
+.readerPanelBox + .readerPanelBox {
+  border-left: 1px solid #ddd;
 }
 .readerPanel {
   position: relative;
@@ -50,6 +54,9 @@ body.dark {
   padding: 0px 0 100%;
   box-sizing: border-box;
   background-color: inherit;
+}
+.multiPanel .textColumn {
+  padding: 0 25px 100%;
 }
 .textColumn .loadingMessage.base {
   margin: 30px 0;
@@ -157,6 +164,9 @@ body .bilingual .enOnly .he {
   -webkit-overflow-scrolling: touch;
   font-size: 12px;
 }
+.multiPanel .readerNavMenu .content {
+  padding: 80px 25px 10px;
+}
 .readerNavTop {
   position: absolute;
   width: 100%;
@@ -166,6 +176,9 @@ body .bilingual .enOnly .he {
   direction: ltr;
   z-index: 1;
   padding: 13px 20px;
+}
+.multiPanel .readerNavTop {
+
 }
 .readerPanel .readerNavTop h2 {
   margin-bottom: 0px;
@@ -186,8 +199,8 @@ body .bilingual .enOnly .he {
 .readerNavMenu .readerSearch:focus {
   outline: 0;
 }
-.readerNavTop .fa {
-
+.multiPanel .readerNavMenu .readerSearch {
+  padding: 18px 10px 10px 90px;
 }
 .readerNavTop .readerNavMenuSearchButton,
 .readerNavTop .readerNavMenuCloseButton,
@@ -217,14 +230,31 @@ body .bilingual .enOnly .he {
   left: auto;
   right: 0;
 }
-.readerNavMenu.home .readerNavTop {
-  border-bottom: none;
-  padding-bottom: 0px;
-}
 .readerNavMenu.home .readerNavMenuSearchButton,
 .readerNavTop.searchOnly .readerNavMenuSearchButton,
 .textListTop .readerNavMenuSearchButton {
   left: 0;
+}
+.multiPanel .readerNavTop .readerNavMenuSearchButton,
+.multiPanel .home .readerNavTop .readerNavMenuSearchButton,
+.multiPanel .readerNavTop.searchOnly .readerNavMenuSearchButton,
+.multiPanel .readerNavTop .readerNavMenuCloseButton,
+.multiPanel .readerNavTop .readerOptions,
+.multiPanel .textListTop .readerNavMenuSearchButton,
+.multiPanel .textListTop .readerOptions {
+  left: 10px;
+}
+.multiPanel .readerNavTop .readerOptions,
+.multiPanel .textListTop .readerOptions {
+  left: auto;
+  right: 10px;
+}
+.multiPanel .readerNavTop .readerNavMenuSearchButton {
+  left: 46px;
+}
+.readerNavMenu.home .readerNavTop {
+  border-bottom: none;
+  padding-bottom: 0px;
 }
 .readerNavMenu.home .sefariaLogo img {
   width: 110px;
@@ -687,6 +717,12 @@ body .bilingual .enOnly .he {
   text-align: right;
   padding-right: 10px;
 }
+.multiPanel .readerControls .readerNavMenuSearchButton {
+  padding-left: 20px;
+}
+.multiPanel .readerControls .readerOptions {
+  padding-right: 20px;
+}
 .readerOptions img {
   height: 26px;
   vertical-align: middle;
@@ -957,6 +993,20 @@ body .bilingual .enOnly .he {
 .readerPanel.bilingual .segment .linkCount {
   left: 11px;
 }
+.multiPanel .readerPanel.english .segment .segmentNumber {
+  left: -3px;
+}
+.multiPanel .readerPanel.hebrew .segment .segmentNumber,
+.multiPanel .readerPanel.bilingual .segment .segmentNumber {
+  right: -6px;
+}
+.multiPanel .readerPanel.english .segment .linkCount {
+  right: -3px;
+}
+.multiPanel .readerPanel.hebrew .segment .linkCount,
+.multiPanel .readerPanel.bilingual .segment .linkCount {
+  left: 0px;
+}
 .segment .refLink {
   font-size: .8em;
   font-weight: bold;
@@ -992,10 +1042,10 @@ body .bilingual .enOnly .he {
   padding: 40px 30px 40px;
 }
 .textList.fullPanel .texts {
-  padding-bottom: 300px;
+  padding: 0 50px 300px;
 }
 .textList .fullFilterView {
-  padding-top: 25px;
+  padding: 50px 40px;
 }
 .textListTop {
   position: absolute;
@@ -1203,6 +1253,13 @@ text-align: center;}
 .hebrew .textRange .numberLabel,
 .bilingual .textRange .numberLabel  {
   right: -22px;
+}
+.multiPanel .english .textRange .numberLabel {
+  left: -32px;
+}
+.multiPanel .hebrew .textRange .numberLabel,
+.multiPanel .bilingual .textRange .numberLabel  {
+  right: -32px;
 }
 .textRange.lowlight .numberLabel {
   color: #aaa;
