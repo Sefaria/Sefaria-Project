@@ -282,7 +282,6 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     }
   },
   handlePopState: function(event) {
-    console.log("Pop")
     var state = event.state;
     if (state) {
       var from = this.currentMode();
@@ -524,6 +523,8 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
             showTextList: this.showTextList, 
             showBaseText: this.showBaseText, 
             backToText: this.backToText, 
+            openNav: this.openMenu.bind(null, "navigation"), 
+            openDisplaySettings: this.openDisplaySettings, 
             key: i})
         );
       }
@@ -638,26 +639,35 @@ var ReaderControls = React.createClass({displayName: "ReaderControls",
     currentMode:             React.PropTypes.func.isRequired,
     currentCategory:         React.PropTypes.func.isRequired,
     currentBook:             React.PropTypes.func.isRequired,
-    currentLayout:           React.PropTypes.func.isRequired
+    currentLayout:           React.PropTypes.func.isRequired,
+    multiPanel:              React.PropTypes.bool
   },
   render: function() {
-    var lineStyle = {backgroundColor: sjs.categoryColor(this.props.currentCategory())};
-    var title = this.props.currentBook();
-    var index = sjs.library.index(title);
-    var heTitle = index ? index.heTitle : "";
-    var hideHeader = !this.props.multiPanel && this.props.currentMode() === "TextList";
+    var lineStyle   = {backgroundColor: sjs.categoryColor(this.props.currentCategory())};
+    var title       = this.props.currentBook();
+    var index       = sjs.library.index(title);
+    var heTitle     = index ? index.heTitle : "";
+    var currentMode = this.props.currentMode();
+    var hideHeader  = !this.props.multiPanel && currentMode === "TextList";
+
+    var centerContent = this.props.multiPanel && currentMode === "TextList" ?
+      (React.createElement("div", {className: "readerTextToc"}, 
+          React.createElement("span", {className: "en"}, "Select Connection"), 
+          React.createElement("span", {className: "he"}, "חיבור בחר")
+        )) :
+      (React.createElement("div", {className: "readerTextToc", onClick: this.props.openMenu.bind(null, "text toc")}, 
+           title ? (React.createElement("i", {className: "fa fa-caret-down invisible"})) : "", 
+          React.createElement("div", {className: "readerTextTocBox"}, 
+            React.createElement("span", {className: "en"}, title), 
+            React.createElement("span", {className: "he"}, heTitle)
+          ), 
+           title ? (React.createElement("i", {className: "fa fa-caret-down"})) : ""
+        ));
 
     var readerControls = hideHeader ? "" :
         (React.createElement("div", {className: "readerControls headroom"}, 
           React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.openMenu.bind(null, "navigation")}), 
-          React.createElement("div", {className: "readerTextToc", onClick: this.props.openMenu.bind(null, "text toc")}, 
-             title ? (React.createElement("i", {className: "fa fa-caret-down invisible"})) : "", 
-            React.createElement("div", {className: "readerTextTocBox"}, 
-              React.createElement("span", {className: "en"}, title), 
-              React.createElement("span", {className: "he"}, heTitle)
-            ), 
-             title ? (React.createElement("i", {className: "fa fa-caret-down"})) : ""
-          ), 
+          centerContent, 
           React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings})
         ));
     return (
@@ -1831,15 +1841,17 @@ var TextSegment = React.createClass({displayName: "TextSegment",
 
 var TextList = React.createClass({displayName: "TextList",
   propTypes: {
-    sref:          React.PropTypes.string.isRequired,
-    filter:        React.PropTypes.array.isRequired,
-    recentFilters: React.PropTypes.array.isRequired,
-    fullPanel:     React.PropTypes.bool,
-    multiPanel:    React.PropTypes.bool,
-    setFilter:     React.PropTypes.func,
-    showTextList:  React.PropTypes.func,
-    showBaseText:  React.PropTypes.func,
-    backToText:    React.PropTypes.func,
+    sref:                React.PropTypes.string.isRequired,
+    filter:              React.PropTypes.array.isRequired,
+    recentFilters:       React.PropTypes.array.isRequired,
+    fullPanel:           React.PropTypes.bool,
+    multiPanel:          React.PropTypes.bool,
+    setFilter:           React.PropTypes.func,
+    showTextList:        React.PropTypes.func,
+    showBaseText:        React.PropTypes.func,
+    backToText:          React.PropTypes.func,
+    openNav:             React.PropTypes.func,
+    openDisplaySettings: React.PropTypes.func
   },
   getInitialState: function() {
     return {
@@ -1872,9 +1884,7 @@ var TextList = React.createClass({displayName: "TextList",
   },
   loadConnections: function() {
     // Loading intially at section level for commentary
-    console.log("I am " + this.props.sref)
     var ref = sjs.library.ref(this.props.sref) ? sjs.library.ref(this.props.sref).sectionRef : this.props.sref;
-    console.log("loading connections for " +ref);
     sjs.library.links(ref, function(links) {
       if (this.isMounted()) {
         this.preloadText(this.props.filter);
@@ -2003,8 +2013,10 @@ var TextList = React.createClass({displayName: "TextList",
     }
     return (
       React.createElement("div", {className: classes}, 
+        showAllFilters ? "" : 
         React.createElement("div", {className: "textListTop"}, 
-          showAllFilters ? "" : 
+          this.props.fullPanel ? React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.openNav}) : "", 
+          this.props.fullPanel ? React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings}) : "", 
           React.createElement(TopFilterSet, {
             sref: this.props.sref, 
             showText: this.props.showText, 
@@ -2013,7 +2025,7 @@ var TextList = React.createClass({displayName: "TextList",
             setFilter: this.props.setFilter, 
             showAllFilters: this.showAllFilters, 
             summary: summary}), 
-          showAllFilters ? message : ""
+            message
         ), 
         showAllFilters ?
           React.createElement(AllFilterSet, {

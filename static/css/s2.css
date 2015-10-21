@@ -191,7 +191,9 @@ body .bilingual .enOnly .he {
 }
 .readerNavTop .readerNavMenuSearchButton,
 .readerNavTop .readerNavMenuCloseButton,
-.readerNavTop .readerOptions {
+.readerNavTop .readerOptions,
+.textListTop .readerNavMenuSearchButton,
+.textListTop .readerOptions {
   position: absolute;
   text-align: center;
   top: 0;
@@ -210,7 +212,8 @@ body .bilingual .enOnly .he {
 .readerNavTop .readerNavMenuSearchButton {
   left: 36px;
 }
-.readerNavTop .readerOptions {
+.readerNavTop .readerOptions,
+.textListTop .readerOptions {
   left: auto;
   right: 0;
 }
@@ -219,7 +222,8 @@ body .bilingual .enOnly .he {
   padding-bottom: 0px;
 }
 .readerNavMenu.home .readerNavMenuSearchButton,
-.readerNavTop.searchOnly .readerNavMenuSearchButton {
+.readerNavTop.searchOnly .readerNavMenuSearchButton,
+.textListTop .readerNavMenuSearchButton {
   left: 0;
 }
 .readerNavMenu.home .sefariaLogo img {
@@ -1003,7 +1007,7 @@ body .bilingual .enOnly .he {
 }
 .textList.fullPanel .textListTop {
 
-}
+text-align: center;}
 .dark .textList {
   background-color: #333;
 }
