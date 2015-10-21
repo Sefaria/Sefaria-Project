@@ -30,14 +30,14 @@
                 <span class='en'>By Time</span>
                 <span class='he'></span>
             </h2>
-             {% for stop in stopsByTime %}
-                 {% if stop.start %}
-                     <div>
-                        <span>({{ stop.start }}, {{ stop.end }})</span>
+             {% for time, stops in stopsByTime %}
+                <h3>{{ time.0 }} - {{ time.1 }}</h3>
+                {% for stop in stops %}
+                    <div>
                         <span class='en'>{{ stop.ref|ref_link }}</span>
                         <span class='he'>{{ stop.ref|he_ref_link }}</span>
-                     </div>
-                 {% endif %}
+                    </div>
+                {% endfor %}
              {% endfor %}
         </span>
     </span>

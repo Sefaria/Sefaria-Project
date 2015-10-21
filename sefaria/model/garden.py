@@ -52,6 +52,13 @@ class Garden(abst.AbstractMongoRecord):
         placeKeys = GardenStopSet({"garden": self.key}).distinct("placeKey")
         return place.PlaceSet({"key": {"$in": placeKeys}})
 
+    def stopsByTime(self):
+        res = []
+        stops = self.stopSet()
+        for k, g in groupby(stops, lambda s: (getattr(s, "start", "unknown"), getattr(s, "end", "unknown"))):
+            res.append((k, [s.contents() for s in g]))
+        return res
+
     def stopsByPlace(self):
         res = []
         stops = self.stopSet(sort=[("placeKey", 1)])

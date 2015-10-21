@@ -2147,7 +2147,7 @@ def garden_page(request, key):
         'title': g.title,
         'heTitle': g.heTitle,
         'key': g.key,
-        'stopsByTime': [s.contents() for s in g.stopSet().array()],
+        'stopsByTime': g.stopsByTime(),
         'stopsByPlace': g.stopsByPlace(),
         'stopsByAuthor': g.stopsByAuthor()
     }
