@@ -103,12 +103,15 @@ class GardenSet(abst.AbstractMongoSet):
     recordClass = Garden
 
 
-#todo: Subclass these?
 class GardenStop(abst.AbstractMongoRecord):
     collection = 'garden_stop'
+    track_pkeys = True
+    pkeys = ["ref"]
+
     required_attrs = [
         'garden',
         'type'  # inside_source, outside_source, blob
+                # todo: Subclass these?
     ]
     optional_attrs = [
         'ref',
@@ -131,41 +134,58 @@ class GardenStop(abst.AbstractMongoRecord):
     def hasCustomText(self, lang):
         assert lang, u"hasCustomText() requires a language code"
         if lang == "en":
-            attr = 'enText'
+            return bool(getattr(self, 'enText', False))
         elif lang == "he":
-            attr = 'heText'
+            return bool(getattr(self, 'heText', False))
         else:
-            raise InputError(u"Unknown language: {}".format(lang))
+            return bool(getattr(self, 'enText', False)) or bool(getattr(self, 'heText', False))
 
-        return bool(getattr(self, attr, False))
+    # on initial value of ref, and change of ref, derive metadata.
+    # todo: do we have to support override of this info?
 
     def _derive_metadata(self):
         if not getattr(self, "ref", None):
             return
-        i = self.ref.index
+        i = text.Ref(self.ref).index
         assert isinstance(i, text.AbstractIndex)
         author = i.author_objects()[0] if len(i.author_objects()) > 0 else {}  # Assume first is best
 
         placeKey = getattr(i, "compPlace", None) or getattr(author, "deathPlace", None) or getattr(author, "birthPlace", None)
         if placeKey:
             pobj = place.Place().load({"key": placeKey})
+            if not pobj:
+                raise InputError("Failed to find place with key {} while resolving metadata for {}".format(placeKey, self.ref))
             self.placeKey = placeKey
             self.placeNameEn = pobj.primary_name("en")
             self.placeNameHe = pobj.primary_name("he")
             self.placeGeo = pobj.get_location()
 
         if getattr(i, "compDate", None):
-            year = int(getattr(i, "compDate"))
             errorMargin = int(getattr(i, "errorMargin", 0))
-            self.start = year - errorMargin
-            self.end = year + errorMargin
             self.startIsApprox = self.endIsApprox = errorMargin > 0
+
+            try:
+                year = int(getattr(i, "compDate"))
+                self.start = year - errorMargin
+                self.end = year + errorMargin
+            except ValueError as e:
+                years = getattr(i, "compDate").split("-")
+                if years[0] == "" and len(years) == 3:  #Fix for first value being negative
+                    years[0] = -int(years[1])
+                    years[1] = int(years[2])
+                self.start = int(years[0]) - errorMargin
+                self.end = int(years[1]) + errorMargin
+
         elif author and author.mostAccurateTimePeriod():
             tp = author.mostAccurateTimePeriod()
             self.start = tp.start
             self.end = tp.end
             self.startIsApprox = tp.startIsApprox
             self.endIsApprox = tp.endIsApprox
+
+    def _normalize(self):
+        if self.is_key_changed("ref"):
+            self._derive_metadata()
 
     def time_period(self):
         if not getattr(self, "start", False):

@@ -188,6 +188,12 @@ class AbstractMongoRecord(object):
             for pkey in self.pkeys:
                 self.pkeys_orig_values[pkey] = getattr(self, pkey, None)
 
+    def is_key_changed(self, key):
+        assert self.track_pkeys and key in self.pkeys, "Failed to track key {} in {}".format(key, self.__class__.__name__)
+        if self.is_new():
+            return bool(getattr(self, key, False))
+        return self.pkeys_orig_values[key] != getattr(self, key, None)
+
     def _init_defaults(self):
         pass
 
