@@ -15,7 +15,6 @@
 
 {% block content %}
 
-
 <div id="gardenPage" class="container doc biReady">
     <span class="row">
         <span class="span8 offset2">
@@ -23,6 +22,69 @@
                 <span class='en'>{{ title }}</span>
                 <span class='he'>{{ heTitle }}</span>
             </h1>
+        </span>
+    </span>
+    <span class="row sortedGardenStops" id="byTime">
+        <span class="span8 offset2">
+            <h2>
+                <span class='en'>By Time</span>
+                <span class='he'></span>
+            </h2>
+             {% for stop in stopsByTime %}
+                 {% if stop.start %}
+                     <div>
+                        <span>({{ stop.start }}, {{ stop.end }})</span>
+                        <span class='en'>{{ stop.ref|ref_link }}</span>
+                        <span class='he'>{{ stop.ref|he_ref_link }}</span>
+                     </div>
+                 {% endif %}
+             {% endfor %}
+        </span>
+    </span>
+    <span class="row sortedGardenStops" id="byAuthor">
+        <span class="span8 offset2">
+            <h2>
+                <span class='en'>By Author</span>
+                <span class='he'></span>
+            </h2>
+             {% for authors, stops in stopsByAuthor %}
+                {% if authors == "unknown" %}
+                    <h3>Unknown</h3>
+                {% else %}
+                    <h3>{% for author in authors %}{{ author|person_link }} {% endfor %}</h3>
+                {% endif %}
+                {% for stop in stops %}
+                    <div>
+                        <span class='en'>{{ stop.ref|ref_link }}</span>
+                        <span class='he'>{{ stop.ref|he_ref_link }}</span>
+                    </div>
+                {% endfor %}
+             {% endfor %}
+        </span>
+    </span>
+    <span class="row sortedGardenStops" id="byPlace">
+        <span class="span8 offset2">
+            <h2>
+                <span class='en'>By Place</span>
+                <span class='he'></span>
+            </h2>
+             {% for place, stops in stopsByPlace %}
+                <h3>{{ place }}</h3>
+                {% for stop in stops %}
+                    <div>
+                        <span class='en'>{{ stop.ref|ref_link }}</span>
+                        <span class='he'>{{ stop.ref|he_ref_link }}</span>
+                    </div>
+                {% endfor %}
+             {% endfor %}
+        </span>
+    </span>
+    <span class="row sortedGardenStops" id="byTag">
+        <span class="span8 offset2">
+            <h2>
+                <span class='en'>By Tag</span>
+                <span class='he'></span>
+            </h2>
         </span>
     </span>
 </div>

@@ -1,5 +1,7 @@
 
+from itertools import groupby
 from sefaria.system.exceptions import InputError
+from sefaria.system.database import db
 from . import abstract as abst
 from . import text
 from . import place
@@ -27,16 +29,50 @@ class Garden(abst.AbstractMongoRecord):
     ]
 
     def _init_defaults(self):
-        self.stops = []
-        self.rels = []
+        pass
+        #self.stops = []
+        #self.rels = []
 
     def _set_derived_attributes(self):
-        self._reset_derived_attributes()
+        pass
+        #self._reset_derived_attributes()
 
     def _reset_derived_attributes(self):
-        if getattr(self, 'key', False):
-            self.stops = GardenStopSet({"garden": self.key}).array()
-            self.rels = GardenStopRelationshipSet({"garden": self.key}).array()
+        pass
+        #if getattr(self, 'key', False):
+            #self.stops = GardenStopSet({"garden": self.key}).array()
+            #self.rels = GardenStopRelationshipSet({"garden": self.key}).array()
+
+    def stopSet(self, sort=None):
+        if not sort:
+            sort = [("start", 1)]
+        return GardenStopSet({"garden": self.key}, sort=sort)
+
+    def placeSet(self):
+        placeKeys = GardenStopSet({"garden": self.key}).distinct("placeKey")
+        return place.PlaceSet({"key": {"$in": placeKeys}})
+
+    def stopsByPlace(self):
+        res = []
+        stops = self.stopSet(sort=[("placeKey", 1)])
+        for k, g in groupby(stops, lambda s: getattr(s, "placeKey", "unknown")):
+            res.append((k, [s.contents() for s in g]))
+        return res
+
+    def stopsByAuthor(self):
+        from . import person
+
+        res = []
+        stops = self.stopSet(sort=[("start", 1), ("authors", 1)])
+        for k, g in groupby(stops, lambda s: getattr(s, "authors", None)):
+            if not k:
+                res.append(("unknown", [s.contents() for s in g]))
+            else:
+                res.append(([person.Person().load({"key":p}) for p in k], [s.contents() for s in g]))
+        return res
+
+    def relSet(self, sort):
+        pass
 
     def add_stop(self, attrs):
         gs = GardenStop(attrs)
@@ -55,6 +91,11 @@ class Garden(abst.AbstractMongoRecord):
             self._reset_derived_attributes()
         except Exception as e:
             logger.warning("Failed to add relationship to Garden {}. {}".format(self.title, e))
+
+    def import_user_sheets(self, user_id):
+        sheet_list = db.sheets.find({"owner": int(user_id), "status": {"$ne": 5}})
+        for sheet in sheet_list:
+            self.import_sheet(sheet["id"])
 
     def import_sheet(self, sheet_id):
         from sefaria.sheets import Sheet, refine_ref_by_text
@@ -88,7 +129,7 @@ class Garden(abst.AbstractMongoRecord):
                     })
                 elif "comment" in sources:
                     self.add_stop({
-                        "type": "outside_source",
+                        "type": "blob",
                         "enText": source['comment']
                     })
 
@@ -125,10 +166,11 @@ class GardenStop(abst.AbstractMongoRecord):
         "startIsApprox",
         "end",
         "endIsApprox",
-        'placeKey'
+        'placeKey',
         'placeNameEn',
         'placeNameHe',
-        'placeGeo'
+        'placeGeo',
+        'authors'
     ]
 
     def hasCustomText(self, lang):
@@ -148,6 +190,8 @@ class GardenStop(abst.AbstractMongoRecord):
             return
         i = text.Ref(self.ref).index
         assert isinstance(i, text.AbstractIndex)
+        if getattr(i, "authors", None):
+            self.authors = i.authors
         author = i.author_objects()[0] if len(i.author_objects()) > 0 else {}  # Assume first is best
 
         placeKey = getattr(i, "compPlace", None) or getattr(author, "deathPlace", None) or getattr(author, "birthPlace", None)

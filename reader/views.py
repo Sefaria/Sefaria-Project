@@ -2141,13 +2141,15 @@ def garden_page(request, key):
     g = Garden().load({"key": key})
     if not g:
         raise Http404
+    assert isinstance(g, Garden)
 
     template_vars = {
         'title': g.title,
         'heTitle': g.heTitle,
         'key': g.key,
-        'stops': g.stops,
-        'rels': g.rels,
+        'stopsByTime': [s.contents() for s in g.stopSet().array()],
+        'stopsByPlace': g.stopsByPlace(),
+        'stopsByAuthor': g.stopsByAuthor()
     }
 
     return render_to_response('garden.html', template_vars, RequestContext(request))
