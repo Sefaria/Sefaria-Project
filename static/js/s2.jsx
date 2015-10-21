@@ -2012,36 +2012,41 @@ var TextList = React.createClass({
                                     openOnClick={true} />);
                         }, this);      
     }
-    return (
-      <div className={classes}>
-        {showAllFilters ? "" : 
-        <div className="textListTop">
-          {this.props.fullPanel ? <ReaderNavigationMenuSearchButton onClick={this.props.openNav} /> : ""}
-          {this.props.fullPanel ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : ""}
-          <TopFilterSet 
-            sref={this.props.sref}
-            showText={this.props.showText}
-            filter={this.props.filter}
-            recentFilters={this.props.recentFilters}
-            setFilter={this.props.setFilter}
-            showAllFilters={this.showAllFilters}
-            summary={summary} />
-            {message}
-        </div>}
-        {showAllFilters ?
+    if (showAllFilters) {
+      return (
+        <div className={classes}>
+          <div className="textListTop">
+              {message}
+          </div>
           <AllFilterSet 
             sref={this.props.sref}
             showText={this.props.showText}
             filter={this.props.fitler}
             recentFilters={this.props.recentFilters}
             setFilter={this.props.setFilter}
-            summary={summary} /> :       
-          
+            summary={summary} />
+        </div>);
+    } else {
+      return (
+        <div className={classes}>
+          <div className="textListTop">
+            {this.props.fullPanel ? <ReaderNavigationMenuSearchButton onClick={this.props.openNav} /> : ""}
+            {this.props.fullPanel ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : ""}
+            <TopFilterSet 
+              sref={this.props.sref}
+              showText={this.props.showText}
+              filter={this.props.filter}
+              recentFilters={this.props.recentFilters}
+              setFilter={this.props.setFilter}
+              showAllFilters={this.showAllFilters}
+              summary={summary} />
+              {message}
+          </div>
           <div className="texts">
             { texts }
-          </div>}
-      </div>
-    );
+          </div>
+        </div>);
+    }
   }
 });
 

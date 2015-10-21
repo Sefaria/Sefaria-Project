@@ -2012,36 +2012,41 @@ var TextList = React.createClass({displayName: "TextList",
                                     openOnClick: true}));
                         }, this);      
     }
-    return (
-      React.createElement("div", {className: classes}, 
-        showAllFilters ? "" : 
-        React.createElement("div", {className: "textListTop"}, 
-          this.props.fullPanel ? React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.openNav}) : "", 
-          this.props.fullPanel ? React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings}) : "", 
-          React.createElement(TopFilterSet, {
-            sref: this.props.sref, 
-            showText: this.props.showText, 
-            filter: this.props.filter, 
-            recentFilters: this.props.recentFilters, 
-            setFilter: this.props.setFilter, 
-            showAllFilters: this.showAllFilters, 
-            summary: summary}), 
-            message
-        ), 
-        showAllFilters ?
+    if (showAllFilters) {
+      return (
+        React.createElement("div", {className: classes}, 
+          React.createElement("div", {className: "textListTop"}, 
+              message
+          ), 
           React.createElement(AllFilterSet, {
             sref: this.props.sref, 
             showText: this.props.showText, 
             filter: this.props.fitler, 
             recentFilters: this.props.recentFilters, 
             setFilter: this.props.setFilter, 
-            summary: summary}) :       
-          
+            summary: summary})
+        ));
+    } else {
+      return (
+        React.createElement("div", {className: classes}, 
+          React.createElement("div", {className: "textListTop"}, 
+            this.props.fullPanel ? React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.openNav}) : "", 
+            this.props.fullPanel ? React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings}) : "", 
+            React.createElement(TopFilterSet, {
+              sref: this.props.sref, 
+              showText: this.props.showText, 
+              filter: this.props.filter, 
+              recentFilters: this.props.recentFilters, 
+              setFilter: this.props.setFilter, 
+              showAllFilters: this.showAllFilters, 
+              summary: summary}), 
+              message
+          ), 
           React.createElement("div", {className: "texts"}, 
              texts 
           )
-      )
-    );
+        ));
+    }
   }
 });
 
