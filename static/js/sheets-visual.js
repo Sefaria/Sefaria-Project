@@ -87,7 +87,7 @@ $(".source, .commentWrapper, .mediaWrapper, .outsideBiWrapper, .outsideWrapper")
         ui.position.top = 0;
     },
     drag: function(event, ui) {
-		console.log(zoomScale);    	
+
         var changeLeft = ui.position.left - ui.originalPosition.left; // find change in left
         var newLeft = ui.originalPosition.left + changeLeft / (( zoomScale)); // adjust new left by our zoomScale
 
@@ -100,15 +100,18 @@ $(".source, .commentWrapper, .mediaWrapper, .outsideBiWrapper, .outsideWrapper")
     }
 }).each(function(index) {
 
-	$(this).css({
 
-		"left" : sjs.current.visualNodes[index].x + "px",
-		"top" : sjs.current.visualNodes[index].y + "px",
-		"width" : sjs.current.visualNodes[index].width + "px",
-		"height" : sjs.current.visualNodes[index].length + "px",
-		"zIndex" : sjs.current.visualNodes[index].zindex
+	if (sjs.current.visualNodes) {
+		$(this).css({
+
+			"left" : sjs.current.visualNodes[index].x + "px",
+			"top" : sjs.current.visualNodes[index].y + "px",
+			"width" : sjs.current.visualNodes[index].width + "px",
+			"height" : sjs.current.visualNodes[index].length + "px",
+			"zIndex" : sjs.current.visualNodes[index].zindex
 		
-	});
+		});
+	}
 
 });
 
