@@ -85,6 +85,15 @@
                 <span class='en'>By Tag</span>
                 <span class='he'></span>
             </h2>
+             {% for tag, stops in stopsByTag.items %}
+                <h3>{{ tag }}</h3>
+                {% for stop in stops %}
+                    <div>
+                        <span class='en'>{{ stop.ref|ref_link }}</span>
+                        <span class='he'>{{ stop.ref|he_ref_link }}</span>
+                    </div>
+                {% endfor %}
+             {% endfor %}
         </span>
     </span>
 </div>

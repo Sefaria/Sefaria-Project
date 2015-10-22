@@ -2230,7 +2230,8 @@ def garden_page(request, key):
         'key': g.key,
         'stopsByTime': g.stopsByTime(),
         'stopsByPlace': g.stopsByPlace(),
-        'stopsByAuthor': g.stopsByAuthor()
+        'stopsByAuthor': g.stopsByAuthor(),
+        'stopsByTag': g.stopsByTag()
     }
 
     return render_to_response('garden.html', template_vars, RequestContext(request))

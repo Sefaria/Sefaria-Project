@@ -6,16 +6,16 @@ Ramerupt, France		48.51962899999999, 4.291815
 Cordoba, Spain		37.8881751, -4.7793835
 Girona, Catalonia, Spain		41.9794005, 2.8214264
 Tudela, Spain		42.0613816, -1.6063169
-Luntschitz or Lenczyk, Poland		#ERROR!
+Luntschitz, Poland		52.05, 19.2
 Cesena		44.1396438, 12.2464292
 Barcelona, Spain		41.3850639, 2.1734035
 Girona, Spain		41.9794005, 2.8214264
 Seville, Spain		37.3890924, -5.9844589
-Al Qal'a, Algeria		#ERROR!
+Al Qal'a, Algeria		35.813889, 4.793333
 Rome, Italy		41.9027835, 12.4963655
 Kraków, Poland		50.06465009999999, 19.9449799
-Meknes, Morocco		#ERROR!
-Worms, France		#ERROR!
+Meknes, Morocco		33.895, -5.554722
+Worms		49.631944, 8.365278
 Toledo, Spain		39.8628316, -4.027323099999999
 Kalisz, Poland		51.76727990000001, 18.0853462
 Lisbon, Portugal		38.7222524, -9.1393366
@@ -25,7 +25,7 @@ Butrimonys, Lithuania		54.5009259, 24.254004
 Bagnols, France		44.16252, 4.620075
 Adrianople		41.15172219999999, 26.5137964
 Tolosa		43.604652, 1.444209
-Hamburg, Germany		#ERROR!
+Hamburg, Germany		53.565278, 10.001389
 Bobruisk, Belarus		53.1446069, 29.2213753
 Mir, Belarus		53.4539951, 26.4698363
 Zamora		41.5034712, -5.7467879
@@ -36,19 +36,18 @@ Qayrwan, Tunisa		35.6759137, 10.0919243
 Poznań		52.406374, 16.9251681
 Castille		43.9818863, 4.4751284
 Kracow		50.06465009999999, 19.9449799
-Leszno		#ERROR!
+Leszno, Poland		51.85, 16.566667
 Jerusalem		31.768319, 35.21371
 Valozhyn		54.0878914, 26.533109
 Lviv		49.839683, 24.029717
-Toledo		41.6639383, -83.55521200000001
 Wrocław		51.1078852, 17.0385376
 Bertinoro		44.149228, 12.1351499
 Istanbul		41.0082376, 28.9783589
 Mantua		45.1564168, 10.7913751
 Lublin		51.2464536, 22.5684463
 Amstibovo or Vilna		#ERROR!
-Ludmir, Volhynia		#ERROR!
-Altona		44.8883722, -73.6556985
+Ludmir, Volhynia		50.848056, 24.322222
+Altona		53.55, 9.933333
 Wallerstein, Bavaria		48.8886615, 10.4738301
 Vienna		48.2081743, 16.3738189
 Lemberg, Galicia		49.839535, 24.0487786
@@ -66,7 +65,7 @@ Ungvar		48.6208, 22.287883
 Dzyatlava, Belarus		53.46513580000001, 25.4074899
 Speyer		49.3172765, 8.441217199999999
 Provence, France		46.097248, 4.580979999999999
-Rabat, Morocco		#ERROR!
+Rabat, Morocco		34.033333, -6.833333
 Toledo/Tudela		41.5807623, -4.5644275
 Kaunaus		54.8985207, 23.9035965
 Girona		41.9794005, 2.8214264
@@ -74,12 +73,12 @@ Medinaceli		41.1717207, -2.4338427
 Łódź		51.7592485, 19.4559833
 León, Spain		42.5987263, -5.5670959
 Barcelona		41.3850639, 2.1734035
-Berdychiv, Ukraine		#ERROR!
-Magnuszew, Poland		#ERROR!
-Okopy Świętej Trójcy, Poland		#ERROR!
+Berdychiv, Ukraine		49.9, 28.566667
+Magnuszew, Poland		51.75, 21.383333
+Okopy Świętej Trójcy, Poland		48.533333, 26.416667
 Nikolaev, Ukraine		46.975033, 31.994583
 Warsaw, Poland		52.2296756, 21.0122287
-Valozhyn, Belarus		#ERROR!
+Valozhyn, Belarus		54.083333, 26.516667
 Tulchyn, Ukraine		48.6739771, 28.8563795
 Sarajevo, Bosnia		43.8573452, 18.4060558
 Maribor, Slovenia		46.5546503, 15.6458812
@@ -102,7 +101,7 @@ Bologna Spain		44.4908684, 11.3392643
 Lucena, Spain		37.4129332, -4.4961008
 Jerusalem, Israel		31.768319, 35.21371
 Chios, Greece		38.3709813, 26.1363457
-Krotoschin, Poland		#ERROR!
+Krotoschin, Poland		51.683333, 17.433333
 Venice, Italy		45.4408474, 12.3155151
 Kremenchuk, Ukraine		49.065783, 33.410033
 Narbonne, France		43.184277, 3.003078
@@ -110,17 +109,17 @@ Riga, Latvia		56.9496487, 24.1051864
 Perpignan, France		42.6886591, 2.8948332
 Frankfurt am Main, Germany		50.1109221, 8.6821267
 Pinsk, Belarus		52.11249669999999, 26.0634602
-Naples		26.1420358, -81.7948103
+Naples		40.833333, 14.25
 Brest-Litovsk, Belarus		52.09762139999999, 23.7340503
 Tiberias		32.795859, 35.530973
-At Sea		51.3710522, 0.5164321
+At Sea		
 Kalingrad		54.7104264, 20.4522144
 Livorno, Italy		43.548473, 10.3105674
 Frankfurt an der Oder		52.3472237, 14.5505673
 London		51.5073509, -0.1277583
 Jaworów, Poland		50.8006706, 17.3070038
 Kraków		50.06465009999999, 19.9449799
-Holleschau		#ERROR!
+Holleschau		49.332778, 17.578333
 Lemberg		49.839683, 24.029717
 Krakow		50.06465009999999, 19.9449799
 Stryj		49.2656076, 23.8431343
@@ -150,7 +149,7 @@ Tykocin, Poland		53.2062669, 22.7740605
 Montreal		45.5016889, -73.567256
 Damascus		33.5138073, 36.2765279
 Sinai/Israel		32.1440452, 34.8351424
-Babylon		40.6956552, -73.3256753
+Babylon		32.536389, 44.420833
 Israel/Babylon		#ERROR!
 Babylon/Italy/Israel		#ERROR!
 Egypt		26.820553, 30.802498
@@ -158,11 +157,11 @@ Philadelphia		39.9525839, -75.1652215
 Uzhgorod		48.6208, 22.287883
 Raduń		49.8928704, 17.9432495
 Pinsk		52.11249669999999, 26.0634602
-Alexandria		38.8048355, -77.0469214
+Alexandria		31.2, 29.916667
 Adrianople/Safed		32.964648, 35.495997
-Byzantine		36.2490834, -115.3055804
+Byzantine		41.01224, 28.976018
 Amsterdam		52.3702157, 4.895167900000001
-Rhineland		38.7175443, -91.517388
+Rhineland		50.366667, 7.6
 Fustat		30, 31.23333299999999
 Neustadt		49.3501864, 8.1486886
 Sefrou		33.8305244, -4.835315400000001
@@ -176,13 +175,13 @@ Thessaloniki		40.6400629, 22.9444191
 Chicago		41.8781136, -87.6297982
 Bologna		44.494887, 11.3426163
 Rome		41.9027835, 12.4963655
-Dyhernfurth		#ERROR!
+Dyhernfurth		51.270833, 16.720833
 Warsaw		52.2296756, 21.0122287
 Pieve di Sacco		45.8459328, 12.1754433
 Italy		41.87194, 12.56738
 Zhitomer/Warsaw		52.2296756, 21.0122287
 Berlin		52.52000659999999, 13.404954
-Koretz		43.7000524, -79.7895717
+Koretz		50.616667, 27.166667
 Offenbach		50.09563620000001, 8.776084299999999
 Guadalajara, Spain		40.632489, -3.16017
 Sousse		35.825603, 10.608395

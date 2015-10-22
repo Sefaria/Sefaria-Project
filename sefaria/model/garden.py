@@ -2,6 +2,7 @@
 from itertools import groupby
 from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
+from sefaria.utils.users import user_name
 from . import abstract as abst
 from . import text
 from . import place
@@ -70,13 +71,29 @@ class Garden(abst.AbstractMongoRecord):
         from . import person
 
         res = []
+        unknown = []
+
         stops = self.stopSet(sort=[("start", 1), ("authors", 1)])
         for k, g in groupby(stops, lambda s: getattr(s, "authors", None)):
             if not k:
-                res.append(("unknown", [s.contents() for s in g]))
+                unknown.extend([s.contents() for s in g])
             else:
                 res.append(([person.Person().load({"key":p}) for p in k], [s.contents() for s in g]))
+        res.append(("unknown", unknown))
         return res
+
+    def stopsByTag(self):
+        by_tag = {}
+        stops = self.stopSet()
+
+        for stop in stops:
+            for tag in getattr(stop, "tags", []):
+                if by_tag.get(tag):
+                    by_tag[tag].append(stop.contents())
+                else:
+                    by_tag[tag] = [stop.contents()]
+
+        return by_tag
 
     def relSet(self, sort):
         pass
@@ -99,8 +116,15 @@ class Garden(abst.AbstractMongoRecord):
         except Exception as e:
             logger.warning("Failed to add relationship to Garden {}. {}".format(self.title, e))
 
-    def import_user_sheets(self, user_id):
+    def import_sheets_by_user(self, user_id):
         sheet_list = db.sheets.find({"owner": int(user_id), "status": {"$ne": 5}})
+        for sheet in sheet_list:
+            self.import_sheet(sheet["id"])
+
+    def import_sheets_by_tag(self, tag):
+        from sefaria.sheets import get_sheets_by_tag
+
+        sheet_list = get_sheets_by_tag(tag)
         for sheet in sheet_list:
             self.import_sheet(sheet["id"])
 
@@ -111,7 +135,7 @@ class Garden(abst.AbstractMongoRecord):
         if not sheet:
             logger.warning("Failed to load sheet {}".format(sheet_id))
 
-        def process_sources(sources):
+        def process_sources(sources, tags):
             for source in sources:
                 if "ref" in source:
                     text = source.get("text", {}).get("he", None)
@@ -122,28 +146,32 @@ class Garden(abst.AbstractMongoRecord):
                         "ref": ref,
                         "enText": source['text'].get("en"),
                         "heText": source['text'].get("he"),
+                        "tags": tags
                     })
                 elif "outsideBiText" in source:
                     self.add_stop({
                         "type": "outside_source",
                         "enText": source['outsideBiText'].get("en"),
                         "heText": source['outsideBiText'].get("he"),
+                        "tags": tags
                     })
                 elif "outsideText" in source:
                     self.add_stop({
                         "type": "outside_source",
-                        "enText": source['outsideText']
+                        "enText": source['outsideText'],
+                        "tags": tags
                     })
                 elif "comment" in sources:
                     self.add_stop({
                         "type": "blob",
-                        "enText": source['comment']
+                        "enText": source['comment'],
+                        "tags": tags
                     })
 
                 if "subsources" in source:
-                    process_sources(source["subsources"])
+                    process_sources(source["subsources"], tags)
 
-        process_sources(sheet.sources)
+        process_sources(sheet.sources, getattr(sheet, "tags", []) + [user_name(sheet.owner)])
         return self
 
 

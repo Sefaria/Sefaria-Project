@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from sefaria.model import *
-import csv
+import unicodecsv as csv
 import re
 
 

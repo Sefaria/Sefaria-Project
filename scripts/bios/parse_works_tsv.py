@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from sefaria.model import *
-import csv
+from sefaria.system.database import db
+import unicodecsv as csv
 
-# To clear out all earlier author data:
-# db.getCollection('index').update({},{$unset:{"authors":1}},{multi:1})
+# clear out all earlier author data:
+db.index.update({}, {"$unset": {"authors": 1}}, multi=True)
 
 
 """
