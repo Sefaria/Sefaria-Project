@@ -17,17 +17,21 @@ body.dark {
   width: 100%;
   height: 100%;
 }
-.multiPanelReader {
+.readerApp {
   position: absolute;
   width: 100%;
   height: 100%;
+}
+.readerPanelBox {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+.readerPanelBox + .readerPanelBox {
+  border-left: 1px solid #ddd;
 }
 .readerPanel {
-  position: absolute;
-  height: 100%;
-  width: 100%;
-}
-.readerApp {
   position: relative;
   width: 100%;
   height: 100%;
@@ -51,6 +55,9 @@ body.dark {
   box-sizing: border-box;
   background-color: inherit;
 }
+.multiPanel .textColumn {
+  padding: 0 25px 100%;
+}
 .textColumn .loadingMessage.base {
   margin: 30px 0;
   color: #999;
@@ -71,8 +78,8 @@ body.dark {
 }
 
 
-.readerApp .he,
-.readerApp .heOnly {
+.readerPanel .he,
+.readerPanel .heOnly {
   font-family: "Taamey Frank", "Times New Roman", serif;
   direction: rtl;
   text-align: right;
@@ -129,13 +136,13 @@ body .bilingual .enOnly .he {
   transform: translateY(0%);
   -webkit-transform: translateY(0%);
 }
-.readerApp.light {
+.readerPanel.light {
   background-color: white;
 }
-.readerApp.sepia {
+.readerPanel.sepia {
   background-color: #f7f7f7;
 }
-.readerApp.dark {
+.readerPanel.dark {
   background-color: #333;
   color: white;
 }
@@ -157,6 +164,9 @@ body .bilingual .enOnly .he {
   -webkit-overflow-scrolling: touch;
   font-size: 12px;
 }
+.multiPanel .readerNavMenu .content {
+  padding: 80px 25px 10px;
+}
 .readerNavTop {
   position: absolute;
   width: 100%;
@@ -167,7 +177,10 @@ body .bilingual .enOnly .he {
   z-index: 1;
   padding: 13px 20px;
 }
-.readerApp .readerNavTop h2 {
+.multiPanel .readerNavTop {
+
+}
+.readerPanel .readerNavTop h2 {
   margin-bottom: 0px;
 }
 .readerNavTop.search {
@@ -186,12 +199,14 @@ body .bilingual .enOnly .he {
 .readerNavMenu .readerSearch:focus {
   outline: 0;
 }
-.readerNavTop .fa {
-
+.multiPanel .readerNavMenu .readerSearch {
+  padding: 18px 10px 10px 90px;
 }
 .readerNavTop .readerNavMenuSearchButton,
 .readerNavTop .readerNavMenuCloseButton,
-.readerNavTop .readerOptions {
+.readerNavTop .readerOptions,
+.textListTop .readerNavMenuSearchButton,
+.textListTop .readerOptions {
   position: absolute;
   text-align: center;
   top: 0;
@@ -210,17 +225,36 @@ body .bilingual .enOnly .he {
 .readerNavTop .readerNavMenuSearchButton {
   left: 36px;
 }
-.readerNavTop .readerOptions {
+.readerNavTop .readerOptions,
+.textListTop .readerOptions {
   left: auto;
   right: 0;
+}
+.readerNavMenu.home .readerNavMenuSearchButton,
+.readerNavTop.searchOnly .readerNavMenuSearchButton,
+.textListTop .readerNavMenuSearchButton {
+  left: 0;
+}
+.multiPanel .readerNavTop .readerNavMenuSearchButton,
+.multiPanel .home .readerNavTop .readerNavMenuSearchButton,
+.multiPanel .readerNavTop.searchOnly .readerNavMenuSearchButton,
+.multiPanel .readerNavTop .readerNavMenuCloseButton,
+.multiPanel .readerNavTop .readerOptions,
+.multiPanel .textListTop .readerNavMenuSearchButton,
+.multiPanel .textListTop .readerOptions {
+  left: 10px;
+}
+.multiPanel .readerNavTop .readerOptions,
+.multiPanel .textListTop .readerOptions {
+  left: auto;
+  right: 10px;
+}
+.multiPanel .readerNavTop .readerNavMenuSearchButton {
+  left: 46px;
 }
 .readerNavMenu.home .readerNavTop {
   border-bottom: none;
   padding-bottom: 0px;
-}
-.readerNavMenu.home .readerNavMenuSearchButton,
-.readerNavTop.searchOnly .readerNavMenuSearchButton {
-  left: 0;
 }
 .readerNavMenu.home .sefariaLogo img {
   width: 110px;
@@ -258,7 +292,7 @@ body .bilingual .enOnly .he {
 .readerNavMenu .navToggle.active {
   color: black;
 }
-.readerApp h2, .readerApp h3 {
+.readerPanel h2, .readerPanel h3 {
   text-transform: uppercase;
   text-align: center;
   font-size: 15px;
@@ -683,6 +717,12 @@ body .bilingual .enOnly .he {
   text-align: right;
   padding-right: 10px;
 }
+.multiPanel .readerControls .readerNavMenuSearchButton {
+  padding-left: 20px;
+}
+.multiPanel .readerControls .readerOptions {
+  padding-right: 20px;
+}
 .readerOptions img {
   height: 26px;
   vertical-align: middle;
@@ -939,19 +979,33 @@ body .bilingual .enOnly .he {
   filter: invert(100%);
   -webkit-filter: invert(100%);
 }
-.readerApp.english .segment .segmentNumber {
+.readerPanel.english .segment .segmentNumber {
   left: 5px;
 }
-.readerApp.hebrew .segment .segmentNumber,
-.readerApp.bilingual .segment .segmentNumber {
+.readerPanel.hebrew .segment .segmentNumber,
+.readerPanel.bilingual .segment .segmentNumber {
   right: 4px;
 }
-.readerApp.english .segment .linkCount {
+.readerPanel.english .segment .linkCount {
   right: 11px;
 }
-.readerApp.hebrew .segment .linkCount,
-.readerApp.bilingual .segment .linkCount {
+.readerPanel.hebrew .segment .linkCount,
+.readerPanel.bilingual .segment .linkCount {
   left: 11px;
+}
+.multiPanel .readerPanel.english .segment .segmentNumber {
+  left: -3px;
+}
+.multiPanel .readerPanel.hebrew .segment .segmentNumber,
+.multiPanel .readerPanel.bilingual .segment .segmentNumber {
+  right: -6px;
+}
+.multiPanel .readerPanel.english .segment .linkCount {
+  right: -3px;
+}
+.multiPanel .readerPanel.hebrew .segment .linkCount,
+.multiPanel .readerPanel.bilingual .segment .linkCount {
+  left: 0px;
 }
 .segment .refLink {
   font-size: .8em;
@@ -988,10 +1042,10 @@ body .bilingual .enOnly .he {
   padding: 40px 30px 40px;
 }
 .textList.fullPanel .texts {
-  padding-bottom: 300px;
+  padding: 0 50px 300px;
 }
 .textList .fullFilterView {
-  padding-top: 25px;
+  padding: 50px 40px;
 }
 .textListTop {
   position: absolute;
@@ -1003,7 +1057,7 @@ body .bilingual .enOnly .he {
 }
 .textList.fullPanel .textListTop {
 
-}
+text-align: center;}
 .dark .textList {
   background-color: #333;
 }
@@ -1199,6 +1253,13 @@ body .bilingual .enOnly .he {
 .hebrew .textRange .numberLabel,
 .bilingual .textRange .numberLabel  {
   right: -22px;
+}
+.multiPanel .english .textRange .numberLabel {
+  left: -32px;
+}
+.multiPanel .hebrew .textRange .numberLabel,
+.multiPanel .bilingual .textRange .numberLabel  {
+  right: -32px;
 }
 .textRange.lowlight .numberLabel {
   color: #aaa;

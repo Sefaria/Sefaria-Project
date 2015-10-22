@@ -1,7 +1,7 @@
 var sjs = sjs || {};
 
 
-var MultiPanelReader = React.createClass({
+var ReaderApp = React.createClass({
   propTypes: {
     panelCount:                  React.PropTypes.number,
     initialRef:                  React.PropTypes.string,
@@ -74,8 +74,8 @@ var MultiPanelReader = React.createClass({
         panel.query     = this.props.initialQuery;
         panel.sheetsTag = this.props.initialSheetsTag;
       }
-      panels.push(<div className="readerPanel" style={style} key={i}>
-                    <ReaderApp 
+      panels.push(<div className="readerPanelBox" style={style} key={i}>
+                    <ReaderPanel 
                       initialRef={panel.ref}
                       initialFilter={panel.filter}
                       initialMenu={panel.menu}
@@ -91,12 +91,13 @@ var MultiPanelReader = React.createClass({
                       textListRef={textListRef} />
                   </div>);
     }
-    return (<div className="multiPanelReader">{panels}</div>);
+    var classes = classNames({readerApp: 1, multiPanel: panels.length > 1})
+    return (<div className={classes}>{panels}</div>);
   }
 });
 
 
-var ReaderApp = React.createClass({
+var ReaderPanel = React.createClass({
   propTypes: {
     initialRef:         React.PropTypes.string,
     initialFilter:      React.PropTypes.array,
@@ -282,7 +283,6 @@ var ReaderApp = React.createClass({
     }
   },
   handlePopState: function(event) {
-    console.log("Pop")
     var state = event.state;
     if (state) {
       var from = this.currentMode();
@@ -348,7 +348,7 @@ var ReaderApp = React.createClass({
     });
   },
   backToText: function() {
-    // Return to the original text in the ReaderApp contents
+    // Return to the original text in the ReaderPanel contents
     this.state.contents = [this.state.contents[0]];
     this.setState({contents: this.state.contents, replaceHistory: false});
   },  
@@ -524,6 +524,8 @@ var ReaderApp = React.createClass({
             showTextList={this.showTextList}
             showBaseText={this.showBaseText} 
             backToText={this.backToText} 
+            openNav={this.openMenu.bind(null, "navigation")}
+            openDisplaySettings={this.openDisplaySettings}            
             key={i} />
         );
       }
@@ -581,7 +583,7 @@ var ReaderApp = React.createClass({
       var menu = "";
     }
 
-    var classes  = {readerApp: 1};
+    var classes  = {readerPanel: 1};
     classes[this.currentLayout()]         = 1;
     classes[this.state.settings.language] = 1;
     classes[this.state.settings.color]    = 1;
@@ -638,26 +640,35 @@ var ReaderControls = React.createClass({
     currentMode:             React.PropTypes.func.isRequired,
     currentCategory:         React.PropTypes.func.isRequired,
     currentBook:             React.PropTypes.func.isRequired,
-    currentLayout:           React.PropTypes.func.isRequired
+    currentLayout:           React.PropTypes.func.isRequired,
+    multiPanel:              React.PropTypes.bool
   },
   render: function() {
-    var lineStyle = {backgroundColor: sjs.categoryColor(this.props.currentCategory())};
-    var title = this.props.currentBook();
-    var index = sjs.library.index(title);
-    var heTitle = index ? index.heTitle : "";
-    var hideHeader = !this.props.multiPanel && this.props.currentMode() === "TextList";
+    var lineStyle   = {backgroundColor: sjs.categoryColor(this.props.currentCategory())};
+    var title       = this.props.currentBook();
+    var index       = sjs.library.index(title);
+    var heTitle     = index ? index.heTitle : "";
+    var currentMode = this.props.currentMode();
+    var hideHeader  = !this.props.multiPanel && currentMode === "TextList";
+
+    var centerContent = this.props.multiPanel && currentMode === "TextList" ?
+      (<div className="readerTextToc">
+          <span className="en">Select Connection</span>
+          <span className="he">חיבור בחר</span>
+        </div>) :
+      (<div className="readerTextToc" onClick={this.props.openMenu.bind(null, "text toc")}>
+          { title ? (<i className="fa fa-caret-down invisible"></i>) : "" }
+          <div className="readerTextTocBox">
+            <span className="en">{title}</span>
+            <span className="he">{heTitle}</span>
+          </div>
+          { title ? (<i className="fa fa-caret-down"></i>) : "" }
+        </div>);
 
     var readerControls = hideHeader ? "" :
         (<div className="readerControls headroom">
           <ReaderNavigationMenuSearchButton onClick={this.props.openMenu.bind(null, "navigation")} />
-          <div className="readerTextToc" onClick={this.props.openMenu.bind(null, "text toc")}>
-            { title ? (<i className="fa fa-caret-down invisible"></i>) : "" }
-            <div className="readerTextTocBox">
-              <span className="en">{title}</span>
-              <span className="he">{heTitle}</span>
-            </div>
-            { title ? (<i className="fa fa-caret-down"></i>) : "" }
-          </div>
+          {centerContent}
           <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
     return (
@@ -1411,8 +1422,8 @@ var TextColumn = React.createClass({
     window.requestAnimationFrame(function() {
       //var start = new Date();
       var $container   = $(React.findDOMNode(this));
-      var $readerApp   = $container.closest(".readerApp");
-      var viewport     = $container.outerHeight() - $readerApp.find(".textList").outerHeight();
+      var $readerPanel   = $container.closest(".readerPanel");
+      var viewport     = $container.outerHeight() - $readerPanel.find(".textList").outerHeight();
       var center       = (viewport/2);
       var midTop       = 200;
       var threshhold   = this.props.multiPanel ? midTop : center;
@@ -1438,7 +1449,7 @@ var TextColumn = React.createClass({
       // Not clear there's a great perfomance benefit
       if (!this.state.segmentHeights) {
         this.state.segmentHeights = [];
-        $readerApp.find(".basetext .segment").each(function(i, segment) {
+        $readerPanel.find(".basetext .segment").each(function(i, segment) {
           var $segment = $(segment);
           var top = $segment.offset().top;
           this.state.segmentHeights.push({
@@ -1463,11 +1474,11 @@ var TextColumn = React.createClass({
   scrollToHighlighted: function() {
     window.requestAnimationFrame(function() {
       var $container   = $(React.findDOMNode(this));
-      var $readerApp   = $container.closest(".readerApp");
+      var $readerPanel   = $container.closest(".readerPanel");
       var $highlighted = $container.find(".segment.highlight").first();
       if ($highlighted.length) {
         var height     = $highlighted.outerHeight();
-        var viewport   = $container.outerHeight() - $readerApp.find(".textList").outerHeight();
+        var viewport   = $container.outerHeight() - $readerPanel.find(".textList").outerHeight();
         var offset     = height > viewport + 30 ? 30 : (viewport - height) / 2;
         $container.scrollTo($highlighted, 0, {offset: -offset});
       }
@@ -1655,7 +1666,7 @@ var TextRange = React.createClass({
   loadText: function(data) {
     // When data is actually available, load the text into the UI
     if (this.props.basetext && this.props.sref !== data.ref) {
-      // Replace ReaderApp contents ref with the normalized form of the ref, if they differ.
+      // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
       // Pass parameter to showBaseText to replaceHistory
       this.props.showBaseText(data.ref, true);        
     }
@@ -1831,15 +1842,17 @@ var TextSegment = React.createClass({
 
 var TextList = React.createClass({
   propTypes: {
-    sref:          React.PropTypes.string.isRequired,
-    filter:        React.PropTypes.array.isRequired,
-    recentFilters: React.PropTypes.array.isRequired,
-    fullPanel:     React.PropTypes.bool,
-    multiPanel:    React.PropTypes.bool,
-    setFilter:     React.PropTypes.func,
-    showTextList:  React.PropTypes.func,
-    showBaseText:  React.PropTypes.func,
-    backToText:    React.PropTypes.func,
+    sref:                React.PropTypes.string.isRequired,
+    filter:              React.PropTypes.array.isRequired,
+    recentFilters:       React.PropTypes.array.isRequired,
+    fullPanel:           React.PropTypes.bool,
+    multiPanel:          React.PropTypes.bool,
+    setFilter:           React.PropTypes.func,
+    showTextList:        React.PropTypes.func,
+    showBaseText:        React.PropTypes.func,
+    backToText:          React.PropTypes.func,
+    openNav:             React.PropTypes.func,
+    openDisplaySettings: React.PropTypes.func
   },
   getInitialState: function() {
     return {
@@ -1872,9 +1885,7 @@ var TextList = React.createClass({
   },
   loadConnections: function() {
     // Loading intially at section level for commentary
-    console.log("I am " + this.props.sref)
     var ref = sjs.library.ref(this.props.sref) ? sjs.library.ref(this.props.sref).sectionRef : this.props.sref;
-    console.log("loading connections for " +ref);
     sjs.library.links(ref, function(links) {
       if (this.isMounted()) {
         this.preloadText(this.props.filter);
@@ -2001,34 +2012,41 @@ var TextList = React.createClass({
                                     openOnClick={true} />);
                         }, this);      
     }
-    return (
-      <div className={classes}>
-        <div className="textListTop">
-          {showAllFilters ? "" : 
-          <TopFilterSet 
-            sref={this.props.sref}
-            showText={this.props.showText}
-            filter={this.props.filter}
-            recentFilters={this.props.recentFilters}
-            setFilter={this.props.setFilter}
-            showAllFilters={this.showAllFilters}
-            summary={summary} />}
-          {showAllFilters ? message : ""}
-        </div>
-        {showAllFilters ?
+    if (showAllFilters) {
+      return (
+        <div className={classes}>
+          <div className="textListTop">
+              {message}
+          </div>
           <AllFilterSet 
             sref={this.props.sref}
             showText={this.props.showText}
             filter={this.props.fitler}
             recentFilters={this.props.recentFilters}
             setFilter={this.props.setFilter}
-            summary={summary} /> :       
-          
+            summary={summary} />
+        </div>);
+    } else {
+      return (
+        <div className={classes}>
+          <div className="textListTop">
+            {this.props.fullPanel ? <ReaderNavigationMenuSearchButton onClick={this.props.openNav} /> : ""}
+            {this.props.fullPanel ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : ""}
+            <TopFilterSet 
+              sref={this.props.sref}
+              showText={this.props.showText}
+              filter={this.props.filter}
+              recentFilters={this.props.recentFilters}
+              setFilter={this.props.setFilter}
+              showAllFilters={this.showAllFilters}
+              summary={summary} />
+              {message}
+          </div>
           <div className="texts">
             { texts }
-          </div>}
-      </div>
-    );
+          </div>
+        </div>);
+    }
   }
 });
 
