@@ -25,16 +25,21 @@ class WorkflowyParser(object):
     comment_delim = ur'#'
     categories_delim = u"%"
 
-    def __init__(self, schema_file, term_scheme=None, c_index=False, c_version=False):
+    def __init__(self, schema_file, term_scheme=None, c_index=False, c_version=False, delims=None):
         self._schema_outline_file = schema_file
         self._term_scheme = term_scheme
         self._c_index = c_index
         self._c_version = c_version
         tree = ET.parse(self._schema_outline_file)
         self.outline = tree.getroot().find("./body/outline")
-        self.comment_strip_re = re.compile(ur"</b>|<b>|"+self.comment_delim+".*"+self.comment_delim, re.UNICODE)
+        self.comment_strip_re = re.compile(ur"</b>|<b>|\(.*\)|"+self.comment_delim+".*"+self.comment_delim, re.UNICODE)
         self.parsed_schema = None
         self.version_info = None
+        if delims:
+            delims = delims.split()
+            self.title_lang_delim = delims[0] if len(delims) > 1 else self.title_lang_delim
+            self.alt_title_delim = delims[1] if len(delims) > 2 else self.alt_title_delim
+            self.categories_delim = delims[2] if len(delims) > 3 else self.categories_delim
 
     def parse(self):
         #tree = tree.getroot()[1][0]
@@ -136,7 +141,7 @@ class WorkflowyParser(object):
     def extract_version_info(self):
         vinfo_str = self.outline.get("_note")
         if vinfo_str:
-            vinfo_dict = {elem.split(":",1)[0].strip():elem.split(":",1)[1].strip() for elem in str.split(",")}
+            vinfo_dict = {elem.split(":",1)[0].strip():elem.split(":",1)[1].strip() for elem in vinfo_str.split(",")}
         else:
             vinfo_dict = {'language': 'he',
                           'versionSource': '',
@@ -219,8 +224,9 @@ if __name__ == '__main__':
     parser.add_argument("-t", "--term_scheme", help="Provide name of term scheme to save the titles as")
     parser.add_argument("-i", "--create_index", action="store_true", help="optional argument to create an Index object with the provided schema")
     parser.add_argument("-v", "--create_version", action="store_true", help="Optional argument to create a version from the notes on the outline. Requires an existing Index or one to be created")
+    parser.add_argument("-d", "--delim", help="Optional argument for other delimiters")
     args = parser.parse_args()
     print args
-    wfparser = WorkflowyParser(args.outline_file, args.term_scheme, args.create_index, args.create_version)
+    wfparser = WorkflowyParser(args.outline_file, args.term_scheme, args.create_index, args.create_version, args.delim)
     wfparser.parse()
 
