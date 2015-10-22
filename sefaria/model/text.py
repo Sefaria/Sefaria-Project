@@ -3397,6 +3397,7 @@ class Library(object):
     def get_titles_in_string(self, s, lang=None):
         """
         Returns the titles found in the string.
+        
         :param s: The string to search
         :param lang: "en" or "he"
         :return list: titles found in the string
@@ -3412,6 +3413,7 @@ class Library(object):
     def get_refs_in_string(self, st, lang=None):
         """
         Returns an list of Ref objects derived from string
+
         :param string st: the input string
         :param lang: "he" or "en"
         :return: list of :class:`Ref` objects
