@@ -576,6 +576,20 @@ def update_sheet_tags_api(request, sheet_id):
 	tags = json.loads(request.POST.get("tags"))
 	return jsonResponse(update_sheet_tags(int(sheet_id), tags))
 
+def visual_sheet_api(request, sheet_id):
+	"""
+	API for visual source sheet layout
+	"""	
+	if not request.user.is_authenticated():
+		return {"error": "You must be logged in to save a sheet layout."}
+	if request.method != "POST":
+		return jsonResponse({"error": "Unsupported HTTP method."})
+		
+	visualNodes = json.loads(request.POST.get("visualNodes"))	
+	zoomLevel =  json.loads(request.POST.get("zoom"))	
+	add_visual_data(int(sheet_id), visualNodes, zoomLevel)
+	return jsonResponse({"status": "ok"})
+
 
 def like_sheet_api(request, sheet_id):
 	"""

@@ -1,69 +1,85 @@
+$("#container").css({
+	"width" : $("body").css("width"),
+	"height" : $("body").css("height")
+});
+
 //zoom buttons
 zoomScale = 1;
 
-$("#zoomOut").click( function(){
-	$("#visualContainer").click()
-});
-
-
-$("#visualContainer").css({
-	'width' : $("body").css("width"),
-	'height' : $("body").css("height"),
-});
-
-
-
-
-function resizeVisualContainer() {
-maxY = parseInt($("body").css("height"));
-maxX = parseInt($("body").css("width"));;
-minY = 0;
-minX = 0;
-
-
-	$(".source").each( function() {
-		var thisY = parseInt($(this).css('height'))+parseInt( $(this).css('top'));
-		var thisX = parseInt($(this).css('width'))+parseInt( $(this).css('left'));
+function resizeZoomContainer() {
+	//set values to resize zoom container -- negative margins keep the container centered on the page
+	var bodyWidth = parseInt($("body").css("width"))/zoomScale;
+	var bodyHeight = parseInt($("body").css("height"))/zoomScale;
+	var bodyMarginLeft = Math.abs(parseInt($("body").css("width")) - bodyWidth)/2;
+	var bodyMarginTop =Math.abs((parseInt($("body").css("height")) - bodyHeight)/2)+50; //the last 50 is for the height of the header
 	
-		if (thisY > maxY) maxY = thisY;
-		if (thisX > maxX) maxX = thisX;
-		if (thisY < minY) minY = thisY;
-		if (thisX < minX) minX = thisX;
-
-	});
+	if (zoomScale < 1) {
+		bodyMarginTop = -bodyMarginTop;
+		bodyMarginLeft = -bodyMarginLeft;
+	}
 	
-	$("#visualContainer").css({
-	'width' : maxX - minX,
-	'height' : maxY - minY
-});
+	$("#container").css({
+		  '-webkit-transform' : 'scale(' + zoomScale + ')',
+		  '-moz-transform'    : 'scale(' + zoomScale + ')',
+		  '-ms-transform'     : 'scale(' + zoomScale + ')',
+		  '-o-transform'      : 'scale(' + zoomScale + ')',
+		  'transform'         : 'scale(' + zoomScale + ')',
+			"width" : bodyWidth + "px",
+			"height" : bodyHeight + "px",
+			"margin-left" : bodyMarginLeft+"px",
+			"margin-top" : bodyMarginTop+"px"		  
+		});
 
 }
 
-resizeVisualContainer();
+$("#zoomOut").click( function(){
+	zoomScale = zoomScale-.1;
+	if (zoomScale < .1) zoomScale = .1;
+	
+	resizeZoomContainer();
+});	
 
 
-//set sources to be draggable, resizable & zoomable
-$(".source").resizable({
+$("#zoomIn").click( function(){
+	zoomScale = zoomScale +.1;
+	if (zoomScale > 4) zoomScale = 4;
+	
+	resizeZoomContainer();
+});
+
+
+//set sources to be draggable & resizable
+$(".source, .commentWrapper, .mediaWrapper, .outsideBiWrapper, .outsideWrapper").resizable({
 
 	stack: ".source",
 	handles: "nw, ne, se, sw",
 	stack: ".source",
+	
+	start: function(event, ui) {
+	
+		ui.position.left = ui.position.left + Math.abs((parseInt($("#container").css("margin-left")))*zoomScale);
+        ui.position.top = ui.position.top + Math.abs((parseInt($("#container").css("margin-top")))*zoomScale)+50;
+
+	
+	},
+
     resize: function(event, ui) {
 
-        var changeWidth = ui.size.width - ui.originalSize.width; // find change in width
-        var newWidth = ui.originalSize.width + changeWidth / zoomScale; // adjust new width by our zoomScale
 
-        var changeHeight = ui.size.height - ui.originalSize.height; // find change in height
-        var newHeight = ui.originalSize.height + changeHeight / zoomScale; // adjust new height by our zoomScale
+		var changeWidth = ui.size.width - ui.originalSize.width; // find change in width
+		var newWidth = ui.originalSize.width + changeWidth / zoomScale; // adjust new width by our zoomScale
+ 
+		var changeHeight = ui.size.height - ui.originalSize.height; // find change in height
+		var newHeight = ui.originalSize.height + changeHeight / zoomScale; // adjust new height by our zoomScale
+ 
+		ui.size.width = newWidth;
+		ui.size.height = newHeight;
+		
 
-        ui.size.width = newWidth;
-        ui.size.height = newHeight;
 
-    },
-    stop: function( event, ui ) {
-    resizeVisualContainer();
     }
-
+	
+	   
 }).draggable({
     stack: ".source",
     start: function(event, ui) {
@@ -71,7 +87,7 @@ $(".source").resizable({
         ui.position.top = 0;
     },
     drag: function(event, ui) {
-    	
+		console.log(zoomScale);    	
         var changeLeft = ui.position.left - ui.originalPosition.left; // find change in left
         var newLeft = ui.originalPosition.left + changeLeft / (( zoomScale)); // adjust new left by our zoomScale
 
@@ -81,10 +97,53 @@ $(".source").resizable({
         ui.position.left = newLeft;
         ui.position.top = newTop;
 
-    },
-    stop: function( event, ui ) {
-    resizeVisualContainer();
     }
+}).each(function(index) {
+
+	$(this).css({
+
+		"left" : sjs.current.visualNodes[index].x + "px",
+		"top" : sjs.current.visualNodes[index].y + "px",
+		"width" : sjs.current.visualNodes[index].width + "px",
+		"height" : sjs.current.visualNodes[index].length + "px",
+		"zIndex" : sjs.current.visualNodes[index].zindex
+		
+	});
+
 });
 
 
+
+$("#saveButton").click(function() {
+
+	toJson = '[';
+
+	$(".sheetItem").each(function() {
+
+		var x = ( parseInt( $( this ).css('left') ) );
+		var y = ( parseInt( $( this ).css('top') ) );
+		var width = $( this ).width();
+		var length =  $( this ).height();
+		var zindex =  $( this ).css('z-index');
+		if (zindex == "auto") zindex=0;
+		
+		toJson = toJson + '{ "x" : ' + x + ', "y" : ' + y + ', "width" : ' + width + ', "length" : ' + length + ', "zindex" : '+zindex+ '},';
+																												
+	});
+
+	toJson = toJson.slice(0,-1) + ']';
+	
+	$.post("/api/sheets/" + sjs.current.id + "/visualize", { visualNodes : toJson, zoom:zoomScale },
+			
+		function(data) {
+			if ("error" in data) {
+				sjs.alert.message(data.error);
+			}
+			else {
+				sjs.alert.flash("Sheet updated.");
+			}
+		}
+			
+		);	
+			
+});

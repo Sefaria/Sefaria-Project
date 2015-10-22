@@ -35,16 +35,18 @@
 <a href="/sheets" id="textTocLink">&laquo; Source Sheets</a>
 <div id="controls">
 	<div id="buttonBox">
-		<span id="zoomOut" class="zoomButton"><span class="fa fa-search-minus"></span>
-		<span id="zoomIn" class="zoomButton"><span class="fa fa-search-plus"></span>
+		<span id="zoomOut" class="zoomButton"><span class="fa fa-search-minus"></span></span>
+		<span id="zoomIn" class="zoomButton"><span class="fa fa-search-plus"></span></span>
 	</div>
 </div>
 
-<div class="zoomContainer" id="visualContainer">
-<ol id="sources">
-	{% include "sheet.html" with sources=sheet.sources %}
-</ol>
-<div id="sheetLoading" style="display:none">Loading...</div>
+
+<span id="saveButton" class="btn btn-large btn-success">Save</span>
+
+<div id="container">
+	<ol id="sources">
+		{% include "sheet.html" with sources=sheet.sources %}
+	</ol>
 </div>
 
 <!--
@@ -61,7 +63,34 @@ Footer depends on full bootstrap grid, which isn't loaded in sheets.html
 <script src="/static/js/jquery.tooltipster.min.js"></script>
 
 
+
+
 {% include "js/headers.js" %}
+
+<script type="text/javascript">
+{% autoescape off %}
+	var sjs = sjs || {};
+	
+	$.extend(sjs, {
+		cache: {},
+		current: {{ sheetJSON|default:"null" }},
+		can_edit: {% if can_edit %}true{% else %}false{% endif %},
+		can_add: {% if can_add %}true{% else %}false{% endif %},
+		is_owner: {% if is_owner %}true{% else %}false{% endif %},
+		editing: {},
+		ref: {},
+		loading: 0,
+		autosave: false,
+		changes: false,
+		{% if user.id %}
+		_fullname: "{{ user.first_name }} {{ user.last_name }}",
+		_userLink: "{{ user.id|user_link }}"
+		{% endif %}
+	});
+{% endautoescape %}
+</script>
+
+
 <script src="/static/js/util.js"></script>
 <script src="/static/js/sheets-visual.js"></script>
 </body>

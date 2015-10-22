@@ -4,17 +4,19 @@ body {
 
 }
 
-.source {
+.source, .commentWrapper, .mediaWrapper, .outsideBiWrapper, .outsideWrapper{
   	width: 300px;
 	background-color:#eee;
 	position:absolute;
 	overflow:hidden;
 	min-width:200px;
+
 }
 
 #controls {
 	left:20px;
 	margin-left:0;
+	z-index:100;
 }
 
 .zoomButton {
@@ -45,3 +47,9 @@ body {
 	font-size: 24px;
 }
 
+#saveButton {
+	position: fixed;
+	top: 60px;
+	right: 10px;
+	z-index: 100;
+}
