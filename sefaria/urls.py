@@ -25,11 +25,12 @@ urlpatterns = patterns('reader.views',
     (r'^api/links/bare/(?P<book>.+)/(?P<cat>.+)$', 'bare_link_api'),
     (r'^api/links/(?P<link_id_or_ref>.*)$', 'links_api'),
     (r'^api/link-summary/(?P<ref>.+)$', 'link_summary_api'),
-    (r'^api/notes/(?P<note_id>.*)$', 'notes_api'),
+    (r'^api/notes/(?P<note_id_or_ref>.*)$', 'notes_api'),
     (r'^api/counts/links/(?P<cat1>.+)/(?P<cat2>.+)$', 'link_count_api'),
     (r'^api/counts/words/(?P<title>.+)/(?P<version>.+)/(?P<language>.+)$', 'word_count_api'),
     (r'^api/counts/(?P<title>.+)$', 'counts_api'),
     (r'^api/preview/(?P<title>.+)$', 'text_preview_api'),
+    (r'^api/toc-html/(?P<title>.+)$', 'text_toc_html_fragment'),
 )
 
 # Reviews API
@@ -64,6 +65,11 @@ urlpatterns += patterns('reader.views',
 # Dictionary API
 urlpatterns += patterns('reader.views',
     (r'^api/words/(?P<word>.+)$', 'dictionary_api'),
+)
+
+# ESI
+urlpatterns += patterns('reader.views',
+    (r'^esi/account_box/?$', 'esi_account_box'),
 )
 
 # Campaigns 
@@ -221,7 +227,12 @@ urlpatterns += patterns('reader.views',
 
 # Features under Development
 urlpatterns += patterns('reader.views',
-    (r'^s2$', 's2'),
+    (r'^s2/?$', 's2_home'),
+    (r'^s2/search/?$', 's2_search'),
+    (r'^s2/texts/?$', 's2_texts'),
+    (r'^s2/texts/(?P<cats>.+)?$', 's2_texts_category'),
+    (r'^s2/sheets/?$', 's2_sheets'),
+    (r'^s2/sheets/tags/(?P<tag>.+)?$', 's2_sheets_by_tag'),
     (r'^s2/(?P<ref>.+)$', 's2'),
 )
 

@@ -59,6 +59,7 @@ def sheet_list(user_id=None):
 		s["title"]    = sheet["title"] if "title" in sheet else "Untitled Sheet"
 		s["author"]   = sheet["owner"]
 		s["size"]     = len(sheet["sources"])
+		s["views"]    = sheet["views"]
 		s["modified"] = dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y")
 
 		response["sheets"].append(s)
@@ -263,8 +264,11 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 	ref_re = oref.regex()
 
 	results = []
-	sheets = db.sheets.find({"included_refs": {"$regex": ref_re}, "status": "public"},
-								{"id": 1, "title": 1, "owner": 1, "included_refs": 1})
+
+	regex_list = oref.regex(as_list=True)
+	ref_clauses = [{"included_refs": {"$regex": r}} for r in regex_list]
+	sheets = db.sheets.find({"$or": ref_clauses, "status": "public"},
+		{"id": 1, "title": 1, "owner": 1, "included_refs": 1})
 	for sheet in sheets:
 		# Check for multiple matching refs within this sheet
 		matched_refs = [r for r in sheet["included_refs"] if regex.match(ref_re, r)]
@@ -322,7 +326,7 @@ def make_sheet_list_by_tag():
 	tags = {}
 	results = []
 
-	sheet_list = db.sheets.find({"status": 3})
+	sheet_list = db.sheets.find({"status": "public"})
 	for sheet in sheet_list:
 		sheet_tags = sheet.get("tags", [])
 		for tag in sheet_tags:

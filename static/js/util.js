@@ -50,20 +50,34 @@ sjs.cache = {
 			//do we have a cached preferred version for this text? get it
 			var versionInfo = this.getPreferredTextVersion(book);
 			var versionPath = versionInfo ? "/"+versionInfo['lang']+"/"+versionInfo['version'] : '';
-			$.getJSON("/api/texts/" + makeRef(pRef) + versionPath + paramString, function(data){
-				if(versionInfo){ // preferred version might not exist, so get default
-					var version_text_attr = versionInfo['lang'] == 'he' ? 'he' : 'text';
-					if(!data[version_text_attr] || !data[version_text_attr].length){
-						$.getJSON("/api/texts/" + makeRef(pRef) + paramString, callback);
-					}
-				}
-				callback(data);
-			});
+
+            var text_fetch = $.getJSON("/api/texts/" + makeRef(pRef) + versionPath + paramString)
+                .done(function (data) {
+                    if (versionInfo) { // preferred version might not exist, so get default
+                        var version_text_attr = versionInfo['lang'] == 'he' ? 'he' : 'text';
+                        if (!data[version_text_attr] || !data[version_text_attr].length) {
+                            return $.getJSON("/api/texts/" + makeRef(pRef) + paramString);
+                        }
+                    }
+                });
+            if (this._params.notes) {
+                var note_fetch = $.getJSON("/api/notes/" + makeRef(pRef));
+                $.when(text_fetch, note_fetch).done(function(textData, noteData) {
+                    textData[0]["notes"] = noteData[0];
+                    callback(textData[0]);
+                })
+
+            } else {
+                text_fetch.done(function(data) { callback(data) });
+            }
 		}
+	},
+	cacheKey: function(ref) {
+		return normRef(ref).toLowerCase();
 	},
 	save: function(origData) {
 		var data = clone(origData);
-		var ref  = normRef(data.ref).toLowerCase();
+		var ref  = this.cacheKey(data.ref);
 
 		// Store data for book name alone (eg "Genesis") immediatley
 		// normalizing below will render this "Genesis.1" which we also store
@@ -114,6 +128,9 @@ sjs.cache = {
 		// Returns the params string according to value in _params
 		var str = "";
 		for (p in this._params) {
+            if (p == "notes") {
+                continue;
+            }
 			str += "&" + p + "=" + this._params[p];
 		}
 		if (str.length) {
@@ -122,7 +139,7 @@ sjs.cache = {
 		return str;
 	},
 	kill: function(ref) {
-		ref = makeRef(parseRef(ref));
+		ref = this.cacheKey(ref);
 		if (ref in this._cache) delete this._cache[ref];
 		else if (ref.indexOf(".") != ref.lastIndexOf(".")) {
 			ref = ref.slice(0, ref.lastIndexOf("."));
@@ -156,6 +173,7 @@ sjs.track = {
 		// Generic event tracker
 		_gaq.push(['_trackEvent', category, action, label]);
 		//mixpanel.track(category + " " + action, {label: label});
+		//console.log([category, action, label].join(" / "));
 	},
 	pageview: function(url) {
         _gaq.push(['_trackPageview', url]);
@@ -1296,15 +1314,16 @@ sjs.sheetTagger = {
 
 sjs._parseRef = {};
 function parseRef(q) {
-	q = q || ""; 
+	q = q || "";
+	q = decodeURIComponent(q);
 	q = q.replace(/_/g, " ").replace(/[.:]/g, " ").replace(/ +/, " ");
 	q = q.trim().toFirstCapital();
 	if (q in sjs._parseRef) { return sjs._parseRef[q]; }
+	
 	var response = {book: false, 
 					sections: [],
 					toSections: [],
-					ref: ""};
-					
+					ref: ""};				
 	if (!q) { 
 		sjs._parseRef[q] = response;
 		return response;
@@ -1373,13 +1392,19 @@ function makeRef(q) {
 
 
 function normRef(ref) {
-	return makeRef(parseRef(ref));
+	var norm = makeRef(parseRef(ref));
+	if (typeof norm == "object" && "error" in norm) {
+		// Return the original string if the ref doesn't parse
+		return ref;
+	}
+	return norm;
 }
 
 
 function humanRef(ref) {
 	var pRef = parseRef(ref);
-	var book = pRef.book.replace(/_/g, " ") + " ";
+	if (pRef.sections.length == 0) { return pRef.book; }
+	var book = pRef.book + " ";
 	var nRef = pRef.ref;
 	var hRef = nRef.replace(/ /g, ":");
 	return book + hRef.slice(book.length);
@@ -2337,13 +2362,14 @@ function isArray(a) {
 
 function isHebrew(text) {
 	// Returns true if text is (mostly) Hebrew
-	// Examines up to the first 40 characters, ignoring punctuation and numbers
+	// Examines up to the first 60 characters, ignoring punctuation and numbers
+    // 60 is needed to cover cases where a Hebrew text starts with 31 chars like: <big><strong>גמ׳</strong></big>
 
 	var heCount = 0;
 	var enCount = 0;
-	var punctuationRE = /[0-9 .,'"?!;:\-=@#$%^&*()]/
+	var punctuationRE = /[0-9 .,'"?!;:\-=@#$%^&*()/<>]/;
 
-	for (var i = 0; i < Math.min(40, text.length); i++) {
+	for (var i = 0; i < Math.min(60, text.length); i++) {
 		if (punctuationRE.test(text[i])) { continue; }
 		if ((text.charCodeAt(i) > 0x590) && (text.charCodeAt(i) < 0x5FF)) {
 			heCount++;
@@ -2435,6 +2461,33 @@ function clone(obj) {
     throw new Error("Unable to copy obj! Its type isn't supported.");
 }
 
+function throttle (callback, limit) {
+    var wait = false;                 // Initially, we're not waiting
+    return function () {              // We return a throttled function
+        if (!wait) {                  // If we're not waiting
+            callback.call();          // Execute users function
+            wait = true;              // Prevent future invocations
+            setTimeout(function () {  // After a period of time
+                wait = false;         // And allow future invocations
+            }, limit);
+        }
+    }
+}
+
+function debounce(func, wait, immediate) {
+	var timeout;
+	return function() {
+		var context = this, args = arguments;
+		var later = function() {
+			timeout = null;
+			if (!immediate) func.apply(context, args);
+		};
+		var callNow = immediate && !timeout;
+		clearTimeout(timeout);
+		timeout = setTimeout(later, wait);
+		if (callNow) func.apply(context, args);
+	};
+};
 
 String.prototype.toProperCase = function() {
   
@@ -3163,5 +3216,55 @@ window.findAndReplaceDOMText = (function() {
 	};
 
 	return exposed;
+
+}());
+
+/*!
+  Copyright (c) 2015 Jed Watson.
+  Licensed under the MIT License (MIT), see
+  http://jedwatson.github.io/classnames
+*/
+
+(function () {
+	'use strict';
+
+	function classNames () {
+
+		var classes = '';
+
+		for (var i = 0; i < arguments.length; i++) {
+			var arg = arguments[i];
+			if (!arg) continue;
+
+			var argType = typeof arg;
+
+			if ('string' === argType || 'number' === argType) {
+				classes += ' ' + arg;
+
+			} else if (Array.isArray(arg)) {
+				classes += ' ' + classNames.apply(null, arg);
+
+			} else if ('object' === argType) {
+				for (var key in arg) {
+					if (arg.hasOwnProperty(key) && arg[key]) {
+						classes += ' ' + key;
+					}
+				}
+			}
+		}
+
+		return classes.substr(1);
+	}
+
+	if (typeof module !== 'undefined' && module.exports) {
+		module.exports = classNames;
+	} else if (typeof define === 'function' && typeof define.amd === 'object' && define.amd){
+		// AMD. Register as an anonymous module.
+		define(function () {
+			return classNames;
+		});
+	} else {
+		window.classNames = classNames;
+	}
 
 }());

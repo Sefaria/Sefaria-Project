@@ -2646,18 +2646,15 @@ ul.board {
 
 #profileLeft {
 	padding-bottom: 40px;
+	text-align: center;
 }
 
 #profileLeftBox {
-	width: 250px;
-	padding-right: 32px;
-	float: right;
-}
+text-align: left;width: 250px;display: inline-block;}
 
 #profileImage {
 	width: 250px;
-	max-width: 100%;
-	height: 250px;
+	max-width: 94%;
 	margin-bottom: 20px;
 }
 

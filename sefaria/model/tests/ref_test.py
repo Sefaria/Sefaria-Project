@@ -379,7 +379,9 @@ class Test_Ref(object):
         assert Ref('Genesis 1:3-2:23').surrounding_ref(2) == Ref("Genesis 1:1-2:25")
         assert Ref('Genesis 1:3-2:23').surrounding_ref(3) == Ref("Genesis 1:1-2:25")  # Chapter ends on both sides
 
-
+    def test_malbim(self):
+        # Used to short circuit, fail to resolve to Malachi, and fail
+        assert Ref("Malbim Beur Hamilot on Ezekiel")
 
 
 class Test_Cache(object):
@@ -400,6 +402,11 @@ class Test_Cache(object):
         Ref.clear_cache()
         r2 = Ref("Ramban on Genesis 1")
         assert r1 is not r2
+
+    def test_tref_bleed(self):
+        Ref(u'שבת לא')
+        r = Ref("Shabbat 31a")
+        assert r.tref == "Shabbat 31a"
 
 
 class Test_normal_forms(object):
@@ -629,8 +636,8 @@ class Test_Talmud_at_Second_Place(object):
         assert Ref("Zohar 1.50a - 3.15a").toSections[1] == 29
 
     def test_Zohar_Parsha_ref(self):
-        assert Ref("Zohar Lech Lecha")
-        assert Ref("Zohar Bo")
+        assert Ref("Zohar, Lech Lecha")
+        assert Ref("Zohar, Bo")
 
     def test_FAILING_range_short_form(self):
         assert Ref("Zohar 2.15a - 15b").sections[1] == 29

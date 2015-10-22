@@ -1,35 +1,51 @@
-{% extends "base.html" %}
+{% extends "s2_base.html" %}
 {% load sefaria_tags %}
 
 {% block title %}{{ ref }}{% endblock %}
 
-{% block content %}
+{% block head %}
 <link rel="stylesheet" href="/static/css/s2.css">
+{% endblock %}
 
-<div id="s2"></div>
+{% block content %}
+
+<div id="s2">
+  <div id="s2Loading">
+      <div class='loadingMessage'>
+        <img src="/static/img/sefaria.png" />
+        <br>
+        <span class="en">Loading...</span>
+        <!--<span className="he">טעינה...</span>-->
+      </div>
+  </div>
+</div>
 
 <div id="overlay"></div>
 
 {% endblock %}
 
 {% block js %}
+    <script src="/static/js/headroom.js"></script>
+    <script src="/static/js/jquery.scrollTo.js"></script>
     <script src="/static/js/library.js"></script>
-    <script src="/static/js/react-with-addons.js"></script>
     {% if DEBUG %}
+    <script src="/static/js/react.js"></script>
     <script src="/static/js/JSXTransformer.js"></script>
     <script type="text/jsx" src="/static/js/s2.jsx"></script>
     {% else %}
+    <script src="/static/js/react.js"></script>
     <script src="/static/js/s2.js"></script>
     {% endif %}
     <script {% if DEBUG %}type="text/jsx"{% endif %}>
+      {% autoescape off %}
       $(function() {
         var urlVars = getUrlVars();
         var filter  = "with" in urlVars ? urlVars["with"].replace(/_/g, " ").split("+") : null;
         if (filter && filter.length === 1 && filter[0] === "all") { filter = []; }
-        
-        $("body").removeClass("hebrew bilingual").addClass("english");
-
-        sjs.library._saveText({{ data|jsonify }});
+        var query  = "q" in urlVars ? urlVars["q"] : null;
+        var panels = "panels" in urlVars ? 
+                        parseInt(urlVars["q"]) :
+                        $(window).width() > 600 ? 2 : 1;
 
         var settings = {
           language: "{{ contentLang }}",
@@ -38,22 +54,35 @@
           layoutTanach:  $.cookie("layoutTanach")  || "segmented",
           color:         $.cookie("color")         || "light",
           fontSize:      $.cookie("fontSize")      || 62.5
+        };
+       
+        var ref = "{{ ref }}";
+        if (ref) {
+          var ref = humanRef("{{ ref }}")
+          sjs.library._saveText({{ data|jsonify }});
         }
-        $("body").addClass(settings.color);
-        var ref = humanRef("{{ ref }}")
+
         React.render(
           React.createElement(ReaderApp, {
+            panelCount: panels,
             initialRef: ref,
             initialFilter: filter,
+            initialMenu: "{{ initialMenu }}",
+            initialQuery: query,
+            initialSheetsTag: "{{ initialSheetsTag }}",
+            initialText: "{{ initialText }}",
+            initialCategory: "{{ initialCategory }}",
+            initialNavigationCategories: {{ initialNavigationCategories|default:"[]" }},
             initialSettings: settings}),
           document.getElementById('s2')
         );
-        if (filter === null) {
+        if (ref && filter === null) {
           sjs.track.open(ref);
-        } else {
+        } else if (ref) {
           sjs.track.event("Reader", "Open Close Reader", ref);
         }
       });
+      {% endautoescape %}
     </script>
 {% endblock %}
 

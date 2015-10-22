@@ -42,7 +42,7 @@ class AbstractMongoRecord(object):
         self._init_defaults()
         self.pkeys_orig_values = {}
         self.load_from_dict(attrs, True)
-
+            
     def load_by_id(self, _id=None):
         if _id is None:
             raise Exception(type(self).__name__ + ".load() expects an _id as an arguemnt. None provided.")
@@ -260,8 +260,10 @@ class AbstractMongoSet(collections.Iterable):
     """
     recordClass = AbstractMongoRecord
 
-    def __init__(self, query={}, page=0, limit=0, sort=[("_id", 1)], proj=None):
+    def __init__(self, query={}, page=0, limit=0, sort=[("_id", 1)], proj=None, hint=None):
         self.raw_records = getattr(db, self.recordClass.collection).find(query, proj).sort(sort).skip(page * limit).limit(limit)
+        if hint:
+            self.raw_records.hint(hint)
         self.has_more = limit != 0 and self.raw_records.count() == limit
         self.records = None
         self.current = 0

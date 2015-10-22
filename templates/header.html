@@ -4,9 +4,13 @@
 	<div id="right" class="">
 		<div id="showOptions" class="">≡</div>
 		<div id="rightButtons">
-		
-			{% include "elements/accountBox.html" %}
-		
+
+            {% if USE_VARNISH_ESI %}
+                <esi:include src="/esi/account_box" />
+            {% else %}
+		    	{% include "elements/accountBox.html" %}
+    		{% endif %}
+
 			<div id="viewButtons">
 
 				<span id="biLayoutToggle" class="toggle"><span id="heLeft" class="toggleOption {% if layout == 'heLeft' %}active{% endif %}"><img src="/static/img/backs.png"></span><span id="heRight" class="toggleOption {% if layout == 'heRight' %}active{% endif %}"><img src="/static/img/faces.png"></span></span>
@@ -194,7 +198,3 @@
 
 <link rel="stylesheet" type="text/css" href="/static/css/keyboard.css">
 <link rel="stylesheet" type="text/css" href="/static/css/tooltipster.css" />
-
-{% if not OFFLINE %}
-<script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-4f0b68586603bc9f"></script>
-{% endif %}

@@ -55,14 +55,6 @@ $(function() {
 	
 	// ------------- Top Controls -------------------
 	
-		$( ".circleButton" ).hover(
-	  function() {
-		$('.cke_editable').each(function() {
-			sjs.removeCKEditorByElement(this);
-	  });
-	  }
-	);
-	
 	
 	$("#addSource, #addButton").click(function() { 
 		$("#addSourceModal").data("target", $("#sources")).show()
@@ -83,17 +75,25 @@ $(function() {
 		e.stopPropagation();
 
 		$("#addMediaModal").data("target", $("#sources").find(".media").last()).show().position({of: $(window)}); 
-		$("#addMedia").focus() 
+		$("#addMediaInput").focus() 
 		$("#overlay").show();
 //		sjs.track.sheets("Open Add Media Modal");
 
 
 	});
 	
+		$("#addMediaInput").keyup(checkAddSource).keyup(function(e) {
+			if (e.keyCode == 13) {
+				$( "#addMediaModal .ok" ).click()
+			}
+		});
+		
+
+	
 	
 	$( "#addMediaModal .ok" ).click(function() {
 
-    var re = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/; 
+    var re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i; 
     var m;
 	var $target = $("#addMediaModal").data("target");
 
@@ -107,22 +107,60 @@ $(function() {
 
 			}
 			
-	
+		autoSave();
 
     }
     
-    else if ( ($("#addMediaInput").val()).match(/\.(jpeg|jpg|gif|png)$/) != null ) {
+    else if ( ($("#addMediaInput").val()).match(/https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null ) {
     			$target.html('<img class="addedMedia" src="'+$("#addMediaInput").val()+'" />');
     }
 
+
+    else if ( ($("#addMediaInput").val()).match(/https?:\/\/(www\.)?.+\.(mp3)$/i) != null ) {
+    			$target.html('<audio src="'+$("#addMediaInput").val()+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>')
+    }
+
+    else if ( ($("#addMediaInput").val()).match(/https?:\/\/.*clyp\.it\/.+/i) != null ) {
+    			$target.html('<audio src="'+$("#addMediaInput").val()+'.mp3" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>')
+    }
+    
+
 	else {
 		$target.parent().remove();
-		
+		sjs.alert.flash("We couldn't understand your link.<br/>No media added.")
+		autoSave();	
 	}
 
 	$("#addMediaModal, #overlay").hide();
 
-	autoSave();
+
+
+	//if the image or audio is a bad link or can't be loaded
+	$target.find('audio, img').last()
+	    .on('error', function() { 
+	    	$target.parent().remove();
+			sjs.alert.flash("There was an error adding your media.")
+			autoSave();
+	     });     
+	   
+	//if the image is loaded    
+	$target.find('img').last()     
+	    .on('load', function() { 
+		    console.log("media loaded correctly");
+		    autoSave();
+	     });
+
+	//if the audio starts to load    
+	$target.find('audio').last()
+	    .on('loadedmetadata', function() { 
+		    console.log("media loaded correctly");
+		    autoSave();
+	     });
+
+	if (sjs.openRequests == 0) {
+		var top = $target.offset().top - 200;
+		$("html, body").animate({scrollTop: top}, 300);		
+	}
 
 	
 	});	
@@ -1414,7 +1452,7 @@ function readSource($target) {
 	}
 	
 	 else if ($target.hasClass("mediaWrapper")) {
-		source["media"] = $target.find(".media iframe, .media img").attr("src");
+		source["media"] = $target.find(".media iframe, .media img, .media audio").attr("src");
 	}
 	
 
@@ -1623,12 +1661,16 @@ function buildSource($target, source) {
 	else if ("media" in source) {
 		var mediaLink;
 		
-		if (source.media.match(/\.(jpeg|jpg|gif|png)$/) != null) {
+		if (source.media.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
 			mediaLink = '<img class="addedMedia" src="'+source.media+'" />';
 		}
 		
-		else if (source.media.indexOf('youtube') > 0) {
+		else if (source.media.toLowerCase().indexOf('youtube') > 0) {
 			mediaLink = '<iframe width="560" height="315" src='+source.media+' frameborder="0" allowfullscreen></iframe>'
+		}
+
+		else if (source.media.match(/\.(mp3)$/i) != null) {
+			mediaLink = '<audio src="'+source.media+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
 		}
 		
 		else {

@@ -111,7 +111,6 @@ ORDER = [
 
 REORDER_RULES = {
     "Commentary2": ["Commentary"],
-    #"Targum":      ["Tanach", "Targum"]
 }
 
 
@@ -180,7 +179,6 @@ def save_toc_to_db():
 
 def update_table_of_contents():
     toc = []
-
     # Add an entry for every text we know about
     indices = IndexSet()
     for i in indices:
@@ -211,8 +209,7 @@ def update_table_of_contents():
             cats = i.categories[:]
 
         toc_contents = i.toc_contents()
-        commentator = toc_contents["commentator"]
-        cats = [cats[1], "Commentary", commentator]
+        cats[0], cats[1] = cats[1], cats[0] # Swap "Commentary" with toplevel category (e.g., "Tanach")        
 
         node = get_or_make_summary_node(toc, cats)
         text = add_counts_to_index(toc_contents)
@@ -253,22 +250,6 @@ def recur_delete_element_from_toc(ref, toc):
             if not len(toc_elem['contents']):
                 toc_elem['to_delete'] = True
     return toc
-
-
-def make_simple_index_dict(index):
-    if not index.is_new_style() or index.is_commentary():
-        indx_dict = {
-            "title": index.title,
-            "heTitle": index.heTitle,
-            "categories": index.categories
-        }
-    else:
-        indx_dict = {
-            "title": index.nodes.primary_title("en"),
-            "heTitle": index.nodes.primary_title("he"),
-            "categories": index.categories
-        }
-    return indx_dict
 
 
 def update_summaries_on_change(bookname, old_ref=None, recount=True):
@@ -419,7 +400,8 @@ def node_sort_key(a):
 
 
 def node_sort_sparse(a):
-    if "category" in a: # Category - sort to top
+    if "category" in a or "order" in a:
+        # Keep categories or texts with explicit orders at top
         score = -4
     else:
         score = -a.get('sparseness', 1)

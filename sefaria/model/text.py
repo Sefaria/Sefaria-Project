@@ -430,22 +430,26 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             self.maps[i]["to"] = nref
 
     def toc_contents(self):
+        firstSection = Ref(self.title).first_available_section_ref()
         toc_contents_dict = {
             "title": self.get_title(),
             "heTitle": self.get_title("he"),
-            "categories": self.categories
+            "categories": self.categories,
+            "firstSection": firstSection.normal() if firstSection else None
         }
         if hasattr(self,"order"):
             toc_contents_dict["order"] = self.order
         if self.categories[0] == u"Commentary2":
-            on_split    = self.get_title().split(" on ")
-            he_on_split = self.get_title("he").split(u" על ")
-            toc_contents_dict["commentator"]   = on_split[0]
-            toc_contents_dict["heCommentator"] = he_on_split[0]
+            toc_contents_dict["commentator"]   = self.categories[2]
+            toc_contents_dict["heCommentator"] = hebrew_term(self.categories[2])
+            on_split = self.get_title().split(" on ")
             if len(on_split) == 2:
-                i = get_index(on_split[1])
-                if getattr(i, "order", None):
-                    toc_contents_dict["order"] = i.order
+                try:
+                    i = get_index(on_split[1])
+                    if getattr(i, "order", None):
+                        toc_contents_dict["order"] = i.order
+                except BookNameError:
+                    pass
 
         return toc_contents_dict
 
@@ -461,21 +465,21 @@ class CommentaryIndex(AbstractIndex):
     """
     A virtual Index for commentary records.
 
-    :param commentor_name: A title variant of a commentator :class:`Index` record
+    :param commentator_name: A title variant of a commentator :class:`Index` record
     :param book_name:  A title variant of a book :class:`Index` record
     """
-    def __init__(self, commentor_name, book_name):
+    def __init__(self, commentator_name, book_name):
         """
-        :param commentor_name: A title variant of a commentator :class:Index record
+        :param commentator_name: A title variant of a commentator :class:Index record
         :param book_name:  A title variant of a book :class:Index record
         :return:
         """
         self.c_index = Index().load({
-            "titleVariants": commentor_name,
+            "titleVariants": commentator_name,
             "categories.0": "Commentary"
         })
         if not self.c_index:
-            raise BookNameError(u"No commentor named '{}'.".format(commentor_name))
+            raise BookNameError(u"No commentator named '{}'.".format(commentator_name))
 
         self.b_index = get_index(book_name)
 
@@ -483,7 +487,7 @@ class CommentaryIndex(AbstractIndex):
             raise BookNameError(u"No book named '{}'.".format(book_name))
 
         if self.b_index.is_commentary():
-            raise BookNameError(u"We don't yet support nested commentaries '{} on {}'.".format(commentor_name, book_name))
+            raise BookNameError(u"We don't yet support nested commentaries '{} on {}'.".format(commentator_name, book_name))
 
         # This whole dance is a bit of a mess.
         # Todo: see if we can clean it up a bit
@@ -491,8 +495,8 @@ class CommentaryIndex(AbstractIndex):
         self.__dict__.update(self.c_index.contents())
         self.commentaryBook = self.b_index.get_title()
         self.commentaryCategories = self.b_index.categories
-        self.categories = ["Commentary"] + self.b_index.categories + [self.b_index.get_title()]
-        self.commentator = commentor_name
+        self.categories = ["Commentary"] + [self.b_index.categories[0], commentator_name]
+        self.commentator = commentator_name
         if getattr(self.b_index, "order", None):
             self.order = self.b_index.order
         if getattr(self, "heTitle", None):
@@ -587,12 +591,15 @@ class CommentaryIndex(AbstractIndex):
         return copy.deepcopy(self)
 
     def toc_contents(self):
+        firstSection = Ref(self.title).first_available_section_ref()
+
         toc_contents_dict = {
             "title": self.title,
             "heTitle": getattr(self, "heTitle", None),
             "commentator": self.commentator,
             "heCommentator": self.heCommentator,
-            "categories": self.categories
+            "categories": self.categories,
+            "firstSection": firstSection.normal() if firstSection else None
         }
         if hasattr(self,"order"):
             toc_contents_dict["order"] = self.order
@@ -1012,6 +1019,7 @@ class TextChunk(AbstractTextRecord):
 
         self.full_version.save()
         self._oref.recalibrate_next_prev_refs(len(self.text))
+
         return self
 
     def _pad(self, content):
@@ -1367,10 +1375,11 @@ class TextFamily(object):
         if self._context_oref.is_commentary():
             for attr in ["commentaryBook", "commentaryCategories", "commentator", "heCommentator"]:
                 d[attr] = getattr(self._inode.index, attr, "")
-        d["isComplex"]  = self.isComplex
-        d["indexTitle"] = self._inode.index.title
-        d["sectionRef"] = self._original_oref.section_ref().normal()
-        d["isSpanning"] = self._original_oref.is_spanning()
+        d["isComplex"]    = self.isComplex
+        d["indexTitle"]   = self._inode.index.title
+        d["heIndexTitle"] = self._inode.index.get_title("he")
+        d["sectionRef"]   = self._original_oref.section_ref().normal()
+        d["isSpanning"]   = self._original_oref.is_spanning()
 
         for language, attr in self.text_attr_map.items():
             chunk = self._chunks.get(language)
@@ -1470,7 +1479,9 @@ class RefCachingType(type):
 
         if tref:
             if tref in cls.__cache:
-                return cls.__cache[tref]
+                ref = cls.__cache[tref]
+                ref.tref = tref
+                return ref
             else:
                 result = super(RefCachingType, cls).__call__(*args, **kwargs)
                 if result.uid() in cls.__cache:
@@ -1600,19 +1611,24 @@ class Ref(object):
         base = parts[0]
         title = None
 
-        match = library.all_titles_regex(self._lang, with_terms=True).match(base)
-        if match:
-            title = match.group('title')
-            self.index_node = library.get_schema_node(title, self._lang)  # May be SchemaNode or JaggedArrayNode
+        #match = library.all_titles_regex(self._lang, with_terms=True).match(base)
+        tndict = library.get_title_node_dict(self._lang, with_commentary=True)
+        termdict = library.get_term_dict(self._lang)
+        for l in range(len(base), 0, -1):
+            self.index_node = tndict.get(base[0:l])
+            new_tref = termdict.get(base[0:l])
 
-            if not self.index_node:
-                # No Index node - Is this a term?
-                new_tref = library.get_term_dict(self._lang).get(title)
-                if new_tref:
-                    self.__reinit_tref(new_tref)
-                    return
-                else:
-                    raise InputError(u"Failed to find a record for {}".format(base))
+            if self.index_node:
+                title = base[0:l]
+                break
+            if new_tref:
+                self.__reinit_tref(new_tref)
+                return
+
+        if title:
+            assert isinstance(self.index_node, SchemaNode)
+            self.index = self.index_node.index
+            self.book = self.index_node.full_title("en")
 
             # checkFirst is used on Bavli records to check for a Mishnah pattern match first
             if getattr(self.index_node, "checkFirst", None) and self.index_node.checkFirst.get(self._lang):
@@ -1639,29 +1655,19 @@ class Ref(object):
                         self.index_node = old_index_node
                         self.sections = []
 
-            assert isinstance(self.index_node, SchemaNode)
+            elif self.index.is_commentary() and self._lang == "en":
+                if not getattr(self.index, "commentaryBook", None):
+                    raise InputError(u"Please specify a text that {} comments on.".format(self.index.title))
 
-            self.index = self.index_node.index
-            self.book = self.index_node.full_title("en")
-
-        elif self._lang == "en":  # Check for a Commentator
+        else:  # This may be a new version, try to build a schema node.
             match = library.all_titles_regex(self._lang, commentary=True).match(base)
             if match:
                 title = match.group('title')
-                self.index_node = library.get_schema_node(title, with_commentary=True)  # May be SchemaNode or JaggedArrayNode
-                if not self.index_node:  # This may be a new version, try to build a schema node.
-                    on_node = library.get_schema_node(match.group('commentee'))  # May be SchemaNode or JaggedArrayNode
-                    i = get_index(match.group('commentor') + " on " + on_node.index.title)
-                    self.index_node = i.nodes.title_dict(self._lang).get(title)
-                    if not self.index_node:
-                        raise BookNameError(u"Can not find index record for {}".format(title))
-                assert isinstance(self.index_node, SchemaNode)
-                self.index = self.index_node.index
-                self.book = self.index_node.full_title("en")
-                if not self.index.is_commentary():
-                    raise InputError(u"Unrecognized non-commentary Index record: {}".format(base))
-                if not getattr(self.index, "commentaryBook", None):
-                    raise InputError(u"Please specify a text that {} comments on.".format(self.index.title))
+                on_node = library.get_schema_node(match.group('commentee'))  # May be SchemaNode or JaggedArrayNode
+                i = get_index(match.group('commentor') + " on " + on_node.index.title)
+                self.index_node = i.nodes.title_dict(self._lang).get(title)
+                if not self.index_node:
+                    raise BookNameError(u"Can not find index record for {}".format(title))
             else:
                 raise InputError(u"Unrecognized Index record: {}".format(base))
 
@@ -1848,7 +1854,10 @@ class Ref(object):
 
         :return bool:
         """
-        return u"Bavli" in self.index.categories
+        if self.is_commentary():
+            return u"Bavli" in self.index.b_index.categories
+        else:
+            return u"Bavli" in self.index.categories
 
     def is_commentary(self):
         """
@@ -2127,7 +2136,7 @@ class Ref(object):
 
         :return: :class:`Ref`
         """
-        if self.is_section_level():
+        if not self.is_segment_level():
             return self
         return self.padded_ref().context_ref()
 
@@ -2615,7 +2624,7 @@ class Ref(object):
             self._ranged_refs = results
         return self._ranged_refs
 
-    def regex(self):
+    def regex(self, as_list=False):
         """
         :return string: for a Regular Expression which will find any refs that match this Ref exactly, or more specifically.
 
@@ -2648,7 +2657,11 @@ class Ref(object):
                 patterns.append("%s:" % sections)   # more granualar, exact match followed by :
                 patterns.append("%s \d" % sections) # extra granularity following space
 
-        return "^%s(%s)" % (re.escape(self.book), "|".join(patterns))
+        escaped_book = re.escape(self.book)
+        if as_list:
+            return ["^{}{}".format(escaped_book, p) for p in patterns]
+        else:
+            return "^%s(%s)" % (escaped_book, "|".join(patterns))
 
     """ Comparisons """
     def overlaps(self, other):
@@ -3040,7 +3053,6 @@ class Ref(object):
                 self._url = "".join(lref)
         return self._url
 
-
     def noteset(self, public=True, uid=None):
         """
         :return: :class:`NoteSet` for this Ref
@@ -3214,6 +3226,7 @@ class Library(object):
         :param bool with_commentary: If True, returns "X on Y" type titles as well
         """
         root_nodes = []
+        #todo: speed: does it matter that this skips the index cache?
         for i in IndexSet():
             if i.is_commentary():
                 continue
@@ -3345,7 +3358,15 @@ class Library(object):
         if not commentators:
             commentators = self.get_commentator_titles(with_commentary2=with_commentary2)
         commentary_re = ur"^({}) on ".format("|".join(commentators))
-        return VersionSet({"title": {"$regex": commentary_re}})
+        query = {"title": {"$regex": commentary_re}}
+        if with_commentary2:
+            # Handle Commentary2 texts that don't have "X on Y" titles (e.g., "Rambam's Introduction to the Mishnah")
+            if not commentators:
+                titles = IndexSet({"categories.0": "Commentary2"}).distinct("title")
+            else:
+                titles = IndexSet({"categories.0": "Commentary2", "categories.2": {"$in": commentators}}).distinct("title")
+            query = {"$or":[query, {"title": {"$in": titles}}]}
+        return VersionSet(query)
 
     def get_commentary_version_titles(self, commentators=None, with_commentary2=False):
         """
