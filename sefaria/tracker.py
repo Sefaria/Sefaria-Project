@@ -36,8 +36,10 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
         model.log_text(user, action, oref, lang, vtitle, old_text, text, **kwargs)
         if USE_VARNISH:
             invalidate_ref(oref, lang=lang, version=vtitle, purge=True)
-            invalidate_ref(oref.next_section_ref(), lang=lang, version=vtitle, purge=True)
-            invalidate_ref(oref.prev_section_ref(), lang=lang, version=vtitle, purge=True)
+            if oref.next_section_ref():
+                invalidate_ref(oref.next_section_ref(), lang=lang, version=vtitle, purge=True)
+            if oref.prev_section_ref():
+                invalidate_ref(oref.prev_section_ref(), lang=lang, version=vtitle, purge=True)
         if not kwargs.get("skip_links", None):
             from sefaria.helper.link import add_commentary_links, add_links_from_text, rebuild_commentary_links
             # Commentaries generate links to their base text automatically

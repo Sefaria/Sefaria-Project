@@ -20,7 +20,8 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
 
     todo: Tune this so as not to ban when the version changed is not a displayed version
     """
-    assert isinstance(oref, Ref)
+    if not isinstance(oref, Ref):
+        return
     
     if getattr(oref.index_node, "depth", False) and len(oref.sections) >= oref.index_node.depth - 1:
         oref = oref.section_ref()
