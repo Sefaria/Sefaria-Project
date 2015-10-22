@@ -3,8 +3,8 @@ import hashlib
 import sys
 
 try:
-    from sefaria.local_settings import USE_VARNISH
-except:
+    from sefaria.settings import USE_VARNISH
+except ImportError:
     USE_VARNISH = False
 
 if not hasattr(sys, '_doc_build'):
