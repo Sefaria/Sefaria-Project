@@ -6,6 +6,11 @@ $("#container").css({
 //zoom buttons
 zoomScale = 1;
 
+if (sjs.current.zoom) zoomScale = parseFloat(sjs.current.zoom);
+else zoomScale = 1;
+
+resizeZoomContainer();
+
 function resizeZoomContainer() {
     //set values to resize zoom container -- negative margins keep the container centered on the page
     var bodyWidth = parseInt($("body").css("width")) / zoomScale;
@@ -30,21 +35,26 @@ function resizeZoomContainer() {
         "margin-top": bodyMarginTop + "px"
     });
 
+
 }
 
 $("#zoomOut").click(function() {
-    zoomScale = zoomScale - .1;
+    zoomScale = parseFloat(zoomScale) - .1;
     if (zoomScale < .1) zoomScale = .1;
 
     resizeZoomContainer();
+    updateSheet();
+
 });
 
 
 $("#zoomIn").click(function() {
-    zoomScale = zoomScale + .1;
+    zoomScale = parseFloat(zoomScale) + .1;
     if (zoomScale > 4) zoomScale = 4;
 
     resizeZoomContainer();
+    updateSheet();
+
 });
 
 
@@ -110,15 +120,14 @@ $(".sheetItem").resizable({
 
 
     if (sjs.current.visualNodes) {
-        $(this).css({
+        $(this).animate({
 
             "left": sjs.current.visualNodes[index].x + "px",
             "top": sjs.current.visualNodes[index].y + "px",
             "width": sjs.current.visualNodes[index].width + "px",
             "height": sjs.current.visualNodes[index].length + "px",
-            "zIndex": sjs.current.visualNodes[index].zindex
-
-        });
+            "z-index": sjs.current.visualNodes[index].zindex
+        }).addClass(sjs.current.visualNodes[index].bgColor);
     }
 
 }).prepend('<div class="colorSelect"><div class="pink"></div><div class="white"></div><div class="yellow"></div><div class="green"></div><div class="blue"></div></div>').hover(
@@ -134,6 +143,8 @@ $(".sheetItem").resizable({
 $(".colorSelect div").click( function() {
 
 	$(this).closest(".sheetItem").removeClass( "yellow pink blue green white" ).addClass( $(this).attr('class') );
+	
+	updateSheet();
 
 
 });
@@ -153,8 +164,16 @@ function updateSheet() {
             var length = $(this).height();
             var zindex = $(this).css('z-index');
             if (zindex == "auto") zindex = 0;
-
-            toJson = toJson + '{ "x" : ' + x + ', "y" : ' + y + ', "width" : ' + width + ', "length" : ' + length + ', "zindex" : ' + zindex + '},';
+            
+            
+            bgColor = "white";
+            if ($(this).hasClass("yellow")) bgColor = "yellow";
+            if ($(this).hasClass("pink")) bgColor = "pink";
+            if ($(this).hasClass("blue")) bgColor = "blue";
+            if ($(this).hasClass("green")) bgColor = "green";
+            
+            
+            toJson = toJson + '{ "x" : ' + x + ', "y" : ' + y + ', "width" : ' + width + ', "length" : ' + length + ', "zindex" : ' + zindex + ', "bgColor" : "'+ bgColor +'"},';
 
         });
 

@@ -4,7 +4,7 @@ body {
 
 }
 
-.source, .commentWrapper, .mediaWrapper, .outsideBiWrapper, .outsideWrapper{
+.sheetItem {
   	width: 300px;
 	background-color: #fff; 
 	border:1px solid #E8E8E8;
