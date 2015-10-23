@@ -6,11 +6,47 @@ body {
 
 .source, .commentWrapper, .mediaWrapper, .outsideBiWrapper, .outsideWrapper{
   	width: 300px;
-	background-color:#eee;
+	background-color: #fff; 
+	border:1px solid #E8E8E8;
 	position:absolute;
 	overflow:hidden;
 	min-width:200px;
+	box-shadow: 0 10px 10px 2px rgba(0,0,0,0.3);
+	padding-top: 40px;
+}
 
+
+.yellow {
+	background-color: #ffff88; 	
+}
+
+.pink {
+	background-color: #f8cdcd;
+}
+.blue {
+	background-color: #CBFAFA;
+}
+.green {
+	background-color: #CBFACB;
+}
+.white {
+	background-color: #fff;
+}
+
+.colorSelect {
+	text-align:center;
+	margin-top: -30px;
+	visibility: hidden;
+}
+
+.colorSelect div {
+	width:15px;
+	height:15px;
+	border:1px solid #E8E8E8;
+    border-radius: 50%;
+	display:inline-block;
+	margin:5px;
+	cursor: pointer;
 }
 
 #controls {
@@ -34,7 +70,6 @@ body {
 	vertical-align: middle;
 	border-radius: 50%;
 	box-shadow: 0 0 4px rgba(0,0,0,.14),0 4px 8px rgba(0,0,0,.28);
-
 }
 
 .zoomContainer .en {
