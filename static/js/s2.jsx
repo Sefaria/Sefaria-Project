@@ -24,10 +24,166 @@ var ReaderApp = React.createClass({
         panels.push({ref: this.props.initialRef, filter: filter});
       }      
     }
-
     return {
       panels: panels
     };
+  },
+  componentDidMount: function() {
+    window.addEventListener("popstate", this.handlePopState);
+  },
+  componentWillUnmount: function() {
+    window.removeEventListener("popstate", this.handlePopState);
+  },
+  handlePopState: function(event) {
+    var state = event.state;
+    if (state) {
+      var kind = "dunno";
+      sjs.track.event("Reader", "Pop State", kind);
+      this.justPopped = true;
+      this.setState(state);
+      console.log("Pop");
+      console.log(state);
+    }
+  },
+  shouldHistoryUpdate: function() {
+    // Compare the current history state to the current content state,
+    // Return true if the change warrants pushing to history.
+   if (!history.state) { return true; }
+
+   if (history.state.panels.length !== this.state.panels.length) { return true;}
+
+    for (var i = 0; i < this.state.panels.length; i++) {
+      // Cycle through each panel, looking for differences
+
+      // examine top level panel state
+      var prev  = history.state.panels[i];
+      var next  = this.state.panels[i];
+
+      if (prev.menuOpen !== next.menuOpen) {
+         return true;
+      } else if (prev.searchQuery !== next.searchQuery) {
+        return true;
+      } else if (prev.navigationSheetTag !== next.navigationSheetTag) {
+        return true;
+      } else if (prev.navigationCategories !== next.navigationCategories) {
+        // Handle array comparison, !== could mean one is null or both are arrays
+        if (!prev.navigationCategories || !next.state.navigationCategories) {
+          return true; // They are not equal and one is null
+        } else if (!prev.navigationCategories.compare(next.navigationCategories)) {
+          return true; // both are set, compare arrays
+        }
+      }
+
+      // now examine the current content of prev and next
+      var prev = prev.contents ? prev.contents.slice(-1)[0] : null;
+      var next = next.contents ? next.contents.slice(-1)[0] : null;
+      if (!prev || !next) { 
+        return false;
+      } else if (prev.type !== next.type) { 
+        return true;
+      } else if (next.type === "TextColumn" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0]) {
+        return true;
+      } else if (next.type === "TextList" && prev.ref !== next.ref || !prev.filter.compare(next.filter)) {
+        return true;
+      }
+    }
+    return false;  
+  },
+  makeHistoryState: function() {
+    // Returns an object with state, title and url params for the current state
+    var histories = []; 
+    for (var i = 0; i < this.state.panels.length; i++) {
+      var hist    = {url: ""};
+      var state   = this.state.panels[i].state;
+      var current = state && state.contents && state.contents.length ? state.contents.slice(-1)[0] : null;
+      if (state && state.menuOpen) {
+        switch (state.menuOpen) {
+          case "home":
+            hist.title = "Sefaria: a Living Library of Jewish Texts Online";
+            hist.url   = "";
+            break;
+          case "navigation":
+            var cats   = state.navigationCategories ? "/" + state.navigationCategories.join("/") : "";
+            hist.title = cats ? state.navigationCategories.join(", ") + " | Sefaria" : "Texts | Sefaria";
+            hist.url   = "texts" + cats;
+            break;
+          case "text toc":
+            var title  = this.currentBook() || this.props.initialText;
+            hist.title = title + " | Sefaria";
+            hist.url   = title.replace(/ /g, "_");
+            break;
+          case "search":
+            hist.title = state.searchQuery ? state.searchQuery + " | " : "";
+            hist.title += "Sefaria Search";
+            hist.url   = "search" + (state.searchQuery ? "?q=" + state.searchQuery : "");
+            break;
+          case "sheets":
+            if (state.navigationSheetTag) { 
+              hist.url   = "sheets/tags/" + state.navigationSheetTag; 
+              hist.title = state.navigationSheetTag + " | Sefaria Source Sheets";
+            } else {
+              hist.url   = "sheets";
+              hist.title = "Sefaria Source Sheets";
+            }
+            break;
+        }
+      } else if (current && current.type === "TextColumn") {
+        hist.title = current.refs.slice(-1)[0];
+        hist.url = normRef(hist.title);
+      } else if (current && current.type === "TextList") {
+        var sources = state.filter.length ? state.filter[0] : "all";
+        hist.title = current.ref  + " with " + (sources === "all" ? "Connections" : sources);;
+        hist.url = normRef(current.ref) + "?with=" + sources;
+      } else {
+        continue;
+      }
+      histories.push(hist);     
+    }
+    var hist = {state: this.state, url: "/" + histories[0].url, title: histories[0].title};
+    for (var i = 1; i < histories.length; i++) {
+      hist.url += "&p" + (i+1) + "=" + histories[i].url;
+      hist.title += " & " + histories[i].title;
+    }
+
+    // for testing
+    if (window.location.pathname.indexOf("/s2") === 0) { hist.url = "/s2" + hist.url; }
+
+    return hist;
+  },
+  updateHistoryState: function(replace) {
+    if (!this.shouldHistoryUpdate()) { return; }
+
+    if (this.justPopped) {
+        // Don't let a pop trigger a push
+        this.justPopped = false;
+        return;
+    }
+    
+    var hist = this.makeHistoryState();
+    if (replace) {
+      history.replaceState(hist.state, hist.title, hist.url);
+      console.log("Replace")
+      console.log(hist);
+    } else {
+      history.pushState(hist.state, hist.title, hist.url);
+      console.log("Push");
+      console.log(hist);
+    }
+    $("title").html(hist.title);
+
+    if (hist.state.type == "TextColumn") {
+      sjs.track.open(hist.title);
+    } else if (hist.state.type == "TextList") {
+      sjs.track.event("Reader", "Open Close Reader", hist.title);
+    }
+    sjs.track.pageview(hist.url);
+  },
+  handlePanelUpdate: function(n, action, state) {
+    // When panel `n` wants to change history with `action` (either "push" or "replace"), update wth `state`
+    console.log("Panel update from " + n)
+    this.state.panels[n] = {state: state};
+    this.setState({panels: this.state.panels});
+    this.updateHistoryState(action === "replace");
   },
   handleTextChange: function(n, ref) {
     // When panel `n` navigates to a new text `ref`, reflect the change in the top level state.
@@ -62,34 +218,49 @@ var ReaderApp = React.createClass({
     var width = 100.0/this.state.panels.length;
     var panels = [];
     for (var i = 0; i < this.state.panels.length; i++) {
-      var style              = {width: width + "%", left: (width * i) + "%"};
-      var multi              = this.state.panels.length !== 1;
-      var handleTextChange   = multi ? this.handleTextChange.bind(null, i) : null;
-      var handleSegmentClick = multi ? this.handleSegmentClick.bind(null, i) : null;
-      var textListRef        = this.state.panels.length > i+1 && this.state.panels[i+1].filter ? 
-                                this.state.panels[i+1].ref : null;
+      var style                    = {width: width + "%", left: (width * i) + "%"};
+      var multi                    = this.state.panels.length > 1;
+      var handleTextChange         = multi ? this.handleTextChange.bind(null, i) : null;
+      var handleSegmentClick       = multi ? this.handleSegmentClick.bind(null, i) : null;
+      var handlePanelUpdate        = this.handlePanelUpdate.bind(null, i);
+      var textListRef              = this.state.panels.length > i+1 && this.state.panels[i+1].filter ? 
+                                      this.state.panels[i+1].ref : null;
+      
       var panel = this.state.panels[i];
-      if (i == 0) {
-        panel.menu      = this.props.initialMenu;
-        panel.query     = this.props.initialQuery;
-        panel.sheetsTag = this.props.initialSheetsTag;
-      }
-      panels.push(<div className="readerPanelBox" style={style} key={i}>
+      if (panel.state) {
+        panels.push(<div className="readerPanelBox" style={style} key={i}>
                     <ReaderPanel 
-                      initialRef={panel.ref}
-                      initialFilter={panel.filter}
-                      initialMenu={panel.menu}
-                      initialQuery={panel.query}
-                      initialSheetsTag={panel.sheetsTag}
-                      initialText={this.props.initialText}
-                      initialCategory={this.props.initialCategory}
-                      initialNavigationCategories={this.props.initialNavigationCategories}
-                      initialSettings={clone(this.props.initialSettings)}
-                      multiPanel={this.state.panels.length > 1}
+                      initialState={panel.state}
+                      multiPanel={multi}
                       handleTextChange={handleTextChange}
                       handleSegmentClick={handleSegmentClick}
+                      historyUpdate={handlePanelUpdate}
                       textListRef={textListRef} />
                   </div>);
+      } else {
+        if (i == 0) {
+          panel.menu      = this.props.initialMenu;
+          panel.query     = this.props.initialQuery;
+          panel.sheetsTag = this.props.initialSheetsTag;
+        }
+        panels.push(<div className="readerPanelBox" style={style} key={i}>
+                      <ReaderPanel 
+                        initialRef={panel.ref}
+                        initialFilter={panel.filter}
+                        initialMenu={panel.menu}
+                        initialQuery={panel.query}
+                        initialSheetsTag={panel.sheetsTag}
+                        initialText={this.props.initialText}
+                        initialCategory={this.props.initialCategory}
+                        initialNavigationCategories={this.props.initialNavigationCategories}
+                        initialSettings={clone(this.props.initialSettings)}
+                        multiPanel={multi}
+                        handleTextChange={handleTextChange}
+                        handleSegmentClick={handleSegmentClick}
+                        historyUpdate={handlePanelUpdate}
+                        textListRef={textListRef} />
+                    </div>);
+      }
     }
     var classes = classNames({readerApp: 1, multiPanel: panels.length > 1})
     return (<div className={classes}>{panels}</div>);
@@ -105,10 +276,15 @@ var ReaderPanel = React.createClass({
     initialQuery:       React.PropTypes.string,
     initialSheetsTag:   React.PropTypes.string,
     initialSettings:    React.PropTypes.object,
+    initialState:       React.PropTypes.object, // Trumps all above if present
     handleSegmentClick: React.PropTypes.func,
     mulitPanel:         React.PropTypes.bool
   },
   getInitialState: function() {
+    if (this.props.initialState) {
+      return this.props.initialState;
+    }
+
     if (this.props.multiPanel) {
       if (this.props.initialFilter) {
         var contents = [{type: "TextList", ref: this.props.initialRef}];
@@ -147,151 +323,31 @@ var ReaderPanel = React.createClass({
     }
   },
   componentDidMount: function() {
-    window.addEventListener("popstate", this.handlePopState);
-    var hist = this.makeHistoryState()
-    history.replaceState(hist.state, hist.title, hist.url);
     this.setHeadroom();
-  },
-  componentWillUnmount: function() {
-    window.removeEventListener("popstate", this.handlePopState);
   },
   componentWillReceiveProps: function(nextProps) {
     if (nextProps.initialFilter) {
       this.showTextList(nextProps.initialRef);
-    } 
+    }
+    if (nextProps.initialState) {
+      this.setState(nextProps.initialState);
+    }
   },
   componentWillUpdate: function(nextProps, nextState) {
 
   },
   componentDidUpdate: function(prevProps, prevState) {
-    this.updateHistoryState();
+    if (this.props.historyUpdate) {
+      if (this.replaceHistory) {
+        this.props.historyUpdate("replace", this.state);
+      } else {
+        this.props.historyUpdate("push", this.state);
+      }      
+    }
     this.setHeadroom();
   },
   rerender: function() {
     this.setState({});
-  },
-  shouldHistoryUpdate: function() {
-    // Compare the current history state to the current content state,
-    // Return true if the change warrants pushing to history.
-    var state   = history.state;
-    var hist    = state.contents.slice(-1)[0];
-    var current = this.currentContent();
-
-    if (!state || !hist || !current) { 
-      return true;
-    }
-    if (hist.type !== current.type) { 
-      return true;
-    } else if (state.menuOpen !== this.state.menuOpen) {
-      if (state.menuOpen !== "display" && this.state.menuOpen !== "display") {
-       return true;
-      }
-    } else if (state.searchQuery !== this.state.searchQuery) {
-      return true;
-    } else if (state.navigationSheetTag !== this.state.navigationSheetTag) {
-      return true;
-    } else if (state.navigationCategories !== this.state.navigationCategories) {
-      // Handle array comparison, !== could mean one is null or both are arrays
-      if (!state.navigationCategories || !this.state.navigationCategories) {
-        return true; // They are not equal and one is null
-      } else if (!state.navigationCategories.compare(this.state.navigationCategories)) {
-        return true; // both are set, compare arrays
-      }
-    } else if (current.type === "TextColumn") {
-      if (current.refs.slice(-1)[0] !== hist.refs.slice(-1)[0]) {
-        return true;
-      }
-    } else if (current.type === "TextList") {
-      if (current.ref !== hist.ref || !this.state.filter.compare(state.filter)) {
-        return true;
-      }
-    }
-
-    return false;  
-  },
-  makeHistoryState: function() {
-    // Returns an object with state, title and url params for the current state
-    var current = this.currentContent();
-    var hist    = {state: this.state, url: ""};
-    if (this.state.menuOpen) {
-      hist.state.replaceHistory = false;
-      switch (this.state.menuOpen) {
-        case "home":
-          hist.title = "Sefaria: a Living Library of Jewish Texts Online";
-          hist.url   = "/";
-          break;
-        case "navigation":
-          var cats   = this.state.navigationCategories ? "/" + this.state.navigationCategories.join("/") : "";
-          hist.title = cats ? this.state.navigationCategories.join(", ") + " | Sefaria" : "Texts | Sefaria";
-          hist.url   = "/texts" + cats;
-          break;
-        case "text toc":
-          var title  = this.currentBook() || this.props.initialText;
-          hist.title = title + " | Sefaria";
-          hist.url   = "/" + title.replace(/ /g, "_");
-          break;
-        case "search":
-          hist.title = this.state.searchQuery ? this.state.searchQuery + " | " : "";
-          hist.title += "Sefaria Search";
-          hist.url   = "/search" + (this.state.searchQuery ? "?q=" + this.state.searchQuery : "");
-          break;
-        case "sheets":
-          if (this.state.navigationSheetTag) { 
-            hist.url   = "/sheets/tags/" + this.state.navigationSheetTag; 
-            hist.title = this.state.navigationSheetTag + " | Sefaria Source Sheets";
-          } else {
-            hist.url   = "/sheets";
-            hist.title = "Sefaria Source Sheets";
-          }
-          break;
-      }
-    } else if (current && current.type === "TextColumn") {
-      hist.title = current.refs.slice(-1)[0];
-      hist.url = "/" + normRef(hist.title);
-    } else if (current && current.type == "TextList") {
-      var sources = this.state.filter.length ? this.state.filter[0] : "all";
-      hist.title = current.ref  + " with " + (sources === "all" ? "Connections" : sources);;
-      hist.url = "/" + normRef(current.ref) + "?with=" + sources;
-    } else {}
-
-    // for testing
-    if (window.location.pathname.indexOf("/s2") === 0) { hist.url = "/s2" + hist.url; }
-
-    return hist;
-  },
-  updateHistoryState: function() {
-    if (this.shouldHistoryUpdate()) {
-      if (this.justPopped) {
-        // Don't let a pop trigger a push
-        this.justPopped = false;
-        return;
-      }
-      var hist = this.makeHistoryState();
-      if (this.state.replaceHistory) {
-        history.replaceState(hist.state, hist.title, hist.url);
-        $("title").html(hist.title);
-      } else {
-        history.pushState(hist.state, hist.title, hist.url);
-        $("title").html(hist.title);
-        if (hist.state.type == "TextColumn") {
-          sjs.track.open(hist.title);
-        } else if (hist.state.type == "TextList") {
-          sjs.track.event("Reader", "Open Close Reader", hist.title);
-        }
-        sjs.track.pageview(hist.url);
-      }
-    }
-  },
-  handlePopState: function(event) {
-    var state = event.state;
-    if (state) {
-      var from = this.currentMode();
-      var to   = state.contents.slice(-1)[0] ? state.contents.slice(-1)[0].type : null
-      var kind = from + " to " + to;
-      sjs.track.event("Reader", "Pop State", kind);
-      this.justPopped = true;
-      this.setState(state);
-    }
   },
   handleBaseSegmentClick: function(ref) {
     var mode = this.currentMode();
@@ -316,9 +372,9 @@ var ReaderPanel = React.createClass({
   },
   showTextList: function(ref) {
     if (this.state.contents.length == 2) {
-      this.setState({replaceHistory: true});
+      this.replaceHistory = true;
     } else {
-      this.setState({replaceHistory: false});
+      this.replaceHistory = false;
     }
     var pos = this.props.mulitPanel ? 0 : 1;
     this.state.contents[pos] = {type: "TextList", ref: ref, scrollTop: 0};
@@ -327,12 +383,11 @@ var ReaderPanel = React.createClass({
   showBaseText: function(ref, replaceHistory) {
     // Set the current primary text
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
-    replaceHistory = typeof replaceHistory === "undefined" ? false : replaceHistory;
+    this.replaceHistory = typeof replaceHistory === "undefined" ? false : replaceHistory;
     this.setState({
       contents: [{type: "TextColumn", refs: [ref] }],
       filter: [],
       recentFilters: [],
-      replaceHistory: replaceHistory,
       menuOpen: null
     });
     if (this.props.handleTextChange) {
@@ -342,15 +397,16 @@ var ReaderPanel = React.createClass({
   updateTextColumn: function(refs) {
     // Change the refs in the current TextColumn, for infinite scroll up/down.
     this.state.contents[0].refs = refs;
+    this.replaceHistory = true;
     this.setState({
       contents: this.state.contents,
-      replaceHistory: true
     });
   },
   backToText: function() {
     // Return to the original text in the ReaderPanel contents
     this.state.contents = [this.state.contents[0]];
-    this.setState({contents: this.state.contents, replaceHistory: false});
+    this.replaceHistory = false;
+    this.setState({contents: this.state.contents});
   },  
   closeMenus: function() {
     var state = {
