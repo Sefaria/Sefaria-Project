@@ -7,7 +7,10 @@ from sefaria.model import *
 from sefaria.system.exceptions import DuplicateRecordError, InputError
 from sefaria.utils.talmud import section_to_daf
 import sefaria.tracker as tracker
-from sefaria.settings import USE_VARNISH
+try:
+    from sefaria.settings import USE_VARNISH
+except ImportError:
+    USE_VARNISH = False
 if USE_VARNISH:
     from sefaria.system.sf_varnish import invalidate_ref
 

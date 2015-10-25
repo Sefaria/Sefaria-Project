@@ -1697,8 +1697,8 @@ class Ref(object):
             if match:
                 title = match.group('title')
                 on_node = library.get_schema_node(match.group('commentee'))  # May be SchemaNode or JaggedArrayNode
-                i = get_index(match.group('commentor') + " on " + on_node.index.title)
-                self.index_node = i.nodes.title_dict(self._lang).get(title)
+                self.index = get_index(match.group('commentor') + " on " + on_node.index.title)
+                self.index_node = self.index.nodes.title_dict(self._lang).get(title)
                 if not self.index_node:
                     raise BookNameError(u"Can not find index record for {}".format(title))
             else:
@@ -1904,7 +1904,7 @@ class Ref(object):
         """
         Is this reference a range?
 
-        A Ref is range if it's starting point and ending point are different, i.e. it has a - in it's text form.
+        A Ref is range if it's starting point and ending point are different, i.e. it has a dash in its text form.
         References can cover large areas of text without being a range - in the case where they are references to chapters.
 
         ::
@@ -3430,6 +3430,7 @@ class Library(object):
     def get_titles_in_string(self, s, lang=None):
         """
         Returns the titles found in the string.
+
         :param s: The string to search
         :param lang: "en" or "he"
         :return list: titles found in the string
@@ -3445,6 +3446,7 @@ class Library(object):
     def get_refs_in_string(self, st, lang=None):
         """
         Returns an list of Ref objects derived from string
+
         :param string st: the input string
         :param lang: "he" or "en"
         :return: list of :class:`Ref` objects

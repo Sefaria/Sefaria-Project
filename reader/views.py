@@ -36,7 +36,10 @@ from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.datatype.jagged_array import JaggedArray
 import sefaria.utils.calendars
 import sefaria.tracker as tracker
-from sefaria.settings import USE_VARNISH
+try:
+    from sefaria.settings import USE_VARNISH
+except ImportError:
+    USE_VARNISH = False
 if USE_VARNISH:
     from sefaria.system.sf_varnish import invalidate_ref
 
