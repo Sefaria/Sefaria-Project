@@ -942,6 +942,8 @@ class TextChunk(AbstractTextRecord):
             vset = VersionSet(oref.condition_query(lang), proj=oref.part_projection())
 
             if vset.count() == 0:
+                if VersionSet({"title": oref.index.title}).count() == 0:
+                    raise InputError("No text record found for '{}'".format(oref.index.title))
                 return
             if vset.count() == 1:
                 v = vset[0]
