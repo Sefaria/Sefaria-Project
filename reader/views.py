@@ -83,7 +83,6 @@ def reader(request, tref, lang=None, version=None):
     if (not getattr(oref.index_node, "depth", None)):
         return text_toc(request, oref)
 
-
     if request.flavour == "mobile":
         return s2(request, ref=tref)
 
@@ -95,10 +94,14 @@ def reader(request, tref, lang=None, version=None):
 
     version = version.replace("_", " ") if version else None
 
-    text = TextFamily(Ref(tref), lang=lang, version=version, commentary=False, alts=True).contents()
+    try:
+        text = TextFamily(Ref(tref), lang=lang, version=version, commentary=False, alts=True).contents()
+    except InputError, e:
+        logger.warning(u'{}'.format(e))
+        raise Http404
+
     text.update({"commentary": [], "notes": [], "sheets": [], "layer": [], "connectionsLoadNeeded": True})
     hasSidebar = True
-
 
     layer_name = request.GET.get("layer", None)
     if layer_name and not "error" in text:
