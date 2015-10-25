@@ -1283,9 +1283,8 @@ class TextFamily(object):
                 links = [get_links(r.normal()) for r in oref.split_spanning_ref()]
             self.commentary = links if "error" not in links else []
 
-            # get list of available versions of this text
-            # but only if you care enough to get commentary also (hack)
-            self.versions = oref.version_list()
+        # get list of available versions of this text
+        self.versions = oref.version_list()
 
         # Adds decoration for the start of each alt structure reference
         if alts:

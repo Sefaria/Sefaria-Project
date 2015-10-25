@@ -56,6 +56,18 @@ $(function() {
 	// ------------- Top Controls -------------------
 	
 	
+		$( ".circleButton" ).hover(
+	  function() {
+		$('.cke_editable').each(function() {
+			sjs.removeCKEditorByElement(this);
+	  });
+	  },
+	  function() {
+	  
+	  }
+	); 
+
+
 	$("#addSource, #addButton").click(function() { 
 		$("#addSourceModal").data("target", $("#sources")).show()
 			.position({of: $(window)}); 
