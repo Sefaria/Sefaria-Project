@@ -176,11 +176,16 @@ def s2(request, ref, version=None, lang=None):
     """
     New interfaces in development
     """
-    oref         = Ref(ref)
-    if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
-        return s2_text_toc(request, oref)
 
-    text         = TextFamily(oref, version=version, lang=lang, commentary=False, context=False, pad=True, alts=True).contents()
+    try:
+        oref         = Ref(ref)
+        if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
+            return s2_text_toc(request, oref)
+        text         = TextFamily(oref, version=version, lang=lang, commentary=False, context=False, pad=True, alts=True).contents()
+    except InputError, e:
+        logger.warning(u'{}'.format(e))
+        raise Http404
+
     text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
     text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
     return render_to_response('s2.html', {
