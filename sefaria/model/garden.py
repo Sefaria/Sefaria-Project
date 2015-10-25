@@ -7,6 +7,7 @@ from . import abstract as abst
 from . import text
 from . import place
 from . import time
+from . import link
 
 import logging
 logger = logging.getLogger(__name__)
@@ -29,25 +30,15 @@ class Garden(abst.AbstractMongoRecord):
 
     ]
 
-    def _init_defaults(self):
-        pass
-        #self.stops = []
-        #self.rels = []
-
-    def _set_derived_attributes(self):
-        pass
-        #self._reset_derived_attributes()
-
-    def _reset_derived_attributes(self):
-        pass
-        #if getattr(self, 'key', False):
-            #self.stops = GardenStopSet({"garden": self.key}).array()
-            #self.rels = GardenStopRelationshipSet({"garden": self.key}).array()
-
     def stopSet(self, sort=None):
         if not sort:
             sort = [("start", 1)]
         return GardenStopSet({"garden": self.key}, sort=sort)
+
+    def relSet(self, sort=None):
+        if not sort:
+            sort = [("start", 1)]
+        return GardenStopRelationshipSet({"garden": self.key}, sort=sort)
 
     def placeSet(self):
         placeKeys = GardenStopSet({"garden": self.key}).distinct("placeKey")
@@ -95,15 +86,11 @@ class Garden(abst.AbstractMongoRecord):
 
         return by_tag
 
-    def relSet(self, sort):
-        pass
-
     def add_stop(self, attrs):
         gs = GardenStop(attrs)
         gs.garden = self.key
         try:
             gs.save()
-            self._reset_derived_attributes()
         except Exception as e:
             logger.warning("Failed to add stop to Garden {}. {}".format(self.title, e))
 
@@ -112,7 +99,6 @@ class Garden(abst.AbstractMongoRecord):
         gs.garden = self.key
         try:
             gs.save()
-            self._reset_derived_attributes()
         except Exception as e:
             logger.warning("Failed to add relationship to Garden {}. {}".format(self.title, e))
 
@@ -127,6 +113,28 @@ class Garden(abst.AbstractMongoRecord):
         sheet_list = get_sheets_by_tag(tag)
         for sheet in sheet_list:
             self.import_sheet(sheet["id"])
+
+    def get_linkset(self):
+        """
+        Given the current Ref set of the Garden, looks for Links in the core repository, and turns them into GardenStopRelationships
+        """
+        trefs = GardenStopSet({"garden": self.key}).distinct("ref")
+        regexes = set()
+        refs1Clauses = []
+        refs0Clauses = []
+
+        for tref in trefs:
+            try:
+                ref = text.Ref(tref)
+            except:
+                continue
+            regexes.update(ref.regex(as_list=True))
+
+        for rgx in regexes:
+            refs1Clauses += [{"refs.1": {"$regex": rgx}}]
+            refs0Clauses += [{"refs.0": {"$regex": rgx}}]
+
+        return link.LinkSet({"$and": [{"$or": refs0Clauses}, {"$or": refs1Clauses}]})
 
     def import_sheet(self, sheet_id):
         from sefaria.sheets import Sheet, refine_ref_by_text

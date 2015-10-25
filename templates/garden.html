@@ -22,80 +22,117 @@
                 <span class='en'>{{ title }}</span>
                 <span class='he'>{{ heTitle }}</span>
             </h1>
+            <span style="text-align: center; display: block;">{{ stopCount }} Stops</span>
         </span>
     </span>
-    <span class="row sortedGardenStops" id="byTime">
-        <span class="span8 offset2">
-            <h2>
-                <span class='en'>By Time</span>
-                <span class='he'></span>
-            </h2>
-             {% for time, stops in stopsByTime %}
-                <h3>{{ time.0 }} - {{ time.1 }}</h3>
-                {% for stop in stops %}
+    <div class="top_accordion">
+        <span class="row sortedGardenStops" id="byTime">
+            <span class="span8 offset2">
+                <h2>
+                    <span class='en'>By Time</span>
+                    <span class='he'></span>
+                </h2>
+                <div class="inner_accordion">
+                 {% for time, stops in stopsByTime %}
+                    <h3>{{ time.0 }} - {{ time.1 }} ({{ stops|length }})</h3>
+                     <div>
+                        {% for stop in stops %}
+                            <div>
+                                <span class='en'>{{ stop.ref|ref_link }}</span>
+                                <span class='he'>{{ stop.ref|he_ref_link }}</span>
+                            </div>
+                        {% endfor %}
+                     </div>
+                 {% endfor %}
+                </div>
+            </span>
+        </span>
+        <span class="row sortedGardenStops" id="byAuthor">
+            <span class="span8 offset2">
+                <h2>
+                    <span class='en'>By Author</span>
+                    <span class='he'></span>
+                </h2>
+                <div class="inner_accordion">
+                 {% for authors, stops in stopsByAuthor %}
+                    {% if authors == "unknown" %}
+                        <h3>Unknown</h3>
+                    {% else %}
+                        <h3>{% for author in authors %}{{ author|person_link }} {% endfor %}({{ stops|length }})</h3>
+                    {% endif %}
+                     <div>
+                        {% for stop in stops %}
+                            <div>
+                                <span class='en'>{{ stop.ref|ref_link }}</span>
+                                <span class='he'>{{ stop.ref|he_ref_link }}</span>
+                            </div>
+                        {% endfor %}
+                     </div>
+                 {% endfor %}
+                </div>
+            </span>
+        </span>
+        <span class="row sortedGardenStops" id="byPlace">
+            <span class="span8 offset2">
+                <h2>
+                    <span class='en'>By Place</span>
+                    <span class='he'></span>
+                </h2>
+                <div class="inner_accordion">
+                 {% for place, stops in stopsByPlace %}
+                    <h3>{{ place }} ({{ stops|length }})</h3>
                     <div>
-                        <span class='en'>{{ stop.ref|ref_link }}</span>
-                        <span class='he'>{{ stop.ref|he_ref_link }}</span>
+                        {% for stop in stops %}
+                            <div>
+                                <span class='en'>{{ stop.ref|ref_link }}</span>
+                                <span class='he'>{{ stop.ref|he_ref_link }}</span>
+                            </div>
+                        {% endfor %}
                     </div>
-                {% endfor %}
-             {% endfor %}
+                 {% endfor %}
+                </div>
+            </span>
         </span>
-    </span>
-    <span class="row sortedGardenStops" id="byAuthor">
-        <span class="span8 offset2">
-            <h2>
-                <span class='en'>By Author</span>
-                <span class='he'></span>
-            </h2>
-             {% for authors, stops in stopsByAuthor %}
-                {% if authors == "unknown" %}
-                    <h3>Unknown</h3>
-                {% else %}
-                    <h3>{% for author in authors %}{{ author|person_link }} {% endfor %}</h3>
-                {% endif %}
-                {% for stop in stops %}
-                    <div>
-                        <span class='en'>{{ stop.ref|ref_link }}</span>
-                        <span class='he'>{{ stop.ref|he_ref_link }}</span>
-                    </div>
-                {% endfor %}
-             {% endfor %}
+        <span class="row sortedGardenStops" id="byTag">
+            <span class="span8 offset2">
+                <h2>
+                    <span class='en'>By Tag</span>
+                    <span class='he'></span>
+                </h2>
+                <div class="inner_accordion">
+                 {% for tag, stops in stopsByTag.items %}
+                    <h3>{{ tag }} ({{ stops|length }})</h3>
+                     <div>
+                        {% for stop in stops %}
+                            <div>
+                                <span class='en'>{{ stop.ref|ref_link }}</span>
+                                <span class='he'>{{ stop.ref|he_ref_link }}</span>
+                            </div>
+                        {% endfor %}
+                     </div>
+                 {% endfor %}
+                </div>
+            </span>
         </span>
-    </span>
-    <span class="row sortedGardenStops" id="byPlace">
-        <span class="span8 offset2">
-            <h2>
-                <span class='en'>By Place</span>
-                <span class='he'></span>
-            </h2>
-             {% for place, stops in stopsByPlace %}
-                <h3>{{ place }}</h3>
-                {% for stop in stops %}
-                    <div>
-                        <span class='en'>{{ stop.ref|ref_link }}</span>
-                        <span class='he'>{{ stop.ref|he_ref_link }}</span>
-                    </div>
-                {% endfor %}
-             {% endfor %}
-        </span>
-    </span>
-    <span class="row sortedGardenStops" id="byTag">
-        <span class="span8 offset2">
-            <h2>
-                <span class='en'>By Tag</span>
-                <span class='he'></span>
-            </h2>
-             {% for tag, stops in stopsByTag.items %}
-                <h3>{{ tag }}</h3>
-                {% for stop in stops %}
-                    <div>
-                        <span class='en'>{{ stop.ref|ref_link }}</span>
-                        <span class='he'>{{ stop.ref|he_ref_link }}</span>
-                    </div>
-                {% endfor %}
-             {% endfor %}
-        </span>
-    </span>
+    </div>
 </div>
+{% endblock %}
 
+{% block js %}
+    <script>
+        $(function() {
+            $( ".top_accordion" ).accordion({
+                header: "h2",
+                collapsible: true,
+                active: false,
+                heightStyle: "content"
+            });
+            $(".inner_accordion").accordion({
+                header: "h3",
+                collapsible: true,
+                active: false,
+                heightStyle: "content"
+            });
+        });
+    </script>
 {% endblock %}

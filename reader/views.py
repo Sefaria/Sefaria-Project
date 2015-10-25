@@ -2228,6 +2228,7 @@ def garden_page(request, key):
         'title': g.title,
         'heTitle': g.heTitle,
         'key': g.key,
+        'stopCount': g.stopSet().count(),
         'stopsByTime': g.stopsByTime(),
         'stopsByPlace': g.stopsByPlace(),
         'stopsByAuthor': g.stopsByAuthor(),
