@@ -150,9 +150,22 @@ $(".colorSelect div").click( function() {
 });
 
 
+saveFlashShown = 0;
+
 function updateSheet() {
 
-    if (sjs._uid && sjs.can_edit) {
+	if (!sjs._uid && saveFlashShown == 0) {
+		sjs.alert.flash("You need to login to save edits");
+		saveFlashShown = 1;
+	}
+
+	else if (!sjs.can_edit && saveFlashShown == 0) {
+	 	sjs.alert.flash("You don't have permission to save edits");
+		saveFlashShown = 1;
+	}
+
+
+    else if (sjs._uid && sjs.can_edit) {
 
         toJson = '[';
 
@@ -194,7 +207,7 @@ function updateSheet() {
 
         );
     }
-
+    
 }
 
 $("#saveButton").click(function() {
