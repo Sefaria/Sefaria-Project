@@ -729,6 +729,18 @@ body.embeded #top {
   vertical-align: middle;
 }
 
+#gardenPage .ui-icon {
+  position: static;
+}
+#gardenPage h2 {
+  margin-bottom: 0;
+}
+#gardenPage .ui-accordion.ui-accordion-content {
+  padding: 0;
+}
+#gardenPage .ui-accordion .ui-accordion-header a {
+  display: inline;
+}
 
 #editButtons {
   display: none;

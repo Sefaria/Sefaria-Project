@@ -114,14 +114,14 @@ class Garden(abst.AbstractMongoRecord):
         for sheet in sheet_list:
             self.import_sheet(sheet["id"])
 
-    def get_linkset(self):
+    def get_links(self):
         """
         Given the current Ref set of the Garden, looks for Links in the core repository, and turns them into GardenStopRelationships
         """
         trefs = GardenStopSet({"garden": self.key}).distinct("ref")
         regexes = set()
-        refs1Clauses = []
-        refs0Clauses = []
+        refClauses = []
+        links = []
 
         for tref in trefs:
             try:
@@ -131,10 +131,13 @@ class Garden(abst.AbstractMongoRecord):
             regexes.update(ref.regex(as_list=True))
 
         for rgx in regexes:
-            refs1Clauses += [{"refs.1": {"$regex": rgx}}]
-            refs0Clauses += [{"refs.0": {"$regex": rgx}}]
+            refClauses += [{"refs.1": {"$regex": rgx}}]
 
-        return link.LinkSet({"$and": [{"$or": refs0Clauses}, {"$or": refs1Clauses}]})
+        for rgx in regexes:
+            print "Garden.get_links() - {}".format(rgx)
+            links += [l for l in link.LinkSet({"$and": [{"refs.0": {"$regex": rgx}}, {"$or": refClauses}]})]
+
+        return links
 
     def import_sheet(self, sheet_id):
         from sefaria.sheets import Sheet, refine_ref_by_text
