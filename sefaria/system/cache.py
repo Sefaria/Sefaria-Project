@@ -2,7 +2,10 @@
 import hashlib
 import sys
 
-from sefaria.local_settings import USE_VARNISH
+try:
+    from sefaria.settings import USE_VARNISH
+except ImportError:
+    USE_VARNISH = False
 
 if not hasattr(sys, '_doc_build'):
     from django.core.cache import cache

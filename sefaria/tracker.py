@@ -9,7 +9,10 @@ logger = logging.getLogger(__name__)
 import sefaria.model as model
 from sefaria.utils.users import is_user_staff
 from sefaria.system.exceptions import InputError
-from sefaria.settings import USE_VARNISH
+try:
+    from sefaria.settings import USE_VARNISH
+except ImportError:
+    USE_VARNISH = False
 if USE_VARNISH:
     from sefaria.system.sf_varnish import invalidate_ref
 

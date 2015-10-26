@@ -14,8 +14,10 @@ from text import VersionSet, AbstractIndex, AbstractSchemaContent, IndexSet, lib
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedIntArray
 from sefaria.system.exceptions import InputError, BookNameError
 from sefaria.system.cache import delete_template_cache
-from sefaria.local_settings import USE_VARNISH
-
+try:
+    from sefaria.settings import USE_VARNISH
+except ImportError:
+    USE_VARNISH = False
 '''
 old count docs were:
     c["allVersionCounts"]
