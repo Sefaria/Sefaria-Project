@@ -46,7 +46,7 @@ if USE_VARNISH:
 import logging
 logger = logging.getLogger(__name__)
 
-
+@catch_error_as_http
 @ensure_csrf_cookie
 def reader(request, tref, lang=None, version=None):
     # Redirect to standard URLs
@@ -68,10 +68,6 @@ def reader(request, tref, lang=None, version=None):
         matched_ref = Ref(e.matched_part)
         return reader_redirect(matched_ref.url(), lang, version)
 
-    except InputError, e:
-        logger.warning(u'{}'.format(e))
-        raise Http404
-
     uref = oref.url()
     if uref and tref != uref:
         return reader_redirect(uref, lang, version)
@@ -82,7 +78,6 @@ def reader(request, tref, lang=None, version=None):
     # or if this is a schema node with multiple sections underneath it
     if (not getattr(oref.index_node, "depth", None)):
         return text_toc(request, oref)
-
 
     if request.flavour == "mobile":
         return s2(request, ref=tref)
@@ -96,9 +91,9 @@ def reader(request, tref, lang=None, version=None):
     version = version.replace("_", " ") if version else None
 
     text = TextFamily(Ref(tref), lang=lang, version=version, commentary=False, alts=True).contents()
+
     text.update({"commentary": [], "notes": [], "sheets": [], "layer": [], "connectionsLoadNeeded": True})
     hasSidebar = True
-
 
     layer_name = request.GET.get("layer", None)
     if layer_name and not "error" in text:
@@ -169,15 +164,17 @@ def esi_account_box(request):
     return render_to_response('elements/accountBox.html', {}, RequestContext(request))
 
 
+@catch_error_as_http
 def s2(request, ref, version=None, lang=None):
     """
     New interfaces in development
     """
+
     oref         = Ref(ref)
     if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
         return s2_text_toc(request, oref)
-
     text         = TextFamily(oref, version=version, lang=lang, commentary=False, context=False, pad=True, alts=True).contents()
+
     text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
     text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
     return render_to_response('s2.html', {
