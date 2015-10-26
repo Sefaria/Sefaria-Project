@@ -29,6 +29,7 @@ var ReaderApp = React.createClass({
     };
   },
   componentDidMount: function() {
+    this.updateHistoryState(true); // make sure initial page state is in history, (passing true to replace)
     window.addEventListener("popstate", this.handlePopState);
   },
   componentWillUnmount: function() {
@@ -46,18 +47,20 @@ var ReaderApp = React.createClass({
     }
   },
   shouldHistoryUpdate: function() {
-    // Compare the current history state to the current content state,
+    // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
    if (!history.state) { return true; }
 
-   if (history.state.panels.length !== this.state.panels.length) { return true;}
+   if (history.state.panels.length !== this.state.panels.length) { return true; }
 
     for (var i = 0; i < this.state.panels.length; i++) {
       // Cycle through each panel, looking for differences
 
       // examine top level panel state
-      var prev  = history.state.panels[i];
-      var next  = this.state.panels[i];
+      var prev  = history.state.panels[i].state;
+      var next  = this.state.panels[i].state;
+
+      if (!prev || !next) { return true; }
 
       if (prev.menuOpen !== next.menuOpen) {
          return true;
@@ -67,7 +70,7 @@ var ReaderApp = React.createClass({
         return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
         // Handle array comparison, !== could mean one is null or both are arrays
-        if (!prev.navigationCategories || !next.state.navigationCategories) {
+        if (!prev.navigationCategories || !next.navigationCategories) {
           return true; // They are not equal and one is null
         } else if (!prev.navigationCategories.compare(next.navigationCategories)) {
           return true; // both are set, compare arrays
@@ -75,15 +78,18 @@ var ReaderApp = React.createClass({
       }
 
       // now examine the current content of prev and next
-      var prev = prev.contents ? prev.contents.slice(-1)[0] : null;
-      var next = next.contents ? next.contents.slice(-1)[0] : null;
-      if (!prev || !next) { 
-        return false;
-      } else if (prev.type !== next.type) { 
+      var prevContent = prev.contents ? prev.contents.slice(-1)[0] : null;
+      var nextContent = next.contents ? next.contents.slice(-1)[0] : null;
+      
+      if (!prevContent && !nextContent) { 
+        continue;
+      } else if (!prevContent || !nextContent) {
         return true;
-      } else if (next.type === "TextColumn" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0]) {
+      } else if (prevContent.type !== nextContent.type) { 
         return true;
-      } else if (next.type === "TextList" && prev.ref !== next.ref || !prev.filter.compare(next.filter)) {
+      } else if (nextContent.type === "TextColumn" && prevContent.refs.slice(-1)[0] !== nextContent.refs.slice(-1)[0]) {
+        return true;
+      } else if (nextContent.type === "TextList" && (prevContent.ref !== nextContent.ref || !prev.filter.compare(next.filter))) {
         return true;
       }
     }
@@ -94,7 +100,7 @@ var ReaderApp = React.createClass({
     var histories = []; 
     for (var i = 0; i < this.state.panels.length; i++) {
       var hist    = {url: ""};
-      var state   = this.state.panels[i].state;
+      var state   = clone(this.state.panels[i].state);
       var current = state && state.contents && state.contents.length ? state.contents.slice(-1)[0] : null;
       if (state && state.menuOpen) {
         switch (state.menuOpen) {
@@ -108,7 +114,7 @@ var ReaderApp = React.createClass({
             hist.url   = "texts" + cats;
             break;
           case "text toc":
-            var title  = this.currentBook() || this.props.initialText;
+            var title  = current.refs.slice(-1)[0] || this.props.initialText;
             hist.title = title + " | Sefaria";
             hist.url   = title.replace(/ /g, "_");
             break;
@@ -139,8 +145,11 @@ var ReaderApp = React.createClass({
       }
       histories.push(hist);     
     }
-    var hist = {state: this.state, url: "/" + histories[0].url, title: histories[0].title};
+    var url   = "/" + (histories.length ? histories[0].url : "");
+    var title =  histories.length ? histories[0].title : "Sefaria"
+    var hist  = {state: this.state, url: url, title: title};
     for (var i = 1; i < histories.length; i++) {
+      hist.url = hist.url.replace("?", "&").replace(/=/g, (i+1) + "=");
       hist.url += "&p" + (i+1) + "=" + histories[i].url;
       hist.title += " & " + histories[i].title;
     }
@@ -151,14 +160,17 @@ var ReaderApp = React.createClass({
     return hist;
   },
   updateHistoryState: function(replace) {
-    if (!this.shouldHistoryUpdate()) { return; }
+    if (!this.shouldHistoryUpdate()) { 
+      console.log("Skipping state update - shouldn't update")
+      return; }
 
     if (this.justPopped) {
-        // Don't let a pop trigger a push
-        this.justPopped = false;
-        return;
+      // Don't let a pop trigger a push
+      console.log("Skipping state update - just popped")
+      this.justPopped = false;
+      return;
     }
-    
+    console.log("Updating History")
     var hist = this.makeHistoryState();
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
@@ -180,10 +192,17 @@ var ReaderApp = React.createClass({
   },
   handlePanelUpdate: function(n, action, state) {
     // When panel `n` wants to change history with `action` (either "push" or "replace"), update wth `state`
-    console.log("Panel update from " + n)
-    this.state.panels[n] = {state: state};
-    this.setState({panels: this.state.panels});
-    this.updateHistoryState(action === "replace");
+    var current = JSON.stringify(this.state.panels[n]);
+    var update  = JSON.stringify({state: state});
+    if (current !== update) {
+      this.state.panels[n] = {state: state};
+      this.setState({panels: this.state.panels});
+      this.updateHistoryState(action === "replace");      
+      console.log("Panel update from " + n);
+    } else { 
+      //console.log("skipping")
+    }
+
   },
   handleTextChange: function(n, ref) {
     // When panel `n` navigates to a new text `ref`, reflect the change in the top level state.
@@ -391,7 +410,7 @@ var ReaderPanel = React.createClass({
       menuOpen: null
     });
     if (this.props.handleTextChange) {
-      this.props.handleTextChange(ref);
+      //this.props.handleTextChange(ref);
     }
   },
   updateTextColumn: function(refs) {
