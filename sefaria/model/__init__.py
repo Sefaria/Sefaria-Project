@@ -31,6 +31,6 @@ from time import TimePeriod, TimePeriodSet
 from lexicon import Lexicon, LexiconEntry, LexiconEntrySet, Dictionary, DictionaryEntry, StrongsDictionaryEntry, RashiDictionaryEntry, WordForm
 from place import Place, PlaceSet
 from person import Person, PersonSet, PersonRelationship, PersonRelationshipSet, PersonRelationshipType, PersonRelationshipTypeSet
-from garden import Garden, GardenStop, GardenStopRelationship, GardenSet, GardenStopSet, GardenStopRelationshipSet
+from garden import Garden, GardenStop, GardenStopRelation, GardenSet, GardenStopSet, GardenStopRelationSet
 
 import dependencies

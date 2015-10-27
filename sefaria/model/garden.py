@@ -38,7 +38,7 @@ class Garden(abst.AbstractMongoRecord):
     def relSet(self, sort=None):
         if not sort:
             sort = [("start", 1)]
-        return GardenStopRelationshipSet({"garden": self.key}, sort=sort)
+        return GardenStopRelationSet({"garden": self.key}, sort=sort)
 
     def placeSet(self):
         placeKeys = GardenStopSet({"garden": self.key}).distinct("placeKey")
@@ -95,7 +95,7 @@ class Garden(abst.AbstractMongoRecord):
             logger.warning("Failed to add stop to Garden {}. {}".format(self.title, e))
 
     def add_relationship(self, attrs):
-        gs = GardenStopRelationship(attrs)
+        gs = GardenStopRelation(attrs)
         gs.garden = self.key
         try:
             gs.save()
@@ -114,9 +114,10 @@ class Garden(abst.AbstractMongoRecord):
         for sheet in sheet_list:
             self.import_sheet(sheet["id"])
 
+    # todo: this is way too slow.
     def get_links(self):
         """
-        Given the current Ref set of the Garden, looks for Links in the core repository, and turns them into GardenStopRelationships
+        Given the current Ref set of the Garden, looks for Links in the core repository, and turns them into GardenStopRelations
         """
         trefs = GardenStopSet({"garden": self.key}).distinct("ref")
         regexes = set()
@@ -207,7 +208,7 @@ class GardenStop(abst.AbstractMongoRecord):
         'heVersionTitle',
         'enText',
         'heText',
-        'tags',
+        'tags',  # dictionary of lists
         "start",
         "startIsApprox",
         "end",
@@ -290,11 +291,19 @@ class GardenStop(abst.AbstractMongoRecord):
     def place(self):
         return place.Place().load({"key": self.placeKey})
 
+    def setTags(self, tags, type="default"):
+        if isinstance(tags, basestring):
+            tags = [tags]
+        if self.tags.get(type):
+            self.tags["type"] = set(self.tags["type"]).append(tag)
+        else:
+            self.tags["type"] = tags
+
 class GardenStopSet(abst.AbstractMongoSet):
     recordClass = GardenStop
 
 
-class GardenStopRelationship(abst.AbstractMongoRecord):
+class GardenStopRelation(abst.AbstractMongoRecord):
     collection = 'garden_rel'
     required_attrs = [
         'garden'
@@ -303,8 +312,8 @@ class GardenStopRelationship(abst.AbstractMongoRecord):
 
     ]
 
-class GardenStopRelationshipSet(abst.AbstractMongoSet):
-    recordClass = GardenStopRelationship
+class GardenStopRelationSet(abst.AbstractMongoSet):
+    recordClass = GardenStopRelation
 
 
 

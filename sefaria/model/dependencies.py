@@ -59,8 +59,8 @@ subscribe(cascade_delete_to_list(text.IndexSet, "authors", "key"),       person.
 # Gardens
 subscribe(cascade(garden.GardenStopSet, "garden"),                              garden.Garden, "attributeChange", "key")
 subscribe(cascade_delete(garden.GardenStopSet, "garden", "key"),                garden.Garden, "delete")
-subscribe(cascade(garden.GardenStopRelationshipSet, "garden"),                  garden.Garden, "attributeChange", "key")
-subscribe(cascade_delete(garden.GardenStopRelationshipSet, "garden", "key"),    garden.Garden, "delete")
+subscribe(cascade(garden.GardenStopRelationSet, "garden"),                  garden.Garden, "attributeChange", "key")
+subscribe(cascade_delete(garden.GardenStopRelationSet, "garden", "key"),    garden.Garden, "delete")
 # from stop to stop rel
 
 
