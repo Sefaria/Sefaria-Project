@@ -842,6 +842,26 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
     def get_index(self):
         return get_index(self.title)
 
+    def first_section_ref(self):
+        """
+        Returns a Ref to the first non-empty location in this version.
+        """
+        i = self.get_index()
+        leafnodes = i.nodes.get_leaf_nodes()
+        for leaf in leafnodes:
+            ja = JaggedTextArray(self.content_node(leaf))
+            indx_array = ja.next_index()
+            if indx_array:
+                return Ref(_obj={
+                    "index": i,
+                    "book": leaf.full_title("en"),
+                    "type": i.categories[0],
+                    "index_node": leaf,
+                    "sections": [i + 1 for i in indx_array],
+                    "toSections": [i + 1 for i in indx_array]
+                }).section_ref()
+            return None
+
     def ja(self):
         # the quickest way to check if this is a complex text
         if isinstance(getattr(self, self.text_attr, None), dict):
