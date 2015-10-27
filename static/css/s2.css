@@ -1057,7 +1057,7 @@ body .bilingual .enOnly .he {
 }
 .textList.fullPanel .textListTop {
 
-text-align: center;}
+text-align: center;height: 55px;}
 .dark .textList {
   background-color: #333;
 }

@@ -109,9 +109,9 @@ var ReaderApp = React.createClass({
             hist.url   = "";
             break;
           case "navigation":
-            var cats   = state.navigationCategories ? "/" + state.navigationCategories.join("/") : "";
+            var cats   = state.navigationCategories ? state.navigationCategories.join("/") : "";
             hist.title = cats ? state.navigationCategories.join(", ") + " | Sefaria" : "Texts | Sefaria";
-            hist.url   = "texts" + cats;
+            hist.url   = "texts" + (cats ? "/" + cats : "");
             break;
           case "text toc":
             var title  = current.refs.slice(-1)[0] || this.props.initialText;
@@ -195,10 +195,10 @@ var ReaderApp = React.createClass({
     var current = JSON.stringify(this.state.panels[n]);
     var update  = JSON.stringify({state: state});
     if (current !== update) {
+      console.log("Panel update from " + n);
       this.state.panels[n] = {state: state};
       this.setState({panels: this.state.panels});
       this.updateHistoryState(action === "replace");      
-      console.log("Panel update from " + n);
     } else { 
       //console.log("skipping")
     }
@@ -242,8 +242,11 @@ var ReaderApp = React.createClass({
       var handleTextChange         = multi ? this.handleTextChange.bind(null, i) : null;
       var handleSegmentClick       = multi ? this.handleSegmentClick.bind(null, i) : null;
       var handlePanelUpdate        = this.handlePanelUpdate.bind(null, i);
-      var textListRef              = this.state.panels.length > i+1 && this.state.panels[i+1].filter ? 
-                                      this.state.panels[i+1].ref : null;
+
+      if (this.state.panels.length > i+1) {
+        var followingFilter        = this.state.panels[i+1].filter || (this.state.panels[i+1].state && this.state.panels[i+1].state.filter);
+        var textListRef            = followingFilter ? this.state.panels[i+1].ref || this.state.panels[i+1].state.contents[1].ref : null;    
+      }
       
       var panel = this.state.panels[i];
       if (panel.state) {
@@ -1681,6 +1684,7 @@ var TextRange = React.createClass({
   makeSegments: function(data) {
     // Returns a flat list of annotated segment objects,
     // derived from the walking the text in data
+    if ("error" in data) { return []; }
     var segments  = [];
     var highlight = data.sections.length === data.textDepth; 
     var wrap = (typeof data.text == "string");
@@ -2115,7 +2119,6 @@ var TextList = React.createClass({
               setFilter={this.props.setFilter}
               showAllFilters={this.showAllFilters}
               summary={summary} />
-              {message}
           </div>
           <div className="texts">
             { texts }
