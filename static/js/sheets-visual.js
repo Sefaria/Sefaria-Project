@@ -3,26 +3,40 @@ $("#container").css({
     "height": $("body").css("height")
 });
 
-//zoom buttons
 zoomScale = 1;
+launchOffset = 0;
 
 if (sjs.current.zoom) zoomScale = parseFloat(sjs.current.zoom);
 else zoomScale = 1;
 
+
 resizeZoomContainer();
 
-function resizeZoomContainer() {
-    //set values to resize zoom container -- negative margins keep the container centered on the page
-    var bodyWidth = parseInt($("body").css("width")) / zoomScale;
-    var bodyHeight = parseInt($("body").css("height")) / zoomScale;
-    var bodyMarginLeft = Math.abs(parseInt($("body").css("width")) - bodyWidth) / 2;
-    var bodyMarginTop = Math.abs((parseInt($("body").css("height")) - bodyHeight) / 2) + 50; //the last 50 is for the height of the header
 
+
+function resizeZoomContainer() {
+		
+		
+		
+    //set values to resize zoom container -- negative margins keep the container centered on the page
+    var bodyWidth = parseFloat($("body").css("width")) / zoomScale;
+    var bodyHeight = parseFloat($("body").css("height")) / zoomScale;
+    var bodyMarginLeft = Math.abs(parseFloat($("body").css("width")) - bodyWidth) / 2;
+    var bodyMarginTop = Math.abs(parseFloat($("body").css("height")) - bodyHeight) / 2;
+    
     if (zoomScale < 1) {
-        bodyMarginTop = -bodyMarginTop;
+        bodyMarginTop  = -bodyMarginTop;
         bodyMarginLeft = -bodyMarginLeft;
     }
-
+    
+    if (zoomScale > 1) {
+    	marginOffset = 0
+    }
+    
+    else {
+        marginOffset = parseFloat($("header").css("height"));
+	}
+    
     $("#container").css({
         '-webkit-transform': 'scale(' + zoomScale + ')',
         '-moz-transform': 'scale(' + zoomScale + ')',
@@ -66,15 +80,17 @@ $(".sheetItem").resizable({
     stack: ".source",
 
     start: function(event, ui) {
-
-        ui.position.left = ui.position.left + Math.abs((parseInt($("#container").css("margin-left"))) * zoomScale);
-        ui.position.top = ui.position.top + Math.abs((parseInt($("#container").css("margin-top"))) * zoomScale) + 50;
+		  console.log("left : " + $(this).css("left")+ ' '+ ui.originalPosition.left);
+		  console.log("top : " + $(this).css("top")+ ' '+ui.originalPosition.top);
+		  
+		  
+   //     ui.position.left = ui.position.left + Math.abs((parseFloat($("#container").css("margin-left"))) / zoomScale);
+     //   ui.position.top = ui.position.top + Math.abs((parseFloat($("#container").css("margin-top"))) / zoomScale);
 
 
     },
 
     resize: function(event, ui) {
-
 
         var changeWidth = ui.size.width - ui.originalSize.width; // find change in width
         var newWidth = ui.originalSize.width + changeWidth / zoomScale; // adjust new width by our zoomScale
@@ -84,8 +100,6 @@ $(".sheetItem").resizable({
 
         ui.size.width = newWidth;
         ui.size.height = newHeight;
-
-
 
     },
 
@@ -106,11 +120,12 @@ $(".sheetItem").resizable({
         var changeLeft = ui.position.left - ui.originalPosition.left; // find change in left
         var newLeft = ui.originalPosition.left + changeLeft / ((zoomScale)); // adjust new left by our zoomScale
 
-        var changeTop = ui.position.top - ui.originalPosition.top; // find change in top
+        var changeTop = ui.position.top - ui.originalPosition.top - marginOffset; // find change in top
         var newTop = ui.originalPosition.top + changeTop / zoomScale; // adjust new top by our zoomScale
 
         ui.position.left = newLeft;
         ui.position.top = newTop;
+        
 
     },
     stop: function() {
@@ -118,6 +133,7 @@ $(".sheetItem").resizable({
     }
 }).each(function(index) {
 
+launchOffset = launchOffset + 75;
 
     if (sjs.current.visualNodes) {
         $(this).animate({
@@ -129,6 +145,16 @@ $(".sheetItem").resizable({
             "z-index": sjs.current.visualNodes[index].zindex
         }).addClass(sjs.current.visualNodes[index].bgColor);
     }
+
+	else {
+
+        $(this).animate({
+
+            "left": launchOffset + "px",
+            "top": launchOffset + "px",
+            "z-index":index
+		});
+	}
 
 }).prepend('<div class="colorSelect"><div class="pink"></div><div class="white"></div><div class="yellow"></div><div class="green"></div><div class="blue"></div></div>').hover(
     function() {
@@ -171,8 +197,8 @@ function updateSheet() {
 
         $(".sheetItem").each(function() {
 
-            var x = (parseInt($(this).css('left')));
-            var y = (parseInt($(this).css('top')));
+            var x = (parseFloat($(this).css('left')));
+            var y = (parseFloat($(this).css('top')));
             var width = $(this).width();
             var length = $(this).height();
             var zindex = $(this).css('z-index');
