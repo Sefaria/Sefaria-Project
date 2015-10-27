@@ -115,8 +115,9 @@ def version_link(v):
 	"""
 	Return an <a> tag linking to the first availabe text of a particular version.
 	"""
-	section = "1"
-	link = u'<a href="/{}.{}/{}/{}">{}</a>'.format(v.title, section, v.language, v.versionTitle.replace(" ", "_"), v.versionTitle)
+	section_ref = v.first_section_ref() or v.get_index().nodes.first_leaf().first_section_ref()
+
+	link = u'<a href="/{}/{}/{}">{}</a>'.format(section_ref.url(), v.language, v.versionTitle.replace(" ", "_"), v.versionTitle)
 	return mark_safe(link)
 
 

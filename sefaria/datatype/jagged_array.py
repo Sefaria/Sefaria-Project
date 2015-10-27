@@ -122,12 +122,12 @@ class JaggedArray(object):
         :param depth: tracking parameter for recursion.
         :return: the indices where the next section is at.
         """
+        if starting_points is None:
+            starting_points = []
+
         #at the lowest level, we will have either strings or ints indicating text existence or not.
         if isinstance(counts_map, (int, basestring)):
             return bool(counts_map)
-
-        if not starting_points:
-            starting_points = []
 
         #otherwise iterate through the sections
         else:
