@@ -555,7 +555,6 @@ def toc_availability_class(toc):
 
 
 @ensure_csrf_cookie
-@cache_page(60 * 15)
 def text_toc(request, oref):
     """
     Page representing a single text, showing its Table of Contents and related info.
