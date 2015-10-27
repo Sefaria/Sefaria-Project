@@ -1458,6 +1458,10 @@ def global_activity(request, page=1):
     page = int(page)
     page_size = 100
 
+    if page > 40:
+        generic_response = { "title": "Activity Unavailable", "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>." }
+        return render_to_response('static/generic.html', generic_response, RequestContext(request))
+
     if "api" in request.GET:
         q = {}
     else:
@@ -1551,6 +1555,10 @@ def user_profile(request, username, page=1):
 
     page_size      = 20
     page           = int(page) if page else 1
+    if page > 40:
+        generic_response = { "title": "Activity Unavailable", "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>." }
+        return render_to_response('static/generic.html', generic_response, RequestContext(request))
+    
     query          = {"user": profile.id}
     filter_type    = request.GET["type"] if "type" in request.GET else None
     activity, apage= get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
