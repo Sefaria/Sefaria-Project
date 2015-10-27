@@ -93,27 +93,29 @@
                 </div>
             </span>
         </span>
-        <span class="row sortedGardenStops" id="byTag">
-            <span class="span8 offset2">
-                <h2>
-                    <span class='en'>By Tag</span>
-                    <span class='he'></span>
-                </h2>
-                <div class="inner_accordion">
-                 {% for tag, stops in stopsByTag.items %}
-                    <h3>{{ tag }} ({{ stops|length }})</h3>
-                     <div>
-                        {% for stop in stops %}
-                            <div>
-                                <span class='en'>{{ stop.ref|ref_link }}</span>
-                                <span class='he'>{{ stop.ref|he_ref_link }}</span>
-                            </div>
-                        {% endfor %}
-                     </div>
-                 {% endfor %}
-                </div>
+        {% for type, tags in stopsByTag.items %}
+            <span class="row sortedGardenStops" id="byTag">
+                <span class="span8 offset2">
+                    <h2>
+                        <span class='en'>By {% if type == "default" %}Tag{% else %}{{ type|capfirst }}{% endif %}</span>
+                        <span class='he'></span>
+                    </h2>
+                    <div class="inner_accordion">
+                     {% for tag, stops in tags.items %}
+                        <h3>{{ tag }} ({{ stops|length }})</h3>
+                         <div>
+                            {% for stop in stops %}
+                                <div>
+                                    <span class='en'>{{ stop.ref|ref_link }}</span>
+                                    <span class='he'>{{ stop.ref|he_ref_link }}</span>
+                                </div>
+                            {% endfor %}
+                         </div>
+                     {% endfor %}
+                    </div>
+                </span>
             </span>
-        </span>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}

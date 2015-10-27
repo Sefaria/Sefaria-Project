@@ -78,11 +78,15 @@ class Garden(abst.AbstractMongoRecord):
         stops = self.stopSet()
 
         for stop in stops:
-            for tag in getattr(stop, "tags", []):
-                if by_tag.get(tag):
-                    by_tag[tag].append(stop.contents())
-                else:
-                    by_tag[tag] = [stop.contents()]
+            for typ in getattr(stop, "tags", []):
+                if not by_tag.get(typ):
+                    by_tag[typ] = {}
+
+                for tag in stop.tags[typ]:
+                    if by_tag[typ].get(tag):
+                        by_tag[typ][tag].append(stop.contents())
+                    else:
+                        by_tag[typ][tag] = [stop.contents()]
 
         return by_tag
 
@@ -143,7 +147,7 @@ class Garden(abst.AbstractMongoRecord):
     def import_sheet(self, sheet_id):
         from sefaria.sheets import Sheet, refine_ref_by_text
 
-        sheet = Sheet().load({"id":sheet_id})
+        sheet = Sheet().load({"id": sheet_id})
         if not sheet:
             logger.warning("Failed to load sheet {}".format(sheet_id))
 
@@ -183,7 +187,7 @@ class Garden(abst.AbstractMongoRecord):
                 if "subsources" in source:
                     process_sources(source["subsources"], tags)
 
-        process_sources(sheet.sources, getattr(sheet, "tags", []) + [user_name(sheet.owner)])
+        process_sources(sheet.sources, {"default": getattr(sheet, "tags", []), "Sheet Author": [user_name(sheet.owner)]})
         return self
 
 
@@ -291,13 +295,21 @@ class GardenStop(abst.AbstractMongoRecord):
     def place(self):
         return place.Place().load({"key": self.placeKey})
 
-    def setTags(self, tags, type="default"):
+    def set_tags(self, tags, type="default"):
         if isinstance(tags, basestring):
             tags = [tags]
         if self.tags.get(type):
-            self.tags["type"] = set(self.tags["type"]).append(tag)
+            for tag in tags:
+                if tag not in self.tags["type"]:
+                    self.tags["type"].append(tag)
         else:
             self.tags["type"] = tags
+
+    def get_tags(self, type="default"):
+        return self.tags.get(type)
+
+    def get_all_tags(self):
+        return self.tags
 
 class GardenStopSet(abst.AbstractMongoSet):
     recordClass = GardenStop
