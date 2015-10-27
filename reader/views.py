@@ -10,6 +10,7 @@ import dateutil.parser
 from bson.json_util import dumps
 import p929
 
+from django.views.decorators.cache import cache_page
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.http import Http404, HttpResponse
@@ -319,6 +320,7 @@ def edit_text_info(request, title=None, new_title=None):
                              RequestContext(request))
 
 
+
 def make_toc_html(oref, zoom=1):
     """
     Returns the HTML of a text's Table of Contents, including any alternate structures.
@@ -553,6 +555,7 @@ def toc_availability_class(toc):
 
 
 @ensure_csrf_cookie
+@cache_page(60 * 15)
 def text_toc(request, oref):
     """
     Page representing a single text, showing its Table of Contents and related info.
