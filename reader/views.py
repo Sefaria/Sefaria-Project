@@ -2248,3 +2248,18 @@ def garden_page(request, key):
 
     return render_to_response('garden.html', template_vars, RequestContext(request))
 
+def visual_garden_page(request, key):
+    g = Garden().load({"key": key})
+    if not g:
+        raise Http404
+    assert isinstance(g, Garden)
+
+    template_vars = {
+        'title': g.title,
+        'heTitle': g.heTitle,
+        'key': g.key,
+        'stopCount': g.stopSet().count(),
+        'stops': json.dumps(g.stopData())
+    }
+
+    return render_to_response('visual_garden.html', template_vars, RequestContext(request))

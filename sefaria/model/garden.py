@@ -90,6 +90,9 @@ class Garden(abst.AbstractMongoRecord):
 
         return by_tag
 
+    def stopData(self):
+        return [i.contents() for i in self.stopSet()]
+
     def add_stop(self, attrs):
         # Check for existing stop, based on Ref.
         if attrs.get("ref"):
