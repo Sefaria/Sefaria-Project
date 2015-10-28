@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 import re
 
+import logging
+logger = logging.getLogger(__name__)
+
 from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.summaries import REORDER_RULES
@@ -146,6 +149,9 @@ def get_links(tref, with_text=True):
             com = format_link_object_for_client(link, False, nRef, pos)
         except InputError:
             # logger.warning("Bad link: {} - {}".format(link.refs[0], link.refs[1]))
+            continue
+        except AttributeError as e:
+            logger.error(u"AttributeError in presenting link: {} - {} : {}".format(link.refs[0], link.refs[1], e))
             continue
 
         # Rather than getting text with each link, walk through all links here,

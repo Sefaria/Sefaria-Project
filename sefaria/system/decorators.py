@@ -40,6 +40,8 @@ def catch_error_as_http(func):
         except exps.InputError as e:
             logger.warning(u"An exception occurred while running {}. Caught as HTTP".format(func.__name__), exc_info=True)
             raise Http404
+        except Http404:
+            raise
         except Exception as e:
             logger.exception(u"An exception occurred while running {}. Caught as HTTP".format(func.__name__))
             return render_to_response('static/generic.html',
