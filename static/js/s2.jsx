@@ -57,8 +57,8 @@ var ReaderApp = React.createClass({
       // Cycle through each panel, looking for differences
 
       // examine top level panel state
-      var prev  = history.state.panels[i].state;
-      var next  = this.state.panels[i].state;
+      var prev  = history.state.panels[i];
+      var next  = this.state.panels[i];
 
       if (!prev || !next) { return true; }
 
@@ -100,8 +100,8 @@ var ReaderApp = React.createClass({
     var histories = []; 
     for (var i = 0; i < this.state.panels.length; i++) {
       var hist    = {url: ""};
-      var state   = clone(this.state.panels[i].state);
-      var current = state && state.contents && state.contents.length ? state.contents.slice(-1)[0] : null;
+      var state   = clone(this.state.panels[i]);
+      var current = state.contents && state.contents.length ? state.contents.slice(-1)[0] : null;
       if (state && state.menuOpen) {
         switch (state.menuOpen) {
           case "home":
@@ -170,15 +170,14 @@ var ReaderApp = React.createClass({
       this.justPopped = false;
       return;
     }
-    console.log("Updating History")
     var hist = this.makeHistoryState();
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
-      console.log("Replace")
+      console.log("Replace History")
       console.log(hist);
     } else {
       history.pushState(hist.state, hist.title, hist.url);
-      console.log("Push");
+      console.log("Push History");
       console.log(hist);
     }
     $("title").html(hist.title);
@@ -191,14 +190,19 @@ var ReaderApp = React.createClass({
     sjs.track.pageview(hist.url);
   },
   handlePanelUpdate: function(n, action, state) {
-    // When panel `n` wants to change history with `action` (either "push" or "replace"), update wth `state`
+    // When panel `n` wants to change history with `action` (either "push" or "replace"), update with `state`
     var current = JSON.stringify(this.state.panels[n]);
-    var update  = JSON.stringify({state: state});
-    if (current !== update) {
+    var update  = JSON.stringify(state);
+    if (current !== update) { // Ignore unless state changed
       console.log("Panel update from " + n);
-      this.state.panels[n] = {state: state};
+      console.log(state);
+      var fullContent = "contents" in this.state.panels[n];
+      this.state.panels[n] = state;
       this.setState({panels: this.state.panels});
-      this.updateHistoryState(action === "replace");      
+      var replace = action === "replace" || !fullContent;
+      // Don't push history if the panel in the current state was self-generated
+      // Allows the panels to load initially without each panel trigger a history push
+      this.updateHistoryState(replace);
     } else { 
       //console.log("skipping")
     }
@@ -206,32 +210,44 @@ var ReaderApp = React.createClass({
   },
   handleTextChange: function(n, ref) {
     // When panel `n` navigates to a new text `ref`, reflect the change in the top level state.
-    this.state.panels[n] = {ref: ref, filter: null};
-    this.setState({panels: this.state.panels});
-    // Open TextList panel for new ref, if there's another panel to the right already open
-    if (n+1 < this.state.panels.length) {
-      this.handleSegmentClick(n, ref);
-    }
+    return;
   },
   handleSegmentClick: function(n, ref) {
     // Handle a click on a text segment `ref` in from panel in position `n`
     if (n+1 == this.state.panels.length) {
-      // Add new panel to end
+      // Click on last Panel - Add new panel to end
+      console.log("Adding panel form handleSegmentClick -- Last Panel Click")
       this.state.panels.push({ref: ref, filter: []});
       this.setState({panels: this.state.panels});
     } else if (n+1 < this.state.panels.length) {
       var next = this.state.panels[n+1];
       if (next && next.filter) {
-        // Update existing TextList
+        // Update the next panel existing TextList
         next.ref = ref;
+        next.contents = [{type: "TextList", ref: ref}];
         this.setState({panels: this.state.panels});
       } else {
-        // Splice in new TextList
-        //this.state.panels.splice(n+1, 0, {ref: ref, filter: []});
-        this.state.panels[n+1] = {ref: ref, filter: []};
-        this.setState({panels: this.state.panels});
+        // Update the next panel which is not a TextList
+        //this.state.panels.splice(n+1, 0, {ref: ref, filter: []}); // Splice in new TextList
+        next.ref = ref;
+        next.contents = [{type: "TextList", ref: ref}];
+        console.log("Adding panel form handleSegmentClick -- Update Next Panel")
       }
     }
+  },
+  setTextListHighlightFrom: function(n, ref) {
+    // Set the textListHighlight for panel `n` to `ref`
+    // If no TextList panel is currently open, do nothing
+    var next = this.state.panels[n+1];
+    console.log("stlhf")
+    console.log(next);
+    var nextContent = next && next.contents && next.contents.length ? next.contents.slice(-1)[0] : null
+    if (nextContent.type === "TextList" || (!nextContent && !next.menuOpen)) {
+      next.ref = ref;
+      next.contents = [{type: "TextList", ref: ref}];
+      this.setState({panels: this.state.panels});
+    }
+    return;
   },
   render: function() {
     var width = 100.0/this.state.panels.length;
@@ -242,22 +258,24 @@ var ReaderApp = React.createClass({
       var handleTextChange         = multi ? this.handleTextChange.bind(null, i) : null;
       var handleSegmentClick       = multi ? this.handleSegmentClick.bind(null, i) : null;
       var handlePanelUpdate        = this.handlePanelUpdate.bind(null, i);
+      var setTextListHightlight    = this.setTextListHighlightFrom.bind(null, i);
 
       if (this.state.panels.length > i+1) {
-        var followingFilter        = this.state.panels[i+1].filter || (this.state.panels[i+1].state && this.state.panels[i+1].state.filter);
-        var textListRef            = followingFilter ? this.state.panels[i+1].ref || this.state.panels[i+1].state.contents[1].ref : null;    
+        var followingFilter        = this.state.panels[i+1].filter;
+        var textListRef            = followingFilter ? this.state.panels[i+1].ref : null;    
       }
       
       var panel = this.state.panels[i];
-      if (panel.state) {
+      if (panel.contents) {
         panels.push(<div className="readerPanelBox" style={style} key={i}>
                     <ReaderPanel 
-                      initialState={panel.state}
+                      initialState={panel}
                       multiPanel={multi}
+                      textListRef={textListRef}
                       handleTextChange={handleTextChange}
                       handleSegmentClick={handleSegmentClick}
                       historyUpdate={handlePanelUpdate}
-                      textListRef={textListRef} />
+                      setTextListHightlight={setTextListHightlight} />
                   </div>);
       } else {
         if (i == 0) {
@@ -315,17 +333,23 @@ var ReaderPanel = React.createClass({
       } else {
         var contents = [];
       }
+      var ref = this.props.initialRef;
+
     } else if (!this.props.multiPanel && this.props.initialRef) {
       var contents = [{type: "TextColumn", refs: [this.props.initialRef]}];
+      var ref = this.props.initialRef;
       if (this.props.initialFilter) {
         contents.push({type: "TextList", ref: this.props.initialRef});
       }      
+
     } else {
       var contents = [];
+      var ref = null;
     }
 
     return {
       contents: contents,
+      ref: ref,
       filter: this.props.initialFilter || [],
       recentFilters: [],
       settings: this.props.initialSettings || {
@@ -393,6 +417,7 @@ var ReaderPanel = React.createClass({
     }
   },
   showTextList: function(ref) {
+    console.log("stl")
     if (this.state.contents.length == 2) {
       this.replaceHistory = true;
     } else {
@@ -400,7 +425,7 @@ var ReaderPanel = React.createClass({
     }
     var pos = this.props.mulitPanel ? 0 : 1;
     this.state.contents[pos] = {type: "TextList", ref: ref, scrollTop: 0};
-    this.setState({contents: this.state.contents });      
+    this.setState({contents: this.state.contents, ref: ref });      
   },
   showBaseText: function(ref, replaceHistory) {
     // Set the current primary text
@@ -408,13 +433,11 @@ var ReaderPanel = React.createClass({
     this.replaceHistory = typeof replaceHistory === "undefined" ? false : replaceHistory;
     this.setState({
       contents: [{type: "TextColumn", refs: [ref] }],
+      ref: ref,
       filter: [],
       recentFilters: [],
       menuOpen: null
     });
-    if (this.props.handleTextChange) {
-      //this.props.handleTextChange(ref);
-    }
   },
   updateTextColumn: function(refs) {
     // Change the refs in the current TextColumn, for infinite scroll up/down.
@@ -422,13 +445,22 @@ var ReaderPanel = React.createClass({
     this.replaceHistory = true;
     this.setState({
       contents: this.state.contents,
+      ref: refs.slice(-1)[0]
     });
+  },
+  setTextListHightlight: function(ref) {
+    if (this.props.multiPanel) {
+      this.props.setTextListHightlight(ref);
+    } else {
+      this.showTextList(ref);
+    }
   },
   backToText: function() {
     // Return to the original text in the ReaderPanel contents
     this.state.contents = [this.state.contents[0]];
     this.replaceHistory = false;
-    this.setState({contents: this.state.contents});
+    var ref = this.state.contents[0].refs.slice(-1)[0];
+    this.setState({contents: this.state.contents, ref: ref});
   },  
   closeMenus: function() {
     var state = {
@@ -544,8 +576,7 @@ var ReaderPanel = React.createClass({
     return this.currentContent() ? this.currentContent().type : null;
   },
   currentRef: function() {
-    var item = this.currentContent();
-    return item ? (item.ref || item.refs.slice(-1)[0]) : null;
+    return this.state.ref;
   },
   currentData: function() {
     // Returns the data from the library of the current ref
@@ -587,6 +618,7 @@ var ReaderPanel = React.createClass({
             showTextList={this.showTextList}
             updateTextColumn={this.updateTextColumn}
             onBaseSegmentClick={this.handleBaseSegmentClick}
+            setTextListHightlight={this.setTextListHightlight}
             rerender={this.rerender}
             filter={this.state.filter}
             key={i} />);   
@@ -1377,22 +1409,23 @@ var ReaderNavigationMenuDisplaySettingsButton = React.createClass({
 var TextColumn = React.createClass({
   // An infinitely scrollable column of text, composed of TextRanges for each section.
   propTypes: {
-    srefs:              React.PropTypes.array.isRequired,
-    textListRef:        React.PropTypes.string,
-    basetext:           React.PropTypes.bool,
-    withContext:        React.PropTypes.bool,
-    loadLinks:          React.PropTypes.bool,
-    prefetchNextPrev:   React.PropTypes.bool,
-    openOnClick:        React.PropTypes.bool,
-    lowlight:           React.PropTypes.bool,
-    multiPanel:         React.PropTypes.bool,
-    settings:           React.PropTypes.object,
-    showBaseText:       React.PropTypes.func,
-    showTextList:       React.PropTypes.func,
-    updateTextColumn:   React.PropTypes.func,
-    rerender:           React.PropTypes.func,
-    onBaseSegmentClick: React.PropTypes.func,
-    onTextLoad:         React.PropTypes.func
+    srefs:                 React.PropTypes.array.isRequired,
+    textListRef:           React.PropTypes.string,
+    basetext:              React.PropTypes.bool,
+    withContext:           React.PropTypes.bool,
+    loadLinks:             React.PropTypes.bool,
+    prefetchNextPrev:      React.PropTypes.bool,
+    openOnClick:           React.PropTypes.bool,
+    lowlight:              React.PropTypes.bool,
+    multiPanel:            React.PropTypes.bool,
+    settings:              React.PropTypes.object,
+    showBaseText:          React.PropTypes.func,
+    showTextList:          React.PropTypes.func,
+    updateTextColumn:      React.PropTypes.func,
+    rerender:              React.PropTypes.func,
+    onBaseSegmentClick:    React.PropTypes.func,
+    setTextListHightlight: React.PropTypes.func,
+    onTextLoad:            React.PropTypes.func
   },
   componentDidMount: function() {
     this.initialScrollTopSet = false;
@@ -1510,7 +1543,7 @@ var TextColumn = React.createClass({
         if ($segment.offset().top + $segment.outerHeight() > threshhold) {
           var ref = $segment.attr("data-ref");
           if (this.props.multiPanel) {
-            this.props.onBaseSegmentClick(ref);
+            this.props.setTextListHightlight(ref);
           } else {
             this.props.showTextList(ref);
           }
@@ -1879,6 +1912,7 @@ var TextSegment = React.createClass({
     handleClick:       React.PropTypes.func
   },
   handleClick: function(event) {
+    console.log(event)
     if ($(event.target).hasClass("refLink")) {
       //Click of citation
       var ref = humanRef($(event.target).attr("data-ref"));
@@ -2761,6 +2795,7 @@ var TwoBox = React.createClass({
   }
 });
 
+
 var TwoOrThreeBox = React.createClass({
   // Wrap a list of elements into a two or three column table, depen
   render: function() {
@@ -2772,7 +2807,6 @@ var TwoOrThreeBox = React.createClass({
       }
   }
 });
-
 
 
 var LoadingMessage = React.createClass({

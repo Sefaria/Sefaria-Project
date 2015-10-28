@@ -905,17 +905,14 @@ body .bilingual .enOnly .he {
 .continuous.bilingual .segment.enOnly .en {
   display: inline;
 }
-.basetext .segment:hover,
 .basetext .segment:active,
 .basetext .segment:focus {
   background-color: #f1f1f1;
 }
-.textColumn.connectionsOpen .segment:hover,
 .textColumn.connectionsOpen .basetext .segment:active,
 .textColumn.connectionsOpen .basetext .segment:focus {
   background-color: inherit;
 }
-.dark .basetext .segment:hover,
 .dark .basetext .segment:active,
 .dark .basetext .segment:focus {
   background-color: #444;
@@ -952,6 +949,10 @@ body .bilingual .enOnly .he {
   line-height: 18px;
   border-radius: 30px;
   margin-top: 4px;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -o-user-select: none;
 }
 .segment .segmentNumber,
 .segment .linkCount {
