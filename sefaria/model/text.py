@@ -860,7 +860,7 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
                     "sections": [i + 1 for i in indx_array],
                     "toSections": [i + 1 for i in indx_array]
                 }).section_ref()
-            return None
+        return None
 
     def ja(self):
         # the quickest way to check if this is a complex text
