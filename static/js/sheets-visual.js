@@ -156,6 +156,9 @@ launchOffset = launchOffset + 75;
 		});
 	}
 
+if ($(this).hasClass("english")) {$(this).find(".he").hide() }
+else if ($(this).hasClass("hebrew")) {$(this).find(".en").hide() }
+
 }).prepend('<div class="colorSelect"><div class="pink"></div><div class="white"></div><div class="yellow"></div><div class="green"></div><div class="blue"></div></div>').hover(
     function() {
         $(this).find(".colorSelect").first().css("visibility", "visible");
