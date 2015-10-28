@@ -78,11 +78,11 @@ class Garden(abst.AbstractMongoRecord):
         stops = self.stopSet()
 
         for stop in stops:
-            for typ in getattr(stop, "tags", []):
+            for typ, tags in getattr(stop, "tags", {}).iteritems():
                 if not by_tag.get(typ):
                     by_tag[typ] = {}
 
-                for tag in stop.tags[typ]:
+                for tag in tags:
                     if by_tag[typ].get(tag):
                         by_tag[typ][tag].append(stop.contents())
                     else:
@@ -91,8 +91,31 @@ class Garden(abst.AbstractMongoRecord):
         return by_tag
 
     def add_stop(self, attrs):
+        # Check for existing stop, based on Ref.
+        if attrs.get("ref"):
+            existing = GardenStop().load({"ref": attrs["ref"], "garden": self.key})
+            if existing:
+                existing.weight += 1
+
+                # Merge tags
+                if not getattr(existing, "tags"):
+                    existing.tags = attrs.get("tags")
+                else:
+                    for typ, tags in attrs.get("tags", {}).iteritems():
+                        if not existing.tags.get(typ):
+                            existing.tags[typ] = attrs["tags"][typ]
+                        else:
+                            for tag in tags:
+                                if tag not in existing.tags[typ]:
+                                    existing.tags[typ].append(tag)
+
+                existing.save()
+                return
+
+        # New Stop
         gs = GardenStop(attrs)
         gs.garden = self.key
+        gs.weight = 1
         try:
             gs.save()
         except Exception as e:
@@ -207,6 +230,7 @@ class GardenStop(abst.AbstractMongoRecord):
     ]
     optional_attrs = [
         'ref',
+        'weight',
         'title',
         'enVersionTitle',
         'heVersionTitle',
