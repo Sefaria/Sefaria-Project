@@ -1,4 +1,5 @@
 sjs = sjs || {};
+// Dependancies: util.js, sjs.toc
 
 
 sjs.library = {
@@ -110,8 +111,15 @@ sjs.library = {
       this._index[text] = index;
     }
   },
-  _cacheIndexFromToc: function() {
+  _cacheIndexFromToc: function(toc) {
     // Unpacks contents of sjs.toc and stores it in index cache.
+    for (var i = 0; i < toc.length; i++) {
+      if ("category" in toc[i]) {
+        sjs.library._cacheIndexFromToc(toc[i].contents)
+      } else {
+        sjs.library.index(toc[i].title, toc[i]);
+      }
+    }
   },
   ref: function(ref) {
     // Returns parsed ref in for string `ref`. 
@@ -269,7 +277,7 @@ sjs.library = {
   },
   textTocHtml: function(title, cb) {
     // Returns an HTML fragment of the table of contents of the text 'title'
-    if (!title) { return "[error: empty title]"; }
+    if (!title) { return ""; }
     if (title in this._textTocHtml) {
       return this._textTocHtml[title]
     } else {
@@ -623,6 +631,10 @@ sjs.library = {
   },
   _apiCallbacks: {}
 };
+
+// Unpack sjs.toc into index cache
+sjs.library._cacheIndexFromToc(sjs.toc);
+
 
 sjs.palette = {
   darkteal:  "#004e5f",

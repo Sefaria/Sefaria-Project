@@ -170,27 +170,22 @@ def s2(request, ref, version=None, lang=None):
     New interfaces in development
     """
 
-    oref         = Ref(ref)
+    oref = Ref(ref)
     if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
-        return s2_text_toc(request, oref)
+        initialMenu = "text toc"
+        oref = oref.first_available_section_ref()
+    else:
+        initialMenu = None
     text         = TextFamily(oref, version=version, lang=lang, commentary=False, context=False, pad=True, alts=True).contents()
-
     text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
     text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+
+
     return render_to_response('s2.html', {
                                             "ref": oref.normal(),
                                             "data": text,
+                                            "initialMenu": initialMenu,
                                         }, RequestContext(request))
-
-def s2_text_toc(request, oref):
-    """
-    Text table of contents
-    """
-    return render_to_response('s2.html', {
-                                    "initialMenu": "text toc",
-                                    "initialText": oref.normal(),
-                                    "initialCategory": oref.index.categories[0],
-                                }, RequestContext(request))
 
 
 def s2_texts_category(request, cats):

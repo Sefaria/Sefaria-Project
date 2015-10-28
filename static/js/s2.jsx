@@ -9,8 +9,6 @@ var ReaderApp = React.createClass({
     initialMenu:                 React.PropTypes.string,
     initialQuery:                React.PropTypes.string,
     initialSheetsTag:            React.PropTypes.string,
-    initialText:                 React.PropTypes.string,
-    initialCategory:             React.PropTypes.string,
     initialNavigationCategories: React.PropTypes.array,
     initialSettings:             React.PropTypes.object
   },
@@ -114,7 +112,8 @@ var ReaderApp = React.createClass({
             hist.url   = "texts" + (cats ? "/" + cats : "");
             break;
           case "text toc":
-            var title  = current.refs.slice(-1)[0] || this.props.initialText;
+            var ref    = current ? current.refs.slice(-1)[0] : null;
+            var title  = ref ? parseRef(ref).book : this.props.initialText;
             hist.title = title + " | Sefaria";
             hist.url   = title.replace(/ /g, "_");
             break;
@@ -149,10 +148,12 @@ var ReaderApp = React.createClass({
     var title =  histories.length ? histories[0].title : "Sefaria"
     var hist  = {state: this.state, url: url, title: title};
     for (var i = 1; i < histories.length; i++) {
-      hist.url = hist.url.replace("?", "&").replace(/=/g, (i+1) + "=");
-      hist.url += "&p" + (i+1) + "=" + histories[i].url;
+      var next  = "&p=" + histories[i].url;
+      next      = next.replace("?", "&").replace(/=/g, (i+1) + "=");
+      hist.url += next;
       hist.title += " & " + histories[i].title;
     }
+    hist.url = hist.url.replace(/&/, "?");
 
     // for testing
     if (window.location.pathname.indexOf("/s2") === 0) { hist.url = "/s2" + hist.url; }
@@ -194,10 +195,22 @@ var ReaderApp = React.createClass({
     var current = JSON.stringify(this.state.panels[n]);
     var update  = JSON.stringify(state);
     if (current !== update) { // Ignore unless state changed
-      console.log("Panel update from " + n);
+      console.log("Panel update called with " + action + " from " + n);
       console.log(state);
       var fullContent = "contents" in this.state.panels[n];
+      
       this.state.panels[n] = state;
+      if (this.state.panels.length > n+1) {
+        // If there is a panel following the one currently updated,
+        // and it is empty, make it a TextList for the current panel.
+        var next = this.state.panels[n+1];
+        if (!next.ref && state.ref) {
+          next.ref = state.ref;
+          next.filter = [];
+          next.contents = [{type: "TextList", ref: state.ref}];
+        }
+      }
+
       this.setState({panels: this.state.panels});
       var replace = action === "replace" || !fullContent;
       // Don't push history if the panel in the current state was self-generated
@@ -216,7 +229,6 @@ var ReaderApp = React.createClass({
     // Handle a click on a text segment `ref` in from panel in position `n`
     if (n+1 == this.state.panels.length) {
       // Click on last Panel - Add new panel to end
-      console.log("Adding panel form handleSegmentClick -- Last Panel Click")
       this.state.panels.push({ref: ref, filter: []});
       this.setState({panels: this.state.panels});
     } else if (n+1 < this.state.panels.length) {
@@ -231,7 +243,6 @@ var ReaderApp = React.createClass({
         //this.state.panels.splice(n+1, 0, {ref: ref, filter: []}); // Splice in new TextList
         next.ref = ref;
         next.contents = [{type: "TextList", ref: ref}];
-        console.log("Adding panel form handleSegmentClick -- Update Next Panel")
       }
     }
   },
@@ -239,10 +250,11 @@ var ReaderApp = React.createClass({
     // Set the textListHighlight for panel `n` to `ref`
     // If no TextList panel is currently open, do nothing
     var next = this.state.panels[n+1];
-    console.log("stlhf")
-    console.log(next);
+    if (!next) {
+      return;
+    }
     var nextContent = next && next.contents && next.contents.length ? next.contents.slice(-1)[0] : null
-    if (nextContent.type === "TextList" || (!nextContent && !next.menuOpen)) {
+    if ((nextContent && nextContent.type === "TextList") || (!nextContent && !next.menuOpen)) {
       next.ref = ref;
       next.contents = [{type: "TextList", ref: ref}];
       this.setState({panels: this.state.panels});
@@ -290,8 +302,6 @@ var ReaderApp = React.createClass({
                         initialMenu={panel.menu}
                         initialQuery={panel.query}
                         initialSheetsTag={panel.sheetsTag}
-                        initialText={this.props.initialText}
-                        initialCategory={this.props.initialCategory}
                         initialNavigationCategories={this.props.initialNavigationCategories}
                         initialSettings={clone(this.props.initialSettings)}
                         multiPanel={multi}
@@ -369,6 +379,10 @@ var ReaderPanel = React.createClass({
     }
   },
   componentDidMount: function() {
+    if (this.props.historyUpdate) {
+      // Make sure the initial state of this panel is pushed up to ReaderApp
+      this.props.historyUpdate("replace", this.state);     
+    }
     this.setHeadroom();
   },
   componentWillReceiveProps: function(nextProps) {
@@ -392,9 +406,6 @@ var ReaderPanel = React.createClass({
     }
     this.setHeadroom();
   },
-  rerender: function() {
-    this.setState({});
-  },
   handleBaseSegmentClick: function(ref) {
     var mode = this.currentMode();
     if (mode === "TextList") {
@@ -417,7 +428,6 @@ var ReaderPanel = React.createClass({
     }
   },
   showTextList: function(ref) {
-    console.log("stl")
     if (this.state.contents.length == 2) {
       this.replaceHistory = true;
     } else {
@@ -586,12 +596,16 @@ var ReaderPanel = React.createClass({
     return data; 
   },
   currentBook: function() {
-    var data = this.currentData();
-    return data ? data.indexTitle : null;
+    //var data = this.currentData();
+    //return data ? data.indexTitle : null;
+    var pref = parseRef(this.currentRef())
+    return "book" in pref ? pref.book : null;
   },
   currentCategory: function() {
-    var data = this.currentData();
-    return data ? data.categories[0] : null;
+    //var data = this.currentData();
+    //return data ? data.categories[0] : null;
+    var i = sjs.library.index(this.currentBook());
+    return (i ?  i.categories[0] : null);
   },
   currentLayout: function() {
     var category = this.currentCategory();
@@ -619,7 +633,6 @@ var ReaderPanel = React.createClass({
             updateTextColumn={this.updateTextColumn}
             onBaseSegmentClick={this.handleBaseSegmentClick}
             setTextListHightlight={this.setTextListHightlight}
-            rerender={this.rerender}
             filter={this.state.filter}
             key={i} />);   
       } else if (item.type === "TextList") {
@@ -667,9 +680,9 @@ var ReaderPanel = React.createClass({
     } else if (this.state.menuOpen === "text toc") {
       var menu = (<ReaderTextTableOfContents 
                     close={this.closeMenus}
-                    text={this.currentBook() || this.props.initialText}
-                    category={this.currentCategory() || this.props.initialCategory}
-                    currentRef={this.currentRef() || this.props.initialText} 
+                    text={this.currentBook()}
+                    category={this.currentCategory()}
+                    currentRef={this.currentRef()} 
                     openNav={this.openMenu.bind(null, "navigation")}
                     openDisplaySettings={this.openDisplaySettings}
                     showBaseText={this.showBaseText} />);
@@ -1181,7 +1194,7 @@ var ReaderTextTableOfContents = React.createClass({
     var tocHtml = sjs.library.textTocHtml(this.props.text, function() {
       this.setState({});
     }.bind(this));
-    tocHtml = tocHtml || <LoadingMessage />
+    tocHtml = tocHtml || '<div class="loadingMessage"><span class="en">Loading...</span><span class="he">טעינה...</span></div>';
 
     var title     = this.props.text;
     var heTitle   = sjs.library.index(title) ? sjs.library.index(title).heTitle : title;
@@ -1422,7 +1435,6 @@ var TextColumn = React.createClass({
     showBaseText:          React.PropTypes.func,
     showTextList:          React.PropTypes.func,
     updateTextColumn:      React.PropTypes.func,
-    rerender:              React.PropTypes.func,
     onBaseSegmentClick:    React.PropTypes.func,
     setTextListHightlight: React.PropTypes.func,
     onTextLoad:            React.PropTypes.func
@@ -1468,7 +1480,9 @@ var TextColumn = React.createClass({
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
       var $node   = $(React.findDOMNode(this));
       var adjust  = 118; // Height of .loadingMessage.base
-      var top     = $node.find(".basetext").eq(1).position().top + $node.scrollTop() - adjust;
+      var $texts  = $node.find(".basetext");
+      if ($texts.length < 2) { return; }
+      var top     = $texts.eq(1).position().top + $node.scrollTop() - adjust;
       if (!$node.find(".basetext").eq(0).hasClass("loading")) {
         this.loadingContentAtTop = false;
       }
@@ -1611,7 +1625,6 @@ var TextColumn = React.createClass({
         showTextList={this.props.showTextList}
         onBaseSegmentClick={this.handleBaseSegmentClick}
         onTextLoad={this.handleTextLoad}
-        rerender={this.props.rerender}
         filter={this.props.filter}
         key={k + ref} />);      
     }.bind(this));
@@ -1657,7 +1670,6 @@ var TextRange = React.createClass({
     settings:           React.PropTypes.object,
     filter:             React.PropTypes.array,
     showBaseText:       React.PropTypes.func,
-    rerender:           React.PropTypes.func,
     showTextList:       React.PropTypes.func,
     onTextLoad:         React.PropTypes.func,
     onBaseSegmentClick: React.PropTypes.func,
@@ -1791,13 +1803,6 @@ var TextRange = React.createClass({
       sref: data.ref
     });
 
-    if (this.props.basetext) {
-      // Rerender the full app, because we now know the category and color for the header,
-      // which we might not have known before the API call returned.
-      // Can be removed when catgories are extracted from sjs.toc on every page
-      this.props.rerender();
-    }
-
     if (this.props.loadLinks && !sjs.library.linksLoaded(data.sectionRef)) {
       // Calling when links are loaded will overwrite state.segments
       sjs.library.links(data.sectionRef, this.loadLinkCounts);
@@ -1912,7 +1917,6 @@ var TextSegment = React.createClass({
     handleClick:       React.PropTypes.func
   },
   handleClick: function(event) {
-    console.log(event)
     if ($(event.target).hasClass("refLink")) {
       //Click of citation
       var ref = humanRef($(event.target).attr("data-ref"));
@@ -1999,6 +2003,7 @@ var TextList = React.createClass({
   loadConnections: function() {
     // Loading intially at section level for commentary
     var ref = sjs.library.ref(this.props.sref) ? sjs.library.ref(this.props.sref).sectionRef : this.props.sref;
+    if (!ref) { return; }
     sjs.library.links(ref, function(links) {
       if (this.isMounted()) {
         this.preloadText(this.props.filter);
