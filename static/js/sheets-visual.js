@@ -15,9 +15,7 @@ resizeZoomContainer();
 
 
 function resizeZoomContainer() {
-		
-		
-		
+				
     //set values to resize zoom container -- negative margins keep the container centered on the page
     var bodyWidth = parseFloat($("body").css("width")) / zoomScale;
     var bodyHeight = parseFloat($("body").css("height")) / zoomScale;
@@ -80,12 +78,12 @@ $(".sheetItem").resizable({
     stack: ".source",
 
     start: function(event, ui) {
-		  console.log("left : " + $(this).css("left")+ ' '+ ui.originalPosition.left);
-		  console.log("top : " + $(this).css("top")+ ' '+ui.originalPosition.top);
+		  console.log("left : " + $(this).css("left")+ ' '+ ui.position.left);
+		  console.log("top : " + $(this).css("top")+ ' '+ui.position.top);
 		  
 		  
-   //     ui.position.left = ui.position.left + Math.abs((parseFloat($("#container").css("margin-left"))) / zoomScale);
-     //   ui.position.top = ui.position.top + Math.abs((parseFloat($("#container").css("margin-top"))) / zoomScale);
+        ui.position.left = ui.position.left/ zoomScale;
+        ui.position.top = ui.position.top/ zoomScale - marginOffset;
 
 
     },
