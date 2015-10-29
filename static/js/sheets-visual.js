@@ -133,7 +133,7 @@ $(".sheetItem").resizable({
 
 launchOffset = launchOffset + 75;
 
-    if (sjs.current.visualNodes) {
+    if (sjs.current.visualNodes.left) {
         $(this).animate({
 
             "left": sjs.current.visualNodes[index].x + "px",
@@ -178,7 +178,7 @@ if ($(this).hasClass("mediaWrapper")) {
 			mediaLink = '';
 		}
 		
-		$(this).html(mediaLink);
+		$(this).find(".outside").html(mediaLink);
 
 
 
