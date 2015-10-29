@@ -1310,7 +1310,8 @@ sjs.lexicon = {
 		wrapped = "";
 		//words = text.split(/[ ]+/);
 		//regex to match hebrew, but not spaces, colons, maqqaf or parshiya indicator (פ) or (ס)
-		var regexs = /([\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05f3\'\"]+)(?!\))/g;
+		//TODO: this regex had \'\" after \u05f3 to help with laaz rashi wrapping. it was casuing issues with search highlights. Find another way
+		var regexs = /([\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05f3]+)(?!\))/g;
 		wrapped = text.replace(regexs, "<span class='lexicon-link'>$1</span>")
 		/*for (var i = 0; i < words.length; i++ ) {
 			wrapped += "<span class='lexiconLink'>" + words[i] + "</span> ";
