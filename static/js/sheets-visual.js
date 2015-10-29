@@ -157,6 +157,33 @@ launchOffset = launchOffset + 75;
 if ($(this).hasClass("english")) {$(this).find(".he").hide() }
 else if ($(this).hasClass("hebrew")) {$(this).find(".en").hide() }
 
+if ($(this).hasClass("mediaWrapper")) { 
+
+		var mediaSource = sjs.current.sources[$(this).prevAll(".sheetItem").length].media;
+		var mediaLink;
+		
+		if (mediaSource.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
+			mediaLink = '<img class="addedMedia" src="'+mediaSource+'" />';
+		}
+		
+		else if (mediaSource.toLowerCase().indexOf('youtube') > 0) {
+			mediaLink = '<iframe width="560" height="315" src='+mediaSource+' frameborder="0" allowfullscreen></iframe>'
+		}
+
+		else if (mediaSource.match(/\.(mp3)$/i) != null) {
+			mediaLink = '<audio src="'+mediaSource+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
+		}
+		
+		else {
+			mediaLink = '';
+		}
+		
+		$(this).html(mediaLink);
+
+
+
+}
+
 }).prepend('<div class="colorSelect"><div class="pink"></div><div class="white"></div><div class="yellow"></div><div class="green"></div><div class="blue"></div></div>').hover(
     function() {
         $(this).find(".colorSelect").first().css("visibility", "visible");
