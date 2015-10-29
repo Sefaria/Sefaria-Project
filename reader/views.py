@@ -176,7 +176,7 @@ def s2(request, ref, version=None, lang=None):
         initialMenu = "text toc"
         oref = oref.first_available_section_ref()
     else:
-        initialMenu = None
+        initialMenu = ""
     text         = TextFamily(oref, version=version, lang=lang, commentary=False, context=False, pad=True, alts=True).contents()
     text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
     text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None

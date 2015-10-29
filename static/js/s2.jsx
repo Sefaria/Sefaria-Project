@@ -99,7 +99,7 @@ var ReaderApp = React.createClass({
     for (var i = 0; i < this.state.panels.length; i++) {
       var hist    = {url: ""};
       var state   = clone(this.state.panels[i]);
-      var current = state.contents && state.contents.length ? state.contents.slice(-1)[0] : null;
+      var current = (state.contents && state.contents.length) ? state.contents.slice(-1)[0] : null;
       if (state && state.menuOpen) {
         switch (state.menuOpen) {
           case "home":
@@ -112,8 +112,8 @@ var ReaderApp = React.createClass({
             hist.url   = "texts" + (cats ? "/" + cats : "");
             break;
           case "text toc":
-            var ref    = current ? current.refs.slice(-1)[0] : null;
-            var title  = ref ? parseRef(ref).book : this.props.initialText;
+            var ref    = state.ref;
+            var title  = ref ? parseRef(ref).book : "404";
             hist.title = title + " | Sefaria";
             hist.url   = title.replace(/ /g, "_");
             break;
@@ -133,7 +133,7 @@ var ReaderApp = React.createClass({
             break;
         }
       } else if (current && current.type === "TextColumn") {
-        hist.title = current.refs.slice(-1)[0];
+        hist.title = state.ref;
         hist.url = normRef(hist.title);
       } else if (current && current.type === "TextList") {
         var sources = state.filter.length ? state.filter[0] : "all";
@@ -148,9 +148,9 @@ var ReaderApp = React.createClass({
     var title =  histories.length ? histories[0].title : "Sefaria"
     var hist  = {state: this.state, url: url, title: title};
     for (var i = 1; i < histories.length; i++) {
-      var next  = "&p=" + histories[i].url;
-      next      = next.replace("?", "&").replace(/=/g, (i+1) + "=");
-      hist.url += next;
+      var next    = "&p=" + histories[i].url;
+      next        = next.replace("?", "&").replace(/=/g, (i+1) + "=");
+      hist.url   += next;
       hist.title += " & " + histories[i].title;
     }
     hist.url = hist.url.replace(/&/, "?");
@@ -199,22 +199,22 @@ var ReaderApp = React.createClass({
       console.log(state);
       var fullContent = "contents" in this.state.panels[n];
       
-      this.state.panels[n] = state;
+      this.state.panels[n] = clone(state);
       if (this.state.panels.length > n+1) {
         // If there is a panel following the one currently updated,
         // and it is empty, make it a TextList for the current panel.
         var next = this.state.panels[n+1];
         if (!next.ref && state.ref) {
-          next.ref = state.ref;
-          next.filter = [];
+          next.ref      = state.ref;
+          next.filter   = [];
           next.contents = [{type: "TextList", ref: state.ref}];
         }
       }
-
       this.setState({panels: this.state.panels});
-      var replace = action === "replace" || !fullContent;
+
       // Don't push history if the panel in the current state was self-generated
       // Allows the panels to load initially without each panel trigger a history push
+      var replace = action === "replace" || !fullContent;
       this.updateHistoryState(replace);
     } else { 
       //console.log("skipping")
@@ -336,6 +336,7 @@ var ReaderPanel = React.createClass({
     }
 
     if (this.props.multiPanel) {
+      var ref = this.props.initialRef;
       if (this.props.initialFilter) {
         var contents = [{type: "TextList", ref: this.props.initialRef}];
       } else if (this.props.initialRef) {
@@ -343,7 +344,6 @@ var ReaderPanel = React.createClass({
       } else {
         var contents = [];
       }
-      var ref = this.props.initialRef;
 
     } else if (!this.props.multiPanel && this.props.initialRef) {
       var contents = [{type: "TextColumn", refs: [this.props.initialRef]}];
@@ -440,6 +440,9 @@ var ReaderPanel = React.createClass({
   showBaseText: function(ref, replaceHistory) {
     // Set the current primary text
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
+    if (!ref) { 
+      return;
+    }
     this.replaceHistory = typeof replaceHistory === "undefined" ? false : replaceHistory;
     this.setState({
       contents: [{type: "TextColumn", refs: [ref] }],
@@ -1455,13 +1458,21 @@ var TextColumn = React.createClass({
       // treat it as a fresh open.
       this.initialScrollTopSet = false;
       this.scrolledToHighlight = false;
+      this.loadingContentAtTop = false;
     }
   },
   componentDidUpdate: function(prevProps, prevState) {
-    this.setScrollPosition();
+    if (this.loadingContentAtTop || !this.props.srefs.compare(prevProps.srefs)) {
+      this.setScrollPosition();
+    }
   },
   handleScroll: function(event) {
+    if (this.justScrolled) {
+      this.justScrolled = false;
+      return;
+    }
     if (this.props.textListRef) {
+      console.log("Scroll");
       this.debouncedAdjustTextListHighlight();
     }
     this.adjustInfiniteScroll();   
@@ -1474,26 +1485,35 @@ var TextColumn = React.createClass({
     }
     this.props.onBaseSegmentClick(ref);
   },
+  handleTextLoad: function() {
+    this.setScrollPosition();
+  },  
   setScrollPosition: function() {
+    console.log("ssp")
     // Called on every update, checking flags on this to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
+      console.log("loading at top")
       var $node   = $(React.findDOMNode(this));
       var adjust  = 118; // Height of .loadingMessage.base
       var $texts  = $node.find(".basetext");
       if ($texts.length < 2) { return; }
       var top     = $texts.eq(1).position().top + $node.scrollTop() - adjust;
-      if (!$node.find(".basetext").eq(0).hasClass("loading")) {
+      if (!$texts.eq(0).hasClass("loading")) {
         this.loadingContentAtTop = false;
+        this.initialScrollTopSet = true;
+        this.justScrolled = true;
+        this.getDOMNode().scrollTop = top;
+        console.log(top)
       }
-      this.initialScrollTopSet = true;
-      $node.scrollTop(top);
     } else if (!this.scrolledToHighlight && $(React.findDOMNode(this)).find(".segment.highlight").length) {
+      console.log("scroll to highlighted")
       // scroll to highlighted segment
       this.scrollToHighlighted();
       this.scrolledToHighlight = true;
       this.initialScrollTopSet = true;
     } else if (!this.initialScrollTopSet) {
+      console.log("initial scroll to 30")
       // initial value set below 0 so you can scroll up for previous
       var node = this.getDOMNode();
       node.scrollTop = 30;
@@ -1501,6 +1521,7 @@ var TextColumn = React.createClass({
     }
   },
   adjustInfiniteScroll: function() {
+    // Add or remove TextRanges from the top or bottom, depending on scroll position
     window.requestAnimationFrame(function() {
       //if (this.state.loadingContentAtTop) { return; }
       var node         = this.getDOMNode();
@@ -1532,6 +1553,7 @@ var TextColumn = React.createClass({
         topRef = refs[0];
         data   = sjs.library.ref(topRef);
         if (data && data.prev) {
+          console.log("up!")
           refs.splice(refs, 0, data.prev);
           this.loadingContentAtTop = true;
           this.props.updateTextColumn(refs);
@@ -1605,6 +1627,7 @@ var TextColumn = React.createClass({
         var height     = $highlighted.outerHeight();
         var viewport   = $container.outerHeight() - $readerPanel.find(".textList").outerHeight();
         var offset     = height > viewport + 30 ? 30 : (viewport - height) / 2;
+        this.justScrolled = true;
         $container.scrollTo($highlighted, 0, {offset: -offset});
       }
     }.bind(this));
@@ -1636,14 +1659,14 @@ var TextColumn = React.createClass({
       var hasNext = last && last.next;
       var symbol  = " ";
       if (hasPrev) {
-        content.splice(0, 0, (<LoadingMessage className="base prev"/>));
+        content.splice(0, 0, (<LoadingMessage className="base prev" key="prev"/>));
       } else {
-        content.splice(0, 0, (<LoadingMessage message={symbol} heMessage={symbol} className="base prev"/>));        
+        content.splice(0, 0, (<LoadingMessage message={symbol} heMessage={symbol} className="base prev" key="prev"/>));        
       }
       if (hasNext) {
-        content.push((<LoadingMessage className="base next"/>));
+        content.push((<LoadingMessage className="base next" key="next"/>));
       } else {
-        content.push((<LoadingMessage message={symbol} heMessage={symbol} className="base next"/>));
+        content.push((<LoadingMessage message={symbol} heMessage={symbol} className="base next" key="next"/>));
 
       }
     }
@@ -1691,6 +1714,7 @@ var TextRange = React.createClass({
     window.addEventListener('resize', this.handleResize);
   },
   componentDidUpdate: function(prevProps, prevState) {
+    // Place segment numbers again if update affected layout
     if (this.props.basetext || this.props.segmentNumber) { 
       if ((!prevState.loaded && this.state.loaded) ||
           (!prevState.linksLoaded && this.state.linksLoaded) ||
@@ -1703,6 +1727,10 @@ var TextRange = React.createClass({
               }
             }.bind(this));        
       }
+    }
+    if (this.props.onTextLoad && !prevState.loaded && this.state.loaded) {
+      console.log("Loaded " + this.props.sref)
+      this.props.onTextLoad();
     }
   },
   componentWillUnmount: function() {
@@ -1812,10 +1840,6 @@ var TextRange = React.createClass({
       if (data.next) { sjs.library.text(data.next, {context: 1}, function() {}); }
       if (data.prev) { sjs.library.text(data.prev, {context: 1}, function() {}); }
       if (data.book) { sjs.library.textTocHtml(data.book, function() {}); }
-    }
-
-    if (this.props.onTextLoad) {
-      this.props.onTextLoad();
     }
   },
   loadLinkCounts: function() {
