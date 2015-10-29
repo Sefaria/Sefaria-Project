@@ -1311,7 +1311,7 @@ sjs.lexicon = {
 		//words = text.split(/[ ]+/);
 		//regex to match hebrew, but not spaces, colons, maqqaf or parshiya indicator (פ) or (ס)
 		//TODO: this regex had \'\" after \u05f3 to help with laaz rashi wrapping. it was casuing issues with search highlights. Find another way
-		var regexs = /([\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05f3]+)(?!\))/g;
+		var regexs = /([\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05f4]+)(?!\))/g;
 		wrapped = text.replace(regexs, "<span class='lexicon-link'>$1</span>")
 		/*for (var i = 0; i < words.length; i++ ) {
 			wrapped += "<span class='lexiconLink'>" + words[i] + "</span> ";
@@ -1949,9 +1949,9 @@ function basetextHtml(en, he, prefix, alts, sectionName, hideNumbers) {
         highlighted = true;
         var highlight_lang = sjs.current.new_preferred_version.lang;
         var highlight_words = sjs.current.query_highlight.split(/[\s+]+/);
-        var hreg = RegExp('(' + highlight_words.join('|') + ')','gi');
+        var hreg = RegExp('(\b|[^\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05f4]+)(' + highlight_words.join('|') + ')(\b|[^\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05f4]+)','gi');
         var highlight = function(input) {
-            return input.replace(hreg, "<span class='query_highlighted'>$&</span>");
+            return input.replace(hreg, "$1<span class='query_highlighted'>$2</span>$3");
         }
     }
 	// Step through both en and he together
