@@ -248,7 +248,10 @@ class GardenStop(abst.AbstractMongoRecord):
         'placeNameEn',
         'placeNameHe',
         'placeGeo',
-        'authors'
+        'authors',
+        'indexTitle',
+        'timePeriodEn',
+        'timePeriodHe'
     ]
 
     def hasCustomText(self, lang):
@@ -264,46 +267,50 @@ class GardenStop(abst.AbstractMongoRecord):
     # todo: do we have to support override of this info?
 
     def _derive_metadata(self):
-        if not getattr(self, "ref", None):
-            return
-        i = text.Ref(self.ref).index
-        assert isinstance(i, text.AbstractIndex)
-        if getattr(i, "authors", None):
-            self.authors = i.authors
-        author = i.author_objects()[0] if len(i.author_objects()) > 0 else {}  # Assume first is best
+        if getattr(self, "ref", None):
+            i = text.Ref(self.ref).index
+            assert isinstance(i, text.AbstractIndex)
+            self.indexTitle = i.title
+            if getattr(i, "authors", None):
+                self.authors = i.authors
+            author = i.author_objects()[0] if len(i.author_objects()) > 0 else {}  # Assume first is best
 
-        placeKey = getattr(i, "compPlace", None) or getattr(author, "deathPlace", None) or getattr(author, "birthPlace", None)
-        if placeKey:
-            pobj = place.Place().load({"key": placeKey})
-            if not pobj:
-                raise InputError("Failed to find place with key {} while resolving metadata for {}".format(placeKey, self.ref))
-            self.placeKey = placeKey
-            self.placeNameEn = pobj.primary_name("en")
-            self.placeNameHe = pobj.primary_name("he")
-            self.placeGeo = pobj.get_location()
+            placeKey = getattr(i, "compPlace", None) or getattr(author, "deathPlace", None) or getattr(author, "birthPlace", None)
+            if placeKey:
+                pobj = place.Place().load({"key": placeKey})
+                if not pobj:
+                    raise InputError("Failed to find place with key {} while resolving metadata for {}".format(placeKey, self.ref))
+                self.placeKey = placeKey
+                self.placeNameEn = pobj.primary_name("en")
+                self.placeNameHe = pobj.primary_name("he")
+                self.placeGeo = pobj.get_location()
 
-        if getattr(i, "compDate", None):
-            errorMargin = int(getattr(i, "errorMargin", 0))
-            self.startIsApprox = self.endIsApprox = errorMargin > 0
+            if getattr(i, "compDate", None):
+                errorMargin = int(getattr(i, "errorMargin", 0))
+                self.startIsApprox = self.endIsApprox = errorMargin > 0
 
-            try:
-                year = int(getattr(i, "compDate"))
-                self.start = year - errorMargin
-                self.end = year + errorMargin
-            except ValueError as e:
-                years = getattr(i, "compDate").split("-")
-                if years[0] == "" and len(years) == 3:  #Fix for first value being negative
-                    years[0] = -int(years[1])
-                    years[1] = int(years[2])
-                self.start = int(years[0]) - errorMargin
-                self.end = int(years[1]) + errorMargin
+                try:
+                    year = int(getattr(i, "compDate"))
+                    self.start = year - errorMargin
+                    self.end = year + errorMargin
+                except ValueError as e:
+                    years = getattr(i, "compDate").split("-")
+                    if years[0] == "" and len(years) == 3:  #Fix for first value being negative
+                        years[0] = -int(years[1])
+                        years[1] = int(years[2])
+                    self.start = int(years[0]) - errorMargin
+                    self.end = int(years[1]) + errorMargin
 
-        elif author and author.mostAccurateTimePeriod():
-            tp = author.mostAccurateTimePeriod()
-            self.start = tp.start
-            self.end = tp.end
-            self.startIsApprox = tp.startIsApprox
-            self.endIsApprox = tp.endIsApprox
+            elif author and author.mostAccurateTimePeriod():
+                tp = author.mostAccurateTimePeriod()
+                self.start = tp.start
+                self.end = tp.end
+                self.startIsApprox = tp.startIsApprox
+                self.endIsApprox = tp.endIsApprox
+        tp = self.time_period()
+        if tp:
+            self.timePeriodEn = tp.year_string("en")
+            self.timePeriodHe = tp.year_string("he")
 
     def _normalize(self):
         if self.is_key_changed("ref"):

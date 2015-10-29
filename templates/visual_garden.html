@@ -6,9 +6,9 @@
 {% block title %}{{ title }}{% endblock %}
 {% block head %}
 <script src="http://d3js.org/d3.v3.min.js"></script>
-<script src="http://cdnjs.cloudflare.com/ajax/libs/dc/1.7.0/dc.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.12/crossfilter.js"></script>
-<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/dc/1.7.0/dc.css">
+<script src="/static/js/dc.js"></script>
+<link rel="stylesheet" href="/static/css/dc.css">
 {%  endblock %}
 
 {% block css %}
@@ -22,11 +22,69 @@
 
 {% block content %}
 
+
+
+
+
 <div id="visualGardenPage" class="container doc biReady">
-    <div id="timeline"></div>
-    <div id="map"></div>
-    <div id="tags"></div>
-    <div id="results"></div>
+
+    <span class="row">
+        <span class="span12">
+            <h1>
+                <span class='en'>{{ title }}</span>
+                <span class='he'>{{ heTitle }}</span>
+            </h1>
+        </span>
+    </span>
+
+    <span class="row">
+        <span class="span12">
+            <div id="timeline-chart">
+                <div style="height: 30px;">
+                    <span class='reset' style='display: none;'>
+                      Current filter: <span class='filter'></span>
+                    </span>
+                    <a class='reset'
+                      href='javascript:timeline.filterAll();dc.redrawAll();'
+                      style='display: none;'>reset</a>
+                </div>
+            </div>
+        </span>
+    </span>
+
+    <span class="row">
+        <span class="span3">
+            <div id="tags-list">
+
+            </div>
+        </span>
+        <span class="span8 offset4">
+            <div id="map-chart">
+
+            </div>
+        </span>
+    </span>
+
+
+    <span class="row" style="height: 30px;">
+        <span class="span10">
+            <div id="data-count">
+                <span class='filter-count'></span>
+                selected out of <span class='total-count'></span> records.
+                <a class='reset'
+                  href='javascript:stopx.filterAll();dc.redrawAll();'
+                  style='display: none;'>reset</a>
+            </div>
+        </span>
+    </span>
+    <span class="row">
+        <span class="span10">
+
+            <table id="results-table">
+
+            </table>
+        </span>
+    </span>
 </div>
 
 {% endblock %}
@@ -34,7 +92,86 @@
 {% block js %}
     <script>
     {% autoescape off %}
-        var stops = crossfilter({{ stops }});
+        var timeline = dc.barChart("#timeline-chart");
+        var results = dc.dataTable("#results-table");
+        var datacount = dc.dataCount("#data-count");
+
+
+        var stops = {{ stops }};
+        stops.forEach(function (d) {
+            d.start = +d.end; // coerce to number
+            d.end = +d.start;
+        });
+        var stopx = crossfilter(stops);
+        var all = stopx.groupAll();
+        var yearDim = stopx.dimension(function(d) { return d.start; }); //!!Using start as the year.
+        var yearGroup = yearDim.group();
+        //var refDim = stopx.dimension(function(d) {return d.ref; });
+        var weightDim = stopx.dimension(function(d) {return d.weight; });
+
+        datacount
+            .dimension(stopx)
+            .group(all);
+
+        // <br>API: [Bar Chart](https://github.com/dc-js/dc.js/blob/master/web/docs/api-latest.md#bar-chart)
+        timeline
+            .width(820)
+            .height(180)
+            .margins({top: 10, right: 50, bottom: 30, left: 40})
+            .dimension(yearDim)
+            .group(yearGroup)
+            .elasticY(true)
+            // (_optional_) whether bar should be center to its x value. Not needed for ordinal chart, `default=false`
+            .xUnits(function(){return 40;})
+            // (_optional_) set gap between bars manually in px, `default=2`
+            .gap(1)
+            // (_optional_) set filter brush rounding
+            .round(dc.round.floor)
+            //.alwaysUseRounding(true)
+            .x(d3.scale.linear().domain(d3.extent(stops, function (d) { return d.start; })))    // Can we do this in Crossfilter?
+            .renderHorizontalGridLines(true);
+
+        // Customize axes
+        //fluctuationChart.xAxis().tickFormat(
+        //    function (v) { return v + '%'; });
+        //fluctuationChart.yAxis().ticks(5);
+
+        var getDisplayablePeriod = function(d) { return d.timePeriodEn }; // and language toggle?
+
+        results
+            .dimension(weightDim)
+            .order(d3.descending)
+            .group(function (d) { return d.indexTitle; })
+            .columns([
+                'ref',
+                {
+                    label: "Author",
+                    format: function(d) {return d.authors;}
+                },
+                {
+                    label: "Period",
+                    format: function(d) { return d.timePeriodEn; }
+                },
+                {
+                    label: "Place",
+                    format: function(d) {return d.placeNameEn;}
+                },
+                'weight',
+                //'title',
+                //'enText',
+                //'heText',
+                //*** 'tags',
+                //'placeKey',
+                //'placeNameHe',
+                //'placeGeo',
+                //'indexTitle'
+            ])
+            .on('renderlet', function (table) {
+              table.selectAll('.dc-table-group').classed('info', true);
+            });
+
+        dc.renderAll();
+
     {% endautoescape %}
     </script>
 {% endblock %}
