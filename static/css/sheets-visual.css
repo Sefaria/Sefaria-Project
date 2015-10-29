@@ -73,10 +73,10 @@ body {
 	box-shadow: 0 0 4px rgba(0,0,0,.14),0 4px 8px rgba(0,0,0,.28);
 }
 
-.zoomContainer .en {
+.sheetItem .en {
 	direction: ltr;
 }
-.zoomContainer .he {
+.sheetItem .he {
 	direction: rtl;
 	text-align: right;
 	font-family: "Times New Roman", Serif;
@@ -88,4 +88,8 @@ body {
 	top: 60px;
 	right: 10px;
 	z-index: 100;
+}
+
+#textTocLink {
+	position: fixed;
 }
