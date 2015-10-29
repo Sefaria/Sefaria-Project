@@ -234,8 +234,8 @@ urlpatterns += patterns('reader.views',
     (r'^person/(?P<name>.+)$', 'person_page'),
     (r'^people/Talmud/?$', 'talmud_person_index'),
     (r'^people/?$', 'person_index'),
-    (r'^garden/(?P<key>.+)$', 'garden_page'),
-    (r'^vgarden/(?P<key>.+)$', 'visual_garden_page')
+    (r'^garden/sheets/(?P<key>.+)$', 'sheet_tag_garden_page'),
+    (r'^vgarden/sheets/(?P<key>.+)$', 'sheet_tag_visual_garden_page')
 
 
 )

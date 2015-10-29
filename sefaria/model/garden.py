@@ -142,7 +142,7 @@ class Garden(abst.AbstractMongoRecord):
 
         sheet_list = get_sheets_by_tag(tag)
         for sheet in sheet_list:
-            self.import_sheet(sheet["id"])
+            self.import_sheet(sheet["id"], remove_tags=[tag])
 
     # todo: this is way too slow.
     def get_links(self):
@@ -170,7 +170,7 @@ class Garden(abst.AbstractMongoRecord):
 
         return links
 
-    def import_sheet(self, sheet_id):
+    def import_sheet(self, sheet_id, remove_tags=None):
         from sefaria.sheets import Sheet, refine_ref_by_text
 
         sheet = Sheet().load({"id": sheet_id})
@@ -213,7 +213,10 @@ class Garden(abst.AbstractMongoRecord):
                 if "subsources" in source:
                     process_sources(source["subsources"], tags)
 
-        process_sources(sheet.sources, {"default": getattr(sheet, "tags", []), "Sheet Author": [user_name(sheet.owner)]})
+        tags = getattr(sheet, "tags", [])
+        if remove_tags:
+            tags = [t for t in tags if t not in remove_tags]
+        process_sources(sheet.sources, {"default": tags, "Sheet Author": [user_name(sheet.owner)]})
         return self
 
 

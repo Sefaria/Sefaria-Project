@@ -742,6 +742,29 @@ body.embeded #top {
   display: inline;
 }
 
+#visualGardenPage #tags-list.dc-chart g.row text {
+  fill: black;
+}
+
+#visualGardenPage #tags-list.dc-chart .axis path,
+#visualGardenPage #tags-list.dc-chart .axis line {
+stroke: none
+}
+
+#visualGardenPage #results-table .dc-table-column ._0 {
+  width: 220px;
+}
+#visualGardenPage #results-table .dc-table-column._1,
+#visualGardenPage #results-table .dc-table-column._2,
+#visualGardenPage #results-table .dc-table-column._3 {
+  width: 170px;
+}
+
+#visualGardenPage #results-table .dc-table-column._4 {
+  width: 30px;
+}
+
+
 #editButtons {
   display: none;
   margin: 3px 20px 0 0;

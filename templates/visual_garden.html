@@ -52,39 +52,44 @@
         </span>
     </span>
 
+    <div id="map-chart">
+
+    </div>
+
     <span class="row">
-        <span class="span3">
+        <span class="span2">
             <div id="tags-list">
-
+                <div style="height: 30px;">
+                    <span class='reset' style='display: none;'>
+                      Current filter: <span class='filter'></span>
+                    </span>
+                    <a class='reset'
+                      href='javascript:tagslist.filterAll();dc.redrawAll();'
+                      style='display: none;'>reset</a>
+                </div>
             </div>
         </span>
-        <span class="span8 offset4">
-            <div id="map-chart">
+        <span class="span9">
+             <span class="row" style="height: 30px;">
+                    <span class="span9">
+                        <div id="data-count">
+                        </div>
+                    </span>
+                </span>
+                <span class="row">
+                    <span class="span9">
 
-            </div>
+                        <table id="results-table">
+
+                        </table>
+                    </span>
+                </span>
+
         </span>
     </span>
 
 
-    <span class="row" style="height: 30px;">
-        <span class="span10">
-            <div id="data-count">
-                <span class='filter-count'></span>
-                selected out of <span class='total-count'></span> records.
-                <a class='reset'
-                  href='javascript:stopx.filterAll();dc.redrawAll();'
-                  style='display: none;'>reset</a>
-            </div>
-        </span>
-    </span>
-    <span class="row">
-        <span class="span10">
 
-            <table id="results-table">
-
-            </table>
-        </span>
-    </span>
 </div>
 
 {% endblock %}
@@ -93,6 +98,7 @@
     <script>
     {% autoescape off %}
         var timeline = dc.barChart("#timeline-chart");
+        var tagslist = dc.rowChart("#tags-list");
         var results = dc.dataTable("#results-table");
         var datacount = dc.dataCount("#data-count");
 
@@ -111,7 +117,13 @@
 
         datacount
             .dimension(stopx)
-            .group(all);
+            .group(all)
+            .html({
+                some: '<strong>%filter-count</strong> selected out of <strong>%total-count</strong> records' +
+                    ' | <a href=\'javascript:dc.filterAll(); dc.renderAll();\'\'>Reset All</a>',
+                all: 'All records selected. Please click on the graph to apply filters.'
+            });
+
 
         // <br>API: [Bar Chart](https://github.com/dc-js/dc.js/blob/master/web/docs/api-latest.md#bar-chart)
         timeline
@@ -121,27 +133,92 @@
             .dimension(yearDim)
             .group(yearGroup)
             .elasticY(true)
-            // (_optional_) whether bar should be center to its x value. Not needed for ordinal chart, `default=false`
             .xUnits(function(){return 40;})
-            // (_optional_) set gap between bars manually in px, `default=2`
-            .gap(1)
-            // (_optional_) set filter brush rounding
             .round(dc.round.floor)
-            //.alwaysUseRounding(true)
-            .x(d3.scale.linear().domain(d3.extent(stops, function (d) { return d.start; })))    // Can we do this in Crossfilter?
-            .renderHorizontalGridLines(true);
+            .x(d3.scale.linear().domain(d3.extent(stops, function (d) { return d.start; })));   // Can we do this in Crossfilter?
+        timeline.yAxis().tickFormat(d3.format("d"));
+        timeline.xAxis().tickFormat(d3.format("d"));
 
-        // Customize axes
-        //fluctuationChart.xAxis().tickFormat(
-        //    function (v) { return v + '%'; });
-        //fluctuationChart.yAxis().ticks(5);
+        // tags chart
+        function reduceAdd(p, v) {
+            v.tags.default.forEach (function(val, idx) {
+                p[val] = (p[val] || 0) + 1; //increment counts
+            });
+            return p;
+        }
 
-        var getDisplayablePeriod = function(d) { return d.timePeriodEn }; // and language toggle?
+        function reduceRemove(p, v) {
+            v.tags.default.forEach (function(val, idx) {
+                p[val] = (p[val] || 0) - 1; //decrement counts
+            });
+            return p;
+        }
+
+        function reduceInitial() {
+            return [];
+        }
+
+
+        var tags = stopx.dimension(function (d) { return d.tags.default || [] });
+        var tags2 = stopx.dimension(function (d) { return d.tags.default || [] });
+        var groupall = tags.groupAll();
+        var tagsGroup = groupall.reduce(reduceAdd, reduceRemove, reduceInitial).value();
+        tagsGroup.all = function() {
+            var newObject = [];
+            for (var key in this) {
+                if (this[key] && key != "all") {
+                    newObject.push({
+                        key: key,
+                        value: this[key]
+                    });
+                }
+            }
+            return newObject;
+        };
+        tagsGroup.top = function(k) {
+            all = this.all();
+            var top = crossfilter.heapselect(all, 0, all.length, k);
+            return crossfilter.heap.sort(top, 0, top.length);
+        };
+
+        tagslist
+            .width(200)
+            .height(800)
+            .renderLabel(true)
+            .labelOffsetY(10)
+            .gap(2)
+            .group(tagsGroup)
+            .rowsCap(25)
+            .othersGrouper(false)
+            .dimension(tags2)
+            .ordering(function(d){ return -d.value })
+            .elasticX(true)
+            .transitionDuration(1000)
+            .colors(d3.scale.category10())
+            .label(function (d) { return d.key })
+            .on("filtered", function(c,f) {
+                //tags2.filter(f)
+            })
+            .filterHandler (function (dimension, filters) {
+                dimension.filter(null);
+                dimension.filterFunction(function (d) {
+                    for (var i=0; i < filters.length; i++) {
+                        if (d.indexOf(filters[i]) <0) return false;
+                    }
+                    return true;
+                });
+
+
+
+                return filters;
+            });
+        tagslist.xAxis().tickFormat(d3.format("d"));
 
         results
             .dimension(weightDim)
             .order(d3.descending)
-            .group(function (d) { return d.indexTitle; })
+            .group(function (d) { return d.weight; })
+            .showGroups(false)
             .columns([
                 'ref',
                 {
@@ -157,14 +234,6 @@
                     format: function(d) {return d.placeNameEn;}
                 },
                 'weight',
-                //'title',
-                //'enText',
-                //'heText',
-                //*** 'tags',
-                //'placeKey',
-                //'placeNameHe',
-                //'placeGeo',
-                //'indexTitle'
             ])
             .on('renderlet', function (table) {
               table.selectAll('.dc-table-group').classed('info', true);

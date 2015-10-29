@@ -2229,12 +2229,24 @@ def talmud_person_index(request):
         })
     return render_to_response('talmud_people.html', template_vars, RequestContext(request))
 
-def garden_page(request, key):
-    g = Garden().load({"key": key})
+def _get_sheet_tag_garden(tag):
+    garden_key = "sheets.tagged.{}".format(tag)
+    g = Garden().load({"key": garden_key})
     if not g:
-        raise Http404
-    assert isinstance(g, Garden)
+        g = Garden({"key": garden_key, "title": u"Sources from Sheets Tagged {}".format(tag), "heTitle": u"מקורות מדפים מתויגים:" + u" " + unicode(tag)})
+        g.import_sheets_by_tag(tag)
+        g.save()
+    return g
 
+def sheet_tag_garden_page(request, key):
+    g = _get_sheet_tag_garden(key)
+    return garden_page(request, g)
+
+def sheet_tag_visual_garden_page(request, key):
+    g = _get_sheet_tag_garden(key)
+    return visual_garden_page(request, g)
+
+def garden_page(request, g):
     template_vars = {
         'title': g.title,
         'heTitle': g.heTitle,
@@ -2248,11 +2260,7 @@ def garden_page(request, key):
 
     return render_to_response('garden.html', template_vars, RequestContext(request))
 
-def visual_garden_page(request, key):
-    g = Garden().load({"key": key})
-    if not g:
-        raise Http404
-    assert isinstance(g, Garden)
+def visual_garden_page(request, g):
 
     template_vars = {
         'title': g.title,
