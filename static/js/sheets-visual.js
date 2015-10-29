@@ -78,13 +78,9 @@ $(".sheetItem").resizable({
     stack: ".source",
 
     start: function(event, ui) {
-		  console.log("left : " + $(this).css("left")+ ' '+ ui.position.left);
-		  console.log("top : " + $(this).css("top")+ ' '+ui.position.top);
-		  
 		  
         ui.position.left = ui.position.left/ zoomScale;
         ui.position.top = ui.position.top/ zoomScale - marginOffset;
-
 
     },
 
@@ -133,7 +129,7 @@ $(".sheetItem").resizable({
 
 launchOffset = launchOffset + 75;
 
-    if (sjs.current.visualNodes.left) {
+    if (sjs.current.visualNodes) {
         $(this).animate({
 
             "left": sjs.current.visualNodes[index].x + "px",
@@ -167,7 +163,7 @@ if ($(this).hasClass("mediaWrapper")) {
 		}
 		
 		else if (mediaSource.toLowerCase().indexOf('youtube') > 0) {
-			mediaLink = '<iframe width="560" height="315" src='+mediaSource+' frameborder="0" allowfullscreen></iframe>'
+			mediaLink = '<div class="videoWrapper"><iframe width="560" height="315" src='+mediaSource+' frameborder="0" allowfullscreen></iframe></div>'
 		}
 
 		else if (mediaSource.match(/\.(mp3)$/i) != null) {
