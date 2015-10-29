@@ -1693,7 +1693,7 @@ class Ref(object):
                 raise InputError(u"Unrecognized Index record: {}".format(base))
 
         if title is None:
-            raise InputError(u"Could not resolve reference: {}".format(self.tref))
+            raise InputError(u"Could not find title in reference: {}".format(self.tref))
 
         self.type = self.index_node.index.categories[0]
 
@@ -1780,7 +1780,7 @@ class Ref(object):
                             return
 
         if not self.sections:
-            raise InputError(u"Failed to parse ref {}".format(self.orig_tref))
+            raise InputError(u"Failed to parse sections for ref {}".format(self.orig_tref))
 
         self.toSections = self.sections[:]
 
@@ -1812,7 +1812,7 @@ class Ref(object):
         sections = []
         ref_match = reg.match(tref)
         if not ref_match:
-            raise InputError(u"Can not parse ref: {}".format(tref))
+            raise InputError(u"Can not parse sections from ref: {}".format(tref))
 
         gs = ref_match.groupdict()
         for i in range(0, use_node.depth):
