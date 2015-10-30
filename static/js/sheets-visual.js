@@ -3,8 +3,14 @@ $("#container").css({
     "height": $("body").css("height")
 });
 
+$("#sheetLayoutToggle").hide();
+
+$("#languageToggle span").removeClass("active");
+$("#bilingual").addClass("active");
+
+
 zoomScale = 1;
-launchOffset = 0;
+launchOffset = 50;
 
 if (sjs.current.zoom) zoomScale = parseFloat(sjs.current.zoom);
 else zoomScale = 1;
@@ -69,19 +75,19 @@ $("#zoomIn").click(function() {
 
 });
 
+$(".sheetItem a").attr("target","_blank");
 
 //set sources to be draggable & resizable
 $(".sheetItem").resizable({
 
     stack: ".source",
-    handles: "nw, ne, se, sw",
-    stack: ".source",
+    handles: "se",
+    stack: ".sheetItem",
 
     start: function(event, ui) {
 		  
         ui.position.left = ui.position.left/ zoomScale;
-        ui.position.top = ui.position.top/ zoomScale - marginOffset;
-
+        ui.position.top = (ui.position.top/ zoomScale) - marginOffset;
     },
 
     resize: function(event, ui) {
@@ -93,11 +99,11 @@ $(".sheetItem").resizable({
         var newHeight = ui.originalSize.height + changeHeight / zoomScale; // adjust new height by our zoomScale
 
         ui.size.width = newWidth;
-        ui.size.height = newHeight;
+        ui.size.height = newHeight- marginOffset;
 
     },
 
-    stop: function() {
+    stop: function(event, ui) {
         updateSheet();
     }
 
@@ -127,9 +133,9 @@ $(".sheetItem").resizable({
     }
 }).each(function(index) {
 
-launchOffset = launchOffset + 75;
+ if (sjs.current.visualNodes) {
 
-    if (sjs.current.visualNodes) {
+    if (sjs.current.visualNodes[index]) {
         $(this).animate({
 
             "left": sjs.current.visualNodes[index].x + "px",
@@ -141,6 +147,20 @@ launchOffset = launchOffset + 75;
     }
 
 	else {
+		launchOffset = launchOffset + 75;
+
+	        $(this).animate({
+
+            "left": launchOffset + "px",
+            "top": launchOffset + "px",
+            "z-index":index
+		});
+	}
+
+}
+
+	else {
+		launchOffset = launchOffset + 75;
 
         $(this).animate({
 
@@ -149,6 +169,7 @@ launchOffset = launchOffset + 75;
             "z-index":index
 		});
 	}
+
 
 if ($(this).hasClass("english")) {$(this).find(".he").hide() }
 else if ($(this).hasClass("hebrew")) {$(this).find(".en").hide() }
@@ -189,6 +210,27 @@ if ($(this).hasClass("mediaWrapper")) {
     }
 
 );
+
+$("#hebrew, #english, #bilingual").click(function(){
+
+	if ($(this).attr("id") == "hebrew") {
+		$(".sheetItem").find(".en").hide();
+		$(".sheetItem").find(".he").show();
+	}
+	else if ($(this).attr("id") == "english") {
+		$(".sheetItem").find(".he").hide();
+		$(".sheetItem").find(".en").show();
+
+	}
+	else {
+		$(".sheetItem").find(".he").show();
+		$(".sheetItem").find(".en").show();
+	
+	}
+
+
+	});
+
 
 $(".colorSelect div").click( function() {
 
