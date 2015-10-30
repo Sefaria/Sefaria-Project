@@ -10,6 +10,7 @@ import dateutil.parser
 from bson.json_util import dumps
 import p929
 
+from django.views.decorators.cache import cache_page
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.http import Http404, HttpResponse
@@ -181,7 +182,7 @@ def s2(request, ref, version=None, lang=None):
                                             "ref": oref.normal(),
                                             "data": text,
                                         }, RequestContext(request))
-
+@catch_error_as_http
 def s2_text_toc(request, oref):
     """
     Text table of contents
@@ -192,7 +193,7 @@ def s2_text_toc(request, oref):
                                     "initialCategory": oref.index.categories[0],
                                 }, RequestContext(request))
 
-
+@catch_error_as_http
 def s2_texts_category(request, cats):
     """
     Listing of texts in a category.
@@ -209,7 +210,7 @@ def s2_texts_category(request, cats):
                                     "initialNavigationCategories": json.dumps(cats),
                                 }, RequestContext(request))
 
-
+@catch_error_as_http
 def s2_page(request, page):
     """
     View into an S2 page
@@ -233,7 +234,7 @@ def s2_texts(request):
 def s2_sheets(request):
     return s2_page(request, "sheets")
 
-
+@catch_error_as_http
 def s2_sheets_by_tag(request, tag):
     """
     Standalone page for new sheets list
@@ -317,6 +318,7 @@ def edit_text_info(request, title=None, new_title=None):
                              'new': new,
                              },
                              RequestContext(request))
+
 
 
 def make_toc_html(oref, zoom=1):
@@ -551,7 +553,7 @@ def toc_availability_class(toc):
         else:
             return "None"
 
-
+@catch_error_as_http
 @ensure_csrf_cookie
 def text_toc(request, oref):
     """
@@ -629,7 +631,7 @@ def text_toc_html_fragment(request, title):
     zoom = 0 if not oref.index.is_complex() and oref.index_node.depth == 1 else 1
     return HttpResponse(make_toc_html(oref, zoom=zoom))    
 
-
+@catch_error_as_http
 @ensure_csrf_cookie
 def texts_list(request):
     """
@@ -641,7 +643,7 @@ def texts_list(request):
                              {},
                              RequestContext(request))
 
-
+@catch_error_as_http
 def texts_category_list(request, cats):
     """
     Page listing every text in category
@@ -1447,7 +1449,7 @@ def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
     else:
         return jsonResponse({"error": "Unsuported HTTP method."})
 
-
+@catch_error_as_http
 @ensure_csrf_cookie
 def global_activity(request, page=1):
     """
@@ -1455,6 +1457,10 @@ def global_activity(request, page=1):
     """
     page = int(page)
     page_size = 100
+
+    if page > 40:
+        generic_response = { "title": "Activity Unavailable", "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>." }
+        return render_to_response('static/generic.html', generic_response, RequestContext(request))
 
     if "api" in request.GET:
         q = {}
@@ -1527,7 +1533,7 @@ def revert_api(request, tref, lang, version, revision):
 
     return jsonResponse({"status": "ok"})
 
-
+@catch_error_as_http
 @ensure_csrf_cookie
 def user_profile(request, username, page=1):
     """
@@ -1549,6 +1555,10 @@ def user_profile(request, username, page=1):
 
     page_size      = 20
     page           = int(page) if page else 1
+    if page > 40:
+        generic_response = { "title": "Activity Unavailable", "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>." }
+        return render_to_response('static/generic.html', generic_response, RequestContext(request))
+    
     query          = {"user": profile.id}
     filter_type    = request.GET["type"] if "type" in request.GET else None
     activity, apage= get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
@@ -1853,6 +1863,7 @@ def translation_request_api(request, tref):
     return jsonResponse(response)
 
 
+@catch_error_as_http
 @ensure_csrf_cookie
 def translation_flow(request, tref):
     """

@@ -49,14 +49,14 @@ class JaggedArray(object):
             result = 0
         return result
 
-    def next_index(self, starting_points):
+    def next_index(self, starting_points=None):
         """
         Return the next populated address in a JA
         :param starting_points: An array indicating starting address in the JA
         """
         return self._dfs_traverse(self._store, starting_points)
 
-    def prev_index(self, starting_points):
+    def prev_index(self, starting_points=None):
         """
         Return the previous populated address in a JA
         :param starting_points: An array indicating starting address in the JA
@@ -122,6 +122,9 @@ class JaggedArray(object):
         :param depth: tracking parameter for recursion.
         :return: the indices where the next section is at.
         """
+        if starting_points is None:
+            starting_points = []
+
         #at the lowest level, we will have either strings or ints indicating text existence or not.
         if isinstance(counts_map, (int, basestring)):
             return bool(counts_map)

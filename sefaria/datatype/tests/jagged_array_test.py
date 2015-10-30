@@ -230,6 +230,15 @@ class Test_Jagged_Text_Array(object):
             "Third first", "Third second", "Third third"
         ]
 
+    def test_next_prev(self):
+        sparse_ja = ja.JaggedTextArray([["","",""],["","foo","","bar",""],["","",""]])
+        assert sparse_ja.next_index([0,0]) == [1, 1]
+        assert sparse_ja.next_index([]) == [1, 1]
+        assert sparse_ja.next_index() == [1, 1]
+
+        assert sparse_ja.prev_index([]) == [1, 3]
+        assert sparse_ja.prev_index() == [1, 3]
+
 
 class Test_Depth_0(object):
     def test_depth_0(self):

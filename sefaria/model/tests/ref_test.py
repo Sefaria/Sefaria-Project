@@ -8,6 +8,9 @@ class Test_Ref(object):
     def test_short_names(self):
         ref = Ref(u"Exo. 3:1")
         assert ref.book == u"Exodus"
+        assert Ref("Prov. 3.19")
+        assert Ref("Prov 3.20")
+        assert Ref("Prov.3.21")
 
     def test_normal_form_is_identifcal(self):
         assert Ref("Genesis 2:5").normal() == "Genesis 2:5"
@@ -404,6 +407,7 @@ class Test_Cache(object):
         assert r1 is not r2
 
     def test_tref_bleed(self):
+        # Insure that instanciating trefs are correct for this instance, and don't bleed through the cache.
         Ref(u'שבת לא')
         r = Ref("Shabbat 31a")
         assert r.tref == "Shabbat 31a"
