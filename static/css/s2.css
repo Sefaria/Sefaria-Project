@@ -162,7 +162,7 @@ body .bilingual .enOnly .he {
   height: 100%;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
-  font-size: 12px;
+  font-size: 14px;
 }
 .multiPanel .readerNavMenu .content {
   padding: 80px 25px 10px;
@@ -309,7 +309,7 @@ body .bilingual .enOnly .he {
 .readerNavCategories {
   width: 100%;
   margin-bottom: 30px;
-  font-size: 12px;
+  font-size: 13px;
 }
 .readerNavCategories .threeBox td {
   border: none;
@@ -1142,13 +1142,13 @@ text-align: center;height: 55px;}
   text-transform: uppercase;
   padding: 12px;
   text-align: center;
-  font-size: 14px;
+  font-size: 15px;
   cursor: pointer;
 }
 .textFilter {
   padding: 10px 4px;
   text-align: center;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.2;
   display: block;
   cursor: pointer;
