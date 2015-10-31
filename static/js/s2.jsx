@@ -3,25 +3,36 @@ var sjs = sjs || {};
 
 var ReaderApp = React.createClass({
   propTypes: {
-    panelCount:                  React.PropTypes.number,
+    multiPanel:                  React.PropTypes.bool,
     initialRef:                  React.PropTypes.string,
     initialFilter:               React.PropTypes.array,
     initialMenu:                 React.PropTypes.string,
     initialQuery:                React.PropTypes.string,
     initialSheetsTag:            React.PropTypes.string,
     initialNavigationCategories: React.PropTypes.array,
-    initialSettings:             React.PropTypes.object
+    initialSettings:             React.PropTypes.object,
+    initialPanels:               React.PropTypes.array
   },
   getInitialState: function() {
+    console.log(this.props.initialPanels)
     var panels = [];
-    if (this.props.panelCount == 1) {
+    if (!this.props.multiPanel) {
       panels[0] = ({ref: this.props.initialRef, filter: this.props.initialFilter});
     } else {
-      for (var i=0; i < this.props.panelCount; i++) {
-        var filter = i == 0 ? null : (this.props.initialRef ? (this.props.initialFilter || []) : null);
-        panels.push({ref: this.props.initialRef, filter: filter});
+      var count = this.props.initialPanels.length == 1 && this.props.multiPanel ? 2 : this.props.initialPanels.length;
+      for (var i = 0; i < count; i++) {
+        if (i >= this.props.initialPanels.length || this.props.initialFilter){
+          var filter = i == 0 ? null : (this.props.initialRef ? (this.props.initialFilter || []) : null);
+        if (filter && filter.length === 1 && filter[0] === "all") { filter = []; }
+          panels.push({ref: this.props.initialRef, filter: filter});
+        } else {
+          console.log(this.props.initialPanels[i])
+          panels.push({ref: this.props.initialPanels[i], filter: null});
+        }
       }      
     }
+    console.log(panels)
+    console.log("----")
     return {
       panels: panels
     };
@@ -97,6 +108,7 @@ var ReaderApp = React.createClass({
     // Returns an object with state, title and url params for the current state
     var histories = []; 
     for (var i = 0; i < this.state.panels.length; i++) {
+      // Walk through each panel, create a history object as though for this panel alone
       var hist    = {url: ""};
       var state   = clone(this.state.panels[i]);
       var current = (state.contents && state.contents.length) ? state.contents.slice(-1)[0] : null;
@@ -105,53 +117,76 @@ var ReaderApp = React.createClass({
           case "home":
             hist.title = "Sefaria: a Living Library of Jewish Texts Online";
             hist.url   = "";
+            hist.type  = "home";
             break;
           case "navigation":
             var cats   = state.navigationCategories ? state.navigationCategories.join("/") : "";
             hist.title = cats ? state.navigationCategories.join(", ") + " | Sefaria" : "Texts | Sefaria";
             hist.url   = "texts" + (cats ? "/" + cats : "");
+            hist.type  = "navigation";
             break;
           case "text toc":
             var ref    = state.ref;
             var title  = ref ? parseRef(ref).book : "404";
             hist.title = title + " | Sefaria";
             hist.url   = title.replace(/ /g, "_");
+            hist.type  = "text toc";
             break;
           case "search":
             hist.title = state.searchQuery ? state.searchQuery + " | " : "";
             hist.title += "Sefaria Search";
             hist.url   = "search" + (state.searchQuery ? "?q=" + state.searchQuery : "");
+            hist.type  = "search";
             break;
           case "sheets":
             if (state.navigationSheetTag) { 
               hist.url   = "sheets/tags/" + state.navigationSheetTag; 
               hist.title = state.navigationSheetTag + " | Sefaria Source Sheets";
+              hist.type  = "sheets tag";
             } else {
               hist.url   = "sheets";
               hist.title = "Sefaria Source Sheets";
+              hist.type  = "sheets";
             }
             break;
         }
       } else if (current && current.type === "TextColumn") {
-        hist.title = state.ref;
-        hist.url = normRef(hist.title);
+        hist.title  = state.ref;
+        hist.url    = normRef(hist.title);
+        hist.type   = "TextColumn"
       } else if (current && current.type === "TextList") {
         var sources = state.filter.length ? state.filter[0] : "all";
-        hist.title = current.ref  + " with " + (sources === "all" ? "Connections" : sources);;
-        hist.url = normRef(current.ref) + "?with=" + sources;
+        hist.title  = current.ref  + " with " + (sources === "all" ? "Connections" : sources);;
+        hist.url    = normRef(current.ref) + "?with=" + sources;
+        hist.type   = "TextList"
       } else {
         continue;
       }
       histories.push(hist);     
     }
+
+    // Now merge all history object into one
     var url   = "/" + (histories.length ? histories[0].url : "");
     var title =  histories.length ? histories[0].title : "Sefaria"
     var hist  = {state: this.state, url: url, title: title};
     for (var i = 1; i < histories.length; i++) {
-      var next    = "&p=" + histories[i].url;
-      next        = next.replace("?", "&").replace(/=/g, (i+1) + "=");
-      hist.url   += next;
-      hist.title += " & " + histories[i].title;
+      if (histories[i-1].type === "TextColumn" && histories[i].type === "TextList") {
+        if (i == 1) {
+          // short form for two panels text+commentary - e.g., /Genesis.1?with=Rashi
+          hist.url   = "/" + histories[i].url;
+          hist.title = histories[i].title;
+        } else {
+          var replacer = "&p" + i + "="
+          hist.url    = hist.url.replace(RegExp(replacer + ".*"), "");
+          hist.url   += replacer + histories[i].url.replace("with=", "with" + i + "=").replace("?", "&");
+          hist.title += " & " + histories[i].title; // TODO this doesn't trim title properly
+        }
+      } else {
+        var next    = "&p=" + histories[i].url;
+        next        = next.replace("?", "&").replace(/=/g, (i+1) + "=");
+        hist.url   += next;
+        hist.title += " & " + histories[i].title;
+      }
     }
     hist.url = hist.url.replace(/&/, "?");
 
@@ -175,11 +210,11 @@ var ReaderApp = React.createClass({
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
       console.log("Replace History")
-      console.log(hist);
+      //console.log(hist);
     } else {
       history.pushState(hist.state, hist.title, hist.url);
       console.log("Push History");
-      console.log(hist);
+      //console.log(hist);
     }
     $("title").html(hist.title);
 
@@ -196,7 +231,7 @@ var ReaderApp = React.createClass({
     var update  = JSON.stringify(state);
     if (current !== update) { // Ignore unless state changed
       console.log("Panel update called with " + action + " from " + n);
-      console.log(state);
+      //console.log(state);
       var fullContent = "contents" in this.state.panels[n];
       
       this.state.panels[n] = clone(state);
@@ -266,7 +301,7 @@ var ReaderApp = React.createClass({
     var panels = [];
     for (var i = 0; i < this.state.panels.length; i++) {
       var style                    = {width: width + "%", left: (width * i) + "%"};
-      var multi                    = this.state.panels.length > 1;
+      var multi                    = this.props.multiPanel;
       var handleTextChange         = multi ? this.handleTextChange.bind(null, i) : null;
       var handleSegmentClick       = multi ? this.handleSegmentClick.bind(null, i) : null;
       var handlePanelUpdate        = this.handlePanelUpdate.bind(null, i);
@@ -715,7 +750,7 @@ var ReaderPanel = React.createClass({
     classes[this.state.settings.color]    = 1;
     classes = classNames(classes);
     var style = {"fontSize": this.state.settings.fontSize + "%"};
-    var hideReaderControls = this.props.multiPanel && currentMode === "TextList" && !this.state.filter.compare([]);
+    var hideReaderControls = this.props.multiPanel && currentMode === "TextList" && ![].compare(this.state.filter);
     return (
       <div className={classes}>
         {hideReaderControls ? "" :  
@@ -771,9 +806,9 @@ var ReaderControls = React.createClass({
   },
   render: function() {
     var lineStyle   = {backgroundColor: sjs.categoryColor(this.props.currentCategory())};
-    var title       = this.props.currentBook();
-    var index       = sjs.library.index(title);
-    var heTitle     = index ? index.heTitle : "";
+    var title       = this.props.currentRef();
+    var oref        = sjs.library.ref(title);
+    var heTitle     = oref ? oref.heTitle : title;
     var currentMode = this.props.currentMode();
     var hideHeader  = !this.props.multiPanel && currentMode === "TextList";
 
@@ -1472,7 +1507,6 @@ var TextColumn = React.createClass({
       return;
     }
     if (this.props.textListRef) {
-      console.log("Scroll");
       this.debouncedAdjustTextListHighlight();
     }
     this.adjustInfiniteScroll();   
@@ -1489,11 +1523,11 @@ var TextColumn = React.createClass({
     this.setScrollPosition();
   },  
   setScrollPosition: function() {
-    console.log("ssp")
+    //console.log("ssp")
     // Called on every update, checking flags on this to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-      console.log("loading at top")
+      //console.log("loading at top")
       var $node   = $(React.findDOMNode(this));
       var adjust  = 118; // Height of .loadingMessage.base
       var $texts  = $node.find(".basetext");
@@ -1507,13 +1541,13 @@ var TextColumn = React.createClass({
         console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(React.findDOMNode(this)).find(".segment.highlight").length) {
-      console.log("scroll to highlighted")
+      //console.log("scroll to highlighted")
       // scroll to highlighted segment
       this.scrollToHighlighted();
       this.scrolledToHighlight = true;
       this.initialScrollTopSet = true;
     } else if (!this.initialScrollTopSet) {
-      console.log("initial scroll to 30")
+      // console.log("initial scroll to 30")
       // initial value set below 0 so you can scroll up for previous
       var node = this.getDOMNode();
       node.scrollTop = 30;
@@ -1657,7 +1691,7 @@ var TextColumn = React.createClass({
       var last    = sjs.library.ref(this.props.srefs.slice(-1)[0]);
       var hasPrev = first && first.prev;
       var hasNext = last && last.next;
-      var symbol  = " ";
+      var symbol  = "***";
       if (hasPrev) {
         content.splice(0, 0, (<LoadingMessage className="base prev" key="prev"/>));
       } else {
