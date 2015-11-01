@@ -26,7 +26,8 @@ eras = {
     "Rishonim": "RI",
     "Achronim": "AH",
     "Tannaim": "T",
-    "Amoraim": "A"
+    "Amoraim": "A",
+    "Contemporary": "CO"
 }
 
 def _(p, attr, field):

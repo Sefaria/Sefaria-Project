@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from sefaria.system.database import db
+
 from sefaria.model import *
 import unicodecsv as csv
 import re
@@ -34,8 +36,11 @@ eras = {
     "Contemporary": "CO"
 }
 
+print "Deleting old person records"
 for foo, symbol in eras.iteritems():
-    PersonSet({"era": symbol}).delete()
+    db.person.remove({"era":symbol})
+    # Dependencies take too long here.  Assumption is we're going to wipe any dependencies in the import process
+    #PersonSet({"era": symbol}).delete()
 
 def _(p, attr, field):
     if field:
@@ -47,6 +52,9 @@ with open("Torah Commentators - Bios - People.tsv") as tsv:
     next(tsv)
     for l in csv.reader(tsv, dialect="excel-tab"):
         key = l[0].encode('ascii', errors='ignore')
+        if not key:
+            continue
+        print "{}\n".format(key)
         p = Person().load({"key": key}) or Person()
         p.key = key
         p.name_group.add_title(l[0], "en", primary=True, replace_primary=True)
@@ -100,6 +108,7 @@ with open("Torah Commentators - Bios - People.tsv") as tsv:
     next(tsv)
     next(tsv)
     next(tsv)
+    print "Adding relationships"
     for l in csv.reader(tsv, dialect="excel-tab"):
         key = l[0].encode('ascii', errors='ignore')
         p = Person().load({"key": key})
@@ -107,6 +116,7 @@ with open("Torah Commentators - Bios - People.tsv") as tsv:
             if l[i]:
                 for pkey in l[i].split(","):
                     pkey = pkey.strip().encode('ascii', errors='ignore')
+                    print "{} - {}".format(key, pkey)
                     if Person().load({"key": pkey}):
                         pr = PersonRelationship({
                             "type": type,

@@ -48,11 +48,11 @@ class Place(abst.AbstractMongoRecord):
     ###
 
     # Currently assuming point location
-    def set_location(self, lat, lon):
+    def set_point_location(self, lat, lon):
         self.loc = geojson.Point((lat, lon))
 
     def get_location(self):
-        return geojson.GeoJSON(self.loc)
+        return geojson.loads(self.loc)
 
 class PlaceSet(abst.AbstractMongoSet):
     recordClass = Place
