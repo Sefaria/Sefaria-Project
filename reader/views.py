@@ -37,6 +37,7 @@ from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.datatype.jagged_array import JaggedArray
 import sefaria.utils.calendars
 import sefaria.tracker as tracker
+from sefaria.system.cache import django_cache_decorator
 try:
     from sefaria.settings import USE_VARNISH
 except ImportError:
@@ -320,7 +321,7 @@ def edit_text_info(request, title=None, new_title=None):
                              RequestContext(request))
 
 
-
+@django_cache_decorator(6000)
 def make_toc_html(oref, zoom=1):
     """
     Returns the HTML of a text's Table of Contents, including any alternate structures.
@@ -357,6 +358,7 @@ def make_toc_html(oref, zoom=1):
             tocs   += "<div class='altStruct' " + ("style='display:none'" if item[0] != default_struct else "") + ">" + item[1] + "</div>"
 
         html = "<div id='structToggles'>" + toggle + "</div>" + tocs
+        html = "{% load cache %}{% cache 600000 texts_list %}"
     return html
 
 
