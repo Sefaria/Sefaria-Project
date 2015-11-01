@@ -133,11 +133,12 @@
             .dimension(yearDim)
             .group(yearGroup)
             .elasticY(true)
-            .xUnits(function(){return 40;})
+            .xUnits(function(start, end, xDomain) { return Math.abs(end - start) / 40; }) // years in the domain / 40
             .round(dc.round.floor)
             .x(d3.scale.linear().domain(d3.extent(stops, function (d) { return d.start; })));   // Can we do this in Crossfilter?
         timeline.yAxis().tickFormat(d3.format("d"));
         timeline.xAxis().tickFormat(d3.format("d"));
+
 
         // tags chart
         function reduceAdd(p, v) {
@@ -166,7 +167,7 @@
         tagsGroup.all = function() {
             var newObject = [];
             for (var key in this) {
-                if (this[key] && key != "all") {
+                if (this.hasOwnProperty(key) && this[key] && key != "all" && key != "top") {
                     newObject.push({
                         key: key,
                         value: this[key]
