@@ -815,7 +815,7 @@ var ReaderControls = React.createClass({
     var centerContent = this.props.multiPanel && currentMode === "TextList" ?
       (<div className="readerTextToc">
           <span className="en">Select Connection</span>
-          <span className="he">חיבור בחר</span>
+          <span className="he">בחר חיבור</span>
         </div>) :
       (<div className="readerTextToc" onClick={this.props.openMenu.bind(null, "text toc")}>
           { title ? (<i className="fa fa-caret-down invisible"></i>) : "" }
