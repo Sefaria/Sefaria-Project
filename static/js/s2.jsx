@@ -267,18 +267,16 @@ var ReaderApp = React.createClass({
       this.state.panels.push({ref: ref, filter: []});
       this.setState({panels: this.state.panels});
     } else if (n+1 < this.state.panels.length) {
-      var next = this.state.panels[n+1];
-      if (next && next.filter) {
-        // Update the next panel existing TextList
-        next.ref = ref;
-        next.contents = [{type: "TextList", ref: ref}];
-        this.setState({panels: this.state.panels});
-      } else {
-        // Update the next panel which is not a TextList
-        //this.state.panels.splice(n+1, 0, {ref: ref, filter: []}); // Splice in new TextList
-        next.ref = ref;
-        next.contents = [{type: "TextList", ref: ref}];
-      }
+      // Update the next panel to be a TextList
+      var next  = this.state.panels[n+1];
+      var oref1 = sjs.library.ref(next.ref);
+      var oref2 = sjs.library.ref(ref);
+      // If this is a new text reset the filter
+      next.filter = oref1.book === oref2.book ? next.filter : [];
+      next.ref = ref;
+      next.contents = [{type: "TextList", ref: ref}];
+      this.setState({panels: this.state.panels});
+
     }
   },
   setTextListHighlightFrom: function(n, ref) {
@@ -290,6 +288,10 @@ var ReaderApp = React.createClass({
     }
     var nextContent = next && next.contents && next.contents.length ? next.contents.slice(-1)[0] : null
     if ((nextContent && nextContent.type === "TextList") || (!nextContent && !next.menuOpen)) {
+      var oref1   = sjs.library.ref(next.ref);
+      var oref2   = sjs.library.ref(ref);
+      // If this is a new text reset the filter
+      next.filter = oref1.book === oref2.book ? next.filter : [];
       next.ref = ref;
       next.contents = [{type: "TextList", ref: ref}];
       this.setState({panels: this.state.panels});
@@ -1456,6 +1458,7 @@ var ReaderNavigationMenuDisplaySettingsButton = React.createClass({
     return (<div className="readerOptions" onClick={this.props.onClick}><img src="/static/img/bilingual2.png" /></div>);
   }
 });
+
 
 var TextColumn = React.createClass({
   // An infinitely scrollable column of text, composed of TextRanges for each section.
