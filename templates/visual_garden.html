@@ -105,8 +105,8 @@
 
         var stops = {{ stops }};
         stops.forEach(function (d) {
-            d.start = +d.end; // coerce to number
-            d.end = +d.start;
+            d.start = +d.start; // coerce to number
+            d.end = +d.end;
         });
         var stopx = crossfilter(stops);
         var all = stopx.groupAll();
@@ -126,17 +126,23 @@
 
 
         // <br>API: [Bar Chart](https://github.com/dc-js/dc.js/blob/master/web/docs/api-latest.md#bar-chart)
+        var tl_extent = d3.extent(stops, function (d) { return d.start; });
+        tl_extent[0] -= 50;
+        tl_extent[1] += 50;
+
         timeline
             .width(820)
             .height(180)
             .margins({top: 10, right: 50, bottom: 30, left: 40})
             .dimension(yearDim)
             .group(yearGroup)
-            .elasticY(true)
+            //.elasticY(true)
             .xUnits(function(start, end, xDomain) { return Math.abs(end - start) / 40; }) // years in the domain / 40
             .round(dc.round.floor)
-            .x(d3.scale.linear().domain(d3.extent(stops, function (d) { return d.start; })));   // Can we do this in Crossfilter?
-        timeline.yAxis().tickFormat(d3.format("d"));
+            //.y(d3.scale.log().domain([.5, timeline.yAxisMax()]))
+            .x(d3.scale.linear().domain(tl_extent));   // Can we do this in Crossfilter?
+        //timeline.y(d3.scale.log().domain([.5, timeline.yAxisMax()]));
+        timeline.yAxis().ticks(5, d3.format("d"));
         timeline.xAxis().tickFormat(d3.format("d"));
 
 

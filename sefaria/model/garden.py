@@ -286,7 +286,7 @@ class GardenStop(abst.AbstractMongoRecord):
                 self.placeKey = placeKey
                 self.placeNameEn = pobj.primary_name("en")
                 self.placeNameHe = pobj.primary_name("he")
-                self.placeGeo = pobj.get_location()
+                #self.placeGeo = pobj.get_location()
 
             if getattr(i, "compDate", None):
                 errorMargin = int(getattr(i, "errorMargin", 0))
