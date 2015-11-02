@@ -445,6 +445,7 @@ def hebrew_term(s):
 
 	section_names = {
 		"Chapter":          u"פרק",
+		"Chapters":	    u"פרקים",
 		"Perek":            u"פרק",
 		"Line":             u"שורה",
 		"Daf":              u"דף",

@@ -1632,7 +1632,6 @@ class Ref(object):
         base = parts[0]
         title = None
 
-        #match = library.all_titles_regex(self._lang, with_terms=True).match(base)
         tndict = library.get_title_node_dict(self._lang, with_commentary=True)
         termdict = library.get_term_dict(self._lang)
         for l in range(len(base), 0, -1):
@@ -1641,6 +1640,8 @@ class Ref(object):
 
             if self.index_node:
                 title = base[0:l]
+                if base[l - 1] == ".":   # Take care of Refs like "Exo.14.15", where the period shouldn't get swallowed in the name.
+                    title = base[0:l - 1]
                 break
             if new_tref:
                 self.__reinit_tref(new_tref)
@@ -1693,7 +1694,7 @@ class Ref(object):
                 raise InputError(u"Unrecognized Index record: {}".format(base))
 
         if title is None:
-            raise InputError(u"Could not resolve reference: {}".format(self.tref))
+            raise InputError(u"Could not find title in reference: {}".format(self.tref))
 
         self.type = self.index_node.index.categories[0]
 
@@ -1780,7 +1781,7 @@ class Ref(object):
                             return
 
         if not self.sections:
-            raise InputError(u"Failed to parse ref {}".format(self.orig_tref))
+            raise InputError(u"Failed to parse sections for ref {}".format(self.orig_tref))
 
         self.toSections = self.sections[:]
 
@@ -1812,7 +1813,7 @@ class Ref(object):
         sections = []
         ref_match = reg.match(tref)
         if not ref_match:
-            raise InputError(u"Can not parse ref: {}".format(tref))
+            raise InputError(u"Can not parse sections from ref: {}".format(tref))
 
         gs = ref_match.groupdict()
         for i in range(0, use_node.depth):

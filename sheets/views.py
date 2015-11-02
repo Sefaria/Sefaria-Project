@@ -122,7 +122,9 @@ def make_sheet_class_string(sheet):
 	if o.get("numbered", False):  classes.append("numbered")
 	if o.get("boxed", False):     classes.append("boxed")
 
-	if sheet["status"] is "public": classes.append("public")
+	if sheet["status"] == "public":
+		classes.append("public")
+   
 
 	return " ".join(classes)
 
@@ -173,6 +175,53 @@ def view_sheet(request, sheet_id):
 												"like_count": like_count,
 												"viewer_is_liker": viewer_is_liker,
 												"current_url": request.get_full_path,
+											}, RequestContext(request))
+
+def view_visual_sheet(request, sheet_id):
+	"""
+	View the sheet with sheet_id.
+	"""
+	sheet = get_sheet(sheet_id)
+	if "error" in sheet:
+		return HttpResponse(sheet["error"])
+	
+	sheet["sources"] = annotate_user_links(sheet["sources"])
+
+	# Count this as a view
+	db.sheets.update({"id": int(sheet_id)}, {"$inc": {"views": 1}})
+
+	try:
+		owner = User.objects.get(id=sheet["owner"])
+		author = owner.first_name + " " + owner.last_name
+		owner_groups = get_user_groups(request.user) if sheet["owner"] == request.user.id else None
+	except User.DoesNotExist:
+		author = "Someone Mysterious"
+		owner_groups = None
+
+	sheet_class     = make_sheet_class_string(sheet)
+	can_edit_flag   = can_edit(request.user, sheet)
+	can_add_flag    = can_add(request.user, sheet)
+	sheet_group     = Group().load({"name": sheet["group"]}) if "group" in sheet and sheet["group"] != "None" else None
+	embed_flag      = "embed" in request.GET
+	likes           = sheet.get("likes", [])
+	like_count      = len(likes)
+	viewer_is_liker = request.user.id in likes
+
+
+	return render_to_response('sheets_visual.html',{"sheetJSON": json.dumps(sheet), 
+													"sheet": sheet,
+													"sheet_class": sheet_class,
+													"can_edit": can_edit_flag, 
+													"can_add": can_add_flag,
+													"title": sheet["title"],
+													"author": author,
+													"is_owner": request.user.id == sheet["owner"],
+													"is_public": sheet["status"] == "public",
+													"owner_groups": owner_groups,
+													"sheet_group":  sheet_group,
+													"like_count": like_count,
+													"viewer_is_liker": viewer_is_liker,
+													"current_url": request.get_full_path,
 											}, RequestContext(request))
 
 
@@ -535,6 +584,20 @@ def update_sheet_tags_api(request, sheet_id):
 	"""
 	tags = json.loads(request.POST.get("tags"))
 	return jsonResponse(update_sheet_tags(int(sheet_id), tags))
+
+def visual_sheet_api(request, sheet_id):
+	"""
+	API for visual source sheet layout
+	"""	
+	if not request.user.is_authenticated():
+		return {"error": "You must be logged in to save a sheet layout."}
+	if request.method != "POST":
+		return jsonResponse({"error": "Unsupported HTTP method."})
+		
+	visualNodes = json.loads(request.POST.get("visualNodes"))	
+	zoomLevel =  json.loads(request.POST.get("zoom"))	
+	add_visual_data(int(sheet_id), visualNodes, zoomLevel)
+	return jsonResponse({"status": "ok"})
 
 
 def like_sheet_api(request, sheet_id):
