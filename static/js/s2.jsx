@@ -1691,7 +1691,7 @@ var TextColumn = React.createClass({
       var last    = sjs.library.ref(this.props.srefs.slice(-1)[0]);
       var hasPrev = first && first.prev;
       var hasNext = last && last.next;
-      var symbol  = "***";
+      var symbol  = "♦";
       if (hasPrev) {
         content.splice(0, 0, (<LoadingMessage className="base prev" key="prev"/>));
       } else {

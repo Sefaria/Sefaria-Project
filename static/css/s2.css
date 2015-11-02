@@ -1040,13 +1040,13 @@ body .bilingual .enOnly .he {
   overflow: hidden;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
-  padding: 40px 30px 40px;
+  padding: 40px 30px;
 }
 .textList.fullPanel .texts {
   padding: 0 50px 300px;
 }
 .textList .fullFilterView {
-  padding: 50px 40px;
+  padding: 50px 30px;
 }
 .textListTop {
   position: absolute;
