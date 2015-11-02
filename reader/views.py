@@ -321,7 +321,6 @@ def edit_text_info(request, title=None, new_title=None):
                              RequestContext(request))
 
 
-@django_cache_decorator(6000)
 def make_toc_html(oref, zoom=1):
     """
     Returns the HTML of a text's Table of Contents, including any alternate structures.
