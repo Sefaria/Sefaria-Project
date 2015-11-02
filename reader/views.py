@@ -320,7 +320,7 @@ def edit_text_info(request, title=None, new_title=None):
                              },
                              RequestContext(request))
 
-
+@django_cache_decorator(6000)
 def make_toc_html(oref, zoom=1):
     """
     Returns the HTML of a text's Table of Contents, including any alternate structures.
@@ -357,7 +357,6 @@ def make_toc_html(oref, zoom=1):
             tocs   += "<div class='altStruct' " + ("style='display:none'" if item[0] != default_struct else "") + ">" + item[1] + "</div>"
 
         html = "<div id='structToggles'>" + toggle + "</div>" + tocs
-        html = "{% load cache %}{% cache 600000 texts_list %}"
     return html
 
 
