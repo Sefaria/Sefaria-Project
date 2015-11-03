@@ -14,7 +14,8 @@ import unicodecsv as csv
 
 PlaceSet().delete()
 try:
-    db.place.create_index([("loc", pymongo.GEOSPHERE)])
+    db.place.create_index([("point", pymongo.GEOSPHERE)])
+    db.place.create_index([("area", pymongo.GEOSPHERE)])
 except Exception as e:
     print "Failed to create GEO index: {}".format(e)
 
@@ -35,9 +36,7 @@ with open("Torah Commentators - Bios - Places.tsv") as tsv:
         if l[1]:
             p.name_group.add_title(l[1], "he", primary=True, replace_primary=True)
 
-        if (not l[2]) and l[3]:
-            p.loc = geojson.loads(l[3])
-        elif l[2]:
+        if l[2]:
             latlon = []
             try:
                 latlon = [float(_) for _ in l[2].split(",")]
@@ -47,7 +46,9 @@ with open("Torah Commentators - Bios - Places.tsv") as tsv:
                 continue
             if len(latlon) != 2:
                 continue
-            p.set_point_location(latlon[0], latlon[1])
-        else:
-            continue
-        p.save()
+            p.point_location(latlon[1], latlon[0])
+        if l[3]:
+            p.area_location(geojson.loads(l[3]))
+
+        if l[2] or l[3]:
+            p.save()

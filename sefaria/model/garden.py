@@ -58,6 +58,10 @@ class Garden(abst.AbstractMongoRecord):
             res.append((k, [s.contents() for s in g]))
         return res
 
+    def placeSet(self):
+        pkeys = self.stopSet().distinct("placeKey")
+        return place.PlaceSet({"key": {"$in": pkeys}})
+
     def stopsByAuthor(self):
         from . import person
 
@@ -69,7 +73,7 @@ class Garden(abst.AbstractMongoRecord):
             if not k:
                 unknown.extend([s.contents() for s in g])
             else:
-                res.append(([person.Person().load({"key":p}) for p in k], [s.contents() for s in g]))
+                res.append(([person.Person().load({"key": p}) for p in k], [s.contents() for s in g]))
         res.append(("unknown", unknown))
         return res
 
@@ -250,7 +254,7 @@ class GardenStop(abst.AbstractMongoRecord):
         'placeKey',
         'placeNameEn',
         'placeNameHe',
-        'placeGeo',
+        'placeGeo',  # keep this here?  Break into point and area?  "area or point"?
         'authors',
         'indexTitle',
         'timePeriodEn',

@@ -52,10 +52,6 @@
         </span>
     </span>
 
-    <div id="map-chart">
-
-    </div>
-
     <span class="row">
         <span class="span2">
             <div id="tags-list">
@@ -70,21 +66,32 @@
             </div>
         </span>
         <span class="span9">
+            <div id="map-chart">
+                <div style="height: 30px;">
+                    <span class='reset' style='display: none;'>
+                      Current filter: <span class='filter'></span>
+                    </span>
+                    <a class='reset'
+                      href='javascript:mapchart.filterAll();dc.redrawAll();'
+                      style='display: none;'>reset</a>
+                </div>
+            </div>
+        </span>
+    </span>
+    <span class="row">
+        <span class="span9">
              <span class="row" style="height: 30px;">
-                    <span class="span9">
-                        <div id="data-count">
-                        </div>
-                    </span>
+                <span class="span9">
+                    <div id="data-count">
+                    </div>
                 </span>
-                <span class="row">
-                    <span class="span9">
-
-                        <table id="results-table">
-
-                        </table>
-                    </span>
+            </span>
+            <span class="row">
+                <span class="span9">
+                    <table id="results-table">
+                    </table>
                 </span>
-
+            </span>
         </span>
     </span>
 
@@ -101,9 +108,11 @@
         var tagslist = dc.rowChart("#tags-list");
         var results = dc.dataTable("#results-table");
         var datacount = dc.dataCount("#data-count");
-
+        var mapchart = dc.geoChoroplethChart("#map-chart");
 
         var stops = {{ stops }};
+        var places = {{ places }};
+
         stops.forEach(function (d) {
             d.start = +d.start; // coerce to number
             d.end = +d.end;
@@ -114,6 +123,8 @@
         var yearGroup = yearDim.group();
         //var refDim = stopx.dimension(function(d) {return d.ref; });
         var weightDim = stopx.dimension(function(d) {return d.weight; });
+        var placeDim = stopx.dimension(function(d) { return d.placeKey; });
+        var placeGroup = placeDim.group();
 
         datacount
             .dimension(stopx)
@@ -136,12 +147,11 @@
             .margins({top: 10, right: 50, bottom: 30, left: 40})
             .dimension(yearDim)
             .group(yearGroup)
-            //.elasticY(true)
+            .elasticY(true)
             .xUnits(function(start, end, xDomain) { return Math.abs(end - start) / 40; }) // years in the domain / 40
             .round(dc.round.floor)
-            //.y(d3.scale.log().domain([.5, timeline.yAxisMax()]))
-            .x(d3.scale.linear().domain(tl_extent));   // Can we do this in Crossfilter?
-        //timeline.y(d3.scale.log().domain([.5, timeline.yAxisMax()]));
+            .y(d3.scale.pow().domain([0, timeline.yAxisMax()]).range([140,0]).exponent(.5))
+            .x(d3.scale.linear().domain(tl_extent));
         timeline.yAxis().ticks(5, d3.format("d"));
         timeline.xAxis().tickFormat(d3.format("d"));
 
@@ -220,6 +230,20 @@
                 return filters;
             });
         tagslist.xAxis().tickFormat(d3.format("d"));
+
+        mapchart.width(990)
+            .height(500)
+            .projection(d3.geo.mercator())
+            .dimension(placeDim)
+            .group(placeGroup)
+            .colors(d3.scale.quantize().range(["#E2F2FF", "#C4E4FF", "#9ED2FF", "#81C5FF", "#6BBAFF", "#51AEFF", "#36A2FF", "#1E96FF", "#0089FF", "#0061B5"]))
+            .colorDomain([0, 200])
+            .colorCalculator(function (d) { return d ? mapchart.colors()(d) : '#ccc'; })
+            .overlayGeoJson(places.features, "placeLayer", function (d) {
+                return d.id;
+            });
+        //Does this really optimize?  d3.geo.bounds(places)
+
 
         results
             .dimension(weightDim)
