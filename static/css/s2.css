@@ -219,8 +219,8 @@ body .bilingual .enOnly .he {
   cursor: pointer;
 }
 .readerNavTop .readerNavMenuCloseButton{
-  font-size: 36px;
-  padding: 10px 0;
+  font-size: 46px;
+  padding: 0;
 }
 .readerNavTop .readerNavMenuSearchButton {
   left: 36px;
@@ -265,9 +265,14 @@ body .bilingual .enOnly .he {
   margin-top: -16px;
   font-size: 15px;
   height: 60px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: lighter;
   letter-spacing: 1px;
+}
+.readerNavMenu .tagline .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.readerNavMenu .tagline .he {
+  font-family: "Open Sans Hebrew", sans-serif;
 }
 .readerNavMenu .navToggles {
   text-align: center;
@@ -297,10 +302,15 @@ body .bilingual .enOnly .he {
   text-align: center;
   font-size: 15px;
   font-weight: 200;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #9B9B9B;
   margin-bottom: 20px;
   letter-spacing: 2px;
+}
+.readerPanel h2 .en, .readerPanel h3 .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.readerPanel h2 .he, .readerPanel h3 .he {
+  font-family: "Open Sans Hebrew", sans-serif;
 }
 .readerNavMenu h3 {
   font-size: 13px;
@@ -373,6 +383,12 @@ body .bilingual .enOnly .he {
   display: inline-block;
   margin: 0 8px;
   font-size: 12px;
+}
+.readerNavMenu .siteLinks .siteLink .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.readerNavMenu .siteLinks .siteLink .he {
+  font-family: "Open Sans Hebrew", sans-serif;
 }
 .readerNavMenu .siteLink .fa {
   margin: 0 4px;

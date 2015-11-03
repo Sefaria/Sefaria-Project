@@ -1324,7 +1324,8 @@ var SheetsNav = React.createClass({
     this.props.setSheetTag("Your Sheets");    
   },
   render: function() {
-    var title = this.state.tag || "Source Sheets";
+    var enTitle = this.state.tag || "Source Sheets";
+    var heTitle = this.state.tag || "Source Sheets";
 
     if (this.state.tag) {
       var sheets = this.state.sheets.map(function(sheet) {
@@ -1351,10 +1352,10 @@ var SheetsNav = React.createClass({
         var tagList      = this.state.tagList.map(makeTagButton);
         var content = (<div className="content">
                         {yourSheets}
-                        <h2>Trending Tags</h2>
+                        <h2><span className="en">Trending Tags</span><span className="he">Trending Tags</span></h2>
                         {trendingTags}
                         <br /><br />
-                        <h2>All Tags</h2>
+                        <h2><span className="en">All Tags</span><span className="he">All Tags</span></h2>
                         {tagList}
                        </div>);
       } else {
@@ -1365,7 +1366,7 @@ var SheetsNav = React.createClass({
     return (<div className="readerSheetsNav readerNavMenu">
               <div className="readerNavTop searchOnly">
                 <ReaderNavigationMenuSearchButton onClick={this.props.openNav} />
-                <h2>{title}</h2>
+                <h2><span className="en">{enTitle}</span><span className="he">{heTitle}</span></h2>
               </div>
               {content}
             </div>);
@@ -1694,7 +1695,7 @@ var TextColumn = React.createClass({
       var last    = sjs.library.ref(this.props.srefs.slice(-1)[0]);
       var hasPrev = first && first.prev;
       var hasNext = last && last.next;
-      var symbol  = "♢♢♢";
+      var symbol  = "~";
       if (hasPrev) {
         content.splice(0, 0, (<LoadingMessage className="base prev" key="prev"/>));
       } else {

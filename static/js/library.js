@@ -502,6 +502,7 @@ sjs.library = {
       "Parshanut":            "פרשנות",
       "Philosophy":           "מחשבת ישראל",
       "Apocrypha":            "ספרים חיצונים",
+      "Modern Works":         "עבודות מודרניות",
       "Seder Zeraim":         "סדר זרעים",
       "Seder Moed":           "סדר מועד",
       "Seder Nashim":         "סדר נשים",
