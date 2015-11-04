@@ -332,10 +332,15 @@ sjs.library = {
   sectionString: function(ref) {
     // Returns a pair of nice strings (en, he) of the sections indicated in ref. e.g.,
     // "Genesis 4" -> "Chapter 4", "Guide for the Perplexed, Introduction" - > "Introduction"
-    var data = this.text(ref) || this.text(ref, {context: 1});
-    if (!data) { return ""; }
-    var result = {};
+    console.log("Section String for " + ref);
+    var data = this.ref(ref);
+    var result = { 
+          en: {named: "", numbered: ""}, 
+          he: {named: "", numbered: ""}
+        };
+    if (!data) { return result; }
 
+    // English
     var sections = ref.slice(data.indexTitle.length+1);
     var name = data.sectionNames.length > 1 ? data.sectionNames[0] + " " : "";
     if (data.isComplex) {
@@ -349,8 +354,10 @@ sjs.library = {
     } else {
       var string = name + sections;
     }
-    result["en"] = string;
+    result.en.named    = string;
+    result.en.numbered = sections;
 
+    // Hebrew
     var sections = data.heRef.slice(data.heIndexTitle.length+1);
     var name = ""; // missing he section names // data.sectionNames.length > 1 ? " " + data.sectionNames[0] : "";
     if (data.isComplex) {
@@ -365,8 +372,10 @@ sjs.library = {
     } else {
       var string = name + sections;
     }
-    result["he"] = string;
+    result.he.named    = string;
+    result.he.numbered = sections;
 
+    console.log(result)
     return result;
   },
   _textTocHtml: {},

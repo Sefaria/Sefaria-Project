@@ -474,6 +474,7 @@ body .bilingual .enOnly .he {
 .readerTextTableOfContents #structToggles .altStructToggle {
   color: #999;
   display: inline-block;
+  cursor: pointer;
 }
 .readerTextTableOfContents .content .sectionName {
   display: none;

@@ -14,7 +14,6 @@ var ReaderApp = React.createClass({
     initialPanels:               React.PropTypes.array
   },
   getInitialState: function() {
-    console.log(this.props.initialPanels)
     var panels = [];
     if (!this.props.multiPanel) {
       panels[0] = ({ref: this.props.initialRef, filter: this.props.initialFilter});
@@ -26,13 +25,10 @@ var ReaderApp = React.createClass({
         if (filter && filter.length === 1 && filter[0] === "all") { filter = []; }
           panels.push({ref: this.props.initialRef, filter: filter});
         } else {
-          console.log(this.props.initialPanels[i])
           panels.push({ref: this.props.initialPanels[i], filter: null});
         }
       }      
     }
-    console.log(panels)
-    console.log("----")
     return {
       panels: panels
     };
@@ -51,8 +47,8 @@ var ReaderApp = React.createClass({
       sjs.track.event("Reader", "Pop State", kind);
       this.justPopped = true;
       this.setState(state);
-      console.log("Pop");
-      console.log(state);
+      //console.log("Pop");
+      //console.log(state);
     }
   },
   shouldHistoryUpdate: function() {
@@ -197,23 +193,21 @@ var ReaderApp = React.createClass({
   },
   updateHistoryState: function(replace) {
     if (!this.shouldHistoryUpdate()) { 
-      console.log("Skipping state update - shouldn't update")
       return; }
 
     if (this.justPopped) {
       // Don't let a pop trigger a push
-      console.log("Skipping state update - just popped")
       this.justPopped = false;
       return;
     }
     var hist = this.makeHistoryState();
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
-      console.log("Replace History")
+      //console.log("Replace History")
       //console.log(hist);
     } else {
       history.pushState(hist.state, hist.title, hist.url);
-      console.log("Push History");
+      //console.log("Push History");
       //console.log(hist);
     }
     $("title").html(hist.title);
@@ -227,38 +221,41 @@ var ReaderApp = React.createClass({
   },
   handlePanelUpdate: function(n, action, state) {
     // When panel `n` wants to change history with `action` (either "push" or "replace"), update with `state`
+    // Dirty check with JSON to see if this object has changed or not
     var current = JSON.stringify(this.state.panels[n]);
     var update  = JSON.stringify(state);
     if (current !== update) { // Ignore unless state changed
-      console.log("Panel update called with " + action + " from " + n);
+      //console.log("Panel update called with " + action + " from " + n);
+      //console.log(state.settings.language)
       //console.log(state);
       var fullContent = "contents" in this.state.panels[n];
       
       this.state.panels[n] = clone(state);
       if (this.state.panels.length > n+1) {
-        // If there is a panel following the one currently updated,
-        // and it is empty, make it a TextList for the current panel.
+        // If there is a panel open after the one currently updated and it is empty,
+        // make it a TextList for the current panel.
         var next = this.state.panels[n+1];
         if (!next.ref && state.ref) {
           next.ref      = state.ref;
           next.filter   = [];
           next.contents = [{type: "TextList", ref: state.ref}];
+          if (next.settings.language !== state.settings.language) {
+            // When the driving panel changes langauge, carry that to the dependent panel
+            console.log("setting dependent language")
+            next.settings.language = state.settings.language;
+          }
         }
       }
       this.setState({panels: this.state.panels});
 
       // Don't push history if the panel in the current state was self-generated
-      // Allows the panels to load initially without each panel trigger a history push
+      // Allows the panels to load initially without each panel triggering a history push
       var replace = action === "replace" || !fullContent;
       this.updateHistoryState(replace);
     } else { 
       //console.log("skipping")
     }
 
-  },
-  handleTextChange: function(n, ref) {
-    // When panel `n` navigates to a new text `ref`, reflect the change in the top level state.
-    return;
   },
   handleSegmentClick: function(n, ref) {
     // Handle a click on a text segment `ref` in from panel in position `n`
@@ -267,11 +264,11 @@ var ReaderApp = React.createClass({
       this.state.panels.push({ref: ref, filter: []});
       this.setState({panels: this.state.panels});
     } else if (n+1 < this.state.panels.length) {
-      // Update the next panel to be a TextList
+      // Update the panel after this one to be a TextList
       var next  = this.state.panels[n+1];
       var oref1 = sjs.library.ref(next.ref);
       var oref2 = sjs.library.ref(ref);
-      // If this is a new text reset the filter
+      // If this is a new text reset the filter, otherwise keep the current filter
       next.filter = oref1.book === oref2.book ? next.filter : [];
       next.ref = ref;
       next.contents = [{type: "TextList", ref: ref}];
@@ -304,7 +301,6 @@ var ReaderApp = React.createClass({
     for (var i = 0; i < this.state.panels.length; i++) {
       var style                    = {width: width + "%", left: (width * i) + "%"};
       var multi                    = this.props.multiPanel;
-      var handleTextChange         = multi ? this.handleTextChange.bind(null, i) : null;
       var handleSegmentClick       = multi ? this.handleSegmentClick.bind(null, i) : null;
       var handlePanelUpdate        = this.handlePanelUpdate.bind(null, i);
       var setTextListHightlight    = this.setTextListHighlightFrom.bind(null, i);
@@ -321,7 +317,6 @@ var ReaderApp = React.createClass({
                       initialState={panel}
                       multiPanel={multi}
                       textListRef={textListRef}
-                      handleTextChange={handleTextChange}
                       handleSegmentClick={handleSegmentClick}
                       historyUpdate={handlePanelUpdate}
                       setTextListHightlight={setTextListHightlight} />
@@ -342,7 +337,6 @@ var ReaderApp = React.createClass({
                         initialNavigationCategories={this.props.initialNavigationCategories}
                         initialSettings={clone(this.props.initialSettings)}
                         multiPanel={multi}
-                        handleTextChange={handleTextChange}
                         handleSegmentClick={handleSegmentClick}
                         historyUpdate={handlePanelUpdate}
                         textListRef={textListRef} />
@@ -1239,8 +1233,8 @@ var ReaderTextTableOfContents = React.createClass({
     var title     = this.props.text;
     var heTitle   = sjs.library.index(title) ? sjs.library.index(title).heTitle : title;
 
-    var section   = sjs.library.sectionString(this.props.currentRef).en;
-    var heSection = sjs.library.sectionString(this.props.currentRef).he;
+    var section   = sjs.library.sectionString(this.props.currentRef).en.named;
+    var heSection = sjs.library.sectionString(this.props.currentRef).he.named;
 
     var lineStyle = {backgroundColor: sjs.categoryColor(this.props.category)};
 
@@ -1542,7 +1536,7 @@ var TextColumn = React.createClass({
         this.initialScrollTopSet = true;
         this.justScrolled = true;
         this.getDOMNode().scrollTop = top;
-        console.log(top)
+        //console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(React.findDOMNode(this)).find(".segment.highlight").length) {
       //console.log("scroll to highlighted")
@@ -1591,7 +1585,7 @@ var TextColumn = React.createClass({
         topRef = refs[0];
         data   = sjs.library.ref(topRef);
         if (data && data.prev) {
-          console.log("up!")
+          //console.log("up!")
           refs.splice(refs, 0, data.prev);
           this.loadingContentAtTop = true;
           this.props.updateTextColumn(refs);
@@ -1695,16 +1689,17 @@ var TextColumn = React.createClass({
       var last    = sjs.library.ref(this.props.srefs.slice(-1)[0]);
       var hasPrev = first && first.prev;
       var hasNext = last && last.next;
-      var symbol  = "~";
+      var topSymbol  = " ";
+      var bottomSymbol = "***"
       if (hasPrev) {
         content.splice(0, 0, (<LoadingMessage className="base prev" key="prev"/>));
       } else {
-        content.splice(0, 0, (<LoadingMessage message={symbol} heMessage={symbol} className="base prev" key="prev"/>));        
+        content.splice(0, 0, (<LoadingMessage message={topSymbol} heMessage={topSymbol} className="base prev" key="prev"/>));        
       }
       if (hasNext) {
         content.push((<LoadingMessage className="base next" key="next"/>));
       } else {
-        content.push((<LoadingMessage message={symbol} heMessage={symbol} className="base next" key="next"/>));
+        content.push((<LoadingMessage message={bottomSymbol} heMessage={bottomSymbol} className="base next" key="next"/>));
 
       }
     }
@@ -1767,7 +1762,6 @@ var TextRange = React.createClass({
       }
     }
     if (this.props.onTextLoad && !prevState.loaded && this.state.loaded) {
-      console.log("Loaded " + this.props.sref)
       this.props.onTextLoad();
     }
   },
@@ -1899,8 +1893,10 @@ var TextRange = React.createClass({
     if (this.props.basetext && this.state.loaded) {
       var ref              = this.props.withContext ? this.state.data.sectionRef : this.state.data.ref;
       var sectionStrings   = sjs.library.sectionString(ref);
-      var title            = sectionStrings.en;
-      var heTitle          = sectionStrings.he;   
+      var oref             = sjs.library.ref(ref);
+      var useShortString   = oref && $.inArray(oref.categories[0], ["Tanach", "Mishnah", "Talmud", "Tosefta", "Commentary"]) !== -1;
+      var title            = useShortString ? sectionStrings.en.numbered : sectionStrings.en.named;
+      var heTitle          = useShortString ? sectionStrings.he.numbered : sectionStrings.he.named;   
     } else if (this.props.basetext) {
       var title            = "Loading...";
       var heTitle          = "טעינה...";      
