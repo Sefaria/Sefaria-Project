@@ -764,6 +764,14 @@ stroke: none
   width: 30px;
 }
 
+#visualGardenPage #map-chart path {
+  stroke-width: 1;
+  stroke: black;
+}
+#visualGardenPage #map-chart .selected path {
+  stroke-width: 2;
+  stroke: red;
+}
 
 #editButtons {
   display: none;
