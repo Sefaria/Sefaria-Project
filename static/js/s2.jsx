@@ -605,7 +605,9 @@ var ReaderPanel = React.createClass({
     }
 
     this.state.settings[option] = value;
-    this.setState({settings: this.state.settings});
+    var state = {settings: this.state.settings};
+    if (option !== "fontSize") { state.displaySettingsOpen = false; }
+    this.setState(state);
     $.cookie(option, value, {path: "/"});
     if (option === "language") {
       $.cookie("contentLang", value, {path: "/"});
