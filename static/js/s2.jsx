@@ -283,11 +283,11 @@ var ReaderApp = React.createClass({
     }
     var nextContent = next && next.contents && next.contents.length ? next.contents.slice(-1)[0] : null
     if ((nextContent && nextContent.type === "TextList") || (!nextContent && !next.menuOpen)) {
-      var oref1   = sjs.library.ref(next.ref);
-      var oref2   = sjs.library.ref(ref);
-      // If this is a new text reset the filter
-      next.filter = oref1.book === oref2.book ? next.filter : [];
-      next.ref = ref;
+      var book1     = sjs.library.ref(next.ref) ? sjs.library.ref(next.ref).indexTitle : "";
+      var book2     = sjs.library.ref(ref) ? sjs.library.ref(ref).indexTitle : "";
+      // If we're now highlighting a new text, reset the filter
+      next.filter   = (book1 === book2 ? next.filter : []);
+      next.ref      = ref;
       next.contents = [{type: "TextList", ref: ref}];
       this.setState({panels: this.state.panels});
     }
