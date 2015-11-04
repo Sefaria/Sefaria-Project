@@ -254,6 +254,13 @@
         ;
 
         var mapchart = dc.geoChoroplethChart("#map-chart");
+        var valueDomain = [0, placeGroup.top(1)[0].value];
+        var maxPointRadius = Math.min(width, height) / 40,
+            minPointRadius = maxPointRadius / 2;
+
+        var pointScale = d3.scale.linear()
+                .domain(valueDomain)
+                .range([minPointRadius, maxPointRadius]);
 
         mapchart.width(width)
             .height(height)
@@ -261,12 +268,15 @@
             .dimension(placeDim)
             .group(placeGroup)
             .colors(d3.scale.quantize().range(['#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026']))
-            .colorDomain([0, 200])
+            .colorDomain(valueDomain)
             .colorCalculator(function (d) { return d ? mapchart.colors()(d) : '#ccc'; })
             .overlayGeoJson(places.features, "placeLayer", function (d) {
                 return d.id;
             });
-
+        mapchart.geoPath().pointRadius(function(feature, index) {
+            var v = placeGroup.all().filter(function(item) { return item.key === feature.id; })[0].value;
+            return pointScale(v);
+        });
 
         results
             .dimension(weightDim)
