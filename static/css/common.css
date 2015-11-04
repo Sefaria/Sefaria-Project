@@ -769,8 +769,8 @@ stroke: none
   stroke: black;
 }
 #visualGardenPage #map-chart .selected path {
-  stroke-width: 2;
-  stroke: red;
+  stroke-width: 1;
+  stroke: white;
 }
 
 #editButtons {
