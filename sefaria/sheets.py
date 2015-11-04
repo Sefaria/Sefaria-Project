@@ -363,6 +363,15 @@ def get_sheets_by_tag(tag, public=True, uid=None, group=None):
 	return sheets
 
 
+def add_visual_data(sheet_id, visualNodes, zoom):
+	"""
+	Adds visual layout data to db
+	"""
+	db.sheets.update({"id": sheet_id},{"$unset": { "visualNodes": "", "zoom": "" } })
+	db.sheets.update({"id": sheet_id},{"$push": {"visualNodes": {"$each": visualNodes},"zoom" : zoom}})
+
+
+
 def add_like_to_sheet(sheet_id, uid):
 	"""
 	Add uid as a liker of sheet_id.

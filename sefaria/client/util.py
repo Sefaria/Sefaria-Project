@@ -44,7 +44,7 @@ def subscribe_to_announce(email, first_name=None, last_name=None):
     post = {
         "person": {
             "email": email,
-            "tags": ["Announcements_General"],
+            "tags": ["Announcements_General", "Signed_Up_on_Sefaria"],
         }
     }
     if first_name:

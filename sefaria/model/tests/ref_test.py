@@ -9,8 +9,11 @@ class Test_Ref(object):
         ref = Ref(u"Exo. 3:1")
         assert ref.book == u"Exodus"
         assert Ref("Prov. 3.19")
+        assert Ref("Exo. 3.19")
         assert Ref("Prov 3.20")
+        assert Ref("Exo 3.20")
         assert Ref("Prov.3.21")
+        assert Ref("Exo.3.21")
 
     def test_normal_form_is_identifcal(self):
         assert Ref("Genesis 2:5").normal() == "Genesis 2:5"

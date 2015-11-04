@@ -124,6 +124,8 @@ urlpatterns += patterns('sheets.views',
     (r'^sheets/private/tags/(?P<tag>.+)$', 'private_sheets_tag'),
     (r'^sheets/(?P<type>(public|private|allz))/?$', 'sheets_list'),
     (r'^sheets/(?P<sheet_id>\d+)$', 'view_sheet'),
+    (r'^sheets/visual/(?P<sheet_id>\d+)$', 'view_visual_sheet'),
+
 )
 
 # Source Sheets API
@@ -136,6 +138,7 @@ urlpatterns += patterns('sheets.views',
     (r'^api/sheets/(?P<sheet_id>\d+)/tags$',                       'update_sheet_tags_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)$',                            'sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/like$',                       'like_sheet_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/visualize$',                  'visual_sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/unlike$',                     'unlike_sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/likers$',                     'sheet_likers_api'),
     (r'^api/sheets/user/(?P<user_id>\d+)$',                        'user_sheet_list_api'),
