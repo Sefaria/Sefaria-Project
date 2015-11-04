@@ -332,7 +332,6 @@ sjs.library = {
   sectionString: function(ref) {
     // Returns a pair of nice strings (en, he) of the sections indicated in ref. e.g.,
     // "Genesis 4" -> "Chapter 4", "Guide for the Perplexed, Introduction" - > "Introduction"
-    console.log("Section String for " + ref);
     var data = this.ref(ref);
     var result = { 
           en: {named: "", numbered: ""}, 
@@ -375,7 +374,6 @@ sjs.library = {
     result.he.named    = string;
     result.he.numbered = sections;
 
-    console.log(result)
     return result;
   },
   _textTocHtml: {},
