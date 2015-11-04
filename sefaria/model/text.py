@@ -112,7 +112,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "compPlace",
         "pubPlace",
         "errorMargin",
-        "placeGeo",
         "era",
     ]
 
@@ -257,6 +256,39 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if not lang:
             lang = "he" if is_hebrew(title) else "en"
         return self.alt_titles_dict(lang).get(title)
+
+    # This is similar to logic on GardenStop
+    def composition_time_period(self):
+        return self._get_time_period("compDate", "errorMargin")
+
+    def publication_time_period(self):
+        return self._get_time_period("pubDate")
+
+    def _get_time_period(self, date_field, margin_field=None):
+        from . import time
+        if not getattr(self, date_field, None):
+            return None
+
+        errorMargin = int(getattr(self, margin_field, 0)) if margin_field else 0
+        startIsApprox = endIsApprox = errorMargin > 0
+
+        try:
+            year = int(getattr(self, date_field))
+            start = year - errorMargin
+            end = year + errorMargin
+        except ValueError as e:
+            years = getattr(self, date_field).split("-")
+            if years[0] == "" and len(years) == 3:  #Fix for first value being negative
+                years[0] = -int(years[1])
+                years[1] = int(years[2])
+            start = int(years[0]) - errorMargin
+            end = int(years[1]) + errorMargin
+        return time.TimePeriod({
+            "start": start,
+            "startIsApprox": startIsApprox,
+            "end": end,
+            "endIsApprox": endIsApprox
+        })
 
     #todo: handle lang
     def get_maps(self):

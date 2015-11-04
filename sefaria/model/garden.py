@@ -292,6 +292,7 @@ class GardenStop(abst.AbstractMongoRecord):
                 self.placeNameHe = pobj.primary_name("he")
                 #self.placeGeo = pobj.get_location()
 
+            # This is similar to logic on Index.composition_time_period() refactor
             if getattr(i, "compDate", None):
                 errorMargin = int(getattr(i, "errorMargin", 0))
                 self.startIsApprox = self.endIsApprox = errorMargin > 0
@@ -316,8 +317,8 @@ class GardenStop(abst.AbstractMongoRecord):
                 self.endIsApprox = tp.endIsApprox
         tp = self.time_period()
         if tp:
-            self.timePeriodEn = tp.year_string("en")
-            self.timePeriodHe = tp.year_string("he")
+            self.timePeriodEn = tp.period_string("en")
+            self.timePeriodHe = tp.period_string("he")
 
     def _normalize(self):
         if self.is_key_changed("ref"):

@@ -1,8 +1,8 @@
-
+# coding=utf-8
 from . import abstract as abst
 from . import schema
 from . import time
-
+import geojson
 import logging
 logger = logging.getLogger(__name__)
 
@@ -25,11 +25,9 @@ class Person(abst.AbstractMongoRecord):
         "birthYear",
         "birthYearIsApprox",
         "birthPlace",
-        "birthPlaceGeo",
         "deathYear",
         "deathYearIsApprox",
         "deathPlace",
-        "deathPlaceGeo",
         "enBio",
         "heBio",
         "enWikiLink",
@@ -123,8 +121,67 @@ class Person(abst.AbstractMongoRecord):
     def get_generation(self):
         if not getattr(self, "generation", False):
             return None
-
         return time.TimePeriod().load({"symbol": self.generation})
+
+    def get_places(self, asGeoJsonString=True):
+        from . import place
+
+        places = {}
+
+        def updatePlace(key, eventype, en_event, he_event):
+            if not places.get(key):
+                places[key] = {"type": eventype,
+                               "en_events": [en_event],
+                               "he_events": [he_event]}
+            else:
+                places[key]["en_events"] += [en_event]
+                places[key]["he_events"] += [he_event]
+                if places[key]["type"] != eventype:
+                    places[key]["type"] = "mixed"
+
+        # get set of all places, birth, death, composition, publication
+        if getattr(self, "birthPlace", None):
+            updatePlace(self.birthPlace, "birth", "Born", u"נולד")
+
+        for i in self.get_indexes():  # todo: Commentaries
+            if getattr(i, "compPlace", None):
+                tp = i.composition_time_period()
+                if tp:
+                    en_string = "{} composed {}".format(i.get_title("en"), tp.period_string("en"))
+                    he_string = i.get_title("he") + u" נתחבר " + tp.period_string("he")
+                else:
+                    en_string = "{} composed".format(i.get_title("en"))
+                    he_string = i.get_title("he") + u" " + u"נתחבר"
+                updatePlace(i.compPlace, "composed", en_string, he_string)
+
+            if getattr(i, "pubPlace", None):
+                tp = i.publication_time_period()
+                if tp:
+                    en_string = "{} first published {}".format(i.get_title("en"), tp.period_string("en"))
+                    he_string = i.get_title("he") + u" נדפס לראשונה " + tp.period_string("he")
+                else:
+                    en_string = "{} first published".format(i.get_title("en"))
+                    he_string = i.get_title("he") + u" " + u"נדפס לראשונה"
+                updatePlace(i.pubPlace, "published", en_string, he_string)
+
+        if getattr(self, "deathPlace", None):
+            updatePlace(self.deathPlace, "death", "Died", u"נפטר")
+
+        for key, data in places.iteritems():
+            p = place.Place().load({"key": key})
+            data["en_name"] = p.primary_name("en")
+            data["he_name"] = p.primary_name("he")
+            data["point"] = p.point_location()
+
+        if not asGeoJsonString:
+            return places
+
+        features = []
+        for key, data in places.iteritems():
+            if data.get("point"):
+                loc = data.pop("point")
+                features.append(geojson.Feature(geometry=loc, id=key, properties=data))
+        return geojson.dumps(geojson.FeatureCollection(features))
 
 class PersonSet(abst.AbstractMongoSet):
     recordClass = Person

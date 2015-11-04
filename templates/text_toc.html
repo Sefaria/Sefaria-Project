@@ -38,7 +38,7 @@
             </div>
             {% endif %}
         </h2>
-        <div id="textCategories" vocab="http://schema.org/" typeof="BreadcrumbList">
+        <div id="textCategories" vocab="http://schema.org/" typeof="BreadcrumbList" class="biReady">
             {% for cats in cat_slices %}
                 <span property="itemListElement" typeof="ListItem">
                     <a href="/texts/{{ cats|join:'/' }}" class='textCategory' property="item" typeof="WebPage">

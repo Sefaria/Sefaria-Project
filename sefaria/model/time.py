@@ -131,7 +131,7 @@ class TimePeriod(abst.AbstractMongoRecord):
             marker if getattr(self, "endIsApprox", None) else u""
         )
 
-    def year_string(self, lang):
+    def period_string(self, lang):
         name = u""
 
         if getattr(self, "start", None) and getattr(self, "end", None):
@@ -148,7 +148,7 @@ class TimePeriod(abst.AbstractMongoRecord):
                     name += u" ({}{} {})".format(
                         approxMarker[0],
                         abs(int(self.start)),
-                        labels[0])
+                        labels[1])
                 else:
                     name += u" ({}{} {} - {}{} {})".format(
                         approxMarker[0],
