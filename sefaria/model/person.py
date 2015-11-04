@@ -167,6 +167,9 @@ class Person(abst.AbstractMongoRecord):
         if getattr(self, "deathPlace", None):
             updatePlace(self.deathPlace, "death", "Died", u"נפטר")
 
+        if not places:
+            return None
+
         for key, data in places.iteritems():
             p = place.Place().load({"key": key})
             data["en_name"] = p.primary_name("en")

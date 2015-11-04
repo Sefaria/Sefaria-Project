@@ -993,6 +993,17 @@ stroke: none
   /* font-size: 145%; */
 }
 
+div.person_tooltip {
+    position: absolute;
+    text-align: center;
+    padding: 6px;
+    font: 12px sans-serif;
+    background: lightsteelblue;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
+}
+
 #personPage #relationships a,
 #personPage #indexes a,
 #personPage #external_links a,

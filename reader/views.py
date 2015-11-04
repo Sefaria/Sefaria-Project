@@ -2189,6 +2189,7 @@ def person_page(request, name):
     template_vars["relationships"] = person.get_grouped_relationships()
     template_vars["indexes"] = person.get_indexes()
     template_vars["post_talmudic"] = person.is_post_talmudic()
+    template_vars["places"] = person.get_places()
 
     return render_to_response('person.html', template_vars, RequestContext(request))
 
