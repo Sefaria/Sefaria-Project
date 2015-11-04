@@ -443,6 +443,7 @@ var ReaderPanel = React.createClass({
       if (this.props.multiPanel) {
         this.props.handleSegmentClick(ref);
       } else {
+        this.scrolledToHighlight = false;
         this.showTextList(ref);
       }
     }
@@ -1495,7 +1496,10 @@ var TextColumn = React.createClass({
     }
   },
   componentDidUpdate: function(prevProps, prevState) {
-    if (this.loadingContentAtTop || !this.props.srefs.compare(prevProps.srefs)) {
+    if (this.loadingContentAtTop || // may need to update after top content loads
+        !this.props.srefs.compare(prevProps.srefs) ||  // update on text change
+        prevProps.textListRef !== this.props.textListRef) // update on click to highlight
+    {
       this.setScrollPosition();
     }
   },
@@ -1521,7 +1525,7 @@ var TextColumn = React.createClass({
     this.setScrollPosition();
   },  
   setScrollPosition: function() {
-    //console.log("ssp")
+    // console.log("ssp")
     // Called on every update, checking flags on this to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing

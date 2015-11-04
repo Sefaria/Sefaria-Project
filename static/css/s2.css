@@ -1127,7 +1127,7 @@ text-align: center;height: 55px;}
 .textList.fullPanel .topFilters {
   margin: 0;
   border-top: 8px solid transparent;
-  padding: 7px 22px;
+  padding: 6px 22px 5px;
 }
 .topFilters .textFilter {
   color: #999;
