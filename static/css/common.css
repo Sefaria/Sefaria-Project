@@ -1152,6 +1152,13 @@ body #keyboardInputMaster thead tr th div {
   color: white;
 }
 
+body.hebrew #personPage #textTocLink,
+body.hebrew #talmudicPeoplePage #textTocLink {
+  right: 12px;
+  left: auto;
+  font-size: 12px;
+}
+
 .searchButton {
   position: absolute;
   right: 6px;

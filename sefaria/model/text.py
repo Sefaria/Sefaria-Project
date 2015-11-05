@@ -463,6 +463,14 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             for key, tree in self.get_alt_structures().items():
                 tree.validate()
 
+        else:  # old style commentator record
+            assert self.is_commentary(), "Saw old style index record that's not a commentary.  Panic!"
+            assert getattr(self, "titleVariants", None)
+            if not getattr(self, "heTitle", None):
+                raise InputError(u'Missing Hebrew title on {}.'.format(self.title))
+            if not getattr(self, "heTitleVariants", None):
+                raise InputError(u'Missing Hebrew title variants on {}.'.format(self.title))
+
         # Make sure all title variants are unique
         if getattr(self, "titleVariants", None):
             for variant in self.titleVariants:

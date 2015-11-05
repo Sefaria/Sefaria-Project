@@ -170,8 +170,12 @@ class Person(abst.AbstractMongoRecord):
         if not places:
             return None
 
-        for key, data in places.iteritems():
+        for key, data in places.items():
             p = place.Place().load({"key": key})
+            if not p:
+                logger.warning(u"Found a bad {} place key '{}' for {}".format(data["type"], key, self.primary_name("en")))
+                del places[key]
+                continue
             data["en_name"] = p.primary_name("en")
             data["he_name"] = p.primary_name("he")
             data["point"] = p.point_location()

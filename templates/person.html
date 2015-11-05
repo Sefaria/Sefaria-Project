@@ -21,21 +21,19 @@
 
     
 <div id="personPage" class="container doc biReady">
-    <span class="row">
-        <span class="span10 offset1">
-            {% if post_talmudic %}
-                <a href="/people">
-                    <span class='en'>&leftarrow; All Authors</span>
-                    <span class='he'>&rightarrow; כל המחברים</span>
-                </a>
-            {% else %}
-                <a href="/people/Talmud">
-                    <span class='en'>&leftarrow; People in the Talmud</span>
-                    <span class='he'>&rightarrow; אנשים בתלמוד</span>
-                </a>
-            {% endif %}
-        </span>
-    </span>
+
+    {% if post_talmudic %}
+        <a href="/people" id="textTocLink">
+            <span class='en'>&laquo; All Authors</span>
+            <span class='he'>&laquo; כל המחברים</span>
+        </a>
+    {% else %}
+        <a href="/people/Talmud" id="textTocLink">
+            <span class='en'>&laquo; People in the Talmud</span>
+            <span class='he'>&laquo; אנשים בתלמוד</span>
+        </a>
+    {% endif %}
+
     <span class="row">
         <span class="span8 offset2">
             <h1>
@@ -135,10 +133,12 @@
             .translate([0, 0]);
         var path = d3.geo.path()
             .projection(projection);
-        var b = path.bounds(places),  // [[left, top], [right, bottom]]
+        var min_map_scale = 850,
+            b = path.bounds(places),  // [[left, top], [right, bottom]]
             x_extent = Math.abs(b[1][0] - b[0][0]),
             y_extent = Math.abs(b[1][1] - b[0][1]),
-            s = (.95 / Math.max(x_extent / width, y_extent / height)),
+            computed_scale = (.90 / Math.max(x_extent / width, y_extent / height)),
+            s = Math.min(computed_scale, min_map_scale),
             t = [(width - s * (b[1][0] + b[0][0])) / 2, (height - s * (b[1][1] + b[0][1])) / 2];
 
         // Update projection with our actual data
