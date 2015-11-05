@@ -314,7 +314,8 @@ def cache_dump(request):
 @staff_member_required
 def create_commentator_version(request, commentator, book, lang, vtitle, vsource):
     from sefaria.helper.text import create_commentator_and_commentary_version
-    create_commentator_and_commentary_version(commentator, book, lang, vtitle, vsource)
+    ht = request.GET.get("heTitle", None)
+    create_commentator_and_commentary_version(commentator, book, lang, vtitle, vsource, heTitle)
     scache.reset_texts_cache()
     return HttpResponseRedirect("/add/%s" % commentator)
 
