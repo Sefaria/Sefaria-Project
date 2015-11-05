@@ -979,9 +979,6 @@ stroke: none
 
 /****   Person    ****/
 
-#personPage {
-  margin-top: 0;
-}
 
 #personPage #periodNameLine {
   text-align: center;
@@ -1038,6 +1035,55 @@ div.person_tooltip {
   float: right;
 }
 
+
+.english #personPage #person-text-column,
+.hebrew #personPage #person-graphic-column {
+  float: left;
+  margin-right: auto;
+  margin-left: 180px;
+}
+
+.english #personPage #person-graphic-column,
+.hebrew #personPage #person-text-column {
+  float: right;
+  margin-right: 160px;
+  margin-left: auto;
+}
+
+@media (max-width: 979px) and (min-width: 768px) {
+  body.english #content #personPage #person-graphic-column,
+  body.english #content #personPage #person-text-column {
+    float: left;
+    margin-right: auto;
+    margin-left: 145px;
+    clear: both;
+  }
+
+  body.hebrew #content #personPage #person-graphic-column,
+  body.hebrew #content #personPage #person-text-column {
+    float: right;
+    margin-right: 125px;
+    margin-left: auto;
+    clear: both;
+  }
+}
+@media (max-width: 767px) {
+  body.english #content #personPage #person-graphic-column,
+  body.english #content #personPage #person-text-column {
+    float: left;
+    margin-right: auto;
+    margin-left: auto;
+    clear: both;
+  }
+  body.hebrew #content #personPage #person-graphic-column,
+  body.hebrew #content #personPage #person-text-column {
+    float: right;
+    margin-right: auto;
+    margin-left: auto;
+    clear: both;
+  }
+
+}
 /****        Search         ****/
 
 #gotoBox {

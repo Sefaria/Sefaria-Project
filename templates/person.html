@@ -34,7 +34,7 @@
         </a>
     {% endif %}
 
-    <span class="row">
+    <div class="row">
         <span class="span8 offset2">
             <h1>
                 <span class='en'>{{ primary_name.en }}</span>
@@ -60,9 +60,14 @@
             </div>
             {% endif %}
         </span>
-    </span>
-    <span class="row">
-        <span class="span4 offset2">
+    </div>
+    <div class="row">
+        <span id="person-graphic-column" class="span4">
+            {% if places %}
+                <div id="place-map"></div>
+            {% endif %}
+        </span>
+        <span id="person-text-column" class="span4 offset2">
            <div id="external_links">
                 {% if enWikiLink and heWikiLink %}
                     <span class="en"><a href="{{ enWikiLink }}">Wikipedia</a></span>
@@ -105,12 +110,7 @@
             </div>
             {% endif %}
         </span>
-        <span class="span4">
-            {% if places %}
-                <div id="place-map"></div>
-            {% endif %}
-        </span>
-    </span>
+    </div>
 </div>
 
 {% endblock %}
@@ -120,8 +120,8 @@
     {% autoescape off %}
         {% if places %}
             d3.geo.tile=function(){function t(){var t=Math.max(Math.log(n)/Math.LN2-8,0),h=Math.round(t+e),o=Math.pow(2,t-h+8),u=[(r[0]-n/2)/o,(r[1]-n/2)/o],l=[],c=d3.range(Math.max(0,Math.floor(-u[0])),Math.max(0,Math.ceil(a[0]/o-u[0]))),M=d3.range(Math.max(0,Math.floor(-u[1])),Math.max(0,Math.ceil(a[1]/o-u[1])));return M.forEach(function(t){c.forEach(function(a){l.push([a,t,h])})}),l.translate=u,l.scale=o,l}var a=[960,500],n=256,r=[a[0]/2,a[1]/2],e=0;return t.size=function(n){return arguments.length?(a=n,t):a},t.scale=function(a){return arguments.length?(n=a,t):n},t.translate=function(a){return arguments.length?(r=a,t):r},t.zoomDelta=function(a){return arguments.length?(e=+a,t):e},t};
-            var width = 350,
-                height = 250,
+            var width = 300,
+                height = 200,
                 places = {{ places }};
             var svg = d3.select("#place-map").append("svg")
                 .attr("width", width)
