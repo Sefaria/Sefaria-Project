@@ -294,14 +294,15 @@ sjs.Init.handlers = function() {
 	
 	// Load the initial page notes, which were not included in initial pageview
 	// Subsequent notes calls are bundled with texts in sjs.cache
-	$.getJSON("/api/notes/" + sjs.current.ref, function(data){
+	if(sjs.current.ref){
+		$.getJSON("/api/notes/" + sjs.current.ref, function(data){
 			if ("error" in data) {
 				sjs.alert.message(data);
 				return;
 			}
 			sjs.current.notes = data.notes;
-    });
-
+    	});
+	}
 	sjs.filterSources = function(cat) {
 		// Filter sources for category 'cat'
 		// 'kind' maybe either 'category' (text filter) or 'type' (connection filter)
