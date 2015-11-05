@@ -1020,6 +1020,10 @@ div.person_tooltip {
   display: block;
 }
 
+#personPage #indexes {
+  padding-bottom: 15px;
+}
+
 #talmudicPeoplePage .talmudic-generation {
   margin-bottom: 20px;
 }

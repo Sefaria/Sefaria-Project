@@ -38,8 +38,11 @@ eras = {
 
 print "Deleting old person records"
 for foo, symbol in eras.iteritems():
-    db.person.remove({"era":symbol})
-    # Dependencies take too long here.  Assumption is we're going to wipe any dependencies in the import process
+    people = PersonSet({"era": symbol}).distinct("key")
+    db.person_rel.remove({"from_key": {"$in": people}})
+    db.person_rel.remove({"to_key": {"$in": people}})
+    db.person.remove({"era": symbol})
+    # Dependencies take too long here.  Getting rid of relationship dependencies above.  Assumption is that we'll import works right after to handle those dependencies.
     #PersonSet({"era": symbol}).delete()
 
 def _(p, attr, field):
