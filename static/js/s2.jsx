@@ -1778,6 +1778,10 @@ var TextRange = React.createClass({
     }
   },
   handleClick: function(event) {
+    if (window.getSelection().type === "Range") { 
+      // Don't do anything if this click is part of a selection
+      return;
+    }
     if (this.props.openOnClick && this.props.showBaseText) {
       //Click on the body of the TextRange itself from TextList
       this.props.showBaseText(this.props.sref);
