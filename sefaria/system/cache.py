@@ -145,6 +145,12 @@ def process_index_change_in_cache(indx, **kwargs):
         from sefaria.system.sf_varnish import invalidate_index
         invalidate_index(indx)
 
+def process_index_delete_in_cache(indx, **kwargs):
+    reset_texts_cache()
+    if USE_VARNISH:
+        from sefaria.system.sf_varnish import invalidate_index, invalidate_counts
+        invalidate_index(indx.title)
+        invalidate_counts(indx.title)
 
 def process_new_commentary_version_in_cache(ver, **kwargs):
     if " on " in ver.title:

@@ -20,7 +20,7 @@ subscribe(text.process_index_title_change_in_versions,                  text.Ind
 subscribe(version_state.process_index_title_change_in_version_state,    text.Index, "attributeChange", "title")
 
 # Index Delete (start with cache clearing)
-subscribe(scache.process_index_change_in_cache,                         text.Index, "delete")
+subscribe(scache.process_index_delete_in_cache,                         text.Index, "delete")
 subscribe(version_state.process_index_delete_in_version_state,          text.Index, "delete")
 subscribe(link.process_index_delete_in_links,                           text.Index, "delete")
 subscribe(text.process_index_delete_in_versions,                        text.Index, "delete")
