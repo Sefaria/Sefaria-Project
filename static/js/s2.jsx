@@ -1957,7 +1957,9 @@ var TextRange = React.createClass({
           </div>
         </div>)}
         <div className="text">
-          { textSegments }
+          <div className="textInner">
+            { textSegments }
+          </div>
         </div>
       </div>
     );
@@ -2000,7 +2002,7 @@ var TextSegment = React.createClass({
     } else {
       var linkCount = "";
     }
-    var segmentNumber = this.props.segmentNumber ? (<span className="segmentNumber">{this.props.segmentNumber}</span>) : "";          
+    var segmentNumber = this.props.segmentNumber ? (<span className="segmentNumber"> {this.props.segmentNumber} </span>) : "";          
     var he = this.props.he || this.props.en;
     var en = this.props.en || this.props.he;
     var classes=classNames({ segment: 1,
