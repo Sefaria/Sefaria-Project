@@ -70,21 +70,28 @@
         <span id="person-text-column" class="span4 offset2">
            <div id="external_links">
                 {% if enWikiLink and heWikiLink %}
-                    <span class="en"><a href="{{ enWikiLink }}">Wikipedia</a></span>
-                    <span class="he"><a href="{{ heWikiLink }}">וויקיפדיה</a></span>
+                    <div>
+                        <span class="en"><a href="{{ enWikiLink }}">Wikipedia</a><i class="fa fa-external-link"></i></span>
+                        <span class="he"><a href="{{ heWikiLink }}">וויקיפדיה</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
+                    </div>
+
                 {% elif enWikiLink %}
-                    <span class="en"><a href="{{ enWikiLink }}">Wikipedia</a></span>
-                    <span class="he"><a href="{{ enWikiLink }}">וויקיפדיה (אנגלית)</a></span>
+                    <div>
+                        <span class="en"><a href="{{ enWikiLink }}">Wikipedia</a><i class="fa fa-external-link"></i></span>
+                        <span class="he"><a href="{{ enWikiLink }}">וויקיפדיה (אנגלית)</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
+                    </div>
                 {% elif heWikiLink %}
-                    <span class="en"><a href="{{ heWikiLink }}">Wikipedia (Hebrew)</a></span>
-                    <span class="he"><a href="{{ heWikiLink }}">וויקיפדיה</a></span>
+                    <div>
+                        <span class="en"><a href="{{ heWikiLink }}">Wikipedia (Hebrew)</a><i class="fa fa-external-link"></i></span>
+                        <span class="he"><a href="{{ heWikiLink }}">וויקיפדיה</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
+                    </div>
                 {% endif %}
 
                 {% if jeLink %}
-                    <a href="{{ jeLink }}">
-                        <span class="en">Jewish Encyclopedia</span>
-                        <span class="he">האנציקלופדיה היהודית (אנגלית)</span>
-                    </a>
+                    <div>
+                        <span class="en"><a href="{{ jeLink }}">Jewish Encyclopedia</a><i class="fa fa-external-link"></i></span>
+                        <span class="he"><a href="{{ jeLink }}">האנציקלופדיה היהודית (אנגלית)</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
+                    </div>
                 {% endif %}
             </div>
             <div id="relationships">

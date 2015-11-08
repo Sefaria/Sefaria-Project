@@ -993,6 +993,10 @@ stroke: none
   margin-bottom: 10px;
 }
 
+#personPage #place-map {
+  padding-bottom: 20px;
+}
+
 .hebrew #personPage {
   direction: rtl;
   /* font-size: 145%; */
@@ -1011,12 +1015,16 @@ div.person_tooltip {
 
 #personPage #relationships a,
 #personPage #indexes a,
-#personPage #external_links a,
 #peoplePage a,
 #talmudicPeoplePage a {
   display: block;
 }
 
+#personPage #external_links .fa-external-link {
+  font-size: .5em;
+  margin: auto 5px;
+  vertical-align: middle;
+}
 #personPage #indexes {
   padding-bottom: 15px;
 }
@@ -1030,11 +1038,27 @@ div.person_tooltip {
   font-weight: normal;
 }
 
+.english #personPage #indexes {
+  padding-left: 40px;
+}
+.english #personPage #indexes span.en,
+.english #personPage #indexes h3 {
+  text-indent: 40px;
+  margin-left: -40px;
+}
+.hebrew #personPage #indexes {
+  padding-right: 40px;
+}
+.hebrew #personPage #indexes span.he,
+.hebrew #personPage #indexes h3 {
+  text-indent: 40px;
+  margin-right: -40px;
+}
+
 .hebrew #talmudicPeoplePage .talmudic-generation,
 .hebrew #peoplePage .author {
   float: right;
 }
-
 
 .english #personPage #person-text-column,
 .hebrew #personPage #person-graphic-column {
@@ -1049,6 +1073,19 @@ div.person_tooltip {
   margin-right: 160px;
   margin-left: auto;
 }
+
+@media (min-width: 1200px) {
+  .english #personPage #person-text-column,
+  .hebrew #personPage #person-graphic-column {
+    margin-left: 230px;
+  }
+
+  .english #personPage #person-graphic-column,
+  .hebrew #personPage #person-text-column {
+    margin-right: 200px;
+  }
+}
+
 
 @media (max-width: 979px) and (min-width: 768px) {
   body.english #content #personPage #person-graphic-column,

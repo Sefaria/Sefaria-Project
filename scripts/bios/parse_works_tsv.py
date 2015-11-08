@@ -5,7 +5,17 @@ from sefaria.system.database import db
 import unicodecsv as csv
 
 # clear out all earlier author data:
-db.index.update({}, {"$unset": {"authors": 1}}, multi=True)
+db.index.update({}, {"$unset": {
+    "authors": 1,
+    "enDesc: 1": 1,
+    "heDesc": 1,
+    "pubDate": 1,
+    "compDate": 1,
+    "compPlace": 1,
+    "pubPlace": 1,
+    "errorMargin": 1,
+    "era": 1,
+}}, multi=True)
 
 
 """

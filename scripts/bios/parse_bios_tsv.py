@@ -8,25 +8,23 @@ import re
 
 
 """
-0 'Primary English Name'
-1 'Secondary English Names'
-2 'Primary Hebrew Name'
-3 'Secondary Hebrew Names'
-4 'Birth Year '
-5 'Birth Place'
-X 6 'Birth lat/lon'
-6 'Death Year'
-7 'Death Place'
-X 9 'Death lat/lon'
-8'Halachic Era'
-9'English Biography'
-10'Hebrew Biography'
-11'English Wikipedia Link'
-12'Hebrew Wikipedia Link'
-13'Jewish Encyclopedia Link'
-14'Brill Online Reference Words (Encyclopedia of Jewish in the Islamic Encyclopedia of the Hebrew Language Encyclopedia of Judaism)'
+0 key
+1 'Primary English Name'
+2 'Secondary English Names'
+3 'Primary Hebrew Name'
+4 'Secondary Hebrew Names'
+5 'Birth Year '
+6 'Birth Place'
+7 'Death Year'
+8 'Death Place'
+9 'Halachic Era'
+10'English Biography'
+11'Hebrew Biography'
+12'English Wikipedia Link'
+13'Hebrew Wikipedia Link'
+14'Jewish Encyclopedia Link'
 ...
-23'Sex'
+24 'Sex'"
 """
 
 eras = {
@@ -53,6 +51,7 @@ with open("Torah Commentators - Bios - People.tsv") as tsv:
     next(tsv)
     next(tsv)
     next(tsv)
+    next(tsv) # Anonymous
     for l in csv.reader(tsv, dialect="excel-tab"):
         key = l[0].encode('ascii', errors='ignore')
         if not key:
@@ -60,54 +59,53 @@ with open("Torah Commentators - Bios - People.tsv") as tsv:
         print "{}\n".format(key)
         p = Person().load({"key": key}) or Person()
         p.key = key
-        p.name_group.add_title(l[0], "en", primary=True, replace_primary=True)
-        p.name_group.add_title(l[2], "he", primary=True, replace_primary=True)
-        for x in l[1].split(","):
+        p.name_group.add_title(l[1], "en", primary=True, replace_primary=True)
+        p.name_group.add_title(l[3], "he", primary=True, replace_primary=True)
+        for x in l[2].split(","):
             p.name_group.add_title(x, "en")
-        for x in l[3].split(","):
+        for x in l[4].split(","):
             p.name_group.add_title(x, "he")
-        if len(l[4]) > 0:
-            if "c" in l[4]:
+        if len(l[5]) > 0:
+            if "c" in l[5]:
                 p.birthYearIsApprox = True
             else:
                 p.birthYearIsApprox = False
-            m = re.search(r"\d+", l[4])
+            m = re.search(r"\d+", l[5])
             if m:
                 p.birthYear = m.group(0)
-        if len(l[6]) > 0:
-            if "c" in l[6]:
+        if len(l[7]) > 0:
+            if "c" in l[7]:
                 p.deathYearIsApprox = True
             else:
                 p.deathYearIsApprox = False
-            m = re.search(r"\d+", l[6])
+            m = re.search(r"\d+", l[7])
             if m:
                 p.deathYear = m.group(0)
-        _(p, "birthPlace", l[5])
-        #_(p, "birthPlaceGeo", l[6]) # check format
-        _(p, "deathPlace", l[7])
-        #_(p, "deathPlaceGeo", l[9])
-        _(p, "era", eras.get(l[8]))
-        _(p, "enBio", l[9])
-        _(p, "heBio", l[10])
-        _(p, "enWikiLink", l[11])
-        _(p, "heWikiLink", l[12])
-        _(p, "jeLink", l[13])
-        _(p, "sex", l[23])
+        _(p, "birthPlace", l[6])
+        _(p, "deathPlace", l[8])
+        _(p, "era", eras.get(l[9]))
+        _(p, "enBio", l[10])
+        _(p, "heBio", l[11])
+        _(p, "enWikiLink", l[12])
+        _(p, "heWikiLink", l[13])
+        _(p, "jeLink", l[14])
+        _(p, "sex", l[24])
         p.save()
 
     #Second Pass
     rowmap = {
-        15: 'child',
-        16: 'grandchild',
-        17: 'childinlaw',
-        18: 'student',
-        19: 'member',
-        20: 'correspondent',
-        21: 'opposed',
-        22: 'cousin',
+        16: 'child',
+        17: 'grandchild',
+        18: 'childinlaw',
+        19: 'student',
+        20: 'member',
+        21: 'correspondent',
+        22: 'opposed',
+        23: 'cousin',
     }
 
     tsv.seek(0)
+    next(tsv)
     next(tsv)
     next(tsv)
     next(tsv)
