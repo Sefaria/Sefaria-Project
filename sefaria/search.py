@@ -7,6 +7,7 @@ Writes to MongoDB Collection: index_queue
 import os
 from pprint import pprint
 from datetime import datetime, timedelta
+import re
 
 # To allow these files to be run directly from command line (w/o Django shell)
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
@@ -439,6 +440,38 @@ def index_all(skip=0, clear=False):
 
 
 
+# adapted to python from library.js:sjs.search.get_query_object()
+def query(q, override=False):
 
+    full_query = {
+        "query": {
+            "query_string":  {
+              "query": re.sub('(\S)"(\S)', '\1\u05f4\2', q), #Replace internal quotes with gershaim.
+              "default_operator": "AND",
+              "fields": ["content"]
+            }
+        },
+        "sort": [{
+          "order": {}                 # the sort field name is "order"
+        }],
+        "highlight": {
+          "pre_tags": ["<b>"],
+          "post_tags": ["</b>"],
+          "fields": {
+              "content": {"fragment_size": 200}
+          }
+        }
+    }
 
+    full_query["size"] = 0
+    res = es.search(full_query, index="sefaria", doc_type="text")
+    size = res['hits']['total']
+    if size > 4000 and not override:
+        raise Exception("Size of query is {}.  Call again with override to proceed.".format(size))
+    full_query["size"] = size
+    res = es.search(full_query, index="sefaria", doc_type="text")
+    return res
 
+    #print("Got %d Hits:" % res['hits']['total'])
+    #for hit in res['hits']['hits']:
+        #print("%(timestamp)s %(author)s: %(text)s" % hit["_source"])

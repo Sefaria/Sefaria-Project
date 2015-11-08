@@ -790,6 +790,10 @@ stroke: none
   width: 30px;
 }
 
+#visualGardenPage #map-chart {
+    margin-left: 10px;
+}
+
 #visualGardenPage #map-chart path {
   stroke-width: 1;
   stroke: black;

@@ -174,6 +174,39 @@ class Garden(abst.AbstractMongoRecord):
 
         return links
 
+    def import_search(self, q):
+        from sefaria.search import query
+        res = query(q)
+        for hit in res["hits"]["hits"]:
+            tags = {"default": hit["_source"]["path"].split("/")}
+            stop = {
+                "type": "inside_source",
+                "ref": hit["_source"]["ref"],
+                "enVersionTitle": hit["_source"]["version"],
+                "tags": tags
+            }
+            if hit["_source"]["lang"] == "en":
+                stop["enText"] = u" ".join(hit["highlight"]["content"])
+            elif hit["_source"]["lang"] == "he":
+                stop["heText"] = u" ".join(hit["highlight"]["content"])
+            self.add_stop(stop)
+
+    def import_ref_list(self, reflist):
+        for ref in reflist:
+            if isinstance(ref, basestring):
+                try:
+                    ref = text.Ref(ref)
+                except:
+                    pass
+            if not isinstance(ref, text.Ref):
+                continue
+
+            self.add_stop({
+                "type": "inside_source",
+                "ref": ref.normal(),
+            })
+        return self
+
     def import_sheet(self, sheet_id, remove_tags=None):
         from sefaria.sheets import Sheet, refine_ref_by_text
 
@@ -283,6 +316,14 @@ class GardenStop(abst.AbstractMongoRecord):
             assert isinstance(i, text.AbstractIndex)
             self.indexTitle = i.title
             self.heRef = oref.he_normal()
+
+            # Text
+            if not getattr(self, "enText", None):
+                self.enText = oref.text("en").text
+            if not getattr(self, "heText", None):
+                self.heText = oref.text("he").text
+
+            # Authors
             if getattr(i, "authors", None):
                 self.authors = i.authors
             author = i.author_objects()[0] if len(i.author_objects()) > 0 else {}  # Assume first is best
@@ -290,6 +331,7 @@ class GardenStop(abst.AbstractMongoRecord):
                 self.authorsEn = author.primary_name("en")
                 self.authorsHe = author.primary_name("he")
 
+            # Place
             placeKey = getattr(i, "compPlace", None) or getattr(author, "deathPlace", None) or getattr(author, "birthPlace", None)
             if placeKey:
                 pobj = place.Place().load({"key": placeKey})
@@ -300,6 +342,7 @@ class GardenStop(abst.AbstractMongoRecord):
                 self.placeNameHe = pobj.primary_name("he")
                 #self.placeGeo = pobj.get_location()
 
+            # Time
             # This is similar to logic on Index.composition_time_period() refactor
             if getattr(i, "compDate", None):
                 errorMargin = int(getattr(i, "errorMargin", 0))

@@ -2247,6 +2247,19 @@ def sheet_tag_visual_garden_page(request, key):
     g = _get_sheet_tag_garden(key)
     return visual_garden_page(request, g)
 
+def _get_search_garden(q):
+    garden_key = "search.query.{}".format(q)
+    g = Garden().load({"key": garden_key})
+    if not g:
+        g = Garden({"key": garden_key, "title": u"Search: {}".format(q), "heTitle": u"חיפוש:" + u" " + unicode(q)})
+        g.import_search(q)
+        g.save()
+    return g
+
+def search_query_visual_garden_page(request, q):
+    g = _get_search_garden(q)
+    return visual_garden_page(request, g)
+
 def garden_page(request, g):
     template_vars = {
         'title': g.title,

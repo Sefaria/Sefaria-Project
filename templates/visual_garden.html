@@ -122,8 +122,8 @@
 
         timeline
             .width(280)
-            .height(180)
-            .margins({top: 10, right: 20, bottom: 30, left: 20})
+            .height(120)
+            .margins({top: 10, right: 10, bottom: 20, left: 30})
             .dimension(yearDim)
             .group(yearGroup)
             .elasticY(true)
@@ -246,7 +246,7 @@
             .projection(projection)
             .dimension(placeDim)
             .group(placeGroup)
-            .colors(d3.scale.quantize().range(['#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026'])) //,'#800026'
+            .colors(d3.scale.quantize().range(['#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026'])) //first three '#ffffcc','#ffeda0', '#fed976', last one,'#800026'
             .colorDomain(valueDomain)
             .colorCalculator(function (d) { return d ? mapchart.colors()(d) : '#ccc'; })
             .overlayGeoJson(places.features, "placeLayer", function (d) {
