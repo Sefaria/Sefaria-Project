@@ -240,6 +240,7 @@ class GardenStop(abst.AbstractMongoRecord):
     ]
     optional_attrs = [
         'ref',
+        'heRef',
         'weight',
         'title',
         'enVersionTitle',
@@ -256,6 +257,8 @@ class GardenStop(abst.AbstractMongoRecord):
         'placeNameHe',
         'placeGeo',  # keep this here?  Break into point and area?  "area or point"?
         'authors',
+        'authorsEn',
+        'authorsHe',
         'indexTitle',
         'timePeriodEn',
         'timePeriodHe'
@@ -275,12 +278,17 @@ class GardenStop(abst.AbstractMongoRecord):
 
     def _derive_metadata(self):
         if getattr(self, "ref", None):
-            i = text.Ref(self.ref).index
+            oref = text.Ref(self.ref)
+            i = oref.index
             assert isinstance(i, text.AbstractIndex)
             self.indexTitle = i.title
+            self.heRef = oref.he_normal()
             if getattr(i, "authors", None):
                 self.authors = i.authors
             author = i.author_objects()[0] if len(i.author_objects()) > 0 else {}  # Assume first is best
+            if author:
+                self.authorsEn = author.primary_name("en")
+                self.authorsHe = author.primary_name("he")
 
             placeKey = getattr(i, "compPlace", None) or getattr(author, "deathPlace", None) or getattr(author, "birthPlace", None)
             if placeKey:

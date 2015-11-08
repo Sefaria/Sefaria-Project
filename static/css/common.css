@@ -742,6 +742,32 @@ body.embeded #top {
   display: inline;
 }
 
+#visualGardenPage h1 {
+  font-size: 36px;
+  border: none;
+}
+#visualGardenPage #controls {
+  width: 320px;
+  float: left;
+}
+#visualGardenPage #results .result {
+  margin: 10px 0;
+}
+#visualGardenPage #results .result-ref {
+  font-weight: bold;
+}
+#visualGardenPage #results .result-byline {
+  font-size: .8em;
+}
+#visualGardenPage #results .result-text {
+  margin-top: 5px;
+}
+#visualGardenPage #results #data-count {
+  text-align: center;
+  float: none;
+  padding: 5px 0;
+}
+
 #visualGardenPage #tags-list.dc-chart g.row text {
   fill: black;
 }

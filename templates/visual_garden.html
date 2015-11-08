@@ -29,17 +29,8 @@
 
 <div id="visualGardenPage" class="container doc biReady">
 
-    <span class="row">
-        <span class="span12">
-            <h1>
-                <span class='en'>{{ title }}</span>
-                <span class='he'>{{ heTitle }}</span>
-            </h1>
-        </span>
-    </span>
-
-    <span class="row">
-        <span class="span12">
+    <div>
+        <div id="controls">
             <div id="timeline-chart">
                 <div style="height: 30px;">
                     <span class='reset' style='display: none;'>
@@ -50,23 +41,6 @@
                       style='display: none;'>reset</a>
                 </div>
             </div>
-        </span>
-    </span>
-
-    <span class="row">
-        <span class="span2">
-            <div id="tags-list">
-                <div style="height: 30px;">
-                    <span class='reset' style='display: none;'>
-                      Current filter: <span class='filter'></span>
-                    </span>
-                    <a class='reset'
-                      href='javascript:tagslist.filterAll();dc.redrawAll();'
-                      style='display: none;'>reset</a>
-                </div>
-            </div>
-        </span>
-        <span class="span9">
             <div id="map-chart">
                 <div style="height: 30px;">
                     <span class='reset' style='display: none;'>
@@ -77,27 +51,32 @@
                       style='display: none;'>reset</a>
                 </div>
             </div>
-        </span>
-    </span>
-    <span class="row">
-        <span class="span9">
-             <span class="row" style="height: 30px;">
-                <span class="span9">
-                    <div id="data-count">
-                    </div>
-                </span>
-            </span>
-            <span class="row">
-                <span class="span9">
-                    <table id="results-table">
-                    </table>
-                </span>
-            </span>
-        </span>
-    </span>
+            <div id="tags-list">
+                <div style="height: 30px;">
+                    <span class='reset' style='display: none;'>
+                      Current filter: <span class='filter'></span>
+                    </span>
+                    <a class='reset'
+                      href='javascript:tagslist.filterAll();dc.redrawAll();'
+                      style='display: none;'>reset</a>
+                </div>
+            </div>
+        </div>
+        <div id="results">
+            <h1>
+                <span class='en'>{{ title }}</span>
+                <span class='he'>{{ heTitle }}</span>
+            </h1>
+            <div id="data-count">
+            </div>
+            <div id="results-container">
+                <table id="results-content">
+                </table>
+            </div>
 
+        </div>
 
-
+    </div>
 </div>
 
 {% endblock %}
@@ -107,7 +86,7 @@
     {% autoescape off %}
         var timeline = dc.barChart("#timeline-chart");
         var tagslist = dc.rowChart("#tags-list");
-        var results = dc.dataTable("#results-table");
+        var results = dc.dataGrid("#results-content");
         var datacount = dc.dataCount("#data-count");
 
         var stops = {{ stops }};
@@ -142,9 +121,9 @@
         tl_extent[1] += 50;
 
         timeline
-            .width(960)
+            .width(280)
             .height(180)
-            .margins({top: 10, right: 50, bottom: 30, left: 40})
+            .margins({top: 10, right: 20, bottom: 30, left: 20})
             .dimension(yearDim)
             .group(yearGroup)
             .elasticY(true)
@@ -239,8 +218,8 @@
             .translate([0, 0]);
         var path = d3.geo.path()
             .projection(projection);
-        var width = 740,
-            height = 390,
+        var width = 280,
+            height = 200,
             b = path.bounds(places),  // [[left, top], [right, bottom]]
             x_extent = Math.abs(b[1][0] - b[0][0]),
             y_extent = Math.abs(b[1][1] - b[0][1]),
@@ -278,27 +257,46 @@
             return pointScale(v);
         });
 
+                       /*
+      dc.dataGrid(".dc-data-grid")
+        .dimension(country)
+        .group(function (d) {
+            return d.country;
+        })
+        .size(1000)
+        .html (function(d) { return tpl(d);})
+        .sortBy(function (d) {
+            return d.last_name;
+        })
+        .order(d3.ascending)
+        .renderlet(function (grid) {
+            $("img.lazy-load").lazyload ({
+                effect : "fadeIn"
+            })
+            .removeClass("lazy-load");
+        });
+        */
         results
             .dimension(weightDim)
             .order(d3.descending)
             .group(function (d) { return d.weight; })
-            .showGroups(false)
-            .columns([
-                'ref',
-                {
-                    label: "Author",
-                    format: function(d) {return d.authors;}
-                },
-                {
-                    label: "Period",
-                    format: function(d) { return d.timePeriodEn; }
-                },
-                {
-                    label: "Place",
-                    format: function(d) {return d.placeNameEn;}
-                },
-                'weight',
-            ])
+            .htmlGroup(function (d) {return "";})
+            .html(function(data) {
+                return "<div class='result'>" +
+                            "<div class='result-ref'>" +
+                                "<span class='en'>" + data.ref + "</span>" +
+                                "<span class='he'>" + data.heRef + "</span>" +
+                            "</div>" +
+                            "<div class='result-byline'>" +
+                                "<span class='en'>" + (data.authorsEn ? (data.authorsEn + ", ") : "") + data.placeNameEn + data.timePeriodEn + "</span>" +
+                                "<span class='he'>" + (data.authorsHe ? (data.authorsHe + ", ") : "") + (data.placeNameHe ? data.placeNameHe : data.placeNameEn) + data.timePeriodHe + "</span>" +
+                            "</div>" +
+                            "<div class='result-text'>" +
+                                "<span class='en'>" + data.enText + "</span>" +
+                                "<span class='he'>" + data.heText + "</span>" +
+                            "</div>" +
+                        "</div>"
+            })
             .on('renderlet', function (table) {
               table.selectAll('.dc-table-group').classed('info', true);
             });
