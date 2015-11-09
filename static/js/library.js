@@ -197,8 +197,18 @@ sjs.library = {
   _linkSummaries: {},
   linkSummary: function(ref) {
     // Returns an object summarizing the link counts by category and text
-    if (ref in this._linkSummaries) { return this._linkSummaries[ref]; }
-    var links   = ref in this._links ? this._links[ref] : [];
+    // Takes either a single string `ref` or an array of string refs.
+    if (typeof ref == "string") {
+      if (ref in this._linkSummaries) { return this._linkSummaries[ref]; }
+      links   = this.links(ref);
+    } else {
+      var links = [];
+      ref.map(function(r) {
+        var newlinks = sjs.library.links(r);
+        links = links.concat(newlinks);
+      });
+    }
+
     var summary = {};
     for (var i = 0; i < links.length; i++) {
       var link = links[i];
