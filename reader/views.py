@@ -1245,13 +1245,13 @@ def word_form_set_api(request, lexicon, tref):
 @catch_error_as_json
 def dictionary_api(request, word):
     lookup_ref=request.GET.get("lookup_ref", None)
-    wform_pkey = 'form'
     if is_hebrew(word):
         word = strip_cantillation(word)
+        query_obj = {'form': word}
         if not has_cantillation(word, detect_vowels=True):
-            wform_pkey = 'c_form'
-
-    query_obj = {wform_pkey: word}
+            query_obj = {'$or':[{'form': word}, {'c_form': word}]}
+    else:
+        query_obj = {'form': word}
     if lookup_ref:
         nref = Ref(lookup_ref).normal()
         query_obj["refs"] = {'$regex': '^{}'.format(nref)}
@@ -1260,13 +1260,15 @@ def dictionary_api(request, word):
         del query_obj["refs"]
         form = WordForm().load(query_obj)
     if form:
-        result = []
+        queries = []
         for lookup in form.lookups:
+            queries.append({'headword': lookup['headword']})
             #TODO: if we want the 'lookups' in wf to be a dict we can pass as is to the lexiconentry, we need to change the key 'lexicon' to 'parent_lxicon' in word forms
-            ls = LexiconEntrySet({'headword': lookup['headword']})
-            for l in ls:
-                result.append(l.contents())
-        return jsonResponse(result)
+        ls = LexiconEntrySet({'$or':queries})
+        results = []
+        for l in ls:
+            results.append(l.contents())
+        return jsonResponse(results)
     else:
         return jsonResponse({"error": "No information found for given word."})
 
