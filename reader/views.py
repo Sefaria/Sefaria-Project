@@ -2231,7 +2231,7 @@ def talmud_person_index(request):
     return render_to_response('talmud_people.html', template_vars, RequestContext(request))
 
 def _get_sheet_tag_garden(tag):
-    garden_key = "sheets.tagged.{}".format(tag)
+    garden_key = u"sheets.tagged.{}".format(tag)
     g = Garden().load({"key": garden_key})
     if not g:
         g = Garden({"key": garden_key, "title": u"Sources from Sheets Tagged {}".format(tag), "heTitle": u"מקורות מדפים מתויגים:" + u" " + unicode(tag)})
@@ -2248,7 +2248,7 @@ def sheet_tag_visual_garden_page(request, key):
     return visual_garden_page(request, g)
 
 def _get_search_garden(q):
-    garden_key = "search.query.{}".format(q)
+    garden_key = u"search.query.{}".format(q)
     g = Garden().load({"key": garden_key})
     if not g:
         g = Garden({"key": garden_key, "title": u"Search: {}".format(q), "heTitle": u"חיפוש:" + u" " + unicode(q)})

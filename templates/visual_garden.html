@@ -288,8 +288,8 @@
                                 "<span class='he'>" + data.heRef + "</span>" +
                             "</div>" +
                             "<div class='result-byline'>" +
-                                "<span class='en'>" + (data.authorsEn ? (data.authorsEn + ", ") : "") + data.placeNameEn + data.timePeriodEn + "</span>" +
-                                "<span class='he'>" + (data.authorsHe ? (data.authorsHe + ", ") : "") + (data.placeNameHe ? data.placeNameHe : data.placeNameEn) + data.timePeriodHe + "</span>" +
+                                "<span class='en'>" + (data.authorsEn ? (data.authorsEn + ", ") : "") + (data.placeNameEn ? data.placeNameEn : "") + (data.timePeriodEn ? data.timePeriodEn : "") + "</span>" +
+                                "<span class='he'>" + (data.authorsHe ? (data.authorsHe + ", ") : "") + (data.placeNameHe ? data.placeNameHe : (data.placeNameEn ? data.placeNameEn : "")) + (data.timePeriodHe ? data.timePeriodHe : "") + "</span>" +
                             "</div>" +
                             "<div class='result-text'>" +
                                 "<span class='en'>" + data.enText + "</span>" +

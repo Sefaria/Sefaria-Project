@@ -760,7 +760,7 @@ body.embeded #top {
   font-size: .8em;
 }
 #visualGardenPage #results .result-text {
-  margin-top: 5px;
+  margin: 5px 10px 0;
 }
 #visualGardenPage #results #data-count {
   text-align: center;

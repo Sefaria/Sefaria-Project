@@ -126,7 +126,7 @@ class Garden(abst.AbstractMongoRecord):
         try:
             gs.save()
         except Exception as e:
-            logger.warning("Failed to add stop to Garden {}. {}".format(self.title, e))
+            logger.warning(u"Failed to add stop to Garden {}. {}".format(self.title, e))
 
     def add_relationship(self, attrs):
         gs = GardenStopRelation(attrs)
@@ -134,7 +134,7 @@ class Garden(abst.AbstractMongoRecord):
         try:
             gs.save()
         except Exception as e:
-            logger.warning("Failed to add relationship to Garden {}. {}".format(self.title, e))
+            logger.warning(u"Failed to add relationship to Garden {}. {}".format(self.title, e))
 
     def import_sheets_by_user(self, user_id):
         sheet_list = db.sheets.find({"owner": int(user_id), "status": {"$ne": 5}})
@@ -332,15 +332,15 @@ class GardenStop(abst.AbstractMongoRecord):
                 self.authorsHe = author.primary_name("he")
 
             # Place
-            placeKey = getattr(i, "compPlace", None) or getattr(author, "deathPlace", None) or getattr(author, "birthPlace", None)
+            placeKey = getattr(i, "compPlace", "") or getattr(author, "deathPlace", "") or getattr(author, "birthPlace", "")
             if placeKey:
                 pobj = place.Place().load({"key": placeKey})
                 if not pobj:
                     raise InputError("Failed to find place with key {} while resolving metadata for {}".format(placeKey, self.ref))
-                self.placeKey = placeKey
                 self.placeNameEn = pobj.primary_name("en")
                 self.placeNameHe = pobj.primary_name("he")
                 #self.placeGeo = pobj.get_location()
+            self.placeKey = placeKey  # The "" result is import to have here, for CrossFilter correctness on the frontend
 
             # Time
             # This is similar to logic on Index.composition_time_period() refactor
@@ -370,6 +370,9 @@ class GardenStop(abst.AbstractMongoRecord):
         if tp:
             self.timePeriodEn = tp.period_string("en")
             self.timePeriodHe = tp.period_string("he")
+        else:
+            self.start = None
+            self.end = None
 
     def _normalize(self):
         if self.is_key_changed("ref"):

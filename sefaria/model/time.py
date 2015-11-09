@@ -114,14 +114,14 @@ class TimePeriod(abst.AbstractMongoRecord):
         return self.name_group.add_title(name, lang, primary=primary, replace_primary=replace_primary)
 
     def getYearLabels(self, lang):
-        if not getattr(self, "start", None) or not getattr(self, "end", None):
+        if getattr(self, "start", None) is None or getattr(self, "end", None) is None:
             return u"", u""
 
         if self.start < 0 < self.end:
             return (u"BCE ", u"CE") if lang == "en" else (u'לפנה"ס' + u' ', u"לספירה")
         elif self.end > 0:
             return (u"", u"CE") if lang == "en" else (u"", u"לספירה")
-        else:  # self.end < 0
+        else:  # self.end <= 0
             return (u"", u"BCE") if lang == "en" else (u"", u'לפנה"ס')
 
     def getApproximateMarkers(self, lang):
@@ -134,7 +134,7 @@ class TimePeriod(abst.AbstractMongoRecord):
     def period_string(self, lang):
         name = u""
 
-        if getattr(self, "start", None) and getattr(self, "end", None):
+        if getattr(self, "start", None) is not None and getattr(self, "end", None) is not None:
             labels = self.getYearLabels(lang)
             approxMarker = self.getApproximateMarkers(lang)
 
