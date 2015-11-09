@@ -20,15 +20,15 @@ unknown_sheets = set([])
 for sheet in sheets:
 	sources = sheet.get("sources", [])
 	for source in sources:
-		if ref in source:
+		if "ref" in source:
 			ref_sources += 1
-		elif comment in source:
+		elif "comment" in source:
 			comment_sources += 1
-		elif outsideBiText in source:
+		elif "outsideBiText" in source:
 			outsideBiText_sources += 1
-		elif outsideText in source:
+		elif "outsideText" in source:
 			outsideText_sources += 1
-		elif media in source:
+		elif "media" in source:
 			media_sources += 1
 		else:
 			unknown_sources += 1
