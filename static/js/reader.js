@@ -1299,6 +1299,24 @@ sjs.lexicon = {
 		return wrapped;
 	},
 
+	wrapHebLetterLaazim: function(text){
+		if (typeof text !== "string") {
+			return text;
+		}
+		var regexs = /([\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05f4]+["][\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05f4]+)(?!\))/g;
+		wrapped = text.replace(regexs, function(matched){
+			if(!matched.match(/ובלע"ז|בלע"ז|ד"ה/g)){
+				return "<span class='lexicon-link'>"+matched+"</span>"
+			}else{
+				return matched;
+			}
+		});
+		return wrapped;
+		/*var hreg = RegExp('(\b|[^\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05f4]+)('
+			+ highlight_words.join('|')
+			+ ')(\b|[^\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05f4]+)','gi');*/
+	},
+
 
 	wrapEngLexiconLookups : function (text) {
 		// Wraps words in text with a tags
@@ -1317,15 +1335,17 @@ sjs.lexicon = {
 		if ((lexicon_name in sjs.lexicon._form_cache) && (current_ref in sjs.lexicon._form_cache[lexicon_name])){
 			return sjs.lexicon._form_cache[lexicon_name][current_ref];
 		}else{
-			$.getJSON("/api/words/set/"+encodeURIComponent(lexicon_name) +"/" + encodeURIComponent(current_ref), {"bare": 1})
-			.done(function(data){
+			return $.getJSON("/api/words/set/"+encodeURIComponent(lexicon_name) +"/" + encodeURIComponent(current_ref), {"bare": 1}).done(function(data){
 				console.log(data);
-				var words_re = RegExp("(" + data.join("|") + ")", 'g');
-				if (!(lexicon_name in sjs.lexicon._form_cache )){
-					sjs.lexicon._form_cache[lexicon_name] = {};
+				if(!("error" in data)){
+					var words_re = RegExp("(" + data.join("|") + ")", 'g');
+					if (!(lexicon_name in sjs.lexicon._form_cache )){
+						sjs.lexicon._form_cache[lexicon_name] = {};
+					}
+					sjs.lexicon._form_cache[lexicon_name][current_ref] = words_re;
+					return words_re;
 				}
-				sjs.lexicon._form_cache[lexicon_name][current_ref] = words_re;
-				return words_re;
+				return false;
 			});
 		}
 	},
@@ -1354,11 +1374,15 @@ sjs.lexicon = {
 		return function(text) {
 			//TODO: generalize for potential other lexicons than Rashi's
 			var words_reg = words_re;
+			if (typeof text !== "string") {
+				return text;
+			}
 			if (words_reg){
 				var wrapped = text.replace(words_reg, "<span class='lexicon-link'>$1</span>");
 				console.log(wrapped);
 				return wrapped;
 			}
+			return text;
 		};
 	},
 
@@ -1377,7 +1401,8 @@ sjs.lexicon = {
 				if (sjs.current.categories[0] == 'Tanach'){
 					return sjs.lexicon.wrapHebArcLexiconLookups;
 				}else if (("commentator" in sjs.current) && sjs.current.commentator == 'Rashi'){
-					return sjs.lexicon.getWrapPrefetchedWordFormLookupsCallback('Rashi Foreign Lexicon');
+					//return sjs.lexicon.getWrapPrefetchedWordFormLookupsCallback('Rashi Foreign Lexicon');
+					return sjs.lexicon.wrapHebLetterLaazim;
 				}else{
 					return function(text){return text;}
 				}
