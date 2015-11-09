@@ -2,11 +2,13 @@
 
 import argparse
 import re
+import unicodecsv as csv
 from fuzzywuzzy import process, fuzz
 from fuzzywuzzy import utils as fuzzyutils
 from sefaria.model import *
 
 url_base = 'http://www.sefaria.org/'
+output_format = "{}),[{}],[{}],{},{},{}"
 
 def laaz_process(s):
     return fuzzyutils.full_process(re.sub(ur'[\":]','', s), False)
@@ -71,22 +73,23 @@ def find_closest_match(text_rows, word, default_compare=True, filter_words_with_
     return top_res
 
 
-
-
-
 laaz_rashi_entries = LexiconEntrySet({'parent_lexicon': 'Rashi Foreign Lexicon'})
-print "{})\t[{}]\t{}\t{}\t{}\t{}".format("Catane Number",
-                                         "Word Referenced in Text",
-                                         "Lexicon Headword",
-                                         "Best Ref",
-                                         "Best Word Match",
-                                         "Level of Uncertainity")
+csv_results = [["Catane Number", "Word Referenced in Text", "Lexicon Headword", "Best Ref", "Best Word Match", "Uncertainity", "def"]]
 for entry in laaz_rashi_entries:
-    results = []
     only_in_print_str = u'מצוי רק בדפוס'
     not_in_print_str = [u'מצוי רק ב', u'לא בדפוסי', u'חסר בדפוסי', u'חסרה בדפוסי', u'אינה נמצאת בדפוסי', u'בדפוסים המלה חסרה', u'אינה בדפוסי']
     if only_in_print_str in entry.content['notes'] or all(s not in entry.content['notes'] for s in not_in_print_str):
-        oref = Ref("Rashi on {}".format(entry.orig_ref))
+        try:
+            oref = Ref("Rashi on {}".format(entry.orig_ref))
+            if oref.is_empty():
+                if 'Bava Batra' in entry.orig_ref:
+                        oref = Ref("Rashbam on {}".format(entry.orig_ref))
+                elif "Tamid" in entry.orig_ref:
+                        oref = Ref("Meforash on {}".format(entry.orig_ref))
+                else:
+                    continue
+        except:
+            continue
         level_of_uncertainity = 1
         headword = entry.headword
         text_rows = flatten_text_to_lowest_refs(oref)
@@ -105,24 +108,34 @@ for entry in laaz_rashi_entries:
             level_of_uncertainity +=2
             best_match = find_closest_match(filtered_text_rows, entry.headword, filter_words_with_quotation_marks=False)
         if best_match:
-            print "{}\t[{}]\t{}\t{}\t{}\t{}".format(entry.catane_number.encode('utf-8'),
-                                               entry.orig_word.encode('utf-8'),
-                                               entry.headword.encode('utf-8'),
-                                               url_base + best_match[0],
-                                               best_match[2].encode('utf-8'),
-                                                     level_of_uncertainity)
+            csv_results.append([entry.catane_number.encode('utf-8'),
+                            entry.orig_word.encode('utf-8'),
+                            entry.headword.encode('utf-8'),
+                            url_base + Ref(best_match[0]).url(),
+                            best_match[2].encode('utf-8'),
+                            level_of_uncertainity,
+                            entry.content['definition'] + "|" + entry.content['notes']
+                            ])
+
         else:
-            print "{}\t[{}]\t{}\t{}\t{}\t{}".format(entry.catane_number.encode('utf-8'),
-                                                     entry.orig_word.encode('utf-8'),
-                                                     entry.headword.encode('utf-8'),
-                                                     url_base + oref.normal(),
-                                                     'NO MATCH FOUND',-1)
+            csv_results.append([entry.catane_number.encode('utf-8'),
+                             entry.orig_word.encode('utf-8'),
+                             entry.headword.encode('utf-8'),
+                             url_base + oref.url(),
+                             'NO MATCH FOUND',-1,
+                            entry.content['definition'] + "|" + entry.content['notes']])
     else:
-        print "{}\t[{}]\t{}\t{}\t{}\t{}".format(entry.catane_number.encode('utf-8'),
-                                    entry.orig_word.encode('utf-8'),
-                                    entry.headword.encode('utf-8'),
-                                    oref.normal(),
-                                    'Does not appear in print versions',-1)
+        csv_results.append([entry.catane_number.encode('utf-8'),
+                        entry.orig_word.encode('utf-8'),
+                        entry.headword.encode('utf-8'),
+                        url_base + oref.url(),
+                        'NOT IN PRINT',-1,
+                            entry.content['definition'] + "|" + entry.content['notes']])
+
+with open("data/tmp/laaz-rashi-adjust.csv", 'wb+') as outfile:
+    result_csv = csv.writer(outfile, delimiter='@')
+    for result in csv_results:
+        result_csv.writerow(result)
 
 
 

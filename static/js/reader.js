@@ -1264,13 +1264,9 @@ $(function() {
 /************************ LEXICON **********************************************/
 sjs.lexicon = {
 
-	enabledCategories : {
-		'en' :  ['Mishnah'],
-		'he' : ['Tanach']
+	_form_cache :{
+
 	},
-
-
-	enabledTexts : {}, //TODO: if we want a more specific activation mechanism, we might need to store info server side.
 
 	//----------------------- INIT --------------------------------
 
@@ -1289,19 +1285,6 @@ sjs.lexicon = {
 	},*/
 
 	// ---------------------preparation functions--------------------------
-	isLexiconEnabled: function (currentText, lang, params){
-		//console.log(currentText);
-		/*if (params['url_enabled']){*/
-		if(sjs.lexicon.enabledCategories[lang].indexOf(currentText.categories[0]) > -1) {
-			return true;
-		}/*else if('commentator' in currentText && currentText['commentator'] == 'Rashi' && lang == 'he'){//hack. find better way
-			return true;
-		}*/
-		/*}*/
-		return false;
-	},
-
-
 	wrapHebArcLexiconLookups : function (text) {
 		// Wraps words in text with a tags
 		// to online Aramaic dictionary
@@ -1309,14 +1292,10 @@ sjs.lexicon = {
 			return text;
 		}
 		wrapped = "";
-		//words = text.split(/[ ]+/);
 		//regex to match hebrew, but not spaces, colons, maqqaf or parshiya indicator (פ) or (ס)
 		//TODO: this regex had \'\" after \u05f3 to help with laaz rashi wrapping. it was casuing issues with search highlights. Find another way
 		var regexs = /([\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05f4]+)(?!\))/g;
-		wrapped = text.replace(regexs, "<span class='lexicon-link'>$1</span>")
-		/*for (var i = 0; i < words.length; i++ ) {
-			wrapped += "<span class='lexiconLink'>" + words[i] + "</span> ";
-		}*/
+		wrapped = text.replace(regexs, "<span class='lexicon-link'>$1</span>");
 		return wrapped;
 	},
 
@@ -1330,6 +1309,87 @@ sjs.lexicon = {
 		var parsedText = $("<p>").html(text);
 		parsedText.find('i').wrap("<span class='lexicon-link'></span>");
 		return parsedText.html();
+	},
+
+	getOrFetchWordForms: function(lexicon_name){
+		//TODO: a truly general fucntion woudlnt assume commentary
+		var current_ref = sjs.current.commentaryBook + "." + sjs.current.sections[0];
+		if ((lexicon_name in sjs.lexicon._form_cache) && (current_ref in sjs.lexicon._form_cache[lexicon_name])){
+			return sjs.lexicon._form_cache[lexicon_name][current_ref];
+		}else{
+			$.getJSON("/api/words/set/"+encodeURIComponent(lexicon_name) +"/" + encodeURIComponent(current_ref), {"bare": 1})
+			.done(function(data){
+				console.log(data);
+				var words_re = RegExp("(" + data.join("|") + ")", 'g');
+				if (!(lexicon_name in sjs.lexicon._form_cache )){
+					sjs.lexicon._form_cache[lexicon_name] = {};
+				}
+				sjs.lexicon._form_cache[lexicon_name][current_ref] = words_re;
+				return words_re;
+			});
+		}
+	},
+
+	/*wrapPrefetchedWordFormLookups : function (text) {
+		var current_ref = sjs.current.commentaryBook + "." + sjs.current.sections[0];
+		$.ajax({
+		  	url: "/api/words/set/Rashi Foreign Lexicon/" + encodeURIComponent(current_ref),
+			data:  {"bare": 1},
+		  	async: false,
+		  	dataType: 'json',
+		  	success: function (data) {
+				console.log(data);
+				var words_re = RegExp("(" + data.join("|") + ")", 'g');
+				console.log(words_re);
+				var wrapped = text.replace(words_re, "<span class='lexicon-link'>$1</span>");
+				console.log(wrapped);
+				return wrapped;
+			}
+		});
+	},*/
+
+
+	getWrapPrefetchedWordFormLookupsCallback : function (lexicon_name) {
+		words_re = sjs.lexicon.getOrFetchWordForms(lexicon_name);
+		return function(text) {
+			//TODO: generalize for potential other lexicons than Rashi's
+			var words_reg = words_re;
+			if (words_reg){
+				var wrapped = text.replace(words_reg, "<span class='lexicon-link'>$1</span>");
+				console.log(wrapped);
+				return wrapped;
+			}
+		};
+	},
+
+
+	callbacks: function (){
+		return {
+			"he": sjs.lexicon.getTextWrapperCallback('he'),
+			"en": sjs.lexicon.getTextWrapperCallback('en')
+		}
+	},
+
+	//TODO: this needs to be better.
+	getTextWrapperCallback: function (lang){
+		switch (lang) {
+			case "he":
+				if (sjs.current.categories[0] == 'Tanach'){
+					return sjs.lexicon.wrapHebArcLexiconLookups;
+				}else if (("commentator" in sjs.current) && sjs.current.commentator == 'Rashi'){
+					return sjs.lexicon.getWrapPrefetchedWordFormLookupsCallback('Rashi Foreign Lexicon');
+				}else{
+					return function(text){return text;}
+				}
+				break;
+			case "en":
+				if (sjs.current.categories[0] == 'Mishnah'){
+					return sjs.lexicon.wrapEngLexiconLookups;
+				}else{
+					return function(text){return text;}
+				}
+				break;
+		}
 	},
 
 	// ----------------- Lexicon lookup--------------------------
@@ -1469,43 +1529,7 @@ sjs.lexicon = {
 		}
 	},
 
-	/*makeLexicon : function(e) {
-		e.stopPropagation();
-		$("#lexiconModal").remove();
-		var word = $(this).text();
-		var $anchor = $(this);
-		$.getJSON("/api/words/" + word, function(data) {
-			var html = "<div id='lexiconModal'>";
-			if (data.length == 0) {
-				html += "<i>?</i>";
-				setTimeout(function() {
-					$("#lexiconModal").remove();
-				}, 400);
-			}
-			for (var i = 0; i < data.length; i++) {
-				var entry = data[i];
-				html += "<div class='entry'>" +
-						"<div class='word'>" + entry.term + "</div>";
-				for (var j = 0; j < entry.senses.length; j++) {
-					var sense = entry.senses[j];
-					html += "<div class='sense'>" +
-						"<div class='definition'><span class='pos'>[" + sense.pos + "]</span> "
-							 + sense.definition + "</div>" +
-						(sense.source === "CAL Lexicon" ? "<a href='http://www.dukhrana.com/lexicon/Jastrow/page.php?p=" + sense.jastrow_page + "' target='_blank'>" +
-							"Jastrow<span class='ui-icon ui-icon-extlink'></span></a>" : "") +
-						"</div>";
-				}
-				html += (sense.source === "CAL Lexicon" ? "<i class='definitionSource'>Definitions courtesry of <a href='http://cal1.cn.huc.edu/browseheaders.php?first3=" + entry.term + "' target='_blank'>" +
-							"CAL Project</a></i>" : "" );
-				html += "</div>";
-			}
-			html += "</div>";
-			console.log(html);
-			$(html).appendTo("body");
-			$("#lexiconModal").position({my: "center top", at: "center bottom", of: $anchor})
-				.click(function(e){ e.stopPropagation(); });
-		});
-	},*/
+
 }
 
 /*************************************** end lexicon **********************************************/
@@ -1943,8 +1967,7 @@ function basetextHtml(en, he, prefix, alts, sectionName, hideNumbers) {
 	he.pad(length, "");
 
     var highlighted = false;
-	var lexicon_enabled ={ 'en' : sjs.lexicon.isLexiconEnabled(sjs.current, 'en', {'url_enabled': 'lexicon' in getUrlVars()}),
-							'he' : sjs.lexicon.isLexiconEnabled(sjs.current, 'he', {'url_enabled': 'lexicon' in getUrlVars()})};
+	var lexicon_callbacks = sjs.lexicon.callbacks();
 
     if (sjs.current.new_preferred_version && sjs.current.query_highlight) {
         highlighted = true;
@@ -1970,12 +1993,12 @@ function basetextHtml(en, he, prefix, alts, sectionName, hideNumbers) {
         }
         var enButton = "<div class='btn addThis' data-lang='en' data-num='" + (i+1) +"'>" +
 			"Add English for " + sectionName +  " " + (i+1) + "</div>";
-		var enText = (lexicon_enabled['en'] ? sjs.lexicon.wrapEngLexiconLookups(sjs.wrapRefLinks(en[i])) : sjs.wrapRefLinks(en[i])) || enButton;
+		var enText = lexicon_callbacks['en'](sjs.wrapRefLinks(en[i])) || enButton;
 		var enClass = en[i] ? "en" : "en empty";
 
 		var heButton = "<div class='btn addThis' data-lang='he' data-num='"+ (i+1) + "'>" +
 			"Add Hebrew for " + sectionName + " " + (i+1) + "</div>";
-		var heText =  (lexicon_enabled['he'] ? sjs.lexicon.wrapHebArcLexiconLookups(he[i]) : he[i]) || heButton;
+		var heText =  lexicon_callbacks['he'](he[i]) || heButton;
 		var heClass = he[i] ? "he" : "he empty";
 
 		var n = prefix + (i+1);

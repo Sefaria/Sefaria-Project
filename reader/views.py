@@ -1218,6 +1218,31 @@ def lock_text_api(request, title, lang, version):
 
 
 @catch_error_as_json
+def word_form_set_api(request, lexicon, tref):
+    bare = request.GET.get("bare", None)
+    join = request.GET.get("join", None)
+    if bare:
+        proj = {'form':  1, 'c_form': 1}
+    else:
+        proj = None
+    nref = Ref(tref).normal()
+    query = {'lookups.parent_lexicon': lexicon, 'refs':{'$regex': '^{}'.format(nref)}}
+    wfs = WordFormSet(query, proj=proj)
+    results = []
+    for wf in wfs:
+        results.append(wf.form)
+        if hasattr(wf, 'c_form'):
+            results.append(wf.c_form)
+    if len(results):
+        if join:
+            return jsonResponse("({})".format("|".join(results)))
+        else:
+            return jsonResponse(results)
+    else:
+        return jsonResponse({"error": "No lookups found for {} in {}.".format(tref, lexicon)})
+
+
+@catch_error_as_json
 def dictionary_api(request, word):
     lookup_ref=request.GET.get("lookup_ref", None)
     wform_pkey = 'form'

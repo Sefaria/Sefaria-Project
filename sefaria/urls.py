@@ -64,7 +64,9 @@ urlpatterns += patterns('reader.views',
 
 # Dictionary API
 urlpatterns += patterns('reader.views',
+    (r'^api/words/set/(?P<lexicon>.+)/(?P<tref>.+)$', 'word_form_set_api'),
     (r'^api/words/(?P<word>.+)$', 'dictionary_api'),
+
 )
 
 # ESI

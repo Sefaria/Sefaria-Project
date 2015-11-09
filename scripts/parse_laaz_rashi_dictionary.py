@@ -20,9 +20,11 @@ class LaazRashiParser(object):
         self.input_rows += self.parse_input(self.bible_data_file)
         self.entries = {}
         control_talmud = range(1, 2463)
+        control_talmud_extras = u'49א,184א,195א,522א,717א,970א,995א,1056א,1090א,1320א,1451א,1539א,1619א,1677א,1926א,2327א,2390א,2390ב,2390ג'.split(",")
         control_bible = range(3001, 4383)
-        self.control = control_talmud + control_bible
-
+        control_bible_extras = u'3194א,3267א,3593א,3604א,3925א,3925ב,3925ג'.split(",")
+        self.control = control_talmud + control_talmud_extras + control_bible + control_bible_extras
+1
 
 
     def parse_input(self, filename):
