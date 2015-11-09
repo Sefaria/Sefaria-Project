@@ -6,17 +6,19 @@ Writes to MongoDB Collection: summaries
 """
 import json
 from datetime import datetime
+from pprint import pprint
 
 import sefaria.system.cache as scache
 from sefaria.system.database import db
 from sefaria.utils.hebrew import hebrew_term
 from model import *
+from sefaria.system.exceptions import BookNameError
 
 
 # Giant list ordering or categories
 # indentation and inclusion of duplicate categories (like "Seder Moed")
-# is for readabiity only. The table of contents will follow this structure. 
-order = [ 
+# is for readability only. The table of contents will follow this structure.
+ORDER = [
     "Tanach",
         "Torah",
             "Genesis",
@@ -66,6 +68,7 @@ order = [
                 "Seder Nezikin",
                 "Seder Kodashim",
                 "Seder Tahorot",
+        "Rif",
     "Midrash",
         "Aggadic Midrash",
             "Midrash Rabbah",
@@ -89,6 +92,7 @@ order = [
             'Sefer Shoftim',
         "Shulchan Arukh",
     "Kabbalah",
+        "Zohar",
     'Liturgy',
         'Siddur',
         'Piyutim',
@@ -97,10 +101,17 @@ order = [
     'Chasidut',
     'Musar',
     'Responsa',
+        "Rashba",
+        "Rambam",
     'Apocrypha',
     'Elucidation',
+    'Modern Works',
     'Other',
 ]
+
+REORDER_RULES = {
+    "Commentary2": ["Commentary"],
+}
 
 
 def get_toc():
@@ -141,6 +152,7 @@ def save_toc(toc):
     scache.set_cache_elem('toc_cache', toc, 600000)
     scache.delete_template_cache("texts_list")
     scache.delete_template_cache("texts_dashboard")
+    library.local_cache.pop("category_id_dict", None)
 
 
 def get_toc_from_db():
@@ -167,41 +179,42 @@ def save_toc_to_db():
 
 def update_table_of_contents():
     toc = []
-
     # Add an entry for every text we know about
     indices = IndexSet()
     for i in indices:
-        if i.is_commentary():
+        if i.is_commentary() or i.categories[0] == "Commentary2":
             # Special case commentary below
             continue
-        if i.categories[0] not in order:
+        if i.categories[0] in REORDER_RULES:
+            i.categories = REORDER_RULES[i.categories[0]] + i.categories[1:]
+        if i.categories[0] not in ORDER:
             i.categories.insert(0, "Other")
+
         node = get_or_make_summary_node(toc, i.categories)
-        #the toc "contents" attr is returned above so for each text appends the counts and index info
         text = add_counts_to_index(i.toc_contents())
         node.append(text)
 
-    # Special handling to list available commentary texts which do not have
-    # individual index records
-    commentary_texts = library.get_commentary_version_titles()
+    # Special handling to list available commentary texts
+    commentary_texts = library.get_commentary_version_titles(with_commentary2=True)
     for c in commentary_texts:
-        i = get_index(c)
-        #TODO: duplicate index records where one is a commentary and another is not labeled as one can make this crash.
-        #this fix takes care of the crash.
-        if len(i.categories) >= 1 and i.categories[0] == "Commentary":
-            cats = i.categories[1:2] + ["Commentary"] + i.categories[2:]
+
+        try:
+            i = get_index(c)
+        except BookNameError:
+            continue
+
+        if i.categories[0] in REORDER_RULES:
+            cats = REORDER_RULES[i.categories[0]] + i.categories[1:]
         else:
-            cats = i.categories[0:1] + ["Commentary"] + i.categories[1:]
-            #cats = i.categories[1:2] + ["Commentary", i.commentator] + [i.commentator + " on " + cat for cat in i.categories[2:-1]]
+            cats = i.categories[:]
+
+        toc_contents = i.toc_contents()
+        cats[0], cats[1] = cats[1], cats[0] # Swap "Commentary" with toplevel category (e.g., "Tanach")        
+
         node = get_or_make_summary_node(toc, cats)
-        text = add_counts_to_index(i.toc_contents())
+        text = add_counts_to_index(toc_contents)
         node.append(text)
 
-    # todo: Annotate categories nodes with counts
-    '''
-    for cat in toc:
-        add_counts_to_category(cat)
-    '''
 
     # Recursively sort categories and texts
     toc = sort_toc_node(toc, recur=True)
@@ -239,22 +252,6 @@ def recur_delete_element_from_toc(ref, toc):
     return toc
 
 
-def make_simple_index_dict(index):
-    if not index.is_new_style() or index.is_commentary():
-        indx_dict = {
-            "title": index.title,
-            "heTitle": index.heTitle,
-            "categories": index.categories
-        }
-    else:
-        indx_dict = {
-            "title": index.nodes.primary_title("en"),
-            "heTitle": index.nodes.primary_title("he"),
-            "categories": index.categories
-        }
-    return indx_dict
-
-
 def update_summaries_on_change(bookname, old_ref=None, recount=True):
     """
     Update text summary docs to account for change or insertion of 'text'
@@ -270,14 +267,18 @@ def update_summaries_on_change(bookname, old_ref=None, recount=True):
     toc = get_toc()
     resort_other = False
 
+    if indx_dict["categories"][0] in REORDER_RULES:
+        indx_dict["categories"] = REORDER_RULES[indx_dict["categories"][0]] + indx_dict["categories"][1:]
+
     if indx_dict["categories"][0] != "Commentary":
-        if indx_dict["categories"][0] not in order:
+        if indx_dict["categories"][0] not in ORDER:
             indx_dict["categories"].insert(0, "Other")
             resort_other = True
         node = get_or_make_summary_node(toc, indx_dict["categories"])
         text = add_counts_to_index(indx_dict)
     else:
-        cats = indx_dict["categories"][1:2] + ["Commentary"] + indx_dict["categories"][2:]
+        commentator = indx_dict["commentator"]
+        cats = [indx_dict["categories"][1], "Commentary", commentator]
         node = get_or_make_summary_node(toc, cats)
         text = add_counts_to_index(indx_dict)
 
@@ -308,37 +309,38 @@ def update_summaries():
     scache.reset_texts_cache()
 
 
-def get_or_make_summary_node(summary, nodes):
+def get_or_make_summary_node(summary, nodes, contents_only=True):
     """
     Returns the node in 'summary' that is named by the list of categories in 'nodes',
     creates the node if it doesn't exist.
     Used recursively on sub-summaries.
     """
     if len(nodes) == 1:
-    # Basecase, only need to search through on level
+    # Basecase, only need to search through one level
         for node in summary:
             if node.get("category") == nodes[0]:
-                return node["contents"]
+                return node["contents"] if contents_only else node
         # we didn't find it, so let's add it
         summary.append({"category": nodes[0], "heCategory": hebrew_term(nodes[0]), "contents": []})
-        return summary[-1]["contents"]
+        return summary[-1]["contents"] if contents_only else summary[-1]
 
     # Look for the first category, or add it, then recur
     for node in summary:
         if node.get("category") == nodes[0]:
-            return get_or_make_summary_node(node["contents"], nodes[1:])
+            return get_or_make_summary_node(node["contents"], nodes[1:], contents_only=contents_only)
+    
     summary.append({"category": nodes[0], "heCategory": hebrew_term(nodes[0]), "contents": []})
-    return get_or_make_summary_node(summary[-1]["contents"], nodes[1:])
+    return get_or_make_summary_node(summary[-1]["contents"], nodes[1:], contents_only=contents_only)
 
 
 def add_counts_to_index(indx_dict):
     """
-    Returns a dictionary representing a text which includes index info,
-    and text counts.
+    Returns a dictionary which decorates `indx_dict` with a spareness score.
     """
     vs = StateNode(indx_dict["title"])
     indx_dict["sparseness"] = max(vs.get_sparseness("he"), vs.get_sparseness("en"))
     return indx_dict
+
 
 '''
 #not currently used
@@ -382,22 +384,15 @@ def node_sort_key(a):
     """
     if "category" in a:
         try:
-            return order.index(a["category"])
+            return ORDER.index(a["category"])
         except ValueError:
-            # If there is a text with the exact name as this category
-            # (e.g., "Bava Metzia" as commentary category)
-            # sort by text's order
-            i = Index().load({"title": a["category"]})
-            if i and getattr(i, "order", None):
-                return i.order[-1]
-            else:
-                return 'zz' + a["category"]
+           return 'zz' + a["category"]
     elif "title" in a:
         try:
-            return order.index(a["title"])
+            return ORDER.index(a["title"])
         except ValueError:
             if "order" in a:
-                return a["order"][-1]
+                return a["order"][0]
             else:
                 return a["title"]
 
@@ -405,7 +400,8 @@ def node_sort_key(a):
 
 
 def node_sort_sparse(a):
-    if "category" in a: # Category - sort to top
+    if "category" in a or "order" in a:
+        # Keep categories or texts with explicit orders at top
         score = -4
     else:
         score = -a.get('sparseness', 1)
@@ -472,7 +468,7 @@ def flatten_toc(toc, include_categories=False, categories_in_titles=False, versi
     Returns an array of strings which corresponds to each category and text in the
     Table of Contents in order.
 
-    - categorie_in_titles: whether to include each category preceding a text title,
+    - categories_in_titles: whether to include each category preceding a text title,
         e.g., "Tanach > Torah > Genesis".
     - version_granularity: whether to include a seperate entry for every text version.
     """
@@ -498,4 +494,30 @@ def flatten_toc(toc, include_categories=False, categories_in_titles=False, versi
                     results += ["%s > %s > %s.json" % (name, lang, v["versionTitle"])]
 
     return results
+
+
+def category_id_dict(toc=None, cat_head="", code_head=""):
+    if toc is None:
+        d = library.local_cache.get("category_id_dict")
+        if not d:
+            d = category_id_dict(get_toc())
+            library.local_cache["category_id_dict"] = d
+        return d
+
+    d = {}
+
+    for i, c in enumerate(toc):
+        name = c["category"] if "category" in c else c["title"]
+        if cat_head:
+            key = "/".join([cat_head, name])
+            val = code_head + format(i, '02')
+        else:
+            key = name
+            val = "A" + format(i, '02')
+
+        d[key] = val
+        if "contents" in c:
+            d.update(category_id_dict(c["contents"], key, val))
+
+    return d
 

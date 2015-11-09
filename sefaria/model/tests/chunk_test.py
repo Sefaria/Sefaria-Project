@@ -1,3 +1,4 @@
+# coding=utf-8
 import pytest
 
 from sefaria.model import *
@@ -39,13 +40,16 @@ def test_depth_1_chunk():
 def test_out_of_range_chunks():
     # test out of range where text has length
     with pytest.raises(InputError):
-        TextChunk(Ref("Genesis 80"), "he")
+        TextChunk(Ref("Job 80"), "he")
 
-    # and where text does not have length
-    t = TextChunk(Ref("Meshech Hochma 66"))
+    with pytest.raises(InputError):
+        TextChunk(Ref("Shabbat 180"), "he")
+
+    # and where text does not have length (will fail and need to be updated once the text is given a length)
+    t = TextChunk(Ref("Bemidbar Rabbah 66"))
     assert t.text == []
 
-    t = TextChunk(Ref("Meshech Hochma 66.4"))
+    t = TextChunk(Ref("Bemidbar Rabbah 66.4"))
     assert t.text == ""
 
 
@@ -139,6 +143,10 @@ def test_chapter_result_merge():
     for key in ["text", "ref", "he", "book", "sources", "commentary"]:  # todo: etc.
         assert key in c
 
+def test_text_family_alts():
+    tf = TextFamily(Ref("Exodus 6"), commentary=False, alts=True)
+    c = tf.contents()
+    assert c.get("alts")
 
 def test_validate():
     passing_refs = [
@@ -355,3 +363,31 @@ def test_save():
     v.delete()
 
     # write
+
+
+def test_complex_with_depth_1():
+    # There was a bug that chunks of complex texts always returned the first element of the array, even for deeper chunks
+    r = Ref('Pesach Haggadah, Kadesh 1')
+    c = TextChunk(r, "he")
+    assert u"כוס ראשון" in c.text
+
+    r = Ref('Pesach Haggadah, Kadesh 2')
+    c = TextChunk(r, "he")
+    assert c.text == u"קַדֵּשׁ"
+
+    r = Ref('Pesach Haggadah, Kadesh 2-4')
+    c = TextChunk(r, "he")
+    assert len(c.text) == 3
+    assert u"קַדֵּשׁ" in c.text[0]
+
+    #Comparing Hebrew is hard.
+    #assert u"בְּשַׁבָּת מַתְחִילִין" in c.text[1]
+    #assert u"וַיִּשְׁבֹּת" in c.text[2]
+
+    c = TextChunk(r, "en")
+    assert len(c.text) == 3
+    assert u"Kiddush" in c.text[0]
+    assert u"seventh day" in c.text[2]
+
+def test_complex_with_depth_2():
+    pass

@@ -11,97 +11,129 @@ from datetime import datetime, timedelta
 # To allow these files to be run directly from command line (w/o Django shell)
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
+import logging
+logger = logging.getLogger(__name__)
+
 from pyelasticsearch import ElasticSearch
 
 from sefaria.model import *
 from sefaria.utils.users import user_link
 from sefaria.system.database import db
 from sefaria.utils.util import strip_tags
-from settings import SEARCH_HOST, SEARCH_INDEX_NAME
+from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME
+from sefaria.summaries import REORDER_RULES
+from sefaria.utils.hebrew import hebrew_term
 import sefaria.model.queue as qu
 
 
-es = ElasticSearch(SEARCH_HOST)
+es = ElasticSearch(SEARCH_ADMIN)
 
 doc_count = 0
 
 
-def index_text(tref, version=None, lang=None):
+def index_text(oref, version=None, lang=None, bavli_amud=True):
     """
     Index the text designated by ref.
-    If no version and lang are given, this functon will be called for each availble version.
+    If no version and lang are given, this function will be called for each available version.
     Currently assumes ref is at section level. 
     """
-    #tref = texts.norm_ref(unicode(tref))
-    #todo: why the unicode()?
-    tref = Ref(tref).normal()
+    assert isinstance(oref, Ref)
 
-    # Recall this function for each specific text version, if non provided
+    # Recall this function for each specific text version, if none provided
     if not (version and lang):
-        for v in Ref(tref).version_list():
-            index_text(tref, version=v["versionTitle"], lang=v["language"])
+        for v in oref.version_list():
+            index_text(oref, version=v["versionTitle"], lang=v["language"], bavli_amud=bavli_amud)
         return
 
     # Index each segment of this document individually
-    oref = Ref(tref).padded_ref()
-    if len(oref.sections) < len(oref.index_node.sectionNames):
-        t = TextChunk(Ref(tref), lang="en", vtitle=version)
+    padded_oref = oref.padded_ref()
+    if bavli_amud and padded_oref.is_bavli():  # Index bavli by amud. and commentaries by line
+        pass
+    elif len(padded_oref.sections) < len(padded_oref.index_node.sectionNames):
+        t = TextChunk(oref, lang=lang, vtitle=version)
 
-        for i in range(len(t.text)):
-            index_text("%s:%d" % (tref, i+1))
+        for ref in oref.subrefs(len(t.text)):
+            index_text(ref, version=version, lang=lang, bavli_amud=bavli_amud)
+        return  # Returning at this level prevents indexing of full chapters
 
+    '''   Can't get here after the return above
     # Don't try to index docs with depth 3
     if len(oref.sections) < len(oref.index_node.sectionNames) - 1:
         return
+    '''
 
     # Index this document as a whole
-    doc = make_text_index_document(tref, version, lang)
+    try:
+        doc = make_text_index_document(oref.normal(), version, lang)
+    except Exception as e:
+        logger.error(u"Error making index document {} / {} / {} : {}".format(oref.normal(), version, lang, e.message))
+        return
+
     if doc:
         try:
             global doc_count
             if doc_count % 5000 == 0:
-                print "[%d] Indexing %s / %s / %s" % (doc_count, tref, version, lang)
-            es.index('sefaria', 'text', doc, make_text_doc_id(tref, version, lang))
+                logger.info(u"[{}] Indexing {} / {} / {}".format(doc_count, oref.normal(), version, lang))
+            es.index('sefaria', 'text', doc, make_text_doc_id(oref.normal(), version, lang))
             doc_count += 1
         except Exception, e:
-            print "ERROR indexing %s / %s / %s" % (tref, version, lang)
-            pprint(e)
+            logger.error(u"ERROR indexing {} / {} / {} : {}".format(oref.normal(), version, lang, e))
 
+def delete_text(oref, version, lang):
+    try:
+        id = make_text_doc_id(oref.normal(), version, lang)
+        es.delete('sefaria', 'text', id)
+    except Exception, e:
+        logger.error(u"ERROR deleting {} / {} / {} : {}".format(oref.normal(), version, lang, e))
 
 def make_text_index_document(tref, version, lang):
     """
     Create a document for indexing from the text specified by ref/version/lang
     """
-    #text = texts.get_text(tref, context=0, commentary=False, version=version, lang=lang)
-    text = TextFamily(Ref(tref), context=0, commentary=False, version=version, lang=lang).contents()
+    oref = Ref(tref)
+    text = TextFamily(oref, context=0, commentary=False, version=version, lang=lang).contents()
+
+    content = text["he"] if lang == 'he' else text["text"]
+    if not content:
+        # Don't bother indexing if there's no content
+        return False
+
+    if isinstance(content, list):
+        content = " ".join(content)
 
     if text["type"] == "Talmud":
         title = text["book"] + " Daf " + text["sections"][0]
     elif text["type"] == "Commentary" and text["commentaryCategories"][0] == "Talmud":
         title = text["book"] + " Daf " + text["sections"][0]
     else:
-        title = text["book"] + " " + " ".join(["%s %d" % (p[0],p[1]) for p in zip(text["sectionNames"], text["sections"])])
-    title += " (%s)" % version
+        title = text["book"] + " " + " ".join([u"{} {}".format(p[0], p[1]) for p in zip(text["sectionNames"], text["sections"])])
+    title += u" ({})".format(version)
 
     if lang == "he":
         title = text.get("heTitle", "") + " " + title
 
-    content = text["he"] if lang == 'he' else text["text"] 
-    if not content:
-        # Don't bother indexing if there's no content
-        return False
-    if isinstance(content, list):
-        content = " ".join(content)
+
+    if text["categories"][0] in REORDER_RULES:
+        categories = REORDER_RULES[text["categories"][0]] + text["categories"][1:]
+    else:
+        categories = text["categories"]
 
     return {
         "title": title, 
-        "ref": tref,
+        "ref": oref.normal(),
+        "heRef": oref.he_normal(),
         "version": version, 
         "lang": lang,
         "titleVariants": text["titleVariants"],
         "content": content,
-        "categories": text["categories"],
-        }
+        "he_content": content if (lang == "he") else "",
+#        "context_3": oref.surrounding_ref().text(lang, version).ja().flatten_to_string(),
+#        "context_7": oref.surrounding_ref(3).text(lang, version).ja().flatten_to_string(),
+        "categories": categories,
+        "order": oref.order_id(),
+        # and
+        "path": "/".join(text["categories"] + [oref.index.title])
+    }
 
 
 def make_text_doc_id(ref, version, lang):
@@ -230,22 +262,70 @@ def put_text_mapping():
     Settings mapping for the text document type.
     """
     text_mapping = {
-        'categories': {
-            'type': 'string',
-            'index': 'not_analyzed',
+        'text' : {
+            'properties' : {
+                'categories': {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "category": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "he_category": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "index_title": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "path": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "he_index_title": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "he_path": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "order": {
+                    'type': 'string',
+                    'index': 'not_analyzed'
+                },
+                "he_content": {
+                    'type': 'string',
+                    'analyzer': 'hebrew'
+                }
+            }
         }
     }
-    es.put_mapping("text", {'properties': text_mapping}, [SEARCH_INDEX_NAME])
+    es.put_mapping(SEARCH_INDEX_NAME, "text", text_mapping)
 
 
 def put_sheet_mapping():
     """
     Sets mapping for the sheets document type.
     """
+
+    '''
     sheet_mapping = {
+        "sheet" : {
+            "properties" : {
+
+            }
+        }
 
     }
-    es.put_mapping("sheet", {'properties': sheet_mapping}, [SEARCH_INDEX_NAME])
+    es.put_mapping(SEARCH_INDEX_NAME, "sheet", sheet_mapping)
+    '''
+
+    # currently a no-op
+    return
+
 
 def index_all_sections(skip=0):
     """
@@ -258,8 +338,6 @@ def index_all_sections(skip=0):
     refs = library.ref_list()
     print "Beginning index of %d refs." % len(refs)
 
-    if skip:
-        refs = refs[skip:]
 
     for i in range(skip, len(refs)):
         index_text(refs[i])
@@ -273,8 +351,7 @@ def index_public_sheets():
     """
     Index all source sheets that are publically listed.
     """
-    from sheets import LISTED_SHEETS
-    ids = db.sheets.find({"status": {"$in": LISTED_SHEETS}}).distinct("id")
+    ids = db.sheets.find({"status": "public"}).distinct("id")
     for id in ids:
         index_sheet(id)
 
@@ -321,14 +398,13 @@ def index_from_queue():
     queue = db.index_queue.find()
     for item in queue:
         try:
-            index_text(item["ref"], version=item["version"], lang=item["lang"])
+            index_text(Ref(item["ref"]), version=item["version"], lang=item["lang"])
             db.index_queue.remove(item)
         except Exception, e:
             import sys
             reload(sys)
             sys.setdefaultencoding("utf-8")
-            print "Error indexing from queue (%s / %s / %s)" % (item["ref"], item["version"], item["lang"])
-            print e
+            logging.error(u"Error indexing from queue ({} / {} / {}) : {}".format(item["ref"], item["version"], item["lang"], e))
 
 
 def add_recent_to_queue(ndays):

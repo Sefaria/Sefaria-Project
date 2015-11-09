@@ -19,7 +19,7 @@ def list_depth(x, deep=False):
     else:
         return 1
 
-
+# Moving to JaggedArray.flattenToArray()
 def flatten_jagged_array(jagged):
     """
     Returns a 1D list of each terminal element in a jagged array.
@@ -81,6 +81,28 @@ def strip_tags(html):
     s = MLStripper()
     s.feed(html)
     return s.get_data()
+
+
+def text_preview(en, he):
+    """
+    Returns a jagged array terminating in dicts like {'he': '', 'en': ''} which offers preview
+    text merging what's available in jagged string arrays 'en' and 'he'.
+    """
+    n_chars = 80
+    en = [en] if isinstance(en, basestring) else [""] if en == [] or not isinstance(en, list) else en
+    he = [he] if isinstance(he, basestring) else [""] if he == [] or not isinstance(he, list) else he
+
+    def preview(section):
+        """Returns a preview string for list section"""
+        section =[s for s in section if isinstance(s, basestring)]
+        section = " ".join(map(unicode, section))
+        return strip_tags(section[:n_chars]).strip()
+
+    if not any(isinstance(x, list) for x in en + he):
+        return {'en': preview(en), 'he': preview(he)}
+    else:
+        zipped = map(None, en, he)
+        return [text_preview(x[0], x[1]) for x in zipped]
 
 
 def string_overlap(text1, text2):

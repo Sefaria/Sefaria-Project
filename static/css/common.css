@@ -1,29 +1,42 @@
-/* CSS common to both Reader and Sheets */
-
-.gradient {
-  /* SVG fallback(Opera 11.10-, IE9) */
-  background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjpyZ2JhKDI1NCwyNTQsMjU0LDEpOyIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOnJnYmEoMjMzLDIzMywyMzMsMSk7IiAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IGZpbGw9InVybCgjZ3JhZGllbnQpIiBoZWlnaHQ9IjEwMCUiIHdpZHRoPSIxMDAlIiAvPjwvc3ZnPg==);
-
-  /* Opera 11.10+ */
-  background: -o-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
-
-  /* Firefox 3.6+ */
-  background: -moz-linear-gradient(top, rgba(254,254,254,1), rgba(233,233,233,1));
-
-  /* Chrome 7+ & Safari 5.03+ */
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(254,254,254,1)), color-stop(1, rgba(233,233,233,1)));
-
-  /* IE5.5 - IE7 */
-  filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9);
-
-  /* IE8 */
-  -ms-filter: "progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#FFFEFEFE,EndColorStr=#FFE9E9E9)"
-}
-
+/* CSS common to Reader, Sheets and all static pages */
 
 /* Improves touch reactiveness on iOS devices */
 html,p,span,div,a,ul,ol,li,body,h1,h2,h3,h4 {
     -webkit-tap-hightlight-color: rgba(0,0,0,0);
+}
+
+@font-face {
+  font-family: 'Rashi Script';
+  src: url('/static/fonts/Mekorot-Rashi.ttf');
+}
+
+@font-face {
+  font-family: 'Taamey Frank';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf');
+}
+@font-face {
+  font-family: 'Taamey Frank';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Bold.ttf');
+  font-weight: bold;
+}
+@font-face {
+  font-family: 'Taamey Frank';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-MediumOblique.ttf');
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Taamey Frank';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-BoldOblique.ttf');
+  font-style: italic;
+  font-weight: bold;
+}
+
+/* Avoid Flash of Unstyled Text with Google Web Font Loader */
+.wf-loading {
+    visibility: hidden;
+}
+.wf-active {
+    visibility: visible;
 }
 
 .modal {
@@ -31,11 +44,16 @@ html,p,span,div,a,ul,ol,li,body,h1,h2,h3,h4 {
   position: absolute;
   text-align: center;
   padding: 10px;
-  border-radius: 10px;
+  background-color: #eee;
+  width: auto;
+  height: auto;
+  left: auto;
+  top: auto;
+  margin: 0;
   z-index: 100;
   overflow: hidden;
   line-height: 1.2;
-  box-shadow: 2px 2px 12px #333333;
+  border-radius: 0;
 }
 
 #overlay {
@@ -56,11 +74,10 @@ html,p,span,div,a,ul,ol,li,body,h1,h2,h3,h4 {
   top: 0%;
   left: 0%;
   width: 100%;
-  height: 40px;
   padding: 0;
-  border-bottom: 1px solid #777;
-  box-shadow: 0px 2px 12px #888;
-  font-family: Georgia, serif;
+  background-color: white;
+  border-bottom: 1px solid #ddd;
+  vertical-align: middle
   -moz-user-select: none; 
   -khtml-user-select: none; 
   -webkit-user-select: none; 
@@ -72,30 +89,25 @@ body.embeded #top {
 }
 
 #left {
-  height: 40px;
   float: left;
   margin-right: 4px;
+  font-family: Georgia, serif;
 }
 
-#home, #sefaria {
+#sefaria {
     cursor: pointer;
-    padding: 0 3px;
+    padding: 3px 3px;
     display: inline-block;
     height: 100%;
     line-height: 40px;
 }
 
-#home {
-  padding: 0;
-}
-
-#home svg {
+#sefaria svg {
   margin-left: 8px;
   vertical-align: middle;
-  width: 26px;
-  height: 26px;
+  width: 100px;
   position: relative;
-  top: -1px;
+  top: -2px;
 }
 
 #sefaria {
@@ -107,7 +119,8 @@ body.embeded #top {
 #sefaria .fa {
   display: inline-block;
   vertical-align: middle;
-  margin-left: 7px;
+  margin-left: 2px;
+  padding-right: 4px;
   font-size: 16px;
 }
 
@@ -236,40 +249,6 @@ body.embeded #top {
   text-overflow: ellipsis;
 }
 
-@media screen and (max-width: 400px) {
-  .hideForSmallScreens {
-    display: none;
-  }
-
-  #navPanelCalendar {
-    padding: 0px 20px;
-  }
-
-  #navPanel #navPanelCalendar a {
-    padding: 0;
-  }
-
-  #navPanel .navLine {
-    margin: 8px 20px;
-  }
-
-  #navPanel #navTocLangToggleBox {
-    right: 12px;
-  }
-
-  #navPanel .tocCat, #navPanel a {
-    padding: 5px 20px;
-  }
-
-  #navToc #numLinkBox {
-    padding: 0px 20px;
-  }
-
-  #navPanelFooter {
-    padding: 0 20px;
-  }
-
-}
 #navPanelTexts {
   position: relative;
   max-height: 240px;
@@ -281,20 +260,19 @@ body.embeded #top {
   padding-bottom: 18px;
 }
 
-#navPanelTextsHeader {
-  padding: 5px 40px;
-  font-weight: bold;
-  font-size: 13px;
-}
-
 #navToc {
   overflow: visible;
+}
+
+#tocTopMatter {
+    display: block;
+    width: 92%;
 }
 
 #navToc #tocCatHeaders {
   text-align: center;
   padding: 5px 40px;
-  margin-top: -6px;
+  clear: both;
 }
 
 #navToc .tocCatHeader {
@@ -309,6 +287,13 @@ body.embeded #top {
     text-align: center;
     font-style: italic;
     font-size: 13px;
+    margin-bottom: 4px;
+}
+
+#navToc .inline-default-node .sectionName {
+    text-align: start;
+    padding: 8px 40px 3px;
+    margin: 0px;
 }
 
 #navToc .tocCat {
@@ -347,10 +332,12 @@ body.embeded #top {
 }
 
 #navTocLangToggleBox {
-  text-align: center;
-  position: absolute;
-  top: -2px;
-  right: 32px;
+    float: right;
+}
+
+#navPanel .tocCat.backLink {
+    float: left;
+    padding: 4px 0 0 40px;
 }
 
 #navTocPreviewToggle {
@@ -434,36 +421,34 @@ body.embeded #top {
   direction: rtl;
 }
 
-#morePreview {
-  position: absolute;
-  background-color: white;
-  border-radius: 5px;
-  padding: 14px;
-  box-shadow: 1px 1px 4px #555;
-  width: 400px;
-  max-height: 300px;
-  overflow: auto;
-  font-size: 16px;
-  line-height: 1.3;
-  z-index: 100;
+#navToc #structureDropdown {
+    color: #999;
+    font-style: italic;
+    font-size: 10px;
+    display: block;
+    float: right;
+    padding: 6px 14px 0 0;
 }
 
-#morePreview .he {
-  display: block;
-  font-family: "Times New Roman", serif;
-  font-size: 140%;
+#navToc #structureDropdown select {
+    font-size: 10px;
+    height: 18px;
+    line-height: 18px;
+    margin: 0;
+    width: 110px;
+    padding: 0;
 }
 
-#navPanel .sparse1 {
+.sparse1 {
     color: #bbb;
 }
-#navPanel .sparse2 {
+.sparse2 {
     color: #999;
 }
-#navPanel .sparse3 {
+.sparse3 {
     color: #777;
 }
-#navPanel .sparse4 {
+.sparse4 {
     color: #000;
 }
 
@@ -587,9 +572,7 @@ body.embeded #top {
 }
 
 #top #accountButton:hover #accountMenu,
-#top #notificationsButton:hover #notificationsMenu,
-#sefaria.menuOpen .menu,
-#textsMenu.menuOpen .menu {
+#top #notificationsButton:hover #notificationsMenu {
   display: block;
 }
 
@@ -600,7 +583,7 @@ body.embeded #top {
 
 #right {
   height: 32px;
-  margin: 0 10px 0 0;
+  margin: 4px 10px 0 0;
   padding-top: 4px;
   width: 420px;
   text-align: right;
@@ -789,20 +772,16 @@ body.embeded #top {
 .toggleOption:first-child {
   border-top-left-radius: 8px;
   border-bottom-left-radius: 8px;
-
-
 }
 
 .toggleOption:last-child {
   border-top-right-radius: 8px;
   border-bottom-right-radius: 8px;
   border-right: 1px solid #aaa;
-
 }
 
 .toggleOption.active, .toggleOption:active {
   background: #d8d8d8;
-
 }
 
 .toggleOption:hover {
@@ -825,27 +804,41 @@ body.embeded #top {
 }
 
 @media screen and (max-width: 800px) {
+
+  /* Put search results on new line */
+  #searchContent {
+      clear: both;
+  }
+
+  /* Get rid of whitespace on search page */
+  #searchHeaderContainer {
+    display: none;
+  }
+
   #showOptions {
     display: inline-block;
   }
 
   #top #right {
-    width: 40px;
-    height: 32px;
+    width: 36px;
+    margin-top: 6px;
   }
+
+  #top #right #showOptions {
+    font-family: "Times New Roman";
+  }
+
 
   #rightButtons {
     display: none;
     position: fixed;
-    top: 40px;
+    top: 48px;
     right: 0;
     width: 98%;
-    background: #eee;
     padding: 10px 1%;
-    border-bottom-left-radius: 5px;
-    border: 1px solid #aaa;
+    background-color: white;
+    border: 1px solid #ddd;
     border-right: none;
-    box-shadow: 1px 3px 12px #888;
     z-index: 1;
   }
 
@@ -872,24 +865,25 @@ body.embeded #top {
 
 #searchInsteadOfNavPrompt {
   position: fixed;
-  top: 42px;
+  top: 39px;
   left: 140px;
   background: #eee;
   padding: 8px 16px;
   border-radius: 3px;
-  box-shadow: 2px 2px 2px #555;
-  z-index: 10;
+  z-index: 100;
 }
 
 #globalWarning {
   position: fixed;
   z-index: 99;
-  width: 50%;
+  width: 550px;
+  max-width: 100%;
+  box-sizing: border-box;
   left: 0;
   right: 0;
   margin: 0 auto;
   top: 40px;
-  padding: 8px 35px 8px 14px;
+  padding: 14px;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
   text-align: center;
   border: 1px solid #fbeed5;
@@ -899,10 +893,10 @@ body.embeded #top {
   color: #b94a48;
 }
 
-
-/*  Texts List - Base */
-
-
+#globalWarning .fa-times {
+  float: right;
+  cursor: pointer;
+}
 
 .enNone.heNone {
   color: #ccc;
@@ -944,14 +938,20 @@ body.embeded #top {
 #gotoBox {
   float: left;
   position: relative;
+  margin-top: 4px;
+}
+
+.searchInput {
+  display: inline-block;
+  vertical-align: middle;
+  border-radius: 4px;
+  border: none;
+  background-color: #eee;
 }
 
 #goto {
   width: 240px;
-  margin: 6px 0 6px 12px;
-  display: inline-block;
-  vertical-align: middle;
-  border-radius: 7px;
+  margin: 7px 0 6px 12px;
 }
 
 @media screen and (max-width: 930px) {
@@ -960,11 +960,54 @@ body.embeded #top {
   }
 }
 
-#goto.searchPage {
-  width: 300px;
+@media screen and (max-width: 500px) {
+  #gotoBox {
+    width: 90%;
+    display: none;
+    float: none;
+  }
+  #goto {
+    width: 100%;
+  }
 }
 
-#gotoBox .keyboardInputInitiator {
+#lowerSearchBox {
+    position: relative;
+    padding-top: 35px;
+    width:70%
+}
+
+#lowerSearchBoxWrapper {
+    padding-bottom: 15px;
+}
+
+#lowerSearch {
+    width: 100%;
+    font-size: 20px;
+    padding: 8px 10px;
+    height: 24px;
+}
+
+#lowerSearchBox .searchButton,
+#lowerSearchBox .keyboardInputInitiator {
+    top: 45px;
+}
+
+.english #lowerSearchBox .searchButton {
+    right: -5px;
+}
+
+.hebrew #lowerSearchBox .searchButton {
+    right: auto;
+    left: -5px;
+}
+.hebrew #lowerSearchBox .keyboardInputInitiator {
+    right: auto;
+    left: 15px;
+}
+
+
+.searchBox .keyboardInputInitiator {
   opacity: 0;
   width: 13px;
   height: 13px;
@@ -977,7 +1020,7 @@ body.embeded #top {
   top: 10px;
 }
 
-#gotoBox .keyboardInputInitiator:hover {
+.searchBox .keyboardInputInitiator:hover {
  background: #d8d8d8;
 }
 
@@ -986,20 +1029,29 @@ body #keyboardInputMaster {
   top: 37px !important;
 }
 
+body.searchPage #keyboardInputMaster {
+    top: 115px !important;
+}
+
 body #keyboardInputMaster thead tr th div {
   display: none;
 }
 
 #textTocLink {
   color: black;
-  display: block;
-  margin: 12px 0 0 12px;
+  display: inline-block;
   font-family: Georiga, Serif;
   font-size: 15px;
+  position: absolute;
+  top: 60px;
+  left: 12px;
+  z-index: 1;
+}
+#textTocLink.white {
+  color: white;
 }
 
-
-#openText {
+.searchButton {
   position: absolute;
   right: 6px;
   top: 12px;
@@ -1007,7 +1059,7 @@ body #keyboardInputMaster thead tr th div {
   cursor: pointer;
 }
 
-#openText:hover {
+.searchButton:hover {
   opacity: 1;
 }
 
@@ -1022,11 +1074,6 @@ body #keyboardInputMaster thead tr th div {
   width: 18px;
   line-height: 30px;
 }
-
-#accountBox .btn {
-  margin-top: 2px;
-}
-
 
 #accountButton #accountMenu,
 #notificationsButton #notificationsMenu {
@@ -1054,6 +1101,38 @@ body #keyboardInputMaster thead tr th div {
   text-align: right;
 }
 
+#topLeftLinks > a,
+#topLeftLinks > span {
+  margin-right: 12px;
+  font-family: Georgia, serif;
+  font-size: 14px;
+} 
+
+#topLeftLinks #shareLink {
+  display: none; 
+  cursor: pointer;
+}
+
+#topLeftLinks #shareLink:hover {
+  text-decoration: underline;
+}
+
+#topLeftLinks #shareLink .fa {
+  font-size: 12px;
+  color: #555;
+}
+
+#shareModal h3 {
+  margin: 8px 0;
+}
+
+#shareModalInput {
+  float: left;
+  width: 300px;
+  height: 24px;
+  line-height: 32px;
+  font-size: 16px;
+}
 
 #helpModal {
   position: absolute;
@@ -1071,7 +1150,6 @@ body #keyboardInputMaster thead tr th div {
 #helpVideoButtons h3 {
   margin: 2px;
 }
-
 
 #helpVideoButtons {
   line-height: 1.3;
@@ -1111,37 +1189,112 @@ body #keyboardInputMaster thead tr th div {
   box-shadow: 2px 2px 10px #555;
 }
 
+.hebrew #search-instructions .en {
+    display: none;
+}
+
+.english #search-instructions .he {
+    display: none;
+}
+
+#searchControlsBox {
+    min-height: 3px;
+}
+
+.hebrew #searchControlsBox,
+.hebrew #searchContent {
+    float: right;
+}
+
+.hebrew #lowerSearchBox {
+    float: right;
+}
+.hebrew #description {
+    float: right;
+    clear: both;
+}
+
 #searchContent {
-  padding: 60px 0 100px;
   font-size: 16px;
-  width: 720px;
-  margin: 0 auto;
 }
 
 #searchHeader {
-  font-size: 30px;
-  margin-bottom: 26px;
+    padding-top: 35px;
+    font-size: 20px;
+    min-height: 50px;
+}
+
+.hebrew #searchHeader,
+.hebrew #searchHeaderContainer {
+    float: right;
 }
 
 
-#searchFacets {
-  margin: 7px 0 20px 30px;
+.hebrew #lowerSearchBox,
+.hebrew #lowerSearchBoxWrapper {
+  direction: rtl;
   float: right;
-  display: none;
 }
 
-#searchFacets .facet {
-  margin: 4px 0;
-  color: #08c;
+
+#searchFilters {
+    display: none;
+    padding-bottom: 10px;
 }
 
-#searchFacets .facet.active {
-  font-weight: bold;
-  color: black;
+/* the checkbox itself */
+#searchFilters .filter {
+    margin-left: 3px;
+    margin-right: 3px;
+}
+
+/*
+.english #searchFilters {
+    margin: 0 0 0 30px;
+}
+
+.hebrew #searchFilters {
+    margin: 0 30px 0 0;
+}
+*/
+
+.hebrew #searchFilters { float:right;   direction: rtl;}
+.hebrew #searchFilters  .en {  display: none;  }
+
+.english #searchFilters { float:left; }
+.english #searchFilters  .he {  display: none;  }
+
+
+#tree-controls {
+    margin: 10px 10px 0;
+    font-size: 10px;
+}
+
+#tree-controls span {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+
+#searchFilters li {
+    list-style-type: none;
+    font-size: 15px;
+    line-height: 26px;
+}
+
+.hebrew #searchFilters ul {
+    margin: 0 16px 0 0;
+}
+.english #searchFilters ul {
+    margin: 0 0 0 16px;
 }
 
 #searchResults {
+    padding-bottom: 80px;
+}
 
+.hebrew #searchResults {
+    direction: rtl;
 }
 
 #searchResults .result {
@@ -1149,17 +1302,51 @@ body #keyboardInputMaster thead tr th div {
   line-height: 1.2;
 }
 
+.hebrew #searchResults .result .en,
+.hebrew .similar-box .en {
+    display: none;
+}
+.english #searchResults .result .he,
+.english .similar-box .he {
+    display: none;
+}
 
 #searchResults .result a {
   font-weight: bold;
 }
 
 #searchResults .result .version {
-  font-size: 12px;
-  color: #777;
-  margin-top: 3px;
+    font-size: 12px;
+    color: #777;
+    margin-top: 3px;
+    display: inline-block;
+    direction: ltr;
 }
 
+#searchResults .similar-trigger-box {
+    display: inline-block;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+#searchResults .similar-box {
+    padding: 0 40px 0 40px;
+    margin-bottom: 10px;
+}
+#searchResults .similar-title {
+    font-size: 10px;
+    text-decoration: underline;
+    cursor: pointer;
+}
+#searchResults .similar-results {
+    margin-top: -12px;
+    display: none;
+}
+
+.hebrew .moreResults .en,
+.english .moreResults .he {
+    display: none;
+}
 #searchResults .moreResults {
   color: #08c;
   cursor: pointer;
@@ -1220,14 +1407,9 @@ body #keyboardInputMaster thead tr th div {
 }
 
 #loginPrompt {
-	display: none;
-	position: absolute;
 	padding: 30px 20px 10px;
 	width: 400px;
-	z-index: 200;
-	border-radius: 10px;
-	text-align: center;
-	box-shadow: 2px 2px 12px #333333;
+  text-align: center;
 }
 
 #loginPrompt h3 {
@@ -1249,71 +1431,12 @@ body #keyboardInputMaster thead tr th div {
 	text-decoration: underline;
 }
 
-
-.menuAnchor {
-  cursor: pointer;
-  height: 30px;
-  position: relative;
-  overflow: hidden;
-  border: 1px solid transparent;
-}
-
-.menuAnchor.boxOpen {
-  overflow: visible;
-  background: #f1f1f1;
-  border-top-right-radius: 8px;
-  border-top-left-radius: 8px;
-  border-bottom-right-radius: 0px;
-  border-bottom-left-radius: 0px;
-  border: 1px solid #bbb;   
-}
-
-.anchoredMenu {
-  z-index: 151;
-  display: none;
-  position: absolute;
-  top: 37px;
-  left: 0px;      
-  border-radius: 8px;
-  border-top-left-radius: 0px;
-  box-shadow: 2px 2px 12px #333333;
-}
-
-.anchoredMenu.right {
-  left: auto;
-  right: 0px;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 0px;
-}
-
-.anchoredMenu.center {
-  border-radius: 8px;
-}
-
-.menuConnector {
-  display: none;
-  position: absolute;
-  background: #eee;
-  top: 30px;
-  right: -1px;
-  height: 7px;
-  width: inherit;
-  padding: inherit;
-  z-index: 152;
-  border-left: 1px solid #bbb;
-  border-right: 1px solid #bbb; 
-}
-
-
 .alertBox {
-  position: absolute;
   width: 400px;
+  background: #eee;
   text-align: center;
   font-family: Georgia, serif;
-  line-height: 1.2;
-  border-radius: 10px;    
-  box-shadow: 2px 2px 12px #333333;
-  z-index: 100;
+  z-index: 21;
 }
 
 .alertBox.wide {
@@ -1323,6 +1446,7 @@ body #keyboardInputMaster thead tr th div {
 .alertBox .msg {
   padding: 40px; 
   font-size: 26px;
+  line-height: 1.2;
 }
 
 .alertBox .smallHeader {
@@ -1377,6 +1501,8 @@ body #keyboardInputMaster thead tr th div {
   width: 90%;
   padding: 10px;
   margin: 0 auto 20px ;
+  max-height: 350px;
+  overflow-y: scroll;
 }
 
 .alertBox .multiOptions input {
@@ -1399,18 +1525,18 @@ body #keyboardInputMaster thead tr th div {
   font-family: Georgia, serif;
   border-collapse: collapse;
   color: #888;
-  border: 1px solid #ddd;
-  padding: 5px;
+  padding: 5px 0px;
   margin-bottom: 5px;
   position: relative;
 }
 
 .sheetTable thead {
-  border-bottom: 1px solid #DDD;
-  background-color: #2e9ebd;
-  color: white;
+  background-color: #EFF1F1;
+  color: #555;
+  font-weight: bold;
   padding: 6px;
-
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
 }
 
 .sheetTable thead td {
@@ -1429,6 +1555,7 @@ body #keyboardInputMaster thead tr th div {
 .sheetTable .sheetRow {
   line-height: 1.3;
   border-bottom: 1px solid #ddd;
+  background-color: white;
 }
 
 .sheetTable .sheetRow td {
@@ -1451,6 +1578,10 @@ body #keyboardInputMaster thead tr th div {
   background: white;
 }
 
+.sheetTable.private .sheetRow td.title {
+  width: 79%;
+}
+
 .sheetTable .sheetRow td.title.ui-draggable-dragging {
   width: 400px;
 }
@@ -1465,9 +1596,15 @@ body #keyboardInputMaster thead tr th div {
   padding: 3px 5px;
   font-size: 12px;
   border-radius: 4px;
-  background: #d9edf7;
+  background-color: #d9edf7;
   color: #468A99;
   font-family: Helvetica, Arial, sans-serif;
+}
+
+.sheetTable .sheetRow .title .tag.public {
+  color: #3c763d;
+  background-color: #dff0d8;
+  opacity: 0.7;
 }
 
 .sheetTable.collapsed tr:nth-child(n+4){
@@ -1487,11 +1624,9 @@ body #keyboardInputMaster thead tr th div {
   text-decoration: underline;
 }
 
-.sheetTable tfoot {
-  border-top: 1px solid #ddd;
-}
 
 @media screen and (max-width: 500px) {
+
 
   /* Force table to not be like tables anymore */
   .sheetTable, .sheetTable thead, .sheetTable tbody,
@@ -1506,8 +1641,11 @@ body #keyboardInputMaster thead tr th div {
     left: -9999px;
   }
   
-  .sheetTable .sheetRow .title { width: 100%; }
-  .sheetTable td:nth-of-type(2) {  }
+  .sheetTable .sheetRow td.title { 
+    width: 100%; 
+    box-sizing: border-box;
+  }
+  .sheetTable td:nth-of-type(2) { padding: 0px 5px 5px; }
   .sheetTable td:nth-of-type(3) { display: none; }
   .sheetTable td:nth-of-type(4) { display: none; }
   .sheetTable td:nth-of-type(5) { display: none; }
@@ -1532,6 +1670,7 @@ body #keyboardInputMaster thead tr th div {
 
 #browserPath {
   clear: both;
+  background-color: #eee;
   padding: 6px 10px;
   border-bottom: 1px solid #ddd;
   min-height: 20px;
@@ -1541,7 +1680,7 @@ body #keyboardInputMaster thead tr th div {
 }
 
 #textBrowser.absolute #browserPath { 
-  width: 541px;
+  width: 550px;
 }
 
 .browserPathItem {
@@ -1650,6 +1789,7 @@ body #keyboardInputMaster thead tr th div {
 
 #browserActions {
   text-align: center;
+  background-color: #eee;
   padding: 8px;
   clear: both;
   border-top: 1px solid #ddd;
@@ -1657,7 +1797,6 @@ body #keyboardInputMaster thead tr th div {
   -khtml-user-select: none; 
   -webkit-user-select: none; 
   -o-user-select: none; 
-
 }
 
 #browserMessage {
@@ -2046,6 +2185,63 @@ line-height: 14px;
   background-color: #942a25 \9;
 }
 
+
+.btn.grey, .btn.purple, .btn.purple, .btn.blue, .btn.lightblue {
+  background-image: none;
+  text-shadow: none;
+  box-shadow: none;
+  padding: 6px 13px;
+}
+.btn-large.grey, .btn-large.purple, .btn-large.purple, .btn-large.blue, .btn-large.lightblue {
+  padding: 9px 24px;
+}
+
+.btn.grey {
+  background-color: #1C3039;
+  color: white;
+  border: 1px solid #1C3039;
+}
+.btn.grey:hover {
+  background-color: white;
+  color: #1C3039;
+  border: 1px solid;
+}
+
+.btn.purple {
+  background-color: #67367D;
+  color: white;
+  border: 1px solid #67367D;
+}
+.btn.purple:hover {
+  background-color: white;
+  color: #67367D;
+  border: 1px solid #67367D;
+}
+
+.btn.blue {
+  background-color: #1EAFD5;
+  color: white;
+  border: 1px solid #1EAFD5;
+}
+.btn.blue:hover {
+  background-color: white;
+  color: #1EAFD5;
+}
+
+.btn.lightblue {
+  background-color: #4CC2DD;
+  color: white;
+  border: 1px solid: #4CC2DD;
+}
+.btn.lightblue:hover {
+  background-color: white;
+  color: #4CC2DD;
+}
+
+.btn.bordered {
+  border: 1px solid white;
+}
+
 .badge {
   display: inline-block;
   padding: 2px 4px;
@@ -2098,4 +2294,45 @@ line-height: 14px;
 }
 .badge-inverse:hover {
   background-color: #1a1a1a;
+}
+
+@media screen and (max-width: 400px) {
+  .hideForSmallScreens {
+    display: none;
+  }
+
+  #navPanelCalendar {
+    padding: 0px 20px;
+  }
+
+  #navPanel #navPanelCalendar a {
+    padding: 0;
+  }
+
+  #navPanel .navLine {
+    margin: 18px 20px;
+  }
+
+  #navPanel #navTocLangToggleBox {
+    right: 12px;
+  }
+
+  #navPanel #navToc > .tocCat, #navPanel a {
+    padding: 5px 20px;
+  }
+
+  #navToc #numLinkBox {
+    padding: 0px 20px;
+  }
+
+  #navPanelFooter {
+    padding: 0 20px;
+  }
+
+  #navToc #structureDropdown {
+    float: none;
+    clear: both;
+    text-align: center;
+    padding: 5px 40px;
+  }
 }

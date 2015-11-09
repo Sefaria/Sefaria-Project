@@ -33,7 +33,7 @@ DATABASES = {
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': '/path/to/your/django_cache/',
+        'LOCATION': '/path/to/your/django_cache/',  # can be any accessible path, not necessarily a path inside sefaria eg. /home/user/data/django_cache.
     }
 }
 
@@ -66,12 +66,15 @@ SEFARIA_DB_PASSWORD = 'your mongo password'
 
 # ElasticSearch server
 SEARCH_HOST = "http://localhost:9200"
+SEARCH_ADMIN = "http://localhost:9200"
 SEARCH_INDEX_ON_SAVE = True # Whether to send texts and source sheet to Search Host for indexing after save
 SEARCH_INDEX_NAME = 'sefaria' # name of the ElasticSearch index to use
 
-SEFARIA_DATA_PATH = '/path/to/you/data/dir' # used for exporting texts 
+SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
+SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts 
 
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
+MIXPANEL_CODE = 'you mixpanel code here'
 
 # Integration with a NationBuilder list
 NATIONBUILDER = False
@@ -80,6 +83,16 @@ NATIONBUILDER_TOKEN = ""
 NATIONBUILDER_CLIENT_ID = ""
 NATIONBUILDER_CLIENT_SECRET = ""
 
+# Issue bans to Varnish on update.
+USE_VARNISH = False
+FRONT_END_URL = "http://localhost:8000"  # This one wants the http://
+VARNISH_ADDR = "localhost:6082"  # And this one doesn't
+VARNISH_SECRET = "/etc/varnish/secret"
+# Use ESI for user box in header.
+USE_VARNISH_ESI = False
+
+# Prevent modification of Index records
+DISABLE_INDEX_SAVE = False
 
 """ to use logging, in any module:
 # import the logging library

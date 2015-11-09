@@ -4,55 +4,113 @@
 
 {% block title %}{{ index.title }} on Sefaria{% endblock %}
 
-{% block content %}
+{% block css %}
+    #languageToggle {
+        display: inline;
+    }
+    #languageToggle #bilingual {
+        display: none;
+    }
+{% endblock %}
 
-<a id = "textTocLink" href="/texts">&laquo; All Texts</a>
+{% block content %}
+<div id="topLeftLinks">
+    <a id = "textTocLink" href="/texts">&laquo; All Texts</a>
+    {% include "elements/share_link.html" %}
+</div>
+    
 <div id="textTocPage" class="container doc">
     <span class="row">
         <span class="span8 offset2">
 
-        <h1><span id="heTitle">{{ index.heTitle }}</span> <span id="title">{{ index.title }}</span></h1>
+        <h1 class="biReady">
+            <span id="heTitle" lang='he' class='he'>{{ index.heTitle }}</span> <span id="title" lang='en' class='en'>{{ index.title }}</span>
+            <div id="textCategories" vocab="http://schema.org/" typeof="BreadcrumbList">
+                {% for cats in cat_slices %}
+                    <span property="itemListElement" typeof="ListItem">
+                        <a href="/texts/{{ cats|join:'/' }}" class='textCategory' property="item" typeof="WebPage">
+                            <span property="name" lang='en' class='en'>{{ cats|last }}</span>
+                            <span property="name" lang='he' class='he'>{{ cats|last|hebrew_term }}</span>
+                        </a>
+                        <meta property="position" content="{{ forloop.counter }}">
+                    </span>
+                    {% if not forloop.last %}
+                    <span class='textCategoryDelimiter'></span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </h1>
 
-        <div id="textCategories">
-            {% for cat in index.categories %}
-                <span class='textCategory'>{{ cat }}</span>
-                {% if not forloop.last %}
-                <span class='textCategoryDelimiter'></span>
-                {% endif %}
-            {% endfor %}
-        </div>
-        <div id="textTocZoom">
-        <b>Show:</b>&nbsp;
-        {% for section in index.sectionNames %}
-            {% if forloop.revcounter0 == zoom %}
-                {{ section|pluralize }}
-            {% else %}
-                <a href="?zoom={{ forloop.revcounter0 }}">{{ section|pluralize }}</a>
-            {% endif %}
-             {% if not forloop.last %}
-            <span class='textCategoryDelimiter'></span>
-            {% endif %}
-        {% endfor %}
-        </div>
 
-        <div id="textToc" class="textTocSection">
+
+        <!-- Hidden for style
+        {% if not complex %}
+            <div id="textTocZoom" class="biReady">
+                <b><span class='en'>Show:</span><span class='he'>מציג:</span></b>&nbsp;
+                    {% for section in index.schema.sectionNames %}
+                        {% if forloop.revcounter0 == zoom %}
+                            <span class='en'>{{ section|pluralize }}</span>
+                            <span class='he'>{{ section|hebrew_term }}</span>
+                        {% else %}
+                            <a href="?zoom={{ forloop.revcounter0 }}">
+                                <span class='en'>{{ section|pluralize }}</span>
+                                <span class='he'>{{ section|hebrew_term }}</span>    
+                            </a>
+                        {% endif %}
+                        {% if not forloop.last %}
+                        <span class='textCategoryDelimiter'></span>
+                        {% endif %}
+                    {% endfor %}
+            </div>
+        {%  endif %}
+        -->
+
+        <div id="textToc" class="biReady textTocSection {% if complex %}complex{% else %}simple{% endif %}">
 
             {% if toc_html %}
                 {% autoescape off %}
                 {{ toc_html }}
                 {% endautoescape %}
                 <div class='colorCodes'>
-                    <span class='heAll enAll'>Bilingual</span>
-                    <span class='heAll enNone'>Hebrew</span>
-                    <span class='enAll heNone'>English</span>
-                    <span class='enNone heSome'>Partial Hebrew</span>
-                    <span class='heAll enSome'>Partial English</span>
+                    <span class='heAll enAll'>
+                        <span class="en">Bilingual</span>
+                        <span class="he">דו-לשוני</span>
+                    </span>
+                    <span class='heAll enNone'>
+                        <span class="en">Hebrew</span>
+                        <span class="he">עברית</span>
+                    </span>
+                    <span class='enAll heNone'>
+                        <span class="en">English</span>
+                        <span class="he">אנגלית</span>
+                    </span>
+                    <span class='enNone heSome'>
+                        <span class="en">Partial Hebrew</span>
+                        <span class="he">עברית חלקית</span>
+                    </span>
+                    <span class='heAll enSome'>
+                        <span class="en">Partial English</span>
+                        <span class="he">אנגלית חלקית</span>
+                    </span>
                 </div>
             {% else %}
                 <i>No text available.</i>
                 <a class="btn btn-mini" href="/add/{{ index.title }}">Add this Text</a>
             {% endif %}
         </div>
+
+
+        {% if commentaries %}
+        <div id="textTocCommentaries" class="textTocSection biReady">
+            <h3>Available Commentaries</h3>
+            {% for content in commentaries %}
+                <div class="text">
+                    {% include "elements/textInfo.html" with text=content commentator_only=1 %}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
 
         {% if versions|length %}
         <div id="textVersions" class="textTocSection">
@@ -85,16 +143,6 @@
         </div>
         {% endif %}
 
-        {% if commentaries %}
-        <div id="textTocCommentaries" class="textTocSection">
-            <h3>Available Commentaries</h3>
-            {% for content in commentaries %}
-                <div class="text">
-                            {% include "elements/textInfo.html" with text=content %}
-                </div>
-            {% endfor %}
-        </div>
-        {% endif %}
 
         {% if count_strings %}
         <div id="textCounts" class="textTocSection">
@@ -110,6 +158,7 @@
         </div>
         {% endif %}
 
+
         <div id="textTocTitleVariants" class="textTocSection">
             <h3>Title Variants</h3> 
             {% if index.heTitleVariants|length %}
@@ -122,7 +171,9 @@
             </div>
         </div>
         <div id="textTocButtons">
+            {% if not complex %}
             <a href='/edit/textinfo/{{ index.commentator|default:index.title }}?after={{ request.get_full_path }}' id='editTextInfo' class='action btn btn-info'><i class="fa fa-info-circle"></i>  Edit Text Info</a>
+            {% endif %}
             {% if request.user.is_staff %}
             <span id='deleteText' class='action btn btn-warning' data-title='{{ index.commentator|default:index.title }}' {% if index.commentator %}data-is-commentator='1' data-commentary-text='{{ index.title }}'{% endif %}><i class="fa fa-trash-o"></i> Delete Text</span>
             {% endif %}
@@ -134,11 +185,30 @@
 {% endblock %}
 
 {% block js %}
-    {% if request.user.is_staff %}
         <script>
         $(function() {
+            {% if request.user.is_staff %}
             $("#deleteText").click(sjs.deleteTextButtonHandler);
+            {% endif %}
+
+            $(".altStructToggle").click(function(){
+                $(".altStructToggle").removeClass("active");
+                $(this).addClass("active");
+                var i = $(this).index();
+                $(".altStruct").hide();
+                $(".altStruct").eq(i).show();
+            });
+
+            $(".sectionLink").click(function(e) {
+                e.stopPropagation();
+            });
+
+            $(".schema-node-toc").click(function(e) {
+                if (!$(this).hasClass("linked") && !$(this).hasClass("default")) {
+                    e.preventDefault();
+                    $(this).find(".schema-node-contents").toggleClass("open closed");
+                }
+            });
         });
         </script>
-    {% endif %}
 {% endblock %}

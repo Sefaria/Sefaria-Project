@@ -9,6 +9,13 @@
 		_email:        "{{ request.user.email|default:'null' }}",
 		_uid:          {{ request.user.id|default:"null" }},
 		books:         {{ titlesJSON|default:"[]" }},
+        booksDict:     {}, // populated below
+        calendar:      {
+                            parasha: "{{ parasha_ref }}",
+                            parashaName: "{{ parasha_name }}",
+                            haftara: "{{ haftara_ref }}",
+                            daf_yomi: "{{ daf_yomi_ref }}"
+                       },
 		toc:           {{ toc_json|default:"null" }},
 		searchBaseUrl: '{{ SEARCH_URL|default:"http://localhost:9200" }}',
 		searchIndex:   '{{ SEARCH_INDEX_NAME }}',
@@ -28,10 +35,11 @@
 			}
 		},
 		handleSearch: function() {
-			$("#goto").focus();
-			var query = $("#goto").val();
+			//$(".searchInput").focus();
+			var query = $(this).closest(".searchBox").find(".searchInput").val();
 			if (query) {
-				$("#goto").autocomplete("close");
+				$(".searchInput").autocomplete("close");
+                $(".searchInput").val(query);
 
 				if (isRef(query)) {
 					sjs.navQuery(query);
@@ -40,7 +48,9 @@
 					if (sjs.currentPage !== 'search') {
 						window.location="/search?q=" + query.replace(/ /g, "+"); 
 					} else {
-						History.pushState({q: query}, "Search Jewish Texts | Sefaria.org", "/search?q=" + query);
+                        sjs.search.query = query;
+                        sjs.search.clear_available_filters();
+                        sjs.search.post(true, true);
 					}
 				}
 			}
@@ -52,7 +62,7 @@
 			// Displays an option under the search box to search for 'query' rather
 			// than treat it as a navigational query.
 			var html = "<div id='searchInsteadOfNavPrompt'>" + 
-							"Search for '<a href='/search?q=" + query + "'>" + query + "</a>' instead." +
+                            "Search for '<a href='/search?q=" + query + "'>" + query + "</a>' instead." +
 						"</div>";
 			$("#searchInsteadOfNavPrompt").remove();
 			$(html).appendTo("body").css({left: $("#goto").offset().left});
@@ -60,12 +70,18 @@
 		}
 	});
 
+    // Transform sjs.books array into a dictionary for quick lookup
+    for (var i=0; i<sjs.books.length; i++) {
+        sjs.booksDict[sjs.books[i]] = 1;
+    }
+
 	// Left hand Navigation Menu
 	sjs.navPanel = {
 		_path: [],
 		_sections: [],
 		_preview: null,
 		_showPreviews: Math.random() < 0.5 ? true : false, // A/B testing initial state
+        _structure: "default",
 		init: function() {
 			if (!sjs.toc) {
 				sjs.loadToc(sjs.navPanel.init);
@@ -115,6 +131,12 @@
 				sjs.navPanel.setNavContent();
 				sjs.navPanel._saveState();
 			});
+            $("#navToc").on("change", "#structureDropdown", function() {
+                sjs.navPanel._structure = $("#structureDropdown select").val();
+                sjs.navPanel._sections = sjs.navPanel._sections.slice(0,1);  //On structure change, go back to the text root
+				sjs.navPanel.setNavContent();
+				sjs.navPanel._saveState();
+            });
 			$("#navTocPreviewToggle").tooltipster({
 				delay: 400,
 				hideOnClick: true,
@@ -127,7 +149,8 @@
 			var prevState = $.cookie("navPanelState")
 			if (prevState) {
 				var state = JSON.parse(prevState);
-				this._showPreviews = state.showPreviews
+				this._showPreviews = state.showPreviews;
+                this._structure = state.structure;
 				if (sjs.current && sjs.current.title && this._path[this._path.length-1] === sjs.current.title) {
 					this._path     = state.path;
 					this._sections = state.sections;					
@@ -137,19 +160,6 @@
 				}
 			}
 			this.setNavContent();
-
-			/*
-			$("#navToc").on("mouseenter", ".previewLink", function(e) {
-				$("#morePreview").remove();
-				$(this).addClass("preview");
-				sjs.navPanel._previewTimer = setTimeout(sjs.navPanel.morePreview, 1000);
-			});
-			$("#navToc").on("mouseleave", ".previewLink", function(e) {
-				$(this).removeClass("preview");
-				clearTimeout(sjs.navPanel._previewTimer);
-			});
-			*/
-
 		},
 		_handleNavClick: function(e) {
 			e.preventDefault();
@@ -163,18 +173,32 @@
 		_saveState: function() {
 			$.cookie("navPanelState", JSON.stringify({path:         sjs.navPanel._path, 
 													  sections:     sjs.navPanel._sections,
-													  showPreviews: sjs.navPanel._showPreviews 
+													  showPreviews: sjs.navPanel._showPreviews,
+                                                      structure:    sjs.navPanel._structure
 													}));			
 		},
 		setNavContent: function() {
 			var sections = this._sections;
-			if (sections.length && (!sjs.navPanel._preview || sections[0] != sjs.navPanel._preview.title)) {
-				var url = "/api/preview/" + sections[0];
+            var nodeTitle = "";
+            if (sjs.navPanel._preview && sections[0] == sjs.navPanel._preview.title) {
+                nodeTitle = sjs.navPanel._preview.schema.get_node_title_from_indexes(sections.slice(1));
+            }
+			if (sections.length                                     // We're at the book level or deeper
+                && (!sjs.navPanel._preview                          // We don't have a preview yet
+                    || sections[0] != sjs.navPanel._preview.title   // The preview is for the wrong title
+                    || nodeTitle != sjs.navPanel._preview.node_title // The preview is for the wrong node
+                    //|| !sjs.navPanel._preview.preview               // we only need to refresh if we're now at a content node
+                )
+            ) {
+				var url = "/api/preview/" + ((nodeTitle) ? nodeTitle.replace(/ /g, "_") : sections[0]);
 				$.getJSON(url, function(data){
 					if ("error" in data) {
 						sjs.alert.message(data.error)
 					} else {
 						sjs.navPanel._preview = data;
+                        sjs.navPanel._preview.schema = new sjs.SchemaNode(data.schema);
+                        sjs.navPanel._structure = sjs.navPanel._preview.default_struct || "default";
+
 						sjs.navPanel.setNavContent();
 					}
 				});
@@ -206,29 +230,79 @@
 		makeNavContent: function() {
 			var path         = this._path;
 			var sections     = this._sections;
-			var previewDepth = sections.length;
+			var previewDepth = sections.length;  //If schema, set again below
 			var basePath     = path.join("/").replace(/\'/g, "&apos;");
 			var backPath     = path.slice(0, -1).join("/").replace(/\'/g, "&apos;");
 			var backSections = sections.slice(0, -1).join("/").replace(/\'/g, "&apos;");
+            var isRoot       = path.length === 0;
+            var hasAlts      = sections.length && "alts" in this._preview;
+            var altsActive   = hasAlts && this._structure && this._structure != "default";
+            var isCategory   = !sections.length;
 
-			// Language & Preview Toggles
-			var html = "<div id='navTocLangToggleBox'>" + 
+            if (!isCategory) {
+                var schema       = this._preview.schema;
+                var schema_node = schema.get_node_from_indexes(sections.slice(1));
+                previewDepth = schema.get_preview_depth_from_indexes(sections.slice(1));
+                var isStructureNode = !!("nodes" in schema_node);
+            }
+
+            //Function to be passed to array.reduce() that descends a schema according to the string keys in the array.
+            function schemaWalker(previousValue, currentValue, index, array) {
+                if (typeof currentValue == "string") {
+                   return previousValue["nodes"][currentValue];
+                } else {
+                    return previousValue
+                }
+            }
+
+            if (altsActive) {
+                var activeStructure = this._preview.alts[sjs.navPanel._structure];
+                var current_node = sections.slice(1).reduce(schemaWalker, activeStructure);
+            }
+            var html =  "<div id='tocTopMatter'>";
+
+            if (!isRoot) {
+                // Back Link
+				html += "<div class='tocCat backLink' data-path='" + (sections.length ? basePath : backPath) + "' " +
+								"data-sections='" + backSections + "'><i class='fa fa-angle-left'></i> back</div>";
+            }
+
+            // Language & Preview Toggles
+			html += "<div id='navTocLangToggleBox'>" +
 						"<i id='navTocPreviewToggle' class='fa fa-eye' title='Text preview on/off'></i>" +
 						"<div id='navTocLangToggle' class='toggle'>" +
 						"<div class='langToggle toggleOption " + ($("#navToc").hasClass("english") ? "active" : "") + "' data-lang='english'>" +
 							"<img src='/static/img/english.png' /></div>" +
 						"<div class='langToggle toggleOption " + ($("#navToc").hasClass("hebrew") ? "active" : "") + "' data-lang='hebrew'>" + 
 							"<img src='/static/img/hebrew.png' /></div>" +
-						"</div></div>"
+						"</div></div>";
+
+            // Structure selector
+            if (hasAlts) {
+                html += "<div id='structureDropdown'>" +
+                    "<span id='browseBy'>Browse by </span>" +
+                        "<select>" +
+                            "<option value='default' " + ((sjs.navPanel._structure == "default")?"selected ":"") + ">" + hebrewPlural(schema_node.sectionNames.slice(-2)[0]) +"</option>";
+                            for(var n in this._preview.alts) {
+                                html += "<option value='" + n + "' " + ((sjs.navPanel._structure == n)?"selected ":"") + ">" + n + "</option>";
+                            }
+                html += "</select>" +
+                    "</div>";
+            } else {
+                sjs.navPanel._structure = "default";
+            }
+                            html += '</div>'; //close tocTopMatter
+
 
 			//  Header - Back Link & Breadcrumbs
-			if (path.length === 0) {
-				html += '<div id="navPanelTextsHeader">Browse Texts</div>';
+			if (isRoot) {
+                html += "<div id='tocCatHeaders'><div class='tocCat tocCatHeader'>" +
+                        "Browse Texts" +
+                    "<div class='clear'></div>" +
+                    "</div></div>";
 			} else {
-				// Back Link
-				html += "<div class='tocCat backLink' data-path='" + (sections.length ? basePath : backPath) + "' " +
-								"data-sections='" + backSections + "'><i class='fa fa-angle-left'></i> back</div>" ;
 				// Breadcumbs
+                var default_offset = 0;  // If we pass a default node, offset section names to reflect that.
 				var cats = [];
 				cats.push("<div class='tocCat tocCatHeader' data-path=''><i class='fa fa-home'></i></div>");
 				for (var i = 0; i < path.length; i++) {
@@ -237,11 +311,31 @@
 				}
 				for (var i = 0; i < sections.length; i++) {
 					var sectionPath = sections.slice(0, i+1).join("/").replace(/\'/g, "&apos;");
+                    if (altsActive) {
+                        var n = sections.slice(1, i+1).reduce(function(previousValue, currentValue, index, array) {
+                            return previousValue["nodes"][currentValue];
+                        }, activeStructure);
+                    }
+                    var crumb;
+                    if (i == 0) {
+                        crumb = sections[i];
+                    } else {
+                        if (altsActive) {
+                            crumb = n["title"]
+                        } else if(schema.is_node_from_indexes(sections.slice(1, i+1))) {
+                            var snode = schema.get_node_from_indexes(sections.slice(1, i+1));
+                            if (snode.default) {  // Defaults don't get breadcrumbs
+                                default_offset++;
+                                continue;
+                            }
+                            crumb = snode["title"];
+                        } else {
+                            crumb = schema_node.sectionNames[i - 1 - default_offset] + " " + sections[i]
+                        }
+                    }
+
 					cats.push("<div class='tocCat tocCatHeader' data-path='" + catPath + "'" +
-								"data-sections='" + sectionPath + "'>" + 
-								(i > 0 ? this._preview.sectionNames[i-1] + " " : "") +
-								sections[i] + 
-							  "</div>");
+								"data-sections='" + sectionPath + "'>" + crumb + "</div>");
 				}
 
 				html += "<div id='tocCatHeaders'>" + 
@@ -252,7 +346,7 @@
 			}
 
 			// List Content - Categories, Texts, Sections or Section Previews
-			if (!sections.length) {
+			if (isCategory) {
 				// Categories & Texts
 				var node = this.getTocNode(path);
 				for (var i=0; i < node.length; i++) {
@@ -281,73 +375,177 @@
 									"<span class='he'>" + node[i].heCategory + "</span>" +
 								"</div>"
 					}
-				}				
-			} else {
-				// Sections & Section Previews
-				var isTalmud       = $.inArray("Talmud", path) >- 1;
-				var isCommentary   = $.inArray("Commentary", path) > -1;
-				var previewSection = this._preview.preview;
-				for (var i = 1; i < sections.length; i++) {
-					// Zoom in to the right section of the preview
-					var j = (isTalmud && isCommentary && i === 1) ? dafToInt(sections[1]) : sections[i] - 1;
-					previewSection = previewSection[j];
 				}
-				if (previewDepth >= this._preview.sectionNames.length -1 ) {
-					// Section Preview (terminal depth, preview text)
-					html += "<div class='sectionName'>" + hebrewPlural(this._preview.sectionNames.slice(-2)[0]) + "</div>";
-					if (!this._showPreviews) { html += "<div id='numLinkBox'>"}
-					for (var i=1; i <= previewSection.length; i++) {
-						var num   = isTalmud && !isCommentary ? intToDaf(i-1) : i;
-						var heNum = isTalmud && !isCommentary ? encodeHebrewDaf(intToDaf(i-1)) : encodeHebrewNumeral(i);
-						var url   = ("/" + sections.join(".") + "." + num).replace(/\'/g, "&apos;");
-						var he    = previewSection[i-1].he;
-						var en    = previewSection[i-1].en;
-						if (!en && !he) { continue; }
-						var klass = (he ? "" : "enOnly") + " " + (en ? "" : "heOnly");
+			} else if (altsActive) {
+                if ("nodes" in current_node) {   // Structure - todo: handle default in alts?
+                    html += "<div class='sectionName'>" + hebrewPlural(sjs.navPanel._structure) + "</div>";
+                    for (var i = 0; i < current_node["nodes"].length; i++) {
+                        var nod = current_node["nodes"][i];
+                        if (nod.depth == 0) {
+                            var ref = nod["wholeRef"];
+                            var url = "/" + ref;
+                            html += "<a class='tocLink previewLink' href='" + url + "'>" +
+                            "<i class='tocCatCaret fa fa-angle-" +
+                            ($("#navToc").hasClass("hebrew") ? "left" : "right") +
+                            "'></i>" +
+                            "<span class='en'>" + nod["title"] + "</span>" +
+                            "<span class='he'>" + nod["heTitle"] + "</span>" +
+                            "</a>";
+                        } else {
+                            html += "<div class='tocCat' data-path='" + basePath + "'" +
+                            "data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + i + "'>" +
+                            "<i class='tocCatCaret fa fa-angle-" +
+                            ($("#navToc").hasClass("hebrew") ? "left" : "right") +
+                            "'></i>" +
+                            "<span class='en'>" + nod["title"] + "</span>" +
+                            "<span class='he'>" + nod["heTitle"] + "</span>" +
+                            "</div>";
+                        }
+                    }
+                }
+                else if ("refsPreview" in current_node) { // Content - todo: doesn't yet work beyond depth 1
 
-						if (this._showPreviews) {
-							html += "<a class='tocLink previewLink " + klass + "' href='" + url + "'>" +
-										"<i class='tocCatCaret fa fa-angle-" +
-									 		($("#navToc").hasClass("hebrew") ? "left" : "right") +
-									 	"'></i>" +
-										"<div class='en'><span class='segmentNumber'>" + num + ".</span>" + en + "</div>" +
-										"<div class='he'><span class='segmentNumber'>" + heNum + ".</span>" + he + "</div>" +
-									"</a>";							
-						} else {
-							html += "<a class='tocLink numLink " + klass + "' href='" + url + "'>" +
-										"<span class='en'>" + num + "</span>" +
-										"<span class='he'>" + heNum + "</span>" +
-									"</a>";
-						}
+                    var isTalmudAddress = current_node.addressTypes[0] == "Talmud";  // still hacky. reworking the isTalmud logic
+                    var offset = current_node.offset || 0;
 
-					}
-					if (!previewSection.length) {
-						html += "<br><center><i>No text available.</i></center>";
-					}
-					if (!this._showPreviews) { html += "</div>"}
+                    var alt_section_names = current_node["sectionNames"][0];
+                    html += "<div class='sectionName'>" + hebrewPlural(alt_section_names) + "</div>";
+                    var refs_preview = current_node["refsPreview"];
+                    if (!this._showPreviews) {
+                        html += "<div id='numLinkBox'>"
+                    }
+                    for (var i = 1; i <= current_node["refs"].length; i++) {
+                        var io = i + offset;
+                        var num = isTalmudAddress ? intToDaf(io - 1) : io;
+                        var heNum = isTalmudAddress ? encodeHebrewDaf(intToDaf(io - 1)) : encodeHebrewNumeral(io);
 
-				} else {
-					// Sections List ("Chapter 1, Chapter 2")
-					for (var i=0; i < previewSection.length; i++) {
-						var ps = previewSection[i];
-						console.log(ps);
-						if (typeof ps == "object" && ps.en == "" && ps.he == "") {
-							console.log("skip")
-							continue; // Skip sections with no content
-						}
-						var num   = isTalmud && isCommentary ? intToDaf(i) : (i+1);
-						var heNum = isTalmud && isCommentary ? encodeHebrewDaf(intToDaf(i)) : encodeHebrewNumeral(i+1);
-						html += "<div class='tocCat' data-path='" + basePath + "'" +
-									"data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + num + "'>" +
-										"<i class='tocCatCaret fa fa-angle-" +
-									 		($("#navToc").hasClass("hebrew") ? "left" : "right") +
-									 	"'></i>" +
-										"<span class='en'>" + this._preview.sectionNames[previewDepth-1] + " " + num + "</span>" +
-										"<span class='he'>" + this._preview.heSectionNames[previewDepth-1] + " " + heNum + "</span>" +
-								"</div>";
-					}
-				}
-			}
+                        var ref = current_node["refs"][i - 1];
+                        var url = "/" + ref;
+                        var he = refs_preview[i - 1].he;
+                        var en = refs_preview[i - 1].en;
+                        if (!en && !he) {
+                            continue;
+                        }
+                        var klass = (he ? "" : "enOnly") + " " + (en ? "" : "heOnly");
+
+                        if (this._showPreviews) {
+                            html += "<a class='tocLink previewLink " + klass + "' href='" + url + "'>" +
+                            "<i class='tocCatCaret fa fa-angle-" +
+                            ($("#navToc").hasClass("hebrew") ? "left" : "right") +
+                            "'></i>" +
+                            "<div class='en'><span class='segmentNumber'>" + num + ".</span>" + en + "</div>" +
+                            "<div class='he'><span class='segmentNumber'>" + heNum + ".</span>" + he + "</div>" +
+                            "</a>";
+                        } else {
+                            html += "<a class='tocLink numLink " + klass + "' href='" + url + "'>" +
+                            "<span class='en'>" + num + "</span>" +
+                            "<span class='he'>" + heNum + "</span>" +
+                            "</a>";
+                        }
+                    }
+                    if (!this._showPreviews) {
+                        html += "</div>"
+                    }
+                }
+            } else if (isStructureNode) {      //Navigating structure
+                //html += "<div class='sectionName'>" + hebrewPlural(sjs.navPanel._structure) + "</div>";
+                for (var i = 0; i < schema_node["nodes"].length; i++) {
+                    var nod = schema_node["nodes"][i];
+                    if (nod.default) {
+                        html += "<div class='inline-default-node'>" + makeSectionContent.call(this, nod, sections.concat(i)) + "</div>";
+                    } else {
+                        html += "<div class='tocCat' data-path='" + basePath + "'" +
+                        "data-sections='" + sections.join("/").replace(/\'/g, "&apos;") + "/" + i + "'>" +
+                        "<i class='tocCatCaret fa fa-angle-" +
+                        ($("#navToc").hasClass("hebrew") ? "left" : "right") +
+                        "'></i>" +
+                        "<span class='en'>" + nod["title"] + "</span>" +
+                        "<span class='he'>" + nod["heTitle"] + "</span>" +
+                        "</div>";
+                    }
+
+                }
+            } else {
+                html += makeSectionContent.call(this, schema_node, sections);
+            }
+            function makeSectionContent(node, sects) {
+                var html = "";
+                // Sections & Section Previews
+                var isTalmud = node.addressTypes && node.addressTypes[0] == "Talmud";  //was $.inArray("Talmud", path) >- 1;
+                var isCommentary = $.inArray("Commentary", path) > -1;
+                var previewSection = this._preview.preview;
+                for (var i = 1; i < previewDepth; i++) {
+                    var indx = sects.length - previewDepth + i;
+                    // Zoom in to the right section of the preview
+                    var j = (isTalmud && isCommentary && i === 1) ? dafToInt(sects[1]) : sects[indx] - 1;
+                    previewSection = previewSection[j];
+                }
+                if (previewDepth >= node.sectionNames.length - 1) {
+                    // Section Preview (terminal depth, preview text)
+                    var isTalmmudAddress = node.addressTypes.slice(-2)[0] == "Talmud";  // still hacky. reworking the isTalmud logic
+                    html += "<div class='sectionName'>" + hebrewPlural(node.sectionNames.slice(-2)[0]) + "</div>";
+                    if (!this._showPreviews) {
+                        html += "<div id='numLinkBox'>"
+                    }
+                    for (var i = 1; i <= previewSection.length; i++) {
+                        var num = isTalmmudAddress ? intToDaf(i - 1) : i;
+                        var heNum = isTalmmudAddress ? encodeHebrewDaf(intToDaf(i - 1)) : encodeHebrewNumeral(i);
+                        //var url   = ("/" + sects.join(".") + "." + num).replace(/\'/g, "&apos;");
+                        var url = "/" + this._preview.schema.get_node_url_from_indexes(sects.slice(1).concat(num));
+                        var he = previewSection[i - 1].he;
+                        var en = previewSection[i - 1].en;
+                        if (!en && !he) {
+                            continue;
+                        }
+                        var klass = (he ? "" : "enOnly") + " " + (en ? "" : "heOnly");
+
+                        if (this._showPreviews) {
+                            html += "<a class='tocLink previewLink " + klass + "' href='" + url + "'>" +
+                            "<i class='tocCatCaret fa fa-angle-" +
+                            ($("#navToc").hasClass("hebrew") ? "left" : "right") +
+                            "'></i>" +
+                            "<div class='en'><span class='segmentNumber'>" + num + ".</span>" + en + "</div>" +
+                            "<div class='he'><span class='segmentNumber'>" + heNum + ".</span>" + he + "</div>" +
+                            "</a>";
+                        } else {
+                            html += "<a class='tocLink numLink " + klass + "' href='" + url + "'>" +
+                            "<span class='en'>" + num + "</span>" +
+                            "<span class='he'>" + heNum + "</span>" +
+                            "</a>";
+                        }
+
+                    }
+                    if (!previewSection.length) {
+                        html += "<br><center><i>No text available.</i></center>";
+                    }
+                    if (!this._showPreviews) {
+                        html += "</div>"
+                    }
+
+                } else {
+                    // Sections List ("Chapter 1, Chapter 2")
+                    for (var i = 0; i < previewSection.length; i++) {
+                        var ps = previewSection[i];
+                        console.log(ps);
+                        if (typeof ps == "object" && ps.en == "" && ps.he == "") {
+                            console.log("skip")
+                            continue; // Skip sections with no content
+                        }
+                        var num = isTalmud && isCommentary ? intToDaf(i) : (i + 1);
+                        var heNum = isTalmud && isCommentary ? encodeHebrewDaf(intToDaf(i)) : encodeHebrewNumeral(i + 1);
+                        html += "<div class='tocCat' data-path='" + basePath + "'" +
+                        "data-sections='" + sects.join("/").replace(/\'/g, "&apos;") + "/" + num + "'>" +
+                        "<i class='tocCatCaret fa fa-angle-" +
+                        ($("#navToc").hasClass("hebrew") ? "left" : "right") +
+                        "'></i>" +
+                        "<span class='en'>" + node.sectionNames[previewDepth - 1] + " " + num + "</span>" +
+                        "<span class='he'>" + node.heSectionNames[previewDepth - 1] + " " + heNum + "</span>" +
+                        "</div>";
+                    }
+                }
+                return html;
+            }
+
 			return html;
 		},
 		getTocNode: function(path, toc) {
@@ -366,59 +564,40 @@
 			}
 			return null;
 		}
-		/*morePreview: function() {
-			// Call the API for a full text section, show preview in modal
-			var url = "/api/texts" + $(".previewLink.preview").attr("href") + "?commentary=0";
-			$.getJSON(url, function(data) {
-				var content = ($("#navToc").hasClass("hebrew") ?
-								(data.he.join("").length ? 
-									"<div class='he'>" + data.he.join(" ") + "</div>" :
-									data.text.join(" ")) :
-								(data.text.join("").length ? 
-									data.text.join(" ") : 
-									"<div class='he'>" + data.he.join(" ") + "</div>") 
-								)
-
-				var html = "<div id='morePreview'>" + 
-								 content +
-							"</div>";
-				$(html).appendTo("body").position({my: "left-25 center", at: "right center", of: $(".previewLink.preview")});
-			});
-		}*/
 	};
 
 	$(function() {
 
 		// Search / Open a Text Box
-		$("#goto").autocomplete({ source: function( request, response ) {
+		$(".searchInput").autocomplete({ source: function( request, response ) {
 				var matches = $.map( sjs.books, function(tag) {
 						if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
 							return tag;
 						}
 					});
-				response(matches);
+				response(matches.slice(0, 30)); // limits return to 30 items
 			}
 		}).keypress(function(e) {
 			if (e.keyCode == 13) {
-				sjs.handleSearch();
+				sjs.handleSearch.apply(this);
 			}
 		}).focus(function() {
 			//$(this).css({"width": "300px"});
-			$(".keyboardInputInitiator").css({"opacity": 1});
+			$(this).closest(".searchBox").find(".keyboardInputInitiator").css({"opacity": 1});
 		}).blur(function() {
-			$(".keyboardInputInitiator").css({"opacity": 0});
+			$(this).closest(".searchBox").find(".keyboardInputInitiator").css({"opacity": 0});
 		});
-		$("#openText").mousedown(sjs.handleSearch);
+		$(".searchButton").mousedown(sjs.handleSearch);
 
 
 		// NavPanel
-		sjs.navPanel.init();
+		if ($("#navPanel").length) {
+            sjs.navPanel.init();
+        }
 
 		// Close menus on outside click
 		$(window).click(function(){
-			$(".menuOpen").removeClass("menuOpen");
 			$("#navPanel.navPanelOpen").removeClass("navPanelOpen");
-			$("#morePreview").remove();
 		});
 
 
@@ -444,9 +623,11 @@
 		};
 		$("#hebrew, #english, #bilingual").click(sjs.changeContentLang);
 
-		// Default tooltipster
 
-		$(".tooltipster").tooltipster();
+		// Default tooltipster
+		if ($().tooltipster) {
+            $(".tooltipster").tooltipster();
+        }
 
 
 	    // Notifications - Mark as read
@@ -566,42 +747,68 @@
 		});
 
 
-	    // Help modal - open/close
-	    sjs.help.open = function(e){
-	    	var vid = $("#helpVideoButtons .btn-success").attr("id").substring(5);
-	    	sjs.help.makeVideo(vid);
-	    	$("#overlay, #helpModal").show().position({of: window, collision: "fit"});
-	    	$(".menuOpen").removeClass("menuOpen");
-	    	if (e) {
-	    		e.preventDefault();
-	    		e.stopPropagation();
-	    	}
-	    	sjs.track.event("Help", "Open", "");
-	    }
-	    $(".helpLink").click(sjs.help.open);
-	    $("#helpClose").click(function() {
-	    	$("#overlay, #helpModal").hide();
-    		$("#helpVideo").remove();
-	    });
+		// Share Link / Share Modal 
+		sjs.showShareModal = function(e){
+			$("#shareModal").show().position({of: window});
+			$("#overlay").show();
+			$("#shareModalInput").val(window.location).select();
+	    	sjs.track.event("Share Modal", "Open", "");
+			e.stopPropagation();
+		};
+		$("#shareLink").click(sjs.showShareModal);
 
-	    // Help modal - switch videos
-	    sjs.help.openVideo = function(vid) {
-	    	$("#helpVideoButtons .btn").removeClass("btn-success");
-	    	$("#help-" + vid).addClass("btn-success");
-	    	sjs.help.makeVideo(vid);
-	    	sjs.track.event("Help", "Video", vid);
-	    };
-	    sjs.help.makeVideo = function(vid) {
-	    	var url = "http://www.youtube.com/embed/" + 
-	    					sjs.help.videos[vid] + 
-	    					"?enablejsapi=1&rel=0&autoplay=1";
-	    	var html = '<iframe id="helpVideo" src="' + url + '" frameborder="0" allowfullscreen></iframe>'
-	    	$("#helpVideoBox").html(html);
-	    }
-		$("#helpVideoButtons .btn").click(function(){
-			var vid = this.id.substring(5); // remove 'help-' from id
-			sjs.help.openVideo(vid);
-		});
+
+		sjs.hideModals = function(e){
+			$(".modal").hide();
+			$("#overlay").hide();
+            $("#textPreview").remove();
+            sjs.help.close();
+			e.stopPropagation();
+		}; 
+		$("#overlay").click(sjs.hideModals);
+
+
+	    // Help modal - open/close
+	    $.extend(sjs.help, {
+            open: function(e){
+            	var vid = $("#helpVideoButtons .btn-success").attr("id").substring(5);
+            	sjs.help.makeVideo(vid);
+            	$("#overlay, #helpModal").show().position({of: window, collision: "fit"});
+            	if (e) {
+            		e.preventDefault();
+            		e.stopPropagation();
+            	}
+            	sjs.track.event("Help", "Open", "");
+            },
+            openVideo: function(vid) {
+                console.log("ov " + vid);
+                $("#helpVideoButtons .btn").removeClass("btn-success");
+                $("#help-" + vid).addClass("btn-success");
+                sjs.help.makeVideo(vid);
+                sjs.track.event("Help", "Video", vid);
+            },
+            makeVideo: function(vid) {
+            	var url = "http://www.youtube.com/embed/" + 
+            					sjs.help.videos[vid] + 
+            					"?enablejsapi=1&rel=0&autoplay=1";
+            	var html = '<iframe id="helpVideo" src="' + url + '" frameborder="0" allowfullscreen></iframe>';
+            	$("#helpVideoBox").html(html);
+            },
+            close: function() {
+                $("#overlay, #helpModal").hide();
+                $("#helpVideo").remove();
+            },
+            init: function() {
+                $(".helpLink").click(sjs.help.open);
+                $("#helpClose").click(sjs.help.close);
+                $("#helpVideoButtons .btn").click(function(){
+                    var vid = this.id.substring(5); // remove 'help-' from id
+                    sjs.help.openVideo(vid);
+                });
+            }
+        });
+        sjs.help.init();
+
 
 		// Move Goto box, controls into hidden menu for small screen size 
 		sjs.adjustLayout = function() {
@@ -612,19 +819,13 @@
 			var $controls = $("#controls");
 
 			// gotoBox into options bar	    	
-			if (width >= 500 && $gotoBox.parent().attr("id") === "rightButtons") {
+			if (width >= 500 && $gotoBox.parent().attr("id") === "navPanel") {
 				$("#breadcrumbs").before($gotoBox);
+                $(".navLine").first().remove();
 			} else if (width < 500 && $gotoBox.next().attr("id") === "breadcrumbs") {
-				$("#accountBox").after($gotoBox);
-			}
-
-			// Source Sheets controls into options bar
-			// Test that media-query in common.css has applied, rather than window width
-			// as jQuery width() and CSS media-query calcs can differ
-			if ($("#showOptions").is(":visible")) {
-				$controls.prependTo("#rightButtons");
-			} else {
-				$("#sheet").before($controls);
+				$("#navPanel").prepend('<div class="navLine"></div>');
+                $("#navPanel").prepend($gotoBox);
+                $gotoBox.show();
 			}
 	    };
 	    $(window).resize(sjs.adjustLayout);

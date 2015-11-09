@@ -14,7 +14,10 @@ from text import VersionSet, AbstractIndex, AbstractSchemaContent, IndexSet, lib
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedIntArray
 from sefaria.system.exceptions import InputError, BookNameError
 from sefaria.system.cache import delete_template_cache
-
+try:
+    from sefaria.settings import USE_VARNISH
+except ImportError:
+    USE_VARNISH = False
 '''
 old count docs were:
     c["allVersionCounts"]
@@ -103,14 +106,14 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
                 try:
                     self.index = get_index(self.title)
                 except BookNameError as e:
-                    logger.warning("Failed to load Index for VersionState {}: {} (Normal on Index name change)".format(self.title, e))
+                    logger.warning(u"Failed to load Index for VersionState - {}: {} (Normal on Index name change)".format(self.title, e))
             return
 
         if not isinstance(index, AbstractIndex):
             try:
                 index = get_index(index)
             except BookNameError as e:
-                logger.warning("Failed to load Index for VersionState {}: {}".format(self.title, e))
+                logger.warning("Failed to load Index for VersionState {}: {}".format(index, e))
 
         self.index = index
         self._versions = {}
@@ -123,7 +126,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
             self.refresh()
             self.is_new_state = True  # variable naming: don't override 'is_new' - a method of the superclass
 
-    def contents(self):
+    def contents(self, **kwargs):
         c = super(VersionState, self).contents()
         c.update(self.index.contents())
         return c
@@ -144,6 +147,10 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         self.index.nodes.visit_structure(self._aggregate_structure_state, self)
         self.linksCount = link.LinkSet(Ref(self.index.title)).count()
         self.save()
+
+        if USE_VARNISH:
+            from sefaria.system.sf_varnish import invalidate_counts
+            invalidate_counts(self.index)
 
     def get_flag(self, flag):
         return self.flags.get(flag, None)
@@ -179,12 +186,11 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
                 'sparseness': sum([contents[ckey][lkey]["sparseness"] for ckey in ckeys]) / len(ckeys),  # should be an int.  In Python 3 may need to int(round()) the result.
             }
 
-
     #todo: do we want to use an object here?
     def _content_node_visitor(self, snode, *contents, **kwargs):
         """
         :param snode: SchemaContentNode
-        :param contents: Array of two nodes - the current self.nodes node, and the self.counts node
+        :param contents: Array of one node - the self.counts node
         :param kwargs:
         :return:
         """
@@ -193,7 +199,6 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         depth = snode.depth  # This also acts as an assertion that we have a SchemaContentNode
         ja = {}  # JaggedIntArrays for each language and 'all'
         padded_ja = {}  # Padded JaggedIntArrays for each language
-
 
         # Get base counts for each language
         for lang, lkey in self.lang_map.items():
@@ -214,6 +219,8 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
             current[lkey]["availableTexts"] = padded_ja[lkey].array()
 
             # number of units at each level ("availableCounts") from raw counts
+            # depth_sum() reduces anything greater than 1 to 1,
+            # so that the count returned is an accurate measure of how much material is there
             current[lkey]["availableCounts"] = [ja[lkey].depth_sum(d) for d in range(depth)]
 
             # Percent of text available, versus its metadata count ("percentAvailable")
@@ -336,21 +343,28 @@ class VersionStateSet(abst.AbstractMongoSet):
     def all_refs(self):
         refs = []
         for vs in self:
-            content_nodes = vs.index.nodes.get_content_nodes()
+            try:
+                content_nodes = vs.index.nodes.get_leaf_nodes()
+            except Exception as e:
+                logger.warning(u"Failed to find VersionState Index while generating references for {}. {}".format(vs.title, e.message))
+                continue
             for c in content_nodes:
-                state_ja = vs.state_node(c).ja("_all")
-                for indxs in state_ja.non_empty_sections():
-                    sections = [a + 1 for a in indxs]
-                    refs += [Ref(
-                        _obj={
-                            "index": vs.index,
-                            "book": vs.index.nodes.full_title("en"),
-                            "type": vs.index.categories[0],
-                            "index_node": vs.index.nodes,
-                            "sections": sections,
-                            "toSections": sections
-                        }
-                    )]
+                try:
+                    state_ja = vs.state_node(c).ja("all")
+                    for indxs in state_ja.non_empty_sections():
+                        sections = [a + 1 for a in indxs]
+                        refs += [Ref(
+                            _obj={
+                                "index": vs.index,
+                                "book": vs.index.nodes.full_title("en"),
+                                "type": vs.index.categories[0],
+                                "index_node": c,
+                                "sections": sections,
+                                "toSections": sections
+                            }
+                        )]
+                except Exception as e:
+                    logger.warning(u"Failed to generate references for {}, section {}. {}".format(c.full_title("en"), ".".join([str(s) for s in sections]) if sections else "-", e.message))
         return refs
 
 
@@ -358,11 +372,12 @@ class StateNode(object):
     lang_map = {lang: "_" + lang for lang in ["he", "en", "all"]}
     lang_keys = lang_map.values()
 
+    #todo: self.snode could be a SchemaNode, but get_available_counts_dict() assumes JaggedArrayNode
     def __init__(self, title=None, snode=None, _obj=None):
         if title:
             snode = library.get_schema_node(title)
             if not snode:
-                snode = library.get_commentary_schema_node(title)
+                snode = library.get_schema_node(title, with_commentary=True)
             if not snode:
                 raise InputError(u"Can not resolve name: {}".format(title))
             self.snode = snode
@@ -447,13 +462,18 @@ def refresh_all_states():
     indices = IndexSet()
 
     for index in indices:
-        if index.is_commentary():
-            c_re = "^{} on ".format(index.title)
-            texts = VersionSet({"title": {"$regex": c_re}}).distinct("title")
-            for text in texts:
-                VersionState(text).refresh()
-        else:
-            VersionState(index).refresh()
+        logger.debug(u"Rebuilding state for {}".format(index.title))
+        try:
+            if index.is_commentary():
+                c_re = "^{} on ".format(index.title)
+                texts = VersionSet({"title": {"$regex": c_re}}).distinct("title")
+                for text in texts:
+                    VersionState(text).refresh()
+            else:
+                VersionState(index).refresh()
+        except Exception as e:
+            logger.warning(u"Got exception rebuilding state for {}: {}".format(index.title, e))
+            
 
     import sefaria.summaries as summaries
     summaries.update_summaries()

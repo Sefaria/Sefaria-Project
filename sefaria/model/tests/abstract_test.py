@@ -35,7 +35,7 @@ class Test_Mongo_Record_Models(object):
             if not res:  # Collection may be empty
                 return
             assert m._id
-            assert m._validate()
+            m._validate()
 
     @pytest.mark.deep
     def test_attr_definitions(self):
@@ -108,10 +108,14 @@ class Test_Mongo_Record_Methods(object):
 
     def test_copy(self):
         for sub in record_classes:
+            if sub is model.VersionState: #VersionState is derived - this test doesn't work well with it
+                continue
             m = sub()
             res = m.load({})
             if not res:  # Collection may be empty
                 return
-            assert res == res.copy()
+            c = res.copy()
+            del res._id
+            assert res == c
 
 

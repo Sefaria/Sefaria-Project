@@ -20,6 +20,17 @@
         {% include "js/analytics.js" %}
     </script>
 
+    {% if not OFFLINE %}
+    <script src="//ajax.googleapis.com/ajax/libs/webfont/1.5.10/webfont.js"></script>
+    <script>
+      WebFont.load({
+        google: {
+          families: ['Montserrat:400,700', 'Alef:400,700:latin,hebrew' ]
+        }
+      });
+    </script>
+    {% endif %}
+
 </head>
 
 <body class='{% if contentLang == "bilingual" %}english{% else %}{{ contentLang }}{% endif %}'>
@@ -31,13 +42,15 @@
         </div>
     </div>
 	
-    {% include "elements/footer.html" with class=class %}
-    
+    {% block footer %}
+        {% include "elements/footer.html" with class=class %}
+    {% endblock %}
+
     {% include "js/jquery.html" %}
     <script src="/static/js/jquery.tooltipster.min.js"></script>
     <script>{% include "js/django-csrf.js" %}</script>
-    {% include "js/headers.js" %}
     <script src="/static/js/util.js"></script>
+    {% include "js/headers.js" %}
     
     {% block js %}{% endblock %}
 

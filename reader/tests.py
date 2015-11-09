@@ -104,7 +104,7 @@ class PagesTest(SefariaTestCase):
 
     def test_get_text_unknown(self):
         response = c.get('/Gibbledeegoobledeemoop')
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(404, response.status_code)
 
     def test_sheets_splash(self):
         response = c.get('/sheets')
@@ -215,7 +215,7 @@ class ApiTest(SefariaTestCase):
         response = c.get('/api/texts/Genesis.999')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual(data["error"], "Genesis only has 50 Chapters.")
+        self.assertEqual(data["error"], "Genesis ends at Chapter 50.")
 
     def test_api_get_text_too_many_hyphens(self):
         response = c.get('/api/texts/Genesis.9-4-5')
@@ -279,6 +279,81 @@ class LoginTest(SefariaTestCase):
         self.assertTrue(response.content.find("accountMenuName") > -1)
 
 
+class PostV2IndexTest(SefariaTestCase):
+    def setUp(self):
+        self.make_test_user()
+
+    def tearDown(self):
+        IndexSet({"title": "Complex Book"}).delete()
+
+    def test_add_alt_struct(self):
+        # Add a simple Index
+        index = {
+            "title": "Complex Book",
+            "titleVariants": [],
+            "heTitle": "Hebrew Complex Book",
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Musar"],
+        }
+        response = c.post("/api/index/Complex_Book", {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
+
+        # Get it in raw v2 form
+        response = c.get("/api/v2/raw/index/Complex_Book")
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
+
+        # Add some alt structs to it
+        data["alt_structs"] = {
+            "Special Sections" : {
+                "nodes": [
+                    {
+                        "nodeType": "ArrayMapNode",
+                        "depth": 1,
+                        "titles": [
+                            {
+                                "lang": "en",
+                                "text": "Idrah Rabbah",
+                                "primary": True
+                            },
+                            {
+                                "lang": "he",
+                                "text": u"אידרה רבה",
+                                "primary": True
+                            }
+                        ],
+                        "addressTypes": [
+                            "Integer"
+                        ],
+                        "sectionNames": [
+                            "Paragraph"
+                        ],
+                        "wholeRef": "Complex Book 3:4-7:1",
+                        "refs" : [
+                            "Complex Book 3:4-4:1",
+                            "Complex Book 4:2-6:3",
+                            "Complex Book 6:4-7:1"
+                        ]
+                    }
+                ]
+            }
+        }
+        # Save
+        response = c.post("/api/v2/raw/index/Complex_Book", {'json': json.dumps(data)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
+
+        # Load and validate alt structs
+        response = c.get("/api/v2/raw/index/Complex_Book")
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
+        self.assertIn("alt_structs", data)
+        self.assertIn("Special Sections", data["alt_structs"])
+
+
 class PostIndexTest(SefariaTestCase):
     def setUp(self):
         self.make_test_user()
@@ -297,7 +372,7 @@ class PostIndexTest(SefariaTestCase):
             addition of title variant to existing text
             that new variant shows in index/titles/cache
             removal of new variant
-            that is is removed from index/titles/cache
+            that it is removed from index/titles/cache
         """
         # Post a new Title Variant to an existing Index
         orig = json.loads(c.get("/api/index/Job").content)
@@ -353,6 +428,8 @@ class PostIndexTest(SefariaTestCase):
         index = {
             "title": "Book of Variants",
             "titleVariants": [],
+            "heTitle": u"Hebrew Book of Variants",
+            "heTitleVariants": [],
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"],
         }
@@ -366,6 +443,7 @@ class PostIndexTest(SefariaTestCase):
         # Post with variants field missing
         index = {
             "title": "Book of Variants",
+            "heTitle": "Hebrew Book of Variants",
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"],
         }
@@ -376,10 +454,12 @@ class PostIndexTest(SefariaTestCase):
         self.assertIn("titleVariants", data)
         self.assertIn("Book of Variants", data["titleVariants"])
 
-        # Post with non empty variants, missing title
+        # Post with non empty variants, missing title from variants
         index = {
             "title": "Book of Variants",
             "titleVariants": ["BOV"],
+            "heTitle": u"Hebrew Book of Variants",
+            "heTitleVariants": [],
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"],
         }
@@ -393,6 +473,7 @@ class PostIndexTest(SefariaTestCase):
         # Post Commentary index with empty variants
         index = {
             "title": "Reb Rabbit",
+            "heTitle": u"Hebrew Reb Rabbit",
             "titleVariants": [],
             "categories": ["Commentary"],
         }
@@ -442,6 +523,7 @@ class PostTextNameChange(SefariaTestCase):
         index = {
             "title": "Name Change Test",
             "titleVariants": ["The Book of Name Change Test"],
+            "heTitle": u'Hebrew Name Change Test',
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"],
         }
@@ -587,6 +669,7 @@ class PostCommentatorNameChange(SefariaTestCase):
     def test_change_commentator_name(self):
         index = {
             "title": "Ploni",
+            "heTitle": u"Hebrew Ploni",
             "titleVariants": ["Ploni"],
             "categories": ["Commentary"]
         }
@@ -667,6 +750,8 @@ class PostTextTest(SefariaTestCase):
             post of index & that new index is in index/titles
             post and get of English text
             post and get of Hebrew text
+            Verify that in-text ref is caught and made a link
+            Verify that changing of in-text ref results in old link removed and new one added
             counts docs of both he and en
             index delete and its cascading
         """
@@ -674,6 +759,7 @@ class PostTextTest(SefariaTestCase):
         index = {
             "title": "Sefer Test",
             "titleVariants": ["The Book of Test"],
+            "heTitle": u"Hebrew Sefer Test",
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"],
         }
@@ -715,6 +801,24 @@ class PostTextTest(SefariaTestCase):
         self.assertEqual([1,1], data["_en"]["availableCounts"])
         self.assertEqual(1, data["_en"]["availableTexts"][98][98])
         self.assertEqual(0, data["_en"]["availableTexts"][98][55])
+
+        # Update link in the text
+        text = {
+            "text": "As it is written in Job 4:10, The lions may roar and growl.",
+            "versionTitle": "The Test Edition",
+            "versionSource": "www.sefaria.org",
+            "language": "en",
+        }
+        response = c.post("/api/texts/Sefer_Test.99.99", {'json': json.dumps(text)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue("error" not in data)
+        # Verify one link was auto extracted
+        response = c.get('/api/texts/Sefer_Test.99.99')
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual(1, len(data["commentary"]))
+        self.assertEqual(data["commentary"][0]["ref"], 'Job 4:10')
 
         # Post Text (with Hebrew citation)
         text = { 
@@ -760,6 +864,7 @@ class PostTextTest(SefariaTestCase):
         """
         index = {
             "title": "Ploni",
+            "heTitle": "Hebrew Ploni",
             "titleVariants": ["Ploni"],
             "categories": ["Commentary"]
         }

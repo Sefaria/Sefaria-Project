@@ -99,7 +99,6 @@ class Test_parse_he_ref(object):
         with pytest.raises(InputError):
             r = m.Ref(u'דברים שם, שם')
 
-
     def test_talmud_ayin_amud_form(self):
         r = m.Ref(u'סוטה דף מ"ה ע"ב')
         assert r.sections[0] == 90
@@ -116,6 +115,9 @@ class Test_parse_he_ref(object):
         assert r.sections[0] == 1
         assert len(r.sections) == 1
 
+        r = m.Ref(u"אסתר א, סי")
+        assert r.sections[0] == 1
+        assert len(r.sections) == 1
 
     def test_talmud_word_end(self):
         r = m.Ref(u"מנחות כט בג")
@@ -126,6 +128,10 @@ class Test_parse_he_ref(object):
         with pytest.raises(InputError):
             r = m.Ref(u"מנחות כטר")
 
+    def test_midrash_word_end(self):
+        # Assumes that Esther Rabbah Petichta
+        with pytest.raises(InputError):
+            r = m.Ref(u"אסתר רבה פתיחתא")
 
     def test_pehmem_form(self):
         r = m.Ref(u'פרה פ"ח מ"ז')
@@ -215,6 +221,59 @@ class Test_parse_he_ref(object):
     def test_repr_on_hebrew(self):
         repr(m.Ref(u'טהרות פרק ג משנה ב'))
 
+
+class Test_Hebrew_Quoting_Styles(object):
+    def test_leading_geresh(self):
+        assert m.Ref(u"שמות י׳ י״ב") == m.Ref('Exodus 10:12')
+        assert m.Ref(u"שמות י׳ יב") == m.Ref('Exodus 10:12')
+        assert m.Ref(u"שמות י׳ יב") == m.Ref('Exodus 10:12')
+
+    def test_no_punctuation(self):
+        assert m.Ref(u"שמות י יב") == m.Ref('Exodus 10:12')
+        assert m.Ref(u"שמות יב י") == m.Ref('Exodus 12:10')
+
+    def test_leading_gershaim(self):
+        assert m.Ref(u"שמות י״ב י") == m.Ref('Exodus 12:10')
+        assert m.Ref(u"שמות י״ב י׳") == m.Ref('Exodus 12:10')
+
+    def test_trailing_geresh(self):
+        assert m.Ref(u"שמות יב י׳") == m.Ref('Exodus 12:10')
+        assert m.Ref(u"שמות י״ב י׳") == m.Ref('Exodus 12:10')
+
+    def test_trailing_gershaim(self):
+        assert m.Ref(u"שמות י י״ב") == m.Ref('Exodus 10:12')
+        assert m.Ref(u"שמות י׳ י״ב") == m.Ref('Exodus 10:12')
+
+
+
+
+class Test_FAILING_parse_he_commentary(object):
+    def test_FAILING_hebrew_commentary(self):
+        assert m.Ref(u'רש"י על ויקרא ט״ו:ג׳') == m.Ref("Rashi on Leviticus 15:3")
+
+
+class Test_parse_he_ref_range(object):
+    def test_hebrew_range_simple(self):
+        assert m.Ref(u'שמות, כ"ד, יג-יד') == m.Ref('Exodus 24:13-14')
+        assert m.Ref(u'במדבר, כ"ז, טו - כג') == m.Ref("Numbers 27:15-23")
+        assert m.Ref(u'במדבר, כ"ז, טו -כ״ט כג') == m.Ref("Numbers 27:15-29:23")
+
+    def test_FAILING_hebrew_range_with_colons(self):
+        assert m.Ref(u'רות יט:יח-כ:יח') == m.Ref("Ruth 19:18-20:18")
+
+    def test_FAILING_hebrew_range_commentary(self):
+        assert m.Ref(u'רש"י על ויקרא ט״ו:ג׳-י״ז:י״ב') == m.Ref("Rashi on Leviticus 15:3-17:12")
+        assert m.Ref(u'רש"י על שמות ג׳:א׳:א׳-ג׳') == m.Ref("Rashi on Exodus 3:1:1-3")
+
+    def test_FAILING_hebrew_range_talmud(self):
+        assert m.Ref(u'שבת טו. - טז:') == m.Ref("Shabbat 15a-16b")
+        assert m.Ref(u'שבת טו א - טז ב') == m.Ref("Shabbat 15a-16b")
+        # assert m.Ref(u'') == m.Ref("Shabbat 15a:15-15b:13")
+
+    def test_FAILING_hebrew_range_talmud_commentary(self):
+        assert m.Ref(u'') == m.Ref("Rashi on Shabbat 15a:15-15b:13")
+
+
 class Test_Hebrew_Normal(object):
 
     def test_simple(self):
@@ -224,8 +283,8 @@ class Test_Hebrew_Normal(object):
 
     def test_talmud(self):
         assert m.Ref("Shabbat").he_normal() == u'שבת'
-        assert m.Ref("Shabbat 3b").he_normal() == u'שבת ג:'
-        assert m.Ref("Shabbat 3b:23").he_normal() == u'שבת ג: 23'
+        assert m.Ref("Shabbat 3b").he_normal() == u'שבת ג׳ ב'
+        assert m.Ref("Shabbat 3b:23").he_normal() == u'שבת ג׳ ב 23'
 
     def test_simple_range(self):
         assert m.Ref("Exodus 4-5").he_normal() == u'שמות ד׳-ה׳'
@@ -233,9 +292,9 @@ class Test_Hebrew_Normal(object):
         assert m.Ref("Exodus 4:3-5:8").he_normal() == u'שמות ד׳:ג׳-ה׳:ח׳'
 
     def test_talmud_range(self):
-        assert m.Ref("Shabbat 3b-5a").he_normal() == u'שבת ג:-ה.'
-        assert m.Ref("Shabbat 3b:3-24").he_normal() == u'שבת ג: 3-24'
-        assert m.Ref("Shabbat 3b:3-5a:24").he_normal() == u'שבת ג: 3-ה. 24'
+        assert m.Ref("Shabbat 3b-5a").he_normal() == u'שבת ג׳ ב-ה׳ א'
+        assert m.Ref("Shabbat 3b:3-24").he_normal() == u'שבת ג׳ ב 3-24'
+        # assert m.Ref("Shabbat 3b:3-5a:24").he_normal() == u'שבת ג: 3-ה. 24'
 
     def test_complex(self):
         pass

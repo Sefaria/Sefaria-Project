@@ -1,6 +1,6 @@
 selenium
 django==1.4.5
-pymongo
+pymongo==2.7.2
 django-email-as-username
 diff_match_patch
 dateutils
@@ -12,5 +12,10 @@ pyelasticsearch
 regex
 pytest
 mailchimp
-redis
-django-redis
+redis==2.10
+django-redis==3.8.4
+django_mobile==0.3.0
+roman
+p929
+python-varnish
+django-recaptcha

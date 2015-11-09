@@ -3,8 +3,26 @@ import pytest
 
 from sefaria.model import *
 
+
 def setup_module(module): 
-    pass
+    TranslationRequestSet().delete()
+    v = Version().load({"versionTitle":"Test English"})
+    if v:
+        v.delete()
+    Version({
+        "versionTitle": "Test English",
+        "language": "en",
+        "title": "Genesis",
+        "versionSource": "http://foo.com",
+        "chapter": []
+    }).save()
+
+
+def teardown_module(module):
+    TranslationRequestSet().delete()
+    v = Version().load({"versionTitle":"Test English"})
+    if v:
+        v.delete()
 
 
 class Test_complete_request:

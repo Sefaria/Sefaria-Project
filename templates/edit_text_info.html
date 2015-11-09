@@ -43,9 +43,9 @@
                             <select class='sectionNames'>
                               <option value="Chapter,Verse">Chapter, Verse</option>
                               <option value="Chapter,Paragraph">Chapter, Paragraph</option>
-                              <option value="Chapter,Midrash">Chapter, Mishnah</option>
+                              <option value="Chapter,Mishnah">Chapter, Mishnah</option>
                               <option value="Chapter,Midrash">Chapter, Midrash</option>
-                              <option value="Chapter,Mitzvah">Chapter, Mitvah</option>
+                              <option value="Chapter,Mitzvah">Chapter, Mitzvah</option>
                               <option value="Daf,Line">Daf, Line</option>
                               <option value="Paragraph">Paragraph</option>
                               <option value="Line">Line</option>
@@ -302,8 +302,8 @@
         }
         // Content Node
         if (node.nodeType === "JaggedArrayNode") {
-            $node.find(".nodeLength").val(node.nodeParameters.lengths ? node.nodeParameters.lengths[0] : "");
-            var sectionNames = node.nodeParameters.sectionNames.join(",");
+            $node.find(".nodeLength").val(node.lengths ? node.lengths[0] : "");
+            var sectionNames = node.sectionNames.join(",");
             $node.find(".sectionNames").val(sectionNames).trigger("change");
             $node.find(".contentRadio").trigger("click");
 
@@ -413,11 +413,9 @@
                                 }
                             ],
                             "nodeType": "JaggedArrayNode",
-                            "nodeParameters": {
-                                "depth": 1,
-                                "addressTypes": ["Integer"],
-                                "sectionNames": ["Paragraph"]
-                            }
+                            "depth": 1,
+                            "addressTypes": ["Integer"],
+                            "sectionNames": ["Paragraph"]
                         },
                         {
                             "key": "List of Positive Mitzvot",
@@ -429,11 +427,9 @@
                                 }
                             ],
                             "nodeType": "JaggedArrayNode",
-                            "nodeParameters": {
-                                "depth": 1,
-                                "addressTypes": ["Integer"],
-                                "sectionNames": ["Mitzvah"]
-                            }
+                            "depth": 1,
+                            "addressTypes": ["Integer"],
+                            "sectionNames": ["Mitzvah"]
                         },
                         {
                             "key": "List of Negative Mitzvot",
@@ -445,11 +441,9 @@
                                 }
                             ],
                             "nodeType": "JaggedArrayNode",
-                            "nodeParameters": {
-                                "depth": 1,
-                                "addressTypes": ["Integer"],
-                                "sectionNames": ["Mitzvah"]
-                            }
+                            "depth": 1,
+                            "addressTypes": ["Integer"],
+                            "sectionNames": ["Mitzvah"]
                         }
                     ]
 
@@ -484,21 +478,17 @@
                                         }
                                     ],
                                     "nodeType": "JaggedArrayNode",
-                                    "nodeParameters": {
-                                        "depth": 0,
-                                        "addressTypes": [],
-                                        "sectionNames": []
-                                    }       
+                                    "depth": 0,
+                                    "addressTypes": [],
+                                    "sectionNames": []
                                 },
                                 {
-                                    "key": "Laws",
+                                    "key": "default",
                                     "default": true,
                                     "nodeType": "JaggedArrayNode",
-                                    "nodeParameters": {
-                                        "depth": 2,
-                                        "addressTypes": ["Integer", "Integer"],
-                                        "sectionNames": ["Chapter", "Law"]
-                                    }
+                                    "depth": 2,
+                                    "addressTypes": ["Integer", "Integer"],
+                                    "sectionNames": ["Chapter", "Law"]
                                 }
                             ]
                         },
@@ -522,21 +512,17 @@
                                         }
                                     ],
                                     "nodeType": "JaggedArrayNode",
-                                    "nodeParameters": {
-                                        "depth": 0,
-                                        "addressTypes": [],
-                                        "sectionNames": []
-                                    }   
+                                    "depth": 0,
+                                    "addressTypes": [],
+                                    "sectionNames": []
                                 },
                                 {
-                                    "key": "Laws",
+                                    "key": "default",
                                     "default": true,
                                     "nodeType": "JaggedArrayNode",
-                                    "nodeParameters": {
-                                        "depth": 2,
-                                        "addressTypes": ["Integer", "Integer"],
-                                        "sectionNames": ["Chapter", "Law"]
-                                    }
+                                    "depth": 2,
+                                    "addressTypes": ["Integer", "Integer"],
+                                    "sectionNames": ["Chapter", "Law"]
                                 }
                             ]
                         },
@@ -560,21 +546,17 @@
                                         }
                                     ],
                                     "nodeType": "JaggedArrayNode",
-                                    "nodeParameters": {
-                                        "depth": 0,
-                                        "addressTypes": [],
-                                        "sectionNames": []
-                                    }   
+                                    "depth": 0,
+                                    "addressTypes": [],
+                                    "sectionNames": []
                                 },
                                 {
-                                    "key": "Laws",
+                                    "key": "default",
                                     "default": true,
                                     "nodeType": "JaggedArrayNode",
-                                    "nodeParameters": {
-                                        "depth": 2,
-                                        "addressTypes": ["Integer", "Integer"],
-                                        "sectionNames": ["Chapter", "Law"]
-                                    }
+                                    "depth": 2,
+                                    "addressTypes": ["Integer", "Integer"],
+                                    "sectionNames": ["Chapter", "Law"]
                                 }
                             ]
                         },
@@ -598,21 +580,17 @@
                                         }
                                     ],
                                     "nodeType": "JaggedArrayNode",
-                                    "nodeParameters": {
-                                        "depth": 0,
-                                        "addressTypes": [],
-                                        "sectionNames": []
-                                    }   
+                                    "depth": 0,
+                                    "addressTypes": [],
+                                    "sectionNames": []
                                 },
                                 {
-                                    "key": "Laws",
+                                    "key": "default",
                                     "default": true,
                                     "nodeType": "JaggedArrayNode",
-                                    "nodeParameters": {
-                                        "depth": 2,
-                                        "addressTypes": ["Integer", "Integer"],
-                                        "sectionNames": ["Chapter", "Law"]
-                                    }
+                                    "depth": 2,
+                                    "addressTypes": ["Integer", "Integer"],
+                                    "sectionNames": ["Chapter", "Law"]
                                 }
                             ]
                         },
@@ -641,28 +619,24 @@
                                         }
                                     ],
                                     "nodeType": "JaggedArrayNode",
-                                    "nodeParameters": {
-                                        "depth": 0,
-                                        "addressTypes": [],
-                                        "sectionNames": []
-                                    }   
+                                    "depth": 0,
+                                    "addressTypes": [],
+                                    "sectionNames": []
                                 },
                                 {
-                                    "key": "Laws",
+                                    "key": "default",
                                     "default": true,
                                     "nodeType": "JaggedArrayNode",
-                                    "nodeParameters": {
-                                        "depth": 2,
-                                        "addressTypes": ["Integer", "Integer"],
-                                        "sectionNames": ["Chapter", "Law"]
-                                    }
+                                    "depth": 2,
+                                    "addressTypes": ["Integer", "Integer"],
+                                    "sectionNames": ["Chapter", "Law"]
                                 }
                             ]
                         }
                     ]
                 }
             ]
-        }
+        };
         var mtIndex = {schema: mt};
     {% else %}
     $(function() {

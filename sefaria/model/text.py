@@ -19,963 +19,16 @@ except ImportError:
     import re
 
 from . import abstract as abst
+from schema import deserialize_tree, SchemaNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, TermSet, TitleGroup
 
 import sefaria.system.cache as scache
-from sefaria.system.exceptions import InputError, BookNameError, IndexSchemaError
+from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError
 from sefaria.utils.talmud import section_to_daf, daf_to_section
-from sefaria.utils.hebrew import is_hebrew, decode_hebrew_numeral, encode_hebrew_numeral, hebrew_term
+from sefaria.utils.hebrew import is_hebrew, encode_hebrew_numeral, hebrew_term
 from sefaria.utils.util import list_depth
-import sefaria.datatype.jagged_array as ja
+from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
+from sefaria.settings import DISABLE_INDEX_SAVE
 
-
-"""
-                ------------------------
-                 Terms and Term Schemes
-                ------------------------
-"""
-
-
-class Term(abst.AbstractMongoRecord):
-    """
-    A Term is a shared title node.  It can be referenced and used by many different Index nodes.
-    Examples:  Noah, Perek HaChovel, Even HaEzer
-    Terms that use the same TermScheme can be ordered.
-    """
-    collection = 'term'
-    track_pkeys = True
-    pkeys = ["name"]
-    title_group = None
-
-    required_attrs = [
-        "name",
-        "titles"
-    ]
-    optional_attrs = [
-        "scheme",
-        "order",
-        "ref"
-    ]
-
-    def _set_derived_attributes(self):
-        self.title_group = TitleGroup(self.titles)
-
-    def _normalize(self):
-        self.titles = self.title_group.titles
-
-class TermSet(abst.AbstractMongoSet):
-    recordClass = Term
-
-
-class TermScheme(abst.AbstractMongoRecord):
-    """
-    A TermScheme is a category of terms.
-    Example: Parsha, Perek
-    """
-    collection = 'term_scheme'
-    track_pkeys = True
-    pkeys = ["name"]
-
-    required_attrs = [
-        "name"
-    ]
-    optional_attrs = [
-
-    ]
-
-
-class TermSchemeSet(abst.AbstractMongoSet):
-    recordClass = TermScheme
-
-
-"""
-                ---------------------------------
-                 Index Schema Trees - Core Nodes
-                ---------------------------------
-"""
-
-
-def build_node(index=None, serial=None):
-    """
-    Build a SchemaNode tree from serialized form.  Called recursively.
-    :param index: The Index object that this tree is rooted in.
-    :param serial: The serialized form of the subtree
-    :return: SchemaNode
-    """
-    if serial.get("nodes"):
-        return SchemaStructureNode(index, serial)
-    elif serial.get("nodeType"):
-        try:
-            klass = globals()[serial.get("nodeType")]
-        except KeyError:
-            raise IndexSchemaError("No matching class for nodeType {}".format(serial.get("nodeType")))
-        return klass(index, serial, serial.get("nodeParameters"))
-    else:
-        raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType'")
-
-
-class TitleGroup(object):
-    """
-    A collection of titles.  Used for titles of SchemaNodes, for Maps, and for Terms
-    """
-
-    def __init__(self, serial=None):
-        self.titles = []
-        self._primary_title = {}
-        if serial:
-            self.load(serial)
-
-    def load(self, serial=None):
-        if serial:
-            self.titles = serial
-
-    def primary_title(self, lang="en"):
-        """
-        Return the primary title for this node in the language specified
-        :param lang: "en" or "he"
-        :return: The primary title string or None
-        """
-        if self._primary_title.get(lang) is None:
-            for t in self.titles:
-                if t.get("lang") == lang and t.get("primary"):
-                    self._primary_title[lang] = t.get("text")
-                    break
-        if not self._primary_title.get(lang):
-            self._primary_title[lang] = ""
-
-        return self._primary_title.get(lang)
-
-    def all_node_titles(self, lang="en"):
-        """
-        :param lang: "en" or "he"
-        :return: list of strings - the titles of this node
-        """
-        return [t["text"] for t in self.titles if t["lang"] == lang]
-
-    def remove_title(self, text, lang):
-        self.titles = [t for t in self.titles if not (t["lang"] == lang and t["text"] == text)]
-        return self
-
-    def add_title(self, text, lang, primary=False, replace_primary=False, presentation="combined"):
-        """
-        :param text: Text of the title
-        :param language:  Language code of the title (e.g. "en" or "he")
-        :param primary: Is this a primary title?
-        :param replace_primary: must be true to replace an existing primary title
-        :param presentation: The "presentation" field of a title indicates how it combines with earlier titles. Possible values:
-            "combined" - in referencing this node, earlier titles nodes are prepended to this one (default)
-            "alone" - this node is reference by this title alone
-            "both" - this node is addressable both in a combined and a alone form.
-        :return: the object
-        """
-        if any([t for t in self.titles if t["text"] == text and t["lang"] == lang]):  #already there
-            if not replace_primary:
-                return
-            else:  #update this title as primary: remove it, then re-add below
-                self.remove_title(text, lang)
-        d = {
-                "text": text,
-                "lang": lang
-        }
-
-        if primary:
-            d["primary"] = True
-
-        if presentation == "alone" or presentation == "both":
-            d["presentation"] = presentation
-
-        has_primary = any([x for x in self.titles if x["lang"] == lang and x.get("primary")])
-        if has_primary and primary:
-            if not replace_primary:
-                raise IndexSchemaError("Node {} already has a primary title.".format(self.primary_title()))
-
-            old_primary = self.primary_title(lang)
-            self.titles = [t for t in self.titles if t["lang"] != lang or not t.get("primary")]
-            self.titles.append({"text": old_primary, "lang": lang})
-            self._primary_title[lang] = None
-
-        self.titles.append(d)
-        return self
-
-
-class SchemaNode(object):
-    """
-    A node in an Index Schema tree.
-    """
-    delimiter_re = ur"[,.: ]+"  # this doesn't belong here.  Does this need to be an arg?
-
-    def __init__(self, index=None, serial=None):
-        """
-        Construct a SchemaNode
-        :param index: The Index object that this tree is rooted in.
-        :param serial: The serialized form of this subtree
-        :return:
-        """
-        #set default values
-        self.children = []  # Is this enough?  Do we need a dict for addressing?
-        self.parent = None
-        self.default = False
-        self.key = None
-        self.sharedTitle = None
-        self.index = index
-        self.checkFirst = None
-        self.titles = None
-        self._address = []
-        self._primary_title = {}
-        self._full_title = {}
-
-        self._init_titles()
-
-        if not serial:
-            return
-
-        titles = serial.get("titles", None)
-        if titles:
-            self.title_group.load(serial=titles)
-
-        self.__dict__.update(serial)
-        try:
-            del self.__dict__["titles"]
-        except KeyError:
-            pass
-
-        self._process_terms()
-
-        #if self.titles:
-            #process titles into more digestable format
-            #is it worth caching this on the term nodes?
-
-    def validate(self):
-        if not getattr(self, "key", None):
-            raise IndexSchemaError("Schema node missing key")
-
-        if getattr(self, "nodes", None) and (getattr(self, "nodeType", None) or getattr(self, "nodeParameters", None)):
-            raise IndexSchemaError("Schema node {} must be either a structure node or a content node.".format(self.key))
-
-        if not self.default and not self.sharedTitle and not self.get_titles():
-            raise IndexSchemaError("Schema node {} must have titles, a shared title node, or be default".format(self.key))
-
-        if self.default and (self.get_titles() or self.sharedTitle):
-            raise IndexSchemaError("Schema node {} - default nodes can not have titles".format(self.key))
-
-        if self.sharedTitle and Term().load({"name": self.sharedTitle}).titles != self.get_titles():
-            raise IndexSchemaError("Schema node {} with sharedTitle can not have explicit titles".format(self.key))
-
-        if not self.default and not self.primary_title("en"):
-            raise IndexSchemaError("Schema node {} missing primary English title".format(self.key))
-
-        #if not self.default and not self.primary_title("he"):
-        #    raise IndexSchemaError("Schema node {} missing primary Hebrew title".format(self.key))
-
-        if self.default and self.key != "default":
-            raise IndexSchemaError("'default' nodes need to have key name 'default'")
-
-    def create_content(self, callback=None, *args, **kwargs):
-        """
-        Tree visitor for building content trees based on this Index tree - used for counts and versions
-        Callback is called for content nodes only.
-        :param callback:
-        :return:
-        """
-        pass
-
-    def create_skeleton(self):
-        return self.create_content(None)
-
-    def visit_content(self, callback, *contents, **kwargs):
-        """
-        Tree visitor for traversing content nodes of existing content trees based on this Index tree and passing them to callback.
-        Outputs a content tree.
-        Callback is called for content nodes only.
-        :param contents: one tree or many
-        :param callback:
-        :return:
-        """
-        pass
-
-    def visit_structure(self, callback, content, **kwargs):
-        """
-        Tree visitor for traversing an existing structure ndoes of content trees based on this Index and passing them to callback.
-        Traverses from bottom up, with intention that this be used to aggregate content from content nodes up.
-        Modifies contents in place.
-        :param callback:
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        pass
-
-    def get_content_nodes(self):
-        """
-        :return: list of all content nodes
-        """
-        pass
-
-    '''         Title Group pass through methods    '''
-    def _init_titles(self):
-        self.title_group = TitleGroup()
-
-    def get_titles(self):
-        return getattr(self.title_group, "titles", None)
-
-    def primary_title(self, lang="en"):
-        """
-        Return the primary title for this node in the language specified
-        :param lang: "en" or "he"
-        :return: The primary title string or None
-        """
-        return self.title_group.primary_title(lang)
-
-    def all_node_titles(self, lang="en"):
-        """
-        :param lang: "en" or "he"
-        :return: list of strings - the titles of this node
-        """
-        return self.title_group.all_node_titles(lang)
-
-    def remove_title(self, text, lang):
-        return self.title_group.remove_title(text, lang)
-
-    def add_title(self, text, lang, primary=False, replace_primary=False, presentation="combined"):
-        """
-        :param text: Text of the title
-        :param language:  Language code of the title (e.g. "en" or "he")
-        :param primary: Is this a primary title?
-        :param replace_primary: must be true to replace an existing primary title
-        :param presentation: The "presentation" field of a title indicates how it combines with earlier titles. Possible values:
-            "combined" - in referencing this node, earlier titles nodes are prepended to this one (default)
-            "alone" - this node is reference by this title alone
-            "both" - this node is addressable both in a combined and a alone form.
-        :return: the object
-        """
-        return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
-
-
-    '''         Title Composition Methods       '''
-    def all_tree_titles(self, lang="en"):
-        """
-        :param lang: "en" or "he"
-        :return: list of strings - all possible titles within this subtree
-        """
-        return self.title_dict(lang).keys()
-
-    def title_dict(self, lang="en", baselist=[]):
-        """
-        Recursive function that generates a map from title to node
-        :param node: the node to start from
-        :param lang: "en" or "he"
-        :param baselist: list of starting strings that lead to this node
-        :return: map from title to node
-        """
-        title_dict = {}
-        thisnode = self
-
-        #this happens on the node
-        #if node.hasTitleScheme():
-        #        this_node_titles = node.getSchemeTitles(lang)
-        #else:
-
-        this_node_titles = [title["text"] for title in self.get_titles() if title["lang"] == lang and title.get("presentation") != "alone"]
-        if baselist:
-            node_title_list = [baseName + ", " + title for baseName in baselist for title in this_node_titles]
-        else:
-            node_title_list = this_node_titles
-
-        alone_node_titles = [title["text"] for title in self.get_titles() if title["lang"] == lang and title.get("presentation") == "alone" or title.get("presentation") == "both"]
-        node_title_list += alone_node_titles
-
-        if self.has_children():
-            for child in self.children:
-                if child.is_default():
-                    thisnode = child
-                else:
-                    title_dict.update(child.title_dict(lang, node_title_list))
-
-        for title in node_title_list:
-            title_dict[title] = thisnode
-
-        return title_dict
-
-    def full_title(self, lang="en"):
-        """
-        :param lang: "en" or "he"
-        :return string: The full title of this node, from the root node.
-        """
-        if not self._full_title.get(lang):
-            if self.parent:
-                self._full_title[lang] = self.parent.full_title(lang) + ", " + self.primary_title(lang)
-            else:
-                self._full_title[lang] = self.primary_title(lang)
-        return self._full_title[lang]
-
-    def add_shared_term(self, term):
-        self.sharedTitle = term
-        self._process_terms()
-
-    def _process_terms(self):
-        if self.sharedTitle:
-            try:
-                term = Term().load({"name": self.sharedTitle})
-                self.title_group = term.title_group
-            except Exception, e:
-                raise IndexSchemaError("Failed to load term named {}. {}".format(self.sharedTitle, e))
-
-    def serialize(self, callback=None):
-        """
-        :param callback: function applied to dictionary beforce it's returned.  Invoked on concrete nodes, not the abstract level.
-        :return string: serialization of the subtree rooted in this node
-        """
-        d = {}
-        d["key"] = self.key
-        if self.default:
-            d["default"] = True
-        elif self.sharedTitle:
-            d["sharedTitle"] = self.sharedTitle
-        else:
-            d["titles"] = self.get_titles()
-        if self.checkFirst:
-            d["checkFirst"] = self.checkFirst
-        return d
-
-    def regex(self, lang):
-        """
-        :return: string - regular expression part to match references for this node
-        """
-        return ""
-
-    def append(self, node):
-        """
-        Append node to this node
-        :param node: the node to be appended to this node
-        :return:
-        """
-        self.children.append(node)
-        node.parent = self
-        return self
-
-    def append_to(self, node):
-        """
-        Append this node to another node
-        :param node: the node to append this node to
-        :return:
-        """
-        node.append(self)
-        return self
-
-    def has_children(self):
-        """
-        :return bool: True if this node has children
-        """
-        return bool(self.children)
-
-    #used?
-    def siblings(self):
-        """
-        :return list: The sibling nodes of this node
-        """
-        if self.parent:
-            return [x for x in self.parent.children if x is not self]
-        else:
-            return None
-
-    #http://stackoverflow.com/a/14692747/213042
-    #http://stackoverflow.com/a/16300379/213042
-    def address(self):
-        """
-        Returns a list of keys to uniquely identify and to access this node.
-        :return list:
-        """
-        if not self._address:
-            if self.parent:
-                self._address = self.parent.address() + [self.key]
-            else:
-                self._address = [self.key]
-
-        return self._address
-
-    def version_address(self):
-        """
-        In a version storage context, the first key is not used.  Traversal starts from position 1.
-        :return:
-        """
-        return self.address()[1:]
-
-    def is_default(self):
-        """
-        Is this node a default node, meaning, do references to its parent cascade to this node?
-        :return bool:
-        """
-        return self.default
-
-    def is_flat(self):
-        """
-        Is this node a flat tree, with no parents or children?
-        :return bool:
-        """
-        return not self.parent and not self.children
-
-    """ String Representations """
-    def __str__(self):
-        return self.full_title("en")
-
-    def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
-        return self.__class__.__name__ + "('" + self.full_title("en") + "')"
-
-    def __eq__(self, other):
-        return self.address() == other.address()
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-
-class SchemaStructureNode(SchemaNode):
-    def __init__(self, index=None, serial=None):
-        super(SchemaStructureNode, self).__init__(index, serial)
-        if getattr(self, "nodes", None) is not None:
-            for node in self.nodes:
-                self.append(build_node(index, node))
-            del self.nodes
-
-    def validate(self):
-        super(SchemaStructureNode, self).validate()
-        if self.has_children() and len([c for c in self.children if c.default]) > 1:
-            raise IndexSchemaError("Schema Structure Node {} has more than one default child.".format(self.key))
-        for c in self.children:
-            c.validate()
-
-    def serialize(self, callback=None):
-        d = super(SchemaStructureNode, self).serialize(callback)
-        d["nodes"] = []
-        for n in self.children:
-            d["nodes"].append(n.serialize(callback))
-        if callback:
-            callback(d)
-        return d
-
-    def create_content(self, callback=None, *args, **kwargs):
-        return {node.key: node.create_content(callback, *args, **kwargs) for node in self.children}
-
-    def visit_content(self, callback, *contents, **kwargs):
-        dict = {}
-        for node in self.children:
-            # todo: abstract out or put in helper the below reduce
-            c = [tree[node.key] for tree in contents]
-            dict[node.key] = node.visit_content(callback, *c, **kwargs)
-        return dict
-
-    def visit_structure(self, callback, content, **kwargs):
-        for node in self.children:
-            node.visit_structure(callback, content)
-        callback(self, content.content_node(self), **kwargs)
-        return dict
-
-    def get_content_nodes(self):
-        nodes = []
-        for node in self.children:
-            nodes += node.get_content_nodes
-        return nodes
-
-
-class SchemaContentNode(SchemaNode):
-    required_param_keys = []
-    optional_param_keys = []
-
-    def __init__(self, index=None, serial=None, parameters=None):
-        if parameters:
-            for key, value in parameters.items():
-                setattr(self, key, value)
-        super(SchemaContentNode, self).__init__(index, serial)
-
-    def validate(self):
-        super(SchemaContentNode, self).validate()
-        for k in self.required_param_keys:
-            if getattr(self, k, None) is None:
-                raise IndexSchemaError("Missing Parameter '{}' in {} '{}'".format(k, self.__class__.__name__, self.key))
-
-    def serialize(self, callback=None):
-        d = super(SchemaContentNode, self).serialize(callback)
-        d["nodeType"] = self.__class__.__name__
-        if self.required_param_keys + self.optional_param_keys:
-            d["nodeParameters"] = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if getattr(self, k, None) is not None}
-        if callback:
-            callback(d)
-        return d
-
-    def create_content(self, callback=None, *args, **kwargs):
-        if not callback:
-            return None
-        return callback(self, *args, **kwargs)
-
-    def visit_content(self, callback, *contents, **kwargs):
-        return self.create_content(callback, *contents, **kwargs)
-
-    def visit_structure(self, callback, *contents, **kwargs):
-        return
-
-    def get_content_nodes(self):
-        return [self]
-
-    def append(self, node):
-        raise IndexSchemaError("Can not append to ContentNode {}".format(self.key or "root"))
-
-
-"""
-                ------------------------------------
-                 Index Schema Trees - Content Nodes
-                ------------------------------------
-"""
-
-class JaggedArrayNode(SchemaContentNode):
-    required_param_keys = ["depth", "addressTypes", "sectionNames"]
-    optional_param_keys = ["lengths"]
-
-    def __init__(self, index=None, serial=None, parameters=None):
-        """
-        depth: Integer depth of this JaggedArray
-        address_types: A list of length (depth), with string values indicating class names for address types for each level
-        section_names: A list of length (depth), with string values of section names for each level
-        e.g.:
-        {
-          "depth": 2,
-          "addressTypes": ["Integer","Integer"],
-          "sectionNames": ["Chapter","Verse"],
-          "lengths": [12, 122]
-        }
-        """
-        super(JaggedArrayNode, self).__init__(index, serial, parameters)
-        self._addressTypes = []
-        for i, atype in enumerate(getattr(self, "addressTypes", [])):
-            try:
-                klass = globals()["Address" + atype]
-            except KeyError:
-                raise IndexSchemaError("No matching class for addressType {}".format(atype))
-
-            if i == 0 and getattr(self, "lengths", None) and len(self.lengths) > 0:
-                self._addressTypes.append(klass(i, self.lengths[i]))
-            else:
-                self._addressTypes.append(klass(i))
-
-    def address_class(self, depth):
-        return self._addressTypes[depth]
-
-    def validate(self):
-        super(JaggedArrayNode, self).validate()
-        for p in ["addressTypes", "sectionNames"]:
-            if len(getattr(self, p)) != self.depth:
-                raise IndexSchemaError("Parameter {} in {} {} does not have depth {}".format(p, self.__class__.__name__, self.key, self.depth))
-
-    def regex(self, lang, **kwargs):
-        reg = self._addressTypes[0].regex(lang, "a0", **kwargs)
-
-        if not self._addressTypes[0].stop_parsing(lang):
-            for i in range(1, self.depth):
-                reg += u"(" + self.delimiter_re + self._addressTypes[i].regex(lang, "a{}".format(i), **kwargs) + u")"
-                if not kwargs.get("strict", False):
-                    reg += u"?"
-
-        reg += ur"(?=\W|$)"
-        return reg
-
-
-class JaggedArrayCommentatorNode(JaggedArrayNode):
-    """
-    Given a commentatory record and a content node, build a content node for this commentator on this node.
-    Assumes: content node is a Jagged_Array_node
-    This relationship between this and the CommentatorIndex class needs to be sharpened.  Currently assumes flat structure.
-    """
-    connector = {
-            "en": " on ",
-            "he": u" על "
-        }
-
-    def __init__(self, commentor_index, basenode):
-        assert commentor_index.is_commentary(), "Non-commentator index {} passed to JaggedArrayCommentatorNode".format(commentor_index.title)
-        self.basenode = basenode
-        parameters = {
-            "addressTypes": basenode.addressTypes + ["Integer"],
-            "sectionNames": basenode.sectionNames + ["Comment"],
-            "depth": basenode.depth + 1
-        }
-        if getattr(basenode, "lengths", None):
-            parameters["lengths"] = basenode.lengths
-        super(JaggedArrayCommentatorNode, self).__init__(commentor_index, {}, parameters)
-
-        self.key = self.full_title("en")
-
-        for lang in ["he", "en"]:
-            self.title_group.add_title(self.full_title(lang), lang, primary=True)
-            for t in self.all_node_titles(lang):
-                self.title_group.add_title(t, lang)
-
-    def full_title(self, lang):
-        base = self.basenode.full_title(lang)
-        if lang == "en":
-            cname = self.index.commentator
-        elif lang == "he" and getattr(self.index, "heCommentator", None):
-            cname = self.index.heCommentator
-        else:
-            logger.warning("No Hebrew title for {}".format(self.index.commentator))
-            return base
-        return cname + self.connector[lang] + base
-
-    def all_node_titles(self, lang="en"):
-        baselist = self.basenode.all_node_titles(lang)
-        if lang == "en":
-            cnames = self.index.c_index.titleVariants
-        elif lang == "he":
-            cnames = getattr(self.index.c_index, "heTitleVariants", None)
-            if not cnames:
-                return baselist
-        return [c + self.connector[lang] + base for c in cnames for base in baselist]
-
-    def all_tree_titles(self, lang="en"):
-        baselist = self.basenode.all_tree_titles(lang)
-        if lang == "en":
-            cnames = self.index.c_index.titleVariants
-        elif lang == "he":
-            cnames = getattr(self.index.c_index, "heTitleVariants", None)
-            if not cnames:
-                return baselist
-        return [c + self.connector[lang] + base for c in cnames for base in baselist]
-
-    def primary_title(self, lang="en"):
-        return self.full_title(lang)
-
-
-class StringNode(JaggedArrayNode):
-    def __init__(self, index=None, serial=None, parameters=None):
-        super(StringNode, self).__init__(index, serial, parameters)
-        self.depth = 0
-        self.addressTypes = []
-        self.sectionNames = []
-
-    def serialize(self, callback=None):
-        d = super(StringNode, self).serialize(callback)
-        d["nodeType"] = "JaggedArrayNode"
-        return d
-"""
-                ------------------------------------
-                 Index Schema Trees - Address Types
-                ------------------------------------
-"""
-
-
-class AddressType(object):
-    """
-    Defines a scheme for referencing and addressing a level of a Jagged Array.
-    Used by JaggedArrayNode
-    """
-    section_patterns = {
-        'he': None,
-        'en': None
-    }
-
-    def __init__(self, order, length=None):
-        self.order = order
-        self.length = length
-
-    def regex(self, lang, group_id=None, **kwargs):
-        """
-        The regular expression part that matches this address reference, wrapped with section names, if provided
-        :param lang: "en" or "he"
-        :param group_id: The id of the regular expression group the this match will be catured in
-        :param kwargs: 'strict' kwarg indicates that section names are required to match
-        :return string: regex component
-        """
-        try:
-            if self.section_patterns[lang]:
-                strict = kwargs.get("strict", False)
-                reg = self.section_patterns[lang]
-                if not strict:
-                    reg += u"?"
-                reg += self._core_regex(lang, group_id)
-                return reg
-            else:
-                return self._core_regex(lang, group_id)
-        except KeyError:
-            raise Exception("Unknown Language passed to AddressType: {}".format(lang))
-
-    def _core_regex(self, lang, group_id=None):
-        """
-        The regular expression part that matches this address reference
-        :param lang: "en" or "he"
-        :param group_id: The id of the regular expression group the this match will be catured in
-        :return string: regex component
-        """
-        pass
-
-    @staticmethod
-    def hebrew_number_regex():
-        """
-        Regular expression component to capture a number expressed in Hebrew letters
-        :return string:
-        """
-        return ur"""                                    # 1 of 3 styles:
-        ((?=\p{Hebrew}+(?:"|\u05f4|'')\p{Hebrew})    # (1: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
-                \u05ea*(?:"|\u05f4|'')?				    # Many Tavs (400), maybe dbl quote
-                [\u05e7-\u05ea]?(?:"|\u05f4|'')?	    # One or zero kuf-tav (100-400), maybe dbl quote
-                [\u05d8-\u05e6]?(?:"|\u05f4|'')?	    # One or zero tet-tzaddi (9-90), maybe dbl quote
-                [\u05d0-\u05d8]?					    # One or zero alef-tet (1-9)															#
-            |(?=\p{Hebrew})						    # (2: no punc) Lookahead: at least one Hebrew letter
-                \u05ea*								    # Many Tavs (400)
-                [\u05e7-\u05ea]?					    # One or zero kuf-tav (100-400)
-                [\u05d8-\u05e6]?					    # One or zero tet-tzaddi (9-90)
-                [\u05d0-\u05d8]?					    # One or zero alef-tet (1-9)
-            |\p{Hebrew}['\u05f3]					    # (3: ') single letter, followed by a single quote or geresh
-        )"""
-
-    def stop_parsing(self, lang):
-        """
-        If this is true, the regular expression will stop parsing at this address level for this language
-        :param lang: "en" or "he"
-        :return bool:
-        """
-        return False
-
-    def toIndex(self, lang, s):
-        """
-        Return the array index indicated by s in this address scheme
-        :param s: The address component
-        :param lang: "en" or "he"
-        :return int:
-        """
-        pass
-
-    def format_count(self, name, number):
-        return {name: number}
-
-    """
-    def toString(self, lang, i):
-        return i
-    """
-
-class AddressTalmud(AddressType):
-    section_patterns = {
-        "en": None,
-        "he": ur"(\u05d3[\u05e3\u05e4\u05f3']\s+)"			# Daf, spelled with peh, peh sofit, geresh, or single quote
-    }
-
-    def _core_regex(self, lang, group_id=None):
-        if group_id:
-            reg = ur"(?P<" + group_id + ur">"
-        else:
-            reg = ur"("
-
-        if lang == "en":
-            reg += ur"\d+[ab]?)"
-        elif lang == "he":
-            reg += self.hebrew_number_regex() + ur'''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])?)'''
-
-        return reg
-
-    def stop_parsing(self, lang):
-        if lang == "he":
-            return True
-        return False
-
-    def toIndex(self, lang, s):
-        if lang == "en":
-            try:
-                if s[-1] in ["a", "b"]:
-                    amud = s[-1]
-                    daf = int(s[:-1])
-                else:
-                    amud = "a"
-                    daf = int(s)
-            except ValueError:
-                raise InputError(u"Couldn't parse Talmud reference: {}".format(s))
-
-            if self.length and daf > self.length:
-                #todo: Catch this above and put the book name on it.  Proably change Exception type.
-                raise InputError(u"{} exceeds max of {} dafs.".format(daf, self.length))
-
-            indx = daf * 2
-            if amud == "a":
-                indx -= 1
-            return indx
-        elif lang == "he":
-            num = re.split("[.:,\s]", s)[0]
-            daf = decode_hebrew_numeral(num) * 2
-            if s[-1] == ":" or (
-                    s[-1] == u"\u05d1"    #bet
-                        and
-                    ((len(s) > 2 and s[-2] in ", ")  # simple bet
-                     or (len(s) > 4 and s[-3] == u'\u05e2')  # ayin"bet
-                     or (len(s) > 5 and s[-4] == u"\u05e2")  # ayin''bet
-                    )
-            ):
-                return daf  # amud B
-            return daf - 1
-
-            #if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):
-
-    @staticmethod
-    def toStr(lang, i):
-        i += 1
-        daf = i / 2
-
-        if lang == "en":
-            if i > daf * 2:
-                daf = "%db" % daf
-            else:
-                daf = "%da" % daf
-
-        elif lang == "he":
-            if i > daf * 2:
-                daf = ("%s " % encode_hebrew_numeral(daf)) + u"\u05D1"
-            else:
-                daf = ("%s " % encode_hebrew_numeral(daf)) + u"\u05D0"
-
-        return daf
-
-    def format_count(self, name, number):
-        if name == "Daf":
-            return {
-                "Amud": number,
-                "Daf": number / 2
-            }
-        else: #shouldn't get here
-            return {name: number}
-
-
-class AddressInteger(AddressType):
-    def _core_regex(self, lang, group_id=None):
-        if group_id:
-            reg = ur"(?P<" + group_id + ur">"
-        else:
-            reg = ur"("
-
-        if lang == "en":
-            reg += ur"\d+)"
-        elif lang == "he":
-            reg += self.hebrew_number_regex() + ur")"
-
-        return reg
-
-    def toIndex(self, lang, s):
-        if lang == "en":
-            return int(s)
-        elif lang == "he":
-            return decode_hebrew_numeral(s)
-
-
-class AddressPerek(AddressInteger):
-    section_patterns = {
-        "en": None,
-        "he": ur"""(?:
-            \u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
-            |\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
-        )"""
-    }
-
-
-class AddressMishnah(AddressInteger):
-    section_patterns = {
-        "en": None,
-        "he": ur"""(?:
-            (?:\u05de\u05e9\u05e0\u05d4\s)			# Mishna spelled out, with a space after
-            |(?:\u05de(?:"|\u05f4|'')?)				# or Mem (for 'mishna') maybe followed by a quote of some sort
-        )"""
-    }
 """
                 ----------------------------------
                  Index, IndexSet, CommentaryIndex
@@ -984,10 +37,44 @@ class AddressMishnah(AddressInteger):
 
 
 class AbstractIndex(object):
-    pass
+    def contents(self, v2=False, raw=False, **kwargs):
+        pass
+
+    def is_new_style(self):
+        return bool(getattr(self, "nodes", None))
+
+    def get_title(self, lang="en"):
+        if lang == "en":
+            return self._title
+
+        if self.is_new_style():
+            return self.nodes.primary_title(lang)
+        else:
+            return getattr(self, "heTitle", None)
+
+    def set_title(self, title, lang="en"):
+        if lang == "en":
+            self._title = title #we need to store the title attr in a physical storage, not that .title is a virtual property
+        if self.is_new_style():
+            if lang == "en":
+                self.nodes.key = title
+
+            old_primary = self.nodes.primary_title(lang)
+            self.nodes.add_title(title, lang, True, True)
+            if old_primary != title: #then remove the old title, we don't want it.
+                self.nodes.remove_title(old_primary, lang)
+
+    title = property(get_title, set_title)
 
 
 class Index(abst.AbstractMongoRecord, AbstractIndex):
+    """
+    Index objects define the names and structure of texts stored in the system.
+
+    There is an Index object for every simple text and for every commentator (e.g. "Rashi").
+
+    Commentaries (like "Rashi on Exodus") are instanciated with :class:`CommentaryIndex` objects.
+    """
     collection = 'index'
     history_noun = 'index'
     criteria_field = 'title'
@@ -1006,26 +93,97 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "sectionNames",       # required for old style simple texts, sometimes erroneously present for commnetary
         "heTitle",            # optional for old style
         "heTitleVariants",    # optional for old style
-        "maps",               # optional for old style and new
-        "mapSchemes",         # optional for new style
+        "maps",               # optional for old style
+        "alt_structs",        # optional for new style
+        "default_struct",     # optional for new style
         "order",              # optional for old style and new
         "length",             # optional for old style
         "lengths",            # optional for old style
         "transliteratedTitle" # optional for old style
     ]
 
-    def is_new_style(self):
-        return bool(getattr(self, "nodes", None))
+    def __unicode__(self):
+        return u"Index: {}".format(self.title)
 
-    def contents(self, support_v2=False):
-        if not getattr(self, "nodes", None) or support_v2:
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
+    def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
+        return u"{}().load({{'title': '{}'}})".format(self.__class__.__name__, self.title)
+
+    def save(self):
+        if DISABLE_INDEX_SAVE:
+            raise InputError("Index saving has been disabled on this system.")
+        return super(Index, self).save()
+
+    def _set_derived_attributes(self):
+        if getattr(self, "schema", None):
+            self.nodes = deserialize_tree(self.schema, index=self)
+            self.nodes.validate()
+        else:
+            self.nodes = None
+
+        self.struct_objs = {}
+        if getattr(self, "alt_structs", None) and self.nodes:
+            for name, struct in self.alt_structs.items():
+                self.struct_objs[name] = deserialize_tree(struct, index=self, struct_class=TitledTreeNode)
+                self.struct_objs[name].title_group = self.nodes.title_group
+                self.struct_objs[name].validate()
+
+    def is_complex(self):
+        return getattr(self, "nodes", None) and self.nodes.has_children()
+
+    def contents(self, v2=False, raw=False, **kwargs):
+        if not getattr(self, "nodes", None) or raw:  # Commentator
             return super(Index, self).contents()
+        elif v2:
+            return self.nodes.as_index_contents()
         return self.legacy_form()
+
+    def legacy_form(self):
+        """
+        :return: Returns an Index object as a flat dictionary, in version one form.
+        :raise: Exception if the Index cannot be expressed in the old form
+        """
+        if not self.nodes.is_flat():
+            raise InputError("Index record {} can not be converted to legacy API form".format(self.title))
+
+        d = {
+            "title": self.title,
+            "categories": self.categories,
+            "titleVariants": self.nodes.all_node_titles("en"),
+            "sectionNames": self.nodes.sectionNames,
+            "heSectionNames": map(hebrew_term, self.nodes.sectionNames),
+            "textDepth": len(self.nodes.sectionNames),
+            "addressTypes": self.nodes.addressTypes  # This isn't legacy, but it was needed for checkRef
+        }
+
+        if getattr(self, "maps", None):
+            d["maps"] = self.maps  #keep an eye on this.  Format likely to change.
+        if getattr(self, "order", None):
+            d["order"] = self.order
+        if getattr(self.nodes, "lengths", None):
+            d["lengths"] = self.nodes.lengths
+            d["length"] = self.nodes.lengths[0]
+        if self.nodes.primary_title("he"):
+            d["heTitle"] = self.nodes.primary_title("he")
+        if self.nodes.all_node_titles("he"):
+            d["heTitleVariants"] = self.nodes.all_node_titles("he")
+        else:
+            d["heTitleVariants"] = []
+
+        return d
 
     def _saveable_attrs(self):
         d = {k: getattr(self, k) for k in self._saveable_attr_keys() if hasattr(self, k)}
         if getattr(self, "nodes", None):
             d["schema"] = self.nodes.serialize()
+        if getattr(self, "struct_objs", None):
+            d["alt_structs"] = {}
+            for name, obj in self.struct_objs.items():
+                c = obj.serialize()
+                del c["titles"]
+                d["alt_structs"][name] = c
         return d
 
     def is_commentary(self):
@@ -1037,14 +195,49 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         else:
             return None  # Handle commentary case differently?
 
-    def get_title(self, lang="en"):
-        if self.is_new_style():
-            return self.nodes.primary_title(lang)
-        else:
-            if lang == "en":
-                return self.title
-            else:
-                return getattr(self, "heTitle", None)
+    '''         Alternate Title Structures          '''
+    def set_alt_structure(self, name, struct_obj):
+        """
+        :param name: String
+        :param struct_obj:  :py.class:`TitledTreeNode`
+        :return:
+        """
+        self.struct_objs[name] = struct_obj
+
+    def get_alt_structure(self, name):
+        """
+        :returns: :py.class:`TitledTreeNode`
+        """
+        return self.struct_objs.get(name)
+
+    def get_alt_structures(self):
+        return self.struct_objs
+
+    def has_alt_structures(self):
+        return bool(self.struct_objs)
+
+    #These next 3 functions parallel functions on Library, but are simpler.  Refactor?
+    def alt_titles_dict(self, lang):
+        title_dict = {}
+        for key, tree in self.get_alt_structures().items():
+            title_dict.update(tree.title_dict(lang))
+        return title_dict
+
+    def alt_titles_regex(self, lang):
+        full_title_list = self.alt_titles_dict(lang).keys()
+        alt_titles = map(re.escape, full_title_list)
+        reg = u'(?P<title>' + u'|'.join(sorted(alt_titles, key=len, reverse=True)) + ur')($|[:., ]+)'
+        try:
+            reg = re.compile(reg, max_mem= 256 * 1024 * 1024)
+        except TypeError:
+            reg = re.compile(reg)
+
+        return reg
+
+    def get_alt_struct_node(self, title, lang=None):
+        if not lang:
+            lang = "he" if is_hebrew(title) else "en"
+        return self.alt_titles_dict(lang).get(title)
 
     #todo: handle lang
     def get_maps(self):
@@ -1055,76 +248,74 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         #todo: term schemes
 
     def load_from_dict(self, d, is_init=False):
-        if not d.get("categories"):
-            raise InputError(u"Please provide category for Index record.")
+        if d:
+            if not d.get("categories"):
+                raise InputError(u"Please provide category for Index record: {}.".format(d.get("title")))
 
-        # Data is being loaded from dict in old format, rewrite to new format
-        # Assumption is that d has a complete title collection
-        if "schema" not in d and d["categories"][0] != "Commentary":
-            node = getattr(self, "nodes", None)
-            if node:
-                node._init_titles()
-            else:
-                node = JaggedArrayNode()
+            # Data is being loaded from dict in old format, rewrite to new format
+            # Assumption is that d has a complete title collection
+            if "schema" not in d and d["categories"][0] != "Commentary":
+                node = getattr(self, "nodes", None)
+                if node:
+                    node._init_titles()
+                else:
+                    node = JaggedArrayNode()
 
-            node.key = d.get("title")
+                node.key = d.get("title")
 
-            sn = d.pop("sectionNames", None)
-            if sn:
-                node.sectionNames = sn
-                node.depth = len(node.sectionNames)
-            else:
-                raise InputError(u"Please specify section names for Index record.")
+                sn = d.pop("sectionNames", None)
+                if sn:
+                    node.sectionNames = sn
+                    node.depth = len(node.sectionNames)
+                else:
+                    raise InputError(u"Please specify section names for Index record.")
 
-            if d["categories"][0] == "Talmud":
-                node.addressTypes = ["Talmud", "Integer"]
-                if d["categories"][1] == "Bavli" and d.get("heTitle"):
-                    node.checkFirst = {"he": u"משנה" + " " + d.get("heTitle")}
-            elif d["categories"][0] == "Mishnah":
-                node.addressTypes = ["Perek", "Mishnah"]
-            else:
-                node.addressTypes = ["Integer" for x in range(node.depth)]
+                if d["categories"][0] == "Talmud":
+                    node.addressTypes = ["Talmud", "Integer"]
+                    if d["categories"][1] == "Bavli" and d.get("heTitle"):
+                        node.checkFirst = {
+                            "he": u"משנה" + " " + d.get("heTitle"),
+                            "en": "Mishnah " + d.get("title")
+                        }
+                elif d["categories"][0] == "Mishnah":
+                    node.addressTypes = ["Perek", "Mishnah"]
+                else:
+                    node.addressTypes = ["Integer" for x in range(node.depth)]
 
-            l = d.pop("length", None)
-            if l:
-                node.lengths = [l]
+                l = d.pop("length", None)
+                if l:
+                    node.lengths = [l]
 
-            ls = d.pop("lengths", None)
-            if ls:
-                node.lengths = ls  #overwrite if index.length is already there
+                ls = d.pop("lengths", None)
+                if ls:
+                    node.lengths = ls  #overwrite if index.length is already there
 
-            #Build titles
-            node.add_title(d["title"], "en", True)
+                #Build titles
+                node.add_title(d["title"], "en", True)
 
-            tv = d.pop("titleVariants", None)
-            if tv:
-                for t in tv:
-                    lang = "he" if is_hebrew(t) else "en"
-                    node.add_title(t, lang)
+                tv = d.pop("titleVariants", None)
+                if tv:
+                    for t in tv:
+                        lang = "he" if is_hebrew(t) else "en"
+                        node.add_title(t, lang)
 
-            ht = d.pop("heTitle", None)
-            if ht:
-                node.add_title(ht, "he", True)
+                ht = d.pop("heTitle", None)
+                if ht:
+                    node.add_title(ht, "he", True)
 
-            htv = d.pop("heTitleVariants", None)
-            if htv:
-                for t in htv:
-                    node.add_title(t, "he")
+                htv = d.pop("heTitleVariants", None)
+                if htv:
+                    for t in htv:
+                        node.add_title(t, "he")
 
-            d["schema"] = node.serialize()
+                d["schema"] = node.serialize()
 
-        # todo: should this functionality be on load()?
-        if "oldTitle" in d and "title" in d and d["oldTitle"] != d["title"]:
-            self.load({"title": d["oldTitle"]})
-            # self.titleVariants.remove(d["oldTitle"])  # let this be determined by user
+            # todo: should this functionality be on load()?
+            if "oldTitle" in d and "title" in d and d["oldTitle"] != d["title"]:
+                self.load({"title": d["oldTitle"]})
+                # self.titleVariants.remove(d["oldTitle"])  # let this be determined by user
         return super(Index, self).load_from_dict(d, is_init)
 
-    def _set_derived_attributes(self):
-        if getattr(self, "schema", None):
-            self.nodes = build_node(self, self.schema)
-            self.nodes.validate()
-        else:
-            self.nodes = None
 
     def _normalize(self):
         self.title = self.title.strip()
@@ -1211,6 +402,18 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                     if existing and not self.same_record(existing.index) and existing.index.title != self.pkeys_orig_values.get("title"):
                         raise InputError(u'A text called "{}" already exists.'.format(title))
 
+            self.nodes.validate()
+            for key, tree in self.get_alt_structures().items():
+                tree.validate()
+
+        else:  # old style commentator record
+            assert self.is_commentary(), "Saw old style index record that's not a commentary.  Panic!"
+            assert getattr(self, "titleVariants", None)
+            if not getattr(self, "heTitle", None):
+                raise InputError(u'Missing Hebrew title on {}.'.format(self.title))
+            if not getattr(self, "heTitleVariants", None):
+                raise InputError(u'Missing Hebrew title variants on {}.'.format(self.title))
+
         # Make sure all title variants are unique
         if getattr(self, "titleVariants", None):
             for variant in self.titleVariants:
@@ -1223,7 +426,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     def _prepare_second_save(self):
         if getattr(self, "maps", None) is None:
-            self.maps = []
+            return
         for i in range(len(self.maps)):
             nref = Ref(self.maps[i]["to"]).normal()
             if not nref:
@@ -1235,71 +438,56 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             self.maps[i]["to"] = nref
 
     def toc_contents(self):
+        firstSection = Ref(self.title).first_available_section_ref()
         toc_contents_dict = {
             "title": self.get_title(),
             "heTitle": self.get_title("he"),
-            "categories": self.categories
+            "categories": self.categories,
+            "firstSection": firstSection.normal() if firstSection else None
         }
         if hasattr(self,"order"):
             toc_contents_dict["order"] = self.order
+        if self.categories[0] == u"Commentary2":
+            toc_contents_dict["commentator"]   = self.categories[2]
+            toc_contents_dict["heCommentator"] = hebrew_term(self.categories[2])
+            on_split = self.get_title().split(" on ")
+            if len(on_split) == 2:
+                try:
+                    i = get_index(on_split[1])
+                    if getattr(i, "order", None):
+                        toc_contents_dict["order"] = i.order
+                except BookNameError:
+                    pass
+
         return toc_contents_dict
 
 
-
-    def legacy_form(self):
-        """
-        :return: Returns an Index object as a flat dictionary, in version one form.
-        :raise: Expction if the Index can not be expressed in the old form
-        """
-        if not self.nodes.is_flat():
-            raise InputError("Index record {} can not be converted to legacy API form".format(self.title))
-
-        d = {
-            "title": self.title,
-            "categories": self.categories,
-            "titleVariants": self.nodes.all_node_titles("en"),
-            "sectionNames": self.nodes.sectionNames,
-            "heSectionNames": map(hebrew_term, self.nodes.sectionNames),
-            "textDepth": len(self.nodes.sectionNames)
-        }
-
-        if getattr(self, "maps", None):
-            d["maps"] = self.maps  #keep an eye on this.  Format likely to change.
-        if getattr(self, "order", None):
-            d["order"] = self.order
-        if getattr(self.nodes, "lengths", None):
-            d["lengths"] = self.nodes.lengths
-            d["length"] = self.nodes.lengths[0]
-        if self.nodes.primary_title("he"):
-            d["heTitle"] = self.nodes.primary_title("he")
-        if self.nodes.all_node_titles("he"):
-            d["heTitleVariants"] = self.nodes.all_node_titles("he")
-        else:
-            d["heTitleVariants"] = []
-
-        return d
-
-
 class IndexSet(abst.AbstractMongoSet):
+    """
+    A set of :class:`Index` objects.
+    """
     recordClass = Index
 
 
 class CommentaryIndex(AbstractIndex):
     """
-    A virtual Index for commentary Versions.
+    A virtual Index for commentary records.
+
+    :param commentator_name: A title variant of a commentator :class:`Index` record
+    :param book_name:  A title variant of a book :class:`Index` record
     """
-    def __init__(self, commentor_name, book_name):
+    def __init__(self, commentator_name, book_name):
         """
-        :param commentor_name: A title variant of a commentator :class:Index record
+        :param commentator_name: A title variant of a commentator :class:Index record
         :param book_name:  A title variant of a book :class:Index record
         :return:
         """
         self.c_index = Index().load({
-            "titleVariants": commentor_name,
+            "titleVariants": commentator_name,
             "categories.0": "Commentary"
         })
         if not self.c_index:
-            raise BookNameError(u"No commentor named '{}'.".format(commentor_name))
+            raise BookNameError(u"No commentator named '{}'.".format(commentator_name))
 
         self.b_index = get_index(book_name)
 
@@ -1307,8 +495,7 @@ class CommentaryIndex(AbstractIndex):
             raise BookNameError(u"No book named '{}'.".format(book_name))
 
         if self.b_index.is_commentary():
-            raise BookNameError(u"We don't yet support nested commentaries '{} on {}'.".format(commentor_name, book_name))
-
+            raise BookNameError(u"We don't yet support nested commentaries '{} on {}'.".format(commentator_name, book_name))
 
         # This whole dance is a bit of a mess.
         # Todo: see if we can clean it up a bit
@@ -1316,23 +503,95 @@ class CommentaryIndex(AbstractIndex):
         self.__dict__.update(self.c_index.contents())
         self.commentaryBook = self.b_index.get_title()
         self.commentaryCategories = self.b_index.categories
-        self.categories = ["Commentary"] + self.b_index.categories + [self.b_index.get_title()]
-        self.title = self.title + " on " + self.b_index.get_title()
-        self.commentator = commentor_name
+        self.categories = ["Commentary"] + [self.b_index.categories[0], commentator_name]
+        self.commentator = commentator_name
+        if getattr(self.b_index, "order", None):
+            self.order = self.b_index.order
         if getattr(self, "heTitle", None):
             self.heCommentator = self.heBook = self.heTitle # why both?
 
-        #todo: this assumes flat structure
-        self.nodes = JaggedArrayCommentatorNode(self, self.b_index.nodes)
+        # todo: this assumes flat structure
+        # self.nodes = JaggedArrayCommentatorNode(self.b_index.nodes, index=self)
+        def extend_leaf_nodes(node):
+            node.index = self
+            if node.has_children():
+                return node
+            #return JaggedArrayCommentatorNode(node, index=self)
+            node.addressTypes += ["Integer"]
+            node.sectionNames += ["Comment"]
+            node.depth += 1
+            return node
+
+        '''
+        commentor_index = kwargs.get("index", None)
+        assert commentor_index.is_commentary(), "Non-commentator index {} passed to JaggedArrayCommentatorNode".format(commentor_index.title)
+        self.basenode = basenode
+        parameters = {
+            "addressTypes": basenode.addressTypes + ["Integer"],
+            "sectionNames": basenode.sectionNames + ["Comment"],
+            "depth": basenode.depth + 1
+        }
+        if getattr(basenode, "lengths", None):
+            parameters["lengths"] = basenode.lengths
+        super(JaggedArrayCommentatorNode, self).__init__({}, parameters, **kwargs)
+
+        self.key = basenode.key
+        self.title_group = basenode.title_group.copy()
+        '''
+
+        self.nodes = self.b_index.nodes.copy(extend_leaf_nodes)
+
+        self.nodes.title_group = TitleGroup()  # Reset all titles
+
+        en_cross_product = [c + " on " + b for c in self.c_index.titleVariants for b in self.b_index.nodes.all_node_titles("en")]
+        self.title = self.c_index.title + " on " + self.b_index.get_title()  # Calls AbstractIndex.setTitle - will set nodes.key and nodes.primary_title
+        for title in en_cross_product:
+            self.nodes.add_title(title, "en")
+
+        cnames = getattr(self.c_index, "heTitleVariants", None)
+        cprimary = getattr(self.c_index, "heTitle", None)
+        if cnames and cprimary:
+            he_cross_product = [c + u" על " + b for c in cnames for b in self.b_index.nodes.all_node_titles("he")]
+            self.set_title(cprimary + u" על " + self.b_index.get_title("he"), "he")
+            for title in he_cross_product:
+                self.nodes.add_title(title, "he")
+        else:
+            logger.warning("No Hebrew title for {}".format(self.title))
+
+        # todo: handle 'alone' titles in b_index - add "commentator on" to them
+
         self.schema = self.nodes.serialize()
+        self.nodes = deserialize_tree(self.schema, index=self)  # reinit nodes so that derived attributes are instanciated
+
         self.titleVariants = self.nodes.all_node_titles("en")
         self.heTitle = self.nodes.primary_title("he")
         self.heTitleVariants = self.nodes.all_node_titles("he")
         if getattr(self.nodes, "lengths", None):   #seems superfluous w/ nodes above
             self.length = self.nodes.lengths[0]
 
+
+    def __unicode__(self):
+        return u"{}: {} on {}".format(self.__class__.__name__, self.c_index.title, self.b_index.title)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
+    def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
+        return u"{}({}, {})".format(self.__class__.__name__, self.c_index.title, self.b_index.title)
+
+
     def is_commentary(self):
         return True
+
+    def is_complex(self):
+        return self.b_index.is_complex()
+
+    #  todo: integrate alt structure on commentary?
+    def has_alt_structures(self):
+        return False
+
+    def get_alt_structures(self):
+        return {}
 
     def copy(self):
         #todo: this doesn't seem to be used.
@@ -1340,30 +599,45 @@ class CommentaryIndex(AbstractIndex):
         return copy.deepcopy(self)
 
     def toc_contents(self):
-        return {
+        firstSection = Ref(self.title).first_available_section_ref()
+
+        toc_contents_dict = {
             "title": self.title,
             "heTitle": getattr(self, "heTitle", None),
-            "categories": self.categories
+            "commentator": self.commentator,
+            "heCommentator": self.heCommentator,
+            "categories": self.categories,
+            "firstSection": firstSection.normal() if firstSection else None
         }
+        if hasattr(self,"order"):
+            toc_contents_dict["order"] = self.order
+        return toc_contents_dict
 
-    def contents(self, support_v2=False):
+    #todo: this needs help
+    def contents(self, v2=False, raw=False, **kwargs):
+        if v2:
+            return self.nodes.as_index_contents()
+
         attrs = copy.copy(vars(self))
         del attrs["c_index"]
         del attrs["b_index"]
         del attrs["nodes"]
-        if not support_v2:
+
+        attrs['schema'] = self.nodes.serialize(expand_shared=True, expand_titles=True, translate_sections=True)
+
+        if self.nodes.is_leaf():
             attrs["sectionNames"]   = self.nodes.sectionNames
             attrs["heSectionNames"] = map(hebrew_term, self.nodes.sectionNames)
             attrs["textDepth"]      = len(self.nodes.sectionNames)
-            del attrs["schema"]
 
         return attrs
 
 
 def get_index(bookname):
     """
-    Factory - returns either an :class:Index object or a :class:CommentaryIndex object
-    :param bookname: Name of the book or commentary on book.
+    Factory - returns either an :class:`Index` object or a :class:`CommentaryIndex` object
+
+    :param string bookname: Name of the book or commentary on book.
     :return:
     """
     # look for result in indices cache
@@ -1425,7 +699,7 @@ class AbstractSchemaContent(object):
         return self.sub_content(snode.version_address())
 
     #TODO: test me
-    def sub_content(self, key_list=[], indx_list=[], value=None):
+    def sub_content(self, key_list=None, indx_list=None, value=None):
         """
         Get's or sets values deep within the content of this version.
         This returns the result by reference, NOT by value.
@@ -1434,6 +708,10 @@ class AbstractSchemaContent(object):
         :param indx_list: The indexes of the subsection to get/set
         :param value: The value to set.  If present, the method acts as a setter.  If None, it acts as a getter.
         """
+        if not key_list:
+            key_list = []
+        if not indx_list:
+            indx_list = []
         ja = reduce(lambda d, k: d[k], key_list, self.get_content())
         if indx_list:
             sa = reduce(lambda a, i: a[i], indx_list[:-1], ja)
@@ -1448,7 +726,6 @@ class AbstractSchemaContent(object):
 
 class AbstractTextRecord(object):
     """
-    Currently assumes that text is JA
     """
     text_attr = "chapter"
     ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
@@ -1466,7 +743,7 @@ class AbstractTextRecord(object):
         return self.ja().verse_count()
 
     def ja(self): #don't cache locally unless change is handled.  Pontential to cache on JA class level
-        return ja.JaggedTextArray(getattr(self, self.text_attr, None))
+        return JaggedTextArray(getattr(self, self.text_attr, None))
 
     @classmethod
     def sanitize_text(cls, t):
@@ -1479,6 +756,7 @@ class AbstractTextRecord(object):
             return False
         return t
 
+    # Currently assumes that text is JA
     def _sanitize(self):
         setattr(self, self.text_attr,
                 self.sanitize_text(getattr(self, self.text_attr, None))
@@ -1488,7 +766,8 @@ class AbstractTextRecord(object):
 class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaContent):
     """
     A version of a text.
-    Relates to a complete single record from the texts collection
+
+    Relates to a complete single record from the texts collection.
     """
     history_noun = 'text'
     collection = 'texts'
@@ -1515,6 +794,15 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         "versionUrl"  # bad data?
     ]
 
+    def __unicode__(self):
+        return u"Version: {} <{}>".format(self.title, self.versionTitle)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
+    def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
+        return u"{}().load({{'title': '{}', 'versionTitle': '{}'}})".format(self.__class__.__name__, self.title, self.versionTitle)
+
     def _validate(self):
         assert super(Version, self)._validate()
         """
@@ -1526,8 +814,42 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
     def _normalize(self):
         pass
 
+    def get_index(self):
+        return get_index(self.title)
+
+    def first_section_ref(self):
+        """
+        Returns a Ref to the first non-empty location in this version.
+        """
+        i = self.get_index()
+        leafnodes = i.nodes.get_leaf_nodes()
+        for leaf in leafnodes:
+            ja = JaggedTextArray(self.content_node(leaf))
+            indx_array = ja.next_index()
+            if indx_array:
+                return Ref(_obj={
+                    "index": i,
+                    "book": leaf.full_title("en"),
+                    "type": i.categories[0],
+                    "index_node": leaf,
+                    "sections": [i + 1 for i in indx_array],
+                    "toSections": [i + 1 for i in indx_array]
+                }).section_ref()
+        return None
+
+    def ja(self):
+        # the quickest way to check if this is a complex text
+        if isinstance(getattr(self, self.text_attr, None), dict):
+            nodes = self.get_index().nodes.get_leaf_nodes()
+            return JaggedTextArray([self.content_node(node) for node in nodes])
+        else:
+            return super(Version, self).ja()
+
 
 class VersionSet(abst.AbstractMongoSet):
+    """
+    A collection of :class:`Version` objects
+    """
     recordClass = Version
 
     def __init__(self, query={}, page=0, limit=0, sort=[["priority", -1], ["_id", 1]], proj=None):
@@ -1542,18 +864,21 @@ class VersionSet(abst.AbstractMongoSet):
     def verse_count(self):
         return sum([v.verse_count() for v in self])
 
-    def merge(self, attr="chapter"):
+    def merge(self, node=None):
         """
         Returns merged result, but does not change underlying data
         """
         for v in self:
             if not getattr(v, "versionTitle", None):
                 logger.error("No version title for Version: {}".format(vars(v)))
-        return merge_texts([getattr(v, attr, []) for v in self], [getattr(v, "versionTitle", None) for v in self])
+        if node is None:
+            return merge_texts([getattr(v, "chapter", []) for v in self], [getattr(v, "versionTitle", None) for v in self])
+        return merge_texts([v.content_node(node) for v in self], [getattr(v, "versionTitle", None) for v in self])
 
 
-# used in VersionSet.merge(), merge_text_versions(), text_from_cur(), and export.export_merged()
-# todo: move this to JaggedTextArray class
+# used in VersionSet.merge(), merge_text_versions(), and export.export_merged()
+# todo: move this to JaggedTextArray class?
+# Doesn't work for complex texts
 def merge_texts(text, sources):
     """
     This is a recursive function that merges the text in multiple
@@ -1603,6 +928,14 @@ def merge_texts(text, sources):
 
 
 class TextChunk(AbstractTextRecord):
+    """
+    A chunk of text coresponding to the provided :class:`Ref`, language, and optionall version name.
+    If it is possible to get a more complete text by merging multiple versions, a merged result will be returned.
+
+    :param oref: :class:`Ref`
+    :param lang: "he" or "en"
+    :param vtitle: optional. Title of the version desired.
+    """
     text_attr = "text"
 
     def __init__(self, oref, lang="en", vtitle=None):
@@ -1629,22 +962,24 @@ class TextChunk(AbstractTextRecord):
 
         if lang and vtitle:
             self._saveable = True
-            v = Version().load({"title": oref.book, "language": lang, "versionTitle": vtitle}, oref.part_projection())
+            v = Version().load({"title": oref.index.title, "language": lang, "versionTitle": vtitle}, oref.part_projection())
             if v:
                 self._versions += [v]
-                self.text = self._original_text = self.trim_text(getattr(v, oref.storage_address(), None))
+                self.text = self._original_text = self.trim_text(v.content_node(oref.index_node))
         elif lang:
             vset = VersionSet(oref.condition_query(lang), proj=oref.part_projection())
 
             if vset.count() == 0:
+                if VersionSet({"title": oref.index.title}).count() == 0:
+                    raise InputError("No text record found for '{}'".format(oref.index.title))
                 return
             if vset.count() == 1:
                 v = vset[0]
                 self._versions += [v]
-                self.text = self.trim_text(getattr(v, oref.storage_address(), None))
+                self.text = self.trim_text(v.content_node(oref.index_node))
                 #todo: Should this instance, and the non-merge below, be made saveable?
             else:  # multiple versions available, merge
-                merged_text, sources = vset.merge(oref.storage_address())  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
+                merged_text, sources = vset.merge(oref.index_node)  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
                 self.text = self.trim_text(merged_text)
                 if len(set(sources)) == 1:
                     for v in vset:
@@ -1658,8 +993,26 @@ class TextChunk(AbstractTextRecord):
         else:
             raise Exception("TextChunk requires a language.")
 
+    def __unicode__(self):
+        args = u"{}, {}".format(self._oref, self.lang)
+        if self.vtitle:
+            args += u", {}".format(self.vtitle)
+        return args
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
+    def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
+        args = u"{}, {}".format(self._oref, self.lang)
+        if self.vtitle:
+            args += u", {}".format(self.vtitle)
+        return u"{}({})".format(self.__class__.__name__, args)
+
     def is_empty(self):
-        return bool(self.text)
+        return self.ja().is_empty()
+
+    def ja(self):
+        return JaggedTextArray(self.text)
 
     def save(self):
         assert self._saveable, u"Tried to save a read-only text: {}".format(self._oref.normal())
@@ -1677,15 +1030,15 @@ class TextChunk(AbstractTextRecord):
         if not self.version():
             self.full_version = Version(
                 {
-                    "chapter": [],
+                    "chapter": self._oref.index.nodes.create_skeleton(),
                     "versionTitle": self.vtitle,
                     "versionSource": self.versionSource,
                     "language": self.lang,
-                    "title": self._oref.book
+                    "title": self._oref.index.title
                 }
             )
         else:
-            self.full_version = Version().load({"title": self._oref.book, "language": self.lang, "versionTitle": self.vtitle})
+            self.full_version = Version().load({"title": self._oref.index.title, "language": self.lang, "versionTitle": self.vtitle})
             assert self.full_version, u"Failed to load Version record for {}, {}".format(self._oref.normal(), self.vtitle)
             if self.versionSource:
                 self.full_version.versionSource = self.versionSource  # hack
@@ -1696,6 +1049,7 @@ class TextChunk(AbstractTextRecord):
 
         self.full_version.save()
         self._oref.recalibrate_next_prev_refs(len(self.text))
+
         return self
 
     def _pad(self, content):
@@ -1728,7 +1082,7 @@ class TextChunk(AbstractTextRecord):
         Trims blank segments from end of every section
         :return:
         """
-        self.text = ja.JaggedTextArray(self.text).trim_ending_whitespace().array()
+        self.text = JaggedTextArray(self.text).trim_ending_whitespace().array()
 
     def _validate(self):
         """
@@ -1741,7 +1095,7 @@ class TextChunk(AbstractTextRecord):
         if implied_depth != self._oref.index_node.depth:
             raise InputError(
                 u"Text Structure Mismatch. The stored depth of {} is {}, but the text posted to {} implies a depth of {}."
-                .format(self._oref.book, self._oref.index_node.depth, self._oref.normal(), implied_depth)
+                .format(self._oref.index_node.full_title(), self._oref.index_node.depth, self._oref.normal(), implied_depth)
             )
 
         #validate that length of the array matches length of the ref
@@ -1807,7 +1161,7 @@ class TextChunk(AbstractTextRecord):
                 if i == 0 == range_index:  # First level slice handled at DB level
                     pass
                 elif range_index > i:  # Either not range, or range begins later.  Return simple value.
-                    if i == 0 and len(txt):
+                    if i == 0 and len(txt):   # We already sliced the first level w/ Ref.part_projection()
                         txt = txt[0]
                     elif len(txt) >= sections[i]:
                         txt = txt[sections[i] - 1]
@@ -1850,10 +1204,21 @@ class TextChunk(AbstractTextRecord):
             raise Exception("Called TextChunk.version() on merged TextChunk.")
 
 
+# Mirrors the construction of the old get_text() method.
+# The TextFamily.contents() method will return a dictionary in the same format that was provided by get_text().
 class TextFamily(object):
     """
-    A text with its translations and optionally the commentary on it.  Mirrors the construction of the old get_text() method.
-    The TextFamily.contents() method will return a dictionary in the same format that was provided by get_text().
+    A text with its translations and optionally the commentary on it.
+
+    Can be instanciated with just the first argument.
+
+    :param oref: :class:`Ref`.  This is the only required argument.
+    :param int context: Default: 1. How many context levels up to go when getting commentary.  See :func:`Ref.context_ref`
+    :param bool commentary: Default: True. Include commentary?
+    :param version: optional. Name of version to use when getting text.
+    :param lang: None, "en" or "he".  Default: None.  If None, included both languages.
+    :param bool pad: Default: True.  Pads the provided ref before processing.  See :func:`Ref.padded_ref`
+    :param bool alts: Default: False.  Adds notes of where alternate structure elements begin
     """
     #Attribute maps used for generating dict format
     text_attr_map = {
@@ -1895,24 +1260,38 @@ class TextFamily(object):
         "he": "heSources"
     }
 
+    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, pad=True, alts=False):
+        """
+        :param oref:
+        :param context:
+        :param commentary:
+        :param version:
+        :param lang:
+        :param pad:
+        :param alts: Adds notes of where alt elements begin
+        :return:
+        """
 
-    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, pad=True):
-        if pad:
-            oref = oref.padded_ref()
-        self.ref = oref.normal()
-        self.text = None
-        self.he = None
-        self._lang = lang
+        oref                = oref.padded_ref() if pad else oref
+        self.ref            = oref.normal()
+        self.heRef          = oref.he_normal()
+        self.isComplex      = oref.index.is_complex()
+        self.text           = None
+        self.he             = None
+        self._lang          = lang
         self._original_oref = oref
-        self._context_oref = None
-        self._chunks = {}
-        self._inode = oref.index_node
+        self._context_oref  = None
+        self._chunks        = {}
+        self._inode         = oref.index_node
+        self._alts          = []
+
         assert isinstance(self._inode, JaggedArrayNode), "TextFamily only works with JaggedArray nodes"  # todo: handle structure nodes?
 
         for i in range(0, context):
             oref = oref.context_ref()
         self._context_oref = oref
 
+        # processes "en" and "he" TextChunks, and puts the text in self.text and self.he, respectively.
         for language, attr in self.text_attr_map.items():
             if language == lang:
                 c = TextChunk(oref, language, version)
@@ -1932,27 +1311,88 @@ class TextFamily(object):
                 links = [get_links(r.normal()) for r in oref.split_spanning_ref()]
             self.commentary = links if "error" not in links else []
 
-            # get list of available versions of this text
-            # but only if you care enough to get commentary also (hack)
-            self.versions = oref.version_list()
+        # get list of available versions of this text
+        self.versions = oref.version_list()
 
+        # Adds decoration for the start of each alt structure reference
+        if alts:
+            # Set up empty Array that mirrors text structure
+            alts_ja = JaggedArray()
+
+            for key, struct in oref.index.get_alt_structures().iteritems():
+                # Assuming these are in order, continue if it is before ours, break if we see one after
+                for n in struct.get_leaf_nodes():
+                    wholeRef = Ref(n.wholeRef)
+                    if wholeRef.ending_ref().precedes(oref):
+                        continue
+                    if wholeRef.starting_ref().follows(oref):
+                        break
+
+                    #It's in our territory
+                    wholeRefStart = wholeRef.starting_ref()
+                    if oref.contains(wholeRefStart) and not oref == wholeRefStart:
+                        indxs = [k - 1 for k in wholeRefStart.in_terms_of(oref)]
+                        val = {"en":[], "he":[]}
+
+                        try:
+                            val = alts_ja.get_element(indxs)
+                        except IndexError:
+                            pass
+
+                        val["en"] += [n.primary_title("en")]
+                        val["he"] += [n.primary_title("he")]
+                        val["whole"] = True
+
+                        alts_ja.set_element(indxs, val)
+
+                    if getattr(n, "refs", None):
+                        for i, r in enumerate(n.refs):
+                            # hack to skip Rishon, skip empty refs
+                            if i==0 or not r:
+                                continue;
+                            subRef = Ref(r)
+                            subRefStart = subRef.starting_ref()
+                            if oref.contains(subRefStart) and not oref == subRefStart:
+                                indxs = [k - 1 for k in subRefStart.in_terms_of(oref)]
+                                val = {"en":[], "he":[]}
+
+                                try:
+                                    a = alts_ja.get_element(indxs)
+                                    if a:
+                                        val = a
+                                except IndexError:
+                                    pass
+
+                                val["en"] += [n.sectionString([i + 1], "en", title=False)]
+                                val["he"] += [n.sectionString([i + 1], "he", title=False)]
+
+                                alts_ja.set_element(indxs, val)
+
+                            elif subRefStart.follows(oref):
+                                break
+
+            self._alts = alts_ja.array()
+
+    # What does this note mean?  Is this yet to be done?
+    # Remaining: spanning
     def contents(self):
-        """ Ramaining:
-        spanning
+        """
+        :return dict: Returns the contents of the text family.
         """
         d = {k: getattr(self, k) for k in vars(self).keys() if k[0] != "_"}
 
-        d["textDepth"] = getattr(self._inode, "depth", None)
-        d["sectionNames"] = getattr(self._inode, "sectionNames", None)
+        d["textDepth"]       = getattr(self._inode, "depth", None)
+        d["sectionNames"]    = getattr(self._inode, "sectionNames", None)
+        d["addressTypes"]    = getattr(self._inode, "addressTypes", None)
         if getattr(self._inode, "lengths", None):
-            d["lengths"] = getattr(self._inode, "lengths")
+            d["lengths"]     = getattr(self._inode, "lengths")
             if len(d["lengths"]):
-                d["length"] = d["lengths"][0]
+                d["length"]  = d["lengths"][0]
         elif getattr(self._inode, "length", None):
-            d["length"] = getattr(self._inode, "length")
-        d["textDepth"] = self._inode.depth
-        d["heTitle"] = self._inode.full_title("he")
-        d["titleVariants"] = self._inode.all_tree_titles("en")
+            d["length"]      = getattr(self._inode, "length")
+        d["textDepth"]       = self._inode.depth
+        d["heTitle"]         = self._inode.full_title("he")
+        d["titleVariants"]   = self._inode.all_tree_titles("en")
         d["heTitleVariants"] = self._inode.all_tree_titles("he")
 
         for attr in ["categories", "order", "maps"]:
@@ -1964,6 +1404,11 @@ class TextFamily(object):
         if self._context_oref.is_commentary():
             for attr in ["commentaryBook", "commentaryCategories", "commentator", "heCommentator"]:
                 d[attr] = getattr(self._inode.index, attr, "")
+        d["isComplex"]    = self.isComplex
+        d["indexTitle"]   = self._inode.index.title
+        d["heIndexTitle"] = self._inode.index.get_title("he")
+        d["sectionRef"]   = self._original_oref.section_ref().normal()
+        d["isSpanning"]   = self._original_oref.is_spanning()
 
         for language, attr in self.text_attr_map.items():
             chunk = self._chunks.get(language)
@@ -1978,22 +1423,28 @@ class TextFamily(object):
                         else:
                             d[val[language]] = val.get("default")
 
-        # replace ints with daf strings (3->"2a") if text is Talmud or commentary on Talmud
-        if self._context_oref.is_talmud():
-            daf = d["sections"][0]
-            d["sections"][0] = AddressTalmud.toStr("en", daf)
-            d["title"] = d["book"] + " " + d["sections"][0]
+        # replace ints with daf strings (3->"2a") for Talmud addresses
+        # this could be simpler if was done for every value - but would be slower.
+        if "Talmud" in self._inode.addressTypes:
+            for i in range(len(d["sections"])):
+                if self._inode.addressTypes[i] == "Talmud":
+                    d["sections"][i] = AddressTalmud.toStr("en", d["sections"][i])
+                    if "toSections" in d:
+                        d["toSections"][i] = AddressTalmud.toStr("en", d["toSections"][i])
+
+            d["title"] = self._context_oref.normal()
             if "heTitle" in d:
                 d["heBook"] = d["heTitle"]
-                d["heTitle"] = d["heTitle"] + " " + AddressTalmud.toStr("he", daf)
-            if d["type"] == "Commentary" and len(d["sections"]) > 1:
+                d["heTitle"] = self._context_oref.he_normal()
+
+            if d["type"] == "Commentary" and self._context_oref.is_talmud() and len(d["sections"]) > 1:
                 d["title"] = "%s Line %d" % (d["title"], d["sections"][1])
-            if "toSections" in d:
-                d["toSections"] = [d["sections"][0]] + d["toSections"][1:]
 
         elif self._context_oref.is_commentary():
             dep = len(d["sections"]) if len(d["sections"]) < 2 else 2
             d["title"] = d["book"] + " " + ":".join(["%s" % s for s in d["sections"][:dep]])
+
+        d["alts"] = self._alts
 
         return d
 
@@ -2057,22 +1508,24 @@ class RefCachingType(type):
 
         if tref:
             if tref in cls.__cache:
-                return cls.__cache[tref]
+                ref = cls.__cache[tref]
+                ref.tref = tref
+                return ref
             else:
                 result = super(RefCachingType, cls).__call__(*args, **kwargs)
-                if result.normal() in cls.__cache:
+                if result.uid() in cls.__cache:
                     #del result  #  Do we need this to keep memory clean?
-                    cls.__cache[tref] = cls.__cache[result.normal()]
-                    return cls.__cache[result.normal()]
-                cls.__cache[result.normal()] = result
+                    cls.__cache[tref] = cls.__cache[result.uid()]
+                    return cls.__cache[result.uid()]
+                cls.__cache[result.uid()] = result
                 cls.__cache[tref] = result
                 return result
         elif obj_arg:
             result = super(RefCachingType, cls).__call__(*args, **kwargs)
-            if result.normal() in cls.__cache:
+            if result.uid() in cls.__cache:
                 #del result  #  Do we need this to keep memory clean?
-                return cls.__cache[result.normal()]
-            cls.__cache[result.normal()] = result
+                return cls.__cache[result.uid()]
+            cls.__cache[result.uid()] = result
             return result
         else:  # Default.  Shouldn't be used.
             return super(RefCachingType, cls).__call__(*args, **kwargs)
@@ -2080,25 +1533,25 @@ class RefCachingType(type):
 
 class Ref(object):
     """
-        Current attr, old attr - def
-        tref, ref - the original string reference
-        book, book - a string name of the text
-        index.sectionNames, sectionNames - an array of strings naming the kinds of sections in this text (Chapter, Verse)
-        index.textDepth, textDepth - an integer denote the number of sections named in sectionNames
-        sections, sections - an array of ints giving the requested sections numbers
-        toSections, toSections - an array of ints giving the requested sections at the end of a range
-        * next, prev - an dictionary with the ref and labels for the next and previous sections
-        index.categories, categories - an array of categories for this text
-        type, type - the highest level category for this text
-    """
+        A Ref is a reference to a location. A location could be to a *book*, to a specific *segment* (e.g. verse or mishnah), to a *section* (e.g chapter), or to a *range*.
 
+        Instanciated with a string representation of the reference, e.g.:
+
+        ::
+
+            >>> Ref("Genesis 1:3")
+            >>> Ref("Rashi on Genesis 1:3")
+            >>> Ref("Genesis 1:3-2:4")
+            >>> Ref("Shabbat 4b")
+            >>> Ref("Rashi on Shabbat 4b-5a")
+    """
     __metaclass__ = RefCachingType
 
     def __init__(self, tref=None, _obj=None):
         """
-        Object is initialized with either tref - a textual reference, or _obj - a complete dict composing the Ref data
-        The _obj argument is used internally.
-        title is for when Ref is being used in the process of extracting Refs from text
+        Object is generally initialized with a textual reference - ``tref``
+
+        Internally, the _obj argument can be used to instantiate a ref with a complete dict composing the Ref data
         """
         self.index = None
         self.book = None
@@ -2131,18 +1584,29 @@ class Ref(object):
         self._prev = None
         self._padded = None
         self._context = {}
+        self._first_spanned_ref = None
         self._spanned_refs = []
         self._ranged_refs = []
         self._range_depth = None
         self._range_index = None
 
     def _validate(self):
-        if not self.is_talmud():
-            checks = [self.sections, self.toSections]
-            for check in checks:
-                if getattr(self.index_node, "lengths", None) and len(check):
-                    if check[0] > self.index_node.lengths[0]:
-                        raise InputError(u"{} only has {} {}s.".format(self.book, self.index_node.lengths[0], self.index_node.sectionNames[0]))
+        offset = 0
+        if self.is_bavli():
+            offset = 2
+        checks = [self.sections, self.toSections]
+        for check in checks:
+            if 0 in check:
+                raise InputError(u"{} {} must be greater than 0".format(self.book, self.index_node.sectionNames[check.index(0)]))
+            if getattr(self.index_node, "lengths", None) and len(check):
+                if check[0] > self.index_node.lengths[0] + offset:
+                    display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0] + offset)
+                    raise InputError(u"{} ends at {} {}.".format(self.book, self.index_node.sectionNames[0], display_size))
+        for i in range(len(self.sections)):
+            if self.toSections > self.sections:
+                break
+            if self.toSections < self.sections:
+                raise InputError(u"{} is an invalid range.  Ranges must end later than they begin.".format(self.normal()))
 
     def __clean_tref(self):
         self.tref = self.tref.strip().replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
@@ -2162,6 +1626,12 @@ class Ref(object):
         except IndexError:
             pass
 
+    def __reinit_tref(self, new_tref):
+        self.tref = new_tref
+        self.__clean_tref()
+        self._lang = "en"
+        self.__init_tref()
+
     def __init_tref(self):
         parts = [s.strip() for s in self.tref.split("-")]
         if len(parts) > 2:
@@ -2170,92 +1640,194 @@ class Ref(object):
         base = parts[0]
         title = None
 
-        match = library.all_titles_regex(self._lang).match(base)
-        if match:
-            title = match.group('title')
-            self.index_node = library.get_schema_node(title, self._lang)
+        tndict = library.get_title_node_dict(self._lang, with_commentary=True)
+        termdict = library.get_term_dict(self._lang)
+        for l in range(len(base), 0, -1):
+            self.index_node = tndict.get(base[0:l])
+            new_tref = termdict.get(base[0:l])
 
-            if not self.index_node:  # try to find a map
-                new_tref = library.get_map_dict().get(title)
-                if new_tref:
-                    self.tref = new_tref
-                    self.__init_tref()
-                    return
-                else:
-                    raise InputError("Failed to find a record for {}".format(base))
+            if self.index_node:
+                title = base[0:l]
+                if base[l - 1] == ".":   # Take care of Refs like "Exo.14.15", where the period shouldn't get swallowed in the name.
+                    title = base[0:l - 1]
+                break
+            if new_tref:
+                self.__reinit_tref(new_tref)
+                return
 
-            if getattr(self.index_node, "checkFirst", None) and self.index_node.checkFirst.get(self._lang):
-                try:
-                    check_node = library.get_schema_node(self.index_node.checkFirst[self._lang], self._lang)
-                    re_string = '^' + regex.escape(title) + check_node.delimiter_re + check_node.regex(self._lang, strict=True)
-                    reg = regex.compile(re_string, regex.VERBOSE)
-                    self.sections = self.__get_sections(reg, base)
-                except InputError: # Regex doesn't work
-                    pass
-                except AttributeError: # Can't find node for check_node
-                    pass
-                else:
-                    self.index_node = check_node
-
+        if title:
+            assert isinstance(self.index_node, SchemaNode)
             self.index = self.index_node.index
             self.book = self.index_node.full_title("en")
 
-        elif self._lang == "en":  # Check for a Commentator
+            # checkFirst is used on Bavli records to check for a Mishnah pattern match first
+            if getattr(self.index_node, "checkFirst", None) and self.index_node.checkFirst.get(self._lang):
+                try:
+                    check_node = library.get_schema_node(self.index_node.checkFirst[self._lang], self._lang)
+                    assert isinstance(check_node, JaggedArrayNode)  # Initially used with Mishnah records.  Assumes JaggedArray.
+                    reg = check_node.full_regex(title, self._lang, strict=True)
+                    self.sections = self.__get_sections(reg, base, use_node=check_node)
+                except InputError:  # Regex doesn't work
+                    pass
+                except AttributeError:  # Can't find node for check_node
+                    pass
+                else:
+                    old_index_node = self.index_node
+
+                    self.index_node = check_node
+                    self.index = self.index_node.index
+                    self.book = self.index_node.full_title("en")
+                    self.toSections = self.sections[:]
+
+                    try:
+                        self._validate()
+                    except InputError:  # created Ref doesn't validate, back it out
+                        self.index_node = old_index_node
+                        self.sections = []
+
+            elif self.index.is_commentary() and self._lang == "en":
+                if not getattr(self.index, "commentaryBook", None):
+                    raise InputError(u"Please specify a text that {} comments on.".format(self.index.title))
+
+        else:  # This may be a new version, try to build a schema node.
             match = library.all_titles_regex(self._lang, commentary=True).match(base)
             if match:
                 title = match.group('title')
-                self.index = get_index(title)
-                self.book = title
-                commentee_node = library.get_schema_node(match.group("commentee"))
-                self.index_node = JaggedArrayCommentatorNode(self.index, commentee_node)
-                if not self.index.is_commentary():
-                    raise InputError(u"Unrecognized non-commentary Index record: {}".format(base))
-                if not getattr(self.index, "commentaryBook", None):
-                    raise InputError(u"Please specify a text that {} comments on.".format(self.index.title))
+                on_node = library.get_schema_node(match.group('commentee'))  # May be SchemaNode or JaggedArrayNode
+                self.index = get_index(match.group('commentor') + " on " + on_node.index.title)
+                self.index_node = self.index.nodes.title_dict(self._lang).get(title)
+                if not self.index_node:
+                    raise BookNameError(u"Can not find index record for {}".format(title))
             else:
                 raise InputError(u"Unrecognized Index record: {}".format(base))
 
         if title is None:
-            raise InputError(u"Could not resolve reference: {}".format(self.tref))
+            raise InputError(u"Could not find title in reference: {}".format(self.tref))
+
+        self.type = self.index_node.index.categories[0]
 
         if title == base:  # Bare book.
-            self.type = self.index_node.index.categories[0]
             if self.index_node.is_default():  # Without any further specification, match the parent of the fall-through node
                 self.index_node = self.index_node.parent
                 self.book = self.index_node.full_title("en")
             return
 
-        re_string = '^' + regex.escape(title) + self.index_node.delimiter_re + self.index_node.regex(self._lang)
-        reg = regex.compile(re_string, regex.VERBOSE)
+        try:
+            reg = self.index_node.full_regex(title, self._lang)  # Try to treat this as a JaggedArray
+        except AttributeError:
+            matched = self.index_node.full_title(self._lang)
+            msg = u"Partial reference match for '{}' - failed to find continuation for '{}'.\nValid continuations are:\n".format(self.tref, matched)
+            continuations = []
+            for child in self.index_node.children:
+                continuations += child.all_node_titles(self._lang)
+            msg += u",\n".join(continuations)
+            raise PartialRefInputError(msg, matched, continuations)
 
-        self.sections = self.__get_sections(reg, base)
-        self.type = self.index_node.index.categories[0]
+        # Numbered Structure node - try numbered structure parsing
+        if self.index_node.has_children() and getattr(self.index_node, "_addressTypes", None):
+            try:
+                struct_indexes = self.__get_sections(reg, base)
+                self.index_node = reduce(lambda a, i: a.children[i], [s - 1 for s in struct_indexes], self.index_node)
+                title = self.book = self.index_node.full_title("en")
+                base = regex.sub(reg, title, base)
+                reg = self.index_node.full_regex(title, self._lang)
+            except InputError:
+                pass
+            #todo: ranges that cross structures
+
+        if title == base:
+            return
+
+        # Content node -  Match primary structure address (may be stage two of numbered structure parsing)
+        if not self.index_node.has_children() and getattr(self.index_node, "_addressTypes", None):
+            try:
+                self.sections = self.__get_sections(reg, base)
+            except InputError:
+                pass
+
+        # Look for alternate structure
+        # todo: handle commentator on alt structure
+        if not self.sections and not self.index.is_commentary():
+            alt_struct_regex = self.index.alt_titles_regex(self._lang)
+            if alt_struct_regex:
+                match = alt_struct_regex.match(base)
+                if match:
+                    title = match.group('title')
+                    alt_struct_node = self.index.get_alt_struct_node(title, self._lang)
+
+                    # Exact match alt structure node
+                    if title == base:
+                        new_tref = alt_struct_node.get_ref_from_sections([])
+                        if new_tref:
+                            self.__reinit_tref(new_tref)
+                            return
+
+                    try:  # Some structure nodes don't have .regex() methods.
+                        reg = alt_struct_node.full_regex(title, self._lang)
+                    except AttributeError:
+                        pass
+                    else:
+                        # Alternate numbered structure
+                        if alt_struct_node.has_children() and getattr(alt_struct_node, "_addressTypes", None):
+                            try:
+                                struct_indexes = self.__get_sections(reg, base)
+                                alt_struct_node = reduce(lambda a, i: a.children[i], [s - 1 for s in struct_indexes], alt_struct_node)
+                                title = alt_struct_node.full_title("en")
+                                base = regex.sub(reg, title, base)
+                                reg = alt_struct_node.full_regex(title, self._lang)
+                            except InputError:
+                                pass
+
+                        # Alt struct map node -  (may be stage two of numbered structure parsing)
+                        if title == base:  #not a repetition of similar test above - title may have changed in numbered structure parsing
+                            alt_struct_indexes = []
+                        else:
+                            alt_struct_indexes = self.__get_sections(reg, base)
+                        new_tref = alt_struct_node.get_ref_from_sections(alt_struct_indexes)
+                        if new_tref:
+                            self.__reinit_tref(new_tref)
+                            return
+
+        if not self.sections:
+            raise InputError(u"Failed to parse sections for ref {}".format(self.orig_tref))
 
         self.toSections = self.sections[:]
 
-        if self._lang == "en" and len(parts) == 2:  # we still don't support he ranges
-            if self.index_node.addressTypes[0] == "Talmud":
-                self.__parse_talmud_range(parts[1])
-            else:
-                range_part = parts[1].split(".")  #more generic seperator?
-                delta = len(self.sections) - len(range_part)
+        if len(parts) == 2:
+            self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
+            if self._lang == "he" or any([a != "Integer" for a in self.index_node.addressTypes[1:]]):     # in process. developing logic that should work for all languages / texts
+                # todo: handle sections names in "to" part.  Handle talmud יד א - ב kind of cases.
+                range_parts = re.split("[., ]+", parts[1])
+                delta = len(self.sections) - len(range_parts)
                 for i in range(delta, len(self.sections)):
                     try:
-                        self.toSections[i] = int(range_part[i - delta])
-                    except ValueError:
+                        self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang, range_parts[i - delta])
+                    except (ValueError, IndexError):
                         raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
+            elif self._lang == "en":
+                if self.index_node.addressTypes[0] == "Talmud":
+                    self.__parse_talmud_range(parts[1])
+                else:
+                    range_parts = re.split("[.:, ]+", parts[1])
+                    delta = len(self.sections) - len(range_parts)
+                    for i in range(delta, len(self.sections)):
+                        try:
+                            self.toSections[i] = int(range_parts[i - delta])
+                        except (ValueError, IndexError):
+                            raise InputError(u"Couldn't understand text sections: '{}'.".format(self.tref))
 
-    def __get_sections(self, reg, tref):
+    def __get_sections(self, reg, tref, use_node=None):
+        use_node = use_node or self.index_node
         sections = []
         ref_match = reg.match(tref)
         if not ref_match:
-            raise InputError(u"Can not parse ref: {}".format(tref))
+            raise InputError(u"Can not parse sections from ref: {}".format(tref))
 
         gs = ref_match.groupdict()
-        for i in range(0, self.index_node.depth):
+        for i in range(0, use_node.depth):
             gname = u"a{}".format(i)
             if gs.get(gname) is not None:
-                sections.append(self.index_node._addressTypes[i].toIndex(self._lang, gs.get(gname)))
+                sections.append(use_node._addressTypes[i].toNumber(self._lang, gs.get(gname)))
         return sections
 
     def __parse_talmud_range(self, range_part):
@@ -2279,13 +1851,19 @@ class Ref(object):
         self.toSections = [int(x) for x in self.toSections]
 
     def __eq__(self, other):
-        return self.normal() == other.normal()
+        return self.uid() == other.uid()
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     @staticmethod
     def is_ref(tref):
+        """
+        Static method for testing if a string is valid for instanciating a Ref object.
+
+        :param string tref: the string to test
+        :return bool:
+        """
         try:
             Ref(tref)
             return True
@@ -2293,23 +1871,97 @@ class Ref(object):
             return False
 
     def is_talmud(self):
-        return self.type == "Talmud" or (self.type == "Commentary" and getattr(self.index, "commentaryCategories", None) and self.index.commentaryCategories[0] == "Talmud")
+        """
+        Is this a Talmud reference?
+
+        :return bool:
+        """
+        return getattr(self.index_node, "addressTypes", None) and len(self.index_node.addressTypes) and self.index_node.addressTypes[0] == "Talmud"
+
+    def is_bavli(self):
+        """
+        Is this a Talmud Bavli reference?
+
+        :return bool:
+        """
+        if self.is_commentary():
+            return u"Bavli" in self.index.b_index.categories
+        else:
+            return u"Bavli" in self.index.categories
 
     def is_commentary(self):
+        """
+        Is this a commentary reference?
+
+        :return bool:
+        """
         return self.type == "Commentary"
 
     def is_range(self):
+        """
+        Is this reference a range?
+
+        A Ref is range if it's starting point and ending point are different, i.e. it has a dash in its text form.
+        References can cover large areas of text without being a range - in the case where they are references to chapters.
+
+        ::
+
+            >>> Ref("Genesis 3").is_range()
+            False
+            >>> Ref("Genesis 3-5").is_range()
+            True
+
+        :return bool:
+        """
         return self.sections != self.toSections
 
     def range_size(self):
+        """
+        How large is the range?
+
+        :return int:
+        """
+        #todo: rewrite with range_index to handle ranges across higher level sections
         return self.toSections[-1] - self.sections[-1] + 1
 
     def range_index(self):
+        """
+        At what section index does the range begin?
+
+        ::
+
+            >>> Ref("Leviticus 15:3 - 17:12").range_index()
+            0
+            >>> Ref("Leviticus 15-17").range_index()
+            0
+            >>> Ref("Leviticus 15:17-21").range_index()
+            1
+            >>> Ref("Leviticus 15:17").range_index()
+            2
+
+        :return int:
+        """
         if not self._range_index:
             self._set_range_data()
         return self._range_index
 
     def range_depth(self):
+        """
+        How deep is the range?
+
+        ::
+
+            >>> Ref("Leviticus 15:3 - 17:12").range_depth()
+            2
+            >>> Ref("Leviticus 15-17").range_depth()
+            2
+            >>> Ref("Leviticus 15:17-21").range_depth()
+            1
+            >>> Ref("Leviticus 15:17").range_depth()
+            0
+
+        :return int:
+        """
         if not self._range_depth:
             self._set_range_data()
         return self._range_depth
@@ -2325,16 +1977,42 @@ class Ref(object):
                     self._range_depth = self.index_node.depth - i
                     self._range_index = i
                     break
-                    
+
     def is_spanning(self):
         """
-        Returns True if the Ref spans across text sections.
-        Shabbat 13a-b - True, Shabbat 13a:3-14 - False
-        Job 4:3-5:3 - True, Job 4:5-18 - False
+        :return bool: True if the Ref spans across text sections.
+
+        ::
+
+            >>> Ref("Shabbat 13a-b").is_spanning()
+            True
+            >>> Ref("Shabbat 13a:3-14").is_spanning()
+            False
+            >>> Ref("Job 4:3-5:3").is_spanning()
+            True
+            >>> Ref("Job 4:5-18").is_spanning()
+            False
+
         """
         return self.span_size() > 1
 
     def span_size(self):
+        """
+        How many sections does the span cover?
+
+        ::
+
+            >>> Ref("Leviticus 15:3 - 17:12").span_size()
+            3
+            >>> Ref("Leviticus 15-17").span_size()
+            3
+            >>> Ref("Leviticus 15:17-21").span_size()
+            1
+            >>> Ref("Leviticus 15:17").span_size()
+            1
+
+        :return int:
+        """
         if not getattr(self.index_node, "depth", None) or self.index_node.depth == 1:
             # text with no depth or depth 1 can't be spanning
             return 0
@@ -2356,9 +2034,44 @@ class Ref(object):
         return 1
 
     def is_section_level(self):
+        """
+        Is this Ref section (e.g. Chapter) level?
+
+        ::
+
+            >>> Ref("Leviticus 15:3").is_section_level()
+            False
+            >>> Ref("Leviticus 15").is_section_level()
+            True
+            >>> Ref("Rashi on Leviticus 15:3").is_section_level()
+            True
+            >>> Ref("Rashi on Leviticus 15:3:1").is_section_level()
+            False
+            >>> Ref("Leviticus 15-17").is_section_level()
+            True
+
+
+        :return bool:
+        """
         return len(self.sections) == self.index_node.depth - 1
 
     def is_segment_level(self):
+        """
+        Is this Ref segment (e.g. Verse) level?
+
+        ::
+
+            >>> Ref("Leviticus 15:3").is_segment_level()
+            True
+            >>> Ref("Leviticus 15").is_segment_level()
+            False
+            >>> Ref("Rashi on Leviticus 15:3").is_segment_level()
+            False
+            >>> Ref("Rashi on Leviticus 15:3:1").is_segment_level()
+            True
+
+        :return bool:
+        """
         return len(self.sections) == self.index_node.depth
 
     """ Methods to generate new Refs based on this Ref """
@@ -2372,25 +2085,169 @@ class Ref(object):
             "toSections": self.toSections[:]
         }
 
+    def has_default_child(self):
+        return self.index_node.has_default_child()
+
+    def default_child_ref(self):
+        """
+        Return ref to the default node underneath this node
+        :return:
+        """
+        if not self.has_default_child():
+            return self
+        d = self._core_dict()
+        d["index_node"] = self.index_node.get_default_child()
+        return Ref(_obj=d)
+
+    def surrounding_ref(self, size=1):
+        """
+        Return a reference with 'size' additional segments added to each side.
+
+        Currently does not extend to sections beyond the original ref's span.
+
+        :param int size:
+        :return: :class:`Ref`
+        """
+
+        if self.starting_ref().sections[-1] > size:
+            start = self.starting_ref().sections[-1] - size
+        else:
+            start = 1
+
+        ending_sections = self.ending_ref().sections
+        ending_section_length = self.get_state_ja().sub_array_length([s - 1 for s in ending_sections[:-1]])
+
+        if ending_sections[-1] + size < ending_section_length:
+            end = ending_sections[-1] + size
+        else:
+            end = ending_section_length
+
+        d = self._core_dict()
+        d["sections"] = d["sections"][:-1] + [start]
+        d["toSections"] = d["toSections"][:-1] + [end]
+        return Ref(_obj=d)
+
+    def starting_ref(self):
+        """
+        For ranged Refs, return the starting Ref
+
+        :return: :class:`Ref`
+        """
+        if not self.is_range():
+            return self
+        d = self._core_dict()
+        d["toSections"] = self.sections[:]
+        return Ref(_obj=d)
+
+    def ending_ref(self):
+        """
+        For ranged Refs, return the ending Ref
+
+        :return: :class:`Ref`
+        """
+        if not self.is_range():
+            return self
+        d = self._core_dict()
+        d["sections"] = self.toSections[:]
+        return Ref(_obj=d)
+
     def section_ref(self):
-        if self.is_section_level():
+        """
+        Return the section level Ref
+
+        For texts of depth 2, this has the same behavior as :func:`top_section_ref`
+
+        ::
+
+            >>> Ref("Rashi on Genesis 2:3:1").section_ref()
+            Ref("Rashi on Genesis 2:3")
+            >>> Ref("Genesis 2:3").section_ref()
+            Ref("Genesis 2")
+
+        :return: :class:`Ref`
+        """
+        if not self.is_segment_level():
             return self
         return self.padded_ref().context_ref()
 
     def top_section_ref(self):
+        """
+        Return the highest level section Ref.
+
+        For texts of depth 2, this has the same behavior as :func:`section_ref`
+
+        ::
+
+            >>> Ref("Rashi on Genesis 2:3:1").top_section_ref()
+            Ref("Rashi on Genesis 2")
+            >>> Ref("Genesis 2:3").top_section_ref()
+            Ref("Genesis 2")
+
+        :return: :class:`Ref`
+        """
         return self.padded_ref().context_ref(self.index_node.depth - 1)
 
     def next_section_ref(self):
+        """
+        Returns a Ref to the next section (e.g. Chapter).
+
+        If this is the last section, returns ``None``
+
+        :return: :class:`Ref`
+        """
         if not self._next:
             self._next = self._iter_text_section()
+            if self._next is None and self.index_node.is_leaf():
+                current_leaf = self.index_node
+                #we now need to iterate over the next leaves, finding the first available section
+                while True:
+                    next_leaf = current_leaf.next_leaf() #next schema/JANode
+                    if next_leaf:
+                        next_node_ref = next_leaf.ref() #get a ref so we can do the next lines
+                        potential_next = next_node_ref._iter_text_section(depth_up=0 if next_leaf.depth == 1 else 1)
+                        if potential_next:
+                            self._next = potential_next
+                            break
+                        current_leaf = next_leaf
+                    else:
+                        self._next = None
+                        break
         return self._next
 
     def prev_section_ref(self):
+        """
+        Returns a Ref to the previous section (e.g. Chapter).
+
+        If this is the first section, returns ``None``
+
+        :return: :class:`Ref`
+        """
         if not self._prev:
             self._prev = self._iter_text_section(False)
+            if self._prev is None and self.index_node.is_leaf():
+                current_leaf = self.index_node
+                #we now need to iterate over the prev leaves, finding the first available section
+                while True:
+                    prev_leaf = current_leaf.prev_leaf() #prev schema/JANode
+                    if prev_leaf:
+                        prev_node_ref = prev_leaf.ref() #get a ref so we can do the next lines
+                        potential_prev = prev_node_ref._iter_text_section(forward=False, depth_up=0 if prev_leaf.depth == 1 else 1)
+                        if potential_prev:
+                            self._prev = potential_prev
+                            break
+                        current_leaf = prev_leaf
+                    else:
+                        self._prev = None
+                        break
         return self._prev
 
     def recalibrate_next_prev_refs(self, add_self=True):
+        """
+        Internal. Called when a section is inserted or deleted.
+
+        :param add_self:
+        :return: None
+        """
         next_ref = self.next_section_ref()
         prev_ref = self.prev_section_ref()
         if next_ref:
@@ -2398,38 +2255,138 @@ class Ref(object):
         if prev_ref:
             prev_ref._next = self if add_self else next_ref
 
+    def prev_segment_ref(self):
+        """
+        Returns a ref to the next previous populated segment
+        If this ref is not segment level, will return `self`
+        :return:
+        """
+        r = self.starting_ref()
+        if not r.is_segment_level():
+            return r
+        if r.sections[-1] > 1:
+            d = r._core_dict()
+            d["sections"] = d["toSections"] = r.sections[:-1] + [r.sections[-1] - 1]
+            return Ref(_obj=d)
+        else:
+            r = r.prev_section_ref()
+            if not r:
+                return None
+            d = r._core_dict()
+            newSections = r.sections + [self.get_state_ja().sub_array_length([i - 1 for i in r.sections])]
+            d["sections"] = d["toSections"] = newSections
+            return Ref(_obj=d)
+
+    def next_segment_ref(self):
+        """
+        Returns a ref to the next populated segment
+        If this ref is not segment level, will return `self`
+        :return:
+        """
+        r = self.ending_ref()
+        if not r.is_segment_level():
+            return r
+        sectionRef = r.section_ref()
+        sectionLength = self.get_state_ja().sub_array_length([i - 1 for i in sectionRef.sections])
+        if r.sections[-1] < sectionLength:
+            d = r._core_dict()
+            d["sections"] = d["toSections"] = r.sections[:-1] + [r.sections[-1] + 1]
+            return Ref(_obj=d)
+        else:
+            return r.next_section_ref().subref(1)
+
+    def last_segment_ref(self):
+        """
+        Returns the last segment in the current book (or complex book part).
+        Not to be confused with `ending_ref()`
+        :return:
+        """
+        o = self._core_dict()
+        o["sections"] = o["toSections"] = [i + 1 for i in self.get_state_ja().last_index(self.index_node.depth)]
+        return Ref(_obj=o)
+
+    def first_available_section_ref(self):
+        """
+        Returns a Ref of the first section inside of or following this Ref that has some content.
+        Returns None if self is empty and now following Ref has content.
+        :return: :class:`Ref`
+        """
+        if isinstance(self.index_node, JaggedArrayNode):
+            r = self.padded_ref()
+        elif isinstance(self.index_node, SchemaNode):
+            nodes = self.index_node.get_leaf_nodes()
+            if not len(nodes):
+                return None
+            r = nodes[0].ref().padded_ref()
+        else:
+            return None
+
+        return r.next_section_ref() if r.is_empty() else r
+
+
     #Don't store results on Ref cache - state objects change, and don't yet propogate to this Cache
     def get_state_node(self):
+        """
+        :return: :class:`sefaria.model.version_state.StateNode`
+        """
         from . import version_state
         return version_state.VersionState(self.book).state_node(self.index_node)
 
     def get_state_ja(self, lang="all"):
+        """
+        :param lang: "all", "he", or "en"
+        :return: :class:`sefaria.datatype.jagged_array`
+        """
         return self.get_state_node().ja(lang)
 
     def is_text_fully_available(self, lang):
         """
-	    Returns True if at least one complete version of ref is available in lang.
-    	"""
-        sja = self.get_state_ja(lang)
-        subarray = sja.subarray_with_ref(self)
-        return subarray.is_full()
+        :param lang: "he" or "en"
+        :return: True if at least one complete version of ref is available in lang.
+        """
+        if self.is_section_level() or self.is_segment_level():
+            # Using mongo queries to slice and merge versions 
+            # is much faster than actually using the Version State doc
+            text = self.text(lang=lang).text
+            return bool(len(text) and all(text))
+        else:
+            sja = self.get_state_ja(lang)
+            subarray = sja.subarray_with_ref(self)
+            return subarray.is_full()
 
     def is_text_translated(self):
+        """
+        :return: True if at least one complete version of ref is available in English.
+        """
         return self.is_text_fully_available("en")
+
+    def is_empty(self):
+        """
+        Checks if Ref has any versions for it
+        :return: Bool True is there is not text at this ref in any language
+        """
+        return not len(self.versionset())
 
     def _iter_text_section(self, forward=True, depth_up=1):
         """
-        Used to iterate forwards or backwards to the next available ref in a text
-        :param pRef: the ref object
-        :param dir: direction to iterate
+        Iterate forwards or backwards to the next available ref in a text
+
+        :param forward: Boolean indicating direction to iterate
         :depth_up: if we want to traverse the text at a higher level than most granular. defaults to one level above
-        :return: a ref
+        
+        :return: :class:`Ref`
         """
         if self.index_node.depth <= depth_up:  # if there is only one level of text, don't even waste time iterating.
             return None
 
         #arrays are 0 based. text sections are 1 based. so shift the numbers back.
-        starting_points = [s - 1 for s in self.sections[:self.index_node.depth - depth_up]]
+        if not forward:
+            # Going backward, start from begginning of Ref
+            starting_points = [s - 1 for s in self.sections[:self.index_node.depth - depth_up]]
+        else:
+            # Going forward start form end of Ref
+            starting_points = [s - 1 for s in self.toSections[:self.index_node.depth - depth_up]]
+
 
         #start from the next one
         if len(starting_points) > 0:
@@ -2447,21 +2404,88 @@ class Ref(object):
         else:
             return None
 
-    def subref(self, subsection):
-        assert self.index_node.depth > len(self.sections), u"Tried to get subref of bottom level ref: {}".format(self.normal())
+    def to(self, toref):
+        """
+        Return a reference that begins at this Ref, and ends at toref
+
+        :param toref: Ref that denotes the end of the new ref
+        :return: :class:`Ref`
+        """
+        assert self.book == toref.book
+        d = self._core_dict()
+        d["toSections"] = toref.toSections[:]
+        return Ref(_obj=d)
+
+    def subref(self, subsections):
+        """
+        Returns a more specific reference than the current Ref
+
+        :param subsection: int or list - the subsection(s) of the current Ref
+        :return: :class:`Ref`
+        """
+        if isinstance(subsections, int):
+            subsections = [subsections]
+        assert self.index_node.depth >= len(self.sections) + len(subsections), u"Tried to get subref of bottom level ref: {}".format(self.normal())
         assert not self.is_range(), u"Tried to get subref of ranged ref".format(self.normal())
 
         d = self._core_dict()
-        d["sections"] += [subsection]
-        d["toSections"] += [subsection]
+        d["sections"] += subsections
+        d["toSections"] += subsections
         return Ref(_obj=d)
+
+    def subrefs(self, length):
+        """
+        :param length: Number of subrefs to return
+        Return a list of :class:`Ref`s one level deeper than this :class:`Ref`, from 1 to `length`.
+
+        ::
+
+            >>> Ref("Genesis").subrefs(4)
+            [Ref('Genesis 1'),
+             Ref('Genesis 2'),
+             Ref('Genesis 3'),
+             Ref('Genesis 4')]
+
+        :return: List of :class:`Ref`
+        """
+        l = []
+        for i in range(length):
+            l.append(self.subref(i + 1))
+        return l
+
+    def all_subrefs(self):
+        """
+        Return a list of all the valid :class:`Ref`s one level deeper than this :class:`Ref`.
+
+        ::
+
+            >>> Ref("Genesis").all_subrefs()
+            [Ref('Genesis 1'),
+             Ref('Genesis 2'),
+             Ref('Genesis 3'),
+             Ref('Genesis 4'),
+             ...]
+
+        :return: List of :class:`Ref`
+        """
+        assert not self.is_range(), "Ref.all_subrefs() is not intended for use on Ranges"
+
+        size = self.get_state_ja().sub_array_length([i - 1 for i in self.sections])
+        return self.subrefs(size)
 
     def context_ref(self, level=1):
         """
-        :return: Ref object that is more general than this Ref.
-        * level: how many levels to 'zoom out' from the most specific possible ref
-            e.g., with context=1, "Genesis 4:5" -> "Genesis 4"
-        This does not change a refernce that is less specific than or equally specific to the level given
+        :return: :class:`Ref` that is more general than this Ref.
+        :param level: how many levels to 'zoom out' from the most specific possible ref
+
+        ::
+
+            >>> Ref("Genesis 4:5").context_ref(level = 1)
+            Ref("Genesis 4")
+            >>> Ref("Genesis 4:5").context_ref(level = 2)
+            Ref("Genesis")
+
+        If the given Ref is less specific than or equally specific to the level given, it is returned as-is.
         """
         if level == 0:
             return self
@@ -2480,9 +2504,20 @@ class Ref(object):
 
     def padded_ref(self):
         """
-        :return: Ref object with 1s inserted to make the ref specific to the section level
-        e.g.: "Genesis" --> "Genesis 1"
-        This does not change a reference that is specific to the section or segment level.
+        :return: :class:`Ref` with 1s inserted to make the ref specific to the section level
+
+        ::
+
+            >>> Ref("Genesis").padded_ref()
+            Ref("Genesis 1")
+
+        If this given Ref is already specific to the section or segment level, it is returned unchanged.
+
+        ::
+
+            >>> Ref("Genesis 1").padded_ref()
+            Ref("Genesis 1")
+
         """
         if not self._padded:
             if not getattr(self, "index_node", None):
@@ -2502,11 +2537,52 @@ class Ref(object):
             self._padded = Ref(_obj=d)
         return self._padded
 
+    def first_spanned_ref(self):
+        """
+        Returns the first section portion of a spanning reference.
+        Designed to cut the wasted cost of running ref.split_spanning_ref[0]
+
+        >>> Ref("Shabbat 6b-9a").first_spanned_ref()
+        Ref('Shabbat 6b')
+        >>> Ref("Shabbat 6b.12-9a.7").first_spanned_ref()
+        Ref('Shabbat 6b:12-47')
+
+        :return: :py:class:`Ref`
+        """
+        if not self._first_spanned_ref:
+
+            if self._spanned_refs:
+                self._first_spanned_ref = self._spanned_refs[0]
+
+            elif self.index_node.depth == 1 or not self.is_spanning():
+                self._first_spanned_ref = self
+
+            else:
+                ref_depth = len(self.sections)
+
+                d = self._core_dict()
+                d["toSections"] = self.sections[0:self.range_index() + 1]
+                for i in range(self.range_index() + 1, ref_depth):
+                    d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
+
+                r = Ref(_obj=d)
+                if self.range_depth() > 2:
+                    self._first_spanned_ref = r.first_spanned_ref()
+                else:
+                    self._first_spanned_ref = r
+
+        return self._first_spanned_ref
+
     def split_spanning_ref(self):
         """
-        Returns a list of refs that do not span sections which corresponds
-        to the spanning ref in pRef.
-        Shabbat 13b-14b -> ["Shabbat 13b", "Shabbat 14a", "Shabbat 14b"]
+        :return: List of non-spanning :class:`Ref` objects which completely cover the area of this Ref
+
+        ""
+
+            >>> Ref("Shabbat 13b-14b").split_spanning_ref()
+            [Ref("Shabbat 13b"), Ref("Shabbat 14a"), Ref("Shabbat 14b")]
+            >>> Ref("Shabbat 13b:3 - 14b:3").split_spanning_ref()
+            [Ref('Shabbat 13b:3-50'), Ref('Shabbat 14a'), Ref('Shabbat 14b:1-3')]
 
         """
         if not self._spanned_refs:
@@ -2533,9 +2609,14 @@ class Ref(object):
                         d["sections"] = self.sections[0:self.range_index()] + [n]
                         d["toSections"] = self.sections[0:self.range_index()] + [n]
 
-                        for i in range(self.range_index() + 1, ref_depth):
-                            d["sections"] += [1]
-                            d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
+                        '''  If we find that we need to expand inner refs, add this arg.
+                        # It will require handling on cached ref and passing on the recursive call below.
+                        if expand_middle:
+                            for i in range(self.range_index() + 1, ref_depth):
+                                d["sections"] += [1]
+                                d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
+                        '''
+
                     if d["toSections"][-1]:  # to filter out, e.g. non-existant Rashi's, where the last index is 0
                         refs.append(Ref(_obj=d))
 
@@ -2551,7 +2632,8 @@ class Ref(object):
 
     def range_list(self):
         """
-        Returns a list of refs corresponding to each point in the range of refs
+        :return: list of :class:`Ref` objects corresponding to each point in the range of this Ref
+
         Does not work for spanning refs
         """
         if not self._ranged_refs:
@@ -2572,62 +2654,269 @@ class Ref(object):
             self._ranged_refs = results
         return self._ranged_refs
 
-    def regex(self):
+    def regex(self, as_list=False):
         """
-        Returns a string for a Regular Expression which will find any refs that match
-        'ref' exactly, or more specificly than 'ref'
+        :return string: for a Regular Expression which will find any refs that match this Ref exactly, or more specifically.
+
         E.g., "Genesis 1" yields an RE that match "Genesis 1" and "Genesis 1:3"
         """
         #todo: explore edge cases - book name alone, full ref to segment level
+        #todo: move over to the regex methods of the index nodes
         patterns = []
-        if self.is_spanning():
-            s_refs = self.split_spanning_ref()
-            normals = []
-            for s_ref in s_refs:
-                normals += [r.normal() for r in s_ref.range_list()]
-        elif self.is_range():
-            normals = [r.normal() for r in self.range_list()]
+
+        if self.is_range():
+            if self.is_spanning():
+                s_refs = self.split_spanning_ref()
+                normals = []
+                for s_ref in s_refs:
+                    normals += [r.normal() for r in s_ref.range_list()]
+            else:
+                normals = [r.normal() for r in self.range_list()]
+
+            for r in normals:
+                sections = re.sub("^%s" % re.escape(self.book), '', r)
+                patterns.append("%s$" % sections)   # exact match
+                patterns.append("%s:" % sections)   # more granualar, exact match followed by :
+                patterns.append("%s \d" % sections) # extra granularity following space
         else:
-            normals = [self.normal()]
-
-        for r in normals:
-            sections = re.sub("^%s" % re.escape(self.book), '', r)
+            sections = re.sub("^%s" % re.escape(self.book), '', self.normal())
             patterns.append("%s$" % sections)   # exact match
-            patterns.append("%s:" % sections)   # more granualar, exact match followed by :
-            patterns.append("%s \d" % sections) # extra granularity following space
+            if self.index_node.has_titled_continuation():
+                patterns.append(u"{}({}).".format(sections, u"|".join(self.index_node.title_separators)))
+            elif self.index_node.has_numeric_continuation():
+                patterns.append("%s:" % sections)   # more granualar, exact match followed by :
+                patterns.append("%s \d" % sections) # extra granularity following space
 
-        return "^%s(%s)" % (re.escape(self.book), "|".join(patterns))
+        escaped_book = re.escape(self.book)
+        if as_list:
+            return ["^{}{}".format(escaped_book, p) for p in patterns]
+        else:
+            return "^%s(%s)" % (escaped_book, "|".join(patterns))
+
+    """ Comparisons """
+    def overlaps(self, other):
+        """
+        Does this Ref overlap ``other`` Ref?
+
+        :param other:
+        :return bool:
+        """
+        assert isinstance(other, Ref)
+        if not self.index_node == other.index_node:
+            return False
+
+        return not (self.precedes(other) or self.follows(other))
+
+    def contains(self, other):
+        """
+        Does this Ref completely contain ``other`` Ref?
+
+        :param other:
+        :return bool:
+        """
+        assert isinstance(other, Ref)
+        if not self.index_node == other.index_node:
+            return False
+
+        return (
+            (not self.starting_ref().follows(other.starting_ref()))
+            and
+            (not self.ending_ref().precedes(other.ending_ref()))
+        )
+
+    def precedes(self, other):
+        """
+        Does this Ref completely precede ``other`` Ref?
+
+        :param other:
+        :return bool:
+        """
+        assert isinstance(other, Ref)
+        if not self.index_node == other.index_node:
+            return False
+
+        my_end = self.ending_ref()
+        other_start = other.starting_ref()
+
+        smallest_section_len = min([len(my_end.sections), len(other_start.sections)])
+
+        # Bare book references never precede or follow
+        if smallest_section_len == 0:
+            return False
+
+        # Compare all but last section
+        for i in range(smallest_section_len - 1):
+            if my_end.sections[i] < other_start.sections[i]:
+                return True
+            if my_end.sections[i] > other_start.sections[i]:
+                return False
+
+        # Compare last significant section
+        if my_end.sections[smallest_section_len - 1] < other_start.sections[smallest_section_len - 1]:
+            return True
+
+        return False
+
+    def follows(self, other):
+        """
+        Does this Ref completely follow ``other`` Ref?
+
+        :param other:
+        :return bool:
+        """
+        assert isinstance(other, Ref)
+        if not self.index_node == other.index_node:
+            return False
+
+        my_start = self.starting_ref()
+        other_end = other.ending_ref()
+
+        smallest_section_len = min([len(my_start.sections), len(other_end.sections)])
+
+        # Bare book references never precede or follow
+        if smallest_section_len == 0:
+            return False
+
+        # Compare all but last section
+        for i in range(smallest_section_len - 1):
+            if my_start.sections[i] > other_end.sections[i]:
+                return True
+            if my_start.sections[i] < other_end.sections[i]:
+                return False
+
+        # Compare last significant section
+        if my_start.sections[smallest_section_len - 1] > other_end.sections[smallest_section_len - 1]:
+            return True
+
+        return False
+
+    def in_terms_of(self, other):
+        """
+        Returns the current reference sections in terms of another, containing reference.
+
+        Returns an array of ordinal references, not array indexes.  (Meaning first is 1)
+
+        Must be called on a point Reference, not a range
+
+        ""
+
+            >>> Ref("Genesis 6:3").in_terms_of("Genesis 6")
+            [3]
+            >>> Ref("Genesis 6:3").in_terms_of("Genesis")
+            [6,3]
+            >>> Ref("Genesis 6:3").in_terms_of("Genesis 6-7")
+            [1,3]
+            >>> Ref("Genesis 6:8").in_terms_of("Genesis 6:3-7:3")
+            [1, 6]
+
+        :param other: :class:`Ref`
+        :return: array of indexes
+
+        """
+
+        #What's best behavior for these cases?
+        assert isinstance(other, Ref)
+        if not self.index_node == other.index_node:
+            return None
+
+        if self.is_range():
+            raise Exception("Ref.in_terms_of() called on ranged Ref: {}".format(self))
+
+        if not other.contains(self):
+            return None
+
+        ret = []
+
+        if not other.is_range():
+            ret = self.sections[len(other.sections):]
+        else:
+            for i in range(other.range_index(), self.index_node.depth):
+                ret.append(self.sections[i] + 1 - other.sections[i])
+                if other.sections[i] != self.sections[i] or len(other.sections) <= i + 1:
+                    ret += self.sections[i + 1:]
+                    break
+        return ret
+
+    def order_id(self):
+        """
+        Returns a unique id for this reference that establishes an ordering of references across the whole catalog.
+        This id will change as the ordering of the catalog changes, and may begin to overlap with other numbers because of those changes.
+        However, at any point in time these ids will be unique across the catalog.
+        Used to sort results from ElasticSearch queries
+
+        :return string:
+        """
+        #Todo: handle complex texts.  Right now, all complex results are grouped under the root of the text
+        from sefaria.summaries import category_id_dict
+
+        cats = self.index.categories[:]
+        if len(cats) >= 1 and cats[0] == "Commentary":
+            cats = cats[1:2] + ["Commentary"] + cats[2:]
+
+        key = "/".join(cats + [self.index.title])
+        try:
+            base = category_id_dict()[key]
+            res = reduce(lambda x, y: x + format(y, '04'), self.sections, base)
+            if self.is_range():
+                res = reduce(lambda x, y: x + format(y, '04'), self.toSections, res + "-")
+            return res
+        except Exception as e:
+            logger.warning("Failed to execute order_id for {} : {}".format(self, e))
+            return "Z"
 
     """ Methods for working with Versions and VersionSets """
     def storage_address(self):
+        """
+        Return the storage location within a Version for this Ref.
+
+        :return string:
+        """
         return ".".join(["chapter"] + self.index_node.address()[1:])
 
     def part_projection(self):
         """
         Returns the slice and storage address to return top-level sections for Versions of this ref
+
         Used as:
+
+        ::
+
             Version().load({...},oref.part_projection())
-        :return:
+
+        **Regarding projecting complex texts:**
+        *I do not think that there is a way, with a simple projection, to both limit to a dictionary to a particular leaf and get a slice of that same leaf.
+        It is possible with the aggregation pipeline.
+        With complex texts, we trade off a bit of speed for consistency, and slice just the array that we are concerned with.*
         """
-        # todo: special case string 0
-        if self.index_node.depth <= 1 or not self.sections:
+        # todo: reimplement w/ aggregation pipeline (see above)
+        # todo: special case string 0?
+        if not self.sections:
             return {"_id": 0}
         else:
             skip = self.sections[0] - 1
-            limit = 1 if not self.is_spanning() else self.toSections[0] - self.sections[0] + 1
+            limit = 1 if self.range_index() > 0 else self.toSections[0] - self.sections[0] + 1
             slce = {"$slice": [skip, limit]}
             return {"_id": 0, self.storage_address(): slce}
 
     def condition_query(self, lang=None):
         """
-        Return condition to select only versions with content in the place that we're selecting.
-        Used as:
-            VersionSet({"title": oref.book}.update(oref.condition_query()),
-                            proj={"_id": 0, storage_addr: slce})
-        :return:
+        Return condition to select only versions with content at the location of this Ref.
+        Usage:
+
+        ::
+
+            VersionSet(oref.condition_query(lang))
+
+        Can be combined with Ref.part_projection() to only return the content indicated by this ref:
+
+        ::
+
+            VersionSet(oref.condition_query(lang), proj=oref.part_projection())
+
+        :return: dict containing a query in the format expected by VersionSet
         """
         d = {
-            "title": self.book,
+            "title": self.index.title,
         }
         if lang:
             d.update({"language": lang})
@@ -2663,11 +2952,19 @@ class Ref(object):
         return d
 
     def versionset(self, lang=None):
+        """
+        :class:`VersionsSet` of :class:`Version` objects that have content for this Ref in lang
+
+        :param lang: "he", "en", or None
+        :return: :class:`VersionSet`
+        """
         return VersionSet(self.condition_query(lang))
 
     def version_list(self):
         """
-        Returns a list of available text versions matching this ref
+        A list of available text versions titles and languages matching this ref
+
+        :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
         vlist = []
         for v in self.versionset():
@@ -2679,10 +2976,10 @@ class Ref(object):
 
     """ String Representations """
     def __str__(self):
-        return self.normal()
+        return self.uid()
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
-        return self.__class__.__name__ + "('" + str(self.normal()) + "')"
+        return self.__class__.__name__ + "('" + str(self.uid()) + "')"
 
     def old_dict_format(self):
         """
@@ -2700,69 +2997,79 @@ class Ref(object):
         del d["title"]
         return d
 
-    def he_normal(self):
-        if not self._he_normal:
+    def he_book(self):
+        return self.index.get_title(lang="he")
 
-            self._he_normal = self.index_node.full_title("he")
-            if not self._he_normal:  # Missing Hebrew titles
-                self._he_normal = self.normal()
-                return self._he_normal
-
-            if self.type == "Commentary" and not getattr(self.index, "commentaryCategories", None):
-                return self._he_normal
-
-            elif self.is_talmud():
-                self._he_normal += u" " + section_to_daf(self.sections[0], lang="he") if len(self.sections) > 0 else ""
-                self._he_normal += u" " + u" ".join([unicode(s) for s in self.sections[1:]]) if len(self.sections) > 1 else ""
-
+    def _get_normal(self, lang):
+        normal = self.index_node.full_title(lang)
+        if not normal:
+            if lang != "en":
+                return self.normal()
             else:
-                sects = u":".join([encode_hebrew_numeral(s) for s in self.sections])
-                if len(sects):
-                    self._he_normal += u" " + sects
+                raise InputError("Failed to get English normal form for ref")
 
-            for i in range(len(self.sections)):
-                if not self.sections[i] == self.toSections[i]:
-                    if self.is_talmud():
-                        if i == 0:
-                            self._he_normal += u"-{}".format((u" ".join([unicode(s) for s in [section_to_daf(self.toSections[0], lang="he")] + self.toSections[i + 1:]])))
-                        else:
-                            self._he_normal += u"-{}".format((u" ".join([unicode(s) for s in self.toSections[i:]])))
-                    else:
-                        self._he_normal += u"-{}".format(u":".join([encode_hebrew_numeral(s) for s in self.toSections[i:]]))
-                    break
+        if len(self.sections) == 0:
+            return normal
 
+        if self.type == "Commentary" and not getattr(self.index, "commentaryCategories", None):
+            return normal
+
+        normal += u" "
+
+        normal += u":".join(
+            [self.index_node.address_class(i).toStr(lang, n) for i, n in enumerate(self.sections)]
+        )
+
+        for i in range(len(self.sections)):
+            if not self.sections[i] == self.toSections[i]:
+                normal += u"-{}".format(
+                    u":".join(
+                        [self.index_node.address_class(i + j).toStr(lang, n) for j, n in enumerate(self.toSections[i:])]
+                    )
+                )
+                break
+
+        return normal
+
+    def he_normal(self):
+        """
+        :return string: Normal Hebrew string form
+        """
+        '''
+            18 June 2015: Removed the special casing for Hebrew Talmud sub daf numerals
+            Previously, talmud lines had been normalised as arabic numerals
+        '''
+        if not self._he_normal:
+            self._he_normal = self._get_normal("he")
         return self._he_normal
 
+    def uid(self):
+        """
+        To handle the fact that default nodes have the same name as their parents
+        :return:
+        """
+        return self.normal() + ("<d>" if self.index_node.is_default() else "")
+
     def normal(self):
+        """
+        :return string: Normal English string form
+        """
         if not self._normal:
-            self._normal = self.book
-
-            if self.type == "Commentary" and not getattr(self.index, "commentaryCategories", None):
-                return self._normal
-
-            elif self.is_talmud():
-                self._normal += " " + section_to_daf(self.sections[0]) if len(self.sections) > 0 else ""
-                self._normal += ":" + ":".join([str(s) for s in self.sections[1:]]) if len(self.sections) > 1 else ""
-
-            else:
-                sects = ":".join([str(s) for s in self.sections])
-                if len(sects):
-                    self._normal += " " + sects
-
-            for i in range(len(self.sections)):
-                if not self.sections[i] == self.toSections[i]:
-                    if i == 0 and self.is_talmud():
-                        self._normal += "-{}".format((":".join([str(s) for s in [section_to_daf(self.toSections[0])] + self.toSections[i + 1:]])))
-                    else:
-                        self._normal += "-{}".format(":".join([str(s) for s in self.toSections[i:]]))
-                    break
-
+            self._normal = self._get_normal("en")
         return self._normal
 
     def text(self, lang="en", vtitle=None):
+        """
+        :param lang: "he" or "en"
+        :param vtitle: optional. text title of the Version to get the text from
+        :return: :class:`TextChunk` corresponding to this Ref
+        """
         return TextChunk(self, lang, vtitle)
 
     def url(self):
+        """
+        :return string: normal url form
+        """
         if not self._url:
             self._url = self.normal().replace(" ", "_").replace(":", ".")
 
@@ -2776,8 +3083,10 @@ class Ref(object):
                 self._url = "".join(lref)
         return self._url
 
-
     def noteset(self, public=True, uid=None):
+        """
+        :return: :class:`NoteSet` for this Ref
+        """
         from . import NoteSet
         if public and uid:
             query = {"ref": {"$regex": self.regex()}, "$or": [{"public": True}, {"owner": uid}]}
@@ -2791,77 +3100,137 @@ class Ref(object):
         return NoteSet(query)
 
     def linkset(self):
+        """
+        :return: :class:`LinkSet` for this Ref
+        """
         from . import LinkSet
         return LinkSet(self)
 
 
 class Library(object):
     """
-    A highest level class, for methods that work across the entire collection of texts.
-    This is instanciated once, and essentially works as a singleton.
+    Operates as a singleton, through the instance called ``library``.
+
+    Has methods that work across the entire collection of texts.
+
     Perhaps in the future, there will be multiple libraries...
     """
 
     local_cache = {}
 
-    #WARNING: Do NOT put the compiled re2 object into redis.  It gets corrupted.
-    def all_titles_regex(self, lang="en", commentary=False):
-        """
-        A regular expression that will match any known title in the library in the provided language
-        Uses re2 if available.  See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines
-        :param lang: "en" or "he"
-        :param commentary bool: Default False.  If True, matches commentary records only.  If False matches simple records only.
-        :return: regex object
-        :raise InputError: if lang == "he" and commentary == True
-        """
-        key = "all_titles_regex_" + lang
+    def all_titles_regex_string(self, lang="en", commentary=False, with_terms=False, for_js=False):
+        key = "all_titles_regex_string" + lang
         key += "_commentary" if commentary else ""
-        reg = self.local_cache.get(key)
-        if not reg:
-            simple_books = map(re.escape, self.full_title_list(lang, with_commentators=False))
-            simple_book_part = u'|'.join(sorted(simple_books, key=len, reverse=True))  # Match longer titles first
+        key += "_terms" if with_terms else ""
+        key += "_js" if for_js else ""
+        re_string = self.local_cache.get(key)
+        if not re_string:
+            re_string = u""
+            simple_books = map(re.escape, self.full_title_list(lang, with_commentators=False, with_terms=with_terms))
+            simple_book_part = ur'|'.join(sorted(simple_books, key=len, reverse=True))  # Match longer titles first
 
-            reg = u'(?P<title>'
+            re_string += ur'(?:^|[ ([{>,-]+)' if for_js else u''  # Why don't we check for word boundaries internally as well?
+            re_string += ur'(?:\u05d5?(?:\u05d1|\u05de|\u05dc|\u05e9|\u05d8|\u05d8\u05e9)?)' if for_js and lang == "he" else u'' # likewise leading characters in Hebrew?
+            re_string += ur'(' if for_js else ur'(?P<title>'
             if not commentary:
-                reg += simple_book_part
+                re_string += simple_book_part
             else:
                 if lang == "he":
                     raise InputError("No support for Hebrew Commentatory Ref Objects")
-                first_part = u'|'.join(map(re.escape, self.get_commentator_titles(with_variants=True)))
-                reg += u"(?P<commentor>" + first_part + u") on (?P<commentee>" + simple_book_part + u")"
-            reg += u')'
-            reg += ur'($|[:., ]+)'
+                first_part = ur'|'.join(map(re.escape, self.get_commentator_titles(with_variants=True)))
+                if for_js:
+                    re_string += ur"(" + first_part + ur") on (" + simple_book_part + ur")"
+                else:
+                    re_string += ur"(?P<commentor>" + first_part + ur") on (?P<commentee>" + simple_book_part + ur")"
+            re_string += ur')'
+            re_string += ur'($|[:., <]+)'
+            self.local_cache[key] = re_string
+
+        return re_string
+
+    #WARNING: Do NOT put the compiled re2 object into redis.  It gets corrupted.
+    def all_titles_regex(self, lang="en", commentary=False, with_terms=False):
+        """
+        :return: A regular expression object that will match any known title in the library in the provided language
+        :param lang: "en" or "he"
+        :param bool commentary: Default False.  If True, matches commentary records only.  If False matches simple records only.
+        :param bool with_terms: Default False.  If True, include shared titles ('terms')
+        :raise: InputError: if lang == "he" and commentary == True
+
+        Uses re2 if available.  See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines
+
+
+        """
+        key = "all_titles_regex_" + lang
+        key += "_commentary" if commentary else ""
+        key += "_terms" if with_terms else ""
+        reg = self.local_cache.get(key)
+        if not reg:
+            re_string = self.all_titles_regex_string(lang, commentary, with_terms)
             try:
-                reg = re.compile(reg, max_mem= 256 * 1024 * 1024)
+                reg = re.compile(re_string, max_mem=256 * 1024 * 1024)
             except TypeError:
-                reg = re.compile(reg)
+                reg = re.compile(re_string)
             self.local_cache[key] = reg
         return reg
 
-    def full_title_list(self, lang="en", with_commentators=True, with_commentary=False):
-        """ Returns a list of strings of all possible titles, including maps
-        If with_commentators is True, includes the commentator names, with variants, but not the cross-product with books.
-        If with_commentary is True, includes all existing "X on Y" type commentary records
+    def full_title_list(self, lang="en", with_commentators=True, with_commentary=False, with_terms=False):
         """
+        :return: list of strings of all possible titles
+        :param lang: "he" or "en"
+        :param with_commentators: if True, includes the commentator names, with variants, but not the cross-product with books.
+        :param with_commentary: if True, includes all existing "X on Y" type commentary records
+        :param with_terms: if True, includes shared titles ('terms')
+        """
+
         key = "full_title_list_" + lang
         key += "_commentators" if with_commentators else ""
         key += "_commentary" if with_commentary else ""
+        key += "_terms" if with_terms else ""
         titles = scache.get_cache_elem(key)
         if not titles:
             titles = self.get_title_node_dict(lang, with_commentary=with_commentary).keys()
-            titles += self.get_map_dict().keys()
+            if with_terms:
+                titles += self.get_term_dict(lang).keys()
             if with_commentators:
                 titles += self.get_commentator_titles(lang, with_variants=True)
             scache.set_cache_elem(key, titles)
         return titles
 
     def ref_list(self):
+        """
+        :return: list of all section-level Refs in the library
+        """
         from version_state import VersionStateSet
-        return [r.normal() for r in VersionStateSet().all_refs()]
+        return VersionStateSet().all_refs()
 
-    #todo: how do we handle language here?
+    def get_term_dict(self, lang="en"):
+        """
+        :return: dict of shared titles that have an explicit ref
+        :param lang: "he" or "en"
+        """
+        key = "term_dict_" + lang
+        term_dict = self.local_cache.get(key)
+        if not term_dict:
+            term_dict = scache.get_cache_elem(key)
+            self.local_cache[key] = term_dict
+        if not term_dict:
+            term_dict = {}
+            terms = TermSet({"$and":[{"ref": {"$exists":True}},{"ref":{"$nin":["",[]]}}]})
+            for term in terms:
+                for title in term.get_titles(lang):
+                    term_dict[title] = term.ref
+            scache.set_cache_elem(key, term_dict)
+            self.local_cache[key] = term_dict
+        return term_dict
+
+    #todo: retire me
     def get_map_dict(self):
-        """ Returns a dictionary of maps - {from: to} """
+        """
+        :return: dictionary of maps - {from: to}
+
+        DEPRECATED
+        """
         maps = {}
         for i in IndexSet():
             if i.is_commentary():
@@ -2870,24 +3239,24 @@ class Library(object):
                 maps[m["from"]] = m["to"]
         return maps
 
-    # todo: commentary nodes - hairy because right now there's the JA assumption on commentary nodes
-    # should be able to use get_index_forest(with_commentary=True)
     def get_content_nodes(self, with_commentary=False):
         """
         :return: list of all content nodes in the library
+        :param bool with_commentary: If True, returns "X on Y" type titles as well
         """
         nodes = []
         forest = self.get_index_forest(with_commentary=with_commentary)
         for tree in forest:
-            nodes += tree.get_content_nodes()
+            nodes += tree.get_leaf_nodes()
         return nodes
 
-    def get_index_forest(self, titleBased = False, with_commentary=False):
+    def get_index_forest(self, with_commentary=False):
         """
-        Returns a list of root Index nodes.
-        :param titleBased: If true, texts with presentation 'alone' are passed as root level nodes
+        :return: list of root Index nodes.
+        :param bool with_commentary: If True, returns "X on Y" type titles as well
         """
         root_nodes = []
+        #todo: speed: does it matter that this skips the index cache?
         for i in IndexSet():
             if i.is_commentary():
                 continue
@@ -2895,20 +3264,24 @@ class Library(object):
         if with_commentary:
             ctitles = self.get_commentary_version_titles()
             for title in ctitles:
-                i = get_index(title)
-                root_nodes.append(i.nodes)
-        if titleBased:
-            #todo: handle 'alone' nodes
-            pass
+                try:
+                    i = get_index(title)
+                    root_nodes.append(i.nodes)
+
+                # TEMPORARY - filter out complex texts
+                except BookNameError:
+                    pass
+                # End TEMPORARY
 
         return root_nodes
 
     def get_title_node_dict(self, lang="en", with_commentary=False):
         """
-        Returns a dictionary of string titles and the nodes that they point to.
-        Does not include any map names.
-        Does not include commentator names.
-        If with_commentary is set, includes "X on Y" types nodes
+        :param lang: "he" or "en"
+        :param bool with_commentary: if true, includes "X on Y" types nodes
+        :return:  dictionary of string titles and the nodes that they point to.
+
+        Does not include bare commentator names, like *Rashi*.
         """
         key = "title_node_dict_" + lang
         key += "_commentary" if with_commentary else ""
@@ -2918,26 +3291,30 @@ class Library(object):
             self.local_cache[key] = title_dict
         if not title_dict:
             title_dict = {}
-            trees = self.get_index_forest(titleBased=True, with_commentary=with_commentary)
+            trees = self.get_index_forest(with_commentary=with_commentary)
             for tree in trees:
-                title_dict.update(tree.title_dict(lang))
+                try:
+                    title_dict.update(tree.title_dict(lang))
+                except IndexSchemaError as e:
+                    logger.error(u"Error in generating title node dictionary: {}".format(e))
             scache.set_cache_elem(key, title_dict)
             self.local_cache[key] = title_dict
         return title_dict
 
     #todo: handle maps
-    def get_schema_node(self, title, lang=None):
+    def get_schema_node(self, title, lang=None, with_commentary=False):
         """
-        Returns a particular schema node that matches the provided title and language
-        :param title string:
+        :param string title:
         :param lang: "en" or "he"
-        :return:
-        :rtype: SchemaNode
+        :return: a particular SchemaNode that matches the provided title and language
+        :rtype: :class:`sefaria.model.schema.SchemaNode`
         """
         if not lang:
             lang = "he" if is_hebrew(title) else "en"
-        return self.get_title_node_dict(lang).get(title)
+        title = title.replace("_", " ")
+        return self.get_title_node_dict(lang, with_commentary=with_commentary).get(title)
 
+    '''
     #todo: This wants some thought...
     def get_commentary_schema_node(self, title, lang="en"): #only supports "en"
         match = self.all_titles_regex(lang, commentary=True).match(title)
@@ -2945,17 +3322,19 @@ class Library(object):
             title = match.group('title')
             index = get_index(title)
             commentee_node = library.get_schema_node(match.group("commentee"))
-            return JaggedArrayCommentatorNode(index, commentee_node)
+            return JaggedArrayCommentatorNode(commentee_node, index=index)
         return None
+    '''
 
-    def get_text_titles_json(self):
+    def get_text_titles_json(self, lang="en"):
         """
-        Returns JSON of full texts list, keeps cached
+        :return: JSON of full texts list, (cached)
         """
-        if not scache.get_cache_elem('texts_titles_json'):
-            scache.set_cache_elem('texts_titles_json', json.dumps(self.full_title_list(with_commentary=True)))
+        key = 'texts_titles_json' + ("_he" if lang == "he" else "")
+        if not scache.get_cache_elem(key):
+            scache.set_cache_elem(key, json.dumps(self.full_title_list(lang=lang, with_commentary=True)))
 
-        return scache.get_cache_elem('texts_titles_json')
+        return scache.get_cache_elem(key)
 
     def get_text_categories(self):
         """
@@ -2963,10 +3342,26 @@ class Library(object):
         """
         return IndexSet().distinct("categories")
 
-    def get_commentator_titles(self, lang="en", with_variants=False):
+    def get_indexes_in_category(self, category, include_commentary=False, full_records=False):
         """
-        Returns list of commentary titles.  By default returns canonical English commentator titles.
-        :return: List of canonical English commentator titles
+        :param string category: Name of category
+        :param bool include_commentary: If false, does not exludes records of Commentary and Targum
+        :param bool full_records: If True will return the actual :class: 'IndexSet' otherwise just the titles
+        :return: :class:`IndexSet` of :class:`Index` records in the specified category
+        """
+
+        if not include_commentary:
+            q = {"$and": [{"categories": category}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Commentary2"}}, {"categories": {"$ne": "Targum"}}]}
+        else:
+            q = {"categories": category}
+
+        return IndexSet(q) if full_records else IndexSet(q).distinct("title")
+
+    def get_commentator_titles(self, lang="en", with_variants=False, with_commentary2=False):
+        """
+        :param lang: "he" or "en"
+        :param with_variants: If True, includes titles variants along with the primary titles.
+        :return: List of titles
         """
         args = {
             ("en", False): "title",
@@ -2974,40 +3369,68 @@ class Library(object):
             ("he", False): "heTitle",
             ("he", True): "heTitleVariants"
         }
-        return IndexSet({"categories.0": "Commentary"}).distinct(args[(lang, with_variants)])
+        commentators  = IndexSet({"categories.0": "Commentary"}).distinct(args[(lang, with_variants)])
+        if with_commentary2:
+            commentary2   = IndexSet({"categories.0": "Commentary2"}).distinct(args[(lang, with_variants)])
+            commentators  = commentators + [s.split(" on ")[0].split(u" על ")[0] for s in commentary2]
 
-    def get_commentary_version_titles(self, commentators=None):
-        """
-        :return: a list of text titles that exist in the DB which are commentaries.
-        """
-        return self.get_commentary_versions(commentators).distinct("title")
+        return commentators
 
-    def get_commentary_versions(self, commentators=None):
-        """ Returns a VersionSet of commentary texts
+    def get_commentary_versions(self, commentators=None, with_commentary2=False):
+        """
+        :param string|list commentators: A single commentator name, or a list of commentator names.
+        :return: :class:`VersionSet` of :class:`Version` records for the specified commentators
+
+        If no commentators are provided, all commentary Versions will be returned.
         """
         if isinstance(commentators, basestring):
             commentators = [commentators]
         if not commentators:
-            commentators = self.get_commentator_titles()
+            commentators = self.get_commentator_titles(with_commentary2=with_commentary2)
         commentary_re = ur"^({}) on ".format("|".join(commentators))
-        return VersionSet({"title": {"$regex": commentary_re}})
+        query = {"title": {"$regex": commentary_re}}
+        if with_commentary2:
+            # Handle Commentary2 texts that don't have "X on Y" titles (e.g., "Rambam's Introduction to the Mishnah")
+            if not commentators:
+                titles = IndexSet({"categories.0": "Commentary2"}).distinct("title")
+            else:
+                titles = IndexSet({"categories.0": "Commentary2", "categories.2": {"$in": commentators}}).distinct("title")
+            query = {"$or":[query, {"title": {"$in": titles}}]}
+        return VersionSet(query)
 
-    def get_commentary_versions_on_book(self, book=None):
-        """ Return VersionSet of versions that comment on 'book' """
+    def get_commentary_version_titles(self, commentators=None, with_commentary2=False):
+        """
+        :param string|list commentators: A single commentator name, or a list of commentator names.
+        :return: list of titles of :class:`Version` records for the specified commentators
+
+        If no commentators are provided, all commentary Versions will be returned.
+        """
+        return self.get_commentary_versions(commentators, with_commentary2=with_commentary2).distinct("title")
+
+    def get_commentary_versions_on_book(self, book=None, with_commentary2=False):
+        """
+        :param string book: The primary name of a book
+        :return: :class:`VersionSet` of :class:`Version` records that comment on the provided book
+        """
         assert book
-        commentators = self.get_commentator_titles()
+        commentators = self.get_commentator_titles(with_commentary2=with_commentary2)
         commentary_re = ur"^({}) on {}".format("|".join(commentators), book)
         return VersionSet({"title": {"$regex": commentary_re}})
 
-    def get_commentary_version_titles_on_book(self, book):
-        return self.get_commentary_versions_on_book(book).distinct("title")
+    def get_commentary_version_titles_on_book(self, book, with_commentary2=False):
+        """
+        :param string book: The primary name of a book
+        :return: list of titles of :class:`Version` records that comment on the provided book
+        """
+        return self.get_commentary_versions_on_book(book, with_commentary2=with_commentary2).distinct("title")
 
     def get_titles_in_string(self, s, lang=None):
         """
         Returns the titles found in the string.
+
         :param s: The string to search
         :param lang: "en" or "he"
-        :return list:
+        :return list: titles found in the string
         """
         if not lang:
             lang = "he" if is_hebrew(s) else "en"
@@ -3019,24 +3442,58 @@ class Library(object):
 
     def get_refs_in_string(self, st, lang=None):
         """
-        Returns an array of Ref objects derived from string
-        :param st:
-        :return:
+        Returns an list of Ref objects derived from string
+
+        :param string st: the input string
+        :param lang: "he" or "en"
+        :return: list of :class:`Ref` objects
         """
+        # todo: only match titles of content nodes
+
         refs = []
         if lang is None:
             lang = "he" if is_hebrew(st) else "en"
         if lang == "he":
             unique_titles = {title: 1 for title in self.get_titles_in_string(st, lang)}
             for title in unique_titles.iterkeys():
-                res = self._build_all_refs_from_string(title, st)
-                refs += res
+                try:
+                    res = self._build_all_refs_from_string(title, st)
+                except AssertionError as e:
+                    logger.info(u"Skipping Schema Node: {}".format(title))
+                else:
+                    refs += res
         else:  # lang == "en"
             for match in self.all_titles_regex(lang, commentary=False).finditer(st):
                 title = match.group('title')
-                res = self._build_ref_from_string(title, st[match.start():])  # Slice string from title start
-                refs += res
+                try:
+                    res = self._build_ref_from_string(title, st[match.start():])  # Slice string from title start
+                except AssertionError as e:
+                    logger.info(u"Skipping Schema Node: {}".format(title))
+                except InputError as e:
+                    logger.info(u"Input Error searching for refs in string: {}".format(e))
+                else:
+                    refs += res
         return refs
+
+    # do we want to move this to the schema node? We'd still have to pass the title...
+    def get_regex_string(self, title, lang, for_js=False):
+        node = self.get_schema_node(title, lang)
+        assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
+
+        if lang == "en" or for_js:  # Javascript doesn't support look behinds.
+            return node.full_regex(title, lang, for_js=for_js, match_range=for_js, compiled=False, anchored=(not for_js))
+
+        elif lang == "he":
+            return ur"""(?<=							# look behind for opening brace
+                    [({]										# literal '(', brace,
+                    [^})]*										# anything but a closing ) or brace
+                )
+                """ + regex.escape(title) + node.after_title_delimiter_re + node.address_regex(lang, for_js=for_js, match_range=for_js) + ur"""
+                (?=\W|$)                                        # look ahead for non-word char
+                (?=												# look ahead for closing brace
+                    [^({]*										# match of anything but an opening '(' or brace
+                    [)}]										# zero-width: literal ')' or brace
+                )"""
 
     #todo: handle ranges in inline refs
     def _build_ref_from_string(self, title=None, st=None, lang="en"):
@@ -3048,8 +3505,14 @@ class Library(object):
         :return: Ref
         """
         node = self.get_schema_node(title, lang)
+        assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
-        re_string = '^' + regex.escape(title) + node.delimiter_re + node.regex(lang)
+        try:
+            re_string = self.get_regex_string(title, lang)
+        except AttributeError as e:
+            logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
+            return []
+
         reg = regex.compile(re_string, regex.VERBOSE)
         ref_match = reg.match(st)
         if ref_match:
@@ -3058,7 +3521,7 @@ class Library(object):
             for i in range(0, node.depth):
                 gname = u"a{}".format(i)
                 if gs.get(gname) is not None:
-                    sections.append(node._addressTypes[i].toIndex(lang, gs.get(gname)))
+                    sections.append(node._addressTypes[i].toNumber(lang, gs.get(gname)))
 
             _obj = {
                 "tref": ref_match.group(),
@@ -3086,18 +3549,15 @@ class Library(object):
         :return: list of Refs
         """
         node = self.get_schema_node(title, lang)
+        assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
         refs = []
-        re_string = ur"""(?<=							# look behind for opening brace
-                [({]										# literal '(', brace,
-                [^})]*										# anything but a closing ) or brace
-            )
-            """ + regex.escape(title) + node.delimiter_re + node.regex(lang) + ur"""
-            (?=												# look ahead for closing brace
-                [^({]*										# match of anything but an opening '(' or brace
-                [)}]										# zero-width: literal ')' or brace
-            )"""
-        #node.regex(lang)
+        try:
+            re_string = self.get_regex_string(title, lang)
+        except AttributeError as e:
+            logger.warning(u"Library._build_all_refs_from_string() failed to create regex for: {}.  {}".format(title, e))
+            return refs
+
         reg = regex.compile(re_string, regex.VERBOSE)
         for ref_match in reg.finditer(st):
             sections = []
@@ -3105,7 +3565,7 @@ class Library(object):
             for i in range(0, node.depth):
                 gname = u"a{}".format(i)
                 if gs.get(gname) is not None:
-                    sections.append(node._addressTypes[i].toIndex(lang, gs.get(gname)))
+                    sections.append(node._addressTypes[i].toNumber(lang, gs.get(gname)))
 
             _obj = {
                 "tref": ref_match.group(),

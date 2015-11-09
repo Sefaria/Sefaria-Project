@@ -33,13 +33,13 @@ def get_activity(query={}, page_size=100, page=1, filter_type=None):
     return activity
 
 
-def text_history(tref, version, lang, filter_type=None):
+def text_history(oref, version, lang, filter_type=None):
     """
     Return a complete list of changes to a segment of text (identified by ref/version/lang)
     """
-    tref = Ref(tref).normal()
-    refRe = '^%s$|^%s:' % (tref, tref)
-    query = {"ref": {"$regex": refRe}, "version": version, "language": lang}
+    regex_list = oref.regex(as_list=True)
+    ref_clauses = [{"ref": {"$regex": r}} for r in regex_list]
+    query = {"$or": ref_clauses, "version": version, "language": lang}
     query.update(filter_type_to_query(filter_type))
 
     return get_activity(query, page_size=0, page=1, filter_type=filter_type)

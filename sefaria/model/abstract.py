@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 abstract.py - abstract classes for Sefaria models
 """
@@ -35,11 +37,12 @@ class AbstractMongoRecord(object):
     second_save = False  # Does this object need a two stage save?  Uses _prepare_second_save()
 
     def __init__(self, attrs=None):
+        if attrs is None:
+            attrs = {}
         self._init_defaults()
         self.pkeys_orig_values = {}
-        if attrs:
-            self.load_from_dict(attrs, True)
-
+        self.load_from_dict(attrs, True)
+            
     def load_by_id(self, _id=None):
         if _id is None:
             raise Exception(type(self).__name__ + ".load() expects an _id as an arguemnt. None provided.")
@@ -63,7 +66,9 @@ class AbstractMongoRecord(object):
 
     # careful that this doesn't defeat itself, if/when a cache catches constructor calls
     def copy(self):
-        return self.__class__(copy.deepcopy(self._saveable_attrs()))
+        attrs = self._saveable_attrs()
+        del attrs[self.id_field]
+        return self.__class__(copy.deepcopy(attrs))
 
     def load_from_dict(self, d, is_init=False):
         """
@@ -101,7 +106,7 @@ class AbstractMongoRecord(object):
         is_new_obj = self.is_new()
 
         self._normalize()
-        assert self._validate()
+        self._validate()
         self._pre_save()
 
         props = self._saveable_attrs()
@@ -169,7 +174,7 @@ class AbstractMongoRecord(object):
     def _saveable_attrs(self):
         return {k: getattr(self, k) for k in self._saveable_attr_keys() if hasattr(self, k)}
 
-    def contents(self):
+    def contents(self, **kwargs):
         """ Build a savable/portable dictionary from the object
         Extended by subclasses with derived attributes passed along with portable object
         :return: dict
@@ -205,7 +210,8 @@ class AbstractMongoRecord(object):
         """
 
         for attr in self.required_attrs:
-            if attr not in attrs:
+            #properties. which are virtual instance members, do not get returned by vars()
+            if attr not in attrs and not getattr(self, attr, None):
                 raise InputError(type(self).__name__ + "._validate(): Required attribute: " + attr + " not in " + ", ".join(attrs))
 
         """ This check seems like a good idea, but stumbles as soon as we have internal attrs
@@ -254,8 +260,10 @@ class AbstractMongoSet(collections.Iterable):
     """
     recordClass = AbstractMongoRecord
 
-    def __init__(self, query={}, page=0, limit=0, sort=[["_id", 1]], proj=None):
+    def __init__(self, query={}, page=0, limit=0, sort=[("_id", 1)], proj=None, hint=None):
         self.raw_records = getattr(db, self.recordClass.collection).find(query, proj).sort(sort).skip(page * limit).limit(limit)
+        if hint:
+            self.raw_records.hint(hint)
         self.has_more = limit != 0 and self.raw_records.count() == limit
         self.records = None
         self.current = 0
@@ -263,14 +271,14 @@ class AbstractMongoSet(collections.Iterable):
         self._local_iter = None
 
     def __iter__(self):
-        self.__read_records()
+        self._read_records()
         return iter(self.records)
 
     def __getitem__(self, item):
-        self.__read_records()
+        self._read_records()
         return self.records[item]
 
-    def __read_records(self):
+    def _read_records(self):
         if self.records is None:
             self.records = []
             for rec in self.raw_records:
@@ -284,7 +292,7 @@ class AbstractMongoSet(collections.Iterable):
             return self.raw_records.count()
 
     def array(self):
-        self.__read_records()
+        self._read_records()
         return self.records
 
     def distinct(self, field):
@@ -414,17 +422,17 @@ def notify(inst, action, **kwargs):
 
     for arg in actions_reqs[action]:
         if not kwargs.get(arg, None):
-            raise Exception("Missing required argument {} in notify {}, {}".format(arg, inst, action))
+            raise Exception(u"Missing required argument {} in notify {}, {}".format(arg, inst, action))
 
     if action == "attributeChange":
         callbacks = deps.get((type(inst), action, kwargs["attr"]), None)
-        logger.debug("Notify: " + str(inst) + "." + kwargs["attr"] + ": " + kwargs["old"] + " is becoming " + kwargs["new"])
+        logger.debug(u"Notify: " + unicode(inst) + u"." + kwargs["attr"] + u": " + kwargs["old"] + u" is becoming " + kwargs["new"])
     else:
-        logger.debug("Notify: " + str(inst) + " is being " + action + "d.")
+        logger.debug(u"Notify: " + unicode(inst) + u" is being " + action + u"d.")
         callbacks = deps.get((type(inst), action, None), [])
 
     for callback in callbacks:
-        logger.debug("Notify: Calling " + callback.__name__ + "() for " + inst.__class__.__name__ + " " + action)
+        logger.debug(u"Notify: Calling " + callback.__name__ + u"() for " + inst.__class__.__name__ + " " + action)
         callback(inst, **kwargs)
 
 
