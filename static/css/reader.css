@@ -1036,6 +1036,10 @@ body.newText #newTextCompare {
 	padding-left: 0px;
 }
 
+.lexicon-content .heb {
+	direction: rtl;
+}
+
 /*.sense + .sense {
 	margin-top: 3px;
 	padding-top: 3px;

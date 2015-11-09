@@ -1305,7 +1305,7 @@ sjs.lexicon = {
 		}
 		var regexs = /([\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05f4]+["][\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05f4]+)(?!\))/g;
 		wrapped = text.replace(regexs, function(matched){
-			if(!matched.match(/ובלע"ז|בלע"ז|ד"ה/g)){
+			if(!matched.match(/ובלע"ז|בלע"ז|ד"ה|בבהכ"נ/g)){
 				return "<span class='lexicon-link'>"+matched+"</span>"
 			}else{
 				return matched;
@@ -1433,7 +1433,6 @@ sjs.lexicon = {
 				.click(function(e){ e.stopPropagation(); });
 
 		});
-
 	},
 
 	//--------------------- formatting ----------------------------
@@ -1455,8 +1454,10 @@ sjs.lexicon = {
 			if('morphology' in data[i]['content']){
 				entryHeadStr += '<span class="morphology"><em> ('+ data[i]['content']['morphology'] + ') </em></span>'
 			}
-			$entry.append('<div class="headword">' + entryHeadStr + '</div>');
-			$entry.append('<ol class="definition">' + sjs.lexicon.renderLexiconEntrySenses(data[i]['content']) + '</ol>');
+			$entry.append('<div class="headword">' + entryHeadStr + '</div>')
+			$entry_content = $('<ol class="definition">').append(sjs.lexicon.renderLexiconEntrySenses(data[i]['content']));;
+			$entry_content.addClass(data[i]['parent_lexicon_details']['to_language'])
+			$entry.append($entry_content);
 			$entry.append(sjs.lexicon.renderLexiconAttribution(data[i]));
 			$entry.appendTo($contenthtml);
 		}
@@ -1474,7 +1475,7 @@ sjs.lexicon = {
 			 html += content['definition']
 		}
 		if('notes' in content){
-			html+='<span class="notes">' + content['notes'] + '</span>';
+			html+='<p class="notes">' + content['notes'] + '</p>';
 		}
 		if('senses' in content){
 			html += '<ol class="senses">';
