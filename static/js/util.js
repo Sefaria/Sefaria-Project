@@ -1418,6 +1418,13 @@ function isRef(ref) {
 	return ("book" in q && q.book);
 }
 
+sjs.titlesInText = function(text) {
+	// Returns an array of the known book titles that appear in text.
+	return sjs.books.filter(function(title) {
+		return (text.indexOf(title) > -1);
+	});
+};
+
 
 sjs.makeRefRe = function(titles) {
 	// Construct and store a Regular Expression for matching citations
@@ -1426,14 +1433,6 @@ sjs.makeRefRe = function(titles) {
 	var books = "(" + titles.map(RegExp.escape).join("|")+ ")";
 	var refReStr = books + " (\\d+[ab]?)(?:[:., ]+)?(\\d+)?(?:(?:[\\-–])?(\\d+[ab]?)?(?:[:., ]+)?(\\d+)?)?";
 	return new RegExp(refReStr, "gi");	
-};
-
-
-sjs.titlesInText = function(text) {
-	// Returns an array of the known book titles that appear in text.
-	return sjs.books.filter(function(title) {
-		return (text.indexOf(title) > -1);
-	});
 };
 
 
@@ -1470,6 +1469,9 @@ sjs.wrapRefLinks = function(text) {
             nref += ":" + p5;
         }
         r = '<span class="refLink" data-ref="' + uref + '">' + nref + '</span>';
+        if (match.slice(-1)[0] === " ") { 
+        	r = r + " ";
+        }
         return r;
     };
 	return text.replace(refRe, replacer);

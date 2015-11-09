@@ -1101,7 +1101,9 @@ function addSource(q, source) {
 	// Add a new source to the DOM.
 	// Completed by loadSource on return of AJAX call.
 	// unless 'source' is present, then load with given text.
-
+	
+	var badRef = q.ref == undefined ? true : false;
+	
 	var $listTarget = $("#addSourceModal").data("target");
 
 	// Save a last edit record only if this is a user action,
@@ -1128,8 +1130,12 @@ function addSource(q, source) {
 	}
 
 	var attributionData = attributionDataString((source ? source.addedBy : null), !source, "source");
-	var enRef = humanRef(q.ref);
+	
+	var enRef = badRef == true ? source.ref : humanRef(q.ref);
 	var heRef = source && source.text ? source.heRef : "";
+	
+	var refLink = badRef == true ? "#" : "/"+makeRef(q).replace(/'/g, "&apos;");
+
 	$listTarget.append(
 		"<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + 
 					" data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" +
@@ -1138,7 +1144,7 @@ function addSource(q, source) {
 			"<div class='customTitle'></div>" + 
 			"<div class='he'>" +
 				"<span class='title'>" + 
-					"<a class='he' href='/" + makeRef(q).replace(/'/g, "&apos;") + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "") + " <span class='ui-icon ui-icon-extlink'></a>" + 
+					"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "") + " <span class='ui-icon ui-icon-extlink'></a>" + 
 				"</span>" +
 				"<div class='text'>" + 
 					"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" + 
@@ -1146,7 +1152,7 @@ function addSource(q, source) {
 			"</div>" + 
 			"<div class='en'>" +
 				"<span class='title'>" + 
-					"<a class='en' href='/" + makeRef(q).replace(/'/g, "&apos;") + "' target='_blank'><span class='ref'>" + enRef + "</span> <span class='ui-icon ui-icon-extlink'></a>" + 
+					"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef + "</span> <span class='ui-icon ui-icon-extlink'></a>" + 
 				"</span>" +
 				"<div class='text'>" + 
 					"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + 
@@ -1617,11 +1623,19 @@ function buildSources($target, sources) {
 
 function buildSource($target, source) {
 	// Build a single source in $target. May call buildSources recursively if sub-sources present.
+		
 	if (!("node" in source)) {
+
 		source.node = sjs.current.nextNode;
 		sjs.current.nextNode++;
 	}
-	if ("ref" in source) {
+	
+	else if (source.node == null) {
+		source.node = sjs.current.nextNode;
+		sjs.current.nextNode++;	
+	}
+	
+	if (("ref" in source) && (source.ref != null)  ) {
 		var q = parseRef(source.ref);
 		$("#addSourceModal").data("target", $target);
 		addSource(q, source);

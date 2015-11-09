@@ -50,23 +50,35 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
     manager.run("ban", 'obj.http.url ~ "/api/links/{}"'.format(url_regex(oref)), secret=secret)
 
 def invalidate_counts(indx):
-    assert isinstance(indx, Index) or isinstance(indx, CommentaryIndex)
-    oref = Ref(indx.title)
+    if isinstance(indx, Index) or isinstance(indx, CommentaryIndex):
+        oref = Ref(indx.title)
+        url = oref.url()
+    elif isinstance(indx, basestring):
+        url = indx.replace(" ", "_").replace(":", ".")
+    else:
+        logger.warn("Could not parse index '{}' to purge counts from Varnish.".format(indx))
+        return
 
-    purge_url("{}/api/preview/{}".format(FRONT_END_URL, oref.url()))
-    purge_url("{}/api/counts/{}".format(FRONT_END_URL, oref.url()))
+    purge_url("{}/api/preview/{}".format(FRONT_END_URL, url))
+    purge_url("{}/api/counts/{}".format(FRONT_END_URL, url))
 
     # Assume this is unnecesary, given that the specific URLs will have been purged/banned by the save action
     # oref = Ref(indx.title)
     # invalidate_ref(oref)
 
 def invalidate_index(indx):
-    assert isinstance(indx, Index) or isinstance(indx, CommentaryIndex)
-    oref = Ref(indx.title)
+    if isinstance(indx, Index) or isinstance(indx, CommentaryIndex):
+        oref = Ref(indx.title)
+        url = oref.url()
+    elif isinstance(indx, basestring):
+        url = indx.replace(" ", "_").replace(":", ".")
+    else:
+        logger.warn("Could not parse index '{}' to purge from Varnish.".format(indx))
+        return
 
-    purge_url("{}/api/index/{}".format(FRONT_END_URL, oref.url()))
-    purge_url("{}/api/v2/raw/index/{}".format(FRONT_END_URL, oref.url()))
-    purge_url("{}/api/v2/index/{}".format(FRONT_END_URL, oref.url()))
+    purge_url("{}/api/index/{}".format(FRONT_END_URL, url))
+    purge_url("{}/api/v2/raw/index/{}".format(FRONT_END_URL, url))
+    purge_url("{}/api/v2/index/{}".format(FRONT_END_URL, url))
 
 #PyPi version of python-varnish has broken purge function.  We use this instead.
 def purge_url(url):

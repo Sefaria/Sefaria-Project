@@ -39,13 +39,31 @@
     <script {% if DEBUG %}type="text/jsx"{% endif %}>
       {% autoescape off %}
       $(function() {
+        
+        var ref = "{{ ref }}";
+        if (ref) {
+          var ref = humanRef("{{ ref }}")
+          sjs.library._saveText({{ data|jsonify }});
+        }
+
         var urlVars = getUrlVars();
         var filter  = "with" in urlVars ? urlVars["with"].replace(/_/g, " ").split("+") : null;
         if (filter && filter.length === 1 && filter[0] === "all") { filter = []; }
-        var query  = "q" in urlVars ? urlVars["q"] : null;
-        var panels = "panels" in urlVars ? 
-                        parseInt(urlVars["q"]) :
-                        $(window).width() > 600 ? 2 : 1;
+        var query         = "q" in urlVars ? urlVars["q"] : null;
+        var multiPanel    = $(window).width() > 600;
+        var initialPanels = [ref];
+        for (var i = 2; i < 5; i++) {
+          var p = urlVars["p" + i] || null;
+          var w = urlVars["with" + i] || null; 
+          if (p && w) {
+            filter = w.replace(/_/g, " ").split("+");
+            if (filter && filter.length === 1 && filter[0] === "all") { filter = []; }
+          } else if (p) {
+            if (!p.match(/^texts|^sheets|search/)) {
+              initialPanels.push(humanRef(p));
+            }
+          }
+        }
 
         var settings = {
           language: "{{ contentLang }}",
@@ -55,25 +73,18 @@
           color:         $.cookie("color")         || "light",
           fontSize:      $.cookie("fontSize")      || 62.5
         };
-       
-        var ref = "{{ ref }}";
-        if (ref) {
-          var ref = humanRef("{{ ref }}")
-          sjs.library._saveText({{ data|jsonify }});
-        }
 
         React.render(
           React.createElement(ReaderApp, {
-            panelCount: panels,
+            multiPanel: multiPanel,
             initialRef: ref,
             initialFilter: filter,
             initialMenu: "{{ initialMenu }}",
             initialQuery: query,
             initialSheetsTag: "{{ initialSheetsTag }}",
-            initialText: "{{ initialText }}",
-            initialCategory: "{{ initialCategory }}",
             initialNavigationCategories: {{ initialNavigationCategories|default:"[]" }},
-            initialSettings: settings}),
+            initialSettings: settings,
+            initialPanels: initialPanels || []}),
           document.getElementById('s2')
         );
         if (ref && filter === null) {
