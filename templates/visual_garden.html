@@ -156,7 +156,7 @@
 
 
         var tags = stopx.dimension(function (d) { return d.tags.default || [] });
-        var tags2 = stopx.dimension(function (d) { return d.tags.default || [] });
+        //var tags2 = stopx.dimension(function (d) { return d.tags.default || [] });
         var groupall = tags.groupAll();
         var tagsGroup = groupall.reduce(reduceAdd, reduceRemove, reduceInitial).value();
         tagsGroup.all = function() {
@@ -178,15 +178,16 @@
         };
 
         tagslist
-            .width(200)
-            .height(800)
+            .width(260)
+            .height(500)
             .renderLabel(true)
             .labelOffsetY(10)
             .gap(2)
             .group(tagsGroup)
             .rowsCap(25)
             .othersGrouper(false)
-            .dimension(tags2)
+            //.dimension(tags2)
+            .dimension(tags)
             .ordering(function(d){ return -d.value })
             .elasticX(true)
             .transitionDuration(1000)
