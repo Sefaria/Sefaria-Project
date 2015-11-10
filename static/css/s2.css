@@ -201,7 +201,7 @@ body .bilingual .enOnly .he {
   background-color: inherit;
   padding: 18px 10px 10px 80px;
   line-height: 30px;
-  font-size: 16px;
+  font-size: 18px;
 }
 .readerNavMenu .readerSearch:focus {
   outline: 0;
@@ -219,7 +219,8 @@ body .bilingual .enOnly .he {
   top: 0;
   left: 0;
   width: 40px;
-  padding: 21px 0;
+  box-sizing: border-box;
+  padding: 21px 10px;
   color: #BFBFBF;
   font-size: 20px;
   vertical-align: middle;
@@ -236,6 +237,7 @@ body .bilingual .enOnly .he {
 .textListTop .readerOptions {
   left: auto;
   right: 0;
+  text-align: right;
 }
 .readerNavMenu.home .readerNavMenuSearchButton,
 .readerNavTop.searchOnly .readerNavMenuSearchButton,
@@ -260,8 +262,6 @@ body .bilingual .enOnly .he {
   left: 46px;
 }
 .readerNavMenu.home .readerNavTop {
-  border-bottom: none;
-  padding-bottom: 0px;
 }
 .readerNavMenu.home .sefariaLogo img {
   width: 110px;
@@ -269,12 +269,14 @@ body .bilingual .enOnly .he {
 .readerNavMenu .tagline {
   text-align: center;
   color: #333;
-  margin-top: -16px;
-  font-size: 15px;
+  margin-top: -46px;
+  font-size: 19px;
   height: 60px;
   font-weight: lighter;
   letter-spacing: 1px;
 }
+.readerNavMenu.home .tagline {
+margin-top: 29px;}
 .readerNavMenu .tagline .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
@@ -283,11 +285,14 @@ body .bilingual .enOnly .he {
 }
 .readerNavMenu .navToggles {
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 40px;
+  margin-top: -10px;
+}
+.readerNavMenu .navToggles .navTogglesDivider {
+  color: #ccc;
 }
 .readerNavMenu .navToggle {
   margin: 0 10px;
-  width: 100px;
   display: inline-block;
   text-align: right;
   text-transform: uppercase;
@@ -298,6 +303,7 @@ body .bilingual .enOnly .he {
   letter-spacing: 1px;
   cursor: pointer;
 }
+
 .readerNavMenu .navToggle.second {
   text-align: left;
 }
@@ -309,7 +315,7 @@ body .bilingual .enOnly .he {
   text-align: center;
   font-size: 15px;
   font-weight: 200;
-  color: #9B9B9B;
+  color: #999;
   margin-bottom: 20px;
   letter-spacing: 2px;
 }
@@ -321,7 +327,7 @@ body .bilingual .enOnly .he {
 }
 .readerNavMenu h3 {
   font-size: 13px;
-  margin-bottom: 5px;
+  margin-bottom: 15px;
 }
 .readerNavCategories {
   width: 100%;
@@ -340,6 +346,7 @@ body .bilingual .enOnly .he {
   margin: 2px;
   cursor: pointer;
   border-top: 4px solid transparent;
+  letter-spacing: 1px;
 }
 .bilingual .readerNavCategory .he {
   display: none;
@@ -400,6 +407,9 @@ body .bilingual .enOnly .he {
 .readerNavMenu .siteLink .fa {
   margin: 0 4px;
 }
+.readerNavMenu .divider {
+  color: #ccc;
+}
 .readerNavCategoryMenu {
   height: 100%;
 }
@@ -414,11 +424,12 @@ body .bilingual .enOnly .he {
 .readerNavMenu .navButton,
 .readerTextTableOfContents .refLink {
   display: inline-block;
-  width: 48%;
-  margin: 1%;
+  width: 49%;
+  margin: .5%;
   padding: 10px 8px;
   box-sizing: border-box;
   color: black;
+  font-weight: 400;
   background-color: white;
   cursor: pointer;
   vertical-align: middle;
@@ -465,7 +476,7 @@ body .bilingual .enOnly .he {
   font-size: 13px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: lighter;
-  margin: 3px;
+  margin: 1px;
   text-align: center;
   background-color: white;
   color: #666;
@@ -482,6 +493,10 @@ body .bilingual .enOnly .he {
   color: #999;
   display: inline-block;
   cursor: pointer;
+}
+.readerTextTableOfContents #structToggles .toggleDivider {
+  color: #ccc;
+  margin: 0 8px;
 }
 .readerTextTableOfContents .content .sectionName {
   display: none;
@@ -501,13 +516,15 @@ body .bilingual .enOnly .he {
   text-align: left;
 }
 .readerTextTableOfContents .content .schema-node-contents {
-  margin-bottom: 22px;
+  margin: 0 auto 22px;
+  display: block;
+  width: 100%;
 }
 .readerTextTableOfContents .content .schema-node-title {
   color: black;
   font-size: 16px;
   display: inline-block;
-  margin-bottom: 4px;
+  margin-bottom: 10px;
 }
 .readerTextTableOfContents .content .schema-node-toc {
   display: block;
@@ -525,7 +542,6 @@ body .bilingual .enOnly .he {
   margin: 0 4px;
 }
 .readerTextTableOfContents .content .tocLevel {
-  text-align: center;
 }
 .readerTextTableOfContents .schema-node-toc.depth1 {
     margin: 10px 0px 0;
@@ -562,7 +578,7 @@ body .bilingual .enOnly .he {
   text-align: right;
 }
 .searchContent {
-  padding: 25px 10px 0;
+  padding: 15px 10px 0;
 }
 .searchContent .results-count {
   color: #999;
@@ -570,10 +586,12 @@ body .bilingual .enOnly .he {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   font-size: 12px;
-  padding: 10px 0;
+  padding: 10px 0 15px 0;
+  border-bottom: thin solid #ddd;
 }
 .searchContent .result {
-  border-top: thin solid #ddd;
+  border-bottom: thin solid #eee;
+  padding-bottom: 20px;
 }
 .searchContent .result a:hover {
   text-decoration: none;
@@ -591,7 +609,7 @@ body .bilingual .enOnly .he {
   letter-spacing: 1px;
   font-size: 13px;
   display: block;
-  padding: 15px 0 5px;
+  padding: 20px 0 5px;
 }
 .searchContent .result .result-title:hover {
   text-decoration: underline;
@@ -617,7 +635,7 @@ body .bilingual .enOnly .he {
   text-transform: uppercase;
   letter-spacing: 1px;
   font-size: 11px;
-  padding: 0 0 15px;
+  padding: 0;
   cursor: pointer;
 }
 .searchContent .result .similar-trigger-box i {
@@ -636,14 +654,14 @@ body .bilingual .enOnly .he {
 .readerNavMenu .sheet {
   display: block;
   padding: 25px 0px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #eee;
   color: black;
 }
 .readerNavMenu .sheet .sheetImg {
   height: 40px;
   width: 40px;
   float: left;
-  margin: 0 14px 20px 0;
+  margin: 1px 14px 20px 0;
   border-radius: 2px;
 }
 .readerNavMenu .sheet .sheetAuthor {
@@ -651,7 +669,7 @@ body .bilingual .enOnly .he {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   font-size: 10px;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   letter-spacing: 1px;
 }
 .readerNavMenu .sheet .sheetTitle {
@@ -746,8 +764,7 @@ body .bilingual .enOnly .he {
 .readerOptions img {
   height: 26px;
   vertical-align: middle;
-  margin-top: -6px;
-  margin-right: 5px;
+  float: right;
 }
 .readerControls .controlsButton {
   cursor: pointer;
@@ -779,7 +796,7 @@ body .bilingual .enOnly .he {
   padding: 20px;
   box-sizing: border-box;
   direction: ltr;
-  background: white;
+  background: #f9f9f7;
   border-bottom: 1px solid #ccc;
   z-index: 103;
 }
@@ -801,9 +818,20 @@ body .bilingual .enOnly .he {
   border: 1px solid #ccc;
   margin-left: -1px;
   padding: 4px;
-  height: auto;
+  height: 42px;
+  line-height: 34px;
   background-color: white;
   color: black;
+  vertical-align: middle;
+}
+.toggleOption:first-child {
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+}
+.toggleOption:last-child {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+    border-right: 1px solid #aaa;
 }
 .toggleOption.on, .toggleOption:hover {
   background-color: #eee;
@@ -980,7 +1008,7 @@ body .bilingual .enOnly .he {
   font-size: 12px;
   line-height: 18px;
   border-radius: 30px;
-  margin-top: 4px;
+  margin-top: 5px;
   -webkit-text-size-adjust: 100%;
   -moz-user-select: none;
   -khtml-user-select: none;
@@ -1006,7 +1034,7 @@ body .bilingual .enOnly .he {
   height: 6px;
   border-radius: 12px;
   background-color: black;
-  margin-top: 8px;
+  margin-top: 10px;
   font-size: 10px;
 }
 .dark .segment .linkCount {
@@ -1104,6 +1132,7 @@ text-align: center;height: 55px;}
 .gridBox {
   width: 100%;
   border-collapse: collapse;
+  border: 0px;
 }
 .gridBox table {
   width: 100%;
@@ -1113,6 +1142,12 @@ text-align: center;height: 55px;}
 .gridBox td {
   padding: 0;
   border: 2px solid transparent;
+}
+.gridBox td:first-child {
+  border-left: none;
+}
+.gridBox td:last-child {
+  border-right: none;
 }
 .twoBox td {
   width: 50%;
@@ -1162,7 +1197,7 @@ text-align: center;height: 55px;}
 }
 .topFiltersInner {
   display: inline-block;
-  max-width: 85%;
+  max-width: 80%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1179,7 +1214,7 @@ text-align: center;height: 55px;}
   cursor: pointer;
 }
 .textFilter {
-  padding: 10px 4px;
+  padding: 12px 4px;
   text-align: center;
   font-size: 15px;
   line-height: 1.2;
@@ -1220,7 +1255,6 @@ text-align: center;height: 55px;}
   color: white;
 }
 .fullFilterView .categoryFilter {
-  margin-bottom: 2px;
   background-color: white;
 }
 .dark .fullFilterView .categoryFilter {
@@ -1229,7 +1263,7 @@ text-align: center;height: 55px;}
 .fullFilterView .textFilter {
 }
 .fullFilterView .categoryFilterGroup {
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 .showSelectedFilters {
   background-color: #222F4F;
@@ -1262,9 +1296,9 @@ text-align: center;height: 55px;}
 }
 .textList .texts .textRange {
   font-size: 1.8em;
-  padding: 8px 0;
+  padding: 16px 0;
   margin: 12px 0px;
-  border-bottom: 1px solid #CCC;
+  border-bottom: 1px solid #eee;
   cursor: pointer;
   position: relative;
 }

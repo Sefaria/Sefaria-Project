@@ -1014,11 +1014,13 @@ var ReaderNavigationMenu = React.createClass({
                         <i className="fa fa-user"></i>
                         <span className="en">Your Profile</span>
                         <span className="he">הפרופיל שלך</span>
-                      </a>), "•",
+                      </a>), 
+                     (<span className='divider'>•</span>),
                      (<a className="siteLink" key='about' href="/about">
                         <span className="en">About Sefaria</span>
                         <span className="he">אודות ספאריה</span>
-                      </a>), "•", 
+                      </a>),
+                     (<span className='divider'>•</span>),
                      (<a className="siteLink" key='logout' href="/logout">
                         <span className="en">Logout</span>
                         <span className="he">התנתק</span>
@@ -1027,7 +1029,8 @@ var ReaderNavigationMenu = React.createClass({
                     [(<a className="siteLink" key='about' href="/about">
                         <span className="en">About Sefaria</span>
                         <span className="he">אודות ספאריה</span>
-                      </a>), "•",
+                      </a>),
+                     (<span className='divider'>•</span>),
                      (<a className="siteLink" key='login' href="/login">
                         <span className="en">Sign In</span>
                         <span className="he">הירשם</span>
@@ -1160,7 +1163,8 @@ var ReaderNavigationCategoryMenu = React.createClass({
                             <span className={bClasses} onClick={setBavli}>
                               <span className="en">Bavli</span>
                               <span className="he">בבלי</span>
-                            </span> | 
+                            </span>
+                            <span className="navTogglesDivider">|</span>
                             <span className={yClasses} onClick={setYerushalmi}>
                               <span className="en">Yerushalmi</span>
                               <span className="he">ירושלמי</span>
