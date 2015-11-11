@@ -656,6 +656,10 @@ body.newText #newTextCompare {
 	direction: rtl;
 }
 
+.verse > .he big {
+	line-height: 46px;
+}
+
 .verse .clear {
 	display: none;
 }
@@ -664,6 +668,14 @@ body.newText #newTextCompare {
 	/*font-size: 35px;
 	font-variant: small-caps;*/
 	margin: 0px 5px 0px 36px;
+}
+
+.verse a {
+	color: black;
+}
+
+.verse br {
+   line-height: 170%;
 }
 
 .basetext.lines .verse {
@@ -934,9 +946,113 @@ body.newText #newTextCompare {
 	font-size: 16px;
 	font-weight: bold;
 	letter-spacing: 1px;
-	
 }
 
+.lexicon-link:hover {
+	text-decoration: underline;
+}
+
+#lexicon-modal {
+	position: absolute;
+	z-index: 100;
+	background-color: #eff1f1;
+	border-radius: 10px;
+	border: 1px solid #666;
+	padding: 0px;
+	box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.5);
+	background-clip: padding-box;
+	overflow: hidden;
+	min-width: 10%;
+	max-width: 25%;
+}
+
+#lexicon-modal .lexicon-results{
+	min-height: 50px;
+	max-height: 150px;
+	overflow-y:scroll;
+	padding: 10px;
+}
+
+#lexicon-modal .lexicon-header {
+	padding: 10px;
+	border-bottom: 1px solid #e5e5e5;
+	background-color: #AAAAAA;
+}
+
+#lexicon-modal .lexicon-header .lexicon-close {
+  	float: right;
+	display: inline-block;
+  	cursor: pointer;
+  	font-size: 18px;
+}
+
+#lexicon-modal .lexicon-header .lexicon-close:hover {
+	color: #08c;
+}
+
+.lexicon-header h4{
+	font-size: 1.2em;
+	margin: 0px;
+}
+
+
+.entry + .entry {
+	margin-top: 10px;
+  	padding-top: 3px;
+  	border-top: 1px inset #AAAAAA;
+}
+
+.lexicon-results .entry .headword{
+	font-weight: bold;
+}
+
+.lexicon-results .entry .definition{
+	font-size: 0.9em;
+}
+
+.lexicon-results ol {
+	list-style-position: inside;
+}
+
+.lexicon-results .entry .definition li.sense{
+	margin-left: 15px;
+	padding: 0px;
+	/*margin: 0;*/
+}
+
+.lexicon-results .entry .definition ol.senses{
+	/*list-style-type: none;*/
+	padding-left: 0px;
+}
+
+.lexicon-results .entry .definition > li.sense{
+	/*list-style-type: none;*/
+	margin-left: 0px;
+}
+
+.lexicon-results .entry ol.definition {
+	list-style-type: none;
+	margin-top: 2px;
+	padding-left: 0px;
+}
+
+/*.sense + .sense {
+	margin-top: 3px;
+	padding-top: 3px;
+	border-top: 1px solid #eee;}*/
+
+#lexicon-modal .pos { 
+	font-size: 12px;
+	color: #777;
+}
+
+#lexicon-modal a {
+	font-size: 12px;
+}
+
+/*#lexicon-modal .definitionSource {
+	font-size: 12px;*/
+}
 .refLink:hover {
 	text-decoration: underline;
 }
@@ -1037,7 +1153,17 @@ body.noCommentary .aboutBarBox {
 	background: inherit;
 	z-index: 12;
 	overflow: hidden;
-	
+}
+
+.commentaryBox .loadingMessage {
+	text-align: center;
+	margin-top: 50px;
+	color: #777;
+}
+.commentaryBox .loadingMessage img {
+	width: 36px;
+	height: 36px;
+	margin-top: 8px;
 }
 
 .commentaryBox.noCommentary {
@@ -1515,9 +1641,10 @@ body.english .commentary .he {
 }
 
 .emptySidebarMessage {
-	padding-top: 20px;
+	padding-top: 50px;
 	color: #555;
 	text-align: center;
+	font-style: italic;
 }
 
 body .screen .commentaryBox .noteMessage {

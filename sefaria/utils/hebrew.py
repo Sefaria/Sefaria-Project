@@ -12,8 +12,6 @@ import re
 import regex
 import math
 
-from sefaria.system.database import db
-
 
 ### Change to all caps for constants
 GERESH = u"\u05F3"
@@ -319,6 +317,21 @@ def is_hebrew(s):
 		return True
 	return False
 
+def strip_cantillation(text, strip_vowels=False):
+	if strip_vowels:
+		strip_regex = re.compile(ur"[\u0591-\u05bd\u05bf-\u05c5\u05c7]", re.UNICODE)
+	else:
+		strip_regex = re.compile(ur"[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]", re.UNICODE)
+	return strip_regex.sub('', text)
+
+def has_cantillation(text, detect_vowels=False):
+	if detect_vowels:
+		rgx = re.compile(ur"[\u0591-\u05bd\u05bf-\u05c5\u05c7]", re.UNICODE)
+	else:
+		rgx = re.compile(ur"[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]", re.UNICODE)
+	return bool(rgx.search(text))
+
+
 
 def hebrew_plural(s):
 	"""
@@ -341,6 +354,8 @@ def hebrew_plural(s):
 		"Pasuk":    "Psukim",
 		"Midrash":  "Midrashim",
 		"Teshuva":  "Teshuvot",
+		"Aliyah":   "Aliyot",
+		"Tikun":    "Tikunim",
 	}
 
 	return known[s] if s in known else str(s) + "s"
@@ -351,48 +366,61 @@ def hebrew_term(s):
 	Simple translations for common Hebrew words
 	"""
 	categories = {
-		"Torah":            u"תורה",
-		"Tanach":           u'תנ"ך',
-		"Tanakh":           u'תנ"ך',
-		"Prophets":         u"נביאים",
-		"Writings":         u"כתובים",
-		"Commentary":       u"מפרשים",
-		"Targum":           u"תרגומים",
-		"Mishnah":          u"משנה",
-		"Tosefta":          u"תוספתא",
-		"Talmud":           u"תלמוד",
-		"Bavli":            u"בבלי",
-		"Yerushalmi":       u"ירושלמי",
-		"Rif":		        u'רי"ף',
-		"Kabbalah":         u"קבלה",
-		"Halakha":          u"הלכה",
-		"Halakhah":         u"הלכה",
-		"Midrash":          u"מדרש",
-		"Aggadic Midrash":  u"מדרש אגדה",
-		"Halachic Midrash": u"מדרש הלכה",
-		"Midrash Rabbah":   u"מדרש רבה",
-		"Responsa":         u'שו"ת',
-		"Rashba":	        u'רשב"א',
-		"Rambam":	        u'רמב"ם',
-		"Other":            u"אחר",
-		"Siddur":           u"סידור",
-		"Liturgy":          u"תפילה",
-		"Piyutim":          u"פיוטים",
-		"Musar":            u"ספרי מוסר",
-		"Chasidut":         u"חסידות",
-		"Parshanut":        u"פרשנות",
-		"Philosophy":       u"מחשבת ישראל",
-		"Apocrypha":        u"ספרים חיצונים",
-		"Seder Zeraim":     u"סדר זרעים",
-		"Seder Moed":       u"סדר מועד",
-		"Seder Nashim":     u"סדר נשים",
-		"Seder Nezikin":    u"סדר נזיקין",
-		"Seder Kodashim":   u"סדר קדשים",
-		"Seder Toharot":    u"סדר טהרות",
-		"Seder Tahorot":    u"סדר טהרות",
-		"Dictionary":       u"מילון",
-		"Early Jewish Thought":    u"מחשבת ישראל קדומה",
-		"Minor Tractates":  u"מסכתות קטנות",
+		"Torah":                u"תורה",
+		"Tanach":               u'תנ"ך',
+		"Tanakh":               u'תנ"ך',
+		"Prophets":             u"נביאים",
+		"Writings":             u"כתובים",
+		"Commentary":           u"מפרשים",
+		"Targum":               u"תרגומים",
+		"Mishnah":              u"משנה",
+		"Tosefta":              u"תוספתא",
+		"Talmud":               u"תלמוד",
+		"Bavli":                u"בבלי",
+		"Yerushalmi":           u"ירושלמי",
+		"Rif":		            u'רי"ף',
+		"Kabbalah":             u"קבלה",
+		"Halakha":              u"הלכה",
+		"Halakhah":             u"הלכה",
+		"Midrash":              u"מדרש",
+		"Aggadic Midrash":      u"מדרש אגדה",
+		"Halachic Midrash":     u"מדרש הלכה",
+		"Midrash Rabbah":       u"מדרש רבה",
+		"Responsa":             u'שו"ת',
+		"Other":                u"אחר",
+		"Siddur":               u"סידור",
+		"Liturgy":              u"תפילה",
+		"Piyutim":              u"פיוטים",
+		"Musar":                u"ספרי מוסר",
+		"Chasidut":             u"חסידות",
+		"Parshanut":            u"פרשנות",
+		"Philosophy":           u"מחשבת ישראל",
+		"Maharal":	            u'מהר"ל מפראג',
+		"Apocrypha":            u"ספרים חיצונים",
+		"Seder Zeraim":         u"סדר זרעים",
+		"Seder Moed":           u"סדר מועד",
+		"Seder Nashim":         u"סדר נשים",
+		"Seder Nezikin":        u"סדר נזיקין",
+		"Seder Kodashim":       u"סדר קדשים",
+		"Seder Toharot":        u"סדר טהרות",
+		"Seder Tahorot":        u"סדר טהרות",
+		"Dictionary":           u"מילון",
+		"Early Jewish Thought": u"מחשבת ישראל קדומה",
+		"Minor Tractates":      u"מסכתות קטנות",
+		"Rosh":		            u'ר"אש',
+		"Maharsha":	            u'מהרשא',
+		"Rashba":	            u'רשב"א',
+		"Rambam":	            u'רמב"ם',
+		"Tosafot Yom Tov":      u"תוספות יום טוב",
+		"Chidushei Halachot":   u"חידושי הלכות",
+		"Chidushei Agadot":     u"חידושי אגדות",
+		"Tiferet Shmuel":       u"תפארת שמואל",
+		"Korban Netanel":       u"קרבן נתנאל",
+		"Pilpula Charifta":     u"פילפולא חריפתא",
+		"Divrey Chamudot":      u"דברי חמודות",
+		"Maadaney Yom Tov":     u"מעדני יום טוב",
+		"Modern Works":		u"יצירות מודרניות",
+
 	}
 
 	pseudo_categories = {
@@ -417,6 +445,7 @@ def hebrew_term(s):
 
 	section_names = {
 		"Chapter":          u"פרק",
+		"Chapters":	    u"פרקים",
 		"Perek":            u"פרק",
 		"Line":             u"שורה",
 		"Daf":              u"דף",
@@ -443,6 +472,7 @@ def hebrew_term(s):
 		"Letter":           u"אות",
 		"Halacha":          u"הלכה",
 		"Seif Katan":       u"סעיף קטן",
+		"Se'if Katan":	    u"סעיף קטן",
 		"Volume":           u"כרך",
 		"Book":             u"ספר",
 		"Shar":             u"שער",
@@ -461,19 +491,26 @@ def hebrew_term(s):
 		"Mitzvah":          u"מצוה",
 		"Tefillah":         u"תפילה",
 		"Torah":            u"תורה",
+		"Perush":	        u"פירוש",
+		"Peirush":	        u"פירוש",
+		"Aliyah":	        u"עלייה",
+		"Tikkun":           u"תיקון",
+		"Tikkunim":         u"תיקונים"
 	}
 
 	words = dict(categories.items() + pseudo_categories.items() + section_names.items())
 
 	if s in words:
-		return words[s] 
+		return words[s]
 
 	# If s is a text title, look for a stored Hebrew title
-	i = db.index.find_one({"title": s})
-	if i:
-		for title in i["schema"]["titles"]:
-			if title["lang"] == "he" and title.get("primary", False):
-				return title["text"]
+	try:
+		from sefaria.model import get_index, IndexSet
+		from sefaria.system.exceptions import BookNameError
+		i = get_index(s)
+		return i.get_title("he")
+	except BookNameError:
+		pass
 
 	return s
 

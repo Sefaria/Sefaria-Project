@@ -48,6 +48,18 @@ class Test_get_refs_in_text(object):
         assert {Ref('Brachot 7b'), Ref('Isaiah 12:13')} == set(library.get_refs_in_string(texts['2ref']))
 
 
+    def test_inner_parenthesis(self):
+
+        ref = library.get_refs_in_string(u"Bereishit Rabbah (55:7)", "en")
+        assert 1 == len(ref)
+        assert ref[0] == Ref(u'Bereshit Rabbah 55:7')
+
+        ''' Ranges not yet supported
+        ref = library.get_refs_in_string(u"Yishayahu (64:9-10)", "en")
+        assert 1 == len(ref)
+        assert ref[0] == Ref(u'Isiah 64:9-10')
+        '''
+
 class Test_he_get_refs_in_text(object):
     def test_positions(self):
         for a in ['he_bible_mid', 'he_bible_begin', 'he_bible_end']:
@@ -73,11 +85,7 @@ class Test_he_get_refs_in_text(object):
         assert 2 == len(ref)
         assert {Ref(u'הושע ט ג'), Ref(u'דברי הימים ב לב יט')} == set(ref)
 
-
     def test_double_talmud(self):
-        """
-
-        """
         ''' includes  ב''ק - why would that work?'''
         #ref = lib.get_refs_in_string(texts['2talmud'])
         #assert 2 == len(ref)
@@ -127,6 +135,35 @@ class Test_he_get_refs_in_text(object):
         ref = library.get_refs_in_string(u'דתנן (דברים שם) דכל (דברים ל, א) צריך')
         assert 1 == len(ref)
         assert ref[0] == Ref(u'דברים ל, א')
+
+    def test_word_boundary(self):
+        st = u' את הכל, ובאגדה (אסתר רבה פתיחתא, יא) שמעון בן זומא בשם'
+        ref = library.get_refs_in_string(st)
+        assert len(ref) == 0
+
+        #Assumes that Yalkut Shimoni Esther is not a text
+        st = u"""ובמדרש (ילקוט שמעוני אסתר א, סי' חתרמ"ו) מהיכן היה לו"""
+        ref = library.get_refs_in_string(st)
+        assert len(ref) == 1
+        assert ref[0].sections[0] == 1
+        assert len(ref[0].sections) == 1
+
+    def test_FAILING_huge_second_addr(self):
+        st = u"""וכן הוא בב"ר (ילקוט שמעוני אסתר א, תתרמו) א"ר לוי בגדי כהונה"""
+        ref = library.get_refs_in_string(st)[0]
+        assert ref.sections[0] == 1
+        assert len(ref.sections) == 1
+
+        ''' These only work in the js
+        ref = library.get_refs_in_string(u'במסכת שבועות (ל, ע"א) - כיצד אפוא', "he")
+        assert 1 == len(ref)
+        assert ref[0] == Ref(u'Shavuot 30a')
+
+        ref = library.get_refs_in_string(u"במשנה, מסכת נדה (פרק ו, משנה ד), נקבע", "he")
+        assert 1 == len(ref)
+        assert ref[0] == Ref(u'Mishnah Nidah 6:4')
+        '''
+
 
 class Test_get_titles_in_text(object):
 

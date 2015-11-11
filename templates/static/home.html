@@ -108,6 +108,10 @@
             </h2>
             <div id="calendar">
                 <div class="calendarSection">
+                    <span class="calendarSectionTitle">
+                        <span class='en'>Parashat HaShavua</span>
+                        <span class='he'>פרשת השבוע</span>
+                    </span>
                     <a href="/{{ parasha.ref|url_safe }}">
                         <span class="en">{{ parasha.parasha }}</span>
                         <span class="he">{{ parasha.parasha|he_parasha }}</span>
@@ -141,22 +145,31 @@
                         </a>
                     {% endif %}
                     {{ parasha.shabbat_name|default:"" }}
-                    <span class="calendarSectionTitle">
-                        <span class='en'>Parashat HaShavua</span>
-                        <span class='he'>פרשת השבוע</span>
-                    </span>
                 </div>
                 <div class="line"></div>
                 <div class="calendarSection">
+                    <span class="calendarSectionTitle">
+                        <span class='en'>Daf Yomi</span>
+                        <span class='he'>דף יומי</span>
+                    </span>
                     <a href="/{{ daf_today.url }}">
                         <span class="en">{{ daf_today.name }}</span>
                         <span class="he">{{ daf_today.name|he_ref }}</span>
 
                     </a>
+                </div>
+                <div class="line"></div>
+                <div class="calendarSection">
                     <span class="calendarSectionTitle">
-                        <span class='en'>Daf Yomi</span>
-                        <span class='he'>דף יומי</span>
+                        <a href="http://www.929.org.il/" target="_blank">
+                        <span class='en'>Project 929</span>
+                        <span class='he'>פרויקט 929</span>
+                        </a>
                     </span>
+                    <div>
+                        <span class="en">{{ p929|ref_link }}</span>
+                        <span class="he">{{ p929|he_ref_link }}</span>
+                    </div>
                 </div>
             </div>             
         </div>
@@ -181,8 +194,8 @@
             </h2>
             <img src="/static/img/blog-image.png" />
             <div class="description">
-                <span class="en">Celebrate Shavuot with Sefaria!</span>
-                <span class="he">חגגו את חג השבועות עם ספאריה!</span>
+                <span class="en">Read the latest updates from Sefaria on our Blog.</span>
+                <span class="he">קראו את העדכונים האחרונים מספאריה בבלוג שלנו.</span>
             </div>
         </a>
     </div>
@@ -302,9 +315,18 @@
     </a>
 
     <div id="announcement" class="modal">
-        <h3></h3> 
-            <a href="/donate" class="btn btn-large purple">Donate</a>
-        <p></p>
+        <a href="http://blog.sefaria.org/2015/09/09/sefaria-by-the-numbers/" class="btn btn-large purple">
+            <span class="en">Read More</span>
+            <span class="he">עוד</span>
+        </a>
+        <h3>
+            <span class="en">By the numbers</span>
+            <span class="he">ספאריה במספרים</span>
+        </h3> 
+        <p>
+            <span class="en">Sefaria's progress over the past two years.</span>
+            <span class="he">התפתחות ספאריה בשנתיים האחרונות</span>
+        </p>
     </div>
 
 </div>
@@ -362,7 +384,7 @@
             // Announcement
             if ($("#announcement h3").text() && $(window).width() > 600) {
                 $("#announcement").show()
-                    .position({my: "center top+10", at: "center bottom", of: $("#sub")})
+                    .position({my: "center top+15", at: "center bottom", of: $("#sub")})
                     .hide()
                     .fadeIn(1200);
             }

@@ -37,6 +37,10 @@
                         <a href="/translation-requests/completed">{{ complete_count|intcomma }} requests</a> have been completed.
                     </div>
 
+                    <div class="count">
+                        <a href="/translation-requests/featured-completed">{{ featured_complete|intcomma }} featured requests</a> have been completed.
+                    </div>
+
                 <div class="clear"></div>
 
                 </div>   
@@ -45,7 +49,7 @@
             <div id="featuredRequests">
                 <h3>{{ featured_current }} Featured Requests</h3>
                 <div class='sub alert alert-success'>
-                    <a class="btn btn-info" href="http://blog.sefaria.org/contests" target="_blank">View Prizes</a> <b>Weekly Contests</b> - Help translate featured requests and you'll be automatically entered in a lottery for weekly prizes.
+                    <a class="btn btn-info" href="http://blog.sefaria.org/contests" target="_blank">View Prizes</a> <b>Monthly Contests</b> - Help translate featured requests and you'll be automatically entered in a lottery for monthly prizes.
                 </div>
                 {% for trans_request in featured %}
                     {% if forloop.counter0 < featured_current or request.user.is_staff %}
@@ -60,13 +64,16 @@
 
             <div id="translationRequests">
                 <h3>
-                    {% if not completed and not page_offset %}
+                    {% if not completed_only and not page_offset %}
                         All Requests
-                    {% elif not completed and page_offset %}
+                    {% elif not completed_only and page_offset %}
                         Requests {{ page_offset }}-{{ page_offset|add:99 }}
                         <a href="/translation-requests">back to top</a>
-                    {% else %}
+                    {% elif complete_only and not featured_only %}
                         Completed Requests
+                        <a href="/translation-requests">all requests</a>
+                    {% elif completed_only and featured_only % }
+                        Completed Featured Requests
                         <a href="/translation-requests">all requests</a>
                     {% endif %}
                 </h3>
@@ -81,7 +88,7 @@
             {% endif %}
 
 
-            {% include "elements/social_share_buttons.html" with URL="http://www.sefaria.org/requstion-translations" description="The most requested text sections for translation on Sefaria." %}  
+            {% include "elements/social_share_buttons.html" with URL="http://www.sefaria.org/translation-requests" description="The most requested text sections for translation on Sefaria." %}  
         </div>
 
     {% include "elements/login_prompt.html" with msg="Please log in to make requests." %}
@@ -172,8 +179,6 @@
                         if ("error" in data) {
                             sjs.alert.message(data.error);
                         } else {
-                            console.log(data.ref.escapeHtml());
-
                             var msg = "Your translation request for <b>" + 
                                         data.ref + 
                                         "</b> has been added.<br><br>" +

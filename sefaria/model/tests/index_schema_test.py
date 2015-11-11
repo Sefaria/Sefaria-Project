@@ -246,7 +246,7 @@ class Test_Schema(object):
                                 },
                                 {
                                 "lang": "en",
-                                "text": "Hilchot Teshuva",
+                                "text": "Hilchot TeshuvaX",
                                 "presentation": "alone"
                                 }
                             ],
@@ -428,10 +428,21 @@ class Test_Schema(object):
         i.save()
         i.nodes.all_tree_titles("en")
         i.nodes.title_dict("en")
+
+        assert len(i.nodes.children) == 4
+        assert library.get_schema_node("Lekutei Moharan, Introduction").next_leaf() == library.get_schema_node("Lekutei Moharan")
+        assert library.get_schema_node("Lekutei Moharan").next_leaf() == library.get_schema_node("Lekutei Moharan, Tanina")
+        assert library.get_schema_node("Lekutei Moharan, Tanina").next_leaf() == library.get_schema_node("Lekutei Moharan, Tanina, Letters")
+
+        assert library.get_schema_node("Lekutei Moharan, Tanina, Letters").prev_leaf() == library.get_schema_node("Lekutei Moharan, Tanina")
+        assert library.get_schema_node("Lekutei Moharan, Tanina").prev_leaf() == library.get_schema_node("Lekutei Moharan")
+        assert library.get_schema_node("Lekutei Moharan").prev_leaf() == library.get_schema_node("Lekutei Moharan, Introduction")
+
         lm_schema['titles'] = sorted(lm_schema['titles'], key=lambda x: x['text'])
         serialized = i.nodes.serialize()
         serialized['titles'] = sorted(serialized['titles'], key=lambda x: x['text'])
         assert lm_schema == serialized
+
         i.delete()
 
 
@@ -756,8 +767,6 @@ class Test_Schema(object):
         assert Ref("Stest Perek 2:3") == Ref("Stest 10:24-11:3")
 
         i.delete()
-
-
 
 
 #todo : test default

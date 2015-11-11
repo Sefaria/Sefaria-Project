@@ -5,6 +5,32 @@ html,p,span,div,a,ul,ol,li,body,h1,h2,h3,h4 {
     -webkit-tap-hightlight-color: rgba(0,0,0,0);
 }
 
+@font-face {
+  font-family: 'Rashi Script';
+  src: url('/static/fonts/Mekorot-Rashi.ttf');
+}
+
+@font-face {
+  font-family: 'Taamey Frank';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf');
+}
+@font-face {
+  font-family: 'Taamey Frank';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Bold.ttf');
+  font-weight: bold;
+}
+@font-face {
+  font-family: 'Taamey Frank';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-MediumOblique.ttf');
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Taamey Frank';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-BoldOblique.ttf');
+  font-style: italic;
+  font-weight: bold;
+}
+
 /* Avoid Flash of Unstyled Text with Google Web Font Loader */
 .wf-loading {
     visibility: hidden;
@@ -264,6 +290,12 @@ body.embeded #top {
     margin-bottom: 4px;
 }
 
+#navToc .inline-default-node .sectionName {
+    text-align: start;
+    padding: 8px 40px 3px;
+    margin: 0px;
+}
+
 #navToc .tocCat {
   line-height: 18px;
 }
@@ -407,16 +439,16 @@ body.embeded #top {
     padding: 0;
 }
 
-#navPanel .sparse1 {
+.sparse1 {
     color: #bbb;
 }
-#navPanel .sparse2 {
+.sparse2 {
     color: #999;
 }
-#navPanel .sparse3 {
+.sparse3 {
     color: #777;
 }
-#navPanel .sparse4 {
+.sparse4 {
     color: #000;
 }
 
@@ -772,6 +804,17 @@ body.embeded #top {
 }
 
 @media screen and (max-width: 800px) {
+
+  /* Put search results on new line */
+  #searchContent {
+      clear: both;
+  }
+
+  /* Get rid of whitespace on search page */
+  #searchHeaderContainer {
+    display: none;
+  }
+
   #showOptions {
     display: inline-block;
   }
@@ -833,12 +876,14 @@ body.embeded #top {
 #globalWarning {
   position: fixed;
   z-index: 99;
-  width: 50%;
+  width: 550px;
+  max-width: 100%;
+  box-sizing: border-box;
   left: 0;
   right: 0;
   margin: 0 auto;
   top: 40px;
-  padding: 8px 35px 8px 14px;
+  padding: 14px;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
   text-align: center;
   border: 1px solid #fbeed5;
@@ -846,6 +891,11 @@ body.embeded #top {
   background-color: #f2dede;
   border-color: #eed3d7;
   color: #b94a48;
+}
+
+#globalWarning .fa-times {
+  float: right;
+  cursor: pointer;
 }
 
 .enNone.heNone {
@@ -1189,6 +1239,7 @@ body #keyboardInputMaster thead tr th div {
 
 #searchFilters {
     display: none;
+    padding-bottom: 10px;
 }
 
 /* the checkbox itself */
@@ -1450,6 +1501,8 @@ body #keyboardInputMaster thead tr th div {
   width: 90%;
   padding: 10px;
   margin: 0 auto 20px ;
+  max-height: 350px;
+  overflow-y: scroll;
 }
 
 .alertBox .multiOptions input {
@@ -1472,7 +1525,7 @@ body #keyboardInputMaster thead tr th div {
   font-family: Georgia, serif;
   border-collapse: collapse;
   color: #888;
-  padding: 5px;
+  padding: 5px 0px;
   margin-bottom: 5px;
   position: relative;
 }
@@ -1574,10 +1627,6 @@ body #keyboardInputMaster thead tr th div {
 
 @media screen and (max-width: 500px) {
 
-  /* Put search results on new line */
-  #searchContent {
-      clear: both;
-  }
 
   /* Force table to not be like tables anymore */
   .sheetTable, .sheetTable thead, .sheetTable tbody,
@@ -1592,8 +1641,11 @@ body #keyboardInputMaster thead tr th div {
     left: -9999px;
   }
   
-  .sheetTable .sheetRow .title { width: 100%; }
-  .sheetTable td:nth-of-type(2) {  }
+  .sheetTable .sheetRow td.title { 
+    width: 100%; 
+    box-sizing: border-box;
+  }
+  .sheetTable td:nth-of-type(2) { padding: 0px 5px 5px; }
   .sheetTable td:nth-of-type(3) { display: none; }
   .sheetTable td:nth-of-type(4) { display: none; }
   .sheetTable td:nth-of-type(5) { display: none; }

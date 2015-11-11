@@ -12,6 +12,8 @@ from django.contrib.auth.forms import *
 from emailusernames.forms import EmailUserCreationForm
 from emailusernames.utils import get_user, user_exists
 from sefaria.client.util import subscribe_to_announce
+from captcha.fields import ReCaptchaField
+from sefaria.local_settings import DEBUG
 
 SEED_GROUP = "User Seeds"
 
@@ -20,6 +22,8 @@ class NewUserForm(EmailUserCreationForm):
     first_name = forms.CharField()
     last_name = forms.CharField()
     subscribe_announce = forms.BooleanField(label="Receive important announcements",  initial=True, required=False)
+    if not DEBUG:
+        captcha = ReCaptchaField(attrs={'theme' : 'clean'})
     
     class Meta:
         model = User
@@ -29,6 +33,8 @@ class NewUserForm(EmailUserCreationForm):
         super(EmailUserCreationForm, self).__init__(*args, **kwargs)
         del self.fields['password2']
         self.fields.keyOrder = ["email", "first_name", "last_name", "password1", "subscribe_announce"]
+        if not DEBUG:
+            self.fields.keyOrder.append("captcha")
 
     def clean_email(self):
         email = self.cleaned_data["email"]

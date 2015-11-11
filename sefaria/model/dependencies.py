@@ -20,10 +20,12 @@ subscribe(text.process_index_title_change_in_versions,                  text.Ind
 subscribe(version_state.process_index_title_change_in_version_state,    text.Index, "attributeChange", "title")
 
 # Index Delete (start with cache clearing)
-subscribe(scache.process_index_change_in_cache,                         text.Index, "delete")
+subscribe(scache.process_index_delete_in_cache,                         text.Index, "delete")
 subscribe(version_state.process_index_delete_in_version_state,          text.Index, "delete")
 subscribe(link.process_index_delete_in_links,                           text.Index, "delete")
 subscribe(text.process_index_delete_in_versions,                        text.Index, "delete")
+subscribe(translation_request.process_index_delete_in_translation_requests, text.Index, "delete")
+
 
 # Version Title Change
 subscribe(history.process_version_title_change_in_history,              text.Version, "attributeChange", "versionTitle")
@@ -35,7 +37,7 @@ subscribe(layer.process_note_deletion_in_layer,                         note.Not
 # Term name change
 subscribe(cascade(schema.TermSet, "scheme"),                              schema.TermScheme, "attributeChange", "name")
 
-# Version Save
+# Version State Save
 subscribe(translation_request.process_version_state_change_in_translation_requests, version_state.VersionState, "save")
 
 # todo: notes? reviews?

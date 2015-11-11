@@ -11,11 +11,11 @@ except ImportError:
     logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines")
     import re
 
+import regex
 from . import abstract as abst
 
 from sefaria.system.exceptions import InputError, IndexSchemaError
 from sefaria.utils.hebrew import decode_hebrew_numeral, encode_hebrew_numeral, hebrew_term
-
 
 """
                 -----------------------------------------
@@ -66,6 +66,11 @@ class TitleGroup(object):
         if lang is None:
             return [t["text"] for t in self.titles]
         return [t["text"] for t in self.titles if t["lang"] == lang]
+
+    def secondary_titles(self, lang=None):
+        if lang is None:
+            raise Exception("TitleGroup.secondary_titles() needs a lang")
+        return [t for t in self.all_titles(lang) if t != self.primary_title(lang)]
 
     def remove_title(self, text, lang):
         self.titles = [t for t in self.titles if not (t["lang"] == lang and t["text"] == text)]
@@ -135,7 +140,7 @@ class Term(abst.AbstractMongoRecord):
     ]
 
     def _set_derived_attributes(self):
-        self.set_titles(self.titles)
+        self.set_titles(getattr(self, "titles", None))
 
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
@@ -216,6 +221,7 @@ class TreeNode(object):
     """
     A single node in a tree.
     These trees are hierarchies - each node can have 1 or 0 parents.
+    In this class, node relationships, node navigation, and general serialization are handled.
     """
     required_param_keys = []
     optional_param_keys = []
@@ -351,6 +357,22 @@ class TreeNode(object):
         """
         return not self.parent and not self.children
 
+    def traverse_to_string(self, callback, depth=0, **kwargs):
+        st = callback(self, depth, **kwargs)
+        if self.has_children():
+            for child in self.children:
+                st += child.traverse_to_string(callback, depth + 1, **kwargs)
+        return st
+
+    def traverse_to_json(self, callback, depth=0, **kwargs):
+        js = callback(self, depth, **kwargs)
+        if self.has_children():
+            if self.children:
+                js["nodes"] = []
+            for child in self.children:
+                js["nodes"].append(child.traverse_to_json(callback, depth + 1, **kwargs))
+        return js
+
     def serialize(self, **kwargs):
         d = {}
         if self.has_children():
@@ -363,7 +385,6 @@ class TreeNode(object):
         if any(params):
             d["nodeType"] = self.__class__.__name__
             d.update(params)
-
 
         return d
 
@@ -394,8 +415,8 @@ class TitledTreeNode(TreeNode):
     A tree node that has a collection of titles - as contained in a TitleGroup instance.
     In this class, node titles, terms, 'default', and combined titles are handled.
     """
-    after_title_delimiter_re = ur"[,.: ]+"  # does this belong here?  Does this need to be an arg?
-    title_separators = [u" ", u", "]
+    after_title_delimiter_re = ur"[,.: \r\n]+"  # should be an arg?  \r\n are for html matches
+    title_separators = [u", "]
 
     def __init__(self, serial=None, **kwargs):
         super(TitledTreeNode, self).__init__(serial, **kwargs)
@@ -434,7 +455,7 @@ class TitledTreeNode(TreeNode):
         """
         return self.title_dict(lang).keys()
 
-    def title_dict(self, lang="en", baselist=[]):
+    def title_dict(self, lang="en", baselist=None):
         """
         Recursive function that generates a map from title to node
         :param node: the node to start from
@@ -442,10 +463,17 @@ class TitledTreeNode(TreeNode):
         :param baselist: list of starting strings that lead to this node
         :return: map from title to node
         """
+        if baselist is None:
+            baselist = []
+
         title_dict = {}
         thisnode = self
 
         this_node_titles = [title["text"] for title in self.get_titles() if title["lang"] == lang and title.get("presentation") != "alone"]
+        if (not len(this_node_titles)) and (not self.is_default()):
+            error = u'No "{}" title found for schema node: "{}"'.format(lang, self.key)
+            error += u', child of "{}"'.format(self.parent.full_title("en")) if self.parent else ""
+            raise IndexSchemaError(error)
         if baselist:
             node_title_list = [baseName + sep + title for baseName in baselist for sep in self.title_separators for title in this_node_titles]
         else:
@@ -477,13 +505,15 @@ class TitledTreeNode(TreeNode):
                 self._full_titles[lang] = self.all_node_titles(lang)
         return self._full_titles[lang]
 
-    def full_title(self, lang="en"):
+    def full_title(self, lang="en", force_update=False):
         """
         :param lang: "en" or "he"
         :return string: The full title of this node, from the root node.
         """
-        if not self._full_title.get(lang):
-            if self.parent:
+        if not self._full_title.get(lang) or force_update:
+            if self.is_default():
+                self._full_title[lang] = self.parent.full_title(lang)
+            elif self.parent:
                 self._full_title[lang] = self.parent.full_title(lang) + ", " + self.primary_title(lang)
             else:
                 self._full_title[lang] = self.primary_title(lang)
@@ -496,6 +526,15 @@ class TitledTreeNode(TreeNode):
         """
         return self.default
 
+    def has_default_child(self):
+        return any([c for c in self.children if c.is_default()])
+
+    def get_default_child(self):
+        for child in self.children:
+            if child.is_default():
+                return child
+        return None
+
     def has_titled_continuation(self):
         """
         :return: True if any normal forms of this node continue with a title.  Used in regex building.
@@ -505,7 +544,7 @@ class TitledTreeNode(TreeNode):
     def has_numeric_continuation(self):
         """
         True if any of the normal forms of this node continue with numbers.  Used in regex building.
-        Overriden in subclasses.
+        Overridden in subclasses.
         :return:
         """
         #overidden in subclasses
@@ -652,16 +691,77 @@ class NumberedTitledTreeNode(TitledTreeNode):
     def address_class(self, depth):
         return self._addressTypes[depth]
 
-    def regex(self, lang, **kwargs):
-        reg = self._addressTypes[0].regex(lang, "a0", **kwargs)
+    # todo: accept 'anchored' arguement, and return Regex object.
+    def full_regex(self, title, lang, anchored=True, compiled=True, **kwargs):
+        """
+        :return: Regex object. If for_js == True, returns the Regex string
+        :param for_js: Defaults to False
+        :param match_range: Defaults to False
+
+        A call to `full_regex("Bereishit", "en", for_js=True)` returns the follow regex, expanded here for clarity :
+        ```
+        Bereishit                       # title
+        [,.: \r\n]+                     # a separator (self.after_title_delimiter_re)
+        (?:                             # Either:
+            (?:                         # 1)
+                (\d+)                   # Digits
+                (                       # and maybe
+                    [,.: \r\n]+         # a separator
+                    (\d+)               # and more digits
+                )?
+            )
+            |                           # Or:
+            (?:                         # 2: The same
+                [[({]                   # With beginning
+                (\d+)
+                (
+                    [,.: \r\n]+
+                    (\d+)
+                )?
+                [])}]                   # and ending brackets or parens or braces around the numeric portion
+            )
+        )
+        (?=                             # and then either
+            [.,;?! })<]                 # some kind of delimiting character coming after
+            |                           # or
+            $                           # the end of the string
+        )
+        ```
+        Different address type / language combinations produce different internal regexes in the innermost portions of the above, where the comments say 'digits'.
+
+        """
+        reg = ur"^" if anchored else ""
+        reg += regex.escape(title) + self.after_title_delimiter_re
+        addr_regex = self.address_regex(lang, **kwargs)
+        reg += ur'(?:(?:' + addr_regex + ur')|(?:[\[({]' + addr_regex + ur'[\])}]))'  # Match expressions with internal parenthesis around the address portion
+        reg += ur"(?=\W|$)" if not kwargs.get("for_js") else ur"(?=[.,:;?! })\]<]|$)"
+        return regex.compile(reg, regex.VERBOSE) if compiled else reg
+
+    def address_regex(self, lang, **kwargs):
+        group = "a0" if not kwargs.get("for_js") else None
+        reg = self._addressTypes[0].regex(lang, group, **kwargs)
 
         if not self._addressTypes[0].stop_parsing(lang):
             for i in range(1, self.depth):
-                reg += u"(" + self.after_title_delimiter_re + self._addressTypes[i].regex(lang, "a{}".format(i), **kwargs) + u")"
+                group = "a{}".format(i) if not kwargs.get("for_js") else None
+                reg += u"(" + self.after_title_delimiter_re + self._addressTypes[i].regex(lang, group, **kwargs) + u")"
                 if not kwargs.get("strict", False):
                     reg += u"?"
 
-        reg += ur"(?=\W|$)"
+        if kwargs.get("match_range"):
+            reg += ur"(?:\s*-\s*"  # maybe there's a dash and a range
+            reg += ur"(?=\S)"  # must be followed by something (Lookahead)
+            group = "ar0" if not kwargs.get("for_js") else None
+            reg += self._addressTypes[0].regex(lang, group, **kwargs)
+            if not self._addressTypes[0].stop_parsing(lang):
+                reg += u"?"
+                for i in range(1, self.depth):
+                    reg += ur"(?:(?:" + self.after_title_delimiter_re + ur")?"
+                    group = "ar{}".format(i) if not kwargs.get("for_js") else None
+                    reg += u"(" + self._addressTypes[i].regex(lang, group, **kwargs) + u")"
+                    # assuming strict isn't relevant on ranges  # if not kwargs.get("strict", False):
+                    reg += u")?"
+            reg += ur")?"  # end range clause
         return reg
 
     def sectionString(self, sections, lang="en", title=True, full_title=False):
@@ -689,11 +789,10 @@ class ArrayMapNode(NumberedTitledTreeNode):
     """
     A :class:`TreeNode` that contains jagged arrays of references.
     Used as the leaf node of alternate structures of Index records.
-    (e.g., Parsha strutures of chapter/verse stored Tanach, or Perek structures of Daf/Line stored Talmud)
+    (e.g., Parsha structures of chapter/verse stored Tanach, or Perek structures of Daf/Line stored Talmud)
     """
-    #Is there a better way to inherit these from the super?
-    required_param_keys = ["depth", "addressTypes", "sectionNames", "wholeRef", "refs"]
-    optional_param_keys = ["lengths"]
+    required_param_keys = ["depth", "wholeRef"]
+    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
     has_key = False  # This is not used as schema for content
 
     def get_ref_from_sections(self, sections):
@@ -704,22 +803,57 @@ class ArrayMapNode(NumberedTitledTreeNode):
     def serialize(self, **kwargs):
         d = super(ArrayMapNode, self).serialize(**kwargs)
         if kwargs.get("expand_refs"):
-
-            def expand_ref(tref):
+            if getattr(self, "includeSections", None):
                 from . import text
-                from sefaria.utils.util import text_preview
 
-                oref = text.Ref(tref)
-                if oref.is_spanning():
-                    oref = oref.split_spanning_ref()[0]
-                t = text.TextFamily(oref, context=0, pad=False, commentary=False)
-                preview = text_preview(t.text, t.he) if (t.text or t.he) else []
+                refs         = text.Ref(self.wholeRef).split_spanning_ref()
+                first, last  = refs[0], refs[-1]
+                offset       = first.sections[-2]-1 if first.is_segment_level() else first.sections[-1]-1
+                depth        = len(first.index.nodes.sectionNames) - len(first.section_ref().sections)
 
-                return preview
+                d["refs"] = [r.normal() for r in refs]
+                d["addressTypes"] = d.get("addressTypes", []) + first.index.nodes.addressTypes[depth:]
+                d["sectionNames"] = d.get("sectionNames", []) + first.index.nodes.sectionNames[depth:]
+                d["depth"] += 1
+                d["offset"] = offset
 
-            d["wholeRefPreview"] = expand_ref(self.wholeRef)
-            d["refsPreview"] = map(expand_ref, self.refs)
+            d["wholeRefPreview"] = self.expand_ref(self.wholeRef, kwargs.get("he_text_ja"), kwargs.get("en_text_ja"))
+            if d.get("refs"):
+                d["refsPreview"] = []
+                for r in d["refs"]:
+                    d["refsPreview"].append(self.expand_ref(r, kwargs.get("he_text_ja"), kwargs.get("en_text_ja")))
+            else:
+                d["refsPreview"] = None
         return d
+
+    # Move this over to Ref and cache it?
+    def expand_ref(self, tref, he_text_ja = None, en_text_ja = None):
+        from . import text
+        from sefaria.utils.util import text_preview
+
+        oref = text.Ref(tref)
+        if oref.is_spanning():
+            oref = oref.first_spanned_ref()
+        if he_text_ja is None and en_text_ja is None:
+            t = text.TextFamily(oref, context=0, pad=False, commentary=False)
+            preview = text_preview(t.text, t.he) if (t.text or t.he) else []
+        else:
+            preview = text_preview(en_text_ja.subarray_with_ref(oref).array(), he_text_ja.subarray_with_ref(oref).array())
+
+        return preview
+
+    def validate(self):
+        if getattr(self, "depth", None) is None:
+            raise IndexSchemaError("Missing Parameter 'depth' in {}".format(self.__class__.__name__))
+        if self.depth == 0:
+            TitledTreeNode.validate(self)  # Skip over NumberedTitledTreeNode validation, which requires fields we don't have
+        elif self.depth > 0:
+            for k in ["addressTypes", "sectionNames", "refs"]:
+                if getattr(self, k, None) is None:
+                    raise IndexSchemaError("Missing Parameter '{}' in {}".format(k, self.__class__.__name__))
+            super(ArrayMapNode, self).validate()
+
+
 """
                 -------------------------
                  Index Schema Tree Nodes
@@ -735,7 +869,7 @@ class SchemaNode(TitledTreeNode):
     Conceptually, there are two types of Schema node:
     - Schema Structure Nodes define nodes which have child nodes, and do not store content.
     - Schema Content Nodes define nodes which store content, and do not have child nodes
-    The two are both handled by this class, with calls to "if self.children:" distinguishing behavior.
+    The two are both handled by this class, with calls to "if self.children" to distinguishing behavior.
 
     """
 
@@ -763,12 +897,6 @@ class SchemaNode(TitledTreeNode):
 
         if self.default and self.key != "default":
             raise IndexSchemaError("'default' nodes need to have key name 'default'")
-
-    def traverse_to_string(self, callback, depth=0, **kwargs):
-        st = callback(self, depth, **kwargs)
-        for child in self.children:
-            st += child.traverse_to_string(callback, depth + 1, **kwargs)
-        return st
 
     def create_content(self, callback=None, *args, **kwargs):
         """
@@ -831,8 +959,14 @@ class SchemaNode(TitledTreeNode):
             res["heTitleVariants"] = self.full_titles("he")
         if self.index.has_alt_structures():
             res['alts'] = {}
+            if not self.has_children(): #preload text and pass it down to the preview generation
+                from . import text
+                he_text_ja = text.TextChunk(self.ref(), "he").ja()
+                en_text_ja = text.TextChunk(self.ref(), "en").ja()
+            else:
+                he_text_ja = en_text_ja = None
             for key, struct in self.index.get_alt_structures().iteritems():
-                res['alts'][key] = struct.serialize(expand_shared=True, expand_refs=True, expand_titles=True)
+                res['alts'][key] = struct.serialize(expand_shared=True, expand_refs=True, he_text_ja=he_text_ja, en_text_ja=en_text_ja, expand_titles=True)
             del res['alt_structs']
         return res
 
@@ -1008,19 +1142,20 @@ class AddressType(object):
         """
         Regular expression component to capture a number expressed in Hebrew letters
         :return string:
+        \p{Hebrew} ~= [\u05d0–\u05ea]
         """
         return ur"""                                    # 1 of 3 styles:
-        ((?=\p{Hebrew}+(?:"|\u05f4|'')\p{Hebrew})    # (1: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
+        ((?=[\u05d0-\u05ea]+(?:"|\u05f4|'')[\u05d0-\u05ea])    # (1: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
                 \u05ea*(?:"|\u05f4|'')?				    # Many Tavs (400), maybe dbl quote
                 [\u05e7-\u05ea]?(?:"|\u05f4|'')?	    # One or zero kuf-tav (100-400), maybe dbl quote
                 [\u05d8-\u05e6]?(?:"|\u05f4|'')?	    # One or zero tet-tzaddi (9-90), maybe dbl quote
                 [\u05d0-\u05d8]?					    # One or zero alef-tet (1-9)															#
-            |(?=\p{Hebrew})						    # (2: no punc) Lookahead: at least one Hebrew letter
+            |[\u05d0-\u05ea]['\u05f3]					# (2: ') single letter, followed by a single quote or geresh
+            |(?=[\u05d0-\u05ea])					    # (3: no punc) Lookahead: at least one Hebrew letter
                 \u05ea*								    # Many Tavs (400)
                 [\u05e7-\u05ea]?					    # One or zero kuf-tav (100-400)
                 [\u05d8-\u05e6]?					    # One or zero tet-tzaddi (9-90)
                 [\u05d0-\u05d8]?					    # One or zero alef-tet (1-9)
-            |\p{Hebrew}['\u05f3]					    # (3: ') single letter, followed by a single quote or geresh
         )"""
 
     def stop_parsing(self, lang):
@@ -1189,7 +1324,7 @@ class AddressAliyah(AddressInteger):
 
 class AddressPerek(AddressInteger):
     section_patterns = {
-        "en": ur"""(?:(?:Chapter|chapter|Perek|perek)\s*)""",
+        "en": ur"""(?:(?:Chapter|chapter|Perek|perek)?\s*)""",  #  the internal ? is a hack to allow an non match, even if 'strict'
         "he": ur"""(?:
             \u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
             |\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space

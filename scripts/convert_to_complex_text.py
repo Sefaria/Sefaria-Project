@@ -14,10 +14,10 @@ import csv
 
 
 def migrate_to_complex_structure(title, schema, mappings):
-    print title
-    print mappings
-    print json.dumps(schema)
-
+    #print title
+    #print mappings
+    #print json.dumps(schema)
+    print "begin conversion"
     #TODO: add method on model.Index to change all 3 (title, nodes.key and nodes.primary title)
 
     #create a new index with a temp file #make sure to later add all the alternate titles
@@ -34,6 +34,7 @@ def migrate_to_complex_structure(title, schema, mappings):
     he_title = temp_index.get_title('he')
     temp_index.set_title(u'{} זמני'.format(he_title), 'he')
     temp_index.save()
+    #the rest of the title variants need to be copied as well but it will create conflicts while the orig index exists, so we do it after removing the old index in completely_delete_index_and_related.py
 
     #create versions for the main text
     versions = VersionSet({'title': title})
@@ -43,10 +44,12 @@ def migrate_to_complex_structure(title, schema, mappings):
     #basically a repeat process of the above, sans creating the index record
     commentaries = library.get_commentary_versions_on_book(title)
     migrate_versions_of_text(commentaries, mappings, title, temp_index.title, temp_index)
-
-
-
-    #move links referring to each section
+    #duplicate versionstate
+    #TODO: untested
+    vstate_old = VersionState().load({'title':title })
+    vstate_new = VersionState(temp_index)
+    vstate_new.flags = vstate_old.flags
+    vstate.save()
 
 
 
@@ -54,7 +57,8 @@ def migrate_to_complex_structure(title, schema, mappings):
     return [[mapping[0].replace(orig_title_component, text_title), mapping[1].replace(orig_title_component, text_title).replace(orig_title_component, temp_title_component)] for mapping in mappings]"""
 
 def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_index):
-    for version in versions:
+    for i, version in enumerate(versions):
+        print version.versionTitle.encode('utf-8')
         new_version_title = version.title.replace(orig_title, new_title)
         print new_version_title
         new_version = Version(
@@ -66,7 +70,7 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
                     "title": new_version_title
                 }
             )
-        for attr in ['status', 'license', 'licenseVetted']:
+        for attr in ['status', 'license', 'licenseVetted', 'method', 'versionNotes', 'priority', "digitizedBySefaria", "heversionSource"]:
             value = getattr(version, attr, None)
             if value:
                 setattr(new_version, attr, value)
@@ -100,9 +104,10 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
             VersionState(dRef.index.title).refresh()
             #links
             if dRef.is_commentary():
-                add_commentary_links(dRef.normal(), 8646)
+                add_commentary_links(dRef, 8646)
             add_links_from_text(dRef.normal(), new_version.language, new_tc.text, new_version._id, 8646)
-            migrate_links_of_ref(orRef, dRef)
+            if i == 0: #links are the same across versions
+                migrate_links_of_ref(orRef, dRef)
             #version history
             text_hist = HistorySet({"ref": {"$regex": orRef.regex()}, 'version': version.versionTitle })
             for h in text_hist:
@@ -119,7 +124,6 @@ def translate_ref(ref, originScopeRef, destScopeRef):
     cdict["toSections"]= curEndRef.in_terms_of(originScopeRef)
     return Ref(_obj=cdict)
 
-
 #TODO: adapt to be able to remap links for the commentaries as well
 def migrate_links_of_ref(orRef, destRef):
     query = {"$and" : [{ "refs": {"$regex": orRef.regex(), "$options": 'i'}}, { "$or" : [ { "auto" : False }, { "auto" : 0 }, {"auto" :{ "$exists": False}} ] } ]}
@@ -131,22 +135,24 @@ def migrate_links_of_ref(orRef, destRef):
         linkRef2 = Ref(link.refs[1])
         curLinkRef = linkRef1 if orRef.contains(linkRef1) else linkRef2 #make sure we manipulate the right ref
         tranlsatedLinkRef = translate_ref(curLinkRef, orRef, destRef)
-        newrefs = [tranlsatedLinkRef.normal(), linkRef2.normal() if linkRef1 == curLinkRef else linkRef1.normal()]
-        print newrefs
+        newrefs = [tranlsatedLinkRef.normal(), linkRef2.normal()] if linkRef1 == curLinkRef else [linkRef1.normal(), tranlsatedLinkRef.normal()]
         tranlsatedLink = Link({'refs': newrefs, 'type': curLinkRef.type})
         try:
             tranlsatedLink.save()
-            link_history = HistorySet({"new.refs": curLinkRef.normal(),'rev_type': {"$regex": 'link'}})
-            for h in link_history:
-                new_h = h.copy()
-                new_h.new["refs"] = [r.replace(curLinkRef.normal(), tranlsatedLinkRef.normal(), 1) for r in h.new["refs"]]
-                if getattr(h,'old', None):
-                    new_h.old["refs"] = [r.replace(curLinkRef.normal(), tranlsatedLinkRef.normal(), 1) for r in h.old["refs"]]
-                new_h.save()
+            make_link_history_record(curLinkRef, tranlsatedLinkRef)
+            print newrefs
         except DuplicateRecordError:
-            pass
+            print "SUCH A LINK ALREADY EXISTS: {}".format(newrefs)
 
 
+def make_link_history_record(curLinkRef, tranlsatedLinkRef):
+    link_history = HistorySet({"new.refs": curLinkRef.normal(),'rev_type': {"$regex": 'link'}})
+    for h in link_history:
+        new_h = h.copy()
+        new_h.new["refs"] = [r.replace(curLinkRef.normal(), tranlsatedLinkRef.normal(), 1) for r in h.new["refs"]]
+        if getattr(h,'old', None):
+            new_h.old["refs"] = [r.replace(curLinkRef.normal(), tranlsatedLinkRef.normal(), 1) for r in h.old["refs"]]
+        new_h.save()
 
 
 
@@ -182,13 +188,13 @@ def migrate_links_of_ref(orRef, destRef):
 """ The main function, runs when called from the CLI"""
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    #parser.add_argument("title", help="title of existing index record")
-    #parser.add_argument("schema_file", help="path to json schema file")
-    #parser.add_argument("mapping_file", help="title of existing index record")
+    parser.add_argument("title", help="title of existing index record")
+    parser.add_argument("schema_file", help="path to json schema file")
+    parser.add_argument("mapping_file", help="title of existing index record")
     args = parser.parse_args()
-    args.title = 'Pesach Haggadah'
+    """args.title = 'Pesach Haggadah'
     args.schema_file = "data/tmp/pesach_haggadah_complex.json"
-    args.mapping_file = "data/tmp/Pessach Haggadah Convert.csv"
+    args.mapping_file = "data/tmp/Pessach Haggadah Convert.csv"""""
     print args
     with open(args.schema_file, 'r') as filep:
         schema = json.load(filep)

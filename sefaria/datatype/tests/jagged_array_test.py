@@ -33,6 +33,27 @@ def setup_module(module):
         ],
     ]
 
+class Test_Jagged_Array(object):
+
+    def test_ja_normalize(self):
+        input_ja = ["a",[],["","a", ["c"]],["",""],["b"]]
+        output_ja = [[["a"]],[],[[],["a"], ["c"]],[[],[]],[["b"]]]
+        jaobj = ja.JaggedArray(input_ja)
+        jaobj.normalize()
+        assert jaobj.array() == output_ja
+
+    def test_last_index(self):
+        assert ja.JaggedIntArray([
+            [[1,3],[4,5],[7]],
+            [[1,2,3],[2,2],[8,8,8]],
+            [[0],[1],[2,3,4],[7,7,7,7,7]]
+        ]).last_index(3) == [2, 3, 4]
+        assert ja.JaggedIntArray([
+            [[1,3],[4,5],[7]],
+            [[1,2,3],[2,2],[8,8,8]],
+            [[0],[1],[2,3,4],[7,7,7,7,7],[],[]]
+        ]).last_index(3) == [2, 3, 4]
+
 
 class Test_Jagged_Text_Array(object):
 
@@ -152,7 +173,7 @@ class Test_Jagged_Text_Array(object):
         assert ja.JaggedTextArray(twoby).sections() == [[0],[1],[2]]
         assert ja.JaggedTextArray(threeby).sections() == [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]]
 
-    def test_trim_ending_whitespace(self):
+    def test_FAILING_IN_SUITE_trim_ending_whitespace(self):
         # Note - this test can fail when run in the full suite, because earlier test data bleeds through.
         # See warning at top of jagged_array.py
         #do no harm
@@ -209,6 +230,14 @@ class Test_Jagged_Text_Array(object):
             "Third first", "Third second", "Third third"
         ]
 
+    def test_next_prev(self):
+        sparse_ja = ja.JaggedTextArray([["","",""],["","foo","","bar",""],["","",""]])
+        assert sparse_ja.next_index([0,0]) == [1, 1]
+        assert sparse_ja.next_index([]) == [1, 1]
+        assert sparse_ja.next_index() == [1, 1]
+
+        assert sparse_ja.prev_index([]) == [1, 3]
+        assert sparse_ja.prev_index() == [1, 3]
 
 
 class Test_Depth_0(object):

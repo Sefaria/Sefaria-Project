@@ -14,7 +14,10 @@ from text import VersionSet, AbstractIndex, AbstractSchemaContent, IndexSet, lib
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedIntArray
 from sefaria.system.exceptions import InputError, BookNameError
 from sefaria.system.cache import delete_template_cache
-
+try:
+    from sefaria.settings import USE_VARNISH
+except ImportError:
+    USE_VARNISH = False
 '''
 old count docs were:
     c["allVersionCounts"]
@@ -123,7 +126,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
             self.refresh()
             self.is_new_state = True  # variable naming: don't override 'is_new' - a method of the superclass
 
-    def contents(self):
+    def contents(self, **kwargs):
         c = super(VersionState, self).contents()
         c.update(self.index.contents())
         return c
@@ -144,6 +147,10 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         self.index.nodes.visit_structure(self._aggregate_structure_state, self)
         self.linksCount = link.LinkSet(Ref(self.index.title)).count()
         self.save()
+
+        if USE_VARNISH:
+            from sefaria.system.sf_varnish import invalidate_counts
+            invalidate_counts(self.index)
 
     def get_flag(self, flag):
         return self.flags.get(flag, None)
@@ -179,12 +186,11 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
                 'sparseness': sum([contents[ckey][lkey]["sparseness"] for ckey in ckeys]) / len(ckeys),  # should be an int.  In Python 3 may need to int(round()) the result.
             }
 
-
     #todo: do we want to use an object here?
     def _content_node_visitor(self, snode, *contents, **kwargs):
         """
         :param snode: SchemaContentNode
-        :param contents: Array of two nodes - the current self.nodes node, and the self.counts node
+        :param contents: Array of one node - the self.counts node
         :param kwargs:
         :return:
         """
@@ -193,7 +199,6 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         depth = snode.depth  # This also acts as an assertion that we have a SchemaContentNode
         ja = {}  # JaggedIntArrays for each language and 'all'
         padded_ja = {}  # Padded JaggedIntArrays for each language
-
 
         # Get base counts for each language
         for lang, lkey in self.lang_map.items():
@@ -367,6 +372,7 @@ class StateNode(object):
     lang_map = {lang: "_" + lang for lang in ["he", "en", "all"]}
     lang_keys = lang_map.values()
 
+    #todo: self.snode could be a SchemaNode, but get_available_counts_dict() assumes JaggedArrayNode
     def __init__(self, title=None, snode=None, _obj=None):
         if title:
             snode = library.get_schema_node(title)

@@ -76,6 +76,10 @@ body {
 	margin-left: -40px;
 }
 
+#sheetHeader #partnerLogo {
+	max-width: 100%;
+}
+
 #bsdHeader {
 	display: none;
 	direction: rtl;
@@ -99,7 +103,7 @@ body {
 	left: 16px;
 	left: 50%;
 	margin-left: -455px;
-	z-index: 1;
+	z-index: 5;
 	text-align: left;
 }
 
@@ -140,7 +144,7 @@ body {
 	background: white;
 	font-size: 17px;
 	border: 1px solid #ccc;
-	z-index: 1;
+	z-index: 5;
 	width: 220px;
 	top: -20px;
 	right: auto;
@@ -378,6 +382,7 @@ body {
 
 #sheet #sources .sheetItem .sourceNumber {
 	display: none;
+	font-size: 15px;
 }
 
 #sheet.numbered.hebrew #sources .sheetItem .sourceNumber.en {
@@ -402,7 +407,7 @@ body {
 	position: absolute;
 	width: 50px;
 	text-align: right;
-	top: 32px;
+	top: 35px;
 	left: -32px;
 }
 
@@ -410,8 +415,12 @@ body {
 	position: absolute;
 	width: 50px;
 	text-align: left;
-	top: 32px;
+	top: 37px;
 	right: -32px;
+}
+
+#sheet.boxed #sources .sheetItem .sourceNumber {
+	top: 17px;
 }
 
 #sheet #sources .sheetItem.hasCustom .sourceNumber {
@@ -574,6 +583,7 @@ body {
 	float: right;
 }
 
+
 #sheet.bilingual.stacked .source > .en, 
 #sheet.bilingual.stacked .source > .he,
 #sheet.bilingual.stacked .outsideBi .en, 
@@ -656,6 +666,7 @@ body {
 
 .comment {
 	font-size: 17px;
+	min-height: 30px;
 }
 
 .outsideBi {
@@ -885,6 +896,11 @@ body {
 	top: -14px;
 }
 
+.cke_editable {
+	position: relative;
+	z-index: 20;
+}
+
 .clear {
 	clear: both;
 }	
@@ -930,11 +946,6 @@ a:active {
 		box-shadow: none;
 	}
 
-	#controls {
-		left: 0px;
-		margin-left: -12px;
-	}
-
 	#addSourceModal {
 		width: 80%;
 	}
@@ -946,6 +957,11 @@ a:active {
 
 	#fileControls .btn {
 		top: -18px;
+	}
+
+	#controls {
+		margin-left: 0;
+		left: 0;
 	}
 
 	#bsdHeader {
@@ -969,6 +985,26 @@ a:active {
 }
 
 @media screen and (max-width: 520px) {
+	#sheet {
+		padding: 0 6px;
+	}
+	#sheet .sheetItem {
+		padding: 32px 16px;
+	}
+	#sheet #sources .sheetItem .sourceNumber.en {
+		left: -2px;
+		text-align: left;
+	}
+	#sheet #sources .sheetItem .sourceNumber.he {
+		right: -2px;
+		text-align: right;
+	}
+	#sheet.boxed #sources .sheetItem .sourceNumber.en {
+		left: 6px;
+	}
+	#sheet.boxed #sources .sheetItem .sourceNumber.he {
+		right: 6px;
+	}
 	#sheet.bilingual.sideBySide .en {
 		text-align: left !important;
 		width: 100%;
@@ -977,11 +1013,9 @@ a:active {
 		text-align: right !important;
 		width: 100%;
 	}
-}
-
-@font-face {
-  font-family: 'Rashi Script';
-  src: url('/static/fonts/Mekorot-Rashi.ttf');
+	#controls {
+		display: none;
+	}
 }
 
 body.embeded #controls {
@@ -1119,4 +1153,143 @@ input[type="file"] {
   /* For IE7, add top margin to align select with labels */
 
   line-height: 28px;
+}
+
+
+
+/* overrides for layout option by source */
+#sheet .source.sheetItem.sideBySide > .en {
+	float: left;
+	display: block;
+	width: 48%;
+
+}
+
+#sheet .source.sheetItem.sideBySide > .he {
+	float: right;
+	display: block;
+	width: 48%;
+}
+
+
+#sheet .source.sheetItem.sideBySide.hebLeft > .en {
+	float: right;
+	display: block;
+	width: 48%;
+}
+
+#sheet .source.sheetItem.sideBySide.hebLeft > .he {
+	float: left;
+	display: block;
+	width: 48%;
+}
+
+#sheet .source.sheetItem.sideBySide.hebRight > .he {
+	float: right;
+	display: block;
+	width: 48%;
+
+}
+
+#sheet .source.sheetItem.sideBySide.hebRight > .en {
+	float: left;
+	display: block;
+	width: 48%;
+
+}
+
+
+
+#sheet .source.sheetItem.stacked > .en, 
+#sheet .source.sheetItem.stacked > .he {	
+	float: none;
+	width: 100%;
+	margin-bottom: 12px;
+}
+
+
+#sheet .source.bilingual .en,
+#sheet .source.bilingual .he,
+#sheet .source.english .en,
+#sheet .source.hebrew .he {
+	display: block;
+} 
+
+
+#sheet .source.english > .he {
+	display: none;
+}
+
+#sheet .source.hebrew > .en {
+	display: none;
+}
+
+
+#resetToDefaults {
+	margin-top:10px;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.disabled { 
+	pointer-events: none;
+	opacity: .3;
+}
+
+#overrideLayoutModal .ok {
+	margin-top: 25px;
+}
+
+#overrideLayoutModal .header {
+	margin: 15px 0px 25px;
+}
+
+#sharingModal {
+	width:500px;
+}
+
+#sharingModal .radio {
+	text-align:left;
+	margin: 8px 8px 18px;
+}
+
+.sharingLabel {
+	font-weight:bold;
+	vertical-align: top;
+}
+
+.sharingDesc {
+	padding-left: 72px;
+	display:block;
+	margin-top: -22px;
+}
+
+.iconHolder {
+	width:38px;
+	display:inline-block;
+	padding: 0 5px 15px 10px;
+}
+
+.fa-onTop {
+	margin-left:-5px;
+}
+
+.alertBox {
+	z-index:101;
+}
+
+.addedMedia {
+	max-width: 100%;
+}
+
+.media {
+	text-align:center;
+}
+
+#addMediaInput {
+	margin-top:10px;
+	width: 300px;
+}
+.optionItem a {
+ color: inherit; 
 }

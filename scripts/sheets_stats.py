@@ -3,13 +3,9 @@ import sys
 import os
 from collections import defaultdict
 
-path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, path)
-sys.path.insert(0, path + "/sefaria")
-
-import sefaria.model as model
+from sefaria.model import *
 from sefaria.system.exceptions import InputError
-from sefaria.sheets import save_sheet, LISTED_SHEETS
+from sefaria.sheets import save_sheet
 from sefaria.utils.util import strip_tags
 from sefaria.system.database import db
 
@@ -46,14 +42,14 @@ def count_sources(sources, sheet_id):
 		if "ref" in s and s["ref"] is not None:
 			sources_count += 1
 			try:
-				oref = model.Ref(s["ref"]).padded_ref()
+				oref = Ref(s["ref"]).padded_ref()
 			except InputError:
 				continue
 			refs[s["ref"]] += 1
 			texts[oref.book] += 1
 			categories[oref.index.categories[0]] += 1
 
-			if not model.Ref(s["ref"]).is_text_translated():
+			if not Ref(s["ref"]).is_text_translated():
 				untrans_categories[oref.index.categories[0]] += 1
 				untrans_texts[oref.book] += 1
 				untrans_refs[s["ref"]] += 1
@@ -76,7 +72,7 @@ def count_sources(sources, sheet_id):
 
 sheets       = db.sheets.find()
 total        = sheets.count()
-public_total = db.sheets.find({"status": {"$in": LISTED_SHEETS}}).count()
+public_total = db.sheets.find({"status": "public"}).count()
 
 for sheet in sheets: 
 	global language
@@ -87,9 +83,9 @@ for sheet in sheets:
 		languages["bilingual"] += 1
 
 
-sorted_refs       = sorted(refs.iteritems(), key=lambda x: -x[1])
-sorted_texts      = sorted(texts.iteritems(), key=lambda x: -x[1])
-sorted_categories = sorted(categories.iteritems(), key=lambda x: -x[1])
+sorted_refs               = sorted(refs.iteritems(), key=lambda x: -x[1])
+sorted_texts              = sorted(texts.iteritems(), key=lambda x: -x[1])
+sorted_categories         = sorted(categories.iteritems(), key=lambda x: -x[1])
 
 sorted_untrans_refs       = sorted(untrans_refs.iteritems(), key=lambda x: -x[1])
 sorted_untrans_texts      = sorted(untrans_texts.iteritems(), key=lambda x: -x[1])
@@ -98,7 +94,7 @@ sorted_untrans_categories = sorted(untrans_categories.iteritems(), key=lambda x:
 sorted_fragments          = sorted(fragments.iteritems(), key=lambda x: -len(x[1]))
 
 
-if action == "print":
+if action == "print" or "both":
 	print "*********************************\n"
 
 	print "%d Total Sheets" % total
@@ -147,7 +143,7 @@ if action == "print":
 
 
 
-if action == "savesheet":
+if action == "savesheet" or "both":
 	sheet = {
 		"title": "Top Sources in All Source Sheets",
 		"sources": [{"ref": ref[0]} for ref in sorted_refs[:show_count]],

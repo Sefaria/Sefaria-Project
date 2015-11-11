@@ -49,14 +49,14 @@ class JaggedArray(object):
             result = 0
         return result
 
-    def next_index(self, starting_points):
+    def next_index(self, starting_points=None):
         """
         Return the next populated address in a JA
         :param starting_points: An array indicating starting address in the JA
         """
         return self._dfs_traverse(self._store, starting_points)
 
-    def prev_index(self, starting_points):
+    def prev_index(self, starting_points=None):
         """
         Return the previous populated address in a JA
         :param starting_points: An array indicating starting address in the JA
@@ -122,6 +122,9 @@ class JaggedArray(object):
         :param depth: tracking parameter for recursion.
         :return: the indices where the next section is at.
         """
+        if starting_points is None:
+            starting_points = []
+
         #at the lowest level, we will have either strings or ints indicating text existence or not.
         if isinstance(counts_map, (int, basestring)):
             return bool(counts_map)
@@ -208,7 +211,7 @@ class JaggedArray(object):
         if _cur is None:
             if not self._store:
                 return 0
-            return self.depth(_cur=self._store)
+            return self.depth(_cur=self._store, deep=deep)
         if not isinstance(_cur, list):
             return 0
         elif len(_cur) > 0 and (deep or all(map(lambda y: isinstance(y, list), _cur))):
@@ -279,6 +282,36 @@ class JaggedArray(object):
                 self._downsize()
         self._reinit()
         return self
+
+    def normalize(self, terminal_depth=None, _cur=None, depth=1):
+        """
+        :param terminal_depth: The desired depth before whcih everything should be arrays
+        :return: Bool if there were any actual modifications made or not. 
+        Normalizes the array so on any given depth, there are either arrays (incl empty) or primitives, not both.
+        e.g. [[], ""] becomes [[], []]
+        """
+        normalized = False
+        if not terminal_depth:
+            terminal_depth = self.depth(deep=True)
+        if _cur is None:
+            if not self._store:
+                return normalized
+            return self.normalize(terminal_depth=terminal_depth, _cur=self._store)
+        if depth < terminal_depth:
+            for i,elem in enumerate(_cur):
+                if not isinstance(_cur[i], list):
+                    if isinstance(_cur[i], basestring) and not len(_cur[i].strip()):
+                        _cur[i] = []
+                    else:
+                        for _ in range(depth, terminal_depth):
+                            _cur[i] = [_cur[i]]
+                    normalized = True
+                else:
+                    res = self.normalize(terminal_depth=terminal_depth, _cur=_cur[i], depth=depth+1)
+                    normalized = normalized or res
+        return normalized
+
+
 
     def _upsize(self, _cur=None):
         """
@@ -366,15 +399,18 @@ class JaggedArray(object):
                 flat += [el]
         return flat
 
-
     def last_index(self, depth):
         if depth > self.get_depth():
             depth = self.get_depth()
         res = []
         next = self
         for _ in range(depth):
-            res += [len(next.array()) - 1]
-            next = self.subarray(res[-1:])
+            try:
+                res += [len(next.array()) - 1]
+                next = next.subarray(res[-1:])
+            except IndexError:
+                # For sparse texts that end before the array ends
+                return self.prev_index(res)
         return res
 
     def __eq__(self, other):
@@ -389,7 +425,7 @@ class JaggedArray(object):
 
 class JaggedTextArray(JaggedArray):
 
-    def __init__(self, ja=[]):
+    def __init__(self, ja=None):
         JaggedArray.__init__(self, ja)
         self.w_count = None
         self.c_count = None

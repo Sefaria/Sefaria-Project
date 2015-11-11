@@ -46,6 +46,7 @@
 				<div class="optionItem" id="addBiOutside"><i class='fa fa-columns'></i> Outside Text (Bilingual)</div>
 				<div class="optionItem" id="addOutside"><i class='fa fa-file-o'></i> Outside Text</div>
 				<div class="optionItem" id="addComment"><i class='fa fa-comment'></i> Comment</div>
+				<div class="optionItem" id="addMedia"><i class='fa fa-youtube-play'></i> Media</div>
 			</div>
 		</span>
 		{% endif %}
@@ -56,25 +57,9 @@
 				</div>
 				<div class="line"></div>
 
-				{% if can_edit %}
+				{% if is_owner %}
 				<div class="optionGroup">
-					<div class="optionTitle"><i class="fa fa-share-alt"></i> Sharing <i class='fa fa-caret-right'></i></div>
-					<div class="subMenu">
-						<div class="optionItem sharingOption" id="private">
-							<i class="fa fa-check {% if not new_sheet %}hidden{% endif %}"></i> Private</div>
-						<div class="optionItem sharingOption" id="public">
-							<span class="fa fa-check hidden"></span> Public</div>
-					</div>
-				</div>
-
-				<div class="optionGroup">
-					<div class="optionTitle"><i class="fa fa-comments"></i> Collaboration <i class='fa fa-caret-right'></i></div>
-					<div class="subMenu">
-						<div class="optionItem collaborationOption" data-collab-type="none">
-							<i class="fa fa-check {% if not new_sheet %}hidden{% endif %}"></i> <i>No Collaboration</i></div>
-						<div class="optionItem collaborationOption" data-collab-type="anyone-can-add">
-							<i class="fa fa-check hidden"></i> Anyone can Add </div>
-					</div>
+					<div class="optionTitle" id="sharingModalTrigger"><i class="fa fa-share-alt"></i> Sharing</div>
 				</div>
 				{% endif %}
 
@@ -85,7 +70,7 @@
 						<div class="optionItem groupOption" data-group="None">
 							<i class="fa fa-check"></i> <i>None</i></div>
 						{% for group in owner_groups %}
-						<div class="optionItem groupOption" data-group="{{ group.name }}">
+						<div class="optionItem groupOption" data-group="{{ group.name }}" data-image="{{ group.headerUrl }}">
 							<i class="fa fa-check hidden"></i> {{ group.name }}</div>
 						{% endfor %}
 					</div>
@@ -139,6 +124,11 @@
 				{% endif %}
 
 				<div class="line"></div>
+				<div class="optionItem" id="visualize">
+					<a href="/sheets/visual/{{sheet.id}}"><i class="fa fa-picture-o"></i>Visualize</div></a>
+
+				<div class="line"></div>
+
 				<div class="optionItem" id="print">
 					<i class="fa fa-print"></i>Print</div>
 			</div>
@@ -157,11 +147,11 @@
 	<div id="bsdHeader">בס"ד</div>
 	<div id="sheetHeader" {% if sheet_group == None %}style="display:none"{% endif %}>
 		{% if sheet_group %}
-		<a href="/partners/{{ sheet_group|url_safe }}">
-			<img id="partnerLogo" src="/static/partner/{{ sheet_group|url_safe }}/header.png" />
+		<a href="/partners/{{ sheet_group.name|url_safe }}">
+			<img id="partnerLogo" src="{{ sheet_group.headerUrl }}" />
 		</a>
 		{% else %}
-		<img id="partnerLogo" style="display:none;" />
+			<img id="partnerLogo" style="display:none;" />
 		{% endif %}
 	</div>
 	<div id="title">
@@ -262,6 +252,105 @@
 			</div>
 </div>
 
+<div id="addMediaModal" class="modal">
+			<div class="header">Enter the URL of your image, YouTube video, or mp3 file:</div>
+			<input id="addMediaInput" placeholder="http://" />
+			<div id="mediaPreview"></div>
+			<div class='btn btn-primary ok'>Add</div>
+</div>
+
+
+
+<div id="sharingModal" class="modal">
+	<div class="header">Sharing & Collaboration</div>
+	
+	<div class="radio">
+	  <label>
+		<input type="radio" name="sharingOptions" id="sharePrivate" value="private">
+		<span class="iconHolder"><i class="fa fa-user fa-2x fa-pull-left"></i></span>
+		<span class="sharingLabel">Private</span> 
+		<span class="sharingDesc">Only people with the direct link can view the source sheet.<span>
+	  </label>
+	</div>
+
+	
+	<div class="radio groupSharing">
+	  <label>
+		<input type="radio" name="sharingOptions" id="shareGroup" value="group">
+		<span class="iconHolder"><i class="fa fa-group fa-2x fa-pull-left"></i></span>
+		<span class="sharingLabel">Listed for Group Members</span> 
+		<span class="sharingDesc">Anyone in <span class="groupName">your group</span> can find and view your source sheet.<span>
+	  </label>
+	</div>
+
+
+	<div class="radio">
+	  <label>
+		<input type="radio" name="sharingOptions" id="sharePublic" value="public">
+		<span class="iconHolder"><i class="fa fa-globe fa-2x fa-pull-left"></i></span>
+		<span class="sharingLabel">Listed for Sefaria Users</span> 
+		<span class="sharingDesc">Anyone browsing Sefaria can find and view your source sheet.</span>
+	  </label>
+	</div>
+	
+	<div class="radio groupSharing">
+	  <label>
+		<input type="radio" name="sharingOptions" id="shareGroupAdd" value="groupAdd">
+		<span class="iconHolder"><i class="fa fa-group fa-2x fa-pull-left"></i> <i class="fa fa-plus-circle fa-pull-left fa-onTop"></i></span>
+		<span class="sharingLabel">Group Members can Add</span> 
+		<span class="sharingDesc">Anyone in <span class="groupName">your group</span> can find and view and add sources & comments to your sheet.</span>
+	  </label>
+	</div>
+	
+	<div class="radio">
+	  <label>
+		<input type="radio" name="sharingOptions" id="sharePublicAdd" value="publicAdd">
+		<span class="iconHolder"><i class="fa fa-globe fa-2x fa-pull-left"></i> <i class="fa fa-plus-circle fa-pull-left fa-onTop"></i></span>
+		<span class="sharingLabel">Anyone can Add</span> 
+		<span class="sharingDesc">Anyone browsing Sefaria can find and view and add sources & comments to your sheet.</span>
+	  </label>
+	</div>
+
+	<div class="radio individualSharing">
+	  <label>
+		<input type="radio" name="sharingOptions" id="sharePrivateAdd" value="privateAdd">
+		<span class="iconHolder"><i class="fa fa-link fa-2x fa-pull-left"></i> <i class="fa fa-plus-circle fa-pull-left fa-onTop"></i></span>
+		<span class="sharingLabel">Anyone can Add - Unlisted</span> 
+		<span class="sharingDesc">Anyone with the link to your sheet can view and add sources & comments.</span>
+	  </label>
+	</div>
+
+	<div class="radio groupSharing">
+	  <label>
+		<input type="radio" name="sharingOptions" id="shareGroupEdit" value="groupEdit">
+		<span class="iconHolder"><i class="fa fa-group fa-2x fa-pull-left"></i> <i class="fa fa-pencil fa-pull-left fa-onTop"></i></span>
+		<span class="sharingLabel">Group Members can Edit</span> 
+		<span class="sharingDesc">Anyone in <span class="groupName">your group</span> can make any change to your source sheet.</span>
+	  </label>
+	</div>
+
+	<div class="radio">
+	  <label>
+		<input type="radio" name="sharingOptions" id="sharePublicEdit" value="publicEdit">
+		<span class="iconHolder"><i class="fa fa-globe fa-2x fa-pull-left"></i> <i class="fa fa-pencil fa-pull-left fa-onTop"></i></span>
+		<span class="sharingLabel">Anyone can Edit</span> 
+		<span class="sharingDesc">Anyone browsing Sefaria can make any change to your source sheet.</span>
+	  </label>
+	</div>
+
+	<div class="radio individualSharing">
+	  <label>
+		<input type="radio" name="sharingOptions" id="sharePrivateEdit" value="privateEdit">
+		<span class="iconHolder"><i class="fa fa-link fa-2x fa-pull-left"></i> <i class="fa fa-pencil fa-pull-left fa-onTop"></i></span>
+		<span class="sharingLabel">Anyone can Edit - Unlisted</span> 
+		<span class="sharingDesc">Anyone with the link to your sheet can make any change. The sheet will not be publicly listed.</span>
+	  </label>
+	</div>
+	
+	
+	<div class="btn ok">Save</div>
+</div>
+
 
 <div id="addToSheetModal" class="modal">
 	<div class="header">Add <span class="sourceName"></span> to a Source Sheet</div>
@@ -279,6 +368,22 @@
 	<textarea><iframe src="{{ request.build_absolute_uri }}?embed=1" width="600px" height="600px"></iframe></textarea>
 	<div class="sub">Adjust the values of width and height to best fit your design.</div>
 	<div class="btn ok">OK</div>
+</div>
+
+<div id="overrideLayoutModal" class="modal">
+	<div class="header">Change this source's layout:</div>
+
+		<span id="biLayoutToggleSource" class="toggle"><span id="hebLeftSource" class="toggleOption"><img src="/static/img/backs.png"></span><span id="hebRightSource" class="toggleOption"><img src="/static/img/faces.png"></span></span>
+		
+		<span id="sheetLayoutToggleSource" class="toggle"><span id="sideBySideSource" class="toggleOption"><img src="/static/img/sideBySide.png"></span><span id="stackedSource" class="toggleOption"><img src="/static/img/stacked.png"></span></span>
+
+		<span id="languageToggleSource" class="toggle"><span id="englishSource" class="toggleOption"><img src="/static/img/english.png"></span><span id="bilingualSource" class="toggleOption"><img src="/static/img/bilingual.png"></span><span id="hebrewSource" class="toggleOption"><img src="/static/img/hebrew.png"></span></span>
+	<br/>
+
+	<div class="btn ok">OK</div>
+	<h6 id="resetToDefaults"><small>Reset to sheet defaults</small></h6>
+
+
 </div>
 
 

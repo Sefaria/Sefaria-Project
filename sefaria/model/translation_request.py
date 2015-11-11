@@ -2,6 +2,7 @@
 translation_request.py
 Writes to MongoDB Collection: requests
 """
+import re
 from datetime import datetime, timedelta
 
 from . import abstract as abst
@@ -9,6 +10,7 @@ from . import text
 from . import history
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
+from sefaria.datatype.jagged_array import JaggedTextArray
 
 
 class TranslationRequest(abst.AbstractMongoRecord):
@@ -102,7 +104,7 @@ class TranslationRequest(abst.AbstractMongoRecord):
             return True
         return False
 
-    def contents(self):
+    def contents(self, **kwargs):
         contents = super(TranslationRequest, self).contents()
         contents["first_requested"] = contents["first_requested"].isoformat()
         contents["last_requested"]  = contents["last_requested"].isoformat()
@@ -181,3 +183,50 @@ def process_version_state_change_in_translation_requests(version, **kwargs):
     requests = TranslationRequestSet({"ref": {"$regex": text.Ref(version.title).regex()}, "completed": False})
     for request in requests:
         request.check_complete()
+
+
+def process_index_delete_in_translation_requests(indx, **kwargs):
+    if indx.is_commentary():
+        pattern = ur'^{} on '.format(re.escape(indx.title))
+    else:
+        commentators = text.IndexSet({"categories.0": "Commentary"}).distinct("title")
+        pattern = ur"(^{} \d)|^({}) on {} \d".format(re.escape(indx.title), "|".join(commentators), re.escape(indx.title))
+    TranslationRequestSet({"refs": {"$regex": pattern}}).delete()
+
+
+def count_completed_translation_requests():
+    """
+    Returns stats about completed translation requests.
+    """
+    featured           = 0
+    words              = 0
+    sct_words          = 0 
+    featured_words     = 0
+    featured_sct_words = 0
+
+    trs = TranslationRequestSet({"completed": True})
+
+    count = trs.count()
+
+    for tr in trs:
+        oref   = text.Ref(tr.ref)
+        t      = oref.text().text
+        is_sct = not oref.text().is_merged and oref.text().version() and oref.text().version().versionTitle == "Sefaria Community Translation"
+        n      = JaggedTextArray(t).word_count()
+        words += n
+        sct_words += n if is_sct else 0
+        if getattr(tr, "featured", False):
+            featured += 1
+            featured_words += n
+            featured_sct_words += n if is_sct else 0
+
+
+    out  = "%d total translation requests completed.\n" % count
+    out += "%d total words of translation added.\n" % words
+    out += "%d total words of translation created.\n" % sct_words
+    out += "******\n"
+    out += "%d featured translation requests completed.\n" % featured
+    out += "%d total words of translation added from featured requests.\n" % featured_words
+    out += "%d total words of translation created from featured requests.\n" % featured_sct_words
+
+    return out

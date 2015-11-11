@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import json
 from urlparse import urlparse
 from collections import defaultdict
 from random import choice
@@ -28,10 +29,19 @@ from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE
 from sefaria.model.user_profile import UserProfile
 from sefaria.model.group import GroupSet
+from sefaria.model.translation_request import count_completed_translation_requests
 from sefaria.export import export_all as start_export_all
+from sefaria.datatype.jagged_array import JaggedTextArray
 
 # noinspection PyUnresolvedReferences
 from sefaria.utils.users import user_links
+from sefaria.system.exceptions import InputError
+from sefaria.system.database import db
+from sefaria.utils.hebrew import is_hebrew
+from sefaria.helper.text import make_versions_csv
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 def register(request):
@@ -138,9 +148,11 @@ def logout(request, next_page=None,
 
 
 def maintenance_message(request):
-    return render_to_response("static/maintenance.html",
+    resp = render_to_response("static/maintenance.html",
                                 {"message": MAINTENANCE_MESSAGE},
                                 RequestContext(request))
+    resp.status_code = 503
+    return resp
 
 
 def accounts(request):
@@ -159,10 +171,65 @@ def subscribe(request, email):
 
 def linker_js(request):
     attrs = {
-        "mimetype": "text/javascript",
-        "name": "Bob"
+        "book_titles": json.dumps(model.library.full_title_list("en", with_commentary=True, with_commentators=False)
+                      + model.library.full_title_list("he", with_commentary=True, with_commentators=False))
     }
-    return render_to_response("js/linker.js", attrs, RequestContext(request))
+    return render_to_response("js/linker.js", attrs, RequestContext(request), mimetype= "text/javascript")
+
+
+def title_regex_api(request, titles):
+    if request.method == "GET":
+        cb = request.GET.get("callback", None)
+        titles = set(titles.split("|"))
+        res = {}
+        errors = []
+        for title in titles:
+            lang = "he" if is_hebrew(title) else "en"
+            try:
+                re_string = model.library.get_regex_string(title, lang, for_js=True)
+                res[title] = re_string
+            except (AttributeError, AssertionError) as e:
+                logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
+                errors.append(u"{} : {}".format(title, e))
+        if len(errors):
+            res["error"] = errors
+        resp = jsonResponse(res, cb)
+        resp['Access-Control-Allow-Origin'] = '*'
+        return resp
+
+
+def bulktext_api(request, refs):
+    """
+    Used by the linker.
+    :param request:
+    :param refs:
+    :return:
+    """
+    if request.method == "GET":
+        cb = request.GET.get("callback", None)
+        refs = set(refs.split("|"))
+        res = {}
+        for tref in refs:
+            try:
+                oref = model.Ref(tref)
+                lang = "he" if is_hebrew(tref) else "en"
+                he = model.TextChunk(oref, "he").text
+                en = model.TextChunk(oref, "en").text
+                res[tref] = {
+                    'he': he if isinstance(he, basestring) else JaggedTextArray(he).flatten_to_string(),  # these could be flattened on the client, if need be.
+                    'en': en if isinstance(en, basestring) else JaggedTextArray(en).flatten_to_string(),
+                    'lang': lang,
+                    'ref': oref.normal(),
+                    'heRef': oref.he_normal(),
+                    'url': oref.url()
+                }
+            except (InputError, ValueError, AttributeError) as e:
+                referer = request.META.get("HTTP_REFERER", "unknown page")
+                logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
+                res[tref] = {"error": 1}
+        resp = jsonResponse(res, cb)
+        resp['Access-Control-Allow-Origin'] = '*'
+        return resp
 
 @staff_member_required
 def reset_cache(request):
@@ -221,9 +288,18 @@ def rebuild_citation_links(request, title):
 
 
 @staff_member_required
+def delete_citation_links(request, title):
+    from sefaria.helper.link import delete_links_from_text
+    delete_links_from_text(title, request.user.id)
+    return HttpResponseRedirect("/?m=Citation-Links-Deleted-on-%s" % title)
+
+
+@staff_member_required
 def cache_stats(request):
+    import resource
     resp = {
-        'ref_cache_size': model.Ref.cache_size()
+        'ref_cache_size': model.Ref.cache_size(),
+        'memory usage': resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     }
     return jsonResponse(resp)
 
@@ -238,7 +314,8 @@ def cache_dump(request):
 @staff_member_required
 def create_commentator_version(request, commentator, book, lang, vtitle, vsource):
     from sefaria.helper.text import create_commentator_and_commentary_version
-    create_commentator_and_commentary_version(commentator, book, lang, vtitle, vsource)
+    ht = request.GET.get("heTitle", None)
+    create_commentator_and_commentary_version(commentator, book, lang, vtitle, vsource, ht)
     scache.reset_texts_cache()
     return HttpResponseRedirect("/add/%s" % commentator)
 
@@ -258,6 +335,11 @@ def export_all(request):
 @staff_member_required
 def cause_error(request):
     resp = {}
+    logger.error("This is a simple error")
+    try:
+        erorr = excepting
+    except Exception as e:
+        logger.exception('An Exception has occured in thre code')
     erorr = error
     return jsonResponse(resp)
 
@@ -268,9 +350,11 @@ def list_contest_results(request):
     List results for last week's mini contest on translation requests.
     """
     today            = datetime.today()
-    contest_end      = today - timedelta((today.weekday()+1) % 7) # last Sunday
-    contest_end      = contest_end.replace(hour=0, minute=0)  # At midnight
-    contest_start    = contest_end - timedelta(7) # Sunday before last
+    end_month        = today.month if today.day >= 28 else today.month - 1
+    end_month        = 12 if end_month == 0 else end_month
+    contest_end      = today.replace(month=end_month, day=28, hour=0, minute=0) 
+    start_month      = end_month - 1 if end_month > 1 else 12
+    contest_start    = contest_end.replace(month=start_month)
     requests_query   = {"completed": True, "featured": True, "completed_date": { "$gt": contest_start, "$lt": contest_end } }
     requests         = model.TranslationRequestSet(requests_query, sort=[["featured", 1]])
     user_points      = defaultdict(int)
@@ -293,12 +377,37 @@ def list_contest_results(request):
         results += "%s: completed %d requests for %d points (%s)<br>" % (profile.full_name, user_requests[user], user_points[user], profile.email)
         lottery += ([user] * user_points[user])
 
-    winner = choice(lottery)
-    winner = model.user_profile.UserProfile(id=winner)
+    if len(lottery):
+        winner = choice(lottery)
+        winner = model.user_profile.UserProfile(id=winner)
 
-    results += "<br>The winner is: %s (%s)" % (winner.full_name, winner.email)
+        results += "<br>The winner is: %s (%s)" % (winner.full_name, winner.email)
 
     return HttpResponse(results)
 
 
+@staff_member_required
+def translation_requests_stats(request):
+    return HttpResponse(count_completed_translation_requests().replace("\n", "<br>"))
 
+
+@staff_member_required
+def sheet_stats(request):
+    from dateutil.relativedelta import relativedelta
+    html  = ""
+    start = datetime.today().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    months = 30
+    for i in range(months):
+        end   = start
+        start = end - relativedelta(months=1)
+        query = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
+        n = db.sheets.find(query).distinct("owner")
+        html = "%s: %d\n%s" % (start.strftime("%b %y"), len(n), html)
+
+    html = "Unique Source Sheet creators per month:\n\n" + html
+    return HttpResponse("<pre>" + html + "<pre>")
+
+
+@staff_member_required
+def versions_csv(request):
+    return HttpResponse(make_versions_csv(), content_type="text/csv")

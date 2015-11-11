@@ -3,11 +3,18 @@ Object history tracker
 Accepts change requests for model objects, passes the changes to the models, and records the changes in history
 
 """
+import logging
+logger = logging.getLogger(__name__)
 
 import sefaria.model as model
 from sefaria.utils.users import is_user_staff
 from sefaria.system.exceptions import InputError
-
+try:
+    from sefaria.settings import USE_VARNISH
+except ImportError:
+    USE_VARNISH = False
+if USE_VARNISH:
+    from sefaria.system.sf_varnish import invalidate_ref
 
 def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     """
@@ -30,13 +37,23 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
         chunk.versionSource = vsource  # todo: log this change
     if chunk.save():
         model.log_text(user, action, oref, lang, vtitle, old_text, text, **kwargs)
+        if USE_VARNISH:
+            invalidate_ref(oref, lang=lang, version=vtitle, purge=True)
+            if oref.next_section_ref():
+                invalidate_ref(oref.next_section_ref(), lang=lang, version=vtitle, purge=True)
+            if oref.prev_section_ref():
+                invalidate_ref(oref.prev_section_ref(), lang=lang, version=vtitle, purge=True)
+        if not kwargs.get("skip_links", None):
+            from sefaria.helper.link import add_commentary_links, add_links_from_text, rebuild_commentary_links
+            # Commentaries generate links to their base text automatically
+            if oref.type == "Commentary":
+                rebuild_commentary_links(oref.normal(), user, **kwargs)
+            # scan text for links to auto add
+            add_links_from_text(oref.normal(), lang, chunk.text, chunk.full_version._id, user, **kwargs)
 
-        from sefaria.helper.link import add_commentary_links, add_links_from_text
-        # Commentaries generate links to their base text automatically
-        if oref.type == "Commentary":
-            add_commentary_links(oref.normal(), user, **kwargs)
-        # scan text for links to auto add
-        add_links_from_text(oref.normal(), lang, chunk.text, chunk.full_version._id, user, **kwargs)
+            if USE_VARNISH:
+                for linkref in {r.section_ref() for r in oref.linkset().refs_from(oref)}:
+                    invalidate_ref(linkref)
 
     return chunk
 
@@ -59,12 +76,12 @@ def add(user, klass, attrs, **kwargs):
         else:
             obj = klass().load({klass.criteria_field: attrs[klass.criteria_field]})
     if obj:
-        old_dict = obj.contents()
+        old_dict = obj.contents(**kwargs)
         obj.load_from_dict(attrs).save()
-        model.log_update(user, klass, old_dict, obj.contents(), **kwargs)
+        model.log_update(user, klass, old_dict, obj.contents(**kwargs), **kwargs)
         return obj
     obj = klass(attrs).save()
-    model.log_add(user, klass, obj.contents(), **kwargs)
+    model.log_add(user, klass, obj.contents(**kwargs), **kwargs)
     return obj
 
 
@@ -77,15 +94,27 @@ def update(user, klass, attrs, **kwargs):
             obj = klass().load_by_id(attrs[klass.id_field])
         else:
             obj = klass().load({klass.criteria_field: attrs[klass.criteria_field]})
-    old_dict = obj.contents()
+    old_dict = obj.contents(**kwargs)
     obj.load_from_dict(attrs).save()
-    model.log_update(user, klass, old_dict, obj.contents(), **kwargs)
+    model.log_update(user, klass, old_dict, obj.contents(**kwargs), **kwargs)
     return obj
 
 
 def delete(user, klass, _id, **kwargs):
+    """
+    :param user:
+    :param klass:
+    :param _id:
+    :param kwargs:
+        "callback" - an optional function that will be run on the object before it's deleted
+        All other kwargs are passed to obj.contents()
+    :return:
+    """
     obj = klass().load_by_id(_id)
-    old_dict = obj.contents()
+    if kwargs.get("callback"):
+        kwargs.get("callback")(obj)
+        del kwargs["callback"]
+    old_dict = obj.contents(**kwargs)
     obj.delete()
     model.log_delete(user, klass, old_dict, **kwargs)
     return {"response": "ok"}

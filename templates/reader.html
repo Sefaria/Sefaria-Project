@@ -56,7 +56,7 @@
 				<div class="commentaryViewPort"></div>
 				<div class="sourcesBox">
 					<div class="sourcesHeader">
-						<span class="showSources btn active sourcesCount sidebarMode" data-sidebar="commentary"></span><!--
+						<span class="showSources btn active sourcesCount sidebarMode" data-sidebar="commentary"> Sources</span><!--
 						--><span class="btn showNotes sidebarMode" data-sidebar="notes">
 							<span class='notesCount'></span> Notes
 						</span><!--
@@ -303,5 +303,8 @@
 </script>
 <script type="text/javascript" src="/static/js/util.js"></script>
 <script type="text/javascript" src="/static/js/reader.js"></script>
+{% if not OFFLINE %}
+<script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-4f0b68586603bc9f"></script>
+{% endif %}
 </body>
 </html>
