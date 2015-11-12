@@ -2,6 +2,13 @@ body {
   padding: 0;
   margin: 0;
   -webkit-text-size-adjust: 100%;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -o-user-select: none;
+}
+*::selection {
+  background-color: #D2DCFF;
 }
 body.sepia {
   background-color: #F7F7F7; 
@@ -674,10 +681,6 @@ body .bilingual .enOnly .he {
   line-height: 47px;
   border-bottom: 1px solid #ddd;
   background-color: #F9F9F7;
-  -moz-user-select: none;
-  -khtml-user-select: none;
-  -webkit-user-select: none;
-  -o-user-select: none;
 }
 .dark .readerControls {
   background-color: #222;
@@ -779,10 +782,6 @@ body .bilingual .enOnly .he {
   background: white;
   border-bottom: 1px solid #ccc;
   z-index: 103;
-  -moz-user-select: none;
-  -khtml-user-select: none;
-  -webkit-user-select: none;
-  -o-user-select: none;
 }
 .dark .readerOptionsPanel {
   background-color: #333;
@@ -853,6 +852,12 @@ body .bilingual .enOnly .he {
   height: 100%;
   z-index: 102;
   cursor: pointer;
+}
+.textRange {
+  -moz-user-select: text;
+  -khtml-user-select: text;
+  -webkit-user-select: text;
+  -o-user-select: text;
 }
 .textRange.basetext {
   width: 100%;
@@ -926,6 +931,10 @@ body .bilingual .enOnly .he {
 .basetext .segment:focus {
   background-color: #f1f1f1;
 }
+.basetext .segment:active .segmentNumber,
+.basetext .segment:focus .segmentNumber {
+  background-color: transparent;
+}
 .textColumn.connectionsOpen .basetext .segment:active,
 .textColumn.connectionsOpen .basetext .segment:focus {
   background-color: inherit;
@@ -937,12 +946,18 @@ body .bilingual .enOnly .he {
 .basetext .segment.highlight {
   background-color: #E9E9E9;
 }
+.basetext .segment.highlight .segmentNumber{
+  background-color: transparent;
+}
 .dark .basetext .segment.highlight {
   background-color: #444;
 }
 .textRange {
   line-height: 1.4;
-  font-size: 1.6em;
+  font-size: 1.6em; 
+}
+.textRange .textInner {
+  position: relative;
 }
 .textRange.lowlight .text {
   color: #aaa;
@@ -966,6 +981,7 @@ body .bilingual .enOnly .he {
   line-height: 18px;
   border-radius: 30px;
   margin-top: 4px;
+  -webkit-text-size-adjust: 100%;
   -moz-user-select: none;
   -khtml-user-select: none;
   -webkit-user-select: none;
@@ -998,32 +1014,32 @@ body .bilingual .enOnly .he {
   -webkit-filter: invert(100%);
 }
 .readerPanel.english .segment .segmentNumber {
-  left: 5px;
+  left: -23px;
 }
 .readerPanel.hebrew .segment .segmentNumber,
 .readerPanel.bilingual .segment .segmentNumber {
-  right: 4px;
+  right: -29px;
 }
 .readerPanel.english .segment .linkCount {
-  right: 11px;
+  right: -19px;
 }
 .readerPanel.hebrew .segment .linkCount,
 .readerPanel.bilingual .segment .linkCount {
-  left: 11px;
+  left: -17px;
 }
 .multiPanel .readerPanel.english .segment .segmentNumber {
-  left: -3px;
+  left: -36px;
 }
 .multiPanel .readerPanel.hebrew .segment .segmentNumber,
 .multiPanel .readerPanel.bilingual .segment .segmentNumber {
-  right: -6px;
+  right: -36px;
 }
 .multiPanel .readerPanel.english .segment .linkCount {
-  right: -3px;
+  right: -31px;
 }
 .multiPanel .readerPanel.hebrew .segment .linkCount,
 .multiPanel .readerPanel.bilingual .segment .linkCount {
-  left: 0px;
+  left: -32px;
 }
 .segment .refLink {
   font-size: .8em;
