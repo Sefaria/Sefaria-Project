@@ -726,6 +726,7 @@ var ReaderPanel = React.createClass({
       var settings = {query: this.state.searchQuery, page: 1};
       var menu = (<SearchPage
                     initialSettings={settings}
+                    settings={clone(this.state.settings)}
                     onResultClick={this.showBaseText}
                     onQueryChange={this.setSearchQuery}
                     openDisplaySettings={this.openDisplaySettings}
@@ -895,7 +896,13 @@ var ReaderDisplayOptionsMenu = React.createClass({
           setOption={this.props.setOption}
           settings={this.props.settings} />);
 
-    if (this.props.menuOpen) {
+    if (this.props.menuOpen === "search") {
+      return (<div className="readerOptionsPanel">
+              {languageToggle}
+              <div className="line"></div>
+              {sizeToggle}
+            </div>);
+    } else if (this.props.menuOpen) {
       return (<div className="readerOptionsPanel">
               {languageToggle}
             </div>);
@@ -927,6 +934,17 @@ var ReaderNavigationMenu = React.createClass({
     return {
       showMore: false,
     };
+  },
+  componentDidMount: function() {
+    this.setWidth();
+    window.addEventListener("resize", this.setWidth);
+  },
+  componentWillUnmount: function() {
+    window.removeEventListener("resize", this.setWidth);
+  },
+  setWidth: function() {
+    var width = $(this.getDOMNode()).width();
+    this.setState({width: width});
   },
   navHome: function() {
     this.props.setCategories([])
@@ -1006,8 +1024,14 @@ var ReaderNavigationMenu = React.createClass({
                       <span className="en">More &gt;</span>
                       <span className="he">עוד &gt;</span>
                   </div>);
-      categories = this.state.showMore ? categories : categories.slice(0,8).concat(more);
-      categories = (<div className="readerNavCategories"><ThreeBox content={categories} /></div>);
+      if (this.state.width < 450) {
+        categories = this.state.showMore ? categories : categories.slice(0,9).concat(more);
+        categories = (<div className="readerNavCategories"><TwoBox content={categories} /></div>);
+      } else {
+        categories = this.state.showMore ? categories : categories.slice(0,8).concat(more);
+        categories = (<div className="readerNavCategories"><ThreeBox content={categories} /></div>);
+      }
+                    
 
       var siteLinks = sjs._uid ? 
                     [(<a className="siteLink" key='profile' href="/my/profile">
@@ -1050,8 +1074,11 @@ var ReaderNavigationMenu = React.createClass({
                         <span className="en">Daf Yomi</span>
                         <span className="he">דף יומי</span>
                        </a>)];
-      calendar = (<div className="readerNavCalendar"><ThreeBox content={calendar} /></div>);
-
+      if (this.state.width < 450) {
+        calendar = (<div className="readerNavCalendar"><TwoBox content={calendar} /></div>);
+      } else {
+        calendar = (<div className="readerNavCalendar"><ThreeBox content={calendar} /></div>);
+      }
       var topContent = this.props.home ?
               (<div className="readerNavTop search">
                 <ReaderNavigationMenuSearchButton onClick={this.navHome} />
@@ -1209,14 +1236,16 @@ var ReaderTextTableOfContents = React.createClass({
     showBaseText: React.PropTypes.func.isRequired
   },
   componentDidMount: function() {
-    // Toggling TOC Alt structures
-    $(".altStructToggle").click(function(){
-        $(".altStructToggle").removeClass("active");
-        $(this).addClass("active");
-        var i = $(this).index();
-        $(".altStruct").hide();
-        $(".altStruct").eq(i).show();
-    });
+    this.bindToggles();
+    this.shrinkWrap();
+    window.addEventListener('resize', this.shrinkWrap);
+  },
+  componentWillUnmount: function() {
+    window.removeEventListener('resize', this.shrinkWrap);
+  },
+  componentDidUpdate: function() {
+    this.bindToggles();
+    this.shrinkWrap();
   },
   handleClick: function(e) {
     var $a = $(e.target).closest("a");
@@ -1228,6 +1257,48 @@ var ReaderTextTableOfContents = React.createClass({
       this.props.showBaseText(ref);
       e.preventDefault();
     }
+  },
+  bindToggles: function() {
+    // Toggling TOC Alt structures
+    var component = this;
+    $(".altStructToggle").click(function(){
+        $(".altStructToggle").removeClass("active");
+        $(this).addClass("active");
+        var i = $(this).closest("#structToggles").find(".altStructToggle").index(this);
+        $(".altStruct").hide();
+        $(".altStruct").eq(i).show();
+        component.shrinkWrap();
+    });    
+  },
+  shrinkWrap: function() {
+    // Shrink the width of the container of a grid of inline-line block elements,
+    // so that is is tight around its contents thus able to appear centered. 
+    // As far as I can tell, there's no way to do this in pure CSS.
+    var shrink  = function(i, container) {
+      var $container = $(container);
+      // don't run on complex nodes without sectionlinks
+      if ($container.hasClass("schema-node-toc") && !$container.find(".sectionLink").length) { return; } 
+      var maxWidth   = $container.parent().innerWidth();
+      var itemWidth  = $container.find(".sectionLink").outerWidth(true);
+      var nItems     = $container.find(".sectionLink").length;
+
+      if (maxWidth / itemWidth > nItems) {
+        var width = nItems * itemWidth;
+      } else {
+        var width = Math.floor(maxWidth / itemWidth) * itemWidth;
+      }
+      $container.width(width + "px");
+    };
+    var $root = $(this.getDOMNode()).find(".altStruct:visible");
+    $root = $root.length ? $root : $(this.getDOMNode()).find(".tocContent");
+    if ($root.find(".tocSection").length) {
+      $root.find(".tocSection").each(shrink); // nested simple text
+    } else if ($root.find(".schema-node-toc").length) {
+      $root.find(".schema-node-toc, .schema-node-contents").each(shrink); // complex text or alt struct
+    } else {
+      $root.find(".tocLevel").each(shrink); // Simple text, no nesting
+    }
+    console.log($root);
   },
   render: function() {
     var tocHtml = sjs.library.textTocHtml(this.props.text, function() {
@@ -2414,6 +2485,7 @@ var SearchPage = React.createClass({
             query: React.PropTypes.string,
             page: React.PropTypes.number
         }),
+        settings:      React.PropTypes.object,
         close:         React.PropTypes.func,
         onResultClick: React.PropTypes.func,
         onQueryChange: React.PropTypes.func
@@ -2439,6 +2511,7 @@ var SearchPage = React.createClass({
         })
     },
     render: function () {
+        var style = {"fontSize": this.props.settings.fontSize + "%"};
         return (<div className="readerNavMenu">
                 <div className="readerNavTop search">
                   <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
@@ -2451,13 +2524,12 @@ var SearchPage = React.createClass({
                     <div className="searchContentFrame">
                         <div className="searchControlsBox">
                         </div>
-                        <div className="searchContent">
+                        <div className="searchContent" style={style}>
                             <SearchResultList
                                 query = { this.state.query }
                                 page = { this.state.page }
                                 updateRunningQuery = { this.updateRunningQuery }
-                                onResultClick={this.props.onResultClick}
-                                />
+                                onResultClick={this.props.onResultClick} />
                         </div>
                     </div>
                   </div>
