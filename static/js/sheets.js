@@ -1711,6 +1711,24 @@ function buildSource($target, source) {
 						  "</li>";
 		$target.append(outsideHtml);
 	}
+	
+	else if ("text" in source) {
+
+		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideBiWrapper");
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
+							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
+							"<div class='outsideBi " + (sjs.loading ? "" : "new") + "'><div class='text'>" + 
+								"<div class='he'>" + source.text.he + "</div>" + 
+								"<div class='en'>" + source.text.en + "</div>" + 
+								"<div class='clear'></div>" +
+							"</div>" +
+							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
+						  "</li>";
+		$target.append(outsideHtml);
+
+
+
+	}
 }
 
 function attributionDataString(uid, newItem, classStr) {
