@@ -51,6 +51,9 @@ body.dark {
   height: 100%;
   background-color: inherit;
 }
+.dark .readerContent {
+  color: white;
+}
 .textColumn {
   width: 100%;
   height: 100%;
@@ -130,6 +133,7 @@ body .bilingual .enOnly .he {
 .headroom {
   transition: transform 200ms linear;
   -webkit-transition: 200ms linear;
+  transition-property: transform;
 }
 .headroom--pinned {
   transform: translateY(0%);
@@ -151,7 +155,6 @@ body .bilingual .enOnly .he {
 }
 .readerPanel.dark {
   background-color: #333331;
-  color: white;
 }
 .readerNavMenu {
   position: absolute;
