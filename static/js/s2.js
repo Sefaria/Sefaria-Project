@@ -726,6 +726,7 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
       var settings = {query: this.state.searchQuery, page: 1};
       var menu = (React.createElement(SearchPage, {
                     initialSettings: settings, 
+                    settings: clone(this.state.settings), 
                     onResultClick: this.showBaseText, 
                     onQueryChange: this.setSearchQuery, 
                     openDisplaySettings: this.openDisplaySettings, 
@@ -895,7 +896,13 @@ var ReaderDisplayOptionsMenu = React.createClass({displayName: "ReaderDisplayOpt
           setOption: this.props.setOption, 
           settings: this.props.settings}));
 
-    if (this.props.menuOpen) {
+    if (this.props.menuOpen === "search") {
+      return (React.createElement("div", {className: "readerOptionsPanel"}, 
+              languageToggle, 
+              React.createElement("div", {className: "line"}), 
+              sizeToggle
+            ));
+    } else if (this.props.menuOpen) {
       return (React.createElement("div", {className: "readerOptionsPanel"}, 
               languageToggle
             ));
@@ -927,6 +934,17 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
     return {
       showMore: false,
     };
+  },
+  componentDidMount: function() {
+    this.setWidth();
+    window.addEventListener("resize", this.setWidth);
+  },
+  componentWillUnmount: function() {
+    window.removeEventListener("resize", this.setWidth);
+  },
+  setWidth: function() {
+    var width = $(this.getDOMNode()).width();
+    this.setState({width: width});
   },
   navHome: function() {
     this.props.setCategories([])
@@ -1006,19 +1024,27 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
                       React.createElement("span", {className: "en"}, "More >"), 
                       React.createElement("span", {className: "he"}, "עוד >")
                   ));
-      categories = this.state.showMore ? categories : categories.slice(0,8).concat(more);
-      categories = (React.createElement("div", {className: "readerNavCategories"}, React.createElement(ThreeBox, {content: categories})));
+      if (this.state.width < 450) {
+        categories = this.state.showMore ? categories : categories.slice(0,9).concat(more);
+        categories = (React.createElement("div", {className: "readerNavCategories"}, React.createElement(TwoBox, {content: categories})));
+      } else {
+        categories = this.state.showMore ? categories : categories.slice(0,8).concat(more);
+        categories = (React.createElement("div", {className: "readerNavCategories"}, React.createElement(ThreeBox, {content: categories})));
+      }
+                    
 
       var siteLinks = sjs._uid ? 
                     [(React.createElement("a", {className: "siteLink", key: "profile", href: "/my/profile"}, 
                         React.createElement("i", {className: "fa fa-user"}), 
                         React.createElement("span", {className: "en"}, "Your Profile"), 
                         React.createElement("span", {className: "he"}, "הפרופיל שלך")
-                      )), "•",
+                      )), 
+                     (React.createElement("span", {className: "divider"}, "•")),
                      (React.createElement("a", {className: "siteLink", key: "about", href: "/about"}, 
                         React.createElement("span", {className: "en"}, "About Sefaria"), 
                         React.createElement("span", {className: "he"}, "אודות ספאריה")
-                      )), "•", 
+                      )),
+                     (React.createElement("span", {className: "divider"}, "•")),
                      (React.createElement("a", {className: "siteLink", key: "logout", href: "/logout"}, 
                         React.createElement("span", {className: "en"}, "Logout"), 
                         React.createElement("span", {className: "he"}, "התנתק")
@@ -1027,7 +1053,8 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
                     [(React.createElement("a", {className: "siteLink", key: "about", href: "/about"}, 
                         React.createElement("span", {className: "en"}, "About Sefaria"), 
                         React.createElement("span", {className: "he"}, "אודות ספאריה")
-                      )), "•",
+                      )),
+                     (React.createElement("span", {className: "divider"}, "•")),
                      (React.createElement("a", {className: "siteLink", key: "login", href: "/login"}, 
                         React.createElement("span", {className: "en"}, "Sign In"), 
                         React.createElement("span", {className: "he"}, "הירשם")
@@ -1047,8 +1074,11 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
                         React.createElement("span", {className: "en"}, "Daf Yomi"), 
                         React.createElement("span", {className: "he"}, "דף יומי")
                        ))];
-      calendar = (React.createElement("div", {className: "readerNavCalendar"}, React.createElement(ThreeBox, {content: calendar})));
-
+      if (this.state.width < 450) {
+        calendar = (React.createElement("div", {className: "readerNavCalendar"}, React.createElement(TwoBox, {content: calendar})));
+      } else {
+        calendar = (React.createElement("div", {className: "readerNavCalendar"}, React.createElement(ThreeBox, {content: calendar})));
+      }
       var topContent = this.props.home ?
               (React.createElement("div", {className: "readerNavTop search"}, 
                 React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.navHome}), 
@@ -1160,7 +1190,8 @@ var ReaderNavigationCategoryMenu = React.createClass({displayName: "ReaderNaviga
                             React.createElement("span", {className: bClasses, onClick: setBavli}, 
                               React.createElement("span", {className: "en"}, "Bavli"), 
                               React.createElement("span", {className: "he"}, "בבלי")
-                            ), " |",  
+                            ), 
+                            React.createElement("span", {className: "navTogglesDivider"}, "|"), 
                             React.createElement("span", {className: yClasses, onClick: setYerushalmi}, 
                               React.createElement("span", {className: "en"}, "Yerushalmi"), 
                               React.createElement("span", {className: "he"}, "ירושלמי")
@@ -1205,14 +1236,16 @@ var ReaderTextTableOfContents = React.createClass({displayName: "ReaderTextTable
     showBaseText: React.PropTypes.func.isRequired
   },
   componentDidMount: function() {
-    // Toggling TOC Alt structures
-    $(".altStructToggle").click(function(){
-        $(".altStructToggle").removeClass("active");
-        $(this).addClass("active");
-        var i = $(this).index();
-        $(".altStruct").hide();
-        $(".altStruct").eq(i).show();
-    });
+    this.bindToggles();
+    this.shrinkWrap();
+    window.addEventListener('resize', this.shrinkWrap);
+  },
+  componentWillUnmount: function() {
+    window.removeEventListener('resize', this.shrinkWrap);
+  },
+  componentDidUpdate: function() {
+    this.bindToggles();
+    this.shrinkWrap();
   },
   handleClick: function(e) {
     var $a = $(e.target).closest("a");
@@ -1224,6 +1257,48 @@ var ReaderTextTableOfContents = React.createClass({displayName: "ReaderTextTable
       this.props.showBaseText(ref);
       e.preventDefault();
     }
+  },
+  bindToggles: function() {
+    // Toggling TOC Alt structures
+    var component = this;
+    $(".altStructToggle").click(function(){
+        $(".altStructToggle").removeClass("active");
+        $(this).addClass("active");
+        var i = $(this).closest("#structToggles").find(".altStructToggle").index(this);
+        $(".altStruct").hide();
+        $(".altStruct").eq(i).show();
+        component.shrinkWrap();
+    });    
+  },
+  shrinkWrap: function() {
+    // Shrink the width of the container of a grid of inline-line block elements,
+    // so that is is tight around its contents thus able to appear centered. 
+    // As far as I can tell, there's no way to do this in pure CSS.
+    var shrink  = function(i, container) {
+      var $container = $(container);
+      // don't run on complex nodes without sectionlinks
+      if ($container.hasClass("schema-node-toc") && !$container.find(".sectionLink").length) { return; } 
+      var maxWidth   = $container.parent().innerWidth();
+      var itemWidth  = $container.find(".sectionLink").outerWidth(true);
+      var nItems     = $container.find(".sectionLink").length;
+
+      if (maxWidth / itemWidth > nItems) {
+        var width = nItems * itemWidth;
+      } else {
+        var width = Math.floor(maxWidth / itemWidth) * itemWidth;
+      }
+      $container.width(width + "px");
+    };
+    var $root = $(this.getDOMNode()).find(".altStruct:visible");
+    $root = $root.length ? $root : $(this.getDOMNode()).find(".tocContent");
+    if ($root.find(".tocSection").length) {
+      $root.find(".tocSection").each(shrink); // nested simple text
+    } else if ($root.find(".schema-node-toc").length) {
+      $root.find(".schema-node-toc, .schema-node-contents").each(shrink); // complex text or alt struct
+    } else {
+      $root.find(".tocLevel").each(shrink); // Simple text, no nesting
+    }
+    console.log($root);
   },
   render: function() {
     var tocHtml = sjs.library.textTocHtml(this.props.text, function() {
@@ -1778,6 +1853,10 @@ var TextRange = React.createClass({displayName: "TextRange",
     }
   },
   handleClick: function(event) {
+    if (window.getSelection().type === "Range") { 
+      // Don't do anything if this click is part of a selection
+      return;
+    }
     if (this.props.openOnClick && this.props.showBaseText) {
       //Click on the body of the TextRange itself from TextList
       this.props.showBaseText(this.props.sref);
@@ -1957,7 +2036,9 @@ var TextRange = React.createClass({displayName: "TextRange",
           )
         )), 
         React.createElement("div", {className: "text"}, 
-           textSegments 
+          React.createElement("div", {className: "textInner"}, 
+             textSegments 
+          )
         )
       )
     );
@@ -2000,7 +2081,7 @@ var TextSegment = React.createClass({displayName: "TextSegment",
     } else {
       var linkCount = "";
     }
-    var segmentNumber = this.props.segmentNumber ? (React.createElement("span", {className: "segmentNumber"}, this.props.segmentNumber)) : "";          
+    var segmentNumber = this.props.segmentNumber ? (React.createElement("span", {className: "segmentNumber"}, " ", this.props.segmentNumber, " ")) : "";          
     var he = this.props.he || this.props.en;
     var en = this.props.en || this.props.he;
     var classes=classNames({ segment: 1,
@@ -2404,6 +2485,7 @@ var SearchPage = React.createClass({displayName: "SearchPage",
             query: React.PropTypes.string,
             page: React.PropTypes.number
         }),
+        settings:      React.PropTypes.object,
         close:         React.PropTypes.func,
         onResultClick: React.PropTypes.func,
         onQueryChange: React.PropTypes.func
@@ -2429,6 +2511,7 @@ var SearchPage = React.createClass({displayName: "SearchPage",
         })
     },
     render: function () {
+        var style = {"fontSize": this.props.settings.fontSize + "%"};
         return (React.createElement("div", {className: "readerNavMenu"}, 
                 React.createElement("div", {className: "readerNavTop search"}, 
                   React.createElement(ReaderNavigationMenuCloseButton, {onClick: this.props.close}), 
@@ -2441,13 +2524,12 @@ var SearchPage = React.createClass({displayName: "SearchPage",
                     React.createElement("div", {className: "searchContentFrame"}, 
                         React.createElement("div", {className: "searchControlsBox"}
                         ), 
-                        React.createElement("div", {className: "searchContent"}, 
+                        React.createElement("div", {className: "searchContent", style: style}, 
                             React.createElement(SearchResultList, {
                                 query:  this.state.query, 
                                 page:  this.state.page, 
                                 updateRunningQuery:  this.updateRunningQuery, 
-                                onResultClick: this.props.onResultClick}
-                                )
+                                onResultClick: this.props.onResultClick})
                         )
                     )
                   )
