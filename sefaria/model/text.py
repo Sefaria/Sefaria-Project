@@ -3345,7 +3345,7 @@ class Library(object):
     def get_indexes_in_category(self, category, include_commentary=False, full_records=False):
         """
         :param string category: Name of category
-        :param bool include_commentary: If false, does not exludes records of Commentary and Targum
+        :param bool include_commentary: If true includes records of Commentary and Targum
         :param bool full_records: If True will return the actual :class: 'IndexSet' otherwise just the titles
         :return: :class:`IndexSet` of :class:`Index` records in the specified category
         """
