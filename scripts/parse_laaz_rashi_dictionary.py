@@ -24,8 +24,6 @@ class LaazRashiParser(object):
         control_bible = range(3001, 4383)
         control_bible_extras = u'3194א,3267א,3593א,3604א,3925א,3925ב,3925ג'.split(",")
         self.control = control_talmud + control_talmud_extras + control_bible + control_bible_extras
-1
-
 
     def parse_input(self, filename):
         input_rows = []
@@ -39,19 +37,20 @@ class LaazRashiParser(object):
         return input_rows
 
     def _make_lexicon_obj(self):
-        lex = {
-            'name' : 'Rashi Foreign Lexicon',
-            'title' : 'אוצר לעזי רש"י',
-            'language' : 'heb',
-            'to_language' : 'heb',
-            'pub_location' : 'Jerusalem',
-            'pub_date' : '1983-1991, 2006',
-            'editor': 'Moshe Catane',
-            'source' : 'Wikimedia Commons',
-            'source_url': 'https://commons.wikimedia.org/wiki/File:Catane_La%27azei-Rashi_Tanakh_HB48057.pdf',
-        }
-        rashi_lex = Lexicon(lex)
-        rashi_lex.save()
+        if not Lexicon().load({'name': 'Rashi Foreign Lexicon'}):
+            lex = {
+                'name' : 'Rashi Foreign Lexicon',
+                'title' : 'אוצר לעזי רש"י',
+                'language' : 'heb',
+                'to_language' : 'heb',
+                'pub_location' : 'Jerusalem',
+                'pub_date' : '1983-1991, 2006',
+                'editor': 'Moshe Catane',
+                'source' : 'Wikimedia Commons',
+                'source_url': 'https://commons.wikimedia.org/wiki/File:Catane_La%27azei-Rashi_Tanakh_HB48057.pdf',
+            }
+            rashi_lex = Lexicon(lex)
+            rashi_lex.save()
 
 
     def parse_contents(self):
@@ -93,8 +92,10 @@ class LaazRashiParser(object):
                 'definition' : parts[5].strip(),
                 'notes' : parts[6].strip()
             }
-            rde = RashiDictionaryEntry(_current_entry)
-            rde.save()
+            rde = RashiDictionaryEntry().load({'catane_number': _current_entry['catane_number']})
+            if not rde :
+                rde = RashiDictionaryEntry(_current_entry)
+                rde.save()
             return rde
         """elif num_parts < 7:
             print "{} seems to have to few parts".format(parts[0].encode('utf-8'))
@@ -104,6 +105,21 @@ class LaazRashiParser(object):
             print "{} seems to have a component missing".format(parts[0].encode('utf-8'))"""
 
     def _make_word_form(self, entry):
+        try:
+            oref = Ref("Rashi on {}".format(entry.orig_ref))
+            if oref.is_empty():
+                if 'Bava Batra' in entry.orig_ref:
+                        oref = Ref("Rashbam on {}".format(entry.orig_ref))
+                elif "Tamid" in entry.orig_ref:
+                        oref = Ref("Meforash on {}".format(entry.orig_ref))
+                else:
+                    pass
+        except:
+            pass
+        if oref:
+            nref = oref.normal()
+        else:
+            nref = entry.orig_ref
         lookup = {
                     'headword' : entry.headword,
                     'parent_lexicon' : entry.parent_lexicon,
@@ -113,14 +129,14 @@ class LaazRashiParser(object):
 
         if wf:
             wf.lookups.append(lookup)
-            wf.refs.append(entry.orig_ref)
+            wf.refs.append(nref)
         else:
             wf = WordForm({
                 'form': entry.headword,
                 'lookups' : [
                     lookup
                 ],
-                'refs':[entry.orig_ref]
+                'refs':[nref]
             })
         wf.save()
 

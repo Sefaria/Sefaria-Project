@@ -28,21 +28,27 @@ def flatten_text_to_lowest_refs(oref):
     :param ref_text:
     :return:
     """
+    rex = re.compile(ur"\(.*?\)")
     flat_texts = []
     ref_text = oref.text(lang='he').text
     if oref.index.commentaryCategories[0] == 'Talmud':
         for lnum, line in enumerate(ref_text,1):
             for cnum, comment in enumerate(line, 1):
                 new_ref = Ref("{} {}.{}".format(oref.normal(), lnum, cnum)).normal()
+                comment = rex.sub("", comment)
                 flat_texts.append((new_ref, comment))
     elif oref.index.commentaryCategories[0] == 'Tanach':
         for cnum, comment in enumerate(ref_text, 1):
             new_ref = Ref("{}.{}".format(oref.normal(), cnum)).normal()
+            comment = rex.sub("", comment)
             flat_texts.append((new_ref, comment))
     return flat_texts
 
 
 def narrow_search_by_orig_word(text_rows, orig_word):
+    match = re.search(ur"\((.*)\)", orig_word, re.UNICODE)
+    if match:
+        orig_word = match.group(1)
     return [x for x in text_rows if orig_word in x[1]]
 
 
@@ -61,7 +67,7 @@ def find_closest_match(text_rows, word, default_compare=True, filter_words_with_
         if headword_size > 1:
             text_words = create_ngrams(text_words, headword_size)
         if filter_words_with_quotation_marks:
-            text_words = [w for w in text_words if '"' in w]
+            text_words = [w for w in text_words if '"' in w and u'לע"ז' not in w]
         if len(text_words):
             matched_word, score = process.extractOne(word.replace('"', ''), text_words, processor=laaz_process, scorer=scorer)
             results.append((row[0], row[1], matched_word, score))
@@ -132,7 +138,7 @@ for entry in laaz_rashi_entries:
                         'NOT IN PRINT',-1,
                             entry.content['definition'] + "|" + entry.content['notes']])
 
-with open("data/tmp/laaz-rashi-adjust.csv", 'wb+') as outfile:
+with open("data/tmp/laaz-rashi-adjust12.11.2015.csv", 'wb+') as outfile:
     result_csv = csv.writer(outfile, delimiter='@')
     for result in csv_results:
         result_csv.writerow(result)

@@ -88,6 +88,15 @@ class StrongsDictionaryEntry(DictionaryEntry):
 class RashiDictionaryEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["orig_word", "orig_ref", "catane_number"]
 
+    def contents(self, **kwargs):
+        cts = super(RashiDictionaryEntry, self).contents()
+        cts['content']['definition'] = u"[#{}]\n ({})\n {}: {}".format(self.catane_number,
+                                                                   text.Ref(self.orig_ref).he_normal(),
+                                                                   self.transliteration,
+                                                                   cts['content']['definition'])
+        return cts
+
+
 
 
 class LexiconEntrySubClassMapping(object):

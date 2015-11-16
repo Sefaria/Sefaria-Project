@@ -1303,9 +1303,9 @@ sjs.lexicon = {
 		if (typeof text !== "string") {
 			return text;
 		}
-		var regexs = /([\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05f4]+["][\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05f4]+)(?!\))/g;
+		var regexs = /([\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05f4]+["](?!>)[\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05f4]+)(?!\))/g;
 		wrapped = text.replace(regexs, function(matched){
-			if(!matched.match(/ובלע"ז|בלע"ז|ד"ה|בבהכ"נ/g)){
+			if(!matched.match(/ובלע"ז|בלע"ז|ד"ה|בבהכ"נ|אע"פ/g)){
 				return "<span class='lexicon-link'>"+matched+"</span>"
 			}else{
 				return matched;
