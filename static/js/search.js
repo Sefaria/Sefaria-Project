@@ -663,14 +663,15 @@ $.extend(sjs.FilterTree.prototype, {
 
             if("category" in branch) { // Category node
                 if(branch["category"] == "Commentary") { // Special case commentary
-                    path.unshift(branch["category"]);
+
+                    path.unshift(branch["category"]);  // Place "Commentary" at the *beginning* of the path
                      $.extend(node, {
                          "title": parentNode.title,
                          "path": path.join("/"),
                          "heTitle": parentNode.heTitle
                      });
                 } else {
-                    path.push(branch["category"]);
+                    path.push(branch["category"]);  // Place this category at the *end* of the path
                     $.extend(node, {
                        "title": path.slice(-1)[0],
                        "path": path.join("/"),
