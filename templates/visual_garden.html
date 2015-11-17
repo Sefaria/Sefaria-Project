@@ -93,14 +93,30 @@
         var stops = {{ stops }};
         var places = {{ places }};
 
+        // We catch null years, and filter them out from the year group.
+        // Otherwise, they show up at year 0.
+        // https://github.com/dc-js/dc.js/wiki/FAQ#fake-groups
+
         stops.forEach(function (d) {
-            d.start = +d.start; // coerce to number
-            d.end = +d.end;
+            d.start = (d.start == null || d.start == "") ? null : +d.start; // coerce to number, if it's a number
+            d.end = (d.end == null || d.end == "") ? null : +d.end;
         });
+
+        function remove_null_year(source_group) {
+            return {
+                all:function () {
+                    return source_group.all().filter(function(d) {
+                        return d.key != null;
+                    });
+                }
+            };
+        }
+
         var stopx = crossfilter(stops);
         var all = stopx.groupAll();
         var yearDim = stopx.dimension(function(d) { return d.start; }); //!!Using start as the year.
         var yearGroup = yearDim.group();
+        var filteredYearGroup = remove_null_year(yearGroup);
         //var refDim = stopx.dimension(function(d) {return d.ref; });
         var weightDim = stopx.dimension(function(d) {return d.weight; });
         var placeDim = stopx.dimension(function(d) { return d.placeKey; });
@@ -126,7 +142,7 @@
             .height(120)
             .margins({top: 10, right: 10, bottom: 20, left: 30})
             .dimension(yearDim)
-            .group(yearGroup)
+            .group(filteredYearGroup)
             .elasticY(true)
             .xUnits(function(start, end, xDomain) { return Math.abs(end - start) / 40; }) // years in the domain / 40
             .round(dc.round.floor)
