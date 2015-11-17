@@ -746,11 +746,18 @@ body.embeded #top {
   font-size: 36px;
   border: none;
 }
+/* Controls need LTR to present right, but hebrew filter text still wants RTL */
 #visualGardenPage #controls {
   width: 320px;
   float: left;
   direction: ltr;
 }
+body.hebrew #visualGardenPage .reset {
+  direction: rtl;
+  float: right
+}
+/* ^^ */
+
 #visualGardenPage #results .result {
   margin: 10px 0;
 }
