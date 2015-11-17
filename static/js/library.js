@@ -683,7 +683,7 @@ sjs.categoryColors = {
   "Other":              sjs.palette.darkblue,
   "Quoting Commentary": sjs.palette.orange,
   "Commentary2":        sjs.palette.blue,
-  "Sheets":             sjs.palette.rapsberry,
+  "Sheets":             sjs.palette.raspberry,
   "Targum":             sjs.palette.lavender,
   "Modern Works":       sjs.palette.raspberry
 };

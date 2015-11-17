@@ -803,7 +803,6 @@ var ReaderControls = React.createClass({
     multiPanel:              React.PropTypes.bool
   },
   render: function() {
-    var lineStyle   = {backgroundColor: sjs.categoryColor(this.props.currentCategory())};
     var title       = this.props.currentRef();
     var oref        = sjs.library.ref(title);
     var heTitle     = oref ? oref.heTitle : title;
@@ -832,7 +831,7 @@ var ReaderControls = React.createClass({
         </div>);
     return (
       <div>
-        <div className="categoryColorLine" style={lineStyle}></div>
+        <CategoryColorLine category={this.props.currentCategory()} />
         {readerControls}
       </div>
     );
@@ -1081,18 +1080,22 @@ var ReaderNavigationMenu = React.createClass({
       }
       var topContent = this.props.home ?
               (<div className="readerNavTop search">
+                <CategoryColorLine category="Other" />
                 <ReaderNavigationMenuSearchButton onClick={this.navHome} />
                 <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />                
                 <div className='sefariaLogo'><img src="/static/img/sefaria.png" /></div>
               </div>) :
               (<div className="readerNavTop search">
+                <CategoryColorLine category="Other" />
                 <ReaderNavigationMenuCloseButton onClick={this.closeNav}/>
                 <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                 <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />                
                 <input className="readerSearch" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
               </div>);
 
-      var classes = classNames({readerNavMenu: 1, readerNavMenu:1, home: this.props.home});
+      var classes     = classNames({readerNavMenu: 1, readerNavMenu:1, home: this.props.home});
+      var sheetsStyle = {"borderColor": sjs.categoryColor("Sheets")};
+
       return(<div className={classes} onClick={this.handleClick}>
               {topContent}
               <div className="content">
@@ -1114,7 +1117,7 @@ var ReaderNavigationMenu = React.createClass({
                     <span className="en">Community</span>
                     <span className="he">קהילה</span>
                   </h2>
-                  <span className="sheetsLink" onClick={this.props.openMenu.bind(null, "sheets")}>
+                  <span className="sheetsLink" style={sheetsStyle} onClick={this.props.openMenu.bind(null, "sheets")}>
                     <i className="fa fa-file-text-o"></i>
                     <span className="en">Source Sheets</span>
                     <span className="he">דפי מקורות</span>
@@ -1204,11 +1207,9 @@ var ReaderNavigationCategoryMenu = React.createClass({
 
     var catContents = sjs.library.tocItemsByCategories(categories);
     var contents    = makeCatContents(catContents, categories);
-    var lineStyle   = {backgroundColor: sjs.categoryColor(categories[0])};
-
     return (<div className="readerNavCategoryMenu readerNavMenu">
               <div className="readerNavTop searchOnly">
-                <div className="categoryColorLine" style={lineStyle}></div>
+                <CategoryColorLine category={categories[0]} />
                 <ReaderNavigationMenuSearchButton onClick={this.props.navHome} />
                 <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
                 <h2>
@@ -1298,7 +1299,6 @@ var ReaderTextTableOfContents = React.createClass({
     } else {
       $root.find(".tocLevel").each(shrink); // Simple text, no nesting
     }
-    console.log($root);
   },
   render: function() {
     var tocHtml = sjs.library.textTocHtml(this.props.text, function() {
@@ -1312,11 +1312,9 @@ var ReaderTextTableOfContents = React.createClass({
     var section   = sjs.library.sectionString(this.props.currentRef).en.named;
     var heSection = sjs.library.sectionString(this.props.currentRef).he.named;
 
-    var lineStyle = {backgroundColor: sjs.categoryColor(this.props.category)};
-
     return (<div className="readerTextTableOfContents readerNavMenu" onClick={this.handleClick}>
               <div className="readerNavTop">
-                <div className="categoryColorLine" style={lineStyle}></div>
+                <CategoryColorLine category={this.props.category} />
                 <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
                 <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
                 <h2>
@@ -1435,6 +1433,7 @@ var SheetsNav = React.createClass({
 
     return (<div className="readerSheetsNav readerNavMenu">
               <div className="readerNavTop searchOnly">
+                <CategoryColorLine category="Sheets" />
                 <ReaderNavigationMenuSearchButton onClick={this.props.openNav} />
                 <h2><span className="en">{enTitle}</span><span className="he">{heTitle}</span></h2>
               </div>
@@ -1529,6 +1528,14 @@ var ReaderNavigationMenuDisplaySettingsButton = React.createClass({
     return (<div className="readerOptions" onClick={this.props.onClick}><img src="/static/img/bilingual2.png" /></div>);
   }
 });
+
+
+var CategoryColorLine = React.createClass({
+  render: function() {
+    style = {backgroundColor: sjs.categoryColor(this.props.category)};
+    return (<div className="categoryColorLine" style={style}></div>);
+  }
+})
 
 
 var TextColumn = React.createClass({
@@ -2511,9 +2518,10 @@ var SearchPage = React.createClass({
         })
     },
     render: function () {
-        var style = {"fontSize": this.props.settings.fontSize + "%"};
+        var style      = {"fontSize": this.props.settings.fontSize + "%"};
         return (<div className="readerNavMenu">
                 <div className="readerNavTop search">
+                  <CategoryColorLine category="Other" />
                   <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
                   <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
                   <SearchBar
