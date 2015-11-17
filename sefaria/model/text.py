@@ -1696,6 +1696,7 @@ class Ref(object):
                 on_node = library.get_schema_node(match.group('commentee'))  # May be SchemaNode or JaggedArrayNode
                 self.index = get_index(match.group('commentor') + " on " + on_node.index.title)
                 self.index_node = self.index.nodes.title_dict(self._lang).get(title)
+                self.book = self.index_node.full_title("en")
                 if not self.index_node:
                     raise BookNameError(u"Can not find index record for {}".format(title))
             else:
