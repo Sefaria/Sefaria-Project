@@ -749,6 +749,7 @@ body.embeded #top {
 #visualGardenPage #controls {
   width: 320px;
   float: left;
+  direction: ltr;
 }
 #visualGardenPage #results .result {
   margin: 10px 0;

@@ -34,31 +34,46 @@
             <div id="timeline-chart">
                 <div style="height: 30px;">
                     <span class='reset' style='display: none;'>
-                      Current filter: <span class='filter'></span>
+                        <span class="en">Current filter:</span>
+                        <span class="he">מסונן לפי:</span>
+                        <span class='filter'></span>
                     </span>
                     <a class='reset'
                       href='javascript:timeline.filterAll();dc.redrawAll();'
-                      style='display: none;'>reset</a>
+                      style='display: none;'>
+                        <span class="en">reset</span>
+                        <span class="he">אפס</span>
+                    </a>
                 </div>
             </div>
             <div id="map-chart">
                 <div style="height: 30px;">
                     <span class='reset' style='display: none;'>
-                      Current filter: <span class='filter'></span>
+                        <span class="en">Current filter:</span>
+                        <span class="he">מסונן לפי:</span>
+                        <span class='filter'></span>
                     </span>
                     <a class='reset'
                       href='javascript:mapchart.filterAll();dc.redrawAll();'
-                      style='display: none;'>reset</a>
+                      style='display: none;'>
+                        <span class="en">reset</span>
+                        <span class="he">אפס</span>
+                    </a>
                 </div>
             </div>
             <div id="tags-list">
                 <div style="height: 30px;">
                     <span class='reset' style='display: none;'>
-                      Current filter: <span class='filter'></span>
+                        <span class="en">Current filter:</span>
+                        <span class="he">מסונן לפי:</span>
+                        <span class='filter'></span>
                     </span>
                     <a class='reset'
                       href='javascript:tagslist.filterAll();dc.redrawAll();'
-                      style='display: none;'>reset</a>
+                      style='display: none;'>
+                        <span class="en">reset</span>
+                        <span class="he">אפס</span>
+                    </a>
                 </div>
             </div>
         </div>
@@ -126,9 +141,12 @@
             .dimension(stopx)
             .group(all)
             .html({
-                some: '<strong>%filter-count</strong> selected out of <strong>%total-count</strong> records' +
-                    ' | <a href=\'javascript:dc.filterAll(); dc.renderAll();\'\'>Reset All</a>',
-                all: 'All records selected. Please click on the graph to apply filters.'
+                some: '<span class="he"><strong>%filter-count</strong> מוצגות מתוך <strong>%total-count</strong> תוצאות' +
+                    ' | <a href=\'javascript:dc.filterAll(); dc.renderAll();\'\'>אפס הכל</a></span>' +
+                    '<span class="en"><strong>%filter-count</strong> selected out of <strong>%total-count</strong> records' +
+                    ' | <a href=\'javascript:dc.filterAll(); dc.renderAll();\'\'>Reset All</a></span>',
+                all: '<span class="en">All records selected. Please click on the graph to apply filters.</span>'+
+                        '<span class="he">כל התוצאות מוצגות. אנא לחץ על הגרף כדי לסנן</span>'
             });
 
 

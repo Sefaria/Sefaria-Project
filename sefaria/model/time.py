@@ -164,10 +164,10 @@ class TimePeriod(abst.AbstractMongoRecord):
                         labels[1],
                         approxMarker[0])
                 elif int(self.start) == int(self.end):
-                    name += u" ({}{} {})".format(
+                    name += u" ({}{}{})".format(
                         abs(int(self.end)),
                         u" " + labels[1] if labels[1] else u"",
-                        approxMarker[1])
+                        u" " + approxMarker[1] if approxMarker[1] else u"")
                 else:
                     both_approx = approxMarker[0] and approxMarker[1]
                     if both_approx:
