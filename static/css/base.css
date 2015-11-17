@@ -900,6 +900,22 @@ body.hebrew #aboutPage .span5 {
     font-size: 20px;
 }
 
+#textTocPage #dateline {
+    clear: both;
+    width: 100%;
+    padding-bottom: 10px;
+}
+
+#textTocPage #dateline .metadataTitle {
+    font-weight: bold;
+}
+.english #textTocPage #dateline .placedate {
+    padding-right: 30px;
+}
+.hebrew #textTocPage #dateline .placedate {
+    padding-left: 30px;
+}
+
 .textCategoryDelimiter {
   display: inline-block;
   margin: 0 4px;

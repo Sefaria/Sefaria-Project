@@ -602,24 +602,52 @@ def text_toc(request, oref):
             toc_html = toc_html.replace("heSome", "heAll")
 
     auths = index.author_objects()
-    index = index.contents(v2=True)
-    if index["categories"][0] in REORDER_RULES:
-        index["categories"] = REORDER_RULES[index["categories"][0]] + index["categories"][1:]
+    index_contents = index.contents(v2=True)
+    if index_contents["categories"][0] in REORDER_RULES:
+        index_contents["categories"] = REORDER_RULES[index_contents["categories"][0]] + index_contents["categories"][1:]
+
+    template_vars = {
+         "index":         index_contents,
+         "authors":       auths,
+         "versions":      versions,
+         "commentaries":  commentaries,
+         "heComplete":    state.get_flag("heComplete"),
+         "enComplete":    state.get_flag("enComplete"),
+         "count_strings": count_strings,
+         "zoom":          zoom,
+         "toc_html":      toc_html,
+         "cat_slices":    cat_slices,
+         "complex":       complex,
+    }
+
+    composition_time_period = index.composition_time_period()
+    publication_time_period = index.publication_time_period()
+    composition_place = index.composition_place()
+    publication_place = index.publication_place()
+
+    if composition_time_period:
+        template_vars["comp_time_string"] = {
+            "en": composition_time_period.period_string("en"),
+            "he": composition_time_period.period_string("he"),
+        }
+    if publication_time_period:
+        template_vars["pub_time_string"] = {
+            "en": publication_time_period.period_string("en"),
+            "he": publication_time_period.period_string("he"),
+        }
+    if composition_place:
+        template_vars["comp_place"] = {
+            "en": composition_place.primary_name("en"),
+            "he": composition_place.primary_name("he"),
+        }
+    if publication_place:
+        template_vars["pub_place"] = {
+            "en": publication_place.primary_name("en"),
+            "he": publication_place.primary_name("he"),
+        }
 
     return render_to_response('text_toc.html',
-                             {
-                             "index":         index,
-                             "authors":       auths,
-                             "versions":      versions,
-                             "commentaries":  commentaries,
-                             "heComplete":    state.get_flag("heComplete"),
-                             "enComplete":    state.get_flag("enComplete"),
-                             "count_strings": count_strings,
-                             "zoom":          zoom,
-                             "toc_html":      toc_html,
-                             "cat_slices":    cat_slices,
-                             "complex":       complex,
-                             },
+                             template_vars,
                              RequestContext(request))
 
 

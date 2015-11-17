@@ -70,6 +70,17 @@ class AbstractIndex(object):
         from . import person
         return [person.Person().load({"key": k}) for k in getattr(self, "authors", []) if person.Person().load({"key": k})]
 
+    def composition_time_period(self):
+        return None
+
+    def composition_place(self):
+        return None
+
+    def publication_place(self):
+        return None
+
+    def publication_time_period(self):
+        return None
 
 class Index(abst.AbstractMongoRecord, AbstractIndex):
     """
@@ -256,6 +267,18 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if not lang:
             lang = "he" if is_hebrew(title) else "en"
         return self.alt_titles_dict(lang).get(title)
+
+    def composition_place(self):
+        from . import place
+        if getattr(self, "compPlace", None) is None:
+            return None
+        return place.Place().load({"key": self.compPlace})
+
+    def publication_place(self):
+        from . import place
+        if getattr(self, "pubPlace", None) is None:
+            return None
+        return place.Place().load({"key": self.pubPlace})
 
     # This is similar to logic on GardenStop
     def composition_time_period(self):
