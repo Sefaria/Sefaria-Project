@@ -1495,6 +1495,8 @@ def segment_history(request, tref, lang, version):
     nref = oref.normal()
 
     version = version.replace("_", " ")
+    if not Version().load({"title":oref.index.title, "versionTitle":version, "language":lang}):
+        raise Http404(u"We do not have a version of {} called '{}'.  Please use the menu to find the text you are looking for.".format(oref.index.title, version))
     filter_type = request.GET.get("type", None)
     history = text_history(oref, version, lang, filter_type=filter_type)
 

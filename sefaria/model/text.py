@@ -1696,6 +1696,7 @@ class Ref(object):
                 on_node = library.get_schema_node(match.group('commentee'))  # May be SchemaNode or JaggedArrayNode
                 self.index = get_index(match.group('commentor') + " on " + on_node.index.title)
                 self.index_node = self.index.nodes.title_dict(self._lang).get(title)
+                self.book = self.index_node.full_title("en")
                 if not self.index_node:
                     raise BookNameError(u"Can not find index record for {}".format(title))
             else:
@@ -3345,7 +3346,7 @@ class Library(object):
     def get_indexes_in_category(self, category, include_commentary=False, full_records=False):
         """
         :param string category: Name of category
-        :param bool include_commentary: If false, does not exludes records of Commentary and Targum
+        :param bool include_commentary: If true includes records of Commentary and Targum
         :param bool full_records: If True will return the actual :class: 'IndexSet' otherwise just the titles
         :return: :class:`IndexSet` of :class:`Index` records in the specified category
         """
