@@ -141,10 +141,10 @@
             .dimension(stopx)
             .group(all)
             .html({
-                some: '<span class="he"><strong>%filter-count</strong> מוצגות מתוך <strong>%total-count</strong> תוצאות' +
-                    ' | <a href=\'javascript:dc.filterAll(); dc.renderAll();\'\'>אפס הכל</a></span>' +
-                    '<span class="en"><strong>%filter-count</strong> selected out of <strong>%total-count</strong> records' +
-                    ' | <a href=\'javascript:dc.filterAll(); dc.renderAll();\'\'>Reset All</a></span>',
+                some: '<strong>%filter-count</strong><span class="he"> מוצגות מתוך </span><span class="en"> selected out of </span>' +
+                      '<strong>%total-count</strong><span class="he"> תוצאות </span><span class="en"> Records </span>' +
+                      ' | <a href=\'javascript:dc.filterAll(); dc.renderAll();\'\'>' +
+                      '<span class="he">אפס הכל</span><span class="en">Reset All</span></a>',
                 all: '<span class="en">All records selected. Please click on the graph to apply filters.</span>'+
                         '<span class="he">כל התוצאות מוצגות. אנא לחץ על הגרף כדי לסנן</span>'
             });
