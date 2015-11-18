@@ -2550,7 +2550,7 @@ class Ref(object):
     def first_spanned_ref(self):
         """
         Returns the first section portion of a spanning :class:`Ref`.
-        Designed to cut the wasted cost of running `ref.split_spanning_ref[0]`
+        Designed to cut the wasted cost of running :meth:`split_spanning_ref`
 
         >>> Ref("Shabbat 6b-9a").first_spanned_ref()
         Ref('Shabbat 6b')
@@ -2585,9 +2585,7 @@ class Ref(object):
 
     def split_spanning_ref(self):
         """
-        :return: List of non-spanning :class:`Ref` objects which completely cover the area of this Ref
-
-        ""
+        Return list of non-spanning :class:`Ref` objects which completely cover the area of this Ref
 
             >>> Ref("Shabbat 13b-14b").split_spanning_ref()
             [Ref("Shabbat 13b"), Ref("Shabbat 14a"), Ref("Shabbat 14b")]
@@ -2642,7 +2640,7 @@ class Ref(object):
 
     def range_list(self):
         """
-        :return: list of :class:`Ref` objects corresponding to each point in the range of this Ref
+        :return: list of :class:`Ref` objects corresponding to each point in the range of this :class:`Ref`
 
         Does not work for spanning refs
         """
@@ -2651,7 +2649,6 @@ class Ref(object):
                 return [self]
             if self.is_spanning():
                 raise InputError(u"Can not get range of spanning ref: {}".format(self))
-
 
             results = []
 
