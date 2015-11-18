@@ -819,7 +819,7 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
 
     def first_section_ref(self):
         """
-        Returns a Ref to the first non-empty location in this version.
+        Returns a :class:`Ref` to the first non-empty location in this version.
         """
         i = self.get_index()
         leafnodes = i.nodes.get_leaf_nodes()
@@ -2156,7 +2156,7 @@ class Ref(object):
         """
         Return the section level Ref
 
-        For texts of depth 2, this has the same behavior as :func:`top_section_ref`
+        For texts of depth 2, this has the same behavior as :meth:`top_section_ref`
 
         ::
 
@@ -2175,7 +2175,7 @@ class Ref(object):
         """
         Return the highest level section Ref.
 
-        For texts of depth 2, this has the same behavior as :func:`section_ref`
+        For texts of depth 2, this has the same behavior as :meth:`section_ref`
 
         ::
 
@@ -2260,7 +2260,7 @@ class Ref(object):
         """
         Returns a :class:`Ref` to the next previous populated segment.
 
-        If this ref is not segment level, will return `self`
+        If this ref is not segment level, will return ``self```
 
         :return: :class:`Ref`
         """
@@ -2284,7 +2284,7 @@ class Ref(object):
         """
         Returns a :class:`Ref` to the next populated segment.
 
-        If this ref is not segment level, will return `self`
+        If this ref is not segment level, will return ``self```
 
         :return: :class:`Ref`
         """
@@ -2304,7 +2304,7 @@ class Ref(object):
         """
         Returns :class:`Ref` to the last segment in the current book (or complex book part).
 
-        Not to be confused with `ending_ref()`
+        Not to be confused with :meth:`ending_ref`
 
         :return:
         """
@@ -2314,9 +2314,9 @@ class Ref(object):
 
     def first_available_section_ref(self):
         """
-        Returns a :class:`Ref` to the first section inside of or following this Ref that has some content.
+        Returns a :class:`Ref` to the first section inside of or following this :class:`Ref` that has some content.
 
-        Returns ``None`` if self is empty and no following Ref has content.
+        Returns ``None`` if self is empty and no following :class:`Ref` has content.
 
         :return: :class:`Ref`
         """
@@ -2365,7 +2365,7 @@ class Ref(object):
 
     def is_text_translated(self):
         """
-        :return: True if at least one complete version of ref is available in English.
+        :return: True if at least one complete version of this :class:`Ref` is available in English.
         """
         return self.is_text_fully_available("en")
 
@@ -2382,7 +2382,7 @@ class Ref(object):
         Iterate forwards or backwards to the next available :class:`Ref` in a text
 
         :param forward: Boolean indicating direction to iterate
-        :depth_up: if we want to traverse the text at a higher level than most granular. defaults to one level above
+        :depth_up: if we want to traverse the text at a higher level than most granular. Defaults to one level above
         :return: :class:`Ref`
         """
         if self.index_node.depth <= depth_up:  # if there is only one level of text, don't even waste time iterating.
@@ -2917,7 +2917,7 @@ class Ref(object):
 
             VersionSet(oref.condition_query(lang))
 
-        Can be combined with Ref.part_projection() to only return the content indicated by this ref:
+        Can be combined with :meth:`part_projection` to only return the content indicated by this ref:
 
         ::
 
