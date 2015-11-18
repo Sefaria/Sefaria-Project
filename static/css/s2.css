@@ -86,8 +86,11 @@ body.dark {
 .textColumn .loadingMessage.base.next {
   margin: 30px 0 70px;
 }
-
-
+.textColumn .loadingMessage.base.next.final {
+  color: #ccc;
+  font-size: 44px;
+  font-family: "Times New Roman", serif;
+}
 .readerPanel .he,
 .readerPanel .heOnly {
   font-family: "Taamey Frank", "Times New Roman", serif;
@@ -492,6 +495,12 @@ margin-top: 29px;}
   margin-bottom: 20px;
   text-align: center;
 }
+.readerTextTableOfContents .content #structToggles .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.readerTextTableOfContents .content #structToggles .he {
+  font-family: "Open Sans Hebrew", sans-serif;
+}
 .readerTextTableOfContents #structToggles .altStructToggle.active {
   color: black;
 }
@@ -689,6 +698,9 @@ display: block;margin: 0 auto;}
   font-size: 11px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
+.readerSheetsNav h2 .en {
+  display: inline;
+}
 .readerSheetsNav .loadingMessage {
   text-align: center;
 }
@@ -714,7 +726,7 @@ display: block;margin: 0 auto;}
 .dark .readerControls {
   background-color: #2D2D2B;
   color: white;
-  border-color: #666;
+  border-color: #444;
 }
 .readerControls .readerNavMenuSearchButton,
 .readerControls .readerTextToc,
@@ -842,9 +854,22 @@ display: block;margin: 0 auto;}
 .color .dark, .color .dark.on {
   background-color: #333331;
 }
-.toggleOption.smaller, .toggleOption.larger {
+.toggleOption {
+  font-size: 26px;
   line-height: 34px;
   vertical-align: middle;
+}
+.toggleSet .toggleOption .he,
+.toggleSet .toggleOption .en {
+  display: inline;
+}
+.toggleOption.bilingual {
+  font-size: 18px;
+}
+.toggleOption.segmented, .toggleOption.continuous {
+  font-size: 18px;
+}
+.toggleOption.smaller, .toggleOption.larger {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .toggleOption.smaller {
@@ -1170,7 +1195,7 @@ display: block;margin: 0 auto;}
 }
 .dark .topFilters {
   background-color: #2D2D2B;
-  border-bottom: 1px solid #666;
+  border-bottom: 1px solid #444;
 }
 .textList.fullPanel .topFilters {
   margin: 0;
@@ -1245,6 +1270,7 @@ display: block;margin: 0 auto;}
 }
 .dark .fullFilterView {
   background-color: #2D2D2B;
+  border-color: #444;
 }
 .fullFilterView td {
   background-color: white;
@@ -1255,7 +1281,7 @@ display: block;margin: 0 auto;}
 }
 .dark .fullFilterView td {
   background-color: #333331;
-  border-color: #222;
+  border-color: #2d2d2b;
   color: white;
 }
 .fullFilterView .categoryFilter {

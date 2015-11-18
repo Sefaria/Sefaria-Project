@@ -803,12 +803,16 @@ var ReaderControls = React.createClass({displayName: "ReaderControls",
     multiPanel:              React.PropTypes.bool
   },
   render: function() {
-    var lineStyle   = {backgroundColor: sjs.categoryColor(this.props.currentCategory())};
     var title       = this.props.currentRef();
     var oref        = sjs.library.ref(title);
-    var heTitle     = oref ? oref.heTitle : title;
+    var heTitle     = oref ? oref.heTitle : "";
     var currentMode = this.props.currentMode();
     var hideHeader  = !this.props.multiPanel && currentMode === "TextList";
+
+    if (!oref) {
+      // If we don't have this data yet, rerender when we do so we can set the Hebrew title
+      sjs.library.text(title, {context: 1}, function() { this.setState({}); }.bind(this));
+    }
 
     var centerContent = this.props.multiPanel && currentMode === "TextList" ?
       (React.createElement("div", {className: "readerTextToc"}, 
@@ -832,7 +836,7 @@ var ReaderControls = React.createClass({displayName: "ReaderControls",
         ));
     return (
       React.createElement("div", null, 
-        React.createElement("div", {className: "categoryColorLine", style: lineStyle}), 
+        React.createElement(CategoryColorLine, {category: this.props.currentCategory()}), 
         readerControls
       )
     );
@@ -849,9 +853,9 @@ var ReaderDisplayOptionsMenu = React.createClass({displayName: "ReaderDisplayOpt
   },
   render: function() {
     var languageOptions = [
-      {name: "english",   image: "/static/img/english.png" },
-      {name: "bilingual", image: "/static/img/bilingual.png" },
-      {name: "hebrew",    image: "/static/img/hebrew.png" }
+      {name: "english",   content: "<span class='en'>A</span>" },
+      {name: "bilingual", content: "<span class='en'>A</span><span class='he'>א</span>" },
+      {name: "hebrew",    content: "<span class='he'>א</span>" }
     ];
     var languageToggle = (
         React.createElement(ToggleSet, {
@@ -861,8 +865,8 @@ var ReaderDisplayOptionsMenu = React.createClass({displayName: "ReaderDisplayOpt
           settings: this.props.settings}));
     
     var layoutOptions = [
-      {name: "continuous", image: "/static/img/paragraph.png" },
-      {name: "segmented", image: "/static/img/lines.png" },
+      {name: "continuous", fa: "align-justify" },
+      {name: "segmented", fa: "align-left" },
     ];
     var layoutToggle = this.props.settings.language !== "bilingual" ? 
       (React.createElement(ToggleSet, {
@@ -1081,18 +1085,22 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
       }
       var topContent = this.props.home ?
               (React.createElement("div", {className: "readerNavTop search"}, 
+                React.createElement(CategoryColorLine, {category: "Other"}), 
                 React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.navHome}), 
                 React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings}), 
                 React.createElement("div", {className: "sefariaLogo"}, React.createElement("img", {src: "/static/img/sefaria.png"}))
               )) :
               (React.createElement("div", {className: "readerNavTop search"}, 
+                React.createElement(CategoryColorLine, {category: "Other"}), 
                 React.createElement(ReaderNavigationMenuCloseButton, {onClick: this.closeNav}), 
                 React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.handleSearchButtonClick}), 
                 React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings}), 
                 React.createElement("input", {className: "readerSearch", placeholder: "Search", onKeyUp: this.handleSearchKeyUp})
               ));
 
-      var classes = classNames({readerNavMenu: 1, readerNavMenu:1, home: this.props.home});
+      var classes     = classNames({readerNavMenu: 1, readerNavMenu:1, home: this.props.home});
+      var sheetsStyle = {"borderColor": sjs.categoryColor("Sheets")};
+
       return(React.createElement("div", {className: classes, onClick: this.handleClick}, 
               topContent, 
               React.createElement("div", {className: "content"}, 
@@ -1114,7 +1122,7 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
                     React.createElement("span", {className: "en"}, "Community"), 
                     React.createElement("span", {className: "he"}, "קהילה")
                   ), 
-                  React.createElement("span", {className: "sheetsLink", onClick: this.props.openMenu.bind(null, "sheets")}, 
+                  React.createElement("span", {className: "sheetsLink", style: sheetsStyle, onClick: this.props.openMenu.bind(null, "sheets")}, 
                     React.createElement("i", {className: "fa fa-file-text-o"}), 
                     React.createElement("span", {className: "en"}, "Source Sheets"), 
                     React.createElement("span", {className: "he"}, "דפי מקורות")
@@ -1204,11 +1212,9 @@ var ReaderNavigationCategoryMenu = React.createClass({displayName: "ReaderNaviga
 
     var catContents = sjs.library.tocItemsByCategories(categories);
     var contents    = makeCatContents(catContents, categories);
-    var lineStyle   = {backgroundColor: sjs.categoryColor(categories[0])};
-
     return (React.createElement("div", {className: "readerNavCategoryMenu readerNavMenu"}, 
               React.createElement("div", {className: "readerNavTop searchOnly"}, 
-                React.createElement("div", {className: "categoryColorLine", style: lineStyle}), 
+                React.createElement(CategoryColorLine, {category: categories[0]}), 
                 React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.navHome}), 
                 React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings}), 
                 React.createElement("h2", null, 
@@ -1298,7 +1304,6 @@ var ReaderTextTableOfContents = React.createClass({displayName: "ReaderTextTable
     } else {
       $root.find(".tocLevel").each(shrink); // Simple text, no nesting
     }
-    console.log($root);
   },
   render: function() {
     var tocHtml = sjs.library.textTocHtml(this.props.text, function() {
@@ -1312,11 +1317,9 @@ var ReaderTextTableOfContents = React.createClass({displayName: "ReaderTextTable
     var section   = sjs.library.sectionString(this.props.currentRef).en.named;
     var heSection = sjs.library.sectionString(this.props.currentRef).he.named;
 
-    var lineStyle = {backgroundColor: sjs.categoryColor(this.props.category)};
-
     return (React.createElement("div", {className: "readerTextTableOfContents readerNavMenu", onClick: this.handleClick}, 
               React.createElement("div", {className: "readerNavTop"}, 
-                React.createElement("div", {className: "categoryColorLine", style: lineStyle}), 
+                React.createElement(CategoryColorLine, {category: this.props.category}), 
                 React.createElement(ReaderNavigationMenuCloseButton, {onClick: this.props.close}), 
                 React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings}), 
                 React.createElement("h2", null, 
@@ -1395,7 +1398,6 @@ var SheetsNav = React.createClass({displayName: "SheetsNav",
   },
   render: function() {
     var enTitle = this.state.tag || "Source Sheets";
-    var heTitle = this.state.tag || "Source Sheets";
 
     if (this.state.tag) {
       var sheets = this.state.sheets.map(function(sheet) {
@@ -1422,10 +1424,10 @@ var SheetsNav = React.createClass({displayName: "SheetsNav",
         var tagList      = this.state.tagList.map(makeTagButton);
         var content = (React.createElement("div", {className: "content"}, 
                         yourSheets, 
-                        React.createElement("h2", null, React.createElement("span", {className: "en"}, "Trending Tags"), React.createElement("span", {className: "he"}, "Trending Tags")), 
+                        React.createElement("h2", null, React.createElement("span", {className: "en"}, "Trending Tags")), 
                         trendingTags, 
                         React.createElement("br", null), React.createElement("br", null), 
-                        React.createElement("h2", null, React.createElement("span", {className: "en"}, "All Tags"), React.createElement("span", {className: "he"}, "All Tags")), 
+                        React.createElement("h2", null, React.createElement("span", {className: "en"}, "All Tags")), 
                         tagList
                        ));
       } else {
@@ -1435,8 +1437,9 @@ var SheetsNav = React.createClass({displayName: "SheetsNav",
 
     return (React.createElement("div", {className: "readerSheetsNav readerNavMenu"}, 
               React.createElement("div", {className: "readerNavTop searchOnly"}, 
+                React.createElement(CategoryColorLine, {category: "Sheets"}), 
                 React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.openNav}), 
-                React.createElement("h2", null, React.createElement("span", {className: "en"}, enTitle), React.createElement("span", {className: "he"}, heTitle))
+                React.createElement("h2", null, React.createElement("span", {className: "en"}, enTitle))
               ), 
               content
             ));
@@ -1477,6 +1480,7 @@ var ToggleSet = React.createClass({displayName: "ToggleSet",
                 setOption: this.props.setOption, 
                 style: style, 
                 image: option.image, 
+                fa: option.fa, 
                 content: option.content}));
           }.bind(this))
         
@@ -1498,7 +1502,9 @@ var ToggleOption = React.createClass({displayName: "ToggleOption",
     var classes = {toggleOption: 1, on: this.props.on };
     classes[this.props.name] = 1;
     classes = classNames(classes);
-    var content = this.props.image ? (React.createElement("img", {src: this.props.image})) : this.props.content;
+    var content = this.props.image ? (React.createElement("img", {src: this.props.image})) : 
+                    this.props.fa ? (React.createElement("i", {className: "fa fa-" + this.props.fa})) : 
+                      (React.createElement("span", {dangerouslySetInnerHTML:  {__html: this.props.content} }));
     return (
       React.createElement("div", {
         className: classes, 
@@ -1529,6 +1535,14 @@ var ReaderNavigationMenuDisplaySettingsButton = React.createClass({displayName: 
     return (React.createElement("div", {className: "readerOptions", onClick: this.props.onClick}, React.createElement("img", {src: "/static/img/bilingual2.png"})));
   }
 });
+
+
+var CategoryColorLine = React.createClass({displayName: "CategoryColorLine",
+  render: function() {
+    style = {backgroundColor: sjs.categoryColor(this.props.category)};
+    return (React.createElement("div", {className: "categoryColorLine", style: style}));
+  }
+})
 
 
 var TextColumn = React.createClass({displayName: "TextColumn",
@@ -1769,7 +1783,7 @@ var TextColumn = React.createClass({displayName: "TextColumn",
       var hasPrev = first && first.prev;
       var hasNext = last && last.next;
       var topSymbol  = " ";
-      var bottomSymbol = "***"
+      var bottomSymbol = "~"
       if (hasPrev) {
         content.splice(0, 0, (React.createElement(LoadingMessage, {className: "base prev", key: "prev"})));
       } else {
@@ -1778,7 +1792,7 @@ var TextColumn = React.createClass({displayName: "TextColumn",
       if (hasNext) {
         content.push((React.createElement(LoadingMessage, {className: "base next", key: "next"})));
       } else {
-        content.push((React.createElement(LoadingMessage, {message: bottomSymbol, heMessage: bottomSymbol, className: "base next", key: "next"})));
+        content.push((React.createElement(LoadingMessage, {message: bottomSymbol, heMessage: bottomSymbol, className: "base next final", key: "next"})));
 
       }
     }
@@ -2511,9 +2525,10 @@ var SearchPage = React.createClass({displayName: "SearchPage",
         })
     },
     render: function () {
-        var style = {"fontSize": this.props.settings.fontSize + "%"};
+        var style      = {"fontSize": this.props.settings.fontSize + "%"};
         return (React.createElement("div", {className: "readerNavMenu"}, 
                 React.createElement("div", {className: "readerNavTop search"}, 
+                  React.createElement(CategoryColorLine, {category: "Other"}), 
                   React.createElement(ReaderNavigationMenuCloseButton, {onClick: this.props.close}), 
                   React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings}), 
                   React.createElement(SearchBar, {

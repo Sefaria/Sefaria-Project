@@ -805,9 +805,14 @@ var ReaderControls = React.createClass({
   render: function() {
     var title       = this.props.currentRef();
     var oref        = sjs.library.ref(title);
-    var heTitle     = oref ? oref.heTitle : title;
+    var heTitle     = oref ? oref.heTitle : "";
     var currentMode = this.props.currentMode();
     var hideHeader  = !this.props.multiPanel && currentMode === "TextList";
+
+    if (!oref) {
+      // If we don't have this data yet, rerender when we do so we can set the Hebrew title
+      sjs.library.text(title, {context: 1}, function() { this.setState({}); }.bind(this));
+    }
 
     var centerContent = this.props.multiPanel && currentMode === "TextList" ?
       (<div className="readerTextToc">
@@ -848,9 +853,9 @@ var ReaderDisplayOptionsMenu = React.createClass({
   },
   render: function() {
     var languageOptions = [
-      {name: "english",   image: "/static/img/english.png" },
-      {name: "bilingual", image: "/static/img/bilingual.png" },
-      {name: "hebrew",    image: "/static/img/hebrew.png" }
+      {name: "english",   content: "<span class='en'>A</span>" },
+      {name: "bilingual", content: "<span class='en'>A</span><span class='he'>א</span>" },
+      {name: "hebrew",    content: "<span class='he'>א</span>" }
     ];
     var languageToggle = (
         <ToggleSet
@@ -860,8 +865,8 @@ var ReaderDisplayOptionsMenu = React.createClass({
           settings={this.props.settings} />);
     
     var layoutOptions = [
-      {name: "continuous", image: "/static/img/paragraph.png" },
-      {name: "segmented", image: "/static/img/lines.png" },
+      {name: "continuous", fa: "align-justify" },
+      {name: "segmented", fa: "align-left" },
     ];
     var layoutToggle = this.props.settings.language !== "bilingual" ? 
       (<ToggleSet
@@ -1393,7 +1398,6 @@ var SheetsNav = React.createClass({
   },
   render: function() {
     var enTitle = this.state.tag || "Source Sheets";
-    var heTitle = this.state.tag || "Source Sheets";
 
     if (this.state.tag) {
       var sheets = this.state.sheets.map(function(sheet) {
@@ -1420,10 +1424,10 @@ var SheetsNav = React.createClass({
         var tagList      = this.state.tagList.map(makeTagButton);
         var content = (<div className="content">
                         {yourSheets}
-                        <h2><span className="en">Trending Tags</span><span className="he">Trending Tags</span></h2>
+                        <h2><span className="en">Trending Tags</span></h2>
                         {trendingTags}
                         <br /><br />
-                        <h2><span className="en">All Tags</span><span className="he">All Tags</span></h2>
+                        <h2><span className="en">All Tags</span></h2>
                         {tagList}
                        </div>);
       } else {
@@ -1435,7 +1439,7 @@ var SheetsNav = React.createClass({
               <div className="readerNavTop searchOnly">
                 <CategoryColorLine category="Sheets" />
                 <ReaderNavigationMenuSearchButton onClick={this.props.openNav} />
-                <h2><span className="en">{enTitle}</span><span className="he">{heTitle}</span></h2>
+                <h2><span className="en">{enTitle}</span></h2>
               </div>
               {content}
             </div>);
@@ -1476,6 +1480,7 @@ var ToggleSet = React.createClass({
                 setOption={this.props.setOption}
                 style={style}
                 image={option.image}
+                fa={option.fa}
                 content={option.content} />);
           }.bind(this))
         }
@@ -1497,7 +1502,9 @@ var ToggleOption = React.createClass({
     var classes = {toggleOption: 1, on: this.props.on };
     classes[this.props.name] = 1;
     classes = classNames(classes);
-    var content = this.props.image ? (<img src={this.props.image} />) : this.props.content;
+    var content = this.props.image ? (<img src={this.props.image} />) : 
+                    this.props.fa ? (<i className={"fa fa-" + this.props.fa}></i>) : 
+                      (<span dangerouslySetInnerHTML={ {__html: this.props.content} }></span>);
     return (
       <div
         className={classes}
@@ -1776,7 +1783,7 @@ var TextColumn = React.createClass({
       var hasPrev = first && first.prev;
       var hasNext = last && last.next;
       var topSymbol  = " ";
-      var bottomSymbol = "***"
+      var bottomSymbol = "~"
       if (hasPrev) {
         content.splice(0, 0, (<LoadingMessage className="base prev" key="prev"/>));
       } else {
@@ -1785,7 +1792,7 @@ var TextColumn = React.createClass({
       if (hasNext) {
         content.push((<LoadingMessage className="base next" key="next"/>));
       } else {
-        content.push((<LoadingMessage message={bottomSymbol} heMessage={bottomSymbol} className="base next" key="next"/>));
+        content.push((<LoadingMessage message={bottomSymbol} heMessage={bottomSymbol} className="base next final" key="next"/>));
 
       }
     }
