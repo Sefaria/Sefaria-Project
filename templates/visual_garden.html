@@ -8,6 +8,7 @@
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.12/crossfilter.js"></script>
 <script src="/static/js/dc.js"></script>
+<script src="/static/js/dc.cloud.js"></script>
 <link rel="stylesheet" href="/static/css/dc.css" />
 
 {%  endblock %}
@@ -270,7 +271,7 @@
 
         var mapchart = dc.geoChoroplethChart("#map-chart");
         var valueDomain = [0, placeGroup.top(1)[0].value];
-        var maxPointRadius = Math.min(width, height) / 40,
+        var maxPointRadius = Math.min(width, height) / 30,
             minPointRadius = maxPointRadius / 2;
 
         var pointScale = d3.scale.linear()
@@ -282,7 +283,7 @@
             .projection(projection)
             .dimension(placeDim)
             .group(placeGroup)
-            .colors(d3.scale.quantize().range(['#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026'])) //first three '#ffffcc','#ffeda0', '#fed976', last one,'#800026'
+            .colors(d3.scale.quantize().range(['#fc4e2a']))//Full scale, from color brewer '#ffffcc','#ffeda0','#fed976', '#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026'
             .colorDomain(valueDomain)
             .colorCalculator(function (d) { return d ? mapchart.colors()(d) : '#ccc'; })
             .overlayGeoJson(places.features, "placeLayer", function (d) {
@@ -319,25 +320,7 @@
                 var v = placeGroup.all().filter(function(item) { return item.key === feature.id; })[0].value;
                 return (v == 0)? 0 : pointScale(v);
             });
-                    /*
-      dc.dataGrid(".dc-data-grid")
-        .dimension(country)
-        .group(function (d) {
-            return d.country;
-        })
-        .size(1000)
-        .html (function(d) { return tpl(d);})
-        .sortBy(function (d) {
-            return d.last_name;
-        })
-        .order(d3.ascending)
-        .renderlet(function (grid) {
-            $("img.lazy-load").lazyload ({
-                effect : "fadeIn"
-            })
-            .removeClass("lazy-load");
-        });
-        */
+
         results
             .dimension(weightDim)
             .order(d3.descending)
