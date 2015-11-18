@@ -907,7 +907,7 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
 
     def first_section_ref(self):
         """
-        Returns a Ref to the first non-empty location in this version.
+        Returns a :class:`Ref` to the first non-empty location in this version.
         """
         i = self.get_index()
         leafnodes = i.nodes.get_leaf_nodes()
@@ -2244,7 +2244,7 @@ class Ref(object):
         """
         Return the section level Ref
 
-        For texts of depth 2, this has the same behavior as :func:`top_section_ref`
+        For texts of depth 2, this has the same behavior as :meth:`top_section_ref`
 
         ::
 
@@ -2263,7 +2263,7 @@ class Ref(object):
         """
         Return the highest level section Ref.
 
-        For texts of depth 2, this has the same behavior as :func:`section_ref`
+        For texts of depth 2, this has the same behavior as :meth:`section_ref`
 
         ::
 
@@ -2346,9 +2346,11 @@ class Ref(object):
 
     def prev_segment_ref(self):
         """
-        Returns a ref to the next previous populated segment
-        If this ref is not segment level, will return `self`
-        :return:
+        Returns a :class:`Ref` to the next previous populated segment.
+
+        If this ref is not segment level, will return ``self```
+
+        :return: :class:`Ref`
         """
         r = self.starting_ref()
         if not r.is_segment_level():
@@ -2368,9 +2370,11 @@ class Ref(object):
 
     def next_segment_ref(self):
         """
-        Returns a ref to the next populated segment
-        If this ref is not segment level, will return `self`
-        :return:
+        Returns a :class:`Ref` to the next populated segment.
+
+        If this ref is not segment level, will return ``self```
+
+        :return: :class:`Ref`
         """
         r = self.ending_ref()
         if not r.is_segment_level():
@@ -2386,8 +2390,10 @@ class Ref(object):
 
     def last_segment_ref(self):
         """
-        Returns the last segment in the current book (or complex book part).
-        Not to be confused with `ending_ref()`
+        Returns :class:`Ref` to the last segment in the current book (or complex book part).
+
+        Not to be confused with :meth:`ending_ref`
+
         :return:
         """
         o = self._core_dict()
@@ -2396,8 +2402,10 @@ class Ref(object):
 
     def first_available_section_ref(self):
         """
-        Returns a Ref of the first section inside of or following this Ref that has some content.
-        Returns None if self is empty and now following Ref has content.
+        Returns a :class:`Ref` to the first section inside of or following this :class:`Ref` that has some content.
+
+        Returns ``None`` if self is empty and no following :class:`Ref` has content.
+
         :return: :class:`Ref`
         """
         if isinstance(self.index_node, JaggedArrayNode):
@@ -2445,24 +2453,24 @@ class Ref(object):
 
     def is_text_translated(self):
         """
-        :return: True if at least one complete version of ref is available in English.
+        :return: True if at least one complete version of this :class:`Ref` is available in English.
         """
         return self.is_text_fully_available("en")
 
     def is_empty(self):
         """
-        Checks if Ref has any versions for it
+        Checks if :class:`Ref` has any corresponding data in :class:`Version` records.
+
         :return: Bool True is there is not text at this ref in any language
         """
         return not len(self.versionset())
 
     def _iter_text_section(self, forward=True, depth_up=1):
         """
-        Iterate forwards or backwards to the next available ref in a text
+        Iterate forwards or backwards to the next available :class:`Ref` in a text
 
         :param forward: Boolean indicating direction to iterate
-        :depth_up: if we want to traverse the text at a higher level than most granular. defaults to one level above
-        
+        :depth_up: if we want to traverse the text at a higher level than most granular. Defaults to one level above
         :return: :class:`Ref`
         """
         if self.index_node.depth <= depth_up:  # if there is only one level of text, don't even waste time iterating.
@@ -2495,9 +2503,9 @@ class Ref(object):
 
     def to(self, toref):
         """
-        Return a reference that begins at this Ref, and ends at toref
+        Return a reference that begins at this :class:`Ref`, and ends at toref
 
-        :param toref: Ref that denotes the end of the new ref
+        :param toref: :class:`Ref` that denotes the end of the new ranged :class:`Ref`
         :return: :class:`Ref`
         """
         assert self.book == toref.book
@@ -2524,8 +2532,9 @@ class Ref(object):
 
     def subrefs(self, length):
         """
+        Return a list of :class:`Ref` objects one level deeper than this :class:`Ref`, from 1 to `length`.
+
         :param length: Number of subrefs to return
-        Return a list of :class:`Ref`s one level deeper than this :class:`Ref`, from 1 to `length`.
 
         ::
 
@@ -2544,7 +2553,7 @@ class Ref(object):
 
     def all_subrefs(self):
         """
-        Return a list of all the valid :class:`Ref`s one level deeper than this :class:`Ref`.
+        Return a list of all the valid :class:`Ref` objects one level deeper than this :class:`Ref`.
 
         ::
 
@@ -2564,8 +2573,8 @@ class Ref(object):
 
     def context_ref(self, level=1):
         """
-        :return: :class:`Ref` that is more general than this Ref.
-        :param level: how many levels to 'zoom out' from the most specific possible ref
+        :return: :class:`Ref` that is more general than this :class:`Ref`.
+        :param level: how many levels to 'zoom out' from the most specific possible :class:`Ref`
 
         ::
 
@@ -2574,7 +2583,7 @@ class Ref(object):
             >>> Ref("Genesis 4:5").context_ref(level = 2)
             Ref("Genesis")
 
-        If the given Ref is less specific than or equally specific to the level given, it is returned as-is.
+        If this :class:`Ref` is less specific than or equally specific to the level given, it is returned as-is.
         """
         if level == 0:
             return self
@@ -2593,14 +2602,14 @@ class Ref(object):
 
     def padded_ref(self):
         """
-        :return: :class:`Ref` with 1s inserted to make the ref specific to the section level
+        :return: :class:`Ref` with 1s inserted to make the :class:`Ref` specific to the section level
 
         ::
 
             >>> Ref("Genesis").padded_ref()
             Ref("Genesis 1")
 
-        If this given Ref is already specific to the section or segment level, it is returned unchanged.
+        If this :class:`Ref` is already specific to the section or segment level, it is returned unchanged.
 
         ::
 
@@ -2628,8 +2637,8 @@ class Ref(object):
 
     def first_spanned_ref(self):
         """
-        Returns the first section portion of a spanning reference.
-        Designed to cut the wasted cost of running ref.split_spanning_ref[0]
+        Returns the first section portion of a spanning :class:`Ref`.
+        Designed to cut the wasted cost of running :meth:`split_spanning_ref`
 
         >>> Ref("Shabbat 6b-9a").first_spanned_ref()
         Ref('Shabbat 6b')
@@ -2664,9 +2673,7 @@ class Ref(object):
 
     def split_spanning_ref(self):
         """
-        :return: List of non-spanning :class:`Ref` objects which completely cover the area of this Ref
-
-        ""
+        Return list of non-spanning :class:`Ref` objects which completely cover the area of this Ref
 
             >>> Ref("Shabbat 13b-14b").split_spanning_ref()
             [Ref("Shabbat 13b"), Ref("Shabbat 14a"), Ref("Shabbat 14b")]
@@ -2721,7 +2728,7 @@ class Ref(object):
 
     def range_list(self):
         """
-        :return: list of :class:`Ref` objects corresponding to each point in the range of this Ref
+        :return: list of :class:`Ref` objects corresponding to each point in the range of this :class:`Ref`
 
         Does not work for spanning refs
         """
@@ -2730,7 +2737,6 @@ class Ref(object):
                 return [self]
             if self.is_spanning():
                 raise InputError(u"Can not get range of spanning ref: {}".format(self))
-
 
             results = []
 
@@ -2973,7 +2979,7 @@ class Ref(object):
             Version().load({...},oref.part_projection())
 
         **Regarding projecting complex texts:**
-        *I do not think that there is a way, with a simple projection, to both limit to a dictionary to a particular leaf and get a slice of that same leaf.
+        *I do not think that there is a way, with a simple projection, to both limit a dictionary to a particular leaf and get a slice of that same leaf.
         It is possible with the aggregation pipeline.
         With complex texts, we trade off a bit of speed for consistency, and slice just the array that we are concerned with.*
         """
@@ -2996,7 +3002,7 @@ class Ref(object):
 
             VersionSet(oref.condition_query(lang))
 
-        Can be combined with Ref.part_projection() to only return the content indicated by this ref:
+        Can be combined with :meth:`part_projection` to only return the content indicated by this ref:
 
         ::
 
