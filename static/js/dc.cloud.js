@@ -432,9 +432,7 @@
             _fontSize = function(d) { return _scale(+d.value); },
             _text = function(d) { return d.key; },
             _rotate = function(d) { return 0; },
-            _onClick = function(d) { 
-                _chart.filter(_text(d));
-            },
+            _onClick = _chart.onClick,  //function(d) {_chart.filter(_text(d));},
             // Containers
             _g, _fg, _bg, tags,
             // From Jonathan Feinberg's cue.language, see lib/cue.language/license.txt.
@@ -442,7 +440,7 @@
             _maxWords = 200,
             words = [],
             _stopWords = /^(i|me|my|myself|we|us|our|ours|ourselves|you|your|yours|yourself|yourselves|he|him|his|himself|she|her|hers|herself|it|its|itself|they|them|their|theirs|themselves|what|which|who|whom|whose|this|that|these|those|am|is|are|was|were|be|been|being|have|has|had|having|do|does|did|doing|will|would|should|can|could|ought|i'm|you're|he's|she's|it's|we're|they're|i've|you've|we've|they've|i'd|you'd|he'd|she'd|we'd|they'd|i'll|you'll|he'll|she'll|we'll|they'll|isn't|aren't|wasn't|weren't|hasn't|haven't|hadn't|doesn't|don't|didn't|won't|wouldn't|shan't|shouldn't|can't|cannot|couldn't|mustn't|let's|that's|who's|what's|here's|there's|when's|where's|why's|how's|a|an|the|and|but|if|or|because|as|until|while|of|at|by|for|with|about|against|between|into|through|during|before|after|above|below|to|from|up|upon|down|in|out|on|off|over|under|again|further|then|once|here|there|when|where|why|how|all|any|both|each|few|more|most|other|some|such|no|nor|not|only|own|same|so|than|too|very|say|says|said|shall)$/,
-            _punctuation = /[!"&()*+,-\.\/:;<=>?\[\\\]^`\{|\}~]+/g,
+            _punctuation = /[!"&()*+,-\.\/:;<=>?\[\\\]^`\{|\}]+/g,
             _wordSeparators = /[\s\u3031-\u3035\u309b\u309c\u30a0\u30fc\uff70]+/g,
             _searchBreak = "("+_punctuation.source+"|"+_wordSeparators.source+")",
             discard = /^(@|https?:)/,
@@ -718,33 +716,70 @@
             tags.forEach(function(d) { d.key = cases[d.key]; });
         }
 
+        _chart.removeFilterHandler(function (filters, filter) {
+            var _idx=filters.indexOf(filter);
+            filters.splice(_idx, 1);
+            return filters;
+        });
+        _chart.hasFilterHandler(function (filters, filter) {
+            if (filter === null || typeof(filter) === 'undefined') {
+                return filters.length > 0;
+            }
+            return (filters.indexOf(filter) > -1)
+        });
+        _chart.filterHandler(function(dimension, filters) {
+            dimension.filter(null);
+            _selectedWords = filters.join(", ");
 
+            if (filters.length === 0) {
+                dimension.filter(null);
+            } else {
+                var _fs = "(";
+                for(var f = 0; f < filters.length; f++) {
+                    if(_fs.length>1) {
+                        _fs+="|"
+                    }
+                    _fs += filters[f].replace(/\s+/, _searchBreak);
+                }
+                _fs+=")";
 
-        // Patches to get cloud to play nice with dc
+                var re = new RegExp(_fs, 'ig'),
+                    _f = function(r) {
+                        return re.test(r);
+                    };
+
+                dimension.filterFunction(_f);
+            }
+
+            return filters;
+        });
+/*
         _chart.filter = function(word) {
             if(word===null) {
-                // A null filter is a shortcut for _chart.filterAll() in dc
-                return _chart.filterAll();
+                _filters = _chart.resetFilterHandler()(_filters);
             }
-            if(word===undefined) {
+            else if(word===undefined) {
                 return false;
             }
 
-            var _filters = _chart.filters(),
+            else {
+                var _filters = _chart.filters(),
                 _idx = -1;
 
-            if((_idx=_filters.indexOf(word))<0) {
-                // Doesn't have filter yet
-                _filters.push(word);
-            }else{
-                // Has filter. Turn it off.
-                _filters.splice(_idx, 1);
+                if((_idx=_filters.indexOf(word))<0) {
+                    // Doesn't have filter yet
+                    _filters.push(word);
+                } else {
+                    // Has filter. Turn it off.
+                    _filters.splice(_idx, 1);
+                }
             }
+
 
             _selectedWords = _filters.join(", ");
 
             _fs = "(";
-            for(var f in _filters) {
+            for(var f = 0; f < _filters.length; f++) {
                 if(_fs.length>1) {
                     _fs+="|"
                 }
@@ -758,20 +793,21 @@
             _chart.dimension().filterFunction(_f);
 
             _chart.turnOnControls();
-            _chart.invokeFilteredListener(_chart, word);
+            _chart._invokeFilteredListener(_chart, word);
 
             dc.redrawAll();
         }
-
+        */
+/*
         _chart.filterAll = function() {
             _chart.dimension().filterFunction(function(){
                 return 1;
             });
             _chart.turnOffControls();
             dc.redrawAll(); 
-            _chart.invokeFilteredListener(_chart, null);
+            _chart._invokeFilteredListener(_chart, null);
         }
-
+*/
         _chart.turnOnControls = function () {
             _chart.selectAll(".reset")
                 .style("display", null);
@@ -782,10 +818,8 @@
             return _chart;
         };
 
-
-
         // Make rendering and drawing available to dc.js
-        _chart.doRender = function() {
+        _chart._doRender = function() {
             _chart.resetSvg();
 
             _g = _chart.svg();
@@ -798,7 +832,7 @@
             return _chart;
         };
 
-        _chart.doRedraw = function() {
+        _chart._doRedraw = function() {
             drawChart();
             return _chart;
         };
