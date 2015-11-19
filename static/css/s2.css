@@ -445,6 +445,14 @@ margin-top: 29px;}
   vertical-align: middle;
   text-align: center;
 }
+.readerNavMenu .readerNavCategoryMenu td {
+  background-color: white;
+  border: 4px solid #F9F9F7;
+}
+.readerNavMenu .readerNavCategoryMenu .refLink,
+.readerNavMenu .readerNavCategoryMenu .catLink {
+  width: 100%;
+}
 .categoryColorLine {
   position: absolute;
   top: 0;

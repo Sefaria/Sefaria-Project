@@ -1147,38 +1147,6 @@ var ReaderNavigationCategoryMenu = React.createClass({displayName: "ReaderNaviga
     navHome:       React.PropTypes.func.isRequired
   },
   render: function() {
-    var makeCatContents = function(contents, cats) {
-      // Returns HTML for TOC category contents
-      var html = "";
-      cats = cats || [];
-      for (var i = 0; i < contents.length; i++) {
-        var item = contents[i];
-        if (item.category) {
-          if (item.category == "Commentary") { continue; }
-          var newCats = cats.concat(item.category);
-          // Special Case categories which should nest
-          var subcats = [ "Mishneh Torah", "Shulchan Arukh", "Midrash Rabbah", "Maharal" ];
-          if ($.inArray(item.category, subcats) > -1) {
-            html += '<span class="catLink" data-cats="' + newCats.join("|") + '">' + 
-                    "<span class='en'>" + item.category + "</span>" + 
-                    "<span class='he'>" + sjs.library.hebrewCategory(item.category) + "</span></span>";
-            continue;
-          }
-          html += "<div class='category'><h3>" + 
-                    "<span class='en'>" + item.category + "</span>" + 
-                    "<span class='he'>" + item.heCategory + "</span></h3>" +
-                    makeCatContents(item.contents, newCats) +
-                  "</div>";
-        } else {
-          var title   = item.title.replace(/(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud) /, "");
-          var heTitle = item.heTitle.replace(/(משנה תורה,|תלמוד ירושלמי) /, "");
-          html += '<span class="refLink sparse' + item.sparseness + '" data-ref="' + item.firstSection + '">' + 
-                    "<span class='en'>" + title + "</span>" + 
-                    "<span class='he'>" + heTitle + "</span></span>";
-        }
-      }
-      return html;
-    };
 
     // Show Talmud with Toggles
     var categories  = this.props.categories[0] === "Talmud" && this.props.categories.length == 1 ? 
@@ -1211,7 +1179,7 @@ var ReaderNavigationCategoryMenu = React.createClass({displayName: "ReaderNaviga
     }
 
     var catContents = sjs.library.tocItemsByCategories(categories);
-    var contents    = makeCatContents(catContents, categories);
+
     return (React.createElement("div", {className: "readerNavCategoryMenu readerNavMenu"}, 
               React.createElement("div", {className: "readerNavTop searchOnly"}, 
                 React.createElement(CategoryColorLine, {category: categories[0]}), 
@@ -1224,9 +1192,70 @@ var ReaderNavigationCategoryMenu = React.createClass({displayName: "ReaderNaviga
               ), 
               React.createElement("div", {className: "content"}, 
                 toggle, 
-                React.createElement("div", {dangerouslySetInnerHTML:  {__html: contents} })
+                React.createElement(ReaderNavigationCategoryMenuContents, {contents: catContents, categories: categories})
               )
             ));
+  }
+});
+
+
+var ReaderNavigationCategoryMenuContents = React.createClass({displayName: "ReaderNavigationCategoryMenuContents",
+  // Inner content of Category menu (just category title and boxes of)
+  propTypes: {
+    contents:   React.PropTypes.array.isRequired,
+    categories: React.PropTypes.array.isRequired
+  },
+  render: function() {
+      var content = [];
+      cats = this.props.categories || [];
+      for (var i = 0; i < this.props.contents.length; i++) {
+        var item = this.props.contents[i];
+        if (item.category) {
+          if (item.category == "Commentary") { continue; }
+          var newCats = cats.concat(item.category);
+          // Special Case categories which should nest
+          var subcats = [ "Mishneh Torah", "Shulchan Arukh", "Midrash Rabbah", "Maharal" ];
+          if ($.inArray(item.category, subcats) > -1) {
+            content.push((React.createElement("span", {className: "catLink", "data-cats": newCats.join("|")}, 
+                         React.createElement("span", {className: "en"}, item.category), 
+                         React.createElement("span", {className: "he"}, sjs.library.hebrewCategory(item.category))
+                        )));
+            continue;
+          }
+          content.push((React.createElement("div", {className: "category"}, 
+                        React.createElement("h3", null, 
+                          React.createElement("span", {className: "en"}, item.category), 
+                          React.createElement("span", {className: "he"}, item.heCategory)
+                        ), 
+                        React.createElement(ReaderNavigationCategoryMenuContents, {contents: item.contents, categories: newCats})
+                      )));
+        } else {
+          var title   = item.title.replace(/(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud) /, "");
+          var heTitle = item.heTitle.replace(/(משנה תורה,|תלמוד ירושלמי) /, "");
+          content.push((React.createElement("span", {className: 'refLink sparse' + item.sparseness, "data-ref": item.firstSection}, 
+                        React.createElement("span", {className: "en"}, title), 
+                        React.createElement("span", {className: "he"}, heTitle)
+                      )));
+        }
+      }
+      var boxedContent = [];
+      var currentRun   = [];
+      for (var i = 0; i < content.length; i++) {
+        // Walk through content looking for runs of spans to group togther into a table
+        if (content[i].type == "div") { // this is a subcategory
+          if (currentRun.length) {
+            boxedContent.push((React.createElement(TwoBox, {contents: currentRun})));
+            currentRun = [];
+          }
+          boxedContent.push(content[i]);
+        } else if (content[i].type == "span") { // this is a single text
+          currentRun.push(content[i]);
+        }
+      }
+      if (currentRun.length) {
+        boxedContent.push((React.createElement(TwoBox, {content: currentRun})));
+      }
+      return (React.createElement("div", null, boxedContent));
   }
 });
 
@@ -2929,6 +2958,9 @@ var ThreeBox = React.createClass({displayName: "ThreeBox",
 
 var TwoBox = React.createClass({displayName: "TwoBox",
   // Wrap a list of elements into a three column table
+  propTypes: {
+    content: React.PropTypes.array.isRequired
+  },
   render: function() {
       var content = this.props.content;
       var length = content.length;
