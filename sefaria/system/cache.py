@@ -137,6 +137,7 @@ def reset_texts_cache():
     delete_template_cache('leaderboards')
     model.Ref.clear_cache()
     model.library.local_cache = {}
+    cache.clear()
 
 
 def process_index_change_in_cache(indx, **kwargs):
