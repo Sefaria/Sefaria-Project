@@ -809,7 +809,7 @@ var ReaderControls = React.createClass({displayName: "ReaderControls",
     var currentMode = this.props.currentMode();
     var hideHeader  = !this.props.multiPanel && currentMode === "TextList";
 
-    if (!oref) {
+    if (title && !oref) {
       // If we don't have this data yet, rerender when we do so we can set the Hebrew title
       sjs.library.text(title, {context: 1}, function() { this.setState({}); }.bind(this));
     }
