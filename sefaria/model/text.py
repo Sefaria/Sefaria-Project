@@ -2960,12 +2960,12 @@ class Ref(object):
 
     def versionset(self, lang=None):
         """
-        :class:`VersionsSet` of :class:`Version` objects that have content for this Ref in lang
+        :class:`VersionsSet` of :class:`Version` objects that have content for this Ref in lang, projected
 
         :param lang: "he", "en", or None
         :return: :class:`VersionSet`
         """
-        return VersionSet(self.condition_query(lang))
+        return VersionSet(self.condition_query(lang), proj=self.part_projection())
 
     def version_list(self):
         """
@@ -2974,7 +2974,7 @@ class Ref(object):
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
         vlist = []
-        for v in self.versionset():
+        for v in VersionSet(self.condition_query(), proj={"versionTitle": 1, "language": 1}):
             vlist.append({
                 "versionTitle": v.versionTitle,
                  "language": v.language
