@@ -9,19 +9,19 @@ from diff_match_patch import diff_match_patch
 from bson.code import Code
 
 from sefaria.model import *
-#from sefaria.utils.util import *
 from sefaria.system.database import db
 
 dmp = diff_match_patch()
 
 
-def get_activity(query={}, page_size=100, page=1, filter_type=None):
+def get_activity(query={}, page_size=100, page=1, filter_type=None, initial_skip=0):
     """
     Returns a list of activity items matching query,
     joins with user info on each item and sets urls.
     """
     query.update(filter_type_to_query(filter_type))
-    activity = list(db.history.find(query).sort([["date", -1]]).skip((page - 1) * page_size).limit(page_size))
+    skip = initial_skip + (page - 1) * page_size
+    activity = list(db.history.find(query).sort([["date", -1]]).skip(skip).limit(page_size))
 
     for i in range(len(activity)):
         a = activity[i]
@@ -148,13 +148,13 @@ def get_maximal_collapsed_activity(query={}, page_size=100, page=1, filter_type=
         enough = True
 
     while not enough:
-        page += 1
-        new_activity = get_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
+        new_activity = get_activity(query=query, page_size=page_size*5, page=page, filter_type=filter_type, initial_skip=page_size)
         if len(new_activity) < page_size:
             page = None
             enough = True
         activity = collapse_activity(activity + new_activity)
         enough = enough or len(activity) >= page_size # don't set enough to False if already set to True above
+        page += 1
 
     return (activity, page)
 
