@@ -87,9 +87,6 @@ body.dark {
   margin: 30px 0 70px;
 }
 .textColumn .loadingMessage.base.next.final {
-  color: #ccc;
-  font-size: 44px;
-  font-family: "Times New Roman", serif;
 }
 .readerPanel .he,
 .readerPanel .heOnly {
@@ -978,7 +975,9 @@ display: block;margin: 0 auto;}
   background-color: #f4f4f4;
 }
 .basetext .segment:active .segmentNumber,
-.basetext .segment:focus .segmentNumber {
+.basetext .segment:focus .segmentNumber,
+.basetext .segment:active .linkCount,
+.basetext .segment:focus .linkCount {
   background-color: transparent;
 }
 .textColumn.connectionsOpen .basetext .segment:active,
@@ -1013,7 +1012,6 @@ display: block;margin: 0 auto;}
   color: #999;
 }
 .segment {
-
 }
 .segment .segmentNumber,
 .segment .linkCount,
@@ -1033,7 +1031,6 @@ display: block;margin: 0 auto;}
 .segmentNumber .segmentNumberInner,
 .linkCount .linkCountDot {
   display: inline-block;
-  margin-top: -32%;
 }
 .bilingual .segmentNumber .segmentNumberInner,
 .bilingual .linkCount .linkCountDot,
@@ -1048,6 +1045,7 @@ display: block;margin: 0 auto;}
 .segment .segmentNumber,
 .segment .linkCount {
   display: none;
+  line-height: 1.3;
 }
 .segment .segmentNumber .segmentNumberInner,
 .textRange .numberLabel .numberLabelInner {
@@ -1374,11 +1372,11 @@ display: block;margin: 0 auto;}
   top: 14px;
 }
 .english .textRange .numberLabel {
-  left: -24px;
+  left: -30px;
 }
 .hebrew .textRange .numberLabel,
 .bilingual .textRange .numberLabel  {
-  right: -22px;
+  right: -30px;
 }
 .multiPanel .english .textRange .numberLabel {
   left: -32px;

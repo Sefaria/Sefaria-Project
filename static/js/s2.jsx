@@ -1810,7 +1810,7 @@ var TextColumn = React.createClass({
       var hasPrev = first && first.prev;
       var hasNext = last && last.next;
       var topSymbol  = " ";
-      var bottomSymbol = "~"
+      var bottomSymbol = " "
       if (hasPrev) {
         content.splice(0, 0, (<LoadingMessage className="base prev" key="prev"/>));
       } else {
@@ -1866,13 +1866,18 @@ var TextRange = React.createClass({
     }
     window.addEventListener('resize', this.handleResize);
   },
+  componentWillUnmount: function() {
+    window.removeEventListener('resize', this.handleResize);
+  },
   componentDidUpdate: function(prevProps, prevState) {
     // Place segment numbers again if update affected layout
     if (this.props.basetext || this.props.segmentNumber) { 
       if ((!prevState.loaded && this.state.loaded) ||
           (!prevState.linksLoaded && this.state.linksLoaded) ||
           prevProps.settings.language !== this.props.settings.language ||
-          prevProps.settings.layout !== this.props.settings.layout ||
+          prevProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
+          prevProps.settings.layoutTanach !== this.props.settings.layoutTanach ||
+          prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
           prevProps.settings.fontSize !== this.props.settings.fontSize) {
             window.requestAnimationFrame(function() { 
               if (this.isMounted()) {
@@ -1884,9 +1889,6 @@ var TextRange = React.createClass({
     if (this.props.onTextLoad && !prevState.loaded && this.state.loaded) {
       this.props.onTextLoad();
     }
-  },
-  componentWillUnmount: function() {
-    window.removeEventListener('resize', this.handleResize);
   },
   handleResize: function() {
     if (this.props.basetext || this.props.segmentNumber) { 
@@ -2126,8 +2128,8 @@ var TextSegment = React.createClass({
       var linkCount = "";
     }
     var segmentNumber = this.props.segmentNumber ? (<div className="segmentNumber">
-                                                      <span className="en"><span className="segmentNumberInner"> {this.props.segmentNumber} </span></span>
-                                                      <span className="he"><span className="segmentNumberInner"> {encodeHebrewNumeral(this.props.segmentNumber)} </span></span>
+                                                      <span className="en"> <span className="segmentNumberInner">{this.props.segmentNumber}</span> </span>
+                                                      <span className="he"> <span className="segmentNumberInner">{encodeHebrewNumeral(this.props.segmentNumber)}</span> </span>
                                                     </div>) : "";
     var he = this.props.he || this.props.en;
     var en = this.props.en || this.props.he;
