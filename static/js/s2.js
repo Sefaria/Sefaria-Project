@@ -1324,12 +1324,12 @@ var ReaderTextTableOfContents = React.createClass({displayName: "ReaderTextTable
     };
     var $root = $(this.getDOMNode()).find(".altStruct:visible");
     $root = $root.length ? $root : $(this.getDOMNode()).find(".tocContent");
-    if ($root.find(".tocSection").length) {
-      $root.find(".tocSection").each(shrink); // nested simple text
-    } else if ($root.find(".schema-node-toc").length) {
-      $root.find(".schema-node-toc, .schema-node-contents").each(shrink); // complex text or alt struct
+    if ($root.find(".tocSection").length) {             // nested simple text
+      //$root.find(".tocSection").each(shrink); // Don't bother with these for now
+    } else if ($root.find(".schema-node-toc").length) { // complex text or alt struct
+      $root.find(".schema-node-toc, .schema-node-contents").each(shrink); 
     } else {
-      $root.find(".tocLevel").each(shrink); // Simple text, no nesting
+      $root.find(".tocLevel").each(shrink);             // Simple text, no nesting
     }
   },
   render: function() {
@@ -1810,7 +1810,7 @@ var TextColumn = React.createClass({displayName: "TextColumn",
       var hasPrev = first && first.prev;
       var hasNext = last && last.next;
       var topSymbol  = " ";
-      var bottomSymbol = "~"
+      var bottomSymbol = " "
       if (hasPrev) {
         content.splice(0, 0, (React.createElement(LoadingMessage, {className: "base prev", key: "prev"})));
       } else {
@@ -1866,13 +1866,18 @@ var TextRange = React.createClass({displayName: "TextRange",
     }
     window.addEventListener('resize', this.handleResize);
   },
+  componentWillUnmount: function() {
+    window.removeEventListener('resize', this.handleResize);
+  },
   componentDidUpdate: function(prevProps, prevState) {
     // Place segment numbers again if update affected layout
     if (this.props.basetext || this.props.segmentNumber) { 
       if ((!prevState.loaded && this.state.loaded) ||
           (!prevState.linksLoaded && this.state.linksLoaded) ||
           prevProps.settings.language !== this.props.settings.language ||
-          prevProps.settings.layout !== this.props.settings.layout ||
+          prevProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
+          prevProps.settings.layoutTanach !== this.props.settings.layoutTanach ||
+          prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
           prevProps.settings.fontSize !== this.props.settings.fontSize) {
             window.requestAnimationFrame(function() { 
               if (this.isMounted()) {
@@ -1884,9 +1889,6 @@ var TextRange = React.createClass({displayName: "TextRange",
     if (this.props.onTextLoad && !prevState.loaded && this.state.loaded) {
       this.props.onTextLoad();
     }
-  },
-  componentWillUnmount: function() {
-    window.removeEventListener('resize', this.handleResize);
   },
   handleResize: function() {
     if (this.props.basetext || this.props.segmentNumber) { 
@@ -2126,8 +2128,8 @@ var TextSegment = React.createClass({displayName: "TextSegment",
       var linkCount = "";
     }
     var segmentNumber = this.props.segmentNumber ? (React.createElement("div", {className: "segmentNumber"}, 
-                                                      React.createElement("span", {className: "en"}, React.createElement("span", {className: "segmentNumberInner"}, " ", this.props.segmentNumber, " ")), 
-                                                      React.createElement("span", {className: "he"}, React.createElement("span", {className: "segmentNumberInner"}, " ", encodeHebrewNumeral(this.props.segmentNumber), " "))
+                                                      React.createElement("span", {className: "en"}, " ", React.createElement("span", {className: "segmentNumberInner"}, this.props.segmentNumber), " "), 
+                                                      React.createElement("span", {className: "he"}, " ", React.createElement("span", {className: "segmentNumberInner"}, encodeHebrewNumeral(this.props.segmentNumber)), " ")
                                                     )) : "";
     var he = this.props.he || this.props.en;
     var en = this.props.en || this.props.he;

@@ -1324,12 +1324,12 @@ var ReaderTextTableOfContents = React.createClass({
     };
     var $root = $(this.getDOMNode()).find(".altStruct:visible");
     $root = $root.length ? $root : $(this.getDOMNode()).find(".tocContent");
-    if ($root.find(".tocSection").length) {
-      $root.find(".tocSection").each(shrink); // nested simple text
-    } else if ($root.find(".schema-node-toc").length) {
-      $root.find(".schema-node-toc, .schema-node-contents").each(shrink); // complex text or alt struct
+    if ($root.find(".tocSection").length) {             // nested simple text
+      //$root.find(".tocSection").each(shrink); // Don't bother with these for now
+    } else if ($root.find(".schema-node-toc").length) { // complex text or alt struct
+      $root.find(".schema-node-toc, .schema-node-contents").each(shrink); 
     } else {
-      $root.find(".tocLevel").each(shrink); // Simple text, no nesting
+      $root.find(".tocLevel").each(shrink);             // Simple text, no nesting
     }
   },
   render: function() {
