@@ -750,12 +750,12 @@ body.embeded #top {
   display: inline-block;
   cursor: pointer;
   padding: 0px 8px;
-  height: 42px;
   line-height: 28px;
   border: 1px solid #aaa;
   border-right: none;
   letter-spacing: 1px;
   font-size: 1px;
+  height: 32px;
 }
 
 .toggleOption img {
