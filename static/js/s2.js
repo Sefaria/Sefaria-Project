@@ -637,10 +637,8 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
     return "book" in pref ? pref.book : null;
   },
   currentCategory: function() {
-    //var data = this.currentData();
-    //return data ? data.categories[0] : null;
-    var i = sjs.library.index(this.currentBook());
-    return (i ?  i.categories[0] : null);
+    var oref = sjs.library.ref(this.currentRef());
+    return (oref ? oref.categories[0] : null);
   },
   currentLayout: function() {
     var category = this.currentCategory();
@@ -726,6 +724,7 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
       var settings = {query: this.state.searchQuery, page: 1};
       var menu = (React.createElement(SearchPage, {
                     initialSettings: settings, 
+                    settings: clone(this.state.settings), 
                     onResultClick: this.showBaseText, 
                     onQueryChange: this.setSearchQuery, 
                     openDisplaySettings: this.openDisplaySettings, 
@@ -802,12 +801,16 @@ var ReaderControls = React.createClass({displayName: "ReaderControls",
     multiPanel:              React.PropTypes.bool
   },
   render: function() {
-    var lineStyle   = {backgroundColor: sjs.categoryColor(this.props.currentCategory())};
     var title       = this.props.currentRef();
     var oref        = sjs.library.ref(title);
-    var heTitle     = oref ? oref.heTitle : title;
+    var heTitle     = oref ? oref.heTitle : "";
     var currentMode = this.props.currentMode();
     var hideHeader  = !this.props.multiPanel && currentMode === "TextList";
+
+    if (title && !oref) {
+      // If we don't have this data yet, rerender when we do so we can set the Hebrew title
+      sjs.library.text(title, {context: 1}, function() { this.setState({}); }.bind(this));
+    }
 
     var centerContent = this.props.multiPanel && currentMode === "TextList" ?
       (React.createElement("div", {className: "readerTextToc"}, 
@@ -831,7 +834,7 @@ var ReaderControls = React.createClass({displayName: "ReaderControls",
         ));
     return (
       React.createElement("div", null, 
-        React.createElement("div", {className: "categoryColorLine", style: lineStyle}), 
+        React.createElement(CategoryColorLine, {category: this.props.currentCategory()}), 
         readerControls
       )
     );
@@ -848,9 +851,9 @@ var ReaderDisplayOptionsMenu = React.createClass({displayName: "ReaderDisplayOpt
   },
   render: function() {
     var languageOptions = [
-      {name: "english",   image: "/static/img/english.png" },
-      {name: "bilingual", image: "/static/img/bilingual.png" },
-      {name: "hebrew",    image: "/static/img/hebrew.png" }
+      {name: "english",   content: "<span class='en'>A</span>" },
+      {name: "bilingual", content: "<span class='en'>A</span><span class='he'>א</span>" },
+      {name: "hebrew",    content: "<span class='he'>א</span>" }
     ];
     var languageToggle = (
         React.createElement(ToggleSet, {
@@ -860,8 +863,8 @@ var ReaderDisplayOptionsMenu = React.createClass({displayName: "ReaderDisplayOpt
           settings: this.props.settings}));
     
     var layoutOptions = [
-      {name: "continuous", image: "/static/img/paragraph.png" },
-      {name: "segmented", image: "/static/img/lines.png" },
+      {name: "continuous", fa: "align-justify" },
+      {name: "segmented", fa: "align-left" },
     ];
     var layoutToggle = this.props.settings.language !== "bilingual" ? 
       (React.createElement(ToggleSet, {
@@ -895,7 +898,13 @@ var ReaderDisplayOptionsMenu = React.createClass({displayName: "ReaderDisplayOpt
           setOption: this.props.setOption, 
           settings: this.props.settings}));
 
-    if (this.props.menuOpen) {
+    if (this.props.menuOpen === "search") {
+      return (React.createElement("div", {className: "readerOptionsPanel"}, 
+              languageToggle, 
+              React.createElement("div", {className: "line"}), 
+              sizeToggle
+            ));
+    } else if (this.props.menuOpen) {
       return (React.createElement("div", {className: "readerOptionsPanel"}, 
               languageToggle
             ));
@@ -927,6 +936,17 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
     return {
       showMore: false,
     };
+  },
+  componentDidMount: function() {
+    this.setWidth();
+    window.addEventListener("resize", this.setWidth);
+  },
+  componentWillUnmount: function() {
+    window.removeEventListener("resize", this.setWidth);
+  },
+  setWidth: function() {
+    var width = $(this.getDOMNode()).width();
+    this.setState({width: width});
   },
   navHome: function() {
     this.props.setCategories([])
@@ -1006,19 +1026,27 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
                       React.createElement("span", {className: "en"}, "More >"), 
                       React.createElement("span", {className: "he"}, "עוד >")
                   ));
-      categories = this.state.showMore ? categories : categories.slice(0,8).concat(more);
-      categories = (React.createElement("div", {className: "readerNavCategories"}, React.createElement(ThreeBox, {content: categories})));
+      if (this.state.width < 450) {
+        categories = this.state.showMore ? categories : categories.slice(0,9).concat(more);
+        categories = (React.createElement("div", {className: "readerNavCategories"}, React.createElement(TwoBox, {content: categories})));
+      } else {
+        categories = this.state.showMore ? categories : categories.slice(0,8).concat(more);
+        categories = (React.createElement("div", {className: "readerNavCategories"}, React.createElement(ThreeBox, {content: categories})));
+      }
+                    
 
       var siteLinks = sjs._uid ? 
                     [(React.createElement("a", {className: "siteLink", key: "profile", href: "/my/profile"}, 
                         React.createElement("i", {className: "fa fa-user"}), 
                         React.createElement("span", {className: "en"}, "Your Profile"), 
                         React.createElement("span", {className: "he"}, "הפרופיל שלך")
-                      )), "•",
+                      )), 
+                     (React.createElement("span", {className: "divider"}, "•")),
                      (React.createElement("a", {className: "siteLink", key: "about", href: "/about"}, 
                         React.createElement("span", {className: "en"}, "About Sefaria"), 
                         React.createElement("span", {className: "he"}, "אודות ספאריה")
-                      )), "•", 
+                      )),
+                     (React.createElement("span", {className: "divider"}, "•")),
                      (React.createElement("a", {className: "siteLink", key: "logout", href: "/logout"}, 
                         React.createElement("span", {className: "en"}, "Logout"), 
                         React.createElement("span", {className: "he"}, "התנתק")
@@ -1027,7 +1055,8 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
                     [(React.createElement("a", {className: "siteLink", key: "about", href: "/about"}, 
                         React.createElement("span", {className: "en"}, "About Sefaria"), 
                         React.createElement("span", {className: "he"}, "אודות ספאריה")
-                      )), "•",
+                      )),
+                     (React.createElement("span", {className: "divider"}, "•")),
                      (React.createElement("a", {className: "siteLink", key: "login", href: "/login"}, 
                         React.createElement("span", {className: "en"}, "Sign In"), 
                         React.createElement("span", {className: "he"}, "הירשם")
@@ -1047,22 +1076,29 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
                         React.createElement("span", {className: "en"}, "Daf Yomi"), 
                         React.createElement("span", {className: "he"}, "דף יומי")
                        ))];
-      calendar = (React.createElement("div", {className: "readerNavCalendar"}, React.createElement(ThreeBox, {content: calendar})));
-
+      if (this.state.width < 450) {
+        calendar = (React.createElement("div", {className: "readerNavCalendar"}, React.createElement(TwoBox, {content: calendar})));
+      } else {
+        calendar = (React.createElement("div", {className: "readerNavCalendar"}, React.createElement(ThreeBox, {content: calendar})));
+      }
       var topContent = this.props.home ?
               (React.createElement("div", {className: "readerNavTop search"}, 
+                React.createElement(CategoryColorLine, {category: "Other"}), 
                 React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.navHome}), 
                 React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings}), 
                 React.createElement("div", {className: "sefariaLogo"}, React.createElement("img", {src: "/static/img/sefaria.png"}))
               )) :
               (React.createElement("div", {className: "readerNavTop search"}, 
+                React.createElement(CategoryColorLine, {category: "Other"}), 
                 React.createElement(ReaderNavigationMenuCloseButton, {onClick: this.closeNav}), 
                 React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.handleSearchButtonClick}), 
                 React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings}), 
                 React.createElement("input", {className: "readerSearch", placeholder: "Search", onKeyUp: this.handleSearchKeyUp})
               ));
 
-      var classes = classNames({readerNavMenu: 1, readerNavMenu:1, home: this.props.home});
+      var classes     = classNames({readerNavMenu: 1, readerNavMenu:1, home: this.props.home});
+      var sheetsStyle = {"borderColor": sjs.categoryColor("Sheets")};
+
       return(React.createElement("div", {className: classes, onClick: this.handleClick}, 
               topContent, 
               React.createElement("div", {className: "content"}, 
@@ -1084,7 +1120,7 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
                     React.createElement("span", {className: "en"}, "Community"), 
                     React.createElement("span", {className: "he"}, "קהילה")
                   ), 
-                  React.createElement("span", {className: "sheetsLink", onClick: this.props.openMenu.bind(null, "sheets")}, 
+                  React.createElement("span", {className: "sheetsLink", style: sheetsStyle, onClick: this.props.openMenu.bind(null, "sheets")}, 
                     React.createElement("i", {className: "fa fa-file-text-o"}), 
                     React.createElement("span", {className: "en"}, "Source Sheets"), 
                     React.createElement("span", {className: "he"}, "דפי מקורות")
@@ -1109,38 +1145,6 @@ var ReaderNavigationCategoryMenu = React.createClass({displayName: "ReaderNaviga
     navHome:       React.PropTypes.func.isRequired
   },
   render: function() {
-    var makeCatContents = function(contents, cats) {
-      // Returns HTML for TOC category contents
-      var html = "";
-      cats = cats || [];
-      for (var i = 0; i < contents.length; i++) {
-        var item = contents[i];
-        if (item.category) {
-          if (item.category == "Commentary") { continue; }
-          var newCats = cats.concat(item.category);
-          // Special Case categories which should nest
-          var subcats = [ "Mishneh Torah", "Shulchan Arukh", "Midrash Rabbah", "Maharal" ];
-          if ($.inArray(item.category, subcats) > -1) {
-            html += '<span class="catLink" data-cats="' + newCats.join("|") + '">' + 
-                    "<span class='en'>" + item.category + "</span>" + 
-                    "<span class='he'>" + sjs.library.hebrewCategory(item.category) + "</span></span>";
-            continue;
-          }
-          html += "<div class='category'><h3>" + 
-                    "<span class='en'>" + item.category + "</span>" + 
-                    "<span class='he'>" + item.heCategory + "</span></h3>" +
-                    makeCatContents(item.contents, newCats) +
-                  "</div>";
-        } else {
-          var title   = item.title.replace(/(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud) /, "");
-          var heTitle = item.heTitle.replace(/(משנה תורה,|תלמוד ירושלמי) /, "");
-          html += '<span class="refLink sparse' + item.sparseness + '" data-ref="' + item.firstSection + '">' + 
-                    "<span class='en'>" + title + "</span>" + 
-                    "<span class='he'>" + heTitle + "</span></span>";
-        }
-      }
-      return html;
-    };
 
     // Show Talmud with Toggles
     var categories  = this.props.categories[0] === "Talmud" && this.props.categories.length == 1 ? 
@@ -1160,7 +1164,8 @@ var ReaderNavigationCategoryMenu = React.createClass({displayName: "ReaderNaviga
                             React.createElement("span", {className: bClasses, onClick: setBavli}, 
                               React.createElement("span", {className: "en"}, "Bavli"), 
                               React.createElement("span", {className: "he"}, "בבלי")
-                            ), " |",  
+                            ), 
+                            React.createElement("span", {className: "navTogglesDivider"}, "|"), 
                             React.createElement("span", {className: yClasses, onClick: setYerushalmi}, 
                               React.createElement("span", {className: "en"}, "Yerushalmi"), 
                               React.createElement("span", {className: "he"}, "ירושלמי")
@@ -1172,12 +1177,10 @@ var ReaderNavigationCategoryMenu = React.createClass({displayName: "ReaderNaviga
     }
 
     var catContents = sjs.library.tocItemsByCategories(categories);
-    var contents    = makeCatContents(catContents, categories);
-    var lineStyle   = {backgroundColor: sjs.categoryColor(categories[0])};
 
     return (React.createElement("div", {className: "readerNavCategoryMenu readerNavMenu"}, 
               React.createElement("div", {className: "readerNavTop searchOnly"}, 
-                React.createElement("div", {className: "categoryColorLine", style: lineStyle}), 
+                React.createElement(CategoryColorLine, {category: categories[0]}), 
                 React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.navHome}), 
                 React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings}), 
                 React.createElement("h2", null, 
@@ -1187,9 +1190,70 @@ var ReaderNavigationCategoryMenu = React.createClass({displayName: "ReaderNaviga
               ), 
               React.createElement("div", {className: "content"}, 
                 toggle, 
-                React.createElement("div", {dangerouslySetInnerHTML:  {__html: contents} })
+                React.createElement(ReaderNavigationCategoryMenuContents, {contents: catContents, categories: categories})
               )
             ));
+  }
+});
+
+
+var ReaderNavigationCategoryMenuContents = React.createClass({displayName: "ReaderNavigationCategoryMenuContents",
+  // Inner content of Category menu (just category title and boxes of)
+  propTypes: {
+    contents:   React.PropTypes.array.isRequired,
+    categories: React.PropTypes.array.isRequired
+  },
+  render: function() {
+      var content = [];
+      cats = this.props.categories || [];
+      for (var i = 0; i < this.props.contents.length; i++) {
+        var item = this.props.contents[i];
+        if (item.category) {
+          if (item.category == "Commentary") { continue; }
+          var newCats = cats.concat(item.category);
+          // Special Case categories which should nest
+          var subcats = [ "Mishneh Torah", "Shulchan Arukh", "Midrash Rabbah", "Maharal" ];
+          if ($.inArray(item.category, subcats) > -1) {
+            content.push((React.createElement("span", {className: "catLink", "data-cats": newCats.join("|")}, 
+                         React.createElement("span", {className: "en"}, item.category), 
+                         React.createElement("span", {className: "he"}, sjs.library.hebrewCategory(item.category))
+                        )));
+            continue;
+          }
+          content.push((React.createElement("div", {className: "category"}, 
+                        React.createElement("h3", null, 
+                          React.createElement("span", {className: "en"}, item.category), 
+                          React.createElement("span", {className: "he"}, item.heCategory)
+                        ), 
+                        React.createElement(ReaderNavigationCategoryMenuContents, {contents: item.contents, categories: newCats})
+                      )));
+        } else {
+          var title   = item.title.replace(/(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud) /, "");
+          var heTitle = item.heTitle.replace(/(משנה תורה,|תלמוד ירושלמי) /, "");
+          content.push((React.createElement("span", {className: 'refLink sparse' + item.sparseness, "data-ref": item.firstSection}, 
+                        React.createElement("span", {className: "en"}, title), 
+                        React.createElement("span", {className: "he"}, heTitle)
+                      )));
+        }
+      }
+      var boxedContent = [];
+      var currentRun   = [];
+      for (var i = 0; i < content.length; i++) {
+        // Walk through content looking for runs of spans to group togther into a table
+        if (content[i].type == "div") { // this is a subcategory
+          if (currentRun.length) {
+            boxedContent.push((React.createElement(TwoBox, {contents: currentRun})));
+            currentRun = [];
+          }
+          boxedContent.push(content[i]);
+        } else if (content[i].type == "span") { // this is a single text
+          currentRun.push(content[i]);
+        }
+      }
+      if (currentRun.length) {
+        boxedContent.push((React.createElement(TwoBox, {content: currentRun})));
+      }
+      return (React.createElement("div", null, boxedContent));
   }
 });
 
@@ -1205,14 +1269,16 @@ var ReaderTextTableOfContents = React.createClass({displayName: "ReaderTextTable
     showBaseText: React.PropTypes.func.isRequired
   },
   componentDidMount: function() {
-    // Toggling TOC Alt structures
-    $(".altStructToggle").click(function(){
-        $(".altStructToggle").removeClass("active");
-        $(this).addClass("active");
-        var i = $(this).index();
-        $(".altStruct").hide();
-        $(".altStruct").eq(i).show();
-    });
+    this.bindToggles();
+    this.shrinkWrap();
+    window.addEventListener('resize', this.shrinkWrap);
+  },
+  componentWillUnmount: function() {
+    window.removeEventListener('resize', this.shrinkWrap);
+  },
+  componentDidUpdate: function() {
+    this.bindToggles();
+    this.shrinkWrap();
   },
   handleClick: function(e) {
     var $a = $(e.target).closest("a");
@@ -1223,6 +1289,47 @@ var ReaderTextTableOfContents = React.createClass({displayName: "ReaderTextTable
       this.props.close();
       this.props.showBaseText(ref);
       e.preventDefault();
+    }
+  },
+  bindToggles: function() {
+    // Toggling TOC Alt structures
+    var component = this;
+    $(".altStructToggle").click(function(){
+        $(".altStructToggle").removeClass("active");
+        $(this).addClass("active");
+        var i = $(this).closest("#structToggles").find(".altStructToggle").index(this);
+        $(".altStruct").hide();
+        $(".altStruct").eq(i).show();
+        component.shrinkWrap();
+    });    
+  },
+  shrinkWrap: function() {
+    // Shrink the width of the container of a grid of inline-line block elements,
+    // so that is is tight around its contents thus able to appear centered. 
+    // As far as I can tell, there's no way to do this in pure CSS.
+    var shrink  = function(i, container) {
+      var $container = $(container);
+      // don't run on complex nodes without sectionlinks
+      if ($container.hasClass("schema-node-toc") && !$container.find(".sectionLink").length) { return; } 
+      var maxWidth   = $container.parent().innerWidth();
+      var itemWidth  = $container.find(".sectionLink").outerWidth(true);
+      var nItems     = $container.find(".sectionLink").length;
+
+      if (maxWidth / itemWidth > nItems) {
+        var width = nItems * itemWidth;
+      } else {
+        var width = Math.floor(maxWidth / itemWidth) * itemWidth;
+      }
+      $container.width(width + "px");
+    };
+    var $root = $(this.getDOMNode()).find(".altStruct:visible");
+    $root = $root.length ? $root : $(this.getDOMNode()).find(".tocContent");
+    if ($root.find(".tocSection").length) {             // nested simple text
+      //$root.find(".tocSection").each(shrink); // Don't bother with these for now
+    } else if ($root.find(".schema-node-toc").length) { // complex text or alt struct
+      $root.find(".schema-node-toc, .schema-node-contents").each(shrink); 
+    } else {
+      $root.find(".tocLevel").each(shrink);             // Simple text, no nesting
     }
   },
   render: function() {
@@ -1237,11 +1344,9 @@ var ReaderTextTableOfContents = React.createClass({displayName: "ReaderTextTable
     var section   = sjs.library.sectionString(this.props.currentRef).en.named;
     var heSection = sjs.library.sectionString(this.props.currentRef).he.named;
 
-    var lineStyle = {backgroundColor: sjs.categoryColor(this.props.category)};
-
     return (React.createElement("div", {className: "readerTextTableOfContents readerNavMenu", onClick: this.handleClick}, 
               React.createElement("div", {className: "readerNavTop"}, 
-                React.createElement("div", {className: "categoryColorLine", style: lineStyle}), 
+                React.createElement(CategoryColorLine, {category: this.props.category}), 
                 React.createElement(ReaderNavigationMenuCloseButton, {onClick: this.props.close}), 
                 React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings}), 
                 React.createElement("h2", null, 
@@ -1320,7 +1425,6 @@ var SheetsNav = React.createClass({displayName: "SheetsNav",
   },
   render: function() {
     var enTitle = this.state.tag || "Source Sheets";
-    var heTitle = this.state.tag || "Source Sheets";
 
     if (this.state.tag) {
       var sheets = this.state.sheets.map(function(sheet) {
@@ -1347,10 +1451,10 @@ var SheetsNav = React.createClass({displayName: "SheetsNav",
         var tagList      = this.state.tagList.map(makeTagButton);
         var content = (React.createElement("div", {className: "content"}, 
                         yourSheets, 
-                        React.createElement("h2", null, React.createElement("span", {className: "en"}, "Trending Tags"), React.createElement("span", {className: "he"}, "Trending Tags")), 
+                        React.createElement("h2", null, React.createElement("span", {className: "en"}, "Trending Tags")), 
                         trendingTags, 
                         React.createElement("br", null), React.createElement("br", null), 
-                        React.createElement("h2", null, React.createElement("span", {className: "en"}, "All Tags"), React.createElement("span", {className: "he"}, "All Tags")), 
+                        React.createElement("h2", null, React.createElement("span", {className: "en"}, "All Tags")), 
                         tagList
                        ));
       } else {
@@ -1360,8 +1464,9 @@ var SheetsNav = React.createClass({displayName: "SheetsNav",
 
     return (React.createElement("div", {className: "readerSheetsNav readerNavMenu"}, 
               React.createElement("div", {className: "readerNavTop searchOnly"}, 
+                React.createElement(CategoryColorLine, {category: "Sheets"}), 
                 React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.openNav}), 
-                React.createElement("h2", null, React.createElement("span", {className: "en"}, enTitle), React.createElement("span", {className: "he"}, heTitle))
+                React.createElement("h2", null, React.createElement("span", {className: "en"}, enTitle))
               ), 
               content
             ));
@@ -1402,6 +1507,7 @@ var ToggleSet = React.createClass({displayName: "ToggleSet",
                 setOption: this.props.setOption, 
                 style: style, 
                 image: option.image, 
+                fa: option.fa, 
                 content: option.content}));
           }.bind(this))
         
@@ -1423,7 +1529,9 @@ var ToggleOption = React.createClass({displayName: "ToggleOption",
     var classes = {toggleOption: 1, on: this.props.on };
     classes[this.props.name] = 1;
     classes = classNames(classes);
-    var content = this.props.image ? (React.createElement("img", {src: this.props.image})) : this.props.content;
+    var content = this.props.image ? (React.createElement("img", {src: this.props.image})) : 
+                    this.props.fa ? (React.createElement("i", {className: "fa fa-" + this.props.fa})) : 
+                      (React.createElement("span", {dangerouslySetInnerHTML:  {__html: this.props.content} }));
     return (
       React.createElement("div", {
         className: classes, 
@@ -1454,6 +1562,14 @@ var ReaderNavigationMenuDisplaySettingsButton = React.createClass({displayName: 
     return (React.createElement("div", {className: "readerOptions", onClick: this.props.onClick}, React.createElement("img", {src: "/static/img/bilingual2.png"})));
   }
 });
+
+
+var CategoryColorLine = React.createClass({displayName: "CategoryColorLine",
+  render: function() {
+    style = {backgroundColor: sjs.categoryColor(this.props.category)};
+    return (React.createElement("div", {className: "categoryColorLine", style: style}));
+  }
+})
 
 
 var TextColumn = React.createClass({displayName: "TextColumn",
@@ -1694,7 +1810,7 @@ var TextColumn = React.createClass({displayName: "TextColumn",
       var hasPrev = first && first.prev;
       var hasNext = last && last.next;
       var topSymbol  = " ";
-      var bottomSymbol = "***"
+      var bottomSymbol = " "
       if (hasPrev) {
         content.splice(0, 0, (React.createElement(LoadingMessage, {className: "base prev", key: "prev"})));
       } else {
@@ -1703,7 +1819,7 @@ var TextColumn = React.createClass({displayName: "TextColumn",
       if (hasNext) {
         content.push((React.createElement(LoadingMessage, {className: "base next", key: "next"})));
       } else {
-        content.push((React.createElement(LoadingMessage, {message: bottomSymbol, heMessage: bottomSymbol, className: "base next", key: "next"})));
+        content.push((React.createElement(LoadingMessage, {message: bottomSymbol, heMessage: bottomSymbol, className: "base next final", key: "next"})));
 
       }
     }
@@ -1750,13 +1866,18 @@ var TextRange = React.createClass({displayName: "TextRange",
     }
     window.addEventListener('resize', this.handleResize);
   },
+  componentWillUnmount: function() {
+    window.removeEventListener('resize', this.handleResize);
+  },
   componentDidUpdate: function(prevProps, prevState) {
     // Place segment numbers again if update affected layout
     if (this.props.basetext || this.props.segmentNumber) { 
       if ((!prevState.loaded && this.state.loaded) ||
           (!prevState.linksLoaded && this.state.linksLoaded) ||
           prevProps.settings.language !== this.props.settings.language ||
-          prevProps.settings.layout !== this.props.settings.layout ||
+          prevProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
+          prevProps.settings.layoutTanach !== this.props.settings.layoutTanach ||
+          prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
           prevProps.settings.fontSize !== this.props.settings.fontSize) {
             window.requestAnimationFrame(function() { 
               if (this.isMounted()) {
@@ -1769,15 +1890,16 @@ var TextRange = React.createClass({displayName: "TextRange",
       this.props.onTextLoad();
     }
   },
-  componentWillUnmount: function() {
-    window.removeEventListener('resize', this.handleResize);
-  },
   handleResize: function() {
     if (this.props.basetext || this.props.segmentNumber) { 
       this.placeSegmentNumbers();
     }
   },
   handleClick: function(event) {
+    if (window.getSelection().type === "Range") { 
+      // Don't do anything if this click is part of a selection
+      return;
+    }
     if (this.props.openOnClick && this.props.showBaseText) {
       //Click on the body of the TextRange itself from TextList
       this.props.showBaseText(this.props.sref);
@@ -1947,7 +2069,7 @@ var TextRange = React.createClass({displayName: "TextRange",
     return (
       React.createElement("div", {className: classes, onClick: this.handleClick}, 
         showNumberLabel && this.props.numberLabel ? 
-          (React.createElement("span", {className: "numberLabel"}, this.props.numberLabel))
+          (React.createElement("div", {className: "numberLabel"}, " ", React.createElement("span", {className: "numberLabelInner"}, this.props.numberLabel), " "))
           : "", 
         this.props.hideTitle ? "" :
         (React.createElement("div", {className: "title"}, 
@@ -1957,7 +2079,9 @@ var TextRange = React.createClass({displayName: "TextRange",
           )
         )), 
         React.createElement("div", {className: "text"}, 
-           textSegments 
+          React.createElement("div", {className: "textInner"}, 
+             textSegments 
+          )
         )
       )
     );
@@ -1996,11 +2120,17 @@ var TextSegment = React.createClass({displayName: "TextSegment",
       var minOpacity = 20, maxOpacity = 70;
       var linkScore = linkCount ? Math.min(linkCount+minOpacity, maxOpacity) / 100.0 : 0;
       var style = {opacity: linkScore};
-      var linkCount = this.props.showLinkCount ? (React.createElement("span", {className: "linkCount", style: style})) : "";      
+      var linkCount = this.props.showLinkCount ? (React.createElement("div", {className: "linkCount"}, 
+                                                    React.createElement("span", {className: "en"}, React.createElement("span", {className: "linkCountDot", style: style})), 
+                                                    React.createElement("span", {className: "he"}, React.createElement("span", {className: "linkCountDot", style: style}))
+                                                  )) : "";      
     } else {
       var linkCount = "";
     }
-    var segmentNumber = this.props.segmentNumber ? (React.createElement("span", {className: "segmentNumber"}, this.props.segmentNumber)) : "";          
+    var segmentNumber = this.props.segmentNumber ? (React.createElement("div", {className: "segmentNumber"}, 
+                                                      React.createElement("span", {className: "en"}, " ", React.createElement("span", {className: "segmentNumberInner"}, this.props.segmentNumber), " "), 
+                                                      React.createElement("span", {className: "he"}, " ", React.createElement("span", {className: "segmentNumberInner"}, encodeHebrewNumeral(this.props.segmentNumber)), " ")
+                                                    )) : "";
     var he = this.props.he || this.props.en;
     var en = this.props.en || this.props.he;
     var classes=classNames({ segment: 1,
@@ -2404,6 +2534,7 @@ var SearchPage = React.createClass({displayName: "SearchPage",
             query: React.PropTypes.string,
             page: React.PropTypes.number
         }),
+        settings:      React.PropTypes.object,
         close:         React.PropTypes.func,
         onResultClick: React.PropTypes.func,
         onQueryChange: React.PropTypes.func
@@ -2429,8 +2560,10 @@ var SearchPage = React.createClass({displayName: "SearchPage",
         })
     },
     render: function () {
+        var style      = {"fontSize": this.props.settings.fontSize + "%"};
         return (React.createElement("div", {className: "readerNavMenu"}, 
                 React.createElement("div", {className: "readerNavTop search"}, 
+                  React.createElement(CategoryColorLine, {category: "Other"}), 
                   React.createElement(ReaderNavigationMenuCloseButton, {onClick: this.props.close}), 
                   React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings}), 
                   React.createElement(SearchBar, {
@@ -2441,13 +2574,12 @@ var SearchPage = React.createClass({displayName: "SearchPage",
                     React.createElement("div", {className: "searchContentFrame"}, 
                         React.createElement("div", {className: "searchControlsBox"}
                         ), 
-                        React.createElement("div", {className: "searchContent"}, 
+                        React.createElement("div", {className: "searchContent", style: style}, 
                             React.createElement(SearchResultList, {
                                 query:  this.state.query, 
                                 page:  this.state.page, 
                                 updateRunningQuery:  this.updateRunningQuery, 
-                                onResultClick: this.props.onResultClick}
-                                )
+                                onResultClick: this.props.onResultClick})
                         )
                     )
                   )
@@ -2832,6 +2964,9 @@ var ThreeBox = React.createClass({displayName: "ThreeBox",
 
 var TwoBox = React.createClass({displayName: "TwoBox",
   // Wrap a list of elements into a three column table
+  propTypes: {
+    content: React.PropTypes.array.isRequired
+  },
   render: function() {
       var content = this.props.content;
       var length = content.length;

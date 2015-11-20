@@ -313,13 +313,14 @@ sjs.library = {
                                     "<span class='he'>מפרשים</span>" +
                                   "</div>";      
       if ($html.find("#structToggles").length) {
-        $html.find("#structToggles").append(" | " + commentaryToggleHtml);  
+        $html.find("#structToggles").append("<span class='toggleDivider'>|</span>" + commentaryToggleHtml);  
       } else {
         var togglesHtml = "<div id='structToggles'>" +
                             "<div class='altStructToggle active'>" +
                                 "<span class='en'>Text</span>" +
                                 "<span class='he'>טקסט</span>" +
-                              "</div> | " + commentaryToggleHtml +
+                              "</div>" + 
+                              "<span class='toggleDivider'>|</span>" + commentaryToggleHtml +
                           "</div>";
         $html = $("<div><div class='altStruct'>" + html + "</div></div>");
         $html.prepend(togglesHtml);   
@@ -682,7 +683,7 @@ sjs.categoryColors = {
   "Other":              sjs.palette.darkblue,
   "Quoting Commentary": sjs.palette.orange,
   "Commentary2":        sjs.palette.blue,
-  "Sheets":             sjs.palette.rapsberry,
+  "Sheets":             sjs.palette.raspberry,
   "Targum":             sjs.palette.lavender,
   "Modern Works":       sjs.palette.raspberry
 };
