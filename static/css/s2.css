@@ -58,7 +58,7 @@ body.dark {
   width: 100%;
   height: 100%;
   overflow-y: scroll;
-  overflow-x: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   position: relative;
   padding: 0px 0 100%;
@@ -957,20 +957,20 @@ display: block;margin: 0 auto;}
   margin-bottom: 14px;
   display: block;
 }
-.bilingual .segment .he,
-.bilingual .segment .en { 
+.bilingual .segment > .he,
+.bilingual .segment > .en { 
   display: block;
 }
-.bilingual .segment .en { 
+.bilingual .segment > .en { 
   margin-top: 6px;
   text-align: left;
 }
-.bilingual .basetext .segment .en {
+.bilingual .basetext .segment > .en {
   margin: 10px 0 20px;
   color: #999;
 }
-.continuous.bilingual .segment.heOnly .he,
-.continuous.bilingual .segment.enOnly .en {
+.continuous.bilingual .segment.heOnly > .he,
+.continuous.bilingual .segment.enOnly > .en {
   display: inline;
 }
 .basetext .segment:active,
@@ -992,7 +992,8 @@ display: block;margin: 0 auto;}
 .basetext .segment.highlight {
   background-color: #E9E9E7;
 }
-.basetext .segment.highlight .segmentNumber {
+.basetext .segment.highlight .segmentNumber,
+.basetext .segment.highlight .linkCount {
   background-color: transparent;
 }
 .sepia .basetext .segment.highlight {
@@ -1017,28 +1018,41 @@ display: block;margin: 0 auto;}
 .segment .segmentNumber,
 .segment .linkCount,
 .textRange .numberLabel {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   position: absolute;
-  top: 0;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   background-color: inherit;
+  font-weight: lighter;
   width: 30px;
   text-align: center;
-  font-weight: lighter;
-  width: 18px;
-  height: 18px;
-  font-size: 12px;
-  line-height: 18px;
-  border-radius: 30px;
-  margin-top: .5em;
   -webkit-text-size-adjust: 100%;
   -moz-user-select: none;
   -khtml-user-select: none;
   -webkit-user-select: none;
   -o-user-select: none;
 }
+.segmentNumber .segmentNumberInner,
+.linkCount .linkCountDot {
+  display: inline-block;
+  margin-top: -32%;
+}
+.bilingual .segmentNumber .segmentNumberInner,
+.bilingual .linkCount .linkCountDot,
+.bilingual .numberLabel .numberLabelInner {
+  margin-top: 0;
+}
+.bilingual .segmentNumber .he,
+.bilingual .linkCount .he,
+.bilingual .numberLabel .he {
+  display: none;
+}
 .segment .segmentNumber,
 .segment .linkCount {
   display: none;
+}
+.segment .segmentNumber .segmentNumberInner,
+.textRange .numberLabel .numberLabelInner {
+  font-size: 12px;
+  vertical-align: middle;
 }
 .segment .segmentNumber,
 .textRagnge .numberLabel {
@@ -1050,31 +1064,33 @@ display: block;margin: 0 auto;}
   color: white;
 }
 .segment .linkCount {
-  display: block;
+
+}
+.segment .linkCountDot {
+  display: inline-block;
   width: 6px;
   height: 6px;
   border-radius: 12px;
   background-color: black;
-  margin-top: 1em;
-  font-size: 10px;
+  vertical-align: middle;
 }
 .dark .segment .linkCount {
   filter: invert(100%);
   -webkit-filter: invert(100%);
 }
 .readerPanel.english .segment .segmentNumber {
-  left: -23px;
+  left: -30px;
 }
 .readerPanel.hebrew .segment .segmentNumber,
 .readerPanel.bilingual .segment .segmentNumber {
-  right: -29px;
+  right: -30px;
 }
 .readerPanel.english .segment .linkCount {
-  right: -19px;
+  right: -30px;
 }
 .readerPanel.hebrew .segment .linkCount,
 .readerPanel.bilingual .segment .linkCount {
-  left: -17px;
+  left: -30px;
 }
 .multiPanel .readerPanel.english .segment .segmentNumber {
   left: -36px;

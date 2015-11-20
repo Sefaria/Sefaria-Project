@@ -637,10 +637,8 @@ var ReaderPanel = React.createClass({
     return "book" in pref ? pref.book : null;
   },
   currentCategory: function() {
-    //var data = this.currentData();
-    //return data ? data.categories[0] : null;
-    var i = sjs.library.index(this.currentBook());
-    return (i ?  i.categories[0] : null);
+    var oref = sjs.library.ref(this.currentRef());
+    return (oref ? oref.categories[0] : null);
   },
   currentLayout: function() {
     var category = this.currentCategory();
@@ -2069,7 +2067,7 @@ var TextRange = React.createClass({
     return (
       <div className={classes} onClick={this.handleClick}>
         {showNumberLabel && this.props.numberLabel ? 
-          (<span className="numberLabel">{this.props.numberLabel}</span>)
+          (<div className="numberLabel"> <span className="numberLabelInner">{this.props.numberLabel}</span> </div>)
           : ""}
         {this.props.hideTitle ? "" :
         (<div className="title">
@@ -2120,11 +2118,17 @@ var TextSegment = React.createClass({
       var minOpacity = 20, maxOpacity = 70;
       var linkScore = linkCount ? Math.min(linkCount+minOpacity, maxOpacity) / 100.0 : 0;
       var style = {opacity: linkScore};
-      var linkCount = this.props.showLinkCount ? (<span className="linkCount" style={style}></span>) : "";      
+      var linkCount = this.props.showLinkCount ? (<div className="linkCount">
+                                                    <span className="en"><span className="linkCountDot" style={style}></span></span>
+                                                    <span className="he"><span className="linkCountDot" style={style}></span></span>
+                                                  </div>) : "";      
     } else {
       var linkCount = "";
     }
-    var segmentNumber = this.props.segmentNumber ? (<span className="segmentNumber"> {this.props.segmentNumber} </span>) : "";          
+    var segmentNumber = this.props.segmentNumber ? (<div className="segmentNumber">
+                                                      <span className="en"><span className="segmentNumberInner"> {this.props.segmentNumber} </span></span>
+                                                      <span className="he"><span className="segmentNumberInner"> {encodeHebrewNumeral(this.props.segmentNumber)} </span></span>
+                                                    </div>) : "";
     var he = this.props.he || this.props.en;
     var en = this.props.en || this.props.he;
     var classes=classNames({ segment: 1,

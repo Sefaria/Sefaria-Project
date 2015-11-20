@@ -637,10 +637,8 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
     return "book" in pref ? pref.book : null;
   },
   currentCategory: function() {
-    //var data = this.currentData();
-    //return data ? data.categories[0] : null;
-    var i = sjs.library.index(this.currentBook());
-    return (i ?  i.categories[0] : null);
+    var oref = sjs.library.ref(this.currentRef());
+    return (oref ? oref.categories[0] : null);
   },
   currentLayout: function() {
     var category = this.currentCategory();
@@ -2069,7 +2067,7 @@ var TextRange = React.createClass({displayName: "TextRange",
     return (
       React.createElement("div", {className: classes, onClick: this.handleClick}, 
         showNumberLabel && this.props.numberLabel ? 
-          (React.createElement("span", {className: "numberLabel"}, this.props.numberLabel))
+          (React.createElement("div", {className: "numberLabel"}, " ", React.createElement("span", {className: "numberLabelInner"}, this.props.numberLabel), " "))
           : "", 
         this.props.hideTitle ? "" :
         (React.createElement("div", {className: "title"}, 
@@ -2120,11 +2118,17 @@ var TextSegment = React.createClass({displayName: "TextSegment",
       var minOpacity = 20, maxOpacity = 70;
       var linkScore = linkCount ? Math.min(linkCount+minOpacity, maxOpacity) / 100.0 : 0;
       var style = {opacity: linkScore};
-      var linkCount = this.props.showLinkCount ? (React.createElement("span", {className: "linkCount", style: style})) : "";      
+      var linkCount = this.props.showLinkCount ? (React.createElement("div", {className: "linkCount"}, 
+                                                    React.createElement("span", {className: "en"}, React.createElement("span", {className: "linkCountDot", style: style})), 
+                                                    React.createElement("span", {className: "he"}, React.createElement("span", {className: "linkCountDot", style: style}))
+                                                  )) : "";      
     } else {
       var linkCount = "";
     }
-    var segmentNumber = this.props.segmentNumber ? (React.createElement("span", {className: "segmentNumber"}, " ", this.props.segmentNumber, " ")) : "";          
+    var segmentNumber = this.props.segmentNumber ? (React.createElement("div", {className: "segmentNumber"}, 
+                                                      React.createElement("span", {className: "en"}, React.createElement("span", {className: "segmentNumberInner"}, " ", this.props.segmentNumber, " ")), 
+                                                      React.createElement("span", {className: "he"}, React.createElement("span", {className: "segmentNumberInner"}, " ", encodeHebrewNumeral(this.props.segmentNumber), " "))
+                                                    )) : "";
     var he = this.props.he || this.props.en;
     var en = this.props.en || this.props.he;
     var classes=classNames({ segment: 1,
