@@ -728,7 +728,8 @@ class AbstractTextRecord(object):
     """
     """
     text_attr = "chapter"
-    ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "em", "big", "small")
+    ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img")
+    ALLOWED_ATTRS   = {'img': lambda name, value: name == 'src' and value.startswith("data:image/png;")}
 
     def word_count(self):
         """ Returns the number of words in this text """
@@ -751,7 +752,7 @@ class AbstractTextRecord(object):
             for i, v in enumerate(t):
                 t[i] = TextChunk.sanitize_text(v)
         elif isinstance(t, basestring):
-            t = bleach.clean(t, tags=cls.ALLOWED_TAGS)
+            t = bleach.clean(t, tags=cls.ALLOWED_TAGS, attributes=cls.ALLOWED_ATTRS)
         else:
             return False
         return t
