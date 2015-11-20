@@ -152,9 +152,10 @@ def get_maximal_collapsed_activity(query={}, page_size=100, page=1, filter_type=
         if len(new_activity) < page_size:
             page = None
             enough = True
+        else:
+            page += 1
         activity = collapse_activity(activity + new_activity)
         enough = enough or len(activity) >= page_size # don't set enough to False if already set to True above
-        page += 1
 
     return (activity, page)
 
