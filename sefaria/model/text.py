@@ -2894,24 +2894,16 @@ class Ref(object):
         *I do not think that there is a way, with a simple projection, to both limit a dictionary to a particular leaf and get a slice of that same leaf.
         It is possible with the aggregation pipeline.
         With complex texts, we trade off a bit of speed for consistency, and slice just the array that we are concerned with.*
-
-        Update: we are now using a frightful hack - specifying a non existent element of the dictionary will remove everything else from the projection.
-        http://stackoverflow.com/a/15798087/213042
         """
         # todo: reimplement w/ aggregation pipeline (see above)
         # todo: special case string 0?
-
         if not self.sections:
-            return {"versionTitle" :1, "language" :1, self.storage_address(): 1, "_id": 0}
+            return {"_id": 0}
         else:
             skip = self.sections[0] - 1
             limit = 1 if self.range_index() > 0 else self.toSections[0] - self.sections[0] + 1
             slce = {"$slice": [skip, limit]}
-            if len(self.index_node.address()) > 1: #         http://stackoverflow.com/a/15798087/213042
-                dummy_limiter = ".".join(["chapter"] + self.index_node.address()[1:-1] + ["hacky_dummy_key"])
-                return {"_id": 0, "versionTitle" :1, "language" :1, dummy_limiter:1, self.storage_address(): slce}
-            else:
-                return {"_id": 0, "versionTitle" :1, "language" :1, self.storage_address(): slce}
+            return {"_id": 0, self.storage_address(): slce}
 
     def condition_query(self, lang=None):
         """
