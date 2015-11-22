@@ -709,12 +709,6 @@ class Test_condition_and_projection(object):
         assert u'chapter.Bereshit.Torah' in p
         assert p[u'chapter.Bereshit.Torah'] == {"$slice": [49, 3]}
 
-        r = Ref(u'Shelah, Bereshit, Torah Ohr 50:3-52:3')
-        p = r.part_projection()
-        assert all([k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr])
-        assert Version.content_attr not in p
-        assert u'chapter.Bereshit.Torah' in p
-        assert p[u'chapter.Bereshit.Torah'] == {"$slice": [49, 3]}
 
 class Test_set_construction_from_ref(object):
     def test_ref_noteset(self):
