@@ -664,6 +664,14 @@ class Test_condition_and_projection(object):
         assert Version.content_attr in p
         assert p[Version.content_attr] == 1
 
+        # Todo: test Version objects returned
+        """
+        vs = VersionSet(r.condition_query(), p)
+        assert vs.count() > 0
+        for v in vs:
+            assert ...
+        """
+
     def test_projection_complex_section(self):
         r = Ref(u'Shelah, Bereshit, Torah Ohr')
         p = r.part_projection()
