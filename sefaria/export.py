@@ -263,9 +263,12 @@ def export_all_merged():
 
 
 def export_schemas():
+    path = SEFARIA_EXPORT_PATH + "/schemas/"
+    if not os.path.exists(path):
+        os.makedirs(path)
     for i in model.IndexSet():
         title = i.title.replace(" ", "_")
-        with open(SEFARIA_EXPORT_PATH + "/schemas/" + title + ".json", "w") as f:
+        with open(path + title + ".json", "w") as f:
             try:
                 f.write(make_json(i.contents(v2=True)).encode('utf-8'))
             except InputError as e:
