@@ -14,7 +14,7 @@ try:
 except ImportError:
     USE_VARNISH = False
 if USE_VARNISH:
-    from sefaria.system.sf_varnish import invalidate_ref
+    from sefaria.system.sf_varnish import invalidate_ref, invalidate_linked
 
 def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     """
@@ -52,8 +52,7 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
             add_links_from_text(oref.normal(), lang, chunk.text, chunk.full_version._id, user, **kwargs)
 
             if USE_VARNISH:
-                for linkref in {r.section_ref() for r in oref.linkset().refs_from(oref)}:
-                    invalidate_ref(linkref)
+                invalidate_linked(oref)
 
     return chunk
 

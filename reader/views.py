@@ -43,7 +43,7 @@ try:
 except ImportError:
     USE_VARNISH = False
 if USE_VARNISH:
-    from sefaria.system.sf_varnish import invalidate_ref
+    from sefaria.system.sf_varnish import invalidate_ref, invalidate_linked
 
 import logging
 logger = logging.getLogger(__name__)
@@ -798,6 +798,10 @@ def texts_api(request, tref, lang=None, version=None):
             return jsonResponse({"error": "Text version not found."})
 
         v.delete()
+
+        if USE_VARNISH:
+            invalidate_linked(oref)
+            invalidate_ref(oref, lang, version)
 
         return jsonResponse({"status": "ok"})
 

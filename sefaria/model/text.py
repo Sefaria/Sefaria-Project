@@ -2892,19 +2892,33 @@ class Ref(object):
             Version().load({...},oref.part_projection())
 
         **Regarding projecting complex texts:**
-        *I do not think that there is a way, with a simple projection, to both limit a dictionary to a particular leaf and get a slice of that same leaf.
-        It is possible with the aggregation pipeline.
-        With complex texts, we trade off a bit of speed for consistency, and slice just the array that we are concerned with.*
+        By specifying a projection that includes a non-existing element of our dictionary at the level of our selection,
+        we cause all other elements of the dictionary to be unselected.
+        A bit non-intuitive, but a huge savings of document size and time on the data transfer.
+        http://stackoverflow.com/a/15798087/213042
         """
         # todo: reimplement w/ aggregation pipeline (see above)
         # todo: special case string 0?
+
+        projection = {k: 1 for k in Version.required_attrs + Version.optional_attrs}
+        del projection[Version.content_attr]  # Version.content_attr == "chapter"
+        projection["_id"] = 0
+
         if not self.sections:
-            return {"_id": 0}
+            # For simple texts, self.store_address() == "chapter".
+            # For complex texts, it can be a deeper branch of the dictionary: "chapter.Bereshit.Torah" or similar
+            projection[self.storage_address()] = 1
         else:
             skip = self.sections[0] - 1
             limit = 1 if self.range_index() > 0 else self.toSections[0] - self.sections[0] + 1
             slce = {"$slice": [skip, limit]}
-            return {"_id": 0, self.storage_address(): slce}
+            projection[self.storage_address()] = slce
+            if len(self.index_node.address()) > 1:
+                # create dummy key at level of our selection - see above.
+                dummy_limiter = ".".join(["chapter"] + self.index_node.address()[1:-1] + ["hacky_dummy_key"])
+                projection[dummy_limiter] = 1
+
+        return projection
 
     def condition_query(self, lang=None):
         """
