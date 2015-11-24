@@ -18,21 +18,28 @@ body {
 
 
 .yellow {
-	background-color: #ffff88; 	
+	background-color: #dfcd97; 	
 }
 
 .pink {
-	background-color: #f8cdcd;
+	background-color: #dd9c9e;
 }
 .blue {
-	background-color: #CBFAFA;
+	background-color: #80def2;
 }
 .green {
-	background-color: #CBFACB;
+	background-color: #a3e1bb;
 }
 .white {
 	background-color: #fff;
 }
+
+.purple {
+	background-color: #cb98d5;
+}
+
+
+
 
 
 .colorSelect {
