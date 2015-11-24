@@ -2503,7 +2503,7 @@ function aboutHtml(data) {
 		if (v.versionTitle === data.versionTitle || v.versionTitle === data.heVersionTitle) { continue; }
 		if ($.inArray(v.versionTitle, mergeSources) > -1 ) { continue; }
 		versionsHtml += '<div class="alternateVersion ' + v.language + '">' + 
-							'<a href="/' + makeRef(data) + '/' + v.language + '/' + v.versionTitle.replace(/ /g, "_") + '">' +
+							'<a href="/' + makeRef(data) + '/' + v.language + '/' + encodeURI(v.versionTitle.replace(/ /g, "_")) + '">' +
 							v.versionTitle + '</a></div>';
 		versionsLang[v.language] = true;
 	}
