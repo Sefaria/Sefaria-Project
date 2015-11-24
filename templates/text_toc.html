@@ -194,7 +194,7 @@
             $(".altStructToggle").click(function(){
                 $(".altStructToggle").removeClass("active");
                 $(this).addClass("active");
-                var i = $(this).index();
+                var i = $(this).closest("#structToggles").find(".altStructToggle").index(this);
                 $(".altStruct").hide();
                 $(".altStruct").eq(i).show();
             });
