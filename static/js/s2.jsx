@@ -269,9 +269,9 @@ var ReaderApp = React.createClass({
       // If this is a new text reset the filter, otherwise keep the current filter
       next.filter = oref1.book === oref2.book ? next.filter : [];
       next.ref = ref;
+      next.menuOpen = null;
       next.contents = [{type: "TextList", ref: ref}];
       this.setState({panels: this.state.panels});
-
     }
   },
   setTextListHighlightFrom: function(n, ref) {
