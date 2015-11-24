@@ -192,7 +192,7 @@ $(".sheetItem").resizable({
 
     }
 
-}).prepend('<div class="colorSelect"><div class="pink"></div><div class="white"></div><div class="yellow"></div><div class="green"></div><div class="blue"></div></div>').hover(
+}).prepend('<div class="colorSelect"><div class="blue"></div><div class="green"></div><div class="yellow"></div><div class="pink"></div><div class="purple"></div><div class="white"></div></div>').hover(
     function() {
         $(this).find(".colorSelect").first().css("visibility", "visible");
     },
@@ -223,7 +223,7 @@ $("#hebrew, #english, #bilingual").click(function() {
 
 $(".colorSelect div").click(function() {
 
-    $(this).closest(".sheetItem").removeClass("yellow pink blue green white").addClass($(this).attr('class'));
+    $(this).closest(".sheetItem").removeClass("yellow pink blue green white purple").addClass($(this).attr('class'));
 
     updateSheet();
 
@@ -260,6 +260,7 @@ function updateSheet() {
             if ($(this).hasClass("pink")) bgColor = "pink";
             if ($(this).hasClass("blue")) bgColor = "blue";
             if ($(this).hasClass("green")) bgColor = "green";
+            if ($(this).hasClass("purple")) bgColor = "purple";
 
 
             toJson = toJson + '{ "x" : ' + x + ', "y" : ' + y + ', "width" : ' + width + ', "length" : ' + length + ', "zindex" : ' + zindex + ', "bgColor" : "' + bgColor + '"},';
