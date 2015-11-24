@@ -27,4 +27,5 @@ i.nodes.children.insert(0, intro)
 i.save()
 
 # Refresh VersionState
+v = VersionState("Ben Ish Hai")
 v.refresh()
