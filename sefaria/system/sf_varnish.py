@@ -2,8 +2,11 @@ import re
 from varnish import VarnishManager
 from sefaria.model import *
 from sefaria.local_settings import VARNISH_ADDR, VARNISH_SECRET, FRONT_END_URL
+from sefaria.system.exceptions import InputError
+
 from urlparse import urlparse
 from httplib import HTTPConnection
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -72,8 +75,12 @@ def invalidate_counts(indx):
 
 def invalidate_index(indx):
     if isinstance(indx, Index) or isinstance(indx, CommentaryIndex):
-        oref = Ref(indx.title)
-        url = oref.url()
+        try:
+            oref = Ref(indx.title)
+            url = oref.url()
+        except InputError as e:
+            logger.warn("In sf.varnish.invalidate_index(): failed to instantiate ref for index name: {}".format(indx.title))
+            return
     elif isinstance(indx, basestring):
         url = indx.replace(" ", "_").replace(":", ".")
     else:
