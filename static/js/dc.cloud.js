@@ -434,14 +434,18 @@
             _rotate = function(d) { return 0; },
             _onClick = _chart.onClick,  //function(d) {_chart.filter(_text(d));},
             // Containers
-            _g, _fg, _bg, tags,
+            _g, _fg, _bg, _tags,
             // From Jonathan Feinberg's cue.language, see lib/cue.language/license.txt.
-            maxLength = 20,
+            _maxLength = 20,
             _maxWords = 200,
+            //If you modify
             words = [],
             _stopWords = /^(i|me|my|myself|we|us|our|ours|ourselves|you|your|yours|yourself|yourselves|he|him|his|himself|she|her|hers|herself|it|its|itself|they|them|their|theirs|themselves|what|which|who|whom|whose|this|that|these|those|am|is|are|was|were|be|been|being|have|has|had|having|do|does|did|doing|will|would|should|can|could|ought|i'm|you're|he's|she's|it's|we're|they're|i've|you've|we've|they've|i'd|you'd|he'd|she'd|we'd|they'd|i'll|you'll|he'll|she'll|we'll|they'll|isn't|aren't|wasn't|weren't|hasn't|haven't|hadn't|doesn't|don't|didn't|won't|wouldn't|shan't|shouldn't|can't|cannot|couldn't|mustn't|let's|that's|who's|what's|here's|there's|when's|where's|why's|how's|a|an|the|and|but|if|or|because|as|until|while|of|at|by|for|with|about|against|between|into|through|during|before|after|above|below|to|from|up|upon|down|in|out|on|off|over|under|again|further|then|once|here|there|when|where|why|how|all|any|both|each|few|more|most|other|some|such|no|nor|not|only|own|same|so|than|too|very|say|says|said|shall)$/,
-            _punctuation = /[!"&()*+,-\.\/:;<=>?\[\\\]^`\{|\}]+/g,
+            _punctuation = /[!"&()*+,-\.\/:;<=>?\[\\\]^`\{|\}~]+/g,
+            //_wordSeparators can be modified with the splitAt() method.
             _wordSeparators = /[\s\u3031-\u3035\u309b\u309c\u30a0\u30fc\uff70]+/g,
+            //if you allow commas internal to your "words", the default lumping by comma can be trouble. Use the lumper() method to change.
+            _lumper = ",",
             _searchBreak = "("+_punctuation.source+"|"+_wordSeparators.source+")",
             discard = /^(@|https?:)/,
             htmlTags = /(<[^>]*?>|<script.*?<\/script>|<style.*?<\/style>|<head.*?><\/head>)/g,
@@ -469,115 +473,134 @@
             if (!arguments.length) return _wordSeparators;
             _wordSeparators = s;
             return _chart;
-        }
+        };
 
         _chart.stopWords = function(s) {
             if (!arguments.length) return _stopWords;
             _stopWords = s;
             return _chart;
-        }
+        };
 
         _chart.punctuation = function(p) {
             if (!arguments.length) return _punctuation;
             _punctuation = p;
             return _chart;
-        }
+        };
+
+        _chart.lumper = function(p) {
+            if (!arguments.length) return _lumper;
+            _lumper = p;
+            return _chart;
+        };
 
         _chart.normalize = function(n) {
             if (!arguments.length) return _normalize;
             _normalize = n;
             return _chart;
-        }
+        };
 
         _chart.maxWords = function(w) {
             if (!arguments.length) return _maxWords;
             _maxWords = w;
             return _chart;
-        }
+        };
+
+        _chart.maxLength = function(w) {
+            if (!arguments.length) return _maxLength;
+            _maxLength = w;
+            return _chart;
+        };
 
         _chart.onClick = function(h) {
             if (!arguments.length) return _onClick;
             _onClick = h;
             return _chart;
-        }
+        };
 
         _chart.scale = function(s) {
             if (!arguments.length) return _scale;
             _scale = s;
             return _chart;
-        }
+        };
 
         _chart.duration = function(d) {
             if (!arguments.length) return _duration;
             _duration = d;
             return _chart;
-        }
+        };
+
+        //Allow dump of internal tags, but not direct modification
+        _chart.tags = function(d) {
+            if (!arguments.length) return _tags;
+            //no-op
+            return _chart;
+        };
 
         _chart.timeInterval = function(t) {
             if (!arguments.length) return _timeInterval;
             _timeInterval = t;
             return _chart;
-        }
+        };
 
         _chart.font = function(f) {
             if (!arguments.length) return _font;
             _font = f;
             return _chart;
-        }
+        };
 
         _chart.fontSize = function(f) {
             if (!arguments.length) return _fontSize;
             _fontSize = f;
             return _chart;
-        }
+        };
 
         _chart.rotate = function(r) {
             if (!arguments.length) return _rotate;
             _rotate = r;
             return _chart;
-        }
+        };
 
         _chart.padding = function(p) {
             if (!arguments.length) return _padding;
             _padding = p;
             return _chart;
-        }
+        };
 
         _chart.text = function(t) {
             if (!arguments.length) return _text;
             _text = t;
             return _chart;
-        }
+        };
 
         _chart.spiral = function(s) {
             // 'archimedean' or 'rectangular'
             if (!arguments.length) return _spiral;
             _spiral = s;
             return _spiral;
-        }
+        };
 
         // Read only properties
         _chart.cx = function () {
             return _chart.width()>>1;
-        }
+        };
 
         _chart.cy = function () {
             return _chart.height()>>1;
-        }
+        };
 
 
         // Rendering & Drawing helpers
         function drawChart() {
             getCloudWords();
 
-            _preRenderTagLength = tags.length;
+            _preRenderTagLength = _tags.length;
 
             var cloud = makeCloud();
 
             words = [];
 
             cloud.stop()
-                .words(tags.slice(0, _maxWords), function(d) {
+                .words(_tags.slice(0, _maxWords), function(d) {
                     return d.text.toLowerCase();
                 })
                 .start();
@@ -620,16 +643,16 @@
 
                 _translator = function(d) {
                     return 'translate('+ [d.x, d.y] +')rotate('+ d.rotate +')';
-                }
+                };
                 _sizer = function(d) {
                     return _fontSize(d) +"px";
-                }
+                };
 
                 // New texts
                 text.transition()
                     .duration(_duration)
                     .attr('transform', _translator)
-                    .style('font-size', _sizer)
+                    .style('font-size', _sizer);
 
                 text.enter().append('text')
                         .attr('class', WORD_CLASS)
@@ -643,7 +666,7 @@
                         .attr('transform', _translator)
                         .on('click', _onClick)
                     .transition()
-                        .duration(_duration)
+                        .duration(_duration);
                         //.style('opacity', 1);
 
                 var exitGroup = _bg.append("g")
@@ -675,7 +698,7 @@
                 _valueAccessor = _chart.valueAccessor();
 
             texts.forEach(function(text) {
-                lump += ',' + _valueAccessor(text);
+                lump += _lumper + _valueAccessor(text);
             });
 
             parseText(lump);
@@ -683,14 +706,13 @@
 
         function parseText(text) {
             // Thanks to Jason Davies. Stores word counts in `tags`
-            tags = {};
+            _tags = {};
             var cases = {};
 
             text.split(_wordSeparators).forEach(function(word) {
                 if (discard.test(word)) {
                     return;
                 }
-
                 word = _normalize(word);
 
                 word = word.replace(_punctuation, "");
@@ -699,21 +721,21 @@
                     return;
                 }
 
-                word = word.substr(0, maxLength);
+                word = word.substr(0, _maxLength);
 
                 if(!word.length) {
                     return;
                 }
 
                 cases[word.toLowerCase()] = word;
-                tags[word = word.toLowerCase()] = (tags[word] || 0) + 1;
+                _tags[word = word.toLowerCase()] = (_tags[word] || 0) + 1;
             });
 
-            tags = d3.entries(tags).sort(function(a, b) {
+            _tags = d3.entries(_tags).sort(function(a, b) {
                 return b.value - a.value;
             });
 
-            tags.forEach(function(d) { d.key = cases[d.key]; });
+            _tags.forEach(function(d) { d.key = cases[d.key]; });
         }
 
         _chart.removeFilterHandler(function (filters, filter) {
@@ -753,62 +775,8 @@
 
             return filters;
         });
-/*
-        _chart.filter = function(word) {
-            if(word===null) {
-                _filters = _chart.resetFilterHandler()(_filters);
-            }
-            else if(word===undefined) {
-                return false;
-            }
-
-            else {
-                var _filters = _chart.filters(),
-                _idx = -1;
-
-                if((_idx=_filters.indexOf(word))<0) {
-                    // Doesn't have filter yet
-                    _filters.push(word);
-                } else {
-                    // Has filter. Turn it off.
-                    _filters.splice(_idx, 1);
-                }
-            }
-
-
-            _selectedWords = _filters.join(", ");
-
-            _fs = "(";
-            for(var f = 0; f < _filters.length; f++) {
-                if(_fs.length>1) {
-                    _fs+="|"
-                }
-                _fs += _filters[f].replace(/\s+/, _searchBreak);
-            }
-            _fs+=")";
-
-            var re = RegExp(_fs, 'ig'),
-                _f = function(r) { return re.test(r); };
-
-            _chart.dimension().filterFunction(_f);
-
-            _chart.turnOnControls();
-            _chart._invokeFilteredListener(_chart, word);
-
-            dc.redrawAll();
-        }
-        */
-/*
-        _chart.filterAll = function() {
-            _chart.dimension().filterFunction(function(){
-                return 1;
-            });
-            _chart.turnOffControls();
-            dc.redrawAll(); 
-            _chart._invokeFilteredListener(_chart, null);
-        }
-*/
-        _chart.turnOnControls = function () {
+        
+	    _chart.turnOnControls = function () {
             _chart.selectAll(".reset")
                 .style("display", null);
             _chart.selectAll(".filter")

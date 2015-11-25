@@ -179,7 +179,10 @@
         tagslist
             .size([280,280])
             .dimension(tag_dim)
+            .maxLength(50)
+            .maxWords(500)
             .group(tag_group)
+            .lumper(separator)
             .valueAccessor(function(d) {
                 return d.tags.default.join(separator);
             })
