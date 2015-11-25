@@ -52,26 +52,28 @@
                 {% endif %}
             {% endfor %}
         </div>
-
-        {% if comp_time_string or comp_place or pub_time_string or pub_place %}
-        <div id="dateline" class="biReady">
-            {% if comp_time_string or comp_place %}
-                <span class="placedate">
-                    <span class="he"><span class="metadataTitle">נוצר/נערך:</span>
-                        {{ comp_place.he }}{{ comp_time_string.he }}</span>
-                    <span class="en"><span class="metadataTitle">Composed:</span> {{ comp_place.en }}{{ comp_time_string.en }}</span>
-                </span>
+        
+        {% if false %}
+            {% if comp_time_string or comp_place or pub_time_string or pub_place %}
+            <div id="dateline" class="biReady">
+                {% if comp_time_string or comp_place %}
+                    <span class="placedate">
+                        <span class="he"><span class="metadataTitle">נוצר/נערך:</span>
+                            {{ comp_place.he }}{{ comp_time_string.he }}</span>
+                        <span class="en"><span class="metadataTitle">Composed:</span> {{ comp_place.en }}{{ comp_time_string.en }}</span>
+                    </span>
+                {% endif %}
+                {% if pub_time_string or pub_place %}
+                    <span class="placedate">
+                        <span class="he"><span class="metadataTitle">ההדפסה הראשונה:</span>
+                            {{ pub_place.he }}{{ pub_time_string.he }}</span>
+                        <span class="en"><span class="metadataTitle">First Published:</span> {{ pub_place.en }}{{ pub_time_string.en }}</span>
+                    </span>
+                {% endif %}
+            </div>
             {% endif %}
-            {% if pub_time_string or pub_place %}
-                <span class="placedate">
-                    <span class="he"><span class="metadataTitle">ההדפסה הראשונה:</span>
-                        {{ pub_place.he }}{{ pub_time_string.he }}</span>
-                    <span class="en"><span class="metadataTitle">First Published:</span> {{ pub_place.en }}{{ pub_time_string.en }}</span>
-                </span>
-            {% endif %}
-        </div>
-
         {% endif %}
+
 
         {% if false %}
         <div id="description" class="biReady">
