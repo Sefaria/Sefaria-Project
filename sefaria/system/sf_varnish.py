@@ -49,6 +49,10 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
     manager.run("ban", 'obj.http.url ~ "/api/texts/{}"'.format(url_regex(oref)), secret=secret)
     manager.run("ban", 'obj.http.url ~ "/api/links/{}"'.format(url_regex(oref)), secret=secret)
 
+def invalidate_linked(oref):
+    for linkref in {r.section_ref() for r in oref.linkset().refs_from(oref)}:
+        invalidate_ref(linkref)
+
 def invalidate_counts(indx):
     if isinstance(indx, Index) or isinstance(indx, CommentaryIndex):
         oref = Ref(indx.title)

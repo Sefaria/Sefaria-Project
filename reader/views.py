@@ -43,7 +43,7 @@ try:
 except ImportError:
     USE_VARNISH = False
 if USE_VARNISH:
-    from sefaria.system.sf_varnish import invalidate_ref
+    from sefaria.system.sf_varnish import invalidate_ref, invalidate_linked
 
 import logging
 logger = logging.getLogger(__name__)
@@ -347,7 +347,7 @@ def make_toc_html(oref, zoom=1):
         toggle, tocs = "", ""
 
         for item in items:
-            toggle += " | " if item[0] != default_struct else ""
+            toggle += "<span class='toggleDivider'>|</span>" if item[0] != default_struct else ""
             toggle += "<div class='altStructToggle" + (" active" if item[0] == default_struct else "") + "'>"
             toggle +=   "<span class='en'>" + item[0] + "</span>" 
             toggle +=   "<span class='he'>" + hebrew_term(item[0]) + "</span>" 
@@ -828,6 +828,10 @@ def texts_api(request, tref, lang=None, version=None):
             return jsonResponse({"error": "Text version not found."})
 
         v.delete()
+
+        if USE_VARNISH:
+            invalidate_linked(oref)
+            invalidate_ref(oref, lang, version)
 
         return jsonResponse({"status": "ok"})
 

@@ -1,7 +1,7 @@
 /* CSS common to Reader, Sheets and all static pages */
 
 /* Improves touch reactiveness on iOS devices */
-html,p,span,div,a,ul,ol,li,body,h1,h2,h3,h4 {
+.categoryFilter {
     -webkit-tap-hightlight-color: rgba(0,0,0,0);
 }
 
@@ -831,12 +831,12 @@ stroke: none
   display: inline-block;
   cursor: pointer;
   padding: 0px 8px;
-  height: 30px;
   line-height: 28px;
   border: 1px solid #aaa;
   border-right: none;
   letter-spacing: 1px;
   font-size: 1px;
+  height: 32px;
 }
 
 .toggleOption img {

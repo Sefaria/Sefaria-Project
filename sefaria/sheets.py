@@ -358,7 +358,6 @@ def get_sheets_by_tag(tag, public=True, uid=None, group=None):
 	elif public:
 		query["status"] = "public"
 
-	print query
 	sheets = db.sheets.find(query).sort([["views", -1]])
 	return sheets
 

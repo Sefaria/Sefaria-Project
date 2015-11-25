@@ -5,7 +5,7 @@ django-email-as-username
 diff_match_patch
 dateutils
 BeautifulSoup
-bleach
+bleach==1.4.2
 rauth
 functional
 pyelasticsearch
