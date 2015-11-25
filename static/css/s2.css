@@ -177,6 +177,10 @@ body .bilingual .enOnly .he {
 .multiPanel .readerNavMenu .content {
   padding: 80px 25px 10px;
 }
+.readerNavMenu .content .contentInner {
+  max-width: 700px;
+  margin: 0 auto;
+}
 .readerNavTop {
   position: absolute;
   width: 100%;
@@ -218,9 +222,7 @@ body .bilingual .enOnly .he {
 }
 .readerNavTop .readerNavMenuSearchButton,
 .readerNavTop .readerNavMenuCloseButton,
-.readerNavTop .readerOptions,
-.textListTop .readerNavMenuSearchButton,
-.textListTop .readerOptions {
+.readerNavTop .readerOptions {
   position: absolute;
   text-align: center;
   top: 0;
@@ -240,28 +242,26 @@ body .bilingual .enOnly .he {
 .readerNavTop .readerNavMenuSearchButton {
   left: 36px;
 }
-.readerNavTop .readerOptions,
-.textListTop .readerOptions {
+.readerNavTop .readerOptions {
   left: auto;
   right: 0;
   text-align: right;
 }
+.readerNavTop .readerOptions img {
+  float: right;
+}
 .readerNavMenu.home .readerNavMenuSearchButton,
-.readerNavTop.searchOnly .readerNavMenuSearchButton,
-.textListTop .readerNavMenuSearchButton {
+.readerNavTop.searchOnly .readerNavMenuSearchButton {
   left: 0;
 }
 .multiPanel .readerNavTop .readerNavMenuSearchButton,
 .multiPanel .home .readerNavTop .readerNavMenuSearchButton,
 .multiPanel .readerNavTop.searchOnly .readerNavMenuSearchButton,
 .multiPanel .readerNavTop .readerNavMenuCloseButton,
-.multiPanel .readerNavTop .readerOptions,
-.multiPanel .textListTop .readerNavMenuSearchButton,
-.multiPanel .textListTop .readerOptions {
+.multiPanel .readerNavTop .readerOptions {
   left: 10px;
 }
-.multiPanel .readerNavTop .readerOptions,
-.multiPanel .textListTop .readerOptions {
+.multiPanel .readerNavTop .readerOptions {
   left: auto;
   right: 10px;
 }
@@ -480,7 +480,6 @@ margin-top: 29px;}
   box-sizing: border-box;
   height: 100%;
   overflow-y: scroll;
-
   text-align: center;
 }
 .readerTextTableOfContents .content .sectionLink {
@@ -736,26 +735,53 @@ display: block;margin: 0 auto;}
   color: white;
   border-color: #444;
 }
-.readerControls .readerNavMenuSearchButton,
-.readerControls .readerTextToc,
-.readerControls .readerOptions {
+.readerControls .readerTextToc {
   text-align: center;
   display: inline-block;
   cursor: pointer;
   vertical-align: middle;
 }
-.readerControls .readerNavMenuSearchButton,
-.readerControls .readerOptions  {
-  width: 10%;
-  color: #BFBFBF;
-  font-size: 20px;
-  box-sizing: border-box;
+.leftButtons,
+.rightButtons {
+  position: absolute;
+  top: 8px;
+}
+.leftButtons {
+  left: 0;
   text-align: left;
 }
+.rightButtons {
+  right: 0;
+  text-align: right;
+}
+.leftButtons .readerNavMenuSearchButton,
+.rightButtons .readerOptions,
+.rightButtons .readerNavMenuCloseButton {
+  width: 40px;
+  height: 48px;
+  line-height: 48px;
+  color: #BFBFBF;
+  font-size: 20px;
+  display: inline-block;
+  cursor: pointer;
+}
+.leftButtons div,
+.rightButtons div {
+  vertical-align: middle;
+}
+.rightButtons .readerNavMenuCloseButton {
+  font-size: 44px;
+  line-height: 44px;
+}
+.leftButtons .readerNavMenuSearchButton span,
+.rightButtons .readerOptions img,
+.rightButtons .readerNavMenuCloseButton span {
+  vertical-align: middle;
+}
 .readerControls .readerTextToc {
-  width: 80%;
   font-size: 17px;
   box-sizing: border-box;
+  display: block;
 }
 .hebrew .readerControls .readerTextToc {
   direction: rtl;
@@ -779,23 +805,21 @@ display: block;margin: 0 auto;}
 .bilingual .readerTextToc .he {
   display: none;
 }
-.readerControls .readerNavMenuSearchButton {
+.leftButtons div:first-child {
   padding-left: 10px;
 }
-.readerControls .readerOptions {
-  text-align: right;
+.rightButtons div:last-child {
   padding-right: 10px;
 }
-.multiPanel .readerControls .readerNavMenuSearchButton {
+.multiPanel .leftButtons div:first-child {
   padding-left: 20px;
 }
-.multiPanel .readerControls .readerOptions {
+.multiPanel .rightButtons div:last-child {
   padding-right: 20px;
 }
 .readerOptions img {
   height: 26px;
   vertical-align: middle;
-  float: right;
 }
 .readerOptionsPanel {
   position: absolute;
@@ -948,11 +972,12 @@ display: block;margin: 0 auto;}
   background-color: inherit;
   margin-bottom: 26px;
 }
-.continuous .basetext .segment{
+.continuous .basetext .segment {
   display: inline;
   margin: 0;
 }
-.basetext.bilingual .segment {
+.continuous.bilingual .basetext .segment,
+.segmented.bilingual .basetext .segment {
   margin-bottom: 14px;
   display: block;
 }
@@ -1145,6 +1170,14 @@ display: block;margin: 0 auto;}
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   padding: 40px 30px;
+}
+.textList .fullFilterView .contentInner {
+  max-width: 700px;
+  margin: 0 auto;
+}
+.textList .texts .contentInner {
+  max-width: 660px;
+  margin: 0 auto; 
 }
 .textList.fullPanel .texts {
   padding: 0 50px 300px;
