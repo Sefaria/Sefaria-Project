@@ -27,6 +27,9 @@ import sefaria.model.queue as qu
 
 
 es = ElasticSearch(SEARCH_ADMIN)
+tracer = logging.getLogger('elasticsearch.trace')
+tracer.setLevel(logging.INFO)
+tracer.addHandler(logging.FileHandler('/tmp/es_trace.log'))
 
 doc_count = 0
 
