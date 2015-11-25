@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 import logging
+from django.utils.log import NullHandler
 logger = logging.getLogger(__name__)
 
 from pyelasticsearch import ElasticSearch
@@ -27,6 +28,10 @@ import sefaria.model.queue as qu
 
 
 es = ElasticSearch(SEARCH_ADMIN)
+tracer = logging.getLogger('elasticsearch.trace')
+tracer.setLevel(logging.INFO)
+#tracer.addHandler(logging.FileHandler('/tmp/es_trace.log'))
+tracer.addHandler(NullHandler())
 
 doc_count = 0
 

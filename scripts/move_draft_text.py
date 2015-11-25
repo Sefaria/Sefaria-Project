@@ -15,31 +15,39 @@ except ImportError:
 
 class ServerTextCopier(object):
 
-    def __init__(self, dest_server, apikey, title, versions=None):
+    def __init__(self, dest_server, apikey, title, post_index=True, versions=None):
         self._dest_server = dest_server
         self._apikey = apikey
         self._title_to_retrieve = title
         self._versions_to_retrieve = versions
+        self._post_index = post_index
 
-
-    def do_copy(self):
+    def load_objects(self):
         self._index_obj = Index().load({'title': self._title_to_retrieve})
         if not self._index_obj:
             raise AttributeError("No record found for {}".format(self._title_to_retrieve))
+        self._version_objs = []
         if self._versions_to_retrieve:
-            self._version_objs = []
-            for version in self._versions_to_retrieve:
-                version['title'] = self._title_to_retrieve
-                vs = Version().load(version)
-                if not vs:
-                    print "Warning: No version object found for  lang: {} version title: {}. Skipping.".format(version['language'], version['versionTitle'])
-                else:
-                    self._version_objs.append(vs)
-        self._make_post_request_to_server(self._prepare_index_api_call(self._title_to_retrieve), self._index_obj.contents(raw=True))
+            if self._versions_to_retrieve == 'all':
+                self._version_objs = VersionSet({'title': self._title_to_retrieve}).array()
+            else:
+                for version in self._versions_to_retrieve:
+                    version['title'] = self._title_to_retrieve
+                    vs = Version().load(version)
+                    if not vs:
+                        print "Warning: No version object found for  lang: {} version title: {}. Skipping.".format(version['language'], version['versionTitle'])
+                    else:
+                        self._version_objs.append(vs)
+
+    def do_copy(self):
+        self.load_objects()
+        """if self._post_index:
+            self._make_post_request_to_server(self._prepare_index_api_call(self._title_to_retrieve), self._index_obj.contents(raw=True))
         content_nodes = self._index_obj.nodes.get_leaf_nodes()
         for ver in self._version_objs:
+            print ver.versionTitle.encode('utf-8')
             for node in content_nodes:
-                print node.full_title(force_update=True)
+                #print node.full_title(force_update=True)
                 text = JaggedTextArray(ver.content_node(node)).array()
                 version_payload = {
                     "versionTitle": ver.versionTitle,
@@ -48,7 +56,7 @@ class ServerTextCopier(object):
                     "text": text
                 }
                 self._make_post_request_to_server(self._prepare_text_api_call(node.full_title(force_update=True)), version_payload)
-
+        """
 
 
     def _prepare_index_api_call(self, index_title):
@@ -56,7 +64,6 @@ class ServerTextCopier(object):
 
     def _prepare_text_api_call(self, terminal_ref):
         return 'api/texts/{}?count_after=0&index_after=0'.format(terminal_ref.replace(" ", "_"))
-
 
     def _make_post_request_to_server(self, url, payload):
         full_url = "{}/{}".format(self._dest_server, url)
@@ -72,11 +79,11 @@ class ServerTextCopier(object):
             print e.read()
 
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("title", help="title argument")
-    parser.add_argument("-v", "--versionlist", help="comma separated version list: lang:versionTitle")
+    parser.add_argument("--noindex", action="store_false", help="Specify this flag when you do not wish to create a new Index record at the destination")
+    parser.add_argument("-v", "--versionlist", help="comma separated version list: lang:versionTitle. To copy all versions, simply input 'all'")
     parser.add_argument("-k", "--apikey", help="non default api key", default=SEFARIA_BOT_API_KEY)
     parser.add_argument("-d", "--destination_server", help="override destination server", default='http://eph.sefaria.org')
 
@@ -85,10 +92,11 @@ if __name__ == '__main__':
     if not args.apikey:
         raise argparse.ArgumentTypeError( 'The API key must be supplied or be present by default on the server' )
     if args.versionlist:
-        version_arr = []
-        for versionstr in args.versionlist.split(","):
-            lang_vtitle = versionstr.split(":")
-            version_arr.append({'language': lang_vtitle[0], "versionTitle": lang_vtitle[1]})
-        args.versionlist = version_arr
-    copier = ServerTextCopier(args.destination_server, args.apikey, args.title, args.versionlist)
+        if args.versionlist != 'all':
+            version_arr = []
+            for versionstr in args.versionlist.split(","):
+                lang_vtitle = versionstr.split(":")
+                version_arr.append({'language': lang_vtitle[0], "versionTitle": lang_vtitle[1]})
+            args.versionlist = version_arr
+    copier = ServerTextCopier(args.destination_server, args.apikey, args.title, args.noindex, args.versionlist)
     copier.do_copy()
