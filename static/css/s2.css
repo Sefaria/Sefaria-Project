@@ -1365,8 +1365,8 @@ display: block;margin: 0 auto;}
   margin: 16px 0;
 }
 .textList .textListTop > .loadingMessage,
-.textList .texts > .loadingMessage {
-  padding: 14px 10px 0px;
+.textList .texts .contentInner > .loadingMessage {
+  padding: 22px 10px 0px;
   color: #999;
   font-size: 14px;
   text-align: center;
