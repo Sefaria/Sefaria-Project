@@ -199,7 +199,8 @@
             .attr("stroke", "black")
             .attr("stroke-width", 1)
             .on("mouseover", function(d) {
-                var text = "<div><span>" + d.properties.en_name + "</span></div>";  // When we get Hebrew place names, add ... <span class='he'>" + d.properties.he_name + "</span></div>";
+                var text = "<div><span class='en'>" + d.properties.en_name + "</span>" +
+                        "<span class='he'>" + d.properties.he_name + "</span></div>";
                 text += "<div class='en'>";
                 for (var i = 0; i < d.properties.en_events.length; i++) {
                    text += "<div>" + d.properties.en_events[i] + "</div>";
