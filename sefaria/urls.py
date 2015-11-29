@@ -234,6 +234,14 @@ urlpatterns += patterns('reader.views',
     (r'^s2/sheets/?$', 's2_sheets'),
     (r'^s2/sheets/tags/(?P<tag>.+)?$', 's2_sheets_by_tag'),
     (r'^s2/(?P<ref>.+)$', 's2'),
+    (r'^person/(?P<name>.+)$', 'person_page'),
+    (r'^people/Talmud/?$', 'talmud_person_index'),
+    (r'^people/?$', 'person_index'),
+    (r'^garden/sheets/(?P<key>.+)$', 'sheet_tag_garden_page'),
+    (r'^vgarden/sheets/(?P<key>.+)$', 'sheet_tag_visual_garden_page'),
+    (r'^vgarden/search/(?P<q>.+)$', 'search_query_visual_garden_page'),
+    (r'^vgarden/custom/(?P<key>.+)$', 'custom_visual_garden_page'),
+
 )
 
 # Redirects to Forum, Wiki

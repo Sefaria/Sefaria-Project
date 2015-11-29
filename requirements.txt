@@ -18,4 +18,6 @@ django_mobile==0.3.0
 roman
 p929
 python-varnish
+geojson
 django-recaptcha
+unicodecsv

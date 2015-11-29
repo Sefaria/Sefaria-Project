@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 import dateutil.parser
 
 import sefaria.model as model
+import sefaria.model.abstract as abstract
 from sefaria.system.database import db
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowersSet
@@ -449,5 +450,41 @@ def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None
 	return save_sheet(sheet, uid)
 
 
+# This is here as an alternative interface - it's not yet used, generally.
 
+class Sheet(abstract.AbstractMongoRecord):
+	collection = 'sheets'
 
+	required_attrs = [
+		"title",
+		"sources",
+		"status",
+		"options",
+		"generatedBy",
+		"dateCreated",
+		"dateModified",
+		"included_refs",
+		"owner",
+		"id"
+	]
+	optional_attrs = [
+		"views",
+		"nextNode",
+		"tags",
+		"promptedToPublish",
+		"attribution",
+		"datePublished",
+		"lastModified",
+		"via",
+		"viaOwner",
+		"likes",
+		"group",
+		"generatedBy"
+	]
+
+	def regenerate_contained_refs(self):
+		self.included_refs = refs_in_sources(self.sources)
+		self.save()
+
+	def get_contained_refs(self):
+		return [model.Ref(r) for r in self.included_refs]

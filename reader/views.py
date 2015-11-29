@@ -601,23 +601,53 @@ def text_toc(request, oref):
             # Trust a flag if its set instead
             toc_html = toc_html.replace("heSome", "heAll")
 
-    index = index.contents(v2=True)
-    if index["categories"][0] in REORDER_RULES:
-        index["categories"] = REORDER_RULES[index["categories"][0]] + index["categories"][1:]
+    auths = index.author_objects()
+    index_contents = index.contents(v2=True)
+    if index_contents["categories"][0] in REORDER_RULES:
+        index_contents["categories"] = REORDER_RULES[index_contents["categories"][0]] + index_contents["categories"][1:]
+
+    template_vars = {
+         "index":         index_contents,
+         "authors":       auths,
+         "versions":      versions,
+         "commentaries":  commentaries,
+         "heComplete":    state.get_flag("heComplete"),
+         "enComplete":    state.get_flag("enComplete"),
+         "count_strings": count_strings,
+         "zoom":          zoom,
+         "toc_html":      toc_html,
+         "cat_slices":    cat_slices,
+         "complex":       complex,
+    }
+
+    composition_time_period = index.composition_time_period()
+    publication_time_period = index.publication_time_period()
+    composition_place = index.composition_place()
+    publication_place = index.publication_place()
+
+    if composition_time_period:
+        template_vars["comp_time_string"] = {
+            "en": composition_time_period.period_string("en"),
+            "he": composition_time_period.period_string("he"),
+        }
+    if publication_time_period:
+        template_vars["pub_time_string"] = {
+            "en": publication_time_period.period_string("en"),
+            "he": publication_time_period.period_string("he"),
+        }
+    if composition_place:
+        template_vars["comp_place"] = {
+            "en": composition_place.primary_name("en"),
+            "he": composition_place.primary_name("he"),
+        }
+    if publication_place:
+        template_vars["pub_place"] = {
+            "en": publication_place.primary_name("en"),
+            "he": publication_place.primary_name("he"),
+        }
 
     return render_to_response('text_toc.html',
-                             {
-                             "index":         index,
-                             "versions":      versions,
-                             "commentaries":  commentaries,
-                             "heComplete":    state.get_flag("heComplete"),
-                             "enComplete":    state.get_flag("enComplete"),
-                             "count_strings": count_strings,
-                             "zoom":          zoom,
-                             "toc_html":      toc_html,
-                             "cat_slices":    cat_slices,
-                             "complex":       complex,
-                             },
+                             template_vars,
                              RequestContext(request))
 
 
@@ -2162,3 +2192,135 @@ def explore(request, book1, book2, lang=None):
         template_vars["contentLang"] = "hebrew"
 
     return render_to_response('explore.html', template_vars, RequestContext(request))
+
+@catch_error_as_http
+def person_page(request, name):
+    person = Person().load({"key": name})
+
+    if not person:
+        raise Http404
+    assert isinstance(person, Person)
+
+    template_vars = person.contents()
+    template_vars["primary_name"] = {
+        "en": person.primary_name("en"),
+        "he": person.primary_name("he")
+    }
+    template_vars["secondary_names"] = {
+        "en": person.secondary_names("en"),
+        "he": person.secondary_names("he")
+    }
+    template_vars["time_period_name"] = {
+        "en": person.mostAccurateTimePeriod().primary_name("en"),
+        "he": person.mostAccurateTimePeriod().primary_name("he")
+    }
+    template_vars["time_period"] = {
+        "en": person.mostAccurateTimePeriod().period_string("en"),
+        "he": person.mostAccurateTimePeriod().period_string("he")
+    }
+    template_vars["relationships"] = person.get_grouped_relationships()
+    template_vars["indexes"] = person.get_indexes()
+    template_vars["post_talmudic"] = person.is_post_talmudic()
+    template_vars["places"] = person.get_places()
+
+    return render_to_response('person.html', template_vars, RequestContext(request))
+
+
+def person_index(request):
+
+    eras = ["GN", "RI", "AH", "CO"]
+    template_vars = {
+        "eras": []
+    }
+    for era in eras:
+        tp = TimePeriod().load({"symbol": era})
+        template_vars["eras"].append(
+            {
+                "name_en": tp.primary_name("en"),
+                "name_he": tp.primary_name("he"),
+                "years_en": tp.period_string("en"),
+                "years_he": tp.period_string("he"),
+                "people": [p for p in PersonSet({"era": era}, sort=[('deathYear', 1)]) if p.has_indexes()]
+            }
+        )
+
+    return render_to_response('people.html', template_vars, RequestContext(request))
+
+def talmud_person_index(request):
+    gens = TimePeriodSet.get_generations()
+    template_vars = {
+        "gens": []
+    }
+    for gen in gens:
+        people = gen.get_people_in_generation()
+        template_vars["gens"].append({
+            "name_en": gen.primary_name("en"),
+            "name_he": gen.primary_name("he"),
+            "years_en": gen.period_string("en"),
+            "years_he": gen.period_string("he"),
+            "people": [p for p in people]
+        })
+    return render_to_response('talmud_people.html', template_vars, RequestContext(request))
+
+def _get_sheet_tag_garden(tag):
+    garden_key = u"sheets.tagged.{}".format(tag)
+    g = Garden().load({"key": garden_key})
+    if not g:
+        g = Garden({"key": garden_key, "title": u"Sources from Sheets Tagged {}".format(tag), "heTitle": u"מקורות מדפים מתויגים:" + u" " + unicode(tag)})
+        g.import_sheets_by_tag(tag)
+        g.save()
+    return g
+
+def sheet_tag_garden_page(request, key):
+    g = _get_sheet_tag_garden(key)
+    return garden_page(request, g)
+
+def sheet_tag_visual_garden_page(request, key):
+    g = _get_sheet_tag_garden(key)
+    return visual_garden_page(request, g)
+
+def custom_visual_garden_page(request, key):
+    g = Garden().load({"key": "sefaria.custom.{}".format(key)})
+    if not g:
+        raise Http404
+    return visual_garden_page(request, g)
+
+def _get_search_garden(q):
+    garden_key = u"search.query.{}".format(q)
+    g = Garden().load({"key": garden_key})
+    if not g:
+        g = Garden({"key": garden_key, "title": u"Search: {}".format(q), "heTitle": u"חיפוש:" + u" " + unicode(q)})
+        g.import_search(q)
+        g.save()
+    return g
+
+def search_query_visual_garden_page(request, q):
+    g = _get_search_garden(q)
+    return visual_garden_page(request, g)
+
+def garden_page(request, g):
+    template_vars = {
+        'title': g.title,
+        'heTitle': g.heTitle,
+        'key': g.key,
+        'stopCount': g.stopSet().count(),
+        'stopsByTime': g.stopsByTime(),
+        'stopsByPlace': g.stopsByPlace(),
+        'stopsByAuthor': g.stopsByAuthor(),
+        'stopsByTag': g.stopsByTag()
+    }
+
+    return render_to_response('garden.html', template_vars, RequestContext(request))
+
+def visual_garden_page(request, g):
+
+    template_vars = {
+        'title': g.title,
+        'heTitle': g.heTitle,
+        'key': g.key,
+        'stopCount': g.stopSet().count(),
+        'stops': json.dumps(g.stopData()),
+        'places': g.placeSet().asGeoJson(as_string=True)
+    }
+
+    return render_to_response('visual_garden.html', template_vars, RequestContext(request))

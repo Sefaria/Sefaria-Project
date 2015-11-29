@@ -6,6 +6,7 @@ from sefaria.system.database import db
 import sefaria.model as model
 import sefaria.model.abstract as abstract
 
+# cascade functions are tested in person_test.py
 
 def setup_module(module):
     global record_classes

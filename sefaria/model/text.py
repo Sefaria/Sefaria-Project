@@ -23,8 +23,8 @@ from schema import deserialize_tree, SchemaNode, JaggedArrayNode, TitledTreeNode
 
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError
-from sefaria.utils.talmud import section_to_daf, daf_to_section
-from sefaria.utils.hebrew import is_hebrew, encode_hebrew_numeral, hebrew_term
+from sefaria.utils.talmud import daf_to_section
+from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE
@@ -66,6 +66,21 @@ class AbstractIndex(object):
 
     title = property(get_title, set_title)
 
+    def author_objects(self):
+        from . import person
+        return [person.Person().load({"key": k}) for k in getattr(self, "authors", []) if person.Person().load({"key": k})]
+
+    def composition_time_period(self):
+        return None
+
+    def composition_place(self):
+        return None
+
+    def publication_place(self):
+        return None
+
+    def publication_time_period(self):
+        return None
 
 class Index(abst.AbstractMongoRecord, AbstractIndex):
     """
@@ -99,7 +114,16 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "order",              # optional for old style and new
         "length",             # optional for old style
         "lengths",            # optional for old style
-        "transliteratedTitle" # optional for old style
+        "transliteratedTitle",# optional for old style
+        "authors",
+        "enDesc",
+        "heDesc",
+        "pubDate",
+        "compDate",
+        "compPlace",
+        "pubPlace",
+        "errorMargin",
+        "era",
     ]
 
     def __unicode__(self):
@@ -189,6 +213,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def is_commentary(self):
         return self.categories[0] == "Commentary"
 
+    def get_commentary_indexes(self):
+        if not self.is_commentary():
+            return [self]
+        return list({v.get_index() for v in library.get_commentary_versions(self.title)})
+
     def all_titles(self, lang):
         if self.nodes:
             return self.nodes.all_tree_titles(lang)
@@ -239,6 +268,51 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             lang = "he" if is_hebrew(title) else "en"
         return self.alt_titles_dict(lang).get(title)
 
+    def composition_place(self):
+        from . import place
+        if getattr(self, "compPlace", None) is None:
+            return None
+        return place.Place().load({"key": self.compPlace})
+
+    def publication_place(self):
+        from . import place
+        if getattr(self, "pubPlace", None) is None:
+            return None
+        return place.Place().load({"key": self.pubPlace})
+
+    # This is similar to logic on GardenStop
+    def composition_time_period(self):
+        return self._get_time_period("compDate", "errorMargin")
+
+    def publication_time_period(self):
+        return self._get_time_period("pubDate")
+
+    def _get_time_period(self, date_field, margin_field=None):
+        from . import time
+        if not getattr(self, date_field, None):
+            return None
+
+        errorMargin = int(getattr(self, margin_field, 0)) if margin_field else 0
+        startIsApprox = endIsApprox = errorMargin > 0
+
+        try:
+            year = int(getattr(self, date_field))
+            start = year - errorMargin
+            end = year + errorMargin
+        except ValueError as e:
+            years = getattr(self, date_field).split("-")
+            if years[0] == "" and len(years) == 3:  #Fix for first value being negative
+                years[0] = -int(years[1])
+                years[1] = int(years[2])
+            start = int(years[0]) - errorMargin
+            end = int(years[1]) + errorMargin
+        return time.TimePeriod({
+            "start": start,
+            "startIsApprox": startIsApprox,
+            "end": end,
+            "endIsApprox": endIsApprox
+        })
+
     #todo: handle lang
     def get_maps(self):
         """
@@ -246,6 +320,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         """
         return getattr(self, "maps", [])
         #todo: term schemes
+
+    # Index changes behavior of load_from_dict, so this circumvents that changed behavior to call load_from_dict on the abstract superclass
+    def update_from_dict(self, d):
+        return super(Index, self).load_from_dict(d, is_init=False)
 
     def load_from_dict(self, d, is_init=False):
         if d:
@@ -316,10 +394,12 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 # self.titleVariants.remove(d["oldTitle"])  # let this be determined by user
         return super(Index, self).load_from_dict(d, is_init)
 
-
     def _normalize(self):
         self.title = self.title.strip()
         self.title = self.title[0].upper() + self.title[1:]
+
+        if isinstance(getattr(self, "authors", None), basestring):
+            self.authors = [self.authors]
 
         if not self.is_commentary():
             if not self.is_new():
@@ -422,6 +502,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                     #if not getattr(self, "oldTitle", None) or existing.title != self.oldTitle:
                     raise InputError(u'A text called "{}" already exists.'.format(variant))
 
+        if getattr(self, "authors", None) and not isinstance(self.authors, list):
+            raise InputError(u'{} authors must be a list.'.format(self.title))
+
         return True
 
     def _prepare_second_save(self):
@@ -467,6 +550,11 @@ class IndexSet(abst.AbstractMongoSet):
     A set of :class:`Index` objects.
     """
     recordClass = Index
+
+    # Index changes behavior of load_from_dict, so this circumvents that changed behavior to call load_from_dict on the abstract superclass
+    def update(self, attrs):
+        for rec in self:
+            rec.update_from_dict(attrs).save()
 
 
 class CommentaryIndex(AbstractIndex):
