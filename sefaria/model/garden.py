@@ -275,7 +275,9 @@ class GardenStop(abst.AbstractMongoRecord):
         'title',
         'heTitle',
         'enVersionTitle',
-        'heVersionTitle',
+        'heVersionTitle',  # will we use this?
+        'enSubtitle',
+        'heSubtitle',
         'enText',
         'heText',
         'tags',  # dictionary of lists

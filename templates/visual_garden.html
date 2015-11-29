@@ -163,7 +163,7 @@
             .dimension(yearDim)
             .group(filteredYearGroup)
             .elasticY(true)
-            .xUnits(function(start, end, xDomain) { return Math.abs(end - start) / 40; }) // years in the domain / 40
+            .xUnits(function(start, end, xDomain) { return  60; }) //Math.abs(end - start) / 10; }) // years in the domain / 40
             .round(dc.round.floor)
             .y(d3.scale.pow().domain([0, timeline.yAxisMax()]).range([140,0]).exponent(.5))
             .x(d3.scale.linear().domain(tl_extent));
@@ -353,18 +353,26 @@
                                 "<span class='he'>" + (data.heTitle ? data.heTitle : data.heRef) + "</span>" +
                             "</div>" +
                             "<div class='result-byline'>" +
-                                "<span class='en'>" + (data.authorsEn ? (data.authorsEn + ", ") : "") + (data.placeNameEn ? data.placeNameEn : "") + (data.timePeriodEn ? data.timePeriodEn : "") + "</span>" +
-                                "<span class='he'>" + (data.authorsHe ? (data.authorsHe + ", ") : "") + (data.placeNameHe ? data.placeNameHe : (data.placeNameEn ? data.placeNameEn : "")) + (data.timePeriodHe ? data.timePeriodHe : "") + "</span>" +
+                                "<span class='en'>" +
+                                    (data.authorsEn ? (data.authorsEn + ", ") : "") +
+                                    (data.enSubtitle ? (data.enSubtitle + "  ") : "") +
+                                    (data.placeNameEn ? data.placeNameEn : "") +
+                                    (data.timePeriodEn ? data.timePeriodEn : "") +
+                                "</span>" +
+                                "<span class='he'>" +
+                                    (data.authorsHe ? (data.authorsHe + ", ") : "") +
+                                    (data.heSubtitle ? (data.heSubtitle + "  ") : "") +
+                                    (data.placeNameHe ? data.placeNameHe : (data.placeNameEn ? data.placeNameEn : "")) +
+                                    (data.timePeriodHe ? data.timePeriodHe : "") +
+                                "</span>" +
                             "</div>" +
                             "<div class='result-text'>" +
-                                "<span class='en'>" + data.enText + "</span>" +
-                                "<span class='he'>" + data.heText + "</span>" +
+                                "<span class='en'>" + (data.enText ? data.enText : data.heText) + "</span>" +
+                                "<span class='he'>" + (data.heText ? data.heText : data.enText) + "</span>" +
                             "</div>" +
                         "</div>"
             })
-            .on('renderlet', function (table) {
-              table.selectAll('.dc-table-group').classed('info', true);
-            });
+            ;
 
         dc.renderAll();
 
