@@ -18,16 +18,15 @@ var ReaderApp = React.createClass({
     if (!this.props.multiPanel) {
       panels[0] = ({ref: this.props.initialRef, filter: this.props.initialFilter});
     } else {
-      var count = this.props.initialPanels.length == 1 && this.props.multiPanel ? 2 : this.props.initialPanels.length;
-      for (var i = 0; i < count; i++) {
-        if (i >= this.props.initialPanels.length || this.props.initialFilter){
-          var filter = i == 0 ? null : (this.props.initialRef ? (this.props.initialFilter || []) : null);
-        if (filter && filter.length === 1 && filter[0] === "all") { filter = []; }
-          panels.push({ref: this.props.initialRef, filter: filter});
-        } else {
-          panels.push({ref: this.props.initialPanels[i], filter: null});
-        }
-      }      
+      panels.push({ref: this.props.initialPanels[0], filter: null});
+      if (this.props.initialFilter){
+        var filter = this.props.initialFilter;
+        if (filter.length === 1 && filter[0] === "all") { filter = []; }
+        panels.push({ref: this.props.initialRef, filter: filter});
+      }
+      for (var i = 1; i < this.props.initialPanels.length; i++) {
+        panels.push({ref: this.props.initialPanels[i], filter: null});
+      }
     }
     return {
       panels: panels
@@ -269,9 +268,9 @@ var ReaderApp = React.createClass({
       // If this is a new text reset the filter, otherwise keep the current filter
       next.filter = oref1.book === oref2.book ? next.filter : [];
       next.ref = ref;
+      next.menuOpen = null;
       next.contents = [{type: "TextList", ref: ref}];
       this.setState({panels: this.state.panels});
-
     }
   },
   setTextListHighlightFrom: function(n, ref) {
@@ -293,6 +292,10 @@ var ReaderApp = React.createClass({
     }
     return;
   },
+  closePanel: function(n) {
+    this.state.panels.splice(n, 1);
+    this.setState({panels: this.state.panels});
+  },
   render: function() {
     var width = 100.0/this.state.panels.length;
     var panels = [];
@@ -302,6 +305,7 @@ var ReaderApp = React.createClass({
       var handleSegmentClick       = multi ? this.handleSegmentClick.bind(null, i) : null;
       var handlePanelUpdate        = this.handlePanelUpdate.bind(null, i);
       var setTextListHightlight    = this.setTextListHighlightFrom.bind(null, i);
+      var closePanel               = this.closePanel.bind(null, i);
 
       if (this.state.panels.length > i+1) {
         var followingFilter        = this.state.panels[i+1].filter;
@@ -317,7 +321,9 @@ var ReaderApp = React.createClass({
                       textListRef={textListRef}
                       handleSegmentClick={handleSegmentClick}
                       historyUpdate={handlePanelUpdate}
-                      setTextListHightlight={setTextListHightlight} />
+                      setTextListHightlight={setTextListHightlight}
+                      closePanel={closePanel}
+                      panelsOpen={this.state.panels.length} />
                   </div>);
       } else {
         if (i == 0) {
@@ -337,11 +343,13 @@ var ReaderApp = React.createClass({
                         multiPanel={multi}
                         handleSegmentClick={handleSegmentClick}
                         historyUpdate={handlePanelUpdate}
-                        textListRef={textListRef} />
+                        textListRef={textListRef}
+                        closePanel={closePanel}
+                        panelsOpen={this.state.panels.length} />
                     </div>);
       }
     }
-    var classes = classNames({readerApp: 1, multiPanel: panels.length > 1})
+    var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel});
     return (<div className={classes}>{panels}</div>);
   }
 });
@@ -666,6 +674,7 @@ var ReaderPanel = React.createClass({
             updateTextColumn={this.updateTextColumn}
             onBaseSegmentClick={this.handleBaseSegmentClick}
             setTextListHightlight={this.setTextListHightlight}
+            panelsOpen={this.props.panelsOpen}
             filter={this.state.filter}
             key={i} />);   
       } else if (item.type === "TextList") {
@@ -681,7 +690,8 @@ var ReaderPanel = React.createClass({
             showBaseText={this.showBaseText} 
             backToText={this.backToText} 
             openNav={this.openMenu.bind(null, "navigation")}
-            openDisplaySettings={this.openDisplaySettings}            
+            openDisplaySettings={this.openDisplaySettings}
+            closePanel={this.props.panelsOpen > 1 ? this.props.closePanel : null}            
             key={i} />
         );
       }
@@ -762,11 +772,11 @@ var ReaderPanel = React.createClass({
           openMenu={this.openMenu}
           closeMenus={this.closeMenus}
           openDisplaySettings={this.openDisplaySettings}
-          currentLayout={this.currentLayout} />)}
+          currentLayout={this.currentLayout}
+          closePanel={this.props.panelsOpen > 1 ? this.props.closePanel : null} />)}
 
         <div className="readerContent" style={style}>
           {items}
-
         </div>
 
         {menu}
@@ -774,8 +784,8 @@ var ReaderPanel = React.createClass({
                                               settings={this.state.settings}
                                               setOption={this.setOption}
                                               currentLayout={this.currentLayout} 
-                                              menuOpen={this.state.menuOpen} />) : ""}
-        {this.state.displaySettingsOpen ? (<div className="mask" onClick={this.closeDisplaySettings}></div>) : ""}
+                                              menuOpen={this.state.menuOpen} />) : null}
+        {this.state.displaySettingsOpen ? (<div className="mask" onClick={this.closeDisplaySettings}></div>) : null}
 
       </div>
     );
@@ -798,6 +808,7 @@ var ReaderControls = React.createClass({
     currentCategory:         React.PropTypes.func.isRequired,
     currentBook:             React.PropTypes.func.isRequired,
     currentLayout:           React.PropTypes.func.isRequired,
+    closePanel:              React.PropTypes.func.isRequired,
     multiPanel:              React.PropTypes.bool
   },
   render: function() {
@@ -818,19 +829,24 @@ var ReaderControls = React.createClass({
           <span className="he">בחר חיבור</span>
         </div>) :
       (<div className="readerTextToc" onClick={this.props.openMenu.bind(null, "text toc")}>
-          { title ? (<i className="fa fa-caret-down invisible"></i>) : "" }
+          { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
           <div className="readerTextTocBox">
             <span className="en">{title}</span>
             <span className="he">{heTitle}</span>
           </div>
-          { title ? (<i className="fa fa-caret-down"></i>) : "" }
+          { title ? (<i className="fa fa-caret-down"></i>) : null }
         </div>);
 
     var readerControls = hideHeader ? "" :
         (<div className="readerControls headroom">
-          <ReaderNavigationMenuSearchButton onClick={this.props.openMenu.bind(null, "navigation")} />
+          <div className="leftButtons">
+            <ReaderNavigationMenuSearchButton onClick={this.props.openMenu.bind(null, "navigation")} />
+          </div>
           {centerContent}
-          <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+          <div className="rightButtons">
+            <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+            {this.props.closePanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
+          </div>
         </div>);
     return (
       <div>
@@ -872,7 +888,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
           options={layoutOptions}
           setOption={this.props.setOption}
           currentLayout={this.props.currentLayout}
-          settings={this.props.settings} />) : "";
+          settings={this.props.settings} />) : null;
 
     var colorOptions = [
       {name: "light", content: "" },
@@ -1102,6 +1118,7 @@ var ReaderNavigationMenu = React.createClass({
       return(<div className={classes} onClick={this.handleClick}>
               {topContent}
               <div className="content">
+                <div className="contentInner">
                   {this.props.home ? (<div className="tagline">
                                         <span className="en">A Living Library of Jewish Texts</span>
                                         <span className="he">ספריה חיה של טקסטים יהודיים</span>
@@ -1128,6 +1145,7 @@ var ReaderNavigationMenu = React.createClass({
                   <div className="siteLinks">
                   {siteLinks}
                   </div>
+                </div>
               </div>
             </div>);
     }
@@ -1189,8 +1207,10 @@ var ReaderNavigationCategoryMenu = React.createClass({
                 </h2>
               </div>
               <div className="content">
-                {toggle}
-                <ReaderNavigationCategoryMenuContents contents={catContents} categories={categories} />
+                <div className="contentInner">
+                  {toggle}
+                  <ReaderNavigationCategoryMenuContents contents={catContents} categories={categories} />
+                </div>
               </div>
             </div>);
   }
@@ -1355,15 +1375,17 @@ var ReaderTextTableOfContents = React.createClass({
                 </h2>
               </div>
               <div className="content">
-                <div className="tocTitle">
-                  <span className="en">{title}</span>
-                  <span className="he">{heTitle}</span>
-                  <div className="currentSection">
-                    <span className="en">{section}</span>
-                    <span className="he">{heSection}</span>
+                <div className="contentInner">
+                  <div className="tocTitle">
+                    <span className="en">{title}</span>
+                    <span className="he">{heTitle}</span>
+                    <div className="currentSection">
+                      <span className="en">{section}</span>
+                      <span className="he">{heSection}</span>
+                    </div>
                   </div>
+                  <div className="tocContent" dangerouslySetInnerHTML={ {__html: tocHtml} }></div>
                 </div>
-                <div className="tocContent" dangerouslySetInnerHTML={ {__html: tocHtml} }></div>
               </div>
             </div>);
   }
@@ -1431,16 +1453,16 @@ var SheetsNav = React.createClass({
         var title = sheet.title.stripHtml();
         var url   = "/sheets/" + sheet.id;
         return (<a className="sheet" href={url} key={url}>
-                  {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl} />) : ""}
+                  {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl} />) : null}
                   <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
                   <div className="sheetAuthor">{sheet.ownerName}</div>
                   <div className="sheetTitle">{title}</div>
                 </a>);
       });
       sheets = sheets.length ? sheets : (<LoadingMessage />);
-      var content = (<div className="content sheetList">{sheets}</div>);
+      var content = (<div className="content sheetList"><div className="contentInner">{sheets}</div></div>);
     } else {
-      var yourSheets  = sjs._uid ? (<div className="yourSheetsLink navButton" onClick={this.showYourSheets}>Your Source Sheets <i className="fa fa-chevron-right"></i></div>) : "";
+      var yourSheets  = sjs._uid ? (<div className="yourSheetsLink navButton" onClick={this.showYourSheets}>Your Source Sheets <i className="fa fa-chevron-right"></i></div>) : null;
       var makeTagButton = function(tag) {
         var setThisTag = this.setTag.bind(null, tag.tag);
         return (<div className="navButton" onClick={setThisTag}>{tag.tag} ({tag.count})</div>);
@@ -1450,15 +1472,17 @@ var SheetsNav = React.createClass({
         var trendingTags = this.state.trendingTags.slice(0,6).map(makeTagButton);
         var tagList      = this.state.tagList.map(makeTagButton);
         var content = (<div className="content">
-                        {yourSheets}
-                        <h2><span className="en">Trending Tags</span></h2>
-                        {trendingTags}
-                        <br /><br />
-                        <h2><span className="en">All Tags</span></h2>
-                        {tagList}
+                        <div className="contentInner">
+                          {yourSheets}
+                          <h2><span className="en">Trending Tags</span></h2>
+                          {trendingTags}
+                          <br /><br />
+                          <h2><span className="en">All Tags</span></h2>
+                          {tagList}
+                        </div>
                        </div>);
       } else {
-        var content = (<div className="content"><LoadingMessage /></div>);
+        var content = (<div className="content"><div className="contentInner"><LoadingMessage /></div></div>);
       }      
     }
 
@@ -1590,7 +1614,8 @@ var TextColumn = React.createClass({
     updateTextColumn:      React.PropTypes.func,
     onBaseSegmentClick:    React.PropTypes.func,
     setTextListHightlight: React.PropTypes.func,
-    onTextLoad:            React.PropTypes.func
+    onTextLoad:            React.PropTypes.func,
+    panelsOpen:            React.PropTypes.number
   },
   componentDidMount: function() {
     this.initialScrollTopSet = false;
@@ -1801,6 +1826,7 @@ var TextColumn = React.createClass({
         onBaseSegmentClick={this.handleBaseSegmentClick}
         onTextLoad={this.handleTextLoad}
         filter={this.props.filter}
+        panelsOpen={this.props.panelsOpen}
         key={k + ref} />);      
     }.bind(this));
 
@@ -1849,6 +1875,7 @@ var TextRange = React.createClass({
     showTextList:       React.PropTypes.func,
     onTextLoad:         React.PropTypes.func,
     onBaseSegmentClick: React.PropTypes.func,
+    panelsOpen:         React.PropTypes.number
   },
   getInitialState: function() {
     return { 
@@ -1878,7 +1905,8 @@ var TextRange = React.createClass({
           prevProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
           prevProps.settings.layoutTanach !== this.props.settings.layoutTanach ||
           prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
-          prevProps.settings.fontSize !== this.props.settings.fontSize) {
+          prevProps.settings.fontSize !== this.props.settings.fontSize ||
+          prevProps.panelsOpen !== this.props.panelsOpen) {
             window.requestAnimationFrame(function() { 
               if (this.isMounted()) {
                 this.placeSegmentNumbers();
@@ -2070,7 +2098,7 @@ var TextRange = React.createClass({
       <div className={classes} onClick={this.handleClick}>
         {showNumberLabel && this.props.numberLabel ? 
           (<div className="numberLabel"> <span className="numberLabelInner">{this.props.numberLabel}</span> </div>)
-          : ""}
+          : null}
         {this.props.hideTitle ? "" :
         (<div className="title">
           <div className="titleBox">
@@ -2123,14 +2151,14 @@ var TextSegment = React.createClass({
       var linkCount = this.props.showLinkCount ? (<div className="linkCount">
                                                     <span className="en"><span className="linkCountDot" style={style}></span></span>
                                                     <span className="he"><span className="linkCountDot" style={style}></span></span>
-                                                  </div>) : "";      
+                                                  </div>) : null;      
     } else {
       var linkCount = "";
     }
     var segmentNumber = this.props.segmentNumber ? (<div className="segmentNumber">
                                                       <span className="en"> <span className="segmentNumberInner">{this.props.segmentNumber}</span> </span>
                                                       <span className="he"> <span className="segmentNumberInner">{encodeHebrewNumeral(this.props.segmentNumber)}</span> </span>
-                                                    </div>) : "";
+                                                    </div>) : null;
     var he = this.props.he || this.props.en;
     var en = this.props.en || this.props.he;
     var classes=classNames({ segment: 1,
@@ -2161,7 +2189,8 @@ var TextList = React.createClass({
     showBaseText:        React.PropTypes.func,
     backToText:          React.PropTypes.func,
     openNav:             React.PropTypes.func,
-    openDisplaySettings: React.PropTypes.func
+    openDisplaySettings: React.PropTypes.func,
+    closePanel:          React.PropTypes.func
   },
   getInitialState: function() {
     return {
@@ -2304,7 +2333,7 @@ var TextList = React.createClass({
     var message = !loaded ? 
                     (<LoadingMessage />) : 
                       (links.length === 0 ? 
-                        <LoadingMessage message={en} heMessage={he} /> : "");
+                        <LoadingMessage message={en} heMessage={he} /> : null);
     if (!showAllFilters) {
       var texts = links.length == 0 ? message :
                     this.state.waitForText && !this.state.textLoaded ? 
@@ -2340,8 +2369,7 @@ var TextList = React.createClass({
       return (
         <div className={classes}>
           <div className="textListTop">
-            {this.props.fullPanel ? <ReaderNavigationMenuSearchButton onClick={this.props.openNav} /> : ""}
-            {this.props.fullPanel ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : ""}
+            {this.props.fullPanel ? (<div className="leftButtons"><ReaderNavigationMenuSearchButton onClick={this.props.openNav} /></div>) : null}
             <TopFilterSet 
               sref={this.props.sref}
               showText={this.props.showText}
@@ -2350,9 +2378,16 @@ var TextList = React.createClass({
               setFilter={this.props.setFilter}
               showAllFilters={this.showAllFilters}
               summary={summary} />
+            {this.props.fullPanel ? 
+              (<div className="rightButtons">
+                <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+                {this.props.closePanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
+               </div>) : null}
           </div>
           <div className="texts">
-            { texts }
+            <div className="contentInner">
+              { texts }
+            </div>
           </div>
         </div>);
     }
@@ -2456,7 +2491,9 @@ var AllFilterSet = React.createClass({
     }.bind(this));
     return (
       <div className="fullFilterView filterSet">
-        {categories}
+        <div className="contentInner">
+          {categories}
+        </div>
       </div>
     );
   }
@@ -2571,16 +2608,18 @@ var SearchPage = React.createClass({
                     updateQuery = { this.updateQuery } />
                 </div>
                   <div className="content">
-                    <div className="searchContentFrame">
-                        <div className="searchControlsBox">
-                        </div>
-                        <div className="searchContent" style={style}>
-                            <SearchResultList
-                                query = { this.state.query }
-                                page = { this.state.page }
-                                updateRunningQuery = { this.updateRunningQuery }
-                                onResultClick={this.props.onResultClick} />
-                        </div>
+                    <div className="contentInner">
+                      <div className="searchContentFrame">
+                          <div className="searchControlsBox">
+                          </div>
+                          <div className="searchContent" style={style}>
+                              <SearchResultList
+                                  query = { this.state.query }
+                                  page = { this.state.page }
+                                  updateRunningQuery = { this.updateRunningQuery }
+                                  onResultClick={this.props.onResultClick} />
+                          </div>
+                      </div>
                     </div>
                   </div>
                 </div>);
@@ -2791,7 +2830,7 @@ var SearchResultList = React.createClass({
                 <div className="results-count">
                     <span className="en">{totalWithCommas} Results</span>
                     <span className="he">{totalWithCommas} תוצאות</span>
-                    {(this.state.sheet_total > 0 && this.state.text_total > 0) ? totalBreakdown : ""}
+                    {(this.state.sheet_total > 0 && this.state.text_total > 0) ? totalBreakdown : null}
                 </div>
                 {this.state.text_hits.map(function(result) {
                     return <SearchTextResult
@@ -2865,7 +2904,7 @@ var SearchTextResult = React.createClass({
                         { data.duplicates.length } {(data.duplicates.length > 1) ? " גרסאות נוספות" : " גרסה נוספת"}
                     </span>
                     <span className='similar-title en'>
-                        { data.duplicates.length } more version{(data.duplicates.length > 1) ? "s" : ""}
+                        { data.duplicates.length } more version{(data.duplicates.length > 1) ? "s" : null}
                     </span>
                     {more_results_caret}
                 </div>;
@@ -2881,7 +2920,7 @@ var SearchTextResult = React.createClass({
                             onResultClick={this.props.onResultClick}
                             />;
                         }.bind(this))}
-            </div>) : "";
+            </div>) : null;
 
         return (
             <div className="result">
