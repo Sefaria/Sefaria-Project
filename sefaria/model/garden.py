@@ -7,6 +7,7 @@ from . import abstract as abst
 from . import text
 from . import place
 from . import time
+from . import person
 from . import link
 
 import logging
@@ -39,10 +40,6 @@ class Garden(abst.AbstractMongoRecord):
         if not sort:
             sort = [("start", 1)]
         return GardenStopRelationSet({"garden": self.key}, sort=sort)
-
-    def placeSet(self):
-        placeKeys = GardenStopSet({"garden": self.key}).distinct("placeKey")
-        return place.PlaceSet({"key": {"$in": placeKeys}})
 
     def stopsByTime(self):
         res = []
@@ -276,6 +273,7 @@ class GardenStop(abst.AbstractMongoRecord):
         'heRef',
         'weight',
         'title',
+        'heTitle',
         'enVersionTitle',
         'heVersionTitle',
         'enText',
@@ -310,6 +308,7 @@ class GardenStop(abst.AbstractMongoRecord):
     # todo: do we have to support override of this info?
 
     def _derive_metadata(self):
+        # Get index from ref
         if getattr(self, "ref", None):
             oref = text.Ref(self.ref)
             i = oref.index
@@ -326,24 +325,32 @@ class GardenStop(abst.AbstractMongoRecord):
             # Authors
             if getattr(i, "authors", None):
                 self.authors = i.authors
-            author = i.author_objects()[0] if len(i.author_objects()) > 0 else {}  # Assume first is best
+        else:
+            i = {}
+
+        # Author
+        if getattr(self, "authors", None) and len(self.authors) > 0:
+            author = person.Person().load({"key": self.authors[0]}) or {}
             if author:
                 self.authorsEn = author.primary_name("en")
                 self.authorsHe = author.primary_name("he")
+        else:
+            author = {}
 
-            # Place
-            placeKey = getattr(i, "compPlace", "") or getattr(author, "deathPlace", "") or getattr(author, "birthPlace", "")
-            if placeKey:
-                pobj = place.Place().load({"key": placeKey})
-                if not pobj:
-                    raise InputError("Failed to find place with key {} while resolving metadata for {}".format(placeKey, self.ref))
-                self.placeNameEn = pobj.primary_name("en")
-                self.placeNameHe = pobj.primary_name("he")
-                #self.placeGeo = pobj.get_location()
-            self.placeKey = placeKey  # The "" result is import to have here, for CrossFilter correctness on the frontend
+        # Place
+        # The "" result is import to have here, for CrossFilter correctness on the frontend
+        self.placeKey = getattr(self, "placeKey", "") or getattr(i, "compPlace", "") or getattr(author, "deathPlace", "") or getattr(author, "birthPlace", "")
+        if self.placeKey:
+            pobj = place.Place().load({"key": self.placeKey})
+            if not pobj:
+                raise InputError("Failed to find place with key {} while resolving metadata for {}".format(self.placeKey, self.ref))
+            self.placeNameEn = pobj.primary_name("en")
+            self.placeNameHe = pobj.primary_name("he")
+            #self.placeGeo = pobj.get_location()
 
-            # Time
-            # This is similar to logic on Index.composition_time_period() refactor
+        # Time
+        # This is similar to logic on Index.composition_time_period() refactor
+        if getattr(self, "start", None) is None or getattr(self, "end", None) is None:
             if getattr(i, "compDate", None):
                 errorMargin = int(getattr(i, "errorMargin", 0))
                 self.startIsApprox = self.endIsApprox = errorMargin > 0
@@ -366,6 +373,7 @@ class GardenStop(abst.AbstractMongoRecord):
                 self.end = tp.end
                 self.startIsApprox = tp.startIsApprox
                 self.endIsApprox = tp.endIsApprox
+
         tp = self.time_period()
         if tp:
             self.timePeriodEn = tp.period_string("en")

@@ -349,8 +349,8 @@
             .html(function(data) {
                 return "<div class='result'>" +
                             "<div class='result-ref'>" +
-                                "<span class='en'>" + data.ref + "</span>" +
-                                "<span class='he'>" + data.heRef + "</span>" +
+                                "<span class='en'>" + (data.title ? data.title : data.ref) + "</span>" +
+                                "<span class='he'>" + (data.heTitle ? data.heTitle : data.heRef) + "</span>" +
                             "</div>" +
                             "<div class='result-byline'>" +
                                 "<span class='en'>" + (data.authorsEn ? (data.authorsEn + ", ") : "") + (data.placeNameEn ? data.placeNameEn : "") + (data.timePeriodEn ? data.timePeriodEn : "") + "</span>" +

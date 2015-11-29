@@ -2279,6 +2279,12 @@ def sheet_tag_visual_garden_page(request, key):
     g = _get_sheet_tag_garden(key)
     return visual_garden_page(request, g)
 
+def custom_visual_garden_page(request, key):
+    g = Garden().load({"key": "sefaria.custom.{}".format(key)})
+    if not g:
+        raise Http404
+    return visual_garden_page(request, g)
+
 def _get_search_garden(q):
     garden_key = u"search.query.{}".format(q)
     g = Garden().load({"key": garden_key})

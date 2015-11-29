@@ -239,7 +239,9 @@ urlpatterns += patterns('reader.views',
     (r'^people/?$', 'person_index'),
     (r'^garden/sheets/(?P<key>.+)$', 'sheet_tag_garden_page'),
     (r'^vgarden/sheets/(?P<key>.+)$', 'sheet_tag_visual_garden_page'),
-    (r'^vgarden/search/(?P<q>.+)$', 'search_query_visual_garden_page')
+    (r'^vgarden/search/(?P<q>.+)$', 'search_query_visual_garden_page'),
+    (r'^vgarden/custom/(?P<key>.+)$', 'custom_visual_garden_page'),
+
 )
 
 # Redirects to Forum, Wiki
