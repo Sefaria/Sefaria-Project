@@ -2650,6 +2650,8 @@ sjs.updateUrlParams = function() {
 	
 	if (sjs.sourcesFilter !== "all") {
 		params["with"] = sjs.sourcesFilter.replace(/ /g, "_");
+	} else {
+		delete params["with"];
 	}
 	if      ($("body").hasClass("sidebarHebrew"))  { params["sidebarLang"] = "he" }
 	else if ($("body").hasClass("sidebarEnglish")) { params["sidebarLang"] = "en" }	
