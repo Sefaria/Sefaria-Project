@@ -466,7 +466,7 @@ def make_alt_toc_html(alt):
 
         html += "</a>" if linked else "</div>"
         return html
-    
+
     html = "<div class='tocLevel'>" + alt.traverse_to_string(node_line) + "</div>"
     return html
 
