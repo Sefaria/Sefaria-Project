@@ -848,7 +848,7 @@ $(function() {
 		} 
 
 		// add Verse Controls menu
-		if (!isTouchDevice()) {
+		if ($(window).width() > 669) {
 			$(".verseControls").remove();
 			var offset = $(this).offset();
 			var left = sjs._$basetext.offset().left + sjs._$basetext.outerWidth();
