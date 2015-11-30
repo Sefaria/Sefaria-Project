@@ -44,10 +44,12 @@ def migrate_to_complex_structure(title, schema, mappings):
     #basically a repeat process of the above, sans creating the index record
     commentaries = library.get_commentary_versions_on_book(title)
     migrate_versions_of_text(commentaries, mappings, title, temp_index.title, temp_index)
-
-
-
-    #move links referring to each section
+    #duplicate versionstate
+    #TODO: untested
+    vstate_old = VersionState().load({'title':title })
+    vstate_new = VersionState(temp_index)
+    vstate_new.flags = vstate_old.flags
+    vstate.save()
 
 
 

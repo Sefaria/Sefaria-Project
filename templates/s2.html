@@ -59,7 +59,7 @@
             filter = w.replace(/_/g, " ").split("+");
             if (filter && filter.length === 1 && filter[0] === "all") { filter = []; }
           } else if (p) {
-            if (!p.match(/^texts|^sheets|search/)) {
+            if (!p.match(/^texts|^sheets|^search/)) {
               initialPanels.push(humanRef(p));
             }
           }

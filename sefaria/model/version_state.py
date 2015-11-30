@@ -418,7 +418,10 @@ class StateNode(object):
         return d
 
     def var(self, lang, key):
-        return self.d[self.lang_map[lang]][key]
+        try:
+            return self.d[self.lang_map[lang]][key]
+        except Exception as e:
+            raise e.__class__(u"Failed to in StateNode.var(), in node: {}, language: {}, key: {}".format(self.snode.primary_title("en"), lang, key))
 
     def ja(self, lang, key="availableTexts"):
         """

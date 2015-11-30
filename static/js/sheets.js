@@ -1144,7 +1144,7 @@ function addSource(q, source) {
 			"<div class='customTitle'></div>" + 
 			"<div class='he'>" +
 				"<span class='title'>" + 
-					"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "") + " <span class='ui-icon ui-icon-extlink'></a>" + 
+					"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " <span class='ui-icon ui-icon-extlink'></a>" + 
 				"</span>" +
 				"<div class='text'>" + 
 					"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" + 
@@ -1152,7 +1152,7 @@ function addSource(q, source) {
 			"</div>" + 
 			"<div class='en'>" +
 				"<span class='title'>" + 
-					"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef + "</span> <span class='ui-icon ui-icon-extlink'></a>" + 
+					"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> <span class='ui-icon ui-icon-extlink'></a>" + 
 				"</span>" +
 				"<div class='text'>" + 
 					"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + 
@@ -1212,8 +1212,8 @@ function loadSource(data, $target, optionStr) {
 	$target.attr("data-heRef", data.heRef);	
 	var $enTitle = $target.find(".en .title a").eq(0);
 	var $heTitle = $target.find(".he .title a").eq(0);
-	$enTitle.html(humanRef(data.ref)).attr("href", "/" + normRef(data.ref));
-	$heTitle.html(data.heRef.replace(/\d+(\-\d+)?/g, "")).attr("href", "/" + normRef(data.ref));
+	$enTitle.html(humanRef(data.ref).replace(/([0-9][b|a]| ב| א):.+/,"$1") ).attr("href", "/" + normRef(data.ref));
+	$heTitle.html(data.heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1")).attr("href", "/" + normRef(data.ref));
 
 
 	var enStr = "";
@@ -1710,6 +1710,24 @@ function buildSource($target, source) {
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</li>";
 		$target.append(outsideHtml);
+	}
+	
+	else if ("text" in source) {
+
+		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideBiWrapper");
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
+							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
+							"<div class='outsideBi " + (sjs.loading ? "" : "new") + "'><div class='text'>" + 
+								"<div class='he'>" + source.text.he + "</div>" + 
+								"<div class='en'>" + source.text.en + "</div>" + 
+								"<div class='clear'></div>" +
+							"</div>" +
+							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
+						  "</li>";
+		$target.append(outsideHtml);
+
+
+
 	}
 }
 

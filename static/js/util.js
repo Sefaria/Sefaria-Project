@@ -25,13 +25,15 @@ sjs.cache = {
 			// If the ref has more than 1 section listed, try trimming the last section
 			var nRef = nRef.replace(/:/g, ".").slice(0, nRef.lastIndexOf("."));
 
-			var data = clone(this._cache[nRef]);
-			var lastSection = parseInt(pRef.sections[pRef.sections.length -1]);
+			var data          = clone(this._cache[nRef]);
+			var lastSection   = parseInt(pRef.sections[pRef.sections.length -1]);
 			var lastToSection = parseInt(pRef.toSections[pRef.toSections.length -1]);
 			
-			data.sections.push(lastSection);
-			data.toSections.push(lastToSection);
-			data.ref = ref;
+			if (data && data.sections) {
+				data.sections.push(lastSection);
+				data.toSections.push(lastToSection);
+				data.ref = ref;
+			}
 
 			return data;
 		}

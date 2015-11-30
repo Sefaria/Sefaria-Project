@@ -76,6 +76,7 @@ def remove_old_index_and_rename(idx_title):
 
 
     #manually rename history and links, since the dependencies don't work.
+    temp_title = re.escape(temp_title)
     from sefaria.system.database import db
     print "manually renaming  links and history"
     ls = db.links.find({"refs":{"$regex":"^{}".format(temp_title)}})

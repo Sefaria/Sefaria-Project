@@ -214,7 +214,7 @@ def deserialize_tree(serial=None, **kwargs):
     elif klass:
         return klass(serial, **kwargs)
     else:
-        raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType'")
+        raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType': {}".format(serial))
 
 
 class TreeNode(object):
