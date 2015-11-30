@@ -2242,7 +2242,7 @@ function sortCommentary(a,b) {
 
 	// Sort commentaries according to their order
 	if (a.cnum != 0 && b.cnum != 0) {
-		return (a.cnum > b.cnum) ? 1 : -1; 
+		return (a.cnum > b.cnum) ? -1 : 1; 
 	}
 
 	// Sort connections on the same source according to the order of the source text
