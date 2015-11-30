@@ -715,13 +715,13 @@ def search(request):
 
 
 #todo: is this used elsewhere? move it?
-def count_and_index(c_oref, c_lang, vtitle, to_count=1, to_index=1):
+def count_and_index(c_oref, c_lang, vtitle, to_count=1):
     # count available segments of text
     if to_count:
         summaries.update_summaries_on_change(c_oref.book)
 
     from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE and to_index:
+    if SEARCH_INDEX_ON_SAVE:
         model.IndexQueue({
             "ref": c_oref.normal(),
             "lang": c_lang,
@@ -789,10 +789,6 @@ def texts_api(request, tref, lang=None, version=None):
 
         oref = oref.default_child_ref()  # Make sure we're on the textual child
 
-        # Parameters to suppress some costly operations after save
-        count_after = int(request.GET.get("count_after", 1))
-        index_after = int(request.GET.get("index_after", 1))
-
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
@@ -802,14 +798,16 @@ def texts_api(request, tref, lang=None, version=None):
                 return jsonResponse({"error": "Unrecognized API key."})
             t = json.loads(j)
             chunk = tracker.modify_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], method="API")
-            count_and_index(oref, chunk.lang, chunk.vtitle, count_after, index_after)
+            count_after = int(request.GET.get("count_after", 0))
+            count_and_index(oref, chunk.lang, chunk.vtitle, count_after)
             return jsonResponse({"status": "ok"})
         else:
             @csrf_protect
             def protected_post(request):
                 t = json.loads(j)
                 chunk = tracker.modify_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"], t["versionSource"])
-                count_and_index(oref, chunk.lang, chunk.vtitle, count_after, index_after)
+                count_after = int(request.GET.get("count_after", 1))
+                count_and_index(oref, chunk.lang, chunk.vtitle, count_after)
                 return jsonResponse({"status": "ok"})
             return protected_post(request)
 
