@@ -474,6 +474,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                                  .format(self.title, self.nodes.primary_title("en"), self.nodes.key))
 
             # Make sure all titles are unique
+            # Note: Because these titles come from the keys of TitledTreeNode.titleDict(), there's no possibility for name collision.
+            # todo: actually test this
             for lang in ["en", "he"]:
                 all_titles = self.all_titles(lang)
                 if len(all_titles) != len(set(all_titles)):
