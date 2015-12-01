@@ -947,7 +947,10 @@ sjs.textBrowser = {
 		$.getJSON("/api/preview/" + title, function(data) {
 			sjs.textBrowser._currentText = data;
             sjs.textBrowser._currentSchema = new sjs.SchemaNode(data.schema);
-            if(sjs.textBrowser._currentSchema.has_children()) {
+            var titles      = sjs.textBrowser._path.slice(sjs.textBrowser._currentText.categories.length + 1);
+            var node        = sjs.textBrowser._currentSchema.get_node_from_titles(titles);
+            var node_children    = node.children().length > 0;
+            if(sjs.textBrowser._currentSchema.has_children() && (node_children || !(data.preview))) {
                 sjs.textBrowser.buildComplexTextNav()
             } else {
     			sjs.textBrowser.buildTextNav();
