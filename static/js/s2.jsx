@@ -1163,7 +1163,7 @@ var ReaderNavigationMenu = React.createClass({
       var classes     = classNames({readerNavMenu: 1, readerNavMenu:1, home: this.props.home});
       var sheetsStyle = {"borderColor": sjs.categoryColor("Sheets")};
 
-      return(<div className={classes} onClick={this.handleClick}>
+      return(<div className={classes} onClick={this.handleClick} key="0">
               {topContent}
               <div className="content">
                 <div className="contentInner">
@@ -1796,6 +1796,7 @@ var TextColumn = React.createClass({
     // When scrolling while the TextList is open, update which segment should be highlighted.
     window.requestAnimationFrame(function() {
       //var start = new Date();
+      if (!this.isMounted()) { return; }
       var $container   = $(ReactDOM.findDOMNode(this));
       var $readerPanel   = $container.closest(".readerPanel");
       var viewport     = $container.outerHeight() - $readerPanel.find(".textList").outerHeight();
@@ -2064,12 +2065,14 @@ var TextRange = React.createClass({
     }
 
     var segments  = this.makeSegments(data);
-    this.setState({
-      data: data,
-      segments: segments,
-      loaded: true,
-      sref: data.ref
-    });
+    if (this.isMounted()) {
+      this.setState({
+        data: data,
+        segments: segments,
+        loaded: true,
+        sref: data.ref
+      });      
+    }
 
     if (this.props.loadLinks && !sjs.library.linksLoaded(data.sectionRef)) {
       // Calling when links are loaded will overwrite state.segments
@@ -2084,7 +2087,9 @@ var TextRange = React.createClass({
   },
   loadLinkCounts: function() {
     // When link data has been loaded into sjs.library, load the counts into the UI
-    this.setState({linksLoaded: true});
+    if (this.isMounted()) {
+      this.setState({linksLoaded: true});
+    }
   },
   placeSegmentNumbers: function() {
     // Set the vertical offsets for segment numbers and link counts, which are dependent
@@ -2350,6 +2355,7 @@ var TextList = React.createClass({
   },
   scrollToHighlighted: function() {
     window.requestAnimationFrame(function() {
+      if (!this.isMounted()) { return; }
       var $highlighted = $(ReactDOM.findDOMNode(this)).find(".texts .textRange").not(".lowlight").first();
       if ($highlighted.length) {
         var $texts = $(ReactDOM.findDOMNode(this)).find(".texts")
