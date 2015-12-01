@@ -114,12 +114,16 @@ class TimePeriod(abst.AbstractMongoRecord):
         return self.name_group.add_title(name, lang, primary=primary, replace_primary=replace_primary)
 
     def getYearLabels(self, lang):
-        if getattr(self, "start", None) is None or getattr(self, "end", None) is None:
+        start = getattr(self, "start", None)
+        end = getattr(self, "end", None)
+        if start is None:
             return u"", u""
+        if end is None:
+            end = start
 
-        if self.start < 0 < self.end:
+        if start < 0 < end:
             return (u"BCE ", u"CE") if lang == "en" else (u'לפנה"ס' + u' ', u"לספירה")
-        elif self.end > 0:
+        elif end > 0:
             return (u"", u"CE") if lang == "en" else (u"", u"לספירה")
         else:  # self.end <= 0
             return (u"", u"BCE") if lang == "en" else (u"", u'לפנה"ס')
@@ -134,16 +138,17 @@ class TimePeriod(abst.AbstractMongoRecord):
     def period_string(self, lang):
         name = u""
 
-        if getattr(self, "start", None) is not None and getattr(self, "end", None) is not None:
+        if getattr(self, "start", None) is not None:  # and getattr(self, "end", None) is not None:
             labels = self.getYearLabels(lang)
             approxMarker = self.getApproximateMarkers(lang)
 
             if lang == "en":
-                if getattr(self, "symbol", "") == "CO":
+                if getattr(self, "symbol", "") == "CO" or getattr(self, "end", None) is None:
                     name += u" ({}{} {} - )".format(
                         approxMarker[0],
                         abs(int(self.start)),
                         labels[1])
+                    return name
                 elif int(self.start) == int(self.end):
                     name += u" ({}{} {})".format(
                         approxMarker[0],
@@ -158,11 +163,12 @@ class TimePeriod(abst.AbstractMongoRecord):
                         abs(int(self.end)),
                         labels[1])
             if lang == "he":
-                if getattr(self, "symbol", "") == "CO":
+                if getattr(self, "symbol", "") == "CO" or getattr(self, "end", None) is None:
                     name += u" ({} {} {} - )".format(
                         abs(int(self.start)),
                         labels[1],
                         approxMarker[0])
+                    return name
                 elif int(self.start) == int(self.end):
                     name += u" ({}{}{})".format(
                         abs(int(self.end)),
