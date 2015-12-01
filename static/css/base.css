@@ -64,7 +64,9 @@ body.hebrew .biReady p,
 body.hebrew .biReady #bites h3 {
 	text-align: right;
 }
-
+body.hebrew .hideInHebrewMode {
+  display: none !important;
+}
 #home {
     color: #1C3039;
     text-align: center;
@@ -488,7 +490,10 @@ body.hebrew #home #homeConnect .followButton .fa {
 
 #home #announcement .btn {
   float: right;
-  margin-top: 6px;
+  margin-top: 0px;
+}
+#home #announcement p {
+  margin-bottom: 0;
 }
 .hebrew #home #announcement h3 {
   text-align: right;
