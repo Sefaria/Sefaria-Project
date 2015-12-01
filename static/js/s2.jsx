@@ -322,8 +322,14 @@ var ReaderApp = React.createClass({
       }
       
       var panel = clone(this.state.panels[i]);
+      var ref = typeof panel.ref === "string" ? panel.ref : panel.ref.length ? panel.ref[0] : null;
+      oref = ref ? parseRef(panel.ref[0]) : null;
+      title = oref && oref.book ? oref.book : 0;
+      // Keys must be constant as text scrolls, but changing as new panels open in new positions
+      // Use a combination of the panel number and text title
+      var key   = i + title;
       if (panel.contents) {
-        panels.push(<div className="readerPanelBox" style={style} key={panel.ref}>
+        panels.push(<div className="readerPanelBox" style={style} key={key}>
                     <ReaderPanel 
                       initialState={panel}
                       multiPanel={multi}
@@ -337,7 +343,7 @@ var ReaderApp = React.createClass({
                       panelsOpen={this.state.panels.length} />
                   </div>);
       } else {
-        panels.push(<div className="readerPanelBox" style={style} key={panel.ref}>
+        panels.push(<div className="readerPanelBox" style={style} key={key}>
                       <ReaderPanel 
                         initialRef={panel.ref}
                         initialFilter={panel.filter}
