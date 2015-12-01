@@ -495,7 +495,7 @@ var ReaderPanel = React.createClass({
   },
   setHeadroom: function() {
     if (this.props.multiPanel) { return; }
-    var $node    = $(React.findDOMNode(this));
+    var $node    = $(ReactDOM.findDOMNode(this));
     var $header  = $node.find(".readerControls");
     if (this.currentMode() !== "TextList") {
       var scroller = $node.find(".textColumn")[0];
@@ -1009,7 +1009,7 @@ var ReaderNavigationMenu = React.createClass({
     window.removeEventListener("resize", this.setWidth);
   },
   setWidth: function() {
-    var width = $(this.getDOMNode()).width();
+    var width = $(ReactDOM.findDOMNode(this)).width();
     this.setState({width: width});
   },
   navHome: function() {
@@ -1043,7 +1043,7 @@ var ReaderNavigationMenu = React.createClass({
     }
   },
   handleSearchButtonClick: function(event) {
-    var query = $(React.findDOMNode(this)).find(".readerSearch").val();
+    var query = $(ReactDOM.findDOMNode(this)).find(".readerSearch").val();
     if (query) {
       this.props.openSearch(query);
     }
@@ -1390,8 +1390,8 @@ var ReaderTextTableOfContents = React.createClass({
       }
       $container.width(width + "px");
     };
-    var $root = $(this.getDOMNode()).find(".altStruct:visible");
-    $root = $root.length ? $root : $(this.getDOMNode()).find(".tocContent");
+    var $root = $(ReactDOM.findDOMNode(this)).find(".altStruct:visible");
+    $root = $root.length ? $root : $(ReactDOM.findDOMNode(this)).find(".tocContent");
     if ($root.find(".tocSection").length) {             // nested simple text
       //$root.find(".tocSection").each(shrink); // Don't bother with these for now
     } else if ($root.find(".schema-node-toc").length) { // complex text or alt struct
@@ -1669,11 +1669,11 @@ var TextColumn = React.createClass({
   componentDidMount: function() {
     this.initialScrollTopSet = false;
     this.debouncedAdjustTextListHighlight = debounce(this.adjustTextListHighlight, 100);
-    var node = this.getDOMNode();
+    var node = ReactDOM.findDOMNode(this);
     node.addEventListener("scroll", this.handleScroll);
   },
   componentWillUnmount: function() {
-    var node = this.getDOMNode();
+    var node = ReactDOM.findDOMNode(this);
     node.removeEventListener("scroll", this.handleScroll);
   },
   componentWillReceiveProps: function(nextProps) {
@@ -1722,7 +1722,7 @@ var TextColumn = React.createClass({
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
       //console.log("loading at top")
-      var $node   = $(React.findDOMNode(this));
+      var $node   = $(ReactDOM.findDOMNode(this));
       var adjust  = 118; // Height of .loadingMessage.base
       var $texts  = $node.find(".basetext");
       if ($texts.length < 2) { return; }
@@ -1731,10 +1731,10 @@ var TextColumn = React.createClass({
         this.loadingContentAtTop = false;
         this.initialScrollTopSet = true;
         this.justScrolled = true;
-        this.getDOMNode().scrollTop = top;
+        ReactDOM.findDOMNode(this).scrollTop = top;
         //console.log(top)
       }
-    } else if (!this.scrolledToHighlight && $(React.findDOMNode(this)).find(".segment.highlight").length) {
+    } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
       //console.log("scroll to highlighted")
       // scroll to highlighted segment
       this.scrollToHighlighted();
@@ -1743,7 +1743,7 @@ var TextColumn = React.createClass({
     } else if (!this.initialScrollTopSet) {
       // console.log("initial scroll to 30")
       // initial value set below 0 so you can scroll up for previous
-      var node = this.getDOMNode();
+      var node = ReactDOM.findDOMNode(this);
       node.scrollTop = 30;
       this.initialScrollTopSet = true;
     }
@@ -1752,7 +1752,7 @@ var TextColumn = React.createClass({
     // Add or remove TextRanges from the top or bottom, depending on scroll position
     window.requestAnimationFrame(function() {
       //if (this.state.loadingContentAtTop) { return; }
-      var node         = this.getDOMNode();
+      var node         = ReactDOM.findDOMNode(this);
       var refs         = this.props.srefs;
       var $lastText    = $(node).find(".textRange.basetext").last();
       var lastTop      = $lastText.position().top;
@@ -1796,7 +1796,7 @@ var TextColumn = React.createClass({
     // When scrolling while the TextList is open, update which segment should be highlighted.
     window.requestAnimationFrame(function() {
       //var start = new Date();
-      var $container   = $(React.findDOMNode(this));
+      var $container   = $(ReactDOM.findDOMNode(this));
       var $readerPanel   = $container.closest(".readerPanel");
       var viewport     = $container.outerHeight() - $readerPanel.find(".textList").outerHeight();
       var center       = (viewport/2);
@@ -1848,7 +1848,7 @@ var TextColumn = React.createClass({
   },
   scrollToHighlighted: function() {
     window.requestAnimationFrame(function() {
-      var $container   = $(React.findDOMNode(this));
+      var $container   = $(ReactDOM.findDOMNode(this));
       var $readerPanel   = $container.closest(".readerPanel");
       var $highlighted = $container.find(".segment.highlight").first();
       if ($highlighted.length) {
@@ -2089,7 +2089,7 @@ var TextRange = React.createClass({
   placeSegmentNumbers: function() {
     // Set the vertical offsets for segment numbers and link counts, which are dependent
     // on the rendered height of the text of each segment.
-    var $text      = $(React.findDOMNode(this));
+    var $text      = $(ReactDOM.findDOMNode(this));
     var setTop = function() {
        var top  = $(this).parent().position().top;
       $(this).css({top: top}).show();   
@@ -2350,9 +2350,9 @@ var TextList = React.createClass({
   },
   scrollToHighlighted: function() {
     window.requestAnimationFrame(function() {
-      var $highlighted = $(React.findDOMNode(this)).find(".texts .textRange").not(".lowlight").first();
+      var $highlighted = $(ReactDOM.findDOMNode(this)).find(".texts .textRange").not(".lowlight").first();
       if ($highlighted.length) {
-        var $texts = $(React.findDOMNode(this)).find(".texts")
+        var $texts = $(ReactDOM.findDOMNode(this)).find(".texts")
         var adjust = parseInt($texts.css("padding-top")) + 18;
         $texts.scrollTo($highlighted, 0, {offset: -adjust});
       }
@@ -2776,7 +2776,7 @@ var SearchBar = React.createClass({
         if (event.charCode == 13) {
             this.updateQuery();
             // Blur search input to close keyboard
-            $(React.findDOMNode(this)).find(".readerSearch").blur();
+            $(ReactDOM.findDOMNode(this)).find(".readerSearch").blur();
         }
     },
     updateQuery: function() {

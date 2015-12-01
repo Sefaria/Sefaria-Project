@@ -30,10 +30,12 @@
     <script src="/static/js/library.js"></script>
     {% if DEBUG %}
     <script src="/static/js/react.js"></script>
+    <script src="/static/js/react-dom.js"></script>
     <script src="/static/js/JSXTransformer.js"></script>
     <script type="text/jsx" src="/static/js/s2.jsx"></script>
     {% else %}
-    <script src="/static/js/react.js"></script>
+    <script src="/static/js/react-min.js"></script>
+    <script src="/static/js/react-dom-min.js"></script>
     <script src="/static/js/s2.js"></script>
     {% endif %}
     <script {% if DEBUG %}type="text/jsx"{% endif %}>
@@ -74,7 +76,7 @@
           fontSize:      $.cookie("fontSize")      || 62.5
         };
 
-        React.render(
+        ReactDOM.render(
           React.createElement(ReaderApp, {
             multiPanel: multiPanel,
             initialRef: ref,
