@@ -848,7 +848,7 @@ $(function() {
 		} 
 
 		// add Verse Controls menu
-		if (!isTouchDevice()) {
+		if ($(window).width() > 669) {
 			$(".verseControls").remove();
 			var offset = $(this).offset();
 			var left = sjs._$basetext.offset().left + sjs._$basetext.outerWidth();
@@ -2242,7 +2242,7 @@ function sortCommentary(a,b) {
 
 	// Sort commentaries according to their order
 	if (a.cnum != 0 && b.cnum != 0) {
-		return (a.cnum > b.cnum) ? 1 : -1; 
+		return (a.cnum > b.cnum) ? -1 : 1; 
 	}
 
 	// Sort connections on the same source according to the order of the source text
@@ -2650,6 +2650,8 @@ sjs.updateUrlParams = function() {
 	
 	if (sjs.sourcesFilter !== "all") {
 		params["with"] = sjs.sourcesFilter.replace(/ /g, "_");
+	} else {
+		delete params["with"];
 	}
 	if      ($("body").hasClass("sidebarHebrew"))  { params["sidebarLang"] = "he" }
 	else if ($("body").hasClass("sidebarEnglish")) { params["sidebarLang"] = "en" }	
