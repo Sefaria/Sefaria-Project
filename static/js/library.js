@@ -5,6 +5,7 @@ sjs = sjs || {};
 sjs.library = {
   _texts: {},
   text: function(ref, settings, cb) {
+    if (typeof ref == "object") { debugger; }
     var settings = settings || {};
     var settings = {
       commentary: settings.commentary || 0,
@@ -227,7 +228,8 @@ sjs.library = {
       }
     }
     // Add Zero counts for every commentator in this section not alredy in list
-    var sectionRef = sjs.library.ref(ref) ? sjs.library.ref(ref).sectionRef : ref;
+    var baseRef    = typeof ref == "string" ? ref : ref[0]; // TODO handle refs spanning sections
+    var sectionRef = sjs.library.ref(baseRef) ? sjs.library.ref(baseRef).sectionRef : baseRef;
     if (ref !== sectionRef) {
       var sectionLinks = sjs.library.links(sectionRef);
       for (var i = 0; i < sectionLinks.length; i++) {
@@ -258,9 +260,13 @@ sjs.library = {
       return value;
     });
     // Sort the categories
-    summary.sort(function(a, b) { 
+    summary.sort(function(a, b) {
+      // always put Commentary first 
       if      (a.category === "Commentary") { return -1; }
       else if (b.category === "Commentary") { return  1; }
+      // always put Modern Works last
+      if      (a.category === "Modern Works") { return  1; }
+      else if (b.category === "Modern Works") { return -1; }
       return b.count - a.count;
     });
     return summary;

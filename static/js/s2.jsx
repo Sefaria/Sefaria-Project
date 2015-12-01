@@ -258,7 +258,9 @@ var ReaderApp = React.createClass({
     // Handle a click on a text segment `ref` in from panel in position `n`
     if (n+1 == this.state.panels.length) {
       // Click on last Panel - Add new panel to end
-      this.state.panels.push({ref: [ref], filter: []});
+      var refs = typeof ref === "string" ? [ref] : ref; // if ref is a single ref string, wrap it
+      console.log(refs)
+      this.state.panels.push({ref: refs, filter: []});
       this.setState({panels: this.state.panels});
     } else if (n+1 < this.state.panels.length) {
       // Update the panel after this one to be a TextList
@@ -291,6 +293,8 @@ var ReaderApp = React.createClass({
     panel.menuOpen = null;
     panel.contents = [{type: "TextList", ref: refs}];
     this.setState({panels: this.state.panels});
+    console.log("open text list at")
+    console.log(refs)
   },
   closePanel: function(n) {
     this.state.panels.splice(n, 1);
@@ -372,22 +376,22 @@ var ReaderPanel = React.createClass({
     if (this.props.initialState) {
       return this.props.initialState;
     }
+    
+    var refs = typeof this.props.initialRef === "string" ? [this.props.initialRef] : this.props.initialRef;
 
     if (this.props.multiPanel) {
-      var ref = this.props.initialRef;
       if (this.props.initialFilter) {
-        var contents = [{type: "TextList", ref: [this.props.initialRef]}];
+        var contents = [{type: "TextList", ref: refs}];
       } else if (this.props.initialRef) {
-        var contents = [{type: "TextColumn", refs: [this.props.initialRef]}];
+        var contents = [{type: "TextColumn", refs: refs}];
       } else {
         var contents = [];
       }
 
     } else if (!this.props.multiPanel && this.props.initialRef) {
-      var contents = [{type: "TextColumn", refs: [this.props.initialRef]}];
-      var ref = this.props.initialRef;
+      var contents = [{type: "TextColumn", refs: refs}];
       if (this.props.initialFilter) {
-        contents.push({type: "TextList", ref: [this.props.initialRef]});
+        contents.push({type: "TextList", ref: refs});
       }      
 
     } else {
@@ -397,7 +401,7 @@ var ReaderPanel = React.createClass({
 
     return {
       contents: contents,
-      ref: ref,
+      ref: refs,
       filter: this.props.initialFilter || [],
       recentFilters: [],
       settings: this.props.initialSettings || {
@@ -517,7 +521,6 @@ var ReaderPanel = React.createClass({
     });
   },
   setTextListHightlight: function(ref) {
-    console.log(ref)
     if (this.props.multiPanel) {
       this.props.setTextListHightlight(ref);
     } else {
@@ -646,8 +649,13 @@ var ReaderPanel = React.createClass({
     // Returns the type of the current reader item - TextColumn, TextList
     return this.currentContent() ? this.currentContent().type : null;
   },
-  currentRef: function() {
+  currentRefs: function() {
+    // Returns the ref in the current state, which may be either a string or an array of refs
     return this.state.ref;
+  },
+  currentRef: function() {
+    // Returns a string of the current ref. If the current ref is an array of refs, returns only the first.
+    return typeof this.state.ref == "string" ? this.state.ref : this.state.ref[0];
   },
   currentData: function() {
     // Returns the data from the library of the current ref
@@ -674,7 +682,7 @@ var ReaderPanel = React.createClass({
   },
   render: function() {
     var currentMode = this.currentMode();
-    var highlightedRefs = this.props.highlightedRefs || (currentMode === "TextList" ? this.currentRef() : null);
+    var highlightedRefs = this.props.highlightedRefs || (currentMode === "TextList" ? this.currentRefs() : null);
     var items = this.state.contents.map(function(item, i) {
       if (item.type === "TextColumn") {
         return (<TextColumn
@@ -699,6 +707,7 @@ var ReaderPanel = React.createClass({
         // Typecast ref field as with a single ref string or an array of ref strings
         var ref  = typeof item.ref == "string" ? item.ref : null;
         var refs = typeof item.ref == "string" ? null : item.ref;
+        console.log(refs);
         return (
           <TextList 
             sref={ref}
@@ -830,7 +839,7 @@ var ReaderControls = React.createClass({
     currentCategory:         React.PropTypes.func.isRequired,
     currentBook:             React.PropTypes.func.isRequired,
     currentLayout:           React.PropTypes.func.isRequired,
-    closePanel:              React.PropTypes.func.isRequired,
+    closePanel:              React.PropTypes.func,
     multiPanel:              React.PropTypes.bool
   },
   render: function() {
