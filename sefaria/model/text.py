@@ -474,14 +474,16 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                                  .format(self.title, self.nodes.primary_title("en"), self.nodes.key))
 
             # Make sure all titles are unique
-            # Note: Because these titles come from the keys of TitledTreeNode.titleDict(), there's no possibility for name collision.
-            # todo: actually test this
             for lang in ["en", "he"]:
                 all_titles = self.all_titles(lang)
+                """
+                # Note: Because these titles come from the keys of TitledTreeNode.titleDict(), there's no possibility for name collision.
+                # todo: actually test for name collision
                 if len(all_titles) != len(set(all_titles)):
                     for title in all_titles:
                         if all_titles.count(title) > 1:
                             raise InputError(u'The title {} occurs twice in this Index record'.format(title))
+                """
                 for title in all_titles:
                     existing = library.get_schema_node(title, lang)
                     if existing and not self.same_record(existing.index) and existing.index.title != self.pkeys_orig_values.get("title"):

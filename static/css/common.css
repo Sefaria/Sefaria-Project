@@ -373,6 +373,7 @@ body.embeded #top {
 
 #navToc .previewLink .en,
 #navToc .previewLink .he {
+  display: block;
   height: 24px;
   line-height: 24px;
   white-space: nowrap;

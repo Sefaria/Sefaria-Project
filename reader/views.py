@@ -435,8 +435,11 @@ def make_alt_toc_html(alt):
             for i in range(len(node.refs)):
                 if not node.refs[i]:
                     continue
-                he    = wrap_counts(JaggedArray(he_counts).subarray_with_ref(Ref(node.refs[i])).array())
-                en    = wrap_counts(JaggedArray(en_counts).subarray_with_ref(Ref(node.refs[i])).array())
+                target_ref = Ref(node.refs[i])
+                state = StateNode(snode=target_ref.index_node)
+                he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
+                he    = wrap_counts(JaggedArray(he_counts).subarray_with_ref(target_ref).array())
+                en    = wrap_counts(JaggedArray(en_counts).subarray_with_ref(target_ref).array())
                 klass = "en%s he%s" % (toc_availability_class(en), toc_availability_class(he))
                 html += '<a class="sectionLink %s" href="/%s">%s</a>' % (klass, urlquote(node.refs[i]), (i+1))
             html += "</div>"
@@ -444,13 +447,16 @@ def make_alt_toc_html(alt):
             # Display each section included in node.wholeRef
             # todo handle case where wholeRef points to complex node
             # todo handle case where wholeRef points to book name (root of simple index or commentary index)
-            refs         = Ref(node.wholeRef).split_spanning_ref()
+            target_ref   = Ref(node.wholeRef)
+            state        = StateNode(snode=target_ref.index_node)
+            he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
+            refs         = target_ref.split_spanning_ref()
             first, last  = refs[0], refs[-1]
             offset       = first.sections[-2]-1 if first.is_segment_level() else first.sections[-1]-1
             offset_lines = (first.normal().rsplit(":", 1)[1] if first.is_segment_level() else "", 
                             last.normal().rsplit(":", 1)[1] if last.is_segment_level() else "")
-            he           = wrap_counts(JaggedArray(he_counts).subarray_with_ref(Ref(node.wholeRef)).array())
-            en           = wrap_counts(JaggedArray(en_counts).subarray_with_ref(Ref(node.wholeRef)).array())
+            he           = wrap_counts(JaggedArray(he_counts).subarray_with_ref(target_ref).array())
+            en           = wrap_counts(JaggedArray(en_counts).subarray_with_ref(target_ref).array())
             depth        = len(first.index.nodes.sectionNames) - len(first.section_ref().sections)
             sectionNames = first.index.nodes.sectionNames[depth:]
             addressTypes = first.index.nodes.addressTypes[depth:]
@@ -460,9 +466,7 @@ def make_alt_toc_html(alt):
 
         html += "</a>" if linked else "</div>"
         return html
-    
-    state = StateNode(alt.primary_title())
-    he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
+
     html = "<div class='tocLevel'>" + alt.traverse_to_string(node_line) + "</div>"
     return html
 

@@ -282,7 +282,9 @@
                 html += "<div id='structureDropdown'>" +
                     "<span id='browseBy'>Browse by </span>" +
                         "<select>" +
-                            "<option value='default' " + ((sjs.navPanel._structure == "default")?"selected ":"") + ">" + hebrewPlural(schema_node.sectionNames.slice(-2)[0]) +"</option>";
+                            "<option value='default' " + ((sjs.navPanel._structure == "default")?"selected ":"") + ">" +
+                                (schema_node.sectionNames ? hebrewPlural(schema_node.sectionNames.slice(-2)[0]) : "Primary Structure") +
+                            "</option>";
                             for(var n in this._preview.alts) {
                                 html += "<option value='" + n + "' " + ((sjs.navPanel._structure == n)?"selected ":"") + ">" + n + "</option>";
                             }
