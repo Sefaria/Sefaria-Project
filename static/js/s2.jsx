@@ -259,7 +259,6 @@ var ReaderApp = React.createClass({
     if (n+1 == this.state.panels.length) {
       // Click on last Panel - Add new panel to end
       var refs = typeof ref === "string" ? [ref] : ref; // if ref is a single ref string, wrap it
-      console.log(refs)
       this.state.panels.push({ref: refs, filter: []});
       this.setState({panels: this.state.panels});
     } else if (n+1 < this.state.panels.length) {
@@ -267,7 +266,12 @@ var ReaderApp = React.createClass({
       this.openTextListAt(n+1, ref);
     }
   },
-  setTextListHighlightFrom: function(n, ref) {
+  handleCitationClick: function(n, ref) {
+    // Open a new panel after `n` with the new ref
+    this.state.panels.splice(n+1, 0, {ref: [ref], filter: null});
+    this.setState({panels: this.state.panels});
+  },
+  setTextListHighlight: function(n, ref) {
     // Set the textListHighlight for panel `n` to `ref`
     // If no TextList panel is currently open, do nothing
     var next = this.state.panels[n+1];
@@ -293,12 +297,11 @@ var ReaderApp = React.createClass({
     panel.menuOpen = null;
     panel.contents = [{type: "TextList", ref: refs}];
     this.setState({panels: this.state.panels});
-    console.log("open text list at")
-    console.log(refs)
   },
   closePanel: function(n) {
     this.state.panels.splice(n, 1);
     this.setState({panels: this.state.panels});
+    this.updateHistoryState();
   },
   render: function() {
     var width = 100.0/this.state.panels.length;
@@ -306,9 +309,10 @@ var ReaderApp = React.createClass({
     for (var i = 0; i < this.state.panels.length; i++) {
       var style                    = {width: width + "%", left: (width * i) + "%"};
       var multi                    = this.props.multiPanel;
-      var handleSegmentClick       = multi ? this.handleSegmentClick.bind(null, i) : null;
-      var handlePanelUpdate        = this.handlePanelUpdate.bind(null, i);
-      var setTextListHightlight    = this.setTextListHighlightFrom.bind(null, i);
+      var onSegmentClick           = multi ? this.handleSegmentClick.bind(null, i) : null;
+      var onCitationClick          = this.handleCitationClick.bind(null, i);
+      var onPanelUpdate            = this.handlePanelUpdate.bind(null, i);
+      var setTextListHightlight    = this.setTextListHighlight.bind(null, i);
       var closePanel               = this.closePanel.bind(null, i);
 
       if (this.state.panels.length > i+1) {
@@ -317,37 +321,35 @@ var ReaderApp = React.createClass({
         highlightedRefs            = typeof highlightedRefs == "string" ? [highlightedRefs] : highlightedRefs;
       }
       
-      var panel = this.state.panels[i];
+      var panel = clone(this.state.panels[i]);
       if (panel.contents) {
-        panels.push(<div className="readerPanelBox" style={style} key={i}>
+        panels.push(<div className="readerPanelBox" style={style} key={panel.ref}>
                     <ReaderPanel 
-                      initialState={clone(panel)}
+                      initialState={panel}
                       multiPanel={multi}
                       highlightedRefs={highlightedRefs}
-                      handleSegmentClick={handleSegmentClick}
-                      historyUpdate={handlePanelUpdate}
+                      onSegmentClick={onSegmentClick}
+                      onCitationClick={onCitationClick}
+                      historyUpdate={onPanelUpdate}
+                      onCitationClick={onCitationClick}
                       setTextListHightlight={setTextListHightlight}
                       closePanel={closePanel}
                       panelsOpen={this.state.panels.length} />
                   </div>);
       } else {
-        if (i == 0) {
-          panel.menu      = this.props.initialMenu;
-          panel.query     = this.props.initialQuery;
-          panel.sheetsTag = this.props.initialSheetsTag;
-        }
-        panels.push(<div className="readerPanelBox" style={style} key={i}>
+        panels.push(<div className="readerPanelBox" style={style} key={panel.ref}>
                       <ReaderPanel 
                         initialRef={panel.ref}
                         initialFilter={panel.filter}
-                        initialMenu={panel.menu}
-                        initialQuery={panel.query}
-                        initialSheetsTag={panel.sheetsTag}
+                        initialMenu={this.props.initialMenu}
+                        initialQuery={this.props.initialQuery}
+                        initialSheetsTag={this.props.initialSheetsTag}
                         initialNavigationCategories={this.props.initialNavigationCategories}
                         initialSettings={clone(this.props.initialSettings)}
                         multiPanel={multi}
-                        handleSegmentClick={handleSegmentClick}
-                        historyUpdate={handlePanelUpdate}
+                        onSegmentClick={onSegmentClick}
+                        onCitationClick={onCitationClick}
+                        historyUpdate={onPanelUpdate}
                         highlightedRefs={highlightedRefs}
                         closePanel={closePanel}
                         panelsOpen={this.state.panels.length} />
@@ -369,7 +371,8 @@ var ReaderPanel = React.createClass({
     initialSheetsTag:   React.PropTypes.string,
     initialSettings:    React.PropTypes.object,
     initialState:       React.PropTypes.object, // Trumps all above if present
-    handleSegmentClick: React.PropTypes.func,
+    onSegmentClick:     React.PropTypes.func,
+    onCitationClick:    React.PropTypes.func,
     mulitPanel:         React.PropTypes.bool
   },
   getInitialState: function() {
@@ -454,7 +457,7 @@ var ReaderPanel = React.createClass({
       this.backToText();
     } else if (mode === "TextColumn") {
       if (this.props.multiPanel) {
-        this.props.handleSegmentClick(ref);
+        this.props.onSegmentClick(ref);
       } else {
         this.scrolledToHighlight = false;
         this.showTextList(ref);
@@ -475,6 +478,13 @@ var ReaderPanel = React.createClass({
       });
       
       this.setTextListHightlight(refs);
+    }
+  },
+  handleCitationClick: function(ref) {
+    if (this.props.multiPanel) {
+      this.props.onCitationClick(ref);
+    } else {
+      this.showBaseText(ref);
     }
   },
   setHeadroom: function() {
@@ -699,6 +709,7 @@ var ReaderPanel = React.createClass({
             showTextList={this.showTextList}
             updateTextColumn={this.updateTextColumn}
             onBaseSegmentClick={this.handleBaseSegmentClick}
+            onCitationClick={this.handleCitationClick}
             setTextListHightlight={this.setTextListHightlight}
             panelsOpen={this.props.panelsOpen}
             filter={this.state.filter}
@@ -707,7 +718,6 @@ var ReaderPanel = React.createClass({
         // Typecast ref field as with a single ref string or an array of ref strings
         var ref  = typeof item.ref == "string" ? item.ref : null;
         var refs = typeof item.ref == "string" ? null : item.ref;
-        console.log(refs);
         return (
           <TextList 
             sref={ref}
@@ -722,6 +732,7 @@ var ReaderPanel = React.createClass({
             backToText={this.backToText} 
             openNav={this.openMenu.bind(null, "navigation")}
             openDisplaySettings={this.openDisplaySettings}
+            onCitationClick={this.handleCitationClick}
             closePanel={this.props.panelsOpen > 1 ? this.props.closePanel : null}            
             key={i} />
         );
@@ -1034,14 +1045,14 @@ var ReaderNavigationMenu = React.createClass({
   render: function() {
     if (this.props.categories.length) {
       return (<div className="readerNavMenu" onClick={this.handleClick} >
-                      <ReaderNavigationCategoryMenu
-                        categories={this.props.categories}
-                        category={this.props.categories.slice(-1)[0]}
-                        closeNav={this.closeNav}
-                        setCategories={this.props.setCategories}
-                        openDisplaySettings={this.props.openDisplaySettings}
-                        navHome={this.navHome} />
-                      </div>);
+                <ReaderNavigationCategoryMenu
+                  categories={this.props.categories}
+                  category={this.props.categories.slice(-1)[0]}
+                  closeNav={this.closeNav}
+                  setCategories={this.props.setCategories}
+                  openDisplaySettings={this.props.openDisplaySettings}
+                  navHome={this.navHome} />
+              </div>);
     } else {
       var categories = [
         "Tanach",
@@ -1644,6 +1655,7 @@ var TextColumn = React.createClass({
     showTextList:          React.PropTypes.func,
     updateTextColumn:      React.PropTypes.func,
     onBaseSegmentClick:    React.PropTypes.func,
+    onCitationClick:       React.PropTypes.func,
     setTextListHightlight: React.PropTypes.func,
     onTextLoad:            React.PropTypes.func,
     panelsOpen:            React.PropTypes.number
@@ -1857,6 +1869,7 @@ var TextColumn = React.createClass({
         showBaseText={this.props.showBaseText} 
         showTextList={this.props.showTextList}
         onBaseSegmentClick={this.handleBaseSegmentClick}
+        onCitationClick={this.props.onCitationClick}
         onTextLoad={this.handleTextLoad}
         filter={this.props.filter}
         panelsOpen={this.props.panelsOpen}
@@ -1893,23 +1906,24 @@ var TextRange = React.createClass({
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
   // This component is responsible for retrieving data from sjs.library for the ref that defines it.
   propTypes: {
-    sref:               React.PropTypes.string.isRequired,
-    highlightedRefs:    React.PropTypes.array,
-    basetext:           React.PropTypes.bool,
-    withContext:        React.PropTypes.bool,
-    hideTitle:          React.PropTypes.bool,
-    loadLinks:          React.PropTypes.bool,
-    prefetchNextPrev:   React.PropTypes.bool,
-    openOnClick:        React.PropTypes.bool,
-    lowlight:           React.PropTypes.bool,
-    numberLabel:        React.PropTypes.number,
-    settings:           React.PropTypes.object,
-    filter:             React.PropTypes.array,
-    showBaseText:       React.PropTypes.func,
-    showTextList:       React.PropTypes.func,
-    onTextLoad:         React.PropTypes.func,
-    onBaseSegmentClick: React.PropTypes.func,
-    panelsOpen:         React.PropTypes.number
+    sref:                React.PropTypes.string.isRequired,
+    highlightedRefs:     React.PropTypes.array,
+    basetext:            React.PropTypes.bool,
+    withContext:         React.PropTypes.bool,
+    hideTitle:           React.PropTypes.bool,
+    loadLinks:           React.PropTypes.bool,
+    prefetchNextPrev:    React.PropTypes.bool,
+    openOnClick:         React.PropTypes.bool,
+    lowlight:            React.PropTypes.bool,
+    numberLabel:         React.PropTypes.number,
+    settings:            React.PropTypes.object,
+    filter:              React.PropTypes.array,
+    showBaseText:        React.PropTypes.func,
+    showTextList:        React.PropTypes.func,
+    onTextLoad:          React.PropTypes.func,
+    onBaseSegmentClick:  React.PropTypes.func,
+    onCitationClick:     React.PropTypes.func,
+    panelsOpen:          React.PropTypes.number
   },
   getInitialState: function() {
     return { 
@@ -2101,7 +2115,7 @@ var TextRange = React.createClass({
                               
 
     var textSegments = this.state.segments.map(function (segment, i) {
-      var highlight = this.props.highlightedRefs ?                                  // if highlighted is refs explicitly set
+      var highlight = this.props.highlightedRefs ?                                  // if highlighted refs are explicitly set
                         $.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
                         this.props.basetext && segment.highlight;                   // otherwise highlight if this a basetext and the ref is specific
       return (
@@ -2114,9 +2128,8 @@ var TextRange = React.createClass({
             segmentNumber={showSegmentNumbers ? segment.number : 0}
             showLinkCount={this.props.basetext}
             filter={this.props.filter}
-            handleClick={this.props.onBaseSegmentClick}
-            showBaseText={this.props.showBaseText}
-            showTextList={this.props.showTextList} />
+            onSegmentClick={this.props.onBaseSegmentClick}
+            onCitationClick={this.props.onCitationClick} />
       );
     }.bind(this));
     textSegments = textSegments.length ? 
@@ -2154,26 +2167,25 @@ var TextRange = React.createClass({
 
 var TextSegment = React.createClass({
   propTypes: {
-    sref:              React.PropTypes.string,
-    en:                React.PropTypes.string,
-    he:                React.PropTypes.string,
-    highlight:         React.PropTypes.bool,
-    segmentNumber:     React.PropTypes.number,
-    showLinkCount:     React.PropTypes.bool,
-    filter:            React.PropTypes.array,
-    showBaseText:      React.PropTypes.func,
-    showTextList:      React.PropTypes.func,
-    handleClick:       React.PropTypes.func
+    sref:            React.PropTypes.string,
+    en:              React.PropTypes.string,
+    he:              React.PropTypes.string,
+    highlight:       React.PropTypes.bool,
+    segmentNumber:   React.PropTypes.number,
+    showLinkCount:   React.PropTypes.bool,
+    filter:          React.PropTypes.array,
+    onCitationClick: React.PropTypes.func,
+    onSegmentClick:  React.PropTypes.func
   },
   handleClick: function(event) {
     if ($(event.target).hasClass("refLink")) {
       //Click of citation
       var ref = humanRef($(event.target).attr("data-ref"));
-      this.props.showBaseText(ref);
+      this.props.onCitationClick(ref);
       event.stopPropagation();
-      sjs.track.event("Reader", "Ref Link Click", ref)
-    } else if (this.props.handleClick) {
-      this.props.handleClick(this.props.sref);
+      sjs.track.event("Reader", "Citation Link Click", ref)
+    } else if (this.props.onSegmentClick) {
+      this.props.onSegmentClick(this.props.sref);
       sjs.track.event("Reader", "Text Segment Click", this.props.sref);
     }
   },
@@ -2223,6 +2235,7 @@ var TextList = React.createClass({
     setFilter:           React.PropTypes.func,
     showTextList:        React.PropTypes.func,
     showBaseText:        React.PropTypes.func,
+    onCitationClick:     React.PropTypes.func,
     backToText:          React.PropTypes.func,
     openNav:             React.PropTypes.func,
     openDisplaySettings: React.PropTypes.func,
@@ -2389,6 +2402,7 @@ var TextList = React.createClass({
                                     numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
                                     basetext={false}
                                     showBaseText={this.props.showBaseText}
+                                    onCitationClick={this.props.onCitationClick}
                                     openOnClick={true} />);
                         }, this);      
     }

@@ -258,22 +258,20 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     // Handle a click on a text segment `ref` in from panel in position `n`
     if (n+1 == this.state.panels.length) {
       // Click on last Panel - Add new panel to end
-      this.state.panels.push({ref: ref, filter: []});
+      var refs = typeof ref === "string" ? [ref] : ref; // if ref is a single ref string, wrap it
+      this.state.panels.push({ref: refs, filter: []});
       this.setState({panels: this.state.panels});
     } else if (n+1 < this.state.panels.length) {
       // Update the panel after this one to be a TextList
-      var next  = this.state.panels[n+1];
-      var oref1 = sjs.library.ref(next.ref);
-      var oref2 = sjs.library.ref(ref);
-      // If this is a new text reset the filter, otherwise keep the current filter
-      next.filter = oref1.book === oref2.book ? next.filter : [];
-      next.ref = ref;
-      next.menuOpen = null;
-      next.contents = [{type: "TextList", ref: ref}];
-      this.setState({panels: this.state.panels});
+      this.openTextListAt(n+1, ref);
     }
   },
-  setTextListHighlightFrom: function(n, ref) {
+  handleCitationClick: function(n, ref) {
+    // Open a new panel after `n` with the new ref
+    this.state.panels.splice(n+1, 0, {ref: [ref], filter: null});
+    this.setState({panels: this.state.panels});
+  },
+  setTextListHighlight: function(n, ref) {
     // Set the textListHighlight for panel `n` to `ref`
     // If no TextList panel is currently open, do nothing
     var next = this.state.panels[n+1];
@@ -282,19 +280,28 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     }
     var nextContent = next && next.contents && next.contents.length ? next.contents.slice(-1)[0] : null
     if ((nextContent && nextContent.type === "TextList") || (!nextContent && !next.menuOpen)) {
-      var book1     = sjs.library.ref(next.ref) ? sjs.library.ref(next.ref).indexTitle : "";
-      var book2     = sjs.library.ref(ref) ? sjs.library.ref(ref).indexTitle : "";
-      // If we're now highlighting a new text, reset the filter
-      next.filter   = (book1 === book2 ? next.filter : []);
-      next.ref      = ref;
-      next.contents = [{type: "TextList", ref: ref}];
-      this.setState({panels: this.state.panels});
+      this.openTextListAt(n+1, ref);
     }
     return;
+  },
+  openTextListAt: function(n, ref) {
+    // Make the panel open at position `n` into a TextList for `ref`
+    // `ref` may be either a single ref string or an array of ref strings
+    var refs  = typeof ref === "string" ? [ref] : ref; // if ref is a single ref string, wrap it
+    var panel = this.state.panels[n];
+    var oref1 = parseRef(panel.ref);
+    var oref2 = parseRef(ref);
+    // If this is a new text reset the filter, otherwise keep the current filter
+    panel.filter   = oref1.book === oref2.book ? panel.filter : [];
+    panel.ref      = refs;
+    panel.menuOpen = null;
+    panel.contents = [{type: "TextList", ref: refs}];
+    this.setState({panels: this.state.panels});
   },
   closePanel: function(n) {
     this.state.panels.splice(n, 1);
     this.setState({panels: this.state.panels});
+    this.updateHistoryState();
   },
   render: function() {
     var width = 100.0/this.state.panels.length;
@@ -302,48 +309,48 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     for (var i = 0; i < this.state.panels.length; i++) {
       var style                    = {width: width + "%", left: (width * i) + "%"};
       var multi                    = this.props.multiPanel;
-      var handleSegmentClick       = multi ? this.handleSegmentClick.bind(null, i) : null;
-      var handlePanelUpdate        = this.handlePanelUpdate.bind(null, i);
-      var setTextListHightlight    = this.setTextListHighlightFrom.bind(null, i);
+      var onSegmentClick           = multi ? this.handleSegmentClick.bind(null, i) : null;
+      var onCitationClick          = this.handleCitationClick.bind(null, i);
+      var onPanelUpdate            = this.handlePanelUpdate.bind(null, i);
+      var setTextListHightlight    = this.setTextListHighlight.bind(null, i);
       var closePanel               = this.closePanel.bind(null, i);
 
       if (this.state.panels.length > i+1) {
         var followingFilter        = this.state.panels[i+1].filter;
-        var textListRef            = followingFilter ? this.state.panels[i+1].ref : null;    
+        var highlightedRefs        = followingFilter ? this.state.panels[i+1].ref : null;
+        highlightedRefs            = typeof highlightedRefs == "string" ? [highlightedRefs] : highlightedRefs;
       }
       
-      var panel = this.state.panels[i];
+      var panel = clone(this.state.panels[i]);
       if (panel.contents) {
-        panels.push(React.createElement("div", {className: "readerPanelBox", style: style, key: i}, 
+        panels.push(React.createElement("div", {className: "readerPanelBox", style: style, key: panel.ref}, 
                     React.createElement(ReaderPanel, {
-                      initialState: clone(panel), 
+                      initialState: panel, 
                       multiPanel: multi, 
-                      textListRef: textListRef, 
-                      handleSegmentClick: handleSegmentClick, 
-                      historyUpdate: handlePanelUpdate, 
+                      highlightedRefs: highlightedRefs, 
+                      onSegmentClick: onSegmentClick, 
+                      onCitationClick: onCitationClick, 
+                      historyUpdate: onPanelUpdate, 
+                      onCitationClick: onCitationClick, 
                       setTextListHightlight: setTextListHightlight, 
                       closePanel: closePanel, 
                       panelsOpen: this.state.panels.length})
                   ));
       } else {
-        if (i == 0) {
-          panel.menu      = this.props.initialMenu;
-          panel.query     = this.props.initialQuery;
-          panel.sheetsTag = this.props.initialSheetsTag;
-        }
-        panels.push(React.createElement("div", {className: "readerPanelBox", style: style, key: i}, 
+        panels.push(React.createElement("div", {className: "readerPanelBox", style: style, key: panel.ref}, 
                       React.createElement(ReaderPanel, {
                         initialRef: panel.ref, 
                         initialFilter: panel.filter, 
-                        initialMenu: panel.menu, 
-                        initialQuery: panel.query, 
-                        initialSheetsTag: panel.sheetsTag, 
+                        initialMenu: this.props.initialMenu, 
+                        initialQuery: this.props.initialQuery, 
+                        initialSheetsTag: this.props.initialSheetsTag, 
                         initialNavigationCategories: this.props.initialNavigationCategories, 
                         initialSettings: clone(this.props.initialSettings), 
                         multiPanel: multi, 
-                        handleSegmentClick: handleSegmentClick, 
-                        historyUpdate: handlePanelUpdate, 
-                        textListRef: textListRef, 
+                        onSegmentClick: onSegmentClick, 
+                        onCitationClick: onCitationClick, 
+                        historyUpdate: onPanelUpdate, 
+                        highlightedRefs: highlightedRefs, 
                         closePanel: closePanel, 
                         panelsOpen: this.state.panels.length})
                     ));
@@ -364,29 +371,30 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
     initialSheetsTag:   React.PropTypes.string,
     initialSettings:    React.PropTypes.object,
     initialState:       React.PropTypes.object, // Trumps all above if present
-    handleSegmentClick: React.PropTypes.func,
+    onSegmentClick:     React.PropTypes.func,
+    onCitationClick:    React.PropTypes.func,
     mulitPanel:         React.PropTypes.bool
   },
   getInitialState: function() {
     if (this.props.initialState) {
       return this.props.initialState;
     }
+    
+    var refs = typeof this.props.initialRef === "string" ? [this.props.initialRef] : this.props.initialRef;
 
     if (this.props.multiPanel) {
-      var ref = this.props.initialRef;
       if (this.props.initialFilter) {
-        var contents = [{type: "TextList", ref: this.props.initialRef}];
+        var contents = [{type: "TextList", ref: refs}];
       } else if (this.props.initialRef) {
-        var contents = [{type: "TextColumn", refs: [this.props.initialRef]}];
+        var contents = [{type: "TextColumn", refs: refs}];
       } else {
         var contents = [];
       }
 
     } else if (!this.props.multiPanel && this.props.initialRef) {
-      var contents = [{type: "TextColumn", refs: [this.props.initialRef]}];
-      var ref = this.props.initialRef;
+      var contents = [{type: "TextColumn", refs: refs}];
       if (this.props.initialFilter) {
-        contents.push({type: "TextList", ref: this.props.initialRef});
+        contents.push({type: "TextList", ref: refs});
       }      
 
     } else {
@@ -396,7 +404,7 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
 
     return {
       contents: contents,
-      ref: ref,
+      ref: refs,
       filter: this.props.initialFilter || [],
       recentFilters: [],
       settings: this.props.initialSettings || {
@@ -449,11 +457,34 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
       this.backToText();
     } else if (mode === "TextColumn") {
       if (this.props.multiPanel) {
-        this.props.handleSegmentClick(ref);
+        this.props.onSegmentClick(ref);
       } else {
         this.scrolledToHighlight = false;
         this.showTextList(ref);
       }
+    }
+  },
+  handleTextSelection: function() {
+    var selection = window.getSelection();
+    if (selection.type === "Range") {
+      var $start = $(getSelectionBoundaryElement(true)).closest(".segment");
+      var $end   = $(getSelectionBoundaryElement(false)).closest(".segment");
+
+      var $segments = $start.is($end) ? $start : $start.nextUntil($end, ".segment").add($start).add($end);
+
+      var refs = [];
+      $segments.each(function() {
+        refs.push($(this).attr("data-ref"));
+      });
+      
+      this.setTextListHightlight(refs);
+    }
+  },
+  handleCitationClick: function(ref) {
+    if (this.props.multiPanel) {
+      this.props.onCitationClick(ref);
+    } else {
+      this.showBaseText(ref);
     }
   },
   setHeadroom: function() {
@@ -628,8 +659,13 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
     // Returns the type of the current reader item - TextColumn, TextList
     return this.currentContent() ? this.currentContent().type : null;
   },
-  currentRef: function() {
+  currentRefs: function() {
+    // Returns the ref in the current state, which may be either a string or an array of refs
     return this.state.ref;
+  },
+  currentRef: function() {
+    // Returns a string of the current ref. If the current ref is an array of refs, returns only the first.
+    return typeof this.state.ref == "string" ? this.state.ref : this.state.ref[0];
   },
   currentData: function() {
     // Returns the data from the library of the current ref
@@ -656,12 +692,12 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
   },
   render: function() {
     var currentMode = this.currentMode();
-    var textListRef = this.props.textListRef ? this.props.textListRef : (currentMode === "TextList" ? this.currentRef() : null);
+    var highlightedRefs = this.props.highlightedRefs || (currentMode === "TextList" ? this.currentRefs() : null);
     var items = this.state.contents.map(function(item, i) {
       if (item.type === "TextColumn") {
         return (React.createElement(TextColumn, {
             srefs: item.refs, 
-            textListRef: textListRef, 
+            highlightedRefs: highlightedRefs, 
             basetext: true, 
             withContext: true, 
             loadLinks: true, 
@@ -673,14 +709,19 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
             showTextList: this.showTextList, 
             updateTextColumn: this.updateTextColumn, 
             onBaseSegmentClick: this.handleBaseSegmentClick, 
+            onCitationClick: this.handleCitationClick, 
             setTextListHightlight: this.setTextListHightlight, 
             panelsOpen: this.props.panelsOpen, 
             filter: this.state.filter, 
             key: i}));   
       } else if (item.type === "TextList") {
+        // Typecast ref field as with a single ref string or an array of ref strings
+        var ref  = typeof item.ref == "string" ? item.ref : null;
+        var refs = typeof item.ref == "string" ? null : item.ref;
         return (
           React.createElement(TextList, {
-            sref: item.ref, 
+            sref: ref, 
+            srefs: refs, 
             filter: this.state.filter, 
             recentFilters: this.state.recentFilters, 
             fullPanel: this.props.multiPanel, 
@@ -691,6 +732,7 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
             backToText: this.backToText, 
             openNav: this.openMenu.bind(null, "navigation"), 
             openDisplaySettings: this.openDisplaySettings, 
+            onCitationClick: this.handleCitationClick, 
             closePanel: this.props.panelsOpen > 1 ? this.props.closePanel : null, 
             key: i})
         );
@@ -758,7 +800,7 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
     var style = {"fontSize": this.state.settings.fontSize + "%"};
     var hideReaderControls = this.props.multiPanel && currentMode === "TextList" && ![].compare(this.state.filter);
     return (
-      React.createElement("div", {className: classes}, 
+      React.createElement("div", {className: classes, onMouseUp: this.handleTextSelection}, 
         hideReaderControls ? "" :  
         (React.createElement(ReaderControls, {
           showBaseText: this.showBaseText, 
@@ -808,7 +850,7 @@ var ReaderControls = React.createClass({displayName: "ReaderControls",
     currentCategory:         React.PropTypes.func.isRequired,
     currentBook:             React.PropTypes.func.isRequired,
     currentLayout:           React.PropTypes.func.isRequired,
-    closePanel:              React.PropTypes.func.isRequired,
+    closePanel:              React.PropTypes.func,
     multiPanel:              React.PropTypes.bool
   },
   render: function() {
@@ -1003,14 +1045,14 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
   render: function() {
     if (this.props.categories.length) {
       return (React.createElement("div", {className: "readerNavMenu", onClick: this.handleClick}, 
-                      React.createElement(ReaderNavigationCategoryMenu, {
-                        categories: this.props.categories, 
-                        category: this.props.categories.slice(-1)[0], 
-                        closeNav: this.closeNav, 
-                        setCategories: this.props.setCategories, 
-                        openDisplaySettings: this.props.openDisplaySettings, 
-                        navHome: this.navHome})
-                      ));
+                React.createElement(ReaderNavigationCategoryMenu, {
+                  categories: this.props.categories, 
+                  category: this.props.categories.slice(-1)[0], 
+                  closeNav: this.closeNav, 
+                  setCategories: this.props.setCategories, 
+                  openDisplaySettings: this.props.openDisplaySettings, 
+                  navHome: this.navHome})
+              ));
     } else {
       var categories = [
         "Tanach",
@@ -1600,7 +1642,7 @@ var TextColumn = React.createClass({displayName: "TextColumn",
   // An infinitely scrollable column of text, composed of TextRanges for each section.
   propTypes: {
     srefs:                 React.PropTypes.array.isRequired,
-    textListRef:           React.PropTypes.string,
+    highlightedRefs:       React.PropTypes.array,
     basetext:              React.PropTypes.bool,
     withContext:           React.PropTypes.bool,
     loadLinks:             React.PropTypes.bool,
@@ -1613,6 +1655,7 @@ var TextColumn = React.createClass({displayName: "TextColumn",
     showTextList:          React.PropTypes.func,
     updateTextColumn:      React.PropTypes.func,
     onBaseSegmentClick:    React.PropTypes.func,
+    onCitationClick:       React.PropTypes.func,
     setTextListHightlight: React.PropTypes.func,
     onTextLoad:            React.PropTypes.func,
     panelsOpen:            React.PropTypes.number
@@ -1637,9 +1680,11 @@ var TextColumn = React.createClass({displayName: "TextColumn",
     }
   },
   componentDidUpdate: function(prevProps, prevState) {
-    if (this.loadingContentAtTop || // may need to update after top content loads
-        !this.props.srefs.compare(prevProps.srefs) ||  // update on text change
-        prevProps.textListRef !== this.props.textListRef) // update on click to highlight
+    var prevHighlights = prevProps.highlightedRefs  || [];
+    var currHighlights = this.props.highlightedRefs || [];
+    if (this.loadingContentAtTop ||                       // may need to set scroll pos after top content loads
+        !this.props.srefs.compare(prevProps.srefs) ||     // set scroll pos on text change
+        !prevHighlights.compare(currHighlights)) // set scroll pos on highlight change
     {
       this.setScrollPosition();
     }
@@ -1649,13 +1694,13 @@ var TextColumn = React.createClass({displayName: "TextColumn",
       this.justScrolled = false;
       return;
     }
-    if (this.props.textListRef) {
+    if (this.props.highlightedRefs) {
       this.debouncedAdjustTextListHighlight();
     }
     this.adjustInfiniteScroll();   
   },
   handleBaseSegmentClick: function(ref) {
-    if (!this.props.textListRef) {
+    if (!this.props.highlightedRefs) {
       // If we are entering into close reader mode, reset this flag
       // so that we scroll to highlighted segment.
       this.scrolledToHighlight = false;
@@ -1810,11 +1855,11 @@ var TextColumn = React.createClass({displayName: "TextColumn",
     }.bind(this));
   },
   render: function() {
-    var classes = classNames({textColumn: 1, connectionsOpen: !this.props.multiPanel && !!this.props.textListRef});
+    var classes = classNames({textColumn: 1, connectionsOpen: !this.props.multiPanel && !!this.props.highlightedRefs});
     var content =  this.props.srefs.map(function(ref, k) {
       return (React.createElement(TextRange, {
         sref: ref, 
-        textListRef: this.props.textListRef, 
+        highlightedRefs: this.props.highlightedRefs, 
         basetext: true, 
         withContext: true, 
         loadLinks: true, 
@@ -1824,6 +1869,7 @@ var TextColumn = React.createClass({displayName: "TextColumn",
         showBaseText: this.props.showBaseText, 
         showTextList: this.props.showTextList, 
         onBaseSegmentClick: this.handleBaseSegmentClick, 
+        onCitationClick: this.props.onCitationClick, 
         onTextLoad: this.handleTextLoad, 
         filter: this.props.filter, 
         panelsOpen: this.props.panelsOpen, 
@@ -1831,6 +1877,7 @@ var TextColumn = React.createClass({displayName: "TextColumn",
     }.bind(this));
 
     if (content.length) {
+      // Add Next and Previous loading indicators
       var first   = sjs.library.ref(this.props.srefs[0]);
       var last    = sjs.library.ref(this.props.srefs.slice(-1)[0]);
       var hasPrev = first && first.prev;
@@ -1859,23 +1906,24 @@ var TextRange = React.createClass({displayName: "TextRange",
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
   // This component is responsible for retrieving data from sjs.library for the ref that defines it.
   propTypes: {
-    sref:               React.PropTypes.string.isRequired,
-    textListRef:        React.PropTypes.string,
-    basetext:           React.PropTypes.bool,
-    withContext:        React.PropTypes.bool,
-    hideTitle:          React.PropTypes.bool,
-    loadLinks:          React.PropTypes.bool,
-    prefetchNextPrev:   React.PropTypes.bool,
-    openOnClick:        React.PropTypes.bool,
-    lowlight:           React.PropTypes.bool,
-    numberLabel:        React.PropTypes.number,
-    settings:           React.PropTypes.object,
-    filter:             React.PropTypes.array,
-    showBaseText:       React.PropTypes.func,
-    showTextList:       React.PropTypes.func,
-    onTextLoad:         React.PropTypes.func,
-    onBaseSegmentClick: React.PropTypes.func,
-    panelsOpen:         React.PropTypes.number
+    sref:                React.PropTypes.string.isRequired,
+    highlightedRefs:     React.PropTypes.array,
+    basetext:            React.PropTypes.bool,
+    withContext:         React.PropTypes.bool,
+    hideTitle:           React.PropTypes.bool,
+    loadLinks:           React.PropTypes.bool,
+    prefetchNextPrev:    React.PropTypes.bool,
+    openOnClick:         React.PropTypes.bool,
+    lowlight:            React.PropTypes.bool,
+    numberLabel:         React.PropTypes.number,
+    settings:            React.PropTypes.object,
+    filter:              React.PropTypes.array,
+    showBaseText:        React.PropTypes.func,
+    showTextList:        React.PropTypes.func,
+    onTextLoad:          React.PropTypes.func,
+    onBaseSegmentClick:  React.PropTypes.func,
+    onCitationClick:     React.PropTypes.func,
+    panelsOpen:          React.PropTypes.number
   },
   getInitialState: function() {
     return { 
@@ -2067,8 +2115,9 @@ var TextRange = React.createClass({displayName: "TextRange",
                               
 
     var textSegments = this.state.segments.map(function (segment, i) {
-      var highlight = this.props.textListRef ? segment.ref === this.props.textListRef :
-                        this.props.basetext && segment.highlight;
+      var highlight = this.props.highlightedRefs ?                                  // if highlighted refs are explicitly set
+                        $.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
+                        this.props.basetext && segment.highlight;                   // otherwise highlight if this a basetext and the ref is specific
       return (
         React.createElement(TextSegment, {
             key: i + segment.ref, 
@@ -2079,9 +2128,8 @@ var TextRange = React.createClass({displayName: "TextRange",
             segmentNumber: showSegmentNumbers ? segment.number : 0, 
             showLinkCount: this.props.basetext, 
             filter: this.props.filter, 
-            handleClick: this.props.onBaseSegmentClick, 
-            showBaseText: this.props.showBaseText, 
-            showTextList: this.props.showTextList})
+            onSegmentClick: this.props.onBaseSegmentClick, 
+            onCitationClick: this.props.onCitationClick})
       );
     }.bind(this));
     textSegments = textSegments.length ? 
@@ -2119,26 +2167,25 @@ var TextRange = React.createClass({displayName: "TextRange",
 
 var TextSegment = React.createClass({displayName: "TextSegment",
   propTypes: {
-    sref:              React.PropTypes.string,
-    en:                React.PropTypes.string,
-    he:                React.PropTypes.string,
-    highlight:         React.PropTypes.bool,
-    segmentNumber:     React.PropTypes.number,
-    showLinkCount:     React.PropTypes.bool,
-    filter:            React.PropTypes.array,
-    showBaseText:      React.PropTypes.func,
-    showTextList:      React.PropTypes.func,
-    handleClick:       React.PropTypes.func
+    sref:            React.PropTypes.string,
+    en:              React.PropTypes.string,
+    he:              React.PropTypes.string,
+    highlight:       React.PropTypes.bool,
+    segmentNumber:   React.PropTypes.number,
+    showLinkCount:   React.PropTypes.bool,
+    filter:          React.PropTypes.array,
+    onCitationClick: React.PropTypes.func,
+    onSegmentClick:  React.PropTypes.func
   },
   handleClick: function(event) {
     if ($(event.target).hasClass("refLink")) {
       //Click of citation
       var ref = humanRef($(event.target).attr("data-ref"));
-      this.props.showBaseText(ref);
+      this.props.onCitationClick(ref);
       event.stopPropagation();
-      sjs.track.event("Reader", "Ref Link Click", ref)
-    } else if (this.props.handleClick) {
-      this.props.handleClick(this.props.sref);
+      sjs.track.event("Reader", "Citation Link Click", ref)
+    } else if (this.props.onSegmentClick) {
+      this.props.onSegmentClick(this.props.sref);
       sjs.track.event("Reader", "Text Segment Click", this.props.sref);
     }
   },
@@ -2179,7 +2226,8 @@ var TextSegment = React.createClass({displayName: "TextSegment",
 
 var TextList = React.createClass({displayName: "TextList",
   propTypes: {
-    sref:                React.PropTypes.string.isRequired,
+    sref:                React.PropTypes.string,   // Either a single ref string or
+    srefs:               React.PropTypes.array,    // an array of ref strings is required
     filter:              React.PropTypes.array.isRequired,
     recentFilters:       React.PropTypes.array.isRequired,
     fullPanel:           React.PropTypes.bool,
@@ -2187,6 +2235,7 @@ var TextList = React.createClass({displayName: "TextList",
     setFilter:           React.PropTypes.func,
     showTextList:        React.PropTypes.func,
     showBaseText:        React.PropTypes.func,
+    onCitationClick:     React.PropTypes.func,
     backToText:          React.PropTypes.func,
     openNav:             React.PropTypes.func,
     openDisplaySettings: React.PropTypes.func,
@@ -2222,13 +2271,19 @@ var TextList = React.createClass({displayName: "TextList",
     }
   },
   loadConnections: function() {
+    // Load connections data from server for this ref
+    var ref = this.props.sref ? this.props.sref : this.props.srefs[0]; // TODO account for selections spanning sections
     // Loading intially at section level for commentary
-    var ref = sjs.library.ref(this.props.sref) ? sjs.library.ref(this.props.sref).sectionRef : this.props.sref;
-    if (!ref) { return; }
-    sjs.library.links(ref, function(links) {
+    var sectionRef = sjs.library.ref(ref) ? sjs.library.ref(ref).sectionRef : ref;
+
+    if (!sectionRef) { return; }
+    sjs.library.links(sectionRef, function(links) {
       if (this.isMounted()) {
         this.preloadText(this.props.filter);
-        this.setState({links: links});
+        this.setState({
+          links: links,
+          sectionRef: sectionRef
+        });
       }
     }.bind(this));
   },
@@ -2237,7 +2292,7 @@ var TextList = React.createClass({displayName: "TextList",
     if (filter.length == 1 && 
         sjs.library.index(filter[0]) && 
         sjs.library.index(filter[0]).categories == "Commentary") {
-      var basetext   = sjs.library.ref(this.props.sref) ? sjs.library.ref(this.props.sref).sectionRef : this.props.sref;
+      var basetext   = this.state.sectionRef;
       var commentary = filter[0] + " on " + basetext;
       this.setState({textLoaded: false, waitForText: true});
       sjs.library.text(commentary, {}, function() {
@@ -2245,8 +2300,8 @@ var TextList = React.createClass({displayName: "TextList",
       }.bind(this));
     } else if (filter.length == 1 && filter[0] == "Commentary") {
       // Preload all commentaries on this section
-      var basetext   = sjs.library.ref(this.props.sref).sectionRef;
-      var summary    = sjs.library.linkSummary(this.props.sref);
+      var basetext   = this.state.sectionRef;
+      var summary    = sjs.library.linkSummary(this.state.sectionRef);
       if (summary.length && summary[0].category == "Commentary") {
         this.setState({textLoaded: false, waitForText: true});
         // Get a list of commentators on this section that we need don't have in the cache
@@ -2302,12 +2357,12 @@ var TextList = React.createClass({displayName: "TextList",
     sjs.track.event("Reader", "Show All Filters Click", "1");
   },
   render: function() {
-    var ref            = this.props.sref;
-    var summary        = sjs.library.linkSummary(ref);
+    var refs           = this.props.sref ? [this.props.sref] : this.props.srefs;
+    var summary        = sjs.library.linkSummary(refs);
     var classes        = classNames({textList: 1, fullPanel: this.props.fullPanel});
     var filter         = this.props.filter;
     var links          = this.state.links.filter(function(link) {
-      if ((link.category !== "Commentary" || filter.length && filter[0] === "Commentary") && link.anchorRef !== this.props.sref) {
+      if ((link.category !== "Commentary" || filter.length && filter[0] === "Commentary") && $.inArray(link.anchorRef, refs) !== -1) {
         // Only show section level links for an individual commentary
         return false;
       }
@@ -2328,8 +2383,7 @@ var TextList = React.createClass({displayName: "TextList",
     var showAllFilters = !filter.length;
     var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";;
     var he = "אין קשרים ידועים"       + (filter.length ? " ל"    + filter.join(", ") : "") + ".";;
-    var sectionRef = sjs.library.ref(ref) ? sjs.library.ref(ref).sectionRef : ref;
-    var loaded     = sjs.library.linksLoaded(sectionRef);
+    var loaded  = sjs.library.linksLoaded(this.state.sectionRef);
     var message = !loaded ? 
                     (React.createElement(LoadingMessage, null)) : 
                       (links.length === 0 ? 
@@ -2343,11 +2397,12 @@ var TextList = React.createClass({displayName: "TextList",
                           return (React.createElement(TextRange, {
                                     sref: link.sourceRef, 
                                     key: i + link.sourceRef, 
-                                    lowlight: ref !== link.anchorRef, 
+                                    lowlight: $.inArray(link.anchorRef, refs) === -1, 
                                     hideTitle: hideTitle, 
                                     numberLabel: link.category === "Commentary" ? link.anchorVerse : 0, 
                                     basetext: false, 
                                     showBaseText: this.props.showBaseText, 
+                                    onCitationClick: this.props.onCitationClick, 
                                     openOnClick: true}));
                         }, this);      
     }
@@ -2358,19 +2413,18 @@ var TextList = React.createClass({displayName: "TextList",
               message
           ), 
           React.createElement(AllFilterSet, {
-            sref: this.props.sref, 
+            summary: summary, 
             showText: this.props.showText, 
             filter: this.props.fitler, 
             recentFilters: this.props.recentFilters, 
-            setFilter: this.props.setFilter, 
-            summary: summary})
+            setFilter: this.props.setFilter})
         ));
     } else {
       return (
         React.createElement("div", {className: classes}, 
           React.createElement("div", {className: "textListTop"}, 
             this.props.fullPanel ? (React.createElement("div", {className: "leftButtons"}, React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.openNav}))) : null, 
-            React.createElement(TopFilterSet, {
+            React.createElement(RecentFilterSet, {
               sref: this.props.sref, 
               showText: this.props.showText, 
               filter: this.props.filter, 
@@ -2395,7 +2449,68 @@ var TextList = React.createClass({displayName: "TextList",
 });
 
 
-var TopFilterSet = React.createClass({displayName: "TopFilterSet",
+var AllFilterSet = React.createClass({displayName: "AllFilterSet",
+  render: function() {
+    var categories = this.props.summary.map(function(cat, i) {
+      return (
+        React.createElement(CategoryFilter, {
+          key: i, 
+          category: cat.category, 
+          heCategory: sjs.library.hebrewCategory(cat.category), 
+          count: cat.count, 
+          books: cat.books, 
+          filter: this.props.filter, 
+          updateRecent: true, 
+          setFilter: this.props.setFilter, 
+          on: $.inArray(cat.category, this.props.filter) !== -1})
+      );
+    }.bind(this));
+    return (
+      React.createElement("div", {className: "fullFilterView filterSet"}, 
+        categories
+      )
+    );
+  }
+});
+
+
+var CategoryFilter = React.createClass({displayName: "CategoryFilter",
+  handleClick: function() {
+    this.props.setFilter(this.props.category, this.props.updateRecent);
+    sjs.track.event("Reader", "Category Filter Click", this.props.category);
+  },
+  render: function() {
+    var textFilters = this.props.books.map(function(book, i) {
+     return (React.createElement(TextFilter, {
+                key: i, 
+                book: book.book, 
+                heBook: book.heBook, 
+                count: book.count, 
+                category: this.props.category, 
+                hideColors: true, 
+                updateRecent: true, 
+                setFilter: this.props.setFilter, 
+                on: $.inArray(book.book, this.props.filter) !== -1}));
+    }.bind(this));
+    
+    var color   = sjs.categoryColor(this.props.category);
+    var style   = {"borderTop": "4px solid " + color};
+    var classes = classNames({categoryFilter: 1, on: this.props.on});
+    var count   = (React.createElement("span", {className: "enInHe"}, this.props.count));
+    return (
+      React.createElement("div", {className: "categoryFilterGroup", style: style}, 
+        React.createElement("div", {className: classes, onClick: this.handleClick}, 
+          React.createElement("span", {className: "en"}, this.props.category, " | ", count), 
+          React.createElement("span", {className: "he"}, this.props.heCategory, " | ", count)
+        ), 
+        React.createElement(TwoBox, {content:  textFilters })
+      )
+    );
+  }
+});
+
+
+var RecentFilterSet = React.createClass({displayName: "RecentFilterSet",
   toggleAllFilterView: function() {
     this.setState({showAllFilters: !this.state.showAllFilters});
   },
