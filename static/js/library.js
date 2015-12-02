@@ -5,62 +5,73 @@ sjs = sjs || {};
 sjs.library = {
   _texts: {},
   text: function(ref, settings, cb) {
-    if (typeof ref == "object") { debugger; }
+    if (typeof ref == "object" || typeof ref == "undefined") { debugger; }
     var settings = settings || {};
     settings = {
       commentary: settings.commentary || 0,
-      context:    settings.context || 0,
-      pad:        settings.pad || 0
+      context:    settings.context    || 0,
+      pad:        settings.pad        || 0
     };
     var key = this._textKey(ref, settings);
     if (!cb) {
-      return this._texts[key];
+      return this._getOrBuildTextData(key);
     }          
     if (key in this._texts) {
-      cb(this._texts[key]);
-      return this._texts[key];
-    } else {
-       params = "?" + $.param(settings);
-       var url = "/api/texts/" + normRef(ref) + params;
-       this._api(url, function(data) {
-          this._saveText(data, settings);
-          cb(data);
-        }.bind(this));
+      var data = this._getOrBuildTextData(key)
+      cb(data);
+      return data;
     }
+    params = "?" + $.param(settings);
+    var url = "/api/texts/" + normRef(ref) + params;
+    this._api(url, function(data) {
+      this._saveText(data, settings);
+      cb(data);
+    }.bind(this));
   },
   _textKey: function(ref, settings) {
     // Returns a string used as a key for the cache object of `ref` given `settings`.
-    var key = ref;
+    var key = ref.toLowerCase();
     if (settings) {
       key = settings.context ? key + "|CONTEXT" : key;
     }
     return key;
   },
+  _getOrBuildTextData: function(key) {
+    var cached = this._texts[key];
+    if (!cached || !cached.buildable) { return cached; }
+    if (cached.buildable === "Add Context") {
+      var segmentData = clone(this.text(cached.ref));
+      var contextData = this.text(cached.sectionRef) || this.text(cached.sectionRef, {context: 1});
+      segmentData.text = contextData.text;
+      segmentData.he   = contextData.he;
+      return segmentData;
+    }
+  },
   _saveText: function(data, settings) {
-        if ("error" in data) { 
-          //sjs.alert.message(data.error);
-          return;
-        }
-        var settings     = settings || {};
-        data             = this._wrapRefs(data);
-        key              = this._textKey(data.ref, settings);
-        this._texts[key] = data;
-        if (data.ref == data.sectionRef) {
-          this._splitTextSection(data);
-        } else if (settings.context) {
-          // Save a copy of the data at context level
-          var newData        = clone(data);
-          newData.ref        = data.sectionRef;
-          newData.sections   = data.sections.slice(0,-1);
-          newData.toSections = data.toSections.slice(0,-1);
-          this._saveText(newData);
-        }
-        var index = {
-          title:      data.indexTitle,
-          heTitle:    data.heIndexTitle, // This is incorrect for complex texts
-          categories: data.categories
-        };
-        this.index(index.title, index);
+    if ("error" in data) { 
+      //sjs.alert.message(data.error);
+      return;
+    }
+    var settings     = settings || {};
+    data             = this._wrapRefs(data);
+    key              = this._textKey(data.ref, settings);
+    this._texts[key] = data;
+    if (data.ref == data.sectionRef) {
+      this._splitTextSection(data);
+    } else if (settings.context) {
+      // Save a copy of the data at context level
+      var newData        = clone(data);
+      newData.ref        = data.sectionRef;
+      newData.sections   = data.sections.slice(0,-1);
+      newData.toSections = data.toSections.slice(0,-1);
+      this._saveText(newData);
+    }
+    var index = {
+      title:      data.indexTitle,
+      heTitle:    data.heIndexTitle, // This is incorrect for complex texts
+      categories: data.categories
+    };
+    this.index(index.title, index);
   },
   _splitTextSection: function(data) {
     // Takes data for a section level text and populates cache with segment levels.
@@ -78,7 +89,7 @@ sjs.library = {
     var start = data.textDepth == data.sections.length ? data.sections[data.textDepth-1] : 1;
     for (var i = 0; i < length; i++) {
       var ref          = data.ref + delim + (i+start);
-      var sectionRef   = superSectionLevel ? sectionRef : ref;
+      var sectionRef   = superSectionLevel ? data.sectionRef : ref;
       var segment_data = clone(data);
       $.extend(segment_data, {
         ref: ref,
@@ -92,6 +103,8 @@ sjs.library = {
       });
 
       this._saveText(segment_data);
+      var contextKey = this._textKey(ref, {context:1});
+      this._texts[contextKey] = {buildable: "Add Context", ref: ref, sectionRef: sectionRef};
     }
   },
   _wrapRefs: function(data) {

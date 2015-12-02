@@ -461,9 +461,9 @@ var ReaderPanel = React.createClass({
   },
   setHeadroom: function() {
     if (this.props.multiPanel) { return; }
-    var $node    = $(ReactDOM.findDOMNode(this));
-    var $header  = $node.find(".readerControls");
-    if (this.props.mode !== "Connections") {
+    if (this.props.mode !== "TextAndConnections") {
+      var $node    = $(ReactDOM.findDOMNode(this));
+      var $header  = $node.find(".readerControls");
       var scroller = $node.find(".textColumn")[0];
       $header.headroom({scroller: scroller});
     }
@@ -582,7 +582,9 @@ var ReaderPanel = React.createClass({
   },
   lastCurrentRef: function() {
     // Returns a string of the current ref, the last if there are many
-    return this.state.refs && this.state.refs.length ? this.state.refs.slice(-1)[0] : null;
+    var ret = this.state.refs && this.state.refs.length ? this.state.refs.slice(-1)[0] : null;
+    if (typeof ret == "object") {debugger;}
+    return ret;
   },
   currentData: function() {
     // Returns the data from the library of the current ref
