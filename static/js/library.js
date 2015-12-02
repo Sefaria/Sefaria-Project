@@ -7,11 +7,11 @@ sjs.library = {
   text: function(ref, settings, cb) {
     if (typeof ref == "object") { debugger; }
     var settings = settings || {};
-    var settings = {
+    settings = {
       commentary: settings.commentary || 0,
       context:    settings.context || 0,
       pad:        settings.pad || 0
-    }
+    };
     var key = this._textKey(ref, settings);
     if (!cb) {
       return this._texts[key];
@@ -96,6 +96,7 @@ sjs.library = {
   },
   _wrapRefs: function(data) {
     // Wraps citations found in text of data
+    if (!data.text) { return data; }
     if (typeof data.text === "string") {
       data.text = sjs.wrapRefLinks(data.text);
     } else {
@@ -284,7 +285,7 @@ sjs.library = {
     return books;     
   },
   topLinks: function(ref) {
-    // Return up to 5 top recommended link filters
+    // Return up to 5 top recommended link filters - Not currently used
     // TODO add text specific content rules here (e.g., privlege Tosafot for Bavli)
     var books = this.flatLinkSummary(ref);
     books.sort(function(a,b) { return b.count - a.count; });

@@ -61,12 +61,12 @@ body.dark {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   position: relative;
-  padding: 0px 0 100%;
+  padding: 0px 0 50%;
   box-sizing: border-box;
   background-color: inherit;
 }
 .multiPanel .textColumn {
-  padding: 0 25px 100%;
+  padding: 0 25px 50%;
 }
 .textColumn .loadingMessage.base {
   margin: 30px 0;
