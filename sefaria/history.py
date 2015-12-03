@@ -186,6 +186,34 @@ def next_revision_num():
     return revision
 
 
+def record_index_deletion(title, uid):
+    """
+    Records the deletion of an index record.
+    """
+    log = {
+        "user": uid,
+        "title": title,
+        "date": datetime.now(),
+        "rev_type": "delete index",
+    }
+    db.history.save(log)
+
+
+def record_version_deletion(title, version, lang, uid):
+    """
+    Records the deletion of a text version.
+    """
+    log = {
+        "user": uid,
+        "title": title,
+        "version": version,
+        "language": lang,
+        "date": datetime.now(),
+        "rev_type": "delete text",
+    }
+    db.history.save(log)
+
+
 def record_sheet_publication(sheet_id, uid):
     """
     Records the publications of a new Source Sheet.

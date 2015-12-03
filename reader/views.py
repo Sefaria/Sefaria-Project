@@ -23,7 +23,7 @@ from sefaria.client.wrapper import format_object_for_client, format_note_object_
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse
-from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision
+from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.workflows import *
 from sefaria.reviews import *
@@ -830,6 +830,7 @@ def texts_api(request, tref, lang=None, version=None):
             return jsonResponse({"error": "Text version not found."})
 
         v.delete()
+        record_version_deletion(tref, version, lang, request.user.id)
 
         if USE_VARNISH:
             invalidate_linked(oref)
@@ -923,6 +924,7 @@ def index_api(request, title, v2=False, raw=False):
         i = get_index(title)
 
         i.delete()
+        record_index_deletion(title, request.user.id)
 
         return jsonResponse({"status": "ok"})
 
