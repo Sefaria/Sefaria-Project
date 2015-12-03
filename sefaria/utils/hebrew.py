@@ -486,7 +486,7 @@ def hebrew_term(s):
 		"Tosefta":          u"תוספתא",
 		"Halakhah":         u"הלכה",
 		"Kovetz":           u"קובץ",
-		"Path":             u"נתיבה",
+		"Path":             u"נתיב",
 		"Parshah":          u"פרשה",
 		"Midrash":          u"מדרש",
 		"Mitzvah":          u"מצוה",
@@ -496,8 +496,11 @@ def hebrew_term(s):
 		"Peirush":	        u"פירוש",
 		"Aliyah":	        u"עלייה",
 		"Tikkun":           u"תיקון",
-		"Tikkunim":         u"תיקונים"
-	}
+		"Tikkunim":         u"תיקונים",
+        "Hilchot":          u"הילכות",
+        "Topic":            u"נושא",
+        "Contents":         u"תוכן"
+    }
 
 	words = dict(categories.items() + pseudo_categories.items() + section_names.items())
 
