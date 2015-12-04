@@ -856,14 +856,10 @@
 		// browser check -- 
 		// this attempts to create an element and add css3 2d transformation to it
 		// these are only supported in self-updating firefox, chrome, safari & ie > 9
-		var divForBrowserTest = document.createElement('div');
-		divForBrowserTest.setAttribute('style', 'animation: foo 1s 2s infinite linear alternate both;');
-		document.body.appendChild(divForBrowserTest);
-		var sefariaSupportedBrowser = !!(divForBrowserTest.style.animation);
-//		divForBrowserTest.parentNode.removeChild(divForBrowserTest);
-//		divForBrowserTest = null;
-		
-		alert(divForBrowserTest.style.animation);
+
+		$("#sefaria").css("animation-name", "foo");
+		var sefariaSupportedBrowser = !!$("#alertMessage").css("animation-name");
+		$("#sefaria").css("animation-name", "");
 
 		if (sefariaSupportedBrowser == false) {
 		$("#alertMessage").html('<strong>Warning:</strong> Your browser is out of date and unsupported by Sefaria<br/>Please use a more up to date browser or download one <a href="http://browsehappy.com/" target="_blank">here</a>.').show();
