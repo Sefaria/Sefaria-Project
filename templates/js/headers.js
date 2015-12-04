@@ -861,7 +861,7 @@
 		var sefariaSupportedBrowser = !!$("#alertMessage").css("text-shadow");
 		$("#sefaria").css("text-shadow", "");
 
-		if (sefariaSupportedBrowser == false) {
+		if (sefariaSupportedBrowser == true) {
 		$("#alertMessage").html('<strong>Warning:</strong> Your browser is out of date and unsupported by Sefaria<br/>Please use a more up to date browser or download one <a href="http://browsehappy.com/" target="_blank">here</a>.').show();
 		}
 
