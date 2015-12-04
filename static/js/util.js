@@ -13,9 +13,7 @@ sjs.cache = {
 			return;
 		}
 
-		var pRef = parseRef(ref);
 		var nRef = normRef(ref).toLowerCase();
-
 		if (nRef in this._cache) {
 			var data = clone(this._cache[nRef]);
 			
@@ -24,11 +22,13 @@ sjs.cache = {
 		
 			// If the ref has more than 1 section listed, try trimming the last section
 			var nRef = nRef.replace(/:/g, ".").slice(0, nRef.lastIndexOf("."));
+		 	var pRef = parseRef(ref);
+		 	if ("error" in pRef) { return false; }
 
-			var data          = clone(this._cache[nRef]);
 			var lastSection   = parseInt(pRef.sections[pRef.sections.length -1]);
 			var lastToSection = parseInt(pRef.toSections[pRef.toSections.length -1]);
 			
+			var data = clone(this._cache[nRef]);
 			if (data && data.sections) {
 				data.sections.push(lastSection);
 				data.toSections.push(lastToSection);
@@ -47,6 +47,10 @@ sjs.cache = {
 			callback(data);
 		} else{
 			var pRef = parseRef(ref);
+			if ("error" in pRef) { 
+			 	callback(pRef);
+				return; 
+			}
 			var book = pRef['book'];
 			var paramString = this.paramString();
 			//do we have a cached preferred version for this text? get it
@@ -66,11 +70,15 @@ sjs.cache = {
                 var note_fetch = $.getJSON("/api/notes/" + makeRef(pRef));
                 $.when(text_fetch, note_fetch).done(function(textData, noteData) {
                     textData[0]["notes"] = noteData[0];
+                    sjs.cache.save(textData[0]);
                     callback(textData[0]);
                 })
 
             } else {
-                text_fetch.done(function(data) { callback(data) });
+                text_fetch.done(function(data) { 
+                	sjs.cache.save(data);
+                	callback(data);
+                });
             }
 		}
 	},
@@ -78,6 +86,7 @@ sjs.cache = {
 		return normRef(ref).toLowerCase();
 	},
 	save: function(origData) {
+		if ("error" in origData) { return; }
 		var data = clone(origData);
 		var ref  = this.cacheKey(data.ref);
 
@@ -105,9 +114,6 @@ sjs.cache = {
 		if ("new_preferred_version" in data) {
 			this.setPreferredTextVersion(data['book'],data["new_preferred_version"]);
 		}
-	},
-	update: function(newData) {
-
 	},
  	prefetch: function(ref) {
 		// grab a text from the server and put it in the cache
@@ -947,7 +953,10 @@ sjs.textBrowser = {
 		$.getJSON("/api/preview/" + title, function(data) {
 			sjs.textBrowser._currentText = data;
             sjs.textBrowser._currentSchema = new sjs.SchemaNode(data.schema);
-            if(sjs.textBrowser._currentSchema.has_children()) {
+            var titles      = sjs.textBrowser._path.slice(sjs.textBrowser._currentText.categories.length + 1);
+            var node        = sjs.textBrowser._currentSchema.get_node_from_titles(titles);
+            var node_children    = node.children().length > 0;
+            if(sjs.textBrowser._currentSchema.has_children() && (node_children || !(data.preview))) {
                 sjs.textBrowser.buildComplexTextNav()
             } else {
     			sjs.textBrowser.buildTextNav();

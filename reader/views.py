@@ -23,8 +23,8 @@ from sefaria.client.wrapper import format_object_for_client, format_note_object_
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse
-from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision
-from sefaria.system.decorators import catch_error_as_json, catch_error_as_http
+from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
+from sefaria.system.decorators import catch_error_as_json
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.summaries import get_toc, flatten_toc, get_or_make_summary_node, REORDER_RULES
@@ -48,11 +48,10 @@ if USE_VARNISH:
 import logging
 logger = logging.getLogger(__name__)
 
-@catch_error_as_http
+
 @ensure_csrf_cookie
 def reader(request, tref, lang=None, version=None):
     # Redirect to standard URLs
-    # Let unknown refs pass through
     def reader_redirect(uref, lang, version):
         url = "/" + uref
         if lang and version:
@@ -69,6 +68,8 @@ def reader(request, tref, lang=None, version=None):
         logger.warning(u'{}'.format(e))
         matched_ref = Ref(e.matched_part)
         return reader_redirect(matched_ref.url(), lang, version)
+    except InputError:
+        raise Http404
 
     uref = oref.url()
     if uref and tref != uref:
@@ -92,7 +93,7 @@ def reader(request, tref, lang=None, version=None):
 
     version = version.replace("_", " ") if version else None
 
-    text = TextFamily(Ref(tref), lang=lang, version=version, commentary=False, alts=True).contents()
+    text = TextFamily(oref, lang=lang, version=version, commentary=False, alts=True).contents()
 
     text.update({"commentary": [], "notes": [], "sheets": [], "layer": [], "connectionsLoadNeeded": True})
     hasSidebar = True
@@ -166,13 +167,16 @@ def esi_account_box(request):
     return render_to_response('elements/accountBox.html', {}, RequestContext(request))
 
 
-@catch_error_as_http
+
 def s2(request, ref, version=None, lang=None):
     """
     New interfaces in development
     """
+    try:
+        oref = Ref(ref)
+    except InputError:
+        raise Http404
 
-    oref = Ref(ref)
     if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
         initialMenu = "text toc"
         oref = oref.first_available_section_ref()
@@ -190,7 +194,6 @@ def s2(request, ref, version=None, lang=None):
                                         }, RequestContext(request))
 
 
-@catch_error_as_http
 def s2_texts_category(request, cats):
     """
     Listing of texts in a category.
@@ -208,7 +211,6 @@ def s2_texts_category(request, cats):
                                 }, RequestContext(request))
 
 
-@catch_error_as_http
 def s2_page(request, page):
     """
     View into an S2 page
@@ -233,7 +235,7 @@ def s2_texts(request):
 def s2_sheets(request):
     return s2_page(request, "sheets")
 
-@catch_error_as_http
+
 def s2_sheets_by_tag(request, tag):
     """
     Standalone page for new sheets list
@@ -243,7 +245,6 @@ def s2_sheets_by_tag(request, tag):
                                     "initialSheetsTag": tag,
                                 }, RequestContext(request))
 
-@catch_error_as_http
 @ensure_csrf_cookie
 def edit_text(request, ref=None, lang=None, version=None):
     """
@@ -282,7 +283,6 @@ def edit_text(request, ref=None, lang=None, version=None):
                              },
                              RequestContext(request))
 
-@catch_error_as_http
 @ensure_csrf_cookie
 def edit_text_info(request, title=None, new_title=None):
     """
@@ -555,7 +555,7 @@ def toc_availability_class(toc):
         else:
             return "None"
 
-@catch_error_as_http
+
 @ensure_csrf_cookie
 def text_toc(request, oref):
     """
@@ -663,7 +663,7 @@ def text_toc_html_fragment(request, title):
     zoom = 0 if not oref.index.is_complex() and oref.index_node.depth == 1 else 1
     return HttpResponse(make_toc_html(oref, zoom=zoom))    
 
-@catch_error_as_http
+
 @ensure_csrf_cookie
 def texts_list(request):
     """
@@ -675,7 +675,7 @@ def texts_list(request):
                              {},
                              RequestContext(request))
 
-@catch_error_as_http
+
 def texts_category_list(request, cats):
     """
     Page listing every text in category
@@ -830,6 +830,7 @@ def texts_api(request, tref, lang=None, version=None):
             return jsonResponse({"error": "Text version not found."})
 
         v.delete()
+        record_version_deletion(tref, version, lang, request.user.id)
 
         if USE_VARNISH:
             invalidate_linked(oref)
@@ -923,6 +924,7 @@ def index_api(request, title, v2=False, raw=False):
         i = get_index(title)
 
         i.delete()
+        record_index_deletion(title, request.user.id)
 
         return jsonResponse({"status": "ok"})
 
@@ -1189,6 +1191,7 @@ def notes_api(request, note_id_or_ref):
 
     return jsonResponse({"error": "Unsuported HTTP method."})
 
+
 @catch_error_as_json
 def versions_api(request, tref):
     """
@@ -1206,6 +1209,7 @@ def versions_api(request, tref):
 
     return jsonResponse(results, callback=request.GET.get("callback", None))
 
+
 @catch_error_as_json
 def set_lock_api(request, tref, lang, version):
     """
@@ -1215,6 +1219,7 @@ def set_lock_api(request, tref, lang, version):
     model.set_lock(model.Ref(tref).normal(), lang, version.replace("_", " "), user)
     return jsonResponse({"status": "ok"})
 
+
 @catch_error_as_json
 def release_lock_api(request, tref, lang, version):
     """
@@ -1223,6 +1228,7 @@ def release_lock_api(request, tref, lang, version):
     model.release_lock(model.Ref(tref).normal(), lang, version.replace("_", " "))
     return jsonResponse({"status": "ok"})
 
+
 @catch_error_as_json
 def check_lock_api(request, tref, lang, version):
     """
@@ -1230,6 +1236,7 @@ def check_lock_api(request, tref, lang, version):
     """
     locked = model.check_lock(model.Ref(tref).normal(), lang, version.replace("_", " "))
     return jsonResponse({"locked": locked})
+
 
 @catch_error_as_json
 def lock_text_api(request, title, lang, version):
@@ -1367,6 +1374,7 @@ def follow_api(request, action, uid):
 
     return jsonResponse({"status": "ok"})
 
+
 @catch_error_as_json
 def follow_list_api(request, kind, uid):
     """
@@ -1378,6 +1386,7 @@ def follow_list_api(request, kind, uid):
         f = FolloweesSet(int(uid))
 
     return jsonResponse(annotate_user_list(f.uids))
+
 
 @catch_error_as_json
 def texts_history_api(request, tref, lang=None, version=None):
@@ -1434,6 +1443,7 @@ def texts_history_api(request, tref, lang=None, version=None):
 
     return jsonResponse(summary)
 
+
 @catch_error_as_json
 def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
     if request.method == "GET":
@@ -1483,7 +1493,7 @@ def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
     else:
         return jsonResponse({"error": "Unsuported HTTP method."})
 
-@catch_error_as_http
+
 @ensure_csrf_cookie
 def global_activity(request, page=1):
     """
@@ -1521,13 +1531,17 @@ def global_activity(request, page=1):
                                 },
                              RequestContext(request))
 
-@catch_error_as_http
+
 @ensure_csrf_cookie
 def segment_history(request, tref, lang, version):
     """
     View revision history for the text segment named by ref / lang / version.
     """
-    oref = model.Ref(tref)
+    try:
+        oref = model.Ref(tref)
+    except InputError:
+        raise Http404
+
     nref = oref.normal()
 
     version = version.replace("_", " ")
@@ -1547,6 +1561,7 @@ def segment_history(request, tref, lang, version):
                                'filter_type': filter_type,
                              },
                              RequestContext(request))
+
 
 @catch_error_as_json
 def revert_api(request, tref, lang, version, revision):
@@ -1569,7 +1584,7 @@ def revert_api(request, tref, lang, version, revision):
 
     return jsonResponse({"status": "ok"})
 
-@catch_error_as_http
+
 @ensure_csrf_cookie
 def user_profile(request, username, page=1):
     """
@@ -1769,15 +1784,12 @@ def new_discussion_api(request):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
-@catch_error_as_http
+
 @ensure_csrf_cookie
 def dashboard(request):
     """
     Dashboard page -- table view of all content
     """
-    #counts = db.counts.find({"title": {"$exists": 1}},
-    #    {"title": 1, "flags": 1, "linksCount": 1, "percentAvailable": 1})
-
     states = VersionStateSet(
         {},
         proj={"title": 1, "flags": 1, "linksCount": 1, "content._en.percentAvailable": 1, "content._he.percentAvailable": 1}
@@ -1800,7 +1812,6 @@ def dashboard(request):
                                 RequestContext(request))
 
 
-@catch_error_as_http
 @ensure_csrf_cookie
 def translation_requests(request, completed_only=False, featured_only=False):
     """
@@ -1855,6 +1866,7 @@ def completed_featured_translation_requests(request):
     return translation_requests(request, completed_only=True, featured_only=True)
 
 
+@catch_error_as_json
 def translation_request_api(request, tref):
     """
     API for requesting a text segment for translation.
@@ -1899,7 +1911,6 @@ def translation_request_api(request, tref):
     return jsonResponse(response)
 
 
-@catch_error_as_http
 @ensure_csrf_cookie
 def translation_flow(request, tref):
     """
@@ -2195,7 +2206,7 @@ def explore(request, book1, book2, lang=None):
 
     return render_to_response('explore.html', template_vars, RequestContext(request))
 
-@catch_error_as_http
+
 def person_page(request, name):
     person = Person().load({"key": name})
 

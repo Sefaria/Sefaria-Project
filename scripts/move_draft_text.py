@@ -41,7 +41,7 @@ class ServerTextCopier(object):
 
     def do_copy(self):
         self.load_objects()
-        """if self._post_index:
+        if self._post_index:
             self._make_post_request_to_server(self._prepare_index_api_call(self._title_to_retrieve), self._index_obj.contents(raw=True))
         content_nodes = self._index_obj.nodes.get_leaf_nodes()
         for ver in self._version_objs:
@@ -56,7 +56,7 @@ class ServerTextCopier(object):
                     "text": text
                 }
                 self._make_post_request_to_server(self._prepare_text_api_call(node.full_title(force_update=True)), version_payload)
-        """
+        
 
 
     def _prepare_index_api_call(self, index_title):
