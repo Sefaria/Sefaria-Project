@@ -860,10 +860,10 @@
 		divForBrowserTest.setAttribute('style', 'animation: foo 1s 2s infinite linear alternate both;');
 		document.body.appendChild(divForBrowserTest);
 		var sefariaSupportedBrowser = !!(divForBrowserTest.style.animation);
-		divForBrowserTest.parentNode.removeChild(divForBrowserTest);
-		divForBrowserTest = null;
+//		divForBrowserTest.parentNode.removeChild(divForBrowserTest);
+//		divForBrowserTest = null;
 		
-		alert(sefariaSupportedBrowser);
+		alert(divForBrowserTest.style.animation);
 
 		if (sefariaSupportedBrowser == false) {
 		$("#alertMessage").html('<strong>Warning:</strong> Your browser is out of date and unsupported by Sefaria<br/>Please use a more up to date browser or download one <a href="http://browsehappy.com/" target="_blank">here</a>.').show();
