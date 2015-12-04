@@ -3450,3 +3450,10 @@ body.hebrew #footer .en {
 .clear {
 	clear:both;
 }
+#alertMessage {
+position:fixed;
+width:100%;
+display:none;
+z-index:101;
+text-align:center;
+}
