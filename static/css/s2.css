@@ -975,6 +975,7 @@ display: block;margin: 0 auto;}
 .continuous .basetext .segment {
   display: inline;
   margin: 0;
+  padding: .3333em 0;
 }
 .continuous.bilingual .basetext .segment,
 .segmented.bilingual .basetext .segment {
