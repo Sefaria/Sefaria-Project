@@ -5,7 +5,7 @@ sjs = sjs || {};
 sjs.library = {
   _texts: {},
   text: function(ref, settings, cb) {
-    if (typeof ref == "object" || typeof ref == "undefined") { debugger; }
+    if (!ref || typeof ref == "object" || typeof ref == "undefined") { debugger; }
     var settings = settings || {};
     settings = {
       commentary: settings.commentary || 0,
@@ -97,6 +97,7 @@ sjs.library = {
         text: en[i],
         he: he[i],
         sections: data.sections.concat(i+1),
+        toSections: data.sections.concat(i+1),
         sectionRef: sectionRef,
         nextSegment: i+start == length ? data.next + delim + 1 : data.ref + delim + (i+start+1),
         prevSegment: i+start == 1      ? null : data.ref + delim + (i+start-1),
@@ -141,6 +142,11 @@ sjs.library = {
     // This is currently a wrapper for sjs.library text for cases when the textual information is not important
     // so that it can be called without worrying about the `settings` parameter for what is available in cache.
     return this.text(ref) || this.text(ref, {context:1});
+  },
+  sectionRef: function(ref) {
+    // Returns the section level ref for `ref` or null if no data is available
+    var oref = this.ref(ref);
+    return oref ? oref.sectionRef : null;
   },
   _links: {},
   links: function(ref, cb) {

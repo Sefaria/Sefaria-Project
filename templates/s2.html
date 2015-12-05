@@ -91,7 +91,7 @@
         ReactDOM.render(
           React.createElement(ReaderApp, {
             multiPanel: multiPanel,
-            initialRefs: [ref],
+            initialRefs: ref ? [ref] : [],
             initialFilter: filter,
             initialMenu: "{{ initialMenu }}",
             initialQuery: query,
