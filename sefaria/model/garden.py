@@ -1,3 +1,5 @@
+# coding=utf-8
+
 import copy
 from itertools import groupby
 from sefaria.system.exceptions import InputError
@@ -30,15 +32,49 @@ class Garden(abst.AbstractMongoRecord):
     ]
     optional_attrs = [
     ]
+
     default_config = {
-        "sort_field": "start",
-        "sort_dir": "ASC",  #ASC / DESC
-        "timeline_scale": "log", #log / linear
+        "timeline_scale": "log",  # log / linear
+        "filters": {
+            "default": {
+                "en": "Tags",
+                "he": u"תגיות"
+            }
+        },
+        "sorts": {
+            "start": {
+                "en": "Date",
+                "he": u"תאריך",
+                "datatype": "Int",  #Int, Str
+                "default": "ASC"
+            }
+        }
     }
 
-    def _normalize(self):
+    def _set_derived_attributes(self):
         if getattr(self, "config", None) is None:
             self.config = copy.deepcopy(self.default_config)
+
+    def updateConfig(self, config_dict):
+        self.config.update(config_dict)
+
+    def updateFilter(self, filterkey, filterdict):
+        self.config["filters"][filterkey] = filterdict
+
+    def removeFilter(self, filterkey):
+        try:
+            del self.config["filters"][filterkey]
+        except KeyError:
+            pass
+
+    def updateSort(self, field, sortdict):
+        self.config["sorts"][field] = sortdict
+
+    def removeSort(self, field):
+        try:
+            del self.config["sorts"][field]
+        except KeyError:
+            pass
 
     def stopSet(self, sort=None):
         if not sort:
@@ -146,6 +182,7 @@ class Garden(abst.AbstractMongoRecord):
             logger.warning(u"Failed to add relationship to Garden {}. {}".format(self.title, e))
 
     def import_sheets_by_user(self, user_id):
+        self.updateSort("weight", {"type": "Int", "en": "Weight", "he": u"משקל"})
         sheet_list = db.sheets.find({"owner": int(user_id), "status": {"$ne": 5}})
         for sheet in sheet_list:
             self.import_sheet(sheet["id"])
@@ -153,6 +190,8 @@ class Garden(abst.AbstractMongoRecord):
     def import_sheets_by_tag(self, tag):
         from sefaria.sheets import get_sheets_by_tag
 
+        self.updateFilter("Sheet Author", {"en": "Sheet Author", "he": u"מחבר דף"})
+        self.updateSort("weight", {"type": "Int", "en": "Weight", "he": u"משקל"})
         sheet_list = get_sheets_by_tag(tag)
         for sheet in sheet_list:
             self.import_sheet(sheet["id"], remove_tags=[tag])
@@ -186,6 +225,9 @@ class Garden(abst.AbstractMongoRecord):
     def import_search(self, q):
         from sefaria.search import query
         res = query(q)
+
+        self.updateFilter("default", {"en": "Categories", "he": u"קטגוריות"})
+
         for hit in res["hits"]["hits"]:
             tags = {"default": hit["_source"]["path"].split("/")}
             stop = {
