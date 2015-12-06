@@ -5,7 +5,7 @@
 
 {% block title %}{{ title }}{% endblock %}
 {% block head %}
-<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://d3js.org/d3.v3.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.12/crossfilter.js"></script>
 <script src="/static/js/dc.js"></script>
 <script src="/static/js/dc.cloud.js"></script>
@@ -85,6 +85,18 @@
             </h1>
             <div id="data-count">
             </div>
+            <div id="sort-container">
+                <label for="sort-select" id="sort-label">
+                    <span class="en">Sort By:</span>
+                    <span class="he">מיין לפי:</span>
+                </label>
+                <select name="sort-select" id="sort-select" size=1 style="direction: ltr;">
+                    <option value="1" selected="selected" data-attr='start' data-dir="ASC">Date (Asc)</option>
+                    <option value="2" data-attr='start' data-dir="DESC">Date (Desc)</option>
+                    <option value="3" data-attr='weight' data-dir="ASC">Weight (Asc)</option>
+                    <option value="4" data-attr='weight' data-dir="DESC">Weight (Desc)</option>
+                </select>
+            </div>
             <div id="results-container">
                 <table id="results-content">
                 </table>
@@ -109,11 +121,11 @@
 
         var stops = {{ stops }};
         var places = {{ places }};
+        var config = {{ config }};
 
         // We catch null years, and filter them out from the year group.
         // Otherwise, they show up at year 0.
         // https://github.com/dc-js/dc.js/wiki/FAQ#fake-groups
-
         stops.forEach(function (d) {
             d.start = (d.start == null || d.start == "") ? null : +d.start; // coerce to number, if it's a number
             d.end = (d.end == null || d.end == "") ? null : +d.end;
@@ -131,13 +143,36 @@
 
         var stopx = crossfilter(stops);
         var all = stopx.groupAll();
+
         var yearDim = stopx.dimension(function(d) { return d.start; }); //!!Using start as the year.
         var yearGroup = yearDim.group();
         var filteredYearGroup = remove_null_year(yearGroup);
         //var refDim = stopx.dimension(function(d) {return d.ref; });
-        var weightDim = stopx.dimension(function(d) {return d.weight; });
+
         var placeDim = stopx.dimension(function(d) { return d.placeKey; });
         var placeGroup = placeDim.group();
+
+        var resultsDim, resultsAccessor, resultsDir;
+
+        function set_sort_vars(field, dir) {
+            field = field || "start";
+            resultsDir = dir == "DESC" ? d3.descending : d3.ascending;
+            resultsDim && resultsDim.dispose();
+            // The 20000 here is to coerce all of the numbers into numbers that will sort correctly as strings.
+            // Digging down into dc.datagrid, into d3.nest, into d3.map, the interger keys turn into strings
+            resultsDim = stopx.dimension(function(d) { return 20000 + d[field]; });
+            resultsAccessor = function (d) { return 20000 + d[field]; };
+        }
+        function resort(field, dir) {
+            set_sort_vars(field, dir);
+            results.dimension(resultsDim)
+                .order(resultsDir)
+                .sortBy(resultsAccessor)
+                .group(resultsAccessor)
+                .redraw();
+        }
+        // Todo: build up the sort options from the garden config
+        set_sort_vars(config.sort_field, config.sort_dir);
 
         datacount
             .dimension(stopx)
@@ -165,8 +200,12 @@
             .elasticY(true)
             .xUnits(function(start, end, xDomain) { return  60; }) //Math.abs(end - start) / 10; }) // years in the domain / 40
             .round(dc.round.floor)
-            .y(d3.scale.pow().domain([0, timeline.yAxisMax()]).range([140,0]).exponent(.5))
             .x(d3.scale.linear().domain(tl_extent));
+
+        if (config.timeline_scale == "log") {
+            timeline.y(d3.scale.pow().domain([0, timeline.yAxisMax()]).range([140,0]).exponent(.5));
+        }
+
         timeline.yAxis().ticks(5, d3.format("d"));
         timeline.xAxis().tickFormat(d3.format("d"));
 
@@ -342,9 +381,12 @@
             });
 
         results
-            .dimension(weightDim)
-            .order(d3.descending)
-            .group(function (d) { return d.weight; })
+            .dimension(resultsDim)
+            .group(resultsAccessor)
+            .order(resultsDir)
+            .sortBy(resultsAccessor)
+            //.keyAccessor(resultsAccessor)
+            //.ordering(resultsAccessor)
             .htmlGroup(function (d) {return "";})
             .html(function(data) {
                 return "<div class='result'>" +
@@ -376,6 +418,10 @@
 
         dc.renderAll();
 
+        $('#sort-select').change(function(){
+            var opt = $(this).find(":selected");
+            resort(opt.attr("data-attr"), opt.attr("data-dir"));
+        });
 
     {% endautoescape %}
     </script>

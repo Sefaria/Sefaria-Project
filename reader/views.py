@@ -2333,7 +2333,8 @@ def visual_garden_page(request, g):
         'key': g.key,
         'stopCount': g.stopSet().count(),
         'stops': json.dumps(g.stopData()),
-        'places': g.placeSet().asGeoJson(as_string=True)
+        'places': g.placeSet().asGeoJson(as_string=True),
+        'config': json.dumps(getattr(g, "config", {}))
     }
 
     return render_to_response('visual_garden.html', template_vars, RequestContext(request))

@@ -1,5 +1,5 @@
-//  search-utils.js should be loaded before this file.
-//  Intention is for this file to be retired, and for search-utils to be the center of back end search logic
+//  library.js should be loaded before this file.
+//  Intention is for this file to be retired, and for library to be the center of back end search logic
 
 sjs = sjs || {};
 

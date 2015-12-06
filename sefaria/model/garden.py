@@ -1,4 +1,4 @@
-
+import copy
 from itertools import groupby
 from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
@@ -25,11 +25,20 @@ class Garden(abst.AbstractMongoRecord):
     required_attrs = [
         'key',
         'title',
-        'heTitle'
+        'heTitle',
+        'config'
     ]
     optional_attrs = [
-
     ]
+    default_config = {
+        "sort_field": "start",
+        "sort_dir": "ASC",  #ASC / DESC
+        "timeline_scale": "log", #log / linear
+    }
+
+    def _normalize(self):
+        if getattr(self, "config", None) is None:
+            self.config = copy.deepcopy(self.default_config)
 
     def stopSet(self, sort=None):
         if not sort:
@@ -390,6 +399,10 @@ class GardenStop(abst.AbstractMongoRecord):
     def _normalize(self):
         if self.is_key_changed("ref"):
             self._derive_metadata()
+        if getattr(self, "start", None):
+            self.start = int(self.start)
+        if getattr(self, "end", None):
+            self.end = int(self.end)
 
     def time_period(self):
         if not getattr(self, "start", False):
