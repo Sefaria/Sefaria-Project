@@ -789,13 +789,13 @@ body.hebrew #visualGardenPage .reset {
   padding: 5px 0;
 }
 
-#visualGardenPage #tags-list.dc-chart g.row text {
+#visualGardenPage .tags-list.dc-chart g.row text {
   fill: black;
 }
 
-#visualGardenPage #tags-list.dc-chart .axis path,
-#visualGardenPage #tags-list.dc-chart .axis line {
-stroke: none
+#visualGardenPage .tags-list.dc-chart .axis path,
+#visualGardenPage .tags-list.dc-chart .axis line {
+  stroke: none
 }
 
 #visualGardenPage #results-table .dc-table-column ._0 {

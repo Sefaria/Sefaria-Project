@@ -62,21 +62,7 @@
                     </a>
                 </div>
             </div>
-            <div id="tags-list">
-                <div style="height: 30px;">
-                    <span class='reset' style='display: none;'>
-                        <span class="en">Current filter:</span>
-                        <span class="he">מסונן לפי:</span>
-                        <span class='filter'></span>
-                    </span>
-                    <a class='reset'
-                      href='javascript:tagslist.filterAll();dc.redrawAll();'
-                      style='display: none;'>
-                        <span class="en">reset</span>
-                        <span class="he">&nbsp;אפס</span>
-                    </a>
-                </div>
-            </div>
+
         </div>
         <div id="results">
             <h1>
@@ -110,10 +96,13 @@
     <script>
     {% autoescape off %}
         d3.geo.tile=function(){function t(){var t=Math.max(Math.log(n)/Math.LN2-8,0),h=Math.round(t+e),o=Math.pow(2,t-h+8),u=[(r[0]-n/2)/o,(r[1]-n/2)/o],l=[],c=d3.range(Math.max(0,Math.floor(-u[0])),Math.max(0,Math.ceil(a[0]/o-u[0]))),M=d3.range(Math.max(0,Math.floor(-u[1])),Math.max(0,Math.ceil(a[1]/o-u[1])));return M.forEach(function(t){c.forEach(function(a){l.push([a,t,h])})}),l.translate=u,l.scale=o,l}var a=[960,500],n=256,r=[a[0]/2,a[1]/2],e=0;return t.size=function(n){return arguments.length?(a=n,t):a},t.scale=function(a){return arguments.length?(n=a,t):n},t.translate=function(a){return arguments.length?(r=a,t):r},t.zoomDelta=function(a){return arguments.length?(e=+a,t):e},t};
-
-        var stops = {{ stops }};
-        var places = {{ places }};
         var config = {{ config }};
+        var places = {{ places }};
+        var stops = {{ stops }};
+        stops.forEach(function (d) {
+            d.start = (d.start == null || d.start == "") ? null : +d.start; // coerce to number, if it's a number
+            d.end = (d.end == null || d.end == "") ? null : +d.end;
+        });
         var stopx = crossfilter(stops);
         var all = stopx.groupAll();
 
@@ -181,20 +170,11 @@
         });
         // End sorting //
 
-
+        // Core Charts - Timeline, Map, Count, Results
         var timeline = dc.barChart("#timeline-chart");
         var mapchart = dc.geoChoroplethChart("#map-chart");
         var datacount = dc.dataCount("#data-count");
         var results = dc.dataGrid("#results-content");
-
-        var tagslist = dc.rowChart("#tags-list");
-
-
-
-        stops.forEach(function (d) {
-            d.start = (d.start == null || d.start == "") ? null : +d.start; // coerce to number, if it's a number
-            d.end = (d.end == null || d.end == "") ? null : +d.end;
-        });
 
         var yearDim = stopx.dimension(function(d) { return d.start; }); //!!Using start as the year.
         var yearGroup = yearDim.group();
@@ -212,11 +192,8 @@
             };
         }
         var filteredYearGroup = remove_null_year(yearGroup);
-        //var refDim = stopx.dimension(function(d) {return d.ref; });
-
         var placeDim = stopx.dimension(function(d) { return d.placeKey; });
         var placeGroup = placeDim.group();
-
         var resultsDim, resultsAccessor, resultsDir;
 
         datacount
@@ -276,80 +253,109 @@
         ;
         */
 
-        function reduceAdd(p, v) {
-            v.tags.default.forEach (function(val, idx) {
-                p[val] = (p[val] || 0) + 1; //increment counts
-            });
-            return p;
+        // Filters
+        function addFilterElement(config, indx, filter_id) {
+            var elem = $('<div id="' + filter_id +'" class="tags-list"> ' +
+                '<div class="filter-title">' +
+                  '<span class="en">' + config.en + '</span>' +
+                  '<span class="he">' + config.he + '</span>' +
+                '</div>' +
+                '<div style="height: 30px;"> ' +
+                  '<span class="reset" style="display: none;"> ' +
+                    '<span class="en">Current filter:</span> ' +
+                    '<span class="he">מסונן לפי:</span> ' +
+                    '<span class="filter"></span> ' +
+                  '</span> ' +
+                  '<a class="reset" href="javascript:filter_charts[' + indx +'].filterAll();dc.redrawAll();" style="display: none;"> ' +
+                    '<span class="en">reset</span> ' +
+                    '<span class="he">&nbsp;אפס</span> ' +
+                  '</a> ' +
+                '</div> ' +
+            '</div>');
+            $("#controls").append(elem);
+            return elem
         }
-
-        function reduceRemove(p, v) {
-            v.tags.default.forEach (function(val, idx) {
-                p[val] = (p[val] || 0) - 1; //decrement counts
-            });
-            return p;
-        }
-
-        function reduceInitial() {
-            return [];
-        }
-
-
-        var tags = stopx.dimension(function (d) { return d.tags.default || [] });
-        //var tags2 = stopx.dimension(function (d) { return d.tags.default || [] });
-        var groupall = tags.groupAll();
-        var tagsGroup = groupall.reduce(reduceAdd, reduceRemove, reduceInitial).value();
-        tagsGroup.all = function() {
-            var newObject = [];
-            for (var key in this) {
-                if (this.hasOwnProperty(key) && this[key] && key != "all" && key != "top") {
-                    newObject.push({
-                        key: key,
-                        value: this[key]
-                    });
-                }
-            }
-            return newObject;
-        };
-        tagsGroup.top = function(k) {
-            all = this.all();
-            var top = crossfilter.heapselect(all, 0, all.length, k);
-            return crossfilter.heap.sort(top, 0, top.length);
-        };
-
-        tagslist
-            .width(260)
-            .height(500)
-            .renderLabel(true)
-            .labelOffsetY(10)
-            .gap(2)
-            .group(tagsGroup)
-            .rowsCap(25)
-            .othersGrouper(false)
-            //.dimension(tags2)
-            .dimension(tags)
-            .ordering(function(d){ return -d.value })
-            .elasticX(true)
-            .transitionDuration(1000)
-            .colors(d3.scale.category10())
-            .label(function (d) { return d.key })
-            .on("filtered", function(c,f) {
-                //tags2.filter(f)
-            })
-            .filterHandler (function (dimension, filters) {
-                dimension.filter(null);
-                dimension.filterFunction(function (d) {
-                    for (var i=0; i < filters.length; i++) {
-                        if (d.indexOf(filters[i]) <0) return false;
-                    }
-                    return true;
+        function createFilterGroup(key, filterDim) {
+            function reduceAdd(p, v) {
+                v.tags[key].forEach (function(val, idx) {
+                    p[val] = (p[val] || 0) + 1; //increment counts
                 });
+                return p;
+            }
 
+            function reduceRemove(p, v) {
+                v.tags[key].forEach (function(val, idx) {
+                    p[val] = (p[val] || 0) - 1; //decrement counts
+                });
+                return p;
+            }
 
+            function reduceInitial() {
+                return [];
+            }
 
-                return filters;
-            });
-        tagslist.xAxis().tickFormat(d3.format("d"));
+            var groupall = filterDim.groupAll();
+            var filterGroup = groupall.reduce(reduceAdd, reduceRemove, reduceInitial).value();
+            filterGroup.all = function() {
+                var newObject = [];
+                for (var key in this) {
+                    if (this.hasOwnProperty(key) && this[key] && key != "all" && key != "top") {
+                        newObject.push({
+                            key: key,
+                            value: this[key]
+                        });
+                    }
+                }
+                return newObject;
+            };
+            filterGroup.top = function(k) {
+                all = this.all();
+                var top = crossfilter.heapselect(all, 0, all.length, k);
+                return crossfilter.heap.sort(top, 0, top.length);
+            };
+            return filterGroup;
+        }
+        function createFilterChart(filter_id, dim, group) {
+            var filter_chart = dc.rowChart("#" + filter_id);
+            filter_chart
+                .width(260)
+                .height(500)
+                .renderLabel(true)
+                .labelOffsetY(10)
+                .gap(2)
+                .group(group)
+                .rowsCap(25)
+                .othersGrouper(false)
+                .dimension(dim)
+                .ordering(function(d){ return -d.value })
+                .elasticX(true)
+                .transitionDuration(1000)
+                .colors(d3.scale.category10())
+                .label(function (d) { return d.key })
+                .filterHandler (function (dimension, filters) {
+                    dimension.filter(null);
+                    dimension.filterFunction(function (d) {
+                        for (var i=0; i < filters.length; i++) {
+                            if (d.indexOf(filters[i]) <0) return false;
+                        }
+                        return true;
+                    });
+                    return filters;
+                });
+            filter_chart.xAxis().tickFormat(d3.format("d"));
+            return filter_chart;
+        }
+
+        var filter_charts = [];
+        Object.keys(config.filters).forEach(function(key, index) {
+            var indx = filter_charts.length;
+            var filter_id = "filter-" + indx;
+            var filterConfig = config.filters[key];
+            var filterElem = addFilterElement(filterConfig, indx, filter_id);
+            var filterDim = stopx.dimension(function (d) { return d.tags[key] || []});
+            var filterGroup = createFilterGroup(key, filterDim);
+            filter_charts.push(createFilterChart(filter_id, filterDim, filterGroup));
+        });
 
 
         // Map
