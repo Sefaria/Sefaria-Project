@@ -758,6 +758,12 @@ text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
   display: inline;
 }
 
+#visualGardenPage #results-container .he {
+  font-family: 'Taamey Frank', 'Times New Roman', serif;
+}
+#visualGardenPage .en {
+  font-family: adobe-garamond-pro, Georgia, serif;
+}
 #visualGardenPage h1 {
   font-size: 36px;
   border: none;
@@ -774,6 +780,11 @@ body.hebrew #visualGardenPage .reset {
 }
 /* ^^ */
 
+#visualGardenPage #sort-label {
+  display: inline-block;
+  vertical-align: top;
+}
+
 #visualGardenPage #results .result {
   margin: 10px 0;
 }
@@ -786,19 +797,20 @@ body.hebrew #visualGardenPage .reset {
 #visualGardenPage #results .result-text {
   margin: 5px 10px 0;
 }
+#visualGardenPage #sort-container,
 #visualGardenPage #results #data-count {
   text-align: center;
   float: none;
   padding: 5px 0;
 }
 
-#visualGardenPage #tags-list.dc-chart g.row text {
+#visualGardenPage .tags-list.dc-chart g.row text {
   fill: black;
 }
 
-#visualGardenPage #tags-list.dc-chart .axis path,
-#visualGardenPage #tags-list.dc-chart .axis line {
-stroke: none
+#visualGardenPage .tags-list.dc-chart .axis path,
+#visualGardenPage .tags-list.dc-chart .axis line {
+  stroke: none
 }
 
 #visualGardenPage #results-table .dc-table-column ._0 {
