@@ -799,6 +799,7 @@ sjs.textBrowser = {
 	forward: function(to) {
 		// navigate forward to "to", a string naming a text, category or section
 		// as it appears in the nav or path
+		if (to == (this._path[this._path.length-1])) {alert('throw error')}
 		var next = null;
 		this._path.push(to);
 		this.updatePath();	
