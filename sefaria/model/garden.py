@@ -35,10 +35,12 @@ class Garden(abst.AbstractMongoRecord):
 
     default_config = {
         "timeline_scale": "log",  # log / linear
+        "timeline_bin_size": None,  # defaults to ~20 bins in the extent
         "filters": {
             "default": {
                 "en": "Tags",
-                "he": u"תגיות"
+                "he": u"תגיות",
+                "logic": "AND"  # AND / OR
             }
         },
         "sorts": {
@@ -59,7 +61,10 @@ class Garden(abst.AbstractMongoRecord):
         self.config.update(config_dict)
 
     def updateFilter(self, filterkey, filterdict):
-        self.config["filters"][filterkey] = filterdict
+        if self.config["filters"].get(filterkey):
+            self.config["filters"][filterkey].update(filterdict)
+        else:
+            self.config["filters"][filterkey] = filterdict
 
     def removeFilter(self, filterkey):
         try:

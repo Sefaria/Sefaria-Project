@@ -768,7 +768,7 @@ text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
   font-size: 36px;
   border: none;
 }
-/* Controls need LTR to present right, but hebrew filter text still wants RTL */
+/* Controls need LTR to present right, hebrew 'reset' block wants RTL on top charts, but not on filter charts */
 #visualGardenPage #controls {
   width: 320px;
   float: left;
@@ -776,7 +776,11 @@ text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 body.hebrew #visualGardenPage .reset {
   direction: rtl;
-  float: right
+  float: right;
+}
+body.hebrew #visualGardenPage .filter-title .reset {
+  float: none;
+  direction: ltr;
 }
 /* ^^ */
 
@@ -804,6 +808,10 @@ body.hebrew #visualGardenPage .reset {
   padding: 5px 0;
 }
 
+#visualGardenPage .filter-title {
+  margin-left: 10px;
+}
+
 #visualGardenPage .tags-list.dc-chart g.row text {
   fill: black;
 }
@@ -828,6 +836,7 @@ body.hebrew #visualGardenPage .reset {
 
 #visualGardenPage #map-chart {
     margin-left: 10px;
+    margin-bottom: 25px;
 }
 
 #visualGardenPage #map-chart path {

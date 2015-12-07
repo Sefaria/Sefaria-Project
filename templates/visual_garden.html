@@ -8,7 +8,6 @@
 <script src="http://d3js.org/d3.v3.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.12/crossfilter.js"></script>
 <script src="/static/js/dc.js"></script>
-<!-- <script src="/static/js/dc.cloud.js"></script> -->
 <link rel="stylesheet" href="/static/css/dc.css" />
 
 {%  endblock %}
@@ -176,24 +175,10 @@
         var datacount = dc.dataCount("#data-count");
         var results = dc.dataGrid("#results-content");
 
-        var yearDim = stopx.dimension(function(d) { return d.start; }); //!!Using start as the year.
-        var yearGroup = yearDim.group();
 
-        // Catch null years, and filter them out from the year group.
-        // Otherwise, they show up at year 0.
-        // https://github.com/dc-js/dc.js/wiki/FAQ#fake-groups
-        function remove_null_year(source_group) {
-            return {
-                all:function () {
-                    return source_group.all().filter(function(d) {
-                        return d.key != null;
-                    });
-                }
-            };
-        }
-        var filteredYearGroup = remove_null_year(yearGroup);
         var placeDim = stopx.dimension(function(d) { return d.placeKey; });
         var placeGroup = placeDim.group();
+
         var resultsDim, resultsAccessor, resultsDir;
 
         datacount
@@ -209,9 +194,30 @@
             });
 
 
+
+
+        //Timeline
         var tl_extent = d3.extent(stops, function (d) { return d.start; });
+        var timeline_bin_size = config.timeline_bin_size || Math.floor((tl_extent[1] - tl_extent[0]) / 20);
         tl_extent[0] -= 50;
         tl_extent[1] += 50;
+
+        var yearDim = stopx.dimension(function(d) { return d.start; }); //!!Using start as the year.
+        var yearGroup = yearDim.group(function(d) { return Math.floor(d / timeline_bin_size) * timeline_bin_size });
+
+        // Catch null years, and filter them out from the year group.
+        // Otherwise, they show up at year 0.
+        // https://github.com/dc-js/dc.js/wiki/FAQ#fake-groups
+        function remove_null_year(source_group) {
+            return {
+                all:function () {
+                    return source_group.all().filter(function(d) {
+                        return d.key != null;
+                    });
+                }
+            };
+        }
+        var filteredYearGroup = remove_null_year(yearGroup);
 
         timeline
             .width(280)
@@ -220,7 +226,7 @@
             .dimension(yearDim)
             .group(filteredYearGroup)
             .elasticY(true)
-            .xUnits(function(start, end, xDomain) { return  60; }) //Math.abs(end - start) / 10; }) // years in the domain / 40
+            .xUnits(function(start, end, xDomain) { return (end - start) / timeline_bin_size; }) //return  60; }) //Math.abs(end - start) / 10; }) // years in the domain / 40
             .round(dc.round.floor)
             .x(d3.scale.linear().domain(tl_extent));
 
@@ -229,41 +235,21 @@
         }
 
         timeline.yAxis().ticks(5, d3.format("d"));
-        timeline.xAxis().tickFormat(d3.format("d"));
-
-
-        // tag cloud
-        /*
-        var tagslist = dc.wordCloud("#tags-list");
-        var separator = "~";
-        var tag_dim = stopx.dimension(function (d) { return d.tags.default.join(separator) || "" });  //hack into a string
-        var tag_group = tag_dim.group();
-
-        tagslist
-            .size([280,280])
-            .dimension(tag_dim)
-            .maxLength(50)
-            .maxWords(500)
-            .group(tag_group)
-            .lumper(separator)
-            .valueAccessor(function(d) {
-                return d.tags.default.join(separator);
-            })
-            .splitAt(RegExp(separator,"g"))  //.splitAt(RegExp(separator,"g"))
-        ;
-        */
+        timeline.xAxis().ticks(5);
 
         // Filters
+        var maxRows = 25;
         function addFilterElement(config, indx, filter_id) {
             var elem = $('<div id="' + filter_id +'" class="tags-list"> ' +
                 '<div class="filter-title">' +
-                  '<span class="en">' + config.en + '</span>' +
-                  '<span class="he">' + config.he + '</span>' +
-                '</div>' +
-                '<div style="height: 30px;"> ' +
+                  '<span>' + config.en + '</span>' +
+                  //'<span class="he">' + config.he + '</span>' +
+                //'</div>' +
+                //'<div style="height: 30px;"> ' +
                   '<span class="reset" style="display: none;"> ' +
-                    '<span class="en">Current filter:</span> ' +
-                    '<span class="he">מסונן לפי:</span> ' +
+                    '<span>: </span>' +
+                    //'<span class="en">Current filter:</span> ' +
+                    //'<span class="he">מסונן לפי:</span> ' +
                     '<span class="filter"></span> ' +
                   '</span> ' +
                   '<a class="reset" href="javascript:filter_charts[' + indx +'].filterAll();dc.redrawAll();" style="display: none;"> ' +
@@ -275,7 +261,11 @@
             $("#controls").append(elem);
             return elem
         }
-        function createFilterGroup(key, filterDim) {
+        function createFilterGroup(filterConfig, key, filterDim) {
+            if (filterConfig["logic"] != "AND") {
+                return filterDim.group();
+            }
+
             function reduceAdd(p, v) {
                 v.tags[key].forEach (function(val, idx) {
                     p[val] = (p[val] || 0) + 1; //increment counts
@@ -315,33 +305,38 @@
             };
             return filterGroup;
         }
-        function createFilterChart(filter_id, dim, group) {
+        function createFilterChart(filterConfig, filter_id, dim, group) {
+            var chartSize = group.all().length > maxRows ? maxRows : group.all().length;
+            var filterHeight = 40 + 20 * chartSize;
             var filter_chart = dc.rowChart("#" + filter_id);
             filter_chart
                 .width(260)
-                .height(500)
+                .height(filterHeight)
                 .renderLabel(true)
                 .labelOffsetY(10)
                 .gap(2)
                 .group(group)
-                .rowsCap(25)
+                .rowsCap(maxRows)
                 .othersGrouper(false)
                 .dimension(dim)
                 .ordering(function(d){ return -d.value })
                 .elasticX(true)
                 .transitionDuration(1000)
                 .colors(d3.scale.category10())
-                .label(function (d) { return d.key })
-                .filterHandler (function (dimension, filters) {
-                    dimension.filter(null);
-                    dimension.filterFunction(function (d) {
-                        for (var i=0; i < filters.length; i++) {
-                            if (d.indexOf(filters[i]) <0) return false;
-                        }
-                        return true;
+                .label(function (d) { return d.key });
+            if (filterConfig["logic"] == "AND") {
+                filter_chart
+                    .filterHandler (function (dimension, filters) {
+                        dimension.filter(null);
+                        dimension.filterFunction(function (d) {
+                            for (var i=0; i < filters.length; i++) {
+                                if (d.indexOf(filters[i]) <0) return false;
+                            }
+                            return true;
+                        });
+                        return filters;
                     });
-                    return filters;
-                });
+            }
             filter_chart.xAxis().tickFormat(d3.format("d"));
             return filter_chart;
         }
@@ -352,9 +347,15 @@
             var filter_id = "filter-" + indx;
             var filterConfig = config.filters[key];
             var filterElem = addFilterElement(filterConfig, indx, filter_id);
-            var filterDim = stopx.dimension(function (d) { return d.tags[key] || []});
-            var filterGroup = createFilterGroup(key, filterDim);
-            filter_charts.push(createFilterChart(filter_id, filterDim, filterGroup));
+            var filterDim = stopx.dimension(function (d) {
+                var tags = d.tags[key];
+                if (tags.length == 1 && tags[0] == "") {
+                    return ["Undefined"];  // todo: config default value
+                }
+                return tags || ["Undefined"];
+            });
+            var filterGroup = createFilterGroup(filterConfig, key, filterDim);
+            filter_charts.push(createFilterChart(filterConfig, filter_id, filterDim, filterGroup));
         });
 
 
