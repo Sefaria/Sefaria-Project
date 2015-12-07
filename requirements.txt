@@ -1,11 +1,11 @@
 selenium
 django==1.4.5
-pymongo==2.7.2
+pymongo==2.9
 django-email-as-username
 diff_match_patch
 dateutils
 BeautifulSoup
-bleach
+bleach==1.4.2
 rauth
 functional
 pyelasticsearch
@@ -18,4 +18,6 @@ django_mobile==0.3.0
 roman
 p929
 python-varnish
+geojson
 django-recaptcha
+unicodecsv

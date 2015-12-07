@@ -9,19 +9,19 @@ from diff_match_patch import diff_match_patch
 from bson.code import Code
 
 from sefaria.model import *
-#from sefaria.utils.util import *
 from sefaria.system.database import db
 
 dmp = diff_match_patch()
 
 
-def get_activity(query={}, page_size=100, page=1, filter_type=None):
+def get_activity(query={}, page_size=100, page=1, filter_type=None, initial_skip=0):
     """
     Returns a list of activity items matching query,
     joins with user info on each item and sets urls.
     """
     query.update(filter_type_to_query(filter_type))
-    activity = list(db.history.find(query).sort([["date", -1]]).skip((page - 1) * page_size).limit(page_size))
+    skip = initial_skip + (page - 1) * page_size
+    activity = list(db.history.find(query).sort([["date", -1]]).skip(skip).limit(page_size))
 
     for i in range(len(activity)):
         a = activity[i]
@@ -148,11 +148,12 @@ def get_maximal_collapsed_activity(query={}, page_size=100, page=1, filter_type=
         enough = True
 
     while not enough:
-        page += 1
-        new_activity = get_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
+        new_activity = get_activity(query=query, page_size=page_size*5, page=page, filter_type=filter_type, initial_skip=page_size)
         if len(new_activity) < page_size:
             page = None
             enough = True
+        else:
+            page += 1
         activity = collapse_activity(activity + new_activity)
         enough = enough or len(activity) >= page_size # don't set enough to False if already set to True above
 
@@ -183,6 +184,34 @@ def next_revision_num():
     last_rev = db.history.find().sort([['revision', -1]]).limit(1)
     revision = last_rev.next()["revision"] + 1 if last_rev.count() else 1
     return revision
+
+
+def record_index_deletion(title, uid):
+    """
+    Records the deletion of an index record.
+    """
+    log = {
+        "user": uid,
+        "title": title,
+        "date": datetime.now(),
+        "rev_type": "delete index",
+    }
+    db.history.save(log)
+
+
+def record_version_deletion(title, version, lang, uid):
+    """
+    Records the deletion of a text version.
+    """
+    log = {
+        "user": uid,
+        "title": title,
+        "version": version,
+        "language": lang,
+        "date": datetime.now(),
+        "rev_type": "delete text",
+    }
+    db.history.save(log)
 
 
 def record_sheet_publication(sheet_id, uid):

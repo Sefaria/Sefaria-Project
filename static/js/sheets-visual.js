@@ -3,8 +3,14 @@ $("#container").css({
     "height": $("body").css("height")
 });
 
+$("#sheetLayoutToggle").hide();
+
+$("#languageToggle span").removeClass("active");
+$("#bilingual").addClass("active");
+
+
 zoomScale = 1;
-launchOffset = 0;
+launchOffset = 50;
 
 if (sjs.current.zoom) zoomScale = parseFloat(sjs.current.zoom);
 else zoomScale = 1;
@@ -15,26 +21,24 @@ resizeZoomContainer();
 
 
 function resizeZoomContainer() {
-				
+
     //set values to resize zoom container -- negative margins keep the container centered on the page
     var bodyWidth = parseFloat($("body").css("width")) / zoomScale;
     var bodyHeight = parseFloat($("body").css("height")) / zoomScale;
     var bodyMarginLeft = Math.abs(parseFloat($("body").css("width")) - bodyWidth) / 2;
     var bodyMarginTop = Math.abs(parseFloat($("body").css("height")) - bodyHeight) / 2;
-    
+
     if (zoomScale < 1) {
-        bodyMarginTop  = -bodyMarginTop;
+        bodyMarginTop = -bodyMarginTop;
         bodyMarginLeft = -bodyMarginLeft;
     }
-    
+
     if (zoomScale > 1) {
-    	marginOffset = 0
-    }
-    
-    else {
+        marginOffset = 0
+    } else {
         marginOffset = parseFloat($("header").css("height"));
-	}
-    
+    }
+
     $("#container").css({
         '-webkit-transform': 'scale(' + zoomScale + ')',
         '-moz-transform': 'scale(' + zoomScale + ')',
@@ -69,23 +73,19 @@ $("#zoomIn").click(function() {
 
 });
 
+$(".sheetItem a").attr("target", "_blank");
 
 //set sources to be draggable & resizable
 $(".sheetItem").resizable({
 
     stack: ".source",
-    handles: "nw, ne, se, sw",
-    stack: ".source",
+    handles: "se",
+    stack: ".sheetItem",
 
     start: function(event, ui) {
-		  console.log("left : " + $(this).css("left")+ ' '+ ui.position.left);
-		  console.log("top : " + $(this).css("top")+ ' '+ui.position.top);
-		  
-		  
-        ui.position.left = ui.position.left/ zoomScale;
-        ui.position.top = ui.position.top/ zoomScale - marginOffset;
 
-
+        ui.position.left = ui.position.left / zoomScale;
+        ui.position.top = (ui.position.top / zoomScale) - marginOffset;
     },
 
     resize: function(event, ui) {
@@ -97,11 +97,11 @@ $(".sheetItem").resizable({
         var newHeight = ui.originalSize.height + changeHeight / zoomScale; // adjust new height by our zoomScale
 
         ui.size.width = newWidth;
-        ui.size.height = newHeight;
+        ui.size.height = newHeight - marginOffset;
 
     },
 
-    stop: function() {
+    stop: function(event, ui) {
         updateSheet();
     }
 
@@ -123,7 +123,7 @@ $(".sheetItem").resizable({
 
         ui.position.left = newLeft;
         ui.position.top = newTop;
-        
+
 
     },
     stop: function() {
@@ -131,33 +131,67 @@ $(".sheetItem").resizable({
     }
 }).each(function(index) {
 
-launchOffset = launchOffset + 75;
-
     if (sjs.current.visualNodes) {
-        $(this).animate({
 
-            "left": sjs.current.visualNodes[index].x + "px",
-            "top": sjs.current.visualNodes[index].y + "px",
-            "width": sjs.current.visualNodes[index].width + "px",
-            "height": sjs.current.visualNodes[index].length + "px",
-            "z-index": sjs.current.visualNodes[index].zindex
-        }).addClass(sjs.current.visualNodes[index].bgColor);
-    }
+        if (sjs.current.visualNodes[index]) {
+            $(this).animate({
 
-	else {
+                "left": sjs.current.visualNodes[index].x + "px",
+                "top": sjs.current.visualNodes[index].y + "px",
+                "width": sjs.current.visualNodes[index].width + "px",
+                "height": sjs.current.visualNodes[index].length + "px",
+                "z-index": sjs.current.visualNodes[index].zindex
+            }).addClass(sjs.current.visualNodes[index].bgColor);
+        } else {
+            launchOffset = launchOffset + 75;
+
+            $(this).animate({
+
+                "left": launchOffset + "px",
+                "top": launchOffset + "px",
+                "z-index": index
+            });
+        }
+
+    } else {
+        launchOffset = launchOffset + 75;
 
         $(this).animate({
 
             "left": launchOffset + "px",
             "top": launchOffset + "px",
-            "z-index":index
-		});
-	}
+            "z-index": index
+        });
+    }
 
-if ($(this).hasClass("english")) {$(this).find(".he").hide() }
-else if ($(this).hasClass("hebrew")) {$(this).find(".en").hide() }
 
-}).prepend('<div class="colorSelect"><div class="pink"></div><div class="white"></div><div class="yellow"></div><div class="green"></div><div class="blue"></div></div>').hover(
+    if ($(this).hasClass("english")) {
+        $(this).find(".he").hide()
+    } else if ($(this).hasClass("hebrew")) {
+        $(this).find(".en").hide()
+    }
+
+    if ($(this).hasClass("mediaWrapper")) {
+        var mediaSource = sjs.current.sources[($(this).prevAll(".sheetItem").length)+($(this).prevAll(".outsideBiWrapper").length)].media;
+        var mediaLink;
+
+        if (mediaSource.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
+            mediaLink = '<img class="addedMedia" src="' + mediaSource + '" />';
+        } else if (mediaSource.toLowerCase().indexOf('youtube') > 0) {
+            mediaLink = '<div class="videoWrapper"><iframe width="560" height="315" src=' + mediaSource + ' frameborder="0" allowfullscreen></iframe></div>'
+        } else if (mediaSource.match(/\.(mp3)$/i) != null) {
+            mediaLink = '<audio src="' + mediaSource + '" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
+        } else {
+            mediaLink = '';
+        }
+
+        $(this).find(".outside").html(mediaLink);
+
+
+
+    }
+
+}).prepend('<div class="colorSelect"><div class="blue"></div><div class="green"></div><div class="yellow"></div><div class="pink"></div><div class="purple"></div><div class="white"></div></div>').hover(
     function() {
         $(this).find(".colorSelect").first().css("visibility", "visible");
     },
@@ -167,11 +201,30 @@ else if ($(this).hasClass("hebrew")) {$(this).find(".en").hide() }
 
 );
 
-$(".colorSelect div").click( function() {
+$("#hebrew, #english, #bilingual").click(function() {
 
-	$(this).closest(".sheetItem").removeClass( "yellow pink blue green white" ).addClass( $(this).attr('class') );
-	
-	updateSheet();
+    if ($(this).attr("id") == "hebrew") {
+        $(".sheetItem").find(".en").hide();
+        $(".sheetItem").find(".he").show();
+    } else if ($(this).attr("id") == "english") {
+        $(".sheetItem").find(".he").hide();
+        $(".sheetItem").find(".en").show();
+
+    } else {
+        $(".sheetItem").find(".he").show();
+        $(".sheetItem").find(".en").show();
+
+    }
+
+
+});
+
+
+$(".colorSelect div").click(function() {
+
+    $(this).closest(".sheetItem").removeClass("yellow pink blue green white purple").addClass($(this).attr('class'));
+
+    updateSheet();
 
 
 });
@@ -181,18 +234,13 @@ saveFlashShown = 0;
 
 function updateSheet() {
 
-	if (!sjs._uid && saveFlashShown == 0) {
-		sjs.alert.flash("You need to login to save edits");
-		saveFlashShown = 1;
-	}
-
-	else if (!sjs.can_edit && saveFlashShown == 0) {
-	 	sjs.alert.flash("You don't have permission to save edits");
-		saveFlashShown = 1;
-	}
-
-
-    else if (sjs._uid && sjs.can_edit) {
+    if (!sjs._uid && saveFlashShown == 0) {
+        sjs.alert.flash("You need to login to save edits");
+        saveFlashShown = 1;
+    } else if (!sjs.can_edit && saveFlashShown == 0) {
+        sjs.alert.flash("You don't have permission to save edits");
+        saveFlashShown = 1;
+    } else if (sjs._uid && sjs.can_edit) {
 
         toJson = '[';
 
@@ -204,16 +252,17 @@ function updateSheet() {
             var length = $(this).height();
             var zindex = $(this).css('z-index');
             if (zindex == "auto") zindex = 0;
-            
-            
+
+
             bgColor = "white";
             if ($(this).hasClass("yellow")) bgColor = "yellow";
             if ($(this).hasClass("pink")) bgColor = "pink";
             if ($(this).hasClass("blue")) bgColor = "blue";
             if ($(this).hasClass("green")) bgColor = "green";
-            
-            
-            toJson = toJson + '{ "x" : ' + x + ', "y" : ' + y + ', "width" : ' + width + ', "length" : ' + length + ', "zindex" : ' + zindex + ', "bgColor" : "'+ bgColor +'"},';
+            if ($(this).hasClass("purple")) bgColor = "purple";
+
+
+            toJson = toJson + '{ "x" : ' + x + ', "y" : ' + y + ', "width" : ' + width + ', "length" : ' + length + ', "zindex" : ' + zindex + ', "bgColor" : "' + bgColor + '"},';
 
         });
 
@@ -234,7 +283,7 @@ function updateSheet() {
 
         );
     }
-    
+
 }
 
 $("#saveButton").click(function() {

@@ -1101,7 +1101,9 @@ function addSource(q, source) {
 	// Add a new source to the DOM.
 	// Completed by loadSource on return of AJAX call.
 	// unless 'source' is present, then load with given text.
-
+	
+	var badRef = q.ref == undefined ? true : false;
+	
 	var $listTarget = $("#addSourceModal").data("target");
 
 	// Save a last edit record only if this is a user action,
@@ -1128,8 +1130,12 @@ function addSource(q, source) {
 	}
 
 	var attributionData = attributionDataString((source ? source.addedBy : null), !source, "source");
-	var enRef = humanRef(q.ref);
+	
+	var enRef = badRef == true ? source.ref : humanRef(q.ref);
 	var heRef = source && source.text ? source.heRef : "";
+	
+	var refLink = badRef == true ? "#" : "/"+makeRef(q).replace(/'/g, "&apos;");
+
 	$listTarget.append(
 		"<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + 
 					" data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" +
@@ -1138,7 +1144,7 @@ function addSource(q, source) {
 			"<div class='customTitle'></div>" + 
 			"<div class='he'>" +
 				"<span class='title'>" + 
-					"<a class='he' href='/" + makeRef(q).replace(/'/g, "&apos;") + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "") + " <span class='ui-icon ui-icon-extlink'></a>" + 
+					"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " <span class='ui-icon ui-icon-extlink'></a>" + 
 				"</span>" +
 				"<div class='text'>" + 
 					"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" + 
@@ -1146,7 +1152,7 @@ function addSource(q, source) {
 			"</div>" + 
 			"<div class='en'>" +
 				"<span class='title'>" + 
-					"<a class='en' href='/" + makeRef(q).replace(/'/g, "&apos;") + "' target='_blank'><span class='ref'>" + enRef + "</span> <span class='ui-icon ui-icon-extlink'></a>" + 
+					"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> <span class='ui-icon ui-icon-extlink'></a>" + 
 				"</span>" +
 				"<div class='text'>" + 
 					"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + 
@@ -1206,8 +1212,8 @@ function loadSource(data, $target, optionStr) {
 	$target.attr("data-heRef", data.heRef);	
 	var $enTitle = $target.find(".en .title a").eq(0);
 	var $heTitle = $target.find(".he .title a").eq(0);
-	$enTitle.html(humanRef(data.ref)).attr("href", "/" + normRef(data.ref));
-	$heTitle.html(data.heRef.replace(/\d+(\-\d+)?/g, "")).attr("href", "/" + normRef(data.ref));
+	$enTitle.html(humanRef(data.ref).replace(/([0-9][b|a]| ב| א):.+/,"$1") ).attr("href", "/" + normRef(data.ref));
+	$heTitle.html(data.heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1")).attr("href", "/" + normRef(data.ref));
 
 
 	var enStr = "";
@@ -1617,11 +1623,19 @@ function buildSources($target, sources) {
 
 function buildSource($target, source) {
 	// Build a single source in $target. May call buildSources recursively if sub-sources present.
+		
 	if (!("node" in source)) {
+
 		source.node = sjs.current.nextNode;
 		sjs.current.nextNode++;
 	}
-	if ("ref" in source) {
+	
+	else if (source.node == null) {
+		source.node = sjs.current.nextNode;
+		sjs.current.nextNode++;	
+	}
+	
+	if (("ref" in source) && (source.ref != null)  ) {
 		var q = parseRef(source.ref);
 		$("#addSourceModal").data("target", $target);
 		addSource(q, source);
@@ -1696,6 +1710,24 @@ function buildSource($target, source) {
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</li>";
 		$target.append(outsideHtml);
+	}
+	
+	else if ("text" in source) {
+
+		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideBiWrapper");
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
+							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
+							"<div class='outsideBi " + (sjs.loading ? "" : "new") + "'><div class='text'>" + 
+								"<div class='he'>" + source.text.he + "</div>" + 
+								"<div class='en'>" + source.text.en + "</div>" + 
+								"<div class='clear'></div>" +
+							"</div>" +
+							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
+						  "</li>";
+		$target.append(outsideHtml);
+
+
+
 	}
 }
 

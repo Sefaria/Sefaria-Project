@@ -2,8 +2,11 @@ import re
 from varnish import VarnishManager
 from sefaria.model import *
 from sefaria.local_settings import VARNISH_ADDR, VARNISH_SECRET, FRONT_END_URL
+from sefaria.system.exceptions import InputError
+
 from urlparse import urlparse
 from httplib import HTTPConnection
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -49,24 +52,44 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
     manager.run("ban", 'obj.http.url ~ "/api/texts/{}"'.format(url_regex(oref)), secret=secret)
     manager.run("ban", 'obj.http.url ~ "/api/links/{}"'.format(url_regex(oref)), secret=secret)
 
-def invalidate_counts(indx):
-    assert isinstance(indx, Index) or isinstance(indx, CommentaryIndex)
-    oref = Ref(indx.title)
+def invalidate_linked(oref):
+    for linkref in {r.section_ref() for r in oref.linkset().refs_from(oref)}:
+        invalidate_ref(linkref)
 
-    purge_url("{}/api/preview/{}".format(FRONT_END_URL, oref.url()))
-    purge_url("{}/api/counts/{}".format(FRONT_END_URL, oref.url()))
+def invalidate_counts(indx):
+    if isinstance(indx, Index) or isinstance(indx, CommentaryIndex):
+        oref = Ref(indx.title)
+        url = oref.url()
+    elif isinstance(indx, basestring):
+        url = indx.replace(" ", "_").replace(":", ".")
+    else:
+        logger.warn("Could not parse index '{}' to purge counts from Varnish.".format(indx))
+        return
+
+    purge_url("{}/api/preview/{}".format(FRONT_END_URL, url))
+    purge_url("{}/api/counts/{}".format(FRONT_END_URL, url))
 
     # Assume this is unnecesary, given that the specific URLs will have been purged/banned by the save action
     # oref = Ref(indx.title)
     # invalidate_ref(oref)
 
 def invalidate_index(indx):
-    assert isinstance(indx, Index) or isinstance(indx, CommentaryIndex)
-    oref = Ref(indx.title)
+    if isinstance(indx, Index) or isinstance(indx, CommentaryIndex):
+        try:
+            oref = Ref(indx.title)
+            url = oref.url()
+        except InputError as e:
+            logger.warn("In sf.varnish.invalidate_index(): failed to instantiate ref for index name: {}".format(indx.title))
+            return
+    elif isinstance(indx, basestring):
+        url = indx.replace(" ", "_").replace(":", ".")
+    else:
+        logger.warn("Could not parse index '{}' to purge from Varnish.".format(indx))
+        return
 
-    purge_url("{}/api/index/{}".format(FRONT_END_URL, oref.url()))
-    purge_url("{}/api/v2/raw/index/{}".format(FRONT_END_URL, oref.url()))
-    purge_url("{}/api/v2/index/{}".format(FRONT_END_URL, oref.url()))
+    purge_url("{}/api/index/{}".format(FRONT_END_URL, url))
+    purge_url("{}/api/v2/raw/index/{}".format(FRONT_END_URL, url))
+    purge_url("{}/api/v2/index/{}".format(FRONT_END_URL, url))
 
 #PyPi version of python-varnish has broken purge function.  We use this instead.
 def purge_url(url):

@@ -1,5 +1,5 @@
-from datetime import datetime, timedelta
 import json
+from datetime import datetime, timedelta
 from urlparse import urlparse
 from collections import defaultdict
 from random import choice
@@ -250,9 +250,15 @@ def del_cached_elem(request, title):
 
 
 @staff_member_required
-def reset_counts(request):
-    model.refresh_all_states()
-    return HttpResponseRedirect("/?m=Counts-Rebuilt")
+def reset_counts(request, title=None):
+    if title:
+        i  = model.get_index(title)
+        vs = model.VersionState(index=i)
+        vs.refresh()
+        return HttpResponseRedirect("/%s?m=Counts-Rebuilt" % model.Ref(i.title).url())
+    else:
+        model.refresh_all_states()
+        return HttpResponseRedirect("/?m=Counts-Rebuilt")
 
 
 @staff_member_required
@@ -314,7 +320,8 @@ def cache_dump(request):
 @staff_member_required
 def create_commentator_version(request, commentator, book, lang, vtitle, vsource):
     from sefaria.helper.text import create_commentator_and_commentary_version
-    create_commentator_and_commentary_version(commentator, book, lang, vtitle, vsource)
+    ht = request.GET.get("heTitle", None)
+    create_commentator_and_commentary_version(commentator, book, lang, vtitle, vsource, ht)
     scache.reset_texts_cache()
     return HttpResponseRedirect("/add/%s" % commentator)
 

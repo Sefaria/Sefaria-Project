@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+
+{% block title %}{{ primary_name.en }}{% endblock %}
+
+{% block head %}
+<script src="http://d3js.org/d3.v3.min.js"></script>
+{% endblock %}
+
+{% block css %}
+    #languageToggle {
+        display: inline;
+    }
+    #languageToggle #bilingual {
+        display: none;
+    }
+{% endblock %}
+
+{% block content %}
+
+    
+<div id="personPage" class="container doc biReady">
+
+    {% if post_talmudic %}
+        <a href="/people" id="textTocLink">
+            <span class='en'>&laquo; All Authors</span>
+            <span class='he'>&laquo; כל המחברים</span>
+        </a>
+    {% else %}
+        <a href="/people/Talmud" id="textTocLink">
+            <span class='en'>&laquo; People in the Talmud</span>
+            <span class='he'>&laquo; אנשים בתלמוד</span>
+        </a>
+    {% endif %}
+
+    <div class="row">
+        <span class="span8 offset2">
+            <h1>
+                <span class='en'>{{ primary_name.en }}</span>
+                <span class='he'>{{ primary_name.he }}</span>
+            </h1>
+
+            {% if time_period_name.en or time_period_name.he %}
+            <div id="periodNameLine">
+                <span class='en'>{{ time_period_name.en }}</span>
+                <span class='he'>{{ time_period_name.he }}</span>
+            </div>
+            {% endif %}
+
+            <div id="yearLine">
+                <span class='en'>{{ time_period.en }}</span>
+                <span class='he'>{{ time_period.he }}</span>
+            </div>
+
+            {% if enBio or heBio %}
+            <div id="bio">
+                <span class='en'>{{ enBio }}</span>
+                <span class='he'>{{ heBio }}</span>
+            </div>
+            {% endif %}
+        </span>
+    </div>
+    <div class="row">
+        <span id="person-graphic-column" class="span4">
+            {% if places %}
+                <div id="place-map"></div>
+            {% endif %}
+        </span>
+        <span id="person-text-column" class="span4 offset2">
+           <div id="external_links">
+                {% if enWikiLink and heWikiLink %}
+                    <div>
+                        <span class="en"><a href="{{ enWikiLink }}">Wikipedia</a><i class="fa fa-external-link"></i></span>
+                        <span class="he"><a href="{{ heWikiLink }}">וויקיפדיה</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
+                    </div>
+
+                {% elif enWikiLink %}
+                    <div>
+                        <span class="en"><a href="{{ enWikiLink }}">Wikipedia</a><i class="fa fa-external-link"></i></span>
+                        <span class="he"><a href="{{ enWikiLink }}">וויקיפדיה (אנגלית)</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
+                    </div>
+                {% elif heWikiLink %}
+                    <div>
+                        <span class="en"><a href="{{ heWikiLink }}">Wikipedia (Hebrew)</a><i class="fa fa-external-link"></i></span>
+                        <span class="he"><a href="{{ heWikiLink }}">וויקיפדיה</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
+                    </div>
+                {% endif %}
+
+                {% if jeLink %}
+                    <div>
+                        <span class="en"><a href="{{ jeLink }}">Jewish Encyclopedia</a><i class="fa fa-external-link"></i></span>
+                        <span class="he"><a href="{{ jeLink }}">האנציקלופדיה היהודית (אנגלית)</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
+                    </div>
+                {% endif %}
+            </div>
+            <div id="relationships">
+                 {% for k, rel_type in relationships.items %}
+                 <h3>
+                     <span class='en'>{{ rel_type.en }}</span>
+                     <span class='he'>{{ rel_type.he }}</span>
+                 </h3>
+                     {% for person in rel_type.people %}
+                         {{ person|person_link }}
+                     {% endfor %}
+                 {% endfor %}
+            </div>
+            {% if indexes|length %}
+            <div id="indexes">
+                <h3>
+                     <span class='en'>Works</span>
+                     <span class='he'>ספרים</span>
+                </h3>
+                {% for indx in indexes %}
+                    {{ indx|text_toc_link }}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </span>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+    <script>
+    {% autoescape off %}
+        {% if places %}
+            d3.geo.tile=function(){function t(){var t=Math.max(Math.log(n)/Math.LN2-8,0),h=Math.round(t+e),o=Math.pow(2,t-h+8),u=[(r[0]-n/2)/o,(r[1]-n/2)/o],l=[],c=d3.range(Math.max(0,Math.floor(-u[0])),Math.max(0,Math.ceil(a[0]/o-u[0]))),M=d3.range(Math.max(0,Math.floor(-u[1])),Math.max(0,Math.ceil(a[1]/o-u[1])));return M.forEach(function(t){c.forEach(function(a){l.push([a,t,h])})}),l.translate=u,l.scale=o,l}var a=[960,500],n=256,r=[a[0]/2,a[1]/2],e=0;return t.size=function(n){return arguments.length?(a=n,t):a},t.scale=function(a){return arguments.length?(n=a,t):n},t.translate=function(a){return arguments.length?(r=a,t):r},t.zoomDelta=function(a){return arguments.length?(e=+a,t):e},t};
+            var width = 300,
+                height = 200,
+                places = {{ places }};
+            var svg = d3.select("#place-map").append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+        //Unit projection, for getting bounding box of our data
+        var projection = d3.geo.mercator()
+            .scale(1)
+            .translate([0, 0]);
+        var path = d3.geo.path()
+            .projection(projection);
+        var min_map_scale = 850,
+            b = path.bounds(places),  // [[left, top], [right, bottom]]
+            x_extent = Math.abs(b[1][0] - b[0][0]),
+            y_extent = Math.abs(b[1][1] - b[0][1]),
+            computed_scale = (.90 / Math.max(x_extent / width, y_extent / height)),
+            s = Math.min(computed_scale, min_map_scale),
+            t = [(width - s * (b[1][0] + b[0][0])) / 2, (height - s * (b[1][1] + b[0][1])) / 2];
+
+        // Update projection with our actual data
+        projection
+            .scale(s)
+            .translate(t);
+        path.projection(projection);
+
+        var zoom_scale = projection.scale() * 2 * Math.PI;
+        var tiles = d3.geo.tile()
+            .size([width, height])
+            .scale(s * 2 * Math.PI)
+            .translate(t)
+            ();
+
+        var raster = svg.append("g");
+        var image = raster
+              .attr("transform", "scale(" + tiles.scale + ")translate(" + tiles.translate + ")")
+            .selectAll("image")
+              .data(tiles, function(d) { return d; });
+
+          image.exit()
+              .remove();
+
+          image.enter().append("image")
+              .attr("xlink:href", function(d) { return "http://tile.stamen.com/watercolor/" + d[2] + "/" + d[0] + "/" + d[1] + ".png"; })
+              .attr("width", 1)
+              .attr("height", 1)
+              .attr("x", function(d) { return d[0]; })
+              .attr("y", function(d) { return d[1]; });
+
+        // Tooltip
+        var tooltip = d3.select("body").append("div")
+            .attr("class", "person_tooltip biReady")   //todo: check that the biReady applies
+            .style("opacity", 0);
+
+        // And now the data
+        svg.selectAll("path")
+            .data(places.features)
+          .enter().append("path")
+            .attr("d", path)
+            .attr("fill", function (d) {
+                    return {
+                        "birth": "#7570b3",
+                        "death": "#a6761d",
+                        "composed": "#1b9e77",
+                        "published": "#d95f02",
+                        "mixed": "#e7298a"
+                    }[d.properties.type];
+                })
+            .attr("stroke", "black")
+            .attr("stroke-width", 1)
+            .on("mouseover", function(d) {
+                var text = "<div><span class='en'>" + d.properties.en_name + "</span>" +
+                        "<span class='he'>" + d.properties.he_name + "</span></div>";
+                text += "<div class='en'>";
+                for (var i = 0; i < d.properties.en_events.length; i++) {
+                   text += "<div>" + d.properties.en_events[i] + "</div>";
+                }
+                text += "</div>";
+                text += "<div class='he'>";
+                for (var i = 0; i < d.properties.he_events.length; i++) {
+                   text += "<div>" + d.properties.he_events[i] + "</div>";
+                }
+                text += "</div>";
+                tooltip.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                tooltip.html(text)
+                    .style("left", (d3.event.pageX + 28) + "px")
+                    .style("top", (d3.event.pageY) + "px");
+                })
+            .on("mouseout", function(d) {
+                tooltip.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+                });
+
+        {% endif %}
+    {% endautoescape %}
+    </script>
+{% endblock %}

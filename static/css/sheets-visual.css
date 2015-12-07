@@ -13,25 +13,33 @@ body {
 	min-width:200px;
 	box-shadow: 0 10px 10px 2px rgba(0,0,0,0.3);
 	padding-top: 40px;
+	left: -1000px;
 }
 
 
 .yellow {
-	background-color: #ffff88; 	
+	background-color: #dfcd97; 	
 }
 
 .pink {
-	background-color: #f8cdcd;
+	background-color: #dd9c9e;
 }
 .blue {
-	background-color: #CBFAFA;
+	background-color: #80def2;
 }
 .green {
-	background-color: #CBFACB;
+	background-color: #a3e1bb;
 }
 .white {
 	background-color: #fff;
 }
+
+.purple {
+	background-color: #cb98d5;
+}
+
+
+
 
 
 .colorSelect {
@@ -92,4 +100,18 @@ body {
 
 #textTocLink {
 	position: fixed;
+}
+
+.videoWrapper {
+	position: relative;
+	padding-bottom: 56.25%; /* 16:9 */
+	padding-top: 25px;
+	height: 0;
+}
+.videoWrapper iframe {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
 }

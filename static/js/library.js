@@ -1,4 +1,5 @@
 sjs = sjs || {};
+// Dependancies: util.js, sjs.toc
 
 
 sjs.library = {
@@ -110,8 +111,15 @@ sjs.library = {
       this._index[text] = index;
     }
   },
-  _cacheIndexFromToc: function() {
+  _cacheIndexFromToc: function(toc) {
     // Unpacks contents of sjs.toc and stores it in index cache.
+    for (var i = 0; i < toc.length; i++) {
+      if ("category" in toc[i]) {
+        sjs.library._cacheIndexFromToc(toc[i].contents)
+      } else {
+        sjs.library.index(toc[i].title, toc[i]);
+      }
+    }
   },
   ref: function(ref) {
     // Returns parsed ref in for string `ref`. 
@@ -269,7 +277,7 @@ sjs.library = {
   },
   textTocHtml: function(title, cb) {
     // Returns an HTML fragment of the table of contents of the text 'title'
-    if (!title) { return "[error: empty title]"; }
+    if (!title) { return ""; }
     if (title in this._textTocHtml) {
       return this._textTocHtml[title]
     } else {
@@ -305,13 +313,14 @@ sjs.library = {
                                     "<span class='he'>מפרשים</span>" +
                                   "</div>";      
       if ($html.find("#structToggles").length) {
-        $html.find("#structToggles").append(" | " + commentaryToggleHtml);  
+        $html.find("#structToggles").append("<span class='toggleDivider'>|</span>" + commentaryToggleHtml);  
       } else {
         var togglesHtml = "<div id='structToggles'>" +
                             "<div class='altStructToggle active'>" +
                                 "<span class='en'>Text</span>" +
                                 "<span class='he'>טקסט</span>" +
-                              "</div> | " + commentaryToggleHtml +
+                              "</div>" + 
+                              "<span class='toggleDivider'>|</span>" + commentaryToggleHtml +
                           "</div>";
         $html = $("<div><div class='altStruct'>" + html + "</div></div>");
         $html.prepend(togglesHtml);   
@@ -324,10 +333,14 @@ sjs.library = {
   sectionString: function(ref) {
     // Returns a pair of nice strings (en, he) of the sections indicated in ref. e.g.,
     // "Genesis 4" -> "Chapter 4", "Guide for the Perplexed, Introduction" - > "Introduction"
-    var data = this.text(ref) || this.text(ref, {context: 1});
-    if (!data) { return ""; }
-    var result = {};
+    var data = this.ref(ref);
+    var result = { 
+          en: {named: "", numbered: ""}, 
+          he: {named: "", numbered: ""}
+        };
+    if (!data) { return result; }
 
+    // English
     var sections = ref.slice(data.indexTitle.length+1);
     var name = data.sectionNames.length > 1 ? data.sectionNames[0] + " " : "";
     if (data.isComplex) {
@@ -341,8 +354,10 @@ sjs.library = {
     } else {
       var string = name + sections;
     }
-    result["en"] = string;
+    result.en.named    = string;
+    result.en.numbered = sections;
 
+    // Hebrew
     var sections = data.heRef.slice(data.heIndexTitle.length+1);
     var name = ""; // missing he section names // data.sectionNames.length > 1 ? " " + data.sectionNames[0] : "";
     if (data.isComplex) {
@@ -357,7 +372,8 @@ sjs.library = {
     } else {
       var string = name + sections;
     }
-    result["he"] = string;
+    result.he.named    = string;
+    result.he.numbered = sections;
 
     return result;
   },
@@ -494,6 +510,7 @@ sjs.library = {
       "Parshanut":            "פרשנות",
       "Philosophy":           "מחשבת ישראל",
       "Apocrypha":            "ספרים חיצונים",
+      "Modern Works":         "עבודות מודרניות",
       "Seder Zeraim":         "סדר זרעים",
       "Seder Moed":           "סדר מועד",
       "Seder Nashim":         "סדר נשים",
@@ -624,6 +641,10 @@ sjs.library = {
   _apiCallbacks: {}
 };
 
+// Unpack sjs.toc into index cache
+sjs.library._cacheIndexFromToc(sjs.toc);
+
+
 sjs.palette = {
   darkteal:  "#004e5f",
   raspberry: "#7c406f",
@@ -662,7 +683,7 @@ sjs.categoryColors = {
   "Other":              sjs.palette.darkblue,
   "Quoting Commentary": sjs.palette.orange,
   "Commentary2":        sjs.palette.blue,
-  "Sheets":             sjs.palette.rapsberry,
+  "Sheets":             sjs.palette.raspberry,
   "Targum":             sjs.palette.lavender,
   "Modern Works":       sjs.palette.raspberry
 };

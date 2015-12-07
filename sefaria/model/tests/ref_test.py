@@ -9,8 +9,11 @@ class Test_Ref(object):
         ref = Ref(u"Exo. 3:1")
         assert ref.book == u"Exodus"
         assert Ref("Prov. 3.19")
+        assert Ref("Exo. 3.19")
         assert Ref("Prov 3.20")
+        assert Ref("Exo 3.20")
         assert Ref("Prov.3.21")
+        assert Ref("Exo.3.21")
 
     def test_normal_form_is_identifcal(self):
         assert Ref("Genesis 2:5").normal() == "Genesis 2:5"
@@ -648,6 +651,72 @@ class Test_Talmud_at_Second_Place(object):
         assert Ref("Zohar 2.15a - 15b").toSections[1] == 30
         assert Ref("Zohar 2.15a - b").sections[1] == 29
         assert Ref("Zohar 2.15a - b").toSections[1] == 30
+
+class Test_condition_and_projection(object):
+    def test_condition(self):
+        #many variations
+        pass
+
+    def test_projection_simple_section(self):
+        r = Ref("Exodus")
+        p = r.part_projection()
+        assert all([k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr])
+        assert Version.content_attr in p
+        assert p[Version.content_attr] == 1
+
+        # Todo: test Version objects returned
+        """
+        vs = VersionSet(r.condition_query(), p)
+        assert vs.count() > 0
+        for v in vs:
+            assert ...
+        """
+
+    def test_projection_complex_section(self):
+        r = Ref(u'Shelah, Bereshit, Torah Ohr')
+        p = r.part_projection()
+        assert all([k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr])
+        assert Version.content_attr not in p
+        assert u'chapter.Bereshit.Torah' in p
+        assert p[u'chapter.Bereshit.Torah'] == 1
+
+    def test_projection_simple_segment_slice(self):
+        r = Ref("Exodus 4")
+        p = r.part_projection()
+        assert all([k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr])
+        assert Version.content_attr in p
+        assert p[Version.content_attr] == {"$slice": [3, 1]}
+
+    def test_projection_simple_segment_range_slice(self):
+        r = Ref("Exodus 4-7")
+        p = r.part_projection()
+        assert all([k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr])
+        assert Version.content_attr in p
+        assert p[Version.content_attr] == {"$slice": [3, 4]}
+
+        r = Ref("Exodus 4:3-7:1")
+        p = r.part_projection()
+        assert all([k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr])
+        assert Version.content_attr in p
+        assert p[Version.content_attr] == {"$slice": [3, 4]}
+
+
+    def test_projection_complex_segment_slice(self):
+        r = Ref(u'Shelah, Bereshit, Torah Ohr 52')
+        p = r.part_projection()
+        assert all([k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr])
+        assert Version.content_attr not in p
+        assert u'chapter.Bereshit.Torah' in p
+        assert p[u'chapter.Bereshit.Torah'] == {"$slice": [51, 1]}
+
+    def test_projection_complex_segment_range_slice(self):
+        r = Ref(u'Shelah, Bereshit, Torah Ohr 50-52')
+        p = r.part_projection()
+        assert all([k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr])
+        assert Version.content_attr not in p
+        assert u'chapter.Bereshit.Torah' in p
+        assert p[u'chapter.Bereshit.Torah'] == {"$slice": [49, 3]}
+
 
 class Test_set_construction_from_ref(object):
     def test_ref_noteset(self):

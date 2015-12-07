@@ -13,6 +13,68 @@ if not hasattr(sys, '_doc_build'):
 # Simple caches for indices, parsed refs, table of contents and texts list
 index_cache = {}
 
+#functions from here: http://james.lin.net.nz/2011/09/08/python-decorator-caching-your-functions/
+#and here: https://github.com/rchrd2/django-cache-decorator
+
+# New cache instance reconnect-apparently
+cache_factory = {}
+
+def get_cache_factory(cache_type):
+    """
+    Helper to only return a single instance of a cache
+    As of django 1.7, may not be needed.
+    """
+    from django.core.cache import get_cache
+
+    if cache_type is None:
+        cache_type = 'default'
+
+    if not cache_type in cache_factory:
+        cache_factory[cache_type] = get_cache(cache_type)
+
+    return cache_factory[cache_type]
+
+
+#get the cache key for storage
+def cache_get_key(*args, **kwargs):
+    serialise = []
+    for arg in args:
+        serialise.append(str(arg))
+    for key,arg in kwargs.items():
+        serialise.append(str(key))
+        serialise.append(str(arg))
+    key = hashlib.md5("".join(serialise)).hexdigest()
+    return key
+
+def django_cache_decorator(time=300, cache_key='', cache_type=None):
+    """
+    Easily add caching to a function in django
+    """
+    cache = get_cache_factory(cache_type)
+    if not cache_key:
+        cache_key = None
+
+    def decorator(fn):
+        def wrapper(*args, **kwargs):
+            #logger.debug([args, kwargs])
+
+            # Inner scope variables are read-only so we set a new var
+            _cache_key = cache_key
+
+            if not _cache_key:
+                _cache_key = cache_get_key(fn.__name__, *args, **kwargs)
+
+            #logger.debug(['_cach_key.......',_cache_key])
+            result = cache.get(_cache_key)
+
+            if not result:
+                result = fn(*args, **kwargs)
+                cache.set(_cache_key, result, time)
+
+            return result
+        return wrapper
+    return decorator
+#-------------------------------------------------------------#
 
 def get_index(bookname):
     res = index_cache.get(bookname)
@@ -75,6 +137,7 @@ def reset_texts_cache():
     delete_template_cache('leaderboards')
     model.Ref.clear_cache()
     model.library.local_cache = {}
+    cache.clear()
 
 
 def process_index_change_in_cache(indx, **kwargs):
@@ -83,6 +146,12 @@ def process_index_change_in_cache(indx, **kwargs):
         from sefaria.system.sf_varnish import invalidate_index
         invalidate_index(indx)
 
+def process_index_delete_in_cache(indx, **kwargs):
+    reset_texts_cache()
+    if USE_VARNISH:
+        from sefaria.system.sf_varnish import invalidate_index, invalidate_counts
+        invalidate_index(indx.title)
+        invalidate_counts(indx.title)
 
 def process_new_commentary_version_in_cache(ver, **kwargs):
     if " on " in ver.title:

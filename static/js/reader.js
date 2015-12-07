@@ -294,14 +294,15 @@ sjs.Init.handlers = function() {
 	
 	// Load the initial page notes, which were not included in initial pageview
 	// Subsequent notes calls are bundled with texts in sjs.cache
-	$.getJSON("/api/notes/" + sjs.current.ref, function(data){
+	if(sjs.current.ref){
+		$.getJSON("/api/notes/" + sjs.current.ref, function(data){
 			if ("error" in data) {
 				sjs.alert.message(data);
 				return;
 			}
 			sjs.current.notes = data.notes;
-    });
-
+    	});
+	}
 	sjs.filterSources = function(cat) {
 		// Filter sources for category 'cat'
 		// 'kind' maybe either 'category' (text filter) or 'type' (connection filter)
@@ -847,7 +848,7 @@ $(function() {
 		} 
 
 		// add Verse Controls menu
-		if (!isTouchDevice()) {
+		if ($(window).width() > 669) {
 			$(".verseControls").remove();
 			var offset = $(this).offset();
 			var left = sjs._$basetext.offset().left + sjs._$basetext.outerWidth();
@@ -2241,7 +2242,7 @@ function sortCommentary(a,b) {
 
 	// Sort commentaries according to their order
 	if (a.cnum != 0 && b.cnum != 0) {
-		return (a.cnum > b.cnum) ? 1 : -1; 
+		return (a.cnum > b.cnum) ? 1 : -1;
 	}
 
 	// Sort connections on the same source according to the order of the source text
@@ -2470,7 +2471,7 @@ function aboutHtml(data) {
 						(version.digitizedBySefaria ? "<div class='digitizedBySefaria'>This text was <a href='/digitized-by-sefaria' target='_blank'>digitized by Sefaria</a>.</div>" : "" ) +
 						(version.notes ? "<div class='versionNotes'>" + version.notes + "</div>" : "" ) +
 						(version.status === "locked" ? 
-							'<div class="lockedMessage"><div class="fa fa-lock"></div> This text is locked. If you believe this text requires further editing, please let us know by <a href="mailto:hello@sefaria.org">email</a>.</div>' : "") +						
+							'<div class="lockedMessage"><div class="fa fa-lock"></div> This text is locked. If you believe this text requires further editing, please let us know <a href="https://github.com/Sefaria/Sefaria-Project/wiki/How-to-Report-a-Mistake" target="_blank">here</a>.</div>' : "") +
 						'<div>' +
 							(version.status === "locked" ? "" :
 								"<div class='editText action btn btn-mini btn-info' data-lang='" + version.lang + "'><i class='fa fa-pencil'></i> Edit</div>") +
@@ -2502,7 +2503,7 @@ function aboutHtml(data) {
 		if (v.versionTitle === data.versionTitle || v.versionTitle === data.heVersionTitle) { continue; }
 		if ($.inArray(v.versionTitle, mergeSources) > -1 ) { continue; }
 		versionsHtml += '<div class="alternateVersion ' + v.language + '">' + 
-							'<a href="/' + makeRef(data) + '/' + v.language + '/' + v.versionTitle.replace(/ /g, "_") + '">' +
+							'<a href="/' + makeRef(data) + '/' + v.language + '/' + encodeURI(v.versionTitle.replace(/ /g, "_")) + '">' +
 							v.versionTitle + '</a></div>';
 		versionsLang[v.language] = true;
 	}
@@ -2649,6 +2650,8 @@ sjs.updateUrlParams = function() {
 	
 	if (sjs.sourcesFilter !== "all") {
 		params["with"] = sjs.sourcesFilter.replace(/ /g, "_");
+	} else {
+		delete params["with"];
 	}
 	if      ($("body").hasClass("sidebarHebrew"))  { params["sidebarLang"] = "he" }
 	else if ($("body").hasClass("sidebarEnglish")) { params["sidebarLang"] = "en" }	
@@ -4221,9 +4224,3 @@ function hardRefresh(ref) {
 	actuallyGet(parseRef(ref));	
 }
 
-
-// -------- Special Case for IE ----------------
-if ($.browser.msie) {
-	$("#unsupported").show();
-	$.isReady = true;
-}
