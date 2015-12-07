@@ -48,32 +48,31 @@ var ReaderApp = React.createClass({
       sjs.track.event("Reader", "Pop State", kind);
       this.justPopped = true;
       this.setState(state);
-      //console.log("Pop");
-      //console.log(state);
+      console.log("Pop");
+      console.log(state);
     }
   },
   shouldHistoryUpdate: function() {
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
-   if (!history.state) { return true; }
+    if (!history.state) { return true; }
 
-   if (history.state.panels.length !== this.state.panels.length) { return true; }
+    if (history.state.panels.length !== this.state.panels.length) { return true; }
 
     for (var i = 0; i < this.state.panels.length; i++) {
-      // Cycle through each panel, looking for differences
-
-      // examine top level panel state
+      // Cycle through each panel, compare previous state to next state, looking for differences
       var prev  = history.state.panels[i];
       var next  = this.state.panels[i];
 
-      if (!prev || !next) { return true; }
-
-      if (prev.menuOpen !== next.menuOpen) {
+      if ((prev.mode !== next.mode) ||
+          (prev.menuOpen !== next.menuOpen) ||
+          (next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0]) || 
+          (next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0]) || 
+          (next.mode === "Connections" && prev.filter && !prev.filter.compare(next.filter)) ||
+          (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
+          (prev.searchQuery !== next.searchQuery) ||
+          (prev.navigationSheetTag !== next.navigationSheetTag)) {
          return true;
-      } else if (prev.searchQuery !== next.searchQuery) {
-        return true;
-      } else if (prev.navigationSheetTag !== next.navigationSheetTag) {
-        return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
         // Handle array comparison, !== could mean one is null or both are arrays
         if (!prev.navigationCategories || !next.navigationCategories) {
@@ -81,14 +80,6 @@ var ReaderApp = React.createClass({
         } else if (!prev.navigationCategories.compare(next.navigationCategories)) {
           return true; // both are set, compare arrays
         }
-      } else if (prev.mode !== next.mode) { 
-        return true;
-      } else if (next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0]) {
-        return true;
-      } else if (next.mode === "Connections" && pref.filter && !prev.filter.compare(next.filter)) {
-        return true;
-      } else if (next.mode === "Connections" && !prev.refs.compare(next.refs)) {
-        return true;
       }
     }
     return false;  
@@ -149,7 +140,7 @@ var ReaderApp = React.createClass({
         hist.url    = normRef(ref) + "?with=" + sources;
         hist.mode   = "Connections"
       } else if (state.mode === "TextAndConnections") {
-        var ref     = state.refs.slice(-1)[0];
+        var ref     = state.highlightedRefs.slice(-1)[0];
         var sources = state.filter.length ? state.filter[0] : "all";
         hist.title  = ref  + " with " + (sources === "all" ? "Connections" : sources);;
         hist.url    = normRef(ref) + "?with=" + sources;
@@ -192,22 +183,19 @@ var ReaderApp = React.createClass({
   },
   updateHistoryState: function(replace) {
     if (!this.shouldHistoryUpdate()) { 
-      return; }
-
-    if (this.justPopped) {
-      // Don't let a pop trigger a push
-      this.justPopped = false;
-      return;
+      console.log("shouldn't update history")
+      return; 
     }
+
     var hist = this.makeHistoryState();
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
-      //console.log("Replace History")
-      //console.log(hist);
+      console.log("Replace History")
+      console.log(hist);
     } else {
       history.pushState(hist.state, hist.title, hist.url);
-      //console.log("Push History");
-      //console.log(hist);
+      console.log("Push History");
+      console.log(hist);
     }
     $("title").html(hist.title);
 
@@ -490,6 +478,7 @@ var ReaderPanel = React.createClass({
   },
   setTextListHightlight: function(refs) {
     refs = typeof refs === "string" ? [refs] : refs;
+    this.replaceHistory = true; 
     this.setState({highlightedRefs: refs});
     if (this.props.multiPanel) {
       this.props.setTextListHightlight(refs);
@@ -1415,7 +1404,7 @@ var SheetsNav = React.createClass({
       var yourSheets  = sjs._uid ? (<div className="yourSheetsLink navButton" onClick={this.showYourSheets}>Your Source Sheets <i className="fa fa-chevron-right"></i></div>) : null;
       var makeTagButton = function(tag) {
         var setThisTag = this.setTag.bind(null, tag.tag);
-        return (<div className="navButton" onClick={setThisTag}>{tag.tag} ({tag.count})</div>);
+        return (<div className="navButton" onClick={setThisTag} key={tag.tag}>{tag.tag} ({tag.count})</div>);
       }.bind(this);
 
       if (this.state.trendingTags !== null && this.state.tagList !== null) {
@@ -1432,12 +1421,12 @@ var SheetsNav = React.createClass({
                         </div>
                        </div>);
       } else {
-        var content = (<div className="content"><div className="contentInner"><LoadingMessage /></div></div>);
+        var content = (<div className="content" key="content"><div className="contentInner"><LoadingMessage /></div></div>);
       }      
     }
 
     return (<div className="readerSheetsNav readerNavMenu">
-              <div className="readerNavTop searchOnly">
+              <div className="readerNavTop searchOnly" key="navTop">
                 <CategoryColorLine category="Sheets" />
                 <ReaderNavigationMenuSearchButton onClick={this.props.openNav} />
                 <h2><span className="en">{enTitle}</span></h2>
@@ -1684,6 +1673,7 @@ var TextColumn = React.createClass({
       var node         = ReactDOM.findDOMNode(this);
       var refs         = this.props.srefs;
       var $lastText    = $(node).find(".textRange.basetext").last();
+      if (!$lastText.length) { return; }
       var lastTop      = $lastText.position().top;
       var lastBottom   = lastTop + $lastText.outerHeight();
       var windowHeight = $(node).outerHeight();
