@@ -799,10 +799,12 @@ sjs.textBrowser = {
 	forward: function(to) {
 		// navigate forward to "to", a string naming a text, category or section
 		// as it appears in the nav or path
-		if (to == (this._path[this._path.length-1])) {alert('throw error')}
+		if (to != (this._path[this._path.length-1])) {  //if "to" = the last node in current path, don't go anywhere
+
+
 		var next = null;
 		this._path.push(to);
-		this.updatePath();	
+		this.updatePath();
 		if (this._currentCategories) {
 			for (var i = 0; i < this._currentCategories.length; i++) {
 				if (this._currentCategories[i].category === to || this._currentCategories[i].title === to) {
@@ -817,67 +819,69 @@ sjs.textBrowser = {
 						this._currentSections = [];
 						if (this._currentText && this._currentText.title === next.title) {
 							// Nav within the same text, no need to update data
-                            if(this._currentSchema.has_children()) {
-                                this.buildComplexTextNav()
-                            } else {
-                                this.buildTextNav();
-                            }
+							if (this._currentSchema.has_children()) {
+								this.buildComplexTextNav()
+							} else {
+								this.buildTextNav();
+							}
 						} else {
 							this.getTextInfo(next.title);
 						}
 						break;
 					}
 				}
-			}			 
+			}
 		} else { // Click on a Section or Intermediate node
-            var atSectionLevel;
-            if (!this._currentText) {
-                this._currentText = this._previousText;
-            }
-            var isCommentary = ($.inArray("Commentary", this._currentText.categories) > -1);
-            var schema = sjs.textBrowser._currentSchema;
-            var isComplex = schema.has_children();
-            var node = schema;
-            var sections;
-            var maxDepth;
+			var atSectionLevel;
+			if (!this._currentText) {
+				this._currentText = this._previousText;
+			}
+			var isCommentary = ($.inArray("Commentary", this._currentText.categories) > -1);
+			var schema = sjs.textBrowser._currentSchema;
+			var isComplex = schema.has_children();
+			var node = schema;
+			var sections;
+			var maxDepth;
 
-            if (isComplex) {
-        		var titles = this._path.slice(this._currentText.categories.length + 1);
-                var node_and_sections = schema.get_node_and_sections_from_titles(titles);
-                node = node_and_sections.node;
-                sections = node_and_sections.sections;
-                if (node.has_children()) {
-                    atSectionLevel = false;
-                } else {
-                    maxDepth = node.depth - (isCommentary ? 2 : 1);
-                    atSectionLevel = sections.length >= maxDepth;
-                }
-            } else {
-    			maxDepth = this._currentText.depth - (isCommentary ? 3 : 2);
-                atSectionLevel = this._currentDepth >= maxDepth;
-            }
+			if (isComplex) {
+				var titles = this._path.slice(this._currentText.categories.length + 1);
+				var node_and_sections = schema.get_node_and_sections_from_titles(titles);
+				node = node_and_sections.node;
+				sections = node_and_sections.sections;
+				if (node.has_children()) {
+					atSectionLevel = false;
+				} else {
+					maxDepth = node.depth - (isCommentary ? 2 : 1);
+					atSectionLevel = sections.length >= maxDepth;
+				}
+			} else {
+				maxDepth = this._currentText.depth - (isCommentary ? 3 : 2);
+				atSectionLevel = this._currentDepth >= maxDepth;
+			}
 
 			if (atSectionLevel) {
-                this.previewText(this.ref());
-            } else {
+				this.previewText(this.ref());
+			} else {
 				// We're not at section level, build another level of section navs
-                if (isComplex && (sections.length == 0)) {
-                    // We're in the middle of a complex text
-                    this._currentSections.push(to);
-                    if (node.has_children()) {
-                        this.buildComplexTextNav();
-                    } else {
-                        this.getTextInfo(schema.get_node_url_from_titles(titles));
-                    }
-    			} else {
-                    var section = to.slice(to.lastIndexOf(" "));
-                    section = node.addressTypes[this._currentDepth] == "Talmud" ? dafToInt(section) : parseInt(section);
-                    this._currentSections.push(section);
-                    this._currentDepth = this._currentSections.length;
-                    this.buildTextNav();
-                }
+				if (isComplex && (sections.length == 0)) {
+					// We're in the middle of a complex text
+					this._currentSections.push(to);
+					if (node.has_children()) {
+						this.buildComplexTextNav();
+					} else {
+						this.getTextInfo(schema.get_node_url_from_titles(titles));
+					}
+				} else {
+					var section = to.slice(to.lastIndexOf(" "));
+					section = node.addressTypes[this._currentDepth] == "Talmud" ? dafToInt(section) : parseInt(section);
+					this._currentSections.push(section);
+					this._currentDepth = this._currentSections.length;
+					this.buildTextNav();
+				}
 			}
-		}		
+		}
+
+	}
 	},
 	buildCategoryNav: function(contents) {
 		// Build the side nav for category contents
