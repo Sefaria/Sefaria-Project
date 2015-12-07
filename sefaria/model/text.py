@@ -22,7 +22,7 @@ from . import abstract as abst
 from schema import deserialize_tree, SchemaNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, TermSet, TitleGroup
 
 import sefaria.system.cache as scache
-from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError
+from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, NoVersionFoundError
 from sefaria.utils.talmud import daf_to_section
 from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth
@@ -1067,7 +1067,7 @@ class TextChunk(AbstractTextRecord):
 
             if vset.count() == 0:
                 if VersionSet({"title": oref.index.title}).count() == 0:
-                    raise InputError("No text record found for '{}'".format(oref.index.title))
+                    raise NoVersionFoundError("No text record found for '{}'".format(oref.index.title))
                 return
             if vset.count() == 1:
                 v = vset[0]

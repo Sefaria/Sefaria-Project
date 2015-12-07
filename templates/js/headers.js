@@ -852,6 +852,22 @@
 	    })
 	    $("#rightButtons").click(function(e){e.stopPropagation();});
 	    $(window).click(sjs.hideOptionsBar);
+
+		// browser check -- 
+		// this attempts to create an element and add css3 text shadow to it to it
+		// these are only supported in recent firefox, chrome, safari & ie > 9
+
+		$("#sefaria").css("text-shadow", "2px 2px #ff0000");
+		var sefariaSupportedBrowser = !!$("#alertMessage").css("text-shadow");
+		$("#sefaria").css("text-shadow", "");
+
+		if (sefariaSupportedBrowser == false) {
+		$("#alertMessage").html('<strong>Warning:</strong> Your browser is out of date and unsupported by Sefaria<br/>Please use a more up to date browser or download one <a href="http://browsehappy.com/" target="_blank">here</a>.').show();
+		}
+
 	});
 {% endautoescape %}
+
+
+
 </script>

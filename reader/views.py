@@ -20,7 +20,7 @@ from django.utils.encoding import iri_to_uri
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 from django.contrib.auth.models import User
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
-from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError
+from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
@@ -92,8 +92,10 @@ def reader(request, tref, lang=None, version=None):
         return reader_redirect(first_oref.url(), lang, version)
 
     version = version.replace("_", " ") if version else None
-
-    text = TextFamily(oref, lang=lang, version=version, commentary=False, alts=True).contents()
+    try:
+        text = TextFamily(oref, lang=lang, version=version, commentary=False, alts=True).contents()
+    except NoVersionFoundError:
+        raise Http404
 
     text.update({"commentary": [], "notes": [], "sheets": [], "layer": [], "connectionsLoadNeeded": True})
     hasSidebar = True
@@ -182,7 +184,10 @@ def s2(request, ref, version=None, lang=None):
         oref = oref.first_available_section_ref()
     else:
         initialMenu = ""
-    text         = TextFamily(oref, version=version, lang=lang, commentary=False, context=False, pad=True, alts=True).contents()
+    try:
+        text = TextFamily(oref, version=version, lang=lang, commentary=False, context=False, pad=True, alts=True).contents()
+    except NoVersionFoundError:
+        raise Http404
     text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
     text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
 
@@ -2333,7 +2338,8 @@ def visual_garden_page(request, g):
         'key': g.key,
         'stopCount': g.stopSet().count(),
         'stops': json.dumps(g.stopData()),
-        'places': g.placeSet().asGeoJson(as_string=True)
+        'places': g.placeSet().asGeoJson(as_string=True),
+        'config': json.dumps(getattr(g, "config", {}))
     }
 
     return render_to_response('visual_garden.html', template_vars, RequestContext(request))

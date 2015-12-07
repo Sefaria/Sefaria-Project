@@ -4224,9 +4224,3 @@ function hardRefresh(ref) {
 	actuallyGet(parseRef(ref));	
 }
 
-
-// -------- Special Case for IE ----------------
-if ($.browser.msie) {
-	$("#unsupported").show();
-	$.isReady = true;
-}

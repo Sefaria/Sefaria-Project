@@ -172,8 +172,7 @@ $(".sheetItem").resizable({
     }
 
     if ($(this).hasClass("mediaWrapper")) {
-
-        var mediaSource = sjs.current.sources[$(this).prevAll(".sheetItem").length].media;
+        var mediaSource = sjs.current.sources[($(this).prevAll(".sheetItem").length)+($(this).prevAll(".outsideBiWrapper").length)].media;
         var mediaLink;
 
         if (mediaSource.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
