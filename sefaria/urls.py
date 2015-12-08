@@ -270,7 +270,8 @@ urlpatterns += patterns('sefaria.views',
 
 # Admin 
 urlpatterns += patterns('', 
-    (r'^admin/reset/cache', 'sefaria.views.reset_cache'),
+    (r'^admin/reset/cache$', 'sefaria.views.reset_cache'),
+    (r'^admin/reset/cache/(?P<title>.+)$', 'sefaria.views.reset_index_cache_for_text'),
     #(r'^admin/view/template_cache/(?P<title>.+)$', 'sefaria.views.view_cached_elem'),
     #(r'^admin/delete/template_cache/(?P<title>.+)$', 'sefaria.views.del_cached_elem'),
     (r'^admin/rebuild/counts-toc', 'sefaria.views.rebuild_counts_and_toc'),
