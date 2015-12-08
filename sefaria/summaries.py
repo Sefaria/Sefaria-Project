@@ -337,7 +337,7 @@ def add_counts_to_index(indx_dict):
     """
     Returns a dictionary which decorates `indx_dict` with a spareness score.
     """
-    vs = StateNode(indx_dict["title"])
+    vs = StateNode(indx_dict["title"], meta=True)
     indx_dict["sparseness"] = max(vs.get_sparseness("he"), vs.get_sparseness("en"))
     return indx_dict
 
