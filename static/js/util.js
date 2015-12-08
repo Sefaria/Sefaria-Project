@@ -799,7 +799,7 @@ sjs.textBrowser = {
 	forward: function(to) {
 		// navigate forward to "to", a string naming a text, category or section
 		// as it appears in the nav or path
-		if (to != (this._path[this._path.length-1])) {  //if "to" = the last node in current path, don't go anywhere
+		if (to != (this._path[this._path.length-1])) {   //if "to" = the last node in current path, don't go anywhere to prevent rapid clicking on the same item doubling up and throwing error
 
 
 		var next = null;
