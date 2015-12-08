@@ -190,17 +190,20 @@ var ReaderApp = React.createClass({
     var hist = this.makeHistoryState();
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
-      console.log("Replace History")
-      console.log(hist);
+      //console.log("Replace History")
+      //console.log(hist);
     } else {
       history.pushState(hist.state, hist.title, hist.url);
-      console.log("Push History");
-      console.log(hist);
+      //console.log("Push History");
+      //console.log(hist);
     }
     $("title").html(hist.title);
 
-    // TODO sjs.track.open and others
-
+    if (hist.state.type == "TextColumn") {
+      sjs.track.open(hist.title);
+    } else if (hist.state.type == "TextList") {
+      sjs.track.event("Reader", "Open Close Reader", hist.title);
+    }
     sjs.track.pageview(hist.url);
   },
   handlePanelUpdate: function(n, action, state) {
@@ -459,9 +462,7 @@ var ReaderPanel = React.createClass({
   showBaseText: function(ref, replaceHistory) {
     // Set the current primary text
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
-    if (!ref) { 
-      return;
-    }
+    if (!ref) { return; }
     this.replaceHistory = typeof replaceHistory === "undefined" ? false : replaceHistory;
     this.setState({
       mode: "Text",
