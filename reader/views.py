@@ -1264,6 +1264,48 @@ def lock_text_api(request, title, lang, version):
     vobj.save()
     return jsonResponse({"status": "ok"})
 
+@catch_error_as_json
+@csrf_exempt
+def flag_text_api(request, title, lang, version):
+    """
+    API for locking or unlocking a text as a whole.
+    To unlock, include the URL parameter "action=unlock"
+    """
+    if not request.user.is_authenticated():
+        key = request.POST.get("apikey")
+        if not key:
+            return jsonResponse({"error": "You must be logged in or use an API key to perform this action."})
+        apikey = db.apikeys.find_one({"key": key})
+        if not apikey:
+            return jsonResponse({"error": "Unrecognized API key."})
+        user = User.objects.get(id=apikey["uid"])
+        if not user.is_staff:
+            return jsonResponse({"error": "Only Sefaria Moderators can flag texts."})
+
+        flags = json.loads(request.POST.get("json"))
+        title   = title.replace("_", " ")
+        version = version.replace("_", " ")
+        vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
+        for flag in vobj.optional_attrs:
+            if flag in flags:
+                setattr(vobj, flag, flags[flag])
+        vobj.save()
+        return jsonResponse({"status": "ok"})
+    elif request.user.is_staff:
+        @csrf_protect
+        def protected_post(request):
+            flags = json.loads(request.POST.get("json"))
+            title   = title.replace("_", " ")
+            version = version.replace("_", " ")
+            vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
+            for flag in vobj.optional_attrs:
+                if flag in flags:
+                    setattr(vobj, flag, flags[flag])
+            vobj.save()
+            return jsonResponse({"status": "ok"})
+        return protected_post(request)
+    else:
+        return jsonResponse({"error": "Unauthorized"})
 
 @catch_error_as_json
 def dictionary_api(request, word):

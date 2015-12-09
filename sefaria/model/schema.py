@@ -876,8 +876,8 @@ class SchemaNode(TitledTreeNode):
     def __init__(self, serial=None, **kwargs):
         """
         Construct a SchemaNode
-        :param index: The Index object that this tree is rooted in.
         :param serial: The serialized form of this subtree
+        :param kwargs: "index": The Index object that this tree is rooted in.
         :return:
         """
         super(SchemaNode, self).__init__(serial, **kwargs)

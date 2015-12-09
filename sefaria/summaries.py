@@ -179,6 +179,7 @@ def save_toc_to_db():
 
 def update_table_of_contents():
     toc = []
+    sparseness_dict = get_sparesness_lookup()
     # Add an entry for every text we know about
     indices = IndexSet()
     for i in indices:
@@ -191,7 +192,8 @@ def update_table_of_contents():
             i.categories.insert(0, "Other")
 
         node = get_or_make_summary_node(toc, i.categories)
-        text = add_counts_to_index(i.toc_contents())
+        text = i.toc_contents()
+        text["sparseness"] = sparseness_dict[text["title"]]
         node.append(text)
 
     # Special handling to list available commentary texts
@@ -208,13 +210,12 @@ def update_table_of_contents():
         else:
             cats = i.categories[:]
 
-        toc_contents = i.toc_contents()
-        cats[0], cats[1] = cats[1], cats[0] # Swap "Commentary" with toplevel category (e.g., "Tanach")        
+        text = i.toc_contents()
+        text["sparseness"] = sparseness_dict[text["title"]]
 
+        cats[0], cats[1] = cats[1], cats[0] # Swap "Commentary" with toplevel category (e.g., "Tanach")
         node = get_or_make_summary_node(toc, cats)
-        text = add_counts_to_index(toc_contents)
         node.append(text)
-
 
     # Recursively sort categories and texts
     toc = sort_toc_node(toc, recur=True)
@@ -333,11 +334,15 @@ def get_or_make_summary_node(summary, nodes, contents_only=True):
     return get_or_make_summary_node(summary[-1]["contents"], nodes[1:], contents_only=contents_only)
 
 
+def get_sparesness_lookup():
+    vss = db.vstate.find({}, {"title": 1, "content._en.sparseness": 1, "content._he.sparseness": 1})
+    return {vs["title"]: max(vs["content"]["_en"]["sparseness"], vs["content"]["_he"]["sparseness"]) for vs in vss}
+
 def add_counts_to_index(indx_dict):
     """
     Returns a dictionary which decorates `indx_dict` with a spareness score.
     """
-    vs = StateNode(indx_dict["title"])
+    vs = StateNode(indx_dict["title"], meta=True)
     indx_dict["sparseness"] = max(vs.get_sparseness("he"), vs.get_sparseness("en"))
     return indx_dict
 
