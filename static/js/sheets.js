@@ -1068,7 +1068,7 @@ $(function() {
 			$("#publishPromptModal #prompt").hide();
 			$("#publishPromptModal #published").show();
 			sjs.current.promptedToPublish = Date();
-			$("#public").trigger("click");
+			$("#sharePublic").trigger("click");
 			sjs.track.sheets("Publish Prompt Accept");
 		});
 		$("#publishPromptModal .later").click(function(){
@@ -1610,6 +1610,7 @@ function buildSheet(data){
 	sjs.loading = false;
 
 	$("#sources").css("min-height","");
+
 }
 	
 
@@ -2125,14 +2126,20 @@ function promptToPublish() {
 
 	if (!sjs.current.id) { return; }                        // Don't prompt for unsaved sheet
 	if (!sjs.is_owner) { return; }                          // Only prompt the primary owner
-	if (sjs.current.promptedToPublish) { return; }          // Don't prompt if we've prompted already
+	if (sjs.current.promptedToPublish) {
+			if ((Date.now()-Date.parse(sjs.current.promptedToPublish))/(8.64*(Math.pow(10,7))) < 30 ) {
+				return;
+			}
+		} 											       // Don't prompt if we've prompted in the last 30 days
 	if (sjs.current.status in {"public":true}) { return; } // Don't prompt if sheet is already public
-	if (sjs.current.sources.length < 6) { return; }         // Don't prompt if the sheet has less than 3 sources
+//	if (sjs.current.sources.length < 6) { return; }         // Don't prompt if the sheet has less than 6 sources
+	if (sjs.current.views < 3) {return}						// Don't prompt if the sheet has been viewed less than three times
 	if ($("body").hasClass("embedded")) { return; }         // Don't prompt while a sheet is embedded
 
 	$("#publishPromptModal").show();
 	$("#overlay").show();
 	sjs.track.sheets("Publish Prompt");
+
 
 }
 
