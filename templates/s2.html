@@ -30,10 +30,12 @@
     <script src="/static/js/library.js"></script>
     {% if DEBUG %}
     <script src="/static/js/react.js"></script>
+    <script src="/static/js/react-dom.js"></script>
     <script src="/static/js/JSXTransformer.js"></script>
     <script type="text/jsx" src="/static/js/s2.jsx"></script>
     {% else %}
-    <script src="/static/js/react.js"></script>
+    <script src="/static/js/react-min.js"></script>
+    <script src="/static/js/react-dom-min.js"></script>
     <script src="/static/js/s2.js"></script>
     {% endif %}
     <script {% if DEBUG %}type="text/jsx"{% endif %}>
@@ -45,22 +47,34 @@
           var ref = humanRef("{{ ref }}")
           sjs.library._saveText({{ data|jsonify }});
         }
+        var multiPanel = $(window).width() > 600;
+        var urlVars    = getUrlVars();
+        var filter     = "with" in urlVars ? urlVars["with"].replace(/_/g, " ").split("+") : null;
+        filter         = filter && filter.length === 1 && filter[0] === "all" ? [] : filter;
+        var query      = "q" in urlVars ? urlVars["q"] : null;
 
-        var urlVars = getUrlVars();
-        var filter  = "with" in urlVars ? urlVars["with"].replace(/_/g, " ").split("+") : null;
-        if (filter && filter.length === 1 && filter[0] === "all") { filter = []; }
-        var query         = "q" in urlVars ? urlVars["q"] : null;
-        var multiPanel    = $(window).width() > 600;
-        var initialPanels = [ref];
-        for (var i = 2; i < 5; i++) {
-          var p = urlVars["p" + i] || null;
-          var w = urlVars["with" + i] || null; 
-          if (p && w) {
-            filter = w.replace(/_/g, " ").split("+");
-            if (filter && filter.length === 1 && filter[0] === "all") { filter = []; }
-          } else if (p) {
-            if (!p.match(/^texts|^sheets|^search/)) {
-              initialPanels.push(humanRef(p));
+        if (!multiPanel) {
+          if (filter) {
+            var initialPanels = [{type: "TextAndConnections", refs: [ref], filter: filter}]; 
+          } else {
+            var initialPanels = [{type: "Text", refs: [ref]}]; 
+          }
+        } else {
+          var initialPanels = [{type: "Text", refs: [ref]}];
+          if (filter) {
+            initialPanels.push({type: "Connections", refs: [ref], filter: filter});
+          }
+
+          for (var i = 2; i < 5; i++) {
+            var p = urlVars["p" + i] || null;
+            var w = urlVars["with" + i] || null; 
+            if (p && !p.match(/^texts|^sheets|^search/)) {
+              initialPanels.push({type: "Text", refs: [humanRef(p)]});
+            }
+            if (w) {
+              filter = w.replace(/_/g, " ").split("+");
+              filter = filter && filter.length === 1 && filter[0] === "all" ? [] : filter;
+              initialPanels.push({type: "Connections", refs: [humanRef(p)], filter: filter});
             }
           }
         }
@@ -74,10 +88,10 @@
           fontSize:      $.cookie("fontSize")      || 62.5
         };
 
-        React.render(
+        ReactDOM.render(
           React.createElement(ReaderApp, {
             multiPanel: multiPanel,
-            initialRef: ref,
+            initialRefs: ref ? [ref] : [],
             initialFilter: filter,
             initialMenu: "{{ initialMenu }}",
             initialQuery: query,
