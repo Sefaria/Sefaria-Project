@@ -194,7 +194,6 @@ def update_table_of_contents():
         node = get_or_make_summary_node(toc, i.categories)
         text = i.toc_contents()
         text["sparseness"] = sparseness_dict[text["title"]]
-        #text = add_counts_to_index(i.toc_contents())
         node.append(text)
 
     # Special handling to list available commentary texts
@@ -216,9 +215,7 @@ def update_table_of_contents():
 
         cats[0], cats[1] = cats[1], cats[0] # Swap "Commentary" with toplevel category (e.g., "Tanach")
         node = get_or_make_summary_node(toc, cats)
-        #text = add_counts_to_index(toc_contents)
         node.append(text)
-
 
     # Recursively sort categories and texts
     toc = sort_toc_node(toc, recur=True)
