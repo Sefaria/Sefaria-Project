@@ -1505,6 +1505,8 @@ class TextFamily(object):
         d["heIndexTitle"] = self._inode.index.get_title("he")
         d["sectionRef"]   = self._original_oref.section_ref().normal()
         d["isSpanning"]   = self._original_oref.is_spanning()
+        if d["isSpanning"]:
+            d["spanningRefs"] = [r.normal() for r in self._original_oref.split_spanning_ref()]
 
         for language, attr in self.text_attr_map.items():
             chunk = self._chunks.get(language)

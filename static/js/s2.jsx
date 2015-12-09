@@ -183,7 +183,6 @@ var ReaderApp = React.createClass({
   },
   updateHistoryState: function(replace) {
     if (!this.shouldHistoryUpdate()) { 
-      console.log("shouldn't update history")
       return; 
     }
 
@@ -1988,9 +1987,21 @@ var TextRange = React.createClass({
       });      
     }
 
-    if (this.props.loadLinks && !sjs.library.linksLoaded(data.sectionRef)) {
+    // Load links at section level is spanning, so that cache is properly primed with section level refs
+    var sectionRefs = data.isSpanning ? data.spanningRefs : [data.sectionRef];
+    sectionRefs = sectionRefs.map(function(ref) {
+      if (ref.indexOf("-") > -1) {
+        ref = ref.split("-")[0];
+        ref = ref.slice(0, ref.lastIndexOf(":"));
+      }
+      return ref;
+    });
+
+    if (this.props.loadLinks && !sjs.library.linksLoaded(sectionRefs)) {
       // Calling when links are loaded will overwrite state.segments
-      sjs.library.links(data.sectionRef, this.loadLinkCounts);
+      for (var i = 0; i < sectionRefs.length; i++) {
+        sjs.library.links(sectionRefs[i], this.loadLinkCounts);
+      }
     }
 
     if (this.props.prefetchNextPrev) {
@@ -2165,7 +2176,7 @@ var TextList = React.createClass({
   },
   getInitialState: function() {
     return {
-      linksloaded: false,
+      linksLoaded: false,
       textLoaded: false,
     }
   },
@@ -2192,19 +2203,20 @@ var TextList = React.createClass({
       this.scrollToHighlighted();
     }
   },
-  loadConnections: function() {
-    // Load connections data from server for this ref
+  getSectionRef: function() {
     var ref = this.props.srefs[0]; // TODO account for selections spanning sections
-    // Loading intially at section level for commentary
-    var sectionRef = sjs.library.ref(ref) ? sjs.library.ref(ref).sectionRef : ref;
-
-    if (!sectionRef) { return; }
+    var sectionRef = sjs.library.sectionRef(ref) || ref;
+    return sectionRef;
+  },
+  loadConnections: function() {
+    // Load connections data from server for this section
+    var sectionRef = this.getSectionRef();
+    if (sectionRef) { return; }
     sjs.library.links(sectionRef, function(links) {
       if (this.isMounted()) {
         this.preloadText(this.props.filter);
         this.setState({
           linksLoaded: true,
-          sectionRef: sectionRef
         });
       }
     }.bind(this));
@@ -2222,7 +2234,7 @@ var TextList = React.createClass({
     }
   },
   preloadSingleCommentaryText: function(filter) {
-    var basetext   = this.state.sectionRef;
+    var basetext   = this.getSectionRef();
     var commentary = filter[0] + " on " + basetext;
     this.setState({textLoaded: false, waitForText: true});
     sjs.library.text(commentary, {}, function() {
@@ -2230,7 +2242,7 @@ var TextList = React.createClass({
     }.bind(this));
   },
   preloadAllCommentaryText: function() {
-    var basetext   = this.state.sectionRef;
+    var basetext   = this.getSectionRef();
     var summary    = sjs.library.linkSummary(basetext);
     if (summary.length && summary[0].category == "Commentary") {
       this.setState({textLoaded: false, waitForText: true});
@@ -2288,10 +2300,11 @@ var TextList = React.createClass({
     var refs               = this.props.srefs;
     var summary            = sjs.library.linkSummary(refs);
     var filter             = this.props.filter;
-    var links              = sjs.library.links(this.state.sectionRef);
+    var sectionRef         = this.getSectionRef();
+    var sectionLinks       = sjs.library.links(sectionRef);
     var isSingleCommentary = (filter.length == 1 && sjs.library.index(filter[0]) && sjs.library.index(filter[0]).categories == "Commentary");
 
-    links = links.filter(function(link) {
+    var links = sectionLinks.filter(function(link) {
       if (!isSingleCommentary && $.inArray(link.anchorRef, refs) === -1) {
         // Only show section level links for an individual commentary
         return false;
@@ -2310,14 +2323,17 @@ var TextList = React.createClass({
         }
     });
 
-    var showAllFilters = !filter.length;
+    //if (summary.length && !links.length) { debugger; }
+
     var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";;
     var he = "אין קשרים ידועים"       + (filter.length ? " ל"    + filter.join(", ") : "") + ".";;
-    var loaded  = sjs.library.linksLoaded(this.state.sectionRef);
+    var loaded  = sjs.library.linksLoaded(sectionRef);
     var message = !loaded ? 
                     (<LoadingMessage />) : 
                       (links.length === 0 ? 
                         <LoadingMessage message={en} heMessage={he} /> : null);
+    
+    var showAllFilters = !filter.length;
     if (!showAllFilters) {
       var texts = links.length == 0 ? message :
                     this.state.waitForText && !this.state.textLoaded ? 

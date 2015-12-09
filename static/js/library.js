@@ -66,6 +66,12 @@ sjs.library = {
       newData.toSections = data.toSections.slice(0,-1);
       this._saveText(newData);
     }
+    if (data.isSpanning) {
+      for (var i = 0; i < data.spanningRefs.length; i++) {
+        // For spanning refs, request each section ref to prime cache.
+        this.text(data.spanningRefs[i], {context: 1}, function() {});
+      }      
+    }
     var index = {
       title:      data.indexTitle,
       heTitle:    data.heIndexTitle, // This is incorrect for complex texts
@@ -107,6 +113,23 @@ sjs.library = {
       var contextKey = this._textKey(ref, {context:1});
       this._texts[contextKey] = {buildable: "Add Context", ref: ref, sectionRef: sectionRef};
     }
+  },
+  _splitSpanningText: function(data) {
+    // Returns an array of section level data, corresponding to spanning `data`.
+    // Assumes `data` includes context.
+    var sections = [];
+    var en = data.text;
+    var he = data.he;
+    var length = Math.max(en.length, he.length);
+    en = en.pad(length, []);
+    he = he.pad(length, []);
+    var length = Math.max(data.text.length, data.he.length);
+    for (var i = 0; i < length; i++) {
+      var section        = clone(data);
+      section.text       = en[i];
+      section.he         = he[i];
+    }
+
   },
   _wrapRefs: function(data) {
     // Wraps citations found in text of data
@@ -150,6 +173,11 @@ sjs.library = {
   },
   _links: {},
   links: function(ref, cb) {
+    // Returns a list of links known for `ref`.
+    // WARNING: calling this function with spanning refs can cause bad state in cache.
+    // When processing links for "Genesis 2:4-4:4", a link to the entire chapter "Genesis 3" will be split and stored with that key.
+    // The data for "Genesis 3" then represents only links to the entire chapter, not all links within the chapter.
+    // Fixing this generally on the client side requires more understanding of ref logic. 
     if (!cb) {
       return this._links[ref] || [];
     }
@@ -200,7 +228,14 @@ sjs.library = {
     }
   },
   linksLoaded: function(ref) {
-    return ref in this._links;
+    if (typeof ref == "string") {
+      return ref in this._links;
+    } else {
+      for (var i = 0; i < ref.length; i++) {
+        if (!this.linksLoaded(ref[i])) { return false}
+      }
+      return true;
+    }
   },
   linkCount: function(ref, filter) {
     if (!(ref in this._links)) { return 0; }
@@ -221,7 +256,7 @@ sjs.library = {
     // Takes either a single string `ref` or an array of string refs.
     if (typeof ref == "string") {
       if (ref in this._linkSummaries) { return this._linkSummaries[ref]; }
-      links   = this.links(ref);
+      var links = this.links(ref);
     } else {
       var links = [];
       ref.map(function(r) {
