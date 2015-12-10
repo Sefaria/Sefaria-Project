@@ -2446,7 +2446,7 @@ function aboutHtml(data) {
 			html += '<div class="version '+version.lang+'"><span id="mergeMessage">This page includes merged sections from multiple text versions:</span>'
 			for (i = 0; i < uniqueSources.length; i++ ) {
 				html += '<div class="mergeSource">' +
-					'<a href="/' + makeRef(data) + '/'+version.lang+'/' + uniqueSources[i].replace(/ /g, "_") + '">' + 
+					'<a href="/' + makeRef(data) + '/'+version.lang+'/' + encodeURI(uniqueSources[i].replace(/ /g, "_")) + '">' + 
 					uniqueSources[i] + '</a></div>';
 			}
 			html += "</div>";

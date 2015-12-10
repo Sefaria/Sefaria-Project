@@ -61,12 +61,12 @@ body.dark {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   position: relative;
-  padding: 0px 0 100%;
+  padding: 0px 0 50%;
   box-sizing: border-box;
   background-color: inherit;
 }
 .multiPanel .textColumn {
-  padding: 0 25px 100%;
+  padding: 0 25px 50%;
 }
 .textColumn .loadingMessage.base {
   margin: 30px 0;
@@ -975,6 +975,7 @@ display: block;margin: 0 auto;}
 .continuous .basetext .segment {
   display: inline;
   margin: 0;
+  padding: .3333em 0;
 }
 .continuous.bilingual .basetext .segment,
 .segmented.bilingual .basetext .segment {

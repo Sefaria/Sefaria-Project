@@ -31,6 +31,7 @@ urlpatterns = patterns('reader.views',
     (r'^api/counts/(?P<title>.+)$', 'counts_api'),
     (r'^api/preview/(?P<title>.+)$', 'text_preview_api'),
     (r'^api/toc-html/(?P<title>.+)$', 'text_toc_html_fragment'),
+
 )
 
 # Reviews API
@@ -60,6 +61,7 @@ urlpatterns += patterns('reader.views',
 # Lock Text API (permament locking of an entire text)
 urlpatterns += patterns('reader.views',
     (r'^api/locktext/(?P<title>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'lock_text_api'),
+    (r'^api/version/flags/(?P<title>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'flag_text_api'),
 )
 
 # Dictionary API
@@ -270,7 +272,8 @@ urlpatterns += patterns('sefaria.views',
 
 # Admin 
 urlpatterns += patterns('', 
-    (r'^admin/reset/cache', 'sefaria.views.reset_cache'),
+    (r'^admin/reset/cache$', 'sefaria.views.reset_cache'),
+    (r'^admin/reset/cache/(?P<title>.+)$', 'sefaria.views.reset_index_cache_for_text'),
     #(r'^admin/view/template_cache/(?P<title>.+)$', 'sefaria.views.view_cached_elem'),
     #(r'^admin/delete/template_cache/(?P<title>.+)$', 'sefaria.views.del_cached_elem'),
     (r'^admin/rebuild/counts-toc', 'sefaria.views.rebuild_counts_and_toc'),

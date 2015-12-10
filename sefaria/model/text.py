@@ -40,6 +40,13 @@ class AbstractIndex(object):
     def contents(self, v2=False, raw=False, **kwargs):
         pass
 
+    def versionSet(self):
+        return VersionSet({"title": self.title})
+
+    def versionState(self):
+        from . import version_state
+        return version_state.VersionState(self.title)
+
     def is_new_style(self):
         return bool(getattr(self, "nodes", None))
 
@@ -1025,7 +1032,7 @@ def merge_texts(text, sources):
 
 class TextChunk(AbstractTextRecord):
     """
-    A chunk of text coresponding to the provided :class:`Ref`, language, and optionall version name.
+    A chunk of text corresponding to the provided :class:`Ref`, language, and optionall version name.
     If it is possible to get a more complete text by merging multiple versions, a merged result will be returned.
 
     :param oref: :class:`Ref`
@@ -2428,21 +2435,20 @@ class Ref(object):
 
         return r.next_section_ref() if r.is_empty() else r
 
-
     #Don't store results on Ref cache - state objects change, and don't yet propogate to this Cache
-    def get_state_node(self):
+    def get_state_node(self, meta=None, hint=None):
         """
         :return: :class:`sefaria.model.version_state.StateNode`
         """
         from . import version_state
-        return version_state.VersionState(self.book).state_node(self.index_node)
+        return version_state.StateNode(snode=self.index_node, meta=meta, hint=hint)
 
     def get_state_ja(self, lang="all"):
         """
         :param lang: "all", "he", or "en"
         :return: :class:`sefaria.datatype.jagged_array`
         """
-        return self.get_state_node().ja(lang)
+        return self.get_state_node(hint=[(lang, "availableTexts")]).ja(lang)
 
     def is_text_fully_available(self, lang):
         """
@@ -2498,7 +2504,7 @@ class Ref(object):
             starting_points[-1] += 1 if forward else -1
 
         #let the counts obj calculate the correct place to go.
-        c = self.get_state_node().ja("all", "availableTexts")
+        c = self.get_state_node(hint=[("all","availableTexts")]).ja("all", "availableTexts")
         new_section = c.next_index(starting_points) if forward else c.prev_index(starting_points)
 
         # we are also scaling back the sections to the level ABOVE the lowest section type (eg, for bible we want chapter, not verse)

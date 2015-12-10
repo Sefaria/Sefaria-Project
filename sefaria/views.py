@@ -26,7 +26,7 @@ import sefaria.system.cache as scache
 from sefaria.client.util import jsonResponse, subscribe_to_announce
 from sefaria.summaries import update_summaries, save_toc_to_db
 from sefaria.forms import NewUserForm
-from sefaria.settings import MAINTENANCE_MESSAGE
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH
 from sefaria.model.user_profile import UserProfile
 from sefaria.model.group import GroupSet
 from sefaria.model.translation_request import count_completed_translation_requests
@@ -39,6 +39,8 @@ from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
 from sefaria.utils.hebrew import is_hebrew
 from sefaria.helper.text import make_versions_csv
+if USE_VARNISH:
+    from sefaria.system.sf_varnish import invalidate_index
 
 import logging
 logger = logging.getLogger(__name__)
@@ -231,6 +233,7 @@ def bulktext_api(request, refs):
         resp['Access-Control-Allow-Origin'] = '*'
         return resp
 
+
 @staff_member_required
 def reset_cache(request):
     scache.reset_texts_cache()
@@ -238,9 +241,19 @@ def reset_cache(request):
     user_links = {}
     return HttpResponseRedirect("/?m=Cache-Reset")
 
+
+@staff_member_required
+def reset_index_cache_for_text(request, title):
+    scache.set_index(title, None)
+    if USE_VARNISH:
+        invalidate_index(title)
+    return HttpResponseRedirect("/%s?m=Cache-Reset" % title)
+
+
 """@staff_member_required
 def view_cached_elem(request, title):
     return HttpResponse(get_template_cache('texts_list'), status=200)
+
 
 @staff_member_required
 def del_cached_elem(request, title):
