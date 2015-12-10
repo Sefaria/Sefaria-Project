@@ -76,7 +76,7 @@ class ServerTextCopier(object):
         return 'api/texts/{}?count_after=0&index_after=0'.format(terminal_ref.replace(" ", "_"))
 
     def _prepare_version_attrs_api_call(self, title, lang, vtitle):
-        return "api/version/flags/{}/{}/{}".format(urllib.quote(title), urllib.quote(lang), urllib.quote(vtitle)
+        return "api/version/flags/{}/{}/{}".format(urllib.quote(title), urllib.quote(lang), urllib.quote(vtitle))
 
     def _make_post_request_to_server(self, url, payload):
         full_url = "{}/{}".format(self._dest_server, url)
