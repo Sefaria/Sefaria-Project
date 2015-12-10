@@ -1874,7 +1874,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 
    						sjs.ref.tests.push(
 							{test:  RegExp(talmudReStr + "[ .:]\\d+-[0-9|a|b]+[ .:]$", "i"),
-							 msg: "Enter an ending <b>" + data.sectionNames[i] + "</b>.",
+							 msg: "Enter an ending <b>segment</b>.",
 							 action: "pass"});
 
 						sjs.ref.tests.push(
@@ -1989,8 +1989,7 @@ function textPreview(ref, $target, callback) {
 			return;
 		}
 		var text = en = he = controlsHtml = "";
-
-        if (typeof(data.text[0])=="string") { //("not a spanning section ref");
+        if (typeof(data.he[0])=="string") { //("not a spanning section ref");
 
             if (data.sections.length < data.sectionNames.length) {
                 //add in segment number if not given. Eg. Pesachim 2b, Genesis 1
@@ -2006,7 +2005,7 @@ function textPreview(ref, $target, callback) {
 
             else {
 
-            for (var i = 0; i < data.text.length; i++) { //for each text section
+            for (var i = 0; i < data.he.length; i++) { //for each text section
                     segmentOffsetCount=data.sections[1];
                     if (data.text.length > i) {
                         en += "<div class='previewLine'><span class='previewNumber'>(" + (i + segmentOffsetCount) + ")</span> " + data.text[i] + "</div> ";
@@ -2021,22 +2020,17 @@ function textPreview(ref, $target, callback) {
 
         }
 
-        else { //("a spanning section ref");
+        else { console.log("a spanning section ref");
+
             if (data.sections.length < data.sectionNames.length) {
                 //add in segment number if not given. Eg. Pesachim 2b, Genesis 1
                 data.sections.push(1);
             }
-            if (data.toSections.length < data.sectionNames.length) {
-                //add in segment number if not given. Eg. Pesachim 2b, Genesis 1
-                data.toSections.push(Math.max(data.text[data.text.length-1].length, data.he[data.he.length-1].length));
-            }
 
-
-
-            for (var i = 0; i < data.text.length; i++) { //for each text section
-                for (var q = 0; q <  data.text[i].length; q++) { //for each line
+            for (var i = 0; i < data.he.length; i++) { //for each text section
+                for (var q = 0; q <  data.he[i].length; q++) { //for each line
                     0==i?segmentOffsetCount=data.sections[1]:segmentOffsetCount=1;
-                    if (data.text[i][q].length > q) {
+                    if (data.text[i] > 0 && data.text[i][q].length > q) {
                         en += "<div class='previewLine'><span class='previewNumber'>(" +(q + segmentOffsetCount) +")</span> " + data.text[i][q] + "</div> ";
                     }
                     if (data.he[i][q].length > q) {

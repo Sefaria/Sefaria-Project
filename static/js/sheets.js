@@ -994,6 +994,7 @@ $(function() {
 	// Add All Connections 
 	var autoAddConnetions =  function() {
 		var ref = $(this).parents(".source").attr("data-ref");
+        console.log(ref);
 		var $target = $(this).parents(".source").find(".subsources").eq(0);
 		var type = $(this).hasClass("addCommentary") ? "Commentary": null;
 
