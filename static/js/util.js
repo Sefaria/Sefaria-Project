@@ -1655,6 +1655,25 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
                             {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]\\d+-\\d+$", "i"),
                              msg: "",
                              action: "ok"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]\\d+-\\d+[ab]$", "i"),
+                             msg: "Enter an ending <b>segment</b>, e.g. " +
+                                data.title + " 4b:1-5b:5",
+                             action: "pass"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]\\d+-\\d+[ab][ .:]$", "i"),
+                             msg: "Enter an ending <b>segment</b>, e.g. " +
+                                data.title + " 4b:1-5b:5",
+                             action: "pass"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]\\d+-\\d+[ab][ .:]\\d+$", "i"),
+                             msg: "Enter an ending <b>segment</b>, e.g. " +
+                                data.title + " 4b:1-5b:5",
+                             action: "ok"});
+
                     }
 
                     // If there's a default node, copy section info from default node to parent
@@ -1851,7 +1870,18 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						sjs.ref.tests.push(
 							{test:  RegExp(talmudReStr + "[ .:]\\d+-\\d+$", "i"),
 							 msg: "",
-							 action: "ok"});	
+							 action: "ok"});
+
+   						sjs.ref.tests.push(
+							{test:  RegExp(talmudReStr + "[ .:]\\d+-[0-9|a|b]+[ .:]$", "i"),
+							 msg: "Enter an ending <b>" + data.sectionNames[i] + "</b>.",
+							 action: "pass"});
+
+						sjs.ref.tests.push(
+							{test:  RegExp(talmudReStr + "[ .:]\\d+-[0-9|a|b]+[ .:]\\d+$", "i"),
+							 msg: "",
+							 action: "ok"});
+
 					
 					// Commentary on all other Texts
 					} else {
