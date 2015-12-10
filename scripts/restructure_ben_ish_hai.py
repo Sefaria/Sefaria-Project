@@ -9,7 +9,10 @@ for v in vs:
     v.save()
 
 # Prep VersionState
-VersionState("Ben Ish Hai").delete()
+
+vs = VersionState("Ben Ish Hai")
+flags = vs.flags
+vs.delete()
 
 # Index
 i = get_index("Ben Ish Hai")
@@ -26,4 +29,6 @@ i.nodes.children.insert(0, intro)
 i.save()
 
 # Refresh VersionState
-VersionState("Ben Ish Hai")
+vs = VersionState("Ben Ish Hai")
+vs.flags = flags
+vs.save()

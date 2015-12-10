@@ -40,6 +40,13 @@ class AbstractIndex(object):
     def contents(self, v2=False, raw=False, **kwargs):
         pass
 
+    def versionSet(self):
+        return VersionSet({"title": self.title})
+
+    def versionState(self):
+        from . import version_state
+        return version_state.VersionState(self.title)
+
     def is_new_style(self):
         return bool(getattr(self, "nodes", None))
 
@@ -1025,7 +1032,7 @@ def merge_texts(text, sources):
 
 class TextChunk(AbstractTextRecord):
     """
-    A chunk of text coresponding to the provided :class:`Ref`, language, and optionall version name.
+    A chunk of text corresponding to the provided :class:`Ref`, language, and optionall version name.
     If it is possible to get a more complete text by merging multiple versions, a merged result will be returned.
 
     :param oref: :class:`Ref`

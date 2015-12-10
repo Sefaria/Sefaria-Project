@@ -120,9 +120,10 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         self.is_new_state = False
 
         if not self.load({"title": index.title}, proj=proj):
+            if not getattr(self, "flags", None):  # allow flags to be set in initial attrs
+                self.flags = {}
             self.content = self.index.nodes.create_content(lambda n: {})
             self.title = index.title
-            self.flags = {}
             self.refresh()
             self.is_new_state = True  # variable naming: don't override 'is_new' - a method of the superclass
 
