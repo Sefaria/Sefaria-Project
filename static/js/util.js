@@ -1769,6 +1769,17 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 							{test: RegExp(reStr + "-\\d+$", "i"),
 							 msg: "OK. Click <b>add</b> to continue.",
 							 action: "ok"});
+
+                        sjs.ref.tests.push(
+							{test:  RegExp(reStr + "-\\d+[ .:]$", "i"),
+							 msg: "Enter an ending <b>" + data.sectionNames[i] + "</b>",
+							 action: "pass"});
+
+						sjs.ref.tests.push(
+							{test:  RegExp(reStr + "-\\d+[ .:]\\d+$", "i"),
+							 msg: "OK. Click <b>add</b> to continue.",
+							 action: "ok"});
+
 						
 					}
 					// Call self again to check against latest test added
@@ -1885,8 +1896,8 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						sjs.ref.tests.push(
 							{test:  RegExp(reStr + "[ .:]\\d+-\\d+$", "i"),
 							 msg: "",
-							 action: "ok"});			
-					
+							 action: "ok"});
+
 					}
 					// Add the basic test of "[Commentator] on [Text]" again
 					// so that if you pass through the name of one text on the way to 
