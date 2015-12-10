@@ -1886,7 +1886,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						sjs.ref.tests.push(
 							{test:  RegExp(reStr + "[ .:]\\d+$", "i"),
 							 msg: "OK, or use '-' to select a range." + data.sectionNames[i] + "</b>.",
-							 action: "ok"});	
+							 action: "ok"});
 
 						sjs.ref.tests.push(
 							{test:  RegExp(reStr + "[ .:]\\d+-$", "i"),
@@ -1935,7 +1935,7 @@ function textPreview(ref, $target, callback) {
 	callback = callback || function(){};
 
 	var urlRef = normRef(ref);
-	var getUrl = "/api/texts/" + urlRef + "?commentary=0";
+	var getUrl = "/api/texts/" + urlRef + "?commentary=0&context=0";
 	$target.html("Loading text...");
 
 	var data = sjs.cache.get(ref);
@@ -1959,15 +1959,62 @@ function textPreview(ref, $target, callback) {
 			return;
 		}
 		var text = en = he = controlsHtml = "";
-		
-		if (data.sections.length < data.sectionNames.length) {
-			data.sections.push(1);
-			data.toSections.push(Math.max(data.text.length, data.he.length));
-		}
-		for (var i = data.sections[data.sections.length-1]-1; i < data.toSections[data.toSections.length-1]; i++) {
-			if (data.text.length > i) { en += "<div class='previewLine'><span class='previewNumber'>(" + (i+1) + ")</span> " + data.text[i] + "</div> "; }
-			if (data.he.length > i) { he += "<div class='previewLine'><span class='previewNumber'>(" + (i+1) + ")</span> " + data.he[i] + "</div> "; }
-		}
+
+        if (typeof(data.text[0])=="string") { //("not a spanning section ref");
+
+            if (data.sections.length < data.sectionNames.length) {
+                //add in segment number if not given. Eg. Pesachim 2b, Genesis 1
+                data.sections.push(1);
+                data.toSections.push(Math.max(data.text.length, data.he.length))
+            }
+
+            if (data.toSections[0] == data.sections[0] && data.toSections[1] == data.sections[1]) {
+                if (data.text.length > 0) {en += "<div class='previewLine'><span class='previewNumber'>(" + (data.sections[1]) + ")</span> " + data.text + "</div> ";
+                }
+                if (data.he.length > 0) {he += "<div class='previewLine'><span class='previewNumber'>(" + (data.sections[1]) + ")</span> " + data.he + "</div> ";}
+            }
+
+            else {
+
+            for (var i = 0; i < data.text.length; i++) { //for each text section
+                    segmentOffsetCount=data.sections[1];
+                    if (data.text.length > i) {
+                        en += "<div class='previewLine'><span class='previewNumber'>(" + (i + segmentOffsetCount) + ")</span> " + data.text[i] + "</div> ";
+                    }
+                    if (data.he.length > i) {
+                        he += "<div class='previewLine'><span class='previewNumber'>(" + (i + segmentOffsetCount) + ")</span> " + data.he[i] + "</div> ";
+                    }
+                }
+            }
+
+
+
+        }
+
+        else { //("a spanning section ref");
+            if (data.sections.length < data.sectionNames.length) {
+                //add in segment number if not given. Eg. Pesachim 2b, Genesis 1
+                data.sections.push(1);
+            }
+            if (data.toSections.length < data.sectionNames.length) {
+                //add in segment number if not given. Eg. Pesachim 2b, Genesis 1
+                data.toSections.push(Math.max(data.text[data.text.length-1].length, data.he[data.he.length-1].length));
+            }
+
+
+
+            for (var i = 0; i < data.text.length; i++) { //for each text section
+                for (var q = 0; q <  data.text[i].length; q++) { //for each line
+                    0==i?segmentOffsetCount=data.sections[1]:segmentOffsetCount=1;
+                    if (data.text[i][q].length > q) {
+                        en += "<div class='previewLine'><span class='previewNumber'>(" +(q + segmentOffsetCount) +")</span> " + data.text[i][q] + "</div> ";
+                    }
+                    if (data.he[i][q].length > q) {
+                        he += "<div class='previewLine'><span class='previewNumber'>(" +(q + segmentOffsetCount) +")</span> " + data.he[i][q] + "</div> ";
+                    }
+                }
+            }
+        }
 
 		var path = parseURL(document.URL).path;
 		if (!en) { en += "<div class='previewNoText'><a href='/add/" + urlRef + "?after=" + path + "' class='btn'>Add English for "+ref+"</a></div>"; }
