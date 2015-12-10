@@ -67,14 +67,16 @@ class ServerTextCopier(object):
                 }
                 self._make_post_request_to_server(self._prepare_text_api_call(node.full_title(force_update=True)), version_payload)
             if flags:
-                self._make_post_request_to_server("api/version/flags/{}/{}/{}".format(ver.title, ver.language, ver.versionTitle), flags)
-
+                self._make_post_request_to_server(self.__prepare_version_attrs_api_call(ver.title, ver.language, ver.versionTitle), flags)
 
     def _prepare_index_api_call(self, index_title):
         return 'api/v2/raw/index/{}'.format(index_title.replace(" ", "_"))
 
     def _prepare_text_api_call(self, terminal_ref):
         return 'api/texts/{}?count_after=0&index_after=0'.format(terminal_ref.replace(" ", "_"))
+
+    def _prepare_version_attrs_api_call(self, title, lang, vtitle):
+        return "api/version/flags/{}/{}/{}".format(urllib.quote(title), urllib.quote(lang), urllib.quote(vtitle)
 
     def _make_post_request_to_server(self, url, payload):
         full_url = "{}/{}".format(self._dest_server, url)
