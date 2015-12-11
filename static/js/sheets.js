@@ -1007,6 +1007,8 @@ $(function() {
 			} else if (data.commentary.length == 0) {
 				sjs.alert.message("No connections known for this source.");
 			} else {
+                data.commentary = [].concat.apply([], data.commentary);
+
 				var categorySum = {}
 				for (var i = 0; i < data.commentary.length; i++) {
 					var c = data.commentary[i];
@@ -1024,7 +1026,7 @@ $(function() {
 				for(var k in categorySum) { labels.push(k + " (" + categorySum[k] + ")"); }
 				labels.sort();
 
-				sjs.alert.multi({message: "Add all connections from:", 
+				sjs.alert.multi({message: "Add all connections from:",
 									values: categories,
 									labels: labels,
 									default: false
