@@ -25,7 +25,7 @@ subscribe(version_state.process_index_delete_in_version_state,          text.Ind
 subscribe(link.process_index_delete_in_links,                           text.Index, "delete")
 subscribe(text.process_index_delete_in_versions,                        text.Index, "delete")
 subscribe(translation_request.process_index_delete_in_translation_requests, text.Index, "delete")
-
+# Process in ES
 
 # Version Title Change
 subscribe(history.process_version_title_change_in_history,              text.Version, "attributeChange", "versionTitle")
@@ -41,26 +41,26 @@ subscribe(cascade(schema.TermSet, "scheme"),                            schema.T
 subscribe(translation_request.process_version_state_change_in_translation_requests, version_state.VersionState, "save")
 
 # Time
-subscribe(cascade(person.PersonSet, "era"),                              time.TimePeriod, "attributeChange", "symbol")
-subscribe(cascade(person.PersonSet, "generation"),                       time.TimePeriod, "attributeChange", "symbol")
+subscribe(cascade(person.PersonSet, "era"),                                time.TimePeriod, "attributeChange", "symbol")
+subscribe(cascade(person.PersonSet, "generation"),                         time.TimePeriod, "attributeChange", "symbol")
 
 # Person key change
-subscribe(cascade(person.PersonRelationshipSet, "to_key"),               person.Person, "attributeChange", "key")
-subscribe(cascade(person.PersonRelationshipSet, "from_key"),             person.Person, "attributeChange", "key")
-subscribe(cascade_to_list(text.IndexSet, "authors"),                     person.Person, "attributeChange", "key")
+subscribe(cascade(person.PersonRelationshipSet, "to_key"),                 person.Person, "attributeChange", "key")
+subscribe(cascade(person.PersonRelationshipSet, "from_key"),               person.Person, "attributeChange", "key")
+subscribe(cascade_to_list(text.IndexSet, "authors"),                       person.Person, "attributeChange", "key")
 
-subscribe(cascade(person.PersonRelationshipSet, "type"),                 person.PersonRelationshipType, "attributeChange", "key")
+subscribe(cascade(person.PersonRelationshipSet, "type"),                   person.PersonRelationshipType, "attributeChange", "key")
 
 # Person delete
-subscribe(cascade_delete(person.PersonRelationshipSet, "to_key", "key"), person.Person, "delete")
+subscribe(cascade_delete(person.PersonRelationshipSet, "to_key", "key"),   person.Person, "delete")
 subscribe(cascade_delete(person.PersonRelationshipSet, "from_key", "key"), person.Person, "delete")
-subscribe(cascade_delete_to_list(text.IndexSet, "authors", "key"),       person.Person, "delete")
+subscribe(cascade_delete_to_list(text.IndexSet, "authors", "key"),         person.Person, "delete")
 
 # Gardens
-subscribe(cascade(garden.GardenStopSet, "garden"),                              garden.Garden, "attributeChange", "key")
-subscribe(cascade_delete(garden.GardenStopSet, "garden", "key"),                garden.Garden, "delete")
-subscribe(cascade(garden.GardenStopRelationSet, "garden"),                  garden.Garden, "attributeChange", "key")
-subscribe(cascade_delete(garden.GardenStopRelationSet, "garden", "key"),    garden.Garden, "delete")
+subscribe(cascade(garden.GardenStopSet, "garden"),                         garden.Garden, "attributeChange", "key")
+subscribe(cascade_delete(garden.GardenStopSet, "garden", "key"),           garden.Garden, "delete")
+subscribe(cascade(garden.GardenStopRelationSet, "garden"),                 garden.Garden, "attributeChange", "key")
+subscribe(cascade_delete(garden.GardenStopRelationSet, "garden", "key"),   garden.Garden, "delete")
 # from stop to stop rel
 
 
