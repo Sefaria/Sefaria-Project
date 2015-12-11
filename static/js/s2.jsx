@@ -48,8 +48,8 @@ var ReaderApp = React.createClass({
       sjs.track.event("Reader", "Pop State", kind);
       this.justPopped = true;
       this.setState(state);
-      console.log("Pop");
-      console.log(state);
+      //console.log("Pop");
+      //console.log(state);
     }
   },
   shouldHistoryUpdate: function() {
@@ -1987,7 +1987,7 @@ var TextRange = React.createClass({
       });      
     }
 
-    // Load links at section level is spanning, so that cache is properly primed with section level refs
+    // Load links at section level if spanning, so that cache is properly primed with section level refs
     var sectionRefs = data.isSpanning ? data.spanningRefs : [data.sectionRef];
     sectionRefs = sectionRefs.map(function(ref) {
       if (ref.indexOf("-") > -1) {

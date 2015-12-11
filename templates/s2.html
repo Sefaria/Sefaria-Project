@@ -45,7 +45,7 @@
         var ref = "{{ ref }}";
         if (ref) {
           var ref = humanRef("{{ ref }}")
-          sjs.library._saveText({{ data|jsonify }});
+          sjs.library._saveText({{ data|jsonify }}, {context: 1});
         }
         var multiPanel = $(window).width() > 600;
         var urlVars    = getUrlVars();

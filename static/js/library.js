@@ -21,11 +21,13 @@ sjs.library = {
       cb(data);
       return data;
     }
+    //console.log("API Call for " + key)
     params = "?" + $.param(settings);
     var url = "/api/texts/" + normRef(ref) + params;
     this._api(url, function(data) {
       this._saveText(data, settings);
       cb(data);
+      //console.log("API return for " + data.ref)
     }.bind(this));
   },
   _textKey: function(ref, settings) {
@@ -47,16 +49,17 @@ sjs.library = {
       return segmentData;
     }
   },
-  _saveText: function(data, settings) {
+  _saveText: function(data, settings, skipWrap) {
     if ("error" in data) { 
       //sjs.alert.message(data.error);
       return;
     }
     var settings     = settings || {};
-    data             = this._wrapRefs(data);
+    data             = skipWrap ? data : this._wrapRefs(data);
     key              = this._textKey(data.ref, settings);
     this._texts[key] = data;
-    if (data.ref == data.sectionRef) {
+    
+    if (data.ref == data.sectionRef && !data.isSpanning) {
       this._splitTextSection(data);
     } else if (settings.context) {
       // Save a copy of the data at context level
@@ -64,14 +67,16 @@ sjs.library = {
       newData.ref        = data.sectionRef;
       newData.sections   = data.sections.slice(0,-1);
       newData.toSections = data.toSections.slice(0,-1);
-      this._saveText(newData);
+      this._saveText(newData, {}, true);
     }
     if (data.isSpanning) {
       for (var i = 0; i < data.spanningRefs.length; i++) {
         // For spanning refs, request each section ref to prime cache.
-        this.text(data.spanningRefs[i], {context: 1}, function() {});
+        // console.log("calling spanning prefetch " + data.spanningRefs[i])
+        sjs.library.text(data.spanningRefs[i], {context: 1}, function(data) {})
       }      
     }
+
     var index = {
       title:      data.indexTitle,
       heTitle:    data.heIndexTitle, // This is incorrect for complex texts
@@ -109,7 +114,7 @@ sjs.library = {
         prevSegment: i+start == 1      ? null : data.ref + delim + (i+start-1),
       });
 
-      this._saveText(segment_data);
+      this._saveText(segment_data, {}, true);
       var contextKey = this._textKey(ref, {context:1});
       this._texts[contextKey] = {buildable: "Add Context", ref: ref, sectionRef: sectionRef};
     }
