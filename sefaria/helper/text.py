@@ -268,20 +268,24 @@ def modify_text_by_function(title, vtitle, lang, func, uid, **kwargs):
                     modify_text(uid, segment_refs[i], vtitle, lang, text, **kwargs)
 
 
-def replace_roman_numerals(text):
+def replace_roman_numerals(text, allow_lowercase=False):
     """
     Replaces any roman numerals in 'text' with digits.
     Currently only looks for a roman numeral followed by a comma or period, then a space, then a digit.
     e.g. (Isa. Iv. 10) --> (Isa. 4:10)
+
+    WARNING: we've seen e.g., "(v. 15)" used to mean "Verse 15". If run with allow_lowercase=True, this will
+    be rewritten as "(5:15)". 
     """
     import roman
-    regex = re.compile(" (M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))([.,] )(\d)", re.I)
+    flag  = re.I if allow_lowercase else 0
+    regex = re.compile("([( ])(M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))([.,] ?)(\d)", flag)
     def replace_roman_numerals_in_match(m):
-        s = m.group(1)
+        s = m.group(2)
         s = s.upper()
         try:
             if s:
-                return " %s:%s" % (roman.fromRoman(s), m.group(6))
+                return "%s%s:%s" % (m.group(1), roman.fromRoman(s), m.group(7))
         except:
             return m.group(0)
 
