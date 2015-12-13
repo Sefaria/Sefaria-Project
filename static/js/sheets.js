@@ -158,14 +158,12 @@ $(function() {
 	//if the image is loaded    
 	$target.find('img').last()     
 	    .on('load', function() { 
-		    console.log("media loaded correctly");
 		    autoSave();
 	     });
 
 	//if the audio starts to load    
 	$target.find('audio').last()
 	    .on('loadedmetadata', function() { 
-		    console.log("media loaded correctly");
 		    autoSave();
 	     });
 
@@ -994,7 +992,6 @@ $(function() {
 	// Add All Connections 
 	var autoAddConnetions =  function() {
 		var ref = $(this).parents(".source").attr("data-ref");
-        console.log(ref);
 		var $target = $(this).parents(".source").find(".subsources").eq(0);
 		var type = $(this).hasClass("addCommentary") ? "Commentary": null;
 
@@ -1173,7 +1170,7 @@ function addSource(q, source) {
 		return;
 	}
 
-	var loadClosure = function(data) { 
+	var loadClosure = function(data) {
 		loadSource(data, $target);
 	};
 	var getStr = "/api/texts/" + makeRef(q) + "?commentary=0&context=0&pad=0";
@@ -1195,6 +1192,7 @@ function loadSource(data, $target, optionStr) {
 	}
 	// If text is not a range, put text string in arrays
 	// to simplify processing below
+
 	if (typeof(data.text) === "string") {
 		data.text = data.text.length ? [data.text] : [];
 	}
@@ -1203,13 +1201,15 @@ function loadSource(data, $target, optionStr) {
 	}
 
 	var end = Math.max(data.text.length, data.he.length);
-	
+
 	// If the requested end is beyond what's available, reset the ref to what we have
+/*
 	var requestedLength = (data.toSections[data.sectionNames.length-1] - data.sections[data.sectionNames.length-1]) + 1
 	if (requestedLength > end) {
 		data.toSections[data.sectionNames.length-1] = data.sections[data.sectionNames.length-1] + end -1;
 		data.ref = makeRef(data);
 	}
+*/
 
 	$target.attr("data-ref", data.ref);	
 	$target.attr("data-heRef", data.heRef);	
@@ -1227,26 +1227,44 @@ function loadSource(data, $target, optionStr) {
 		var start = data.sections[data.sectionNames.length-1];
 	}
 
-	var includeNumbers = $.inArray("Talmud", data.categories) > -1 ? false : true;
-	includeNumbers     = data.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
-	var segmented      = !(data.categories[0] in {"Tanach":1, "Talmud":1});
-	for (var i = 0; i < end; i++) {
-		if (!data.text[i] && !data.he[i]) { continue; }
 
-		if (data.text.length > i) {
-			enStr += (segmented ? "<p>" : "") + "<span class='segment'>" + 
-							(includeNumbers ? "<small>(" + (i+start) + ")</small> " : "") + 
-							data.text[i]  + 
-						"</span> " + (segmented ? "</p>" : ""); 			
-		}
 
-		if (data.he.length > i) {
-			heStr += (segmented ? "<p>" : "") + "<span class='segment'>" + 
-							(includeNumbers ? "<small>(" + (encodeHebrewNumeral(i+start)) + ")</small> " : "") +
-							data.he[i] + 
-						"</span> " + (segmented ? "</p>" : "");
-		}
-	}
+    if (data.spanning) { timesToIterateThroughSections = data.spanningRefs.length }
+    else {timesToIterateThroughSections = 1
+                    data.he = data.he.length ? [data.he] : [];
+                    data.text = data.text.length ? [data.text] : [];
+    }
+
+    for (var q=0;q<timesToIterateThroughSections;q++) {
+        curEnglishText = data.text[q] || '';
+        curHebrewText = data.he[q] || '';
+        if (q==0) {curSegmentNumber = data.sections[1]}
+        else {curSegmentNumber = 1 }
+
+        var includeNumbers = $.inArray("Talmud", data.categories) > -1 ? false : true;
+        includeNumbers = data.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
+        var segmented = !(data.categories[0] in {"Tanach": 1, "Talmud": 1});
+        for (var i = 0; i < Math.max(curEnglishText.length, curHebrewText.length); i++) {
+            if (!curEnglishText[i] && !curHebrewText[i]) {
+                continue;
+            }
+
+            if (curEnglishText.length > i) {
+                enStr += (segmented ? "<p>" : "") + "<span class='segment'>" +
+                    (includeNumbers ? "<small>(" + (curSegmentNumber) + ")</small> " : "") +
+                    curEnglishText[i] +
+                    "</span> " + (segmented ? "</p>" : "");
+            }
+
+            if (curHebrewText.length > i) {
+                heStr += (segmented ? "<p>" : "") + "<span class='segment'>" +
+                    (includeNumbers ? "<small>(" + (encodeHebrewNumeral(curSegmentNumber)) + ")</small> " : "") +
+                    curHebrewText[i] +
+                    "</span> " + (segmented ? "</p>" : "");
+            }
+            curSegmentNumber++;
+        }
+    }
 
 	enStr = enStr || "...";
 	heStr = heStr || "...";

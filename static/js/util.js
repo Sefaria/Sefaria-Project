@@ -1988,66 +1988,54 @@ function textPreview(ref, $target, callback) {
 			callback();
 			return;
 		}
-		var text = en = he = controlsHtml = "";
-        if (typeof(data.he[0])=="string") { //("not a spanning section ref");
+        var text = en = he = controlsHtml = "";
 
-            if (data.sections.length < data.sectionNames.length) {
-                //add in segment number if not given. Eg. Pesachim 2b, Genesis 1
-                data.sections.push(1);
-                data.toSections.push(Math.max(data.text.length, data.he.length))
+            if (typeof(data.text) === "string") {
+                data.text = data.text.length ? [data.text] : [];
+            }
+            if (typeof(data.he) === "string") {
+                data.he = data.he.length ? [data.he] : [];
             }
 
-            if (data.toSections[0] == data.sections[0] && data.toSections[1] == data.sections[1]) {
-                if (data.text.length > 0) {en += "<div class='previewLine'><span class='previewNumber'>(" + (data.sections[1]) + ")</span> " + data.text + "</div> ";
+
+            if (data.spanning) { timesToIterateThroughSections = data.spanningRefs.length }
+            else {timesToIterateThroughSections = 1
+                            data.he = data.he.length ? [data.he] : [];
+                            data.text = data.text.length ? [data.text] : [];
+            }
+
+            for (var q=0;q<timesToIterateThroughSections;q++) {
+                curEnglishText = data.text[q] || '';
+                curHebrewText = data.he[q] || '';
+                if (data.sections.length < data.sectionNames.length) {
+                    data.sections.push(1);
+                    data.toSections.push(Math.max(curEnglishText.length, curHebrewText.length));
                 }
-                if (data.he.length > 0) {he += "<div class='previewLine'><span class='previewNumber'>(" + (data.sections[1]) + ")</span> " + data.he + "</div> ";}
-            }
-
-            else {
-
-            for (var i = 0; i < data.he.length; i++) { //for each text section
-                    segmentOffsetCount=data.sections[1];
-                    if (data.text.length > i) {
-                        en += "<div class='previewLine'><span class='previewNumber'>(" + (i + segmentOffsetCount) + ")</span> " + data.text[i] + "</div> ";
+                if (q==0) {curSegmentNumber = data.sections[1]}
+                else {curSegmentNumber = 1 }
+                for (var i = 0; i < (Math.max(curEnglishText.length, curHebrewText.length)); i++) {
+                    if (curEnglishText.length > i) {
+                        en += "<div class='previewLine'><span class='previewNumber'>(" + (curSegmentNumber) + ")</span> " + curEnglishText[i] + "</div> ";
                     }
-                    if (data.he.length > i) {
-                        he += "<div class='previewLine'><span class='previewNumber'>(" + (i + segmentOffsetCount) + ")</span> " + data.he[i] + "</div> ";
+                    if (curHebrewText.length > i) {
+                        he += "<div class='previewLine'><span class='previewNumber'>(" + ( curSegmentNumber) + ")</span> " + curHebrewText[i] + "</div> ";
                     }
-                }
-            }
-
-
-
-        }
-
-        else { console.log("a spanning section ref");
-
-            if (data.sections.length < data.sectionNames.length) {
-                //add in segment number if not given. Eg. Pesachim 2b, Genesis 1
-                data.sections.push(1);
-            }
-
-            for (var i = 0; i < data.he.length; i++) { //for each text section
-                for (var q = 0; q <  data.he[i].length; q++) { //for each line
-                    0==i?segmentOffsetCount=data.sections[1]:segmentOffsetCount=1;
-                    if (data.text[i] > 0 && data.text[i][q].length > q) {
-                        en += "<div class='previewLine'><span class='previewNumber'>(" +(q + segmentOffsetCount) +")</span> " + data.text[i][q] + "</div> ";
-                    }
-                    if (data.he[i][q].length > q) {
-                        he += "<div class='previewLine'><span class='previewNumber'>(" +(q + segmentOffsetCount) +")</span> " + data.he[i][q] + "</div> ";
-                    }
+                curSegmentNumber++;
                 }
             }
-        }
+            var path = parseURL(document.URL).path;
+            if (!en) {
+                en += "<div class='previewNoText'><a href='/add/" + urlRef + "?after=" + path + "' class='btn'>Add English for " + ref + "</a></div>";
+            }
+            if (!he) {
+                he += "<div class='previewNoText'><a href='/add/" + urlRef + "?after=" + path + "' class='btn'>Add Hebrew for " + ref + "</a></div>";
+            }
 
-		var path = parseURL(document.URL).path;
-		if (!en) { en += "<div class='previewNoText'><a href='/add/" + urlRef + "?after=" + path + "' class='btn'>Add English for "+ref+"</a></div>"; }
-		if (!he) { he += "<div class='previewNoText'><a href='/add/" + urlRef + "?after=" + path + "' class='btn'>Add Hebrew for "+ref+"</a></div>"; }
+            text = "<div class='en'>" + en + "</div>" + "<div class='he'>" + he + "</div>";
 
-		text = "<div class='en'>" + en + "</div>" + "<div class='he'>" + he + "</div>";
+            $target.html(controlsHtml + text);
+            callback();
 
-		$target.html(controlsHtml + text);
-		callback();
 	};
 
 }
