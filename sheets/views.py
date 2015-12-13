@@ -384,10 +384,10 @@ def partner_page(request, partner):
 
 
 def groups_page(request):
-    groups = GroupSet(sort=[["name", 1]])
-    return render_to_response("groups.html",
-                                {"groups": groups},
-                                RequestContext(request))
+	groups = GroupSet(sort=[["name", 1]])
+	return render_to_response("groups.html",
+								{"groups": groups},
+								RequestContext(request))
 
 
 @staff_member_required
@@ -576,7 +576,6 @@ def add_ref_to_sheet_api(request, sheet_id):
 		return jsonResponse({"error": "No ref given in post data."})
 	return jsonResponse(add_ref_to_sheet(int(sheet_id), ref))
 
-
 @login_required
 def update_sheet_tags_api(request, sheet_id):
 	"""
@@ -668,6 +667,25 @@ def sheets_by_tag_api(request, tag):
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response
+
+def add_parashat_to_sheet_api(request, parasha, sheet_id):
+	p = db.parshiot.find({"parasha": parasha, "date": {"$gt": datetime.now()}}, limit=1).sort([("date", 1)])
+	p = p.next()
+
+	sheet = db.sheets.find_one({"id": int(sheet_id)})
+	if not sheet:
+		return {"error": "No sheet with id %s." % (int(sheet_id))}
+
+	if request.user.id != sheet["owner"]:
+		return jsonResponse({"error": "Only the sheet owner may add an entire parasha."})
+
+	for aliyah in p["aliyot"]:
+		sheet["dateModified"] = datetime.now().isoformat()
+		sheet["sources"].append({"ref": aliyah})
+		db.sheets.save(sheet)
+	return jsonResponse({"status": "ok"})
+
+
 
 
 @login_required

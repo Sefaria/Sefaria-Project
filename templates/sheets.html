@@ -43,11 +43,14 @@
 				</div>
 				<div class="line"></div>
 				<div class="optionItem" id="addSource"><i class='fa fa-link'></i> Source</div>
-				<div class="optionItem" id="addBiOutside"><i class='fa fa-columns'></i> Outside Text (Bilingual)</div>
+   				{% if is_owner %}
+                <div class="optionItem" id="addParashaToSheetModalTrigger"><i class='fa fa-book'></i> Add Parasha</div>
+				{% endif %}
+                <div class="optionItem" id="addBiOutside"><i class='fa fa-columns'></i> Outside Text (Bilingual)</div>
 				<div class="optionItem" id="addOutside"><i class='fa fa-file-o'></i> Outside Text</div>
 				<div class="optionItem" id="addComment"><i class='fa fa-comment'></i> Comment</div>
 				<div class="optionItem" id="addMedia"><i class='fa fa-youtube-play'></i> Media</div>
-			</div>
+            </div>
 		</span>
 		{% endif %}
 		<span id="options" class="circleButton"><i class="fa fa-bars"></i>
@@ -362,13 +365,76 @@
 	</div>
 </div>
 
-
 <div id="embedSheetModal" class="gradient modal">
 	<div class="header">Copy and paste the embed code below:</div>
 	<textarea><iframe src="{{ request.build_absolute_uri }}?embed=1" width="600px" height="600px"></iframe></textarea>
 	<div class="sub">Adjust the values of width and height to best fit your design.</div>
 	<div class="btn ok">OK</div>
 </div>
+
+<div id="addParashaToSheetModal" class="modal">
+	<div class="header">Add a Parasha to a Source Sheet</div>
+        <ol>
+            <li class="parshahToAdd">Bereshit</li>
+            <li class="parshahToAdd">Noach</li>
+            <li class="parshahToAdd">Lech-Lecha</li>
+            <li class="parshahToAdd">Vayera</li>
+            <li class="parshahToAdd">Chayei Sara</li>
+            <li class="parshahToAdd">Toldot</li>
+            <li class="parshahToAdd">Vayetzei</li>
+            <li class="parshahToAdd">Vayishlach</li>
+            <li class="parshahToAdd">Vayeshev</li>
+            <li class="parshahToAdd">Miketz</li>
+            <li class="parshahToAdd">Vayigash</li>
+            <li class="parshahToAdd">Vayechi</li>
+            <li class="parshahToAdd">Shemot</li>
+            <li class="parshahToAdd">Vaera</li>
+            <li class="parshahToAdd">Bo</li>
+            <li class="parshahToAdd">Beshalach</li>
+            <li class="parshahToAdd">Yitro</li>
+            <li class="parshahToAdd">Mishpatim</li>
+            <li class="parshahToAdd">Terumah</li>
+            <li class="parshahToAdd">Tetzaveh</li>
+            <li class="parshahToAdd">Ki Tisa</li>
+            <li class="parshahToAdd">Vayakhel</li>
+            <li class="parshahToAdd">Pekudei</li>
+            <li class="parshahToAdd">Vayikra</li>
+            <li class="parshahToAdd">Tzav</li>
+            <li class="parshahToAdd">Shmini</li>
+            <li class="parshahToAdd">Tazria</li>
+            <li class="parshahToAdd">Metzora</li>
+            <li class="parshahToAdd">Achrei Mot</li>
+            <li class="parshahToAdd">Kedoshim</li>
+            <li class="parshahToAdd">Emor</li>
+            <li class="parshahToAdd">Behar</li>
+            <li class="parshahToAdd">Bechukotai</li>
+            <li class="parshahToAdd">Bamidbar</li>
+            <li class="parshahToAdd">Nasso</li>
+            <li class="parshahToAdd">Beha'alotcha</li>
+            <li class="parshahToAdd">Sh'lach</li>
+            <li class="parshahToAdd">Korach</li>
+            <li class="parshahToAdd">Chukat</li>
+            <li class="parshahToAdd">Balak</li>
+            <li class="parshahToAdd">Pinchas</li>
+            <li class="parshahToAdd">Matot</li>
+            <li class="parshahToAdd">Masei</li>
+            <li class="parshahToAdd">Devarim</li>
+            <li class="parshahToAdd">Vaetchanan</li>
+            <li class="parshahToAdd">Eikev</li>
+            <li class="parshahToAdd">Re'eh</li>
+            <li class="parshahToAdd">Shoftim</li>
+            <li class="parshahToAdd">Ki Teitzei</li>
+            <li class="parshahToAdd">Ki Tavo</li>
+            <li class="parshahToAdd">Nitzavim</li>
+            <li class="parshahToAdd">Vayeilech</li>
+            <li class="parshahToAdd">Ha'Azinu</li>
+            <li class="parshahToAdd">V'Zot HaBerachah</li>
+        </ol>
+	<div class="actions">
+		<div class="btn cancel">Cancel</div>
+	</div>
+</div>
+
 
 <div id="overrideLayoutModal" class="modal">
 	<div class="header">Change this source's layout:</div>

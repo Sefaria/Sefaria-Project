@@ -735,6 +735,25 @@ level, they are forced to inherit a minimum line-height of the parent block. (Th
 	width: 400px;
 }
 
+#addParashaToSheetModal {
+	width:500px;
+}
+#addParashaToSheetModal .header {
+	font-weight: bold;
+	padding-bottom: 10px;
+}
+
+#addParashaToSheetModal .cancel {
+	padding-top: 10px;
+}
+
+#addParashaToSheetModal li {
+	width:150px;
+	display:inline;
+	float:left;
+	padding: 2px 0 2px 0;
+}
+
 #addToSheetModal .header {
 	font-size: 22px;
 }

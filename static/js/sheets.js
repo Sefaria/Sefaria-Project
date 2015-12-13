@@ -813,6 +813,34 @@ $(function() {
 	 });
 
 
+	$(".parshahToAdd").click(function(){
+		$("#addParashaToSheetModal, #overlay").hide();
+
+			$.post("/api/sheets/"+sjs.current.id+"/"+$(this).text()+"/add_parasha",
+				function (data){
+			if ("error" in data) {
+				sjs.alert.message(data.error);
+			} else {
+				sjs.alert.flash("Parashat "+ $(this).text()+ " Added");
+				autoSave();
+			}
+		});
+
+		}
+	);
+
+	$("#addParashaToSheetModalTrigger").live("click", function(e) {
+		$("#addSourceModal").hide();
+		$("#addParashaToSheetModal").show().position({of: window});
+		$("#overlay").show();
+	});
+
+	$("#addParashaToSheetModal .cancel").click(function() {
+
+		$("#addParashaToSheetModal, #overlay").hide();
+	});
+
+
 
 	$("#sharingModalTrigger").live("click", function() { 
 		$("#sharingModal").show().position({of: window}); 
@@ -823,7 +851,7 @@ $(function() {
 	$("#sharingModal .ok").click(function(){
 
 		$("#sharingModal, #overlay").hide();
-		
+
 		autoSave();
 		sjs.alert.flash("Sharing settings saved.")
 

@@ -984,11 +984,11 @@ $(function() {
 			$.getJSON("/api/sheets/user/" + sjs._uid, function(data) {
 				$("#sheets").empty();
 				var sheets = "";
+				sheets += '<li class="sheet new"><i>Start a New Source Sheet</i></li>';
 				for (i = 0; i < data.sheets.length; i++) {
 					sheets += '<li class="sheet" data-id="'+data.sheets[i].id+'">'+
 						$("<div/>").html(data.sheets[i].title).text() + "</li>";
 				}
-				sheets += '<li class="sheet new"><i>Start a New Source Sheet</i></li>'
 				$("#sheets").html(sheets);
 				$("#addToSheetModal").position({of:$(window)});
 				$(".sheet").click(function(){
