@@ -822,7 +822,7 @@ $(function() {
 				sjs.alert.message(data.error);
 			} else {
 				sjs.alert.flash("Parashat "+ $(this).text()+ " Added");
-				autoSave();
+				window.location = "/sheets/" + data.id;
 			}
 		});
 
