@@ -834,19 +834,8 @@ $(function() {
 
 			}
 		});
+		sjs.track.sheets("Add Parasha to Sheet");
 
-
-			/*
-			$.post("/api/sheets/"+sjs.current.id+"/"+$(this).text()+"/add_parasha",
-				function (data){
-			if ("error" in data) {
-				sjs.alert.message(data.error);
-			} else {
-				sjs.alert.flash("Parashat "+ $(this).text()+ " Added");
-				window.location = "/sheets/" + data.id;
-			}
-		});
-*/
 		}
 	);
 
