@@ -3410,29 +3410,35 @@ class Library(object):
 
         # simple texts
         forest = [i.nodes for i in IndexSet() if not i.is_commentary()]
-        commentary_forest = [get_index(i).nodes for i in self.get_commentary_version_titles()]
+        title_dicts = {"en": {}, "he": {}}
+        for tree in forest:
+            try:
+                title_dicts["en"].update(tree.title_dict("en"))
+                title_dicts["he"].update(tree.title_dict("he"))
+            except IndexSchemaError as e:
+                logger.error(u"Error in generating title node dictionary: {}".format(e))
         for lang in langs:
-            title_dict = {}
             key = "title_node_dict_" + lang
-            comm_key = key  + "_commentary"
-            for tree in forest:
-                try:
-                    title_dict.update(tree.title_dict(lang))
-                except IndexSchemaError as e:
-                    logger.error(u"Error in generating title node dictionary: {}".format(e))
-            scache.set_cache_elem(key, title_dict)
-            self.local_cache[key] = title_dict
+            scache.set_cache_elem(key, title_dicts[lang])
+            self.local_cache[key] = title_dicts[lang]
 
-            # commentary
-            c_title_dict = copy.copy(title_dict)
-            for tree in commentary_forest:
-                try:
-                    c_title_dict.update(tree.title_dict(lang))
-                except IndexSchemaError as e:
-                    logger.error(u"Error in generating title node dictionary: {}".format(e))
-            scache.set_cache_elem(key, c_title_dict)
-            self.local_cache[key] = c_title_dict
+        # commentary
+        commentary_forest = [get_index(i).nodes for i in self.get_commentary_version_titles()]
+        c_title_dicts = {
+            "en": title_dicts["en"].copy(),
+            "he": title_dicts["he"].copy()
+        }
 
+        for tree in commentary_forest:
+            try:
+                c_title_dicts["en"].update(tree.title_dict("en"))
+                c_title_dicts["he"].update(tree.title_dict("he"))
+            except IndexSchemaError as e:
+                logger.error(u"Error in generating title node dictionary: {}".format(e))
+        for lang in langs:
+            comm_key = "title_node_dict_" + lang + "_commentary"
+            scache.set_cache_elem(comm_key, c_title_dicts[lang])
+            self.local_cache[comm_key] = c_title_dicts[lang]
 
     def get_title_node_dict(self, lang="en", with_commentary=False):
         """
