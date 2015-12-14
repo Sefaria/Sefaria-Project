@@ -977,7 +977,7 @@ class SchemaNode(TitledTreeNode):
         """
         d = super(SchemaNode, self).serialize(**kwargs)
         d["key"] = self.key
-        if self.checkFirst:
+        if getattr(self, "checkFirst", None) is not None:
             d["checkFirst"] = self.checkFirst
         return d
 

@@ -616,6 +616,12 @@ class CommentaryIndex(AbstractIndex):
         # self.nodes = JaggedArrayCommentatorNode(self.b_index.nodes, index=self)
         def extend_leaf_nodes(node):
             node.index = self
+
+            try:
+                del node.checkFirst
+            except AttributeError:
+                pass
+
             if node.has_children():
                 return node
             #return JaggedArrayCommentatorNode(node, index=self)
@@ -1476,8 +1482,6 @@ class TextFamily(object):
 
             self._alts = alts_ja.array()
 
-    # What does this note mean?  Is this yet to be done?
-    # Remaining: spanning
     def contents(self):
         """
         :return dict: Returns the contents of the text family.
