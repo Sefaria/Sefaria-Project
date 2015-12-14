@@ -2024,11 +2024,11 @@ function copyToSheet(source) {
 		$.getJSON("/api/sheets/user/" + sjs._uid, function(data) {
 			$("#sheetList").empty();
 			var sheets = "";
+			sheets += '<li class="sheet new"><i>Start a New Source Sheet</i></li>';
 			for (i = 0; i < data.sheets.length; i++) {
 				sheets += '<li class="sheet" data-id="'+data.sheets[i].id+'">'+
 					data.sheets[i].title.stripHtml() + "</li>";
 			}
-			sheets += '<li class="sheet new"><i>Start a New Source Sheet</i></li>'
 			$("#sheetList").html(sheets);
 			$("#addToSheetModal").position({of:$(window)});
 			$(".sheet").click(function(){
@@ -2038,7 +2038,7 @@ function copyToSheet(source) {
 			})
 		})			
 	}
-	var name = source.ref ? source.ref : 
+	var name = source.ref ? source.ref :
 				(source.comment ? "this comment" : "this source"); 
 
 	$("#addToSheetModal .sourceName").text(name);
@@ -2069,7 +2069,7 @@ $("#addToSheetModal .ok").click(function(){
 		};
 		var postJSON = JSON.stringify(sheet);
 		sjs.flags.saving = true;
-		$.post("/api/sheets/", {"json": postJSON}, addToSheetCallback);	
+		$.post("/api/sheets/", {"json": postJSON}, addToSheetCallback);
 	} else {
 		var title = selected.html();
 		var url = "/api/sheets/" + selected.attr("data-id") + "/add";
@@ -2078,6 +2078,15 @@ $("#addToSheetModal .ok").click(function(){
 	}
 
 	function addToSheetCallback(data) {
+		if(data["views"]){ //this is only passed on "new source sheet"
+			//add the new sheet to the list
+			$( "#sheetList .new" ).after( '<li class="sheet" data-id="'+data.id+'">'+data.title.stripHtml() + "</li>" );
+			$(".sheet").click(function(){
+				$(".sheet").removeClass("selected");
+				$(this).addClass("selected");
+				return false;
+			})
+		}
 		sjs.flags.saving = false;
 		$("#addToSheetModal").hide();
 		if ("error" in data) {

@@ -1043,6 +1043,15 @@ $(function() {
 		}
 
 		function addToSheetCallback(data) {
+			if(data["views"]){ //this is only passed on "new source sheet"
+				//add the new sheet to the list
+				$( "#sheets .new" ).after( '<li class="sheet" data-id="'+data.id+'">'+data.title.stripHtml() + "</li>" );
+				$(".sheet").click(function(){
+					$(".sheet").removeClass("selected");
+					$(this).addClass("selected");
+					return false;
+				})
+			}
 			sjs.flags.saving = false;
 			$("#addToSheetModal").hide();
 			if ("error" in data) {
