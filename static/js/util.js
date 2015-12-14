@@ -1770,7 +1770,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 									{test: RegExp(reStr, "i"),
 									msg: "Enter a <b>" + data.sectionNames[i+1] + "</b> of " + data.title + 
 										" to add, e.g., " + data.title + " 5:7",
-									action: "pass"});
+									action: "ok"});
 							reStr += "[ .:]\\d+";
 						}
 

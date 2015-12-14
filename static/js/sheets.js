@@ -1276,6 +1276,10 @@ function loadSource(data, $target, optionStr) {
     for (var q=0;q<timesToIterateThroughSections;q++) {
         curEnglishText = data.text[q] || '';
         curHebrewText = data.he[q] || '';
+		if (data.sections.length < data.sectionNames.length) {
+			data.sections.push(1);
+			data.toSections.push(Math.max(curEnglishText.length, curHebrewText.length));
+		}
         if (q==0) {curSegmentNumber = data.sections[1]}
         else {curSegmentNumber = 1 }
 
