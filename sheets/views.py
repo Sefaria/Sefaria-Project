@@ -668,23 +668,14 @@ def sheets_by_tag_api(request, tag):
 	response["Cache-Control"] = "max-age=3600"
 	return response
 
-def add_parashat_to_sheet_api(request, parasha, sheet_id):
+def get_aliyot_by_parasha_api(request, parasha):
 	p = db.parshiot.find({"parasha": parasha, "date": {"$gt": datetime.now()}}, limit=1).sort([("date", 1)])
 	p = p.next()
 
-	sheet = db.sheets.find_one({"id": int(sheet_id)})
-	if not sheet:
-		return {"error": "No sheet with id %s." % (int(sheet_id))}
-
-	if request.user.id != sheet["owner"]:
-		return jsonResponse({"error": "Only the sheet owner may add an entire parasha."})
-
+	response = {"ref":[]};
 	for aliyah in p["aliyot"]:
-		sheet["dateModified"] = datetime.now().isoformat()
-		sheet["sources"].append({"ref": aliyah})
-		db.sheets.save(sheet)
-	return jsonResponse({"status": "ok"})
-
+		response["ref"].append(aliyah)
+	return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
 

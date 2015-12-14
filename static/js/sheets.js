@@ -816,6 +816,27 @@ $(function() {
 	$(".parshahToAdd").click(function(){
 		$("#addParashaToSheetModal, #overlay").hide();
 
+		$.getJSON("/api/sheets/"+$(this).text()+"/get_aliyot", function(data) {
+			if ("error" in data) {
+				sjs.alert.flash(data.error);
+			} else {
+				console.log(data.ref);
+
+
+				for (var i = 0; i < data.ref.length; i++) {
+					var source = {
+						ref: data.ref[i]
+					}
+					console.log(parseRef(data.ref[i]));
+					buildSource($("#sources"), source);
+
+				}
+
+			}
+		});
+
+
+			/*
 			$.post("/api/sheets/"+sjs.current.id+"/"+$(this).text()+"/add_parasha",
 				function (data){
 			if ("error" in data) {
@@ -825,7 +846,7 @@ $(function() {
 				window.location = "/sheets/" + data.id;
 			}
 		});
-
+*/
 		}
 	);
 
