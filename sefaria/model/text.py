@@ -3404,6 +3404,37 @@ class Library(object):
 
         return root_nodes
 
+    def build_all_title_node_dicts(self):
+        # Rework get_index_forest() code here to only run once
+        langs = ["en", "he"]
+
+        # simple texts
+        forest = [i.nodes for i in IndexSet() if not i.is_commentary()]
+        for lang in langs:
+            title_dict = {}
+            key = "title_node_dict_" + lang
+            for tree in forest:
+                try:
+                    title_dict.update(tree.title_dict(lang))
+                except IndexSchemaError as e:
+                    logger.error(u"Error in generating title node dictionary: {}".format(e))
+            scache.set_cache_elem(key, title_dict)
+            self.local_cache[key] = title_dict
+
+        # + commentary texts
+        forest += [get_index(i).nodes for i in self.get_commentary_version_titles()]
+        for lang in langs:
+            title_dict = {}
+            key = "title_node_dict_" + lang + "_commentary"
+            for tree in forest:
+                try:
+                    title_dict.update(tree.title_dict(lang))
+                except IndexSchemaError as e:
+                    logger.error(u"Error in generating title node dictionary: {}".format(e))
+            scache.set_cache_elem(key, title_dict)
+            self.local_cache[key] = title_dict
+
+
     def get_title_node_dict(self, lang="en", with_commentary=False):
         """
         :param lang: "he" or "en"
