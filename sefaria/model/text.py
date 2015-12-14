@@ -2769,7 +2769,7 @@ class Ref(object):
             self._ranged_refs = results
         return self._ranged_refs
 
-    def regex(self, as_list=False):
+    def regex(self, as_list=False, anchored=True):
         """
         :return string: for a Regular Expression which will find any refs that match this Ref exactly, or more specifically.
 
@@ -2803,10 +2803,26 @@ class Ref(object):
                 patterns.append("%s \d" % sections) # extra granularity following space
 
         escaped_book = re.escape(self.book)
-        if as_list:
-            return ["^{}{}".format(escaped_book, p) for p in patterns]
+        if anchored:
+            if as_list:
+                return ["^{}{}".format(escaped_book, p) for p in patterns]
+            else:
+                return "^%s(%s)" % (escaped_book, "|".join(patterns))
         else:
-            return "^%s(%s)" % (escaped_book, "|".join(patterns))
+            if as_list:
+                return ["{}{}".format(escaped_book, p) for p in patterns]
+            else:
+                return "%s(%s)" % (escaped_book, "|".join(patterns))
+
+
+    def base_text_and_commentary_regex(self):
+        ref_regex_str = self.regex(anchored=False)
+        commentators = library.get_commentary_version_titles_on_book(self.book, with_commentary2=True)
+        if commentators:
+            pattern = ur"(^{})|(^({}) on {})".format(ref_regex_str, "|".join(commentators), ref_regex_str)
+        else:
+            pattern = ur"^{}".format(ref_regex_str)
+        return pattern
 
     """ Comparisons """
     def overlaps(self, other):
@@ -3487,6 +3503,7 @@ class Library(object):
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
     def get_commentator_titles(self, lang="en", with_variants=False, with_commentary2=False):
+        #//TODO: mark for commentary refactor
         """
         :param lang: "he" or "en"
         :param with_variants: If True, includes titles variants along with the primary titles.
