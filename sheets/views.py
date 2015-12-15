@@ -422,7 +422,7 @@ def sheets_tags_list(request):
 	"""
 	View public sheets organized by tags.
 	"""
-	tags_list = make_sheet_list_by_tag()
+	tags_list = make_tag_list()
 	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))	
 
 
