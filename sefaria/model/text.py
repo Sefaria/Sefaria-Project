@@ -854,6 +854,15 @@ class AbstractTextRecord(object):
     def ja(self): #don't cache locally unless change is handled.  Pontential to cache on JA class level
         return JaggedTextArray(getattr(self, self.text_attr, None))
 
+    def as_string(self):
+        content = getattr(self, self.text_attr, None)
+        if isinstance(content, basestring):
+            return content
+        elif isinstance(content, list):
+            return self.ja().flatten_to_string()
+        else:
+            return ""
+
     @classmethod
     def sanitize_text(cls, t):
         if isinstance(t, list):

@@ -153,12 +153,12 @@ class Garden(abst.AbstractMongoRecord):
         if attrs.get("ref"):
             if attrs.get("enText") is None:
                 try:
-                    attrs["enText"] = text.TextChunk(text.Ref(attrs["Ref"]), "en", attrs.get("enVersionTitle"))
+                    attrs["enText"] = text.TextChunk(text.Ref(attrs["ref"]), "en", attrs.get("enVersionTitle")).as_string()
                 except Exception:
                     pass
             if attrs.get("heText") is None:
                 try:
-                    attrs["heText"] = text.TextChunk(text.Ref(attrs["Ref"]), "he", attrs.get("heVersionTitle"))
+                    attrs["heText"] = text.TextChunk(text.Ref(attrs["ref"]), "he", attrs.get("heVersionTitle")).as_string()
                 except Exception:
                     pass
 
