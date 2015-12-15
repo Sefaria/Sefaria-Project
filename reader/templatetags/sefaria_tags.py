@@ -114,7 +114,7 @@ def he_parasha(value):
 @register.filter(is_safe=True)
 def version_link(v):
 	"""
-	Return an <a> tag linking to the first availabe text of a particular version.
+	Return an <a> tag linking to the first available text of a particular version.
 	"""
 	try:
 		section_ref = v.first_section_ref() or v.get_index().nodes.first_leaf().first_section_ref()
