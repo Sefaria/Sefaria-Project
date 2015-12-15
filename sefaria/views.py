@@ -39,6 +39,7 @@ from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
 from sefaria.utils.hebrew import is_hebrew
 from sefaria.helper.text import make_versions_csv
+from sefaria.clean import remove_old_counts
 if USE_VARNISH:
     from sefaria.system.sf_varnish import invalidate_index
 
@@ -265,13 +266,22 @@ def del_cached_elem(request, title):
 @staff_member_required
 def reset_counts(request, title=None):
     if title:
-        i  = model.get_index(title)
+        try:
+            i  = model.get_index(title)
+        except:
+            return HttpResponseRedirect("/dashboard?m=Unknown-Book")
         vs = model.VersionState(index=i)
         vs.refresh()
         return HttpResponseRedirect("/%s?m=Counts-Rebuilt" % model.Ref(i.title).url())
     else:
         model.refresh_all_states()
         return HttpResponseRedirect("/?m=Counts-Rebuilt")
+
+
+@staff_member_required
+def delete_orphaned_counts(request):
+    remove_old_counts()
+    return HttpResponseRedirect("/dashboard?m=Orphaned-counts-deleted")
 
 
 @staff_member_required
