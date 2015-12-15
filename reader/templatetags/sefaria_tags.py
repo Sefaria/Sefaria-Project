@@ -122,9 +122,9 @@ def version_link(v):
 		try:
 			section_ref = v.get_index().nodes.first_leaf().first_section_ref()
 		except:  # Better if we knew how this may fail...
-			return mark_safe(u'<a href="/{}.1/{}/{}">{}</a>'.format(v.title, v.language, v.versionTitle.replace(" ", "_"), v.versionTitle))
+			return mark_safe(u'<a href="/{}.1/{}/{}">{}</a>'.format(v.title, v.language, urllib.quote(v.versionTitle.replace(" ", "_").encode("utf-8")), v.versionTitle))
 
-	link = u'<a href="/{}/{}/{}">{}</a>'.format(section_ref.url(), v.language, v.versionTitle.replace(" ", "_"), v.versionTitle)
+	link = u'<a href="/{}/{}/{}">{}</a>'.format(section_ref.url(), v.language, urllib.quote(v.versionTitle.replace(" ", "_").encode("utf-8")), v.versionTitle)
 	return mark_safe(link)
 
 @register.filter(is_safe=True)
