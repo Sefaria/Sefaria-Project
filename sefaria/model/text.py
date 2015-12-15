@@ -616,6 +616,12 @@ class CommentaryIndex(AbstractIndex):
         # self.nodes = JaggedArrayCommentatorNode(self.b_index.nodes, index=self)
         def extend_leaf_nodes(node):
             node.index = self
+
+            try:
+                del node.checkFirst
+            except AttributeError:
+                pass
+
             if node.has_children():
                 return node
             #return JaggedArrayCommentatorNode(node, index=self)
@@ -847,6 +853,15 @@ class AbstractTextRecord(object):
 
     def ja(self): #don't cache locally unless change is handled.  Pontential to cache on JA class level
         return JaggedTextArray(getattr(self, self.text_attr, None))
+
+    def as_string(self):
+        content = getattr(self, self.text_attr, None)
+        if isinstance(content, basestring):
+            return content
+        elif isinstance(content, list):
+            return self.ja().flatten_to_string()
+        else:
+            return ""
 
     @classmethod
     def sanitize_text(cls, t):
@@ -1476,8 +1491,6 @@ class TextFamily(object):
 
             self._alts = alts_ja.array()
 
-    # What does this note mean?  Is this yet to be done?
-    # Remaining: spanning
     def contents(self):
         """
         :return dict: Returns the contents of the text family.
@@ -2765,7 +2778,7 @@ class Ref(object):
             self._ranged_refs = results
         return self._ranged_refs
 
-    def regex(self, as_list=False):
+    def regex(self, as_list=False, anchored=True):
         """
         :return string: for a Regular Expression which will find any refs that match this Ref exactly, or more specifically.
 
@@ -2799,10 +2812,26 @@ class Ref(object):
                 patterns.append("%s \d" % sections) # extra granularity following space
 
         escaped_book = re.escape(self.book)
-        if as_list:
-            return ["^{}{}".format(escaped_book, p) for p in patterns]
+        if anchored:
+            if as_list:
+                return ["^{}{}".format(escaped_book, p) for p in patterns]
+            else:
+                return "^%s(%s)" % (escaped_book, "|".join(patterns))
         else:
-            return "^%s(%s)" % (escaped_book, "|".join(patterns))
+            if as_list:
+                return ["{}{}".format(escaped_book, p) for p in patterns]
+            else:
+                return "%s(%s)" % (escaped_book, "|".join(patterns))
+
+
+    def base_text_and_commentary_regex(self):
+        ref_regex_str = self.regex(anchored=False)
+        commentators = library.get_commentary_version_titles_on_book(self.book, with_commentary2=True)
+        if commentators:
+            pattern = ur"(^{})|(^({}) on {})".format(ref_regex_str, "|".join(commentators), ref_regex_str)
+        else:
+            pattern = ur"^{}".format(ref_regex_str)
+        return pattern
 
     """ Comparisons """
     def overlaps(self, other):
@@ -3483,6 +3512,7 @@ class Library(object):
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
     def get_commentator_titles(self, lang="en", with_variants=False, with_commentary2=False):
+        #//TODO: mark for commentary refactor
         """
         :param lang: "he" or "en"
         :param with_variants: If True, includes titles variants along with the primary titles.

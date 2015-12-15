@@ -809,11 +809,11 @@ class ArrayMapNode(NumberedTitledTreeNode):
                 refs         = text.Ref(self.wholeRef).split_spanning_ref()
                 first, last  = refs[0], refs[-1]
                 offset       = first.sections[-2]-1 if first.is_segment_level() else first.sections[-1]-1
-                depth        = len(first.index.nodes.sectionNames) - len(first.section_ref().sections)
+                depth        = len(first.index_node.sectionNames) - len(first.section_ref().sections)
 
                 d["refs"] = [r.normal() for r in refs]
-                d["addressTypes"] = d.get("addressTypes", []) + first.index.nodes.addressTypes[depth:]
-                d["sectionNames"] = d.get("sectionNames", []) + first.index.nodes.sectionNames[depth:]
+                d["addressTypes"] = d.get("addressTypes", []) + first.index_node.addressTypes[depth:]
+                d["sectionNames"] = d.get("sectionNames", []) + first.index_node.sectionNames[depth:]
                 d["depth"] += 1
                 d["offset"] = offset
 
@@ -977,7 +977,7 @@ class SchemaNode(TitledTreeNode):
         """
         d = super(SchemaNode, self).serialize(**kwargs)
         d["key"] = self.key
-        if self.checkFirst:
+        if getattr(self, "checkFirst", None) is not None:
             d["checkFirst"] = self.checkFirst
         return d
 

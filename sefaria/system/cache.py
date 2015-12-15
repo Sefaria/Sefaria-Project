@@ -141,6 +141,10 @@ def reset_texts_cache():
 
 
 def process_index_change_in_cache(indx, **kwargs):
+    """_args = ('make_toc_html', kwargs["old"])
+    kw_args = {'zoom': 1}
+    key = cache_get_key(_args, kw_args)
+    delete_cache_elem(key)"""
     reset_texts_cache()
     if USE_VARNISH:
         from sefaria.system.sf_varnish import invalidate_index
