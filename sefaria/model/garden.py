@@ -35,7 +35,8 @@ class Garden(abst.AbstractMongoRecord):
 
     default_config = {
         "timeline_scale": "log",  # log / linear
-        "timeline_bin_size": None,  # defaults to ~20 bins in the extent
+        "timeline_bin_size": None,  # Number of years in a bin.  Defaults to ~20 bins in the extent
+        "filter_order" : [],
         "filters": {
             "default": {
                 "en": "Tags",
@@ -150,6 +151,17 @@ class Garden(abst.AbstractMongoRecord):
 
         # Check for existing stop, based on Ref.
         if attrs.get("ref"):
+            if attrs.get("enText") is None:
+                try:
+                    attrs["enText"] = text.TextChunk(text.Ref(attrs["Ref"]), "en", attrs.get("enVersionTitle"))
+                except Exception:
+                    pass
+            if attrs.get("heText") is None:
+                try:
+                    attrs["heText"] = text.TextChunk(text.Ref(attrs["Ref"]), "he", attrs.get("heVersionTitle"))
+                except Exception:
+                    pass
+
             existing = GardenStop().load({"ref": attrs["ref"], "garden": self.key})
             if existing:
                 existing.weight += 1
@@ -165,6 +177,11 @@ class Garden(abst.AbstractMongoRecord):
                             for tag in tags:
                                 if tag not in existing.tags[typ]:
                                     existing.tags[typ].append(tag)
+
+                if attrs.get("enText") and not getattr(existing, "enText", None):
+                    existing.enText = attrs.get("enText")
+                if attrs.get("heText") and not getattr(existing, "heText", None):
+                    existing.enText = attrs.get("heText")
 
                 existing.save()
                 return
@@ -247,7 +264,10 @@ class Garden(abst.AbstractMongoRecord):
                 stop["heText"] = u" ".join(hit["highlight"]["content"])
             self.add_stop(stop)
 
-    def import_ref_list(self, reflist):
+    def import_ref_list(self, reflist, defaults=None):
+        if defaults is None:
+            defaults = {}
+        self.updateFilter("default", {"en": "Categories", "he": u"קטגוריות"})
         for ref in reflist:
             if isinstance(ref, basestring):
                 try:
@@ -257,10 +277,17 @@ class Garden(abst.AbstractMongoRecord):
             if not isinstance(ref, text.Ref):
                 continue
 
-            self.add_stop({
+            stop_dict = {
                 "type": "inside_source",
                 "ref": ref.normal(),
-            })
+                "tags": {"default": ref.index.categories}
+            }
+
+            if defaults.get("tags") is not None:
+                stop_dict["tags"].update(defaults["tags"])
+            stop_dict.update({k:v for k,v in defaults.items() if k != "tags"})
+
+            self.add_stop(stop_dict)
         return self
 
     def import_sheet(self, sheet_id, remove_tags=None):
