@@ -71,18 +71,16 @@ def make_text(doc):
     text = "\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], doc["versionSource"]])    
     version = Version().load({'title': doc["title"], 'versionTitle': doc["versionTitle"], 'language': doc["language"]})	
 
-    isMerged = (doc["versionTitle"] == "merged")
-    
     if "versions" in doc:
-        if isMerged:
-            version = Version().load({'title': doc["title"], 'versionTitle': doc["versions"][0][0], 'language': doc["language"]})
+        if not len(doc["versions"]):
+            return None # Occurs when text versions don't actually have content
+        version = Version().load({'title': doc["title"], 'versionTitle': doc["versions"][0][0], 'language': doc["language"]})
         text += "\nThis file contains merged sections from the following text versions:"
         for v in doc["versions"]:
             text += "\n-%s\n-%s" % (v[0], v[1])
 
 			
     def make_node(node, depth, **kwargs):
-
         if node.is_leaf():
             content = "\n\n%s" % node.primary_title(doc["language"])
             content += flatten(version.content_node(node), node.sectionNames)
@@ -111,7 +109,7 @@ def make_text(doc):
 
 
 """
-List of export format, consisting of a name and function.
+List of export formats, consisting of a name and function.
 The name is used as a top level directory and file suffix.
 The function takes a document and returns the text to output.
 """
@@ -138,6 +136,9 @@ def export_text_doc(doc):
 	"""
     for format in export_formats:
         out = format[1](doc)
+        if not out:
+            print "Skipping %s - no content" % doc["title"]
+            return
         path = make_path(doc, format[0])
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
@@ -399,5 +400,5 @@ def export_all():
     export_links()
     export_schemas()
     export_toc()
-    expor_tag_graph()
+    export_tag_graph()
     make_export_log()
