@@ -1713,6 +1713,7 @@ function buildView(data) {
 	$("#about").removeClass("empty");
 	$(".open").remove();	
 	sjs.clearNewText();
+	sjs.selected = null;
 
 	sjs.cache.save(data);
 	sjs.current = data;
