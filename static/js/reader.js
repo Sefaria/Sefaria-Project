@@ -1232,7 +1232,7 @@ $(function() {
 			return;
 		}
 
-		var url = "/api/texts/" + sjs.current.book + "/" + lang + "/" + version;
+		var url = "/api/texts/" + sjs.current.indexTitle + "/" + lang + "/" + version;
 
 		$.ajax({
 			url: url,
