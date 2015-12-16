@@ -160,7 +160,6 @@ sjs.Init.handlers = function() {
 		sjs.lexicon.reset();
 
 		lowlightOff();
-		sjs.selected = null;
 		$(".expanded").each(function(){ sjs.expandSource($(this)); });
 		sjs.hideSources();
 		if (sjs.current.mode == "view") {
@@ -835,8 +834,7 @@ $(function() {
 		}
 
 		lowlightOn(v[0], v[1]);
-		selected = sjs.setSelected(v[0], v[1]);
-		$("#noteAnchor").html("Note on " + selected);
+		$("#noteAnchor").html("Note on " + sjs.selected);
 		sjs.selected_verses = v;
 	
 		// Selecting a verse for add source
@@ -2008,7 +2006,10 @@ function buildCommentary(data) {
 	if (data.sectionRef !== sjs.current.sectionRef) { 
 		return; // API call returned after navigating away
 	} else {
-		sjs.current = data;
+		sjs.current.commentary = data.commentary;
+		sjs.current.notes      = data.notes;
+		sjs.current.sheets     = data.sheets;
+		sjs.current.layer      = data.layer;
 	}
 	if ($("body").hasClass("editMode")) { 
 		return; // API call returned after switching modes
@@ -4148,6 +4149,7 @@ function lowlightOn(n, m) {
 	m = m || n;
 	n = parseInt(n);
 	m = parseInt(m);
+	sjs.setSelected(n, m);
 	$c = $();
 	for (var i = n; i <= m; i++ ) {
 		$c = $c.add(sjs._$commentaryViewPort.find(".commentary[data-vref~="+ i + "]"));
@@ -4168,12 +4170,12 @@ function lowlightOff() {
 	if ($(".lowlight").length == 0) { return; }
 	$(".lowlight").removeClass("lowlight");
 	$(".verseControls").remove();
-	sjs.selected = null;
 	$("#noteAnchor").html("Note on " + sjs.current.sectionRef);
 	if ("commentary" in sjs.current) {
 		sjs.setSourcesCount();
 		sjs.setSourcesPanel();
 	}
+	sjs.selected = null;
 }
 
 
