@@ -327,7 +327,7 @@ def export_links():
                 oref2.index.categories[0],
             ])
 
-            book_link = tuple(sorted([oref1.book, oref2.book]))
+            book_link = tuple(sorted([oref1.index.title, oref2.index.title]))
             links_by_book[book_link] += 1
             if link["type"] not in ("commentary", "Commentary", "targum", "Targum"):
                 links_by_book_without_commentary[book_link] += 1
