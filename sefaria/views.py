@@ -246,6 +246,7 @@ def reset_cache(request):
 @staff_member_required
 def reset_index_cache_for_text(request, title):
     scache.set_index(title, None)
+    scache.delete_cache_elem(scache.generate_text_toc_cache_key(title))
     if USE_VARNISH:
         invalidate_index(title)
     return HttpResponseRedirect("/%s?m=Cache-Reset" % title)
