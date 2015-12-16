@@ -1844,6 +1844,11 @@ function buildView(data) {
 		$("#prev").addClass("inactive");
 	}
 
+	/// Add Basetext to DOM
+	$basetext.html(basetext);
+	sjs._$verses = $basetext.find(".verse");
+	sjs._$commentary = $commentaryBox.find(".commentary");
+
 	if (data.connectionsLoadNeeded) {
 		var loadingHtml = "<div class='loadingMessage'>" +
 							"<span class='en'>Loading...</span>" +
@@ -1856,11 +1861,6 @@ function buildView(data) {
 	} else {
 		buildCommentary(data);
 	}
-	
-	/// Add Basetext to DOM
-	$basetext.html(basetext);
-	sjs._$verses = $basetext.find(".verse");
-	sjs._$commentary = $commentaryBox.find(".commentary");
 	
 	$basetext.show();
 	$sourcesBox.show();	
