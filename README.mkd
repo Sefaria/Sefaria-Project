@@ -70,15 +70,14 @@ create a directory called "log" under the project folder. Make sure that the ser
 
 #### Get mongod running:
 
-If you don't already have it, [install MongoDB](http://docs.mongodb.org/manual/installation/). The data dump included in [Sefaria-Data](https://github.com/blockspeiser/Sefaria-Data) requires MongoDB version 2.6 or later. To get Mongo running:
+If you don't already have it, [install MongoDB](http://docs.mongodb.org/manual/installation/). Our current data dump requires MongoDB version 2.6 or later. To get Mongo running:
 
     mongod
 
 #### Put some texts in your database:
 
-A MongoDB dump of our database is available via DropBox. You can find it link from our [Sefaria-Data](https://github.com/blockspeiser/Sefaria-Data) repo. Place the `dump` directory within `Sefaria-Data`, then:
+A MongoDB dump of our database is available [via DropBox](https://www.dropbox.com/sh/z5xdi4b7725ems5/AI4Jyg0xcY). Download this content, then from the parent directory which contains `dump` run:
 
-    cd Sefaria-Data
     mongorestore --drop
 
 This will create (or overwrite) a mongo database called `sefaria`.
