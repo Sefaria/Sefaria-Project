@@ -12,6 +12,7 @@ from shutil import rmtree
 from random import random
 from pprint import pprint
 from datetime import datetime
+from collections import Counter
 
 import sefaria.model as model
 from sefaria.model.text import Version
@@ -70,18 +71,16 @@ def make_text(doc):
     text = "\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], doc["versionSource"]])    
     version = Version().load({'title': doc["title"], 'versionTitle': doc["versionTitle"], 'language': doc["language"]})	
 
-    isMerged = (doc["versionTitle"] == "merged")
-    
     if "versions" in doc:
-        if isMerged:
-            version = Version().load({'title': doc["title"], 'versionTitle': doc["versions"][0][0], 'language': doc["language"]})
+        if not len(doc["versions"]):
+            return None # Occurs when text versions don't actually have content
+        version = Version().load({'title': doc["title"], 'versionTitle': doc["versions"][0][0], 'language': doc["language"]})
         text += "\nThis file contains merged sections from the following text versions:"
         for v in doc["versions"]:
             text += "\n-%s\n-%s" % (v[0], v[1])
 
 			
     def make_node(node, depth, **kwargs):
-
         if node.is_leaf():
             content = "\n\n%s" % node.primary_title(doc["language"])
             content += flatten(version.content_node(node), node.sectionNames)
@@ -110,7 +109,7 @@ def make_text(doc):
 
 
 """
-List of export format, consisting of a name and function.
+List of export formats, consisting of a name and function.
 The name is used as a top level directory and file suffix.
 The function takes a document and returns the text to output.
 """
@@ -137,6 +136,9 @@ def export_text_doc(doc):
 	"""
     for format in export_formats:
         out = format[1](doc)
+        if not out:
+            print "Skipping %s - no content" % doc["title"]
+            return
         path = make_path(doc, format[0])
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
@@ -291,6 +293,11 @@ def export_links():
     """
 	Creates a single CSV file containing all links known to Sefaria.
 	"""
+    print "Exporting links..."
+    links_by_book = Counter()
+    links_by_book_without_commentary = Counter()
+
+    links = db.links.find().sort([["refs.0", 1]])
     with open(SEFARIA_EXPORT_PATH + "/links/links.csv", 'wb') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow([
@@ -304,9 +311,6 @@ def export_links():
         ])
         links = db.links.find().sort([["refs.0", 1]])
         for i,link in enumerate(links):
-            if i % 1000 == 0:
-                print link["refs"][0]
-
             try:
                 oref1 = model.Ref(link["refs"][0])
                 oref2 = model.Ref(link["refs"][1])
@@ -321,6 +325,60 @@ def export_links():
                 oref2.book,
                 oref1.index.categories[0],
                 oref2.index.categories[0],
+            ])
+
+            book_link = tuple(sorted([oref1.index.title, oref2.index.title]))
+            links_by_book[book_link] += 1
+            if link["type"] not in ("commentary", "Commentary", "targum", "Targum"):
+                links_by_book_without_commentary[book_link] += 1
+    
+    
+    def write_aggregate_file(counter, filename):
+        with open(SEFARIA_EXPORT_PATH + "/links/%s" % filename, 'wb') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow([
+                "Text 1",
+                "Text 2",
+                "Link Count",
+            ])
+            for link in counter.most_common():
+                writer.writerow([
+                    link[0][0],
+                    link[0][1],
+                    link[1],
+                ])
+
+    write_aggregate_file(links_by_book, "links_by_book.csv")
+    write_aggregate_file(links_by_book_without_commentary, "links_by_book_without_commentary.csv")
+
+
+def export_tag_graph():
+    print "Exporting tag graph..."
+    counts = Counter()
+    sheets = db.sheets.find()
+    tags = db.sheets.distinct("tags")
+    for tag in tags:
+        sheets = db.sheets.find({"tags": tag})
+        for sheet in sheets:
+            for tag2 in sheet["tags"]:
+                if tag != tag2:
+                    counts[tuple(sorted([tag, tag2]))] += 0.5
+
+    path = SEFARIA_EXPORT_PATH + "/misc/"
+    if not os.path.exists(path):
+        os.makedirs(path)
+    with open(path + "tag_graph.csv", 'wb') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow([
+            "Tag 1",
+            "Tag 2",
+            "Co-occurrence Count",
+        ])
+        for link in counts.most_common():
+            writer.writerow([
+                link[0][0].encode("utf-8"),
+                link[0][1].encode("utf-8"),
+                link[1],
             ])
 
 
@@ -342,4 +400,5 @@ def export_all():
     export_links()
     export_schemas()
     export_toc()
+    export_tag_graph()
     make_export_log()

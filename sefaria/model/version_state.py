@@ -532,7 +532,7 @@ def process_index_title_change_in_version_state(indx, **kwargs):
     if indx.is_commentary():  # and "commentaryBook" not in d:  # looks useless
         commentator_re = "^(%s) on " % kwargs["old"]
     else:
-        commentators = IndexSet({"categories.0": "Commentary"}).distinct("title")
+        commentators = text.library.get_commentary_version_titles_on_book(kwargs["old"], with_commentary2=True)
         commentator_re = r"^({}) on {}".format("|".join(commentators), kwargs["old"])
     old_titles = VersionStateSet({"title": {"$regex": commentator_re}}).distinct("title")
     old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]

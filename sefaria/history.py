@@ -38,8 +38,9 @@ def text_history(oref, version, lang, filter_type=None):
     Return a complete list of changes to a segment of text (identified by ref/version/lang)
     """
     regex_list = oref.regex(as_list=True)
-    ref_clauses = [{"ref": {"$regex": r}} for r in regex_list]
-    query = {"$or": ref_clauses, "version": version, "language": lang}
+    text_ref_clauses = [{"ref": {"$regex": r}, "version": version, "language": lang} for r in regex_list]
+    link_ref_clauses = [{"new.refs": {"$regex": r}} for r in regex_list]
+    query = {"$or": text_ref_clauses + link_ref_clauses}
     query.update(filter_type_to_query(filter_type))
 
     return get_activity(query, page_size=0, page=1, filter_type=filter_type)

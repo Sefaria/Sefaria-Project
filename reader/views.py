@@ -462,9 +462,9 @@ def make_alt_toc_html(alt):
                             last.normal().rsplit(":", 1)[1] if last.is_segment_level() else "")
             he           = wrap_counts(JaggedArray(he_counts).subarray_with_ref(target_ref).array())
             en           = wrap_counts(JaggedArray(en_counts).subarray_with_ref(target_ref).array())
-            depth        = len(first.index.nodes.sectionNames) - len(first.section_ref().sections)
-            sectionNames = first.index.nodes.sectionNames[depth:]
-            addressTypes = first.index.nodes.addressTypes[depth:]
+            depth        = len(first.index_node.sectionNames) - len(first.section_ref().sections)
+            sectionNames = first.index_node.sectionNames[depth:]
+            addressTypes = first.index_node.addressTypes[depth:]
             ref          = first.context_ref(level=2) if first.is_segment_level() else first.context_ref()
             content = make_simple_toc_html(he, en, sectionNames, addressTypes, ref.url(), offset=offset, offset_lines=offset_lines)
             html += "<div class='schema-node-contents open'>" + content + "</div>"
