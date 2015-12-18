@@ -1857,7 +1857,6 @@ var TextRange = React.createClass({
   getInitialState: function() {
     return { 
       segments: [],
-      sref: this.props.sref,
       loaded: false,
       linksLoaded: false,
       data: {ref: this.props.sref},
@@ -1915,7 +1914,7 @@ var TextRange = React.createClass({
     settings = {
       context: this.props.withContext ? 1 : 0
     };
-    sjs.library.text(this.state.sref, settings, this.loadText);
+    sjs.library.text(this.props.sref, settings, this.loadText);
   },
   makeSegments: function(data) {
     // Returns a flat list of annotated segment objects,
@@ -2220,7 +2219,7 @@ var TextList = React.createClass({
   loadConnections: function() {
     // Load connections data from server for this section
     var sectionRef = this.getSectionRef();
-    if (sectionRef) { return; }
+    if (!sectionRef) { return; }
     sjs.library.links(sectionRef, function(links) {
       if (this.isMounted()) {
         this.preloadText(this.props.filter);

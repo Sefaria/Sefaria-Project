@@ -575,8 +575,13 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
     return data; 
   },
   currentBook: function() {
-    var pref = parseRef(this.currentRef())
-    return "book" in pref ? pref.book : null;
+    var data = this.currentData();
+    if (data) {
+      return data.indexTitle;
+    } else {
+      var pRef = parseRef(this.currentRef());
+      return "book" in pRef ? pRef.book : null;
+    }
   },
   currentCategory: function() {
     var book = this.currentBook();
@@ -753,14 +758,15 @@ var ReaderControls = React.createClass({displayName: "ReaderControls",
       var heTitle = "";
     }
 
-    var hideHeader  = !this.props.multiPanel && this.props.currentMode() === "Connections";
+    var mode = this.props.currentMode();
+    var hideHeader  = !this.props.multiPanel && mode === "Connections";
 
     if (title && !oref) {
       // If we don't have this data yet, rerender when we do so we can set the Hebrew title
       sjs.library.text(title, {context: 1}, function() { if (this.isMounted()) { this.setState({}); } }.bind(this));
     }
 
-    var centerContent = this.props.multiPanel && this.props.currentMode() === "Connections" ?
+    var centerContent = this.props.multiPanel && mode === "Connections" ?
       (React.createElement("div", {className: "readerTextToc"}, 
           React.createElement("span", {className: "en"}, "Select Connection"), 
           React.createElement("span", {className: "he"}, "בחר חיבור")
@@ -774,15 +780,16 @@ var ReaderControls = React.createClass({displayName: "ReaderControls",
            title ? (React.createElement("i", {className: "fa fa-caret-down"})) : null
         ));
 
+    var classes = classNames({readerControls: 1, headeroom: 1, connectionsHeader: mode == "Connections"});
     var readerControls = hideHeader ? null :
-        (React.createElement("div", {className: "readerControls headroom"}, 
+        (React.createElement("div", {className: classes}, 
           React.createElement("div", {className: "leftButtons"}, 
+            this.props.closePanel ? (React.createElement(ReaderNavigationMenuCloseButton, {icon: mode === "Connections" ? "arrow": null, onClick: this.props.closePanel})) : null, 
             React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.openMenu.bind(null, "navigation")})
           ), 
           centerContent, 
           React.createElement("div", {className: "rightButtons"}, 
-            React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings}), 
-            this.props.closePanel ? (React.createElement(ReaderNavigationMenuCloseButton, {onClick: this.props.closePanel})) : null
+            React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings})
           )
         ));
     return (
@@ -1515,7 +1522,9 @@ var ReaderNavigationMenuSearchButton = React.createClass({displayName: "ReaderNa
 
 var ReaderNavigationMenuCloseButton = React.createClass({displayName: "ReaderNavigationMenuCloseButton",
   render: function() { 
-    return (React.createElement("div", {className: "readerNavMenuCloseButton", onClick: this.props.onClick}, "×"));
+    var icon = this.props.icon === "arrow" ? (React.createElement("i", {className: "fa fa-caret-left"})) : "×";
+    var classes = classNames({readerNavMenuCloseButton: 1, arrow: this.props.icon === "arrow"});
+    return (React.createElement("div", {className: classes, onClick: this.props.onClick}, icon));
   }
 });
 
@@ -1848,7 +1857,6 @@ var TextRange = React.createClass({displayName: "TextRange",
   getInitialState: function() {
     return { 
       segments: [],
-      sref: this.props.sref,
       loaded: false,
       linksLoaded: false,
       data: {ref: this.props.sref},
@@ -1906,7 +1914,7 @@ var TextRange = React.createClass({displayName: "TextRange",
     settings = {
       context: this.props.withContext ? 1 : 0
     };
-    sjs.library.text(this.state.sref, settings, this.loadText);
+    sjs.library.text(this.props.sref, settings, this.loadText);
   },
   makeSegments: function(data) {
     // Returns a flat list of annotated segment objects,
@@ -2211,7 +2219,7 @@ var TextList = React.createClass({displayName: "TextList",
   loadConnections: function() {
     // Load connections data from server for this section
     var sectionRef = this.getSectionRef();
-    if (sectionRef) { return; }
+    if (!sectionRef) { return; }
     sjs.library.links(sectionRef, function(links) {
       if (this.isMounted()) {
         this.preloadText(this.props.filter);
@@ -2330,7 +2338,7 @@ var TextList = React.createClass({displayName: "TextList",
     var loaded  = sjs.library.linksLoaded(sectionRef);
     var message = !loaded ? 
                     (React.createElement(LoadingMessage, null)) : 
-                      (links.length === 0 ? 
+                      (summary.length === 0 ? 
                         React.createElement(LoadingMessage, {message: en, heMessage: he}) : null);
     
     var showAllFilters = !filter.length;
@@ -2371,7 +2379,11 @@ var TextList = React.createClass({displayName: "TextList",
       return (
         React.createElement("div", {className: classes}, 
           React.createElement("div", {className: "textListTop"}, 
-            this.props.fullPanel ? (React.createElement("div", {className: "leftButtons"}, React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.openNav}))) : null, 
+            this.props.fullPanel ? 
+              (React.createElement("div", {className: "leftButtons"}, 
+                this.props.closePanel ? (React.createElement(ReaderNavigationMenuCloseButton, {icon: "arrow", onClick: this.props.closePanel})) : null, 
+                React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.openNav})
+               )) : null, 
             React.createElement(RecentFilterSet, {
               showText: this.props.showText, 
               filter: this.props.filter, 
@@ -2380,8 +2392,7 @@ var TextList = React.createClass({displayName: "TextList",
               showAllFilters: this.showAllFilters}), 
             this.props.fullPanel ? 
               (React.createElement("div", {className: "rightButtons"}, 
-                React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings}), 
-                this.props.closePanel ? (React.createElement(ReaderNavigationMenuCloseButton, {onClick: this.props.closePanel})) : null
+                React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings})
                )) : null
           ), 
           React.createElement("div", {className: "texts"}, 

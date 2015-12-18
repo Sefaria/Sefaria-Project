@@ -185,9 +185,10 @@ def s2(request, ref, version=None, lang=None):
     else:
         initialMenu = ""
     try:
-        text = TextFamily(oref, version=version, lang=lang, commentary=False, context=False, pad=True, alts=True).contents()
+        text = TextFamily(oref, version=version, lang=lang, commentary=False, context=True, pad=True, alts=True).contents()
     except NoVersionFoundError:
         raise Http404
+        
     text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
     text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
 
