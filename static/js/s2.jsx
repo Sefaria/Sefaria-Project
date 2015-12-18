@@ -198,11 +198,6 @@ var ReaderApp = React.createClass({
     }
     $("title").html(hist.title);
 
-    if (hist.state.type == "TextColumn") {
-      sjs.track.open(hist.title);
-    } else if (hist.state.type == "TextList") {
-      sjs.track.event("Reader", "Open Close Reader", hist.title);
-    }
     sjs.track.pageview(hist.url);
   },
   handlePanelUpdate: function(n, action, state) {
@@ -399,6 +394,7 @@ var ReaderPanel = React.createClass({
       this.props.historyUpdate("replace", this.state);     
     }
     this.setHeadroom();
+    this.trackPanelOpens();
   },
   componentWillReceiveProps: function(nextProps) {
     if (nextProps.initialFilter) {
@@ -420,6 +416,9 @@ var ReaderPanel = React.createClass({
       }      
     }
     this.setHeadroom();
+    if (prevState.refs.compare(this.state.refs)) {
+      this.trackPanelOpens();
+    }
   },
   handleBaseSegmentClick: function(ref) {
     if (this.state.mode === "TextAndConnections") {
@@ -552,6 +551,18 @@ var ReaderPanel = React.createClass({
     $.cookie(option, value, {path: "/"});
     if (option === "language") {
       $.cookie("contentLang", value, {path: "/"});
+    }
+  },
+  trackPanelOpens: function() {
+    if (this.state.mode === "Connections") { return; }
+    this.tracked = this.tracked || [];
+    // Do a little dance to avoid tracking something we've already just tracked
+    // e.g. when refs goes from ["Genesis 5"] to ["Genesis 4", "Genesis 5"] don't track 5 again
+    for (var i = 0; i < this.state.refs.length; i++) {
+      if ($.inArray(this.state.refs[i], this.tracked) == -1) {
+        sjs.track.open(this.state.refs[i]);
+        this.tracked.push(this.state.refs[i]);
+      }
     }
   },
   currentMode: function() {
