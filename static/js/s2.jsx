@@ -575,8 +575,13 @@ var ReaderPanel = React.createClass({
     return data; 
   },
   currentBook: function() {
-    var pref = parseRef(this.currentRef())
-    return "book" in pref ? pref.book : null;
+    var data = this.currentData();
+    if (data) {
+      return data.indexTitle;
+    } else {
+      var pRef = parseRef(this.currentRef());
+      return "book" in pRef ? pRef.book : null;
+    }
   },
   currentCategory: function() {
     var book = this.currentBook();
