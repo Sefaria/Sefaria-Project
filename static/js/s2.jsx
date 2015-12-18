@@ -2330,7 +2330,7 @@ var TextList = React.createClass({
     var loaded  = sjs.library.linksLoaded(sectionRef);
     var message = !loaded ? 
                     (<LoadingMessage />) : 
-                      (links.length === 0 ? 
+                      (summary.length === 0 ? 
                         <LoadingMessage message={en} heMessage={he} /> : null);
     
     var showAllFilters = !filter.length;
