@@ -758,14 +758,15 @@ var ReaderControls = React.createClass({
       var heTitle = "";
     }
 
-    var hideHeader  = !this.props.multiPanel && this.props.currentMode() === "Connections";
+    var mode = this.props.currentMode();
+    var hideHeader  = !this.props.multiPanel && mode === "Connections";
 
     if (title && !oref) {
       // If we don't have this data yet, rerender when we do so we can set the Hebrew title
       sjs.library.text(title, {context: 1}, function() { if (this.isMounted()) { this.setState({}); } }.bind(this));
     }
 
-    var centerContent = this.props.multiPanel && this.props.currentMode() === "Connections" ?
+    var centerContent = this.props.multiPanel && mode === "Connections" ?
       (<div className="readerTextToc">
           <span className="en">Select Connection</span>
           <span className="he">בחר חיבור</span>
@@ -779,15 +780,16 @@ var ReaderControls = React.createClass({
           { title ? (<i className="fa fa-caret-down"></i>) : null }
         </div>);
 
+    var classes = classNames({readerControls: 1, headeroom: 1, connectionsHeader: mode == "Connections"});
     var readerControls = hideHeader ? null :
-        (<div className="readerControls headroom">
+        (<div className={classes}>
           <div className="leftButtons">
+            {this.props.closePanel ? (<ReaderNavigationMenuCloseButton icon={mode === "Connections" ? "arrow": null} onClick={this.props.closePanel} />) : null}
             <ReaderNavigationMenuSearchButton onClick={this.props.openMenu.bind(null, "navigation")} />
           </div>
           {centerContent}
           <div className="rightButtons">
             <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-            {this.props.closePanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
           </div>
         </div>);
     return (
@@ -1520,7 +1522,9 @@ var ReaderNavigationMenuSearchButton = React.createClass({
 
 var ReaderNavigationMenuCloseButton = React.createClass({
   render: function() { 
-    return (<div className="readerNavMenuCloseButton" onClick={this.props.onClick}>×</div>);
+    var icon = this.props.icon === "arrow" ? (<i className="fa fa-caret-left"></i>) : "×";
+    var classes = classNames({readerNavMenuCloseButton: 1, arrow: this.props.icon === "arrow"});
+    return (<div className={classes} onClick={this.props.onClick}>{icon}</div>);
   }
 });
 
@@ -2376,7 +2380,11 @@ var TextList = React.createClass({
       return (
         <div className={classes}>
           <div className="textListTop">
-            {this.props.fullPanel ? (<div className="leftButtons"><ReaderNavigationMenuSearchButton onClick={this.props.openNav} /></div>) : null}
+            {this.props.fullPanel ? 
+              (<div className="leftButtons">
+                {this.props.closePanel ? (<ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} />) : null}
+                <ReaderNavigationMenuSearchButton onClick={this.props.openNav} />
+               </div>) : null}
             <RecentFilterSet 
               showText={this.props.showText}
               filter={this.props.filter}
@@ -2386,7 +2394,6 @@ var TextList = React.createClass({
             {this.props.fullPanel ? 
               (<div className="rightButtons">
                 <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-                {this.props.closePanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
                </div>) : null}
           </div>
           <div className="texts">
