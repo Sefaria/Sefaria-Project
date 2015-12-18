@@ -177,7 +177,7 @@ def process_index_change_in_cache(indx, **kwargs):
     reset_texts_cache()
     if USE_VARNISH:
         from sefaria.system.sf_varnish import invalidate_index
-        invalidate_index(indx_args)
+        invalidate_index(indx.title)
 
 
 def process_index_delete_in_cache(indx, **kwargs):
