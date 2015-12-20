@@ -3265,12 +3265,129 @@ class Library(object):
     """
     Operates as a singleton, through the instance called ``library``.
 
-    Has methods that work across the entire collection of texts.
+    Stewards the in-memory and in-cache objects that cover the entire collection of texts.
 
-    Perhaps in the future, there will be multiple libraries...
+    Exposes methods to add, remove, or register change of an index record.  These are primarily called by the dependencies mechanism on Index Create/Update/Destroy.
+
     """
 
-    local_cache = {}
+    def __init__(self):
+        self.langs = ["en", "he"]
+
+        # Map from index key to ref keys
+        self._index_ref_map = {}
+
+        # Maps, keyed by language, from index key to array of titles
+        self._index_title_maps = {}
+
+        # Maps, keyed by language, from titles to schema nodes
+        self._title_node_maps = {}
+
+        # Maps, keyed by language, from index key to array of commentary titles
+        self._index_title_commentary_maps = {}
+
+        # Maps, keyed by language, from titles to commentary schema nodes
+        self._title_node_commentary_maps = {}
+
+        # old local cache
+        self.local_cache = {}
+
+    def add_index_record(self, title = None, index = None, rebuild = True):
+        """
+        Update library title dictionaries and caches with information from provided index
+        :param title: primary title of index
+        :return:
+        """
+        if title:
+            index = get_index(title)
+        assert index, "Library.add_index_record called without index"
+
+        #//TODO: mark for commentary refactor
+        node_maps = self._title_node_commentary_maps if index.nodes.is_commentary() else self._title_node_maps
+        title_maps = self._index_title_commentary_maps if index.nodes.is_commentary() else self._index_title_maps
+
+        try:
+            for lang in self.langs:
+                title_dict = index.nodes.title_dict(lang)
+                title_maps[lang][index.title] = title_dict.keys()
+                node_maps[lang].update(title_dict)
+        except IndexSchemaError as e:
+            logger.error(u"Error in generating title node dictionary: {}".format(e))
+
+        if rebuild:
+            self._rebuild_derivitive_objects()
+
+    def remove_index_record(self, title, is_commentary = False, rebuild = True):
+        """
+        Update provided index from library title dictionaries and caches
+        :param title: primary title of index
+        :return:
+        """
+        #//TODO: mark for commentary refactor
+        node_maps = self._title_node_commentary_maps if is_commentary else self._title_node_maps
+        title_maps = self._index_title_commentary_maps if is_commentary else self._index_title_maps
+
+        for lang in self.langs:
+            keys = title_maps[lang][index.title]
+            for key in keys:
+                try:
+                    del node_maps[lang][key]
+                except KeyError:
+                    logger.warning("Tried to delete non-existent title '{}' of index record '{}' from title-node map".format(key, title))
+
+        if rebuild:
+            self._rebuild_derivitive_objects()
+
+    def refresh_index_record(self, title):
+        """
+        Update library title dictionaries and caches for provided index
+        :param title: primary title of index
+        :return:
+        """
+        self.remove_index_record(title, rebuild=False)
+        self.add_index_record(title, rebuild=False)
+        self._rebuild_derivitive_objects()
+
+    def _rebuild_derivitive_objects(self):
+        """
+        Called after update of the core index cache and title dictionaries.
+        Rebuilds titles lists and regular expressions
+        :return:
+        """
+        pass
+
+    def build_all_title_node_dicts(self):
+        # Rework get_index_forest() code here to only run once
+
+        # simple texts
+        forest = [i.nodes for i in IndexSet() if not i.is_commentary()]
+        title_dicts = {lang : {} for lang in self.langs}
+        for tree in forest:
+            try:
+                for lang in self.langs:
+                    title_dicts[lang].update(tree.title_dict(lang))
+            except IndexSchemaError as e:
+                logger.error(u"Error in generating title node dictionary: {}".format(e))
+        for lang in self.langs:
+            key = "title_node_dict_" + lang
+            scache.set_cache_elem(key, title_dicts[lang])
+            self.local_cache[key] = title_dicts[lang]
+
+        # commentary
+        commentary_forest = [get_index(i).nodes for i in self.get_commentary_version_titles()]
+        c_title_dicts = { lang: title_dicts[lang].copy() for lang in self.langs }
+
+        for tree in commentary_forest:
+            try:
+                for lang in self.langs:
+                    c_title_dicts[lang].update(tree.title_dict(lang))
+            except IndexSchemaError as e:
+                logger.error(u"Error in generating title node dictionary: {}".format(e))
+        for lang in self.langs:
+            comm_key = "title_node_dict_" + lang + "_commentary"
+            scache.set_cache_elem(comm_key, c_title_dicts[lang])
+            self.local_cache[comm_key] = c_title_dicts[lang]
+
     #todo: the for_js path here does not appear to be in use.
     def all_titles_regex_string(self, lang="en", commentary=False, with_commentary=False, with_terms=False, for_js=False):
         """
@@ -3393,21 +3510,7 @@ class Library(object):
             self.local_cache[key] = term_dict
         return term_dict
 
-    #todo: retire me
-    def get_map_dict(self):
-        """
-        :return: dictionary of maps - {from: to}
-
-        DEPRECATED
-        """
-        maps = {}
-        for i in IndexSet():
-            if i.is_commentary():
-                continue
-            for m in i.get_maps():  # both simple maps & those derived from term schemes
-                maps[m["from"]] = m["to"]
-        return maps
-
+    #todo: no usages?
     def get_content_nodes(self, with_commentary=False):
         """
         :return: list of all content nodes in the library
@@ -3444,42 +3547,6 @@ class Library(object):
 
         return root_nodes
 
-    def build_all_title_node_dicts(self):
-        # Rework get_index_forest() code here to only run once
-        langs = ["en", "he"]
-
-        # simple texts
-        forest = [i.nodes for i in IndexSet() if not i.is_commentary()]
-        title_dicts = {"en": {}, "he": {}}
-        for tree in forest:
-            try:
-                title_dicts["en"].update(tree.title_dict("en"))
-                title_dicts["he"].update(tree.title_dict("he"))
-            except IndexSchemaError as e:
-                logger.error(u"Error in generating title node dictionary: {}".format(e))
-        for lang in langs:
-            key = "title_node_dict_" + lang
-            scache.set_cache_elem(key, title_dicts[lang])
-            self.local_cache[key] = title_dicts[lang]
-
-        # commentary
-        commentary_forest = [get_index(i).nodes for i in self.get_commentary_version_titles()]
-        c_title_dicts = {
-            "en": title_dicts["en"].copy(),
-            "he": title_dicts["he"].copy()
-        }
-
-        for tree in commentary_forest:
-            try:
-                c_title_dicts["en"].update(tree.title_dict("en"))
-                c_title_dicts["he"].update(tree.title_dict("he"))
-            except IndexSchemaError as e:
-                logger.error(u"Error in generating title node dictionary: {}".format(e))
-        for lang in langs:
-            comm_key = "title_node_dict_" + lang + "_commentary"
-            scache.set_cache_elem(comm_key, c_title_dicts[lang])
-            self.local_cache[comm_key] = c_title_dicts[lang]
-
     def get_title_node_dict(self, lang="en", with_commentary=False):
         """
         :param lang: "he" or "en"
@@ -3506,7 +3573,7 @@ class Library(object):
             self.local_cache[key] = title_dict
         return title_dict
 
-    #todo: handle maps
+    #todo: handle terms
     def get_schema_node(self, title, lang=None, with_commentary=False):
         """
         :param string title:
