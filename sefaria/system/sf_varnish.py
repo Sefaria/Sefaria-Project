@@ -35,14 +35,14 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
         # Purge this section level ref, so that immediate responses will return good results
         purge_url("{}/api/texts/{}".format(FRONT_END_URL, oref.url()))
         if version and lang:
-            purge_url("{}/api/texts/{}/{}/{}".format(FRONT_END_URL, oref.url(), lang, version))
+            purge_url(u"{}/api/texts/{}/{}/{}".format(FRONT_END_URL, oref.url(), lang, version))
         # Hacky to add these
         purge_url("{}/api/texts/{}?commentary=1&sheets=1".format(FRONT_END_URL, oref.url()))
         purge_url("{}/api/texts/{}?sheets=1".format(FRONT_END_URL, oref.url()))
         purge_url("{}/api/texts/{}?commentary=0".format(FRONT_END_URL, oref.url()))
         purge_url("{}/api/texts/{}?commentary=0&pad=0".format(FRONT_END_URL, oref.url()))
         if version and lang:
-            purge_url("{}/api/texts/{}/{}/{}?commentary=0".format(FRONT_END_URL, oref.url(), lang, version))
+            purge_url(u"{}/api/texts/{}/{}/{}?commentary=0".format(FRONT_END_URL, oref.url(), lang, version))
 
         purge_url("{}/api/links/{}".format(FRONT_END_URL, oref.url()))
         purge_url("{}/api/links/{}?with_text=0".format(FRONT_END_URL, oref.url()))
