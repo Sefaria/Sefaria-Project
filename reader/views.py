@@ -328,7 +328,7 @@ def edit_text_info(request, title=None, new_title=None):
 def make_toc_html(oref, zoom=1):
     """
     Returns the HTML of a text's Table of Contents, including any alternate structures.
-    :param oref - Ref of the tex to create. Ref is used instead of Index to allow
+    :param oref - Ref of the text to create. Ref is used instead of Index to allow
     for a different table of contents focusing on a single node of a complex text.
     :param zoom - integar specifying the level of granularity to show. 0 = Segment level,
     1 = Section level etc. 
