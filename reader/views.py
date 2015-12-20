@@ -185,9 +185,10 @@ def s2(request, ref, version=None, lang=None):
     else:
         initialMenu = ""
     try:
-        text = TextFamily(oref, version=version, lang=lang, commentary=False, context=False, pad=True, alts=True).contents()
+        text = TextFamily(oref, version=version, lang=lang, commentary=False, context=True, pad=True, alts=True).contents()
     except NoVersionFoundError:
         raise Http404
+        
     text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
     text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
 
@@ -327,7 +328,7 @@ def edit_text_info(request, title=None, new_title=None):
 def make_toc_html(oref, zoom=1):
     """
     Returns the HTML of a text's Table of Contents, including any alternate structures.
-    :param oref - Ref of the tex to create. Ref is used instead of Index to allow
+    :param oref - Ref of the text to create. Ref is used instead of Index to allow
     for a different table of contents focusing on a single node of a complex text.
     :param zoom - integar specifying the level of granularity to show. 0 = Segment level,
     1 = Section level etc. 

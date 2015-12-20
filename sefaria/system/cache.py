@@ -100,14 +100,6 @@ def reset_texts_cache():
         'toc_json_cache',
         'texts_titles_json',
         'texts_titles_json_he',
-        'all_titles_regex_en',
-        'all_titles_regex_he',
-        'all_titles_regex_en_commentary',
-        'all_titles_regex_he_commentary',
-        'all_titles_regex_en_terms',
-        'all_titles_regex_he_terms',
-        'all_titles_regex_en_commentary_terms',
-        'all_titles_regex_he_commentary_terms',
         'full_title_list_en',
         'full_title_list_he',
         'full_title_list_en_commentary',
@@ -177,7 +169,7 @@ def process_index_change_in_cache(indx, **kwargs):
     reset_texts_cache()
     if USE_VARNISH:
         from sefaria.system.sf_varnish import invalidate_index
-        invalidate_index(indx_args)
+        invalidate_index(indx.title)
 
 
 def process_index_delete_in_cache(indx, **kwargs):

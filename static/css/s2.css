@@ -1,6 +1,7 @@
 body {
   padding: 0;
   margin: 0;
+  overflow: hidden;
   -webkit-text-size-adjust: 100%;
   -moz-user-select: none;
   -khtml-user-select: none;
@@ -735,11 +736,19 @@ display: block;margin: 0 auto;}
   color: white;
   border-color: #444;
 }
+.readerControls.connectionsHeader {
+  background-color: #EDEDED;
+}
 .readerControls .readerTextToc {
   text-align: center;
   display: inline-block;
   cursor: pointer;
   vertical-align: middle;
+}
+.readerControls.connectionsHeader .readerTextToc {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  text-transform: uppercase;
+  color: #999;
 }
 .leftButtons,
 .rightButtons {
@@ -755,8 +764,8 @@ display: block;margin: 0 auto;}
   text-align: right;
 }
 .leftButtons .readerNavMenuSearchButton,
-.rightButtons .readerOptions,
-.rightButtons .readerNavMenuCloseButton {
+.leftButtons .readerNavMenuCloseButton,
+.rightButtons .readerOptions {
   width: 40px;
   height: 48px;
   line-height: 48px;
@@ -769,13 +778,17 @@ display: block;margin: 0 auto;}
 .rightButtons div {
   vertical-align: middle;
 }
-.rightButtons .readerNavMenuCloseButton {
+.leftButtons .readerNavMenuCloseButton {
   font-size: 44px;
-  line-height: 44px;
+  line-height: 40px;
+}
+.leftButtons .readerNavMenuCloseButton.arrow {
+  font-size: 32px;
+  line-height: 50px;
 }
 .leftButtons .readerNavMenuSearchButton span,
 .rightButtons .readerOptions img,
-.rightButtons .readerNavMenuCloseButton span {
+.leftButtons .readerNavMenuCloseButton span {
   vertical-align: middle;
 }
 .readerControls .readerTextToc {
@@ -1260,6 +1273,7 @@ display: block;margin: 0 auto;}
   margin: 0;
   border-top: 8px solid transparent;
   padding: 6px 22px 5px;
+  background-color: #EDEDED;
 }
 .topFilters .textFilter {
   color: #999;
@@ -1379,6 +1393,9 @@ display: block;margin: 0 auto;}
 .textList .texts {
   background-color: white;
   position: relative;
+}
+.textList.fullPanel .texts {
+  background-color: #F9F9F7;
 }
 .sepia .textList .texts {
   background-color: #F9F9F7;

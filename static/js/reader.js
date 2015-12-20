@@ -389,6 +389,7 @@ sjs.Init.handlers = function() {
 	sjs.switchSidebarMode = function(e) {
 		// Switches the content of the sidebar, according to the present targets
 		// data-sidebar attribute
+		console.log("ssm")
 		if (sjs.current._loadSourcesFromDiscussion) {
 			sjs.alert.loadingSidebar();
 			$(".sidebarMode").removeClass("active");
@@ -2007,10 +2008,11 @@ function buildCommentary(data) {
 	if (data.sectionRef !== sjs.current.sectionRef) { 
 		return; // API call returned after navigating away
 	} else {
-		sjs.current.commentary = data.commentary;
-		sjs.current.notes      = data.notes;
-		sjs.current.sheets     = data.sheets;
-		sjs.current.layer      = data.layer;
+		sjs.current.commentary            = data.commentary;
+		sjs.current.notes                 = data.notes;
+		sjs.current.sheets                = data.sheets;
+		sjs.current.layer                 = data.layer;
+		sjs.current.connectionsLoadNeeded = false;
 	}
 	if ($("body").hasClass("editMode")) { 
 		return; // API call returned after switching modes
