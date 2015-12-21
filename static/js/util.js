@@ -13,9 +13,7 @@ sjs.cache = {
 			return;
 		}
 
-		var pRef = parseRef(ref);
 		var nRef = normRef(ref).toLowerCase();
-
 		if (nRef in this._cache) {
 			var data = clone(this._cache[nRef]);
 			
@@ -24,14 +22,18 @@ sjs.cache = {
 		
 			// If the ref has more than 1 section listed, try trimming the last section
 			var nRef = nRef.replace(/:/g, ".").slice(0, nRef.lastIndexOf("."));
+		 	var pRef = parseRef(ref);
+		 	if ("error" in pRef) { return false; }
 
-			var data = clone(this._cache[nRef]);
-			var lastSection = parseInt(pRef.sections[pRef.sections.length -1]);
+			var lastSection   = parseInt(pRef.sections[pRef.sections.length -1]);
 			var lastToSection = parseInt(pRef.toSections[pRef.toSections.length -1]);
 			
-			data.sections.push(lastSection);
-			data.toSections.push(lastToSection);
-			data.ref = ref;
+			var data = clone(this._cache[nRef]);
+			if (data && data.sections) {
+				data.sections.push(lastSection);
+				data.toSections.push(lastToSection);
+				data.ref = ref;
+			}
 
 			return data;
 		}
@@ -45,6 +47,10 @@ sjs.cache = {
 			callback(data);
 		} else{
 			var pRef = parseRef(ref);
+			if ("error" in pRef) { 
+			 	callback(pRef);
+				return; 
+			}
 			var book = pRef['book'];
 			var paramString = this.paramString();
 			//do we have a cached preferred version for this text? get it
@@ -64,11 +70,15 @@ sjs.cache = {
                 var note_fetch = $.getJSON("/api/notes/" + makeRef(pRef));
                 $.when(text_fetch, note_fetch).done(function(textData, noteData) {
                     textData[0]["notes"] = noteData[0];
+                    sjs.cache.save(textData[0]);
                     callback(textData[0]);
                 })
 
             } else {
-                text_fetch.done(function(data) { callback(data) });
+                text_fetch.done(function(data) { 
+                	sjs.cache.save(data);
+                	callback(data);
+                });
             }
 		}
 	},
@@ -76,6 +86,7 @@ sjs.cache = {
 		return normRef(ref).toLowerCase();
 	},
 	save: function(origData) {
+		if ("error" in origData) { return; }
 		var data = clone(origData);
 		var ref  = this.cacheKey(data.ref);
 
@@ -103,9 +114,6 @@ sjs.cache = {
 		if ("new_preferred_version" in data) {
 			this.setPreferredTextVersion(data['book'],data["new_preferred_version"]);
 		}
-	},
-	update: function(newData) {
-
 	},
  	prefetch: function(ref) {
 		// grab a text from the server and put it in the cache
@@ -193,6 +201,7 @@ sjs.track = {
 		sjs.track.event("Reader", "Open", ref);
 		var text = parseRef(ref).book;
 		sjs.track.event("Reader", "Open Text", text);
+		console.log("tracking " + ref)
 	},
 	ui: function(label) {
 		// Track some action in the Reader UI
@@ -791,9 +800,12 @@ sjs.textBrowser = {
 	forward: function(to) {
 		// navigate forward to "to", a string naming a text, category or section
 		// as it appears in the nav or path
+		if (to != (this._path[this._path.length-1])) {   //if "to" = the last node in current path, don't go anywhere to prevent rapid clicking on the same item doubling up and throwing error
+
+
 		var next = null;
 		this._path.push(to);
-		this.updatePath();	
+		this.updatePath();
 		if (this._currentCategories) {
 			for (var i = 0; i < this._currentCategories.length; i++) {
 				if (this._currentCategories[i].category === to || this._currentCategories[i].title === to) {
@@ -808,67 +820,69 @@ sjs.textBrowser = {
 						this._currentSections = [];
 						if (this._currentText && this._currentText.title === next.title) {
 							// Nav within the same text, no need to update data
-                            if(this._currentSchema.has_children()) {
-                                this.buildComplexTextNav()
-                            } else {
-                                this.buildTextNav();
-                            }
+							if (this._currentSchema.has_children()) {
+								this.buildComplexTextNav()
+							} else {
+								this.buildTextNav();
+							}
 						} else {
 							this.getTextInfo(next.title);
 						}
 						break;
 					}
 				}
-			}			 
+			}
 		} else { // Click on a Section or Intermediate node
-            var atSectionLevel;
-            if (!this._currentText) {
-                this._currentText = this._previousText;
-            }
-            var isCommentary = ($.inArray("Commentary", this._currentText.categories) > -1);
-            var schema = sjs.textBrowser._currentSchema;
-            var isComplex = schema.has_children();
-            var node = schema;
-            var sections;
-            var maxDepth;
+			var atSectionLevel;
+			if (!this._currentText) {
+				this._currentText = this._previousText;
+			}
+			var isCommentary = ($.inArray("Commentary", this._currentText.categories) > -1);
+			var schema = sjs.textBrowser._currentSchema;
+			var isComplex = schema.has_children();
+			var node = schema;
+			var sections;
+			var maxDepth;
 
-            if (isComplex) {
-        		var titles = this._path.slice(this._currentText.categories.length + 1);
-                var node_and_sections = schema.get_node_and_sections_from_titles(titles);
-                node = node_and_sections.node;
-                sections = node_and_sections.sections;
-                if (node.has_children()) {
-                    atSectionLevel = false;
-                } else {
-                    maxDepth = node.depth - (isCommentary ? 2 : 1);
-                    atSectionLevel = sections.length >= maxDepth;
-                }
-            } else {
-    			maxDepth = this._currentText.depth - (isCommentary ? 3 : 2);
-                atSectionLevel = this._currentDepth >= maxDepth;
-            }
+			if (isComplex) {
+				var titles = this._path.slice(this._currentText.categories.length + 1);
+				var node_and_sections = schema.get_node_and_sections_from_titles(titles);
+				node = node_and_sections.node;
+				sections = node_and_sections.sections;
+				if (node.has_children()) {
+					atSectionLevel = false;
+				} else {
+					maxDepth = node.depth - (isCommentary ? 2 : 1);
+					atSectionLevel = sections.length >= maxDepth;
+				}
+			} else {
+				maxDepth = this._currentText.depth - (isCommentary ? 3 : 2);
+				atSectionLevel = this._currentDepth >= maxDepth;
+			}
 
 			if (atSectionLevel) {
-                this.previewText(this.ref());
-            } else {
+				this.previewText(this.ref());
+			} else {
 				// We're not at section level, build another level of section navs
-                if (isComplex && (sections.length == 0)) {
-                    // We're in the middle of a complex text
-                    this._currentSections.push(to);
-                    if (node.has_children()) {
-                        this.buildComplexTextNav();
-                    } else {
-                        this.getTextInfo(schema.get_node_url_from_titles(titles));
-                    }
-    			} else {
-                    var section = to.slice(to.lastIndexOf(" "));
-                    section = node.addressTypes[this._currentDepth] == "Talmud" ? dafToInt(section) : parseInt(section);
-                    this._currentSections.push(section);
-                    this._currentDepth = this._currentSections.length;
-                    this.buildTextNav();
-                }
+				if (isComplex && (sections.length == 0)) {
+					// We're in the middle of a complex text
+					this._currentSections.push(to);
+					if (node.has_children()) {
+						this.buildComplexTextNav();
+					} else {
+						this.getTextInfo(schema.get_node_url_from_titles(titles));
+					}
+				} else {
+					var section = to.slice(to.lastIndexOf(" "));
+					section = node.addressTypes[this._currentDepth] == "Talmud" ? dafToInt(section) : parseInt(section);
+					this._currentSections.push(section);
+					this._currentDepth = this._currentSections.length;
+					this.buildTextNav();
+				}
 			}
-		}		
+		}
+
+	}
 	},
 	buildCategoryNav: function(contents) {
 		// Build the side nav for category contents
@@ -945,7 +959,10 @@ sjs.textBrowser = {
 		$.getJSON("/api/preview/" + title, function(data) {
 			sjs.textBrowser._currentText = data;
             sjs.textBrowser._currentSchema = new sjs.SchemaNode(data.schema);
-            if(sjs.textBrowser._currentSchema.has_children()) {
+            var titles      = sjs.textBrowser._path.slice(sjs.textBrowser._currentText.categories.length + 1);
+            var node        = sjs.textBrowser._currentSchema.get_node_from_titles(titles);
+            var node_children    = node.children().length > 0;
+            if(sjs.textBrowser._currentSchema.has_children() && (node_children || !(data.preview))) {
                 sjs.textBrowser.buildComplexTextNav()
             } else {
     			sjs.textBrowser.buildTextNav();
@@ -2340,6 +2357,42 @@ function updateQueryString(key, value, url) {
         }
         else
             return url;
+    }
+}
+
+
+function getSelectionBoundaryElement(isStart) {
+	// http://stackoverflow.com/questions/1335252/how-can-i-get-the-dom-element-which-contains-the-current-selection
+    var range, sel, container;
+    if (document.selection) {
+        range = document.selection.createRange();
+        range.collapse(isStart);
+        return range.parentElement();
+    } else {
+        sel = window.getSelection();
+        if (sel.getRangeAt) {
+            if (sel.rangeCount > 0) {
+                range = sel.getRangeAt(0);
+            }
+        } else {
+            // Old WebKit
+            range = document.createRange();
+            range.setStart(sel.anchorNode, sel.anchorOffset);
+            range.setEnd(sel.focusNode, sel.focusOffset);
+
+            // Handle the case when the selection was selected backwards (from the end to the start in the document)
+            if (range.collapsed !== sel.isCollapsed) {
+                range.setStart(sel.focusNode, sel.focusOffset);
+                range.setEnd(sel.anchorNode, sel.anchorOffset);
+            }
+       }
+
+        if (range) {
+           container = range[isStart ? "startContainer" : "endContainer"];
+
+           // Check if the container is a text node and return its parent if so
+           return container.nodeType === 3 ? container.parentNode : container;
+        }   
     }
 }
 

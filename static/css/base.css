@@ -64,7 +64,9 @@ body.hebrew .biReady p,
 body.hebrew .biReady #bites h3 {
 	text-align: right;
 }
-
+body.hebrew .hideInHebrewMode {
+  display: none !important;
+}
 #home {
     color: #1C3039;
     text-align: center;
@@ -488,7 +490,10 @@ body.hebrew #home #homeConnect .followButton .fa {
 
 #home #announcement .btn {
   float: right;
-  margin-top: 6px;
+  margin-top: 0px;
+}
+#home #announcement p {
+  margin-bottom: 0;
 }
 .hebrew #home #announcement h3 {
   text-align: right;
@@ -887,6 +892,33 @@ body.hebrew #aboutPage .span5 {
   font-size: 13px;
   font-weight: normal;
   text-align: center;
+}
+
+#textTocPage h1 {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+#textTocPage h2 {
+    margin: 0;
+    text-align: center;
+    font-size: 20px;
+}
+
+#textTocPage #dateline {
+    clear: both;
+    width: 100%;
+    padding-bottom: 10px;
+}
+
+#textTocPage #dateline .metadataTitle {
+    font-weight: bold;
+}
+.english #textTocPage #dateline .placedate {
+    padding-right: 30px;
+}
+.hebrew #textTocPage #dateline .placedate {
+    padding-left: 30px;
 }
 
 .textCategoryDelimiter {
@@ -1443,11 +1475,11 @@ body.hebrew #aboutPage .span5 {
 #sheetTags {
 	max-width: 900px;
 	margin: 28px auto;
-	-webkit-column-count:3; /* Chrome, Safari, Opera */
-	-moz-column-count:3; /* Firefox */
+	-webkit-column-count: 3;/* Chrome, Safari, Opera */
+	-moz-column-count:3;/* Firefox */
 	column-count:3;
-	-webkit-column-gap:40px; /* Chrome, Safari, Opera */
-	-moz-column-gap:40px; /* Firefox */
+	-webkit-column-gap:40px;/* Chrome, Safari, Opera */
+	-moz-column-gap:40px;/* Firefox */
 	column-gap:20px;
 }
 
@@ -1467,14 +1499,13 @@ body.hebrew #aboutPage .span5 {
 }
 
 #sheetTags .tag {
-	margin-bottom: 20px;
+	margin-bottom: 16px;
 	-webkit-column-break-inside: avoid;
 	break-inside: avoid;
 }
 
 #sheetTags .tagName {
 	font-size: 16px;
-	font-weight: bold;
 	color: #555;
 	margin-bottom: 3px;
 }

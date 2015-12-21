@@ -60,6 +60,15 @@ class Test_get_refs_in_text(object):
         assert ref[0] == Ref(u'Isiah 64:9-10')
         '''
 
+    def test_commentary(self):
+        s = "Here's one with Rashi on Genesis 2:5:3"
+        s2 = "Here's one with both Rashi on Genesis 3:4 and Exodus 5:2. yeah"
+        s3 = "Here's one with Genesis 2:3"
+        assert library.get_refs_in_string(s, "en") == [Ref("Rashi on Genesis 2:5:3")]
+        assert library.get_refs_in_string(s2, "en") == [Ref("Rashi on Genesis 3:4"), Ref("Exodus 5:2")]
+        assert library.get_refs_in_string(s3, "en") == [Ref("Genesis 2:3")]
+
+
 class Test_he_get_refs_in_text(object):
     def test_positions(self):
         for a in ['he_bible_mid', 'he_bible_begin', 'he_bible_end']:

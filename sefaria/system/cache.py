@@ -46,6 +46,7 @@ def cache_get_key(*args, **kwargs):
     key = hashlib.md5("".join(serialise)).hexdigest()
     return key
 
+
 def django_cache_decorator(time=300, cache_key='', cache_type=None):
     """
     Easily add caching to a function in django
@@ -99,14 +100,6 @@ def reset_texts_cache():
         'toc_json_cache',
         'texts_titles_json',
         'texts_titles_json_he',
-        'all_titles_regex_en',
-        'all_titles_regex_he',
-        'all_titles_regex_en_commentary',
-        'all_titles_regex_he_commentary',
-        'all_titles_regex_en_terms',
-        'all_titles_regex_he_terms',
-        'all_titles_regex_en_commentary_terms',
-        'all_titles_regex_he_commentary_terms',
         'full_title_list_en',
         'full_title_list_he',
         'full_title_list_en_commentary',
@@ -137,24 +130,8 @@ def reset_texts_cache():
     delete_template_cache('leaderboards')
     model.Ref.clear_cache()
     model.library.local_cache = {}
+    #cache.clear()
 
-
-def process_index_change_in_cache(indx, **kwargs):
-    reset_texts_cache()
-    if USE_VARNISH:
-        from sefaria.system.sf_varnish import invalidate_index
-        invalidate_index(indx)
-
-def process_index_delete_in_cache(indx, **kwargs):
-    reset_texts_cache()
-    if USE_VARNISH:
-        from sefaria.system.sf_varnish import invalidate_index, invalidate_counts
-        invalidate_index(indx.title)
-        invalidate_counts(indx.title)
-
-def process_new_commentary_version_in_cache(ver, **kwargs):
-    if " on " in ver.title:
-        reset_texts_cache()
 
 def get_cache_elem(key):
     return cache.get(key)
@@ -176,4 +153,43 @@ def get_template_cache(fragment_name='', *args):
 
 def delete_template_cache(fragment_name='', *args):
     delete_cache_elem('template.cache.%s.%s' % (fragment_name, hashlib.md5(u':'.join([arg for arg in args])).hexdigest()))
+
+
+#-------------------------- cascading cache functions --------------------------------- #
+#TODO: should these maybe be somewhere that isn't the main cache module?
+
+def generate_text_toc_cache_key(index_name):
+    index_name = index_name.replace("_", " ")
+    key = cache_get_key(*['make_toc_html', index_name], **{'zoom' : 1})
+    return key
+
+
+def process_index_change_in_cache(indx, **kwargs):
+    delete_cache_elem(generate_text_toc_cache_key(indx.title))
+    reset_texts_cache()
+    if USE_VARNISH:
+        from sefaria.system.sf_varnish import invalidate_index
+        invalidate_index(indx.title)
+
+
+def process_index_delete_in_cache(indx, **kwargs):
+    delete_cache_elem(generate_text_toc_cache_key(indx.title))
+    reset_texts_cache()
+    if USE_VARNISH:
+        from sefaria.system.sf_varnish import invalidate_index, invalidate_counts
+        invalidate_index(indx.title)
+        invalidate_counts(indx.title)
+
+
+def process_new_commentary_version_in_cache(ver, **kwargs):
+    if " on " in ver.title:
+        reset_texts_cache()
+
+
+def process_version_save_in_cache(ver, **kwargs):
+    delete_cache_elem(generate_text_toc_cache_key(ver.title))
+
+
+def process_version_delete_in_cache(ver, **kwargs):
+    delete_cache_elem(generate_text_toc_cache_key(ver.title))
 

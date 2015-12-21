@@ -1,7 +1,7 @@
 /* CSS common to Reader, Sheets and all static pages */
 
 /* Improves touch reactiveness on iOS devices */
-html,p,span,div,a,ul,ol,li,body,h1,h2,h3,h4 {
+.categoryFilter {
     -webkit-tap-hightlight-color: rgba(0,0,0,0);
 }
 
@@ -373,6 +373,7 @@ body.embeded #top {
 
 #navToc .previewLink .en,
 #navToc .previewLink .he {
+  display: block;
   height: 24px;
   line-height: 24px;
   white-space: nowrap;
@@ -525,6 +526,21 @@ body.embeded #top {
 
 #accountBox {
   float: right;
+}
+
+#alertMessage {
+position:fixed;
+width:100%;
+display:none;
+z-index:101;
+text-align:center;
+background-color: #f2dede;
+border-color: #eed3d7;
+color: #b94a48;
+border: 1px solid #fbeed5;
+margin-bottom: 18px;
+text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+
 }
 
 #top .topButton .ui-icon {
@@ -729,6 +745,108 @@ body.embeded #top {
   vertical-align: middle;
 }
 
+#gardenPage .ui-icon {
+  position: static;
+}
+#gardenPage h2 {
+  margin-bottom: 0;
+}
+#gardenPage .ui-accordion.ui-accordion-content {
+  padding: 0;
+}
+#gardenPage .ui-accordion .ui-accordion-header a {
+  display: inline;
+}
+
+#visualGardenPage #results-container .he {
+  font-family: 'Taamey Frank', 'Times New Roman', serif;
+}
+#visualGardenPage .en {
+  font-family: adobe-garamond-pro, Georgia, serif;
+}
+#visualGardenPage h1 {
+  font-size: 36px;
+  border: none;
+}
+/* Controls need LTR to present right, hebrew 'reset' block wants RTL on top charts, but not on filter charts */
+#visualGardenPage #controls {
+  width: 320px;
+  float: left;
+  direction: ltr;
+}
+body.hebrew #visualGardenPage .reset {
+  direction: rtl;
+  float: right;
+}
+body.hebrew #visualGardenPage .filter-title .reset {
+  float: none;
+  direction: ltr;
+}
+/* ^^ */
+
+#visualGardenPage #sort-label {
+  display: inline-block;
+  vertical-align: top;
+}
+
+#visualGardenPage #results .result {
+  margin: 10px 0;
+}
+#visualGardenPage #results .result-ref {
+  font-weight: bold;
+}
+#visualGardenPage #results .result-byline {
+  font-size: .8em;
+}
+#visualGardenPage #results .result-text {
+  margin: 5px 10px 0;
+}
+#visualGardenPage #sort-container,
+#visualGardenPage #results #data-count {
+  text-align: center;
+  float: none;
+  padding: 5px 0;
+}
+
+#visualGardenPage .filter-title {
+  margin-left: 10px;
+}
+
+#visualGardenPage .tags-list.dc-chart g.row text {
+  fill: black;
+}
+
+#visualGardenPage .tags-list.dc-chart .axis path,
+#visualGardenPage .tags-list.dc-chart .axis line {
+  stroke: none
+}
+
+#visualGardenPage #results-table .dc-table-column ._0 {
+  width: 220px;
+}
+#visualGardenPage #results-table .dc-table-column._1,
+#visualGardenPage #results-table .dc-table-column._2,
+#visualGardenPage #results-table .dc-table-column._3 {
+  width: 170px;
+}
+
+#visualGardenPage #results-table .dc-table-column._4 {
+  width: 30px;
+}
+
+#visualGardenPage #map-chart {
+    margin-left: 10px;
+    margin-bottom: 25px;
+}
+
+#visualGardenPage #map-chart path {
+  stroke-width: 1;
+  stroke: black;
+}
+#visualGardenPage #map-chart .selected path {
+  stroke-width: 1;
+  stroke: white;
+}
 
 #editButtons {
   display: none;
@@ -750,12 +868,12 @@ body.embeded #top {
   display: inline-block;
   cursor: pointer;
   padding: 0px 8px;
-  height: 30px;
   line-height: 28px;
   border: 1px solid #aaa;
   border-right: none;
   letter-spacing: 1px;
   font-size: 1px;
+  height: 32px;
 }
 
 .toggleOption img {
@@ -934,6 +1052,151 @@ body.embeded #top {
   color: #08c;  
 }
 
+/****   Person    ****/
+
+
+#personPage #periodNameLine {
+  text-align: center;
+}
+
+#personPage #yearLine {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+#personPage #bio {
+  margin-bottom: 10px;
+}
+
+#personPage #place-map {
+  padding-bottom: 20px;
+}
+
+.hebrew #personPage {
+  direction: rtl;
+  /* font-size: 145%; */
+}
+
+div.person_tooltip {
+    position: absolute;
+    text-align: center;
+    padding: 6px;
+    font: 12px sans-serif;
+    background: lightsteelblue;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
+}
+
+#personPage #relationships a,
+#personPage #indexes a,
+#peoplePage a,
+#talmudicPeoplePage a {
+  display: block;
+}
+
+#personPage #external_links .fa-external-link {
+  font-size: .5em;
+  margin: auto 5px;
+  vertical-align: middle;
+}
+#personPage #indexes {
+  padding-bottom: 15px;
+}
+
+#talmudicPeoplePage .talmudic-generation {
+  margin-bottom: 20px;
+}
+
+#peoplePage .subtitle {
+  font-size: 70%;
+  font-weight: normal;
+}
+
+.english #personPage #indexes {
+  padding-left: 40px;
+}
+.english #personPage #indexes span.en,
+.english #personPage #indexes h3 {
+  text-indent: 40px;
+  margin-left: -40px;
+}
+.hebrew #personPage #indexes {
+  padding-right: 40px;
+}
+.hebrew #personPage #indexes span.he,
+.hebrew #personPage #indexes h3 {
+  text-indent: 40px;
+  margin-right: -40px;
+}
+
+.hebrew #talmudicPeoplePage .talmudic-generation,
+.hebrew #peoplePage .author {
+  float: right;
+}
+
+.english #personPage #person-text-column,
+.hebrew #personPage #person-graphic-column {
+  float: left;
+  margin-right: auto;
+  margin-left: 180px;
+}
+
+.english #personPage #person-graphic-column,
+.hebrew #personPage #person-text-column {
+  float: right;
+  margin-right: 160px;
+  margin-left: auto;
+}
+
+@media (min-width: 1200px) {
+  .english #personPage #person-text-column,
+  .hebrew #personPage #person-graphic-column {
+    margin-left: 230px;
+  }
+
+  .english #personPage #person-graphic-column,
+  .hebrew #personPage #person-text-column {
+    margin-right: 200px;
+  }
+}
+
+
+@media (max-width: 979px) and (min-width: 768px) {
+  body.english #content #personPage #person-graphic-column,
+  body.english #content #personPage #person-text-column {
+    float: left;
+    margin-right: auto;
+    margin-left: 145px;
+    clear: both;
+  }
+
+  body.hebrew #content #personPage #person-graphic-column,
+  body.hebrew #content #personPage #person-text-column {
+    float: right;
+    margin-right: 125px;
+    margin-left: auto;
+    clear: both;
+  }
+}
+@media (max-width: 767px) {
+  body.english #content #personPage #person-graphic-column,
+  body.english #content #personPage #person-text-column {
+    float: left;
+    margin-right: auto;
+    margin-left: auto;
+    clear: both;
+  }
+  body.hebrew #content #personPage #person-graphic-column,
+  body.hebrew #content #personPage #person-text-column {
+    float: right;
+    margin-right: auto;
+    margin-left: auto;
+    clear: both;
+  }
+
+}
+/****        Search         ****/
 
 #gotoBox {
   float: left;
@@ -1049,6 +1312,13 @@ body #keyboardInputMaster thead tr th div {
 }
 #textTocLink.white {
   color: white;
+}
+
+body.hebrew #personPage #textTocLink,
+body.hebrew #talmudicPeoplePage #textTocLink {
+  right: 12px;
+  left: auto;
+  font-size: 12px;
 }
 
 .searchButton {
@@ -1248,15 +1518,6 @@ body #keyboardInputMaster thead tr th div {
     margin-right: 3px;
 }
 
-/*
-.english #searchFilters {
-    margin: 0 0 0 30px;
-}
-
-.hebrew #searchFilters {
-    margin: 0 30px 0 0;
-}
-*/
 
 .hebrew #searchFilters { float:right;   direction: rtl;}
 .hebrew #searchFilters  .en {  display: none;  }
@@ -1355,6 +1616,9 @@ body #keyboardInputMaster thead tr th div {
 #searchResults .moreResults:hover {
   text-decoration: underline;
 }
+
+/****                       ****/
+
 
 .textSyncBox {
   position: relative;

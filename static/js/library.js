@@ -5,61 +5,84 @@ sjs = sjs || {};
 sjs.library = {
   _texts: {},
   text: function(ref, settings, cb) {
+    if (!ref || typeof ref == "object" || typeof ref == "undefined") { debugger; }
     var settings = settings || {};
-    var settings = {
+    settings = {
       commentary: settings.commentary || 0,
-      context:    settings.context || 0,
-      pad:        settings.pad || 0
-    }
+      context:    settings.context    || 0,
+      pad:        settings.pad        || 0
+    };
     var key = this._textKey(ref, settings);
     if (!cb) {
-      return this._texts[key];
+      return this._getOrBuildTextData(key);
     }          
     if (key in this._texts) {
-      cb(this._texts[key]);
-      return this._texts[key];
-    } else {
-       params = "?" + $.param(settings);
-       var url = "/api/texts/" + normRef(ref) + params;
-       this._api(url, function(data) {
-          this._saveText(data, settings);
-          cb(data);
-        }.bind(this));
+      var data = this._getOrBuildTextData(key)
+      cb(data);
+      return data;
     }
+    //console.log("API Call for " + key)
+    params = "?" + $.param(settings);
+    var url = "/api/texts/" + normRef(ref) + params;
+    this._api(url, function(data) {
+      this._saveText(data, settings);
+      cb(data);
+      //console.log("API return for " + data.ref)
+    }.bind(this));
   },
   _textKey: function(ref, settings) {
     // Returns a string used as a key for the cache object of `ref` given `settings`.
-    var key = ref;
+    var key = ref.toLowerCase();
     if (settings) {
       key = settings.context ? key + "|CONTEXT" : key;
     }
     return key;
   },
-  _saveText: function(data, settings) {
-        if ("error" in data) { 
-          //sjs.alert.message(data.error);
-          return;
-        }
-        var settings     = settings || {};
-        data             = this._wrapRefs(data);
-        key              = this._textKey(data.ref, settings);
-        this._texts[key] = data;
-        if (data.ref == data.sectionRef) {
-          this._splitTextSection(data);
-        } else if (settings.context) {
-          // Save a copy of the data at context level
-          var newData        = clone(data);
-          newData.ref        = data.sectionRef;
-          newData.sections   = data.sections.slice(0,-1);
-          newData.toSections = data.toSections.slice(0,-1);
-          this._saveText(newData);
-        }
-        var index = {
-          title:      data.indexTitle,
-          heTitle:    data.heIndexTitle, // This is incorrect for complex texts
-          categories: data.categories
-        };
-        this.index(index.title, index);
+  _getOrBuildTextData: function(key) {
+    var cached = this._texts[key];
+    if (!cached || !cached.buildable) { return cached; }
+    if (cached.buildable === "Add Context") {
+      var segmentData = clone(this.text(cached.ref));
+      var contextData = this.text(cached.sectionRef) || this.text(cached.sectionRef, {context: 1});
+      segmentData.text = contextData.text;
+      segmentData.he   = contextData.he;
+      return segmentData;
+    }
+  },
+  _saveText: function(data, settings, skipWrap) {
+    if ("error" in data) { 
+      //sjs.alert.message(data.error);
+      return;
+    }
+    var settings     = settings || {};
+    data             = skipWrap ? data : this._wrapRefs(data);
+    key              = this._textKey(data.ref, settings);
+    this._texts[key] = data;
+    
+    if (data.ref == data.sectionRef && !data.isSpanning) {
+      this._splitTextSection(data);
+    } else if (settings.context) {
+      // Save a copy of the data at context level
+      var newData        = clone(data);
+      newData.ref        = data.sectionRef;
+      newData.sections   = data.sections.slice(0,-1);
+      newData.toSections = data.toSections.slice(0,-1);
+      this._saveText(newData, {}, true);
+    }
+    if (data.isSpanning) {
+      for (var i = 0; i < data.spanningRefs.length; i++) {
+        // For spanning refs, request each section ref to prime cache.
+        // console.log("calling spanning prefetch " + data.spanningRefs[i])
+        sjs.library.text(data.spanningRefs[i], {context: 1}, function(data) {})
+      }      
+    }
+
+    var index = {
+      title:      data.indexTitle,
+      heTitle:    data.heIndexTitle, // This is incorrect for complex texts
+      categories: data.categories
+    };
+    this.index(index.title, index);
   },
   _splitTextSection: function(data) {
     // Takes data for a section level text and populates cache with segment levels.
@@ -77,7 +100,7 @@ sjs.library = {
     var start = data.textDepth == data.sections.length ? data.sections[data.textDepth-1] : 1;
     for (var i = 0; i < length; i++) {
       var ref          = data.ref + delim + (i+start);
-      var sectionRef   = superSectionLevel ? sectionRef : ref;
+      var sectionRef   = superSectionLevel ? data.sectionRef : ref;
       var segment_data = clone(data);
       $.extend(segment_data, {
         ref: ref,
@@ -85,16 +108,37 @@ sjs.library = {
         text: en[i],
         he: he[i],
         sections: data.sections.concat(i+1),
+        toSections: data.sections.concat(i+1),
         sectionRef: sectionRef,
         nextSegment: i+start == length ? data.next + delim + 1 : data.ref + delim + (i+start+1),
         prevSegment: i+start == 1      ? null : data.ref + delim + (i+start-1),
       });
 
-      this._saveText(segment_data);
+      this._saveText(segment_data, {}, true);
+      var contextKey = this._textKey(ref, {context:1});
+      this._texts[contextKey] = {buildable: "Add Context", ref: ref, sectionRef: sectionRef};
     }
+  },
+  _splitSpanningText: function(data) {
+    // Returns an array of section level data, corresponding to spanning `data`.
+    // Assumes `data` includes context.
+    var sections = [];
+    var en = data.text;
+    var he = data.he;
+    var length = Math.max(en.length, he.length);
+    en = en.pad(length, []);
+    he = he.pad(length, []);
+    var length = Math.max(data.text.length, data.he.length);
+    for (var i = 0; i < length; i++) {
+      var section        = clone(data);
+      section.text       = en[i];
+      section.he         = he[i];
+    }
+
   },
   _wrapRefs: function(data) {
     // Wraps citations found in text of data
+    if (!data.text) { return data; }
     if (typeof data.text === "string") {
       data.text = sjs.wrapRefLinks(data.text);
     } else {
@@ -127,8 +171,18 @@ sjs.library = {
     // so that it can be called without worrying about the `settings` parameter for what is available in cache.
     return this.text(ref) || this.text(ref, {context:1});
   },
+  sectionRef: function(ref) {
+    // Returns the section level ref for `ref` or null if no data is available
+    var oref = this.ref(ref);
+    return oref ? oref.sectionRef : null;
+  },
   _links: {},
   links: function(ref, cb) {
+    // Returns a list of links known for `ref`.
+    // WARNING: calling this function with spanning refs can cause bad state in cache.
+    // When processing links for "Genesis 2:4-4:4", a link to the entire chapter "Genesis 3" will be split and stored with that key.
+    // The data for "Genesis 3" then represents only links to the entire chapter, not all links within the chapter.
+    // Fixing this generally on the client side requires more understanding of ref logic. 
     if (!cb) {
       return this._links[ref] || [];
     }
@@ -179,7 +233,14 @@ sjs.library = {
     }
   },
   linksLoaded: function(ref) {
-    return ref in this._links;
+    if (typeof ref == "string") {
+      return ref in this._links;
+    } else {
+      for (var i = 0; i < ref.length; i++) {
+        if (!this.linksLoaded(ref[i])) { return false}
+      }
+      return true;
+    }
   },
   linkCount: function(ref, filter) {
     if (!(ref in this._links)) { return 0; }
@@ -197,8 +258,18 @@ sjs.library = {
   _linkSummaries: {},
   linkSummary: function(ref) {
     // Returns an object summarizing the link counts by category and text
-    if (ref in this._linkSummaries) { return this._linkSummaries[ref]; }
-    var links   = ref in this._links ? this._links[ref] : [];
+    // Takes either a single string `ref` or an array of string refs.
+    if (typeof ref == "string") {
+      if (ref in this._linkSummaries) { return this._linkSummaries[ref]; }
+      var links = this.links(ref);
+    } else {
+      var links = [];
+      ref.map(function(r) {
+        var newlinks = sjs.library.links(r);
+        links = links.concat(newlinks);
+      });
+    }
+
     var summary = {};
     for (var i = 0; i < links.length; i++) {
       var link = links[i];
@@ -217,7 +288,8 @@ sjs.library = {
       }
     }
     // Add Zero counts for every commentator in this section not alredy in list
-    var sectionRef = sjs.library.ref(ref) ? sjs.library.ref(ref).sectionRef : ref;
+    var baseRef    = typeof ref == "string" ? ref : ref[0]; // TODO handle refs spanning sections
+    var sectionRef = sjs.library.ref(baseRef) ? sjs.library.ref(baseRef).sectionRef : baseRef;
     if (ref !== sectionRef) {
       var sectionLinks = sjs.library.links(sectionRef);
       for (var i = 0; i < sectionLinks.length; i++) {
@@ -248,9 +320,13 @@ sjs.library = {
       return value;
     });
     // Sort the categories
-    summary.sort(function(a, b) { 
+    summary.sort(function(a, b) {
+      // always put Commentary first 
       if      (a.category === "Commentary") { return -1; }
       else if (b.category === "Commentary") { return  1; }
+      // always put Modern Works last
+      if      (a.category === "Modern Works") { return  1; }
+      else if (b.category === "Modern Works") { return -1; }
       return b.count - a.count;
     });
     return summary;
@@ -268,7 +344,7 @@ sjs.library = {
     return books;     
   },
   topLinks: function(ref) {
-    // Return up to 5 top recommended link filters
+    // Return up to 5 top recommended link filters - Not currently used
     // TODO add text specific content rules here (e.g., privlege Tosafot for Bavli)
     var books = this.flatLinkSummary(ref);
     books.sort(function(a,b) { return b.count - a.count; });
@@ -313,13 +389,14 @@ sjs.library = {
                                     "<span class='he'>מפרשים</span>" +
                                   "</div>";      
       if ($html.find("#structToggles").length) {
-        $html.find("#structToggles").append(" | " + commentaryToggleHtml);  
+        $html.find("#structToggles").append("<span class='toggleDivider'>|</span>" + commentaryToggleHtml);  
       } else {
         var togglesHtml = "<div id='structToggles'>" +
                             "<div class='altStructToggle active'>" +
                                 "<span class='en'>Text</span>" +
                                 "<span class='he'>טקסט</span>" +
-                              "</div> | " + commentaryToggleHtml +
+                              "</div>" + 
+                              "<span class='toggleDivider'>|</span>" + commentaryToggleHtml +
                           "</div>";
         $html = $("<div><div class='altStruct'>" + html + "</div></div>");
         $html.prepend(togglesHtml);   
@@ -682,7 +759,7 @@ sjs.categoryColors = {
   "Other":              sjs.palette.darkblue,
   "Quoting Commentary": sjs.palette.orange,
   "Commentary2":        sjs.palette.blue,
-  "Sheets":             sjs.palette.rapsberry,
+  "Sheets":             sjs.palette.raspberry,
   "Targum":             sjs.palette.lavender,
   "Modern Works":       sjs.palette.raspberry
 };

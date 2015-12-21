@@ -160,7 +160,6 @@ sjs.Init.handlers = function() {
 		sjs.lexicon.reset();
 
 		lowlightOff();
-		sjs.selected = null;
 		$(".expanded").each(function(){ sjs.expandSource($(this)); });
 		sjs.hideSources();
 		if (sjs.current.mode == "view") {
@@ -390,6 +389,7 @@ sjs.Init.handlers = function() {
 	sjs.switchSidebarMode = function(e) {
 		// Switches the content of the sidebar, according to the present targets
 		// data-sidebar attribute
+		console.log("ssm")
 		if (sjs.current._loadSourcesFromDiscussion) {
 			sjs.alert.loadingSidebar();
 			$(".sidebarMode").removeClass("active");
@@ -835,8 +835,7 @@ $(function() {
 		}
 
 		lowlightOn(v[0], v[1]);
-		selected = sjs.setSelected(v[0], v[1]);
-		$("#noteAnchor").html("Note on " + selected);
+		$("#noteAnchor").html("Note on " + sjs.selected);
 		sjs.selected_verses = v;
 	
 		// Selecting a verse for add source
@@ -848,7 +847,7 @@ $(function() {
 		} 
 
 		// add Verse Controls menu
-		if (!isTouchDevice()) {
+		if ($(window).width() > 669) {
 			$(".verseControls").remove();
 			var offset = $(this).offset();
 			var left = sjs._$basetext.offset().left + sjs._$basetext.outerWidth();
@@ -1234,7 +1233,7 @@ $(function() {
 			return;
 		}
 
-		var url = "/api/texts/" + sjs.current.book + "/" + lang + "/" + version;
+		var url = "/api/texts/" + sjs.current.indexTitle + "/" + lang + "/" + version;
 
 		$.ajax({
 			url: url,
@@ -1715,6 +1714,7 @@ function buildView(data) {
 	$("#about").removeClass("empty");
 	$(".open").remove();	
 	sjs.clearNewText();
+	sjs.selected = null;
 
 	sjs.cache.save(data);
 	sjs.current = data;
@@ -1845,6 +1845,11 @@ function buildView(data) {
 		$("#prev").addClass("inactive");
 	}
 
+	/// Add Basetext to DOM
+	$basetext.html(basetext);
+	sjs._$verses = $basetext.find(".verse");
+	sjs._$commentary = $commentaryBox.find(".commentary");
+
 	if (data.connectionsLoadNeeded) {
 		var loadingHtml = "<div class='loadingMessage'>" +
 							"<span class='en'>Loading...</span>" +
@@ -1857,11 +1862,6 @@ function buildView(data) {
 	} else {
 		buildCommentary(data);
 	}
-	
-	/// Add Basetext to DOM
-	$basetext.html(basetext);
-	sjs._$verses = $basetext.find(".verse");
-	sjs._$commentary = $commentaryBox.find(".commentary");
 	
 	$basetext.show();
 	$sourcesBox.show();	
@@ -2008,7 +2008,11 @@ function buildCommentary(data) {
 	if (data.sectionRef !== sjs.current.sectionRef) { 
 		return; // API call returned after navigating away
 	} else {
-		sjs.current = data;
+		sjs.current.commentary            = data.commentary;
+		sjs.current.notes                 = data.notes;
+		sjs.current.sheets                = data.sheets;
+		sjs.current.layer                 = data.layer;
+		sjs.current.connectionsLoadNeeded = false;
 	}
 	if ($("body").hasClass("editMode")) { 
 		return; // API call returned after switching modes
@@ -2061,7 +2065,7 @@ function buildCommentary(data) {
 	}
 
 	// Highligh highlighted commentaries
-	if (sjs._$verses.hasClass("lowlight")) {
+	if (sjs._$verses && sjs._$verses.hasClass("lowlight")) {
 		var first = parseInt(sjs._$verses.not(".lowlight").first().attr("data-num"));
 		var last  = parseInt(sjs._$verses.not(".lowlight").last().attr("data-num"));
 		lowlightOn(first, last);	
@@ -2242,7 +2246,7 @@ function sortCommentary(a,b) {
 
 	// Sort commentaries according to their order
 	if (a.cnum != 0 && b.cnum != 0) {
-		return (a.cnum > b.cnum) ? 1 : -1; 
+		return (a.cnum > b.cnum) ? 1 : -1;
 	}
 
 	// Sort connections on the same source according to the order of the source text
@@ -2446,7 +2450,7 @@ function aboutHtml(data) {
 			html += '<div class="version '+version.lang+'"><span id="mergeMessage">This page includes merged sections from multiple text versions:</span>'
 			for (i = 0; i < uniqueSources.length; i++ ) {
 				html += '<div class="mergeSource">' +
-					'<a href="/' + makeRef(data) + '/'+version.lang+'/' + uniqueSources[i].replace(/ /g, "_") + '">' + 
+					'<a href="/' + makeRef(data) + '/'+version.lang+'/' + encodeURI(uniqueSources[i].replace(/ /g, "_")) + '">' + 
 					uniqueSources[i] + '</a></div>';
 			}
 			html += "</div>";
@@ -2471,7 +2475,7 @@ function aboutHtml(data) {
 						(version.digitizedBySefaria ? "<div class='digitizedBySefaria'>This text was <a href='/digitized-by-sefaria' target='_blank'>digitized by Sefaria</a>.</div>" : "" ) +
 						(version.notes ? "<div class='versionNotes'>" + version.notes + "</div>" : "" ) +
 						(version.status === "locked" ? 
-							'<div class="lockedMessage"><div class="fa fa-lock"></div> This text is locked. If you believe this text requires further editing, please let us know by <a href="mailto:hello@sefaria.org">email</a>.</div>' : "") +						
+							'<div class="lockedMessage"><div class="fa fa-lock"></div> This text is locked. If you believe this text requires further editing, please let us know <a href="https://github.com/Sefaria/Sefaria-Project/wiki/How-to-Report-a-Mistake" target="_blank">here</a>.</div>' : "") +
 						'<div>' +
 							(version.status === "locked" ? "" :
 								"<div class='editText action btn btn-mini btn-info' data-lang='" + version.lang + "'><i class='fa fa-pencil'></i> Edit</div>") +
@@ -2503,7 +2507,7 @@ function aboutHtml(data) {
 		if (v.versionTitle === data.versionTitle || v.versionTitle === data.heVersionTitle) { continue; }
 		if ($.inArray(v.versionTitle, mergeSources) > -1 ) { continue; }
 		versionsHtml += '<div class="alternateVersion ' + v.language + '">' + 
-							'<a href="/' + makeRef(data) + '/' + v.language + '/' + v.versionTitle.replace(/ /g, "_") + '">' +
+							'<a href="/' + makeRef(data) + '/' + v.language + '/' + encodeURI(v.versionTitle.replace(/ /g, "_")) + '">' +
 							v.versionTitle + '</a></div>';
 		versionsLang[v.language] = true;
 	}
@@ -2650,6 +2654,8 @@ sjs.updateUrlParams = function() {
 	
 	if (sjs.sourcesFilter !== "all") {
 		params["with"] = sjs.sourcesFilter.replace(/ /g, "_");
+	} else {
+		delete params["with"];
 	}
 	if      ($("body").hasClass("sidebarHebrew"))  { params["sidebarLang"] = "he" }
 	else if ($("body").hasClass("sidebarEnglish")) { params["sidebarLang"] = "en" }	
@@ -4146,6 +4152,7 @@ function lowlightOn(n, m) {
 	m = m || n;
 	n = parseInt(n);
 	m = parseInt(m);
+	sjs.setSelected(n, m);
 	$c = $();
 	for (var i = n; i <= m; i++ ) {
 		$c = $c.add(sjs._$commentaryViewPort.find(".commentary[data-vref~="+ i + "]"));
@@ -4166,12 +4173,12 @@ function lowlightOff() {
 	if ($(".lowlight").length == 0) { return; }
 	$(".lowlight").removeClass("lowlight");
 	$(".verseControls").remove();
-	sjs.selected = null;
 	$("#noteAnchor").html("Note on " + sjs.current.sectionRef);
 	if ("commentary" in sjs.current) {
 		sjs.setSourcesCount();
 		sjs.setSourcesPanel();
 	}
+	sjs.selected = null;
 }
 
 
@@ -4222,9 +4229,3 @@ function hardRefresh(ref) {
 	actuallyGet(parseRef(ref));	
 }
 
-
-// -------- Special Case for IE ----------------
-if ($.browser.msie) {
-	$("#unsupported").show();
-	$.isReady = true;
-}

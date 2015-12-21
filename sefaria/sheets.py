@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 import dateutil.parser
 
 import sefaria.model as model
+import sefaria.model.abstract as abstract
 from sefaria.system.database import db
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowersSet
@@ -283,7 +284,7 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 			com["owner"]       = sheet["owner"]
 			com["_id"]         = str(sheet["_id"])
 			com["anchorRef"]   = match.normal()
-			com["anchorVerse"] = match.sections[-1]
+			com["anchorVerse"] = match.sections[-1] if len(match.sections) else 1
 			com["public"]      = True
 			com["commentator"] = user_link(sheet["owner"])
 			com["text"]        = "<a class='sheetLink' href='/sheets/%d'>%s</a>" % (sheet["id"], strip_tags(sheet["title"]))
@@ -319,20 +320,22 @@ def get_last_updated_time(sheet_id):
 	return sheet["dateModified"]
 
 
-def make_sheet_list_by_tag():
+def make_tag_list(include_sheets=False):
 	"""
 	Returns an alphabetized list of tags and sheets included in each tag.
 	"""
 	tags = {}
 	results = []
+	projection = {"tags": 1, "title": 1, "id": 1, "views": 1} if include_sheets else {"tags": 1}
 
-	sheet_list = db.sheets.find({"status": "public"})
+	sheet_list = db.sheets.find({"status": "public"}, projection)
 	for sheet in sheet_list:
 		sheet_tags = sheet.get("tags", [])
 		for tag in sheet_tags:
 			if tag not in tags:
 				tags[tag] = {"tag": tag, "count": 0, "sheets": []}
-			tags[tag]["sheets"].append({"title": strip_tags(sheet["title"]), "id": sheet["id"], "views": sheet["views"]})
+			if include_sheets:
+				tags[tag]["sheets"].append({"title": strip_tags(sheet["title"]), "id": sheet["id"], "views": sheet["views"]})
 			tags[tag]["count"] += 1
 
 	for tag in tags.values():
@@ -357,7 +360,6 @@ def get_sheets_by_tag(tag, public=True, uid=None, group=None):
 	elif public:
 		query["status"] = "public"
 
-	print query
 	sheets = db.sheets.find(query).sort([["views", -1]])
 	return sheets
 
@@ -450,5 +452,41 @@ def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None
 	return save_sheet(sheet, uid)
 
 
+# This is here as an alternative interface - it's not yet used, generally.
 
+class Sheet(abstract.AbstractMongoRecord):
+	collection = 'sheets'
 
+	required_attrs = [
+		"title",
+		"sources",
+		"status",
+		"options",
+		"generatedBy",
+		"dateCreated",
+		"dateModified",
+		"included_refs",
+		"owner",
+		"id"
+	]
+	optional_attrs = [
+		"views",
+		"nextNode",
+		"tags",
+		"promptedToPublish",
+		"attribution",
+		"datePublished",
+		"lastModified",
+		"via",
+		"viaOwner",
+		"likes",
+		"group",
+		"generatedBy"
+	]
+
+	def regenerate_contained_refs(self):
+		self.included_refs = refs_in_sources(self.sources)
+		self.save()
+
+	def get_contained_refs(self):
+		return [model.Ref(r) for r in self.included_refs]

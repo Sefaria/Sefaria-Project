@@ -11,14 +11,14 @@ class Splicer(object):
 
     Sample usage for merge:
         splicer = Splicer()
-        splicer.splice_this_into_next("Shabbat 7b:11")
+        splicer.splice_this_into_next(Ref("Shabbat 7b:11"))
         splicer.report()  # optional, to check what it will do
         splicer.execute()
     A merge can be setup with method splice_this_into_next, splice_next_into_this, splice_prev_into_this, or splice_this_into_prev
 
     Sample usage for inserting a blank segment:
         splicer = Splicer()
-        splicer.insert_blank_segment_after("Shabbat 7b:11")
+        splicer.insert_blank_segment_after(Ref("Shabbat 7b:11"))
         splicer.report()  # optional, to check what it will do
         splicer.execute()
 

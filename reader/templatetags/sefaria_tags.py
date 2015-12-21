@@ -6,6 +6,7 @@ import json
 import re
 import dateutil.parser
 import urllib
+import math
 from urlparse import urlparse
 
 from django import template
@@ -97,7 +98,7 @@ def he_parasha(value):
 	"""
 	if not value:
 		return ""
-	
+
 	def hebrew_parasha(p):
 		try:
 			term    = m.Term().load({"name": p, "scheme": "Parasha"})
@@ -113,7 +114,7 @@ def he_parasha(value):
 @register.filter(is_safe=True)
 def version_link(v):
 	"""
-	Return an <a> tag linking to the first availabe text of a particular version.
+	Return an <a> tag linking to the first available text of a particular version.
 	"""
 	try:
 		section_ref = v.first_section_ref() or v.get_index().nodes.first_leaf().first_section_ref()
@@ -121,11 +122,38 @@ def version_link(v):
 		try:
 			section_ref = v.get_index().nodes.first_leaf().first_section_ref()
 		except:  # Better if we knew how this may fail...
-			return mark_safe(u'<a href="/{}.1/{}/{}">{}</a>'.format(v.title, v.language, v.versionTitle.replace(" ", "_"), v.versionTitle))
+			return mark_safe(u'<a href="/{}.1/{}/{}">{}</a>'.format(v.title, v.language, urllib.quote(v.versionTitle.replace(" ", "_").encode("utf-8")), v.versionTitle))
 
-	link = u'<a href="/{}/{}/{}">{}</a>'.format(section_ref.url(), v.language, v.versionTitle.replace(" ", "_"), v.versionTitle)
+	link = u'<a href="/{}/{}/{}">{}</a>'.format(section_ref.url(), v.language, urllib.quote(v.versionTitle.replace(" ", "_").encode("utf-8")), v.versionTitle)
 	return mark_safe(link)
 
+@register.filter(is_safe=True)
+def text_toc_link(indx):
+	"""
+	Return an <a> tag linking to the text TOC for the Index
+	"""
+	en = indx.nodes.primary_title("en") if not indx.is_commentary() else indx.title
+	he = indx.nodes.primary_title("he") if not indx.is_commentary() else indx.heTitle
+	link = u'''
+		<a href="/{}">
+			<span class='en'>{}</span>
+			<span class='he'>{}</span>
+		</a>
+	'''.format(indx.title, en, he)
+	return mark_safe(link)
+
+@register.filter(is_safe=True)
+def person_link(person):
+	"""
+	Return an <a> tag linking to the first availabe text of a particular version.
+	"""
+	link = u'''
+		 <a href="/person/{}">
+			 <span class='en'>{}</span>
+			 <span class='he'>{}</span>
+		 </a>
+	'''.format(person.key, person.primary_name("en"), person.primary_name("he"))
+	return mark_safe(link)
 
 @register.filter(is_safe=True)
 def version_source_link(v):
@@ -183,7 +211,7 @@ def text_category(text):
 	try:
 		i = m.get_index(text)
 		result = mark_safe(getattr(i, "categories", ["[no cats]"])[0])
-	except: 
+	except:
 		result = "[text not found]"
 	return result
 
@@ -298,10 +326,10 @@ def abbreviate_number(value):
 
 	if n > 1000000000:
 		abbr = "%dB" % ( n / 1000000000 )
-	
+
 	elif n > 1000000:
 		abbr = "%dM" % ( n / 1000000 )
-	
+
 	elif n > 1000:
 		abbr = "%dk" % ( n / 1000 )
 
@@ -352,3 +380,89 @@ def get_private_attribute(model_instance, attrib_name):
 @register.filter(is_safe=True)
 def nice_timestamp(timestamp):
 	return dateutil.parser.parse(timestamp).strftime("%m/%d/%y")
+
+# Derived from https://djangosnippets.org/snippets/6/
+"""
+Template tags for working with lists.
+
+You'll use these in templates thusly::
+
+	{% load listutil %}      # I don't think we need this line.
+	{% for sublist in mylist|parition:"3" %}
+		{% for item in mylist %}
+			do something with {{ item }}
+		{% endfor %}
+	{% endfor %}
+"""
+@register.filter
+def partition_into(thelist, n):
+	"""
+	Break a list into ``n`` pieces. The last list may be larger than the rest if
+	the list doesn't break cleanly. That is::
+
+		>>> l = range(10)
+
+		>>> partition(l, 2)
+		[[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]]
+
+		>>> partition(l, 3)
+		[[0, 1, 2], [3, 4, 5], [6, 7, 8, 9]]
+
+		>>> partition(l, 4)
+		[[0, 1], [2, 3], [4, 5], [6, 7, 8, 9]]
+
+		>>> partition(l, 5)
+		[[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]]
+
+	"""
+	try:
+		n = int(n)
+		thelist = list(thelist)
+	except (ValueError, TypeError):
+		return [thelist]
+	p = len(thelist) / n
+	return [thelist[p*i:p*(i+1)] for i in range(n - 1)] + [thelist[p*(i+1):]]
+
+@register.filter
+def partition_by(thelist, n):
+	"""
+	Break a list into ``n`` sized peices
+	``partition_by(range(10), 3)`` gives::
+
+		[[1, 4, 7],
+		 [2, 5, 8],
+		 [3, 6, 9],
+		 [10]]
+
+	"""
+	try:
+		n = int(n)
+		thelist = list(thelist)
+	except (ValueError, TypeError):
+		return [thelist]
+	rows = int(math.ceil(float(len(thelist)) / n))
+	newlists = [thelist[r * n : (r + 1) * n] for r in range(rows)]
+	return newlists
+
+@register.filter
+def partition_vertical(thelist, n):
+	"""
+	Break a list into ``n`` peices, but "horizontally." That is,
+	``partition_horizontal(range(10), 3)`` gives::
+
+		[[1, 4, 7],
+		 [2, 5, 8],
+		 [3, 6, 9],
+		 [10]]
+
+	Clear as mud?
+	"""
+	try:
+		n = int(n)
+		thelist = list(thelist)
+	except (ValueError, TypeError):
+		return [thelist]
+	newlists = [list() for i in range(n)]
+	for i, val in enumerate(thelist):
+		newlists[i%n].append(val)
+	return newlists

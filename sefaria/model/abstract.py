@@ -188,6 +188,12 @@ class AbstractMongoRecord(object):
             for pkey in self.pkeys:
                 self.pkeys_orig_values[pkey] = getattr(self, pkey, None)
 
+    def is_key_changed(self, key):
+        assert self.track_pkeys and key in self.pkeys, "Failed to track key {} in {}".format(key, self.__class__.__name__)
+        if self.is_new():
+            return bool(getattr(self, key, False))
+        return self.pkeys_orig_values[key] != getattr(self, key, None)
+
     def _init_defaults(self):
         pass
 
@@ -450,4 +456,47 @@ def cascade(set_class, attr):
     :param attr: The name of the impacted class attribute (fk) that holds the references to the changed attribute (pk)
     :return: a function that will update 'attr' in 'set_class' and can be passed to subscribe()
     """
-    return lambda obj, kwargs: set_class({attr: kwargs["old"]}).update({attr: kwargs["new"]})
+    return lambda obj, **kwargs: set_class({attr: kwargs["old"]}).update({attr: kwargs["new"]})
+
+
+def cascade_to_list(set_class, attr):
+    """
+    Handles generic value cascading, for keys in attributes that hold lists of keys.
+    See examples in dependencies.py
+    :param set_class: The set class of the impacted model
+    :param attr: The name of the impacted class attribute (fk) that holds the list of references to the changed attribute (pk)
+    :return: a function that will update 'attr' in 'set_class' and can be passed to subscribe()
+    """
+    def foo(obj, **kwargs):
+        for rec in set_class({attr: kwargs["old"]}):
+            setattr(rec, attr, [kwargs["new"] if e == kwargs["old"] else e for e in getattr(rec, attr)])
+            rec.save()
+
+    return foo
+
+def cascade_delete(set_class, fk_attr, pk_attr):
+    """
+    Handles generic delete cascading, for simple key reference changes.
+    See examples in dependencies.py
+    :param set_class: The set class of the impacted model
+    :param fk_attr: The name of the impacted class attribute (fk) that holds the references to the primary identifier (pk)
+    :return: a function that will delete values of 'set_class' where 'attr' matches
+    """
+    return lambda obj, **kwargs: set_class({fk_attr: getattr(obj, pk_attr)}).delete()
+
+
+def cascade_delete_to_list(set_class, fk_attr, pk_attr):
+    """
+    Handles generic delete cascading, for keys in attributes that hold lists of keys.
+    See examples in dependencies.py
+    :param set_class: The set class of the impacted model
+    :param fk_attr: The name of the impacted class attribute (fk) that holds the list of references to the primary identifier (pk)
+    :param pk_attr:
+    :return: a function that will update 'attr' in 'set_class' and can be passed to subscribe()
+    """
+    def foo(obj, **kwargs):
+        for rec in set_class({fk_attr: getattr(obj, pk_attr)}):
+            setattr(rec, fk_attr, [e for e in getattr(rec, fk_attr) if e != getattr(obj, pk_attr)])
+            rec.save()
+
+    return foo

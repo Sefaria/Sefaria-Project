@@ -8,7 +8,7 @@ try:
     import re2 as re
     re.set_fallback_notification(re.FALLBACK_WARNING)
 except ImportError:
-    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines")
+    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/Sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
     import re
 
 import regex
@@ -214,7 +214,7 @@ def deserialize_tree(serial=None, **kwargs):
     elif klass:
         return klass(serial, **kwargs)
     else:
-        raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType'")
+        raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType': {}".format(serial))
 
 
 class TreeNode(object):
@@ -809,11 +809,11 @@ class ArrayMapNode(NumberedTitledTreeNode):
                 refs         = text.Ref(self.wholeRef).split_spanning_ref()
                 first, last  = refs[0], refs[-1]
                 offset       = first.sections[-2]-1 if first.is_segment_level() else first.sections[-1]-1
-                depth        = len(first.index.nodes.sectionNames) - len(first.section_ref().sections)
+                depth        = len(first.index_node.sectionNames) - len(first.section_ref().sections)
 
                 d["refs"] = [r.normal() for r in refs]
-                d["addressTypes"] = d.get("addressTypes", []) + first.index.nodes.addressTypes[depth:]
-                d["sectionNames"] = d.get("sectionNames", []) + first.index.nodes.sectionNames[depth:]
+                d["addressTypes"] = d.get("addressTypes", []) + first.index_node.addressTypes[depth:]
+                d["sectionNames"] = d.get("sectionNames", []) + first.index_node.sectionNames[depth:]
                 d["depth"] += 1
                 d["offset"] = offset
 
@@ -876,8 +876,8 @@ class SchemaNode(TitledTreeNode):
     def __init__(self, serial=None, **kwargs):
         """
         Construct a SchemaNode
-        :param index: The Index object that this tree is rooted in.
         :param serial: The serialized form of this subtree
+        :param kwargs: "index": The Index object that this tree is rooted in.
         :return:
         """
         super(SchemaNode, self).__init__(serial, **kwargs)
@@ -977,7 +977,7 @@ class SchemaNode(TitledTreeNode):
         """
         d = super(SchemaNode, self).serialize(**kwargs)
         d["key"] = self.key
-        if self.checkFirst:
+        if getattr(self, "checkFirst", None) is not None:
             d["checkFirst"] = self.checkFirst
         return d
 

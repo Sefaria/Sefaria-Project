@@ -2,8 +2,12 @@ import re
 from varnish import VarnishManager
 from sefaria.model import *
 from sefaria.local_settings import VARNISH_ADDR, VARNISH_SECRET, FRONT_END_URL
+from sefaria.system.exceptions import InputError
+
 from urlparse import urlparse
 from httplib import HTTPConnection
+import urllib
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -27,20 +31,25 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
         oref = oref.section_ref()
 
     if version:
-        version = version.replace(" ", "_")
+        version = urllib.quote(version.replace(" ", "_").encode("utf-8"))
     if purge:
         # Purge this section level ref, so that immediate responses will return good results
         purge_url("{}/api/texts/{}".format(FRONT_END_URL, oref.url()))
         if version and lang:
-            purge_url("{}/api/texts/{}/{}/{}".format(FRONT_END_URL, oref.url(), lang, version))
+            try:
+                purge_url(u"{}/api/texts/{}/{}/{}".format(FRONT_END_URL, oref.url(), lang, version))
+            except Exception as e:
+                logger.exception(e)
         # Hacky to add these
         purge_url("{}/api/texts/{}?commentary=1&sheets=1".format(FRONT_END_URL, oref.url()))
         purge_url("{}/api/texts/{}?sheets=1".format(FRONT_END_URL, oref.url()))
         purge_url("{}/api/texts/{}?commentary=0".format(FRONT_END_URL, oref.url()))
         purge_url("{}/api/texts/{}?commentary=0&pad=0".format(FRONT_END_URL, oref.url()))
         if version and lang:
-            purge_url("{}/api/texts/{}/{}/{}?commentary=0".format(FRONT_END_URL, oref.url(), lang, version))
-
+            try:
+                purge_url(u"{}/api/texts/{}/{}/{}?commentary=0".format(FRONT_END_URL, oref.url(), lang, version))
+            except Exception as e:
+                logger.exception(e)
         purge_url("{}/api/links/{}".format(FRONT_END_URL, oref.url()))
         purge_url("{}/api/links/{}?with_text=0".format(FRONT_END_URL, oref.url()))
         purge_url("{}/api/links/{}?with_text=1".format(FRONT_END_URL, oref.url()))
@@ -48,6 +57,10 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
     # Ban anything underneath this section
     manager.run("ban", 'obj.http.url ~ "/api/texts/{}"'.format(url_regex(oref)), secret=secret)
     manager.run("ban", 'obj.http.url ~ "/api/links/{}"'.format(url_regex(oref)), secret=secret)
+
+def invalidate_linked(oref):
+    for linkref in {r.section_ref() for r in oref.linkset().refs_from(oref)}:
+        invalidate_ref(linkref)
 
 def invalidate_counts(indx):
     if isinstance(indx, Index) or isinstance(indx, CommentaryIndex):
@@ -68,8 +81,12 @@ def invalidate_counts(indx):
 
 def invalidate_index(indx):
     if isinstance(indx, Index) or isinstance(indx, CommentaryIndex):
-        oref = Ref(indx.title)
-        url = oref.url()
+        try:
+            oref = Ref(indx.title)
+            url = oref.url()
+        except InputError as e:
+            logger.warn("In sf.varnish.invalidate_index(): failed to instantiate ref for index name: {}".format(indx.title))
+            return
     elif isinstance(indx, basestring):
         url = indx.replace(" ", "_").replace(":", ".")
     else:

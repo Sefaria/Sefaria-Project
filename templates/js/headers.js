@@ -282,7 +282,9 @@
                 html += "<div id='structureDropdown'>" +
                     "<span id='browseBy'>Browse by </span>" +
                         "<select>" +
-                            "<option value='default' " + ((sjs.navPanel._structure == "default")?"selected ":"") + ">" + hebrewPlural(schema_node.sectionNames.slice(-2)[0]) +"</option>";
+                            "<option value='default' " + ((sjs.navPanel._structure == "default")?"selected ":"") + ">" +
+                                (schema_node.sectionNames ? hebrewPlural(schema_node.sectionNames.slice(-2)[0]) : "Primary Structure") +
+                            "</option>";
                             for(var n in this._preview.alts) {
                                 html += "<option value='" + n + "' " + ((sjs.navPanel._structure == n)?"selected ":"") + ">" + n + "</option>";
                             }
@@ -850,6 +852,22 @@
 	    })
 	    $("#rightButtons").click(function(e){e.stopPropagation();});
 	    $(window).click(sjs.hideOptionsBar);
+
+		// browser check -- 
+		// this attempts to create an element and add css3 text shadow to it to it
+		// these are only supported in recent firefox, chrome, safari & ie > 9
+
+		$("#sefaria").css("text-shadow", "2px 2px #ff0000");
+		var sefariaSupportedBrowser = !!$("#alertMessage").css("text-shadow");
+		$("#sefaria").css("text-shadow", "");
+
+		if (sefariaSupportedBrowser == false) {
+		$("#alertMessage").html('<strong>Warning:</strong> Your browser is out of date and unsupported by Sefaria<br/>Please use a more up to date browser or download one <a href="http://browsehappy.com/" target="_blank">here</a>.').show();
+		}
+
 	});
 {% endautoescape %}
+
+
+
 </script>

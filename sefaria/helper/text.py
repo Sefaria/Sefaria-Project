@@ -127,6 +127,7 @@ def resize_text(title, new_structure, upsize_in_place=False):
 
     return True
 
+
 def merge_indices(title1, title2):
     """
     Merges two similar index records
@@ -268,20 +269,54 @@ def modify_text_by_function(title, vtitle, lang, func, uid, **kwargs):
                     modify_text(uid, segment_refs[i], vtitle, lang, text, **kwargs)
 
 
-def replace_roman_numerals(text):
+def split_text_section(oref, lang, old_version_title, new_version_title):
+    """
+    Splits the text in `old_version_title` so that the content covered by `oref` now appears in `new_version_title`.
+    Rewrites history for affected content. 
+
+    NOTE: `oref` cannot be ranging (until we implement saving ranging refs on TextChunk). Spanning refs are handled recursively.
+    """
+    if oref.is_spanning():
+        for span in oref.split_spanning_ref():
+            split_text_section(span, lang, old_version_title, new_version_title)
+        return
+
+    old_chunk = TextChunk(oref, lang=lang, vtitle=old_version_title)
+    new_chunk = TextChunk(oref, lang=lang, vtitle=new_version_title)
+
+    # Copy content to new version
+    new_chunk.versionSource = old_chunk.version().versionSource
+    new_chunk.text = old_chunk.text
+    new_chunk.save()
+
+    # Rewrite History
+    ref_regex_queries = [{"ref": {"$regex": r}, "version": old_version_title, "language": lang} for r in oref.regex(as_list=True)]
+    query = {"$or": ref_regex_queries}
+    db.history.update(query, {"$set": {"version": new_version_title}}, upsert=False, multi=True)
+
+    # Remove content from old version
+    old_chunk.text = JaggedTextArray(old_chunk.text).constant_mask(constant="").array()
+    old_chunk.save()
+
+
+def replace_roman_numerals(text, allow_lowercase=False):
     """
     Replaces any roman numerals in 'text' with digits.
     Currently only looks for a roman numeral followed by a comma or period, then a space, then a digit.
     e.g. (Isa. Iv. 10) --> (Isa. 4:10)
+
+    WARNING: we've seen e.g., "(v. 15)" used to mean "Verse 15". If run with allow_lowercase=True, this will
+    be rewritten as "(5:15)". 
     """
     import roman
-    regex = re.compile(" (M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))([.,] )(\d)", re.I)
+    flag  = re.I if allow_lowercase else 0
+    regex = re.compile("([( ])(M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))([.,] ?)(\d)", flag)
     def replace_roman_numerals_in_match(m):
-        s = m.group(1)
+        s = m.group(2)
         s = s.upper()
         try:
             if s:
-                return " %s:%s" % (roman.fromRoman(s), m.group(6))
+                return "%s%s:%s" % (m.group(1), roman.fromRoman(s), m.group(7))
         except:
             return m.group(0)
 
@@ -290,7 +325,7 @@ def replace_roman_numerals(text):
 
 def make_versions_csv():
     """
-    Returns a CSV of all version in the DB.
+    Returns a CSV of all text versions in the DB.
     """
     import csv
     import io

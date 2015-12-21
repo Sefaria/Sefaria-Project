@@ -31,6 +31,7 @@ urlpatterns = patterns('reader.views',
     (r'^api/counts/(?P<title>.+)$', 'counts_api'),
     (r'^api/preview/(?P<title>.+)$', 'text_preview_api'),
     (r'^api/toc-html/(?P<title>.+)$', 'text_toc_html_fragment'),
+
 )
 
 # Reviews API
@@ -60,6 +61,7 @@ urlpatterns += patterns('reader.views',
 # Lock Text API (permament locking of an entire text)
 urlpatterns += patterns('reader.views',
     (r'^api/locktext/(?P<title>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'lock_text_api'),
+    (r'^api/version/flags/(?P<title>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'flag_text_api'),
 )
 
 # Dictionary API
@@ -234,16 +236,24 @@ urlpatterns += patterns('reader.views',
     (r'^s2/sheets/?$', 's2_sheets'),
     (r'^s2/sheets/tags/(?P<tag>.+)?$', 's2_sheets_by_tag'),
     (r'^s2/(?P<ref>.+)$', 's2'),
+    (r'^person/(?P<name>.+)$', 'person_page'),
+    (r'^people/Talmud/?$', 'talmud_person_index'),
+    (r'^people/?$', 'person_index'),
+    (r'^garden/sheets/(?P<key>.+)$', 'sheet_tag_garden_page'),
+    (r'^vgarden/sheets/(?P<key>.+)$', 'sheet_tag_visual_garden_page'),
+    (r'^vgarden/search/(?P<q>.+)$', 'search_query_visual_garden_page'),
+    (r'^vgarden/custom/(?P<key>.+)$', 'custom_visual_garden_page'),
+
 )
 
 # Redirects to Forum, Wiki
 urlpatterns += patterns('',
     (r'^forum/?$', lambda x: HttpResponseRedirect('https://groups.google.com/forum/?fromgroups#!forum/sefaria')),
-    (r'^wiki/?$', lambda x: HttpResponseRedirect('https://github.com/blockspeiser/Sefaria-Project/wiki')),
-    (r'^educators/?$', lambda x: HttpResponseRedirect('https://github.com/blockspeiser/Sefaria-Project/wiki/Sefaria-for-Educators')),
-    (r'^developers/?$', lambda x: HttpResponseRedirect('https://github.com/blockspeiser/Sefaria-Project/wiki#developers')),
-    (r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/blockspeiser/Sefaria-Project/wiki/Guide-to-Contributing')),
-    (r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/blockspeiser/Sefaria-Project/wiki#frequently-asked-questions')),
+    (r'^wiki/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki')),
+    (r'^educators/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Sefaria-for-Educators')),
+    (r'^developers/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#developers')),
+    (r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Guide-to-Contributing')),
+    (r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions')),
 
 )
 
@@ -262,11 +272,14 @@ urlpatterns += patterns('sefaria.views',
 
 # Admin 
 urlpatterns += patterns('', 
-    (r'^admin/reset/cache', 'sefaria.views.reset_cache'),
+    (r'^admin/reset/cache$', 'sefaria.views.reset_cache'),
+    (r'^admin/reset/cache/(?P<title>.+)$', 'sefaria.views.reset_index_cache_for_text'),
     #(r'^admin/view/template_cache/(?P<title>.+)$', 'sefaria.views.view_cached_elem'),
     #(r'^admin/delete/template_cache/(?P<title>.+)$', 'sefaria.views.del_cached_elem'),
     (r'^admin/rebuild/counts-toc', 'sefaria.views.rebuild_counts_and_toc'),
-    (r'^admin/rebuild/counts', 'sefaria.views.reset_counts'),
+    (r'^admin/rebuild/counts/(?P<title>.+)$', 'sefaria.views.reset_counts'),
+    (r'^admin/rebuild/counts/all', 'sefaria.views.reset_counts'),
+    (r'^admin/delete/orphaned-counts', 'sefaria.views.delete_orphaned_counts'),
     (r'^admin/rebuild/toc', 'sefaria.views.rebuild_toc'),
     (r'^admin/rebuild/commentary-links/(?P<title>.+)$', 'sefaria.views.rebuild_commentary_links'),
     (r'^admin/rebuild/citation-links/(?P<title>.+)$', 'sefaria.views.rebuild_citation_links'),

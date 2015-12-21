@@ -1014,3 +1014,16 @@ class SheetPostTest(SefariaTestCase):
         self.assertEqual(0, db.sheets.find({"id": sheet_id}).count())
 
 
+class VersionAttrsPostTest(SefariaTestCase):
+    #Fails. Ignore
+    def test_post_atts(self):
+        vattrs = {
+            "status" : "locked",
+            "license" : "Public domain",
+            "licenseVetted" : True,
+            "digitizedBySefaria" : True,
+            "priority" : 1
+        }
+        response = c.post("api/version/flags/Genesis/he/Tanach+With+Nikkud", {'json': json.dumps(vattrs), 'apikey': 'oAj9VWA8eDoWlKCD4nXiuDFPgWYn59tO4JA1bDnZQqI' })
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)

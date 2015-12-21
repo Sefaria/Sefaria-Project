@@ -407,10 +407,11 @@ def hebrew_term(s):
 		"Dictionary":           u"מילון",
 		"Early Jewish Thought": u"מחשבת ישראל קדומה",
 		"Minor Tractates":      u"מסכתות קטנות",
-		"Rosh":		            u'ר"אש',
+		"Rosh":		            u'רא"ש',
 		"Maharsha":	            u'מהרשא',
 		"Rashba":	            u'רשב"א',
 		"Rambam":	            u'רמב"ם',
+		"Radbaz":		u'רדב"ז',
 		"Tosafot Yom Tov":      u"תוספות יום טוב",
 		"Chidushei Halachot":   u"חידושי הלכות",
 		"Chidushei Agadot":     u"חידושי אגדות",
@@ -485,7 +486,7 @@ def hebrew_term(s):
 		"Tosefta":          u"תוספתא",
 		"Halakhah":         u"הלכה",
 		"Kovetz":           u"קובץ",
-		"Path":             u"נתיבה",
+		"Path":             u"נתיב",
 		"Parshah":          u"פרשה",
 		"Midrash":          u"מדרש",
 		"Mitzvah":          u"מצוה",
@@ -495,8 +496,11 @@ def hebrew_term(s):
 		"Peirush":	        u"פירוש",
 		"Aliyah":	        u"עלייה",
 		"Tikkun":           u"תיקון",
-		"Tikkunim":         u"תיקונים"
-	}
+		"Tikkunim":         u"תיקונים",
+        "Hilchot":          u"הילכות",
+        "Topic":            u"נושא",
+        "Contents":         u"תוכן"
+    }
 
 	words = dict(categories.items() + pseudo_categories.items() + section_names.items())
 
