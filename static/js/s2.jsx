@@ -339,10 +339,53 @@ var ReaderApp = React.createClass({
       }
     }
     var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel});
-    return (<div className={classes}>{panels}</div>);
+    return (<div className={classes}>
+              {this.props.multiPanel ? <Header /> : null}
+              {panels}
+            </div>);
   }
 });
 
+var Header = React.createClass({
+  propTypes: {
+    onRefClick: React.PropTypes.func
+  },
+  getInitialState: function() {
+    return {
+      mode: null
+    };
+  },
+  showLibrary: function() {
+    this.setState({mode: "Library"});
+  },
+  showDesktop: function() {
+    this.setState({mode: null});
+  },
+  showAccount: function() {
+    this.setState({mode: "Acount"});
+  },
+  render: function() {
+    var viewContent = this.state.mode == "Library" ? 
+                        (<ReaderNavigationMenu />) :
+                          this.state.mode == "Account" ? 
+                            ("Accout View coming soon") : null;
+    return (<div className="header">
+              <div className="left">
+                <div className="library" onClick={this.showLibrary}><i className="fa fa-bars"></i></div>
+                <input className="search" placeholder="Search" />
+              </div>
+              <div className="right">
+                <div className="account" onClick={this.showAccount}><i className="fa fa-user"></i></div>
+              </div>
+              <div className="home" onClick={this.showDesktop}><img src="/static/img/sefaria.png" /></div>
+              { viewContent ? 
+                (<div className="headerNavContnet">
+                  {viewContent}
+                 </div>) : null}
+            </div>);
+
+  }
+});
 
 var ReaderPanel = React.createClass({
   propTypes: {
@@ -906,13 +949,13 @@ var ReaderDisplayOptionsMenu = React.createClass({
 var ReaderNavigationMenu = React.createClass({
   // The Navigation menu for broswing and searching texts, plus site links.
   propTypes: {
-    home:          React.PropTypes.bool,
     categories:    React.PropTypes.array.isRequired,
     setCategories: React.PropTypes.func.isRequired,
     closeNav:      React.PropTypes.func.isRequired,
     openNav:       React.PropTypes.func.isRequired,
     openSearch:    React.PropTypes.func.isRequired,
-    showBaseText:  React.PropTypes.func.isRequired
+    showBaseText:  React.PropTypes.func.isRequired,
+    home:          React.PropTypes.bool
   },
   getInitialState: function() {
     return {
