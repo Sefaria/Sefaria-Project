@@ -284,7 +284,7 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 			com["owner"]       = sheet["owner"]
 			com["_id"]         = str(sheet["_id"])
 			com["anchorRef"]   = match.normal()
-			com["anchorVerse"] = match.sections[-1]
+			com["anchorVerse"] = match.sections[-1] if len(match.sections) else 1
 			com["public"]      = True
 			com["commentator"] = user_link(sheet["owner"])
 			com["text"]        = "<a class='sheetLink' href='/sheets/%d'>%s</a>" % (sheet["id"], strip_tags(sheet["title"]))
