@@ -245,16 +245,15 @@ def assigned_sheet(request, assignment_id):
 		if key in sheet:
 			del sheet[key]
 
-	assigner        = User.objects.get(id=sheet["owner"])
+	assigner        = UserProfile(id=sheet["owner"])
 	assigner_id	    = assigner.id
 	owner           = User.objects.get(id=request.user.id)
-	owner_groups    = [g.name for g in owner.groups.all()]
+	owner_groups    = get_user_groups(request.user)
 
 	sheet_class     = make_sheet_class_string(sheet)
 	can_edit_flag   = True
 	can_add_flag    = can_add(request.user, sheet)
-	sheet_group     = sheet["group"] if sheet["status"] in GROUP_SHEETS and sheet["group"] != "None" else None
-	viewer_groups   = get_viewer_groups(request.user)
+	sheet_group     = Group().load({"name": sheet["group"]}) if "group" in sheet and sheet["group"] != "None" else None
 	embed_flag      = "embed" in request.GET
 	likes           = sheet.get("likes", [])
 	like_count      = len(likes)
@@ -270,10 +269,9 @@ def assigned_sheet(request, assignment_id):
 												"can_add": can_add_flag,
 												"title": sheet["title"],
 												"is_owner": True,
-												"is_public": sheet["status"] in LISTED_SHEETS,
+												"is_public": sheet["status"] == "public",
 												"owner_groups": owner_groups,
 												"sheet_group":  sheet_group,
-												"viewer_groups": viewer_groups,
 												"like_count": like_count,
 												"viewer_is_liker": viewer_is_liker,
 												"current_url": request.get_full_path,
