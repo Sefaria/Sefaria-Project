@@ -1025,6 +1025,7 @@ var ReaderNavigationMenu = React.createClass({
   getInitialState: function() {
     return {
       showMore: false,
+      width: 0,
     };
   },
   componentDidMount: function() {
@@ -1084,7 +1085,8 @@ var ReaderNavigationMenu = React.createClass({
                   setCategories={this.props.setCategories}
                   openDisplaySettings={this.props.openDisplaySettings}
                   navHome={this.navHome}
-                  hideNavHeader={this.props.hideNavHeader} />
+                  hideNavHeader={this.props.hideNavHeader}
+                  width={this.state.width} />
               </div>);
     } else {
       var categories = [
@@ -1167,11 +1169,8 @@ var ReaderNavigationMenu = React.createClass({
                         <span className="en">Daf Yomi</span>
                         <span className="he">דף יומי</span>
                        </a>)];
-      if (this.state.width < 450) {
-        calendar = (<div className="readerNavCalendar"><TwoBox content={calendar} /></div>);
-      } else {
-        calendar = (<div className="readerNavCalendar"><ThreeBox content={calendar} /></div>);
-      }
+      calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={this.state.width} /></div>);
+
       var topContent = this.props.home ?
               (<div className="readerNavTop search">
                 <CategoryColorLine category="Other" />
@@ -1237,6 +1236,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
     closeNav:      React.PropTypes.func.isRequired,
     setCategories: React.PropTypes.func.isRequired,
     navHome:       React.PropTypes.func.isRequired,
+    width:         React.PropTypes.number,
     hideNavHeader: React.PropTypes.bool
   },
   render: function() {
@@ -1268,7 +1268,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
                          </div>);
 
     } else {
-      var toggle = "";
+      var toggle = null;
     }
 
     var catContents = sjs.library.tocItemsByCategories(categories);
@@ -1286,7 +1286,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
               <div className="content">
                 <div className="contentInner">
                   {toggle}
-                  <ReaderNavigationCategoryMenuContents contents={catContents} categories={categories} />
+                  <ReaderNavigationCategoryMenuContents contents={catContents} categories={categories} width={this.props.width} />
                 </div>
               </div>
             </div>);
@@ -1298,7 +1298,8 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
   // Inner content of Category menu (just category title and boxes of)
   propTypes: {
     contents:   React.PropTypes.array.isRequired,
-    categories: React.PropTypes.array.isRequired
+    categories: React.PropTypes.array.isRequired,
+    width:      React.PropTypes.number
   },
   render: function() {
       var content = [];
@@ -1323,7 +1324,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
                             <span className='en'>{item.category}</span>
                             <span className='he'>{item.heCategory}</span>
                           </h3>
-                          <ReaderNavigationCategoryMenuContents contents={item.contents} categories={newCats} />
+                          <ReaderNavigationCategoryMenuContents contents={item.contents} categories={newCats} width={this.props.width} />
                         </div>));
         } else {
           // Add a Text
@@ -1341,7 +1342,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
         // Walk through content looking for runs of spans to group togther into a table
         if (content[i].type == "div") { // this is a subcategory
           if (currentRun.length) {
-            boxedContent.push((<TwoBox contents={currentRun} key={i} />));
+            boxedContent.push((<TwoOrThreeBox contents={currentRun} width={this.props.width} key={i} />));
             currentRun = [];
           }
           boxedContent.push(content[i]);
@@ -1350,7 +1351,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
         }
       }
       if (currentRun.length) {
-        boxedContent.push((<TwoBox content={currentRun} key={i} />));
+        boxedContent.push((<TwoOrThreeBox content={currentRun} width={this.props.width} key={i} />));
       }
       return (<div>{boxedContent}</div>);
   }
@@ -3200,10 +3201,15 @@ var TwoBox = React.createClass({
 
 
 var TwoOrThreeBox = React.createClass({
-  // Wrap a list of elements into a two or three column table, depen
+  // Wrap a list of elements into a two or three column table, depending on window width
+  propTypes: {
+    content:    React.PropTypes.array.isRequired,
+    width:      React.PropTypes.number.isRequired,
+    threshhold: React.PropTypes.number
+  },
   render: function() {
-
-      if ($(window).width() > 1000) {
+      var threshhold = this.props.threshhold || 450;
+      if (this.props.width > threshhold) {
         return (<ThreeBox content={this.props.content} />);
       } else {
         return (<TwoBox content={this.props.content} />);

@@ -21,7 +21,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
       if (mode === "TextAndConnections") {
         panels[0].highlightedRefs = this.props.initialRefs;
       }
-    } else {
+    } else if (this.props.initialRefs.length) {
       panels.push({refs: this.props.initialRefs, mode: "Text"});
       if (this.props.initialFilter){
         panels.push({refs: this.props.initialRefs, filter: this.props.initialFilter, mode: "Connections"});
@@ -240,6 +240,9 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     this.state.panels.splice(n+1, 0, {refs: [ref], mode: "Text"});
     this.setState({panels: this.state.panels});
   },
+  openPanelAtEnd: function(ref) {
+    this.openPanelAt(this.state.panels.length+1, ref);
+  },
   setTextListHighlight: function(n, refs) {
     // Set the textListHighlight for panel `n` to `ref`
     // If no TextList panel is currently open, do nothing
@@ -271,7 +274,11 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     if (this.state.panels[n].mode === "Connections" && this.state.panels.length > 1) {
       this.state.panels[n-1].highlightedRefs = [];
     }
-    this.state.panels.splice(n, 1);
+    if (this.state.panels.length == 1 && n == 0) {
+      this.state.panels = [];
+    } else {
+      this.state.panels.splice(n, 1);
+    }
     this.setState({panels: this.state.panels});
     this.updateHistoryState();
   },
@@ -281,8 +288,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     for (var i = 0; i < this.state.panels.length; i++) {
       var panel                    = clone(this.state.panels[i]);
       var style                    = {width: width + "%", left: (width * i) + "%"};
-      var multi                    = this.props.multiPanel;
-      var onSegmentClick           = multi ? this.handleSegmentClick.bind(null, i) : null;
+      var onSegmentClick           = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
       var onCitationClick          = this.openPanelAt.bind(null, i);
       var onTextListClick          = this.openPanelAt.bind(null, i);
       var onPanelUpdate            = this.handlePanelUpdate.bind(null, i);
@@ -306,7 +312,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
         panels.push(React.createElement("div", {className: "readerPanelBox", style: style, key: key}, 
                       React.createElement(ReaderPanel, {
                         initialState: panel, 
-                        multiPanel: multi, 
+                        multiPanel: this.props.multiPanel, 
                         onSegmentClick: onSegmentClick, 
                         onCitationClick: onCitationClick, 
                         historyUpdate: onPanelUpdate, 
@@ -323,12 +329,12 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
                         initialMode: panel.mode, 
                         initialFilter: panel.filter, 
                         initialHighlightedRefs: panel.highlightedRefs, 
-                        initialMenu: i == 0 ? this.props.initialMenu : null, 
+                        initialMenu: this.props.multiPanel ? null : this.props.initialMenu, 
                         initialQuery: this.props.initialQuery, 
                         initialSheetsTag: this.props.initialSheetsTag, 
                         initialNavigationCategories: this.props.initialNavigationCategories, 
                         initialSettings: clone(this.props.initialSettings), 
-                        multiPanel: multi, 
+                        multiPanel: this.props.multiPanel, 
                         onSegmentClick: onSegmentClick, 
                         onCitationClick: onCitationClick, 
                         onTextListClick: onTextListClick, 
@@ -339,10 +345,99 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
       }
     }
     var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel});
-    return (React.createElement("div", {className: classes}, panels));
+    return (React.createElement("div", {className: classes}, 
+              this.props.multiPanel ? 
+                React.createElement(Header, {
+                  onRefClick: this.openPanelAtEnd, 
+                  initialMode: this.props.initialMenu, 
+                  panelsOpen: this.state.panels.length}) : null, 
+              panels
+            ));
   }
 });
 
+
+var Header = React.createClass({displayName: "Header",
+  propTypes: {
+    initialMode: React.PropTypes.string,
+    onRefClick:  React.PropTypes.func,
+    panelsOpen:  React.PropTypes.number
+  },
+  getInitialState: function() {
+    return {
+      mode: this.props.initialMode || null,
+      query: null
+    };
+  },
+  componentWillReceiveProps: function(nextProps) {
+    if (this.props.panelsOpen === 1 && nextProps.panelsOpen === 0) {
+      this.setState({mode: "navigation"});
+    }
+  },
+  showDesktop: function() {
+    this.setState({mode: null, query: null});
+    this.clearSearchBox();
+  },
+  showLibrary: function() {
+    this.setState({mode: "navigation", query: null});
+    this.clearSearchBox();
+  },
+  showSearch: function(query) {
+    this.setState({mode: "search", query: query});
+  },
+  showAccount: function() {
+    this.setState({mode: "account"});
+    this.clearSearchBox();
+  },
+  clearSearchBox: function() {
+    $(ReactDOM.findDOMNode(this)).find("input.search").val("");
+  },
+  handleRefClick: function(ref) {
+    this.showDesktop();
+    this.props.onRefClick(ref);
+  },
+  handleSearchKeyUp: function(event) {
+    if (event.keyCode === 13) {
+      var query = $(event.target).val();
+      //window.location = "/search?q=" + query.replace(/ /g, "+");
+      this.showSearch(query);
+    }
+  },
+  handleSearchButtonClick: function(event) {
+    var query = $(ReactDOM.findDOMNode(this)).find(".searchButton").val();
+    if (query) {
+      this.props.openSearch(query);
+    }
+  },  
+  render: function() {
+    var viewContent = this.state.mode ? 
+                        (React.createElement(ReaderPanel, {
+                          multiPanel: true, 
+                          initialMenu: this.state.mode, 
+                          initialQuery: this.state.query, 
+                          onNavTextClick: this.handleRefClick, 
+                          onSearchResultClick: this.handleRefClick, 
+                          hideNavHeader: true})) : null;
+
+    return (React.createElement("div", {className: "header"}, 
+              React.createElement("div", {className: "headerInner"}, 
+                React.createElement("div", {className: "left"}, 
+                  React.createElement("div", {className: "library", onClick: this.showLibrary}, React.createElement("i", {className: "fa fa-bars"})), 
+                  React.createElement("input", {className: "search", placeholder: "Search", onKeyUp: this.handleSearchKeyUp})
+                ), 
+                React.createElement("div", {className: "right"}, 
+                  React.createElement("div", {className: "account", onClick: this.showAccount}, React.createElement("i", {className: "fa fa-user"}))
+                ), 
+                React.createElement("div", {className: "home", onClick: this.showDesktop}, React.createElement("img", {src: "/static/img/sefaria-on-white.png"}))
+              ), 
+               viewContent ? 
+                (React.createElement("div", {className: "headerNavContent"}, 
+                  viewContent
+                 )) : null
+            ));
+
+  }
+});
 
 var ReaderPanel = React.createClass({displayName: "ReaderPanel",
   propTypes: {
@@ -358,10 +453,13 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
     onSegmentClick:         React.PropTypes.func,
     onCitationClick:        React.PropTypes.func,
     onTextListClick:        React.PropTypes.func,
+    onNavTextClick:         React.PropTypes.func,
+    onSearchResultClick:    React.PropTypes.func,
     historyUpdate:          React.PropTypes.func,
     closePanel:             React.PropTypes.func,
     highlightedRefs:        React.PropTypes.array,
-    mulitPanel:             React.PropTypes.bool,
+    hideNavHeader:          React.PropTypes.bool,
+    multiPanel:             React.PropTypes.bool,
     panelsOpen:             React.PropTypes.number
   },
   getInitialState: function() {
@@ -370,7 +468,7 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
     }
 
     return {
-      refs: this.props.initialRefs, // array of ref strings
+      refs: this.props.initialRefs || [], // array of ref strings
       mode: this.props.initialMode, // "Text", "TextAndConnections", "Connections"
       filter: this.props.initialFilter || [],
       highlightedRefs: this.props.initialHighlightedRefs || [],
@@ -401,8 +499,14 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
     this.trackPanelOpens();
   },
   componentWillReceiveProps: function(nextProps) {
-    if (nextProps.initialFilter) {
+    if (nextProps.initialFilter && !this.props.multiPanel) {
       this.openConnectionsInPanel(nextProps.initialRefs);
+    }
+    if (nextProps.initialQuery) {
+      this.openSearch(nextProps.initialQuery);
+    }
+    if (this.state.menuOpen !== nextProps.initialMenu) {
+      this.setState({menuOpen: nextProps.initialMenu});
     }
     if (nextProps.initialState) {
       this.setState(nextProps.initialState);
@@ -651,7 +755,7 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
           openDisplaySettings: this.openDisplaySettings, 
           onTextClick: this.handleTextListClick, 
           onCitationClick: this.handleCitationClick, 
-          closePanel: this.props.panelsOpen > 1 ? this.props.closePanel : null, 
+          closePanel: this.props.closePanel, 
           key: "connections"})
       );
     }
@@ -666,7 +770,8 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
                     openSearch: this.openSearch, 
                     openMenu: this.openMenu, 
                     openDisplaySettings: this.openDisplaySettings, 
-                    showBaseText: this.showBaseText}));
+                    onTextClick: this.props.onNavTextClick || this.showBaseText, 
+                    hideNavHeader: this.props.hideNavHeader}));
 
     } else if (this.state.menuOpen === "navigation") {
       var menu = (React.createElement(ReaderNavigationMenu, {
@@ -677,7 +782,8 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
                     openSearch: this.openSearch, 
                     openMenu: this.openMenu, 
                     openDisplaySettings: this.openDisplaySettings, 
-                    showBaseText: this.showBaseText}));
+                    onTextClick: this.props.onNavTextClick || this.showBaseText, 
+                    hideNavHeader: this.props.hideNavHeader}));
 
     } else if (this.state.menuOpen === "text toc") {
       var menu = (React.createElement(ReaderTextTableOfContents, {
@@ -694,10 +800,11 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
       var menu = (React.createElement(SearchPage, {
                     initialSettings: settings, 
                     settings: clone(this.state.settings), 
-                    onResultClick: this.showBaseText, 
+                    onResultClick: this.props.onSearchResultClick || this.showBaseText, 
                     onQueryChange: this.setSearchQuery, 
                     openDisplaySettings: this.openDisplaySettings, 
-                    close: this.closeMenus}));
+                    close: this.closeMenus, 
+                    hideNavHeader: this.props.hideNavHeader}));
 
     } else if (this.state.menuOpen === "sheets") {
       var menu = (React.createElement(SheetsNav, {
@@ -733,7 +840,7 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
           closeMenus: this.closeMenus, 
           openDisplaySettings: this.openDisplaySettings, 
           currentLayout: this.currentLayout, 
-          closePanel: this.props.panelsOpen > 1 ? this.props.closePanel : null})), 
+          closePanel: this.props.closePanel})), 
 
         React.createElement("div", {className: "readerContent", style: style}, 
           items
@@ -806,8 +913,8 @@ var ReaderControls = React.createClass({displayName: "ReaderControls",
     var readerControls = hideHeader ? null :
         (React.createElement("div", {className: classes}, 
           React.createElement("div", {className: "leftButtons"}, 
-            this.props.closePanel ? (React.createElement(ReaderNavigationMenuCloseButton, {icon: mode === "Connections" ? "arrow": null, onClick: this.props.closePanel})) : null, 
-            React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.openMenu.bind(null, "navigation")})
+            this.props.multiPanel ? (React.createElement(ReaderNavigationMenuCloseButton, {icon: mode === "Connections" ? "arrow": null, onClick: this.props.closePanel})) : null, 
+            this.props.multiPanel ? null : (React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.openMenu.bind(null, "navigation")}))
           ), 
           centerContent, 
           React.createElement("div", {className: "rightButtons"}, 
@@ -906,17 +1013,19 @@ var ReaderDisplayOptionsMenu = React.createClass({displayName: "ReaderDisplayOpt
 var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu",
   // The Navigation menu for broswing and searching texts, plus site links.
   propTypes: {
-    home:          React.PropTypes.bool,
     categories:    React.PropTypes.array.isRequired,
     setCategories: React.PropTypes.func.isRequired,
     closeNav:      React.PropTypes.func.isRequired,
     openNav:       React.PropTypes.func.isRequired,
     openSearch:    React.PropTypes.func.isRequired,
-    showBaseText:  React.PropTypes.func.isRequired
+    onTextClick:   React.PropTypes.func.isRequired,
+    hideNavHeader: React.PropTypes.bool,
+    home:          React.PropTypes.bool
   },
   getInitialState: function() {
     return {
       showMore: false,
+      width: 0,
     };
   },
   componentDidMount: function() {
@@ -944,7 +1053,7 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
   handleClick: function(event) {
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
       var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
-      this.props.showBaseText(ref);
+      this.props.onTextClick(ref);
       sjs.track.event("Reader", "Navigation Text Click", ref)
     } else if ($(event.target).hasClass("catLink") || $(event.target).parent().hasClass("catLink")) {
       var cats = $(event.target).attr("data-cats") || $(event.target).parent().attr("data-cats");
@@ -975,7 +1084,9 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
                   closeNav: this.closeNav, 
                   setCategories: this.props.setCategories, 
                   openDisplaySettings: this.props.openDisplaySettings, 
-                  navHome: this.navHome})
+                  navHome: this.navHome, 
+                  hideNavHeader: this.props.hideNavHeader, 
+                  width: this.state.width})
               ));
     } else {
       var categories = [
@@ -1058,11 +1169,8 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
                         React.createElement("span", {className: "en"}, "Daf Yomi"), 
                         React.createElement("span", {className: "he"}, "דף יומי")
                        ))];
-      if (this.state.width < 450) {
-        calendar = (React.createElement("div", {className: "readerNavCalendar"}, React.createElement(TwoBox, {content: calendar})));
-      } else {
-        calendar = (React.createElement("div", {className: "readerNavCalendar"}, React.createElement(ThreeBox, {content: calendar})));
-      }
+      calendar = (React.createElement("div", {className: "readerNavCalendar"}, React.createElement(TwoOrThreeBox, {content: calendar, width: this.state.width})));
+
       var topContent = this.props.home ?
               (React.createElement("div", {className: "readerNavTop search"}, 
                 React.createElement(CategoryColorLine, {category: "Other"}), 
@@ -1077,8 +1185,9 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
                 React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings}), 
                 React.createElement("input", {className: "readerSearch", placeholder: "Search", onKeyUp: this.handleSearchKeyUp})
               ));
+      topContent = this.props.hideNavHeader ? null : topContent;
 
-      var classes     = classNames({readerNavMenu: 1, readerNavMenu:1, home: this.props.home});
+      var classes     = classNames({readerNavMenu: 1, readerNavMenu:1, home: this.props.home, noHeader: !this.props.hideHeader});
       var sheetsStyle = {"borderColor": sjs.categoryColor("Sheets")};
 
       return(React.createElement("div", {className: classes, onClick: this.handleClick, key: "0"}, 
@@ -1126,7 +1235,9 @@ var ReaderNavigationCategoryMenu = React.createClass({displayName: "ReaderNaviga
     categories:    React.PropTypes.array.isRequired,
     closeNav:      React.PropTypes.func.isRequired,
     setCategories: React.PropTypes.func.isRequired,
-    navHome:       React.PropTypes.func.isRequired
+    navHome:       React.PropTypes.func.isRequired,
+    width:         React.PropTypes.number,
+    hideNavHeader: React.PropTypes.bool
   },
   render: function() {
 
@@ -1157,7 +1268,7 @@ var ReaderNavigationCategoryMenu = React.createClass({displayName: "ReaderNaviga
                          ));
 
     } else {
-      var toggle = "";
+      var toggle = null;
     }
 
     var catContents = sjs.library.tocItemsByCategories(categories);
@@ -1166,7 +1277,7 @@ var ReaderNavigationCategoryMenu = React.createClass({displayName: "ReaderNaviga
               React.createElement("div", {className: "readerNavTop searchOnly"}, 
                 React.createElement(CategoryColorLine, {category: categories[0]}), 
                 React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.navHome}), 
-                React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings}), 
+                this.props.hideNavHeader ? null : (React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings})), 
                 React.createElement("h2", null, 
                   React.createElement("span", {className: "en"}, this.props.category), 
                   React.createElement("span", {className: "he"}, sjs.library.hebrewCategory(this.props.category))
@@ -1175,7 +1286,7 @@ var ReaderNavigationCategoryMenu = React.createClass({displayName: "ReaderNaviga
               React.createElement("div", {className: "content"}, 
                 React.createElement("div", {className: "contentInner"}, 
                   toggle, 
-                  React.createElement(ReaderNavigationCategoryMenuContents, {contents: catContents, categories: categories})
+                  React.createElement(ReaderNavigationCategoryMenuContents, {contents: catContents, categories: categories, width: this.props.width})
                 )
               )
             ));
@@ -1187,7 +1298,8 @@ var ReaderNavigationCategoryMenuContents = React.createClass({displayName: "Read
   // Inner content of Category menu (just category title and boxes of)
   propTypes: {
     contents:   React.PropTypes.array.isRequired,
-    categories: React.PropTypes.array.isRequired
+    categories: React.PropTypes.array.isRequired,
+    width:      React.PropTypes.number
   },
   render: function() {
       var content = [];
@@ -1212,7 +1324,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({displayName: "Read
                             React.createElement("span", {className: "en"}, item.category), 
                             React.createElement("span", {className: "he"}, item.heCategory)
                           ), 
-                          React.createElement(ReaderNavigationCategoryMenuContents, {contents: item.contents, categories: newCats})
+                          React.createElement(ReaderNavigationCategoryMenuContents, {contents: item.contents, categories: newCats, width: this.props.width})
                         )));
         } else {
           // Add a Text
@@ -1230,7 +1342,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({displayName: "Read
         // Walk through content looking for runs of spans to group togther into a table
         if (content[i].type == "div") { // this is a subcategory
           if (currentRun.length) {
-            boxedContent.push((React.createElement(TwoBox, {contents: currentRun, key: i})));
+            boxedContent.push((React.createElement(TwoOrThreeBox, {contents: currentRun, width: this.props.width, key: i})));
             currentRun = [];
           }
           boxedContent.push(content[i]);
@@ -1239,7 +1351,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({displayName: "Read
         }
       }
       if (currentRun.length) {
-        boxedContent.push((React.createElement(TwoBox, {content: currentRun, key: i})));
+        boxedContent.push((React.createElement(TwoOrThreeBox, {content: currentRun, width: this.props.width, key: i})));
       }
       return (React.createElement("div", null, boxedContent));
   }
@@ -1922,7 +2034,6 @@ var TextRange = React.createClass({displayName: "TextRange",
     }
   },
   handleClick: function(event) {
-    console.log("click")
     if (window.getSelection().type === "Range") { 
       // Don't do anything if this click is part of a selection
       return;
@@ -2407,8 +2518,8 @@ var TextList = React.createClass({displayName: "TextList",
           React.createElement("div", {className: "textListTop"}, 
             this.props.fullPanel ? 
               (React.createElement("div", {className: "leftButtons"}, 
-                this.props.closePanel ? (React.createElement(ReaderNavigationMenuCloseButton, {icon: "arrow", onClick: this.props.closePanel})) : null, 
-                React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.openNav})
+                this.props.multiPanel ? (React.createElement(ReaderNavigationMenuCloseButton, {icon: "arrow", onClick: this.props.closePanel})) : null, 
+                this.props.multiPanel ? null : (React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.openNav})) 
                )) : null, 
             React.createElement(RecentFilterSet, {
               showText: this.props.showText, 
@@ -2620,7 +2731,8 @@ var SearchPage = React.createClass({displayName: "SearchPage",
         settings:      React.PropTypes.object,
         close:         React.PropTypes.func,
         onResultClick: React.PropTypes.func,
-        onQueryChange: React.PropTypes.func
+        onQueryChange: React.PropTypes.func,
+        hideNavHeader: React.PropTypes.bool
     },
     getInitialState: function() {
         return {
@@ -2629,6 +2741,11 @@ var SearchPage = React.createClass({displayName: "SearchPage",
             runningQuery: null,
             isQueryRunning: false
         }
+    },
+    componentWillReceiveProps: function(nextProps) {
+      if (nextProps.initialSettings.query !== this.state.query) {
+        this.updateQuery(nextProps.initialSettings.query);
+      }      
     },
     updateQuery: function(query) {
         this.setState({query: query});
@@ -2644,15 +2761,17 @@ var SearchPage = React.createClass({displayName: "SearchPage",
     },
     render: function () {
         var style      = {"fontSize": this.props.settings.fontSize + "%"};
-        return (React.createElement("div", {className: "readerNavMenu"}, 
-                React.createElement("div", {className: "readerNavTop search"}, 
-                  React.createElement(CategoryColorLine, {category: "Other"}), 
-                  React.createElement(ReaderNavigationMenuCloseButton, {onClick: this.props.close}), 
-                  React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings}), 
-                  React.createElement(SearchBar, {
-                    initialQuery:  this.state.query, 
-                    updateQuery:  this.updateQuery})
-                ), 
+        var classes = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader});
+        return (React.createElement("div", {className: classes}, 
+                  this.props.hideNavHeader ? null :
+                    (React.createElement("div", {className: "readerNavTop search"}, 
+                      React.createElement(CategoryColorLine, {category: "Other"}), 
+                      React.createElement(ReaderNavigationMenuCloseButton, {onClick: this.props.close}), 
+                      React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings}), 
+                      React.createElement(SearchBar, {
+                        initialQuery:  this.state.query, 
+                        updateQuery:  this.updateQuery})
+                    )), 
                   React.createElement("div", {className: "content"}, 
                     React.createElement("div", {className: "contentInner"}, 
                       React.createElement("div", {className: "searchContentFrame"}, 
@@ -2873,7 +2992,7 @@ var SearchResultList = React.createClass({displayName: "SearchResultList",
 
         return (
             React.createElement("div", null, 
-                React.createElement("div", {className: "results-count"}, 
+                React.createElement("div", {className: "results-count", key: "results-count"}, 
                     React.createElement("span", {className: "en"}, totalWithCommas, " Results"), 
                     React.createElement("span", {className: "he"}, totalWithCommas, " תוצאות"), 
                     (this.state.sheet_total > 0 && this.state.text_total > 0) ? totalBreakdown : null
@@ -2883,15 +3002,13 @@ var SearchResultList = React.createClass({displayName: "SearchResultList",
                         data: result, 
                         query: this.props.query, 
                         key: result.ref, 
-                        onResultClick: this.props.onResultClick}
-                        );
+                        onResultClick: this.props.onResultClick});
                 }.bind(this)), 
                 this.state.sheet_hits.map(function(result) {
                     return React.createElement(SearchSheetResult, {
                         data: result, 
                         query: this.props.query, 
-                        key: result._id}
-                        );
+                        key: result._id});
                 }.bind(this))
             )
 
@@ -3084,10 +3201,15 @@ var TwoBox = React.createClass({displayName: "TwoBox",
 
 
 var TwoOrThreeBox = React.createClass({displayName: "TwoOrThreeBox",
-  // Wrap a list of elements into a two or three column table, depen
+  // Wrap a list of elements into a two or three column table, depending on window width
+  propTypes: {
+    content:    React.PropTypes.array.isRequired,
+    width:      React.PropTypes.number.isRequired,
+    threshhold: React.PropTypes.number
+  },
   render: function() {
-
-      if ($(window).width() > 1000) {
+      var threshhold = this.props.threshhold || 450;
+      if (this.props.width > threshhold) {
         return (React.createElement(ThreeBox, {content: this.props.content}));
       } else {
         return (React.createElement(TwoBox, {content: this.props.content}));
