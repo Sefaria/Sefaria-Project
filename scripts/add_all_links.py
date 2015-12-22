@@ -31,7 +31,7 @@ for text in texts:
         text_order.append(text["title"])
     print text["title"]
     try:
-        index = txt.get_index(text["title"])
+        index = txt.library.get_index(text["title"])
     except Exception as e:
         print "Error loading: {} index : {}".format(text["title"] , e)
         continue
@@ -62,7 +62,7 @@ total = 0
 for text in text_order:
     num = text_total[text]
     try:
-        index = txt.get_index(text)
+        index = txt.library.get_index(text)
     except Exception as e:
         print "Error loading: {} index : {}".format(text, e)
         continue

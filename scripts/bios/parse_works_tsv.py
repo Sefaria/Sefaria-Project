@@ -66,7 +66,7 @@ with open("Torah Commentators - Bios - Works.tsv") as tsv:
         if l[1] in commentaries_handled:
             continue
         try:
-            i = get_index(l[0])
+            i = library.get_index(l[0])
         except Exception as e:
             print u"Count not load {}. {}".format(l[0], e)
             continue
