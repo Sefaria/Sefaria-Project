@@ -2514,7 +2514,6 @@ function aboutHtml(data) {
 							v.versionTitle + '</a></div>';
 		//versionsLang[v.language] = true;
 	}
-    console.log(versionsHtml);
 	if (Object.keys(versionsHtml).length) {
 		var langClass = Object.keys(versionsHtml).join(" ");
 		html += '<div id="versionsList" class="'+langClass+'"><i>Other versions of this text:</i>';
