@@ -268,7 +268,7 @@ def del_cached_elem(request, title):
 def reset_counts(request, title=None):
     if title:
         try:
-            i  = model.get_index(title)
+            i  = model.library.get_index(title)
         except:
             return HttpResponseRedirect("/dashboard?m=Unknown-Book")
         vs = model.VersionState(index=i)

@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 from . import abstract as abst
 from . import text
 from . import link
-from text import VersionSet, AbstractIndex, AbstractSchemaContent, IndexSet, library, get_index, Ref
+from text import VersionSet, AbstractIndex, AbstractSchemaContent, IndexSet, library, Ref
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedIntArray
 from sefaria.system.exceptions import InputError, BookNameError
 from sefaria.system.cache import delete_template_cache
@@ -104,14 +104,14 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         if not index:  # so that basic model tests can run
             if getattr(self, "title", None):
                 try:
-                    self.index = get_index(self.title)
+                    self.index = library.get_index(self.title)
                 except BookNameError as e:
                     logger.warning(u"Failed to load Index for VersionState - {}: {} (Normal on Index name change)".format(self.title, e))
             return
 
         if not isinstance(index, AbstractIndex):
             try:
-                index = get_index(index)
+                index = library.get_index(index)
             except BookNameError as e:
                 logger.warning("Failed to load Index for VersionState {}: {}".format(index, e))
 

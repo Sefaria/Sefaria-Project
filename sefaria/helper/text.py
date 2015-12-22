@@ -18,7 +18,7 @@ def add_spelling(category, old, new, lang="en"):
     """
     indxs = library.get_indexes_in_category(category)
     for ind in indxs:
-        i = get_index(ind)
+        i = library.get_index(ind)
         print
         assert isinstance(i, Index)
         schema = i.nodes

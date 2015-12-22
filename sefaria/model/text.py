@@ -550,7 +550,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             on_split = self.get_title().split(" on ")
             if len(on_split) == 2:
                 try:
-                    i = get_index(on_split[1])
+                    i = library.get_index(on_split[1])
                     if getattr(i, "order", None):
                         toc_contents_dict["order"] = i.order
                 except BookNameError:
@@ -591,7 +591,7 @@ class CommentaryIndex(AbstractIndex):
         if not self.c_index:
             raise BookNameError(u"No commentator named '{}'.".format(commentator_name))
 
-        self.b_index = get_index(book_name)
+        self.b_index = library.get_index(book_name)
 
         if not self.b_index:
             raise BookNameError(u"No book named '{}'.".format(book_name))
@@ -740,50 +740,10 @@ class CommentaryIndex(AbstractIndex):
 
         return attrs
 
-
+# Deprecated
 def get_index(bookname):
-    """
-    Factory - returns either an :class:`Index` object or a :class:`CommentaryIndex` object
-
-    :param string bookname: Name of the book or commentary on book.
-    :return:
-    """
-    # look for result in indices cache
-    if not bookname:
-        raise BookNameError("No book provided.")
-
-    cached_result = scache.get_index(bookname)
-    if cached_result:
-        return cached_result
-
-    bookname = (bookname[0].upper() + bookname[1:]).replace("_", " ")  #todo: factor out method
-
-    #todo: cache
-    node = library.get_schema_node(bookname)
-    if node:
-        i = node.index
-        scache.set_index(bookname, i)
-        return i
-
-    # "commenter" on "book"
-    # todo: handle hebrew x on y format (do we need this?)
-    pattern = r'(?P<commentor>.*) on (?P<book>.*)'
-    m = regex.match(pattern, bookname)
-    if m:
-        i = CommentaryIndex(m.group('commentor'), m.group('book'))
-        scache.set_index(bookname, i)
-        return i
-
-    #simple commentary record
-    c_index = Index().load({
-            "titleVariants": bookname,
-            "categories.0": "Commentary"
-        })
-    if c_index:
-        return c_index
-
-    raise BookNameError(u"No book named '{}'.".format(bookname))
-
+    logger.warning("Use of deprecated function: get_index()")
+    return library.get_index(bookname)
 
 
 """
@@ -933,7 +893,7 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         pass
 
     def get_index(self):
-        return get_index(self.title)
+        return library.get_index(self.title)
 
     def first_section_ref(self):
         """
@@ -1812,7 +1772,7 @@ class Ref(object):
             if match:
                 title = match.group('title')
                 on_node = library.get_schema_node(match.group('commentee'))  # May be SchemaNode or JaggedArrayNode
-                self.index = get_index(match.group('commentor') + " on " + on_node.index.title)
+                self.index = library.get_index(match.group('commentor') + " on " + on_node.index.title)
                 self.index_node = self.index.nodes.title_dict(self._lang).get(title)
                 self.book = self.index_node.full_title("en")
                 if not self.index_node:
@@ -3278,16 +3238,16 @@ class Library(object):
         self._index_ref_map = {}
 
         # Maps, keyed by language, from index key to array of titles
-        self._index_title_maps = {}
+        self._index_title_maps = {lang:{} for lang in self.langs}
 
         # Maps, keyed by language, from titles to schema nodes
-        self._title_node_maps = {}
+        self._title_node_maps = {lang:{} for lang in self.langs}
 
         # Maps, keyed by language, from index key to array of commentary titles
-        self._index_title_commentary_maps = {}
+        self._index_title_commentary_maps = {lang:{} for lang in self.langs}
 
         # Maps, keyed by language, from titles to simple and commentary schema nodes
-        self._title_node_with_commentary_maps = {}
+        self._title_node_with_commentary_maps = {lang:{} for lang in self.langs}
 
         # Lists of full titles, keys are string generated from a combination of language code, "commentators", "commentary", and "terms".  See method `full_title_list()`
         self._full_title_lists = {}
@@ -3300,10 +3260,54 @@ class Library(object):
         self._title_regexes = {}
 
         # Maps, keyed by language, from term names to text refs
-        self._term_ref_maps = {}
+        self._term_ref_maps = {lang:{} for lang in self.langs}
+
+        # Map from index title to index object
+        self._indexes = {}
 
         # old local cache
         self.local_cache = {}
+
+
+    def get_index(self, bookname):
+        """
+        Factory - returns either an :class:`Index` object or a :class:`CommentaryIndex` object
+
+        :param string bookname: Name of the book or commentary on book.
+        :return:
+        """
+        # look for result in indices cache
+        if not bookname:
+            raise BookNameError("No book provided.")
+
+        indx = self._indexes.get(bookname)
+        if not indx:
+            bookname = (bookname[0].upper() + bookname[1:]).replace("_", " ")  #todo: factor out method
+
+            #todo: cache
+            node = self.get_schema_node(bookname)
+            if node:
+                indx = node.index
+            else:
+                # "commenter" on "book"
+                # todo: handle hebrew x on y format (do we need this?)
+                pattern = r'(?P<commentor>.*) on (?P<book>.*)'
+                m = regex.match(pattern, bookname)
+                if m:
+                    indx = CommentaryIndex(m.group('commentor'), m.group('book'))
+                else:
+                    #simple commentary record
+                    indx = Index().load({
+                            "titleVariants": bookname,
+                            "categories.0": "Commentary"
+                        })
+
+            if not indx:
+                raise BookNameError(u"No book named '{}'.".format(bookname))
+
+            self._indexes[bookname] = indx
+
+        return indx
 
     def add_index_record(self, index_title = None, index_object = None, rebuild = True):
         """
@@ -3315,7 +3319,7 @@ class Library(object):
         :return:
         """
         if index_title:
-            index_object = get_index(index_title)
+            index_object = self.get_index(index_title)
         assert index_object, "Library.add_index_record called without index"
 
         #//TODO: mark for commentary refactor
@@ -3385,38 +3389,29 @@ class Library(object):
         self._title_regex_strings = {}
         self._title_regexes = {}
 
-
     def build_all_title_node_dicts(self):
         # Rework get_index_forest() code here to only run once
 
         # simple texts
         forest = [i.nodes for i in IndexSet() if not i.is_commentary()]
-        title_dicts = {lang : {} for lang in self.langs}
+        self._title_node_maps = {lang : {} for lang in self.langs}
         for tree in forest:
             try:
                 for lang in self.langs:
-                    title_dicts[lang].update(tree.title_dict(lang))
+                    self._title_node_maps[lang].update(tree.title_dict(lang))
             except IndexSchemaError as e:
                 logger.error(u"Error in generating title node dictionary: {}".format(e))
-        for lang in self.langs:
-            key = "title_node_dict_" + lang
-            scache.set_cache_elem(key, title_dicts[lang])
-            self.local_cache[key] = title_dicts[lang]
 
         # commentary
-        commentary_forest = [get_index(i).nodes for i in self.get_commentary_version_titles()]
-        c_title_dicts = { lang: title_dicts[lang].copy() for lang in self.langs }
+        commentary_forest = [self.get_index(i).nodes for i in self.get_commentary_version_titles()]
+        self._title_node_with_commentary_maps = { lang: self._title_node_maps[lang].copy() for lang in self.langs }
 
         for tree in commentary_forest:
             try:
                 for lang in self.langs:
-                    c_title_dicts[lang].update(tree.title_dict(lang))
+                    self._title_node_with_commentary_map[lang].update(tree.title_dict(lang))
             except IndexSchemaError as e:
                 logger.error(u"Error in generating title node dictionary: {}".format(e))
-        for lang in self.langs:
-            comm_key = "title_node_dict_" + lang + "_commentary"
-            scache.set_cache_elem(comm_key, c_title_dicts[lang])
-            self.local_cache[comm_key] = c_title_dicts[lang]
 
     #todo: the for_js path here does not appear to be in use.
     def all_titles_regex_string(self, lang="en", commentary=False, with_commentary=False, with_terms=False): #, for_js=False):
@@ -3568,7 +3563,7 @@ class Library(object):
             ctitles = self.get_commentary_version_titles()
             for title in ctitles:
                 try:
-                    i = get_index(title)
+                    i = self.get_index(title)
                     root_nodes.append(i.nodes)
 
                 # TEMPORARY - filter out complex texts
@@ -3591,7 +3586,7 @@ class Library(object):
         # title_dict = self.local_cache.get(key)
 
         #//TODO: mark for commentary refactor
-        title_dict = self._title_node_maps[lang] if with_commentary else self._title_node_with_commentary_maps[lang]
+        title_dict = self._title_node_maps.get(lang) if with_commentary else self._title_node_with_commentary_maps.get(lang)
 
         #if not title_dict:
         #    title_dict = scache.get_cache_elem(key)

@@ -272,7 +272,7 @@ def edit_text(request, ref=None, lang=None, version=None):
                 mode = text["mode"].capitalize()
                 initJSON = json.dumps(text)
         except:
-            index = get_index(ref)
+            index = library.get_index(ref)
             if index: # a commentator titlein
                 ref = None
                 initJSON = json.dumps({"mode": "add new", "newTitle": index.contents()['title']})
@@ -297,7 +297,7 @@ def edit_text_info(request, title=None, new_title=None):
     if title:
         # Edit Existing
         title = title.replace("_", " ")
-        i = get_index(title)
+        i = library.get_index(title)
         if not (request.user.is_staff or user_started_text(request.user.id, title)):
             return render_to_response('static/generic.html', {"title": "Permission Denied", "content": "The Text Info for %s is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed." % title}, RequestContext(request))
         indexJSON = json.dumps(i.contents(v2=True) if "toc" in request.GET else i.contents())
@@ -308,7 +308,7 @@ def edit_text_info(request, title=None, new_title=None):
         # Add New
         new_title = new_title.replace("_", " ")
         try: # Redirect to edit path if this title already exists
-            i = get_index(new_title)
+            i = library.get_index(new_title)
             return redirect("/edit/textinfo/%s" % new_title)
         except:
             pass
@@ -581,7 +581,7 @@ def text_toc(request, oref):
     cat_slices    = [categories[:n+1] for n in range(len(categories))] # successive sublists of cats, for category links
 
     c_titles      = model.library.get_commentary_version_titles_on_book(title, with_commentary2=True)
-    c_indexes     = [get_index(commentary) for commentary in c_titles]
+    c_indexes     = [library.get_index(commentary) for commentary in c_titles]
     commentaries  = [i.toc_contents() for i in c_indexes]
 
     if index.is_complex():
@@ -880,7 +880,7 @@ def index_api(request, title, v2=False, raw=False):
     """
     if request.method == "GET":
         try:
-            i = model.get_index(title).contents(v2=v2, raw=raw)
+            i = library.get_index(title).contents(v2=v2, raw=raw)
         except InputError as e:
             node = library.get_schema_node(title)  # If the request were for v1 and fails, this falls back to v2.
             if not node:
@@ -909,7 +909,7 @@ def index_api(request, title, v2=False, raw=False):
         else:
             title = j.get("oldTitle", j.get("title"))
             try:
-                i = get_index(title) # Only allow staff and the person who submitted a text to edit
+                i = library.get_index(title) # Only allow staff and the person who submitted a text to edit
                 if not request.user.is_staff and not user_started_text(request.user.id, title):
                    return jsonResponse({"error": "{} is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(title)})
             except BookNameError:
@@ -927,7 +927,7 @@ def index_api(request, title, v2=False, raw=False):
 
         title = title.replace("_", " ")
 
-        i = get_index(title)
+        i = library.get_index(title)
 
         i.delete()
         record_index_deletion(title, request.user.id)

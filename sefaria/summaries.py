@@ -201,7 +201,7 @@ def update_table_of_contents():
     for c in commentary_texts:
 
         try:
-            i = get_index(c)
+            i = library.get_index(c)
         except BookNameError:
             continue
 
@@ -258,7 +258,7 @@ def update_summaries_on_change(bookname, old_ref=None, recount=True):
     Update text summary docs to account for change or insertion of 'text'
     * recount - whether or not to perform a new count of available text
     """
-    index = get_index(bookname)
+    index = library.get_index(bookname)
 
     indx_dict = index.toc_contents()
 

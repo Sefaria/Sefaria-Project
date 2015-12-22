@@ -105,7 +105,7 @@ def rebuild_commentary_links(tref, user, **kwargs):
         oref = Ref(tref)
     except InputError:
         # Allow commentators alone, rebuild for each text we have
-        i = get_index(tref)
+        i = library.get_index(tref)
         for c in library.get_commentary_version_titles(i.title):
             rebuild_commentary_links(c, user, **kwargs)
         return

@@ -509,9 +509,9 @@ def hebrew_term(s):
 
 	# If s is a text title, look for a stored Hebrew title
 	try:
-		from sefaria.model import get_index, IndexSet
+		from sefaria.model import library, IndexSet
 		from sefaria.system.exceptions import BookNameError
-		i = get_index(s)
+		i = library.get_index(s)
 		return i.get_title("he")
 	except BookNameError:
 		pass

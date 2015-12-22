@@ -67,7 +67,7 @@ def make_text(doc):
 
 	"""
 
-    index = model.get_index(doc["title"])
+    index = model.library.get_index(doc["title"])
     text = "\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], doc["versionSource"]])    
     version = Version().load({'title': doc["title"], 'versionTitle': doc["versionTitle"], 'language': doc["language"]})	
 
@@ -153,7 +153,7 @@ def export_text(text):
 	"""
     print text["title"]
     try:
-        index = model.get_index(text["title"])
+        index = model.library.get_index(text["title"])
     except Exception as e:
         print "Skipping %s - %s" % (text["title"], e.message)
         return
