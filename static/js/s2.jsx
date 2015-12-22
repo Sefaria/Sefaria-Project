@@ -344,6 +344,7 @@ var ReaderApp = React.createClass({
                     </div>);
       }
     }
+    panels = panels.length ? panels : (<div className="emptyDesktop">Your desktop is empty.</div>);
     var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel});
     return (<div className={classes}>
               {this.props.multiPanel ? 
@@ -392,6 +393,15 @@ var Header = React.createClass({
   clearSearchBox: function() {
     $(ReactDOM.findDOMNode(this)).find("input.search").val("");
   },
+  handleLibraryClick: function() {
+    if (this.state.mode === "home") {
+      return;
+    } else if (this.state.mode === "navigation") {
+      this.showDesktop();
+    } else {
+      this.showLibrary();
+    }
+  },
   handleRefClick: function(ref) {
     this.showDesktop();
     this.props.onRefClick(ref);
@@ -422,7 +432,7 @@ var Header = React.createClass({
     return (<div className="header">
               <div className="headerInner">
                 <div className="left">
-                  <div className="library" onClick={this.showLibrary}><i className="fa fa-bars"></i></div>
+                  <div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div>
                   <input className="search" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
                 </div>
                 <div className="right">
@@ -435,7 +445,6 @@ var Header = React.createClass({
                   {viewContent}
                  </div>) : null}
             </div>);
-
   }
 });
 

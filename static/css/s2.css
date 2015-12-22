@@ -1532,6 +1532,11 @@ display: block;margin: 0 auto;}
   width: 150px;
   height: 42px;
 }
+.emptyDesktop {
+  margin-top: 200px;
+  text-align: center;
+  color: #999;
+}
 ::-webkit-input-placeholder {
    font-style: italic;
    font-family: "adobe-garamond-pro", Georgia, serif;

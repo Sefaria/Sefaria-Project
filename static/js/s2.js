@@ -344,6 +344,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
                     ));
       }
     }
+    panels = panels.length ? panels : (React.createElement("div", {className: "emptyDesktop"}, "Your desktop is empty."));
     var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel});
     return (React.createElement("div", {className: classes}, 
               this.props.multiPanel ? 
@@ -392,6 +393,15 @@ var Header = React.createClass({displayName: "Header",
   clearSearchBox: function() {
     $(ReactDOM.findDOMNode(this)).find("input.search").val("");
   },
+  handleLibraryClick: function() {
+    if (this.state.mode === "home") {
+      return;
+    } else if (this.state.mode === "navigation") {
+      this.showDesktop();
+    } else {
+      this.showLibrary();
+    }
+  },
   handleRefClick: function(ref) {
     this.showDesktop();
     this.props.onRefClick(ref);
@@ -422,7 +432,7 @@ var Header = React.createClass({displayName: "Header",
     return (React.createElement("div", {className: "header"}, 
               React.createElement("div", {className: "headerInner"}, 
                 React.createElement("div", {className: "left"}, 
-                  React.createElement("div", {className: "library", onClick: this.showLibrary}, React.createElement("i", {className: "fa fa-bars"})), 
+                  React.createElement("div", {className: "library", onClick: this.handleLibraryClick}, React.createElement("i", {className: "fa fa-bars"})), 
                   React.createElement("input", {className: "search", placeholder: "Search", onKeyUp: this.handleSearchKeyUp})
                 ), 
                 React.createElement("div", {className: "right"}, 
@@ -435,7 +445,6 @@ var Header = React.createClass({displayName: "Header",
                   viewContent
                  )) : null
             ));
-
   }
 });
 
