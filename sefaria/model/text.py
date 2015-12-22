@@ -1553,7 +1553,7 @@ def process_index_delete_in_versions(indx, **kwargs):
 """
 
 
-class RefCacher(type):
+class RefCacheType(type):
     """
     Metaclass for Ref class.
     Caches all Ref isntances according to the string they were instanciated with and their normal form.
@@ -1561,7 +1561,7 @@ class RefCacher(type):
     """
 
     def __init__(cls, name, parents, dct):
-        super(RefCacher, cls).__init__(name, parents, dct)
+        super(RefCacheType, cls).__init__(name, parents, dct)
         cls.__tref_oref_map = {}
         cls.__index_tref_map = {}
 
@@ -1579,8 +1579,17 @@ class RefCacher(type):
         cls.__index_tref_map = {}
 
     def remove_index(cls, index_title):
+        """
+        Removes all refs to Index with title `index_title` from the Ref cache
+        :param cls:
+        :param index_title:
+        :return:
+        """
         for tref in cls.__index_tref_map[index_title]:
-            del cls.__tref_oref_map[tref]
+            try:
+                del cls.__tref_oref_map[tref]
+            except KeyError:
+                continue
 
     def __call__(cls, *args, **kwargs):
         if len(args) == 1:
@@ -1596,7 +1605,7 @@ class RefCacher(type):
                 ref.tref = tref
                 return ref
             else:
-                result = super(RefCacher, cls).__call__(*args, **kwargs)
+                result = super(RefCacheType, cls).__call__(*args, **kwargs)
                 uid = result.uid()
                 title = result.index.title
                 if uid in cls.__tref_oref_map:
@@ -1617,7 +1626,7 @@ class RefCacher(type):
 
                 return result
         elif obj_arg:
-            result = super(RefCacher, cls).__call__(*args, **kwargs)
+            result = super(RefCacheType, cls).__call__(*args, **kwargs)
             uid = result.uid()
             title = result.index.title
             if uid in cls.__tref_oref_map:
@@ -1630,7 +1639,7 @@ class RefCacher(type):
                 cls.__index_tref_map[title] = [uid]
             return result
         else:  # Default.  Shouldn't be used.
-            return super(RefCacher, cls).__call__(*args, **kwargs)
+            return super(RefCacheType, cls).__call__(*args, **kwargs)
 
 
 class Ref(object):
@@ -1647,7 +1656,7 @@ class Ref(object):
             >>> Ref("Shabbat 4b")
             >>> Ref("Rashi on Shabbat 4b-5a")
     """
-    __metaclass__ = RefCacher
+    __metaclass__ = RefCacheType
 
     def __init__(self, tref=None, _obj=None):
         """
@@ -3369,11 +3378,10 @@ class Library(object):
         :param rebuild: Perform a rebuild of derivative objects afterwards?
         :return:
         """
-        #//TODO: mark for commentary refactor
-        #//Keeping commentary branch and simple branch completely separate - should make refactor easier
-
         Ref.remove_index(index_title)
 
+        #//TODO: mark for commentary refactor
+        #//Keeping commentary branch and simple branch completely separate - should make refactor easier
         for lang in self.langs:
             commentary_titles = self._index_title_commentary_maps[lang].get(index_title)
             simple_titles = self._index_title_maps[lang].get(index_title)
