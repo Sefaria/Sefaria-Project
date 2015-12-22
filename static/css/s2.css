@@ -247,7 +247,7 @@ body .bilingual .enOnly .he {
   padding-top: 40px;
 }
 .readerNavMenu .content .contentInner {
-  max-width: 700px;
+  max-width: 660px;
   margin: 0 auto;
 }
 .readerNavTop {
@@ -337,8 +337,6 @@ body .bilingual .enOnly .he {
 .multiPanel .readerNavTop .readerNavMenuSearchButton {
   left: 46px;
 }
-.readerNavMenu.home .readerNavTop {
-}
 .readerNavMenu.home .sefariaLogo img {
   width: 110px;
 }
@@ -346,19 +344,31 @@ body .bilingual .enOnly .he {
   text-align: center;
   color: #333;
   margin-top: -46px;
-  font-size: 19px;
+  font-size: 26px;
   height: 60px;
   font-weight: lighter;
   letter-spacing: 1px;
 }
 .readerNavMenu.home .tagline {
-margin-top: 29px;}
+  margin-top: 10px;
+}
 .readerNavMenu .tagline .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .readerNavMenu .tagline .he {
   font-family: "Open Sans Hebrew", sans-serif;
-  font-size: 20px;
+  font-size: 26px;
+}
+@media (max-width: 450px) {
+  .readerNavMenu.home .tagline {
+    margin-top: 29px;
+  }
+  .readerNavMenu .tagline .en {
+    font-size: 19px;
+  }
+  .readerNavMenu .tagline .he {
+    font-size: 20px;
+  }
 }
 .readerNavMenu .navToggles {
   text-align: center;
@@ -409,7 +419,6 @@ margin-top: 29px;}
 .readerNavCategories {
   width: 100%;
   margin-bottom: 30px;
-  font-size: 13px;
 }
 .readerNavCategories .threeBox td {
   border: none;
@@ -419,11 +428,18 @@ margin-top: 29px;}
   text-transform: uppercase;
   font-family: "adobe-garamond-pro", Georgia;
   text-align: center;
+  font-size: 15px;
   padding: 10px 10px 14px;
-  margin: 2px;
+  margin: 5px 3px;
   cursor: pointer;
   border-top: 4px solid transparent;
   letter-spacing: 1px;
+}
+@media (max-width: 450px) {
+  .readerNavCategory {
+    margin: 2px;
+    font-size: 13px;
+  }
 }
 .bilingual .readerNavCategory .he {
   display: none;
@@ -500,21 +516,36 @@ margin-top: 29px;}
 .readerNavMenu .catLink,
 .readerNavMenu .navButton,
 .readerTextTableOfContents .refLink {
-  display: inline-block;
-  width: 49%;
-  margin: .5%;
+  display: block;
+  margin: 0px;
   padding: 10px 8px;
   box-sizing: border-box;
   color: black;
+  font-size: 16px;
   font-weight: 400;
   background-color: white;
   cursor: pointer;
   vertical-align: middle;
   text-align: center;
 }
-.readerNavMenu .readerNavCategoryMenu td {
+@media (max-width: 450px) {
+  .readerNavMenu .refLink,
+  .readerNavMenu .catLink,
+  .readerNavMenu .navButton,
+  .readerTextTableOfContents .refLink {
+    font-size: 14px;
+  }
+}
+.readerNavMenu .readerNavCategoryMenu td,
+.readerSheetsNav .gridBox td {
   background-color: white;
-  border: 4px solid #F9F9F7;
+  border: 6px solid #F9F9F7;
+}
+@media (max-width: 450px) {
+  .readerNavMenu .readerNavCategoryMenu td,
+  .readerSheetsNav .gridBox td {
+    border: 4px solid #F9F9F7;
+  }
 }
 .readerNavMenu .readerNavCategoryMenu .refLink,
 .readerNavMenu .readerNavCategoryMenu .catLink {
@@ -662,6 +693,17 @@ display: block;margin: 0 auto;}
 
 .readerTextTableOfContents .schema-node-toc.depth8 {
     margin: 6px 140px 0;
+}
+.readerTextTableOfContents .altStruct .refLink {
+  width: 49%;
+  margin: 3px;
+  box-sizing: border-box;
+  display: inline-block;
+}
+@media (max-width: 450px) {
+  .readerTextTableOfContents .altStruct .refLink {
+    margin: 0.5%;
+  }
 }
 .hebrew .readerTextTableOfContents .content .tocSection,
 .hebrew .readerTextTableOfContents .content .tocContent {
@@ -1300,7 +1342,12 @@ display: block;margin: 0 auto;}
 }
 .gridBox td {
   padding: 0;
-  border: 2px solid transparent;
+  border: 4px solid transparent;
+}
+@media (max-width: 450px) {
+  .gridBox td {
+    border: 2px solid transparent;
+  }
 }
 .gridBox td:first-child {
   border-left: none;

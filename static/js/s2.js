@@ -1495,11 +1495,13 @@ var SheetsNav = React.createClass({displayName: "SheetsNav",
       tagList: null,
       yourSheets: null,
       sheets: [],
-      tag: this.props.initialTag
+      tag: this.props.initialTag,
+      width: 0
     };
   },
   componentDidMount: function() {
     this.getTags();
+    this.setState({width: $(ReactDOM.findDOMNode(this)).width()});
     if (this.props.initialTag) {
       if (this.props.initialTag === "Your Sheets") {
         this.showYourSheets();
@@ -1564,10 +1566,10 @@ var SheetsNav = React.createClass({displayName: "SheetsNav",
                         React.createElement("div", {className: "contentInner"}, 
                           yourSheets, 
                           React.createElement("h2", null, React.createElement("span", {className: "en"}, "Trending Tags")), 
-                          trendingTags, 
+                          React.createElement(TwoOrThreeBox, {content: trendingTags, width: this.state.width}), 
                           React.createElement("br", null), React.createElement("br", null), 
                           React.createElement("h2", null, React.createElement("span", {className: "en"}, "All Tags")), 
-                          tagList
+                          React.createElement(TwoOrThreeBox, {content: tagList, width: this.state.width})
                         )
                        ));
       } else {
@@ -3159,9 +3161,9 @@ var ThreeBox = React.createClass({displayName: "ThreeBox",
             threes.map(function(row, i) {
               return (
                 React.createElement("tr", {key: i}, 
-                  React.createElement("td", {className: row[0] ? "" : "empty"}, row[0]), 
-                  React.createElement("td", {className: row[1] ? "" : "empty"}, row[1]), 
-                  React.createElement("td", {className: row[2] ? "" : "empty"}, row[2])
+                  row[0] ? (React.createElement("td", null, row[0])) : null, 
+                  row[1] ? (React.createElement("td", null, row[1])) : null, 
+                  row[2] ? (React.createElement("td", null, row[2])) : null
                 )
               );
             })
@@ -3196,8 +3198,8 @@ var TwoBox = React.createClass({displayName: "TwoBox",
             threes.map(function(row, i) {
               return (
                 React.createElement("tr", {key: i}, 
-                  React.createElement("td", {className: row[0] ? "" : "empty"}, row[0]), 
-                  React.createElement("td", {className: row[1] ? "" : "empty"}, row[1])
+                  row[0] ? (React.createElement("td", null, row[0])) : null, 
+                  row[1] ? (React.createElement("td", null, row[1])) : null
                 )
               );
             })

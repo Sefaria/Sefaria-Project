@@ -1495,11 +1495,13 @@ var SheetsNav = React.createClass({
       tagList: null,
       yourSheets: null,
       sheets: [],
-      tag: this.props.initialTag
+      tag: this.props.initialTag,
+      width: 0
     };
   },
   componentDidMount: function() {
     this.getTags();
+    this.setState({width: $(ReactDOM.findDOMNode(this)).width()});
     if (this.props.initialTag) {
       if (this.props.initialTag === "Your Sheets") {
         this.showYourSheets();
@@ -1564,10 +1566,10 @@ var SheetsNav = React.createClass({
                         <div className="contentInner">
                           {yourSheets}
                           <h2><span className="en">Trending Tags</span></h2>
-                          {trendingTags}
+                          <TwoOrThreeBox content={trendingTags} width={this.state.width} />
                           <br /><br />
                           <h2><span className="en">All Tags</span></h2>
-                          {tagList}
+                          <TwoOrThreeBox content={tagList} width={this.state.width} />
                         </div>
                        </div>);
       } else {
@@ -3159,9 +3161,9 @@ var ThreeBox = React.createClass({
             threes.map(function(row, i) {
               return (
                 <tr key={i}>
-                  <td className={row[0] ? "" : "empty"}>{row[0]}</td>
-                  <td className={row[1] ? "" : "empty"}>{row[1]}</td>
-                  <td className={row[2] ? "" : "empty"}>{row[2]}</td>
+                  {row[0] ? (<td>{row[0]}</td>) : null}
+                  {row[1] ? (<td>{row[1]}</td>) : null}
+                  {row[2] ? (<td>{row[2]}</td>) : null}
                 </tr>
               );
             })
@@ -3196,8 +3198,8 @@ var TwoBox = React.createClass({
             threes.map(function(row, i) {
               return (
                 <tr key={i}>
-                  <td className={row[0] ? "" : "empty"}>{row[0]}</td>
-                  <td className={row[1] ? "" : "empty"}>{row[1]}</td>
+                  {row[0] ? (<td>{row[0]}</td>) : null}
+                  {row[1] ? (<td>{row[1]}</td>) : null}
                 </tr>
               );
             })
