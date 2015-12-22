@@ -3286,75 +3286,105 @@ class Library(object):
         # Maps, keyed by language, from index key to array of commentary titles
         self._index_title_commentary_maps = {}
 
-        # Maps, keyed by language, from titles to commentary schema nodes
-        self._title_node_commentary_maps = {}
+        # Maps, keyed by language, from titles to simple and commentary schema nodes
+        self._title_node_with_commentary_maps = {}
+
+        # Lists of full titles, keys are string generated from a combination of language code, "commentators", "commentary", and "terms".  See method `full_title_list()`
+        self._full_title_lists = {}
+
+        # Lists of full titles, including simple and commentary texts, keyed by language
+        self._full_title_list_jsons = {}
+
+        # Title regex strings & objects, keys are strings generated from a combination of arguments to `all_titles_regex` and `all_titles_regex_string`
+        self._title_regex_strings = {}
+        self._title_regexes = {}
+
+        # Maps, keyed by language, from term names to text refs
+        self._term_ref_maps = {}
 
         # old local cache
         self.local_cache = {}
 
-    def add_index_record(self, title = None, index = None, rebuild = True):
+    def add_index_record(self, index_title = None, index_object = None, rebuild = True):
         """
-        Update library title dictionaries and caches with information from provided index
+        Update library title dictionaries and caches with information from provided index.
+        Index can be passed with primary title in `index_title` or as an object in `index_object`
         :param title: primary title of index
+        :param index: index record
+        :param rebuild: Perform a rebuild of derivative objects afterwards?
         :return:
         """
-        if title:
-            index = get_index(title)
-        assert index, "Library.add_index_record called without index"
+        if index_title:
+            index_object = get_index(index_title)
+        assert index_object, "Library.add_index_record called without index"
 
         #//TODO: mark for commentary refactor
-        node_maps = self._title_node_commentary_maps if index.nodes.is_commentary() else self._title_node_maps
-        title_maps = self._index_title_commentary_maps if index.nodes.is_commentary() else self._index_title_maps
+        title_maps = self._index_title_commentary_maps if index_object.is_commentary() else self._index_title_maps
 
         try:
             for lang in self.langs:
-                title_dict = index.nodes.title_dict(lang)
-                title_maps[lang][index.title] = title_dict.keys()
-                node_maps[lang].update(title_dict)
+                title_dict = index_object.nodes.title_dict(lang)
+                title_maps[lang][index_object.title] = title_dict.keys()
+                self._title_node_with_commentary_maps[lang].update(title_dict)
+                if not index_object.is_commentary():
+                    self._title_node_maps[lang].update(title_dict)
         except IndexSchemaError as e:
             logger.error(u"Error in generating title node dictionary: {}".format(e))
 
         if rebuild:
-            self._rebuild_derivitive_objects()
+            self._reset_derivitative_objects()
 
-    def remove_index_record(self, title, is_commentary = False, rebuild = True):
+    def remove_index_record(self, index_title, rebuild = True):
         """
         Update provided index from library title dictionaries and caches
-        :param title: primary title of index
+        :param index_title: primary title of index
+        :param rebuild: Perform a rebuild of derivative objects afterwards?
         :return:
         """
         #//TODO: mark for commentary refactor
-        node_maps = self._title_node_commentary_maps if is_commentary else self._title_node_maps
-        title_maps = self._index_title_commentary_maps if is_commentary else self._index_title_maps
+        #//Keeping commentary branch and simple branch completely separate - should make refactor easier
 
         for lang in self.langs:
-            keys = title_maps[lang][index.title]
-            for key in keys:
-                try:
-                    del node_maps[lang][key]
-                except KeyError:
-                    logger.warning("Tried to delete non-existent title '{}' of index record '{}' from title-node map".format(key, title))
+            commentary_titles = self._index_title_commentary_maps[lang].get(index_title)
+            simple_titles = self._index_title_maps[lang].get(index_title)
+            if simple_titles:
+                for key in simple_titles:
+                    try:
+                        del self._title_node_with_commentary_maps[lang][key]
+                        del self._title_node_maps[lang][key]
+                    except KeyError:
+                        logger.warning("Tried to delete non-existent title '{}' of index record '{}' from title-node map".format(key, index_title))
+                del self._index_title_maps[lang][index_title]
+            elif commentary_titles:
+                for key in commentary_titles:
+                    try:
+                        del self._title_node_with_commentary_maps[lang][key]
+                    except KeyError:
+                        logger.warning("Tried to delete non-existent title '{}' of index record '{}' from title-node map".format(key, index_title))
+                del self._index_title_commentary_maps[lang][index_title]
+            else:
+                logger.error("Could not find entry for index '{}' in index-title map".format(index_title))
+                return
 
         if rebuild:
-            self._rebuild_derivitive_objects()
+            self._reset_derivitative_objects()
 
-    def refresh_index_record(self, title):
+    def refresh_index_record(self, index_title):
         """
         Update library title dictionaries and caches for provided index
         :param title: primary title of index
         :return:
         """
-        self.remove_index_record(title, rebuild=False)
-        self.add_index_record(title, rebuild=False)
-        self._rebuild_derivitive_objects()
+        self.remove_index_record(index_title, rebuild=False)
+        self.add_index_record(index_title, rebuild=False)
+        self._reset_derivitative_objects()
 
-    def _rebuild_derivitive_objects(self):
-        """
-        Called after update of the core index cache and title dictionaries.
-        Rebuilds titles lists and regular expressions
-        :return:
-        """
-        pass
+    def _reset_derivitative_objects(self):
+        self._full_title_lists = {}
+        self._full_title_list_jsons = {}
+        self._title_regex_strings = {}
+        self._title_regexes = {}
+
 
     def build_all_title_node_dicts(self):
         # Rework get_index_forest() code here to only run once
@@ -3389,7 +3419,7 @@ class Library(object):
             self.local_cache[comm_key] = c_title_dicts[lang]
 
     #todo: the for_js path here does not appear to be in use.
-    def all_titles_regex_string(self, lang="en", commentary=False, with_commentary=False, with_terms=False, for_js=False):
+    def all_titles_regex_string(self, lang="en", commentary=False, with_commentary=False, with_terms=False): #, for_js=False):
         """
         :param lang: "en" or "he"
         :param commentary: If true matches ONLY commentary records
@@ -3403,30 +3433,30 @@ class Library(object):
         """
         if lang == "he" and (commentary or with_commentary):
             raise InputError("No support for Hebrew Commentatory Ref Objects")
-        key = "all_titles_regex_string_" + lang
+        key = lang
         key += "_both" if with_commentary else "_commentary" if commentary else ""
         key += "_terms" if with_terms else ""
-        key += "_js" if for_js else ""
-        re_string = self.local_cache.get(key)
+        re_string = self._title_regex_strings.get(key)
         if not re_string:
             re_string = u""
             simple_books = map(re.escape, self.full_title_list(lang, with_commentators=False, with_commentary=with_commentary, with_terms=with_terms))
             simple_book_part = ur'|'.join(sorted(simple_books, key=len, reverse=True))  # Match longer titles first
 
-            re_string += ur'(?:^|[ ([{>,-]+)' if for_js else u''  # Why don't we check for word boundaries internally as well?
-            re_string += ur'(?:\u05d5?(?:\u05d1|\u05de|\u05dc|\u05e9|\u05d8|\u05d8\u05e9)?)' if for_js and lang == "he" else u'' # likewise leading characters in Hebrew?
-            re_string += ur'(' if for_js else ur'(?P<title>'
+            # re_string += ur'(?:^|[ ([{>,-]+)' if for_js else u''  # Why don't we check for word boundaries internally as well?
+            # re_string += ur'(?:\u05d5?(?:\u05d1|\u05de|\u05dc|\u05e9|\u05d8|\u05d8\u05e9)?)' if for_js and lang == "he" else u'' # likewise leading characters in Hebrew?
+            # re_string += ur'(' if for_js else
+            re_string = ur'(?P<title>'
             if not commentary:
                 re_string += simple_book_part
             else:
                 first_part = ur'|'.join(map(re.escape, self.get_commentator_titles(with_variants=True)))
-                if for_js:
-                    re_string += ur"(" + first_part + ur") on (" + simple_book_part + ur")"
-                else:
-                    re_string += ur"(?P<commentor>" + first_part + ur") on (?P<commentee>" + simple_book_part + ur")"
+                # if for_js:
+                #    re_string += ur"(" + first_part + ur") on (" + simple_book_part + ur")"
+                # else:
+                re_string += ur"(?P<commentor>" + first_part + ur") on (?P<commentee>" + simple_book_part + ur")"
             re_string += ur')'
             re_string += ur'($|[:., <]+)'
-            self.local_cache[key] = re_string
+            self._title_regex_strings[key] = re_string
 
         return re_string
 
@@ -3450,14 +3480,14 @@ class Library(object):
         key = "all_titles_regex_" + lang
         key += "_both" if with_commentary else "_commentary" if commentary else ""
         key += "_terms" if with_terms else ""
-        reg = self.local_cache.get(key)
+        reg = self._title_regexes.get(key)
         if not reg:
             re_string = self.all_titles_regex_string(lang, commentary, with_commentary, with_terms)
             try:
                 reg = re.compile(re_string, max_mem=256 * 1024 * 1024)
             except TypeError:
                 reg = re.compile(re_string)
-            self.local_cache[key] = reg
+            self._title_regexes[key] = reg
         return reg
 
     def full_title_list(self, lang="en", with_commentators=True, with_commentary=False, with_terms=False):
@@ -3469,18 +3499,20 @@ class Library(object):
         :param with_terms: if True, includes shared titles ('terms')
         """
 
-        key = "full_title_list_" + lang
+        key = lang
         key += "_commentators" if with_commentators else ""
         key += "_commentary" if with_commentary else ""
         key += "_terms" if with_terms else ""
-        titles = scache.get_cache_elem(key)
+        # titles = scache.get_cache_elem(key)
+        titles = self._full_title_lists.get(key)
         if not titles:
             titles = self.get_title_node_dict(lang, with_commentary=with_commentary).keys()
             if with_terms:
                 titles += self.get_term_dict(lang).keys()
             if with_commentators:
                 titles += self.get_commentator_titles(lang, with_variants=True)
-            scache.set_cache_elem(key, titles)
+            self._full_title_lists[key] = titles
+            # scache.set_cache_elem(key, titles)
         return titles
 
     def ref_list(self):
@@ -3495,19 +3527,21 @@ class Library(object):
         :return: dict of shared titles that have an explicit ref
         :param lang: "he" or "en"
         """
-        key = "term_dict_" + lang
-        term_dict = self.local_cache.get(key)
-        if not term_dict:
-            term_dict = scache.get_cache_elem(key)
-            self.local_cache[key] = term_dict
+        # key = "term_dict_" + lang
+        # term_dict = self.local_cache.get(key)
+        term_dict = self._term_ref_maps.get(lang)
+        # if not term_dict:
+        #    term_dict = scache.get_cache_elem(key)
+        #    self.local_cache[key] = term_dict
         if not term_dict:
             term_dict = {}
             terms = TermSet({"$and":[{"ref": {"$exists":True}},{"ref":{"$nin":["",[]]}}]})
             for term in terms:
                 for title in term.get_titles(lang):
                     term_dict[title] = term.ref
-            scache.set_cache_elem(key, term_dict)
-            self.local_cache[key] = term_dict
+            # scache.set_cache_elem(key, term_dict)
+            # self.local_cache[key] = term_dict
+            self._term_ref_maps[lang] = term_dict
         return term_dict
 
     #todo: no usages?
@@ -3527,12 +3561,9 @@ class Library(object):
         :return: list of root Index nodes.
         :param bool with_commentary: If True, returns "X on Y" type titles as well
         """
-        root_nodes = []
         #todo: speed: does it matter that this skips the index cache?
-        for i in IndexSet():
-            if i.is_commentary():
-                continue
-            root_nodes.append(i.nodes)
+        root_nodes = [i.nodes for i in IndexSet() if not i.is_commentary()]
+
         if with_commentary:
             ctitles = self.get_commentary_version_titles()
             for title in ctitles:
@@ -3555,22 +3586,28 @@ class Library(object):
 
         Does not include bare commentator names, like *Rashi*.
         """
-        key = "title_node_dict_" + lang
-        key += "_commentary" if with_commentary else ""
-        title_dict = self.local_cache.get(key)
+        # key = "title_node_dict_" + lang
+        # key += "_commentary" if with_commentary else ""
+        # title_dict = self.local_cache.get(key)
+
+        #//TODO: mark for commentary refactor
+        title_dict = self._title_node_maps[lang] if with_commentary else self._title_node_with_commentary_maps[lang]
+
+        #if not title_dict:
+        #    title_dict = scache.get_cache_elem(key)
+        #    self.local_cache[key] = title_dict
+
+        #todo: Keep this path, or isolate creation to __init__ and refresh methods?
         if not title_dict:
-            title_dict = scache.get_cache_elem(key)
-            self.local_cache[key] = title_dict
-        if not title_dict:
-            title_dict = {}
             trees = self.get_index_forest(with_commentary=with_commentary)
             for tree in trees:
                 try:
                     title_dict.update(tree.title_dict(lang))
                 except IndexSchemaError as e:
                     logger.error(u"Error in generating title node dictionary: {}".format(e))
-            scache.set_cache_elem(key, title_dict)
-            self.local_cache[key] = title_dict
+
+        #    scache.set_cache_elem(key, title_dict)
+        #    self.local_cache[key] = title_dict
         return title_dict
 
     #todo: handle terms
@@ -3586,28 +3623,15 @@ class Library(object):
         title = title.replace("_", " ")
         return self.get_title_node_dict(lang, with_commentary=with_commentary).get(title)
 
-    '''
-    #todo: This wants some thought...
-    def get_commentary_schema_node(self, title, lang="en"): #only supports "en"
-        match = self.all_titles_regex(lang, commentary=True).match(title)
-        if match:
-            title = match.group('title')
-            index = get_index(title)
-            commentee_node = library.get_schema_node(match.group("commentee"))
-            return JaggedArrayCommentatorNode(commentee_node, index=index)
-        return None
-    '''
-
     def get_text_titles_json(self, lang="en"):
         """
         :return: JSON of full texts list, (cached)
         """
-        key = 'texts_titles_json' + ("_he" if lang == "he" else "")
-
-        if not scache.get_cache_elem(key):
-            scache.set_cache_elem(key, json.dumps(self.full_title_list(lang=lang, with_commentary=True)))
-
-        return scache.get_cache_elem(key)
+        title_json = self._full_title_list_jsons.get(lang)
+        if not title_json:
+            title_json = json.dumps(self.full_title_list(lang=lang, with_commentary=True))
+            self._full_title_list_jsons[lang] = title_json
+        return title_json
 
     def get_text_categories(self):
         """

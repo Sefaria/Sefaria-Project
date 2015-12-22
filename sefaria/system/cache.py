@@ -10,8 +10,6 @@ except ImportError:
 if not hasattr(sys, '_doc_build'):
     from django.core.cache import cache
 
-# Simple caches for indices, parsed refs, table of contents and texts list
-index_cache = {}
 
 #functions from here: http://james.lin.net.nz/2011/09/08/python-decorator-caching-your-functions/
 #and here: https://github.com/rchrd2/django-cache-decorator
@@ -77,16 +75,6 @@ def django_cache_decorator(time=300, cache_key='', cache_type=None):
     return decorator
 #-------------------------------------------------------------#
 
-def get_index(bookname):
-    res = index_cache.get(bookname)
-    if res:
-        return res
-    return None
-
-
-def set_index(bookname, instance):
-    index_cache[bookname] = instance
-
 
 def reset_texts_cache():
     """
@@ -98,30 +86,30 @@ def reset_texts_cache():
     keys = [
         'toc_cache',
         'toc_json_cache',
-        'texts_titles_json',
-        'texts_titles_json_he',
-        'full_title_list_en',
-        'full_title_list_he',
-        'full_title_list_en_commentary',
-        'full_title_list_he_commentary',
-        'full_title_list_en_commentators',
-        'full_title_list_he_commentators',
-        'full_title_list_en_commentators_commentary',
-        'full_title_list_he_commentators_commentary',
-        'full_title_list_en_terms',
-        'full_title_list_he_terms',
-        'full_title_list_en_commentary_terms',
-        'full_title_list_he_commentary_terms',
-        'full_title_list_en_commentators_terms',
-        'full_title_list_he_commentators_terms',
-        'full_title_list_en_commentators_commentary_terms',
-        'full_title_list_he_commentators_commentary_terms',
-        'title_node_dict_en',
-        'title_node_dict_he',
-        'title_node_dict_en_commentary',
-        'title_node_dict_he_commentary',
-        'term_dict_en',
-        'term_dict_he'
+        # 'texts_titles_json',
+        # 'texts_titles_json_he',
+        # 'full_title_list_en',
+        # 'full_title_list_he',
+        # 'full_title_list_en_commentary',
+        # 'full_title_list_he_commentary',
+        # 'full_title_list_en_commentators',
+        # 'full_title_list_he_commentators',
+        # 'full_title_list_en_commentators_commentary',
+        # 'full_title_list_he_commentators_commentary',
+        # 'full_title_list_en_terms',
+        # 'full_title_list_he_terms',
+        # 'full_title_list_en_commentary_terms',
+        # 'full_title_list_he_commentary_terms',
+        # 'full_title_list_en_commentators_terms',
+        # 'full_title_list_he_commentators_terms',
+        # 'full_title_list_en_commentators_commentary_terms',
+        # 'full_title_list_he_commentators_commentary_terms',
+        # 'title_node_dict_en',
+        # 'title_node_dict_he',
+        # 'title_node_dict_en_commentary',
+        # 'title_node_dict_he_commentary',
+        # 'term_dict_en',
+        # # 'term_dict_he'
     ]
     for key in keys:
         delete_cache_elem(key)
