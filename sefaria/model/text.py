@@ -3445,7 +3445,7 @@ class Library(object):
         :param bool with_terms: Default False.  If True, include shared titles ('terms')
         :raise: InputError: if lang == "he" and commentary == True
 
-        Uses re2 if available.  See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines
+        Uses re2 if available.  See https://github.com/Sefaria/Sefaria-Project/wiki/Regular-Expression-Engines
         """
         key = "all_titles_regex_" + lang
         key += "_both" if with_commentary else "_commentary" if commentary else ""
