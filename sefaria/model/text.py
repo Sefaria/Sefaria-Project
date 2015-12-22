@@ -1553,7 +1553,7 @@ def process_index_delete_in_versions(indx, **kwargs):
 """
 
 
-class RefCachingType(type):
+class RefCacher(type):
     """
     Metaclass for Ref class.
     Caches all Ref isntances according to the string they were instanciated with and their normal form.
@@ -1561,20 +1561,26 @@ class RefCachingType(type):
     """
 
     def __init__(cls, name, parents, dct):
-        super(RefCachingType, cls).__init__(name, parents, dct)
-        cls.__cache = {}
+        super(RefCacher, cls).__init__(name, parents, dct)
+        cls.__tref_oref_map = {}
+        cls.__index_tref_map = {}
 
     def cache_size(cls):
-        return len(cls.__cache)
+        return len(cls.__tref_oref_map)
 
     def cache_dump(cls):
-        return [(a, repr(b)) for (a, b) in cls.__cache.iteritems()]
+        return [(a, repr(b)) for (a, b) in cls.__tref_oref_map.iteritems()]
 
     def _raw_cache(cls):
-        return cls.__cache
+        return cls.__tref_oref_map
 
     def clear_cache(cls):
-        cls.__cache = {}
+        cls.__tref_oref_map = {}
+        cls.__index_tref_map = {}
+
+    def remove_index(cls, index_title):
+        for tref in cls.__index_tref_map[index_title]:
+            del cls.__tref_oref_map[tref]
 
     def __call__(cls, *args, **kwargs):
         if len(args) == 1:
@@ -1585,28 +1591,46 @@ class RefCachingType(type):
         obj_arg = kwargs.get("_obj")
 
         if tref:
-            if tref in cls.__cache:
-                ref = cls.__cache[tref]
+            if tref in cls.__tref_oref_map:
+                ref = cls.__tref_oref_map[tref]
                 ref.tref = tref
                 return ref
             else:
-                result = super(RefCachingType, cls).__call__(*args, **kwargs)
-                if result.uid() in cls.__cache:
+                result = super(RefCacher, cls).__call__(*args, **kwargs)
+                uid = result.uid()
+                title = result.index.title
+                if uid in cls.__tref_oref_map:
                     #del result  #  Do we need this to keep memory clean?
-                    cls.__cache[tref] = cls.__cache[result.uid()]
-                    return cls.__cache[result.uid()]
-                cls.__cache[result.uid()] = result
-                cls.__cache[tref] = result
+                    cls.__tref_oref_map[tref] = cls.__tref_oref_map[uid]
+                    try:
+                        cls.__index_tref_map[title] += [tref]
+                    except KeyError:
+                        cls.__index_tref_map[title] = [tref]
+                    return cls.__tref_oref_map[uid]
+                cls.__tref_oref_map[uid] = result
+                cls.__tref_oref_map[tref] = result
+                try:
+                    cls.__index_tref_map[title] += [tref]
+                except KeyError:
+                    cls.__index_tref_map[title] = [tref]
+                cls.__index_tref_map[title] += [uid]
+
                 return result
         elif obj_arg:
-            result = super(RefCachingType, cls).__call__(*args, **kwargs)
-            if result.uid() in cls.__cache:
+            result = super(RefCacher, cls).__call__(*args, **kwargs)
+            uid = result.uid()
+            title = result.index.title
+            if uid in cls.__tref_oref_map:
                 #del result  #  Do we need this to keep memory clean?
-                return cls.__cache[result.uid()]
-            cls.__cache[result.uid()] = result
+                return cls.__tref_oref_map[uid]
+            cls.__tref_oref_map[uid] = result
+            try:
+                cls.__index_tref_map[title] += [uid]
+            except KeyError:
+                cls.__index_tref_map[title] = [uid]
             return result
         else:  # Default.  Shouldn't be used.
-            return super(RefCachingType, cls).__call__(*args, **kwargs)
+            return super(RefCacher, cls).__call__(*args, **kwargs)
 
 
 class Ref(object):
@@ -1623,7 +1647,7 @@ class Ref(object):
             >>> Ref("Shabbat 4b")
             >>> Ref("Rashi on Shabbat 4b-5a")
     """
-    __metaclass__ = RefCachingType
+    __metaclass__ = RefCacher
 
     def __init__(self, tref=None, _obj=None):
         """
@@ -3347,6 +3371,8 @@ class Library(object):
         """
         #//TODO: mark for commentary refactor
         #//Keeping commentary branch and simple branch completely separate - should make refactor easier
+
+        Ref.remove_index(index_title)
 
         for lang in self.langs:
             commentary_titles = self._index_title_commentary_maps[lang].get(index_title)
