@@ -171,15 +171,16 @@ body {
 	margin-bottom: 20px;
 }
 
-.bilingual .en.version:before {
+.bilingual .en.version:before, .bilingual .en.alternate-versions:before {
 	content: "English: ";
 }
 
-.bilingual .he.version:before {
+.bilingual .he.version:before, .bilingual .he.alternate-versions:before {
 	content: "Hebrew: ";
 }
 
-.bilingual .en.version:before, .bilingual .he.version:before {
+.bilingual .en.version:before, .bilingual .he.version:before,
+.bilingual .en.alternate-versions:before, .bilingual .he.alternate-versions:before {
 	font-size: 13px;
 	font-weight: bold;
 	vertical-align: middle;

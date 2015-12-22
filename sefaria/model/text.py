@@ -854,6 +854,15 @@ class AbstractTextRecord(object):
     def ja(self): #don't cache locally unless change is handled.  Pontential to cache on JA class level
         return JaggedTextArray(getattr(self, self.text_attr, None))
 
+    def as_string(self):
+        content = getattr(self, self.text_attr, None)
+        if isinstance(content, basestring):
+            return content
+        elif isinstance(content, list):
+            return self.ja().flatten_to_string()
+        else:
+            return ""
+
     @classmethod
     def sanitize_text(cls, t):
         if isinstance(t, list):
@@ -2769,7 +2778,7 @@ class Ref(object):
             self._ranged_refs = results
         return self._ranged_refs
 
-    def regex(self, as_list=False):
+    def regex(self, as_list=False, anchored=True):
         """
         :return string: for a Regular Expression which will find any refs that match this Ref exactly, or more specifically.
 
@@ -2803,10 +2812,26 @@ class Ref(object):
                 patterns.append("%s \d" % sections) # extra granularity following space
 
         escaped_book = re.escape(self.book)
-        if as_list:
-            return ["^{}{}".format(escaped_book, p) for p in patterns]
+        if anchored:
+            if as_list:
+                return ["^{}{}".format(escaped_book, p) for p in patterns]
+            else:
+                return "^%s(%s)" % (escaped_book, "|".join(patterns))
         else:
-            return "^%s(%s)" % (escaped_book, "|".join(patterns))
+            if as_list:
+                return ["{}{}".format(escaped_book, p) for p in patterns]
+            else:
+                return "%s(%s)" % (escaped_book, "|".join(patterns))
+
+
+    def base_text_and_commentary_regex(self):
+        ref_regex_str = self.regex(anchored=False)
+        commentators = library.get_commentary_version_titles_on_book(self.book, with_commentary2=True)
+        if commentators:
+            pattern = ur"(^{})|(^({}) on {})".format(ref_regex_str, "|".join(commentators), ref_regex_str)
+        else:
+            pattern = ur"^{}".format(ref_regex_str)
+        return pattern
 
     """ Comparisons """
     def overlaps(self, other):
@@ -3246,16 +3271,29 @@ class Library(object):
     """
 
     local_cache = {}
-
-    def all_titles_regex_string(self, lang="en", commentary=False, with_terms=False, for_js=False):
-        key = "all_titles_regex_string" + lang
-        key += "_commentary" if commentary else ""
+    #todo: the for_js path here does not appear to be in use.
+    def all_titles_regex_string(self, lang="en", commentary=False, with_commentary=False, with_terms=False, for_js=False):
+        """
+        :param lang: "en" or "he"
+        :param commentary: If true matches ONLY commentary records
+        :param with_commentary: If true, overrides `commentary` argument and matches BOTH "x on y" style records and simple records
+        Note that matching behavior differs between commentary=True and with_commentary=True.
+        commentary=True matches 'title', 'commentor' and 'commentee' named groups.
+        with_commentary=True matches only 'title', wether for plain records or commentary records.
+        :param with_terms:
+        :param for_js:
+        :return:
+        """
+        if lang == "he" and (commentary or with_commentary):
+            raise InputError("No support for Hebrew Commentatory Ref Objects")
+        key = "all_titles_regex_string_" + lang
+        key += "_both" if with_commentary else "_commentary" if commentary else ""
         key += "_terms" if with_terms else ""
         key += "_js" if for_js else ""
         re_string = self.local_cache.get(key)
         if not re_string:
             re_string = u""
-            simple_books = map(re.escape, self.full_title_list(lang, with_commentators=False, with_terms=with_terms))
+            simple_books = map(re.escape, self.full_title_list(lang, with_commentators=False, with_commentary=with_commentary, with_terms=with_terms))
             simple_book_part = ur'|'.join(sorted(simple_books, key=len, reverse=True))  # Match longer titles first
 
             re_string += ur'(?:^|[ ([{>,-]+)' if for_js else u''  # Why don't we check for word boundaries internally as well?
@@ -3264,8 +3302,6 @@ class Library(object):
             if not commentary:
                 re_string += simple_book_part
             else:
-                if lang == "he":
-                    raise InputError("No support for Hebrew Commentatory Ref Objects")
                 first_part = ur'|'.join(map(re.escape, self.get_commentator_titles(with_variants=True)))
                 if for_js:
                     re_string += ur"(" + first_part + ur") on (" + simple_book_part + ur")"
@@ -3278,24 +3314,28 @@ class Library(object):
         return re_string
 
     #WARNING: Do NOT put the compiled re2 object into redis.  It gets corrupted.
-    def all_titles_regex(self, lang="en", commentary=False, with_terms=False):
+    def all_titles_regex(self, lang="en", commentary=False, with_commentary=False, with_terms=False):
         """
         :return: A regular expression object that will match any known title in the library in the provided language
         :param lang: "en" or "he"
-        :param bool commentary: Default False.  If True, matches commentary records only.  If False matches simple records only.
+        :param bool commentary: Default False.
+            If True, matches "X on Y" style commentary records only.
+            If False matches simple records only.
+        :param with_commentary: If true, overrides `commentary` argument and matches BOTH "x on y" style records and simple records
+        Note that matching behavior differs between commentary=True and with_commentary=True.
+        commentary=True matches 'title', 'commentor' and 'commentee' named groups.
+        with_commentary=True matches only 'title', wether for plain records or commentary records.
         :param bool with_terms: Default False.  If True, include shared titles ('terms')
         :raise: InputError: if lang == "he" and commentary == True
 
-        Uses re2 if available.  See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines
-
-
+        Uses re2 if available.  See https://github.com/Sefaria/Sefaria-Project/wiki/Regular-Expression-Engines
         """
         key = "all_titles_regex_" + lang
-        key += "_commentary" if commentary else ""
+        key += "_both" if with_commentary else "_commentary" if commentary else ""
         key += "_terms" if with_terms else ""
         reg = self.local_cache.get(key)
         if not reg:
-            re_string = self.all_titles_regex_string(lang, commentary, with_terms)
+            re_string = self.all_titles_regex_string(lang, commentary, with_commentary, with_terms)
             try:
                 reg = re.compile(re_string, max_mem=256 * 1024 * 1024)
             except TypeError:
@@ -3460,6 +3500,7 @@ class Library(object):
         :return: JSON of full texts list, (cached)
         """
         key = 'texts_titles_json' + ("_he" if lang == "he" else "")
+
         if not scache.get_cache_elem(key):
             scache.set_cache_elem(key, json.dumps(self.full_title_list(lang=lang, with_commentary=True)))
 
@@ -3487,6 +3528,7 @@ class Library(object):
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
     def get_commentator_titles(self, lang="en", with_variants=False, with_commentary2=False):
+        #//TODO: mark for commentary refactor
         """
         :param lang: "he" or "en"
         :param with_variants: If True, includes titles variants along with the primary titles.
@@ -3565,7 +3607,7 @@ class Library(object):
             lang = "he" if is_hebrew(s) else "en"
         if lang=="en":
             #todo: combine into one regex
-            return [m.group('title') for m in self.all_titles_regex(lang, commentary=True).finditer(s)] + [m.group('title') for m in self.all_titles_regex(lang, commentary=False).finditer(s)]
+            return [m.group('title') for m in self.all_titles_regex(lang, with_commentary=True).finditer(s)]
         elif lang=="he":
             return [m.group('title') for m in self.all_titles_regex(lang, commentary=False).finditer(s)]
 
@@ -3592,8 +3634,10 @@ class Library(object):
                 else:
                     refs += res
         else:  # lang == "en"
-            for match in self.all_titles_regex(lang, commentary=False).finditer(st):
+            for match in self.all_titles_regex(lang, with_commentary=True).finditer(st):
                 title = match.group('title')
+                if not title:
+                    continue
                 try:
                     res = self._build_ref_from_string(title, st[match.start():])  # Slice string from title start
                 except AssertionError as e:
@@ -3606,7 +3650,7 @@ class Library(object):
 
     # do we want to move this to the schema node? We'd still have to pass the title...
     def get_regex_string(self, title, lang, for_js=False):
-        node = self.get_schema_node(title, lang)
+        node = self.get_schema_node(title, lang, with_commentary=True)
         assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
         if lang == "en" or for_js:  # Javascript doesn't support look behinds.
@@ -3633,7 +3677,7 @@ class Library(object):
         :param st: The source text for this reference
         :return: Ref
         """
-        node = self.get_schema_node(title, lang)
+        node = self.get_schema_node(title, lang, with_commentary=True)
         assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
         try:

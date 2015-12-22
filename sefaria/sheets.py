@@ -284,7 +284,7 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 			com["owner"]       = sheet["owner"]
 			com["_id"]         = str(sheet["_id"])
 			com["anchorRef"]   = match.normal()
-			com["anchorVerse"] = match.sections[-1]
+			com["anchorVerse"] = match.sections[-1] if len(match.sections) else 1
 			com["public"]      = True
 			com["commentator"] = user_link(sheet["owner"])
 			com["text"]        = "<a class='sheetLink' href='/sheets/%d'>%s</a>" % (sheet["id"], strip_tags(sheet["title"]))
@@ -320,20 +320,22 @@ def get_last_updated_time(sheet_id):
 	return sheet["dateModified"]
 
 
-def make_sheet_list_by_tag():
+def make_tag_list(include_sheets=False):
 	"""
 	Returns an alphabetized list of tags and sheets included in each tag.
 	"""
 	tags = {}
 	results = []
+	projection = {"tags": 1, "title": 1, "id": 1, "views": 1} if include_sheets else {"tags": 1}
 
-	sheet_list = db.sheets.find({"status": "public"})
+	sheet_list = db.sheets.find({"status": "public"}, projection)
 	for sheet in sheet_list:
 		sheet_tags = sheet.get("tags", [])
 		for tag in sheet_tags:
 			if tag not in tags:
 				tags[tag] = {"tag": tag, "count": 0, "sheets": []}
-			tags[tag]["sheets"].append({"title": strip_tags(sheet["title"]), "id": sheet["id"], "views": sheet["views"]})
+			if include_sheets:
+				tags[tag]["sheets"].append({"title": strip_tags(sheet["title"]), "id": sheet["id"], "views": sheet["views"]})
 			tags[tag]["count"] += 1
 
 	for tag in tags.values():

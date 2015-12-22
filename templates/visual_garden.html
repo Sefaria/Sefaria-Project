@@ -354,14 +354,15 @@
         }
 
         var filter_charts = [];
-        Object.keys(config.filters).forEach(function(key, index) {
+        var filter_keys = config.filter_order || Object.keys(config.filters);
+        filter_keys.forEach(function(key, index) {
             var indx = filter_charts.length;
             var filter_id = "filter-" + indx;
             var filterConfig = config.filters[key];
             var filterElem = addFilterElement(filterConfig, indx, filter_id);
             var filterDim = stopx.dimension(function (d) {
                 var tags = d.tags[key];
-                if (tags.length == 1 && tags[0] == "") {
+                if (tags && tags.length == 1 && tags[0] == "") {
                     return ["Undefined"];  // todo: config default value
                 }
                 return tags || ["Undefined"];
@@ -454,8 +455,16 @@
             .html(function(data) {
                 return "<div class='result'>" +
                             "<div class='result-ref'>" +
-                                "<span class='en'>" + (data.title ? data.title : data.ref) + "</span>" +
-                                "<span class='he'>" + (data.heTitle ? data.heTitle : data.heRef) + "</span>" +
+                                "<span class='en'>" +
+                                    (data.ref ? "<a href='/" + data.ref + (data.enVersionTitle ? "/en/" + data.enVersionTitle:"") + "'>" : "") +
+                                        (data.title ? data.title : data.ref) +
+                                    (data.ref ? "</a>" : "") +
+                                "</span>" +
+                                "<span class='he'>" +
+                                    (data.ref ? "<a href='/" + data.ref + (data.heVersionTitle ? "/he/" + data.heVersionTitle:"") + "'>" : "") +
+                                        (data.heTitle ? data.heTitle : data.heRef) +
+                                    (data.ref ? "</a>" : "") +
+                                "</span>" +
                             "</div>" +
                             "<div class='result-byline'>" +
                                 "<span class='en'>" +

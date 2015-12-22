@@ -198,11 +198,6 @@ var ReaderApp = React.createClass({
     }
     $("title").html(hist.title);
 
-    if (hist.state.type == "TextColumn") {
-      sjs.track.open(hist.title);
-    } else if (hist.state.type == "TextList") {
-      sjs.track.event("Reader", "Open Close Reader", hist.title);
-    }
     sjs.track.pageview(hist.url);
   },
   handlePanelUpdate: function(n, action, state) {
@@ -240,7 +235,7 @@ var ReaderApp = React.createClass({
     this.openTextListAt(n+1, [ref]);
     this.setTextListHighlight(n, [ref])
   },
-  handleCitationClick: function(n, ref) {
+  openPanelAt: function(n, ref) {
     // Open a new panel after `n` with the new ref
     this.state.panels.splice(n+1, 0, {refs: [ref], mode: "Text"});
     this.setState({panels: this.state.panels});
@@ -288,7 +283,8 @@ var ReaderApp = React.createClass({
       var style                    = {width: width + "%", left: (width * i) + "%"};
       var multi                    = this.props.multiPanel;
       var onSegmentClick           = multi ? this.handleSegmentClick.bind(null, i) : null;
-      var onCitationClick          = this.handleCitationClick.bind(null, i);
+      var onCitationClick          = this.openPanelAt.bind(null, i);
+      var onTextListClick          = this.openPanelAt.bind(null, i);
       var onPanelUpdate            = this.handlePanelUpdate.bind(null, i);
       var setTextListHightlight    = this.setTextListHighlight.bind(null, i);
       var closePanel               = this.closePanel.bind(null, i);
@@ -315,6 +311,7 @@ var ReaderApp = React.createClass({
                         onCitationClick={onCitationClick}
                         historyUpdate={onPanelUpdate}
                         onCitationClick={onCitationClick}
+                        onTextListClick={onTextListClick}
                         setTextListHightlight={setTextListHightlight}
                         closePanel={closePanel}
                         panelsOpen={this.state.panels.length} />
@@ -334,6 +331,7 @@ var ReaderApp = React.createClass({
                         multiPanel={multi}
                         onSegmentClick={onSegmentClick}
                         onCitationClick={onCitationClick}
+                        onTextListClick={onTextListClick}
                         historyUpdate={onPanelUpdate}
                         closePanel={closePanel}
                         panelsOpen={this.state.panels.length} />
@@ -359,9 +357,10 @@ var ReaderPanel = React.createClass({
     initialState:           React.PropTypes.object, // if present, Trumps all props above
     onSegmentClick:         React.PropTypes.func,
     onCitationClick:        React.PropTypes.func,
+    onTextListClick:        React.PropTypes.func,
     historyUpdate:          React.PropTypes.func,
-    highlightedRefs:        React.PropTypes.array,
     closePanel:             React.PropTypes.func,
+    highlightedRefs:        React.PropTypes.array,
     mulitPanel:             React.PropTypes.bool,
     panelsOpen:             React.PropTypes.number
   },
@@ -399,6 +398,7 @@ var ReaderPanel = React.createClass({
       this.props.historyUpdate("replace", this.state);     
     }
     this.setHeadroom();
+    this.trackPanelOpens();
   },
   componentWillReceiveProps: function(nextProps) {
     if (nextProps.initialFilter) {
@@ -420,6 +420,9 @@ var ReaderPanel = React.createClass({
       }      
     }
     this.setHeadroom();
+    if (prevState.refs.compare(this.state.refs)) {
+      this.trackPanelOpens();
+    }
   },
   handleBaseSegmentClick: function(ref) {
     if (this.state.mode === "TextAndConnections") {
@@ -436,6 +439,13 @@ var ReaderPanel = React.createClass({
   handleCitationClick: function(ref) {
     if (this.props.multiPanel) {
       this.props.onCitationClick(ref);
+    } else {
+      this.showBaseText(ref);
+    }
+  },
+  handleTextListClick: function(ref) {
+    if (this.props.multiPanel) {
+      this.props.onTextListClick(ref);
     } else {
       this.showBaseText(ref);
     }
@@ -554,6 +564,18 @@ var ReaderPanel = React.createClass({
       $.cookie("contentLang", value, {path: "/"});
     }
   },
+  trackPanelOpens: function() {
+    if (this.state.mode === "Connections") { return; }
+    this.tracked = this.tracked || [];
+    // Do a little dance to avoid tracking something we've already just tracked
+    // e.g. when refs goes from ["Genesis 5"] to ["Genesis 4", "Genesis 5"] don't track 5 again
+    for (var i = 0; i < this.state.refs.length; i++) {
+      if ($.inArray(this.state.refs[i], this.tracked) == -1) {
+        sjs.track.open(this.state.refs[i]);
+        this.tracked.push(this.state.refs[i]);
+      }
+    }
+  },
   currentMode: function() {
     return this.state.mode;
   },
@@ -575,8 +597,13 @@ var ReaderPanel = React.createClass({
     return data; 
   },
   currentBook: function() {
-    var pref = parseRef(this.currentRef())
-    return "book" in pref ? pref.book : null;
+    var data = this.currentData();
+    if (data) {
+      return data.indexTitle;
+    } else {
+      var pRef = parseRef(this.currentRef());
+      return "book" in pRef ? pRef.book : null;
+    }
   },
   currentCategory: function() {
     var book = this.currentBook();
@@ -604,7 +631,7 @@ var ReaderPanel = React.createClass({
           setOption={this.setOption}
           showBaseText={this.showBaseText} 
           updateTextColumn={this.updateTextColumn}
-          onBaseSegmentClick={this.handleBaseSegmentClick}
+          onSegmentClick={this.handleBaseSegmentClick}
           onCitationClick={this.handleCitationClick}
           setTextListHightlight={this.setTextListHightlight}
           panelsOpen={this.props.panelsOpen}
@@ -619,10 +646,10 @@ var ReaderPanel = React.createClass({
           fullPanel={this.props.multiPanel}
           multiPanel={this.props.multiPanel}
           setFilter={this.setFilter}
-          showBaseText={this.showBaseText} 
           cloneConectionsInPanel={this.closeConnectionsInPanel} 
           openNav={this.openMenu.bind(null, "navigation")}
           openDisplaySettings={this.openDisplaySettings}
+          onTextClick={this.handleTextListClick}
           onCitationClick={this.handleCitationClick}
           closePanel={this.props.panelsOpen > 1 ? this.props.closePanel : null}            
           key="connections" />
@@ -753,14 +780,15 @@ var ReaderControls = React.createClass({
       var heTitle = "";
     }
 
-    var hideHeader  = !this.props.multiPanel && this.props.currentMode() === "Connections";
+    var mode = this.props.currentMode();
+    var hideHeader  = !this.props.multiPanel && mode === "Connections";
 
     if (title && !oref) {
       // If we don't have this data yet, rerender when we do so we can set the Hebrew title
       sjs.library.text(title, {context: 1}, function() { if (this.isMounted()) { this.setState({}); } }.bind(this));
     }
 
-    var centerContent = this.props.multiPanel && this.props.currentMode() === "Connections" ?
+    var centerContent = this.props.multiPanel && mode === "Connections" ?
       (<div className="readerTextToc">
           <span className="en">Select Connection</span>
           <span className="he">בחר חיבור</span>
@@ -774,15 +802,16 @@ var ReaderControls = React.createClass({
           { title ? (<i className="fa fa-caret-down"></i>) : null }
         </div>);
 
+    var classes = classNames({readerControls: 1, headeroom: 1, connectionsHeader: mode == "Connections"});
     var readerControls = hideHeader ? null :
-        (<div className="readerControls headroom">
+        (<div className={classes}>
           <div className="leftButtons">
+            {this.props.closePanel ? (<ReaderNavigationMenuCloseButton icon={mode === "Connections" ? "arrow": null} onClick={this.props.closePanel} />) : null}
             <ReaderNavigationMenuSearchButton onClick={this.props.openMenu.bind(null, "navigation")} />
           </div>
           {centerContent}
           <div className="rightButtons">
             <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-            {this.props.closePanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
           </div>
         </div>);
     return (
@@ -1515,7 +1544,9 @@ var ReaderNavigationMenuSearchButton = React.createClass({
 
 var ReaderNavigationMenuCloseButton = React.createClass({
   render: function() { 
-    return (<div className="readerNavMenuCloseButton" onClick={this.props.onClick}>×</div>);
+    var icon = this.props.icon === "arrow" ? (<i className="fa fa-caret-left"></i>) : "×";
+    var classes = classNames({readerNavMenuCloseButton: 1, arrow: this.props.icon === "arrow"});
+    return (<div className={classes} onClick={this.props.onClick}>{icon}</div>);
   }
 });
 
@@ -1551,7 +1582,7 @@ var TextColumn = React.createClass({
     settings:              React.PropTypes.object,
     showBaseText:          React.PropTypes.func,
     updateTextColumn:      React.PropTypes.func,
-    onBaseSegmentClick:    React.PropTypes.func,
+    onSegmentClick:    React.PropTypes.func,
     onCitationClick:       React.PropTypes.func,
     setTextListHightlight: React.PropTypes.func,
     onTextLoad:            React.PropTypes.func,
@@ -1789,7 +1820,7 @@ var TextColumn = React.createClass({
         settings={this.props.settings}
         setOption={this.props.setOption}
         showBaseText={this.props.showBaseText} 
-        onBaseSegmentClick={this.props.onBaseSegmentClick}
+        onSegmentClick={this.props.onSegmentClick}
         onCitationClick={this.props.onCitationClick}
         onTextLoad={this.handleTextLoad}
         filter={this.props.filter}
@@ -1839,16 +1870,15 @@ var TextRange = React.createClass({
     numberLabel:         React.PropTypes.number,
     settings:            React.PropTypes.object,
     filter:              React.PropTypes.array,
-    showBaseText:        React.PropTypes.func,
     onTextLoad:          React.PropTypes.func,
-    onBaseSegmentClick:  React.PropTypes.func,
+    onRangeClick:        React.PropTypes.func,
+    onSegmentClick:      React.PropTypes.func,
     onCitationClick:     React.PropTypes.func,
     panelsOpen:          React.PropTypes.number
   },
   getInitialState: function() {
     return { 
       segments: [],
-      sref: this.props.sref,
       loaded: false,
       linksLoaded: false,
       data: {ref: this.props.sref},
@@ -1892,13 +1922,14 @@ var TextRange = React.createClass({
     }
   },
   handleClick: function(event) {
+    console.log("click")
     if (window.getSelection().type === "Range") { 
       // Don't do anything if this click is part of a selection
       return;
     }
-    if (this.props.openOnClick && this.props.showBaseText) {
+    if (this.props.onRangeClick) {
       //Click on the body of the TextRange itself from TextList
-      this.props.showBaseText(this.props.sref);
+      this.props.onRangeClick(this.props.sref);
       sjs.track.event("Reader", "Click Text from TextList", this.props.sref);
     }
   },
@@ -1906,7 +1937,7 @@ var TextRange = React.createClass({
     settings = {
       context: this.props.withContext ? 1 : 0
     };
-    sjs.library.text(this.state.sref, settings, this.loadText);
+    sjs.library.text(this.props.sref, settings, this.loadText);
   },
   makeSegments: function(data) {
     // Returns a flat list of annotated segment objects,
@@ -2063,7 +2094,7 @@ var TextRange = React.createClass({
             segmentNumber={showSegmentNumbers ? segment.number : 0}
             showLinkCount={this.props.basetext}
             filter={this.props.filter}
-            onSegmentClick={this.props.onBaseSegmentClick}
+            onSegmentClick={this.props.onSegmentClick}
             onCitationClick={this.props.onCitationClick}
             key={i + segment.ref} />
       );
@@ -2168,7 +2199,7 @@ var TextList = React.createClass({
     fullPanel:               React.PropTypes.bool,
     multiPanel:              React.PropTypes.bool,
     setFilter:               React.PropTypes.func,
-    showBaseText:            React.PropTypes.func,
+    onTextClick:             React.PropTypes.func,
     onCitationClick:         React.PropTypes.func,
     openNav:                 React.PropTypes.func,
     openDisplaySettings:     React.PropTypes.func,
@@ -2211,7 +2242,7 @@ var TextList = React.createClass({
   loadConnections: function() {
     // Load connections data from server for this section
     var sectionRef = this.getSectionRef();
-    if (sectionRef) { return; }
+    if (!sectionRef) { return; }
     sjs.library.links(sectionRef, function(links) {
       if (this.isMounted()) {
         this.preloadText(this.props.filter);
@@ -2238,7 +2269,9 @@ var TextList = React.createClass({
     var commentary = filter[0] + " on " + basetext;
     this.setState({textLoaded: false, waitForText: true});
     sjs.library.text(commentary, {}, function() {
-      this.setState({textLoaded: true});
+      if (this.isMounted()) {
+        this.setState({textLoaded: true});        
+      }
     }.bind(this));
   },
   preloadAllCommentaryText: function() {
@@ -2268,7 +2301,9 @@ var TextList = React.createClass({
                 this.waitingFor.splice(index, 1);
             }
             if (this.waitingFor.length == 0) {
-              this.setState({textLoaded: true});
+              if (this.isMounted()) {
+                this.setState({textLoaded: true});
+              }
             }
           }.bind(this));          
         }          
@@ -2330,7 +2365,7 @@ var TextList = React.createClass({
     var loaded  = sjs.library.linksLoaded(sectionRef);
     var message = !loaded ? 
                     (<LoadingMessage />) : 
-                      (links.length === 0 ? 
+                      (summary.length === 0 ? 
                         <LoadingMessage message={en} heMessage={he} /> : null);
     
     var showAllFilters = !filter.length;
@@ -2347,9 +2382,8 @@ var TextList = React.createClass({
                                     hideTitle={hideTitle}
                                     numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
                                     basetext={false}
-                                    showBaseText={this.props.showBaseText}
-                                    onCitationClick={this.props.onCitationClick}
-                                    openOnClick={true} />);
+                                    onRangeClick={this.props.onTextClick}
+                                    onCitationClick={this.props.onCitationClick} />);
                         }, this);      
     }
 
@@ -2371,7 +2405,11 @@ var TextList = React.createClass({
       return (
         <div className={classes}>
           <div className="textListTop">
-            {this.props.fullPanel ? (<div className="leftButtons"><ReaderNavigationMenuSearchButton onClick={this.props.openNav} /></div>) : null}
+            {this.props.fullPanel ? 
+              (<div className="leftButtons">
+                {this.props.closePanel ? (<ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} />) : null}
+                <ReaderNavigationMenuSearchButton onClick={this.props.openNav} />
+               </div>) : null}
             <RecentFilterSet 
               showText={this.props.showText}
               filter={this.props.filter}
@@ -2381,7 +2419,6 @@ var TextList = React.createClass({
             {this.props.fullPanel ? 
               (<div className="rightButtons">
                 <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-                {this.props.closePanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
                </div>) : null}
           </div>
           <div className="texts">

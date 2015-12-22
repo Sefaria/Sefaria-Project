@@ -481,16 +481,17 @@ body.hebrew #home #homeConnect .followButton .fa {
 #home #announcement {
   border: none;
   border-radius: 10px;
-  padding: 15px 40px;
+  padding: 15px 20px;
   background-color: white;
-  width: 440px;
+  width: 500px;
   text-align: left;
   z-index: 50;
 }
 
 #home #announcement .btn {
-  float: right;
+  float: left;
   margin-top: 0px;
+  margin: 0 20px;
 }
 #home #announcement p {
   margin-bottom: 0;
@@ -1475,11 +1476,11 @@ body.hebrew #aboutPage .span5 {
 #sheetTags {
 	max-width: 900px;
 	margin: 28px auto;
-	-webkit-column-count:3; /* Chrome, Safari, Opera */
-	-moz-column-count:3; /* Firefox */
+	-webkit-column-count: 3;/* Chrome, Safari, Opera */
+	-moz-column-count:3;/* Firefox */
 	column-count:3;
-	-webkit-column-gap:40px; /* Chrome, Safari, Opera */
-	-moz-column-gap:40px; /* Firefox */
+	-webkit-column-gap:40px;/* Chrome, Safari, Opera */
+	-moz-column-gap:40px;/* Firefox */
 	column-gap:20px;
 }
 
@@ -1499,14 +1500,13 @@ body.hebrew #aboutPage .span5 {
 }
 
 #sheetTags .tag {
-	margin-bottom: 20px;
+	margin-bottom: 16px;
 	-webkit-column-break-inside: avoid;
 	break-inside: avoid;
 }
 
 #sheetTags .tagName {
 	font-size: 16px;
-	font-weight: bold;
 	color: #555;
 	margin-bottom: 3px;
 }

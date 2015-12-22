@@ -160,7 +160,6 @@ sjs.Init.handlers = function() {
 		sjs.lexicon.reset();
 
 		lowlightOff();
-		sjs.selected = null;
 		$(".expanded").each(function(){ sjs.expandSource($(this)); });
 		sjs.hideSources();
 		if (sjs.current.mode == "view") {
@@ -390,6 +389,7 @@ sjs.Init.handlers = function() {
 	sjs.switchSidebarMode = function(e) {
 		// Switches the content of the sidebar, according to the present targets
 		// data-sidebar attribute
+		console.log("ssm")
 		if (sjs.current._loadSourcesFromDiscussion) {
 			sjs.alert.loadingSidebar();
 			$(".sidebarMode").removeClass("active");
@@ -835,8 +835,7 @@ $(function() {
 		}
 
 		lowlightOn(v[0], v[1]);
-		selected = sjs.setSelected(v[0], v[1]);
-		$("#noteAnchor").html("Note on " + selected);
+		$("#noteAnchor").html("Note on " + sjs.selected);
 		sjs.selected_verses = v;
 	
 		// Selecting a verse for add source
@@ -1243,7 +1242,7 @@ $(function() {
 			return;
 		}
 
-		var url = "/api/texts/" + sjs.current.book + "/" + lang + "/" + version;
+		var url = "/api/texts/" + sjs.current.indexTitle + "/" + lang + "/" + version;
 
 		$.ajax({
 			url: url,
@@ -1724,6 +1723,7 @@ function buildView(data) {
 	$("#about").removeClass("empty");
 	$(".open").remove();	
 	sjs.clearNewText();
+	sjs.selected = null;
 
 	sjs.cache.save(data);
 	sjs.current = data;
@@ -1854,6 +1854,11 @@ function buildView(data) {
 		$("#prev").addClass("inactive");
 	}
 
+	/// Add Basetext to DOM
+	$basetext.html(basetext);
+	sjs._$verses = $basetext.find(".verse");
+	sjs._$commentary = $commentaryBox.find(".commentary");
+
 	if (data.connectionsLoadNeeded) {
 		var loadingHtml = "<div class='loadingMessage'>" +
 							"<span class='en'>Loading...</span>" +
@@ -1866,11 +1871,6 @@ function buildView(data) {
 	} else {
 		buildCommentary(data);
 	}
-	
-	/// Add Basetext to DOM
-	$basetext.html(basetext);
-	sjs._$verses = $basetext.find(".verse");
-	sjs._$commentary = $commentaryBox.find(".commentary");
 	
 	$basetext.show();
 	$sourcesBox.show();	
@@ -2017,7 +2017,11 @@ function buildCommentary(data) {
 	if (data.sectionRef !== sjs.current.sectionRef) { 
 		return; // API call returned after navigating away
 	} else {
-		sjs.current = data;
+		sjs.current.commentary            = data.commentary;
+		sjs.current.notes                 = data.notes;
+		sjs.current.sheets                = data.sheets;
+		sjs.current.layer                 = data.layer;
+		sjs.current.connectionsLoadNeeded = false;
 	}
 	if ($("body").hasClass("editMode")) { 
 		return; // API call returned after switching modes
@@ -2070,7 +2074,7 @@ function buildCommentary(data) {
 	}
 
 	// Highligh highlighted commentaries
-	if (sjs._$verses.hasClass("lowlight")) {
+	if (sjs._$verses && sjs._$verses.hasClass("lowlight")) {
 		var first = parseInt(sjs._$verses.not(".lowlight").first().attr("data-num"));
 		var last  = parseInt(sjs._$verses.not(".lowlight").last().attr("data-num"));
 		lowlightOn(first, last);	
@@ -2500,8 +2504,8 @@ function aboutHtml(data) {
 	var html = '<h2><center>About this Text</center></h2>' +  aboutVersionHtml(heVersion) + aboutVersionHtml(enVersion);
 
 	// Build a list of alternate versions
-	var versionsHtml = '';
-	var versionsLang = {};
+	var versionsHtml = {};
+	//var versionsLang = {};
 	var mergeSources = [];
 	if ("sources" in data) { mergeSources = mergeSources.concat(data.sources); }
 	if ("heSources" in data) { mergeSources = mergeSources.concat(data.heSources); }
@@ -2509,18 +2513,24 @@ function aboutHtml(data) {
 	for (i = 0; i < data.versions.length; i++ ) {
 		var v = data.versions[i];
 		// Don't include versions used as primary en/he
-		if (v.versionTitle === data.versionTitle || v.versionTitle === data.heVersionTitle) { continue; }
+		if ((v.versionTitle === data.versionTitle && v.language == 'en') || (v.versionTitle === data.heVersionTitle && v.language == 'he')) { continue; }
 		if ($.inArray(v.versionTitle, mergeSources) > -1 ) { continue; }
-		versionsHtml += '<div class="alternateVersion ' + v.language + '">' + 
+        if(!(v.language in versionsHtml)){
+            versionsHtml[v.language] = '';
+        }
+		versionsHtml[v.language] += '<div class="alternateVersion ' + v.language + '">' +
 							'<a href="/' + makeRef(data) + '/' + v.language + '/' + encodeURI(v.versionTitle.replace(/ /g, "_")) + '">' +
 							v.versionTitle + '</a></div>';
-		versionsLang[v.language] = true;
+		//versionsLang[v.language] = true;
 	}
-
-	if (versionsHtml) {
-		var langClass = Object.keys(versionsLang).join(" ");
-		html += '<div id="versionsList" class="'+langClass+'"><i>Other versions of this text:</i>' + versionsHtml + '</div>';
-	}
+	if (Object.keys(versionsHtml).length) {
+		var langClass = Object.keys(versionsHtml).join(" ");
+		html += '<div id="versionsList" class="'+langClass+'"><i>Other versions of this text:</i>';
+        for(var lang of Object.keys(versionsHtml)){
+            html += '<div class="alternate-versions ' + lang + '">' + versionsHtml[lang] + '</div>';
+        }
+        html += '</div>';
+    }
 
 	return html;
 }
@@ -4157,6 +4167,7 @@ function lowlightOn(n, m) {
 	m = m || n;
 	n = parseInt(n);
 	m = parseInt(m);
+	sjs.setSelected(n, m);
 	$c = $();
 	for (var i = n; i <= m; i++ ) {
 		$c = $c.add(sjs._$commentaryViewPort.find(".commentary[data-vref~="+ i + "]"));
@@ -4177,12 +4188,12 @@ function lowlightOff() {
 	if ($(".lowlight").length == 0) { return; }
 	$(".lowlight").removeClass("lowlight");
 	$(".verseControls").remove();
-	sjs.selected = null;
 	$("#noteAnchor").html("Note on " + sjs.current.sectionRef);
 	if ("commentary" in sjs.current) {
 		sjs.setSourcesCount();
 		sjs.setSourcesPanel();
 	}
+	sjs.selected = null;
 }
 
 

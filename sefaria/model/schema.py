@@ -8,7 +8,7 @@ try:
     import re2 as re
     re.set_fallback_notification(re.FALLBACK_WARNING)
 except ImportError:
-    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines")
+    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/Sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
     import re
 
 import regex
@@ -809,11 +809,11 @@ class ArrayMapNode(NumberedTitledTreeNode):
                 refs         = text.Ref(self.wholeRef).split_spanning_ref()
                 first, last  = refs[0], refs[-1]
                 offset       = first.sections[-2]-1 if first.is_segment_level() else first.sections[-1]-1
-                depth        = len(first.index.nodes.sectionNames) - len(first.section_ref().sections)
+                depth        = len(first.index_node.sectionNames) - len(first.section_ref().sections)
 
                 d["refs"] = [r.normal() for r in refs]
-                d["addressTypes"] = d.get("addressTypes", []) + first.index.nodes.addressTypes[depth:]
-                d["sectionNames"] = d.get("sectionNames", []) + first.index.nodes.sectionNames[depth:]
+                d["addressTypes"] = d.get("addressTypes", []) + first.index_node.addressTypes[depth:]
+                d["sectionNames"] = d.get("sectionNames", []) + first.index_node.sectionNames[depth:]
                 d["depth"] += 1
                 d["offset"] = offset
 
