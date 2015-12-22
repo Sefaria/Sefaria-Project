@@ -2495,8 +2495,8 @@ function aboutHtml(data) {
 	var html = '<h2><center>About this Text</center></h2>' +  aboutVersionHtml(heVersion) + aboutVersionHtml(enVersion);
 
 	// Build a list of alternate versions
-	var versionsHtml = '';
-	var versionsLang = {};
+	var versionsHtml = {};
+	//var versionsLang = {};
 	var mergeSources = [];
 	if ("sources" in data) { mergeSources = mergeSources.concat(data.sources); }
 	if ("heSources" in data) { mergeSources = mergeSources.concat(data.heSources); }
@@ -2504,18 +2504,25 @@ function aboutHtml(data) {
 	for (i = 0; i < data.versions.length; i++ ) {
 		var v = data.versions[i];
 		// Don't include versions used as primary en/he
-		if (v.versionTitle === data.versionTitle || v.versionTitle === data.heVersionTitle) { continue; }
+		if ((v.versionTitle === data.versionTitle && v.language == 'en') || (v.versionTitle === data.heVersionTitle && v.language == 'he')) { continue; }
 		if ($.inArray(v.versionTitle, mergeSources) > -1 ) { continue; }
-		versionsHtml += '<div class="alternateVersion ' + v.language + '">' + 
+        if(!(v.language in versionsHtml)){
+            versionsHtml[v.language] = '';
+        }
+		versionsHtml[v.language] += '<div class="alternateVersion ' + v.language + '">' +
 							'<a href="/' + makeRef(data) + '/' + v.language + '/' + encodeURI(v.versionTitle.replace(/ /g, "_")) + '">' +
 							v.versionTitle + '</a></div>';
-		versionsLang[v.language] = true;
+		//versionsLang[v.language] = true;
 	}
-
-	if (versionsHtml) {
-		var langClass = Object.keys(versionsLang).join(" ");
-		html += '<div id="versionsList" class="'+langClass+'"><i>Other versions of this text:</i>' + versionsHtml + '</div>';
-	}
+    console.log(versionsHtml);
+	if (Object.keys(versionsHtml).length) {
+		var langClass = Object.keys(versionsHtml).join(" ");
+		html += '<div id="versionsList" class="'+langClass+'"><i>Other versions of this text:</i>';
+        for(var lang of Object.keys(versionsHtml)){
+            html += '<div class="alternate-versions ' + lang + '">' + versionsHtml[lang] + '</div>';
+        }
+        html += '</div>';
+    }
 
 	return html;
 }
