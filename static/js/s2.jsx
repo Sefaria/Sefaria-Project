@@ -1012,21 +1012,27 @@ var ReaderDisplayOptionsMenu = React.createClass({
 
     if (this.props.menuOpen === "search") {
       return (<div className="readerOptionsPanel">
-              {languageToggle}
-              <div className="line"></div>
-              {sizeToggle}
+                <div className="readerOptionsPanelInner">
+                  {languageToggle}
+                  <div className="line"></div>
+                  {sizeToggle}
+                </div>
             </div>);
     } else if (this.props.menuOpen) {
       return (<div className="readerOptionsPanel">
-              {languageToggle}
+                <div className="readerOptionsPanelInner">
+                  {languageToggle}
+                </div>
             </div>);
     } else {
       return (<div className="readerOptionsPanel">
-                {languageToggle}
-                {layoutToggle}
-                <div className="line"></div>
-                {colorToggle}
-                {sizeToggle}
+                <div className="readerOptionsPanelInner">
+                  {languageToggle}
+                  {layoutToggle}
+                  <div className="line"></div>
+                  {colorToggle}
+                  {sizeToggle}
+                </div>
               </div>);
     }
   }

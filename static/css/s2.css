@@ -964,6 +964,10 @@ display: block;margin: 0 auto;}
   border-bottom: 1px solid #ccc;
   z-index: 103;
 }
+.readerOptionsPanelInner {
+  max-width: 660px;
+  margin: 0 auto;
+}
 .toggleSet {
   display: inline-block;
   width: 100%;
