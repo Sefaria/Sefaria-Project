@@ -121,7 +121,6 @@ def resize_text(title, new_structure, upsize_in_place=False):
     # TODO Rewrite any exisitng History items
 
     library.refresh_index_record(title)
-    library.update_toc_on_change(title)
 
     return True
 

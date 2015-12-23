@@ -728,7 +728,7 @@ def search(request):
 def count_and_index(c_oref, c_lang, vtitle, to_count=1):
     # count available segments of text
     if to_count:
-        library.update_toc_on_change(c_oref.book)
+        library.recount_index_in_toc(c_oref.book)
 
     from sefaria.settings import SEARCH_INDEX_ON_SAVE
     if SEARCH_INDEX_ON_SAVE:

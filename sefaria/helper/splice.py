@@ -606,9 +606,9 @@ class Splicer(object):
             VersionState(vt).refresh()
 
     def _update_summaries(self):
-        library.update_toc_on_change(self.first_ref.index.title, recount=False)
+        library._update_toc_on_change(self.first_ref.index.title)
         for vt in self.commentary_titles:
-            library.update_toc_on_change(vt, recount=False)
+            library._update_toc_on_change(vt)
 
     def __eq__(self, other):
         return self._mode == other._mode and self.first_ref == other.first_ref and self.second_ref == other.second_ref

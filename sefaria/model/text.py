@@ -3415,16 +3415,28 @@ class Library(object):
                 self._toc_json = json.dumps(self.get_toc())
         return self._toc_json
 
-    def update_toc_on_delete(self, bookname):
+    def recount_index_in_toc(self, bookname):
+        from sefaria.summaries import update_title_in_toc
+        self._toc = update_title_in_toc(self.get_toc(), bookname, recount=True)
+        self._toc_json = None
+        self._category_id_dict = None
+        self._reset_toc_derivate_objects()
+
+    def _update_toc_on_delete(self, bookname):
         from sefaria.summaries import recur_delete_element_from_toc
         self._toc = recur_delete_element_from_toc(bookname, self.get_toc())
         self._toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
 
-    def update_toc_on_change(self, bookname, old_ref=None, recount=True):
+    def _update_toc_on_change(self, bookname, old_ref=None):
+        """
+        :param bookname:
+        :param old_ref:
+        :return:
+        """
         from sefaria.summaries import update_title_in_toc
-        self._toc = update_title_in_toc(self.get_toc(), bookname, old_ref=old_ref, recount=recount)
+        self._toc = update_title_in_toc(self.get_toc(), bookname, old_ref=old_ref, recount=False)
         self._toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
@@ -3498,7 +3510,7 @@ class Library(object):
             logger.error(u"Error in generating title node dictionary: {}".format(e))
 
         if not index_object.is_commentary():
-            library.update_toc_on_change(index_object.title, old_title, False)
+            library._update_toc_on_change(index_object.title, old_title)
 
         if rebuild:
             self._reset_index_derivitative_objects()
@@ -3527,7 +3539,7 @@ class Library(object):
                     except KeyError:
                         logger.warning("Tried to delete non-existent title '{}' of index record '{}' from title-node map".format(key, index_title))
                 del self._index_title_maps[lang][index_title]
-                library.update_toc_on_delete(index_title)
+                library._update_toc_on_delete(index_title)
             elif commentary_titles:
                 for key in commentary_titles:
                     try:
