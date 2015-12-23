@@ -358,7 +358,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
                     ));
       }
     }
-    panels = panels.length ? panels : (React.createElement("div", {className: "emptyDesktop"}, "Your desktop is empty."));
+    panels = panels.length ? panels : (React.createElement("div", {className: "emptyDesktop"}, "You have nothing open."));
     var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel});
     return (React.createElement("div", {className: classes}, 
               this.props.multiPanel ? 
