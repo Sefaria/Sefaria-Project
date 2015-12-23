@@ -113,6 +113,7 @@ REORDER_RULES = {
     "Commentary2": ["Commentary"],
 }
 
+'''
 
 def get_toc():
     """
@@ -138,7 +139,7 @@ def get_toc_json():
     toc_json = scache.get_cache_elem('toc_json_cache')
     if toc_json:
         return toc_json
-    toc = get_toc()
+    toc = library.get_toc()
     toc_json = json.dumps(toc)
     scache.set_cache_elem('toc_json_cache', toc_json, 600000)
     return toc_json
@@ -147,12 +148,11 @@ def get_toc_json():
 def save_toc(toc):
     """
     Saves the table of contents object to in-memory cache,
-    invalidtes texts_list cache.
+    invalidates texts_list cache.
     """
     scache.set_cache_elem('toc_cache', toc, 600000)
     scache.delete_template_cache("texts_list")
     scache.delete_template_cache("texts_dashboard")
-    library.local_cache.pop("category_id_dict", None)
 
 
 def get_toc_from_db():
@@ -175,6 +175,7 @@ def save_toc_to_db():
         "dateSaved": datetime.now(),
     }
     db.summaries.save(toc_doc)
+'''
 
 
 def update_table_of_contents():
@@ -218,23 +219,18 @@ def update_table_of_contents():
         node.append(text)
 
     # Recursively sort categories and texts
-    toc = sort_toc_node(toc, recur=True)
+    return sort_toc_node(toc, recur=True)
 
-    save_toc(toc)
-    save_toc_to_db()
-
-    return toc
-
-
+'''
 def update_summaries_on_delete(ref, toc = None):
     """
     Deletes a title from the ToC
     :param ref: really the title of a book in the ToC
     """
-    toc = recur_delete_element_from_toc(ref, get_toc())
+    toc = recur_delete_element_from_toc(ref, library.get_toc())
     save_toc(toc)
     save_toc_to_db()
-
+'''
 
 def recur_delete_element_from_toc(ref, toc):
     for toc_elem in toc:
@@ -252,20 +248,18 @@ def recur_delete_element_from_toc(ref, toc):
                 toc_elem['to_delete'] = True
     return toc
 
-
-def update_summaries_on_change(bookname, old_ref=None, recount=True):
+#done
+def update_title_in_toc(toc, bookname, old_ref=None, recount=True):
     """
     Update text summary docs to account for change or insertion of 'text'
     * recount - whether or not to perform a new count of available text
     """
     index = library.get_index(bookname)
-
     indx_dict = index.toc_contents()
 
     if recount:
         #counts.update_full_text_count(bookname)
         VersionState(bookname).refresh()
-    toc = get_toc()
     resort_other = False
 
     if indx_dict["categories"][0] in REORDER_RULES:
@@ -298,17 +292,16 @@ def update_summaries_on_change(bookname, old_ref=None, recount=True):
     if resort_other:
         toc[-1]["contents"] = sort_toc_node(toc[-1]["contents"])
 
-    save_toc(toc)
-    save_toc_to_db()
+    return toc
 
-
+'''
 def update_summaries():
     """
     Update all stored documents which summarize known and available texts
     """
     update_table_of_contents()
     scache.reset_texts_cache()
-
+'''
 
 def get_or_make_summary_node(summary, nodes, contents_only=True):
     """
@@ -438,7 +431,7 @@ def get_texts_summaries_for_category(category):
     """
     Returns the list of texts records in the table of contents corresponding to "category".
     """
-    toc = get_toc()
+    toc = library.get_toc()
     matched_category = find_category_node(category, toc)
     if matched_category:
         return extract_text_records_from_toc(matched_category["contents"])
@@ -499,30 +492,4 @@ def flatten_toc(toc, include_categories=False, categories_in_titles=False, versi
                     results += ["%s > %s > %s.json" % (name, lang, v["versionTitle"])]
 
     return results
-
-
-def category_id_dict(toc=None, cat_head="", code_head=""):
-    if toc is None:
-        d = library.local_cache.get("category_id_dict")
-        if not d:
-            d = category_id_dict(get_toc())
-            library.local_cache["category_id_dict"] = d
-        return d
-
-    d = {}
-
-    for i, c in enumerate(toc):
-        name = c["category"] if "category" in c else c["title"]
-        if cat_head:
-            key = "/".join([cat_head, name])
-            val = code_head + format(i, '02')
-        else:
-            key = name
-            val = "A" + format(i, '02')
-
-        d[key] = val
-        if "contents" in c:
-            d.update(category_id_dict(c["contents"], key, val))
-
-    return d
 

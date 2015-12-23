@@ -18,7 +18,7 @@ import sefaria.model as model
 from sefaria.model.text import Version
 from sefaria.utils.talmud import section_to_daf
 from sefaria.system.exceptions import InputError
-from summaries import ORDER, get_toc
+from summaries import ORDER
 from local_settings import SEFARIA_EXPORT_PATH
 from sefaria.system.database import db
 
@@ -284,7 +284,7 @@ def export_toc():
     """
 	Exports the TOC to a JSON file.
 	"""
-    toc = get_toc()
+    toc = model.library.get_toc()
     with open(SEFARIA_EXPORT_PATH + "/table_of_contents.json", "w") as f:
         f.write(make_json(toc).encode('utf-8'))
 

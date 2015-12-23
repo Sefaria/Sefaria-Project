@@ -515,10 +515,8 @@ def refresh_all_states():
                 VersionState(index).refresh()
         except Exception as e:
             logger.warning(u"Got exception rebuilding state for {}: {}".format(index.title, e))
-            
 
-    import sefaria.summaries as summaries
-    summaries.update_summaries()
+    library.rebuild_toc()
 
 
 def process_index_delete_in_version_state(indx, **kwargs):

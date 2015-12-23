@@ -27,7 +27,7 @@ from sefaria.history import text_history, get_maximal_collapsed_activity, top_co
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.workflows import *
 from sefaria.reviews import *
-from sefaria.summaries import get_toc, flatten_toc, get_or_make_summary_node, REORDER_RULES
+from sefaria.summaries import flatten_toc, get_or_make_summary_node, REORDER_RULES
 from sefaria.model import *
 from sefaria.sheets import get_sheets_for_ref
 from sefaria.utils.users import user_link, user_started_text
@@ -205,7 +205,7 @@ def s2_texts_category(request, cats):
     Listing of texts in a category.
     """
     cats       = cats.split("/")
-    toc        = get_toc()
+    toc        = library.get_toc()
     cat_toc    = get_or_make_summary_node(toc, cats)
 
     if len(cat_toc) == 0:
@@ -689,7 +689,7 @@ def texts_category_list(request, cats):
     if request.flavour == "mobile":
         return s2_texts_category(request, cats)
     cats       = cats.split("/")
-    toc        = get_toc()
+    toc        = library.get_toc()
     cat_toc    = get_or_make_summary_node(toc, cats)
 
     if (len(cat_toc) == 0):
@@ -728,7 +728,7 @@ def search(request):
 def count_and_index(c_oref, c_lang, vtitle, to_count=1):
     # count available segments of text
     if to_count:
-        summaries.update_summaries_on_change(c_oref.book)
+        library.update_toc_on_change(c_oref.book)
 
     from sefaria.settings import SEARCH_INDEX_ON_SAVE
     if SEARCH_INDEX_ON_SAVE:
@@ -859,7 +859,7 @@ def parashat_hashavua_api(request):
 
 @catch_error_as_json
 def table_of_contents_api(request):
-    return jsonResponse(get_toc(), callback=request.GET.get("callback", None))
+    return jsonResponse(library.get_toc(), callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1842,7 +1842,7 @@ def dashboard(request):
         {},
         proj={"title": 1, "flags": 1, "linksCount": 1, "content._en.percentAvailable": 1, "content._he.percentAvailable": 1}
     ).array()
-    toc = get_toc()
+    toc = library.get_toc()
     flat_toc = flatten_toc(toc)
 
     def toc_sort(a):

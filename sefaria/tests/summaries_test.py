@@ -15,7 +15,7 @@ from sefaria.utils.testing_utils import *
 """ SOME SETUP """
 
 text_titles = model.VersionSet({}).distinct('title')
-s.update_table_of_contents()
+model.library.rebuild_toc()
 scache.delete_cache_elem('toc_cache')
 
 
@@ -24,7 +24,7 @@ scache.delete_cache_elem('toc_cache')
 
 class Test_Toc(object):
     def test_toc_integrity(self):
-        toc = s.get_toc()
+        toc = s.library.get_toc()
         self.recur_toc_integrity(toc)
 
 

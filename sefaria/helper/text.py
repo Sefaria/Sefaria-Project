@@ -60,7 +60,6 @@ def create_commentator_and_commentary_version(commentator_name, existing_book, l
                 }
     ).save()
 
-
 def rename_category(old, new):
     """
     Walk through all index records, replacing every category instance
@@ -74,8 +73,7 @@ def rename_category(old, new):
         i.categories = [new if cat == old else cat for cat in i.categories]
         i.save()
 
-    summaries.update_summaries()
-
+    library.rebuild_toc()
 
 def resize_text(title, new_structure, upsize_in_place=False):
     # todo: Needs to be converted to objects, but no usages seen in the wild.
@@ -122,8 +120,8 @@ def resize_text(title, new_structure, upsize_in_place=False):
     # TODO Rewrite any existing Links
     # TODO Rewrite any exisitng History items
 
-    summaries.update_summaries_on_change(title)
-    scache.reset_texts_cache()
+    library.refresh_index_record(title)
+    library.update_toc_on_change(title)
 
     return True
 

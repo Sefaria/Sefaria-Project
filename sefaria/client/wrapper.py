@@ -142,7 +142,7 @@ def get_links(tref, with_text=True):
     linkset = LinkSet(oref)
     # For all links that mention ref (in any position)
     for link in linkset:
-        # each link contins 2 refs in a list
+        # each link contains 2 refs in a list
         # find the position (0 or 1) of "anchor", the one we're getting links for
         pos = 0 if re.match(reRef, link.refs[0]) else 1
         try:

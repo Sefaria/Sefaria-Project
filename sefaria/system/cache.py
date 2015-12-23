@@ -76,51 +76,6 @@ def django_cache_decorator(time=300, cache_key='', cache_type=None):
 #-------------------------------------------------------------#
 
 
-def reset_texts_cache():
-    """
-    Resets caches that only update when text index information changes.
-    """
-    import sefaria.model as model
-    global index_cache
-    index_cache = {}
-    keys = [
-        'toc_cache',
-        'toc_json_cache',
-        # 'texts_titles_json',
-        # 'texts_titles_json_he',
-        # 'full_title_list_en',
-        # 'full_title_list_he',
-        # 'full_title_list_en_commentary',
-        # 'full_title_list_he_commentary',
-        # 'full_title_list_en_commentators',
-        # 'full_title_list_he_commentators',
-        # 'full_title_list_en_commentators_commentary',
-        # 'full_title_list_he_commentators_commentary',
-        # 'full_title_list_en_terms',
-        # 'full_title_list_he_terms',
-        # 'full_title_list_en_commentary_terms',
-        # 'full_title_list_he_commentary_terms',
-        # 'full_title_list_en_commentators_terms',
-        # 'full_title_list_he_commentators_terms',
-        # 'full_title_list_en_commentators_commentary_terms',
-        # 'full_title_list_he_commentators_commentary_terms',
-        # 'title_node_dict_en',
-        # 'title_node_dict_he',
-        # 'title_node_dict_en_commentary',
-        # 'title_node_dict_he_commentary',
-        # 'term_dict_en',
-        # # 'term_dict_he'
-    ]
-    for key in keys:
-        delete_cache_elem(key)
-
-    delete_template_cache('texts_list')
-    delete_template_cache('leaderboards')
-    model.Ref.clear_cache()
-    model.library.local_cache = {}
-    #cache.clear()
-
-
 def get_cache_elem(key):
     return cache.get(key)
 
@@ -151,32 +106,8 @@ def generate_text_toc_cache_key(index_name):
     key = cache_get_key(*['make_toc_html', index_name], **{'zoom' : 1})
     return key
 
-
-def process_index_change_in_cache(indx, **kwargs):
-    delete_cache_elem(generate_text_toc_cache_key(indx.title))
-    reset_texts_cache()
-    if USE_VARNISH:
-        from sefaria.system.sf_varnish import invalidate_index
-        invalidate_index(indx.title)
-
-
-def process_index_delete_in_cache(indx, **kwargs):
-    delete_cache_elem(generate_text_toc_cache_key(indx.title))
-    reset_texts_cache()
-    if USE_VARNISH:
-        from sefaria.system.sf_varnish import invalidate_index, invalidate_counts
-        invalidate_index(indx.title)
-        invalidate_counts(indx.title)
-
-
-def process_new_commentary_version_in_cache(ver, **kwargs):
-    if " on " in ver.title:
-        reset_texts_cache()
-
-
 def process_version_save_in_cache(ver, **kwargs):
     delete_cache_elem(generate_text_toc_cache_key(ver.title))
-
 
 def process_version_delete_in_cache(ver, **kwargs):
     delete_cache_elem(generate_text_toc_cache_key(ver.title))

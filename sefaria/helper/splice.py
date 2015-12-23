@@ -3,7 +3,6 @@ from sefaria.system.exceptions import InputError
 from sefaria.search import delete_text, index_text
 from sefaria.sheets import get_sheets_for_ref, get_sheet, save_sheet
 from sefaria.system.database import db
-from sefaria.summaries import update_summaries_on_change
 
 class Splicer(object):
     """
@@ -607,9 +606,9 @@ class Splicer(object):
             VersionState(vt).refresh()
 
     def _update_summaries(self):
-        update_summaries_on_change(self.first_ref.index.title, recount=False)
+        library.update_toc_on_change(self.first_ref.index.title, recount=False)
         for vt in self.commentary_titles:
-            update_summaries_on_change(vt, recount=False)
+            library.update_toc_on_change(vt, recount=False)
 
     def __eq__(self, other):
         return self._mode == other._mode and self.first_ref == other.first_ref and self.second_ref == other.second_ref

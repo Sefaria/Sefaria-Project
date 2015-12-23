@@ -24,7 +24,6 @@ import sefaria.model as model
 import sefaria.system.cache as scache
 
 from sefaria.client.util import jsonResponse, subscribe_to_announce
-from sefaria.summaries import update_summaries, save_toc_to_db
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH
 from sefaria.model.user_profile import UserProfile
@@ -237,7 +236,7 @@ def bulktext_api(request, refs):
 
 @staff_member_required
 def reset_cache(request):
-    scache.reset_texts_cache()
+    model.library.rebuild()
     global user_links
     user_links = {}
     return HttpResponseRedirect("/?m=Cache-Reset")
@@ -287,7 +286,7 @@ def delete_orphaned_counts(request):
 
 @staff_member_required
 def rebuild_toc(request):
-    update_summaries()
+    model.library.rebuild_toc()
     return HttpResponseRedirect("/?m=TOC-Rebuilt")
 
 
@@ -297,11 +296,12 @@ def rebuild_counts_and_toc(request):
     return HttpResponseRedirect("/?m=Counts-&-TOC-Rebuilt")
 
 
+'''
 @staff_member_required
 def save_toc(request):
     save_toc_to_db()
     return HttpResponseRedirect("/?m=TOC-Saved")
-
+'''
 
 @staff_member_required
 def rebuild_commentary_links(request, title):
@@ -346,7 +346,6 @@ def create_commentator_version(request, commentator, book, lang, vtitle, vsource
     from sefaria.helper.text import create_commentator_and_commentary_version
     ht = request.GET.get("heTitle", None)
     create_commentator_and_commentary_version(commentator, book, lang, vtitle, vsource, ht)
-    scache.reset_texts_cache()
     return HttpResponseRedirect("/add/%s" % commentator)
 
 
