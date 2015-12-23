@@ -255,16 +255,21 @@ var ReaderApp = React.createClass({
     return;
   },
   openTextListAt: function(n, refs) {
-    // Make the panel open at position `n` into a TextList for `ref`
+    // Open a connections panel at position `n` for `refs`
+    // Replace panel there if already a connections panel, otherwise splice new panel into position `n`
     // `refs` is an array of ref strings
-    if (n === this.state.panels.length) {
-      this.state.panels.push({refs: [], mode: "Connections"});
+    var panel = this.state.panels[n] || {};
+    if (panel.mode === "Connections") {
+      var oref1 = parseRef(panel.refs.slice(-1)[0]);
+      var oref2 = parseRef(refs.slice(-1)[0]);
+      // If this is a new text reset the filter, otherwise keep the current filter
+      panel.filter   = oref1.book === oref2.book ? panel.filter : [];      
+    } else {
+      this.state.panels.splice(n, 0, {});
+      panel = this.state.panels[n];
+      panel.filter = [];
     }
-    var panel = this.state.panels[n];
-    var oref1 = parseRef(panel.refs.slice(-1)[0]);
-    var oref2 = parseRef(refs.slice(-1)[0]);
-    // If this is a new text reset the filter, otherwise keep the current filter
-    panel.filter   = oref1.book === oref2.book ? panel.filter : [];
+
     panel.refs     = refs;
     panel.menuOpen = null;
     panel.mode     = "Connections";
