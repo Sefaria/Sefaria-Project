@@ -2642,8 +2642,14 @@ class Ref(object):
         if not self._padded:
             if not getattr(self, "index_node", None):
                 raise Exception(u"No index_node found {}".format(vars(self)))
-            if len(self.sections) >= self.index_node.depth - 1:
-                return self
+            try:
+                if len(self.sections) >= self.index_node.depth - 1:
+                    return self
+            except AttributeError: # This is a schema node, try to get a default child
+                try:
+                    return self.default_child_ref().padded_ref()
+                except Exception:
+                    raise InputError("Can not pad a schema node ref")
 
             d = self._core_dict()
             if self.is_talmud():
@@ -2777,7 +2783,6 @@ class Ref(object):
 
         E.g., "Genesis 1" yields an RE that match "Genesis 1" and "Genesis 1:3"
         """
-        #todo: explore edge cases - book name alone, full ref to segment level
         #todo: move over to the regex methods of the index nodes
         patterns = []
 
@@ -2816,15 +2821,13 @@ class Ref(object):
             else:
                 return "%s(%s)" % (escaped_book, "|".join(patterns))
 
-
     def base_text_and_commentary_regex(self):
         ref_regex_str = self.regex(anchored=False)
         commentators = library.get_commentary_version_titles_on_book(self.book, with_commentary2=True)
         if commentators:
-            pattern = ur"(^{})|(^({}) on {})".format(ref_regex_str, "|".join(commentators), ref_regex_str)
+            return ur"(^{})|(^({}) on {})".format(ref_regex_str, "|".join(commentators), ref_regex_str)
         else:
-            pattern = ur"^{}".format(ref_regex_str)
-        return pattern
+            return ur"^{}".format(ref_regex_str)
 
     """ Comparisons """
     def overlaps(self, other):
