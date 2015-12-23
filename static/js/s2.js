@@ -1252,6 +1252,7 @@ var ReaderNavigationMenuSection = React.createClass({displayName: "ReaderNavigat
     content: React.PropTypes.object
   },
   render: function() {
+    if (!this.props.content) { return null; }
     return (
       React.createElement("div", {className: "readerNavSection"}, 
         React.createElement("h2", null, 
