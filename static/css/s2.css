@@ -30,7 +30,7 @@ body.dark {
   width: 100%;
   height: 100%;
 }
-.header {
+.headerInner {
   position: fixed;
   top: 0;
   left: 0;
@@ -79,14 +79,18 @@ body.dark {
   font-size: 24px;
 }
 .header .home img {
-  height: 32px;
+  height: 28px;
   vertical-align: middle;
+  margin-top: -3px;
 }
 .header .headerNavContent {
   position: fixed;
   height: 100%;
   width: 100%;
   box-sizing: border-box;
+  top: 0;
+  padding-top: 54px;
+  z-index: 1000;
 }
 .multiPanel .readerPanelBox {
   box-sizing: border-box;
@@ -343,9 +347,9 @@ body .bilingual .enOnly .he {
 .readerNavMenu .tagline {
   text-align: center;
   color: #333;
+  height: 70px;
   margin-top: -46px;
   font-size: 26px;
-  height: 60px;
   font-weight: lighter;
   letter-spacing: 1px;
 }
@@ -362,6 +366,7 @@ body .bilingual .enOnly .he {
 @media (max-width: 450px) {
   .readerNavMenu.home .tagline {
     margin-top: 29px;
+    height: 60px;
   }
   .readerNavMenu .tagline .en {
     font-size: 19px;
@@ -412,13 +417,16 @@ body .bilingual .enOnly .he {
 .readerPanel h2 .he, .readerPanel h3 .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
-.readerNavMenu h3 {
+.readerNavSection h2 {
   font-size: 13px;
-  margin-bottom: 15px;
+  font-weight: normal;
+  margin-bottom: 24px;
+}
+.readerNavSection {
+  margin-bottom: 44px;
 }
 .readerNavCategories {
   width: 100%;
-  margin-bottom: 30px;
 }
 .readerNavCategories .threeBox td {
   border: none;
@@ -460,7 +468,7 @@ body .bilingual .enOnly .he {
 .readerNavCalendar .gridBox td:last-child {
   border-right: 0;
 }
-.readerNavMenu .calendarLink.refLink,
+.readerNavMenu .blockLink.refLink,
 .readerNavMenu .sheetsLink {
   display: inline-block;
   color: black;

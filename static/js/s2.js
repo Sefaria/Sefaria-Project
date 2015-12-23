@@ -272,8 +272,10 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
   },
   closePanel: function(n) {
     if (this.state.panels[n].mode === "Connections" && this.state.panels.length > 1) {
+      // When closing a connections panel, reset highlight in base text
       this.state.panels[n-1].highlightedRefs = [];
     }
+    this.saveRecentlyViewed(this.state.panels[n]);
     if (this.state.panels.length == 1 && n == 0) {
       this.state.panels = [];
     } else {
@@ -281,6 +283,18 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     }
     this.setState({panels: this.state.panels});
     this.updateHistoryState();
+  },
+  saveRecentlyViewed: function(panel) {
+    if (panel.mode == "Connections" || !panel.refs.length) { return; }
+    var ref  = panel.refs[0];
+    var oRef = sjs.library.ref(ref);
+    var json = $.cookie("recentlyViewed");
+    recent = json ? JSON.parse(json) : [];
+    recent.splice(0, 0, {ref: ref, book: oRef.indexTitle});
+    recent = recent.slice(0, 3);
+
+    $.cookie("recentlyViewed", JSON.stringify(recent), {path: "/"});
+
   },
   render: function() {
     var width = 100.0/this.state.panels.length;
@@ -418,7 +432,7 @@ var Header = React.createClass({displayName: "Header",
     if (query) {
       this.props.openSearch(query);
     }
-  },  
+  },
   render: function() {
     var viewContent = this.state.mode ? 
                         (React.createElement(ReaderPanel, {
@@ -1059,6 +1073,10 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
   showMore: function() {
     this.setState({showMore: true});
   },
+  getRecentlyViewed: function() {
+    var json = $.cookie("recentlyViewed");
+    return json ? JSON.parse(json) : null;
+  },
   handleClick: function(event) {
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
       var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
@@ -1163,21 +1181,9 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
                         React.createElement("span", {className: "en"}, "Sign In"), 
                         React.createElement("span", {className: "he"}, "הירשם")
                       ))];
-
-      var tanachStyle = {"borderColor": sjs.categoryColor("Tanach")};
-      var talmudStyle = {"borderColor": sjs.categoryColor("Talmud")};
-      var calendar = [(React.createElement("a", {className: "calendarLink refLink", "data-ref": sjs.calendar.parasha, style: tanachStyle, key: "parasha"}, 
-                        React.createElement("span", {className: "en"}, sjs.calendar.parashaName), 
-                        React.createElement("span", {className: "he"}, "פרשה")
-                       )),
-                      (React.createElement("a", {className: "calendarLink refLink", "data-ref": sjs.calendar.haftara, style: tanachStyle, key: "haftara"}, 
-                        React.createElement("span", {className: "en"}, "Haftara"), 
-                        React.createElement("span", {className: "he"}, "הפטרה")
-                       )),
-                      (React.createElement("a", {className: "calendarLink refLink", "data-ref": sjs.calendar.daf_yomi, style: talmudStyle, key: "dafyomi"}, 
-                        React.createElement("span", {className: "en"}, "Daf Yomi"), 
-                        React.createElement("span", {className: "he"}, "דף יומי")
-                       ))];
+      var calendar = [(React.createElement(TextBlockLink, {sref: sjs.calendar.parasha, title: sjs.calendar.parashaName, heTitle: "פרשה", category: "Tanach"})),
+                      (React.createElement(TextBlockLink, {sref: sjs.calendar.haftara, title: "Haftara", heTitle: "הפטרה", category: "Tanach"})),
+                      (React.createElement(TextBlockLink, {sref: sjs.calendar.daf_yomi, title: "Daf Yomi", heTitle: "דף יומי", category: "Talmud"}))];
       calendar = (React.createElement("div", {className: "readerNavCalendar"}, React.createElement(TwoOrThreeBox, {content: calendar, width: this.state.width})));
 
       var topContent = this.props.home ?
@@ -1196,6 +1202,21 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
               ));
       topContent = this.props.hideNavHeader ? null : topContent;
 
+      var recentlyViewed = this.getRecentlyViewed();
+      recentlyViewed = recentlyViewed ? recentlyViewed.map(function(item) {
+        return (React.createElement(TextBlockLink, {
+                  sref: item.ref, 
+                  book: item.book}))
+      }) : null;
+      recentlyViewed = recentlyViewed ? React.createElement(TwoOrThreeBox, {content: recentlyViewed, width: this.state.width}) : null;
+
+      var community = (
+            React.createElement("span", {className: "sheetsLink", style:  {borderColor: sjs.categoryColor("Sheets")}, onClick: this.props.openMenu.bind(null, "sheets")}, 
+              React.createElement("i", {className: "fa fa-file-text-o"}), 
+              React.createElement("span", {className: "en"}, "Source Sheets"), 
+              React.createElement("span", {className: "he"}, "דפי מקורות")
+            ));
+
       var classes     = classNames({readerNavMenu: 1, readerNavMenu:1, home: this.props.home, noHeader: !this.props.hideHeader});
       var sheetsStyle = {"borderColor": sjs.categoryColor("Sheets")};
 
@@ -1203,36 +1224,66 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
               topContent, 
               React.createElement("div", {className: "content"}, 
                 React.createElement("div", {className: "contentInner"}, 
-                  this.props.home ? (React.createElement("div", {className: "tagline"}, 
-                                        React.createElement("span", {className: "en"}, "A Living Library of Jewish Texts"), 
-                                        React.createElement("span", {className: "he"}, "ספריה חיה של טקסטים יהודיים")
-                                      )) : (React.createElement("div", {className: "tagline"})), 
-                  React.createElement("h2", null, 
-                    React.createElement("span", {className: "en"}, "Browse Texts"), 
-                    React.createElement("span", {className: "he"}, "טקסטים")
-                  ), 
-                  categories, 
-                  React.createElement("h2", null, 
-                    React.createElement("span", {className: "en"}, "Calendar"), 
-                    React.createElement("span", {className: "he"}, "לוח יומי")
-                  ), 
-                  calendar, 
-                  React.createElement("h2", null, 
-                    React.createElement("span", {className: "en"}, "Community"), 
-                    React.createElement("span", {className: "he"}, "קהילה")
-                  ), 
-                  React.createElement("span", {className: "sheetsLink", style: sheetsStyle, onClick: this.props.openMenu.bind(null, "sheets")}, 
-                    React.createElement("i", {className: "fa fa-file-text-o"}), 
-                    React.createElement("span", {className: "en"}, "Source Sheets"), 
-                    React.createElement("span", {className: "he"}, "דפי מקורות")
-                  ), 
+                  this.props.home ? (
+                    React.createElement("div", {className: "tagline"}, 
+                      React.createElement("span", {className: "en"}, "A Living Library of Jewish Texts"), 
+                      React.createElement("span", {className: "he"}, "ספריה חיה של טקסטים יהודיים")
+                    )) : (React.createElement("div", {className: "tagline"})), 
+                  
+                  React.createElement(ReaderNavigationMenuSection, {title: "Recently Viewed", heTitle: "ט", content: recentlyViewed}), 
+                  React.createElement(ReaderNavigationMenuSection, {title: "Browse Texts", heTitle: "טקסטים", content: categories}), 
+                  React.createElement(ReaderNavigationMenuSection, {title: "Calendar", heTitle: "לוח יומי", content: calendar}), 
+                  React.createElement(ReaderNavigationMenuSection, {title: "Community", heTitle: "קהילה", content: community}), 
+
                   React.createElement("div", {className: "siteLinks"}, 
-                  siteLinks
+                    siteLinks
                   )
                 )
               )
             ));
     }
+  }
+});
+
+var ReaderNavigationMenuSection = React.createClass({displayName: "ReaderNavigationMenuSection",
+  propTypes: {
+    title:   React.PropTypes.string,
+    heTitle: React.PropTypes.string,
+    content: React.PropTypes.object
+  },
+  render: function() {
+    return (
+      React.createElement("div", {className: "readerNavSection"}, 
+        React.createElement("h2", null, 
+          React.createElement("span", {className: "en"}, this.props.title), 
+          React.createElement("span", {className: "he"}, this.props.heTitle)
+        ), 
+        this.props.content
+      )
+      );
+  }
+});
+
+var TextBlockLink = React.createClass({displayName: "TextBlockLink",
+  // Monopoly card style link with category color at top
+  propTypes: {
+    sref:     React.PropTypes.string.isRequired,
+    book:     React.PropTypes.string,
+    category: React.PropTypes.string,
+    title:    React.PropTypes.string,
+    heTitle:  React.PropTypes.string
+  },
+  render: function() {
+    var index    = sjs.library.index(this.props.book);
+    var category = this.props.category || index.categories[0];
+    var style    = {"borderColor": sjs.categoryColor(category)};
+    var title    = this.props.title || this.props.book;
+    var heTitle  = this.props.heTitle || index.heTitle;
+
+    return (React.createElement("a", {className: "refLink blockLink", "data-ref": this.props.sref, style: style}, 
+              React.createElement("span", {className: "en"}, title), 
+              React.createElement("span", {className: "he"}, heTitle)
+             ))
   }
 });
 

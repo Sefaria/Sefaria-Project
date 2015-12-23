@@ -272,8 +272,10 @@ var ReaderApp = React.createClass({
   },
   closePanel: function(n) {
     if (this.state.panels[n].mode === "Connections" && this.state.panels.length > 1) {
+      // When closing a connections panel, reset highlight in base text
       this.state.panels[n-1].highlightedRefs = [];
     }
+    this.saveRecentlyViewed(this.state.panels[n]);
     if (this.state.panels.length == 1 && n == 0) {
       this.state.panels = [];
     } else {
@@ -281,6 +283,18 @@ var ReaderApp = React.createClass({
     }
     this.setState({panels: this.state.panels});
     this.updateHistoryState();
+  },
+  saveRecentlyViewed: function(panel) {
+    if (panel.mode == "Connections" || !panel.refs.length) { return; }
+    var ref  = panel.refs[0];
+    var oRef = sjs.library.ref(ref);
+    var json = $.cookie("recentlyViewed");
+    recent = json ? JSON.parse(json) : [];
+    recent.splice(0, 0, {ref: ref, book: oRef.indexTitle});
+    recent = recent.slice(0, 3);
+
+    $.cookie("recentlyViewed", JSON.stringify(recent), {path: "/"});
+
   },
   render: function() {
     var width = 100.0/this.state.panels.length;
@@ -418,7 +432,7 @@ var Header = React.createClass({
     if (query) {
       this.props.openSearch(query);
     }
-  },  
+  },
   render: function() {
     var viewContent = this.state.mode ? 
                         (<ReaderPanel
@@ -1059,6 +1073,10 @@ var ReaderNavigationMenu = React.createClass({
   showMore: function() {
     this.setState({showMore: true});
   },
+  getRecentlyViewed: function() {
+    var json = $.cookie("recentlyViewed");
+    return json ? JSON.parse(json) : null;
+  },
   handleClick: function(event) {
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
       var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
@@ -1163,21 +1181,9 @@ var ReaderNavigationMenu = React.createClass({
                         <span className="en">Sign In</span>
                         <span className="he">הירשם</span>
                       </a>)];
-
-      var tanachStyle = {"borderColor": sjs.categoryColor("Tanach")};
-      var talmudStyle = {"borderColor": sjs.categoryColor("Talmud")};
-      var calendar = [(<a className="calendarLink refLink" data-ref={sjs.calendar.parasha} style={tanachStyle} key="parasha">
-                        <span className="en">{sjs.calendar.parashaName}</span>
-                        <span className="he">פרשה</span>
-                       </a>),
-                      (<a className="calendarLink refLink" data-ref={sjs.calendar.haftara} style={tanachStyle} key="haftara">
-                        <span className="en">Haftara</span>
-                        <span className="he">הפטרה</span>
-                       </a>),
-                      (<a className="calendarLink refLink" data-ref={sjs.calendar.daf_yomi} style={talmudStyle} key="dafyomi">
-                        <span className="en">Daf Yomi</span>
-                        <span className="he">דף יומי</span>
-                       </a>)];
+      var calendar = [(<TextBlockLink sref={sjs.calendar.parasha} title={sjs.calendar.parashaName} heTitle="פרשה" category="Tanach" />),
+                      (<TextBlockLink sref={sjs.calendar.haftara} title="Haftara" heTitle="הפטרה" category="Tanach" />),
+                      (<TextBlockLink sref={sjs.calendar.daf_yomi} title="Daf Yomi" heTitle="דף יומי" category="Talmud" />)];
       calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={this.state.width} /></div>);
 
       var topContent = this.props.home ?
@@ -1196,6 +1202,21 @@ var ReaderNavigationMenu = React.createClass({
               </div>);
       topContent = this.props.hideNavHeader ? null : topContent;
 
+      var recentlyViewed = this.getRecentlyViewed();
+      recentlyViewed = recentlyViewed ? recentlyViewed.map(function(item) {
+        return (<TextBlockLink 
+                  sref={item.ref}
+                  book={item.book} />)
+      }) : null;
+      recentlyViewed = recentlyViewed ? <TwoOrThreeBox content={recentlyViewed} width={this.state.width} /> : null;
+
+      var community = (
+            <span className="sheetsLink" style={ {borderColor: sjs.categoryColor("Sheets")} } onClick={this.props.openMenu.bind(null, "sheets")}>
+              <i className="fa fa-file-text-o"></i>
+              <span className="en">Source Sheets</span>
+              <span className="he">דפי מקורות</span>
+            </span>);
+
       var classes     = classNames({readerNavMenu: 1, readerNavMenu:1, home: this.props.home, noHeader: !this.props.hideHeader});
       var sheetsStyle = {"borderColor": sjs.categoryColor("Sheets")};
 
@@ -1203,36 +1224,66 @@ var ReaderNavigationMenu = React.createClass({
               {topContent}
               <div className="content">
                 <div className="contentInner">
-                  {this.props.home ? (<div className="tagline">
-                                        <span className="en">A Living Library of Jewish Texts</span>
-                                        <span className="he">ספריה חיה של טקסטים יהודיים</span>
-                                      </div>) : (<div className="tagline"></div>)}
-                  <h2>
-                    <span className="en">Browse Texts</span>
-                    <span className="he">טקסטים</span>
-                  </h2>
-                  {categories}
-                  <h2>
-                    <span className="en">Calendar</span>
-                    <span className="he">לוח יומי</span>
-                  </h2>
-                  {calendar}
-                  <h2>
-                    <span className="en">Community</span>
-                    <span className="he">קהילה</span>
-                  </h2>
-                  <span className="sheetsLink" style={sheetsStyle} onClick={this.props.openMenu.bind(null, "sheets")}>
-                    <i className="fa fa-file-text-o"></i>
-                    <span className="en">Source Sheets</span>
-                    <span className="he">דפי מקורות</span>
-                  </span>
+                  {this.props.home ? (
+                    <div className="tagline">
+                      <span className="en">A Living Library of Jewish Texts</span>
+                      <span className="he">ספריה חיה של טקסטים יהודיים</span>
+                    </div>) : (<div className="tagline"></div>)}
+                  
+                  <ReaderNavigationMenuSection title="Recently Viewed" heTitle="ט" content={recentlyViewed} />
+                  <ReaderNavigationMenuSection title="Browse Texts" heTitle="טקסטים" content={categories} />
+                  <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} />
+                  <ReaderNavigationMenuSection title="Community" heTitle="קהילה" content={community} />
+
                   <div className="siteLinks">
-                  {siteLinks}
+                    {siteLinks}
                   </div>
                 </div>
               </div>
             </div>);
     }
+  }
+});
+
+var ReaderNavigationMenuSection = React.createClass({
+  propTypes: {
+    title:   React.PropTypes.string,
+    heTitle: React.PropTypes.string,
+    content: React.PropTypes.object
+  },
+  render: function() {
+    return (
+      <div className="readerNavSection">
+        <h2>
+          <span className="en">{this.props.title}</span>
+          <span className="he">{this.props.heTitle}</span>
+        </h2>
+        {this.props.content}
+      </div>
+      );
+  }
+});
+
+var TextBlockLink = React.createClass({
+  // Monopoly card style link with category color at top
+  propTypes: {
+    sref:     React.PropTypes.string.isRequired,
+    book:     React.PropTypes.string,
+    category: React.PropTypes.string,
+    title:    React.PropTypes.string,
+    heTitle:  React.PropTypes.string
+  },
+  render: function() {
+    var index    = sjs.library.index(this.props.book);
+    var category = this.props.category || index.categories[0];
+    var style    = {"borderColor": sjs.categoryColor(category)};
+    var title    = this.props.title || this.props.book;
+    var heTitle  = this.props.heTitle || index.heTitle;
+
+    return (<a className="refLink blockLink" data-ref={this.props.sref} style={style}>
+              <span className="en">{title}</span>
+              <span className="he">{heTitle}</span>
+             </a>)
   }
 });
 
