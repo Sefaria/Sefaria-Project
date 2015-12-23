@@ -1578,7 +1578,7 @@ class RefCacheType(type):
         cls.__tref_oref_map = {}
         cls.__index_tref_map = {}
 
-    def remove_index(cls, index_title):
+    def remove_index_from_cache(cls, index_title):
         """
         Removes all refs to Index with title `index_title` from the Ref cache
         :param cls:
@@ -3378,7 +3378,7 @@ class Library(object):
         :param rebuild: Perform a rebuild of derivative objects afterwards?
         :return:
         """
-        Ref.remove_index(index_title)
+        Ref.remove_index_from_cache(index_title)
 
         #//TODO: mark for commentary refactor
         #//Keeping commentary branch and simple branch completely separate - should make refactor easier

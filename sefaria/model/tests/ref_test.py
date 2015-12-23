@@ -394,14 +394,14 @@ class Test_Cache(object):
     def test_index_flush_from_cache(self):
         r1 = Ref("Genesis 1")
         r2 = Ref("Exodus 3")
-        Ref.remove_index("Genesis")
+        Ref.remove_index_from_cache("Genesis")
         assert r1 is not Ref("Genesis 1")
         assert r2 is Ref("Exodus 3")
-        Ref.remove_index("Genesis")
+        Ref.remove_index_from_cache("Genesis")
 
         r1 = Ref("Rashi on Genesis 1")
         r2 = Ref("Rashi on Exodus 3")
-        Ref.remove_index("Rashi on Genesis")
+        Ref.remove_index_from_cache("Rashi on Genesis")
         assert r1 is not Ref("Rashi on Genesis 1")
         assert r2 is Ref("Rashi on Exodus 3")
 
