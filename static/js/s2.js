@@ -285,6 +285,14 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
       this.state.panels = [];
     } else {
       this.state.panels.splice(n, 1);
+      if (this.state.panels[n] && this.state.panels[n].mode === "Connections") {
+        // Close connections panel when text panel is closed
+        if (this.state.panels.length == 1) {
+          this.state.panels = [];
+        } else {
+          this.state.panels.splice(n, 1);
+        }
+      }
     }
     this.setState({panels: this.state.panels});
     this.updateHistoryState();
@@ -403,7 +411,7 @@ var Header = React.createClass({displayName: "Header",
     });
   },
   componentWillReceiveProps: function(nextProps) {
-    if (this.props.panelsOpen === 1 && nextProps.panelsOpen === 0) {
+    if (this.props.panelsOpen > 0 && nextProps.panelsOpen === 0) {
       this.setState({mode: "navigation"});
     }
   },
