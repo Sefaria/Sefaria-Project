@@ -49,12 +49,12 @@ body.dark {
 .header .left {
   float: left;
   text-align: left;
-  width: 300px;
+  width: 40%;
 }
 .header .right {
   float: right;
   text-align: right;
-  width: 300px;
+  width: 40%;
 }
 .header .library, .header .home, .header .account {
   cursor: pointer;
@@ -68,7 +68,9 @@ body.dark {
   border: none;
   color: black;
   font-size:  18px;
+  font-family: "adobe-garamond-pro", Georgia, serif;
   vertical-align: 2px;
+  width: 75%;
 }
 .header .home {
   margin: 0 auto;
@@ -91,6 +93,28 @@ body.dark {
   top: 0;
   padding-top: 54px;
   z-index: 1000;
+}
+.ui-autocomplete {
+  position: absolute;
+  background: white;
+  list-style-type: none;
+  padding: 6px 0;
+  border: 1px solid #aaa;
+  border-top: 1px solid #ddd;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.ui-autocomplete .ui-menu-item a {
+  padding: 4px 12px;
+  font-size: 16px;
+  color: black;
+  cursor: pointer;
+  display: block;
+}
+.ui-autocomplete .ui-menu-item a.ui-state-focus {
+  background-color: #E9E9E7;
+}
+.ui-helper-hidden-accessible {
+  display: none;
 }
 .multiPanel .readerPanelBox {
   box-sizing: border-box;

@@ -384,6 +384,19 @@ var Header = React.createClass({displayName: "Header",
       query: null
     };
   },
+  componentDidMount: function() {
+    $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete({ 
+      position: {my: "left-12 top+13", at: "left bottom"},
+      source: function( request, response ) {
+        var matches = $.map( sjs.books, function(tag) {
+            if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
+              return tag;
+            }
+          });
+        response(matches.slice(0, 16)); // limits return to 16 items
+      }
+    });
+  },
   componentWillReceiveProps: function(nextProps) {
     if (this.props.panelsOpen === 1 && nextProps.panelsOpen === 0) {
       this.setState({mode: "navigation"});
@@ -399,13 +412,35 @@ var Header = React.createClass({displayName: "Header",
   },
   showSearch: function(query) {
     this.setState({mode: "search", query: query});
+    $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("close");
   },
   showAccount: function() {
     this.setState({mode: "account"});
     this.clearSearchBox();
   },
+  submitSearch: function(query, skipNormalization) {
+    //window.location = "/search?q=" + query.replace(/ /g, "+");
+    if (query in sjs.booksDict) {
+      var index = sjs.library.index(query);
+      if (index) {
+        query = index.firstSection;
+      } else if (!skipNormalization) {
+        sjs.library.normalizeTitle(query, function(title) {
+          this.submitSearch(title, true)
+        }.bind(this));
+        return;
+      }
+    }
+    if (isRef(query)) {
+        this.props.onRefClick(query);
+        this.showDesktop();
+        sjs.track.ui("Nav Query");
+    } else {
+        this.showSearch(query);
+    }
+  },
   clearSearchBox: function() {
-    $(ReactDOM.findDOMNode(this)).find("input.search").val("");
+    $(ReactDOM.findDOMNode(this)).find("input.search").val("").autocomplete("close");
   },
   handleLibraryClick: function() {
     if (this.state.mode === "home") {
@@ -423,8 +458,9 @@ var Header = React.createClass({displayName: "Header",
   handleSearchKeyUp: function(event) {
     if (event.keyCode === 13) {
       var query = $(event.target).val();
-      //window.location = "/search?q=" + query.replace(/ /g, "+");
-      this.showSearch(query);
+      if (query) {
+        this.submitSearch(query);
+      }
     }
   },
   handleSearchButtonClick: function(event) {
@@ -1012,21 +1048,27 @@ var ReaderDisplayOptionsMenu = React.createClass({displayName: "ReaderDisplayOpt
 
     if (this.props.menuOpen === "search") {
       return (React.createElement("div", {className: "readerOptionsPanel"}, 
-              languageToggle, 
-              React.createElement("div", {className: "line"}), 
-              sizeToggle
+                React.createElement("div", {className: "readerOptionsPanelInner"}, 
+                  languageToggle, 
+                  React.createElement("div", {className: "line"}), 
+                  sizeToggle
+                )
             ));
     } else if (this.props.menuOpen) {
       return (React.createElement("div", {className: "readerOptionsPanel"}, 
-              languageToggle
+                React.createElement("div", {className: "readerOptionsPanelInner"}, 
+                  languageToggle
+                )
             ));
     } else {
       return (React.createElement("div", {className: "readerOptionsPanel"}, 
-                languageToggle, 
-                layoutToggle, 
-                React.createElement("div", {className: "line"}), 
-                colorToggle, 
-                sizeToggle
+                React.createElement("div", {className: "readerOptionsPanelInner"}, 
+                  languageToggle, 
+                  layoutToggle, 
+                  React.createElement("div", {className: "line"}), 
+                  colorToggle, 
+                  sizeToggle
+                )
               ));
     }
   }
@@ -2854,23 +2896,6 @@ var SearchPage = React.createClass({displayName: "SearchPage",
     }
 });
 
-/*
-    $(".searchInput").autocomplete({ source: function( request, response ) {
-        var matches = $.map( sjs.books, function(tag) {
-            if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
-              return tag;
-            }
-          });
-        response(matches.slice(0, 30)); // limits return to 30 items
-      }
-    }).focus(function() {
-      //$(this).css({"width": "300px"});
-      $(this).closest(".searchBox").find(".keyboardInputInitiator").css({"opacity": 1});
-    }).blur(function() {
-      $(this).closest(".searchBox").find(".keyboardInputInitiator").css({"opacity": 0});
-    });
-    $(".searchButton").mousedown(sjs.handleSearch);
- */
 var SearchBar = React.createClass({displayName: "SearchBar",
     propTypes: {
         initialQuery: React.PropTypes.string,

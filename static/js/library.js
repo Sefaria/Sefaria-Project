@@ -165,6 +165,16 @@ sjs.library = {
       }
     }
   },
+  _titleVariants: {},
+  normalizeTitle: function(title, callback) {
+    if (title in this._titleVariants) {  callback(this._titleVariants[title]); }
+    this._api("/api/index/" + title, function(data) {
+      for (var i = 0; i < data.titleVariants.length; i ++) {
+        sjs.library._titleVariants[data.titleVariants[i]] = data.title;
+      }
+       callback(data.title);
+    })
+  },
   ref: function(ref) {
     // Returns parsed ref in for string `ref`. 
     // This is currently a wrapper for sjs.library text for cases when the textual information is not important
