@@ -1285,7 +1285,7 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
                       React.createElement("span", {className: "he"}, "ספריה חיה של טקסטים יהודיים")
                     )) : (React.createElement("div", {className: "tagline"})), 
                   
-                  React.createElement(ReaderNavigationMenuSection, {title: "Recently Viewed", heTitle: "ט", content: recentlyViewed}), 
+                  React.createElement(ReaderNavigationMenuSection, {title: "Recently Viewed", heTitle: "נצפו לאחרונה", content: recentlyViewed}), 
                   React.createElement(ReaderNavigationMenuSection, {title: "Browse Texts", heTitle: "טקסטים", content: categories}), 
                   React.createElement(ReaderNavigationMenuSection, {title: "Calendar", heTitle: "לוח יומי", content: calendar}), 
                   React.createElement(ReaderNavigationMenuSection, {title: "Community", heTitle: "קהילה", content: community}), 

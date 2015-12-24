@@ -1285,7 +1285,7 @@ var ReaderNavigationMenu = React.createClass({
                       <span className="he">ספריה חיה של טקסטים יהודיים</span>
                     </div>) : (<div className="tagline"></div>)}
                   
-                  <ReaderNavigationMenuSection title="Recently Viewed" heTitle="ט" content={recentlyViewed} />
+                  <ReaderNavigationMenuSection title="Recently Viewed" heTitle="נצפו לאחרונה" content={recentlyViewed} />
                   <ReaderNavigationMenuSection title="Browse Texts" heTitle="טקסטים" content={categories} />
                   <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} />
                   <ReaderNavigationMenuSection title="Community" heTitle="קהילה" content={community} />
