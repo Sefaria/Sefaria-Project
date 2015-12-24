@@ -1551,7 +1551,7 @@ def process_index_delete_in_versions(indx, **kwargs):
 
 def process_index_change_in_library(indx, **kwargs):
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(indx.title))
-    library.refresh_index_record(indx.title, old_title=kwargs.get('orig_vals').get('title') if kwargs.get('orig_vals') else None)
+    library.refresh_index_record(indx, old_title=kwargs.get('orig_vals').get('title') if kwargs.get('orig_vals') else None)
     if USE_VARNISH:
         from sefaria.system.sf_varnish import invalidate_index
         invalidate_index(indx.title)
@@ -1559,15 +1559,16 @@ def process_index_change_in_library(indx, **kwargs):
 
 def process_index_delete_in_library(indx, **kwargs):
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(indx.title))
-    library.remove_index_record(indx.title)
+    library.remove_index_record(indx)
     if USE_VARNISH:
         from sefaria.system.sf_varnish import invalidate_index, invalidate_counts
         invalidate_index(indx.title)
         invalidate_counts(indx.title)
 
 
-def process_new_commentary_version_in_cache(ver, **kwargs):
-    library.add_index_record(ver.title)
+def process_new_commentary_version_in_library(ver, **kwargs):
+    if not Index().load({"title": ver.title}) and " on " in ver.title:
+        library.add_commentary_index(ver.title)
 
 """
                     -------------------
@@ -3332,10 +3333,9 @@ class Library(object):
         self._toc_json = None
         self._category_id_dict = None
 
-        self.build_core_maps()
+        self._build_core_maps()
 
-
-    def build_core_maps(self):
+    def _build_core_maps(self):
         # Build index and title node dicts in an efficient way
 
         # simple texts
@@ -3381,7 +3381,7 @@ class Library(object):
         scache.delete_template_cache("texts_dashboard")
 
     def rebuild(self, include_toc = False):
-        self.build_core_maps()
+        self._build_core_maps()
         self._reset_index_derivitative_objects()
         Ref.clear_cache()
         if include_toc:
@@ -3465,7 +3465,7 @@ class Library(object):
             else:
                 # "commenter" on "book"
                 # todo: handle hebrew x on y format (do we need this?)
-                pattern = r'^(?P<commentor>.*) on (?P<book>.*)'
+                pattern = r'(?P<commentor>.*) on (?P<book>.*)'
                 m = regex.match(pattern, bookname)
                 if m:
                     indx = CommentaryIndex(m.group('commentor'), m.group('book'))
@@ -3483,18 +3483,27 @@ class Library(object):
 
         return indx
 
-    def add_index_record(self, index_title = None, index_object = None, old_title = None, rebuild = True):
+    def add_commentary_index(self, title):
+        m = re.match(r'^(.*) on (.*)', title)
+        self.add_index_record(CommentaryIndex(m.group(1), m.group(2)))
+
+    def add_index_record(self, index_object = None, old_title = None, rebuild = True):
         """
         Update library title dictionaries and caches with information from provided index.
         Index can be passed with primary title in `index_title` or as an object in `index_object`
-        :param index_title: primary title of index
-        :param index_object: index record
-        :param rebuild: Perform a rebuild of derivative objects afterwards?
+        :param index_object: Index record
+        :param old_title: In the case of a title change - the old title of the Index record
+        :param rebuild: Perform a rebuild of derivative objects afterwards?  False only in cases of batch update.
         :return:
         """
-        if index_title:
-            index_object = self.get_index(index_title)
         assert index_object, "Library.add_index_record called without index"
+
+        # don't add simple commentator records
+        if not index_object.nodes:
+            logger.error("Tried to add commentator {} to cache.  Politely refusing.".format(index_object.title))
+            return
+
+        self._index_map[index_object.title] = index_object
 
         #//TODO: mark for commentary refactor
         title_maps = self._index_title_commentary_maps if index_object.is_commentary() else self._index_title_maps
@@ -3517,17 +3526,23 @@ class Library(object):
             if index_object.is_commentary():
                 self.rebuild_toc()
 
-    def remove_index_record(self, index_title, rebuild = True):
+    def remove_index_record(self, index_object, rebuild = True):
         """
         Update provided index from library title dictionaries and caches
         :param index_title: primary title of index
         :param rebuild: Perform a rebuild of derivative objects afterwards?
         :return:
         """
+        if not index_object.nodes:
+            logger.error("Tried to delete commentator {} from cache.  Politely refusing.".format(index_object.title))
+            return
+
+        index_title = index_object.title
         Ref.remove_index_from_cache(index_title)
 
         #//TODO: mark for commentary refactor
         #//Keeping commentary branch and simple branch completely separate - should make refactor easier
+        is_commentary = False
         for lang in self.langs:
             commentary_titles = self._index_title_commentary_maps[lang].get(index_title)
             simple_titles = self._index_title_maps[lang].get(index_title)
@@ -3538,32 +3553,44 @@ class Library(object):
                         del self._title_node_maps[lang][key]
                     except KeyError:
                         logger.warning("Tried to delete non-existent title '{}' of index record '{}' from title-node map".format(key, index_title))
+                    try:
+                        del self._index_map[key]
+                    except KeyError:
+                        pass
                 del self._index_title_maps[lang][index_title]
-                library._update_toc_on_delete(index_title)
             elif commentary_titles:
+                is_commentary = True
                 for key in commentary_titles:
                     try:
                         del self._title_node_with_commentary_maps[lang][key]
                     except KeyError:
                         logger.warning("Tried to delete non-existent title '{}' of index record '{}' from title-node map".format(key, index_title))
+                    try:
+                        del self._index_map[key]
+                    except KeyError:
+                        pass
                 del self._index_title_commentary_maps[lang][index_title]
-                if rebuild:
-                    library.rebuild_toc()
             else:
-                logger.error("Could not find entry for index '{}' in index-title map".format(index_title))
+                logger.warning("Failed to remove '{}' from index-title and title-node cache: nothing to remove".format(index_title))
                 return
+
+        if not is_commentary:
+            library._update_toc_on_delete(index_title)
 
         if rebuild:
             self._reset_index_derivitative_objects()
+            if is_commentary:
+                library.rebuild_toc()
 
-    def refresh_index_record(self, index_title, old_title = None):
+
+    def refresh_index_record(self, index_object, old_title = None):
         """
         Update library title dictionaries and caches for provided index
         :param title: primary title of index
         :return:
         """
-        self.remove_index_record(index_title, rebuild=False)
-        self.add_index_record(index_title, old_title=old_title, rebuild=False)
+        self.remove_index_record(index_object, rebuild=False)
+        self.add_index_record(index_object, old_title=old_title, rebuild=False)
         self._reset_index_derivitative_objects()
 
     #todo: the for_js path here does not appear to be in use.

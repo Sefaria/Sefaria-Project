@@ -24,12 +24,11 @@ scache.delete_cache_elem('toc_cache')
 
 class Test_Toc(object):
     def test_toc_integrity(self):
-        toc = s.library.get_toc()
+        toc = model.library.get_toc()
         self.recur_toc_integrity(toc)
 
-
     def recur_toc_integrity(self, toc, depth=0):
-         for toc_elem in toc:
+        for toc_elem in toc:
             if 'category' in toc_elem:
                 #verify proper category node (including that it doesnt have a title attr)
                 self.verify_category_node_integrity(toc_elem, depth)

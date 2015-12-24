@@ -29,7 +29,7 @@ subscribe(translation_request.process_index_delete_in_translation_requests, text
 
 # Version Title Change
 subscribe(history.process_version_title_change_in_history,              text.Version, "attributeChange", "versionTitle")
-subscribe(text.process_new_commentary_version_in_cache,                 text.Version, "create")
+subscribe(text.process_new_commentary_version_in_library, text.Version, "create")
 subscribe(scache.process_version_save_in_cache,                         text.Version, "save")
 subscribe(scache.process_version_delete_in_cache,                       text.Version, "delete")
 

@@ -244,7 +244,8 @@ def reset_cache(request):
 
 @staff_member_required
 def reset_index_cache_for_text(request, title):
-    model.library.refresh_index_record(title)
+    index = model.library.get_index(title)
+    model.library.refresh_index_record(index)
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(title))
     if USE_VARNISH:
         invalidate_index(title)
