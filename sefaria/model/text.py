@@ -181,20 +181,20 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         d = {
             "title": self.title,
-            "categories": self.categories,
+            "categories": self.categories[:],
             "titleVariants": self.nodes.all_node_titles("en"),
-            "sectionNames": self.nodes.sectionNames,
+            "sectionNames": self.nodes.sectionNames[:],
             "heSectionNames": map(hebrew_term, self.nodes.sectionNames),
             "textDepth": len(self.nodes.sectionNames),
-            "addressTypes": self.nodes.addressTypes  # This isn't legacy, but it was needed for checkRef
+            "addressTypes": self.nodes.addressTypes[:]  # This isn't legacy, but it was needed for checkRef
         }
 
         if getattr(self, "maps", None):
             d["maps"] = self.maps  #keep an eye on this.  Format likely to change.
         if getattr(self, "order", None):
-            d["order"] = self.order
+            d["order"] = self.order[:]
         if getattr(self.nodes, "lengths", None):
-            d["lengths"] = self.nodes.lengths
+            d["lengths"] = self.nodes.lengths[:]
             d["length"] = self.nodes.lengths[0]
         if self.nodes.primary_title("he"):
             d["heTitle"] = self.nodes.primary_title("he")
@@ -539,11 +539,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         toc_contents_dict = {
             "title": self.get_title(),
             "heTitle": self.get_title("he"),
-            "categories": self.categories,
+            "categories": self.categories[:],
             "firstSection": firstSection.normal() if firstSection else None
         }
         if hasattr(self,"order"):
-            toc_contents_dict["order"] = self.order
+            toc_contents_dict["order"] = self.order[:]
         if self.categories[0] == u"Commentary2":
             toc_contents_dict["commentator"]   = self.categories[2]
             toc_contents_dict["heCommentator"] = hebrew_term(self.categories[2])
@@ -1549,7 +1549,7 @@ def process_index_delete_in_versions(indx, **kwargs):
         library.get_commentary_versions(indx.title).delete()
 
 
-def process_index_change_in_library(indx, **kwargs):
+def process_index_change_in_core_cache(indx, **kwargs):
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(indx.title))
     library.refresh_index_record(indx, old_title=kwargs.get('orig_vals').get('title') if kwargs.get('orig_vals') else None)
     if USE_VARNISH:
@@ -1557,7 +1557,20 @@ def process_index_change_in_library(indx, **kwargs):
         invalidate_index(indx.title)
 
 
-def process_index_delete_in_library(indx, **kwargs):
+def process_index_change_in_toc(indx, **kwargs):
+    if indx.is_commentary():
+        library.rebuild_toc()
+    else:
+        library.update_title_in_toc(indx, old_ref=kwargs.get('orig_vals').get('title') if kwargs.get('orig_vals') else None)
+
+
+def process_index_delete_in_toc(indx, **kwargs):
+    if indx.is_commentary():
+        library.rebuild_toc()
+    else:
+        library.delete_index_from_toc(indx.title)
+
+def process_index_delete_in_core_cache(indx, **kwargs):
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(indx.title))
     library.remove_index_record(indx)
     if USE_VARNISH:
@@ -1566,10 +1579,15 @@ def process_index_delete_in_library(indx, **kwargs):
         invalidate_counts(indx.title)
 
 
-def process_new_commentary_version_in_library(ver, **kwargs):
+def process_new_commentary_version_in_core_cache(ver, **kwargs):
     if not Index().load({"title": ver.title}) and " on " in ver.title:
         library.add_commentary_index(ver.title)
+        library.rebuild_toc()
 
+def process_remove_commentary_version_from_core_cache(ver, **kwargs):
+    if not Index().load({"title": ver.title}) and " on " in ver.title:
+        library.remove_commentary_index(ver.title)
+        library.rebuild_toc()
 """
                     -------------------
                            Refs
@@ -3415,28 +3433,28 @@ class Library(object):
                 self._toc_json = json.dumps(self.get_toc())
         return self._toc_json
 
-    def recount_index_in_toc(self, bookname):
+    def recount_index_in_toc(self, indx):
         from sefaria.summaries import update_title_in_toc
-        self._toc = update_title_in_toc(self.get_toc(), bookname, recount=True)
+        self._toc = update_title_in_toc(self.get_toc(), indx, recount=True)
         self._toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
 
-    def _update_toc_on_delete(self, bookname):
+    def delete_index_from_toc(self, bookname):
         from sefaria.summaries import recur_delete_element_from_toc
         self._toc = recur_delete_element_from_toc(bookname, self.get_toc())
         self._toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
 
-    def _update_toc_on_change(self, bookname, old_ref=None):
+    def update_title_in_toc(self, indx, old_ref=None):
         """
-        :param bookname:
+        :param indx:
         :param old_ref:
         :return:
         """
         from sefaria.summaries import update_title_in_toc
-        self._toc = update_title_in_toc(self.get_toc(), bookname, old_ref=old_ref, recount=False)
+        self._toc = update_title_in_toc(self.get_toc(), indx, old_ref=old_ref, recount=False)
         self._toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
@@ -3487,6 +3505,10 @@ class Library(object):
         m = re.match(r'^(.*) on (.*)', title)
         self.add_index_record(CommentaryIndex(m.group(1), m.group(2)))
 
+    def remove_commentary_index(self, title):
+        m = re.match(r'^(.*) on (.*)', title)
+        self.remove_index_record(CommentaryIndex(m.group(1), m.group(2)))
+
     def add_index_record(self, index_object = None, old_title = None, rebuild = True):
         """
         Update library title dictionaries and caches with information from provided index.
@@ -3518,13 +3540,8 @@ class Library(object):
         except IndexSchemaError as e:
             logger.error(u"Error in generating title node dictionary: {}".format(e))
 
-        if not index_object.is_commentary():
-            library._update_toc_on_change(index_object.title, old_title)
-
         if rebuild:
             self._reset_index_derivitative_objects()
-            if index_object.is_commentary():
-                self.rebuild_toc()
 
     def remove_index_record(self, index_object, rebuild = True):
         """
@@ -3542,7 +3559,6 @@ class Library(object):
 
         #//TODO: mark for commentary refactor
         #//Keeping commentary branch and simple branch completely separate - should make refactor easier
-        is_commentary = False
         for lang in self.langs:
             commentary_titles = self._index_title_commentary_maps[lang].get(index_title)
             simple_titles = self._index_title_maps[lang].get(index_title)
@@ -3559,7 +3575,6 @@ class Library(object):
                         pass
                 del self._index_title_maps[lang][index_title]
             elif commentary_titles:
-                is_commentary = True
                 for key in commentary_titles:
                     try:
                         del self._title_node_with_commentary_maps[lang][key]
@@ -3574,13 +3589,8 @@ class Library(object):
                 logger.warning("Failed to remove '{}' from index-title and title-node cache: nothing to remove".format(index_title))
                 return
 
-        if not is_commentary:
-            library._update_toc_on_delete(index_title)
-
         if rebuild:
             self._reset_index_derivitative_objects()
-            if is_commentary:
-                library.rebuild_toc()
 
 
     def refresh_index_record(self, index_object, old_title = None):
@@ -3590,8 +3600,7 @@ class Library(object):
         :return:
         """
         self.remove_index_record(index_object, rebuild=False)
-        self.add_index_record(index_object, old_title=old_title, rebuild=False)
-        self._reset_index_derivitative_objects()
+        self.add_index_record(index_object, old_title=old_title, rebuild=True)
 
     #todo: the for_js path here does not appear to be in use.
     def all_titles_regex_string(self, lang="en", commentary=False, with_commentary=False, with_terms=False): #, for_js=False):

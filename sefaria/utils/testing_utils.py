@@ -32,11 +32,14 @@ def get_all_toc_locations(title, toc=None):
                     results.append(new_path)
     return results
 
+
 def get_lang_keys():
     return {'he', 'en'}
 
+
 def toc_path_to_string(toc_path):
     return ",".join(toc_path)
+
 
 def verify_title_existence_in_toc(title, expected_toc_location = None):
     locations_in_toc = get_all_toc_locations(title)

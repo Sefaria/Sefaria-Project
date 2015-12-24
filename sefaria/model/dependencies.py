@@ -8,30 +8,37 @@ from abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascad
 import sefaria.system.cache as scache
 
 # Index Save / Create
-subscribe(text.process_index_change_in_library, text.Index, "save")
-subscribe(version_state.create_version_state_on_index_creation,         text.Index, "create")
+subscribe(text.process_index_change_in_core_cache,                      text.Index, "save")
+subscribe(version_state.create_version_state_on_index_creation,         text.Index, "save")
+subscribe(text.process_index_change_in_toc,                             text.Index, "save")
 
-# Index Name Change (start with cache clearing)
-subscribe(text.process_index_change_in_library, text.Index, "attributeChange", "title")
+
+# Index Name Change
+subscribe(text.process_index_change_in_core_cache,                      text.Index, "attributeChange", "title")
 subscribe(link.process_index_title_change_in_links,                     text.Index, "attributeChange", "title")
 subscribe(note.process_index_title_change_in_notes,                     text.Index, "attributeChange", "title")
 subscribe(history.process_index_title_change_in_history,                text.Index, "attributeChange", "title")
 subscribe(text.process_index_title_change_in_versions,                  text.Index, "attributeChange", "title")
 subscribe(version_state.process_index_title_change_in_version_state,    text.Index, "attributeChange", "title")
+subscribe(text.process_index_change_in_toc,                             text.Index, "attributeChange", "title")
+
 
 # Index Delete (start with cache clearing)
-subscribe(text.process_index_delete_in_library, text.Index, "delete")
+subscribe(text.process_index_delete_in_core_cache,                      text.Index, "delete")
 subscribe(version_state.process_index_delete_in_version_state,          text.Index, "delete")
 subscribe(link.process_index_delete_in_links,                           text.Index, "delete")
 subscribe(text.process_index_delete_in_versions,                        text.Index, "delete")
 subscribe(translation_request.process_index_delete_in_translation_requests, text.Index, "delete")
+subscribe(text.process_index_delete_in_toc,                             text.Index, "delete")
+
 # Process in ES
 
 # Version Title Change
 subscribe(history.process_version_title_change_in_history,              text.Version, "attributeChange", "versionTitle")
-subscribe(text.process_new_commentary_version_in_library, text.Version, "create")
+subscribe(text.process_new_commentary_version_in_core_cache,            text.Version, "create")
 subscribe(scache.process_version_save_in_cache,                         text.Version, "save")
 subscribe(scache.process_version_delete_in_cache,                       text.Version, "delete")
+subscribe(text.process_remove_commentary_version_from_core_cache,       text.Version, "delete")
 
 # Note Delete
 subscribe(layer.process_note_deletion_in_layer,                         note.Note, "delete")

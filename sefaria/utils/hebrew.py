@@ -387,7 +387,7 @@ def hebrew_term(s):
 		"Halachic Midrash":     u"מדרש הלכה",
 		"Midrash Rabbah":       u"מדרש רבה",
 		"Responsa":             u'שו"ת',
-		"Other":                u"אחר",
+		"Other":                u"שונות",
 		"Siddur":               u"סידור",
 		"Liturgy":              u"תפילה",
 		"Piyutim":              u"פיוטים",

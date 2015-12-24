@@ -541,4 +541,5 @@ def process_index_title_change_in_version_state(indx, **kwargs):
 def create_version_state_on_index_creation(indx, **kwargs):
     if indx.is_commentary():
         return
+    # If it's already there, this should be harmless
     VersionState(indx.title).save()
