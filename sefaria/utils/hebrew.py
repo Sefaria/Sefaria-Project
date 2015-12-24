@@ -410,6 +410,7 @@ def hebrew_term(s):
 		"Rosh":		            u'רא"ש',
 		"Maharsha":	            u'מהרשא',
 		"Rashba":	            u'רשב"א',
+		"Maharam Shif":		   u'מהר"ם שיף',
 		"Rambam":	            u'רמב"ם',
 		"Radbaz":		u'רדב"ז',
 		"Tosafot Yom Tov":      u"תוספות יום טוב",
