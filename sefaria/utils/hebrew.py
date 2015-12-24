@@ -451,6 +451,7 @@ def hebrew_term(s):
 		"Line":             u"שורה",
 		"Daf":              u"דף",
 		"Paragraph":        u"פסקה",
+		"Piska":	    u"פסקה",
 		"Parsha":           u"פרשה",
 		"Parasha":          u"פרשה",
 		"Parashah":         u"פרשה",
