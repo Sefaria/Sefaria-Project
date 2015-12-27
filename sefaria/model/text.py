@@ -2211,6 +2211,25 @@ class Ref(object):
 
         return 1
 
+    def is_book_level(self):
+        """
+        Is this a Ref to the whole book level?
+
+        ::
+
+            >>> Ref("Leviticus").is_book_level()
+            True
+            >>> Ref("Leviticus 15").is_book_level()
+            False
+            >>> Ref("Rashi on Leviticus").is_book_level()
+            True
+            >>> Ref("Rashi on Leviticus 15").is_book_level()
+            False
+
+        :return bool:
+        """
+        return len(self.sections) == 0
+
     def is_section_level(self):
         """
         Is this Ref section (e.g. Chapter) level?

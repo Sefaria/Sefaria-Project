@@ -40,7 +40,7 @@ from sefaria.utils.hebrew import is_hebrew
 from sefaria.helper.text import make_versions_csv
 from sefaria.clean import remove_old_counts
 if USE_VARNISH:
-    from sefaria.system.sf_varnish import invalidate_index
+    from sefaria.system.sf_varnish import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts
 
 import logging
 logger = logging.getLogger(__name__)
@@ -248,7 +248,7 @@ def reset_index_cache_for_text(request, title):
     model.library.refresh_index_record(index)
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(title))
     if USE_VARNISH:
-        invalidate_index(title)
+        invalidate_title(title)
     return HttpResponseRedirect("/%s?m=Cache-Reset" % title)
 
 
@@ -296,6 +296,14 @@ def rebuild_counts_and_toc(request):
     model.refresh_all_states()
     return HttpResponseRedirect("/?m=Counts-&-TOC-Rebuilt")
 
+@staff_member_required
+def reset_varnish(ref):
+    if USE_VARNISH:
+        r = model.Ref(ref)
+        if r.is_book_level():
+            invalidate_index(ref.index)
+            invalidate_counts(ref.counts)
+        invalidate_ref(ref)
 
 '''
 @staff_member_required
