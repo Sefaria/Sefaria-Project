@@ -176,6 +176,7 @@ def recur_delete_element_from_toc(bookname, toc):
                 toc_elem['to_delete'] = True
     return toc
 
+
 def update_title_in_toc(toc, index, old_ref=None, recount=True):
     """
     Update text summary docs to account for change or insertion of 'text'
@@ -214,7 +215,7 @@ def update_title_in_toc(toc, index, old_ref=None, recount=True):
         node.append(text)
         node[:] = sort_toc_node(node)
 
-    # If a new category may have been added to other, resort the cateogries
+    # If a new category may have been added to other, resort the categories
     if resort_other:
         toc[-1]["contents"] = sort_toc_node(toc[-1]["contents"])
 

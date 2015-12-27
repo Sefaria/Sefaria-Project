@@ -855,7 +855,7 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
     collection = 'texts'
     content_attr = "chapter"
     track_pkeys = True
-    pkeys = ["versionTitle"]
+    pkeys = ["title", "versionTitle"]
 
     required_attrs = [
         "language",
@@ -1549,9 +1549,27 @@ def process_index_delete_in_versions(indx, **kwargs):
         library.get_commentary_versions(indx.title).delete()
 
 
+def process_index_title_change_in_core_cache(indx, **kwargs):
+    old_title = kwargs["old"]
+    if USE_VARNISH:
+        from sefaria.system.sf_varnish import invalidate_title
+        invalidate_title(old_title)
+    scache.delete_cache_elem(scache.generate_text_toc_cache_key(old_title))
+    library.refresh_index_record(indx, old_title=old_title)
+
+
+def process_commentary_version_title_change_in_cache(ver, **kwargs):
+    old_title = kwargs["old"]
+    if USE_VARNISH:
+        from sefaria.system.sf_varnish import invalidate_title
+        invalidate_title(old_title)
+    scache.delete_cache_elem(scache.generate_text_toc_cache_key(old_title))
+    library.refresh_index_record(library.get_index(ver.title), old_title=old_title)
+
+
 def process_index_change_in_core_cache(indx, **kwargs):
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(indx.title))
-    library.refresh_index_record(indx, old_title=kwargs.get('orig_vals').get('title') if kwargs.get('orig_vals') else None)
+    library.refresh_index_record(indx)
     if USE_VARNISH:
         from sefaria.system.sf_varnish import invalidate_index
         invalidate_index(indx.title)
@@ -1561,7 +1579,7 @@ def process_index_change_in_toc(indx, **kwargs):
     if indx.is_commentary():
         library.rebuild_toc()
     else:
-        library.update_title_in_toc(indx, old_ref=kwargs.get('orig_vals').get('title') if kwargs.get('orig_vals') else None)
+        library.update_index_in_toc(indx, old_ref=kwargs.get('orig_vals').get('title') if kwargs.get('orig_vals') else None)
 
 
 def process_index_delete_in_toc(indx, **kwargs):
@@ -1569,6 +1587,7 @@ def process_index_delete_in_toc(indx, **kwargs):
         library.rebuild_toc()
     else:
         library.delete_index_from_toc(indx.title)
+
 
 def process_index_delete_in_core_cache(indx, **kwargs):
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(indx.title))
@@ -1578,16 +1597,17 @@ def process_index_delete_in_core_cache(indx, **kwargs):
         invalidate_index(indx.title)
         invalidate_counts(indx.title)
 
-
-def process_new_commentary_version_in_core_cache(ver, **kwargs):
-    if not Index().load({"title": ver.title}) and " on " in ver.title:
-        library.add_commentary_index(ver.title)
-        library.rebuild_toc()
-
-def process_remove_commentary_version_from_core_cache(ver, **kwargs):
+def process_version_save_in_cache(ver, **kwargs):
+    scache.delete_cache_elem(scache.generate_text_toc_cache_key(ver.title))
     if not Index().load({"title": ver.title}) and " on " in ver.title:
         library.remove_commentary_index(ver.title)
-        library.rebuild_toc()
+        library.add_commentary_index(ver.title)
+
+def process_version_delete_in_cache(ver, **kwargs):
+    scache.delete_cache_elem(scache.generate_text_toc_cache_key(ver.title))
+    if not Index().load({"title": ver.title}) and " on " in ver.title:
+        library.remove_commentary_index(ver.title)
+
 """
                     -------------------
                            Refs
@@ -3447,7 +3467,7 @@ class Library(object):
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
 
-    def update_title_in_toc(self, indx, old_ref=None):
+    def update_index_in_toc(self, indx, old_ref=None):
         """
         :param indx:
         :param old_ref:
@@ -3506,15 +3526,13 @@ class Library(object):
         self.add_index_record(CommentaryIndex(m.group(1), m.group(2)))
 
     def remove_commentary_index(self, title):
-        m = re.match(r'^(.*) on (.*)', title)
-        self.remove_index_record(CommentaryIndex(m.group(1), m.group(2)))
+        self.remove_index_record(old_title=title)
 
-    def add_index_record(self, index_object = None, old_title = None, rebuild = True):
+    def add_index_record(self, index_object = None, rebuild = True):
         """
         Update library title dictionaries and caches with information from provided index.
         Index can be passed with primary title in `index_title` or as an object in `index_object`
         :param index_object: Index record
-        :param old_title: In the case of a title change - the old title of the Index record
         :param rebuild: Perform a rebuild of derivative objects afterwards?  False only in cases of batch update.
         :return:
         """
@@ -3543,18 +3561,19 @@ class Library(object):
         if rebuild:
             self._reset_index_derivitative_objects()
 
-    def remove_index_record(self, index_object, rebuild = True):
+    def remove_index_record(self, index_object=None, old_title=None, rebuild = True):
         """
         Update provided index from library title dictionaries and caches
-        :param index_title: primary title of index
+        :param index_object:
+        :param old_title: In the case of a title change - the old title of the Index record
         :param rebuild: Perform a rebuild of derivative objects afterwards?
         :return:
         """
-        if not index_object.nodes:
+        if index_object and not index_object.nodes:
             logger.error("Tried to delete commentator {} from cache.  Politely refusing.".format(index_object.title))
             return
 
-        index_title = index_object.title
+        index_title = old_title or index_object.title
         Ref.remove_index_from_cache(index_title)
 
         #//TODO: mark for commentary refactor
@@ -3599,8 +3618,8 @@ class Library(object):
         :param title: primary title of index
         :return:
         """
-        self.remove_index_record(index_object, rebuild=False)
-        self.add_index_record(index_object, old_title=old_title, rebuild=True)
+        self.remove_index_record(index_object, old_title=old_title, rebuild=False)
+        self.add_index_record(index_object, rebuild=True)
 
     #todo: the for_js path here does not appear to be in use.
     def all_titles_regex_string(self, lang="en", commentary=False, with_commentary=False, with_terms=False): #, for_js=False):

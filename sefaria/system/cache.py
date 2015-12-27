@@ -98,17 +98,8 @@ def delete_template_cache(fragment_name='', *args):
     delete_cache_elem('template.cache.%s.%s' % (fragment_name, hashlib.md5(u':'.join([arg for arg in args])).hexdigest()))
 
 
-#-------------------------- cascading cache functions --------------------------------- #
-#TODO: should these maybe be somewhere that isn't the main cache module?
-
 def generate_text_toc_cache_key(index_name):
     index_name = index_name.replace("_", " ")
     key = cache_get_key(*['make_toc_html', index_name], **{'zoom' : 1})
     return key
-
-def process_version_save_in_cache(ver, **kwargs):
-    delete_cache_elem(generate_text_toc_cache_key(ver.title))
-
-def process_version_delete_in_cache(ver, **kwargs):
-    delete_cache_elem(generate_text_toc_cache_key(ver.title))
 

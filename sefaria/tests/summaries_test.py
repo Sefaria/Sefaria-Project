@@ -25,6 +25,7 @@ scache.delete_cache_elem('toc_cache')
 
 class Test_Toc(object):
     def test_toc_integrity(self):
+        model.library.rebuild_toc()
         toc = model.library.get_toc()
         self.recur_toc_integrity(toc)
 
@@ -52,6 +53,30 @@ class Test_Toc(object):
         assert 'category' not in node
         assert isinstance(node['sparseness'], int)
         #do we need to assert that the title is not equal to any category name?
+
+
+    def test_new_index_title_change(self):
+        new_index = model.Index({
+            "title": "New Toc Title Test",
+            "heTitle": u"פםעעפם",
+            "titleVariants": [],
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Philosophy"]
+        })
+        verify_title_existence_in_toc(new_index.title, None)
+        new_index.save()
+        verify_title_existence_in_toc(new_index.title, new_index.categories)
+        # title change
+        old_title = new_index.title
+        new_title = "Bob is your Uncle"
+        new_index.title = new_title
+        new_index.save()
+        verify_title_existence_in_toc(old_title, None)
+        verify_title_existence_in_toc(new_title, new_index.categories)
+        new_index.delete()
+        verify_title_existence_in_toc(new_title, None)
+        verify_title_existence_in_toc(old_title, None)
+
 
     def test_index_add_delete(self):
         #test that the index

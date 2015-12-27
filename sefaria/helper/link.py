@@ -96,6 +96,7 @@ def add_commentary_links(oref, user, **kwargs):
             invalidate_ref(oref)
             invalidate_ref(Ref(base_tref))
 
+
 def rebuild_commentary_links(tref, user, **kwargs):
     """
     Deletes any commentary links for which there is no content (in any ref),

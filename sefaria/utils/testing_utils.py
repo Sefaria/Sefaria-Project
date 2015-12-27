@@ -7,7 +7,7 @@ import sefaria.system.cache as scache
 
 def get_all_toc_locations(title, toc=None):
     if toc is None:
-        toc = s.library.get_toc()
+        toc = model.library.get_toc()
     """
     Finds ALL occurrences of a text title in the toc. Recursively looks through the ToC to find the category paths
     of the given title
