@@ -3441,6 +3441,7 @@ class Library(object):
             if not self._toc:
                 from sefaria.summaries import update_table_of_contents
                 self._toc = update_table_of_contents()
+                scache.set_cache_elem('toc_cache', self._toc)
         return self._toc
 
     def get_toc_json(self):
@@ -3451,6 +3452,7 @@ class Library(object):
             self._toc_json = scache.get_cache_elem('toc_json_cache')
             if not self._toc_json:
                 self._toc_json = json.dumps(self.get_toc())
+                scache.set_cache_elem('toc_json_cache', self._toc_json)
         return self._toc_json
 
     def recount_index_in_toc(self, indx):
@@ -3492,7 +3494,6 @@ class Library(object):
 
         indx = self._index_map.get(bookname)
         if not indx:
-            logger.warning(u"Fell to backup title parsing in get_index for {}".format(bookname))
             bookname = (bookname[0].upper() + bookname[1:]).replace("_", " ")  #todo: factor out method
 
             #todo: cache
