@@ -10,6 +10,7 @@ import regex
 import copy
 import bleach
 import json
+import itertools
 
 try:
     import re2 as re
@@ -737,7 +738,7 @@ class CommentaryIndex(AbstractIndex):
 
         attrs['schema'] = self.nodes.serialize(expand_shared=True, expand_titles=True, translate_sections=True)
 
-        if self.nodes.is_leaf():
+        if not self.nodes.children:
             attrs["sectionNames"]   = self.nodes.sectionNames
             attrs["heSectionNames"] = map(hebrew_term, self.nodes.sectionNames)
             attrs["textDepth"]      = len(self.nodes.sectionNames)
@@ -1819,7 +1820,7 @@ class Ref(object):
             raise PartialRefInputError(msg, matched, continuations)
 
         # Numbered Structure node - try numbered structure parsing
-        if self.index_node.has_children() and getattr(self.index_node, "_addressTypes", None):
+        if self.index_node.children and getattr(self.index_node, "_addressTypes", None):
             try:
                 struct_indexes = self.__get_sections(reg, base)
                 self.index_node = reduce(lambda a, i: a.children[i], [s - 1 for s in struct_indexes], self.index_node)
@@ -1834,7 +1835,7 @@ class Ref(object):
             return
 
         # Content node -  Match primary structure address (may be stage two of numbered structure parsing)
-        if not self.index_node.has_children() and getattr(self.index_node, "_addressTypes", None):
+        if not self.index_node.children and getattr(self.index_node, "_addressTypes", None):
             try:
                 self.sections = self.__get_sections(reg, base)
             except InputError:
@@ -1863,7 +1864,7 @@ class Ref(object):
                         pass
                     else:
                         # Alternate numbered structure
-                        if alt_struct_node.has_children() and getattr(alt_struct_node, "_addressTypes", None):
+                        if alt_struct_node.children and getattr(alt_struct_node, "_addressTypes", None):
                             try:
                                 struct_indexes = self.__get_sections(reg, base)
                                 alt_struct_node = reduce(lambda a, i: a.children[i], [s - 1 for s in struct_indexes], alt_struct_node)
@@ -2311,7 +2312,7 @@ class Ref(object):
         """
         if not self._next:
             self._next = self._iter_text_section()
-            if self._next is None and self.index_node.is_leaf():
+            if self._next is None and not self.index_node.children:
                 current_leaf = self.index_node
                 #we now need to iterate over the next leaves, finding the first available section
                 while True:
@@ -2338,7 +2339,7 @@ class Ref(object):
         """
         if not self._prev:
             self._prev = self._iter_text_section(False)
-            if self._prev is None and self.index_node.is_leaf():
+            if self._prev is None and not self.index_node.children:
                 current_leaf = self.index_node
                 #we now need to iterate over the prev leaves, finding the first available section
                 while True:
@@ -3311,11 +3312,13 @@ class Library(object):
 
     def _build_core_maps(self):
         # Build index and title node dicts in an efficient way
+        from operator import add
 
         # simple texts
         self._index_map = {i.title: i for i in IndexSet() if i.nodes}
         forest = [i.nodes for i in self._index_map.values()]
-        self._title_node_maps = {lang : {} for lang in self.langs}
+        self._title_node_maps = {lang: {} for lang in self.langs}
+
         for tree in forest:
             try:
                 for lang in self.langs:
@@ -3324,15 +3327,10 @@ class Library(object):
                 logger.error(u"Error in generating title node dictionary: {}".format(e))
 
         # commentary
-        pattern = re.compile(r'^(.*) on (.*)')
-        commentary_indexes = {}
-        for t in self.get_commentary_version_titles():
-            m = pattern.match(t)
-            commentary_indexes[t] = CommentaryIndex(m.group(1), m.group(2))
-
+        commentary_indexes = {t: CommentaryIndex(*t.split(" on ")) for t in self.get_commentary_version_titles()}
         commentary_forest = [i.nodes for i in commentary_indexes.values()]
         self._index_map.update(commentary_indexes)
-        self._title_node_with_commentary_maps = { lang: self._title_node_maps[lang].copy() for lang in self.langs }
+        self._title_node_with_commentary_maps = {lang: self._title_node_maps[lang].copy() for lang in self.langs}
 
         for tree in commentary_forest:
             try:
@@ -3696,6 +3694,7 @@ class Library(object):
             nodes += tree.get_leaf_nodes()
         return nodes
 
+    #todo: used in get_content_nodes, but besides that, only bio scripts
     def get_index_forest(self, with_commentary=False):
         """
         :return: list of root Index nodes.
@@ -3726,33 +3725,8 @@ class Library(object):
 
         Does not include bare commentator names, like *Rashi*.
         """
-        # key = "title_node_dict_" + lang
-        # key += "_commentary" if with_commentary else ""
-        # title_dict = self.local_cache.get(key)
+        return self._title_node_with_commentary_maps[lang] if with_commentary else self._title_node_maps[lang]
 
-        #//TODO: mark for commentary refactor
-        title_dict = self._title_node_with_commentary_maps[lang] if with_commentary else self._title_node_maps[lang]
-
-        #if not title_dict:
-        #    title_dict = scache.get_cache_elem(key)
-        #    self.local_cache[key] = title_dict
-
-        #todo: Keep this path, or isolate creation to __init__ and refresh methods?
-
-        if not title_dict:
-            logger.error("Found unitialized title_dict")
-            """
-            trees = self.get_index_forest(with_commentary=with_commentary)
-            for tree in trees:
-                try:
-                    title_dict.update(tree.title_dict(lang))
-                except IndexSchemaError as e:
-                    logger.error(u"Error in generating title node dictionary: {}".format(e))
-                    continue
-            """
-        #    scache.set_cache_elem(key, title_dict)
-        #    self.local_cache[key] = title_dict
-        return title_dict
 
     #todo: handle terms
     def get_schema_node(self, title, lang=None, with_commentary=False):

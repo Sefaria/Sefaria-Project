@@ -134,7 +134,8 @@ def get_links(tref, with_text=True):
     links = []
     oref = Ref(tref)
     nRef = oref.normal()
-    reRef = oref.regex()
+    lenRef = len(nRef)
+    reRef = oref.regex() if oref.is_range() else None
 
     # for storing all the section level texts that need to be looked up
     texts = {}
@@ -144,7 +145,10 @@ def get_links(tref, with_text=True):
     for link in linkset:
         # each link contains 2 refs in a list
         # find the position (0 or 1) of "anchor", the one we're getting links for
-        pos = 0 if re.match(reRef, link.refs[0]) else 1
+        if reRef:
+            pos = 0 if re.match(reRef, link.refs[0]) else 1
+        else:
+            pos = 0 if nRef == link.refs[0][:lenRef] else 1
         try:
             com = format_link_object_for_client(link, False, nRef, pos)
         except InputError:

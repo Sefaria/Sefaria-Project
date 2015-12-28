@@ -79,9 +79,8 @@ def make_text(doc):
         for v in doc["versions"]:
             text += "\n-%s\n-%s" % (v[0], v[1])
 
-			
     def make_node(node, depth, **kwargs):
-        if node.is_leaf():
+        if not node.children:
             content = "\n\n%s" % node.primary_title(doc["language"])
             content += flatten(version.content_node(node), node.sectionNames)
             return "\n\n%s" % content

@@ -411,7 +411,7 @@ class StateNode(object):
         if snode:
             proj = None
             if meta:
-                if not snode.is_root():
+                if snode.parent:
                     raise Exception("StateNode.meta() only supported for Index roots.  Called with {} / {}".format(title, snode.primary_title("en")))
                 proj = self.meta_proj
             if hint:
