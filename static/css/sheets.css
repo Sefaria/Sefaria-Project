@@ -511,21 +511,8 @@ body {
 }
 
 
-/* these spans are created by ckeditor when changing font appearance. Without setting them to block
-level, they are forced to inherit a minimum line-height of the parent block. (Thus causing a bug which line-height
- doesn't appear to adjust as the text gets smaller.
 
- Turning them to inline blocks works fine -- except ckeditor will create spans within spans which causes strange line
- breaks in not so great places. The two rules here in conjunction solve that issue. And these can be safely and happily
- removed whenever we migrate away from ckeditor: */
-.text span {
-	display:inline-block;
-}
-.text span > span {
-	display: inline;
-}
-
-.text .en, 
+.text .en,
 .text .he {
 	min-height: 20px;
 }
