@@ -391,7 +391,7 @@ def make_complex_toc_html(oref):
         if node.is_leaf():
             focused = node is req_node
             html += '<div class="schema-node-contents ' + ('open' if focused or default else 'closed') + '">'
-            node_state = StateNode(snode=node)
+            node_state = kwargs["vs"].state_node(node)
             #Todo, handle Talmud and other address types, as well as commentary
             zoom = 0 if node.depth == 1 else 1
             he_counts, en_counts = node_state.var("he", "availableTexts"), node_state.var("en", "availableTexts")
@@ -401,7 +401,8 @@ def make_complex_toc_html(oref):
         html += "</a>" if linked else "</div>"
         return html
 
-    html = index.nodes.traverse_to_string(node_line)
+    vs = VersionState(index)
+    html = index.nodes.traverse_to_string(node_line, vs=vs)
     return html
 
 
@@ -578,7 +579,7 @@ def text_toc(request, oref):
         categories = REORDER_RULES[categories[0]] + categories[1:]
     if categories[0] == "Commentary":
         categories = [categories[1], "Commentary", index.toc_contents()["commentator"]]
-    cat_slices    = [categories[:n+1] for n in range(len(categories))] # successive sublists of cats, for category links
+    cat_slices    = [categories[:n+1] for n in range(len(categories))]  # successive sublists of cats, for category links
 
     c_titles      = model.library.get_commentary_version_titles_on_book(title, with_commentary2=True)
     c_indexes     = [library.get_index(commentary) for commentary in c_titles]

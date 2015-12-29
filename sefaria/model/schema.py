@@ -402,7 +402,10 @@ class TreeNode(object):
         else:
             nodes = []
             for node in self.children:
-                nodes += node.get_leaf_nodes()
+                if not node.children:
+                    nodes += [node]
+                else:
+                    nodes += node.get_leaf_nodes()
             return nodes
 
 
