@@ -2526,7 +2526,10 @@ function aboutHtml(data) {
 	if (Object.keys(versionsHtml).length) {
 		var langClass = Object.keys(versionsHtml).join(" ");
 		html += '<div id="versionsList" class="'+langClass+'"><i>Other versions of this text:</i>';
-        for(var lang of Object.keys(versionsHtml)){
+
+
+        for(var i = 0; i < Object.keys(versionsHtml).length; i++){
+			var lang = Object.keys(versionsHtml)[i];
             html += '<div class="alternate-versions ' + lang + '">' + versionsHtml[lang] + '</div>';
         }
         html += '</div>';
