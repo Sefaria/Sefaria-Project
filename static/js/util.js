@@ -1656,6 +1656,25 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
                             {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]\\d+-\\d+$", "i"),
                              msg: "",
                              action: "ok"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]\\d+-\\d+[ab]$", "i"),
+                             msg: "Enter an ending <b>segment</b>, e.g. " +
+                                data.title + " 4b:1-5b:5",
+                             action: "pass"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]\\d+-\\d+[ab][ .:]$", "i"),
+                             msg: "Enter an ending <b>segment</b>, e.g. " +
+                                data.title + " 4b:1-5b:5",
+                             action: "pass"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]\\d+-\\d+[ab][ .:]\\d+$", "i"),
+                             msg: "Enter an ending <b>segment</b>, e.g. " +
+                                data.title + " 4b:1-5b:5",
+                             action: "ok"});
+
                     }
 
                     // If there's a default node, copy section info from default node to parent
@@ -1752,7 +1771,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 									{test: RegExp(reStr, "i"),
 									msg: "Enter a <b>" + data.sectionNames[i+1] + "</b> of " + data.title + 
 										" to add, e.g., " + data.title + " 5:7",
-									action: "pass"});
+									action: "ok"});
 							reStr += "[ .:]\\d+";
 						}
 
@@ -1770,6 +1789,17 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 							{test: RegExp(reStr + "-\\d+$", "i"),
 							 msg: "OK. Click <b>add</b> to continue.",
 							 action: "ok"});
+
+                        sjs.ref.tests.push(
+							{test:  RegExp(reStr + "-\\d+[ .:]$", "i"),
+							 msg: "Enter an ending <b>" + data.sectionNames[i] + "</b>",
+							 action: "pass"});
+
+						sjs.ref.tests.push(
+							{test:  RegExp(reStr + "-\\d+[ .:]\\d+$", "i"),
+							 msg: "OK. Click <b>add</b> to continue.",
+							 action: "ok"});
+
 						
 					}
 					// Call self again to check against latest test added
@@ -1841,7 +1871,18 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						sjs.ref.tests.push(
 							{test:  RegExp(talmudReStr + "[ .:]\\d+-\\d+$", "i"),
 							 msg: "",
-							 action: "ok"});	
+							 action: "ok"});
+
+   						sjs.ref.tests.push(
+							{test:  RegExp(talmudReStr + "[ .:]\\d+-[0-9|a|b]+[ .:]$", "i"),
+							 msg: "Enter an ending <b>segment</b>.",
+							 action: "pass"});
+
+						sjs.ref.tests.push(
+							{test:  RegExp(talmudReStr + "[ .:]\\d+-[0-9|a|b]+[ .:]\\d+$", "i"),
+							 msg: "",
+							 action: "ok"});
+
 					
 					// Commentary on all other Texts
 					} else {
@@ -1876,7 +1917,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						sjs.ref.tests.push(
 							{test:  RegExp(reStr + "[ .:]\\d+$", "i"),
 							 msg: "OK, or use '-' to select a range." + data.sectionNames[i] + "</b>.",
-							 action: "ok"});	
+							 action: "ok"});
 
 						sjs.ref.tests.push(
 							{test:  RegExp(reStr + "[ .:]\\d+-$", "i"),
@@ -1886,8 +1927,8 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						sjs.ref.tests.push(
 							{test:  RegExp(reStr + "[ .:]\\d+-\\d+$", "i"),
 							 msg: "",
-							 action: "ok"});			
-					
+							 action: "ok"});
+
 					}
 					// Add the basic test of "[Commentator] on [Text]" again
 					// so that if you pass through the name of one text on the way to 
@@ -1925,7 +1966,7 @@ function textPreview(ref, $target, callback) {
 	callback = callback || function(){};
 
 	var urlRef = normRef(ref);
-	var getUrl = "/api/texts/" + urlRef + "?commentary=0";
+	var getUrl = "/api/texts/" + urlRef + "?commentary=0&context=0";
 	$target.html("Loading text...");
 
 	var data = sjs.cache.get(ref);
@@ -1948,25 +1989,54 @@ function textPreview(ref, $target, callback) {
 			callback();
 			return;
 		}
-		var text = en = he = controlsHtml = "";
-		
-		if (data.sections.length < data.sectionNames.length) {
-			data.sections.push(1);
-			data.toSections.push(Math.max(data.text.length, data.he.length));
-		}
-		for (var i = data.sections[data.sections.length-1]-1; i < data.toSections[data.toSections.length-1]; i++) {
-			if (data.text.length > i) { en += "<div class='previewLine'><span class='previewNumber'>(" + (i+1) + ")</span> " + data.text[i] + "</div> "; }
-			if (data.he.length > i) { he += "<div class='previewLine'><span class='previewNumber'>(" + (i+1) + ")</span> " + data.he[i] + "</div> "; }
-		}
+        var text = en = he = controlsHtml = "";
 
-		var path = parseURL(document.URL).path;
-		if (!en) { en += "<div class='previewNoText'><a href='/add/" + urlRef + "?after=" + path + "' class='btn'>Add English for "+ref+"</a></div>"; }
-		if (!he) { he += "<div class='previewNoText'><a href='/add/" + urlRef + "?after=" + path + "' class='btn'>Add Hebrew for "+ref+"</a></div>"; }
+            if (typeof(data.text) === "string") {
+                data.text = data.text.length ? [data.text] : [];
+            }
+            if (typeof(data.he) === "string") {
+                data.he = data.he.length ? [data.he] : [];
+            }
 
-		text = "<div class='en'>" + en + "</div>" + "<div class='he'>" + he + "</div>";
 
-		$target.html(controlsHtml + text);
-		callback();
+            if (data.spanning) { timesToIterateThroughSections = data.spanningRefs.length }
+            else {timesToIterateThroughSections = 1
+                            data.he = data.he.length ? [data.he] : [];
+                            data.text = data.text.length ? [data.text] : [];
+            }
+
+            for (var q=0;q<timesToIterateThroughSections;q++) {
+                curEnglishText = data.text[q] || '';
+                curHebrewText = data.he[q] || '';
+                if (data.sections.length < data.sectionNames.length) {
+                    data.sections.push(1);
+                    data.toSections.push(Math.max(curEnglishText.length, curHebrewText.length));
+                }
+                if (q==0) {curSegmentNumber = data.sections[1]}
+                else {curSegmentNumber = 1 }
+                for (var i = 0; i < (Math.max(curEnglishText.length, curHebrewText.length)); i++) {
+                    if (curEnglishText.length > i) {
+                        en += "<div class='previewLine'><span class='previewNumber'>(" + (curSegmentNumber) + ")</span> " + curEnglishText[i] + "</div> ";
+                    }
+                    if (curHebrewText.length > i) {
+                        he += "<div class='previewLine'><span class='previewNumber'>(" + ( curSegmentNumber) + ")</span> " + curHebrewText[i] + "</div> ";
+                    }
+                curSegmentNumber++;
+                }
+            }
+            var path = parseURL(document.URL).path;
+            if (!en) {
+                en += "<div class='previewNoText'><a href='/add/" + urlRef + "?after=" + path + "' class='btn'>Add English for " + ref + "</a></div>";
+            }
+            if (!he) {
+                he += "<div class='previewNoText'><a href='/add/" + urlRef + "?after=" + path + "' class='btn'>Add Hebrew for " + ref + "</a></div>";
+            }
+
+            text = "<div class='en'>" + en + "</div>" + "<div class='he'>" + he + "</div>";
+
+            $target.html(controlsHtml + text);
+            callback();
+
 	};
 
 }
