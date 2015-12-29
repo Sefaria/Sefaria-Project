@@ -2146,7 +2146,7 @@ class Ref(object):
 
         :return bool:
         """
-        return len(self.sections) == 0
+        return len(self.sections) == 0 and not self.index_node.parent
 
     def is_section_level(self):
         """
@@ -3347,6 +3347,8 @@ class Library(object):
         # TOC is handled separately since it can be edited in place
 
     def _reset_toc_derivate_objects(self):
+        scache.delete_cache_elem('toc_cache')
+        scache.delete_cache_elem('toc_json_cache')
         scache.set_cache_elem('toc_cache', self.get_toc(), 600000)
         scache.set_cache_elem('toc_json_cache', self.get_toc_json(), 600000)
         scache.delete_template_cache("texts_list")

@@ -296,21 +296,44 @@ def rebuild_counts_and_toc(request):
     model.refresh_all_states()
     return HttpResponseRedirect("/?m=Counts-&-TOC-Rebuilt")
 
-@staff_member_required
-def reset_varnish(ref):
-    if USE_VARNISH:
-        r = model.Ref(ref)
-        if r.is_book_level():
-            invalidate_index(ref.index)
-            invalidate_counts(ref.counts)
-        invalidate_ref(ref)
 
-'''
 @staff_member_required
-def save_toc(request):
-    save_toc_to_db()
-    return HttpResponseRedirect("/?m=TOC-Saved")
-'''
+def reset_varnish(request, tref):
+    if USE_VARNISH:
+        oref = model.Ref(tref)
+        if oref.is_book_level():
+            invalidate_index(oref.index)
+            invalidate_counts(oref.index)
+        invalidate_ref(oref)
+        return HttpResponseRedirect("/?m=Varnish-Reset-For-{}".format(oref.url()))
+    return HttpResponseRedirect("/?m=Varnish-Not-Enabled")
+
+
+@staff_member_required
+def reset_ref(request, tref):
+    """
+    resets cache, versionstate, toc, varnish, & book TOC template
+    :param tref:
+    :return:
+    """
+    oref = model.Ref(tref)
+    if oref.is_book_level():
+        model.library.refresh_index_record(oref.index)
+        vs = model.VersionState(index=oref.index)
+        vs.refresh()
+        model.library.update_index_in_toc(oref.index)
+        scache.delete_cache_elem(scache.generate_text_toc_cache_key(oref.index.title))
+        if USE_VARNISH:
+            invalidate_index(oref.index)
+            invalidate_counts(oref.index)
+            invalidate_ref(oref)
+        return HttpResponseRedirect("/?m=Reset-Index-{}".format(oref.url()))
+    elif USE_VARNISH:
+        invalidate_ref(oref)
+        return HttpResponseRedirect("/?m=Reset-Ref-{}".format(oref.url()))
+    else:
+        return HttpResponseRedirect("/?m=Nothing-to-Reset")
+
 
 @staff_member_required
 def rebuild_commentary_links(request, title):
