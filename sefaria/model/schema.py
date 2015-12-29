@@ -240,6 +240,7 @@ class TreeNode(object):
     def _init_defaults(self):
         self.children = []  # Is this enough?  Do we need a dict for addressing?
         self.parent = None
+        self._leaf_nodes = []
 
     def validate(self):
         for k in self.required_param_keys:
@@ -397,16 +398,16 @@ class TreeNode(object):
         return new_node
 
     def get_leaf_nodes(self):
-        if not self.children:
-            return [self]
-        else:
-            nodes = []
-            for node in self.children:
-                if not node.children:
-                    nodes += [node]
-                else:
-                    nodes += node.get_leaf_nodes()
-            return nodes
+        if not self._leaf_nodes:
+            if not self.children:
+                self._leaf_nodes = [self]
+            else:
+                for node in self.children:
+                    if not node.children:
+                        self._leaf_nodes += [node]
+                    else:
+                        self._leaf_nodes += node.get_leaf_nodes()
+        return self._leaf_nodes
 
 
 class TitledTreeNode(TreeNode):
