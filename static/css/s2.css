@@ -3,10 +3,6 @@ body {
   margin: 0;
   overflow: hidden;
   -webkit-text-size-adjust: 100%;
-  -moz-user-select: none;
-  -khtml-user-select: none;
-  -webkit-user-select: none;
-  -o-user-select: none;
 }
 *::selection {
   background-color: #D2DCFF;
@@ -18,17 +14,28 @@ body.dark {
   background-color: #333331; 
 }
 #sefaria {
-  text-align: center: ;
+  text-align: center;
 }
 #s2 {
   position: fixed;
+  top: 0;
   width: 100%;
   height: 100%;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -o-user-select: none;
+}
+#s2.headerOnly {
+  z-index: 1000;
+  height: 54px;
+  overflow: hidden;
 }
 .readerApp {
   position: absolute;
   width: 100%;
   height: 100%;
+  top: 0;
 }
 .headerInner {
   position: fixed;
@@ -66,6 +73,7 @@ body.dark {
 .header .search {
   outline: none;
   border: none;
+  box-shadow: none;
   color: black;
   font-size:  18px;
   font-family: "adobe-garamond-pro", Georgia, serif;

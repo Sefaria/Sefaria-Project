@@ -1,5 +1,6 @@
 {% load sefaria_tags %}
 
+{% if not S2 %}
 <header id="top" class=''>
 	<div id="right" class="">
 		<div id="showOptions" class="">≡</div>
@@ -160,6 +161,8 @@
 
 	</div>
 </div>
+
+{% endif %}
 
 <div id="helpModal" class="modal">
 	<div id="helpClose" class="ui-icon ui-icon-closethick"></div>

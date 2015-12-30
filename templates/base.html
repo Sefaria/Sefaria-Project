@@ -53,6 +53,8 @@
     {% include "js/headers.js" %}
     
     {% block js %}{% endblock %}
-
+    {% if S2 %}
+        {% include "elements/s2_header.html" %}
+    {% endif %}
 </body>
 </html>

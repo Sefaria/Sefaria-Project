@@ -177,7 +177,10 @@ var ReaderApp = React.createClass({
     hist.url = hist.url.replace(/&/, "?");
 
     // for testing
-    if (window.location.pathname.indexOf("/s2") === 0) { hist.url = "/s2" + hist.url; }
+    if (window.location.pathname.indexOf("/s2") === 0 || 
+        "s2" in getUrlVars()) { 
+      hist.url = "/s2" + hist.url;
+    }
 
     return hist;
   },
@@ -371,8 +374,9 @@ var ReaderApp = React.createClass({
                     </div>);
       }
     }
-    panels = panels.length ? panels : (<div className="emptyDesktop">You have nothing open.</div>);
     var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel});
+    panels = panels.length ? panels : (<div className="emptyDesktop">You have nothing open.</div>);
+
     return (<div className={classes}>
               {this.props.multiPanel ? 
                 <Header 
