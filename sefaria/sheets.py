@@ -119,7 +119,7 @@ def save_sheet(sheet, user_id):
 
 	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
 
-	if sheet["status"] is "public" and SEARCH_INDEX_ON_SAVE:
+	if sheet["status"] == "public" and SEARCH_INDEX_ON_SAVE:
 		search.index_sheet(sheet["id"])
 
 	global last_updated
