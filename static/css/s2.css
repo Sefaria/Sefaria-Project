@@ -50,23 +50,23 @@ body.dark {
 }
 .headerInner {
   line-height: 54px;
-  padding: 0 3px;
+  padding: 0px 30px;
   text-align: center;
 }
 .header .left {
   float: left;
   text-align: left;
-  width: 40%;
+  width: 90%;
 }
 .header .right {
   float: right;
   text-align: right;
-  width: 40%;
+  width: 10%;
 }
-.header .library, .header .home, .header .account {
+.header .library, .header .home, .header .account, .header .readerNavMenuSearchButton {
   cursor: pointer;
 }
-.header .library, .header .account {
+.header .library, .header .account, .header .readerNavMenuSearchButton {
   display: inline-block;
   color: #999;
 }
@@ -78,20 +78,26 @@ body.dark {
   font-size:  18px;
   font-family: "adobe-garamond-pro", Georgia, serif;
   vertical-align: 2px;
-  width: 75%;
+  width: 80%;
 }
 .header .home {
-  margin: 0 auto;
-  text-align: center;
+  opacity: .6;
+  display: inline-block;
 }
 .header .library, .header .account {
   margin: 0px 17px;
   font-size: 24px;
 }
+.header .readerNavMenuSearchButton {
+  margin: 0 8px 0 6px;
+  font-size: 17px;
+  position: relative;
+  top: -2px;
+}
 .header .home img {
   height: 28px;
   vertical-align: middle;
-  margin-top: -3px;
+  margin-top: -9px;
 }
 .header .headerNavContent {
   position: fixed;
@@ -167,8 +173,18 @@ body.dark {
   box-sizing: border-box;
   background-color: inherit;
 }
+/* Adjusting for 17px scrollbars, to keep content centered */
+.english .textColumn, .bilingual .textColumn {
+  padding-left: 17px;
+}
+.hebrew .textColumn {
+  padding-right: 17px;
+}
 .multiPanel .textColumn {
-  padding: 0 25px 50%;
+  padding: 0 25px 50% 42px;
+}
+.multiPanel .hebrew .textColumn {
+  padding: 0 42px 50% 25px;
 }
 .textColumn .loadingMessage.base {
   margin: 30px 0;
@@ -871,6 +887,7 @@ display: block;margin: 0 auto;}
   left: 0;
   width: 100%;
   box-sizing: border-box;
+  text-align: center;
   padding: 8px 0 0 0;
   z-index: 100;
   height: 58px;
@@ -889,6 +906,15 @@ display: block;margin: 0 auto;}
 .readerControls.connectionsHeader {
   background-color: #EDEDED;
 }
+.readerControls .readerControlsInner {
+  position: relative;
+  width: 680px;
+  padding: 0;
+  padding: 0 10px;
+  display: inline-block;
+  max-width:  100%;
+  box-sizing: border-box;
+}
 .readerControls .readerTextToc {
   text-align: center;
   display: inline-block;
@@ -902,16 +928,16 @@ display: block;margin: 0 auto;}
 }
 .leftButtons,
 .rightButtons {
-  position: absolute;
-  top: 8px;
+  /*position: absolute;
+  top: 0;*/
 }
 .leftButtons {
-  left: 0;
   text-align: left;
+  float: left;
 }
 .rightButtons {
-  right: 0;
   text-align: right;
+  float: right;
 }
 .leftButtons .readerNavMenuSearchButton,
 .leftButtons .readerNavMenuCloseButton,
@@ -969,16 +995,16 @@ display: block;margin: 0 auto;}
   display: none;
 }
 .leftButtons div:first-child {
-  padding-left: 10px;
 }
 .rightButtons div:last-child {
-  padding-right: 10px;
 }
 .multiPanel .leftButtons div:first-child {
-  padding-left: 20px;
+  margin-left: 0;
+  padding-left: 0;
 }
 .multiPanel .rightButtons div:last-child {
-  padding-right: 20px;
+  margin-right: 0;
+  padding-right: 0;
 }
 .readerOptions img {
   height: 26px;

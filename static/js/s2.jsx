@@ -481,9 +481,9 @@ var Header = React.createClass({
     }
   },
   handleSearchButtonClick: function(event) {
-    var query = $(ReactDOM.findDOMNode(this)).find(".searchButton").val();
+    var query = $(ReactDOM.findDOMNode(this)).find(".search").val();
     if (query) {
-      this.props.openSearch(query);
+      this.submitSearch(query);
     }
   },
   render: function() {
@@ -499,13 +499,14 @@ var Header = React.createClass({
     return (<div className="header">
               <div className="headerInner">
                 <div className="left">
+                  <div className="home" onClick={this.showDesktop}><img src="/static/img/sefaria-on-white.png" /></div>
                   <div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div>
+                  <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                   <input className="search" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
                 </div>
                 <div className="right">
                   <div className="account" onClick={this.showAccount}><i className="fa fa-user"></i></div>
                 </div>
-                <div className="home" onClick={this.showDesktop}><img src="/static/img/sefaria-on-white.png" /></div>
               </div>
               { viewContent ? 
                 (<div className="headerNavContent">
@@ -899,7 +900,8 @@ var ReaderPanel = React.createClass({
     classes = classNames(classes);
     var style = {"fontSize": this.state.settings.fontSize + "%"};
     var hideReaderControls = (this.props.multiPanel && this.state.mode === "Connections" && ![].compare(this.state.filter)) ||
-                             this.state.mode === "TextAndConnections";
+                             this.state.mode === "TextAndConnections" ||
+                             this.props.hideNavHeader;
     return (
       <div className={classes}>
         {hideReaderControls ? null :  
@@ -988,13 +990,15 @@ var ReaderControls = React.createClass({
     var classes = classNames({readerControls: 1, headeroom: 1, connectionsHeader: mode == "Connections"});
     var readerControls = hideHeader ? null :
         (<div className={classes}>
-          <div className="leftButtons">
-            {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton icon={mode === "Connections" ? "arrow": null} onClick={this.props.closePanel} />) : null}
-            {this.props.multiPanel ? null : (<ReaderNavigationMenuSearchButton onClick={this.props.openMenu.bind(null, "navigation")} />)}
-          </div>
-          {centerContent}
-          <div className="rightButtons">
-            <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+          <div className="readerControlsInner">
+            <div className="leftButtons">
+              {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton icon={mode === "Connections" ? "arrow": null} onClick={this.props.closePanel} />) : null}
+              {this.props.multiPanel ? null : (<ReaderNavigationMenuSearchButton onClick={this.props.openMenu.bind(null, "navigation")} />)}
+            </div>
+            <div className="rightButtons">
+              <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+            </div>
+            {centerContent}
           </div>
         </div>);
     return (
@@ -1771,7 +1775,7 @@ var ToggleOption = React.createClass({
 
 var ReaderNavigationMenuSearchButton = React.createClass({
   render: function() { 
-    return (<div className="readerNavMenuSearchButton" onClick={this.props.onClick}><i className="fa fa-search"></i></div>);
+    return (<span className="readerNavMenuSearchButton" onClick={this.props.onClick}><i className="fa fa-search"></i></span>);
   }
 });
 
