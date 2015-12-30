@@ -104,12 +104,12 @@ def save_sheet(sheet, user_id):
 		sheet["views"] = 1
 
 	if status_changed:
-		if sheet["status"] is "public" and "datePublished" not in sheet:
+		if sheet["status"] == "public" and "datePublished" not in sheet:
 			# PUBLISH
 			sheet["datePublished"] = datetime.now().isoformat()
 			record_sheet_publication(sheet["id"], user_id)
 			broadcast_sheet_publication(user_id, sheet["id"])
-		if sheet["status"] is not "public":
+		if sheet["status"] != "public":
 			# UNPUBLISH
 			delete_sheet_publication(sheet["id"], user_id)
 			NotificationSet({"type": "sheet publish",

@@ -964,7 +964,7 @@ class SheetPostTest(SefariaTestCase):
             "title": "Test Sheet",
             "sources": [],
             "options": {},
-            "status": 0
+            "status": "unlisted"
         }
         response = c.post("/api/sheets", {'json': json.dumps(sheet)})
         self.assertEqual(200, response.status_code)
@@ -988,27 +988,27 @@ class SheetPostTest(SefariaTestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)        
         self.assertEqual("Mishnah Peah 1:1", data["sources"][0]["ref"])
-  
+
         # Publish Sheet
-        sheet["status"] = 3
+        sheet["status"] = "public"
         sheet["lastModified"] = data["dateModified"]
         response = c.post("/api/sheets", {'json': json.dumps(sheet)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertIn("datePublished", data)
-        self.assertEqual(3, data["status"])
+        self.assertEqual("public", data["status"])
         log = db.history.find().sort([["_id", -1]]).limit(1).next()
         self.assertEqual(1, log["user"])
         self.assertEqual(sheet_id, log["sheet"])
         self.assertEqual("publish sheet", log["rev_type"])
     
         # Unpublish Sheet
-        sheet["status"] = 0
+        sheet["status"] = "unlisted"
         sheet["lastModified"] = data["dateModified"]
         response = c.post("/api/sheets", {'json': json.dumps(sheet)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual(0, data["status"])
+        self.assertEqual("unlisted", data["status"])
         log = db.history.find_one({"rev_type": "publish sheet", "sheet": sheet_id})
         self.assertEqual(None, log)
     
