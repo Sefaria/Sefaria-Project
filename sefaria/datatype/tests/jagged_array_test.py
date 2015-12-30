@@ -33,6 +33,27 @@ def setup_module(module):
         ],
     ]
 
+class Test_Jagged_Array(object):
+
+    def test_ja_normalize(self):
+        input_ja = ["a",[],["","a", ["c"]],["",""],["b"]]
+        output_ja = [[["a"]],[],[[],["a"], ["c"]],[[],[]],[["b"]]]
+        jaobj = ja.JaggedArray(input_ja)
+        jaobj.normalize()
+        assert jaobj.array() == output_ja
+
+    def test_last_index(self):
+        assert ja.JaggedIntArray([
+            [[1,3],[4,5],[7]],
+            [[1,2,3],[2,2],[8,8,8]],
+            [[0],[1],[2,3,4],[7,7,7,7,7]]
+        ]).last_index(3) == [2, 3, 4]
+        assert ja.JaggedIntArray([
+            [[1,3],[4,5],[7]],
+            [[1,2,3],[2,2],[8,8,8]],
+            [[0],[1],[2,3,4],[7,7,7,7,7],[],[]]
+        ]).last_index(3) == [2, 3, 4]
+
 
 class Test_Jagged_Text_Array(object):
 
@@ -208,6 +229,15 @@ class Test_Jagged_Text_Array(object):
             "Chapter 2, Verse 1", "2:2", "2:3",
             "Third first", "Third second", "Third third"
         ]
+
+    def test_next_prev(self):
+        sparse_ja = ja.JaggedTextArray([["","",""],["","foo","","bar",""],["","",""]])
+        assert sparse_ja.next_index([0,0]) == [1, 1]
+        assert sparse_ja.next_index([]) == [1, 1]
+        assert sparse_ja.next_index() == [1, 1]
+
+        assert sparse_ja.prev_index([]) == [1, 3]
+        assert sparse_ja.prev_index() == [1, 3]
 
 
 class Test_Depth_0(object):

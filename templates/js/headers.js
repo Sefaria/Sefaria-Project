@@ -10,6 +10,12 @@
 		_uid:          {{ request.user.id|default:"null" }},
 		books:         {{ titlesJSON|default:"[]" }},
         booksDict:     {}, // populated below
+        calendar:      {
+                            parasha: "{{ parasha_ref }}",
+                            parashaName: "{{ parasha_name }}",
+                            haftara: "{{ haftara_ref }}",
+                            daf_yomi: "{{ daf_yomi_ref }}"
+                       },
 		toc:           {{ toc_json|default:"null" }},
 		searchBaseUrl: '{{ SEARCH_URL|default:"http://localhost:9200" }}',
 		searchIndex:   '{{ SEARCH_INDEX_NAME }}',
@@ -191,6 +197,8 @@
 					} else {
 						sjs.navPanel._preview = data;
                         sjs.navPanel._preview.schema = new sjs.SchemaNode(data.schema);
+                        sjs.navPanel._structure = sjs.navPanel._preview.default_struct || "default";
+
 						sjs.navPanel.setNavContent();
 					}
 				});
@@ -274,7 +282,9 @@
                 html += "<div id='structureDropdown'>" +
                     "<span id='browseBy'>Browse by </span>" +
                         "<select>" +
-                            "<option value='default' " + ((sjs.navPanel._structure == "default")?"selected ":"") + ">" + hebrewPlural(schema_node.sectionNames.slice(-2)[0]) +"</option>";
+                            "<option value='default' " + ((sjs.navPanel._structure == "default")?"selected ":"") + ">" +
+                                (schema_node.sectionNames ? hebrewPlural(schema_node.sectionNames.slice(-2)[0]) : "Primary Structure") +
+                            "</option>";
                             for(var n in this._preview.alts) {
                                 html += "<option value='" + n + "' " + ((sjs.navPanel._structure == n)?"selected ":"") + ">" + n + "</option>";
                             }
@@ -396,17 +406,23 @@
                     }
                 }
                 else if ("refsPreview" in current_node) { // Content - todo: doesn't yet work beyond depth 1
-                    var alt_section_names = current_node["sectionNames"];
+
+                    var isTalmudAddress = current_node.addressTypes[0] == "Talmud";  // still hacky. reworking the isTalmud logic
+                    var offset = current_node.offset || 0;
+
+                    var alt_section_names = current_node["sectionNames"][0];
                     html += "<div class='sectionName'>" + hebrewPlural(alt_section_names) + "</div>";
                     var refs_preview = current_node["refsPreview"];
                     if (!this._showPreviews) {
                         html += "<div id='numLinkBox'>"
                     }
                     for (var i = 1; i <= current_node["refs"].length; i++) {
+                        var io = i + offset;
+                        var num = isTalmudAddress ? intToDaf(io - 1) : io;
+                        var heNum = isTalmudAddress ? encodeHebrewDaf(intToDaf(io - 1)) : encodeHebrewNumeral(io);
+
                         var ref = current_node["refs"][i - 1];
                         var url = "/" + ref;
-                        var num = i;
-                        var heNum = encodeHebrewNumeral(i);
                         var he = refs_preview[i - 1].he;
                         var en = refs_preview[i - 1].en;
                         if (!en && !he) {
@@ -561,7 +577,7 @@
 							return tag;
 						}
 					});
-				response(matches);
+				response(matches.slice(0, 30)); // limits return to 30 items
 			}
 		}).keypress(function(e) {
 			if (e.keyCode == 13) {
@@ -577,7 +593,9 @@
 
 
 		// NavPanel
-		sjs.navPanel.init();
+		if ($("#navPanel").length) {
+            sjs.navPanel.init();
+        }
 
 		// Close menus on outside click
 		$(window).click(function(){
@@ -609,7 +627,9 @@
 
 
 		// Default tooltipster
-		$(".tooltipster").tooltipster();
+		if ($().tooltipster) {
+            $(".tooltipster").tooltipster();
+        }
 
 
 	    // Notifications - Mark as read
@@ -832,6 +852,22 @@
 	    })
 	    $("#rightButtons").click(function(e){e.stopPropagation();});
 	    $(window).click(sjs.hideOptionsBar);
+
+		// browser check -- 
+		// this attempts to create an element and add css3 text shadow to it to it
+		// these are only supported in recent firefox, chrome, safari & ie > 9
+
+		$("#sefaria").css("text-shadow", "2px 2px #ff0000");
+		var sefariaSupportedBrowser = !!$("#alertMessage").css("text-shadow");
+		$("#sefaria").css("text-shadow", "");
+
+		if (sefariaSupportedBrowser == false) {
+		$("#alertMessage").html('<strong>Warning:</strong> Your browser is out of date and unsupported by Sefaria<br/>Please use a more up to date browser or download one <a href="http://browsehappy.com/" target="_blank">here</a>.').show();
+		}
+
 	});
 {% endautoescape %}
+
+
+
 </script>

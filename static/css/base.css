@@ -64,7 +64,9 @@ body.hebrew .biReady p,
 body.hebrew .biReady #bites h3 {
 	text-align: right;
 }
-
+body.hebrew .hideInHebrewMode {
+  display: none !important;
+}
 #home {
     color: #1C3039;
     text-align: center;
@@ -227,6 +229,7 @@ body.hebrew #home .homeColumn {
 
 #home #calendar {
     padding: 26px 50px;
+    margin-top: -12px;
 }
 
 #home #calendar a {
@@ -234,7 +237,6 @@ body.hebrew #home .homeColumn {
     display: block;
     font-size: 18px;
     line-height: 1.2;
-    margin-top: 6px;
 }
 
 #home #calendar a .ref {
@@ -244,8 +246,10 @@ body.hebrew #home .homeColumn {
 }
 
 #home #calendar a.haftara {
-    font-size: 13px;
-    margin-top: 10px;
+    font-size: 10px;
+    margin-top: 2px;
+    display: block;
+    float: none;
 }
 
 #home #calendar .calendarSection {
@@ -253,14 +257,15 @@ body.hebrew #home .homeColumn {
     margin: 10px 0px;
 }
 
-#home #calendar .calendarSectionTitle {
-    font-size: 10px;
-    margin-top: 10px;
+#home #calendar .calendarSectionTitle,
+#home #calendar .calendarSectionTitle a {
+    font-size: 9px;
+    letter-spacing: 1px;
     display: block;
 }
 
 #home #calendar .line {
-    margin: 20px 0px;
+    margin: 5px 0px;
     border-bottom: 1px solid #404F56;
 }
 
@@ -476,14 +481,26 @@ body.hebrew #home #homeConnect .followButton .fa {
 #home #announcement {
   border: none;
   border-radius: 10px;
-  padding: 15px 40px;
+  padding: 15px 20px;
   background-color: white;
-  max-width: 600px;
+  width: 500px;
   text-align: left;
+  z-index: 50;
 }
 
 #home #announcement .btn {
-  float: right;
+  float: left;
+  margin-top: 0px;
+  margin: 0 20px;
+}
+#home #announcement p {
+  margin-bottom: 0;
+}
+.hebrew #home #announcement h3 {
+  text-align: right;
+}
+.hebrew #home #announcement .btn {
+  float: left;
 }
 
 
@@ -493,6 +510,9 @@ body.hebrew #home #homeConnect .followButton .fa {
     }
     #home #homeTitle #sub {
       font-size: 16px;
+    }
+    #home #homeTitle #homeTitleBox {
+      padding: 50px 0;
     }
     #home #donateButton {
       display: none;
@@ -602,6 +622,11 @@ body.hebrew #aboutPage .span5 {
 	font-size: 44px;
 	letter-spacing: 1px;
 }
+#textsPage h1 .he {
+  font-family: "Times New Roman", serif;
+  font-size: 125%;
+  margin-bottom: 16px;
+}
 
 #textsPage #textsList {
 	margin-top: 20px;
@@ -616,12 +641,16 @@ body.hebrew #aboutPage .span5 {
   font-size: 24px;
   font-weight: bold;
   font-family: Georgia, serif;
+  display: block;
   cursor: pointer;
+  color: black;
   padding-bottom: 2px;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   border-bottom: 1px solid #999;
 }
-
+#textsList .categoryName:hover {
+  text-decoration: underline;
+}
 #textsList .categoryName .en {
   float: left;
   line-height: 34px;
@@ -668,7 +697,7 @@ body.hebrew #aboutPage .span5 {
 }
 
 #textsList table {
-  margin: 0px 8px;
+  padding: 0px 8px;
 }
 
 #textsList li.text .title {
@@ -723,6 +752,7 @@ body.hebrew #aboutPage .span5 {
 
 #textsList table {
   width: 100%;
+  box-sizing: border-box;
 }
 
 #textsList i {
@@ -804,11 +834,20 @@ body.hebrew #aboutPage .span5 {
   display: inline-block;
 }
 
-#textsList .text .title a, #textsList .text .heTitle a {
+#textsList .text .title a,
+#textsList .text .heTitle a {
   padding: 0;
   display: inline-block;
+}
+#textsList .text .title a,
+{
   text-indent: -20px;
   padding-left: 20px;
+}
+#textsList .text .heTitle a,
+{
+  text-indent: -20px;
+  padding-right: 20px;
 }
 
 #textsList .text .title.sparse1 a, #textsList .text .heTitle.sparse1 a {
@@ -832,8 +871,6 @@ body.hebrew #aboutPage .span5 {
   margin: 6px 6px -4px;
 }
 
-
-
 #textTocPage.doc {
   margin-top: 0px;
 }
@@ -847,15 +884,42 @@ body.hebrew #aboutPage .span5 {
     font-family: "Times New Roman", serif;
 }
 
-
-#textToc.complex .schema-node-toc.depth1 {
-    margin: 10px 20px 0;
+#textToc .schema-node-toc {
+  display: block;
 }
 
 #textTocPage #textCategories {
-  margin: -12px 0 4px;
-  font-size: 14px;
+  margin: 0px 0 8px;
+  font-size: 13px;
+  font-weight: normal;
   text-align: center;
+}
+
+#textTocPage h1 {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+#textTocPage h2 {
+    margin: 0;
+    text-align: center;
+    font-size: 20px;
+}
+
+#textTocPage #dateline {
+    clear: both;
+    width: 100%;
+    padding-bottom: 10px;
+}
+
+#textTocPage #dateline .metadataTitle {
+    font-weight: bold;
+}
+.english #textTocPage #dateline .placedate {
+    padding-right: 30px;
+}
+.hebrew #textTocPage #dateline .placedate {
+    padding-left: 30px;
 }
 
 .textCategoryDelimiter {
@@ -879,6 +943,21 @@ body.hebrew #aboutPage .span5 {
 	text-align: center;
 	position: relative;
 	font-size: 12px;
+}
+
+#structToggles {
+  text-align: center;
+}
+
+#structToggles .altStructToggle {
+  display: inline-block;
+  color: #08c;
+  cursor: pointer;
+  margin: 0 8px;
+}
+
+#structToggles .altStructToggle.active {
+  color: black;
 }
 
 #textToc {
@@ -907,40 +986,56 @@ body.hebrew #aboutPage .span5 {
   text-decoration: none;
 }
 
-#textToc.complex .schema-node-toc {
+#textToc .schema-node-toc {
     margin-top: 6px;
     display: block;
     color: black;
 }
 
-#textToc.complex .schema-node-toc.depth1 {
-    margin: 10px 20px 0;
+#textToc  .schema-node-toc.depth1 {
+    margin: 10px 0px 0;
 }
 
-#textToc.complex .schema-node-toc.depth2 {
+#textToc  .schema-node-toc.depth2 {
+    margin: 6px 20px 0;
+}
+
+#textToc .schema-node-toc.depth3 {
     margin: 6px 40px 0;
 }
 
-#textToc.complex .schema-node-toc.depth3 {
+#textToc .schema-node-toc.depth4 {
     margin: 6px 60px 0;
 }
 
-#textToc.complex .schema-node-toc.depth4 {
+#textToc .schema-node-toc.depth5 {
     margin: 6px 80px 0;
 }
 
-#textToc.complex .schema-node-title {
+#textToc .schema-node-toc.depth6 {
+    margin: 6px 100px 0;
+}
+
+#textToc .schema-node-toc.depth7 {
+    margin: 6px 120px 0;
+}
+
+#textToc .schema-node-toc.depth8 {
+    margin: 6px 140px 0;
+}
+
+#textToc .schema-node-title {
     font-size: 16px;
     font-family: Georgia, Serif;
     cursor: pointer;
 }
 
-#textToc.complex .schema-node-title:hover {
+#textToc .schema-node-title:hover {
     text-decoration: underline;
 }
 
 
-#textToc.complex .depth1 .schema-node-title {
+#textToc .depth1 .schema-node-title {
     font-size: 18px;
     font-weight: bold;
 }
@@ -949,20 +1044,20 @@ body.hebrew #aboutPage .span5 {
 
 }
 
-#textToc.complex .sectionName {
+#textToc .sectionName {
     font-size: 12px;
     font-weight: normal;
 }
 
-#textToc.complex .schema-node-contents.closed {
+#textToc .schema-node-contents.closed {
     display: none;
 }
 
-#textToc.complex .schema-node-contents.open {
+#textToc .schema-node-contents.open {
     display: block;
 }
 
-#textToc.complex .schema-node-control {
+#textToc .schema-node-control {
     margin: 0 7px;
     color: #555;
 }
@@ -1043,7 +1138,7 @@ body.hebrew #aboutPage .span5 {
 	}
 
 		#activityContent #contributors h4:after {
-		content: ' ▼';
+		content: ' â–¼';
 	}
 
 	#activityContent div#contributors .board {
@@ -1152,6 +1247,7 @@ body.hebrew #aboutPage .span5 {
 
 #sheetListPage #partnerLogo {
     margin: 40px 0;
+    max-width: 100%;
 }
 
 #sheetListPage #groupSheetsRow thead,
@@ -1380,11 +1476,11 @@ body.hebrew #aboutPage .span5 {
 #sheetTags {
 	max-width: 900px;
 	margin: 28px auto;
-	-webkit-column-count:3; /* Chrome, Safari, Opera */
-	-moz-column-count:3; /* Firefox */
+	-webkit-column-count: 3;/* Chrome, Safari, Opera */
+	-moz-column-count:3;/* Firefox */
 	column-count:3;
-	-webkit-column-gap:40px; /* Chrome, Safari, Opera */
-	-moz-column-gap:40px; /* Firefox */
+	-webkit-column-gap:40px;/* Chrome, Safari, Opera */
+	-moz-column-gap:40px;/* Firefox */
 	column-gap:20px;
 }
 
@@ -1404,14 +1500,13 @@ body.hebrew #aboutPage .span5 {
 }
 
 #sheetTags .tag {
-	margin-bottom: 20px;
+	margin-bottom: 16px;
 	-webkit-column-break-inside: avoid;
 	break-inside: avoid;
 }
 
 #sheetTags .tagName {
 	font-size: 16px;
-	font-weight: bold;
 	color: #555;
 	margin-bottom: 3px;
 }
@@ -1475,6 +1570,8 @@ body.hebrew #aboutPage .span5 {
 .sheetTag {
     display: inline-block;
     width: 150px;
+    max-width: 45%;
+    box-sizing: border-box;
     padding: 6px;
     border: 1px solid #ddd;
     background-color: white;
@@ -1491,6 +1588,7 @@ body.hebrew #aboutPage .span5 {
 
 .sheetTag .tagName {
   width: 100px;
+  max-width: 65%;
   margin-left: 3px;
   vertical-align: middle;
   display: inline-block;
@@ -2580,18 +2678,15 @@ ul.board {
 
 #profileLeft {
 	padding-bottom: 40px;
+	text-align: center;
 }
 
 #profileLeftBox {
-	width: 250px;
-	padding-right: 32px;
-	float: right;
-}
+text-align: left;width: 250px;display: inline-block;}
 
 #profileImage {
 	width: 250px;
-	max-width: 100%;
-	height: 250px;
+	max-width: 94%;
 	margin-bottom: 20px;
 }
 
@@ -3132,7 +3227,6 @@ ul.board {
 	margin: 0 0 25px 0;
 }
 
-
 #strategy {
 	text-align: center;
 }
@@ -3182,6 +3276,19 @@ ul.board {
 	margin-bottom: 28px;
 }
 
+#teamPage h1 {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+#teamPage .teamMember {
+  margin-bottom: 24px;
+}
+
+#teamPage .teamBoardMember {
+  margin-bottom: 8px;
+}
+
 #faq h1 {
 	font-size: 36px;
 }
@@ -3228,7 +3335,6 @@ ul.board {
 #jobs h2.anchorable {
 	padding-top: 50px;
 }
-
 
 #footer {
 	background: #eee;

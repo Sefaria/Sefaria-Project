@@ -6,18 +6,23 @@
 			text-align: center;
 			padding: 10%;
 		}
+		#maintenancePage svg {
+		  height: 120px;
+		  width: 330px;
+		}
 	</style>
 
 </head>
 
 <body>
-	<img src="/static/img/sefaria-project.png" />
-	<h2>
-		{% autoescape off %}
-			{{ message }}
-		{% endautoescape %}
-	</h2>
-
+	<div id="maintenancePage">
+		{% include "elements/sefaria.logotype.svg" %}
+		<h2>
+			{% autoescape off %}
+				{{ message }}
+			{% endautoescape %}
+		</h2>
+	</div>
 </body>
 
 </html>

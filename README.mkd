@@ -2,7 +2,7 @@
 
 Sefaria is creating interfaces, apps (like a source sheet builder) and infrastructure (like an API and a structured dataset) for Jewish texts and textual learning. Our demo is up at www.sefaria.org.
 
-You can find outputs of our entire database in [Sefaria-Data](https://github.com/blockspeiser/Sefaria-Data).
+You can find outputs of our entire database in [Sefaria-Export](https://github.com/blockspeiser/Sefaria-Export).
 
 Interested developers should join the [sefara-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
 
@@ -36,9 +36,11 @@ Now you should see `(venv)` in front of your command prompt. The second command 
 #### Pip: 
 If you don't already have it in your Python installation, install [pip](http://www.pip-installer.org/en/latest/installing.html). Then use it to install the required Python packages.
 
-    pip install -r requirements.txt
+	pip install -r requirements.txt
 
-If you see an error when running `pip install -r requirements.txt` about a missing 'python.h' file, you'll need to install the Python development libraries.  
+If you are not using virtualenv, run it with sudo: `sudo pip install -r requirements.txt`
+
+If you see an error about a missing 'python.h' file, you'll need to install the Python development libraries. 
 
 On Debian systems: 
 
@@ -60,7 +62,7 @@ Use instructions [here](http://www.tylerbutler.com/2012/05/how-to-install-python
     cp local_settings_example.py local_settings.py
     vim local_settings.py
     
-Replace the placeholder values with values with those matching your enviornment. Choose a name for you local database (`sefaria` will be the default created by `mongorestore` below). You can leave `SEFARIA_DB_USER` ad `SEFARIA_DB_PASSWORD` blank if you don't need to run authentication on mongo.
+Replace the placeholder values with values with those matching your environment. Choose a name for you local database (`sefaria` will be the default created by `mongorestore` below). You can leave `SEFARIA_DB_USER` ad `SEFARIA_DB_PASSWORD` blank if you don't need to run authentication on mongo.
 
 #### Create a log directory:
 create a directory called "log" under the project folder. Make sure that the server user has write access to it by using a command such as chmod 777 (only on the log directory!!)
@@ -68,15 +70,14 @@ create a directory called "log" under the project folder. Make sure that the ser
 
 #### Get mongod running:
 
-If you don't already have it, [install MongoDB](http://docs.mongodb.org/manual/installation/). The data dump included in [Sefaria-Data](https://github.com/blockspeiser/Sefaria-Data) requires MongoDB version 2.6 or later. To get Mongo running:
+If you don't already have it, [install MongoDB](http://docs.mongodb.org/manual/installation/). Our current data dump requires MongoDB version 2.6 or later. To get Mongo running:
 
     mongod
 
 #### Put some texts in your database:
 
-A MongoDB dump of our database is available via DropBox. You can find it link from our [Sefaria-Data](https://github.com/blockspeiser/Sefaria-Data) repo. Place the `dump` directory within `Sefaria-Data`, then:
+A MongoDB dump of our database is available [via DropBox](https://www.dropbox.com/sh/z5xdi4b7725ems5/AI4Jyg0xcY). Download this content, then from the parent directory which contains `dump` run:
 
-    cd Sefaria-Data
     mongorestore --drop
 
 This will create (or overwrite) a mongo database called `sefaria`.
@@ -84,13 +85,17 @@ This will create (or overwrite) a mongo database called `sefaria`.
 #### Set up Django's local server
 `manage.py` is used to run and to manage the local server.  Is is located in the root directory of the `Sefaria-Project` code base. 
 
-Django auth features run on a seperate database. To init this database and set up Django's auth system, switch to the root directory of the `Sefaria-Project` code base, and run: 
+Django auth features run on a separate database. To init this database and set up Django's auth system, switch to the root directory of the `Sefaria-Project` code base, and run: 
 
     python manage.py syncdb
     
 #### Run the development server:
 
     python manage.py runserver
+
+You can also make it publicly available by specifying 0.0.0.0 for the host:
+    
+    python manage.py runserver 0.0.0.0:8000
 
 ## Exploring the Code
 
@@ -111,12 +116,6 @@ The shell script `cli` will invoke a python interpreter with the core models loa
     >>> p = LinkSet(Ref("Genesis 13"))
     >>> p.count()
     226
-
-Though soon to be retired, some functionality is still in `texts.py` which can also be accessed from the cli as `texts`.
-
-    $ ./cli
-    >>> texts.get_text("Kohelet 4:9")
-
 
 ## License
 

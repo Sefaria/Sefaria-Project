@@ -16,9 +16,13 @@ def global_settings(request):
         "SEARCH_INDEX_NAME":      SEARCH_INDEX_NAME,
         "GOOGLE_ANALYTICS_CODE":  GOOGLE_ANALYTICS_CODE,
         "MIXPANEL_CODE":          MIXPANEL_CODE,
+        "DEBUG":                  DEBUG,
         "OFFLINE":                OFFLINE,
         "GLOBAL_WARNING":         GLOBAL_WARNING,
         "GLOBAL_WARNING_MESSAGE": GLOBAL_WARNING_MESSAGE,
+        #"USE_VARNISH":            USE_VARNISH,
+        #"VARNISH_ADDR":           VARNISH_ADDR,
+        #"USE_VARNISH_ESI":        USE_VARNISH_ESI
         }
 
 
@@ -74,7 +78,11 @@ def calendar_links(request):
     daf_yomi_link = "<a href='/%s'>%s</a>" % (daf["url"], daf["name"])
 
     return {
-        "parasha_link": parasha_link, 
-        "haftara_link": haftara_link,
-        "daf_yomi_link": daf_yomi_link
+            "parasha_link":  parasha_link, 
+            "haftara_link":  haftara_link,
+            "daf_yomi_link": daf_yomi_link,
+            "parasha_ref":   parasha["ref"],
+            "parasha_name": parasha["parasha"],
+            "haftara_ref":   parasha["haftara"][0],
+            "daf_yomi_ref":  daf["url"]
         }

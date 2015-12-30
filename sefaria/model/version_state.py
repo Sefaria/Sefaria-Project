@@ -14,7 +14,10 @@ from text import VersionSet, AbstractIndex, AbstractSchemaContent, IndexSet, lib
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedIntArray
 from sefaria.system.exceptions import InputError, BookNameError
 from sefaria.system.cache import delete_template_cache
-
+try:
+    from sefaria.settings import USE_VARNISH
+except ImportError:
+    USE_VARNISH = False
 '''
 old count docs were:
     c["allVersionCounts"]
@@ -90,7 +93,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
     lang_map = {lang: "_" + lang for lang in langs}
     lang_keys = lang_map.values()
 
-    def __init__(self, index=None, attrs=None):
+    def __init__(self, index=None, attrs=None, proj=None):
         """
         :param index: Index record or name of Index
         :type index: text.Index|text.CommentaryIndex|string
@@ -116,10 +119,11 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         self._versions = {}
         self.is_new_state = False
 
-        if not self.load({"title": index.title}):
+        if not self.load({"title": index.title}, proj=proj):
+            if not getattr(self, "flags", None):  # allow flags to be set in initial attrs
+                self.flags = {}
             self.content = self.index.nodes.create_content(lambda n: {})
             self.title = index.title
-            self.flags = {}
             self.refresh()
             self.is_new_state = True  # variable naming: don't override 'is_new' - a method of the superclass
 
@@ -144,6 +148,10 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         self.index.nodes.visit_structure(self._aggregate_structure_state, self)
         self.linksCount = link.LinkSet(Ref(self.index.title)).count()
         self.save()
+
+        if USE_VARNISH:
+            from sefaria.system.sf_varnish import invalidate_counts
+            invalidate_counts(self.index)
 
     def get_flag(self, flag):
         return self.flags.get(flag, None)
@@ -179,12 +187,11 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
                 'sparseness': sum([contents[ckey][lkey]["sparseness"] for ckey in ckeys]) / len(ckeys),  # should be an int.  In Python 3 may need to int(round()) the result.
             }
 
-
     #todo: do we want to use an object here?
     def _content_node_visitor(self, snode, *contents, **kwargs):
         """
         :param snode: SchemaContentNode
-        :param contents: Array of two nodes - the current self.nodes node, and the self.counts node
+        :param contents: Array of one node - the self.counts node
         :param kwargs:
         :return:
         """
@@ -193,7 +200,6 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         depth = snode.depth  # This also acts as an assertion that we have a SchemaContentNode
         ja = {}  # JaggedIntArrays for each language and 'all'
         padded_ja = {}  # Padded JaggedIntArrays for each language
-
 
         # Get base counts for each language
         for lang, lkey in self.lang_map.items():
@@ -366,21 +372,59 @@ class VersionStateSet(abst.AbstractMongoSet):
 class StateNode(object):
     lang_map = {lang: "_" + lang for lang in ["he", "en", "all"]}
     lang_keys = lang_map.values()
-
+    meta_proj = {'content._all.completenessPercent': 1,
+         'content._all.percentAvailable': 1,
+         'content._all.percentAvailableInvalid': 1,
+         'content._all.sparseness': 1,
+         'content._all.textComplete': 1,
+         'content._en.completenessPercent': 1,
+         'content._en.percentAvailable': 1,
+         'content._en.percentAvailableInvalid': 1,
+         'content._en.sparseness': 1,
+         'content._en.textComplete': 1,
+         'content._he.completenessPercent': 1,
+         'content._he.percentAvailable': 1,
+         'content._he.percentAvailableInvalid': 1,
+         'content._he.sparseness': 1,
+         'content._he.textComplete': 1,
+         'flags': 1,
+         'linksCount': 1,
+         'title': 1}
     #todo: self.snode could be a SchemaNode, but get_available_counts_dict() assumes JaggedArrayNode
-    def __init__(self, title=None, snode=None, _obj=None):
+    def __init__(self, title=None, snode=None, _obj=None, meta=False, hint=None):
+        """
+        :param title:
+        :param snode:
+        :param _obj:
+        :param meta: If true, returns only the overview information, and not the detailed counts
+        :param hint: hint - a list of (lang, key) tuples of pieces of VersionState to return
+        :return:
+        """
         if title:
             snode = library.get_schema_node(title)
             if not snode:
                 snode = library.get_schema_node(title, with_commentary=True)
             if not snode:
                 raise InputError(u"Can not resolve name: {}".format(title))
+            if snode.is_default():
+                snode = snode.parent
+        if snode:
+            proj = None
+            if meta:
+                if not snode.is_root():
+                    raise Exception("StateNode.meta() only supported for Index roots.  Called with {} / {}".format(title, snode.primary_title("en")))
+                proj = self.meta_proj
+            if hint:
+                hint_proj = {}
+                base = [VersionState.content_attr] + snode.version_address()
+                for l, k in hint:
+                    hint_proj[".".join(base + [self.lang_map[l]] + [k])] = 1
+                if proj:
+                    proj.update(hint_proj)
+                else:
+                    proj = hint_proj
             self.snode = snode
-            self.versionState = VersionState(snode.index.title)
-            self.d = self.versionState.content_node(snode)
-        elif snode:
-            self.snode = snode
-            self.versionState = VersionState(snode.index.title)
+            self.versionState = VersionState(snode.index.title, proj=proj)
             self.d = self.versionState.content_node(snode)
         elif _obj:
             self.d = _obj
@@ -413,7 +457,10 @@ class StateNode(object):
         return d
 
     def var(self, lang, key):
-        return self.d[self.lang_map[lang]][key]
+        try:
+            return self.d[self.lang_map[lang]][key]
+        except Exception as e:
+            raise e.__class__(u"Failed in StateNode.var(), in node: {}, language: {}, key: {}".format(self.snode.primary_title("en"), lang, key))
 
     def ja(self, lang, key="availableTexts"):
         """
@@ -485,7 +532,7 @@ def process_index_title_change_in_version_state(indx, **kwargs):
     if indx.is_commentary():  # and "commentaryBook" not in d:  # looks useless
         commentator_re = "^(%s) on " % kwargs["old"]
     else:
-        commentators = IndexSet({"categories.0": "Commentary"}).distinct("title")
+        commentators = text.library.get_commentary_version_titles_on_book(kwargs["old"], with_commentary2=True)
         commentator_re = r"^({}) on {}".format("|".join(commentators), kwargs["old"])
     old_titles = VersionStateSet({"title": {"$regex": commentator_re}}).distinct("title")
     old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]

@@ -13,9 +13,7 @@ sjs.cache = {
 			return;
 		}
 
-		var pRef = parseRef(ref);
 		var nRef = normRef(ref).toLowerCase();
-
 		if (nRef in this._cache) {
 			var data = clone(this._cache[nRef]);
 			
@@ -24,14 +22,18 @@ sjs.cache = {
 		
 			// If the ref has more than 1 section listed, try trimming the last section
 			var nRef = nRef.replace(/:/g, ".").slice(0, nRef.lastIndexOf("."));
+		 	var pRef = parseRef(ref);
+		 	if ("error" in pRef) { return false; }
 
-			var data = clone(this._cache[nRef]);
-			var lastSection = parseInt(pRef.sections[pRef.sections.length -1]);
+			var lastSection   = parseInt(pRef.sections[pRef.sections.length -1]);
 			var lastToSection = parseInt(pRef.toSections[pRef.toSections.length -1]);
 			
-			data.sections.push(lastSection);
-			data.toSections.push(lastToSection);
-			data.ref = ref;
+			var data = clone(this._cache[nRef]);
+			if (data && data.sections) {
+				data.sections.push(lastSection);
+				data.toSections.push(lastToSection);
+				data.ref = ref;
+			}
 
 			return data;
 		}
@@ -45,25 +47,48 @@ sjs.cache = {
 			callback(data);
 		} else{
 			var pRef = parseRef(ref);
+			if ("error" in pRef) { 
+			 	callback(pRef);
+				return; 
+			}
 			var book = pRef['book'];
 			var paramString = this.paramString();
 			//do we have a cached preferred version for this text? get it
 			var versionInfo = this.getPreferredTextVersion(book);
 			var versionPath = versionInfo ? "/"+versionInfo['lang']+"/"+versionInfo['version'] : '';
-			$.getJSON("/api/texts/" + makeRef(pRef) + versionPath + paramString, function(data){
-				if(versionInfo){ // preferred version might not exist, so get default
-					var version_text_attr = versionInfo['lang'] == 'he' ? 'he' : 'text';
-					if(!data[version_text_attr] || !data[version_text_attr].length){
-						$.getJSON("/api/texts/" + makeRef(pRef) + paramString, callback);
-					}
-				}
-				callback(data);
-			});
+
+            var text_fetch = $.getJSON("/api/texts/" + makeRef(pRef) + versionPath + paramString)
+                .done(function (data) {
+                    if (versionInfo) { // preferred version might not exist, so get default
+                        var version_text_attr = versionInfo['lang'] == 'he' ? 'he' : 'text';
+                        if (!data[version_text_attr] || !data[version_text_attr].length) {
+                            return $.getJSON("/api/texts/" + makeRef(pRef) + paramString);
+                        }
+                    }
+                });
+            if (this._params.notes) {
+                var note_fetch = $.getJSON("/api/notes/" + makeRef(pRef));
+                $.when(text_fetch, note_fetch).done(function(textData, noteData) {
+                    textData[0]["notes"] = noteData[0];
+                    sjs.cache.save(textData[0]);
+                    callback(textData[0]);
+                })
+
+            } else {
+                text_fetch.done(function(data) { 
+                	sjs.cache.save(data);
+                	callback(data);
+                });
+            }
 		}
 	},
+	cacheKey: function(ref) {
+		return normRef(ref).toLowerCase();
+	},
 	save: function(origData) {
+		if ("error" in origData) { return; }
 		var data = clone(origData);
-		var ref  = normRef(data.ref).toLowerCase();
+		var ref  = this.cacheKey(data.ref);
 
 		// Store data for book name alone (eg "Genesis") immediatley
 		// normalizing below will render this "Genesis.1" which we also store
@@ -90,9 +115,6 @@ sjs.cache = {
 			this.setPreferredTextVersion(data['book'],data["new_preferred_version"]);
 		}
 	},
-	update: function(newData) {
-
-	},
  	prefetch: function(ref) {
 		// grab a text from the server and put it in the cache
 		if (!ref) return;
@@ -114,6 +136,9 @@ sjs.cache = {
 		// Returns the params string according to value in _params
 		var str = "";
 		for (p in this._params) {
+            if (p == "notes") {
+                continue;
+            }
 			str += "&" + p + "=" + this._params[p];
 		}
 		if (str.length) {
@@ -122,7 +147,7 @@ sjs.cache = {
 		return str;
 	},
 	kill: function(ref) {
-		ref = makeRef(parseRef(ref));
+		ref = this.cacheKey(ref);
 		if (ref in this._cache) delete this._cache[ref];
 		else if (ref.indexOf(".") != ref.lastIndexOf(".")) {
 			ref = ref.slice(0, ref.lastIndexOf("."));
@@ -138,7 +163,7 @@ sjs.cache = {
 	},
 
 	getPreferredTextVersion: function(book){
-		book = book ? book.toLowerCase() : null;
+		book = book ? book.toLowerCase().replace(/ /g, "_") : null;
 		if(book in this._preferredVersions){
 			return this._preferredVersions[book]
 		}
@@ -155,7 +180,8 @@ sjs.track = {
 	event: function(category, action, label) {
 		// Generic event tracker
 		_gaq.push(['_trackEvent', category, action, label]);
-		mixpanel.track(category + " " + action);
+		//mixpanel.track(category + " " + action, {label: label});
+		//console.log([category, action, label].join(" / "));
 	},
 	pageview: function(url) {
         _gaq.push(['_trackPageview', url]);
@@ -175,6 +201,7 @@ sjs.track = {
 		sjs.track.event("Reader", "Open", ref);
 		var text = parseRef(ref).book;
 		sjs.track.event("Reader", "Open Text", text);
+		console.log("tracking " + ref)
 	},
 	ui: function(label) {
 		// Track some action in the Reader UI
@@ -773,9 +800,12 @@ sjs.textBrowser = {
 	forward: function(to) {
 		// navigate forward to "to", a string naming a text, category or section
 		// as it appears in the nav or path
+		if (to != (this._path[this._path.length-1])) {   //if "to" = the last node in current path, don't go anywhere to prevent rapid clicking on the same item doubling up and throwing error
+
+
 		var next = null;
 		this._path.push(to);
-		this.updatePath();	
+		this.updatePath();
 		if (this._currentCategories) {
 			for (var i = 0; i < this._currentCategories.length; i++) {
 				if (this._currentCategories[i].category === to || this._currentCategories[i].title === to) {
@@ -790,67 +820,69 @@ sjs.textBrowser = {
 						this._currentSections = [];
 						if (this._currentText && this._currentText.title === next.title) {
 							// Nav within the same text, no need to update data
-                            if(this._currentSchema.has_children()) {
-                                this.buildComplexTextNav()
-                            } else {
-                                this.buildTextNav();
-                            }
+							if (this._currentSchema.has_children()) {
+								this.buildComplexTextNav()
+							} else {
+								this.buildTextNav();
+							}
 						} else {
 							this.getTextInfo(next.title);
 						}
 						break;
 					}
 				}
-			}			 
+			}
 		} else { // Click on a Section or Intermediate node
-            var atSectionLevel;
-            if (!this._currentText) {
-                this._currentText = this._previousText;
-            }
-            var isCommentary = ($.inArray("Commentary", this._currentText.categories) > -1);
-            var schema = sjs.textBrowser._currentSchema;
-            var isComplex = schema.has_children();
-            var node = schema;
-            var sections;
-            var maxDepth;
+			var atSectionLevel;
+			if (!this._currentText) {
+				this._currentText = this._previousText;
+			}
+			var isCommentary = ($.inArray("Commentary", this._currentText.categories) > -1);
+			var schema = sjs.textBrowser._currentSchema;
+			var isComplex = schema.has_children();
+			var node = schema;
+			var sections;
+			var maxDepth;
 
-            if (isComplex) {
-        		var titles = this._path.slice(this._currentText.categories.length + 1);
-                var node_and_sections = schema.get_node_and_sections_from_titles(titles);
-                node = node_and_sections.node;
-                sections = node_and_sections.sections;
-                if (node.has_children()) {
-                    atSectionLevel = false;
-                } else {
-                    maxDepth = node.depth - (isCommentary ? 2 : 1);
-                    atSectionLevel = sections.length >= maxDepth;
-                }
-            } else {
-    			maxDepth = this._currentText.depth - (isCommentary ? 3 : 2);
-                atSectionLevel = this._currentDepth >= maxDepth;
-            }
+			if (isComplex) {
+				var titles = this._path.slice(this._currentText.categories.length + 1);
+				var node_and_sections = schema.get_node_and_sections_from_titles(titles);
+				node = node_and_sections.node;
+				sections = node_and_sections.sections;
+				if (node.has_children()) {
+					atSectionLevel = false;
+				} else {
+					maxDepth = node.depth - (isCommentary ? 2 : 1);
+					atSectionLevel = sections.length >= maxDepth;
+				}
+			} else {
+				maxDepth = this._currentText.depth - (isCommentary ? 3 : 2);
+				atSectionLevel = this._currentDepth >= maxDepth;
+			}
 
 			if (atSectionLevel) {
-                this.previewText(this.ref());
-            } else {
+				this.previewText(this.ref());
+			} else {
 				// We're not at section level, build another level of section navs
-                if (isComplex && (sections.length == 0)) {
-                    // We're in the middle of a complex text
-                    this._currentSections.push(to);
-                    if (node.has_children()) {
-                        this.buildComplexTextNav();
-                    } else {
-                        this.getTextInfo(schema.get_node_url_from_titles(titles));
-                    }
-    			} else {
-                    var section = to.slice(to.lastIndexOf(" "));
-                    section = node.addressTypes[this._currentDepth] == "Talmud" ? dafToInt(section) : parseInt(section);
-                    this._currentSections.push(section);
-                    this._currentDepth = this._currentSections.length;
-                    this.buildTextNav();
-                }
+				if (isComplex && (sections.length == 0)) {
+					// We're in the middle of a complex text
+					this._currentSections.push(to);
+					if (node.has_children()) {
+						this.buildComplexTextNav();
+					} else {
+						this.getTextInfo(schema.get_node_url_from_titles(titles));
+					}
+				} else {
+					var section = to.slice(to.lastIndexOf(" "));
+					section = node.addressTypes[this._currentDepth] == "Talmud" ? dafToInt(section) : parseInt(section);
+					this._currentSections.push(section);
+					this._currentDepth = this._currentSections.length;
+					this.buildTextNav();
+				}
 			}
-		}		
+		}
+
+	}
 	},
 	buildCategoryNav: function(contents) {
 		// Build the side nav for category contents
@@ -927,7 +959,10 @@ sjs.textBrowser = {
 		$.getJSON("/api/preview/" + title, function(data) {
 			sjs.textBrowser._currentText = data;
             sjs.textBrowser._currentSchema = new sjs.SchemaNode(data.schema);
-            if(sjs.textBrowser._currentSchema.has_children()) {
+            var titles      = sjs.textBrowser._path.slice(sjs.textBrowser._currentText.categories.length + 1);
+            var node        = sjs.textBrowser._currentSchema.get_node_from_titles(titles);
+            var node_children    = node.children().length > 0;
+            if(sjs.textBrowser._currentSchema.has_children() && (node_children || !(data.preview))) {
                 sjs.textBrowser.buildComplexTextNav()
             } else {
     			sjs.textBrowser.buildTextNav();
@@ -1296,15 +1331,16 @@ sjs.sheetTagger = {
 
 sjs._parseRef = {};
 function parseRef(q) {
-	q = q || ""; 
+	q = q || "";
+	q = decodeURIComponent(q);
 	q = q.replace(/_/g, " ").replace(/[.:]/g, " ").replace(/ +/, " ");
 	q = q.trim().toFirstCapital();
 	if (q in sjs._parseRef) { return sjs._parseRef[q]; }
+	
 	var response = {book: false, 
 					sections: [],
 					toSections: [],
-					ref: ""};
-					
+					ref: ""};				
 	if (!q) { 
 		sjs._parseRef[q] = response;
 		return response;
@@ -1373,13 +1409,19 @@ function makeRef(q) {
 
 
 function normRef(ref) {
-	return makeRef(parseRef(ref));
+	var norm = makeRef(parseRef(ref));
+	if (typeof norm == "object" && "error" in norm) {
+		// Return the original string if the ref doesn't parse
+		return ref;
+	}
+	return norm;
 }
 
 
 function humanRef(ref) {
 	var pRef = parseRef(ref);
-	var book = pRef.book.replace(/_/g, " ") + " ";
+	if (pRef.sections.length == 0) { return pRef.book; }
+	var book = pRef.book + " ";
 	var nRef = pRef.ref;
 	var hRef = nRef.replace(/ /g, ":");
 	return book + hRef.slice(book.length);
@@ -1393,6 +1435,13 @@ function isRef(ref) {
 	return ("book" in q && q.book);
 }
 
+sjs.titlesInText = function(text) {
+	// Returns an array of the known book titles that appear in text.
+	return sjs.books.filter(function(title) {
+		return (text.indexOf(title) > -1);
+	});
+};
+
 
 sjs.makeRefRe = function(titles) {
 	// Construct and store a Regular Expression for matching citations
@@ -1401,14 +1450,6 @@ sjs.makeRefRe = function(titles) {
 	var books = "(" + titles.map(RegExp.escape).join("|")+ ")";
 	var refReStr = books + " (\\d+[ab]?)(?:[:., ]+)?(\\d+)?(?:(?:[\\-–])?(\\d+[ab]?)?(?:[:., ]+)?(\\d+)?)?";
 	return new RegExp(refReStr, "gi");	
-};
-
-
-sjs.titlesInText = function(text) {
-	// Returns an array of the known book titles that appear in text.
-	return sjs.books.filter(function(title) {
-		return (text.indexOf(title) > -1);
-	});
 };
 
 
@@ -1445,6 +1486,9 @@ sjs.wrapRefLinks = function(text) {
             nref += ":" + p5;
         }
         r = '<span class="refLink" data-ref="' + uref + '">' + nref + '</span>';
+        if (match.slice(-1)[0] === " ") { 
+        	r = r + " ";
+        }
         return r;
     };
 	return text.replace(refRe, replacer);
@@ -1453,7 +1497,7 @@ sjs.wrapRefLinks = function(text) {
 
 function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	
-	/* check the user inputed text ref
+	/* check the user inputted text ref
 	   give feedback to make it correct to a certain level of specificity
 	   talk to the server when needed to find section names
 		* level -- how deep the ref should go - (0: segment, 1: section, etc)
@@ -1568,6 +1612,71 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 					$ok.addClass("inactive");
                     var hasDefault = false;
 
+                    function addTalmudTests(startingRe, seperator, promptAddition) {
+                        sjs.ref.tests.push(
+                            {test: RegExp("^" + startingRe, "i"),
+                             msg: "Enter a <b>Daf</b> of " + data.title + " to add, e.g. " +
+                                data.title + promptAddition + "4b",
+                             action: "pass"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab]$", "i"),
+                             msg: "OK. Click <b>add</b> to continue.",
+                             action: "ok"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+a-b$", "i"),
+                             msg: "OK. Click <b>add</b> to continue.",
+                             action: "ok"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab]-\\d+[ab]$", "i"),
+                             msg: "OK. Click <b>add</b> to continue.",
+                             action: "ok"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]$", "i"),
+                             msg: "Enter a starting <b>segment</b>, e.g. " +
+                                data.title + " 4b:1",
+                             action: "pass"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]\\d+$", "i"),
+                             msg: "OK, or use '-' to select  range, e.g. " +
+                                data.title + " 4b:1-5",
+                             action: "ok"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]\\d+-$", "i"),
+                             msg: "Enter an ending <b>segment</b>, e.g. " +
+                                data.title + " 4b:1-5",
+                             action: "pass"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]\\d+-\\d+$", "i"),
+                             msg: "",
+                             action: "ok"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]\\d+-\\d+[ab]$", "i"),
+                             msg: "Enter an ending <b>segment</b>, e.g. " +
+                                data.title + " 4b:1-5b:5",
+                             action: "pass"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]\\d+-\\d+[ab][ .:]$", "i"),
+                             msg: "Enter an ending <b>segment</b>, e.g. " +
+                                data.title + " 4b:1-5b:5",
+                             action: "pass"});
+
+                        sjs.ref.tests.push(
+                            {test:  RegExp("^" + startingRe + seperator + "\\d+[ab][ .:]\\d+-\\d+[ab][ .:]\\d+$", "i"),
+                             msg: "Enter an ending <b>segment</b>, e.g. " +
+                                data.title + " 4b:1-5b:5",
+                             action: "ok"});
+
+                    }
+
                     // If there's a default node, copy section info from default node to parent
                     if (data.schema
                         && data.schema.nodes
@@ -1596,79 +1705,50 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						if (commentatorOnly) {
 							// Only looking for a Commtator name, will insert current ref
 							sjs.ref.tests.push(
-								{test: new RegExp("^" + variantsRe + "$", "i"), 
-								 msg: "", 
+								{test: new RegExp("^" + variantsRe + "$", "i"),
+								 msg: "",
 								 action: "insertRef"});
 							sjs.ref.tests.push(
-								{test: new RegExp("^" + variantsRe + " on " + sjs.add.source.ref + "$", "i"), 
-								 msg: "", 
+								{test: new RegExp("^" + variantsRe + " on " + sjs.add.source.ref + "$", "i"),
+								 msg: "",
 								 action: "ok"});
-							
+
 						} else {
 							// Commentator entered, need a text name to Look up
 							var commentatorRe = new RegExp("^" + variantsRe, "i")
 							sjs.ref.tests.push(
-								{test: commentatorRe, 
-								 msg: "Enter a <b>Text</b> that " + data.title + " comments on, e.g. <b>" + data.title + " on Genesis</b>.", 
+								{test: commentatorRe,
+								 msg: "Enter a <b>Text</b> that " + data.title + " comments on, e.g. <b>" + data.title + " on Genesis</b>.",
 								 action: "pass"});
-							
+
 							var commentaryReStr = "^" + variantsRe + " on " + booksReStr + "$";
 							var commentaryRe = new RegExp(commentaryReStr, "i");
 							sjs.ref.tests.push(
 								{test: commentaryRe,
 								 msg: "Looking up text information...",
 								 action: "getCommentaryBook"});
-					
+
 						}
 
+                    // ------- Zohar or anyother position 2 Talmud text.  Assumes position 1 is Int.  ------
+					} else if (data.addressTypes && data.addressTypes.length > 1 && data.addressTypes[1] == "Talmud") {
+                        var bookRe = new RegExp("^" + variantsRe + " ?$", "i");
+                        sjs.ref.tests.push(
+                            {test: bookRe,
+                             msg: "Enter a <b>" + data.sectionNames[0] + "</b> of " + data.title +
+                                " to add, e.g., " + data.title + " 3",
+                             action: "pass"});
+
+						var reStr = "^" + variantsRe + " \\d+";
+                        addTalmudTests(reStr, "[ .:]", " 3:");
+
+
 					// ------- Talmud Mesechet Entered -------------
-					} else if ((data.categories[0] == "Talmud")
-                        || (data.schema && data.schema.adressTypes && data.schema.addressTypes[0] == "Talmud")) {
-						sjs.ref.tests.push(
-							{test: RegExp("^" + variantsRe, "i"),
-							 msg: "Enter a <b>Daf</b> of Tractate " + data.title + " to add, e.g. " +
-							 	data.title + " 4b",
-							 action: "pass"});
-				
-						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab]$", "i"),
-							 msg: "OK. Click <b>add</b> to continue.",
-							 action: "ok"});
-						
-						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+a-b$", "i"),
-							 msg: "OK. Click <b>add</b> to continue.",
-							 action: "ok"});
-						
-						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab]-\\d+[ab]$", "i"),
-							 msg: "OK. Click <b>add</b> to continue.",
-							 action: "ok"});				
+                    } else if ((data.categories[0] == "Talmud")
+                        || (data.addressTypes && data.addressTypes[0] == "Talmud")) {
 
-						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]$", "i"),
-							 msg: "Enter a starting <b>segment</b>, e.g. " + 
-							 	data.title + " 4b:1",
-							 action: "pass"});
+                            addTalmudTests(variantsRe, " ", " ");
 
-						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]\\d+$", "i"),
-							 msg: "OK, or use '-' to select  range, e.g. " +
-							 	data.title + " 4b:1-5",
-							 action: "ok"});	
-
-						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]\\d+-$", "i"),
-							 msg: "Enter an ending <b>segment</b>, e.g. " +
-							 	data.title + " 4b:1-5",
-							 action: "pass"});	
-
-						sjs.ref.tests.push(
-							{test:  RegExp("^" + variantsRe + " \\d+[ab][ .:]\\d+-\\d+$", "i"),
-							 msg: "",
-							 action: "ok"});
-						
-						
 					// -------- All Other Texts ------------
 					} else {
 						var bookRe = new RegExp("^" + variantsRe + " ?$", "i");
@@ -1691,7 +1771,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 									{test: RegExp(reStr, "i"),
 									msg: "Enter a <b>" + data.sectionNames[i+1] + "</b> of " + data.title + 
 										" to add, e.g., " + data.title + " 5:7",
-									action: "pass"});
+									action: "ok"});
 							reStr += "[ .:]\\d+";
 						}
 
@@ -1709,6 +1789,17 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 							{test: RegExp(reStr + "-\\d+$", "i"),
 							 msg: "OK. Click <b>add</b> to continue.",
 							 action: "ok"});
+
+                        sjs.ref.tests.push(
+							{test:  RegExp(reStr + "-\\d+[ .:]$", "i"),
+							 msg: "Enter an ending <b>" + data.sectionNames[i] + "</b>",
+							 action: "pass"});
+
+						sjs.ref.tests.push(
+							{test:  RegExp(reStr + "-\\d+[ .:]\\d+$", "i"),
+							 msg: "OK. Click <b>add</b> to continue.",
+							 action: "ok"});
+
 						
 					}
 					// Call self again to check against latest test added
@@ -1780,7 +1871,18 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						sjs.ref.tests.push(
 							{test:  RegExp(talmudReStr + "[ .:]\\d+-\\d+$", "i"),
 							 msg: "",
-							 action: "ok"});	
+							 action: "ok"});
+
+   						sjs.ref.tests.push(
+							{test:  RegExp(talmudReStr + "[ .:]\\d+-[0-9|a|b]+[ .:]$", "i"),
+							 msg: "Enter an ending <b>segment</b>.",
+							 action: "pass"});
+
+						sjs.ref.tests.push(
+							{test:  RegExp(talmudReStr + "[ .:]\\d+-[0-9|a|b]+[ .:]\\d+$", "i"),
+							 msg: "",
+							 action: "ok"});
+
 					
 					// Commentary on all other Texts
 					} else {
@@ -1815,7 +1917,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						sjs.ref.tests.push(
 							{test:  RegExp(reStr + "[ .:]\\d+$", "i"),
 							 msg: "OK, or use '-' to select a range." + data.sectionNames[i] + "</b>.",
-							 action: "ok"});	
+							 action: "ok"});
 
 						sjs.ref.tests.push(
 							{test:  RegExp(reStr + "[ .:]\\d+-$", "i"),
@@ -1825,8 +1927,8 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 						sjs.ref.tests.push(
 							{test:  RegExp(reStr + "[ .:]\\d+-\\d+$", "i"),
 							 msg: "",
-							 action: "ok"});			
-					
+							 action: "ok"});
+
 					}
 					// Add the basic test of "[Commentator] on [Text]" again
 					// so that if you pass through the name of one text on the way to 
@@ -1864,7 +1966,7 @@ function textPreview(ref, $target, callback) {
 	callback = callback || function(){};
 
 	var urlRef = normRef(ref);
-	var getUrl = "/api/texts/" + urlRef + "?commentary=0";
+	var getUrl = "/api/texts/" + urlRef + "?commentary=0&context=0";
 	$target.html("Loading text...");
 
 	var data = sjs.cache.get(ref);
@@ -1887,25 +1989,54 @@ function textPreview(ref, $target, callback) {
 			callback();
 			return;
 		}
-		var text = en = he = controlsHtml = "";
-		
-		if (data.sections.length < data.sectionNames.length) {
-			data.sections.push(1);
-			data.toSections.push(Math.max(data.text.length, data.he.length));
-		}
-		for (var i = data.sections[data.sections.length-1]-1; i < data.toSections[data.toSections.length-1]; i++) {
-			if (data.text.length > i) { en += "<div class='previewLine'><span class='previewNumber'>(" + (i+1) + ")</span> " + data.text[i] + "</div> "; }
-			if (data.he.length > i) { he += "<div class='previewLine'><span class='previewNumber'>(" + (i+1) + ")</span> " + data.he[i] + "</div> "; }
-		}
+        var text = en = he = controlsHtml = "";
 
-		var path = parseURL(document.URL).path;
-		if (!en) { en += "<div class='previewNoText'><a href='/add/" + urlRef + "?after=" + path + "' class='btn'>Add English for "+ref+"</a></div>"; }
-		if (!he) { he += "<div class='previewNoText'><a href='/add/" + urlRef + "?after=" + path + "' class='btn'>Add Hebrew for "+ref+"</a></div>"; }
+            if (typeof(data.text) === "string") {
+                data.text = data.text.length ? [data.text] : [];
+            }
+            if (typeof(data.he) === "string") {
+                data.he = data.he.length ? [data.he] : [];
+            }
 
-		text = "<div class='en'>" + en + "</div>" + "<div class='he'>" + he + "</div>";
 
-		$target.html(controlsHtml + text);
-		callback();
+            if (data.spanning) { timesToIterateThroughSections = data.spanningRefs.length }
+            else {timesToIterateThroughSections = 1
+                            data.he = data.he.length ? [data.he] : [];
+                            data.text = data.text.length ? [data.text] : [];
+            }
+
+            for (var q=0;q<timesToIterateThroughSections;q++) {
+                curEnglishText = data.text[q] || '';
+                curHebrewText = data.he[q] || '';
+                if (data.sections.length < data.sectionNames.length) {
+                    data.sections.push(1);
+                    data.toSections.push(Math.max(curEnglishText.length, curHebrewText.length));
+                }
+                if (q==0) {curSegmentNumber = data.sections[1]}
+                else {curSegmentNumber = 1 }
+                for (var i = 0; i < (Math.max(curEnglishText.length, curHebrewText.length)); i++) {
+                    if (curEnglishText.length > i) {
+                        en += "<div class='previewLine'><span class='previewNumber'>(" + (curSegmentNumber) + ")</span> " + curEnglishText[i] + "</div> ";
+                    }
+                    if (curHebrewText.length > i) {
+                        he += "<div class='previewLine'><span class='previewNumber'>(" + ( curSegmentNumber) + ")</span> " + curHebrewText[i] + "</div> ";
+                    }
+                curSegmentNumber++;
+                }
+            }
+            var path = parseURL(document.URL).path;
+            if (!en) {
+                en += "<div class='previewNoText'><a href='/add/" + urlRef + "?after=" + path + "' class='btn'>Add English for " + ref + "</a></div>";
+            }
+            if (!he) {
+                he += "<div class='previewNoText'><a href='/add/" + urlRef + "?after=" + path + "' class='btn'>Add Hebrew for " + ref + "</a></div>";
+            }
+
+            text = "<div class='en'>" + en + "</div>" + "<div class='he'>" + he + "</div>";
+
+            $target.html(controlsHtml + text);
+            callback();
+
 	};
 
 }
@@ -2300,6 +2431,42 @@ function updateQueryString(key, value, url) {
 }
 
 
+function getSelectionBoundaryElement(isStart) {
+	// http://stackoverflow.com/questions/1335252/how-can-i-get-the-dom-element-which-contains-the-current-selection
+    var range, sel, container;
+    if (document.selection) {
+        range = document.selection.createRange();
+        range.collapse(isStart);
+        return range.parentElement();
+    } else {
+        sel = window.getSelection();
+        if (sel.getRangeAt) {
+            if (sel.rangeCount > 0) {
+                range = sel.getRangeAt(0);
+            }
+        } else {
+            // Old WebKit
+            range = document.createRange();
+            range.setStart(sel.anchorNode, sel.anchorOffset);
+            range.setEnd(sel.focusNode, sel.focusOffset);
+
+            // Handle the case when the selection was selected backwards (from the end to the start in the document)
+            if (range.collapsed !== sel.isCollapsed) {
+                range.setStart(sel.focusNode, sel.focusOffset);
+                range.setEnd(sel.anchorNode, sel.anchorOffset);
+            }
+       }
+
+        if (range) {
+           container = range[isStart ? "startContainer" : "endContainer"];
+
+           // Check if the container is a text node and return its parent if so
+           return container.nodeType === 3 ? container.parentNode : container;
+        }   
+    }
+}
+
+
 function isValidEmailAddress(emailAddress) {
     var pattern = new RegExp(/^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i);
     return pattern.test(emailAddress);
@@ -2320,13 +2487,14 @@ function isArray(a) {
 
 function isHebrew(text) {
 	// Returns true if text is (mostly) Hebrew
-	// Examines up to the first 40 characters, ignoring punctuation and numbers
+	// Examines up to the first 60 characters, ignoring punctuation and numbers
+    // 60 is needed to cover cases where a Hebrew text starts with 31 chars like: <big><strong>גמ׳</strong></big>
 
 	var heCount = 0;
 	var enCount = 0;
-	var punctuationRE = /[0-9 .,'"?!;:\-=@#$%^&*()]/
+	var punctuationRE = /[0-9 .,'"?!;:\-=@#$%^&*()/<>]/;
 
-	for (var i = 0; i < Math.min(40, text.length); i++) {
+	for (var i = 0; i < Math.min(60, text.length); i++) {
 		if (punctuationRE.test(text[i])) { continue; }
 		if ((text.charCodeAt(i) > 0x590) && (text.charCodeAt(i) < 0x5FF)) {
 			heCount++;
@@ -2418,6 +2586,33 @@ function clone(obj) {
     throw new Error("Unable to copy obj! Its type isn't supported.");
 }
 
+function throttle (callback, limit) {
+    var wait = false;                 // Initially, we're not waiting
+    return function () {              // We return a throttled function
+        if (!wait) {                  // If we're not waiting
+            callback.call();          // Execute users function
+            wait = true;              // Prevent future invocations
+            setTimeout(function () {  // After a period of time
+                wait = false;         // And allow future invocations
+            }, limit);
+        }
+    }
+}
+
+function debounce(func, wait, immediate) {
+	var timeout;
+	return function() {
+		var context = this, args = arguments;
+		var later = function() {
+			timeout = null;
+			if (!immediate) func.apply(context, args);
+		};
+		var callNow = immediate && !timeout;
+		clearTimeout(timeout);
+		timeout = setTimeout(later, wait);
+		if (callNow) func.apply(context, args);
+	};
+};
 
 String.prototype.toProperCase = function() {
   
@@ -3146,5 +3341,55 @@ window.findAndReplaceDOMText = (function() {
 	};
 
 	return exposed;
+
+}());
+
+/*!
+  Copyright (c) 2015 Jed Watson.
+  Licensed under the MIT License (MIT), see
+  http://jedwatson.github.io/classnames
+*/
+
+(function () {
+	'use strict';
+
+	function classNames () {
+
+		var classes = '';
+
+		for (var i = 0; i < arguments.length; i++) {
+			var arg = arguments[i];
+			if (!arg) continue;
+
+			var argType = typeof arg;
+
+			if ('string' === argType || 'number' === argType) {
+				classes += ' ' + arg;
+
+			} else if (Array.isArray(arg)) {
+				classes += ' ' + classNames.apply(null, arg);
+
+			} else if ('object' === argType) {
+				for (var key in arg) {
+					if (arg.hasOwnProperty(key) && arg[key]) {
+						classes += ' ' + key;
+					}
+				}
+			}
+		}
+
+		return classes.substr(1);
+	}
+
+	if (typeof module !== 'undefined' && module.exports) {
+		module.exports = classNames;
+	} else if (typeof define === 'function' && typeof define.amd === 'object' && define.amd){
+		// AMD. Register as an anonymous module.
+		define(function () {
+			return classNames;
+		});
+	} else {
+		window.classNames = classNames;
+	}
 
 }());

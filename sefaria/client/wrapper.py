@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 import re
 
+import logging
+logger = logging.getLogger(__name__)
+
 from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.summaries import REORDER_RULES
@@ -49,8 +52,11 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     else:
         if com["category"] == "Commentary":
             com["category"] = "Quoting Commentary"
-        com["commentator"] = linkRef.book
-        com["heCommentator"] = linkRef.index_node.primary_title("he") if linkRef.index_node.primary_title("he") else com["commentator"]
+        com["commentator"] = linkRef.index.title
+        com["heCommentator"] = linkRef.index.get_title("he") if linkRef.index.get_title("he") else com["commentator"]
+
+    if link.type == "targum":
+        com["category"] = "Targum"
 
     if linkRef.index_node.primary_title("he"):
         com["heTitle"] = linkRef.index_node.primary_title("he")
@@ -133,7 +139,7 @@ def get_links(tref, with_text=True):
     # for storing all the section level texts that need to be looked up
     texts = {}
 
-    linkset = LinkSet({"refs": {"$regex": reRef}})
+    linkset = LinkSet(oref)
     # For all links that mention ref (in any position)
     for link in linkset:
         # each link contins 2 refs in a list
@@ -143,6 +149,9 @@ def get_links(tref, with_text=True):
             com = format_link_object_for_client(link, False, nRef, pos)
         except InputError:
             # logger.warning("Bad link: {} - {}".format(link.refs[0], link.refs[1]))
+            continue
+        except AttributeError as e:
+            logger.error(u"AttributeError in presenting link: {} - {} : {}".format(link.refs[0], link.refs[1], e))
             continue
 
         # Rather than getting text with each link, walk through all links here,
@@ -170,6 +179,8 @@ def get_links(tref, with_text=True):
                     if t not in com:
                         com[t] = res
                     else:
+                        if isinstance(com[t], basestring):
+                            com[t] = [com[t]]
                         com[t] += res
                     '''
                     next_section = grab_section_from_text(sections, texts[top_nref][t], toSections)

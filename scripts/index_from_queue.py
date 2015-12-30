@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/python2.6
+#!/usr/local/bin/python
 
 import sys
 import os

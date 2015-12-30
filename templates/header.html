@@ -4,9 +4,13 @@
 	<div id="right" class="">
 		<div id="showOptions" class="">≡</div>
 		<div id="rightButtons">
-		
-			{% include "elements/accountBox.html" %}
-		
+
+            {% if USE_VARNISH_ESI %}
+                <esi:include src="/esi/account_box" />
+            {% else %}
+		    	{% include "elements/accountBox.html" %}
+    		{% endif %}
+
 			<div id="viewButtons">
 
 				<span id="biLayoutToggle" class="toggle"><span id="heLeft" class="toggleOption {% if layout == 'heLeft' %}active{% endif %}"><img src="/static/img/backs.png"></span><span id="heRight" class="toggleOption {% if layout == 'heRight' %}active{% endif %}"><img src="/static/img/faces.png"></span></span>
@@ -44,8 +48,14 @@
 	<span id="breadcrumbs"></span>
 	
 	<div class="clear"></div>
+
 </header>
 
+<div class="alert alert-error alert-dismissible" role="alert" id="alertMessage"></div>
+
+				
+				
+				
 <div id="navPanel">
 	<div id="navPanelTexts" data-intro="Browse all available texts by category here." data-step="1">
 
@@ -106,13 +116,12 @@
 		<a href="/sheets"><i class="fa fa-file-text-o navLinkIcon"></i> Source Sheets</a>
 		<a href="/explore"><i class="fa fa-link navLinkIcon"></i> Link Explorer</a>				
 		<a href="/activity"><i class="fa fa-clock-o navLinkIcon"></i> Recent Activity</a>
-
 		{% if request.user.is_staff %}
 		<a href="/discussions"><i class="fa fa-comments-o navLinkIcon"></i> Discussions</a>
 		{% endif %}
-
 		<a href="/translation-requests"><i class="fa fa-star-o navLinkIcon"></i> Translation Requests</a>
-		<a id="aboutSefaria" href="#"><i class="fa fa-info-circle navLinkIcon"></i> About Sefaria <i class="tocCatCaret fa fa-angle-right"></i></a>	
+        <a href="/people"><i class="fa fa-pencil navLinkIcon"></i> Authors</a>
+		<a id="aboutSefaria" href="#"><i class="fa fa-info-circle navLinkIcon"></i> About Sefaria <i class="tocCatCaret fa fa-angle-right"></i></a>
 		<a id="help" class="helpLink" href="#"><i class="fa fa-question-circle navLinkIcon"></i> Help</a>
 		<a id="donateLink" href="/donate"><i class="fa fa-heart-o navLinkIcon"></i> Donate</a>
 	</div>
@@ -121,7 +130,7 @@
 	<div id="navPanelAboutLinks">
 		<a id="aboutLinksBack" class="backLink" href="#"><i class="fa fa-angle-left"></i> back</a>
 
-		<a href="/#about">About Sefaria</a>
+		<a href="/about">About Sefaria</a>
 
 		<a href="http://blog.sefaria.org" target="_blank">Blog</a>
 		<a href="/wiki" target="_blank">Wiki</a>
@@ -130,6 +139,7 @@
 		<a href="/developers" target="_blank">Developers</a>
 		<a href="/contribute" target="_blank">Guide to Contributing</a>
 		<a href="/metrics">Metrics</a>		
+		<a href="/team">Team</a>
 		<a href="/supporters">Supporters</a>
 	</div>
 
@@ -141,7 +151,7 @@
 			<i class="fa fa-facebook"></i> Facebook</a> / 
 		<a href="http://www.twitter.com/SefariaProject" target="_blank">
 			<i class="fa fa-twitter"></i> Twitter</a> /
-		<a href="https://github.com/blockspeiser/Sefaria-Project" target="_blank">
+		<a href="https://github.com/Sefaria/Sefaria-Project" target="_blank">
 			<i class="fa fa-github"></i> GitHub</a>
 
 		<div class="navLine"></div>
@@ -180,7 +190,10 @@
 
 {% if GLOBAL_WARNING %}
 	{% autoescape off %}
-	<div id="globalWarning"><i class="fa fa-warning"></i> {{ GLOBAL_WARNING_MESSAGE }}</div>
+	<div id="globalWarning">
+		<i class='fa fa-times' onClick="$('#globalWarning').remove();"></i>
+		<i class="fa fa-warning"></i> 
+		{{ GLOBAL_WARNING_MESSAGE }}</div>
 	{% endautoescape %}
 {% endif %}
 
@@ -190,7 +203,3 @@
 
 <link rel="stylesheet" type="text/css" href="/static/css/keyboard.css">
 <link rel="stylesheet" type="text/css" href="/static/css/tooltipster.css" />
-
-{% if not OFFLINE %}
-<script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-4f0b68586603bc9f"></script>
-{% endif %}

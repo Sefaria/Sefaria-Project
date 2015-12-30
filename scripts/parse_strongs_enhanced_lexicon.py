@@ -166,7 +166,8 @@ class WLCStrongWordFormBookParser(object):
                                              'language_code' : strong_entry.language_code,
                                              'lookups': {
                                                  "headword" : strong_entry.headword,
-                                                 "lexicon" : "BDB Augmented Strong"
+                                                 "parent_lexicon" : "BDB Augmented Strong",
+                                                 "strong_number" : strong_entry.strong_number
                                              }})
             if not word_form_obj: #else, look for just the form
                 word_form_obj = WordForm().load({'form': word_form_text, 'language_code' : strong_entry.language_code})
@@ -178,7 +179,8 @@ class WLCStrongWordFormBookParser(object):
                                               'language_code' : strong_entry.language_code,
                                               'lookups': [{
                                                     "headword" : strong_entry.headword,
-                                                    "lexicon" : "BDB Augmented Strong"
+                                                    "parent_lexicon" : "BDB Augmented Strong",
+                                                    "strong_number" : strong_entry.strong_number
                                                 }]}).save()
             word_form_obj.refs = word_form_obj.refs + [verse_ref] if hasattr(word_form_obj, 'refs') else [verse_ref]
             word_form_obj.save()

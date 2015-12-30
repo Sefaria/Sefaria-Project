@@ -18,7 +18,7 @@
     /* Adapted from: https://plainjs.com/javascript/manipulation/unwrap-a-dom-element-35/ */
     function unwrap(el) { var parent = el.parentNode; while (el.firstChild) parent.insertBefore(el.firstChild, el); parent.removeChild(el);}
 
-    var base_url = 'http://www.sefaria.org/';
+    var base_url = window.location.protocol + '//www.sefaria.org/';
     var bookTitles = {{ book_titles }};
     var popUpElem;
     var heBox;
@@ -206,6 +206,11 @@
                 return (full_text.indexOf(title) > -1);
             });
 
+        if (matchedTitles.length == 0) {
+            console.log("No book titles found to link to Sefaria.");
+            return;
+        }
+
         // Get regexes for each of the titles
         atomic.get(base_url + "api/regexs/" + matchedTitles.join("|"))
             .success(function (data, xhr) {
@@ -251,6 +256,7 @@
                     }
                 }
                 if (ns.matches.length == 0) {
+                    console.log("No references found to link to Sefaria.");
                     return;
                 }
                 atomic.get(base_url + "api/bulktext/" + ns.matches.join("|"))

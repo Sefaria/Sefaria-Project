@@ -88,7 +88,7 @@
             {% endif %}
 
 
-            {% include "elements/social_share_buttons.html" with URL="http://www.sefaria.org/requstion-translations" description="The most requested text sections for translation on Sefaria." %}  
+            {% include "elements/social_share_buttons.html" with URL="http://www.sefaria.org/translation-requests" description="The most requested text sections for translation on Sefaria." %}  
         </div>
 
     {% include "elements/login_prompt.html" with msg="Please log in to make requests." %}
@@ -179,8 +179,6 @@
                         if ("error" in data) {
                             sjs.alert.message(data.error);
                         } else {
-                            console.log(data.ref.escapeHtml());
-
                             var msg = "Your translation request for <b>" + 
                                         data.ref + 
                                         "</b> has been added.<br><br>" +

@@ -8,7 +8,7 @@ try:
     import re2 as re
     re.set_fallback_notification(re.FALLBACK_WARNING)
 except ImportError:
-    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines")
+    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/Sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
     import re
 
 import regex
@@ -16,7 +16,6 @@ from . import abstract as abst
 
 from sefaria.system.exceptions import InputError, IndexSchemaError
 from sefaria.utils.hebrew import decode_hebrew_numeral, encode_hebrew_numeral, hebrew_term
-
 
 """
                 -----------------------------------------
@@ -67,6 +66,11 @@ class TitleGroup(object):
         if lang is None:
             return [t["text"] for t in self.titles]
         return [t["text"] for t in self.titles if t["lang"] == lang]
+
+    def secondary_titles(self, lang=None):
+        if lang is None:
+            raise Exception("TitleGroup.secondary_titles() needs a lang")
+        return [t for t in self.all_titles(lang) if t != self.primary_title(lang)]
 
     def remove_title(self, text, lang):
         self.titles = [t for t in self.titles if not (t["lang"] == lang and t["text"] == text)]
@@ -136,7 +140,7 @@ class Term(abst.AbstractMongoRecord):
     ]
 
     def _set_derived_attributes(self):
-        self.set_titles(self.titles)
+        self.set_titles(getattr(self, "titles", None))
 
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
@@ -210,7 +214,7 @@ def deserialize_tree(serial=None, **kwargs):
     elif klass:
         return klass(serial, **kwargs)
     else:
-        raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType'")
+        raise IndexSchemaError("Schema node has neither 'nodes' nor 'nodeType': {}".format(serial))
 
 
 class TreeNode(object):
@@ -353,6 +357,22 @@ class TreeNode(object):
         """
         return not self.parent and not self.children
 
+    def traverse_to_string(self, callback, depth=0, **kwargs):
+        st = callback(self, depth, **kwargs)
+        if self.has_children():
+            for child in self.children:
+                st += child.traverse_to_string(callback, depth + 1, **kwargs)
+        return st
+
+    def traverse_to_json(self, callback, depth=0, **kwargs):
+        js = callback(self, depth, **kwargs)
+        if self.has_children():
+            if self.children:
+                js["nodes"] = []
+            for child in self.children:
+                js["nodes"].append(child.traverse_to_json(callback, depth + 1, **kwargs))
+        return js
+
     def serialize(self, **kwargs):
         d = {}
         if self.has_children():
@@ -396,7 +416,7 @@ class TitledTreeNode(TreeNode):
     In this class, node titles, terms, 'default', and combined titles are handled.
     """
     after_title_delimiter_re = ur"[,.: \r\n]+"  # should be an arg?  \r\n are for html matches
-    title_separators = [u" ", u", "]
+    title_separators = [u", "]
 
     def __init__(self, serial=None, **kwargs):
         super(TitledTreeNode, self).__init__(serial, **kwargs)
@@ -435,7 +455,7 @@ class TitledTreeNode(TreeNode):
         """
         return self.title_dict(lang).keys()
 
-    def title_dict(self, lang="en", baselist=[]):
+    def title_dict(self, lang="en", baselist=None):
         """
         Recursive function that generates a map from title to node
         :param node: the node to start from
@@ -443,10 +463,17 @@ class TitledTreeNode(TreeNode):
         :param baselist: list of starting strings that lead to this node
         :return: map from title to node
         """
+        if baselist is None:
+            baselist = []
+
         title_dict = {}
         thisnode = self
 
         this_node_titles = [title["text"] for title in self.get_titles() if title["lang"] == lang and title.get("presentation") != "alone"]
+        if (not len(this_node_titles)) and (not self.is_default()):
+            error = u'No "{}" title found for schema node: "{}"'.format(lang, self.key)
+            error += u', child of "{}"'.format(self.parent.full_title("en")) if self.parent else ""
+            raise IndexSchemaError(error)
         if baselist:
             node_title_list = [baseName + sep + title for baseName in baselist for sep in self.title_separators for title in this_node_titles]
         else:
@@ -478,12 +505,12 @@ class TitledTreeNode(TreeNode):
                 self._full_titles[lang] = self.all_node_titles(lang)
         return self._full_titles[lang]
 
-    def full_title(self, lang="en"):
+    def full_title(self, lang="en", force_update=False):
         """
         :param lang: "en" or "he"
         :return string: The full title of this node, from the root node.
         """
-        if not self._full_title.get(lang):
+        if not self._full_title.get(lang) or force_update:
             if self.is_default():
                 self._full_title[lang] = self.parent.full_title(lang)
             elif self.parent:
@@ -776,22 +803,44 @@ class ArrayMapNode(NumberedTitledTreeNode):
     def serialize(self, **kwargs):
         d = super(ArrayMapNode, self).serialize(**kwargs)
         if kwargs.get("expand_refs"):
-
-            def expand_ref(tref):
+            if getattr(self, "includeSections", None):
                 from . import text
-                from sefaria.utils.util import text_preview
 
-                oref = text.Ref(tref)
-                if oref.is_spanning():
-                    oref = oref.split_spanning_ref()[0]
-                t = text.TextFamily(oref, context=0, pad=False, commentary=False)
-                preview = text_preview(t.text, t.he) if (t.text or t.he) else []
+                refs         = text.Ref(self.wholeRef).split_spanning_ref()
+                first, last  = refs[0], refs[-1]
+                offset       = first.sections[-2]-1 if first.is_segment_level() else first.sections[-1]-1
+                depth        = len(first.index_node.sectionNames) - len(first.section_ref().sections)
 
-                return preview
+                d["refs"] = [r.normal() for r in refs]
+                d["addressTypes"] = d.get("addressTypes", []) + first.index_node.addressTypes[depth:]
+                d["sectionNames"] = d.get("sectionNames", []) + first.index_node.sectionNames[depth:]
+                d["depth"] += 1
+                d["offset"] = offset
 
-            d["wholeRefPreview"] = expand_ref(self.wholeRef)
-            d["refsPreview"] = map(expand_ref, self.refs)
+            d["wholeRefPreview"] = self.expand_ref(self.wholeRef, kwargs.get("he_text_ja"), kwargs.get("en_text_ja"))
+            if d.get("refs"):
+                d["refsPreview"] = []
+                for r in d["refs"]:
+                    d["refsPreview"].append(self.expand_ref(r, kwargs.get("he_text_ja"), kwargs.get("en_text_ja")))
+            else:
+                d["refsPreview"] = None
         return d
+
+    # Move this over to Ref and cache it?
+    def expand_ref(self, tref, he_text_ja = None, en_text_ja = None):
+        from . import text
+        from sefaria.utils.util import text_preview
+
+        oref = text.Ref(tref)
+        if oref.is_spanning():
+            oref = oref.first_spanned_ref()
+        if he_text_ja is None and en_text_ja is None:
+            t = text.TextFamily(oref, context=0, pad=False, commentary=False)
+            preview = text_preview(t.text, t.he) if (t.text or t.he) else []
+        else:
+            preview = text_preview(en_text_ja.subarray_with_ref(oref).array(), he_text_ja.subarray_with_ref(oref).array())
+
+        return preview
 
     def validate(self):
         if getattr(self, "depth", None) is None:
@@ -827,8 +876,8 @@ class SchemaNode(TitledTreeNode):
     def __init__(self, serial=None, **kwargs):
         """
         Construct a SchemaNode
-        :param index: The Index object that this tree is rooted in.
         :param serial: The serialized form of this subtree
+        :param kwargs: "index": The Index object that this tree is rooted in.
         :return:
         """
         super(SchemaNode, self).__init__(serial, **kwargs)
@@ -848,12 +897,6 @@ class SchemaNode(TitledTreeNode):
 
         if self.default and self.key != "default":
             raise IndexSchemaError("'default' nodes need to have key name 'default'")
-
-    def traverse_to_string(self, callback, depth=0, **kwargs):
-        st = callback(self, depth, **kwargs)
-        for child in self.children:
-            st += child.traverse_to_string(callback, depth + 1, **kwargs)
-        return st
 
     def create_content(self, callback=None, *args, **kwargs):
         """
@@ -916,8 +959,14 @@ class SchemaNode(TitledTreeNode):
             res["heTitleVariants"] = self.full_titles("he")
         if self.index.has_alt_structures():
             res['alts'] = {}
+            if not self.has_children(): #preload text and pass it down to the preview generation
+                from . import text
+                he_text_ja = text.TextChunk(self.ref(), "he").ja()
+                en_text_ja = text.TextChunk(self.ref(), "en").ja()
+            else:
+                he_text_ja = en_text_ja = None
             for key, struct in self.index.get_alt_structures().iteritems():
-                res['alts'][key] = struct.serialize(expand_shared=True, expand_refs=True, expand_titles=True)
+                res['alts'][key] = struct.serialize(expand_shared=True, expand_refs=True, he_text_ja=he_text_ja, en_text_ja=en_text_ja, expand_titles=True)
             del res['alt_structs']
         return res
 
@@ -928,7 +977,7 @@ class SchemaNode(TitledTreeNode):
         """
         d = super(SchemaNode, self).serialize(**kwargs)
         d["key"] = self.key
-        if self.checkFirst:
+        if getattr(self, "checkFirst", None) is not None:
             d["checkFirst"] = self.checkFirst
         return d
 

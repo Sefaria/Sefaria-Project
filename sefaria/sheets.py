@@ -9,29 +9,18 @@ from datetime import datetime, timedelta
 import dateutil.parser
 
 import sefaria.model as model
+import sefaria.model.abstract as abstract
 from sefaria.system.database import db
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import annotate_user_list
 from sefaria.utils.util import strip_tags, string_overlap
 from sefaria.utils.users import user_link
+from sefaria.system.exceptions import InputError
 from history import record_sheet_publication, delete_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE
 import search
 
-
-PRIVATE_SHEET      = 0 # Only the owner can view or edit (NOTE currently 0 is treated as 1)
-LINK_SHEET_VIEW    = 1 # Anyone with the link can view
-LINK_SHEET_EDIT    = 2 # Anyone with the link can edit
-PUBLIC_SHEET_VIEW  = 3 # Listed publicly, anyone can view, owner can edit
-PUBLIC_SHEET_EDIT  = 4 # Listed publicly, anyone can edit or view
-TOPIC_SHEET        = 5 # Listed as a topic, anyone can edit
-GROUP_SHEET        = 6 # Sheet belonging to a group, visible and editable by group
-PUBLIC_GROUP_SHEET = 7 # Sheet belonging to a group, visible to all, editable by group
-
-LISTED_SHEETS      = (PUBLIC_SHEET_EDIT, PUBLIC_SHEET_VIEW, PUBLIC_GROUP_SHEET)
-EDITABLE_SHEETS    = (LINK_SHEET_EDIT, PUBLIC_SHEET_EDIT, TOPIC_SHEET)
-GROUP_SHEETS       = (GROUP_SHEET, PUBLIC_GROUP_SHEET)
 
 # Simple cache of the last updated time for sheets
 last_updated = {}
@@ -51,26 +40,13 @@ def get_sheet(id=None):
 
 
 
-def get_topic(topic=None):
-	"""
-	Returns the topic sheet with 'topic'. (OUTDATED)
-	"""
-	if topic is None:
-		return {"error": "No topic given."}
-	s = db.sheets.find_one({"status": 5, "url": topic})
-	if not s:
-		return {"error": "Couldn't find topic: %s" % (topic)}
-	s["_id"] = str(s["_id"])
-	return s
-
-
 def sheet_list(user_id=None):
 	"""
 	Returns a list of sheets belonging to user_id.
 	If user_id is None, returns a list of public sheets.
 	"""
 	if not user_id:
-		sheet_list = db.sheets.find({"status": {"$in": LISTED_SHEETS }}).sort([["dateModified", -1]])
+		sheet_list = db.sheets.find({"status": "public"}).sort([["dateModified", -1]])
 	elif user_id:
 		sheet_list = db.sheets.find({"owner": int(user_id), "status": {"$ne": 5}}).sort([["dateModified", -1]])
 
@@ -84,6 +60,7 @@ def sheet_list(user_id=None):
 		s["title"]    = sheet["title"] if "title" in sheet else "Untitled Sheet"
 		s["author"]   = sheet["owner"]
 		s["size"]     = len(sheet["sources"])
+		s["views"]    = sheet["views"]
 		s["modified"] = dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y")
 
 		response["sheets"].append(s)
@@ -122,17 +99,17 @@ def save_sheet(sheet, user_id):
 		else:
 			sheet["id"] = 1
 		if "status" not in sheet:
-			sheet["status"] = PRIVATE_SHEET
+			sheet["status"] = "unlisted"
 		sheet["owner"] = user_id
 		sheet["views"] = 1
 
 	if status_changed:
-		if sheet["status"] in LISTED_SHEETS and "datePublished" not in sheet:
+		if sheet["status"] is "public" and "datePublished" not in sheet:
 			# PUBLISH
 			sheet["datePublished"] = datetime.now().isoformat()
 			record_sheet_publication(sheet["id"], user_id)
 			broadcast_sheet_publication(user_id, sheet["id"])
-		if sheet["status"] not in LISTED_SHEETS:
+		if sheet["status"] is not "public":
 			# UNPUBLISH
 			delete_sheet_publication(sheet["id"], user_id)
 			NotificationSet({"type": "sheet publish",
@@ -142,7 +119,7 @@ def save_sheet(sheet, user_id):
 
 	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
 
-	if sheet["status"] in LISTED_SHEETS and SEARCH_INDEX_ON_SAVE:
+	if sheet["status"] is "public" and SEARCH_INDEX_ON_SAVE:
 		search.index_sheet(sheet["id"])
 
 	global last_updated
@@ -279,9 +256,6 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 	Returns a list of sheets that include ref,
 	formating as need for the Client Sidebar.
 	"""
-	#tref = norm_ref(tref, pad=pad, context=context)
-	#ref_re = make_ref_re(tref)
-
 	oref = model.Ref(tref)
 	if pad:
 		oref = oref.padded_ref()
@@ -291,19 +265,26 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 	ref_re = oref.regex()
 
 	results = []
-	sheets = db.sheets.find({"included_refs": {"$regex": ref_re}, "status": {"$in": LISTED_SHEETS}},
-								{"id": 1, "title": 1, "owner": 1, "included_refs": 1})
+
+	regex_list = oref.regex(as_list=True)
+	ref_clauses = [{"included_refs": {"$regex": r}} for r in regex_list]
+	sheets = db.sheets.find({"$or": ref_clauses, "status": "public"},
+		{"id": 1, "title": 1, "owner": 1, "included_refs": 1})
 	for sheet in sheets:
 		# Check for multiple matching refs within this sheet
-		matched_orefs = [model.Ref(r) for r in sheet["included_refs"] if regex.match(ref_re, r)]
-		for match in matched_orefs:
+		matched_refs = [r for r in sheet["included_refs"] if regex.match(ref_re, r)]
+		for match in matched_refs:
+			try:
+				match = model.Ref(match)
+			except InputError:
+				continue
 			com                = {}
 			com["category"]    = "Sheets"
 			com["type"]        = "sheet"
 			com["owner"]       = sheet["owner"]
 			com["_id"]         = str(sheet["_id"])
 			com["anchorRef"]   = match.normal()
-			com["anchorVerse"] = match.sections[-1]
+			com["anchorVerse"] = match.sections[-1] if len(match.sections) else 1
 			com["public"]      = True
 			com["commentator"] = user_link(sheet["owner"])
 			com["text"]        = "<a class='sheetLink' href='/sheets/%d'>%s</a>" % (sheet["id"], strip_tags(sheet["title"]))
@@ -339,20 +320,22 @@ def get_last_updated_time(sheet_id):
 	return sheet["dateModified"]
 
 
-def make_sheet_list_by_tag():
+def make_tag_list(include_sheets=False):
 	"""
 	Returns an alphabetized list of tags and sheets included in each tag.
 	"""
 	tags = {}
 	results = []
+	projection = {"tags": 1, "title": 1, "id": 1, "views": 1} if include_sheets else {"tags": 1}
 
-	sheet_list = db.sheets.find({"status": {"$in": LISTED_SHEETS }})
+	sheet_list = db.sheets.find({"status": "public"}, projection)
 	for sheet in sheet_list:
 		sheet_tags = sheet.get("tags", [])
 		for tag in sheet_tags:
 			if tag not in tags:
 				tags[tag] = {"tag": tag, "count": 0, "sheets": []}
-			tags[tag]["sheets"].append({"title": strip_tags(sheet["title"]), "id": sheet["id"], "views": sheet["views"]})
+			if include_sheets:
+				tags[tag]["sheets"].append({"title": strip_tags(sheet["title"]), "id": sheet["id"], "views": sheet["views"]})
 			tags[tag]["count"] += 1
 
 	for tag in tags.values():
@@ -375,11 +358,19 @@ def get_sheets_by_tag(tag, public=True, uid=None, group=None):
 	elif group:
 		query["group"] = group
 	elif public:
-		query["status"] = { "$in": LISTED_SHEETS }
+		query["status"] = "public"
 
-	print query
 	sheets = db.sheets.find(query).sort([["views", -1]])
 	return sheets
+
+
+def add_visual_data(sheet_id, visualNodes, zoom):
+	"""
+	Adds visual layout data to db
+	"""
+	db.sheets.update({"id": sheet_id},{"$unset": { "visualNodes": "", "zoom": "" } })
+	db.sheets.update({"id": sheet_id},{"$push": {"visualNodes": {"$each": visualNodes},"zoom" : zoom}})
+
 
 
 def add_like_to_sheet(sheet_id, uid):
@@ -461,5 +452,41 @@ def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None
 	return save_sheet(sheet, uid)
 
 
+# This is here as an alternative interface - it's not yet used, generally.
 
+class Sheet(abstract.AbstractMongoRecord):
+	collection = 'sheets'
 
+	required_attrs = [
+		"title",
+		"sources",
+		"status",
+		"options",
+		"generatedBy",
+		"dateCreated",
+		"dateModified",
+		"included_refs",
+		"owner",
+		"id"
+	]
+	optional_attrs = [
+		"views",
+		"nextNode",
+		"tags",
+		"promptedToPublish",
+		"attribution",
+		"datePublished",
+		"lastModified",
+		"via",
+		"viaOwner",
+		"likes",
+		"group",
+		"generatedBy"
+	]
+
+	def regenerate_contained_refs(self):
+		self.included_refs = refs_in_sources(self.sources)
+		self.save()
+
+	def get_contained_refs(self):
+		return [model.Ref(r) for r in self.included_refs]

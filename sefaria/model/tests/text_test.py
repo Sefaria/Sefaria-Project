@@ -127,6 +127,7 @@ def test_index_update():
 
     i = model.Index({
         "title": ti,
+        "heTitle": u"כבכב",
         "titleVariants": [ti],
         "sectionNames": ["Chapter", "Paragraph"],
         "categories": ["Musar"],
@@ -138,6 +139,7 @@ def test_index_update():
 
     i = model.Index().update({"title": ti}, {
         "title": ti,
+        "heTitle": u"כבכב",
         "titleVariants": [ti],
         "sectionNames": ["Chapter", "Paragraph"],
         "categories": ["Philosophy"]
@@ -152,9 +154,62 @@ def test_index_update():
 
 def test_index_delete():
     #Simple Text
+    ti = "Test Del"
+    model.IndexSet({"title": ti}).delete()
+    model.VersionSet({"title": ti}).delete()
+
+    i = model.Index({
+        "title": ti,
+        "heTitle": u"כבכב",
+        "titleVariants": [ti],
+        "sectionNames": ["Chapter", "Paragraph"],
+        "categories": ["Musar"],
+        "lengths": [50, 501]
+    }).save()
+    new_version1 = model.Version(
+                {
+                    "chapter": i.nodes.create_skeleton(),
+                    "versionTitle": "Version 1 TEST",
+                    "versionSource": "blabla",
+                    "language": "he",
+                    "title": i.title
+                }
+    )
+    new_version1.chapter = [[u''],[u''],[u"לה לה לה לא חשוב על מה"]]
+    new_version1.save()
+    new_version2 = model.Version(
+                {
+                    "chapter": i.nodes.create_skeleton(),
+                    "versionTitle": "Version 2 TEST",
+                    "versionSource": "blabla",
+                    "language": "en",
+                    "title": i.title
+                }
+    )
+    new_version2.chapter = [[],["Hello goodbye bla bla blah"],[]]
+    new_version2.save()
+
+    i.delete()
+    assert model.Index().load({'title': ti}) is None
+    assert model.VersionSet({'title':ti}).count() == 0
 
     #Commentator
-    pass
+    from sefaria.helper.text import create_commentator_and_commentary_version
+
+    commentator_name = "Commentator Del"
+    base_book = 'Genesis'
+    base_book2 = 'Pesach Haggadah'
+
+    model.IndexSet({"title": commentator_name}).delete()
+    model.VersionSet({"title": commentator_name + " on " + base_book}).delete()
+    model.VersionSet({"title": commentator_name + " on " + base_book2}).delete()
+
+    create_commentator_and_commentary_version(commentator_name, base_book, 'he', 'test', 'test')
+    create_commentator_and_commentary_version(commentator_name, base_book2, 'he', 'test', 'test')
+
+    ci = model.Index().load({'title': commentator_name}).delete()
+    assert model.Index().load({'title': commentator_name}) is None
+    assert model.VersionSet({'title':{'$regex': commentator_name}}).count() == 0
 
 
 

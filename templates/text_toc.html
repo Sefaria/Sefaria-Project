@@ -24,20 +24,67 @@
         <span class="span8 offset2">
 
         <h1 class="biReady">
-            <span id="heTitle" class='he'>{{ index.heTitle }}</span> <span id="title" class='en'>{{ index.title }}</span>
+            <span id="heTitle" lang='he' class='he'>{{ index.heTitle }}</span>
+            <span id="title" lang='en' class='en'>{{ index.title }}</span>
         </h1>
-
-        <div id="textCategories" class="biReady">
-            {% for cat in index.categories %}
-                <span class='textCategory'>
-                    <span class='en'>{{ cat }}</span>
-                    <span class='he'>{{ cat|hebrew_term }}</span>
+        <h2>
+            {% if authors|length %}
+            <div id="authors" class="biReady">
+                <span class="he">מחבר: </span>
+                <span class="en">Author: </span>
+                {% for author in authors %}
+                    {{ author|person_link }}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </h2>
+        <div id="textCategories" vocab="http://schema.org/" typeof="BreadcrumbList" class="biReady">
+            {% for cats in cat_slices %}
+                <span property="itemListElement" typeof="ListItem">
+                    <a href="/texts/{{ cats|join:'/' }}" class='textCategory' property="item" typeof="WebPage">
+                        <span property="name" lang='en' class='en'>{{ cats|last }}</span>
+                        <span property="name" lang='he' class='he'>{{ cats|last|hebrew_term }}</span>
+                    </a>
+                    <meta property="position" content="{{ forloop.counter }}">
                 </span>
                 {% if not forloop.last %}
                 <span class='textCategoryDelimiter'></span>
                 {% endif %}
             {% endfor %}
         </div>
+
+        {% if false %}
+            {% if comp_time_string or comp_place or pub_time_string or pub_place %}
+            <div id="dateline" class="biReady">
+                {% if comp_time_string or comp_place %}
+                    <span class="placedate">
+                        <span class="he"><span class="metadataTitle">נוצר/נערך:</span>
+                            {{ comp_place.he }}{{ comp_time_string.he }}</span>
+                        <span class="en"><span class="metadataTitle">Composed:</span> {{ comp_place.en }}{{ comp_time_string.en }}</span>
+                    </span>
+                {% endif %}
+                {% if pub_time_string or pub_place %}
+                    <span class="placedate">
+                        <span class="he"><span class="metadataTitle">ההדפסה הראשונה:</span>
+                            {{ pub_place.he }}{{ pub_time_string.he }}</span>
+                        <span class="en"><span class="metadataTitle">First Published:</span> {{ pub_place.en }}{{ pub_time_string.en }}</span>
+                    </span>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% endif %}
+
+
+        {% if false %}
+        <div id="description" class="biReady">
+            <span class="he">{{ index.heDesc }}</span>
+            <span class="en">{{ index.enDesc }}</span>
+        </div>
+        <br/><br/>
+        {% endif %}
+
+
+        <!-- Hidden for style
         {% if not complex %}
             <div id="textTocZoom" class="biReady">
                 <b><span class='en'>Show:</span><span class='he'>מציג:</span></b>&nbsp;
@@ -57,6 +104,7 @@
                     {% endfor %}
             </div>
         {%  endif %}
+        -->
 
         <div id="textToc" class="biReady textTocSection {% if complex %}complex{% else %}simple{% endif %}">
 
@@ -92,6 +140,19 @@
             {% endif %}
         </div>
 
+
+        {% if commentaries %}
+        <div id="textTocCommentaries" class="textTocSection biReady">
+            <h3>Available Commentaries</h3>
+            {% for content in commentaries %}
+                <div class="text">
+                    {% include "elements/textInfo.html" with text=content commentator_only=1 %}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+
         {% if versions|length %}
         <div id="textVersions" class="textTocSection">
         <h3>Available Text Versions</h3>
@@ -123,16 +184,6 @@
         </div>
         {% endif %}
 
-        {% if commentaries %}
-        <div id="textTocCommentaries" class="textTocSection">
-            <h3>Available Commentaries</h3>
-            {% for content in commentaries %}
-                <div class="text">
-                            {% include "elements/textInfo.html" with text=content %}
-                </div>
-            {% endfor %}
-        </div>
-        {% endif %}
 
         {% if count_strings %}
         <div id="textCounts" class="textTocSection">
@@ -147,6 +198,7 @@
             </div>
         </div>
         {% endif %}
+
 
         <div id="textTocTitleVariants" class="textTocSection">
             <h3>Title Variants</h3> 
@@ -175,10 +227,45 @@
 
 {% block js %}
         <script>
+        $(function(){
+
+            var minimized_elements = $('#description');
+
+            minimized_elements.each(function(){
+                var t = $(this).text();
+                if(t.length < 100) return;
+
+                $(this).html(
+                    t.slice(0,100)+'<span>... </span><a href="#" class="more">More</a>'+
+                    '<span style="display:none;">'+ t.slice(100,t.length)+' <a href="#" class="less">Less</a></span>'
+                );
+
+            });
+
+            $('a.more', minimized_elements).click(function(event){
+                event.preventDefault();
+                $(this).hide().prev().hide();
+                $(this).next().show();
+            });
+
+            $('a.less', minimized_elements).click(function(event){
+                event.preventDefault();
+                $(this).parent().hide().prev().show().prev().show();
+            });
+
+        });
         $(function() {
             {% if request.user.is_staff %}
             $("#deleteText").click(sjs.deleteTextButtonHandler);
             {% endif %}
+
+            $(".altStructToggle").click(function(){
+                $(".altStructToggle").removeClass("active");
+                $(this).addClass("active");
+                var i = $(this).closest("#structToggles").find(".altStructToggle").index(this);
+                $(".altStruct").hide();
+                $(".altStruct").eq(i).show();
+            });
 
             $(".sectionLink").click(function(e) {
                 e.stopPropagation();

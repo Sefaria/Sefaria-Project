@@ -108,6 +108,10 @@
             </h2>
             <div id="calendar">
                 <div class="calendarSection">
+                    <span class="calendarSectionTitle">
+                        <span class='en'>Parashat HaShavua</span>
+                        <span class='he'>פרשת השבוע</span>
+                    </span>
                     <a href="/{{ parasha.ref|url_safe }}">
                         <span class="en">{{ parasha.parasha }}</span>
                         <span class="he">{{ parasha.parasha|he_parasha }}</span>
@@ -141,22 +145,31 @@
                         </a>
                     {% endif %}
                     {{ parasha.shabbat_name|default:"" }}
-                    <span class="calendarSectionTitle">
-                        <span class='en'>Parashat HaShavua</span>
-                        <span class='he'>פרשת השבוע</span>
-                    </span>
                 </div>
                 <div class="line"></div>
                 <div class="calendarSection">
+                    <span class="calendarSectionTitle">
+                        <span class='en'>Daf Yomi</span>
+                        <span class='he'>דף יומי</span>
+                    </span>
                     <a href="/{{ daf_today.url }}">
                         <span class="en">{{ daf_today.name }}</span>
                         <span class="he">{{ daf_today.name|he_ref }}</span>
 
                     </a>
+                </div>
+                <div class="line"></div>
+                <div class="calendarSection">
                     <span class="calendarSectionTitle">
-                        <span class='en'>Daf Yomi</span>
-                        <span class='he'>דף יומי</span>
+                        <a href="http://www.929.org.il/" target="_blank">
+                        <span class='en'>Project 929</span>
+                        <span class='he'>פרויקט 929</span>
+                        </a>
                     </span>
+                    <div>
+                        <span class="en">{{ p929|ref_link }}</span>
+                        <span class="he">{{ p929|he_ref_link }}</span>
+                    </div>
                 </div>
             </div>             
         </div>
@@ -234,7 +247,7 @@
             <span class="he">ספאריה שואפת לכלול את התורה במובנה הרחב- מהתלמוד ועד הזוהר, מהתנ"ך ועד טקסטים בני ימינו.</span>
         </p>
 
-        <a href="https://github.com/blockspeiser/Sefaria-Project/wiki" target="_blank" class="btn btn-large grey">
+        <a href="https://github.com/Sefaria/Sefaria-Project/wiki" target="_blank" class="btn btn-large grey">
             <span class="en">Get Involved</span>
             <span class="he">הצטרף לעשייה</span>
         </a>
@@ -276,7 +289,7 @@
                 <div id="subscribeMsg">&nbsp;</div>
             </div>
 
-            <a href="http://github.com/blockspeiser/Sefaria-Project" class="followButton btn btn-large lightblue bordered">
+            <a href="http://github.com/Sefaria/Sefaria-Project" class="followButton btn btn-large lightblue bordered">
                 <i class="fa fa-github"></i>
                 <span class="en">Fork us on GitHub</span>
                 <span class="he">זלגו חופשי מגיטהאב</span>
@@ -302,9 +315,18 @@
     </a>
 
     <div id="announcement" class="modal">
-        <h3></h3> 
-            <a href="/donate" class="btn btn-large purple">Donate</a>
-        <p></p>
+        <a href="/donate" class="btn btn-large purple">
+            <span class="en">Donate</span>
+            <span class="he"></span>
+        </a>
+        <h3>
+            <span class="en"></span>
+            <span class="he"></span>
+        </h3> 
+        <p>
+            <span class="en">Your gift will fund critical user experience updates and help expand our library of texts and translations.</span>
+            <span class="he"></span>
+        </p>
     </div>
 
 </div>
@@ -360,9 +382,12 @@
             });
             
             // Announcement
-            if ($("#announcement h3").text() && $(window).width() > 600) {
+            if ($("#announcement p .en").text() && $(window).width() > 830) {
+                if (!$("#announcement h3 .he").text()) {
+                    $("#announcement").addClass("hideInHebrewMode");
+                }
                 $("#announcement").show()
-                    .position({my: "center top+10", at: "center bottom", of: $("#sub")})
+                    .position({my: "center top+15", at: "center bottom", of: $("#sub")})
                     .hide()
                     .fadeIn(1200);
             }

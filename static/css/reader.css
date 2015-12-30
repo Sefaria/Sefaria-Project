@@ -171,15 +171,16 @@ body {
 	margin-bottom: 20px;
 }
 
-.bilingual .en.version:before {
+.bilingual .en.version:before, .bilingual .en.alternate-versions:before {
 	content: "English: ";
 }
 
-.bilingual .he.version:before {
+.bilingual .he.version:before, .bilingual .he.alternate-versions:before {
 	content: "Hebrew: ";
 }
 
-.bilingual .en.version:before, .bilingual .he.version:before {
+.bilingual .en.version:before, .bilingual .he.version:before,
+.bilingual .en.alternate-versions:before, .bilingual .he.alternate-versions:before {
 	font-size: 13px;
 	font-weight: bold;
 	vertical-align: middle;
@@ -656,6 +657,10 @@ body.newText #newTextCompare {
 	direction: rtl;
 }
 
+.verse > .he big {
+	line-height: 46px;
+}
+
 .verse .clear {
 	display: none;
 }
@@ -668,6 +673,10 @@ body.newText #newTextCompare {
 
 .verse a {
 	color: black;
+}
+
+.verse br {
+   line-height: 170%;
 }
 
 .basetext.lines .verse {
@@ -945,9 +954,6 @@ body.newText #newTextCompare {
 }
 
 #lexicon-modal {
-	transform: translateZ(0);
-	transition-duration: 0.3s;
-	transition-property: box-shadow, transform;
 	position: absolute;
 	z-index: 100;
 	background-color: #eff1f1;
@@ -1148,7 +1154,17 @@ body.noCommentary .aboutBarBox {
 	background: inherit;
 	z-index: 12;
 	overflow: hidden;
-	
+}
+
+.commentaryBox .loadingMessage {
+	text-align: center;
+	margin-top: 50px;
+	color: #777;
+}
+.commentaryBox .loadingMessage img {
+	width: 36px;
+	height: 36px;
+	margin-top: 8px;
 }
 
 .commentaryBox.noCommentary {
@@ -1626,9 +1642,10 @@ body.english .commentary .he {
 }
 
 .emptySidebarMessage {
-	padding-top: 20px;
+	padding-top: 50px;
 	color: #555;
 	text-align: center;
+	font-style: italic;
 }
 
 body .screen .commentaryBox .noteMessage {

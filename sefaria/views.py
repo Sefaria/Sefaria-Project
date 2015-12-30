@@ -1,5 +1,5 @@
-from datetime import datetime, timedelta
 import json
+from datetime import datetime, timedelta
 from urlparse import urlparse
 from collections import defaultdict
 from random import choice
@@ -26,16 +26,22 @@ import sefaria.system.cache as scache
 from sefaria.client.util import jsonResponse, subscribe_to_announce
 from sefaria.summaries import update_summaries, save_toc_to_db
 from sefaria.forms import NewUserForm
-from sefaria.settings import MAINTENANCE_MESSAGE
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH
 from sefaria.model.user_profile import UserProfile
 from sefaria.model.group import GroupSet
+from sefaria.model.translation_request import count_completed_translation_requests
 from sefaria.export import export_all as start_export_all
 from sefaria.datatype.jagged_array import JaggedTextArray
 
 # noinspection PyUnresolvedReferences
 from sefaria.utils.users import user_links
 from sefaria.system.exceptions import InputError
+from sefaria.system.database import db
 from sefaria.utils.hebrew import is_hebrew
+from sefaria.helper.text import make_versions_csv
+from sefaria.clean import remove_old_counts
+if USE_VARNISH:
+    from sefaria.system.sf_varnish import invalidate_index
 
 import logging
 logger = logging.getLogger(__name__)
@@ -145,9 +151,11 @@ def logout(request, next_page=None,
 
 
 def maintenance_message(request):
-    return render_to_response("static/maintenance.html",
+    resp = render_to_response("static/maintenance.html",
                                 {"message": MAINTENANCE_MESSAGE},
                                 RequestContext(request))
+    resp.status_code = 503
+    return resp
 
 
 def accounts(request):
@@ -218,13 +226,14 @@ def bulktext_api(request, refs):
                     'heRef': oref.he_normal(),
                     'url': oref.url()
                 }
-            except (InputError, ValueError) as e:
+            except (InputError, ValueError, AttributeError) as e:
                 referer = request.META.get("HTTP_REFERER", "unknown page")
                 logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
                 res[tref] = {"error": 1}
         resp = jsonResponse(res, cb)
         resp['Access-Control-Allow-Origin'] = '*'
         return resp
+
 
 @staff_member_required
 def reset_cache(request):
@@ -233,9 +242,20 @@ def reset_cache(request):
     user_links = {}
     return HttpResponseRedirect("/?m=Cache-Reset")
 
+
+@staff_member_required
+def reset_index_cache_for_text(request, title):
+    scache.set_index(title, None)
+    scache.delete_cache_elem(scache.generate_text_toc_cache_key(title))
+    if USE_VARNISH:
+        invalidate_index(title)
+    return HttpResponseRedirect("/%s?m=Cache-Reset" % title)
+
+
 """@staff_member_required
 def view_cached_elem(request, title):
     return HttpResponse(get_template_cache('texts_list'), status=200)
+
 
 @staff_member_required
 def del_cached_elem(request, title):
@@ -245,9 +265,24 @@ def del_cached_elem(request, title):
 
 
 @staff_member_required
-def reset_counts(request):
-    model.refresh_all_states()
-    return HttpResponseRedirect("/?m=Counts-Rebuilt")
+def reset_counts(request, title=None):
+    if title:
+        try:
+            i  = model.get_index(title)
+        except:
+            return HttpResponseRedirect("/dashboard?m=Unknown-Book")
+        vs = model.VersionState(index=i)
+        vs.refresh()
+        return HttpResponseRedirect("/%s?m=Counts-Rebuilt" % model.Ref(i.title).url())
+    else:
+        model.refresh_all_states()
+        return HttpResponseRedirect("/?m=Counts-Rebuilt")
+
+
+@staff_member_required
+def delete_orphaned_counts(request):
+    remove_old_counts()
+    return HttpResponseRedirect("/dashboard?m=Orphaned-counts-deleted")
 
 
 @staff_member_required
@@ -283,9 +318,18 @@ def rebuild_citation_links(request, title):
 
 
 @staff_member_required
+def delete_citation_links(request, title):
+    from sefaria.helper.link import delete_links_from_text
+    delete_links_from_text(title, request.user.id)
+    return HttpResponseRedirect("/?m=Citation-Links-Deleted-on-%s" % title)
+
+
+@staff_member_required
 def cache_stats(request):
+    import resource
     resp = {
-        'ref_cache_size': model.Ref.cache_size()
+        'ref_cache_size': model.Ref.cache_size(),
+        'memory usage': resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     }
     return jsonResponse(resp)
 
@@ -300,7 +344,8 @@ def cache_dump(request):
 @staff_member_required
 def create_commentator_version(request, commentator, book, lang, vtitle, vsource):
     from sefaria.helper.text import create_commentator_and_commentary_version
-    create_commentator_and_commentary_version(commentator, book, lang, vtitle, vsource)
+    ht = request.GET.get("heTitle", None)
+    create_commentator_and_commentary_version(commentator, book, lang, vtitle, vsource, ht)
     scache.reset_texts_cache()
     return HttpResponseRedirect("/add/%s" % commentator)
 
@@ -320,6 +365,11 @@ def export_all(request):
 @staff_member_required
 def cause_error(request):
     resp = {}
+    logger.error("This is a simple error")
+    try:
+        erorr = excepting
+    except Exception as e:
+        logger.exception('An Exception has occured in thre code')
     erorr = error
     return jsonResponse(resp)
 
@@ -366,4 +416,28 @@ def list_contest_results(request):
     return HttpResponse(results)
 
 
+@staff_member_required
+def translation_requests_stats(request):
+    return HttpResponse(count_completed_translation_requests().replace("\n", "<br>"))
 
+
+@staff_member_required
+def sheet_stats(request):
+    from dateutil.relativedelta import relativedelta
+    html  = ""
+    start = datetime.today().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    months = 30
+    for i in range(months):
+        end   = start
+        start = end - relativedelta(months=1)
+        query = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
+        n = db.sheets.find(query).distinct("owner")
+        html = "%s: %d\n%s" % (start.strftime("%b %y"), len(n), html)
+
+    html = "Unique Source Sheet creators per month:\n\n" + html
+    return HttpResponse("<pre>" + html + "<pre>")
+
+
+@staff_member_required
+def versions_csv(request):
+    return HttpResponse(make_versions_csv(), content_type="text/csv")

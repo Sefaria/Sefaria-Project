@@ -25,10 +25,13 @@ urlpatterns = patterns('reader.views',
     (r'^api/links/bare/(?P<book>.+)/(?P<cat>.+)$', 'bare_link_api'),
     (r'^api/links/(?P<link_id_or_ref>.*)$', 'links_api'),
     (r'^api/link-summary/(?P<ref>.+)$', 'link_summary_api'),
-    (r'^api/notes/(?P<note_id>.*)$', 'notes_api'),
+    (r'^api/notes/(?P<note_id_or_ref>.*)$', 'notes_api'),
     (r'^api/counts/links/(?P<cat1>.+)/(?P<cat2>.+)$', 'link_count_api'),
+    (r'^api/counts/words/(?P<title>.+)/(?P<version>.+)/(?P<language>.+)$', 'word_count_api'),
     (r'^api/counts/(?P<title>.+)$', 'counts_api'),
     (r'^api/preview/(?P<title>.+)$', 'text_preview_api'),
+    (r'^api/toc-html/(?P<title>.+)$', 'text_toc_html_fragment'),
+
 )
 
 # Reviews API
@@ -58,11 +61,17 @@ urlpatterns += patterns('reader.views',
 # Lock Text API (permament locking of an entire text)
 urlpatterns += patterns('reader.views',
     (r'^api/locktext/(?P<title>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'lock_text_api'),
+    (r'^api/version/flags/(?P<title>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'flag_text_api'),
 )
 
 # Dictionary API
 urlpatterns += patterns('reader.views',
     (r'^api/words/(?P<word>.+)$', 'dictionary_api'),
+)
+
+# ESI
+urlpatterns += patterns('reader.views',
+    (r'^esi/account_box/?$', 'esi_account_box'),
 )
 
 # Campaigns 
@@ -89,6 +98,7 @@ urlpatterns += patterns('reader.views',
 # Texts Page
 urlpatterns += patterns('reader.views',
     (r'^texts/?$', 'texts_list'),
+    (r'^texts/(?P<cats>.+)?$', 'texts_category_list'),
 )
 
 # Search Page
@@ -116,23 +126,31 @@ urlpatterns += patterns('sheets.views',
     (r'^sheets/private/tags/(?P<tag>.+)$', 'private_sheets_tag'),
     (r'^sheets/(?P<type>(public|private|allz))/?$', 'sheets_list'),
     (r'^sheets/(?P<sheet_id>\d+)$', 'view_sheet'),
+    (r'^sheets/visual/(?P<sheet_id>\d+)$', 'view_visual_sheet'),
+
 )
 
 # Source Sheets API
 urlpatterns += patterns('sheets.views',    
     (r'^api/sheets/?$', 'sheet_list_api'),
-    (r'^api/sheets/(?P<sheet_id>\d+)/delete$', 'delete_sheet_api'),
-    (r'^api/sheets/(?P<sheet_id>\d+)/add$', 'add_source_to_sheet_api'),
-    (r'^api/sheets/(?P<sheet_id>\d+)/add_ref$', 'add_ref_to_sheet_api'),
-    (r'^api/sheets/(?P<sheet_id>\d+)/copy_source$', 'copy_source_to_sheet_api'),
-    (r'^api/sheets/(?P<sheet_id>\d+)/tags$', 'update_sheet_tags_api'),
-    (r'^api/sheets/(?P<sheet_id>\d+)$', 'sheet_api'),
-    (r'^api/sheets/(?P<sheet_id>\d+)/like$', 'like_sheet_api'),
-    (r'^api/sheets/(?P<sheet_id>\d+)/unlike$', 'unlike_sheet_api'),
-    (r'^api/sheets/(?P<sheet_id>\d+)/likers$', 'sheet_likers_api'),
-    (r'^api/sheets/user/(?P<user_id>\d+)$', 'user_sheet_list_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/delete$',                     'delete_sheet_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/add$',                        'add_source_to_sheet_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/add_ref$',                    'add_ref_to_sheet_api'),
+    (r'^api/sheets/(?P<parasha>.+)/get_aliyot$',                   'get_aliyot_by_parasha_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/copy_source$',                'copy_source_to_sheet_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/tags$',                       'update_sheet_tags_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)$',                            'sheet_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/like$',                       'like_sheet_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/visualize$',                  'visual_sheet_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/unlike$',                     'unlike_sheet_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/likers$',                     'sheet_likers_api'),
+    (r'^api/sheets/user/(?P<user_id>\d+)$',                        'user_sheet_list_api'),
     (r'^api/sheets/modified/(?P<sheet_id>\d+)/(?P<timestamp>.+)$', 'check_sheet_modified_api'),
-    (r'^api/sheets/create/(?P<ref>[^/]+)(/(?P<sources>.+))?$', 'make_sheet_from_text_api'),
+    (r'^api/sheets/create/(?P<ref>[^/]+)(/(?P<sources>.+))?$',     'make_sheet_from_text_api'),
+    (r'^api/sheets/tag/(?P<tag>[^/]+)?$',                          'sheets_by_tag_api'),
+    (r'^api/sheets/trending-tags/?$',                              'trending_tags_api'),
+    (r'^api/sheets/tag-list/?$',                                   'tag_list_api'),
+
 )
 
 # Activity 
@@ -201,7 +219,7 @@ urlpatterns += patterns('reader.views',
     url(r'^$', 'home', name="home"),
     (r'^metrics/?$', 'metrics'),
     (r'^digitized-by-sefaria/?$', 'digitized_by_sefaria'),
-    (r'^(about|donate|strategy|supporters|translation-guidelines|transliteration-guidelines|even-haezer-guidelines|related-projects|jobs|terms|privacy-policy|meetup1|meetup2|random-walk-through-torah|shraga-silverstein|linker)/?$', 'serve_static'),
+    (r'^(about|donate|strategy|supporters|team|translation-guidelines|transliteration-guidelines|even-haezer-guidelines|related-projects|jobs|terms|privacy-policy|meetup1|meetup2|random-walk-through-torah|shraga-silverstein|linker)/?$', 'serve_static'),
 )
 
 # Explore
@@ -212,18 +230,31 @@ urlpatterns += patterns('reader.views',
 
 # Features under Development
 urlpatterns += patterns('reader.views',
-    (r'^s2$', 's2'),
+    (r'^s2/?$', 's2_home'),
+    (r'^s2/search/?$', 's2_search'),
+    (r'^s2/texts/?$', 's2_texts'),
+    (r'^s2/texts/(?P<cats>.+)?$', 's2_texts_category'),
+    (r'^s2/sheets/?$', 's2_sheets'),
+    (r'^s2/sheets/tags/(?P<tag>.+)?$', 's2_sheets_by_tag'),
     (r'^s2/(?P<ref>.+)$', 's2'),
+    (r'^person/(?P<name>.+)$', 'person_page'),
+    (r'^people/Talmud/?$', 'talmud_person_index'),
+    (r'^people/?$', 'person_index'),
+    (r'^garden/sheets/(?P<key>.+)$', 'sheet_tag_garden_page'),
+    (r'^vgarden/sheets/(?P<key>.+)$', 'sheet_tag_visual_garden_page'),
+    (r'^vgarden/search/(?P<q>.+)$', 'search_query_visual_garden_page'),
+    (r'^vgarden/custom/(?P<key>.+)$', 'custom_visual_garden_page'),
+
 )
 
 # Redirects to Forum, Wiki
 urlpatterns += patterns('',
     (r'^forum/?$', lambda x: HttpResponseRedirect('https://groups.google.com/forum/?fromgroups#!forum/sefaria')),
-    (r'^wiki/?$', lambda x: HttpResponseRedirect('https://github.com/blockspeiser/Sefaria-Project/wiki')),
-    (r'^educators/?$', lambda x: HttpResponseRedirect('https://github.com/blockspeiser/Sefaria-Project/wiki/Sefaria-for-Educators')),
-    (r'^developers/?$', lambda x: HttpResponseRedirect('https://github.com/blockspeiser/Sefaria-Project/wiki#developers')),
-    (r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/blockspeiser/Sefaria-Project/wiki/Guide-to-Contributing')),
-    (r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/blockspeiser/Sefaria-Project/wiki#frequently-asked-questions')),
+    (r'^wiki/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki')),
+    (r'^educators/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Sefaria-for-Educators')),
+    (r'^developers/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#developers')),
+    (r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Guide-to-Contributing')),
+    (r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions')),
 
 )
 
@@ -242,14 +273,18 @@ urlpatterns += patterns('sefaria.views',
 
 # Admin 
 urlpatterns += patterns('', 
-    (r'^admin/reset/cache', 'sefaria.views.reset_cache'),
+    (r'^admin/reset/cache$', 'sefaria.views.reset_cache'),
+    (r'^admin/reset/cache/(?P<title>.+)$', 'sefaria.views.reset_index_cache_for_text'),
     #(r'^admin/view/template_cache/(?P<title>.+)$', 'sefaria.views.view_cached_elem'),
     #(r'^admin/delete/template_cache/(?P<title>.+)$', 'sefaria.views.del_cached_elem'),
     (r'^admin/rebuild/counts-toc', 'sefaria.views.rebuild_counts_and_toc'),
-    (r'^admin/rebuild/counts', 'sefaria.views.reset_counts'),
+    (r'^admin/rebuild/counts/(?P<title>.+)$', 'sefaria.views.reset_counts'),
+    (r'^admin/rebuild/counts/all', 'sefaria.views.reset_counts'),
+    (r'^admin/delete/orphaned-counts', 'sefaria.views.delete_orphaned_counts'),
     (r'^admin/rebuild/toc', 'sefaria.views.rebuild_toc'),
     (r'^admin/rebuild/commentary-links/(?P<title>.+)$', 'sefaria.views.rebuild_commentary_links'),
     (r'^admin/rebuild/citation-links/(?P<title>.+)$', 'sefaria.views.rebuild_citation_links'),
+    (r'^admin/delete/citation-links/(?P<title>.+)$', 'sefaria.views.delete_citation_links'),
     (r'^admin/save/toc', 'sefaria.views.save_toc'),
     (r'^admin/cache/stats', 'sefaria.views.cache_stats'),
     (r'^admin/cache/dump', 'sefaria.views.cache_dump'),
@@ -257,6 +292,9 @@ urlpatterns += patterns('',
     (r'^admin/error', 'sefaria.views.cause_error'),
     (r'^admin/create/commentary-version/(?P<commentator>.+)/(?P<book>.+)/(?P<lang>.+)/(?P<vtitle>.+)/(?P<vsource>.+)$', 'sefaria.views.create_commentator_version'),
     (r'^admin/contest-results', 'sefaria.views.list_contest_results'),
+    (r'^admin/translation-requests-stats', 'sefaria.views.translation_requests_stats'),
+    (r'^admin/sheet-stats', 'sefaria.views.sheet_stats'),
+    (r'^admin/versions-csv', 'sefaria.views.versions_csv'),
     (r'^admin/?', include(admin.site.urls)),
 )
 

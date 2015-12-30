@@ -1,6 +1,8 @@
 # coding=utf-8
-from sefaria.model import *
+import re
+
 import sefaria.summaries as summaries
+from sefaria.model import *
 from sefaria.system import cache as scache
 from sefaria.system.database import db
 from sefaria.datatype.jagged_array import JaggedTextArray
@@ -29,20 +31,21 @@ def add_spelling(category, old, new, lang="en"):
                 i.save()
 
 
-def create_commentator_and_commentary_version(commentator_name, existing_book, lang, vtitle, vsource):
+def create_commentator_and_commentary_version(commentator_name, existing_book, lang, vtitle, vsource, he_commentator_name):
     existing_index = Index().load({'title':existing_book})
     if existing_index is None:
         raise ValueError('{} is not a name of an existing text!'.format(existing_book))
 
     commentator_index = Index().load({'title':commentator_name})
     if commentator_index is None:
+        if not he_commentator_name:
+            raise ValueError("New index record needs Hebrew Title")
         index_json = {
             "title":commentator_name,
             "titleVariants":[],
+            "heTitle" : he_commentator_name,
             "heTitleVariants":[],
-            "categories":["Commentary"],
-            "sectionNames":["",""],
-            "maps":[]
+            "categories":["Commentary"]
         }
         commentator_index = Index(index_json)
         commentator_index.save()
@@ -124,6 +127,7 @@ def resize_text(title, new_structure, upsize_in_place=False):
 
     return True
 
+
 def merge_indices(title1, title2):
     """
     Merges two similar index records
@@ -166,13 +170,31 @@ def merge_text_versions(version1, version2, text_title, language, warn=False):
         return {"error": "Version not found: %s" % version2 }
 
     if isinstance(v1.chapter, dict) or isinstance(v2.chapter, dict):
-        raise Exception("merge_text_versions doesn't yet handle complex records")
+        #raise Exception("merge_text_versions doesn't yet handle complex records")
+        i1 = v1.get_index()
+        i2 = v2.get_index()
+        assert i1 == i2
 
-    if warn and v1.ja().overlaps(v2.ja()):
-        print "WARNING - %s & %s have overlapping content. Aborting." % (version1, version2)
+        def content_node_merger(snode, *contents, **kwargs):
+            """
+            :param snode: SchemaContentNode
+            :param contents: Length two array of content.  Second is merged into first and returned.
+            :param kwargs: "sources": array of source names
+            :return:
+            """
+            assert len(contents) == 2
+            if warn and JaggedTextArray(contents[0]).overlaps(JaggedTextArray(contents[1])):
+                raise Exception("WARNING - overlapping content in {}".format(snode.full_title()))
+            merged_text, sources = merge_texts([contents[0], contents[1]], kwargs.get("sources"))
+            return merged_text
 
+        merged_text = i1.nodes.visit_content(content_node_merger, v1.chapter, v2.chapter, sources=[version1, version2])
 
-    merged_text, sources = merge_texts([v1.chapter, v2.chapter], [version1, version2])
+    else:  #this could be handled with the visitor and callback, above.
+        if warn and v1.ja().overlaps(v2.ja()):
+            print "WARNING - %s & %s have overlapping content. Aborting." % (version1, version2)
+
+        merged_text, sources = merge_texts([v1.chapter, v2.chapter], [version1, version2])
 
     v1.chapter = merged_text
     v1.save()
@@ -196,6 +218,7 @@ def merge_multiple_text_versions(versions, text_title, language, warn=False):
         if r["status"] == "ok":
             count += 1
     return {"status": "ok", "merged": count + 1}
+
 
 def merge_text_versions_by_source(text_title, language, warn=False):
     """
@@ -228,3 +251,105 @@ def merge_text(a, b):
     length = max(len(a), len(b))
     out = [a[n] if n < len(a) and (a[n] or not n < len(b)) else b[n] for n in range(length)]
     return out
+
+
+def modify_text_by_function(title, vtitle, lang, func, uid, **kwargs):
+    """
+    Walks ever segment contained in title, calls func on the text and saves the result.
+    """
+    from sefaria.tracker import modify_text
+    section_refs = VersionStateSet({"title": title}).all_refs()
+    for section_ref in section_refs:
+        section = section_ref.text(vtitle=vtitle, lang=lang)
+        segment_refs = section_ref.subrefs(len(section.text) if section.text else 0)
+        if segment_refs:
+            for i in range(len(section.text)):
+                if section.text[i] and len(section.text[i]):
+                    text = func(section.text[i])
+                    modify_text(uid, segment_refs[i], vtitle, lang, text, **kwargs)
+
+
+def split_text_section(oref, lang, old_version_title, new_version_title):
+    """
+    Splits the text in `old_version_title` so that the content covered by `oref` now appears in `new_version_title`.
+    Rewrites history for affected content. 
+
+    NOTE: `oref` cannot be ranging (until we implement saving ranging refs on TextChunk). Spanning refs are handled recursively.
+    """
+    if oref.is_spanning():
+        for span in oref.split_spanning_ref():
+            split_text_section(span, lang, old_version_title, new_version_title)
+        return
+
+    old_chunk = TextChunk(oref, lang=lang, vtitle=old_version_title)
+    new_chunk = TextChunk(oref, lang=lang, vtitle=new_version_title)
+
+    # Copy content to new version
+    new_chunk.versionSource = old_chunk.version().versionSource
+    new_chunk.text = old_chunk.text
+    new_chunk.save()
+
+    # Rewrite History
+    ref_regex_queries = [{"ref": {"$regex": r}, "version": old_version_title, "language": lang} for r in oref.regex(as_list=True)]
+    query = {"$or": ref_regex_queries}
+    db.history.update(query, {"$set": {"version": new_version_title}}, upsert=False, multi=True)
+
+    # Remove content from old version
+    old_chunk.text = JaggedTextArray(old_chunk.text).constant_mask(constant="").array()
+    old_chunk.save()
+
+
+def replace_roman_numerals(text, allow_lowercase=False):
+    """
+    Replaces any roman numerals in 'text' with digits.
+    Currently only looks for a roman numeral followed by a comma or period, then a space, then a digit.
+    e.g. (Isa. Iv. 10) --> (Isa. 4:10)
+
+    WARNING: we've seen e.g., "(v. 15)" used to mean "Verse 15". If run with allow_lowercase=True, this will
+    be rewritten as "(5:15)". 
+    """
+    import roman
+    flag  = re.I if allow_lowercase else 0
+    regex = re.compile("([( ])(M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))([.,] ?)(\d)", flag)
+    def replace_roman_numerals_in_match(m):
+        s = m.group(2)
+        s = s.upper()
+        try:
+            if s:
+                return "%s%s:%s" % (m.group(1), roman.fromRoman(s), m.group(7))
+        except:
+            return m.group(0)
+
+    return re.sub(regex, replace_roman_numerals_in_match, text)
+
+
+def make_versions_csv():
+    """
+    Returns a CSV of all text versions in the DB.
+    """
+    import csv
+    import io
+    output = io.BytesIO()
+    writer = csv.writer(output)
+    fields = [
+        "title",
+        "versionTitle",
+        "language",
+        "versionSource",
+        "status",
+        "priority",
+        "license",
+        "licenseVetted",
+        "versionNotes",
+        "digitizedBySefaria",
+        "method",
+    ]
+    writer.writerow(fields)
+    vs = VersionSet()
+    for v in vs:
+        writer.writerow([unicode(getattr(v, f, "")).encode("utf-8") for f in fields])
+
+    return output.getvalue()
+
+
+

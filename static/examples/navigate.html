@@ -1,0 +1,242 @@
+<html>
+	<head>
+		<script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+		<style>
+			body {
+    			margin: 0;
+				padding: 0;
+				font-family: Arial, Helvetica, sans-serif;
+			}
+			
+			button {
+				margin-left: 10px;
+			}
+			
+			#sefaria-nav {
+				margin: 20px;
+			}
+			
+			#sefaria-output {
+				margin: 20px;
+				border: 1px solid black;
+				display: none;
+			}
+			
+
+		</style>
+	</head>
+	<body>
+		<div id="sefaria-nav"></div>
+		<br/>
+		<div id="sefaria-output"></div>
+		
+		
+		<script type="text/javascript">
+			var sefariaModule = (function () {
+	var config;
+	function gotTitles(retObj) {
+		var selector = $('<select/>');
+		var container = $('<div/>');
+
+		if (config.titlestart == undefined) {
+			selector.append('<option value="" disabled selected>Select something...');
+		}
+
+		for (var idx = 0; idx < retObj.books.length; idx++) {
+			var val = retObj.books[idx];
+			$('<option />', {
+				value : val,
+				text : val
+			}).appendTo(selector);
+		}
+
+		container.append(selector);
+
+		config.navContainer.append(container);
+
+		if (config.titlestart != undefined) {
+			selector.val(config.titlestart);
+			changedTitle(selector.val());
+		}
+
+		selector.change(function () {
+			changedTitle(selector.val());
+		});
+	}
+
+	function changedTitle(title) {
+		$('.sefariaPickerContainer').remove();
+		$.ajax({
+			url : config.API_ENDPOINT + "v2/index/" + title,
+			dataType : 'jsonp'
+		})
+		.done(function (retObj) {
+			var sections = retObj.schema.sectionNames;
+			$.ajax({
+				url : config.API_ENDPOINT + "counts/" + title,
+				dataType : 'jsonp'
+			})
+			.done(function (retObj) {
+				var counts = retObj._all.availableTexts;
+				resetPicker(title, sections, counts, []);
+			});
+
+		});
+	}
+
+	function resetPicker(title, sections, counts, countIndex) {
+
+		var countData;
+		var sectionIndex;
+
+		if (countIndex.length == 0) {
+			countData = counts;
+			sectionIndex = 0;
+		} else {
+			countData = getMultiDimIndex(counts, countIndex.slice(0));
+			sectionIndex = countIndex.length;
+		}
+
+		for (var idx = sections.length; idx >= sectionIndex; idx--) {
+			$("#sefariaPickerContainer_" + idx).remove();
+		}
+
+		var picker = makePicker(sections[sectionIndex], sectionIndex, countData.length);
+
+		picker.button.click(function () {
+			var ref = title;
+			for (var idx = 0; idx <= sectionIndex; idx++) {
+				ref += '.' + $("#sefariaPickerSelector_" + idx).val();
+			}
+			getText(ref);
+		});
+
+		if (sectionIndex < sections.length - 1) {
+			picker.selector.change(function () { //Only reset pickers if we're at least a level up
+				countIndex[sectionIndex] = picker.selector.val();
+				resetPicker(title, sections, counts, countIndex);
+			});
+
+			countIndex.push(0);
+			resetPicker(title, sections, counts, countIndex);
+		}
+
+		function getMultiDimIndex(data, indexList) {
+			var index = indexList.shift();
+
+			if (!indexList.length) {
+				return (data[index]);
+			} else {
+				return (getMultiDimIndex(data[index], indexList));
+			}
+		}
+	}
+
+	function makePicker(sectionName, sectionIndex, max) {
+		var container = $('<div class="sefariaPickerContainer" id="sefariaPickerContainer_' + sectionIndex + '" />');
+		var selector = $('<select id="sefariaPickerSelector_' + sectionIndex + '"/>');
+		var button = $('<button type="button">Show ' + sectionName + '</button>');
+
+		for (var idx = 1; idx <= max; idx++) {
+			selector.append($('<option />', {
+					value : idx,
+					text : idx
+				}));
+		}
+
+		container.append(selector);
+		container.append(button);
+
+		config.navContainer.append(container);
+
+		return ({
+			container : container,
+			selector : selector,
+			button : button
+		});
+	}
+
+	function getText(ref) {
+		$.ajax({
+			url : config.API_ENDPOINT + "texts/" + ref + '?commentary=0&context=0',
+			dataType : 'jsonp'
+		}).done(function (retObj) {
+			showText(ref, [retObj.he, retObj.text]);
+		});
+	}
+
+	function showText(ref, texts) {
+		var outputHTML = '<h2>' + ref + '</h2><p/>';
+		var textsFinished = [];
+
+		for (var textIndex = 0; textIndex < texts.length; textIndex++) {
+			textsFinished[textIndex] = false;
+		}
+
+		function keepGoing() {
+			for (var textIndex = 0; textIndex < texts.length; textIndex++) {
+				if (!textsFinished[textIndex]) {
+					return (true);
+				}
+			}
+
+			return (false);
+		}
+
+		function appendLine(line) {
+			outputHTML += line + "<br/>";
+		}
+		while (keepGoing()) {
+			for (var textIndex = 0; textIndex < texts.length; textIndex++) {
+				var textData = texts[textIndex];
+
+				if (!$.isArray(textData)) {
+					appendLine(textData);
+					textsFinished[textIndex] = true;
+				} else {
+					if (textData.length > 0) {
+						textData = texts[textIndex].shift();
+						appendLine(textData);
+						if (texts[textIndex].length == 0) {
+							textsFinished[textIndex] = true;
+						}
+					} else {
+						textsFinished[textIndex] = true;
+					}
+				}
+			}
+
+			outputHTML += '<p/>';
+		}
+
+		config.outputContainer.html(outputHTML);
+		config.outputContainer.show();
+	}
+
+	return {
+		init : function (navContainer, outputContainer, options) {
+			config = $.extend(true, {
+					navContainer : navContainer,
+					outputContainer : outputContainer
+				}, options);
+
+			config.API_ENDPOINT = (config.host == undefined ? "https://www.sefaria.org" : config.host.replace(/\/+$/, "")) + "/api/"; //also strip trailing slashes
+
+			$.ajax({
+				url : config.API_ENDPOINT + "index/titles",
+				dataType : 'jsonp'
+			}).done(gotTitles);
+		}
+	}
+}());
+$(document).ready(function () {
+	sefariaModule.init(
+		$("#sefaria-nav"),
+		$("#sefaria-output"), {
+		//host: "http://10.0.0.4:8000", //optional - the host for api calls. Will default to http://sefaria.org
+		titlestart : "Bereishit" //optional - to open a specific title immediately
+	});
+});
+		</script>
+	</body>
+</html>

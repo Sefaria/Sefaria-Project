@@ -2,7 +2,7 @@
 
 from functools import wraps
 
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 
@@ -23,8 +23,7 @@ def catch_error_as_json(func):
         try:
             result = func(*args, **kwargs)
         except exps.InputError as e:
-            #logging an exception in a catch clause logs the stack trace automatically.
-            logger.exception(u"An exception occurred while running {}. Caught as JSON".format(func.__name__))
+            logger.warning(u"An exception occurred processing request for '{}' while running {}. Caught as JSON".format(args[0].path, func.__name__), exc_info=True)
             return jsonResponse({"error": unicode(e)})
         return result
     return wrapper
@@ -39,7 +38,12 @@ def catch_error_as_http(func):
         try:
             result = func(*args, **kwargs)
         except exps.InputError as e:
-            logger.exception(u"An exception occurred while running {}. Caught as HTTP".format(func.__name__))
+            logger.warning(u"An exception occurred processing request for '{}' while running {}. Caught as HTTP".format(args[0].path, func.__name__), exc_info=True)
+            raise Http404
+        except Http404:
+            raise
+        except Exception as e:
+            logger.exception(u"An exception occurred processing request for '{}' while running {}. Caught as HTTP".format(args[0].path, func.__name__))
             return render_to_response('static/generic.html',
                              {"content": u"There was an error processing your request: {}".format(unicode(e))},
                              RequestContext(args[0]))
