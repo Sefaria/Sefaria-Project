@@ -3272,9 +3272,6 @@ class Library(object):
     def __init__(self):
         self.langs = ["en", "he"]
 
-        # Map from index key to ref keys
-        self._index_ref_map = {}
-
         # Maps, keyed by language, from index key to array of titles
         self._index_title_maps = {lang:{} for lang in self.langs}
 
@@ -3345,6 +3342,25 @@ class Library(object):
         self._title_regex_strings = {}
         self._title_regexes = {}
         # TOC is handled separately since it can be edited in place
+
+    def _reset_commentator_derivative_objects(self):
+        """
+        "commentators" in _full_title_lists
+        "both" or "commentary" in _title_regex_strings
+        "both" or "commentary" in _title_regexes
+        :return:
+        """
+        for key in self._full_title_lists.keys():
+            if "commentators" in key:
+                del self._full_title_lists[key]
+
+        for key in self._title_regex_strings.keys():
+            if "commentary" in key or "both" in key:
+                del self._title_regex_strings[key]
+
+        for key in self._title_regexes.keys():
+            if "commentary" in key or "both" in key:
+                del self._title_regexes[key]
 
     def _reset_toc_derivate_objects(self):
         scache.delete_cache_elem('toc_cache')
@@ -3477,7 +3493,8 @@ class Library(object):
 
         # don't add simple commentator records
         if not index_object.nodes:
-            logger.error("Tried to add commentator {} to cache.  Politely refusing.".format(index_object.title))
+            self._reset_commentator_derivative_objects()
+            # logger.error("Tried to add commentator {} to cache.  Politely refusing.".format(index_object.title))
             return
 
         self._index_map[index_object.title] = index_object
@@ -3507,7 +3524,12 @@ class Library(object):
         :return:
         """
         if index_object and not index_object.nodes:
-            logger.error("Tried to delete commentator {} from cache.  Politely refusing.".format(index_object.title))
+            for key in index_object.titleVariants + index_object.heTitleVariants + [old_title]:
+                try:
+                    del self._index_map[key]
+                except KeyError:
+                    pass
+            self._reset_commentator_derivative_objects()
             return
 
         index_title = old_title or index_object.title
@@ -3611,7 +3633,7 @@ class Library(object):
         :param with_commentary: If true, overrides `commentary` argument and matches BOTH "x on y" style records and simple records
         Note that matching behavior differs between commentary=True and with_commentary=True.
         commentary=True matches 'title', 'commentor' and 'commentee' named groups.
-        with_commentary=True matches only 'title', wether for plain records or commentary records.
+        with_commentary=True matches only 'title', whether for plain records or commentary records.
         :param bool with_terms: Default False.  If True, include shared titles ('terms')
         :raise: InputError: if lang == "he" and commentary == True
 
@@ -3634,7 +3656,7 @@ class Library(object):
         """
         :return: list of strings of all possible titles
         :param lang: "he" or "en"
-        :param with_commentators: if True, includes the commentator names, with variants, but not the cross-product with books.
+        :param with_commentators: if True, includes the commentator names, with variants (not the cross-product with books)
         :param with_commentary: if True, includes all existing "X on Y" type commentary records
         :param with_terms: if True, includes shared titles ('terms')
         """
@@ -3643,7 +3665,6 @@ class Library(object):
         key += "_commentators" if with_commentators else ""
         key += "_commentary" if with_commentary else ""
         key += "_terms" if with_terms else ""
-        # titles = scache.get_cache_elem(key)
         titles = self._full_title_lists.get(key)
         if not titles:
             titles = self.get_title_node_dict(lang, with_commentary=with_commentary).keys()
@@ -3652,7 +3673,6 @@ class Library(object):
             if with_commentators:
                 titles += self.get_commentator_titles(lang, with_variants=True)
             self._full_title_lists[key] = titles
-            # scache.set_cache_elem(key, titles)
         return titles
 
     def ref_list(self):

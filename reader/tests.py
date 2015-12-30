@@ -19,7 +19,7 @@ from django.contrib.auth.models import User
 
 import sefaria.utils.testing_utils as tutils
 
-from sefaria.model import library, Index, IndexSet, VersionSet, LinkSet, NoteSet, HistorySet, Ref, VersionStateSet
+from sefaria.model import library, Index, IndexSet, VersionSet, LinkSet, NoteSet, HistorySet, Ref, VersionState, VersionStateSet
 from sefaria.system.database import db
 import sefaria.system.cache as scache
 
@@ -32,6 +32,7 @@ class SefariaTestCase(TestCase):
         user.set_password('!!!')
         user.first_name = "Test"
         user.last_name  = "Testerberg"
+        user.is_staff = True
         user.save()
         c.login(email="test@sefaria.org", password="!!!")
 
@@ -40,7 +41,7 @@ class SefariaTestCase(TestCase):
         self.assertTrue(title in json.loads(library.get_text_titles_json()))
 
     def not_in_cache(self, title):
-        self.assertFalse(any(key.startswith(title) for key, value in scache.index_cache.iteritems()))
+        self.assertFalse(title in library._index_map)
         self.assertTrue(title not in library.full_title_list())
         self.assertTrue(title not in json.loads(library.get_text_titles_json()))
         self.assertFalse(any(key.startswith(title) for key, value in Ref._raw_cache().iteritems()))
@@ -182,7 +183,7 @@ class ApiTest(SefariaTestCase):
         self.assertTrue(len(data["commentary"]) > 0)
         self.assertEqual(data["book"],        "Rashi on Genesis")
         self.assertEqual(data["commentator"], "Rashi")
-        self.assertEqual(data["categories"],  ["Commentary", "Tanach", "Torah", "Genesis"])
+        self.assertEqual(data["categories"],  ['Commentary', 'Tanach', 'Rashi'])
         self.assertEqual(data["sections"],    [2,3])
         self.assertEqual(data["toSections"],  [2,3])
 
@@ -194,12 +195,12 @@ class ApiTest(SefariaTestCase):
         self.assertTrue(len(data["commentary"]) > 0)
         self.assertEqual(data["book"],        "Tosafot on Sukkah")
         self.assertEqual(data["commentator"], "Tosafot")
-        self.assertEqual(data["categories"],  ["Commentary", "Talmud", "Bavli", "Seder Moed", "Sukkah"])
+        self.assertEqual(data["categories"],  ['Commentary', 'Talmud', 'Tosafot'])
         self.assertEqual(data["sections"],    ["2a", 1, 1])
         self.assertEqual(data["toSections"],  ["2a", 1, 1])
 
     def test_api_get_text_range(self):
-        response = c.get('/api/texts/Job.5:2-4')
+        response = c.get('/api/texts/Job.5.2-4')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(data["sections"],   [5, 2])
@@ -209,7 +210,7 @@ class ApiTest(SefariaTestCase):
         response = c.get('/api/texts/Protocols_of_the_Elders_of_Zion.13.13')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual(data["error"], "Unrecognized Index record: Protocols of the Elders of Zion.13.13")
+        self.assertEqual(data["error"], "Failed to parse sections for ref Protocols_of_the_Elders_of_Zion.13.13") # "Unrecognized Index record: Protocols of the Elders of Zion.13.13")
 
     def test_api_get_text_out_of_bound(self):
         response = c.get('/api/texts/Genesis.999')
@@ -359,7 +360,7 @@ class PostIndexTest(SefariaTestCase):
         self.make_test_user()
 
     def tearDown(self):
-        job = Index().load({"title": "Job"})
+        job = Index().load({"title": "Pele Yoetz"})
         job.nodes.title_group.titles = [variant for variant in job.nodes.title_group.titles if variant["text"] != "Boj"]
         job.save()
         IndexSet({"title": "Book of Bad Index"}).delete()
@@ -375,19 +376,21 @@ class PostIndexTest(SefariaTestCase):
             that it is removed from index/titles/cache
         """
         # Post a new Title Variant to an existing Index
-        orig = json.loads(c.get("/api/index/Job").content)
+        orig = json.loads(c.get("/api/index/Pele_Yoetz").content)
         self.assertTrue("Boj" not in orig["titleVariants"])
         new = deepcopy(orig)
         new["titleVariants"].append("Boj")
-        response = c.post("/api/index/Job", {'json': json.dumps(new)})
+        response = c.post("/api/index/Pele_Yoetz", {'json': json.dumps(new)})
         self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertNotIn("error", data)
         self.in_cache("Boj")
         response = c.get("/api/index/titles")
         data = json.loads(response.content)
         self.assertIn("books", data)
         self.assertTrue("Boj" in data["books"])
         # Reset this change
-        c.post("/api/index/Job", {'json': json.dumps(orig)})
+        c.post("/api/index/Pele_Yoetz", {'json': json.dumps(orig)})
         response = c.get("/api/index/titles")
         data = json.loads(response.content)
         self.assertTrue("Boj" not in data["books"])
@@ -665,6 +668,8 @@ class PostCommentatorNameChange(SefariaTestCase):
         HistorySet({"version": "Ploni Edition"}).delete()
         HistorySet({"new.refs": {"$regex": "^Ploni on Job"}}).delete()
         HistorySet({"new.refs": {"$regex": "^Shmoni on Job"}}).delete()
+        VersionStateSet({"title": "Ploni on Job"}).delete()
+        VersionStateSet({"title":"Shmoni on Job"}).delete()
 
     def test_change_commentator_name(self):
         index = {
@@ -678,14 +683,15 @@ class PostCommentatorNameChange(SefariaTestCase):
         data = json.loads(response.content)
         self.assertNotIn("error", data)
         self.assertEqual(1, IndexSet({"title": "Ploni"}).count())
-        self.in_cache("Ploni")
+        # Bare commentator names not in Index
+        # self.in_cache("Ploni")
 
         # Virtual Indexes are available for commentary texts
         response = c.get("/api/index/Ploni_on_Job")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertIn("categories", data)
-        self.assertEqual(["Commentary", "Tanach", "Writings", "Job"], data["categories"])
+        self.assertEqual(["Commentary", "Tanach", "Ploni"], data["categories"])
 
         # Post some text
         text = {
@@ -879,7 +885,7 @@ class PostTextTest(SefariaTestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertIn("categories", data)
-        self.assertEqual(["Commentary", "Tanach", "Writings", "Job"], data["categories"])
+        self.assertEqual(["Commentary", "Tanach", "Ploni"], data["categories"])
 
         # Post some text
         text = {
@@ -1024,6 +1030,6 @@ class VersionAttrsPostTest(SefariaTestCase):
             "digitizedBySefaria" : True,
             "priority" : 1
         }
-        response = c.post("api/version/flags/Genesis/he/Tanach+With+Nikkud", {'json': json.dumps(vattrs), 'apikey': 'oAj9VWA8eDoWlKCD4nXiuDFPgWYn59tO4JA1bDnZQqI' })
+        response = c.post("api/version/flags/Genesis/he/Tanach+With+Nikkud", {'json': json.dumps(vattrs)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
