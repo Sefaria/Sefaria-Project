@@ -158,14 +158,12 @@ $(function() {
 	//if the image is loaded    
 	$target.find('img').last()     
 	    .on('load', function() { 
-		    console.log("media loaded correctly");
 		    autoSave();
 	     });
 
 	//if the audio starts to load    
 	$target.find('audio').last()
 	    .on('loadedmetadata', function() { 
-		    console.log("media loaded correctly");
 		    autoSave();
 	     });
 
@@ -815,6 +813,44 @@ $(function() {
 	 });
 
 
+	$(".parshahToAdd").click(function(){
+		$("#addParashaToSheetModal, #overlay").hide();
+
+		$.getJSON("/api/sheets/"+$(this).text()+"/get_aliyot", function(data) {
+			if ("error" in data) {
+				sjs.alert.flash(data.error);
+			} else {
+				console.log(data.ref);
+
+
+				for (var i = 0; i < data.ref.length; i++) {
+					var source = {
+						ref: data.ref[i]
+					}
+					console.log(parseRef(data.ref[i]));
+					buildSource($("#sources"), source);
+
+				}
+
+			}
+		});
+		sjs.track.sheets("Add Parasha to Sheet");
+
+		}
+	);
+
+	$("#addParashaToSheetModalTrigger").live("click", function(e) {
+		$("#addSourceModal").hide();
+		$("#addParashaToSheetModal").show().position({of: window});
+		$("#overlay").show();
+	});
+
+	$("#addParashaToSheetModal .cancel").click(function() {
+
+		$("#addParashaToSheetModal, #overlay").hide();
+	});
+
+
 
 	$("#sharingModalTrigger").live("click", function() { 
 		$("#sharingModal").show().position({of: window}); 
@@ -825,7 +861,7 @@ $(function() {
 	$("#sharingModal .ok").click(function(){
 
 		$("#sharingModal, #overlay").hide();
-		
+
 		autoSave();
 		sjs.alert.flash("Sharing settings saved.")
 
@@ -1006,6 +1042,8 @@ $(function() {
 			} else if (data.commentary.length == 0) {
 				sjs.alert.message("No connections known for this source.");
 			} else {
+                data.commentary = [].concat.apply([], data.commentary);
+
 				var categorySum = {}
 				for (var i = 0; i < data.commentary.length; i++) {
 					var c = data.commentary[i];
@@ -1023,7 +1061,7 @@ $(function() {
 				for(var k in categorySum) { labels.push(k + " (" + categorySum[k] + ")"); }
 				labels.sort();
 
-				sjs.alert.multi({message: "Add all connections from:", 
+				sjs.alert.multi({message: "Add all connections from:",
 									values: categories,
 									labels: labels,
 									default: false
@@ -1068,7 +1106,7 @@ $(function() {
 			$("#publishPromptModal #prompt").hide();
 			$("#publishPromptModal #published").show();
 			sjs.current.promptedToPublish = Date();
-			$("#public").trigger("click");
+			$("#sharePublic").trigger("click");
 			sjs.track.sheets("Publish Prompt Accept");
 		});
 		$("#publishPromptModal .later").click(function(){
@@ -1170,7 +1208,7 @@ function addSource(q, source) {
 		return;
 	}
 
-	var loadClosure = function(data) { 
+	var loadClosure = function(data) {
 		loadSource(data, $target);
 	};
 	var getStr = "/api/texts/" + makeRef(q) + "?commentary=0&context=0&pad=0";
@@ -1192,6 +1230,7 @@ function loadSource(data, $target, optionStr) {
 	}
 	// If text is not a range, put text string in arrays
 	// to simplify processing below
+
 	if (typeof(data.text) === "string") {
 		data.text = data.text.length ? [data.text] : [];
 	}
@@ -1200,13 +1239,15 @@ function loadSource(data, $target, optionStr) {
 	}
 
 	var end = Math.max(data.text.length, data.he.length);
-	
+
 	// If the requested end is beyond what's available, reset the ref to what we have
+/*
 	var requestedLength = (data.toSections[data.sectionNames.length-1] - data.sections[data.sectionNames.length-1]) + 1
 	if (requestedLength > end) {
 		data.toSections[data.sectionNames.length-1] = data.sections[data.sectionNames.length-1] + end -1;
 		data.ref = makeRef(data);
 	}
+*/
 
 	$target.attr("data-ref", data.ref);	
 	$target.attr("data-heRef", data.heRef);	
@@ -1224,26 +1265,48 @@ function loadSource(data, $target, optionStr) {
 		var start = data.sections[data.sectionNames.length-1];
 	}
 
-	var includeNumbers = $.inArray("Talmud", data.categories) > -1 ? false : true;
-	includeNumbers     = data.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
-	var segmented      = !(data.categories[0] in {"Tanach":1, "Talmud":1});
-	for (var i = 0; i < end; i++) {
-		if (!data.text[i] && !data.he[i]) { continue; }
 
-		if (data.text.length > i) {
-			enStr += (segmented ? "<p>" : "") + "<span class='segment'>" + 
-							(includeNumbers ? "<small>(" + (i+start) + ")</small> " : "") + 
-							data.text[i]  + 
-						"</span> " + (segmented ? "</p>" : ""); 			
-		}
 
-		if (data.he.length > i) {
-			heStr += (segmented ? "<p>" : "") + "<span class='segment'>" + 
-							(includeNumbers ? "<small>(" + (encodeHebrewNumeral(i+start)) + ")</small> " : "") +
-							data.he[i] + 
-						"</span> " + (segmented ? "</p>" : "");
+    if (data.spanning) { timesToIterateThroughSections = data.spanningRefs.length }
+    else {timesToIterateThroughSections = 1
+                    data.he = data.he.length ? [data.he] : [];
+                    data.text = data.text.length ? [data.text] : [];
+    }
+
+    for (var q=0;q<timesToIterateThroughSections;q++) {
+        curEnglishText = data.text[q] || '';
+        curHebrewText = data.he[q] || '';
+		if (data.sections.length < data.sectionNames.length) {
+			data.sections.push(1);
+			data.toSections.push(Math.max(curEnglishText.length, curHebrewText.length));
 		}
-	}
+        if (q==0) {curSegmentNumber = data.sections[1]}
+        else {curSegmentNumber = 1 }
+
+        var includeNumbers = $.inArray("Talmud", data.categories) > -1 ? false : true;
+        includeNumbers = data.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
+        var segmented = !(data.categories[0] in {"Tanach": 1, "Talmud": 1});
+        for (var i = 0; i < Math.max(curEnglishText.length, curHebrewText.length); i++) {
+            if (!curEnglishText[i] && !curHebrewText[i]) {
+                continue;
+            }
+
+            if (curEnglishText.length > i) {
+                enStr += (segmented ? "<p>" : "") + "<span class='segment'>" +
+                    (includeNumbers ? "<small>(" + (curSegmentNumber) + ")</small> " : "") +
+                    curEnglishText[i] +
+                    "</span> " + (segmented ? "</p>" : "");
+            }
+
+            if (curHebrewText.length > i) {
+                heStr += (segmented ? "<p>" : "") + "<span class='segment'>" +
+                    (includeNumbers ? "<small>(" + (encodeHebrewNumeral(curSegmentNumber)) + ")</small> " : "") +
+                    curHebrewText[i] +
+                    "</span> " + (segmented ? "</p>" : "");
+            }
+            curSegmentNumber++;
+        }
+    }
 
 	enStr = enStr || "...";
 	heStr = heStr || "...";
@@ -1610,6 +1673,7 @@ function buildSheet(data){
 	sjs.loading = false;
 
 	$("#sources").css("min-height","");
+
 }
 	
 
@@ -1964,11 +2028,11 @@ function copyToSheet(source) {
 		$.getJSON("/api/sheets/user/" + sjs._uid, function(data) {
 			$("#sheetList").empty();
 			var sheets = "";
+			sheets += '<li class="sheet new"><i>Start a New Source Sheet</i></li>';
 			for (i = 0; i < data.sheets.length; i++) {
 				sheets += '<li class="sheet" data-id="'+data.sheets[i].id+'">'+
 					data.sheets[i].title.stripHtml() + "</li>";
 			}
-			sheets += '<li class="sheet new"><i>Start a New Source Sheet</i></li>'
 			$("#sheetList").html(sheets);
 			$("#addToSheetModal").position({of:$(window)});
 			$(".sheet").click(function(){
@@ -1978,7 +2042,7 @@ function copyToSheet(source) {
 			})
 		})			
 	}
-	var name = source.ref ? source.ref : 
+	var name = source.ref ? source.ref :
 				(source.comment ? "this comment" : "this source"); 
 
 	$("#addToSheetModal .sourceName").text(name);
@@ -2009,7 +2073,7 @@ $("#addToSheetModal .ok").click(function(){
 		};
 		var postJSON = JSON.stringify(sheet);
 		sjs.flags.saving = true;
-		$.post("/api/sheets/", {"json": postJSON}, addToSheetCallback);	
+		$.post("/api/sheets/", {"json": postJSON}, addToSheetCallback);
 	} else {
 		var title = selected.html();
 		var url = "/api/sheets/" + selected.attr("data-id") + "/add";
@@ -2018,6 +2082,15 @@ $("#addToSheetModal .ok").click(function(){
 	}
 
 	function addToSheetCallback(data) {
+		if(data["views"]){ //this is only passed on "new source sheet"
+			//add the new sheet to the list
+			$( "#sheetList .new" ).after( '<li class="sheet" data-id="'+data.id+'">'+data.title.stripHtml() + "</li>" );
+			$(".sheet").click(function(){
+				$(".sheet").removeClass("selected");
+				$(this).addClass("selected");
+				return false;
+			})
+		}
 		sjs.flags.saving = false;
 		$("#addToSheetModal").hide();
 		if ("error" in data) {
@@ -2125,14 +2198,20 @@ function promptToPublish() {
 
 	if (!sjs.current.id) { return; }                        // Don't prompt for unsaved sheet
 	if (!sjs.is_owner) { return; }                          // Only prompt the primary owner
-	if (sjs.current.promptedToPublish) { return; }          // Don't prompt if we've prompted already
+	if (sjs.current.promptedToPublish) {
+			if ((Date.now()-Date.parse(sjs.current.promptedToPublish))/(8.64*(Math.pow(10,7))) < 30 ) {
+				return;
+			}
+		} 											       // Don't prompt if we've prompted in the last 30 days
 	if (sjs.current.status in {"public":true}) { return; } // Don't prompt if sheet is already public
-	if (sjs.current.sources.length < 6) { return; }         // Don't prompt if the sheet has less than 3 sources
+//	if (sjs.current.sources.length < 6) { return; }         // Don't prompt if the sheet has less than 6 sources
+	if (sjs.current.views < 3) {return}						// Don't prompt if the sheet has been viewed less than three times
 	if ($("body").hasClass("embedded")) { return; }         // Don't prompt while a sheet is embedded
 
 	$("#publishPromptModal").show();
 	$("#overlay").show();
 	sjs.track.sheets("Publish Prompt");
+
 
 }
 
