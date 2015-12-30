@@ -510,7 +510,9 @@ body {
 	position: relative;
 }
 
-.text .en, 
+
+
+.text .en,
 .text .he {
 	min-height: 20px;
 }
@@ -718,6 +720,25 @@ body {
 
 #addToSheetModal {
 	width: 400px;
+}
+
+#addParashaToSheetModal {
+	width:500px;
+}
+#addParashaToSheetModal .header {
+	font-weight: bold;
+	padding-bottom: 10px;
+}
+
+#addParashaToSheetModal .cancel {
+	padding-top: 10px;
+}
+
+#addParashaToSheetModal li {
+	width:150px;
+	display:inline;
+	float:left;
+	padding: 2px 0 2px 0;
 }
 
 #addToSheetModal .header {
