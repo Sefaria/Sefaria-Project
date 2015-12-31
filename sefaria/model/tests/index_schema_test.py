@@ -7,7 +7,7 @@ from sefaria.system.exceptions import InputError
 
 
 class Test_Schema(object):
-    def test_schema_load(self):
+    def test_FAILING_schema_load(self):
         i = Index().load({"title": "Mishnah Torah Test"})
         if i:
             i.delete()

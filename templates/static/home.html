@@ -315,8 +315,8 @@
     </a>
 
     <div id="announcement" class="modal">
-        <a href="#" class="btn btn-large purple">
-            <span class="en"></span>
+        <a href="/donate" class="btn btn-large purple">
+            <span class="en">Donate</span>
             <span class="he"></span>
         </a>
         <h3>
@@ -324,7 +324,7 @@
             <span class="he"></span>
         </h3> 
         <p>
-            <span class="en"></span>
+            <span class="en">Your gift will fund critical user experience updates and help expand our library of texts and translations.</span>
             <span class="he"></span>
         </p>
     </div>
@@ -382,7 +382,10 @@
             });
             
             // Announcement
-            if ($("#announcement h3 .en").text() && $(window).width() > 600) {
+            if ($("#announcement p .en").text() && $(window).width() > 830) {
+                if (!$("#announcement h3 .he").text()) {
+                    $("#announcement").addClass("hideInHebrewMode");
+                }
                 $("#announcement").show()
                     .position({my: "center top+15", at: "center bottom", of: $("#sub")})
                     .hide()

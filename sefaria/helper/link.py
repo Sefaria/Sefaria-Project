@@ -96,6 +96,7 @@ def add_commentary_links(oref, user, **kwargs):
             invalidate_ref(oref)
             invalidate_ref(Ref(base_tref))
 
+
 def rebuild_commentary_links(tref, user, **kwargs):
     """
     Deletes any commentary links for which there is no content (in any ref),
@@ -105,7 +106,7 @@ def rebuild_commentary_links(tref, user, **kwargs):
         oref = Ref(tref)
     except InputError:
         # Allow commentators alone, rebuild for each text we have
-        i = get_index(tref)
+        i = library.get_index(tref)
         for c in library.get_commentary_version_titles(i.title):
             rebuild_commentary_links(c, user, **kwargs)
         return

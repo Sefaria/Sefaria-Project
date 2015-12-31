@@ -387,7 +387,11 @@ def hebrew_term(s):
 		"Halachic Midrash":     u"מדרש הלכה",
 		"Midrash Rabbah":       u"מדרש רבה",
 		"Responsa":             u'שו"ת',
-		"Other":                u"אחר",
+		"Other":                u"שונות",
+		"Rashba":               u'רשב"א',
+		"Rambam":               u'רמב"ם',
+		"Maharam Shif":         u'מהר"ם שיף',
+		"Shita Mekubetzet":     u'שיטה מקובצת',
 		"Siddur":               u"סידור",
 		"Liturgy":              u"תפילה",
 		"Piyutim":              u"פיוטים",
@@ -395,7 +399,7 @@ def hebrew_term(s):
 		"Chasidut":             u"חסידות",
 		"Parshanut":            u"פרשנות",
 		"Philosophy":           u"מחשבת ישראל",
-		"Maharal":	            u'מהר"ל מפראג',
+		"Maharal":              u'מהר"ל מפראג',
 		"Apocrypha":            u"ספרים חיצונים",
 		"Seder Zeraim":         u"סדר זרעים",
 		"Seder Moed":           u"סדר מועד",
@@ -407,21 +411,8 @@ def hebrew_term(s):
 		"Dictionary":           u"מילון",
 		"Early Jewish Thought": u"מחשבת ישראל קדומה",
 		"Minor Tractates":      u"מסכתות קטנות",
-		"Rosh":		            u'רא"ש',
-		"Maharsha":	            u'מהרשא',
-		"Rashba":	            u'רשב"א',
-		"Rambam":	            u'רמב"ם',
-		"Radbaz":		u'רדב"ז',
-		"Tosafot Yom Tov":      u"תוספות יום טוב",
-		"Chidushei Halachot":   u"חידושי הלכות",
-		"Chidushei Agadot":     u"חידושי אגדות",
-		"Tiferet Shmuel":       u"תפארת שמואל",
-		"Korban Netanel":       u"קרבן נתנאל",
-		"Pilpula Charifta":     u"פילפולא חריפתא",
-		"Divrey Chamudot":      u"דברי חמודות",
-		"Maadaney Yom Tov":     u"מעדני יום טוב",
-		"Modern Works":		u"יצירות מודרניות",
-
+		"Rosh":                 u'ר"אש',
+		"Maharsha":             u'מהרשא',
 	}
 
 	pseudo_categories = {
@@ -446,11 +437,12 @@ def hebrew_term(s):
 
 	section_names = {
 		"Chapter":          u"פרק",
-		"Chapters":	    u"פרקים",
+		"Chapters":         u"פרקים",
 		"Perek":            u"פרק",
 		"Line":             u"שורה",
 		"Daf":              u"דף",
 		"Paragraph":        u"פסקה",
+		"Piska":            u"פסקה",
 		"Parsha":           u"פרשה",
 		"Parasha":          u"פרשה",
 		"Parashah":         u"פרשה",
@@ -472,8 +464,9 @@ def hebrew_term(s):
 		"Massechet":        u"מסכת",
 		"Letter":           u"אות",
 		"Halacha":          u"הלכה",
+		"Piska":            u"פסקה",
 		"Seif Katan":       u"סעיף קטן",
-		"Se'if Katan":	    u"סעיף קטן",
+		"Se'if Katan":      u"סעיף קטן",
 		"Volume":           u"כרך",
 		"Book":             u"ספר",
 		"Shar":             u"שער",
@@ -492,9 +485,9 @@ def hebrew_term(s):
 		"Mitzvah":          u"מצוה",
 		"Tefillah":         u"תפילה",
 		"Torah":            u"תורה",
-		"Perush":	        u"פירוש",
-		"Peirush":	        u"פירוש",
-		"Aliyah":	        u"עלייה",
+		"Perush":           u"פירוש",
+		"Peirush":          u"פירוש",
+		"Aliyah":           u"עלייה",
 		"Tikkun":           u"תיקון",
 		"Tikkunim":         u"תיקונים",
         "Hilchot":          u"הילכות",
@@ -509,22 +502,11 @@ def hebrew_term(s):
 
 	# If s is a text title, look for a stored Hebrew title
 	try:
-		from sefaria.model import get_index, IndexSet
+		from sefaria.model import library, IndexSet
 		from sefaria.system.exceptions import BookNameError
-		i = get_index(s)
+		i = library.get_index(s)
 		return i.get_title("he")
 	except BookNameError:
 		pass
 
 	return s
-
-
-# def main():
-
-# 	t = u"ההתשסטו"
-# 	return [index for index, (f, s) in enumerate(zip(t, t[1:])) if f < s and heb_to_int(s) >= 100]
-
-# t = u"ההתשסטו"
-
-# if __name__ == '__main__':
-# 	print main().__repr__()

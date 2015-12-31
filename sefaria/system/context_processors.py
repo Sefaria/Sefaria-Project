@@ -6,7 +6,6 @@ from datetime import datetime
 from sefaria.settings import *
 from sefaria.model import library, NotificationSet
 from sefaria.model.user_profile import unread_notifications_count_for_user
-from sefaria.summaries import get_toc, get_toc_json
 from sefaria.utils import calendars
 
 
@@ -31,7 +30,7 @@ def titles_json(request):
 
 
 def toc(request):
-    return {"toc": get_toc(), "toc_json": get_toc_json()}
+    return {"toc": library.get_toc(), "toc_json": library.get_toc_json()}
 
 
 def embed_page(request):

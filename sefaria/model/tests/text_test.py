@@ -74,14 +74,14 @@ def test_index_methods():
 
 
 def test_get_index():
-    r = model.get_index("Rashi on Exodus")
+    r = model.library.get_index("Rashi on Exodus")
     assert isinstance(r, model.CommentaryIndex)
     assert u'Rashi on Exodus' == r.title
     assert u'Rashi on Exodus' in r.titleVariants
     assert u'Rashi' not in r.titleVariants
     assert u'Exodus' not in r.titleVariants
 
-    r = model.get_index("Exodus")
+    r = model.library.get_index("Exodus")
     assert isinstance(r, model.Index)
     assert r.title == u'Exodus'
 
@@ -197,6 +197,7 @@ def test_index_delete():
     from sefaria.helper.text import create_commentator_and_commentary_version
 
     commentator_name = "Commentator Del"
+    he_commentator_name = u"פרשנדנן"
     base_book = 'Genesis'
     base_book2 = 'Pesach Haggadah'
 
@@ -204,8 +205,8 @@ def test_index_delete():
     model.VersionSet({"title": commentator_name + " on " + base_book}).delete()
     model.VersionSet({"title": commentator_name + " on " + base_book2}).delete()
 
-    create_commentator_and_commentary_version(commentator_name, base_book, 'he', 'test', 'test')
-    create_commentator_and_commentary_version(commentator_name, base_book2, 'he', 'test', 'test')
+    create_commentator_and_commentary_version(commentator_name, base_book, 'he', 'test', 'test', he_commentator_name)
+    create_commentator_and_commentary_version(commentator_name, base_book2, 'he', 'test', 'test', he_commentator_name)
 
     ci = model.Index().load({'title': commentator_name}).delete()
     assert model.Index().load({'title': commentator_name}) is None

@@ -83,7 +83,7 @@ def remove_old_counts():
     for count in counts:
         if count.get("title", None):
             try:
-                model.get_index(count["title"])
+                model.library.get_index(count["title"])
             except BookNameError:
                 print u"Old count: %s" % count["title"]
                 db.vstate.remove({"_id": count["_id"]})

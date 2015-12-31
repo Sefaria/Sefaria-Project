@@ -27,7 +27,7 @@ from sefaria.history import text_history, get_maximal_collapsed_activity, top_co
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.workflows import *
 from sefaria.reviews import *
-from sefaria.summaries import get_toc, flatten_toc, get_or_make_summary_node, REORDER_RULES
+from sefaria.summaries import flatten_toc, get_or_make_summary_node, REORDER_RULES
 from sefaria.model import *
 from sefaria.sheets import get_sheets_for_ref
 from sefaria.utils.users import user_link, user_started_text
@@ -205,7 +205,7 @@ def s2_texts_category(request, cats):
     Listing of texts in a category.
     """
     cats       = cats.split("/")
-    toc        = get_toc()
+    toc        = library.get_toc()
     cat_toc    = get_or_make_summary_node(toc, cats)
 
     if len(cat_toc) == 0:
@@ -272,7 +272,7 @@ def edit_text(request, ref=None, lang=None, version=None):
                 mode = text["mode"].capitalize()
                 initJSON = json.dumps(text)
         except:
-            index = get_index(ref)
+            index = library.get_index(ref)
             if index: # a commentator titlein
                 ref = None
                 initJSON = json.dumps({"mode": "add new", "newTitle": index.contents()['title']})
@@ -297,7 +297,7 @@ def edit_text_info(request, title=None, new_title=None):
     if title:
         # Edit Existing
         title = title.replace("_", " ")
-        i = get_index(title)
+        i = library.get_index(title)
         if not (request.user.is_staff or user_started_text(request.user.id, title)):
             return render_to_response('static/generic.html', {"title": "Permission Denied", "content": "The Text Info for %s is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed." % title}, RequestContext(request))
         indexJSON = json.dumps(i.contents(v2=True) if "toc" in request.GET else i.contents())
@@ -308,7 +308,7 @@ def edit_text_info(request, title=None, new_title=None):
         # Add New
         new_title = new_title.replace("_", " ")
         try: # Redirect to edit path if this title already exists
-            i = get_index(new_title)
+            i = library.get_index(new_title)
             return redirect("/edit/textinfo/%s" % new_title)
         except:
             pass
@@ -347,7 +347,7 @@ def make_toc_html(oref, zoom=1):
         structs        = {default_name: html } # store HTML for each structure
         alts           = index.get_alt_structures().items()
         for alt in alts:
-            structs[alt[0]] = make_alt_toc_html(alt[1])
+            structs[alt[0]] = make_alt_toc_html(alt[1], index)
 
         items  = sorted(structs.items(), key=lambda x: 0 if x[0] == default_struct else 1)
         toggle, tocs = "", ""
@@ -391,7 +391,7 @@ def make_complex_toc_html(oref):
         if node.is_leaf():
             focused = node is req_node
             html += '<div class="schema-node-contents ' + ('open' if focused or default else 'closed') + '">'
-            node_state = StateNode(snode=node)
+            node_state = kwargs["vs"].state_node(node)
             #Todo, handle Talmud and other address types, as well as commentary
             zoom = 0 if node.depth == 1 else 1
             he_counts, en_counts = node_state.var("he", "availableTexts"), node_state.var("en", "availableTexts")
@@ -401,11 +401,12 @@ def make_complex_toc_html(oref):
         html += "</a>" if linked else "</div>"
         return html
 
-    html = index.nodes.traverse_to_string(node_line)
+    vs = VersionState(index)
+    html = index.nodes.traverse_to_string(node_line, vs=vs)
     return html
 
 
-def make_alt_toc_html(alt):
+def make_alt_toc_html(alt, index):
     """
     Returns HTML Table of Contents for an alternate structure.
     :param alt - a TitledTreeNode representing an alternate structure.
@@ -442,7 +443,7 @@ def make_alt_toc_html(alt):
                 if not node.refs[i]:
                     continue
                 target_ref = Ref(node.refs[i])
-                state = StateNode(snode=target_ref.index_node)
+                state = kwargs["vs"].state_node(target_ref.index_node)  # "Binders" would need the slower - StateNode(snode=target_ref.index_node)
                 he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
                 he    = wrap_counts(JaggedArray(he_counts).subarray_with_ref(target_ref).array())
                 en    = wrap_counts(JaggedArray(en_counts).subarray_with_ref(target_ref).array())
@@ -454,7 +455,7 @@ def make_alt_toc_html(alt):
             # todo handle case where wholeRef points to complex node
             # todo handle case where wholeRef points to book name (root of simple index or commentary index)
             target_ref   = Ref(node.wholeRef)
-            state        = StateNode(snode=target_ref.index_node)
+            state        = kwargs["vs"].state_node(target_ref.index_node)  # "Binders" would need the slower - StateNode(snode=target_ref.index_node)
             he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
             refs         = target_ref.split_spanning_ref()
             first, last  = refs[0], refs[-1]
@@ -463,7 +464,7 @@ def make_alt_toc_html(alt):
                             last.normal().rsplit(":", 1)[1] if last.is_segment_level() else "")
             he           = wrap_counts(JaggedArray(he_counts).subarray_with_ref(target_ref).array())
             en           = wrap_counts(JaggedArray(en_counts).subarray_with_ref(target_ref).array())
-            depth        = len(first.index_node.sectionNames) - len(first.section_ref().sections)
+            depth        = target_ref.range_index()
             sectionNames = first.index_node.sectionNames[depth:]
             addressTypes = first.index_node.addressTypes[depth:]
             ref          = first.context_ref(level=2) if first.is_segment_level() else first.context_ref()
@@ -473,7 +474,8 @@ def make_alt_toc_html(alt):
         html += "</a>" if linked else "</div>"
         return html
 
-    html = "<div class='tocLevel'>" + alt.traverse_to_string(node_line) + "</div>"
+    vs = VersionState(index)
+    html = "<div class='tocLevel'>" + alt.traverse_to_string(node_line, vs=vs) + "</div>"
     return html
 
 
@@ -578,10 +580,10 @@ def text_toc(request, oref):
         categories = REORDER_RULES[categories[0]] + categories[1:]
     if categories[0] == "Commentary":
         categories = [categories[1], "Commentary", index.toc_contents()["commentator"]]
-    cat_slices    = [categories[:n+1] for n in range(len(categories))] # successive sublists of cats, for category links
+    cat_slices    = [categories[:n+1] for n in range(len(categories))]  # successive sublists of cats, for category links
 
     c_titles      = model.library.get_commentary_version_titles_on_book(title, with_commentary2=True)
-    c_indexes     = [get_index(commentary) for commentary in c_titles]
+    c_indexes     = [library.get_index(commentary) for commentary in c_titles]
     commentaries  = [i.toc_contents() for i in c_indexes]
 
     if index.is_complex():
@@ -689,7 +691,7 @@ def texts_category_list(request, cats):
     if request.flavour == "mobile":
         return s2_texts_category(request, cats)
     cats       = cats.split("/")
-    toc        = get_toc()
+    toc        = library.get_toc()
     cat_toc    = get_or_make_summary_node(toc, cats)
 
     if (len(cat_toc) == 0):
@@ -728,7 +730,7 @@ def search(request):
 def count_and_index(c_oref, c_lang, vtitle, to_count=1):
     # count available segments of text
     if to_count:
-        summaries.update_summaries_on_change(c_oref.book)
+        library.recount_index_in_toc(c_oref.index)
 
     from sefaria.settings import SEARCH_INDEX_ON_SAVE
     if SEARCH_INDEX_ON_SAVE:
@@ -859,7 +861,7 @@ def parashat_hashavua_api(request):
 
 @catch_error_as_json
 def table_of_contents_api(request):
-    return jsonResponse(get_toc(), callback=request.GET.get("callback", None))
+    return jsonResponse(library.get_toc(), callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -880,7 +882,7 @@ def index_api(request, title, v2=False, raw=False):
     """
     if request.method == "GET":
         try:
-            i = model.get_index(title).contents(v2=v2, raw=raw)
+            i = library.get_index(title).contents(v2=v2, raw=raw)
         except InputError as e:
             node = library.get_schema_node(title)  # If the request were for v1 and fails, this falls back to v2.
             if not node:
@@ -909,7 +911,7 @@ def index_api(request, title, v2=False, raw=False):
         else:
             title = j.get("oldTitle", j.get("title"))
             try:
-                i = get_index(title) # Only allow staff and the person who submitted a text to edit
+                # Only allow staff and the person who submitted a text to edit
                 if not request.user.is_staff and not user_started_text(request.user.id, title):
                    return jsonResponse({"error": "{} is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(title)})
             except BookNameError:
@@ -927,7 +929,7 @@ def index_api(request, title, v2=False, raw=False):
 
         title = title.replace("_", " ")
 
-        i = get_index(title)
+        i = library.get_index(title)
 
         i.delete()
         record_index_deletion(title, request.user.id)
@@ -1136,6 +1138,8 @@ def notes_api(request, note_id_or_ref):
     A called to this API with GET returns the list of public notes and private notes belong to the current user on this Ref. 
     """
     if request.method == "GET":
+        if not note_id_or_ref:
+            raise Http404
         oref = Ref(note_id_or_ref)
         cb = request.GET.get("callback", None)
         res = get_notes(oref, uid=request.user.id)
@@ -1842,7 +1846,7 @@ def dashboard(request):
         {},
         proj={"title": 1, "flags": 1, "linksCount": 1, "content._en.percentAvailable": 1, "content._he.percentAvailable": 1}
     ).array()
-    toc = get_toc()
+    toc = library.get_toc()
     flat_toc = flatten_toc(toc)
 
     def toc_sort(a):

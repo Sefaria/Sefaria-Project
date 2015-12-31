@@ -436,10 +436,10 @@ def partner_page(request, partner):
 
 
 def groups_page(request):
-    groups = GroupSet(sort=[["name", 1]])
-    return render_to_response("groups.html",
-                                {"groups": groups},
-                                RequestContext(request))
+	groups = GroupSet(sort=[["name", 1]])
+	return render_to_response("groups.html",
+								{"groups": groups},
+								RequestContext(request))
 
 
 @staff_member_required
@@ -628,7 +628,6 @@ def add_ref_to_sheet_api(request, sheet_id):
 		return jsonResponse({"error": "No ref given in post data."})
 	return jsonResponse(add_ref_to_sheet(int(sheet_id), ref))
 
-
 @login_required
 def update_sheet_tags_api(request, sheet_id):
 	"""
@@ -720,6 +719,21 @@ def sheets_by_tag_api(request, tag):
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response
+
+def get_aliyot_by_parasha_api(request, parasha):
+	response = {"ref":[]};
+
+	if parasha == "V'Zot HaBerachah":
+		return jsonResponse({"ref":["Deuteronomy 33:1-7","Deuteronomy 33:8-12","Deuteronomy 33:13-17","Deuteronomy 33:18-21","Deuteronomy 33:22-26","Deuteronomy 33:27-29","Deuteronomy 34:1-12"]}, callback=request.GET.get("callback", None))
+
+	else:
+		p = db.parshiot.find({"parasha": parasha, "date": {"$gt": datetime.now()}}, limit=1).sort([("date", 1)])
+		p = p.next()
+
+		for aliyah in p["aliyot"]:
+			response["ref"].append(aliyah)
+		return jsonResponse(response, callback=request.GET.get("callback", None))
+
 
 
 @login_required

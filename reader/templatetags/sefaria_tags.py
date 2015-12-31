@@ -209,7 +209,7 @@ def lang_code(code):
 def text_category(text):
 	"""Returns the top level category for text"""
 	try:
-		i = m.get_index(text)
+		i = m.library.get_index(text)
 		result = mark_safe(getattr(i, "categories", ["[no cats]"])[0])
 	except:
 		result = "[text not found]"

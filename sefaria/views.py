@@ -24,7 +24,6 @@ import sefaria.model as model
 import sefaria.system.cache as scache
 
 from sefaria.client.util import jsonResponse, subscribe_to_announce
-from sefaria.summaries import update_summaries, save_toc_to_db
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH
 from sefaria.model.user_profile import UserProfile
@@ -41,7 +40,7 @@ from sefaria.utils.hebrew import is_hebrew
 from sefaria.helper.text import make_versions_csv
 from sefaria.clean import remove_old_counts
 if USE_VARNISH:
-    from sefaria.system.sf_varnish import invalidate_index
+    from sefaria.system.sf_varnish import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts
 
 import logging
 logger = logging.getLogger(__name__)
@@ -237,7 +236,7 @@ def bulktext_api(request, refs):
 
 @staff_member_required
 def reset_cache(request):
-    scache.reset_texts_cache()
+    model.library.rebuild()
     global user_links
     user_links = {}
     return HttpResponseRedirect("/?m=Cache-Reset")
@@ -245,10 +244,11 @@ def reset_cache(request):
 
 @staff_member_required
 def reset_index_cache_for_text(request, title):
-    scache.set_index(title, None)
+    index = model.library.get_index(title)
+    model.library.refresh_index_record(index)
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(title))
     if USE_VARNISH:
-        invalidate_index(title)
+        invalidate_title(title)
     return HttpResponseRedirect("/%s?m=Cache-Reset" % title)
 
 
@@ -268,7 +268,7 @@ def del_cached_elem(request, title):
 def reset_counts(request, title=None):
     if title:
         try:
-            i  = model.get_index(title)
+            i  = model.library.get_index(title)
         except:
             return HttpResponseRedirect("/dashboard?m=Unknown-Book")
         vs = model.VersionState(index=i)
@@ -287,7 +287,7 @@ def delete_orphaned_counts(request):
 
 @staff_member_required
 def rebuild_toc(request):
-    update_summaries()
+    model.library.rebuild_toc()
     return HttpResponseRedirect("/?m=TOC-Rebuilt")
 
 
@@ -298,9 +298,41 @@ def rebuild_counts_and_toc(request):
 
 
 @staff_member_required
-def save_toc(request):
-    save_toc_to_db()
-    return HttpResponseRedirect("/?m=TOC-Saved")
+def reset_varnish(request, tref):
+    if USE_VARNISH:
+        oref = model.Ref(tref)
+        if oref.is_book_level():
+            invalidate_index(oref.index)
+            invalidate_counts(oref.index)
+        invalidate_ref(oref)
+        return HttpResponseRedirect("/?m=Varnish-Reset-For-{}".format(oref.url()))
+    return HttpResponseRedirect("/?m=Varnish-Not-Enabled")
+
+
+@staff_member_required
+def reset_ref(request, tref):
+    """
+    resets cache, versionstate, toc, varnish, & book TOC template
+    :param tref:
+    :return:
+    """
+    oref = model.Ref(tref)
+    if oref.is_book_level():
+        model.library.refresh_index_record(oref.index)
+        vs = model.VersionState(index=oref.index)
+        vs.refresh()
+        model.library.update_index_in_toc(oref.index)
+        scache.delete_cache_elem(scache.generate_text_toc_cache_key(oref.index.title))
+        if USE_VARNISH:
+            invalidate_index(oref.index)
+            invalidate_counts(oref.index)
+            invalidate_ref(oref)
+        return HttpResponseRedirect("/?m=Reset-Index-{}".format(oref.url()))
+    elif USE_VARNISH:
+        invalidate_ref(oref)
+        return HttpResponseRedirect("/?m=Reset-Ref-{}".format(oref.url()))
+    else:
+        return HttpResponseRedirect("/?m=Nothing-to-Reset")
 
 
 @staff_member_required
@@ -346,7 +378,6 @@ def create_commentator_version(request, commentator, book, lang, vtitle, vsource
     from sefaria.helper.text import create_commentator_and_commentary_version
     ht = request.GET.get("heTitle", None)
     create_commentator_and_commentary_version(commentator, book, lang, vtitle, vsource, ht)
-    scache.reset_texts_cache()
     return HttpResponseRedirect("/add/%s" % commentator)
 
 

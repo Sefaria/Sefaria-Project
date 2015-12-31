@@ -3,7 +3,6 @@
 Migrate category structure for Commentary2 texts
 """
 from sefaria.model import *
-from sefaria.summaries import update_table_of_contents
 
 indexes = IndexSet({"categories.0": "Commentary2"})
 
@@ -24,4 +23,4 @@ for i in indexes:
     i.categories = [u"Commentary2", i.categories[1], commentator]
     i.save()
 
-update_table_of_contents()
+library.rebuild_toc()

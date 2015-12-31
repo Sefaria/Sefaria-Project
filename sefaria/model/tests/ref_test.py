@@ -32,14 +32,12 @@ class Test_Ref(object):
         assert Ref(u"Sanhedrin 2a") != Ref(u"Sanhedrin")
         assert Ref(u"Sanhedrin 2a") == Ref(u"Sanhedrin 2")
 
+    # This test runs for 90% of this suite's time, and passes.  Seems pretty trivial.  Can we trim it?
+    @pytest.mark.deep
     def test_each_title(object):
         for lang in ["en", "he"]:
             for t in library.full_title_list(lang, False):
                 assert library.all_titles_regex(lang).match(t), u"'{}' doesn't resolve".format(t)
-    '''
-    def test_map(self):
-        assert Ref("Me'or Einayim 16") == Ref("Me'or Einayim, Yitro")
-    '''
 
     def test_comma(self):
         assert Ref("Me'or Einayim 24") == Ref("Me'or Einayim, 24")
@@ -391,6 +389,25 @@ class Test_Ref(object):
 
 
 class Test_Cache(object):
+    def test_index_flush_from_cache(self):
+        r1 = Ref("Genesis 1")
+        r2 = Ref("Exodus 3")
+        Ref.remove_index_from_cache("Genesis")
+        assert r1 is not Ref("Genesis 1")
+        assert r2 is Ref("Exodus 3")
+        Ref.remove_index_from_cache("Genesis")
+
+        r1 = Ref("Rashi on Genesis 1")
+        r2 = Ref("Rashi on Exodus 3")
+        Ref.remove_index_from_cache("Rashi on Genesis")
+        assert r1 is not Ref("Rashi on Genesis 1")
+        assert r2 is Ref("Rashi on Exodus 3")
+
+    def test_flush_index_not_found(self):
+        Ref("Genesis 1")
+        Ref.remove_index_from_cache("Genesis")
+        Ref.remove_index_from_cache("Genesis")
+
     def test_cache_identity(self):
         assert Ref("Ramban on Genesis 1") is Ref("Ramban on Genesis 1")
         assert Ref(u"שבת ד' כב.") is Ref(u"שבת ד' כב.")
