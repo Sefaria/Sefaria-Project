@@ -623,6 +623,10 @@ body {
 	background-color: #eee;
 }
 
+#sheet.boxed .sourceControlsOpen {
+	background-color: #ddd;
+}
+
 #sheet.boxed .text,
 #sheet.boxed .outside  {
 	border: 1px solid #888;
