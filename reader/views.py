@@ -1138,6 +1138,8 @@ def notes_api(request, note_id_or_ref):
     A called to this API with GET returns the list of public notes and private notes belong to the current user on this Ref. 
     """
     if request.method == "GET":
+        if not note_id_or_ref:
+            raise Http404
         oref = Ref(note_id_or_ref)
         cb = request.GET.get("callback", None)
         res = get_notes(oref, uid=request.user.id)
