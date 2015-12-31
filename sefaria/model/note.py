@@ -32,7 +32,7 @@ class Note(abst.AbstractMongoRecord):
     ]
     optional_attrs = [
         "title",
-        "anchorText"
+        "anchorText",
         "generated_by"
     ]
 

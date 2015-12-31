@@ -2390,3 +2390,22 @@ def visual_garden_page(request, g):
     }
 
     return render_to_response('visual_garden.html', template_vars, RequestContext(request))
+
+@catch_error_as_json
+@csrf_exempt
+def nli_manuscript_api(request, ref):
+    """
+    API for user notes.
+    Is this still true? "Currently only handles deleting. Adding and editing are handled throughout the links API."
+    A called to this API with GET returns the list of public notes and private notes belong to the current user on this Ref.
+    """
+    from sefaria.helper.nli import manuscript_data
+    if request.method == "GET":
+        if not ref:
+            raise Http404
+        oref = Ref(ref)
+        cb = request.GET.get("callback", None)
+        res = manuscript_data(oref)
+        return jsonResponse(res, cb)
+    else:
+        raise Http404
