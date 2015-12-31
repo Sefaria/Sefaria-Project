@@ -33,6 +33,7 @@ class Note(abst.AbstractMongoRecord):
     optional_attrs = [
         "title",
         "anchorText"
+        "generated_by"
     ]
 
     def _normalize(self):

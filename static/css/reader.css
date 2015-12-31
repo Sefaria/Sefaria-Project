@@ -1272,6 +1272,10 @@ body.sidebarEnglish .commentary.heOnly {
 body .note .anchorText {
 	display: inline;
 }
+body .note img {
+	max-width: 250px;
+    display: block;
+}
 .heNote .he {
 	display: inline !important;
 }
