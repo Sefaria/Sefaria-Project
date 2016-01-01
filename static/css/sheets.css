@@ -749,6 +749,14 @@ body {
 	width: 400px;
 }
 
+#nliModal {
+
+	width: 400px;
+	padding:10px;
+	height: 300px;
+	overflow: scroll;
+}
+
 #embedSheetModal .header {
 	font-size: 22px;
 }

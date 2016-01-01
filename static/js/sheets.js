@@ -75,8 +75,8 @@ $(function() {
 		$("#overlay").show();
 		sjs.track.sheets("Open Add Source Modal");
 	})
-	
-	$("#addMedia").click(function(e) { 
+
+	$("#addMedia").click(function(e) {
 
 		var source = {media: "", isNew: true};
 		if (sjs.can_add) { source.userLink = sjs._userLink; }
@@ -708,7 +708,7 @@ $(function() {
 							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
 							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +						
 							"<div class='switchSourceLayoutLang' title='Change Source Layout/Language'><i class='fa fa-ellipsis-h'></i></div>" +						
-
+							"<div class='addNliItem' title='Add Image from National Library'><i class='fa fa-book'></i></div>" +
 						"</div>";
 
 	var adderControls = "<div id='sourceControls'>" + 
@@ -716,6 +716,7 @@ $(function() {
 							"<div class='addSubComment' title='Add Comment'><i class='fa fa-comment'></i></div>" +
 							"<div class='addConnections' title='Add All Connections'><i class='fa fa-sitemap'></i></div>"+				
 							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
+							"<div class='addNliItem' title='Add Image from National Library'><i class='fa fa-book'></i></div>" +
 						"</div>";
 
 	var viewerControls = "<div id='sourceControls'>" + 
@@ -869,6 +870,46 @@ $(function() {
 
 	});
 
+
+	$(".addNliItem").live("click", function(e) {
+
+			console.log($(this).parents(".source").attr("data-ref"));
+		$.getJSON("/api/manuscripts/" + $(this).parents(".source").attr("data-ref"), function(data) {
+
+			if ("error" in data) {
+				console.log(data.error);
+			} else {
+				console.log(data);
+
+/*
+				for (var i = 0; i < data.ref.length; i++) {
+					var source = {
+						ref: data.ref[i]
+					}
+					console.log(parseRef(data.ref[i]));
+					buildSource($("#sources"), source);
+*/
+				}
+
+
+
+
+		});
+
+
+		var source = {media: "", isNew: true};
+		if (sjs.can_add) { source.userLink = sjs._userLink; }
+
+		buildSource($("#sources"), source);
+
+		afterAction();
+		e.stopPropagation();
+
+		$("#nliModal").data("target", $("#sources").find(".media").last()).show().position({of: $(window)});
+		$("#overlay").show();
+
+
+	});
 
 	// Open Modal to override the sheet's default language/layout options for a specific source 
 	$(".switchSourceLayoutLang").live("click", function() { 
