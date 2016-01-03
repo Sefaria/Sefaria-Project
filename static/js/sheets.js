@@ -903,7 +903,7 @@ $(function() {
 
 		$( ".nliData" ).click(function() {
 			var $target = $("#nliModal").data("target");
-    		$target.html('<img class="addedMedia" src="'+data[$(this).prevAll(".nliData").length].img_url+'" />');
+    		$target.html('<p>'+data[$(this).prevAll(".nliData").length].name_he+'<br/>'+data[$(this).prevAll(".nliData").length].name_en+'</p><img class="addedMedia" src="'+data[$(this).prevAll(".nliData").length].img_url+'" />');
 			autoSave();
 			$("#nliModal, #overlay").hide();
 		});
@@ -1806,7 +1806,11 @@ function buildSource($target, source) {
 		else if (source.media.match(/\.(mp3)$/i) != null) {
 			mediaLink = '<audio src="'+source.media+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
 		}
-		
+
+		else if (source.media.match(/(dlib\.nli\.org\.il)/i) != null) {
+			mediaLink = '<img class="addedMedia" src="'+source.media+'" />';
+		}
+
 		else {
 			mediaLink = '';
 		}
