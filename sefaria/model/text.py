@@ -4095,11 +4095,14 @@ def process_commentary_version_title_change_in_cache(ver, **kwargs):
 
 
 def process_index_change_in_core_cache(indx, **kwargs):
-    scache.delete_cache_elem(scache.generate_text_toc_cache_key(indx.title))
-    library.refresh_index_record(indx)
-    if USE_VARNISH:
-        from sefaria.system.sf_varnish import invalidate_index
-        invalidate_index(indx.title)
+    if kwargs.get("is_new"):
+        library.add_index_record(indx)
+    else:
+        scache.delete_cache_elem(scache.generate_text_toc_cache_key(indx.title))
+        library.refresh_index_record(indx)
+        if USE_VARNISH:
+            from sefaria.system.sf_varnish import invalidate_index
+            invalidate_index(indx.title)
 
 
 def process_index_change_in_toc(indx, **kwargs):
