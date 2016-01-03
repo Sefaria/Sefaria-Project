@@ -99,10 +99,7 @@ $(function() {
 				$( "#addMediaModal .ok" ).click()
 			}
 		});
-		
 
-	
-	
 	$( "#addMediaModal .ok" ).click(function() {
 
     var re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i; 
@@ -873,28 +870,7 @@ $(function() {
 
 	$(".addNliItem").live("click", function(e) {
 
-			console.log($(this).parents(".source").attr("data-ref"));
-		$.getJSON("/api/manuscripts/" + $(this).parents(".source").attr("data-ref"), function(data) {
-
-			if ("error" in data) {
-				console.log(data.error);
-			} else {
-				console.log(data);
-
-/*
-				for (var i = 0; i < data.ref.length; i++) {
-					var source = {
-						ref: data.ref[i]
-					}
-					console.log(parseRef(data.ref[i]));
-					buildSource($("#sources"), source);
-*/
-				}
-
-
-
-
-		});
+				$("#nliModalContent").html("Loading...");
 
 
 		var source = {media: "", isNew: true};
@@ -907,6 +883,33 @@ $(function() {
 
 		$("#nliModal").data("target", $("#sources").find(".media").last()).show().position({of: $(window)});
 		$("#overlay").show();
+
+
+		$.getJSON("/api/manuscripts/" + $(this).parents(".source").attr("data-ref"), function(data) {
+
+			if ("error" in data) {
+				console.log(data);
+			} else {
+				nliData = "";
+				for (var i = 0; i < data.length; i++) {
+					nliData = nliData + "<div class='nliData'>" + data[i].name_he + "<br/>" + data[i].name_en + "<br/><img src='"+data[i].img_url+"' /></div><hr/>";
+
+				}
+
+		$("#nliModalContent").html(nliData);
+
+			}
+
+
+		$( ".nliData" ).click(function() {
+			var $target = $("#nliModal").data("target");
+    		$target.html('<img class="addedMedia" src="'+data[$(this).prevAll(".nliData").length].img_url+'" />');
+			autoSave();
+			$("#nliModal, #overlay").hide();
+		});
+
+		});
+
 
 
 	});

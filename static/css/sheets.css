@@ -756,6 +756,14 @@ body {
 	height: 300px;
 	overflow: scroll;
 }
+.nliData {
+	padding:10px;
+
+}
+
+#nliModalContent img {
+	max-width: 50%;
+}
 
 #embedSheetModal .header {
 	font-size: 22px;
