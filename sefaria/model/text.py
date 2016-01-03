@@ -4050,7 +4050,7 @@ library = Library()
 
 # Deprecated
 def get_index(bookname):
-    logger.warning("Use of deprecated function: get_index()")
+    logger.warning("Use of deprecated function: get_index(). Use library.get_index()")
     return library.get_index(bookname)
 
 

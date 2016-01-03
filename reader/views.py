@@ -347,7 +347,7 @@ def make_toc_html(oref, zoom=1):
         structs        = {default_name: html } # store HTML for each structure
         alts           = index.get_alt_structures().items()
         for alt in alts:
-            structs[alt[0]] = make_alt_toc_html(alt[1])
+            structs[alt[0]] = make_alt_toc_html(alt[1], index)
 
         items  = sorted(structs.items(), key=lambda x: 0 if x[0] == default_struct else 1)
         toggle, tocs = "", ""
@@ -406,7 +406,7 @@ def make_complex_toc_html(oref):
     return html
 
 
-def make_alt_toc_html(alt):
+def make_alt_toc_html(alt, index):
     """
     Returns HTML Table of Contents for an alternate structure.
     :param alt - a TitledTreeNode representing an alternate structure.
@@ -443,7 +443,7 @@ def make_alt_toc_html(alt):
                 if not node.refs[i]:
                     continue
                 target_ref = Ref(node.refs[i])
-                state = StateNode(snode=target_ref.index_node)
+                state = kwargs["vs"].state_node(target_ref.index_node)  # "Binders" would need the slower - StateNode(snode=target_ref.index_node)
                 he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
                 he    = wrap_counts(JaggedArray(he_counts).subarray_with_ref(target_ref).array())
                 en    = wrap_counts(JaggedArray(en_counts).subarray_with_ref(target_ref).array())
@@ -455,7 +455,7 @@ def make_alt_toc_html(alt):
             # todo handle case where wholeRef points to complex node
             # todo handle case where wholeRef points to book name (root of simple index or commentary index)
             target_ref   = Ref(node.wholeRef)
-            state        = StateNode(snode=target_ref.index_node)
+            state        = kwargs["vs"].state_node(target_ref.index_node)  # "Binders" would need the slower - StateNode(snode=target_ref.index_node)
             he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
             refs         = target_ref.split_spanning_ref()
             first, last  = refs[0], refs[-1]
@@ -464,7 +464,7 @@ def make_alt_toc_html(alt):
                             last.normal().rsplit(":", 1)[1] if last.is_segment_level() else "")
             he           = wrap_counts(JaggedArray(he_counts).subarray_with_ref(target_ref).array())
             en           = wrap_counts(JaggedArray(en_counts).subarray_with_ref(target_ref).array())
-            depth        = len(first.index_node.sectionNames) - len(first.section_ref().sections)
+            depth        = len(target_ref.index_node.sectionNames) - 2 if len(target_ref.index_node.sectionNames) > 1 else 0
             sectionNames = first.index_node.sectionNames[depth:]
             addressTypes = first.index_node.addressTypes[depth:]
             ref          = first.context_ref(level=2) if first.is_segment_level() else first.context_ref()
@@ -474,7 +474,8 @@ def make_alt_toc_html(alt):
         html += "</a>" if linked else "</div>"
         return html
 
-    html = "<div class='tocLevel'>" + alt.traverse_to_string(node_line) + "</div>"
+    vs = VersionState(index)
+    html = "<div class='tocLevel'>" + alt.traverse_to_string(node_line, vs=vs) + "</div>"
     return html
 
 
@@ -1137,6 +1138,8 @@ def notes_api(request, note_id_or_ref):
     A called to this API with GET returns the list of public notes and private notes belong to the current user on this Ref. 
     """
     if request.method == "GET":
+        if not note_id_or_ref:
+            raise Http404
         oref = Ref(note_id_or_ref)
         cb = request.GET.get("callback", None)
         res = get_notes(oref, uid=request.user.id)
