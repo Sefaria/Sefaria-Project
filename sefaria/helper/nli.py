@@ -165,6 +165,7 @@ def manuscript_data(oref, unique_images=True):
         results.append({
             "name_en": m.ms_name_en,
             "name_he": m.ms_name_he,
+            "desc_he": m.ms_desc_he,
             "img_pid": m.img_pid,
             "pe_code": int(m.pe_code),
             "mi_code": int(m.mi_code),

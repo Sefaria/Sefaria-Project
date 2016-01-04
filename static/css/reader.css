@@ -1274,6 +1274,9 @@ body .note .anchorText {
 }
 body .note img {
 	max-width: 250px;
+	display: none;
+}
+body .note.expanded img {
     display: block;
 }
 .heNote .he {
