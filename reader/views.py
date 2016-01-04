@@ -464,7 +464,7 @@ def make_alt_toc_html(alt, index):
                             last.normal().rsplit(":", 1)[1] if last.is_segment_level() else "")
             he           = wrap_counts(JaggedArray(he_counts).subarray_with_ref(target_ref).array())
             en           = wrap_counts(JaggedArray(en_counts).subarray_with_ref(target_ref).array())
-            depth        = target_ref.range_index()
+            depth        = len(target_ref.index_node.sectionNames) - 2 if len(target_ref.index_node.sectionNames) > 1 else 0
             sectionNames = first.index_node.sectionNames[depth:]
             addressTypes = first.index_node.addressTypes[depth:]
             ref          = first.context_ref(level=2) if first.is_segment_level() else first.context_ref()
