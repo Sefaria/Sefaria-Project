@@ -4,14 +4,14 @@ from sefaria.model import *
 from sefaria.summaries import *
 from sefaria.local_settings import SEFARIA_DATA_PATH
 
-toc = get_toc()
+toc = library.get_toc()
 flat_toc = flatten_toc(toc)
 
 bookworm   = []
 commentary = []
 
 for title in flat_toc:
-    i = get_index(title)
+    i = library.get_index(title)
     if i.categories[0] == "Tanach":
         cat = i.categories[1]
     elif i.categories[0] == "Talmud":

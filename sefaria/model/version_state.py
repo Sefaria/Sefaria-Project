@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 from . import abstract as abst
 from . import text
 from . import link
-from text import VersionSet, AbstractIndex, AbstractSchemaContent, IndexSet, library, get_index, Ref
+from text import VersionSet, AbstractIndex, AbstractSchemaContent, IndexSet, library, Ref
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedIntArray
 from sefaria.system.exceptions import InputError, BookNameError
 from sefaria.system.cache import delete_template_cache
@@ -104,14 +104,14 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         if not index:  # so that basic model tests can run
             if getattr(self, "title", None):
                 try:
-                    self.index = get_index(self.title)
+                    self.index = library.get_index(self.title)
                 except BookNameError as e:
                     logger.warning(u"Failed to load Index for VersionState - {}: {} (Normal on Index name change)".format(self.title, e))
             return
 
         if not isinstance(index, AbstractIndex):
             try:
-                index = get_index(index)
+                index = library.get_index(index)
             except BookNameError as e:
                 logger.warning("Failed to load Index for VersionState {}: {}".format(index, e))
 
@@ -411,7 +411,7 @@ class StateNode(object):
         if snode:
             proj = None
             if meta:
-                if not snode.is_root():
+                if snode.parent:
                     raise Exception("StateNode.meta() only supported for Index roots.  Called with {} / {}".format(title, snode.primary_title("en")))
                 proj = self.meta_proj
             if hint:
@@ -515,10 +515,8 @@ def refresh_all_states():
                 VersionState(index).refresh()
         except Exception as e:
             logger.warning(u"Got exception rebuilding state for {}: {}".format(index.title, e))
-            
 
-    import sefaria.summaries as summaries
-    summaries.update_summaries()
+    library.rebuild_toc()
 
 
 def process_index_delete_in_version_state(indx, **kwargs):
@@ -543,4 +541,5 @@ def process_index_title_change_in_version_state(indx, **kwargs):
 def create_version_state_on_index_creation(indx, **kwargs):
     if indx.is_commentary():
         return
+    # If it's already there, this should be harmless
     VersionState(indx.title).save()

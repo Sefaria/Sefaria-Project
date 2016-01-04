@@ -29,7 +29,7 @@ class Test_Person_Model_Cascade(object):
         p = Person().load({"key": "Rav Ashi"})
 
         rc = p.get_relationship_set().count()
-        ic = p.get_indexes().count()
+        ic = len(p.get_indexes())
 
         p.key = "Bob"
         p.save()
@@ -37,11 +37,11 @@ class Test_Person_Model_Cascade(object):
         p1 = Person().load({"key": "Bob"})
 
         assert p1.get_relationship_set().count() == rc
-        assert p1.get_indexes().count() == ic
+        assert len(p1.get_indexes()) == ic
 
         p1.key = "Rav Ashi"
         p1.save()
 
         p2 = Person().load({"key": "Rav Ashi"})
         assert p2.get_relationship_set().count() == rc
-        assert p2.get_indexes().count() == ic
+        assert len(p2.get_indexes()) == ic

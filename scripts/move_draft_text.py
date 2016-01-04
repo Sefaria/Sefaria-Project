@@ -23,7 +23,7 @@ class ServerTextCopier(object):
         self._post_index = post_index
 
     def load_objects(self):
-        self._index_obj = get_index(self._title_to_retrieve)
+        self._index_obj = library.get_index(self._title_to_retrieve)
         if not self._index_obj:
             raise AttributeError("No record found for {}".format(self._title_to_retrieve))
         self._version_objs = []

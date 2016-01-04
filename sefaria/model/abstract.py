@@ -134,7 +134,7 @@ class AbstractMongoRecord(object):
         self._post_save()
         '''
 
-        notify(self, "save", orig_vals=self.pkeys_orig_values)
+        notify(self, "save", orig_vals=self.pkeys_orig_values, is_new=is_new_obj)
         if is_new_obj:
             notify(self, "create")
 
@@ -424,7 +424,7 @@ def notify(inst, action, **kwargs):
         "create": []
     }
     assert inst
-    assert action in actions_reqs.keys()
+    assert action in actions_reqs
 
     for arg in actions_reqs[action]:
         if not kwargs.get(arg, None):

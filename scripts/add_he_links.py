@@ -31,7 +31,7 @@ for text in texts:
 		text_total[text["title"]] = 0
 		text_order.append(text["title"])
 	print text["title"]
-	index = txt.get_index(text["title"])
+	index = txt.library.get_index(text["title"])
 	if not index or not index.get("categories"):
 		print "No index found for " + text["title"]
 		continue
@@ -58,7 +58,7 @@ for text in texts:
 total = 0
 for text in text_order:
 	num = text_total[text]
-	index = txt.get_index(text)
+	index = txt.library.get_index(text)
 	if getattr(index, "categories", None):
 		print text.replace(",",";") + "," + str(num) + "," + ",".join(index.categories)
 	else:

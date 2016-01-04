@@ -18,7 +18,7 @@ import sefaria.model as model
 from sefaria.model.text import Version
 from sefaria.utils.talmud import section_to_daf
 from sefaria.system.exceptions import InputError
-from summaries import ORDER, get_toc
+from summaries import ORDER
 from local_settings import SEFARIA_EXPORT_PATH
 from sefaria.system.database import db
 
@@ -67,7 +67,7 @@ def make_text(doc):
 
 	"""
 
-    index = model.get_index(doc["title"])
+    index = model.library.get_index(doc["title"])
     text = "\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], doc["versionSource"]])    
     version = Version().load({'title': doc["title"], 'versionTitle': doc["versionTitle"], 'language': doc["language"]})	
 
@@ -79,9 +79,8 @@ def make_text(doc):
         for v in doc["versions"]:
             text += "\n-%s\n-%s" % (v[0], v[1])
 
-			
     def make_node(node, depth, **kwargs):
-        if node.is_leaf():
+        if not node.children:
             content = "\n\n%s" % node.primary_title(doc["language"])
             content += flatten(version.content_node(node), node.sectionNames)
             return "\n\n%s" % content
@@ -153,7 +152,7 @@ def export_text(text):
 	"""
     print text["title"]
     try:
-        index = model.get_index(text["title"])
+        index = model.library.get_index(text["title"])
     except Exception as e:
         print "Skipping %s - %s" % (text["title"], e.message)
         return
@@ -284,7 +283,7 @@ def export_toc():
     """
 	Exports the TOC to a JSON file.
 	"""
-    toc = get_toc()
+    toc = model.library.get_toc()
     with open(SEFARIA_EXPORT_PATH + "/table_of_contents.json", "w") as f:
         f.write(make_json(toc).encode('utf-8'))
 

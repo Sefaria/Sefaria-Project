@@ -214,12 +214,35 @@ urlpatterns += patterns('',
     url(r'^password/reset/done/$', 'django.contrib.auth.views.password_reset_done', name='password_reset_done'),
 )
 
+static_pages = [
+    "about",
+    "donate",
+    "strategy",
+    "supporters",
+    "team",
+    "translation-guidelines",
+    "transliteration-guidelines",
+    "even-haezer-guidelines",
+    "related-projects",
+    "jobs",
+    "terms",
+    "privacy-policy",
+    "meetup1",
+    "meetup2",
+    "random-walk-through-torah",
+    "shraga-silverstein",
+    "linker",
+    "sefaria-edition",
+    "sefaria-community-translation",
+    "contributed-to-sefaria",
+]
+
 # Static Content 
 urlpatterns += patterns('reader.views', 
     url(r'^$', 'home', name="home"),
     (r'^metrics/?$', 'metrics'),
     (r'^digitized-by-sefaria/?$', 'digitized_by_sefaria'),
-    (r'^(about|donate|strategy|supporters|team|translation-guidelines|transliteration-guidelines|even-haezer-guidelines|related-projects|jobs|terms|privacy-policy|meetup1|meetup2|random-walk-through-torah|shraga-silverstein|linker)/?$', 'serve_static'),
+    (r'^(%s)/?$' % "|".join(static_pages), 'serve_static'),
 )
 
 # Explore
@@ -273,19 +296,17 @@ urlpatterns += patterns('sefaria.views',
 
 # Admin 
 urlpatterns += patterns('', 
+    (r'^admin/reset/varnish/(?P<tref>.+)$', 'sefaria.views.reset_varnish'),
     (r'^admin/reset/cache$', 'sefaria.views.reset_cache'),
     (r'^admin/reset/cache/(?P<title>.+)$', 'sefaria.views.reset_index_cache_for_text'),
-    #(r'^admin/view/template_cache/(?P<title>.+)$', 'sefaria.views.view_cached_elem'),
-    #(r'^admin/delete/template_cache/(?P<title>.+)$', 'sefaria.views.del_cached_elem'),
-    (r'^admin/rebuild/counts-toc', 'sefaria.views.rebuild_counts_and_toc'),
-    (r'^admin/rebuild/counts/(?P<title>.+)$', 'sefaria.views.reset_counts'),
-    (r'^admin/rebuild/counts/all', 'sefaria.views.reset_counts'),
+    (r'^admin/reset/counts/all$', 'sefaria.views.reset_counts'),
+    (r'^admin/reset/counts/(?P<title>.+)$', 'sefaria.views.reset_counts'),
+    (r'^admin/reset/toc$', 'sefaria.views.rebuild_toc'),
+    (r'^admin/reset/(?P<tref>.+)$', 'sefaria.views.reset_ref'),
     (r'^admin/delete/orphaned-counts', 'sefaria.views.delete_orphaned_counts'),
-    (r'^admin/rebuild/toc', 'sefaria.views.rebuild_toc'),
     (r'^admin/rebuild/commentary-links/(?P<title>.+)$', 'sefaria.views.rebuild_commentary_links'),
     (r'^admin/rebuild/citation-links/(?P<title>.+)$', 'sefaria.views.rebuild_citation_links'),
     (r'^admin/delete/citation-links/(?P<title>.+)$', 'sefaria.views.delete_citation_links'),
-    (r'^admin/save/toc', 'sefaria.views.save_toc'),
     (r'^admin/cache/stats', 'sefaria.views.cache_stats'),
     (r'^admin/cache/dump', 'sefaria.views.cache_dump'),
     (r'^admin/export/all', 'sefaria.views.export_all'),
@@ -296,6 +317,10 @@ urlpatterns += patterns('',
     (r'^admin/sheet-stats', 'sefaria.views.sheet_stats'),
     (r'^admin/versions-csv', 'sefaria.views.versions_csv'),
     (r'^admin/?', include(admin.site.urls)),
+    #(r'^admin/view/template_cache/(?P<title>.+)$', 'sefaria.views.view_cached_elem'),
+    #(r'^admin/delete/template_cache/(?P<title>.+)$', 'sefaria.views.del_cached_elem'),
+    #(r'^admin/rebuild/counts-toc', 'sefaria.views.rebuild_counts_and_toc'),
+    #(r'^admin/save/toc', 'sefaria.views.save_toc'),
 )
 
 # Catch all to send to Reader

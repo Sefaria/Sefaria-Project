@@ -97,6 +97,15 @@ def invalidate_index(indx):
     purge_url("{}/api/v2/raw/index/{}".format(FRONT_END_URL, url))
     purge_url("{}/api/v2/index/{}".format(FRONT_END_URL, url))
 
+
+def invalidate_title(title):
+    title = title.replace(" ", "_").replace(":", ".")
+    invalidate_index(title)
+    invalidate_counts(title)
+    manager.run("ban", 'obj.http.url ~ "/api/texts/{}"'.format(title), secret=secret)
+    manager.run("ban", 'obj.http.url ~ "/api/links/{}"'.format(title), secret=secret)
+
+
 #PyPi version of python-varnish has broken purge function.  We use this instead.
 def purge_url(url):
     """
