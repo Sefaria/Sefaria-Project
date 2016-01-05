@@ -1358,6 +1358,8 @@ function readSheet() {
 		sheet.promptedToPublish = sjs.current.promptedToPublish || false;
 	}
 
+
+
 	sheet.title    = $("#title").html();
 	sheet.sources  = readSources($("#sources"));
 	sheet.options  = {};
@@ -1368,6 +1370,14 @@ function readSheet() {
 	if ($("#author").hasClass("custom")) {
 		sheet.attribution = $("#author").html();
 	}
+
+
+	if ($("#assignmentAttribution")) {
+		if (sjs.assigner_id == null) sheet.assigner_id = sjs.current.owner;
+	}
+
+	if (sjs.assignment_id) sheet.assignment_id = sjs.assignment_id;
+
 
 	if (sjs.can_add) {
 		// Adders can't change saved options
@@ -1610,7 +1620,7 @@ function buildSheet(data){
 		alert(data.error);
 		return;
 	}
-	
+
 	sjs.loading = true;
 
 	if (data.title) {
@@ -1651,7 +1661,6 @@ function buildSheet(data){
 	else if (data.options.collaboration == "anyone-can-edit" && data.status == "unlisted") $("#sharingModal input[type='radio'][name='sharingOptions'][value='privateEdit']").attr('checked', 'checked');
 	else if (data.options.collaboration == "group-can-edit" && data.status == "unlisted") $("#sharingModal input[type='radio'][name='sharingOptions'][value='groupEdit']").attr('checked', 'checked');
 
-	 
 	// Set Sheet Group
 	if (data.group) {
 		$(".groupOption .fa-check").addClass("hidden");	
@@ -1666,6 +1675,8 @@ function buildSheet(data){
 		$(".groupSharing").hide();
 		$(".individualSharing").show();
 	}
+
+	if (data.assigner_id) sjs.assigner_id = data.assigner_id;
 
 	sjs.sheetTagger.init(data.id, data.tags);
 
