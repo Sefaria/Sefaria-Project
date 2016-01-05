@@ -214,12 +214,35 @@ urlpatterns += patterns('',
     url(r'^password/reset/done/$', 'django.contrib.auth.views.password_reset_done', name='password_reset_done'),
 )
 
+static_pages = [
+    "about",
+    "donate",
+    "strategy",
+    "supporters",
+    "team",
+    "translation-guidelines",
+    "transliteration-guidelines",
+    "even-haezer-guidelines",
+    "related-projects",
+    "jobs",
+    "terms",
+    "privacy-policy",
+    "meetup1",
+    "meetup2",
+    "random-walk-through-torah",
+    "shraga-silverstein",
+    "linker",
+    "sefaria-edition",
+    "sefaria-community-translation",
+    "contributed-to-sefaria",
+]
+
 # Static Content 
 urlpatterns += patterns('reader.views', 
     url(r'^$', 'home', name="home"),
     (r'^metrics/?$', 'metrics'),
     (r'^digitized-by-sefaria/?$', 'digitized_by_sefaria'),
-    (r'^(about|donate|strategy|supporters|team|translation-guidelines|transliteration-guidelines|even-haezer-guidelines|related-projects|jobs|terms|privacy-policy|meetup1|meetup2|random-walk-through-torah|shraga-silverstein|linker)/?$', 'serve_static'),
+    (r'^(%s)/?$' % "|".join(static_pages), 'serve_static'),
 )
 
 # Explore

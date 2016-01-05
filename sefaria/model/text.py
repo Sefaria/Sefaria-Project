@@ -6,6 +6,7 @@ text.py
 import logging
 logger = logging.getLogger(__name__)
 
+import sys
 import regex
 import copy
 import bleach
@@ -3305,7 +3306,8 @@ class Library(object):
         self._toc_json = None
         self._category_id_dict = None
 
-        self._build_core_maps()
+        if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
+            self._build_core_maps()
 
     def _build_core_maps(self):
         # Build index and title node dicts in an efficient way

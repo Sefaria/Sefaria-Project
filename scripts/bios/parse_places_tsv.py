@@ -12,7 +12,7 @@ import unicodecsv as csv
 2 GeoCode
 """
 
-PlaceSet().delete()
+#PlaceSet().delete()
 try:
     db.place.create_index([("point", pymongo.GEOSPHERE)])
     db.place.create_index([("area", pymongo.GEOSPHERE)])
