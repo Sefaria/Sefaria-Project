@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from sefaria.model.text import library, Ref
+from sefaria.model.text import library, Ref, Index, CommentaryIndex
 
 
 
@@ -212,6 +212,71 @@ class Test_get_titles_in_text(object):
 
 
 class Test_Library(object):
+    def test_cache_populated_on_instanciation(self):
+        assert library._index_map
+        assert "en" in library.langs
+        assert "he" in library.langs
+        for lang in library.langs:
+            assert library._index_title_maps[lang]
+            assert library._index_title_commentary_maps[lang]
+            assert library._title_node_maps[lang]
+            assert library._title_node_with_commentary_maps[lang]
+
+    def test_all_index_caches_removed_and_added_simple(self):
+
+        assert "Genesis" in library._index_map
+        assert "Bereishit" in library._index_title_maps["en"]["Genesis"]
+        assert "Bereishit" in library._title_node_maps["en"]
+        assert "Bereishit" in library._title_node_with_commentary_maps["en"]
+        assert u"בראשית" in library._index_title_maps["he"]["Genesis"]
+        assert u"בראשית" in library._title_node_maps["he"]
+        assert u"בראשית" in library._title_node_with_commentary_maps["he"]
+
+        library.remove_index_record(library.get_index("Genesis"))
+
+        assert "Genesis" not in library._index_map
+        assert "Genesis" not in  library._index_title_maps["en"]
+        assert "Bereishit" not in library._title_node_maps["en"]
+        assert "Bereishit" not in library._title_node_with_commentary_maps["en"]
+        assert "Genesis" not in library._index_title_maps["he"]
+        assert u"בראשית" not in library._title_node_maps["he"]
+        assert u"בראשית" not in library._title_node_with_commentary_maps["he"]
+
+        library.add_index_record(Index().load({"title": "Genesis"}))
+
+        assert "Genesis" in library._index_map
+        assert "Bereishit" in library._index_title_maps["en"]["Genesis"]
+        assert "Bereishit" in library._title_node_maps["en"]
+        assert "Bereishit" in library._title_node_with_commentary_maps["en"]
+        assert u"בראשית" in library._index_title_maps["he"]["Genesis"]
+        assert u"בראשית" in library._title_node_maps["he"]
+        assert u"בראשית" in library._title_node_with_commentary_maps["he"]
+
+
+    def test_all_index_caches_removed_and_added_commentary(self):
+        assert "Rashi on Genesis" in library._index_map
+        assert "Rashi on Bereishit" in library._title_node_with_commentary_maps["en"]
+        assert "Rashi on Bereishit" in library._index_title_commentary_maps["en"]["Rashi on Genesis"]
+        assert u'רש"י על בראשית' in library._index_title_commentary_maps["he"]["Rashi on Genesis"]
+        assert u'רש"י על בראשית' in library._title_node_with_commentary_maps["he"]
+
+        library.remove_index_record(library.get_index("Rashi on Genesis"))
+
+        assert "Rashi on Genesis" not in library._index_map
+        assert "Rashi on Bereishit" not in library._title_node_with_commentary_maps["en"]
+        assert "Rashi on Genesis" not in library._index_title_commentary_maps["en"]
+        assert "Rashi on Genesis" not in library._index_title_commentary_maps["he"]
+        assert u'רש"י על בראשית' not in library._title_node_with_commentary_maps["he"]
+
+        library.add_index_record(CommentaryIndex("Rashi", "Genesis"))
+
+        assert "Rashi on Genesis" in library._index_map
+        assert "Rashi on Bereishit" in library._title_node_with_commentary_maps["en"]
+        assert "Rashi on Bereishit" in library._index_title_commentary_maps["en"]["Rashi on Genesis"]
+        assert u'רש"י על בראשית' in library._index_title_commentary_maps["he"]["Rashi on Genesis"]
+        assert u'רש"י על בראשית' in library._title_node_with_commentary_maps["he"]
+
+
     def test_get_title_node(self):
         node = library.get_schema_node("Exodus")
         assert node.is_flat()

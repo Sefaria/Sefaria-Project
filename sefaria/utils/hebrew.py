@@ -388,10 +388,6 @@ def hebrew_term(s):
 		"Midrash Rabbah":       u"מדרש רבה",
 		"Responsa":             u'שו"ת',
 		"Other":                u"שונות",
-		"Rashba":               u'רשב"א',
-		"Rambam":               u'רמב"ם',
-		"Maharam Shif":         u'מהר"ם שיף',
-		"Shita Mekubetzet":     u'שיטה מקובצת',
 		"Siddur":               u"סידור",
 		"Liturgy":              u"תפילה",
 		"Piyutim":              u"פיוטים",
@@ -413,6 +409,20 @@ def hebrew_term(s):
 		"Minor Tractates":      u"מסכתות קטנות",
 		"Rosh":                 u'ר"אש',
 		"Maharsha":             u'מהרשא',
+		"Rashba":	            u'רשב"א',
+		"Maharam Shif":		    u'מהר"ם שיף',
+		"Rambam":	            u'רמב"ם',
+		"Radbaz":		        u'רדב"ז',
+		"Tosafot Yom Tov":      u"תוספות יום טוב",
+		"Chidushei Halachot":   u"חידושי הלכות",
+		"Chidushei Agadot":     u"חידושי אגדות",
+		"Tiferet Shmuel":       u"תפארת שמואל",
+		"Korban Netanel":       u"קרבן נתנאל",
+		"Pilpula Charifta":     u"פילפולא חריפתא",
+		"Divrey Chamudot":      u"דברי חמודות",
+		"Maadaney Yom Tov":     u"מעדני יום טב",
+		"Shita Mekubetzet":     u'שיטה מקובצת',
+		"Modern Works":		u"יצירות מודרניות",
 	}
 
 	pseudo_categories = {
@@ -442,7 +452,6 @@ def hebrew_term(s):
 		"Line":             u"שורה",
 		"Daf":              u"דף",
 		"Paragraph":        u"פסקה",
-		"Piska":            u"פסקה",
 		"Parsha":           u"פרשה",
 		"Parasha":          u"פרשה",
 		"Parashah":         u"פרשה",
@@ -490,10 +499,10 @@ def hebrew_term(s):
 		"Aliyah":           u"עלייה",
 		"Tikkun":           u"תיקון",
 		"Tikkunim":         u"תיקונים",
-        "Hilchot":          u"הילכות",
-        "Topic":            u"נושא",
-        "Contents":         u"תוכן"
-    }
+		"Hilchot":          u"הילכות",
+		"Topic":            u"נושא",
+		"Contents":         u"תוכן",
+	}
 
 	words = dict(categories.items() + pseudo_categories.items() + section_names.items())
 

@@ -3309,8 +3309,8 @@ class Library(object):
 
     def _build_core_maps(self):
         # Build index and title node dicts in an efficient way
-        from operator import add
 
+        # self._index_title_commentary_maps if index_object.is_commentary() else self._index_title_maps
         # simple texts
         self._index_map = {i.title: i for i in IndexSet() if i.nodes}
         forest = [i.nodes for i in self._index_map.values()]
@@ -3319,7 +3319,9 @@ class Library(object):
         for tree in forest:
             try:
                 for lang in self.langs:
-                    self._title_node_maps[lang].update(tree.title_dict(lang))
+                    tree_titles = tree.title_dict(lang)
+                    self._index_title_maps[lang][tree.key] = tree_titles.keys()
+                    self._title_node_maps[lang].update(tree_titles)
             except IndexSchemaError as e:
                 logger.error(u"Error in generating title node dictionary: {}".format(e))
 
@@ -3332,7 +3334,9 @@ class Library(object):
         for tree in commentary_forest:
             try:
                 for lang in self.langs:
-                    self._title_node_with_commentary_maps[lang].update(tree.title_dict(lang))
+                    tree_titles = tree.title_dict(lang)
+                    self._index_title_commentary_maps[lang][tree.key] = tree_titles.keys()
+                    self._title_node_with_commentary_maps[lang].update(tree_titles)
             except IndexSchemaError as e:
                 logger.error(u"Error in generating title node dictionary: {}".format(e))
 
@@ -3564,7 +3568,7 @@ class Library(object):
                         pass
                 del self._index_title_commentary_maps[lang][index_title]
             else:
-                logger.warning("Failed to remove '{}' from index-title and title-node cache: nothing to remove".format(index_title))
+                logger.warning("Failed to remove '{}' from {} index-title and title-node cache: nothing to remove".format(index_title, lang))
                 return
 
         if rebuild:
@@ -4050,7 +4054,7 @@ library = Library()
 
 # Deprecated
 def get_index(bookname):
-    logger.warning("Use of deprecated function: get_index()")
+    logger.warning("Use of deprecated function: get_index(). Use library.get_index()")
     return library.get_index(bookname)
 
 
@@ -4091,11 +4095,14 @@ def process_commentary_version_title_change_in_cache(ver, **kwargs):
 
 
 def process_index_change_in_core_cache(indx, **kwargs):
-    scache.delete_cache_elem(scache.generate_text_toc_cache_key(indx.title))
-    library.refresh_index_record(indx)
-    if USE_VARNISH:
-        from sefaria.system.sf_varnish import invalidate_index
-        invalidate_index(indx.title)
+    if kwargs.get("is_new"):
+        library.add_index_record(indx)
+    else:
+        scache.delete_cache_elem(scache.generate_text_toc_cache_key(indx.title))
+        library.refresh_index_record(indx)
+        if USE_VARNISH:
+            from sefaria.system.sf_varnish import invalidate_index
+            invalidate_index(indx.title)
 
 
 def process_index_change_in_toc(indx, **kwargs):
