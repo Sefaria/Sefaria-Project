@@ -81,8 +81,10 @@ body.dark {
   width: 80%;
 }
 .header .home {
-  opacity: .6;
   display: inline-block;
+}
+.header .home img {
+  opacity: 0.6;
 }
 .header .library, .header .account {
   margin: 0px 17px;
@@ -516,12 +518,13 @@ body .bilingual .enOnly .he {
 .readerNavCalendar .gridBox td:last-child {
   border-right: 0;
 }
-.readerNavMenu .blockLink.refLink,
+.readerNavMenu .blockLink,
 .readerNavMenu .sheetsLink {
   display: inline-block;
   color: black;
   background-color: white;
   text-align: center;
+  font-size: 16px;
   padding: 8px 0 12px;
   border-top: 4px solid transparent;
   width: 100%;

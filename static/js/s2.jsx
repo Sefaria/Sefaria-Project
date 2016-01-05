@@ -487,7 +487,7 @@ var Header = React.createClass({
     }
   },
   render: function() {
-    var viewContent = this.state.mode ? 
+    var viewContent = this.state.mode ?
                         (<ReaderPanel
                           multiPanel={true}
                           initialMenu={this.state.mode}
@@ -515,6 +515,7 @@ var Header = React.createClass({
             </div>);
   }
 });
+
 
 var ReaderPanel = React.createClass({
   propTypes: {
@@ -889,6 +890,8 @@ var ReaderPanel = React.createClass({
                     close={this.closeMenus}
                     initialTag={this.state.navigationSheetTag}
                     setSheetTag={this.setSheetTag} />);
+    } else if (this.state.menuOpen === "account") {
+      var menu = (<AccountPanel />);
     } else {
       var menu = null;
     }
@@ -1348,6 +1351,21 @@ var TextBlockLink = React.createClass({
               <span className="en">{title}</span>
               <span className="he">{heTitle}</span>
              </a>)
+  }
+});
+
+
+var BlockLink = React.createClass({
+  propTypes: {
+    title:    React.PropTypes.string,
+    heTitle:  React.PropTypes.string,
+    target:   React.PropTypes.string
+  },
+  render: function() { 
+    return (<a className="blockLink" href={this.props.target}>
+              <span className="en">{this.props.title}</span>
+              <span className="he">{this.props.heTitle}</span>
+           </a>) 
   }
 });
 
@@ -3236,6 +3254,55 @@ var SearchSheetResult = React.createClass({
             <div className='version' dangerouslySetInnerHTML={get_version_markup()} ></div>
             </div>);
     }
+});
+
+
+var AccountPanel = React.createClass({
+  render: function() {
+    var width = $(window).width();
+    var accountContent = [
+      (<BlockLink target="/my/profile" title="Profile" />),
+      (<BlockLink target="/sheets/private" title="Source Sheets" />),
+      (<BlockLink target="#" title="Reading History" />),
+      (<BlockLink target="#" title="Notes" />),
+      (<BlockLink target="/settings/account" title="Settings" />)
+    ];
+    accountContent = (<TwoOrThreeBox content={accountContent} width={width} />);
+
+    var learnContent = [
+      (<BlockLink target="/about" title="About" />),
+      (<BlockLink target="/faq" title="FAQ" />),
+      (<BlockLink target="http://blog.sefaria.org" title="Blog" />),
+      (<BlockLink target="/educators" title="Educators" />),
+      (<BlockLink target="/help" title="Help" />),
+      (<BlockLink target="/team" title="Team" />)
+    ];
+
+    learnContent = (<TwoOrThreeBox content={learnContent} width={width} />);
+
+    var contributeContent = [
+      (<BlockLink target="/contribute" title="Contribute" />),
+      (<BlockLink target="/activity" title="Recent Activity" />),
+      (<BlockLink target="/metrics" title="Metrics" />),      
+      (<BlockLink target="/donate" title="Donate" />),
+      (<BlockLink target="/jobs" title="Jobs" />),
+      (<BlockLink target="/contact" title="Contact" />),
+
+    ];
+    contributeContent = (<TwoOrThreeBox content={contributeContent} width={width} />);
+
+    return (
+      <div className="accountPanel readerNavMenu">
+        <div className="content">
+          <div className="contentInner">
+           <ReaderNavigationMenuSection title="Account" heTitle="נצפו לאחרונה" content={accountContent} />
+           <ReaderNavigationMenuSection title="Learn" heTitle="נצפו לאחרונה" content={learnContent} />
+           <ReaderNavigationMenuSection title="Contribute" heTitle="נצפו לאחרונה" content={contributeContent} />
+          </div>
+        </div>
+      </div>
+      );
+  }
 });
 
 
