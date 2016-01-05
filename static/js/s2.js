@@ -2076,7 +2076,8 @@ var TextRange = React.createClass({displayName: "TextRange",
 
     var showNumberLabel    = this.state.data.categories &&
                               this.state.data.categories[0] !== "Talmud" &&
-                              this.state.data.categories[0] !== "Liturgy";
+                              this.state.data.categories[0] !== "Liturgy" &&
+                              this.state.data.categories[0] !== "Literature";
 
     var showSegmentNumbers = showNumberLabel && this.props.basetext;
                               

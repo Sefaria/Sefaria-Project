@@ -1756,7 +1756,8 @@ function buildView(data) {
 		"<i>No text available.</i>";
 	var params = getUrlVars();
 	var hideNumbers = (data.categories[0] == "Talmud" && data.categories[1] == "Bavli") ||
-						data.categories[0] == "Liturgy";
+						data.categories[0] == "Liturgy" ||
+                        data.categories[0] == "Literature";
     hideNumbers  = "showNumbers" in params ? false : hideNumbers;
 	var basetext = basetextHtml(data.text, data.he, "", data.alts, data.sectionNames[data.sectionNames.length - 1], hideNumbers);
 	if (!basetext) {
