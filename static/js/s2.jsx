@@ -338,6 +338,9 @@ var ReaderApp = React.createClass({
     var oRef = sjs.library.ref(ref);
     var json = $.cookie("recentlyViewed");
     recent = json ? JSON.parse(json) : [];
+    recent = recent.filter(function(item) {
+      return item.ref !== ref; // Remove this item if it's in the list already
+    });
     recent.splice(0, 0, {ref: ref, book: oRef.indexTitle});
     recent = recent.slice(0, 3);
     $.cookie("recentlyViewed", JSON.stringify(recent), {path: "/"});
