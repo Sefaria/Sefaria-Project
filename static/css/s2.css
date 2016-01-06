@@ -1412,6 +1412,12 @@ display: block;margin: 0 auto;}
 .textList .heOnly {
   display: block;
 }
+.textList.fullPanel .textListTop .leftButtons {
+  margin: 9px 0 0 10px;
+}
+.textList.fullPanel .textListTop .rightButtons {
+  margin: 9px 10px 0 0;
+}
 .gridBox {
   width: 100%;
   border-collapse: collapse;

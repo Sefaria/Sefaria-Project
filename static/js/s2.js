@@ -2734,16 +2734,16 @@ var TextList = React.createClass({displayName: "TextList",
                 this.props.multiPanel ? (React.createElement(ReaderNavigationMenuCloseButton, {icon: "arrow", onClick: this.props.closePanel})) : null, 
                 this.props.multiPanel ? null : (React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.openNav})) 
                )) : null, 
+            this.props.fullPanel ? 
+              (React.createElement("div", {className: "rightButtons"}, 
+                React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings})
+               )) : null, 
             React.createElement(RecentFilterSet, {
               showText: this.props.showText, 
               filter: this.props.filter, 
               recentFilters: this.props.recentFilters, 
               setFilter: this.props.setFilter, 
-              showAllFilters: this.showAllFilters}), 
-            this.props.fullPanel ? 
-              (React.createElement("div", {className: "rightButtons"}, 
-                React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings})
-               )) : null
+              showAllFilters: this.showAllFilters})
           ), 
           React.createElement("div", {className: "texts"}, 
             React.createElement("div", {className: "contentInner"}, 
