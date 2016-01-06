@@ -320,6 +320,10 @@ def replace_roman_numerals(text, allow_lowercase=False):
     return re.sub(regex, replace_roman_numerals_in_match, text)
 
 
+def replace_roman_numerals_including_lowercase(text):
+    return replace_roman_numerals(text, allow_lowercase=True)
+
+
 def make_versions_csv():
     """
     Returns a CSV of all text versions in the DB.
