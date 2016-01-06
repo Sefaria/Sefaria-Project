@@ -87,6 +87,7 @@ body.dark {
   font-family: "adobe-garamond-pro", Georgia, serif;
   vertical-align: 2px;
   width: 90%;
+  margin: 0;
 }
 .header .home {
   display: inline-block;
