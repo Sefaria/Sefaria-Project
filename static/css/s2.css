@@ -52,16 +52,18 @@ body.dark {
   line-height: 54px;
   padding: 0px 30px;
   text-align: center;
+  height: 54px;
+  overflow: hidden;
 }
 .header .left {
   float: left;
   text-align: left;
-  width: 90%;
+  height: 54px;
+  overflow: hidden;
 }
 .header .right {
   float: right;
   text-align: right;
-  width: 10%;
 }
 .header .library, .header .home, .header .account, .header .readerNavMenuSearchButton {
   cursor: pointer;
@@ -69,6 +71,12 @@ body.dark {
 .header .library, .header .account, .header .readerNavMenuSearchButton {
   display: inline-block;
   color: #999;
+}
+.header .searchBox {
+  overflow: hidden;
+  display: block;
+  padding: 0;
+  text-align: left;
 }
 .header .search {
   outline: none;
@@ -78,7 +86,7 @@ body.dark {
   font-size:  18px;
   font-family: "adobe-garamond-pro", Georgia, serif;
   vertical-align: 2px;
-  width: 80%;
+  width: 90%;
 }
 .header .home {
   display: inline-block;
