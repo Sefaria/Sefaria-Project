@@ -32,7 +32,7 @@ var ReaderApp = React.createClass({
     }
     return {
       panels: panels,
-      header: {mode: null}
+      header: {mode: this.props.initialMenu, query: this.props.initialQuery, panelState: {}}
     };
   },
   componentDidMount: function() {
@@ -43,22 +43,26 @@ var ReaderApp = React.createClass({
     window.removeEventListener("popstate", this.handlePopState);
   },
   componentDidUpdate: function() {
-    if (this.justPoppped) {
+    if (this.justPopped) {
+      console.log("Skipping history update - just popped")
       this.justPopped = false;
+      this.justSkipped = true;
+      //debugger
       return;
     }
+    //if (this.justSkipped) {debugger;}
     this.updateHistoryState(this.replaceHistory);
     this.replaceHistory = false;
   },
   handlePopState: function(event) {
     var state = event.state;
+    console.log("Pop");
+    console.log(state);
     if (state) {
       var kind = "";
       sjs.track.event("Reader", "Pop State", kind);
       this.justPopped = true;
       this.setState(state);
-      console.log("Pop");
-      console.log(state);
     }
   },
   shouldHistoryUpdate: function() {
@@ -70,8 +74,8 @@ var ReaderApp = React.createClass({
       return true; 
     }
     if (this.state.header.mode) {
-      prevPanels = [history.state.header.panelState];
-      nextPanels = [this.state.header.panelState];
+      prevPanels = history.state.header.panelState ? [history.state.header.panelState] : [];
+      nextPanels = this.state.header.panelState ? [this.state.header.panelState] : [];
     } else {
       prevPanels = history.state.panels;
       nextPanels = this.state.panels; 
@@ -81,6 +85,8 @@ var ReaderApp = React.createClass({
       // Cycle through each panel, compare previous state to next state, looking for differences
       var prev  = prevPanels[i];
       var next  = nextPanels[i];
+
+      if (!prev || ! next) { debugger; }
 
       if ((prev.mode !== next.mode) ||
           (prev.menuOpen !== next.menuOpen) ||
@@ -107,7 +113,6 @@ var ReaderApp = React.createClass({
     var histories = [];
     // When the header has a panel open, only look at its content for history
     var panels = this.state.header.mode ? [this.state.header.panelState] : this.state.panels;
-    //debugger
     for (var i = 0; i < panels.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
       var hist  = {url: ""};
@@ -181,7 +186,7 @@ var ReaderApp = React.createClass({
     // Now merge all history object into one
     var url   = "/" + (histories.length ? histories[0].url : "");
     var title =  histories.length ? histories[0].title : "Sefaria"
-    var hist  = {state: this.state, url: url, title: title};
+    var hist  = {state: clone(this.state), url: url, title: title};
     for (var i = 1; i < histories.length; i++) {
       if (histories[i-1].mode === "Text" && histories[i].mode === "Connections") {
         if (i == 1) {
@@ -204,8 +209,7 @@ var ReaderApp = React.createClass({
     hist.url = hist.url.replace(/&/, "?");
 
     // for testing
-    if (window.location.pathname.indexOf("/s2") === 0 || 
-        "s2" in getUrlVars()) { 
+    if (window.location.pathname.indexOf("/s2") === 0 || "s2" in getUrlVars()) { 
       hist.url = "/s2" + hist.url;
     }
 
@@ -219,12 +223,12 @@ var ReaderApp = React.createClass({
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
       console.log("Replace History - " + hist.url)
-      //console.log(hist);
+      console.log(hist);
     } else {
-      if (window.location.pathname == hist.url) { debugger }
+      if (window.location.pathname == hist.url) { return; } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
       console.log("Push History - " + hist.url);
-      //console.log(hist);
+      console.log(hist);
     }
     $("title").html(hist.title);
 
@@ -236,7 +240,7 @@ var ReaderApp = React.createClass({
     var current = JSON.stringify(this.state.panels[n]);
     var update  = JSON.stringify(state);
     if (current !== update) { // Ignore unless state changed
-      //console.log("Panel update called with " + action + " from " + n);
+      console.log("Panel update called with " + action + " from " + n);
       //console.log(state);
       var langChange  = this.state.panels[n].completeState && state.settings.language !== this.state.panels[n].settings.language;
 
@@ -262,6 +266,7 @@ var ReaderApp = React.createClass({
     var current = JSON.stringify(this.state.header);
     var update  = JSON.stringify(state);
     if (current !== update) {
+      console.log("Header update in RA");
       this.setState({header: state});
     }
   },
@@ -402,6 +407,7 @@ var ReaderApp = React.createClass({
                         onCitationClick={onCitationClick}
                         onTextListClick={onTextListClick}
                         onUpdate={onPanelUpdate}
+                        setTextListHightlight={setTextListHightlight}
                         closePanel={closePanel}
                         panelsOpen={this.state.panels.length} />
                     </div>);
@@ -415,7 +421,8 @@ var ReaderApp = React.createClass({
                 <Header 
                   onUpdate={this.handleHeaderUpdate}
                   onRefClick={this.openPanelAtEnd}
-                  initialMode={this.props.initialMenu}
+                  initialMode={this.state.header.mode}
+                  initialQuery={this.state.header.query}
                   panelsOpen={this.state.panels.length} /> : null}
               {panels}
             </div>);
@@ -426,6 +433,7 @@ var ReaderApp = React.createClass({
 var Header = React.createClass({
   propTypes: {
     initialMode:       React.PropTypes.string,
+    initialQuery:      React.PropTypes.string,
     initialState:      React.PropTypes.object,
     onUpdate:          React.PropTypes.func,
     onRefClick:        React.PropTypes.func,
@@ -437,7 +445,7 @@ var Header = React.createClass({
     }
     return {
       mode: this.props.initialMode || null,
-      query: null,
+      query: this.props.initialQuery,
       panelState: null
     };
   },
@@ -540,7 +548,7 @@ var Header = React.createClass({
     var prev     = JSON.stringify(this.state.panelState);
     var current  = JSON.stringify(state);
     if (current !== prev) {
-      this.setState({panelState: state});
+      this.setState({mode: state.menuOpen, panelState: state});
     }
   },
   render: function() {
@@ -632,7 +640,7 @@ var ReaderPanel = React.createClass({
   componentDidMount: function() {
     if (this.props.onUpdate) {
       // Make sure the initial state of this panel is pushed up to ReaderApp
-      this.props.onUpdate("replace", this.state);     
+      //this.props.onUpdate("replace", this.state);     
     }
     this.setHeadroom();
     this.trackPanelOpens();
@@ -3166,17 +3174,18 @@ var SearchResultList = React.createClass({
             return null;
         }
         if (this.state.runningQuery) {
-            return (<LoadingMessage />)
+            return (<LoadingMessage />);
         }
         var addCommas = function(number) { return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); };
         var totalWithCommas = addCommas(this.state.total);
         var totalSheetsWithCommas = addCommas(this.state.sheet_total);
         var totalTextsWithCommas = addCommas(this.state.text_total);
 
-        var totalBreakdown = <span className="results-breakdown">&nbsp;
+        var totalBreakdown = (
+          <span className="results-breakdown">&nbsp;
             <span className="he">({totalTextsWithCommas} {(this.state.text_total > 1) ? "מקורות":"מקור"}, {totalSheetsWithCommas} {(this.state.sheet_total > 1)?"דפי מקורות":"דף מקורות"})</span>
             <span className="en">({totalTextsWithCommas} {(this.state.text_total > 1) ? "Texts":"Text"}, {totalSheetsWithCommas} {(this.state.sheet_total > 1)?"Sheets":"Sheet"})</span>
-        </span>;
+          </span>);
 
         return (
             <div>
@@ -3186,21 +3195,20 @@ var SearchResultList = React.createClass({
                     {(this.state.sheet_total > 0 && this.state.text_total > 0) ? totalBreakdown : null}
                 </div>
                 {this.state.text_hits.map(function(result) {
-                    return <SearchTextResult
-                        data={result}
-                        query={this.props.query}
-                        key={result.ref}
-                        onResultClick={this.props.onResultClick} />;
+                    return (<SearchTextResult
+                              data={result}
+                              query={this.props.query}
+                              key={result.ref}
+                              onResultClick={this.props.onResultClick} />);
                 }.bind(this))}
                 {this.state.sheet_hits.map(function(result) {
-                    return <SearchSheetResult
-                        data={result}
-                        query={this.props.query}
-                        key={result._id} />;
+                    return (<SearchSheetResult
+                              data={result}
+                              query={this.props.query}
+                              key={result._id} />);
                 }.bind(this))}
             </div>
-
-        )
+        );
     }
 });
 

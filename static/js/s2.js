@@ -31,7 +31,8 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
       }
     }
     return {
-      panels: panels
+      panels: panels,
+      header: {mode: this.props.initialMenu, query: this.props.initialQuery, panelState: {}}
     };
   },
   componentDidMount: function() {
@@ -41,28 +42,51 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
   componentWillUnmount: function() {
     window.removeEventListener("popstate", this.handlePopState);
   },
+  componentDidUpdate: function() {
+    if (this.justPopped) {
+      console.log("Skipping history update - just popped")
+      this.justPopped = false;
+      this.justSkipped = true;
+      //debugger
+      return;
+    }
+    //if (this.justSkipped) {debugger;}
+    this.updateHistoryState(this.replaceHistory);
+    this.replaceHistory = false;
+  },
   handlePopState: function(event) {
     var state = event.state;
+    console.log("Pop");
+    console.log(state);
     if (state) {
       var kind = "";
       sjs.track.event("Reader", "Pop State", kind);
       this.justPopped = true;
       this.setState(state);
-      //console.log("Pop");
-      //console.log(state);
     }
   },
   shouldHistoryUpdate: function() {
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
-    if (!history.state) { return true; }
+    if (!history.state ||
+         history.state.panels.length !== this.state.panels.length ||
+         history.state.header.mode !== this.state.header.mode ) { 
+      return true; 
+    }
+    if (this.state.header.mode) {
+      prevPanels = history.state.header.panelState ? [history.state.header.panelState] : [];
+      nextPanels = this.state.header.panelState ? [this.state.header.panelState] : [];
+    } else {
+      prevPanels = history.state.panels;
+      nextPanels = this.state.panels; 
+    }
 
-    if (history.state.panels.length !== this.state.panels.length) { return true; }
-
-    for (var i = 0; i < this.state.panels.length; i++) {
+    for (var i = 0; i < prevPanels.length; i++) {
       // Cycle through each panel, compare previous state to next state, looking for differences
-      var prev  = history.state.panels[i];
-      var next  = this.state.panels[i];
+      var prev  = prevPanels[i];
+      var next  = nextPanels[i];
+
+      if (!prev || ! next) { debugger; }
 
       if ((prev.mode !== next.mode) ||
           (prev.menuOpen !== next.menuOpen) ||
@@ -86,11 +110,14 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
   },
   makeHistoryState: function() {
     // Returns an object with state, title and url params for the current state
-    var histories = []; 
-    for (var i = 0; i < this.state.panels.length; i++) {
+    var histories = [];
+    // When the header has a panel open, only look at its content for history
+    var panels = this.state.header.mode ? [this.state.header.panelState] : this.state.panels;
+    for (var i = 0; i < panels.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
-      var hist    = {url: ""};
-      var state   = clone(this.state.panels[i]);
+      var hist  = {url: ""};
+      var state = clone(panels[i]);
+      if (!state) { debugger }
       if (state && state.menuOpen) {
         switch (state.menuOpen) {
           case "home":
@@ -128,6 +155,11 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
               hist.mode  = "sheets";
             }
             break;
+          case "account":
+            hist.title = "Sefaria About";
+            hist.url   = "account"
+            hist.mode  = "account";
+            break;
         }
       } else if (state.mode === "Text") {
         hist.title  = state.refs.slice(-1)[0];
@@ -154,7 +186,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     // Now merge all history object into one
     var url   = "/" + (histories.length ? histories[0].url : "");
     var title =  histories.length ? histories[0].title : "Sefaria"
-    var hist  = {state: this.state, url: url, title: title};
+    var hist  = {state: clone(this.state), url: url, title: title};
     for (var i = 1; i < histories.length; i++) {
       if (histories[i-1].mode === "Text" && histories[i].mode === "Connections") {
         if (i == 1) {
@@ -177,8 +209,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     hist.url = hist.url.replace(/&/, "?");
 
     // for testing
-    if (window.location.pathname.indexOf("/s2") === 0 || 
-        "s2" in getUrlVars()) { 
+    if (window.location.pathname.indexOf("/s2") === 0 || "s2" in getUrlVars()) { 
       hist.url = "/s2" + hist.url;
     }
 
@@ -188,16 +219,16 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     if (!this.shouldHistoryUpdate()) { 
       return; 
     }
-
     var hist = this.makeHistoryState();
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
-      //console.log("Replace History")
-      //console.log(hist);
+      console.log("Replace History - " + hist.url)
+      console.log(hist);
     } else {
+      if (window.location.pathname == hist.url) { return; } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
-      //console.log("Push History");
-      //console.log(hist);
+      console.log("Push History - " + hist.url);
+      console.log(hist);
     }
     $("title").html(hist.title);
 
@@ -209,7 +240,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     var current = JSON.stringify(this.state.panels[n]);
     var update  = JSON.stringify(state);
     if (current !== update) { // Ignore unless state changed
-      //console.log("Panel update called with " + action + " from " + n);
+      console.log("Panel update called with " + action + " from " + n);
       //console.log(state);
       var langChange  = this.state.panels[n].completeState && state.settings.language !== this.state.panels[n].settings.language;
 
@@ -221,16 +252,23 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
           next.settings.language = state.settings.language;
         }
       }
-      this.setState({panels: this.state.panels});
-
-      // Don't push history if the panel in the current state was ReaderApp (only push if the state was generated by ReaderPanel)
+      // Don't push history if the panel in the current state was generated by ReaderApp (only push if the state was generated by ReaderPanel)
       // Allows the panels to load initially without each panel triggering a history push
-      var replace = action === "replace" || !this.state.panels[n].completeState;
-      this.updateHistoryState(replace);
+      this.replaceHistory = action === "replace" || !this.state.panels[n].completeState;
+      
+      this.setState({panels: this.state.panels});
     } else { 
       //console.log("skipping")
     }
-
+  },
+  handleHeaderUpdate: function(state) {
+    // Dirty check with JSON to see if this object has changed or not
+    var current = JSON.stringify(this.state.header);
+    var update  = JSON.stringify(state);
+    if (current !== update) {
+      console.log("Header update in RA");
+      this.setState({header: state});
+    }
   },
   handleSegmentClick: function(n, ref) {
     // Handle a click on a text segment `ref` in from panel in position `n`
@@ -298,7 +336,6 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
       }
     }
     this.setState({panels: this.state.panels});
-    this.updateHistoryState();
   },
   saveRecentlyViewed: function(panel) {
     if (panel.mode == "Connections" || !panel.refs.length) { return; }
@@ -306,11 +343,12 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     var oRef = sjs.library.ref(ref);
     var json = $.cookie("recentlyViewed");
     recent = json ? JSON.parse(json) : [];
+    recent = recent.filter(function(item) {
+      return item.ref !== ref; // Remove this item if it's in the list already
+    });
     recent.splice(0, 0, {ref: ref, book: oRef.indexTitle});
     recent = recent.slice(0, 3);
-
     $.cookie("recentlyViewed", JSON.stringify(recent), {path: "/"});
-
   },
   render: function() {
     var width = 100.0/this.state.panels.length;
@@ -345,7 +383,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
                         multiPanel: this.props.multiPanel, 
                         onSegmentClick: onSegmentClick, 
                         onCitationClick: onCitationClick, 
-                        historyUpdate: onPanelUpdate, 
+                        onUpdate: onPanelUpdate, 
                         onCitationClick: onCitationClick, 
                         onTextListClick: onTextListClick, 
                         setTextListHightlight: setTextListHightlight, 
@@ -368,7 +406,8 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
                         onSegmentClick: onSegmentClick, 
                         onCitationClick: onCitationClick, 
                         onTextListClick: onTextListClick, 
-                        historyUpdate: onPanelUpdate, 
+                        onUpdate: onPanelUpdate, 
+                        setTextListHightlight: setTextListHightlight, 
                         closePanel: closePanel, 
                         panelsOpen: this.state.panels.length})
                     ));
@@ -380,8 +419,10 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     return (React.createElement("div", {className: classes}, 
               this.props.multiPanel ? 
                 React.createElement(Header, {
+                  onUpdate: this.handleHeaderUpdate, 
                   onRefClick: this.openPanelAtEnd, 
-                  initialMode: this.props.initialMenu, 
+                  initialMode: this.state.header.mode, 
+                  initialQuery: this.state.header.query, 
                   panelsOpen: this.state.panels.length}) : null, 
               panels
             ));
@@ -391,17 +432,39 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
 
 var Header = React.createClass({displayName: "Header",
   propTypes: {
-    initialMode: React.PropTypes.string,
-    onRefClick:  React.PropTypes.func,
-    panelsOpen:  React.PropTypes.number
+    initialMode:       React.PropTypes.string,
+    initialQuery:      React.PropTypes.string,
+    initialState:      React.PropTypes.object,
+    onUpdate:          React.PropTypes.func,
+    onRefClick:        React.PropTypes.func,
+    panelsOpen:        React.PropTypes.number
   },
   getInitialState: function() {
+    if (this.props.initialState) {
+      return this.props.initialState;
+    }
     return {
       mode: this.props.initialMode || null,
-      query: null
+      query: this.props.initialQuery,
+      panelState: null
     };
   },
   componentDidMount: function() {
+    this.initAutocomplete();
+  },
+  componentWillReceiveProps: function(nextProps) {
+    if (this.props.panelsOpen > 0 && nextProps.panelsOpen === 0) {
+      this.showLibrary();
+    }
+  },
+  componentDidUpdate: function(prevProps, prevState) {
+    if (this.state.mode && !this.state.panelState) {
+      // Don't send state upwards until panelState has been set
+      return;
+    }
+    this.props.onUpdate(this.state);
+  },
+  initAutocomplete: function() {
     $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete({ 
       position: {my: "left-12 top+13", at: "left bottom"},
       source: function( request, response ) {
@@ -414,17 +477,12 @@ var Header = React.createClass({displayName: "Header",
       }
     });
   },
-  componentWillReceiveProps: function(nextProps) {
-    if (this.props.panelsOpen > 0 && nextProps.panelsOpen === 0) {
-      this.setState({mode: "navigation"});
-    }
-  },
   showDesktop: function() {
-    this.setState({mode: null, query: null});
+    this.setState({mode: null, panelState: null, query: null});
     this.clearSearchBox();
   },
   showLibrary: function() {
-    this.setState({mode: "navigation", query: null});
+    this.setState({mode: "navigation", panelState: null, query: null});
     this.clearSearchBox();
   },
   showSearch: function(query) {
@@ -432,7 +490,7 @@ var Header = React.createClass({displayName: "Header",
     $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("close");
   },
   showAccount: function() {
-    this.setState({mode: "account"});
+    this.setState({mode: "account", panelState: null, query: null});
     this.clearSearchBox();
   },
   submitSearch: function(query, skipNormalization) {
@@ -462,7 +520,7 @@ var Header = React.createClass({displayName: "Header",
   handleLibraryClick: function() {
     if (this.state.mode === "home") {
       return;
-    } else if (this.state.mode === "navigation") {
+    } else if (this.state.mode === "navigation" && this.state.panelState.navigationCategories.length == 0) {
       this.showDesktop();
     } else {
       this.showLibrary();
@@ -486,12 +544,21 @@ var Header = React.createClass({displayName: "Header",
       this.submitSearch(query);
     }
   },
+  handlePanelUpdate: function(action, state) {
+    var prev     = JSON.stringify(this.state.panelState);
+    var current  = JSON.stringify(state);
+    if (current !== prev) {
+      this.setState({mode: state.menuOpen, panelState: state});
+    }
+  },
   render: function() {
     var viewContent = this.state.mode ?
                         (React.createElement(ReaderPanel, {
                           multiPanel: true, 
+                          initialState: this.panelState, 
                           initialMenu: this.state.mode, 
                           initialQuery: this.state.query, 
+                          onUpdate: this.handlePanelUpdate, 
                           onNavTextClick: this.handleRefClick, 
                           onSearchResultClick: this.handleRefClick, 
                           hideNavHeader: true})) : null;
@@ -500,12 +567,14 @@ var Header = React.createClass({displayName: "Header",
               React.createElement("div", {className: "headerInner"}, 
                 React.createElement("div", {className: "left"}, 
                   React.createElement("div", {className: "home", onClick: this.showDesktop}, React.createElement("img", {src: "/static/img/sefaria-on-white.png"})), 
-                  React.createElement("div", {className: "library", onClick: this.handleLibraryClick}, React.createElement("i", {className: "fa fa-bars"})), 
-                  React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.handleSearchButtonClick}), 
-                  React.createElement("input", {className: "search", placeholder: "Search", onKeyUp: this.handleSearchKeyUp})
+                  React.createElement("div", {className: "library", onClick: this.handleLibraryClick}, React.createElement("i", {className: "fa fa-bars"}))
                 ), 
                 React.createElement("div", {className: "right"}, 
                   React.createElement("div", {className: "account", onClick: this.showAccount}, React.createElement("i", {className: "fa fa-user"}))
+                ), 
+                React.createElement("span", {className: "searchBox"}, 
+                  React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.handleSearchButtonClick}), 
+                  React.createElement("input", {className: "search", placeholder: "Search", onKeyUp: this.handleSearchKeyUp})
                 )
               ), 
                viewContent ? 
@@ -527,13 +596,13 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
     initialQuery:           React.PropTypes.string,
     initialSheetsTag:       React.PropTypes.string,
     initialSettings:        React.PropTypes.object,
-    initialState:           React.PropTypes.object, // if present, Trumps all props above
+    initialState:           React.PropTypes.object, // if present, trumps all props above
     onSegmentClick:         React.PropTypes.func,
     onCitationClick:        React.PropTypes.func,
     onTextListClick:        React.PropTypes.func,
     onNavTextClick:         React.PropTypes.func,
     onSearchResultClick:    React.PropTypes.func,
-    historyUpdate:          React.PropTypes.func,
+    onUpdate:               React.PropTypes.func,
     closePanel:             React.PropTypes.func,
     highlightedRefs:        React.PropTypes.array,
     hideNavHeader:          React.PropTypes.bool,
@@ -569,9 +638,9 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
     }
   },
   componentDidMount: function() {
-    if (this.props.historyUpdate) {
+    if (this.props.onUpdate) {
       // Make sure the initial state of this panel is pushed up to ReaderApp
-      this.props.historyUpdate("replace", this.state);     
+      //this.props.onUpdate("replace", this.state);     
     }
     this.setHeadroom();
     this.trackPanelOpens();
@@ -594,11 +663,11 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
 
   },
   componentDidUpdate: function(prevProps, prevState) {
-    if (this.props.historyUpdate) {
+    if (this.props.onUpdate) {
       if (this.replaceHistory) {
-        this.props.historyUpdate("replace", this.state);
+        this.props.onUpdate("replace", this.state);
       } else {
-        this.props.historyUpdate("push", this.state);
+        this.props.onUpdate("push", this.state);
       }      
     }
     this.setHeadroom();
@@ -1418,7 +1487,7 @@ var ReaderNavigationCategoryMenu = React.createClass({displayName: "ReaderNaviga
     return (React.createElement("div", {className: "readerNavCategoryMenu readerNavMenu"}, 
               React.createElement("div", {className: "readerNavTop searchOnly"}, 
                 React.createElement(CategoryColorLine, {category: categories[0]}), 
-                React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.navHome}), 
+                this.props.hideNavHeader ? null : (React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.navHome})), 
                 this.props.hideNavHeader ? null : (React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings})), 
                 React.createElement("h2", null, 
                   React.createElement("span", {className: "en"}, this.props.category), 
@@ -3105,17 +3174,18 @@ var SearchResultList = React.createClass({displayName: "SearchResultList",
             return null;
         }
         if (this.state.runningQuery) {
-            return (React.createElement(LoadingMessage, null))
+            return (React.createElement(LoadingMessage, null));
         }
         var addCommas = function(number) { return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); };
         var totalWithCommas = addCommas(this.state.total);
         var totalSheetsWithCommas = addCommas(this.state.sheet_total);
         var totalTextsWithCommas = addCommas(this.state.text_total);
 
-        var totalBreakdown = React.createElement("span", {className: "results-breakdown"}, " ", 
+        var totalBreakdown = (
+          React.createElement("span", {className: "results-breakdown"}, " ", 
             React.createElement("span", {className: "he"}, "(", totalTextsWithCommas, " ", (this.state.text_total > 1) ? "מקורות":"מקור", ", ", totalSheetsWithCommas, " ", (this.state.sheet_total > 1)?"דפי מקורות":"דף מקורות", ")"), 
             React.createElement("span", {className: "en"}, "(", totalTextsWithCommas, " ", (this.state.text_total > 1) ? "Texts":"Text", ", ", totalSheetsWithCommas, " ", (this.state.sheet_total > 1)?"Sheets":"Sheet", ")")
-        );
+          ));
 
         return (
             React.createElement("div", null, 
@@ -3125,21 +3195,20 @@ var SearchResultList = React.createClass({displayName: "SearchResultList",
                     (this.state.sheet_total > 0 && this.state.text_total > 0) ? totalBreakdown : null
                 ), 
                 this.state.text_hits.map(function(result) {
-                    return React.createElement(SearchTextResult, {
-                        data: result, 
-                        query: this.props.query, 
-                        key: result.ref, 
-                        onResultClick: this.props.onResultClick});
+                    return (React.createElement(SearchTextResult, {
+                              data: result, 
+                              query: this.props.query, 
+                              key: result.ref, 
+                              onResultClick: this.props.onResultClick}));
                 }.bind(this)), 
                 this.state.sheet_hits.map(function(result) {
-                    return React.createElement(SearchSheetResult, {
-                        data: result, 
-                        query: this.props.query, 
-                        key: result._id});
+                    return (React.createElement(SearchSheetResult, {
+                              data: result, 
+                              query: this.props.query, 
+                              key: result._id}));
                 }.bind(this))
             )
-
-        )
+        );
     }
 });
 
@@ -3285,11 +3354,19 @@ var AccountPanel = React.createClass({displayName: "AccountPanel",
       (React.createElement(BlockLink, {target: "/activity", title: "Recent Activity"})),
       (React.createElement(BlockLink, {target: "/metrics", title: "Metrics"})),      
       (React.createElement(BlockLink, {target: "/donate", title: "Donate"})),
+      (React.createElement(BlockLink, {target: "/supporters", title: "Supporters"})),
       (React.createElement(BlockLink, {target: "/jobs", title: "Jobs"})),
-      (React.createElement(BlockLink, {target: "/contact", title: "Contact"})),
-
     ];
     contributeContent = (React.createElement(TwoOrThreeBox, {content: contributeContent, width: width}));
+
+    var connectContent = [
+      (React.createElement(BlockLink, {target: "https://groups.google.com/forum/?fromgroups#!forum/sefaria", title: "Forum"})),
+      (React.createElement(BlockLink, {target: "http://www.facebook.com/sefaria.org", title: "Facebook"})),
+      (React.createElement(BlockLink, {target: "http://twitter.com/SefariaProject", title: "Twitter"})),      
+      (React.createElement(BlockLink, {target: "http://www.youtube.com/user/SefariaProject", title: "YouTube"})),
+      (React.createElement(BlockLink, {target: "mailto:hello@sefaria.org", title: "Email"}))
+    ];
+    connectContent = (React.createElement(TwoOrThreeBox, {content: connectContent, width: width}));
 
     return (
       React.createElement("div", {className: "accountPanel readerNavMenu"}, 
@@ -3297,7 +3374,9 @@ var AccountPanel = React.createClass({displayName: "AccountPanel",
           React.createElement("div", {className: "contentInner"}, 
            React.createElement(ReaderNavigationMenuSection, {title: "Account", heTitle: "נצפו לאחרונה", content: accountContent}), 
            React.createElement(ReaderNavigationMenuSection, {title: "Learn", heTitle: "נצפו לאחרונה", content: learnContent}), 
-           React.createElement(ReaderNavigationMenuSection, {title: "Contribute", heTitle: "נצפו לאחרונה", content: contributeContent})
+           React.createElement(ReaderNavigationMenuSection, {title: "Contribute", heTitle: "נצפו לאחרונה", content: contributeContent}), 
+           React.createElement(ReaderNavigationMenuSection, {title: "Connect", heTitle: "נצפו לאחרונה", content: connectContent})
+
           )
         )
       )
