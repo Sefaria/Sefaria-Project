@@ -3321,7 +3321,7 @@ class Library(object):
     def _set_toc(self, value):
         self._toc = value
         try:
-            if len(value) != 16:
+            if value and len(value) != 16:
                 raise InputError("TOC ERROR")
         except InputError:
             logger.exception("TOC ERROR")
