@@ -64,8 +64,11 @@
 				<div class="optionGroup">
 					<div class="optionTitle" id="sharingModalTrigger"><i class="fa fa-share-alt"></i> Sharing</div>
 				</div>
-  				<div class="optionItem" id="assignable">
+	    			{% if not sheet.assigner_id %}
+                    <div class="optionItem" id="assignable">
 					<i class="fa fa-check hidden"></i> Assignable</div>
+    				{% endif %}
+
 				{% endif %}
 
 				{% if owner_groups %}
