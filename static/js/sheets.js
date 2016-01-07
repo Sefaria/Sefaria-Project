@@ -1372,11 +1372,8 @@ function readSheet() {
 	}
 
 
-	if ($("#assignmentAttribution")) {
-		if (sjs.assigner_id == null) sheet.assigner_id = sjs.current.owner;
-	}
-
 	if (sjs.assignment_id) sheet.assignment_id = sjs.assignment_id;
+	if (sjs.assigner_id) sheet.assigner_id = sjs.assigner_id;
 
 
 	if (sjs.can_add) {
@@ -1676,7 +1673,6 @@ function buildSheet(data){
 		$(".individualSharing").show();
 	}
 
-	if (data.assigner_id) sjs.assigner_id = data.assigner_id;
 
 	sjs.sheetTagger.init(data.id, data.tags);
 
@@ -1692,7 +1688,7 @@ function buildSheet(data){
 	
 
 function buildSources($target, sources) {
-	// Recursive function to build sources into target, subsources will call this functon again
+	// Recursive function to build sources into target, subsources will call this function again
 	// with a subsource target. 
 	for (var i = 0; i < sources.length; i++) {
 		buildSource($target, sources[i]);
@@ -2217,6 +2213,7 @@ function promptToPublish() {
 				return;
 			}
 		} 											       // Don't prompt if we've prompted in the last 30 days
+	if (sjs.current.assignment_id) {return;}			   // Don't prompt if this is an assignment sheet
 	if (sjs.current.status in {"public":true}) { return; } // Don't prompt if sheet is already public
 //	if (sjs.current.sources.length < 6) { return; }         // Don't prompt if the sheet has less than 6 sources
 	if (sjs.current.views < 3) {return}						// Don't prompt if the sheet has been viewed less than three times

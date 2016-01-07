@@ -51,7 +51,10 @@ def new_sheet(request):
 	"""
 	if "assignment" in request.GET:
 		sheet_id  = int(request.GET["assignment"])
-		return assigned_sheet(request, sheet_id) 
+
+		if "assignable" in db.sheets.find_one({"id": sheet_id})["options"]:
+			if db.sheets.find_one({"id": sheet_id})["options"]["assignable"] == 1:
+				return assigned_sheet(request, sheet_id)
 
 	owner_groups  = get_user_groups(request.user)
 	query         = {"owner": request.user.id or -1 }
