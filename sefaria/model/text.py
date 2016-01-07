@@ -3324,7 +3324,8 @@ class Library(object):
             if value and len(value) != 16:
                 raise InputError("TOC ERROR")
         except InputError:
-            logger.exception("TOC ERROR")
+            import traceback
+            logger.exception(u"\n".join(traceback.format_stack()))
 
     toc = property(_get_toc, _set_toc)
     ### End TOC reroute
