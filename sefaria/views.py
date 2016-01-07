@@ -249,7 +249,7 @@ def reset_index_cache_for_text(request, title):
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(title))
     if USE_VARNISH:
         invalidate_title(title)
-    return HttpResponseRedirect("/%s?m=Cache-Reset" % title)
+    return HttpResponseRedirect("/%s?m=Cache-Reset" % model.Ref(title).url())
 
 
 """@staff_member_required
@@ -268,7 +268,7 @@ def del_cached_elem(request, title):
 def reset_counts(request, title=None):
     if title:
         try:
-            i  = model.library.get_index(title)
+            i = model.library.get_index(title)
         except:
             return HttpResponseRedirect("/dashboard?m=Unknown-Book")
         vs = model.VersionState(index=i)
@@ -327,10 +327,10 @@ def reset_ref(request, tref):
             invalidate_index(oref.index)
             invalidate_counts(oref.index)
             invalidate_ref(oref)
-        return HttpResponseRedirect("/?m=Reset-Index-{}".format(oref.url()))
+        return HttpResponseRedirect("/{}?m=Reset-Index".format(oref.url()))
     elif USE_VARNISH:
         invalidate_ref(oref)
-        return HttpResponseRedirect("/?m=Reset-Ref-{}".format(oref.url()))
+        return HttpResponseRedirect("/{}?m=Reset-Ref".format(oref.url()))
     else:
         return HttpResponseRedirect("/?m=Nothing-to-Reset")
 
