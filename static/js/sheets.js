@@ -10,6 +10,7 @@ sjs.current = sjs.current || {
 	options: {
 		bsd: 0,
 		boxed: 0,
+		assignable:0,
 		divineNames: "noSub",
 		language: "bilingual",
 		layout: "sideBySide",
@@ -1383,6 +1384,7 @@ function readSheet() {
 	} else {
 		sheet.options.numbered      = $("#sheet").hasClass("numbered") ? 1 : 0;
 		sheet.options.boxed         = $("#sheet").hasClass("boxed") ? 1 : 0;
+		sheet.options.assignable    = $("#sheet").hasClass("assignable") ? 1 : 0;
 		sheet.options.bsd           = $("#sheet").hasClass("bsd") ? 1 : 0;
 		sheet.options.language      = $("#sheet").hasClass("hebrew") ? "hebrew" : $("#sheet").hasClass("bilingual") ? "bilingual" : "english";
 		sheet.options.layout        = $("#sheet").hasClass("stacked") ? "stacked" : "sideBySide";
@@ -1632,12 +1634,14 @@ function buildSheet(data){
 	$("#addSourceModal").data("target", $("#sources"));
 
 	// Set options with binary value
-	$("#sheet").removeClass("numbered bsd boxed");
-	$("#numbered, #bsd, #boxed").find(".fa-check").addClass("hidden");
+	$("#sheet").removeClass("numbered bsd boxed assignable");
+	$("#numbered, #bsd, #boxed, #assignable").find(".fa-check").addClass("hidden");
 	if (data.options.numbered) { $("#numbered").trigger("click"); } 
 	if (data.options.bsd)      { $("#bsd").trigger("click"); } 
 	if (data.options.boxed)    { $("#boxed").trigger("click"); } 
-	
+	if (data.options.assignable)    { $("#assignable").trigger("click"); }
+
+
 	// Set options that always have a value
 	$("#" + data.options.language).trigger("click");
 	$("#" + data.options.layout).trigger("click");
