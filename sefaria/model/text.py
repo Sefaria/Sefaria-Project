@@ -2746,7 +2746,10 @@ class Ref(object):
                         '''
 
                     if d["toSections"][-1]:  # to filter out, e.g. non-existant Rashi's, where the last index is 0
-                        refs.append(Ref(_obj=d))
+                        try:
+                            refs.append(Ref(_obj=d))
+                        except InputError:
+                            pass
 
                 if self.range_depth() == 2:
                     self._spanned_refs = refs
