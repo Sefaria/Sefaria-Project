@@ -2169,14 +2169,13 @@ class Ref(object):
 
         :return bool:
         """
+        #TODO: errors on complex refs
         return len(self.sections) == self.index_node.depth - 1
 
     def is_segment_level(self):
         """
         Is this Ref segment (e.g. Verse) level?
-
         ::
-
             >>> Ref("Leviticus 15:3").is_segment_level()
             True
             >>> Ref("Leviticus 15").is_segment_level()
@@ -2188,6 +2187,7 @@ class Ref(object):
 
         :return bool:
         """
+        #TODO: errors on complex refs
         return len(self.sections) == self.index_node.depth
 
     """ Methods to generate new Refs based on this Ref """
@@ -2460,6 +2460,7 @@ class Ref(object):
         :param lang: "all", "he", or "en"
         :return: :class:`sefaria.datatype.jagged_array`
         """
+        #TODO: also does not work with complex texts...
         return self.get_state_node(hint=[(lang, "availableTexts")]).ja(lang)
 
     def is_text_fully_available(self, lang):
@@ -3157,6 +3158,7 @@ class Ref(object):
         return self.index.get_title(lang="he")
 
     def _get_normal(self, lang):
+        #//todo: commentary refactor
         normal = self.index_node.full_title(lang)
         if not normal:
             if lang != "en":
