@@ -54,7 +54,8 @@ class Link(abst.AbstractMongoRecord):
     def _pre_save(self):
         if getattr(self, "_id", None) is None:
             # Don't bother saving a connection that already exists, or that has a more precise link already
-            samelink = Link().load({"refs": self.refs})
+            # will also find the same link with the two refs reversed
+            samelink = Link().load({"$or": [{"refs": self.refs}, {"refs": [self.refs[1], self.refs[0]]}]})
 
             if samelink:
                 if not self.auto and self.type and not samelink.type:
@@ -66,6 +67,7 @@ class Link(abst.AbstractMongoRecord):
                     samelink.auto = self.auto
                     samelink.generated_by = self.generated_by
                     samelink.source_text_oid = self.source_text_oid
+                    samelink.refs = self.refs  #in case the refs are reversed. switch them around
                     samelink.save()
                     raise DuplicateRecordError(u"Updated existing link with auto generation data {} - {}".format(self.refs[0], self.refs[1]))
 

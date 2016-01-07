@@ -15,120 +15,149 @@ if USE_VARNISH:
     from sefaria.system.sf_varnish import invalidate_ref
 
 #TODO: should all the functions here be decoupled from the need to enter a userid?
-def add_commentary_links(oref, user, **kwargs):
+
+
+def add_and_delete_invalid_commentary_links(tref, user, **kwargs):
+    """
+    This functino both adds links and deletes pre existing ones that are no longer valid,
+    by virtue of the fact that they were not detected as commentary links while iterating over the text.
+    :param tref:
+    :param user:
+    :param kwargs:
+    :return:
+    """
+    oref = Ref(tref)
+    assert oref.is_commentary()
+    tref = oref.normal()
+    commentary_book_name = oref.index.title
+
+    ref_regex = oref.regex()
+    existing_links = LinkSet({"refs": {"$regex": ref_regex}, "generated_by": "add_commentary_links"})
+    print "{} existing links".format(len(existing_links))
+    print "doing recursive build"
+    found_links = add_commentary_links(tref, user, **kwargs)
+    print "{} found links".format(len(found_links))
+    for exLink in existing_links:
+        for r in exLink.refs:
+            if commentary_book_name not in r:  #current base ref
+                continue
+            if USE_VARNISH:
+                invalidate_ref(Ref(r))
+            if r not in found_links:
+                tracker.delete(user, Link, exLink._id)
+            break
+
+
+def add_commentary_links(tref, user, text=None, **kwargs):
+    #//TODO: commentary refactor, also many other lines can be made better
     """
     Automatically add links for each comment in the commentary text denoted by 'tref'.
     E.g., for the ref 'Sforno on Kohelet 3:2', automatically set links for
     Kohelet 3:2 <-> Sforno on Kohelet 3:2:1, Kohelet 3:2 <-> Sforno on Kohelet 3:2:2, etc.
     for each segment of text (comment) that is in 'Sforno on Kohelet 3:2'.
     """
-    try:
-        text = TextFamily(oref, commentary=0, context=0, pad=False).contents()
-    except AssertionError:
-        logger.warning(u"Structure node passed to add_commentary_links: {}".format(oref.normal()))
-        return
 
+    oref = Ref(tref)
     assert oref.is_commentary()
-
     tref = oref.normal()
-
     base_tref = tref[tref.find(" on ") + 4:]
+    base_oref = Ref(base_tref)
+    found_links = []
 
-    if len(text["sections"]) == len(text["sectionNames"]):
+    # This is a special case, where the sections length is 0 and that means this is
+    # a whole text or complex text node that has been posted. So we get each leaf node
+    if not oref.sections:
+        vs = StateNode(tref).versionState
+        if not vs.is_new_state:
+            vs.refresh()  # Needed when saving multiple nodes in a complex text.  This may be moderately inefficient.
+        content_nodes = oref.index_node.get_leaf_nodes()
+        for r in content_nodes:
+            cn_ref = r.full_title(force_update=True)
+            cn_oref = Ref(cn_ref)
+            text = TextFamily(cn_oref, commentary=0, context=0, pad=False).contents()
+            sn = StateNode(cn_ref)
+            length = sn.ja('all').length()
+            for i, sr in enumerate(cn_oref.subrefs(length)):
+                stext = {"sections": sr.sections,
+                        "sectionNames": text['sectionNames'],
+                        "text": text["text"][i] if i < len(text["text"]) else "",
+                        "he": text["he"][i] if i < len(text["he"]) else ""
+                        }
+                found_links += add_commentary_links(sr.normal(), user, stext, **kwargs)
+
+    else:
+        if not text:
+            try:
+                text = TextFamily(oref, commentary=0, context=0, pad=False).contents()
+            except AssertionError:
+                logger.warning(u"Structure node passed to add_commentary_links: {}".format(oref.normal()))
+                return
+
+        if len(text["sectionNames"]) > len(text["sections"]) > 0:
+            # any other case where the posted ref sections do not match the length of the parent texts sections
+            # this is a larger group of comments meaning it needs to be further broken down
+            # in order to be able to match the commentary to the basic parent text units,
+            # recur on each section
+            length = max(len(text["text"]), len(text["he"]))
+            for i,r in enumerate(oref.subrefs(length)):
+                stext = {"sections": r.sections,
+                        "sectionNames": text['sectionNames'],
+                        "text": text["text"][i] if i < len(text["text"]) else "",
+                        "he": text["he"][i] if i < len(text["he"]) else ""
+                        }
+                found_links += add_commentary_links(r.normal(), user, stext, **kwargs)
+
         # this is a single comment, trim the last section number (comment) from ref
-        base_tref = base_tref[0:base_tref.rfind(":")]
-        link = {
-            "refs": [base_tref, tref],
-            "type": "commentary",
-            "anchorText": "",
-            "auto": True,
-            "generated_by": "add_commentary_links"
-        }
-        try:
-            tracker.add(user, Link, link, **kwargs)
-        except DuplicateRecordError as e:
-            pass
-
-    elif len(text["sections"]) == (len(text["sectionNames"]) - 1):
-        # This means that the text (and it's corresponding ref) being posted has the amount of sections like the parent text
-        # (the text being commented on) so this is single group of comments on the lowest unit of the parent text.
-        # and we simply iterate and create a link for each existing one to point to the same unit of parent text
-        length = max(len(text["text"]), len(text["he"]))
-        for i in range(length):
+        elif len(text["sections"]) == len(text["sectionNames"]):
+            if len(text['he']) or len(text['text']): #only if there is actually text
+                base_tref = base_tref[0:base_tref.rfind(":")]
                 link = {
-                    "refs": [base_tref, tref + ":" + str(i + 1)],
+                    "refs": [base_tref, tref],
                     "type": "commentary",
                     "anchorText": "",
                     "auto": True,
                     "generated_by": "add_commentary_links"
                 }
+                found_links += [tref]
                 try:
                     tracker.add(user, Link, link, **kwargs)
                 except DuplicateRecordError as e:
                     pass
 
-    elif len(text["sections"]) > 0:
-        # any other case where the posted ref sections do not match the length of the parent texts sections
-        # this is a larger group of comments meaning it needs to be further broken down
-        # in order to be able to match the commentary to the basic parent text units,
-        # recur on each section
-        length = max(len(text["text"]), len(text["he"]))
-        for r in oref.subrefs(length):
-            add_commentary_links(r, user, **kwargs)
 
-    else:
-        #This is a special case of the above, where the sections length is 0 and that means this is
-        # a whole text that has been posted. For  this we need a better way than get_text() to get the correct length of
-        # highest order section counts.
-        # We use the counts document for that.
-        #text_counts = counts.count_texts(tref)
-        #length = len(text_counts["counts"])
-
-        sn = StateNode(tref)
-        if not sn.versionState.is_new_state:
-            sn.versionState.refresh()  # Needed when saving multiple nodes in a complex text.  This may be moderately inefficient.
-            sn = StateNode(tref)
-        length = sn.ja('all').length()
-        for r in oref.subrefs(length):
-            add_commentary_links(r, user, **kwargs)
-
-        if USE_VARNISH:
-            invalidate_ref(oref)
-            invalidate_ref(Ref(base_tref))
+    return found_links
 
 
-def rebuild_commentary_links(tref, user, **kwargs):
+def delete_commentary_links(title, user):
     """
-    Deletes any commentary links for which there is no content (in any ref),
-    then adds all commentary links again.
+    Deletes all of the citation generated links from text 'title'
+    """
+    regex = Ref(title).regex()
+    links = LinkSet({"refs": {"$regex": regex}, "generated_by": "add_commentary_links"})
+    for link in links:
+        if USE_VARNISH:
+            invalidate_ref(Ref(link.refs[0]))
+            invalidate_ref(Ref(link.refs[1]))
+        tracker.delete(user, Link, link._id)
+
+
+def rebuild_commentary_links(title, user):
+    """
+    Deletes all of the citation generated links from text 'title'
+    then rebuilds them.
     """
     try:
-        oref = Ref(tref)
+        oref = Ref(title)
     except InputError:
         # Allow commentators alone, rebuild for each text we have
-        i = library.get_index(tref)
+        i = library.get_index(title)
         for c in library.get_commentary_version_titles(i.title):
-            rebuild_commentary_links(c, user, **kwargs)
+            rebuild_commentary_links(c, user)
         return
 
-    links = LinkSet(oref)
-    for link in links:
-        try:
-            oref1, oref2 = Ref(link.refs[0]), Ref(link.refs[1])
-        except InputError:
-            link.delete()
-            if USE_VARNISH:
-                invalidate_ref(oref1)
-                invalidate_ref(oref2)
-            continue
-        t1, t2 = TextFamily(oref1, commentary=0, context=0), TextFamily(oref2, commentary=0, context=0)
-        if not (t1.text + t1.he) or not (t2.text + t2.he):
-            # Delete any link that doesn't have some textual content on one side or the other
-            link.delete()
-            if USE_VARNISH:
-                invalidate_ref(oref1)
-                invalidate_ref(oref2)
-    add_commentary_links(oref, user, **kwargs)
+    title = Ref(title).normal()
+    delete_commentary_links(title, user)
+    add_commentary_links(title, user)
 
 
 # todo: Currently supports only
@@ -215,6 +244,9 @@ def delete_links_from_text(title, user):
     regex    = Ref(title).regex()
     links    = LinkSet({"refs.0": {"$regex": regex}, "generated_by": "add_links_from_text"})
     for link in links:
+        if USE_VARNISH:
+            invalidate_ref(Ref(link.refs[0]))
+            invalidate_ref(Ref(link.refs[1]))
         tracker.delete(user, Link, link._id)
 
 

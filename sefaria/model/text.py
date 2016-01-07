@@ -97,7 +97,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     There is an Index object for every simple text and for every commentator (e.g. "Rashi").
 
-    Commentaries (like "Rashi on Exodus") are instanciated with :class:`CommentaryIndex` objects.
+    Commentaries (like "Rashi on Exodus") are instantiated with :class:`CommentaryIndex` objects.
     """
     collection = 'index'
     history_noun = 'index'
@@ -2169,14 +2169,13 @@ class Ref(object):
 
         :return bool:
         """
+        #TODO: errors on complex refs
         return len(self.sections) == self.index_node.depth - 1
 
     def is_segment_level(self):
         """
         Is this Ref segment (e.g. Verse) level?
-
         ::
-
             >>> Ref("Leviticus 15:3").is_segment_level()
             True
             >>> Ref("Leviticus 15").is_segment_level()
@@ -2188,6 +2187,7 @@ class Ref(object):
 
         :return bool:
         """
+        #TODO: errors on complex refs
         return len(self.sections) == self.index_node.depth
 
     """ Methods to generate new Refs based on this Ref """
@@ -2460,6 +2460,7 @@ class Ref(object):
         :param lang: "all", "he", or "en"
         :return: :class:`sefaria.datatype.jagged_array`
         """
+        #TODO: also does not work with complex texts...
         return self.get_state_node(hint=[(lang, "availableTexts")]).ja(lang)
 
     def is_text_fully_available(self, lang):
@@ -2746,7 +2747,10 @@ class Ref(object):
                         '''
 
                     if d["toSections"][-1]:  # to filter out, e.g. non-existant Rashi's, where the last index is 0
-                        refs.append(Ref(_obj=d))
+                        try:
+                            refs.append(Ref(_obj=d))
+                        except InputError:
+                            pass
 
                 if self.range_depth() == 2:
                     self._spanned_refs = refs
@@ -3154,6 +3158,7 @@ class Ref(object):
         return self.index.get_title(lang="he")
 
     def _get_normal(self, lang):
+        #//todo: commentary refactor
         normal = self.index_node.full_title(lang)
         if not normal:
             if lang != "en":
@@ -3309,6 +3314,21 @@ class Library(object):
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
             self._build_core_maps()
 
+    ### Route toc handling through  property, so as to debug slippery TOC corruption bug
+    def _get_toc(self):
+        return self._toc
+
+    def _set_toc(self, value):
+        self._toc = value
+        try:
+            if len(value) != 16:
+                raise InputError("TOC ERROR")
+        except InputError:
+            logger.exception("TOC ERROR")
+
+    toc = property(_get_toc, _set_toc)
+    ### End TOC reroute
+
     def _build_core_maps(self):
         # Build index and title node dicts in an efficient way
 
@@ -3342,7 +3362,7 @@ class Library(object):
             except IndexSchemaError as e:
                 logger.error(u"Error in generating title node dictionary: {}".format(e))
 
-    def _reset_index_derivitative_objects(self):
+    def _reset_index_derivative_objects(self):
         self._full_title_lists = {}
         self._full_title_list_jsons = {}
         self._title_regex_strings = {}
@@ -3378,13 +3398,13 @@ class Library(object):
 
     def rebuild(self, include_toc = False):
         self._build_core_maps()
-        self._reset_index_derivitative_objects()
+        self._reset_index_derivative_objects()
         Ref.clear_cache()
         if include_toc:
             self.rebuild_toc()
 
     def rebuild_toc(self):
-        self._toc = None
+        self.toc = None
         self._toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
@@ -3394,13 +3414,13 @@ class Library(object):
         Returns table of contents object from cache,
         DB or by generating it, as needed.
         """
-        if not self._toc:
-            self._toc = scache.get_cache_elem('toc_cache')
-            if not self._toc:
+        if not self.toc:
+            self.toc = scache.get_cache_elem('toc_cache')
+            if not self.toc:
                 from sefaria.summaries import update_table_of_contents
-                self._toc = update_table_of_contents()
-                scache.set_cache_elem('toc_cache', self._toc)
-        return self._toc
+                self.toc = update_table_of_contents()
+                scache.set_cache_elem('toc_cache', self.toc)
+        return self.toc
 
     def get_toc_json(self):
         """
@@ -3415,14 +3435,14 @@ class Library(object):
 
     def recount_index_in_toc(self, indx):
         from sefaria.summaries import update_title_in_toc
-        self._toc = update_title_in_toc(self.get_toc(), indx, recount=True)
+        self.toc = update_title_in_toc(self.get_toc(), indx, recount=True)
         self._toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
 
     def delete_index_from_toc(self, bookname):
         from sefaria.summaries import recur_delete_element_from_toc
-        self._toc = recur_delete_element_from_toc(bookname, self.get_toc())
+        self.toc = recur_delete_element_from_toc(bookname, self.get_toc())
         self._toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
@@ -3434,7 +3454,7 @@ class Library(object):
         :return:
         """
         from sefaria.summaries import update_title_in_toc
-        self._toc = update_title_in_toc(self.get_toc(), indx, old_ref=old_ref, recount=False)
+        self.toc = update_title_in_toc(self.get_toc(), indx, old_ref=old_ref, recount=False)
         self._toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
@@ -3519,7 +3539,7 @@ class Library(object):
             logger.error(u"Error in generating title node dictionary: {}".format(e))
 
         if rebuild:
-            self._reset_index_derivitative_objects()
+            self._reset_index_derivative_objects()
 
     def remove_index_record(self, index_object=None, old_title=None, rebuild = True):
         """
@@ -3574,7 +3594,7 @@ class Library(object):
                 return
 
         if rebuild:
-            self._reset_index_derivitative_objects()
+            self._reset_index_derivative_objects()
 
 
     def refresh_index_record(self, index_object, old_title = None):
