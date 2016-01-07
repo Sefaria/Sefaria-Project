@@ -165,13 +165,13 @@ body {
 	margin-left: 12px;
 }
 
-.optionItem {
+.optionItem, .optionLink {
 	padding: 5px 12px;
 	cursor: pointer;
 	white-space: nowrap;
 }
 .optionItem:hover,
-.optionTitle:hover {
+.optionTitle:hover, .optionLink:hover {
 	background: #08c;
 	color:white;
 }
@@ -1315,6 +1315,6 @@ input[type="file"] {
 	margin-top:10px;
 	width: 300px;
 }
-.optionItem a {
- color: inherit; 
+.optionItem a, .optionLink a {
+ color: inherit;
 }

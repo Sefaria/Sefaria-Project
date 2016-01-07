@@ -168,7 +168,7 @@ def view_sheet(request, sheet_id):
 	viewer_is_liker = request.user.id in likes
 
 
-	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet), 
+	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet),
 												"sheet": sheet,
 												"sheet_class": sheet_class,
 												"can_edit": can_edit_flag, 
@@ -182,7 +182,17 @@ def view_sheet(request, sheet_id):
 												"like_count": like_count,
 												"viewer_is_liker": viewer_is_liker,
 												"current_url": request.get_full_path,
+											  	"assignments_from_sheet":assignments_from_sheet(sheet_id),
 											}, RequestContext(request))
+
+def assignments_from_sheet(sheet_id):
+	try:
+		if db.sheets.find_one({"id": int(sheet_id)})["options"]["assignable"] == 1:
+			query = {"assignment_id": int(sheet_id)}
+			return db.sheets.find(query)
+	except:
+		return None
+
 
 def view_visual_sheet(request, sheet_id):
 	"""

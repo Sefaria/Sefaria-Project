@@ -18,6 +18,7 @@ from django.contrib.sites.models import Site
 
 from sefaria.sheets import get_sheet
 from sefaria.utils.users import user_link as ulink
+from sefaria.utils.users import user_name as uname
 from sefaria.utils.util import strip_tags as strip_tags_func
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term
 from sefaria.utils.hebrew import hebrew_term as translate_hebrew_term
@@ -193,6 +194,10 @@ def normalize_url(value):
 @register.filter(is_safe=True)
 def user_link(uid):
 	return mark_safe(ulink(uid))
+
+@register.filter(is_safe=True)
+def user_name(uid):
+	return mark_safe(uname(uid))
 
 
 @register.filter(is_safe=True)

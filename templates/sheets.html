@@ -62,11 +62,32 @@
 
 				{% if is_owner %}
 				<div class="optionGroup">
-					<div class="optionTitle" id="sharingModalTrigger"><i class="fa fa-share-alt"></i> Sharing</div>
+					<div class="optionTitle" id="sharingModalTrigger"><i class="fa fa-share-alt"></i> Sharing </div>
 				</div>
 	    			{% if not sheet.assigner_id %}
-                    <div class="optionItem" id="assignable">
-					<i class="fa fa-check hidden"></i> Assignable</div>
+
+                    <div class="optionGroup">
+                        <div class="optionTitle"><i class="fa fa-cloud"></i> Assignment <i class='fa fa-caret-right'></i></div>
+                        <div class="subMenu">
+                            <div class="optionItem" id="assignable">
+                                <i class="fa fa-check hidden"></i> Assignable</div>
+
+                            {% if assignments_from_sheet %}
+                            <div id="assignedSheets">
+                                <div class="line"></div>
+        						{% for assignment_sheet in assignments_from_sheet %}
+                                <div class="optionLink" ><a href="./{{ assignment_sheet.id }}" target="_blank">{{ assignment_sheet.owner|user_name }}</a></div>
+                                {% endfor %}
+
+                             </div>
+
+                             {% endif %}
+
+
+                        </div>
+                    </div>
+
+
     				{% endif %}
 
 				{% endif %}
