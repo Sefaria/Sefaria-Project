@@ -260,7 +260,6 @@ def assigned_sheet(request, assignment_id):
 
 	assigner        = UserProfile(id=sheet["owner"])
 	assigner_id	    = assigner.id
-	owner           = User.objects.get(id=request.user.id)
 	owner_groups    = get_user_groups(request.user)
 
 	sheet_class     = make_sheet_class_string(sheet)

@@ -660,6 +660,7 @@ $(function() {
 	if (sjs.current.id) {
 		buildSheet(sjs.current);
 	} else if (sjs.assignment_id) {
+		if (!sjs._uid) { return sjs.loginPrompt(); }
 		buildSheet(sjs.current);
 		afterAction();
 	} else {
