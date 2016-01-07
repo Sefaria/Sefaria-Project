@@ -37,9 +37,9 @@ class WorkflowyParser(object):
         self.version_info = None
         if delims:
             delims = delims.split()
-            self.title_lang_delim = delims[0] if len(delims) > 1 else self.title_lang_delim
-            self.alt_title_delim = delims[1] if len(delims) > 2 else self.alt_title_delim
-            self.categories_delim = delims[2] if len(delims) > 3 else self.categories_delim
+            self.title_lang_delim = delims[0] if len(delims) >= 1 else self.title_lang_delim
+            self.alt_title_delim = delims[1] if len(delims) >= 2 else self.alt_title_delim
+            self.categories_delim = delims[2] if len(delims) >= 3 else self.categories_delim
 
     def parse(self):
         #tree = tree.getroot()[1][0]
