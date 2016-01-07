@@ -52,6 +52,11 @@ def new_sheet(request):
 	if "assignment" in request.GET:
 		sheet_id  = int(request.GET["assignment"])
 
+		query = { "owner": request.user.id or -1, "assignment_id": sheet_id }
+		existingAssignment = db.sheets.find_one(query) or []
+		if "id" in existingAssignment:
+			return view_sheet(request,existingAssignment["id"])
+
 		if "assignable" in db.sheets.find_one({"id": sheet_id})["options"]:
 			if db.sheets.find_one({"id": sheet_id})["options"]["assignable"] == 1:
 				return assigned_sheet(request, sheet_id)
