@@ -3322,7 +3322,7 @@ class Library(object):
     def _set_toc(self, value):
         self._toc = value
         try:
-            if value and len(value) != self._toc_size:
+            if value and (len(value) != self._toc_size):
                 old_size = self._toc_size
                 self._toc_size = len(value)
                 raise InputError(u"TOC ERROR - from {} to {}.  Added {}".format(old_size, len(value), value[old_size:]))
