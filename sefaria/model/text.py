@@ -3310,6 +3310,7 @@ class Library(object):
         self._toc = None
         self._toc_json = None
         self._category_id_dict = None
+        self._toc_size = 16
 
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
             self._build_core_maps()
@@ -3321,10 +3322,13 @@ class Library(object):
     def _set_toc(self, value):
         self._toc = value
         try:
-            if value and len(value) != 16:
-                raise InputError("TOC ERROR")
+            if value and (len(value) != self._toc_size):
+                old_size = self._toc_size
+                self._toc_size = len(value)
+                raise InputError(u"TOC ERROR - from {} to {}.  Added {}".format(old_size, len(value), value[old_size:] if len(value) > old_size else u"(nothing)"))
         except InputError:
-            logger.exception("TOC ERROR")
+            import traceback
+            logger.exception(u"\n".join(traceback.format_stack()))
 
     toc = property(_get_toc, _set_toc)
     ### End TOC reroute
