@@ -43,20 +43,19 @@ var ReaderApp = React.createClass({
     window.removeEventListener("popstate", this.handlePopState);
   },
   componentDidUpdate: function() {
+    console.trace();
     if (this.justPopped) {
       console.log("Skipping history update - just popped")
       this.justPopped = false;
-      this.justSkipped = true;
       //debugger
       return;
     }
-    //if (this.justSkipped) {debugger;}
     this.updateHistoryState(this.replaceHistory);
     this.replaceHistory = false;
   },
   handlePopState: function(event) {
     var state = event.state;
-    console.log("Pop");
+    console.log("Pop - " + window.location.pathname);
     console.log(state);
     if (state) {
       var kind = "";
@@ -267,6 +266,7 @@ var ReaderApp = React.createClass({
     var update  = JSON.stringify(state);
     if (current !== update) {
       console.log("Header update in RA");
+      console.log(state)
       this.setState({header: state});
     }
   },
@@ -279,7 +279,7 @@ var ReaderApp = React.createClass({
   openPanelAt: function(n, ref) {
     // Open a new panel after `n` with the new ref
     this.state.panels.splice(n+1, 0, {refs: [ref], mode: "Text"});
-    this.setState({panels: this.state.panels});
+    this.setState({panels: this.state.panels, header: {mode: null, query: null, panelState: {}}});
   },
   openPanelAtEnd: function(ref) {
     this.openPanelAt(this.state.panels.length+1, ref);
@@ -335,7 +335,11 @@ var ReaderApp = React.createClass({
         }
       }
     }
-    this.setState({panels: this.state.panels});
+    var state = {panels: this.state.panels};
+    if (state.panels.length == 0) {
+      state.header = {mode: "navigation", query: null, panelState: {}};
+    }
+    this.setState(state);
   },
   saveRecentlyViewed: function(panel) {
     if (panel.mode == "Connections" || !panel.refs.length) { return; }
@@ -414,15 +418,13 @@ var ReaderApp = React.createClass({
       }
     }
     var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel});
-    panels = panels.length ? panels : (<div className="emptyDesktop">You have nothing open.</div>);
 
     return (<div className={classes}>
               {this.props.multiPanel ? 
                 <Header 
                   onUpdate={this.handleHeaderUpdate}
                   onRefClick={this.openPanelAtEnd}
-                  initialMode={this.state.header.mode}
-                  initialQuery={this.state.header.query}
+                  initialState={this.state.header}
                   panelsOpen={this.state.panels.length} /> : null}
               {panels}
             </div>);
@@ -453,8 +455,10 @@ var Header = React.createClass({
     this.initAutocomplete();
   },
   componentWillReceiveProps: function(nextProps) {
-    if (this.props.panelsOpen > 0 && nextProps.panelsOpen === 0) {
-      this.showLibrary();
+    if (nextProps.initialState) {
+      this.setState(nextProps.initialState);
+    } else {
+      this.setState({mode: nextProps.initialMode, query: nextProps.initialQuery, panelState: null});
     }
   },
   componentDidUpdate: function(prevProps, prevState) {
@@ -520,14 +524,13 @@ var Header = React.createClass({
   handleLibraryClick: function() {
     if (this.state.mode === "home") {
       return;
-    } else if (this.state.mode === "navigation" && this.state.panelState.navigationCategories.length == 0) {
+    } else if (this.state.mode === "navigation" && this.state.panelState && this.state.panelState.navigationCategories.length == 0) {
       this.showDesktop();
     } else {
       this.showLibrary();
     }
   },
   handleRefClick: function(ref) {
-    this.showDesktop();
     this.props.onRefClick(ref);
   },
   handleSearchKeyUp: function(event) {
@@ -640,7 +643,7 @@ var ReaderPanel = React.createClass({
   componentDidMount: function() {
     if (this.props.onUpdate) {
       // Make sure the initial state of this panel is pushed up to ReaderApp
-      //this.props.onUpdate("replace", this.state);     
+      this.props.onUpdate("push", this.state);     
     }
     this.setHeadroom();
     this.trackPanelOpens();
@@ -664,11 +667,8 @@ var ReaderPanel = React.createClass({
   },
   componentDidUpdate: function(prevProps, prevState) {
     if (this.props.onUpdate) {
-      if (this.replaceHistory) {
-        this.props.onUpdate("replace", this.state);
-      } else {
-        this.props.onUpdate("push", this.state);
-      }      
+      var action = this.replaceHistory ? "replace" : "push";
+      this.props.onUpdate(action, this.state);   
     }
     this.setHeadroom();
     if (prevState.refs.compare(this.state.refs)) {
