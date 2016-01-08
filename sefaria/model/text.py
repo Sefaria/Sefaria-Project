@@ -3325,7 +3325,7 @@ class Library(object):
             if value and (len(value) != self._toc_size):
                 old_size = self._toc_size
                 self._toc_size = len(value)
-                raise InputError(u"TOC ERROR - from {} to {}.  Added {}".format(old_size, len(value), value[old_size:]))
+                raise InputError(u"TOC ERROR - from {} to {}.  Added {}".format(old_size, len(value), value[old_size:] if len(value) > old_size else u"(nothing)"))
         except InputError:
             import traceback
             logger.exception(u"\n".join(traceback.format_stack()))
