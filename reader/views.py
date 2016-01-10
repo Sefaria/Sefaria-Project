@@ -968,9 +968,6 @@ def link_count_api(request, cat1, cat2):
 
 @catch_error_as_json
 def word_count_api(request, title, version, language):
-    """
-    Return a count document with the number of links between every text in cat1 and every text in cat2
-    """
     if request.method == "GET":
         counts = VersionSet({"title": title, "versionTitle": version, "language": language}).word_count()
         resp = jsonResponse({"wordCount": counts})
@@ -1220,6 +1217,22 @@ def versions_api(request, tref):
 
     return jsonResponse(results, callback=request.GET.get("callback", None))
 
+@catch_error_as_json
+def version_status_api(request):
+    res = []
+    for v in VersionSet():
+        try:
+            res.append({
+                "id": str(v._id),
+                "title": v.title,
+                "version": v.versionTitle,
+                "language": v.language,
+                "categories": v.get_index().categories,
+                "wordcount": v.word_count()
+            })
+        except Exception:
+            pass
+    return jsonResponse(sorted(res, key = lambda x: x["title"] + x["version"]))
 
 @catch_error_as_json
 def set_lock_api(request, tref, lang, version):

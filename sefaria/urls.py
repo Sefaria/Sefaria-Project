@@ -13,6 +13,7 @@ admin.autodiscover()
 # Texts API
 urlpatterns = patterns('reader.views',
     (r'^api/texts/versions/(?P<tref>.+)$', 'versions_api'),
+    (r'^api/texts/version-status/?$', 'version_status_api'),
     (r'^api/texts/parashat_hashavua$', 'parashat_hashavua_api'),
     (r'^api/texts/random?$', 'random_text_api'),
     (r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'texts_api'),
@@ -31,6 +32,7 @@ urlpatterns = patterns('reader.views',
     (r'^api/counts/(?P<title>.+)$', 'counts_api'),
     (r'^api/preview/(?P<title>.+)$', 'text_preview_api'),
     (r'^api/toc-html/(?P<title>.+)$', 'text_toc_html_fragment'),
+
 
 )
 
