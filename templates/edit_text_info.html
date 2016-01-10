@@ -797,7 +797,7 @@
         var sectionNames = [];
         $(".sectionType input").each(function() {
             sectionNames.push($(this).val());
-        })
+        });
         index.sectionNames = sectionNames;
         var maps = [];
         $(".shorthand").each(function() {
@@ -810,7 +810,7 @@
         });
         index.maps = maps;
         return index;
-    }
+    };
         
 
     sjs.validateIndex = function(index) {
@@ -894,7 +894,7 @@
         if ("oldTitle" in index) {
             message += "<br><br>(processing title changes may take some time)"
         }
-        sjs.alert.saving(message)
+        sjs.alert.saving(message);
         $.post("/api/index/" + title,  {"json": postJSON}, function(data) {
             if (data.error) {
                 sjs.alert.message(data.error);

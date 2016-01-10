@@ -367,7 +367,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 elif d["categories"][0] == "Mishnah":
                     node.addressTypes = ["Perek", "Mishnah"]
                 else:
-                    node.addressTypes = ["Integer" for x in range(node.depth)]
+                    if getattr(node, "addressTypes", None) is None:
+                        node.addressTypes = ["Integer" for _ in range(node.depth)]
 
                 l = d.pop("length", None)
                 if l:
