@@ -206,9 +206,9 @@ def s2_texts_category(request, cats):
     """
     cats       = cats.split("/")
     toc        = library.get_toc()
-    cat_toc    = get_or_make_summary_node(toc, cats)
+    cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
 
-    if len(cat_toc) == 0:
+    if cat_toc is None:
         return s2_texts(request)
 
     return render_to_response('s2.html', {
@@ -692,9 +692,9 @@ def texts_category_list(request, cats):
         return s2_texts_category(request, cats)
     cats       = cats.split("/")
     toc        = library.get_toc()
-    cat_toc    = get_or_make_summary_node(toc, cats)
+    cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
 
-    if (len(cat_toc) == 0):
+    if cat_toc is None:
         raise Http404
 
     category   = cats[-1]

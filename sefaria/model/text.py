@@ -3322,6 +3322,7 @@ class Library(object):
 
     def _set_toc(self, value):
         self._toc = value
+        """
         try:
             if value and (len(value) != self._toc_size):
                 old_size = self._toc_size
@@ -3330,7 +3331,7 @@ class Library(object):
         except InputError:
             import traceback
             logger.exception(u"\n".join(traceback.format_stack()))
-
+        """
     toc = property(_get_toc, _set_toc)
     ### End TOC reroute
 

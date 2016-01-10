@@ -213,7 +213,7 @@ def update_title_in_toc(toc, index, old_ref=None, recount=True):
             break
     if not found:
         """ Debugging TOC corruption    """
-        logger.error(u"Extending TOC!\nIndex:\n{}\nNode:\n{}\nold_ref: {}\nrecount: {}\n".format(vars(index), node, old_ref, recount))
+        # logger.error(u"Extending TOC!\nIndex:\n{}\nNode:\n{}\nold_ref: {}\nrecount: {}\n".format(vars(index), node, old_ref, recount))
         """                             """
         node.append(text)
         node[:] = sort_toc_node(node)
@@ -225,10 +225,10 @@ def update_title_in_toc(toc, index, old_ref=None, recount=True):
     return toc
 
 
-def get_or_make_summary_node(summary, nodes, contents_only=True):
+def get_or_make_summary_node(summary, nodes, contents_only=True, make_if_not_found=True):
     """
     Returns the node in 'summary' that is named by the list of categories in 'nodes',
-    creates the node if it doesn't exist.
+    If make_if_not_found is true, creates the node if it doesn't exist.
     Used recursively on sub-summaries.
     """
     if len(nodes) == 1:
@@ -237,18 +237,24 @@ def get_or_make_summary_node(summary, nodes, contents_only=True):
             if node.get("category") == nodes[0]:
                 return node["contents"] if contents_only else node
         # we didn't find it, so let's add it
-        logger.error(u"Appending to TOC (I)!\nSummary: {}\nNodes: {}\n".format(summary, nodes))
-        summary.append({"category": nodes[0], "heCategory": hebrew_term(nodes[0]), "contents": []})
-        return summary[-1]["contents"] if contents_only else summary[-1]
+        if make_if_not_found:
+            # logger.error(u"Appending to TOC (I)!\nSummary: {}\nNodes: {}\n".format(summary, nodes))
+            summary.append({"category": nodes[0], "heCategory": hebrew_term(nodes[0]), "contents": []})
+            return summary[-1]["contents"] if contents_only else summary[-1]
+        else:
+            return None
 
     # Look for the first category, or add it, then recur
     for node in summary:
         if node.get("category") == nodes[0]:
             return get_or_make_summary_node(node["contents"], nodes[1:], contents_only=contents_only)
 
-    logger.error(u"Appending to TOC (II)!\nSummary: {}\nNodes: {}\n".format(summary, nodes))
-    summary.append({"category": nodes[0], "heCategory": hebrew_term(nodes[0]), "contents": []})
-    return get_or_make_summary_node(summary[-1]["contents"], nodes[1:], contents_only=contents_only)
+    if make_if_not_found:
+        # logger.error(u"Appending to TOC (II)!\nSummary: {}\nNodes: {}\n".format(summary, nodes))
+        summary.append({"category": nodes[0], "heCategory": hebrew_term(nodes[0]), "contents": []})
+        return get_or_make_summary_node(summary[-1]["contents"], nodes[1:], contents_only=contents_only)
+    else:
+        return None
 
 
 def get_sparesness_lookup():
