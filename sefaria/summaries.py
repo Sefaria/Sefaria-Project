@@ -13,7 +13,8 @@ from sefaria.system.database import db
 from sefaria.utils.hebrew import hebrew_term
 from model import *
 from sefaria.system.exceptions import BookNameError
-
+import logging
+logger = logging.getLogger(__name__)
 
 # Giant list ordering or categories
 # indentation and inclusion of duplicate categories (like "Seder Moed")
@@ -185,7 +186,6 @@ def update_title_in_toc(toc, index, old_ref=None, recount=True):
     indx_dict = index.toc_contents()
 
     if recount:
-        #counts.update_full_text_count(bookname)
         VersionState(index.title).refresh()
     resort_other = False
 
@@ -212,6 +212,9 @@ def update_title_in_toc(toc, index, old_ref=None, recount=True):
             found = True
             break
     if not found:
+        """ Debugging TOC corruption    """
+        logger.error(u"Extending TOC!\nIndex:\n{}\nNode:\n{}\nold_ref: {}\nrecount: {}\n".format(vars(index), node, old_ref, recount))
+        """                             """
         node.append(text)
         node[:] = sort_toc_node(node)
 
