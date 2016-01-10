@@ -3316,25 +3316,6 @@ class Library(object):
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
             self._build_core_maps()
 
-    ### Route toc handling through  property, so as to debug slippery TOC corruption bug
-    def _get_toc(self):
-        return self._toc
-
-    def _set_toc(self, value):
-        self._toc = value
-        """
-        try:
-            if value and (len(value) != self._toc_size):
-                old_size = self._toc_size
-                self._toc_size = len(value)
-                raise InputError(u"TOC ERROR - from {} to {}.  Added {}".format(old_size, len(value), value[old_size:] if len(value) > old_size else u"(nothing)"))
-        except InputError:
-            import traceback
-            logger.exception(u"\n".join(traceback.format_stack()))
-        """
-    toc = property(_get_toc, _set_toc)
-    ### End TOC reroute
-
     def _build_core_maps(self):
         # Build index and title node dicts in an efficient way
 
@@ -3410,7 +3391,7 @@ class Library(object):
             self.rebuild_toc()
 
     def rebuild_toc(self):
-        self.toc = None
+        self._toc = None
         self._toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
@@ -3420,13 +3401,13 @@ class Library(object):
         Returns table of contents object from cache,
         DB or by generating it, as needed.
         """
-        if not self.toc:
-            self.toc = scache.get_cache_elem('toc_cache')
-            if not self.toc:
+        if not self._toc:
+            self._toc = scache.get_cache_elem('toc_cache')
+            if not self._toc:
                 from sefaria.summaries import update_table_of_contents
-                self.toc = update_table_of_contents()
-                scache.set_cache_elem('toc_cache', self.toc)
-        return self.toc
+                self._toc = update_table_of_contents()
+                scache.set_cache_elem('toc_cache', self._toc)
+        return self._toc
 
     def get_toc_json(self):
         """
@@ -3441,14 +3422,14 @@ class Library(object):
 
     def recount_index_in_toc(self, indx):
         from sefaria.summaries import update_title_in_toc
-        self.toc = update_title_in_toc(self.get_toc(), indx, recount=True)
+        self._toc = update_title_in_toc(self.get_toc(), indx, recount=True)
         self._toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
 
     def delete_index_from_toc(self, bookname):
         from sefaria.summaries import recur_delete_element_from_toc
-        self.toc = recur_delete_element_from_toc(bookname, self.get_toc())
+        self._toc = recur_delete_element_from_toc(bookname, self.get_toc())
         self._toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
@@ -3460,7 +3441,7 @@ class Library(object):
         :return:
         """
         from sefaria.summaries import update_title_in_toc
-        self.toc = update_title_in_toc(self.get_toc(), indx, old_ref=old_ref, recount=False)
+        self._toc = update_title_in_toc(self.get_toc(), indx, old_ref=old_ref, recount=False)
         self._toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()

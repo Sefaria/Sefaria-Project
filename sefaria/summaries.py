@@ -212,9 +212,6 @@ def update_title_in_toc(toc, index, old_ref=None, recount=True):
             found = True
             break
     if not found:
-        """ Debugging TOC corruption    """
-        # logger.error(u"Extending TOC!\nIndex:\n{}\nNode:\n{}\nold_ref: {}\nrecount: {}\n".format(vars(index), node, old_ref, recount))
-        """                             """
         node.append(text)
         node[:] = sort_toc_node(node)
 
@@ -238,7 +235,6 @@ def get_or_make_summary_node(summary, nodes, contents_only=True, make_if_not_fou
                 return node["contents"] if contents_only else node
         # we didn't find it, so let's add it
         if make_if_not_found:
-            # logger.error(u"Appending to TOC (I)!\nSummary: {}\nNodes: {}\n".format(summary, nodes))
             summary.append({"category": nodes[0], "heCategory": hebrew_term(nodes[0]), "contents": []})
             return summary[-1]["contents"] if contents_only else summary[-1]
         else:
@@ -250,7 +246,6 @@ def get_or_make_summary_node(summary, nodes, contents_only=True, make_if_not_fou
             return get_or_make_summary_node(node["contents"], nodes[1:], contents_only=contents_only)
 
     if make_if_not_found:
-        # logger.error(u"Appending to TOC (II)!\nSummary: {}\nNodes: {}\n".format(summary, nodes))
         summary.append({"category": nodes[0], "heCategory": hebrew_term(nodes[0]), "contents": []})
         return get_or_make_summary_node(summary[-1]["contents"], nodes[1:], contents_only=contents_only)
     else:
