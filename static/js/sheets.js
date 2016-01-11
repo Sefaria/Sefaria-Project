@@ -287,7 +287,7 @@ $(function() {
 
 
 	// General Options 
-	$("#options .optionItem").click(function() {
+	$("#options .optionItem,#assignmentsModal .optionItem").click(function() {
 		$check = $(".fa-check", $(this));
 		if ($check.hasClass("hidden")) {
 			$("#sheet").addClass($(this).attr("id"));
@@ -299,6 +299,10 @@ $(function() {
 		if (sjs.can_edit) {
 			autoSave(); // Don't bother sending options changes from adders
 		}
+	});
+
+	$("#assignable").click(function(){
+		$("#assignedSheets").toggleClass('hidden');
 	});
 
 	// Language Options specific to Sheets
@@ -849,6 +853,13 @@ $(function() {
 		$("#addParashaToSheetModal").show().position({of: window});
 		$("#overlay").show();
 	});
+
+	$("#assignmentsModalTrigger").live("click", function(e) {
+		$("#assignmentsModal").hide();
+		$("#assignmentsModal").show().position({of: window});
+		$("#overlay").show();
+	});
+
 
 	$("#addParashaToSheetModal .cancel").click(function() {
 
@@ -2069,6 +2080,11 @@ function copyToSheet(source) {
 $("#addToSheetModal .cancel").click(function() {
 	$("#overlay, #addToSheetModal").hide();
 })
+
+$("#assignmentsModal .ok").click(function() {
+	$("#overlay, #assignmentsModal").hide();
+
+});
 
 $("#addToSheetModal .ok").click(function(){
 	// Protection against request getting sent multiple times (don't know why)

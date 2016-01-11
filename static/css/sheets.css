@@ -176,6 +176,10 @@ body {
 	color:white;
 }
 
+#assignable {
+	padding-top: 10px;
+}
+
 .subMenu {
 	display: none;
 	position: absolute;

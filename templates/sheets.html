@@ -67,24 +67,7 @@
 	    			{% if not sheet.assigner_id %}
 
                     <div class="optionGroup">
-                        <div class="optionTitle"><i class="fa fa-edit"></i> Assignment <i class='fa fa-caret-right'></i></div>
-                        <div class="subMenu">
-                            <div class="optionItem" id="assignable">
-                                <i class="fa fa-check hidden"></i> Assignable</div>
-
-                            {% if assignments_from_sheet %}
-                            <div id="assignedSheets">
-                                <div class="line"></div>
-        						{% for assignment_sheet in assignments_from_sheet %}
-                                <div class="optionLink" ><a href="./{{ assignment_sheet.id }}" target="_blank">{{ assignment_sheet.owner|user_name }}</a></div>
-                                {% endfor %}
-
-                             </div>
-
-                             {% endif %}
-
-
-                        </div>
+                        <div class="optionTitle" id="assignmentsModalTrigger"><i class="fa fa-edit"></i> Assignments</div>
                     </div>
 
 
@@ -302,6 +285,31 @@
 			<div id="mediaPreview"></div>
 			<div class='btn btn-primary ok'>Add</div>
 </div>
+
+
+<div id="assignmentsModal" class="modal">
+
+        <div class="header">To turn this sheet into an assignment, click the <em>Assignable</em> text below:</div>
+
+
+                                <div class="optionItem" id="assignable">
+                                <i class="fa fa-check hidden"></i> Assignable</div>
+
+                            {% if assignments_from_sheet %}
+                            <div id="assignedSheets" class="hidden">
+                                <div class="line"></div>
+        						{% for assignment_sheet in assignments_from_sheet %}
+                                <div class="optionLink" ><a href="./{{ assignment_sheet.id }}" target="_blank">{{ assignment_sheet.owner|user_name }}</a></div>
+                                {% endfor %}
+
+                             </div>
+
+                             {% endif %}
+
+        <div class='btn btn-primary ok'>Ok</div>
+
+</div>
+
 
 
 
