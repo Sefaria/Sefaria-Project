@@ -717,6 +717,8 @@ $(function() {
 							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
 							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +						
 							"<div class='switchSourceLayoutLang' title='Change Source Layout/Language'><i class='fa fa-ellipsis-h'></i></div>" +						
+							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up '></i></div>" +
+							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
 
 						"</div>";
 
@@ -725,6 +727,8 @@ $(function() {
 							"<div class='addSubComment' title='Add Comment'><i class='fa fa-comment'></i></div>" +
 							"<div class='addConnections' title='Add All Connections'><i class='fa fa-sitemap'></i></div>"+				
 							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
+							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up'></i></div>" +
+							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
 						"</div>";
 
 	var viewerControls = "<div id='sourceControls'>" + 
@@ -734,6 +738,8 @@ $(function() {
 	var ownerSimpleControls = "<div id='sourceControls'>" + 
 							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
 							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
+							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up'></i></div>" +
+							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
 						"</div>";
 
 
@@ -882,6 +888,26 @@ $(function() {
 		sjs.alert.flash("Sharing settings saved.")
 
 
+
+	});
+
+
+	$(".moveSourceUp").live("click", function() {
+		$(this).closest(".sheetItem").insertBefore($(this).closest(".sheetItem").prev());
+		autoSave();
+
+		var top = $(this).offset().top - 200;
+		$("html, body").animate({scrollTop: top}, 300);
+
+	});
+
+
+	$(".moveSourceDown").live("click", function() {
+		$(this).closest(".sheetItem").insertAfter($(this).closest(".sheetItem").next());
+		autoSave();
+
+		var top = $(this).offset().top - 200;
+		$("html, body").animate({scrollTop: top}, 300);
 
 	});
 
