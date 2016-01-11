@@ -367,7 +367,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 elif d["categories"][0] == "Mishnah":
                     node.addressTypes = ["Perek", "Mishnah"]
                 else:
-                    node.addressTypes = ["Integer" for x in range(node.depth)]
+                    if getattr(node, "addressTypes", None) is None:
+                        node.addressTypes = ["Integer" for _ in range(node.depth)]
 
                 l = d.pop("length", None)
                 if l:
@@ -3310,24 +3311,10 @@ class Library(object):
         self._toc = None
         self._toc_json = None
         self._category_id_dict = None
+        self._toc_size = 16
 
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
             self._build_core_maps()
-
-    ### Route toc handling through  property, so as to debug slippery TOC corruption bug
-    def _get_toc(self):
-        return self._toc
-
-    def _set_toc(self, value):
-        self._toc = value
-        try:
-            if value and len(value) != 16:
-                raise InputError("TOC ERROR")
-        except InputError:
-            logger.exception("TOC ERROR")
-
-    toc = property(_get_toc, _set_toc)
-    ### End TOC reroute
 
     def _build_core_maps(self):
         # Build index and title node dicts in an efficient way
@@ -3395,6 +3382,7 @@ class Library(object):
         scache.set_cache_elem('toc_json_cache', self.get_toc_json(), 600000)
         scache.delete_template_cache("texts_list")
         scache.delete_template_cache("texts_dashboard")
+        self._full_title_list_jsons = {}
 
     def rebuild(self, include_toc = False):
         self._build_core_maps()
@@ -3404,7 +3392,7 @@ class Library(object):
             self.rebuild_toc()
 
     def rebuild_toc(self):
-        self.toc = None
+        self._toc = None
         self._toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
@@ -3414,13 +3402,13 @@ class Library(object):
         Returns table of contents object from cache,
         DB or by generating it, as needed.
         """
-        if not self.toc:
-            self.toc = scache.get_cache_elem('toc_cache')
-            if not self.toc:
+        if not self._toc:
+            self._toc = scache.get_cache_elem('toc_cache')
+            if not self._toc:
                 from sefaria.summaries import update_table_of_contents
-                self.toc = update_table_of_contents()
-                scache.set_cache_elem('toc_cache', self.toc)
-        return self.toc
+                self._toc = update_table_of_contents()
+                scache.set_cache_elem('toc_cache', self._toc)
+        return self._toc
 
     def get_toc_json(self):
         """
@@ -3435,14 +3423,14 @@ class Library(object):
 
     def recount_index_in_toc(self, indx):
         from sefaria.summaries import update_title_in_toc
-        self.toc = update_title_in_toc(self.get_toc(), indx, recount=True)
+        self._toc = update_title_in_toc(self.get_toc(), indx, recount=True)
         self._toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
 
     def delete_index_from_toc(self, bookname):
         from sefaria.summaries import recur_delete_element_from_toc
-        self.toc = recur_delete_element_from_toc(bookname, self.get_toc())
+        self._toc = recur_delete_element_from_toc(bookname, self.get_toc())
         self._toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
@@ -3454,7 +3442,7 @@ class Library(object):
         :return:
         """
         from sefaria.summaries import update_title_in_toc
-        self.toc = update_title_in_toc(self.get_toc(), indx, old_ref=old_ref, recount=False)
+        self._toc = update_title_in_toc(self.get_toc(), indx, old_ref=old_ref, recount=False)
         self._toc_json = None
         self._category_id_dict = None
         self._reset_toc_derivate_objects()
@@ -3795,7 +3783,13 @@ class Library(object):
         """
         title_json = self._full_title_list_jsons.get(lang)
         if not title_json:
-            title_json = json.dumps(self.full_title_list(lang=lang, with_commentary=True))
+            from sefaria.summaries import flatten_toc
+            title_list = self.full_title_list(lang=lang, with_commentary=True)
+            if lang == "en":
+                toc_titles = flatten_toc(self.get_toc())
+                secondary_list = list(set(title_list) - set(toc_titles))
+                title_list = toc_titles + secondary_list
+            title_json = json.dumps(title_list)
             self._full_title_list_jsons[lang] = title_json
         return title_json
 

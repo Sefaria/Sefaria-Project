@@ -13,6 +13,8 @@ admin.autodiscover()
 # Texts API
 urlpatterns = patterns('reader.views',
     (r'^api/texts/versions/(?P<tref>.+)$', 'versions_api'),
+    (r'^api/texts/version-status/tree/?(?P<lang>.*)?/?$', 'version_status_tree_api'),
+    (r'^api/texts/version-status/?$', 'version_status_api'),
     (r'^api/texts/parashat_hashavua$', 'parashat_hashavua_api'),
     (r'^api/texts/random?$', 'random_text_api'),
     (r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'texts_api'),
@@ -31,7 +33,6 @@ urlpatterns = patterns('reader.views',
     (r'^api/counts/(?P<title>.+)$', 'counts_api'),
     (r'^api/preview/(?P<title>.+)$', 'text_preview_api'),
     (r'^api/toc-html/(?P<title>.+)$', 'text_toc_html_fragment'),
-
 )
 
 # Reviews API
@@ -267,6 +268,7 @@ urlpatterns += patterns('reader.views',
     (r'^vgarden/sheets/(?P<key>.+)$', 'sheet_tag_visual_garden_page'),
     (r'^vgarden/search/(?P<q>.+)$', 'search_query_visual_garden_page'),
     (r'^vgarden/custom/(?P<key>.+)$', 'custom_visual_garden_page'),
+    (r'^visualize/library/?(?P<lang>.*)?/?$', 'visualize_library'),
 
 )
 
