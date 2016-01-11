@@ -897,7 +897,7 @@ $(function() {
 		autoSave();
 
 		var top = $(this).offset().top - 200;
-		$("html, body").animate({scrollTop: top}, 300);
+		$("html, body").animate({scrollTop: top}, 750);
 
 	});
 
@@ -907,7 +907,7 @@ $(function() {
 		autoSave();
 
 		var top = $(this).offset().top - 200;
-		$("html, body").animate({scrollTop: top}, 300);
+		$("html, body").animate({scrollTop: top}, 750);
 
 	});
 
