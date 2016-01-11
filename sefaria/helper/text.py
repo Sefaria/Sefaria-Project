@@ -296,6 +296,17 @@ def split_text_section(oref, lang, old_version_title, new_version_title):
     old_chunk.save()
 
 
+def find_and_replace_in_text(title, vtitle, lang, find_string, replace_string, uid):
+    """
+    Replaces all instances of `find_string` with `replace_string` in the text specified by `title` / `vtitle` / `lang`.
+    Changes are attributed to the user with `uid`. 
+    """
+    def replacer(text):
+        return text.replace(find_string, replace_string)
+
+    modify_text_by_function(title, vtitle, lang, replacer, uid)
+
+
 def replace_roman_numerals(text, allow_lowercase=False):
     """
     Replaces any roman numerals in 'text' with digits.
@@ -321,6 +332,9 @@ def replace_roman_numerals(text, allow_lowercase=False):
 
 
 def replace_roman_numerals_including_lowercase(text):
+    """
+    Returns `text` with Roman numerals replaced by Arabic numerals, including Roman numerals in lowercase.
+    """
     return replace_roman_numerals(text, allow_lowercase=True)
 
 
