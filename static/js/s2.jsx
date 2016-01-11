@@ -270,11 +270,17 @@ var ReaderApp = React.createClass({
       this.setState({header: state});
     }
   },
+  handleHeaderRefClick: function(ref) {
+    for (var i = this.state.panels.length-1; i >= 0; i--) {
+      this.saveRecentlyViewed(this.state.panels[i]);
+    }
+    this.setState({panels: [{refs: [ref], mode: "Text"}], header: {mode: null, query: null, panelState: {}}});
+  },
   handleSegmentClick: function(n, ref) {
     // Handle a click on a text segment `ref` in from panel in position `n`
     // Update or add panel after this one to be a TextList
     this.openTextListAt(n+1, [ref]);
-    this.setTextListHighlight(n, [ref])
+    this.setTextListHighlight(n, [ref]);
   },
   openPanelAt: function(n, ref) {
     // Open a new panel after `n` with the new ref
@@ -429,7 +435,7 @@ var ReaderApp = React.createClass({
               {this.props.multiPanel ? 
                 <Header 
                   onUpdate={this.handleHeaderUpdate}
-                  onRefClick={this.openPanelAtEnd}
+                  onRefClick={this.handleHeaderRefClick}
                   initialState={this.state.header}
                   panelsOpen={this.state.panels.length} /> : null}
               {panels}
