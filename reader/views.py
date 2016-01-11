@@ -1234,6 +1234,29 @@ def version_status_api(request):
             pass
     return jsonResponse(sorted(res, key = lambda x: x["title"] + x["version"]))
 
+
+def version_status_tree_api(request):
+    def simplify_toc(toc_node):
+        simple_nodes = []
+        for x in toc_node:
+            simple_node = {"name": x.get("category", None) or x.get("title", None)}
+            if "category" in x:
+                simple_node["children"] = simplify_toc(x["contents"])
+            elif "title" in x:
+                simple_node["children"] = [{"name": u"{} ({})".format(v.versionTitle, v.language), "size": v.word_count()} for v in VersionSet({"title":x["title"]})]
+            simple_nodes.append(simple_node)
+        return simple_nodes
+    return jsonResponse({
+        "name": "Whole Library",
+        "children": simplify_toc(library.get_toc())
+    })
+
+
+def visualize_library(request):
+    template_vars = {}
+    return render_to_response('visual_library.html', template_vars, RequestContext(request))
+
+
 @catch_error_as_json
 def set_lock_api(request, tref, lang, version):
     """

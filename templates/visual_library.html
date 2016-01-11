@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+
+{% block title %}Visualizing the Sefaria Library{% endblock %}
+{% block head %}
+    <meta property="og:image" content="/static/img/sunburst.png"/>
+    {% if not OFFLINE %}
+    <script src="https://use.typekit.net/aeg8div.js"></script>
+    <script>try{Typekit.load({ async: true });}catch(e){}</script>
+    <script src="//ajax.googleapis.com/ajax/libs/webfont/1.5.10/webfont.js"></script>
+    <script>
+      WebFont.load({
+        google: {
+          families: ['Montserrat:400,700', 'Open Sans Hebrew:400,700:latin,hebrew' ]
+        }
+      });
+    </script>
+    {% endif %}
+    <script src="http://d3js.org/d3.v3.js"></script>
+{%  endblock %}
+
+{% block css %}
+
+    #chart path {
+      stroke: #fff;
+    }
+
+    #explanation {
+      position: absolute;
+      margin-top: 20px;
+      width: 180px;
+      color: #666;
+    }
+
+    #languageToggle {
+        display: none;
+    }
+{% endblock %}
+
+{% block content %}
+
+
+
+
+
+<div id="visualLibraryPage" class="container doc">
+ <div id="chart">
+    <span style="font-size: 10px;">Click to Zoom</span>
+    <div id="explanation" style="visibility: hidden;">
+        <div id="text-title"></div>
+        <div id="word-count"></div>
+    </div>
+ </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+    <script>
+    {% autoescape off %}
+
+    var width = 960,
+        height = 700,
+        radius = Math.min(width, height) / 2,
+        color = d3.scale.category20c();
+
+    var svg = d3.select("#chart").append("svg")
+        .attr("width", width)
+        .attr("height", height)
+      .append("g")
+        .attr("transform", "translate(" + width / 2 + "," + (height / 2) + ")");
+
+    var x = d3.scale.linear()
+        .range([0, 2 * Math.PI]);
+
+    var y = d3.scale.sqrt()
+        .range([0, radius]);
+
+    var partition = d3.layout.partition()
+        .sort(null)
+        .value(function(d) { return d.size; });
+
+    var arc = d3.svg.arc()
+        .startAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, x(d.x))); })
+        .endAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, x(d.x + d.dx))); })
+        .innerRadius(function(d) { return Math.max(0, y(d.y)); })
+        .outerRadius(function(d) { return Math.max(0, y(d.y + d.dy)); });
+
+    d3.json("/api/texts/version-status/tree/", function(error, root) {
+      if (error) throw error;
+
+      var path = svg.datum(root).selectAll("path")
+          .data(partition.nodes)
+        .enter().append("path")
+          // .attr("display", function(d) { return d.depth ? null : "none"; }) // hide inner ring
+          .attr("d", arc)
+          .on("click", click)
+          .on("mouseover", mouseover)
+          .style("stroke", "#fff")
+          .style("fill", function(d) { return color((d.children ? d : d.parent).name); })
+          .style("fill-rule", "evenodd")
+        .append("title")
+          .text(function (d) { return d.name; })
+          ;
+
+    });
+
+    function click(d) {
+      svg.transition()
+          .duration(750)
+          .tween("scale", function() {
+            var xd = d3.interpolate(x.domain(), [d.x, d.x + d.dx]),
+                yd = d3.interpolate(y.domain(), [d.y, 1]),
+                yr = d3.interpolate(y.range(), [d.y ? 20 : 0, radius]);
+            return function(t) { x.domain(xd(t)); y.domain(yd(t)).range(yr(t)); };
+          })
+        .selectAll("path")
+          .attrTween("d", function(d) { return function() { return arc(d); }; });
+    }
+
+    function mouseover(d) {
+        d3.select("#explanation")
+          .style("visibility", "");
+        d3.select("#text-title")
+          .text(d.name);
+        d3.select("#word-count")
+          .text(d.value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") +" words");
+    }
+    d3.select(self.frameElement).style("height", height + "px");
+
+
+    {% endautoescape %}
+    </script>
+{% endblock %}
