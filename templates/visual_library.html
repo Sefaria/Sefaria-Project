@@ -2,7 +2,7 @@
 
 {% load sefaria_tags %}
 
-{% block title %}Visualizing the Sefaria Library{% endblock %}
+{% block title %}Visualizing the Sefaria Library{% if lang %} ({{ lang }}){% endif %}{% endblock %}
 {% block head %}
     <meta property="og:image" content="/static/img/sunburst.png"/>
     {% if not OFFLINE %}
@@ -61,7 +61,7 @@
 {% block js %}
     <script>
     {% autoescape off %}
-
+    var lang = "{{ lang }}";
     var width = 960,
         height = 700,
         radius = Math.min(width, height) / 2,
@@ -89,7 +89,8 @@
         .innerRadius(function(d) { return Math.max(0, y(d.y)); })
         .outerRadius(function(d) { return Math.max(0, y(d.y + d.dy)); });
 
-    d3.json("/api/texts/version-status/tree/", function(error, root) {
+    var url  =  "/api/texts/version-status/tree/" + lang;
+    d3.json(url, function(error, root) {
       if (error) throw error;
 
       var path = svg.datum(root).selectAll("path")
