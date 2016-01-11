@@ -177,7 +177,11 @@ body {
 }
 
 #assignable {
-	padding-top: 10px;
+	margin:10px;
+}
+
+#assignedSheets {
+	margin: 10px;
 }
 
 .subMenu {

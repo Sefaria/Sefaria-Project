@@ -289,7 +289,7 @@
 
 <div id="assignmentsModal" class="modal">
 
-        <div class="header">To turn this sheet into an assignment, click the <em>Assignable</em> text below:</div>
+        <div class="header">This sheet can be assigned when the <em>Assignable</em> text below is checked:</div>
 
 
                                 <div class="optionItem" id="assignable">
@@ -298,11 +298,14 @@
                             {% if assignments_from_sheet %}
                             <div id="assignedSheets" class="hidden">
                                 <div class="line"></div>
+                                Students can complete their assignment at this link:<br/>
+                                <a href="./new?assignment={{sheet.id}}">{{ request.META.HTTP_HOST }}/sheets/new?assignment=?{{sheet.id}}</a>
+                                <div class="line"></div>
+                                <strong>Saved Assignments:</strong>
         						{% for assignment_sheet in assignments_from_sheet %}
                                 <div class="optionLink" ><a href="./{{ assignment_sheet.id }}" target="_blank">{{ assignment_sheet.owner|user_name }}</a></div>
                                 {% endfor %}
-
-                             </div>
+                            </div>
 
                              {% endif %}
 
