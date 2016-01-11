@@ -355,11 +355,17 @@ var ReaderApp = React.createClass({
     $.cookie("recentlyViewed", JSON.stringify(recent), {path: "/"});
   },
   render: function() {
-    var width = 100.0/this.state.panels.length;
+    var evenWidth = 100.0/this.state.panels.length;
+    if (this.state.panels.length == 2 && this.state.panels[0].mode == "Text" && this.state.panels[1].mode == "Connections") {
+      var widths = [60.0, 40.0];
+    } else {
+      var widths = this.state.panels.map(function(){ return evenWidth; });
+    }
     var panels = [];
     for (var i = 0; i < this.state.panels.length; i++) {
       var panel                    = clone(this.state.panels[i]);
-      var style                    = {width: width + "%", left: (width * i) + "%"};
+      var left                     = widths.reduce(function(prev, curr, index, arr) { return index < i ? prev+curr : prev}, 0);
+      var style                    = {width: widths[i] + "%", left: left + "%"};
       var onSegmentClick           = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
       var onCitationClick          = this.openPanelAt.bind(null, i);
       var onTextListClick          = function(){}; // disabling for testing, this.openPanelAt.bind(null, i);
