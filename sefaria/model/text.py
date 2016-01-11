@@ -3382,6 +3382,7 @@ class Library(object):
         scache.set_cache_elem('toc_json_cache', self.get_toc_json(), 600000)
         scache.delete_template_cache("texts_list")
         scache.delete_template_cache("texts_dashboard")
+        self._full_title_list_jsons = {}
 
     def rebuild(self, include_toc = False):
         self._build_core_maps()
@@ -3782,7 +3783,13 @@ class Library(object):
         """
         title_json = self._full_title_list_jsons.get(lang)
         if not title_json:
-            title_json = json.dumps(self.full_title_list(lang=lang, with_commentary=True))
+            from sefaria.summaries import flatten_toc
+            title_list = self.full_title_list(lang=lang, with_commentary=True)
+            if lang == "en":
+                toc_titles = flatten_toc(self.get_toc())
+                secondary_list = list(set(title_list) - set(toc_titles))
+                title_list = toc_titles + secondary_list
+            title_json = json.dumps(title_list)
             self._full_title_list_jsons[lang] = title_json
         return title_json
 
