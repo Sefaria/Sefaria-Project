@@ -233,23 +233,23 @@ body.dark {
 .he, .heOnly .en {
   font-size: 120%;
 }
-.hebrew {
+.readerPanel.hebrew {
   direction: rtl;
 }
-.english .he {
+.readerPanel.english .he {
   display: none;
 }
-.english .en {
+.readerPanel.english .en {
   display: inline;
 }
-.hebrew .he {
+.readerPanel.hebrew .he {
   display: inline;
   text-align: right;
 }
-.hebrew .he .enInHe {
+.readerPanel.hebrew .he .enInHe {
   font-size: 83%;
 }
-.hebrew .en {
+.readerPanel.hebrew .en {
   display: none;
 }
 body .bilingual .heOnly .en,
@@ -1369,6 +1369,7 @@ display: block;margin: 0 auto;}
   width: 13px;
   margin: 0 5px;
   opacity: 0.3;
+  vertical-align: baseline;
 }
 .textRange .actionLinks .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", arial, sans-serif;

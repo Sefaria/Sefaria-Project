@@ -33,9 +33,9 @@
 
 </head>
 
-<body class='{% if contentLang == "bilingual" %}english{% else %}{{ contentLang }}{% endif %}'>
+<body>
     <div class="wrapper">
-        <div id="content">
+        <div id="content" class="{% if contentLang == "bilingual" %}english{% else %}{{ contentLang }}{% endif %}">
             {% include "header.html" %}
             {% block content %}{% endblock %}
             {% include "elements/login_prompt.html" with msg="Please log in to edit." %}
