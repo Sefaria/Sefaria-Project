@@ -270,7 +270,7 @@ var ReaderApp = React.createClass({
       this.setState({header: state});
     }
   },
-  handleHeaderRefClick: function(ref) {
+  handleNavigationClick: function(ref) {
     for (var i = this.state.panels.length-1; i >= 0; i--) {
       this.saveRecentlyViewed(this.state.panels[i]);
     }
@@ -402,6 +402,7 @@ var ReaderApp = React.createClass({
                         onUpdate={onPanelUpdate}
                         onCitationClick={onCitationClick}
                         onTextListClick={onTextListClick}
+                        onNavigationClick={this.handleNavigationClick}
                         setTextListHightlight={setTextListHightlight}
                         closePanel={closePanel}
                         panelsOpen={this.state.panels.length} />
@@ -422,6 +423,7 @@ var ReaderApp = React.createClass({
                         onSegmentClick={onSegmentClick}
                         onCitationClick={onCitationClick}
                         onTextListClick={onTextListClick}
+                        onNavigationClick={this.handleNavigationClick}                        
                         onUpdate={onPanelUpdate}
                         setTextListHightlight={setTextListHightlight}
                         closePanel={closePanel}
@@ -435,7 +437,7 @@ var ReaderApp = React.createClass({
               {this.props.multiPanel ? 
                 <Header 
                   onUpdate={this.handleHeaderUpdate}
-                  onRefClick={this.handleHeaderRefClick}
+                  onRefClick={this.handleNavigationClick}
                   initialState={this.state.header}
                   panelsOpen={this.state.panels.length} /> : null}
               {panels}
@@ -914,6 +916,8 @@ var ReaderPanel = React.createClass({
           openDisplaySettings={this.openDisplaySettings}
           onTextClick={this.handleTextListClick}
           onCitationClick={this.handleCitationClick}
+          onNavigationClick={this.props.onNavigationClick}
+          onCompareClick={this.showBaseText}
           closePanel={this.props.closePanel}            
           key="connections" />
       );
@@ -2211,7 +2215,10 @@ var TextRange = React.createClass({
     onRangeClick:        React.PropTypes.func,
     onSegmentClick:      React.PropTypes.func,
     onCitationClick:     React.PropTypes.func,
-    panelsOpen:          React.PropTypes.number
+    onNavigationClick:   React.PropTypes.func,
+    onCompareClick:      React.PropTypes.func,
+    panelsOpen:          React.PropTypes.number,
+    showActionLinks:     React.PropTypes.bool
   },
   getInitialState: function() {
     return { 
@@ -2445,6 +2452,19 @@ var TextRange = React.createClass({
                     lowlight: this.props.lowlight,
                   };
     classes = classNames(classes);
+
+    var open    = function() { this.props.onNavigationClick(this.props.sref)}.bind(this);
+    var compare = function() { this.props.onCompareClick(this.props.sref)}.bind(this);
+    var actionLinks = (<div className="actionLinks">
+                        <span className="openLink" onClick={open}>
+                          <span className="en">Open</span>
+                          <span className="he">לִפְתוֹחַ</span>
+                        </span>
+                        <span className="compareLink" onClick={compare}>
+                          <span className="en">Compare</span>
+                          <span className="he">לִפְתוֹחַ</span>
+                        </span>
+                      </div>);
     return (
       <div className={classes} onClick={this.handleClick}>
         {showNumberLabel && this.props.numberLabel ? 
@@ -2460,6 +2480,7 @@ var TextRange = React.createClass({
         <div className="text">
           <div className="textInner">
             { textSegments }
+            { this.props.showActionLinks ? actionLinks : null }
           </div>
         </div>
       </div>
@@ -2537,6 +2558,8 @@ var TextList = React.createClass({
     setFilter:               React.PropTypes.func,
     onTextClick:             React.PropTypes.func,
     onCitationClick:         React.PropTypes.func,
+    onNavigationClick:       React.PropTypes.func,
+    onCompareClick:          React.PropTypes.func,
     openNav:                 React.PropTypes.func,
     openDisplaySettings:     React.PropTypes.func,
     closePanel:              React.PropTypes.func
@@ -2712,14 +2735,17 @@ var TextList = React.createClass({
                       links.map(function(link, i) {
                           var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
                           return (<TextRange 
-                                    sref={link.sourceRef}
-                                    key={i + link.sourceRef}
-                                    lowlight={$.inArray(link.anchorRef, refs) === -1}
-                                    hideTitle={hideTitle}
-                                    numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
-                                    basetext={false}
-                                    onRangeClick={this.props.onTextClick}
-                                    onCitationClick={this.props.onCitationClick} />);
+                                      sref={link.sourceRef}
+                                      key={i + link.sourceRef}
+                                      lowlight={$.inArray(link.anchorRef, refs) === -1}
+                                      hideTitle={hideTitle}
+                                      numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
+                                      basetext={false}
+                                      onRangeClick={this.props.onTextClick}
+                                      onCitationClick={this.props.onCitationClick}
+                                      onNavigationClick={this.props.onNavigationClick}
+                                      onCompareClick={this.props.onCompareClick}
+                                      showActionLinks={this.props.multiPanel} />);
                         }, this);      
     }
 

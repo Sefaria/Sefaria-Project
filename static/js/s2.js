@@ -270,7 +270,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
       this.setState({header: state});
     }
   },
-  handleHeaderRefClick: function(ref) {
+  handleNavigationClick: function(ref) {
     for (var i = this.state.panels.length-1; i >= 0; i--) {
       this.saveRecentlyViewed(this.state.panels[i]);
     }
@@ -402,6 +402,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
                         onUpdate: onPanelUpdate, 
                         onCitationClick: onCitationClick, 
                         onTextListClick: onTextListClick, 
+                        onNavigationClick: this.handleNavigationClick, 
                         setTextListHightlight: setTextListHightlight, 
                         closePanel: closePanel, 
                         panelsOpen: this.state.panels.length})
@@ -422,6 +423,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
                         onSegmentClick: onSegmentClick, 
                         onCitationClick: onCitationClick, 
                         onTextListClick: onTextListClick, 
+                        onNavigationClick: this.handleNavigationClick, 
                         onUpdate: onPanelUpdate, 
                         setTextListHightlight: setTextListHightlight, 
                         closePanel: closePanel, 
@@ -435,7 +437,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
               this.props.multiPanel ? 
                 React.createElement(Header, {
                   onUpdate: this.handleHeaderUpdate, 
-                  onRefClick: this.handleHeaderRefClick, 
+                  onRefClick: this.handleNavigationClick, 
                   initialState: this.state.header, 
                   panelsOpen: this.state.panels.length}) : null, 
               panels
@@ -914,6 +916,8 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
           openDisplaySettings: this.openDisplaySettings, 
           onTextClick: this.handleTextListClick, 
           onCitationClick: this.handleCitationClick, 
+          onNavigationClick: this.props.onNavigationClick, 
+          onCompareClick: this.showBaseText, 
           closePanel: this.props.closePanel, 
           key: "connections"})
       );
@@ -2211,7 +2215,10 @@ var TextRange = React.createClass({displayName: "TextRange",
     onRangeClick:        React.PropTypes.func,
     onSegmentClick:      React.PropTypes.func,
     onCitationClick:     React.PropTypes.func,
-    panelsOpen:          React.PropTypes.number
+    onNavigationClick:   React.PropTypes.func,
+    onCompareClick:      React.PropTypes.func,
+    panelsOpen:          React.PropTypes.number,
+    showActionLinks:     React.PropTypes.bool
   },
   getInitialState: function() {
     return { 
@@ -2445,6 +2452,19 @@ var TextRange = React.createClass({displayName: "TextRange",
                     lowlight: this.props.lowlight,
                   };
     classes = classNames(classes);
+
+    var open    = function() { this.props.onNavigationClick(this.props.sref)}.bind(this);
+    var compare = function() { this.props.onCompareClick(this.props.sref)}.bind(this);
+    var actionLinks = (React.createElement("div", {className: "actionLinks"}, 
+                        React.createElement("span", {className: "openLink", onClick: open}, 
+                          React.createElement("span", {className: "en"}, "Open"), 
+                          React.createElement("span", {className: "he"}, "לִפְתוֹחַ")
+                        ), 
+                        React.createElement("span", {className: "compareLink", onClick: compare}, 
+                          React.createElement("span", {className: "en"}, "Compare"), 
+                          React.createElement("span", {className: "he"}, "לִפְתוֹחַ")
+                        )
+                      ));
     return (
       React.createElement("div", {className: classes, onClick: this.handleClick}, 
         showNumberLabel && this.props.numberLabel ? 
@@ -2459,7 +2479,8 @@ var TextRange = React.createClass({displayName: "TextRange",
         )), 
         React.createElement("div", {className: "text"}, 
           React.createElement("div", {className: "textInner"}, 
-             textSegments 
+             textSegments, 
+             this.props.showActionLinks ? actionLinks : null
           )
         )
       )
@@ -2537,6 +2558,8 @@ var TextList = React.createClass({displayName: "TextList",
     setFilter:               React.PropTypes.func,
     onTextClick:             React.PropTypes.func,
     onCitationClick:         React.PropTypes.func,
+    onNavigationClick:       React.PropTypes.func,
+    onCompareClick:          React.PropTypes.func,
     openNav:                 React.PropTypes.func,
     openDisplaySettings:     React.PropTypes.func,
     closePanel:              React.PropTypes.func
@@ -2712,14 +2735,17 @@ var TextList = React.createClass({displayName: "TextList",
                       links.map(function(link, i) {
                           var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
                           return (React.createElement(TextRange, {
-                                    sref: link.sourceRef, 
-                                    key: i + link.sourceRef, 
-                                    lowlight: $.inArray(link.anchorRef, refs) === -1, 
-                                    hideTitle: hideTitle, 
-                                    numberLabel: link.category === "Commentary" ? link.anchorVerse : 0, 
-                                    basetext: false, 
-                                    onRangeClick: this.props.onTextClick, 
-                                    onCitationClick: this.props.onCitationClick}));
+                                      sref: link.sourceRef, 
+                                      key: i + link.sourceRef, 
+                                      lowlight: $.inArray(link.anchorRef, refs) === -1, 
+                                      hideTitle: hideTitle, 
+                                      numberLabel: link.category === "Commentary" ? link.anchorVerse : 0, 
+                                      basetext: false, 
+                                      onRangeClick: this.props.onTextClick, 
+                                      onCitationClick: this.props.onCitationClick, 
+                                      onNavigationClick: this.props.onNavigationClick, 
+                                      onCompareClick: this.props.onCompareClick, 
+                                      showActionLinks: this.props.multiPanel}));
                         }, this);      
     }
 

@@ -1346,6 +1346,23 @@ display: block;margin: 0 auto;}
 .refLink:hover {
   text-decoration: underline;
 }
+.textRange .actionLinks {
+  text-align: right;
+}
+.textRange .actionLinks > span {
+  font-size: 13px;
+  text-transform: uppercase;
+  display: inline-block;
+  margin: 0 7px;
+  cursor: pointer;
+  color: #999;
+}
+.textRange .actionLinks .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", arial, sans-serif;
+}
+.textRange .actionLinks .he {
+  font-family: "Open Sans Hebrew", sans-serif;
+}
 .textList {
   width: 100%;
   height: 54%;
