@@ -198,10 +198,10 @@ body.dark {
 .hebrew .textColumn {
   padding-right: 17px;
 }
-.multiPanel .textColumn {
+.wideColumn .textColumn {
   padding: 0 25px 50% 42px;
 }
-.multiPanel .hebrew .textColumn {
+.wideColumn .hebrew .textColumn {
   padding: 0 42px 50% 25px;
 }
 .textColumn .loadingMessage.base {
@@ -356,7 +356,7 @@ body .bilingual .enOnly .he {
 .readerNavMenu .readerSearch:focus {
   outline: 0;
 }
-.multiPanel .readerNavMenu .readerSearch {
+.wideColumn .readerNavMenu .readerSearch {
   padding: 19px 10px 8px 90px;
 }
 .readerNavTop .readerNavMenuSearchButton,
@@ -393,18 +393,18 @@ body .bilingual .enOnly .he {
 .readerNavTop.searchOnly .readerNavMenuSearchButton {
   left: 0;
 }
-.multiPanel .readerNavTop .readerNavMenuSearchButton,
-.multiPanel .home .readerNavTop .readerNavMenuSearchButton,
-.multiPanel .readerNavTop.searchOnly .readerNavMenuSearchButton,
-.multiPanel .readerNavTop .readerNavMenuCloseButton,
-.multiPanel .readerNavTop .readerOptions {
+.wideColumn .readerNavTop .readerNavMenuSearchButton,
+.wideColumn .home .readerNavTop .readerNavMenuSearchButton,
+.wideColumn .readerNavTop.searchOnly .readerNavMenuSearchButton,
+.wideColumn .readerNavTop .readerNavMenuCloseButton,
+.wideColumn .readerNavTop .readerOptions {
   left: 10px;
 }
-.multiPanel .readerNavTop .readerOptions {
+.wideColumn .readerNavTop .readerOptions {
   left: auto;
   right: 10px;
 }
-.multiPanel .readerNavTop .readerNavMenuSearchButton {
+.wideColumn .readerNavTop .readerNavMenuSearchButton {
   left: 46px;
 }
 .readerNavMenu.home .sefariaLogo img {
@@ -1017,11 +1017,11 @@ display: block;margin: 0 auto;}
 }
 .rightButtons div:last-child {
 }
-.multiPanel .leftButtons div:first-child {
+.wideColumn .leftButtons div:first-child {
   margin-left: 0;
   padding-left: 0;
 }
-.multiPanel .rightButtons div:last-child {
+.wideColumn .rightButtons div:last-child {
   margin-right: 0;
   padding-right: 0;
 }
@@ -1330,18 +1330,18 @@ display: block;margin: 0 auto;}
 .readerPanel.bilingual .segment .linkCount {
   left: -30px;
 }
-.multiPanel .readerPanel.english .segment .segmentNumber {
+.readerPanel.english.wideColumn .segment .segmentNumber {
   left: -36px;
 }
-.multiPanel .readerPanel.hebrew .segment .segmentNumber,
-.multiPanel .readerPanel.bilingual .segment .segmentNumber {
+.readerPanel.hebrew.wideColumn .segment .segmentNumber,
+.readerPanel.bilingual.wideColumn .segment .segmentNumber {
   right: -36px;
 }
-.multiPanel .readerPanel.english .segment .linkCount {
+.readerPanel.english.wideColumn .segment .linkCount {
   right: -31px;
 }
-.multiPanel .readerPanel.hebrew .segment .linkCount,
-.multiPanel .readerPanel.bilingual .segment .linkCount {
+.readerPanel.hebrew.wideColumn .segment .linkCount,
+.readerPanel.bilingual.wideColumn .segment .linkCount {
   left: -32px;
 }
 .segment .refLink {
@@ -1665,11 +1665,11 @@ display: block;margin: 0 auto;}
 .bilingual .textRange .numberLabel  {
   right: -30px;
 }
-.multiPanel .english .textRange .numberLabel {
+.wideColumn .english .textRange .numberLabel {
   left: -32px;
 }
-.multiPanel .hebrew .textRange .numberLabel,
-.multiPanel .bilingual .textRange .numberLabel  {
+.wideColumn .hebrew .textRange .numberLabel,
+.wideColumn .bilingual .textRange .numberLabel  {
   right: -32px;
 }
 .textRange.lowlight .numberLabel {

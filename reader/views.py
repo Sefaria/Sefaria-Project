@@ -569,6 +569,9 @@ def text_toc(request, oref):
     """
     Page representing a single text, showing its Table of Contents and related info.
     """
+    if request.flavour == "mobile" or request.COOKIES.get('s2'):
+        return s2(request, ref=oref.normal())
+
     index         = oref.index
     title         = index.title
     heTitle       = index.get_title(lang='he')

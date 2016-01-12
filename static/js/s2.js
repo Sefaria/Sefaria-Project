@@ -47,7 +47,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
   },
   componentDidUpdate: function() {
     if (this.justPopped) {
-      console.log("Skipping history update - just popped")
+      //console.log("Skipping history update - just popped")
       this.justPopped = false;
       //debugger
       return;
@@ -66,8 +66,8 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
   },
   handlePopState: function(event) {
     var state = event.state;
-    console.log("Pop - " + window.location.pathname);
-    console.log(state);
+    //console.log("Pop - " + window.location.pathname);
+    //console.log(state);
     if (state) {
       var kind = "";
       sjs.track.event("Reader", "Pop State", kind);
@@ -233,13 +233,13 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     var hist = this.makeHistoryState();
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
-      console.log("Replace History - " + hist.url)
-      console.log(hist);
+      //console.log("Replace History - " + hist.url)
+      //console.log(hist);
     } else {
       if (window.location.pathname == hist.url) { return; } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
-      console.log("Push History - " + hist.url);
-      console.log(hist);
+      //console.log("Push History - " + hist.url);
+      //console.log(hist);
     }
     $("title").html(hist.title);
 
@@ -251,7 +251,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     var current = JSON.stringify(this.state.panels[n]);
     var update  = JSON.stringify(state);
     if (current !== update) { // Ignore unless state changed
-      console.log("Panel update called with " + action + " from " + n);
+      //console.log("Panel update called with " + action + " from " + n);
       //console.log(state);
       var langChange  = this.state.panels[n].completeState && state.settings.language !== this.state.panels[n].settings.language;
 
@@ -277,8 +277,8 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     var current = JSON.stringify(this.state.header);
     var update  = JSON.stringify(state);
     if (current !== update) {
-      console.log("Header update in RA");
-      console.log(state)
+      //console.log("Header update in RA");
+      //console.log(state)
       this.setState({header: state});
     }
   },
@@ -515,7 +515,6 @@ var Header = React.createClass({displayName: "Header",
     if (this.props.panelsOpen == 0) {
       var json = $.cookie("recentlyViewed");
       var recentlyViewed = json ? JSON.parse(json) : null;
-      console.log(recentlyViewed)
       if (recentlyViewed && recentlyViewed.length) {
         this.handleRefClick(recentlyViewed[0].ref);
         return;
@@ -676,7 +675,8 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
       searchQuery:          this.props.initialQuery || null,
       navigationSheetTag:   this.props.initialSheetsTag || null,
       displaySettingsOpen:  false,
-      completeState:        true
+      completeState:        true,
+      width:                0
     }
   },
   componentDidMount: function() {
@@ -684,8 +684,13 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
       // Make sure the initial state of this panel is pushed up to ReaderApp
       this.props.onUpdate("push", this.state);     
     }
+    window.addEventListener("resize", this.setWidth);
+    this.setWidth();
     this.setHeadroom();
     this.trackPanelOpens();
+  },
+  componentWillUnmount: function() {
+    window.removeEventListener("resize", this.setWidth);
   },
   componentWillReceiveProps: function(nextProps) {
     if (nextProps.initialFilter && !this.props.multiPanel) {
@@ -712,6 +717,9 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
     this.setHeadroom();
     if (prevState.refs.compare(this.state.refs)) {
       this.trackPanelOpens();
+    }
+    if (prevProps.panelsOpen !== this.props.panelsOpen) {
+      this.setWidth();
     }
   },
   handleBaseSegmentClick: function(ref) {
@@ -853,6 +861,9 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
     if (option === "language") {
       $.cookie("contentLang", value, {path: "/"});
     }
+  },
+  setWidth: function() {
+    this.setState({width: $(ReactDOM.findDOMNode(this)).width()});
   },
   trackPanelOpens: function() {
     if (this.state.mode === "Connections") { return; }
@@ -1006,7 +1017,7 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
       var menu = null;
     }
 
-    var classes  = {readerPanel: 1};
+    var classes  = {readerPanel: 1, wideColumn: this.state.width > 450};
     classes[this.currentLayout()]         = 1;
     classes[this.state.settings.language] = 1;
     classes[this.state.settings.color]    = 1;
