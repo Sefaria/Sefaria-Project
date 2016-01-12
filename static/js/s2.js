@@ -79,6 +79,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
     if (!history.state ||
+        !history.state.panels ||
          history.state.panels.length !== this.state.panels.length ||
          history.state.header.mode !== this.state.header.mode ) { 
       return true; 
@@ -611,7 +612,7 @@ var Header = React.createClass({displayName: "Header",
                   React.createElement("div", {className: "library", onClick: this.handleLibraryClick}, React.createElement("i", {className: "fa fa-bars"}))
                 ), 
                 React.createElement("div", {className: "right"}, 
-                  React.createElement("div", {className: "account", onClick: this.showAccount}, React.createElement("i", {className: "fa fa-user"}))
+                  React.createElement("div", {className: "account", onClick: this.showAccount}, React.createElement("img", {src: "/static/img/user-64.png"}))
                 ), 
                 React.createElement("span", {className: "searchBox"}, 
                   React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.handleSearchButtonClick}), 
@@ -1323,7 +1324,7 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
                   ));
       if (this.state.width < 450) {
         categories = this.state.showMore ? categories : categories.slice(0,9).concat(more);
-        categories = (React.createElement("div", {className: "readerNavCategories"}, React.createElement(TwoBox, {content: categories})));
+        categories = (React.createElement("div", {className: "readerNavCategories"}, React.createElement(TwoOrThreeBox, {content: categories})));
       } else {
         categories = this.state.showMore ? categories : categories.slice(0,8).concat(more);
         categories = (React.createElement("div", {className: "readerNavCategories"}, React.createElement(ThreeBox, {content: categories})));
@@ -1361,6 +1362,26 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
                       (React.createElement(TextBlockLink, {sref: sjs.calendar.daf_yomi, title: "Daf Yomi", heTitle: "דף יומי", category: "Talmud"}))];
       calendar = (React.createElement("div", {className: "readerNavCalendar"}, React.createElement(TwoOrThreeBox, {content: calendar, width: this.state.width})));
 
+
+      var sheetsStyle = {"borderColor": sjs.categoryColor("Sheets")};
+      var resources = [(React.createElement("span", {className: "sheetsLink", style: sheetsStyle, onClick: this.props.openMenu.bind(null, "sheets")}, 
+                        React.createElement("i", {className: "fa fa-file-text-o"}), 
+                        React.createElement("span", {className: "en"}, "Source Sheets"), 
+                        React.createElement("span", {className: "he"}, "דפי מקורות")
+                      )),
+                     (React.createElement("a", {className: "sheetsLink", style: sheetsStyle, href: "/explore"}, 
+                        React.createElement("i", {className: "fa fa-link"}), 
+                        React.createElement("span", {className: "en"}, "Link Explorer"), 
+                        React.createElement("span", {className: "he"}, "דפי מקורות")
+                      )),
+                    (React.createElement("a", {className: "sheetsLink", style: sheetsStyle, href: "/people"}, 
+                        React.createElement("i", {className: "fa fa-book"}), 
+                        React.createElement("span", {className: "en"}, "Authors"), 
+                        React.createElement("span", {className: "he"}, "דפי מקורות")
+                      ))];
+      resources = (React.createElement("div", {className: "readerNavCalendar"}, React.createElement(TwoOrThreeBox, {content: resources, width: this.state.width})));
+
+
       var topContent = this.props.home ?
               (React.createElement("div", {className: "readerNavTop search"}, 
                 React.createElement(CategoryColorLine, {category: "Other"}), 
@@ -1385,15 +1406,7 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
       }) : null;
       recentlyViewed = recentlyViewed ? React.createElement(TwoOrThreeBox, {content: recentlyViewed, width: this.state.width}) : null;
 
-      var community = (
-            React.createElement("span", {className: "sheetsLink", style:  {borderColor: sjs.categoryColor("Sheets")}, onClick: this.props.openMenu.bind(null, "sheets")}, 
-              React.createElement("i", {className: "fa fa-file-text-o"}), 
-              React.createElement("span", {className: "en"}, "Source Sheets"), 
-              React.createElement("span", {className: "he"}, "דפי מקורות")
-            ));
-
       var classes     = classNames({readerNavMenu: 1, readerNavMenu:1, home: this.props.home, noHeader: !this.props.hideHeader});
-      var sheetsStyle = {"borderColor": sjs.categoryColor("Sheets")};
 
       return(React.createElement("div", {className: classes, onClick: this.handleClick, key: "0"}, 
               topContent, 
@@ -1408,8 +1421,7 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
                   React.createElement(ReaderNavigationMenuSection, {title: "Recently Viewed", heTitle: "נצפו לאחרונה", content: recentlyViewed}), 
                   React.createElement(ReaderNavigationMenuSection, {title: "Browse Texts", heTitle: "טקסטים", content: categories}), 
                   React.createElement(ReaderNavigationMenuSection, {title: "Calendar", heTitle: "לוח יומי", content: calendar}), 
-                  React.createElement(ReaderNavigationMenuSection, {title: "Community", heTitle: "קהילה", content: community}), 
-
+                  React.createElement(ReaderNavigationMenuSection, {title: "Resources", heTitle: "קהילה", content: resources}), 
                   React.createElement("div", {className: "siteLinks"}, 
                     siteLinks
                   )
@@ -2481,10 +2493,12 @@ var TextRange = React.createClass({displayName: "TextRange",
     var compare = function() { this.props.onCompareClick(this.props.sref)}.bind(this);
     var actionLinks = (React.createElement("div", {className: "actionLinks"}, 
                         React.createElement("span", {className: "openLink", onClick: open}, 
+                          React.createElement("img", {src: "/static/img/open-64.png"}), 
                           React.createElement("span", {className: "en"}, "Open"), 
                           React.createElement("span", {className: "he"}, "לִפְתוֹחַ")
                         ), 
                         React.createElement("span", {className: "compareLink", onClick: compare}, 
+                          React.createElement("img", {src: "/static/img/compare-64.png"}), 
                           React.createElement("span", {className: "en"}, "Compare"), 
                           React.createElement("span", {className: "he"}, "לִפְתוֹחַ")
                         )
