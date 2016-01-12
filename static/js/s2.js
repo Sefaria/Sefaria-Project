@@ -453,6 +453,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
                   onUpdate: this.handleHeaderUpdate, 
                   onRefClick: this.handleNavigationClick, 
                   initialState: this.state.header, 
+                  headerMode: this.props.headerMode, 
                   panelsOpen: this.state.panels.length}) : null, 
               panels
             ));
@@ -510,8 +511,17 @@ var Header = React.createClass({displayName: "Header",
     });
   },
   showDesktop: function() {
+    if (this.props.panelsOpen == 0) {
+      var json = $.cookie("recentlyViewed");
+      var recentlyViewed = json ? JSON.parse(json) : null;
+      console.log(recentlyViewed)
+      if (recentlyViewed && recentlyViewed.length) {
+        this.handleRefClick(recentlyViewed[0].ref);
+        return;
+      }
+    }
     this.setState({mode: null, panelState: null, query: null});
-    this.clearSearchBox();
+    this.clearSearchBox();      
   },
   showLibrary: function() {
     this.setState({mode: "navigation", panelState: null, query: null});
