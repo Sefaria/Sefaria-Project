@@ -79,6 +79,7 @@ var ReaderApp = React.createClass({
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
     if (!history.state ||
+        !history.state.panels ||
          history.state.panels.length !== this.state.panels.length ||
          history.state.header.mode !== this.state.header.mode ) { 
       return true; 
@@ -611,7 +612,7 @@ var Header = React.createClass({
                   <div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div>
                 </div>
                 <div className="right">
-                  <div className="account" onClick={this.showAccount}><i className="fa fa-user"></i></div>
+                  <div className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" /></div>
                 </div>
                 <span className="searchBox">
                   <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
@@ -1323,7 +1324,7 @@ var ReaderNavigationMenu = React.createClass({
                   </div>);
       if (this.state.width < 450) {
         categories = this.state.showMore ? categories : categories.slice(0,9).concat(more);
-        categories = (<div className="readerNavCategories"><TwoBox content={categories} /></div>);
+        categories = (<div className="readerNavCategories"><TwoOrThreeBox content={categories} /></div>);
       } else {
         categories = this.state.showMore ? categories : categories.slice(0,8).concat(more);
         categories = (<div className="readerNavCategories"><ThreeBox content={categories} /></div>);
@@ -1361,6 +1362,26 @@ var ReaderNavigationMenu = React.createClass({
                       (<TextBlockLink sref={sjs.calendar.daf_yomi} title="Daf Yomi" heTitle="דף יומי" category="Talmud" />)];
       calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={this.state.width} /></div>);
 
+
+      var sheetsStyle = {"borderColor": sjs.categoryColor("Sheets")};
+      var resources = [(<span className="sheetsLink" style={sheetsStyle} onClick={this.props.openMenu.bind(null, "sheets")}>
+                        <i className="fa fa-file-text-o"></i>
+                        <span className="en">Source Sheets</span>
+                        <span className="he">דפי מקורות</span>
+                      </span>),
+                     (<a className="sheetsLink" style={sheetsStyle} href="/explore">
+                        <i className="fa fa-link"></i>
+                        <span className="en">Link Explorer</span>
+                        <span className="he">דפי מקורות</span>
+                      </a>),
+                    (<a className="sheetsLink" style={sheetsStyle} href="/people">
+                        <i className="fa fa-book"></i>
+                        <span className="en">Authors</span>
+                        <span className="he">דפי מקורות</span>
+                      </a>)];
+      resources = (<div className="readerNavCalendar"><TwoOrThreeBox content={resources} width={this.state.width} /></div>);
+
+
       var topContent = this.props.home ?
               (<div className="readerNavTop search">
                 <CategoryColorLine category="Other" />
@@ -1385,15 +1406,7 @@ var ReaderNavigationMenu = React.createClass({
       }) : null;
       recentlyViewed = recentlyViewed ? <TwoOrThreeBox content={recentlyViewed} width={this.state.width} /> : null;
 
-      var community = (
-            <span className="sheetsLink" style={ {borderColor: sjs.categoryColor("Sheets")} } onClick={this.props.openMenu.bind(null, "sheets")}>
-              <i className="fa fa-file-text-o"></i>
-              <span className="en">Source Sheets</span>
-              <span className="he">דפי מקורות</span>
-            </span>);
-
       var classes     = classNames({readerNavMenu: 1, readerNavMenu:1, home: this.props.home, noHeader: !this.props.hideHeader});
-      var sheetsStyle = {"borderColor": sjs.categoryColor("Sheets")};
 
       return(<div className={classes} onClick={this.handleClick} key="0">
               {topContent}
@@ -1408,8 +1421,7 @@ var ReaderNavigationMenu = React.createClass({
                   <ReaderNavigationMenuSection title="Recently Viewed" heTitle="נצפו לאחרונה" content={recentlyViewed} />
                   <ReaderNavigationMenuSection title="Browse Texts" heTitle="טקסטים" content={categories} />
                   <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} />
-                  <ReaderNavigationMenuSection title="Community" heTitle="קהילה" content={community} />
-
+                  <ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />
                   <div className="siteLinks">
                     {siteLinks}
                   </div>
