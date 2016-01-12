@@ -27,7 +27,9 @@
 
 <body {% if EMBED %}class="embeded"{% endif %} style="background-color:#eee;">
 
-{% include "header.html" %}
+{% if not S2 %}
+	{% include "header.html" %}
+{% endif %}
 
 <div id="link"></div>
 <div id="error"></div>
@@ -524,5 +526,8 @@ Footer depends on full bootstrap grid, which isn't loaded in sheets.html
 {% endif %}
 <script src="/static/js/util.js"></script>
 <script src="/static/js/sheets.js"></script>
+{% if S2 %}
+    {% include "elements/s2_header.html" %}
+{% endif %}
 </body>
 </html>

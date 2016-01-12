@@ -2481,10 +2481,12 @@ var TextRange = React.createClass({
     var compare = function() { this.props.onCompareClick(this.props.sref)}.bind(this);
     var actionLinks = (<div className="actionLinks">
                         <span className="openLink" onClick={open}>
+                          <img src="/static/img/open-64.png" />
                           <span className="en">Open</span>
                           <span className="he">לִפְתוֹחַ</span>
                         </span>
                         <span className="compareLink" onClick={compare}>
+                          <img src="/static/img/compare-64.png" />
                           <span className="en">Compare</span>
                           <span className="he">לִפְתוֹחַ</span>
                         </span>

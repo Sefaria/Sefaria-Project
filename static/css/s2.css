@@ -1356,7 +1356,13 @@ display: block;margin: 0 auto;}
   display: inline-block;
   margin: 0 7px;
   cursor: pointer;
-  color: #999;
+  color: #aaa;
+}
+.textRange .actionLinks > span > img {
+  height: 13px;
+  width: 13px;
+  margin: 0 5px;
+  opacity: 0.3;
 }
 .textRange .actionLinks .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", arial, sans-serif;
