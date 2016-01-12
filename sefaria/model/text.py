@@ -1025,8 +1025,14 @@ class TextChunk(AbstractTextRecord):
         :param vtitle:
         :return:
         """
-        self._oref = oref
-        self._ref_depth = len(oref.sections)
+        if isinstance(oref.index_node, JaggedArrayNode):
+            self._oref = oref
+        else:
+            child_ref = oref.default_child_ref()
+            if child_ref == oref:
+                raise InputError("Can not get TextChunk at this level, please provide a more precise reference")
+            self._oref = child_ref
+        self._ref_depth = len(self._oref.sections)
         self._versions = []
         self._saveable = False  # Can this TextChunk be saved?
 
@@ -1041,24 +1047,24 @@ class TextChunk(AbstractTextRecord):
 
         if lang and vtitle:
             self._saveable = True
-            v = Version().load({"title": oref.index.title, "language": lang, "versionTitle": vtitle}, oref.part_projection())
+            v = Version().load({"title": self._oref.index.title, "language": lang, "versionTitle": vtitle}, self._oref.part_projection())
             if v:
                 self._versions += [v]
-                self.text = self._original_text = self.trim_text(v.content_node(oref.index_node))
+                self.text = self._original_text = self.trim_text(v.content_node(self._oref.index_node))
         elif lang:
-            vset = VersionSet(oref.condition_query(lang), proj=oref.part_projection())
+            vset = VersionSet(self._oref.condition_query(lang), proj=self._oref.part_projection())
 
             if vset.count() == 0:
-                if VersionSet({"title": oref.index.title}).count() == 0:
-                    raise NoVersionFoundError("No text record found for '{}'".format(oref.index.title))
+                if VersionSet({"title": self._oref.index.title}).count() == 0:
+                    raise NoVersionFoundError("No text record found for '{}'".format(self._oref.index.title))
                 return
             if vset.count() == 1:
                 v = vset[0]
                 self._versions += [v]
-                self.text = self.trim_text(v.content_node(oref.index_node))
+                self.text = self.trim_text(v.content_node(self._oref.index_node))
                 #todo: Should this instance, and the non-merge below, be made saveable?
             else:  # multiple versions available, merge
-                merged_text, sources = vset.merge(oref.index_node)  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
+                merged_text, sources = vset.merge(self._oref.index_node)  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
                 self.text = self.trim_text(merged_text)
                 if len(set(sources)) == 1:
                     for v in vset:
