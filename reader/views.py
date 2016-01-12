@@ -82,7 +82,7 @@ def reader(request, tref, lang=None, version=None):
     if (not getattr(oref.index_node, "depth", None)):
         return text_toc(request, oref)
 
-    if request.flavour == "mobile":
+    if request.flavour == "mobile" or request.COOKIES.get('s2'):
         return s2(request, ref=tref)
 
     # BANDAID - for spanning refs, return the first section
@@ -677,7 +677,7 @@ def texts_list(request):
     """
     Page listing every text in the library.
     """
-    if request.flavour == "mobile":
+    if request.flavour == "mobile" or request.COOKIES.get('s2'):
         return s2_page(request, "texts")
     return render_to_response('texts.html',
                              {},
@@ -688,7 +688,7 @@ def texts_category_list(request, cats):
     """
     Page listing every text in category
     """
-    if request.flavour == "mobile":
+    if request.flavour == "mobile" or request.COOKIES.get('s2'):
         return s2_texts_category(request, cats)
     cats       = cats.split("/")
     toc        = library.get_toc()
@@ -719,7 +719,7 @@ def texts_category_list(request, cats):
 
 @ensure_csrf_cookie
 def search(request):
-    if request.flavour == "mobile":
+    if request.flavour == "mobile" or request.COOKIES.get('s2'):
         return s2_page(request, "search")
     return render_to_response('search.html',
                              {},
@@ -1814,7 +1814,7 @@ def home(request):
     """
     Homepage
     """
-    if request.flavour == "mobile":
+    if request.flavour == "mobile" or request.COOKIES.get('s2'):
         return s2_page(request, "home")
 
     today              = date.today()

@@ -25,6 +25,7 @@ body.dark {
   -khtml-user-select: none;
   -webkit-user-select: none;
   -o-user-select: none;
+  z-index: 1000;
 }
 #s2.headerOnly {
   z-index: 1000;
@@ -1688,6 +1689,16 @@ display: block;margin: 0 auto;}
   margin-top: 200px;
   text-align: center;
   color: #999;
+}
+#backToS1 {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  position: absolute;
+  top: 20px;
+  left: 40px;
+  cursor: pointer;
+}
+#backToS1:hover {
+  text-decoration: underline;
 }
 ::-webkit-input-placeholder {
    font-style: italic;

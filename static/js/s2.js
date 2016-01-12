@@ -11,7 +11,8 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     initialSheetsTag:            React.PropTypes.string,
     initialNavigationCategories: React.PropTypes.array,
     initialSettings:             React.PropTypes.object,
-    initialPanels:               React.PropTypes.array
+    initialPanels:               React.PropTypes.array,
+    headerMode:                  React.PropTypes.bool
   },
   getInitialState: function() {
     var panels = [];
@@ -38,12 +39,13 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
   componentDidMount: function() {
     this.updateHistoryState(true); // make sure initial page state is in history, (passing true to replace)
     window.addEventListener("popstate", this.handlePopState);
+    window.addEventListener("beforeunload", this.saveOpenPanelsToRecentlyViewed);
+    $.cookie("s2", true, {path: "/"});
   },
   componentWillUnmount: function() {
     window.removeEventListener("popstate", this.handlePopState);
   },
   componentDidUpdate: function() {
-    console.trace();
     if (this.justPopped) {
       console.log("Skipping history update - just popped")
       this.justPopped = false;
@@ -52,6 +54,15 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     }
     this.updateHistoryState(this.replaceHistory);
     this.replaceHistory = false;
+    if (this.props.headerMode) {
+      if (this.state.header.mode || this.state.panels.length) {
+        $("#s2").removeClass("headerOnly");
+        $("body").css({overflow: "hidden"});
+      } else {
+        $("#s2").addClass("headerOnly");
+        $("body").css({overflow: "hidden"});
+      }
+    }
   },
   handlePopState: function(event) {
     var state = event.state;
@@ -271,9 +282,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     }
   },
   handleNavigationClick: function(ref) {
-    for (var i = this.state.panels.length-1; i >= 0; i--) {
-      this.saveRecentlyViewed(this.state.panels[i]);
-    }
+    this.saveOpenPanelsToRecentlyViewed();
     this.setState({panels: [{refs: [ref], mode: "Text"}], header: {mode: null, query: null, panelState: {}}});
   },
   handleSegmentClick: function(n, ref) {
@@ -359,6 +368,11 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     recent.splice(0, 0, {ref: ref, book: oRef.indexTitle});
     recent = recent.slice(0, 3);
     $.cookie("recentlyViewed", JSON.stringify(recent), {path: "/"});
+  },
+  saveOpenPanelsToRecentlyViewed: function() {
+    for (var i = this.state.panels.length-1; i >= 0; i--) {
+      this.saveRecentlyViewed(this.state.panels[i]);
+    }
   },
   render: function() {
     var evenWidth = 100.0/this.state.panels.length;
@@ -3406,15 +3420,19 @@ var AccountPanel = React.createClass({displayName: "AccountPanel",
     ];
     connectContent = (React.createElement(TwoOrThreeBox, {content: connectContent, width: width}));
 
+    var backToS1 = function() { 
+      $.cookie("s2", "", {path: "/"});
+      window.location = "/";
+    }
     return (
       React.createElement("div", {className: "accountPanel readerNavMenu"}, 
         React.createElement("div", {className: "content"}, 
           React.createElement("div", {className: "contentInner"}, 
+           React.createElement("span", {id: "backToS1", onClick: backToS1}, "« Back to Old Sefaria"), 
            React.createElement(ReaderNavigationMenuSection, {title: "Account", heTitle: "נצפו לאחרונה", content: accountContent}), 
            React.createElement(ReaderNavigationMenuSection, {title: "Learn", heTitle: "נצפו לאחרונה", content: learnContent}), 
            React.createElement(ReaderNavigationMenuSection, {title: "Contribute", heTitle: "נצפו לאחרונה", content: contributeContent}), 
            React.createElement(ReaderNavigationMenuSection, {title: "Connect", heTitle: "נצפו לאחרונה", content: connectContent})
-
           )
         )
       )
