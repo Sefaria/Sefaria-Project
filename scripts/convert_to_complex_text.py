@@ -105,7 +105,7 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
             #links
             if dRef.is_commentary():
                 add_commentary_links(dRef.normal(), 8646)
-            add_links_from_text(dRef.normal(), new_version.language, new_tc.text, new_version._id, 8646)
+            add_links_from_text(dRef, new_version.language, new_tc.text, new_version._id, 8646)
             if i == 0: #links are the same across versions
                 migrate_links_of_ref(orRef, dRef)
             #version history

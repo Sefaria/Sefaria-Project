@@ -161,7 +161,7 @@ def rebuild_commentary_links(title, user):
 
 
 # todo: Currently supports only
-def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
+def add_links_from_text(oref, lang, text, text_id, user, **kwargs):
     """
     Scan a text for explicit references to other texts and automatically add new links between
     ref and the mentioned text.
@@ -176,11 +176,10 @@ def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
     if not text:
         return []
     elif isinstance(text, list):
-        oref    = Ref(ref)
         subrefs = oref.subrefs(len(text))
         links   = []
         for i in range(len(text)):
-            single = add_links_from_text(subrefs[i].normal(), lang, text[i], text_id, user, **kwargs)
+            single = add_links_from_text(subrefs[i], lang, text[i], text_id, user, **kwargs)
             links += single
         return links
     elif isinstance(text, basestring):
@@ -194,7 +193,7 @@ def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
             The set of all links (`existingLinks` + `Links`) is refreshed in Varnish.
         """
         existingLinks = LinkSet({
-            "refs": ref,
+            "refs": oref.normal(),
             "auto": True,
             "generated_by": "add_links_from_text",
             "source_text_oid": text_id
@@ -205,28 +204,28 @@ def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
 
         refs = library.get_refs_in_string(text, lang)
 
-        for oref in refs:
+        for linked_oref in refs:
             link = {
                 # Note -- ref of the citing text is in the first position
-                "refs": [ref, oref.normal()],
+                "refs": [oref.normal(), linked_oref.normal()],
                 "type": "",
                 "auto": True,
                 "generated_by": "add_links_from_text",
                 "source_text_oid": text_id
             }
-            found += [oref.normal()]  # Keep this here, since tracker.add will throw an error if the link exists
+            found += [linked_oref.normal()]  # Keep this here, since tracker.add will throw an error if the link exists
             try:
                 tracker.add(user, Link, link, **kwargs)
                 links += [link]
                 if USE_VARNISH:
-                    invalidate_ref(oref)
+                    invalidate_ref(linked_oref)
             except InputError as e:
                 pass
 
         # Remove existing links that are no longer supported by the text
         for exLink in existingLinks:
             for r in exLink.refs:
-                if r == ref:  # current base ref
+                if r == oref.normal():  # current base ref
                     continue
                 if USE_VARNISH:
                     invalidate_ref(Ref(r))
@@ -260,4 +259,4 @@ def rebuild_links_from_text(title, user):
     versions = VersionSet({"title": title})
 
     for version in versions:
-        add_links_from_text(title, version.language, version.chapter, version._id, user)
+        add_links_from_text(Ref(title), version.language, version.chapter, version._id, user)

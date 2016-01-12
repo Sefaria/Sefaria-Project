@@ -49,7 +49,7 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
             if oref.type == "Commentary":
                 add_and_delete_invalid_commentary_links(oref.normal(), user, **kwargs)
             # scan text for links to auto add
-            add_links_from_text(oref.normal(), lang, chunk.text, chunk.full_version._id, user, **kwargs)
+            add_links_from_text(oref, lang, chunk.text, chunk.full_version._id, user, **kwargs)
 
             if USE_VARNISH:
                 invalidate_linked(oref)
