@@ -325,6 +325,8 @@ def replace_roman_numerals(text, allow_lowercase=False):
         try:
             if s:
                 return "%s%s:%s" % (m.group(1), roman.fromRoman(s), m.group(7))
+            else:
+                return m.group(0)
         except:
             return m.group(0)
 
