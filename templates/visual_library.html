@@ -66,6 +66,7 @@
     var lang = "{{ lang }}";
     var cats = {{ cats }};
     var tree;
+    var focus;
 
     var width = 960,
         height = 700,
@@ -139,8 +140,9 @@
           })
         .selectAll("path")
           .attrTween("d", function(d) { return function() { return arc(d); }; });
+      focus = d;
       cats = d.path;
-      d3.select("#subtitle").text(get_subtitle());
+      d3.select("#subtitle").html("<a href='" + get_cat_or_text_url() + "'>" + get_subtitle() + '</a>');
     }
 
     function mouseover(d) {
@@ -158,10 +160,18 @@
     function get_subtitle() {
         return cats.join(" > ")
     }
+    function get_cat_or_text_url() {
+        if (focus.type == "category") {
+            return "/texts/" + cats.join("/")
+        }
+        else if (focus.type == "index") {
+            return "/" + focus.name.replace(/\s/g,"_")
+        }
+    }
     function get_pagetitle() {
         return get_title() + (get_subtitle()?": " + get_subtitle():"")
     }
-    function get_url() {
+    function get_visualize_url() {
         return "/visualize/library/" + (lang ? lang + "/" : "") + cats.join("/").replace(/\s/g,"_")
     }
     function get_path_id(path) {
@@ -178,7 +188,7 @@
             object: {
                 cats: cats
             },
-            url: get_url(),
+            url: get_visualize_url(),
             title: get_pagetitle()
         }
     }
