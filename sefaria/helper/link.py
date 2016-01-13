@@ -151,7 +151,6 @@ def rebuild_commentary_links(title, user):
     add_commentary_links(Ref(title), user)
 
 
-# todo: Currently supports only
 def add_links_from_text(oref, lang, text, text_id, user, **kwargs):
     """
     Scan a text for explicit references to other texts and automatically add new links between
