@@ -17,7 +17,7 @@ if USE_VARNISH:
 #TODO: should all the functions here be decoupled from the need to enter a userid?
 
 
-def add_and_delete_invalid_commentary_links(tref, user, **kwargs):
+def add_and_delete_invalid_commentary_links(oref, user, **kwargs):
     """
     This functino both adds links and deletes pre existing ones that are no longer valid,
     by virtue of the fact that they were not detected as commentary links while iterating over the text.
@@ -26,7 +26,6 @@ def add_and_delete_invalid_commentary_links(tref, user, **kwargs):
     :param kwargs:
     :return:
     """
-    oref = Ref(tref)
     assert oref.is_commentary()
     tref = oref.normal()
     commentary_book_name = oref.index.title
@@ -35,7 +34,7 @@ def add_and_delete_invalid_commentary_links(tref, user, **kwargs):
     existing_links = LinkSet({"refs": {"$regex": ref_regex}, "generated_by": "add_commentary_links"})
     print "{} existing links".format(len(existing_links))
     print "doing recursive build"
-    found_links = add_commentary_links(tref, user, **kwargs)
+    found_links = add_commentary_links(oref, user, **kwargs)
     print "{} found links".format(len(found_links))
     for exLink in existing_links:
         for r in exLink.refs:
@@ -48,7 +47,7 @@ def add_and_delete_invalid_commentary_links(tref, user, **kwargs):
             break
 
 
-def add_commentary_links(tref, user, text=None, **kwargs):
+def add_commentary_links(oref, user, text=None, **kwargs):
     #//TODO: commentary refactor, also many other lines can be made better
     """
     Automatically add links for each comment in the commentary text denoted by 'tref'.
@@ -57,7 +56,6 @@ def add_commentary_links(tref, user, text=None, **kwargs):
     for each segment of text (comment) that is in 'Sforno on Kohelet 3:2'.
     """
 
-    oref = Ref(tref)
     assert oref.is_commentary()
     tref = oref.normal()
     base_tref = tref[tref.find(" on ") + 4:]
@@ -72,18 +70,16 @@ def add_commentary_links(tref, user, text=None, **kwargs):
             vs.refresh()  # Needed when saving multiple nodes in a complex text.  This may be moderately inefficient.
         content_nodes = oref.index_node.get_leaf_nodes()
         for r in content_nodes:
-            cn_ref = r.full_title(force_update=True)
-            cn_oref = Ref(cn_ref)
+            cn_oref = r.ref()
             text = TextFamily(cn_oref, commentary=0, context=0, pad=False).contents()
-            sn = StateNode(cn_ref)
-            length = sn.ja('all').length()
+            length = cn_oref.get_state_ja().length()
             for i, sr in enumerate(cn_oref.subrefs(length)):
                 stext = {"sections": sr.sections,
                         "sectionNames": text['sectionNames'],
                         "text": text["text"][i] if i < len(text["text"]) else "",
                         "he": text["he"][i] if i < len(text["he"]) else ""
                         }
-                found_links += add_commentary_links(sr.normal(), user, stext, **kwargs)
+                found_links += add_commentary_links(sr, user, stext, **kwargs)
 
     else:
         if not text:
@@ -105,7 +101,7 @@ def add_commentary_links(tref, user, text=None, **kwargs):
                         "text": text["text"][i] if i < len(text["text"]) else "",
                         "he": text["he"][i] if i < len(text["he"]) else ""
                         }
-                found_links += add_commentary_links(r.normal(), user, stext, **kwargs)
+                found_links += add_commentary_links(r, user, stext, **kwargs)
 
         # this is a single comment, trim the last section number (comment) from ref
         elif len(text["sections"]) == len(text["sectionNames"]):
@@ -123,8 +119,6 @@ def add_commentary_links(tref, user, text=None, **kwargs):
                     tracker.add(user, Link, link, **kwargs)
                 except DuplicateRecordError as e:
                     pass
-
-
     return found_links
 
 
@@ -152,12 +146,9 @@ def rebuild_commentary_links(title, user):
         # Allow commentators alone, rebuild for each text we have
         i = library.get_index(title)
         for c in library.get_commentary_version_titles(i.title):
-            rebuild_commentary_links(c, user)
+            rebuild_commentary_links(Ref(c), user)
         return
-
-    title = Ref(title).normal()
-    delete_commentary_links(title, user)
-    add_commentary_links(title, user)
+    add_commentary_links(Ref(title), user)
 
 
 # todo: Currently supports only

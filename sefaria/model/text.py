@@ -1356,8 +1356,11 @@ class TextFamily(object):
         :param alts: Adds notes of where alt elements begin
         :return:
         """
+        if pad:
+            oref = oref.padded_ref()
+        elif oref.has_default_child():
+            oref = oref.default_child_ref()
 
-        oref                = oref.padded_ref() if pad else oref
         self.ref            = oref.normal()
         self.heRef          = oref.he_normal()
         self.isComplex      = oref.index.is_complex()
@@ -1370,7 +1373,8 @@ class TextFamily(object):
         self._inode         = oref.index_node
         self._alts          = []
 
-        assert isinstance(self._inode, JaggedArrayNode), "TextFamily only works with JaggedArray nodes"  # todo: handle structure nodes?
+        if not isinstance(oref.index_node, JaggedArrayNode):
+            raise InputError("Can not get TextFamily at this level, please provide a more precise reference")
 
         for i in range(0, context):
             oref = oref.context_ref()
