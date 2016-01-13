@@ -37,7 +37,9 @@ var ReaderApp = React.createClass({
     };
   },
   componentDidMount: function() {
-    this.updateHistoryState(true); // make sure initial page state is in history, (passing true to replace)
+    if (!this.props.headerMode) {
+      this.updateHistoryState(true); // make sure initial page state is in history, (passing true to replace)
+    }
     window.addEventListener("popstate", this.handlePopState);
     window.addEventListener("beforeunload", this.saveOpenPanelsToRecentlyViewed);
     $.cookie("s2", true, {path: "/"});
@@ -3437,9 +3439,9 @@ var AccountPanel = React.createClass({
     learnContent = (<TwoOrThreeBox content={learnContent} width={width} />);
 
     var contributeContent = [
-      (<BlockLink target="/contribute" title="Contribute" />),
       (<BlockLink target="/activity" title="Recent Activity" />),
-      (<BlockLink target="/metrics" title="Metrics" />),      
+      (<BlockLink target="/metrics" title="Metrics" />),  
+      (<BlockLink target="/contribute" title="Contribute" />),
       (<BlockLink target="/donate" title="Donate" />),
       (<BlockLink target="/supporters" title="Supporters" />),
       (<BlockLink target="/jobs" title="Jobs" />),

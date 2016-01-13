@@ -39,32 +39,31 @@ p {
 	margin: 0;
 	padding: 0px 2%;
 }
-
-body.hebrew .biReady {
+#content.hebrew .biReady {
 	direction: rtl;
 }
-body.english .biReady .he {
+#content.english .biReady .he {
 	display: none;
 }
-body.english .biReady .en {
+#content.english .biReady .en {
 	display: inline;
 }
-body.hebrew .biReady .he {
+#content.hebrew .biReady .he {
 	display: inline;
 	font-size: 120%;
 	text-align: right;
 }
-body.hebrew .biReady .he .enInHe {
+#content.hebrew .biReady .he .enInHe {
   font-size: 83%;
 }
-body.hebrew .biReady .en {
+#content.hebrew .biReady .en {
 	display: none;
 }
-body.hebrew .biReady p,
-body.hebrew .biReady #bites h3 {
+#content.hebrew .biReady p,
+#content.hebrew .biReady #bites h3 {
 	text-align: right;
 }
-body.hebrew .hideInHebrewMode {
+#content.hebrew .hideInHebrewMode {
   display: none !important;
 }
 #home {
