@@ -9,15 +9,20 @@ def test_add_commentary_links():
     #test simple adding links
     title = 'Rashi on Genesis'
     desired_link_count = 2027
-    found = add_commentary_links(title, 1)
+    found = add_commentary_links(Ref(title), 1)
     assert len(found) == desired_link_count
 
 
 def test_add_commentary_links_complex():
     title = 'Kos Shel Eliyahu on Pesach Haggadah'
     desired_link_count = 80
-    found = add_commentary_links(title, 1)
+    found = add_commentary_links(Ref(title), 1)
     assert len(found) == desired_link_count
+
+
+def test_add_commentary_links_default_node():
+    title = "Be'er Mayim Chaim on Chofetz Chaim"
+    found = add_commentary_links(Ref(title), 1)
 
 
 def test_add_delete_commentary_links():
@@ -25,7 +30,7 @@ def test_add_delete_commentary_links():
     title = 'Rashi on Genesis'
     desired_link_count = 2027
     regex = Ref(title).regex()
-    add_and_delete_invalid_commentary_links(title, 1)
+    add_and_delete_invalid_commentary_links(Ref(title), 1)
     ls = LinkSet({"refs": {"$regex": regex}, "generated_by": "add_commentary_links"})
     link_count = ls.count()
     assert desired_link_count == link_count
@@ -36,7 +41,7 @@ def test_add_delete_commentary_links_complex():
     title = 'Kos Shel Eliyahu on Pesach Haggadah'
     desired_link_count = 80
     regex = Ref(title).regex()
-    add_and_delete_invalid_commentary_links(title, 1)
+    add_and_delete_invalid_commentary_links(Ref(title), 1)
     ls = LinkSet({"refs": {"$regex": regex}, "generated_by": "add_commentary_links"})
     link_count = ls.count()
     assert desired_link_count == link_count
