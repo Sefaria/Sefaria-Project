@@ -268,8 +268,8 @@ urlpatterns += patterns('reader.views',
     (r'^vgarden/sheets/(?P<key>.+)$', 'sheet_tag_visual_garden_page'),
     (r'^vgarden/search/(?P<q>.+)$', 'search_query_visual_garden_page'),
     (r'^vgarden/custom/(?P<key>.+)$', 'custom_visual_garden_page'),
-    (r'^visualize/library/?(?P<lang>.*)?/?$', 'visualize_library'),
-
+    (r'^visualize/library/(?P<lang>[enh]*)/?(?P<cats>.*)/?$', 'visualize_library'),
+    (r'^visualize/library/?(?P<cats>.*)/?$', 'visualize_library'),
 )
 
 # Redirects to Forum, Wiki
