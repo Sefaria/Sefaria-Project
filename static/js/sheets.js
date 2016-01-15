@@ -2276,6 +2276,7 @@ function promptToPublish() {
 			}
 		} 											       // Don't prompt if we've prompted in the last 30 days
 	if (sjs.current.assignment_id) {return;}			   // Don't prompt if this is an assignment sheet
+	if (sjs.current.options.assignable == 1) {return;}	   // Don't prompt if sheet is currently assignable
 	if (sjs.current.status in {"public":true}) { return; } // Don't prompt if sheet is already public
 //	if (sjs.current.sources.length < 6) { return; }         // Don't prompt if the sheet has less than 6 sources
 	if (sjs.current.views < 3) {return}						// Don't prompt if the sheet has been viewed less than three times
