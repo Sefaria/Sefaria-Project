@@ -17,7 +17,7 @@ if USE_VARNISH:
 #TODO: should all the functions here be decoupled from the need to enter a userid?
 
 
-def add_and_delete_invalid_commentary_links(tref, user, **kwargs):
+def add_and_delete_invalid_commentary_links(oref, user, **kwargs):
     """
     This functino both adds links and deletes pre existing ones that are no longer valid,
     by virtue of the fact that they were not detected as commentary links while iterating over the text.
@@ -26,7 +26,6 @@ def add_and_delete_invalid_commentary_links(tref, user, **kwargs):
     :param kwargs:
     :return:
     """
-    oref = Ref(tref)
     assert oref.is_commentary()
     tref = oref.normal()
     commentary_book_name = oref.index.title
@@ -35,7 +34,7 @@ def add_and_delete_invalid_commentary_links(tref, user, **kwargs):
     existing_links = LinkSet({"refs": {"$regex": ref_regex}, "generated_by": "add_commentary_links"})
     print "{} existing links".format(len(existing_links))
     print "doing recursive build"
-    found_links = add_commentary_links(tref, user, **kwargs)
+    found_links = add_commentary_links(oref, user, **kwargs)
     print "{} found links".format(len(found_links))
     for exLink in existing_links:
         for r in exLink.refs:
@@ -48,7 +47,7 @@ def add_and_delete_invalid_commentary_links(tref, user, **kwargs):
             break
 
 
-def add_commentary_links(tref, user, text=None, **kwargs):
+def add_commentary_links(oref, user, text=None, **kwargs):
     #//TODO: commentary refactor, also many other lines can be made better
     """
     Automatically add links for each comment in the commentary text denoted by 'tref'.
@@ -57,7 +56,6 @@ def add_commentary_links(tref, user, text=None, **kwargs):
     for each segment of text (comment) that is in 'Sforno on Kohelet 3:2'.
     """
 
-    oref = Ref(tref)
     assert oref.is_commentary()
     tref = oref.normal()
     base_tref = tref[tref.find(" on ") + 4:]
@@ -72,18 +70,16 @@ def add_commentary_links(tref, user, text=None, **kwargs):
             vs.refresh()  # Needed when saving multiple nodes in a complex text.  This may be moderately inefficient.
         content_nodes = oref.index_node.get_leaf_nodes()
         for r in content_nodes:
-            cn_ref = r.full_title(force_update=True)
-            cn_oref = Ref(cn_ref)
+            cn_oref = r.ref()
             text = TextFamily(cn_oref, commentary=0, context=0, pad=False).contents()
-            sn = StateNode(cn_ref)
-            length = sn.ja('all').length()
+            length = cn_oref.get_state_ja().length()
             for i, sr in enumerate(cn_oref.subrefs(length)):
                 stext = {"sections": sr.sections,
                         "sectionNames": text['sectionNames'],
                         "text": text["text"][i] if i < len(text["text"]) else "",
                         "he": text["he"][i] if i < len(text["he"]) else ""
                         }
-                found_links += add_commentary_links(sr.normal(), user, stext, **kwargs)
+                found_links += add_commentary_links(sr, user, stext, **kwargs)
 
     else:
         if not text:
@@ -105,7 +101,7 @@ def add_commentary_links(tref, user, text=None, **kwargs):
                         "text": text["text"][i] if i < len(text["text"]) else "",
                         "he": text["he"][i] if i < len(text["he"]) else ""
                         }
-                found_links += add_commentary_links(r.normal(), user, stext, **kwargs)
+                found_links += add_commentary_links(r, user, stext, **kwargs)
 
         # this is a single comment, trim the last section number (comment) from ref
         elif len(text["sections"]) == len(text["sectionNames"]):
@@ -123,8 +119,6 @@ def add_commentary_links(tref, user, text=None, **kwargs):
                     tracker.add(user, Link, link, **kwargs)
                 except DuplicateRecordError as e:
                     pass
-
-
     return found_links
 
 
@@ -152,16 +146,12 @@ def rebuild_commentary_links(title, user):
         # Allow commentators alone, rebuild for each text we have
         i = library.get_index(title)
         for c in library.get_commentary_version_titles(i.title):
-            rebuild_commentary_links(c, user)
+            rebuild_commentary_links(Ref(c), user)
         return
-
-    title = Ref(title).normal()
-    delete_commentary_links(title, user)
-    add_commentary_links(title, user)
+    add_commentary_links(Ref(title), user)
 
 
-# todo: Currently supports only
-def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
+def add_links_from_text(oref, lang, text, text_id, user, **kwargs):
     """
     Scan a text for explicit references to other texts and automatically add new links between
     ref and the mentioned text.
@@ -176,11 +166,10 @@ def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
     if not text:
         return []
     elif isinstance(text, list):
-        oref    = Ref(ref)
         subrefs = oref.subrefs(len(text))
         links   = []
         for i in range(len(text)):
-            single = add_links_from_text(subrefs[i].normal(), lang, text[i], text_id, user, **kwargs)
+            single = add_links_from_text(subrefs[i], lang, text[i], text_id, user, **kwargs)
             links += single
         return links
     elif isinstance(text, basestring):
@@ -194,7 +183,7 @@ def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
             The set of all links (`existingLinks` + `Links`) is refreshed in Varnish.
         """
         existingLinks = LinkSet({
-            "refs": ref,
+            "refs": oref.normal(),
             "auto": True,
             "generated_by": "add_links_from_text",
             "source_text_oid": text_id
@@ -205,28 +194,28 @@ def add_links_from_text(ref, lang, text, text_id, user, **kwargs):
 
         refs = library.get_refs_in_string(text, lang)
 
-        for oref in refs:
+        for linked_oref in refs:
             link = {
                 # Note -- ref of the citing text is in the first position
-                "refs": [ref, oref.normal()],
+                "refs": [oref.normal(), linked_oref.normal()],
                 "type": "",
                 "auto": True,
                 "generated_by": "add_links_from_text",
                 "source_text_oid": text_id
             }
-            found += [oref.normal()]  # Keep this here, since tracker.add will throw an error if the link exists
+            found += [linked_oref.normal()]  # Keep this here, since tracker.add will throw an error if the link exists
             try:
                 tracker.add(user, Link, link, **kwargs)
                 links += [link]
                 if USE_VARNISH:
-                    invalidate_ref(oref)
+                    invalidate_ref(linked_oref)
             except InputError as e:
                 pass
 
         # Remove existing links that are no longer supported by the text
         for exLink in existingLinks:
             for r in exLink.refs:
-                if r == ref:  # current base ref
+                if r == oref.normal():  # current base ref
                     continue
                 if USE_VARNISH:
                     invalidate_ref(Ref(r))
@@ -260,4 +249,4 @@ def rebuild_links_from_text(title, user):
     versions = VersionSet({"title": title})
 
     for version in versions:
-        add_links_from_text(title, version.language, version.chapter, version._id, user)
+        add_links_from_text(Ref(title), version.language, version.chapter, version._id, user)
