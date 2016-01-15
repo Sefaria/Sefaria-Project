@@ -181,7 +181,16 @@ body {
 }
 
 #assignedSheets {
-	margin: 10px;
+	margin: 10px 10px 0 10px;
+}
+
+#assignmentURLLink {
+	width:300px;
+	text-align: center;
+}
+
+#assignmentsModal .btn {
+	margin-top: 5px;
 }
 
 .subMenu {
