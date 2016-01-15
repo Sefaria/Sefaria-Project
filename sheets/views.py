@@ -192,9 +192,8 @@ def view_sheet(request, sheet_id):
 
 def assignments_from_sheet(sheet_id):
 	try:
-		if db.sheets.find_one({"id": int(sheet_id)})["options"]["assignable"] == 1:
-			query = {"assignment_id": int(sheet_id)}
-			return db.sheets.find(query)
+		query = {"assignment_id": int(sheet_id)}
+		return db.sheets.find(query)
 	except:
 		return None
 

@@ -301,9 +301,23 @@ $(function() {
 		}
 	});
 
-	$("#assignable").click(function(){
-		$("#assignedSheets").toggleClass('hidden');
+	$("#makeSheetAssignableButton").click(function(){
+		$("#assignedSheets").show();
+		$(this).hide();
+		$("#StopCollectingAssignmentsButton").show();
+		$("#sheet").addClass('assignable');
+		autoSave();
 	});
+
+	$("#StopCollectingAssignmentsButton").click(function(){
+		$("#assignedSheets").hide();
+		$(this).hide();
+		$("#makeSheetAssignableButton").show();
+		$("#sheet").removeClass('assignable');
+		autoSave();
+	});
+
+
 
 	// Language Options specific to Sheets
 	// General behavior covered in sjs.changeContentLang in headers.js
@@ -1677,7 +1691,8 @@ function buildSheet(data){
 	if (data.options.numbered) { $("#numbered").trigger("click"); } 
 	if (data.options.bsd)      { $("#bsd").trigger("click"); } 
 	if (data.options.boxed)    { $("#boxed").trigger("click"); } 
-	if (data.options.assignable)    { $("#assignable").trigger("click"); }
+	if (data.options.assignable)    { $("#makeSheetAssignableButton").trigger("click"); }
+	else {$("#StopCollectingAssignmentsButton").trigger("click");}
 
 
 	// Set options that always have a value

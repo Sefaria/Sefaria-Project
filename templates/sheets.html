@@ -289,26 +289,28 @@
 
 <div id="assignmentsModal" class="modal">
 
-        <div class="header">This sheet can be assigned when the <em>Assignable</em> text below is checked:</div>
-
-
-                                <div class="optionItem" id="assignable">
-                                <i class="fa fa-check hidden"></i> Assignable</div>
-
-                            {% if assignments_from_sheet %}
-                            <div id="assignedSheets" class="hidden">
+        <div class="header">
+            <h3>Assignments:</h3>
+            Assignments allow you to create a template that your students can fill out on their own.
+        </div>
+        <br/>
+        <div class='btn btn-success' id="makeSheetAssignableButton">Make this sheet assignable</div>
+        <div class='btn btn-danger' id="StopCollectingAssignmentsButton">Stop Collecting Assignments</div>
+        <br/>
+                            <div id="assignedSheets">
                                 <div class="line"></div>
                                 Students can complete their assignment at this link:<br/>
-                                <a href="./new?assignment={{sheet.id}}">{{ request.META.HTTP_HOST }}/sheets/new?assignment=?{{sheet.id}}</a>
+                                <input id="assignmentURLLink" value="{{ request.META.HTTP_HOST }}/sheets/new?assignment={{sheet.id}}" />
                                 <div class="line"></div>
                                 <strong>Saved Assignments:</strong>
         						{% for assignment_sheet in assignments_from_sheet %}
                                 <div class="optionLink" ><a href="./{{ assignment_sheet.id }}" target="_blank">{{ assignment_sheet.owner|user_name }}</a></div>
+
+                                {% empty %}
+                                    <br/><em>Your student's saved assignments will be viewable here.</em>
                                 {% endfor %}
+
                             </div>
-
-                             {% endif %}
-
         <div class='btn btn-primary ok'>Ok</div>
 
 </div>
