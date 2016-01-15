@@ -479,6 +479,8 @@ class Sheet(abstract.AbstractMongoRecord):
 		"lastModified",
 		"via",
 		"viaOwner",
+		"assignment_id",
+		"assigner_id",
 		"likes",
 		"group",
 		"generatedBy"
