@@ -80,7 +80,7 @@ class ServerTextCopier(object):
         return 'api/v2/raw/index/{}'.format(index_title.replace(" ", "_"))
 
     def _prepare_text_api_call(self, terminal_ref):
-        return 'api/texts/{}?count_after=0&index_after=0&prof'.format(terminal_ref.replace(" ", "_"))
+        return 'api/texts/{}?count_after=0&index_after=0'.format(terminal_ref.replace(" ", "_"))
 
     def _prepare_version_attrs_api_call(self, title, lang, vtitle):
         return "api/version/flags/{}/{}/{}".format(urllib.quote(title), urllib.quote(lang), urllib.quote(vtitle))
