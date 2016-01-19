@@ -502,6 +502,7 @@ def hebrew_term(s):
 		"Hilchot":          u"הילכות",
 		"Topic":            u"נושא",
 		"Contents":         u"תוכן",
+		"Article":	    u"סעיף",
 	}
 
 	words = dict(categories.items() + pseudo_categories.items() + section_names.items())
