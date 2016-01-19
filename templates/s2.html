@@ -43,9 +43,11 @@
       $(function() {
         
         var ref = "{{ ref }}";
+        var version = "{{ version }}";
+        var language = "{{ language }}";
         if (ref) {
-          var ref = humanRef("{{ ref }}")
-          sjs.library._saveText({{ data|jsonify }}, {context: 1});
+          ref = humanRef("{{ ref }}");
+          sjs.library._saveText({{ data|jsonify }}, {context: 1, version: version, language: language});
         }
         var multiPanel = $(window).width() > 600;
         var urlVars    = getUrlVars();
@@ -59,17 +61,19 @@
           } else {
             var initialPanels = [{type: "Text", refs: [ref]}]; 
           }
-        } else {
+        } else { //multiPanel
           var initialPanels = [{type: "Text", refs: [ref]}];
           if (filter) {
             initialPanels.push({type: "Connections", refs: [ref], filter: filter});
           }
 
           for (var i = 2; i < 5; i++) {
-            var p = urlVars["p" + i] || null;
-            var w = urlVars["with" + i] || null; 
+            var p = urlVars["p" + i] || null;  // Ref for panel i
+            var w = urlVars["with" + i] || null; // Commentary shown for panel i
+            var v = urlVars["v" + i] || null;  // Version for panel i
+            var l = urlVars["l" + i] || null;  // Language for panel i
             if (p && !p.match(/^texts|^sheets|^search/)) {
-              initialPanels.push({type: "Text", refs: [humanRef(p)]});
+              initialPanels.push({type: "Text", refs: [humanRef(p)], version: v, language: l});
             }
             if (w) {
               filter = w.replace(/_/g, " ").split("+");

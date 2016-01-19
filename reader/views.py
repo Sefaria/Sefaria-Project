@@ -165,9 +165,9 @@ def reader(request, tref, lang=None, version=None):
 
     return render_to_response('reader.html', template_vars, RequestContext(request))
 
+
 def esi_account_box(request):
     return render_to_response('elements/accountBox.html', {}, RequestContext(request))
-
 
 
 def s2(request, ref, version=None, lang=None):
@@ -178,10 +178,12 @@ def s2(request, ref, version=None, lang=None):
         oref = Ref(ref)
     except InputError:
         raise Http404
-
+    if version:
+        version = version.replace(u"_", u" ")
     if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
         initialMenu = "text toc"
         oref = oref.first_available_section_ref()
+        # If there's a version specified, should we use Version.first_section_ref()?
     else:
         initialMenu = ""
     try:
@@ -195,6 +197,8 @@ def s2(request, ref, version=None, lang=None):
 
     return render_to_response('s2.html', {
                                             "ref": oref.normal(),
+                                            "version": version,
+                                            "language": lang,
                                             "data": text,
                                             "initialMenu": initialMenu,
                                         }, RequestContext(request))

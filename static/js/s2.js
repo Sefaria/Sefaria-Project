@@ -168,7 +168,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
             break;
           case "account":
             hist.title = "Sefaria About";
-            hist.url   = "account"
+            hist.url   = "account";
             hist.mode  = "account";
             break;
         }
@@ -179,13 +179,13 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
       } else if (state.mode === "Connections") {
         var ref     = state.refs.slice(-1)[0];
         var sources = state.filter.length ? state.filter.join("+") : "all";
-        hist.title  = ref  + " with " + (sources === "all" ? "Connections" : sources);;
+        hist.title  = ref  + " with " + (sources === "all" ? "Connections" : sources);
         hist.url    = normRef(ref) + "?with=" + sources;
         hist.mode   = "Connections"
       } else if (state.mode === "TextAndConnections") {
         var ref     = state.highlightedRefs.slice(-1)[0];
         var sources = state.filter.length ? state.filter[0] : "all";
-        hist.title  = ref  + " with " + (sources === "all" ? "Connections" : sources);;
+        hist.title  = ref  + " with " + (sources === "all" ? "Connections" : sources);
         hist.url    = normRef(ref) + "?with=" + sources;
         hist.mode   = "TextAndConnections"
       } else {
@@ -196,7 +196,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
 
     // Now merge all history object into one
     var url   = "/" + (histories.length ? histories[0].url : "");
-    var title =  histories.length ? histories[0].title : "Sefaria"
+    var title =  histories.length ? histories[0].title : "Sefaria";
     var hist  = {state: clone(this.state), url: url, title: title};
     for (var i = 1; i < histories.length; i++) {
       if (histories[i-1].mode === "Text" && histories[i].mode === "Connections") {
@@ -205,7 +205,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
           hist.url   = "/" + histories[i].url;
           hist.title = histories[i].title;
         } else {
-          var replacer = "&p" + i + "="
+          var replacer = "&p" + i + "=";
           hist.url    = hist.url.replace(RegExp(replacer + ".*"), "");
           hist.url   += replacer + histories[i].url.replace("with=", "with" + i + "=").replace("?", "&");
           hist.title += " & " + histories[i].title; // TODO this doesn't trim title properly
@@ -425,9 +425,11 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
       } else {
         panels.push(React.createElement("div", {className: "readerPanelBox", style: style, key: key}, 
                       React.createElement(ReaderPanel, {
-                        initialRefs: panel.refs, 
-                        initialMode: panel.mode, 
-                        initialFilter: panel.filter, 
+                        initialRefs: panel.refs,
+                        initialMode: panel.mode,
+                        initialFilter: panel.filter,
+                        initialVersion: panel.version,
+                        initialLanguage: panel.language,
                         initialHighlightedRefs: panel.highlightedRefs, 
                         initialMenu: this.props.multiPanel ? null : this.props.initialMenu, 
                         initialQuery: this.props.initialQuery, 
@@ -631,6 +633,8 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
   propTypes: {
     initialRefs:            React.PropTypes.array,
     initialMode:            React.PropTypes.string,
+    initialVersion:         React.PropTypes.string,
+    initialLanguage:        React.PropTypes.string,
     initialFilter:          React.PropTypes.array,
     initialHighlightedRefs: React.PropTypes.array,
     initialMenu:            React.PropTypes.string,
@@ -659,6 +663,8 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
       refs: this.props.initialRefs || [], // array of ref strings
       mode: this.props.initialMode, // "Text", "TextAndConnections", "Connections"
       filter: this.props.initialFilter || [],
+      version: this.props.version,
+      language: this.props.language,
       highlightedRefs: this.props.initialHighlightedRefs || [],
       recentFilters: [],
       settings: this.props.initialSettings || {
@@ -799,7 +805,7 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
       searchQuery: null,
       navigationCategories: null,
       navigationSheetTag: null
-    }
+    };
     this.setState(state);
   },
   openMenu: function(menu) {
@@ -921,7 +927,9 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       items.push(React.createElement(TextColumn, {
           srefs: this.state.refs, 
-          highlightedRefs: this.state.highlightedRefs, 
+          version: this.state.version,
+          language: this.state.language,
+          highlightedRefs: this.state.highlightedRefs,
           basetext: true, 
           withContext: true, 
           loadLinks: true, 
@@ -1958,6 +1966,8 @@ var TextColumn = React.createClass({displayName: "TextColumn",
   // An infinitely scrollable column of text, composed of TextRanges for each section.
   propTypes: {
     srefs:                 React.PropTypes.array.isRequired,
+    version:               React.PropTypes.string,
+    language:              React.PropTypes.string,
     highlightedRefs:       React.PropTypes.array,
     basetext:              React.PropTypes.bool,
     withContext:           React.PropTypes.bool,
@@ -2200,7 +2210,9 @@ var TextColumn = React.createClass({displayName: "TextColumn",
     var content =  this.props.srefs.map(function(ref, k) {
       return (React.createElement(TextRange, {
         sref: ref, 
-        highlightedRefs: this.props.highlightedRefs, 
+        version: this.props.version,
+        language: this.props.language,
+        highlightedRefs: this.props.highlightedRefs,
         basetext: true, 
         withContext: true, 
         loadLinks: true, 
@@ -2274,7 +2286,7 @@ var TextRange = React.createClass({displayName: "TextRange",
       segments: [],
       loaded: false,
       linksLoaded: false,
-      data: {ref: this.props.sref},
+      data: {ref: this.props.sref}
     };
   },
   componentDidMount: function() {
