@@ -6,13 +6,13 @@ sjs.library = {
   _texts: {},
   text: function(ref, settings, cb) {
     if (!ref || typeof ref == "object" || typeof ref == "undefined") { debugger; }
-    var settings = settings || {};
+    settings = settings || {};
     settings = {
       commentary: settings.commentary || 0,
       context:    settings.context    || 0,
       pad:        settings.pad        || 0,
       version:    settings.version    || null,
-      language:   settings.langauge   || null
+      language:   settings.language   || null
     };
     var key = this._textKey(ref, settings);
     if (!cb) {
@@ -68,26 +68,35 @@ sjs.library = {
       //sjs.alert.message(data.error);
       return;
     }
-    var settings     = settings || {};
+    settings         = settings || {};
     data             = skipWrap ? data : this._wrapRefs(data);
     key              = this._textKey(data.ref, settings);
     this._texts[key] = data;
     
     if (data.ref == data.sectionRef && !data.isSpanning) {
-      this._splitTextSection(data);
+      this._splitTextSection(data, settings);
     } else if (settings.context) {
       // Save a copy of the data at context level
       var newData        = clone(data);
       newData.ref        = data.sectionRef;
       newData.sections   = data.sections.slice(0,-1);
       newData.toSections = data.toSections.slice(0,-1);
-      this._saveText(newData, {}, true);
+      var context_settings = (settings.language && settings.version) ? {
+          version: settings.version,
+          language: settings.language
+      }:{};
+      this._saveText(newData, context_settings, true);
     }
     if (data.isSpanning) {
+      var spanning_context_settings = (settings.language && settings.version) ? {
+          version: settings.version,
+          language: settings.language,
+          context: 1
+      }:{context: 1};
       for (var i = 0; i < data.spanningRefs.length; i++) {
         // For spanning refs, request each section ref to prime cache.
         // console.log("calling spanning prefetch " + data.spanningRefs[i])
-        sjs.library.text(data.spanningRefs[i], {context: 1}, function(data) {})
+        sjs.library.text(data.spanningRefs[i], spanning_context_settings, function(data) {})
       }      
     }
 
@@ -98,10 +107,11 @@ sjs.library = {
     };
     this.index(index.title, index);
   },
-  _splitTextSection: function(data) {
+  _splitTextSection: function(data, settings) {
     // Takes data for a section level text and populates cache with segment levels.
     // Runs recursively for Refs above section level like "Rashi on Genesis 1".
     // Pad the shorter array to make stepping through them easier.
+    settings = settings || {};
     var en = typeof data.text == "string" ? [data.text] : data.text;
     var he = typeof data.he == "string" ? [data.he] : data.he;
     var length = Math.max(en.length, he.length);
@@ -128,8 +138,14 @@ sjs.library = {
         prevSegment: i+start == 1      ? null : data.ref + delim + (i+start-1),
       });
 
-      this._saveText(segment_data, {}, true);
-      var contextKey = this._textKey(ref, {context:1});
+      var context_settings = (settings.version && settings.language) ? {
+          version: settings.version,
+          language: settings.language
+      } : {};
+      this._saveText(segment_data, context_settings, true);
+
+      context_settings.context = 1;
+      var contextKey = this._textKey(ref, context_settings);
       this._texts[contextKey] = {buildable: "Add Context", ref: ref, sectionRef: sectionRef};
     }
   },
