@@ -83,7 +83,7 @@ def reader(request, tref, lang=None, version=None):
         return text_toc(request, oref)
 
     if request.flavour == "mobile" or request.COOKIES.get('s2'):
-        return s2(request, ref=tref)
+        return s2(request, ref=tref, lang=lang, version=version)
 
     # BANDAID - for spanning refs, return the first section
     oref = oref.padded_ref()

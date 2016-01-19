@@ -175,6 +175,8 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
       } else if (state.mode === "Text") {
         hist.title  = state.refs.slice(-1)[0];
         hist.url    = normRef(hist.title);
+        hist.version = state.version;
+        hist.language = state.language;
         hist.mode   = "Text"
       } else if (state.mode === "Connections") {
         var ref     = state.refs.slice(-1)[0];
@@ -187,6 +189,8 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
         var sources = state.filter.length ? state.filter[0] : "all";
         hist.title  = ref  + " with " + (sources === "all" ? "Connections" : sources);
         hist.url    = normRef(ref) + "?with=" + sources;
+        hist.version = state.version;
+        hist.language = state.language;
         hist.mode   = "TextAndConnections"
       } else {
         continue;
@@ -196,6 +200,9 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
 
     // Now merge all history object into one
     var url   = "/" + (histories.length ? histories[0].url : "");
+    if(histories[0].language && histories[0].version) {
+        url += "/" + histories[0].language + "/" + histories[0].version;
+    }
     var title =  histories.length ? histories[0].title : "Sefaria";
     var hist  = {state: clone(this.state), url: url, title: title};
     for (var i = 1; i < histories.length; i++) {
@@ -208,6 +215,9 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
           var replacer = "&p" + i + "=";
           hist.url    = hist.url.replace(RegExp(replacer + ".*"), "");
           hist.url   += replacer + histories[i].url.replace("with=", "with" + i + "=").replace("?", "&");
+          if(hist.language && hist.version) {
+            hist.url += "&l" + i + hist.language + "&v" + i + hist.version;
+          }
           hist.title += " & " + histories[i].title; // TODO this doesn't trim title properly
         }
       } else {
@@ -1959,7 +1969,7 @@ var CategoryColorLine = React.createClass({displayName: "CategoryColorLine",
     style = {backgroundColor: sjs.categoryColor(this.props.category)};
     return (React.createElement("div", {className: "categoryColorLine", style: style}));
   }
-})
+});
 
 
 var TextColumn = React.createClass({displayName: "TextColumn",
