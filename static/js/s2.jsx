@@ -196,7 +196,7 @@ var ReaderApp = React.createClass({
       histories.push(hist);     
     }
 
-    // Now merge all history object into one
+    // Now merge all history objects into one
     var url   = "/" + (histories.length ? histories[0].url : "");
     var title =  histories.length ? histories[0].title : "Sefaria"
     var hist  = {state: clone(this.state), url: url, title: title};
@@ -392,6 +392,7 @@ var ReaderApp = React.createClass({
       var onSegmentClick           = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
       var onCitationClick          = this.openPanelAt.bind(null, i);
       var onTextListClick          = function(){}; // disabling for testing, this.openPanelAt.bind(null, i);
+      var onOpenConnectionsClick   = this.openTextListAt.bind(null, i+1);
       var onPanelUpdate            = this.handlePanelUpdate.bind(null, i);
       var setTextListHightlight    = this.setTextListHighlight.bind(null, i);
       var closePanel               = this.closePanel.bind(null, i);
@@ -414,12 +415,12 @@ var ReaderApp = React.createClass({
                       <ReaderPanel 
                         initialState={panel}
                         multiPanel={this.props.multiPanel}
-                        onSegmentClick={onSegmentClick}
-                        onCitationClick={onCitationClick}
                         onUpdate={onPanelUpdate}
+                        onSegmentClick={onSegmentClick}
                         onCitationClick={onCitationClick}
                         onTextListClick={onTextListClick}
                         onNavigationClick={this.handleNavigationClick}
+                        onOpenConnectionsClick={onOpenConnectionsClick}
                         setTextListHightlight={setTextListHightlight}
                         closePanel={closePanel}
                         panelsOpen={this.state.panels.length} />
@@ -440,7 +441,8 @@ var ReaderApp = React.createClass({
                         onSegmentClick={onSegmentClick}
                         onCitationClick={onCitationClick}
                         onTextListClick={onTextListClick}
-                        onNavigationClick={this.handleNavigationClick}                        
+                        onNavigationClick={this.handleNavigationClick}
+                        onOpenConnectionsClick={onOpenConnectionsClick}
                         onUpdate={onPanelUpdate}
                         setTextListHightlight={setTextListHightlight}
                         closePanel={closePanel}
@@ -955,6 +957,7 @@ var ReaderPanel = React.createClass({
           onTextClick={this.handleTextListClick}
           onCitationClick={this.handleCitationClick}
           onNavigationClick={this.props.onNavigationClick}
+          onOpenConnectionsClick={this.props.onOpenConnectionsClick}
           onCompareClick={this.showBaseText}
           closePanel={this.props.closePanel}            
           key="connections" />
@@ -2248,26 +2251,27 @@ var TextRange = React.createClass({
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
   // This component is responsible for retrieving data from sjs.library for the ref that defines it.
   propTypes: {
-    sref:                React.PropTypes.string.isRequired,
-    highlightedRefs:     React.PropTypes.array,
-    basetext:            React.PropTypes.bool,
-    withContext:         React.PropTypes.bool,
-    hideTitle:           React.PropTypes.bool,
-    loadLinks:           React.PropTypes.bool,
-    prefetchNextPrev:    React.PropTypes.bool,
-    openOnClick:         React.PropTypes.bool,
-    lowlight:            React.PropTypes.bool,
-    numberLabel:         React.PropTypes.number,
-    settings:            React.PropTypes.object,
-    filter:              React.PropTypes.array,
-    onTextLoad:          React.PropTypes.func,
-    onRangeClick:        React.PropTypes.func,
-    onSegmentClick:      React.PropTypes.func,
-    onCitationClick:     React.PropTypes.func,
-    onNavigationClick:   React.PropTypes.func,
-    onCompareClick:      React.PropTypes.func,
-    panelsOpen:          React.PropTypes.number,
-    showActionLinks:     React.PropTypes.bool
+    sref:                   React.PropTypes.string.isRequired,
+    highlightedRefs:        React.PropTypes.array,
+    basetext:               React.PropTypes.bool,
+    withContext:            React.PropTypes.bool,
+    hideTitle:              React.PropTypes.bool,
+    loadLinks:              React.PropTypes.bool,
+    prefetchNextPrev:       React.PropTypes.bool,
+    openOnClick:            React.PropTypes.bool,
+    lowlight:               React.PropTypes.bool,
+    numberLabel:            React.PropTypes.number,
+    settings:               React.PropTypes.object,
+    filter:                 React.PropTypes.array,
+    onTextLoad:             React.PropTypes.func,
+    onRangeClick:           React.PropTypes.func,
+    onSegmentClick:         React.PropTypes.func,
+    onCitationClick:        React.PropTypes.func,
+    onNavigationClick:      React.PropTypes.func,
+    onCompareClick:         React.PropTypes.func,
+    onOpenConnectionsClick: React.PropTypes.func,
+    panelsOpen:             React.PropTypes.number,
+    showActionLinks:        React.PropTypes.bool
   },
   getInitialState: function() {
     return { 
@@ -2502,8 +2506,10 @@ var TextRange = React.createClass({
                   };
     classes = classNames(classes);
 
-    var open    = function() { this.props.onNavigationClick(this.props.sref)}.bind(this);
-    var compare = function() { this.props.onCompareClick(this.props.sref)}.bind(this);
+    var open        = function() { this.props.onNavigationClick(this.props.sref)}.bind(this);
+    var compare     = function() { this.props.onCompareClick(this.props.sref)}.bind(this);
+    var connections = function() { this.props.onOpenConnectionsClick([this.props.sref])}.bind(this);
+
     var actionLinks = (<div className="actionLinks">
                         <span className="openLink" onClick={open}>
                           <img src="/static/img/open-64.png" />
@@ -2513,6 +2519,11 @@ var TextRange = React.createClass({
                         <span className="compareLink" onClick={compare}>
                           <img src="/static/img/compare-64.png" />
                           <span className="en">Compare</span>
+                          <span className="he">לִפְתוֹחַ</span>
+                        </span>
+                        <span className="connectionsLink" onClick={connections}>
+                          <i className="fa fa-link"></i>
+                          <span className="en">Connections</span>
                           <span className="he">לִפְתוֹחַ</span>
                         </span>
                       </div>);
@@ -2611,6 +2622,7 @@ var TextList = React.createClass({
     onCitationClick:         React.PropTypes.func,
     onNavigationClick:       React.PropTypes.func,
     onCompareClick:          React.PropTypes.func,
+    onOpenConnectionsClick:  React.PropTypes.func,
     openNav:                 React.PropTypes.func,
     openDisplaySettings:     React.PropTypes.func,
     closePanel:              React.PropTypes.func
@@ -2796,6 +2808,7 @@ var TextList = React.createClass({
                                       onCitationClick={this.props.onCitationClick}
                                       onNavigationClick={this.props.onNavigationClick}
                                       onCompareClick={this.props.onCompareClick}
+                                      onOpenConnectionsClick={this.props.onOpenConnectionsClick}
                                       showActionLinks={this.props.multiPanel} />);
                         }, this);      
     }

@@ -1371,6 +1371,11 @@ display: block;margin: 0 auto;}
   opacity: 0.3;
   vertical-align: baseline;
 }
+.textRange .actionLinks > span > i {
+  margin: 0 5px;
+  font-size: 16px;
+  vertical-align: top;
+}
 .textRange .actionLinks .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", arial, sans-serif;
 }
