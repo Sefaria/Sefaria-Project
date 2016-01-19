@@ -1,4 +1,4 @@
-sjs = sjs || {};
+var sjs = sjs || {};
 // Dependancies: util.js, sjs.toc
 
 
@@ -10,30 +10,44 @@ sjs.library = {
     settings = {
       commentary: settings.commentary || 0,
       context:    settings.context    || 0,
-      pad:        settings.pad        || 0
+      pad:        settings.pad        || 0,
+      version:    settings.version    || null,
+      language:   settings.langauge   || null
     };
     var key = this._textKey(ref, settings);
     if (!cb) {
       return this._getOrBuildTextData(key);
     }          
     if (key in this._texts) {
-      var data = this._getOrBuildTextData(key)
+      var data = this._getOrBuildTextData(key);
       cb(data);
       return data;
     }
     //console.log("API Call for " + key)
-    params = "?" + $.param(settings);
-    var url = "/api/texts/" + normRef(ref) + params;
-    this._api(url, function(data) {
+    this._api(this._textUrl(ref, settings), function(data) {
       this._saveText(data, settings);
       cb(data);
       //console.log("API return for " + data.ref)
     }.bind(this));
   },
+  _textUrl: function(ref, settings) {
+    // copy the parts of settings that are used as parameters, but not other
+    var params = $.param({
+      commentary: settings.commentary,
+      context:    settings.context,
+      pad:        settings.pad
+    });
+    var url = "/api/texts/" + normRef(ref);
+    if (settings.language && settings.version) {
+        url += "/" + settings.language + "/" + settings.version.replace(" ","_");
+    }
+    return url + "?" + params;
+  },
   _textKey: function(ref, settings) {
     // Returns a string used as a key for the cache object of `ref` given `settings`.
     var key = ref.toLowerCase();
     if (settings) {
+      key = (settings.language && settings.version) ? key + "/" + settings.language + "/" + settings.version : key;
       key = settings.context ? key + "|CONTEXT" : key;
     }
     return key;
