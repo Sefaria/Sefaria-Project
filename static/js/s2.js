@@ -37,7 +37,9 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     };
   },
   componentDidMount: function() {
-    this.updateHistoryState(true); // make sure initial page state is in history, (passing true to replace)
+    if (!this.props.headerMode) {
+      this.updateHistoryState(true); // make sure initial page state is in history, (passing true to replace)
+    }
     window.addEventListener("popstate", this.handlePopState);
     window.addEventListener("beforeunload", this.saveOpenPanelsToRecentlyViewed);
     $.cookie("s2", true, {path: "/"});
@@ -2247,8 +2249,6 @@ var TextRange = React.createClass({displayName: "TextRange",
   // This component is responsible for retrieving data from sjs.library for the ref that defines it.
   propTypes: {
     sref:                React.PropTypes.string.isRequired,
-    version:             React.PropTypes.string,
-    language:            React.PropTypes.string,
     highlightedRefs:     React.PropTypes.array,
     basetext:            React.PropTypes.bool,
     withContext:         React.PropTypes.bool,
@@ -2326,10 +2326,8 @@ var TextRange = React.createClass({displayName: "TextRange",
     }
   },
   getText: function() {
-    var settings = {
-      context: this.props.withContext ? 1 : 0,
-      version: this.props.version || null,
-      language: this.props.language || null
+    settings = {
+      context: this.props.withContext ? 1 : 0
     };
     sjs.library.text(this.props.sref, settings, this.loadText);
   },
@@ -2430,16 +2428,8 @@ var TextRange = React.createClass({displayName: "TextRange",
     }
 
     if (this.props.prefetchNextPrev) {
-      if (data.next) { sjs.library.text(data.next, {
-          context: 1,
-          version: this.props.version || null,
-          language: this.props.language || null
-        }, function() {}); }
-      if (data.prev) { sjs.library.text(data.prev, {
-          context: 1,
-          version: this.props.version || null,
-          language: this.props.language || null
-        }, function() {}); }
+      if (data.next) { sjs.library.text(data.next, {context: 1}, function() {}); }
+      if (data.prev) { sjs.library.text(data.prev, {context: 1}, function() {}); }
       if (data.book) { sjs.library.textTocHtml(data.book, function() {}); }
     }
   },
@@ -3449,9 +3439,9 @@ var AccountPanel = React.createClass({displayName: "AccountPanel",
     learnContent = (React.createElement(TwoOrThreeBox, {content: learnContent, width: width}));
 
     var contributeContent = [
-      (React.createElement(BlockLink, {target: "/contribute", title: "Contribute"})),
       (React.createElement(BlockLink, {target: "/activity", title: "Recent Activity"})),
-      (React.createElement(BlockLink, {target: "/metrics", title: "Metrics"})),      
+      (React.createElement(BlockLink, {target: "/metrics", title: "Metrics"})),  
+      (React.createElement(BlockLink, {target: "/contribute", title: "Contribute"})),
       (React.createElement(BlockLink, {target: "/donate", title: "Donate"})),
       (React.createElement(BlockLink, {target: "/supporters", title: "Supporters"})),
       (React.createElement(BlockLink, {target: "/jobs", title: "Jobs"})),
