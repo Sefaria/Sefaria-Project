@@ -165,7 +165,7 @@ def accounts(request):
 
 
 def subscribe(request, email):
-    if subscribe_to_announce(email):
+    if subscribe_to_announce(email, direct_sign_up=True):
         return jsonResponse({"status": "ok"})
     else:
         return jsonResponse({"error": "Sorry, there was an error."})
