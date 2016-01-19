@@ -2247,6 +2247,8 @@ var TextRange = React.createClass({displayName: "TextRange",
   // This component is responsible for retrieving data from sjs.library for the ref that defines it.
   propTypes: {
     sref:                React.PropTypes.string.isRequired,
+    version:             React.PropTypes.string,
+    language:            React.PropTypes.string,
     highlightedRefs:     React.PropTypes.array,
     basetext:            React.PropTypes.bool,
     withContext:         React.PropTypes.bool,
@@ -2324,8 +2326,10 @@ var TextRange = React.createClass({displayName: "TextRange",
     }
   },
   getText: function() {
-    settings = {
-      context: this.props.withContext ? 1 : 0
+    var settings = {
+      context: this.props.withContext ? 1 : 0,
+      version: this.props.version || null,
+      language: this.props.language || null
     };
     sjs.library.text(this.props.sref, settings, this.loadText);
   },
@@ -2426,8 +2430,16 @@ var TextRange = React.createClass({displayName: "TextRange",
     }
 
     if (this.props.prefetchNextPrev) {
-      if (data.next) { sjs.library.text(data.next, {context: 1}, function() {}); }
-      if (data.prev) { sjs.library.text(data.prev, {context: 1}, function() {}); }
+      if (data.next) { sjs.library.text(data.next, {
+          context: 1,
+          version: this.props.version || null,
+          language: this.props.language || null
+        }, function() {}); }
+      if (data.prev) { sjs.library.text(data.prev, {
+          context: 1,
+          version: this.props.version || null,
+          language: this.props.language || null
+        }, function() {}); }
       if (data.book) { sjs.library.textTocHtml(data.book, function() {}); }
     }
   },
