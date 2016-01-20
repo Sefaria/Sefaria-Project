@@ -1340,7 +1340,7 @@ var ReaderNavigationMenu = React.createClass({
                   </div>);
       if (this.state.width < 450) {
         categories = this.state.showMore ? categories : categories.slice(0,9).concat(more);
-        categories = (<div className="readerNavCategories"><TwoOrThreeBox content={categories} /></div>);
+        categories = (<div className="readerNavCategories"><TwoBox content={categories} /></div>);
       } else {
         categories = this.state.showMore ? categories : categories.slice(0,8).concat(more);
         categories = (<div className="readerNavCategories"><ThreeBox content={categories} /></div>);
