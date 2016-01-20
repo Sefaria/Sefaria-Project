@@ -218,7 +218,7 @@ var ReaderApp = React.createClass({
     // Now merge all history object into one
     var url   = "/" + (histories.length ? histories[0].url : "");
     if(histories[0].language && histories[0].version) {
-        url += "/" + histories[0].language + "/" + histories[0].version;
+        url += "/" + histories[0].language + "/" + histories[0].version.replace(/\s/g,"_");
     }
     var title =  histories.length ? histories[0].title : "Sefaria";
     var hist  = {state: clone(this.state), url: url, title: title};
@@ -233,7 +233,7 @@ var ReaderApp = React.createClass({
           hist.url    = hist.url.replace(RegExp(replacer + ".*"), "");
           hist.url   += replacer + histories[i].url.replace("with=", "with" + i + "=").replace("?", "&");
           if(hist.language && hist.version) {
-            hist.url += "&l" + i + hist.language + "&v" + i + hist.version;
+            hist.url += "&l" + i + hist.language + "&v" + i + hist.version.replace(/\s/g,"_");
           }
           hist.title += " & " + histories[i].title; // TODO this doesn't trim title properly
         }
@@ -2286,6 +2286,8 @@ var TextRange = React.createClass({
   // This component is responsible for retrieving data from sjs.library for the ref that defines it.
   propTypes: {
     sref:                React.PropTypes.string.isRequired,
+    version:             React.PropTypes.string,
+    language:            React.PropTypes.string, //version language
     highlightedRefs:     React.PropTypes.array,
     basetext:            React.PropTypes.bool,
     withContext:         React.PropTypes.bool,
@@ -2364,7 +2366,9 @@ var TextRange = React.createClass({
   },
   getText: function() {
     settings = {
-      context: this.props.withContext ? 1 : 0
+      context: this.props.withContext ? 1 : 0,
+      version: this.props.version || null,
+      language: this.props.language || null
     };
     sjs.library.text(this.props.sref, settings, this.loadText);
   },
@@ -2465,9 +2469,21 @@ var TextRange = React.createClass({
     }
 
     if (this.props.prefetchNextPrev) {
-      if (data.next) { sjs.library.text(data.next, {context: 1}, function() {}); }
-      if (data.prev) { sjs.library.text(data.prev, {context: 1}, function() {}); }
-      if (data.book) { sjs.library.textTocHtml(data.book, function() {}); }
+     if (data.next) {
+       sjs.library.text(data.next, {
+         context: 1,
+         version: this.props.version || null,
+         language: this.props.language || null
+       }, function() {});
+     }
+     if (data.prev) {
+       sjs.library.text(data.prev, {
+         context: 1,
+         version: this.props.version || null,
+         language: this.props.language || null
+       }, function() {});
+     }
+     if (data.book) { sjs.library.textTocHtml(data.book, function() {}); }
     }
   },
   loadLinkCounts: function() {
