@@ -54,15 +54,16 @@
         var filter     = "with" in urlVars ? urlVars["with"].replace(/_/g, " ").split("+") : null;
         filter         = filter && filter.length === 1 && filter[0] === "all" ? [] : filter;
         var query      = "q" in urlVars ? urlVars["q"] : null;
+        var initialPanels;
 
         if (!multiPanel) {
           if (filter) {
-            var initialPanels = [{type: "TextAndConnections", refs: [ref], filter: filter}]; 
+            initialPanels = [{type: "TextAndConnections", refs: [ref], filter: filter, version: version, language: language}];
           } else {
-            var initialPanels = [{type: "Text", refs: [ref]}]; 
+            initialPanels = [{type: "Text", refs: [ref], version: version, language: language}];
           }
         } else { //multiPanel
-          var initialPanels = [{type: "Text", refs: [ref]}];
+          initialPanels = [{type: "Text", refs: [ref], version: version, language: language}];
           if (filter) {
             initialPanels.push({type: "Connections", refs: [ref], filter: filter});
           }
