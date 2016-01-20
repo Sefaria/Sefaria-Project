@@ -392,7 +392,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
       var style                    = {width: width + "%", left: left + "%"};
       var onSegmentClick           = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
       var onCitationClick          = this.openPanelAt.bind(null, i);
-      var onTextListClick          = function(){}; // disabling for testing, this.openPanelAt.bind(null, i);
+      var onTextListClick          = null; // this.openPanelAt.bind(null, i);
       var onOpenConnectionsClick   = this.openTextListAt.bind(null, i+1);
       var onPanelUpdate            = this.handlePanelUpdate.bind(null, i);
       var setTextListHightlight    = this.setTextListHighlight.bind(null, i);
@@ -750,11 +750,7 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
     }
   },
   handleTextListClick: function(ref) {
-    if (this.props.multiPanel) {
-      this.props.onTextListClick(ref);
-    } else {
-      this.showBaseText(ref);
-    }
+    this.showBaseText(ref);
   },
   setHeadroom: function() {
     if (this.props.multiPanel) { return; }
@@ -2830,8 +2826,7 @@ var TextList = React.createClass({displayName: "TextList",
                                       onCitationClick: this.props.onCitationClick, 
                                       onNavigationClick: this.props.onNavigationClick, 
                                       onCompareClick: this.props.onCompareClick, 
-                                      onOpenConnectionsClick: this.props.onOpenConnectionsClick, 
-                                      showActionLinks: this.props.multiPanel}));
+                                      onOpenConnectionsClick: this.props.onOpenConnectionsClick}));
                         }, this);      
     }
 
