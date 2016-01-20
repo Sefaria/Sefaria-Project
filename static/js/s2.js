@@ -504,7 +504,7 @@ var Header = React.createClass({displayName: "Header",
   },
   initAutocomplete: function() {
     $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete({ 
-      position: {my: "left-12 top+13", at: "left bottom"},
+      position: {my: "left-12 top+14", at: "left bottom"},
       source: function( request, response ) {
         var matches = $.map( sjs.books, function(tag) {
             if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
