@@ -18,14 +18,29 @@ var ReaderApp = React.createClass({
     var panels = [];
     if (!this.props.multiPanel) {
       var mode = this.props.initialFilter ? "TextAndConnections" : "Text";
-      panels[0] = ({refs: this.props.initialRefs, mode: mode, filter: this.props.initialFilter});
+      panels[0] = ({
+        refs: this.props.initialRefs,
+        mode: mode,
+        filter: this.props.initialFilter,
+        version: this.props.initialPanels[0].version,
+        language: this.props.initialPanels[0].language
+      });
       if (mode === "TextAndConnections") {
         panels[0].highlightedRefs = this.props.initialRefs;
       }
     } else if (this.props.initialRefs.length) {
-      panels.push({refs: this.props.initialRefs, mode: "Text"});
-      if (this.props.initialFilter){
-        panels.push({refs: this.props.initialRefs, filter: this.props.initialFilter, mode: "Connections"});
+      panels.push({
+        refs: this.props.initialRefs,
+        mode: "Text",
+        version: this.props.initialPanels[0].version,
+        language: this.props.initialPanels[0].language
+      });
+      if (this.props.initialFilter) {
+        panels.push({
+          refs: this.props.initialRefs,
+          filter: this.props.initialFilter,
+          mode: "Connections"
+        });
       }
       for (var i = panels.length; i < this.props.initialPanels.length; i++) {
         panels.push(this.props.initialPanels[i]);
@@ -675,8 +690,8 @@ var ReaderPanel = React.createClass({
       refs: this.props.initialRefs || [], // array of ref strings
       mode: this.props.initialMode, // "Text", "TextAndConnections", "Connections"
       filter: this.props.initialFilter || [],
-      version: this.props.version,
-      language: this.props.language,
+      version: this.props.initialVersion,
+      language: this.props.initialLanguage,
       highlightedRefs: this.props.initialHighlightedRefs || [],
       recentFilters: [],
       settings: this.props.initialSettings || {
