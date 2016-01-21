@@ -215,7 +215,7 @@ var ReaderApp = React.createClass({
       histories.push(hist);     
     }
 
-    // Now merge all history object into one
+    // Now merge all history objects into one
     var url   = "/" + (histories.length ? histories[0].url : "");
     if(histories[0].language && histories[0].version) {
         url += "/" + histories[0].language + "/" + histories[0].version.replace(/\s/g,"_");
@@ -413,10 +413,12 @@ var ReaderApp = React.createClass({
     for (var i = 0; i < this.state.panels.length; i++) {
       var panel                    = clone(this.state.panels[i]);
       var left                     = widths.reduce(function(prev, curr, index, arr) { return index < i ? prev+curr : prev}, 0);
-      var style                    = {width: widths[i] + "%", left: left + "%"};
+      var width                    = widths[i];
+      var style                    = {width: width + "%", left: left + "%"};
       var onSegmentClick           = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
       var onCitationClick          = this.openPanelAt.bind(null, i);
-      var onTextListClick          = function(){}; // disabling for testing, this.openPanelAt.bind(null, i);
+      var onTextListClick          = null; // this.openPanelAt.bind(null, i);
+      var onOpenConnectionsClick   = this.openTextListAt.bind(null, i+1);
       var onPanelUpdate            = this.handlePanelUpdate.bind(null, i);
       var setTextListHightlight    = this.setTextListHighlight.bind(null, i);
       var closePanel               = this.closePanel.bind(null, i);
@@ -439,15 +441,16 @@ var ReaderApp = React.createClass({
                       <ReaderPanel 
                         initialState={panel}
                         multiPanel={this.props.multiPanel}
-                        onSegmentClick={onSegmentClick}
-                        onCitationClick={onCitationClick}
                         onUpdate={onPanelUpdate}
+                        onSegmentClick={onSegmentClick}
                         onCitationClick={onCitationClick}
                         onTextListClick={onTextListClick}
                         onNavigationClick={this.handleNavigationClick}
+                        onOpenConnectionsClick={onOpenConnectionsClick}
                         setTextListHightlight={setTextListHightlight}
                         closePanel={closePanel}
-                        panelsOpen={this.state.panels.length} />
+                        panelsOpen={this.state.panels.length}
+                        layoutWidth={width} />
                   </div>);
       } else {
         panels.push(<div className="readerPanelBox" style={style} key={key}>
@@ -467,11 +470,13 @@ var ReaderApp = React.createClass({
                         onSegmentClick={onSegmentClick}
                         onCitationClick={onCitationClick}
                         onTextListClick={onTextListClick}
-                        onNavigationClick={this.handleNavigationClick}                        
+                        onNavigationClick={this.handleNavigationClick}
+                        onOpenConnectionsClick={onOpenConnectionsClick}
                         onUpdate={onPanelUpdate}
                         setTextListHightlight={setTextListHightlight}
                         closePanel={closePanel}
-                        panelsOpen={this.state.panels.length} />
+                        panelsOpen={this.state.panels.length}
+                        layoutWidth={width} />
                     </div>);
       }
     }
@@ -529,7 +534,7 @@ var Header = React.createClass({
   },
   initAutocomplete: function() {
     $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete({ 
-      position: {my: "left-12 top+13", at: "left bottom"},
+      position: {my: "left-12 top+14", at: "left bottom"},
       source: function( request, response ) {
         var matches = $.map( sjs.books, function(tag) {
             if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
@@ -679,7 +684,8 @@ var ReaderPanel = React.createClass({
     highlightedRefs:        React.PropTypes.array,
     hideNavHeader:          React.PropTypes.bool,
     multiPanel:             React.PropTypes.bool,
-    panelsOpen:             React.PropTypes.number
+    panelsOpen:             React.PropTypes.number,
+    layoutWidth:            React.PropTypes.number
   },
   getInitialState: function() {
     if (this.props.initialState) {
@@ -775,11 +781,7 @@ var ReaderPanel = React.createClass({
     }
   },
   handleTextListClick: function(ref) {
-    if (this.props.multiPanel) {
-      this.props.onTextListClick(ref);
-    } else {
-      this.showBaseText(ref);
-    }
+    this.showBaseText(ref);
   },
   setHeadroom: function() {
     if (this.props.multiPanel) { return; }
@@ -855,6 +857,10 @@ var ReaderPanel = React.createClass({
   setFilter: function(filter, updateRecent) {
     // Sets the current filter for Connected Texts (TextList)
     // If updateRecent is true, include the curent setting in the list of recent filters.
+    if (filter && sjs.library.index(filter) && sjs.library.index(filter).categories[0] == "Commentary") {
+      this.openCommentary(filter);
+      return;
+    }
     if (updateRecent && filter) {
       if ($.inArray(filter, this.state.recentFilters) !== -1) {
         this.state.recentFilters.toggle(filter);
@@ -863,6 +869,16 @@ var ReaderPanel = React.createClass({
     }
     filter = filter ? [filter] : [];
     this.setState({recentFilters: this.state.recentFilters, filter: filter});
+  },
+  openCommentary: function(commentator) {
+    // Tranforms a connections panel into an text panel with a particular commentary
+    var baseRef = this.state.refs[0];
+    var links   = sjs.library._filterLinks(sjs.library.links(baseRef), [commentator]);
+    if (links.length) {
+      var ref = links[0].sourceRef;
+      ref = ref.substring(0, ref.lastIndexOf(':'));
+      this.showBaseText(ref);
+    }
   },
   openSearch: function(query) {
     this.setState({
@@ -971,6 +987,7 @@ var ReaderPanel = React.createClass({
           onCitationClick={this.handleCitationClick}
           setTextListHightlight={this.setTextListHightlight}
           panelsOpen={this.props.panelsOpen}
+          layoutWidth={this.props.layoutWidth}
           filter={this.state.filter}
           key="text" />);
     }
@@ -988,6 +1005,7 @@ var ReaderPanel = React.createClass({
           onTextClick={this.handleTextListClick}
           onCitationClick={this.handleCitationClick}
           onNavigationClick={this.props.onNavigationClick}
+          onOpenConnectionsClick={this.props.onOpenConnectionsClick}
           onCompareClick={this.showBaseText}
           closePanel={this.props.closePanel}            
           key="connections" />
@@ -1370,7 +1388,7 @@ var ReaderNavigationMenu = React.createClass({
                   </div>);
       if (this.state.width < 450) {
         categories = this.state.showMore ? categories : categories.slice(0,9).concat(more);
-        categories = (<div className="readerNavCategories"><TwoOrThreeBox content={categories} /></div>);
+        categories = (<div className="readerNavCategories"><TwoBox content={categories} /></div>);
       } else {
         categories = this.state.showMore ? categories : categories.slice(0,8).concat(more);
         categories = (<div className="readerNavCategories"><ThreeBox content={categories} /></div>);
@@ -2011,7 +2029,8 @@ var TextColumn = React.createClass({
     onCitationClick:       React.PropTypes.func,
     setTextListHightlight: React.PropTypes.func,
     onTextLoad:            React.PropTypes.func,
-    panelsOpen:            React.PropTypes.number
+    panelsOpen:            React.PropTypes.number,
+    layoutWidth:           React.PropTypes.number
   },
   componentDidMount: function() {
     this.initialScrollTopSet = false;
@@ -2252,6 +2271,7 @@ var TextColumn = React.createClass({
         onTextLoad={this.handleTextLoad}
         filter={this.props.filter}
         panelsOpen={this.props.panelsOpen}
+        layoutWidth={this.props.layoutWidth}
         key={k + ref} />);      
     }.bind(this));
 
@@ -2288,25 +2308,27 @@ var TextRange = React.createClass({
     sref:                React.PropTypes.string.isRequired,
     version:             React.PropTypes.string,
     language:            React.PropTypes.string, //version language
-    highlightedRefs:     React.PropTypes.array,
-    basetext:            React.PropTypes.bool,
-    withContext:         React.PropTypes.bool,
-    hideTitle:           React.PropTypes.bool,
-    loadLinks:           React.PropTypes.bool,
-    prefetchNextPrev:    React.PropTypes.bool,
-    openOnClick:         React.PropTypes.bool,
-    lowlight:            React.PropTypes.bool,
-    numberLabel:         React.PropTypes.number,
-    settings:            React.PropTypes.object,
-    filter:              React.PropTypes.array,
-    onTextLoad:          React.PropTypes.func,
-    onRangeClick:        React.PropTypes.func,
-    onSegmentClick:      React.PropTypes.func,
-    onCitationClick:     React.PropTypes.func,
-    onNavigationClick:   React.PropTypes.func,
-    onCompareClick:      React.PropTypes.func,
-    panelsOpen:          React.PropTypes.number,
-    showActionLinks:     React.PropTypes.bool
+    highlightedRefs:        React.PropTypes.array,
+    basetext:               React.PropTypes.bool,
+    withContext:            React.PropTypes.bool,
+    hideTitle:              React.PropTypes.bool,
+    loadLinks:              React.PropTypes.bool,
+    prefetchNextPrev:       React.PropTypes.bool,
+    openOnClick:            React.PropTypes.bool,
+    lowlight:               React.PropTypes.bool,
+    numberLabel:            React.PropTypes.number,
+    settings:               React.PropTypes.object,
+    filter:                 React.PropTypes.array,
+    onTextLoad:             React.PropTypes.func,
+    onRangeClick:           React.PropTypes.func,
+    onSegmentClick:         React.PropTypes.func,
+    onCitationClick:        React.PropTypes.func,
+    onNavigationClick:      React.PropTypes.func,
+    onCompareClick:         React.PropTypes.func,
+    onOpenConnectionsClick: React.PropTypes.func,
+    panelsOpen:             React.PropTypes.number,
+    layoutWidth:            React.PropTypes.number,
+    showActionLinks:        React.PropTypes.bool
   },
   getInitialState: function() {
     return { 
@@ -2336,7 +2358,7 @@ var TextRange = React.createClass({
           prevProps.settings.layoutTanach !== this.props.settings.layoutTanach ||
           prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
           prevProps.settings.fontSize !== this.props.settings.fontSize ||
-          prevProps.panelsOpen !== this.props.panelsOpen) {
+          prevProps.layoutWidth !== this.props.layoutWidth) {
             window.requestAnimationFrame(function() { 
               if (this.isMounted()) {
                 this.placeSegmentNumbers();
@@ -2555,8 +2577,10 @@ var TextRange = React.createClass({
                   };
     classes = classNames(classes);
 
-    var open    = function() { this.props.onNavigationClick(this.props.sref)}.bind(this);
-    var compare = function() { this.props.onCompareClick(this.props.sref)}.bind(this);
+    var open        = function() { this.props.onNavigationClick(this.props.sref)}.bind(this);
+    var compare     = function() { this.props.onCompareClick(this.props.sref)}.bind(this);
+    var connections = function() { this.props.onOpenConnectionsClick([this.props.sref])}.bind(this);
+
     var actionLinks = (<div className="actionLinks">
                         <span className="openLink" onClick={open}>
                           <img src="/static/img/open-64.png" />
@@ -2566,6 +2590,11 @@ var TextRange = React.createClass({
                         <span className="compareLink" onClick={compare}>
                           <img src="/static/img/compare-64.png" />
                           <span className="en">Compare</span>
+                          <span className="he">לִפְתוֹחַ</span>
+                        </span>
+                        <span className="connectionsLink" onClick={connections}>
+                          <i className="fa fa-link"></i>
+                          <span className="en">Connections</span>
                           <span className="he">לִפְתוֹחַ</span>
                         </span>
                       </div>);
@@ -2664,6 +2693,7 @@ var TextList = React.createClass({
     onCitationClick:         React.PropTypes.func,
     onNavigationClick:       React.PropTypes.func,
     onCompareClick:          React.PropTypes.func,
+    onOpenConnectionsClick:  React.PropTypes.func,
     openNav:                 React.PropTypes.func,
     openDisplaySettings:     React.PropTypes.func,
     closePanel:              React.PropTypes.func
@@ -2849,7 +2879,7 @@ var TextList = React.createClass({
                                       onCitationClick={this.props.onCitationClick}
                                       onNavigationClick={this.props.onNavigationClick}
                                       onCompareClick={this.props.onCompareClick}
-                                      showActionLinks={this.props.multiPanel} />);
+                                      onOpenConnectionsClick={this.props.onOpenConnectionsClick} />);
                         }, this);      
     }
 
