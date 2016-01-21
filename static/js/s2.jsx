@@ -232,16 +232,17 @@ var ReaderApp = React.createClass({
           var replacer = "&p" + i + "=";
           hist.url    = hist.url.replace(RegExp(replacer + ".*"), "");
           hist.url   += replacer + histories[i].url.replace("with=", "with" + i + "=").replace("?", "&");
-          if(hist.language && hist.version) {
-            hist.url += "&l" + i + hist.language + "&v" + i + hist.version.replace(/\s/g,"_");
-          }
           hist.title += " & " + histories[i].title; // TODO this doesn't trim title properly
         }
       } else {
         var next    = "&p=" + histories[i].url;
         next        = next.replace("?", "&").replace(/=/g, (i+1) + "=");
         hist.url   += next;
+        if(histories[i].language && histories[i].version) {
+          hist.url += "&l" + (i+1) + "=" + histories[i].language + "&v" + (i+1) + "=" + histories[i].version.replace(/\s/g,"_");
+        }
         hist.title += " & " + histories[i].title;
+
       }
     }
     hist.url = hist.url.replace(/&/, "?");
