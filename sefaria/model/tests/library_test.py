@@ -232,7 +232,7 @@ class Test_Library(object):
         assert u"בראשית" in library._title_node_maps["he"]
         assert u"בראשית" in library._title_node_with_commentary_maps["he"]
 
-        library.remove_index_record(library.get_index("Genesis"))
+        library.remove_index_record_from_cache(library.get_index("Genesis"))
 
         assert "Genesis" not in library._index_map
         assert "Genesis" not in  library._index_title_maps["en"]
@@ -242,7 +242,7 @@ class Test_Library(object):
         assert u"בראשית" not in library._title_node_maps["he"]
         assert u"בראשית" not in library._title_node_with_commentary_maps["he"]
 
-        library.add_index_record(Index().load({"title": "Genesis"}))
+        library.add_index_record_to_cache(Index().load({"title": "Genesis"}))
 
         assert "Genesis" in library._index_map
         assert "Bereishit" in library._index_title_maps["en"]["Genesis"]
@@ -260,7 +260,7 @@ class Test_Library(object):
         assert u'רש"י על בראשית' in library._index_title_commentary_maps["he"]["Rashi on Genesis"]
         assert u'רש"י על בראשית' in library._title_node_with_commentary_maps["he"]
 
-        library.remove_index_record(library.get_index("Rashi on Genesis"))
+        library.remove_index_record_from_cache(library.get_index("Rashi on Genesis"))
 
         assert "Rashi on Genesis" not in library._index_map
         assert "Rashi on Bereishit" not in library._title_node_with_commentary_maps["en"]
@@ -268,7 +268,7 @@ class Test_Library(object):
         assert "Rashi on Genesis" not in library._index_title_commentary_maps["he"]
         assert u'רש"י על בראשית' not in library._title_node_with_commentary_maps["he"]
 
-        library.add_index_record(CommentaryIndex("Rashi", "Genesis"))
+        library.add_index_record_to_cache(CommentaryIndex("Rashi", "Genesis"))
 
         assert "Rashi on Genesis" in library._index_map
         assert "Rashi on Bereishit" in library._title_node_with_commentary_maps["en"]

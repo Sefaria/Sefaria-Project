@@ -245,7 +245,7 @@ def reset_cache(request):
 @staff_member_required
 def reset_index_cache_for_text(request, title):
     index = model.library.get_index(title)
-    model.library.refresh_index_record(index)
+    model.library.refresh_index_record_in_cache(index)
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(title))
     if USE_VARNISH:
         invalidate_title(title)
@@ -318,7 +318,7 @@ def reset_ref(request, tref):
     """
     oref = model.Ref(tref)
     if oref.is_book_level():
-        model.library.refresh_index_record(oref.index)
+        model.library.refresh_index_record_in_cache(oref.index)
         vs = model.VersionState(index=oref.index)
         vs.refresh()
         model.library.update_index_in_toc(oref.index)
