@@ -58,14 +58,14 @@
 
         if (!multiPanel) {
           if (filter) {
-            initialPanels = [{type: "TextAndConnections", refs: [ref], filter: filter, version: version, language: language}];
+            initialPanels = [{mode: "TextAndConnections", refs: [ref], filter: filter, version: version, language: language}];
           } else {
-            initialPanels = [{type: "Text", refs: [ref], version: version, language: language}];
+            initialPanels = [{mode: "Text", refs: [ref], version: version, language: language}];
           }
         } else { //multiPanel
-          initialPanels = [{type: "Text", refs: [ref], version: version, language: language}];
+          initialPanels = [{mode: "Text", refs: [ref], version: version, language: language}];
           if (filter) {
-            initialPanels.push({type: "Connections", refs: [ref], filter: filter});
+            initialPanels.push({mode: "Connections", refs: [ref], filter: filter});
           }
 
           for (var i = 2; i < 5; i++) {
@@ -74,12 +74,12 @@
             var v = urlVars["v" + i] || null;  // Version for panel i
             var l = urlVars["l" + i] || null;  // Language for panel i
             if (p && !p.match(/^texts|^sheets|^search/)) {
-              initialPanels.push({type: "Text", refs: [humanRef(p)], version: v, language: l});
+              initialPanels.push({mode: "Text", refs: [humanRef(p)], version: v, language: l});
             }
             if (w) {
               filter = w.replace(/_/g, " ").split("+");
               filter = filter && filter.length === 1 && filter[0] === "all" ? [] : filter;
-              initialPanels.push({type: "Connections", refs: [humanRef(p)], filter: filter});
+              initialPanels.push({mode: "Connections", refs: [humanRef(p)], filter: filter});
             }
           }
         }
