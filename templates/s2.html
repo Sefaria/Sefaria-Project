@@ -44,7 +44,7 @@
         
         var ref = "{{ ref }}";
         if (ref) {
-          var ref = humanRef("{{ ref }}")
+          ref = humanRef("{{ ref }}");
           sjs.library._saveText({{ data|jsonify }}, {context: 1});
         }
         var multiPanel = $(window).width() > 600;
@@ -55,26 +55,26 @@
 
         if (!multiPanel) {
           if (filter) {
-            var initialPanels = [{type: "TextAndConnections", refs: [ref], filter: filter}]; 
+            var initialPanels = [{mode: "TextAndConnections", refs: [ref], filter: filter}];
           } else {
-            var initialPanels = [{type: "Text", refs: [ref]}]; 
+            var initialPanels = [{mode: "Text", refs: [ref]}];
           }
         } else {
-          var initialPanels = [{type: "Text", refs: [ref]}];
+          var initialPanels = [{mode: "Text", refs: [ref]}];
           if (filter) {
-            initialPanels.push({type: "Connections", refs: [ref], filter: filter});
+            initialPanels.push({mode: "Connections", refs: [ref], filter: filter});
           }
 
           for (var i = 2; i < 5; i++) {
             var p = urlVars["p" + i] || null;
             var w = urlVars["with" + i] || null; 
             if (p && !p.match(/^texts|^sheets|^search/)) {
-              initialPanels.push({type: "Text", refs: [humanRef(p)]});
+              initialPanels.push({mode: "Text", refs: [humanRef(p)]});
             }
             if (w) {
               filter = w.replace(/_/g, " ").split("+");
               filter = filter && filter.length === 1 && filter[0] === "all" ? [] : filter;
-              initialPanels.push({type: "Connections", refs: [humanRef(p)], filter: filter});
+              initialPanels.push({mode: "Connections", refs: [humanRef(p)], filter: filter});
             }
           }
         }
