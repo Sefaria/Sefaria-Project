@@ -22,7 +22,8 @@ var ReaderApp = React.createClass({
       if (mode === "TextAndConnections") {
         panels[0].highlightedRefs = this.props.initialRefs;
       }
-    } else if (this.props.initialRefs.length) {
+    } else if (this.props.initialRefs.length && this.props.initialMenu !== "text toc") {
+      // an initial load of Text TOC has refs, but we want to load the content in the header panel
       panels.push({refs: this.props.initialRefs, mode: "Text"});
       if (this.props.initialFilter){
         panels.push({refs: this.props.initialRefs, filter: this.props.initialFilter, mode: "Connections"});
@@ -369,6 +370,9 @@ var ReaderApp = React.createClass({
   showLibrary: function() {
     this.setState({header: {mode: "navigation", query: null, panelState: null}});
   },
+  showSearch: function(query) {
+    this.setState({header: {mode: "search", query: query, panelState: null}});
+  },
   saveRecentlyViewed: function(panel) {
     if (panel.mode == "Connections" || !panel.refs.length) { return; }
     var ref  = panel.refs[0];
@@ -472,6 +476,7 @@ var ReaderApp = React.createClass({
                   onRefClick={this.handleNavigationClick}
                   setDefaultLanguage={this.setDefaultLanguage}
                   showLibrary={this.showLibrary}
+                  showSearch={this.showSearch}
                   initialState={this.state.header}
                   initialSettings={clone(this.state.defaultPanelSettings)}
                   headerMode={this.props.headerMode}
@@ -491,6 +496,7 @@ var Header = React.createClass({
     onUpdate:           React.PropTypes.func,
     onRefClick:         React.PropTypes.func,
     showLibrary:        React.PropTypes.func,
+    showSearch:         React.PropTypes.func,
     setDefaultLanguage: React.PropTypes.func,
     panelsOpen:         React.PropTypes.number
   },
@@ -551,7 +557,7 @@ var Header = React.createClass({
     this.clearSearchBox();
   },
   showSearch: function(query) {
-    this.setState({mode: "search", query: query});
+    this.props.showSearch(query);
     $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("close");
   },
   showAccount: function() {
