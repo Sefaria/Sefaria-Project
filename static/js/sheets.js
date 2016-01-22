@@ -1084,6 +1084,18 @@ $(function() {
 
 
 	// Add All Connections 
+    function SortBySourceRef(x,y) {
+		  if (x.commentator < y.commentator) return -1;
+		  if (x.commentator > y.commentator) return 1;
+		  if (x.anchorVerse < y.anchorVerse) return -1;
+		  if (x.anchorVerse > y.anchorVerse) return 1;
+		  if (x.commentaryNum < y.commentaryNum) return -1;
+		  if (x.commentaryNum > y.commentaryNum) return 1;
+		  return 0;
+    }
+
+
+
 	var autoAddConnetions =  function() {
 		var ref = $(this).parents(".source").attr("data-ref");
 		var $target = $(this).parents(".source").find(".subsources").eq(0);
@@ -1099,6 +1111,8 @@ $(function() {
 				sjs.alert.message("No connections known for this source.");
 			} else {
                 data.commentary = [].concat.apply([], data.commentary);
+
+				data.commentary = data.commentary.sort(SortBySourceRef);
 
 				var categorySum = {}
 				for (var i = 0; i < data.commentary.length; i++) {

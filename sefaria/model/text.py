@@ -3500,12 +3500,12 @@ class Library(object):
 
     def add_commentary_index(self, title):
         m = re.match(r'^(.*) on (.*)', title)
-        self.add_index_record(CommentaryIndex(m.group(1), m.group(2)))
+        self.add_index_record_to_cache(CommentaryIndex(m.group(1), m.group(2)))
 
     def remove_commentary_index(self, title):
-        self.remove_index_record(old_title=title)
+        self.remove_index_record_from_cache(old_title=title)
 
-    def add_index_record(self, index_object = None, rebuild = True):
+    def add_index_record_to_cache(self, index_object = None, rebuild = True):
         """
         Update library title dictionaries and caches with information from provided index.
         Index can be passed with primary title in `index_title` or as an object in `index_object`
@@ -3513,7 +3513,7 @@ class Library(object):
         :param rebuild: Perform a rebuild of derivative objects afterwards?  False only in cases of batch update.
         :return:
         """
-        assert index_object, "Library.add_index_record called without index"
+        assert index_object, "Library.add_index_record_to_cache called without index"
 
         # don't add simple commentator records
         if not index_object.nodes:
@@ -3539,7 +3539,7 @@ class Library(object):
         if rebuild:
             self._reset_index_derivative_objects()
 
-    def remove_index_record(self, index_object=None, old_title=None, rebuild = True):
+    def remove_index_record_from_cache(self, index_object=None, old_title=None, rebuild = True):
         """
         Update provided index from library title dictionaries and caches
         :param index_object:
@@ -3595,14 +3595,24 @@ class Library(object):
             self._reset_index_derivative_objects()
 
 
-    def refresh_index_record(self, index_object, old_title = None):
+    def refresh_index_record_in_cache(self, index_object, old_title = None):
         """
         Update library title dictionaries and caches for provided index
         :param title: primary title of index
         :return:
         """
-        self.remove_index_record(index_object, old_title=old_title, rebuild=False)
-        self.add_index_record(index_object, rebuild=True)
+
+        self.remove_index_record_from_cache(index_object, old_title=old_title, rebuild=False)
+        new_index = None
+        if isinstance(index_object, Index):
+            new_index = Index().load({"title":index_object.title})
+        elif isinstance(index_object, CommentaryIndex):
+            pattern = r'(?P<commentor>.*) on (?P<book>.*)'
+            m = regex.match(pattern, index_object.title)
+            if m:
+                new_index = CommentaryIndex(m.group('commentor'), m.group('book'))
+        assert new_index, u"No Index record found for {}: {}".format(index_object.__class__.__name__, index_object.title)
+        self.add_index_record_to_cache(new_index, rebuild=True)
 
     #todo: the for_js path here does not appear to be in use.
     def all_titles_regex_string(self, lang="en", commentary=False, with_commentary=False, with_terms=False): #, for_js=False):
@@ -4108,7 +4118,7 @@ def process_index_title_change_in_core_cache(indx, **kwargs):
         from sefaria.system.sf_varnish import invalidate_title
         invalidate_title(old_title)
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(old_title))
-    library.refresh_index_record(indx, old_title=old_title)
+    library.refresh_index_record_in_cache(indx, old_title=old_title)
 
 
 def process_commentary_version_title_change_in_cache(ver, **kwargs):
@@ -4117,15 +4127,15 @@ def process_commentary_version_title_change_in_cache(ver, **kwargs):
         from sefaria.system.sf_varnish import invalidate_title
         invalidate_title(old_title)
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(old_title))
-    library.refresh_index_record(library.get_index(ver.title), old_title=old_title)
+    library.refresh_index_record_in_cache(library.get_index(ver.title), old_title=old_title)
 
 
 def process_index_change_in_core_cache(indx, **kwargs):
     if kwargs.get("is_new"):
-        library.add_index_record(indx)
+        library.add_index_record_to_cache(indx)
     else:
         scache.delete_cache_elem(scache.generate_text_toc_cache_key(indx.title))
-        library.refresh_index_record(indx)
+        library.refresh_index_record_in_cache(indx)
         if USE_VARNISH:
             from sefaria.system.sf_varnish import invalidate_index
             invalidate_index(indx.title)
@@ -4147,7 +4157,7 @@ def process_index_delete_in_toc(indx, **kwargs):
 
 def process_index_delete_in_core_cache(indx, **kwargs):
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(indx.title))
-    library.remove_index_record(indx)
+    library.remove_index_record_from_cache(indx)
     if USE_VARNISH:
         from sefaria.system.sf_varnish import invalidate_index, invalidate_counts
         invalidate_index(indx.title)
