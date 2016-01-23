@@ -716,10 +716,9 @@ var ReaderPanel = React.createClass({
     }
   },
   componentDidMount: function() {
-    if (this.props.onUpdate) {
-      // Make sure the initial state of this panel is pushed up to ReaderApp
-      this.props.onUpdate("push", this.state);     
-    }
+    // Make sure the initial state of this panel is pushed up to ReaderApp
+    this.props.onUpdate && this.props.onUpdate("push", this.state);     
+
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
     this.setHeadroom();
@@ -760,7 +759,7 @@ var ReaderPanel = React.createClass({
     if (prevState.refs.compare(this.state.refs)) {
       this.trackPanelOpens();
     }
-    if (prevProps.panelsOpen !== this.props.panelsOpen) {
+    if (prevProps.layoutWidth !== this.props.layoutWidth) {
       this.setWidth();
     }
   },
@@ -915,12 +914,12 @@ var ReaderPanel = React.createClass({
     this.state.settings[option] = value;
     var state = {settings: this.state.settings};
     if (option !== "fontSize") { state.displaySettingsOpen = false; }
-    this.setState(state);
     $.cookie(option, value, {path: "/"});
     if (option === "language") {
       $.cookie("contentLang", value, {path: "/"});
       this.props.setDefaultLanguage && this.props.setDefaultLanguage(value);
     }
+    this.setState(state);
   },
   setWidth: function() {
     this.setState({width: $(ReactDOM.findDOMNode(this)).width()});
@@ -1972,9 +1971,6 @@ var ToggleSet = React.createClass({
 
 var ToggleOption = React.createClass({
   // A single option in a ToggleSet
-  getInitialState: function() {
-    return {};
-  },
   handleClick: function() {
     this.props.setOption(this.props.set, this.props.name);
     sjs.track.event("Reader", "Display Option Click", this.props.set + " - " + this.props.name);
@@ -2006,7 +2002,7 @@ var ReaderNavigationMenuSearchButton = React.createClass({
 
 var ReaderNavigationMenuCloseButton = React.createClass({
   render: function() { 
-    var icon = this.props.icon === "arrow" ? (<i className="fa fa-caret-left"></i>) : "×";
+    var icon = this.props.icon === "arrow" ? (<i className="fa fa-caret-right"></i>) : "×";
     var classes = classNames({readerNavMenuCloseButton: 1, arrow: this.props.icon === "arrow"});
     return (<div className={classes} onClick={this.props.onClick}>{icon}</div>);
   }
@@ -2125,15 +2121,16 @@ var TextColumn = React.createClass({
   handleTextLoad: function() {
     if (this.loadingContentAtTop || !this.initialScrollTopSet) {
       this.setScrollPosition();
+    } else {
+      //this.adjustInfiniteScroll();
     }
   },
   setScrollPosition: function() {
-    // console.log("ssp")
-    if (this.test) {}
+    //console.log("ssp")
     // Called on every update, checking flags on this to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-      // console.log("loading at top")
+      //console.log("loading at top")
       var $node   = $(ReactDOM.findDOMNode(this));
       var adjust  = 118; // Height of .loadingMessage.base
       var $texts  = $node.find(".basetext");
@@ -2147,7 +2144,7 @@ var TextColumn = React.createClass({
         //console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
-       // console.log("scroll to highlighted")
+      //console.log("scroll to highlighted")
       // scroll to highlighted segment
       this.scrollToHighlighted();
       this.scrolledToHighlight = true;
@@ -2162,48 +2159,46 @@ var TextColumn = React.createClass({
   },
   adjustInfiniteScroll: function() {
     // Add or remove TextRanges from the top or bottom, depending on scroll position
-    window.requestAnimationFrame(function() {
-      if (!this.isMounted()) { return; }
-      var node         = ReactDOM.findDOMNode(this);
-      var refs         = this.props.srefs;
-      var $lastText    = $(node).find(".textRange.basetext").last();
-      if (!$lastText.length) { return; }
-      var lastTop      = $lastText.position().top;
-      var lastBottom   = lastTop + $lastText.outerHeight();
-      var windowHeight = $(node).outerHeight();
-      var windowTop    = node.scrollTop;
-      var windowBottom = windowTop + windowHeight;
-      if (lastTop > (windowHeight + 100) && refs.length > 1) { 
-        // Remove a section scrolled out of view on bottom
-        refs = refs.slice(0,-1);
-        this.props.updateTextColumn(refs);
-      } else if ( lastBottom < windowHeight + 80 ) {
-        // Add the next section to bottom
-        if ($lastText.hasClass("loading")) { 
-          return;
-        }
-        currentRef = refs.slice(-1)[0];
-        data       = sjs.library.ref(currentRef);
-        if (data && data.next) {
-          refs.push(data.next);
-          this.props.updateTextColumn(refs);
-        }
-        sjs.track.event("Reader", "Infinite Scroll", "Down");
-      } else if (windowTop < 20) {
-        // Scroll up for previous
-        topRef = refs[0];
-        data   = sjs.library.ref(topRef);
-        if (data && data.prev) {
-          //console.log("up!")
-          refs.splice(refs, 0, data.prev);
-          this.loadingContentAtTop = true;
-          this.props.updateTextColumn(refs);
-        }
-        sjs.track.event("Reader", "Infinite Scroll", "Up");
-      } else {
-        // nothing happens
+    if (!this.isMounted()) { return; }
+    var node         = ReactDOM.findDOMNode(this);
+    var refs         = this.props.srefs;
+    var $lastText    = $(node).find(".textRange.basetext").last();
+    if (!$lastText.length) { return; }
+    var lastTop      = $lastText.position().top;
+    var lastBottom   = lastTop + $lastText.outerHeight();
+    var windowHeight = $(node).outerHeight();
+    var windowTop    = node.scrollTop;
+    var windowBottom = windowTop + windowHeight;
+    if (lastTop > (windowHeight + 100) && refs.length > 1) { 
+      // Remove a section scrolled out of view on bottom
+      refs = refs.slice(0,-1);
+      this.props.updateTextColumn(refs);
+    } else if ( lastBottom < windowHeight + 80 ) {
+      // Add the next section to bottom
+      if ($lastText.hasClass("loading")) { 
+        return;
       }
-    }.bind(this));
+      currentRef = refs.slice(-1)[0];
+      data       = sjs.library.ref(currentRef);
+      if (data && data.next) {
+        refs.push(data.next);
+        this.props.updateTextColumn(refs);
+      }
+      sjs.track.event("Reader", "Infinite Scroll", "Down");
+    } else if (windowTop < 20) {
+      // Scroll up for previous
+      topRef = refs[0];
+      data   = sjs.library.ref(topRef);
+      if (data && data.prev) {
+        //console.log("up!")
+        refs.splice(refs, 0, data.prev);
+        this.loadingContentAtTop = true;
+        this.props.updateTextColumn(refs);
+      }
+      sjs.track.event("Reader", "Infinite Scroll", "Up");
+    } else {
+      // nothing happens
+    }
   },
   adjustTextListHighlight: function() {
     // When scrolling while the TextList is open, update which segment should be highlighted.
@@ -2264,7 +2259,7 @@ var TextColumn = React.createClass({
       if ($highlighted.length) {
         var height     = $highlighted.outerHeight();
         var viewport   = $container.outerHeight() - $readerPanel.find(".textList").outerHeight();
-        var offset     = height > viewport + 30 ? 30 : (viewport - height) / 2;
+        var offset     = height > viewport + 80 ? 80 : (viewport - height) / 2;
         this.justScrolled = true;
         $container.scrollTo($highlighted, 0, {offset: -offset});
       }
@@ -3166,7 +3161,7 @@ var SearchPage = React.createClass({
                               <span className="en">א</span>
                               <span className="he">A</span>
                             </div>
-                            <span>"{ this.state.query }"</span>
+                            <span>&ldquo;{ this.state.query }&rdquo;</span>
                           </h1>
                           <div className="searchControlsBox">
                           </div>
@@ -3378,7 +3373,7 @@ var SearchResultList = React.createClass({
                     return (<SearchTextResult
                               data={result}
                               query={this.props.query}
-                              key={result.ref}
+                              key={result._id}
                               onResultClick={this.props.onResultClick} />);
                 }.bind(this))}
                 {this.state.sheet_hits.map(function(result) {

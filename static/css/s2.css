@@ -1501,8 +1501,6 @@ display: block;margin: 0 auto;}
 .gridBox td {
   padding: 0;
   border: 4px solid transparent;
-  height: 100%;
-  box-sizing: border-box;
 }
 @media (max-width: 450px) {
   .gridBox td {
