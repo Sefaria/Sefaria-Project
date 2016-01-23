@@ -296,6 +296,11 @@ var ReaderApp = React.createClass({
     this.openTextListAt(n+1, [ref]);
     this.setTextListHighlight(n, [ref]);
   },
+  handleCitationClick: function(n, citationRef, textRef) {
+    // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
+    this.openPanelAt(n, citationRef);
+    this.setTextListHighlight(n, [textRef]);
+  },
   setDefaultLanguage: function(language) {
     if (language !== this.state.defaultPanelSettings.language) {
       this.state.defaultPanelSettings.language = language;
@@ -311,12 +316,13 @@ var ReaderApp = React.createClass({
     this.openPanelAt(this.state.panels.length+1, ref);
   },
   setTextListHighlight: function(n, refs) {
-    // Set the textListHighlight for panel `n` to `ref`
-    // If no TextList panel is currently open, do nothing
-    // Functions by setting the refs of the TextList. Highlighting of TextColumn then occurs in ReaderApp.render()
+    // Set the textListHighlight for panel `n` to `refs`
+    // If a connections panel is opened after n, update its refs as well.
     refs = typeof refs === "string" ? [refs] : refs;
-    var next = this.state.panels[n+1];
+    this.state.panels[n].highlightedRefs = refs;
+    this.setState({panels: this.state.panels});
 
+    var next = this.state.panels[n+1];
     if (next && next.mode === "Connections" && !next.menuOpen) {
       this.openTextListAt(n+1, refs);
     }
@@ -344,10 +350,6 @@ var ReaderApp = React.createClass({
     this.setState({panels: this.state.panels});
   },
   closePanel: function(n) {
-    if (this.state.panels[n].mode === "Connections" && this.state.panels.length > 1) {
-      // When closing a connections panel, reset highlight in base text
-      this.state.panels[n-1].highlightedRefs = [];
-    }
     this.saveRecentlyViewed(this.state.panels[n]);
     if (this.state.panels.length == 1 && n == 0) {
       this.state.panels = [];
@@ -406,18 +408,12 @@ var ReaderApp = React.createClass({
       var width                    = widths[i];
       var style                    = {width: width + "%", left: left + "%"};
       var onSegmentClick           = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
-      var onCitationClick          = this.openPanelAt.bind(null, i);
+      var onCitationClick          = this.handleCitationClick.bind(null, i);
       var onTextListClick          = null; // this.openPanelAt.bind(null, i);
       var onOpenConnectionsClick   = this.openTextListAt.bind(null, i+1);
       var onPanelUpdate            = this.handlePanelUpdate.bind(null, i);
       var setTextListHightlight    = this.setTextListHighlight.bind(null, i);
       var closePanel               = this.closePanel.bind(null, i);
-
-      if (this.state.panels.length > i+1 && this.state.panels[i+1].mode == "Connections") {
-        panel.highlightedRefs = this.state.panels[i+1].refs
-      } else {
-        panel.highlightedRefs = panel.highlightedRefs || [];
-      }
       
       var ref   = panel.refs && panel.refs.length ? panel.refs[0] : null;
       var oref  = ref ? parseRef(ref) : null;
@@ -776,11 +772,11 @@ var ReaderPanel = React.createClass({
       }
     }
   },
-  handleCitationClick: function(ref) {
+  handleCitationClick: function(citationRef, textRef) {
     if (this.props.multiPanel) {
-      this.props.onCitationClick(ref);
+      this.props.onCitationClick(citationRef, textRef);
     } else {
-      this.showBaseText(ref);
+      this.showBaseText(citationRef);
     }
   },
   handleTextListClick: function(ref) {
@@ -2643,7 +2639,7 @@ var TextSegment = React.createClass({
     if ($(event.target).hasClass("refLink")) {
       //Click of citation
       var ref = humanRef($(event.target).attr("data-ref"));
-      this.props.onCitationClick(ref);
+      this.props.onCitationClick(ref, this.props.sref);
       event.stopPropagation();
       sjs.track.event("Reader", "Citation Link Click", ref)
     } else if (this.props.onSegmentClick) {
