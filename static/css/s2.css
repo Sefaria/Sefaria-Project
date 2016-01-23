@@ -816,14 +816,16 @@ display: block;margin: 0 auto;}
 .searchContent {
   padding: 15px 10px 0;
 }
+.searchContent > .loadingMessage {
+}
 .searchContent .results-count {
   color: #999;
-  font-weight: lighter;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   font-size: 12px;
-  padding: 10px 0 15px 0;
-  border-bottom: thin solid #ddd;
+  padding: 10px 0 36px 0;
+  margin-top: -75px;
+  text-align: center;
 }
 .searchContent .result {
   border-bottom: thin solid #eee;

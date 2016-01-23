@@ -873,6 +873,13 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
     filter = filter ? [filter] : [];
     this.setState({recentFilters: this.state.recentFilters, filter: filter});
   },
+  toggleLanguage: function() {
+    if (this.state.settings.language == "hebrew") {
+      this.setOption("language", "english");
+    } else {
+      this.setOption("language", "hebrew");
+    }
+  },
   openCommentary: function(commentator) {
     // Tranforms a connections panel into an text panel with a particular commentary
     var baseRef = this.state.refs[0];
@@ -1021,6 +1028,7 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
                     settings: this.state.settings, 
                     setCategories: this.setNavigationCategories || [], 
                     setOption: this.setOption, 
+                    toggleLanguage: this.toggleLanguage, 
                     closeNav: this.closeMenus, 
                     openNav: this.openMenu.bind(null, "navigation"), 
                     openSearch: this.openSearch, 
@@ -1047,6 +1055,7 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
                     onResultClick: this.props.onSearchResultClick || this.showBaseText, 
                     onQueryChange: this.setSearchQuery, 
                     openDisplaySettings: this.openDisplaySettings, 
+                    toggleLanguage: this.toggleLanguage, 
                     close: this.closeMenus, 
                     hideNavHeader: this.props.hideNavHeader}));
 
@@ -1307,13 +1316,6 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
   showMore: function() {
     this.setState({showMore: true});
   },
-  toggleLanguage: function() {
-    if (this.props.settings.language == "hebrew") {
-      this.props.setOption("language", "english");
-    } else {
-      this.props.setOption("language", "hebrew");
-    }
-  },
   getRecentlyViewed: function() {
     var json = $.cookie("recentlyViewed");
     return json ? JSON.parse(json) : null;
@@ -1351,7 +1353,7 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
                   category: this.props.categories.slice(-1)[0], 
                   closeNav: this.closeNav, 
                   setCategories: this.props.setCategories, 
-                  toggleLanguage: this.toggleLanguage, 
+                  toggleLanguage: this.props.toggleLanguage, 
                   openDisplaySettings: this.props.openDisplaySettings, 
                   navHome: this.navHome, 
                   hideNavHeader: this.props.hideNavHeader, 
@@ -1480,7 +1482,7 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
               React.createElement("div", {className: "content"}, 
                 React.createElement("div", {className: "contentInner"}, 
                 React.createElement("h1", null, 
-                  React.createElement("div", {className: "languageToggle", onClick: this.toggleLanguage}, 
+                  React.createElement("div", {className: "languageToggle", onClick: this.props.toggleLanguage}, 
                     React.createElement("span", {className: "en"}, "א"), 
                     React.createElement("span", {className: "he"}, "A")
                   ), 
@@ -3155,6 +3157,13 @@ var SearchPage = React.createClass({displayName: "SearchPage",
                   React.createElement("div", {className: "content"}, 
                     React.createElement("div", {className: "contentInner"}, 
                       React.createElement("div", {className: "searchContentFrame"}, 
+                          React.createElement("h1", null, 
+                            React.createElement("div", {className: "languageToggle", onClick: this.props.toggleLanguage}, 
+                              React.createElement("span", {className: "en"}, "א"), 
+                              React.createElement("span", {className: "he"}, "A")
+                            ), 
+                            React.createElement("span", null, "\"",  this.state.query, "\"")
+                          ), 
                           React.createElement("div", {className: "searchControlsBox"}
                           ), 
                           React.createElement("div", {className: "searchContent", style: style}, 
