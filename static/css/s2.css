@@ -575,6 +575,9 @@ h1 .languageToggle .he {
   width: 100%;
   cursor: pointer;
 }
+.gridBox td > a {
+  height: 100%;
+}
 .readerNavMenu .sheetsLink {
   width: 98%;
   margin: 0 1%;
@@ -1498,6 +1501,8 @@ display: block;margin: 0 auto;}
 .gridBox td {
   padding: 0;
   border: 4px solid transparent;
+  height: 100%;
+  box-sizing: border-box;
 }
 @media (max-width: 450px) {
   .gridBox td {

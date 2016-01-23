@@ -382,7 +382,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     recent = recent.filter(function(item) {
       return item.ref !== ref; // Remove this item if it's in the list already
     });
-    recent.splice(0, 0, {ref: ref, book: oRef.indexTitle});
+    recent.splice(0, 0, {ref: ref, heRef: oRef.heRef, book: oRef.indexTitle});
     recent = recent.slice(0, 3);
     $.cookie("recentlyViewed", JSON.stringify(recent), {path: "/"});
   },
@@ -1471,7 +1471,9 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
       recentlyViewed = recentlyViewed ? recentlyViewed.map(function(item) {
         return (React.createElement(TextBlockLink, {
                   sref: item.ref, 
-                  book: item.book}))
+                  heRef: item.heRef, 
+                  book: item.book, 
+                  showSections: true}))
       }) : null;
       recentlyViewed = recentlyViewed ? React.createElement(TwoOrThreeBox, {content: recentlyViewed, width: this.state.width}) : null;
 
@@ -1527,23 +1529,25 @@ var ReaderNavigationMenuSection = React.createClass({displayName: "ReaderNavigat
 var TextBlockLink = React.createClass({displayName: "TextBlockLink",
   // Monopoly card style link with category color at top
   propTypes: {
-    sref:     React.PropTypes.string.isRequired,
-    book:     React.PropTypes.string,
-    category: React.PropTypes.string,
-    title:    React.PropTypes.string,
-    heTitle:  React.PropTypes.string
+    sref:         React.PropTypes.string.isRequired,
+    heRef:        React.PropTypes.string,
+    book:         React.PropTypes.string,
+    category:     React.PropTypes.string,
+    title:        React.PropTypes.string,
+    heTitle:      React.PropTypes.string,
+    showSections: React.PropTypes.bool
   },
   render: function() {
     var index    = sjs.library.index(this.props.book);
     var category = this.props.category || index.categories[0];
     var style    = {"borderColor": sjs.categoryColor(category)};
-    var title    = this.props.title || this.props.book;
-    var heTitle  = this.props.heTitle || index.heTitle;
+    var title    = this.props.title   || (this.props.showSections ? this.props.sref : this.props.book);
+    var heTitle  = this.props.heTitle || (this.props.showSections ? this.props.heRef : index.heTitle);
 
     return (React.createElement("a", {className: "refLink blockLink", "data-ref": this.props.sref, style: style}, 
               React.createElement("span", {className: "en"}, title), 
               React.createElement("span", {className: "he"}, heTitle)
-             ))
+             ));
   }
 });
 
@@ -3350,7 +3354,7 @@ var SearchResultList = React.createClass({displayName: "SearchResultList",
             return null;
         }
         if (this.state.runningQuery) {
-            return (React.createElement(LoadingMessage, null));
+            return (React.createElement(LoadingMessage, {message: "Searching..."}));
         }
         var addCommas = function(number) { return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); };
         var totalWithCommas = addCommas(this.state.total);
