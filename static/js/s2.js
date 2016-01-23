@@ -313,6 +313,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
   setTextListHighlight: function(n, refs) {
     // Set the textListHighlight for panel `n` to `ref`
     // If no TextList panel is currently open, do nothing
+    // Functions by setting the refs of the TextList. Highlighting of TextColumn then occurs in ReaderApp.render()
     refs = typeof refs === "string" ? [refs] : refs;
     var next = this.state.panels[n+1];
 
@@ -412,9 +413,8 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
       var setTextListHightlight    = this.setTextListHighlight.bind(null, i);
       var closePanel               = this.closePanel.bind(null, i);
 
-      if (this.state.panels.length > i+1) {
-        var followingPanel    = this.state.panels[i+1];
-        panel.highlightedRefs = followingPanel.mode == "Connections" ? this.state.panels[i+1].refs : [];
+      if (this.state.panels.length > i+1 && this.state.panels[i+1].mode == "Connections") {
+        panel.highlightedRefs = this.state.panels[i+1].refs
       } else {
         panel.highlightedRefs = panel.highlightedRefs || [];
       }
@@ -761,6 +761,7 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
     }
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
       this.setWidth();
+
     }
   },
   handleBaseSegmentClick: function(ref) {
@@ -885,7 +886,8 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
     var links   = sjs.library._filterLinks(sjs.library.links(baseRef), [commentator]);
     if (links.length) {
       var ref = links[0].sourceRef;
-      ref = ref.substring(0, ref.lastIndexOf(':'));
+      // TODO, Hack - stripping at last : to get section level ref for commentary. Breaks for Commentary2?
+      ref = ref.substring(0, ref.lastIndexOf(':')); 
       this.showBaseText(ref);
     }
   },
@@ -2040,7 +2042,7 @@ var TextColumn = React.createClass({displayName: "TextColumn",
     settings:              React.PropTypes.object,
     showBaseText:          React.PropTypes.func,
     updateTextColumn:      React.PropTypes.func,
-    onSegmentClick:    React.PropTypes.func,
+    onSegmentClick:        React.PropTypes.func,
     onCitationClick:       React.PropTypes.func,
     setTextListHightlight: React.PropTypes.func,
     onTextLoad:            React.PropTypes.func,
@@ -2092,6 +2094,10 @@ var TextColumn = React.createClass({displayName: "TextColumn",
     if (!this.props.highlightedRefs.compare(prevProps.highlightedRefs)) {
       this.setScrollPosition();  // highlight change
     }
+    if (this.props.layoutWidth !== prevProps.layoutWidth ||
+        this.props.settings.language !== prevProps.settings.language) {
+      this.scrollToHighlighted();
+    }
   },
   handleScroll: function(event) {
     if (this.justScrolled) {
@@ -2122,7 +2128,7 @@ var TextColumn = React.createClass({displayName: "TextColumn",
     if (this.loadingContentAtTop || !this.initialScrollTopSet) {
       this.setScrollPosition();
     } else {
-      //this.adjustInfiniteScroll();
+      this.adjustInfiniteScroll();
     }
   },
   setScrollPosition: function() {
@@ -2202,6 +2208,9 @@ var TextColumn = React.createClass({displayName: "TextColumn",
   },
   adjustTextListHighlight: function() {
     // When scrolling while the TextList is open, update which segment should be highlighted.
+    if (this.props.layoutWidth == 100) { return; }
+    // Hacky - don't move around highlighted segment when scrolling a single panel,
+    // but we do want to keep the highlightedRefs value in the panel so it will return to the right location after closing other panels.
     window.requestAnimationFrame(function() {
       //var start = new Date();
       if (!this.isMounted()) { return; }

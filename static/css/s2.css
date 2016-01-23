@@ -188,7 +188,7 @@ body.dark {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   position: relative;
-  padding: 0px 0 50%;
+  padding: 0px 0 20%;
   box-sizing: border-box;
   background-color: inherit;
 }
