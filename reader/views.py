@@ -242,6 +242,10 @@ def s2_texts(request):
     return s2_page(request, "navigation")
 
 
+def s2_account(request):
+    return s2_page(request, "account")
+
+
 def s2_sheets(request):
     return s2_page(request, "sheets")
 

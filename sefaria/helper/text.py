@@ -120,7 +120,7 @@ def resize_text(title, new_structure, upsize_in_place=False):
     # TODO Rewrite any existing Links
     # TODO Rewrite any exisitng History items
 
-    library.refresh_index_record(index)
+    library.refresh_index_record_in_cache(index)
 
     return True
 
