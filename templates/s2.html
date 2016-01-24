@@ -43,8 +43,8 @@
       $(function() {
         
         var ref = "{{ ref }}";
-        var version = "{{ version }}";
-        var language = "{{ language }}";
+        var version = "{{ version|default:"" }}";
+        var language = "{{ language|default:"" }}";
         if (ref) {
           ref = humanRef("{{ ref }}");
           sjs.library._saveText({{ data|jsonify }}, {context: 1, version: version, language: language});
