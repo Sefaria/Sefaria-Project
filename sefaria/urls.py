@@ -252,7 +252,7 @@ urlpatterns += patterns('reader.views',
     (r'^explore(/(?P<book1>[A-Za-z-]+))?(/(?P<book2>[A-Za-z-]+))?/?$', 'explore')
 )
 
-# Features under Development
+# Features under Development (not generally linked publicly yet)
 urlpatterns += patterns('reader.views',
     (r'^s2/?$', 's2_home'),
     (r'^s2/search/?$', 's2_search'),
@@ -260,6 +260,7 @@ urlpatterns += patterns('reader.views',
     (r'^s2/texts/(?P<cats>.+)?$', 's2_texts_category'),
     (r'^s2/sheets/?$', 's2_sheets'),
     (r'^s2/sheets/tags/(?P<tag>.+)?$', 's2_sheets_by_tag'),
+    (r'^account?$', 's2_account'),
     (r'^s2/(?P<ref>.+)$', 's2'),
     (r'^person/(?P<name>.+)$', 'person_page'),
     (r'^people/Talmud/?$', 'talmud_person_index'),

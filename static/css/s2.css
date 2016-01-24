@@ -188,7 +188,7 @@ body.dark {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   position: relative;
-  padding: 0px 0 50%;
+  padding: 0px 0 20%;
   box-sizing: border-box;
   background-color: inherit;
 }
@@ -311,6 +311,13 @@ body .bilingual .enOnly .he {
   -webkit-overflow-scrolling: touch;
   font-size: 14px;
 }
+/* Adjusting for 17px scrollbars, to keep content centered */
+.multiPanel .english .readerNavMenu .content, .bilingual .content {
+  padding-left: 37px;
+}
+.multiPanel .hebrew .readerNavMenu .content {
+  padding-right: 37px;
+}
 .multiPanel .readerNavMenu .content {
   padding: 80px 25px 10px;
 }
@@ -334,6 +341,11 @@ body .bilingual .enOnly .he {
 }
 .multiPanel .readerNavTop {
 
+}
+.readerNavTop.colorLineOnly {
+  height: auto;
+  border-bottom: none;
+  padding: 0;
 }
 .readerPanel .readerNavTop h2 {
   margin-bottom: 0px;
@@ -411,24 +423,40 @@ body .bilingual .enOnly .he {
 .readerNavMenu.home .sefariaLogo img {
   width: 110px;
 }
-.readerNavMenu .tagline {
+.readerNavMenu h1 {
   text-align: center;
   color: #333;
   height: 70px;
-  margin-top: -46px;
+  position: relative;
   font-size: 26px;
   font-weight: lighter;
   letter-spacing: 1px;
 }
-.readerNavMenu.home .tagline {
-  margin-top: 10px;
+h1 .languageToggle {
+  position: absolute;
+  right: 0;
+  color: #ccc;
+  display: block;
+  width: 38px;
+  height: 32px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  line-height: 32px;
+  cursor: pointer;
 }
-.readerNavMenu .tagline .en {
+h1 .languageToggle .en {
+  font-family: "Taamey Frank", "Times New Roman", serif;
+  font-size: 26px;
+}
+h1 .languageToggle .he {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 22px;
+}
+.readerNavMenu h1 .en {
   font-family: font-family: "adobe-garamond-pro", Georgia, serif;
 }
-.readerNavMenu .tagline .he {
-  font-family: "Open Sans Hebrew", sans-serif;
-  font-size: 26px;
+.readerNavMenu h1 .he {
+  font-family: "Taamey Frank", "Times New Roman", serif;
 }
 @media (max-width: 450px) {
   .readerNavMenu.home .tagline {
@@ -546,6 +574,9 @@ body .bilingual .enOnly .he {
   border-top: 4px solid transparent;
   width: 100%;
   cursor: pointer;
+}
+.gridBox td > a {
+  height: 100%;
 }
 .readerNavMenu .sheetsLink {
   width: 98%;
@@ -788,14 +819,16 @@ display: block;margin: 0 auto;}
 .searchContent {
   padding: 15px 10px 0;
 }
+.searchContent > .loadingMessage {
+}
 .searchContent .results-count {
   color: #999;
-  font-weight: lighter;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   font-size: 12px;
-  padding: 10px 0 15px 0;
-  border-bottom: thin solid #ddd;
+  padding: 10px 0 36px 0;
+  margin-top: -75px;
+  text-align: center;
 }
 .searchContent .result {
   border-bottom: thin solid #eee;
