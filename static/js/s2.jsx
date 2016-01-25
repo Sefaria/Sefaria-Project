@@ -1070,7 +1070,10 @@ var ReaderPanel = React.createClass({
     } else if (this.state.menuOpen === "text toc") {
       var menu = (<ReaderTextTableOfContents 
                     close={this.closeMenus}
-                    text={this.currentBook()}
+                    title={this.currentBook()}
+                    version={this.props.version}
+                    versionLanguage={this.props.language}
+                    settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
                     category={this.currentCategory()}
                     currentRef={this.currentRef()} 
                     openNav={this.openMenu.bind(null, "navigation")}
@@ -1739,12 +1742,25 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
 var ReaderTextTableOfContents = React.createClass({
   // Menu for the Table of Contents for a single text
   propTypes: {
-    text:         React.PropTypes.string.isRequired,
-    category:     React.PropTypes.string.isRequired,
-    currentRef:   React.PropTypes.string.isRequired,
-    close:        React.PropTypes.func.isRequired,
-    openNav:      React.PropTypes.func.isRequired,
-    showBaseText: React.PropTypes.func.isRequired
+    title:            React.PropTypes.string.isRequired,
+    category:         React.PropTypes.string.isRequired,
+    currentRef:       React.PropTypes.string.isRequired,
+    settingsLanguage: React.PropTypes.string.isRequired,
+    versionLanguage:  React.PropTypes.string,
+    version:          React.PropTypes.string,
+    close:            React.PropTypes.func.isRequired,
+    openNav:          React.PropTypes.func.isRequired,
+    showBaseText:     React.PropTypes.func.isRequired
+  },
+  getInitialState: function() {
+    var sectionRef = sjs.library.sectionRef(this.props.currentRef);
+    var sectionText = sjs.library.text(sectionRef, {context: 1, version: this.props.version, language: this.props.versionLanguage});
+    var language = self.props.versionLanguage || self.props.settingsLanguage;
+    
+    return {
+      versions: sectionText.versions,
+      language: language,
+    }
   },
   componentDidMount: function() {
     this.bindToggles();
@@ -1811,12 +1827,12 @@ var ReaderTextTableOfContents = React.createClass({
     }
   },
   render: function() {
-    var tocHtml = sjs.library.textTocHtml(this.props.text, function() {
+    var tocHtml = sjs.library.textTocHtml(this.props.title, function() {
       this.setState({});
     }.bind(this));
     tocHtml = tocHtml || '<div class="loadingMessage"><span class="en">Loading...</span><span class="he">טעינה...</span></div>';
 
-    var title     = this.props.text;
+    var title     = this.props.title;
     var heTitle   = sjs.library.index(title) ? sjs.library.index(title).heTitle : title;
 
     var section   = sjs.library.sectionString(this.props.currentRef).en.named;
