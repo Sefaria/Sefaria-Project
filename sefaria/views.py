@@ -37,7 +37,7 @@ from sefaria.utils.users import user_links
 from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
 from sefaria.utils.hebrew import is_hebrew
-from sefaria.helper.text import make_versions_csv
+from sefaria.helper.text import make_versions_csv, get_library_stats
 from sefaria.clean import remove_old_counts
 if USE_VARNISH:
     from sefaria.system.sf_varnish import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts
@@ -472,3 +472,8 @@ def sheet_stats(request):
 @staff_member_required
 def versions_csv(request):
     return HttpResponse(make_versions_csv(), content_type="text/csv")
+
+
+@staff_member_required
+def library_stats(request):
+    return HttpResponse(get_library_stats(), content_type="text/csv")
