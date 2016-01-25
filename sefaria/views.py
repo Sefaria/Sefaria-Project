@@ -474,6 +474,5 @@ def versions_csv(request):
     return HttpResponse(make_versions_csv(), content_type="text/csv")
 
 
-@staff_member_required
 def library_stats(request):
     return HttpResponse(get_library_stats(), content_type="text/csv")
