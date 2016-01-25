@@ -369,4 +369,108 @@ def make_versions_csv():
     return output.getvalue()
 
 
+def get_library_stats():
+    def aggregate_stats(toc_node, path):
+        simple_nodes = []
+        for x in toc_node:
+            node_name = x.get("category", None) or x.get("title", None)
+            node_path = path + [node_name]
+            simple_node = {
+                "name": node_name,
+                "path": " ".join(node_path)
+            }
+            if "category" in x:
+                simple_node["type"] = "category"
+                simple_node["children"] = aggregate_stats(x["contents"], node_path)
+                simple_node["en_version_count"] = reduce(lambda x, v: x + v["en_version_count"], simple_node["children"], 0)
+                simple_node["he_version_count"] = reduce(lambda x, v: x + v["he_version_count"], simple_node["children"], 0)
+                simple_node["en_index_count"] = reduce(lambda x, v: x + v["en_index_count"], simple_node["children"], 0)
+                simple_node["he_index_count"] = reduce(lambda x, v: x + v["he_index_count"], simple_node["children"], 0)
+                simple_node["en_word_count"] = reduce(lambda x, v: x + v["en_word_count"], simple_node["children"], 0)
+                simple_node["he_word_count"] = reduce(lambda x, v: x + v["he_word_count"], simple_node["children"], 0)
+                simple_node["all_index_count"] = reduce(lambda x, v: x + v["all_index_count"], simple_node["children"], 0)
+                simple_node["all_word_count"] = simple_node["en_word_count"] + simple_node["he_word_count"]
+                simple_node["all_version_count"] = simple_node["en_version_count"] + simple_node["he_version_count"]
 
+            elif "title" in x:
+                query = {"title": x["title"]}
+                simple_node["type"] = "index"
+                simple_node["children"] = [{
+                       "name": u"{} ({})".format(v.versionTitle, v.language),
+                       "path": " ".join(node_path + [u"{} ({})".format(v.versionTitle, v.language)]),
+                       "size": v.word_count(),
+                       "type": "version",
+                       "language": v.language,
+                       "en_version_count": 1 if v.language == "en" else 0,
+                       "he_version_count": 1 if v.language == "he" else 0,
+                       "en_word_count": v.word_count() if v.language == "en" else 0,
+                       "he_word_count": v.word_count() if v.language == "he" else 0,
+                   } for v in VersionSet(query)]
+                simple_node["en_version_count"] = reduce(lambda x, v: x + v["en_version_count"], simple_node["children"], 0)
+                simple_node["he_version_count"] = reduce(lambda x, v: x + v["he_version_count"], simple_node["children"], 0)
+                simple_node["en_index_count"] = 1 if any(v["language"] == "en" for v in simple_node["children"]) else 0
+                simple_node["he_index_count"] = 1 if any(v["language"] == "he" for v in simple_node["children"]) else 0
+                simple_node["en_word_count"] = reduce(lambda x, v: x + v["en_word_count"], simple_node["children"], 0)
+                simple_node["he_word_count"] = reduce(lambda x, v: x + v["he_word_count"], simple_node["children"], 0)
+                simple_node["all_word_count"] = simple_node["en_word_count"] + simple_node["he_word_count"]
+                simple_node["all_index_count"] = 1
+                simple_node["all_version_count"] = simple_node["en_version_count"] + simple_node["he_version_count"]
+
+            simple_nodes.append(simple_node)
+        return simple_nodes
+    tree = aggregate_stats(library.get_toc(), [])
+
+    import csv
+    import io
+    from operator import sub
+    output = io.BytesIO()
+    writer = csv.writer(output)
+    titles = [
+        "Category",
+        "#Titles (all)",
+        "#Titles (he)",
+        "#Titles (en)",
+        "#Versions (all)",
+        "#Versions (he)",
+        "#Versions (en)",
+        "#Words (all)",
+        "#Words (he)",
+        "#Words (en)"
+    ]
+    writer.writerow(titles)
+    fields = [
+        "path",
+        "all_index_count",
+        "he_index_count",
+        "en_index_count",
+        "all_version_count",
+        "he_version_count",
+        "en_version_count",
+        "all_word_count",
+        "he_word_count",
+        "en_word_count",
+    ]
+
+    with_commentary = ["Tanach", "Mishnah", "Talmud", "Halakhah"]
+    for n in tree:
+        row = [n.get(field) for field in fields]
+        if n["name"] in with_commentary:
+            if n["name"] == "Tanach":
+                cn = filter(lambda x: x["name"] == "Commentary", n["children"])[0]
+                c_row = [cn.get(field) for field in fields]
+                tn = filter(lambda x: x["name"] == "Targum", n["children"])[0]
+                t_row = [tn.get(field) for field in fields]
+                row[1:] = map(sub, map(sub, row[1:], c_row[1:]), t_row[1:])
+                writer.writerow(row)
+                writer.writerow(c_row)
+                writer.writerow(t_row)
+            else:
+                cn = filter(lambda x: x["name"] == "Commentary", n["children"])[0]
+                c_row = [cn.get(field) for field in fields]
+                row[1:] = map(sub, row[1:], c_row[1:])
+                writer.writerow(row)
+                writer.writerow(c_row)
+        else:
+            writer.writerow(row)
+
+    return output.getvalue()
