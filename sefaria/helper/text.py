@@ -427,15 +427,15 @@ def get_library_stats():
     writer = csv.writer(output)
     titles = [
         "Category",
-        "# of Titles (total)",
-        "# of Titles (he)",
-        "# of Titles (en)",
-        "# of Versions (total)",
-        "# of Versions (he)",
-        "# of Versions (en)",
-        "# of Words (total)",
-        "# of Words (he)",
-        "# of Words (en)"
+        "#Titles (all)",
+        "#Titles (he)",
+        "#Titles (en)",
+        "#Versions (all)",
+        "#Versions (he)",
+        "#Versions (en)",
+        "#Words (all)",
+        "#Words (he)",
+        "#Words (en)"
     ]
     writer.writerow(titles)
     fields = [
