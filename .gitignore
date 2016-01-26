@@ -55,7 +55,7 @@ dump.rdb
 
 #  Virtualenv Files #
 venv/
-.pycharm-bash
+
 
 # Partner files #
 /static/partner

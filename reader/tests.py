@@ -19,7 +19,7 @@ from django.contrib.auth.models import User
 
 import sefaria.utils.testing_utils as tutils
 
-from sefaria.model import library, Index, IndexSet, VersionSet, LinkSet, NoteSet, HistorySet, Ref, VersionState, VersionStateSet
+from sefaria.model import library, Index, IndexSet, VersionSet, LinkSet, NoteSet, HistorySet, Ref, VersionState, VersionStateSet, TextChunk
 from sefaria.system.database import db
 import sefaria.system.cache as scache
 
@@ -749,6 +749,7 @@ class PostTextTest(SefariaTestCase):
     def tearDown(self):
         IndexSet({"title": "Sefer Test"}).delete()
         IndexSet({"title": "Ploni"}).delete()
+        VersionSet({"versionTitle": "test_default_node"}).delete()
 
     def test_post_new_text(self):
         """
@@ -899,6 +900,20 @@ class PostTextTest(SefariaTestCase):
         data = json.loads(response.content)
         self.assertNotIn("error", data)
         self.assertEqual(3, LinkSet({"refs": {"$regex": "^Ploni on Job"}}).count())
+
+    def test_post_to_default_node(self):
+        text = {
+            "text": [["BFoo", "PBar", "Dub Blitz"],["GGGlam", "BBBlam", "Ber Flam"]],
+            "versionTitle": "test_default_node",
+            "versionSource": "www.sefaria.org",
+            "language": "en",
+        }
+        response = c.post("/api/texts/Chofetz_Chaim,_Part_One,_The_Prohibition_Against_Lashon_Hara,_Principle_1", {'json': json.dumps(text)})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue("error" not in data)
+        subref = Ref("Chofetz_Chaim,_Part_One,_The_Prohibition_Against_Lashon_Hara,_Principle_1.2.3")
+        assert TextChunk(subref, "en", "test_default_node").text == "Ber Flam"
 
 class PostLinks(SefariaTestCase):
     """

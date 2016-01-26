@@ -317,12 +317,14 @@ def is_hebrew(s):
 		return True
 	return False
 
+
 def strip_cantillation(text, strip_vowels=False):
 	if strip_vowels:
 		strip_regex = re.compile(ur"[\u0591-\u05bd\u05bf-\u05c5\u05c7]", re.UNICODE)
 	else:
 		strip_regex = re.compile(ur"[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]", re.UNICODE)
 	return strip_regex.sub('', text)
+
 
 def has_cantillation(text, detect_vowels=False):
 	if detect_vowels:
@@ -331,6 +333,16 @@ def has_cantillation(text, detect_vowels=False):
 		rgx = re.compile(ur"[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]", re.UNICODE)
 	return bool(rgx.search(text))
 
+
+def gematria(string):
+	"""Returns the gematria of `str`, ignore any characters in string that have now gematria (like spaces)"""
+	total = 0
+	for letter in string:
+		try:
+			total += heb_to_int(letter)
+		except:
+			pass
+	return total
 
 
 def hebrew_plural(s):
@@ -502,6 +514,8 @@ def hebrew_term(s):
 		"Hilchot":          u"הילכות",
 		"Topic":            u"נושא",
 		"Contents":         u"תוכן",
+		"Article":	    u"סעיף",
+		"Shoresh":	u"שורש"
 	}
 
 	words = dict(categories.items() + pseudo_categories.items() + section_names.items())

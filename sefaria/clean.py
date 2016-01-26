@@ -21,12 +21,11 @@ def remove_refs_with_false():
 """
 Detect any links that contain Refs we can't understand.
 """
-def broken_links(auto_links = False, manual_links = False, delete_links = False, check_text_exists=False):
-    links = model.LinkSet()
+def broken_links(tref=None, auto_links = False, manual_links = False, delete_links = False, check_text_exists=False):
+    links = model.LinkSet(model.Ref(tref)) if tref else model.LinkSet()
     broken_links_list = []
     for link in links:
         errors = [0,0,0,0]
-        second = False
         try:
             rf1 = model.Ref(link.refs[0])
             errors[0] = 1
@@ -45,7 +44,7 @@ def broken_links(auto_links = False, manual_links = False, delete_links = False,
             else:
                 if manual_links is False:
                     continue
-            link_type = "auto" if link.auto else "manual"
+            link_type = "auto - {}".format(link.generated_by) if link.auto else "manual"
             error_code = sum(errors)
             if error_code == 0:
                 error_msg = "Ref 1 is bad"

@@ -15,12 +15,13 @@ except ImportError:
 
 class ServerTextCopier(object):
 
-    def __init__(self, dest_server, apikey, title, post_index=True, versions=None):
+    def __init__(self, dest_server, apikey, title, post_index=True, versions=None, post_links=False):
         self._dest_server = dest_server
         self._apikey = apikey
         self._title_to_retrieve = title
         self._versions_to_retrieve = versions
         self._post_index = post_index
+        self._post_links = post_links
 
     def load_objects(self):
         self._index_obj = library.get_index(self._title_to_retrieve)
@@ -38,6 +39,9 @@ class ServerTextCopier(object):
                         print "Warning: No version object found for  lang: {} version title: {}. Skipping.".format(version['language'], version['versionTitle'])
                     else:
                         self._version_objs.append(vs)
+        if self._post_links:
+            query = {"$and" : [{ "refs": {"$regex": Ref(self._index_obj.title).regex()}}, { "$or" : [ { "auto" : False }, { "auto" : 0 }, {"auto" :{ "$exists": False}} ] } ]}
+            self._linkset = LinkSet(query).array()
 
     def do_copy(self):
         self.load_objects()
@@ -68,6 +72,9 @@ class ServerTextCopier(object):
                 self._make_post_request_to_server(self._prepare_text_api_call(node.full_title(force_update=True)), version_payload)
             if flags:
                 self._make_post_request_to_server(self._prepare_version_attrs_api_call(ver.title, ver.language, ver.versionTitle), flags)
+        if self._post_links:
+            links = [l.contents() for l in self._linkset]
+            self._make_post_request_to_server(self._prepare_links_api_call(), links)
 
     def _prepare_index_api_call(self, index_title):
         return 'api/v2/raw/index/{}'.format(index_title.replace(" ", "_"))
@@ -78,15 +85,24 @@ class ServerTextCopier(object):
     def _prepare_version_attrs_api_call(self, title, lang, vtitle):
         return "api/version/flags/{}/{}/{}".format(urllib.quote(title), urllib.quote(lang), urllib.quote(vtitle))
 
+    def _prepare_links_api_call(self):
+        return "api/links/"
+
     def _make_post_request_to_server(self, url, payload):
         full_url = "{}/{}".format(self._dest_server, url)
-        payload = json.dumps(payload)
-        values = {'json': payload, 'apikey': self._apikey}
+        jpayload = json.dumps(payload)
+        values = {'json': jpayload, 'apikey': self._apikey}
         data = urllib.urlencode(values)
         req = urllib2.Request(full_url, data)
         try:
             response = urllib2.urlopen(req)
-            print response.read()
+            if 'prof' in full_url:
+                filename = '/var/tmp/prof_mdt_{}_{}.txt'.format(payload['versionTitle'][:5], payload['language'])
+                with open(filename, 'wb+') as filep:
+                    filep.write(response.read())
+                print "{}. Profiling Saved at: {}".format(response.read(), filename)
+            else:
+                print response.read()
         except urllib2.HTTPError, e:
             print 'Error code: ', e.code
             print e.read()
@@ -99,6 +115,7 @@ if __name__ == '__main__':
     parser.add_argument("-v", "--versionlist", help="comma separated version list: lang:versionTitle. To copy all versions, simply input 'all'")
     parser.add_argument("-k", "--apikey", help="non default api key", default=SEFARIA_BOT_API_KEY)
     parser.add_argument("-d", "--destination_server", help="override destination server", default='http://eph.sefaria.org')
+    parser.add_argument("-l", "--links", action="store_true", help="Move manual links on this text as well")
 
     args = parser.parse_args()
     print args
@@ -111,5 +128,5 @@ if __name__ == '__main__':
                 lang_vtitle = versionstr.split(":")
                 version_arr.append({'language': lang_vtitle[0], "versionTitle": lang_vtitle[1]})
             args.versionlist = version_arr
-    copier = ServerTextCopier(args.destination_server, args.apikey, args.title, args.noindex, args.versionlist)
+    copier = ServerTextCopier(args.destination_server, args.apikey, args.title, args.noindex, args.versionlist, args.links)
     copier.do_copy()

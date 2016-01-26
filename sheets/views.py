@@ -49,6 +49,18 @@ def new_sheet(request):
 	"""
 	View an new, empty source sheet.
 	"""
+	if "assignment" in request.GET:
+		sheet_id  = int(request.GET["assignment"])
+
+		query = { "owner": request.user.id or -1, "assignment_id": sheet_id }
+		existingAssignment = db.sheets.find_one(query) or []
+		if "id" in existingAssignment:
+			return view_sheet(request,existingAssignment["id"])
+
+		if "assignable" in db.sheets.find_one({"id": sheet_id})["options"]:
+			if db.sheets.find_one({"id": sheet_id})["options"]["assignable"] == 1:
+				return assigned_sheet(request, sheet_id)
+
 	owner_groups  = get_user_groups(request.user)
 	query         = {"owner": request.user.id or -1 }
 	hide_video    = db.sheets.find(query).count() > 2
@@ -161,7 +173,7 @@ def view_sheet(request, sheet_id):
 	viewer_is_liker = request.user.id in likes
 
 
-	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet), 
+	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet),
 												"sheet": sheet,
 												"sheet_class": sheet_class,
 												"can_edit": can_edit_flag, 
@@ -175,7 +187,16 @@ def view_sheet(request, sheet_id):
 												"like_count": like_count,
 												"viewer_is_liker": viewer_is_liker,
 												"current_url": request.get_full_path,
+											  	"assignments_from_sheet":assignments_from_sheet(sheet_id),
 											}, RequestContext(request))
+
+def assignments_from_sheet(sheet_id):
+	try:
+		query = {"assignment_id": int(sheet_id)}
+		return db.sheets.find(query)
+	except:
+		return None
+
 
 def view_visual_sheet(request, sheet_id):
 	"""
@@ -224,6 +245,53 @@ def view_visual_sheet(request, sheet_id):
 													"current_url": request.get_full_path,
 											}, RequestContext(request))
 
+
+@ensure_csrf_cookie
+def assigned_sheet(request, assignment_id):
+	"""
+	A new sheet prefilled with an assignment.
+	"""
+	sheet = get_sheet(assignment_id)
+	if "error" in sheet:
+		return HttpResponse(sheet["error"])
+	
+	sheet["sources"] = annotate_user_links(sheet["sources"])
+
+	# Remove keys from we don't want transferred
+	for key in ("id", "like", "views"):
+		if key in sheet:
+			del sheet[key]
+
+	assigner        = UserProfile(id=sheet["owner"])
+	assigner_id	    = assigner.id
+	owner_groups    = get_user_groups(request.user)
+
+	sheet_class     = make_sheet_class_string(sheet)
+	can_edit_flag   = True
+	can_add_flag    = can_add(request.user, sheet)
+	sheet_group     = Group().load({"name": sheet["group"]}) if "group" in sheet and sheet["group"] != "None" else None
+	embed_flag      = "embed" in request.GET
+	likes           = sheet.get("likes", [])
+	like_count      = len(likes)
+	viewer_is_liker = request.user.id in likes
+
+	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet), 
+												"sheet": sheet,
+												"assignment_id": assignment_id,
+												"assigner_id": assigner_id,
+												"new_sheet": True,
+												"sheet_class": sheet_class,
+												"can_edit": can_edit_flag, 
+												"can_add": can_add_flag,
+												"title": sheet["title"],
+												"is_owner": True,
+												"is_public": sheet["status"] == "public",
+												"owner_groups": owner_groups,
+												"sheet_group":  sheet_group,
+												"like_count": like_count,
+												"viewer_is_liker": viewer_is_liker,
+												"current_url": request.get_full_path,
+											}, RequestContext(request))
 
 def delete_sheet_api(request, sheet_id):
 	"""

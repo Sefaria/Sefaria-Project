@@ -206,9 +206,9 @@ def s2_texts_category(request, cats):
     """
     cats       = cats.split("/")
     toc        = library.get_toc()
-    cat_toc    = get_or_make_summary_node(toc, cats)
+    cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
 
-    if len(cat_toc) == 0:
+    if cat_toc is None:
         return s2_texts(request)
 
     return render_to_response('s2.html', {
@@ -692,9 +692,9 @@ def texts_category_list(request, cats):
         return s2_texts_category(request, cats)
     cats       = cats.split("/")
     toc        = library.get_toc()
-    cat_toc    = get_or_make_summary_node(toc, cats)
+    cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
 
-    if (len(cat_toc) == 0):
+    if cat_toc is None:
         raise Http404
 
     category   = cats[-1]
@@ -968,9 +968,6 @@ def link_count_api(request, cat1, cat2):
 
 @catch_error_as_json
 def word_count_api(request, title, version, language):
-    """
-    Return a count document with the number of links between every text in cat1 and every text in cat2
-    """
     if request.method == "GET":
         counts = VersionSet({"title": title, "versionTitle": version, "language": language}).word_count()
         resp = jsonResponse({"wordCount": counts})
@@ -1219,6 +1216,64 @@ def versions_api(request, tref):
         })
 
     return jsonResponse(results, callback=request.GET.get("callback", None))
+
+@catch_error_as_json
+def version_status_api(request):
+    res = []
+    for v in VersionSet():
+        try:
+            res.append({
+                "id": str(v._id),
+                "title": v.title,
+                "version": v.versionTitle,
+                "language": v.language,
+                "categories": v.get_index().categories,
+                "wordcount": v.word_count()
+            })
+        except Exception:
+            pass
+    return jsonResponse(sorted(res, key = lambda x: x["title"] + x["version"]))
+
+
+def version_status_tree_api(request, lang=None):
+    def simplify_toc(toc_node, path):
+        simple_nodes = []
+        for x in toc_node:
+            node_name = x.get("category", None) or x.get("title", None)
+            node_path = path + [node_name]
+            simple_node = {
+                "name": node_name,
+                "path": node_path
+            }
+            if "category" in x:
+                simple_node["type"] = "category"
+                simple_node["children"] = simplify_toc(x["contents"], node_path)
+            elif "title" in x:
+                query = {"title": x["title"]}
+                if lang:
+                    query["language"] = lang
+                simple_node["type"] = "index"
+                simple_node["children"] = [{
+                       "name": u"{} ({})".format(v.versionTitle, v.language),
+                       "path": node_path + [u"{} ({})".format(v.versionTitle, v.language)],
+                       "size": v.word_count(),
+                       "type": "version"
+                   } for v in VersionSet(query)]
+            simple_nodes.append(simple_node)
+        return simple_nodes
+    return jsonResponse({
+        "name": "Whole Library" + " ({})".format(lang) if lang else "",
+        "path": [],
+        "children": simplify_toc(library.get_toc(), [])
+    })
+
+
+def visualize_library(request, lang=None, cats=None):
+
+    template_vars = {"lang": lang or "",
+                     "cats": json.dumps(cats.replace("_", " ").split("/") if cats else [])}
+
+    return render_to_response('visual_library.html', template_vars, RequestContext(request))
 
 
 @catch_error_as_json

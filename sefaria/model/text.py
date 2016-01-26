@@ -6,6 +6,7 @@ text.py
 import logging
 logger = logging.getLogger(__name__)
 
+import sys
 import regex
 import copy
 import bleach
@@ -96,7 +97,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     There is an Index object for every simple text and for every commentator (e.g. "Rashi").
 
-    Commentaries (like "Rashi on Exodus") are instanciated with :class:`CommentaryIndex` objects.
+    Commentaries (like "Rashi on Exodus") are instantiated with :class:`CommentaryIndex` objects.
     """
     collection = 'index'
     history_noun = 'index'
@@ -366,7 +367,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 elif d["categories"][0] == "Mishnah":
                     node.addressTypes = ["Perek", "Mishnah"]
                 else:
-                    node.addressTypes = ["Integer" for x in range(node.depth)]
+                    if getattr(node, "addressTypes", None) is None:
+                        node.addressTypes = ["Integer" for _ in range(node.depth)]
 
                 l = d.pop("length", None)
                 if l:
@@ -1023,8 +1025,14 @@ class TextChunk(AbstractTextRecord):
         :param vtitle:
         :return:
         """
-        self._oref = oref
-        self._ref_depth = len(oref.sections)
+        if isinstance(oref.index_node, JaggedArrayNode):
+            self._oref = oref
+        else:
+            child_ref = oref.default_child_ref()
+            if child_ref == oref:
+                raise InputError("Can not get TextChunk at this level, please provide a more precise reference")
+            self._oref = child_ref
+        self._ref_depth = len(self._oref.sections)
         self._versions = []
         self._saveable = False  # Can this TextChunk be saved?
 
@@ -1039,24 +1047,24 @@ class TextChunk(AbstractTextRecord):
 
         if lang and vtitle:
             self._saveable = True
-            v = Version().load({"title": oref.index.title, "language": lang, "versionTitle": vtitle}, oref.part_projection())
+            v = Version().load({"title": self._oref.index.title, "language": lang, "versionTitle": vtitle}, self._oref.part_projection())
             if v:
                 self._versions += [v]
-                self.text = self._original_text = self.trim_text(v.content_node(oref.index_node))
+                self.text = self._original_text = self.trim_text(v.content_node(self._oref.index_node))
         elif lang:
-            vset = VersionSet(oref.condition_query(lang), proj=oref.part_projection())
+            vset = VersionSet(self._oref.condition_query(lang), proj=self._oref.part_projection())
 
             if vset.count() == 0:
-                if VersionSet({"title": oref.index.title}).count() == 0:
-                    raise NoVersionFoundError("No text record found for '{}'".format(oref.index.title))
+                if VersionSet({"title": self._oref.index.title}).count() == 0:
+                    raise NoVersionFoundError("No text record found for '{}'".format(self._oref.index.title))
                 return
             if vset.count() == 1:
                 v = vset[0]
                 self._versions += [v]
-                self.text = self.trim_text(v.content_node(oref.index_node))
+                self.text = self.trim_text(v.content_node(self._oref.index_node))
                 #todo: Should this instance, and the non-merge below, be made saveable?
             else:  # multiple versions available, merge
-                merged_text, sources = vset.merge(oref.index_node)  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
+                merged_text, sources = vset.merge(self._oref.index_node)  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
                 self.text = self.trim_text(merged_text)
                 if len(set(sources)) == 1:
                     for v in vset:
@@ -1348,8 +1356,11 @@ class TextFamily(object):
         :param alts: Adds notes of where alt elements begin
         :return:
         """
+        if pad:
+            oref = oref.padded_ref()
+        elif oref.has_default_child():
+            oref = oref.default_child_ref()
 
-        oref                = oref.padded_ref() if pad else oref
         self.ref            = oref.normal()
         self.heRef          = oref.he_normal()
         self.isComplex      = oref.index.is_complex()
@@ -1362,7 +1373,8 @@ class TextFamily(object):
         self._inode         = oref.index_node
         self._alts          = []
 
-        assert isinstance(self._inode, JaggedArrayNode), "TextFamily only works with JaggedArray nodes"  # todo: handle structure nodes?
+        if not isinstance(oref.index_node, JaggedArrayNode):
+            raise InputError("Can not get TextFamily at this level, please provide a more precise reference")
 
         for i in range(0, context):
             oref = oref.context_ref()
@@ -2168,14 +2180,13 @@ class Ref(object):
 
         :return bool:
         """
+        #TODO: errors on complex refs
         return len(self.sections) == self.index_node.depth - 1
 
     def is_segment_level(self):
         """
         Is this Ref segment (e.g. Verse) level?
-
         ::
-
             >>> Ref("Leviticus 15:3").is_segment_level()
             True
             >>> Ref("Leviticus 15").is_segment_level()
@@ -2187,6 +2198,7 @@ class Ref(object):
 
         :return bool:
         """
+        #TODO: errors on complex refs
         return len(self.sections) == self.index_node.depth
 
     """ Methods to generate new Refs based on this Ref """
@@ -2459,6 +2471,7 @@ class Ref(object):
         :param lang: "all", "he", or "en"
         :return: :class:`sefaria.datatype.jagged_array`
         """
+        #TODO: also does not work with complex texts...
         return self.get_state_node(hint=[(lang, "availableTexts")]).ja(lang)
 
     def is_text_fully_available(self, lang):
@@ -2745,7 +2758,10 @@ class Ref(object):
                         '''
 
                     if d["toSections"][-1]:  # to filter out, e.g. non-existant Rashi's, where the last index is 0
-                        refs.append(Ref(_obj=d))
+                        try:
+                            refs.append(Ref(_obj=d))
+                        except InputError:
+                            pass
 
                 if self.range_depth() == 2:
                     self._spanned_refs = refs
@@ -3153,6 +3169,7 @@ class Ref(object):
         return self.index.get_title(lang="he")
 
     def _get_normal(self, lang):
+        #//todo: commentary refactor
         normal = self.index_node.full_title(lang)
         if not normal:
             if lang != "en":
@@ -3304,8 +3321,10 @@ class Library(object):
         self._toc = None
         self._toc_json = None
         self._category_id_dict = None
+        self._toc_size = 16
 
-        self._build_core_maps()
+        if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
+            self._build_core_maps()
 
     def _build_core_maps(self):
         # Build index and title node dicts in an efficient way
@@ -3340,7 +3359,7 @@ class Library(object):
             except IndexSchemaError as e:
                 logger.error(u"Error in generating title node dictionary: {}".format(e))
 
-    def _reset_index_derivitative_objects(self):
+    def _reset_index_derivative_objects(self):
         self._full_title_lists = {}
         self._full_title_list_jsons = {}
         self._title_regex_strings = {}
@@ -3373,10 +3392,11 @@ class Library(object):
         scache.set_cache_elem('toc_json_cache', self.get_toc_json(), 600000)
         scache.delete_template_cache("texts_list")
         scache.delete_template_cache("texts_dashboard")
+        self._full_title_list_jsons = {}
 
     def rebuild(self, include_toc = False):
         self._build_core_maps()
-        self._reset_index_derivitative_objects()
+        self._reset_index_derivative_objects()
         Ref.clear_cache()
         if include_toc:
             self.rebuild_toc()
@@ -3480,12 +3500,12 @@ class Library(object):
 
     def add_commentary_index(self, title):
         m = re.match(r'^(.*) on (.*)', title)
-        self.add_index_record(CommentaryIndex(m.group(1), m.group(2)))
+        self.add_index_record_to_cache(CommentaryIndex(m.group(1), m.group(2)))
 
     def remove_commentary_index(self, title):
-        self.remove_index_record(old_title=title)
+        self.remove_index_record_from_cache(old_title=title)
 
-    def add_index_record(self, index_object = None, rebuild = True):
+    def add_index_record_to_cache(self, index_object = None, rebuild = True):
         """
         Update library title dictionaries and caches with information from provided index.
         Index can be passed with primary title in `index_title` or as an object in `index_object`
@@ -3493,7 +3513,7 @@ class Library(object):
         :param rebuild: Perform a rebuild of derivative objects afterwards?  False only in cases of batch update.
         :return:
         """
-        assert index_object, "Library.add_index_record called without index"
+        assert index_object, "Library.add_index_record_to_cache called without index"
 
         # don't add simple commentator records
         if not index_object.nodes:
@@ -3517,9 +3537,9 @@ class Library(object):
             logger.error(u"Error in generating title node dictionary: {}".format(e))
 
         if rebuild:
-            self._reset_index_derivitative_objects()
+            self._reset_index_derivative_objects()
 
-    def remove_index_record(self, index_object=None, old_title=None, rebuild = True):
+    def remove_index_record_from_cache(self, index_object=None, old_title=None, rebuild = True):
         """
         Update provided index from library title dictionaries and caches
         :param index_object:
@@ -3572,17 +3592,27 @@ class Library(object):
                 return
 
         if rebuild:
-            self._reset_index_derivitative_objects()
+            self._reset_index_derivative_objects()
 
 
-    def refresh_index_record(self, index_object, old_title = None):
+    def refresh_index_record_in_cache(self, index_object, old_title = None):
         """
         Update library title dictionaries and caches for provided index
         :param title: primary title of index
         :return:
         """
-        self.remove_index_record(index_object, old_title=old_title, rebuild=False)
-        self.add_index_record(index_object, rebuild=True)
+
+        self.remove_index_record_from_cache(index_object, old_title=old_title, rebuild=False)
+        new_index = None
+        if isinstance(index_object, Index):
+            new_index = Index().load({"title":index_object.title})
+        elif isinstance(index_object, CommentaryIndex):
+            pattern = r'(?P<commentor>.*) on (?P<book>.*)'
+            m = regex.match(pattern, index_object.title)
+            if m:
+                new_index = CommentaryIndex(m.group('commentor'), m.group('book'))
+        assert new_index, u"No Index record found for {}: {}".format(index_object.__class__.__name__, index_object.title)
+        self.add_index_record_to_cache(new_index, rebuild=True)
 
     #todo: the for_js path here does not appear to be in use.
     def all_titles_regex_string(self, lang="en", commentary=False, with_commentary=False, with_terms=False): #, for_js=False):
@@ -3773,7 +3803,13 @@ class Library(object):
         """
         title_json = self._full_title_list_jsons.get(lang)
         if not title_json:
-            title_json = json.dumps(self.full_title_list(lang=lang, with_commentary=True))
+            from sefaria.summaries import flatten_toc
+            title_list = self.full_title_list(lang=lang, with_commentary=True)
+            if lang == "en":
+                toc_titles = flatten_toc(self.get_toc())
+                secondary_list = list(set(title_list) - set(toc_titles))
+                title_list = toc_titles + secondary_list
+            title_json = json.dumps(title_list)
             self._full_title_list_jsons[lang] = title_json
         return title_json
 
@@ -4082,7 +4118,7 @@ def process_index_title_change_in_core_cache(indx, **kwargs):
         from sefaria.system.sf_varnish import invalidate_title
         invalidate_title(old_title)
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(old_title))
-    library.refresh_index_record(indx, old_title=old_title)
+    library.refresh_index_record_in_cache(indx, old_title=old_title)
 
 
 def process_commentary_version_title_change_in_cache(ver, **kwargs):
@@ -4091,15 +4127,15 @@ def process_commentary_version_title_change_in_cache(ver, **kwargs):
         from sefaria.system.sf_varnish import invalidate_title
         invalidate_title(old_title)
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(old_title))
-    library.refresh_index_record(library.get_index(ver.title), old_title=old_title)
+    library.refresh_index_record_in_cache(library.get_index(ver.title), old_title=old_title)
 
 
 def process_index_change_in_core_cache(indx, **kwargs):
     if kwargs.get("is_new"):
-        library.add_index_record(indx)
+        library.add_index_record_to_cache(indx)
     else:
         scache.delete_cache_elem(scache.generate_text_toc_cache_key(indx.title))
-        library.refresh_index_record(indx)
+        library.refresh_index_record_in_cache(indx)
         if USE_VARNISH:
             from sefaria.system.sf_varnish import invalidate_index
             invalidate_index(indx.title)
@@ -4121,7 +4157,7 @@ def process_index_delete_in_toc(indx, **kwargs):
 
 def process_index_delete_in_core_cache(indx, **kwargs):
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(indx.title))
-    library.remove_index_record(indx)
+    library.remove_index_record_from_cache(indx)
     if USE_VARNISH:
         from sefaria.system.sf_varnish import invalidate_index, invalidate_counts
         invalidate_index(indx.title)

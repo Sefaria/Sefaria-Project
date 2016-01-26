@@ -10,6 +10,7 @@ sjs.current = sjs.current || {
 	options: {
 		bsd: 0,
 		boxed: 0,
+		assignable:0,
 		divineNames: "noSub",
 		language: "bilingual",
 		layout: "sideBySide",
@@ -283,7 +284,7 @@ $(function() {
 
 
 	// General Options 
-	$("#options .optionItem").click(function() {
+	$("#options .optionItem,#assignmentsModal .optionItem").click(function() {
 		$check = $(".fa-check", $(this));
 		if ($check.hasClass("hidden")) {
 			$("#sheet").addClass($(this).attr("id"));
@@ -296,6 +297,24 @@ $(function() {
 			autoSave(); // Don't bother sending options changes from adders
 		}
 	});
+
+	$("#makeSheetAssignableButton").click(function(){
+		$("#assignedSheets").show();
+		$(this).hide();
+		$("#StopCollectingAssignmentsButton").show();
+		$("#sheet").addClass('assignable');
+		autoSave();
+	});
+
+	$("#StopCollectingAssignmentsButton").click(function(){
+		$("#assignedSheets").hide();
+		$(this).hide();
+		$("#makeSheetAssignableButton").show();
+		$("#sheet").removeClass('assignable');
+		autoSave();
+	});
+
+
 
 	// Language Options specific to Sheets
 	// General behavior covered in sjs.changeContentLang in headers.js
@@ -655,6 +674,10 @@ $(function() {
 
 	if (sjs.current.id) {
 		buildSheet(sjs.current);
+	} else if (sjs.assignment_id) {
+		if (!sjs._uid) { return sjs.loginPrompt(); }
+		buildSheet(sjs.current);
+		afterAction();
 	} else {
 		$("#title").html("New Source Sheet");
 		$("#bilingual, #enLeft, #sideBySide").trigger("click");
@@ -706,6 +729,9 @@ $(function() {
 							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +						
 							"<div class='switchSourceLayoutLang' title='Change Source Layout/Language'><i class='fa fa-ellipsis-h'></i></div>" +						
 							"<div class='addNliItem' title='Add Image from National Library'><i class='fa fa-book'></i></div>" +
+							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up '></i></div>" +
+							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
+
 						"</div>";
 
 	var adderControls = "<div id='sourceControls'>" + 
@@ -714,6 +740,8 @@ $(function() {
 							"<div class='addConnections' title='Add All Connections'><i class='fa fa-sitemap'></i></div>"+				
 							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
 							"<div class='addNliItem' title='Add Image from National Library'><i class='fa fa-book'></i></div>" +
+							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up'></i></div>" +
+							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
 						"</div>";
 
 	var viewerControls = "<div id='sourceControls'>" + 
@@ -723,6 +751,8 @@ $(function() {
 	var ownerSimpleControls = "<div id='sourceControls'>" + 
 							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
 							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
+							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up'></i></div>" +
+							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
 						"</div>";
 
 
@@ -843,6 +873,13 @@ $(function() {
 		$("#overlay").show();
 	});
 
+	$("#assignmentsModalTrigger").live("click", function(e) {
+		$("#assignmentsModal").hide();
+		$("#assignmentsModal").show().position({of: window});
+		$("#overlay").show();
+	});
+
+
 	$("#addParashaToSheetModal .cancel").click(function() {
 
 		$("#addParashaToSheetModal, #overlay").hide();
@@ -914,7 +951,27 @@ $(function() {
 
 	});
 
-	// Open Modal to override the sheet's default language/layout options for a specific source 
+	$(".moveSourceUp").live("click", function() {
+		$(this).closest(".sheetItem").insertBefore($(this).closest(".sheetItem").prev());
+		autoSave();
+
+		var top = $(this).offset().top - 200;
+		$("html, body").animate({scrollTop: top}, 750);
+
+	});
+
+
+	$(".moveSourceDown").live("click", function() {
+		$(this).closest(".sheetItem").insertAfter($(this).closest(".sheetItem").next());
+		autoSave();
+
+		var top = $(this).offset().top - 200;
+		$("html, body").animate({scrollTop: top}, 750);
+
+	});
+
+
+	// Open Modal to override the sheet's default language/layout options for a specific source
 	$(".switchSourceLayoutLang").live("click", function() { 
 
 		$("#overrideLayoutModal").data("target", $(this).closest(".sheetItem")).show().position({ of: $(window) });	
@@ -1072,6 +1129,18 @@ $(function() {
 
 
 	// Add All Connections 
+    function SortBySourceRef(x,y) {
+		  if (x.commentator < y.commentator) return -1;
+		  if (x.commentator > y.commentator) return 1;
+		  if (x.anchorVerse < y.anchorVerse) return -1;
+		  if (x.anchorVerse > y.anchorVerse) return 1;
+		  if (x.commentaryNum < y.commentaryNum) return -1;
+		  if (x.commentaryNum > y.commentaryNum) return 1;
+		  return 0;
+    }
+
+
+
 	var autoAddConnetions =  function() {
 		var ref = $(this).parents(".source").attr("data-ref");
 		var $target = $(this).parents(".source").find(".subsources").eq(0);
@@ -1087,6 +1156,8 @@ $(function() {
 				sjs.alert.message("No connections known for this source.");
 			} else {
                 data.commentary = [].concat.apply([], data.commentary);
+
+				data.commentary = data.commentary.sort(SortBySourceRef);
 
 				var categorySum = {}
 				for (var i = 0; i < data.commentary.length; i++) {
@@ -1399,6 +1470,8 @@ function readSheet() {
 		sheet.promptedToPublish = sjs.current.promptedToPublish || false;
 	}
 
+
+
 	sheet.title    = $("#title").html();
 	sheet.sources  = readSources($("#sources"));
 	sheet.options  = {};
@@ -1410,6 +1483,11 @@ function readSheet() {
 		sheet.attribution = $("#author").html();
 	}
 
+
+	if (sjs.assignment_id) sheet.assignment_id = sjs.assignment_id;
+	if (sjs.assigner_id) sheet.assigner_id = sjs.assigner_id;
+
+
 	if (sjs.can_add) {
 		// Adders can't change saved options
 		sheet.options = sjs.current.options;
@@ -1417,6 +1495,7 @@ function readSheet() {
 	} else {
 		sheet.options.numbered      = $("#sheet").hasClass("numbered") ? 1 : 0;
 		sheet.options.boxed         = $("#sheet").hasClass("boxed") ? 1 : 0;
+		sheet.options.assignable    = $("#sheet").hasClass("assignable") ? 1 : 0;
 		sheet.options.bsd           = $("#sheet").hasClass("bsd") ? 1 : 0;
 		sheet.options.language      = $("#sheet").hasClass("hebrew") ? "hebrew" : $("#sheet").hasClass("bilingual") ? "bilingual" : "english";
 		sheet.options.layout        = $("#sheet").hasClass("stacked") ? "stacked" : "sideBySide";
@@ -1651,7 +1730,7 @@ function buildSheet(data){
 		alert(data.error);
 		return;
 	}
-	
+
 	sjs.loading = true;
 
 	if (data.title) {
@@ -1666,12 +1745,15 @@ function buildSheet(data){
 	$("#addSourceModal").data("target", $("#sources"));
 
 	// Set options with binary value
-	$("#sheet").removeClass("numbered bsd boxed");
-	$("#numbered, #bsd, #boxed").find(".fa-check").addClass("hidden");
+	$("#sheet").removeClass("numbered bsd boxed assignable");
+	$("#numbered, #bsd, #boxed, #assignable").find(".fa-check").addClass("hidden");
 	if (data.options.numbered) { $("#numbered").trigger("click"); } 
 	if (data.options.bsd)      { $("#bsd").trigger("click"); } 
 	if (data.options.boxed)    { $("#boxed").trigger("click"); } 
-	
+	if (data.options.assignable)    { $("#makeSheetAssignableButton").trigger("click"); }
+	else {$("#StopCollectingAssignmentsButton").trigger("click");}
+
+
 	// Set options that always have a value
 	$("#" + data.options.language).trigger("click");
 	$("#" + data.options.layout).trigger("click");
@@ -1692,7 +1774,6 @@ function buildSheet(data){
 	else if (data.options.collaboration == "anyone-can-edit" && data.status == "unlisted") $("#sharingModal input[type='radio'][name='sharingOptions'][value='privateEdit']").attr('checked', 'checked');
 	else if (data.options.collaboration == "group-can-edit" && data.status == "unlisted") $("#sharingModal input[type='radio'][name='sharingOptions'][value='groupEdit']").attr('checked', 'checked');
 
-	 
 	// Set Sheet Group
 	if (data.group) {
 		$(".groupOption .fa-check").addClass("hidden");	
@@ -1708,6 +1789,7 @@ function buildSheet(data){
 		$(".individualSharing").show();
 	}
 
+
 	sjs.sheetTagger.init(data.id, data.tags);
 
 	buildSources($("#sources"), data.sources);
@@ -1722,7 +1804,7 @@ function buildSheet(data){
 	
 
 function buildSources($target, sources) {
-	// Recursive function to build sources into target, subsources will call this functon again
+	// Recursive function to build sources into target, subsources will call this function again
 	// with a subsource target. 
 	for (var i = 0; i < sources.length; i++) {
 		buildSource($target, sources[i]);
@@ -2103,6 +2185,11 @@ $("#addToSheetModal .cancel").click(function() {
 	$("#overlay, #addToSheetModal").hide();
 })
 
+$("#assignmentsModal .ok").click(function() {
+	$("#overlay, #assignmentsModal").hide();
+
+});
+
 $("#addToSheetModal .ok").click(function(){
 	// Protection against request getting sent multiple times (don't know why)
 	if (sjs.flags.saving === true) { return false; }
@@ -2251,6 +2338,8 @@ function promptToPublish() {
 				return;
 			}
 		} 											       // Don't prompt if we've prompted in the last 30 days
+	if (sjs.current.assignment_id) {return;}			   // Don't prompt if this is an assignment sheet
+	if (sjs.current.options.assignable == 1) {return;}	   // Don't prompt if sheet is currently assignable
 	if (sjs.current.status in {"public":true}) { return; } // Don't prompt if sheet is already public
 //	if (sjs.current.sources.length < 6) { return; }         // Don't prompt if the sheet has less than 6 sources
 	if (sjs.current.views < 3) {return}						// Don't prompt if the sheet has been viewed less than three times

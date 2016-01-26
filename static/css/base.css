@@ -1137,8 +1137,8 @@ body.hebrew #aboutPage .span5 {
 		content: "Show ";
 	}
 
-		#activityContent #contributors h4:after {
-		content: ' â–¼';
+	#activityContent #contributors h4:after {
+		content: ' ▾';
 	}
 
 	#activityContent div#contributors .board {

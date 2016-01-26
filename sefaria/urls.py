@@ -13,6 +13,8 @@ admin.autodiscover()
 # Texts API
 urlpatterns = patterns('reader.views',
     (r'^api/texts/versions/(?P<tref>.+)$', 'versions_api'),
+    (r'^api/texts/version-status/tree/?(?P<lang>.*)?/?$', 'version_status_tree_api'),
+    (r'^api/texts/version-status/?$', 'version_status_api'),
     (r'^api/texts/parashat_hashavua$', 'parashat_hashavua_api'),
     (r'^api/texts/random?$', 'random_text_api'),
     (r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'texts_api'),
@@ -32,7 +34,6 @@ urlpatterns = patterns('reader.views',
     (r'^api/preview/(?P<title>.+)$', 'text_preview_api'),
     (r'^api/toc-html/(?P<title>.+)$', 'text_toc_html_fragment'),
     (r'^api/manuscripts/(?P<ref>.+)$', 'nli_manuscript_api'),
-
 )
 
 # Reviews API
@@ -268,7 +269,8 @@ urlpatterns += patterns('reader.views',
     (r'^vgarden/sheets/(?P<key>.+)$', 'sheet_tag_visual_garden_page'),
     (r'^vgarden/search/(?P<q>.+)$', 'search_query_visual_garden_page'),
     (r'^vgarden/custom/(?P<key>.+)$', 'custom_visual_garden_page'),
-
+    (r'^visualize/library/(?P<lang>[enh]*)/?(?P<cats>.*)/?$', 'visualize_library'),
+    (r'^visualize/library/?(?P<cats>.*)/?$', 'visualize_library'),
 )
 
 # Redirects to Forum, Wiki
@@ -317,6 +319,8 @@ urlpatterns += patterns('',
     (r'^admin/translation-requests-stats', 'sefaria.views.translation_requests_stats'),
     (r'^admin/sheet-stats', 'sefaria.views.sheet_stats'),
     (r'^admin/versions-csv', 'sefaria.views.versions_csv'),
+    (r'^admin/library-stats', 'sefaria.views.library_stats'),
+    (r'^admin/core-link-stats', 'sefaria.views.core_link_stats'),
     (r'^admin/?', include(admin.site.urls)),
     #(r'^admin/view/template_cache/(?P<title>.+)$', 'sefaria.views.view_cached_elem'),
     #(r'^admin/delete/template_cache/(?P<title>.+)$', 'sefaria.views.del_cached_elem'),

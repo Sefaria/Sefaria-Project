@@ -62,8 +62,17 @@
 
 				{% if is_owner %}
 				<div class="optionGroup">
-					<div class="optionTitle" id="sharingModalTrigger"><i class="fa fa-share-alt"></i> Sharing</div>
+					<div class="optionTitle" id="sharingModalTrigger"><i class="fa fa-share-alt"></i> Sharing </div>
 				</div>
+	    			{% if not sheet.assigner_id %}
+
+                    <div class="optionGroup">
+                        <div class="optionTitle" id="assignmentsModalTrigger"><i class="fa fa-edit"></i> Assignments</div>
+                    </div>
+
+
+    				{% endif %}
+
 				{% endif %}
 
 				{% if owner_groups %}
@@ -128,7 +137,7 @@
 
 				<div class="line"></div>
 				<div class="optionItem" id="visualize">
-					<a href="/sheets/visual/{{sheet.id}}"><i class="fa fa-picture-o"></i>Visualize</div></a>
+					<a href="/sheets/visual/{{sheet.id}}"><i class="fa fa-picture-o"></i>Visualize</a></div>
 
 				<div class="line"></div>
 
@@ -168,6 +177,21 @@
 			{{ sheet.attribution }}
 		{% endautoescape %}
 	</div>
+	{% elif assigner_id %}
+	<div id="author">
+		<div id="assignmentAttribution">Assignment by {{ assigner_id|user_link }}</div>
+		{% if author %}
+		Completed by {{ sheet.owner|user_link }}
+		{% endif %}
+    </div>
+	{% elif sheet.assigner_id %}
+	<div id="author">
+		<div id="assignmentAttribution">Assignment by {{ sheet.assigner_id|user_link }}</div>
+		{% if author %}
+		Completed by {{ sheet.owner|user_link }}
+    </div>
+		{% endif %}
+
 	{% elif author %}
 	<div id="author">
 		Source Sheet by {{ sheet.owner|user_link }}
@@ -216,7 +240,7 @@
 		</ul>
 		</div>
 		{% if not user.email %}
-			<center id="loginWarning">Take a spin! But you'll need to <a href="/login?next=/sheets/new">login</a> or <a href="/register?next=/sheets/new">register</a> to save your work.<center>
+			<center id="loginWarning">Take a spin! But you'll need to <a href="/login?next=/sheets/new">login</a> or <a href="/register?next=/sheets/new">register</a> to save your work.</center>
 		{% endif %}
 	</div>
 	{% endif %}
@@ -268,6 +292,35 @@
 			<div id="nliModalContent">Loading...</div>
 </div>
 
+<div id="assignmentsModal" class="modal">
+
+        <div class="header">
+            <h3>Assignments:</h3>
+            Assignments allow you to create a template that your students can fill out on their own.
+        </div>
+        <div class='btn btn-success' id="makeSheetAssignableButton">Make this sheet assignable</div>
+        <div class='btn btn-danger' id="StopCollectingAssignmentsButton">Stop Collecting Assignments</div>
+        <br/>
+                            <div id="assignedSheets">
+                                <div class="line"></div>
+                                Students can complete their assignment at this link:<br/>
+                                <input id="assignmentURLLink" value="{{ request.META.HTTP_HOST }}/sheets/new?assignment={{sheet.id}}" />
+                                <div class="line"></div>
+                                <strong>Saved Assignments:</strong>
+        						{% for assignment_sheet in assignments_from_sheet %}
+                                <div class="optionLink" ><a href="./{{ assignment_sheet.id }}" target="_blank">{{ assignment_sheet.owner|user_name }}</a></div>
+
+                                {% empty %}
+                                    <br/><em>Your student's saved assignments will be viewable here.</em>
+                                {% endfor %}
+
+                            </div>
+        <div class='btn btn-primary ok'>Ok</div>
+
+</div>
+
+
+
 
 <div id="sharingModal" class="modal">
 	<div class="header">Sharing & Collaboration</div>
@@ -277,7 +330,7 @@
 		<input type="radio" name="sharingOptions" id="sharePrivate" value="private">
 		<span class="iconHolder"><i class="fa fa-user fa-2x fa-pull-left"></i></span>
 		<span class="sharingLabel">Private</span> 
-		<span class="sharingDesc">Only people with the direct link can view the source sheet.<span>
+		<span class="sharingDesc">Only people with the direct link can view the source sheet.</span>
 	  </label>
 	</div>
 
@@ -287,7 +340,7 @@
 		<input type="radio" name="sharingOptions" id="shareGroup" value="group">
 		<span class="iconHolder"><i class="fa fa-group fa-2x fa-pull-left"></i></span>
 		<span class="sharingLabel">Listed for Group Members</span> 
-		<span class="sharingDesc">Anyone in <span class="groupName">your group</span> can find and view your source sheet.<span>
+		<span class="sharingDesc">Anyone in <span class="groupName">your group</span> can find and view your source sheet.</span>
 	  </label>
 	</div>
 
@@ -508,8 +561,10 @@ Footer depends on full bootstrap grid, which isn't loaded in sheets.html
 	$.extend(sjs, {
 		cache: {},
 		current: {{ sheetJSON|default:"null" }},
+		assignment_id: {{ assignment_id|default:"null" }},
+		assigner_id: {{ assigner_id|default:"null" }},
 		can_edit: {% if can_edit %}true{% else %}false{% endif %},
-		can_add: {% if can_add %}true{% else %}false{% endif %},
+        can_add: {% if can_add %}true{% else %}false{% endif %},
 		is_owner: {% if is_owner %}true{% else %}false{% endif %},
 		editing: {},
 		ref: {},

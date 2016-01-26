@@ -37,7 +37,7 @@ from sefaria.utils.users import user_links
 from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
 from sefaria.utils.hebrew import is_hebrew
-from sefaria.helper.text import make_versions_csv
+from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats
 from sefaria.clean import remove_old_counts
 if USE_VARNISH:
     from sefaria.system.sf_varnish import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts
@@ -165,7 +165,7 @@ def accounts(request):
 
 
 def subscribe(request, email):
-    if subscribe_to_announce(email):
+    if subscribe_to_announce(email, direct_sign_up=True):
         return jsonResponse({"status": "ok"})
     else:
         return jsonResponse({"error": "Sorry, there was an error."})
@@ -245,11 +245,11 @@ def reset_cache(request):
 @staff_member_required
 def reset_index_cache_for_text(request, title):
     index = model.library.get_index(title)
-    model.library.refresh_index_record(index)
+    model.library.refresh_index_record_in_cache(index)
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(title))
     if USE_VARNISH:
         invalidate_title(title)
-    return HttpResponseRedirect("/%s?m=Cache-Reset" % title)
+    return HttpResponseRedirect("/%s?m=Cache-Reset" % model.Ref(title).url())
 
 
 """@staff_member_required
@@ -268,7 +268,7 @@ def del_cached_elem(request, title):
 def reset_counts(request, title=None):
     if title:
         try:
-            i  = model.library.get_index(title)
+            i = model.library.get_index(title)
         except:
             return HttpResponseRedirect("/dashboard?m=Unknown-Book")
         vs = model.VersionState(index=i)
@@ -318,7 +318,7 @@ def reset_ref(request, tref):
     """
     oref = model.Ref(tref)
     if oref.is_book_level():
-        model.library.refresh_index_record(oref.index)
+        model.library.refresh_index_record_in_cache(oref.index)
         vs = model.VersionState(index=oref.index)
         vs.refresh()
         model.library.update_index_in_toc(oref.index)
@@ -327,10 +327,10 @@ def reset_ref(request, tref):
             invalidate_index(oref.index)
             invalidate_counts(oref.index)
             invalidate_ref(oref)
-        return HttpResponseRedirect("/?m=Reset-Index-{}".format(oref.url()))
+        return HttpResponseRedirect("/{}?m=Reset-Index".format(oref.url()))
     elif USE_VARNISH:
         invalidate_ref(oref)
-        return HttpResponseRedirect("/?m=Reset-Ref-{}".format(oref.url()))
+        return HttpResponseRedirect("/{}?m=Reset-Ref".format(oref.url()))
     else:
         return HttpResponseRedirect("/?m=Nothing-to-Reset")
 
@@ -472,3 +472,11 @@ def sheet_stats(request):
 @staff_member_required
 def versions_csv(request):
     return HttpResponse(make_versions_csv(), content_type="text/csv")
+
+
+def library_stats(request):
+    return HttpResponse(get_library_stats(), content_type="text/csv")
+
+
+def core_link_stats(request):
+    return HttpResponse(get_core_link_stats(), content_type="text/csv")

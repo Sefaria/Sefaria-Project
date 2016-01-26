@@ -17,8 +17,13 @@
 <script src="/static/js/Chart.min.js" charset="utf-8"></script>
 <script>
 	var metrics = {% autoescape off %}{{ metrics_json }}{% endautoescape %};
+	
+	for (var i = 0; i < metrics.length; i++) {
+		metrics[i]["totalWords"] = metrics[i]["heWords"] + metrics[i]["transWords"];
+	}
 
 	var show = {
+			"totalWords": "Total Words in Library",
 			"heWords": "Words in Hebrew & Aramaic",
 			"transWords": "Words in Translation",
 			"sctWords": "Words of Original Translation created by Sefaria Volunteers",
@@ -50,10 +55,6 @@
 		}
 
 	}
-
-	var heWordsData = makeData("heWords");
-	var transWordsData = makeData("transWords");
-	var sctWordsData = makeData("sctWords");
 
 	var options = {
 					
@@ -143,7 +144,7 @@
 		var data = makeData(field);
 		var html = '<div class="chart">' +
 						'<div class="chartLabel">' + show[field] + '</div>' +
-						'<canvas id="' + field + '" width="1000" height="300"></canvas>' +
+						'<canvas id="' + field + '" width="' + (metrics.length + 100) + '" height="300"></canvas>' +
 					'</div>';
 
 		$("#metricsContent").append(html);

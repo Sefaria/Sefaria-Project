@@ -13,7 +13,8 @@ from sefaria.system.database import db
 from sefaria.utils.hebrew import hebrew_term
 from model import *
 from sefaria.system.exceptions import BookNameError
-
+import logging
+logger = logging.getLogger(__name__)
 
 # Giant list ordering or categories
 # indentation and inclusion of duplicate categories (like "Seder Moed")
@@ -185,7 +186,6 @@ def update_title_in_toc(toc, index, old_ref=None, recount=True):
     indx_dict = index.toc_contents()
 
     if recount:
-        #counts.update_full_text_count(bookname)
         VersionState(index.title).refresh()
     resort_other = False
 
@@ -222,10 +222,10 @@ def update_title_in_toc(toc, index, old_ref=None, recount=True):
     return toc
 
 
-def get_or_make_summary_node(summary, nodes, contents_only=True):
+def get_or_make_summary_node(summary, nodes, contents_only=True, make_if_not_found=True):
     """
     Returns the node in 'summary' that is named by the list of categories in 'nodes',
-    creates the node if it doesn't exist.
+    If make_if_not_found is true, creates the node if it doesn't exist.
     Used recursively on sub-summaries.
     """
     if len(nodes) == 1:
@@ -234,16 +234,22 @@ def get_or_make_summary_node(summary, nodes, contents_only=True):
             if node.get("category") == nodes[0]:
                 return node["contents"] if contents_only else node
         # we didn't find it, so let's add it
-        summary.append({"category": nodes[0], "heCategory": hebrew_term(nodes[0]), "contents": []})
-        return summary[-1]["contents"] if contents_only else summary[-1]
+        if make_if_not_found:
+            summary.append({"category": nodes[0], "heCategory": hebrew_term(nodes[0]), "contents": []})
+            return summary[-1]["contents"] if contents_only else summary[-1]
+        else:
+            return None
 
     # Look for the first category, or add it, then recur
     for node in summary:
         if node.get("category") == nodes[0]:
             return get_or_make_summary_node(node["contents"], nodes[1:], contents_only=contents_only)
-    
-    summary.append({"category": nodes[0], "heCategory": hebrew_term(nodes[0]), "contents": []})
-    return get_or_make_summary_node(summary[-1]["contents"], nodes[1:], contents_only=contents_only)
+
+    if make_if_not_found:
+        summary.append({"category": nodes[0], "heCategory": hebrew_term(nodes[0]), "contents": []})
+        return get_or_make_summary_node(summary[-1]["contents"], nodes[1:], contents_only=contents_only)
+    else:
+        return None
 
 
 def get_sparesness_lookup():
@@ -352,7 +358,7 @@ def flatten_toc(toc, include_categories=False, categories_in_titles=False, versi
 
     - categories_in_titles: whether to include each category preceding a text title,
         e.g., "Tanach > Torah > Genesis".
-    - version_granularity: whether to include a seperate entry for every text version.
+    - version_granularity: whether to include a separate entry for every text version.
     """
     results = []
     for x in toc:
