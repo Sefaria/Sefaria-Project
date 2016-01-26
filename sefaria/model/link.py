@@ -248,6 +248,38 @@ def get_link_counts(cat1, cat2):
     return result
 
 
+def get_category_category_linkset(cat1, cat2):
+    """
+    Return LinkSet of links between the given book and category.
+    :param book: String
+    :param cat: String
+    :return:
+    """
+    queries = []
+    titles = []
+    regexes = []
+    clauses = []
+
+    for i, cat in enumerate([cat1, cat2]):
+        queries += [{"$and": [{"categories": cat}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Commentary2"}}, {"categories": {"$ne": "Targum"}}]}]
+        titles += [text.IndexSet(queries[i]).distinct("title")]
+        if len(titles[i]) == 0:
+            raise IndexError("No results for {}".format(queries[i]))
+
+        regexes += [[]]
+        for t in titles[i]:
+            regexes[i] += text.Ref(t).regex(as_list=True)
+
+        clauses += [[]]
+        for rgx in regexes[i]:
+            if cat1 == cat2:
+                clauses[i] += [{"refs.{}".format(i): {"$regex": rgx}}]
+            else:
+                clauses[i] += [{"refs": {"$regex": rgx}}]
+
+    return LinkSet({"$and": [{"$or": clauses[0]}, {"$or": clauses[1]}]})
+
+
 def get_book_category_linkset(book, cat):
     """
     Return LinkSet of links between the given book and category.
