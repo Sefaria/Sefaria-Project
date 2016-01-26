@@ -289,7 +289,8 @@ sjs.library = {
     }
     // Add Zero counts for every commentator in this section not alredy in list
     var baseRef    = typeof ref == "string" ? ref : ref[0]; // TODO handle refs spanning sections
-    var sectionRef = sjs.library.ref(baseRef) ? sjs.library.ref(baseRef).sectionRef : baseRef;
+    var oRef       = sjs.library.ref(baseRef);
+    var sectionRef = oRef ? oRef.sectionRef : baseRef;
     if (ref !== sectionRef) {
       var sectionLinks = sjs.library.links(sectionRef);
       for (var i = 0; i < sectionLinks.length; i++) {
@@ -316,7 +317,24 @@ sjs.library = {
         return value;
       });
       // Sort the books in the category
-      value.books.sort(function(a, b) { return a.book > b.book ? 1 : -1; });
+      value.books.sort(function(a, b) { 
+        // First sort by predefined "top"
+        var topByCategory = {
+          "Tanach": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
+          "Talmud": ["Rashi", "Tosafot"]
+        }
+        var cat = oRef ? oRef["categories"][0] : null;
+        var top = topByCategory[cat] || [];
+        var aTop = top.indexOf(a.book);
+        var bTop = top.indexOf(b.book);
+        if (aTop !== -1 || bTop !== -1) {
+          aTop = aTop === -1 ? 999 : aTop;
+          bTop = bTop === -1 ? 999 : bTop;
+          return aTop < bTop ? -1 : 1;
+        }
+        // Then sort alphabetically
+        return a.book > b.book ? 1 : -1; 
+      });
       return value;
     });
     // Sort the categories
