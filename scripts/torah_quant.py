@@ -28,6 +28,8 @@ def export_stats_by_ref(refs, filename):
                             "Verses",
                             "Gematria",
                             "Gematria Hex",
+                            "Gematria x 18 Hex",
+
                          ])
 
         for ref in refs:
@@ -40,7 +42,9 @@ def export_stats_by_ref(refs, filename):
                                 text.word_count(),
                                 text.verse_count(),
                                 gematria(text.as_string()),
-                                "{0:#0{1}x}".format(gematria(text.as_string()),8).replace("0x", "#") 
+                                "{0:#0{1}x}".format(gematria(text.as_string()),8).replace("0x", "#"),
+                                "{0:#0{1}x}".format(gematria(text.as_string()) * 18,8).replace("0x", "#"),
+
                             ])
 
 export_stats_by_ref(chapters, "torah_quant_by_chapter.csv")

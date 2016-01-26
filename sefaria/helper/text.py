@@ -369,6 +369,36 @@ def make_versions_csv():
     return output.getvalue()
 
 
+def get_core_link_stats():
+    import csv
+    import io
+    from sefaria.model.link import get_category_category_linkset
+    output = io.BytesIO()
+    writer = csv.writer(output)
+    titles = [
+        "Category 1",
+        "Category 2",
+        "Count"
+    ]
+    writer.writerow(titles)
+    sets = [
+        ("Tanach", "Tanach"),
+        ("Tanach", "Bavli"),
+        ("Bavli", "Tosefta"),
+        ("Tosefta", "Mishnah"),
+        ("Bavli", "Yerushalmi"),
+        ("Bavli", "Bavli"),
+        ("Bavli", "Mishneh Torah"),
+        ("Bavli", "Shulchan Arukh"),
+        ("Bavli", "Midrash"),
+        ("Bavli", "Mishnah")
+    ]
+    for set in sets:
+        writer.writerow([set[0], set[1], get_category_category_linkset(set[0], set[1]).count()])
+
+    return output.getvalue()
+
+
 def get_library_stats():
     def aggregate_stats(toc_node, path):
         simple_nodes = []
