@@ -69,10 +69,10 @@
           }
 
           for (var i = 2; i < 5; i++) {
-            var p = urlVars["p" + i] || null;  // Ref for panel i
+            var p = urlVars["p" + i] || null;    // Ref for panel i
             var w = urlVars["with" + i] || null; // Commentary shown for panel i
-            var v = urlVars["v" + i] || null;  // Version for panel i
-            var l = urlVars["l" + i] || null;  // Language for panel i
+            var v = urlVars["v" + i] || null;    // Version for panel i
+            var l = urlVars["l" + i] || null;    // Language for panel i
             if (p && !p.match(/^texts|^sheets|^search/)) {
               initialPanels.push({mode: "Text", refs: [humanRef(p)], version: v, language: l});
             }

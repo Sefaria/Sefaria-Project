@@ -16,40 +16,54 @@ var ReaderApp = React.createClass({
   },
   getInitialState: function() {
     var panels = [];
+    var defaultPanelSettings = clone(this.props.initialSettings);
     if (!this.props.multiPanel) {
       var mode = this.props.initialFilter ? "TextAndConnections" : "Text";
-      panels[0] = ({
+      panels[0] = this.makePanelState({
         refs: this.props.initialRefs,
         mode: mode,
         filter: this.props.initialFilter,
         version: this.props.initialPanels[0].version,
-        language: this.props.initialPanels[0].language
+        language: this.props.initialPanels[0].language,
+        settings: defaultPanelSettings
       });
       if (mode === "TextAndConnections") {
         panels[0].highlightedRefs = this.props.initialRefs;
       }
     } else if (this.props.initialRefs.length && this.props.initialMenu !== "text toc") {
-      panels.push({
+      panels.push(this.makePanelState({
         refs: this.props.initialRefs,
         mode: "Text",
         version: this.props.initialPanels[0].version,
-        language: this.props.initialPanels[0].language
-      });
+        language: this.props.initialPanels[0].language,
+        settings: defaultPanelSettings
+      }));
       if (this.props.initialFilter) {
-        panels.push({
+        panels.push(this.makePanelState({
           refs: this.props.initialRefs,
           filter: this.props.initialFilter,
-          mode: "Connections"
-        });
+          mode: "Connections",
+          settings: defaultPanelSettings
+        }));
       }
       for (var i = panels.length; i < this.props.initialPanels.length; i++) {
-        panels.push(this.props.initialPanels[i]);
+        var panel = clone(this.props.initialPanels[i]);
+        panel.settings = defaultPanelSettings;
+        panels.push(this.makePanelState(panel));
       }
     }
     return {
       panels: panels,
-      header: {mode: this.props.initialMenu, query: this.props.initialQuery, panelState: null},
-      defaultPanelSettings: clone(this.props.initialSettings)
+      header: {
+        mode: this.props.initialMenu, 
+        query: this.props.initialQuery, 
+        panelState: this.makePanelState({
+          mode: this.props.initialMenu,
+          menuOpen: this.props.initialMenu,
+          query: this.props.initialQuery,
+          settings: defaultPanelSettings})
+      },
+      defaultPanelSettings: defaultPanelSettings
     };
   },
   componentDidMount: function() {
@@ -70,6 +84,10 @@ var ReaderApp = React.createClass({
       //debugger
       return;
     }
+    // Central State TODO 
+    // - carry panel language change to dependent panel
+    // - singnal an update shoule replaceHistory
+
     this.updateHistoryState(this.replaceHistory);
     this.replaceHistory = false;
     if (this.props.headerMode) {
@@ -191,11 +209,11 @@ var ReaderApp = React.createClass({
             break;
         }
       } else if (state.mode === "Text") {
-        hist.title  = state.refs.slice(-1)[0];
-        hist.url    = normRef(hist.title);
-        hist.version = state.version;
+        hist.title    = state.refs.slice(-1)[0];
+        hist.url      = normRef(hist.title);
+        hist.version  = state.version;
         hist.language = state.language;
-        hist.mode   = "Text"
+        hist.mode     = "Text"
       } else if (state.mode === "Connections") {
         var ref     = state.refs.slice(-1)[0];
         var sources = state.filter.length ? state.filter.join("+") : "all";
@@ -203,19 +221,19 @@ var ReaderApp = React.createClass({
         hist.url    = normRef(ref) + "?with=" + sources;
         hist.mode   = "Connections"
       } else if (state.mode === "TextAndConnections") {
-        var ref     = state.highlightedRefs.slice(-1)[0];
-        var sources = state.filter.length ? state.filter[0] : "all";
-        hist.title  = ref  + " with " + (sources === "all" ? "Connections" : sources);
-        hist.url    = normRef(ref) + "?with=" + sources;
-        hist.version = state.version;
+        var ref       = state.highlightedRefs.slice(-1)[0];
+        var sources   = state.filter.length ? state.filter[0] : "all";
+        hist.title    = ref  + " with " + (sources === "all" ? "Connections" : sources);
+        hist.url      = normRef(ref) + "?with=" + sources;
+        hist.version  = state.version;
         hist.language = state.language;
-        hist.mode   = "TextAndConnections"
+        hist.mode     = "TextAndConnections"
       } else {
         continue;
       }
       histories.push(hist);     
     }
-
+    if (!histories.length) {debugger}
     // Now merge all history objects into one
     var url   = "/" + (histories.length ? histories[0].url : "");
     if(histories[0].language && histories[0].version) {
@@ -274,6 +292,26 @@ var ReaderApp = React.createClass({
 
     sjs.track.pageview(hist.url);
   },
+  makePanelState: function(state) {
+    // Return a full representation of a single panel's state, given a partial representation in `state`
+    if (!state.settings && !this.state) {debugger}
+    return {
+      refs:                 state.refs || [], // array of ref strings
+      mode:                 state.mode, // "Text", "TextAndConnections", "Connections"
+      filter:               state.filter || [],
+      version:              state.version || null,
+      language:             state.language || null,
+      highlightedRefs:      state.highlightedRefs || [],
+      recentFilters:        [],
+      settings:             state.settings || clone(this.state.defaultPanelSettings),
+      menuOpen:             state.menuOpen || null, // "navigation", "text toc", "display", "search", "sheets", "home"
+      navigationCategories: state.navigationCategories || [],
+      navigationSheetTag:   state.sheetsTag || null,
+      searchQuery:          state.query || null,
+      displaySettingsOpen:  false,
+      width:                0
+    }
+  },
   handlePanelUpdate: function(n, action, state) {
     // When panel `n` wants to change history with `action` (either "push" or "replace"), update with `state`
     // Dirty check with JSON to see if this object has changed or not
@@ -313,7 +351,9 @@ var ReaderApp = React.createClass({
   },
   handleNavigationClick: function(ref) {
     this.saveOpenPanelsToRecentlyViewed();
-    this.setState({panels: [{refs: [ref], mode: "Text"}], header: {mode: null, query: null, panelState: null}});
+    this.setState({
+      panels: [this.makePanelState({refs: [ref], mode: "Text"})],
+      header: {mode: null, query: null, panelState: null}});
   },
   handleSegmentClick: function(n, ref) {
     // Handle a click on a text segment `ref` in from panel in position `n`
@@ -326,6 +366,14 @@ var ReaderApp = React.createClass({
     this.openPanelAt(n, citationRef);
     this.setTextListHighlight(n, [textRef]);
   },
+  setPanelState: function(n, state) {
+    this.state.panels[n] = $.extend(this.state.panels[n], state);
+    this.setState({panels: this.state.panels});
+  },
+  setHeaderState: function(state) {
+    this.state.header = $.extend(this.state.header, state);
+    this.setState({header: this.state.header});
+  },
   setDefaultLanguage: function(language) {
     if (language !== this.state.defaultPanelSettings.language) {
       this.state.defaultPanelSettings.language = language;
@@ -334,7 +382,7 @@ var ReaderApp = React.createClass({
   },
   openPanelAt: function(n, ref) {
     // Open a new panel after `n` with the new ref
-    this.state.panels.splice(n+1, 0, {refs: [ref], mode: "Text"});
+    this.state.panels.splice(n+1, 0, this.makePanelState({refs: [ref], mode: "Text"}));
     this.setState({panels: this.state.panels, header: {mode: null, query: null, panelState: null}});
   },
   openPanelAtEnd: function(ref) {
@@ -362,7 +410,7 @@ var ReaderApp = React.createClass({
       var oref1 = parseRef(panel.refs.slice(-1)[0]);
       var oref2 = parseRef(refs.slice(-1)[0]);
       // If this is a new text reset the filter, otherwise keep the current filter
-      panel.filter   = oref1.book === oref2.book ? panel.filter : [];      
+      panel.filter = oref1.book === oref2.book ? panel.filter : [];      
     } else {
       this.state.panels.splice(n, 0, {});
       panel = this.state.panels[n];
@@ -372,6 +420,7 @@ var ReaderApp = React.createClass({
     panel.refs     = refs;
     panel.menuOpen = null;
     panel.mode     = "Connections";
+    panel          = this.makePanelState(panel);
     this.setState({panels: this.state.panels});
   },
   closePanel: function(n) {
@@ -391,15 +440,15 @@ var ReaderApp = React.createClass({
     }
     var state = {panels: this.state.panels};
     if (state.panels.length == 0) {
-      state.header = {mode: "navigation", query: null, panelState: null};
+      this.showLibrary();
     }
     this.setState(state);
   },
   showLibrary: function() {
-    this.setState({header: {mode: "navigation", query: null, panelState: null}});
+    this.setState({header: {mode: "navigation", query: null, panelState: this.makePanelState({menuOpen: "navigation"})}});
   },
   showSearch: function(query) {
-    this.setState({header: {mode: "search", query: query, panelState: null}});
+    this.setState({header: {mode: "search", query: query, panelState: this.makePanelState({menuOpen: "search", searchQuery: query})}});
   },
   saveRecentlyViewed: function(panel) {
     if (panel.mode == "Connections" || !panel.refs.length) { return; }
@@ -436,9 +485,9 @@ var ReaderApp = React.createClass({
       var onCitationClick          = this.handleCitationClick.bind(null, i);
       var onTextListClick          = null; // this.openPanelAt.bind(null, i);
       var onOpenConnectionsClick   = this.openTextListAt.bind(null, i+1);
-      var onPanelUpdate            = this.handlePanelUpdate.bind(null, i);
       var setTextListHightlight    = this.setTextListHighlight.bind(null, i);
       var closePanel               = this.closePanel.bind(null, i);
+      var setPanelState            = this.setPanelState.bind(null, i);
       
       var ref   = panel.refs && panel.refs.length ? panel.refs[0] : null;
       var oref  = ref ? parseRef(ref) : null;
@@ -446,62 +495,32 @@ var ReaderApp = React.createClass({
       // Keys must be constant as text scrolls, but changing as new panels open in new positions
       // Use a combination of the panel number and text title
       var key   = i + title;
-      if (panel.completeState) {
-        panels.push(<div className="readerPanelBox" style={style} key={key}>
-                      <ReaderPanel 
-                        initialState={panel}
-                        multiPanel={this.props.multiPanel}
-                        onUpdate={onPanelUpdate}
-                        onSegmentClick={onSegmentClick}
-                        onCitationClick={onCitationClick}
-                        onTextListClick={onTextListClick}
-                        onNavigationClick={this.handleNavigationClick}
-                        onOpenConnectionsClick={onOpenConnectionsClick}
-                        setTextListHightlight={setTextListHightlight}
-                        closePanel={closePanel}
-                        panelsOpen={this.state.panels.length}
-                        layoutWidth={width} />
+      panels.push(<div className="readerPanelBox" style={style} key={key}>
+                    <ReaderPanel 
+                      initialState={panel}
+                      setCentralState={setPanelState}
+                      multiPanel={this.props.multiPanel}
+                      onSegmentClick={onSegmentClick}
+                      onCitationClick={onCitationClick}
+                      onTextListClick={onTextListClick}
+                      onNavigationClick={this.handleNavigationClick}
+                      onOpenConnectionsClick={onOpenConnectionsClick}
+                      setTextListHightlight={setTextListHightlight}
+                      closePanel={closePanel}
+                      panelsOpen={this.state.panels.length}
+                      layoutWidth={width} />
                   </div>);
-      } else {
-        panels.push(<div className="readerPanelBox" style={style} key={key}>
-                      <ReaderPanel 
-                        initialRefs={panel.refs}
-                        initialMode={panel.mode}
-                        initialFilter={panel.filter}
-                        initialVersion={panel.version}
-                        initialLanguage={panel.language}
-                        initialHighlightedRefs={panel.highlightedRefs}
-                        initialMenu={this.props.multiPanel ? null : this.props.initialMenu}
-                        initialQuery={this.props.initialQuery}
-                        initialSheetsTag={this.props.initialSheetsTag}
-                        initialNavigationCategories={this.props.initialNavigationCategories}
-                        initialSettings={clone(this.state.defaultPanelSettings)}
-                        multiPanel={this.props.multiPanel}
-                        onSegmentClick={onSegmentClick}
-                        onCitationClick={onCitationClick}
-                        onTextListClick={onTextListClick}
-                        onNavigationClick={this.handleNavigationClick}
-                        onOpenConnectionsClick={onOpenConnectionsClick}
-                        onUpdate={onPanelUpdate}
-                        setTextListHightlight={setTextListHightlight}
-                        closePanel={closePanel}
-                        panelsOpen={this.state.panels.length}
-                        layoutWidth={width} />
-                    </div>);
-      }
     }
     var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel});
-
     return (<div className={classes}>
               {this.props.multiPanel ? 
                 <Header 
-                  onUpdate={this.handleHeaderUpdate}
+                  initialState={this.state.header}
+                  setCentralState={this.setHeaderState}
                   onRefClick={this.handleNavigationClick}
                   setDefaultLanguage={this.setDefaultLanguage}
                   showLibrary={this.showLibrary}
                   showSearch={this.showSearch}
-                  initialState={this.state.header}
-                  initialSettings={clone(this.state.defaultPanelSettings)}
                   headerMode={this.props.headerMode}
                   panelsOpen={this.state.panels.length} /> : null}
               {panels}
@@ -516,7 +535,7 @@ var Header = React.createClass({
     initialQuery:       React.PropTypes.string,
     initialState:       React.PropTypes.object,
     initialSettings:    React.PropTypes.object,
-    onUpdate:           React.PropTypes.func,
+    setCentralState:    React.PropTypes.func,
     onRefClick:         React.PropTypes.func,
     showLibrary:        React.PropTypes.func,
     showSearch:         React.PropTypes.func,
@@ -524,14 +543,7 @@ var Header = React.createClass({
     panelsOpen:         React.PropTypes.number
   },
   getInitialState: function() {
-    if (this.props.initialState) {
-      return this.props.initialState;
-    }
-    return {
-      mode: this.props.initialMode || null,
-      query: this.props.initialQuery,
-      panelState: null
-    };
+    return this.props.initialState;
   },
   componentDidMount: function() {
     this.initAutocomplete();
@@ -539,16 +551,10 @@ var Header = React.createClass({
   componentWillReceiveProps: function(nextProps) {
     if (nextProps.initialState) {
       this.setState(nextProps.initialState);
-    } else {
-      this.setState({mode: nextProps.initialMode, query: nextProps.initialQuery, panelState: null});
     }
   },
   componentDidUpdate: function(prevProps, prevState) {
-    if (this.state.mode && !this.state.panelState) {
-      // Don't send state upwards until panelState has been set
-      return;
-    }
-    this.props.onUpdate(this.state);
+
   },
   initAutocomplete: function() {
     $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete({ 
@@ -572,7 +578,7 @@ var Header = React.createClass({
         return;
       }
     }
-    this.setState({mode: null, panelState: null, query: null});
+    this.props.setCentralState({mode: null, panelState: null, query: null});
     this.clearSearchBox();      
   },
   showLibrary: function() {
@@ -584,7 +590,7 @@ var Header = React.createClass({
     $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("close");
   },
   showAccount: function() {
-    this.setState({mode: "account", panelState: null, query: null});
+    this.props.setCentralState({mode: "account", panelState: null, query: null});
     this.clearSearchBox();
   },
   submitSearch: function(query, skipNormalization) {
@@ -637,21 +643,16 @@ var Header = React.createClass({
       this.submitSearch(query);
     }
   },
-  handlePanelUpdate: function(action, state) {
-    var prev     = JSON.stringify(this.state.panelState);
-    var current  = JSON.stringify(state);
-    if (current !== prev) {
-      this.setState({mode: state.menuOpen, panelState: state});
-    }
+  setPanelState: function(state) {
+    this.state.panelState = $.extend(this.state.panelState, state);
+    this.props.setCentralState(this.state);
   },
   render: function() {
     var viewContent = this.state.mode ?
                         (<ReaderPanel
-                          multiPanel={true}
                           initialState={this.state.panelState}
-                          initialSettings={this.props.initialSettings}
-                          initialMenu={this.state.mode}
-                          initialQuery={this.state.query}
+                          setCentralState={this.setPanelState}
+                          multiPanel={true}
                           onUpdate={this.handlePanelUpdate}
                           onNavTextClick={this.handleRefClick}
                           onSearchResultClick={this.handleRefClick}
@@ -692,7 +693,6 @@ var ReaderPanel = React.createClass({
     initialMenu:            React.PropTypes.string,
     initialQuery:           React.PropTypes.string,
     initialSheetsTag:       React.PropTypes.string,
-    initialSettings:        React.PropTypes.object,
     initialState:           React.PropTypes.object, // if present, trumps all props above
     onSegmentClick:         React.PropTypes.func,
     onCitationClick:        React.PropTypes.func,
@@ -711,9 +711,6 @@ var ReaderPanel = React.createClass({
   getInitialState: function() {
     if (this.props.initialState) {
       var state = clone(this.props.initialState);
-      if (!state.settings && this.props.initialSettings) {
-        state.settngs = clone(this.props.initialSettings);
-      }
       return state;
     }
 
@@ -743,9 +740,6 @@ var ReaderPanel = React.createClass({
     }
   },
   componentDidMount: function() {
-    // Make sure the initial state of this panel is pushed up to ReaderApp
-    this.props.onUpdate && this.props.onUpdate("push", this.state);     
-
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
     this.setHeadroom();
@@ -778,17 +772,21 @@ var ReaderPanel = React.createClass({
 
   },
   componentDidUpdate: function(prevProps, prevState) {
-    if (this.props.onUpdate) {
-      var action = this.replaceHistory ? "replace" : "push";
-      this.props.onUpdate(action, this.state);   
-    }
     this.setHeadroom();
     if (prevState.refs.compare(this.state.refs)) {
       this.trackPanelOpens();
     }
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
       this.setWidth();
-
+    }
+  },
+  conditionalSetState: function(state) {
+    // Set state either in the central app or in the local component,
+    // depending on whether a setCentralState function was given.
+    if (this.props.setCentralState) {
+      this.props.setCentralState(state);
+    } else {
+      this.setState(state);
     }
   },
   handleBaseSegmentClick: function(ref) {
@@ -825,7 +823,7 @@ var ReaderPanel = React.createClass({
   openConnectionsInPanel: function(ref) {
     var refs = typeof ref == "string" ? [ref] : ref;
     this.replaceHistory = this.state.mode === "TextAndConnections"; // Don't push history for change in Connections focus
-    this.setState({highlightedRefs: refs, mode: "TextAndConnections" });      
+    this.conditionalSetState({highlightedRefs: refs, mode: "TextAndConnections" });      
   },
   closeConnectionsInPanel: function() {
     // Return to the original text in the ReaderPanel contents
@@ -836,7 +834,8 @@ var ReaderPanel = React.createClass({
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
     if (!ref) { return; }
     this.replaceHistory = typeof replaceHistory === "undefined" ? false : replaceHistory;
-    this.setState({
+    // Central State TODO - where to signal replaceHistory
+    this.conditionalSetState({
       mode: "Text",
       refs: [ref],
       filter: [],
@@ -847,12 +846,12 @@ var ReaderPanel = React.createClass({
   updateTextColumn: function(refs) {
     // Change the refs in the current TextColumn, for infinite scroll up/down.
     this.replaceHistory = true;
-    this.setState({ refs: refs });
+    this.conditionalSetState({ refs: refs });
   },
   setTextListHightlight: function(refs) {
     refs = typeof refs === "string" ? [refs] : refs;
     this.replaceHistory = true; 
-    this.setState({highlightedRefs: refs});
+    this.conditionalSetState({highlightedRefs: refs});
     if (this.props.multiPanel) {
       this.props.setTextListHightlight(refs);
     }
@@ -865,10 +864,10 @@ var ReaderPanel = React.createClass({
       navigationCategories: null,
       navigationSheetTag: null
     };
-    this.setState(state);
+    this.conditionalSetState(state);
   },
   openMenu: function(menu) {
-    this.setState({
+    this.conditionalSetState({
       menuOpen: menu,
       searchQuery: null,
       navigationCategories: null,
@@ -876,13 +875,13 @@ var ReaderPanel = React.createClass({
     });
   },
   setNavigationCategories: function(categories) {
-    this.setState({menuOpen: "navigation", navigationCategories: categories});
+    this.conditionalSetState({menuOpen: "navigation", navigationCategories: categories});
   },
   setSheetTag: function (tag) {
-    this.setState({navigationSheetTag: tag});
+    this.conditionalSetState({navigationSheetTag: tag});
   },
   setSearchQuery: function (query) {
-    this.setState({searchQuery: query});
+    this.conditionalSetState({searchQuery: query});
   },
   setFilter: function(filter, updateRecent) {
     // Sets the current filter for Connected Texts (TextList)
@@ -898,7 +897,7 @@ var ReaderPanel = React.createClass({
       this.state.recentFilters = [filter].concat(this.state.recentFilters);
     }
     filter = filter ? [filter] : [];
-    this.setState({recentFilters: this.state.recentFilters, filter: filter});
+    this.conditionalSetState({recentFilters: this.state.recentFilters, filter: filter});
   },
   toggleLanguage: function() {
     if (this.state.settings.language == "hebrew") {
@@ -919,16 +918,16 @@ var ReaderPanel = React.createClass({
     }
   },
   openSearch: function(query) {
-    this.setState({
+    this.conditionalSetState({
       menuOpen: "search",
       searchQuery: query
     });
   },
   openDisplaySettings: function() {
-    this.setState({displaySettingsOpen: true});
+    this.conditionalSetState({displaySettingsOpen: true});
   },
   closeDisplaySettings: function() {
-    this.setState({displaySettingsOpen: false});
+    this.conditionalSetState({displaySettingsOpen: false});
   },
   setOption: function(option, value) {
     if (option === "fontSize") {
@@ -948,10 +947,10 @@ var ReaderPanel = React.createClass({
       $.cookie("contentLang", value, {path: "/"});
       this.props.setDefaultLanguage && this.props.setDefaultLanguage(value);
     }
-    this.setState(state);
+    this.conditionalSetState(state);
   },
   setWidth: function() {
-    this.setState({width: $(ReactDOM.findDOMNode(this)).width()});
+    this.conditionalSetState({width: $(ReactDOM.findDOMNode(this)).width()});
   },
   trackPanelOpens: function() {
     if (this.state.mode === "Connections") { return; }
@@ -1753,9 +1752,9 @@ var ReaderTextTableOfContents = React.createClass({
     showBaseText:     React.PropTypes.func.isRequired
   },
   getInitialState: function() {
-    var sectionRef = sjs.library.sectionRef(this.props.currentRef);
+    var sectionRef  = sjs.library.sectionRef(this.props.currentRef);
     var sectionText = sjs.library.text(sectionRef, {context: 1, version: this.props.version, language: this.props.versionLanguage});
-    var language = self.props.versionLanguage || self.props.settingsLanguage;
+    var language    = this.props.versionLanguage || this.props.settingsLanguage;
     
     return {
       versions: sectionText.versions,
