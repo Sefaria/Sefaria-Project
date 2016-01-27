@@ -138,7 +138,10 @@ var ReaderApp = React.createClass({
           (next.mode === "Connections" && prev.filter && !prev.filter.compare(next.filter)) ||
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
           (prev.searchQuery !== next.searchQuery) ||
-          (prev.navigationSheetTag !== next.navigationSheetTag)) {
+          (prev.navigationSheetTag !== next.navigationSheetTag) ||
+          (prev.version !== next.version) ||
+          (prev.language !== next.language))
+          {
          return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
         // Handle array comparison, !== could mean one is null or both are arrays
