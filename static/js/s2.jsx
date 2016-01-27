@@ -1027,7 +1027,7 @@ var ReaderPanel = React.createClass({
                     close={this.closeMenus}
                     title={this.currentBook()}
                     version={this.props.version}
-                    versionLanguage={this.props.language}
+                    versionLanguage={this.state.language}
                     settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
                     category={this.currentCategory()}
                     currentRef={this.currentRef()} 
@@ -1060,9 +1060,18 @@ var ReaderPanel = React.createClass({
     }
 
     var classes  = {readerPanel: 1, wideColumn: this.state.width > 450};
-    classes[this.currentLayout()]         = 1;
-    classes[this.state.settings.language] = 1;
-    classes[this.state.settings.color]    = 1;
+    classes[this.currentLayout()]             = 1;
+    classes[this.state.settings.color]        = 1;
+
+    if (this.state.language) {
+      if (this.state.language=="he") {
+        classes["hebrew"]                     = 1;
+      } else if (this.state.language=="en") {
+        classes["english"]                    = 1;
+      }
+    } else {
+      classes[this.state.settings.language]   = 1;
+    }
     classes = classNames(classes);
     var style = {"fontSize": this.state.settings.fontSize + "%"};
     var hideReaderControls = (this.props.multiPanel && this.state.mode === "Connections" && ![].compare(this.state.filter)) ||
