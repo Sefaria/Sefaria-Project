@@ -650,6 +650,7 @@ var ReaderPanel = React.createClass({
     initialQuery:           React.PropTypes.string,
     initialSheetsTag:       React.PropTypes.string,
     initialState:           React.PropTypes.object, // if present, trumps all props above
+    setCentralState:        React.PropTypes.func,
     onSegmentClick:         React.PropTypes.func,
     onCitationClick:        React.PropTypes.func,
     onTextListClick:        React.PropTypes.func,
@@ -901,6 +902,7 @@ var ReaderPanel = React.createClass({
     $.cookie(option, value, {path: "/"});
     if (option === "language") {
       $.cookie("contentLang", value, {path: "/"});
+      this.conditionalSetState({"language":null, "version":null});
       this.props.setDefaultLanguage && this.props.setDefaultLanguage(value);
     }
     this.conditionalSetState(state);
