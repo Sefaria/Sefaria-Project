@@ -24,7 +24,7 @@ var ReaderApp = React.createClass({
         mode: mode,
         filter: this.props.initialFilter,
         version: this.props.initialPanels[0].version,
-        language: this.props.initialPanels[0].language,
+        version_version_language: this.props.initialPanels[0].version_language,
         settings: defaultPanelSettings
       });
       if (mode === "TextAndConnections") {
@@ -35,7 +35,7 @@ var ReaderApp = React.createClass({
         refs: this.props.initialRefs,
         mode: "Text",
         version: this.props.initialPanels[0].version,
-        language: this.props.initialPanels[0].language,
+        version_language: this.props.initialPanels[0].version_language,
         settings: defaultPanelSettings
       }));
       if (this.props.initialFilter) {
@@ -138,7 +138,10 @@ var ReaderApp = React.createClass({
           (next.mode === "Connections" && prev.filter && !prev.filter.compare(next.filter)) ||
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
           (prev.searchQuery !== next.searchQuery) ||
-          (prev.navigationSheetTag !== next.navigationSheetTag)) {
+          (prev.navigationSheetTag !== next.navigationSheetTag) ||
+          (prev.version !== next.version) ||
+          (prev.version_language !== next.version_language))
+          {
          return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
         // Handle array comparison, !== could mean one is null or both are arrays
@@ -208,7 +211,7 @@ var ReaderApp = React.createClass({
         hist.title    = state.refs.slice(-1)[0];
         hist.url      = normRef(hist.title);
         hist.version  = state.version;
-        hist.language = state.language;
+        hist.version_language = state.version_language;
         hist.mode     = "Text"
       } else if (state.mode === "Connections") {
         var ref     = state.refs.slice(-1)[0];
@@ -222,7 +225,7 @@ var ReaderApp = React.createClass({
         hist.title    = ref  + " with " + (sources === "all" ? "Connections" : sources);
         hist.url      = normRef(ref) + "?with=" + sources;
         hist.version  = state.version;
-        hist.language = state.language;
+        hist.version_language = state.version_language;
         hist.mode     = "TextAndConnections"
       } else {
         continue;
@@ -233,8 +236,8 @@ var ReaderApp = React.createClass({
 
     // Now merge all history objects into one
     var url   = "/" + (histories.length ? histories[0].url : "");
-    if(histories[0].language && histories[0].version) {
-        url += "/" + histories[0].language + "/" + histories[0].version.replace(/\s/g,"_");
+    if(histories[0].version_language && histories[0].version) {
+        url += "/" + histories[0].version_language + "/" + histories[0].version.replace(/\s/g,"_");
     }
     var title =  histories.length ? histories[0].title : "Sefaria";
     var hist  = {state: clone(this.state), url: url, title: title};
@@ -254,8 +257,8 @@ var ReaderApp = React.createClass({
         var next    = "&p=" + histories[i].url;
         next        = next.replace("?", "&").replace(/=/g, (i+1) + "=");
         hist.url   += next;
-        if(histories[i].language && histories[i].version) {
-          hist.url += "&l" + (i+1) + "=" + histories[i].language + "&v" + (i+1) + "=" + histories[i].version.replace(/\s/g,"_");
+        if(histories[i].version_language && histories[i].version) {
+          hist.url += "&l" + (i+1) + "=" + histories[i].version_language + "&v" + (i+1) + "=" + histories[i].version.replace(/\s/g,"_");
         }
         hist.title += " & " + histories[i].title;
 
@@ -292,22 +295,26 @@ var ReaderApp = React.createClass({
   makePanelState: function(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
     if (!state.settings && !this.state) {debugger}
-    return {
+    var panel = {
       refs:                 state.refs || [], // array of ref strings
       mode:                 state.mode, // "Text", "TextAndConnections", "Connections"
       filter:               state.filter || [],
       version:              state.version || null,
-      language:             state.language || null,
+      version_language:     state.version_language || null,
       highlightedRefs:      state.highlightedRefs || [],
       recentFilters:        [],
-      settings:             state.settings || clone(this.state.defaultPanelSettings),
+      settings:             state.settings? clone(state.settings): clone(this.state.defaultPanelSettings),
       menuOpen:             state.menuOpen || null, // "navigation", "text toc", "display", "search", "sheets", "home"
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag:   state.sheetsTag || null,
       searchQuery:          state.searchQuery || null,
       displaySettingsOpen:  false,
       width:                0
+    };
+    if (panel.version_language) {
+      panel.settings.language = (panel.version_language == "he")? "hebrew": "english";
     }
+    return panel
   },
   handleNavigationClick: function(ref) {
     this.saveOpenPanelsToRecentlyViewed();
@@ -640,13 +647,14 @@ var ReaderPanel = React.createClass({
     initialRefs:            React.PropTypes.array,
     initialMode:            React.PropTypes.string,
     initialVersion:         React.PropTypes.string,
-    initialLanguage:        React.PropTypes.string,
+    initialVersionLanguage:        React.PropTypes.string,
     initialFilter:          React.PropTypes.array,
     initialHighlightedRefs: React.PropTypes.array,
     initialMenu:            React.PropTypes.string,
     initialQuery:           React.PropTypes.string,
     initialSheetsTag:       React.PropTypes.string,
     initialState:           React.PropTypes.object, // if present, trumps all props above
+    setCentralState:        React.PropTypes.func,
     onSegmentClick:         React.PropTypes.func,
     onCitationClick:        React.PropTypes.func,
     onTextListClick:        React.PropTypes.func,
@@ -672,7 +680,7 @@ var ReaderPanel = React.createClass({
       mode: this.props.initialMode, // "Text", "TextAndConnections", "Connections"
       filter: this.props.initialFilter || [],
       version: this.props.initialVersion,
-      language: this.props.initialLanguage,
+      version_language: this.props.initialVersionLanguage,
       highlightedRefs: this.props.initialHighlightedRefs || [],
       recentFilters: [],
       settings: this.props.intialState.settings || {
@@ -898,6 +906,7 @@ var ReaderPanel = React.createClass({
     $.cookie(option, value, {path: "/"});
     if (option === "language") {
       $.cookie("contentLang", value, {path: "/"});
+      this.conditionalSetState({"version_language":null, "version":null});
       this.props.setDefaultLanguage && this.props.setDefaultLanguage(value);
     }
     this.conditionalSetState(state);
@@ -962,7 +971,7 @@ var ReaderPanel = React.createClass({
       items.push(<TextColumn
           srefs={this.state.refs}
           version={this.state.version}
-          language={this.state.language}
+          version_language={this.state.version_language}
           highlightedRefs={this.state.highlightedRefs}
           basetext={true}
           withContext={true}
@@ -1024,7 +1033,7 @@ var ReaderPanel = React.createClass({
                     close={this.closeMenus}
                     title={this.currentBook()}
                     version={this.props.version}
-                    versionLanguage={this.props.language}
+                    version_language={this.state.version_language}
                     settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
                     category={this.currentCategory()}
                     currentRef={this.currentRef()} 
@@ -1057,9 +1066,18 @@ var ReaderPanel = React.createClass({
     }
 
     var classes  = {readerPanel: 1, wideColumn: this.state.width > 450};
-    classes[this.currentLayout()]         = 1;
-    classes[this.state.settings.language] = 1;
-    classes[this.state.settings.color]    = 1;
+    classes[this.currentLayout()]             = 1;
+    classes[this.state.settings.color]        = 1;
+
+    if (this.state.version_language) {
+      if (this.state.version_language=="he") {
+        classes["hebrew"]                     = 1;
+      } else if (this.state.version_language=="en") {
+        classes["english"]                    = 1;
+      }
+    } else {
+      classes[this.state.settings.language]   = 1;
+    }
     classes = classNames(classes);
     var style = {"fontSize": this.state.settings.fontSize + "%"};
     var hideReaderControls = (this.props.multiPanel && this.state.mode === "Connections" && ![].compare(this.state.filter)) ||
@@ -1698,7 +1716,7 @@ var ReaderTextTableOfContents = React.createClass({
     category:         React.PropTypes.string.isRequired,
     currentRef:       React.PropTypes.string.isRequired,
     settingsLanguage: React.PropTypes.string.isRequired,
-    versionLanguage:  React.PropTypes.string,
+    version_language:  React.PropTypes.string,
     version:          React.PropTypes.string,
     close:            React.PropTypes.func.isRequired,
     openNav:          React.PropTypes.func.isRequired,
@@ -1706,8 +1724,8 @@ var ReaderTextTableOfContents = React.createClass({
   },
   getInitialState: function() {
     var sectionRef  = sjs.library.sectionRef(this.props.currentRef);
-    var sectionText = sjs.library.text(sectionRef, {context: 1, version: this.props.version, language: this.props.versionLanguage});
-    var language    = this.props.versionLanguage || this.props.settingsLanguage;
+    var sectionText = sjs.library.text(sectionRef, {context: 1, version: this.props.version, language: this.props.version_language});
+    var language    = this.props.version_language || this.props.settingsLanguage;
     
     return {
       versions: sectionText.versions,
@@ -2028,7 +2046,7 @@ var TextColumn = React.createClass({
   propTypes: {
     srefs:                 React.PropTypes.array.isRequired,
     version:               React.PropTypes.string,
-    language:              React.PropTypes.string,
+    version_language:      React.PropTypes.string,
     highlightedRefs:       React.PropTypes.array,
     basetext:              React.PropTypes.bool,
     withContext:           React.PropTypes.bool,
@@ -2279,7 +2297,7 @@ var TextColumn = React.createClass({
       return (<TextRange 
         sref={ref}
         version={this.props.version}
-        language={this.props.language}
+        version_language={this.props.version_language}
         highlightedRefs={this.props.highlightedRefs}
         basetext={true}
         withContext={true}
@@ -2329,7 +2347,7 @@ var TextRange = React.createClass({
   propTypes: {
     sref:                React.PropTypes.string.isRequired,
     version:             React.PropTypes.string,
-    language:            React.PropTypes.string, //version language
+    version_language:       React.PropTypes.string,
     highlightedRefs:        React.PropTypes.array,
     basetext:               React.PropTypes.bool,
     withContext:            React.PropTypes.bool,
@@ -2412,7 +2430,7 @@ var TextRange = React.createClass({
     settings = {
       context: this.props.withContext ? 1 : 0,
       version: this.props.version || null,
-      language: this.props.language || null
+      language: this.props.version_language || null
     };
     sjs.library.text(this.props.sref, settings, this.loadText);
   },
@@ -2517,14 +2535,14 @@ var TextRange = React.createClass({
        sjs.library.text(data.next, {
          context: 1,
          version: this.props.version || null,
-         language: this.props.language || null
+         language: this.props.version_language || null
        }, function() {});
      }
      if (data.prev) {
        sjs.library.text(data.prev, {
          context: 1,
          version: this.props.version || null,
-         language: this.props.language || null
+         language: this.props.version_language || null
        }, function() {});
      }
      if (data.book) { sjs.library.textTocHtml(data.book, function() {}); }
