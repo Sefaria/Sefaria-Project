@@ -73,3 +73,19 @@ class TestNikkudUtils():
 class TestIsHebrew():
     def test_is_hebrew(self):
         assert h.is_hebrew(u"ג")
+
+class TestGematria():
+    def test_simple_gematria(self):
+        assert h.gematria(u"צדיק") == 204
+        assert h.gematria(u"צדיק גמור") == 204 + 249
+        assert h.gematria(u"אבגדהוזחטיכלמנסעפצקרשת") == 1000 + 450 + 45
+
+    def test_final_letters(self):
+        # Assumption is that final letters are counted as simple
+        assert h.gematria(u"םןףךץ") == 280
+
+    def test_with_nikkud(self):
+        assert h.gematria(u'הַדְּבָרִים אֲשֶׁר') == 501 + 261
+
+    def test_punctuation(self):
+        assert h.gematria(u"אבגדהוזחטיכלמנסעפקרשת") == h.gematria(u"אב[]גדהוז{}()?!ח..,,טיכלמנס    - -עפקרשת")
