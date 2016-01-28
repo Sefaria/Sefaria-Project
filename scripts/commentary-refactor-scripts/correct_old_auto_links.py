@@ -9,7 +9,7 @@ def correct_commentary_links(oref, text=None, **kwargs):
     tref = oref.normal()
     base_tref = tref[tref.find(" on ") + 4:]
     base_oref = Ref(base_tref)
-    found_links = []
+    fixed_links = []
 
 
     # This is a special case, where the sections length is 0 and that means this is
@@ -29,7 +29,7 @@ def correct_commentary_links(oref, text=None, **kwargs):
                         "text": text["text"][i] if i < len(text["text"]) else "",
                         "he": text["he"][i] if i < len(text["he"]) else ""
                         }
-                found_links += correct_commentary_links(sr, stext, **kwargs)
+                fixed_links += correct_commentary_links(sr, stext, **kwargs)
 
     else:
         if not text:
@@ -51,24 +51,32 @@ def correct_commentary_links(oref, text=None, **kwargs):
                         "text": text["text"][i] if i < len(text["text"]) else "",
                         "he": text["he"][i] if i < len(text["he"]) else ""
                         }
-                found_links += correct_commentary_links(r, stext, **kwargs)
+                fixed_links += correct_commentary_links(r, stext, **kwargs)
 
         # this is a single comment, trim the last section number (comment) from ref
         elif len(text["sections"]) == len(text["sectionNames"]):
             if (text['he'] and len(text['he'])) or (text['text'] and len(text['text'])): #only if there is actually text
                 base_tref = base_tref[0:base_tref.rfind(":")]
                 refs = [base_tref, tref]
-                link = Link().load({"$or":[{ "auto" : False },{ "auto" : 0 },{"auto":{ "$exists": False}}], "$or": [{"refs": refs}, {"refs": [refs[1], refs[0]]}]})
+                fixed = False
+                link = Link().load({"$or": [{"refs": refs}, {"refs": [refs[1], refs[0]]}]})
                 if link:
-                    link.auto = True
-                    link.type = 'commentary'
-                    link.generated_by = "add_commentary_links"
-                    found_links += [tref]
+                    if getattr(link, 'auto', False) is not True:
+                        fixed = True
+                        link.auto = True
+                    if getattr(link, 'type', '') != 'commentary':
+                        fixed = True
+                        link.type = 'commentary'
+                    if getattr(link, 'generated_by', '') != "add_commentary_links":
+                        fixed = True
+                        link.generated_by = "add_commentary_links"
+                    if fixed:
+                        fixed_links += [tref]
                     try:
                         link.save()
                     except DuplicateRecordError as e:
                         pass
-    return found_links
+    return fixed_links
 
 
 titles = library.get_commentary_version_titles()
