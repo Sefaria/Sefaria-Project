@@ -58,12 +58,12 @@
 
         if (!multiPanel) {
           if (filter) {
-            initialPanels = [{mode: "TextAndConnections", refs: [ref], filter: filter, version: version, language: language}];
+            initialPanels = [{mode: "TextAndConnections", refs: [ref], filter: filter, version: version, version_language: language}];
           } else {
-            initialPanels = [{mode: "Text", refs: [ref], version: version, language: language}];
+            initialPanels = [{mode: "Text", refs: [ref], version: version, version_language: language}];
           }
         } else { //multiPanel
-          initialPanels = [{mode: "Text", refs: [ref], version: version, language: language}];
+          initialPanels = [{mode: "Text", refs: [ref], version: version, version_language: language}];
           if (filter) {
             initialPanels.push({mode: "Connections", refs: [ref], filter: filter});
           }
@@ -74,7 +74,7 @@
             var v = urlVars["v" + i] || null;    // Version for panel i
             var l = urlVars["l" + i] || null;    // Language for panel i
             if (p && !p.match(/^texts|^sheets|^search/)) {
-              initialPanels.push({mode: "Text", refs: [humanRef(p)], version: v, language: l});
+              initialPanels.push({mode: "Text", refs: [humanRef(p)], version: v, version_language: l});
             }
             if (w) {
               filter = w.replace(/_/g, " ").split("+");
