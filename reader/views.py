@@ -1841,7 +1841,7 @@ def home(request):
     """
     Homepage
     """
-    if request.flavour == "mobile" or request.COOKIES.get('s2'):
+    if request.flavour == "mobile":
         return s2_page(request, "home")
 
     today              = date.today()
@@ -1852,7 +1852,7 @@ def home(request):
     p929_ref           = "%s %s" % (p929_chapter.book_name, p929_chapter.book_chapter)
     metrics            = db.metrics.find().sort("timestamp", -1).limit(1)[0]
 
-    return render_to_response('static/home.html',
+    return render_to_response('static/s2_home.html' if request.COOKIES.get('s2') else 'static/home.html',
                              {
                               "metrics": metrics,
                               "daf_today": daf_today,

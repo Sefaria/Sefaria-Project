@@ -304,7 +304,7 @@ var ReaderApp = React.createClass({
       menuOpen:             state.menuOpen || null, // "navigation", "text toc", "display", "search", "sheets", "home"
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag:   state.sheetsTag || null,
-      searchQuery:          state.query || null,
+      searchQuery:          state.searchQuery || null,
       displaySettingsOpen:  false,
       width:                0
     }
@@ -493,10 +493,7 @@ var ReaderApp = React.createClass({
 
 var Header = React.createClass({
   propTypes: {
-    initialMode:        React.PropTypes.string,
-    initialQuery:       React.PropTypes.string,
-    initialState:       React.PropTypes.object,
-    initialSettings:    React.PropTypes.object,
+    initialState:       React.PropTypes.object.isRequired,
     setCentralState:    React.PropTypes.func,
     onRefClick:         React.PropTypes.func,
     showLibrary:        React.PropTypes.func,
@@ -508,7 +505,7 @@ var Header = React.createClass({
     return this.props.initialState;
   },
   componentDidMount: function() {
-    this.initAutocomplete();
+    //this.initAutocomplete();
   },
   componentWillReceiveProps: function(nextProps) {
     if (nextProps.initialState) {
@@ -618,7 +615,6 @@ var Header = React.createClass({
     return (<div className="header">
               <div className="headerInner">
                 <div className="left">
-                  <div className="home" onClick={this.showDesktop}><img src="/static/img/sefaria-on-white.png" /></div>
                   <div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div>
                 </div>
                 <div className="right">
@@ -628,6 +624,7 @@ var Header = React.createClass({
                   <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                   <input className="search" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
                 </span>
+                <a className="home" href="/" ><img src="/static/img/sefaria-on-white.png" /></a>
               </div>
               { viewContent ? 
                 (<div className="headerNavContent">
@@ -678,7 +675,7 @@ var ReaderPanel = React.createClass({
       language: this.props.initialLanguage,
       highlightedRefs: this.props.initialHighlightedRefs || [],
       recentFilters: [],
-      settings: this.props.initialSettings || {
+      settings: this.props.intialState.settings || {
         language:      "bilingual",
         layoutDefault: "segmented",
         layoutTalmud:  "continuous",

@@ -51,7 +51,7 @@ body.dark {
 }
 .headerInner {
   line-height: 54px;
-  padding: 0px 30px;
+  padding: 0px 20px;
   text-align: center;
   height: 54px;
   overflow: hidden;
@@ -92,9 +92,13 @@ body.dark {
 }
 .header .home {
   display: inline-block;
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  margin-left: -50px;
 }
 .header .home img {
-  opacity: 0.6;
+  opacity: 0.5;
 }
 .header .library, .header .account {
   margin: 0px 17px;
