@@ -52,13 +52,15 @@ var ReaderApp = React.createClass({
         panels.push(this.makePanelState(panel));
       }
     }
+    var header = this.makePanelState({
+                  mode: "Header",
+                  menuOpen: this.props.initialMenu,
+                  query: this.props.initialQuery,
+                  settings: defaultPanelSettings});
+
     return {
       panels: panels,
-      header: this.makePanelState({
-        mode: "Header",
-        menuOpen: this.props.initialMenu,
-        query: this.props.initialQuery,
-        settings: defaultPanelSettings}),
+      header: header,
       defaultPanelSettings: defaultPanelSettings
     };
   },
@@ -68,12 +70,14 @@ var ReaderApp = React.createClass({
     }
     window.addEventListener("popstate", this.handlePopState);
     window.addEventListener("beforeunload", this.saveOpenPanelsToRecentlyViewed);
+   
+    // Set S2 cookie, putting user into S2 mode site wide
     $.cookie("s2", true, {path: "/"});
   },
   componentWillUnmount: function() {
     window.removeEventListener("popstate", this.handlePopState);
   },
-  componentDidUpdate: function() {
+  componentDidUpdate: function(prevProps, prevState) {
     if (this.justPopped) {
       //console.log("Skipping history update - just popped")
       this.justPopped = false;
@@ -82,19 +86,9 @@ var ReaderApp = React.createClass({
     }
     // Central State TODO 
     // - carry panel language change to dependent panel
-    // - singnal an update shoule replaceHistory
 
+    this.setContainerMode();
     this.updateHistoryState(this.replaceHistory);
-    this.replaceHistory = false;
-    if (this.props.headerMode) {
-      if (this.state.header.menuOpen || this.state.panels.length) {
-        $("#s2").removeClass("headerOnly");
-        $("body").css({overflow: "hidden"});
-      } else {
-        $("#s2").addClass("headerOnly");
-        $("body").css({overflow: "hidden"});
-      }
-    }
   },
   handlePopState: function(event) {
     var state = event.state;
@@ -280,17 +274,18 @@ var ReaderApp = React.createClass({
     var hist = this.makeHistoryState();
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
-      //console.log("Replace History - " + hist.url)
+      console.log("Replace History - " + hist.url)
       //console.log(hist);
     } else {
       if (window.location.pathname == hist.url) { return; } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
-      //console.log("Push History - " + hist.url);
+      console.log("Push History - " + hist.url);
       //console.log(hist);
     }
-    $("title").html(hist.title);
 
+    $("title").html(hist.title);
     sjs.track.pageview(hist.url);
+    this.replaceHistory = false;
   },
   makePanelState: function(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
@@ -316,6 +311,17 @@ var ReaderApp = React.createClass({
     }
     return panel
   },
+  setContainerMode: function() {
+    if (this.props.headerMode) {
+      if (this.state.header.menuOpen || this.state.panels.length) {
+        $("#s2").removeClass("headerOnly");
+        $("body").css({overflow: "hidden"});
+      } else {
+        $("#s2").addClass("headerOnly");
+        $("body").css({overflow: "hidden"});
+      }
+    }
+  },
   handleNavigationClick: function(ref) {
     this.saveOpenPanelsToRecentlyViewed();
     this.setState({
@@ -334,11 +340,14 @@ var ReaderApp = React.createClass({
     this.openPanelAt(n, citationRef);
     this.setTextListHighlight(n, [textRef]);
   },
-  setPanelState: function(n, state) {
+  setPanelState: function(n, state, replaceHistory) {
+    this.replaceHistory  = Boolean(replaceHistory);
+    //console.log(`setPanel State ${n}, replace: ` + this.replaceHistory);
+    //console.log(state)
     this.state.panels[n] = $.extend(this.state.panels[n], state);
     this.setState({panels: this.state.panels});
   },
-  setHeaderState: function(state) {
+  setHeaderState: function(state, replaceHistory) {
     this.state.header = $.extend(this.state.header, state);
     this.setState({header: this.state.header});
   },
@@ -355,19 +364,6 @@ var ReaderApp = React.createClass({
   },
   openPanelAtEnd: function(ref) {
     this.openPanelAt(this.state.panels.length+1, ref);
-  },
-  setTextListHighlight: function(n, refs) {
-    // Set the textListHighlight for panel `n` to `refs`
-    // If a connections panel is opened after n, update its refs as well.
-    refs = typeof refs === "string" ? [refs] : refs;
-    this.state.panels[n].highlightedRefs = refs;
-    this.setState({panels: this.state.panels});
-
-    var next = this.state.panels[n+1];
-    if (next && next.mode === "Connections" && !next.menuOpen) {
-      this.openTextListAt(n+1, refs);
-    }
-    return;
   },
   openTextListAt: function(n, refs) {
     // Open a connections panel at position `n` for `refs`
@@ -390,6 +386,19 @@ var ReaderApp = React.createClass({
     panel.mode           = "Connections";
     this.state.panels[n] = this.makePanelState(panel);
     this.setState({panels: this.state.panels});
+  },
+  setTextListHighlight: function(n, refs) {
+    // Set the textListHighlight for panel `n` to `refs`
+    // If a connections panel is opened after n, update its refs as well.
+    refs = typeof refs === "string" ? [refs] : refs;
+    this.state.panels[n].highlightedRefs = refs;
+    this.setState({panels: this.state.panels});
+
+    var next = this.state.panels[n+1];
+    if (next && next.mode === "Connections" && !next.menuOpen) {
+      this.openTextListAt(n+1, refs);
+    }
+    return;
   },
   closePanel: function(n) {
     this.saveRecentlyViewed(this.state.panels[n]);
@@ -512,7 +521,7 @@ var Header = React.createClass({
     return this.props.initialState;
   },
   componentDidMount: function() {
-    //this.initAutocomplete();
+    this.initAutocomplete();
   },
   componentWillReceiveProps: function(nextProps) {
     if (nextProps.initialState) {
@@ -740,12 +749,14 @@ var ReaderPanel = React.createClass({
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
       this.setWidth();
     }
+    this.replaceHistory = false;
   },
   conditionalSetState: function(state) {
     // Set state either in the central app or in the local component,
     // depending on whether a setCentralState function was given.
     if (this.props.setCentralState) {
-      this.props.setCentralState(state);
+      this.props.setCentralState(state, this.replaceHistory);
+      this.replaceHistory = false;
     } else {
       this.setState(state);
     }
@@ -784,7 +795,7 @@ var ReaderPanel = React.createClass({
   openConnectionsInPanel: function(ref) {
     var refs = typeof ref == "string" ? [ref] : ref;
     this.replaceHistory = this.state.mode === "TextAndConnections"; // Don't push history for change in Connections focus
-    this.conditionalSetState({highlightedRefs: refs, mode: "TextAndConnections" });      
+    this.conditionalSetState({highlightedRefs: refs, mode: "TextAndConnections" }, this.replaceHistory);      
   },
   closeConnectionsInPanel: function() {
     // Return to the original text in the ReaderPanel contents
@@ -794,8 +805,7 @@ var ReaderPanel = React.createClass({
     // Set the current primary text
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
     if (!ref) { return; }
-    this.replaceHistory = typeof replaceHistory === "undefined" ? false : replaceHistory;
-    // Central State TODO - where to signal replaceHistory
+    this.replaceHistory = Boolean(replaceHistory);
     this.conditionalSetState({
       mode: "Text",
       refs: [ref],
@@ -807,7 +817,7 @@ var ReaderPanel = React.createClass({
   updateTextColumn: function(refs) {
     // Change the refs in the current TextColumn, for infinite scroll up/down.
     this.replaceHistory = true;
-    this.conditionalSetState({ refs: refs });
+    this.conditionalSetState({ refs: refs }, this.replaceState);
   },
   setTextListHightlight: function(refs) {
     refs = typeof refs === "string" ? [refs] : refs;
@@ -912,7 +922,7 @@ var ReaderPanel = React.createClass({
     this.conditionalSetState(state);
   },
   setWidth: function() {
-    this.conditionalSetState({width: $(ReactDOM.findDOMNode(this)).width()});
+    this.width = $(ReactDOM.findDOMNode(this)).width();
   },
   trackPanelOpens: function() {
     if (this.state.mode === "Connections") { return; }
@@ -1065,7 +1075,7 @@ var ReaderPanel = React.createClass({
       var menu = null;
     }
 
-    var classes  = {readerPanel: 1, wideColumn: this.state.width > 450};
+    var classes  = {readerPanel: 1, wideColumn: this.width > 450};
     classes[this.currentLayout()]             = 1;
     classes[this.state.settings.color]        = 1;
 
