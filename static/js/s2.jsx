@@ -295,22 +295,26 @@ var ReaderApp = React.createClass({
   makePanelState: function(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
     if (!state.settings && !this.state) {debugger}
-    return {
+    var panel = {
       refs:                 state.refs || [], // array of ref strings
       mode:                 state.mode, // "Text", "TextAndConnections", "Connections"
       filter:               state.filter || [],
       version:              state.version || null,
-      version_language:             state.version_language || null,
+      version_language:     state.version_language || null,
       highlightedRefs:      state.highlightedRefs || [],
       recentFilters:        [],
-      settings:             state.settings || clone(this.state.defaultPanelSettings),
+      settings:             state.settings? clone(state.settings): clone(this.state.defaultPanelSettings),
       menuOpen:             state.menuOpen || null, // "navigation", "text toc", "display", "search", "sheets", "home"
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag:   state.sheetsTag || null,
       searchQuery:          state.query || null,
       displaySettingsOpen:  false,
       width:                0
+    };
+    if (panel.version_language) {
+      panel.settings.language = (panel.version_language == "he")? "hebrew": "english";
     }
+    return panel
   },
   handleNavigationClick: function(ref) {
     this.saveOpenPanelsToRecentlyViewed();
