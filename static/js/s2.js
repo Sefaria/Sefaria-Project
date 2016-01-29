@@ -640,7 +640,7 @@ var Header = React.createClass({displayName: "Header",
                   React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.handleSearchButtonClick}), 
                   React.createElement("input", {className: "search", placeholder: "Search", onKeyUp: this.handleSearchKeyUp})
                 ), 
-                React.createElement("a", {className: "home", href: "/"}, React.createElement("img", {src: "/static/img/sefaria-on-white.png"}))
+                React.createElement("a", {className: "home", href: "/?home"}, React.createElement("img", {src: "/static/img/sefaria-on-white.png"}))
               ), 
                viewContent ? 
                 (React.createElement("div", {className: "headerNavContent"}, 

@@ -6,6 +6,7 @@ from sets import Set
 from random import choice
 from pprint import pprint
 import json
+import urlparse
 import dateutil.parser
 from bson.json_util import dumps
 import p929
@@ -1841,6 +1842,11 @@ def home(request):
     """
     Homepage
     """
+    recent = request.COOKIES.get("recentlyViewed", None)
+    if recent and not "home" in request.GET:
+        recent = json.loads(urlparse.unquote(recent))
+        return redirect("/%s" % recent[0]["ref"])
+
     if request.flavour == "mobile":
         return s2_page(request, "home")
 
