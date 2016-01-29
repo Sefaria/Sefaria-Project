@@ -57,7 +57,7 @@ var ReaderApp = React.createClass({
     panels = panels.map(function(panel) { 
       return this.makePanelState(panel); 
     }.bind(this) );
-    
+
     var header = this.makePanelState({
                   mode: "Header",
                   menuOpen: this.props.initialMenu,
@@ -2174,8 +2174,10 @@ var TextColumn = React.createClass({
   },
   handleTextLoad: function() {
     if (this.loadingContentAtTop || !this.initialScrollTopSet) {
+      console.log("text load, setting scroll")
       this.setScrollPosition();
     } else {
+      console.log("text load, ais")
       this.adjustInfiniteScroll();
     }
   },
@@ -2210,14 +2212,18 @@ var TextColumn = React.createClass({
       node.scrollTop = 30;
       this.initialScrollTopSet = true;
     }
+    // This fixes loading of next content when current content is short in viewpot,
+    // but breaks loading highlted ref, jumping back up to top of section
+    // this.adjustInfiniteScroll();
   },
   adjustInfiniteScroll: function() {
     // Add or remove TextRanges from the top or bottom, depending on scroll position
+    console.log("ais");
     if (!this.isMounted()) { return; }
     var node         = ReactDOM.findDOMNode(this);
     var refs         = this.props.srefs;
     var $lastText    = $(node).find(".textRange.basetext").last();
-    if (!$lastText.length) { return; }
+    if (!$lastText.length) { console.log("no last basetext"); return; }
     var lastTop      = $lastText.position().top;
     var lastBottom   = lastTop + $lastText.outerHeight();
     var windowHeight = $(node).outerHeight();
@@ -2230,6 +2236,7 @@ var TextColumn = React.createClass({
     } else if ( lastBottom < windowHeight + 80 ) {
       // Add the next section to bottom
       if ($lastText.hasClass("loading")) { 
+        console.log("last text is loading")
         return;
       }
       currentRef = refs.slice(-1)[0];
