@@ -857,10 +857,13 @@ var ReaderPanel = React.createClass({
   setFilter: function(filter, updateRecent) {
     // Sets the current filter for Connected Texts (TextList)
     // If updateRecent is true, include the curent setting in the list of recent filters.
+    
+    /*  Hack to open commentaries immediately as full texts
     if (filter && sjs.library.index(filter) && sjs.library.index(filter).categories[0] == "Commentary") {
       this.openCommentary(filter);
       return;
     }
+    */
     if (updateRecent && filter) {
       if ($.inArray(filter, this.state.recentFilters) !== -1) {
         this.state.recentFilters.toggle(filter);
@@ -2883,7 +2886,7 @@ var TextList = React.createClass({
     var isSingleCommentary = (filter.length == 1 && sjs.library.index(filter[0]) && sjs.library.index(filter[0]).categories == "Commentary");
 
     var links = sectionLinks.filter(function(link) {
-      if (!isSingleCommentary && $.inArray(link.anchorRef, refs) === -1) {
+      if ($.inArray(link.anchorRef, refs) === -1 && (this.props.multiPanel || !isSingleCommentary) ) {
         // Only show section level links for an individual commentary
         return false;
       }
