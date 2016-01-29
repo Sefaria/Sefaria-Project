@@ -30,7 +30,9 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
       if (mode === "TextAndConnections") {
         panels[0].highlightedRefs = this.props.initialRefs;
       }
-    } else if (this.props.initialRefs.length && this.props.initialMenu !== "text toc") {
+    } if (this.props.intialMenu === "text toc") {
+
+    } else if (this.props.initialRefs.length) {
       panels.push({
         refs: this.props.initialRefs,
         mode: "Text",
@@ -49,16 +51,21 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
       for (var i = panels.length; i < this.props.initialPanels.length; i++) {
         var panel      = clone(this.props.initialPanels[i]);
         panel.settings = clone(defaultPanelSettings);
-        panels.push(this.makePanelState(panel));
+        panels.push(panel);
       }
     }
+    panels = panels.map(function(panel) { 
+      return this.makePanelState(panel); 
+    }.bind(this) );
+    
     var header = this.makePanelState({
                   mode: "Header",
                   menuOpen: this.props.initialMenu,
+                  refs: this.props.initialRefs,
                   searchQuery: this.props.initialQuery,
                   navigationCategories: this.props.initialNavigationCategories,
                   sheetsTag: this.props.initialSheetsTag,
-                  settings: defaultPanelSettings});
+                  settings: clone(defaultPanelSettings)});
 
     return {
       panels: panels,
