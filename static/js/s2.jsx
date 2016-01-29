@@ -344,6 +344,14 @@ var ReaderApp = React.createClass({
     this.replaceHistory  = Boolean(replaceHistory);
     //console.log(`setPanel State ${n}, replace: ` + this.replaceHistory);
     //console.log(state)
+
+    // When the driving panel changes langauge, carry that to the dependent panel
+    var langChange  = state.settings && state.settings.language !== this.state.panels[n].settings.language;
+    var next        = this.state.panels[n+1];
+    if (langChange && next && next.mode === "Connections") {
+        next.settings.language = state.settings.language;
+    }
+
     this.state.panels[n] = $.extend(this.state.panels[n], state);
     this.setState({panels: this.state.panels});
   },
@@ -351,9 +359,9 @@ var ReaderApp = React.createClass({
     this.state.header = $.extend(this.state.header, state);
     this.setState({header: this.state.header});
   },
-  setDefaultLanguage: function(language) {
-    if (language !== this.state.defaultPanelSettings.language) {
-      this.state.defaultPanelSettings.language = language;
+  setDefaultOption: function(option, value) {
+    if (value !== this.state.defaultPanelSettings[option]) {
+      this.state.defaultPanelSettings[option] = value;
       this.setState(this.state);
     }
   },
@@ -483,7 +491,7 @@ var ReaderApp = React.createClass({
                       onNavigationClick={this.handleNavigationClick}
                       onOpenConnectionsClick={onOpenConnectionsClick}
                       setTextListHightlight={setTextListHightlight}
-                      setDefaultLanguage={this.setDefaultLanguage}
+                      setDefaultOption={this.setDefaultOption}
                       closePanel={closePanel}
                       panelsOpen={this.state.panels.length}
                       layoutWidth={width} />
@@ -496,7 +504,7 @@ var ReaderApp = React.createClass({
                   initialState={this.state.header}
                   setCentralState={this.setHeaderState}
                   onRefClick={this.handleNavigationClick}
-                  setDefaultLanguage={this.setDefaultLanguage}
+                  setDefaultOption={this.setDefaultOption}
                   showLibrary={this.showLibrary}
                   showSearch={this.showSearch}
                   headerMode={this.props.headerMode}
@@ -514,7 +522,7 @@ var Header = React.createClass({
     onRefClick:         React.PropTypes.func,
     showLibrary:        React.PropTypes.func,
     showSearch:         React.PropTypes.func,
-    setDefaultLanguage: React.PropTypes.func,
+    setDefaultOption:   React.PropTypes.func,
     panelsOpen:         React.PropTypes.number
   },
   getInitialState: function() {
@@ -920,7 +928,7 @@ var ReaderPanel = React.createClass({
     if (option === "language") {
       $.cookie("contentLang", value, {path: "/"});
       this.conditionalSetState({"version_language":null, "version":null});
-      this.props.setDefaultLanguage && this.props.setDefaultLanguage(value);
+      this.props.setDefaultOption && this.props.setDefaultOption(option, value);
     }
     this.conditionalSetState(state);
   },
