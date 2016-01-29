@@ -209,10 +209,11 @@ def s2_texts_category(request, cats):
     """
     Listing of texts in a category.
     """
+    print cats
     cats       = cats.split("/")
     toc        = library.get_toc()
     cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
-
+    print cat_toc
     if cat_toc is None:
         return s2_texts(request)
 
@@ -702,6 +703,7 @@ def texts_category_list(request, cats):
     """
     if request.flavour == "mobile" or request.COOKIES.get('s2'):
         return s2_texts_category(request, cats)
+    
     cats       = cats.split("/")
     toc        = library.get_toc()
     cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)

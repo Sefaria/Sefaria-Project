@@ -19,43 +19,45 @@ var ReaderApp = React.createClass({
     var defaultPanelSettings = clone(this.props.initialSettings);
     if (!this.props.multiPanel) {
       var mode = this.props.initialFilter ? "TextAndConnections" : "Text";
-      panels[0] = this.makePanelState({
+      panels[0] = {
         refs: this.props.initialRefs,
         mode: mode,
         filter: this.props.initialFilter,
         version: this.props.initialPanels[0].version,
         version_version_language: this.props.initialPanels[0].version_language,
-        settings: defaultPanelSettings
-      });
+        settings: clone(defaultPanelSettings)
+      };
       if (mode === "TextAndConnections") {
         panels[0].highlightedRefs = this.props.initialRefs;
       }
     } else if (this.props.initialRefs.length && this.props.initialMenu !== "text toc") {
-      panels.push(this.makePanelState({
+      panels.push({
         refs: this.props.initialRefs,
         mode: "Text",
         version: this.props.initialPanels[0].version,
         version_language: this.props.initialPanels[0].version_language,
-        settings: defaultPanelSettings
-      }));
+        settings: clone(defaultPanelSettings)
+      });
       if (this.props.initialFilter) {
-        panels.push(this.makePanelState({
+        panels.push({
           refs: this.props.initialRefs,
           filter: this.props.initialFilter,
           mode: "Connections",
-          settings: defaultPanelSettings
-        }));
+          settings: clone(defaultPanelSettings)
+        });
       }
       for (var i = panels.length; i < this.props.initialPanels.length; i++) {
-        var panel = clone(this.props.initialPanels[i]);
-        panel.settings = defaultPanelSettings;
+        var panel      = clone(this.props.initialPanels[i]);
+        panel.settings = clone(defaultPanelSettings);
         panels.push(this.makePanelState(panel));
       }
     }
     var header = this.makePanelState({
                   mode: "Header",
                   menuOpen: this.props.initialMenu,
-                  query: this.props.initialQuery,
+                  searchQuery: this.props.initialQuery,
+                  navigationCategories: this.props.initialNavigationCategories,
+                  sheetsTag: this.props.initialSheetsTag,
                   settings: defaultPanelSettings});
 
     return {
@@ -150,7 +152,8 @@ var ReaderApp = React.createClass({
     // Returns an object with state, title and url params for the current state
     var histories = [];
     // When the header has a panel open, only look at its content for history
-    var panels = this.state.header.menuOpen || this.state.header.mode === "Header" ? [this.state.header] : this.state.panels;
+    var panels = this.state.header.menuOpen ||
+                (!this.state.panels.length && this.state.header.mode === "Header") ? [this.state.header] : this.state.panels;
     for (var i = 0; i < panels.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
       var hist  = {url: ""};
@@ -221,7 +224,7 @@ var ReaderApp = React.createClass({
         hist.mode     = "TextAndConnections"
       } else if (state.mode === "Header") {
         hist.title  = document.title;
-        hist.url    = window.location.pathname.substring(1);
+        hist.url    = "";
         hist.mode   = "Header"
       }
       histories.push(hist);     
