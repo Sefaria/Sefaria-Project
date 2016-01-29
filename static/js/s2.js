@@ -65,9 +65,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     };
   },
   componentDidMount: function() {
-    if (!this.props.headerMode) {
-      this.updateHistoryState(true); // make sure initial page state is in history, (passing true to replace)
-    }
+    this.updateHistoryState(true); // make sure initial page state is in history, (passing true to replace)
     window.addEventListener("popstate", this.handlePopState);
     window.addEventListener("beforeunload", this.saveOpenPanelsToRecentlyViewed);
    
@@ -152,13 +150,13 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     // Returns an object with state, title and url params for the current state
     var histories = [];
     // When the header has a panel open, only look at its content for history
-    var panels = this.state.header.menuOpen ? [this.state.header] : this.state.panels;
+    var panels = this.state.header.menuOpen || this.state.header.mode === "Header" ? [this.state.header] : this.state.panels;
     for (var i = 0; i < panels.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
       var hist  = {url: ""};
       var state = clone(panels[i]);
       if (!state) { debugger }
-      if (state && state.menuOpen) {
+      if (state.menuOpen) {
         switch (state.menuOpen) {
           case "home":
             hist.title = "Sefaria: a Living Library of Jewish Texts Online";
@@ -221,8 +219,10 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
         hist.version  = state.version;
         hist.version_language = state.version_language;
         hist.mode     = "TextAndConnections"
-      } else {
-        continue;
+      } else if (state.mode === "Header") {
+        hist.title  = document.title;
+        hist.url    = window.location.pathname.substring(1);
+        hist.mode   = "Header"
       }
       histories.push(hist);     
     }

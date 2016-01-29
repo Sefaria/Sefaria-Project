@@ -4,6 +4,12 @@ body {
   overflow: hidden;
   -webkit-text-size-adjust: 100%;
 }
+body {
+  /* font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif; */
+}
+body .he {
+  /* font-family: "Open Sans Hebrew", sans-serif; */
+}
 *::selection {
   background-color: #D2DCFF;
 }
