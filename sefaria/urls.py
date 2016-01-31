@@ -271,6 +271,8 @@ urlpatterns += patterns('reader.views',
     (r'^vgarden/custom/(?P<key>.+)$', 'custom_visual_garden_page'),
     (r'^visualize/library/(?P<lang>[enh]*)/?(?P<cats>.*)/?$', 'visualize_library'),
     (r'^visualize/library/?(?P<cats>.*)/?$', 'visualize_library'),
+    (r'^visualize/toc$', 'visualize_toc'),
+
 )
 
 # Redirects to Forum, Wiki
