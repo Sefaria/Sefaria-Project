@@ -32,10 +32,7 @@ def add_and_delete_invalid_commentary_links(oref, user, **kwargs):
 
     ref_regex = oref.regex()
     existing_links = LinkSet({"refs": {"$regex": ref_regex}, "generated_by": "add_commentary_links"})
-    print "{} existing links".format(len(existing_links))
-    print "doing recursive build"
     found_links = add_commentary_links(oref, user, **kwargs)
-    print "{} found links".format(len(found_links))
     for exLink in existing_links:
         for r in exLink.refs:
             if commentary_book_name not in r:  #current base ref
