@@ -1123,6 +1123,8 @@ var ReaderPanel = React.createClass({
           currentMode={this.currentMode}
           currentCategory={this.currentCategory}
           currentBook={this.currentBook}
+          version={this.state.version}
+          version_language={this.state.version_language}
           multiPanel={this.props.multiPanel}
           settings={this.state.settings}
           setOption={this.setOption}
@@ -1161,6 +1163,8 @@ var ReaderControls = React.createClass({
     openDisplaySettings:     React.PropTypes.func.isRequired,
     closeMenus:              React.PropTypes.func.isRequired,
     currentRef:              React.PropTypes.string,
+    version:                 React.PropTypes.string,
+    version_language:        React.PropTypes.string,
     currentMode:             React.PropTypes.func.isRequired,
     currentCategory:         React.PropTypes.func.isRequired,
     currentBook:             React.PropTypes.func.isRequired,
@@ -1185,6 +1189,7 @@ var ReaderControls = React.createClass({
       sjs.library.text(title, {context: 1}, function() { if (this.isMounted()) { this.setState({}); } }.bind(this));
     }
 
+    var version_title = this.props.version ? this.props.version.replace(/_/g," "):"";
     var centerContent = this.props.multiPanel && mode === "Connections" ?
       (<div className="readerTextToc">
           <span className="en">Select Connection</span>
@@ -1197,6 +1202,7 @@ var ReaderControls = React.createClass({
             <span className="he">{heTitle}</span>
           </div>
           { title ? (<i className="fa fa-caret-down"></i>) : null }
+          { this.props.version_language == "en" ? (<div className="readerTextVersion"><span className="en">{version_title}</span></div>) : null}
         </div>);
 
     var classes = classNames({readerControls: 1, headeroom: 1, connectionsHeader: mode == "Connections"});
