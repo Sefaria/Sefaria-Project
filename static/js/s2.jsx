@@ -163,9 +163,10 @@ var ReaderApp = React.createClass({
                 (!this.state.panels.length && this.state.header.mode === "Header") ? [this.state.header] : this.state.panels;
     for (var i = 0; i < panels.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
-      var hist  = {url: ""};
       var state = clone(panels[i]);
       if (!state) { debugger }
+      var hist  = {url: ""};
+    
       if (state.menuOpen) {
         switch (state.menuOpen) {
           case "home":
@@ -350,6 +351,10 @@ var ReaderApp = React.createClass({
     this.openPanelAt(n, citationRef);
     this.setTextListHighlight(n, [textRef]);
   },
+  handleRecentClick: function(pos, refs) {
+    console.log("recent click: " + pos + ", " + refs);
+    this.openPanelAt(pos, refs);
+  },
   setPanelState: function(n, state, replaceHistory) {
     this.replaceHistory  = Boolean(replaceHistory);
     //console.log(`setPanel State ${n}, replace: ` + this.replaceHistory);
@@ -419,7 +424,7 @@ var ReaderApp = React.createClass({
     return;
   },
   closePanel: function(n) {
-    this.saveRecentlyViewed(this.state.panels[n]);
+    this.saveRecentlyViewed(this.state.panels[n], n);
     if (this.state.panels.length == 1 && n == 0) {
       this.state.panels = [];
     } else {
@@ -445,7 +450,7 @@ var ReaderApp = React.createClass({
   showSearch: function(query) {
     this.setState({header: this.makePanelState({menuOpen: "search", searchQuery: query})});
   },
-  saveRecentlyViewed: function(panel) {
+  saveRecentlyViewed: function(panel, n) {
     if (panel.mode == "Connections" || !panel.refs.length) { return; }
     var ref  = panel.refs[0];
     var oRef = sjs.library.ref(ref);
@@ -454,13 +459,19 @@ var ReaderApp = React.createClass({
     recent = recent.filter(function(item) {
       return item.ref !== ref; // Remove this item if it's in the list already
     });
-    recent.splice(0, 0, {ref: ref, heRef: oRef.heRef, book: oRef.indexTitle});
+    var cookieData = {
+      ref: ref,
+      heRef: oRef.heRef,
+      book: oRef.indexTitle,
+      position: n
+    };
+    recent.splice(0, 0, cookieData);
     recent = recent.slice(0, 3);
     $.cookie("recentlyViewed", JSON.stringify(recent), {path: "/"});
   },
   saveOpenPanelsToRecentlyViewed: function() {
     for (var i = this.state.panels.length-1; i >= 0; i--) {
-      this.saveRecentlyViewed(this.state.panels[i]);
+      this.saveRecentlyViewed(this.state.panels[i], i);
     }
   },
   render: function() {
@@ -499,6 +510,7 @@ var ReaderApp = React.createClass({
                       onCitationClick={onCitationClick}
                       onTextListClick={onTextListClick}
                       onNavigationClick={this.handleNavigationClick}
+                      onRecentClick={this.handleRecentClick}
                       onOpenConnectionsClick={onOpenConnectionsClick}
                       setTextListHightlight={setTextListHightlight}
                       setDefaultOption={this.setDefaultOption}
@@ -507,6 +519,7 @@ var ReaderApp = React.createClass({
                       layoutWidth={width} />
                   </div>);
     }
+
     var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel});
     return (<div className={classes}>
               {this.props.multiPanel ? 
@@ -621,6 +634,7 @@ var Header = React.createClass({
   handleRefClick: function(ref) {
     this.props.onRefClick(ref);
   },
+
   handleSearchKeyUp: function(event) {
     if (event.keyCode === 13) {
       var query = $(event.target).val();
@@ -641,8 +655,9 @@ var Header = React.createClass({
                           initialState={this.state}
                           setCentralState={this.props.setCentralState}
                           multiPanel={true}
-                          onNavTextClick={this.handleRefClick}
-                          onSearchResultClick={this.handleRefClick}
+                          onNavTextClick={this.props.onRefClick}
+                          onSearchResultClick={this.props.onRefClick}
+                          onRecentClick={this.props.onRecentClick}
                           setDefaultLanguage={this.props.setDefaultLanguage}
                           hideNavHeader={true} />) : null;
 
@@ -674,7 +689,7 @@ var ReaderPanel = React.createClass({
     initialRefs:            React.PropTypes.array,
     initialMode:            React.PropTypes.string,
     initialVersion:         React.PropTypes.string,
-    initialVersionLanguage:        React.PropTypes.string,
+    initialVersionLanguage: React.PropTypes.string,
     initialFilter:          React.PropTypes.array,
     initialHighlightedRefs: React.PropTypes.array,
     initialMenu:            React.PropTypes.string,
@@ -686,6 +701,7 @@ var ReaderPanel = React.createClass({
     onCitationClick:        React.PropTypes.func,
     onTextListClick:        React.PropTypes.func,
     onNavTextClick:         React.PropTypes.func,
+    onRecentClick:          React.PropTypes.func,
     onSearchResultClick:    React.PropTypes.func,
     onUpdate:               React.PropTypes.func,
     closePanel:             React.PropTypes.func,
@@ -697,11 +713,13 @@ var ReaderPanel = React.createClass({
     layoutWidth:            React.PropTypes.number
   },
   getInitialState: function() {
+    // When this component is managed by a parent, all it takes is initialState
     if (this.props.initialState) {
       var state = clone(this.props.initialState);
       return state;
     }
 
+    // When this component is independent and manges itself, it takes individual initial state props, with defaults here. 
     return {
       refs: this.props.initialRefs || [], // array of ref strings
       mode: this.props.initialMode, // "Text", "TextAndConnections", "Connections"
@@ -1057,6 +1075,7 @@ var ReaderPanel = React.createClass({
                     openMenu={this.openMenu}
                     openDisplaySettings={this.openDisplaySettings}
                     onTextClick={this.props.onNavTextClick || this.showBaseText}
+                    onRecentClick={this.props.onRecentClick || function(pos, ref) { this.showBaseText(ref) }.bind(this) }
                     hideNavHeader={this.props.hideNavHeader} />);
 
     } else if (this.state.menuOpen === "text toc") {
@@ -1319,6 +1338,7 @@ var ReaderNavigationMenu = React.createClass({
     openNav:       React.PropTypes.func.isRequired,
     openSearch:    React.PropTypes.func.isRequired,
     onTextClick:   React.PropTypes.func.isRequired,
+    onRecentClick: React.PropTypes.func.isRequired,
     hideNavHeader: React.PropTypes.bool,
     home:          React.PropTypes.bool
   },
@@ -1357,7 +1377,12 @@ var ReaderNavigationMenu = React.createClass({
   handleClick: function(event) {
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
       var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
-      this.props.onTextClick(ref);
+      var pos = $(event.target).attr("data-position") || $(event.target).parent().attr("data-position");
+      if ($(event.target).hasClass("recentItem") || $(event.target).parent().hasClass("recentItem")) {
+        this.props.onRecentClick(parseInt(pos), [ref]);
+      } else {
+        this.props.onTextClick(ref);
+      }
       sjs.track.event("Reader", "Navigation Text Click", ref)
     } else if ($(event.target).hasClass("catLink") || $(event.target).parent().hasClass("catLink")) {
       var cats = $(event.target).attr("data-cats") || $(event.target).parent().attr("data-cats");
@@ -1507,7 +1532,9 @@ var ReaderNavigationMenu = React.createClass({
                   sref={item.ref}
                   heRef={item.heRef}
                   book={item.book}
-                  showSections={true} />)
+                  showSections={true}
+                  recentItem={true}
+                  position={item.position} />)
       }) : null;
       recentlyViewed = recentlyViewed ? <TwoOrThreeBox content={recentlyViewed} width={this.state.width} /> : null;
 
@@ -1540,6 +1567,7 @@ var ReaderNavigationMenu = React.createClass({
   }
 });
 
+
 var ReaderNavigationMenuSection = React.createClass({
   propTypes: {
     title:   React.PropTypes.string,
@@ -1560,6 +1588,7 @@ var ReaderNavigationMenuSection = React.createClass({
   }
 });
 
+
 var TextBlockLink = React.createClass({
   // Monopoly card style link with category color at top
   propTypes: {
@@ -1569,7 +1598,9 @@ var TextBlockLink = React.createClass({
     category:     React.PropTypes.string,
     title:        React.PropTypes.string,
     heTitle:      React.PropTypes.string,
-    showSections: React.PropTypes.bool
+    showSections: React.PropTypes.bool,
+    reecntItem:   React.PropTypes.bool,
+    position:     React.PropTypes.number
   },
   render: function() {
     var index    = sjs.library.index(this.props.book);
@@ -1578,7 +1609,9 @@ var TextBlockLink = React.createClass({
     var title    = this.props.title   || (this.props.showSections ? this.props.sref : this.props.book);
     var heTitle  = this.props.heTitle || (this.props.showSections ? this.props.heRef : index.heTitle);
 
-    return (<a className="refLink blockLink" data-ref={this.props.sref} style={style}>
+    var position = this.props.position || 0;
+    var classes  = classNames({refLink: 1, blockLink: 1, recentItem: this.props.recentItem});
+    return (<a className={classes} data-ref={this.props.sref} data-position={position} style={style}>
               <span className="en">{title}</span>
               <span className="he">{heTitle}</span>
              </a>);
@@ -1596,7 +1629,7 @@ var BlockLink = React.createClass({
     return (<a className="blockLink" href={this.props.target}>
               <span className="en">{this.props.title}</span>
               <span className="he">{this.props.heTitle}</span>
-           </a>) 
+           </a>);
   }
 });
 
