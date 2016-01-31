@@ -33,6 +33,7 @@ urlpatterns = patterns('reader.views',
     (r'^api/counts/(?P<title>.+)$', 'counts_api'),
     (r'^api/preview/(?P<title>.+)$', 'text_preview_api'),
     (r'^api/toc-html/(?P<title>.+)$', 'text_toc_html_fragment'),
+    (r'^api/toc-html/(?P<title>.+)$', 'text_toc_html_fragment'),
 )
 
 # Reviews API
@@ -318,13 +319,17 @@ urlpatterns += patterns('',
     (r'^admin/translation-requests-stats', 'sefaria.views.translation_requests_stats'),
     (r'^admin/sheet-stats', 'sefaria.views.sheet_stats'),
     (r'^admin/versions-csv', 'sefaria.views.versions_csv'),
-    (r'^admin/library-stats', 'sefaria.views.library_stats'),
-    (r'^admin/core-link-stats', 'sefaria.views.core_link_stats'),
     (r'^admin/?', include(admin.site.urls)),
     #(r'^admin/view/template_cache/(?P<title>.+)$', 'sefaria.views.view_cached_elem'),
     #(r'^admin/delete/template_cache/(?P<title>.+)$', 'sefaria.views.del_cached_elem'),
     #(r'^admin/rebuild/counts-toc', 'sefaria.views.rebuild_counts_and_toc'),
     #(r'^admin/save/toc', 'sefaria.views.save_toc'),
+)
+
+# Stats API - return CSV
+urlpatterns += patterns('',
+    (r'^api/stats/library-stats', 'sefaria.views.library_stats'),
+    (r'^api/stats/core-link-stats', 'sefaria.views.core_link_stats'),
 )
 
 # Catch all to send to Reader
