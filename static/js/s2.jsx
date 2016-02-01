@@ -1544,7 +1544,7 @@ var ReaderNavigationMenu = React.createClass({
       }) : null;
       recentlyViewed = recentlyViewed ? <TwoOrThreeBox content={recentlyViewed} width={this.state.width} /> : null;
 
-      var classes = classNames({readerNavMenu: 1, readerNavMenu:1, home: this.props.home, noHeader: !this.props.hideHeader});
+      var classes = classNames({readerNavMenu: 1, readerNavMenu:1, noHeader: !this.props.hideHeader});
 
       return(<div className={classes} onClick={this.handleClick} key="0">
               {topContent}
