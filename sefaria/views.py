@@ -62,6 +62,9 @@ def register(request):
             UserProfile(id=user.id).assign_slug().save()
             if "noredirect" in request.POST:
                 return HttpResponse("ok")
+            elif "new?assignment=" in request.POST.get("next",""):
+                next = request.POST.get("next", "")
+                return HttpResponseRedirect(next)
             else:
                 next = request.POST.get("next", "/") + "?welcome=to-sefaria"
                 return HttpResponseRedirect(next)
