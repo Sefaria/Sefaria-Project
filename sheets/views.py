@@ -743,7 +743,7 @@ def get_aliyot_by_parasha_api(request, parasha):
 		return jsonResponse({"ref":["Deuteronomy 33:1-7","Deuteronomy 33:8-12","Deuteronomy 33:13-17","Deuteronomy 33:18-21","Deuteronomy 33:22-26","Deuteronomy 33:27-29","Deuteronomy 34:1-12"]}, callback=request.GET.get("callback", None))
 
 	else:
-		p = db.parshiot.find({"parasha": parasha, "date": {"$gt": datetime.now()}}, limit=1).sort([("date", 1)])
+		p = db.parshiot.find({"parasha": parasha}, limit=1).sort([("date", 1)])
 		p = p.next()
 
 		for aliyah in p["aliyot"]:
