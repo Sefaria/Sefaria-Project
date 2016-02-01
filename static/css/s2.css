@@ -953,7 +953,7 @@ display: block;margin: 0 auto;}
   text-align: center;
   padding: 8px 0 0 0;
   z-index: 100;
-  height: 58px;
+  height:76px;
   line-height: 48px;
   border-bottom: 1px solid #ddd;
   background-color: #F9F9F7;
@@ -1045,6 +1045,16 @@ display: block;margin: 0 auto;}
   overflow: hidden;
   max-width: 75%;
   vertical-align: middle;
+}
+.readerControls .readerTextToc .readerTextVersion {
+  overflow: hidden;
+  margin-top: -11px;
+  line-height: 21px;
+  height: 21px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-style: italic;
+  color: #999;
 }
 .readerControls .readerTextToc .fa-caret-down {
   color: #D4D4D2;
