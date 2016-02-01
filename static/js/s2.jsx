@@ -24,22 +24,29 @@ var ReaderApp = React.createClass({
         mode: mode,
         filter: this.props.initialFilter,
         version: this.props.initialPanels[0].version,
-        version_version_language: this.props.initialPanels[0].version_language,
+        version_language: this.props.initialPanels[0].version_language,
         settings: clone(defaultPanelSettings)
       };
+      if (panels[0].version_language) {
+        panels[0].settings.language = (panels[0].version_language == "he")? "hebrew": "english";
+      }
       if (mode === "TextAndConnections") {
         panels[0].highlightedRefs = this.props.initialRefs;
       }
     } if (this.props.intialMenu === "text toc") {
 
     } else if (this.props.initialRefs.length) {
-      panels.push({
+      var p = {
         refs: this.props.initialRefs,
         mode: "Text",
         version: this.props.initialPanels[0].version,
         version_language: this.props.initialPanels[0].version_language,
         settings: clone(defaultPanelSettings)
-      });
+      };
+      if (p.version_language) {
+        p.settings.language = (p.version_language == "he")? "hebrew": "english";
+      }
+      panels.push(p);
       if (this.props.initialFilter) {
         panels.push({
           refs: this.props.initialRefs,
@@ -51,6 +58,9 @@ var ReaderApp = React.createClass({
       for (var i = panels.length; i < this.props.initialPanels.length; i++) {
         var panel      = clone(this.props.initialPanels[i]);
         panel.settings = clone(defaultPanelSettings);
+        if (panel.version_language) {
+          panel.settings.language = (panel.version_language == "he")? "hebrew": "english";
+        }
         panels.push(panel);
       }
     }
@@ -316,9 +326,6 @@ var ReaderApp = React.createClass({
       displaySettingsOpen:  false,
       width:                0
     };
-    if (panel.version_language) {
-      panel.settings.language = (panel.version_language == "he")? "hebrew": "english";
-    }
     return panel
   },
   setContainerMode: function() {
@@ -674,7 +681,7 @@ var ReaderPanel = React.createClass({
     initialRefs:            React.PropTypes.array,
     initialMode:            React.PropTypes.string,
     initialVersion:         React.PropTypes.string,
-    initialVersionLanguage:        React.PropTypes.string,
+    initialVersionLanguage: React.PropTypes.string,
     initialFilter:          React.PropTypes.array,
     initialHighlightedRefs: React.PropTypes.array,
     initialMenu:            React.PropTypes.string,
@@ -937,7 +944,7 @@ var ReaderPanel = React.createClass({
     $.cookie(option, value, {path: "/"});
     if (option === "language") {
       $.cookie("contentLang", value, {path: "/"});
-      this.conditionalSetState({"version_language":null, "version":null});
+      //this.conditionalSetState({"version_language":null, "version":null});
       this.props.setDefaultOption && this.props.setDefaultOption(option, value);
     }
     this.conditionalSetState(state);
@@ -1099,16 +1106,7 @@ var ReaderPanel = React.createClass({
     var classes  = {readerPanel: 1, wideColumn: this.width > 450};
     classes[this.currentLayout()]             = 1;
     classes[this.state.settings.color]        = 1;
-
-    if (this.state.version_language) {
-      if (this.state.version_language=="he") {
-        classes["hebrew"]                     = 1;
-      } else if (this.state.version_language=="en") {
-        classes["english"]                    = 1;
-      }
-    } else {
-      classes[this.state.settings.language]   = 1;
-    }
+    classes[this.state.settings.language]     = 1;
     classes = classNames(classes);
     var style = {"fontSize": this.state.settings.fontSize + "%"};
     var hideReaderControls = (this.props.multiPanel && this.state.mode === "Connections" && ![].compare(this.state.filter)) ||
@@ -1202,7 +1200,7 @@ var ReaderControls = React.createClass({
             <span className="he">{heTitle}</span>
           </div>
           { title ? (<i className="fa fa-caret-down"></i>) : null }
-          { this.props.version_language == "en" ? (<div className="readerTextVersion"><span className="en">{version_title}</span></div>) : null}
+          { (this.props.version_language == "en" && this.props.settings.language == "english") ? (<div className="readerTextVersion"><span className="en">{version_title}</span></div>) : null}
         </div>);
 
     var classes = classNames({readerControls: 1, headeroom: 1, connectionsHeader: mode == "Connections"});
@@ -1315,7 +1313,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
 
 
 var ReaderNavigationMenu = React.createClass({
-  // The Navigation menu for broswing and searching texts, plus site links.
+  // The Navigation menu for browsing and searching texts, plus site links.
   propTypes: {
     categories:    React.PropTypes.array.isRequired,
     settings:      React.PropTypes.object.isRequired,
@@ -1331,7 +1329,7 @@ var ReaderNavigationMenu = React.createClass({
   getInitialState: function() {
     return {
       showMore: false,
-      width: 0,
+      width: 0
     };
   },
   componentDidMount: function() {
@@ -1762,7 +1760,7 @@ var ReaderTextTableOfContents = React.createClass({
   getInitialState: function() {
     var sectionRef  = sjs.library.sectionRef(this.props.currentRef);
     var sectionText = sjs.library.text(sectionRef, {context: 1, version: this.props.version, language: this.props.version_language});
-    var language    = this.props.version_language || this.props.settingsLanguage;
+    var language    = this.props.settingsLanguage;
     
     return {
       versions: sectionText.versions,
