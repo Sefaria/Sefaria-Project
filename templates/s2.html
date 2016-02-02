@@ -49,12 +49,12 @@
           ref = humanRef("{{ ref }}");
           sjs.library._saveText({{ data|jsonify }}, {context: 1, version: version, language: language});
         }
-        var multiPanel = $(window).width() > 600;
-        var urlVars    = getUrlVars();
-        var filter     = "with" in urlVars ? urlVars["with"].replace(/_/g, " ").split("+") : null;
-        filter         = filter && filter.length === 1 && filter[0] === "all" ? [] : filter;
-        var query      = "q" in urlVars ? urlVars["q"] : null;
-        var initialPanels;
+        var multiPanel    = $(window).width() > 600;
+        var urlVars       = getUrlVars();
+        var filter        = "with" in urlVars ? urlVars["with"].replace(/_/g, " ").split("+") : null;
+        filter            = filter && filter.length === 1 && filter[0] === "all" ? [] : filter;
+        var query         = "q" in urlVars ? urlVars["q"] : null;
+        var initialPanels = [];
 
         if (!multiPanel) {
           if (filter) {
@@ -63,7 +63,9 @@
             initialPanels = [{mode: "Text", refs: [ref], version: version, version_language: language}];
           }
         } else { //multiPanel
-          initialPanels = [{mode: "Text", refs: [ref], version: version, version_language: language}];
+          if (ref) {
+            initialPanels = [{mode: "Text", refs: [ref], version: version, version_language: language}];
+          }
           if (filter) {
             initialPanels.push({mode: "Connections", refs: [ref], filter: filter});
           }
