@@ -2413,7 +2413,7 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 
 
 function aboutHtml(data) {
-	// Retuns HTML for the About Text panel according to data.
+	// Returns HTML for the About Text panel according to data.
 	data = data || sjs.current;
 
 	if (!(data.versionTitle || data.heVersionTitle || data.sources || data.heSources)) { 
