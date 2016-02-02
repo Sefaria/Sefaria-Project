@@ -694,10 +694,12 @@ h1 .languageToggle .he {
 }
 .readerTextTableOfContents .versionBox {
   margin-bottom: 20px;
+  text-align: center;
 }
 
 .readerTextTableOfContents .versionBox .versionSelect {
   width: 80%;
+  margin: 0 auto;
   direction: ltr;
 }
 
@@ -1057,13 +1059,13 @@ display: block;margin: 0 auto;}
 }
 .readerControls .readerTextToc .readerTextVersion {
   overflow: hidden;
-  margin-top: -11px;
-  line-height: 21px;
-  height: 21px;
   white-space: nowrap;
   text-overflow: ellipsis;
   font-style: italic;
   color: #999;
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 48px;
 }
 .readerControls .readerTextToc .fa-caret-down {
   color: #D4D4D2;
