@@ -691,7 +691,7 @@ def texts_list(request):
     Page listing every text in the library.
     """
     if request.flavour == "mobile" or request.COOKIES.get('s2'):
-        return s2_page(request, "texts")
+        return s2_texts(request)
     return render_to_response('texts.html',
                              {},
                              RequestContext(request))
