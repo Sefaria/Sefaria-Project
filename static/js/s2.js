@@ -351,9 +351,9 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     this.openPanelAt(n, citationRef);
     this.setTextListHighlight(n, [textRef]);
   },
-  handleRecentClick: function(pos, refs) {
-    console.log("recent click: " + pos + ", " + refs);
-    this.openPanelAt(pos, refs);
+  handleRecentClick: function(pos, ref) {
+    console.log("recent click: " + pos + ", " + ref);
+    this.openPanelAt(pos, ref);
   },
   setPanelState: function(n, state, replaceHistory) {
     this.replaceHistory  = Boolean(replaceHistory);
@@ -383,7 +383,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
   openPanelAt: function(n, ref) {
     // Open a new panel after `n` with the new ref
     this.state.panels.splice(n+1, 0, this.makePanelState({refs: [ref], mode: "Text"}));
-    this.setState({panels: this.state.panels, header: {openMenu: null}});
+    this.setState({panels: this.state.panels, header: {menuOpen: null}});
   },
   openPanelAtEnd: function(ref) {
     this.openPanelAt(this.state.panels.length+1, ref);
@@ -527,6 +527,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
                   initialState: this.state.header, 
                   setCentralState: this.setHeaderState, 
                   onRefClick: this.handleNavigationClick, 
+                  onRecentClick: this.handleRecentClick, 
                   setDefaultOption: this.setDefaultOption, 
                   showLibrary: this.showLibrary, 
                   showSearch: this.showSearch, 
@@ -543,6 +544,7 @@ var Header = React.createClass({displayName: "Header",
     initialState:       React.PropTypes.object.isRequired,
     setCentralState:    React.PropTypes.func,
     onRefClick:         React.PropTypes.func,
+    onRecentClick:      React.PropTypes.func,
     showLibrary:        React.PropTypes.func,
     showSearch:         React.PropTypes.func,
     setDefaultOption:   React.PropTypes.func,
@@ -1010,7 +1012,7 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
   },
   currentLayout: function() {
     var category = this.currentCategory();
-    if (!category) { return null; }
+    if (!category) { return "layoutDefault"; }
     var option = category === "Tanach" || category === "Talmud" ? "layout" + category : "layoutDefault";
     return this.state.settings[option];  
   },
@@ -1142,6 +1144,8 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
           currentMode: this.currentMode, 
           currentCategory: this.currentCategory, 
           currentBook: this.currentBook, 
+          version: this.state.version, 
+          version_language: this.state.version_language, 
           multiPanel: this.props.multiPanel, 
           settings: this.state.settings, 
           setOption: this.setOption, 
@@ -1180,6 +1184,8 @@ var ReaderControls = React.createClass({displayName: "ReaderControls",
     openDisplaySettings:     React.PropTypes.func.isRequired,
     closeMenus:              React.PropTypes.func.isRequired,
     currentRef:              React.PropTypes.string,
+    version:                 React.PropTypes.string,
+    version_language:        React.PropTypes.string,
     currentMode:             React.PropTypes.func.isRequired,
     currentCategory:         React.PropTypes.func.isRequired,
     currentBook:             React.PropTypes.func.isRequired,
@@ -1204,6 +1210,7 @@ var ReaderControls = React.createClass({displayName: "ReaderControls",
       sjs.library.text(title, {context: 1}, function() { if (this.isMounted()) { this.setState({}); } }.bind(this));
     }
 
+    var version_title = this.props.version ? this.props.version.replace(/_/g," "):"";
     var centerContent = this.props.multiPanel && mode === "Connections" ?
       (React.createElement("div", {className: "readerTextToc"}, 
           React.createElement("span", {className: "en"}, "Select Connection"), 
@@ -1215,7 +1222,8 @@ var ReaderControls = React.createClass({displayName: "ReaderControls",
             React.createElement("span", {className: "en"}, title), 
             React.createElement("span", {className: "he"}, heTitle)
           ), 
-           title ? (React.createElement("i", {className: "fa fa-caret-down"})) : null
+           title ? (React.createElement("i", {className: "fa fa-caret-down"})) : null, 
+           this.props.version_language == "en" ? (React.createElement("div", {className: "readerTextVersion"}, React.createElement("span", {className: "en"}, version_title))) : null
         ));
 
     var classes = classNames({readerControls: 1, headeroom: 1, connectionsHeader: mode == "Connections"});
@@ -1372,14 +1380,17 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
   },
   getRecentlyViewed: function() {
     var json = $.cookie("recentlyViewed");
-    return json ? JSON.parse(json) : null;
+    var recentlyViewed = json ? JSON.parse(json) : null;
+    console.log("Recently Viewed");
+    console.log(recentlyViewed);
+    return recentlyViewed;
   },
   handleClick: function(event) {
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
       var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
       var pos = $(event.target).attr("data-position") || $(event.target).parent().attr("data-position");
       if ($(event.target).hasClass("recentItem") || $(event.target).parent().hasClass("recentItem")) {
-        this.props.onRecentClick(parseInt(pos), [ref]);
+        this.props.onRecentClick(parseInt(pos), ref);
       } else {
         this.props.onTextClick(ref);
       }
@@ -1534,11 +1545,11 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
                   book: item.book, 
                   showSections: true, 
                   recentItem: true, 
-                  position: item.position}))
+                  position: item.position || 0}));
       }) : null;
       recentlyViewed = recentlyViewed ? React.createElement(TwoOrThreeBox, {content: recentlyViewed, width: this.state.width}) : null;
 
-      var classes = classNames({readerNavMenu: 1, readerNavMenu:1, home: this.props.home, noHeader: !this.props.hideHeader});
+      var classes = classNames({readerNavMenu: 1, readerNavMenu:1, noHeader: !this.props.hideHeader});
 
       return(React.createElement("div", {className: classes, onClick: this.handleClick, key: "0"}, 
               topContent, 
