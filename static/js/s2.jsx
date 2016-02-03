@@ -358,9 +358,9 @@ var ReaderApp = React.createClass({
     this.openPanelAt(n, citationRef);
     this.setTextListHighlight(n, [textRef]);
   },
-  handleRecentClick: function(pos, refs) {
-    console.log("recent click: " + pos + ", " + refs);
-    this.openPanelAt(pos, refs);
+  handleRecentClick: function(pos, ref) {
+    console.log("recent click: " + pos + ", " + ref);
+    this.openPanelAt(pos, ref);
   },
   setPanelState: function(n, state, replaceHistory) {
     this.replaceHistory  = Boolean(replaceHistory);
@@ -402,7 +402,7 @@ var ReaderApp = React.createClass({
   openPanelAt: function(n, ref) {
     // Open a new panel after `n` with the new ref
     this.state.panels.splice(n+1, 0, this.makePanelState({refs: [ref], mode: "Text"}));
-    this.setState({panels: this.state.panels, header: {openMenu: null}});
+    this.setState({panels: this.state.panels, header: {menuOpen: null}});
   },
   openPanelAtEnd: function(ref) {
     this.openPanelAt(this.state.panels.length+1, ref);
@@ -548,6 +548,7 @@ var ReaderApp = React.createClass({
                   initialState={this.state.header}
                   setCentralState={this.setHeaderState}
                   onRefClick={this.handleNavigationClick}
+                  onRecentClick={this.handleRecentClick}
                   setDefaultOption={this.setDefaultOption}
                   showLibrary={this.showLibrary}
                   showSearch={this.showSearch}
@@ -564,6 +565,7 @@ var Header = React.createClass({
     initialState:       React.PropTypes.object.isRequired,
     setCentralState:    React.PropTypes.func,
     onRefClick:         React.PropTypes.func,
+    onRecentClick:      React.PropTypes.func,
     showLibrary:        React.PropTypes.func,
     showSearch:         React.PropTypes.func,
     setDefaultOption:   React.PropTypes.func,
@@ -977,7 +979,6 @@ var ReaderPanel = React.createClass({
     $.cookie(option, value, {path: "/"});
     if (option === "language") {
       $.cookie("contentLang", value, {path: "/"});
-      //this.conditionalSetState({"version_language":null, "version":null});
       this.props.setDefaultOption && this.props.setDefaultOption(option, value);
     }
     this.conditionalSetState(state);
@@ -1032,7 +1033,7 @@ var ReaderPanel = React.createClass({
   },
   currentLayout: function() {
     var category = this.currentCategory();
-    if (!category) { return null; }
+    if (!category) { return "layoutDefault"; }
     var option = category === "Tanach" || category === "Talmud" ? "layout" + category : "layoutDefault";
     return this.state.settings[option];  
   },
@@ -1392,14 +1393,17 @@ var ReaderNavigationMenu = React.createClass({
   },
   getRecentlyViewed: function() {
     var json = $.cookie("recentlyViewed");
-    return json ? JSON.parse(json) : null;
+    var recentlyViewed = json ? JSON.parse(json) : null;
+    console.log("Recently Viewed");
+    console.log(recentlyViewed);
+    return recentlyViewed;
   },
   handleClick: function(event) {
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
       var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
       var pos = $(event.target).attr("data-position") || $(event.target).parent().attr("data-position");
       if ($(event.target).hasClass("recentItem") || $(event.target).parent().hasClass("recentItem")) {
-        this.props.onRecentClick(parseInt(pos), [ref]);
+        this.props.onRecentClick(parseInt(pos), ref);
       } else {
         this.props.onTextClick(ref);
       }
@@ -1554,7 +1558,7 @@ var ReaderNavigationMenu = React.createClass({
                   book={item.book}
                   showSections={true}
                   recentItem={true}
-                  position={item.position} />)
+                  position={item.position || 0} />)
       }) : null;
       recentlyViewed = recentlyViewed ? <TwoOrThreeBox content={recentlyViewed} width={this.state.width} /> : null;
 
