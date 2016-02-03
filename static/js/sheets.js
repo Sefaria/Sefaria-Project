@@ -2242,7 +2242,7 @@ function deleteSheet() {
 }
 
 // Regex for identifying divine name with or without nikkud / trop
-sjs.divineRE = /(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C7]*|יי|יקוק|ה\')(?=[\s.,;:'"\-]|$)/g;
+sjs.divineRE = /([\s.,;:'"\-]|^)([משהוכלב]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C7]*|יי|יקוק|ה\')(?=[\s.,;:'"\-]|$)/g;
 sjs.divineSubs = {
 					"noSub": "יהוה", 
 					"yy": "יי",
@@ -2258,7 +2258,7 @@ function substituteDivineNames(text) {
 		return text; 
 	}
 	var sub = sjs.divineSubs[sjs.current.options.divineNames];
-	text = text.replace(sjs.divineRE, sub);
+	text = text.replace(sjs.divineRE, "$1$2"+sub);
 	return text;
 }
 
@@ -2266,7 +2266,7 @@ function substituteDivineNames(text) {
 function substituteDivineNamesInNode(node) {
 	findAndReplaceDOMText(node, {
 		find: sjs.divineRE,
-		replace: sjs.divineSubs[sjs.current.options.divineNames]
+		replace:  "$1$2"+sjs.divineSubs[sjs.current.options.divineNames]
 	});
 }
 
