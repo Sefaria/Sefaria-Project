@@ -620,7 +620,8 @@
 			$(this).addClass("active");
 
 			$("body").removeClass("english hebrew bilingual")
-				.addClass(mode);
+				.addClass(mode)
+                .trigger("languageChange");
 			return false;
 		};
 		$("#hebrew, #english, #bilingual").click(sjs.changeContentLang);
