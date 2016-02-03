@@ -1109,7 +1109,7 @@ var ReaderPanel = React.createClass({
                     version_language={this.state.version_language}
                     settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
                     category={this.currentCategory()}
-                    currentRef={this.currentRef()} 
+                    currentRef={this.lastCurrentRef()}
                     openNav={this.openMenu.bind(null, "navigation")}
                     openDisplaySettings={this.openDisplaySettings}
                     selectVersion={this.props.selectVersion}
@@ -1812,16 +1812,22 @@ var ReaderTextTableOfContents = React.createClass({
     selectVersion:    React.PropTypes.func.isRequired
   },
   getInitialState: function() {
-    var sectionRef  = sjs.library.sectionRef(this.props.currentRef);
-    var sectionText = sjs.library.text(sectionRef, {context: 1, version: this.props.version, language: this.props.version_language});
-    var language    = this.props.settingsLanguage;
-    
     return {
-      versions: sectionText.versions,
-      language: language
+      versions: [],
+      versions_loaded: false
     }
   },
+  loadVersions: function() {
+    sjs.library.text(
+      sjs.library.sectionRef(this.props.currentRef),
+      {context: 1, version: this.state.version, language: this.state.version_language},
+      function(d) {
+        this.setState({versions:d.versions, versions_loaded:true})
+      }.bind(this)
+    );
+  },
   componentDidMount: function() {
+    this.loadVersions();
     this.bindToggles();
     this.shrinkWrap();
     window.addEventListener('resize', this.shrinkWrap);
@@ -1908,15 +1914,23 @@ var ReaderTextTableOfContents = React.createClass({
     var heSection = sjs.library.sectionString(this.props.currentRef).he.named;
 
     var selectOptions = [];
-    selectOptions.push(<option value="0">Default Version</option>);    // todo: add description of current version.
+    selectOptions.push(<option key="0" value="0">Default Version</option>);    // todo: add description of current version.
     var selectedOption = 0;
     for (var i = 0; i < this.state.versions.length; i++) {
       var v = this.state.versions[i];
       if (this.props.version_language == v.language && this.props.version == v.versionTitle) {
         selectedOption = i+1;
       }
-      selectOptions.push(<option value={i+1} >{v.versionTitle} ({v.language})</option>);
+      selectOptions.push(<option key={i+1} value={i+1} >{v.versionTitle} ({v.language})</option>);
     }
+    var selectElement = (<div className="versionSelect">
+                           <select value={selectedOption} onChange={this.onVersionSelectChange}>
+                             {selectOptions}
+                           </select>
+                         </div>);
+
+    var currentVersionElement = (<span>Version info here</span>);
+
 
     return (<div className="readerTextTableOfContents readerNavMenu" onClick={this.handleClick}>
               <div className="readerNavTop">
@@ -1939,11 +1953,9 @@ var ReaderTextTableOfContents = React.createClass({
                     </div>
                   </div>
                   <div className="versionBox">
-                    <div className="versionSelect">
-                      <select value={selectedOption} onChange={this.onVersionSelectChange}>
-                        {selectOptions}
-                      </select>
-                    </div>
+                      {(!this.state.versions_loaded) ? (<span>Loading...</span>): ""}
+                      {(this.state.versions_loaded && this.state.versions.length > 1)? selectElement: ""}
+                      {(this.state.versions_loaded)? currentVersionElement: ""}
                   </div>
                   <div className="tocContent" dangerouslySetInnerHTML={ {__html: tocHtml} }></div>
                 </div>
@@ -2446,7 +2458,7 @@ var TextColumn = React.createClass({
       var hasPrev = first && first.prev;
       var hasNext = last && last.next;
       var topSymbol  = " ";
-      var bottomSymbol = " "
+      var bottomSymbol = " ";
       if (hasPrev) {
         content.splice(0, 0, (<LoadingMessage className="base prev" key="prev"/>));
       } else {
