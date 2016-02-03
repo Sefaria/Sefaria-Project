@@ -45,7 +45,6 @@ sjs.library = {
   },
   _textKey: function(ref, settings) {
     // Returns a string used as a key for the cache object of `ref` given `settings`.
-    if (!ref) { debugger; }
     var key = ref.toLowerCase();
     if (settings) {
       key = (settings.language && settings.version) ? key + "/" + settings.language + "/" + settings.version : key;
