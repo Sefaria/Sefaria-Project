@@ -38,53 +38,51 @@
     <script src="/static/js/react-dom-min.js"></script>
     <script src="/static/js/s2.js"></script>
     {% endif %}
-    <script {% if DEBUG %}type="text/jsx;harmony=true"{% endif %}>
+    <script {% if DEBUG %}type="text/jsx"{% endif %}>  //;harmony=true
       {% autoescape off %}
       $(function() {
-        
-        var ref = "{{ ref }}";
-        var version = "{{ version|default:"" }}";
-        var language = "{{ language|default:"" }}";
-        if (ref) {
-          ref = humanRef("{{ ref }}");
-          sjs.library._saveText({{ data|jsonify }}, {context: 1, version: version, language: language});
-        }
+        var version, language, filter, ref;
+        var initialMenu = "{{ initialMenu }}";
+        var panels = {{ panels|default:"[]" }};
         var multiPanel    = $(window).width() > 600;
-        var urlVars       = getUrlVars();
-        var filter        = "with" in urlVars ? urlVars["with"].replace(/_/g, " ").split("+") : null;
-        filter            = filter && filter.length === 1 && filter[0] === "all" ? [] : filter;
-        var query         = "q" in urlVars ? urlVars["q"] : null;
         var initialPanels = [];
+
+        var panel = panels.shift();
+        if (panel) {
+            version = panel.version;
+            language = panel.language;
+            if (panel.ref) {
+                ref = humanRef(panel.ref);
+                sjs.library._saveText(panel.text, {context: 1, version: version, language: language});
+            }
+            initialMenu = panel.initialMenu;
+            filter = panel.filter && panel.filter.length === 1 && panel.filter[0] === "all" ? [] : panel.filter;
+        }
+
 
         if (!multiPanel) {
           if (filter) {
-            initialPanels = [{mode: "TextAndConnections", refs: [ref], filter: filter, version: version, version_language: language}];
+            initialPanels = [{mode: "TextAndConnections", refs: [ref], initialMenu: initialMenu, filter: filter, version: version, version_language: language}];
           } else {
-            initialPanels = [{mode: "Text", refs: [ref], version: version, version_language: language}];
+            initialPanels = [{mode: "Text", refs: [ref], initialMenu: initialMenu, version: version, version_language: language}];
           }
         } else { //multiPanel
           if (ref) {
-            initialPanels = [{mode: "Text", refs: [ref], version: version, version_language: language}];
+            initialPanels = [{mode: "Text", refs: [ref], initialMenu: initialMenu, version: version, version_language: language}];
           }
           if (filter) {
-            initialPanels.push({mode: "Connections", refs: [ref], filter: filter});
+            initialPanels.push({mode: "Connections", refs: [ref], initialMenu: initialMenu, filter: filter});
           }
 
-          for (var i = 2; i < 5; i++) {
-            var p = urlVars["p" + i] || null;    // Ref for panel i
-            var w = urlVars["with" + i] || null; // Commentary shown for panel i
-            var v = urlVars["v" + i] || null;    // Version for panel i
-            var l = urlVars["l" + i] || null;    // Language for panel i
-            if (v) {
-              v = v.replace(/_/g," ");
+          while (panels.length > 0) {
+            panel = panels.shift();
+
+            if (panel.ref && !panel.ref.match(/^texts|^sheets|^search/)) {
+              initialPanels.push({mode: "Text", refs: [humanRef(panel.ref)], initialMenu: panel.initialMenu, version: panel.version, version_language: panel.language});
             }
-            if (p && !p.match(/^texts|^sheets|^search/)) {
-              initialPanels.push({mode: "Text", refs: [humanRef(p)], version: v, version_language: l});
-            }
-            if (w) {
-              filter = w.replace(/_/g, " ").split("+");
-              filter = filter && filter.length === 1 && filter[0] === "all" ? [] : filter;
-              initialPanels.push({mode: "Connections", refs: [humanRef(p)], filter: filter});
+            if (panel.filter) {
+              var pfilter = panel.filter && panel.filter.length === 1 && panel.filter[0] === "all" ? [] : panel.filter;
+              initialPanels.push({mode: "Connections", refs: [humanRef(panel.ref)], initialMenu: panel.initialMenu, filter: pfilter});
             }
           }
         }
@@ -103,8 +101,8 @@
             multiPanel: multiPanel,
             initialRefs: ref ? [ref] : [],
             initialFilter: filter,
-            initialMenu: "{{ initialMenu }}",
-            initialQuery: query,
+            initialMenu: initialMenu,
+            initialQuery: "{{ query }}",
             initialSheetsTag: "{{ initialSheetsTag }}",
             initialNavigationCategories: {{ initialNavigationCategories|default:"[]" }},
             initialSettings: settings,
