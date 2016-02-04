@@ -302,7 +302,7 @@ $(function() {
 	});
 
 	$("#makeSheetAssignableButton").click(function(){
-		$("#assignedSheets").show();
+		$("#assignedSheetsShareURL").show();
 		$(this).hide();
 		$("#StopCollectingAssignmentsButton").show();
 		$("#sheet").addClass('assignable');
@@ -310,7 +310,7 @@ $(function() {
 	});
 
 	$("#StopCollectingAssignmentsButton").click(function(){
-		$("#assignedSheets").hide();
+		$("#assignedSheetsShareURL").hide();
 		$(this).hide();
 		$("#makeSheetAssignableButton").show();
 		$("#sheet").removeClass('assignable');
