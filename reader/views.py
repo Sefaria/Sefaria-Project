@@ -188,14 +188,14 @@ def s2(request, ref, version=None, lang=None):
     if version and lang:
         panel_1["version"] = version.replace(u"_", u" ")
         panel_1["language"] = lang
-    if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
+    if oref.is_book_level(): #oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
         panel_1["initialMenu"] = "text toc"
         oref = oref.first_available_section_ref()
         # If there's a version specified, should we use Version.first_section_ref()?
     else:
         panel_1["initialMenu"] = ""
     try:
-        text = TextFamily(oref, version=panel_1["version"], lang=panel_1["language"], commentary=False, context=True, pad=True, alts=True).contents()
+        text = TextFamily(oref, version=panel_1.get("version"), lang=panel_1.get("language"), commentary=False, context=True, pad=True, alts=True).contents()
     except NoVersionFoundError:
         raise Http404
         
