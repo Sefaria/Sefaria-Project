@@ -1604,6 +1604,7 @@ display: block;margin: 0 auto;}
 }
 .showMoreFilters {
   vertical-align: middle;
+  float: right;
 }
 .categoryFilter {
   text-transform: uppercase;

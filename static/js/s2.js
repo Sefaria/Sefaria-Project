@@ -23,6 +23,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
         refs: this.props.initialRefs,
         mode: mode,
         filter: this.props.initialFilter,
+        menuOpen: this.props.initialPanels[0].menuOpen,
         version: this.props.initialPanels[0].version,
         version_language: this.props.initialPanels[0].version_language,
         settings: clone(defaultPanelSettings)
@@ -33,13 +34,12 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
       if (mode === "TextAndConnections") {
         panels[0].highlightedRefs = this.props.initialRefs;
       }
-    } if (this.props.intialMenu === "text toc") {
-
     } else if (this.props.initialRefs.length) {
       var p = {
         refs: this.props.initialRefs,
         mode: "Text",
         version: this.props.initialPanels[0].version,
+        menuOpen: this.props.initialPanels[0].menuOpen,
         version_language: this.props.initialPanels[0].version_language,
         settings: clone(defaultPanelSettings)
       };
@@ -68,14 +68,19 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
       return this.makePanelState(panel); 
     }.bind(this) );
 
-    var header = this.makePanelState({
+    var header_state = {
                   mode: "Header",
-                  menuOpen: this.props.initialMenu,
                   refs: this.props.initialRefs,
                   searchQuery: this.props.initialQuery,
                   navigationCategories: this.props.initialNavigationCategories,
                   sheetsTag: this.props.initialSheetsTag,
-                  settings: clone(defaultPanelSettings)});
+                  settings: clone(defaultPanelSettings)
+    };
+    if(panels.length <= 1) {
+      header_state.menuOpen = this.props.initialMenu;
+    }
+
+    var header = this.makePanelState(header_state);
 
     return {
       panels: panels,
@@ -339,10 +344,10 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
       }
     }
   },
-  handleNavigationClick: function(ref) {
+  handleNavigationClick: function(ref, version, version_language) {
     this.saveOpenPanelsToRecentlyViewed();
     this.setState({
-      panels: [this.makePanelState({refs: [ref], mode: "Text"})],
+      panels: [this.makePanelState({refs: [ref], version: version, version_langauge: version_language, mode: "Text"})],
       header: {menuOpen: null}
     });
   },
@@ -1815,8 +1820,13 @@ var ReaderTextTableOfContents = React.createClass({displayName: "ReaderTextTable
     }
   },
   loadVersions: function() {
+    var ref = sjs.library.sectionRef(this.props.currentRef) || this.props.currentRef;
+    if (!ref) {
+      this.setState({versions_loaded:true})
+      return;
+    }
     sjs.library.text(
-      sjs.library.sectionRef(this.props.currentRef),
+      ref,
       {context: 1, version: this.state.version, language: this.state.version_language},
       function(d) {
         this.setState({versions:d.versions, versions_loaded:true})
@@ -1918,7 +1928,8 @@ var ReaderTextTableOfContents = React.createClass({displayName: "ReaderTextTable
       if (this.props.version_language == v.language && this.props.version == v.versionTitle) {
         selectedOption = i+1;
       }
-      selectOptions.push(React.createElement("option", {key: i+1, value: i+1}, v.versionTitle, " (", v.language, ")"));
+      var versionString = v.versionTitle + " (" + v.language + ")";  // Can not inline this, because of https://github.com/facebook/react-devtools/issues/248
+      selectOptions.push(React.createElement("option", {key: i+1, value: i+1},  versionString ));
     }
     var selectElement = (React.createElement("div", {className: "versionSelect"}, 
                            React.createElement("select", {value: selectedOption, onChange: this.onVersionSelectChange}, 

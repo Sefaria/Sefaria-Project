@@ -65,7 +65,7 @@ sjs.library = {
     }
   },
   _saveText: function(data, settings, skipWrap) {
-    if ("error" in data) { 
+    if (!data || "error" in data) { 
       //sjs.alert.message(data.error);
       return;
     }
