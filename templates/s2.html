@@ -45,6 +45,8 @@
         var ref = "{{ ref }}";
         var version = "{{ version|default:"" }}";
         var language = "{{ language|default:"" }}";
+        var initialMenu = "{{ initialMenu }}";
+
         if (ref) {
           ref = humanRef("{{ ref }}");
           sjs.library._saveText({{ data|jsonify }}, {context: 1, version: version, language: language});
@@ -57,7 +59,9 @@
         var initialPanels = [];
 
         if (!multiPanel) {
-          if (filter) {
+          if (intialMenu) {
+            initialPanels = [];
+          } else if (filter) {
             initialPanels = [{mode: "TextAndConnections", refs: [ref], filter: filter, version: version, version_language: language}];
           } else {
             initialPanels = [{mode: "Text", refs: [ref], version: version, version_language: language}];
@@ -103,7 +107,7 @@
             multiPanel: multiPanel,
             initialRefs: ref ? [ref] : [],
             initialFilter: filter,
-            initialMenu: "{{ initialMenu }}",
+            initialMenu: initialMenu,
             initialQuery: query,
             initialSheetsTag: "{{ initialSheetsTag }}",
             initialNavigationCategories: {{ initialNavigationCategories|default:"[]" }},

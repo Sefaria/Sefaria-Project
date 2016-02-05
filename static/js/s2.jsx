@@ -324,8 +324,7 @@ var ReaderApp = React.createClass({
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag:   state.sheetsTag || null,
       searchQuery:          state.searchQuery || null,
-      displaySettingsOpen:  false,
-      width:                0
+      displaySettingsOpen:  false
     };
     return panel
   },
@@ -764,9 +763,7 @@ var ReaderPanel = React.createClass({
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag:   this.props.initialSheetsTag || null,
       searchQuery:          this.props.initialQuery || null,
-      displaySettingsOpen:  false,
-      completeState:        true,
-      width:                0
+      displaySettingsOpen:  false
     }
   },
   componentDidMount: function() {
