@@ -1816,22 +1816,9 @@ var ReaderTextTableOfContents = React.createClass({
   getInitialState: function() {
     return {
       versions: [],
-      versions_loaded: false
+      versionsLoaded: false,
+      currentVersion: null
     }
-  },
-  loadVersions: function() {
-    var ref = sjs.library.sectionRef(this.props.currentRef) || this.props.currentRef;
-    if (!ref) {
-      this.setState({versions_loaded:true})
-      return;
-    }
-    sjs.library.text(
-      ref,
-      {context: 1, version: this.state.version, language: this.state.version_language},
-      function(d) {
-        this.setState({versions:d.versions, versions_loaded:true})
-      }.bind(this)
-    );
   },
   componentDidMount: function() {
     this.loadVersions();
@@ -1845,6 +1832,33 @@ var ReaderTextTableOfContents = React.createClass({
   componentDidUpdate: function() {
     this.bindToggles();
     this.shrinkWrap();
+  },
+  loadVersions: function() {
+    var ref = sjs.library.sectionRef(this.props.currentRef) || this.props.currentRef;
+    if (!ref) {
+      this.setState({versionsLoaded: true});
+      return;
+    }
+    sjs.library.text(
+      ref,
+      {context: 1, version: this.state.version, language: this.state.version_language},
+      this.loadVersionsData);
+  },
+  loadVersionsData: function(d) {
+    // For now treat bilinguale as english. TODO show attribution for 2 versions in bilingual case.
+    var currentLanguage = this.props.settingsLanguage == "he" ? "he" : "en";
+    // Todo handle independent Text TOC case where there is no current version
+    var currentVersion = {
+      language: currentLanguage,
+      title:    currentLanguage == "he" ? d.heVersionTitle: d.versionTitle,
+      source:   currentLanguage == "he" ? d.heVersionSource: d.versionSource,
+      license:  currentLanguage == "he" ? d.heLicense: d.license
+    };
+    this.setState({
+                    versions:d.versions, 
+                    versionsLoaded: true,
+                    currentVersion: currentVersion
+                  });
   },
   handleClick: function(e) {
     var $a = $(e.target).closest("a");
@@ -1873,6 +1887,7 @@ var ReaderTextTableOfContents = React.createClass({
     // Shrink the width of the container of a grid of inline-line block elements,
     // so that is is tight around its contents thus able to appear centered. 
     // As far as I can tell, there's no way to do this in pure CSS.
+    // TODO - flexbox should be able to solve this
     var shrink  = function(i, container) {
       var $container = $(container);
       // don't run on complex nodes without sectionlinks
@@ -1937,7 +1952,18 @@ var ReaderTextTableOfContents = React.createClass({
                            </select>
                          </div>);
 
-    var currentVersionElement = (<span>Version info here</span>);
+    var currentVersionElement = this.state.versionsLoaded ? (
+                                <span className="currentVersionInfo">
+                                  <span className="currentVersionTitle">{this.state.currentVersion.title}</span>
+                                  <a className="currentVersionSource" target="_blank" href={this.state.currentVersion.source}>
+                                    { parseURL(this.state.currentVersion.source).host }
+                                  </a>
+                                  <span>-</span>
+                                  <span className="currentVersionLicense">{this.state.currentVersion.license}</span>
+                                  <span>-</span>
+                                  <a className="versionHistoryLink" href="#">Version History &gt; </a>
+
+                                </span>) : null;
 
 
     return (<div className="readerTextTableOfContents readerNavMenu" onClick={this.handleClick}>
@@ -1961,9 +1987,9 @@ var ReaderTextTableOfContents = React.createClass({
                     </div>
                   </div>
                   <div className="versionBox">
-                      {(!this.state.versions_loaded) ? (<span>Loading...</span>): ""}
-                      {(this.state.versions_loaded && this.state.versions.length > 1)? selectElement: ""}
-                      {(this.state.versions_loaded)? currentVersionElement: ""}
+                      {(!this.state.versionsLoaded) ? (<span>Loading...</span>): ""}
+                      {(this.state.versionsLoaded)? currentVersionElement: ""}
+                      {(this.state.versionsLoaded && this.state.versions.length > 1) ? selectElement: ""}
                   </div>
                   <div className="tocContent" dangerouslySetInnerHTML={ {__html: tocHtml} }></div>
                 </div>

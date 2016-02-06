@@ -694,15 +694,37 @@ h1 .languageToggle .he {
 }
 .readerTextTableOfContents .versionBox {
   margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #ccc;
   text-align: center;
 }
 
 .readerTextTableOfContents .versionBox .versionSelect {
   width: 80%;
-  margin: 0 auto;
+  max-width: 300px;
+  margin: 5px auto;
   direction: ltr;
 }
-
+.readerTextTableOfContents .versionBox .versionSelect select {
+  width: 100%;
+}
+.readerTextTableOfContents .versionBox .currentVersionInfo > span, 
+.readerTextTableOfContents .versionBox .currentVersionInfo > a {
+  margin: 3px;
+  color: #999;
+}
+.readerTextTableOfContents .versionBox span.currentVersionTitle {
+  display: block;
+  font-size: 17px;
+  color: #333;
+}
+.readerTextTableOfContents .versionBox .currentVersionSource,
+.readerTextTableOfContents .versionBox .currentVersionLicense,
+.readerTextTableOfContents .versionBox .versionHistoryLink {
+  display: inline-block;
+  font-size: 13px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
 .readerTextTableOfContents .content {
   padding: 90px 10px 10px;
   box-sizing: border-box;
