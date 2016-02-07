@@ -1852,8 +1852,11 @@ var ReaderTextTableOfContents = React.createClass({
       language: currentLanguage,
       title:    currentLanguage == "he" ? d.heVersionTitle: d.versionTitle,
       source:   currentLanguage == "he" ? d.heVersionSource: d.versionSource,
-      license:  currentLanguage == "he" ? d.heLicense: d.license
+      license:  currentLanguage == "he" ? d.heLicense: d.license,
+      sources:  currentLanguage == "he" ? d.heSources: d.sources,
     };
+    currentVersion.merged = !!(currentVersion.sources);
+
     this.setState({
                     versions:d.versions, 
                     versionsLoaded: true,
@@ -1935,8 +1938,42 @@ var ReaderTextTableOfContents = React.createClass({
     var section   = sjs.library.sectionString(this.props.currentRef).en.named;
     var heSection = sjs.library.sectionString(this.props.currentRef).he.named;
 
+
+    var currentVersionElement = null;
+    var defaultVersion = "Default Version";
+
+    if (this.state.versionsLoaded) {
+      if (this.state.currentVersion.merged) {
+        var uniqueSources = this.state.currentVersion.sources.filter(function(item, i, ar){ return ar.indexOf(item) === i; }).join(", ");
+        defaultVersion += " (Merged from " + uniqueSources + ")";
+        currentVersionElement = (
+          <span className="currentVersionInfo">
+            <span className="currentVersionTitle">Merged from { uniqueSources }</span>
+            <a className="versionHistoryLink" href="#">Version History &gt; </a>
+          </span>);
+      } else {
+        if (!this.props.version) {
+          var dv = this.state.versions.find(v => (this.state.currentVersion.language == v.language && this.state.currentVersion.title == v.versionTitle));
+          defaultVersion += " (" + dv.versionTitle + ")";
+        }
+        currentVersionElement = (
+            <span className="currentVersionInfo">
+            <span className="currentVersionTitle">{this.state.currentVersion.title}</span>
+            <a className="currentVersionSource" target="_blank" href={this.state.currentVersion.source}>
+              { parseURL(this.state.currentVersion.source).host }
+            </a>
+            <span>-</span>
+            <span className="currentVersionLicense">{this.state.currentVersion.license}</span>
+            <span>-</span>
+            <a className="versionHistoryLink" href="#">Version History &gt; </a>
+          </span>);
+      }
+    }
+
+
+
     var selectOptions = [];
-    selectOptions.push(<option key="0" value="0">Default Version</option>);    // todo: add description of current version.
+    selectOptions.push(<option key="0" value="0">{defaultVersion}</option>);    // todo: add description of current version.
     var selectedOption = 0;
     for (var i = 0; i < this.state.versions.length; i++) {
       var v = this.state.versions[i];
@@ -1951,19 +1988,6 @@ var ReaderTextTableOfContents = React.createClass({
                              {selectOptions}
                            </select>
                          </div>);
-
-    var currentVersionElement = this.state.versionsLoaded ? (
-                                <span className="currentVersionInfo">
-                                  <span className="currentVersionTitle">{this.state.currentVersion.title}</span>
-                                  <a className="currentVersionSource" target="_blank" href={this.state.currentVersion.source}>
-                                    { parseURL(this.state.currentVersion.source).host }
-                                  </a>
-                                  <span>-</span>
-                                  <span className="currentVersionLicense">{this.state.currentVersion.license}</span>
-                                  <span>-</span>
-                                  <a className="versionHistoryLink" href="#">Version History &gt; </a>
-
-                                </span>) : null;
 
 
     return (<div className="readerTextTableOfContents readerNavMenu" onClick={this.handleClick}>
