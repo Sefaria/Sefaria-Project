@@ -68,15 +68,15 @@
           if (initialMenu) {
             initialPanels = [];
           } else if (filter) {
-            initialPanels = [{mode: "TextAndConnections", refs: [ref], menuOpen: panel.initialMenu, filter: filter, version: version, version_language: language}];
+            initialPanels = [{mode: "TextAndConnections", refs: [ref], menuOpen: panel.initialMenu, filter: filter, version: version, versionLanguage: language}];
           } else if (panel) {
-            initialPanels = [{mode: "Text", refs: [ref], menuOpen: panel.initialMenu, version: version, version_language: language}];
+            initialPanels = [{mode: "Text", refs: [ref], menuOpen: panel.initialMenu, version: version, versionLanguage: language}];
           } else {
             initialMenu = initialMenu || "home";
           }
         } else { //multiPanel
           if (ref) {
-            initialPanels = [{mode: "Text", refs: [ref], menuOpen: panel.initialMenu, version: version, version_language: language}];
+            initialPanels = [{mode: "Text", refs: [ref], menuOpen: panel.initialMenu, version: version, versionLanguage: language}];
           }
           if (filter) {
             initialPanels.push({mode: "Connections", refs: [ref], menuOpen: panel.initialMenu, filter: filter});
@@ -86,7 +86,7 @@
             panel = panels.shift();
 
             if (panel.ref && !panel.ref.match(/^texts|^sheets|^search/)) {
-              initialPanels.push({mode: "Text", refs: [humanRef(panel.ref)], menuOpen: panel.initialMenu, version: panel.version, version_language: panel.language});
+              initialPanels.push({mode: "Text", refs: [humanRef(panel.ref)], menuOpen: panel.initialMenu, version: panel.version, versionLanguage: panel.language});
             }
             if (panel.filter) {
               var pfilter = panel.filter && panel.filter.length === 1 && panel.filter[0] === "all" ? [] : panel.filter;
