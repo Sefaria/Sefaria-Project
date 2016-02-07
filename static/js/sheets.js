@@ -299,7 +299,7 @@ $(function() {
 	});
 
 	$("#makeSheetAssignableButton").click(function(){
-		$("#assignedSheets").show();
+		$("#assignedSheetsShareURL").show();
 		$(this).hide();
 		$("#StopCollectingAssignmentsButton").show();
 		$("#sheet").addClass('assignable');
@@ -307,7 +307,7 @@ $(function() {
 	});
 
 	$("#StopCollectingAssignmentsButton").click(function(){
-		$("#assignedSheets").hide();
+		$("#assignedSheetsShareURL").hide();
 		$(this).hide();
 		$("#makeSheetAssignableButton").show();
 		$("#sheet").removeClass('assignable');
@@ -2291,7 +2291,7 @@ function deleteSheet() {
 }
 
 // Regex for identifying divine name with or without nikkud / trop
-sjs.divineRE = /(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C7]*|יי|יקוק|ה\')(?=[\s.,;:'"\-]|$)/g;
+sjs.divineRE = /([\s.,;:'"\-]|^)([משהוכלב]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C7]*|יי|יקוק|ה\')(?=[\s.,;:'"\-]|$)/g;
 sjs.divineSubs = {
 					"noSub": "יהוה", 
 					"yy": "יי",
@@ -2307,7 +2307,7 @@ function substituteDivineNames(text) {
 		return text; 
 	}
 	var sub = sjs.divineSubs[sjs.current.options.divineNames];
-	text = text.replace(sjs.divineRE, sub);
+	text = text.replace(sjs.divineRE, "$1$2"+sub);
 	return text;
 }
 
@@ -2315,7 +2315,7 @@ function substituteDivineNames(text) {
 function substituteDivineNamesInNode(node) {
 	findAndReplaceDOMText(node, {
 		find: sjs.divineRE,
-		replace: sjs.divineSubs[sjs.current.options.divineNames]
+		replace:  "$1$2"+sjs.divineSubs[sjs.current.options.divineNames]
 	});
 }
 
@@ -2333,16 +2333,13 @@ function promptToPublish() {
 
 	if (!sjs.current.id) { return; }                        // Don't prompt for unsaved sheet
 	if (!sjs.is_owner) { return; }                          // Only prompt the primary owner
-	if (sjs.current.promptedToPublish) {
-			if ((Date.now()-Date.parse(sjs.current.promptedToPublish))/(8.64*(Math.pow(10,7))) < 30 ) {
-				return;
-			}
-		} 											       // Don't prompt if we've prompted in the last 30 days
+
+	if (sjs.current.promptedToPublish) { return; }          // Don't prompt if we've prompted already
 	if (sjs.current.assignment_id) {return;}			   // Don't prompt if this is an assignment sheet
 	if (sjs.current.options.assignable == 1) {return;}	   // Don't prompt if sheet is currently assignable
 	if (sjs.current.status in {"public":true}) { return; } // Don't prompt if sheet is already public
 //	if (sjs.current.sources.length < 6) { return; }         // Don't prompt if the sheet has less than 6 sources
-	if (sjs.current.views < 3) {return}						// Don't prompt if the sheet has been viewed less than three times
+	if (sjs.current.views < 6) {return}						// Don't prompt if the sheet has been viewed less than six times
 	if ($("body").hasClass("embedded")) { return; }         // Don't prompt while a sheet is embedded
 
 	$("#publishPromptModal").show();
