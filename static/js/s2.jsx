@@ -1940,12 +1940,13 @@ var ReaderTextTableOfContents = React.createClass({
 
 
     var currentVersionElement = null;
-    var defaultVersion = "Default Version";
+    var defaultVersionString = "Default Version";
+    var defaultVersionObject = null;
 
     if (this.state.versionsLoaded) {
       if (this.state.currentVersion.merged) {
         var uniqueSources = this.state.currentVersion.sources.filter(function(item, i, ar){ return ar.indexOf(item) === i; }).join(", ");
-        defaultVersion += " (Merged from " + uniqueSources + ")";
+        defaultVersionString += " (Merged from " + uniqueSources + ")";
         currentVersionElement = (
           <span className="currentVersionInfo">
             <span className="currentVersionTitle">Merged from { uniqueSources }</span>
@@ -1953,8 +1954,8 @@ var ReaderTextTableOfContents = React.createClass({
           </span>);
       } else {
         if (!this.props.version) {
-          var dv = this.state.versions.find(v => (this.state.currentVersion.language == v.language && this.state.currentVersion.title == v.versionTitle));
-          defaultVersion += " (" + dv.versionTitle + ")";
+          defaultVersionObject = this.state.versions.find(v => (this.state.currentVersion.language == v.language && this.state.currentVersion.title == v.versionTitle));
+          defaultVersionString += " (" + defaultVersionObject.versionTitle + ")";
         }
         currentVersionElement = (
             <span className="currentVersionInfo">
@@ -1973,10 +1974,13 @@ var ReaderTextTableOfContents = React.createClass({
 
 
     var selectOptions = [];
-    selectOptions.push(<option key="0" value="0">{defaultVersion}</option>);    // todo: add description of current version.
+    selectOptions.push(<option key="0" value="0">{defaultVersionString}</option>);    // todo: add description of current version.
     var selectedOption = 0;
     for (var i = 0; i < this.state.versions.length; i++) {
       var v = this.state.versions[i];
+      if (v == defaultVersionObject) {
+        continue;
+      }
       if (this.props.version_language == v.language && this.props.version == v.versionTitle) {
         selectedOption = i+1;
       }
