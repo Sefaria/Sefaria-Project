@@ -3491,10 +3491,13 @@ sjs.showNewText = function () {
 	$('#versionTitle').val(sjs.editing.versionTitle);
 
 	// Text Area
-	$("#newVersion").unbind().bind("textchange", checkTextDirection)
+	$("#newVersion").unbind()
 		.show()
 		.autosize();
 	sjs.textSync.init($("#newVersion"));
+	if (!sjs.editing.versionTitle) {
+		$("#newVersion").bind("textchange", checkTextDirection);
+	}
 	$("#language").unbind().change(updateTextDirection);
 	
 	// Special handing of Original Translation // Sefara Community Translation
