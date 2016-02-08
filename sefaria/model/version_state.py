@@ -341,33 +341,6 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
 class VersionStateSet(abst.AbstractMongoSet):
     recordClass = VersionState
 
-    def all_refs(self):
-        refs = []
-        for vs in self:
-            try:
-                content_nodes = vs.index.nodes.get_leaf_nodes()
-            except Exception as e:
-                logger.warning(u"Failed to find VersionState Index while generating references for {}. {}".format(vs.title, e.message))
-                continue
-            for c in content_nodes:
-                try:
-                    state_ja = vs.state_node(c).ja("all")
-                    for indxs in state_ja.non_empty_sections():
-                        sections = [a + 1 for a in indxs]
-                        refs += [Ref(
-                            _obj={
-                                "index": vs.index,
-                                "book": vs.index.nodes.full_title("en"),
-                                "type": vs.index.categories[0],
-                                "index_node": c,
-                                "sections": sections,
-                                "toSections": sections
-                            }
-                        )]
-                except Exception as e:
-                    logger.warning(u"Failed to generate references for {}, section {}. {}".format(c.full_title("en"), ".".join([str(s) for s in sections]) if sections else "-", e.message))
-        return refs
-
 
 class StateNode(object):
     lang_map = {lang: "_" + lang for lang in ["he", "en", "all"]}
