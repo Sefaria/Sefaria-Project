@@ -3495,7 +3495,7 @@ sjs.showNewText = function () {
 		.show()
 		.autosize();
 	sjs.textSync.init($("#newVersion"));
-	if (sjs.editing.versionTitle) {
+	if (!sjs.editing.versionTitle) {
 		$("#newVersion").bind("textchange", checkTextDirection);
 	}
 	$("#language").unbind().change(updateTextDirection);
