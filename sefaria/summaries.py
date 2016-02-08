@@ -114,7 +114,7 @@ REORDER_RULES = {
     "Commentary2": ["Commentary"],
 }
 
-
+#//todo: mark for commentary refactor
 def update_table_of_contents():
     toc = []
     sparseness_dict = get_sparesness_lookup()
@@ -177,7 +177,7 @@ def recur_delete_element_from_toc(bookname, toc):
                 toc_elem['to_delete'] = True
     return toc
 
-
+#//todo: mark for commentary refactor
 def update_title_in_toc(toc, index, old_ref=None, recount=True):
     """
     Update text summary docs to account for change or insertion of 'text'

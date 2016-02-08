@@ -12,6 +12,7 @@ from sefaria.utils.users import user_link
 
 
 def format_link_object_for_client(link, with_text, ref, pos=None):
+    #//todo: mark for comemntary refactor
     """
     :param link: Link object
     :param ref: Ref object of the source of the link

@@ -16,6 +16,7 @@ except ImportError:
 if USE_VARNISH:
     from sefaria.system.sf_varnish import invalidate_ref, invalidate_linked
 
+#//todo: mark for commentary refactor
 def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     """
     Updates a chunk of text, identified by oref, versionTitle, and lang, and records history.

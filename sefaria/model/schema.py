@@ -1190,6 +1190,9 @@ class AddressType(object):
         elif lang == "he":
             return encode_hebrew_numeral(i)
 
+    def storage_offset(self):
+        return 0
+
 
 class AddressTalmud(AddressType):
     """
@@ -1281,6 +1284,9 @@ class AddressTalmud(AddressType):
             }
         else: #shouldn't get here
             return {name: number}
+
+    def storage_offset(self):
+        return 2
 
 
 class AddressInteger(AddressType):

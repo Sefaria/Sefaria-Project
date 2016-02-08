@@ -272,6 +272,7 @@ def edit_text(request, ref=None, lang=None, version=None):
                 mode = text["mode"].capitalize()
                 initJSON = json.dumps(text)
         except:
+            #// mark for commentary refactor?
             index = library.get_index(ref)
             if index: # a commentator titlein
                 ref = None
@@ -566,6 +567,7 @@ def toc_availability_class(toc):
 
 @ensure_csrf_cookie
 def text_toc(request, oref):
+    #//todo: mark for comemntary refactor
     """
     Page representing a single text, showing its Table of Contents and related info.
     """
@@ -685,6 +687,7 @@ def texts_list(request):
 
 
 def texts_category_list(request, cats):
+    #//todo: mark for comemntary refactor
     """
     Page listing every text in category
     """

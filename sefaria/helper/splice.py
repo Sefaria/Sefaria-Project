@@ -3,7 +3,7 @@ from sefaria.system.exceptions import InputError
 from sefaria.search import delete_text, index_text
 from sefaria.sheets import get_sheets_for_ref, get_sheet, save_sheet
 from sefaria.system.database import db
-
+#//todo: mark for commentary refactor?
 class Splicer(object):
     """
     Tool for either merging two segments together, or inserting a new segment.

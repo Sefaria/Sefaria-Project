@@ -27,7 +27,7 @@ lang_codes = {
     "en": "English"
 }
 
-
+#//todo: mark for commentary refactor
 def make_path(doc, format):
     """
 	Returns the full path and file name for exporting 'doc' in 'format'.
@@ -287,7 +287,7 @@ def export_toc():
     with open(SEFARIA_EXPORT_PATH + "/table_of_contents.json", "w") as f:
         f.write(make_json(toc).encode('utf-8'))
 
-
+#//todo: mark for commentary refactor
 def export_links():
     """
 	Creates a single CSV file containing all links known to Sefaria.

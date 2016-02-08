@@ -523,7 +523,7 @@ def process_index_delete_in_version_state(indx, **kwargs):
     from sefaria.system.database import db
     db.vstate.remove({"title": indx.title})
 
-
+#//todo: mark for commentary refactor
 def process_index_title_change_in_version_state(indx, **kwargs):
 
     VersionStateSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
@@ -537,7 +537,7 @@ def process_index_title_change_in_version_state(indx, **kwargs):
     for pair in old_new:
         VersionStateSet({"title": pair[0]}).update({"title": pair[1]})
 
-
+#//todo: mark for commentary refactor
 def create_version_state_on_index_creation(indx, **kwargs):
     if indx.is_commentary():
         return

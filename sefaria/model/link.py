@@ -187,7 +187,7 @@ class LinkSet(abst.AbstractMongoSet):
 
         return [{"name": key, "count": results[key]["count"], "books": results[key]["books"] } for key in results.keys()]
 
-
+#//todo: mark for commentary refactor
 def process_index_title_change_in_links(indx, **kwargs):
     #TODO: think about these functions in commentary refactor
     print "Cascading Links {} to {}".format(kwargs['old'], kwargs['new'])
@@ -205,7 +205,7 @@ def process_index_title_change_in_links(indx, **kwargs):
             logger.warning("Deleting link that failed to save: {} - {}".format(l.refs[0], l.refs[1]))
             l.delete()
 
-
+#//todo: mark for commentary refactor
 def process_index_delete_in_links(indx, **kwargs):
     if indx.is_commentary():
         pattern = ur'^{} on '.format(re.escape(indx.title))
@@ -218,6 +218,7 @@ def process_index_delete_in_links(indx, **kwargs):
 #get_link_counts() and get_book_link_collection() are used in Link Explorer.
 #They have some client formatting code in them; it may make sense to move them up to sefaria.client or sefaria.helper
 link_counts = {}
+#//todo: mark for commentary refactor
 def get_link_counts(cat1, cat2):
     global link_counts
     key = cat1 + "-" + cat2
@@ -247,7 +248,7 @@ def get_link_counts(cat1, cat2):
     link_counts[key] = result
     return result
 
-
+#//todo: mark for commentary refactor
 def get_category_category_linkset(cat1, cat2):
     """
     Return LinkSet of links between the given book and category.
@@ -279,7 +280,7 @@ def get_category_category_linkset(cat1, cat2):
 
     return LinkSet({"$and": [{"$or": clauses[0]}, {"$or": clauses[1]}]})
 
-
+#//todo: mark for commentary refactor
 def get_book_category_linkset(book, cat):
     """
     Return LinkSet of links between the given book and category.

@@ -133,6 +133,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "pubPlace",
         "errorMargin",
         "era",
+        "dependence", #commentary: to denote commentaries and other potential not standalone texts
+        "base_text_titles", #the base book(s) this one is dpenedant on
+        "mapping_scheme",
+        "work_title",
+        "related_categories"
     ]
 
     def __unicode__(self):
@@ -178,6 +183,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         :return: Returns an Index object as a flat dictionary, in version one form.
         :raise: Exception if the Index cannot be expressed in the old form
         """
+        #//todo: mark for comemntary refactor? raises exception in actual old style index records
         if not self.nodes.is_flat():
             raise InputError("Index record {} can not be converted to legacy API form".format(self.title))
 
@@ -220,9 +226,12 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return d
 
     def is_commentary(self):
-        return self.categories[0] == "Commentary"
+        #//TODO: mark for commentary refactor
+        return self.categories[0] == 'Commentary'
+        """getattr(self, 'dependence', None) == "Commentary" or"""
 
     def get_commentary_indexes(self):
+        #//TODO: mark for commentary refactor
         if not self.is_commentary():
             return [self]
         return list({v.get_index() for v in library.get_commentary_versions(self.title)})
@@ -341,6 +350,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
             # Data is being loaded from dict in old format, rewrite to new format
             # Assumption is that d has a complete title collection
+            #//TODO: mark for commentary refactor
             if "schema" not in d and d["categories"][0] != "Commentary":
                 node = getattr(self, "nodes", None)
                 if node:
@@ -411,6 +421,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if isinstance(getattr(self, "authors", None), basestring):
             self.authors = [self.authors]
 
+        #//TODO: mark for commentary refactor
         if not self.is_commentary():
             if not self.is_new():
                 for t in [self.title, self.nodes.primary_title("en"), self.nodes.key]:  # This sets a precedence order
@@ -573,7 +584,7 @@ class IndexSet(abst.AbstractMongoSet):
         for rec in self:
             rec.update_from_dict(attrs).save()
 
-
+#//TODO: mark for commentary refactor
 class CommentaryIndex(AbstractIndex):
     """
     A virtual Index for commentary records.
@@ -1489,6 +1500,7 @@ class TextFamily(object):
         for attr in ["sections", "toSections"]:
             d[attr] = getattr(self._original_oref, attr)[:]
         if self._context_oref.is_commentary():
+            #//TODO: mark for commentary refactor
             for attr in ["commentaryBook", "commentaryCategories", "commentator", "heCommentator"]:
                 d[attr] = getattr(self._inode.index, attr, "")
         d["isComplex"]    = self.isComplex
@@ -1525,7 +1537,7 @@ class TextFamily(object):
             if "heTitle" in d:
                 d["heBook"] = d["heTitle"]
                 d["heTitle"] = self._context_oref.he_normal()
-
+            #//mark for comemntary refactor?
             if d["type"] == "Commentary" and self._context_oref.is_talmud() and len(d["sections"]) > 1:
                 d["title"] = "%s Line %d" % (d["title"], d["sections"][1])
 
@@ -1698,22 +1710,21 @@ class Ref(object):
         self._range_index = None
 
     def _validate(self):
-        offset = 0
-        if self.is_bavli():
-            offset = 2
-        checks = [self.sections, self.toSections]
-        for check in checks:
-            if 0 in check:
-                raise InputError(u"{} {} must be greater than 0".format(self.book, self.index_node.sectionNames[check.index(0)]))
-            if getattr(self.index_node, "lengths", None) and len(check):
-                if check[0] > self.index_node.lengths[0] + offset:
-                    display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0] + offset)
-                    raise InputError(u"{} ends at {} {}.".format(self.book, self.index_node.sectionNames[0], display_size))
-        for i in range(len(self.sections)):
-            if self.toSections > self.sections:
-                break
-            if self.toSections < self.sections:
-                raise InputError(u"{} is an invalid range.  Ranges must end later than they begin.".format(self.normal()))
+        if self.sections:
+            offset = self.index_node.address_class(0).storage_offset()
+            checks = [self.sections, self.toSections]
+            for check in checks:
+                if 0 in check:
+                    raise InputError(u"{} {} must be greater than 0".format(self.book, self.index_node.sectionNames[check.index(0)]))
+                if getattr(self.index_node, "lengths", None) and len(check):
+                    if check[0] > self.index_node.lengths[0] + offset:
+                        display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0] + offset)
+                        raise InputError(u"{} ends at {} {}.".format(self.book, self.index_node.sectionNames[0], display_size))
+            for i in range(len(self.sections)):
+                if self.toSections > self.sections:
+                    break
+                if self.toSections < self.sections:
+                    raise InputError(u"{} is an invalid range.  Ranges must end later than they begin.".format(self.normal()))
 
     def __clean_tref(self):
         self.tref = self.tref.strip().replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
@@ -1791,7 +1802,7 @@ class Ref(object):
                     except InputError:  # created Ref doesn't validate, back it out
                         self.index_node = old_index_node
                         self.sections = []
-
+            #//mark for commentary refactor
             elif self.index.is_commentary() and self._lang == "en":
                 if not getattr(self.index, "commentaryBook", None):
                     raise InputError(u"Please specify a text that {} comments on.".format(self.index.title))
@@ -1799,6 +1810,7 @@ class Ref(object):
         else:  # This may be a new version, try to build a schema node.
             match = library.all_titles_regex(self._lang, commentary=True).match(base)
             if match:
+                #//mark for commentary refactor
                 title = match.group('title')
                 on_node = library.get_schema_node(match.group('commentee'))  # May be SchemaNode or JaggedArrayNode
                 self.index = library.get_index(match.group('commentor') + " on " + on_node.index.title)
@@ -1987,15 +1999,15 @@ class Ref(object):
         return getattr(self.index_node, "addressTypes", None) and len(self.index_node.addressTypes) and self.index_node.addressTypes[0] == "Talmud"
 
     def is_bavli(self):
+        #//TODO: mark for commentary refactor?
         """
-        Is this a Talmud Bavli reference?
-
+        Is this a Talmud Bavli or related text reference?
         :return bool:
         """
         if self.is_commentary():
             return u"Bavli" in self.index.b_index.categories
         else:
-            return u"Bavli" in self.index.categories
+            return u"Bavli" in self.index.categories or u"Bavli" in getattr(self.index, 'related_categories', [])
 
     def is_commentary(self):
         """
@@ -2003,6 +2015,7 @@ class Ref(object):
 
         :return bool:
         """
+        #// TODO: mark for commentary refactor -deprecate
         return self.type == "Commentary"
 
     def is_range(self):
@@ -2670,6 +2683,7 @@ class Ref(object):
             d = self._core_dict()
             if self.is_talmud():
                 if len(self.sections) == 0: #No daf specified
+                    #//todo: mark for commentary refactor? this might need adjusting
                     section = 3 if "Bavli" in self.index.categories else 1
                     d["sections"].append(section)
                     d["toSections"].append(section)
@@ -2841,6 +2855,7 @@ class Ref(object):
                 return "%s(%s)" % (escaped_book, "|".join(patterns))
 
     def base_text_and_commentary_regex(self):
+        #//todo: mark for commentary refactor
         ref_regex_str = self.regex(anchored=False)
         commentators = library.get_commentary_version_titles_on_book(self.book, with_commentary2=True)
         if commentators:
@@ -3169,7 +3184,7 @@ class Ref(object):
         return self.index.get_title(lang="he")
 
     def _get_normal(self, lang):
-        #//todo: commentary refactor
+        #//todo: mark for commentary refactor
         normal = self.index_node.full_title(lang)
         if not normal:
             if lang != "en":
@@ -3277,6 +3292,7 @@ class Ref(object):
 
 
 class Library(object):
+    #//todo: mark for commentary refactor
     """
     Operates as a singleton, through the instance called ``library``.
 

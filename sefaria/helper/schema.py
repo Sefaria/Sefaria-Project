@@ -26,6 +26,7 @@ def insert_first_child(new_node, parent_node):
     return attach_branch(new_node, parent_node, 0)
 
 def attach_branch(new_node, parent_node, place=0):
+    #//todo: mark for commentary refactor?
     """
     :param new_node: A schema node tree to attach
     :param parent_node: The parent to attach it to
@@ -56,6 +57,7 @@ def attach_branch(new_node, parent_node, place=0):
 
 
 def remove_branch(node):
+    #//todo: mark for commentary refactor?
     """
     This will delete any text in `node`
     :param node: SchemaNode to remove
@@ -98,6 +100,7 @@ def reorder_children(parent_node, new_order):
 
 
 def change_parent(node, new_parent, place=0):
+    #//todo: mark for commentary refactor?
     """
     :param node:
     :param new_parent:
@@ -138,6 +141,7 @@ def change_parent(node, new_parent, place=0):
 
 
 def refresh_version_state(base_title):
+    #//todo: mark for commentary refactor?
     """
     VersionState is *not* altered on Index save.  It is only created on Index creation.
 

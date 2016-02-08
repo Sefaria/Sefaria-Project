@@ -18,6 +18,7 @@ if USE_VARNISH:
 
 
 def add_and_delete_invalid_commentary_links(oref, user, **kwargs):
+    #// mark for commentary refactor
     """
     This functino both adds links and deletes pre existing ones that are no longer valid,
     by virtue of the fact that they were not detected as commentary links while iterating over the text.
@@ -45,7 +46,7 @@ def add_and_delete_invalid_commentary_links(oref, user, **kwargs):
 
 
 def add_commentary_links(oref, user, text=None, **kwargs):
-    #//TODO: commentary refactor, also many other lines can be made better
+    #// mark for commentary refactor
     """
     Automatically add links for each comment in the commentary text denoted by 'tref'.
     E.g., for the ref 'Sforno on Kohelet 3:2', automatically set links for
@@ -120,6 +121,7 @@ def add_commentary_links(oref, user, text=None, **kwargs):
 
 
 def delete_commentary_links(title, user):
+    #// mark for commentary refactor
     """
     Deletes all of the citation generated links from text 'title'
     """
@@ -133,6 +135,7 @@ def delete_commentary_links(title, user):
 
 
 def rebuild_commentary_links(title, user):
+    #// mark for commentary refactor
     """
     Deletes all of the citation generated links from text 'title'
     then rebuilds them.

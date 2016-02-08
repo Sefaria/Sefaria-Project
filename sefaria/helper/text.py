@@ -30,7 +30,7 @@ def add_spelling(category, old, new, lang="en"):
                 schema.add_title(new_title, lang)
                 i.save()
 
-
+#//todo: mark for commentary refactor?
 def create_commentator_and_commentary_version(commentator_name, existing_book, lang, vtitle, vsource, he_commentator_name):
     existing_index = Index().load({'title':existing_book})
     if existing_index is None:
@@ -400,6 +400,7 @@ def get_core_link_stats():
 
 
 def get_library_stats():
+    #//todo: mark for commentary refactor?
     def aggregate_stats(toc_node, path):
         simple_nodes = []
         for x in toc_node:

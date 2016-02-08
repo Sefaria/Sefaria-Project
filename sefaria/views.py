@@ -377,6 +377,7 @@ def cache_dump(request):
     return jsonResponse(resp)
 
 @staff_member_required
+#//todo: mark for commentary refactor
 def create_commentator_version(request, commentator, book, lang, vtitle, vsource):
     from sefaria.helper.text import create_commentator_and_commentary_version
     ht = request.GET.get("heTitle", None)

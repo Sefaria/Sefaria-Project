@@ -92,6 +92,7 @@ def delete_text(oref, version, lang):
     except Exception, e:
         logger.error(u"ERROR deleting {} / {} / {} : {}".format(oref.normal(), version, lang, e))
 
+#//todo: mark for commentary refactor
 def make_text_index_document(tref, version, lang):
     """
     Create a document for indexing from the text specified by ref/version/lang
