@@ -3498,7 +3498,11 @@ sjs.showNewText = function () {
 	if (!sjs.editing.versionTitle) {
 		$("#newVersion").bind("textchange", checkTextDirection);
 	}
-	$("#language").unbind().change(updateTextDirection);
+
+	// Language Toggle
+	$("#language").val(sjs.langMode)
+		.unbind()
+		.change(updateTextDirection);
 	
 	// Special handing of Original Translation // Sefara Community Translation
 	sjs.editing.sct = (sjs.current.versionTitle === "Sefaria Community Translation" ? sjs.current.text : null);
@@ -3644,12 +3648,15 @@ sjs.addThis = function(e) {
 	sjs.editCurrent(e);
 	var n = parseInt($(this).attr("data-num"));
 	if (n) {
-		if (sjs.editing.compareText || sjs.editing.compareText.length) {
+		if (lang !== "he" && (sjs.editing.compareText || sjs.editing.compareText.length)) {
 			sjs.toggleShowOriginal();
 		}
 		sjs._$newVersion.trigger("autosize");
-		var $top = $(".syncTextNumbers .verse").eq(n-1)
+		var $top = lang == "he" ? $(".textSyncNumbers .segmentLabel").eq(n-1) : $(".newTextCompare .verse").eq(n-1);
+		// TODO this doesn't seem to be working to scroll english text with a compareText
 		if ($top.length) {
+			//console.log("Scrolling to " + n);
+			//console.log($top);
 			var top = $top.position().top - 100;
 			$("html, body").animate({scrollTop: top, duation: 200});
 
