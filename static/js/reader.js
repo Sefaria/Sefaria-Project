@@ -3498,7 +3498,11 @@ sjs.showNewText = function () {
 	if (!sjs.editing.versionTitle) {
 		$("#newVersion").bind("textchange", checkTextDirection);
 	}
-	$("#language").unbind().change(updateTextDirection);
+
+	// Language Toggle
+	$("#language").val(sjs.langMode)
+		.unbind()
+		.change(updateTextDirection);
 	
 	// Special handing of Original Translation // Sefara Community Translation
 	sjs.editing.sct = (sjs.current.versionTitle === "Sefaria Community Translation" ? sjs.current.text : null);
