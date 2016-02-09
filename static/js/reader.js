@@ -3648,7 +3648,8 @@ sjs.addThis = function(e) {
 	sjs.editCurrent(e);
 	var n = parseInt($(this).attr("data-num"));
 	if (n) {
-		if (sjs.editing.compareText || sjs.editing.compareText.length) {
+		console.log("Scrolling to " + n);
+		if (lang !== "he" && (sjs.editing.compareText || sjs.editing.compareText.length)) {
 			sjs.toggleShowOriginal();
 		}
 		sjs._$newVersion.trigger("autosize");
