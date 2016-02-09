@@ -1738,20 +1738,19 @@ class Ref(object):
         self._range_index = None
 
     def _validate(self):
-        if self.sections:
-            offset = self.index_node.address_class(0).storage_offset()
-            checks = [self.sections, self.toSections]
-            for check in checks:
-                if 0 in check:
-                    raise InputError(u"{} {} must be greater than 0".format(self.book, self.index_node.sectionNames[check.index(0)]))
-                if getattr(self.index_node, "lengths", None) and len(check):
-                    if check[0] > self.index_node.lengths[0] + offset:
-                        display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0] + offset)
-                        raise InputError(u"{} ends at {} {}.".format(self.book, self.index_node.sectionNames[0], display_size))
+        checks = [self.sections, self.toSections]
+        for check in checks:
+            if 0 in check:
+                raise InputError(u"{} {} must be greater than 0".format(self.book, self.index_node.sectionNames[check.index(0)]))
+            if getattr(self.index_node, "lengths", None) and len(check):
+                offset = self.index_node.address_class(0).storage_offset()
+                if check[0] > self.index_node.lengths[0] + offset:
+                    display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0] + offset)
+                    raise InputError(u"{} ends at {} {}.".format(self.book, self.index_node.sectionNames[0], display_size))
             for i in range(len(self.sections)):
-                if self.toSections > self.sections:
+                if self.toSections[i] > self.sections[i]:
                     break
-                if self.toSections < self.sections:
+                if self.toSections[i] < self.sections[i]:
                     raise InputError(u"{} is an invalid range.  Ranges must end later than they begin.".format(self.normal()))
 
     def __clean_tref(self):
