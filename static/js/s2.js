@@ -25,11 +25,11 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
         filter: this.props.initialFilter,
         menuOpen: this.props.initialPanels[0].menuOpen,
         version: this.props.initialPanels[0].version,
-        version_language: this.props.initialPanels[0].version_language,
+        versionLanguage: this.props.initialPanels[0].versionLanguage,
         settings: clone(defaultPanelSettings)
       };
-      if (panels[0].version_language) {
-        panels[0].settings.language = (panels[0].version_language == "he")? "hebrew": "english";
+      if (panels[0].versionLanguage) {
+        panels[0].settings.language = (panels[0].versionLanguage == "he")? "hebrew": "english";
       }
       if (mode === "TextAndConnections") {
         panels[0].highlightedRefs = this.props.initialRefs;
@@ -40,11 +40,11 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
         mode: "Text",
         version: this.props.initialPanels[0].version,
         menuOpen: this.props.initialPanels[0].menuOpen,
-        version_language: this.props.initialPanels[0].version_language,
+        versionLanguage: this.props.initialPanels[0].versionLanguage,
         settings: clone(defaultPanelSettings)
       };
-      if (p.version_language) {
-        p.settings.language = (p.version_language == "he")? "hebrew": "english";
+      if (p.versionLanguage) {
+        p.settings.language = (p.versionLanguage == "he")? "hebrew": "english";
       }
       panels.push(p);
       if (this.props.initialFilter) {
@@ -58,8 +58,8 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
       for (var i = panels.length; i < this.props.initialPanels.length; i++) {
         var panel      = clone(this.props.initialPanels[i]);
         panel.settings = clone(defaultPanelSettings);
-        if (panel.version_language) {
-          panel.settings.language = (panel.version_language == "he")? "hebrew": "english";
+        if (panel.versionLanguage) {
+          panel.settings.language = (panel.versionLanguage == "he")? "hebrew": "english";
         }
         panels.push(panel);
       }
@@ -156,7 +156,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
           (prev.searchQuery !== next.searchQuery) ||
           (prev.navigationSheetTag !== next.navigationSheetTag) ||
           (prev.version !== next.version) ||
-          (prev.version_language !== next.version_language))
+          (prev.versionLanguage !== next.versionLanguage))
           {
          return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
@@ -229,7 +229,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
         hist.title    = state.refs.slice(-1)[0];
         hist.url      = normRef(hist.title);
         hist.version  = state.version;
-        hist.version_language = state.version_language;
+        hist.versionLanguage = state.versionLanguage;
         hist.mode     = "Text"
       } else if (state.mode === "Connections") {
         var ref     = state.refs.slice(-1)[0];
@@ -243,7 +243,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
         hist.title    = ref  + " with " + (sources === "all" ? "Connections" : sources);
         hist.url      = normRef(ref) + "?with=" + sources;
         hist.version  = state.version;
-        hist.version_language = state.version_language;
+        hist.versionLanguage = state.versionLanguage;
         hist.mode     = "TextAndConnections"
       } else if (state.mode === "Header") {
         hist.title  = document.title;
@@ -256,8 +256,8 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
 
     // Now merge all history objects into one
     var url   = "/" + (histories.length ? histories[0].url : "");
-    if(histories[0].version_language && histories[0].version) {
-        url += "/" + histories[0].version_language + "/" + histories[0].version.replace(/\s/g,"_");
+    if(histories[0].versionLanguage && histories[0].version) {
+        url += "/" + histories[0].versionLanguage + "/" + histories[0].version.replace(/\s/g,"_");
     }
     var title =  histories.length ? histories[0].title : "Sefaria";
     var hist  = {state: clone(this.state), url: url, title: title};
@@ -277,8 +277,8 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
         var next    = "&p=" + histories[i].url;
         next        = next.replace("?", "&").replace(/=/g, (i+1) + "=");
         hist.url   += next;
-        if(histories[i].version_language && histories[i].version) {
-          hist.url += "&l" + (i+1) + "=" + histories[i].version_language + "&v" + (i+1) + "=" + histories[i].version.replace(/\s/g,"_");
+        if(histories[i].versionLanguage && histories[i].version) {
+          hist.url += "&l" + (i+1) + "=" + histories[i].versionLanguage + "&v" + (i+1) + "=" + histories[i].version.replace(/\s/g,"_");
         }
         hist.title += " & " + histories[i].title;
 
@@ -321,7 +321,7 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
       mode:                 state.mode, // "Text", "TextAndConnections", "Connections"
       filter:               state.filter || [],
       version:              state.version || null,
-      version_language:     state.version_language || null,
+      versionLanguage:     state.versionLanguage || null,
       highlightedRefs:      state.highlightedRefs || [],
       recentFilters:        [],
       settings:             state.settings? clone(state.settings): clone(this.state.defaultPanelSettings),
@@ -344,10 +344,10 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
       }
     }
   },
-  handleNavigationClick: function(ref, version, version_language) {
+  handleNavigationClick: function(ref, version, versionLanguage) {
     this.saveOpenPanelsToRecentlyViewed();
     this.setState({
-      panels: [this.makePanelState({refs: [ref], version: version, version_langauge: version_language, mode: "Text"})],
+      panels: [this.makePanelState({refs: [ref], version: version, version_langauge: versionLanguage, mode: "Text"})],
       header: {menuOpen: null}
     });
   },
@@ -381,15 +381,15 @@ var ReaderApp = React.createClass({displayName: "ReaderApp",
     this.state.panels[n] = $.extend(this.state.panels[n], state);
     this.setState({panels: this.state.panels});
   },
-  selectVersion: function(n, version_name, version_language) {
+  selectVersion: function(n, version_name, versionLanguage) {
     var panel = this.state.panels[n];
-    if (version_name && version_language) {
+    if (version_name && versionLanguage) {
       panel.version = version_name;
-      panel.version_language = version_language;
-      panel.settings.language = (panel.version_language == "he")? "hebrew": "english";
+      panel.versionLanguage = versionLanguage;
+      panel.settings.language = (panel.versionLanguage == "he")? "hebrew": "english";
     } else {
       panel.version = null;
-      panel.version_language = null;
+      panel.versionLanguage = null;
     }
     this.setState({panels: this.state.panels});
   },
@@ -753,7 +753,7 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
       mode: this.props.initialMode, // "Text", "TextAndConnections", "Connections"
       filter: this.props.initialFilter || [],
       version: this.props.initialVersion,
-      version_language: this.props.initialVersionLanguage,
+      versionLanguage: this.props.initialVersionLanguage,
       highlightedRefs: this.props.initialHighlightedRefs || [],
       recentFilters: [],
       settings: this.props.intialState.settings || {
@@ -1045,7 +1045,7 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
       items.push(React.createElement(TextColumn, {
           srefs: this.state.refs, 
           version: this.state.version, 
-          version_language: this.state.version_language, 
+          versionLanguage: this.state.versionLanguage, 
           highlightedRefs: this.state.highlightedRefs, 
           basetext: true, 
           withContext: true, 
@@ -1089,7 +1089,7 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
     if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation") {
       var menu = (React.createElement(ReaderNavigationMenu, {
                     home: this.state.menuOpen === "home", 
-                    categories: this.state.navigationCategories, 
+                    categories: this.state.navigationCategories || [], 
                     settings: this.state.settings, 
                     setCategories: this.setNavigationCategories || [], 
                     setOption: this.setOption, 
@@ -1108,7 +1108,7 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
                     close: this.closeMenus, 
                     title: this.currentBook(), 
                     version: this.state.version, 
-                    version_language: this.state.version_language, 
+                    versionLanguage: this.state.versionLanguage, 
                     settingsLanguage: this.state.settings.language == "hebrew"?"he":"en", 
                     category: this.currentCategory(), 
                     currentRef: this.lastCurrentRef(), 
@@ -1160,7 +1160,7 @@ var ReaderPanel = React.createClass({displayName: "ReaderPanel",
           currentCategory: this.currentCategory, 
           currentBook: this.currentBook, 
           version: this.state.version, 
-          version_language: this.state.version_language, 
+          versionLanguage: this.state.versionLanguage, 
           multiPanel: this.props.multiPanel, 
           settings: this.state.settings, 
           setOption: this.setOption, 
@@ -1200,7 +1200,7 @@ var ReaderControls = React.createClass({displayName: "ReaderControls",
     closeMenus:              React.PropTypes.func.isRequired,
     currentRef:              React.PropTypes.string,
     version:                 React.PropTypes.string,
-    version_language:        React.PropTypes.string,
+    versionLanguage:        React.PropTypes.string,
     currentMode:             React.PropTypes.func.isRequired,
     currentCategory:         React.PropTypes.func.isRequired,
     currentBook:             React.PropTypes.func.isRequired,
@@ -1225,7 +1225,7 @@ var ReaderControls = React.createClass({displayName: "ReaderControls",
       sjs.library.text(title, {context: 1}, function() { if (this.isMounted()) { this.setState({}); } }.bind(this));
     }
 
-    var version_title = this.props.version ? this.props.version.replace(/_/g," "):"";
+    var versionTitle = this.props.version ? this.props.version.replace(/_/g," "):"";
     var centerContent = this.props.multiPanel && mode === "Connections" ?
       (React.createElement("div", {className: "readerTextToc"}, 
           React.createElement("span", {className: "en"}, "Select Connection"), 
@@ -1238,7 +1238,7 @@ var ReaderControls = React.createClass({displayName: "ReaderControls",
             React.createElement("span", {className: "he"}, heTitle)
           ), 
            title ? (React.createElement("i", {className: "fa fa-caret-down"})) : null, 
-           (this.props.version_language == "en" && this.props.settings.language == "english") ? (React.createElement("div", {className: "readerTextVersion"}, React.createElement("span", {className: "en"}, version_title))) : null
+           (this.props.versionLanguage == "en" && this.props.settings.language == "english") ? (React.createElement("div", {className: "readerTextVersion"}, React.createElement("span", {className: "en"}, versionTitle))) : null
         ));
 
     var classes = classNames({readerControls: 1, headeroom: 1, connectionsHeader: mode == "Connections"});
@@ -1806,7 +1806,7 @@ var ReaderTextTableOfContents = React.createClass({displayName: "ReaderTextTable
     category:         React.PropTypes.string.isRequired,
     currentRef:       React.PropTypes.string.isRequired,
     settingsLanguage: React.PropTypes.string.isRequired,
-    version_language: React.PropTypes.string,
+    versionLanguage: React.PropTypes.string,
     version:          React.PropTypes.string,
     close:            React.PropTypes.func.isRequired,
     openNav:          React.PropTypes.func.isRequired,
@@ -1841,7 +1841,7 @@ var ReaderTextTableOfContents = React.createClass({displayName: "ReaderTextTable
     }
     sjs.library.text(
       ref,
-      {context: 1, version: this.state.version, language: this.state.version_language},
+      {context: 1, version: this.state.version, language: this.state.versionLanguage},
       this.loadVersionsData);
   },
   loadVersionsData: function(d) {
@@ -1852,8 +1852,11 @@ var ReaderTextTableOfContents = React.createClass({displayName: "ReaderTextTable
       language: currentLanguage,
       title:    currentLanguage == "he" ? d.heVersionTitle: d.versionTitle,
       source:   currentLanguage == "he" ? d.heVersionSource: d.versionSource,
-      license:  currentLanguage == "he" ? d.heLicense: d.license
+      license:  currentLanguage == "he" ? d.heLicense: d.license,
+      sources:  currentLanguage == "he" ? d.heSources: d.sources,
     };
+    currentVersion.merged = !!(currentVersion.sources);
+
     this.setState({
                     versions:d.versions, 
                     versionsLoaded: true,
@@ -1935,12 +1938,50 @@ var ReaderTextTableOfContents = React.createClass({displayName: "ReaderTextTable
     var section   = sjs.library.sectionString(this.props.currentRef).en.named;
     var heSection = sjs.library.sectionString(this.props.currentRef).he.named;
 
+
+    var currentVersionElement = null;
+    var defaultVersionString = "Default Version";
+    var defaultVersionObject = null;
+
+    if (this.state.versionsLoaded) {
+      if (this.state.currentVersion.merged) {
+        var uniqueSources = this.state.currentVersion.sources.filter(function(item, i, ar){ return ar.indexOf(item) === i; }).join(", ");
+        defaultVersionString += " (Merged from " + uniqueSources + ")";
+        currentVersionElement = (
+          React.createElement("span", {className: "currentVersionInfo"}, 
+            React.createElement("span", {className: "currentVersionTitle"}, "Merged from ",  uniqueSources ), 
+            React.createElement("a", {className: "versionHistoryLink", href: "#"}, "Version History > ")
+          ));
+      } else {
+        if (!this.props.version) {
+          defaultVersionObject = this.state.versions.find(v => (this.state.currentVersion.language == v.language && this.state.currentVersion.title == v.versionTitle));
+          defaultVersionString += " (" + defaultVersionObject.versionTitle + ")";
+        }
+        currentVersionElement = (
+            React.createElement("span", {className: "currentVersionInfo"}, 
+            React.createElement("span", {className: "currentVersionTitle"}, this.state.currentVersion.title), 
+            React.createElement("a", {className: "currentVersionSource", target: "_blank", href: this.state.currentVersion.source}, 
+               parseURL(this.state.currentVersion.source).host
+            ), 
+            React.createElement("span", null, "-"), 
+            React.createElement("span", {className: "currentVersionLicense"}, this.state.currentVersion.license), 
+            React.createElement("span", null, "-"), 
+            React.createElement("a", {className: "versionHistoryLink", href: "#"}, "Version History > ")
+          ));
+      }
+    }
+
+
+
     var selectOptions = [];
-    selectOptions.push(React.createElement("option", {key: "0", value: "0"}, "Default Version"));    // todo: add description of current version.
+    selectOptions.push(React.createElement("option", {key: "0", value: "0"}, defaultVersionString));    // todo: add description of current version.
     var selectedOption = 0;
     for (var i = 0; i < this.state.versions.length; i++) {
       var v = this.state.versions[i];
-      if (this.props.version_language == v.language && this.props.version == v.versionTitle) {
+      if (v == defaultVersionObject) {
+        continue;
+      }
+      if (this.props.versionLanguage == v.language && this.props.version == v.versionTitle) {
         selectedOption = i+1;
       }
       var versionString = v.versionTitle + " (" + v.language + ")";  // Can not inline this, because of https://github.com/facebook/react-devtools/issues/248
@@ -1951,19 +1992,6 @@ var ReaderTextTableOfContents = React.createClass({displayName: "ReaderTextTable
                              selectOptions
                            )
                          ));
-
-    var currentVersionElement = this.state.versionsLoaded ? (
-                                React.createElement("span", {className: "currentVersionInfo"}, 
-                                  React.createElement("span", {className: "currentVersionTitle"}, this.state.currentVersion.title), 
-                                  React.createElement("a", {className: "currentVersionSource", target: "_blank", href: this.state.currentVersion.source}, 
-                                     parseURL(this.state.currentVersion.source).host
-                                  ), 
-                                  React.createElement("span", null, "-"), 
-                                  React.createElement("span", {className: "currentVersionLicense"}, this.state.currentVersion.license), 
-                                  React.createElement("span", null, "-"), 
-                                  React.createElement("a", {className: "versionHistoryLink", href: "#"}, "Version History > ")
-
-                                )) : null;
 
 
     return (React.createElement("div", {className: "readerTextTableOfContents readerNavMenu", onClick: this.handleClick}, 
@@ -2209,7 +2237,7 @@ var TextColumn = React.createClass({displayName: "TextColumn",
   propTypes: {
     srefs:                 React.PropTypes.array.isRequired,
     version:               React.PropTypes.string,
-    version_language:      React.PropTypes.string,
+    versionLanguage:      React.PropTypes.string,
     highlightedRefs:       React.PropTypes.array,
     basetext:              React.PropTypes.bool,
     withContext:           React.PropTypes.bool,
@@ -2467,7 +2495,7 @@ var TextColumn = React.createClass({displayName: "TextColumn",
       return (React.createElement(TextRange, {
         sref: ref, 
         version: this.props.version, 
-        version_language: this.props.version_language, 
+        versionLanguage: this.props.versionLanguage, 
         highlightedRefs: this.props.highlightedRefs, 
         basetext: true, 
         withContext: true, 
@@ -2517,7 +2545,7 @@ var TextRange = React.createClass({displayName: "TextRange",
   propTypes: {
     sref:                React.PropTypes.string.isRequired,
     version:             React.PropTypes.string,
-    version_language:       React.PropTypes.string,
+    versionLanguage:       React.PropTypes.string,
     highlightedRefs:        React.PropTypes.array,
     basetext:               React.PropTypes.bool,
     withContext:            React.PropTypes.bool,
@@ -2560,7 +2588,7 @@ var TextRange = React.createClass({displayName: "TextRange",
   },
   componentDidUpdate: function(prevProps, prevState) {
     // Reload text if version changed
-    if (this.props.version != prevProps.version || this.props.version_language != prevProps.version_language) {
+    if (this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage) {
       this.getText();
       window.requestAnimationFrame(function() {
           if (this.isMounted()) {
@@ -2609,7 +2637,7 @@ var TextRange = React.createClass({displayName: "TextRange",
     settings = {
       context: this.props.withContext ? 1 : 0,
       version: this.props.version || null,
-      language: this.props.version_language || null
+      language: this.props.versionLanguage || null
     };
     sjs.library.text(this.props.sref, settings, this.loadText);
   },
@@ -2714,14 +2742,14 @@ var TextRange = React.createClass({displayName: "TextRange",
        sjs.library.text(data.next, {
          context: 1,
          version: this.props.version || null,
-         language: this.props.version_language || null
+         language: this.props.versionLanguage || null
        }, function() {});
      }
      if (data.prev) {
        sjs.library.text(data.prev, {
          context: 1,
          version: this.props.version || null,
-         language: this.props.version_language || null
+         language: this.props.versionLanguage || null
        }, function() {});
      }
      if (data.book) { sjs.library.textTocHtml(data.book, function() {}); }

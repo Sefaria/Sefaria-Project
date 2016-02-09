@@ -1089,7 +1089,7 @@ var ReaderPanel = React.createClass({
     if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation") {
       var menu = (<ReaderNavigationMenu 
                     home={this.state.menuOpen === "home"}
-                    categories={this.state.navigationCategories}
+                    categories={this.state.navigationCategories || []}
                     settings={this.state.settings}
                     setCategories={this.setNavigationCategories || []}
                     setOption={this.setOption}
