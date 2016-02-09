@@ -1400,8 +1400,6 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
   getRecentlyViewed: function() {
     var json = $.cookie("recentlyViewed");
     var recentlyViewed = json ? JSON.parse(json) : null;
-    console.log("Recently Viewed");
-    console.log(recentlyViewed);
     return recentlyViewed;
   },
   handleClick: function(event) {
@@ -2349,7 +2347,7 @@ var TextColumn = React.createClass({displayName: "TextColumn",
     }
   },
   setScrollPosition: function() {
-    //console.log("ssp")
+    console.log("ssp")
     // Called on every update, checking flags on this to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
@@ -2406,6 +2404,7 @@ var TextColumn = React.createClass({displayName: "TextColumn",
         console.log("last text is loading")
         return;
       }
+      console.log("Add next section");
       currentRef = refs.slice(-1)[0];
       data       = sjs.library.ref(currentRef);
       if (data && data.next) {
@@ -2418,7 +2417,7 @@ var TextColumn = React.createClass({displayName: "TextColumn",
       topRef = refs[0];
       data   = sjs.library.ref(topRef);
       if (data && data.prev) {
-        //console.log("up!")
+        console.log("up!")
         refs.splice(refs, 0, data.prev);
         this.loadingContentAtTop = true;
         this.props.updateTextColumn(refs);
