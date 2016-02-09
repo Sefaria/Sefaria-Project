@@ -2347,8 +2347,8 @@ var TextColumn = React.createClass({displayName: "TextColumn",
     }
   },
   setScrollPosition: function() {
-    console.log("ssp")
-    // Called on every update, checking flags on this to see if scroll position needs to be set
+    console.log("ssp");
+    // Called on every update, checking flags on `this` to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
       //console.log("loading at top")
