@@ -3648,13 +3648,15 @@ sjs.addThis = function(e) {
 	sjs.editCurrent(e);
 	var n = parseInt($(this).attr("data-num"));
 	if (n) {
-		console.log("Scrolling to " + n);
 		if (lang !== "he" && (sjs.editing.compareText || sjs.editing.compareText.length)) {
 			sjs.toggleShowOriginal();
 		}
 		sjs._$newVersion.trigger("autosize");
-		var $top = $(".syncTextNumbers .verse").eq(n-1)
+		var $top = lang == "he" ? $(".textSyncNumbers .segmentLabel").eq(n-1) : $(".newTextCompare .verse").eq(n-1);
+		// TODO this doesn't seem to be working to scroll english text with a compareText
 		if ($top.length) {
+			//console.log("Scrolling to " + n);
+			//console.log($top);
 			var top = $top.position().top - 100;
 			$("html, body").animate({scrollTop: top, duation: 200});
 
