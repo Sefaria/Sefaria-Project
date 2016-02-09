@@ -204,7 +204,7 @@ body.dark {
   background-color: inherit;
 }
 /* Adjusting for 17px scrollbars, to keep content centered */
-.english .textColumn, .bilingual .textColumn {
+.multiPanel .english .textColumn, .multiPanel .bilingual .textColumn {
   padding-left: 17px;
 }
 .hebrew .textColumn {

@@ -23,9 +23,9 @@ var ReaderApp = React.createClass({
         refs: this.props.initialRefs,
         mode: mode,
         filter: this.props.initialFilter,
-        menuOpen: this.props.initialPanels[0].menuOpen,
-        version: this.props.initialPanels[0].version,
-        versionLanguage: this.props.initialPanels[0].versionLanguage,
+        menuOpen: this.props.initialMenu,
+        version: this.props.initialPanels.length ? this.props.initialPanels[0].version : null,
+        versionLanguage: this.props.initialPanels.length ? this.props.initialPanels[0].versionLanguage : null,
         settings: clone(defaultPanelSettings)
       };
       if (panels[0].versionLanguage) {
@@ -38,9 +38,9 @@ var ReaderApp = React.createClass({
       var p = {
         refs: this.props.initialRefs,
         mode: "Text",
-        version: this.props.initialPanels[0].version,
         menuOpen: this.props.initialPanels[0].menuOpen,
-        versionLanguage: this.props.initialPanels[0].versionLanguage,
+        version: this.props.initialPanels.length ? this.props.initialPanels[0].version : null,
+        versionLanguage: this.props.initialPanels.length ? this.props.initialPanels[0].versionLanguage : null,
         settings: clone(defaultPanelSettings)
       };
       if (p.versionLanguage) {
@@ -364,7 +364,11 @@ var ReaderApp = React.createClass({
   },
   handleRecentClick: function(pos, ref) {
     console.log("recent click: " + pos + ", " + ref);
-    this.openPanelAt(pos, ref);
+    if (this.props.multiPanel) {
+      this.openPanelAt(pos, ref);
+    } else {
+      this.handleNavigationClick(ref);
+    }
   },
   setPanelState: function(n, state, replaceHistory) {
     this.replaceHistory  = Boolean(replaceHistory);
