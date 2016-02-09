@@ -1247,7 +1247,7 @@ var ReaderControls = React.createClass({displayName: "ReaderControls",
           React.createElement("div", {className: "readerControlsInner"}, 
             React.createElement("div", {className: "leftButtons"}, 
               this.props.multiPanel ? (React.createElement(ReaderNavigationMenuCloseButton, {icon: mode === "Connections" ? "arrow": null, onClick: this.props.closePanel})) : null, 
-              this.props.multiPanel ? null : (React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.openMenu.bind(null, "navigation")}))
+              this.props.multiPanel ? null : (React.createElement(ReaderNavigationMenuMenuButton, {onClick: this.props.openMenu.bind(null, "navigation")}))
             ), 
             React.createElement("div", {className: "rightButtons"}, 
               React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings})
@@ -1709,7 +1709,7 @@ var ReaderNavigationCategoryMenu = React.createClass({displayName: "ReaderNaviga
     return (React.createElement("div", {className: navMenuClasses}, 
               React.createElement("div", {className: navTopClasses}, 
                 React.createElement(CategoryColorLine, {category: categories[0]}), 
-                this.props.hideNavHeader ? null : (React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.navHome})), 
+                this.props.hideNavHeader ? null : (React.createElement(ReaderNavigationMenuMenuButton, {onClick: this.props.navHome})), 
                 this.props.hideNavHeader ? null : (React.createElement(ReaderNavigationMenuDisplaySettingsButton, {onClick: this.props.openDisplaySettings})), 
                 this.props.hideNavHeader ? null : (React.createElement("h2", null, 
                   React.createElement("span", {className: "en"}, this.props.category), 
@@ -1971,8 +1971,6 @@ var ReaderTextTableOfContents = React.createClass({displayName: "ReaderTextTable
       }
     }
 
-
-
     var selectOptions = [];
     selectOptions.push(React.createElement("option", {key: "0", value: "0"}, defaultVersionString));    // todo: add description of current version.
     var selectedOption = 0;
@@ -2126,7 +2124,7 @@ var SheetsNav = React.createClass({displayName: "SheetsNav",
     return (React.createElement("div", {className: "readerSheetsNav readerNavMenu"}, 
               React.createElement("div", {className: "readerNavTop searchOnly", key: "navTop"}, 
                 React.createElement(CategoryColorLine, {category: "Sheets"}), 
-                React.createElement(ReaderNavigationMenuSearchButton, {onClick: this.props.openNav}), 
+                React.createElement(ReaderNavigationMenuMenuButton, {onClick: this.props.openNav}), 
                 React.createElement("h2", null, React.createElement("span", {className: "en"}, enTitle))
               ), 
               content
@@ -2207,6 +2205,11 @@ var ReaderNavigationMenuSearchButton = React.createClass({displayName: "ReaderNa
   }
 });
 
+var ReaderNavigationMenuMenuButton = React.createClass({displayName: "ReaderNavigationMenuMenuButton",
+  render: function() { 
+    return (React.createElement("span", {className: "readerNavMenuMenuButton", onClick: this.props.onClick}, React.createElement("i", {className: "fa fa-bars"})));
+  }
+});
 
 var ReaderNavigationMenuCloseButton = React.createClass({displayName: "ReaderNavigationMenuCloseButton",
   render: function() { 

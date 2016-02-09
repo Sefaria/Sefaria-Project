@@ -1247,7 +1247,7 @@ var ReaderControls = React.createClass({
           <div className="readerControlsInner">
             <div className="leftButtons">
               {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton icon={mode === "Connections" ? "arrow": null} onClick={this.props.closePanel} />) : null}
-              {this.props.multiPanel ? null : (<ReaderNavigationMenuSearchButton onClick={this.props.openMenu.bind(null, "navigation")} />)}
+              {this.props.multiPanel ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.openMenu.bind(null, "navigation")} />)}
             </div>
             <div className="rightButtons">
               <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
@@ -1709,7 +1709,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
     return (<div className={navMenuClasses}>
               <div className={navTopClasses}>
                 <CategoryColorLine category={categories[0]} />
-                {this.props.hideNavHeader ? null : (<ReaderNavigationMenuSearchButton onClick={this.props.navHome} />)}
+                {this.props.hideNavHeader ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.navHome} />)}
                 {this.props.hideNavHeader ? null : (<ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />)}
                 {this.props.hideNavHeader ? null : (<h2>
                   <span className="en">{this.props.category}</span>
@@ -1971,8 +1971,6 @@ var ReaderTextTableOfContents = React.createClass({
       }
     }
 
-
-
     var selectOptions = [];
     selectOptions.push(<option key="0" value="0">{defaultVersionString}</option>);    // todo: add description of current version.
     var selectedOption = 0;
@@ -2126,7 +2124,7 @@ var SheetsNav = React.createClass({
     return (<div className="readerSheetsNav readerNavMenu">
               <div className="readerNavTop searchOnly" key="navTop">
                 <CategoryColorLine category="Sheets" />
-                <ReaderNavigationMenuSearchButton onClick={this.props.openNav} />
+                <ReaderNavigationMenuMenuButton onClick={this.props.openNav} />
                 <h2><span className="en">{enTitle}</span></h2>
               </div>
               {content}
@@ -2207,6 +2205,11 @@ var ReaderNavigationMenuSearchButton = React.createClass({
   }
 });
 
+var ReaderNavigationMenuMenuButton = React.createClass({
+  render: function() { 
+    return (<span className="readerNavMenuMenuButton" onClick={this.props.onClick}><i className="fa fa-bars"></i></span>);
+  }
+});
 
 var ReaderNavigationMenuCloseButton = React.createClass({
   render: function() { 
