@@ -572,6 +572,34 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return toc_contents_dict
 
+    def all_section_refs(self):
+        refs = []
+        vs = self.versionState()
+        content_nodes = self.nodes.get_leaf_nodes()
+        for c in content_nodes:
+            try:
+                state_ja = vs.state_node(c).ja("all")
+                for indxs in state_ja.non_empty_sections():
+                    sections = [a + 1 for a in indxs]
+                    refs += [Ref(
+                        _obj={
+                            "index": vs.index,
+                            "book": vs.index.nodes.full_title("en"),
+                            "type": vs.index.categories[0],
+                            "index_node": c,
+                            "sections": sections,
+                            "toSections": sections
+                        }
+                    )]
+            except Exception as e:
+                logger.warning(u"Failed to generate references for {}, section {}. {}".format(c.full_title("en"), ".".join([str(s) for s in sections]) if sections else "-", e.message))
+        return refs
+
+    def all_segment_refs(self):
+        seg_refs = []
+        for sec_ref in self.all_section_refs():
+            seg_refs += sec_ref.all_subrefs()
+        return seg_refs
 
 class IndexSet(abst.AbstractMongoSet):
     """
@@ -3729,8 +3757,10 @@ class Library(object):
         """
         :return: list of all section-level Refs in the library
         """
-        from version_state import VersionStateSet
-        return VersionStateSet().all_refs()
+        section_refs = []
+        for indx in self.all_index_records(True):
+            section_refs += indx.all_section_refs()
+        return section_refs
 
     def get_term_dict(self, lang="en"):
         """
@@ -3788,6 +3818,15 @@ class Library(object):
                 # End TEMPORARY
 
         return root_nodes
+
+    def all_index_records(self, with_commentary=False):
+        r = [i for i in IndexSet()]
+        if with_commentary:
+            ctitles = self.get_commentary_version_titles()
+            for title in ctitles:
+                i = self.get_index(title)
+                r.append(i)
+        return r
 
     def get_title_node_dict(self, lang="en", with_commentary=False):
         """

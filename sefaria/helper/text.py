@@ -255,7 +255,7 @@ def modify_text_by_function(title, vtitle, lang, func, uid, **kwargs):
     Walks ever segment contained in title, calls func on the text and saves the result.
     """
     from sefaria.tracker import modify_text
-    section_refs = VersionStateSet({"title": title}).all_refs()
+    section_refs = library.get_index(title).all_section_refs()
     for section_ref in section_refs:
         section = section_ref.text(vtitle=vtitle, lang=lang)
         segment_refs = section_ref.subrefs(len(section.text) if section.text else 0)
