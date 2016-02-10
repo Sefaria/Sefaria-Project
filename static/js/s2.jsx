@@ -1204,7 +1204,7 @@ var ReaderControls = React.createClass({
     closeMenus:              React.PropTypes.func.isRequired,
     currentRef:              React.PropTypes.string,
     version:                 React.PropTypes.string,
-    versionLanguage:        React.PropTypes.string,
+    versionLanguage:         React.PropTypes.string,
     currentMode:             React.PropTypes.func.isRequired,
     currentCategory:         React.PropTypes.func.isRequired,
     currentBook:             React.PropTypes.func.isRequired,
@@ -1240,9 +1240,9 @@ var ReaderControls = React.createClass({
           <div className="readerTextTocBox">
             <span className="en">{title}</span>
             <span className="he">{heTitle}</span>
+            { title ? (<i className="fa fa-caret-down"></i>) : null }
+            { (this.props.versionLanguage == "en" && this.props.settings.language == "english") ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
           </div>
-          { title ? (<i className="fa fa-caret-down"></i>) : null }
-          { (this.props.versionLanguage == "en" && this.props.settings.language == "english") ? (<div className="readerTextVersion"><span className="en">{versionTitle}</span></div>) : null}
         </div>);
 
     var classes = classNames({readerControls: 1, headeroom: 1, connectionsHeader: mode == "Connections"});
@@ -1809,7 +1809,7 @@ var ReaderTextTableOfContents = React.createClass({
     category:         React.PropTypes.string.isRequired,
     currentRef:       React.PropTypes.string.isRequired,
     settingsLanguage: React.PropTypes.string.isRequired,
-    versionLanguage: React.PropTypes.string,
+    versionLanguage:  React.PropTypes.string,
     version:          React.PropTypes.string,
     close:            React.PropTypes.func.isRequired,
     openNav:          React.PropTypes.func.isRequired,
@@ -2243,7 +2243,7 @@ var TextColumn = React.createClass({
   propTypes: {
     srefs:                 React.PropTypes.array.isRequired,
     version:               React.PropTypes.string,
-    versionLanguage:      React.PropTypes.string,
+    versionLanguage:       React.PropTypes.string,
     highlightedRefs:       React.PropTypes.array,
     basetext:              React.PropTypes.bool,
     withContext:           React.PropTypes.bool,
@@ -2550,9 +2550,9 @@ var TextRange = React.createClass({
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
   // This component is responsible for retrieving data from sjs.library for the ref that defines it.
   propTypes: {
-    sref:                React.PropTypes.string.isRequired,
-    version:             React.PropTypes.string,
-    versionLanguage:       React.PropTypes.string,
+    sref:                   React.PropTypes.string.isRequired,
+    version:                React.PropTypes.string,
+    versionLanguage:        React.PropTypes.string,
     highlightedRefs:        React.PropTypes.array,
     basetext:               React.PropTypes.bool,
     withContext:            React.PropTypes.bool,
