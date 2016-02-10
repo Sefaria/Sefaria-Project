@@ -2456,7 +2456,7 @@ function aboutHtml(data) {
 		var html = '';
 		if (version.sources && version.sources.unique().length > 1) {
 		// This text is merged from multiples sources
-			uniqueSources = version.sources.unique()
+			uniqueSources = version.sources.unique();
 			html += '<div class="version '+version.lang+'"><span id="mergeMessage">This page includes merged sections from multiple text versions:</span>'
 			for (i = 0; i < uniqueSources.length; i++ ) {
 				html += '<div class="mergeSource">' +
