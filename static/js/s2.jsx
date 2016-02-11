@@ -334,6 +334,7 @@ var ReaderApp = React.createClass({
     return panel
   },
   setContainerMode: function() {
+    // Applies CSS classes to the React container so that S2 can function as a header only on top of another page.
     if (this.props.headerMode) {
       if (this.state.header.menuOpen || this.state.panels.length) {
         $("#s2").removeClass("headerOnly");
@@ -363,7 +364,7 @@ var ReaderApp = React.createClass({
     this.setTextListHighlight(n, [textRef]);
   },
   handleRecentClick: function(pos, ref) {
-    console.log("recent click: " + pos + ", " + ref);
+    // Click on an item in your Recently Viewed
     if (this.props.multiPanel) {
       this.openPanelAt(pos, ref);
     } else {
@@ -385,10 +386,10 @@ var ReaderApp = React.createClass({
     this.state.panels[n] = $.extend(this.state.panels[n], state);
     this.setState({panels: this.state.panels});
   },
-  selectVersion: function(n, version_name, versionLanguage) {
+  selectVersion: function(n, versionName, versionLanguage) {
     var panel = this.state.panels[n];
     if (version_name && versionLanguage) {
-      panel.version = version_name;
+      panel.version = versionName;
       panel.versionLanguage = versionLanguage;
       panel.settings.language = (panel.versionLanguage == "he")? "hebrew": "english";
     } else {
@@ -508,6 +509,19 @@ var ReaderApp = React.createClass({
     } else {
       var widths = this.state.panels.map(function(){ return evenWidth; });
     }
+
+    var header = this.props.multiPanel ? 
+                  (<Header 
+                    initialState={this.state.header}
+                    setCentralState={this.setHeaderState}
+                    onRefClick={this.handleNavigationClick}
+                    onRecentClick={this.handleRecentClick}
+                    setDefaultOption={this.setDefaultOption}
+                    showLibrary={this.showLibrary}
+                    showSearch={this.showSearch}
+                    headerMode={this.props.headerMode}
+                    panelsOpen={this.state.panels.length} />) : null;
+
     var panels = [];
     for (var i = 0; i < this.state.panels.length; i++) {
       var panel                    = clone(this.state.panels[i]);
@@ -551,17 +565,7 @@ var ReaderApp = React.createClass({
 
     var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel});
     return (<div className={classes}>
-              {this.props.multiPanel ? 
-                <Header 
-                  initialState={this.state.header}
-                  setCentralState={this.setHeaderState}
-                  onRefClick={this.handleNavigationClick}
-                  onRecentClick={this.handleRecentClick}
-                  setDefaultOption={this.setDefaultOption}
-                  showLibrary={this.showLibrary}
-                  showSearch={this.showSearch}
-                  headerMode={this.props.headerMode}
-                  panelsOpen={this.state.panels.length} /> : null}
+              {header}
               {panels}
             </div>);
   }
@@ -1370,9 +1374,9 @@ var ReaderNavigationMenu = React.createClass({
     home:          React.PropTypes.bool
   },
   getInitialState: function() {
+    this.width = 0;
     return {
       showMore: false,
-      width: 0
     };
   },
   componentDidMount: function() {
@@ -1385,7 +1389,12 @@ var ReaderNavigationMenu = React.createClass({
   setWidth: function() {
     var width = $(ReactDOM.findDOMNode(this)).width();
     console.log("Setting RNM width: " + width);
-    this.setState({width: width});
+    var oldWidth = this.width;
+    this.width = width;
+    if ((oldWidth <= 450 && width > 450) || 
+        (oldWidth > 450 && width <= 450)) {
+      this.forceUpdate();
+    }
   },
   navHome: function() {
     this.props.setCategories([])
@@ -1445,7 +1454,7 @@ var ReaderNavigationMenu = React.createClass({
                   openDisplaySettings={this.props.openDisplaySettings}
                   navHome={this.navHome}
                   hideNavHeader={this.props.hideNavHeader}
-                  width={this.state.width} />
+                  width={this.width} />
               </div>);
     } else {
       var categories = [
@@ -1478,7 +1487,7 @@ var ReaderNavigationMenu = React.createClass({
                       <span className="en">More &gt;</span>
                       <span className="he">עוד &gt;</span>
                   </div>);
-      if (this.state.width < 450) {
+      if (this.width < 450) {
         categories = this.state.showMore ? categories : categories.slice(0,9).concat(more);
         categories = (<div className="readerNavCategories"><TwoBox content={categories} /></div>);
       } else {
@@ -1516,7 +1525,7 @@ var ReaderNavigationMenu = React.createClass({
       var calendar = [(<TextBlockLink sref={sjs.calendar.parasha} title={sjs.calendar.parashaName} heTitle="פרשה" category="Tanach" />),
                       (<TextBlockLink sref={sjs.calendar.haftara} title="Haftara" heTitle="הפטרה" category="Tanach" />),
                       (<TextBlockLink sref={sjs.calendar.daf_yomi} title="Daf Yomi" heTitle="דף יומי" category="Talmud" />)];
-      calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={this.state.width} /></div>);
+      calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={this.width} /></div>);
 
 
       var sheetsStyle = {"borderColor": sjs.categoryColor("Sheets")};
@@ -1535,7 +1544,7 @@ var ReaderNavigationMenu = React.createClass({
                         <span className="en">Authors</span>
                         <span className="he">דפי מקורות</span>
                       </a>)];
-      resources = (<div className="readerNavCalendar"><TwoOrThreeBox content={resources} width={this.state.width} /></div>);
+      resources = (<div className="readerNavCalendar"><TwoOrThreeBox content={resources} width={this.width} /></div>);
 
 
       var topContent = this.props.home ?
@@ -1565,7 +1574,7 @@ var ReaderNavigationMenu = React.createClass({
                   recentItem={true}
                   position={item.position || 0} />)
       }) : null;
-      recentlyViewed = recentlyViewed ? <TwoOrThreeBox content={recentlyViewed} width={this.state.width} /> : null;
+      recentlyViewed = recentlyViewed ? <TwoOrThreeBox content={recentlyViewed} width={this.width} /> : null;
 
       var classes = classNames({readerNavMenu: 1, readerNavMenu:1, noHeader: !this.props.hideHeader});
 
