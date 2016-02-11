@@ -267,7 +267,7 @@ def export_schemas():
     path = SEFARIA_EXPORT_PATH + "/schemas/"
     if not os.path.exists(path):
         os.makedirs(path)
-    for i in model.IndexSet():
+    for i in model.library.all_index_records(with_commentary=True):
         title = i.title.replace(" ", "_")
         with open(path + title + ".json", "w") as f:
             try:
