@@ -271,7 +271,17 @@ def export_schemas():
         title = i.title.replace(" ", "_")
         with open(path + title + ".json", "w") as f:
             try:
-                f.write(make_json(i.contents(v2=True)).encode('utf-8'))
+                if not isinstance(i, model.CommentaryIndex):
+                    f.write(make_json(i.contents(v2=True)).encode('utf-8'))
+                else:
+                    explicit_commentary_index = {
+                        'title': idx.title,
+                        'categories': [idx.categories[1], idx.categories[0]] + idx.categories[2:],  # the same as the display order
+                        'schema': idx.schema,
+                        'authors' : getattr(idx, "authors", None),
+                    }
+                    f.write(make_json(explicit_commentary_index).encode('utf-8'))
+
             except InputError as e:
 			    print "InputError: %s" % e
 			    with open(SEFARIA_EXPORT_PATH + "/errors.log", "a") as error_log:
