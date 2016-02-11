@@ -175,8 +175,7 @@ def get_links(tref, with_text=True):
                         for t in ["text", "he"]:
                             texts[top_nref][t] = JaggedTextArray(texts[top_nref][t])
                     except NoVersionFoundError as e:
-                        logger.warning("Trying to get non existent text for ref {}. Link refs were: {}".format(top_nref, link.refs)
-
+                        logger.warning("Trying to get non existent text for ref {}. Link refs were: {}".format(top_nref, link.refs))
                 sections, toSections = com_oref.sections[1:], com_oref.toSections[1:]
                 for t in ["text", "he"]:
                     res = texts[top_nref][t].subarray(
