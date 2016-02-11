@@ -182,6 +182,7 @@ def index_sheet(id):
         "title": sheet["title"],
         "content": make_sheet_text(sheet),
         "version": "Source Sheet by " + user_link(sheet["owner"]),
+        "tags": ",".join(sheet.get("tags",[])),
         "sheetId": id,
     }
     try:
@@ -197,7 +198,9 @@ def make_sheet_text(sheet):
     """
     Returns a plain text representation of the content of sheet.
     """
-    text = sheet["title"] + " "
+    text = "Source Sheet: " + sheet["title"] + "\n"
+    if sheet.get("tags"):
+        text += " [" + ",".join(sheet["tags"]) + "]\n"
     for s in sheet["sources"]:
         text += source_text(s) + " "
 
