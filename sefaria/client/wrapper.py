@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.summaries import REORDER_RULES
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, NoVersionFoundError
 from sefaria.utils.users import user_link
 
 
@@ -170,9 +170,12 @@ def get_links(tref, with_text=True):
                 # Lookup and save top level text, only if we haven't already
                 top_nref = top_oref.normal()
                 if top_nref not in texts:
-                    texts[top_nref] = TextFamily(top_oref, context=0, commentary=False, pad=False).contents()
-                    for t in ["text", "he"]:
-                        texts[top_nref][t] = JaggedTextArray(texts[top_nref][t])
+                    try:
+                        texts[top_nref] = TextFamily(top_oref, context=0, commentary=False, pad=False).contents()
+                        for t in ["text", "he"]:
+                            texts[top_nref][t] = JaggedTextArray(texts[top_nref][t])
+                    except NoVersionFoundError as e:
+                        logger.warning("Trying to get non existent text for ref {}. Link refs were: {}".format(top_nref, link.refs)
 
                 sections, toSections = com_oref.sections[1:], com_oref.toSections[1:]
                 for t in ["text", "he"]:
