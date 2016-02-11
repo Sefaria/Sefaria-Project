@@ -275,10 +275,10 @@ def export_schemas():
                     f.write(make_json(i.contents(v2=True)).encode('utf-8'))
                 else:
                     explicit_commentary_index = {
-                        'title': idx.title,
-                        'categories': [idx.categories[1], idx.categories[0]] + idx.categories[2:],  # the same as the display order
-                        'schema': idx.schema,
-                        'authors' : getattr(idx, "authors", None),
+                        'title': i.title,
+                        'categories': [i.categories[1], i.categories[0]] + i.categories[2:],  # the same as the display order
+                        'schema': i.schema,
+                        'authors' : getattr(i, "authors", None),
                     }
                     f.write(make_json(explicit_commentary_index).encode('utf-8'))
 
