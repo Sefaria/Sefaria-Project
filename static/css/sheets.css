@@ -1272,12 +1272,15 @@ input[type="file"] {
 	display: block;
 } 
 
-
-#sheet .source.english > .he {
+#sheet .source.english > .he,
+#sheet.numbered #sources .source.english > .sourceNumber.he
+{
 	display: none;
 }
 
-#sheet .source.hebrew > .en {
+#sheet .source.hebrew > .en,
+#sheet.numbered #sources .source.hebrew > .sourceNumber.en
+{
 	display: none;
 }
 
