@@ -1537,12 +1537,12 @@ var ReaderNavigationMenu = React.createClass({
                      (<a className="sheetsLink" style={sheetsStyle} href="/explore">
                         <i className="fa fa-link"></i>
                         <span className="en">Link Explorer</span>
-                        <span className="he">דפי מקורות</span>
+                        <span className="he">מפת ציטוטים</span>
                       </a>),
                     (<a className="sheetsLink" style={sheetsStyle} href="/people">
                         <i className="fa fa-book"></i>
                         <span className="en">Authors</span>
-                        <span className="he">דפי מקורות</span>
+                        <span className="he">המחברים</span>
                       </a>)];
       resources = (<div className="readerNavCalendar"><TwoOrThreeBox content={resources} width={this.width} /></div>);
 

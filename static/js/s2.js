@@ -1208,7 +1208,7 @@ var ReaderControls = React.createClass({displayName: "ReaderControls",
     closeMenus:              React.PropTypes.func.isRequired,
     currentRef:              React.PropTypes.string,
     version:                 React.PropTypes.string,
-    versionLanguage:        React.PropTypes.string,
+    versionLanguage:         React.PropTypes.string,
     currentMode:             React.PropTypes.func.isRequired,
     currentCategory:         React.PropTypes.func.isRequired,
     currentBook:             React.PropTypes.func.isRequired,
@@ -1243,10 +1243,10 @@ var ReaderControls = React.createClass({displayName: "ReaderControls",
            title ? (React.createElement("i", {className: "fa fa-caret-down invisible"})) : null, 
           React.createElement("div", {className: "readerTextTocBox"}, 
             React.createElement("span", {className: "en"}, title), 
-            React.createElement("span", {className: "he"}, heTitle)
-          ), 
-           title ? (React.createElement("i", {className: "fa fa-caret-down"})) : null, 
-           (this.props.versionLanguage == "en" && this.props.settings.language == "english") ? (React.createElement("div", {className: "readerTextVersion"}, React.createElement("span", {className: "en"}, versionTitle))) : null
+            React.createElement("span", {className: "he"}, heTitle), 
+             title ? (React.createElement("i", {className: "fa fa-caret-down"})) : null, 
+             (this.props.versionLanguage == "en" && this.props.settings.language == "english") ? (React.createElement("span", {className: "readerTextVersion"}, React.createElement("span", {className: "en"}, versionTitle))) : null
+          )
         ));
 
     var classes = classNames({readerControls: 1, headeroom: 1, connectionsHeader: mode == "Connections"});
@@ -1537,12 +1537,12 @@ var ReaderNavigationMenu = React.createClass({displayName: "ReaderNavigationMenu
                      (React.createElement("a", {className: "sheetsLink", style: sheetsStyle, href: "/explore"}, 
                         React.createElement("i", {className: "fa fa-link"}), 
                         React.createElement("span", {className: "en"}, "Link Explorer"), 
-                        React.createElement("span", {className: "he"}, "דפי מקורות")
+                        React.createElement("span", {className: "he"}, "מפת ציטוטים")
                       )),
                     (React.createElement("a", {className: "sheetsLink", style: sheetsStyle, href: "/people"}, 
                         React.createElement("i", {className: "fa fa-book"}), 
                         React.createElement("span", {className: "en"}, "Authors"), 
-                        React.createElement("span", {className: "he"}, "דפי מקורות")
+                        React.createElement("span", {className: "he"}, "המחברים")
                       ))];
       resources = (React.createElement("div", {className: "readerNavCalendar"}, React.createElement(TwoOrThreeBox, {content: resources, width: this.width})));
 
@@ -1818,7 +1818,7 @@ var ReaderTextTableOfContents = React.createClass({displayName: "ReaderTextTable
     category:         React.PropTypes.string.isRequired,
     currentRef:       React.PropTypes.string.isRequired,
     settingsLanguage: React.PropTypes.string.isRequired,
-    versionLanguage: React.PropTypes.string,
+    versionLanguage:  React.PropTypes.string,
     version:          React.PropTypes.string,
     close:            React.PropTypes.func.isRequired,
     openNav:          React.PropTypes.func.isRequired,
@@ -2252,7 +2252,7 @@ var TextColumn = React.createClass({displayName: "TextColumn",
   propTypes: {
     srefs:                 React.PropTypes.array.isRequired,
     version:               React.PropTypes.string,
-    versionLanguage:      React.PropTypes.string,
+    versionLanguage:       React.PropTypes.string,
     highlightedRefs:       React.PropTypes.array,
     basetext:              React.PropTypes.bool,
     withContext:           React.PropTypes.bool,
@@ -2559,9 +2559,9 @@ var TextRange = React.createClass({displayName: "TextRange",
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
   // This component is responsible for retrieving data from sjs.library for the ref that defines it.
   propTypes: {
-    sref:                React.PropTypes.string.isRequired,
-    version:             React.PropTypes.string,
-    versionLanguage:       React.PropTypes.string,
+    sref:                   React.PropTypes.string.isRequired,
+    version:                React.PropTypes.string,
+    versionLanguage:        React.PropTypes.string,
     highlightedRefs:        React.PropTypes.array,
     basetext:               React.PropTypes.bool,
     withContext:            React.PropTypes.bool,
