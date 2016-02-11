@@ -1588,7 +1588,7 @@ var ReaderNavigationMenu = React.createClass({
                     <span className="he">A</span>
                   </div>
                   <span className="en">The Sefaria Library</span>
-                  <span className="he">ספריה חיה של טקסטים יהודיים</span>
+                  <span className="he">האוסף של ספאריה</span>
                 </h1>
                   
                   <ReaderNavigationMenuSection title="Recent" heTitle="נצפו לאחרונה" content={recentlyViewed} />
