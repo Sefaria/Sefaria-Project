@@ -673,7 +673,7 @@ sjs.library = {
            size: size of result set
            from: from what result to start
            get_filters: if to fetch initial filters
-           applied_filters: fiter query by these filters
+           applied_filters: filter query by these filters
            success: callback on success
            error: callback on error
            */
