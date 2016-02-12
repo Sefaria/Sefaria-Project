@@ -2299,7 +2299,6 @@ function promptToPublish() {
 	if (sjs.current.assignment_id) {return;}			   // Don't prompt if this is an assignment sheet
 	if (sjs.current.options.assignable == 1) {return;}	   // Don't prompt if sheet is currently assignable
 	if (sjs.current.status in {"public":true}) { return; } // Don't prompt if sheet is already public
-//	if (sjs.current.sources.length < 6) { return; }         // Don't prompt if the sheet has less than 6 sources
 	if (sjs.current.views < 6) {return}						// Don't prompt if the sheet has been viewed less than six times
 	if ($("body").hasClass("embedded")) { return; }         // Don't prompt while a sheet is embedded
 

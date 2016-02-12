@@ -473,5 +473,5 @@ def partition_vertical(thelist, n):
 	return newlists
 
 @register.filter
-def dateStringToDate(dateString):
+def date_string_to_date(dateString):
     return(datetime.strptime(dateString, "%Y-%m-%dT%H:%M:%S.%f"))

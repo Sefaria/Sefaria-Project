@@ -155,7 +155,7 @@
  <span id="lastSaved">
     {% if sheet.dateModified %}
 
-       Last Saved: {{sheet.dateModified|dateStringToDate|naturaltime}}
+       Last Saved: {{sheet.dateModified|date_string_to_date|naturaltime}}
 
     {% endif %}
  </span>
