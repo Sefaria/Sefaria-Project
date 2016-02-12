@@ -150,7 +150,7 @@
 		</span>
 	</div>
 
-	<div id="save" class="btn btn-large btn-success">Save</div>
+
 <div>
  <span id="lastSaved">
     {% if sheet.dateModified %}
@@ -166,6 +166,7 @@
 <div id="sheet" class="{{ sheet_class|default:'bilingual' }}">
 	{% if new_sheet %}
 	<div id="fileControls">
+        <span id="save" class="btn btn-large btn-success">Save</span>
 	</div>
 	{% endif %}
 

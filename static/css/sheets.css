@@ -17,6 +17,10 @@ body {
 #fileControls {
 	text-align: right;
 	line-height: 8px;
+	position: fixed;
+    width: inherit;
+    bottom: 0;
+	z-index: 100;
 }
 
 #fileControls .btn {
