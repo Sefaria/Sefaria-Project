@@ -51,6 +51,22 @@ body {
 	color: #31708f;
 }
 
+#lastSaved {
+	position: fixed;
+	z-index: 100;
+	top: 50px;
+	right: 0;
+	margin-left: -20%;
+	text-align: center;
+	font-size: 12px;
+	padding: 1px 0;
+	border-radius: 5px;
+	background-color: #F5F7C7;
+	border: 1px solid #ecf7b0;
+	color: #9a988d;
+}
+
+
 #sheet {
 	background: white;
 	width: 770px;

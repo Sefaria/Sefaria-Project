@@ -564,6 +564,9 @@ $(function() {
 			$(this).focus()
 				.attr("contenteditable", "true")
 				.ckeditor();
+
+			$("#lastSaved").text("Unsaved Changes...")
+
 			
 			// Close editor on enter for customTitle fields
 			if ($(this).hasClass("customTitle")) {
@@ -1650,6 +1653,7 @@ function handleSave() {
 
 function autoSave() {
 	if (sjs.can_save && sjs.current.id && !sjs.loading && !sjs.openRequests) {
+		$("#lastSaved").text("Saving...")
 		var sheet = readSheet();
 		saveSheet(sheet);
 	}
@@ -1674,6 +1678,8 @@ function saveSheet(sheet, reload) {
 			sjs.lastEdit = null;    // save was succesful, won't need to replay
 			startPollingIfNeeded(); // Start or stop polling if collab/group status has changed
 			promptToPublish();      // If conditions are right, prompt to publish
+			$("#lastSaved").text("All changes saved in Sefaria")
+
 		} 
 
 		if ("error" in data) {
