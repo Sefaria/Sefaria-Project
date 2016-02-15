@@ -1890,7 +1890,7 @@ def home(request):
     Homepage
     """
     recent = request.COOKIES.get("recentlyViewed", None)
-    if recent and not "home" in request.GET:
+    if recent and not "home" in request.GET and request.COOKIES.get('s2'):
         recent = json.loads(urlparse.unquote(recent))
         return redirect("/%s" % recent[0]["ref"])
 
