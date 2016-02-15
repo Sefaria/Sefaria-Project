@@ -908,20 +908,24 @@ $(function() {
 
 	$(".moveSourceUp").live("click", function() {
 		$(this).closest(".sheetItem").insertBefore($(this).closest(".sheetItem").prev());
-		autoSave();
 
 		var top = $(this).offset().top - 200;
 		$("html, body").animate({scrollTop: top}, 750);
+		setSourceNumbers();
+
+		autoSave();
 
 	});
 
 
 	$(".moveSourceDown").live("click", function() {
 		$(this).closest(".sheetItem").insertAfter($(this).closest(".sheetItem").next());
-		autoSave();
 
 		var top = $(this).offset().top - 200;
 		$("html, body").animate({scrollTop: top}, 750);
+		setSourceNumbers();
+
+		autoSave();
 
 	});
 
