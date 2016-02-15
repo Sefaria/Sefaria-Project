@@ -324,7 +324,7 @@ body .bilingual .enOnly .he {
   font-size: 14px;
 }
 /* Adjusting for 17px scrollbars, to keep content centered */
-.multiPanel .english .readerNavMenu .content, .bilingual .content {
+.multiPanel .english .readerNavMenu .content, .multiPanel .bilingual .readerNavMenu .content {
   padding-left: 37px;
 }
 .multiPanel .hebrew .readerNavMenu .content {
