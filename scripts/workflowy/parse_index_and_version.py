@@ -16,6 +16,7 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 from sefaria.model import *
+from sefaria.utils.hebrew import is_hebrew
 
 
 class WorkflowyParser(object):
@@ -65,20 +66,24 @@ class WorkflowyParser(object):
     def build_index_schema(self, element):
         if self._term_scheme and isinstance(self._term_scheme, basestring):
             self.create_term_scheme()
+        # either type of node:
+        titles = self.parse_titles(element)  # an array of titles
         if len(element) == 0:  # length of child nodes
             n = JaggedArrayNode()
             n.sectionNames = ['Paragraph']
             n.addressTypes = ['Integer']
             n.depth = 1
+            n.key = titles["enPrim"]
+            n = self.add_titles_to_node(n, titles)
         else:  # yes child nodes >> schema node
             n = SchemaNode()
+            n.key = titles["enPrim"]
+            n = self.add_titles_to_node(n, titles)
             for child in element:
                 n.append(self.build_index_schema(child))
 
-        # either type of node:
-        titles = self.parse_titles(element)  # an array of titles
-        n.key = titles["enPrim"]
-        n = self.add_titles_to_node(n, titles)
+
+
 
         if self._term_scheme and element != self.outline: #add the node to a term scheme
             self.create_shared_term_for_scheme(n.title_group)
@@ -95,13 +100,15 @@ class WorkflowyParser(object):
         # print title
         #title = re.sub(ur"</b>|<b>|#.*#|'", u"", title)
         title = self.comment_strip_re.sub(u"", title)
-        title = title.split(self.title_lang_delim)
+        spl_title = title.split(self.title_lang_delim)
         titles = {}
         if len(title) == 2:
-            he = title[1].split(self.alt_title_delim)
+            he_pos = 1 if is_hebrew(spl_title[1]) else 0
+            he = spl_title[he_pos].split(self.alt_title_delim)
             titles["hePrim"] = he[0].strip()
             titles["heAltList"] = [t.strip() for t in he[1:]]
-        en = title[0].split(self.alt_title_delim)
+            del spl_title[he_pos]
+        en = spl_title[0].split(self.alt_title_delim)
         titles["enPrim"] = en[0].strip()
         titles["enAltList"] = [t.strip() for t in en[1:]]
         # print node.attrib
