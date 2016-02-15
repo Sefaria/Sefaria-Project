@@ -8,6 +8,7 @@ import os
 from pprint import pprint
 from datetime import datetime, timedelta
 import re
+import bleach
 
 # To allow these files to be run directly from command line (w/o Django shell)
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
@@ -107,6 +108,8 @@ def make_text_index_document(tref, version, lang):
     if isinstance(content, list):
         content = " ".join(content)
 
+    content = bleach.clean(content, strip=True, tags=())
+
     if text["type"] == "Talmud":
         title = text["book"] + " Daf " + text["sections"][0]
     elif text["type"] == "Commentary" and text["commentaryCategories"][0] == "Talmud":
@@ -198,11 +201,13 @@ def make_sheet_text(sheet):
     """
     Returns a plain text representation of the content of sheet.
     """
-    text = "Source Sheet: " + sheet["title"] + "\n"
+    text = u"Source Sheets / Sources Sheet: " + sheet["title"] + u"\n"
     if sheet.get("tags"):
-        text += " [" + ",".join(sheet["tags"]) + "]\n"
+        text += u" [" + u", ".join(sheet["tags"]) + u"]\n"
     for s in sheet["sources"]:
-        text += source_text(s) + " "
+        text += source_text(s) + u" "
+
+    text = bleach.clean(text, strip=True, tags=())
 
     return text
 
