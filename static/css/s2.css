@@ -1800,10 +1800,12 @@ display: block;margin: 0 auto;}
 }
 #backToS1 {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  position: absolute;
   top: 20px;
   left: 40px;
   cursor: pointer;
+  display: block;
+  text-align: center;
+  margin: -30px 0 50px;
 }
 #backToS1:hover {
   text-decoration: underline;

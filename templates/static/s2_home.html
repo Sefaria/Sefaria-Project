@@ -38,9 +38,18 @@
 {% block content %}
     <div id="homePage">
         <h1>A Living Library of Jewish Texts</h1>
-        <div class="sub">Homepage coming soon.</div>
+        <div class="sub">You are currently test-driving the New Sefaria, which is still under active development. <a href="#" id="backToOldSefaria">To return to the Old Sefaria, click here</a>.</div>
     </div>
+{% endblock %}
 
+{% block js  %}
+    <script>
+    var backToS1 = function() { 
+      $.cookie("s2", "", {path: "/"});
+      window.location = "/";
+    }
+    $("#backToOldSefaria").click(backToS1);
+    </script>
 {% endblock %}
 
 {% block footer %}{% endblock %}
