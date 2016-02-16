@@ -471,6 +471,7 @@ $(function() {
 		];
 
 		sjs.removeCKEditor = function(e) {
+			stopCkEditorContinuous();
 			var editor = e.editor;
 			var $el = $(editor.element.$);
 
@@ -537,6 +538,8 @@ $(function() {
 
 			editor.destroy();
 			$("[contenteditable]").attr("contenteditable", "false");
+
+
 		}
 
 		sjs.removeCKEditorByElement = function(el) {
@@ -565,9 +568,6 @@ $(function() {
 				.attr("contenteditable", "true")
 				.ckeditor();
 
-			$("#lastSaved").text("Unsaved Changes...")
-
-			
 			// Close editor on enter for customTitle fields
 			if ($(this).hasClass("customTitle")) {
 				$(this).on('key', function(e) {
@@ -578,6 +578,14 @@ $(function() {
 
 				});
 			}
+		var ed = $(this).ckeditorGet();
+		saveCkEditorContinuous(ed);
+
+				$(this).on('keydown', function(e) {
+				$("#lastSaved").text("Saving...");
+				});
+
+
 		};
 
 		
@@ -610,6 +618,30 @@ $(function() {
 			});
 		});
 	}
+
+	function saveCkEditorContinuous(editor) {
+		// Start a timer to poll server for changes to this sheet
+		stopCkEditorContinuous();
+		var ckeSaveChain = function() {
+
+			if (editor.checkDirty() == true) {
+				autoSave();
+				editor.resetDirty();
+			}
+			sjs.ckeSaveChain = setTimeout(ckeSaveChain , 10000)
+		}
+		sjs.ckeSaveChain = setTimeout(ckeSaveChain , 10000);
+	}
+
+
+	function stopCkEditorContinuous(){
+		if (sjs.ckeSaveChain ) {
+			clearTimeout(sjs.ckeSaveChain );
+		}
+	}
+
+
+
 
 
 	// ---------- Save Sheet --------------
