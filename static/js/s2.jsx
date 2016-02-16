@@ -483,7 +483,7 @@ var ReaderApp = React.createClass({
     var ref  = panel.refs[0];
     var oRef = sjs.library.ref(ref);
     var json = $.cookie("recentlyViewed");
-    recent = json ? JSON.parse(json) : [];
+    var recent = json ? JSON.parse(json) : [];
     recent = recent.filter(function(item) {
       return item.ref !== ref; // Remove this item if it's in the list already
     });
@@ -1756,7 +1756,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
   },
   render: function() {
       var content = [];
-      cats = this.props.categories || [];
+      var cats = this.props.categories || [];
       for (var i = 0; i < this.props.contents.length; i++) {
         var item = this.props.contents[i];
         if (item.category) {
