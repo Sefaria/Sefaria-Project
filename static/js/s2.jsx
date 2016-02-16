@@ -2650,7 +2650,7 @@ var TextRange = React.createClass({
     }
   },
   getText: function() {
-    settings = {
+    var settings = {
       context: this.props.withContext ? 1 : 0,
       version: this.props.version || null,
       language: this.props.versionLanguage || null
