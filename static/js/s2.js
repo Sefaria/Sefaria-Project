@@ -2318,7 +2318,7 @@ var ReaderTextTableOfContents = React.createClass({
           React.createElement(
             "a",
             { className: "versionHistoryLink", href: "#" },
-            "Version History > "
+            "Version History >"
           )
         );
       } else {
@@ -2326,7 +2326,7 @@ var ReaderTextTableOfContents = React.createClass({
           defaultVersionObject = this.state.versions.find(function (v) {
             return _this.state.currentVersion.language == v.language && _this.state.currentVersion.title == v.versionTitle;
           });
-          defaultVersionString += " (" + defaultVersionObject.versionTitle + ")";
+          defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
         }
         currentVersionElement = React.createElement(
           "span",
@@ -2359,7 +2359,7 @@ var ReaderTextTableOfContents = React.createClass({
           React.createElement(
             "a",
             { className: "versionHistoryLink", href: "#" },
-            "Version History > "
+            "Version History >"
           )
         );
       }

@@ -1950,7 +1950,6 @@ var ReaderTextTableOfContents = React.createClass({
     var section   = sjs.library.sectionString(this.props.currentRef).en.named;
     var heSection = sjs.library.sectionString(this.props.currentRef).he.named;
 
-
     var currentVersionElement = null;
     var defaultVersionString = "Default Version";
     var defaultVersionObject = null;
@@ -1962,12 +1961,12 @@ var ReaderTextTableOfContents = React.createClass({
         currentVersionElement = (
           <span className="currentVersionInfo">
             <span className="currentVersionTitle">Merged from { uniqueSources }</span>
-            <a className="versionHistoryLink" href="#">Version History &gt; </a>
+            <a className="versionHistoryLink" href="#">Version History &gt;</a>
           </span>);
       } else {
         if (!this.props.version) {
           defaultVersionObject = this.state.versions.find(v => (this.state.currentVersion.language == v.language && this.state.currentVersion.title == v.versionTitle));
-          defaultVersionString += " (" + defaultVersionObject.versionTitle + ")";
+          defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
         }
         currentVersionElement = (
             <span className="currentVersionInfo">
@@ -1978,7 +1977,7 @@ var ReaderTextTableOfContents = React.createClass({
             <span>-</span>
             <span className="currentVersionLicense">{this.state.currentVersion.license}</span>
             <span>-</span>
-            <a className="versionHistoryLink" href="#">Version History &gt; </a>
+            <a className="versionHistoryLink" href="#">Version History &gt;</a>
           </span>);
       }
     }
