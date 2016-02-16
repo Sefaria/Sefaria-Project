@@ -2778,7 +2778,7 @@ var CategoryColorLine = React.createClass({
   displayName: "CategoryColorLine",
 
   render: function render() {
-    style = { backgroundColor: sjs.categoryColor(this.props.category) };
+    var style = { backgroundColor: sjs.categoryColor(this.props.category) };
     return React.createElement("div", { className: "categoryColorLine", style: style });
   }
 });

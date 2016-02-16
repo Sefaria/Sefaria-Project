@@ -2241,7 +2241,7 @@ var ReaderNavigationMenuDisplaySettingsButton = React.createClass({
 
 var CategoryColorLine = React.createClass({
   render: function() {
-    style = {backgroundColor: sjs.categoryColor(this.props.category)};
+    var style = {backgroundColor: sjs.categoryColor(this.props.category)};
     return (<div className="categoryColorLine" style={style}></div>);
   }
 });
