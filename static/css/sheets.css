@@ -18,14 +18,19 @@ body {
 	text-align: right;
 	line-height: 8px;
 	position: fixed;
-    width: inherit;
     bottom: 0;
 	z-index: 100;
+	background-color: #ccc;
+    height: 50px;
+    left: 0;
+    width: 100%;
+	border-top: 1px solid #777;
 }
 
 #fileControls .btn {
 	position: relative;
-	top: -18px;
+	right: 20px;
+	top:17px
 }
 
 #link {
@@ -65,9 +70,8 @@ body {
 	font-size: 12px;
 	padding: 1px 0;
 	border-radius: 5px;
-	background-color: #F5F7C7;
-	border: 1px solid #ecf7b0;
 	color: #9a988d;
+	background-color: rgba(255,255,255,.8);
 }
 
 
@@ -1015,10 +1019,6 @@ a:active {
 	#sheetHeader {
 		width: 100%;
 		margin-left: 0;
-	}
-
-	#fileControls .btn {
-		top: -18px;
 	}
 
 	#controls {
