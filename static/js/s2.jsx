@@ -2415,8 +2415,8 @@ var TextColumn = React.createClass({
         return;
       }
       console.log("Add next section");
-      currentRef = refs.slice(-1)[0];
-      data       = sjs.library.ref(currentRef);
+      var currentRef = refs.slice(-1)[0];
+      var data       = sjs.library.ref(currentRef);
       if (data && data.next) {
         refs.push(data.next);
         this.props.updateTextColumn(refs);
@@ -2424,8 +2424,8 @@ var TextColumn = React.createClass({
       sjs.track.event("Reader", "Infinite Scroll", "Down");
     } else if (windowTop < 20) {
       // Scroll up for previous
-      topRef = refs[0];
-      data   = sjs.library.ref(topRef);
+      var topRef = refs[0];
+      var data   = sjs.library.ref(topRef);
       if (data && data.prev) {
         console.log("up!")
         refs.splice(refs, 0, data.prev);
