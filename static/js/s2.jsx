@@ -133,11 +133,11 @@ var ReaderApp = React.createClass({
       return true; 
     }
     if (this.state.header.menuOpen) {
-      prevPanels = [history.state.header];
-      nextPanels = [this.state.header];
+      var prevPanels = [history.state.header];
+      var nextPanels = [this.state.header];
     } else {
-      prevPanels = history.state.panels;
-      nextPanels = this.state.panels; 
+      var prevPanels = history.state.panels;
+      var nextPanels = this.state.panels; 
     }
 
     for (var i = 0; i < prevPanels.length; i++) {
