@@ -27,6 +27,11 @@ body {
 	border-top: 1px solid #777;
 }
 
+#fileControlMsg {
+	text-align: center;
+    margin-top: 20px;
+}
+
 #fileControls .btn {
 	position: relative;
 	right: 20px;

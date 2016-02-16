@@ -713,7 +713,10 @@ $(function() {
 	if (sjs.current.id) {
 		buildSheet(sjs.current);
 	} else if (sjs.assignment_id) {
-		if (!sjs._uid) { return sjs.loginPrompt(); }
+		if (!sjs._uid) {
+			$("#fileControlMsg").hide();
+			return sjs.loginPrompt();
+		}
 		buildSheet(sjs.current);
 		afterAction();
 	} else {
@@ -2347,5 +2350,6 @@ var afterAction = function() {
 	$("#empty").remove();
 	if (sjs._uid) {
 		$("#save").show();
+		$("#fileControlMsg").hide();
 	}
 };

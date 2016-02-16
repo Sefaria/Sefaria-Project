@@ -166,6 +166,15 @@
 <div id="sheet" class="{{ sheet_class|default:'bilingual' }}">
 	{% if new_sheet %}
 	<div id="fileControls">
+
+        <div id="fileControlMsg">
+            {% if not user.email %}
+                Take a spin! But you'll need to <a href="/login?next=/sheets/new">login</a> or <a href="/register?next=/sheets/new">register</a> to save your work.
+            {% else %}
+                Add a source, a comment, or some other media using the buttons above.
+
+            {% endif %}
+        </div>
         <span id="save" class="btn btn-large btn-success">Save</span>
 	</div>
 	{% endif %}
