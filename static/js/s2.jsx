@@ -1389,6 +1389,9 @@ var ReaderNavigationMenu = React.createClass({
   setWidth: function() {
     var width = $(ReactDOM.findDOMNode(this)).width();
     console.log("Setting RNM width: " + width);
+    var winWidth = $(window).width();
+    var winHeight = $(window).height();
+    console.log("Window width: " + winWidth + ", Window height: " + winHeight);
     var oldWidth = this.width;
     this.width = width;
     if ((oldWidth <= 450 && width > 450) || 
