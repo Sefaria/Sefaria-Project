@@ -1256,6 +1256,20 @@ def notes_api(request, note_id_or_ref):
 
 
 @catch_error_as_json
+def related_api(request, tref):
+    """
+    Single API to bundle available content related to `tref`.
+    """
+    oref = model.Ref(tref)
+    response = {
+        "links": get_links(tref, with_text=False),
+        "sheets": get_sheets_for_ref(tref),
+        "notes": get_notes(oref, public=True)
+    }
+    return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
+@catch_error_as_json
 def versions_api(request, tref):
     """
     API for retrieving available text versions list of a ref.
