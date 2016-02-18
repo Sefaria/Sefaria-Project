@@ -165,7 +165,6 @@ sjs.library = {
       section.text       = en[i];
       section.he         = he[i];
     }
-
   },
   _wrapRefs: function(data) {
     // Wraps citations found in text of data
@@ -236,12 +235,15 @@ sjs.library = {
             // sjs.alert.message(data.error);
             return;
           }
-          this._saveLinksByRef(data);
-          this._links[ref] = data;
-          this._cacheIndexFromLinks(data);
+          this._saveLinkData(ref, data);
           cb(data);
         }.bind(this));
     }
+  },
+  _saveLinkData: function(ref, data) {
+    this._saveLinksByRef(data);
+    this._links[ref] = data;
+    this._cacheIndexFromLinks(data);
   },
   _cacheIndexFromLinks: function(links) {
     // Cache partial index information (title, Hebrew title, categories) found in link data.
@@ -402,13 +404,40 @@ sjs.library = {
     books = books.concat.apply(books, booksByCat);
     return books;     
   },
-  topLinks: function(ref) {
-    // Return up to 5 top recommended link filters - Not currently used
-    // TODO add text specific content rules here (e.g., privlege Tosafot for Bavli)
-    var books = this.flatLinkSummary(ref);
-    books.sort(function(a,b) { return b.count - a.count; });
-    books = books.slice(0, 5);
-    return books;
+  _notes: {},
+  notes: function(ref, cb) {
+    var notes = this.notes[ref];
+    if (notes) {
+      if (cb) { cb(notes); }
+    } else {
+      sjs.library.related(ref, function(data) {
+        cb(data.notes);
+      });
+    }
+    return notes;
+  },
+  _related: {},
+  related: function(ref, cb) {
+    // Single API to bundle links, sheets, and notes by ref.
+    if (!cb) {
+      return this._related[ref] || null;
+    }
+    if (ref in this._related) {
+      cb(this._related[ref]);
+    } else {
+       var url = "/api/related/" + normRef(ref);
+       this._api(url, function(data) {
+          if ("error" in data) { 
+            // sjs.alert.message(data.error);
+            return;
+          }
+          this._saveLinkData(ref, data.links);
+          this._related[ref] = data;
+          this.sheets._sheetsByRef[ref] = data.sheets;
+          this._notes[ref] = data.notes;
+          cb(data);
+        }.bind(this));
+    }
   },
   textTocHtml: function(title, cb) {
     // Returns an HTML fragment of the table of contents of the text 'title'
@@ -609,6 +638,18 @@ sjs.library = {
         }
       return sheets;
     },
+    _sheetsByRef: {},
+    sheetsByRef: function(ref, cb) {
+      var sheets = this._sheetsByRef[ref];
+      if (sheets) {
+        if (cb) { cb(sheets); }
+      } else {
+        sjs.library.related(ref, function(data) {
+          cb(data.sheets);
+        });
+      }
+      return sheets;
+    }
   },
   hebrewCategory: function(cat) {
     var categories = {
@@ -758,6 +799,7 @@ sjs.library = {
           return o;
       }
   },
+  _apiCallbacks: {},
   _api: function(url, callback) {
     // Manage API calls and callbacks to prevent duplicate calls
     if (url in this._apiCallbacks) {
@@ -772,8 +814,7 @@ sjs.library = {
         delete this._apiCallbacks[url];
       }.bind(this));
     }
-  },
-  _apiCallbacks: {}
+  }
 };
 
 // Unpack sjs.toc into index cache

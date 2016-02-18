@@ -3289,7 +3289,7 @@ var TextRange = React.createClass({
     if (this.props.loadLinks && !sjs.library.linksLoaded(sectionRefs)) {
       // Calling when links are loaded will overwrite state.segments
       for (var i = 0; i < sectionRefs.length; i++) {
-        sjs.library.links(sectionRefs[i], this.loadLinkCounts);
+        sjs.library.related(sectionRefs[i], this.loadLinkCounts);
       }
     }
 
@@ -3630,7 +3630,7 @@ var TextList = React.createClass({
     if (!sectionRef) {
       return;
     }
-    sjs.library.links(sectionRef, function (links) {
+    sjs.library.related(sectionRef, function (data) {
       if (this.isMounted()) {
         this.preloadText(this.props.filter);
         this.setState({
