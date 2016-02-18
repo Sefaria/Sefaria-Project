@@ -1756,7 +1756,7 @@ var ReaderNavigationMenu = React.createClass({
       }) : null;
       recentlyViewed = recentlyViewed ? React.createElement(TwoOrThreeBox, { content: recentlyViewed, width: this.width }) : null;
 
-      var classes = classNames({ readerNavMenu: 1, readerNavMenu: 1, noHeader: !this.props.hideHeader });
+      var classes = classNames({ readerNavMenu: 1, noHeader: !this.props.hideHeader });
 
       return React.createElement(
         "div",
