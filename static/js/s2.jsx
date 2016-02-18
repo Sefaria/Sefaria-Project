@@ -3880,15 +3880,15 @@ var TwoBox = React.createClass({
           length += (2-length%2);
       }
       content.pad(length, "");
-      var threes = [];
+      var twos = [];
       for (var i=0; i<length; i+=2) {
-        threes.push([content[i], content[i+1]]);
+        twos.push([content[i], content[i+1]]);
       }
       return (
         <table className="gridBox twoBox">
           <tbody>
           { 
-            threes.map(function(row, i) {
+            twos.map(function(row, i) {
               return (
                 <tr key={i}>
                   {row[0] ? (<td>{row[0]}</td>) : null}
