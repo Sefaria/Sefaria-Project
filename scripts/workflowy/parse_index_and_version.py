@@ -21,10 +21,10 @@ from sefaria.utils.hebrew import is_hebrew
 
 class WorkflowyParser(object):
 
-    title_lang_delim = ur"$"
+    title_lang_delim = ur"/"
     alt_title_delim = ur"|"
     comment_delim = ur'#'
-    categories_delim = u"%"
+    categories_delim = u"*"
 
     def __init__(self, schema_file, term_scheme=None, c_index=False, c_version=False, delims=None):
         self._schema_outline_file = schema_file
@@ -33,7 +33,7 @@ class WorkflowyParser(object):
         self._c_version = c_version
         tree = ET.parse(self._schema_outline_file)
         self.outline = tree.getroot().find("./body/outline")
-        self.comment_strip_re = re.compile(ur"</b>|<b>|\(.*\)|"+self.comment_delim+".*"+self.comment_delim, re.UNICODE)
+        self.comment_strip_re = re.compile(ur"</b>|<b>|"+self.comment_delim+".*"+self.comment_delim, re.UNICODE)
         self.parsed_schema = None
         self.version_info = None
         if delims:
