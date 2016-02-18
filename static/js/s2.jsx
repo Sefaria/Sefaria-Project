@@ -129,6 +129,7 @@ var ReaderApp = React.createClass({
     if (!history.state ||
         !history.state.panels ||
          history.state.panels.length !== this.state.panels.length ||
+        !history.state.header ||
          history.state.header.menuOpen !== this.state.header.menuOpen ) { 
       return true; 
     }

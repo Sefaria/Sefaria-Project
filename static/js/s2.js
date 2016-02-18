@@ -131,7 +131,7 @@ var ReaderApp = React.createClass({
   shouldHistoryUpdate: function shouldHistoryUpdate() {
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
-    if (!history.state || !history.state.panels || history.state.panels.length !== this.state.panels.length || history.state.header.menuOpen !== this.state.header.menuOpen) {
+    if (!history.state || !history.state.panels || history.state.panels.length !== this.state.panels.length || !history.state.header || history.state.header.menuOpen !== this.state.header.menuOpen) {
       return true;
     }
     if (this.state.header.menuOpen) {
