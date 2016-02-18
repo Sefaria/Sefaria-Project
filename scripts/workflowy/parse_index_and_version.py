@@ -102,7 +102,7 @@ class WorkflowyParser(object):
         title = self.comment_strip_re.sub(u"", title)
         spl_title = title.split(self.title_lang_delim)
         titles = {}
-        if len(title) == 2:
+        if len(spl_title) == 2:
             he_pos = 1 if is_hebrew(spl_title[1]) else 0
             he = spl_title[he_pos].split(self.alt_title_delim)
             titles["hePrim"] = he[0].strip()
