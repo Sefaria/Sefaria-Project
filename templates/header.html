@@ -113,6 +113,9 @@
 	<div class="navLine"></div>
 
 	<div id="navPanelLinks">
+		{% if request.user.is_staff %}
+		<a href="/s2"><i class="fa fa-flash navLinkIcon"></i> Switch to S2</a>
+		{% endif %}
 		<a href="/"><i class="fa fa-home navLinkIcon"></i> Home</a>
 		<a href="/sheets"><i class="fa fa-file-text-o navLinkIcon"></i> Source Sheets</a>
 		<a href="/explore"><i class="fa fa-link navLinkIcon"></i> Link Explorer</a>				
