@@ -24,7 +24,7 @@ class WorkflowyParser(object):
     title_lang_delim = ur"/"
     alt_title_delim = ur"|"
     comment_delim = ur'#'
-    categories_delim = u"*"
+    categories_delim = u"%"
 
     def __init__(self, schema_file, term_scheme=None, c_index=False, c_version=False, delims=None):
         self._schema_outline_file = schema_file
