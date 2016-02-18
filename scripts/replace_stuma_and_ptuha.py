@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
+
 from sefaria.helper.text import *
 
 books = ("Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy")
-versions = ("Tanach with Ta'amei Hamikra", "Tanach with Text Only", "Tanach with Nikkud")
+versions = ("Tanach with Ta'amei Hamikra")
 
 for book in books:
     for version in versions:
