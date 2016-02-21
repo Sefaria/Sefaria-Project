@@ -28,6 +28,7 @@ urlpatterns = patterns('reader.views',
     (r'^api/links/(?P<link_id_or_ref>.*)$', 'links_api'),
     (r'^api/link-summary/(?P<ref>.+)$', 'link_summary_api'),
     (r'^api/notes/(?P<note_id_or_ref>.*)$', 'notes_api'),
+    (r'^api/related/(?P<tref>.*)$', 'related_api'),
     (r'^api/counts/links/(?P<cat1>.+)/(?P<cat2>.+)$', 'link_count_api'),
     (r'^api/counts/words/(?P<title>.+)/(?P<version>.+)/(?P<language>.+)$', 'word_count_api'),
     (r'^api/counts/(?P<title>.+)$', 'counts_api'),
@@ -253,7 +254,7 @@ urlpatterns += patterns('reader.views',
     (r'^explore(/(?P<book1>[A-Za-z-]+))?(/(?P<book2>[A-Za-z-]+))?/?$', 'explore')
 )
 
-# Features under Development
+# Features under Development (not generally linked publicly yet)
 urlpatterns += patterns('reader.views',
     (r'^s2/?$', 's2_home'),
     (r'^s2/search/?$', 's2_search'),
@@ -261,7 +262,9 @@ urlpatterns += patterns('reader.views',
     (r'^s2/texts/(?P<cats>.+)?$', 's2_texts_category'),
     (r'^s2/sheets/?$', 's2_sheets'),
     (r'^s2/sheets/tags/(?P<tag>.+)?$', 's2_sheets_by_tag'),
+    (r'^s2/(?P<ref>[^/]+)/(?P<lang>\w\w)/(?P<version>[^/]+)/?$', 's2'),
     (r'^s2/(?P<ref>.+)$', 's2'),
+    (r'^account?$', 's2_account'),
     (r'^person/(?P<name>.+)$', 'person_page'),
     (r'^people/Talmud/?$', 'talmud_person_index'),
     (r'^people/?$', 'person_index'),

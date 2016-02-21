@@ -6,6 +6,7 @@ from sets import Set
 from random import choice
 from pprint import pprint
 import json
+import urlparse
 import dateutil.parser
 from bson.json_util import dumps
 import p929
@@ -82,8 +83,8 @@ def reader(request, tref, lang=None, version=None):
     if (not getattr(oref.index_node, "depth", None)):
         return text_toc(request, oref)
 
-    if request.flavour == "mobile":
-        return s2(request, ref=tref)
+    if request.flavour == "mobile" or request.COOKIES.get('s2'):
+        return s2(request, ref=tref, lang=lang, version=version)
 
     # BANDAID - for spanning refs, return the first section
     oref = oref.padded_ref()
@@ -165,9 +166,9 @@ def reader(request, tref, lang=None, version=None):
 
     return render_to_response('reader.html', template_vars, RequestContext(request))
 
+
 def esi_account_box(request):
     return render_to_response('elements/accountBox.html', {}, RequestContext(request))
-
 
 
 def s2(request, ref, version=None, lang=None):
@@ -178,36 +179,82 @@ def s2(request, ref, version=None, lang=None):
         oref = Ref(ref)
     except InputError:
         raise Http404
+    max_panels = 4
+    panels = []
 
-    if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
-        initialMenu = "text toc"
+
+    # Handle first panel
+    panel_1 = {}
+    if version and lang:
+        panel_1["version"] = version.replace(u"_", u" ")
+        panel_1["language"] = lang
+    if oref.is_book_level(): #oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
+        panel_1["initialMenu"] = "text toc"
         oref = oref.first_available_section_ref()
+        # If there's a version specified, should we use Version.first_section_ref()?
     else:
-        initialMenu = ""
+        panel_1["initialMenu"] = ""
     try:
-        text = TextFamily(oref, version=version, lang=lang, commentary=False, context=True, pad=True, alts=True).contents()
+        text = TextFamily(oref, version=panel_1.get("version"), lang=panel_1.get("language"), commentary=False, context=True, pad=True, alts=True).contents()
     except NoVersionFoundError:
         raise Http404
         
     text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
     text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
 
+    panel_1["ref"] = oref.normal()
+    panel_1["text"] = text
+    panel_1["filter"] = request.GET.get("with").replace("_"," ").split("+") if request.GET.get("with") else None
+
+    panels += [panel_1]
+
+    for i in range(2, max_panels + 1):
+        ref = request.GET.get("p{}".format(i))
+        if not ref:
+            break
+        try:
+            oref = Ref(ref)
+        except InputError:
+            continue # Stop processing all panels?
+            #raise Http404
+
+        panel = {}
+        panel["version"] = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
+        panel["language"] = request.GET.get("l{}".format(i))
+        # Can we replace the below with a Ref method?
+        if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
+            panel["initialMenu"] = "text toc"
+            oref = oref.first_available_section_ref()
+        else:
+            panel["initialMenu"] = ""
+        try:
+            text = TextFamily(oref, version=panel["version"], lang=panel["language"], commentary=False, context=True, pad=True, alts=True).contents()
+        except NoVersionFoundError:
+            continue # Stop processing all panels?
+        text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+        text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+
+        panel["ref"] = oref.normal()
+        panel["text"] = text
+        panel["filter"] = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
+
+        panels += [panel]
 
     return render_to_response('s2.html', {
-                                            "ref": oref.normal(),
-                                            "data": text,
-                                            "initialMenu": initialMenu,
-                                        }, RequestContext(request))
+            "panels": json.dumps(panels),
+            "query": request.GET.get("q")
+        }, RequestContext(request))
 
 
 def s2_texts_category(request, cats):
     """
     Listing of texts in a category.
     """
+    print cats
     cats       = cats.split("/")
     toc        = library.get_toc()
     cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
-
+    print cat_toc
     if cat_toc is None:
         return s2_texts(request)
 
@@ -236,6 +283,10 @@ def s2_search(request):
 
 def s2_texts(request):
     return s2_page(request, "navigation")
+
+
+def s2_account(request):
+    return s2_page(request, "account")
 
 
 def s2_sheets(request):
@@ -571,6 +622,9 @@ def text_toc(request, oref):
     """
     Page representing a single text, showing its Table of Contents and related info.
     """
+    if request.flavour == "mobile" or request.COOKIES.get('s2'):
+        return s2(request, ref=oref.normal())
+
     index         = oref.index
     title         = index.title
     heTitle       = index.get_title(lang='he')
@@ -679,8 +733,8 @@ def texts_list(request):
     """
     Page listing every text in the library.
     """
-    if request.flavour == "mobile":
-        return s2_page(request, "texts")
+    if request.flavour == "mobile" or request.COOKIES.get('s2'):
+        return s2_texts(request)
     return render_to_response('texts.html',
                              {},
                              RequestContext(request))
@@ -691,8 +745,9 @@ def texts_category_list(request, cats):
     """
     Page listing every text in category
     """
-    if request.flavour == "mobile":
+    if request.flavour == "mobile" or request.COOKIES.get('s2'):
         return s2_texts_category(request, cats)
+    
     cats       = cats.split("/")
     toc        = library.get_toc()
     cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
@@ -722,7 +777,7 @@ def texts_category_list(request, cats):
 
 @ensure_csrf_cookie
 def search(request):
-    if request.flavour == "mobile":
+    if request.flavour == "mobile" or request.COOKIES.get('s2'):
         return s2_page(request, "search")
     return render_to_response('search.html',
                              {},
@@ -1201,6 +1256,20 @@ def notes_api(request, note_id_or_ref):
         )
 
     return jsonResponse({"error": "Unsuported HTTP method."})
+
+
+@catch_error_as_json
+def related_api(request, tref):
+    """
+    Single API to bundle available content related to `tref`.
+    """
+    oref = model.Ref(tref)
+    response = {
+        "links": get_links(tref, with_text=False),
+        "sheets": get_sheets_for_ref(tref),
+        "notes": get_notes(oref, public=True)
+    }
+    return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1837,6 +1906,11 @@ def home(request):
     """
     Homepage
     """
+    recent = request.COOKIES.get("recentlyViewed", None)
+    if recent and not "home" in request.GET and request.COOKIES.get('s2'):
+        recent = json.loads(urlparse.unquote(recent))
+        return redirect("/%s" % recent[0]["ref"])
+
     if request.flavour == "mobile":
         return s2_page(request, "home")
 
@@ -1848,7 +1922,7 @@ def home(request):
     p929_ref           = "%s %s" % (p929_chapter.book_name, p929_chapter.book_chapter)
     metrics            = db.metrics.find().sort("timestamp", -1).limit(1)[0]
 
-    return render_to_response('static/home.html',
+    return render_to_response('static/s2_home.html' if request.COOKIES.get('s2') else 'static/home.html',
                              {
                               "metrics": metrics,
                               "daf_today": daf_today,

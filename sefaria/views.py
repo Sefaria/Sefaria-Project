@@ -285,6 +285,7 @@ def reset_counts(request, title=None):
 @staff_member_required
 def delete_orphaned_counts(request):
     remove_old_counts()
+    scache.delete_template_cache("texts_dashboard")
     return HttpResponseRedirect("/dashboard?m=Orphaned-counts-deleted")
 
 

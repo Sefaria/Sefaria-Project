@@ -2413,7 +2413,7 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 
 
 function aboutHtml(data) {
-	// Retuns HTML for the About Text panel according to data.
+	// Returns HTML for the About Text panel according to data.
 	data = data || sjs.current;
 
 	if (!(data.versionTitle || data.heVersionTitle || data.sources || data.heSources)) { 
@@ -2448,7 +2448,7 @@ function aboutHtml(data) {
 		"Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
 		"CC0":           "http://creativecommons.org/publicdomain/zero/1.0/",
 		"CC-BY":         "http://creativecommons.org/licenses/by/3.0/",
-		"CC-BY-SA":      "http://creativecommons.org/licenses/by-sa/3.0/",
+		"CC-BY-SA":      "http://creativecommons.org/licenses/by-sa/3.0/"
 	};
 
 	var aboutVersionHtml = function(version) {

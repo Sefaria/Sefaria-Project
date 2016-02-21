@@ -24,7 +24,7 @@ class WorkflowyParser(object):
     title_lang_delim = ur"/"
     alt_title_delim = ur"|"
     comment_delim = ur'#'
-    categories_delim = u"*"
+    categories_delim = u"%"
 
     def __init__(self, schema_file, term_scheme=None, c_index=False, c_version=False, delims=None):
         self._schema_outline_file = schema_file
@@ -102,7 +102,7 @@ class WorkflowyParser(object):
         title = self.comment_strip_re.sub(u"", title)
         spl_title = title.split(self.title_lang_delim)
         titles = {}
-        if len(title) == 2:
+        if len(spl_title) == 2:
             he_pos = 1 if is_hebrew(spl_title[1]) else 0
             he = spl_title[he_pos].split(self.alt_title_delim)
             titles["hePrim"] = he[0].strip()
