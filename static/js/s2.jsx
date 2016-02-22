@@ -12,10 +12,12 @@ var ReaderApp = React.createClass({
     initialNavigationCategories: React.PropTypes.array,
     initialSettings:             React.PropTypes.object,
     initialPanels:               React.PropTypes.array,
+    initialDefaultVersions:      React.PropTypes.object,
     headerMode:                  React.PropTypes.bool
   },
   getInitialState: function() {
     var panels = [];
+    var defaultVersions = clone(this.props.initialDefaultVersions) || {};
     var defaultPanelSettings = clone(this.props.initialSettings);
     if (!this.props.multiPanel) {
       var mode = this.props.initialFilter ? "TextAndConnections" : "Text";
@@ -85,6 +87,7 @@ var ReaderApp = React.createClass({
     return {
       panels: panels,
       header: header,
+      defaultVersions: defaultVersions,
       defaultPanelSettings: defaultPanelSettings
     };
   },
@@ -322,7 +325,7 @@ var ReaderApp = React.createClass({
       mode:                 state.mode, // "Text", "TextAndConnections", "Connections"
       filter:               state.filter || [],
       version:              state.version || null,
-      versionLanguage:     state.versionLanguage || null,
+      versionLanguage:      state.versionLanguage || null,
       highlightedRefs:      state.highlightedRefs || [],
       recentFilters:        [],
       settings:             state.settings? clone(state.settings): clone(this.state.defaultPanelSettings),
@@ -332,6 +335,16 @@ var ReaderApp = React.createClass({
       searchQuery:          state.searchQuery || null,
       displaySettingsOpen:  false
     };
+    if (this.state && panel.refs.length && !panel.version) {
+      var oRef = sjs.library.ref(panel.refs[0]);
+      if (oRef) {
+        var lang = panel.versionLanguage || (panel.settings.language == "hebrew"?"he":"en");
+        panel.version = this.getCachedVersion(oRef.indexTitle, lang);
+        if (panel.version) {
+          panel.versionLanguage = lang;
+        }
+      }
+    }
     return panel
   },
   setContainerMode: function() {
@@ -389,15 +402,28 @@ var ReaderApp = React.createClass({
   },
   selectVersion: function(n, versionName, versionLanguage) {
     var panel = this.state.panels[n];
-    if (version_name && versionLanguage) {
+    if (versionName && versionLanguage) {
       panel.version = versionName;
       panel.versionLanguage = versionLanguage;
       panel.settings.language = (panel.versionLanguage == "he")? "hebrew": "english";
+
+      var oRef = sjs.library.ref(panel.refs[0]);
+      this.setCachedVersion(oRef.indexTitle, panel.versionLanguage, panel.version);
+
     } else {
       panel.version = null;
       panel.versionLanguage = null;
     }
     this.setState({panels: this.state.panels});
+  },
+  // this.state.defaultVersion is a depth 2 dictionary - keyed: bookname, language
+  getCachedVersion: function(indexTitle, language) {
+    if ((!indexTitle) || (!(this.state.defaultVersions[indexTitle]))) { return null; }
+    return (language) ? (this.state.defaultVersions[indexTitle][language] || null) : this.state.defaultVersions[indexTitle];
+  },
+  setCachedVersion: function(indexTitle, language, versionTitle) {
+    this.state.defaultVersions[indexTitle] = this.state.defaultVersions[indexTitle] || {};
+    this.state.defaultVersions[indexTitle][language] = versionTitle;  // Does this need a setState?  I think not.
   },
   setHeaderState: function(state, replaceHistory) {
     this.state.header = $.extend(this.state.header, state);
