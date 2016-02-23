@@ -8,7 +8,7 @@ from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.summaries import REORDER_RULES
 from sefaria.system.exceptions import InputError, NoVersionFoundError
-from sefaria.utils.users import user_link
+from sefaria.model.user_profile import user_link
 
 
 def format_link_object_for_client(link, with_text, ref, pos=None):

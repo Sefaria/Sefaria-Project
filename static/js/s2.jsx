@@ -3118,30 +3118,10 @@ var TextList = React.createClass({
   },
   render: function() {
     var refs               = this.props.srefs;
-    var summary            = sjs.library.linkSummary(refs);
+    var summary            = sjs.library.relatedSummary(refs);
     var filter             = this.props.filter;
     var sectionRef         = this.getSectionRef();
-    var sectionLinks       = sjs.library.links(sectionRef);
     var isSingleCommentary = (filter.length == 1 && sjs.library.index(filter[0]) && sjs.library.index(filter[0]).categories == "Commentary");
-
-    var links = sectionLinks.filter(function(link) {
-      if ($.inArray(link.anchorRef, refs) === -1 && (this.props.multiPanel || !isSingleCommentary) ) {
-        // Only show section level links for an individual commentary
-        return false;
-      }
-      return (filter.length == 0 ||
-              $.inArray(link.category, filter) !== -1 || 
-              $.inArray(link.commentator, filter) !== -1 );
-
-      }.bind(this)).sort(function(a, b) {
-        if (a.anchorVerse !== b.anchorVerse) {
-            return a.anchorVerse - b.anchorVerse;
-        } else if ( a.commentaryNum !== b.commentaryNum) {
-            return a.commentaryNum - b.commentaryNum;
-        } else {
-            return a.sourceRef > b.sourceRef ? 1 : -1;
-        }
-    });
 
     //if (summary.length && !links.length) { debugger; }
 
@@ -3155,24 +3135,60 @@ var TextList = React.createClass({
     
     var showAllFilters = !filter.length;
     if (!showAllFilters) {
-      var texts = links.length == 0 ? message :
-                    this.state.waitForText && !this.state.textLoaded ? 
-                      (<LoadingMessage />) : 
-                      links.map(function(link, i) {
-                          var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
-                          return (<TextRange 
-                                      sref={link.sourceRef}
-                                      key={i + link.sourceRef}
-                                      lowlight={$.inArray(link.anchorRef, refs) === -1}
-                                      hideTitle={hideTitle}
-                                      numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
-                                      basetext={false}
-                                      onRangeClick={this.props.onTextClick}
-                                      onCitationClick={this.props.onCitationClick}
-                                      onNavigationClick={this.props.onNavigationClick}
-                                      onCompareClick={this.props.onCompareClick}
-                                      onOpenConnectionsClick={this.props.onOpenConnectionsClick} />);
-                        }, this);      
+      if (filter.compare(["Sheets"])) {
+        var sheets = sjs.library.sheets.sheetsByRef(refs);
+        var content = sheets.map(function(sheet) {
+          return (
+            <div className="sheet" key={sheet.sheetUrl}>
+              <img className="sheetAuthorImg" src={sheet.ownerImageUrl} />
+              <div className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</div>
+              <a href={sheet.ownerProfileUrl} className="sheetAuthor">{sheet.ownerName}</a>
+              <a href={sheet.sheetUrl} className="sheetTitle">{sheet.title}</a>
+            </div>);
+        });
+
+      } else if (filter.compare(["Notes"])) {
+      } else {
+        // Viewing Text Connections
+        var sectionLinks = sjs.library.links(sectionRef);
+        var links        = sectionLinks.filter(function(link) {
+          if ($.inArray(link.anchorRef, refs) === -1 && (this.props.multiPanel || !isSingleCommentary) ) {
+            // Only show section level links for an individual commentary
+            return false;
+          }
+          return (filter.length == 0 ||
+                  $.inArray(link.category, filter) !== -1 || 
+                  $.inArray(link.commentator, filter) !== -1 );
+
+          }.bind(this)).sort(function(a, b) {
+            if (a.anchorVerse !== b.anchorVerse) {
+                return a.anchorVerse - b.anchorVerse;
+            } else if ( a.commentaryNum !== b.commentaryNum) {
+                return a.commentaryNum - b.commentaryNum;
+            } else {
+                return a.sourceRef > b.sourceRef ? 1 : -1;
+            }
+        });
+        var content = links.length == 0 ? message :
+                      this.state.waitForText && !this.state.textLoaded ? 
+                        (<LoadingMessage />) : 
+                        links.map(function(link, i) {
+                            var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
+                            return (<TextRange 
+                                        sref={link.sourceRef}
+                                        key={i + link.sourceRef}
+                                        lowlight={$.inArray(link.anchorRef, refs) === -1}
+                                        hideTitle={hideTitle}
+                                        numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
+                                        basetext={false}
+                                        onRangeClick={this.props.onTextClick}
+                                        onCitationClick={this.props.onCitationClick}
+                                        onNavigationClick={this.props.onNavigationClick}
+                                        onCompareClick={this.props.onCompareClick}
+                                        onOpenConnectionsClick={this.props.onOpenConnectionsClick} />);
+                          }, this);          
+      }
+    
     }
 
     var classes = classNames({textList: 1, fullPanel: this.props.fullPanel});
@@ -3211,7 +3227,7 @@ var TextList = React.createClass({
           </div>
           <div className="texts">
             <div className="contentInner">
-              { texts }
+              { content }
             </div>
           </div>
         </div>);
@@ -3835,6 +3851,7 @@ var AccountPanel = React.createClass({
       (<BlockLink target="http://www.facebook.com/sefaria.org" title="Facebook" />),
       (<BlockLink target="http://twitter.com/SefariaProject" title="Twitter" />),      
       (<BlockLink target="http://www.youtube.com/user/SefariaProject" title="YouTube" />),
+      (<BlockLink target="http://www.github.com/Sefaria" title="GitHub" />),
       (<BlockLink target="mailto:hello@sefaria.org" title="Email" />)
     ];
     connectContent = (<TwoOrThreeBox content={connectContent} width={width} />);

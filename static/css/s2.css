@@ -1749,6 +1749,31 @@ display: block;margin: 0 auto;}
 .bilingual .textList .title .he {
   display: none;
 }
+.textList .sheet {
+  background-color: white;
+  margin: 6px 0px;
+  padding: 10px;
+}
+.textList .sheet .sheetAuthorImg {
+  height: 36px;
+  width: 36px;
+  float: left;
+  margin-right: 10px;
+}
+.textList .sheet .sheetViews {
+  float: right;
+  color: #999;
+}
+.textList .sheet .sheetAuthor {
+  color: #999;
+  text-transform: uppercase;
+  display: block;
+}
+.textList .sheet .sheetTitle {
+  font-size: 14px;
+  text-align: left;
+  color: black;
+}
 .textRange .numberLabel {
   position: absolute;
   top: 14px;

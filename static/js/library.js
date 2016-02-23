@@ -258,20 +258,24 @@ sjs.library = {
     }
   },
   _saveLinksByRef: function(data) {
-    // For a set of links from the API, save each set split by the specific ref the link points to.
-    var newLinks = {}; // Aggregate links by anchorRef
+    this._saveItemsByRef(data, this._links);
+  },
+  _saveItemsByRef: function(data, store) {
+    // For a set of items from the API, save each set split by the specific ref the items points to.
+    // E.g, API is called on "Genesis 1", this function also stores the data in buckets like "Genesis 1:1", "Genesis 1:2" etc.
+    var splitItems = {}; // Aggregate links by anchorRef
     // TODO account for links to ranges
     for (var i=0; i < data.length; i++) {
-      var newRef = data[i].anchorRef;
-      if (newRef in newLinks) {
-        newLinks[newRef].push(data[i]);
+      var ref = data[i].anchorRef;
+      if (ref in splitItems) {
+        splitItems[ref].push(data[i]);
       } else {
-        newLinks[newRef] = [data[i]];
+        splitItems[ref] = [data[i]];
       }
     }
-    for (var newRef in newLinks) {
-      if (newLinks.hasOwnProperty(newRef)) {
-        this._links[newRef] = newLinks[newRef];
+    for (var ref in splitItems) {
+      if (splitItems.hasOwnProperty(ref)) {
+        store[ref] = splitItems[ref];
       }
     }
   },
@@ -406,15 +410,33 @@ sjs.library = {
   },
   _notes: {},
   notes: function(ref, cb) {
-    var notes = this.notes[ref];
+      var notes = null;
+      if (typeof ref == "string") {
+        if (ref in this.notes) { 
+          notes = this.notes[ref];
+        }
+      } else {
+        var combinedNotes= [];
+        ref.map(function(r) {
+          var newNotes = sjs.library.notes(r);
+          combinedNotes= combinedNotes.concat(newNotes);
+        });
+        if (combinedNotes.length > 0) { // TODO this isn't quite right. What if we had data for one of the refs in `ref` but not for another?
+          notes = combinedNotes; 
+        }
+      }
     if (notes) {
       if (cb) { cb(notes); }
     } else {
       sjs.library.related(ref, function(data) {
-        cb(data.notes);
+        if (cb) { cb(data.notes); }
       });
     }
     return notes;
+  },
+  _saveNoteData: function(ref, data) {
+    this._notes[ref] = data;
+    this._saveItemsByRef(data, this._notes);
   },
   _related: {},
   related: function(ref, cb) {
@@ -432,12 +454,57 @@ sjs.library = {
             return;
           }
           this._saveLinkData(ref, data.links);
+          this._saveNoteData(ref, data.notes);
+          this.sheets._saveSheetsByRefData(ref, data.sheets);
           this._related[ref] = data;
-          this.sheets._sheetsByRef[ref] = data.sheets;
-          this._notes[ref] = data.notes;
           cb(data);
         }.bind(this));
     }
+  },
+  _relatedSummaries: {},
+  relatedSummary: function(ref) {
+    // Returns a summary object of all categories of related content.
+    console.log("Related Summary")
+    console.log(ref)
+    if (typeof ref == "string") {
+      if (ref in this._relatedSummaries) { return this._relatedSummaries[ref]; }
+      var sheets = this.sheets.sheetsByRef(ref) || [];
+      var notes  = this.notes(ref) || [];
+    } else {
+      var sheets = [];
+      var notes  = [];
+      ref.map(function(r) {
+        var newSheets = sjs.library.sheets.sheetsByRef(r);
+        sheets = newSheets ? sheets.concat(newSheets) : sheets;
+        var newNotes = sjs.library.notes(r);
+        notes = newNotes ? notes.concat(newNotes) : notes;
+      });
+    }
+    console.log("Sheets")
+    console.log(sheets)
+    console.log("Notes")
+    console.log(notes)
+
+    var summary           = this.linkSummary(ref);
+    var commmunityContent = [sheets, notes].filter(function(section) { return section.length > 0; } ).map(function(section) {
+      if (!section) { debugger; }
+      return {
+        book: section[0].category,
+        heBook: sjs.library.hebrewCategory(section[0].category),
+        category: "Community",
+        count: section.length
+      };
+    });
+    var community = {
+      category: "Community",
+      count: sheets.length + notes.length,
+      books: commmunityContent
+    };
+    if (community.count > 0) {
+      summary.push(community);
+    }
+    this._relatedSummaries[ref] = summary;
+    return summary;
   },
   textTocHtml: function(title, cb) {
     // Returns an HTML fragment of the table of contents of the text 'title'
@@ -640,15 +707,33 @@ sjs.library = {
     },
     _sheetsByRef: {},
     sheetsByRef: function(ref, cb) {
-      var sheets = this._sheetsByRef[ref];
+      var sheets = null;
+      if (typeof ref == "string") {
+        if (ref in this._sheetsByRef) { 
+          sheets = this._sheetsByRef[ref];
+        }
+      } else {
+        var combinedSheets = [];
+        ref.map(function(r) {
+          var newSheets = sjs.library.sheets.sheetsByRef(r);
+          combinedSheets = combinedSheets.concat(newSheets);
+        });
+        if (combinedSheets.length > 0) { // TODO this isn't quite right. What if we had data for one of the refs in `ref` but not for another?
+          sheets = combinedSheets; 
+        }
+      }
       if (sheets) {
         if (cb) { cb(sheets); }
       } else {
         sjs.library.related(ref, function(data) {
-          cb(data.sheets);
+          if (cb) { cb(data.sheets); }
         });
       }
       return sheets;
+    },
+    _saveSheetsByRefData: function(ref, data) {
+      this._sheetsByRef[ref] = data;
+      sjs.library._saveItemsByRef(data, this._sheetsByRef);
     }
   },
   hebrewCategory: function(cat) {
@@ -700,7 +785,9 @@ sjs.library = {
       "Rosh":                 'ר"אש',
       "Maharsha":             'מהרשא',
       "Mishneh Torah":        "משנה תורה",
-      "Shulchan Arukh":       "שולחן ערוך"
+      "Shulchan Arukh":       "שולחן ערוך",
+      "Sheets":               "א sheets",
+      "Notes":                "א notes"
     };
     return cat in categories ? categories[cat] : cat;
   },
@@ -860,6 +947,7 @@ sjs.categoryColors = {
   "Quoting Commentary": sjs.palette.orange,
   "Commentary2":        sjs.palette.blue,
   "Sheets":             sjs.palette.raspberry,
+  "Community":          sjs.palette.raspberry,
   "Targum":             sjs.palette.lavender,
   "Modern Works":       sjs.palette.raspberry
 };
