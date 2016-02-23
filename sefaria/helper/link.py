@@ -44,7 +44,15 @@ class AbstractAutoLinker(object):
         raise NotImplementedError
 
     def delete_links(self):
-        raise NotImplementedError
+        """
+        Deletes all of the citation generated links from text 'title'
+        """
+        links = self._load_links()
+        for link in links:
+            if USE_VARNISH:
+                invalidate_ref(Ref(link.refs[0]))
+                invalidate_ref(Ref(link.refs[1]))
+            self._delete_link(link)
 
     def rebuild_links(self):
         """
@@ -52,6 +60,16 @@ class AbstractAutoLinker(object):
         :return:
         """
         raise NotImplementedError
+
+    def _load_links(self):
+        if not self._links:
+            ref_regex = self._requested_oref.regex()
+            self._links = LinkSet({"refs": {"$regex": ref_regex},
+                                   "generated_by": self._generated_by_string,
+                                   "auto" : self._auto,
+                                   "type" : self._link_type
+                                   })
+        return self._links
 
     def _save_link(self, tref, base_tref, **kwargs):
         link = {
@@ -69,6 +87,13 @@ class AbstractAutoLinker(object):
         except DuplicateRecordError as e:
             pass
         return tref
+
+    def _delete_link(self, link):
+        if not self._user:
+            link.delete()
+        else:
+            tracker.delete(self._user, Link, link._id)
+
 
 #link any two texts by structure
 #TODO: as error checking there should probs be a validate that checks the structures match.
@@ -145,6 +170,31 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
     def build_links(self, **kwargs):
         return self._build_links_internal(self._requested_oref)
 
+    def refresh_links(self, **kwargs):
+        """
+        This functino both adds links and deletes pre existing ones that are no longer valid,
+        by virtue of the fact that they were not detected as commentary links while iterating over the text.
+        :param tref:
+        :param user:
+        :param kwargs:
+        :return:
+        """
+        tref = self._requested_oref.normal()
+        book_name = self._requested_oref.index.title
+
+        ref_regex = self._requested_oref.regex()
+        existing_links = LinkSet({"refs": {"$regex": ref_regex}, "generated_by": self._generated_by_string})
+        found_links = self._build_links_internal(self._requested_oref)
+        for exLink in existing_links:
+            for r in exLink.refs:
+                if book_name not in r:  #current base ref
+                    continue
+                if USE_VARNISH:
+                    invalidate_ref(Ref(r))
+                if r not in found_links:
+                    self._delete_link(exLink)
+                break
+
 
 
 class BaseStructureAutoLinker(AbstractStructureAutoLinker):
@@ -199,57 +249,21 @@ class AutoLinkerFactory(object):
             return cls._default_class
 
     @classmethod
-    def instance_factory(cls, name, attrs=None):
-        return cls.class_factory(name)(attrs)
+    def instance_factory(cls, name, *args, **kwargs):
+        return cls.class_factory(name)(*args, **kwargs)
 
     @classmethod
     def instance_from_record_factory(cls, record):
         return cls.instance_factory(record[cls._key_attr], record)
 
 
-def add_and_delete_invalid_commentary_links(oref, user, **kwargs):
-    #// mark for commentary refactor
-    """
-    This functino both adds links and deletes pre existing ones that are no longer valid,
-    by virtue of the fact that they were not detected as commentary links while iterating over the text.
-    :param tref:
-    :param user:
-    :param kwargs:
-    :return:
-    """
-    assert oref.is_commentary()
-    tref = oref.normal()
-    commentary_book_name = oref.index.title
-
-    ref_regex = oref.regex()
-    existing_links = LinkSet({"refs": {"$regex": ref_regex}, "generated_by": "add_commentary_links"})
-    found_links = add_commentary_links(oref, user, **kwargs)
-    for exLink in existing_links:
-        for r in exLink.refs:
-            if commentary_book_name not in r:  #current base ref
-                continue
-            if USE_VARNISH:
-                invalidate_ref(Ref(r))
-            if r not in found_links:
-                tracker.delete(user, Link, exLink._id)
-            break
 
 
 
 
 
 def delete_commentary_links(title, user):
-    #// mark for commentary refactor
-    """
-    Deletes all of the citation generated links from text 'title'
-    """
-    regex = Ref(title).regex()
-    links = LinkSet({"refs": {"$regex": regex}, "generated_by": "add_commentary_links"})
-    for link in links:
-        if USE_VARNISH:
-            invalidate_ref(Ref(link.refs[0]))
-            invalidate_ref(Ref(link.refs[1]))
-        tracker.delete(user, Link, link._id)
+
 
 
 def rebuild_commentary_links(title, user):
