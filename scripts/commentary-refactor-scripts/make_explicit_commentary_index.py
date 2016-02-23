@@ -14,11 +14,11 @@ def make_explicit_commentary_index(title):
         'title': idx.title,
         'categories': [idx.categories[1], idx.categories[0]] + idx.categories[2:],  # the same as the display order
         'schema': idx.schema,
-        'dependence' : 'Commentary',
+        'dependence' : 'commentary',
         'authors' : getattr(idx, "authors", None),
         'base_text_titles': [idx.commentaryBook],
         'work_title': idx.commentator,
-        'mapping_scheme': 'follow_base_text_structure',
+        'mapping_scheme': 'increment_base_text_depth',
         'related_categories': other_categories
     }
 
@@ -29,9 +29,15 @@ def del_old_commentator(index):
     #delete commentator index record
     getattr(db, 'index').remove({"_id": index._id})
 
+"""GET THE TITLES, replicates logic from library.get_commentary_version_titles() due to be refactored """
+commentator_titles  = IndexSet({"categories.0": "Commentary"}).distinct('title')
+commentary_re = ur"^({}) on ".format("|".join(commentator_titles))
+query = {"title": {"$regex": commentary_re}}
+titles = VersionSet(query).distinct("title")
+""" ---- """
 
 
-titles = library.get_commentary_version_titles()
+#titles = library.get_commentary_version_titles()
 num_old_commentary_titles = len(titles)
 commentators = set(library.get_commentator_titles())
 commentators_with_text = []

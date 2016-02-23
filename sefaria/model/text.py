@@ -257,9 +257,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return d
 
     def is_commentary(self):
-        #//TODO: mark for commentary refactor
-        return self.categories[0] == 'Commentary'
-        """getattr(self, 'dependence', None) == "Commentary" or"""
+        #//TODO: mark for commentary refactor DONE
+        return self.categories[0] == 'Commentary' #or getattr(self, 'dependence', None) == "Commentary"
+
+    def is_dependant_text(self):
+        return getattr(self, 'dependence', None) is not None
 
     def get_commentary_indexes(self):
         #//TODO: mark for commentary refactor
@@ -2046,6 +2048,9 @@ class Ref(object):
         """
         #// TODO: mark for commentary refactor -deprecate
         return self.type == "Commentary"
+
+    def is_dependant(self):
+        return self.index.is_dependant_text()
 
     def is_range(self):
         """
