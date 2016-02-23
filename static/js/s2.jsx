@@ -362,7 +362,7 @@ var ReaderApp = React.createClass({
   handleNavigationClick: function(ref, version, versionLanguage) {
     this.saveOpenPanelsToRecentlyViewed();
     this.setState({
-      panels: [this.makePanelState({refs: [ref], version: version, version_langauge: versionLanguage, mode: "Text"})],
+      panels: [this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"})],
       header: {menuOpen: null}
     });
   },
@@ -377,12 +377,12 @@ var ReaderApp = React.createClass({
     this.openPanelAt(n, citationRef);
     this.setTextListHighlight(n, [textRef]);
   },
-  handleRecentClick: function(pos, ref) {
+  handleRecentClick: function(pos, ref, version, versionLanguage) {
     // Click on an item in your Recently Viewed
     if (this.props.multiPanel) {
-      this.openPanelAt(pos, ref);
+      this.openPanelAt(pos, ref, version, versionLanguage);
     } else {
-      this.handleNavigationClick(ref);
+      this.handleNavigationClick(ref, version, versionLanguage);
     }
   },
   setPanelState: function(n, state, replaceHistory) {
@@ -435,13 +435,13 @@ var ReaderApp = React.createClass({
       this.setState(this.state);
     }
   },
-  openPanelAt: function(n, ref) {
+  openPanelAt: function(n, ref, version, versionLanguage) {
     // Open a new panel after `n` with the new ref
-    this.state.panels.splice(n+1, 0, this.makePanelState({refs: [ref], mode: "Text"}));
+    this.state.panels.splice(n+1, 0, this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"}));
     this.setState({panels: this.state.panels, header: {menuOpen: null}});
   },
-  openPanelAtEnd: function(ref) {
-    this.openPanelAt(this.state.panels.length+1, ref);
+  openPanelAtEnd: function(ref, version, versionLanguage) {
+    this.openPanelAt(this.state.panels.length+1, ref, version, versionLanguage);
   },
   openTextListAt: function(n, refs) {
     // Open a connections panel at position `n` for `refs`
@@ -518,6 +518,8 @@ var ReaderApp = React.createClass({
       ref: ref,
       heRef: oRef.heRef,
       book: oRef.indexTitle,
+      version: panel.version,
+      versionLanguage: panel.versionLanguage,
       position: n
     };
     recent.splice(0, 0, cookieData);
@@ -642,7 +644,7 @@ var Header = React.createClass({
       var json = $.cookie("recentlyViewed");
       var recentlyViewed = json ? JSON.parse(json) : null;
       if (recentlyViewed && recentlyViewed.length) {
-        this.handleRefClick(recentlyViewed[0].ref);
+        this.handleRefClick(recentlyViewed[0].ref, recentlyViewed[0].version, recentlyViewed[0].versionLanguage);
       }
     }
     this.props.setCentralState({menuOpen: null});
@@ -693,10 +695,9 @@ var Header = React.createClass({
       this.showLibrary();
     }
   },
-  handleRefClick: function(ref) {
-    this.props.onRefClick(ref);
+  handleRefClick: function(ref, version, versionLanguage) {
+    this.props.onRefClick(ref, version, versionLanguage);
   },
-
   handleSearchKeyUp: function(event) {
     if (event.keyCode === 13) {
       var query = $(event.target).val();
@@ -1446,10 +1447,12 @@ var ReaderNavigationMenu = React.createClass({
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
       var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
       var pos = $(event.target).attr("data-position") || $(event.target).parent().attr("data-position");
+      var version = $(event.target).attr("data-version") || $(event.target).parent().attr("data-version");
+      var versionLanguage = $(event.target).attr("data-versionlanguage") || $(event.target).parent().attr("data-versionlanguage");
       if ($(event.target).hasClass("recentItem") || $(event.target).parent().hasClass("recentItem")) {
-        this.props.onRecentClick(parseInt(pos), ref);
+        this.props.onRecentClick(parseInt(pos), ref, version, versionLanguage);
       } else {
-        this.props.onTextClick(ref);
+        this.props.onTextClick(ref, version, versionLanguage);
       }
       sjs.track.event("Reader", "Navigation Text Click", ref)
     } else if ($(event.target).hasClass("catLink") || $(event.target).parent().hasClass("catLink")) {
@@ -1600,6 +1603,8 @@ var ReaderNavigationMenu = React.createClass({
                   sref={item.ref}
                   heRef={item.heRef}
                   book={item.book}
+                  version={item.version}
+                  versionLanguage={item.versionLanguage}
                   showSections={true}
                   recentItem={true}
                   position={item.position || 0} />)
@@ -1661,13 +1666,15 @@ var TextBlockLink = React.createClass({
   // Monopoly card style link with category color at top
   propTypes: {
     sref:         React.PropTypes.string.isRequired,
+    version:      React.PropTypes.string,
+    versionLanguage: React.PropTypes.string,
     heRef:        React.PropTypes.string,
     book:         React.PropTypes.string,
     category:     React.PropTypes.string,
     title:        React.PropTypes.string,
     heTitle:      React.PropTypes.string,
     showSections: React.PropTypes.bool,
-    reecntItem:   React.PropTypes.bool,
+    recentItem:   React.PropTypes.bool,
     position:     React.PropTypes.number
   },
   render: function() {
@@ -1679,7 +1686,7 @@ var TextBlockLink = React.createClass({
 
     var position = this.props.position || 0;
     var classes  = classNames({refLink: 1, blockLink: 1, recentItem: this.props.recentItem});
-    return (<a className={classes} data-ref={this.props.sref} data-position={position} style={style}>
+    return (<a className={classes} data-ref={this.props.sref} data-version={this.props.version} data-versionlanguage={this.props.versionLanguage} data-position={position} style={style}>
               <span className="en">{title}</span>
               <span className="he">{heTitle}</span>
              </a>);
