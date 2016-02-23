@@ -348,7 +348,7 @@ var ReaderApp = React.createClass({
   handleNavigationClick: function handleNavigationClick(ref, version, versionLanguage) {
     this.saveOpenPanelsToRecentlyViewed();
     this.setState({
-      panels: [this.makePanelState({ refs: [ref], version: version, version_langauge: versionLanguage, mode: "Text" })],
+      panels: [this.makePanelState({ refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text" })],
       header: { menuOpen: null }
     });
   },
@@ -388,7 +388,7 @@ var ReaderApp = React.createClass({
   },
   selectVersion: function selectVersion(n, versionName, versionLanguage) {
     var panel = this.state.panels[n];
-    if (version_name && versionLanguage) {
+    if (versionName && versionLanguage) {
       panel.version = versionName;
       panel.versionLanguage = versionLanguage;
       panel.settings.language = panel.versionLanguage == "he" ? "hebrew" : "english";
@@ -4678,9 +4678,9 @@ var TwoBox = React.createClass({
       length += 2 - length % 2;
     }
     content.pad(length, "");
-    var threes = [];
+    var twos = [];
     for (var i = 0; i < length; i += 2) {
-      threes.push([content[i], content[i + 1]]);
+      twos.push([content[i], content[i + 1]]);
     }
     return React.createElement(
       "table",
@@ -4688,7 +4688,7 @@ var TwoBox = React.createClass({
       React.createElement(
         "tbody",
         null,
-        threes.map(function (row, i) {
+        twos.map(function (row, i) {
           return React.createElement(
             "tr",
             { key: i },

@@ -349,7 +349,7 @@ var ReaderApp = React.createClass({
   handleNavigationClick: function(ref, version, versionLanguage) {
     this.saveOpenPanelsToRecentlyViewed();
     this.setState({
-      panels: [this.makePanelState({refs: [ref], version: version, version_langauge: versionLanguage, mode: "Text"})],
+      panels: [this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"})],
       header: {menuOpen: null}
     });
   },
@@ -389,7 +389,7 @@ var ReaderApp = React.createClass({
   },
   selectVersion: function(n, versionName, versionLanguage) {
     var panel = this.state.panels[n];
-    if (version_name && versionLanguage) {
+    if (versionName && versionLanguage) {
       panel.version = versionName;
       panel.versionLanguage = versionLanguage;
       panel.settings.language = (panel.versionLanguage == "he")? "hebrew": "english";
