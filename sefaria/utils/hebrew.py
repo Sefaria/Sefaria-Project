@@ -516,7 +516,8 @@ def hebrew_term(s):
 		"Topic":            u"נושא",
 		"Contents":         u"תוכן",
 		"Article":	    u"סעיף",
-		"Shoresh":	u"שורש"
+		"Shoresh":	u"שורש",
+		"Remez":	u"רמז"
 	}
 
 	words = dict(categories.items() + pseudo_categories.items() + section_names.items())
