@@ -11,58 +11,142 @@ var ReaderApp = React.createClass({
     initialSheetsTag:            React.PropTypes.string,
     initialNavigationCategories: React.PropTypes.array,
     initialSettings:             React.PropTypes.object,
-    initialPanels:               React.PropTypes.array
+    initialPanels:               React.PropTypes.array,
+    headerMode:                  React.PropTypes.bool
   },
   getInitialState: function() {
     var panels = [];
+    var defaultPanelSettings = clone(this.props.initialSettings);
     if (!this.props.multiPanel) {
       var mode = this.props.initialFilter ? "TextAndConnections" : "Text";
-      panels[0] = ({refs: this.props.initialRefs, mode: mode, filter: this.props.initialFilter});
+      panels[0] = {
+        refs: this.props.initialRefs,
+        mode: mode,
+        filter: this.props.initialFilter,
+        menuOpen: this.props.initialMenu,
+        version: this.props.initialPanels.length ? this.props.initialPanels[0].version : null,
+        versionLanguage: this.props.initialPanels.length ? this.props.initialPanels[0].versionLanguage : null,
+        settings: clone(defaultPanelSettings)
+      };
+      if (panels[0].versionLanguage) {
+        panels[0].settings.language = (panels[0].versionLanguage == "he")? "hebrew": "english";
+      }
       if (mode === "TextAndConnections") {
         panels[0].highlightedRefs = this.props.initialRefs;
       }
-    } else {
-      panels.push({refs: this.props.initialRefs, mode: "Text"});
-      if (this.props.initialFilter){
-        panels.push({refs: this.props.initialRefs, filter: this.props.initialFilter, mode: "Connections"});
+    } else if (this.props.initialRefs.length) {
+      var p = {
+        refs: this.props.initialRefs,
+        mode: "Text",
+        menuOpen: this.props.initialPanels[0].menuOpen,
+        version: this.props.initialPanels.length ? this.props.initialPanels[0].version : null,
+        versionLanguage: this.props.initialPanels.length ? this.props.initialPanels[0].versionLanguage : null,
+        settings: clone(defaultPanelSettings)
+      };
+      if (p.versionLanguage) {
+        p.settings.language = (p.versionLanguage == "he")? "hebrew": "english";
+      }
+      panels.push(p);
+      if (this.props.initialFilter) {
+        panels.push({
+          refs: this.props.initialRefs,
+          filter: this.props.initialFilter,
+          mode: "Connections",
+          settings: clone(defaultPanelSettings)
+        });
       }
       for (var i = panels.length; i < this.props.initialPanels.length; i++) {
-        panels.push(this.props.initialPanels[i]);
+        var panel      = clone(this.props.initialPanels[i]);
+        panel.settings = clone(defaultPanelSettings);
+        if (panel.versionLanguage) {
+          panel.settings.language = (panel.versionLanguage == "he")? "hebrew": "english";
+        }
+        panels.push(panel);
       }
     }
+    panels = panels.map(function(panel) { 
+      return this.makePanelState(panel); 
+    }.bind(this) );
+
+    var header_state = {
+                  mode: "Header",
+                  refs: this.props.initialRefs,
+                  searchQuery: this.props.initialQuery,
+                  navigationCategories: this.props.initialNavigationCategories,
+                  sheetsTag: this.props.initialSheetsTag,
+                  settings: clone(defaultPanelSettings)
+    };
+    if(panels.length <= 1) {
+      header_state.menuOpen = this.props.initialMenu;
+    }
+
+    var header = this.makePanelState(header_state);
+
     return {
-      panels: panels
+      panels: panels,
+      header: header,
+      defaultPanelSettings: defaultPanelSettings
     };
   },
   componentDidMount: function() {
     this.updateHistoryState(true); // make sure initial page state is in history, (passing true to replace)
     window.addEventListener("popstate", this.handlePopState);
+    window.addEventListener("beforeunload", this.saveOpenPanelsToRecentlyViewed);
+   
+    // Set S2 cookie, putting user into S2 mode site wide
+    $.cookie("s2", true, {path: "/"});
   },
   componentWillUnmount: function() {
     window.removeEventListener("popstate", this.handlePopState);
   },
+  componentDidUpdate: function(prevProps, prevState) {
+    if (this.justPopped) {
+      //console.log("Skipping history update - just popped")
+      this.justPopped = false;
+      //debugger
+      return;
+    }
+    // Central State TODO 
+    // - carry panel language change to dependent panel
+
+    this.setContainerMode();
+    this.updateHistoryState(this.replaceHistory);
+  },
   handlePopState: function(event) {
     var state = event.state;
+    //console.log("Pop - " + window.location.pathname);
+    //console.log(state);
     if (state) {
       var kind = "";
       sjs.track.event("Reader", "Pop State", kind);
       this.justPopped = true;
       this.setState(state);
-      //console.log("Pop");
-      //console.log(state);
     }
   },
   shouldHistoryUpdate: function() {
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
-    if (!history.state) { return true; }
+    if (!history.state ||
+        !history.state.panels ||
+         history.state.panels.length !== this.state.panels.length ||
+        !history.state.header ||
+         history.state.header.menuOpen !== this.state.header.menuOpen ) { 
+      return true; 
+    }
+    if (this.state.header.menuOpen) {
+      var prevPanels = [history.state.header];
+      var nextPanels = [this.state.header];
+    } else {
+      var prevPanels = history.state.panels;
+      var nextPanels = this.state.panels; 
+    }
 
-    if (history.state.panels.length !== this.state.panels.length) { return true; }
-
-    for (var i = 0; i < this.state.panels.length; i++) {
+    for (var i = 0; i < prevPanels.length; i++) {
       // Cycle through each panel, compare previous state to next state, looking for differences
-      var prev  = history.state.panels[i];
-      var next  = this.state.panels[i];
+      var prev  = prevPanels[i];
+      var next  = nextPanels[i];
+
+      if (!prev || ! next) { return true; }
 
       if ((prev.mode !== next.mode) ||
           (prev.menuOpen !== next.menuOpen) ||
@@ -71,7 +155,10 @@ var ReaderApp = React.createClass({
           (next.mode === "Connections" && prev.filter && !prev.filter.compare(next.filter)) ||
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
           (prev.searchQuery !== next.searchQuery) ||
-          (prev.navigationSheetTag !== next.navigationSheetTag)) {
+          (prev.navigationSheetTag !== next.navigationSheetTag) ||
+          (prev.version !== next.version) ||
+          (prev.versionLanguage !== next.versionLanguage))
+          {
          return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
         // Handle array comparison, !== could mean one is null or both are arrays
@@ -86,12 +173,17 @@ var ReaderApp = React.createClass({
   },
   makeHistoryState: function() {
     // Returns an object with state, title and url params for the current state
-    var histories = []; 
-    for (var i = 0; i < this.state.panels.length; i++) {
+    var histories = [];
+    // When the header has a panel open, only look at its content for history
+    var panels = this.state.header.menuOpen ||
+                (!this.state.panels.length && this.state.header.mode === "Header") ? [this.state.header] : this.state.panels;
+    for (var i = 0; i < panels.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
-      var hist    = {url: ""};
-      var state   = clone(this.state.panels[i]);
-      if (state && state.menuOpen) {
+      var state = clone(panels[i]);
+      if (!state) { debugger }
+      var hist  = {url: ""};
+    
+      if (state.menuOpen) {
         switch (state.menuOpen) {
           case "home":
             hist.title = "Sefaria: a Living Library of Jewish Texts Online";
@@ -128,33 +220,48 @@ var ReaderApp = React.createClass({
               hist.mode  = "sheets";
             }
             break;
+          case "account":
+            hist.title = "Sefaria About";
+            hist.url   = "account";
+            hist.mode  = "account";
+            break;
         }
       } else if (state.mode === "Text") {
-        hist.title  = state.refs.slice(-1)[0];
-        hist.url    = normRef(hist.title);
-        hist.mode   = "Text"
+        hist.title    = state.refs.slice(-1)[0];
+        hist.url      = normRef(hist.title);
+        hist.version  = state.version;
+        hist.versionLanguage = state.versionLanguage;
+        hist.mode     = "Text"
       } else if (state.mode === "Connections") {
         var ref     = state.refs.slice(-1)[0];
         var sources = state.filter.length ? state.filter.join("+") : "all";
-        hist.title  = ref  + " with " + (sources === "all" ? "Connections" : sources);;
+        hist.title  = ref  + " with " + (sources === "all" ? "Connections" : sources);
         hist.url    = normRef(ref) + "?with=" + sources;
         hist.mode   = "Connections"
       } else if (state.mode === "TextAndConnections") {
-        var ref     = state.highlightedRefs.slice(-1)[0];
-        var sources = state.filter.length ? state.filter[0] : "all";
-        hist.title  = ref  + " with " + (sources === "all" ? "Connections" : sources);;
-        hist.url    = normRef(ref) + "?with=" + sources;
-        hist.mode   = "TextAndConnections"
-      } else {
-        continue;
+        var ref       = state.highlightedRefs.slice(-1)[0];
+        var sources   = state.filter.length ? state.filter[0] : "all";
+        hist.title    = ref  + " with " + (sources === "all" ? "Connections" : sources);
+        hist.url      = normRef(ref) + "?with=" + sources;
+        hist.version  = state.version;
+        hist.versionLanguage = state.versionLanguage;
+        hist.mode     = "TextAndConnections"
+      } else if (state.mode === "Header") {
+        hist.title  = document.title;
+        hist.url    = "";
+        hist.mode   = "Header"
       }
       histories.push(hist);     
     }
+    if (!histories.length) {debugger;}
 
-    // Now merge all history object into one
+    // Now merge all history objects into one
     var url   = "/" + (histories.length ? histories[0].url : "");
-    var title =  histories.length ? histories[0].title : "Sefaria"
-    var hist  = {state: this.state, url: url, title: title};
+    if(histories[0].versionLanguage && histories[0].version) {
+        url += "/" + histories[0].versionLanguage + "/" + histories[0].version.replace(/\s/g,"_");
+    }
+    var title =  histories.length ? histories[0].title : "Sefaria";
+    var hist  = {state: clone(this.state), url: url, title: title};
     for (var i = 1; i < histories.length; i++) {
       if (histories[i-1].mode === "Text" && histories[i].mode === "Connections") {
         if (i == 1) {
@@ -162,7 +269,7 @@ var ReaderApp = React.createClass({
           hist.url   = "/" + histories[i].url;
           hist.title = histories[i].title;
         } else {
-          var replacer = "&p" + i + "="
+          var replacer = "&p" + i + "=";
           hist.url    = hist.url.replace(RegExp(replacer + ".*"), "");
           hist.url   += replacer + histories[i].url.replace("with=", "with" + i + "=").replace("?", "&");
           hist.title += " & " + histories[i].title; // TODO this doesn't trim title properly
@@ -171,13 +278,19 @@ var ReaderApp = React.createClass({
         var next    = "&p=" + histories[i].url;
         next        = next.replace("?", "&").replace(/=/g, (i+1) + "=");
         hist.url   += next;
+        if(histories[i].versionLanguage && histories[i].version) {
+          hist.url += "&l" + (i+1) + "=" + histories[i].versionLanguage + "&v" + (i+1) + "=" + histories[i].version.replace(/\s/g,"_");
+        }
         hist.title += " & " + histories[i].title;
+
       }
     }
     hist.url = hist.url.replace(/&/, "?");
 
     // for testing
-    if (window.location.pathname.indexOf("/s2") === 0) { hist.url = "/s2" + hist.url; }
+    if (window.location.pathname.indexOf("/s2") === 0 || "s2" in getUrlVars()) { 
+      hist.url = "/s2" + hist.url;
+    }
 
     return hist;
   },
@@ -185,161 +298,424 @@ var ReaderApp = React.createClass({
     if (!this.shouldHistoryUpdate()) { 
       return; 
     }
-
     var hist = this.makeHistoryState();
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
-      //console.log("Replace History")
+      console.log("Replace History - " + hist.url)
       //console.log(hist);
     } else {
+      if (window.location.pathname == hist.url) { return; } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
-      //console.log("Push History");
+      console.log("Push History - " + hist.url);
       //console.log(hist);
     }
+
     $("title").html(hist.title);
-
     sjs.track.pageview(hist.url);
+    this.replaceHistory = false;
   },
-  handlePanelUpdate: function(n, action, state) {
-    // When panel `n` wants to change history with `action` (either "push" or "replace"), update with `state`
-    // Dirty check with JSON to see if this object has changed or not
-    var current = JSON.stringify(this.state.panels[n]);
-    var update  = JSON.stringify(state);
-    if (current !== update) { // Ignore unless state changed
-      //console.log("Panel update called with " + action + " from " + n);
-      //console.log(state);
-      var langChange  = this.state.panels[n].completeState && state.settings.language !== this.state.panels[n].settings.language;
-
-      this.state.panels[n] = clone(state);
-      if (this.state.panels.length > n+1) {
-        var next = this.state.panels[n+1];
-        if (langChange && next.mode === "Connections") {
-          // When the driving panel changes langauge, carry that to the dependent panel
-          next.settings.language = state.settings.language;
-        }
+  makePanelState: function(state) {
+    // Return a full representation of a single panel's state, given a partial representation in `state`
+    if (!state.settings && !this.state) {debugger}
+    var panel = {
+      refs:                 state.refs || [], // array of ref strings
+      mode:                 state.mode, // "Text", "TextAndConnections", "Connections"
+      filter:               state.filter || [],
+      version:              state.version || null,
+      versionLanguage:     state.versionLanguage || null,
+      highlightedRefs:      state.highlightedRefs || [],
+      recentFilters:        [],
+      settings:             state.settings? clone(state.settings): clone(this.state.defaultPanelSettings),
+      menuOpen:             state.menuOpen || null, // "navigation", "text toc", "display", "search", "sheets", "home"
+      navigationCategories: state.navigationCategories || [],
+      navigationSheetTag:   state.sheetsTag || null,
+      searchQuery:          state.searchQuery || null,
+      displaySettingsOpen:  false
+    };
+    return panel
+  },
+  setContainerMode: function() {
+    // Applies CSS classes to the React container so that S2 can function as a header only on top of another page.
+    if (this.props.headerMode) {
+      if (this.state.header.menuOpen || this.state.panels.length) {
+        $("#s2").removeClass("headerOnly");
+        $("body").css({overflow: "hidden"});
+      } else {
+        $("#s2").addClass("headerOnly");
+        $("body").css({overflow: "hidden"});
       }
-      this.setState({panels: this.state.panels});
-
-      // Don't push history if the panel in the current state was ReaderApp (only push if the state was generated by ReaderPanel)
-      // Allows the panels to load initially without each panel triggering a history push
-      var replace = action === "replace" || !this.state.panels[n].completeState;
-      this.updateHistoryState(replace);
-    } else { 
-      //console.log("skipping")
     }
-
+  },
+  handleNavigationClick: function(ref, version, versionLanguage) {
+    this.saveOpenPanelsToRecentlyViewed();
+    this.setState({
+      panels: [this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"})],
+      header: {menuOpen: null}
+    });
   },
   handleSegmentClick: function(n, ref) {
     // Handle a click on a text segment `ref` in from panel in position `n`
     // Update or add panel after this one to be a TextList
     this.openTextListAt(n+1, [ref]);
-    this.setTextListHighlight(n, [ref])
+    this.setTextListHighlight(n, [ref]);
+  },
+  handleCitationClick: function(n, citationRef, textRef) {
+    // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
+    this.openPanelAt(n, citationRef);
+    this.setTextListHighlight(n, [textRef]);
+  },
+  handleRecentClick: function(pos, ref) {
+    // Click on an item in your Recently Viewed
+    if (this.props.multiPanel) {
+      this.openPanelAt(pos, ref);
+    } else {
+      this.handleNavigationClick(ref);
+    }
+  },
+  setPanelState: function(n, state, replaceHistory) {
+    this.replaceHistory  = Boolean(replaceHistory);
+    //console.log(`setPanel State ${n}, replace: ` + this.replaceHistory);
+    //console.log(state)
+
+    // When the driving panel changes language, carry that to the dependent panel
+    var langChange  = state.settings && state.settings.language !== this.state.panels[n].settings.language;
+    var next        = this.state.panels[n+1];
+    if (langChange && next && next.mode === "Connections") {
+        next.settings.language = state.settings.language;
+    }
+
+    this.state.panels[n] = $.extend(this.state.panels[n], state);
+    this.setState({panels: this.state.panels});
+  },
+  selectVersion: function(n, versionName, versionLanguage) {
+    var panel = this.state.panels[n];
+    if (versionName && versionLanguage) {
+      panel.version = versionName;
+      panel.versionLanguage = versionLanguage;
+      panel.settings.language = (panel.versionLanguage == "he")? "hebrew": "english";
+    } else {
+      panel.version = null;
+      panel.versionLanguage = null;
+    }
+    this.setState({panels: this.state.panels});
+  },
+  setHeaderState: function(state, replaceHistory) {
+    this.state.header = $.extend(this.state.header, state);
+    this.setState({header: this.state.header});
+  },
+  setDefaultOption: function(option, value) {
+    if (value !== this.state.defaultPanelSettings[option]) {
+      this.state.defaultPanelSettings[option] = value;
+      this.setState(this.state);
+    }
   },
   openPanelAt: function(n, ref) {
     // Open a new panel after `n` with the new ref
-    this.state.panels.splice(n+1, 0, {refs: [ref], mode: "Text"});
+    this.state.panels.splice(n+1, 0, this.makePanelState({refs: [ref], mode: "Text"}));
+    this.setState({panels: this.state.panels, header: {menuOpen: null}});
+  },
+  openPanelAtEnd: function(ref) {
+    this.openPanelAt(this.state.panels.length+1, ref);
+  },
+  openTextListAt: function(n, refs) {
+    // Open a connections panel at position `n` for `refs`
+    // Replace panel there if already a connections panel, otherwise splice new panel into position `n`
+    // `refs` is an array of ref strings
+    var panel = this.state.panels[n] || {};
+    if (panel.mode === "Connections") {
+      var oref1 = parseRef(panel.refs.slice(-1)[0]);
+      var oref2 = parseRef(refs.slice(-1)[0]);
+      // If this is a new text reset the filter, otherwise keep the current filter
+      panel.filter = oref1.book === oref2.book ? panel.filter : [];      
+    } else {
+      this.state.panels.splice(n, 0, {});
+      panel = this.state.panels[n];
+      panel.filter = [];
+    }
+
+    panel.refs           = refs;
+    panel.menuOpen       = null;
+    panel.mode           = "Connections";
+    this.state.panels[n] = this.makePanelState(panel);
     this.setState({panels: this.state.panels});
   },
   setTextListHighlight: function(n, refs) {
-    // Set the textListHighlight for panel `n` to `ref`
-    // If no TextList panel is currently open, do nothing
+    // Set the textListHighlight for panel `n` to `refs`
+    // If a connections panel is opened after n, update its refs as well.
     refs = typeof refs === "string" ? [refs] : refs;
-    var next = this.state.panels[n+1];
+    this.state.panels[n].highlightedRefs = refs;
+    this.setState({panels: this.state.panels});
 
+    var next = this.state.panels[n+1];
     if (next && next.mode === "Connections" && !next.menuOpen) {
       this.openTextListAt(n+1, refs);
     }
     return;
   },
-  openTextListAt: function(n, refs) {
-    // Make the panel open at position `n` into a TextList for `ref`
-    // `refs` is an array of ref strings
-    if (n === this.state.panels.length) {
-      this.state.panels.push({refs: [], mode: "Connections"});
-    }
-    var panel = this.state.panels[n];
-    var oref1 = parseRef(panel.refs.slice(-1)[0]);
-    var oref2 = parseRef(refs.slice(-1)[0]);
-    // If this is a new text reset the filter, otherwise keep the current filter
-    panel.filter   = oref1.book === oref2.book ? panel.filter : [];
-    panel.refs     = refs;
-    panel.menuOpen = null;
-    panel.mode     = "Connections";
-    this.setState({panels: this.state.panels});
-  },
   closePanel: function(n) {
-    if (this.state.panels[n].mode === "Connections" && this.state.panels.length > 1) {
-      this.state.panels[n-1].highlightedRefs = [];
+    this.saveRecentlyViewed(this.state.panels[n], n);
+    if (this.state.panels.length == 1 && n == 0) {
+      this.state.panels = [];
+    } else {
+      this.state.panels.splice(n, 1);
+      if (this.state.panels[n] && this.state.panels[n].mode === "Connections") {
+        // Close connections panel when text panel is closed
+        if (this.state.panels.length == 1) {
+          this.state.panels = [];
+        } else {
+          this.state.panels.splice(n, 1);
+        }
+      }
     }
-    this.state.panels.splice(n, 1);
-    this.setState({panels: this.state.panels});
-    this.updateHistoryState();
+    var state = {panels: this.state.panels};
+    if (state.panels.length == 0) {
+      this.showLibrary();
+    }
+    this.setState(state);
+  },
+  showLibrary: function() {
+    this.setState({header: this.makePanelState({menuOpen: "navigation"})});
+  },
+  showSearch: function(query) {
+    this.setState({header: this.makePanelState({menuOpen: "search", searchQuery: query})});
+  },
+  saveRecentlyViewed: function(panel, n) {
+    if (panel.mode == "Connections" || !panel.refs.length) { return; }
+    var ref  = panel.refs[0];
+    var oRef = sjs.library.ref(ref);
+    var json = $.cookie("recentlyViewed");
+    var recent = json ? JSON.parse(json) : [];
+    recent = recent.filter(function(item) {
+      return item.ref !== ref; // Remove this item if it's in the list already
+    });
+    var cookieData = {
+      ref: ref,
+      heRef: oRef.heRef,
+      book: oRef.indexTitle,
+      position: n
+    };
+    recent.splice(0, 0, cookieData);
+    recent = recent.slice(0, 3);
+    $.cookie("recentlyViewed", JSON.stringify(recent), {path: "/"});
+  },
+  saveOpenPanelsToRecentlyViewed: function() {
+    for (var i = this.state.panels.length-1; i >= 0; i--) {
+      this.saveRecentlyViewed(this.state.panels[i], i);
+    }
   },
   render: function() {
-    var width = 100.0/this.state.panels.length;
+    var evenWidth = 100.0/this.state.panels.length;
+    if (this.state.panels.length == 2 && this.state.panels[0].mode == "Text" && this.state.panels[1].mode == "Connections") {
+      var widths = [60.0, 40.0];
+    } else {
+      var widths = this.state.panels.map(function(){ return evenWidth; });
+    }
+
+    var header = this.props.multiPanel ? 
+                  (<Header 
+                    initialState={this.state.header}
+                    setCentralState={this.setHeaderState}
+                    onRefClick={this.handleNavigationClick}
+                    onRecentClick={this.handleRecentClick}
+                    setDefaultOption={this.setDefaultOption}
+                    showLibrary={this.showLibrary}
+                    showSearch={this.showSearch}
+                    headerMode={this.props.headerMode}
+                    panelsOpen={this.state.panels.length} />) : null;
+
     var panels = [];
     for (var i = 0; i < this.state.panels.length; i++) {
       var panel                    = clone(this.state.panels[i]);
-      var style                    = {width: width + "%", left: (width * i) + "%"};
-      var multi                    = this.props.multiPanel;
-      var onSegmentClick           = multi ? this.handleSegmentClick.bind(null, i) : null;
-      var onCitationClick          = this.openPanelAt.bind(null, i);
-      var onTextListClick          = this.openPanelAt.bind(null, i);
-      var onPanelUpdate            = this.handlePanelUpdate.bind(null, i);
+      var left                     = widths.reduce(function(prev, curr, index, arr) { return index < i ? prev+curr : prev}, 0);
+      var width                    = widths[i];
+      var style                    = {width: width + "%", left: left + "%"};
+      var onSegmentClick           = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
+      var onCitationClick          = this.handleCitationClick.bind(null, i);
+      var onTextListClick          = null; // this.openPanelAt.bind(null, i);
+      var onOpenConnectionsClick   = this.openTextListAt.bind(null, i+1);
       var setTextListHightlight    = this.setTextListHighlight.bind(null, i);
       var closePanel               = this.closePanel.bind(null, i);
+      var setPanelState            = this.setPanelState.bind(null, i);
+      var selectVersion            = this.selectVersion.bind(null, i);
 
-      if (this.state.panels.length > i+1) {
-        var followingPanel    = this.state.panels[i+1];
-        panel.highlightedRefs = followingPanel.mode == "Connections" ? this.state.panels[i+1].refs : [];
-      } else {
-        panel.highlightedRefs = panel.highlightedRefs || [];
-      }
-      
       var ref   = panel.refs && panel.refs.length ? panel.refs[0] : null;
       var oref  = ref ? parseRef(ref) : null;
       var title = oref && oref.book ? oref.book : 0;
       // Keys must be constant as text scrolls, but changing as new panels open in new positions
       // Use a combination of the panel number and text title
       var key   = i + title;
-      if (panel.completeState) {
-        panels.push(<div className="readerPanelBox" style={style} key={key}>
-                      <ReaderPanel 
-                        initialState={panel}
-                        multiPanel={multi}
-                        onSegmentClick={onSegmentClick}
-                        onCitationClick={onCitationClick}
-                        historyUpdate={onPanelUpdate}
-                        onCitationClick={onCitationClick}
-                        onTextListClick={onTextListClick}
-                        setTextListHightlight={setTextListHightlight}
-                        closePanel={closePanel}
-                        panelsOpen={this.state.panels.length} />
+      panels.push(<div className="readerPanelBox" style={style} key={key}>
+                    <ReaderPanel 
+                      initialState={panel}
+                      setCentralState={setPanelState}
+                      multiPanel={this.props.multiPanel}
+                      onSegmentClick={onSegmentClick}
+                      onCitationClick={onCitationClick}
+                      onTextListClick={onTextListClick}
+                      onNavigationClick={this.handleNavigationClick}
+                      onRecentClick={this.handleRecentClick}
+                      onOpenConnectionsClick={onOpenConnectionsClick}
+                      setTextListHightlight={setTextListHightlight}
+                      selectVersion={selectVersion}
+                      setDefaultOption={this.setDefaultOption}
+                      closePanel={closePanel}
+                      panelsOpen={this.state.panels.length}
+                      layoutWidth={width} />
                   </div>);
-      } else {
-        panels.push(<div className="readerPanelBox" style={style} key={key}>
-                      <ReaderPanel 
-                        initialRefs={panel.refs}
-                        initialMode={panel.mode}
-                        initialFilter={panel.filter}
-                        initialHighlightedRefs={panel.highlightedRefs}
-                        initialMenu={i == 0 ? this.props.initialMenu : null}
-                        initialQuery={this.props.initialQuery}
-                        initialSheetsTag={this.props.initialSheetsTag}
-                        initialNavigationCategories={this.props.initialNavigationCategories}
-                        initialSettings={clone(this.props.initialSettings)}
-                        multiPanel={multi}
-                        onSegmentClick={onSegmentClick}
-                        onCitationClick={onCitationClick}
-                        onTextListClick={onTextListClick}
-                        historyUpdate={onPanelUpdate}
-                        closePanel={closePanel}
-                        panelsOpen={this.state.panels.length} />
-                    </div>);
+    }
+
+    var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel});
+    return (<div className={classes}>
+              {header}
+              {panels}
+            </div>);
+  }
+});
+
+
+var Header = React.createClass({
+  propTypes: {
+    initialState:       React.PropTypes.object.isRequired,
+    setCentralState:    React.PropTypes.func,
+    onRefClick:         React.PropTypes.func,
+    onRecentClick:      React.PropTypes.func,
+    showLibrary:        React.PropTypes.func,
+    showSearch:         React.PropTypes.func,
+    setDefaultOption:   React.PropTypes.func,
+    panelsOpen:         React.PropTypes.number
+  },
+  getInitialState: function() {
+    return this.props.initialState;
+  },
+  componentDidMount: function() {
+    this.initAutocomplete();
+  },
+  componentWillReceiveProps: function(nextProps) {
+    if (nextProps.initialState) {
+      this.setState(nextProps.initialState);
+    }
+  },
+  componentDidUpdate: function(prevProps, prevState) {
+
+  },
+  initAutocomplete: function() {
+    $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete({ 
+      position: {my: "left-12 top+14", at: "left bottom"},
+      source: function( request, response ) {
+        var matches = $.map( sjs.books, function(tag) {
+            if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
+              return tag;
+            }
+          });
+        response(matches.slice(0, 16)); // limits return to 16 items
+      }
+    });
+  },
+  showDesktop: function() {
+    if (this.props.panelsOpen == 0) {
+      var json = $.cookie("recentlyViewed");
+      var recentlyViewed = json ? JSON.parse(json) : null;
+      if (recentlyViewed && recentlyViewed.length) {
+        this.handleRefClick(recentlyViewed[0].ref);
       }
     }
-    var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel});
-    return (<div className={classes}>{panels}</div>);
+    this.props.setCentralState({menuOpen: null});
+    this.clearSearchBox();      
+  },
+  showLibrary: function() {
+    this.props.showLibrary();
+    this.clearSearchBox();
+  },
+  showSearch: function(query) {
+    this.props.showSearch(query);
+    $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("close");
+  },
+  showAccount: function() {
+    this.props.setCentralState({menuOpen: "account"});
+    this.clearSearchBox();
+  },
+  submitSearch: function(query, skipNormalization) {
+    //window.location = "/search?q=" + query.replace(/ /g, "+");
+    if (query in sjs.booksDict) {
+      var index = sjs.library.index(query);
+      if (index) {
+        query = index.firstSection;
+      } else if (!skipNormalization) {
+        sjs.library.normalizeTitle(query, function(title) {
+          this.submitSearch(title, true)
+        }.bind(this));
+        return;
+      }
+    }
+    if (isRef(query)) {
+      this.props.onRefClick(query);
+      this.showDesktop();
+      sjs.track.ui("Nav Query");
+    } else {
+      this.showSearch(query);
+    }
+  },
+  clearSearchBox: function() {
+    $(ReactDOM.findDOMNode(this)).find("input.search").val("").autocomplete("close");
+  },
+  handleLibraryClick: function() {
+    if (this.state.menuOpen === "home") {
+      return;
+    } else if (this.state.menuOpen === "navigation" && this.state.navigationCategories.length == 0) {
+      this.showDesktop();
+    } else {
+      this.showLibrary();
+    }
+  },
+  handleRefClick: function(ref) {
+    this.props.onRefClick(ref);
+  },
+
+  handleSearchKeyUp: function(event) {
+    if (event.keyCode === 13) {
+      var query = $(event.target).val();
+      if (query) {
+        this.submitSearch(query);
+      }
+    }
+  },
+  handleSearchButtonClick: function(event) {
+    var query = $(ReactDOM.findDOMNode(this)).find(".search").val();
+    if (query) {
+      this.submitSearch(query);
+    }
+  },
+  render: function() {
+    var viewContent = this.state.menuOpen ?
+                        (<ReaderPanel
+                          initialState={this.state}
+                          setCentralState={this.props.setCentralState}
+                          multiPanel={true}
+                          onNavTextClick={this.props.onRefClick}
+                          onSearchResultClick={this.props.onRefClick}
+                          onRecentClick={this.props.onRecentClick}
+                          setDefaultLanguage={this.props.setDefaultLanguage}
+                          hideNavHeader={true} />) : null;
+
+    return (<div className="header">
+              <div className="headerInner">
+                <div className="left">
+                  <div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div>
+                </div>
+                <div className="right">
+                  <div className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" /></div>
+                </div>
+                <span className="searchBox">
+                  <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
+                  <input className="search" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
+                </span>
+                <a className="home" href="/?home" ><img src="/static/img/sefaria-on-white.png" /></a>
+              </div>
+              { viewContent ? 
+                (<div className="headerNavContent">
+                  {viewContent}
+                 </div>) : null}
+            </div>);
   }
 });
 
@@ -348,35 +724,49 @@ var ReaderPanel = React.createClass({
   propTypes: {
     initialRefs:            React.PropTypes.array,
     initialMode:            React.PropTypes.string,
+    initialVersion:         React.PropTypes.string,
+    initialVersionLanguage: React.PropTypes.string,
     initialFilter:          React.PropTypes.array,
     initialHighlightedRefs: React.PropTypes.array,
     initialMenu:            React.PropTypes.string,
     initialQuery:           React.PropTypes.string,
     initialSheetsTag:       React.PropTypes.string,
-    initialSettings:        React.PropTypes.object,
-    initialState:           React.PropTypes.object, // if present, Trumps all props above
+    initialState:           React.PropTypes.object, // if present, trumps all props above
+    setCentralState:        React.PropTypes.func,
     onSegmentClick:         React.PropTypes.func,
     onCitationClick:        React.PropTypes.func,
     onTextListClick:        React.PropTypes.func,
-    historyUpdate:          React.PropTypes.func,
+    onNavTextClick:         React.PropTypes.func,
+    onRecentClick:          React.PropTypes.func,
+    onSearchResultClick:    React.PropTypes.func,
+    onUpdate:               React.PropTypes.func,
     closePanel:             React.PropTypes.func,
+    setDefaultLanguage:     React.PropTypes.func,
+    selectVersion:          React.PropTypes.func,
     highlightedRefs:        React.PropTypes.array,
-    mulitPanel:             React.PropTypes.bool,
-    panelsOpen:             React.PropTypes.number
+    hideNavHeader:          React.PropTypes.bool,
+    multiPanel:             React.PropTypes.bool,
+    panelsOpen:             React.PropTypes.number,
+    layoutWidth:            React.PropTypes.number
   },
   getInitialState: function() {
+    // When this component is managed by a parent, all it takes is initialState
     if (this.props.initialState) {
-      return this.props.initialState;
+      var state = clone(this.props.initialState);
+      return state;
     }
 
+    // When this component is independent and manges itself, it takes individual initial state props, with defaults here. 
     return {
-      refs: this.props.initialRefs, // array of ref strings
+      refs: this.props.initialRefs || [], // array of ref strings
       mode: this.props.initialMode, // "Text", "TextAndConnections", "Connections"
       filter: this.props.initialFilter || [],
+      version: this.props.initialVersion,
+      versionLanguage: this.props.initialVersionLanguage,
       highlightedRefs: this.props.initialHighlightedRefs || [],
       recentFilters: [],
-      settings: this.props.initialSettings || {
-        language:      "english",
+      settings: this.props.intialState.settings || {
+        language:      "bilingual",
         layoutDefault: "segmented",
         layoutTalmud:  "continuous",
         layoutTanach:  "segmented",
@@ -387,41 +777,59 @@ var ReaderPanel = React.createClass({
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag:   this.props.initialSheetsTag || null,
       searchQuery:          this.props.initialQuery || null,
-      navigationSheetTag:   this.props.initialSheetsTag || null,
-      displaySettingsOpen:  false,
-      completeState:        true
+      displaySettingsOpen:  false
     }
   },
   componentDidMount: function() {
-    if (this.props.historyUpdate) {
-      // Make sure the initial state of this panel is pushed up to ReaderApp
-      this.props.historyUpdate("replace", this.state);     
-    }
+    window.addEventListener("resize", this.setWidth);
+    this.setWidth();
     this.setHeadroom();
     this.trackPanelOpens();
   },
+  componentWillUnmount: function() {
+    window.removeEventListener("resize", this.setWidth);
+  },
   componentWillReceiveProps: function(nextProps) {
-    if (nextProps.initialFilter) {
+    if (nextProps.initialFilter && !this.props.multiPanel) {
       this.openConnectionsInPanel(nextProps.initialRefs);
+    }
+    if (nextProps.initialQuery) {
+      this.openSearch(nextProps.initialQuery);
+    }
+    if (this.state.menuOpen !== nextProps.initialMenu) {
+      this.setState({menuOpen: nextProps.initialMenu});
     }
     if (nextProps.initialState) {
       this.setState(nextProps.initialState);
+    } else {
+      this.setState({
+        navigationCategories: nextProps.initialNavigationCategories || [],
+        navigationSheetTag:   nextProps.initialSheetsTag || null,
+        searchQuery:          nextProps.initialQuery || null
+      });
     }
   },
   componentWillUpdate: function(nextProps, nextState) {
 
   },
   componentDidUpdate: function(prevProps, prevState) {
-    if (this.props.historyUpdate) {
-      if (this.replaceHistory) {
-        this.props.historyUpdate("replace", this.state);
-      } else {
-        this.props.historyUpdate("push", this.state);
-      }      
-    }
     this.setHeadroom();
     if (prevState.refs.compare(this.state.refs)) {
       this.trackPanelOpens();
+    }
+    if (prevProps.layoutWidth !== this.props.layoutWidth) {
+      this.setWidth();
+    }
+    this.replaceHistory = false;
+  },
+  conditionalSetState: function(state) {
+    // Set state either in the central app or in the local component,
+    // depending on whether a setCentralState function was given.
+    if (this.props.setCentralState) {
+      this.props.setCentralState(state, this.replaceHistory);
+      this.replaceHistory = false;
+    } else {
+      this.setState(state);
     }
   },
   handleBaseSegmentClick: function(ref) {
@@ -436,19 +844,15 @@ var ReaderPanel = React.createClass({
       }
     }
   },
-  handleCitationClick: function(ref) {
+  handleCitationClick: function(citationRef, textRef) {
     if (this.props.multiPanel) {
-      this.props.onCitationClick(ref);
+      this.props.onCitationClick(citationRef, textRef);
     } else {
-      this.showBaseText(ref);
+      this.showBaseText(citationRef);
     }
   },
   handleTextListClick: function(ref) {
-    if (this.props.multiPanel) {
-      this.props.onTextListClick(ref);
-    } else {
-      this.showBaseText(ref);
-    }
+    this.showBaseText(ref);
   },
   setHeadroom: function() {
     if (this.props.multiPanel) { return; }
@@ -462,7 +866,7 @@ var ReaderPanel = React.createClass({
   openConnectionsInPanel: function(ref) {
     var refs = typeof ref == "string" ? [ref] : ref;
     this.replaceHistory = this.state.mode === "TextAndConnections"; // Don't push history for change in Connections focus
-    this.setState({highlightedRefs: refs, mode: "TextAndConnections" });      
+    this.conditionalSetState({highlightedRefs: refs, mode: "TextAndConnections" }, this.replaceHistory);      
   },
   closeConnectionsInPanel: function() {
     // Return to the original text in the ReaderPanel contents
@@ -472,8 +876,8 @@ var ReaderPanel = React.createClass({
     // Set the current primary text
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
     if (!ref) { return; }
-    this.replaceHistory = typeof replaceHistory === "undefined" ? false : replaceHistory;
-    this.setState({
+    this.replaceHistory = Boolean(replaceHistory);
+    this.conditionalSetState({
       mode: "Text",
       refs: [ref],
       filter: [],
@@ -484,12 +888,12 @@ var ReaderPanel = React.createClass({
   updateTextColumn: function(refs) {
     // Change the refs in the current TextColumn, for infinite scroll up/down.
     this.replaceHistory = true;
-    this.setState({ refs: refs });
+    this.conditionalSetState({ refs: refs }, this.replaceState);
   },
   setTextListHightlight: function(refs) {
     refs = typeof refs === "string" ? [refs] : refs;
     this.replaceHistory = true; 
-    this.setState({highlightedRefs: refs});
+    this.conditionalSetState({highlightedRefs: refs});
     if (this.props.multiPanel) {
       this.props.setTextListHightlight(refs);
     }
@@ -501,11 +905,11 @@ var ReaderPanel = React.createClass({
       searchQuery: null,
       navigationCategories: null,
       navigationSheetTag: null
-    }
-    this.setState(state);
+    };
+    this.conditionalSetState(state);
   },
   openMenu: function(menu) {
-    this.setState({
+    this.conditionalSetState({
       menuOpen: menu,
       searchQuery: null,
       navigationCategories: null,
@@ -513,17 +917,24 @@ var ReaderPanel = React.createClass({
     });
   },
   setNavigationCategories: function(categories) {
-    this.setState({menuOpen: "navigation", navigationCategories: categories});
+    this.conditionalSetState({menuOpen: "navigation", navigationCategories: categories});
   },
   setSheetTag: function (tag) {
-    this.setState({navigationSheetTag: tag});
+    this.conditionalSetState({navigationSheetTag: tag});
   },
   setSearchQuery: function (query) {
-    this.setState({searchQuery: query});
+    this.conditionalSetState({searchQuery: query});
   },
   setFilter: function(filter, updateRecent) {
     // Sets the current filter for Connected Texts (TextList)
     // If updateRecent is true, include the curent setting in the list of recent filters.
+    
+    /*  Hack to open commentaries immediately as full texts
+    if (filter && sjs.library.index(filter) && sjs.library.index(filter).categories[0] == "Commentary") {
+      this.openCommentary(filter);
+      return;
+    }
+    */
     if (updateRecent && filter) {
       if ($.inArray(filter, this.state.recentFilters) !== -1) {
         this.state.recentFilters.toggle(filter);
@@ -531,19 +942,37 @@ var ReaderPanel = React.createClass({
       this.state.recentFilters = [filter].concat(this.state.recentFilters);
     }
     filter = filter ? [filter] : [];
-    this.setState({recentFilters: this.state.recentFilters, filter: filter});
+    this.conditionalSetState({recentFilters: this.state.recentFilters, filter: filter});
+  },
+  toggleLanguage: function() {
+    if (this.state.settings.language == "hebrew") {
+      this.setOption("language", "english");
+    } else {
+      this.setOption("language", "hebrew");
+    }
+  },
+  openCommentary: function(commentator) {
+    // Tranforms a connections panel into an text panel with a particular commentary
+    var baseRef = this.state.refs[0];
+    var links   = sjs.library._filterLinks(sjs.library.links(baseRef), [commentator]);
+    if (links.length) {
+      var ref = links[0].sourceRef;
+      // TODO, Hack - stripping at last : to get section level ref for commentary. Breaks for Commentary2?
+      ref = ref.substring(0, ref.lastIndexOf(':')); 
+      this.showBaseText(ref);
+    }
   },
   openSearch: function(query) {
-    this.setState({
+    this.conditionalSetState({
       menuOpen: "search",
       searchQuery: query
     });
   },
   openDisplaySettings: function() {
-    this.setState({displaySettingsOpen: true});
+    this.conditionalSetState({displaySettingsOpen: true});
   },
   closeDisplaySettings: function() {
-    this.setState({displaySettingsOpen: false});
+    this.conditionalSetState({displaySettingsOpen: false});
   },
   setOption: function(option, value) {
     if (option === "fontSize") {
@@ -558,11 +987,15 @@ var ReaderPanel = React.createClass({
     this.state.settings[option] = value;
     var state = {settings: this.state.settings};
     if (option !== "fontSize") { state.displaySettingsOpen = false; }
-    this.setState(state);
     $.cookie(option, value, {path: "/"});
     if (option === "language") {
       $.cookie("contentLang", value, {path: "/"});
+      this.props.setDefaultOption && this.props.setDefaultOption(option, value);
     }
+    this.conditionalSetState(state);
+  },
+  setWidth: function() {
+    this.width = $(ReactDOM.findDOMNode(this)).width();
   },
   trackPanelOpens: function() {
     if (this.state.mode === "Connections") { return; }
@@ -611,7 +1044,7 @@ var ReaderPanel = React.createClass({
   },
   currentLayout: function() {
     var category = this.currentCategory();
-    if (!category) { return null; }
+    if (!category) { return "layoutDefault"; }
     var option = category === "Tanach" || category === "Talmud" ? "layout" + category : "layoutDefault";
     return this.state.settings[option];  
   },
@@ -620,6 +1053,8 @@ var ReaderPanel = React.createClass({
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       items.push(<TextColumn
           srefs={this.state.refs}
+          version={this.state.version}
+          versionLanguage={this.state.versionLanguage}
           highlightedRefs={this.state.highlightedRefs}
           basetext={true}
           withContext={true}
@@ -635,6 +1070,7 @@ var ReaderPanel = React.createClass({
           onCitationClick={this.handleCitationClick}
           setTextListHightlight={this.setTextListHightlight}
           panelsOpen={this.props.panelsOpen}
+          layoutWidth={this.props.layoutWidth}
           filter={this.state.filter}
           key="text" />);
     }
@@ -651,42 +1087,43 @@ var ReaderPanel = React.createClass({
           openDisplaySettings={this.openDisplaySettings}
           onTextClick={this.handleTextListClick}
           onCitationClick={this.handleCitationClick}
-          closePanel={this.props.panelsOpen > 1 ? this.props.closePanel : null}            
+          onNavigationClick={this.props.onNavigationClick}
+          onOpenConnectionsClick={this.props.onOpenConnectionsClick}
+          onCompareClick={this.showBaseText}
+          closePanel={this.props.closePanel}            
           key="connections" />
       );
     }
 
-    if (this.state.menuOpen === "home") {
-      var menu = (<ReaderNavigationMenu
-                    home={true}
-                    categories={[]}
+    if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation") {
+      var menu = (<ReaderNavigationMenu 
+                    home={this.state.menuOpen === "home"}
+                    categories={this.state.navigationCategories || []}
+                    settings={this.state.settings}
                     setCategories={this.setNavigationCategories || []}
+                    setOption={this.setOption}
+                    toggleLanguage={this.toggleLanguage}
                     closeNav={this.closeMenus}
                     openNav={this.openMenu.bind(null, "navigation")}
                     openSearch={this.openSearch}
                     openMenu={this.openMenu}
                     openDisplaySettings={this.openDisplaySettings}
-                    showBaseText={this.showBaseText} />);
-
-    } else if (this.state.menuOpen === "navigation") {
-      var menu = (<ReaderNavigationMenu 
-                    categories={this.state.navigationCategories || []}
-                    setCategories={this.setNavigationCategories}
-                    closeNav={this.closeMenus}
-                    openNav={this.openMenu.bind(null, "navigation")}                    
-                    openSearch={this.openSearch}
-                    openMenu={this.openMenu}
-                    openDisplaySettings={this.openDisplaySettings}
-                    showBaseText={this.showBaseText} />);
+                    onTextClick={this.props.onNavTextClick || this.showBaseText}
+                    onRecentClick={this.props.onRecentClick || function(pos, ref) { this.showBaseText(ref) }.bind(this) }
+                    hideNavHeader={this.props.hideNavHeader} />);
 
     } else if (this.state.menuOpen === "text toc") {
       var menu = (<ReaderTextTableOfContents 
                     close={this.closeMenus}
-                    text={this.currentBook()}
+                    title={this.currentBook()}
+                    version={this.state.version}
+                    versionLanguage={this.state.versionLanguage}
+                    settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
                     category={this.currentCategory()}
-                    currentRef={this.currentRef()} 
+                    currentRef={this.lastCurrentRef()}
                     openNav={this.openMenu.bind(null, "navigation")}
                     openDisplaySettings={this.openDisplaySettings}
+                    selectVersion={this.props.selectVersion}
                     showBaseText={this.showBaseText} />);
 
     } else if (this.state.menuOpen === "search") {
@@ -694,10 +1131,12 @@ var ReaderPanel = React.createClass({
       var menu = (<SearchPage
                     initialSettings={settings}
                     settings={clone(this.state.settings)}
-                    onResultClick={this.showBaseText}
+                    onResultClick={this.props.onSearchResultClick || this.showBaseText}
                     onQueryChange={this.setSearchQuery}
                     openDisplaySettings={this.openDisplaySettings}
-                    close={this.closeMenus} />);
+                    toggleLanguage={this.toggleLanguage}
+                    close={this.closeMenus}
+                    hideNavHeader={this.props.hideNavHeader} />);
 
     } else if (this.state.menuOpen === "sheets") {
       var menu = (<SheetsNav
@@ -705,18 +1144,21 @@ var ReaderPanel = React.createClass({
                     close={this.closeMenus}
                     initialTag={this.state.navigationSheetTag}
                     setSheetTag={this.setSheetTag} />);
+    } else if (this.state.menuOpen === "account") {
+      var menu = (<AccountPanel />);
     } else {
       var menu = null;
     }
 
-    var classes  = {readerPanel: 1};
-    classes[this.currentLayout()]         = 1;
-    classes[this.state.settings.language] = 1;
-    classes[this.state.settings.color]    = 1;
+    var classes  = {readerPanel: 1, wideColumn: this.width > 450};
+    classes[this.currentLayout()]             = 1;
+    classes[this.state.settings.color]        = 1;
+    classes[this.state.settings.language]     = 1;
     classes = classNames(classes);
     var style = {"fontSize": this.state.settings.fontSize + "%"};
     var hideReaderControls = (this.props.multiPanel && this.state.mode === "Connections" && ![].compare(this.state.filter)) ||
-                             this.state.mode === "TextAndConnections";
+                             this.state.mode === "TextAndConnections" ||
+                             this.props.hideNavHeader;
     return (
       <div className={classes}>
         {hideReaderControls ? null :  
@@ -726,6 +1168,8 @@ var ReaderPanel = React.createClass({
           currentMode={this.currentMode}
           currentCategory={this.currentCategory}
           currentBook={this.currentBook}
+          version={this.state.version}
+          versionLanguage={this.state.versionLanguage}
           multiPanel={this.props.multiPanel}
           settings={this.state.settings}
           setOption={this.setOption}
@@ -733,7 +1177,7 @@ var ReaderPanel = React.createClass({
           closeMenus={this.closeMenus}
           openDisplaySettings={this.openDisplaySettings}
           currentLayout={this.currentLayout}
-          closePanel={this.props.panelsOpen > 1 ? this.props.closePanel : null} />)}
+          closePanel={this.props.closePanel} />)}
 
         <div className="readerContent" style={style}>
           {items}
@@ -764,6 +1208,8 @@ var ReaderControls = React.createClass({
     openDisplaySettings:     React.PropTypes.func.isRequired,
     closeMenus:              React.PropTypes.func.isRequired,
     currentRef:              React.PropTypes.string,
+    version:                 React.PropTypes.string,
+    versionLanguage:         React.PropTypes.string,
     currentMode:             React.PropTypes.func.isRequired,
     currentCategory:         React.PropTypes.func.isRequired,
     currentBook:             React.PropTypes.func.isRequired,
@@ -788,6 +1234,7 @@ var ReaderControls = React.createClass({
       sjs.library.text(title, {context: 1}, function() { if (this.isMounted()) { this.setState({}); } }.bind(this));
     }
 
+    var versionTitle = this.props.version ? this.props.version.replace(/_/g," "):"";
     var centerContent = this.props.multiPanel && mode === "Connections" ?
       (<div className="readerTextToc">
           <span className="en">Select Connection</span>
@@ -798,20 +1245,23 @@ var ReaderControls = React.createClass({
           <div className="readerTextTocBox">
             <span className="en">{title}</span>
             <span className="he">{heTitle}</span>
+            { title ? (<i className="fa fa-caret-down"></i>) : null }
+            { (this.props.versionLanguage == "en" && this.props.settings.language == "english") ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
           </div>
-          { title ? (<i className="fa fa-caret-down"></i>) : null }
         </div>);
 
     var classes = classNames({readerControls: 1, headeroom: 1, connectionsHeader: mode == "Connections"});
     var readerControls = hideHeader ? null :
         (<div className={classes}>
-          <div className="leftButtons">
-            {this.props.closePanel ? (<ReaderNavigationMenuCloseButton icon={mode === "Connections" ? "arrow": null} onClick={this.props.closePanel} />) : null}
-            <ReaderNavigationMenuSearchButton onClick={this.props.openMenu.bind(null, "navigation")} />
-          </div>
-          {centerContent}
-          <div className="rightButtons">
-            <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+          <div className="readerControlsInner">
+            <div className="leftButtons">
+              {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton icon={mode === "Connections" ? "arrow": null} onClick={this.props.closePanel} />) : null}
+              {this.props.multiPanel ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.openMenu.bind(null, "navigation")} />)}
+            </div>
+            <div className="rightButtons">
+              <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+            </div>
+            {centerContent}
           </div>
         </div>);
     return (
@@ -882,21 +1332,27 @@ var ReaderDisplayOptionsMenu = React.createClass({
 
     if (this.props.menuOpen === "search") {
       return (<div className="readerOptionsPanel">
-              {languageToggle}
-              <div className="line"></div>
-              {sizeToggle}
+                <div className="readerOptionsPanelInner">
+                  {languageToggle}
+                  <div className="line"></div>
+                  {sizeToggle}
+                </div>
             </div>);
     } else if (this.props.menuOpen) {
       return (<div className="readerOptionsPanel">
-              {languageToggle}
+                <div className="readerOptionsPanelInner">
+                  {languageToggle}
+                </div>
             </div>);
     } else {
       return (<div className="readerOptionsPanel">
-                {languageToggle}
-                {layoutToggle}
-                <div className="line"></div>
-                {colorToggle}
-                {sizeToggle}
+                <div className="readerOptionsPanelInner">
+                  {languageToggle}
+                  {layoutToggle}
+                  <div className="line"></div>
+                  {colorToggle}
+                  {sizeToggle}
+                </div>
               </div>);
     }
   }
@@ -904,17 +1360,22 @@ var ReaderDisplayOptionsMenu = React.createClass({
 
 
 var ReaderNavigationMenu = React.createClass({
-  // The Navigation menu for broswing and searching texts, plus site links.
+  // The Navigation menu for browsing and searching texts, plus site links.
   propTypes: {
-    home:          React.PropTypes.bool,
     categories:    React.PropTypes.array.isRequired,
+    settings:      React.PropTypes.object.isRequired,
     setCategories: React.PropTypes.func.isRequired,
+    setOption:     React.PropTypes.func.isRequired,
     closeNav:      React.PropTypes.func.isRequired,
     openNav:       React.PropTypes.func.isRequired,
     openSearch:    React.PropTypes.func.isRequired,
-    showBaseText:  React.PropTypes.func.isRequired
+    onTextClick:   React.PropTypes.func.isRequired,
+    onRecentClick: React.PropTypes.func.isRequired,
+    hideNavHeader: React.PropTypes.bool,
+    home:          React.PropTypes.bool
   },
   getInitialState: function() {
+    this.width = 0;
     return {
       showMore: false,
     };
@@ -928,7 +1389,16 @@ var ReaderNavigationMenu = React.createClass({
   },
   setWidth: function() {
     var width = $(ReactDOM.findDOMNode(this)).width();
-    this.setState({width: width});
+    console.log("Setting RNM width: " + width);
+    var winWidth = $(window).width();
+    var winHeight = $(window).height();
+    console.log("Window width: " + winWidth + ", Window height: " + winHeight);
+    var oldWidth = this.width;
+    this.width = width;
+    if ((oldWidth <= 450 && width > 450) || 
+        (oldWidth > 450 && width <= 450)) {
+      this.forceUpdate();
+    }
   },
   navHome: function() {
     this.props.setCategories([])
@@ -941,10 +1411,20 @@ var ReaderNavigationMenu = React.createClass({
   showMore: function() {
     this.setState({showMore: true});
   },
+  getRecentlyViewed: function() {
+    var json = $.cookie("recentlyViewed");
+    var recentlyViewed = json ? JSON.parse(json) : null;
+    return recentlyViewed;
+  },
   handleClick: function(event) {
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
       var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
-      this.props.showBaseText(ref);
+      var pos = $(event.target).attr("data-position") || $(event.target).parent().attr("data-position");
+      if ($(event.target).hasClass("recentItem") || $(event.target).parent().hasClass("recentItem")) {
+        this.props.onRecentClick(parseInt(pos), ref);
+      } else {
+        this.props.onTextClick(ref);
+      }
       sjs.track.event("Reader", "Navigation Text Click", ref)
     } else if ($(event.target).hasClass("catLink") || $(event.target).parent().hasClass("catLink")) {
       var cats = $(event.target).attr("data-cats") || $(event.target).parent().attr("data-cats");
@@ -974,8 +1454,11 @@ var ReaderNavigationMenu = React.createClass({
                   category={this.props.categories.slice(-1)[0]}
                   closeNav={this.closeNav}
                   setCategories={this.props.setCategories}
+                  toggleLanguage={this.props.toggleLanguage}
                   openDisplaySettings={this.props.openDisplaySettings}
-                  navHome={this.navHome} />
+                  navHome={this.navHome}
+                  hideNavHeader={this.props.hideNavHeader}
+                  width={this.width} />
               </div>);
     } else {
       var categories = [
@@ -1008,7 +1491,7 @@ var ReaderNavigationMenu = React.createClass({
                       <span className="en">More &gt;</span>
                       <span className="he">עוד &gt;</span>
                   </div>);
-      if (this.state.width < 450) {
+      if (this.width < 450) {
         categories = this.state.showMore ? categories : categories.slice(0,9).concat(more);
         categories = (<div className="readerNavCategories"><TwoBox content={categories} /></div>);
       } else {
@@ -1043,26 +1526,31 @@ var ReaderNavigationMenu = React.createClass({
                         <span className="en">Sign In</span>
                         <span className="he">הירשם</span>
                       </a>)];
+      var calendar = [(<TextBlockLink sref={sjs.calendar.parasha} title={sjs.calendar.parashaName} heTitle="פרשה" category="Tanach" />),
+                      (<TextBlockLink sref={sjs.calendar.haftara} title="Haftara" heTitle="הפטרה" category="Tanach" />),
+                      (<TextBlockLink sref={sjs.calendar.daf_yomi} title="Daf Yomi" heTitle="דף יומי" category="Talmud" />)];
+      calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={this.width} /></div>);
 
-      var tanachStyle = {"borderColor": sjs.categoryColor("Tanach")};
-      var talmudStyle = {"borderColor": sjs.categoryColor("Talmud")};
-      var calendar = [(<a className="calendarLink refLink" data-ref={sjs.calendar.parasha} style={tanachStyle} key="parasha">
-                        <span className="en">{sjs.calendar.parashaName}</span>
-                        <span className="he">פרשה</span>
-                       </a>),
-                      (<a className="calendarLink refLink" data-ref={sjs.calendar.haftara} style={tanachStyle} key="haftara">
-                        <span className="en">Haftara</span>
-                        <span className="he">הפטרה</span>
-                       </a>),
-                      (<a className="calendarLink refLink" data-ref={sjs.calendar.daf_yomi} style={talmudStyle} key="dafyomi">
-                        <span className="en">Daf Yomi</span>
-                        <span className="he">דף יומי</span>
-                       </a>)];
-      if (this.state.width < 450) {
-        calendar = (<div className="readerNavCalendar"><TwoBox content={calendar} /></div>);
-      } else {
-        calendar = (<div className="readerNavCalendar"><ThreeBox content={calendar} /></div>);
-      }
+
+      var sheetsStyle = {"borderColor": sjs.categoryColor("Sheets")};
+      var resources = [(<span className="sheetsLink" style={sheetsStyle} onClick={this.props.openMenu.bind(null, "sheets")}>
+                        <i className="fa fa-file-text-o"></i>
+                        <span className="en">Source Sheets</span>
+                        <span className="he">דפי מקורות</span>
+                      </span>),
+                     (<a className="sheetsLink" style={sheetsStyle} href="/explore">
+                        <i className="fa fa-link"></i>
+                        <span className="en">Link Explorer</span>
+                        <span className="he">מפת ציטוטים</span>
+                      </a>),
+                    (<a className="sheetsLink" style={sheetsStyle} href="/people">
+                        <i className="fa fa-book"></i>
+                        <span className="en">Authors</span>
+                        <span className="he">המחברים</span>
+                      </a>)];
+      resources = (<div className="readerNavCalendar"><TwoOrThreeBox content={resources} width={this.width} /></div>);
+
+
       var topContent = this.props.home ?
               (<div className="readerNavTop search">
                 <CategoryColorLine category="Other" />
@@ -1077,44 +1565,113 @@ var ReaderNavigationMenu = React.createClass({
                 <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />                
                 <input className="readerSearch" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
               </div>);
+      topContent = this.props.hideNavHeader ? null : topContent;
 
-      var classes     = classNames({readerNavMenu: 1, readerNavMenu:1, home: this.props.home});
-      var sheetsStyle = {"borderColor": sjs.categoryColor("Sheets")};
+
+      var recentlyViewed = this.getRecentlyViewed();
+      recentlyViewed = recentlyViewed ? recentlyViewed.map(function(item) {
+        return (<TextBlockLink 
+                  sref={item.ref}
+                  heRef={item.heRef}
+                  book={item.book}
+                  showSections={true}
+                  recentItem={true}
+                  position={item.position || 0} />)
+      }) : null;
+      recentlyViewed = recentlyViewed ? <TwoOrThreeBox content={recentlyViewed} width={this.width} /> : null;
+
+      var classes = classNames({readerNavMenu:1, noHeader: !this.props.hideHeader});
 
       return(<div className={classes} onClick={this.handleClick} key="0">
               {topContent}
               <div className="content">
                 <div className="contentInner">
-                  {this.props.home ? (<div className="tagline">
-                                        <span className="en">A Living Library of Jewish Texts</span>
-                                        <span className="he">ספריה חיה של טקסטים יהודיים</span>
-                                      </div>) : (<div className="tagline"></div>)}
-                  <h2>
-                    <span className="en">Browse Texts</span>
-                    <span className="he">טקסטים</span>
-                  </h2>
-                  {categories}
-                  <h2>
-                    <span className="en">Calendar</span>
-                    <span className="he">לוח יומי</span>
-                  </h2>
-                  {calendar}
-                  <h2>
-                    <span className="en">Community</span>
-                    <span className="he">קהילה</span>
-                  </h2>
-                  <span className="sheetsLink" style={sheetsStyle} onClick={this.props.openMenu.bind(null, "sheets")}>
-                    <i className="fa fa-file-text-o"></i>
-                    <span className="en">Source Sheets</span>
-                    <span className="he">דפי מקורות</span>
-                  </span>
+                <h1>
+                  <div className="languageToggle" onClick={this.props.toggleLanguage}>
+                    <span className="en">א</span>
+                    <span className="he">A</span>
+                  </div>
+                  <span className="en">The Sefaria Library</span>
+                  <span className="he">האוסף של ספאריה</span>
+                </h1>
+                  
+                  <ReaderNavigationMenuSection title="Recent" heTitle="נצפו לאחרונה" content={recentlyViewed} />
+                  <ReaderNavigationMenuSection title="Browse" heTitle="טקסטים" content={categories} />
+                  <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} />
+                  <ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />
                   <div className="siteLinks">
-                  {siteLinks}
+                    {siteLinks}
                   </div>
                 </div>
               </div>
             </div>);
     }
+  }
+});
+
+
+var ReaderNavigationMenuSection = React.createClass({
+  propTypes: {
+    title:   React.PropTypes.string,
+    heTitle: React.PropTypes.string,
+    content: React.PropTypes.object
+  },
+  render: function() {
+    if (!this.props.content) { return null; }
+    return (
+      <div className="readerNavSection">
+        <h2>
+          <span className="en">{this.props.title}</span>
+          <span className="he">{this.props.heTitle}</span>
+        </h2>
+        {this.props.content}
+      </div>
+      );
+  }
+});
+
+
+var TextBlockLink = React.createClass({
+  // Monopoly card style link with category color at top
+  propTypes: {
+    sref:         React.PropTypes.string.isRequired,
+    heRef:        React.PropTypes.string,
+    book:         React.PropTypes.string,
+    category:     React.PropTypes.string,
+    title:        React.PropTypes.string,
+    heTitle:      React.PropTypes.string,
+    showSections: React.PropTypes.bool,
+    reecntItem:   React.PropTypes.bool,
+    position:     React.PropTypes.number
+  },
+  render: function() {
+    var index    = sjs.library.index(this.props.book);
+    var category = this.props.category || index.categories[0];
+    var style    = {"borderColor": sjs.categoryColor(category)};
+    var title    = this.props.title   || (this.props.showSections ? this.props.sref : this.props.book);
+    var heTitle  = this.props.heTitle || (this.props.showSections ? this.props.heRef : index.heTitle);
+
+    var position = this.props.position || 0;
+    var classes  = classNames({refLink: 1, blockLink: 1, recentItem: this.props.recentItem});
+    return (<a className={classes} data-ref={this.props.sref} data-position={position} style={style}>
+              <span className="en">{title}</span>
+              <span className="he">{heTitle}</span>
+             </a>);
+  }
+});
+
+
+var BlockLink = React.createClass({
+  propTypes: {
+    title:    React.PropTypes.string,
+    heTitle:  React.PropTypes.string,
+    target:   React.PropTypes.string
+  },
+  render: function() { 
+    return (<a className="blockLink" href={this.props.target}>
+              <span className="en">{this.props.title}</span>
+              <span className="he">{this.props.heTitle}</span>
+           </a>);
   }
 });
 
@@ -1126,7 +1683,9 @@ var ReaderNavigationCategoryMenu = React.createClass({
     categories:    React.PropTypes.array.isRequired,
     closeNav:      React.PropTypes.func.isRequired,
     setCategories: React.PropTypes.func.isRequired,
-    navHome:       React.PropTypes.func.isRequired
+    navHome:       React.PropTypes.func.isRequired,
+    width:         React.PropTypes.number,
+    hideNavHeader: React.PropTypes.bool
   },
   render: function() {
 
@@ -1157,25 +1716,34 @@ var ReaderNavigationCategoryMenu = React.createClass({
                          </div>);
 
     } else {
-      var toggle = "";
+      var toggle = null;
     }
 
-    var catContents = sjs.library.tocItemsByCategories(categories);
-
-    return (<div className="readerNavCategoryMenu readerNavMenu">
-              <div className="readerNavTop searchOnly">
+    var catContents    = sjs.library.tocItemsByCategories(categories);
+    var navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader});
+    var navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
+    return (<div className={navMenuClasses}>
+              <div className={navTopClasses}>
                 <CategoryColorLine category={categories[0]} />
-                <ReaderNavigationMenuSearchButton onClick={this.props.navHome} />
-                <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-                <h2>
+                {this.props.hideNavHeader ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.navHome} />)}
+                {this.props.hideNavHeader ? null : (<ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />)}
+                {this.props.hideNavHeader ? null : (<h2>
                   <span className="en">{this.props.category}</span>
                   <span className="he">{sjs.library.hebrewCategory(this.props.category)}</span>
-                </h2>
+                </h2>)}
               </div>
               <div className="content">
                 <div className="contentInner">
+                  {this.props.hideNavHeader ? (<h1>
+                      <div className="languageToggle" onClick={this.props.toggleLanguage}>
+                        <span className="en">א</span>
+                        <span className="he">A</span>
+                      </div>
+                      <span className="en">{this.props.category}</span>
+                      <span className="he">{sjs.library.hebrewCategory(this.props.category)}</span>
+                    </h1>) : null}
                   {toggle}
-                  <ReaderNavigationCategoryMenuContents contents={catContents} categories={categories} />
+                  <ReaderNavigationCategoryMenuContents contents={catContents} categories={categories} width={this.props.width} />
                 </div>
               </div>
             </div>);
@@ -1187,11 +1755,12 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
   // Inner content of Category menu (just category title and boxes of)
   propTypes: {
     contents:   React.PropTypes.array.isRequired,
-    categories: React.PropTypes.array.isRequired
+    categories: React.PropTypes.array.isRequired,
+    width:      React.PropTypes.number
   },
   render: function() {
       var content = [];
-      cats = this.props.categories || [];
+      var cats = this.props.categories || [];
       for (var i = 0; i < this.props.contents.length; i++) {
         var item = this.props.contents[i];
         if (item.category) {
@@ -1212,7 +1781,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
                             <span className='en'>{item.category}</span>
                             <span className='he'>{item.heCategory}</span>
                           </h3>
-                          <ReaderNavigationCategoryMenuContents contents={item.contents} categories={newCats} />
+                          <ReaderNavigationCategoryMenuContents contents={item.contents} categories={newCats} width={this.props.width} />
                         </div>));
         } else {
           // Add a Text
@@ -1230,7 +1799,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
         // Walk through content looking for runs of spans to group togther into a table
         if (content[i].type == "div") { // this is a subcategory
           if (currentRun.length) {
-            boxedContent.push((<TwoBox contents={currentRun} key={i} />));
+            boxedContent.push((<TwoOrThreeBox contents={currentRun} width={this.props.width} key={i} />));
             currentRun = [];
           }
           boxedContent.push(content[i]);
@@ -1239,7 +1808,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
         }
       }
       if (currentRun.length) {
-        boxedContent.push((<TwoBox content={currentRun} key={i} />));
+        boxedContent.push((<TwoOrThreeBox content={currentRun} width={this.props.width} key={i} />));
       }
       return (<div>{boxedContent}</div>);
   }
@@ -1249,14 +1818,26 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
 var ReaderTextTableOfContents = React.createClass({
   // Menu for the Table of Contents for a single text
   propTypes: {
-    text:         React.PropTypes.string.isRequired,
-    category:     React.PropTypes.string.isRequired,
-    currentRef:   React.PropTypes.string.isRequired,
-    close:        React.PropTypes.func.isRequired,
-    openNav:      React.PropTypes.func.isRequired,
-    showBaseText: React.PropTypes.func.isRequired
+    title:            React.PropTypes.string.isRequired,
+    category:         React.PropTypes.string.isRequired,
+    currentRef:       React.PropTypes.string.isRequired,
+    settingsLanguage: React.PropTypes.string.isRequired,
+    versionLanguage:  React.PropTypes.string,
+    version:          React.PropTypes.string,
+    close:            React.PropTypes.func.isRequired,
+    openNav:          React.PropTypes.func.isRequired,
+    showBaseText:     React.PropTypes.func.isRequired,
+    selectVersion:    React.PropTypes.func.isRequired
+  },
+  getInitialState: function() {
+    return {
+      versions: [],
+      versionsLoaded: false,
+      currentVersion: null
+    }
   },
   componentDidMount: function() {
+    this.loadVersions();
     this.bindToggles();
     this.shrinkWrap();
     window.addEventListener('resize', this.shrinkWrap);
@@ -1267,6 +1848,36 @@ var ReaderTextTableOfContents = React.createClass({
   componentDidUpdate: function() {
     this.bindToggles();
     this.shrinkWrap();
+  },
+  loadVersions: function() {
+    var ref = sjs.library.sectionRef(this.props.currentRef) || this.props.currentRef;
+    if (!ref) {
+      this.setState({versionsLoaded: true});
+      return;
+    }
+    sjs.library.text(
+      ref,
+      {context: 1, version: this.state.version, language: this.state.versionLanguage},
+      this.loadVersionsData);
+  },
+  loadVersionsData: function(d) {
+    // For now treat bilinguale as english. TODO show attribution for 2 versions in bilingual case.
+    var currentLanguage = this.props.settingsLanguage == "he" ? "he" : "en";
+    // Todo handle independent Text TOC case where there is no current version
+    var currentVersion = {
+      language: currentLanguage,
+      title:    currentLanguage == "he" ? d.heVersionTitle: d.versionTitle,
+      source:   currentLanguage == "he" ? d.heVersionSource: d.versionSource,
+      license:  currentLanguage == "he" ? d.heLicense: d.license,
+      sources:  currentLanguage == "he" ? d.heSources: d.sources,
+    };
+    currentVersion.merged = !!(currentVersion.sources);
+
+    this.setState({
+                    versions:d.versions, 
+                    versionsLoaded: true,
+                    currentVersion: currentVersion
+                  });
   },
   handleClick: function(e) {
     var $a = $(e.target).closest("a");
@@ -1295,6 +1906,7 @@ var ReaderTextTableOfContents = React.createClass({
     // Shrink the width of the container of a grid of inline-line block elements,
     // so that is is tight around its contents thus able to appear centered. 
     // As far as I can tell, there's no way to do this in pure CSS.
+    // TODO - flexbox should be able to solve this
     var shrink  = function(i, container) {
       var $container = $(container);
       // don't run on complex nodes without sectionlinks
@@ -1320,17 +1932,80 @@ var ReaderTextTableOfContents = React.createClass({
       $root.find(".tocLevel").each(shrink);             // Simple text, no nesting
     }
   },
+  onVersionSelectChange: function(event) {
+    if (event.target.value == 0) {
+      this.props.selectVersion();
+    } else {
+      var i = event.target.value - 1;
+      var v = this.state.versions[i];
+      this.props.selectVersion(v.versionTitle, v.language);
+    }
+    this.props.close();
+  },
   render: function() {
-    var tocHtml = sjs.library.textTocHtml(this.props.text, function() {
+    var tocHtml = sjs.library.textTocHtml(this.props.title, function() {
       this.setState({});
     }.bind(this));
     tocHtml = tocHtml || '<div class="loadingMessage"><span class="en">Loading...</span><span class="he">טעינה...</span></div>';
 
-    var title     = this.props.text;
+    var title     = this.props.title;
     var heTitle   = sjs.library.index(title) ? sjs.library.index(title).heTitle : title;
 
     var section   = sjs.library.sectionString(this.props.currentRef).en.named;
     var heSection = sjs.library.sectionString(this.props.currentRef).he.named;
+
+    var currentVersionElement = null;
+    var defaultVersionString = "Default Version";
+    var defaultVersionObject = null;
+
+    if (this.state.versionsLoaded) {
+      if (this.state.currentVersion.merged) {
+        var uniqueSources = this.state.currentVersion.sources.filter(function(item, i, ar){ return ar.indexOf(item) === i; }).join(", ");
+        defaultVersionString += " (Merged from " + uniqueSources + ")";
+        currentVersionElement = (
+          <span className="currentVersionInfo">
+            <span className="currentVersionTitle">Merged from { uniqueSources }</span>
+            <a className="versionHistoryLink" href="#">Version History &gt;</a>
+          </span>);
+      } else {
+        if (!this.props.version) {
+          defaultVersionObject = this.state.versions.find(v => (this.state.currentVersion.language == v.language && this.state.currentVersion.title == v.versionTitle));
+          defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
+        }
+        currentVersionElement = (
+            <span className="currentVersionInfo">
+            <span className="currentVersionTitle">{this.state.currentVersion.title}</span>
+            <a className="currentVersionSource" target="_blank" href={this.state.currentVersion.source}>
+              { parseURL(this.state.currentVersion.source).host }
+            </a>
+            <span>-</span>
+            <span className="currentVersionLicense">{this.state.currentVersion.license}</span>
+            <span>-</span>
+            <a className="versionHistoryLink" href="#">Version History &gt;</a>
+          </span>);
+      }
+    }
+
+    var selectOptions = [];
+    selectOptions.push(<option key="0" value="0">{defaultVersionString}</option>);    // todo: add description of current version.
+    var selectedOption = 0;
+    for (var i = 0; i < this.state.versions.length; i++) {
+      var v = this.state.versions[i];
+      if (v == defaultVersionObject) {
+        continue;
+      }
+      if (this.props.versionLanguage == v.language && this.props.version == v.versionTitle) {
+        selectedOption = i+1;
+      }
+      var versionString = v.versionTitle + " (" + v.language + ")";  // Can not inline this, because of https://github.com/facebook/react-devtools/issues/248
+      selectOptions.push(<option key={i+1} value={i+1} >{ versionString }</option>);
+    }
+    var selectElement = (<div className="versionSelect">
+                           <select value={selectedOption} onChange={this.onVersionSelectChange}>
+                             {selectOptions}
+                           </select>
+                         </div>);
+
 
     return (<div className="readerTextTableOfContents readerNavMenu" onClick={this.handleClick}>
               <div className="readerNavTop">
@@ -1351,6 +2026,11 @@ var ReaderTextTableOfContents = React.createClass({
                       <span className="en">{section}</span>
                       <span className="he">{heSection}</span>
                     </div>
+                  </div>
+                  <div className="versionBox">
+                      {(!this.state.versionsLoaded) ? (<span>Loading...</span>): ""}
+                      {(this.state.versionsLoaded)? currentVersionElement: ""}
+                      {(this.state.versionsLoaded && this.state.versions.length > 1) ? selectElement: ""}
                   </div>
                   <div className="tocContent" dangerouslySetInnerHTML={ {__html: tocHtml} }></div>
                 </div>
@@ -1374,11 +2054,13 @@ var SheetsNav = React.createClass({
       tagList: null,
       yourSheets: null,
       sheets: [],
-      tag: this.props.initialTag
+      tag: this.props.initialTag,
+      width: 0
     };
   },
   componentDidMount: function() {
     this.getTags();
+    this.setState({width: $(ReactDOM.findDOMNode(this)).width()});
     if (this.props.initialTag) {
       if (this.props.initialTag === "Your Sheets") {
         this.showYourSheets();
@@ -1443,10 +2125,10 @@ var SheetsNav = React.createClass({
                         <div className="contentInner">
                           {yourSheets}
                           <h2><span className="en">Trending Tags</span></h2>
-                          {trendingTags}
+                          <TwoOrThreeBox content={trendingTags} width={this.state.width} />
                           <br /><br />
                           <h2><span className="en">All Tags</span></h2>
-                          {tagList}
+                          <TwoOrThreeBox content={tagList} width={this.state.width} />
                         </div>
                        </div>);
       } else {
@@ -1457,7 +2139,7 @@ var SheetsNav = React.createClass({
     return (<div className="readerSheetsNav readerNavMenu">
               <div className="readerNavTop searchOnly" key="navTop">
                 <CategoryColorLine category="Sheets" />
-                <ReaderNavigationMenuSearchButton onClick={this.props.openNav} />
+                <ReaderNavigationMenuMenuButton onClick={this.props.openNav} />
                 <h2><span className="en">{enTitle}</span></h2>
               </div>
               {content}
@@ -1510,9 +2192,6 @@ var ToggleSet = React.createClass({
 
 var ToggleOption = React.createClass({
   // A single option in a ToggleSet
-  getInitialState: function() {
-    return {};
-  },
   handleClick: function() {
     this.props.setOption(this.props.set, this.props.name);
     sjs.track.event("Reader", "Display Option Click", this.props.set + " - " + this.props.name);
@@ -1537,14 +2216,19 @@ var ToggleOption = React.createClass({
 
 var ReaderNavigationMenuSearchButton = React.createClass({
   render: function() { 
-    return (<div className="readerNavMenuSearchButton" onClick={this.props.onClick}><i className="fa fa-search"></i></div>);
+    return (<span className="readerNavMenuSearchButton" onClick={this.props.onClick}><i className="fa fa-search"></i></span>);
   }
 });
 
+var ReaderNavigationMenuMenuButton = React.createClass({
+  render: function() { 
+    return (<span className="readerNavMenuMenuButton" onClick={this.props.onClick}><i className="fa fa-bars"></i></span>);
+  }
+});
 
 var ReaderNavigationMenuCloseButton = React.createClass({
   render: function() { 
-    var icon = this.props.icon === "arrow" ? (<i className="fa fa-caret-left"></i>) : "×";
+    var icon = this.props.icon === "arrow" ? (<i className="fa fa-caret-right"></i>) : "×";
     var classes = classNames({readerNavMenuCloseButton: 1, arrow: this.props.icon === "arrow"});
     return (<div className={classes} onClick={this.props.onClick}>{icon}</div>);
   }
@@ -1560,16 +2244,18 @@ var ReaderNavigationMenuDisplaySettingsButton = React.createClass({
 
 var CategoryColorLine = React.createClass({
   render: function() {
-    style = {backgroundColor: sjs.categoryColor(this.props.category)};
+    var style = {backgroundColor: sjs.categoryColor(this.props.category)};
     return (<div className="categoryColorLine" style={style}></div>);
   }
-})
+});
 
 
 var TextColumn = React.createClass({
   // An infinitely scrollable column of text, composed of TextRanges for each section.
   propTypes: {
     srefs:                 React.PropTypes.array.isRequired,
+    version:               React.PropTypes.string,
+    versionLanguage:       React.PropTypes.string,
     highlightedRefs:       React.PropTypes.array,
     basetext:              React.PropTypes.bool,
     withContext:           React.PropTypes.bool,
@@ -1582,11 +2268,12 @@ var TextColumn = React.createClass({
     settings:              React.PropTypes.object,
     showBaseText:          React.PropTypes.func,
     updateTextColumn:      React.PropTypes.func,
-    onSegmentClick:    React.PropTypes.func,
+    onSegmentClick:        React.PropTypes.func,
     onCitationClick:       React.PropTypes.func,
     setTextListHightlight: React.PropTypes.func,
     onTextLoad:            React.PropTypes.func,
-    panelsOpen:            React.PropTypes.number
+    panelsOpen:            React.PropTypes.number,
+    layoutWidth:           React.PropTypes.number
   },
   componentDidMount: function() {
     this.initialScrollTopSet = false;
@@ -1633,6 +2320,10 @@ var TextColumn = React.createClass({
     if (!this.props.highlightedRefs.compare(prevProps.highlightedRefs)) {
       this.setScrollPosition();  // highlight change
     }
+    if (this.props.layoutWidth !== prevProps.layoutWidth ||
+        this.props.settings.language !== prevProps.settings.language) {
+      this.scrollToHighlighted();
+    }
   },
   handleScroll: function(event) {
     if (this.justScrolled) {
@@ -1661,16 +2352,19 @@ var TextColumn = React.createClass({
   },
   handleTextLoad: function() {
     if (this.loadingContentAtTop || !this.initialScrollTopSet) {
+      console.log("text load, setting scroll");
       this.setScrollPosition();
+    } else {
+      console.log("text load, ais");
+      this.adjustInfiniteScroll();
     }
   },
   setScrollPosition: function() {
-    // console.log("ssp")
-    if (this.test) {}
-    // Called on every update, checking flags on this to see if scroll position needs to be set
+    console.log("ssp");
+    // Called on every update, checking flags on `this` to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-      // console.log("loading at top")
+      //console.log("loading at top")
       var $node   = $(ReactDOM.findDOMNode(this));
       var adjust  = 118; // Height of .loadingMessage.base
       var $texts  = $node.find(".basetext");
@@ -1684,7 +2378,7 @@ var TextColumn = React.createClass({
         //console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
-       // console.log("scroll to highlighted")
+      //console.log("scroll to highlighted")
       // scroll to highlighted segment
       this.scrollToHighlighted();
       this.scrolledToHighlight = true;
@@ -1696,54 +2390,61 @@ var TextColumn = React.createClass({
       node.scrollTop = 30;
       this.initialScrollTopSet = true;
     }
+    // This fixes loading of next content when current content is short in viewpot,
+    // but breaks loading highlted ref, jumping back up to top of section
+    // this.adjustInfiniteScroll();
   },
   adjustInfiniteScroll: function() {
     // Add or remove TextRanges from the top or bottom, depending on scroll position
-    window.requestAnimationFrame(function() {
-      if (!this.isMounted()) { return; }
-      var node         = ReactDOM.findDOMNode(this);
-      var refs         = this.props.srefs;
-      var $lastText    = $(node).find(".textRange.basetext").last();
-      if (!$lastText.length) { return; }
-      var lastTop      = $lastText.position().top;
-      var lastBottom   = lastTop + $lastText.outerHeight();
-      var windowHeight = $(node).outerHeight();
-      var windowTop    = node.scrollTop;
-      var windowBottom = windowTop + windowHeight;
-      if (lastTop > (windowHeight + 100) && refs.length > 1) { 
-        // Remove a section scrolled out of view on bottom
-        refs = refs.slice(0,-1);
-        this.props.updateTextColumn(refs);
-      } else if ( lastBottom < windowHeight + 80 ) {
-        // Add the next section to bottom
-        if ($lastText.hasClass("loading")) { 
-          return;
-        }
-        currentRef = refs.slice(-1)[0];
-        data       = sjs.library.ref(currentRef);
-        if (data && data.next) {
-          refs.push(data.next);
-          this.props.updateTextColumn(refs);
-        }
-        sjs.track.event("Reader", "Infinite Scroll", "Down");
-      } else if (windowTop < 20) {
-        // Scroll up for previous
-        topRef = refs[0];
-        data   = sjs.library.ref(topRef);
-        if (data && data.prev) {
-          //console.log("up!")
-          refs.splice(refs, 0, data.prev);
-          this.loadingContentAtTop = true;
-          this.props.updateTextColumn(refs);
-        }
-        sjs.track.event("Reader", "Infinite Scroll", "Up");
-      } else {
-        // nothing happens
+    console.log("ais");
+    if (!this.isMounted()) { return; }
+    var node         = ReactDOM.findDOMNode(this);
+    var refs         = this.props.srefs;
+    var $lastText    = $(node).find(".textRange.basetext").last();
+    if (!$lastText.length) { console.log("no last basetext"); return; }
+    var lastTop      = $lastText.position().top;
+    var lastBottom   = lastTop + $lastText.outerHeight();
+    var windowHeight = $(node).outerHeight();
+    var windowTop    = node.scrollTop;
+    var windowBottom = windowTop + windowHeight;
+    if (lastTop > (windowHeight + 100) && refs.length > 1) { 
+      // Remove a section scrolled out of view on bottom
+      refs = refs.slice(0,-1);
+      this.props.updateTextColumn(refs);
+    } else if ( lastBottom < windowHeight + 80 ) {
+      // Add the next section to bottom
+      if ($lastText.hasClass("loading")) { 
+        console.log("last text is loading")
+        return;
       }
-    }.bind(this));
+      console.log("Add next section");
+      var currentRef = refs.slice(-1)[0];
+      var data       = sjs.library.ref(currentRef);
+      if (data && data.next) {
+        refs.push(data.next);
+        this.props.updateTextColumn(refs);
+      }
+      sjs.track.event("Reader", "Infinite Scroll", "Down");
+    } else if (windowTop < 20) {
+      // Scroll up for previous
+      var topRef = refs[0];
+      var data   = sjs.library.ref(topRef);
+      if (data && data.prev) {
+        console.log("up!")
+        refs.splice(refs, 0, data.prev);
+        this.loadingContentAtTop = true;
+        this.props.updateTextColumn(refs);
+      }
+      sjs.track.event("Reader", "Infinite Scroll", "Up");
+    } else {
+      // nothing happens
+    }
   },
   adjustTextListHighlight: function() {
     // When scrolling while the TextList is open, update which segment should be highlighted.
+    if (this.props.layoutWidth == 100) { return; }
+    // Hacky - don't move around highlighted segment when scrolling a single panel,
+    // but we do want to keep the highlightedRefs value in the panel so it will return to the right location after closing other panels.
     window.requestAnimationFrame(function() {
       //var start = new Date();
       if (!this.isMounted()) { return; }
@@ -1801,7 +2502,7 @@ var TextColumn = React.createClass({
       if ($highlighted.length) {
         var height     = $highlighted.outerHeight();
         var viewport   = $container.outerHeight() - $readerPanel.find(".textList").outerHeight();
-        var offset     = height > viewport + 30 ? 30 : (viewport - height) / 2;
+        var offset     = height > viewport + 80 ? 80 : (viewport - height) / 2;
         this.justScrolled = true;
         $container.scrollTo($highlighted, 0, {offset: -offset});
       }
@@ -1812,6 +2513,8 @@ var TextColumn = React.createClass({
     var content =  this.props.srefs.map(function(ref, k) {
       return (<TextRange 
         sref={ref}
+        version={this.props.version}
+        versionLanguage={this.props.versionLanguage}
         highlightedRefs={this.props.highlightedRefs}
         basetext={true}
         withContext={true}
@@ -1825,6 +2528,7 @@ var TextColumn = React.createClass({
         onTextLoad={this.handleTextLoad}
         filter={this.props.filter}
         panelsOpen={this.props.panelsOpen}
+        layoutWidth={this.props.layoutWidth}
         key={k + ref} />);      
     }.bind(this));
 
@@ -1835,7 +2539,7 @@ var TextColumn = React.createClass({
       var hasPrev = first && first.prev;
       var hasNext = last && last.next;
       var topSymbol  = " ";
-      var bottomSymbol = " "
+      var bottomSymbol = " ";
       if (hasPrev) {
         content.splice(0, 0, (<LoadingMessage className="base prev" key="prev"/>));
       } else {
@@ -1858,30 +2562,37 @@ var TextRange = React.createClass({
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
   // This component is responsible for retrieving data from sjs.library for the ref that defines it.
   propTypes: {
-    sref:                React.PropTypes.string.isRequired,
-    highlightedRefs:     React.PropTypes.array,
-    basetext:            React.PropTypes.bool,
-    withContext:         React.PropTypes.bool,
-    hideTitle:           React.PropTypes.bool,
-    loadLinks:           React.PropTypes.bool,
-    prefetchNextPrev:    React.PropTypes.bool,
-    openOnClick:         React.PropTypes.bool,
-    lowlight:            React.PropTypes.bool,
-    numberLabel:         React.PropTypes.number,
-    settings:            React.PropTypes.object,
-    filter:              React.PropTypes.array,
-    onTextLoad:          React.PropTypes.func,
-    onRangeClick:        React.PropTypes.func,
-    onSegmentClick:      React.PropTypes.func,
-    onCitationClick:     React.PropTypes.func,
-    panelsOpen:          React.PropTypes.number
+    sref:                   React.PropTypes.string.isRequired,
+    version:                React.PropTypes.string,
+    versionLanguage:        React.PropTypes.string,
+    highlightedRefs:        React.PropTypes.array,
+    basetext:               React.PropTypes.bool,
+    withContext:            React.PropTypes.bool,
+    hideTitle:              React.PropTypes.bool,
+    loadLinks:              React.PropTypes.bool,
+    prefetchNextPrev:       React.PropTypes.bool,
+    openOnClick:            React.PropTypes.bool,
+    lowlight:               React.PropTypes.bool,
+    numberLabel:            React.PropTypes.number,
+    settings:               React.PropTypes.object,
+    filter:                 React.PropTypes.array,
+    onTextLoad:             React.PropTypes.func,
+    onRangeClick:           React.PropTypes.func,
+    onSegmentClick:         React.PropTypes.func,
+    onCitationClick:        React.PropTypes.func,
+    onNavigationClick:      React.PropTypes.func,
+    onCompareClick:         React.PropTypes.func,
+    onOpenConnectionsClick: React.PropTypes.func,
+    panelsOpen:             React.PropTypes.number,
+    layoutWidth:            React.PropTypes.number,
+    showActionLinks:        React.PropTypes.bool
   },
   getInitialState: function() {
     return { 
       segments: [],
       loaded: false,
       linksLoaded: false,
-      data: {ref: this.props.sref},
+      data: {ref: this.props.sref}
     };
   },
   componentDidMount: function() {
@@ -1895,8 +2606,17 @@ var TextRange = React.createClass({
     window.removeEventListener('resize', this.handleResize);
   },
   componentDidUpdate: function(prevProps, prevState) {
+    // Reload text if version changed
+    if (this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage) {
+      this.getText();
+      window.requestAnimationFrame(function() {
+          if (this.isMounted()) {
+            this.placeSegmentNumbers();
+          }
+        }.bind(this));       
+    }
     // Place segment numbers again if update affected layout
-    if (this.props.basetext || this.props.segmentNumber) { 
+    else if (this.props.basetext || this.props.segmentNumber) {
       if ((!prevState.loaded && this.state.loaded) ||
           (!prevState.linksLoaded && this.state.linksLoaded) ||
           prevProps.settings.language !== this.props.settings.language ||
@@ -1904,7 +2624,7 @@ var TextRange = React.createClass({
           prevProps.settings.layoutTanach !== this.props.settings.layoutTanach ||
           prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
           prevProps.settings.fontSize !== this.props.settings.fontSize ||
-          prevProps.panelsOpen !== this.props.panelsOpen) {
+          prevProps.layoutWidth !== this.props.layoutWidth) {
             window.requestAnimationFrame(function() { 
               if (this.isMounted()) {
                 this.placeSegmentNumbers();
@@ -1922,7 +2642,6 @@ var TextRange = React.createClass({
     }
   },
   handleClick: function(event) {
-    console.log("click")
     if (window.getSelection().type === "Range") { 
       // Don't do anything if this click is part of a selection
       return;
@@ -1934,8 +2653,10 @@ var TextRange = React.createClass({
     }
   },
   getText: function() {
-    settings = {
-      context: this.props.withContext ? 1 : 0
+    var settings = {
+      context: this.props.withContext ? 1 : 0,
+      version: this.props.version || null,
+      language: this.props.versionLanguage || null
     };
     sjs.library.text(this.props.sref, settings, this.loadText);
   },
@@ -2031,14 +2752,26 @@ var TextRange = React.createClass({
     if (this.props.loadLinks && !sjs.library.linksLoaded(sectionRefs)) {
       // Calling when links are loaded will overwrite state.segments
       for (var i = 0; i < sectionRefs.length; i++) {
-        sjs.library.links(sectionRefs[i], this.loadLinkCounts);
+        sjs.library.related(sectionRefs[i], this.loadLinkCounts);
       }
     }
 
     if (this.props.prefetchNextPrev) {
-      if (data.next) { sjs.library.text(data.next, {context: 1}, function() {}); }
-      if (data.prev) { sjs.library.text(data.prev, {context: 1}, function() {}); }
-      if (data.book) { sjs.library.textTocHtml(data.book, function() {}); }
+     if (data.next) {
+       sjs.library.text(data.next, {
+         context: 1,
+         version: this.props.version || null,
+         language: this.props.versionLanguage || null
+       }, function() {});
+     }
+     if (data.prev) {
+       sjs.library.text(data.prev, {
+         context: 1,
+         version: this.props.version || null,
+         language: this.props.versionLanguage || null
+       }, function() {});
+     }
+     if (data.book) { sjs.library.textTocHtml(data.book, function() {}); }
     }
   },
   loadLinkCounts: function() {
@@ -2109,6 +2842,28 @@ var TextRange = React.createClass({
                     lowlight: this.props.lowlight,
                   };
     classes = classNames(classes);
+
+    var open        = function() { this.props.onNavigationClick(this.props.sref)}.bind(this);
+    var compare     = function() { this.props.onCompareClick(this.props.sref)}.bind(this);
+    var connections = function() { this.props.onOpenConnectionsClick([this.props.sref])}.bind(this);
+
+    var actionLinks = (<div className="actionLinks">
+                        <span className="openLink" onClick={open}>
+                          <img src="/static/img/open-64.png" />
+                          <span className="en">Open</span>
+                          <span className="he">לִפְתוֹחַ</span>
+                        </span>
+                        <span className="compareLink" onClick={compare}>
+                          <img src="/static/img/compare-64.png" />
+                          <span className="en">Compare</span>
+                          <span className="he">לִפְתוֹחַ</span>
+                        </span>
+                        <span className="connectionsLink" onClick={connections}>
+                          <i className="fa fa-link"></i>
+                          <span className="en">Connections</span>
+                          <span className="he">לִפְתוֹחַ</span>
+                        </span>
+                      </div>);
     return (
       <div className={classes} onClick={this.handleClick}>
         {showNumberLabel && this.props.numberLabel ? 
@@ -2124,6 +2879,7 @@ var TextRange = React.createClass({
         <div className="text">
           <div className="textInner">
             { textSegments }
+            { this.props.showActionLinks ? actionLinks : null }
           </div>
         </div>
       </div>
@@ -2148,7 +2904,7 @@ var TextSegment = React.createClass({
     if ($(event.target).hasClass("refLink")) {
       //Click of citation
       var ref = humanRef($(event.target).attr("data-ref"));
-      this.props.onCitationClick(ref);
+      this.props.onCitationClick(ref, this.props.sref);
       event.stopPropagation();
       sjs.track.event("Reader", "Citation Link Click", ref)
     } else if (this.props.onSegmentClick) {
@@ -2201,6 +2957,9 @@ var TextList = React.createClass({
     setFilter:               React.PropTypes.func,
     onTextClick:             React.PropTypes.func,
     onCitationClick:         React.PropTypes.func,
+    onNavigationClick:       React.PropTypes.func,
+    onCompareClick:          React.PropTypes.func,
+    onOpenConnectionsClick:  React.PropTypes.func,
     openNav:                 React.PropTypes.func,
     openDisplaySettings:     React.PropTypes.func,
     closePanel:              React.PropTypes.func
@@ -2243,7 +3002,7 @@ var TextList = React.createClass({
     // Load connections data from server for this section
     var sectionRef = this.getSectionRef();
     if (!sectionRef) { return; }
-    sjs.library.links(sectionRef, function(links) {
+    sjs.library.related(sectionRef, function(data) {
       if (this.isMounted()) {
         this.preloadText(this.props.filter);
         this.setState({
@@ -2340,7 +3099,7 @@ var TextList = React.createClass({
     var isSingleCommentary = (filter.length == 1 && sjs.library.index(filter[0]) && sjs.library.index(filter[0]).categories == "Commentary");
 
     var links = sectionLinks.filter(function(link) {
-      if (!isSingleCommentary && $.inArray(link.anchorRef, refs) === -1) {
+      if ($.inArray(link.anchorRef, refs) === -1 && (this.props.multiPanel || !isSingleCommentary) ) {
         // Only show section level links for an individual commentary
         return false;
       }
@@ -2376,14 +3135,17 @@ var TextList = React.createClass({
                       links.map(function(link, i) {
                           var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
                           return (<TextRange 
-                                    sref={link.sourceRef}
-                                    key={i + link.sourceRef}
-                                    lowlight={$.inArray(link.anchorRef, refs) === -1}
-                                    hideTitle={hideTitle}
-                                    numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
-                                    basetext={false}
-                                    onRangeClick={this.props.onTextClick}
-                                    onCitationClick={this.props.onCitationClick} />);
+                                      sref={link.sourceRef}
+                                      key={i + link.sourceRef}
+                                      lowlight={$.inArray(link.anchorRef, refs) === -1}
+                                      hideTitle={hideTitle}
+                                      numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
+                                      basetext={false}
+                                      onRangeClick={this.props.onTextClick}
+                                      onCitationClick={this.props.onCitationClick}
+                                      onNavigationClick={this.props.onNavigationClick}
+                                      onCompareClick={this.props.onCompareClick}
+                                      onOpenConnectionsClick={this.props.onOpenConnectionsClick} />);
                         }, this);      
     }
 
@@ -2407,8 +3169,12 @@ var TextList = React.createClass({
           <div className="textListTop">
             {this.props.fullPanel ? 
               (<div className="leftButtons">
-                {this.props.closePanel ? (<ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} />) : null}
-                <ReaderNavigationMenuSearchButton onClick={this.props.openNav} />
+                {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} />) : null}
+                {this.props.multiPanel ? null : (<ReaderNavigationMenuSearchButton onClick={this.props.openNav} />) }
+               </div>) : null}
+            {this.props.fullPanel ? 
+              (<div className="rightButtons">
+                <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
                </div>) : null}
             <RecentFilterSet 
               showText={this.props.showText}
@@ -2416,10 +3182,6 @@ var TextList = React.createClass({
               recentFilters={this.props.recentFilters}
               setFilter={this.props.setFilter}
               showAllFilters={this.showAllFilters} />
-            {this.props.fullPanel ? 
-              (<div className="rightButtons">
-                <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-               </div>) : null}
           </div>
           <div className="texts">
             <div className="contentInner">
@@ -2620,7 +3382,8 @@ var SearchPage = React.createClass({
         settings:      React.PropTypes.object,
         close:         React.PropTypes.func,
         onResultClick: React.PropTypes.func,
-        onQueryChange: React.PropTypes.func
+        onQueryChange: React.PropTypes.func,
+        hideNavHeader: React.PropTypes.bool
     },
     getInitialState: function() {
         return {
@@ -2629,6 +3392,11 @@ var SearchPage = React.createClass({
             runningQuery: null,
             isQueryRunning: false
         }
+    },
+    componentWillReceiveProps: function(nextProps) {
+      if (nextProps.initialSettings.query !== this.state.query) {
+        this.updateQuery(nextProps.initialSettings.query);
+      }      
     },
     updateQuery: function(query) {
         this.setState({query: query});
@@ -2644,18 +3412,27 @@ var SearchPage = React.createClass({
     },
     render: function () {
         var style      = {"fontSize": this.props.settings.fontSize + "%"};
-        return (<div className="readerNavMenu">
-                <div className="readerNavTop search">
-                  <CategoryColorLine category="Other" />
-                  <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
-                  <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-                  <SearchBar
-                    initialQuery = { this.state.query }
-                    updateQuery = { this.updateQuery } />
-                </div>
+        var classes = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader});
+        return (<div className={classes}>
+                  {this.props.hideNavHeader ? null :
+                    (<div className="readerNavTop search">
+                      <CategoryColorLine category="Other" />
+                      <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
+                      <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+                      <SearchBar
+                        initialQuery = { this.state.query }
+                        updateQuery = { this.updateQuery } />
+                    </div>)}
                   <div className="content">
                     <div className="contentInner">
                       <div className="searchContentFrame">
+                          <h1>
+                            <div className="languageToggle" onClick={this.props.toggleLanguage}>
+                              <span className="en">א</span>
+                              <span className="he">A</span>
+                            </div>
+                            <span>&ldquo;{ this.state.query }&rdquo;</span>
+                          </h1>
                           <div className="searchControlsBox">
                           </div>
                           <div className="searchContent" style={style}>
@@ -2672,23 +3449,6 @@ var SearchPage = React.createClass({
     }
 });
 
-/*
-    $(".searchInput").autocomplete({ source: function( request, response ) {
-        var matches = $.map( sjs.books, function(tag) {
-            if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
-              return tag;
-            }
-          });
-        response(matches.slice(0, 30)); // limits return to 30 items
-      }
-    }).focus(function() {
-      //$(this).css({"width": "300px"});
-      $(this).closest(".searchBox").find(".keyboardInputInitiator").css({"opacity": 1});
-    }).blur(function() {
-      $(this).closest(".searchBox").find(".keyboardInputInitiator").css({"opacity": 0});
-    });
-    $(".searchButton").mousedown(sjs.handleSearch);
- */
 var SearchBar = React.createClass({
     propTypes: {
         initialQuery: React.PropTypes.string,
@@ -2859,43 +3619,41 @@ var SearchResultList = React.createClass({
             return null;
         }
         if (this.state.runningQuery) {
-            return (<LoadingMessage />)
+            return (<LoadingMessage message="Searching..." />);
         }
         var addCommas = function(number) { return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); };
         var totalWithCommas = addCommas(this.state.total);
         var totalSheetsWithCommas = addCommas(this.state.sheet_total);
         var totalTextsWithCommas = addCommas(this.state.text_total);
 
-        var totalBreakdown = <span className="results-breakdown">&nbsp;
+        var totalBreakdown = (
+          <span className="results-breakdown">&nbsp;
             <span className="he">({totalTextsWithCommas} {(this.state.text_total > 1) ? "מקורות":"מקור"}, {totalSheetsWithCommas} {(this.state.sheet_total > 1)?"דפי מקורות":"דף מקורות"})</span>
             <span className="en">({totalTextsWithCommas} {(this.state.text_total > 1) ? "Texts":"Text"}, {totalSheetsWithCommas} {(this.state.sheet_total > 1)?"Sheets":"Sheet"})</span>
-        </span>;
+          </span>);
 
         return (
             <div>
-                <div className="results-count">
+                <div className="results-count" key="results-count">
                     <span className="en">{totalWithCommas} Results</span>
                     <span className="he">{totalWithCommas} תוצאות</span>
                     {(this.state.sheet_total > 0 && this.state.text_total > 0) ? totalBreakdown : null}
                 </div>
                 {this.state.text_hits.map(function(result) {
-                    return <SearchTextResult
-                        data={result}
-                        query={this.props.query}
-                        key={result.ref}
-                        onResultClick={this.props.onResultClick}
-                        />;
+                    return (<SearchTextResult
+                              data={result}
+                              query={this.props.query}
+                              key={result._id}
+                              onResultClick={this.props.onResultClick} />);
                 }.bind(this))}
                 {this.state.sheet_hits.map(function(result) {
-                    return <SearchSheetResult
-                        data={result}
-                        query={this.props.query}
-                        key={result._id}
-                        />;
+                    return (<SearchSheetResult
+                              data={result}
+                              query={this.props.query}
+                              key={result._id} />);
                 }.bind(this))}
             </div>
-
-        )
+        );
     }
 });
 
@@ -3013,6 +3771,69 @@ var SearchSheetResult = React.createClass({
 });
 
 
+var AccountPanel = React.createClass({
+  render: function() {
+    var width = $(window).width();
+    var accountContent = [
+      (<BlockLink target="/my/profile" title="Profile" />),
+      (<BlockLink target="/sheets/private" title="Source Sheets" />),
+      (<BlockLink target="#" title="Reading History" />),
+      (<BlockLink target="#" title="Notes" />),
+      (<BlockLink target="/settings/account" title="Settings" />)
+    ];
+    accountContent = (<TwoOrThreeBox content={accountContent} width={width} />);
+
+    var learnContent = [
+      (<BlockLink target="/about" title="About" />),
+      (<BlockLink target="/faq" title="FAQ" />),
+      (<BlockLink target="http://blog.sefaria.org" title="Blog" />),
+      (<BlockLink target="/educators" title="Educators" />),
+      (<BlockLink target="/help" title="Help" />),
+      (<BlockLink target="/team" title="Team" />)
+    ];
+
+    learnContent = (<TwoOrThreeBox content={learnContent} width={width} />);
+
+    var contributeContent = [
+      (<BlockLink target="/activity" title="Recent Activity" />),
+      (<BlockLink target="/metrics" title="Metrics" />),  
+      (<BlockLink target="/contribute" title="Contribute" />),
+      (<BlockLink target="/donate" title="Donate" />),
+      (<BlockLink target="/supporters" title="Supporters" />),
+      (<BlockLink target="/jobs" title="Jobs" />),
+    ];
+    contributeContent = (<TwoOrThreeBox content={contributeContent} width={width} />);
+
+    var connectContent = [
+      (<BlockLink target="https://groups.google.com/forum/?fromgroups#!forum/sefaria" title="Forum" />),
+      (<BlockLink target="http://www.facebook.com/sefaria.org" title="Facebook" />),
+      (<BlockLink target="http://twitter.com/SefariaProject" title="Twitter" />),      
+      (<BlockLink target="http://www.youtube.com/user/SefariaProject" title="YouTube" />),
+      (<BlockLink target="mailto:hello@sefaria.org" title="Email" />)
+    ];
+    connectContent = (<TwoOrThreeBox content={connectContent} width={width} />);
+
+    var backToS1 = function() { 
+      $.cookie("s2", "", {path: "/"});
+      window.location = "/";
+    }
+    return (
+      <div className="accountPanel readerNavMenu">
+        <div className="content">
+          <div className="contentInner">
+           <span id="backToS1" onClick={backToS1}>&laquo; Back to Old Sefaria</span>
+           <ReaderNavigationMenuSection title="Account" heTitle="נצפו לאחרונה" content={accountContent} />
+           <ReaderNavigationMenuSection title="Learn" heTitle="נצפו לאחרונה" content={learnContent} />
+           <ReaderNavigationMenuSection title="Contribute" heTitle="נצפו לאחרונה" content={contributeContent} />
+           <ReaderNavigationMenuSection title="Connect" heTitle="נצפו לאחרונה" content={connectContent} />
+          </div>
+        </div>
+      </div>
+      );
+  }
+});
+
+
 var ThreeBox = React.createClass({
   // Wrap a list of elements into a three column table
   render: function() {
@@ -3033,9 +3854,9 @@ var ThreeBox = React.createClass({
             threes.map(function(row, i) {
               return (
                 <tr key={i}>
-                  <td className={row[0] ? "" : "empty"}>{row[0]}</td>
-                  <td className={row[1] ? "" : "empty"}>{row[1]}</td>
-                  <td className={row[2] ? "" : "empty"}>{row[2]}</td>
+                  {row[0] ? (<td>{row[0]}</td>) : null}
+                  {row[1] ? (<td>{row[1]}</td>) : null}
+                  {row[2] ? (<td>{row[2]}</td>) : null}
                 </tr>
               );
             })
@@ -3059,19 +3880,19 @@ var TwoBox = React.createClass({
           length += (2-length%2);
       }
       content.pad(length, "");
-      var threes = [];
+      var twos = [];
       for (var i=0; i<length; i+=2) {
-        threes.push([content[i], content[i+1]]);
+        twos.push([content[i], content[i+1]]);
       }
       return (
         <table className="gridBox twoBox">
           <tbody>
           { 
-            threes.map(function(row, i) {
+            twos.map(function(row, i) {
               return (
                 <tr key={i}>
-                  <td className={row[0] ? "" : "empty"}>{row[0]}</td>
-                  <td className={row[1] ? "" : "empty"}>{row[1]}</td>
+                  {row[0] ? (<td>{row[0]}</td>) : null}
+                  {row[1] ? (<td>{row[1]}</td>) : null}
                 </tr>
               );
             })
@@ -3084,10 +3905,15 @@ var TwoBox = React.createClass({
 
 
 var TwoOrThreeBox = React.createClass({
-  // Wrap a list of elements into a two or three column table, depen
+  // Wrap a list of elements into a two or three column table, depending on window width
+  propTypes: {
+    content:    React.PropTypes.array.isRequired,
+    width:      React.PropTypes.number.isRequired,
+    threshhold: React.PropTypes.number
+  },
   render: function() {
-
-      if ($(window).width() > 1000) {
+      var threshhold = this.props.threshhold || 450;
+      if (this.props.width > threshhold) {
         return (<ThreeBox content={this.props.content} />);
       } else {
         return (<TwoBox content={this.props.content} />);

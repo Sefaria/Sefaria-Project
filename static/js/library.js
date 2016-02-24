@@ -1,4 +1,4 @@
-sjs = sjs || {};
+var sjs = sjs || {};
 // Dependancies: util.js, sjs.toc
 
 
@@ -6,34 +6,49 @@ sjs.library = {
   _texts: {},
   text: function(ref, settings, cb) {
     if (!ref || typeof ref == "object" || typeof ref == "undefined") { debugger; }
-    var settings = settings || {};
+    settings = settings || {};
     settings = {
       commentary: settings.commentary || 0,
       context:    settings.context    || 0,
-      pad:        settings.pad        || 0
+      pad:        settings.pad        || 0,
+      version:    settings.version    || null,
+      language:   settings.language   || null
     };
     var key = this._textKey(ref, settings);
     if (!cb) {
       return this._getOrBuildTextData(key);
     }          
     if (key in this._texts) {
-      var data = this._getOrBuildTextData(key)
+      var data = this._getOrBuildTextData(key);
       cb(data);
       return data;
     }
     //console.log("API Call for " + key)
-    params = "?" + $.param(settings);
-    var url = "/api/texts/" + normRef(ref) + params;
-    this._api(url, function(data) {
+    this._api(this._textUrl(ref, settings), function(data) {
       this._saveText(data, settings);
       cb(data);
       //console.log("API return for " + data.ref)
     }.bind(this));
   },
+  _textUrl: function(ref, settings) {
+    // copy the parts of settings that are used as parameters, but not other
+    var params = $.param({
+      commentary: settings.commentary,
+      context:    settings.context,
+      pad:        settings.pad
+    });
+    var url = "/api/texts/" + normRef(ref);
+    if (settings.language && settings.version) {
+        url += "/" + settings.language + "/" + settings.version.replace(" ","_");
+    }
+    return url + "?" + params;
+  },
   _textKey: function(ref, settings) {
     // Returns a string used as a key for the cache object of `ref` given `settings`.
+    if (!ref) { debugger; }
     var key = ref.toLowerCase();
     if (settings) {
+      key = (settings.language && settings.version) ? key + "/" + settings.language + "/" + settings.version : key;
       key = settings.context ? key + "|CONTEXT" : key;
     }
     return key;
@@ -50,30 +65,39 @@ sjs.library = {
     }
   },
   _saveText: function(data, settings, skipWrap) {
-    if ("error" in data) { 
+    if (!data || "error" in data) { 
       //sjs.alert.message(data.error);
       return;
     }
-    var settings     = settings || {};
+    settings         = settings || {};
     data             = skipWrap ? data : this._wrapRefs(data);
     key              = this._textKey(data.ref, settings);
     this._texts[key] = data;
     
     if (data.ref == data.sectionRef && !data.isSpanning) {
-      this._splitTextSection(data);
+      this._splitTextSection(data, settings);
     } else if (settings.context) {
       // Save a copy of the data at context level
       var newData        = clone(data);
       newData.ref        = data.sectionRef;
       newData.sections   = data.sections.slice(0,-1);
       newData.toSections = data.toSections.slice(0,-1);
-      this._saveText(newData, {}, true);
+      var context_settings = (settings.language && settings.version) ? {
+          version: settings.version,
+          language: settings.language
+      }:{};
+      this._saveText(newData, context_settings, true);
     }
     if (data.isSpanning) {
+      var spanning_context_settings = (settings.language && settings.version) ? {
+          version: settings.version,
+          language: settings.language,
+          context: 1
+      }:{context: 1};
       for (var i = 0; i < data.spanningRefs.length; i++) {
         // For spanning refs, request each section ref to prime cache.
         // console.log("calling spanning prefetch " + data.spanningRefs[i])
-        sjs.library.text(data.spanningRefs[i], {context: 1}, function(data) {})
+        sjs.library.text(data.spanningRefs[i], spanning_context_settings, function(data) {})
       }      
     }
 
@@ -84,10 +108,11 @@ sjs.library = {
     };
     this.index(index.title, index);
   },
-  _splitTextSection: function(data) {
+  _splitTextSection: function(data, settings) {
     // Takes data for a section level text and populates cache with segment levels.
     // Runs recursively for Refs above section level like "Rashi on Genesis 1".
     // Pad the shorter array to make stepping through them easier.
+    settings = settings || {};
     var en = typeof data.text == "string" ? [data.text] : data.text;
     var he = typeof data.he == "string" ? [data.he] : data.he;
     var length = Math.max(en.length, he.length);
@@ -114,8 +139,14 @@ sjs.library = {
         prevSegment: i+start == 1      ? null : data.ref + delim + (i+start-1),
       });
 
-      this._saveText(segment_data, {}, true);
-      var contextKey = this._textKey(ref, {context:1});
+      var context_settings = (settings.version && settings.language) ? {
+          version: settings.version,
+          language: settings.language
+      } : {};
+      this._saveText(segment_data, context_settings, true);
+
+      context_settings.context = 1;
+      var contextKey = this._textKey(ref, context_settings);
       this._texts[contextKey] = {buildable: "Add Context", ref: ref, sectionRef: sectionRef};
     }
   },
@@ -134,7 +165,6 @@ sjs.library = {
       section.text       = en[i];
       section.he         = he[i];
     }
-
   },
   _wrapRefs: function(data) {
     // Wraps citations found in text of data
@@ -164,6 +194,16 @@ sjs.library = {
         sjs.library.index(toc[i].title, toc[i]);
       }
     }
+  },
+  _titleVariants: {},
+  normalizeTitle: function(title, callback) {
+    if (title in this._titleVariants) {  callback(this._titleVariants[title]); }
+    this._api("/api/index/" + title, function(data) {
+      for (var i = 0; i < data.titleVariants.length; i ++) {
+        sjs.library._titleVariants[data.titleVariants[i]] = data.title;
+      }
+       callback(data.title);
+    })
   },
   ref: function(ref) {
     // Returns parsed ref in for string `ref`. 
@@ -195,12 +235,15 @@ sjs.library = {
             // sjs.alert.message(data.error);
             return;
           }
-          this._saveLinksByRef(data);
-          this._links[ref] = data;
-          this._cacheIndexFromLinks(data);
+          this._saveLinkData(ref, data);
           cb(data);
         }.bind(this));
     }
+  },
+  _saveLinkData: function(ref, data) {
+    this._saveLinksByRef(data);
+    this._links[ref] = data;
+    this._cacheIndexFromLinks(data);
   },
   _cacheIndexFromLinks: function(links) {
     // Cache partial index information (title, Hebrew title, categories) found in link data.
@@ -361,13 +404,40 @@ sjs.library = {
     books = books.concat.apply(books, booksByCat);
     return books;     
   },
-  topLinks: function(ref) {
-    // Return up to 5 top recommended link filters - Not currently used
-    // TODO add text specific content rules here (e.g., privlege Tosafot for Bavli)
-    var books = this.flatLinkSummary(ref);
-    books.sort(function(a,b) { return b.count - a.count; });
-    books = books.slice(0, 5);
-    return books;
+  _notes: {},
+  notes: function(ref, cb) {
+    var notes = this.notes[ref];
+    if (notes) {
+      if (cb) { cb(notes); }
+    } else {
+      sjs.library.related(ref, function(data) {
+        cb(data.notes);
+      });
+    }
+    return notes;
+  },
+  _related: {},
+  related: function(ref, cb) {
+    // Single API to bundle links, sheets, and notes by ref.
+    if (!cb) {
+      return this._related[ref] || null;
+    }
+    if (ref in this._related) {
+      cb(this._related[ref]);
+    } else {
+       var url = "/api/related/" + normRef(ref);
+       this._api(url, function(data) {
+          if ("error" in data) { 
+            // sjs.alert.message(data.error);
+            return;
+          }
+          this._saveLinkData(ref, data.links);
+          this._related[ref] = data;
+          this.sheets._sheetsByRef[ref] = data.sheets;
+          this._notes[ref] = data.notes;
+          cb(data);
+        }.bind(this));
+    }
   },
   textTocHtml: function(title, cb) {
     // Returns an HTML fragment of the table of contents of the text 'title'
@@ -568,6 +638,18 @@ sjs.library = {
         }
       return sheets;
     },
+    _sheetsByRef: {},
+    sheetsByRef: function(ref, cb) {
+      var sheets = this._sheetsByRef[ref];
+      if (sheets) {
+        if (cb) { cb(sheets); }
+      } else {
+        sjs.library.related(ref, function(data) {
+          cb(data.sheets);
+        });
+      }
+      return sheets;
+    }
   },
   hebrewCategory: function(cat) {
     var categories = {
@@ -717,6 +799,7 @@ sjs.library = {
           return o;
       }
   },
+  _apiCallbacks: {},
   _api: function(url, callback) {
     // Manage API calls and callbacks to prevent duplicate calls
     if (url in this._apiCallbacks) {
@@ -731,8 +814,7 @@ sjs.library = {
         delete this._apiCallbacks[url];
       }.bind(this));
     }
-  },
-  _apiCallbacks: {}
+  }
 };
 
 // Unpack sjs.toc into index cache

@@ -619,7 +619,7 @@
 			$("#languageToggle .toggleOption").removeClass("active");
 			$(this).addClass("active");
 
-			$("body").removeClass("english hebrew bilingual")
+			$("body, #content").removeClass("english hebrew bilingual")
 				.addClass(mode)
                 .trigger("languageChange");
 			return false;
