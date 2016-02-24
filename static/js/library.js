@@ -4,6 +4,7 @@ var sjs = sjs || {};
 
 sjs.library = {
   _texts: {},
+  _refmap: {}, // Mapping of simple ref/context keys to the (potentially) versioned key for that ref in _texts. 
   text: function(ref, settings, cb) {
     if (!ref || typeof ref == "object" || typeof ref == "undefined") { debugger; }
     settings = settings || {};
@@ -53,6 +54,15 @@ sjs.library = {
     }
     return key;
   },
+  _refKey: function(ref, settings) {
+    // Returns the key for this ref without any version/language elements
+    if (!ref) { debugger; }
+    var key = ref.toLowerCase();
+    if (settings) {
+      key = settings.context ? key + "|CONTEXT" : key;
+    }
+    return key;
+  },
   _getOrBuildTextData: function(key) {
     var cached = this._texts[key];
     if (!cached || !cached.buildable) { return cached; }
@@ -71,9 +81,12 @@ sjs.library = {
     }
     settings         = settings || {};
     data             = skipWrap ? data : this._wrapRefs(data);
-    key              = this._textKey(data.ref, settings);
+    var key          = this._textKey(data.ref, settings);
     this._texts[key] = data;
-    
+
+    var refkey           = this._refKey(data.ref, settings);
+    this._refmap[refkey] = key;
+
     if (data.ref == data.sectionRef && !data.isSpanning) {
       this._splitTextSection(data, settings);
     } else if (settings.context) {
@@ -148,6 +161,10 @@ sjs.library = {
       context_settings.context = 1;
       var contextKey = this._textKey(ref, context_settings);
       this._texts[contextKey] = {buildable: "Add Context", ref: ref, sectionRef: sectionRef};
+
+      var refkey           = this._refKey(ref, context_settings);
+      this._refmap[refkey] = contextKey;
+
     }
   },
   _splitSpanningText: function(data) {
@@ -206,10 +223,14 @@ sjs.library = {
     })
   },
   ref: function(ref) {
-    // Returns parsed ref in for string `ref`. 
-    // This is currently a wrapper for sjs.library text for cases when the textual information is not important
-    // so that it can be called without worrying about the `settings` parameter for what is available in cache.
-    return this.text(ref) || this.text(ref, {context:1});
+    // Returns parsed ref info for string `ref`.
+    // Uses this._refmap to find the refkey that has information for this ref.
+    // Used in cases when the textual information is not important, so it can
+    // be called without worrying about the `settings` parameter for what is available in cache.
+
+    var versioned_key = this._refmap[this._refKey(ref)] || this._refmap[this._refKey(ref, {context:1})];
+    if (versioned_key) { return this._getOrBuildTextData(versioned_key);  }
+    return null;
   },
   sectionRef: function(ref) {
     // Returns the section level ref for `ref` or null if no data is available
