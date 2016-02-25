@@ -3126,6 +3126,7 @@ var TextList = React.createClass({
   render: function() {
     var refs               = this.props.srefs;
     var summary            = sjs.library.relatedSummary(refs);
+    var oref               = sjs.library.ref(refs[0]);
     var filter             = this.props.filter;
     var sectionRef         = this.getSectionRef();
     var isSingleCommentary = (filter.length == 1 && sjs.library.index(filter[0]) && sjs.library.index(filter[0]).categories == "Commentary");
@@ -3229,6 +3230,7 @@ var TextList = React.createClass({
               showText={this.props.showText}
               filter={this.props.filter}
               recentFilters={this.props.recentFilters}
+              textCategory={oref ? oref.categories[0] : null}
               setFilter={this.props.setFilter}
               showAllFilters={this.showAllFilters} />
           </div>
@@ -3344,6 +3346,7 @@ var RecentFilterSet = React.createClass({
   propTypes: {
     filter:         React.PropTypes.array.isRequired,
     recentFilters:  React.PropTypes.array.isRequired,
+    textCategory:   React.PropTypes.string.isRequired,
     setFilter:      React.PropTypes.func.isRequired,
     showAllFilters: React.PropTypes.func.isRequired
   },
@@ -3388,7 +3391,6 @@ var RecentFilterSet = React.createClass({
         // topLinks.move(i, 0); 
       }        
     }
-    var category = topLinks[0].category;
     var topFilters = topLinks.map(function(book) {
      return (<TextFilter 
                 key={book.book} 
@@ -3410,8 +3412,7 @@ var RecentFilterSet = React.createClass({
                             <span className="dot">●</span><span className="dot">●</span><span className="dot">●</span>
                           </div>                    
                     </div>);
-
-    var style = {"borderTopColor": sjs.categoryColor(category)};
+    var style = {"borderTopColor": sjs.categoryColor(this.props.textCategory)};
     return (
       <div className="topFilters filterSet" style={style}>
         <div className="topFiltersInner">{topFilters}</div>
