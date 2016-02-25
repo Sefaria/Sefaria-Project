@@ -1300,12 +1300,16 @@ sjs.lexicon = {
 	isLexiconEnabled: function (currentText, lang, params){
 		//console.log(currentText);
 		/*if (params['url_enabled']){*/
-		if(sjs.lexicon.enabledCategories[lang].indexOf(currentText.categories[0]) > -1) {
+		if(currentText.categories[0] == 'Tanach' &&
+			!(currentText.categories[1] == 'Targum' || currentText.categories[1] == 'Commentary')){
 			return true;
-		}/*else if('commentator' in currentText && currentText['commentator'] == 'Rashi' && lang == 'he'){//hack. find better way
+		}
+		/*if(sjs.lexicon.enabledCategories[lang].indexOf(currentText.categories[0]) > -1) {
 			return true;
+		}else if('commentator' in currentText && currentText['commentator'] == 'Rashi' && lang == 'he'){//hack. find better way
+			return true;
+		}
 		}*/
-		/*}*/
 		return false;
 	},
 
