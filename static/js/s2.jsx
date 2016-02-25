@@ -117,8 +117,8 @@ var ReaderApp = React.createClass({
   },
   handlePopState: function(event) {
     var state = event.state;
-    //console.log("Pop - " + window.location.pathname);
-    //console.log(state);
+    console.log("Pop - " + window.location.pathname);
+    console.log(state);
     if (state) {
       var kind = "";
       sjs.track.event("Reader", "Pop State", kind);
@@ -251,7 +251,7 @@ var ReaderApp = React.createClass({
         hist.mode     = "TextAndConnections"
       } else if (state.mode === "Header") {
         hist.title  = document.title;
-        hist.url    = "";
+        hist.url    = window.location.pathname.slice(1);
         hist.mode   = "Header"
       }
       histories.push(hist);     
