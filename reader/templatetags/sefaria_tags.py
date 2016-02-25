@@ -8,7 +8,7 @@ import dateutil.parser
 import urllib
 import math
 from urlparse import urlparse
-
+from datetime import datetime
 from django import template
 from django.template.defaultfilters import stringfilter
 from django.utils.safestring import mark_safe
@@ -471,3 +471,7 @@ def partition_vertical(thelist, n):
 	for i, val in enumerate(thelist):
 		newlists[i%n].append(val)
 	return newlists
+
+@register.filter
+def date_string_to_date(dateString):
+    return(datetime.strptime(dateString, "%Y-%m-%dT%H:%M:%S.%f"))

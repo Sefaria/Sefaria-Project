@@ -1,3 +1,4 @@
+{% load humanize %}
 {% load sefaria_tags %}
 
 <!doctype html>
@@ -35,6 +36,7 @@
 <div id="error"></div>
 <a href="/sheets" id="textTocLink">&laquo; Source Sheets</a>
 <div id="controls">
+
 	<div id="buttonBox">
 		{% if can_edit or can_add %}
 		<span id="addButton" class="circleButton"><span class="fa fa-plus"></span>
@@ -149,12 +151,33 @@
 
 		</span>
 	</div>
+
+
+<div>
+ <span id="lastSaved">
+    {% if sheet.dateModified %}
+                {% if can_edit or can_add %}
+                    Last Saved: {{sheet.dateModified|date_string_to_date|naturaltime}}
+                {% endif %}
+    {% endif %}
+ </span>
+</div>
+
 </div>
 
 <div id="sheet" class="{{ sheet_class|default:'bilingual' }}">
 	{% if new_sheet %}
 	<div id="fileControls">
-		<span id="save" class="btn btn-large btn-success">Save</span>
+
+        <div id="fileControlMsg">
+            {% if not user.email %}
+                Take a spin! But you'll need to <a href="/login?next=/sheets/new">login</a> or <a href="/register?next=/sheets/new">register</a> to save your work.
+            {% else %}
+                Add a source, a comment, or some other media using the buttons above.
+
+            {% endif %}
+        </div>
+        <span id="save" class="btn btn-large btn-success">Save</span>
 	</div>
 	{% endif %}
 
