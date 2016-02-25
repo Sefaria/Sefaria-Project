@@ -471,6 +471,7 @@ $(function() {
 		];
 
 		sjs.removeCKEditor = function(e) {
+			stopCkEditorContinuous();
 			var editor = e.editor;
 			var $el = $(editor.element.$);
 
@@ -537,6 +538,8 @@ $(function() {
 
 			editor.destroy();
 			$("[contenteditable]").attr("contenteditable", "false");
+
+
 		}
 
 		sjs.removeCKEditorByElement = function(el) {
@@ -564,7 +567,7 @@ $(function() {
 			$(this).focus()
 				.attr("contenteditable", "true")
 				.ckeditor();
-			
+
 			// Close editor on enter for customTitle fields
 			if ($(this).hasClass("customTitle")) {
 				$(this).on('key', function(e) {
@@ -575,6 +578,14 @@ $(function() {
 
 				});
 			}
+		var ed = $(this).ckeditorGet();
+		saveCkEditorContinuous(ed);
+
+				$(this).on('keydown', function(e) {
+				$("#lastSaved").text("Saving...");
+				});
+
+
 		};
 
 		
@@ -607,6 +618,30 @@ $(function() {
 			});
 		});
 	}
+
+	function saveCkEditorContinuous(editor) {
+		// Start a timer to poll server for changes to this sheet
+		stopCkEditorContinuous();
+		var ckeSaveChain = function() {
+
+			if (editor.checkDirty() == true) {
+				autoSave();
+				editor.resetDirty();
+			}
+			sjs.ckeSaveChain = setTimeout(ckeSaveChain , 10000)
+		}
+		sjs.ckeSaveChain = setTimeout(ckeSaveChain , 10000);
+	}
+
+
+	function stopCkEditorContinuous(){
+		if (sjs.ckeSaveChain ) {
+			clearTimeout(sjs.ckeSaveChain );
+		}
+	}
+
+
+
 
 
 	// ---------- Save Sheet --------------
@@ -678,7 +713,10 @@ $(function() {
 	if (sjs.current.id) {
 		buildSheet(sjs.current);
 	} else if (sjs.assignment_id) {
-		if (!sjs._uid) { return sjs.loginPrompt(); }
+		if (!sjs._uid) {
+			$("#fileControlMsg").hide();
+			return sjs.loginPrompt();
+		}
 		buildSheet(sjs.current);
 		afterAction();
 	} else {
@@ -1650,6 +1688,7 @@ function handleSave() {
 
 function autoSave() {
 	if (sjs.can_save && sjs.current.id && !sjs.loading && !sjs.openRequests) {
+		$("#lastSaved").text("Saving...")
 		var sheet = readSheet();
 		saveSheet(sheet);
 	}
@@ -1674,6 +1713,8 @@ function saveSheet(sheet, reload) {
 			sjs.lastEdit = null;    // save was succesful, won't need to replay
 			startPollingIfNeeded(); // Start or stop polling if collab/group status has changed
 			promptToPublish();      // If conditions are right, prompt to publish
+			$("#lastSaved").text("All changes saved in Sefaria")
+
 		} 
 
 		if ("error" in data) {
@@ -2293,7 +2334,6 @@ function promptToPublish() {
 	if (sjs.current.assignment_id) {return;}			   // Don't prompt if this is an assignment sheet
 	if (sjs.current.options.assignable == 1) {return;}	   // Don't prompt if sheet is currently assignable
 	if (sjs.current.status in {"public":true}) { return; } // Don't prompt if sheet is already public
-//	if (sjs.current.sources.length < 6) { return; }         // Don't prompt if the sheet has less than 6 sources
 	if (sjs.current.views < 6) {return}						// Don't prompt if the sheet has been viewed less than six times
 	if ($("body").hasClass("embedded")) { return; }         // Don't prompt while a sheet is embedded
 
@@ -2310,5 +2350,6 @@ var afterAction = function() {
 	$("#empty").remove();
 	if (sjs._uid) {
 		$("#save").show();
+		$("#fileControlMsg").hide();
 	}
 };

@@ -234,11 +234,13 @@ def email_unread_notifications(timeframe):
 		except User.DoesNotExist:
 			continue
 
-		message_html = render_to_string("email/notifications_email.html", { "notifications": notifications, "recipient": user.first_name })
+		message_html  = render_to_string("email/notifications_email.html", { "notifications": notifications, "recipient": user.first_name })
 		#message_text = util.strip_tags(message_html)
-		subject      = "New Activity on Sefaria from %s" % notifications.actors_string()
-		from_email   = "Sefaria <hello@sefaria.org>"
-		to           = user.email
+		actors_string = notifications.actors_string()
+		verb          = "have" if " and " in actors_string else "has"
+		subject       = "%s %s new activity on Sefaria" % (actors_string, verb)
+		from_email    = "Sefaria <hello@sefaria.org>"
+		to            = user.email
 
 		msg = EmailMultiAlternatives(subject, message_html, from_email, [to])
 		msg.content_subtype = "html"  # Main content is now text/html

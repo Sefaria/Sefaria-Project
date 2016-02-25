@@ -45,7 +45,7 @@ def index_text(oref, version=None, lang=None, bavli_amud=True):
     Currently assumes ref is at section level. 
     """
     assert isinstance(oref, Ref)
-
+    oref = oref.default_child_ref()
     # Recall this function for each specific text version, if none provided
     if not (version and lang):
         for v in oref.version_list():
