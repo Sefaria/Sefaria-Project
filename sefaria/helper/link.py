@@ -16,7 +16,7 @@ if USE_VARNISH:
 
 #TODO: should all the functions here be decoupled from the need to enter a userid?
 
-#AbstractTextToBaseTextLinker
+
 class AbstractAutoLinker(object):
     """
     This abstract class defines the interface/contract for autolinking objects.
@@ -26,11 +26,11 @@ class AbstractAutoLinker(object):
     3. delete_links will delete all the links in the set
     4. rebuild_links will delete and then build the links from scratch
     """
-    def __init__(self, oref, generated_by_string, auto, type_string, **kwargs):
+    def __init__(self, oref, auto=True, generated_by_string=None, link_type=None **kwargs):
         self._requested_oref = oref
-        self._generated_by_string = generated_by_string
+        self._generated_by_string = generated_by_string if generated_by_string else self.__class__.__name__
         self._auto = auto
-        self._link_type = type_string
+        self._link_type = link_type if link_type else oref.index.dependance
         self._user = kwargs.get('user', None)
         self._title = self._requested_oref.index.title
 
@@ -56,10 +56,21 @@ class AbstractAutoLinker(object):
 
     def rebuild_links(self):
         """
-        Inrended to clean out all existing links and build them anew
+        Intended to clean out all existing links and build them anew
         :return:
         """
-        raise NotImplementedError
+        self.delete_links()
+        self.build_links()
+        # TODO: move this commentator name catching out to the view.
+        """try:
+            oref = Ref(title)
+        except InputError:
+            # Allow commentators alone, rebuild for each text we have
+            i = library.get_index(title)
+            for c in library.get_commentary_version_titles(i.title):
+                rebuild_commentary_links(Ref(c), user)
+            return
+        add_commentary_links(Ref(title), user)"""
 
     def _load_links(self):
         if not self._links:
@@ -72,7 +83,7 @@ class AbstractAutoLinker(object):
         return self._links
 
     def _save_link(self, tref, base_tref, **kwargs):
-        link = {
+        nlink = {
             "refs": [base_tref, tref],
             "type": self._link_type,
             "anchorText": "",
@@ -81,9 +92,9 @@ class AbstractAutoLinker(object):
         }
         try:
             if not self._user:
-                link.save()
+                nlink.save()
             else:
-                tracker.add(self._user, Link, link, **kwargs)
+                tracker.add(self._user, Link, nlink, **kwargs)
         except DuplicateRecordError as e:
             pass
         return tref
@@ -95,22 +106,19 @@ class AbstractAutoLinker(object):
             tracker.delete(self._user, Link, link._id)
 
 
-#link any two texts by structure
-#TODO: as error checking there should probs be a validate that checks the structures match.
 class AbstractStructureAutoLinker(AbstractAutoLinker):
     """
     This class is for general linking according to two structurally identical texts.
     """
-    def __init__(self, oref, generated_by_string, auto, type_string, linked_oref, depth_up=1, **kwargs):
-        self._linked_nref = linked_oref.normal()
+    # TODO: as error checking there should probs be a validate that checks the structures match.
+    def __init__(self, oref, depth_up, linked_oref, **kwargs):
         self._linked_title = linked_oref.index.title
         self._depth_up = depth_up
-        super(AbstractStructureAutoLinker, self).__init__(oref, generated_by_string, auto, type_string, **kwargs)
+        super(AbstractStructureAutoLinker, self).__init__(oref, **kwargs)
 
     def _generate_specific_base_tref(self, orig_ref):
         context_ref = orig_ref.context_ref(self._depth_up)
         return context_ref.normal().replace(self._title, self._linked_title)
-
 
     def _build_links_internal(self, oref, text=None):
         tref = oref.normal()
@@ -179,15 +187,11 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
         :param kwargs:
         :return:
         """
-        tref = self._requested_oref.normal()
-        book_name = self._requested_oref.index.title
-
-        ref_regex = self._requested_oref.regex()
-        existing_links = LinkSet({"refs": {"$regex": ref_regex}, "generated_by": self._generated_by_string})
+        existing_links = self._load_links()
         found_links = self._build_links_internal(self._requested_oref)
         for exLink in existing_links:
             for r in exLink.refs:
-                if book_name not in r:  #current base ref
+                if self._title not in r:  #current base ref
                     continue
                 if USE_VARNISH:
                     invalidate_ref(Ref(r))
@@ -196,20 +200,18 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
                 break
 
 
-
 class BaseStructureAutoLinker(AbstractStructureAutoLinker):
     """
     This linker will only allow a text to be linked to it's specified base text (currently assumes one base text)
     """
-    def __init__(self, oref, generated_by_string='add_commentary_links', auto=True, type_string="commentary", depth_up=1, **kwargs):
+    def __init__(self, oref, depth_up, **kwargs):
         if not oref.is_dependant():
             raise Exception("Text must have a base text to link to")
         try:
             base_oref = Ref(self._requested_oref.index.base_text_titles[0])
-            super(BaseStructureAutoLinker, self).__init__(oref, generated_by_string, auto, type_string, base_oref, depth_up, **kwargs)
+            super(BaseStructureAutoLinker, self).__init__(oref, depth_up, base_oref, **kwargs)
         except Exception as e:
             raise Exception('Text must have a base text to link to')
-
 
 
 class IncrementBaseDepthAutoLinker(BaseStructureAutoLinker):
@@ -224,12 +226,12 @@ class IncrementBaseDepthAutoLinker(BaseStructureAutoLinker):
     for each segment of text (comment) that is in 'Sforno on Kohelet 3:2'.
     """
     def __init__(self, oref, **kwargs):
-        super(IncrementBaseDepthAutoLinker, self).__init__(oref, depth_up=1, **kwargs)
+        super(IncrementBaseDepthAutoLinker, self).__init__(oref, 1, **kwargs)
 
 
 class SameBaseDepthAutoLinker(BaseStructureAutoLinker):
     def __init__(self, oref, **kwargs):
-        super(SameBaseDepthAutoLinker, self).__init__(oref, depth_up=0, **kwargs)
+        super(SameBaseDepthAutoLinker, self).__init__(oref, 0, **kwargs)
 
 
 # TODO: refactor with lexicon class map into abstract
@@ -253,35 +255,11 @@ class AutoLinkerFactory(object):
         return cls.class_factory(name)(*args, **kwargs)
 
     @classmethod
-    def instance_from_record_factory(cls, record):
-        return cls.instance_factory(record[cls._key_attr], record)
+    def instance_from_record_factory(cls, oref):
+        return cls.instance_factory(oref.index[cls._key_attr], oref)
 
 
-
-
-
-
-
-def delete_commentary_links(title, user):
-
-
-
-def rebuild_commentary_links(title, user):
-    #// mark for commentary refactor
-    """
-    Deletes all of the citation generated links from text 'title'
-    then rebuilds them.
-    """
-    try:
-        oref = Ref(title)
-    except InputError:
-        # Allow commentators alone, rebuild for each text we have
-        i = library.get_index(title)
-        for c in library.get_commentary_version_titles(i.title):
-            rebuild_commentary_links(Ref(c), user)
-        return
-    add_commentary_links(Ref(title), user)
-
+# ------------------------------------------------------------------------------------------ #
 
 def add_links_from_text(oref, lang, text, text_id, user, **kwargs):
     """
@@ -382,6 +360,8 @@ def rebuild_links_from_text(title, user):
 
     for version in versions:
         add_links_from_text(Ref(title), version.language, version.chapter, version._id, user)
+
+# --------------------------------------------------------------------------------- #
 
 
 def create_link_cluster(refs, user, link_type="", attrs=None):
