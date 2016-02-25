@@ -410,7 +410,7 @@ body {
 	color: #555;
 }
 
-#sources, .subsources {
+#sources, .indented {
 	font-size: 20px;
 	margin: 0px;
 	padding: 0px;
@@ -421,7 +421,7 @@ body {
 	margin-top: 40px;
 }
 
-.subsources {
+.indented {
 	margin-top: 10px;
 }
 
@@ -688,16 +688,16 @@ body {
 	background-color: inherit;
 }
 
-.subsources .source .title {
+.indented .source .title {
 	font-size: 15px;
 	margin-bottom: 0px;
 }
 
-.subsources .source {
+.indented .source {
 
 }
 
-.subsources .source .text {
+.indented .source .text {
 	font-size: 16px;
 }
 
@@ -707,11 +707,11 @@ body {
 	background-color: #DAE83F;
 }
 
-#sheet.bilingual.stacked .subsources {
+#sheet.bilingual.stacked .indented {
 	margin: 10px 0 0 60px;
 }
 
-#sheet.bilingual .subsources {
+#sheet.bilingual .indented {
 	margin: 10px 30px;
 }
 

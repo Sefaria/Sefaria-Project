@@ -1624,11 +1624,22 @@ function readSource($target) {
 			var sourceLanguage = "english"
 		} else {
 			var sourceLanguage = ""
-		}		
-		
-		source["options"] = {sourceLanguage: sourceLanguage,
+		}
+
+		//Set source indentation level
+		if ($target.hasClass("indented")) {
+			var sourceIndentLevel = "indented"
+		}
+		else {
+			var sourceIndentLevel ="";
+		}
+
+		source["options"] = {
+							 sourceLanguage: sourceLanguage,
 							 sourceLayout: sourceLayout,
-							 sourceLangLayout: sourceLangLayout};
+							 sourceLangLayout: sourceLangLayout,
+							 indented: sourceIndentLevel
+		};
 		
 		
 		var title = $(".customTitle", $target).eq(0).html();
@@ -1831,7 +1842,7 @@ function buildSource($target, source) {
 		addSource(q, source);
 		
 		if ("options" in source) {
-			$(".sheetItem").last().addClass(source.options.sourceLayout+" "+source.options.sourceLanguage+" "+source.options.sourceLangLayout)
+			$(".sheetItem").last().addClass(source.options.sourceLayout+" "+source.options.sourceLanguage+" "+source.options.sourceLangLayout+" "+source.options.indented)
 		}
 
 		
