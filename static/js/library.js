@@ -734,14 +734,13 @@ sjs.library = {
           sheets = this._sheetsByRef[ref];
         }
       } else {
-        var combinedSheets = [];
+        var sheets = [];
         ref.map(function(r) {
           var newSheets = sjs.library.sheets.sheetsByRef(r);
-          combinedSheets = combinedSheets.concat(newSheets);
+          if (newSheets) {
+            sheets = sheets.concat(newSheets);
+          }
         });
-        if (combinedSheets.length > 0) { // TODO this isn't quite right. What if we had data for one of the refs in `ref` but not for another?
-          sheets = combinedSheets; 
-        }
       }
       if (sheets) {
         if (cb) { cb(sheets); }

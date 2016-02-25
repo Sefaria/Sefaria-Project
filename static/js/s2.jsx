@@ -3144,7 +3144,7 @@ var TextList = React.createClass({
     if (!showAllFilters) {
       if (filter.compare(["Sheets"])) {
         var sheets = sjs.library.sheets.sheetsByRef(refs);
-        var content = sheets.map(function(sheet) {
+        var content = sheets ? sheets.map(function(sheet) {
           return (
             <div className="sheet" key={sheet.sheetUrl}>
               <img className="sheetAuthorImg" src={sheet.ownerImageUrl} />
@@ -3152,7 +3152,7 @@ var TextList = React.createClass({
               <a href={sheet.ownerProfileUrl} className="sheetAuthor">{sheet.ownerName}</a>
               <a href={sheet.sheetUrl} className="sheetTitle">{sheet.title}</a>
             </div>);
-        });
+        }) : (<LoadingMessage />);
 
       } else if (filter.compare(["Notes"])) {
       } else {
