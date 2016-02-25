@@ -30,6 +30,7 @@ from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH
+from sefaria.helper.link import AutoLinkerFactory
 
 """
                 ----------------------------------
@@ -3324,6 +3325,17 @@ class Ref(object):
         from . import LinkSet
         return LinkSet(self)
 
+    def autolinker(self, **kwargs):
+        """
+        Returns the class best suited to perform auto linking,
+        according to the "mapping_scheme" attr on the Index record.
+        :return:
+        """
+        if self.is_dependant() and getattr(self.index, 'mapping_scheme', None):
+            return AutoLinkerFactory.instance_factory(self.index.mapping_scheme, self, **kwargs)
+        else:
+            return None
+
 
 class Library(object):
     #//todo: mark for commentary refactor
@@ -3897,6 +3909,9 @@ class Library(object):
             q = {"categories": category}
 
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
+
+    def get_indices_by_work_title(self, work_title):
+        pass
 
     def get_commentator_titles(self, lang="en", with_variants=False, with_commentary2=False):
         #//TODO: mark for commentary refactor

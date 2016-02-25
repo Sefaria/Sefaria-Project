@@ -26,7 +26,7 @@ class AbstractAutoLinker(object):
     3. delete_links will delete all the links in the set
     4. rebuild_links will delete and then build the links from scratch
     """
-    def __init__(self, oref, auto=True, generated_by_string=None, link_type=None **kwargs):
+    def __init__(self, oref, auto=True, generated_by_string=None, link_type=None, **kwargs):
         self._requested_oref = oref
         self._generated_by_string = generated_by_string if generated_by_string else self.__class__.__name__
         self._auto = auto
@@ -34,16 +34,16 @@ class AbstractAutoLinker(object):
         self._user = kwargs.get('user', None)
         self._title = self._requested_oref.index.title
 
-    def build_links(self):
+    def build_links(self, **kwargs):
         raise NotImplementedError
 
-    def refresh_links(self):
+    def refresh_links(self, **kwargs):
         """
         :return: Meant for adding links while intelligently removing stale links
         """
         raise NotImplementedError
 
-    def delete_links(self):
+    def delete_links(self, **kwargs):
         """
         Deletes all of the citation generated links from text 'title'
         """
@@ -54,7 +54,7 @@ class AbstractAutoLinker(object):
                 invalidate_ref(Ref(link.refs[1]))
             self._delete_link(link)
 
-    def rebuild_links(self):
+    def rebuild_links(self, **kwargs):
         """
         Intended to clean out all existing links and build them anew
         :return:
@@ -120,7 +120,7 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
         context_ref = orig_ref.context_ref(self._depth_up)
         return context_ref.normal().replace(self._title, self._linked_title)
 
-    def _build_links_internal(self, oref, text=None):
+    def _build_links_internal(self, oref, text=None, **kwargs):
         tref = oref.normal()
         #base_tref = tref[tref.find(" on ") + 4:]
         found_links = []
@@ -142,7 +142,7 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
                             "text": text["text"][i] if i < len(text["text"]) else "",
                             "he": text["he"][i] if i < len(text["he"]) else ""
                             }
-                    found_links += self._build_links_internal(sr, stext)
+                    found_links += self._build_links_internal(sr, stext, **kwargs)
 
         else:
             if not text:
@@ -164,7 +164,7 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
                             "text": text["text"][i] if i < len(text["text"]) else "",
                             "he": text["he"][i] if i < len(text["he"]) else ""
                             }
-                    found_links += self._build_links_internal(r, stext)
+                    found_links += self._build_links_internal(r, stext, **kwargs)
 
             # this is a single comment, trim the last section number (comment) from ref
             elif len(text["sections"]) == len(text["sectionNames"]):
@@ -172,7 +172,7 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
                     #base_tref = base_tref[0:base_tref.rfind(":")]
                     base_tref = self._generate_specific_base_tref(oref)
                     found_links += [tref]
-                    self._save_link(tref, base_tref)
+                    self._save_link(tref, base_tref, **kwargs)
         return found_links
 
     def build_links(self, **kwargs):
@@ -234,6 +234,18 @@ class SameBaseDepthAutoLinker(BaseStructureAutoLinker):
         super(SameBaseDepthAutoLinker, self).__init__(oref, 0, **kwargs)
 
 
+def rebuild_links_for_title(tref):
+    try:
+        oref = Ref(title)
+    except InputError:
+        # Allow group work names, eg. Rashi alone, rebuild for each text we have
+        i = library.get_index(title)
+        for c in library.get_commentary_version_titles(i.title):
+            rebuild_commentary_links(Ref(c), user)
+        return
+    add_commentary_links(Ref(title), user)
+
+
 # TODO: refactor with lexicon class map into abstract
 class AutoLinkerFactory(object):
     _class_map = {
@@ -256,7 +268,10 @@ class AutoLinkerFactory(object):
 
     @classmethod
     def instance_from_record_factory(cls, oref):
-        return cls.instance_factory(oref.index[cls._key_attr], oref)
+        try:
+            return cls.instance_factory(oref.index[cls._key_attr], oref)
+        except KeyError:
+            return None
 
 
 # ------------------------------------------------------------------------------------------ #
