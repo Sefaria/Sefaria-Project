@@ -3910,8 +3910,10 @@ class Library(object):
 
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
-    def get_indices_by_work_title(self, work_title):
-        pass
+
+    def get_indices_by_work_title(self, work_title, full_records=False):
+        q = {'work_title': work_title}
+        return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
     def get_commentator_titles(self, lang="en", with_variants=False, with_commentary2=False):
         #//TODO: mark for commentary refactor

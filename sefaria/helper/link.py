@@ -229,28 +229,38 @@ class IncrementBaseDepthAutoLinker(BaseStructureAutoLinker):
         super(IncrementBaseDepthAutoLinker, self).__init__(oref, 1, **kwargs)
 
 
-class SameBaseDepthAutoLinker(BaseStructureAutoLinker):
+class MatchBaseDepthAutoLinker(BaseStructureAutoLinker):
     def __init__(self, oref, **kwargs):
-        super(SameBaseDepthAutoLinker, self).__init__(oref, 0, **kwargs)
+        super(MatchBaseDepthAutoLinker, self).__init__(oref, 0, **kwargs)
 
 
-def rebuild_links_for_title(tref):
+def rebuild_links_for_title(tref, user=None):
+    """
+    Utility function, can be called from a view or cli. Takes a ref or a more general title to rebuild auto links
+    :param tref:
+    :param user:
+    :return:
+    """
     try:
-        oref = Ref(title)
+        oref = Ref(tref)
     except InputError:
+        # If not a valid ref, maybe a title of an entire corpus.
         # Allow group work names, eg. Rashi alone, rebuild for each text we have
-        i = library.get_index(title)
-        for c in library.get_commentary_version_titles(i.title):
-            rebuild_commentary_links(Ref(c), user)
+        #TODO: there might need to be some error checking done on this
+        title_indices = library.get_indices_by_work_title(tref)
+        for c in title_indices:
+            rebuild_links_for_title(c, user)
         return
-    add_commentary_links(Ref(title), user)
+    linker = oref.autolinker(user=user)
+    if linker:
+        linker.rebuild_links()
 
 
 # TODO: refactor with lexicon class map into abstract
 class AutoLinkerFactory(object):
     _class_map = {
         'increment_base_text_depth' : IncrementBaseDepthAutoLinker,
-        'match_base_text_depth' : SameBaseDepthAutoLinker
+        'match_base_text_depth' : MatchBaseDepthAutoLinker
     }
     _key_attr = 'mapping_scheme'
     _default_class = IncrementBaseDepthAutoLinker

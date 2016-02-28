@@ -340,10 +340,10 @@ def reset_ref(request, tref):
 
 
 @staff_member_required
-def rebuild_commentary_links(request, title):
-    from sefaria.helper.link import rebuild_commentary_links as rebuild
+def rebuild_auto_links(request, title):
+    from sefaria.helper.link import rebuild_links_for_title as rebuild
     rebuild(title, request.user.id)
-    return HttpResponseRedirect("/?m=Commentary-Links-Rebuilt-on-%s" % title)
+    return HttpResponseRedirect("/?m=Automatic-Links-Rebuilt-on-%s" % title)
 
 
 @staff_member_required
