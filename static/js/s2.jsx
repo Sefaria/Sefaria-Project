@@ -3688,6 +3688,9 @@ var SearchResultList = React.createClass({
                     <span className="he">{totalWithCommas} תוצאות</span>
                     {(this.state.sheet_total > 0 && this.state.text_total > 0) ? totalBreakdown : null}
                 </div>
+                <SearchFilters
+                  aggregations = {this.state.aggregations}
+                />
                 {this.state.text_hits.map(function(result) {
                     return (<SearchTextResult
                               data={result}
@@ -3706,6 +3709,233 @@ var SearchResultList = React.createClass({
     }
 });
 
+const UNSELECTED = 0;
+const SELECTED = 1;
+const PARTIAL = 2;
+
+var SearchFilters = React.createClass({
+  propTypes: {
+    aggregations: React.PropTypes.object
+  },
+  getInitialState: function() {
+
+  },
+  getDefaultProps: function() {
+    return {
+      aggregations: {}
+    };
+  },
+  componentWillMount() {
+    this.buildFilterTree(this.props.aggregations.category.buckets);
+  },
+  componentWillReceiveProps(newProps) {
+    // Save current filters
+    // this.props
+    // this.buildFilterTree(newProps.aggregations.category.buckets);
+
+  },
+  buildFilterTree(filters) {
+    var rawTree = {};
+    //Add already applied filters w/ empty doc count?
+    filters.each(f => this.addAvailableFilter(rawTree, f["key"], {"doc_count":f["doc_count"]}));
+    this._build(rawTree);
+  },
+  addAvailableFilter: function(rawTree, key, data) {
+    //key is a '/' separated key list, data is an arbitrary object
+    //Based on http://stackoverflow.com/a/11433067/213042
+    var keys = key.split("/");
+    var base = rawTree;
+
+    // If a value is given, remove the last name and keep it for later:
+    var lastName = arguments.length === 2 ? keys.pop() : false;
+
+    // Walk the hierarchy, creating new objects where needed.
+    // If the lastName was removed, then the last object is not set yet:
+    var i;
+    for(i = 0; i < keys.length; i++ ) {
+        base = base[ keys[i] ] = base[ keys[i] ] || {};
+    }
+
+    // If a value was given, set it to the last name:
+    if( lastName ) {
+        base = base[ lastName ] = data;
+    }
+
+    // Could return the last object in the hierarchy.
+    // return base;
+  },
+  _aggregate: function(rawTree) {
+    //Iterates the raw tree to aggregate doc_counts from the bottom up
+    //Nod to http://stackoverflow.com/a/17546800/213042
+    walker("_root", rawTree);
+    function walker(key, branch) {
+        if (branch !== null && typeof branch === "object") {
+            // Recurse into children
+            $.each(branch, walker);
+            // Do the summation with a hacked object 'reduce'
+            if ((!("doc_count" in branch)) || (branch["doc_count"] === 0)) {
+                branch["doc_count"] = Object.keys(branch).reduce(function (previous, key) {
+                    if (typeof branch[key] === "object" && "doc_count" in branch[key]) {
+                        previous += branch[key].doc_count;
+                    }
+                    return previous;
+                }, 0);
+            }
+        }
+    }
+  },
+
+  _build: function(rawTree) {
+    //Aggregate counts, then sort rawTree into FilterNodes and add Hebrew using sjs.toc as reference
+    //Nod to http://stackoverflow.com/a/17546800/213042
+    this._aggregate(rawTree);
+    this.doc_count = rawTree.doc_count;
+    this.registry[this.getId()] = this;
+
+    var path = [];
+
+    //Manually add base commentary branch
+    var commentaryNode = new sjs.FilterNode();
+    var rnode = rawTree["Commentary"];
+    if (rnode) {
+        $.extend(commentaryNode, {
+            "title": "Commentary",
+            "path": "Commentary",
+            "heTitle": "מפרשים",
+            "doc_count": rnode.doc_count
+        });
+        ftree.registry[commentaryNode.path] = commentaryNode;
+    }
+
+    //End commentary base hack
+
+    for(var j = 0; j < sjs.toc.length; j++) {
+        var b = walk(sjs.toc[j]);
+        if (b) this.append(b)
+    }
+    if (rnode) this.append(commentaryNode);
+
+    function walk(branch, parentNode) {
+        var node = new sjs.FilterNode();
+
+        if("category" in branch) { // Category node
+            if(branch["category"] == "Commentary") { // Special case commentary
+
+                path.unshift(branch["category"]);  // Place "Commentary" at the *beginning* of the path
+                 $.extend(node, {
+                     "title": parentNode.title,
+                     "path": path.join("/"),
+                     "heTitle": parentNode.heTitle
+                 });
+            } else {
+                path.push(branch["category"]);  // Place this category at the *end* of the path
+                $.extend(node, {
+                   "title": path.slice(-1)[0],
+                   "path": path.join("/"),
+                   "heTitle": branch["heCategory"]
+                });
+            }
+            for(var j = 0; j < branch["contents"].length; j++) {
+                var b = walk(branch["contents"][j], node);
+                if (b) node.append(b)
+            }
+        }
+        else if ("title" in branch) { // Text Node
+            path.push(branch["title"]);
+            $.extend(node, {
+               "title": path.slice(-1)[0],
+               "path": path.join("/"),
+               "heTitle": branch["heTitle"]
+            });
+        }
+
+        try {
+            var rawnode = ftree.rawTree;
+            var i;
+            for (i = 0; i < path.length; i++) {
+                //For TOC nodes that we don't have results for, this will throw an exception, caught below.
+                rawnode = rawnode[path[i]];
+            }
+
+            node["doc_count"] = rawnode.doc_count;
+            //Do we really need both?
+            ftree.registry[node.getId()] = node;
+            ftree.registry[node.path] = node;
+
+            if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
+                commentaryNode.append(node);
+                path.shift();
+                return false;
+            }
+
+            path.pop();
+            return node;
+        }
+        catch (e) {
+            if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
+                path.shift();
+            } else {
+                path.pop();
+            }
+            return false;
+        }
+    }
+  },
+  handleCategoryClick: function() {
+
+  },
+  handleTextClick: function() {
+
+  },
+  render: function() {
+
+  }
+});
+
+var SearchFilter = React.createClass({
+  propTypes: {
+    title: React.PropTypes.string.isRequired,
+    heTitle: React.PropTypes.string.isRequired,
+    docCount: React.PropTypes.number.isRequired,
+    selected: React.PropTypes.number.isRequired, //selected: 0, unselected: 1, partial: 2
+    updateSelected: React.PropTypes.func.isRequired
+  },
+  getInitialState: function() {
+    return {};
+  },
+  getDefaultProps: function() {
+    return {
+
+    };
+  },
+  isSelected: function() {
+      return (this.props.selected == SELECTED);
+  },
+  isPartial: function() {
+      return (this.props.selected == PARTIAL);
+  },
+  isUnselected: function() {
+      return (this.props.selected == UNSELECTED);
+  },
+  setSelected : function() {
+      this.props.updateSelected(SELECTED);
+  },
+  setUnselected : function() {
+      this.props.updateSelected(UNSELECTED);
+  },
+  setPartial : function() {
+      this.props.updateSelected(PARTIAL);
+  },
+  render: function() {
+    return(
+      <li>
+        <input type="checkbox" className="filter" checked={this.isSelected()} indeterminate={this.isPartial()}/>
+        <span class="en">{this.props.title} ({this.props.docCount}) </span>
+        <span class="he" dir="rtl">{this.props.heTitle} ({this.props.docCount})</span>
+      </li>
+      )
+  }
+});
 
 var SearchTextResult = React.createClass({
     propTypes: {

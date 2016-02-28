@@ -977,4 +977,4 @@ sjs.categoryColor = function(cat) {
     return sjs.categoryColors[cat];
   }
   return "transparent";
-}
+};
