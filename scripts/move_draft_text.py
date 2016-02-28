@@ -49,7 +49,7 @@ class ServerTextCopier(object):
 
     def do_copy(self):
         self.load_objects()
-        """if self._post_index:
+        if self._post_index:
             if isinstance(self._index_obj, CommentaryIndex):
                 idx_contents = self._index_obj.c_index.contents(raw=True)
                 idx_title = self._index_obj.c_index.title
@@ -78,7 +78,7 @@ class ServerTextCopier(object):
                 self._make_post_request_to_server(self._prepare_version_attrs_api_call(ver.title, ver.language, ver.versionTitle), flags)
         if self._post_links:
             links = [l.contents() for l in self._linkset]
-            self._make_post_request_to_server(self._prepare_links_api_call(), links)"""
+            self._make_post_request_to_server(self._prepare_links_api_call(), links)
 
     def _prepare_index_api_call(self, index_title):
         return 'api/v2/raw/index/{}'.format(index_title.replace(" ", "_"))
