@@ -214,7 +214,7 @@ class BaseStructureAutoLinker(AbstractStructureAutoLinker):
             raise Exception('Text must have a base text to link to')
 
 
-class IncrementBaseDepthAutoLinker(BaseStructureAutoLinker):
+class CommentaryAutoLinker(BaseStructureAutoLinker):
     """
     The classic linker, takes a n-dpeth text and
     links each group of terminal segments to the same n-1 depth terminal segment of the base text
@@ -226,7 +226,7 @@ class IncrementBaseDepthAutoLinker(BaseStructureAutoLinker):
     for each segment of text (comment) that is in 'Sforno on Kohelet 3:2'.
     """
     def __init__(self, oref, **kwargs):
-        super(IncrementBaseDepthAutoLinker, self).__init__(oref, 1, **kwargs)
+        super(CommentaryAutoLinker, self).__init__(oref, 1, **kwargs)
 
 
 class MatchBaseDepthAutoLinker(BaseStructureAutoLinker):

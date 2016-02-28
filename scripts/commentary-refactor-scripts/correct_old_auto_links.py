@@ -69,7 +69,8 @@ def correct_commentary_links(oref, text=None, **kwargs):
                         link.type = 'commentary'
                     if getattr(link, 'generated_by', '') != "add_commentary_links":
                         fixed = True
-                        link.generated_by = "add_commentary_links"
+                        #link.generated_by = "add_commentary_links"
+                        link.generated_by = "CommentaryAutoLinker"
                     if fixed:
                         fixed_links += [tref]
                     try:
