@@ -237,6 +237,29 @@ sjs.library = {
     var oref = this.ref(ref);
     return oref ? oref.sectionRef : null;
   },
+  splitSpanningRef: function(ref) {
+    // Returns an array of non-spanning refs which correspond to the spanning `ref`
+    // e.g. "Genesis 1:1-2" -> ["Genesis 1:1", "Genesis 1:2"]
+    var oref = parseRef(ref);
+    var isDepth1 = oref.sections.length == 1;
+    if (!isDepth1 && oref.sections[oref.sections.length - 2] !== oref.toSections[oref.sections.length - 2]) {
+      // TODO handle ranging refs, which requires knowledge of the segment count of each included section
+      // i.e., in "Shabbat 2a:5-2b:8" what is the last segment of Shabbat 2a?
+      // For now, just return the first non-spanning ref.
+      oref.toSections = oref.sections;
+      return [humaRef(makeRef(oref))];
+    } else {
+      var refs  = [];
+      var start = oref.sections[oref.sections.length-1];
+      var end   = oref.toSections[oref.sections.length-1];
+      for (var i = start; i <= end; i++) {
+        oref.sections[oref.sections.length-1]   = i;
+        oref.toSections[oref.sections.length-1] = i;
+        refs.push(humanRef(makeRef(oref)));
+      }
+      return refs;
+    }
+  },
   _links: {},
   links: function(ref, cb) {
     // Returns a list of links known for `ref`.
@@ -285,13 +308,16 @@ sjs.library = {
     // For a set of items from the API, save each set split by the specific ref the items points to.
     // E.g, API is called on "Genesis 1", this function also stores the data in buckets like "Genesis 1:1", "Genesis 1:2" etc.
     var splitItems = {}; // Aggregate links by anchorRef
-    // TODO account for links to ranges
     for (var i=0; i < data.length; i++) {
       var ref = data[i].anchorRef;
-      if (ref in splitItems) {
-        splitItems[ref].push(data[i]);
-      } else {
-        splitItems[ref] = [data[i]];
+      var refs = sjs.library.splitSpanningRef(ref);
+      for (var j = 0; j < refs.length; j++) {
+        ref = refs[j];
+        if (ref in splitItems) {
+          splitItems[ref].push(data[i]);
+        } else {
+          splitItems[ref] = [data[i]];
+        }
       }
     }
     for (var ref in splitItems) {
@@ -431,21 +457,18 @@ sjs.library = {
   },
   _notes: {},
   notes: function(ref, cb) {
-      var notes = null;
-      if (typeof ref == "string") {
-        if (ref in this._notes) { 
-          notes = this._notes[ref];
-        }
-      } else {
-        var combinedNotes= [];
-        ref.map(function(r) {
-          var newNotes = sjs.library.notes(r);
-          combinedNotes= combinedNotes.concat(newNotes);
-        });
-        if (combinedNotes.length > 0) { // TODO this isn't quite right. What if we had data for one of the refs in `ref` but not for another?
-          notes = combinedNotes; 
-        }
+    var notes = null;
+    if (typeof ref == "string") {
+      if (ref in this._notes) { 
+        notes = this._notes[ref];
       }
+    } else {
+      var notes = [];
+      ref.map(function(r) {
+        var newNotes = sjs.library.notes(r);
+        notes = newNotes ? notes.concat(newNotes) : notes;
+      });
+    }
     if (notes) {
       if (cb) { cb(notes); }
     } else {
@@ -485,8 +508,6 @@ sjs.library = {
   _relatedSummaries: {},
   relatedSummary: function(ref) {
     // Returns a summary object of all categories of related content.
-    console.log("Related Summary")
-    console.log(ref)
     if (typeof ref == "string") {
       if (ref in this._relatedSummaries) { return this._relatedSummaries[ref]; }
       var sheets = this.sheets.sheetsByRef(ref) || [];
@@ -501,10 +522,6 @@ sjs.library = {
         notes = newNotes ? notes.concat(newNotes) : notes;
       });
     }
-    console.log("Sheets")
-    console.log(sheets)
-    console.log("Notes")
-    console.log(notes)
 
     var summary           = this.linkSummary(ref);
     var commmunityContent = [sheets, notes].filter(function(section) { return section.length > 0; } ).map(function(section) {

@@ -1222,7 +1222,7 @@ display: block;margin: 0 auto;}
   z-index: 102;
   cursor: pointer;
 }
-.textRange {
+.textRange, .noteText {
   -moz-user-select: text;
   -khtml-user-select: text;
   -webkit-user-select: text;

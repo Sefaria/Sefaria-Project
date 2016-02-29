@@ -3799,6 +3799,7 @@ var TextList = React.createClass({
             )
           );
         }) : React.createElement(LoadingMessage, null);
+        content = content.length ? content : React.createElement(LoadingMessage, { message: "No sheets here." });
       } else if (filter.compare(["Notes"])) {
         var notes = sjs.library.notes(refs);
         var content = notes ? notes.map(function (note) {
@@ -3823,6 +3824,7 @@ var TextList = React.createClass({
             React.createElement("span", { className: "noteText", dangerouslySetInnerHTML: { __html: note.text } })
           );
         }) : React.createElement(LoadingMessage, null);
+        content = content.length ? content : React.createElement(LoadingMessage, { message: "No notes here." });
       } else {
         // Viewing Text Connections
         var sectionLinks = sjs.library.links(sectionRef);

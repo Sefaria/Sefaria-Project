@@ -3144,7 +3144,7 @@ var TextList = React.createClass({
     var showAllFilters = !filter.length;
     if (!showAllFilters) {
       if (filter.compare(["Sheets"])) {
-        var sheets = sjs.library.sheets.sheetsByRef(refs);
+        var sheets  = sjs.library.sheets.sheetsByRef(refs);
         var content = sheets ? sheets.map(function(sheet) {
           return (
             <div className="sheet" key={sheet.sheetUrl}>
@@ -3156,9 +3156,10 @@ var TextList = React.createClass({
               <a href={sheet.sheetUrl} className="sheetTitle">{sheet.title}</a>
             </div>);
         }) : (<LoadingMessage />);
+        content = content.length ? content : <LoadingMessage message="No sheets here." />;
 
       } else if (filter.compare(["Notes"])) {
-        var notes = sjs.library.notes(refs);
+        var notes   = sjs.library.notes(refs);
         var content = notes ? notes.map(function(note) {
           return (
             <div className="note" key={note._id}>
@@ -3170,6 +3171,7 @@ var TextList = React.createClass({
               <span className="noteText" dangerouslySetInnerHTML={{__html:note.text}}></span>
             </div>) 
         }) : <LoadingMessage />;
+        content = content.length ? content : <LoadingMessage message="No notes here." />;
       } else {
         // Viewing Text Connections
         var sectionLinks = sjs.library.links(sectionRef);
