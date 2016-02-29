@@ -17,11 +17,25 @@ body {
 #fileControls {
 	text-align: right;
 	line-height: 8px;
+	position: fixed;
+    bottom: 0;
+	z-index: 100;
+	background-color: #ccc;
+    height: 50px;
+    left: 0;
+    width: 100%;
+	border-top: 1px solid #777;
+}
+
+#fileControlMsg {
+	text-align: center;
+    margin-top: 20px;
 }
 
 #fileControls .btn {
 	position: relative;
-	top: -18px;
+	right: 20px;
+	top:17px
 }
 
 #link {
@@ -50,6 +64,20 @@ body {
 	border: 1px solid #bce8f1;
 	color: #31708f;
 }
+
+#lastSaved {
+	position: fixed;
+	z-index: 100;
+	top: 47px;
+	right: 8px;
+	text-align: center;
+	font-size: 12px;
+	padding: 7px 5px;
+	border-radius: 5px;
+	color: #888;
+	background-color: #eee;
+}
+
 
 #sheet {
 	background: white;
@@ -995,10 +1023,6 @@ a:active {
 	#sheetHeader {
 		width: 100%;
 		margin-left: 0;
-	}
-
-	#fileControls .btn {
-		top: -18px;
 	}
 
 	#controls {
