@@ -3452,16 +3452,16 @@ var SearchPage = React.createClass({
     },
     componentWillReceiveProps: function(nextProps) {
       if ((nextProps.initialSettings.query !== this.state.query)
-      //|| (nextProps.initialSettings.filters.length !== this.state.filters.length)
-      //|| (nextProps.initialSettings.filters.every((v,i) => v === this.state.filters[i]))
+      || (nextProps.initialSettings.filters.length !== this.state.filters.length)
+      || (nextProps.initialSettings.filters.every((v,i) => v === this.state.filters[i]))
       ) {
-        this.updateQuery(nextProps.initialSettings.query);
+        this.updateQuery(nextProps.initialSettings.query, nextProps.initialSettings.filters);
       }      
     },
-    updateQuery: function(query) {
-        this.setState({query: query});
+    updateQuery: function(query, filters) {
+        this.setState({query: query, filters: filters});
         if (this.props.onQueryChange) {
-            this.props.onQueryChange(query);
+            this.props.onQueryChange(query, filters);
         }
     },
     updateRunningQuery: function(ajax) {
@@ -3499,6 +3499,7 @@ var SearchPage = React.createClass({
                               <SearchResultList
                                   query = { this.state.query }
                                   page = { this.state.page }
+                                  appliedFilters = {this.state.filters}
                                   updateRunningQuery = { this.updateRunningQuery }
                                   onResultClick={this.props.onResultClick} />
                           </div>
@@ -3548,16 +3549,18 @@ var SearchBar = React.createClass({
 
 var SearchResultList = React.createClass({
     propTypes: {
-        query: React.PropTypes.string,
-        page: React.PropTypes.number,
-        size: React.PropTypes.number,
+        query:              React.PropTypes.string,
+        appliedFilters:     React.PropTypes.array,
+        page:               React.PropTypes.number,
+        size:               React.PropTypes.number,
         updateRunningQuery: React.PropTypes.func,
-        onResultClick: React.PropTypes.func
+        onResultClick:      React.PropTypes.func
     },
     getDefaultProps: function() {
         return {
             page: 1,
-            size: 100
+            size: 100,
+            filters: []
         };
     },
     getInitialState: function() {
@@ -3692,15 +3695,19 @@ var SearchResultList = React.createClass({
             <span className="en">({totalTextsWithCommas} {(this.state.text_total > 1) ? "Texts":"Text"}, {totalSheetsWithCommas} {(this.state.sheet_total > 1)?"Sheets":"Sheet"})</span>
           </span>);
 
+        var enFilterLine = (this.state.filters.length)?(": " + this.state.filters.map(f => f.title).join(", ")):"";
+        var heFilterLine = (this.state.filters.length)?(": " + this.state.filters.map(f => f.heTitle).join(", ")):"";
+
         return (
             <div>
                 <div className="results-count" key="results-count">
-                    <span className="en">{totalWithCommas} Results</span>
-                    <span className="he">{totalWithCommas} תוצאות</span>
+                    <span className="en">{totalWithCommas} Results{enFilterLine}</span>
+                    <span className="he">{totalWithCommas} תוצאות{heFilterLine}</span>
                     {(this.state.sheet_total > 0 && this.state.text_total > 0) ? totalBreakdown : null}
                 </div>
                 <SearchFilters
-                  aggregations = {this.state.aggregations}
+                  availableFilters = {this.state.aggregations}
+                  appliedFilters = {this.props.appliedFilters}
                 />
                 {this.state.text_hits.map(function(result) {
                     return (<SearchTextResult
@@ -3726,7 +3733,8 @@ const PARTIAL = 2;
 
 var SearchFilters = React.createClass({
   propTypes: {
-    aggregations: React.PropTypes.object
+    appliedFilters:   React.PropTypes.array,
+    availableFilters: React.PropTypes.object
   },
   getInitialState: function() {
     return {
