@@ -174,7 +174,6 @@ body.dark {
   margin-top: 54px;
 }
 .readerPanelBox + .readerPanelBox {
-  border-left: 1px solid #ddd;
 }
 .readerPanel {
   position: relative;
