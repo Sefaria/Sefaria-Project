@@ -757,6 +757,7 @@ var ReaderPanel = React.createClass({
     initialHighlightedRefs: React.PropTypes.array,
     initialMenu:            React.PropTypes.string,
     initialQuery:           React.PropTypes.string,
+    initialSearchFilters:   React.PropTypes.array,
     initialSheetsTag:       React.PropTypes.string,
     initialState:           React.PropTypes.object, // if present, trumps all props above
     setCentralState:        React.PropTypes.func,
@@ -804,6 +805,7 @@ var ReaderPanel = React.createClass({
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag:   this.props.initialSheetsTag || null,
       searchQuery:          this.props.initialQuery || null,
+      searchFilters:        this.props.initialSearchFilters || [],
       displaySettingsOpen:  false
     }
   },
@@ -832,7 +834,8 @@ var ReaderPanel = React.createClass({
       this.setState({
         navigationCategories: nextProps.initialNavigationCategories || [],
         navigationSheetTag:   nextProps.initialSheetsTag || null,
-        searchQuery:          nextProps.initialQuery || null
+        searchQuery:          nextProps.initialQuery || null,
+        searchFilters:        nextProps.initialSearchFilters || [],
       });
     }
   },
@@ -930,6 +933,7 @@ var ReaderPanel = React.createClass({
       // If there's no content to show, return to home
       menuOpen: this.state.refs.slice(-1)[0] ? null: "home",
       searchQuery: null,
+      searchFilters: [],
       navigationCategories: null,
       navigationSheetTag: null
     };
@@ -939,6 +943,7 @@ var ReaderPanel = React.createClass({
     this.conditionalSetState({
       menuOpen: menu,
       searchQuery: null,
+      searchFilters: [],
       navigationCategories: null,
       navigationSheetTag: null
     });
@@ -949,8 +954,8 @@ var ReaderPanel = React.createClass({
   setSheetTag: function (tag) {
     this.conditionalSetState({navigationSheetTag: tag});
   },
-  setSearchQuery: function (query) {
-    this.conditionalSetState({searchQuery: query});
+  setSearchQuery: function (query, filters) {
+    this.conditionalSetState({searchQuery: query, searchFilters: filters || []});
   },
   setFilter: function(filter, updateRecent) {
     // Sets the current filter for Connected Texts (TextList)
@@ -989,10 +994,11 @@ var ReaderPanel = React.createClass({
       this.showBaseText(ref);
     }
   },
-  openSearch: function(query) {
+  openSearch: function(query, filters) {
     this.conditionalSetState({
       menuOpen: "search",
-      searchQuery: query
+      searchQuery: query,
+      searchFilters: filters || []
     });
   },
   openDisplaySettings: function() {
@@ -1154,7 +1160,7 @@ var ReaderPanel = React.createClass({
                     showBaseText={this.showBaseText} />);
 
     } else if (this.state.menuOpen === "search") {
-      var settings = {query: this.state.searchQuery, page: 1};
+      var settings = {query: this.state.searchQuery, page: 1, filters: this.state.searchFilters};
       var menu = (<SearchPage
                     initialSettings={settings}
                     settings={clone(this.state.settings)}
@@ -3426,7 +3432,8 @@ var SearchPage = React.createClass({
     propTypes: {
         initialSettings : React.PropTypes.shape({
             query: React.PropTypes.string,
-            page: React.PropTypes.number
+            page: React.PropTypes.number,
+            filters: React.PropTypes.array
         }),
         settings:      React.PropTypes.object,
         close:         React.PropTypes.func,
@@ -3438,12 +3445,16 @@ var SearchPage = React.createClass({
         return {
             query: this.props.initialSettings.query,
             page: this.props.initialSettings.page || 1,
+            filters: this.props.initialSettings.filters || [],
             runningQuery: null,
             isQueryRunning: false
         }
     },
     componentWillReceiveProps: function(nextProps) {
-      if (nextProps.initialSettings.query !== this.state.query) {
+      if ((nextProps.initialSettings.query !== this.state.query)
+      //|| (nextProps.initialSettings.filters.length !== this.state.filters.length)
+      //|| (nextProps.initialSettings.filters.every((v,i) => v === this.state.filters[i]))
+      ) {
         this.updateQuery(nextProps.initialSettings.query);
       }      
     },
@@ -3718,7 +3729,13 @@ var SearchFilters = React.createClass({
     aggregations: React.PropTypes.object
   },
   getInitialState: function() {
-
+    return {
+      docCount: 0,
+      rawTree: {},
+      filters: [],
+      openedCategory: null,
+      openedCategoryBooks: []
+    }
   },
   getDefaultProps: function() {
     return {
@@ -3735,16 +3752,16 @@ var SearchFilters = React.createClass({
 
   },
   buildFilterTree(filters) {
-    var rawTree = {};
     //Add already applied filters w/ empty doc count?
-    filters.each(f => this.addAvailableFilter(rawTree, f["key"], {"doc_count":f["doc_count"]}));
-    this._build(rawTree);
+    filters.each(f => this.addAvailableFilter(f["key"], {"doc_count":f["doc_count"]}));
+    this._aggregate();
+    this._build();
   },
-  addAvailableFilter: function(rawTree, key, data) {
+  addAvailableFilter: function(key, data) {
     //key is a '/' separated key list, data is an arbitrary object
     //Based on http://stackoverflow.com/a/11433067/213042
     var keys = key.split("/");
-    var base = rawTree;
+    var base = this.state.rawTree;
 
     // If a value is given, remove the last name and keep it for later:
     var lastName = arguments.length === 2 ? keys.pop() : false;
@@ -3764,11 +3781,11 @@ var SearchFilters = React.createClass({
     // Could return the last object in the hierarchy.
     // return base;
   },
-  _aggregate: function(rawTree) {
+  _aggregate: function() {
     //Iterates the raw tree to aggregate doc_counts from the bottom up
     //Nod to http://stackoverflow.com/a/17546800/213042
-    walker("_root", rawTree);
-    function walker(key, branch) {
+    walker(this.state.rawTree);
+    function walker(branch) {
         if (branch !== null && typeof branch === "object") {
             // Recurse into children
             $.each(branch, walker);
@@ -3785,15 +3802,14 @@ var SearchFilters = React.createClass({
     }
   },
 
-  _build: function(rawTree) {
+  _build: function() {
     //Aggregate counts, then sort rawTree into FilterNodes and add Hebrew using sjs.toc as reference
     //Nod to http://stackoverflow.com/a/17546800/213042
-    this._aggregate(rawTree);
-    this.doc_count = rawTree.doc_count;
-    this.registry[this.getId()] = this;
-
+    this.state.doc_count = this.state.rawTree.doc_count;
+    //this.registry[this.getId()] = this;
     var path = [];
 
+    /*
     //Manually add base commentary branch
     var commentaryNode = new sjs.FilterNode();
     var rnode = rawTree["Commentary"];
@@ -3804,22 +3820,22 @@ var SearchFilters = React.createClass({
             "heTitle": "מפרשים",
             "doc_count": rnode.doc_count
         });
-        ftree.registry[commentaryNode.path] = commentaryNode;
+        //ftree.registry[commentaryNode.path] = commentaryNode;
     }
-
     //End commentary base hack
+    */
 
     for(var j = 0; j < sjs.toc.length; j++) {
-        var b = walk(sjs.toc[j]);
-        if (b) this.append(b)
+        var b = walk(sjs.toc[j]).bind(this);
+        if (b) this.state.filters.push(b);
     }
-    if (rnode) this.append(commentaryNode);
+    //if (rnode) this.state.children.append(commentaryNode);
 
     function walk(branch, parentNode) {
-        var node = new sjs.FilterNode();
+        var node = {children: []};
 
         if("category" in branch) { // Category node
-            if(branch["category"] == "Commentary") { // Special case commentary
+            /*if(branch["category"] == "Commentary") { // Special case commentary
 
                 path.unshift(branch["category"]);  // Place "Commentary" at the *beginning* of the path
                  $.extend(node, {
@@ -3827,17 +3843,17 @@ var SearchFilters = React.createClass({
                      "path": path.join("/"),
                      "heTitle": parentNode.heTitle
                  });
-            } else {
+            } else {*/
                 path.push(branch["category"]);  // Place this category at the *end* of the path
                 $.extend(node, {
                    "title": path.slice(-1)[0],
                    "path": path.join("/"),
                    "heTitle": branch["heCategory"]
                 });
-            }
+            //}
             for(var j = 0; j < branch["contents"].length; j++) {
-                var b = walk(branch["contents"][j], node);
-                if (b) node.append(b)
+                var b = walk(branch["contents"][j], node).bind(this);
+                if (b) node.children.push(b);
             }
         }
         else if ("title" in branch) { // Text Node
@@ -3850,33 +3866,35 @@ var SearchFilters = React.createClass({
         }
 
         try {
-            var rawnode = ftree.rawTree;
+            var rawnode = this.state.rawTree;
             var i;
             for (i = 0; i < path.length; i++) {
                 //For TOC nodes that we don't have results for, this will throw an exception, caught below.
                 rawnode = rawnode[path[i]];
             }
 
-            node["doc_count"] = rawnode.doc_count;
+            node["docCount"] = rawnode.doc_count;
             //Do we really need both?
-            ftree.registry[node.getId()] = node;
-            ftree.registry[node.path] = node;
-
-            if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
+            //ftree.registry[node.getId()] = node;
+            //ftree.registry[node.path] = node;
+            /*
+              if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
                 commentaryNode.append(node);
                 path.shift();
                 return false;
             }
-
+            */
             path.pop();
             return node;
         }
         catch (e) {
-            if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
+          /*
+          if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
                 path.shift();
             } else {
-                path.pop();
-            }
+            */
+            path.pop();
+            //}
             return false;
         }
     }
@@ -3889,6 +3907,28 @@ var SearchFilters = React.createClass({
   },
   render: function() {
 
+    return (<div>
+      {this.state.filters.map(function(filter) {
+          return (<SearchFilter
+              title={filter.title}
+              heTitle={filter.heTitle}
+              docCount={filter.docCount}
+              selected={0}
+              updateSelected={this.handleCategoryClick}
+              path={filter.path}
+              key={filter.path}/>);
+      }.bind(this))}
+      {this.state.openedCategoryBooks.map(function(filter) {
+          return (<SearchFilter
+              title={filter.title}
+              heTitle={filter.heTitle}
+              docCount={filter.docCount}
+              selected={0}
+              updateSelected={this.handleTextClick}
+              path={filter.path}
+              key={filter.path}/>);
+      }.bind(this))}
+    </div>)
   }
 });
 
@@ -3908,6 +3948,13 @@ var SearchFilter = React.createClass({
 
     };
   },
+  // Can't set indeterminate in the render phase.  https://github.com/facebook/react/issues/1798
+  componentDidMount: function() {
+    React.findDOMNode(this).indeterminate = this.isPartial();
+  },
+  componentDidUpdate: function() {
+    React.findDOMNode(this).indeterminate = this.isPartial();
+  },
   isSelected: function() {
       return (this.props.selected == SELECTED);
   },
@@ -3917,6 +3964,7 @@ var SearchFilter = React.createClass({
   isUnselected: function() {
       return (this.props.selected == UNSELECTED);
   },
+  /*
   setSelected : function() {
       this.props.updateSelected(SELECTED);
   },
@@ -3926,10 +3974,11 @@ var SearchFilter = React.createClass({
   setPartial : function() {
       this.props.updateSelected(PARTIAL);
   },
+  */
   render: function() {
     return(
-      <li>
-        <input type="checkbox" className="filter" checked={this.isSelected()} indeterminate={this.isPartial()}/>
+      <li onclick={this.updateSelected}>
+        <input type="checkbox" className="filter" checked={this.isSelected()}/>
         <span class="en">{this.props.title} ({this.props.docCount}) </span>
         <span class="he" dir="rtl">{this.props.heTitle} ({this.props.docCount})</span>
       </li>
