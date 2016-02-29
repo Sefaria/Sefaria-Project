@@ -3148,7 +3148,9 @@ var TextList = React.createClass({
         var content = sheets ? sheets.map(function(sheet) {
           return (
             <div className="sheet" key={sheet.sheetUrl}>
-              <img className="sheetAuthorImg" src={sheet.ownerImageUrl} />
+              <a href={sheet.ownerProfileUrl}>
+                <img className="sheetAuthorImg" src={sheet.ownerImageUrl} />
+              </a>
               <div className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</div>
               <a href={sheet.ownerProfileUrl} className="sheetAuthor">{sheet.ownerName}</a>
               <a href={sheet.sheetUrl} className="sheetTitle">{sheet.title}</a>
@@ -3156,6 +3158,18 @@ var TextList = React.createClass({
         }) : (<LoadingMessage />);
 
       } else if (filter.compare(["Notes"])) {
+        var notes = sjs.library.notes(refs);
+        var content = notes ? notes.map(function(note) {
+          return (
+            <div className="note" key={note._id}>
+              <a href={note.ownerProfileUrl}>
+                <img className="noteAuthorImg" src={note.ownerImageUrl} />
+              </a>
+              <a href={note.ownerProfileUrl} className="noteAuthor">{note.ownerName}</a>
+              <div className="noteTitle">{note.title}</div>
+              <span className="noteText" dangerouslySetInnerHTML={{__html:note.text}}></span>
+            </div>) 
+        }) : <LoadingMessage />;
       } else {
         // Viewing Text Connections
         var sectionLinks = sjs.library.links(sectionRef);

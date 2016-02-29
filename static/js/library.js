@@ -433,8 +433,8 @@ sjs.library = {
   notes: function(ref, cb) {
       var notes = null;
       if (typeof ref == "string") {
-        if (ref in this.notes) { 
-          notes = this.notes[ref];
+        if (ref in this._notes) { 
+          notes = this._notes[ref];
         }
       } else {
         var combinedNotes= [];

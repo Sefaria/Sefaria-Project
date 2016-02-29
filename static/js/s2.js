@@ -3775,7 +3775,11 @@ var TextList = React.createClass({
           return React.createElement(
             "div",
             { className: "sheet", key: sheet.sheetUrl },
-            React.createElement("img", { className: "sheetAuthorImg", src: sheet.ownerImageUrl }),
+            React.createElement(
+              "a",
+              { href: sheet.ownerProfileUrl },
+              React.createElement("img", { className: "sheetAuthorImg", src: sheet.ownerImageUrl })
+            ),
             React.createElement(
               "div",
               { className: "sheetViews" },
@@ -3795,7 +3799,31 @@ var TextList = React.createClass({
             )
           );
         }) : React.createElement(LoadingMessage, null);
-      } else if (filter.compare(["Notes"])) {} else {
+      } else if (filter.compare(["Notes"])) {
+        var notes = sjs.library.notes(refs);
+        var content = notes ? notes.map(function (note) {
+          return React.createElement(
+            "div",
+            { className: "note", key: note._id },
+            React.createElement(
+              "a",
+              { href: note.ownerProfileUrl },
+              React.createElement("img", { className: "noteAuthorImg", src: note.ownerImageUrl })
+            ),
+            React.createElement(
+              "a",
+              { href: note.ownerProfileUrl, className: "noteAuthor" },
+              note.ownerName
+            ),
+            React.createElement(
+              "div",
+              { className: "noteTitle" },
+              note.title
+            ),
+            React.createElement("span", { className: "noteText", dangerouslySetInnerHTML: { __html: note.text } })
+          );
+        }) : React.createElement(LoadingMessage, null);
+      } else {
         // Viewing Text Connections
         var sectionLinks = sjs.library.links(sectionRef);
         var links = sectionLinks.filter(function (link) {
