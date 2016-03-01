@@ -3726,7 +3726,7 @@ var SearchResultList = React.createClass({
                     {(this.state.sheet_total > 0 && this.state.text_total > 0) ? totalBreakdown : null}
                 </div>
                 <SearchFilters
-                  availableFilters = {this.state.aggregations}
+                  aggregations = {this.state.aggregations}
                   appliedFilters = {this.props.appliedFilters}
                   updateAppliedFilters = {this.props.updateAppliedFilters}
                 />
@@ -3755,7 +3755,7 @@ const PARTIAL = 2;
 var SearchFilters = React.createClass({
   propTypes: {
     appliedFilters:       React.PropTypes.array,
-    availableFilters:     React.PropTypes.object,
+    aggregations:         React.PropTypes.object,
     updateAppliedFilters: React.PropType.func
   },
   getInitialState: function() {
@@ -3773,7 +3773,7 @@ var SearchFilters = React.createClass({
     };
   },
   componentWillMount() {
-    this.buildFilterTree(this.props.aggregations.category.buckets);
+    this._buildFilterTree();
   },
   componentWillReceiveProps(newProps) {
     // Save current filters
@@ -3781,13 +3781,15 @@ var SearchFilters = React.createClass({
     // this.buildFilterTree(newProps.aggregations.category.buckets);
 
   },
-  buildFilterTree(filters) {
+  _buildFilterTree() {
     //Add already applied filters w/ empty doc count?
-    filters.each(f => this.addAvailableFilter(f["key"], {"doc_count":f["doc_count"]}));
+    this.props.aggregations.category.buckets.each(
+        f => this._addAvailableFilter(f["key"], {"doc_count":f["doc_count"]})
+    );
     this._aggregate();
     this._build();
   },
-  addAvailableFilter: function(key, data) {
+  _addAvailableFilter: function(key, data) {
     //key is a '/' separated key list, data is an arbitrary object
     //Based on http://stackoverflow.com/a/11433067/213042
     var keys = key.split("/");
@@ -3833,7 +3835,7 @@ var SearchFilters = React.createClass({
   },
 
   _build: function() {
-    //Aggregate counts, then sort rawTree into FilterNodes and add Hebrew using sjs.toc as reference
+    //Aggregate counts, then sort rawTree into filter objects and add Hebrew using sjs.toc as reference
     //Nod to http://stackoverflow.com/a/17546800/213042
     this.state.doc_count = this.state.rawTree.doc_count;
     //this.registry[this.getId()] = this;
@@ -3861,8 +3863,11 @@ var SearchFilters = React.createClass({
     }
     //if (rnode) this.state.children.append(commentaryNode);
 
-    function walk(branch, parentNode) {
-        var node = {children: []};
+    function walk(branch, parentNode, catRoot) {
+        var node = {
+          children: [],
+          catRoot: catRoot || null
+        };
 
         if("category" in branch) { // Category node
             /*if(branch["category"] == "Commentary") { // Special case commentary
@@ -3882,7 +3887,7 @@ var SearchFilters = React.createClass({
                 });
             //}
             for(var j = 0; j < branch["contents"].length; j++) {
-                var b = walk(branch["contents"][j], node).bind(this);
+                var b = walk(branch["contents"][j], node, catRoot || node).bind(this);
                 if (b) node.children.push(b);
             }
         }
@@ -3936,7 +3941,6 @@ var SearchFilters = React.createClass({
 
   },
   render: function() {
-
     return (<div>
       {this.state.filters.map(function(filter) {
           return (<SearchFilter
