@@ -933,10 +933,6 @@ sjs.library = {
 
 
 sjs.library.search.FilterNode.prototype = {
-    $el : function() {
-        var selector = ".filter#" + this.getId();
-        return $(selector);
-    },
     append : function(child) {
         this.children.push(child);
         child.parent = this;
@@ -960,8 +956,6 @@ sjs.library.search.FilterNode.prototype = {
         //default is to propogate children and not parents.
         //Calls from front end should use (true, false), or just (true)
         this.selected = 1;
-        this.$el().prop('indeterminate', false);
-        this.$el().prop('checked', true);
         if (!(noPropogateChild)) {
             for (var i = 0; i < this.children.length; i++) {
                 this.children[i].setSelected(false);
@@ -975,8 +969,6 @@ sjs.library.search.FilterNode.prototype = {
         //default is to propogate children and not parents.
         //Calls from front end should use (true, false), or just (true)
         this.selected = 0;
-        this.$el().prop('indeterminate', false);
-        this.$el().prop('checked', false);
         if (!(noPropogateChild)) {
             for (var i = 0; i < this.children.length; i++) {
                 this.children[i].setUnselected(false);
@@ -990,8 +982,6 @@ sjs.library.search.FilterNode.prototype = {
     setPartial : function() {
         //Never propogate to children.  Always propogate to parents
         this.selected = 2;
-        this.$el().prop('indeterminate', true);
-        this.$el().prop('checked', false);
         if(this.parent) this.parent._deriveState();
     },
 
@@ -1045,27 +1035,6 @@ sjs.library.search.FilterNode.prototype = {
             results = results.concat(this.children[i].getSelectedTitles(lang));
         }
         return results;
-    },
-
-    toHtml: function() {
-        var html = '<li'
-            + (this.hasChildren()?" class='filter-parent'":"")
-            + '> <input type="checkbox" class="filter " '
-            + 'id="'+ this.getId() + '"'
-            + (this.isSelected()?' checked="checked" ':'')
-            + (this.isPartial()?' indeterminate="indeterminate" ':'')
-            + ' name="' + this.getId() + '" />'
-            + '<span class="en">' + this.title + '&nbsp;(' + this.doc_count + ')&nbsp;</span>'
-            + '<span class="he" dir="rtl">' + this.heTitle + '&nbsp;(' + this.doc_count + ')&nbsp;</span>';
-        if (this.hasChildren()) {
-            html += '<i class="fa fa-caret-down"></i><ul>';
-            for (var i = 0; i < this.children.length; i++) {
-                html += this.children[i].toHtml();
-            }
-            html += "</ul>";
-        }
-        html += ' </li> ';
-        return html;
     }
 };
 

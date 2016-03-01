@@ -3573,7 +3573,7 @@ var SearchResultList = React.createClass({
         return {
             page: 1,
             size: 100,
-            filters: []
+            appliedFilters: []
         };
     },
     getInitialState: function() {
@@ -3581,10 +3581,10 @@ var SearchResultList = React.createClass({
             runningQuery: null,
             filtersFetched: false,
             total: 0,
-            text_total: 0,
-            sheet_total: 0,
-            text_hits: [],
-            sheet_hits: [],
+            textTotal: 0,
+            sheetTotal: 0,
+            textHits: [],
+            sheetHits: [],
             aggregations: null
         }
     },
@@ -3616,15 +3616,16 @@ var SearchResultList = React.createClass({
                 if (this.isMounted()) {
                     var hitarrays = this._process_hits(data.hits.hits);
                     this.setState({
-                        text_hits: hitarrays.texts,
-                        sheet_hits: hitarrays.sheets,
+                        textHits: hitarrays.texts,
+                        sheetHits: hitarrays.sheets,
                         total: data.hits.total,
-                        text_total: hitarrays.texts.length,
-                        sheet_total: hitarrays.sheets.length,
+                        textTotal: hitarrays.texts.length,
+                        sheetTotal: hitarrays.sheets.length
                     });
                     if (data.aggregations) {
                       this.setState({
-                        aggregations: data.aggregations
+                        aggregations: data.aggregations,
+                        filtersFetched: true
                       });
                     }
                     this.updateRunningQuery(null);
@@ -3682,10 +3683,11 @@ var SearchResultList = React.createClass({
         if(this.props.query != newProps.query) {
            this.setState({
                 total: 0,
-                text_total: 0,
-                sheet_total: 0,
-                text_hits: [],
-                sheet_hits: [],
+                textTotal: 0,
+                sheetTotal: 0,
+                textHits: [],
+                sheetHits: [],
+                filtersFetched: false,
                 aggregations: null
            });
            this._executeQuery(newProps)
@@ -3704,40 +3706,25 @@ var SearchResultList = React.createClass({
         if (this.state.runningQuery) {
             return (<LoadingMessage message="Searching..." />);
         }
-        var addCommas = function(number) { return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); };
-        var totalWithCommas = addCommas(this.state.total);
-        var totalSheetsWithCommas = addCommas(this.state.sheet_total);
-        var totalTextsWithCommas = addCommas(this.state.text_total);
-
-        var totalBreakdown = (
-          <span className="results-breakdown">&nbsp;
-            <span className="he">({totalTextsWithCommas} {(this.state.text_total > 1) ? "מקורות":"מקור"}, {totalSheetsWithCommas} {(this.state.sheet_total > 1)?"דפי מקורות":"דף מקורות"})</span>
-            <span className="en">({totalTextsWithCommas} {(this.state.text_total > 1) ? "Texts":"Text"}, {totalSheetsWithCommas} {(this.state.sheet_total > 1)?"Sheets":"Sheet"})</span>
-          </span>);
-
-        var enFilterLine = (this.state.filters.length)?(": " + this.state.filters.map(f => f.title).join(", ")):"";
-        var heFilterLine = (this.state.filters.length)?(": " + this.state.filters.map(f => f.heTitle).join(", ")):"";
 
         return (
             <div>
-                <div className="results-count" key="results-count">
-                    <span className="en">{totalWithCommas} Results{enFilterLine}</span>
-                    <span className="he">{totalWithCommas} תוצאות{heFilterLine}</span>
-                    {(this.state.sheet_total > 0 && this.state.text_total > 0) ? totalBreakdown : null}
-                </div>
                 <SearchFilters
+                  total = {this.state.total}
+                  textTotal = {this.state.textTotal}
+                  sheetTotal = {this.state.sheetTotal}
                   aggregations = {this.state.aggregations}
                   appliedFilters = {this.props.appliedFilters}
                   updateAppliedFilters = {this.props.updateAppliedFilters}
                 />
-                {this.state.text_hits.map(function(result) {
+                {this.state.textHits.map(function(result) {
                     return (<SearchTextResult
                               data={result}
                               query={this.props.query}
                               key={result._id}
                               onResultClick={this.props.onResultClick} />);
                 }.bind(this))}
-                {this.state.sheet_hits.map(function(result) {
+                {this.state.sheetHits.map(function(result) {
                     return (<SearchSheetResult
                               data={result}
                               query={this.props.query}
@@ -3748,15 +3735,14 @@ var SearchResultList = React.createClass({
     }
 });
 
-const UNSELECTED = 0;
-const SELECTED = 1;
-const PARTIAL = 2;
-
 var SearchFilters = React.createClass({
   propTypes: {
+    total:                React.PropTypes.number,
+    textTotal:           React.PropTypes.number,
+    sheetTotal:          React.PropTypes.number,
     appliedFilters:       React.PropTypes.array,
     aggregations:         React.PropTypes.object,
-    updateAppliedFilters: React.PropType.func
+    updateAppliedFilters: React.PropTypes.func
   },
   getInitialState: function() {
     return {
@@ -3773,18 +3759,22 @@ var SearchFilters = React.createClass({
     };
   },
   componentWillMount() {
-    this._buildFilterTree();
+    if (this.props.aggregations) {
+      this._buildFilterTree(this.props.aggregations.category.buckets);
+    }
   },
   componentWillReceiveProps(newProps) {
     // Save current filters
     // this.props
-    // this.buildFilterTree(newProps.aggregations.category.buckets);
-
+    // todo: check for cases when we want to rebuild / not
+    if (newProps.aggregations) {
+      this._buildFilterTree(newProps.aggregations.category.buckets);
+    }
   },
-  _buildFilterTree() {
+  _buildFilterTree(filters) {
     //Add already applied filters w/ empty doc count?
-    this.props.aggregations.category.buckets.each(
-        f => this._addAvailableFilter(f["key"], {"doc_count":f["doc_count"]})
+    filters.forEach(
+        f => this._addAvailableFilter(f["key"], {"docCount":f["doc_count"]})
     );
     this._aggregate();
     this._build();
@@ -3822,10 +3812,10 @@ var SearchFilters = React.createClass({
             // Recurse into children
             $.each(branch, walker);
             // Do the summation with a hacked object 'reduce'
-            if ((!("doc_count" in branch)) || (branch["doc_count"] === 0)) {
-                branch["doc_count"] = Object.keys(branch).reduce(function (previous, key) {
-                    if (typeof branch[key] === "object" && "doc_count" in branch[key]) {
-                        previous += branch[key].doc_count;
+            if ((!("docCount" in branch)) || (branch["docCount"] === 0)) {
+                branch["docCount"] = Object.keys(branch).reduce(function (previous, key) {
+                    if (typeof branch[key] === "object" && "docCount" in branch[key]) {
+                        previous += branch[key].docCount;
                     }
                     return previous;
                 }, 0);
@@ -3837,7 +3827,7 @@ var SearchFilters = React.createClass({
   _build: function() {
     //Aggregate counts, then sort rawTree into filter objects and add Hebrew using sjs.toc as reference
     //Nod to http://stackoverflow.com/a/17546800/213042
-    this.state.doc_count = this.state.rawTree.doc_count;
+    this.state.docCount = this.state.rawTree.docCount;
     //this.registry[this.getId()] = this;
     var path = [];
 
@@ -3858,16 +3848,13 @@ var SearchFilters = React.createClass({
     */
 
     for(var j = 0; j < sjs.toc.length; j++) {
-        var b = walk(sjs.toc[j]).bind(this);
+        var b = walk(sjs.toc[j]);
         if (b) this.state.filters.push(b);
     }
     //if (rnode) this.state.children.append(commentaryNode);
 
-    function walk(branch, parentNode, catRoot) {
-        var node = {
-          children: [],
-          catRoot: catRoot || null
-        };
+    function walk(branch, parentNode) {
+        var node = new sjs.library.search.FilterNode();
 
         if("category" in branch) { // Category node
             /*if(branch["category"] == "Commentary") { // Special case commentary
@@ -3887,8 +3874,8 @@ var SearchFilters = React.createClass({
                 });
             //}
             for(var j = 0; j < branch["contents"].length; j++) {
-                var b = walk(branch["contents"][j], node, catRoot || node).bind(this);
-                if (b) node.children.push(b);
+                var b = walk(branch["contents"][j], node);
+                if (b) node.append(b);
             }
         }
         else if ("title" in branch) { // Text Node
@@ -3908,10 +3895,8 @@ var SearchFilters = React.createClass({
                 rawnode = rawnode[path[i]];
             }
 
-            node["docCount"] = rawnode.doc_count;
+            node["docCount"] = rawnode.docCount;
             //Do we really need both?
-            //ftree.registry[node.getId()] = node;
-            //ftree.registry[node.path] = node;
             /*
               if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
                 commentaryNode.append(node);
@@ -3934,87 +3919,98 @@ var SearchFilters = React.createClass({
         }
     }
   },
-  handleCategoryClick: function() {
-
+  getAppliedFilters: function() {
+    var results = [];
+    //results = results.concat(this.orphanFilters);
+    for (var i = 0; i < this.state.filters.length; i++) {
+        results = results.concat(this.state.filters[i].getAppliedFilters());
+    }
+    return results;
   },
-  handleTextClick: function() {
-
+  getSelectedTitles: function(lang) {
+    var results = [];
+    for (var i = 0; i < this.children.length; i++) {
+        results = results.concat(this.children[i].getSelectedTitles(lang));
+    }
+    return results;
+  },
+  handleFilterClick: function(filterNode) {
+    if (filterNode.isSelected()) {
+      filterNode.setUnselected(true);
+    } else {
+      filterNode.setSelected(true);
+    }
+    this.updateAppliedFilters(this.getAppliedFilters());
   },
   render: function() {
-    return (<div>
-      {this.state.filters.map(function(filter) {
-          return (<SearchFilter
-              title={filter.title}
-              heTitle={filter.heTitle}
-              docCount={filter.docCount}
-              selected={0}
-              updateSelected={this.handleCategoryClick}
-              path={filter.path}
-              key={filter.path}/>);
-      }.bind(this))}
-      {this.state.openedCategoryBooks.map(function(filter) {
-          return (<SearchFilter
-              title={filter.title}
-              heTitle={filter.heTitle}
-              docCount={filter.docCount}
-              selected={0}
-              updateSelected={this.handleTextClick}
-              path={filter.path}
-              key={filter.path}/>);
-      }.bind(this))}
-    </div>)
+    var addCommas = function(number) { return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); };
+    var totalWithCommas = addCommas(this.props.total);
+    var totalSheetsWithCommas = addCommas(this.props.sheetTotal);
+    var totalTextsWithCommas = addCommas(this.props.textTotal);
+
+    var totalBreakdown = (
+      <span className="results-breakdown">&nbsp;
+        <span className="he">({totalTextsWithCommas} {(this.props.textTotal > 1) ? "מקורות":"מקור"}, {totalSheetsWithCommas} {(this.props.sheetTotal > 1)?"דפי מקורות":"דף מקורות"})</span>
+        <span className="en">({totalTextsWithCommas} {(this.props.textTotal > 1) ? "Texts":"Text"}, {totalSheetsWithCommas} {(this.props.sheetTotal > 1)?"Sheets":"Sheet"})</span>
+      </span>);
+
+    var enFilterLine = (this.props.appliedFilters.length)?(": " + this.getSelectedTitles("en").join(", ")):"";
+    var heFilterLine = (this.props.appliedFilters.length)?(": " + this.getSelectedTitles("he").join(", ")):"";
+
+    return (
+      <div>
+        <div className="results-count" key="results-count">
+            <span className="en">{totalWithCommas} Results{enFilterLine}</span>
+            <span className="he">{totalWithCommas} תוצאות{heFilterLine}</span>
+            {(this.state.sheet_total > 0 && this.state.text_total > 0) ? totalBreakdown : null}
+        </div>
+        {this.state.filters.map(function(filter) {
+            return (<SearchFilter
+                filter={filter}
+                title={filter.title}
+                heTitle={filter.heTitle}
+                docCount={filter.docCount}
+                selected={0}
+                updateSelected={this.handleFilterClick}
+                path={filter.path}
+                key={filter.path}/>);
+        }.bind(this))}
+        {this.state.openedCategoryBooks.map(function(filter) {
+            return (<SearchFilter
+                filter={filter}
+                title={filter.title}
+                heTitle={filter.heTitle}
+                docCount={filter.docCount}
+                selected={0}
+                updateSelected={this.handleFilterClick}
+                path={filter.path}
+                key={filter.path}/>);
+        }.bind(this))}
+      </div>)
   }
 });
 
 var SearchFilter = React.createClass({
   propTypes: {
-    title: React.PropTypes.string.isRequired,
-    heTitle: React.PropTypes.string.isRequired,
-    docCount: React.PropTypes.number.isRequired,
-    selected: React.PropTypes.number.isRequired, //selected: 0, unselected: 1, partial: 2
+    filter: React.PropTypes.object.isRequired,
     updateSelected: React.PropTypes.func.isRequired
-  },
-  getInitialState: function() {
-    return {};
-  },
-  getDefaultProps: function() {
-    return {
-
-    };
   },
   // Can't set indeterminate in the render phase.  https://github.com/facebook/react/issues/1798
   componentDidMount: function() {
-    React.findDOMNode(this).indeterminate = this.isPartial();
+    React.findDOMNode(this).indeterminate = this.props.filter.isPartial();
   },
   componentDidUpdate: function() {
-    React.findDOMNode(this).indeterminate = this.isPartial();
+    React.findDOMNode(this).indeterminate = this.props.filter.isPartial();
   },
-  isSelected: function() {
-      return (this.props.selected == SELECTED);
+  handleClick: function() {
+    this.props.updateSelected(this.props.filter)
   },
-  isPartial: function() {
-      return (this.props.selected == PARTIAL);
-  },
-  isUnselected: function() {
-      return (this.props.selected == UNSELECTED);
-  },
-  /*
-  setSelected : function() {
-      this.props.updateSelected(SELECTED);
-  },
-  setUnselected : function() {
-      this.props.updateSelected(UNSELECTED);
-  },
-  setPartial : function() {
-      this.props.updateSelected(PARTIAL);
-  },
-  */
   render: function() {
     return(
-      <li onclick={this.updateSelected}>
-        <input type="checkbox" className="filter" checked={this.isSelected()}/>
-        <span class="en">{this.props.title} ({this.props.docCount}) </span>
-        <span class="he" dir="rtl">{this.props.heTitle} ({this.props.docCount})</span>
+      <li onclick={this.handleClick}>
+        <input type="checkbox" className="filter" checked={this.props.filter.isSelected()}/>
+        <span class="en">{this.props.filter.title} ({this.props.filter.docCount}) </span>
+        <span class="he" dir="rtl">{this.props.filter.heTitle} ({this.props.filter.docCount})</span>
       </li>
       )
   }
