@@ -3846,9 +3846,9 @@ var SearchFilters = React.createClass({
     }
     //End commentary base hack
     */
-
+    debugger;
     for(var j = 0; j < sjs.toc.length; j++) {
-        var b = walk(sjs.toc[j]);
+        var b = walk.call(this, sjs.toc[j]);
         if (b) this.state.filters.push(b);
     }
     //if (rnode) this.state.children.append(commentaryNode);
@@ -3874,7 +3874,7 @@ var SearchFilters = React.createClass({
                 });
             //}
             for(var j = 0; j < branch["contents"].length; j++) {
-                var b = walk(branch["contents"][j], node);
+                var b = walk.call(this, branch["contents"][j], node);
                 if (b) node.append(b);
             }
         }
