@@ -385,6 +385,9 @@ var ReaderApp = React.createClass({
       this.handleNavigationClick(ref, version, versionLanguage);
     }
   },
+  updateSearchFilters: function(filters) {
+
+  },
   setPanelState: function(n, state, replaceHistory) {
     this.replaceHistory  = Boolean(replaceHistory);
     //console.log(`setPanel State ${n}, replace: ` + this.replaceHistory);
@@ -548,6 +551,7 @@ var ReaderApp = React.createClass({
                     setDefaultOption={this.setDefaultOption}
                     showLibrary={this.showLibrary}
                     showSearch={this.showSearch}
+                    updateSearchFilters={this.updateSearchFilters}
                     headerMode={this.props.headerMode}
                     panelsOpen={this.state.panels.length} />) : null;
 
@@ -603,14 +607,15 @@ var ReaderApp = React.createClass({
 
 var Header = React.createClass({
   propTypes: {
-    initialState:       React.PropTypes.object.isRequired,
-    setCentralState:    React.PropTypes.func,
-    onRefClick:         React.PropTypes.func,
-    onRecentClick:      React.PropTypes.func,
-    showLibrary:        React.PropTypes.func,
-    showSearch:         React.PropTypes.func,
-    setDefaultOption:   React.PropTypes.func,
-    panelsOpen:         React.PropTypes.number
+    initialState:        React.PropTypes.object.isRequired,
+    setCentralState:     React.PropTypes.func,
+    onRefClick:          React.PropTypes.func,
+    onRecentClick:       React.PropTypes.func,
+    showLibrary:         React.PropTypes.func,
+    showSearch:          React.PropTypes.func,
+    setDefaultOption:    React.PropTypes.func,
+    updateSearchFilters: React.PropTypes.func,
+    panelsOpen:          React.PropTypes.number
   },
   getInitialState: function() {
     return this.props.initialState;
@@ -722,6 +727,7 @@ var Header = React.createClass({
                           onSearchResultClick={this.props.onRefClick}
                           onRecentClick={this.props.onRecentClick}
                           setDefaultLanguage={this.props.setDefaultLanguage}
+                          updateSearchFilters={this.props.updateSearchFilters}
                           hideNavHeader={true} />) : null;
 
     return (<div className="header">
@@ -771,6 +777,7 @@ var ReaderPanel = React.createClass({
     closePanel:             React.PropTypes.func,
     setDefaultLanguage:     React.PropTypes.func,
     selectVersion:          React.PropTypes.func,
+    updateSearchFilters:    React.PropTypes.func,
     highlightedRefs:        React.PropTypes.array,
     hideNavHeader:          React.PropTypes.bool,
     multiPanel:             React.PropTypes.bool,
@@ -1160,7 +1167,7 @@ var ReaderPanel = React.createClass({
                     showBaseText={this.showBaseText} />);
 
     } else if (this.state.menuOpen === "search") {
-      var settings = {query: this.state.searchQuery, page: 1, filters: this.state.searchFilters};
+      var settings = {query: this.state.searchQuery, page: 1, appliedFilters: this.state.searchFilters};
       var menu = (<SearchPage
                     initialSettings={settings}
                     settings={clone(this.state.settings)}
@@ -1169,7 +1176,9 @@ var ReaderPanel = React.createClass({
                     openDisplaySettings={this.openDisplaySettings}
                     toggleLanguage={this.toggleLanguage}
                     close={this.closeMenus}
-                    hideNavHeader={this.props.hideNavHeader} />);
+                    hideNavHeader={this.props.hideNavHeader}
+                    updateAppliedFilters={this.props.updateSearchFilters}
+      />);
 
     } else if (this.state.menuOpen === "sheets") {
       var menu = (<SheetsNav
@@ -3431,37 +3440,38 @@ var RecentFilterSet = React.createClass({
 var SearchPage = React.createClass({
     propTypes: {
         initialSettings : React.PropTypes.shape({
-            query: React.PropTypes.string,
-            page: React.PropTypes.number,
-            filters: React.PropTypes.array
+            query:   React.PropTypes.string,
+            page:    React.PropTypes.number,
+            appliedFilters: React.PropTypes.array
         }),
-        settings:      React.PropTypes.object,
-        close:         React.PropTypes.func,
-        onResultClick: React.PropTypes.func,
-        onQueryChange: React.PropTypes.func,
-        hideNavHeader: React.PropTypes.bool
+        settings:             React.PropTypes.object,
+        close:                React.PropTypes.func,
+        onResultClick:        React.PropTypes.func,
+        onQueryChange:        React.PropTypes.func,
+        updateAppliedFilters: React.PropTypes.func,
+        hideNavHeader:        React.PropTypes.bool
     },
     getInitialState: function() {
         return {
             query: this.props.initialSettings.query,
             page: this.props.initialSettings.page || 1,
-            filters: this.props.initialSettings.filters || [],
+            appliedFilters: this.props.initialSettings.appliedFilters || [],
             runningQuery: null,
             isQueryRunning: false
         }
     },
     componentWillReceiveProps: function(nextProps) {
       if ((nextProps.initialSettings.query !== this.state.query)
-      || (nextProps.initialSettings.filters.length !== this.state.filters.length)
-      || (nextProps.initialSettings.filters.every((v,i) => v === this.state.filters[i]))
+      || (nextProps.initialSettings.appliedFilters.length !== this.state.appliedFilters.length)
+      || (nextProps.initialSettings.appliedFilters.every((v,i) => v === this.state.appliedFilters[i]))
       ) {
-        this.updateQuery(nextProps.initialSettings.query, nextProps.initialSettings.filters);
+        this.updateQuery(nextProps.initialSettings.query, nextProps.initialSettings.appliedFilters);
       }      
     },
-    updateQuery: function(query, filters) {
-        this.setState({query: query, filters: filters});
+    updateQuery: function(query, appliedFilters) {
+        this.setState({query: query, appliedFilters: appliedFilters});
         if (this.props.onQueryChange) {
-            this.props.onQueryChange(query, filters);
+            this.props.onQueryChange(query, appliedFilters);
         }
     },
     updateRunningQuery: function(ajax) {
@@ -3499,9 +3509,11 @@ var SearchPage = React.createClass({
                               <SearchResultList
                                   query = { this.state.query }
                                   page = { this.state.page }
-                                  appliedFilters = {this.state.filters}
+                                  appliedFilters = {this.state.appliedFilters}
                                   updateRunningQuery = { this.updateRunningQuery }
-                                  onResultClick={this.props.onResultClick} />
+                                  onResultClick={this.props.onResultClick}
+                                  updateAppliedFilters = {this.props.updateAppliedFilters}
+                              />
                           </div>
                       </div>
                     </div>
@@ -3549,12 +3561,13 @@ var SearchBar = React.createClass({
 
 var SearchResultList = React.createClass({
     propTypes: {
-        query:              React.PropTypes.string,
-        appliedFilters:     React.PropTypes.array,
-        page:               React.PropTypes.number,
-        size:               React.PropTypes.number,
-        updateRunningQuery: React.PropTypes.func,
-        onResultClick:      React.PropTypes.func
+        query:                React.PropTypes.string,
+        appliedFilters:       React.PropTypes.array,
+        page:                 React.PropTypes.number,
+        size:                 React.PropTypes.number,
+        updateRunningQuery:   React.PropTypes.func,
+        onResultClick:        React.PropTypes.func,
+        updateAppliedFilters: React.PropTypes.func
     },
     getDefaultProps: function() {
         return {
@@ -3566,6 +3579,7 @@ var SearchResultList = React.createClass({
     getInitialState: function() {
         return {
             runningQuery: null,
+            filtersFetched: false,
             total: 0,
             text_total: 0,
             sheet_total: 0,
@@ -3595,6 +3609,8 @@ var SearchResultList = React.createClass({
 
         var runningQuery = sjs.library.search.execute_query({
             query: props.query,
+            get_filters: !this.state.filtersFetched,
+            applied_filters: props.appliedFilters.length && props.appliedFilters,
             size: props.page * props.size,
             success: function(data) {
                 if (this.isMounted()) {
@@ -3605,8 +3621,12 @@ var SearchResultList = React.createClass({
                         total: data.hits.total,
                         text_total: hitarrays.texts.length,
                         sheet_total: hitarrays.sheets.length,
-                        aggregations: data.aggregations
                     });
+                    if (data.aggregations) {
+                      this.setState({
+                        aggregations: data.aggregations
+                      });
+                    }
                     this.updateRunningQuery(null);
                 }
             }.bind(this),
@@ -3708,6 +3728,7 @@ var SearchResultList = React.createClass({
                 <SearchFilters
                   availableFilters = {this.state.aggregations}
                   appliedFilters = {this.props.appliedFilters}
+                  updateAppliedFilters = {this.props.updateAppliedFilters}
                 />
                 {this.state.text_hits.map(function(result) {
                     return (<SearchTextResult
@@ -3733,8 +3754,9 @@ const PARTIAL = 2;
 
 var SearchFilters = React.createClass({
   propTypes: {
-    appliedFilters:   React.PropTypes.array,
-    availableFilters: React.PropTypes.object
+    appliedFilters:       React.PropTypes.array,
+    availableFilters:     React.PropTypes.object,
+    updateAppliedFilters: React.PropType.func
   },
   getInitialState: function() {
     return {
