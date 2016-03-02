@@ -3809,7 +3809,6 @@ var SearchFilters = React.createClass({
         f => this._addAvailableFilter(rawTree, f["key"], {"docCount":f["doc_count"]})
     );
     this._aggregate(rawTree);
-    console.log(rawTree);
     return this._build(rawTree);
   },
   _addAvailableFilter: function(rawTree, key, data) {
@@ -3966,16 +3965,23 @@ var SearchFilters = React.createClass({
     return results;
   },
   handleFilterClick: function(filterNode) {
+    console.log("filter click");
+    console.log(filterNode);
     if (filterNode.isSelected()) {
       filterNode.setUnselected(true);
     } else {
       filterNode.setSelected(true);
     }
-    this.updateAppliedFilters(this.getAppliedFilters());
+    this.setState({availableFilters: this.state.availableFilters});
+    this.props.updateAppliedFilters(this.getAppliedFilters());
   },
   handleFocusCategory: function(filterNode) {
-    this.state.openedCategory = filterNode;
-    this.state.openedCategoryBooks = filterNode.getLeafNodes();
+    console.log("cat focus");
+    console.log(filterNode);
+    this.setState({
+      openedCategory: filterNode,
+      openedCategoryBooks: filterNode.getLeafNodes()
+    })
   },
   render: function() {
     var addCommas = function(number) { return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); };
@@ -4046,8 +4052,8 @@ var SearchFilter = React.createClass({
   },
   render: function() {
     return(
-      <li onclick={this.handleFocusCategory}>
-        <input type="checkbox" className="filter" checked={this.props.filter.isSelected()} onclick={this.handleFilterClick}/>
+      <li onClick={this.handleFocusCategory}>
+        <input type="checkbox" className="filter" checked={this.props.filter.isSelected()} onClick={this.handleFilterClick}/>
         <span className="en">{this.props.filter.title} ({this.props.filter.docCount}) </span>
         <span className="he" dir="rtl">{this.props.filter.heTitle} ({this.props.filter.docCount})</span>
       </li>
