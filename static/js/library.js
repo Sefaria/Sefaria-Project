@@ -957,6 +957,16 @@ sjs.library.search.FilterNode.prototype = {
     hasChildren: function() {
         return (this.children.length > 0);
     },
+    getLeafNodes: function() {
+        //Return ordered array of leaf (book) level filters
+        if (!this.children) {
+            return [this];
+        }
+        return [].concat(this.children.map(function(f) {
+            if (!f.children) return [f];
+            return f.getLeafNodes();
+        }))
+    },
     getId: function() {
         return this.path.replace(new RegExp("[/',()]", 'g'),"-").replace(new RegExp(" ", 'g'),"_");
     },

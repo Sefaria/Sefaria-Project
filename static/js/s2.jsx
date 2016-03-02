@@ -1167,9 +1167,10 @@ var ReaderPanel = React.createClass({
                     showBaseText={this.showBaseText} />);
 
     } else if (this.state.menuOpen === "search") {
-      var settings = {query: this.state.searchQuery, page: 1, appliedFilters: this.state.searchFilters};
       var menu = (<SearchPage
-                    initialSettings={settings}
+                    query={this.state.searchQuery}
+                    initialPage={1}
+                    appliedFilters={this.state.searchFilters}
                     settings={clone(this.state.settings)}
                     onResultClick={this.props.onSearchResultClick || this.showBaseText}
                     onQueryChange={this.setSearchQuery}
@@ -2268,11 +2269,13 @@ var ReaderNavigationMenuSearchButton = React.createClass({
   }
 });
 
+
 var ReaderNavigationMenuMenuButton = React.createClass({
   render: function() { 
     return (<span className="readerNavMenuMenuButton" onClick={this.props.onClick}><i className="fa fa-bars"></i></span>);
   }
 });
+
 
 var ReaderNavigationMenuCloseButton = React.createClass({
   render: function() { 
@@ -3456,11 +3459,9 @@ var RecentFilterSet = React.createClass({
 
 var SearchPage = React.createClass({
     propTypes: {
-        initialSettings : React.PropTypes.shape({
-            query:   React.PropTypes.string,
-            page:    React.PropTypes.number,
-            appliedFilters: React.PropTypes.array
-        }),
+        query:                React.PropTypes.string,
+        initialPage:          React.PropTypes.number,
+        appliedFilters:       React.PropTypes.array,
         settings:             React.PropTypes.object,
         close:                React.PropTypes.func,
         onResultClick:        React.PropTypes.func,
@@ -3470,23 +3471,27 @@ var SearchPage = React.createClass({
     },
     getInitialState: function() {
         return {
-            query: this.props.initialSettings.query,
-            page: this.props.initialSettings.page || 1,
-            appliedFilters: this.props.initialSettings.appliedFilters || [],
+            //query: this.props.query,
+            page: this.props.initialPage || 1,
             runningQuery: null,
             isQueryRunning: false
         }
     },
+    getDefaultProps: function() {
+      return {
+        appliedFilters: []
+      };
+    },
     componentWillReceiveProps: function(nextProps) {
-      if ((nextProps.initialSettings.query !== this.state.query)
-      || (nextProps.initialSettings.appliedFilters.length !== this.state.appliedFilters.length)
-      || (nextProps.initialSettings.appliedFilters.every((v,i) => v === this.state.appliedFilters[i]))
+      if ((nextProps.query !== this.props.query)
+      || (nextProps.appliedFilters.length !== this.props.appliedFilters.length)
+      || (nextProps.appliedFilters.every((v,i) => v === this.props.appliedFilters[i]))
       ) {
-        this.updateQuery(nextProps.initialSettings.query, nextProps.initialSettings.appliedFilters);
+        this.updateQuery(nextProps.query, nextProps.appliedFilters);
       }      
     },
     updateQuery: function(query, appliedFilters) {
-        this.setState({query: query, appliedFilters: appliedFilters});
+        //this.setState({query: query, appliedFilters: appliedFilters});
         if (this.props.onQueryChange) {
             this.props.onQueryChange(query, appliedFilters);
         }
@@ -3507,7 +3512,7 @@ var SearchPage = React.createClass({
                       <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
                       <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
                       <SearchBar
-                        initialQuery = { this.state.query }
+                        initialQuery = { this.props.query }
                         updateQuery = { this.updateQuery } />
                     </div>)}
                   <div className="content">
@@ -3518,13 +3523,13 @@ var SearchPage = React.createClass({
                               <span className="en">א</span>
                               <span className="he">A</span>
                             </div>
-                            <span>&ldquo;{ this.state.query }&rdquo;</span>
+                            <span>&ldquo;{ this.props.query }&rdquo;</span>
                           </h1>
                           <div className="searchControlsBox">
                           </div>
                           <div className="searchContent" style={style}>
                               <SearchResultList
-                                  query = { this.state.query }
+                                  query = { this.props.query }
                                   page = { this.state.page }
                                   appliedFilters = {this.state.appliedFilters}
                                   updateRunningQuery = { this.updateRunningQuery }
@@ -3538,6 +3543,7 @@ var SearchPage = React.createClass({
                 </div>);
     }
 });
+
 
 var SearchBar = React.createClass({
     propTypes: {
@@ -3727,6 +3733,7 @@ var SearchResultList = React.createClass({
         return (
             <div>
                 <SearchFilters
+                  query = {this.props.query}
                   total = {this.state.total}
                   textTotal = {this.state.textTotal}
                   sheetTotal = {this.state.sheetTotal}
@@ -3752,11 +3759,13 @@ var SearchResultList = React.createClass({
     }
 });
 
+
 var SearchFilters = React.createClass({
   propTypes: {
+    query:                React.PropTypes.string,
     total:                React.PropTypes.number,
-    textTotal:           React.PropTypes.number,
-    sheetTotal:          React.PropTypes.number,
+    textTotal:            React.PropTypes.number,
+    sheetTotal:           React.PropTypes.number,
     appliedFilters:       React.PropTypes.array,
     aggregations:         React.PropTypes.object,
     updateAppliedFilters: React.PropTypes.func
@@ -3764,43 +3773,50 @@ var SearchFilters = React.createClass({
   getInitialState: function() {
     return {
       docCount: 0,
-      rawTree: {},
-      filters: [],
+      availableFilters: [],
       openedCategory: null,
       openedCategoryBooks: []
     }
   },
   getDefaultProps: function() {
     return {
-      aggregations: {}
+      aggregations: {},
+      appliedFilters: []
     };
   },
   componentWillMount() {
     if (this.props.aggregations) {
-      this._buildFilterTree(this.props.aggregations.category.buckets);
+      this.setState({
+         availableFilters: this._buildFilterTree(this.props.aggregations.category.buckets)
+      });
     }
   },
   componentWillReceiveProps(newProps) {
     // Save current filters
     // this.props
     // todo: check for cases when we want to rebuild / not
-    if (newProps.aggregations) {
-      this._buildFilterTree(newProps.aggregations.category.buckets);
+    if (newProps.query != this.props.query) {
+      this.setState({
+        availableFilters:  this._buildFilterTree(newProps.aggregations.category.buckets),
+        openedCategory: null,   // correct?
+        openedCategoryBooks: [] // correct?
+      });
     }
   },
-  _buildFilterTree(filters) {
+  _buildFilterTree(aggregation_buckets) {
     //Add already applied filters w/ empty doc count?
-    filters.forEach(
-        f => this._addAvailableFilter(f["key"], {"docCount":f["doc_count"]})
+    var rawTree = {};
+    aggregation_buckets.forEach(
+        f => this._addAvailableFilter(rawTree, f["key"], {"docCount":f["doc_count"]})
     );
-    this._aggregate();
-    this._build();
+    this._aggregate(rawTree);
+    return this._build(rawTree);
   },
-  _addAvailableFilter: function(key, data) {
+  _addAvailableFilter: function(rawTree, key, data) {
     //key is a '/' separated key list, data is an arbitrary object
     //Based on http://stackoverflow.com/a/11433067/213042
     var keys = key.split("/");
-    var base = this.state.rawTree;
+    var base = rawTree;
 
     // If a value is given, remove the last name and keep it for later:
     var lastName = arguments.length === 2 ? keys.pop() : false;
@@ -3820,10 +3836,10 @@ var SearchFilters = React.createClass({
     // Could return the last object in the hierarchy.
     // return base;
   },
-  _aggregate: function() {
+  _aggregate: function(rawTree) {
     //Iterates the raw tree to aggregate doc_counts from the bottom up
     //Nod to http://stackoverflow.com/a/17546800/213042
-    walker(this.state.rawTree);
+    walker(rawTree);
     function walker(branch) {
         if (branch !== null && typeof branch === "object") {
             // Recurse into children
@@ -3841,13 +3857,12 @@ var SearchFilters = React.createClass({
     }
   },
 
-  _build: function() {
+  _build: function(rawTree) {
     //Aggregate counts, then sort rawTree into filter objects and add Hebrew using sjs.toc as reference
     //Nod to http://stackoverflow.com/a/17546800/213042
-    this.state.docCount = this.state.rawTree.docCount;
     //this.registry[this.getId()] = this;
     var path = [];
-
+    var filters = [];
     /*
     //Manually add base commentary branch
     var commentaryNode = new sjs.FilterNode();
@@ -3863,11 +3878,12 @@ var SearchFilters = React.createClass({
     }
     //End commentary base hack
     */
-    debugger;
     for(var j = 0; j < sjs.toc.length; j++) {
         var b = walk.call(this, sjs.toc[j]);
-        if (b) this.state.filters.push(b);
+        if (b) filters.push(b);
     }
+    return filters;
+
     //if (rnode) this.state.children.append(commentaryNode);
 
     function walk(branch, parentNode) {
@@ -3905,14 +3921,14 @@ var SearchFilters = React.createClass({
         }
 
         try {
-            var rawnode = this.state.rawTree;
+            var rawNode = rawTree;
             var i;
             for (i = 0; i < path.length; i++) {
                 //For TOC nodes that we don't have results for, this will throw an exception, caught below.
-                rawnode = rawnode[path[i]];
+                rawNode = rawNode[path[i]];
             }
 
-            node["docCount"] = rawnode.docCount;
+            node["docCount"] = rawNode.docCount;
             //Do we really need both?
             /*
               if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
@@ -3939,8 +3955,8 @@ var SearchFilters = React.createClass({
   getAppliedFilters: function() {
     var results = [];
     //results = results.concat(this.orphanFilters);
-    for (var i = 0; i < this.state.filters.length; i++) {
-        results = results.concat(this.state.filters[i].getAppliedFilters());
+    for (var i = 0; i < this.state.availableFilters.length; i++) {
+        results = results.concat(this.state.availableFilters[i].getAppliedFilters());
     }
     return results;
   },
@@ -3958,6 +3974,10 @@ var SearchFilters = React.createClass({
       filterNode.setSelected(true);
     }
     this.updateAppliedFilters(this.getAppliedFilters());
+  },
+  handleFocusCategory: function(filterNode) {
+    this.state.openedCategory = filterNode;
+    this.state.openedCategoryBooks = filterNode.getLeafNodes();
   },
   render: function() {
     var addCommas = function(number) { return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); };
@@ -3981,36 +4001,45 @@ var SearchFilters = React.createClass({
             <span className="he">{totalWithCommas} תוצאות{heFilterLine}</span>
             {(this.state.sheet_total > 0 && this.state.text_total > 0) ? totalBreakdown : null}
         </div>
-        {this.state.filters.map(function(filter) {
-            return (<SearchFilter
-                filter={filter}
-                title={filter.title}
-                heTitle={filter.heTitle}
-                docCount={filter.docCount}
-                selected={0}
-                updateSelected={this.handleFilterClick}
-                path={filter.path}
-                key={filter.path}/>);
-        }.bind(this))}
-        {this.state.openedCategoryBooks.map(function(filter) {
-            return (<SearchFilter
-                filter={filter}
-                title={filter.title}
-                heTitle={filter.heTitle}
-                docCount={filter.docCount}
-                selected={0}
-                updateSelected={this.handleFilterClick}
-                path={filter.path}
-                key={filter.path}/>);
-        }.bind(this))}
+        <div className="searchFilterBoxes">
+          <div className="searchFilterCategoryBox">
+          {this.state.availableFilters.map(function(filter) {
+              return (<SearchFilter
+                  filter={filter}
+                  title={filter.title}
+                  heTitle={filter.heTitle}
+                  docCount={filter.docCount}
+                  selected={0}
+                  focusCategory={this.handleFocusCategory}
+                  updateSelected={this.handleFilterClick}
+                  path={filter.path}
+                  key={filter.path}/>);
+          }.bind(this))}
+          </div>
+          <div className="searchFilterBookBox">
+          {this.state.openedCategoryBooks.map(function(filter) {
+              return (<SearchFilter
+                  filter={filter}
+                  title={filter.title}
+                  heTitle={filter.heTitle}
+                  docCount={filter.docCount}
+                  selected={0}
+                  updateSelected={this.handleFilterClick}
+                  path={filter.path}
+                  key={filter.path}/>);
+          }.bind(this))}
+          </div>
+        </div>
       </div>)
   }
 });
 
+
 var SearchFilter = React.createClass({
   propTypes: {
     filter: React.PropTypes.object.isRequired,
-    updateSelected: React.PropTypes.func.isRequired
+    updateSelected: React.PropTypes.func.isRequired,
+    focusCategory: React.PropTypes.func
   },
   // Can't set indeterminate in the render phase.  https://github.com/facebook/react/issues/1798
   componentDidMount: function() {
@@ -4019,19 +4048,25 @@ var SearchFilter = React.createClass({
   componentDidUpdate: function() {
     React.findDOMNode(this).indeterminate = this.props.filter.isPartial();
   },
-  handleClick: function() {
+  handleFilterClick: function() {
     this.props.updateSelected(this.props.filter)
+  },
+  handleFocusCategory: function() {
+    if (this.props.focusCategory) {
+      this.props.focusCategory(this.props.filter)
+    }
   },
   render: function() {
     return(
-      <li onclick={this.handleClick}>
-        <input type="checkbox" className="filter" checked={this.props.filter.isSelected()}/>
-        <span class="en">{this.props.filter.title} ({this.props.filter.docCount}) </span>
-        <span class="he" dir="rtl">{this.props.filter.heTitle} ({this.props.filter.docCount})</span>
+      <li onclick={this.handleFocusCategory}>
+        <input type="checkbox" className="filter" checked={this.props.filter.isSelected()} onclick={this.handleFilterClick}/>
+        <span className="en">{this.props.filter.title} ({this.props.filter.docCount}) </span>
+        <span className="he" dir="rtl">{this.props.filter.heTitle} ({this.props.filter.docCount})</span>
       </li>
       )
   }
 });
+
 
 var SearchTextResult = React.createClass({
     propTypes: {
