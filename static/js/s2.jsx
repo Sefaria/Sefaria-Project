@@ -3141,6 +3141,7 @@ var TextList = React.createClass({
   render: function() {
     var refs               = this.props.srefs;
     var summary            = sjs.library.relatedSummary(refs);
+    var oref               = sjs.library.ref(refs[0]);
     var filter             = this.props.filter;
     var sectionRef         = this.getSectionRef();
     var isSingleCommentary = (filter.length == 1 && sjs.library.index(filter[0]) && sjs.library.index(filter[0]).categories == "Commentary");
@@ -3158,18 +3159,34 @@ var TextList = React.createClass({
     var showAllFilters = !filter.length;
     if (!showAllFilters) {
       if (filter.compare(["Sheets"])) {
-        var sheets = sjs.library.sheets.sheetsByRef(refs);
+        var sheets  = sjs.library.sheets.sheetsByRef(refs);
         var content = sheets ? sheets.map(function(sheet) {
           return (
             <div className="sheet" key={sheet.sheetUrl}>
-              <img className="sheetAuthorImg" src={sheet.ownerImageUrl} />
+              <a href={sheet.ownerProfileUrl}>
+                <img className="sheetAuthorImg" src={sheet.ownerImageUrl} />
+              </a>
               <div className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</div>
               <a href={sheet.ownerProfileUrl} className="sheetAuthor">{sheet.ownerName}</a>
               <a href={sheet.sheetUrl} className="sheetTitle">{sheet.title}</a>
             </div>);
         }) : (<LoadingMessage />);
+        content = content.length ? content : <LoadingMessage message="No sheets here." />;
 
       } else if (filter.compare(["Notes"])) {
+        var notes   = sjs.library.notes(refs);
+        var content = notes ? notes.map(function(note) {
+          return (
+            <div className="note" key={note._id}>
+              <a href={note.ownerProfileUrl}>
+                <img className="noteAuthorImg" src={note.ownerImageUrl} />
+              </a>
+              <a href={note.ownerProfileUrl} className="noteAuthor">{note.ownerName}</a>
+              <div className="noteTitle">{note.title}</div>
+              <span className="noteText" dangerouslySetInnerHTML={{__html:note.text}}></span>
+            </div>) 
+        }) : <LoadingMessage />;
+        content = content.length ? content : <LoadingMessage message="No notes here." />;
       } else {
         // Viewing Text Connections
         var sectionLinks = sjs.library.links(sectionRef);
@@ -3244,6 +3261,7 @@ var TextList = React.createClass({
               showText={this.props.showText}
               filter={this.props.filter}
               recentFilters={this.props.recentFilters}
+              textCategory={oref ? oref.categories[0] : null}
               setFilter={this.props.setFilter}
               showAllFilters={this.showAllFilters} />
           </div>
@@ -3359,6 +3377,7 @@ var RecentFilterSet = React.createClass({
   propTypes: {
     filter:         React.PropTypes.array.isRequired,
     recentFilters:  React.PropTypes.array.isRequired,
+    textCategory:   React.PropTypes.string.isRequired,
     setFilter:      React.PropTypes.func.isRequired,
     showAllFilters: React.PropTypes.func.isRequired
   },
@@ -3403,7 +3422,6 @@ var RecentFilterSet = React.createClass({
         // topLinks.move(i, 0); 
       }        
     }
-    var category = topLinks[0].category;
     var topFilters = topLinks.map(function(book) {
      return (<TextFilter 
                 key={book.book} 
@@ -3425,8 +3443,7 @@ var RecentFilterSet = React.createClass({
                             <span className="dot">●</span><span className="dot">●</span><span className="dot">●</span>
                           </div>                    
                     </div>);
-
-    var style = {"borderTopColor": sjs.categoryColor(category)};
+    var style = {"borderTopColor": sjs.categoryColor(this.props.textCategory)};
     return (
       <div className="topFilters filterSet" style={style}>
         <div className="topFiltersInner">{topFilters}</div>
