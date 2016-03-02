@@ -3772,7 +3772,6 @@ var SearchFilters = React.createClass({
   },
   getInitialState: function() {
     return {
-      docCount: 0,
       availableFilters: [],
       openedCategory: null,
       openedCategoryBooks: []
@@ -3810,6 +3809,7 @@ var SearchFilters = React.createClass({
         f => this._addAvailableFilter(rawTree, f["key"], {"docCount":f["doc_count"]})
     );
     this._aggregate(rawTree);
+    console.log(rawTree);
     return this._build(rawTree);
   },
   _addAvailableFilter: function(rawTree, key, data) {
@@ -3819,7 +3819,7 @@ var SearchFilters = React.createClass({
     var base = rawTree;
 
     // If a value is given, remove the last name and keep it for later:
-    var lastName = arguments.length === 2 ? keys.pop() : false;
+    var lastName = arguments.length === 3 ? keys.pop() : false;
 
     // Walk the hierarchy, creating new objects where needed.
     // If the lastName was removed, then the last object is not set yet:
@@ -3839,8 +3839,8 @@ var SearchFilters = React.createClass({
   _aggregate: function(rawTree) {
     //Iterates the raw tree to aggregate doc_counts from the bottom up
     //Nod to http://stackoverflow.com/a/17546800/213042
-    walker(rawTree);
-    function walker(branch) {
+    walker("", rawTree);
+    function walker(key, branch) {
         if (branch !== null && typeof branch === "object") {
             // Recurse into children
             $.each(branch, walker);
@@ -3856,7 +3856,6 @@ var SearchFilters = React.createClass({
         }
     }
   },
-
   _build: function(rawTree) {
     //Aggregate counts, then sort rawTree into filter objects and add Hebrew using sjs.toc as reference
     //Nod to http://stackoverflow.com/a/17546800/213042
@@ -3929,7 +3928,6 @@ var SearchFilters = React.createClass({
             }
 
             node["docCount"] = rawNode.docCount;
-            //Do we really need both?
             /*
               if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
                 commentaryNode.append(node);
@@ -4006,13 +4004,8 @@ var SearchFilters = React.createClass({
           {this.state.availableFilters.map(function(filter) {
               return (<SearchFilter
                   filter={filter}
-                  title={filter.title}
-                  heTitle={filter.heTitle}
-                  docCount={filter.docCount}
-                  selected={0}
                   focusCategory={this.handleFocusCategory}
                   updateSelected={this.handleFilterClick}
-                  path={filter.path}
                   key={filter.path}/>);
           }.bind(this))}
           </div>
@@ -4020,12 +4013,7 @@ var SearchFilters = React.createClass({
           {this.state.openedCategoryBooks.map(function(filter) {
               return (<SearchFilter
                   filter={filter}
-                  title={filter.title}
-                  heTitle={filter.heTitle}
-                  docCount={filter.docCount}
-                  selected={0}
                   updateSelected={this.handleFilterClick}
-                  path={filter.path}
                   key={filter.path}/>);
           }.bind(this))}
           </div>
