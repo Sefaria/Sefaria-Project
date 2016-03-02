@@ -40,7 +40,11 @@ class ServerTextCopier(object):
                     else:
                         self._version_objs.append(vs)
         if self._post_links:
-            query = {"$and" : [{ "refs": {"$regex": Ref(self._index_obj.title).regex()}}, { "$or" : [ { "auto" : False }, { "auto" : 0 }, {"auto" :{ "$exists": False}} ] } ]}
+            if self._post_links == 1: # only manual
+                query = {"$and" : [{ "refs": {"$regex": Ref(self._index_obj.title).regex()}}, { "$or" : [ { "auto" : False }, { "auto" : 0 }, {"auto" :{ "$exists": False}} ] } ]}
+            else:
+                query = { "refs": {"$regex": Ref(self._index_obj.title).regex()}}
+
             self._linkset = LinkSet(query).array()
 
     def do_copy(self):
@@ -115,7 +119,7 @@ if __name__ == '__main__':
     parser.add_argument("-v", "--versionlist", help="comma separated version list: lang:versionTitle. To copy all versions, simply input 'all'")
     parser.add_argument("-k", "--apikey", help="non default api key", default=SEFARIA_BOT_API_KEY)
     parser.add_argument("-d", "--destination_server", help="override destination server", default='http://eph.sefaria.org')
-    parser.add_argument("-l", "--links", action="store_true", help="Move manual links on this text as well")
+    parser.add_argument("-l", "--links", default=0, type=int, help="Enter '1' to move manual links on this text as well, '2' to move auto links")
 
     args = parser.parse_args()
     print args
