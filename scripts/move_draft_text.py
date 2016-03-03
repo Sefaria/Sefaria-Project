@@ -77,7 +77,7 @@ class ServerTextCopier(object):
             if flags:
                 self._make_post_request_to_server(self._prepare_version_attrs_api_call(ver.title, ver.language, ver.versionTitle), flags)
         if self._post_links:
-            links = [l.contents() for l in self._linkset]
+            links = [l.contents() for l in self._linkset if not getattr(l, 'source_text_oid', None)]
             self._make_post_request_to_server(self._prepare_links_api_call(), links)
 
     def _prepare_index_api_call(self, index_title):
