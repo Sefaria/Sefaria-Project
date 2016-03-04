@@ -1,16 +1,35 @@
 # -*- coding: utf-8 -*-
 from sefaria.model import *
+from sefaria.utils.hebrew import is_hebrew
 
 import csv
 
 def create_word_form(form, lang, lookups):
-    return WordForm({'form': form, 'language_code': lang, 'lookups': lookups})
+    wf = WordForm().load({'form' : form})
+    if not wf:
+        wf = WordForm({'form': form, 'language_code': lang, 'lookups': lookups})
+    else:
+        wf.lookups += lookups
 
 
-with open('data/tmp/Halachic Terminology Berachot.tsv', 'rb') as csvfile:
+
+def extract_form_tuples(csv_row):
+    forms = [(csv_row[0].strip(), 'eng'), (csv_row[1].strip(), 'heb')]
+    forms += [(x.strip(), 'eng') for x in csv_row[2].split(",")]
+    forms += [(x.strip(), 'heb') for x in csv_row[3].split(",")]
+    forms += [(x.strip(), 'heb' if is_hebrew(x) else 'eng') for x in csv_row[4].split(",")]
+    return forms
+
+
+
+
+with open('/var/tmp/HTS3.csv', 'rb') as csvfile:
         lexicon_name = 'Halachic Terminology'
-        mishna_eng = Lexicon({'name': lexicon_name, 'language': 'heb.mishnaic', 'to_language': 'eng' })
-        mishna_eng.save()
+        existing_entries = []
+        hts_lexicon = Lexicon().load({'name': lexicon_name})
+        if not hts_lexicon:
+            hts_lexicon = Lexicon({'name': lexicon_name, 'language': 'heb.mishnaic', 'to_language': 'eng' })
+            hts_lexicon.save()
         lex_csv = csv.reader(csvfile, delimiter='\t')
         next(lex_csv, None)
         for entry in lex_csv:
@@ -19,20 +38,22 @@ with open('data/tmp/Halachic Terminology Berachot.tsv', 'rb') as csvfile:
                 'parent_lexicon': lexicon_name,
                 'content' : {'definition': entry[5].strip()}
             }
-            if entry[4].strip() != '':
-                try:
-                    nref = Ref('Mishnah %s' % entry[4].strip()).normal()
-                    dict_entry['content']['refs'] = [{'definition': '', 'ref': nref}]
-                except Exception as e:
-                    pass
-            LexiconEntry(dict_entry).save()
-            forms = [(entry[0], 'eng'), (entry[1], 'heb')]
-            forms += [(x, 'eng') for x in entry[2].split(",")]
-            forms += [(x, 'heb') for x in entry[3].split(",")]
+            hts_entry = LexiconEntry().load({'headword': dict_entry['headword'], 'parent_lexicon': lexicon_name})
+            if hts_entry: # override existing
+                hts_entry['content'] = dict_entry['content']
+                existing_entries.append(dict_entry['headword'])
+            else:
+                hts_entry = LexiconEntry(dict_entry)
+            hts_entry.save()
+            forms = extract_form_tuples(entry)
             for form in forms:
                 if form[0] and form[0] != '':
                     print unicode(form[0].strip(), 'utf-8').encode('utf-8')
-                    create_word_form(form[0], form[1], [{'headword':entry[1], 'lexicon': lexicon_name }]).save()
+                    create_word_form(form[0], form[1], [{'headword':entry[1], 'parent_lexicon': lexicon_name}]).save()
+
+        print "Updated Entries:"
+        for i,e in enumerate(existing_entries):
+            print e.encode('utf-8')
 
 
 
