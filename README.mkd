@@ -117,6 +117,16 @@ The shell script `cli` will invoke a python interpreter with the core models loa
     >>> p.count()
     226
 
+## Thanks
+
+We're grateful to the following orgazations for providing us with donated services:
+
+- [BrowserStack](https://www.browserstack.com/)
+- [Google Apps for Work](https://apps.google.com/)
+- [PyCharm](https://www.jetbrains.com/pycharm/)
+- [Slack](https://slack.com)
+
+
 ## License
 
 [GPL](http://www.gnu.org/copyleft/gpl.html)
