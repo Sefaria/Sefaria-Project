@@ -30,6 +30,10 @@ class WordForm(abst.AbstractMongoRecord):
         return super(WordForm, self).load(query, proj=None)
 
 
+class WordFormSet(abst.AbstractMongoSet):
+    recordClass = WordForm
+
+
 class Lexicon(abst.AbstractMongoRecord):
     collection = 'lexicon'
     required_attrs = [
