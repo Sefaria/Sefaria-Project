@@ -4,13 +4,16 @@ from sefaria.utils.hebrew import is_hebrew
 
 import csv
 
-def create_word_form(form, lang, lookups):
-    wf = WordForm().load({'form' : form})
+
+def create_word_form(form, lang, lookup):
+    wf = WordForm().load({'form' : form, 'lookups': lookup})
     if not wf:
-        wf = WordForm({'form': form, 'language_code': lang, 'lookups': lookups})
-    else:
-        wf.lookups += lookups
-    wf.save()
+        try:
+            wf = WordForm().load({'form' : form})
+            wf.lookups += lookup
+        except Exception as e:
+            wf = WordForm({'form': form, 'language_code': lang, 'lookups': lookup})
+        wf.save()
 
 
 
@@ -54,7 +57,7 @@ with open('/var/tmp/HTS3.csv', 'rb') as csvfile:
 
         print "Updated Entries:"
         for i,e in enumerate(existing_entries):
-            print e.encode('utf-8')
+            print e
 
 
 
