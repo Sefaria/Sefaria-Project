@@ -8,6 +8,7 @@ var ReaderApp = React.createClass({
     initialFilter:               React.PropTypes.array,
     initialMenu:                 React.PropTypes.string,
     initialQuery:                React.PropTypes.string,
+    initialSearchFilters:        React.PropTypes.array,
     initialSheetsTag:            React.PropTypes.string,
     initialNavigationCategories: React.PropTypes.array,
     initialSettings:             React.PropTypes.object,
@@ -73,6 +74,7 @@ var ReaderApp = React.createClass({
     var header_state = {
                   mode: "Header",
                   refs: this.props.initialRefs,
+                  searchFilters: this.props.initialSearchFilters,
                   searchQuery: this.props.initialQuery,
                   navigationCategories: this.props.initialNavigationCategories,
                   sheetsTag: this.props.initialSheetsTag,
@@ -158,6 +160,8 @@ var ReaderApp = React.createClass({
           (next.mode === "Connections" && prev.filter && !prev.filter.compare(next.filter)) ||
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
           (prev.searchQuery !== next.searchQuery) ||
+          (prev.searchFilters !== next.searchFilters.length) ||
+          !(prev.searchFilters.every((v,i) => v === next.searchFilters[i])) ||
           (prev.navigationSheetTag !== next.navigationSheetTag) ||
           (prev.version !== next.version) ||
           (prev.versionLanguage !== next.versionLanguage))
@@ -209,7 +213,7 @@ var ReaderApp = React.createClass({
           case "search":
             hist.title = state.searchQuery ? state.searchQuery + " | " : "";
             hist.title += "Sefaria Search";
-            hist.url   = "search" + (state.searchQuery ? "?q=" + state.searchQuery : "");
+            hist.url   = "search" + (state.searchQuery ? "?q=" + state.searchQuery + (state.searchFilters ? "&filters=" + state.searchFilters.join("|") : "") : "");
             hist.mode  = "search";
             break;
           case "sheets":
@@ -333,6 +337,7 @@ var ReaderApp = React.createClass({
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag:   state.sheetsTag || null,
       searchQuery:          state.searchQuery || null,
+      searchFilters:        state.searchFilters || null,
       displaySettingsOpen:  false
     };
     if (this.state && panel.refs.length && !panel.version) {
@@ -842,7 +847,7 @@ var ReaderPanel = React.createClass({
         navigationCategories: nextProps.initialNavigationCategories || [],
         navigationSheetTag:   nextProps.initialSheetsTag || null,
         searchQuery:          nextProps.initialQuery || null,
-        searchFilters:        nextProps.initialSearchFilters || [],
+        searchFilters:        nextProps.initialSearchFilters || []
       });
     }
   },
@@ -3471,7 +3476,6 @@ var SearchPage = React.createClass({
     },
     getInitialState: function() {
         return {
-            //query: this.props.query,
             page: this.props.initialPage || 1,
             runningQuery: null,
             isQueryRunning: false
@@ -3483,12 +3487,14 @@ var SearchPage = React.createClass({
       };
     },
     componentWillReceiveProps: function(nextProps) {
+      /*
       if ((nextProps.query !== this.props.query)
       || (nextProps.appliedFilters.length !== this.props.appliedFilters.length)
-      || (nextProps.appliedFilters.every((v,i) => v === this.props.appliedFilters[i]))
+      || !(nextProps.appliedFilters.every((v,i) => v === this.props.appliedFilters[i]))
       ) {
         this.updateQuery(nextProps.query, nextProps.appliedFilters);
-      }      
+      }
+      */
     },
     updateQuery: function(query, appliedFilters) {
         //this.setState({query: query, appliedFilters: appliedFilters});
@@ -3531,7 +3537,7 @@ var SearchPage = React.createClass({
                               <SearchResultList
                                   query = { this.props.query }
                                   page = { this.state.page }
-                                  appliedFilters = {this.state.appliedFilters}
+                                  appliedFilters = {this.props.appliedFilters}
                                   updateRunningQuery = { this.updateRunningQuery }
                                   onResultClick={this.props.onResultClick}
                                   updateAppliedFilters = {this.props.updateAppliedFilters}
@@ -3633,7 +3639,7 @@ var SearchResultList = React.createClass({
         var runningQuery = sjs.library.search.execute_query({
             query: props.query,
             get_filters: !this.state.filtersFetched,
-            applied_filters: props.appliedFilters.length && props.appliedFilters,
+            applied_filters: props.appliedFilters,
             size: props.page * props.size,
             success: function(data) {
                 if (this.isMounted()) {
@@ -3773,6 +3779,8 @@ var SearchFilters = React.createClass({
   getInitialState: function() {
     return {
       availableFilters: [],
+      orphanFilters: [],
+      registry: {},
       openedCategory: null,
       openedCategoryBooks: []
     }
@@ -3785,9 +3793,10 @@ var SearchFilters = React.createClass({
   },
   componentWillMount() {
     if (this.props.aggregations) {
-      this.setState({
-         availableFilters: this._buildFilterTree(this.props.aggregations.category.buckets)
-      });
+      this.setState(
+          this._buildFilterTree(this.props.aggregations.category.buckets),
+          function() { this.applyFilters(this.props.appliedFilters); }  // in callback, so as to apply only after above available filters and registry is committed
+      );
     }
   },
   componentWillReceiveProps(newProps) {
@@ -3795,14 +3804,24 @@ var SearchFilters = React.createClass({
     // this.props
     // todo: check for cases when we want to rebuild / not
     if (newProps.query != this.props.query) {
-      this.setState({
-        availableFilters:  this._buildFilterTree(newProps.aggregations.category.buckets),
-        openedCategory: null,   // correct?
-        openedCategoryBooks: [] // correct?
-      });
+      var newstate = this._buildFilterTree(newProps.aggregations.category.buckets);
+      newstate.openedCategory = null;     // todo: confirm behavior
+      newstate.openedCategoryBooks = [];  // todo: confirm behavior
+      this.setState(newstate, function() { this.applyFilters(this.props.appliedFilters); });
+    }
+    else if (newProps.appliedFilters &&
+              ((newProps.appliedFilters.length !== this.props.appliedFilters.length)
+               || !(newProps.appliedFilters.every((v,i) => v === this.props.appliedFilters[i]))
+              )
+            ) {
+      // todo: logically, we should be unapplying filters as well.
+      // Because we compute filter removal from teh same object, this ends up sliding in messily in the setState.
+      // Hard to see how to get it through the front door.
+      this.applyFilters(this.props.appliedFilters);
     }
   },
   _buildFilterTree(aggregation_buckets) {
+    //returns dict w/ keys 'availableFilters', 'registry'
     //Add already applied filters w/ empty doc count?
     var rawTree = {};
     aggregation_buckets.forEach(
@@ -3856,11 +3875,12 @@ var SearchFilters = React.createClass({
     }
   },
   _build: function(rawTree) {
+    //returns dict w/ keys 'availableFilters', 'registry'
     //Aggregate counts, then sort rawTree into filter objects and add Hebrew using sjs.toc as reference
     //Nod to http://stackoverflow.com/a/17546800/213042
-    //this.registry[this.getId()] = this;
     var path = [];
     var filters = [];
+    var registry = {};
     /*
     //Manually add base commentary branch
     var commentaryNode = new sjs.FilterNode();
@@ -3880,7 +3900,7 @@ var SearchFilters = React.createClass({
         var b = walk.call(this, sjs.toc[j]);
         if (b) filters.push(b);
     }
-    return filters;
+    return {availableFilters: filters, registry: registry};
 
     //if (rnode) this.state.children.append(commentaryNode);
 
@@ -3927,6 +3947,9 @@ var SearchFilters = React.createClass({
             }
 
             node["docCount"] = rawNode.docCount;
+            // Do we need both of these in the registry?
+            registry[node.getId()] = node;
+            registry[node.path] = node;
             /*
               if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
                 commentaryNode.append(node);
@@ -3948,6 +3971,15 @@ var SearchFilters = React.createClass({
             return false;
         }
     }
+  },
+  applyFilters(paths) {
+    var orphans = [];  // todo: confirm behavior
+    filters.forEach(path => {
+      var node = this.state.registry[path];
+      if (node) { node.setSelected(True); }
+      else { orphans.push(path); }
+    });
+    setState({availableFilters: this.state.availableFilters, orphanFilters: orphans})
   },
   getAppliedFilters: function() {
     var results = [];
@@ -3995,8 +4027,9 @@ var SearchFilters = React.createClass({
         <span className="en">({totalTextsWithCommas} {(this.props.textTotal > 1) ? "Texts":"Text"}, {totalSheetsWithCommas} {(this.props.sheetTotal > 1)?"Sheets":"Sheet"})</span>
       </span>);
 
-    var enFilterLine = (this.props.appliedFilters.length)?(": " + this.getSelectedTitles("en").join(", ")):"";
-    var heFilterLine = (this.props.appliedFilters.length)?(": " + this.getSelectedTitles("he").join(", ")):"";
+    // Why do I have to check for this existence of this?  lame.
+    var enFilterLine = (this.props.appliedFilters && this.props.appliedFilters.length)?(": " + this.getSelectedTitles("en").join(", ")):"";
+    var heFilterLine = (this.props.appliedFilters && this.props.appliedFilters.length)?(": " + this.getSelectedTitles("he").join(", ")):"";
 
     return (
       <div>
