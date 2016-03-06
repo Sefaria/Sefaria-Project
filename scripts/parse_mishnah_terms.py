@@ -10,14 +10,15 @@ def create_word_form(form, lang, lookups):
         wf = WordForm({'form': form, 'language_code': lang, 'lookups': lookups})
     else:
         wf.lookups += lookups
+    wf.save()
 
 
 
 def extract_form_tuples(csv_row):
     forms = [(csv_row[0].strip(), 'eng'), (csv_row[1].strip(), 'heb')]
-    forms += [(x.strip(), 'eng') for x in csv_row[2].split(",")]
-    forms += [(x.strip(), 'heb') for x in csv_row[3].split(",")]
-    forms += [(x.strip(), 'heb' if is_hebrew(x) else 'eng') for x in csv_row[4].split(",")]
+    forms += [(x.strip(), 'eng') for x in csv_row[2].split(",") if len(x)]
+    forms += [(x.strip(), 'heb') for x in csv_row[3].split(",") if len(x)]
+    forms += [(x.strip(), 'heb' if is_hebrew(x) else 'eng') for x in csv_row[4].split(",") if len(x)]
     return forms
 
 
@@ -40,7 +41,7 @@ with open('/var/tmp/HTS3.csv', 'rb') as csvfile:
             }
             hts_entry = LexiconEntry().load({'headword': dict_entry['headword'], 'parent_lexicon': lexicon_name})
             if hts_entry: # override existing
-                hts_entry['content'] = dict_entry['content']
+                hts_entry.content = dict_entry['content']
                 existing_entries.append(dict_entry['headword'])
             else:
                 hts_entry = LexiconEntry(dict_entry)
@@ -49,7 +50,7 @@ with open('/var/tmp/HTS3.csv', 'rb') as csvfile:
             for form in forms:
                 if form[0] and form[0] != '':
                     print unicode(form[0].strip(), 'utf-8').encode('utf-8')
-                    create_word_form(form[0], form[1], [{'headword':entry[1], 'parent_lexicon': lexicon_name}]).save()
+                    create_word_form(form[0], form[1], [{'headword':entry[1], 'parent_lexicon': lexicon_name}])
 
         print "Updated Entries:"
         for i,e in enumerate(existing_entries):
