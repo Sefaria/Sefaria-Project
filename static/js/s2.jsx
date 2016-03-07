@@ -12,10 +12,12 @@ var ReaderApp = React.createClass({
     initialNavigationCategories: React.PropTypes.array,
     initialSettings:             React.PropTypes.object,
     initialPanels:               React.PropTypes.array,
+    initialDefaultVersions:      React.PropTypes.object,
     headerMode:                  React.PropTypes.bool
   },
   getInitialState: function() {
     var panels = [];
+    var defaultVersions = clone(this.props.initialDefaultVersions) || {};
     var defaultPanelSettings = clone(this.props.initialSettings);
     if (!this.props.multiPanel) {
       var mode = this.props.initialFilter ? "TextAndConnections" : "Text";
@@ -85,6 +87,7 @@ var ReaderApp = React.createClass({
     return {
       panels: panels,
       header: header,
+      defaultVersions: defaultVersions,
       defaultPanelSettings: defaultPanelSettings
     };
   },
@@ -114,8 +117,8 @@ var ReaderApp = React.createClass({
   },
   handlePopState: function(event) {
     var state = event.state;
-    //console.log("Pop - " + window.location.pathname);
-    //console.log(state);
+    console.log("Pop - " + window.location.pathname);
+    console.log(state);
     if (state) {
       var kind = "";
       sjs.track.event("Reader", "Pop State", kind);
@@ -248,7 +251,7 @@ var ReaderApp = React.createClass({
         hist.mode     = "TextAndConnections"
       } else if (state.mode === "Header") {
         hist.title  = document.title;
-        hist.url    = "";
+        hist.url    = window.location.pathname.slice(1);
         hist.mode   = "Header"
       }
       histories.push(hist);     
@@ -322,7 +325,7 @@ var ReaderApp = React.createClass({
       mode:                 state.mode, // "Text", "TextAndConnections", "Connections"
       filter:               state.filter || [],
       version:              state.version || null,
-      versionLanguage:     state.versionLanguage || null,
+      versionLanguage:      state.versionLanguage || null,
       highlightedRefs:      state.highlightedRefs || [],
       recentFilters:        [],
       settings:             state.settings? clone(state.settings): clone(this.state.defaultPanelSettings),
@@ -332,6 +335,16 @@ var ReaderApp = React.createClass({
       searchQuery:          state.searchQuery || null,
       displaySettingsOpen:  false
     };
+    if (this.state && panel.refs.length && !panel.version) {
+      var oRef = sjs.library.ref(panel.refs[0]);
+      if (oRef) {
+        var lang = panel.versionLanguage || (panel.settings.language == "hebrew"?"he":"en");
+        panel.version = this.getCachedVersion(oRef.indexTitle, lang);
+        if (panel.version) {
+          panel.versionLanguage = lang;
+        }
+      }
+    }
     return panel
   },
   setContainerMode: function() {
@@ -364,12 +377,12 @@ var ReaderApp = React.createClass({
     this.openPanelAt(n, citationRef);
     this.setTextListHighlight(n, [textRef]);
   },
-  handleRecentClick: function(pos, ref) {
+  handleRecentClick: function(pos, ref, version, versionLanguage) {
     // Click on an item in your Recently Viewed
     if (this.props.multiPanel) {
-      this.openPanelAt(pos, ref);
+      this.openPanelAt(pos, ref, version, versionLanguage);
     } else {
-      this.handleNavigationClick(ref);
+      this.handleNavigationClick(ref, version, versionLanguage);
     }
   },
   setPanelState: function(n, state, replaceHistory) {
@@ -393,11 +406,24 @@ var ReaderApp = React.createClass({
       panel.version = versionName;
       panel.versionLanguage = versionLanguage;
       panel.settings.language = (panel.versionLanguage == "he")? "hebrew": "english";
+
+      var oRef = sjs.library.ref(panel.refs[0]);
+      this.setCachedVersion(oRef.indexTitle, panel.versionLanguage, panel.version);
+
     } else {
       panel.version = null;
       panel.versionLanguage = null;
     }
     this.setState({panels: this.state.panels});
+  },
+  // this.state.defaultVersion is a depth 2 dictionary - keyed: bookname, language
+  getCachedVersion: function(indexTitle, language) {
+    if ((!indexTitle) || (!(this.state.defaultVersions[indexTitle]))) { return null; }
+    return (language) ? (this.state.defaultVersions[indexTitle][language] || null) : this.state.defaultVersions[indexTitle];
+  },
+  setCachedVersion: function(indexTitle, language, versionTitle) {
+    this.state.defaultVersions[indexTitle] = this.state.defaultVersions[indexTitle] || {};
+    this.state.defaultVersions[indexTitle][language] = versionTitle;  // Does this need a setState?  I think not.
   },
   setHeaderState: function(state, replaceHistory) {
     this.state.header = $.extend(this.state.header, state);
@@ -409,13 +435,13 @@ var ReaderApp = React.createClass({
       this.setState(this.state);
     }
   },
-  openPanelAt: function(n, ref) {
+  openPanelAt: function(n, ref, version, versionLanguage) {
     // Open a new panel after `n` with the new ref
-    this.state.panels.splice(n+1, 0, this.makePanelState({refs: [ref], mode: "Text"}));
+    this.state.panels.splice(n+1, 0, this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"}));
     this.setState({panels: this.state.panels, header: {menuOpen: null}});
   },
-  openPanelAtEnd: function(ref) {
-    this.openPanelAt(this.state.panels.length+1, ref);
+  openPanelAtEnd: function(ref, version, versionLanguage) {
+    this.openPanelAt(this.state.panels.length+1, ref, version, versionLanguage);
   },
   openTextListAt: function(n, refs) {
     // Open a connections panel at position `n` for `refs`
@@ -492,6 +518,8 @@ var ReaderApp = React.createClass({
       ref: ref,
       heRef: oRef.heRef,
       book: oRef.indexTitle,
+      version: panel.version,
+      versionLanguage: panel.versionLanguage,
       position: n
     };
     recent.splice(0, 0, cookieData);
@@ -616,7 +644,7 @@ var Header = React.createClass({
       var json = $.cookie("recentlyViewed");
       var recentlyViewed = json ? JSON.parse(json) : null;
       if (recentlyViewed && recentlyViewed.length) {
-        this.handleRefClick(recentlyViewed[0].ref);
+        this.handleRefClick(recentlyViewed[0].ref, recentlyViewed[0].version, recentlyViewed[0].versionLanguage);
       }
     }
     this.props.setCentralState({menuOpen: null});
@@ -667,10 +695,9 @@ var Header = React.createClass({
       this.showLibrary();
     }
   },
-  handleRefClick: function(ref) {
-    this.props.onRefClick(ref);
+  handleRefClick: function(ref, version, versionLanguage) {
+    this.props.onRefClick(ref, version, versionLanguage);
   },
-
   handleSearchKeyUp: function(event) {
     if (event.keyCode === 13) {
       var query = $(event.target).val();
@@ -1420,10 +1447,12 @@ var ReaderNavigationMenu = React.createClass({
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
       var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
       var pos = $(event.target).attr("data-position") || $(event.target).parent().attr("data-position");
+      var version = $(event.target).attr("data-version") || $(event.target).parent().attr("data-version");
+      var versionLanguage = $(event.target).attr("data-versionlanguage") || $(event.target).parent().attr("data-versionlanguage");
       if ($(event.target).hasClass("recentItem") || $(event.target).parent().hasClass("recentItem")) {
-        this.props.onRecentClick(parseInt(pos), ref);
+        this.props.onRecentClick(parseInt(pos), ref, version, versionLanguage);
       } else {
-        this.props.onTextClick(ref);
+        this.props.onTextClick(ref, version, versionLanguage);
       }
       sjs.track.event("Reader", "Navigation Text Click", ref)
     } else if ($(event.target).hasClass("catLink") || $(event.target).parent().hasClass("catLink")) {
@@ -1574,6 +1603,8 @@ var ReaderNavigationMenu = React.createClass({
                   sref={item.ref}
                   heRef={item.heRef}
                   book={item.book}
+                  version={item.version}
+                  versionLanguage={item.versionLanguage}
                   showSections={true}
                   recentItem={true}
                   position={item.position || 0} />)
@@ -1635,13 +1666,15 @@ var TextBlockLink = React.createClass({
   // Monopoly card style link with category color at top
   propTypes: {
     sref:         React.PropTypes.string.isRequired,
+    version:      React.PropTypes.string,
+    versionLanguage: React.PropTypes.string,
     heRef:        React.PropTypes.string,
     book:         React.PropTypes.string,
     category:     React.PropTypes.string,
     title:        React.PropTypes.string,
     heTitle:      React.PropTypes.string,
     showSections: React.PropTypes.bool,
-    reecntItem:   React.PropTypes.bool,
+    recentItem:   React.PropTypes.bool,
     position:     React.PropTypes.number
   },
   render: function() {
@@ -1653,7 +1686,7 @@ var TextBlockLink = React.createClass({
 
     var position = this.props.position || 0;
     var classes  = classNames({refLink: 1, blockLink: 1, recentItem: this.props.recentItem});
-    return (<a className={classes} data-ref={this.props.sref} data-position={position} style={style}>
+    return (<a className={classes} data-ref={this.props.sref} data-version={this.props.version} data-versionlanguage={this.props.versionLanguage} data-position={position} style={style}>
               <span className="en">{title}</span>
               <span className="he">{heTitle}</span>
              </a>);
@@ -3092,30 +3125,11 @@ var TextList = React.createClass({
   },
   render: function() {
     var refs               = this.props.srefs;
-    var summary            = sjs.library.linkSummary(refs);
+    var summary            = sjs.library.relatedSummary(refs);
+    var oref               = sjs.library.ref(refs[0]);
     var filter             = this.props.filter;
     var sectionRef         = this.getSectionRef();
-    var sectionLinks       = sjs.library.links(sectionRef);
     var isSingleCommentary = (filter.length == 1 && sjs.library.index(filter[0]) && sjs.library.index(filter[0]).categories == "Commentary");
-
-    var links = sectionLinks.filter(function(link) {
-      if ($.inArray(link.anchorRef, refs) === -1 && (this.props.multiPanel || !isSingleCommentary) ) {
-        // Only show section level links for an individual commentary
-        return false;
-      }
-      return (filter.length == 0 ||
-              $.inArray(link.category, filter) !== -1 || 
-              $.inArray(link.commentator, filter) !== -1 );
-
-      }.bind(this)).sort(function(a, b) {
-        if (a.anchorVerse !== b.anchorVerse) {
-            return a.anchorVerse - b.anchorVerse;
-        } else if ( a.commentaryNum !== b.commentaryNum) {
-            return a.commentaryNum - b.commentaryNum;
-        } else {
-            return a.sourceRef > b.sourceRef ? 1 : -1;
-        }
-    });
 
     //if (summary.length && !links.length) { debugger; }
 
@@ -3129,24 +3143,76 @@ var TextList = React.createClass({
     
     var showAllFilters = !filter.length;
     if (!showAllFilters) {
-      var texts = links.length == 0 ? message :
-                    this.state.waitForText && !this.state.textLoaded ? 
-                      (<LoadingMessage />) : 
-                      links.map(function(link, i) {
-                          var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
-                          return (<TextRange 
-                                      sref={link.sourceRef}
-                                      key={i + link.sourceRef}
-                                      lowlight={$.inArray(link.anchorRef, refs) === -1}
-                                      hideTitle={hideTitle}
-                                      numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
-                                      basetext={false}
-                                      onRangeClick={this.props.onTextClick}
-                                      onCitationClick={this.props.onCitationClick}
-                                      onNavigationClick={this.props.onNavigationClick}
-                                      onCompareClick={this.props.onCompareClick}
-                                      onOpenConnectionsClick={this.props.onOpenConnectionsClick} />);
-                        }, this);      
+      if (filter.compare(["Sheets"])) {
+        var sheets  = sjs.library.sheets.sheetsByRef(refs);
+        var content = sheets ? sheets.map(function(sheet) {
+          return (
+            <div className="sheet" key={sheet.sheetUrl}>
+              <a href={sheet.ownerProfileUrl}>
+                <img className="sheetAuthorImg" src={sheet.ownerImageUrl} />
+              </a>
+              <div className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</div>
+              <a href={sheet.ownerProfileUrl} className="sheetAuthor">{sheet.ownerName}</a>
+              <a href={sheet.sheetUrl} className="sheetTitle">{sheet.title}</a>
+            </div>);
+        }) : (<LoadingMessage />);
+        content = content.length ? content : <LoadingMessage message="No sheets here." />;
+
+      } else if (filter.compare(["Notes"])) {
+        var notes   = sjs.library.notes(refs);
+        var content = notes ? notes.map(function(note) {
+          return (
+            <div className="note" key={note._id}>
+              <a href={note.ownerProfileUrl}>
+                <img className="noteAuthorImg" src={note.ownerImageUrl} />
+              </a>
+              <a href={note.ownerProfileUrl} className="noteAuthor">{note.ownerName}</a>
+              <div className="noteTitle">{note.title}</div>
+              <span className="noteText" dangerouslySetInnerHTML={{__html:note.text}}></span>
+            </div>) 
+        }) : <LoadingMessage />;
+        content = content.length ? content : <LoadingMessage message="No notes here." />;
+      } else {
+        // Viewing Text Connections
+        var sectionLinks = sjs.library.links(sectionRef);
+        var links        = sectionLinks.filter(function(link) {
+          if ($.inArray(link.anchorRef, refs) === -1 && (this.props.multiPanel || !isSingleCommentary) ) {
+            // Only show section level links for an individual commentary
+            return false;
+          }
+          return (filter.length == 0 ||
+                  $.inArray(link.category, filter) !== -1 || 
+                  $.inArray(link.commentator, filter) !== -1 );
+
+          }.bind(this)).sort(function(a, b) {
+            if (a.anchorVerse !== b.anchorVerse) {
+                return a.anchorVerse - b.anchorVerse;
+            } else if ( a.commentaryNum !== b.commentaryNum) {
+                return a.commentaryNum - b.commentaryNum;
+            } else {
+                return a.sourceRef > b.sourceRef ? 1 : -1;
+            }
+        });
+        var content = links.length == 0 ? message :
+                      this.state.waitForText && !this.state.textLoaded ? 
+                        (<LoadingMessage />) : 
+                        links.map(function(link, i) {
+                            var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
+                            return (<TextRange 
+                                        sref={link.sourceRef}
+                                        key={i + link.sourceRef}
+                                        lowlight={$.inArray(link.anchorRef, refs) === -1}
+                                        hideTitle={hideTitle}
+                                        numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
+                                        basetext={false}
+                                        onRangeClick={this.props.onTextClick}
+                                        onCitationClick={this.props.onCitationClick}
+                                        onNavigationClick={this.props.onNavigationClick}
+                                        onCompareClick={this.props.onCompareClick}
+                                        onOpenConnectionsClick={this.props.onOpenConnectionsClick} />);
+                          }, this);          
+      }
+    
     }
 
     var classes = classNames({textList: 1, fullPanel: this.props.fullPanel});
@@ -3180,12 +3246,13 @@ var TextList = React.createClass({
               showText={this.props.showText}
               filter={this.props.filter}
               recentFilters={this.props.recentFilters}
+              textCategory={oref ? oref.categories[0] : null}
               setFilter={this.props.setFilter}
               showAllFilters={this.showAllFilters} />
           </div>
           <div className="texts">
             <div className="contentInner">
-              { texts }
+              { content }
             </div>
           </div>
         </div>);
@@ -3295,6 +3362,7 @@ var RecentFilterSet = React.createClass({
   propTypes: {
     filter:         React.PropTypes.array.isRequired,
     recentFilters:  React.PropTypes.array.isRequired,
+    textCategory:   React.PropTypes.string.isRequired,
     setFilter:      React.PropTypes.func.isRequired,
     showAllFilters: React.PropTypes.func.isRequired
   },
@@ -3339,7 +3407,6 @@ var RecentFilterSet = React.createClass({
         // topLinks.move(i, 0); 
       }        
     }
-    var category = topLinks[0].category;
     var topFilters = topLinks.map(function(book) {
      return (<TextFilter 
                 key={book.book} 
@@ -3361,8 +3428,7 @@ var RecentFilterSet = React.createClass({
                             <span className="dot">●</span><span className="dot">●</span><span className="dot">●</span>
                           </div>                    
                     </div>);
-
-    var style = {"borderTopColor": sjs.categoryColor(category)};
+    var style = {"borderTopColor": sjs.categoryColor(this.props.textCategory)};
     return (
       <div className="topFilters filterSet" style={style}>
         <div className="topFiltersInner">{topFilters}</div>
@@ -3809,6 +3875,7 @@ var AccountPanel = React.createClass({
       (<BlockLink target="http://www.facebook.com/sefaria.org" title="Facebook" />),
       (<BlockLink target="http://twitter.com/SefariaProject" title="Twitter" />),      
       (<BlockLink target="http://www.youtube.com/user/SefariaProject" title="YouTube" />),
+      (<BlockLink target="http://www.github.com/Sefaria" title="GitHub" />),
       (<BlockLink target="mailto:hello@sefaria.org" title="Email" />)
     ];
     connectContent = (<TwoOrThreeBox content={connectContent} width={width} />);
