@@ -477,10 +477,10 @@ body {
 	text-align: center;
 	position: absolute;
 	bottom: 7px;
-	width: 260px;
+	width: 300px;
 	background-color: #eee;
 	left: 50%;
-	margin-left: -130px;
+	margin-left: -150px;
 }
 
 .sourceControlsTop #sourceControls {

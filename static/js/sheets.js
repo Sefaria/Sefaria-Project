@@ -771,6 +771,8 @@ $(function() {
 							"<div class='switchSourceLayoutLang' title='Change Source Layout/Language'><i class='fa fa-ellipsis-h'></i></div>" +						
 							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up '></i></div>" +
 							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
+							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
+							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
 
 						"</div>";
 
@@ -792,6 +794,10 @@ $(function() {
 							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
 							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up'></i></div>" +
 							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
+							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
+							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
+
+
 						"</div>";
 
 
@@ -966,6 +972,48 @@ $(function() {
 		autoSave();
 
 	});
+
+
+	$(".moveSourceRight").live("click", function() {
+
+		if ($(this).closest(".sheetItem").hasClass("indented-1")) {
+			var toIndent = "indented-2";
+		} else if ($(this).closest(".sheetItem").hasClass("indented-2")) {
+			var toIndent = "indented-3";
+		} else if ($(this).closest(".sheetItem").hasClass("indented-3")) {
+			var toIndent = "indented-3";
+		} else {
+			var toIndent = "indented-1";
+		}
+
+		$(this).closest(".sheetItem").removeClass("indented-1 indented-2 indented-3")
+		$(this).closest(".sheetItem").addClass(toIndent);
+
+		autoSave();
+
+	});
+
+
+	$(".moveSourceLeft").live("click", function() {
+
+		if ($(this).closest(".sheetItem").hasClass("indented-1")) {
+			var toIndent = "";
+		} else if ($(this).closest(".sheetItem").hasClass("indented-2")) {
+			var toIndent = "indented-1";
+		} else if ($(this).closest(".sheetItem").hasClass("indented-3")) {
+			var toIndent = "indented-2";
+		} else {
+			var toIndent = "";
+		}
+
+		$(this).closest(".sheetItem").removeClass("indented-1 indented-2 indented-3")
+		$(this).closest(".sheetItem").addClass(toIndent);
+
+		autoSave();
+
+	});
+
+
 
 
 	// Open Modal to override the sheet's default language/layout options for a specific source 
