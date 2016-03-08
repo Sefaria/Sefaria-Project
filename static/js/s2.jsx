@@ -110,6 +110,9 @@ var ReaderApp = React.createClass({
   componentWillUnmount: function() {
     window.removeEventListener("popstate", this.handlePopState);
   },
+  componentWillUpdate: function(nextProps, nextState) {
+    //debugger;
+  },
   componentDidUpdate: function(prevProps, prevState) {
     if (this.justPopped) {
       //console.log("Skipping history update - just popped")
@@ -187,7 +190,6 @@ var ReaderApp = React.createClass({
     return false;  
   },
   makeHistoryState: function() {
-    debugger;
     // Returns an object with state, title and url params for the current state
     var histories = [];
     // When the header has a panel open, only look at its content for history
@@ -419,10 +421,6 @@ var ReaderApp = React.createClass({
     });
   },
   registerAvailableFilters: function(availableFilters, registry, orphans) {
-    console.log("ReaderApp.registerAvailableFilters: "); // 0803 debug
-    console.log(availableFilters); // 0803 debug
-    console.log(registry); // 0803 debug
-    console.log(orphans); // 0803 debug
     this.setState({
       availableFilters:    availableFilters,
       filterRegistry:      registry,
@@ -905,7 +903,7 @@ var ReaderPanel = React.createClass({
     if (nextProps.initialFilter && !this.props.multiPanel) {
       this.openConnectionsInPanel(nextProps.initialRefs);
     }
-    if (nextProps.searchQuery) {
+    if (nextProps.searchQuery && this.state.menuOpen !== "search") {
       this.openSearch(nextProps.searchQuery);
     }
     if (this.state.menuOpen !== nextProps.initialMenu) {
@@ -936,6 +934,7 @@ var ReaderPanel = React.createClass({
   conditionalSetState: function(state) {
     // Set state either in the central app or in the local component,
     // depending on whether a setCentralState function was given.
+    console.log(state);
     if (this.props.setCentralState) {
       this.props.setCentralState(state, this.replaceHistory);
       this.replaceHistory = false;
@@ -3548,8 +3547,8 @@ var SearchPage = React.createClass({
     getInitialState: function() {
         return {
             page: this.props.initialPage || 1,
-            runningQuery: null,
-            isQueryRunning: false
+            //runningQuery: null,
+            //isQueryRunning: false
         }
     },
     getDefaultProps: function() {
@@ -3572,13 +3571,15 @@ var SearchPage = React.createClass({
             this.props.onQueryChange(query);
         }
     },
+  /*
     updateRunningQuery: function(ajax) {
         this.setState({
             runningQuery: ajax,
             isQueryRunning: !!ajax
         })
-    },
+    }, */
     render: function () {
+
         var style      = {"fontSize": this.props.settings.fontSize + "%"};
         var classes = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader});
         return (<div className={classes}>
@@ -3608,7 +3609,7 @@ var SearchPage = React.createClass({
                                   query = { this.props.query }
                                   page = { this.state.page }
                                   appliedFilters = {this.props.appliedFilters}
-                                  updateRunningQuery = { this.updateRunningQuery }
+                                  //updateRunningQuery = { this.updateRunningQuery }
                                   onResultClick={this.props.onResultClick}
                                   updateAppliedFilter = {this.props.updateAppliedFilter}
                                   registerAvailableFilters={this.props.registerAvailableFilters}
@@ -3648,6 +3649,7 @@ var SearchBar = React.createClass({
         this.setState({query: event.target.value});
     },
     render: function () {
+
         return (
             <div>
                 <div className="searchBox">
@@ -3667,7 +3669,7 @@ var SearchResultList = React.createClass({
         appliedFilters:       React.PropTypes.array,
         page:                 React.PropTypes.number,
         size:                 React.PropTypes.number,
-        updateRunningQuery:   React.PropTypes.func,
+        //updateRunningQuery:   React.PropTypes.func,
         onResultClick:        React.PropTypes.func,
         filtersValid:         React.PropTypes.bool,
         availableFilters:     React.PropTypes.array,
@@ -3693,7 +3695,7 @@ var SearchResultList = React.createClass({
     },
     updateRunningQuery: function(ajax) {
         this.setState({runningQuery: ajax});
-        this.props.updateRunningQuery(ajax);
+        //this.props.updateRunningQuery(ajax);
     },
     _abortRunningQuery: function() {
         if(this.state.runningQuery) {
@@ -3727,8 +3729,6 @@ var SearchResultList = React.createClass({
     _executeQuery: function(props) {
         //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
        props = props || this.props;
-       console.log("SearchResultList._executeQuery: "); // 0803 debug
-       console.log(props); // 0803 debug
         if (!props.query) {
             return;
         }
@@ -3741,6 +3741,7 @@ var SearchResultList = React.createClass({
             applied_filters: props.appliedFilters,
             size: props.page * props.size,
             success: function(data) {
+                this.updateRunningQuery(null);
                 if (this.isMounted()) {
                     var hitarrays = this._process_hits(data.hits.hits);
                     this.setState({
@@ -3755,7 +3756,6 @@ var SearchResultList = React.createClass({
                       var orphans = this._applyFilters(ftree, this.props.appliedFilters);
                       this.props.registerAvailableFilters(ftree.availableFilters, ftree.registry, orphans);
                     }
-                    this.updateRunningQuery(null);
                 }
             }.bind(this),
             error: function(jqXHR, textStatus, errorThrown) {
@@ -3803,8 +3803,6 @@ var SearchResultList = React.createClass({
     _buildFilterTree(aggregation_buckets) {
       //returns object w/ keys 'availableFilters', 'registry'
       //Add already applied filters w/ empty doc count?
-      console.log("SearchResultList._buildFilterTree: "); // 0803 debug
-      console.log(aggregation_buckets); // 0803 debug
       var rawTree = {};
       aggregation_buckets.forEach(
           f => this._addAvailableFilter(rawTree, f["key"], {"docCount":f["doc_count"]})
@@ -3955,9 +3953,6 @@ var SearchResultList = React.createClass({
       }
     },
     _applyFilters: function(ftree, appliedFilters) {
-      console.log("SearchResultList._applyFilters: "); // 0803 debug
-      console.log(ftree); // 0803 debug
-      console.log(appliedFilters); // 0803 debug
       var orphans = [];  // todo: confirm behavior
       appliedFilters.forEach(path => {
         var node = this.ftree.registry[path];
@@ -4090,8 +4085,8 @@ var SearchFilters = React.createClass({
       </span>);
 
     // Why do I have to check for this existence of this?  lame.
-    var enFilterLine = (this.props.appliedFilters.length)?(": " + this.getSelectedTitles("en").join(", ")):"";
-    var heFilterLine = (this.props.appliedFilters.length)?(": " + this.getSelectedTitles("he").join(", ")):"";
+    var enFilterLine = (!!this.props.appliedFilters.length)?(": " + this.getSelectedTitles("en").join(", ")):"";
+    var heFilterLine = (!!this.props.appliedFilters.length)?(": " + this.getSelectedTitles("he").join(", ")):"";
 
     return (
       <div>
