@@ -184,9 +184,6 @@ def refs_in_sources(sources):
 			text = source.get("text", {}).get("he", None)
 			ref  = refine_ref_by_text(source["ref"], text) if text else source["ref"]
 			refs.append(ref)
-		if "subsources" in source:
-			refs = refs + refs_in_sources(source["subsources"])
-
 	return refs
 
 
@@ -422,7 +419,7 @@ def broadcast_sheet_publication(publisher_id, sheet_id):
 def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None):
 	"""
 	Creates a source sheet owned by 'uid' that includes all of 'text'.
-	'sources' is a list of strings naming commentators or texts to includes a subsources.
+	'sources' is a list of strings naming commentators or texts to include.
 	"""
 	oref  = model.Ref(text)
 	sheet = {
@@ -446,14 +443,6 @@ def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None
 
 		for ref in refs:
 			ref_dict = { "ref": ref.normal() }
-			if sources:
-				ref_dict["subsources"] = []
-				subsources = ref.linkset().filter(sources)
-				for sub in subsources:
-					subref = sub.refs[1] if regex.match(ref.regex(), sub.refs[0]) else sub.refs[0]
-					ref_dict["subsources"].append({"ref": subref})
-				ref_dict["subsources"] = sorted(ref_dict["subsources"], key=lambda x : x["ref"])
-
 			sheet["sources"].append(ref_dict)
 
 	return save_sheet(sheet, uid)

@@ -16,10 +16,7 @@ sys.path.insert(0, path + "/sefaria")
 
 from sefaria.system.database import db
 
-#sheets = db.sheets.find({"sources.subsources": { $exists: true } })
-
-sheets = db.sheets.find({ "id": 876 })
-
+sheets = db.sheets.find({"sources.subsources": { "$exists": "true" } })
 
 for sheet in sheets:
 	olddoc = sheet;
@@ -31,15 +28,23 @@ for sheet in sheets:
 		subsourcestoadd = []
 		if "subsources" in source:
 			for subsource in source["subsources"]:
-				if source["options"]["indented"] == "indented-3":
-					subsource["options"]["indented"] = "indented-3"
-				elif source["options"]["indented"] == "indented-2":
-					subsource["options"]["indented"] = "indented-3"
-				elif source["options"]["indented"] == "indented-1":
-					subsource["options"]["indented"] = "indented-2"
+				if "options" not in subsource:
+					subsource["options"] = {}
+
+				if "options" in source:
+					if "indented" in source["options"]:
+						if source["options"]["indented"] == "indented-3":
+							subsource["options"]["indented"] = "indented-3"
+						elif source["options"]["indented"] == "indented-2":
+							subsource["options"]["indented"] = "indented-3"
+						elif source["options"]["indented"] == "indented-1":
+							subsource["options"]["indented"] = "indented-2"
+						else:
+							subsource["options"]["indented"] = "indented-1"
+					else:
+						subsource["options"]["indented"] = "indented-1"
 				else:
 					subsource["options"]["indented"] = "indented-1"
-					
 					
 				subsourcestoadd.append(subsource)
 			del source["subsources"]

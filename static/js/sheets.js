@@ -754,7 +754,7 @@ $(function() {
 						};
 							 
 
-		$("#sources, .subsources").sortable(sjs.sortOptions);
+		$("#sources").sortable(sjs.sortOptions);
 	}
 
 
@@ -1096,7 +1096,7 @@ $(function() {
 
 	// Add Sub-Source
 	$(".addSub").live("click", function() { 
-		$("#addSourceModal").data("target", $(".subsources", $(this).closest(".source")).eq(0))
+		$("#addSourceModal").data("target", $($(this).closest(".source")).eq(0))
 			.show().position({of: window}); 
 		$("#add").focus();
 		$("#overlay").show();
@@ -1310,11 +1310,9 @@ function addSource(q, source) {
 			"</div>" + 
 			"<div class='clear'></div>" +
 			attributionLink + 
-			"<ol class='subsources'></ol>" + 
 		"</li>");
 	
 	var $target = $(".source", $listTarget).last();
-	$target.find(".subsources").sortable(sjs.sortOptions);
 	setSourceNumbers();
 	if (source && source.text) {
 		return;
@@ -1642,10 +1640,6 @@ function readSource($target) {
 		if (title) { 
 			source["title"] = title; 
 		}
-		if ($(".subsources", $target).eq(0).children().length) {
-			source["subsources"] = readSources($(".subsources", $target).eq(0));
-		}
-
 	} else if ($target.hasClass("commentWrapper")) {
 		source["comment"] = $target.find(".comment").html();
 
@@ -1811,8 +1805,7 @@ function buildSheet(data){
 	
 
 function buildSources($target, sources) {
-	// Recursive function to build sources into target, subsources will call this function again
-	// with a subsource target. 
+	// Recursive function to build sources into target
 	for (var i = 0; i < sources.length; i++) {
 		buildSource($target, sources[i]);
 	}
@@ -1846,11 +1839,7 @@ function buildSource($target, source) {
 			$(".customTitle").last().html(source.title).css('display', 'inline-block');;
 			$(".sheetItem").last().addClass("hasCustom");
 		}
-		
-		if (source.subsources) {
-			buildSources($(".subsources", $(".source").last()), source.subsources);
-		}
-		
+
 	} else if ("comment" in source) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "commentWrapper");
 		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'>" + 
@@ -1994,9 +1983,6 @@ sjs.saveLastEdit = function($el) {
 			html: $el.html(),
 			node: $el.closest("[data-node]").attr("data-node")
 		}
-		if ($el.closest(".subsources").length) {
-			sjs.lastEdit.parent = $el.closest(".source").attr("data-node");
-		}					
 	} else {
 		sjs.lastEdit = null;
 	}
@@ -2013,7 +1999,7 @@ sjs.replayLastEdit = function() {
 	if (!sjs.lastEdit) { return; }
 
 	var $target = sjs.lastEdit.parent ? 
-					$(".subsources", $(".source[data-node="+sjs.lastEdit.parent+"]")).eq(0) :
+					$($(".source[data-node="+sjs.lastEdit.parent+"]")).eq(0) :
 					$("#sources");
 
 	var source = null;
