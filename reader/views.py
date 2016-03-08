@@ -20,18 +20,19 @@ from django.utils.http import urlquote
 from django.utils.encoding import iri_to_uri
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 from django.contrib.auth.models import User
+
+from sefaria.model import *
+from sefaria.workflows import *
+from sefaria.reviews import *
+from sefaria.model.user_profile import user_link, user_started_text
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json
-from sefaria.workflows import *
-from sefaria.reviews import *
 from sefaria.summaries import flatten_toc, get_or_make_summary_node, REORDER_RULES
-from sefaria.model import *
 from sefaria.sheets import get_sheets_for_ref
-from sefaria.utils.users import user_link, user_started_text
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section

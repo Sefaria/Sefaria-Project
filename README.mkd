@@ -2,7 +2,7 @@
 
 Sefaria is creating interfaces, apps (like a source sheet builder) and infrastructure (like an API and a structured dataset) for Jewish texts and textual learning. Our demo is up at www.sefaria.org.
 
-You can find outputs of our entire database in [Sefaria-Export](https://github.com/blockspeiser/Sefaria-Export).
+You can find outputs of our entire database in [Sefaria-Export](https://github.com/Sefaria/Sefaria-Export).
 
 Interested developers should join the [sefara-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
 
@@ -116,6 +116,16 @@ The shell script `cli` will invoke a python interpreter with the core models loa
     >>> p = LinkSet(Ref("Genesis 13"))
     >>> p.count()
     226
+
+## Thanks
+
+We're grateful to the following orgazations for providing us with donated services:
+
+- [BrowserStack](https://www.browserstack.com/)
+- [Google Apps for Work](https://apps.google.com/)
+- [PyCharm](https://www.jetbrains.com/pycharm/)
+- [Slack](https://slack.com)
+
 
 ## License
 

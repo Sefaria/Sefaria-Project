@@ -23,7 +23,6 @@ from sefaria.client.util import jsonResponse, HttpResponse
 from sefaria.sheets import *
 from sefaria.model.user_profile import *
 from sefaria.model.group import Group, GroupSet
-from sefaria.utils.users import user_link
 from sefaria.system.exceptions import InputError
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
