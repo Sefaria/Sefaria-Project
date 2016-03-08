@@ -4067,9 +4067,11 @@ var SearchFilters = React.createClass({
   handleFocusCategory: function(filterNode) {
     console.log("cat focus");
     console.log(filterNode);
+    var leaves = filterNode.getLeafNodes();
+    console.log(leaves);
     this.setState({
       openedCategory: filterNode,
-      openedCategoryBooks: filterNode.getLeafNodes()
+      openedCategoryBooks: leaves
     })
   },
   render: function() {

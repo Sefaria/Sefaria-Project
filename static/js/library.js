@@ -959,13 +959,14 @@ sjs.library.search.FilterNode.prototype = {
     },
     getLeafNodes: function() {
         //Return ordered array of leaf (book) level filters
-        if (!this.children) {
-            return [this];
+        if (!this.hasChildren()) {
+            return this;
         }
-        return [].concat(this.children.map(function(f) {
-            if (!f.children) return [f];
-            return f.getLeafNodes();
-        }))
+        var results = [];
+        for (var i = 0; i < this.children.length; i++) {
+            results = results.concat(this.children[i].getLeafNodes());
+        }
+        return results;
     },
     getId: function() {
         return this.path.replace(new RegExp("[/',()]", 'g'),"-").replace(new RegExp(" ", 'g'),"_");
