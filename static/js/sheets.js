@@ -1447,13 +1447,6 @@ function setSourceNumbers() {
 		$(this).find(".sourceNumber.en").html(index + ".");
 		$(this).find(".sourceNumber.he").html(encodeHebrewNumeral(index) + ".");
 	});
-	$(".subsources").each(function(){
-		$(this).find("> .sheetItem").not(".commentWrapper").each(function(index, value) {
-			index += 1;
-			$(this).find(".sourceNumber.en").html(String.fromCharCode(97 + index) + ".");
-			$(this).find(".sourceNumber.he").html(encodeHebrewNumeral(index) + ".");
-		});
-	});
 }
 
 
@@ -1627,10 +1620,13 @@ function readSource($target) {
 		}
 
 		//Set source indentation level
-		if ($target.hasClass("indented")) {
-			var sourceIndentLevel = "indented"
-		}
-		else {
+		if ($target.hasClass("indented-1")) {
+			var sourceIndentLevel = "indented-1"
+		} else if ($target.hasClass("indented-2")) {
+			var sourceIndentLevel = "indented-2"
+		} else if ($target.hasClass("indented-3")) {
+			var sourceIndentLevel = "indented-3"
+		} else {
 			var sourceIndentLevel ="";
 		}
 

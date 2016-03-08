@@ -410,7 +410,7 @@ body {
 	color: #555;
 }
 
-#sources, .indented {
+#sources {
 	font-size: 20px;
 	margin: 0px;
 	padding: 0px;
@@ -419,10 +419,6 @@ body {
 
 #sources { 
 	margin-top: 40px;
-}
-
-.indented {
-	margin-top: 10px;
 }
 
 #sheet #sources .sheetItem .sourceNumber {
@@ -688,32 +684,24 @@ body {
 	background-color: inherit;
 }
 
-.indented .source .title {
-	font-size: 15px;
-	margin-bottom: 0px;
-}
-
-.indented .source {
-
-}
-
-.indented .source .text {
-	font-size: 16px;
-}
-
 #sources .sortPlaceholder {
 	min-height: 60px;
 	margin: 20px 0;
 	background-color: #DAE83F;
 }
 
-#sheet.bilingual.stacked .indented {
-	margin: 10px 0 0 60px;
+.indented-1 {
+	margin-left: 40px;
 }
 
-#sheet.bilingual .indented {
-	margin: 10px 30px;
+.indented-2 {
+	margin-left: 80px;
 }
+
+.indented-3 {
+	margin-left: 120px;
+}
+
 
 .comment {
 	font-size: 17px;
