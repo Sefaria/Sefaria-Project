@@ -74,8 +74,8 @@ var ReaderApp = React.createClass({
     var header_state = {
                   mode: "Header",
                   refs: this.props.initialRefs,
-                  searchFilters: this.props.initialSearchFilters,
-                  searchQuery: this.props.initialQuery,
+                  //searchFilters: this.props.initialSearchFilters,
+                  //searchQuery: this.props.initialQuery,
                   navigationCategories: this.props.initialNavigationCategories,
                   sheetsTag: this.props.initialSheetsTag,
                   settings: clone(defaultPanelSettings)
@@ -90,7 +90,13 @@ var ReaderApp = React.createClass({
       panels: panels,
       header: header,
       defaultVersions: defaultVersions,
-      defaultPanelSettings: defaultPanelSettings
+      defaultPanelSettings: defaultPanelSettings,
+      searchQuery: this.props.initialQuery,
+      appliedSearchFilters: this.props.initialSearchFilters,
+      searchFiltersValid: false,
+      availableFilters: [],
+      filterRegistry: {},
+      orphanSearchFilters: []
     };
   },
   componentDidMount: function() {
@@ -139,6 +145,11 @@ var ReaderApp = React.createClass({
       return true; 
     }
     if (this.state.header.menuOpen) {
+      if ((history.state.searchQuery !== this.state.searchQuery) ||
+          (history.state.appliedSearchFilters.length !== this.state.appliedSearchFilters.length) ||
+          !(history.state.appliedSearchFilters.every((v,i) => v === this.state.appliedSearchFilters[i]))) {
+        return true;
+      }
       var prevPanels = [history.state.header];
       var nextPanels = [this.state.header];
     } else {
@@ -159,9 +170,6 @@ var ReaderApp = React.createClass({
           (next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0]) || 
           (next.mode === "Connections" && prev.filter && !prev.filter.compare(next.filter)) ||
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
-          (prev.searchQuery !== next.searchQuery) ||
-          (prev.searchFilters !== next.searchFilters.length) ||
-          !(prev.searchFilters.every((v,i) => v === next.searchFilters[i])) ||
           (prev.navigationSheetTag !== next.navigationSheetTag) ||
           (prev.version !== next.version) ||
           (prev.versionLanguage !== next.versionLanguage))
@@ -213,7 +221,7 @@ var ReaderApp = React.createClass({
           case "search":
             hist.title = state.searchQuery ? state.searchQuery + " | " : "";
             hist.title += "Sefaria Search";
-            hist.url   = "search" + (state.searchQuery ? "?q=" + state.searchQuery + (state.searchFilters ? "&filters=" + state.searchFilters.join("|") : "") : "");
+            hist.url   = "search" + (state.searchQuery ? "?q=" + state.searchQuery + (state.appliedSearchFilters ? "&filters=" + state.appliedSearchFilters.join("|") : "") : "");
             hist.mode  = "search";
             break;
           case "sheets":
@@ -268,7 +276,20 @@ var ReaderApp = React.createClass({
         url += "/" + histories[0].versionLanguage + "/" + histories[0].version.replace(/\s/g,"_");
     }
     var title =  histories.length ? histories[0].title : "Sefaria";
-    var hist  = {state: clone(this.state), url: url, title: title};
+    if (this.state.availableFilters || this.state.filterRegistry) {
+      var f = this.state.availableFilters;
+      var a = this.state.searchFiltersValid;
+      var r = this.state.filterRegistry;
+      this.state.availableFilters = [];
+      this.state.searchFiltersValid = false;
+      this.state.filterRegistry = {};
+      hist  = {state: clone(this.state), url: url, title: title};
+      this.state.availableFilters = f;
+      this.state.searchFiltersValid = a;
+      this.state.filterRegistry = r;
+    } else {
+      hist  = {state: clone(this.state), url: url, title: title};
+    }
     for (var i = 1; i < histories.length; i++) {
       if (histories[i-1].mode === "Text" && histories[i].mode === "Connections") {
         if (i == 1) {
@@ -336,8 +357,8 @@ var ReaderApp = React.createClass({
       menuOpen:             state.menuOpen || null, // "navigation", "text toc", "display", "search", "sheets", "home"
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag:   state.sheetsTag || null,
-      searchQuery:          state.searchQuery || null,
-      searchFilters:        state.searchFilters || null,
+      //searchQuery:          state.searchQuery || null,
+      //searchFilters:        state.searchFilters || null,
       displaySettingsOpen:  false
     };
     if (this.state && panel.refs.length && !panel.version) {
@@ -390,8 +411,29 @@ var ReaderApp = React.createClass({
       this.handleNavigationClick(ref, version, versionLanguage);
     }
   },
-  updateSearchFilters: function(filters) {
-
+  onQueryChange: function(query) {
+    this.setState({
+      searchQuery: query,
+      searchFiltersValid:  false
+    });
+  },
+  registerAvailableFilters: function(availableFilters, registry, orphans) {
+    this.setState({
+      availableFilters:    availableFilters,
+      filterRegistry:      registry,
+      orphanSearchFilters: orphans,
+      searchFiltersValid:  true
+    });
+  },
+  updateSearchFilter: function(filterNode) {
+    console.log("filter click");
+    console.log(filterNode);
+    if (filterNode.isSelected()) {
+      filterNode.setUnselected(true);
+    } else {
+      filterNode.setSelected(true);
+    }
+    this.setState({availableFilters: this.state.availableFilters});
   },
   setPanelState: function(n, state, replaceHistory) {
     this.replaceHistory  = Boolean(replaceHistory);
@@ -511,7 +553,7 @@ var ReaderApp = React.createClass({
     this.setState({header: this.makePanelState({menuOpen: "navigation"})});
   },
   showSearch: function(query) {
-    this.setState({header: this.makePanelState({menuOpen: "search", searchQuery: query})});
+    this.setState({header: this.makePanelState({menuOpen: "search"}), searchQuery: query});
   },
   saveRecentlyViewed: function(panel, n) {
     if (panel.mode == "Connections" || !panel.refs.length) { return; }
@@ -556,7 +598,13 @@ var ReaderApp = React.createClass({
                     setDefaultOption={this.setDefaultOption}
                     showLibrary={this.showLibrary}
                     showSearch={this.showSearch}
-                    updateSearchFilters={this.updateSearchFilters}
+                    searchQuery={this.state.searchQuery}
+                    appliedSearchFilters={this.state.appliedSearchFilters}
+                    onQueryChange={this.onQueryChange}
+                    updateSearchFilter={this.updateSearchFilter}
+                    registerAvailableFilters={this.registerAvailableFilters}
+                    availableFilters={this.state.availableFilters}
+                    searchFiltersValid={this.state.searchFiltersValid}
                     headerMode={this.props.headerMode}
                     panelsOpen={this.state.panels.length} />) : null;
 
@@ -619,7 +667,13 @@ var Header = React.createClass({
     showLibrary:         React.PropTypes.func,
     showSearch:          React.PropTypes.func,
     setDefaultOption:    React.PropTypes.func,
-    updateSearchFilters: React.PropTypes.func,
+    searchQuery:         React.PropTypes.string,
+    onQueryChange:       React.PropTypes.func,
+    appliedSearchFilters:React.PropTypes.array,
+    updateSearchFilter:  React.PropTypes.func,
+    registerAvailableFilters: React.PropTypes.func,
+    availableFilters:    React.PropTypes.array,
+    searchFiltersValid:  React.PropTypes.bool,
     panelsOpen:          React.PropTypes.number
   },
   getInitialState: function() {
@@ -732,7 +786,13 @@ var Header = React.createClass({
                           onSearchResultClick={this.props.onRefClick}
                           onRecentClick={this.props.onRecentClick}
                           setDefaultLanguage={this.props.setDefaultLanguage}
-                          updateSearchFilters={this.props.updateSearchFilters}
+                          searchQuery={this.props.searchQuery}
+                          appliedSearchFilters={this.props.appliedSearchFilters}
+                          onQueryChange={this.props.onQueryChange}
+                          updateSearchFilter={this.props.updateSearchFilter}
+                          registerAvailableFilters={this.props.registerAvailableFilters}
+                          availableFilters={this.props.availableFilters}
+                          searchFiltersValid={this.props.searchFiltersValid}
                           hideNavHeader={true} />) : null;
 
     return (<div className="header">
@@ -767,8 +827,8 @@ var ReaderPanel = React.createClass({
     initialFilter:          React.PropTypes.array,
     initialHighlightedRefs: React.PropTypes.array,
     initialMenu:            React.PropTypes.string,
-    initialQuery:           React.PropTypes.string,
-    initialSearchFilters:   React.PropTypes.array,
+    //initialQuery:           React.PropTypes.string,
+    //initialSearchFilters:   React.PropTypes.array,
     initialSheetsTag:       React.PropTypes.string,
     initialState:           React.PropTypes.object, // if present, trumps all props above
     setCentralState:        React.PropTypes.func,
@@ -782,7 +842,13 @@ var ReaderPanel = React.createClass({
     closePanel:             React.PropTypes.func,
     setDefaultLanguage:     React.PropTypes.func,
     selectVersion:          React.PropTypes.func,
-    updateSearchFilters:    React.PropTypes.func,
+    searchQuery:            React.PropTypes.string, //
+    appliedSearchFilters:   React.PropTypes.array,  //
+    onQueryChange:          React.PropTypes.func,
+    updateSearchFilter:     React.PropTypes.func,
+    registerAvailableFilters: React.PropTypes.func,
+    availableFilters:       React.PropTypes.array,
+    searchFiltersValid:     React.PropTypes.bool,
     highlightedRefs:        React.PropTypes.array,
     hideNavHeader:          React.PropTypes.bool,
     multiPanel:             React.PropTypes.bool,
@@ -816,8 +882,8 @@ var ReaderPanel = React.createClass({
       menuOpen:             this.props.initialMenu || null, // "navigation", "text toc", "display", "search", "sheets", "home"
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag:   this.props.initialSheetsTag || null,
-      searchQuery:          this.props.initialQuery || null,
-      searchFilters:        this.props.initialSearchFilters || [],
+      //searchQuery:          this.props.initialQuery || null,
+      //searchFilters:        this.props.initialSearchFilters || [],
       displaySettingsOpen:  false
     }
   },
@@ -834,8 +900,8 @@ var ReaderPanel = React.createClass({
     if (nextProps.initialFilter && !this.props.multiPanel) {
       this.openConnectionsInPanel(nextProps.initialRefs);
     }
-    if (nextProps.initialQuery) {
-      this.openSearch(nextProps.initialQuery);
+    if (nextProps.searchQuery) {
+      this.openSearch(nextProps.searchQuery);
     }
     if (this.state.menuOpen !== nextProps.initialMenu) {
       this.setState({menuOpen: nextProps.initialMenu});
@@ -845,9 +911,7 @@ var ReaderPanel = React.createClass({
     } else {
       this.setState({
         navigationCategories: nextProps.initialNavigationCategories || [],
-        navigationSheetTag:   nextProps.initialSheetsTag || null,
-        searchQuery:          nextProps.initialQuery || null,
-        searchFilters:        nextProps.initialSearchFilters || []
+        navigationSheetTag:   nextProps.initialSheetsTag || null
       });
     }
   },
@@ -945,7 +1009,7 @@ var ReaderPanel = React.createClass({
       // If there's no content to show, return to home
       menuOpen: this.state.refs.slice(-1)[0] ? null: "home",
       searchQuery: null,
-      searchFilters: [],
+      appliedSearchFilters: [],
       navigationCategories: null,
       navigationSheetTag: null
     };
@@ -955,7 +1019,7 @@ var ReaderPanel = React.createClass({
     this.conditionalSetState({
       menuOpen: menu,
       searchQuery: null,
-      searchFilters: [],
+      appliedSearchFilters: [],
       navigationCategories: null,
       navigationSheetTag: null
     });
@@ -965,9 +1029,6 @@ var ReaderPanel = React.createClass({
   },
   setSheetTag: function (tag) {
     this.conditionalSetState({navigationSheetTag: tag});
-  },
-  setSearchQuery: function (query, filters) {
-    this.conditionalSetState({searchQuery: query, searchFilters: filters || []});
   },
   setFilter: function(filter, updateRecent) {
     // Sets the current filter for Connected Texts (TextList)
@@ -1006,11 +1067,10 @@ var ReaderPanel = React.createClass({
       this.showBaseText(ref);
     }
   },
-  openSearch: function(query, filters) {
+  openSearch: function(query) {
     this.conditionalSetState({
       menuOpen: "search",
-      searchQuery: query,
-      searchFilters: filters || []
+      searchQuery: query
     });
   },
   openDisplaySettings: function() {
@@ -1173,17 +1233,20 @@ var ReaderPanel = React.createClass({
 
     } else if (this.state.menuOpen === "search") {
       var menu = (<SearchPage
-                    query={this.state.searchQuery}
+                    query={this.props.searchQuery}
                     initialPage={1}
-                    appliedFilters={this.state.searchFilters}
+                    appliedFilters={this.props.appliedSearchFilters}
                     settings={clone(this.state.settings)}
                     onResultClick={this.props.onSearchResultClick || this.showBaseText}
-                    onQueryChange={this.setSearchQuery}
                     openDisplaySettings={this.openDisplaySettings}
                     toggleLanguage={this.toggleLanguage}
                     close={this.closeMenus}
                     hideNavHeader={this.props.hideNavHeader}
-                    updateAppliedFilters={this.props.updateSearchFilters}
+                    onQueryChange={this.props.onQueryChange}
+                    updateAppliedFilter={this.props.updateSearchFilter}
+                    availableFilters={this.props.availableFilters}
+                    filtersValid={this.props.searchFiltersValid}
+                    registerAvailableFilters={this.props.registerAvailableFilters}
       />);
 
     } else if (this.state.menuOpen === "sheets") {
@@ -1850,7 +1913,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
       var boxedContent = [];
       var currentRun   = [];
       for (var i = 0; i < content.length; i++) {
-        // Walk through content looking for runs of spans to group togther into a table
+        // Walk through content looking for runs of spans to group together into a table
         if (content[i].type == "div") { // this is a subcategory
           if (currentRun.length) {
             boxedContent.push((<TwoOrThreeBox contents={currentRun} width={this.props.width} key={i} />));
@@ -3471,7 +3534,10 @@ var SearchPage = React.createClass({
         close:                React.PropTypes.func,
         onResultClick:        React.PropTypes.func,
         onQueryChange:        React.PropTypes.func,
-        updateAppliedFilters: React.PropTypes.func,
+        updateAppliedFilter:  React.PropTypes.func,
+        registerAvailableFilters: React.PropTypes.func,
+        availableFilters:     React.PropTypes.array,
+        filtersValid:         React.PropTypes.bool,
         hideNavHeader:        React.PropTypes.bool
     },
     getInitialState: function() {
@@ -3496,10 +3562,9 @@ var SearchPage = React.createClass({
       }
       */
     },
-    updateQuery: function(query, appliedFilters) {
-        //this.setState({query: query, appliedFilters: appliedFilters});
+    updateQuery: function(query) {
         if (this.props.onQueryChange) {
-            this.props.onQueryChange(query, appliedFilters);
+            this.props.onQueryChange(query);
         }
     },
     updateRunningQuery: function(ajax) {
@@ -3540,7 +3605,10 @@ var SearchPage = React.createClass({
                                   appliedFilters = {this.props.appliedFilters}
                                   updateRunningQuery = { this.updateRunningQuery }
                                   onResultClick={this.props.onResultClick}
-                                  updateAppliedFilters = {this.props.updateAppliedFilters}
+                                  updateAppliedFilter = {this.props.updateAppliedFilter}
+                                  registerAvailableFilters={this.props.registerAvailableFilters}
+                                  availableFilters={this.props.availableFilters}
+                                  filtersValid={this.props.filtersValid}
                               />
                           </div>
                       </div>
@@ -3596,7 +3664,10 @@ var SearchResultList = React.createClass({
         size:                 React.PropTypes.number,
         updateRunningQuery:   React.PropTypes.func,
         onResultClick:        React.PropTypes.func,
-        updateAppliedFilters: React.PropTypes.func
+        filtersValid:         React.PropTypes.bool,
+        availableFilters:     React.PropTypes.array,
+        updateAppliedFilter:  React.PropTypes.func,
+        registerAvailableFilters: React.PropTypes.func
     },
     getDefaultProps: function() {
         return {
@@ -3608,13 +3679,11 @@ var SearchResultList = React.createClass({
     getInitialState: function() {
         return {
             runningQuery: null,
-            filtersFetched: false,
             total: 0,
             textTotal: 0,
             sheetTotal: 0,
             textHits: [],
-            sheetHits: [],
-            aggregations: null
+            sheetHits: []
         }
     },
     updateRunningQuery: function(ajax) {
@@ -3624,6 +3693,30 @@ var SearchResultList = React.createClass({
     _abortRunningQuery: function() {
         if(this.state.runningQuery) {
             this.state.runningQuery.abort();
+        }
+    },
+    componentDidMount: function() {
+        this._executeQuery();
+    },
+    componentWillUnmount: function() {
+        this._abortRunningQuery();
+    },
+    componentWillReceiveProps: function(newProps) {
+        if(this.props.query != newProps.query) {
+           this.setState({
+                total: 0,
+                textTotal: 0,
+                sheetTotal: 0,
+                textHits: [],
+                sheetHits: [],
+           });
+           this._executeQuery(newProps)
+        }
+        else if (
+            this.props.size != newProps.size
+            || this.props.page != newProps.page
+        ) {
+           this._executeQuery(newProps)
         }
     },
     _executeQuery: function(props) {
@@ -3638,7 +3731,7 @@ var SearchResultList = React.createClass({
 
         var runningQuery = sjs.library.search.execute_query({
             query: props.query,
-            get_filters: !this.state.filtersFetched,
+            get_filters: !this.props.filtersValid,
             applied_filters: props.appliedFilters,
             size: props.page * props.size,
             success: function(data) {
@@ -3652,10 +3745,9 @@ var SearchResultList = React.createClass({
                         sheetTotal: hitarrays.sheets.length
                     });
                     if (data.aggregations) {
-                      this.setState({
-                        aggregations: data.aggregations,
-                        filtersFetched: true
-                      });
+                      var ftree = this._buildFilterTree(data.aggregations.category.buckets);
+                      var orphans = this._applyFilters(ftree, this.props.appliedFilters);
+                      this.props.registerAvailableFilters(ftree.availableFilters, ftree.registry, orphans);
                     }
                     this.updateRunningQuery(null);
                 }
@@ -3702,32 +3794,168 @@ var SearchResultList = React.createClass({
             sheets: sheetHits
         };
     },
-    componentDidMount: function() {
-        this._executeQuery();
+    _buildFilterTree(aggregation_buckets) {
+      //returns object w/ keys 'availableFilters', 'registry'
+      //Add already applied filters w/ empty doc count?
+      var rawTree = {};
+      aggregation_buckets.forEach(
+          f => this._addAvailableFilter(rawTree, f["key"], {"docCount":f["doc_count"]})
+      );
+      this._aggregate(rawTree);
+      return this._build(rawTree);
     },
-    componentWillUnmount: function() {
-        this._abortRunningQuery();
+    _addAvailableFilter: function(rawTree, key, data) {
+      //key is a '/' separated key list, data is an arbitrary object
+      //Based on http://stackoverflow.com/a/11433067/213042
+      var keys = key.split("/");
+      var base = rawTree;
+
+      // If a value is given, remove the last name and keep it for later:
+      var lastName = arguments.length === 3 ? keys.pop() : false;
+
+      // Walk the hierarchy, creating new objects where needed.
+      // If the lastName was removed, then the last object is not set yet:
+      var i;
+      for(i = 0; i < keys.length; i++ ) {
+          base = base[ keys[i] ] = base[ keys[i] ] || {};
+      }
+
+      // If a value was given, set it to the last name:
+      if( lastName ) {
+          base = base[ lastName ] = data;
+      }
+
+      // Could return the last object in the hierarchy.
+      // return base;
     },
-    componentWillReceiveProps: function(newProps) {
-        if(this.props.query != newProps.query) {
-           this.setState({
-                total: 0,
-                textTotal: 0,
-                sheetTotal: 0,
-                textHits: [],
-                sheetHits: [],
-                filtersFetched: false,
-                aggregations: null
-           });
-           this._executeQuery(newProps)
-        }
-        else if (
-            this.props.size != newProps.size
-            || this.props.page != newProps.page
-        ) {
-           this._executeQuery(newProps)
-        }
+    _aggregate: function(rawTree) {
+      //Iterates the raw tree to aggregate doc_counts from the bottom up
+      //Nod to http://stackoverflow.com/a/17546800/213042
+      walker("", rawTree);
+      function walker(key, branch) {
+          if (branch !== null && typeof branch === "object") {
+              // Recurse into children
+              $.each(branch, walker);
+              // Do the summation with a hacked object 'reduce'
+              if ((!("docCount" in branch)) || (branch["docCount"] === 0)) {
+                  branch["docCount"] = Object.keys(branch).reduce(function (previous, key) {
+                      if (typeof branch[key] === "object" && "docCount" in branch[key]) {
+                          previous += branch[key].docCount;
+                      }
+                      return previous;
+                  }, 0);
+              }
+          }
+      }
     },
+    _build: function(rawTree) {
+      //returns dict w/ keys 'availableFilters', 'registry'
+      //Aggregate counts, then sort rawTree into filter objects and add Hebrew using sjs.toc as reference
+      //Nod to http://stackoverflow.com/a/17546800/213042
+      var path = [];
+      var filters = [];
+      var registry = {};
+      /*
+      //Manually add base commentary branch
+      var commentaryNode = new sjs.FilterNode();
+      var rnode = rawTree["Commentary"];
+      if (rnode) {
+          $.extend(commentaryNode, {
+              "title": "Commentary",
+              "path": "Commentary",
+              "heTitle": "מפרשים",
+              "doc_count": rnode.doc_count
+          });
+          //ftree.registry[commentaryNode.path] = commentaryNode;
+      }
+      //End commentary base hack
+      */
+      for(var j = 0; j < sjs.toc.length; j++) {
+          var b = walk.call(this, sjs.toc[j]);
+          if (b) filters.push(b);
+      }
+      return {availableFilters: filters, registry: registry};
+
+      //if (rnode) this.state.children.append(commentaryNode);
+
+      function walk(branch, parentNode) {
+          var node = new sjs.library.search.FilterNode();
+
+          if("category" in branch) { // Category node
+              /*if(branch["category"] == "Commentary") { // Special case commentary
+
+                  path.unshift(branch["category"]);  // Place "Commentary" at the *beginning* of the path
+                   $.extend(node, {
+                       "title": parentNode.title,
+                       "path": path.join("/"),
+                       "heTitle": parentNode.heTitle
+                   });
+              } else {*/
+                  path.push(branch["category"]);  // Place this category at the *end* of the path
+                  $.extend(node, {
+                     "title": path.slice(-1)[0],
+                     "path": path.join("/"),
+                     "heTitle": branch["heCategory"]
+                  });
+              //}
+              for(var j = 0; j < branch["contents"].length; j++) {
+                  var b = walk.call(this, branch["contents"][j], node);
+                  if (b) node.append(b);
+              }
+          }
+          else if ("title" in branch) { // Text Node
+              path.push(branch["title"]);
+              $.extend(node, {
+                 "title": path.slice(-1)[0],
+                 "path": path.join("/"),
+                 "heTitle": branch["heTitle"]
+              });
+          }
+
+          try {
+              var rawNode = rawTree;
+              var i;
+              for (i = 0; i < path.length; i++) {
+                  //For TOC nodes that we don't have results for, this will throw an exception, caught below.
+                  rawNode = rawNode[path[i]];
+              }
+
+              node["docCount"] = rawNode.docCount;
+              // Do we need both of these in the registry?
+              registry[node.getId()] = node;
+              registry[node.path] = node;
+              /*
+                if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
+                  commentaryNode.append(node);
+                  path.shift();
+                  return false;
+              }
+              */
+              path.pop();
+              return node;
+          }
+          catch (e) {
+            /*
+            if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
+                  path.shift();
+              } else {
+              */
+              path.pop();
+              //}
+              return false;
+          }
+      }
+    },
+    _applyFilters: function(ftree, appliedFilters) {
+      var orphans = [];  // todo: confirm behavior
+      appliedFilters.forEach(path => {
+        var node = this.ftree.registry[path];
+        if (node) { node.setSelected(True); }
+        else { orphans.push(path); }
+      });
+      return orphans;
+    },
+
     render: function () {
         if (!(this.props.query)) {  // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
             return null;
@@ -3743,9 +3971,9 @@ var SearchResultList = React.createClass({
                   total = {this.state.total}
                   textTotal = {this.state.textTotal}
                   sheetTotal = {this.state.sheetTotal}
-                  aggregations = {this.state.aggregations}
+                  availableFilters={this.props.availableFilters}
                   appliedFilters = {this.props.appliedFilters}
-                  updateAppliedFilters = {this.props.updateAppliedFilters}
+                  updateAppliedFilter = {this.props.updateAppliedFilter}
                 />
                 {this.state.textHits.map(function(result) {
                     return (<SearchTextResult
@@ -3773,42 +4001,35 @@ var SearchFilters = React.createClass({
     textTotal:            React.PropTypes.number,
     sheetTotal:           React.PropTypes.number,
     appliedFilters:       React.PropTypes.array,
-    aggregations:         React.PropTypes.object,
-    updateAppliedFilters: React.PropTypes.func
+    availableFilters:     React.PropTypes.array,
+    updateAppliedFilter:  React.PropTypes.func
   },
   getInitialState: function() {
     return {
-      availableFilters: [],
-      orphanFilters: [],
-      registry: {},
       openedCategory: null,
       openedCategoryBooks: []
     }
   },
   getDefaultProps: function() {
     return {
-      aggregations: {},
-      appliedFilters: []
+      appliedFilters: [],
+      availableFilters: []
     };
   },
   componentWillMount() {
-    if (this.props.aggregations) {
-      this.setState(
-          this._buildFilterTree(this.props.aggregations.category.buckets),
-          function() { this.applyFilters(this.props.appliedFilters); }  // in callback, so as to apply only after above available filters and registry is committed
-      );
-    }
+
   },
   componentWillReceiveProps(newProps) {
     // Save current filters
     // this.props
     // todo: check for cases when we want to rebuild / not
     if (newProps.query != this.props.query) {
-      var newstate = this._buildFilterTree(newProps.aggregations.category.buckets);
-      newstate.openedCategory = null;     // todo: confirm behavior
-      newstate.openedCategoryBooks = [];  // todo: confirm behavior
-      this.setState(newstate, function() { this.applyFilters(this.props.appliedFilters); });
+      this.setState({
+        openedCategory: null,
+        openedCategoryBooks: []
+      });
     }
+    /*
     else if (newProps.appliedFilters &&
               ((newProps.appliedFilters.length !== this.props.appliedFilters.length)
                || !(newProps.appliedFilters.every((v,i) => v === this.props.appliedFilters[i]))
@@ -3818,174 +4039,15 @@ var SearchFilters = React.createClass({
       // Because we compute filter removal from teh same object, this ends up sliding in messily in the setState.
       // Hard to see how to get it through the front door.
       this.applyFilters(this.props.appliedFilters);
-    }
+    } */
   },
-  _buildFilterTree(aggregation_buckets) {
-    //returns dict w/ keys 'availableFilters', 'registry'
-    //Add already applied filters w/ empty doc count?
-    var rawTree = {};
-    aggregation_buckets.forEach(
-        f => this._addAvailableFilter(rawTree, f["key"], {"docCount":f["doc_count"]})
-    );
-    this._aggregate(rawTree);
-    return this._build(rawTree);
-  },
-  _addAvailableFilter: function(rawTree, key, data) {
-    //key is a '/' separated key list, data is an arbitrary object
-    //Based on http://stackoverflow.com/a/11433067/213042
-    var keys = key.split("/");
-    var base = rawTree;
 
-    // If a value is given, remove the last name and keep it for later:
-    var lastName = arguments.length === 3 ? keys.pop() : false;
-
-    // Walk the hierarchy, creating new objects where needed.
-    // If the lastName was removed, then the last object is not set yet:
-    var i;
-    for(i = 0; i < keys.length; i++ ) {
-        base = base[ keys[i] ] = base[ keys[i] ] || {};
-    }
-
-    // If a value was given, set it to the last name:
-    if( lastName ) {
-        base = base[ lastName ] = data;
-    }
-
-    // Could return the last object in the hierarchy.
-    // return base;
-  },
-  _aggregate: function(rawTree) {
-    //Iterates the raw tree to aggregate doc_counts from the bottom up
-    //Nod to http://stackoverflow.com/a/17546800/213042
-    walker("", rawTree);
-    function walker(key, branch) {
-        if (branch !== null && typeof branch === "object") {
-            // Recurse into children
-            $.each(branch, walker);
-            // Do the summation with a hacked object 'reduce'
-            if ((!("docCount" in branch)) || (branch["docCount"] === 0)) {
-                branch["docCount"] = Object.keys(branch).reduce(function (previous, key) {
-                    if (typeof branch[key] === "object" && "docCount" in branch[key]) {
-                        previous += branch[key].docCount;
-                    }
-                    return previous;
-                }, 0);
-            }
-        }
-    }
-  },
-  _build: function(rawTree) {
-    //returns dict w/ keys 'availableFilters', 'registry'
-    //Aggregate counts, then sort rawTree into filter objects and add Hebrew using sjs.toc as reference
-    //Nod to http://stackoverflow.com/a/17546800/213042
-    var path = [];
-    var filters = [];
-    var registry = {};
-    /*
-    //Manually add base commentary branch
-    var commentaryNode = new sjs.FilterNode();
-    var rnode = rawTree["Commentary"];
-    if (rnode) {
-        $.extend(commentaryNode, {
-            "title": "Commentary",
-            "path": "Commentary",
-            "heTitle": "מפרשים",
-            "doc_count": rnode.doc_count
-        });
-        //ftree.registry[commentaryNode.path] = commentaryNode;
-    }
-    //End commentary base hack
-    */
-    for(var j = 0; j < sjs.toc.length; j++) {
-        var b = walk.call(this, sjs.toc[j]);
-        if (b) filters.push(b);
-    }
-    return {availableFilters: filters, registry: registry};
-
-    //if (rnode) this.state.children.append(commentaryNode);
-
-    function walk(branch, parentNode) {
-        var node = new sjs.library.search.FilterNode();
-
-        if("category" in branch) { // Category node
-            /*if(branch["category"] == "Commentary") { // Special case commentary
-
-                path.unshift(branch["category"]);  // Place "Commentary" at the *beginning* of the path
-                 $.extend(node, {
-                     "title": parentNode.title,
-                     "path": path.join("/"),
-                     "heTitle": parentNode.heTitle
-                 });
-            } else {*/
-                path.push(branch["category"]);  // Place this category at the *end* of the path
-                $.extend(node, {
-                   "title": path.slice(-1)[0],
-                   "path": path.join("/"),
-                   "heTitle": branch["heCategory"]
-                });
-            //}
-            for(var j = 0; j < branch["contents"].length; j++) {
-                var b = walk.call(this, branch["contents"][j], node);
-                if (b) node.append(b);
-            }
-        }
-        else if ("title" in branch) { // Text Node
-            path.push(branch["title"]);
-            $.extend(node, {
-               "title": path.slice(-1)[0],
-               "path": path.join("/"),
-               "heTitle": branch["heTitle"]
-            });
-        }
-
-        try {
-            var rawNode = rawTree;
-            var i;
-            for (i = 0; i < path.length; i++) {
-                //For TOC nodes that we don't have results for, this will throw an exception, caught below.
-                rawNode = rawNode[path[i]];
-            }
-
-            node["docCount"] = rawNode.docCount;
-            // Do we need both of these in the registry?
-            registry[node.getId()] = node;
-            registry[node.path] = node;
-            /*
-              if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
-                commentaryNode.append(node);
-                path.shift();
-                return false;
-            }
-            */
-            path.pop();
-            return node;
-        }
-        catch (e) {
-          /*
-          if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
-                path.shift();
-            } else {
-            */
-            path.pop();
-            //}
-            return false;
-        }
-    }
-  },
-  applyFilters(paths) {
-    var orphans = [];  // todo: confirm behavior
-    filters.forEach(path => {
-      var node = this.state.registry[path];
-      if (node) { node.setSelected(True); }
-      else { orphans.push(path); }
-    });
-    setState({availableFilters: this.state.availableFilters, orphanFilters: orphans})
-  },
+  /*  UNUSED */
   getAppliedFilters: function() {
     var results = [];
     //results = results.concat(this.orphanFilters);
-    for (var i = 0; i < this.state.availableFilters.length; i++) {
-        results = results.concat(this.state.availableFilters[i].getAppliedFilters());
+    for (var i = 0; i < this.props.availableFilters.length; i++) {
+        results = results.concat(this.props.availableFilters[i].getAppliedFilters());
     }
     return results;
   },
@@ -3995,17 +4057,6 @@ var SearchFilters = React.createClass({
         results = results.concat(this.children[i].getSelectedTitles(lang));
     }
     return results;
-  },
-  handleFilterClick: function(filterNode) {
-    console.log("filter click");
-    console.log(filterNode);
-    if (filterNode.isSelected()) {
-      filterNode.setUnselected(true);
-    } else {
-      filterNode.setSelected(true);
-    }
-    this.setState({availableFilters: this.state.availableFilters});
-    this.props.updateAppliedFilters(this.getAppliedFilters());
   },
   handleFocusCategory: function(filterNode) {
     console.log("cat focus");
@@ -4028,8 +4079,8 @@ var SearchFilters = React.createClass({
       </span>);
 
     // Why do I have to check for this existence of this?  lame.
-    var enFilterLine = (this.props.appliedFilters && this.props.appliedFilters.length)?(": " + this.getSelectedTitles("en").join(", ")):"";
-    var heFilterLine = (this.props.appliedFilters && this.props.appliedFilters.length)?(": " + this.getSelectedTitles("he").join(", ")):"";
+    var enFilterLine = (this.props.appliedFilters.length)?(": " + this.getSelectedTitles("en").join(", ")):"";
+    var heFilterLine = (this.props.appliedFilters.length)?(": " + this.getSelectedTitles("he").join(", ")):"";
 
     return (
       <div>
@@ -4040,11 +4091,11 @@ var SearchFilters = React.createClass({
         </div>
         <div className="searchFilterBoxes">
           <div className="searchFilterCategoryBox">
-          {this.state.availableFilters.map(function(filter) {
+          {this.props.availableFilters.map(function(filter) {
               return (<SearchFilter
                   filter={filter}
                   focusCategory={this.handleFocusCategory}
-                  updateSelected={this.handleFilterClick}
+                  updateSelected={this.props.updateAppliedFilter}
                   key={filter.path}/>);
           }.bind(this))}
           </div>
@@ -4052,7 +4103,7 @@ var SearchFilters = React.createClass({
           {this.state.openedCategoryBooks.map(function(filter) {
               return (<SearchFilter
                   filter={filter}
-                  updateSelected={this.handleFilterClick}
+                  updateSelected={this.props.updateAppliedFilter}
                   key={filter.path}/>);
           }.bind(this))}
           </div>
