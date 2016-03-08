@@ -875,6 +875,20 @@ display: block;margin: 0 auto;}
   margin-top: -60px;
   text-align: center;
 }
+
+.searchContent .searchFilterBoxes {
+  padding-bottom: 20px;
+}
+
+.searchContent .searchFilterCategoryBox,
+.searchContent .searchFilterBookBox {
+  float: left;
+  width: 300px;
+  height: 150px;
+  overflow-y: auto;
+}
+
+
 .searchContent .result {
   border-bottom: thin solid #eee;
   padding-bottom: 12px;

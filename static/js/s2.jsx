@@ -429,8 +429,6 @@ var ReaderApp = React.createClass({
     });
   },
   updateSearchFilter: function(filterNode) {
-    console.log("filter click");
-    console.log(filterNode);
     if (filterNode.isSelected()) {
       filterNode.setUnselected(true);
     } else {
@@ -4065,10 +4063,7 @@ var SearchFilters = React.createClass({
     return results;
   },
   handleFocusCategory: function(filterNode) {
-    console.log("cat focus");
-    console.log(filterNode);
     var leaves = filterNode.getLeafNodes();
-    console.log(leaves);
     this.setState({
       openedCategory: filterNode,
       openedCategoryBooks: leaves
@@ -4115,6 +4110,7 @@ var SearchFilters = React.createClass({
                   key={filter.path}/>);
           }.bind(this))}
           </div>
+          <div style={{clear: "both"}}/>
         </div>
       </div>)
   }
@@ -4129,10 +4125,10 @@ var SearchFilter = React.createClass({
   },
   // Can't set indeterminate in the render phase.  https://github.com/facebook/react/issues/1798
   componentDidMount: function() {
-    React.findDOMNode(this).indeterminate = this.props.filter.isPartial();
+    React.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
   },
   componentDidUpdate: function() {
-    React.findDOMNode(this).indeterminate = this.props.filter.isPartial();
+    React.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
   },
   handleFilterClick: function() {
     this.props.updateSelected(this.props.filter)
