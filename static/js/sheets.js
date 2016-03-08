@@ -783,6 +783,9 @@ $(function() {
 							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
 							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up'></i></div>" +
 							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
+							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
+							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
+
 						"</div>";
 
 	var viewerControls = "<div id='sourceControls'>" + 
