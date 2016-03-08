@@ -209,8 +209,6 @@ def s2(request, ref, version=None, lang=None):
 
     panels += [panel_1]
 
-    search_filters = request.GET.get("filters").split("|") if request.GET.get("filters") else []
-
     for i in range(2, max_panels + 1):
         ref = request.GET.get("p{}".format(i))
         if not ref:
@@ -244,9 +242,7 @@ def s2(request, ref, version=None, lang=None):
         panels += [panel]
 
     return render_to_response('s2.html', {
-            "panels": json.dumps(panels),
-            "query": request.GET.get("q"),
-            "searchFilters": json.dumps(search_filters)
+            "panels": json.dumps(panels)
         }, RequestContext(request))
 
 
@@ -268,6 +264,16 @@ def s2_texts_category(request, cats):
                                 }, RequestContext(request))
 
 
+def s2_search(request):
+    search_filters = request.GET.get("filters").split("|") if request.GET.get("filters") else []
+
+    return render_to_response('s2.html', {
+            "initialMenu": "search",
+            "query": request.GET.get("q"),
+            "searchFilters": json.dumps(search_filters)
+        }, RequestContext(request))
+
+
 def s2_page(request, page):
     """
     View into an S2 page
@@ -279,10 +285,6 @@ def s2_page(request, page):
 
 def s2_home(request):
     return s2_page(request, "home")
-
-
-def s2_search(request):
-    return s2_page(request, "search")
 
 
 def s2_texts(request):
@@ -779,7 +781,7 @@ def texts_category_list(request, cats):
 @ensure_csrf_cookie
 def search(request):
     if request.flavour == "mobile" or request.COOKIES.get('s2'):
-        return s2_page(request, "search")
+        return s2_search(request)
     return render_to_response('search.html',
                              {},
                              RequestContext(request))

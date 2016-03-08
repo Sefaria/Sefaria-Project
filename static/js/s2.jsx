@@ -187,6 +187,7 @@ var ReaderApp = React.createClass({
     return false;  
   },
   makeHistoryState: function() {
+    debugger;
     // Returns an object with state, title and url params for the current state
     var histories = [];
     // When the header has a panel open, only look at its content for history
@@ -219,9 +220,9 @@ var ReaderApp = React.createClass({
             hist.mode  = "text toc";
             break;
           case "search":
-            hist.title = state.searchQuery ? state.searchQuery + " | " : "";
+            hist.title = this.state.searchQuery ? this.state.searchQuery + " | " : "";
             hist.title += "Sefaria Search";
-            hist.url   = "search" + (state.searchQuery ? "?q=" + state.searchQuery + (state.appliedSearchFilters ? "&filters=" + state.appliedSearchFilters.join("|") : "") : "");
+            hist.url   = "search" + (this.state.searchQuery ? "?q=" + this.state.searchQuery + (!!this.state.appliedSearchFilters.length ? "&filters=" + this.state.appliedSearchFilters.join("|") : "") : "");
             hist.mode  = "search";
             break;
           case "sheets":
@@ -329,7 +330,7 @@ var ReaderApp = React.createClass({
     var hist = this.makeHistoryState();
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
-      console.log("Replace History - " + hist.url)
+      console.log("Replace History - " + hist.url);
       //console.log(hist);
     } else {
       if (window.location.pathname == hist.url) { return; } // Never push history with the same URL
@@ -418,6 +419,10 @@ var ReaderApp = React.createClass({
     });
   },
   registerAvailableFilters: function(availableFilters, registry, orphans) {
+    console.log("ReaderApp.registerAvailableFilters: "); // 0803 debug
+    console.log(availableFilters); // 0803 debug
+    console.log(registry); // 0803 debug
+    console.log(orphans); // 0803 debug
     this.setState({
       availableFilters:    availableFilters,
       filterRegistry:      registry,
@@ -3721,8 +3726,9 @@ var SearchResultList = React.createClass({
     },
     _executeQuery: function(props) {
         //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
-        props = props || this.props;
-
+       props = props || this.props;
+       console.log("SearchResultList._executeQuery: "); // 0803 debug
+       console.log(props); // 0803 debug
         if (!props.query) {
             return;
         }
@@ -3797,6 +3803,8 @@ var SearchResultList = React.createClass({
     _buildFilterTree(aggregation_buckets) {
       //returns object w/ keys 'availableFilters', 'registry'
       //Add already applied filters w/ empty doc count?
+      console.log("SearchResultList._buildFilterTree: "); // 0803 debug
+      console.log(aggregation_buckets); // 0803 debug
       var rawTree = {};
       aggregation_buckets.forEach(
           f => this._addAvailableFilter(rawTree, f["key"], {"docCount":f["doc_count"]})
@@ -3947,6 +3955,9 @@ var SearchResultList = React.createClass({
       }
     },
     _applyFilters: function(ftree, appliedFilters) {
+      console.log("SearchResultList._applyFilters: "); // 0803 debug
+      console.log(ftree); // 0803 debug
+      console.log(appliedFilters); // 0803 debug
       var orphans = [];  // todo: confirm behavior
       appliedFilters.forEach(path => {
         var node = this.ftree.registry[path];
