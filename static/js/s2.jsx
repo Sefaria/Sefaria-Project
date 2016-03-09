@@ -29,6 +29,8 @@ var ReaderApp = React.createClass({
         menuOpen: this.props.initialMenu,
         version: this.props.initialPanels.length ? this.props.initialPanels[0].version : null,
         versionLanguage: this.props.initialPanels.length ? this.props.initialPanels[0].versionLanguage : null,
+        searchQuery: this.props.initialQuery,
+        appliedSearchFilters: this.props.initialSearchFilters,
         settings: clone(defaultPanelSettings)
       };
       if (panels[0].versionLanguage) {
@@ -74,8 +76,8 @@ var ReaderApp = React.createClass({
     var header_state = {
                   mode: "Header",
                   refs: this.props.initialRefs,
-                  //searchFilters: this.props.initialSearchFilters,
-                  //searchQuery: this.props.initialQuery,
+                  searchQuery: this.props.initialQuery,
+                  appliedSearchFilters: this.props.initialSearchFilters,
                   navigationCategories: this.props.initialNavigationCategories,
                   sheetsTag: this.props.initialSheetsTag,
                   settings: clone(defaultPanelSettings)
@@ -90,13 +92,13 @@ var ReaderApp = React.createClass({
       panels: panels,
       header: header,
       defaultVersions: defaultVersions,
-      defaultPanelSettings: defaultPanelSettings,
-      searchQuery: this.props.initialQuery,
-      appliedSearchFilters: this.props.initialSearchFilters,
-      searchFiltersValid: false,
-      availableFilters: [],
-      filterRegistry: {},
-      orphanSearchFilters: []
+      defaultPanelSettings: defaultPanelSettings
+      //searchQuery: this.props.initialQuery,
+      //appliedSearchFilters: this.props.initialSearchFilters,
+      //searchFiltersValid: false,
+      //availableFilters: [],
+      //filterRegistry: {},
+      //orphanSearchFilters: []
     };
   },
   componentDidMount: function() {
@@ -148,9 +150,9 @@ var ReaderApp = React.createClass({
       return true; 
     }
     if (this.state.header.menuOpen) {
-      if ((history.state.searchQuery !== this.state.searchQuery) ||
-          (history.state.appliedSearchFilters.length !== this.state.appliedSearchFilters.length) ||
-          !(history.state.appliedSearchFilters.every((v,i) => v === this.state.appliedSearchFilters[i]))) {
+      if ((history.state.searchQuery !== this.state.header.searchQuery) ||
+          (history.state.appliedSearchFilters.length !== this.state.header.appliedSearchFilters.length) ||
+          !(history.state.appliedSearchFilters.every((v,i) => v === this.state.header.appliedSearchFilters[i]))) {
         return true;
       }
       var prevPanels = [history.state.header];
@@ -189,6 +191,23 @@ var ReaderApp = React.createClass({
     }
     return false;  
   },
+  clonePanel: function(panel) {
+    //Set aside self-referential objects before cloning
+    //Todo: Move the multiple instances of this out to a utils file
+    if (panel.availableFilters || panel.filterRegistry) {
+      var savedAttributes = {
+         availableFilters: panel.availableFilters,
+         searchFiltersValid: panel.searchFiltersValid,
+         filterRegistry: panel.filterRegistry
+      };
+      panel.availableFilters = panel.searchFiltersValid = panel.filterRegistry = null;
+      var newpanel = $.extend(clone(panel), savedAttributes);
+      $.extend(panel, savedAttributes);
+      return newpanel;
+    } else {
+      return clone(panel);
+    }
+  },
   makeHistoryState: function() {
     // Returns an object with state, title and url params for the current state
     var histories = [];
@@ -197,7 +216,7 @@ var ReaderApp = React.createClass({
                 (!this.state.panels.length && this.state.header.mode === "Header") ? [this.state.header] : this.state.panels;
     for (var i = 0; i < panels.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
-      var state = clone(panels[i]);
+      var state = this.clonePanel(panels[i]);
       if (!state) { debugger }
       var hist  = {url: ""};
     
@@ -222,9 +241,9 @@ var ReaderApp = React.createClass({
             hist.mode  = "text toc";
             break;
           case "search":
-            hist.title = this.state.searchQuery ? this.state.searchQuery + " | " : "";
+            hist.title = state.searchQuery ? state.searchQuery + " | " : "";
             hist.title += "Sefaria Search";
-            hist.url   = "search" + (this.state.searchQuery ? "?q=" + this.state.searchQuery + (!!this.state.appliedSearchFilters.length ? "&filters=" + this.state.appliedSearchFilters.join("|") : "") : "");
+            hist.url   = "search" + (state.searchQuery ? "?q=" + state.searchQuery + (!!state.appliedSearchFilters.length ? "&filters=" + state.appliedSearchFilters.join("|") : "") : "");
             hist.mode  = "search";
             break;
           case "sheets":
@@ -279,20 +298,8 @@ var ReaderApp = React.createClass({
         url += "/" + histories[0].versionLanguage + "/" + histories[0].version.replace(/\s/g,"_");
     }
     var title =  histories.length ? histories[0].title : "Sefaria";
-    if (this.state.availableFilters || this.state.filterRegistry) {
-      var f = this.state.availableFilters;
-      var a = this.state.searchFiltersValid;
-      var r = this.state.filterRegistry;
-      this.state.availableFilters = [];
-      this.state.searchFiltersValid = false;
-      this.state.filterRegistry = {};
-      hist  = {state: clone(this.state), url: url, title: title};
-      this.state.availableFilters = f;
-      this.state.searchFiltersValid = a;
-      this.state.filterRegistry = r;
-    } else {
-      hist  = {state: clone(this.state), url: url, title: title};
-    }
+    hist  = {state: state, url: url, title: title};  //  There was a clone on the state here.  I think it's not required.  If replaced, use this.clonePanel
+
     for (var i = 1; i < histories.length; i++) {
       if (histories[i-1].mode === "Text" && histories[i].mode === "Connections") {
         if (i == 1) {
@@ -360,8 +367,12 @@ var ReaderApp = React.createClass({
       menuOpen:             state.menuOpen || null, // "navigation", "text toc", "display", "search", "sheets", "home"
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag:   state.sheetsTag || null,
-      //searchQuery:          state.searchQuery || null,
-      //searchFilters:        state.searchFilters || null,
+      searchQuery:          state.searchQuery || null,
+      appliedSearchFilters: state.appliedSearchFilters || [],
+      searchFiltersValid:   state.searchFiltersValid   || false,
+      availableFilters:     state.availableFilters     || [],
+      filterRegistry:       state.filterRegistry       || {},
+      orphanSearchFilters:  state.orphanSearchFilters  || [],
       displaySettingsOpen:  false
     };
     if (this.state && panel.refs.length && !panel.version) {
@@ -415,18 +426,25 @@ var ReaderApp = React.createClass({
     }
   },
   onQueryChange: function(query) {
-    this.setState({
-      searchQuery: query,
-      searchFiltersValid:  false
-    });
+    var updates = {searchQuery: query, searchFiltersValid:  false};
+    if (this.props.multiPanel) {
+      this.setHeaderState(updates);
+    } else {
+      this.setPanelState(0, updates);
+    }
   },
   registerAvailableFilters: function(availableFilters, registry, orphans) {
-    this.setState({
+    var updates = {
       availableFilters:    availableFilters,
       filterRegistry:      registry,
       orphanSearchFilters: orphans,
       searchFiltersValid:  true
-    });
+    };
+    if (this.props.multiPanel) {
+      this.setHeaderState(updates);
+    } else {
+      this.setPanelState(0, updates);
+    }
   },
   updateSearchFilter: function(filterNode) {
     if (filterNode.isSelected()) {
@@ -434,7 +452,11 @@ var ReaderApp = React.createClass({
     } else {
       filterNode.setSelected(true);
     }
-    this.setState({availableFilters: this.state.availableFilters});
+    if (this.props.multiPanel) {
+      this.setHeaderState({availableFilters: this.state.header.availableFilters});
+    } else {
+      this.setPanelState(0, {availableFilters: this.state.panels[0].availableFilters});
+    }
   },
   setPanelState: function(n, state, replaceHistory) {
     this.replaceHistory  = Boolean(replaceHistory);
@@ -554,7 +576,12 @@ var ReaderApp = React.createClass({
     this.setState({header: this.makePanelState({menuOpen: "navigation"})});
   },
   showSearch: function(query) {
-    this.setState({header: this.makePanelState({menuOpen: "search"}), searchQuery: query});
+    var updates = {menuOpen: "search", searchQuery: query, searchFiltersValid:  false};
+    if (this.props.multiPanel) {
+      this.setHeaderState(updates);
+    } else {
+      this.setPanelState(0, updates);
+    }
   },
   saveRecentlyViewed: function(panel, n) {
     if (panel.mode == "Connections" || !panel.refs.length) { return; }
@@ -599,19 +626,19 @@ var ReaderApp = React.createClass({
                     setDefaultOption={this.setDefaultOption}
                     showLibrary={this.showLibrary}
                     showSearch={this.showSearch}
-                    searchQuery={this.state.searchQuery}
-                    appliedSearchFilters={this.state.appliedSearchFilters}
+                    //searchQuery={this.state.searchQuery}
+                    //appliedSearchFilters={this.state.appliedSearchFilters}
                     onQueryChange={this.onQueryChange}
                     updateSearchFilter={this.updateSearchFilter}
                     registerAvailableFilters={this.registerAvailableFilters}
-                    availableFilters={this.state.availableFilters}
-                    searchFiltersValid={this.state.searchFiltersValid}
+                    //availableFilters={this.state.availableFilters}
+                    //searchFiltersValid={this.state.searchFiltersValid}
                     headerMode={this.props.headerMode}
                     panelsOpen={this.state.panels.length} />) : null;
 
     var panels = [];
     for (var i = 0; i < this.state.panels.length; i++) {
-      var panel                    = clone(this.state.panels[i]);
+      var panel                    = this.clonePanel(this.state.panels[i]);
       var left                     = widths.reduce(function(prev, curr, index, arr) { return index < i ? prev+curr : prev}, 0);
       var width                    = widths[i];
       var style                    = {width: width + "%", left: left + "%"};
@@ -644,6 +671,9 @@ var ReaderApp = React.createClass({
                       setTextListHightlight={setTextListHightlight}
                       selectVersion={selectVersion}
                       setDefaultOption={this.setDefaultOption}
+                      onQueryChange={this.onQueryChange}
+                      updateSearchFilter={this.updateSearchFilter}
+                      registerAvailableFilters={this.registerAvailableFilters}
                       closePanel={closePanel}
                       panelsOpen={this.state.panels.length}
                       layoutWidth={width} />
@@ -668,13 +698,13 @@ var Header = React.createClass({
     showLibrary:         React.PropTypes.func,
     showSearch:          React.PropTypes.func,
     setDefaultOption:    React.PropTypes.func,
-    searchQuery:         React.PropTypes.string,
+    //searchQuery:         React.PropTypes.string,
     onQueryChange:       React.PropTypes.func,
-    appliedSearchFilters:React.PropTypes.array,
+    //appliedSearchFilters:React.PropTypes.array,
     updateSearchFilter:  React.PropTypes.func,
     registerAvailableFilters: React.PropTypes.func,
-    availableFilters:    React.PropTypes.array,
-    searchFiltersValid:  React.PropTypes.bool,
+    //availableFilters:    React.PropTypes.array,
+    //searchFiltersValid:  React.PropTypes.bool,
     panelsOpen:          React.PropTypes.number
   },
   getInitialState: function() {
@@ -787,13 +817,13 @@ var Header = React.createClass({
                           onSearchResultClick={this.props.onRefClick}
                           onRecentClick={this.props.onRecentClick}
                           setDefaultLanguage={this.props.setDefaultLanguage}
-                          searchQuery={this.props.searchQuery}
-                          appliedSearchFilters={this.props.appliedSearchFilters}
+                          //searchQuery={this.props.searchQuery}
+                          //appliedSearchFilters={this.props.appliedSearchFilters}
                           onQueryChange={this.props.onQueryChange}
                           updateSearchFilter={this.props.updateSearchFilter}
                           registerAvailableFilters={this.props.registerAvailableFilters}
-                          availableFilters={this.props.availableFilters}
-                          searchFiltersValid={this.props.searchFiltersValid}
+                          //availableFilters={this.props.availableFilters}
+                          //searchFiltersValid={this.props.searchFiltersValid}
                           hideNavHeader={true} />) : null;
 
     return (<div className="header">
@@ -828,8 +858,8 @@ var ReaderPanel = React.createClass({
     initialFilter:          React.PropTypes.array,
     initialHighlightedRefs: React.PropTypes.array,
     initialMenu:            React.PropTypes.string,
-    //initialQuery:           React.PropTypes.string,
-    //initialSearchFilters:   React.PropTypes.array,
+    initialQuery:           React.PropTypes.string,
+    initialAppliedSearchFilters:   React.PropTypes.array,
     initialSheetsTag:       React.PropTypes.string,
     initialState:           React.PropTypes.object, // if present, trumps all props above
     setCentralState:        React.PropTypes.func,
@@ -843,13 +873,13 @@ var ReaderPanel = React.createClass({
     closePanel:             React.PropTypes.func,
     setDefaultLanguage:     React.PropTypes.func,
     selectVersion:          React.PropTypes.func,
-    searchQuery:            React.PropTypes.string, //
-    appliedSearchFilters:   React.PropTypes.array,  //
+    //searchQuery:            React.PropTypes.string, //
+    //appliedSearchFilters:   React.PropTypes.array,  //
     onQueryChange:          React.PropTypes.func,
     updateSearchFilter:     React.PropTypes.func,
     registerAvailableFilters: React.PropTypes.func,
-    availableFilters:       React.PropTypes.array,
-    searchFiltersValid:     React.PropTypes.bool,
+    //availableFilters:       React.PropTypes.array,
+    //searchFiltersValid:     React.PropTypes.bool,
     highlightedRefs:        React.PropTypes.array,
     hideNavHeader:          React.PropTypes.bool,
     multiPanel:             React.PropTypes.bool,
@@ -859,7 +889,7 @@ var ReaderPanel = React.createClass({
   getInitialState: function() {
     // When this component is managed by a parent, all it takes is initialState
     if (this.props.initialState) {
-      var state = clone(this.props.initialState);
+      var state = this.clonePanel(this.props.initialState);
       return state;
     }
 
@@ -883,8 +913,12 @@ var ReaderPanel = React.createClass({
       menuOpen:             this.props.initialMenu || null, // "navigation", "text toc", "display", "search", "sheets", "home"
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag:   this.props.initialSheetsTag || null,
-      //searchQuery:          this.props.initialQuery || null,
-      //searchFilters:        this.props.initialSearchFilters || [],
+      searchQuery:          this.props.initialQuery || null,
+      appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
+      searchFiltersValid:   false,
+      availableFilters:     [],
+      filterRegistry:       {},
+      orphanSearchFilters:  [],
       displaySettingsOpen:  false
     }
   },
@@ -938,6 +972,23 @@ var ReaderPanel = React.createClass({
       this.replaceHistory = false;
     } else {
       this.setState(state);
+    }
+  },
+  clonePanel: function(panel) {
+    //Set aside self-referential objects before cloning
+    //Todo: Move the multiple instances of this out to a utils file
+    if (panel.availableFilters || panel.filterRegistry) {
+      var savedAttributes = {
+         availableFilters: panel.availableFilters,
+         searchFiltersValid: panel.searchFiltersValid,
+         filterRegistry: panel.filterRegistry
+      };
+      panel.availableFilters = panel.searchFiltersValid = panel.filterRegistry = null;
+      var newpanel = $.extend(clone(panel), savedAttributes);
+      $.extend(panel, savedAttributes);
+      return newpanel;
+    } else {
+      return clone(panel);
     }
   },
   handleBaseSegmentClick: function(ref) {
@@ -1010,8 +1061,8 @@ var ReaderPanel = React.createClass({
     var state = {
       // If there's no content to show, return to home
       menuOpen: this.state.refs.slice(-1)[0] ? null: "home",
-      searchQuery: null,
-      appliedSearchFilters: [],
+      // searchQuery: null,
+      // appliedSearchFilters: [],
       navigationCategories: null,
       navigationSheetTag: null
     };
@@ -1020,8 +1071,8 @@ var ReaderPanel = React.createClass({
   openMenu: function(menu) {
     this.conditionalSetState({
       menuOpen: menu,
-      searchQuery: null,
-      appliedSearchFilters: [],
+      // searchQuery: null,
+      // appliedSearchFilters: [],
       navigationCategories: null,
       navigationSheetTag: null
     });
@@ -1235,9 +1286,9 @@ var ReaderPanel = React.createClass({
 
     } else if (this.state.menuOpen === "search") {
       var menu = (<SearchPage
-                    query={this.props.searchQuery}
+                    query={this.state.searchQuery}
                     initialPage={1}
-                    appliedFilters={this.props.appliedSearchFilters}
+                    appliedFilters={this.state.appliedSearchFilters}
                     settings={clone(this.state.settings)}
                     onResultClick={this.props.onSearchResultClick || this.showBaseText}
                     openDisplaySettings={this.openDisplaySettings}
@@ -1246,8 +1297,8 @@ var ReaderPanel = React.createClass({
                     hideNavHeader={this.props.hideNavHeader}
                     onQueryChange={this.props.onQueryChange}
                     updateAppliedFilter={this.props.updateSearchFilter}
-                    availableFilters={this.props.availableFilters}
-                    filtersValid={this.props.searchFiltersValid}
+                    availableFilters={this.state.availableFilters}
+                    filtersValid={this.state.searchFiltersValid}
                     registerAvailableFilters={this.props.registerAvailableFilters}
       />);
 
