@@ -1141,7 +1141,7 @@ $(function() {
 	// Add Sub-Source
 	$(".addSub").live("click", function() { 
 		$("#addSourceModal").data("target", $($(this).closest(".source")).eq(0))
-			.show().position({of: window}); 
+			.show().position({of: window});
 		$("#add").focus();
 		$("#overlay").show();
 		sjs.track.sheets("Add Sub-Source");
@@ -1184,7 +1184,8 @@ $(function() {
 
 	var autoAddConnetions =  function() {
 		var ref = $(this).parents(".source").attr("data-ref");
-		var $target = $(this).parents(".source").find(".subsources").eq(0);
+		var $target = $($(this).closest(".source")).eq(0);
+
 		var type = $(this).hasClass("addCommentary") ? "Commentary": null;
 
 		sjs.alert.saving("Looking up Connections...")
@@ -1237,7 +1238,7 @@ $(function() {
 								he: c.he
 							}
 						};
-						buildSource($target, source);
+						buildSource($target, source, "insert");
 						count++;
 					}
 					var msg = count == 1 ? "1 Source Added." : count + " Sources Added."
@@ -1291,7 +1292,8 @@ $(function() {
 }); // ------------------ End DOM Ready  ------------------ 
 
 
-function addSource(q, source) {
+function addSource(q, source, appendOrInsert) {
+	appendOrInsert = typeof appendOrInsert !== 'undefined' ? appendOrInsert : 'append';
 	// Add a new source to the DOM.
 	// Completed by loadSource on return of AJAX call.
 	// unless 'source' is present, then load with given text.
@@ -1330,33 +1332,20 @@ function addSource(q, source) {
 	
 	var refLink = badRef == true ? "#" : "/"+makeRef(q).replace(/'/g, "&apos;");
 
-	$listTarget.append(
-		"<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + 
-					" data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" +
-					" data-node='" + node + "'>" +
-			"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
-			"<div class='customTitle'></div>" + 
-			"<div class='he'>" +
-				"<span class='title'>" + 
-					"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " <span class='ui-icon ui-icon-extlink'></a>" + 
-				"</span>" +
-				"<div class='text'>" + 
-					"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" + 
-				"</div>" + 
-			"</div>" + 
-			"<div class='en'>" +
-				"<span class='title'>" + 
-					"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> <span class='ui-icon ui-icon-extlink'></a>" + 
-				"</span>" +
-				"<div class='text'>" + 
-					"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + 
-				"</div>" + 
-			"</div>" + 
-			"<div class='clear'></div>" +
-			attributionLink + 
-		"</li>");
-	
-	var $target = $(".source", $listTarget).last();
+
+	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>" +"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +"<div class='customTitle'></div>" +"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " <span class='ui-icon ui-icon-extlink'></a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" +"</div>" +"<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> <span class='ui-icon ui-icon-extlink'></a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" +"</div>" +"<div class='clear'></div>" + attributionLink + "</li>";
+
+
+	if (appendOrInsert == "append") {
+		$listTarget.append(newsource);
+		var $target = $(".source", $listTarget).last();
+	}
+
+	else if (appendOrInsert == "insert") {
+		$listTarget.after(newsource);
+		var $target = $listTarget.next(".sheetItem")
+	}
+
 	setSourceNumbers();
 	if (source && source.text) {
 		return;
@@ -1889,7 +1878,7 @@ function buildSource($target, source, appendOrInsert) {
 	if (("ref" in source) && (source.ref != null)  ) {
 		var q = parseRef(source.ref);
 		$("#addSourceModal").data("target", $target);
-		addSource(q, source);
+		addSource(q, source, appendOrInsert);
 		
 		if ("options" in source) {
 			$(".sheetItem").last().addClass(source.options.sourceLayout+" "+source.options.sourceLanguage+" "+source.options.sourceLangLayout+" "+source.options.indented)
