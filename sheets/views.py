@@ -100,6 +100,9 @@ def can_add(user, sheet):
 		return False
 	if can_edit(user, sheet):
 		return False
+	if "assigner_id" in sheet:
+		if sheet["assigner_id"] == user.id:
+			return True
 	if "collaboration" not in sheet["options"]:
 		return False
 	if sheet["options"]["collaboration"] == "anyone-can-add":
