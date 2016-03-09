@@ -874,7 +874,6 @@ $(function() {
 		};
 		$target = $(this).closest(".source");
 		var resetSource = function(option) {
-			console.log($target);
 			var loadClosure = function(data) { 
 				loadSource(data, $target, option) 
 			};
@@ -896,18 +895,12 @@ $(function() {
 			if ("error" in data) {
 				sjs.alert.flash(data.error);
 			} else {
-				console.log(data.ref);
-
-
 				for (var i = 0; i < data.ref.length; i++) {
 					var source = {
 						ref: data.ref[i]
 					}
-					console.log(parseRef(data.ref[i]));
 					buildSource($("#sources"), source);
-
 				}
-
 			}
 		});
 		sjs.track.sheets("Add Parasha to Sheet");
@@ -1157,14 +1150,14 @@ $(function() {
 
 	// Add comment below a Source
 	$(".addSubComment").live("click", function() {
-		var $target = $(".subsources", $(this).closest(".source")).eq(0);
+		var $target = $($(this).closest(".source")).eq(0);
 		
 		var source = {comment: "", isNew: true};
 		if (sjs.can_add) { source.userLink = sjs._userLink; }
 
-		buildSource($target, source);
-
-		$target.find(".comment").last().trigger("mouseup").focus();
+		buildSource($target, source, "insert");
+		$target.next(".sheetItem").addClass('indented-1');
+		$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
 
 		sjs.track.sheets("Add Sub Comment");
 	});
@@ -1694,6 +1687,20 @@ function readSource($target) {
 	} else if ($target.hasClass("commentWrapper")) {
 		source["comment"] = $target.find(".comment").html();
 
+		//Set comment indentation level
+		if ($target.hasClass("indented-1")) {
+			var sourceIndentLevel = "indented-1"
+		} else if ($target.hasClass("indented-2")) {
+			var sourceIndentLevel = "indented-2"
+		} else if ($target.hasClass("indented-3")) {
+			var sourceIndentLevel = "indented-3"
+		} else {
+			var sourceIndentLevel ="";
+		}
+
+		source["options"] = {
+							 indented: sourceIndentLevel
+		};
 	} else if ($target.hasClass("outsideBiWrapper")) {
 		source["outsideBiText"] = {
 			en: $target.find(".text .en").html(),
@@ -1862,7 +1869,10 @@ function buildSources($target, sources) {
 	}
 }
 
-function buildSource($target, source) {
+function buildSource($target, source, appendOrInsert) {
+
+	appendOrInsert = typeof appendOrInsert !== 'undefined' ? appendOrInsert : 'append';
+
 	// Build a single source in $target. May call buildSources recursively if sub-sources present.
 		
 	if (!("node" in source)) {
@@ -1897,8 +1907,15 @@ function buildSource($target, source) {
 							"<div class='comment " + (sjs.loading ? "" : "new") + "'>" + source.comment + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</div>";
-		$target.append(commentHtml);
-
+		if (appendOrInsert == "append") {
+			$target.append(commentHtml);
+		}
+		else if (appendOrInsert == "insert") {
+			$target.after(commentHtml);
+		}
+		if ("options" in source) {
+			$(".sheetItem").last().addClass(source.options.indented);
+		}
 	} else if ("outsideBiText" in source) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideBiWrapper");
 		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
@@ -1910,7 +1927,9 @@ function buildSource($target, source) {
 							"</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</li>";
-		$target.append(outsideHtml);
+				if (appendOrInsert == "append") {
+					$target.append(outsideHtml);
+					}
 
 	} else if ("outsideText" in source) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideWrapper");
@@ -1919,7 +1938,9 @@ function buildSource($target, source) {
 							"<div class='outside " + (sjs.loading ? "" : "new") + "'>" + source.outsideText + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</li>";
-		$target.append(outsideHtml);
+			if (appendOrInsert == "append") {
+				$target.append(outsideHtml);
+			}
 	}
 	else if ("media" in source) {
 		var mediaLink;
@@ -1946,7 +1967,9 @@ function buildSource($target, source) {
 							"<div class='media " + (sjs.loading ? "" : "new") + "'>" + mediaLink + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</li>";
-		$target.append(outsideHtml);
+				if (appendOrInsert == "append") {
+					$target.append(outsideHtml);
+				}
 	}
 	
 	else if ("text" in source) {
@@ -1961,8 +1984,9 @@ function buildSource($target, source) {
 							"</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</li>";
-		$target.append(outsideHtml);
-
+				if (appendOrInsert == "append") {
+					$target.append(outsideHtml);
+				}
 
 
 	}
