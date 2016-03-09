@@ -93,12 +93,6 @@ var ReaderApp = React.createClass({
       header: header,
       defaultVersions: defaultVersions,
       defaultPanelSettings: defaultPanelSettings
-      //searchQuery: this.props.initialQuery,
-      //appliedSearchFilters: this.props.initialSearchFilters,
-      //searchFiltersValid: false,
-      //availableFilters: [],
-      //filterRegistry: {},
-      //orphanSearchFilters: []
     };
   },
   componentDidMount: function() {
@@ -113,13 +107,11 @@ var ReaderApp = React.createClass({
     window.removeEventListener("popstate", this.handlePopState);
   },
   componentWillUpdate: function(nextProps, nextState) {
-    //debugger;
   },
   componentDidUpdate: function(prevProps, prevState) {
     if (this.justPopped) {
       //console.log("Skipping history update - just popped")
       this.justPopped = false;
-      //debugger
       return;
     }
     // Central State TODO 
@@ -626,13 +618,9 @@ var ReaderApp = React.createClass({
                     setDefaultOption={this.setDefaultOption}
                     showLibrary={this.showLibrary}
                     showSearch={this.showSearch}
-                    //searchQuery={this.state.searchQuery}
-                    //appliedSearchFilters={this.state.appliedSearchFilters}
                     onQueryChange={this.onQueryChange}
                     updateSearchFilter={this.updateSearchFilter}
                     registerAvailableFilters={this.registerAvailableFilters}
-                    //availableFilters={this.state.availableFilters}
-                    //searchFiltersValid={this.state.searchFiltersValid}
                     headerMode={this.props.headerMode}
                     panelsOpen={this.state.panels.length} />) : null;
 
@@ -698,13 +686,9 @@ var Header = React.createClass({
     showLibrary:         React.PropTypes.func,
     showSearch:          React.PropTypes.func,
     setDefaultOption:    React.PropTypes.func,
-    //searchQuery:         React.PropTypes.string,
     onQueryChange:       React.PropTypes.func,
-    //appliedSearchFilters:React.PropTypes.array,
     updateSearchFilter:  React.PropTypes.func,
     registerAvailableFilters: React.PropTypes.func,
-    //availableFilters:    React.PropTypes.array,
-    //searchFiltersValid:  React.PropTypes.bool,
     panelsOpen:          React.PropTypes.number
   },
   getInitialState: function() {
@@ -817,13 +801,9 @@ var Header = React.createClass({
                           onSearchResultClick={this.props.onRefClick}
                           onRecentClick={this.props.onRecentClick}
                           setDefaultLanguage={this.props.setDefaultLanguage}
-                          //searchQuery={this.props.searchQuery}
-                          //appliedSearchFilters={this.props.appliedSearchFilters}
                           onQueryChange={this.props.onQueryChange}
                           updateSearchFilter={this.props.updateSearchFilter}
                           registerAvailableFilters={this.props.registerAvailableFilters}
-                          //availableFilters={this.props.availableFilters}
-                          //searchFiltersValid={this.props.searchFiltersValid}
                           hideNavHeader={true} />) : null;
 
     return (<div className="header">
@@ -873,13 +853,9 @@ var ReaderPanel = React.createClass({
     closePanel:             React.PropTypes.func,
     setDefaultLanguage:     React.PropTypes.func,
     selectVersion:          React.PropTypes.func,
-    //searchQuery:            React.PropTypes.string, //
-    //appliedSearchFilters:   React.PropTypes.array,  //
     onQueryChange:          React.PropTypes.func,
     updateSearchFilter:     React.PropTypes.func,
     registerAvailableFilters: React.PropTypes.func,
-    //availableFilters:       React.PropTypes.array,
-    //searchFiltersValid:     React.PropTypes.bool,
     highlightedRefs:        React.PropTypes.array,
     hideNavHeader:          React.PropTypes.bool,
     multiPanel:             React.PropTypes.bool,
