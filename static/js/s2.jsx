@@ -235,7 +235,7 @@ var ReaderApp = React.createClass({
           case "search":
             hist.title = state.searchQuery ? state.searchQuery + " | " : "";
             hist.title += "Sefaria Search";
-            hist.url   = "search" + (state.searchQuery ? "?q=" + state.searchQuery + (!!state.appliedSearchFilters.length ? "&filters=" + state.appliedSearchFilters.join("|") : "") : "");
+            hist.url   = "search" + (state.searchQuery ? "&q=" + state.searchQuery + (!!state.appliedSearchFilters.length ? "&filters=" + state.appliedSearchFilters.join("|") : "") : "");
             hist.mode  = "search";
             break;
           case "sheets":
@@ -445,10 +445,24 @@ var ReaderApp = React.createClass({
       filterNode.setSelected(true);
     }
     if (this.props.multiPanel) {
-      this.setHeaderState({availableFilters: this.state.header.availableFilters});
+      this.setHeaderState({
+        availableFilters: this.state.header.availableFilters,
+        appliedSearchFilters: this.getAppliedSearchFilters(this.state.header.availableFilters)
+      });
     } else {
-      this.setPanelState(0, {availableFilters: this.state.panels[0].availableFilters});
+      this.setPanelState(0, {
+        availableFilters: this.state.panels[0].availableFilters,
+        appliedSearchFilters: this.getAppliedSearchFilters(this.state.panels[0].availableFilters)
+      });
     }
+  },
+  getAppliedSearchFilters: function(availableFilters) {
+    var results = [];
+    //results = results.concat(this.orphanFilters);
+    for (var i = 0; i < availableFilters.length; i++) {
+        results = results.concat(availableFilters[i].getAppliedFilters());
+    }
+    return results;
   },
   setPanelState: function(n, state, replaceHistory) {
     this.replaceHistory  = Boolean(replaceHistory);
@@ -3591,11 +3605,6 @@ var SearchPage = React.createClass({
       }
       */
     },
-    updateQuery: function(query) {
-        if (this.props.onQueryChange) {
-            this.props.onQueryChange(query);
-        }
-    },
   /*
     updateRunningQuery: function(ajax) {
         this.setState({
@@ -3615,7 +3624,7 @@ var SearchPage = React.createClass({
                       <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
                       <SearchBar
                         initialQuery = { this.props.query }
-                        updateQuery = { this.updateQuery } />
+                        updateQuery = { this.props.onQueryChange } />
                     </div>)}
                   <div className="content">
                     <div className="contentInner">
@@ -3634,7 +3643,6 @@ var SearchPage = React.createClass({
                                   query = { this.props.query }
                                   page = { this.state.page }
                                   appliedFilters = {this.props.appliedFilters}
-                                  //updateRunningQuery = { this.updateRunningQuery }
                                   onResultClick={this.props.onResultClick}
                                   updateAppliedFilter = {this.props.updateAppliedFilter}
                                   registerAvailableFilters={this.props.registerAvailableFilters}
@@ -3740,30 +3748,36 @@ var SearchResultList = React.createClass({
                 textTotal: 0,
                 sheetTotal: 0,
                 textHits: [],
-                sheetHits: [],
+                sheetHits: []
            });
            this._executeQuery(newProps)
         }
         else if (
-            this.props.size != newProps.size
+        (this.props.appliedFilters.length !== newProps.appliedFilters.length) ||
+          !(this.props.appliedFilters.every((v,i) => v === newProps.appliedFilters[i]))) {
+           this._executeQuery(newProps)
+        }
+        else if (this.props.size != newProps.size
             || this.props.page != newProps.page
-        ) {
+            || this.props.filtersValid != newProps.filtersValid) {
            this._executeQuery(newProps)
         }
     },
     _executeQuery: function(props) {
         //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
-       props = props || this.props;
+        props = props || this.props;
         if (!props.query) {
             return;
         }
 
         this._abortRunningQuery();
 
+        var request_applied = props.filtersValid && props.appliedFilters;
+
         var runningQuery = sjs.library.search.execute_query({
             query: props.query,
-            get_filters: !this.props.filtersValid,
-            applied_filters: props.appliedFilters,
+            get_filters: !props.filtersValid,
+            applied_filters: request_applied,
             size: props.page * props.size,
             success: function(data) {
                 this.updateRunningQuery(null);
@@ -3980,8 +3994,8 @@ var SearchResultList = React.createClass({
     _applyFilters: function(ftree, appliedFilters) {
       var orphans = [];  // todo: confirm behavior
       appliedFilters.forEach(path => {
-        var node = this.ftree.registry[path];
-        if (node) { node.setSelected(True); }
+        var node = ftree.registry[path];
+        if (node) { node.setSelected(true); }
         else { orphans.push(path); }
       });
       return orphans;
@@ -4072,20 +4086,10 @@ var SearchFilters = React.createClass({
       this.applyFilters(this.props.appliedFilters);
     } */
   },
-
-  /*  UNUSED */
-  getAppliedFilters: function() {
-    var results = [];
-    //results = results.concat(this.orphanFilters);
-    for (var i = 0; i < this.props.availableFilters.length; i++) {
-        results = results.concat(this.props.availableFilters[i].getAppliedFilters());
-    }
-    return results;
-  },
   getSelectedTitles: function(lang) {
     var results = [];
-    for (var i = 0; i < this.children.length; i++) {
-        results = results.concat(this.children[i].getSelectedTitles(lang));
+    for (var i = 0; i < this.props.availableFilters.length; i++) {
+        results = results.concat(this.props.availableFilters[i].getSelectedTitles(lang));
     }
     return results;
   },
