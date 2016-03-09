@@ -831,7 +831,6 @@ sjs.library = {
   search: {
       baseUrl: sjs.searchBaseUrl + "/" + sjs.searchIndex + "/_search",
       execute_query: function (args) {
-          debugger;
           // To replace sjs.search.post in search.js
 
           /* args can contain

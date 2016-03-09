@@ -4052,7 +4052,8 @@ var SearchFilters = React.createClass({
   getInitialState: function() {
     return {
       openedCategory: null,
-      openedCategoryBooks: []
+      openedCategoryBooks: [],
+      displayFilters: false
     }
   },
   getDefaultProps: function() {
@@ -4100,6 +4101,9 @@ var SearchFilters = React.createClass({
       openedCategoryBooks: leaves
     })
   },
+  toggleFilterView: function() {
+    this.setState({displayFilters: !this.state.displayFilters});
+  },
   render: function() {
     var addCommas = function(number) { return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); };
     var totalWithCommas = addCommas(this.props.total);
@@ -4112,7 +4116,6 @@ var SearchFilters = React.createClass({
         <span className="en">({totalTextsWithCommas} {(this.props.textTotal > 1) ? "Texts":"Text"}, {totalSheetsWithCommas} {(this.props.sheetTotal > 1)?"Sheets":"Sheet"})</span>
       </span>);
 
-    // Why do I have to check for this existence of this?  lame.
     var enFilterLine = (!!this.props.appliedFilters.length)?(": " + this.getSelectedTitles("en").join(", ")):"";
     var heFilterLine = (!!this.props.appliedFilters.length)?(": " + this.getSelectedTitles("he").join(", ")):"";
 
@@ -4123,7 +4126,8 @@ var SearchFilters = React.createClass({
             <span className="he">{totalWithCommas} תוצאות{heFilterLine}</span>
             {(this.state.sheet_total > 0 && this.state.text_total > 0) ? totalBreakdown : null}
         </div>
-        <div className="searchFilterBoxes">
+        <div><span>Filter by Text </span><i className="fa fa-angle-down" onClick={this.toggleFilterView}/></div>
+        <div className="searchFilterBoxes" style={{display: this.state.displayFilters?"block":"none"}}>
           <div className="searchFilterCategoryBox">
           {this.props.availableFilters.map(function(filter) {
               return (<SearchFilter
