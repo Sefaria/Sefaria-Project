@@ -52,7 +52,7 @@
     {% include "js/headers.js" %}
     
     {% block js %}{% endblock %}
-    {% if S2 %}
+    {% if S2 or request.flavour == "mobile" %}
         {% include "elements/s2_header.html" %}
     {% endif %}
 </body>

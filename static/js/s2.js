@@ -24,7 +24,7 @@ var ReaderApp = React.createClass({
     var panels = [];
     var defaultVersions = clone(this.props.initialDefaultVersions) || {};
     var defaultPanelSettings = clone(this.props.initialSettings);
-    if (!this.props.multiPanel) {
+    if (!this.props.multiPanel && !this.props.headerMode) {
       var mode = this.props.initialFilter ? "TextAndConnections" : "Text";
       panels[0] = {
         refs: this.props.initialRefs,
@@ -75,7 +75,7 @@ var ReaderApp = React.createClass({
       return this.makePanelState(panel);
     }.bind(this));
 
-    var header_state = {
+    var headerState = {
       mode: "Header",
       refs: this.props.initialRefs,
       searchQuery: this.props.initialQuery,
@@ -83,11 +83,12 @@ var ReaderApp = React.createClass({
       sheetsTag: this.props.initialSheetsTag,
       settings: clone(defaultPanelSettings)
     };
-    if (panels.length <= 1) {
-      header_state.menuOpen = this.props.initialMenu;
+    /*
+    if(panels.length <= 1) {
+      headerState.menuOpen = this.props.initialMenu;
     }
-
-    var header = this.makePanelState(header_state);
+    */
+    var header = this.makePanelState(headerState);
 
     return {
       panels: panels,
@@ -543,7 +544,7 @@ var ReaderApp = React.createClass({
       });
     }
 
-    var header = this.props.multiPanel ? React.createElement(Header, {
+    var header = this.props.multiPanel || this.state.header.menuOpen || this.state.panels.length == 0 ? React.createElement(Header, {
       initialState: this.state.header,
       setCentralState: this.setHeaderState,
       onRefClick: this.handleNavigationClick,
