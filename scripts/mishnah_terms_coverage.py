@@ -8,7 +8,7 @@ import regex as re
 def remove_punctuation(text):
     return re.sub(ur"\p{P}(?<!-)", "", text)
 
-with open("data/tmp/mishnah_term_coverage.csv", 'wb+') as outfile:
+with open("/var/tmp/mishnah_term_coverage.csv", 'wb+') as outfile:
     result_csv = csv.writer(outfile, delimiter=',')
     results = {}
     mishnah_texts = VersionSet({"title": {"$regex" : '^Mishnah'}, "language": 'en'})
