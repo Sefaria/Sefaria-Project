@@ -864,17 +864,21 @@ display: block;margin: 0 auto;}
 .searchContent {
   padding: 15px 10px 0;
 }
-.searchContent > .loadingMessage {
-}
-.searchContent .results-count {
-  color: #999;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  letter-spacing: 1px;
-  font-size: 12px;
+
+.searchContent .searchStatusLine {
   padding: 10px 0 36px 0;
   margin-top: -60px;
   text-align: center;
+  font-size: 12px;
+  height: 20px;
 }
+.searchContent .results-count,
+.searchContent .searchStatusLine > .loadingMessage {
+  color: #999;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  letter-spacing: 1px;
+}
+
 
 .searchContent .searchFilterBoxes {
   padding-bottom: 20px;

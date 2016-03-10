@@ -3705,7 +3705,6 @@ var SearchResultList = React.createClass({
         appliedFilters:       React.PropTypes.array,
         page:                 React.PropTypes.number,
         size:                 React.PropTypes.number,
-        //updateRunningQuery:   React.PropTypes.func,
         onResultClick:        React.PropTypes.func,
         filtersValid:         React.PropTypes.bool,
         availableFilters:     React.PropTypes.array,
@@ -3722,6 +3721,7 @@ var SearchResultList = React.createClass({
     getInitialState: function() {
         return {
             runningQuery: null,
+            isQueryRunning: false,
             total: 0,
             textTotal: 0,
             sheetTotal: 0,
@@ -3730,13 +3730,16 @@ var SearchResultList = React.createClass({
         }
     },
     updateRunningQuery: function(ajax) {
-        this.setState({runningQuery: ajax});
-        //this.props.updateRunningQuery(ajax);
+        this.setState({
+          runningQuery: ajax,
+          isQueryRunning: !!ajax
+        });
     },
     _abortRunningQuery: function() {
         if(this.state.runningQuery) {
             this.state.runningQuery.abort();
         }
+        this.updateRunningQuery(null);
     },
     componentDidMount: function() {
         this._executeQuery();
@@ -4027,7 +4030,7 @@ var SearchResultList = React.createClass({
                   availableFilters={this.props.availableFilters}
                   appliedFilters = {this.props.appliedFilters}
                   updateAppliedFilter = {this.props.updateAppliedFilter}
-                  runningQuery = {this.state.runningQuery}
+                  isQueryRunning = {this.state.isQueryRunning}
                 />
                 {this.state.textHits.map(function(result) {
                     return (<SearchTextResult
@@ -4057,7 +4060,7 @@ var SearchFilters = React.createClass({
     appliedFilters:       React.PropTypes.array,
     availableFilters:     React.PropTypes.array,
     updateAppliedFilter:  React.PropTypes.func,
-    runningQuery:         React.PropTypes.object
+    isQueryRunning:       React.PropTypes.bool
   },
   getInitialState: function() {
     return {
@@ -4148,8 +4151,9 @@ var SearchFilters = React.createClass({
     var show_filters_classes = (this.state.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down";
     return (
       <div>
-        {(this.state.runningQuery)?runningQueryLine:summaryLines}
-
+        <div className="searchStatusLine">
+        {(this.props.isQueryRunning) ? runningQueryLine : summaryLines}
+        </div>
         <div><span>Filter by Text </span><i className={show_filters_classes} onClick={this.toggleFilterView}/></div>
         <div className="searchFilterBoxes" style={{display: this.state.displayFilters?"block":"none"}}>
           <div className="searchFilterCategoryBox">
