@@ -174,7 +174,6 @@ body.dark {
   margin-top: 54px;
 }
 .readerPanelBox + .readerPanelBox {
-  border-left: 1px solid #ddd;
 }
 .readerPanel {
   position: relative;
@@ -1084,7 +1083,7 @@ display: block;margin: 0 auto;}
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  max-width: 75%;
+  max-width: 70%;
   vertical-align: middle;
 }
 .readerControls .readerTextToc .readerTextVersion {
@@ -1223,7 +1222,7 @@ display: block;margin: 0 auto;}
   z-index: 102;
   cursor: pointer;
 }
-.textRange {
+.textRange, .noteText {
   -moz-user-select: text;
   -khtml-user-select: text;
   -webkit-user-select: text;
@@ -1748,6 +1747,40 @@ display: block;margin: 0 auto;}
 }
 .bilingual .textList .title .he {
   display: none;
+}
+.textList .sheet, .textList .note {
+  background-color: white;
+  margin: 6px 0px;
+  padding: 10px;
+}
+.textList .sheet .sheetAuthorImg,
+.textList .note .noteAuthorImg {
+  height: 36px;
+  width: 36px;
+  float: left;
+  margin-right: 10px;
+}
+.textList .sheet .sheetViews {
+  float: right;
+  color: #999;
+}
+.textList .sheet .sheetAuthor,
+.textList .note .noteAuthor {
+  color: #999;
+  text-transform: uppercase;
+  display: block;
+}
+.textList .sheet .sheetTitle {
+  font-size: 14px;
+  text-align: left;
+  color: black;
+}
+.textList .note .noteTitle {
+  font-weight: bold;
+}
+.textList .note .noteTitle,
+.textList .note .noteText {
+  font-size: 1.8em;
 }
 .textRange .numberLabel {
   position: absolute;

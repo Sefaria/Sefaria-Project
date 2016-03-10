@@ -3,7 +3,7 @@ from datetime import datetime
 from bson.objectid import ObjectId
 
 import sefaria.model as model
-from sefaria.utils.users import user_link
+from sefaria.model.user_profile import user_link
 from sefaria.utils.util import *
 from sefaria.system.database import db
 

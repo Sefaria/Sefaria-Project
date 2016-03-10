@@ -13,9 +13,8 @@ import sefaria.model.abstract as abstract
 from sefaria.system.database import db
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowersSet
-from sefaria.model.user_profile import annotate_user_list
+from sefaria.model.user_profile import annotate_user_list, public_user_data, user_link
 from sefaria.utils.util import strip_tags, string_overlap
-from sefaria.utils.users import user_link
 from sefaria.system.exceptions import InputError
 from history import record_sheet_publication, delete_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE
@@ -269,7 +268,7 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 	regex_list = oref.regex(as_list=True)
 	ref_clauses = [{"included_refs": {"$regex": r}} for r in regex_list]
 	sheets = db.sheets.find({"$or": ref_clauses, "status": "public"},
-		{"id": 1, "title": 1, "owner": 1, "included_refs": 1})
+		{"id": 1, "title": 1, "owner": 1, "included_refs": 1, "views": 1}).sort([["views", -1]])
 	for sheet in sheets:
 		# Check for multiple matching refs within this sheet
 		matched_refs = [r for r in sheet["included_refs"] if regex.match(ref_re, r)]
@@ -278,16 +277,24 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 				match = model.Ref(match)
 			except InputError:
 				continue
-			com                = {}
-			com["category"]    = "Sheets"
-			com["type"]        = "sheet"
-			com["owner"]       = sheet["owner"]
-			com["_id"]         = str(sheet["_id"])
-			com["anchorRef"]   = match.normal()
-			com["anchorVerse"] = match.sections[-1] if len(match.sections) else 1
-			com["public"]      = True
-			com["commentator"] = user_link(sheet["owner"])
-			com["text"]        = "<a class='sheetLink' href='/sheets/%d'>%s</a>" % (sheet["id"], strip_tags(sheet["title"]))
+			ownerData = public_user_data(sheet["owner"])
+			com = {
+				"category":        "Sheets",
+				"type":            "sheet",
+				"owner":           sheet["owner"],
+				"_id":             str(sheet["_id"]),
+				"anchorRef":       match.normal(),
+				"anchorVerse":     match.sections[-1] if len(match.sections) else 1,
+				"public":          True,
+				"commentator":     user_link(sheet["owner"]), # legacy, used in S1
+				"text":            "<a class='sheetLink' href='/sheets/%d'>%s</a>" % (sheet["id"], strip_tags(sheet["title"])), # legacy, used in S1
+				"title":           strip_tags(sheet["title"]),
+				"sheetUrl":        "/sheets/" + str(sheet["id"]),
+				"ownerName":       ownerData["name"],
+				"ownerProfileUrl": ownerData["profileUrl"],
+				"ownerImageUrl":   ownerData["imageUrl"],
+				"views":           sheet["views"]
+			}
 
 			results.append(com)
 

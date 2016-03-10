@@ -1300,9 +1300,19 @@ sjs.lexicon = {
 	isLexiconEnabled: function (currentText, lang, params){
 		//console.log(currentText);
 		/*if (params['url_enabled']){*/
-		if(currentText.categories[0] == 'Tanach' &&
-			!(currentText.categories[1] == 'Targum' || currentText.categories[1] == 'Commentary')){
-			return true;
+		switch (lang){
+			case 'he':
+				if(currentText.categories[0] == 'Tanach' &&
+					!(currentText.categories[1] == 'Targum' || currentText.categories[1] == 'Commentary')){
+					return true;
+				}
+				break;
+			case 'en':
+				if(currentText.categories[0] == 'Mishnah' &&
+					!(currentText.categories[1] == 'Commentary')){
+					return true;
+				}
+				break;
 		}
 		/*if(sjs.lexicon.enabledCategories[lang].indexOf(currentText.categories[0]) > -1) {
 			return true;

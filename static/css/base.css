@@ -355,6 +355,10 @@ body.hebrew #home .homeColumn {
     margin: 6px;
 }
 
+#content.hebrew .biReady p.statsCircle {
+    text-align: center;
+}
+
 #home .statsCircle.grey1 {
     background-color: #EFF1F1;
     color: #33454D;

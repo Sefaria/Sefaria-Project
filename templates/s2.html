@@ -85,10 +85,12 @@
           filter = panel.filter && panel.filter.length === 1 && panel.filter[0] === "all" ? [] : panel.filter;
       }
 
+      /*
       if (ref) {
         ref = humanRef(ref);
         sjs.library._saveText({{ data|jsonify }}, {context: 1, version: version, language: language});
       }
+      */
 
       if (!multiPanel) {
         if (initialMenu) {
@@ -112,6 +114,7 @@
           panel = panels.shift();
 
           if (panel.ref && !panel.ref.match(/^texts|^sheets|^search/)) {
+            sjs.library._saveText(panel.text, {context: 1, version: panel.version, language: panel.language});
             initialPanels.push({mode: "Text", refs: [humanRef(panel.ref)], menuOpen: panel.initialMenu, version: panel.version, versionLanguage: panel.language});
           }
           if (panel.filter) {

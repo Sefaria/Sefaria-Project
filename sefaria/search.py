@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 from pyelasticsearch import ElasticSearch
 
 from sefaria.model import *
-from sefaria.utils.users import user_link
+from sefaria.model.user_profile import user_link
 from sefaria.system.database import db
 from sefaria.utils.util import strip_tags
 from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME

@@ -23,7 +23,6 @@ from sefaria.client.util import jsonResponse, HttpResponse
 from sefaria.sheets import *
 from sefaria.model.user_profile import *
 from sefaria.model.group import Group, GroupSet
-from sefaria.utils.users import user_link
 from sefaria.system.exceptions import InputError
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
@@ -101,6 +100,9 @@ def can_add(user, sheet):
 		return False
 	if can_edit(user, sheet):
 		return False
+	if "assigner_id" in sheet:
+		if sheet["assigner_id"] == user.id:
+			return True
 	if "collaboration" not in sheet["options"]:
 		return False
 	if sheet["options"]["collaboration"] == "anyone-can-add":

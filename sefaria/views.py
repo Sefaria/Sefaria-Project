@@ -26,14 +26,12 @@ import sefaria.system.cache as scache
 from sefaria.client.util import jsonResponse, subscribe_to_announce
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH
-from sefaria.model.user_profile import UserProfile
+from sefaria.model.user_profile import UserProfile, user_links
 from sefaria.model.group import GroupSet
 from sefaria.model.translation_request import count_completed_translation_requests
 from sefaria.export import export_all as start_export_all
 from sefaria.datatype.jagged_array import JaggedTextArray
-
 # noinspection PyUnresolvedReferences
-from sefaria.utils.users import user_links
 from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
 from sefaria.utils.hebrew import is_hebrew

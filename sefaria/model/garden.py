@@ -4,13 +4,13 @@ import copy
 from itertools import groupby
 from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
-from sefaria.utils.users import user_name
 from . import abstract as abst
 from . import text
 from . import place
 from . import time
 from . import person
 from . import link
+from . import user_profile
 
 import logging
 logger = logging.getLogger(__name__)
@@ -336,7 +336,7 @@ class Garden(abst.AbstractMongoRecord):
         tags = getattr(sheet, "tags", [])
         if remove_tags:
             tags = [t for t in tags if t not in remove_tags]
-        process_sources(sheet.sources, {"default": tags, "Sheet Author": [user_name(sheet.owner)]})
+        process_sources(sheet.sources, {"default": tags, "Sheet Author": [user_profile.user_name(sheet.owner)]})
         return self
 
 

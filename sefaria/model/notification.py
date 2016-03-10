@@ -14,8 +14,8 @@ from bson.objectid import ObjectId
 from django.template.loader import render_to_string
 
 from . import abstract as abst
+from . import user_profile
 from sefaria.system.database import db
-from sefaria.utils.users import user_name
 
 
 class Notification(abst.AbstractMongoRecord):
@@ -143,7 +143,7 @@ class NotificationSet(abst.AbstractMongoSet):
         """
         Returns a nicely formatted string listing the people who acted in this notifcation set
         """
-        actors = [user_name(id) for id in self.actors_list()]
+        actors = [user_profile.user_name(id) for id in self.actors_list()]
         top, more = actors[:3], actors[3:]
         if len(more) == 1:
             top[2] = "2 others"
