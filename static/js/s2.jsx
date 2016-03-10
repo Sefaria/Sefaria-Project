@@ -4154,7 +4154,7 @@ var SearchFilters = React.createClass({
         <div className="searchStatusLine">
         {(this.props.isQueryRunning) ? runningQueryLine : summaryLines}
         </div>
-        <div><span>Filter by Text </span><i className={show_filters_classes} onClick={this.toggleFilterView}/></div>
+        <div className="searchFilterToggle"><span>Filter by Text   </span><i className={show_filters_classes} onClick={this.toggleFilterView}/></div>
         <div className="searchFilterBoxes" style={{display: this.state.displayFilters?"block":"none"}}>
           <div className="searchFilterCategoryBox">
           {this.props.availableFilters.map(function(filter) {
@@ -4207,8 +4207,8 @@ var SearchFilter = React.createClass({
     return(
       <li onClick={this.handleFocusCategory}>
         <input type="checkbox" className="filter" defaultChecked={this.props.filter.isSelected()} onClick={this.handleFilterClick}/>
-        <span className="en">{this.props.filter.title} ({this.props.filter.docCount}) </span>
-        <span className="he" dir="rtl">{this.props.filter.heTitle} ({this.props.filter.docCount})</span>
+        <span className="en"><span className="filter-title">{this.props.filter.title}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
+        <span className="he" dir="rtl"><span className="filter-title">{this.props.filter.heTitle}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         {this.props.isInFocus?<i className="in-focus-arrow fa fa-caret-right"/>:""}
       </li>
       )

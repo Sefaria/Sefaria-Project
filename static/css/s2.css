@@ -879,15 +879,51 @@ display: block;margin: 0 auto;}
   letter-spacing: 1px;
 }
 
+.searchContent .searchFilterToggle {
+  color: #999;
+  font-size: 12px;
+}
+
+.searchContent .searchFilterToggle i {
+  color: #999;
+  font-size: 12px;
+  padding-left: 5px;
+}
 
 .searchContent .searchFilterBoxes {
-  padding-bottom: 20px;
+  margin: 10px 0;
+  background: #eee;
+  width: 500px;
+}
+
+.searchContent .searchFilterBoxes li {
+  display: block;
+  padding: 10px 0 10px 15px;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.searchContent .searchFilterBoxes li input {
+  padding-right: 10px
+}
+
+.searchContent .searchFilterBoxes li .filter-title {
+   color: #222;
+}
+
+.searchContent .searchFilterBoxes li .filter-count {
+   color: #999;
+}
+.searchContent .searchFilterBoxes li .in-focus-arrow {
+    float: right;
+    padding-right: 10px;
+    color: #999;
 }
 
 .searchContent .searchFilterCategoryBox,
 .searchContent .searchFilterBookBox {
   float: left;
-  width: 300px;
+  width: 250px;
   height: 150px;
   overflow-y: auto;
 }
