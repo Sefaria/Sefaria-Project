@@ -402,6 +402,7 @@ body .bilingual .enOnly .he {
 .readerNavTop .readerNavMenuCloseButton{
   font-size: 46px;
   padding: 0;
+  line-height: 1.2;
 }
 .readerNavTop .readerNavMenuSearchButton {
   left: 36px;
