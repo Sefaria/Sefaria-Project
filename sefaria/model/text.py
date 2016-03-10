@@ -30,7 +30,7 @@ from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH
-from sefaria.helper.link import AutoLinkerFactory
+
 
 """
                 ----------------------------------
@@ -3331,6 +3331,7 @@ class Ref(object):
         according to the "mapping_scheme" attr on the Index record.
         :return:
         """
+        from sefaria.helper.link import AutoLinkerFactory
         if self.is_dependant() and getattr(self.index, 'mapping_scheme', None):
             return AutoLinkerFactory.instance_factory(self.index.mapping_scheme, self, **kwargs)
         else:

@@ -5,7 +5,6 @@ logger = logging.getLogger(__name__)
 
 from sefaria.model import *
 from sefaria.system.exceptions import DuplicateRecordError, InputError
-from sefaria.utils.talmud import section_to_daf
 import sefaria.tracker as tracker
 try:
     from sefaria.settings import USE_VARNISH
@@ -28,9 +27,11 @@ class AbstractAutoLinker(object):
     """
     def __init__(self, oref, auto=True, generated_by_string=None, link_type=None, **kwargs):
         self._requested_oref = oref
-        self._generated_by_string = generated_by_string if generated_by_string else self.__class__.__name__
+        if not self._generated_by_string:
+            self._generated_by_string = generated_by_string if generated_by_string else self.__class__.__name__
         self._auto = auto
-        self._link_type = link_type if link_type else oref.index.dependance
+        if not self._link_type:
+            self._link_type = link_type if link_type else oref.index.dependance
         self._user = kwargs.get('user', None)
         self._title = self._requested_oref.index.title
 
@@ -214,7 +215,7 @@ class BaseStructureAutoLinker(AbstractStructureAutoLinker):
             raise Exception('Text must have a base text to link to')
 
 
-class CommentaryAutoLinker(BaseStructureAutoLinker):
+class IncrementBaseTextDepthAutoLinker(BaseStructureAutoLinker):
     """
     The classic linker, takes a n-dpeth text and
     links each group of terminal segments to the same n-1 depth terminal segment of the base text
@@ -226,12 +227,16 @@ class CommentaryAutoLinker(BaseStructureAutoLinker):
     for each segment of text (comment) that is in 'Sforno on Kohelet 3:2'.
     """
     def __init__(self, oref, **kwargs):
-        super(CommentaryAutoLinker, self).__init__(oref, 1, **kwargs)
+        super(IncrementBaseTextDepthAutoLinker, self).__init__(oref, 1, **kwargs)
 
 
-class MatchBaseDepthAutoLinker(BaseStructureAutoLinker):
+class CommentaryAutoLinker(IncrementBaseTextDepthAutoLinker):
+    pass
+
+
+class MatchBaseTextDepthAutoLinker(BaseStructureAutoLinker):
     def __init__(self, oref, **kwargs):
-        super(MatchBaseDepthAutoLinker, self).__init__(oref, 0, **kwargs)
+        super(MatchBaseTextDepthAutoLinker, self).__init__(oref, 0, **kwargs)
 
 
 def rebuild_links_for_title(tref, user=None):
@@ -259,11 +264,11 @@ def rebuild_links_for_title(tref, user=None):
 # TODO: refactor with lexicon class map into abstract
 class AutoLinkerFactory(object):
     _class_map = {
-        'increment_base_text_depth' : IncrementBaseDepthAutoLinker,
-        'match_base_text_depth' : MatchBaseDepthAutoLinker
+        'commentary_increment_base_text_depth' : CommentaryAutoLinker,
+        'match_base_text_depth' : MatchBaseTextDepthAutoLinker
     }
-    _key_attr = 'mapping_scheme'
-    _default_class = IncrementBaseDepthAutoLinker
+    _key_attr = 'auto_linking_scheme'
+    _default_class = CommentaryAutoLinker
 
     @classmethod
     def class_factory(cls, name):
