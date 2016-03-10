@@ -47,19 +47,21 @@ class WorkflowyParser(object):
         # for element in tree.iter('outline'):
         #     print parse_titles(element)["enPrim"]
         categories = self.extract_categories_from_title()
-        if self._c_version:
-            self.version_info = {'info': self.extract_version_info(), 'text':[]}
+        self.version_info = {'info': self.extract_version_info(), 'text':[]}
         schema_root = self.build_index_schema(self.outline)
         self.parsed_schema = schema_root
         schema_root.validate()
         if self._c_index:
             print "Saving Index record"
-            self.create_index_from_schema(categories)
+            idx = self.create_index_from_schema(categories)
+            if self._c_version:
+                print "Creating Version Record"
+                self.create_version_from_outline_notes()
+            else:
+                print "No Text, Creating Default Empty Version Record"
+                self.create_version_default(idx)
         else:
             print pprint.pprint(schema_root.serialize())
-        if self._c_version:
-            print "Creating Version Record"
-            self.create_version_from_outline_notes()
 
 
     # object tree of each with jagged array nodes at the lowest level (recursive)
@@ -81,9 +83,6 @@ class WorkflowyParser(object):
             n = self.add_titles_to_node(n, titles)
             for child in element:
                 n.append(self.build_index_schema(child))
-
-
-
 
         if self._term_scheme and element != self.outline: #add the node to a term scheme
             self.create_shared_term_for_scheme(n.title_group)
@@ -151,7 +150,7 @@ class WorkflowyParser(object):
             vinfo_dict = {elem.split(":",1)[0].strip():elem.split(":",1)[1].strip() for elem in vinfo_str.split(",")}
         else:
             vinfo_dict = {'language': 'he',
-                          'versionSource': '',
+                          'versionSource': 'not available',
                           'versionTitle': 'pending'
                           }
         return vinfo_dict
@@ -159,11 +158,12 @@ class WorkflowyParser(object):
     def create_index_from_schema(self, categories=None):
         if not categories:
             categories = ["Other"]
-        Index({
+        idx = Index({
             "title": self.parsed_schema.primary_title(),
             "categories": categories,
             "schema": self.parsed_schema.serialize()
         }).save()
+        return idx
 
     def create_term_scheme(self):
         if not TermScheme().load({"name": self._term_scheme}):
@@ -207,6 +207,17 @@ class WorkflowyParser(object):
             lang = self.version_info['info']['language']
             vsource = self.version_info['info']['versionSource']
             modify_text(user,ref,vtitle, lang, text, vsource)
+
+    def create_version_default(self, idx):
+        Version(
+            {
+                "chapter": idx.nodes.create_skeleton(),
+                "versionTitle": self.version_info['info']['versionTitle'],
+                "versionSource": self.version_info['info']['versionSource'],
+                "language": self.version_info['info']['language'],
+                "title": idx.title
+            }
+        ).save()
 
 
     """def create_version_from_outline_notes(self):
