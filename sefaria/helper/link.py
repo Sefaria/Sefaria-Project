@@ -61,7 +61,7 @@ class AbstractAutoLinker(object):
         :return:
         """
         self.delete_links()
-        self.build_links()
+        return self.build_links()
         # TODO: move this commentator name catching out to the view.
         """try:
             oref = Ref(title)
@@ -82,6 +82,9 @@ class AbstractAutoLinker(object):
                                    "type" : self._link_type
                                    })
         return self._links
+
+    def linkset(self):
+        return self._load_links()
 
     def _save_link(self, tref, base_tref, **kwargs):
         nlink = {
