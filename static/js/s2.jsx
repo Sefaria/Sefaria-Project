@@ -720,7 +720,7 @@ var Header = React.createClass({
 
   },
   initAutocomplete: function() {
-    $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete({ 
+    $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete({
       position: {my: "left-12 top+14", at: "left bottom"},
       source: function( request, response ) {
         var matches = $.map( sjs.books, function(tag) {
@@ -3585,10 +3585,13 @@ var SearchPage = React.createClass({
     },
     getInitialState: function() {
         return {
-            page: this.props.initialPage || 1,
+            page: this.props.initialPage || 1
             //runningQuery: null,
             //isQueryRunning: false
         }
+    },
+    componentWillMount() {
+      console.log("Mount SearchPage")
     },
     getDefaultProps: function() {
       return {
@@ -3738,6 +3741,9 @@ var SearchResultList = React.createClass({
     componentDidMount: function() {
         this._executeQuery();
     },
+    componentWillMount() {
+      console.log("Mount SearchResultList")
+    },
     componentWillUnmount: function() {
         this._abortRunningQuery();
     },
@@ -3757,10 +3763,12 @@ var SearchResultList = React.createClass({
           !(this.props.appliedFilters.every((v,i) => v === newProps.appliedFilters[i]))) {
            this._executeQuery(newProps)
         }
-        else if (this.props.size != newProps.size
-            || this.props.page != newProps.page
-            || this.props.filtersValid != newProps.filtersValid) {
-           this._executeQuery(newProps)
+        else if (this.props.size != newProps.size || this.props.page != newProps.page) {
+          this._executeQuery(newProps);
+        }
+        // Execute a second query to apply filters after an initial query which got available filters
+        else if ((this.props.filtersValid != newProps.filtersValid) && this.props.appliedFilters.length > 0) {
+           this._executeQuery(newProps);
         }
     },
     _executeQuery: function(props) {
@@ -3772,6 +3780,9 @@ var SearchResultList = React.createClass({
 
         this._abortRunningQuery();
 
+        // If there are no available filters yet, don't apply filters.  Split into two queries:
+        // 1) Get all potential filters and counts
+        // 2) Apply filters (Triggered from componentWillReceiveProps)
         var request_applied = props.filtersValid && props.appliedFilters;
 
         var runningQuery = sjs.library.search.execute_query({
@@ -4005,9 +4016,6 @@ var SearchResultList = React.createClass({
         if (!(this.props.query)) {  // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
             return null;
         }
-        if (this.state.runningQuery) {
-            return (<LoadingMessage message="Searching..." />);
-        }
 
         return (
             <div>
@@ -4019,6 +4027,7 @@ var SearchResultList = React.createClass({
                   availableFilters={this.props.availableFilters}
                   appliedFilters = {this.props.appliedFilters}
                   updateAppliedFilter = {this.props.updateAppliedFilter}
+                  runningQuery = {this.state.runningQuery}
                 />
                 {this.state.textHits.map(function(result) {
                     return (<SearchTextResult
@@ -4047,7 +4056,8 @@ var SearchFilters = React.createClass({
     sheetTotal:           React.PropTypes.number,
     appliedFilters:       React.PropTypes.array,
     availableFilters:     React.PropTypes.array,
-    updateAppliedFilter:  React.PropTypes.func
+    updateAppliedFilter:  React.PropTypes.func,
+    runningQuery:         React.PropTypes.object
   },
   getInitialState: function() {
     return {
@@ -4063,18 +4073,23 @@ var SearchFilters = React.createClass({
     };
   },
   componentWillMount() {
-
+    console.log("Mount SearchFilters")
+  },
+  componentWillUnmount() {
+    debugger;
   },
   componentWillReceiveProps(newProps) {
     // Save current filters
     // this.props
     // todo: check for cases when we want to rebuild / not
-    if (newProps.query != this.props.query) {
+
+    /* if (newProps.query != this.props.query) {
       this.setState({
         openedCategory: null,
         openedCategoryBooks: []
       });
-    }
+    } */
+
     /*
     else if (newProps.appliedFilters &&
               ((newProps.appliedFilters.length !== this.props.appliedFilters.length)
@@ -4095,6 +4110,8 @@ var SearchFilters = React.createClass({
     return results;
   },
   handleFocusCategory: function(filterNode) {
+    console.log("handleFocusCategory");
+    console.log(filterNode);
     var leaves = filterNode.getLeafNodes();
     this.setState({
       openedCategory: filterNode,
@@ -4102,6 +4119,7 @@ var SearchFilters = React.createClass({
     })
   },
   toggleFilterView: function() {
+    console.log("toggleFilterView");
     this.setState({displayFilters: !this.state.displayFilters});
   },
   render: function() {
@@ -4119,19 +4137,26 @@ var SearchFilters = React.createClass({
     var enFilterLine = (!!this.props.appliedFilters.length)?(": " + this.getSelectedTitles("en").join(", ")):"";
     var heFilterLine = (!!this.props.appliedFilters.length)?(": " + this.getSelectedTitles("he").join(", ")):"";
 
+    var summaryLines = (
+      <div className="results-count">
+          <span className="en">{totalWithCommas} Results{enFilterLine}</span>
+          <span className="he">{totalWithCommas} תוצאות{heFilterLine}</span>
+          {(this.state.sheet_total > 0 && this.state.text_total > 0) ? totalBreakdown : null}
+      </div>);
+
+    var runningQueryLine = (<LoadingMessage message="Searching..." />);
+    var show_filters_classes = (this.state.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down";
     return (
       <div>
-        <div className="results-count" key="results-count">
-            <span className="en">{totalWithCommas} Results{enFilterLine}</span>
-            <span className="he">{totalWithCommas} תוצאות{heFilterLine}</span>
-            {(this.state.sheet_total > 0 && this.state.text_total > 0) ? totalBreakdown : null}
-        </div>
-        <div><span>Filter by Text </span><i className="fa fa-angle-down" onClick={this.toggleFilterView}/></div>
+        {(this.state.runningQuery)?runningQueryLine:summaryLines}
+
+        <div><span>Filter by Text </span><i className={show_filters_classes} onClick={this.toggleFilterView}/></div>
         <div className="searchFilterBoxes" style={{display: this.state.displayFilters?"block":"none"}}>
           <div className="searchFilterCategoryBox">
           {this.props.availableFilters.map(function(filter) {
               return (<SearchFilter
                   filter={filter}
+                  isInFocus={this.state.openedCategory === filter}
                   focusCategory={this.handleFocusCategory}
                   updateSelected={this.props.updateAppliedFilter}
                   key={filter.path}/>);
@@ -4154,16 +4179,17 @@ var SearchFilters = React.createClass({
 
 var SearchFilter = React.createClass({
   propTypes: {
-    filter: React.PropTypes.object.isRequired,
+    filter:         React.PropTypes.object.isRequired,
+    isInFocus:      React.PropTypes.bool,
     updateSelected: React.PropTypes.func.isRequired,
-    focusCategory: React.PropTypes.func
+    focusCategory:  React.PropTypes.func
   },
   // Can't set indeterminate in the render phase.  https://github.com/facebook/react/issues/1798
   componentDidMount: function() {
-    React.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
+    ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
   },
   componentDidUpdate: function() {
-    React.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
+    ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
   },
   handleFilterClick: function() {
     this.props.updateSelected(this.props.filter)
@@ -4176,9 +4202,10 @@ var SearchFilter = React.createClass({
   render: function() {
     return(
       <li onClick={this.handleFocusCategory}>
-        <input type="checkbox" className="filter" checked={this.props.filter.isSelected()} onClick={this.handleFilterClick}/>
+        <input type="checkbox" className="filter" defaultChecked={this.props.filter.isSelected()} onClick={this.handleFilterClick}/>
         <span className="en">{this.props.filter.title} ({this.props.filter.docCount}) </span>
         <span className="he" dir="rtl">{this.props.filter.heTitle} ({this.props.filter.docCount})</span>
+        {this.props.isInFocus?<i className="in-focus-arrow fa fa-caret-right"/>:""}
       </li>
       )
   }
@@ -4255,7 +4282,7 @@ var SearchTextResult = React.createClass({
 
         return (
             <div className="result">
-                <a  href={href} onClick={this.handleResultClick}>
+                <a href={href} onClick={this.handleResultClick}>
                     <div className="result-title">
                         <span className="en">{s.ref}</span>
                         <span className="he">{s.heRef}</span>
