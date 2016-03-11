@@ -3306,15 +3306,17 @@ var CategoryFilter = React.createClass({
                 on={$.inArray(book.book, this.props.filter) !== -1} />);
     }.bind(this));
     
-    var color   = sjs.categoryColor(this.props.category);
-    var style   = {"borderTop": "4px solid " + color};
-    var classes = classNames({categoryFilter: 1, on: this.props.on});
-    var count   = (<span className="enInHe">{this.props.count}</span>);
+    var notClickable = this.props.category == "Community";
+    var color        = sjs.categoryColor(this.props.category);
+    var style        = notClickable ? {} : {"borderTop": "4px solid " + color};
+    var classes      = classNames({categoryFilter: 1, on: this.props.on, notClickable: notClickable});
+    var count        = notClickable ? null : (<span className="enInHe"> | {this.props.count}</span>);
+    var handleClick  = notClickable ? null : this.handleClick;
     return (
       <div className="categoryFilterGroup" style={style}>
-        <div className={classes} onClick={this.handleClick}>
-          <span className="en">{this.props.category} | {count}</span>
-          <span className="he">{this.props.heCategory} | {count}</span>
+        <div className={classes} onClick={handleClick}>
+          <span className="en">{this.props.category}{count}</span>
+          <span className="he">{this.props.heCategory}{count}</span>
         </div>
         <TwoBox content={ textFilters } />
       </div>

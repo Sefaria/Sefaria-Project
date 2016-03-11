@@ -3964,32 +3964,33 @@ var CategoryFilter = React.createClass({
         on: $.inArray(book.book, this.props.filter) !== -1 });
     }.bind(this));
 
+    var notClickable = this.props.category == "Community";
     var color = sjs.categoryColor(this.props.category);
-    var style = { "borderTop": "4px solid " + color };
-    var classes = classNames({ categoryFilter: 1, on: this.props.on });
-    var count = React.createElement(
+    var style = notClickable ? {} : { "borderTop": "4px solid " + color };
+    var classes = classNames({ categoryFilter: 1, on: this.props.on, notClickable: notClickable });
+    var count = notClickable ? null : React.createElement(
       "span",
       { className: "enInHe" },
+      " | ",
       this.props.count
     );
+    var handleClick = notClickable ? null : this.handleClick;
     return React.createElement(
       "div",
       { className: "categoryFilterGroup", style: style },
       React.createElement(
         "div",
-        { className: classes, onClick: this.handleClick },
+        { className: classes, onClick: handleClick },
         React.createElement(
           "span",
           { className: "en" },
           this.props.category,
-          " | ",
           count
         ),
         React.createElement(
           "span",
           { className: "he" },
           this.props.heCategory,
-          " | ",
           count
         )
       ),
