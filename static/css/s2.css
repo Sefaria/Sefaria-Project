@@ -1084,7 +1084,7 @@ display: block;margin: 0 auto;}
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  max-width: 70%;
+  max-width: 60%;
   vertical-align: middle;
 }
 .readerControls .readerTextToc .readerTextVersion {
