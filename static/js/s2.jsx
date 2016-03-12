@@ -4,6 +4,7 @@ var sjs = sjs || {};
 var ReaderApp = React.createClass({
   propTypes: {
     multiPanel:                  React.PropTypes.bool,
+    headerMode:                  React.PropTypes.bool,  // is S2 serving only as a header on top of another page?
     initialRefs:                 React.PropTypes.array,
     initialFilter:               React.PropTypes.array,
     initialMenu:                 React.PropTypes.string,
@@ -12,11 +13,10 @@ var ReaderApp = React.createClass({
     initialNavigationCategories: React.PropTypes.array,
     initialSettings:             React.PropTypes.object,
     initialPanels:               React.PropTypes.array,
-    initialDefaultVersions:      React.PropTypes.object,
-    headerMode:                  React.PropTypes.bool
+    initialDefaultVersions:      React.PropTypes.object 
   },
   getInitialState: function() {
-    var panels = [];
+    var panels               = [];
     var defaultVersions      = clone(this.props.initialDefaultVersions) || {};
     var defaultPanelSettings = clone(this.props.initialSettings);
     if (!this.props.multiPanel && !this.props.headerMode) {
@@ -73,6 +73,7 @@ var ReaderApp = React.createClass({
     var headerState = {
                   mode: "Header",
                   refs: this.props.initialRefs,
+                  menuOpen: this.props.initialMenu,
                   searchQuery: this.props.initialQuery,
                   navigationCategories: this.props.initialNavigationCategories,
                   sheetsTag: this.props.initialSheetsTag,
@@ -290,11 +291,6 @@ var ReaderApp = React.createClass({
       }
     }
     hist.url = hist.url.replace(/&/, "?");
-
-    // for testing
-    if (window.location.pathname.indexOf("/s2") === 0 || "s2" in getUrlVars()) { 
-      hist.url = "/s2" + hist.url;
-    }
 
     return hist;
   },
