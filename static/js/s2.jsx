@@ -663,6 +663,12 @@ var Header = React.createClass({
     this.props.setCentralState({menuOpen: "account"});
     this.clearSearchBox();
   },
+  showTestMessage: function() {
+    this.props.setCentralState({showTestMessage: true});
+  },
+  hideTestMessage: function() { 
+    this.props.setCentralState({showTestMessage: false});
+  },
   submitSearch: function(query, skipNormalization) {
     //window.location = "/search?q=" + query.replace(/ /g, "+");
     if (query in sjs.booksDict) {
@@ -731,6 +737,7 @@ var Header = React.createClass({
                   <div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div>
                 </div>
                 <div className="right">
+                  <div className="testWarning" onClick={this.showTestMessage} >Attention: You are testing the New Sefaria</div>
                   <div className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" /></div>
                 </div>
                 <span className="searchBox">
@@ -743,9 +750,28 @@ var Header = React.createClass({
                 (<div className="headerNavContent">
                   {viewContent}
                  </div>) : null}
+              { this.state.showTestMessage ? <TestMessage hide={this.hideTestMessage} /> : null}
             </div>);
   }
 });
+
+var TestMessage = React.createClass({
+  propTypes: {
+    hide:   React.PropTypes.func
+  },
+  render: function() {
+    return (
+      <div className="testMessageBox">
+        <div className="overlay" onClick={this.props.hide} ></div>
+        <div className="testMessage">
+          <div className="title">The new Sefaria is still in development.<br />Thank you for helping us test and improve it.</div>
+          <a href="mailto:hello@sefaria.org" target="_blank" className="button">Send Feedback</a>
+          <div className="button" onClick={backToS1} >Return to Old Sefaria</div>
+        </div>
+      </div>);
+  }
+});
+
 
 
 var ReaderPanel = React.createClass({
@@ -3883,15 +3909,10 @@ var AccountPanel = React.createClass({
     ];
     connectContent = (<TwoOrThreeBox content={connectContent} width={width} />);
 
-    var backToS1 = function() { 
-      $.cookie("s2", "", {path: "/"});
-      window.location = "/";
-    }
     return (
       <div className="accountPanel readerNavMenu">
         <div className="content">
           <div className="contentInner">
-           <span id="backToS1" onClick={backToS1}>&laquo; Back to Old Sefaria</span>
            <ReaderNavigationMenuSection title="Account" heTitle="נצפו לאחרונה" content={accountContent} />
            <ReaderNavigationMenuSection title="Learn" heTitle="נצפו לאחרונה" content={learnContent} />
            <ReaderNavigationMenuSection title="Contribute" heTitle="נצפו לאחרונה" content={contributeContent} />
@@ -4008,3 +4029,8 @@ var LoadingMessage = React.createClass({
             </div>);
   }
 });
+
+var backToS1 = function() { 
+  $.cookie("s2", "", {path: "/"});
+  window.location = "/";
+}
