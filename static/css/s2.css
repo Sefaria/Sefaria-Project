@@ -110,6 +110,59 @@ body.dark {
   margin: 0px 17px;
   font-size: 24px;
 }
+.header .testWarning {
+  display: inline-block;
+  color: white;
+  font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif;
+  background-color: #EFB4B6;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1;
+  padding: 6px 16px;
+  vertical-align: text-bottom;
+  height: 14px;
+  max-width: 100%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  cursor: pointer;
+}
+.header .testWarning:hover {
+  text-decoration: underline;
+}
+.testMessageBox {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  z-index: 5000;
+}
+.overlay {
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  opacity: 0.3;
+}
+.testMessage {
+  position: fixed;
+  z-index: 5001;
+  width: 450px;
+  height: 180px;
+  margin-top: -90px;
+  margin-left: -225px;
+  left: 50%;
+  top: 50%;
+  background-color: #F9F9F7;
+  padding: 32px 20px;
+  box-sizing: border-box;
+  text-align: center;
+}
+.testMessage .title {
+  font-size: 18px;
+  line-height: 1.4;
+}
+.testMessage .button {
+  margin-top: 20px;
+}
 .header .account img {
   height: 24px;
   width: 24px;
@@ -402,6 +455,7 @@ body .bilingual .enOnly .he {
 .readerNavTop .readerNavMenuCloseButton{
   font-size: 46px;
   padding: 0;
+  line-height: 1.2;
 }
 .readerNavTop .readerNavMenuSearchButton {
   left: 36px;
@@ -1083,7 +1137,7 @@ display: block;margin: 0 auto;}
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  max-width: 70%;
+  max-width: 60%;
   vertical-align: middle;
 }
 .readerControls .readerTextToc .readerTextVersion {
@@ -1499,7 +1553,6 @@ display: block;margin: 0 auto;}
   overflow: hidden;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
-  padding: 40px 30px;
 }
 .textList .fullFilterView .contentInner {
   max-width: 700px;
@@ -1513,7 +1566,7 @@ display: block;margin: 0 auto;}
   padding: 0 50px 300px;
 }
 .textList .fullFilterView {
-  padding: 30px;
+  padding: 30px 30px 80px 30px;
 }
 .textListTop {
   position: absolute;
@@ -1688,6 +1741,13 @@ display: block;margin: 0 auto;}
 .fullFilterView .categoryFilter {
   background-color: white;
 }
+.fullFilterView .categoryFilter.notClickable {
+  color: #999;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  background-color: transparent;
+  padding: 12px 12px 28px;
+  cursor: auto;
+}
 .dark .fullFilterView .categoryFilter {
   background-color: #333;
 }
@@ -1830,6 +1890,23 @@ display: block;margin: 0 auto;}
   margin-top: 200px;
   text-align: center;
   color: #999;
+}
+.button {
+ display: inline-block;
+ color: white;
+ background-color: #212E50;
+ border-radius: 4px;
+ padding: 12px 24px;
+ margin: 2px;
+ cursor: pointer;
+ font-size: 15px;
+ letter-spacing: 1px;
+ font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+ box-sizing: border-box;
+}
+.button:hover {
+  color: white;
+  text-decoration: none;
 }
 #backToS1 {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;

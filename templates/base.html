@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" /> 
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
     {% block ogimage %}<meta property="og:image" content="http://www.sefaria.org/static/img/fb-og-image.png"/>{% endblock %}
     <title>{% block title %}{% endblock %}</title>
     {% block head %}{% endblock %}    
@@ -52,7 +52,7 @@
     {% include "js/headers.js" %}
     
     {% block js %}{% endblock %}
-    {% if S2 %}
+    {% if S2 or request.flavour == "mobile" %}
         {% include "elements/s2_header.html" %}
     {% endif %}
 </body>

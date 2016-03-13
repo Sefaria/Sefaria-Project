@@ -9,6 +9,7 @@ var ReaderApp = React.createClass({
 
   propTypes: {
     multiPanel: React.PropTypes.bool,
+    headerMode: React.PropTypes.bool, // is S2 serving only as a header on top of another page?
     initialRefs: React.PropTypes.array,
     initialFilter: React.PropTypes.array,
     initialMenu: React.PropTypes.string,
@@ -17,14 +18,13 @@ var ReaderApp = React.createClass({
     initialNavigationCategories: React.PropTypes.array,
     initialSettings: React.PropTypes.object,
     initialPanels: React.PropTypes.array,
-    initialDefaultVersions: React.PropTypes.object,
-    headerMode: React.PropTypes.bool
+    initialDefaultVersions: React.PropTypes.object
   },
   getInitialState: function getInitialState() {
     var panels = [];
     var defaultVersions = clone(this.props.initialDefaultVersions) || {};
     var defaultPanelSettings = clone(this.props.initialSettings);
-    if (!this.props.multiPanel) {
+    if (!this.props.multiPanel && !this.props.headerMode) {
       var mode = this.props.initialFilter ? "TextAndConnections" : "Text";
       panels[0] = {
         refs: this.props.initialRefs,
@@ -75,19 +75,21 @@ var ReaderApp = React.createClass({
       return this.makePanelState(panel);
     }.bind(this));
 
-    var header_state = {
+    var headerState = {
       mode: "Header",
       refs: this.props.initialRefs,
+      menuOpen: this.props.initialMenu,
       searchQuery: this.props.initialQuery,
       navigationCategories: this.props.initialNavigationCategories,
       sheetsTag: this.props.initialSheetsTag,
       settings: clone(defaultPanelSettings)
     };
-    if (panels.length <= 1) {
-      header_state.menuOpen = this.props.initialMenu;
+    /*
+    if(panels.length <= 1) {
+      headerState.menuOpen = this.props.initialMenu;
     }
-
-    var header = this.makePanelState(header_state);
+    */
+    var header = this.makePanelState(headerState);
 
     return {
       panels: panels,
@@ -284,11 +286,6 @@ var ReaderApp = React.createClass({
         }
     }
     hist.url = hist.url.replace(/&/, "?");
-
-    // for testing
-    if (window.location.pathname.indexOf("/s2") === 0 || "s2" in getUrlVars()) {
-      hist.url = "/s2" + hist.url;
-    }
 
     return hist;
   },
@@ -543,7 +540,7 @@ var ReaderApp = React.createClass({
       });
     }
 
-    var header = this.props.multiPanel ? React.createElement(Header, {
+    var header = this.props.multiPanel || this.state.header.menuOpen || this.state.panels.length == 0 ? React.createElement(Header, {
       initialState: this.state.header,
       setCentralState: this.setHeaderState,
       onRefClick: this.handleNavigationClick,
@@ -670,6 +667,12 @@ var Header = React.createClass({
     this.props.setCentralState({ menuOpen: "account" });
     this.clearSearchBox();
   },
+  showTestMessage: function showTestMessage() {
+    this.props.setCentralState({ showTestMessage: true });
+  },
+  hideTestMessage: function hideTestMessage() {
+    this.props.setCentralState({ showTestMessage: false });
+  },
   submitSearch: function submitSearch(query, skipNormalization) {
     //window.location = "/search?q=" + query.replace(/ /g, "+");
     if (query in sjs.booksDict) {
@@ -751,6 +754,11 @@ var Header = React.createClass({
           { className: "right" },
           React.createElement(
             "div",
+            { className: "testWarning", onClick: this.showTestMessage },
+            "Attention: You are testing the New Sefaria"
+          ),
+          React.createElement(
+            "div",
             { className: "account", onClick: this.showAccount },
             React.createElement("img", { src: "/static/img/user-64.png" })
           )
@@ -771,7 +779,44 @@ var Header = React.createClass({
         "div",
         { className: "headerNavContent" },
         viewContent
-      ) : null
+      ) : null,
+      this.state.showTestMessage ? React.createElement(TestMessage, { hide: this.hideTestMessage }) : null
+    );
+  }
+});
+
+var TestMessage = React.createClass({
+  displayName: "TestMessage",
+
+  propTypes: {
+    hide: React.PropTypes.func
+  },
+  render: function render() {
+    return React.createElement(
+      "div",
+      { className: "testMessageBox" },
+      React.createElement("div", { className: "overlay", onClick: this.props.hide }),
+      React.createElement(
+        "div",
+        { className: "testMessage" },
+        React.createElement(
+          "div",
+          { className: "title" },
+          "The new Sefaria is still in development.",
+          React.createElement("br", null),
+          "Thank you for helping us test and improve it."
+        ),
+        React.createElement(
+          "a",
+          { href: "mailto:hello@sefaria.org", target: "_blank", className: "button" },
+          "Send Feedback"
+        ),
+        React.createElement(
+          "div",
+          { className: "button", onClick: backToS1 },
+          "Return to Old Sefaria"
+        )
+      )
     );
   }
 });
@@ -3963,32 +4008,33 @@ var CategoryFilter = React.createClass({
         on: $.inArray(book.book, this.props.filter) !== -1 });
     }.bind(this));
 
+    var notClickable = this.props.category == "Community";
     var color = sjs.categoryColor(this.props.category);
-    var style = { "borderTop": "4px solid " + color };
-    var classes = classNames({ categoryFilter: 1, on: this.props.on });
-    var count = React.createElement(
+    var style = notClickable ? {} : { "borderTop": "4px solid " + color };
+    var classes = classNames({ categoryFilter: 1, on: this.props.on, notClickable: notClickable });
+    var count = notClickable ? null : React.createElement(
       "span",
       { className: "enInHe" },
+      " | ",
       this.props.count
     );
+    var handleClick = notClickable ? null : this.handleClick;
     return React.createElement(
       "div",
       { className: "categoryFilterGroup", style: style },
       React.createElement(
         "div",
-        { className: classes, onClick: this.handleClick },
+        { className: classes, onClick: handleClick },
         React.createElement(
           "span",
           { className: "en" },
           this.props.category,
-          " | ",
           count
         ),
         React.createElement(
           "span",
           { className: "he" },
           this.props.heCategory,
-          " | ",
           count
         )
       ),
@@ -4682,10 +4728,6 @@ var AccountPanel = React.createClass({
     var connectContent = [React.createElement(BlockLink, { target: "https://groups.google.com/forum/?fromgroups#!forum/sefaria", title: "Forum" }), React.createElement(BlockLink, { target: "http://www.facebook.com/sefaria.org", title: "Facebook" }), React.createElement(BlockLink, { target: "http://twitter.com/SefariaProject", title: "Twitter" }), React.createElement(BlockLink, { target: "http://www.youtube.com/user/SefariaProject", title: "YouTube" }), React.createElement(BlockLink, { target: "http://www.github.com/Sefaria", title: "GitHub" }), React.createElement(BlockLink, { target: "mailto:hello@sefaria.org", title: "Email" })];
     connectContent = React.createElement(TwoOrThreeBox, { content: connectContent, width: width });
 
-    var backToS1 = function backToS1() {
-      $.cookie("s2", "", { path: "/" });
-      window.location = "/";
-    };
     return React.createElement(
       "div",
       { className: "accountPanel readerNavMenu" },
@@ -4695,11 +4737,6 @@ var AccountPanel = React.createClass({
         React.createElement(
           "div",
           { className: "contentInner" },
-          React.createElement(
-            "span",
-            { id: "backToS1", onClick: backToS1 },
-            "« Back to Old Sefaria"
-          ),
           React.createElement(ReaderNavigationMenuSection, { title: "Account", heTitle: "נצפו לאחרונה", content: accountContent }),
           React.createElement(ReaderNavigationMenuSection, { title: "Learn", heTitle: "נצפו לאחרונה", content: learnContent }),
           React.createElement(ReaderNavigationMenuSection, { title: "Contribute", heTitle: "נצפו לאחרונה", content: contributeContent }),
@@ -4849,4 +4886,9 @@ var LoadingMessage = React.createClass({
     );
   }
 });
+
+var backToS1 = function backToS1() {
+  $.cookie("s2", "", { path: "/" });
+  window.location = "/";
+};
 

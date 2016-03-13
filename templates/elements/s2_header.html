@@ -47,11 +47,12 @@
       color:         $.cookie("color")         || "light",
       fontSize:      $.cookie("fontSize")      || 62.5
     };
+    var multiPanel    = $(window).width() > 600;
 
     ReactDOM.render(
       React.createElement(ReaderApp, {
         headerMode: true,
-        multiPanel: true,
+        multiPanel: multiPanel,
         initialRefs: [],
         initialFilter: [],
         initialMenu: null,
