@@ -627,7 +627,7 @@ class CommentaryIndex(AbstractIndex):
         self.b_index = Index().load({
             "title": book_name
         })
-        if library and not self.b_index:
+        if not self.b_index:
             try:
                 self.b_index = library.get_index(book_name)
             except NameError as e:
