@@ -3939,7 +3939,7 @@ class Library(object):
         """
         assert book
         commentators = self.get_commentator_titles(with_commentary2=with_commentary2)
-        commentary_re = ur"^({}) on {}".format("|".join(commentators), book)
+        commentary_re = ur"^({}) on {}$".format("|".join(commentators), book)
         return VersionSet({"title": {"$regex": commentary_re}})
 
     def get_commentary_version_titles_on_book(self, book, with_commentary2=False):
