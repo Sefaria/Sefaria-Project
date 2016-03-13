@@ -1,6 +1,6 @@
 {% load sefaria_tags %}
 
-{% if not S2 %}
+{% if not S2 and not request.flavour == "mobile" %}
 <header id="top" class=''>
 	<div id="right" class="">
 		<div id="showOptions" class="">≡</div>
