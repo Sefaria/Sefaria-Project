@@ -628,7 +628,10 @@ class CommentaryIndex(AbstractIndex):
             "title": book_name
         })
         if not self.b_index:
-            self.b_index = library.get_index(book_name)
+            try:
+                self.b_index = library.get_index(book_name)
+            except Exception as e:
+                raise
 
         if not self.b_index:
             raise BookNameError(u"No book named '{}'.".format(book_name))
