@@ -631,7 +631,7 @@ class CommentaryIndex(AbstractIndex):
             try:
                 self.b_index = library.get_index(book_name)
             except NameError as e:
-                raise InputError(u"Failed in library instanciation.  No book named '{}'.")
+                raise InputError(u"Failed in library instanciation.  No book named '{}'.".format(book_name))
 
         if not self.b_index:
             raise BookNameError(u"No book named '{}'.".format(book_name))
