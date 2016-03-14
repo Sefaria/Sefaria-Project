@@ -1514,8 +1514,8 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 			return (a.length < b.length ? 1 : -1); 
 		});
 	} 
-	
-	var booksReStr = "(" + sjs.sortedBooks.join("\\b|") + ")";
+
+	var booksReStr = "(" + sjs.sortedBooks.map(RegExp.escape).join("\\b|") + ")";
 	var booksRe = new RegExp("^" + booksReStr, "i");
 	var baseTests = [{test: /^/,
 					  msg: "Enter a text or commentator name",
@@ -2718,7 +2718,7 @@ Array.prototype.toggle = function(value) {
         this.splice(index, 1);
     }
     return this;
-}
+};
 
 Array.prototype.move = function (old_index, new_index) {
     if (new_index >= this.length) {
