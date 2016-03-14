@@ -491,13 +491,22 @@ var ReaderApp = React.createClass({
       }
     }
     var state = {panels: this.state.panels};
-    if (state.panels.length == 0) {
+    if (state.panels.length == 0 && !this.props.headerMode) {
       this.showLibrary();
     }
     this.setState(state);
   },
   showLibrary: function() {
-    this.setState({header: this.makePanelState({menuOpen: "navigation"})});
+    if (this.props.multiPanel) {
+      this.setState({header: this.makePanelState({menuOpen: "navigation"})});
+    } else {
+      if (this.state.panels.length) {
+        this.state.panels[0].menuOpen = "navigation";
+      } else {
+        this.state.panels[0] = this.makePanelState({menuOpen: "navigation"});
+      }
+      this.setState({panels: this.state.panels});
+    }
   },
   showSearch: function(query) {
     this.setState({header: this.makePanelState({menuOpen: "search", searchQuery: query})});
@@ -536,7 +545,7 @@ var ReaderApp = React.createClass({
       var widths = this.state.panels.map(function(){ return evenWidth; });
     }
 
-    var header = this.props.multiPanel || this.state.header.menuOpen || this.state.panels.length == 0 ? 
+    var header = this.props.multiPanel || this.state.panels.length == 0 ? 
                   (<Header 
                     initialState={this.state.header}
                     setCentralState={this.setHeaderState}
@@ -791,6 +800,7 @@ var ReaderPanel = React.createClass({
     onSearchResultClick:    React.PropTypes.func,
     onUpdate:               React.PropTypes.func,
     closePanel:             React.PropTypes.func,
+    closeMenus:             React.PropTypes.func,
     setDefaultLanguage:     React.PropTypes.func,
     selectVersion:          React.PropTypes.func,
     highlightedRefs:        React.PropTypes.array,
