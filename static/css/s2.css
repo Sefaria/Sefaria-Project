@@ -919,6 +919,10 @@ display: block;margin: 0 auto;}
   padding: 15px 10px 0;
 }
 
+.searchContent .searchTopMatter {
+  padding-bottom: 10px;
+}
+
 .searchContent .searchStatusLine {
   padding: 10px 0 36px 0;
   margin-top: -60px;
@@ -947,7 +951,7 @@ display: block;margin: 0 auto;}
 .searchContent .searchFilterBoxes {
   margin: 10px 0;
   background: #eee;
-  width: 500px;
+  width: 100%;
 }
 
 .searchContent .searchFilterBoxes li {
@@ -977,14 +981,13 @@ display: block;margin: 0 auto;}
 .searchContent .searchFilterCategoryBox,
 .searchContent .searchFilterBookBox {
   float: left;
-  width: 250px;
+  width: 50%;
   height: 150px;
   overflow-y: auto;
 }
 
-
 .searchContent .result {
-  border-bottom: thin solid #eee;
+  border-top: thin solid #eee;
   padding-bottom: 12px;
 }
 .searchContent .result a:hover {

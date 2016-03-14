@@ -423,6 +423,7 @@ var ReaderApp = React.createClass({
     }
   },
   registerAvailableFilters: function(availableFilters, registry, orphans) {
+    debugger;
     var updates = {
       availableFilters:    availableFilters,
       filterRegistry:      registry,
@@ -3616,7 +3617,6 @@ var SearchPage = React.createClass({
         }
     },
     componentWillMount() {
-      console.log("Mount SearchPage")
     },
     getDefaultProps: function() {
       return {
@@ -3770,7 +3770,6 @@ var SearchResultList = React.createClass({
         this._executeQuery();
     },
     componentWillMount() {
-      console.log("Mount SearchResultList")
     },
     componentWillUnmount: function() {
         this._abortRunningQuery();
@@ -4101,10 +4100,8 @@ var SearchFilters = React.createClass({
     };
   },
   componentWillMount() {
-    console.log("Mount SearchFilters")
   },
   componentWillUnmount() {
-    debugger;
   },
   componentWillReceiveProps(newProps) {
     // Save current filters
@@ -4147,7 +4144,6 @@ var SearchFilters = React.createClass({
     })
   },
   toggleFilterView: function() {
-    console.log("toggleFilterView");
     this.setState({displayFilters: !this.state.displayFilters});
   },
   render: function() {
@@ -4175,7 +4171,7 @@ var SearchFilters = React.createClass({
     var runningQueryLine = (<LoadingMessage message="Searching..." />);
     var show_filters_classes = (this.state.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down";
     return (
-      <div>
+      <div className="searchTopMatter">
         <div className="searchStatusLine">
         {(this.props.isQueryRunning) ? runningQueryLine : summaryLines}
         </div>
