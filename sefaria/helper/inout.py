@@ -56,8 +56,28 @@ def export_version_csv(index, version_list):
     return output.getvalue()
 
 
-def import_versions():
-    # Get Index and Versions from top rows of CSV
+def import_versions(csv_filename, columns):
+    """
+    Import the versions in the columns listed in `columns`
+    :param columns: zero-based list of column numbers with a new version in them
+    :return:
+    """
+    with open(csv_filename, 'rb') as csvfile:
+        reader = csv.reader(csvfile)
+        rows = [row for row in reader]
+
+    index_title = rows[0][columns[0]] # assume the same index title for all
+
+    # Get Versions from top rows of CSV
+    for column in columns:
+        Version({
+            "title": index_title,
+            "versionTitle": rows[1][column],
+            "language": rows[2][column],     # Language
+            "versionSource": rows[3][column],     # Version Source
+            "versionNotes": rows[4][column],     # Version Notes
+        }).save()
+
     # For each existing version
 
     # For each new version
