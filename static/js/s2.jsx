@@ -4,6 +4,7 @@ var sjs = sjs || {};
 var ReaderApp = React.createClass({
   propTypes: {
     multiPanel:                  React.PropTypes.bool,
+    headerMode:                  React.PropTypes.bool,  // is S2 serving only as a header on top of another page?
     initialRefs:                 React.PropTypes.array,
     initialFilter:               React.PropTypes.array,
     initialMenu:                 React.PropTypes.string,
@@ -12,14 +13,13 @@ var ReaderApp = React.createClass({
     initialNavigationCategories: React.PropTypes.array,
     initialSettings:             React.PropTypes.object,
     initialPanels:               React.PropTypes.array,
-    initialDefaultVersions:      React.PropTypes.object,
-    headerMode:                  React.PropTypes.bool
+    initialDefaultVersions:      React.PropTypes.object 
   },
   getInitialState: function() {
-    var panels = [];
-    var defaultVersions = clone(this.props.initialDefaultVersions) || {};
+    var panels               = [];
+    var defaultVersions      = clone(this.props.initialDefaultVersions) || {};
     var defaultPanelSettings = clone(this.props.initialSettings);
-    if (!this.props.multiPanel) {
+    if (!this.props.multiPanel && !this.props.headerMode) {
       var mode = this.props.initialFilter ? "TextAndConnections" : "Text";
       panels[0] = {
         refs: this.props.initialRefs,
@@ -70,19 +70,21 @@ var ReaderApp = React.createClass({
       return this.makePanelState(panel); 
     }.bind(this) );
 
-    var header_state = {
+    var headerState = {
                   mode: "Header",
                   refs: this.props.initialRefs,
+                  menuOpen: this.props.initialMenu,
                   searchQuery: this.props.initialQuery,
                   navigationCategories: this.props.initialNavigationCategories,
                   sheetsTag: this.props.initialSheetsTag,
                   settings: clone(defaultPanelSettings)
     };
+    /*
     if(panels.length <= 1) {
-      header_state.menuOpen = this.props.initialMenu;
+      headerState.menuOpen = this.props.initialMenu;
     }
-
-    var header = this.makePanelState(header_state);
+    */
+    var header = this.makePanelState(headerState);
 
     return {
       panels: panels,
@@ -289,11 +291,6 @@ var ReaderApp = React.createClass({
       }
     }
     hist.url = hist.url.replace(/&/, "?");
-
-    // for testing
-    if (window.location.pathname.indexOf("/s2") === 0 || "s2" in getUrlVars()) { 
-      hist.url = "/s2" + hist.url;
-    }
 
     return hist;
   },
@@ -539,7 +536,7 @@ var ReaderApp = React.createClass({
       var widths = this.state.panels.map(function(){ return evenWidth; });
     }
 
-    var header = this.props.multiPanel ? 
+    var header = this.props.multiPanel || this.state.header.menuOpen || this.state.panels.length == 0 ? 
                   (<Header 
                     initialState={this.state.header}
                     setCentralState={this.setHeaderState}
@@ -662,6 +659,12 @@ var Header = React.createClass({
     this.props.setCentralState({menuOpen: "account"});
     this.clearSearchBox();
   },
+  showTestMessage: function() {
+    this.props.setCentralState({showTestMessage: true});
+  },
+  hideTestMessage: function() { 
+    this.props.setCentralState({showTestMessage: false});
+  },
   submitSearch: function(query, skipNormalization) {
     //window.location = "/search?q=" + query.replace(/ /g, "+");
     if (query in sjs.booksDict) {
@@ -730,6 +733,7 @@ var Header = React.createClass({
                   <div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div>
                 </div>
                 <div className="right">
+                  <div className="testWarning" onClick={this.showTestMessage} >Attention: You are testing the New Sefaria</div>
                   <div className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" /></div>
                 </div>
                 <span className="searchBox">
@@ -742,9 +746,28 @@ var Header = React.createClass({
                 (<div className="headerNavContent">
                   {viewContent}
                  </div>) : null}
+              { this.state.showTestMessage ? <TestMessage hide={this.hideTestMessage} /> : null}
             </div>);
   }
 });
+
+var TestMessage = React.createClass({
+  propTypes: {
+    hide:   React.PropTypes.func
+  },
+  render: function() {
+    return (
+      <div className="testMessageBox">
+        <div className="overlay" onClick={this.props.hide} ></div>
+        <div className="testMessage">
+          <div className="title">The new Sefaria is still in development.<br />Thank you for helping us test and improve it.</div>
+          <a href="mailto:hello@sefaria.org" target="_blank" className="button">Send Feedback</a>
+          <div className="button" onClick={backToS1} >Return to Old Sefaria</div>
+        </div>
+      </div>);
+  }
+});
+
 
 
 var ReaderPanel = React.createClass({
@@ -3305,15 +3328,17 @@ var CategoryFilter = React.createClass({
                 on={$.inArray(book.book, this.props.filter) !== -1} />);
     }.bind(this));
     
-    var color   = sjs.categoryColor(this.props.category);
-    var style   = {"borderTop": "4px solid " + color};
-    var classes = classNames({categoryFilter: 1, on: this.props.on});
-    var count   = (<span className="enInHe">{this.props.count}</span>);
+    var notClickable = this.props.category == "Community";
+    var color        = sjs.categoryColor(this.props.category);
+    var style        = notClickable ? {} : {"borderTop": "4px solid " + color};
+    var classes      = classNames({categoryFilter: 1, on: this.props.on, notClickable: notClickable});
+    var count        = notClickable ? null : (<span className="enInHe"> | {this.props.count}</span>);
+    var handleClick  = notClickable ? null : this.handleClick;
     return (
       <div className="categoryFilterGroup" style={style}>
-        <div className={classes} onClick={this.handleClick}>
-          <span className="en">{this.props.category} | {count}</span>
-          <span className="he">{this.props.heCategory} | {count}</span>
+        <div className={classes} onClick={handleClick}>
+          <span className="en">{this.props.category}{count}</span>
+          <span className="he">{this.props.heCategory}{count}</span>
         </div>
         <TwoBox content={ textFilters } />
       </div>
@@ -3880,15 +3905,10 @@ var AccountPanel = React.createClass({
     ];
     connectContent = (<TwoOrThreeBox content={connectContent} width={width} />);
 
-    var backToS1 = function() { 
-      $.cookie("s2", "", {path: "/"});
-      window.location = "/";
-    }
     return (
       <div className="accountPanel readerNavMenu">
         <div className="content">
           <div className="contentInner">
-           <span id="backToS1" onClick={backToS1}>&laquo; Back to Old Sefaria</span>
            <ReaderNavigationMenuSection title="Account" heTitle="נצפו לאחרונה" content={accountContent} />
            <ReaderNavigationMenuSection title="Learn" heTitle="נצפו לאחרונה" content={learnContent} />
            <ReaderNavigationMenuSection title="Contribute" heTitle="נצפו לאחרונה" content={contributeContent} />
@@ -4005,3 +4025,8 @@ var LoadingMessage = React.createClass({
             </div>);
   }
 });
+
+var backToS1 = function() { 
+  $.cookie("s2", "", {path: "/"});
+  window.location = "/";
+}

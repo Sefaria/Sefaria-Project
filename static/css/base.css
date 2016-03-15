@@ -3251,21 +3251,31 @@ text-align: left;width: 250px;display: inline-block;}
 	vertical-align: bottom;
 }
 
+#supportersPage {
+  text-align: center;
+}
+
 #supportersPage h1 {
-	text-align: left;
+  border: none;
+  margin-bottom: 40px;
+}
+
+#supportersPage h2 {
+  border: none;
+  margin-bottom: 20px;
+}
+
+#supportersPage .btn {
+  margin-top: 30px;
 }
 
 #strategy #donateButton {
 	margin: 10px 0 60px;
 }
 
-#supporters {
-	-webkit-column-count:2; /* Chrome, Safari, Opera */
-	-moz-column-count:3; /* Firefox */
-	column-count:3;
-	-webkit-column-gap:40px; /* Chrome, Safari, Opera */
-	-moz-column-gap:40px; /* Firefox */
-	column-gap:20px;
+.supporters {
+  margin-bottom: 40px;
+  text-align: center;
 }
 
 #supportersPage .supporter {
@@ -3273,10 +3283,9 @@ text-align: left;width: 250px;display: inline-block;}
 	line-height: 1.6;
 }
 
-#supportersMessage {
-	margin-top: -12px;
-	font-weight: bold;
-	margin-bottom: 28px;
+.supportersMessage {
+	font-style: italic;
+	margin-bottom: 40px;
 }
 
 #teamPage h1 {
