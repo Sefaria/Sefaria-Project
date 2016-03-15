@@ -414,44 +414,53 @@ var ReaderApp = React.createClass({
       this.handleNavigationClick(ref, version, versionLanguage);
     }
   },
-  onQueryChange: function(query) {
+
+  updateQueryInHeader: function(query) {
     var updates = {searchQuery: query, searchFiltersValid:  false};
-    if (this.props.multiPanel) {
-      this.setHeaderState(updates);
-    } else {
-      this.setPanelState(0, updates);
-    }
+    this.setHeaderState(updates);
   },
-  registerAvailableFilters: function(availableFilters, registry, orphans) {
-    var updates = {
+  updateQueryInPanel: function(query) {
+    var updates = {searchQuery: query, searchFiltersValid:  false};
+    this.setPanelState(0, updates);
+  },
+
+  updateAvailableFiltersInHeader: function(availableFilters, registry, orphans) {
+    this.setHeaderState({
       availableFilters:    availableFilters,
       filterRegistry:      registry,
       orphanSearchFilters: orphans,
       searchFiltersValid:  true
-    };
-    if (this.props.multiPanel) {
-      this.setHeaderState(updates);
-    } else {
-      this.setPanelState(0, updates);
-    }
+    });
   },
-  updateSearchFilter: function(filterNode) {
+  updateAvailableFiltersInPanel: function(availableFilters, registry, orphans) {
+    this.setPanelState(0, {
+      availableFilters:    availableFilters,
+      filterRegistry:      registry,
+      orphanSearchFilters: orphans,
+      searchFiltersValid:  true
+    });
+  },
+  updateSearchFilterInHeader: function(filterNode) {
     if (filterNode.isSelected()) {
       filterNode.setUnselected(true);
     } else {
       filterNode.setSelected(true);
     }
-    if (this.props.multiPanel) {
-      this.setHeaderState({
-        availableFilters: this.state.header.availableFilters,
-        appliedSearchFilters: this.getAppliedSearchFilters(this.state.header.availableFilters)
-      });
+    this.setHeaderState({
+      availableFilters: this.state.header.availableFilters,
+      appliedSearchFilters: this.getAppliedSearchFilters(this.state.header.availableFilters)
+    });
+  },
+  updateSearchFilterInPanel: function(filterNode) {
+    if (filterNode.isSelected()) {
+      filterNode.setUnselected(true);
     } else {
-      this.setPanelState(0, {
-        availableFilters: this.state.panels[0].availableFilters,
-        appliedSearchFilters: this.getAppliedSearchFilters(this.state.panels[0].availableFilters)
-      });
+      filterNode.setSelected(true);
     }
+    this.setPanelState(0, {
+      availableFilters: this.state.panels[0].availableFilters,
+      appliedSearchFilters: this.getAppliedSearchFilters(this.state.panels[0].availableFilters)
+    });
   },
   getAppliedSearchFilters: function(availableFilters) {
     var results = [];
@@ -638,9 +647,9 @@ var ReaderApp = React.createClass({
                     setDefaultOption={this.setDefaultOption}
                     showLibrary={this.showLibrary}
                     showSearch={this.showSearch}
-                    onQueryChange={this.onQueryChange}
-                    updateSearchFilter={this.updateSearchFilter}
-                    registerAvailableFilters={this.registerAvailableFilters}
+                    onQueryChange={this.updateQueryInHeader}
+                    updateSearchFilter={this.updateSearchFilterInHeader}
+                    registerAvailableFilters={this.updateAvailableFiltersInHeader}
                     headerMode={this.props.headerMode}
                     panelsOpen={this.state.panels.length} />) : null;
 
@@ -679,9 +688,9 @@ var ReaderApp = React.createClass({
                       setTextListHightlight={setTextListHightlight}
                       selectVersion={selectVersion}
                       setDefaultOption={this.setDefaultOption}
-                      onQueryChange={this.onQueryChange}
-                      updateSearchFilter={this.updateSearchFilter}
-                      registerAvailableFilters={this.registerAvailableFilters}
+                      onQueryChange={this.updateQueryInPanel}
+                      updateSearchFilter={this.updateSearchFilterInPanel}
+                      registerAvailableFilters={this.updateAvailableFiltersInPanel}
                       closePanel={closePanel}
                       panelsOpen={this.state.panels.length}
                       layoutWidth={width} />
