@@ -423,7 +423,6 @@ var ReaderApp = React.createClass({
     }
   },
   registerAvailableFilters: function(availableFilters, registry, orphans) {
-    debugger;
     var updates = {
       availableFilters:    availableFilters,
       filterRegistry:      registry,
