@@ -414,7 +414,6 @@ var ReaderApp = React.createClass({
       this.handleNavigationClick(ref, version, versionLanguage);
     }
   },
-
   updateQueryInHeader: function(query) {
     var updates = {searchQuery: query, searchFiltersValid:  false};
     this.setHeaderState(updates);
@@ -423,7 +422,6 @@ var ReaderApp = React.createClass({
     var updates = {searchQuery: query, searchFiltersValid:  false};
     this.setPanelState(0, updates);
   },
-
   updateAvailableFiltersInHeader: function(availableFilters, registry, orphans) {
     this.setHeaderState({
       availableFilters:    availableFilters,
@@ -441,10 +439,10 @@ var ReaderApp = React.createClass({
     });
   },
   updateSearchFilterInHeader: function(filterNode) {
-    if (filterNode.isSelected()) {
-      filterNode.setUnselected(true);
-    } else {
+    if (filterNode.isUnselected()) {
       filterNode.setSelected(true);
+    } else {
+      filterNode.setUnselected(true);
     }
     this.setHeaderState({
       availableFilters: this.state.header.availableFilters,
@@ -452,10 +450,10 @@ var ReaderApp = React.createClass({
     });
   },
   updateSearchFilterInPanel: function(filterNode) {
-    if (filterNode.isSelected()) {
-      filterNode.setUnselected(true);
-    } else {
+    if (filterNode.isUnselected()) {
       filterNode.setSelected(true);
+    } else {
+      filterNode.setUnselected(true);
     }
     this.setPanelState(0, {
       availableFilters: this.state.panels[0].availableFilters,
@@ -4132,18 +4130,21 @@ var SearchFilters = React.createClass({
         openedCategoryBooks: []
       });
     } */
-
-    /*
-    else if (newProps.appliedFilters &&
+    // todo: logically, we should be unapplying filters as well.
+    // Because we compute filter removal from teh same object, this ends up sliding in messily in the setState.
+    // Hard to see how to get it through the front door.
+      //if (this.state.openedCategory) {
+      //   debugger;
+      // }
+   if (newProps.appliedFilters &&
               ((newProps.appliedFilters.length !== this.props.appliedFilters.length)
                || !(newProps.appliedFilters.every((v,i) => v === this.props.appliedFilters[i]))
               )
             ) {
-      // todo: logically, we should be unapplying filters as well.
-      // Because we compute filter removal from teh same object, this ends up sliding in messily in the setState.
-      // Hard to see how to get it through the front door.
-      this.applyFilters(this.props.appliedFilters);
-    } */
+      if (this.state.openedCategory) {
+        this.handleFocusCategory(this.state.openedCategory);
+      }
+    }
   },
   getSelectedTitles: function(lang) {
     var results = [];
@@ -4227,6 +4228,14 @@ var SearchFilter = React.createClass({
     updateSelected: React.PropTypes.func.isRequired,
     focusCategory:  React.PropTypes.func
   },
+  getInitialState: function() {
+    return {selected: this.props.filter.selected};
+  },
+  componentWillReceiveProps(newProps) {
+    if (newProps.filter.selected != this.state.selected) {
+      this.setState({selected: newProps.filter.selected});
+    }
+  },
   // Can't set indeterminate in the render phase.  https://github.com/facebook/react/issues/1798
   componentDidMount: function() {
     ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
@@ -4234,7 +4243,8 @@ var SearchFilter = React.createClass({
   componentDidUpdate: function() {
     ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
   },
-  handleFilterClick: function() {
+  handleFilterClick: function(evt) {
+    evt.preventDefault();
     this.props.updateSelected(this.props.filter)
   },
   handleFocusCategory: function() {
@@ -4245,7 +4255,7 @@ var SearchFilter = React.createClass({
   render: function() {
     return(
       <li onClick={this.handleFocusCategory}>
-        <input type="checkbox" className="filter" defaultChecked={this.props.filter.isSelected()} onClick={this.handleFilterClick}/>
+        <input type="checkbox" className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
         <span className="en"><span className="filter-title">{this.props.filter.title}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         <span className="he" dir="rtl"><span className="filter-title">{this.props.filter.heTitle}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         {this.props.isInFocus?<i className="in-focus-arrow fa fa-caret-right"/>:""}

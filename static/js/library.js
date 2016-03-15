@@ -899,7 +899,7 @@ sjs.library = {
                       }
                   }
               };
-          } else if (!applied_filters) {
+          } else if (!applied_filters || applied_filters.length == 0) {
               o['query'] = core_query;
           } else {
               //Filtered query.  Add clauses.  Don't re-request potential filters.
