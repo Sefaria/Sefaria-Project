@@ -4124,18 +4124,19 @@ var SearchFilters = React.createClass({
     // this.props
     // todo: check for cases when we want to rebuild / not
 
-    /* if (newProps.query != this.props.query) {
+    if (newProps.query != this.props.query) {
       this.setState({
         openedCategory: null,
         openedCategoryBooks: []
       });
-    } */
+    }
     // todo: logically, we should be unapplying filters as well.
     // Because we compute filter removal from teh same object, this ends up sliding in messily in the setState.
     // Hard to see how to get it through the front door.
       //if (this.state.openedCategory) {
       //   debugger;
       // }
+     /*
    if (newProps.appliedFilters &&
               ((newProps.appliedFilters.length !== this.props.appliedFilters.length)
                || !(newProps.appliedFilters.every((v,i) => v === this.props.appliedFilters[i]))
@@ -4144,7 +4145,7 @@ var SearchFilters = React.createClass({
       if (this.state.openedCategory) {
         this.handleFocusCategory(this.state.openedCategory);
       }
-    }
+    } */
   },
   getSelectedTitles: function(lang) {
     var results = [];
@@ -4154,8 +4155,6 @@ var SearchFilters = React.createClass({
     return results;
   },
   handleFocusCategory: function(filterNode) {
-    console.log("handleFocusCategory");
-    console.log(filterNode);
     var leaves = filterNode.getLeafNodes();
     this.setState({
       openedCategory: filterNode,
@@ -4177,8 +4176,8 @@ var SearchFilters = React.createClass({
         <span className="en">({totalTextsWithCommas} {(this.props.textTotal > 1) ? "Texts":"Text"}, {totalSheetsWithCommas} {(this.props.sheetTotal > 1)?"Sheets":"Sheet"})</span>
       </span>);
 
-    var enFilterLine = (!!this.props.appliedFilters.length)?(": " + this.getSelectedTitles("en").join(", ")):"";
-    var heFilterLine = (!!this.props.appliedFilters.length)?(": " + this.getSelectedTitles("he").join(", ")):"";
+    var enFilterLine = (!!this.props.appliedFilters.length && !!this.props.total)?(": " + this.getSelectedTitles("en").join(", ")):"";
+    var heFilterLine = (!!this.props.appliedFilters.length && !!this.props.total)?(": " + this.getSelectedTitles("he").join(", ")):"";
 
     var summaryLines = (
       <div className="results-count">
@@ -4189,33 +4188,37 @@ var SearchFilters = React.createClass({
 
     var runningQueryLine = (<LoadingMessage message="Searching..." />);
     var show_filters_classes = (this.state.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down";
+    var filter_panel = (<div>
+          <div className="searchFilterToggle"><span>Filter by Text   </span><i className={show_filters_classes} onClick={this.toggleFilterView}/></div>
+          <div className="searchFilterBoxes" style={{display: this.state.displayFilters?"block":"none"}}>
+            <div className="searchFilterCategoryBox">
+            {this.props.availableFilters.map(function(filter) {
+                return (<SearchFilter
+                    filter={filter}
+                    isInFocus={this.state.openedCategory === filter}
+                    focusCategory={this.handleFocusCategory}
+                    updateSelected={this.props.updateAppliedFilter}
+                    key={filter.path}/>);
+            }.bind(this))}
+            </div>
+            <div className="searchFilterBookBox">
+            {this.state.openedCategoryBooks.map(function(filter) {
+                return (<SearchFilter
+                    filter={filter}
+                    updateSelected={this.props.updateAppliedFilter}
+                    key={filter.path}/>);
+            }.bind(this))}
+            </div>
+            <div style={{clear: "both"}}/>
+          </div>
+        </div>);
+
     return (
       <div className="searchTopMatter">
         <div className="searchStatusLine">
-        {(this.props.isQueryRunning) ? runningQueryLine : summaryLines}
+        { (this.props.isQueryRunning) ? runningQueryLine : summaryLines }
         </div>
-        <div className="searchFilterToggle"><span>Filter by Text   </span><i className={show_filters_classes} onClick={this.toggleFilterView}/></div>
-        <div className="searchFilterBoxes" style={{display: this.state.displayFilters?"block":"none"}}>
-          <div className="searchFilterCategoryBox">
-          {this.props.availableFilters.map(function(filter) {
-              return (<SearchFilter
-                  filter={filter}
-                  isInFocus={this.state.openedCategory === filter}
-                  focusCategory={this.handleFocusCategory}
-                  updateSelected={this.props.updateAppliedFilter}
-                  key={filter.path}/>);
-          }.bind(this))}
-          </div>
-          <div className="searchFilterBookBox">
-          {this.state.openedCategoryBooks.map(function(filter) {
-              return (<SearchFilter
-                  filter={filter}
-                  updateSelected={this.props.updateAppliedFilter}
-                  key={filter.path}/>);
-          }.bind(this))}
-          </div>
-          <div style={{clear: "both"}}/>
-        </div>
+        { (this.props.textTotal > 0) ? filter_panel : "" }
       </div>)
   }
 });
