@@ -329,6 +329,7 @@ var ReaderApp = React.createClass({
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag: state.sheetsTag || null,
       searchQuery: state.searchQuery || null,
+      connectionsMode: "Connections",
       displaySettingsOpen: false
     };
     if (this.state && panel.refs.length && !panel.version) {
@@ -794,42 +795,6 @@ var Header = React.createClass({
   }
 });
 
-var TestMessage = React.createClass({
-  displayName: "TestMessage",
-
-  propTypes: {
-    hide: React.PropTypes.func
-  },
-  render: function render() {
-    return React.createElement(
-      "div",
-      { className: "testMessageBox" },
-      React.createElement("div", { className: "overlay", onClick: this.props.hide }),
-      React.createElement(
-        "div",
-        { className: "testMessage" },
-        React.createElement(
-          "div",
-          { className: "title" },
-          "The new Sefaria is still in development.",
-          React.createElement("br", null),
-          "Thank you for helping us test and improve it."
-        ),
-        React.createElement(
-          "a",
-          { href: "mailto:hello@sefaria.org", target: "_blank", className: "button" },
-          "Send Feedback"
-        ),
-        React.createElement(
-          "div",
-          { className: "button", onClick: backToS1 },
-          "Return to Old Sefaria"
-        )
-      )
-    );
-  }
-});
-
 var ReaderPanel = React.createClass({
   displayName: "ReaderPanel",
 
@@ -869,7 +834,7 @@ var ReaderPanel = React.createClass({
       return state;
     }
 
-    // When this component is independent and manges itself, it takes individual initial state props, with defaults here.
+    // When this component is independent and manages itself, it takes individual initial state props, with defaults listed here.
     return {
       refs: this.props.initialRefs || [], // array of ref strings
       mode: this.props.initialMode, // "Text", "TextAndConnections", "Connections"
@@ -890,6 +855,7 @@ var ReaderPanel = React.createClass({
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag: this.props.initialSheetsTag || null,
       searchQuery: this.props.initialQuery || null,
+      connectionsMode: "Connections",
       displaySettingsOpen: false
     };
   },
@@ -1043,13 +1009,6 @@ var ReaderPanel = React.createClass({
   setFilter: function setFilter(filter, updateRecent) {
     // Sets the current filter for Connected Texts (TextList)
     // If updateRecent is true, include the curent setting in the list of recent filters.
-
-    /*  Hack to open commentaries immediately as full texts
-    if (filter && sjs.library.index(filter) && sjs.library.index(filter).categories[0] == "Commentary") {
-      this.openCommentary(filter);
-      return;
-    }
-    */
     if (updateRecent && filter) {
       if ($.inArray(filter, this.state.recentFilters) !== -1) {
         this.state.recentFilters.toggle(filter);
@@ -1110,6 +1069,9 @@ var ReaderPanel = React.createClass({
       this.props.setDefaultOption && this.props.setDefaultOption(option, value);
     }
     this.conditionalSetState(state);
+  },
+  setConnectionsMode: function setConnectionsMode(mode) {
+    this.conditionalSetState({ connectionsMode: mode });
   },
   setWidth: function setWidth() {
     this.width = $(ReactDOM.findDOMNode(this)).width();
@@ -1200,13 +1162,15 @@ var ReaderPanel = React.createClass({
         key: "text" }));
     }
     if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections") {
-      items.push(React.createElement(TextList, {
+      items.push(React.createElement(ConnectionsPanel, {
         srefs: this.state.mode === "Connections" ? this.state.refs : this.state.highlightedRefs,
         filter: this.state.filter || [],
+        mode: this.state.connectionsMode || "Connections",
         recentFilters: this.state.recentFilters,
         fullPanel: this.props.multiPanel,
         multiPanel: this.props.multiPanel,
         setFilter: this.setFilter,
+        setConnectionsMode: this.setConnectionsMode,
         cloneConectionsInPanel: this.closeConnectionsInPanel,
         openNav: this.openMenu.bind(null, "navigation"),
         openDisplaySettings: this.openDisplaySettings,
@@ -1294,10 +1258,12 @@ var ReaderPanel = React.createClass({
         multiPanel: this.props.multiPanel,
         settings: this.state.settings,
         setOption: this.setOption,
+        setConnectionsMode: this.setConnectionsMode,
         openMenu: this.openMenu,
         closeMenus: this.closeMenus,
         openDisplaySettings: this.openDisplaySettings,
         currentLayout: this.currentLayout,
+        connectionsMode: this.state.connectionsMode,
         closePanel: this.props.closePanel }),
       React.createElement(
         "div",
@@ -1318,23 +1284,25 @@ var ReaderPanel = React.createClass({
 var ReaderControls = React.createClass({
   displayName: "ReaderControls",
 
-  // The Header of a Reader panel which contains controls for
-  // display, navigation etc.
+  // The Header of a Reader panel when looking at a text
+  // contains controls for display, navigation etc.
   propTypes: {
     settings: React.PropTypes.object.isRequired,
     showBaseText: React.PropTypes.func.isRequired,
     setOption: React.PropTypes.func.isRequired,
+    setConnectionsMode: React.PropTypes.func.isRequired,
     openMenu: React.PropTypes.func.isRequired,
     openDisplaySettings: React.PropTypes.func.isRequired,
     closeMenus: React.PropTypes.func.isRequired,
-    currentRef: React.PropTypes.string,
-    version: React.PropTypes.string,
-    versionLanguage: React.PropTypes.string,
     currentMode: React.PropTypes.func.isRequired,
     currentCategory: React.PropTypes.func.isRequired,
     currentBook: React.PropTypes.func.isRequired,
     currentLayout: React.PropTypes.func.isRequired,
     closePanel: React.PropTypes.func,
+    currentRef: React.PropTypes.string,
+    version: React.PropTypes.string,
+    versionLanguage: React.PropTypes.string,
+    connectionsMode: React.PropTypes.string,
     multiPanel: React.PropTypes.bool
   },
   render: function render() {
@@ -1362,16 +1330,9 @@ var ReaderControls = React.createClass({
     var centerContent = this.props.multiPanel && mode === "Connections" ? React.createElement(
       "div",
       { className: "readerTextToc" },
-      React.createElement(
-        "span",
-        { className: "en" },
-        "Select Connection"
-      ),
-      React.createElement(
-        "span",
-        { className: "he" },
-        "בחר חיבור"
-      )
+      React.createElement(ConnectionsPanelTabs, {
+        activeTab: this.props.connectionsMode,
+        setConnectionsMode: this.props.setConnectionsMode })
     ) : React.createElement(
       "div",
       { className: "readerTextToc", onClick: this.props.openMenu.bind(null, "text toc") },
@@ -3662,6 +3623,98 @@ var TextSegment = React.createClass({
   }
 });
 
+var ConnectionsPanel = React.createClass({
+  displayName: "ConnectionsPanel",
+
+  propTypes: {
+    srefs: React.PropTypes.array.isRequired, // an array of ref strings
+    filter: React.PropTypes.array.isRequired,
+    recentFilters: React.PropTypes.array.isRequired,
+    mode: React.PropTypes.string.isRequired, // "Connections", "Tools"
+    setFilter: React.PropTypes.func.isRequired,
+    setConnectionsMode: React.PropTypes.func.isRequired,
+    fullPanel: React.PropTypes.bool,
+    multiPanel: React.PropTypes.bool,
+    onTextClick: React.PropTypes.func,
+    onCitationClick: React.PropTypes.func,
+    onNavigationClick: React.PropTypes.func,
+    onCompareClick: React.PropTypes.func,
+    onOpenConnectionsClick: React.PropTypes.func,
+    openNav: React.PropTypes.func,
+    openDisplaySettings: React.PropTypes.func,
+    closePanel: React.PropTypes.func
+  },
+  render: function render() {
+    var content = null;
+    if (this.props.mode == "Connections") {
+      content = React.createElement(TextList, {
+        srefs: this.props.srefs,
+        filter: this.props.filter,
+        recentFilters: this.props.recentFilters,
+        fullPanel: this.props.fullPanel,
+        multiPanel: this.props.multiPanel,
+        setFilter: this.props.setFilter,
+        setConnectionsMode: this.props.setConnectionsMode,
+        onTextClick: this.props.onTextClick,
+        onCitationClick: this.props.onCitationClick,
+        onNavigationClick: this.props.onNavigationClick,
+        onCompareClick: this.props.onCompareClick,
+        onOpenConnectionsClick: this.props.onOpenConnectionsClick,
+        openNav: this.props.openNav,
+        openDisplaySettings: this.props.openDisplaySettings,
+        closePanel: this.props.closePanel });
+    } else if (this.props.mode === "Tools") {
+      content = React.createElement(ToolsPanel, {
+        srefs: this.props.srefs,
+        filter: this.props.filter,
+        recentFilters: this.props.recentFilters,
+        fullPanel: this.props.fullPanel,
+        multiPanel: this.props.multiPanel,
+        setFilter: this.props.setFilter,
+        setConnectionsMode: this.props.setConnectionsMode,
+        onTextClick: this.props.onTextClick,
+        onCitationClick: this.props.onCitationClick,
+        onNavigationClick: this.props.onNavigationClick,
+        onCompareClick: this.props.onCompareClick,
+        onOpenConnectionsClick: this.props.onOpenConnectionsClick,
+        openNav: this.props.openNav,
+        openDisplaySettings: this.props.openDisplaySettings,
+        closePanel: this.props.closePanel });
+    }
+    return content;
+  }
+});
+
+var ConnectionsPanelTabs = React.createClass({
+  displayName: "ConnectionsPanelTabs",
+
+  propTypes: {
+    activeTab: React.PropTypes.string.isRequired, // "Connections", "Tools"
+    setConnectionsMode: React.PropTypes.func.isRequired
+  },
+  render: function render() {
+    var tabNames = ["Connections", "Tools"];
+    var tabs = tabNames.map(function (item) {
+      var tabClick = function () {
+        this.props.setConnectionsMode(item);
+      }.bind(this);
+      var active = item === this.props.activeTab;
+      var classes = classNames({ connectionsPanelTab: 1, active: active });
+      return React.createElement(
+        "span",
+        { className: classes, onClick: tabClick },
+        item
+      );
+    }.bind(this));
+
+    return React.createElement(
+      "div",
+      { className: "connectionsPanelTabs" },
+      tabs
+    );
+  }
+});
+
 var TextList = React.createClass({
   displayName: "TextList",
 
@@ -3672,6 +3725,7 @@ var TextList = React.createClass({
     fullPanel: React.PropTypes.bool,
     multiPanel: React.PropTypes.bool,
     setFilter: React.PropTypes.func,
+    setConnectionsMode: React.PropTypes.func,
     onTextClick: React.PropTypes.func,
     onCitationClick: React.PropTypes.func,
     onNavigationClick: React.PropTypes.func,
@@ -4211,6 +4265,113 @@ var RecentFilterSet = React.createClass({
         topFilters
       ),
       moreButton
+    );
+  }
+});
+
+var ToolsPanel = React.createClass({
+  displayName: "ToolsPanel",
+
+  propTypes: {
+    srefs: React.PropTypes.array.isRequired, // an array of ref strings
+    filter: React.PropTypes.array.isRequired,
+    recentFilters: React.PropTypes.array.isRequired,
+    setConnectionsMode: React.PropTypes.func.isRequired,
+    fullPanel: React.PropTypes.bool,
+    multiPanel: React.PropTypes.bool,
+    setFilter: React.PropTypes.func,
+    onTextClick: React.PropTypes.func,
+    onCitationClick: React.PropTypes.func,
+    onNavigationClick: React.PropTypes.func,
+    onCompareClick: React.PropTypes.func,
+    onOpenConnectionsClick: React.PropTypes.func,
+    openNav: React.PropTypes.func,
+    openDisplaySettings: React.PropTypes.func,
+    closePanel: React.PropTypes.func
+  },
+  getInitialState: function getInitialState() {
+    return {};
+  },
+  render: function render() {
+    var classes = classNames({ toolsPanel: 1, textList: 1, fullPanel: this.props.fullPanel });
+    return React.createElement(
+      "div",
+      { className: classes },
+      React.createElement(
+        "div",
+        { className: "textListTop" },
+        this.props.fullPanel ? React.createElement(
+          "div",
+          { className: "leftButtons" },
+          this.props.multiPanel ? React.createElement(ReaderNavigationMenuCloseButton, { icon: "arrow", onClick: this.props.closePanel }) : null,
+          this.props.multiPanel ? null : React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.props.openNav })
+        ) : null,
+        this.props.fullPanel ? React.createElement(
+          "div",
+          { className: "rightButtons" },
+          React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings })
+        ) : null,
+        React.createElement(ConnectionsPanelTabs, {
+          activeTab: "Tools",
+          setConnectionsMode: this.props.setConnectionsMode })
+      ),
+      React.createElement(
+        "div",
+        { className: "texts" },
+        React.createElement(
+          "div",
+          { className: "contentInner" },
+          React.createElement(ToolsButton, { en: "Share", he: "Share", icon: "share-square-o", onClick: function () {
+              this.props.setConnectionsMode("Share");
+            }.bind(this) }),
+          React.createElement(ToolsButton, { en: "Add to Source Sheet", he: "Add to Source Sheet", icon: "plus-circle", onClick: function () {
+              this.props.setConnectionsMode("Add to Source Sheet");
+            }.bind(this) }),
+          React.createElement(ToolsButton, { en: "Add Note", he: "Add Note", icon: "pencil", onClick: function () {
+              this.props.setConnectionsMode("Add Note");
+            }.bind(this) }),
+          React.createElement(ToolsButton, { en: "My Notes", he: "My Notes", icon: "file-text-o", onClick: function () {
+              this.props.setConnectionsMode("My Notes");
+            }.bind(this) }),
+          React.createElement(ToolsButton, { en: "Add Connection", he: "Add Connection", icon: "link", onClick: function () {
+              this.props.setConnectionsMode("Add Connection");
+            }.bind(this) }),
+          React.createElement(ToolsButton, { en: "Edit Text", he: "Edit Text", icon: "edit", onClick: function () {
+              this.props.setConnectionsMode("Share");
+            }.bind(this) })
+        )
+      )
+    );
+  }
+});
+
+var ToolsButton = React.createClass({
+  displayName: "ToolsButton",
+
+  propTypes: {
+    en: React.PropTypes.string.isRequired,
+    he: React.PropTypes.string.isRequired,
+    icon: React.PropTypes.string.isRequired
+  },
+  render: function render() {
+    var icon = "fa-" + this.props.icon;
+    var classes = { fa: 1 };
+    classes[icon] = 1;
+
+    return React.createElement(
+      "div",
+      { className: "toolsButton" },
+      React.createElement("i", { className: classNames(classes) }),
+      React.createElement(
+        "div",
+        { className: "en" },
+        this.props.en
+      ),
+      React.createElement(
+        "div",
+        { className: "he" },
+        this.props.he
+      )
     );
   }
 });
@@ -4892,6 +5053,42 @@ var LoadingMessage = React.createClass({
         "span",
         { className: "he" },
         heMessage
+      )
+    );
+  }
+});
+
+var TestMessage = React.createClass({
+  displayName: "TestMessage",
+
+  propTypes: {
+    hide: React.PropTypes.func
+  },
+  render: function render() {
+    return React.createElement(
+      "div",
+      { className: "testMessageBox" },
+      React.createElement("div", { className: "overlay", onClick: this.props.hide }),
+      React.createElement(
+        "div",
+        { className: "testMessage" },
+        React.createElement(
+          "div",
+          { className: "title" },
+          "The new Sefaria is still in development.",
+          React.createElement("br", null),
+          "Thank you for helping us test and improve it."
+        ),
+        React.createElement(
+          "a",
+          { href: "mailto:hello@sefaria.org", target: "_blank", className: "button" },
+          "Send Feedback"
+        ),
+        React.createElement(
+          "div",
+          { className: "button", onClick: backToS1 },
+          "Return to Old Sefaria"
+        )
       )
     );
   }
