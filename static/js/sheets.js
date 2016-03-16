@@ -766,13 +766,13 @@ $(function() {
 							"<div class='addSubComment' title='Add Comment'><i class='fa fa-comment'></i></div>" +
 							"<div class='addConnections' title='Add All Connections'><i class='fa fa-sitemap'></i></div>"+				
 							"<div class='resetSource' title='Reset Source Text'><i class='fa fa-rotate-left'></i></div>" +
-							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +						
+							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
 							"<div class='switchSourceLayoutLang' title='Change Source Layout/Language'><i class='fa fa-ellipsis-h'></i></div>" +						
 							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up '></i></div>" +
 							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
 							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
 							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
+							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
 
 						"</div>";
 
@@ -793,12 +793,12 @@ $(function() {
 						"</div>";
 
 	var ownerSimpleControls = "<div id='sourceControls'>" + 
-							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
+							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
 							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up'></i></div>" +
 							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
 							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
 							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
+							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
 
 
 						"</div>";
