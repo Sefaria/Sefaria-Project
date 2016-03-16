@@ -165,13 +165,15 @@ def add_translation_requests_from_source_sheets(hours=0):
 
     sheets = db.sheets.find(query)
     for sheet in sheets:
-        for ref in sheet.get("included_refs", []):
-            if not ref:
+        for source in sheet["sources"]:
+
+            if "ref" not in source:
                 continue
             try:
-                r = text.Ref(ref)
+                r = text.Ref(source["ref"])
+                print r
                 if not r.is_text_translated():
-                    TranslationRequest.make_request(ref, sheet["owner"])
+                    TranslationRequest.make_request(source["ref"], sheet["owner"])
             except InputError:
                 continue
 

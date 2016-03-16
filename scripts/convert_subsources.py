@@ -6,7 +6,6 @@ Needs to be run multiple times for subsources nested within subsources. 9i.e. no
 """
 import sys
 import os
-import itertools
 
 
 

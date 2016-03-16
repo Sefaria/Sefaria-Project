@@ -263,12 +263,12 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 	results = []
 
 	regex_list = oref.regex(as_list=True)
-	ref_clauses = [{"included_refs": {"$regex": r}} for r in regex_list]
+	ref_clauses = [{"sources.ref": {"$regex": r}} for r in regex_list]
 	sheets = db.sheets.find({"$or": ref_clauses, "status": "public"},
-		{"id": 1, "title": 1, "owner": 1, "included_refs": 1, "views": 1}).sort([["views", -1]])
+		{"id": 1, "title": 1, "owner": 1, "sources.ref": 1, "views": 1}).sort([["views", -1]])
 	for sheet in sheets:
 		# Check for multiple matching refs within this sheet
-		matched_refs = [r for r in sheet["included_refs"] if regex.match(ref_re, r)]
+		matched_refs = [r for r in sheet["sources.ref"] if regex.match(ref_re, r)]
 		for match in matched_refs:
 			try:
 				match = model.Ref(match)
@@ -461,7 +461,6 @@ class Sheet(abstract.AbstractMongoRecord):
 		"generatedBy",
 		"dateCreated",
 		"dateModified",
-		"included_refs",
 		"owner",
 		"id"
 	]
@@ -482,9 +481,3 @@ class Sheet(abstract.AbstractMongoRecord):
 		"generatedBy"
 	]
 
-	def regenerate_contained_refs(self):
-		self.included_refs = refs_in_sources(self.sources)
-		self.save()
-
-	def get_contained_refs(self):
-		return [model.Ref(r) for r in self.included_refs]
