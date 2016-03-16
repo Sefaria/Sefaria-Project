@@ -449,6 +449,7 @@ def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None
 
 
 # This is here as an alternative interface - it's not yet used, generally.
+# TODO fix me to reflect new structure where subsources and included_refs no longer exist.
 
 class Sheet(abstract.AbstractMongoRecord):
 	collection = 'sheets'
@@ -481,3 +482,9 @@ class Sheet(abstract.AbstractMongoRecord):
 		"generatedBy"
 	]
 
+	def regenerate_contained_refs(self):
+		self.included_refs = refs_in_sources(self.sources)
+		self.save()
+
+	def get_contained_refs(self):
+		return [model.Ref(r) for r in self.included_refs]
