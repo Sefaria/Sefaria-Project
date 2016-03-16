@@ -1032,6 +1032,7 @@ var ReaderPanel = React.createClass({
     this.conditionalSetState(state);
   },
   setConnectionsMode: function(mode) {
+    console.log("SCM: " + mode);
     this.conditionalSetState({connectionsMode: mode});
   },
   setWidth: function() {
@@ -3041,6 +3042,7 @@ var ConnectionsPanel = React.createClass({
     } else if (this.props.mode === "Tools") {
       content = (<ToolsPanel
                     srefs={this.props.srefs}
+                    mode={this.props.mode}
                     filter={this.props.filter}
                     recentFilters={this.props.recentFilters}
                     fullPanel={this.props.fullPanel}
@@ -3055,6 +3057,24 @@ var ConnectionsPanel = React.createClass({
                     openNav={this.props.openNav}
                     openDisplaySettings={this.props.openDisplaySettings}
                     closePanel={this.props.closePanel} />);
+    } else if (this.props.mode === "Share") {
+      content = (<SharePanel
+        url={window.location.href}
+        fullPanel={this.props.fullPanel}
+        setConnectionsMode={this.props.setConnectionsMode} />);
+    
+    } else if (this.props.mode === "Add to Source Sheet") {
+      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
+    } else if (this.props.mode === "Add Note") {
+      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
+    } else if (this.props.mode === "My Notes") {
+      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
+    } else if (this.props.mode === "Add Connection") {
+      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
+    } else if (this.props.mode === "Edit Text") {
+      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
+    } else if (this.props.mode === "Add Translation") {
+      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
     }
     return content;
   }
@@ -3074,7 +3094,7 @@ var ConnectionsPanelTabs = React.createClass({
       }.bind(this);
       var active  = item === this.props.activeTab;
       var classes = classNames({connectionsPanelTab: 1, active: active});
-      return (<span className={classes} onClick={tabClick}>{item}</span>);
+      return (<span className={classes} onClick={tabClick} key={item}>{item}</span>);
     }.bind(this));
 
     return (<div className="connectionsPanelTabs">{tabs}</div>);
@@ -3546,7 +3566,8 @@ var RecentFilterSet = React.createClass({
 
 var ToolsPanel = React.createClass({
   propTypes: {
-    srefs:                   React.PropTypes.array.isRequired,    // an array of ref strings
+    srefs:                   React.PropTypes.array.isRequired,  // an array of ref strings
+    mode:                    React.PropTypes.string.isRequired, // "Tools", "Share", "Add to Source Sheet", "Add Note", "My Notes", "Add Connection", "Edit Text", "Add Translation"
     filter:                  React.PropTypes.array.isRequired,
     recentFilters:           React.PropTypes.array.isRequired,
     setConnectionsMode:      React.PropTypes.func.isRequired,
@@ -3592,7 +3613,8 @@ var ToolsPanel = React.createClass({
             <ToolsButton en="Add Note" he="Add Note" icon="pencil" onClick={function() {this.props.setConnectionsMode("Add Note")}.bind(this)} /> 
             <ToolsButton en="My Notes" he="My Notes" icon="file-text-o" onClick={function() {this.props.setConnectionsMode("My Notes")}.bind(this)} /> 
             <ToolsButton en="Add Connection" he="Add Connection" icon="link" onClick={function() {this.props.setConnectionsMode("Add Connection")}.bind(this)} /> 
-            <ToolsButton en="Edit Text" he="Edit Text" icon="edit" onClick={function() {this.props.setConnectionsMode("Share")}.bind(this)} /> 
+            <ToolsButton en="Edit Text" he="Edit Text" icon="edit" onClick={function() {this.props.setConnectionsMode("Edit Text")}.bind(this)} /> 
+            <ToolsButton en="Add Translation" he="Add Translation" icon="language" onClick={function() {this.props.setConnectionsMode("Edit Text")}.bind(this)} /> 
           </div>
         </div>
       </div>);
@@ -3602,9 +3624,10 @@ var ToolsPanel = React.createClass({
 
 var ToolsButton = React.createClass({
   propTypes: {
-    en:   React.PropTypes.string.isRequired,
-    he:   React.PropTypes.string.isRequired,
-    icon: React.PropTypes.string.isRequired
+    en:      React.PropTypes.string.isRequired,
+    he:      React.PropTypes.string.isRequired,
+    icon:    React.PropTypes.string.isRequired,
+    onClick: React.PropTypes.func,
   },
   render: function() {
     var icon = "fa-" + this.props.icon;
@@ -3612,11 +3635,66 @@ var ToolsButton = React.createClass({
     classes[icon] = 1;
 
     return (
-      <div className="toolsButton">
+      <div className="toolsButton" onClick={this.props.onClick}>
         <i className={classNames(classes)} />
         <div className="en">{this.props.en}</div>
         <div className="he">{this.props.he}</div>
       </div>)
+  }
+});
+
+var SharePanel = React.createClass({
+  propTypes: {
+    url: React.PropTypes.string.isRequired,
+    setConnectionsMode: React.PropTypes.func.isRequired,
+    fullPanel: React.PropTypes.bool
+  },
+  componentDidMount: function() {
+    this.focusInput();
+  },
+  componentDidUpdate: function() {
+    this.focusInput();
+  },
+  focusInput: function() {
+    $(ReactDOM.findDOMNode(this)).find("input").select();
+  },
+  render: function() {
+    var url = this.props.url;
+    var shareFacebook = function() {
+      openInNewTab("https://www.facebook.com/sharer/sharer.php?u=" + url);
+    };
+    var shareTwitter = function() {
+      openInNewTab("https://twitter.com/home?status=" + url);
+    };
+    var shareEmail = function() {
+      openInNewTab("mailto:?&subject=Text on Sefaria&body=" + url);
+    };
+    var classes = classNames({sharePanel: 1, textList: 1, fullPanel: this.props.fullPanel});
+    return (
+      <div className={classes}>
+        <div className="textListTop">
+          {this.props.fullPanel ? 
+            (<div className="leftButtons">
+              {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} />) : null}
+              {this.props.multiPanel ? null : (<ReaderNavigationMenuSearchButton onClick={this.props.openNav} />) }
+             </div>) : null}
+          {this.props.fullPanel ? 
+            (<div className="rightButtons">
+              <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+             </div>) : null}
+          <ConnectionsPanelTabs
+            activeTab="Tools"
+            setConnectionsMode={this.props.setConnectionsMode} />
+        </div>
+        <div className="texts">
+          <div className="contentInner">
+            <input className="shareInput" value={this.props.url} />
+            <ToolsButton en="Facebook" he="Facebook" icon="facebook" onClick={shareFacebook} /> 
+            <ToolsButton en="Twitter" he="Twitter" icon="twitter" onClick={shareTwitter} /> 
+            <ToolsButton en="Email" he="Email" icon="envelope-o" onClick={shareEmail} /> 
+          </div>
+        </div>
+      </div>);
   }
 });
 
@@ -4022,42 +4100,42 @@ var AccountPanel = React.createClass({
   render: function() {
     var width = $(window).width();
     var accountContent = [
-      (<BlockLink target="/my/profile" title="Profile" />),
-      (<BlockLink target="/sheets/private" title="Source Sheets" />),
-      (<BlockLink target="#" title="Reading History" />),
-      (<BlockLink target="#" title="Notes" />),
-      (<BlockLink target="/settings/account" title="Settings" />)
+      (<BlockLink target="/my/profile" title="Profile" heTitle="Profile"/>),
+      (<BlockLink target="/sheets/private" title="Source Sheets" heTitle="דפי מקורות" />),
+      (<BlockLink target="#" title="Reading History" heTitle="Reading History" />),
+      (<BlockLink target="#" title="Notes" heTitle="Notes" />),
+      (<BlockLink target="/settings/account" title="Settings" heTitle="Settings" />)
     ];
     accountContent = (<TwoOrThreeBox content={accountContent} width={width} />);
 
     var learnContent = [
-      (<BlockLink target="/about" title="About" />),
-      (<BlockLink target="/faq" title="FAQ" />),
-      (<BlockLink target="http://blog.sefaria.org" title="Blog" />),
-      (<BlockLink target="/educators" title="Educators" />),
-      (<BlockLink target="/help" title="Help" />),
-      (<BlockLink target="/team" title="Team" />)
+      (<BlockLink target="/about" title="About" heTitle="אודות" />),
+      (<BlockLink target="/faq" title="FAQ" heTitle="שאלות נפוצות" />),
+      (<BlockLink target="http://blog.sefaria.org" title="Blog" heTitle="בלוג" />),
+      (<BlockLink target="/educators" title="Educators" heTitle="מחנכים" />),
+      (<BlockLink target="/help" title="Help" heTitle="Help" />),
+      (<BlockLink target="/team" title="Team" heTitle="צוות" />)
     ];
 
     learnContent = (<TwoOrThreeBox content={learnContent} width={width} />);
 
     var contributeContent = [
-      (<BlockLink target="/activity" title="Recent Activity" />),
-      (<BlockLink target="/metrics" title="Metrics" />),  
-      (<BlockLink target="/contribute" title="Contribute" />),
-      (<BlockLink target="/donate" title="Donate" />),
-      (<BlockLink target="/supporters" title="Supporters" />),
-      (<BlockLink target="/jobs" title="Jobs" />),
+      (<BlockLink target="/activity" title="Recent Activity" heTitle="פעילות אחרונהs" />),
+      (<BlockLink target="/metrics" title="Metrics" heTitle="מדדים" />),  
+      (<BlockLink target="/contribute" title="Contribute" heTitle="הצטרף אלינו" />),
+      (<BlockLink target="/donate" title="Donate" heTitle="תרומות" />),
+      (<BlockLink target="/supporters" title="Supporters" heTitle="תומכים" />),
+      (<BlockLink target="/jobs" title="Jobs" heTitle="דרושים" />),
     ];
     contributeContent = (<TwoOrThreeBox content={contributeContent} width={width} />);
 
     var connectContent = [
-      (<BlockLink target="https://groups.google.com/forum/?fromgroups#!forum/sefaria" title="Forum" />),
-      (<BlockLink target="http://www.facebook.com/sefaria.org" title="Facebook" />),
-      (<BlockLink target="http://twitter.com/SefariaProject" title="Twitter" />),      
-      (<BlockLink target="http://www.youtube.com/user/SefariaProject" title="YouTube" />),
-      (<BlockLink target="http://www.github.com/Sefaria" title="GitHub" />),
-      (<BlockLink target="mailto:hello@sefaria.org" title="Email" />)
+      (<BlockLink target="https://groups.google.com/forum/?fromgroups#!forum/sefaria" title="Forum" heTitle="פורום" />),
+      (<BlockLink target="http://www.facebook.com/sefaria.org" title="Facebook" heTitle="פייסבוק" />),
+      (<BlockLink target="http://twitter.com/SefariaProject" title="Twitter" heTitle="טוויטר" />),      
+      (<BlockLink target="http://www.youtube.com/user/SefariaProject" title="YouTube" heTitle="יוטיוב" />),
+      (<BlockLink target="http://www.github.com/Sefaria" title="GitHub" heTitle="גיטהאב" />),
+      (<BlockLink target="mailto:hello@sefaria.org" title="Email" heTitle='דוא"ל' />)
     ];
     connectContent = (<TwoOrThreeBox content={connectContent} width={width} />);
 
@@ -4065,10 +4143,10 @@ var AccountPanel = React.createClass({
       <div className="accountPanel readerNavMenu">
         <div className="content">
           <div className="contentInner">
-           <ReaderNavigationMenuSection title="Account" heTitle="נצפו לאחרונה" content={accountContent} />
-           <ReaderNavigationMenuSection title="Learn" heTitle="נצפו לאחרונה" content={learnContent} />
-           <ReaderNavigationMenuSection title="Contribute" heTitle="נצפו לאחרונה" content={contributeContent} />
-           <ReaderNavigationMenuSection title="Connect" heTitle="נצפו לאחרונה" content={connectContent} />
+           <ReaderNavigationMenuSection title="Account" heTitle="Account" content={accountContent} />
+           <ReaderNavigationMenuSection title="Learn" heTitle="למיד" content={learnContent} />
+           <ReaderNavigationMenuSection title="Contribute" heTitle="Contribute" content={contributeContent} />
+           <ReaderNavigationMenuSection title="Connect" heTitle="התחבר" content={connectContent} />
           </div>
         </div>
       </div>
@@ -4200,6 +4278,10 @@ var TestMessage = React.createClass({
   }
 });
 
+function openInNewTab(url) {
+  var win = window.open(url, '_blank');
+  win.focus();
+}
 
 var backToS1 = function() { 
   $.cookie("s2", "", {path: "/"});

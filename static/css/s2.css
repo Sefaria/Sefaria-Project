@@ -1855,29 +1855,6 @@ display: block;margin: 0 auto;}
 .textList .note .noteText {
   font-size: 1.8em;
 }
-.toolsPanel .texts .contentInner {
-  margin: 30px auto;
-}
-.toolsButton {
-  background-color: white;
-  color: #666;
-  border: 1px solid #F7F7F7;
-  border-radius: 7px;
-  cursor: pointer;
-  text-transform: uppercase;
-  font-size: 16px;
-  letter-spacing: 1px;
-  padding: 20px 26px;
-  margin: 10px 0;
-}
-.toolsButton .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.toolsButton .fa {
-  float: right;
-  color: #ccc;
-  font-size: 22px;
-}
 .textRange .numberLabel {
   position: absolute;
   top: 14px;
@@ -1899,6 +1876,49 @@ display: block;margin: 0 auto;}
 .textRange.lowlight .numberLabel {
   color: #999;
 }
+.toolsPanel .texts .contentInner,
+.sharePanel .texts .contentInner {
+  margin: 30px auto;
+}
+.toolsMessage.loadingMessage {
+  margin-top: 130px;
+  text-align: center;
+}
+.toolsButton {
+  background-color: white;
+  color: #666;
+  border: 1px solid #F7F7F7;
+  border-radius: 7px;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-size: 16px;
+  letter-spacing: 1px;
+  padding: 20px 26px;
+  margin: 10px 0;
+}
+.toolsButton .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.toolsButton .fa {
+  float: right;
+  color: #ccc;
+  font-size: 22px;
+}
+.hebrew .toolsButton .fa {
+  float: left;
+}
+.sharePanel input {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 7px;
+  border: 1px solid #F7F7F7;
+  box-shadow: none;
+  font-size: 18px;
+  color: #999;
+  padding: 20px 26px;
+  outline: none;
+}
+
 .sefariaLogo {
   text-align: center;
   text-transform: uppercase;

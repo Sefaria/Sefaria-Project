@@ -1071,6 +1071,7 @@ var ReaderPanel = React.createClass({
     this.conditionalSetState(state);
   },
   setConnectionsMode: function setConnectionsMode(mode) {
+    console.log("SCM: " + mode);
     this.conditionalSetState({ connectionsMode: mode });
   },
   setWidth: function setWidth() {
@@ -3666,6 +3667,7 @@ var ConnectionsPanel = React.createClass({
     } else if (this.props.mode === "Tools") {
       content = React.createElement(ToolsPanel, {
         srefs: this.props.srefs,
+        mode: this.props.mode,
         filter: this.props.filter,
         recentFilters: this.props.recentFilters,
         fullPanel: this.props.fullPanel,
@@ -3680,6 +3682,23 @@ var ConnectionsPanel = React.createClass({
         openNav: this.props.openNav,
         openDisplaySettings: this.props.openDisplaySettings,
         closePanel: this.props.closePanel });
+    } else if (this.props.mode === "Share") {
+      content = React.createElement(SharePanel, {
+        url: window.location.href,
+        fullPanel: this.props.fullPanel,
+        setConnectionsMode: this.props.setConnectionsMode });
+    } else if (this.props.mode === "Add to Source Sheet") {
+      content = React.createElement(LoadingMessage, { className: "toolsMessage", message: "Coming Soon." });
+    } else if (this.props.mode === "Add Note") {
+      content = React.createElement(LoadingMessage, { className: "toolsMessage", message: "Coming Soon." });
+    } else if (this.props.mode === "My Notes") {
+      content = React.createElement(LoadingMessage, { className: "toolsMessage", message: "Coming Soon." });
+    } else if (this.props.mode === "Add Connection") {
+      content = React.createElement(LoadingMessage, { className: "toolsMessage", message: "Coming Soon." });
+    } else if (this.props.mode === "Edit Text") {
+      content = React.createElement(LoadingMessage, { className: "toolsMessage", message: "Coming Soon." });
+    } else if (this.props.mode === "Add Translation") {
+      content = React.createElement(LoadingMessage, { className: "toolsMessage", message: "Coming Soon." });
     }
     return content;
   }
@@ -3702,7 +3721,7 @@ var ConnectionsPanelTabs = React.createClass({
       var classes = classNames({ connectionsPanelTab: 1, active: active });
       return React.createElement(
         "span",
-        { className: classes, onClick: tabClick },
+        { className: classes, onClick: tabClick, key: item },
         item
       );
     }.bind(this));
@@ -4274,6 +4293,7 @@ var ToolsPanel = React.createClass({
 
   propTypes: {
     srefs: React.PropTypes.array.isRequired, // an array of ref strings
+    mode: React.PropTypes.string.isRequired, // "Tools", "Share", "Add to Source Sheet", "Add Note", "My Notes", "Add Connection", "Edit Text", "Add Translation"
     filter: React.PropTypes.array.isRequired,
     recentFilters: React.PropTypes.array.isRequired,
     setConnectionsMode: React.PropTypes.func.isRequired,
@@ -4337,7 +4357,10 @@ var ToolsPanel = React.createClass({
               this.props.setConnectionsMode("Add Connection");
             }.bind(this) }),
           React.createElement(ToolsButton, { en: "Edit Text", he: "Edit Text", icon: "edit", onClick: function () {
-              this.props.setConnectionsMode("Share");
+              this.props.setConnectionsMode("Edit Text");
+            }.bind(this) }),
+          React.createElement(ToolsButton, { en: "Add Translation", he: "Add Translation", icon: "language", onClick: function () {
+              this.props.setConnectionsMode("Edit Text");
             }.bind(this) })
         )
       )
@@ -4351,7 +4374,8 @@ var ToolsButton = React.createClass({
   propTypes: {
     en: React.PropTypes.string.isRequired,
     he: React.PropTypes.string.isRequired,
-    icon: React.PropTypes.string.isRequired
+    icon: React.PropTypes.string.isRequired,
+    onClick: React.PropTypes.func
   },
   render: function render() {
     var icon = "fa-" + this.props.icon;
@@ -4360,7 +4384,7 @@ var ToolsButton = React.createClass({
 
     return React.createElement(
       "div",
-      { className: "toolsButton" },
+      { className: "toolsButton", onClick: this.props.onClick },
       React.createElement("i", { className: classNames(classes) }),
       React.createElement(
         "div",
@@ -4371,6 +4395,72 @@ var ToolsButton = React.createClass({
         "div",
         { className: "he" },
         this.props.he
+      )
+    );
+  }
+});
+
+var SharePanel = React.createClass({
+  displayName: "SharePanel",
+
+  propTypes: {
+    url: React.PropTypes.string.isRequired,
+    setConnectionsMode: React.PropTypes.func.isRequired,
+    fullPanel: React.PropTypes.bool
+  },
+  componentDidMount: function componentDidMount() {
+    this.focusInput();
+  },
+  componentDidUpdate: function componentDidUpdate() {
+    this.focusInput();
+  },
+  focusInput: function focusInput() {
+    $(ReactDOM.findDOMNode(this)).find("input").select();
+  },
+  render: function render() {
+    var url = this.props.url;
+    var shareFacebook = function shareFacebook() {
+      openInNewTab("https://www.facebook.com/sharer/sharer.php?u=" + url);
+    };
+    var shareTwitter = function shareTwitter() {
+      openInNewTab("https://twitter.com/home?status=" + url);
+    };
+    var shareEmail = function shareEmail() {
+      openInNewTab("mailto:?&subject=Text on Sefaria&body=" + url);
+    };
+    var classes = classNames({ sharePanel: 1, textList: 1, fullPanel: this.props.fullPanel });
+    return React.createElement(
+      "div",
+      { className: classes },
+      React.createElement(
+        "div",
+        { className: "textListTop" },
+        this.props.fullPanel ? React.createElement(
+          "div",
+          { className: "leftButtons" },
+          this.props.multiPanel ? React.createElement(ReaderNavigationMenuCloseButton, { icon: "arrow", onClick: this.props.closePanel }) : null,
+          this.props.multiPanel ? null : React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.props.openNav })
+        ) : null,
+        this.props.fullPanel ? React.createElement(
+          "div",
+          { className: "rightButtons" },
+          React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings })
+        ) : null,
+        React.createElement(ConnectionsPanelTabs, {
+          activeTab: "Tools",
+          setConnectionsMode: this.props.setConnectionsMode })
+      ),
+      React.createElement(
+        "div",
+        { className: "texts" },
+        React.createElement(
+          "div",
+          { className: "contentInner" },
+          React.createElement("input", { className: "shareInput", value: this.props.url }),
+          React.createElement(ToolsButton, { en: "Facebook", he: "Facebook", icon: "facebook", onClick: shareFacebook }),
+          React.createElement(ToolsButton, { en: "Twitter", he: "Twitter", icon: "twitter", onClick: shareTwitter }),
+          React.createElement(ToolsButton, { en: "Email", he: "Email", icon: "envelope-o", onClick: shareEmail })
+        )
       )
     );
   }
@@ -4886,17 +4976,17 @@ var AccountPanel = React.createClass({
 
   render: function render() {
     var width = $(window).width();
-    var accountContent = [React.createElement(BlockLink, { target: "/my/profile", title: "Profile" }), React.createElement(BlockLink, { target: "/sheets/private", title: "Source Sheets" }), React.createElement(BlockLink, { target: "#", title: "Reading History" }), React.createElement(BlockLink, { target: "#", title: "Notes" }), React.createElement(BlockLink, { target: "/settings/account", title: "Settings" })];
+    var accountContent = [React.createElement(BlockLink, { target: "/my/profile", title: "Profile", heTitle: "Profile" }), React.createElement(BlockLink, { target: "/sheets/private", title: "Source Sheets", heTitle: "דפי מקורות" }), React.createElement(BlockLink, { target: "#", title: "Reading History", heTitle: "Reading History" }), React.createElement(BlockLink, { target: "#", title: "Notes", heTitle: "Notes" }), React.createElement(BlockLink, { target: "/settings/account", title: "Settings", heTitle: "Settings" })];
     accountContent = React.createElement(TwoOrThreeBox, { content: accountContent, width: width });
 
-    var learnContent = [React.createElement(BlockLink, { target: "/about", title: "About" }), React.createElement(BlockLink, { target: "/faq", title: "FAQ" }), React.createElement(BlockLink, { target: "http://blog.sefaria.org", title: "Blog" }), React.createElement(BlockLink, { target: "/educators", title: "Educators" }), React.createElement(BlockLink, { target: "/help", title: "Help" }), React.createElement(BlockLink, { target: "/team", title: "Team" })];
+    var learnContent = [React.createElement(BlockLink, { target: "/about", title: "About", heTitle: "אודות" }), React.createElement(BlockLink, { target: "/faq", title: "FAQ", heTitle: "שאלות נפוצות" }), React.createElement(BlockLink, { target: "http://blog.sefaria.org", title: "Blog", heTitle: "בלוג" }), React.createElement(BlockLink, { target: "/educators", title: "Educators", heTitle: "מחנכים" }), React.createElement(BlockLink, { target: "/help", title: "Help", heTitle: "Help" }), React.createElement(BlockLink, { target: "/team", title: "Team", heTitle: "צוות" })];
 
     learnContent = React.createElement(TwoOrThreeBox, { content: learnContent, width: width });
 
-    var contributeContent = [React.createElement(BlockLink, { target: "/activity", title: "Recent Activity" }), React.createElement(BlockLink, { target: "/metrics", title: "Metrics" }), React.createElement(BlockLink, { target: "/contribute", title: "Contribute" }), React.createElement(BlockLink, { target: "/donate", title: "Donate" }), React.createElement(BlockLink, { target: "/supporters", title: "Supporters" }), React.createElement(BlockLink, { target: "/jobs", title: "Jobs" })];
+    var contributeContent = [React.createElement(BlockLink, { target: "/activity", title: "Recent Activity", heTitle: "פעילות אחרונהs" }), React.createElement(BlockLink, { target: "/metrics", title: "Metrics", heTitle: "מדדים" }), React.createElement(BlockLink, { target: "/contribute", title: "Contribute", heTitle: "הצטרף אלינו" }), React.createElement(BlockLink, { target: "/donate", title: "Donate", heTitle: "תרומות" }), React.createElement(BlockLink, { target: "/supporters", title: "Supporters", heTitle: "תומכים" }), React.createElement(BlockLink, { target: "/jobs", title: "Jobs", heTitle: "דרושים" })];
     contributeContent = React.createElement(TwoOrThreeBox, { content: contributeContent, width: width });
 
-    var connectContent = [React.createElement(BlockLink, { target: "https://groups.google.com/forum/?fromgroups#!forum/sefaria", title: "Forum" }), React.createElement(BlockLink, { target: "http://www.facebook.com/sefaria.org", title: "Facebook" }), React.createElement(BlockLink, { target: "http://twitter.com/SefariaProject", title: "Twitter" }), React.createElement(BlockLink, { target: "http://www.youtube.com/user/SefariaProject", title: "YouTube" }), React.createElement(BlockLink, { target: "http://www.github.com/Sefaria", title: "GitHub" }), React.createElement(BlockLink, { target: "mailto:hello@sefaria.org", title: "Email" })];
+    var connectContent = [React.createElement(BlockLink, { target: "https://groups.google.com/forum/?fromgroups#!forum/sefaria", title: "Forum", heTitle: "פורום" }), React.createElement(BlockLink, { target: "http://www.facebook.com/sefaria.org", title: "Facebook", heTitle: "פייסבוק" }), React.createElement(BlockLink, { target: "http://twitter.com/SefariaProject", title: "Twitter", heTitle: "טוויטר" }), React.createElement(BlockLink, { target: "http://www.youtube.com/user/SefariaProject", title: "YouTube", heTitle: "יוטיוב" }), React.createElement(BlockLink, { target: "http://www.github.com/Sefaria", title: "GitHub", heTitle: "גיטהאב" }), React.createElement(BlockLink, { target: "mailto:hello@sefaria.org", title: "Email", heTitle: "דוא\"ל" })];
     connectContent = React.createElement(TwoOrThreeBox, { content: connectContent, width: width });
 
     return React.createElement(
@@ -4908,10 +4998,10 @@ var AccountPanel = React.createClass({
         React.createElement(
           "div",
           { className: "contentInner" },
-          React.createElement(ReaderNavigationMenuSection, { title: "Account", heTitle: "נצפו לאחרונה", content: accountContent }),
-          React.createElement(ReaderNavigationMenuSection, { title: "Learn", heTitle: "נצפו לאחרונה", content: learnContent }),
-          React.createElement(ReaderNavigationMenuSection, { title: "Contribute", heTitle: "נצפו לאחרונה", content: contributeContent }),
-          React.createElement(ReaderNavigationMenuSection, { title: "Connect", heTitle: "נצפו לאחרונה", content: connectContent })
+          React.createElement(ReaderNavigationMenuSection, { title: "Account", heTitle: "Account", content: accountContent }),
+          React.createElement(ReaderNavigationMenuSection, { title: "Learn", heTitle: "למיד", content: learnContent }),
+          React.createElement(ReaderNavigationMenuSection, { title: "Contribute", heTitle: "Contribute", content: contributeContent }),
+          React.createElement(ReaderNavigationMenuSection, { title: "Connect", heTitle: "התחבר", content: connectContent })
         )
       )
     );
@@ -5093,6 +5183,11 @@ var TestMessage = React.createClass({
     );
   }
 });
+
+function openInNewTab(url) {
+  var win = window.open(url, '_blank');
+  win.focus();
+}
 
 var backToS1 = function backToS1() {
   $.cookie("s2", "", { path: "/" });
