@@ -90,11 +90,18 @@ var ReaderApp = React.createClass({
     */
     var header = this.makePanelState(headerState);
 
+    var layoutOrientation = "ltr";
+    if ((panels.length > 0 && panels[0].settings.language == "hebrew")
+       || (header.settings.language == "hebrew")) {
+      layoutOrientation = "rtl";
+    }
+
     return {
       panels: panels,
       header: header,
       defaultVersions: defaultVersions,
-      defaultPanelSettings: defaultPanelSettings
+      defaultPanelSettings: defaultPanelSettings,
+      layoutOrientation: layoutOrientation
     };
   },
   componentDidMount: function() {
@@ -661,10 +668,10 @@ var ReaderApp = React.createClass({
 
     var panels = [];
     for (var i = 0; i < this.state.panels.length; i++) {
-      var panel                    = this.clonePanel(this.state.panels[i]);
-      var left                     = widths.reduce(function(prev, curr, index, arr) { return index < i ? prev+curr : prev}, 0);
+      var panel                    = clone(this.state.panels[i]);
+      var offset                   = widths.reduce(function(prev, curr, index, arr) { return index < i ? prev+curr : prev}, 0);
       var width                    = widths[i];
-      var style                    = {width: width + "%", left: left + "%"};
+      var style                    = (this.state.layoutOrientation=="ltr")?{width: width + "%", left: offset + "%"}:{width: width + "%", right: offset + "%"};
       var onSegmentClick           = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
       var onCitationClick          = this.handleCitationClick.bind(null, i);
       var onTextListClick          = null; // this.openPanelAt.bind(null, i);
