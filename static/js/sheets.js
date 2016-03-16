@@ -762,7 +762,7 @@ $(function() {
 
 	var ownerControls = "<div id='sourceControls'>" + 
 							"<div class='editTitle' title='Edit Source Title'><i class='fa fa-pencil'></i></div>" +
-							"<div class='addSub' title='Add Subsource'><i class='fa fa-plus-circle'></i></div>" +
+							"<div class='addSub' title='Add Source Below'><i class='fa fa-plus-circle'></i></div>" +
 							"<div class='addSubComment' title='Add Comment'><i class='fa fa-comment'></i></div>" +
 							"<div class='addConnections' title='Add All Connections'><i class='fa fa-sitemap'></i></div>"+				
 							"<div class='resetSource' title='Reset Source Text'><i class='fa fa-rotate-left'></i></div>" +
@@ -777,7 +777,7 @@ $(function() {
 						"</div>";
 
 	var adderControls = "<div id='sourceControls'>" + 
-							"<div class='addSub' title='Add Subsource'><i class='fa fa-plus-circle'></i></div>" +
+							"<div class='addSub' title='Add Source Below'><i class='fa fa-plus-circle'></i></div>" +
 							"<div class='addSubComment' title='Add Comment'><i class='fa fa-comment'></i></div>" +
 							"<div class='addConnections' title='Add All Connections'><i class='fa fa-sitemap'></i></div>"+				
 							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
@@ -1293,14 +1293,21 @@ $(function() {
 
 
 function addSource(q, source, appendOrInsert) {
-	appendOrInsert = typeof appendOrInsert !== 'undefined' ? appendOrInsert : 'append';
 	// Add a new source to the DOM.
 	// Completed by loadSource on return of AJAX call.
 	// unless 'source' is present, then load with given text.
-	
+
+	appendOrInsert = typeof appendOrInsert !== 'undefined' ? appendOrInsert : 'append';
+
+
 	var badRef = q.ref == undefined ? true : false;
 	
 	var $listTarget = $("#addSourceModal").data("target");
+
+	if ($listTarget.hasClass('sheetItem') ) {
+		appendOrInsert = "insert";
+	}
+
 
 	// Save a last edit record only if this is a user action,
 	// not while loading a sheet
