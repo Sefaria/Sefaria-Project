@@ -136,6 +136,8 @@ var ReaderApp = React.createClass({
   shouldHistoryUpdate: function() {
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
+    debugger;
+
     if (!history.state ||
         !history.state.panels ||
          history.state.panels.length !== this.state.panels.length ||
@@ -143,12 +145,18 @@ var ReaderApp = React.createClass({
          history.state.header.menuOpen !== this.state.header.menuOpen ) { 
       return true; 
     }
-    if (this.state.header.menuOpen) {
-      if ((history.state.searchQuery !== this.state.header.searchQuery) ||
-          (history.state.appliedSearchFilters.length !== this.state.header.appliedSearchFilters.length) ||
-          !(history.state.appliedSearchFilters.every((v,i) => v === this.state.header.appliedSearchFilters[i]))) {
+    var menuPanel = this.props.multiPanel ? this.state.header : this.state.panels[0];
+    if (menuPanel && menuPanel.menuOpen == "search") {
+      if (
+        (history.state.searchQuery !== menuPanel.searchQuery) ||
+        (history.state.appliedSearchFilters.length !== menuPanel.appliedSearchFilters.length) ||
+        !(history.state.appliedSearchFilters.every((v, i) => v === menuPanel.appliedSearchFilters[i]))
+      ) {
         return true;
       }
+    }
+
+    if (this.props.multiPanel) {
       var prevPanels = [history.state.header];
       var nextPanels = [this.state.header];
     } else {
