@@ -143,7 +143,6 @@ var ReaderApp = React.createClass({
   shouldHistoryUpdate: function() {
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
-    debugger;
 
     if (!history.state ||
         !history.state.panels ||
@@ -4276,7 +4275,9 @@ var SearchFilter = React.createClass({
         <input type="checkbox" className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
         <span className="en"><span className="filter-title">{this.props.filter.title}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         <span className="he" dir="rtl"><span className="filter-title">{this.props.filter.heTitle}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
-        {this.props.isInFocus?<i className="in-focus-arrow fa fa-caret-right"/>:""}
+        {this.props.isInFocus?<span className="en"><i className="in-focus-arrow fa fa-caret-right"/></span>:""}
+        {this.props.isInFocus?<span className="he"><i className="in-focus-arrow fa fa-caret-left"/></span>:""}
+
       </li>
       )
   }
@@ -4563,4 +4564,4 @@ var LoadingMessage = React.createClass({
 var backToS1 = function() { 
   $.cookie("s2", "", {path: "/"});
   window.location = "/";
-}
+};

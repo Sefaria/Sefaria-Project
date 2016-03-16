@@ -947,6 +947,10 @@ display: block;margin: 0 auto;}
   font-size: 12px;
   padding-left: 5px;
 }
+.hebrew .searchContent .searchFilterToggle i {
+  padding-left: 0;
+  padding-right: 5px;
+}
 
 .searchContent .searchFilterBoxes {
   margin: 10px 0;
@@ -959,6 +963,9 @@ display: block;margin: 0 auto;}
   padding: 10px 0 10px 15px;
   font-size: 14px;
   letter-spacing: 1px;
+}
+.hebrew .searchContent .searchFilterBoxes li {
+  padding: 10px 15px 10px 0;
 }
 
 .searchContent .searchFilterBoxes li input {
@@ -977,6 +984,11 @@ display: block;margin: 0 auto;}
     padding-right: 10px;
     color: #999;
 }
+.hebrew .searchContent .searchFilterBoxes li .in-focus-arrow {
+  float: left;
+  padding-left: 10px;
+  padding-right: 0;
+}
 
 .searchContent .searchFilterCategoryBox,
 .searchContent .searchFilterBookBox {
@@ -984,6 +996,11 @@ display: block;margin: 0 auto;}
   width: 50%;
   height: 150px;
   overflow-y: auto;
+}
+
+.hebrew .searchContent .searchFilterCategoryBox,
+.hebrew .searchContent .searchFilterBookBox {
+  float: right;
 }
 
 .searchContent .result {
