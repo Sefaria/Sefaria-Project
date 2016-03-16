@@ -800,6 +800,11 @@ class AbstractSchemaContent(object):
         """
         return self.sub_content(snode.version_address())
 
+    def sub_content_with_ref(self, ref=None, value=None):
+        assert isinstance(ref, Ref)
+        assert not ref.is_range()
+        return self.sub_content(ref.index_node.version_address(), [i - 1 for i in ref.sections], value)
+
     #TODO: test me
     def sub_content(self, key_list=None, indx_list=None, value=None):
         """
@@ -810,6 +815,8 @@ class AbstractSchemaContent(object):
         :param indx_list: The indexes of the subsection to get/set
         :param value: The value to set.  If present, the method acts as a setter.  If None, it acts as a getter.
         """
+        # todo check that the shape of value matches the shape of the piece being set
+
         if not key_list:
             key_list = []
         if not indx_list:
@@ -817,7 +824,12 @@ class AbstractSchemaContent(object):
         ja = reduce(lambda d, k: d[k], key_list, self.get_content())
         if indx_list:
             sa = reduce(lambda a, i: a[i], indx_list[:-1], ja)
+            #
+            # todo: If the existing array has smaller dimension than the value being set, then it needs to be padded.
             if value is not None:
+                # only works at lowest level
+                # if indx_list[-1] >= len(sa):
+                #     sa += [""] * (indx_list[-1] - len(sa) + 1)
                 sa[indx_list[-1]] = value
             return sa[indx_list[-1]]
         else:
