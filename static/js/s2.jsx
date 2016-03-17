@@ -18,6 +18,7 @@ var ReaderApp = React.createClass({
   },
   getInitialState: function() {
     var panels               = [];
+    var header               = {};
     var defaultVersions      = clone(this.props.initialDefaultVersions) || {};
     var defaultPanelSettings = clone(this.props.initialSettings);
     if (!this.props.multiPanel && !this.props.headerMode) {
@@ -39,60 +40,61 @@ var ReaderApp = React.createClass({
       if (mode === "TextAndConnections") {
         panels[0].highlightedRefs = this.props.initialRefs;
       }
-    } else if (this.props.initialRefs.length) {
-      var p = {
-        refs: this.props.initialRefs,
-        mode: "Text",
-        menuOpen: this.props.initialPanels[0].menuOpen,
-        version: this.props.initialPanels.length ? this.props.initialPanels[0].version : null,
-        versionLanguage: this.props.initialPanels.length ? this.props.initialPanels[0].versionLanguage : null,
-        settings: clone(defaultPanelSettings)
+    } else {
+      var headerState = {
+                    mode: "Header",
+                    refs: this.props.initialRefs,
+                    menuOpen: this.props.initialMenu,
+                    searchQuery: this.props.initialQuery,
+                    appliedSearchFilters: this.props.initialSearchFilters,
+                    navigationCategories: this.props.initialNavigationCategories,
+                    sheetsTag: this.props.initialSheetsTag,
+                    settings: clone(defaultPanelSettings)
       };
-      if (p.versionLanguage) {
-        p.settings.language = (p.versionLanguage == "he")? "hebrew": "english";
+      /*
+      if(panels.length <= 1) {
+        headerState.menuOpen = this.props.initialMenu;
       }
-      panels.push(p);
-      if (this.props.initialFilter) {
-        panels.push({
+      */
+      header = this.makePanelState(headerState);
+      if (this.props.initialRefs.length) {
+        var p = {
           refs: this.props.initialRefs,
-          filter: this.props.initialFilter,
-          mode: "Connections",
+          mode: "Text",
+          menuOpen: this.props.initialPanels[0].menuOpen,
+          version: this.props.initialPanels.length ? this.props.initialPanels[0].version : null,
+          versionLanguage: this.props.initialPanels.length ? this.props.initialPanels[0].versionLanguage : null,
           settings: clone(defaultPanelSettings)
-        });
-      }
-      for (var i = panels.length; i < this.props.initialPanels.length; i++) {
-        var panel      = this.clonePanel(this.props.initialPanels[i]);
-        panel.settings = clone(defaultPanelSettings);
-        if (panel.versionLanguage) {
-          panel.settings.language = (panel.versionLanguage == "he")? "hebrew": "english";
+        };
+        if (p.versionLanguage) {
+          p.settings.language = (p.versionLanguage == "he") ? "hebrew" : "english";
         }
-        panels.push(panel);
+        panels.push(p);
+        if (this.props.initialFilter) {
+          panels.push({
+            refs: this.props.initialRefs,
+            filter: this.props.initialFilter,
+            mode: "Connections",
+            settings: clone(defaultPanelSettings)
+          });
+        }
+        for (var i = panels.length; i < this.props.initialPanels.length; i++) {
+          var panel = this.clonePanel(this.props.initialPanels[i]);
+          panel.settings = clone(defaultPanelSettings);
+          if (panel.versionLanguage) {
+            panel.settings.language = (panel.versionLanguage == "he") ? "hebrew" : "english";
+          }
+          panels.push(panel);
+        }
       }
     }
     panels = panels.map(function(panel) { 
       return this.makePanelState(panel); 
     }.bind(this) );
 
-    var headerState = {
-                  mode: "Header",
-                  refs: this.props.initialRefs,
-                  menuOpen: this.props.initialMenu,
-                  searchQuery: this.props.initialQuery,
-                  appliedSearchFilters: this.props.initialSearchFilters,
-                  navigationCategories: this.props.initialNavigationCategories,
-                  sheetsTag: this.props.initialSheetsTag,
-                  settings: clone(defaultPanelSettings)
-    };
-    /*
-    if(panels.length <= 1) {
-      headerState.menuOpen = this.props.initialMenu;
-    }
-    */
-    var header = this.makePanelState(headerState);
-
     var layoutOrientation = "ltr";
     if ((panels.length > 0 && panels[0].settings.language == "hebrew")
-       || (header.settings.language == "hebrew")) {
+       || (header.settings && header.settings.language == "hebrew")) {
       layoutOrientation = "rtl";
     }
 
@@ -204,9 +206,9 @@ var ReaderApp = React.createClass({
     //Todo: Move the multiple instances of this out to a utils file
     if (panel.availableFilters || panel.filterRegistry) {
       var savedAttributes = {
-         availableFilters: panel.availableFilters,
+         availableFilters:   panel.availableFilters,
          searchFiltersValid: panel.searchFiltersValid,
-         filterRegistry: panel.filterRegistry
+         filterRegistry:     panel.filterRegistry
       };
       panel.availableFilters = panel.searchFiltersValid = panel.filterRegistry = null;
       var newpanel = $.extend(clone(panel), savedAttributes);
