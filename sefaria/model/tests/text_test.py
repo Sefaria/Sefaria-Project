@@ -6,6 +6,113 @@ import pytest
 import sefaria.model as model
 
 
+
+
+def test_dup_index_save():
+    title = 'Test Commentator Name'
+    model.IndexSet({"title": title}).delete()
+    d = {
+         "categories" : [
+            "Liturgy"
+        ],
+        "title" : title,
+        "schema" : {
+            "titles" : [
+                {
+                    "lang" : "en",
+                    "text" : title,
+                    "primary" : True
+                },
+                {
+                    "lang" : "he",
+                    "text" : "פרשן",
+                    "primary" : True
+                }
+            ],
+            "nodeType" : "JaggedArrayNode",
+            "depth" : 2,
+            "sectionNames" : [
+                "Section",
+                "Line"
+            ],
+            "addressTypes" : [
+                "Integer",
+                "Integer"
+            ],
+            "key": title
+        },
+    }
+    idx = model.Index(d)
+    idx.save()
+    assert model.IndexSet({"title": title}).count() == 1
+    try:
+        d2 = {
+            "title": title,
+            "heTitle": u"פרשן ב",
+            "titleVariants": [title],
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Commentary"],
+            "lengths": [50, 501]
+        }
+        idx2 = model.Index(d2).save()
+    except:
+        pass
+
+    assert model.IndexSet({"title": title}).count() == 1
+
+
+def test_dup2_index_save():
+    title = 'Test Commentator Name'
+    model.IndexSet({"title": title}).delete()
+    d = {
+            "title": title,
+            "heTitle": u"פרשן ב",
+            "titleVariants": [title],
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Commentary"],
+            "lengths": [50, 501]
+        }
+    idx = model.Index(d)
+    idx.save()
+    assert model.IndexSet({"title": title}).count() == 1
+    try:
+        d2 = {
+             "categories" : [
+                "Liturgy"
+            ],
+            "title" : title,
+            "schema" : {
+                "titles" : [
+                    {
+                        "lang" : "en",
+                        "text" : title,
+                        "primary" : True
+                    },
+                    {
+                        "lang" : "he",
+                        "text" : "פרשן",
+                        "primary" : True
+                    }
+                ],
+                "nodeType" : "JaggedArrayNode",
+                "depth" : 2,
+                "sectionNames" : [
+                    "Section",
+                    "Line"
+                ],
+                "addressTypes" : [
+                    "Integer",
+                    "Integer"
+                ],
+                "key": title
+            },
+        }
+        idx2 = model.Index(d2).save()
+    except:
+        pass
+
+    assert model.IndexSet({"title": title}).count() == 1
+
 def test_index_title_setter():
     title = 'Test Index Name'
     d = {
