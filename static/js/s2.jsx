@@ -21,6 +21,7 @@ var ReaderApp = React.createClass({
     var header               = {};
     var defaultVersions      = clone(this.props.initialDefaultVersions) || {};
     var defaultPanelSettings = clone(this.props.initialSettings);
+
     if (!this.props.multiPanel && !this.props.headerMode) {
       var mode = this.props.initialFilter ? "TextAndConnections" : "Text";
       panels[0] = {
@@ -41,6 +42,7 @@ var ReaderApp = React.createClass({
         panels[0].highlightedRefs = this.props.initialRefs;
       }
     } else {
+      // this.props.multiPanel || this.props.headerMode
       var headerState = {
                     mode: "Header",
                     refs: this.props.initialRefs,
@@ -51,11 +53,6 @@ var ReaderApp = React.createClass({
                     sheetsTag: this.props.initialSheetsTag,
                     settings: clone(defaultPanelSettings)
       };
-      /*
-      if(panels.length <= 1) {
-        headerState.menuOpen = this.props.initialMenu;
-      }
-      */
       header = this.makePanelState(headerState);
       if (this.props.initialRefs.length) {
         var p = {
@@ -146,22 +143,13 @@ var ReaderApp = React.createClass({
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
 
-    if (!history.state ||
-        !history.state.panels ||
-         history.state.panels.length !== this.state.panels.length ||
-        !history.state.header ||
-         history.state.header.menuOpen !== this.state.header.menuOpen ) { 
-      return true; 
-    }
-    var menuPanel = this.props.multiPanel ? this.state.header : this.state.panels[0];
-    if (menuPanel && menuPanel.menuOpen == "search") {
-      if (
-        (history.state.searchQuery !== menuPanel.searchQuery) ||
-        (history.state.appliedSearchFilters.length !== menuPanel.appliedSearchFilters.length) ||
-        !(history.state.appliedSearchFilters.every((v, i) => v === menuPanel.appliedSearchFilters[i]))
+    // If there's no history or the number or basic state of panels has changed
+    if (!history.state
+        || (!history.state.panels && !history.state.header)
+        || (history.state.panels && (history.state.panels.length !== this.state.panels.length))
+        || (history.state.header && (history.state.header.menuOpen !== this.state.header.menuOpen))
       ) {
-        return true;
-      }
+      return true; 
     }
 
     if (this.props.multiPanel) {
@@ -170,6 +158,16 @@ var ReaderApp = React.createClass({
     } else {
       var prevPanels = history.state.panels;
       var nextPanels = this.state.panels; 
+    }
+
+    // If search is active, and has changed
+    if ((nextPanels[0] && nextPanels[0].menuOpen == "search")
+        && ((prevPanels[0].searchQuery !== nextPanels[0].searchQuery)
+            || (prevPanels[0].appliedSearchFilters.length !== nextPanels[0].appliedSearchFilters.length)
+            || !(prevPanels[0].appliedSearchFilters.every((v, i) => v === nextPanels[0].appliedSearchFilters[i]))
+          )
+        ) {
+          return true;
     }
 
     for (var i = 0; i < prevPanels.length; i++) {
@@ -183,7 +181,7 @@ var ReaderApp = React.createClass({
           (prev.menuOpen !== next.menuOpen) ||
           (next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0]) || 
           (next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0]) || 
-          (next.mode === "Connections" && prev.filter && !prev.filter.compare(next.filter)) ||
+          ((next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter)) ||
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
           (prev.navigationSheetTag !== next.navigationSheetTag) ||
           (prev.version !== next.version) ||
@@ -201,7 +199,7 @@ var ReaderApp = React.createClass({
     }
     return false;  
   },
-  clonePanel: function(panel) {
+  clonePanel: function(panel, trimFilters) {
     //Set aside self-referential objects before cloning
     //Todo: Move the multiple instances of this out to a utils file
     if (panel.availableFilters || panel.filterRegistry) {
@@ -210,10 +208,12 @@ var ReaderApp = React.createClass({
          searchFiltersValid: panel.searchFiltersValid,
          filterRegistry:     panel.filterRegistry
       };
-      panel.availableFilters = panel.searchFiltersValid = panel.filterRegistry = null;
-      var newpanel = $.extend(clone(panel), savedAttributes);
+      panel.searchFiltersValid = false;
+      panel.availableFilters = [];
+      panel.filterRegistry = {};
+      var newPanel = (trimFilters) ? clone(panel) : $.extend(clone(panel), savedAttributes);
       $.extend(panel, savedAttributes);
-      return newpanel;
+      return newPanel;
     } else {
       return clone(panel);
     }
@@ -222,44 +222,45 @@ var ReaderApp = React.createClass({
     // Returns an object with state, title and url params for the current state
     var histories = [];
     // When the header has a panel open, only look at its content for history
-    var panels = this.state.header.menuOpen ||
-                (!this.state.panels.length && this.state.header.mode === "Header") ? [this.state.header] : this.state.panels;
+    var headerMode = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
+    var panels = headerMode ? [this.state.header] : this.state.panels;
+    var states = [];
     for (var i = 0; i < panels.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
-      var state = this.clonePanel(panels[i]);
-      if (!state) { debugger }
+      states[i] = this.clonePanel(panels[i], true);
+      if (!states[i]) { debugger }
       var hist  = {url: ""};
     
-      if (state.menuOpen) {
-        switch (state.menuOpen) {
+      if (states[i].menuOpen) {
+        switch (states[i].menuOpen) {
           case "home":
             hist.title = "Sefaria: a Living Library of Jewish Texts Online";
             hist.url   = "";
             hist.mode  = "home";
             break;
           case "navigation":
-            var cats   = state.navigationCategories ? state.navigationCategories.join("/") : "";
-            hist.title = cats ? state.navigationCategories.join(", ") + " | Sefaria" : "Texts | Sefaria";
+            var cats   = states[i].navigationCategories ? states[i].navigationCategories.join("/") : "";
+            hist.title = cats ? states[i].navigationCategories.join(", ") + " | Sefaria" : "Texts | Sefaria";
             hist.url   = "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
           case "text toc":
-            var ref    = state.refs.slice(-1)[0];
-            var title  = ref ? parseRef(ref).book : "404";
-            hist.title = title + " | Sefaria";
-            hist.url   = title.replace(/ /g, "_");
+            var ref    = states[i].refs.slice(-1)[0];
+            var bookTitle  = ref ? parseRef(ref).book : "404";
+            hist.title = bookTitle + " | Sefaria";
+            hist.url   = bookTitle.replace(/ /g, "_");
             hist.mode  = "text toc";
             break;
           case "search":
-            hist.title = state.searchQuery ? state.searchQuery + " | " : "";
+            hist.title = states[i].searchQuery ? states[i].searchQuery + " | " : "";
             hist.title += "Sefaria Search";
-            hist.url   = "search" + (state.searchQuery ? "&q=" + state.searchQuery + (!!state.appliedSearchFilters.length ? "&filters=" + state.appliedSearchFilters.join("|") : "") : "");
+            hist.url   = "search" + (states[i].searchQuery ? "&q=" + states[i].searchQuery + (!!states[i].appliedSearchFilters.length ? "&filters=" + states[i].appliedSearchFilters.join("|") : "") : "");
             hist.mode  = "search";
             break;
           case "sheets":
-            if (state.navigationSheetTag) { 
-              hist.url   = "sheets/tags/" + state.navigationSheetTag; 
-              hist.title = state.navigationSheetTag + " | Sefaria Source Sheets";
+            if (states[i].navigationSheetTag) {
+              hist.url   = "sheets/tags/" + states[i].navigationSheetTag;
+              hist.title = states[i].navigationSheetTag + " | Sefaria Source Sheets";
               hist.mode  = "sheets tag";
             } else {
               hist.url   = "sheets";
@@ -273,27 +274,27 @@ var ReaderApp = React.createClass({
             hist.mode  = "account";
             break;
         }
-      } else if (state.mode === "Text") {
-        hist.title    = state.refs.slice(-1)[0];
+      } else if (states[i].mode === "Text") {
+        hist.title    = states[i].refs.slice(-1)[0];
         hist.url      = normRef(hist.title);
-        hist.version  = state.version;
-        hist.versionLanguage = state.versionLanguage;
+        hist.version  = states[i].version;
+        hist.versionLanguage = states[i].versionLanguage;
         hist.mode     = "Text"
-      } else if (state.mode === "Connections") {
-        var ref     = state.refs.slice(-1)[0];
-        var sources = state.filter.length ? state.filter.join("+") : "all";
+      } else if (states[i].mode === "Connections") {
+        var ref     = states[i].refs.slice(-1)[0];
+        var sources = states[i].filter.length ? states[i].filter.join("+") : "all";
         hist.title  = ref  + " with " + (sources === "all" ? "Connections" : sources);
         hist.url    = normRef(ref) + "?with=" + sources;
         hist.mode   = "Connections"
-      } else if (state.mode === "TextAndConnections") {
-        var ref       = state.highlightedRefs.slice(-1)[0];
-        var sources   = state.filter.length ? state.filter[0] : "all";
+      } else if (states[i].mode === "TextAndConnections") {
+        var ref       = states[i].highlightedRefs.slice(-1)[0];
+        var sources   = states[i].filter.length ? states[i].filter[0] : "all";
         hist.title    = ref  + " with " + (sources === "all" ? "Connections" : sources);
         hist.url      = normRef(ref) + "?with=" + sources;
-        hist.version  = state.version;
-        hist.versionLanguage = state.versionLanguage;
+        hist.version  = states[i].version;
+        hist.versionLanguage = states[i].versionLanguage;
         hist.mode     = "TextAndConnections"
-      } else if (state.mode === "Header") {
+      } else if (states[i].mode === "Header") {
         hist.title  = document.title;
         hist.url    = window.location.pathname.slice(1);
         hist.mode   = "Header"
@@ -308,7 +309,10 @@ var ReaderApp = React.createClass({
         url += "/" + histories[0].versionLanguage + "/" + histories[0].version.replace(/\s/g,"_");
     }
     var title =  histories.length ? histories[0].title : "Sefaria";
-    hist  = {state: state, url: url, title: title};  //  There was a clone on the state here.  I think it's not required.  If replaced, use this.clonePanel
+
+    hist = (headerMode)
+        ? {state: {header: states[0]}, url: url, title: title}
+        : {state: {panels: states}, url: url, title: title};
 
     for (var i = 1; i < histories.length; i++) {
       if (histories[i-1].mode === "Text" && histories[i].mode === "Connections") {
@@ -1131,7 +1135,7 @@ var ReaderPanel = React.createClass({
   },
   setFilter: function(filter, updateRecent) {
     // Sets the current filter for Connected Texts (TextList)
-    // If updateRecent is true, include the curent setting in the list of recent filters.
+    // If updateRecent is true, include the current setting in the list of recent filters.
     
     /*  Hack to open commentaries immediately as full texts
     if (filter && sjs.library.index(filter) && sjs.library.index(filter).categories[0] == "Commentary") {
@@ -4140,7 +4144,8 @@ var SearchFilters = React.createClass({
     // this.props
     // todo: check for cases when we want to rebuild / not
 
-    if (newProps.query != this.props.query) {
+    if ((newProps.query != this.props.query)
+        || (newProps.availableFilters.length == 0)) {
       this.setState({
         openedCategory: null,
         openedCategoryBooks: []
