@@ -134,7 +134,7 @@ body.hebrew #home #homeTitle #homeTitleBox {
     text-align: left;
 }
 
-body.hebrew #home .homeColumn {
+body.hebrew #home .homeColumn, #content.hebrew #home .homeColumn {
     text-align: right;
 }
 
