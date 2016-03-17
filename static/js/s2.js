@@ -34,6 +34,8 @@ var ReaderApp = React.createClass({
         menuOpen: this.props.initialMenu,
         version: this.props.initialPanels.length ? this.props.initialPanels[0].version : null,
         versionLanguage: this.props.initialPanels.length ? this.props.initialPanels[0].versionLanguage : null,
+        searchQuery: this.props.initialQuery,
+        appliedSearchFilters: this.props.initialSearchFilters,
         settings: clone(defaultPanelSettings)
       };
       if (panels[0].versionLanguage) {
@@ -64,7 +66,7 @@ var ReaderApp = React.createClass({
         });
       }
       for (var i = panels.length; i < this.props.initialPanels.length; i++) {
-        var panel = clone(this.props.initialPanels[i]);
+        var panel = this.clonePanel(this.props.initialPanels[i]);
         panel.settings = clone(defaultPanelSettings);
         if (panel.versionLanguage) {
           panel.settings.language = panel.versionLanguage == "he" ? "hebrew" : "english";
@@ -81,7 +83,7 @@ var ReaderApp = React.createClass({
       refs: this.props.initialRefs,
       menuOpen: this.props.initialMenu,
       searchQuery: this.props.initialQuery,
-      searchFilters: this.props.initialSearchFilters,
+      appliedSearchFilters: this.props.initialSearchFilters,
       navigationCategories: this.props.initialNavigationCategories,
       sheetsTag: this.props.initialSheetsTag,
       settings: clone(defaultPanelSettings)
@@ -93,11 +95,17 @@ var ReaderApp = React.createClass({
     */
     var header = this.makePanelState(headerState);
 
+    var layoutOrientation = "ltr";
+    if (panels.length > 0 && panels[0].settings.language == "hebrew" || header.settings.language == "hebrew") {
+      layoutOrientation = "rtl";
+    }
+
     return {
       panels: panels,
       header: header,
       defaultVersions: defaultVersions,
-      defaultPanelSettings: defaultPanelSettings
+      defaultPanelSettings: defaultPanelSettings,
+      layoutOrientation: layoutOrientation
     };
   },
   componentDidMount: function componentDidMount() {
@@ -111,11 +119,11 @@ var ReaderApp = React.createClass({
   componentWillUnmount: function componentWillUnmount() {
     window.removeEventListener("popstate", this.handlePopState);
   },
+  componentWillUpdate: function componentWillUpdate(nextProps, nextState) {},
   componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
     if (this.justPopped) {
       //console.log("Skipping history update - just popped")
       this.justPopped = false;
-      //debugger
       return;
     }
     // Central State TODO
@@ -138,10 +146,20 @@ var ReaderApp = React.createClass({
   shouldHistoryUpdate: function shouldHistoryUpdate() {
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
+
     if (!history.state || !history.state.panels || history.state.panels.length !== this.state.panels.length || !history.state.header || history.state.header.menuOpen !== this.state.header.menuOpen) {
       return true;
     }
-    if (this.state.header.menuOpen) {
+    var menuPanel = this.props.multiPanel ? this.state.header : this.state.panels[0];
+    if (menuPanel && menuPanel.menuOpen == "search") {
+      if (history.state.searchQuery !== menuPanel.searchQuery || history.state.appliedSearchFilters.length !== menuPanel.appliedSearchFilters.length || !history.state.appliedSearchFilters.every(function (v, i) {
+        return v === menuPanel.appliedSearchFilters[i];
+      })) {
+        return true;
+      }
+    }
+
+    if (this.props.multiPanel) {
       var prevPanels = [history.state.header];
       var nextPanels = [this.state.header];
     } else {
@@ -158,9 +176,7 @@ var ReaderApp = React.createClass({
         return true;
       }
 
-      if (prev.mode !== next.mode || prev.menuOpen !== next.menuOpen || next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0] || next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0] || next.mode === "Connections" && prev.filter && !prev.filter.compare(next.filter) || next.mode === "Connections" && !prev.refs.compare(next.refs) || prev.searchQuery !== next.searchQuery || prev.searchFilters !== next.searchFilters.length || !prev.searchFilters.every(function (v, i) {
-        return v === next.searchFilters[i];
-      }) || prev.navigationSheetTag !== next.navigationSheetTag || prev.version !== next.version || prev.versionLanguage !== next.versionLanguage) {
+      if (prev.mode !== next.mode || prev.menuOpen !== next.menuOpen || next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0] || next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0] || next.mode === "Connections" && prev.filter && !prev.filter.compare(next.filter) || next.mode === "Connections" && !prev.refs.compare(next.refs) || prev.navigationSheetTag !== next.navigationSheetTag || prev.version !== next.version || prev.versionLanguage !== next.versionLanguage) {
         return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
         // Handle array comparison, !== could mean one is null or both are arrays
@@ -173,6 +189,23 @@ var ReaderApp = React.createClass({
     }
     return false;
   },
+  clonePanel: function clonePanel(panel) {
+    //Set aside self-referential objects before cloning
+    //Todo: Move the multiple instances of this out to a utils file
+    if (panel.availableFilters || panel.filterRegistry) {
+      var savedAttributes = {
+        availableFilters: panel.availableFilters,
+        searchFiltersValid: panel.searchFiltersValid,
+        filterRegistry: panel.filterRegistry
+      };
+      panel.availableFilters = panel.searchFiltersValid = panel.filterRegistry = null;
+      var newpanel = $.extend(clone(panel), savedAttributes);
+      $.extend(panel, savedAttributes);
+      return newpanel;
+    } else {
+      return clone(panel);
+    }
+  },
   makeHistoryState: function makeHistoryState() {
     // Returns an object with state, title and url params for the current state
     var histories = [];
@@ -180,7 +213,7 @@ var ReaderApp = React.createClass({
     var panels = this.state.header.menuOpen || !this.state.panels.length && this.state.header.mode === "Header" ? [this.state.header] : this.state.panels;
     for (var i = 0; i < panels.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
-      var state = clone(panels[i]);
+      var state = this.clonePanel(panels[i]);
       if (!state) {
         debugger;
       }
@@ -209,7 +242,7 @@ var ReaderApp = React.createClass({
           case "search":
             hist.title = state.searchQuery ? state.searchQuery + " | " : "";
             hist.title += "Sefaria Search";
-            hist.url = "search" + (state.searchQuery ? "?q=" + state.searchQuery + (state.searchFilters ? "&filters=" + state.searchFilters.join("|") : "") : "");
+            hist.url = "search" + (state.searchQuery ? "&q=" + state.searchQuery + (!!state.appliedSearchFilters.length ? "&filters=" + state.appliedSearchFilters.join("|") : "") : "");
             hist.mode = "search";
             break;
           case "sheets":
@@ -266,7 +299,8 @@ var ReaderApp = React.createClass({
       url += "/" + histories[0].versionLanguage + "/" + histories[0].version.replace(/\s/g, "_");
     }
     var title = histories.length ? histories[0].title : "Sefaria";
-    var hist = { state: clone(this.state), url: url, title: title };
+    hist = { state: state, url: url, title: title }; //  There was a clone on the state here.  I think it's not required.  If replaced, use this.clonePanel
+
     for (var i = 1; i < histories.length; i++) {
       if (histories[i - 1].mode === "Text" && histories[i].mode === "Connections") {
         if (i == 1) {
@@ -333,7 +367,11 @@ var ReaderApp = React.createClass({
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag: state.sheetsTag || null,
       searchQuery: state.searchQuery || null,
-      searchFilters: state.searchFilters || null,
+      appliedSearchFilters: state.appliedSearchFilters || [],
+      searchFiltersValid: state.searchFiltersValid || false,
+      availableFilters: state.availableFilters || [],
+      filterRegistry: state.filterRegistry || {},
+      orphanSearchFilters: state.orphanSearchFilters || [],
       displaySettingsOpen: false
     };
     if (this.state && panel.refs.length && !panel.version) {
@@ -386,7 +424,60 @@ var ReaderApp = React.createClass({
       this.handleNavigationClick(ref, version, versionLanguage);
     }
   },
-  updateSearchFilters: function updateSearchFilters(filters) {},
+  updateQueryInHeader: function updateQueryInHeader(query) {
+    var updates = { searchQuery: query, searchFiltersValid: false };
+    this.setHeaderState(updates);
+  },
+  updateQueryInPanel: function updateQueryInPanel(query) {
+    var updates = { searchQuery: query, searchFiltersValid: false };
+    this.setPanelState(0, updates);
+  },
+  updateAvailableFiltersInHeader: function updateAvailableFiltersInHeader(availableFilters, registry, orphans) {
+    this.setHeaderState({
+      availableFilters: availableFilters,
+      filterRegistry: registry,
+      orphanSearchFilters: orphans,
+      searchFiltersValid: true
+    });
+  },
+  updateAvailableFiltersInPanel: function updateAvailableFiltersInPanel(availableFilters, registry, orphans) {
+    this.setPanelState(0, {
+      availableFilters: availableFilters,
+      filterRegistry: registry,
+      orphanSearchFilters: orphans,
+      searchFiltersValid: true
+    });
+  },
+  updateSearchFilterInHeader: function updateSearchFilterInHeader(filterNode) {
+    if (filterNode.isUnselected()) {
+      filterNode.setSelected(true);
+    } else {
+      filterNode.setUnselected(true);
+    }
+    this.setHeaderState({
+      availableFilters: this.state.header.availableFilters,
+      appliedSearchFilters: this.getAppliedSearchFilters(this.state.header.availableFilters)
+    });
+  },
+  updateSearchFilterInPanel: function updateSearchFilterInPanel(filterNode) {
+    if (filterNode.isUnselected()) {
+      filterNode.setSelected(true);
+    } else {
+      filterNode.setUnselected(true);
+    }
+    this.setPanelState(0, {
+      availableFilters: this.state.panels[0].availableFilters,
+      appliedSearchFilters: this.getAppliedSearchFilters(this.state.panels[0].availableFilters)
+    });
+  },
+  getAppliedSearchFilters: function getAppliedSearchFilters(availableFilters) {
+    var results = [];
+    //results = results.concat(this.orphanFilters);
+    for (var i = 0; i < availableFilters.length; i++) {
+      results = results.concat(availableFilters[i].getAppliedFilters());
+    }
+    return results;
+  },
   setPanelState: function setPanelState(n, state, replaceHistory) {
     this.replaceHistory = Boolean(replaceHistory);
     //console.log(`setPanel State ${n}, replace: ` + this.replaceHistory);
@@ -515,7 +606,12 @@ var ReaderApp = React.createClass({
     }
   },
   showSearch: function showSearch(query) {
-    this.setState({ header: this.makePanelState({ menuOpen: "search", searchQuery: query }) });
+    var updates = { menuOpen: "search", searchQuery: query, searchFiltersValid: false };
+    if (this.props.multiPanel) {
+      this.setHeaderState(updates);
+    } else {
+      this.setPanelState(0, updates);
+    }
   },
   saveRecentlyViewed: function saveRecentlyViewed(panel, n) {
     if (panel.mode == "Connections" || !panel.refs.length) {
@@ -563,18 +659,20 @@ var ReaderApp = React.createClass({
       setDefaultOption: this.setDefaultOption,
       showLibrary: this.showLibrary,
       showSearch: this.showSearch,
-      updateSearchFilters: this.updateSearchFilters,
+      onQueryChange: this.updateQueryInHeader,
+      updateSearchFilter: this.updateSearchFilterInHeader,
+      registerAvailableFilters: this.updateAvailableFiltersInHeader,
       headerMode: this.props.headerMode,
       panelsOpen: this.state.panels.length }) : null;
 
     var panels = [];
     for (var i = 0; i < this.state.panels.length; i++) {
-      var panel = clone(this.state.panels[i]);
-      var left = widths.reduce(function (prev, curr, index, arr) {
+      var panel = this.clonePanel(this.state.panels[i]);
+      var offset = widths.reduce(function (prev, curr, index, arr) {
         return index < i ? prev + curr : prev;
       }, 0);
       var width = widths[i];
-      var style = { width: width + "%", left: left + "%" };
+      var style = this.state.layoutOrientation == "ltr" ? { width: width + "%", left: offset + "%" } : { width: width + "%", right: offset + "%" };
       var onSegmentClick = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
       var onCitationClick = this.handleCitationClick.bind(null, i);
       var onTextListClick = null; // this.openPanelAt.bind(null, i);
@@ -606,6 +704,9 @@ var ReaderApp = React.createClass({
           setTextListHightlight: setTextListHightlight,
           selectVersion: selectVersion,
           setDefaultOption: this.setDefaultOption,
+          onQueryChange: this.updateQueryInPanel,
+          updateSearchFilter: this.updateSearchFilterInPanel,
+          registerAvailableFilters: this.updateAvailableFiltersInPanel,
           closePanel: closePanel,
           panelsOpen: this.state.panels.length,
           layoutWidth: width })
@@ -633,7 +734,9 @@ var Header = React.createClass({
     showLibrary: React.PropTypes.func,
     showSearch: React.PropTypes.func,
     setDefaultOption: React.PropTypes.func,
-    updateSearchFilters: React.PropTypes.func,
+    onQueryChange: React.PropTypes.func,
+    updateSearchFilter: React.PropTypes.func,
+    registerAvailableFilters: React.PropTypes.func,
     panelsOpen: React.PropTypes.number
   },
   getInitialState: function getInitialState() {
@@ -749,7 +852,9 @@ var Header = React.createClass({
       onSearchResultClick: this.props.onRefClick,
       onRecentClick: this.props.onRecentClick,
       setDefaultLanguage: this.props.setDefaultLanguage,
-      updateSearchFilters: this.props.updateSearchFilters,
+      onQueryChange: this.props.onQueryChange,
+      updateSearchFilter: this.props.updateSearchFilter,
+      registerAvailableFilters: this.props.registerAvailableFilters,
       hideNavHeader: true }) : null;
 
     return React.createElement(
@@ -851,7 +956,7 @@ var ReaderPanel = React.createClass({
     initialHighlightedRefs: React.PropTypes.array,
     initialMenu: React.PropTypes.string,
     initialQuery: React.PropTypes.string,
-    initialSearchFilters: React.PropTypes.array,
+    initialAppliedSearchFilters: React.PropTypes.array,
     initialSheetsTag: React.PropTypes.string,
     initialState: React.PropTypes.object, // if present, trumps all props above
     setCentralState: React.PropTypes.func,
@@ -866,7 +971,9 @@ var ReaderPanel = React.createClass({
     closeMenus: React.PropTypes.func,
     setDefaultLanguage: React.PropTypes.func,
     selectVersion: React.PropTypes.func,
-    updateSearchFilters: React.PropTypes.func,
+    onQueryChange: React.PropTypes.func,
+    updateSearchFilter: React.PropTypes.func,
+    registerAvailableFilters: React.PropTypes.func,
     highlightedRefs: React.PropTypes.array,
     hideNavHeader: React.PropTypes.bool,
     multiPanel: React.PropTypes.bool,
@@ -876,7 +983,7 @@ var ReaderPanel = React.createClass({
   getInitialState: function getInitialState() {
     // When this component is managed by a parent, all it takes is initialState
     if (this.props.initialState) {
-      var state = clone(this.props.initialState);
+      var state = this.clonePanel(this.props.initialState);
       return state;
     }
 
@@ -901,7 +1008,11 @@ var ReaderPanel = React.createClass({
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag: this.props.initialSheetsTag || null,
       searchQuery: this.props.initialQuery || null,
-      searchFilters: this.props.initialSearchFilters || [],
+      appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
+      searchFiltersValid: false,
+      availableFilters: [],
+      filterRegistry: {},
+      orphanSearchFilters: [],
       displaySettingsOpen: false
     };
   },
@@ -918,8 +1029,8 @@ var ReaderPanel = React.createClass({
     if (nextProps.initialFilter && !this.props.multiPanel) {
       this.openConnectionsInPanel(nextProps.initialRefs);
     }
-    if (nextProps.initialQuery) {
-      this.openSearch(nextProps.initialQuery);
+    if (nextProps.searchQuery && this.state.menuOpen !== "search") {
+      this.openSearch(nextProps.searchQuery);
     }
     if (this.state.menuOpen !== nextProps.initialMenu) {
       this.setState({ menuOpen: nextProps.initialMenu });
@@ -929,9 +1040,7 @@ var ReaderPanel = React.createClass({
     } else {
       this.setState({
         navigationCategories: nextProps.initialNavigationCategories || [],
-        navigationSheetTag: nextProps.initialSheetsTag || null,
-        searchQuery: nextProps.initialQuery || null,
-        searchFilters: nextProps.initialSearchFilters || []
+        navigationSheetTag: nextProps.initialSheetsTag || null
       });
     }
   },
@@ -949,11 +1058,29 @@ var ReaderPanel = React.createClass({
   conditionalSetState: function conditionalSetState(state) {
     // Set state either in the central app or in the local component,
     // depending on whether a setCentralState function was given.
+    console.log(state);
     if (this.props.setCentralState) {
       this.props.setCentralState(state, this.replaceHistory);
       this.replaceHistory = false;
     } else {
       this.setState(state);
+    }
+  },
+  clonePanel: function clonePanel(panel) {
+    //Set aside self-referential objects before cloning
+    //Todo: Move the multiple instances of this out to a utils file
+    if (panel.availableFilters || panel.filterRegistry) {
+      var savedAttributes = {
+        availableFilters: panel.availableFilters,
+        searchFiltersValid: panel.searchFiltersValid,
+        filterRegistry: panel.filterRegistry
+      };
+      panel.availableFilters = panel.searchFiltersValid = panel.filterRegistry = null;
+      var newpanel = $.extend(clone(panel), savedAttributes);
+      $.extend(panel, savedAttributes);
+      return newpanel;
+    } else {
+      return clone(panel);
     }
   },
   handleBaseSegmentClick: function handleBaseSegmentClick(ref) {
@@ -1030,8 +1157,8 @@ var ReaderPanel = React.createClass({
     var state = {
       // If there's no content to show, return to home
       menuOpen: this.state.refs.slice(-1)[0] ? null : "home",
-      searchQuery: null,
-      searchFilters: [],
+      // searchQuery: null,
+      // appliedSearchFilters: [],
       navigationCategories: null,
       navigationSheetTag: null
     };
@@ -1040,8 +1167,8 @@ var ReaderPanel = React.createClass({
   openMenu: function openMenu(menu) {
     this.conditionalSetState({
       menuOpen: menu,
-      searchQuery: null,
-      searchFilters: [],
+      // searchQuery: null,
+      // appliedSearchFilters: [],
       navigationCategories: null,
       navigationSheetTag: null
     });
@@ -1051,9 +1178,6 @@ var ReaderPanel = React.createClass({
   },
   setSheetTag: function setSheetTag(tag) {
     this.conditionalSetState({ navigationSheetTag: tag });
-  },
-  setSearchQuery: function setSearchQuery(query, filters) {
-    this.conditionalSetState({ searchQuery: query, searchFilters: filters || [] });
   },
   setFilter: function setFilter(filter, updateRecent) {
     // Sets the current filter for Connected Texts (TextList)
@@ -1092,11 +1216,10 @@ var ReaderPanel = React.createClass({
       this.showBaseText(ref);
     }
   },
-  openSearch: function openSearch(query, filters) {
+  openSearch: function openSearch(query) {
     this.conditionalSetState({
       menuOpen: "search",
-      searchQuery: query,
-      searchFilters: filters || []
+      searchQuery: query
     });
   },
   openDisplaySettings: function openDisplaySettings() {
@@ -1270,15 +1393,18 @@ var ReaderPanel = React.createClass({
       var menu = React.createElement(SearchPage, {
         query: this.state.searchQuery,
         initialPage: 1,
-        appliedFilters: this.state.searchFilters,
+        appliedFilters: this.state.appliedSearchFilters,
         settings: clone(this.state.settings),
         onResultClick: this.props.onSearchResultClick || this.showBaseText,
-        onQueryChange: this.setSearchQuery,
         openDisplaySettings: this.openDisplaySettings,
         toggleLanguage: this.toggleLanguage,
         close: this.closeMenus,
         hideNavHeader: this.props.hideNavHeader,
-        updateAppliedFilters: this.props.updateSearchFilters
+        onQueryChange: this.props.onQueryChange,
+        updateAppliedFilter: this.props.updateSearchFilter,
+        availableFilters: this.state.availableFilters,
+        filtersValid: this.state.searchFiltersValid,
+        registerAvailableFilters: this.props.registerAvailableFilters
       });
     } else if (this.state.menuOpen === "sheets") {
       var menu = React.createElement(SheetsNav, {
@@ -2240,7 +2366,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
     var boxedContent = [];
     var currentRun = [];
     for (var i = 0; i < content.length; i++) {
-      // Walk through content looking for runs of spans to group togther into a table
+      // Walk through content looking for runs of spans to group together into a table
       if (content[i].type == "div") {
         // this is a subcategory
         if (currentRun.length) {
@@ -4245,16 +4371,21 @@ var SearchPage = React.createClass({
     close: React.PropTypes.func,
     onResultClick: React.PropTypes.func,
     onQueryChange: React.PropTypes.func,
-    updateAppliedFilters: React.PropTypes.func,
+    updateAppliedFilter: React.PropTypes.func,
+    registerAvailableFilters: React.PropTypes.func,
+    availableFilters: React.PropTypes.array,
+    filtersValid: React.PropTypes.bool,
     hideNavHeader: React.PropTypes.bool
   },
   getInitialState: function getInitialState() {
     return {
-      page: this.props.initialPage || 1,
-      runningQuery: null,
-      isQueryRunning: false
+      page: this.props.initialPage || 1
+      //runningQuery: null,
+      //isQueryRunning: false
     };
   },
+  componentWillMount: function componentWillMount() {},
+
   getDefaultProps: function getDefaultProps() {
     return {
       appliedFilters: []
@@ -4270,19 +4401,15 @@ var SearchPage = React.createClass({
     }
     */
   },
-  updateQuery: function updateQuery(query, appliedFilters) {
-    //this.setState({query: query, appliedFilters: appliedFilters});
-    if (this.props.onQueryChange) {
-      this.props.onQueryChange(query, appliedFilters);
-    }
-  },
-  updateRunningQuery: function updateRunningQuery(ajax) {
-    this.setState({
-      runningQuery: ajax,
-      isQueryRunning: !!ajax
-    });
-  },
+  /*
+    updateRunningQuery: function(ajax) {
+        this.setState({
+            runningQuery: ajax,
+            isQueryRunning: !!ajax
+        })
+    }, */
   render: function render() {
+
     var style = { "fontSize": this.props.settings.fontSize + "%" };
     var classes = classNames({ readerNavMenu: 1, noHeader: this.props.hideNavHeader });
     return React.createElement(
@@ -4296,7 +4423,7 @@ var SearchPage = React.createClass({
         React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings }),
         React.createElement(SearchBar, {
           initialQuery: this.props.query,
-          updateQuery: this.updateQuery })
+          updateQuery: this.props.onQueryChange })
       ),
       React.createElement(
         "div",
@@ -4340,9 +4467,11 @@ var SearchPage = React.createClass({
                 query: this.props.query,
                 page: this.state.page,
                 appliedFilters: this.props.appliedFilters,
-                updateRunningQuery: this.updateRunningQuery,
                 onResultClick: this.props.onResultClick,
-                updateAppliedFilters: this.props.updateAppliedFilters
+                updateAppliedFilter: this.props.updateAppliedFilter,
+                registerAvailableFilters: this.props.registerAvailableFilters,
+                availableFilters: this.props.availableFilters,
+                filtersValid: this.props.filtersValid
               })
             )
           )
@@ -4378,6 +4507,7 @@ var SearchBar = React.createClass({
     this.setState({ query: event.target.value });
   },
   render: function render() {
+
     return React.createElement(
       "div",
       null,
@@ -4400,9 +4530,11 @@ var SearchResultList = React.createClass({
     appliedFilters: React.PropTypes.array,
     page: React.PropTypes.number,
     size: React.PropTypes.number,
-    updateRunningQuery: React.PropTypes.func,
     onResultClick: React.PropTypes.func,
-    updateAppliedFilters: React.PropTypes.func
+    filtersValid: React.PropTypes.bool,
+    availableFilters: React.PropTypes.array,
+    updateAppliedFilter: React.PropTypes.func,
+    registerAvailableFilters: React.PropTypes.func
   },
   getDefaultProps: function getDefaultProps() {
     return {
@@ -4414,40 +4546,77 @@ var SearchResultList = React.createClass({
   getInitialState: function getInitialState() {
     return {
       runningQuery: null,
-      filtersFetched: false,
+      isQueryRunning: false,
       total: 0,
       textTotal: 0,
       sheetTotal: 0,
       textHits: [],
-      sheetHits: [],
-      aggregations: null
+      sheetHits: []
     };
   },
   updateRunningQuery: function updateRunningQuery(ajax) {
-    this.setState({ runningQuery: ajax });
-    this.props.updateRunningQuery(ajax);
+    this.setState({
+      runningQuery: ajax,
+      isQueryRunning: !!ajax
+    });
   },
   _abortRunningQuery: function _abortRunningQuery() {
     if (this.state.runningQuery) {
       this.state.runningQuery.abort();
     }
+    this.updateRunningQuery(null);
+  },
+  componentDidMount: function componentDidMount() {
+    this._executeQuery();
+  },
+  componentWillMount: function componentWillMount() {},
+
+  componentWillUnmount: function componentWillUnmount() {
+    this._abortRunningQuery();
+  },
+  componentWillReceiveProps: function componentWillReceiveProps(newProps) {
+    if (this.props.query != newProps.query) {
+      this.setState({
+        total: 0,
+        textTotal: 0,
+        sheetTotal: 0,
+        textHits: [],
+        sheetHits: []
+      });
+      this._executeQuery(newProps);
+    } else if (this.props.appliedFilters.length !== newProps.appliedFilters.length || !this.props.appliedFilters.every(function (v, i) {
+      return v === newProps.appliedFilters[i];
+    })) {
+      this._executeQuery(newProps);
+    } else if (this.props.size != newProps.size || this.props.page != newProps.page) {
+      this._executeQuery(newProps);
+    }
+    // Execute a second query to apply filters after an initial query which got available filters
+    else if (this.props.filtersValid != newProps.filtersValid && this.props.appliedFilters.length > 0) {
+        this._executeQuery(newProps);
+      }
   },
   _executeQuery: function _executeQuery(props) {
     //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
     props = props || this.props;
-
     if (!props.query) {
       return;
     }
 
     this._abortRunningQuery();
 
+    // If there are no available filters yet, don't apply filters.  Split into two queries:
+    // 1) Get all potential filters and counts
+    // 2) Apply filters (Triggered from componentWillReceiveProps)
+    var request_applied = props.filtersValid && props.appliedFilters;
+
     var runningQuery = sjs.library.search.execute_query({
       query: props.query,
-      get_filters: !this.state.filtersFetched,
-      applied_filters: props.appliedFilters.length && props.appliedFilters,
+      get_filters: !props.filtersValid,
+      applied_filters: request_applied,
       size: props.page * props.size,
       success: function (data) {
+        this.updateRunningQuery(null);
         if (this.isMounted()) {
           var hitarrays = this._process_hits(data.hits.hits);
           this.setState({
@@ -4458,12 +4627,10 @@ var SearchResultList = React.createClass({
             sheetTotal: hitarrays.sheets.length
           });
           if (data.aggregations) {
-            this.setState({
-              aggregations: data.aggregations,
-              filtersFetched: true
-            });
+            var ftree = this._buildFilterTree(data.aggregations.category.buckets);
+            var orphans = this._applyFilters(ftree, this.props.appliedFilters);
+            this.props.registerAvailableFilters(ftree.availableFilters, ftree.registry, orphans);
           }
-          this.updateRunningQuery(null);
         }
       }.bind(this),
       error: function (jqXHR, textStatus, errorThrown) {
@@ -4509,131 +4676,14 @@ var SearchResultList = React.createClass({
       sheets: sheetHits
     };
   },
-  componentDidMount: function componentDidMount() {
-    this._executeQuery();
-  },
-  componentWillUnmount: function componentWillUnmount() {
-    this._abortRunningQuery();
-  },
-  componentWillReceiveProps: function componentWillReceiveProps(newProps) {
-    if (this.props.query != newProps.query) {
-      this.setState({
-        total: 0,
-        textTotal: 0,
-        sheetTotal: 0,
-        textHits: [],
-        sheetHits: [],
-        filtersFetched: false,
-        aggregations: null
-      });
-      this._executeQuery(newProps);
-    } else if (this.props.size != newProps.size || this.props.page != newProps.page) {
-      this._executeQuery(newProps);
-    }
-  },
-  render: function render() {
-    if (!this.props.query) {
-      // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
-      return null;
-    }
-    if (this.state.runningQuery) {
-      return React.createElement(LoadingMessage, { message: "Searching..." });
-    }
-
-    return React.createElement(
-      "div",
-      null,
-      React.createElement(SearchFilters, {
-        query: this.props.query,
-        total: this.state.total,
-        textTotal: this.state.textTotal,
-        sheetTotal: this.state.sheetTotal,
-        aggregations: this.state.aggregations,
-        appliedFilters: this.props.appliedFilters,
-        updateAppliedFilters: this.props.updateAppliedFilters
-      }),
-      this.state.textHits.map(function (result) {
-        return React.createElement(SearchTextResult, {
-          data: result,
-          query: this.props.query,
-          key: result._id,
-          onResultClick: this.props.onResultClick });
-      }.bind(this)),
-      this.state.sheetHits.map(function (result) {
-        return React.createElement(SearchSheetResult, {
-          data: result,
-          query: this.props.query,
-          key: result._id });
-      }.bind(this))
-    );
-  }
-});
-
-var SearchFilters = React.createClass({
-  displayName: "SearchFilters",
-
-  propTypes: {
-    query: React.PropTypes.string,
-    total: React.PropTypes.number,
-    textTotal: React.PropTypes.number,
-    sheetTotal: React.PropTypes.number,
-    appliedFilters: React.PropTypes.array,
-    aggregations: React.PropTypes.object,
-    updateAppliedFilters: React.PropTypes.func
-  },
-  getInitialState: function getInitialState() {
-    return {
-      availableFilters: [],
-      orphanFilters: [],
-      registry: {},
-      openedCategory: null,
-      openedCategoryBooks: []
-    };
-  },
-  getDefaultProps: function getDefaultProps() {
-    return {
-      aggregations: {},
-      appliedFilters: []
-    };
-  },
-  componentWillMount: function componentWillMount() {
-    if (this.props.aggregations) {
-      this.setState(this._buildFilterTree(this.props.aggregations.category.buckets), function () {
-        this.applyFilters(this.props.appliedFilters);
-      } // in callback, so as to apply only after above available filters and registry is committed
-      );
-    }
-  },
-  componentWillReceiveProps: function componentWillReceiveProps(newProps) {
+  _buildFilterTree: function _buildFilterTree(aggregation_buckets) {
     var _this2 = this;
 
-    // Save current filters
-    // this.props
-    // todo: check for cases when we want to rebuild / not
-    if (newProps.query != this.props.query) {
-      var newstate = this._buildFilterTree(newProps.aggregations.category.buckets);
-      newstate.openedCategory = null; // todo: confirm behavior
-      newstate.openedCategoryBooks = []; // todo: confirm behavior
-      this.setState(newstate, function () {
-        this.applyFilters(this.props.appliedFilters);
-      });
-    } else if (newProps.appliedFilters.length !== this.props.appliedFilters.length || !newProps.appliedFilters.every(function (v, i) {
-      return v === _this2.props.appliedFilters[i];
-    })) {
-      // todo: logically, we should be unapplying filters as well.
-      // Because we compute filter removal from teh same object, this ends up sliding in messily in the setState.
-      // Hard to see how to get it through the front door.
-      this.applyFilters(this.props.appliedFilters);
-    }
-  },
-  _buildFilterTree: function _buildFilterTree(aggregation_buckets) {
-    var _this3 = this;
-
-    //returns dict w/ keys 'availableFilters', 'registry'
+    //returns object w/ keys 'availableFilters', 'registry'
     //Add already applied filters w/ empty doc count?
     var rawTree = {};
     aggregation_buckets.forEach(function (f) {
-      return _this3._addAvailableFilter(rawTree, f["key"], { "docCount": f["doc_count"] });
+      return _this2._addAvailableFilter(rawTree, f["key"], { "docCount": f["doc_count"] });
     });
     this._aggregate(rawTree);
     return this._build(rawTree);
@@ -4780,54 +4830,128 @@ var SearchFilters = React.createClass({
       }
     }
   },
-  applyFilters: function applyFilters(paths) {
-    var _this4 = this;
-
+  _applyFilters: function _applyFilters(ftree, appliedFilters) {
     var orphans = []; // todo: confirm behavior
-    filters.forEach(function (path) {
-      var node = _this4.state.registry[path];
+    appliedFilters.forEach(function (path) {
+      var node = ftree.registry[path];
       if (node) {
-        node.setSelected(True);
+        node.setSelected(true);
       } else {
         orphans.push(path);
       }
     });
-    setState({ availableFilters: this.state.availableFilters, orphanFilters: orphans });
+    return orphans;
   },
 
-  getAppliedFilters: function getAppliedFilters() {
-    var results = [];
-    //results = results.concat(this.orphanFilters);
-    for (var i = 0; i < this.state.availableFilters.length; i++) {
-      results = results.concat(this.state.availableFilters[i].getAppliedFilters());
+  render: function render() {
+    if (!this.props.query) {
+      // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
+      return null;
     }
-    return results;
+
+    return React.createElement(
+      "div",
+      null,
+      React.createElement(SearchFilters, {
+        query: this.props.query,
+        total: this.state.total,
+        textTotal: this.state.textTotal,
+        sheetTotal: this.state.sheetTotal,
+        availableFilters: this.props.availableFilters,
+        appliedFilters: this.props.appliedFilters,
+        updateAppliedFilter: this.props.updateAppliedFilter,
+        isQueryRunning: this.state.isQueryRunning
+      }),
+      this.state.textHits.map(function (result) {
+        return React.createElement(SearchTextResult, {
+          data: result,
+          query: this.props.query,
+          key: result._id,
+          onResultClick: this.props.onResultClick });
+      }.bind(this)),
+      this.state.sheetHits.map(function (result) {
+        return React.createElement(SearchSheetResult, {
+          data: result,
+          query: this.props.query,
+          key: result._id });
+      }.bind(this))
+    );
+  }
+});
+
+var SearchFilters = React.createClass({
+  displayName: "SearchFilters",
+
+  propTypes: {
+    query: React.PropTypes.string,
+    total: React.PropTypes.number,
+    textTotal: React.PropTypes.number,
+    sheetTotal: React.PropTypes.number,
+    appliedFilters: React.PropTypes.array,
+    availableFilters: React.PropTypes.array,
+    updateAppliedFilter: React.PropTypes.func,
+    isQueryRunning: React.PropTypes.bool
   },
+  getInitialState: function getInitialState() {
+    return {
+      openedCategory: null,
+      openedCategoryBooks: [],
+      displayFilters: false
+    };
+  },
+  getDefaultProps: function getDefaultProps() {
+    return {
+      appliedFilters: [],
+      availableFilters: []
+    };
+  },
+  componentWillMount: function componentWillMount() {},
+  componentWillUnmount: function componentWillUnmount() {},
+  componentWillReceiveProps: function componentWillReceiveProps(newProps) {
+    // Save current filters
+    // this.props
+    // todo: check for cases when we want to rebuild / not
+
+    if (newProps.query != this.props.query) {
+      this.setState({
+        openedCategory: null,
+        openedCategoryBooks: []
+      });
+    }
+    // todo: logically, we should be unapplying filters as well.
+    // Because we compute filter removal from teh same object, this ends up sliding in messily in the setState.
+    // Hard to see how to get it through the front door.
+    //if (this.state.openedCategory) {
+    //   debugger;
+    // }
+    /*
+    if (newProps.appliedFilters &&
+             ((newProps.appliedFilters.length !== this.props.appliedFilters.length)
+              || !(newProps.appliedFilters.every((v,i) => v === this.props.appliedFilters[i]))
+             )
+           ) {
+     if (this.state.openedCategory) {
+       this.handleFocusCategory(this.state.openedCategory);
+     }
+    } */
+  },
+
   getSelectedTitles: function getSelectedTitles(lang) {
     var results = [];
-    for (var i = 0; i < this.children.length; i++) {
-      results = results.concat(this.children[i].getSelectedTitles(lang));
+    for (var i = 0; i < this.props.availableFilters.length; i++) {
+      results = results.concat(this.props.availableFilters[i].getSelectedTitles(lang));
     }
     return results;
   },
-  handleFilterClick: function handleFilterClick(filterNode) {
-    console.log("filter click");
-    console.log(filterNode);
-    if (filterNode.isSelected()) {
-      filterNode.setUnselected(true);
-    } else {
-      filterNode.setSelected(true);
-    }
-    this.setState({ availableFilters: this.state.availableFilters });
-    this.props.updateAppliedFilters(this.getAppliedFilters());
-  },
   handleFocusCategory: function handleFocusCategory(filterNode) {
-    console.log("cat focus");
-    console.log(filterNode);
+    var leaves = filterNode.getLeafNodes();
     this.setState({
       openedCategory: filterNode,
-      openedCategoryBooks: filterNode.getLeafNodes()
+      openedCategoryBooks: leaves
     });
+  },
+  toggleFilterView: function toggleFilterView() {
+    this.setState({ displayFilters: !this.state.displayFilters });
   },
   render: function render() {
     var addCommas = function addCommas(number) {
@@ -4869,42 +4993,56 @@ var SearchFilters = React.createClass({
       )
     );
 
-    var enFilterLine = this.props.appliedFilters.length ? ": " + this.getSelectedTitles("en").join(", ") : "";
-    var heFilterLine = this.props.appliedFilters.length ? ": " + this.getSelectedTitles("he").join(", ") : "";
+    var enFilterLine = !!this.props.appliedFilters.length && !!this.props.total ? ": " + this.getSelectedTitles("en").join(", ") : "";
+    var heFilterLine = !!this.props.appliedFilters.length && !!this.props.total ? ": " + this.getSelectedTitles("he").join(", ") : "";
 
-    return React.createElement(
+    var summaryLines = React.createElement(
+      "div",
+      { className: "results-count" },
+      React.createElement(
+        "span",
+        { className: "en" },
+        totalWithCommas,
+        " Results",
+        enFilterLine
+      ),
+      React.createElement(
+        "span",
+        { className: "he" },
+        totalWithCommas,
+        " תוצאות",
+        heFilterLine
+      ),
+      this.state.sheet_total > 0 && this.state.text_total > 0 ? totalBreakdown : null
+    );
+
+    var runningQueryLine = React.createElement(LoadingMessage, { message: "Searching..." });
+    var show_filters_classes = this.state.displayFilters ? "fa fa-caret-down fa-angle-down" : "fa fa-caret-down";
+    var filter_panel = React.createElement(
       "div",
       null,
       React.createElement(
         "div",
-        { className: "results-count", key: "results-count" },
+        { className: "searchFilterToggle" },
         React.createElement(
           "span",
-          { className: "en" },
-          totalWithCommas,
-          " Results",
-          enFilterLine
+          null,
+          "Filter by Text   "
         ),
-        React.createElement(
-          "span",
-          { className: "he" },
-          totalWithCommas,
-          " תוצאות",
-          heFilterLine
-        ),
-        this.state.sheet_total > 0 && this.state.text_total > 0 ? totalBreakdown : null
+        React.createElement("i", { className: show_filters_classes, onClick: this.toggleFilterView })
       ),
       React.createElement(
         "div",
-        { className: "searchFilterBoxes" },
+        { className: "searchFilterBoxes", style: { display: this.state.displayFilters ? "block" : "none" } },
         React.createElement(
           "div",
           { className: "searchFilterCategoryBox" },
-          this.state.availableFilters.map(function (filter) {
+          this.props.availableFilters.map(function (filter) {
             return React.createElement(SearchFilter, {
               filter: filter,
+              isInFocus: this.state.openedCategory === filter,
               focusCategory: this.handleFocusCategory,
-              updateSelected: this.handleFilterClick,
+              updateSelected: this.props.updateAppliedFilter,
               key: filter.path });
           }.bind(this))
         ),
@@ -4914,11 +5052,23 @@ var SearchFilters = React.createClass({
           this.state.openedCategoryBooks.map(function (filter) {
             return React.createElement(SearchFilter, {
               filter: filter,
-              updateSelected: this.handleFilterClick,
+              updateSelected: this.props.updateAppliedFilter,
               key: filter.path });
           }.bind(this))
-        )
+        ),
+        React.createElement("div", { style: { clear: "both" } })
       )
+    );
+
+    return React.createElement(
+      "div",
+      { className: "searchTopMatter" },
+      React.createElement(
+        "div",
+        { className: "searchStatusLine" },
+        this.props.isQueryRunning ? runningQueryLine : summaryLines
+      ),
+      this.props.textTotal > 0 ? filter_panel : ""
     );
   }
 });
@@ -4928,17 +5078,28 @@ var SearchFilter = React.createClass({
 
   propTypes: {
     filter: React.PropTypes.object.isRequired,
+    isInFocus: React.PropTypes.bool,
     updateSelected: React.PropTypes.func.isRequired,
     focusCategory: React.PropTypes.func
   },
+  getInitialState: function getInitialState() {
+    return { selected: this.props.filter.selected };
+  },
+  componentWillReceiveProps: function componentWillReceiveProps(newProps) {
+    if (newProps.filter.selected != this.state.selected) {
+      this.setState({ selected: newProps.filter.selected });
+    }
+  },
+
   // Can't set indeterminate in the render phase.  https://github.com/facebook/react/issues/1798
   componentDidMount: function componentDidMount() {
-    React.findDOMNode(this).indeterminate = this.props.filter.isPartial();
+    ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
   },
   componentDidUpdate: function componentDidUpdate() {
-    React.findDOMNode(this).indeterminate = this.props.filter.isPartial();
+    ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
   },
-  handleFilterClick: function handleFilterClick() {
+  handleFilterClick: function handleFilterClick(evt) {
+    evt.preventDefault();
     this.props.updateSelected(this.props.filter);
   },
   handleFocusCategory: function handleFocusCategory() {
@@ -4950,23 +5111,51 @@ var SearchFilter = React.createClass({
     return React.createElement(
       "li",
       { onClick: this.handleFocusCategory },
-      React.createElement("input", { type: "checkbox", className: "filter", checked: this.props.filter.isSelected(), onClick: this.handleFilterClick }),
+      React.createElement("input", { type: "checkbox", className: "filter", checked: this.state.selected == 1, onChange: this.handleFilterClick }),
       React.createElement(
         "span",
         { className: "en" },
-        this.props.filter.title,
-        " (",
-        this.props.filter.docCount,
-        ") "
+        React.createElement(
+          "span",
+          { className: "filter-title" },
+          this.props.filter.title
+        ),
+        " ",
+        React.createElement(
+          "span",
+          { className: "filter-count" },
+          "(",
+          this.props.filter.docCount,
+          ")"
+        )
       ),
       React.createElement(
         "span",
         { className: "he", dir: "rtl" },
-        this.props.filter.heTitle,
-        " (",
-        this.props.filter.docCount,
-        ")"
-      )
+        React.createElement(
+          "span",
+          { className: "filter-title" },
+          this.props.filter.heTitle
+        ),
+        " ",
+        React.createElement(
+          "span",
+          { className: "filter-count" },
+          "(",
+          this.props.filter.docCount,
+          ")"
+        )
+      ),
+      this.props.isInFocus ? React.createElement(
+        "span",
+        { className: "en" },
+        React.createElement("i", { className: "in-focus-arrow fa fa-caret-right" })
+      ) : "",
+      this.props.isInFocus ? React.createElement(
+        "span",
+        { className: "he" },
+        React.createElement("i", { className: "in-focus-arrow fa fa-caret-left" })
+      ) : ""
     );
   }
 });

@@ -61,7 +61,7 @@ var ReaderApp = React.createClass({
         });
       }
       for (var i = panels.length; i < this.props.initialPanels.length; i++) {
-        var panel      = clone(this.props.initialPanels[i]);
+        var panel      = this.clonePanel(this.props.initialPanels[i]);
         panel.settings = clone(defaultPanelSettings);
         if (panel.versionLanguage) {
           panel.settings.language = (panel.versionLanguage == "he")? "hebrew": "english";
@@ -667,7 +667,7 @@ var ReaderApp = React.createClass({
 
     var panels = [];
     for (var i = 0; i < this.state.panels.length; i++) {
-      var panel                    = clone(this.state.panels[i]);
+      var panel                    = this.clonePanel(this.state.panels[i]);
       var offset                   = widths.reduce(function(prev, curr, index, arr) { return index < i ? prev+curr : prev}, 0);
       var width                    = widths[i];
       var style                    = (this.state.layoutOrientation=="ltr")?{width: width + "%", left: offset + "%"}:{width: width + "%", right: offset + "%"};
