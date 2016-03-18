@@ -268,7 +268,8 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 		{"id": 1, "title": 1, "owner": 1, "sources.ref": 1, "views": 1}).sort([["views", -1]])
 	for sheet in sheets:
 		# Check for multiple matching refs within this sheet
-		matched_refs = [r for r in sheet["sources"]["ref"] if regex.match(ref_re, r)]
+#		matched_refs = [r for r in sheet["sources"]["ref"] if regex.match(ref_re, r)]
+		matched_refs = []
 		for match in matched_refs:
 			try:
 				match = model.Ref(match)
