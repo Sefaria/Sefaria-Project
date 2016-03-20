@@ -171,7 +171,6 @@ def add_translation_requests_from_source_sheets(hours=0):
                 continue
             try:
                 r = text.Ref(source["ref"])
-                print r
                 if not r.is_text_translated():
                     TranslationRequest.make_request(source["ref"], sheet["owner"])
             except InputError:
