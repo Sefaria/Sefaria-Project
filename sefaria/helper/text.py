@@ -1,4 +1,4 @@
-# coding=utf-8
+# encoding=utf-8
 import re
 
 import sefaria.summaries as summaries
@@ -504,3 +504,28 @@ def get_library_stats():
             writer.writerow(row)
 
     return output.getvalue()
+
+
+def replace_using_regex(regex, query, old, new, endline=None):
+    """
+    This is an enhancement of str.replace(). It will only call str.replace if the regex has
+    been found, thus allowing replacement of tags that may serve multiple or ambiguous functions.
+    Should there be a need, an endline parameter can be added which will be appended to the end of
+    the string
+    :param regex: A regular expression. Will be compiled locally.
+    :param query: The input string to be examined.
+    :param old: The text to be replaced.
+    :param new: The text that will be inserted instead of 'old'.
+    :param endline: An optional argument that can be appended to the end of the string.
+    :return: A new string with 'old' replaced by 'new'.
+    """
+
+    # compile regex and search
+    reg = re.compile(regex)
+    result = re.search(reg, query)
+    if result:
+        query = query.replace(old, new)
+        if endline is not None:
+            query.replace(u'\n', endline+u'\n')
+    return query
+
