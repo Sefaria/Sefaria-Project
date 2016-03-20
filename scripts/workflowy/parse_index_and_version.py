@@ -76,8 +76,12 @@ class WorkflowyParser(object):
             n.depth = len(ja_sections['section_names']) if ja_sections else 1
             n.sectionNames = ja_sections['section_names'] if ja_sections else ['Paragraph']
             n.addressTypes = ja_sections['address_types'] if ja_sections else ['Integer']
-            n.key = titles["enPrim"]
-            n = self.add_titles_to_node(n, titles)
+            if titles:
+                n.key = titles["enPrim"]
+                n = self.add_titles_to_node(n, titles)
+            else:
+                n.key = 'default'
+                n.default = True
         else:  # yes child nodes >> schema node
             n = SchemaNode()
             n.key = titles["enPrim"]
@@ -98,6 +102,8 @@ class WorkflowyParser(object):
     # en & he titles for each element > dict
     def parse_titles(self, element):
         title = element.get("text")
+        if '**default**' in title:
+            return None
         # print title
         #title = re.sub(ur"</b>|<b>|#.*#|'", u"", title)
         title = self.comment_strip_re.sub(u"", title)
