@@ -419,7 +419,7 @@ def hebrew_term(s):
 		"Dictionary":           u"מילון",
 		"Early Jewish Thought": u"מחשבת ישראל קדומה",
 		"Minor Tractates":      u"מסכתות קטנות",
-		"Rosh":                 u'ר"אש',
+		"Rosh":                 u'רא"ש',
 		"Maharsha":             u'מהרשא',
 		"Rashba":	        u'רשב"א',
 		"Maharam Shif":		u'מהר"ם שיף',

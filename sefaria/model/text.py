@@ -527,7 +527,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 """
                 for title in all_titles:
                     existing = library.get_schema_node(title, lang)
-                    if existing and not self.same_record(existing.index) and existing.index.title != self.pkeys_orig_values.get("title"):
+                    existing_index = existing.index if existing else Index().load({"title": title})
+                    if existing_index and not self.same_record(existing_index) and existing_index.title != self.pkeys_orig_values.get("title"):
                         raise InputError(u'A text called "{}" already exists.'.format(title))
 
             self.nodes.validate()
@@ -545,7 +546,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         # Make sure all title variants are unique
         if getattr(self, "titleVariants", None):
             for variant in self.titleVariants:
-                existing = Index().load({"titleVariants": variant})
+                existing = Index().load({"$or": [{"titleVariants": variant}, {"title": variant}]})
                 if existing and not self.same_record(existing) and existing.title != self.pkeys_orig_values.get("title"):
                     #if not getattr(self, "oldTitle", None) or existing.title != self.oldTitle:
                     raise InputError(u'A text called "{}" already exists.'.format(variant))

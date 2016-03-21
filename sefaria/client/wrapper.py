@@ -27,6 +27,7 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     linkRef = Ref(link.refs[(pos + 1) % 2])
 
     com["_id"]           = str(link._id)
+    com['index_title']   = linkRef.index.title
     com["category"]      = linkRef.type
     com["type"]          = link.type
     com["ref"]           = linkRef.tref
