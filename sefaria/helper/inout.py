@@ -23,7 +23,7 @@ def export_version_csv(index, version_list):
     output = io.BytesIO()
     writer = csv.writer(output)
 
-    #write header data
+    # write header data
     writer.writerow(["Index Title"] + [index.title for _ in version_list])
     writer.writerow(["Version Title"] + [v.versionTitle for v in version_list])
     writer.writerow(["Language"] + [v.language for v in version_list])
@@ -56,10 +56,32 @@ def export_version_csv(index, version_list):
     return output.getvalue()
 
 
-def import_versions():
-    # Get Index and Versions from top rows of CSV
-    # For each existing version
+def import_versions(csv_filename, columns):
+    """
+    Import the versions in the columns listed in `columns`
+    :param columns: zero-based list of column numbers with a new version in them
+    :return:
+    """
+    with open(csv_filename, 'rb') as csvfile:
+        reader = csv.reader(csvfile)
+        rows = [row for row in reader]
 
-    # For each new version
+    index_title = rows[0][columns[0]]  # assume the same index title for all
+    index_node = Ref(index_title).index_node
 
-    pass
+    for column in columns:
+        # Create version
+        v = Version({
+            "chapter": index_node.create_skeleton(),
+            "title": index_title,
+            "versionTitle": rows[1][column],
+            "language": rows[2][column],            # Language
+            "versionSource": rows[3][column],       # Version Source
+            "versionNotes": rows[4][column],        # Version Notes
+        }).save()
+
+        # Populate it
+        for row in rows[5:]:
+            tc = TextChunk(Ref(row[0]), v.language, v.versionTitle)
+            tc.text = row[column]
+            tc.save()
