@@ -4268,7 +4268,7 @@ var SearchFilter = React.createClass({
     ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
   },
   handleFilterClick: function(evt) {
-    evt.preventDefault();
+    //evt.preventDefault();
     this.props.updateSelected(this.props.filter)
   },
   handleFocusCategory: function() {

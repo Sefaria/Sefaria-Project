@@ -2399,11 +2399,11 @@ class Ref(object):
             self._prev = self._iter_text_section(False)
             if self._prev is None and not self.index_node.children:
                 current_leaf = self.index_node
-                #we now need to iterate over the prev leaves, finding the first available section
+                # we now need to iterate over the prev leaves, finding the first available section
                 while True:
-                    prev_leaf = current_leaf.prev_leaf() #prev schema/JANode
+                    prev_leaf = current_leaf.prev_leaf()  # prev schema/JANode
                     if prev_leaf:
-                        prev_node_ref = prev_leaf.ref() #get a ref so we can do the next lines
+                        prev_node_ref = prev_leaf.ref()  # get a ref so we can do the next lines
                         potential_prev = prev_node_ref._iter_text_section(forward=False, depth_up=0 if prev_leaf.depth == 1 else 1)
                         if potential_prev:
                             self._prev = potential_prev
