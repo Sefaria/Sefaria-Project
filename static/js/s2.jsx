@@ -3698,7 +3698,8 @@ var SearchPage = React.createClass({
                               <span className="en">א</span>
                               <span className="he">A</span>
                             </div>
-                            <span>&ldquo;{ this.props.query }&rdquo;</span>
+                            <span className="en">&ldquo;{ this.props.query }&rdquo;</span>
+                            <span className="he">&rdquo;{ this.props.query }&ldquo;</span>
                           </h1>
                           <div className="searchControlsBox">
                           </div>
