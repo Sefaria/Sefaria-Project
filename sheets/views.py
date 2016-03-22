@@ -556,6 +556,14 @@ def sheet_list_api(request):
 		if not j:
 			return jsonResponse({"error": "No JSON given in post data."})
 		sheet = json.loads(j)
+
+
+		#Temp code to throw error in case someone has old sourcesheet code running in browser when backend migration from subsources to indent occurs
+		#Todo remove me by 3/21/16
+		if "sources" in sheet:
+			if "subsources" in sheet["sources"]:
+				return jsonResponse({"error": "There's been an error. Please refresh the page."})
+
 		if "id" in sheet:
 			existing = get_sheet(sheet["id"])
 			if "error" not in existing  and \

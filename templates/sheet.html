@@ -4,7 +4,7 @@
 {% autoescape off %}
 {% for source in sources %}
 	{% if "text" in source %}
-		<li class="source sheetItem {{ source.options.sourceLayout }} {{ source.options.sourceLanguage }} {{ source.options.sourceLangLayout }}">
+		<li class="source sheetItem {{ source.options.sourceLayout }} {{ source.options.sourceLanguage }} {{ source.options.sourceLangLayout }} {{ source.options.indented }}">
 			<div class="customTitle">{{ source.customTitle }}</div>
 			<div class="he">
 				<div class="title">
@@ -25,12 +25,6 @@
 			<div class="clear"></div>
 
 		</li>
-		{% if "subsources" in source %}
-			<div class="subsources">
-				{% include sheet_template with sources=source.subsources %}
-			</div>
-		{% endif %}
-
 	{% elif "outsideBiText" in source %}
 		<li class="outsideBiWrapper">
 			<div class="outsideBi sheetItem">

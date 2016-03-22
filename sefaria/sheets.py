@@ -184,9 +184,6 @@ def refs_in_sources(sources):
 			text = source.get("text", {}).get("he", None)
 			ref  = refine_ref_by_text(source["ref"], text) if text else source["ref"]
 			refs.append(ref)
-		if "subsources" in source:
-			refs = refs + refs_in_sources(source["subsources"])
-
 	return refs
 
 
@@ -266,12 +263,16 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 	results = []
 
 	regex_list = oref.regex(as_list=True)
-	ref_clauses = [{"included_refs": {"$regex": r}} for r in regex_list]
+	ref_clauses = [{"sources.ref": {"$regex": r}} for r in regex_list]
 	sheets = db.sheets.find({"$or": ref_clauses, "status": "public"},
-		{"id": 1, "title": 1, "owner": 1, "included_refs": 1, "views": 1}).sort([["views", -1]])
+		{"id": 1, "title": 1, "owner": 1, "sources.ref": 1, "views": 1}).sort([["views", -1]])
 	for sheet in sheets:
-		# Check for multiple matching refs within this sheet
-		matched_refs = [r for r in sheet["included_refs"] if regex.match(ref_re, r)]
+		matched_refs = []
+		if "sources" in sheet:
+			for source in sheet["sources"]:
+				if "ref" in source:
+					matched_refs.append(source["ref"])
+		matched_refs = [r for r in matched_refs if regex.match(ref_re, r)]
 		for match in matched_refs:
 			try:
 				match = model.Ref(match)
@@ -422,7 +423,7 @@ def broadcast_sheet_publication(publisher_id, sheet_id):
 def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None):
 	"""
 	Creates a source sheet owned by 'uid' that includes all of 'text'.
-	'sources' is a list of strings naming commentators or texts to includes a subsources.
+	'sources' is a list of strings naming commentators or texts to include.
 	"""
 	oref  = model.Ref(text)
 	sheet = {
@@ -446,20 +447,13 @@ def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None
 
 		for ref in refs:
 			ref_dict = { "ref": ref.normal() }
-			if sources:
-				ref_dict["subsources"] = []
-				subsources = ref.linkset().filter(sources)
-				for sub in subsources:
-					subref = sub.refs[1] if regex.match(ref.regex(), sub.refs[0]) else sub.refs[0]
-					ref_dict["subsources"].append({"ref": subref})
-				ref_dict["subsources"] = sorted(ref_dict["subsources"], key=lambda x : x["ref"])
-
 			sheet["sources"].append(ref_dict)
 
 	return save_sheet(sheet, uid)
 
 
 # This is here as an alternative interface - it's not yet used, generally.
+# TODO fix me to reflect new structure where subsources and included_refs no longer exist.
 
 class Sheet(abstract.AbstractMongoRecord):
 	collection = 'sheets'
@@ -472,7 +466,6 @@ class Sheet(abstract.AbstractMongoRecord):
 		"generatedBy",
 		"dateCreated",
 		"dateModified",
-		"included_refs",
 		"owner",
 		"id"
 	]
