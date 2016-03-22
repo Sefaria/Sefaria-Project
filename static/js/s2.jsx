@@ -4126,7 +4126,7 @@ var SearchFilters = React.createClass({
     return {
       openedCategory: null,
       openedCategoryBooks: [],
-      displayFilters: false
+      displayFilters: !!this.props.appliedFilters.length
     }
   },
   getDefaultProps: function() {
