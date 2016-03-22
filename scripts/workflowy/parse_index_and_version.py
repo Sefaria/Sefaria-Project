@@ -69,14 +69,19 @@ class WorkflowyParser(object):
         if self._term_scheme and isinstance(self._term_scheme, basestring):
             self.create_term_scheme()
         # either type of node:
+        ja_sections = self.parse_implied_depth(element)
         titles = self.parse_titles(element)  # an array of titles
         if len(element) == 0:  # length of child nodes
             n = JaggedArrayNode()
-            n.sectionNames = ['Paragraph']
-            n.addressTypes = ['Integer']
-            n.depth = 1
-            n.key = titles["enPrim"]
-            n = self.add_titles_to_node(n, titles)
+            n.depth = len(ja_sections['section_names']) if ja_sections else 1
+            n.sectionNames = ja_sections['section_names'] if ja_sections else ['Paragraph']
+            n.addressTypes = ja_sections['address_types'] if ja_sections else ['Integer']
+            if titles:
+                n.key = titles["enPrim"]
+                n = self.add_titles_to_node(n, titles)
+            else:
+                n.key = 'default'
+                n.default = True
         else:  # yes child nodes >> schema node
             n = SchemaNode()
             n.key = titles["enPrim"]
@@ -93,9 +98,12 @@ class WorkflowyParser(object):
                 self.version_info['text'].append({'node': n, 'text': text})
         return n
 
+
     # en & he titles for each element > dict
     def parse_titles(self, element):
         title = element.get("text")
+        if '**default**' in title:
+            return None
         # print title
         #title = re.sub(ur"</b>|<b>|#.*#|'", u"", title)
         title = self.comment_strip_re.sub(u"", title)
@@ -143,6 +151,33 @@ class WorkflowyParser(object):
             self.outline.set('text', re.sub(category_pattern, "", title))
             return categories
         return None
+
+    def parse_implied_depth(self, element):
+        ja_depth_pattern = ur"\[(\d)\]"
+        ja_sections_pattern = ur"\[(.*)\]"
+        title_str = element.get('text')
+
+        depth_match = re.search(ja_depth_pattern, title_str)
+        if depth_match:
+            depth = int(depth_match.group(1))
+            placeholder_sections = ['Volume', 'Chapter', 'Section', 'Paragraph']
+            element.set('text', re.sub(ja_depth_pattern, "", title_str))
+            return {'section_names': placeholder_sections[(-1 * depth):], 'address_types' : ['Integer'] * depth}
+
+        sections_match = re.search(ja_sections_pattern, title_str)
+        if sections_match:
+            sections = [s.strip() for s in sections_match.group(1).split(",")]
+            element.set('text', re.sub(ja_sections_pattern, "", title_str))
+            section_names = []
+            address_types = []
+            for s in sections:
+                tpl = s.split(":")
+                section_names.append(tpl[0])
+                address_types.append(tpl[1] if len(tpl) > 1 else 'Integer')
+
+            return {'section_names': section_names, 'address_types' : address_types}
+        else:
+            return None
 
     def extract_version_info(self):
         vinfo_str = self.outline.get("_note")
