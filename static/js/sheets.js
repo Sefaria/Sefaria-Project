@@ -281,7 +281,8 @@ $(function() {
 
 
 	// Printing
-	$("#print").click(function(){ 
+	$("#print").click(function(){
+		sjs.track.sheets("Print Sheet Clicked");
 		window.print() 
 	});
 
