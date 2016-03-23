@@ -3009,7 +3009,7 @@ var TextRange = React.createClass({
     var setTop = function() {
        var top  = $(this).parent().position().top;
       $(this).css({top: top}).show();   
-    }
+    };
     $text.find(".segmentNumber").each(setTop);
     $text.find(".linkCount").each(setTop);
   },
@@ -3151,8 +3151,8 @@ var TextSegment = React.createClass({
                                                       <span className="en"> <span className="segmentNumberInner">{this.props.segmentNumber}</span> </span>
                                                       <span className="he"> <span className="segmentNumberInner">{encodeHebrewNumeral(this.props.segmentNumber)}</span> </span>
                                                     </div>) : null;
-    var he = this.props.he || this.props.en;
-    var en = this.props.en || this.props.he;
+    var he = this.props.he || ""; // this.props.en;
+    var en = this.props.en || ""; // this.props.he;
     var classes=classNames({ segment: 1,
                      highlight: this.props.highlight,
                      heOnly: !this.props.en,
