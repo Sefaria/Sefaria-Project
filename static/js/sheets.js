@@ -281,7 +281,8 @@ $(function() {
 
 
 	// Printing
-	$("#print").click(function(){ 
+	$("#print").click(function(){
+		sjs.track.sheets("Print Sheet Clicked");
 		window.print() 
 	});
 
@@ -754,7 +755,7 @@ $(function() {
 						};
 							 
 
-		$("#sources, .subsources").sortable(sjs.sortOptions);
+		$("#sources").sortable(sjs.sortOptions);
 	}
 
 
@@ -762,25 +763,30 @@ $(function() {
 
 	var ownerControls = "<div id='sourceControls'>" + 
 							"<div class='editTitle' title='Edit Source Title'><i class='fa fa-pencil'></i></div>" +
-							"<div class='addSub' title='Add Subsource'><i class='fa fa-plus-circle'></i></div>" +
+							"<div class='addSub' title='Add Source Below'><i class='fa fa-plus-circle'></i></div>" +
 							"<div class='addSubComment' title='Add Comment'><i class='fa fa-comment'></i></div>" +
 							"<div class='addConnections' title='Add All Connections'><i class='fa fa-sitemap'></i></div>"+				
 							"<div class='resetSource' title='Reset Source Text'><i class='fa fa-rotate-left'></i></div>" +
-							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +						
+							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
 							"<div class='switchSourceLayoutLang' title='Change Source Layout/Language'><i class='fa fa-ellipsis-h'></i></div>" +						
 							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up '></i></div>" +
 							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
+							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
+							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
+							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
 
 						"</div>";
 
 	var adderControls = "<div id='sourceControls'>" + 
-							"<div class='addSub' title='Add Subsource'><i class='fa fa-plus-circle'></i></div>" +
+							"<div class='addSub' title='Add Source Below'><i class='fa fa-plus-circle'></i></div>" +
 							"<div class='addSubComment' title='Add Comment'><i class='fa fa-comment'></i></div>" +
 							"<div class='addConnections' title='Add All Connections'><i class='fa fa-sitemap'></i></div>"+				
 							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
 							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up'></i></div>" +
 							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
+							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
+							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
+
 						"</div>";
 
 	var viewerControls = "<div id='sourceControls'>" + 
@@ -788,10 +794,14 @@ $(function() {
 						"</div>";
 
 	var ownerSimpleControls = "<div id='sourceControls'>" + 
-							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
+							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
 							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up'></i></div>" +
 							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
+							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
+							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
+							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
+
+
 						"</div>";
 
 
@@ -865,7 +875,6 @@ $(function() {
 		};
 		$target = $(this).closest(".source");
 		var resetSource = function(option) {
-			console.log($target);
 			var loadClosure = function(data) { 
 				loadSource(data, $target, option) 
 			};
@@ -887,18 +896,12 @@ $(function() {
 			if ("error" in data) {
 				sjs.alert.flash(data.error);
 			} else {
-				console.log(data.ref);
-
-
 				for (var i = 0; i < data.ref.length; i++) {
 					var source = {
 						ref: data.ref[i]
 					}
-					console.log(parseRef(data.ref[i]));
 					buildSource($("#sources"), source);
-
 				}
-
 			}
 		});
 		sjs.track.sheets("Add Parasha to Sheet");
@@ -966,6 +969,48 @@ $(function() {
 		autoSave();
 
 	});
+
+
+	$(".moveSourceRight").live("click", function() {
+
+		if ($(this).closest(".sheetItem").hasClass("indented-1")) {
+			var toIndent = "indented-2";
+		} else if ($(this).closest(".sheetItem").hasClass("indented-2")) {
+			var toIndent = "indented-3";
+		} else if ($(this).closest(".sheetItem").hasClass("indented-3")) {
+			var toIndent = "indented-3";
+		} else {
+			var toIndent = "indented-1";
+		}
+
+		$(this).closest(".sheetItem").removeClass("indented-1 indented-2 indented-3")
+		$(this).closest(".sheetItem").addClass(toIndent);
+
+		autoSave();
+
+	});
+
+
+	$(".moveSourceLeft").live("click", function() {
+
+		if ($(this).closest(".sheetItem").hasClass("indented-1")) {
+			var toIndent = "";
+		} else if ($(this).closest(".sheetItem").hasClass("indented-2")) {
+			var toIndent = "indented-1";
+		} else if ($(this).closest(".sheetItem").hasClass("indented-3")) {
+			var toIndent = "indented-2";
+		} else {
+			var toIndent = "";
+		}
+
+		$(this).closest(".sheetItem").removeClass("indented-1 indented-2 indented-3")
+		$(this).closest(".sheetItem").addClass(toIndent);
+
+		autoSave();
+
+	});
+
+
 
 
 	// Open Modal to override the sheet's default language/layout options for a specific source 
@@ -1096,8 +1141,8 @@ $(function() {
 
 	// Add Sub-Source
 	$(".addSub").live("click", function() { 
-		$("#addSourceModal").data("target", $(".subsources", $(this).closest(".source")).eq(0))
-			.show().position({of: window}); 
+		$("#addSourceModal").data("target", $($(this).closest(".source")).eq(0))
+			.show().position({of: window});
 		$("#add").focus();
 		$("#overlay").show();
 		sjs.track.sheets("Add Sub-Source");
@@ -1106,14 +1151,14 @@ $(function() {
 
 	// Add comment below a Source
 	$(".addSubComment").live("click", function() {
-		var $target = $(".subsources", $(this).closest(".source")).eq(0);
+		var $target = $($(this).closest(".source")).eq(0);
 		
 		var source = {comment: "", isNew: true};
 		if (sjs.can_add) { source.userLink = sjs._userLink; }
 
-		buildSource($target, source);
-
-		$target.find(".comment").last().trigger("mouseup").focus();
+		buildSource($target, source, "insert");
+		$target.next(".sheetItem").addClass('indented-1');
+		$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
 
 		sjs.track.sheets("Add Sub Comment");
 	});
@@ -1140,7 +1185,8 @@ $(function() {
 
 	var autoAddConnetions =  function() {
 		var ref = $(this).parents(".source").attr("data-ref");
-		var $target = $(this).parents(".source").find(".subsources").eq(0);
+		var $target = $($(this).closest(".source")).eq(0);
+
 		var type = $(this).hasClass("addCommentary") ? "Commentary": null;
 
 		sjs.alert.saving("Looking up Connections...")
@@ -1193,7 +1239,7 @@ $(function() {
 								he: c.he
 							}
 						};
-						buildSource($target, source);
+						buildSource($target, source, "insert");
 						count++;
 					}
 					var msg = count == 1 ? "1 Source Added." : count + " Sources Added."
@@ -1247,14 +1293,22 @@ $(function() {
 }); // ------------------ End DOM Ready  ------------------ 
 
 
-function addSource(q, source) {
+function addSource(q, source, appendOrInsert) {
 	// Add a new source to the DOM.
 	// Completed by loadSource on return of AJAX call.
 	// unless 'source' is present, then load with given text.
-	
+
+	appendOrInsert = typeof appendOrInsert !== 'undefined' ? appendOrInsert : 'append';
+
+
 	var badRef = q.ref == undefined ? true : false;
 	
 	var $listTarget = $("#addSourceModal").data("target");
+
+	if ($listTarget.hasClass('sheetItem') ) {
+		appendOrInsert = "insert";
+	}
+
 
 	// Save a last edit record only if this is a user action,
 	// not while loading a sheet
@@ -1286,35 +1340,20 @@ function addSource(q, source) {
 	
 	var refLink = badRef == true ? "#" : "/"+makeRef(q).replace(/'/g, "&apos;");
 
-	$listTarget.append(
-		"<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + 
-					" data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" +
-					" data-node='" + node + "'>" +
-			"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
-			"<div class='customTitle'></div>" + 
-			"<div class='he'>" +
-				"<span class='title'>" + 
-					"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " <span class='ui-icon ui-icon-extlink'></a>" + 
-				"</span>" +
-				"<div class='text'>" + 
-					"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" + 
-				"</div>" + 
-			"</div>" + 
-			"<div class='en'>" +
-				"<span class='title'>" + 
-					"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> <span class='ui-icon ui-icon-extlink'></a>" + 
-				"</span>" +
-				"<div class='text'>" + 
-					"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + 
-				"</div>" + 
-			"</div>" + 
-			"<div class='clear'></div>" +
-			attributionLink + 
-			"<ol class='subsources'></ol>" + 
-		"</li>");
-	
-	var $target = $(".source", $listTarget).last();
-	$target.find(".subsources").sortable(sjs.sortOptions);
+
+	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>" +"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +"<div class='customTitle'></div>" +"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " <span class='ui-icon ui-icon-extlink'></a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" +"</div>" +"<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> <span class='ui-icon ui-icon-extlink'></a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" +"</div>" +"<div class='clear'></div>" + attributionLink + "</li>";
+
+
+	if (appendOrInsert == "append") {
+		$listTarget.append(newsource);
+		var $target = $(".source", $listTarget).last();
+	}
+
+	else if (appendOrInsert == "insert") {
+		$listTarget.after(newsource);
+		var $target = $listTarget.next(".sheetItem")
+	}
+
 	setSourceNumbers();
 	if (source && source.text) {
 		return;
@@ -1446,13 +1485,6 @@ function setSourceNumbers() {
 		index += 1;
 		$(this).find(".sourceNumber.en").html(index + ".");
 		$(this).find(".sourceNumber.he").html(encodeHebrewNumeral(index) + ".");
-	});
-	$(".subsources").each(function(){
-		$(this).find("> .sheetItem").not(".commentWrapper").each(function(index, value) {
-			index += 1;
-			$(this).find(".sourceNumber.en").html(String.fromCharCode(97 + index) + ".");
-			$(this).find(".sourceNumber.he").html(encodeHebrewNumeral(index) + ".");
-		});
 	});
 }
 
@@ -1624,24 +1656,48 @@ function readSource($target) {
 			var sourceLanguage = "english"
 		} else {
 			var sourceLanguage = ""
-		}		
-		
-		source["options"] = {sourceLanguage: sourceLanguage,
+		}
+
+		//Set source indentation level
+		if ($target.hasClass("indented-1")) {
+			var sourceIndentLevel = "indented-1"
+		} else if ($target.hasClass("indented-2")) {
+			var sourceIndentLevel = "indented-2"
+		} else if ($target.hasClass("indented-3")) {
+			var sourceIndentLevel = "indented-3"
+		} else {
+			var sourceIndentLevel ="";
+		}
+
+		source["options"] = {
+							 sourceLanguage: sourceLanguage,
 							 sourceLayout: sourceLayout,
-							 sourceLangLayout: sourceLangLayout};
+							 sourceLangLayout: sourceLangLayout,
+							 indented: sourceIndentLevel
+		};
 		
 		
 		var title = $(".customTitle", $target).eq(0).html();
 		if (title) { 
 			source["title"] = title; 
 		}
-		if ($(".subsources", $target).eq(0).children().length) {
-			source["subsources"] = readSources($(".subsources", $target).eq(0));
-		}
-
 	} else if ($target.hasClass("commentWrapper")) {
 		source["comment"] = $target.find(".comment").html();
 
+		//Set comment indentation level
+		if ($target.hasClass("indented-1")) {
+			var sourceIndentLevel = "indented-1"
+		} else if ($target.hasClass("indented-2")) {
+			var sourceIndentLevel = "indented-2"
+		} else if ($target.hasClass("indented-3")) {
+			var sourceIndentLevel = "indented-3"
+		} else {
+			var sourceIndentLevel ="";
+		}
+
+		source["options"] = {
+							 indented: sourceIndentLevel
+		};
 	} else if ($target.hasClass("outsideBiWrapper")) {
 		source["outsideBiText"] = {
 			en: $target.find(".text .en").html(),
@@ -1804,14 +1860,16 @@ function buildSheet(data){
 	
 
 function buildSources($target, sources) {
-	// Recursive function to build sources into target, subsources will call this function again
-	// with a subsource target. 
+	// Recursive function to build sources into target
 	for (var i = 0; i < sources.length; i++) {
 		buildSource($target, sources[i]);
 	}
 }
 
-function buildSource($target, source) {
+function buildSource($target, source, appendOrInsert) {
+
+	appendOrInsert = typeof appendOrInsert !== 'undefined' ? appendOrInsert : 'append';
+
 	// Build a single source in $target. May call buildSources recursively if sub-sources present.
 		
 	if (!("node" in source)) {
@@ -1828,10 +1886,10 @@ function buildSource($target, source) {
 	if (("ref" in source) && (source.ref != null)  ) {
 		var q = parseRef(source.ref);
 		$("#addSourceModal").data("target", $target);
-		addSource(q, source);
+		addSource(q, source, appendOrInsert);
 		
 		if ("options" in source) {
-			$(".sheetItem").last().addClass(source.options.sourceLayout+" "+source.options.sourceLanguage+" "+source.options.sourceLangLayout)
+			$(".sheetItem").last().addClass(source.options.sourceLayout+" "+source.options.sourceLanguage+" "+source.options.sourceLangLayout+" "+source.options.indented)
 		}
 
 		
@@ -1839,19 +1897,22 @@ function buildSource($target, source) {
 			$(".customTitle").last().html(source.title).css('display', 'inline-block');;
 			$(".sheetItem").last().addClass("hasCustom");
 		}
-		
-		if (source.subsources) {
-			buildSources($(".subsources", $(".source").last()), source.subsources);
-		}
-		
+
 	} else if ("comment" in source) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "commentWrapper");
 		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'>" + 
 							"<div class='comment " + (sjs.loading ? "" : "new") + "'>" + source.comment + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</div>";
-		$target.append(commentHtml);
-
+		if (appendOrInsert == "append") {
+			$target.append(commentHtml);
+		}
+		else if (appendOrInsert == "insert") {
+			$target.after(commentHtml);
+		}
+		if ("options" in source) {
+			$(".sheetItem").last().addClass(source.options.indented);
+		}
 	} else if ("outsideBiText" in source) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideBiWrapper");
 		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
@@ -1863,7 +1924,9 @@ function buildSource($target, source) {
 							"</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</li>";
-		$target.append(outsideHtml);
+				if (appendOrInsert == "append") {
+					$target.append(outsideHtml);
+					}
 
 	} else if ("outsideText" in source) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideWrapper");
@@ -1872,7 +1935,9 @@ function buildSource($target, source) {
 							"<div class='outside " + (sjs.loading ? "" : "new") + "'>" + source.outsideText + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</li>";
-		$target.append(outsideHtml);
+			if (appendOrInsert == "append") {
+				$target.append(outsideHtml);
+			}
 	}
 	else if ("media" in source) {
 		var mediaLink;
@@ -1899,7 +1964,9 @@ function buildSource($target, source) {
 							"<div class='media " + (sjs.loading ? "" : "new") + "'>" + mediaLink + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</li>";
-		$target.append(outsideHtml);
+				if (appendOrInsert == "append") {
+					$target.append(outsideHtml);
+				}
 	}
 	
 	else if ("text" in source) {
@@ -1914,8 +1981,9 @@ function buildSource($target, source) {
 							"</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</li>";
-		$target.append(outsideHtml);
-
+				if (appendOrInsert == "append") {
+					$target.append(outsideHtml);
+				}
 
 
 	}
@@ -1987,9 +2055,6 @@ sjs.saveLastEdit = function($el) {
 			html: $el.html(),
 			node: $el.closest("[data-node]").attr("data-node")
 		}
-		if ($el.closest(".subsources").length) {
-			sjs.lastEdit.parent = $el.closest(".source").attr("data-node");
-		}					
 	} else {
 		sjs.lastEdit = null;
 	}
@@ -2006,7 +2071,7 @@ sjs.replayLastEdit = function() {
 	if (!sjs.lastEdit) { return; }
 
 	var $target = sjs.lastEdit.parent ? 
-					$(".subsources", $(".source[data-node="+sjs.lastEdit.parent+"]")).eq(0) :
+					$($(".source[data-node="+sjs.lastEdit.parent+"]")).eq(0) :
 					$("#sources");
 
 	var source = null;
