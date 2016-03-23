@@ -278,7 +278,7 @@ def s2_search(request):
 
     return render_to_response('s2.html', {
             "initialMenu": "search",
-            "query": request.GET.get("q"),
+            "query": request.GET.get("q") or "",
             "searchFilters": json.dumps(search_filters)
         }, RequestContext(request))
 

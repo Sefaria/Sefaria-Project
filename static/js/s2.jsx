@@ -1334,7 +1334,7 @@ var ReaderPanel = React.createClass({
                     selectVersion={this.props.selectVersion}
                     showBaseText={this.showBaseText} />);
 
-    } else if (this.state.menuOpen === "search") {
+    } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       var menu = (<SearchPage
                     query={this.state.searchQuery}
                     initialPage={1}
