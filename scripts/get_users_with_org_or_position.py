@@ -15,7 +15,7 @@ users  = User.objects.all()
 for user in users:
 	profile = UserProfile(id=user.id)
 	if profile.organization != "" or profile.position != "":
-		out += "%s,%s,%s,%s,%s\n" % (user.email, user.first_name, user.last_name, profile.organization, profile.position)
+		out += "%s\t%s\t%s\t%s\t%s\n" % (user.email, user.first_name, user.last_name, profile.organization, profile.position)
 
 print out
 
