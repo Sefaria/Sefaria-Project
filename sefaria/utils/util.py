@@ -164,3 +164,60 @@ def td_format(td_object):
                             strings.append("%s %ss" % (period_value, period_name))
 
     return ", ".join(strings)
+
+
+def replace_using_regex(regex, query, old, new, endline=None):
+    """
+    This is an enhancement of str.replace(). It will only call str.replace if the regex has
+    been found, thus allowing replacement of tags that may serve multiple or ambiguous functions.
+    Should there be a need, an endline parameter can be added which will be appended to the end of
+    the string
+    :param regex: A regular expression. Will be compiled locally.
+    :param query: The input string to be examined.
+    :param old: The text to be replaced.
+    :param new: The text that will be inserted instead of 'old'.
+    :param endline: An optional argument that can be appended to the end of the string.
+    :return: A new string with 'old' replaced by 'new'.
+    """
+
+    # compile regex and search
+    reg = re.compile(regex)
+    result = re.search(reg, query)
+    if result:
+        query = query.replace(old, new)
+        if endline is not None:
+            query.replace(u'\n', endline+u'\n')
+    return query
+
+def count_by_regex(some_file, regex):
+    """
+    After OCR, text files are returned with many tags, the meaning of which may not be clear or ambiguous.
+    Even if the meaning of each tag is known it can be useful to know how many times each tag appears, as
+    errors may have arisen during the scanning and OCR. By using a regular expression to search, entire
+    documents can be scanned quickly and efficiently.
+
+    :param some_file: A file to be scanned.
+    :param regex: The regex to be used
+    :return: A dictionary where the keys are all the strings that match the regex and the values are the
+    number of times each one appears.
+    """
+
+    # instantiate a dictionary to hold results
+    result = {}
+
+    # compile regex
+    reg = re.compile(regex)
+
+    # loop through file
+    for line in some_file:
+
+        # search for regex
+        found = re.findall(reg, line)
+
+        # count instances found
+        for item in found:
+            if item not in result:
+                result[item] = 1
+            else:
+                result[item] += 1
+    return result
