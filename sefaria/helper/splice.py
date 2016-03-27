@@ -501,7 +501,7 @@ class Splicer(object):
     def _find_sheets(self):
         def _get_sheets_with_ref(oref):
             ref_re = oref.regex()
-            sheets = db.sheets.find({"included_refs": {"$regex": ref_re}}, {"id": 1})
+            sheets = db.sheets.find({"sources.ref": {"$regex": ref_re}}, {"id": 1})
             return [s["id"] for s in sheets]
 
         self._sheets_to_update += _get_sheets_with_ref(self.section_ref)

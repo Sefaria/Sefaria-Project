@@ -160,8 +160,9 @@ class WorkflowyParser(object):
         depth_match = re.search(ja_depth_pattern, title_str)
         if depth_match:
             depth = int(depth_match.group(1))
+            placeholder_sections = ['Volume', 'Chapter', 'Section', 'Paragraph']
             element.set('text', re.sub(ja_depth_pattern, "", title_str))
-            return {'section_names': ['Paragraph'] * depth, 'address_types' : ['Integer'] * depth}
+            return {'section_names': placeholder_sections[(-1 * depth):], 'address_types' : ['Integer'] * depth}
 
         sections_match = re.search(ja_sections_pattern, title_str)
         if sections_match:

@@ -354,7 +354,7 @@
         }
 
         var filter_charts = [];
-        var filter_keys = config.filter_order || Object.keys(config.filters);
+        var filter_keys = config.filter_order.length ? config.filter_order : Object.keys(config.filters);
         filter_keys.forEach(function(key, index) {
             var indx = filter_charts.length;
             var filter_id = "filter-" + indx;

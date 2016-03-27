@@ -62,7 +62,7 @@ def ensure_indices():
     db.profiles.ensure_index("slug")
     db.sheets.ensure_index("id")
     db.sheets.ensure_index("dateModified")
-    db.sheets.ensure_index("included_refs")
+    db.sheets.ensure_index("sources.ref")
     db.texts.ensure_index("title")
     db.texts.ensure_index([("priority", pymongo.DESCENDING), ("_id", pymongo.ASCENDING)])
     db.texts.ensure_index([("versionTitle", pymongo.ASCENDING), ("langauge", pymongo.ASCENDING)])
