@@ -1071,7 +1071,16 @@ var ReaderPanel = React.createClass({
     this.conditionalSetState(state);
   },
   setConnectionsMode: function setConnectionsMode(mode) {
-    console.log("SCM: " + mode);
+    var loginRequired = {
+      "Add to Source Sheet": 1,
+      "Add Note": 1,
+      "My Notes": 1,
+      "Add Connections": 1,
+      "Add Translation": 1
+    };
+    if (!sjs._uid && mode in loginRequired) {
+      mode = "Login";
+    };
     this.conditionalSetState({ connectionsMode: mode });
   },
   setWidth: function setWidth() {
@@ -3688,7 +3697,10 @@ var ConnectionsPanel = React.createClass({
         fullPanel: this.props.fullPanel,
         setConnectionsMode: this.props.setConnectionsMode });
     } else if (this.props.mode === "Add to Source Sheet") {
-      content = React.createElement(LoadingMessage, { className: "toolsMessage", message: "Coming Soon." });
+      content = React.createElement(AddToSourceSheetPanel, {
+        srefs: this.props.srefs,
+        fullPanel: this.props.fullPanel,
+        setConnectionsMode: this.props.setConnectionsMode });
     } else if (this.props.mode === "Add Note") {
       content = React.createElement(LoadingMessage, { className: "toolsMessage", message: "Coming Soon." });
     } else if (this.props.mode === "My Notes") {
@@ -3699,6 +3711,8 @@ var ConnectionsPanel = React.createClass({
       content = React.createElement(LoadingMessage, { className: "toolsMessage", message: "Coming Soon." });
     } else if (this.props.mode === "Add Translation") {
       content = React.createElement(LoadingMessage, { className: "toolsMessage", message: "Coming Soon." });
+    } else if (this.props.mode === "Login") {
+      content = React.createElement(LoginPanel, null);
     }
     return content;
   }
@@ -4460,6 +4474,241 @@ var SharePanel = React.createClass({
           React.createElement(ToolsButton, { en: "Facebook", he: "Facebook", icon: "facebook", onClick: shareFacebook }),
           React.createElement(ToolsButton, { en: "Twitter", he: "Twitter", icon: "twitter", onClick: shareTwitter }),
           React.createElement(ToolsButton, { en: "Email", he: "Email", icon: "envelope-o", onClick: shareEmail })
+        )
+      )
+    );
+  }
+});
+
+var AddToSourceSheetPanel = React.createClass({
+  displayName: "AddToSourceSheetPanel",
+
+  propTypes: {
+    srefs: React.PropTypes.array.isRequired,
+    setConnectionsMode: React.PropTypes.func.isRequired,
+    fullPanel: React.PropTypes.bool
+  },
+  getInitialState: function getInitialState() {
+    return {
+      selectedSheet: null
+    };
+  },
+  componentDidMount: function componentDidMount() {
+    this.loadSheets();
+  },
+  loadSheets: function loadSheets() {
+    sjs.library.sheets.userSheets(sjs._uid, function () {
+      this.forceUpdate();
+    }.bind(this));
+  },
+  addToSourceSheet: function addToSourceSheet() {
+    if (!this.state.selectedSheet) {
+      return;
+    }
+    var url = "/api/sheets/" + this.state.selectedSheet + "/add";
+    var sourceJSON = JSON.stringify({ refs: this.props.srefs });
+    $.post(url, { source: sourceJSON }, this.confirmAdd);
+  },
+  createSheet: function createSheet(refs) {
+    var title = $(ReactDOM.findDOMNode(this)).find("input").val();
+    if (!title) {
+      return;
+    }
+    var sheet = {
+      title: title,
+      options: { numbered: 0 },
+      sources: []
+    };
+    var postJSON = JSON.stringify(sheet);
+    $.post("/api/sheets/", { "json": postJSON }, function (data) {
+      this.setState({ selectedSheet: data.id }, function () {
+        this.addToSourceSheet();
+      });
+      sjs.library.sheets.clearUserSheets(sjs._uid);
+    }.bind(this));
+  },
+  openNewSheet: function openNewSheet() {
+    this.setState({ showNewSheetInput: true });
+  },
+  confirmAdd: function confirmAdd() {
+    this.setState({ confirm: true });
+  },
+  render: function render() {
+    if (this.state.confirm) {
+      return React.createElement(ConfirmAddToSheetPanel, { sheetId: this.state.selectedSheet });
+    }
+    var sheets = sjs.library.sheets.userSheets(sjs._uid);
+    var sheetsContent = sheets ? sheets.map(function (sheet) {
+      var classes = classNames({ sheet: 1, selected: this.state.selectedSheet == sheet.id });
+      var selectSheet = function () {
+        this.setState({ selectedSheet: sheet.id });
+      }.bind(this);
+      return React.createElement(
+        "div",
+        { className: classes, onClick: selectSheet, key: sheet.id },
+        sheet.title.stripHtml()
+      );
+    }.bind(this)) : React.createElement(LoadingMessage, null);
+    var createSheet = this.state.showNewSheetInput ? React.createElement(
+      "div",
+      null,
+      React.createElement("input", { className: "newSheetInput", placeholder: "Title your Sheet" }),
+      React.createElement(
+        "div",
+        { className: "button white small", onClick: this.createSheet },
+        React.createElement(
+          "span",
+          { className: "en" },
+          "Create"
+        ),
+        React.createElement(
+          "span",
+          { className: "he" },
+          "לִיצוֹר"
+        )
+      )
+    ) : React.createElement(
+      "div",
+      { className: "button white", onClick: this.openNewSheet },
+      "Create a Source Sheet"
+    );
+    var classes = classNames({ addToSourceSheetPanel: 1, textList: 1, fullPanel: this.props.fullPanel });
+    return React.createElement(
+      "div",
+      { className: classes },
+      React.createElement(
+        "div",
+        { className: "textListTop" },
+        this.props.fullPanel ? React.createElement(
+          "div",
+          { className: "leftButtons" },
+          this.props.multiPanel ? React.createElement(ReaderNavigationMenuCloseButton, { icon: "arrow", onClick: this.props.closePanel }) : null,
+          this.props.multiPanel ? null : React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.props.openNav })
+        ) : null,
+        this.props.fullPanel ? React.createElement(
+          "div",
+          { className: "rightButtons" },
+          React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings })
+        ) : null,
+        React.createElement(ConnectionsPanelTabs, {
+          activeTab: "Tools",
+          setConnectionsMode: this.props.setConnectionsMode })
+      ),
+      React.createElement(
+        "div",
+        { className: "texts" },
+        React.createElement(
+          "div",
+          { className: "contentInner" },
+          createSheet,
+          React.createElement(
+            "div",
+            { className: "sourceSheetSelector" },
+            sheetsContent
+          ),
+          React.createElement(
+            "div",
+            { className: "button", onClick: this.addToSourceSheet },
+            "Add to Sheet"
+          )
+        )
+      )
+    );
+  }
+});
+
+var ConfirmAddToSheetPanel = React.createClass({
+  displayName: "ConfirmAddToSheetPanel",
+
+  propType: {
+    sheetId: React.PropTypes.number.isRequired
+  },
+  render: function render() {
+    return React.createElement(
+      "div",
+      { className: "confirmAddToSheetPanel" },
+      React.createElement(
+        "div",
+        { className: "message" },
+        React.createElement(
+          "span",
+          { className: "en" },
+          "Your source has been added."
+        ),
+        React.createElement(
+          "span",
+          { className: "he" },
+          "המקור שלך נמחק."
+        )
+      ),
+      React.createElement(
+        "a",
+        { className: "button white", href: "/sheets/" + this.props.sheetId },
+        React.createElement(
+          "span",
+          { className: "en" },
+          "Go to Source Sheet ",
+          React.createElement("i", { className: "fa fa-angle-right" })
+        ),
+        React.createElement(
+          "span",
+          { className: "he" },
+          "לדפ מקורות",
+          React.createElement("i", { className: "fa fa-angle-left" })
+        )
+      )
+    );
+  }
+});
+
+var LoginPanel = React.createClass({
+  displayName: "LoginPanel",
+
+  render: function render() {
+    var currentPath = window.location.pathname + window.location.search;
+    return React.createElement(
+      "div",
+      { className: "loginPanel" },
+      React.createElement(
+        "div",
+        { className: "loginPanelMessage" },
+        React.createElement(
+          "span",
+          { className: "en" },
+          "You must be logged in to use this feature."
+        ),
+        React.createElement(
+          "span",
+          { className: "he" },
+          "אתה חייב להיות מחובר כדי להשתמש בתכונה זו."
+        )
+      ),
+      React.createElement(
+        "a",
+        { className: "button", href: "/login?next=" + currentPath },
+        React.createElement(
+          "span",
+          { className: "en" },
+          "Log In"
+        ),
+        React.createElement(
+          "span",
+          { className: "he" },
+          "התחבר"
+        )
+      ),
+      React.createElement(
+        "a",
+        { className: "button", href: "/register?next=" + currentPath },
+        React.createElement(
+          "span",
+          { className: "en" },
+          "Sign Up"
+        ),
+        React.createElement(
+          "span",
+          { className: "he" },
+          "להירשם"
         )
       )
     );

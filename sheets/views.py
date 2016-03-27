@@ -20,6 +20,7 @@ from reader.views import s2_sheets, s2_sheets_by_tag
 
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse, HttpResponse
+from sefaria.model import *
 from sefaria.sheets import *
 from sefaria.model.user_profile import *
 from sefaria.model.group import Group, GroupSet
@@ -623,6 +624,9 @@ def add_source_to_sheet_api(request, sheet_id):
 	source = json.loads(request.POST.get("source"))
 	if not source:
 		return jsonResponse({"error": "No source to copy given."})
+	if "refs" in source:
+		source["ref"] = Ref(source["refs"][0]).to(Ref(source["refs"][-1])).normal()
+		del source["refs"]
 	return jsonResponse(add_source_to_sheet(int(sheet_id), source))
 
 

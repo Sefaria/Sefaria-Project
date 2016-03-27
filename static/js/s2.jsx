@@ -1032,7 +1032,16 @@ var ReaderPanel = React.createClass({
     this.conditionalSetState(state);
   },
   setConnectionsMode: function(mode) {
-    console.log("SCM: " + mode);
+    var loginRequired = {
+      "Add to Source Sheet": 1,
+      "Add Note": 1,
+      "My Notes": 1,
+      "Add Connections": 1,
+      "Add Translation": 1
+    };
+    if (!sjs._uid && mode in loginRequired) {
+      mode = "Login";
+    };
     this.conditionalSetState({connectionsMode: mode});
   },
   setWidth: function() {
@@ -3057,14 +3066,19 @@ var ConnectionsPanel = React.createClass({
                     openNav={this.props.openNav}
                     openDisplaySettings={this.props.openDisplaySettings}
                     closePanel={this.props.closePanel} />);
+
     } else if (this.props.mode === "Share") {
       content = (<SharePanel
         url={window.location.href}
         fullPanel={this.props.fullPanel}
         setConnectionsMode={this.props.setConnectionsMode} />);
-    
+
     } else if (this.props.mode === "Add to Source Sheet") {
-      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
+      content = (<AddToSourceSheetPanel
+        srefs={this.props.srefs}
+        fullPanel={this.props.fullPanel}
+        setConnectionsMode={this.props.setConnectionsMode} />);
+
     } else if (this.props.mode === "Add Note") {
       content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
     } else if (this.props.mode === "My Notes") {
@@ -3075,6 +3089,8 @@ var ConnectionsPanel = React.createClass({
       content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
     } else if (this.props.mode === "Add Translation") {
       content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
+    } else if (this.props.mode === "Login") {
+      content = (<LoginPanel />);
     }
     return content;
   }
@@ -3643,6 +3659,7 @@ var ToolsButton = React.createClass({
   }
 });
 
+
 var SharePanel = React.createClass({
   propTypes: {
     url: React.PropTypes.string.isRequired,
@@ -3697,6 +3714,140 @@ var SharePanel = React.createClass({
       </div>);
   }
 });
+
+
+var AddToSourceSheetPanel = React.createClass({
+  propTypes: {
+    srefs: React.PropTypes.array.isRequired,
+    setConnectionsMode: React.PropTypes.func.isRequired,
+    fullPanel: React.PropTypes.bool
+  },
+  getInitialState: function() {
+    return {
+      selectedSheet: null
+    };
+  },
+  componentDidMount: function() {
+    this.loadSheets();
+  },
+  loadSheets: function() {
+    sjs.library.sheets.userSheets(sjs._uid, function() {
+      this.forceUpdate();
+    }.bind(this));
+  },
+  addToSourceSheet: function() {
+    if (!this.state.selectedSheet) { return; }
+    var url = "/api/sheets/" + this.state.selectedSheet + "/add";
+    var sourceJSON  = JSON.stringify({refs: this.props.srefs});
+    $.post(url, {source: sourceJSON}, this.confirmAdd); 
+  },
+  createSheet: function(refs) {
+    var title = $(ReactDOM.findDOMNode(this)).find("input").val();
+    if (!title) { return; }
+    var sheet = {
+      title: title,
+      options: {numbered: 0},
+      sources: []
+    };
+    var postJSON = JSON.stringify(sheet);
+    $.post("/api/sheets/", {"json": postJSON}, function(data) {
+      this.setState({selectedSheet: data.id}, function() {
+        this.addToSourceSheet();
+      });
+      sjs.library.sheets.clearUserSheets(sjs._uid);
+    }.bind(this)); 
+  },
+  openNewSheet: function() {
+    this.setState({showNewSheetInput: true});
+  },
+  confirmAdd: function() {
+    this.setState({confirm: true});
+  },
+  render: function() {
+    if (this.state.confirm) {
+      return (<ConfirmAddToSheetPanel sheetId={this.state.selectedSheet} />);
+    }
+    var sheets        = sjs.library.sheets.userSheets(sjs._uid);
+    var sheetsContent = sheets ? sheets.map(function(sheet) {
+      var classes     = classNames({sheet: 1, selected: this.state.selectedSheet == sheet.id});
+      var selectSheet = function() { this.setState({selectedSheet: sheet.id}); }.bind(this);
+      return (<div className={classes} onClick={selectSheet} key={sheet.id}>{sheet.title.stripHtml()}</div>);
+    }.bind(this)) : <LoadingMessage />;
+    var createSheet = this.state.showNewSheetInput ? 
+          (<div>
+            <input className="newSheetInput" placeholder="Title your Sheet"/>
+            <div className="button white small" onClick={this.createSheet} >
+              <span className="en">Create</span>
+              <span className="he">לִיצוֹר</span>
+            </div>
+           </div>) : (<div className="button white" onClick={this.openNewSheet}>Create a Source Sheet</div>);
+    var classes = classNames({addToSourceSheetPanel: 1, textList: 1, fullPanel: this.props.fullPanel});
+    return (
+      <div className={classes}>
+        <div className="textListTop">
+          {this.props.fullPanel ? 
+            (<div className="leftButtons">
+              {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} />) : null}
+              {this.props.multiPanel ? null : (<ReaderNavigationMenuSearchButton onClick={this.props.openNav} />) }
+             </div>) : null}
+          {this.props.fullPanel ? 
+            (<div className="rightButtons">
+              <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+             </div>) : null}
+          <ConnectionsPanelTabs
+            activeTab="Tools"
+            setConnectionsMode={this.props.setConnectionsMode} />
+        </div>
+        <div className="texts">
+          <div className="contentInner">
+            {createSheet}
+            <div className="sourceSheetSelector">{sheetsContent}</div>
+            <div className="button" onClick={this.addToSourceSheet}>Add to Sheet</div>
+          </div>
+        </div>
+      </div>);
+  }
+});
+
+
+var ConfirmAddToSheetPanel = React.createClass({
+  propType: {
+    sheetId: React.PropTypes.number.isRequired
+  },
+  render: function() {
+    return (<div className="confirmAddToSheetPanel">
+              <div className="message">
+                <span className="en">Your source has been added.</span>
+                <span className="he">המקור שלך נמחק.</span>
+              </div>
+              <a className="button white" href={"/sheets/" + this.props.sheetId}>
+                <span className="en">Go to Source Sheet <i className="fa fa-angle-right"></i></span>
+                <span className="he">לדפ מקורות<i className="fa fa-angle-left"></i></span>
+              </a>
+            </div>);
+  }
+});
+
+var LoginPanel = React.createClass({
+  render: function() {
+    var currentPath = window.location.pathname + window.location.search;
+    return (<div className="loginPanel">
+              <div className="loginPanelMessage">
+                <span className="en">You must be logged in to use this feature.</span>
+                <span className="he">אתה חייב להיות מחובר כדי להשתמש בתכונה זו.</span>
+              </div>
+              <a className="button" href={"/login?next=" + currentPath}>
+                <span className="en">Log In</span>
+                <span className="he">התחבר</span>
+              </a>
+              <a className="button" href={"/register?next=" + currentPath}>
+                <span className="en">Sign Up</span>
+                <span className="he">להירשם</span>
+              </a>
+            </div>);
+  }
+});
+
 
 var SearchPage = React.createClass({
     propTypes: {

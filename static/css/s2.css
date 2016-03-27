@@ -1578,6 +1578,9 @@ display: block;margin: 0 auto;}
 .textList.fullPanel .texts {
   padding: 0 50px 300px;
 }
+.addToSourceSheetPanel.textList.fullPanel .texts {
+  padding: 0 50px;
+}
 .textList .fullFilterView {
   padding: 30px 30px 80px 30px;
 }
@@ -1824,7 +1827,7 @@ display: block;margin: 0 auto;}
 .textList .sheet, .textList .note {
   background-color: white;
   margin: 6px 0px;
-  padding: 10px;
+  padding: 10px 20px;
 }
 .textList .sheet .sheetAuthorImg,
 .textList .note .noteAuthorImg {
@@ -1877,7 +1880,8 @@ display: block;margin: 0 auto;}
   color: #999;
 }
 .toolsPanel .texts .contentInner,
-.sharePanel .texts .contentInner {
+.sharePanel .texts .contentInner,
+.addToSourceSheetPanel .texts .contentInner {
   margin: 30px auto;
 }
 .toolsMessage.loadingMessage {
@@ -1918,7 +1922,66 @@ display: block;margin: 0 auto;}
   padding: 20px 26px;
   outline: none;
 }
-
+.addToSourceSheetPanel input {
+  padding: 13px 12px;
+  margin: 0;
+  cursor: pointer;
+  font-size: 15px;
+  border-radius: 4px;
+  box-shadow: none;
+  border: 1px solid #E9E9E9;
+  width: 60%;
+  box-sizing: border-box;
+}
+.addToSourceSheetPanel .button {
+  width: 100%;
+  text-align: center;
+}
+.addToSourceSheetPanel .button.small {
+  width: 37%;
+  box-sizing: border-box;
+  padding: 12px;
+  margin: 0;
+  float: right;
+}
+.sourceSheetSelector {
+  color: #999;
+  background-color: white;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0;
+  margin: 10px 0 30px 0;
+  max-height: 300px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+.sourceSheetSelector .sheet {
+  font-size: 16px;
+  cursor: pointer;
+}
+.sourceSheetSelector .sheet.selected {
+  background: #ccc;
+  color: white;
+}
+.confirmAddToSheetPanel {
+  text-align: center;
+  padding: 100px 30px 0;
+  background-color: #F9F9F7;
+}
+.confirmAddToSheetPanel .message {
+  font-size: 18px;
+  margin-bottom: 30px;
+  font-style: italic;
+}
+.confirmAddToSheetPanel .button {
+  width: 100%;
+}
+.loginPanel {
+  width: 100%;
+  padding: 130px 20px 0;
+  text-align: center;
+  background-color: #F9F9F7;
+}
 .sefariaLogo {
   text-align: center;
   text-transform: uppercase;
@@ -1951,6 +2014,7 @@ display: block;margin: 0 auto;}
  display: inline-block;
  color: white;
  background-color: #212E50;
+ border: 1px solid #212E50;
  border-radius: 4px;
  padding: 12px 24px;
  margin: 2px;
@@ -1963,6 +2027,14 @@ display: block;margin: 0 auto;}
 .button:hover {
   color: white;
   text-decoration: none;
+}
+.button.white {
+  background-color: white;
+  color: black;
+  border: 1px solid #ccc;
+}
+.button.white:hover {
+
 }
 #backToS1 {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -1987,4 +2059,7 @@ display: block;margin: 0 auto;}
 :-ms-input-placeholder {  
    font-style: italic;
    font-family: "adobe-garamond-pro", Georgia, serif;
+}
+input {
+  outline: none;
 }
