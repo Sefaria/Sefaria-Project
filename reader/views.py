@@ -965,6 +965,10 @@ def index_api(request, title, v2=False, raw=False):
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
         j["title"] = title.replace("_", " ")
+        if j["versionTitle"] == "Sefaria Community Translation":
+            j["license"] = "CC0"
+            j["licenseVetter"] = True
+            
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
