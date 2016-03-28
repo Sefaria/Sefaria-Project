@@ -3737,9 +3737,9 @@ var AddToSourceSheetPanel = React.createClass({
   },
   addToSourceSheet: function() {
     if (!this.state.selectedSheet) { return; }
-    var url = "/api/sheets/" + this.state.selectedSheet + "/add";
-    var sourceJSON  = JSON.stringify({refs: this.props.srefs});
-    $.post(url, {source: sourceJSON}, this.confirmAdd); 
+    var url     = "/api/sheets/" + this.state.selectedSheet + "/add";
+    var source  = {refs: this.props.srefs};
+    $.post(url, {source: JSON.stringify(source)}, this.confirmAdd); 
   },
   createSheet: function(refs) {
     var title = $(ReactDOM.findDOMNode(this)).find("input").val();
