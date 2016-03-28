@@ -2196,7 +2196,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
       if (content[i].type == "div") {
         // this is a subcategory
         if (currentRun.length) {
-          boxedContent.push(React.createElement(TwoOrThreeBox, { contents: currentRun, width: this.props.width, key: i }));
+          boxedContent.push(React.createElement(TwoOrThreeBox, { content: currentRun, width: this.props.width, key: i }));
           currentRun = [];
         }
         boxedContent.push(content[i]);
@@ -4506,8 +4506,8 @@ var AddToSourceSheetPanel = React.createClass({
       return;
     }
     var url = "/api/sheets/" + this.state.selectedSheet + "/add";
-    var sourceJSON = JSON.stringify({ refs: this.props.srefs });
-    $.post(url, { source: sourceJSON }, this.confirmAdd);
+    var source = { refs: this.props.srefs };
+    $.post(url, { source: JSON.stringify(source) }, this.confirmAdd);
   },
   createSheet: function createSheet(refs) {
     var title = $(ReactDOM.findDOMNode(this)).find("input").val();
