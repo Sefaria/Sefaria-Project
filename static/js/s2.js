@@ -224,6 +224,11 @@ var ReaderApp = React.createClass({
             hist.url = "account";
             hist.mode = "account";
             break;
+          case "notifications":
+            hist.title = "Sefaria Notifcations";
+            hist.url = "notifications";
+            hist.mode = "notifications";
+            break;
         }
       } else if (state.mode === "Text") {
         hist.title = state.refs.slice(-1)[0];
@@ -677,6 +682,10 @@ var Header = React.createClass({
     this.props.setCentralState({ menuOpen: "account" });
     this.clearSearchBox();
   },
+  showNotifications: function showNotifications() {
+    this.props.setCentralState({ menuOpen: "notifications" });
+    this.clearSearchBox();
+  },
   showTestMessage: function showTestMessage() {
     this.props.setCentralState({ showTestMessage: true });
   },
@@ -744,6 +753,22 @@ var Header = React.createClass({
       setDefaultLanguage: this.props.setDefaultLanguage,
       hideNavHeader: true }) : null;
 
+    var notifcationsClasses = classNames({ notifications: 1, unread: sjs.notificationCount > 0 });
+    var currentPath = window.location.pathname + window.location.search;
+    var signUpLink = React.createElement(
+      "a",
+      { className: "login", href: "/register?next=" + currentPath },
+      React.createElement(
+        "span",
+        { className: "en" },
+        "Sign Up"
+      ),
+      React.createElement(
+        "span",
+        { className: "he" },
+        "להירשם"
+      )
+    );
     return React.createElement(
       "div",
       { className: "header" },
@@ -767,11 +792,17 @@ var Header = React.createClass({
             { className: "testWarning", onClick: this.showTestMessage },
             "Attention: You are testing the New Sefaria"
           ),
-          React.createElement(
+          sjs.loggedIn ? React.createElement(
             "div",
             { className: "account", onClick: this.showAccount },
             React.createElement("img", { src: "/static/img/user-64.png" })
-          )
+          ) : null,
+          sjs.loggedIn ? React.createElement(
+            "div",
+            { className: notifcationsClasses, onClick: this.showNotifications },
+            sjs.notificationCount
+          ) : null,
+          sjs.loggedIn ? null : signUpLink
         ),
         React.createElement(
           "span",
@@ -1243,6 +1274,8 @@ var ReaderPanel = React.createClass({
         setSheetTag: this.setSheetTag });
     } else if (this.state.menuOpen === "account") {
       var menu = React.createElement(AccountPanel, null);
+    } else if (this.state.menuOpen === "notifications") {
+      var menu = React.createElement(NotificationsPanel, null);
     } else {
       var menu = null;
     }
@@ -5225,7 +5258,7 @@ var AccountPanel = React.createClass({
 
   render: function render() {
     var width = $(window).width();
-    var accountContent = [React.createElement(BlockLink, { target: "/my/profile", title: "Profile", heTitle: "Profile" }), React.createElement(BlockLink, { target: "/sheets/private", title: "Source Sheets", heTitle: "דפי מקורות" }), React.createElement(BlockLink, { target: "#", title: "Reading History", heTitle: "Reading History" }), React.createElement(BlockLink, { target: "#", title: "Notes", heTitle: "Notes" }), React.createElement(BlockLink, { target: "/settings/account", title: "Settings", heTitle: "Settings" })];
+    var accountContent = [React.createElement(BlockLink, { target: "/my/profile", title: "Profile", heTitle: "Profile" }), React.createElement(BlockLink, { target: "/sheets/private", title: "Source Sheets", heTitle: "דפי מקורות" }), React.createElement(BlockLink, { target: "#", title: "Reading History", heTitle: "Reading History" }), React.createElement(BlockLink, { target: "#", title: "Notes", heTitle: "Notes" }), React.createElement(BlockLink, { target: "/settings/account", title: "Settings", heTitle: "Settings" }), React.createElement(BlockLink, { target: "/logout", title: "Log Out", heTitle: "Log Out" })];
     accountContent = React.createElement(TwoOrThreeBox, { content: accountContent, width: width });
 
     var learnContent = [React.createElement(BlockLink, { target: "/about", title: "About", heTitle: "אודות" }), React.createElement(BlockLink, { target: "/faq", title: "FAQ", heTitle: "שאלות נפוצות" }), React.createElement(BlockLink, { target: "http://blog.sefaria.org", title: "Blog", heTitle: "בלוג" }), React.createElement(BlockLink, { target: "/educators", title: "Educators", heTitle: "מחנכים" }), React.createElement(BlockLink, { target: "/help", title: "Help", heTitle: "Help" }), React.createElement(BlockLink, { target: "/team", title: "Team", heTitle: "צוות" })];
@@ -5251,6 +5284,26 @@ var AccountPanel = React.createClass({
           React.createElement(ReaderNavigationMenuSection, { title: "Learn", heTitle: "למיד", content: learnContent }),
           React.createElement(ReaderNavigationMenuSection, { title: "Contribute", heTitle: "Contribute", content: contributeContent }),
           React.createElement(ReaderNavigationMenuSection, { title: "Connect", heTitle: "התחבר", content: connectContent })
+        )
+      )
+    );
+  }
+});
+
+var NotificationsPanel = React.createClass({
+  displayName: "NotificationsPanel",
+
+  render: function render() {
+    return React.createElement(
+      "div",
+      { className: "notifcationsPanel readerNavMenu" },
+      React.createElement(
+        "div",
+        { className: "content" },
+        React.createElement(
+          "div",
+          { className: "contentInner" },
+          "Coming Soon!"
         )
       )
     );

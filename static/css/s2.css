@@ -72,7 +72,7 @@ body.dark {
   float: right;
   text-align: right;
 }
-.header .library, .header .home, .header .account, .header .readerNavMenuSearchButton {
+.header .library, .header .home, .header .account, .header .notifications, .header .readerNavMenuSearchButton {
   cursor: pointer;
 }
 .header .library, .header .account, .header .readerNavMenuSearchButton {
@@ -110,6 +110,34 @@ body.dark {
   margin: 0px 17px;
   font-size: 24px;
 }
+.header .notifications {
+  display: inline-block;
+  font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif;
+  line-height: 24px;
+  height: 24px;
+  width: 24px;
+  text-align: center;
+  border-radius: 15px;
+  background-color: #aaa;
+  color: white;
+  vertical-align: 16%;
+  font-size: 16px;
+}
+.header .notifications.unread {
+  color: #d9534f;
+}
+.header .login {
+  color: #999;
+  margin: 0 20px;
+  display: inline-block;
+  line-height: 1;
+}
+.header .login .en {
+  font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif;
+}
+.header .login .he {
+  font-family: "Open Sans Hebrew", sans-serif;
+}
 .header .testWarning {
   display: inline-block;
   color: white;
@@ -129,6 +157,10 @@ body.dark {
 }
 .header .testWarning:hover {
   text-decoration: underline;
+}
+.header .he {
+  /* temp, until we support hebrew header */
+  display: none;
 }
 .testMessageBox {
   position: fixed;

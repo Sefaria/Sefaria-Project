@@ -65,8 +65,9 @@ def notifications(request):
     if not request.user.is_authenticated():
         return {}
     notifications = NotificationSet().recent_for_user(request.user.id)
+    notifications_json = "[" + ",".join([n.to_JSON() for n in notifications]) + "]"
     unread_count  = unread_notifications_count_for_user(request.user.id)
-    return {"notifications": notifications, "notifications_count": unread_count }
+    return {"notifications": notifications, "notifications_json": notifications_json, "notifications_count": unread_count }
 
 
 def calendar_links(request):

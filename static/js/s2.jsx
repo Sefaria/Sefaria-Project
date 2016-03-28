@@ -230,6 +230,11 @@ var ReaderApp = React.createClass({
             hist.url   = "account";
             hist.mode  = "account";
             break;
+          case "notifications":
+            hist.title = "Sefaria Notifcations";
+            hist.url   = "notifications";
+            hist.mode  = "notifications";
+            break;
         }
       } else if (state.mode === "Text") {
         hist.title    = state.refs.slice(-1)[0];
@@ -669,6 +674,10 @@ var Header = React.createClass({
     this.props.setCentralState({menuOpen: "account"});
     this.clearSearchBox();
   },
+  showNotifications: function() {
+    this.props.setCentralState({menuOpen: "notifications"});
+    this.clearSearchBox();
+  },
   showTestMessage: function() {
     this.props.setCentralState({showTestMessage: true});
   },
@@ -737,6 +746,13 @@ var Header = React.createClass({
                           setDefaultLanguage={this.props.setDefaultLanguage}
                           hideNavHeader={true} />) : null;
 
+
+    var notifcationsClasses = classNames({notifications: 1, unread: sjs.notificationCount > 0});
+    var currentPath = window.location.pathname + window.location.search;
+    var signUpLink = (<a className="login" href={"/register?next=" + currentPath}>
+                        <span className="en">Sign Up</span>
+                        <span className="he">להירשם</span>
+                       </a>);
     return (<div className="header">
               <div className="headerInner">
                 <div className="left">
@@ -744,7 +760,9 @@ var Header = React.createClass({
                 </div>
                 <div className="right">
                   <div className="testWarning" onClick={this.showTestMessage} >Attention: You are testing the New Sefaria</div>
-                  <div className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" /></div>
+                  { sjs.loggedIn ? (<div className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" /></div>) : null }
+                  { sjs.loggedIn ? (<div className={notifcationsClasses} onClick={this.showNotifications}>{sjs.notificationCount}</div>) : null }
+                  { sjs.loggedIn ? null : signUpLink }
                 </div>
                 <span className="searchBox">
                   <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
@@ -1198,6 +1216,8 @@ var ReaderPanel = React.createClass({
                     setSheetTag={this.setSheetTag} />);
     } else if (this.state.menuOpen === "account") {
       var menu = (<AccountPanel />);
+    } else if (this.state.menuOpen === "notifications") {
+      var menu = (<NotificationsPanel />);
     } else {
       var menu = null;
     }
@@ -4255,7 +4275,8 @@ var AccountPanel = React.createClass({
       (<BlockLink target="/sheets/private" title="Source Sheets" heTitle="דפי מקורות" />),
       (<BlockLink target="#" title="Reading History" heTitle="Reading History" />),
       (<BlockLink target="#" title="Notes" heTitle="Notes" />),
-      (<BlockLink target="/settings/account" title="Settings" heTitle="Settings" />)
+      (<BlockLink target="/settings/account" title="Settings" heTitle="Settings" />),
+      (<BlockLink target="/logout" title="Log Out" heTitle="Log Out" />)
     ];
     accountContent = (<TwoOrThreeBox content={accountContent} width={width} />);
 
@@ -4303,6 +4324,21 @@ var AccountPanel = React.createClass({
       </div>
       );
   }
+});
+
+
+var NotificationsPanel = React.createClass({
+    render: function() {
+    return (
+      <div className="notifcationsPanel readerNavMenu">
+        <div className="content">
+          <div className="contentInner">
+           Coming Soon!
+          </div>
+        </div>
+      </div>
+      );
+    }
 });
 
 
