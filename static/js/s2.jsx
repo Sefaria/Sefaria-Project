@@ -4333,7 +4333,7 @@ var NotificationsPanel = React.createClass({
       <div className="notifcationsPanel readerNavMenu">
         <div className="content">
           <div className="contentInner">
-           Coming Soon!
+           <center>Notifications Coming Soon!</center>
           </div>
         </div>
       </div>

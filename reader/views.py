@@ -299,6 +299,10 @@ def s2_account(request):
     return s2_page(request, "account")
 
 
+def s2_notifications(request):
+    return s2_page(request, "notifications")
+
+
 def s2_sheets(request):
     return s2_page(request, "sheets")
 

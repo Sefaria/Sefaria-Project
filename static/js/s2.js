@@ -5303,7 +5303,11 @@ var NotificationsPanel = React.createClass({
         React.createElement(
           "div",
           { className: "contentInner" },
-          "Coming Soon!"
+          React.createElement(
+            "center",
+            null,
+            "Notifications Coming Soon!"
+          )
         )
       )
     );
