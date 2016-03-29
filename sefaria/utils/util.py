@@ -2,6 +2,8 @@
 Miscellaneous functions for Sefaria.
 """
 from HTMLParser import HTMLParser
+import re
+
 
 # also at JaggedArray.depth().  Still needed?
 def list_depth(x, deep=False):
@@ -184,10 +186,12 @@ def replace_using_regex(regex, query, old, new, endline=None):
     reg = re.compile(regex)
     result = re.search(reg, query)
     if result:
-        query = query.replace(old, new)
+        temp = result.group().replace(old, new)
+        query = query.replace(result.group(0), temp)
         if endline is not None:
             query.replace(u'\n', endline+u'\n')
     return query
+
 
 def count_by_regex(some_file, regex):
     """
