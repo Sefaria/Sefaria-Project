@@ -167,7 +167,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "era",
         "dependence", #commentary: to denote commentaries and other potential not standalone texts
         "base_text_titles", #the base book(s) this one is dpenedant on
-        "mapping_scheme",
+        "auto_linking_scheme",
         "work_title",
         "related_categories"
     ]
