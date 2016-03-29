@@ -61,7 +61,7 @@ for comm_title in commentators:
     idx = Index().load({'title': comm_title})
     del_old_commentator(idx)
 
-print "The following were bad comemntator names: {}".format(malformed_commentators)
+print "The following were bad commentator names: {}".format(malformed_commentators)
 
 new_indices = IndexSet({'dependence' : {'$exists': True}})
 
