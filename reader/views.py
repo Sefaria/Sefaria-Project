@@ -299,6 +299,10 @@ def s2_account(request):
     return s2_page(request, "account")
 
 
+def s2_notifications(request):
+    return s2_page(request, "notifications")
+
+
 def s2_sheets(request):
     return s2_page(request, "sheets")
 
@@ -968,6 +972,10 @@ def index_api(request, title, v2=False, raw=False):
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
         j["title"] = title.replace("_", " ")
+        if j["versionTitle"] == "Sefaria Community Translation":
+            j["license"] = "CC0"
+            j["licenseVetter"] = True
+            
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:

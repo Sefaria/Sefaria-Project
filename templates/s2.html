@@ -66,6 +66,7 @@
   {% endif %}
   <script {% if DEBUG %}type="text/jsx"{% endif %}>  //;harmony=true
     {% autoescape off %}
+    {% include "js/django-csrf.js" %}
     $(function() {        
       var version, language, filter, ref; // all may be null
       var initialMenu   = "{{ initialMenu }}";
