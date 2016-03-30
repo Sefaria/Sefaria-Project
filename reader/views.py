@@ -1374,6 +1374,10 @@ def visualize_ephraim(request):
     return render_to_response('visualize_ephraim.html', {}, RequestContext(request))
 
 
+def visualize_yoni(request):
+    return render_to_response('visualize_yoni.html', {}, RequestContext(request))
+
+
 @catch_error_as_json
 def set_lock_api(request, tref, lang, version):
     """

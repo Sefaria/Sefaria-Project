@@ -272,6 +272,7 @@ urlpatterns += patterns('reader.views',
     (r'^visualize/toc$', 'visualize_toc'),
     (r'^visualize/steve$', 'visualize_steve'),
     (r'^visualize/ephraim$', 'visualize_ephraim'),
+    (r'visualize/yoni$', 'visualize_yoni'),
 
 )
 
