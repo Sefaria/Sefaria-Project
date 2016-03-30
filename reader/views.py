@@ -1370,8 +1370,10 @@ def visualize_steve(request):
     return render_to_response('visual_steve.html', {}, RequestContext(request))
 
 
-def visualize_ephraim(request):
-    return render_to_response('visualize_ephraim.html', {}, RequestContext(request))
+def visualize_rashi_interlinks(request):
+    level = request.GET.get("level", 1)
+    json_file = "../static/files/torah_rashi_torah.json" if level == 1 else "../static/files/tanach_rashi_tanach.json"
+    return render_to_response('visualize_links_via_rashi.html', {"json_file": json_file}, RequestContext(request))
 
 
 def visualize_yoni(request):
