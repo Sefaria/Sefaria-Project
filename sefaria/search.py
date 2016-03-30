@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 from pyelasticsearch import ElasticSearch
 
 from sefaria.model import *
-from sefaria.utils.users import user_link
+from sefaria.model.user_profile import user_link
 from sefaria.system.database import db
 from sefaria.utils.util import strip_tags
 from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME
@@ -45,7 +45,7 @@ def index_text(oref, version=None, lang=None, bavli_amud=True):
     Currently assumes ref is at section level. 
     """
     assert isinstance(oref, Ref)
-
+    oref = oref.default_child_ref()
     # Recall this function for each specific text version, if none provided
     if not (version and lang):
         for v in oref.version_list():

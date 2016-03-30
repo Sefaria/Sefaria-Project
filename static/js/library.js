@@ -4,6 +4,7 @@ var sjs = sjs || {};
 
 sjs.library = {
   _texts: {},
+  _refmap: {}, // Mapping of simple ref/context keys to the (potentially) versioned key for that ref in _texts. 
   text: function(ref, settings, cb) {
     if (!ref || typeof ref == "object" || typeof ref == "undefined") { debugger; }
     settings = settings || {};
@@ -53,6 +54,15 @@ sjs.library = {
     }
     return key;
   },
+  _refKey: function(ref, settings) {
+    // Returns the key for this ref without any version/language elements
+    if (!ref) { debugger; }
+    var key = ref.toLowerCase();
+    if (settings) {
+      key = settings.context ? key + "|CONTEXT" : key;
+    }
+    return key;
+  },
   _getOrBuildTextData: function(key) {
     var cached = this._texts[key];
     if (!cached || !cached.buildable) { return cached; }
@@ -71,9 +81,12 @@ sjs.library = {
     }
     settings         = settings || {};
     data             = skipWrap ? data : this._wrapRefs(data);
-    key              = this._textKey(data.ref, settings);
+    var key          = this._textKey(data.ref, settings);
     this._texts[key] = data;
-    
+
+    var refkey           = this._refKey(data.ref, settings);
+    this._refmap[refkey] = key;
+
     if (data.ref == data.sectionRef && !data.isSpanning) {
       this._splitTextSection(data, settings);
     } else if (settings.context) {
@@ -148,6 +161,10 @@ sjs.library = {
       context_settings.context = 1;
       var contextKey = this._textKey(ref, context_settings);
       this._texts[contextKey] = {buildable: "Add Context", ref: ref, sectionRef: sectionRef};
+
+      var refkey           = this._refKey(ref, context_settings);
+      this._refmap[refkey] = contextKey;
+
     }
   },
   _splitSpanningText: function(data) {
@@ -206,15 +223,42 @@ sjs.library = {
     })
   },
   ref: function(ref) {
-    // Returns parsed ref in for string `ref`. 
-    // This is currently a wrapper for sjs.library text for cases when the textual information is not important
-    // so that it can be called without worrying about the `settings` parameter for what is available in cache.
-    return this.text(ref) || this.text(ref, {context:1});
+    // Returns parsed ref info for string `ref`.
+    // Uses this._refmap to find the refkey that has information for this ref.
+    // Used in cases when the textual information is not important, so it can
+    // be called without worrying about the `settings` parameter for what is available in cache.
+
+    var versioned_key = this._refmap[this._refKey(ref)] || this._refmap[this._refKey(ref, {context:1})];
+    if (versioned_key) { return this._getOrBuildTextData(versioned_key);  }
+    return null;
   },
   sectionRef: function(ref) {
     // Returns the section level ref for `ref` or null if no data is available
     var oref = this.ref(ref);
     return oref ? oref.sectionRef : null;
+  },
+  splitSpanningRef: function(ref) {
+    // Returns an array of non-spanning refs which correspond to the spanning `ref`
+    // e.g. "Genesis 1:1-2" -> ["Genesis 1:1", "Genesis 1:2"]
+    var oref = parseRef(ref);
+    var isDepth1 = oref.sections.length == 1;
+    if (!isDepth1 && oref.sections[oref.sections.length - 2] !== oref.toSections[oref.sections.length - 2]) {
+      // TODO handle ranging refs, which requires knowledge of the segment count of each included section
+      // i.e., in "Shabbat 2a:5-2b:8" what is the last segment of Shabbat 2a?
+      // For now, just return the first non-spanning ref.
+      oref.toSections = oref.sections;
+      return [humaRef(makeRef(oref))];
+    } else {
+      var refs  = [];
+      var start = oref.sections[oref.sections.length-1];
+      var end   = oref.toSections[oref.sections.length-1];
+      for (var i = start; i <= end; i++) {
+        oref.sections[oref.sections.length-1]   = i;
+        oref.toSections[oref.sections.length-1] = i;
+        refs.push(humanRef(makeRef(oref)));
+      }
+      return refs;
+    }
   },
   _links: {},
   links: function(ref, cb) {
@@ -258,20 +302,27 @@ sjs.library = {
     }
   },
   _saveLinksByRef: function(data) {
-    // For a set of links from the API, save each set split by the specific ref the link points to.
-    var newLinks = {}; // Aggregate links by anchorRef
-    // TODO account for links to ranges
+    this._saveItemsByRef(data, this._links);
+  },
+  _saveItemsByRef: function(data, store) {
+    // For a set of items from the API, save each set split by the specific ref the items points to.
+    // E.g, API is called on "Genesis 1", this function also stores the data in buckets like "Genesis 1:1", "Genesis 1:2" etc.
+    var splitItems = {}; // Aggregate links by anchorRef
     for (var i=0; i < data.length; i++) {
-      var newRef = data[i].anchorRef;
-      if (newRef in newLinks) {
-        newLinks[newRef].push(data[i]);
-      } else {
-        newLinks[newRef] = [data[i]];
+      var ref = data[i].anchorRef;
+      var refs = sjs.library.splitSpanningRef(ref);
+      for (var j = 0; j < refs.length; j++) {
+        ref = refs[j];
+        if (ref in splitItems) {
+          splitItems[ref].push(data[i]);
+        } else {
+          splitItems[ref] = [data[i]];
+        }
       }
     }
-    for (var newRef in newLinks) {
-      if (newLinks.hasOwnProperty(newRef)) {
-        this._links[newRef] = newLinks[newRef];
+    for (var ref in splitItems) {
+      if (splitItems.hasOwnProperty(ref)) {
+        store[ref] = splitItems[ref];
       }
     }
   },
@@ -406,15 +457,30 @@ sjs.library = {
   },
   _notes: {},
   notes: function(ref, cb) {
-    var notes = this.notes[ref];
+    var notes = null;
+    if (typeof ref == "string") {
+      if (ref in this._notes) { 
+        notes = this._notes[ref];
+      }
+    } else {
+      var notes = [];
+      ref.map(function(r) {
+        var newNotes = sjs.library.notes(r);
+        notes = newNotes ? notes.concat(newNotes) : notes;
+      });
+    }
     if (notes) {
       if (cb) { cb(notes); }
     } else {
       sjs.library.related(ref, function(data) {
-        cb(data.notes);
+        if (cb) { cb(data.notes); }
       });
     }
     return notes;
+  },
+  _saveNoteData: function(ref, data) {
+    this._notes[ref] = data;
+    this._saveItemsByRef(data, this._notes);
   },
   _related: {},
   related: function(ref, cb) {
@@ -432,12 +498,51 @@ sjs.library = {
             return;
           }
           this._saveLinkData(ref, data.links);
+          this._saveNoteData(ref, data.notes);
+          this.sheets._saveSheetsByRefData(ref, data.sheets);
           this._related[ref] = data;
-          this.sheets._sheetsByRef[ref] = data.sheets;
-          this._notes[ref] = data.notes;
           cb(data);
         }.bind(this));
     }
+  },
+  _relatedSummaries: {},
+  relatedSummary: function(ref) {
+    // Returns a summary object of all categories of related content.
+    if (typeof ref == "string") {
+      if (ref in this._relatedSummaries) { return this._relatedSummaries[ref]; }
+      var sheets = this.sheets.sheetsByRef(ref) || [];
+      var notes  = this.notes(ref) || [];
+    } else {
+      var sheets = [];
+      var notes  = [];
+      ref.map(function(r) {
+        var newSheets = sjs.library.sheets.sheetsByRef(r);
+        sheets = newSheets ? sheets.concat(newSheets) : sheets;
+        var newNotes = sjs.library.notes(r);
+        notes = newNotes ? notes.concat(newNotes) : notes;
+      });
+    }
+
+    var summary           = this.linkSummary(ref);
+    var commmunityContent = [sheets, notes].filter(function(section) { return section.length > 0; } ).map(function(section) {
+      if (!section) { debugger; }
+      return {
+        book: section[0].category,
+        heBook: sjs.library.hebrewCategory(section[0].category),
+        category: "Community",
+        count: section.length
+      };
+    });
+    var community = {
+      category: "Community",
+      count: sheets.length + notes.length,
+      books: commmunityContent
+    };
+    if (community.count > 0) {
+      summary.push(community);
+    }
+    this._relatedSummaries[ref] = summary;
+    return summary;
   },
   textTocHtml: function(title, cb) {
     // Returns an HTML fragment of the table of contents of the text 'title'
@@ -638,17 +743,37 @@ sjs.library = {
         }
       return sheets;
     },
+    clearUserSheets: function(uid) {
+      this._userSheets[uid] = null;
+    },  
     _sheetsByRef: {},
     sheetsByRef: function(ref, cb) {
-      var sheets = this._sheetsByRef[ref];
+      var sheets = null;
+      if (typeof ref == "string") {
+        if (ref in this._sheetsByRef) { 
+          sheets = this._sheetsByRef[ref];
+        }
+      } else {
+        var sheets = [];
+        ref.map(function(r) {
+          var newSheets = sjs.library.sheets.sheetsByRef(r);
+          if (newSheets) {
+            sheets = sheets.concat(newSheets);
+          }
+        });
+      }
       if (sheets) {
         if (cb) { cb(sheets); }
       } else {
         sjs.library.related(ref, function(data) {
-          cb(data.sheets);
+          if (cb) { cb(data.sheets); }
         });
       }
       return sheets;
+    },
+    _saveSheetsByRefData: function(ref, data) {
+      this._sheetsByRef[ref] = data;
+      sjs.library._saveItemsByRef(data, this._sheetsByRef);
     }
   },
   hebrewCategory: function(cat) {
@@ -700,7 +825,9 @@ sjs.library = {
       "Rosh":                 'ר"אש',
       "Maharsha":             'מהרשא',
       "Mishneh Torah":        "משנה תורה",
-      "Shulchan Arukh":       "שולחן ערוך"
+      "Shulchan Arukh":       "שולחן ערוך",
+      "Sheets":               "א sheets",
+      "Notes":                "א notes"
     };
     return cat in categories ? categories[cat] : cat;
   },
@@ -860,6 +987,7 @@ sjs.categoryColors = {
   "Quoting Commentary": sjs.palette.orange,
   "Commentary2":        sjs.palette.blue,
   "Sheets":             sjs.palette.raspberry,
+  "Community":          sjs.palette.raspberry,
   "Targum":             sjs.palette.lavender,
   "Modern Works":       sjs.palette.raspberry
 };

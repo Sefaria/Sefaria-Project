@@ -8,7 +8,7 @@ import dateutil.parser
 import urllib
 import math
 from urlparse import urlparse
-
+from datetime import datetime
 from django import template
 from django.template.defaultfilters import stringfilter
 from django.utils.safestring import mark_safe
@@ -17,8 +17,8 @@ from django.db.models.query import QuerySet
 from django.contrib.sites.models import Site
 
 from sefaria.sheets import get_sheet
-from sefaria.utils.users import user_link as ulink
-from sefaria.utils.users import user_name as uname
+from sefaria.model.user_profile import user_link as ulink
+from sefaria.model.user_profile import user_name as uname
 from sefaria.utils.util import strip_tags as strip_tags_func
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term
 from sefaria.utils.hebrew import hebrew_term as translate_hebrew_term
@@ -471,3 +471,7 @@ def partition_vertical(thelist, n):
 	for i, val in enumerate(thelist):
 		newlists[i%n].append(val)
 	return newlists
+
+@register.filter
+def date_string_to_date(dateString):
+    return(datetime.strptime(dateString, "%Y-%m-%dT%H:%M:%S.%f"))

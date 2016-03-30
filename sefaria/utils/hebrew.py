@@ -308,7 +308,7 @@ def encode_hebrew_daf(daf):
 
 
 def strip_nikkud(rawString):
-	return rawString.replace(r"[\u0591-\u05C7]", "");
+	return rawString.replace(r"[\u0591-\u05C7]", "")
 
 
 #todo: rewrite to handle edge case of hebrew words in english texts, and latin characters in Hebrew text
@@ -419,7 +419,7 @@ def hebrew_term(s):
 		"Dictionary":           u"מילון",
 		"Early Jewish Thought": u"מחשבת ישראל קדומה",
 		"Minor Tractates":      u"מסכתות קטנות",
-		"Rosh":                 u'ר"אש',
+		"Rosh":                 u'רא"ש',
 		"Maharsha":             u'מהרשא',
 		"Rashba":	        u'רשב"א',
 		"Maharam Shif":		u'מהר"ם שיף',

@@ -243,11 +243,11 @@ def get_or_make_summary_node(summary, nodes, contents_only=True, make_if_not_fou
     # Look for the first category, or add it, then recur
     for node in summary:
         if node.get("category") == nodes[0]:
-            return get_or_make_summary_node(node["contents"], nodes[1:], contents_only=contents_only)
+            return get_or_make_summary_node(node["contents"], nodes[1:], contents_only=contents_only, make_if_not_found=make_if_not_found)
 
     if make_if_not_found:
         summary.append({"category": nodes[0], "heCategory": hebrew_term(nodes[0]), "contents": []})
-        return get_or_make_summary_node(summary[-1]["contents"], nodes[1:], contents_only=contents_only)
+        return get_or_make_summary_node(summary[-1]["contents"], nodes[1:], contents_only=contents_only, make_if_not_found=make_if_not_found)
     else:
         return None
 

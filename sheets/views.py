@@ -20,10 +20,10 @@ from reader.views import s2_sheets, s2_sheets_by_tag
 
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse, HttpResponse
+from sefaria.model import *
 from sefaria.sheets import *
 from sefaria.model.user_profile import *
 from sefaria.model.group import Group, GroupSet
-from sefaria.utils.users import user_link
 from sefaria.system.exceptions import InputError
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
@@ -101,6 +101,9 @@ def can_add(user, sheet):
 		return False
 	if can_edit(user, sheet):
 		return False
+	if "assigner_id" in sheet:
+		if sheet["assigner_id"] == user.id:
+			return True
 	if "collaboration" not in sheet["options"]:
 		return False
 	if sheet["options"]["collaboration"] == "anyone-can-add":
@@ -554,6 +557,14 @@ def sheet_list_api(request):
 		if not j:
 			return jsonResponse({"error": "No JSON given in post data."})
 		sheet = json.loads(j)
+
+
+		#Temp code to throw error in case someone has old sourcesheet code running in browser when backend migration from subsources to indent occurs
+		#Todo remove me by 3/21/16
+		if "sources" in sheet:
+			if "subsources" in sheet["sources"]:
+				return jsonResponse({"error": "There's been an error. Please refresh the page."})
+
 		if "id" in sheet:
 			existing = get_sheet(sheet["id"])
 			if "error" not in existing  and \
@@ -621,6 +632,9 @@ def add_source_to_sheet_api(request, sheet_id):
 	source = json.loads(request.POST.get("source"))
 	if not source:
 		return jsonResponse({"error": "No source to copy given."})
+	if "refs" in source:
+		source["ref"] = Ref(source["refs"][0]).to(Ref(source["refs"][-1])).normal()
+		del source["refs"]
 	return jsonResponse(add_source_to_sheet(int(sheet_id), source))
 
 

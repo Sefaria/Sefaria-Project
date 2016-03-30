@@ -17,11 +17,25 @@ body {
 #fileControls {
 	text-align: right;
 	line-height: 8px;
+	position: fixed;
+    bottom: 0;
+	z-index: 100;
+	background-color: #ccc;
+    height: 50px;
+    left: 0;
+    width: 100%;
+	border-top: 1px solid #777;
+}
+
+#fileControlMsg {
+	text-align: center;
+    margin-top: 20px;
 }
 
 #fileControls .btn {
 	position: relative;
-	top: -18px;
+	right: 20px;
+	top:17px
 }
 
 #link {
@@ -50,6 +64,20 @@ body {
 	border: 1px solid #bce8f1;
 	color: #31708f;
 }
+
+#lastSaved {
+	position: fixed;
+	z-index: 100;
+	top: 47px;
+	right: 8px;
+	text-align: center;
+	font-size: 12px;
+	padding: 7px 5px;
+	border-radius: 5px;
+	color: #888;
+	background-color: #eee;
+}
+
 
 #sheet {
 	background: white;
@@ -382,7 +410,7 @@ body {
 	color: #555;
 }
 
-#sources, .subsources {
+#sources {
 	font-size: 20px;
 	margin: 0px;
 	padding: 0px;
@@ -391,10 +419,6 @@ body {
 
 #sources { 
 	margin-top: 40px;
-}
-
-.subsources {
-	margin-top: 10px;
 }
 
 #sheet #sources .sheetItem .sourceNumber {
@@ -453,10 +477,10 @@ body {
 	text-align: center;
 	position: absolute;
 	bottom: 7px;
-	width: 260px;
+	width: 300px;
 	background-color: #eee;
 	left: 50%;
-	margin-left: -130px;
+	margin-left: -150px;
 }
 
 .sourceControlsTop #sourceControls {
@@ -660,32 +684,27 @@ body {
 	background-color: inherit;
 }
 
-.subsources .source .title {
-	font-size: 15px;
-	margin-bottom: 0px;
-}
-
-.subsources .source {
-
-}
-
-.subsources .source .text {
-	font-size: 16px;
-}
-
 #sources .sortPlaceholder {
 	min-height: 60px;
 	margin: 20px 0;
 	background-color: #DAE83F;
 }
 
-#sheet.bilingual.stacked .subsources {
-	margin: 10px 0 0 60px;
+.indented-1 {
+	margin-left: 30px !important;
+	margin-right: 30px !important;
 }
 
-#sheet.bilingual .subsources {
-	margin: 10px 30px;
+.indented-2 {
+	margin-left: 60px !important;
+	margin-right: 60px !important;
 }
+
+.indented-3 {
+	margin-left: 90px !important;
+	margin-right: 90px !important;
+}
+
 
 .comment {
 	font-size: 17px;
@@ -995,10 +1014,6 @@ a:active {
 	#sheetHeader {
 		width: 100%;
 		margin-left: 0;
-	}
-
-	#fileControls .btn {
-		top: -18px;
 	}
 
 	#controls {

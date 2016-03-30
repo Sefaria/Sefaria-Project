@@ -47,19 +47,21 @@ class WorkflowyParser(object):
         # for element in tree.iter('outline'):
         #     print parse_titles(element)["enPrim"]
         categories = self.extract_categories_from_title()
-        if self._c_version:
-            self.version_info = {'info': self.extract_version_info(), 'text':[]}
+        self.version_info = {'info': self.extract_version_info(), 'text':[]}
         schema_root = self.build_index_schema(self.outline)
         self.parsed_schema = schema_root
         schema_root.validate()
         if self._c_index:
             print "Saving Index record"
-            self.create_index_from_schema(categories)
+            idx = self.create_index_from_schema(categories)
+            if self._c_version:
+                print "Creating Version Record"
+                self.create_version_from_outline_notes()
+            else:
+                print "No Text, Creating Default Empty Version Record"
+                self.create_version_default(idx)
         else:
             print pprint.pprint(schema_root.serialize())
-        if self._c_version:
-            print "Creating Version Record"
-            self.create_version_from_outline_notes()
 
 
     # object tree of each with jagged array nodes at the lowest level (recursive)
@@ -67,23 +69,25 @@ class WorkflowyParser(object):
         if self._term_scheme and isinstance(self._term_scheme, basestring):
             self.create_term_scheme()
         # either type of node:
+        ja_sections = self.parse_implied_depth(element)
         titles = self.parse_titles(element)  # an array of titles
         if len(element) == 0:  # length of child nodes
             n = JaggedArrayNode()
-            n.sectionNames = ['Paragraph']
-            n.addressTypes = ['Integer']
-            n.depth = 1
-            n.key = titles["enPrim"]
-            n = self.add_titles_to_node(n, titles)
+            n.depth = len(ja_sections['section_names']) if ja_sections else 1
+            n.sectionNames = ja_sections['section_names'] if ja_sections else ['Paragraph']
+            n.addressTypes = ja_sections['address_types'] if ja_sections else ['Integer']
+            if titles:
+                n.key = titles["enPrim"]
+                n = self.add_titles_to_node(n, titles)
+            else:
+                n.key = 'default'
+                n.default = True
         else:  # yes child nodes >> schema node
             n = SchemaNode()
             n.key = titles["enPrim"]
             n = self.add_titles_to_node(n, titles)
             for child in element:
                 n.append(self.build_index_schema(child))
-
-
-
 
         if self._term_scheme and element != self.outline: #add the node to a term scheme
             self.create_shared_term_for_scheme(n.title_group)
@@ -94,9 +98,12 @@ class WorkflowyParser(object):
                 self.version_info['text'].append({'node': n, 'text': text})
         return n
 
+
     # en & he titles for each element > dict
     def parse_titles(self, element):
         title = element.get("text")
+        if '**default**' in title:
+            return None
         # print title
         #title = re.sub(ur"</b>|<b>|#.*#|'", u"", title)
         title = self.comment_strip_re.sub(u"", title)
@@ -145,13 +152,40 @@ class WorkflowyParser(object):
             return categories
         return None
 
+    def parse_implied_depth(self, element):
+        ja_depth_pattern = ur"\[(\d)\]"
+        ja_sections_pattern = ur"\[(.*)\]"
+        title_str = element.get('text')
+
+        depth_match = re.search(ja_depth_pattern, title_str)
+        if depth_match:
+            depth = int(depth_match.group(1))
+            placeholder_sections = ['Volume', 'Chapter', 'Section', 'Paragraph']
+            element.set('text', re.sub(ja_depth_pattern, "", title_str))
+            return {'section_names': placeholder_sections[(-1 * depth):], 'address_types' : ['Integer'] * depth}
+
+        sections_match = re.search(ja_sections_pattern, title_str)
+        if sections_match:
+            sections = [s.strip() for s in sections_match.group(1).split(",")]
+            element.set('text', re.sub(ja_sections_pattern, "", title_str))
+            section_names = []
+            address_types = []
+            for s in sections:
+                tpl = s.split(":")
+                section_names.append(tpl[0])
+                address_types.append(tpl[1] if len(tpl) > 1 else 'Integer')
+
+            return {'section_names': section_names, 'address_types' : address_types}
+        else:
+            return None
+
     def extract_version_info(self):
         vinfo_str = self.outline.get("_note")
         if vinfo_str:
             vinfo_dict = {elem.split(":",1)[0].strip():elem.split(":",1)[1].strip() for elem in vinfo_str.split(",")}
         else:
             vinfo_dict = {'language': 'he',
-                          'versionSource': '',
+                          'versionSource': 'not available',
                           'versionTitle': 'pending'
                           }
         return vinfo_dict
@@ -159,11 +193,12 @@ class WorkflowyParser(object):
     def create_index_from_schema(self, categories=None):
         if not categories:
             categories = ["Other"]
-        Index({
+        idx = Index({
             "title": self.parsed_schema.primary_title(),
             "categories": categories,
             "schema": self.parsed_schema.serialize()
         }).save()
+        return idx
 
     def create_term_scheme(self):
         if not TermScheme().load({"name": self._term_scheme}):
@@ -207,6 +242,17 @@ class WorkflowyParser(object):
             lang = self.version_info['info']['language']
             vsource = self.version_info['info']['versionSource']
             modify_text(user,ref,vtitle, lang, text, vsource)
+
+    def create_version_default(self, idx):
+        Version(
+            {
+                "chapter": idx.nodes.create_skeleton(),
+                "versionTitle": self.version_info['info']['versionTitle'],
+                "versionSource": self.version_info['info']['versionSource'],
+                "language": self.version_info['info']['language'],
+                "title": idx.title
+            }
+        ).save()
 
 
     """def create_version_from_outline_notes(self):

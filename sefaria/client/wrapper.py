@@ -8,7 +8,7 @@ from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.summaries import REORDER_RULES
 from sefaria.system.exceptions import InputError, NoVersionFoundError
-from sefaria.utils.users import user_link
+from sefaria.model.user_profile import user_link, public_user_data
 
 
 def format_link_object_for_client(link, with_text, ref, pos=None):
@@ -27,6 +27,7 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     linkRef = Ref(link.refs[(pos + 1) % 2])
 
     com["_id"]           = str(link._id)
+    com['index_title']   = linkRef.index.title
     com["category"]      = linkRef.type
     com["type"]          = link.type
     com["ref"]           = linkRef.tref
@@ -88,22 +89,25 @@ def format_note_object_for_client(note):
     Returns an object that represents note in the format expected by the reader client,
     matching the format of links, which are currently handled together.
     """
-    com = {}
     anchor_oref = Ref(note.ref).padded_ref()
+    ownerData   = public_user_data(note.owner)
 
-    com["category"]    = "Notes"
-    com["type"]        = "note"
-    com["owner"]       = note.owner
-    com["_id"]         = str(note._id)
-    com["anchorRef"]   = note.ref
-    com["anchorVerse"] = anchor_oref.sections[-1]
-    com["anchorText"]  = getattr(note, "anchorText", "")
-    com["public"]      = getattr(note, "public", False)
-    com["commentator"] = user_link(note.owner)
-    com["text"]        = note.text
-    com["title"]       = note.title
-#    com["text"]        = note.title + " - " + note.text if getattr(note, "title", None) else note.text
-
+    com = {
+        "category":        "Notes",
+        "type":            "note",
+        "owner":           note.owner,
+        "_id":             str(note._id),
+        "anchorRef":       note.ref,
+        "anchorVerse":     anchor_oref.sections[-1],
+        "anchorText":      getattr(note, "anchorText", ""),
+        "public":          getattr(note, "public", False),
+        "commentator":     user_link(note.owner),
+        "text":            note.text,
+        "title":           note.title,
+        "ownerName":       ownerData["name"],
+        "ownerProfileUrl": ownerData["profileUrl"],
+        "ownerImageUrl":   ownerData["imageUrl"],
+    }
     return com
 
 

@@ -66,6 +66,7 @@
   {% endif %}
   <script {% if DEBUG %}type="text/jsx"{% endif %}>  //;harmony=true
     {% autoescape off %}
+    {% include "js/django-csrf.js" %}
     $(function() {        
       var version, language, filter, ref; // all may be null
       var initialMenu   = "{{ initialMenu }}";
@@ -85,10 +86,12 @@
           filter = panel.filter && panel.filter.length === 1 && panel.filter[0] === "all" ? [] : panel.filter;
       }
 
+      /*
       if (ref) {
         ref = humanRef(ref);
         sjs.library._saveText({{ data|jsonify }}, {context: 1, version: version, language: language});
       }
+      */
 
       if (!multiPanel) {
         if (initialMenu) {
@@ -112,6 +115,7 @@
           panel = panels.shift();
 
           if (panel.ref && !panel.ref.match(/^texts|^sheets|^search/)) {
+            sjs.library._saveText(panel.text, {context: 1, version: panel.version, language: panel.language});
             initialPanels.push({mode: "Text", refs: [humanRef(panel.ref)], menuOpen: panel.initialMenu, version: panel.version, versionLanguage: panel.language});
           }
           if (panel.filter) {
@@ -133,6 +137,7 @@
       ReactDOM.render(
         React.createElement(ReaderApp, {
           multiPanel: multiPanel,
+          headerMode: false,
           initialRefs: ref ? [ref] : [],
           initialFilter: filter,
           initialMenu: initialMenu,

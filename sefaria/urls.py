@@ -256,26 +256,22 @@ urlpatterns += patterns('reader.views',
 
 # Features under Development (not generally linked publicly yet)
 urlpatterns += patterns('reader.views',
-    (r'^s2/?$', 's2_home'),
-    (r'^s2/search/?$', 's2_search'),
-    (r'^s2/texts/?$', 's2_texts'),
-    (r'^s2/texts/(?P<cats>.+)?$', 's2_texts_category'),
-    (r'^s2/sheets/?$', 's2_sheets'),
-    (r'^s2/sheets/tags/(?P<tag>.+)?$', 's2_sheets_by_tag'),
-    (r'^s2/(?P<ref>[^/]+)/(?P<lang>\w\w)/(?P<version>[^/]+)/?$', 's2'),
-    (r'^s2/(?P<ref>.+)$', 's2'),
+    (r'^s2/?$', 'switch_to_s2'),
     (r'^account?$', 's2_account'),
+    (r'^notifications?$', 's2_notifications'),
     (r'^person/(?P<name>.+)$', 'person_page'),
     (r'^people/Talmud/?$', 'talmud_person_index'),
     (r'^people/?$', 'person_index'),
-    (r'^garden/sheets/(?P<key>.+)$', 'sheet_tag_garden_page'),
-    (r'^vgarden/sheets/(?P<key>.+)$', 'sheet_tag_visual_garden_page'),
-    (r'^vgarden/search/(?P<q>.+)$', 'search_query_visual_garden_page'),
-    (r'^vgarden/custom/(?P<key>.+)$', 'custom_visual_garden_page'),
+    #(r'^garden/sheets/(?P<key>.+)$', 'sheet_tag_garden_page'),
+    (r'^garden/(?P<key>.+)$', 'custom_visual_garden_page'),
+    (r'^garden/sheets/(?P<key>.+)$', 'sheet_tag_visual_garden_page'),
+    (r'^garden/search/(?P<q>.+)$', 'search_query_visual_garden_page'),
+    (r'^vgarden/custom/(?P<key>.*)$', 'custom_visual_garden_page'),  # legacy.  Used for "maggid" and "ecology"
     (r'^visualize/library/(?P<lang>[enh]*)/?(?P<cats>.*)/?$', 'visualize_library'),
     (r'^visualize/library/?(?P<cats>.*)/?$', 'visualize_library'),
     (r'^visualize/toc$', 'visualize_toc'),
-    (r'^visualize/steve$', 'visualize_steve')
+    (r'^visualize/steve$', 'visualize_steve'),
+    (r'^visualize/ephraim$', 'visualize_ephraim'),
 
 )
 

@@ -13,9 +13,8 @@ import sefaria.model.abstract as abstract
 from sefaria.system.database import db
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowersSet
-from sefaria.model.user_profile import annotate_user_list
+from sefaria.model.user_profile import annotate_user_list, public_user_data, user_link
 from sefaria.utils.util import strip_tags, string_overlap
-from sefaria.utils.users import user_link
 from sefaria.system.exceptions import InputError
 from history import record_sheet_publication, delete_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE
@@ -185,9 +184,6 @@ def refs_in_sources(sources):
 			text = source.get("text", {}).get("he", None)
 			ref  = refine_ref_by_text(source["ref"], text) if text else source["ref"]
 			refs.append(ref)
-		if "subsources" in source:
-			refs = refs + refs_in_sources(source["subsources"])
-
 	return refs
 
 
@@ -267,27 +263,39 @@ def get_sheets_for_ref(tref, pad=True, context=1):
 	results = []
 
 	regex_list = oref.regex(as_list=True)
-	ref_clauses = [{"included_refs": {"$regex": r}} for r in regex_list]
+	ref_clauses = [{"sources.ref": {"$regex": r}} for r in regex_list]
 	sheets = db.sheets.find({"$or": ref_clauses, "status": "public"},
-		{"id": 1, "title": 1, "owner": 1, "included_refs": 1})
+		{"id": 1, "title": 1, "owner": 1, "sources.ref": 1, "views": 1}).sort([["views", -1]])
 	for sheet in sheets:
-		# Check for multiple matching refs within this sheet
-		matched_refs = [r for r in sheet["included_refs"] if regex.match(ref_re, r)]
+		matched_refs = []
+		if "sources" in sheet:
+			for source in sheet["sources"]:
+				if "ref" in source:
+					matched_refs.append(source["ref"])
+		matched_refs = [r for r in matched_refs if regex.match(ref_re, r)]
 		for match in matched_refs:
 			try:
 				match = model.Ref(match)
 			except InputError:
 				continue
-			com                = {}
-			com["category"]    = "Sheets"
-			com["type"]        = "sheet"
-			com["owner"]       = sheet["owner"]
-			com["_id"]         = str(sheet["_id"])
-			com["anchorRef"]   = match.normal()
-			com["anchorVerse"] = match.sections[-1] if len(match.sections) else 1
-			com["public"]      = True
-			com["commentator"] = user_link(sheet["owner"])
-			com["text"]        = "<a class='sheetLink' href='/sheets/%d'>%s</a>" % (sheet["id"], strip_tags(sheet["title"]))
+			ownerData = public_user_data(sheet["owner"])
+			com = {
+				"category":        "Sheets",
+				"type":            "sheet",
+				"owner":           sheet["owner"],
+				"_id":             str(sheet["_id"]),
+				"anchorRef":       match.normal(),
+				"anchorVerse":     match.sections[-1] if len(match.sections) else 1,
+				"public":          True,
+				"commentator":     user_link(sheet["owner"]), # legacy, used in S1
+				"text":            "<a class='sheetLink' href='/sheets/%d'>%s</a>" % (sheet["id"], strip_tags(sheet["title"])), # legacy, used in S1
+				"title":           strip_tags(sheet["title"]),
+				"sheetUrl":        "/sheets/" + str(sheet["id"]),
+				"ownerName":       ownerData["name"],
+				"ownerProfileUrl": ownerData["profileUrl"],
+				"ownerImageUrl":   ownerData["imageUrl"],
+				"views":           sheet["views"]
+			}
 
 			results.append(com)
 
@@ -415,7 +423,7 @@ def broadcast_sheet_publication(publisher_id, sheet_id):
 def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None):
 	"""
 	Creates a source sheet owned by 'uid' that includes all of 'text'.
-	'sources' is a list of strings naming commentators or texts to includes a subsources.
+	'sources' is a list of strings naming commentators or texts to include.
 	"""
 	oref  = model.Ref(text)
 	sheet = {
@@ -439,20 +447,13 @@ def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None
 
 		for ref in refs:
 			ref_dict = { "ref": ref.normal() }
-			if sources:
-				ref_dict["subsources"] = []
-				subsources = ref.linkset().filter(sources)
-				for sub in subsources:
-					subref = sub.refs[1] if regex.match(ref.regex(), sub.refs[0]) else sub.refs[0]
-					ref_dict["subsources"].append({"ref": subref})
-				ref_dict["subsources"] = sorted(ref_dict["subsources"], key=lambda x : x["ref"])
-
 			sheet["sources"].append(ref_dict)
 
 	return save_sheet(sheet, uid)
 
 
 # This is here as an alternative interface - it's not yet used, generally.
+# TODO fix me to reflect new structure where subsources and included_refs no longer exist.
 
 class Sheet(abstract.AbstractMongoRecord):
 	collection = 'sheets'
@@ -465,7 +466,6 @@ class Sheet(abstract.AbstractMongoRecord):
 		"generatedBy",
 		"dateCreated",
 		"dateModified",
-		"included_refs",
 		"owner",
 		"id"
 	]

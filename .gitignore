@@ -42,6 +42,10 @@ Thumbs.db
 ##############
 dump.rdb
 
+# Node Modules #
+################
+/node_modules
+
 # PyCharm directory #
 #####################
 /.idea

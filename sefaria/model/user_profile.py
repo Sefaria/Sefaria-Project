@@ -12,9 +12,7 @@ if not hasattr(sys, '_doc_build'):
 	from django.core.exceptions import ValidationError
 
 from sefaria.model.following import FollowersSet, FolloweesSet
-from sefaria.model.notification import NotificationSet
 from sefaria.system.database import db
-from sefaria.utils.users import user_link, user_links
 
 
 class UserProfile(object):
@@ -221,6 +219,7 @@ def email_unread_notifications(timeframe):
 	* 'weekly' - only send to users who have the weekly email setting
 	* 'all'    - send all notifications
 	"""
+	from sefaria.model.notification import NotificationSet
 
 	users = db.notifications.find({"read": False}).distinct("uid")
 
@@ -234,11 +233,13 @@ def email_unread_notifications(timeframe):
 		except User.DoesNotExist:
 			continue
 
-		message_html = render_to_string("email/notifications_email.html", { "notifications": notifications, "recipient": user.first_name })
+		message_html  = render_to_string("email/notifications_email.html", { "notifications": notifications, "recipient": user.first_name })
 		#message_text = util.strip_tags(message_html)
-		subject      = "New Activity on Sefaria from %s" % notifications.actors_string()
-		from_email   = "Sefaria <hello@sefaria.org>"
-		to           = user.email
+		actors_string = notifications.actors_string()
+		verb          = "have" if " and " in actors_string else "has"
+		subject       = "%s %s new activity on Sefaria" % (actors_string, verb)
+		from_email    = "Sefaria <hello@sefaria.org>"
+		to            = user.email
 
 		msg = EmailMultiAlternatives(subject, message_html, from_email, [to])
 		msg.content_subtype = "html"  # Main content is now text/html
@@ -253,6 +254,78 @@ def unread_notifications_count_for_user(uid):
 	return db.notifications.find({"uid": uid, "read": False}).count()
 
 
+public_user_data_cache = {}
+def public_user_data(uid):
+	"""Returns a dictionary with common public data for `uid`"""
+	if uid in public_user_data_cache:
+		return public_user_data_cache[uid]
+
+	profile = UserProfile(id=uid)
+	try:
+		user = User.objects.get(id=uid)
+		is_staff = user.is_staff()
+	except:
+		is_staff = False
+
+	data = {
+		"name": profile.full_name,
+		"profileUrl": "/profile/" + profile.slug,
+		"imageUrl": profile.gravatar_url_small,
+		"isStaff": is_staff
+	}
+	public_user_data_cache[uid] = data
+	return data
+
+
+def user_name(uid):
+	"""Returns a string of a user's full name"""
+	data = public_user_data(uid)
+	return data["name"]
+
+
+# Simple Cache for user links
+user_links = {}
+def user_link(uid):
+	"""Returns a string with an <a> tag linking to a users profile"""
+	if uid in user_links:
+		return user_links[uid]
+	
+	data = public_user_data(uid)
+	link = "<a href='" + data["profileUrl"] + "' class='userLink'>" + data["name"] + "</a>"
+	user_links[uid] = link
+	return link
+
+
+def is_user_staff(uid):
+	"""
+	Returns True if the user with uid is staff.
+	"""
+	data = public_user_data(uid)
+	try:
+		uid  = int(uid)
+		user = User.objects.get(id=uid)
+		return user.is_staff
+	except:
+		return False
+
+
+def user_started_text(uid, title):
+	"""
+	Returns true if uid was responsible for first adding 'title'
+	to the library.
+
+	This checks for the oldest matching index change record for 'title'.
+	If someone other than the initiator changed the text's title, this function
+	will incorrectly report False, but this matches our intended behavior to 
+	lock name changes after an admin has stepped in.
+	"""
+	log = db.history.find({"title": title}).sort([["date", -1]]).limit(1)
+	if log.count():
+		return log[0]["user"] == uid
+	return False
+
+
+
 def annotate_user_list(uids):
 	"""
 	Returns a list of dictionaries giving details (names, profile links) 
@@ -260,9 +333,10 @@ def annotate_user_list(uids):
 	"""
 	annotated_list = []
 	for uid in uids:
+		data = public_user_data(uid)
 		annotated = {
 			"userLink": user_link(uid),
-			"imageUrl": UserProfile(id=uid).gravatar_url_small,
+			"imageUrl": data["imageUrl"]
 		}
 		annotated_list.append(annotated)
 

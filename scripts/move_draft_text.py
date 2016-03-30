@@ -40,7 +40,11 @@ class ServerTextCopier(object):
                     else:
                         self._version_objs.append(vs)
         if self._post_links:
-            query = {"$and" : [{ "refs": {"$regex": Ref(self._index_obj.title).regex()}}, { "$or" : [ { "auto" : False }, { "auto" : 0 }, {"auto" :{ "$exists": False}} ] } ]}
+            if self._post_links == 1: # only manual
+                query = {"$and" : [{ "refs": {"$regex": Ref(self._index_obj.title).regex()}}, { "$or" : [ { "auto" : False }, { "auto" : 0 }, {"auto" :{ "$exists": False}} ] } ]}
+            else:
+                query = { "refs": {"$regex": Ref(self._index_obj.title).regex()}}
+
             self._linkset = LinkSet(query).array()
 
     def do_copy(self):
@@ -55,32 +59,46 @@ class ServerTextCopier(object):
             self._make_post_request_to_server(self._prepare_index_api_call(idx_title), idx_contents)
         content_nodes = self._index_obj.nodes.get_leaf_nodes()
         for ver in self._version_objs:
+            found_non_empty_content = False
             print ver.versionTitle.encode('utf-8')
             flags = {}
             for flag in ver.optional_attrs:
                 if hasattr(ver, flag):
                     flags[flag] = getattr(ver, flag, None)
             for node in content_nodes:
-                #print node.full_title(force_update=True)
+                print node.full_title(force_update=True)
                 text = JaggedTextArray(ver.content_node(node)).array()
                 version_payload = {
-                    "versionTitle": ver.versionTitle,
-                    "versionSource": ver.versionSource,
-                    "language": ver.language,
-                    "text": text
+                        "versionTitle": ver.versionTitle,
+                        "versionSource": ver.versionSource,
+                        "language": ver.language,
+                        "text": text
                 }
-                self._make_post_request_to_server(self._prepare_text_api_call(node.full_title(force_update=True)), version_payload)
+                if len(text) > 0:
+                # only bother posting nodes that have content.
+                    found_non_empty_content = True
+                    self._make_post_request_to_server(self._prepare_text_api_call(node.full_title(force_update=True)), version_payload)
+            if not found_non_empty_content:
+                # post the last node again with dummy text, to make sure an actual version db object is created
+                # then post again to clear the dummy text
+                dummy_text = "This is a dummy text"
+                for _ in range(node.depth):
+                    dummy_text = [dummy_text]
+                version_payload['text'] = dummy_text
+                self._make_post_request_to_server(self._prepare_text_api_call(node.full_title()), version_payload)
+                version_payload['text'] = []
+                self._make_post_request_to_server(self._prepare_text_api_call(node.full_title()), version_payload)
             if flags:
                 self._make_post_request_to_server(self._prepare_version_attrs_api_call(ver.title, ver.language, ver.versionTitle), flags)
         if self._post_links:
-            links = [l.contents() for l in self._linkset]
+            links = [l.contents() for l in self._linkset if not getattr(l, 'source_text_oid', None)]
             self._make_post_request_to_server(self._prepare_links_api_call(), links)
 
     def _prepare_index_api_call(self, index_title):
         return 'api/v2/raw/index/{}'.format(index_title.replace(" ", "_"))
 
     def _prepare_text_api_call(self, terminal_ref):
-        return 'api/texts/{}?count_after=0&index_after=0'.format(terminal_ref.replace(" ", "_"))
+        return 'api/texts/{}?count_after=0&index_after=0'.format(urllib.quote(terminal_ref.replace(" ", "_").encode('utf-8')))
 
     def _prepare_version_attrs_api_call(self, title, lang, vtitle):
         return "api/version/flags/{}/{}/{}".format(urllib.quote(title), urllib.quote(lang), urllib.quote(vtitle))
@@ -115,7 +133,7 @@ if __name__ == '__main__':
     parser.add_argument("-v", "--versionlist", help="comma separated version list: lang:versionTitle. To copy all versions, simply input 'all'")
     parser.add_argument("-k", "--apikey", help="non default api key", default=SEFARIA_BOT_API_KEY)
     parser.add_argument("-d", "--destination_server", help="override destination server", default='http://eph.sefaria.org')
-    parser.add_argument("-l", "--links", action="store_true", help="Move manual links on this text as well")
+    parser.add_argument("-l", "--links", default=0, type=int, help="Enter '1' to move manual links on this text as well, '2' to move auto links")
 
     args = parser.parse_args()
     print args
