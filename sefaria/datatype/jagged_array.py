@@ -445,7 +445,7 @@ class JaggedTextArray(JaggedArray):
         return self.w_count if self.w_count else 0
 
     def _wcnt(self, jta):
-        """ Returns the number of characters in an undecorated jagged array """
+        """ Returns the number of words in an undecorated jagged array """
         if isinstance(jta, basestring):
             return len(jta.split(" "))
         elif isinstance(jta, list):
