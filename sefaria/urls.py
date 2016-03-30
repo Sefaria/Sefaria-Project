@@ -270,6 +270,7 @@ urlpatterns += patterns('reader.views',
     (r'^visualize/library/(?P<lang>[enh]*)/?(?P<cats>.*)/?$', 'visualize_library'),
     (r'^visualize/library/?(?P<cats>.*)/?$', 'visualize_library'),
     (r'^visualize/toc$', 'visualize_toc'),
+    (r'^visualize/ephraim$', 'visualize_ephraim'),
 
 )
 
