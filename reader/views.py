@@ -1366,6 +1366,9 @@ def visualize_library(request, lang=None, cats=None):
 def visualize_toc(request):
     return render_to_response('visual_toc.html', {}, RequestContext(request))
 
+def visualize_steve(request):
+    return render_to_response('visual_steve.html', {}, RequestContext(request))
+
 
 def visualize_ephraim(request):
     return render_to_response('visualize_ephraim.html', {}, RequestContext(request))
