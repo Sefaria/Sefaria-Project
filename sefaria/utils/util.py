@@ -186,8 +186,12 @@ def replace_using_regex(regex, query, old, new, endline=None):
     reg = re.compile(regex)
     result = re.search(reg, query)
     if result:
-        temp = result.group().replace(old, new)
-        query = query.replace(result.group(0), temp)
+
+        # get all instances of match
+        matches = re.findall(reg, query)
+        for match in matches:
+            temp = match.replace(old, new)
+            query = query.replace(match, temp)
         if endline is not None:
             query.replace(u'\n', endline+u'\n')
     return query
