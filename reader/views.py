@@ -1348,6 +1348,9 @@ def visualize_library(request, lang=None, cats=None):
 def visualize_toc(request):
     return render_to_response('visual_toc.html', {}, RequestContext(request))
 
+def visualize_steve(request):
+    return render_to_response('visual_steve.html', {}, RequestContext(request))
+
 
 @catch_error_as_json
 def set_lock_api(request, tref, lang, version):
