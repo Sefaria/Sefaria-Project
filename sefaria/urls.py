@@ -270,9 +270,10 @@ urlpatterns += patterns('reader.views',
     (r'^visualize/library/(?P<lang>[enh]*)/?(?P<cats>.*)/?$', 'visualize_library'),
     (r'^visualize/library/?(?P<cats>.*)/?$', 'visualize_library'),
     (r'^visualize/toc$', 'visualize_toc'),
+    (r'^visualize/torah-quant$', 'visualize_torah_quant'),
     (r'^visualize/steve$', 'visualize_steve'),
     (r'^visualize/ephraim$', 'visualize_ephraim'),
-    (r'visualize/yoni$', 'visualize_yoni'),
+    (r'^visualize/yoni$', 'visualize_yoni'),
 
 )
 
