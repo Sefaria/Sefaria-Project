@@ -299,6 +299,10 @@ def s2_account(request):
     return s2_page(request, "account")
 
 
+def s2_notifications(request):
+    return s2_page(request, "notifications")
+
+
 def s2_sheets(request):
     return s2_page(request, "sheets")
 
@@ -965,6 +969,10 @@ def index_api(request, title, v2=False, raw=False):
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
         j["title"] = title.replace("_", " ")
+        if j["versionTitle"] == "Sefaria Community Translation":
+            j["license"] = "CC0"
+            j["licenseVetter"] = True
+            
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
             if not key:
@@ -1357,6 +1365,19 @@ def visualize_library(request, lang=None, cats=None):
 
 def visualize_toc(request):
     return render_to_response('visual_toc.html', {}, RequestContext(request))
+
+def visualize_steve(request):
+    return render_to_response('visual_steve.html', {}, RequestContext(request))
+
+
+def visualize_rashi_interlinks(request):
+    level = request.GET.get("level", 1)
+    json_file = "../static/files/torah_rashi_torah.json" if level == 1 else "../static/files/tanach_rashi_tanach.json"
+    return render_to_response('visualize_links_via_rashi.html', {"json_file": json_file}, RequestContext(request))
+
+
+def visualize_yoni(request):
+    return render_to_response('visualize_yoni.html', {}, RequestContext(request))
 
 
 @catch_error_as_json
