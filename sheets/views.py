@@ -175,7 +175,7 @@ def view_sheet(request, sheet_id):
 	viewer_is_liker = request.user.id in likes
 
 
-	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet),
+	return render_to_response('s2_sheets.html' if request.COOKIES.get('s2') else 'sheets.html', {"sheetJSON": json.dumps(sheet),
 												"sheet": sheet,
 												"sheet_class": sheet_class,
 												"can_edit": can_edit_flag, 

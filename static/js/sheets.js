@@ -288,7 +288,7 @@ $(function() {
 
 
 	// General Options 
-	$("#options .optionItem,#assignmentsModal .optionItem").click(function() {
+	$("#options .optionItem,#viewMenu .optionItem, #assignmentsModal .optionItem").click(function() {
 		$check = $(".fa-check", $(this));
 		if ($check.hasClass("hidden")) {
 			$("#sheet").addClass($(this).attr("id"));
