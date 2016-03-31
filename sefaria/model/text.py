@@ -2046,6 +2046,9 @@ class Ref(object):
         """
         return getattr(self.index_node, "addressTypes", None) and len(self.index_node.addressTypes) and self.index_node.addressTypes[0] == "Talmud"
 
+    def is_tanach(self):
+        return u"Tanach" in self.index.b_index.categories if self.is_commentary() else u"Tanach" in self.index.categories
+
     def is_bavli(self):
         #//TODO: mark for commentary refactor?
         """
@@ -2488,7 +2491,11 @@ class Ref(object):
             d["sections"] = d["toSections"] = r.sections[:-1] + [r.sections[-1] + 1]
             return Ref(_obj=d)
         else:
-            return r.next_section_ref().subref(1)
+            try:
+                return r.next_section_ref().subref(1)
+            except AttributeError:
+                # No next section
+                return None
 
     def last_segment_ref(self):
         """
