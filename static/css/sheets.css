@@ -1378,7 +1378,7 @@ input[type="file"] {
     box-sizing: border-box;
     height: 58px;
     direction: ltr;
-    z-index: 1;
+    z-index: 3;
     padding: 13px 20px;
 }
 
@@ -1394,16 +1394,22 @@ input[type="file"] {
 	margin: 10px 20px;
 }
 
-#fileMenu:hover .optionsMenu, #viewMenu:hover .optionsMenu {
+#fileMenu:hover .optionsMenu, #viewMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu {
 	display: block;
 	top:40px;
 }
 #fileMenu:hover .optionsMenu {
-	left:30px;
+	left:40px;
 }
 #viewMenu:hover .optionsMenu {
-	left:80px;
+	left:100px;
 }
+
+#insertMenu:hover .optionsMenu {
+	left:270px;
+	width:240px;
+}
+
 
 /*
 .optionsMenu {

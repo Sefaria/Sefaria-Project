@@ -40,22 +40,6 @@
     <div class="sheetsEditNavTop">
         <div class="sheetsMenuBarItem" id="fileMenu">File
 			<div class="optionsMenu">
-				<div class="optionGroup">
-					<div class="optionHeader"><i class='fa fa-plus'></i> Add</div>
-				</div>
-				<div class="line"></div>
-				<div class="optionItem" id="addSource"><i class='fa fa-link'></i> Source</div>
-   				{% if is_owner %}
-                <div class="optionItem" id="addParashaToSheetModalTrigger"><i class='fa fa-book'></i> Parasha</div>
-				{% endif %}
-                <div class="optionItem" id="addBiOutside"><i class='fa fa-columns'></i> Outside Text (Bilingual)</div>
-				<div class="optionItem" id="addOutside"><i class='fa fa-file-o'></i> Outside Text</div>
-				<div class="optionItem" id="addComment"><i class='fa fa-comment'></i> Comment</div>
-				<div class="optionItem" id="addMedia"><i class='fa fa-youtube-play'></i> Media</div>
-            </div>
-        </div>
-        <div class="sheetsMenuBarItem" id="viewMenu">View
-			<div class="optionsMenu">
 				{% if is_owner %}
 				<div class="optionGroup">
 					<div class="optionTitle" id="sharingModalTrigger"><i class="fa fa-share-alt"></i> Sharing </div>
@@ -84,32 +68,6 @@
 					</div>
 				</div>
 				{% endif %}
-
-
-				{% if can_edit %}
-				<div class="line"></div>
-				{% endif %}
-
-				<div class="optionGroup">
-					<div class="optionTitle"><i class="fa fa-cloud"></i> Divine Names <i class='fa fa-caret-right'></i></div>
-					<div class="subMenu">
-						<div class="optionItem divineNamesOption" id="noSub">
-							<i class="fa fa-check"></i> <i>No substitution</i></div>
-						<div class="optionItem divineNamesOption" id="yy">
-							<i class="fa fa-check hidden"></i> יי</div>
-						<div class="optionItem divineNamesOption" id="h">
-							<i class="fa fa-check hidden"></i> <span style="direction: rtl;">ה'</span></div>
-						<div class="optionItem divineNamesOption" id="ykvk">
-							<i class="fa fa-check hidden"></i> יקוק</div>
-					</div>
-				</div>
-
-				<div class="optionItem" id="numbered">
-					<i class="fa fa-check hidden"></i> Number Sources</div>
-				<div class="optionItem" id="boxed">
-					<i class="fa fa-check hidden"></i> Box Sources</div>
-				<div class="optionItem" id="bsd">
-					<i class="fa fa-check hidden"></i> בס"ד</div>
 
 				{% if not new_sheet %}
 					<div class="line"></div>
@@ -141,8 +99,45 @@
 					<i class="fa fa-print"></i>Print</div>
 			</div>
         </div>
+        <div class="sheetsMenuBarItem" id="viewMenu">View
+			<div class="optionsMenu">
+				<div class="optionGroup">
+					<div class="optionTitle"><i class="fa fa-cloud"></i> Divine Names <i class='fa fa-caret-right'></i></div>
+					<div class="subMenu">
+						<div class="optionItem divineNamesOption" id="noSub">
+							<i class="fa fa-check"></i> <i>No substitution</i></div>
+						<div class="optionItem divineNamesOption" id="yy">
+							<i class="fa fa-check hidden"></i> יי</div>
+						<div class="optionItem divineNamesOption" id="h">
+							<i class="fa fa-check hidden"></i> <span style="direction: rtl;">ה'</span></div>
+						<div class="optionItem divineNamesOption" id="ykvk">
+							<i class="fa fa-check hidden"></i> יקוק</div>
+					</div>
+				</div>
+                <div class="optionItem" id="numbered">
+					<i class="fa fa-check hidden"></i> Number Sources</div>
+				<div class="optionItem" id="boxed">
+					<i class="fa fa-check hidden"></i> Box Sources</div>
+				<div class="optionItem" id="bsd">
+					<i class="fa fa-check hidden"></i> בס"ד</div>
+            </div>
+
+        </div>
         <div class="sheetsMenuBarItem">Format</div>
-        <div class="sheetsMenuBarItem">Insert</div>
+            {% if can_edit or can_add %}
+        <div class="sheetsMenuBarItem" id="insertMenu">Insert
+			<div class="optionsMenu">
+				<div class="optionItem" id="addSource"><i class='fa fa-link'></i> Source</div>
+   				{% if is_owner %}
+                <div class="optionItem" id="addParashaToSheetModalTrigger"><i class='fa fa-book'></i> Parasha</div>
+				{% endif %}
+                <div class="optionItem" id="addBiOutside"><i class='fa fa-columns'></i> Outside Text (Bilingual)</div>
+				<div class="optionItem" id="addOutside"><i class='fa fa-file-o'></i> Outside Text</div>
+				<div class="optionItem" id="addComment"><i class='fa fa-comment'></i> Comment</div>
+				<div class="optionItem" id="addMedia"><i class='fa fa-youtube-play'></i> Media</div>
+            </div>
+        </div>
+            {% endif %}
     </div>
 <div id="link"></div>
 <div id="error"></div>
