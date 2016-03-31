@@ -361,6 +361,7 @@ body {
 	min-height: 40px;
 	margin-bottom: 6px;
 	text-align: center;
+	line-height: normal;
 }
 
 #author {
@@ -1409,25 +1410,3 @@ input[type="file"] {
 	left:270px;
 	width:240px;
 }
-
-
-/*
-.optionsMenu {
-	color: black;
-	position: absolute;
-	text-align: left;
-	display: none;
-	font-style: normal;
-	text-shadow: none;
-	padding: 6px 0px 3px 0px;
-	background: white;
-	font-size: 17px;
-	border: 1px solid #ccc;
-	z-index: 5;
-	width: 220px;
-	top: -20px;
-	right: auto;
-	left: 50px;
-	line-height: 1.2;
-}
-*/
