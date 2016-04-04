@@ -6,9 +6,12 @@ from sefaria.system.database import db
 
 
 def make_explicit_commentary_index(title):
-    idx = library.get_index(title)
-    if not isinstance(idx, CommentaryIndex):
-        print "{} is not an old style commentary".format(idx.title)
+    pattern = r'(?P<commentor>.*) on (?P<book>.*)'
+    m = regex.match(pattern, title)
+    if m:
+        idx = CommentaryIndex(m.group('commentor'), m.group('book'))
+    else:
+        print "no index found for {}".format(title)
     other_categories = [c for c in idx.b_index.categories if c not in idx.categories]
     new_idx = {
         'title': idx.title,
@@ -39,7 +42,7 @@ titles = VersionSet(query).distinct("title")
 
 #titles = library.get_commentary_version_titles()
 num_old_commentary_titles = len(titles)
-commentators = set(library.get_commentator_titles())
+commentators = set(IndexSet({"categories.0": "Commentary"}).distinct("title"))
 commentators_with_text = []
 
 #make_explicit_commentary_index('Rabbeinu Gershom on Makkot')

@@ -1,9 +1,29 @@
+
 # -*- coding: utf-8 -*-
 
 from sefaria.model import *
 
 commentary2 = IndexSet({"categories.0": "Commentary2"})
 targums = IndexSet({"categories.1": "Targum"})
+
+targum_work_titles = [('Aramaic Targum', 'to '),('Targum Jonathan', 'on '), ('Onkelos', ''), ('Targum Neofiti', None)]
+for trg in targums:
+    print trg.title
+    for t in targum_work_titles:
+        if t[0] in trg.title:
+            work_title = t[0]
+            if t[1] is not None:
+                base_book = trg.title.replace(t[0]+' '+t[1], '')
+            else:
+                base_book = None
+    trg.dependence = 'targum'
+    trg.work_title = work_title
+    trg.auto_linking_scheme = None
+    if base_book:
+        bidx = library.get_index(base_book)
+        trg.base_text_titles = [base_book]
+        trg.related_categories = [c for c in bidx.categories if c not in trg.categories]
+    trg.save()
 
 
 for com2 in commentary2:
@@ -30,24 +50,7 @@ for com2 in commentary2:
     com2.save()
 
 
-targum_work_titles = [('Aramaic Targum', 'to '),('Targum Jonathan', 'on '), ('Onkelos', ''), ('Targum Neofiti', None)]
-for trg in targums:
-    print trg.title
-    for t in targum_work_titles:
-        if t[0] in trg.title:
-            work_title = t[0]
-            if t[1] is not None:
-                base_book = trg.title.replace(t[0]+' '+t[1], '')
-            else:
-                base_book = None
-    trg.dependence = 'targum'
-    trg.work_title = work_title
-    trg.auto_linking_scheme = None
-    if base_book:
-        bidx = library.get_index(base_book)
-        trg.base_text_titles = [base_book]
-        trg.related_categories = [c for c in bidx.categories if c not in trg.categories]
-    trg.save()
+
 
 
 
