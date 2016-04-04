@@ -3873,9 +3873,15 @@ class Library(object):
         q = {'work_title': work_title}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
-    #TODO: finish
-    def get_dependant_indices(self, book_title=None, categories):
-        pass
+    #TODO: add category filtering here or in another method?
+    def get_dependant_indices(self, book_title=None, dependence_type=None, full_records=False):
+        if dependence_type:
+            q = {'dependence': dependence_type}
+        else:
+            q = {'dependence': {'$exists': True}}
+        if book_title:
+            q['base_text_titles'] = book_title
+        return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
 
     def get_group_works(self):
