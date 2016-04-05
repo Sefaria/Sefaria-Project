@@ -743,6 +743,9 @@ sjs.library = {
         }
       return sheets;
     },
+    clearUserSheets: function(uid) {
+      this._userSheets[uid] = null;
+    },  
     _sheetsByRef: {},
     sheetsByRef: function(ref, cb) {
       var sheets = null;

@@ -258,6 +258,7 @@ urlpatterns += patterns('reader.views',
 urlpatterns += patterns('reader.views',
     (r'^s2/?$', 'switch_to_s2'),
     (r'^account?$', 's2_account'),
+    (r'^notifications?$', 's2_notifications'),
     (r'^person/(?P<name>.+)$', 'person_page'),
     (r'^people/Talmud/?$', 'talmud_person_index'),
     (r'^people/?$', 'person_index'),
@@ -269,6 +270,9 @@ urlpatterns += patterns('reader.views',
     (r'^visualize/library/(?P<lang>[enh]*)/?(?P<cats>.*)/?$', 'visualize_library'),
     (r'^visualize/library/?(?P<cats>.*)/?$', 'visualize_library'),
     (r'^visualize/toc$', 'visualize_toc'),
+    (r'^visualize/steve$', 'visualize_steve'),
+    (r'visualize/yoni$', 'visualize_yoni'),
+    (r'^visualize/links_through_rashi$', 'visualize_rashi_interlinks'),
 
 )
 

@@ -273,6 +273,11 @@ var ReaderApp = React.createClass({
             hist.url   = "account";
             hist.mode  = "account";
             break;
+          case "notifications":
+            hist.title = "Sefaria Notifcations";
+            hist.url   = "notifications";
+            hist.mode  = "notifications";
+            break;
         }
       } else if (states[i].mode === "Text") {
         hist.title    = states[i].refs.slice(-1)[0];
@@ -382,6 +387,7 @@ var ReaderApp = React.createClass({
       availableFilters:     state.availableFilters     || [],
       filterRegistry:       state.filterRegistry       || {},
       orphanSearchFilters:  state.orphanSearchFilters  || [],
+      connectionsMode:      "Connections",
       displaySettingsOpen:  false
     };
     if (this.state && panel.refs.length && !panel.version) {
@@ -788,6 +794,10 @@ var Header = React.createClass({
     this.props.setCentralState({menuOpen: "account"});
     this.clearSearchBox();
   },
+  showNotifications: function() {
+    this.props.setCentralState({menuOpen: "notifications"});
+    this.clearSearchBox();
+  },
   showTestMessage: function() {
     this.props.setCentralState({showTestMessage: true});
   },
@@ -859,6 +869,13 @@ var Header = React.createClass({
                           registerAvailableFilters={this.props.registerAvailableFilters}
                           hideNavHeader={true} />) : null;
 
+
+    var notifcationsClasses = classNames({notifications: 1, unread: sjs.notificationCount > 0});
+    var currentPath = window.location.pathname + window.location.search;
+    var signUpLink = (<a className="login" href={"/register?next=" + currentPath}>
+                        <span className="en">Sign Up</span>
+                        <span className="he">להירשם</span>
+                       </a>);
     return (<div className="header">
               <div className="headerInner">
                 <div className="left">
@@ -866,7 +883,9 @@ var Header = React.createClass({
                 </div>
                 <div className="right">
                   <div className="testWarning" onClick={this.showTestMessage} >Attention: You are testing the New Sefaria</div>
-                  <div className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" /></div>
+                  { sjs.loggedIn ? (<div className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" /></div>) : null }
+                  { sjs.loggedIn ? (<div className={notifcationsClasses} onClick={this.showNotifications}>{sjs.notificationCount}</div>) : null }
+                  { sjs.loggedIn ? null : signUpLink }
                 </div>
                 <span className="searchBox">
                   <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
@@ -882,24 +901,6 @@ var Header = React.createClass({
             </div>);
   }
 });
-
-var TestMessage = React.createClass({
-  propTypes: {
-    hide:   React.PropTypes.func
-  },
-  render: function() {
-    return (
-      <div className="testMessageBox">
-        <div className="overlay" onClick={this.props.hide} ></div>
-        <div className="testMessage">
-          <div className="title">The new Sefaria is still in development.<br />Thank you for helping us test and improve it.</div>
-          <a href="mailto:hello@sefaria.org" target="_blank" className="button">Send Feedback</a>
-          <div className="button" onClick={backToS1} >Return to Old Sefaria</div>
-        </div>
-      </div>);
-  }
-});
-
 
 
 var ReaderPanel = React.createClass({
@@ -943,7 +944,7 @@ var ReaderPanel = React.createClass({
       return state;
     }
 
-    // When this component is independent and manges itself, it takes individual initial state props, with defaults here. 
+    // When this component is independent and manages itself, it takes individual initial state props, with defaults listed here. 
     return {
       refs: this.props.initialRefs || [], // array of ref strings
       mode: this.props.initialMode, // "Text", "TextAndConnections", "Connections"
@@ -969,6 +970,7 @@ var ReaderPanel = React.createClass({
       availableFilters:     [],
       filterRegistry:       {},
       orphanSearchFilters:  [],
+      connectionsMode:      "Connections",
       displaySettingsOpen:  false
     }
   },
@@ -1143,6 +1145,7 @@ var ReaderPanel = React.createClass({
       return;
     }
     */
+
     if (updateRecent && filter) {
       if ($.inArray(filter, this.state.recentFilters) !== -1) {
         this.state.recentFilters.toggle(filter);
@@ -1201,6 +1204,19 @@ var ReaderPanel = React.createClass({
       this.props.setDefaultOption && this.props.setDefaultOption(option, value);
     }
     this.conditionalSetState(state);
+  },
+  setConnectionsMode: function(mode) {
+    var loginRequired = {
+      "Add to Source Sheet": 1,
+      "Add Note": 1,
+      "My Notes": 1,
+      "Add Connections": 1,
+      "Add Translation": 1
+    };
+    if (!sjs._uid && mode in loginRequired) {
+      mode = "Login";
+    };
+    this.conditionalSetState({connectionsMode: mode});
   },
   setWidth: function() {
     this.width = $(ReactDOM.findDOMNode(this)).width();
@@ -1283,13 +1299,15 @@ var ReaderPanel = React.createClass({
           key="text" />);
     }
     if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections") {
-      items.push(<TextList 
+      items.push(<ConnectionsPanel 
           srefs={this.state.mode === "Connections" ? this.state.refs : this.state.highlightedRefs} 
           filter={this.state.filter || []}
+          mode={this.state.connectionsMode || "Connections"}
           recentFilters={this.state.recentFilters}
           fullPanel={this.props.multiPanel}
           multiPanel={this.props.multiPanel}
           setFilter={this.setFilter}
+          setConnectionsMode={this.setConnectionsMode}
           cloneConectionsInPanel={this.closeConnectionsInPanel} 
           openNav={this.openMenu.bind(null, "navigation")}
           openDisplaySettings={this.openDisplaySettings}
@@ -1360,6 +1378,8 @@ var ReaderPanel = React.createClass({
                     setSheetTag={this.setSheetTag} />);
     } else if (this.state.menuOpen === "account") {
       var menu = (<AccountPanel />);
+    } else if (this.state.menuOpen === "notifications") {
+      var menu = (<NotificationsPanel />);
     } else {
       var menu = null;
     }
@@ -1387,10 +1407,12 @@ var ReaderPanel = React.createClass({
           multiPanel={this.props.multiPanel}
           settings={this.state.settings}
           setOption={this.setOption}
+          setConnectionsMode={this.setConnectionsMode}
           openMenu={this.openMenu}
           closeMenus={this.closeMenus}
           openDisplaySettings={this.openDisplaySettings}
           currentLayout={this.currentLayout}
+          connectionsMode={this.state.connectionsMode}
           closePanel={this.props.closePanel} />)}
 
         <div className="readerContent" style={style}>
@@ -1412,23 +1434,25 @@ var ReaderPanel = React.createClass({
 
 
 var ReaderControls = React.createClass({
-  // The Header of a Reader panel which contains controls for 
-  // display, navigation etc.
+  // The Header of a Reader panel when looking at a text 
+  // contains controls for display, navigation etc.
   propTypes: {
     settings:                React.PropTypes.object.isRequired,
     showBaseText:            React.PropTypes.func.isRequired,
     setOption:               React.PropTypes.func.isRequired,
+    setConnectionsMode:      React.PropTypes.func.isRequired,
     openMenu:                React.PropTypes.func.isRequired,
     openDisplaySettings:     React.PropTypes.func.isRequired,
     closeMenus:              React.PropTypes.func.isRequired,
-    currentRef:              React.PropTypes.string,
-    version:                 React.PropTypes.string,
-    versionLanguage:         React.PropTypes.string,
     currentMode:             React.PropTypes.func.isRequired,
     currentCategory:         React.PropTypes.func.isRequired,
     currentBook:             React.PropTypes.func.isRequired,
     currentLayout:           React.PropTypes.func.isRequired,
     closePanel:              React.PropTypes.func,
+    currentRef:              React.PropTypes.string,
+    version:                 React.PropTypes.string,
+    versionLanguage:         React.PropTypes.string,
+    connectionsMode:         React.PropTypes.string,
     multiPanel:              React.PropTypes.bool
   },
   render: function() {
@@ -1451,8 +1475,9 @@ var ReaderControls = React.createClass({
     var versionTitle = this.props.version ? this.props.version.replace(/_/g," "):"";
     var centerContent = this.props.multiPanel && mode === "Connections" ?
       (<div className="readerTextToc">
-          <span className="en">Select Connection</span>
-          <span className="he">בחר חיבור</span>
+          <ConnectionsPanelTabs 
+            activeTab={this.props.connectionsMode}
+            setConnectionsMode={this.props.setConnectionsMode} />
         </div>) :
       (<div className="readerTextToc" onClick={this.props.openMenu.bind(null, "text toc")}>
           { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
@@ -2019,7 +2044,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
         // Walk through content looking for runs of spans to group together into a table
         if (content[i].type == "div") { // this is a subcategory
           if (currentRun.length) {
-            boxedContent.push((<TwoOrThreeBox contents={currentRun} width={this.props.width} key={i} />));
+            boxedContent.push((<TwoOrThreeBox content={currentRun} width={this.props.width} key={i} />));
             currentRun = [];
           }
           boxedContent.push(content[i]);
@@ -3169,6 +3194,114 @@ var TextSegment = React.createClass({
 });
 
 
+var ConnectionsPanel = React.createClass({
+  propTypes: {
+    srefs:                   React.PropTypes.array.isRequired,    // an array of ref strings
+    filter:                  React.PropTypes.array.isRequired,
+    recentFilters:           React.PropTypes.array.isRequired,
+    mode:                    React.PropTypes.string.isRequired, // "Connections", "Tools"
+    setFilter:               React.PropTypes.func.isRequired,
+    setConnectionsMode:      React.PropTypes.func.isRequired,
+    fullPanel:               React.PropTypes.bool,
+    multiPanel:              React.PropTypes.bool,
+    onTextClick:             React.PropTypes.func,
+    onCitationClick:         React.PropTypes.func,
+    onNavigationClick:       React.PropTypes.func,
+    onCompareClick:          React.PropTypes.func,
+    onOpenConnectionsClick:  React.PropTypes.func,
+    openNav:                 React.PropTypes.func,
+    openDisplaySettings:     React.PropTypes.func,
+    closePanel:              React.PropTypes.func
+  },
+  render: function() {
+    var content = null;
+    if (this.props.mode == "Connections") {
+      content = (<TextList 
+                    srefs={this.props.srefs}
+                    filter={this.props.filter}
+                    recentFilters={this.props.recentFilters}
+                    fullPanel={this.props.fullPanel}
+                    multiPanel={this.props.multiPanel}
+                    setFilter={this.props.setFilter}
+                    setConnectionsMode={this.props.setConnectionsMode}
+                    onTextClick={this.props.onTextClick}
+                    onCitationClick={this.props.onCitationClick}
+                    onNavigationClick={this.props.onNavigationClick}
+                    onCompareClick={this.props.onCompareClick}
+                    onOpenConnectionsClick={this.props.onOpenConnectionsClick}
+                    openNav={this.props.openNav}
+                    openDisplaySettings={this.props.openDisplaySettings}
+                    closePanel={this.props.closePanel} />);      
+    } else if (this.props.mode === "Tools") {
+      content = (<ToolsPanel
+                    srefs={this.props.srefs}
+                    mode={this.props.mode}
+                    filter={this.props.filter}
+                    recentFilters={this.props.recentFilters}
+                    fullPanel={this.props.fullPanel}
+                    multiPanel={this.props.multiPanel}
+                    setFilter={this.props.setFilter}
+                    setConnectionsMode={this.props.setConnectionsMode}
+                    onTextClick={this.props.onTextClick}
+                    onCitationClick={this.props.onCitationClick}
+                    onNavigationClick={this.props.onNavigationClick}
+                    onCompareClick={this.props.onCompareClick}
+                    onOpenConnectionsClick={this.props.onOpenConnectionsClick}
+                    openNav={this.props.openNav}
+                    openDisplaySettings={this.props.openDisplaySettings}
+                    closePanel={this.props.closePanel} />);
+
+    } else if (this.props.mode === "Share") {
+      content = (<SharePanel
+        url={window.location.href}
+        fullPanel={this.props.fullPanel}
+        setConnectionsMode={this.props.setConnectionsMode} />);
+
+    } else if (this.props.mode === "Add to Source Sheet") {
+      content = (<AddToSourceSheetPanel
+        srefs={this.props.srefs}
+        fullPanel={this.props.fullPanel}
+        setConnectionsMode={this.props.setConnectionsMode} />);
+
+    } else if (this.props.mode === "Add Note") {
+      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
+    } else if (this.props.mode === "My Notes") {
+      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
+    } else if (this.props.mode === "Add Connection") {
+      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
+    } else if (this.props.mode === "Edit Text") {
+      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
+    } else if (this.props.mode === "Add Translation") {
+      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
+    } else if (this.props.mode === "Login") {
+      content = (<LoginPanel />);
+    }
+    return content;
+  }
+});
+
+
+var ConnectionsPanelTabs = React.createClass({
+  propTypes: {
+    activeTab:          React.PropTypes.string.isRequired, // "Connections", "Tools"
+    setConnectionsMode: React.PropTypes.func.isRequired
+  },
+  render: function() {
+    var tabNames = ["Connections", "Tools"];
+    var tabs = tabNames.map(function(item) {
+      var tabClick = function() {
+        this.props.setConnectionsMode(item)
+      }.bind(this);
+      var active  = item === this.props.activeTab;
+      var classes = classNames({connectionsPanelTab: 1, active: active});
+      return (<span className={classes} onClick={tabClick} key={item}>{item}</span>);
+    }.bind(this));
+
+    return (<div className="connectionsPanelTabs">{tabs}</div>);
+  }
+});
+
+
 var TextList = React.createClass({
   propTypes: {
     srefs:                   React.PropTypes.array.isRequired,    // an array of ref strings
@@ -3177,6 +3310,7 @@ var TextList = React.createClass({
     fullPanel:               React.PropTypes.bool,
     multiPanel:              React.PropTypes.bool,
     setFilter:               React.PropTypes.func,
+    setConnectionsMode:      React.PropTypes.func,
     onTextClick:             React.PropTypes.func,
     onCitationClick:         React.PropTypes.func,
     onNavigationClick:       React.PropTypes.func,
@@ -3626,6 +3760,275 @@ var RecentFilterSet = React.createClass({
         {moreButton}
       </div>
     );
+  }
+});
+
+
+var ToolsPanel = React.createClass({
+  propTypes: {
+    srefs:                   React.PropTypes.array.isRequired,  // an array of ref strings
+    mode:                    React.PropTypes.string.isRequired, // "Tools", "Share", "Add to Source Sheet", "Add Note", "My Notes", "Add Connection", "Edit Text", "Add Translation"
+    filter:                  React.PropTypes.array.isRequired,
+    recentFilters:           React.PropTypes.array.isRequired,
+    setConnectionsMode:      React.PropTypes.func.isRequired,
+    fullPanel:               React.PropTypes.bool,
+    multiPanel:              React.PropTypes.bool,
+    setFilter:               React.PropTypes.func,
+    onTextClick:             React.PropTypes.func,
+    onCitationClick:         React.PropTypes.func,
+    onNavigationClick:       React.PropTypes.func,
+    onCompareClick:          React.PropTypes.func,
+    onOpenConnectionsClick:  React.PropTypes.func,
+    openNav:                 React.PropTypes.func,
+    openDisplaySettings:     React.PropTypes.func,
+    closePanel:              React.PropTypes.func
+  },
+  getInitialState: function() {
+    return {
+    
+    };
+  },
+  render: function() {
+    var classes = classNames({toolsPanel: 1, textList: 1, fullPanel: this.props.fullPanel});
+    return (
+      <div className={classes}>
+        <div className="textListTop">
+          {this.props.fullPanel ? 
+            (<div className="leftButtons">
+              {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} />) : null}
+              {this.props.multiPanel ? null : (<ReaderNavigationMenuSearchButton onClick={this.props.openNav} />) }
+             </div>) : null}
+          {this.props.fullPanel ? 
+            (<div className="rightButtons">
+              <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+             </div>) : null}
+          <ConnectionsPanelTabs
+            activeTab="Tools"
+            setConnectionsMode={this.props.setConnectionsMode} />
+        </div>
+        <div className="texts">
+          <div className="contentInner">
+            <ToolsButton en="Share" he="Share" icon="share-square-o" onClick={function() {this.props.setConnectionsMode("Share")}.bind(this)} /> 
+            <ToolsButton en="Add to Source Sheet" he="Add to Source Sheet" icon="plus-circle" onClick={function() {this.props.setConnectionsMode("Add to Source Sheet")}.bind(this)} /> 
+            <ToolsButton en="Add Note" he="Add Note" icon="pencil" onClick={function() {this.props.setConnectionsMode("Add Note")}.bind(this)} /> 
+            <ToolsButton en="My Notes" he="My Notes" icon="file-text-o" onClick={function() {this.props.setConnectionsMode("My Notes")}.bind(this)} /> 
+            <ToolsButton en="Add Connection" he="Add Connection" icon="link" onClick={function() {this.props.setConnectionsMode("Add Connection")}.bind(this)} /> 
+            <ToolsButton en="Edit Text" he="Edit Text" icon="edit" onClick={function() {this.props.setConnectionsMode("Edit Text")}.bind(this)} /> 
+            <ToolsButton en="Add Translation" he="Add Translation" icon="language" onClick={function() {this.props.setConnectionsMode("Edit Text")}.bind(this)} /> 
+          </div>
+        </div>
+      </div>);
+  }
+});
+
+
+var ToolsButton = React.createClass({
+  propTypes: {
+    en:      React.PropTypes.string.isRequired,
+    he:      React.PropTypes.string.isRequired,
+    icon:    React.PropTypes.string.isRequired,
+    onClick: React.PropTypes.func,
+  },
+  render: function() {
+    var icon = "fa-" + this.props.icon;
+    var classes = {fa: 1};
+    classes[icon] = 1;
+
+    return (
+      <div className="toolsButton" onClick={this.props.onClick}>
+        <i className={classNames(classes)} />
+        <div className="en">{this.props.en}</div>
+        <div className="he">{this.props.he}</div>
+      </div>)
+  }
+});
+
+
+var SharePanel = React.createClass({
+  propTypes: {
+    url: React.PropTypes.string.isRequired,
+    setConnectionsMode: React.PropTypes.func.isRequired,
+    fullPanel: React.PropTypes.bool
+  },
+  componentDidMount: function() {
+    this.focusInput();
+  },
+  componentDidUpdate: function() {
+    this.focusInput();
+  },
+  focusInput: function() {
+    $(ReactDOM.findDOMNode(this)).find("input").select();
+  },
+  render: function() {
+    var url = this.props.url;
+    var shareFacebook = function() {
+      openInNewTab("https://www.facebook.com/sharer/sharer.php?u=" + url);
+    };
+    var shareTwitter = function() {
+      openInNewTab("https://twitter.com/home?status=" + url);
+    };
+    var shareEmail = function() {
+      openInNewTab("mailto:?&subject=Text on Sefaria&body=" + url);
+    };
+    var classes = classNames({sharePanel: 1, textList: 1, fullPanel: this.props.fullPanel});
+    return (
+      <div className={classes}>
+        <div className="textListTop">
+          {this.props.fullPanel ? 
+            (<div className="leftButtons">
+              {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} />) : null}
+              {this.props.multiPanel ? null : (<ReaderNavigationMenuSearchButton onClick={this.props.openNav} />) }
+             </div>) : null}
+          {this.props.fullPanel ? 
+            (<div className="rightButtons">
+              <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+             </div>) : null}
+          <ConnectionsPanelTabs
+            activeTab="Tools"
+            setConnectionsMode={this.props.setConnectionsMode} />
+        </div>
+        <div className="texts">
+          <div className="contentInner">
+            <input className="shareInput" value={this.props.url} />
+            <ToolsButton en="Facebook" he="Facebook" icon="facebook" onClick={shareFacebook} /> 
+            <ToolsButton en="Twitter" he="Twitter" icon="twitter" onClick={shareTwitter} /> 
+            <ToolsButton en="Email" he="Email" icon="envelope-o" onClick={shareEmail} /> 
+          </div>
+        </div>
+      </div>);
+  }
+});
+
+
+var AddToSourceSheetPanel = React.createClass({
+  propTypes: {
+    srefs: React.PropTypes.array.isRequired,
+    setConnectionsMode: React.PropTypes.func.isRequired,
+    fullPanel: React.PropTypes.bool
+  },
+  getInitialState: function() {
+    return {
+      selectedSheet: null
+    };
+  },
+  componentDidMount: function() {
+    this.loadSheets();
+  },
+  loadSheets: function() {
+    sjs.library.sheets.userSheets(sjs._uid, function() {
+      this.forceUpdate();
+    }.bind(this));
+  },
+  addToSourceSheet: function() {
+    if (!this.state.selectedSheet) { return; }
+    var url     = "/api/sheets/" + this.state.selectedSheet + "/add";
+    var source  = {refs: this.props.srefs};
+    $.post(url, {source: JSON.stringify(source)}, this.confirmAdd); 
+  },
+  createSheet: function(refs) {
+    var title = $(ReactDOM.findDOMNode(this)).find("input").val();
+    if (!title) { return; }
+    var sheet = {
+      title: title,
+      options: {numbered: 0},
+      sources: []
+    };
+    var postJSON = JSON.stringify(sheet);
+    $.post("/api/sheets/", {"json": postJSON}, function(data) {
+      this.setState({selectedSheet: data.id}, function() {
+        this.addToSourceSheet();
+      });
+      sjs.library.sheets.clearUserSheets(sjs._uid);
+    }.bind(this)); 
+  },
+  openNewSheet: function() {
+    this.setState({showNewSheetInput: true});
+  },
+  confirmAdd: function() {
+    this.setState({confirm: true});
+  },
+  render: function() {
+    if (this.state.confirm) {
+      return (<ConfirmAddToSheetPanel sheetId={this.state.selectedSheet} />);
+    }
+    var sheets        = sjs.library.sheets.userSheets(sjs._uid);
+    var sheetsContent = sheets ? sheets.map(function(sheet) {
+      var classes     = classNames({sheet: 1, selected: this.state.selectedSheet == sheet.id});
+      var selectSheet = function() { this.setState({selectedSheet: sheet.id}); }.bind(this);
+      return (<div className={classes} onClick={selectSheet} key={sheet.id}>{sheet.title.stripHtml()}</div>);
+    }.bind(this)) : <LoadingMessage />;
+    var createSheet = this.state.showNewSheetInput ? 
+          (<div>
+            <input className="newSheetInput" placeholder="Title your Sheet"/>
+            <div className="button white small" onClick={this.createSheet} >
+              <span className="en">Create</span>
+              <span className="he">לִיצוֹר</span>
+            </div>
+           </div>) : (<div className="button white" onClick={this.openNewSheet}>Create a Source Sheet</div>);
+    var classes = classNames({addToSourceSheetPanel: 1, textList: 1, fullPanel: this.props.fullPanel});
+    return (
+      <div className={classes}>
+        <div className="textListTop">
+          {this.props.fullPanel ? 
+            (<div className="leftButtons">
+              {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} />) : null}
+              {this.props.multiPanel ? null : (<ReaderNavigationMenuSearchButton onClick={this.props.openNav} />) }
+             </div>) : null}
+          {this.props.fullPanel ? 
+            (<div className="rightButtons">
+              <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+             </div>) : null}
+          <ConnectionsPanelTabs
+            activeTab="Tools"
+            setConnectionsMode={this.props.setConnectionsMode} />
+        </div>
+        <div className="texts">
+          <div className="contentInner">
+            {createSheet}
+            <div className="sourceSheetSelector">{sheetsContent}</div>
+            <div className="button" onClick={this.addToSourceSheet}>Add to Sheet</div>
+          </div>
+        </div>
+      </div>);
+  }
+});
+
+
+var ConfirmAddToSheetPanel = React.createClass({
+  propType: {
+    sheetId: React.PropTypes.number.isRequired
+  },
+  render: function() {
+    return (<div className="confirmAddToSheetPanel">
+              <div className="message">
+                <span className="en">Your source has been added.</span>
+                <span className="he">המקור שלך נמחק.</span>
+              </div>
+              <a className="button white" href={"/sheets/" + this.props.sheetId}>
+                <span className="en">Go to Source Sheet <i className="fa fa-angle-right"></i></span>
+                <span className="he">לדפ מקורות<i className="fa fa-angle-left"></i></span>
+              </a>
+            </div>);
+  }
+});
+
+var LoginPanel = React.createClass({
+  render: function() {
+    var currentPath = window.location.pathname + window.location.search;
+    return (<div className="loginPanel">
+              <div className="loginPanelMessage">
+                <span className="en">You must be logged in to use this feature.</span>
+                <span className="he">אתה חייב להיות מחובר כדי להשתמש בתכונה זו.</span>
+              </div>
+              <a className="button" href={"/login?next=" + currentPath}>
+                <span className="en">Log In</span>
+                <span className="he">התחבר</span>
+              </a>
+              <a className="button" href={"/register?next=" + currentPath}>
+                <span className="en">Sign Up</span>
+                <span className="he">להירשם</span>
+              </a>
+            </div>);
   }
 });
 
@@ -4413,42 +4816,43 @@ var AccountPanel = React.createClass({
   render: function() {
     var width = $(window).width();
     var accountContent = [
-      (<BlockLink target="/my/profile" title="Profile" />),
-      (<BlockLink target="/sheets/private" title="Source Sheets" />),
-      (<BlockLink target="#" title="Reading History" />),
-      (<BlockLink target="#" title="Notes" />),
-      (<BlockLink target="/settings/account" title="Settings" />)
+      (<BlockLink target="/my/profile" title="Profile" heTitle="Profile"/>),
+      (<BlockLink target="/sheets/private" title="Source Sheets" heTitle="דפי מקורות" />),
+      (<BlockLink target="#" title="Reading History" heTitle="Reading History" />),
+      (<BlockLink target="#" title="Notes" heTitle="Notes" />),
+      (<BlockLink target="/settings/account" title="Settings" heTitle="Settings" />),
+      (<BlockLink target="/logout" title="Log Out" heTitle="Log Out" />)
     ];
     accountContent = (<TwoOrThreeBox content={accountContent} width={width} />);
 
     var learnContent = [
-      (<BlockLink target="/about" title="About" />),
-      (<BlockLink target="/faq" title="FAQ" />),
-      (<BlockLink target="http://blog.sefaria.org" title="Blog" />),
-      (<BlockLink target="/educators" title="Educators" />),
-      (<BlockLink target="/help" title="Help" />),
-      (<BlockLink target="/team" title="Team" />)
+      (<BlockLink target="/about" title="About" heTitle="אודות" />),
+      (<BlockLink target="/faq" title="FAQ" heTitle="שאלות נפוצות" />),
+      (<BlockLink target="http://blog.sefaria.org" title="Blog" heTitle="בלוג" />),
+      (<BlockLink target="/educators" title="Educators" heTitle="מחנכים" />),
+      (<BlockLink target="/help" title="Help" heTitle="Help" />),
+      (<BlockLink target="/team" title="Team" heTitle="צוות" />)
     ];
 
     learnContent = (<TwoOrThreeBox content={learnContent} width={width} />);
 
     var contributeContent = [
-      (<BlockLink target="/activity" title="Recent Activity" />),
-      (<BlockLink target="/metrics" title="Metrics" />),  
-      (<BlockLink target="/contribute" title="Contribute" />),
-      (<BlockLink target="/donate" title="Donate" />),
-      (<BlockLink target="/supporters" title="Supporters" />),
-      (<BlockLink target="/jobs" title="Jobs" />),
+      (<BlockLink target="/activity" title="Recent Activity" heTitle="פעילות אחרונהs" />),
+      (<BlockLink target="/metrics" title="Metrics" heTitle="מדדים" />),  
+      (<BlockLink target="/contribute" title="Contribute" heTitle="הצטרף אלינו" />),
+      (<BlockLink target="/donate" title="Donate" heTitle="תרומות" />),
+      (<BlockLink target="/supporters" title="Supporters" heTitle="תומכים" />),
+      (<BlockLink target="/jobs" title="Jobs" heTitle="דרושים" />),
     ];
     contributeContent = (<TwoOrThreeBox content={contributeContent} width={width} />);
 
     var connectContent = [
-      (<BlockLink target="https://groups.google.com/forum/?fromgroups#!forum/sefaria" title="Forum" />),
-      (<BlockLink target="http://www.facebook.com/sefaria.org" title="Facebook" />),
-      (<BlockLink target="http://twitter.com/SefariaProject" title="Twitter" />),      
-      (<BlockLink target="http://www.youtube.com/user/SefariaProject" title="YouTube" />),
-      (<BlockLink target="http://www.github.com/Sefaria" title="GitHub" />),
-      (<BlockLink target="mailto:hello@sefaria.org" title="Email" />)
+      (<BlockLink target="https://groups.google.com/forum/?fromgroups#!forum/sefaria" title="Forum" heTitle="פורום" />),
+      (<BlockLink target="http://www.facebook.com/sefaria.org" title="Facebook" heTitle="פייסבוק" />),
+      (<BlockLink target="http://twitter.com/SefariaProject" title="Twitter" heTitle="טוויטר" />),      
+      (<BlockLink target="http://www.youtube.com/user/SefariaProject" title="YouTube" heTitle="יוטיוב" />),
+      (<BlockLink target="http://www.github.com/Sefaria" title="GitHub" heTitle="גיטהאב" />),
+      (<BlockLink target="mailto:hello@sefaria.org" title="Email" heTitle='דוא"ל' />)
     ];
     connectContent = (<TwoOrThreeBox content={connectContent} width={width} />);
 
@@ -4456,15 +4860,30 @@ var AccountPanel = React.createClass({
       <div className="accountPanel readerNavMenu">
         <div className="content">
           <div className="contentInner">
-           <ReaderNavigationMenuSection title="Account" heTitle="נצפו לאחרונה" content={accountContent} />
-           <ReaderNavigationMenuSection title="Learn" heTitle="נצפו לאחרונה" content={learnContent} />
-           <ReaderNavigationMenuSection title="Contribute" heTitle="נצפו לאחרונה" content={contributeContent} />
-           <ReaderNavigationMenuSection title="Connect" heTitle="נצפו לאחרונה" content={connectContent} />
+           <ReaderNavigationMenuSection title="Account" heTitle="Account" content={accountContent} />
+           <ReaderNavigationMenuSection title="Learn" heTitle="למיד" content={learnContent} />
+           <ReaderNavigationMenuSection title="Contribute" heTitle="Contribute" content={contributeContent} />
+           <ReaderNavigationMenuSection title="Connect" heTitle="התחבר" content={connectContent} />
           </div>
         </div>
       </div>
       );
   }
+});
+
+
+var NotificationsPanel = React.createClass({
+    render: function() {
+    return (
+      <div className="notifcationsPanel readerNavMenu">
+        <div className="content">
+          <div className="contentInner">
+           <center>Notifications Coming Soon!</center>
+          </div>
+        </div>
+      </div>
+      );
+    }
 });
 
 
@@ -4572,6 +4991,29 @@ var LoadingMessage = React.createClass({
             </div>);
   }
 });
+
+
+var TestMessage = React.createClass({
+  propTypes: {
+    hide:   React.PropTypes.func
+  },
+  render: function() {
+    return (
+      <div className="testMessageBox">
+        <div className="overlay" onClick={this.props.hide} ></div>
+        <div className="testMessage">
+          <div className="title">The new Sefaria is still in development.<br />Thank you for helping us test and improve it.</div>
+          <a href="mailto:hello@sefaria.org" target="_blank" className="button">Send Feedback</a>
+          <div className="button" onClick={backToS1} >Return to Old Sefaria</div>
+        </div>
+      </div>);
+  }
+});
+
+function openInNewTab(url) {
+  var win = window.open(url, '_blank');
+  win.focus();
+}
 
 var backToS1 = function() { 
   $.cookie("s2", "", {path: "/"});
