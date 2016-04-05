@@ -99,7 +99,7 @@
 					<i class="fa fa-print"></i>Print</div>
 			</div>
         </div>
-        <div class="sheetsMenuBarItem" id="viewMenu">View
+        <div class="sheetsMenuBarItem" id="formatMenu">Format
 			<div class="optionsMenu">
 				<div class="optionGroup">
 					<div class="optionTitle"><i class="fa fa-cloud"></i> Divine Names <i class='fa fa-caret-right'></i></div>
@@ -120,10 +120,20 @@
 					<i class="fa fa-check hidden"></i> Box Sources</div>
 				<div class="optionItem" id="bsd">
 					<i class="fa fa-check hidden"></i> בס"ד</div>
+                <div class="line"></div>
+
+                <div class="optionGroup">
+					<div class="optionTitle"><i class="fa"><img src="/static/img/bilingual.png"></i> Sheet Language <i class='fa fa-caret-right'></i></div>
+							<i class="fa fa-check hidden"></i> English</div>
+							<i class="fa fa-check hidden"></i> Hebrew</div>
+							<i class="fa fa-check hidden"></i> Bilingual</span></div>
+					</div>
+				</div>
+
+
             </div>
 
         </div>
-        <div class="sheetsMenuBarItem">Format</div>
             {% if can_edit or can_add %}
         <div class="sheetsMenuBarItem" id="insertMenu">Insert
 			<div class="optionsMenu">

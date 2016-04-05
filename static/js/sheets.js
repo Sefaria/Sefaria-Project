@@ -288,7 +288,7 @@ $(function() {
 
 
 	// General Options 
-	$("#options .optionItem,#viewMenu .optionItem, #assignmentsModal .optionItem").click(function() {
+	$("#options .optionItem,#formatMenu .optionItem, #assignmentsModal .optionItem").click(function() {
 		$check = $(".fa-check", $(this));
 		if ($check.hasClass("hidden")) {
 			$("#sheet").addClass($(this).attr("id"));
@@ -316,6 +316,22 @@ $(function() {
 		$("#makeSheetAssignableButton").show();
 		$("#sheet").removeClass('assignable');
 		autoSave();
+	});
+
+
+
+	$(".languageToggleOption div").click(function(){
+
+		$(".languageToggleOption div .fa-check").addClass("hidden");
+		$("#sheet").removeClass("english bilingual hebrew");
+		$(".fa-check", $(this)).removeClass("hidden");
+		if ( $(this).hasClass("english") ) $("#sheet").addClass("english");
+		else if ( $(this).hasClass("hebrew") ) $("#sheet").addClass("hebrew");
+		else if ( $(this).hasClass("bilingual") ) $("#sheet").addClass("bilingual");
+
+		if (sjs.can_edit) {
+			autoSave();
+		}
 	});
 
 
@@ -1527,6 +1543,7 @@ function readSheet() {
 		sheet.options.assignable    = $("#sheet").hasClass("assignable") ? 1 : 0;
 		sheet.options.bsd           = $("#sheet").hasClass("bsd") ? 1 : 0;
 		sheet.options.language      = $("#sheet").hasClass("hebrew") ? "hebrew" : $("#sheet").hasClass("bilingual") ? "bilingual" : "english";
+		console.log(sheet.options.language);
 		sheet.options.layout        = $("#sheet").hasClass("stacked") ? "stacked" : "sideBySide";
 		sheet.options.langLayout    = $("#sheet").hasClass("heLeft") ? "heLeft" : "heRight";
 		sheet.options.divineNames   = $(".divineNamesOption .fa-check").not(".hidden").parent().attr("id");

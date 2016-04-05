@@ -193,13 +193,13 @@ body {
 	margin-left: 12px;
 }
 
-.optionItem, .optionLink {
+.optionItem, .optionLink, .languageToggleOption div {
 	padding: 5px 12px;
 	cursor: pointer;
 	white-space: nowrap;
 }
 .optionItem:hover,
-.optionTitle:hover, .optionLink:hover {
+.optionTitle:hover, .optionLink:hover, .languageToggleOption div:hover {
 	background: #08c;
 	color:white;
 }
@@ -1366,7 +1366,7 @@ input[type="file"] {
 	margin-top:10px;
 	width: 300px;
 }
-.optionItem a, .optionLink a {
+.optionItem a, .optionLink a, .languageToggleOption div a {
  color: inherit;
 }
 
@@ -1395,18 +1395,18 @@ input[type="file"] {
 	margin: 10px 20px;
 }
 
-#fileMenu:hover .optionsMenu, #viewMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu {
+#fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu {
 	display: block;
 	top:40px;
 }
 #fileMenu:hover .optionsMenu {
 	left:40px;
 }
-#viewMenu:hover .optionsMenu {
+#formatMenu:hover .optionsMenu {
 	left:100px;
 }
 
 #insertMenu:hover .optionsMenu {
-	left:270px;
+	left:190px;
 	width:240px;
 }
