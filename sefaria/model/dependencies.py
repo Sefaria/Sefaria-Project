@@ -36,7 +36,6 @@ subscribe(text.process_index_delete_in_toc,                             text.Ind
 # Process in ES
 
 # Version Title Change
-subscribe(text.process_commentary_version_title_change_in_cache,        text.Version, "attributeChange", "title")
 subscribe(history.process_version_title_change_in_history,              text.Version, "attributeChange", "versionTitle")
 subscribe(text.process_version_save_in_cache,                           text.Version, "save")
 subscribe(text.process_version_delete_in_cache,                         text.Version, "delete")

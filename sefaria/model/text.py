@@ -4097,20 +4097,16 @@ def get_index(bookname):
 
 def process_index_title_change_in_versions(indx, **kwargs):
     VersionSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
-
-    if indx.is_commentary():  # and "commentaryBook" not in d:  # looks useless
-        old_titles = library.get_commentary_version_titles(kwargs["old"])
-    else:
-        old_titles = library.get_commentary_version_titles_on_book(kwargs["old"])
-    old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]
-    for pair in old_new:
-        VersionSet({"title": pair[0]}).update({"title": pair[1]})
-
+    dependent_indices = library.get_dependant_indices(kwargs["old"])
+    for didx in dependent_indices:
+        pos = didx.base_text_titles.index(kwargs["old"])
+        didx.base_text_titles.pop(pos)
+        didx.base_text_titles.insert(pos, kwargs["new"])
+        didx.save()
 
 def process_index_delete_in_versions(indx, **kwargs):
     VersionSet({"title": indx.title}).delete()
-    if indx.is_commentary():  # and not getattr(self, "commentator", None):   # Seems useless
-        library.get_commentary_versions(indx.title).delete()
+    #TODO: should we delete dependant texts anymore? maybe just delete the base_text_title?
 
 
 def process_index_title_change_in_core_cache(indx, **kwargs):
@@ -4120,15 +4116,6 @@ def process_index_title_change_in_core_cache(indx, **kwargs):
         invalidate_title(old_title)
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(old_title))
     library.refresh_index_record_in_cache(indx, old_title=old_title)
-
-
-def process_commentary_version_title_change_in_cache(ver, **kwargs):
-    old_title = kwargs["old"]
-    if USE_VARNISH:
-        from sefaria.system.sf_varnish import invalidate_title
-        invalidate_title(old_title)
-    scache.delete_cache_elem(scache.generate_text_toc_cache_key(old_title))
-    library.refresh_index_record_in_cache(library.get_index(ver.title), old_title=old_title)
 
 
 def process_index_change_in_core_cache(indx, **kwargs):
@@ -4143,17 +4130,11 @@ def process_index_change_in_core_cache(indx, **kwargs):
 
 
 def process_index_change_in_toc(indx, **kwargs):
-    if indx.is_commentary():
-        library.rebuild_toc()
-    else:
-        library.update_index_in_toc(indx, old_ref=kwargs.get('orig_vals').get('title') if kwargs.get('orig_vals') else None)
+    library.update_index_in_toc(indx, old_ref=kwargs.get('orig_vals').get('title') if kwargs.get('orig_vals') else None)
 
 
 def process_index_delete_in_toc(indx, **kwargs):
-    if indx.is_commentary():
-        library.rebuild_toc()
-    else:
-        library.delete_index_from_toc(indx.title)
+    library.delete_index_from_toc(indx.title)
 
 
 def process_index_delete_in_core_cache(indx, **kwargs):
@@ -4166,13 +4147,8 @@ def process_index_delete_in_core_cache(indx, **kwargs):
 
 def process_version_save_in_cache(ver, **kwargs):
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(ver.title))
-    if not Index().load({"title": ver.title}) and " on " in ver.title:
-        library.remove_commentary_index(ver.title)
-        library.add_commentary_index(ver.title)
 
 def process_version_delete_in_cache(ver, **kwargs):
     scache.delete_cache_elem(scache.generate_text_toc_cache_key(ver.title))
-    if not Index().load({"title": ver.title}) and " on " in ver.title:
-        library.remove_commentary_index(ver.title)
 
 
