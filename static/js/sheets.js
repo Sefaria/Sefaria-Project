@@ -325,14 +325,68 @@ $(function() {
 		$(".languageToggleOption div .fa-check").addClass("hidden");
 		$("#sheet").removeClass("english bilingual hebrew");
 		$(".fa-check", $(this)).removeClass("hidden");
-		if ( $(this).hasClass("english") ) $("#sheet").addClass("english");
-		else if ( $(this).hasClass("hebrew") ) $("#sheet").addClass("hebrew");
-		else if ( $(this).hasClass("bilingual") ) $("#sheet").addClass("bilingual");
+		if ( $(this).hasClass("english") ) {
+			$("#sheet").addClass("english");
+			$("#layoutToggleGroup").addClass("disabled");
+		}
+		else if ( $(this).hasClass("hebrew") ) {
+			$("#sheet").addClass("hebrew");
+			$("#layoutToggleGroup").addClass("disabled");
+		}
+		else if ( $(this).hasClass("bilingual") ) {
+			$("#sheet").addClass("bilingual");
+			$("#layoutToggleGroup").removeClass("disabled");
+
+		}
 
 		if (sjs.can_edit) {
 			autoSave();
 		}
 	});
+
+
+	$(".layoutToggleOption div").click(function(){
+
+		$(".layoutToggleOption div .fa-check").addClass("hidden");
+		$("#sheet").removeClass("stacked sideBySide");
+		$(".fa-check", $(this)).removeClass("hidden");
+		if ( $(this).hasClass("stacked") ) {
+			$("#sheet").addClass("stacked");
+			$("#sideBySideToggleGroup").addClass("disabled");
+		}
+		else if ( $(this).hasClass("sideBySide") ) {
+			$("#sheet").addClass("sideBySide");
+			$("#sideBySideToggleGroup").removeClass("disabled");
+		}
+
+		if (sjs.can_edit) {
+			autoSave();
+		}
+	});
+
+
+
+
+	$(".sideBySideToggleGroup div").click(function(){
+		console.log('clicked');
+		$(".sideBySideToggleGroup div .fa-check").addClass("hidden");
+		$("#sheet").removeClass("heLeft heRight");
+		$(".fa-check", $(this)).removeClass("hidden");
+		if ( $(this).hasClass("heLeft") ) {
+			$("#sheet").addClass("heLeft sideBySide");
+
+		console.log('clicked left');
+		}
+		else if ( $(this).hasClass("heRight") ) {
+			$("#sheet").addClass("heRight sideBySide");
+		console.log('clicked right');
+		}
+
+		if (sjs.can_edit) {
+			autoSave();
+		}
+	});
+
 
 
 
@@ -1543,7 +1597,6 @@ function readSheet() {
 		sheet.options.assignable    = $("#sheet").hasClass("assignable") ? 1 : 0;
 		sheet.options.bsd           = $("#sheet").hasClass("bsd") ? 1 : 0;
 		sheet.options.language      = $("#sheet").hasClass("hebrew") ? "hebrew" : $("#sheet").hasClass("bilingual") ? "bilingual" : "english";
-		console.log(sheet.options.language);
 		sheet.options.layout        = $("#sheet").hasClass("stacked") ? "stacked" : "sideBySide";
 		sheet.options.langLayout    = $("#sheet").hasClass("heLeft") ? "heLeft" : "heRight";
 		sheet.options.divineNames   = $(".divineNamesOption .fa-check").not(".hidden").parent().attr("id");
@@ -1831,6 +1884,10 @@ function buildSheet(data){
 	$("#" + data.options.language).trigger("click");
 	$("#" + data.options.layout).trigger("click");
 	$("#" + data.options.divineNames).trigger("click");
+
+	$(".languageToggleOption ." + data.options.language).trigger("click");
+
+
 
 	// Set Options that may not have value yet
 	if (!("langLayout" in data.options)) { data.options.langLayout = "heRight"}
