@@ -142,7 +142,6 @@ var ReaderApp = React.createClass({
   shouldHistoryUpdate: function() {
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
-
     // If there's no history or the number or basic state of panels has changed
     if (!history.state
         || (!history.state.panels && !history.state.header)
@@ -356,7 +355,7 @@ var ReaderApp = React.createClass({
       console.log("Replace History - " + hist.url);
       //console.log(hist);
     } else {
-      if (window.location.pathname == hist.url) { return; } // Never push history with the same URL
+      if ((window.location.pathname + window.location.search) == hist.url) { return; } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
       console.log("Push History - " + hist.url);
       //console.log(hist);
