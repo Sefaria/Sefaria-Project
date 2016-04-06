@@ -287,15 +287,15 @@ var ReaderApp = React.createClass({
         hist.mode     = "Text"
       } else if (states[i].mode === "Connections") {
         var ref     = states[i].refs.slice(-1)[0];
-        var sources = states[i].filter.length ? states[i].filter.join("+") : "all";
-        hist.title  = ref  + " with " + (sources === "all" ? "Connections" : sources);
-        hist.url    = normRef(ref) + "?with=" + sources;
+        hist.sources = states[i].filter.length ? states[i].filter.join("+") : "all";
+        hist.title  = ref  + " with " + (hist.sources === "all" ? "Connections" : hist.sources);
+        hist.url    = normRef(ref); // + "?with=" + sources;
         hist.mode   = "Connections"
       } else if (states[i].mode === "TextAndConnections") {
         var ref       = states[i].highlightedRefs.slice(-1)[0];
-        var sources   = states[i].filter.length ? states[i].filter[0] : "all";
-        hist.title    = ref  + " with " + (sources === "all" ? "Connections" : sources);
-        hist.url      = normRef(ref) + "?with=" + sources;
+        hist.sources   = states[i].filter.length ? states[i].filter[0] : "all";
+        hist.title    = ref  + " with " + (hist.sources === "all" ? "Connections" : hist.sources);
+        hist.url      = normRef(ref); // + "?with=" + sources;
         hist.version  = states[i].version;
         hist.versionLanguage = states[i].versionLanguage;
         hist.mode     = "TextAndConnections"
@@ -323,12 +323,12 @@ var ReaderApp = React.createClass({
       if (histories[i-1].mode === "Text" && histories[i].mode === "Connections") {
         if (i == 1) {
           // short form for two panels text+commentary - e.g., /Genesis.1?with=Rashi
-          hist.url   = "/" + histories[i].url;
+          hist.url   = url + "&with=" + histories[1].sources;
           hist.title = histories[i].title;
         } else {
           var replacer = "&p" + i + "=";
           hist.url    = hist.url.replace(RegExp(replacer + ".*"), "");
-          hist.url   += replacer + histories[i].url.replace("with=", "with" + i + "=").replace("?", "&");
+          hist.url   += replacer + histories[i].url + "&with" + i + "=" + histories[i].sources; //.replace("with=", "with" + i + "=").replace("?", "&");
           hist.title += " & " + histories[i].title; // TODO this doesn't trim title properly
         }
       } else {

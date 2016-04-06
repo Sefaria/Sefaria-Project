@@ -180,7 +180,6 @@ def switch_to_s2(request):
     return response
 
 
-
 def s2(request, ref, version=None, lang=None):
     """
     New interfaces in development
