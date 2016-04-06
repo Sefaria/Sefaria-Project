@@ -328,15 +328,21 @@ $(function() {
 		if ( $(this).hasClass("english") ) {
 			$("#sheet").addClass("english");
 			$("#layoutToggleGroup").addClass("disabled");
+			$("#sideBySideToggleGroup").addClass("disabled");
+
 		}
 		else if ( $(this).hasClass("hebrew") ) {
 			$("#sheet").addClass("hebrew");
 			$("#layoutToggleGroup").addClass("disabled");
+			$("#sideBySideToggleGroup").addClass("disabled");
 		}
 		else if ( $(this).hasClass("bilingual") ) {
 			$("#sheet").addClass("bilingual");
 			$("#layoutToggleGroup").removeClass("disabled");
 
+			if ( $("#sheet").hasClass("sideBySide") ) {
+				$("#sideBySideToggleGroup").removeClass("disabled");
+				}
 		}
 
 		if (sjs.can_edit) {
@@ -356,7 +362,9 @@ $(function() {
 		}
 		else if ( $(this).hasClass("sideBySide") ) {
 			$("#sheet").addClass("sideBySide");
-			$("#sideBySideToggleGroup").removeClass("disabled");
+			if ($("#sheet").hasClass("bilingual")) {
+				$("#sideBySideToggleGroup").removeClass("disabled");
+				}
 		}
 
 		if (sjs.can_edit) {
@@ -367,9 +375,9 @@ $(function() {
 
 
 
-	$(".sideBySideToggleGroup div").click(function(){
+	$(".sideBySideToggleOption div").click(function(){
 		console.log('clicked');
-		$(".sideBySideToggleGroup div .fa-check").addClass("hidden");
+		$(".sideBySideToggleOption div .fa-check").addClass("hidden");
 		$("#sheet").removeClass("heLeft heRight");
 		$(".fa-check", $(this)).removeClass("hidden");
 		if ( $(this).hasClass("heLeft") ) {
@@ -1881,10 +1889,12 @@ function buildSheet(data){
 
 
 	// Set options that always have a value
-	$("#" + data.options.language).trigger("click");
 	$("#" + data.options.layout).trigger("click");
+	$("#" + data.options.language).trigger("click");
 	$("#" + data.options.divineNames).trigger("click");
 
+	$(".sideBySideToggleOption ." + data.options.langLayout).trigger("click");
+	$(".layoutToggleOption ." + data.options.layout).trigger("click");
 	$(".languageToggleOption ." + data.options.language).trigger("click");
 
 

@@ -193,13 +193,13 @@ body {
 	margin-left: 12px;
 }
 
-.optionItem, .optionLink, .languageToggleOption div, .layoutToggleOption div, .sideBySideToggleGroup div {
+.optionItem, .optionLink, .languageToggleOption div, .layoutToggleOption div, .sideBySideToggleOption div {
 	padding: 5px 12px;
 	cursor: pointer;
 	white-space: nowrap;
 }
 .optionItem:hover,
-.optionTitle:hover, .optionLink:hover, .languageToggleOption div:hover, .layoutToggleOption div:hover .sideBySideToggleGroup div:hover {
+.optionTitle:hover, .optionLink:hover, .languageToggleOption div:hover, .layoutToggleOption div:hover .sideBySideToggleOption div:hover {
 	background: #08c;
 	color:white;
 }
@@ -1366,7 +1366,7 @@ input[type="file"] {
 	margin-top:10px;
 	width: 300px;
 }
-.optionItem a, .optionLink a, .languageToggleOption div a, .layoutToggleOption div a, .sideBySideToggleGroup div a {
+.optionItem a, .optionLink a, .languageToggleOption div a, .layoutToggleOption div a, .sideBySideToggleOption div a {
  color: inherit;
 }
 
