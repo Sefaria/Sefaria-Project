@@ -17,10 +17,10 @@ sjs.library = {
     };
     var key = this._textKey(ref, settings);
     if (!cb) {
-      return this._getOrBuildTextData(key);
+      return this._getOrBuildTextData(key, ref, settings);
     }          
     if (key in this._texts) {
-      var data = this._getOrBuildTextData(key);
+      var data = this._getOrBuildTextData(key, ref, settings);
       cb(data);
       return data;
     }
@@ -63,12 +63,12 @@ sjs.library = {
     }
     return key;
   },
-  _getOrBuildTextData: function(key) {
+  _getOrBuildTextData: function(key, ref, settings) {
     var cached = this._texts[key];
     if (!cached || !cached.buildable) { return cached; }
     if (cached.buildable === "Add Context") {
-      var segmentData = clone(this.text(cached.ref));
-      var contextData = this.text(cached.sectionRef) || this.text(cached.sectionRef, {context: 1});
+      var segmentData = clone(this.text(cached.ref, $.extend(settings, {context: 0})));
+      var contextData = this.text(cached.sectionRef, $.extend(settings, {context: 0})) || this.text(cached.sectionRef, $.extend(settings, {context: 1}));
       segmentData.text = contextData.text;
       segmentData.he   = contextData.he;
       return segmentData;
