@@ -193,13 +193,13 @@ body {
 	margin-left: 12px;
 }
 
-.optionItem, .optionLink {
+.optionItem, .optionLink, .languageToggleOption div, .layoutToggleOption div, .sideBySideToggleOption div {
 	padding: 5px 12px;
 	cursor: pointer;
 	white-space: nowrap;
 }
 .optionItem:hover,
-.optionTitle:hover, .optionLink:hover {
+.optionTitle:hover, .optionLink:hover, .languageToggleOption div:hover, .layoutToggleOption div:hover .sideBySideToggleOption div:hover {
 	background: #08c;
 	color:white;
 }
@@ -361,6 +361,7 @@ body {
 	min-height: 40px;
 	margin-bottom: 6px;
 	text-align: center;
+	line-height: normal;
 }
 
 #author {
@@ -441,7 +442,6 @@ body {
 .sheetItem {
 	position: relative;
 	padding: 32px 32px;
-	margin-top: -32px;
 }
 
 #sheet #sources .sheetItem .sourceNumber.en {
@@ -1365,6 +1365,47 @@ input[type="file"] {
 	margin-top:10px;
 	width: 300px;
 }
-.optionItem a, .optionLink a {
+.optionItem a, .optionLink a, .languageToggleOption div a, .layoutToggleOption div a, .sideBySideToggleOption div a {
  color: inherit;
+}
+
+
+.sheetsEditNavTop {
+    position: fixed;
+    width: 100%;
+    background-color: #f2f2f2;
+    border-bottom: 1px solid #E2E2E1;
+    box-sizing: border-box;
+    height: 58px;
+    direction: ltr;
+    z-index: 21;
+    padding: 13px 20px;
+}
+
+#sheet p {
+	font-size: inherit;
+	line-height: inherit;
+	margin: inherit;
+  	font-family: inherit;
+}
+
+.sheetsMenuBarItem {
+	display: inline-block;
+	margin: 10px 20px;
+}
+
+#fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu {
+	display: block;
+	top:40px;
+}
+#fileMenu:hover .optionsMenu {
+	left:40px;
+}
+#formatMenu:hover .optionsMenu {
+	left:100px;
+}
+
+#insertMenu:hover .optionsMenu {
+	left:190px;
+	width:240px;
 }

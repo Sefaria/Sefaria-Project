@@ -288,7 +288,7 @@ $(function() {
 
 
 	// General Options 
-	$("#options .optionItem,#assignmentsModal .optionItem").click(function() {
+	$("#options .optionItem,#formatMenu .optionItem, #assignmentsModal .optionItem").click(function() {
 		$check = $(".fa-check", $(this));
 		if ($check.hasClass("hidden")) {
 			$("#sheet").addClass($(this).attr("id"));
@@ -317,6 +317,84 @@ $(function() {
 		$("#sheet").removeClass('assignable');
 		autoSave();
 	});
+
+
+
+	$(".languageToggleOption div").click(function(){
+
+		$(".languageToggleOption div .fa-check").addClass("hidden");
+		$("#sheet").removeClass("english bilingual hebrew");
+		$(".fa-check", $(this)).removeClass("hidden");
+		if ( $(this).hasClass("english") ) {
+			$("#sheet").addClass("english");
+			$("#layoutToggleGroup").addClass("disabled");
+			$("#sideBySideToggleGroup").addClass("disabled");
+
+		}
+		else if ( $(this).hasClass("hebrew") ) {
+			$("#sheet").addClass("hebrew");
+			$("#layoutToggleGroup").addClass("disabled");
+			$("#sideBySideToggleGroup").addClass("disabled");
+		}
+		else if ( $(this).hasClass("bilingual") ) {
+			$("#sheet").addClass("bilingual");
+			$("#layoutToggleGroup").removeClass("disabled");
+
+			if ( $("#sheet").hasClass("sideBySide") ) {
+				$("#sideBySideToggleGroup").removeClass("disabled");
+				}
+		}
+
+		if (sjs.can_edit) {
+			autoSave();
+		}
+	});
+
+
+	$(".layoutToggleOption div").click(function(){
+
+		$(".layoutToggleOption div .fa-check").addClass("hidden");
+		$("#sheet").removeClass("stacked sideBySide");
+		$(".fa-check", $(this)).removeClass("hidden");
+		if ( $(this).hasClass("stacked") ) {
+			$("#sheet").addClass("stacked");
+			$("#sideBySideToggleGroup").addClass("disabled");
+		}
+		else if ( $(this).hasClass("sideBySide") ) {
+			$("#sheet").addClass("sideBySide");
+			if ($("#sheet").hasClass("bilingual")) {
+				$("#sideBySideToggleGroup").removeClass("disabled");
+				}
+		}
+
+		if (sjs.can_edit) {
+			autoSave();
+		}
+	});
+
+
+
+
+	$(".sideBySideToggleOption div").click(function(){
+		console.log('clicked');
+		$(".sideBySideToggleOption div .fa-check").addClass("hidden");
+		$("#sheet").removeClass("heLeft heRight");
+		$(".fa-check", $(this)).removeClass("hidden");
+		if ( $(this).hasClass("heLeft") ) {
+			$("#sheet").addClass("heLeft sideBySide");
+
+		console.log('clicked left');
+		}
+		else if ( $(this).hasClass("heRight") ) {
+			$("#sheet").addClass("heRight sideBySide");
+		console.log('clicked right');
+		}
+
+		if (sjs.can_edit) {
+			autoSave();
+		}
+	});
+
 
 
 
@@ -554,7 +632,8 @@ $(function() {
 			if (sjs.flags.sorting) { return; }
 			// Don't init if the click began in another editable
 			if ($(e.target).find(".cke_editable").length) { return; }
-
+			// Don't init if element clicked is not on the source sheet (i.e. it's some other s2 reader element)
+			if( !$("#sheet").has($(this)).length > 0  ) { return }
 
 			// Remove any existing editors first
 			$(".cke_editable").each(function() {
@@ -1811,9 +1890,15 @@ function buildSheet(data){
 
 
 	// Set options that always have a value
-	$("#" + data.options.language).trigger("click");
 	$("#" + data.options.layout).trigger("click");
+	$("#" + data.options.language).trigger("click");
 	$("#" + data.options.divineNames).trigger("click");
+
+	$(".sideBySideToggleOption ." + data.options.langLayout).trigger("click");
+	$(".layoutToggleOption ." + data.options.layout).trigger("click");
+	$(".languageToggleOption ." + data.options.language).trigger("click");
+
+
 
 	// Set Options that may not have value yet
 	if (!("langLayout" in data.options)) { data.options.langLayout = "heRight"}
