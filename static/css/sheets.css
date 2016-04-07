@@ -1378,7 +1378,7 @@ input[type="file"] {
     box-sizing: border-box;
     height: 58px;
     direction: ltr;
-    z-index: 3;
+    z-index: 21;
     padding: 13px 20px;
 }
 
