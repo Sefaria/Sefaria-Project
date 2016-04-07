@@ -279,6 +279,7 @@ var ReaderApp = React.createClass({
             break;
         }
       } else if (states[i].mode === "Text") {
+        //debugger;
         hist.title    = states[i].refs.slice(-1)[0];
         hist.url      = normRef(hist.title);
         hist.version  = states[i].version;
@@ -308,11 +309,12 @@ var ReaderApp = React.createClass({
     if (!histories.length) {debugger;}
 
     // Now merge all history objects into one
+    var title =  histories.length ? histories[0].title : "Sefaria";
+
     var url   = "/" + (histories.length ? histories[0].url : "");
     if(histories[0].versionLanguage && histories[0].version) {
         url += "/" + histories[0].versionLanguage + "/" + histories[0].version.replace(/\s/g,"_");
     }
-    var title =  histories.length ? histories[0].title : "Sefaria";
 
     hist = (headerMode)
         ? {state: {header: states[0]}, url: url, title: title}
@@ -322,8 +324,12 @@ var ReaderApp = React.createClass({
       if (histories[i-1].mode === "Text" && histories[i].mode === "Connections") {
         if (i == 1) {
           // short form for two panels text+commentary - e.g., /Genesis.1?with=Rashi
-          hist.url   = url + "&with=" + histories[1].sources;
-          hist.title = histories[i].title;
+          hist.url   = "/" + histories[1].url; // Rewrite the URL
+          if(histories[0].versionLanguage && histories[0].version) {
+            hist.url += "/" + histories[0].versionLanguage + "/" + histories[0].version.replace(/\s/g,"_");
+          }
+          hist.url += "&with=" + histories[1].sources;
+          hist.title = histories[1].title;
         } else {
           var replacer = "&p" + i + "=";
           hist.url    = hist.url.replace(RegExp(replacer + ".*"), "");
