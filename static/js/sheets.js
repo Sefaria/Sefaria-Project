@@ -632,7 +632,8 @@ $(function() {
 			if (sjs.flags.sorting) { return; }
 			// Don't init if the click began in another editable
 			if ($(e.target).find(".cke_editable").length) { return; }
-
+			// Don't init if element clicked is not on the source sheet (i.e. it's some other s2 reader element)
+			if( !$("#sheet").has($(this)).length > 0  ) { return }
 
 			// Remove any existing editors first
 			$(".cke_editable").each(function() {
