@@ -3,7 +3,7 @@ import csv
 
 from sefaria.model import *
 from sefaria.utils.hebrew import gematria
-from sefaria.settings import SEFARIA_EXPORT_PATH
+from sefaria.settings import STATICFILES_DIRS
 
 torah = IndexSet({"categories": "Torah"})
 parshiot = []
@@ -19,17 +19,16 @@ for book in torah:
 
 
 def export_stats_by_ref(refs, filename):
-    with open("%s/misc/%s" % (SEFARIA_EXPORT_PATH, filename), 'wb') as csvfile:
+    with open("%s/files/%s" % (STATICFILES_DIRS[0], filename), 'wb') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow([
-                            "Ref",
-                            "Letters",
-                            "Words",
-                            "Verses",
-                            "Gematria",
-                            "Gematria Hex",
-                            "Gematria x 18 Hex",
-
+                            "ref",
+                            "letters",
+                            "words",
+                            "verses",
+                            "gematria",
+                            "gematriaHex",
+                            "gematria18Hex",
                          ])
 
         for ref in refs:

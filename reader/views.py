@@ -1366,6 +1366,11 @@ def visualize_library(request, lang=None, cats=None):
 def visualize_toc(request):
     return render_to_response('visual_toc.html', {}, RequestContext(request))
 
+
+def visualize_torah_quant(request):
+    return render_to_response('visual_torah_quant.html', {}, RequestContext(request))
+
+
 def visualize_steve(request):
     return render_to_response('visual_steve.html', {}, RequestContext(request))
 
@@ -2476,6 +2481,7 @@ def person_index(request):
 
     return render_to_response('people.html', template_vars, RequestContext(request))
 
+
 def talmud_person_index(request):
     gens = TimePeriodSet.get_generations()
     template_vars = {
@@ -2492,6 +2498,7 @@ def talmud_person_index(request):
         })
     return render_to_response('talmud_people.html', template_vars, RequestContext(request))
 
+
 def _get_sheet_tag_garden(tag):
     garden_key = u"sheets.tagged.{}".format(tag)
     g = Garden().load({"key": garden_key})
@@ -2501,19 +2508,23 @@ def _get_sheet_tag_garden(tag):
         g.save()
     return g
 
+
 def sheet_tag_garden_page(request, key):
     g = _get_sheet_tag_garden(key)
     return garden_page(request, g)
 
+
 def sheet_tag_visual_garden_page(request, key):
     g = _get_sheet_tag_garden(key)
     return visual_garden_page(request, g)
+
 
 def custom_visual_garden_page(request, key):
     g = Garden().load({"key": "sefaria.custom.{}".format(key)})
     if not g:
         raise Http404
     return visual_garden_page(request, g)
+
 
 def _get_search_garden(q):
     garden_key = u"search.query.{}".format(q)
@@ -2524,9 +2535,11 @@ def _get_search_garden(q):
         g.save()
     return g
 
+
 def search_query_visual_garden_page(request, q):
     g = _get_search_garden(q)
     return visual_garden_page(request, g)
+
 
 def garden_page(request, g):
     template_vars = {
@@ -2542,8 +2555,8 @@ def garden_page(request, g):
 
     return render_to_response('garden.html', template_vars, RequestContext(request))
 
-def visual_garden_page(request, g):
 
+def visual_garden_page(request, g):
     template_vars = {
         'title': g.title,
         'heTitle': g.heTitle,
