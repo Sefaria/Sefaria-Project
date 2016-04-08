@@ -521,6 +521,13 @@ $(function() {
 		CKEDITOR.disableAutoInline = true;
 		CKEDITOR.config.startupFocus = true;
 		CKEDITOR.config.extraAllowedContent = 'small; span(segment)';
+
+		if ($.cookie("s2") == "true") {
+
+		CKEDITOR.config.extraPlugins = 'sharedspace';
+		CKEDITOR.config.sharedSpaces = {top: 'ckeTopMenu' };
+
+			}
 		CKEDITOR.on('instanceReady', function(ev) {
 		  // replace &nbsp; from pasted text
 		  ev.editor.on('paste', function(evt) { 
@@ -537,17 +544,33 @@ $(function() {
 			'Tahoma/Tahoma, Geneva, sans-serif;' +
 			'Times New Roman/Times New Roman, Times, serif;' +
 			'Verdana/Verdana, Geneva, sans-serif;';
-		CKEDITOR.config.toolbar = [
-			{name: 'removestyle', items: ['RemoveFormat']},
-			{name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript' ] },
-			{name: "justify", items: [ 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock' ] },
-			{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList' ] }, 
-			'/',
-			{ name: 'styles', items: [ 'Font', 'FontSize' ] },
-			{ name: 'colors', items: [ 'TextColor', 'BGColor' ] },
-			{ name: 'links', items: [ 'Link', 'Unlink' ] },
-			{ name: 'insert', items: [ 'Image', 'Table', 'HorizontalRule' ] }
-		];
+
+		if ($.cookie("s2") == "true") {
+
+			CKEDITOR.config.toolbar = [
+				{name: 'removestyle', items: ['RemoveFormat']},
+				{name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript']},
+				{name: "justify", items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock']},
+				{name: 'paragraph', items: ['NumberedList', 'BulletedList']},
+				{name: 'styles', items: ['Font', 'FontSize']},
+				{name: 'colors', items: ['TextColor', 'BGColor']},
+				{name: 'links', items: ['Link', 'Unlink']},
+				{name: 'insert', items: ['Image', 'Table', 'HorizontalRule']}
+			];
+		}
+		else {
+			CKEDITOR.config.toolbar = [
+				{name: 'removestyle', items: ['RemoveFormat']},
+				{name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript']},
+				{name: "justify", items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock']},
+				{name: 'paragraph', items: ['NumberedList', 'BulletedList']},
+				'/',
+				{name: 'styles', items: ['Font', 'FontSize']},
+				{name: 'colors', items: ['TextColor', 'BGColor']},
+				{name: 'links', items: ['Link', 'Unlink']},
+				{name: 'insert', items: ['Image', 'Table', 'HorizontalRule']}
+			];
+		}
 
 		sjs.removeCKEditor = function(e) {
 			stopCkEditorContinuous();
