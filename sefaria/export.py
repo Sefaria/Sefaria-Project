@@ -234,15 +234,14 @@ def export_merged(title, lang=None):
 
     print "%d versions in %s" % (text_docs.count(), lang)
 
-    #print(type(text_docs))
+
     # Exclude copyrighted docs from merging
-    #text_docs = [text for text in text_docs if not text_is_copyright(text)]
-    #print(type(text_docs))
+    text_docs = [text for text in text_docs if not text_is_copyright(text)]
     
-    if text_docs.count() == 0:
+    if len(text_docs) == 0:
         return
-    elif text_docs.count() == 1:
-        text_doc = text_docs.next()
+    elif len(text_docs) == 1:
+        text_doc = text_docs[0]
         doc["text"] = text_doc["chapter"]  # TODO: sort complex according to Index
         doc["versions"] = [(text_doc["versionTitle"], text_doc["versionSource"])]
     else:
