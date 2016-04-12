@@ -205,6 +205,9 @@ def export_texts():
     texts = db.texts.find()
 
     for text in texts:
+        if "license" in text and text["license"].startswith("Copyright "):
+            # Don't export copyrighted texts.
+            continue
         export_text(text)
 
 
@@ -228,6 +231,9 @@ def export_merged(title, lang=None):
     text_docs = db.texts.find({"title": title, "language": lang})
 
     print "%d versions in %s" % (text_docs.count(), lang)
+
+    # Exclude copyrighted docs from merging
+    text_docs = [text for text in text_docs if not ("license" in text and text["license"].startswith("Copyright "))]
 
     if text_docs.count() == 0:
         return
