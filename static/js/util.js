@@ -2613,6 +2613,10 @@ function debounce(func, wait, immediate) {
 	};
 };
 
+function numberWithCommas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
 String.prototype.toProperCase = function() {
   
   // Treat anything after ", " as a new clause
