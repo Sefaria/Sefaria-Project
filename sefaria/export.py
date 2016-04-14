@@ -194,6 +194,8 @@ def export_text(text):
 
     export_text_doc(text)
 
+def text_is_copyright(text):
+    return "license" in text and type(text["license"]) is str and text["license"].startswith("Copyright ")
 
 def export_texts():
     """
@@ -205,7 +207,7 @@ def export_texts():
     texts = db.texts.find()
 
     for text in texts:
-        if "license" in text and text["license"].startswith("Copyright "):
+        if text_is_copyright(text):
             # Don't export copyrighted texts.
             continue
         export_text(text)
@@ -232,13 +234,14 @@ def export_merged(title, lang=None):
 
     print "%d versions in %s" % (text_docs.count(), lang)
 
-    # Exclude copyrighted docs from merging
-    text_docs = [text for text in text_docs if not ("license" in text and text["license"].startswith("Copyright "))]
 
-    if text_docs.count() == 0:
+    # Exclude copyrighted docs from merging
+    text_docs = [text for text in text_docs if not text_is_copyright(text)]
+    
+    if len(text_docs) == 0:
         return
-    elif text_docs.count() == 1:
-        text_doc = text_docs.next()
+    elif len(text_docs) == 1:
+        text_doc = text_docs[0]
         doc["text"] = text_doc["chapter"]  # TODO: sort complex according to Index
         doc["versions"] = [(text_doc["versionTitle"], text_doc["versionSource"])]
     else:
