@@ -1332,11 +1332,12 @@ var ReaderControls = React.createClass({
         (<div className={classes}>
           <div className="readerControlsInner">
             <div className="leftButtons">
-              {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton icon={mode === "Connections" ? "arrow": null} onClick={this.props.closePanel} />) : null}
+              {this.props.multiPanel && mode !== "Connections" ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
               {this.props.multiPanel ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.openMenu.bind(null, "navigation")} />)}
             </div>
             <div className="rightButtons">
               <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+              {this.props.multiPanel && mode === "Connections" ? (<ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} />) : null}
             </div>
             {centerContent}
           </div>
@@ -1668,10 +1669,6 @@ var ReaderNavigationMenu = React.createClass({
               <div className="content">
                 <div className="contentInner">
                 <h1>
-                  <div className="languageToggle" onClick={this.props.toggleLanguage}>
-                    <span className="en">א</span>
-                    <span className="he">A</span>
-                  </div>
                   <span className="en">The Sefaria Library</span>
                   <span className="he">האוסף של ספאריה</span>
                 </h1>
@@ -1715,17 +1712,17 @@ var ReaderNavigationMenuSection = React.createClass({
 var TextBlockLink = React.createClass({
   // Monopoly card style link with category color at top
   propTypes: {
-    sref:         React.PropTypes.string.isRequired,
-    version:      React.PropTypes.string,
+    sref:            React.PropTypes.string.isRequired,
+    version:         React.PropTypes.string,
     versionLanguage: React.PropTypes.string,
-    heRef:        React.PropTypes.string,
-    book:         React.PropTypes.string,
-    category:     React.PropTypes.string,
-    title:        React.PropTypes.string,
-    heTitle:      React.PropTypes.string,
-    showSections: React.PropTypes.bool,
-    recentItem:   React.PropTypes.bool,
-    position:     React.PropTypes.number
+    heRef:           React.PropTypes.string,
+    book:            React.PropTypes.string,
+    category:        React.PropTypes.string,
+    title:           React.PropTypes.string,
+    heTitle:         React.PropTypes.string,
+    showSections:    React.PropTypes.bool,
+    recentItem:      React.PropTypes.bool,
+    position:        React.PropTypes.number
   },
   render: function() {
     var index    = sjs.library.index(this.props.book);
@@ -1740,6 +1737,19 @@ var TextBlockLink = React.createClass({
               <span className="en">{title}</span>
               <span className="he">{heTitle}</span>
              </a>);
+  }
+});
+
+
+var LanguageToggleButton = React.createClass({
+  propTypes: {
+    toggleLanguage: React.PropTypes.func.isRequired
+  },
+  render: function() {
+    return (<div className="languageToggle" onClick={this.props.toggleLanguage}>
+              <span className="en">א</span>
+              <span className="he">A</span>
+            </div>);
   }
 });
 
@@ -2303,15 +2313,17 @@ var ReaderNavigationMenuSearchButton = React.createClass({
   }
 });
 
+
 var ReaderNavigationMenuMenuButton = React.createClass({
   render: function() { 
     return (<span className="readerNavMenuMenuButton" onClick={this.props.onClick}><i className="fa fa-bars"></i></span>);
   }
 });
 
+
 var ReaderNavigationMenuCloseButton = React.createClass({
   render: function() { 
-    var icon = this.props.icon === "arrow" ? (<i className="fa fa-caret-right"></i>) : "×";
+    var icon = this.props.icon === "arrow" ? (<i className="fa fa-caret-left"></i>) : "×";
     var classes = classNames({readerNavMenuCloseButton: 1, arrow: this.props.icon === "arrow"});
     return (<div className={classes} onClick={this.props.onClick}>{icon}</div>);
   }
@@ -3035,7 +3047,7 @@ var ConnectionsPanel = React.createClass({
     srefs:                   React.PropTypes.array.isRequired,    // an array of ref strings
     filter:                  React.PropTypes.array.isRequired,
     recentFilters:           React.PropTypes.array.isRequired,
-    mode:                    React.PropTypes.string.isRequired, // "Connections", "Tools"
+    mode:                    React.PropTypes.string.isRequired,   // "Connections", "Tools"
     setFilter:               React.PropTypes.func.isRequired,
     setConnectionsMode:      React.PropTypes.func.isRequired,
     fullPanel:               React.PropTypes.bool,
@@ -3113,6 +3125,27 @@ var ConnectionsPanel = React.createClass({
       content = (<LoginPanel />);
     }
     return content;
+  }
+});
+
+
+var ConnectionsPanelHeader = React.createClass({
+  propTypes: {
+    activeTab:          React.PropTypes.string.isRequired, // "Connections", "Tools"
+    setConnectionsMode: React.PropTypes.func.isRequired
+  },
+  render: function() {
+    var tabNames = ["Connections", "Tools"];
+    var tabs = tabNames.map(function(item) {
+      var tabClick = function() {
+        this.props.setConnectionsMode(item)
+      }.bind(this);
+      var active  = item === this.props.activeTab;
+      var classes = classNames({connectionsPanelTab: 1, active: active});
+      return (<span className={classes} onClick={tabClick} key={item}>{item}</span>);
+    }.bind(this));
+
+    return (<div className="connectionsPanelTabs">{tabs}</div>);
   }
 });
 
@@ -3394,12 +3427,12 @@ var TextList = React.createClass({
           <div className="textListTop">
             {this.props.fullPanel ? 
               (<div className="leftButtons">
-                {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} />) : null}
                 {this.props.multiPanel ? null : (<ReaderNavigationMenuSearchButton onClick={this.props.openNav} />) }
                </div>) : null}
             {this.props.fullPanel ? 
               (<div className="rightButtons">
                 <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+                {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} />) : null}
                </div>) : null}
             <RecentFilterSet 
               showText={this.props.showText}
@@ -3631,12 +3664,12 @@ var ToolsPanel = React.createClass({
         <div className="textListTop">
           {this.props.fullPanel ? 
             (<div className="leftButtons">
-              {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} />) : null}
               {this.props.multiPanel ? null : (<ReaderNavigationMenuSearchButton onClick={this.props.openNav} />) }
              </div>) : null}
           {this.props.fullPanel ? 
             (<div className="rightButtons">
               <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+              {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} />) : null}
              </div>) : null}
           <ConnectionsPanelTabs
             activeTab="Tools"
@@ -3712,12 +3745,12 @@ var SharePanel = React.createClass({
         <div className="textListTop">
           {this.props.fullPanel ? 
             (<div className="leftButtons">
-              {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} />) : null}
               {this.props.multiPanel ? null : (<ReaderNavigationMenuSearchButton onClick={this.props.openNav} />) }
              </div>) : null}
           {this.props.fullPanel ? 
             (<div className="rightButtons">
               <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+              {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} />) : null}              
              </div>) : null}
           <ConnectionsPanelTabs
             activeTab="Tools"
@@ -3810,12 +3843,12 @@ var AddToSourceSheetPanel = React.createClass({
         <div className="textListTop">
           {this.props.fullPanel ? 
             (<div className="leftButtons">
-              {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} />) : null}
               {this.props.multiPanel ? null : (<ReaderNavigationMenuSearchButton onClick={this.props.openNav} />) }
              </div>) : null}
           {this.props.fullPanel ? 
             (<div className="rightButtons">
               <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+              {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} />) : null}
              </div>) : null}
           <ConnectionsPanelTabs
             activeTab="Tools"
@@ -3850,6 +3883,7 @@ var ConfirmAddToSheetPanel = React.createClass({
             </div>);
   }
 });
+
 
 var LoginPanel = React.createClass({
   render: function() {

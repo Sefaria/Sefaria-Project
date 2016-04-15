@@ -1126,7 +1126,8 @@ display: block;margin: 0 auto;}
 .leftButtons .readerNavMenuSearchButton,
 .leftButtons .readerNavMenuMenuButton,
 .leftButtons .readerNavMenuCloseButton,
-.rightButtons .readerOptions {
+.rightButtons .readerOptions,
+.rightButtons .readerNavMenuCloseButton {
   width: 40px;
   height: 48px;
   line-height: 48px;
@@ -1138,6 +1139,7 @@ display: block;margin: 0 auto;}
 .leftButtons div,
 .rightButtons div {
   vertical-align: middle;
+  display: inline-block;
 }
 .leftButtons .readerNavMenuMenuButton {
   font-size: 22px;
@@ -1147,15 +1149,27 @@ display: block;margin: 0 auto;}
   font-size: 44px;
   line-height: 40px;
 }
-.leftButtons .readerNavMenuCloseButton.arrow {
-  font-size: 32px;
-  line-height: 50px;
+.rightButtons .readerNavMenuCloseButton.arrow {
+  font-size: 24px;
+  height: 32px;
+  width: 32px;
+  text-align: center;
+  line-height: 32px;
+  background-color: white;
+  border: 1px solid #E6E6E6;
+  border-radius: 4px;
+  margin-left: 12px;
 }
+.rightButtons .readerNavMenuCloseButton.arrow .fa {
+  line-height: 32px;
+}
+
 .leftButtons .readerNavMenuSearchButton span,
 .rightButtons .readerOptions img,
 .leftButtons .readerNavMenuCloseButton span {
   vertical-align: middle;
 }
+
 .readerControls .readerTextToc {
   font-size: 17px;
   box-sizing: border-box;
