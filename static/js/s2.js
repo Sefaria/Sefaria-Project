@@ -1112,7 +1112,11 @@ var ReaderPanel = React.createClass({
     if (!sjs._uid && mode in loginRequired) {
       mode = "Login";
     };
-    this.conditionalSetState({ connectionsMode: mode });
+    var state = { connectionsMode: mode };
+    if (mode === "Connections") {
+      state["filter"] = [];
+    }
+    this.conditionalSetState(state);
   },
   setWidth: function setWidth() {
     this.width = $(ReactDOM.findDOMNode(this)).width();
@@ -1286,7 +1290,8 @@ var ReaderPanel = React.createClass({
     classes[this.state.settings.language] = 1;
     classes = classNames(classes);
     var style = { "fontSize": this.state.settings.fontSize + "%" };
-    var hideReaderControls = this.props.multiPanel && this.state.mode === "Connections" && ![].compare(this.state.filter) || this.state.mode === "TextAndConnections" || this.props.hideNavHeader;
+    var hideReaderControls = this.state.mode === "TextAndConnections" || this.props.hideNavHeader;
+
     return React.createElement(
       "div",
       { className: classes },
@@ -1306,8 +1311,9 @@ var ReaderPanel = React.createClass({
         closeMenus: this.closeMenus,
         openDisplaySettings: this.openDisplaySettings,
         currentLayout: this.currentLayout,
-        connectionsMode: this.state.connectionsMode,
-        closePanel: this.props.closePanel }),
+        connectionsMode: this.state.filter.length && this.state.connectionsMode === "Connections" ? "Connection Text" : this.state.connectionsMode,
+        closePanel: this.props.closePanel,
+        toggleLanguage: this.toggleLanguage }),
       React.createElement(
         "div",
         { className: "readerContent", style: style },
@@ -1342,6 +1348,7 @@ var ReaderControls = React.createClass({
     currentBook: React.PropTypes.func.isRequired,
     currentLayout: React.PropTypes.func.isRequired,
     closePanel: React.PropTypes.func,
+    toggleLanguage: React.PropTypes.func,
     currentRef: React.PropTypes.string,
     version: React.PropTypes.string,
     versionLanguage: React.PropTypes.string,
@@ -1359,6 +1366,7 @@ var ReaderControls = React.createClass({
 
     var mode = this.props.currentMode();
     var hideHeader = !this.props.multiPanel && mode === "Connections";
+    var connectionsHeader = this.props.multiPanel && mode === "Connections";
 
     if (title && !oref) {
       // If we don't have this data yet, rerender when we do so we can set the Hebrew title
@@ -1370,12 +1378,14 @@ var ReaderControls = React.createClass({
     }
 
     var versionTitle = this.props.version ? this.props.version.replace(/_/g, " ") : "";
-    var centerContent = this.props.multiPanel && mode === "Connections" ? React.createElement(
+    var centerContent = connectionsHeader ? React.createElement(
       "div",
       { className: "readerTextToc" },
-      React.createElement(ConnectionsPanelTabs, {
+      React.createElement(ConnectionsPanelHeader, {
         activeTab: this.props.connectionsMode,
-        setConnectionsMode: this.props.setConnectionsMode })
+        setConnectionsMode: this.props.setConnectionsMode,
+        closePanel: this.props.closePanel,
+        toggleLanguage: this.props.toggleLanguage })
     ) : React.createElement(
       "div",
       { className: "readerTextToc", onClick: this.props.openMenu.bind(null, "text toc") },
@@ -1405,7 +1415,17 @@ var ReaderControls = React.createClass({
         ) : null
       )
     );
-
+    var leftControls = hideHeader || connectionsHeader ? null : React.createElement(
+      "div",
+      { className: "leftButtons" },
+      this.props.multiPanel ? React.createElement(ReaderNavigationMenuCloseButton, { onClick: this.props.closePanel }) : null,
+      this.props.multiPanel ? null : React.createElement(ReaderNavigationMenuMenuButton, { onClick: this.props.openMenu.bind(null, "navigation") })
+    );
+    var rightControls = hideHeader || connectionsHeader ? null : React.createElement(
+      "div",
+      { className: "rightButtons" },
+      React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings })
+    );
     var classes = classNames({ readerControls: 1, headeroom: 1, connectionsHeader: mode == "Connections" });
     var readerControls = hideHeader ? null : React.createElement(
       "div",
@@ -1413,18 +1433,8 @@ var ReaderControls = React.createClass({
       React.createElement(
         "div",
         { className: "readerControlsInner" },
-        React.createElement(
-          "div",
-          { className: "leftButtons" },
-          this.props.multiPanel && mode !== "Connections" ? React.createElement(ReaderNavigationMenuCloseButton, { onClick: this.props.closePanel }) : null,
-          this.props.multiPanel ? null : React.createElement(ReaderNavigationMenuMenuButton, { onClick: this.props.openMenu.bind(null, "navigation") })
-        ),
-        React.createElement(
-          "div",
-          { className: "rightButtons" },
-          React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings }),
-          this.props.multiPanel && mode === "Connections" ? React.createElement(ReaderNavigationMenuCloseButton, { icon: "arrow", onClick: this.props.closePanel }) : null
-        ),
+        leftControls,
+        rightControls,
         centerContent
       )
     );
@@ -1520,7 +1530,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
 var ReaderNavigationMenu = React.createClass({
   displayName: "ReaderNavigationMenu",
 
-  // The Navigation menu for browsing and searching texts, plus site links.
+  // The Navigation menu for browsing and searching texts, plus some site links.
   propTypes: {
     categories: React.PropTypes.array.isRequired,
     settings: React.PropTypes.object.isRequired,
@@ -1849,7 +1859,6 @@ var ReaderNavigationMenu = React.createClass({
       recentlyViewed = recentlyViewed ? React.createElement(TwoOrThreeBox, { content: recentlyViewed, width: this.width }) : null;
 
       var classes = classNames({ readerNavMenu: 1, noHeader: !this.props.hideHeader });
-
       return React.createElement(
         "div",
         { className: classes, onClick: this.handleClick, key: "0" },
@@ -3696,7 +3705,9 @@ var ConnectionsPanel = React.createClass({
     onOpenConnectionsClick: React.PropTypes.func,
     openNav: React.PropTypes.func,
     openDisplaySettings: React.PropTypes.func,
-    closePanel: React.PropTypes.func
+    closePanel: React.PropTypes.func,
+    toggleLanguage: React.PropTypes.func
+
   },
   render: function render() {
     var content = null;
@@ -3739,6 +3750,7 @@ var ConnectionsPanel = React.createClass({
       content = React.createElement(SharePanel, {
         url: window.location.href,
         fullPanel: this.props.fullPanel,
+        closePanel: this.props.closePanel,
         setConnectionsMode: this.props.setConnectionsMode });
     } else if (this.props.mode === "Add to Source Sheet") {
       content = React.createElement(AddToSourceSheetPanel, {
@@ -3767,27 +3779,23 @@ var ConnectionsPanelHeader = React.createClass({
 
   propTypes: {
     activeTab: React.PropTypes.string.isRequired, // "Connections", "Tools"
-    setConnectionsMode: React.PropTypes.func.isRequired
+    setConnectionsMode: React.PropTypes.func.isRequired,
+    closePanel: React.PropTypes.func.isRequired,
+    toggleLanguage: React.PropTypes.func.isRequired
   },
   render: function render() {
-    var tabNames = ["Connections", "Tools"];
-    var tabs = tabNames.map(function (item) {
-      var tabClick = function () {
-        this.props.setConnectionsMode(item);
-      }.bind(this);
-      var active = item === this.props.activeTab;
-      var classes = classNames({ connectionsPanelTab: 1, active: active });
-      return React.createElement(
-        "span",
-        { className: classes, onClick: tabClick, key: item },
-        item
-      );
-    }.bind(this));
-
     return React.createElement(
       "div",
-      { className: "connectionsPanelTabs" },
-      tabs
+      { className: "connectionsPanelHeader" },
+      React.createElement(
+        "div",
+        { className: "rightButtons" },
+        React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
+        React.createElement(ReaderNavigationMenuCloseButton, { icon: "arrow", onClick: this.props.closePanel })
+      ),
+      React.createElement(ConnectionsPanelTabs, {
+        activeTab: this.props.activeTab,
+        setConnectionsMode: this.props.setConnectionsMode })
     );
   }
 });
@@ -3952,6 +3960,9 @@ var TextList = React.createClass({
     }
   },
   scrollToHighlighted: function scrollToHighlighted() {
+    if (this.props.fullPanel) {
+      return; // We don't currently have any situations where there is lowlighted content in fullpanel sidebar
+    }
     window.requestAnimationFrame(function () {
       if (!this.isMounted()) {
         return;
@@ -4094,25 +4105,25 @@ var TextList = React.createClass({
           recentFilters: this.props.recentFilters,
           setFilter: this.props.setFilter })
       );
-    } else {
+    } else if (!this.props.fullPanel) {
       return React.createElement(
         "div",
         { className: classes },
         React.createElement(
           "div",
           { className: "textListTop" },
-          this.props.fullPanel ? React.createElement(
+          React.createElement(
             "div",
             { className: "leftButtons" },
-            this.props.multiPanel ? null : React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.props.openNav })
-          ) : null,
-          this.props.fullPanel ? React.createElement(
+            React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.props.openNav })
+          ),
+          React.createElement(
             "div",
             { className: "rightButtons" },
-            React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings }),
-            this.props.multiPanel ? React.createElement(ReaderNavigationMenuCloseButton, { icon: "arrow", onClick: this.props.closePanel }) : null
-          ) : null,
+            React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings })
+          ),
           React.createElement(RecentFilterSet, {
+            asHeader: true,
             showText: this.props.showText,
             filter: this.props.filter,
             recentFilters: this.props.recentFilters,
@@ -4126,6 +4137,28 @@ var TextList = React.createClass({
           React.createElement(
             "div",
             { className: "contentInner" },
+            content
+          )
+        )
+      );
+    } else {
+      return React.createElement(
+        "div",
+        { className: classes },
+        React.createElement(
+          "div",
+          { className: "texts" },
+          React.createElement(
+            "div",
+            { className: "contentInner" },
+            React.createElement(RecentFilterSet, {
+              asHeader: false,
+              showText: this.props.showText,
+              filter: this.props.filter,
+              recentFilters: this.props.recentFilters,
+              textCategory: oref ? oref.categories[0] : null,
+              setFilter: this.props.setFilter,
+              showAllFilters: this.showAllFilters }),
             content
           )
         )
@@ -4338,7 +4371,7 @@ var RecentFilterSet = React.createClass({
         } });
     }.bind(this));
 
-    var moreButton = React.createElement(
+    var moreButton = this.props.asHeader ? React.createElement(
       "div",
       { className: "showMoreFilters textFilter", style: style,
         onClick: this.props.showAllFilters },
@@ -4361,11 +4394,12 @@ var RecentFilterSet = React.createClass({
           "●"
         )
       )
-    );
-    var style = { "borderTopColor": sjs.categoryColor(this.props.textCategory) };
+    ) : null;
+    var style = this.props.asHeader ? { "borderTopColor": sjs.categoryColor(this.props.textCategory) } : {};
+    var classes = classNames({ recentFilterSet: 1, topFilters: this.props.asHeader, filterSet: 1 });
     return React.createElement(
       "div",
-      { className: "topFilters filterSet", style: style },
+      { className: classes, style: style },
       React.createElement(
         "div",
         { className: "topFiltersInner" },
@@ -4405,24 +4439,6 @@ var ToolsPanel = React.createClass({
     return React.createElement(
       "div",
       { className: classes },
-      React.createElement(
-        "div",
-        { className: "textListTop" },
-        this.props.fullPanel ? React.createElement(
-          "div",
-          { className: "leftButtons" },
-          this.props.multiPanel ? null : React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.props.openNav })
-        ) : null,
-        this.props.fullPanel ? React.createElement(
-          "div",
-          { className: "rightButtons" },
-          React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings }),
-          this.props.multiPanel ? React.createElement(ReaderNavigationMenuCloseButton, { icon: "arrow", onClick: this.props.closePanel }) : null
-        ) : null,
-        React.createElement(ConnectionsPanelTabs, {
-          activeTab: "Tools",
-          setConnectionsMode: this.props.setConnectionsMode })
-      ),
       React.createElement(
         "div",
         { className: "texts" },
@@ -4494,6 +4510,7 @@ var SharePanel = React.createClass({
   propTypes: {
     url: React.PropTypes.string.isRequired,
     setConnectionsMode: React.PropTypes.func.isRequired,
+    closePanel: React.PropTypes.func.isRequired,
     fullPanel: React.PropTypes.bool
   },
   componentDidMount: function componentDidMount() {
@@ -4520,24 +4537,6 @@ var SharePanel = React.createClass({
     return React.createElement(
       "div",
       { className: classes },
-      React.createElement(
-        "div",
-        { className: "textListTop" },
-        this.props.fullPanel ? React.createElement(
-          "div",
-          { className: "leftButtons" },
-          this.props.multiPanel ? null : React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.props.openNav })
-        ) : null,
-        this.props.fullPanel ? React.createElement(
-          "div",
-          { className: "rightButtons" },
-          React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings }),
-          this.props.multiPanel ? React.createElement(ReaderNavigationMenuCloseButton, { icon: "arrow", onClick: this.props.closePanel }) : null
-        ) : null,
-        React.createElement(ConnectionsPanelTabs, {
-          activeTab: "Tools",
-          setConnectionsMode: this.props.setConnectionsMode })
-      ),
       React.createElement(
         "div",
         { className: "texts" },
@@ -4664,24 +4663,6 @@ var AddToSourceSheetPanel = React.createClass({
     return React.createElement(
       "div",
       { className: classes },
-      React.createElement(
-        "div",
-        { className: "textListTop" },
-        this.props.fullPanel ? React.createElement(
-          "div",
-          { className: "leftButtons" },
-          this.props.multiPanel ? null : React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.props.openNav })
-        ) : null,
-        this.props.fullPanel ? React.createElement(
-          "div",
-          { className: "rightButtons" },
-          React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings }),
-          this.props.multiPanel ? React.createElement(ReaderNavigationMenuCloseButton, { icon: "arrow", onClick: this.props.closePanel }) : null
-        ) : null,
-        React.createElement(ConnectionsPanelTabs, {
-          activeTab: "Tools",
-          setConnectionsMode: this.props.setConnectionsMode })
-      ),
       React.createElement(
         "div",
         { className: "texts" },
