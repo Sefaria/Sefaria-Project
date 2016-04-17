@@ -909,6 +909,12 @@ body.hebrew #aboutPage .span5 {
     font-size: 20px;
 }
 
+#textTocPage #textTocCommentaries,
+#textTocPage #textVersions {
+  padding-top: 80px;
+  margin-top: -80px;
+}
+
 #textTocPage #dateline {
     clear: both;
     width: 100%;
