@@ -448,7 +448,6 @@ Orchot Chaim L'HaRosh	Rosh					Rhineland	1544		Rishonim	Orchos Chaim Larosh	או
 Kitzur Sefer Haredim of Rabbi Elazar Azcari	Elazar ben Moshe Azikri						1601	Middle-Age Italy	Achronim		קיצור ספר חרדים רבי אלעזר אזכרי		Musar
 Sha'ar Ha'Gemul of the Ramban	Ramban						1573-75	Mantua	Rishonim	Sha'ar Ha'Gemul	שער הגמול - רמב''ן	שער הגמול	Musar
 Iggeret HaRamban	Ramban						1579	Venice	Rishonim	Iggeres HaRamban	אגרת הרמב"ן		Musar
-Marot Ha'Tzoveot	Alshikh						1603-1607	Venice	Achronim		מראות הצובאות		Musar
 Meshech Hochma	Meir Simha HaKohen Dvinsk						1927	Riga	Achronim	Meir Simcha HaCohen,Meshech Chochma	משך חכמה	מאיר שמחה הכהן	Parshanut
 Akeidat Yitzchak	Isaac ben Moses Arama						1522	Thessaloniki	Rishonim		עקדת יצחק		Parshanut
 Ein Ayah	Avraham Yitchak HaCohen Kook						1986	Jerusalem	Achronim	Eyn Aya	עין אי"ה		Philosophy
@@ -487,7 +486,7 @@ Vilna Gaon on Seder Olam Rabbah	Vilna Gaon			1750	20	Vilna	1801	Shiklov	Achronim
 Yaakov Emden on Seder Olam Rabbah	Yaakov Emden						1757	Hamburg	Achronim	Jacob Emden on Seder Olam,Jacob Emden on Olam Rabbah,Jacob Emden on Seder Olam Rabbah,Yaakov Emden on Seder Olam,Yaakov Emden on Olam Rabbah	יעב"ץ על סדר עולם רבה	יעקב עמדין על סדר עולם רבה,יעקב עמדין על סדר עולם,יעב"ץ על סדר עולם,רבי יעקב עמדין על סדר עולם רבה,רבי יעקב עמדין על סדר עולם	Commentary,Apocrypha,Seder Olam Rabbah
 Summary of Shakh on Shulchan Arukh, Yoreh De'ah	Shabbatai ben Meir Hakohen								Contemporary	Summary of Shakh on Yoreh De'ah,Summary of Shakh on Yoreh Deah,Summary of Shakh on Shulchan Arukh Yoreh De'ah,Summary of Shakh on Y.D.,Summary of Shakh on Shulchan Aruch Yoreh Deah,Summary of Shach, Summary of Siftei Kohen on Yoreh De'ah,Summary of Shach, Summary of Siftei Kohen on Yoreh Deah,Summary of Shach, Summary of Siftei Kohen on Shulchan Arukh Yoreh De'ah,Summary of Shach, Summary of Siftei Kohen on Y.D.,Summary of Shach, Summary of Siftei Kohen on Shulchan Aruch Yoreh Deah,Summary of Shach, Summary of Siftei Kohen on Shulchan Arukh, Yoreh De'ah	קיצור ש"ך על יורה דעה	קיצור ש"ך על שולחן ערוך יורה דעה	Commentary,Halakhah,Shulchan Arukh,Shulchan Arukh, Yoreh De'ah
 Summary of Taz on Shulchan Arukh, Yoreh De'ah	David HaLevi Segal								Contemporary	Summary of Taz on Yoreh De'ah,Summary of Taz on Yoreh Deah,Summary of Taz on Shulchan Arukh Yoreh De'ah,Summary of Taz on Y.D.,Summary of Taz on Shulchan Aruch Yoreh Deah,Summary of Turei Zahav on Yoreh De'ah,Summary of Turei Zahav on Yoreh Deah,Summary of Turei Zahav on Shulchan Arukh Yoreh De'ah,Summary of Turei Zahav on Y.D.,Summary of Turei Zahav on Shulchan Aruch Yoreh Deah,Summary of Turei Zahav on Shulchan Arukh, Yoreh De'ah	קיצור ט"ז על יורה דעה	קיצור ט"ז על שולחן ערוך יורה דעה	Commentary,Halakhah,Shulchan Arukh,Shulchan Arukh, Yoreh De'ah
-Ephod Bad on Pesach Haggadah							1872	Warsaw	Achronim		אפוד בד על הגדה של פסח		Commentary,Liturgy,Pesach Haggadah
+Ephod Bad on Pesach Haggadah	Benjamin David Rabinowitz						1872	Warsaw	Achronim		אפוד בד על הגדה של פסח		Commentary,Liturgy,Pesach Haggadah
 Kimcha Davshuna on Pesach Haggadah	Johanan Treves						1541		Achronim		קמחא דאבישונא על הגדה של פסח		Commentary,Liturgy,Pesach Haggadah
 Kos Shel Eliyahu on Pesach Haggadah	Eliyahu Ben Harush						1938	Djerba	Achronim		כוס של אליהו על הגדה של פסח	כוס של אליהו על הגדה של פסח על הגדה של פסח	Commentary,Liturgy,Pesach Haggadah
 Maarechet Heidenheim on Pesach Haggadah	Tevele Bondi					Sefrou	1898	Frankurt au Main	Achronim		מערכת היידענהיים על הגדה של פסח		Commentary,Liturgy,Pesach Haggadah
@@ -1195,8 +1194,7 @@ Daf Shevui to Ketubot	Joshua Kulp					Modiin			Contemporary
 Rashba on Chullin	Rashba					Barcelona, Spain	1715	Amsterdam	Rishonim				
 Rashba on Gittin	Rashba					Barcelona, Spain	1523	Venice	Rishonim				
 Abarbanel on Torah	Abarbanel					Venice			Achronim				
-Eglai Tal	Avraham Bornsztai					Sochaczew, Poland			Achronim				
-English word match													
+Eglai Tal	Avraham Bornsztain					Sochaczew, Poland			Achronim				
 Megilat antiochus	anomymous												
 Midrash Zuta	anonymous												
 Noda Byehuda I	Yehezkel Landau					Prague			Achronim				
@@ -1261,3 +1259,84 @@ Shita Mekubetzet on Sotah	Bezalel ben Abraham Ashkenazi					Ottoman Palestine			
 Shney Luchot HaBrit	Isaiah Levi Horovitz					Ottoman Palestine			Achronim				
 Teshuvot HaGeonim						Ottoman Palestine	1648		Gaonim				
 Tiferet Shmuel on Sukkah	Aaron Samuel Kaidanover					Krakow, Poland	1692	Hamburg, Germany	Achronim				
+B'nai Yissachar													
+Bach	Yoel ben Shmuel Sirkes												
+Binyan Tziyon	Yaakov Ettlinger												
+Chayei Moharan	Nachman of Breslov												
+Daf Shevui to Megillah	Joshua Kulp												
+Daf Shevui to Sukkot	Joshua Kulp												
+Derech Eretz Zuta													
+Dikduk on Menachot	Rashbam, Meir ben Shmuel												
+Divrey Chamudot on Menachot	Yom-Tov Lipmann Heller												
+Drisha	Joshua Falk												
+Footnotes to Kohelet by Bruce Heitler	Bruce Heitler												
+HaElef Lekha Shlomo	Shlomo Kluger												
+Hakham Tzvi	Zvi Ashkenazi												
+Harchev Davar on Deuteronomy	Naphtali Zevi Yehudah Berlin												
+Harchev Davar on Exodus	Naphtali Zevi Yehudah Berlin												
+Harchev Davar on Genesis	Naphtali Zevi Yehudah Berlin												
+Harchev Davar on Leviticus	Naphtali Zevi Yehudah Berlin												
+Harchev Davar on Numbers	Naphtali Zevi Yehudah Berlin												
+Hasagot HaRamban al Sefer HaMitzvot	Ramban												
+Hatam Sofer Orah Hayyim Volume I	Moses Sofer												
+Havot Yair	Yair Chaim Bacharach												
+Hechalot Rabbati													
+Kedushat Levi	Levi Yitzchok of Berditchev												
+Kinaat Sofrim al Sefer Hamitzvot	Chananya Kazis												
+Korban Netanel on Nedarim	Nathaniel Weil												
+Ktav Yad Rashi on Bekhorot	Rashi												
+Maadaney Yom Tov on Menachot	Yom-Tov Lipmann Heller												
+Maharam MiRothenburg Volume IV	Maharam of Rothenburg												
+Maharam Shif on Bava Kamma	Meir ben Jacob Ha-Kohen Schiff												
+Maharam Shif on Chullin	Meir ben Jacob Ha-Kohen Schiff												
+Maharam Shif on Zevachim	Meir ben Jacob Ha-Kohen Schiff												
+Mahari Bruna	Yisrael ben Hayim of Bruno												
+Mahari Weil	Yaakov Weil												
+Marganita Tava al Sefer Hamitzvot	Aryeh Leib Zitel Segal Horowitz												
+Mateh Levi	Marcus Horowitz												
+Megilat Esther al Sefer Hamitzvot	Isaac de Leon												
+Mei HaShiloach	Mordechai Leiner												
+Mekhilta d'Rabbi Yishmael													
+Melamed Leho'il Part II	David Zvi Hoffmann												
+Michtav M'Eliyahu	Eliyahu Eliezer Dessler												
+Midrash Tehillim													
+Musafia Teshuvot HaGeonim													
+Noda Byehuda II	Yehezkel Landau												
+Pe'er HaDor Teshuvot HaRambam	Rambam												
+Pesikta D'Rav Kahanna													
+Pesikta Rabbati													
+Prisha													
+Rambam on Mishnah Eruvin	Rambam												
+Rashba on Shevuot	Rashba												
+Rif Bava Batra	Rif												
+Rif Bava Kamma	Rif												
+Rif Rosh Hashanah	Rif												
+Rosh on Menachot	Rosh												
+Rosh on Nedarim	Rosh												
+Ruth Rabbah													
+Sefer HaMitzvot LaRambam	Rambam												
+Shadal on Deuteronomy	Shadal												
+Shita Mekubetzet on Bava Batra	Bezalel ben Abraham Ashkenazi												
+Shita Mekubetzet on Bava Metzia	Bezalel ben Abraham Ashkenazi												
+Shita Mekubetzet on Nazir	Bezalel ben Abraham Ashkenazi												
+Shita Mekubetzet on Nedarim	Bezalel ben Abraham Ashkenazi												
+Shivchei Haran	Ran												
+Shoel Umeshiv Part I	Yosef Shaul Nathanson												
+Shulchan aruch	Joseph Karo												
+Sichot HaRan	Ran												
+Siddur Ashkenaz													
+Sifrei Bamidbar													
+Sippurei Maasiyot	Nachman of Breslov												
+Tashbetz Part III	Shimshon ben Tzemach Duran												
+Teshuva MeAhava Part I	Eliezer Fleckeles												
+Teshuvot HaRashbash	Shlomo ben Shimon Duran												
+Teshuvot HaRi Migash	Joseph Ibn Migash												
+Teshuvot HaRitva	Ritva												
+Teshuvot HaRosh part IV	Rosh												
+Teshuvot HaRosh part VIII	Rosh												
+Teshuvot HaRosh part XVII	Rosh												
+Teshuvot Maharshal	Maharal												
+Teshuvot Rashi	Rashi												
+Teshuvot haRashba part I	Rashba												
+Tiferet Shmuel on Nedarim	Aaron Samuel Kaidanover												
+Yad Ramah on Bava Batra	Meir Abulafia												
