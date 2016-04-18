@@ -316,7 +316,7 @@ var ReaderApp = React.createClass({
         url += "/" + histories[0].versionLanguage + "/" + histories[0].version.replace(/\s/g,"_");
     }
     if (histories[0].mode === "TextAndConnections") {
-        url += "&with=" + histories[i].sources;
+        url += "&with=" + histories[0].sources;
     }
 
     hist = (headerMode)
