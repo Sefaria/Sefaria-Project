@@ -3417,13 +3417,19 @@ var TextList = React.createClass({
       });
       if (commentators.length) {
         this.waitingFor = clone(commentators);
+        this.target = 0;
         for (var i = 0; i < commentators.length; i++) {
           sjs.library.text(commentators[i] + " on " + basetext, {}, function(data) {
             var index = this.waitingFor.indexOf(data.commentator);
+            if (index == -1) {
+                console.log("Failed to clear commentator:");
+                console.log(data);
+                this.target += 1;
+            }
             if (index > -1) {
                 this.waitingFor.splice(index, 1);
             }
-            if (this.waitingFor.length == 0) {
+            if (this.waitingFor.length == this.target) {
               if (this.isMounted()) {
                 this.setState({textLoaded: true});
               }
