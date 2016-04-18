@@ -323,7 +323,6 @@ class Test_Ref(object):
         assert Ref("Rashi on Exodus 5").subref([5,5]) == Ref("Rashi on Exodus 5:5:5")
         assert Ref("Rashi on Exodus").subref([5,5,5]) == Ref("Rashi on Exodus 5:5:5")
 
-
     def test_all_subrefs(self):
         assert Ref("Genesis").all_subrefs()[49] == Ref("Genesis 50")
         assert Ref("Genesis 40").all_subrefs()[22] == Ref("Genesis 40:23")
@@ -337,7 +336,6 @@ class Test_Ref(object):
 
     def test_spanning_ref_regex(self):
         assert Ref("Exodus 4:30-6:2").regex() == u'^Exodus( 4:30$| 4:30:| 4:30 \\d| 4:31$| 4:31:| 4:31 \\d| 5$| 5:| 5 \\d| 6:1$| 6:1:| 6:1 \\d| 6:2$| 6:2:| 6:2 \\d)'
-
 
     #todo: devise a better test of version_list()
     def test_version_list(self):
