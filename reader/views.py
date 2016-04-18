@@ -844,6 +844,10 @@ def texts_api(request, tref, lang=None, version=None):
         except AttributeError as e:
             oref = oref.default_child_ref()
             text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
+        except NoVersionFoundError as e:
+            # Extended data is used by S2 in TextList.preloadAllCommentaryText()
+            return jsonResponse({"error": unicode(e), "ref": oref.normal(), "versionTitle": version, "lang": lang, "commentator": getattr(oref.index, "commentator", "")})
+
 
         # Use a padded ref for calculating next and prev
         # TODO: what if pad is false and the ref is of an entire book?

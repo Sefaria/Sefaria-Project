@@ -3341,7 +3341,7 @@ var TextList = React.createClass({
   componentWillReceiveProps: function(nextProps) {
     this.preloadText(nextProps.filter);
   },
-  componetWillUpdate: function(nextProps) {
+  componentWillUpdate: function(nextProps) {
 
   },
   componentDidUpdate: function(prevProps, prevState) {
@@ -3377,7 +3377,7 @@ var TextList = React.createClass({
   },
   preloadText: function(filter) {
     // Preload text of links if `filter` is a single commentary, or all commentary
-    if (filter.length == 1 && 
+    if (filter.length == 1 &&
         sjs.library.index(filter[0]) && 
         sjs.library.index(filter[0]).categories == "Commentary") {
       this.preloadSingleCommentaryText(filter);
@@ -3416,7 +3416,7 @@ var TextList = React.createClass({
         return !sjs.library.text(commentator + " on " + basetext);
       });
       if (commentators.length) {
-        this.waitingFor = commentators;
+        this.waitingFor = clone(commentators);
         for (var i = 0; i < commentators.length; i++) {
           sjs.library.text(commentators[i] + " on " + basetext, {}, function(data) {
             var index = this.waitingFor.indexOf(data.commentator);
@@ -3463,9 +3463,8 @@ var TextList = React.createClass({
     var isSingleCommentary = (filter.length == 1 && sjs.library.index(filter[0]) && sjs.library.index(filter[0]).categories == "Commentary");
 
     //if (summary.length && !links.length) { debugger; }
-
-    var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";;
-    var he = "אין קשרים ידועים"       + (filter.length ? " ל"    + filter.join(", ") : "") + ".";;
+    var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";
+    var he = "אין קשרים ידועים"       + (filter.length ? " ל"    + filter.join(", ") : "") + ".";
     var loaded  = sjs.library.linksLoaded(sectionRef);
     var message = !loaded ? 
                     (<LoadingMessage />) : 

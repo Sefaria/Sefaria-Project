@@ -381,7 +381,7 @@ sjs.library = {
         category.books[link.commentator] = {count: 1};
       }
     }
-    // Add Zero counts for every commentator in this section not alredy in list
+    // Add Zero counts for every commentator in this section not already in list
     var baseRef    = typeof ref == "string" ? ref : ref[0]; // TODO handle refs spanning sections
     var oRef       = sjs.library.ref(baseRef);
     var sectionRef = oRef ? oRef.sectionRef : baseRef;
@@ -416,7 +416,7 @@ sjs.library = {
         var topByCategory = {
           "Tanach": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
           "Talmud": ["Rashi", "Tosafot"]
-        }
+        };
         var cat = oRef ? oRef["categories"][0] : null;
         var top = topByCategory[cat] || [];
         var aTop = top.indexOf(a.book);
