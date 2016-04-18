@@ -54,7 +54,7 @@ class Test_Toc(object):
         assert isinstance(node['sparseness'], int)
         #do we need to assert that the title is not equal to any category name?
 
-
+    @pytest.mark.deep
     def test_new_index_title_change(self):
         new_index = model.Index({
             "title": "New Toc Title Test",

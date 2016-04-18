@@ -25,7 +25,7 @@ def driver(request):
     request.addfinalizer(fin)
     return d
 
-
+@pytest.mark.deep
 def test_simple_pages(driver):
     driver.get(server)
     assert "Sefaria" in driver.title
