@@ -2863,12 +2863,7 @@ var TextRange = React.createClass({
   componentDidUpdate: function(prevProps, prevState) {
     // Reload text if version changed
     if (this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage) {
-      this.getText();
-      window.requestAnimationFrame(function() {
-          if (this.isMounted()) {
-            this.placeSegmentNumbers();
-          }
-        }.bind(this));       
+      this.getText(true);
     }
     // Place segment numbers again if update affected layout
     else if (this.props.basetext || this.props.segmentNumber) {
@@ -2907,13 +2902,22 @@ var TextRange = React.createClass({
       sjs.track.event("Reader", "Click Text from TextList", this.props.sref);
     }
   },
-  getText: function() {
+  getText: function(doRenumber) {
     var settings = {
       context: this.props.withContext ? 1 : 0,
       version: this.props.version || null,
       language: this.props.versionLanguage || null
     };
-    sjs.library.text(this.props.sref, settings, this.loadText);
+    sjs.library.text(this.props.sref, settings, function(data) {
+      this.loadText(data);
+      if (doRenumber) {
+        window.requestAnimationFrame(function() {
+            if (this.isMounted()) {
+              this.placeSegmentNumbers();
+            }
+          }.bind(this));
+      }
+    }.bind(this));
   },
   makeSegments: function(data) {
     // Returns a flat list of annotated segment objects,
