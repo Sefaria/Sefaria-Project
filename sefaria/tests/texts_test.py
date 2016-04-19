@@ -7,7 +7,7 @@ from helper.text import rename_category
 import sefaria.model.text as tm
 from sefaria.model.link import get_book_link_collection
 
-
+@pytest.mark.deep
 def test_rename_category():
 
     old = "Rishonim"
