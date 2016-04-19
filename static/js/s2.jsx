@@ -1089,7 +1089,7 @@ var ReaderPanel = React.createClass({
   },
   closeConnectionsInPanel: function() {
     // Return to the original text in the ReaderPanel contents
-    this.setState({highlightedRefs: [], mode: "Text"});
+    this.conditionalSetState({highlightedRefs: [], mode: "Text"});
   },  
   showBaseText: function(ref, replaceHistory) {
     // Set the current primary text
