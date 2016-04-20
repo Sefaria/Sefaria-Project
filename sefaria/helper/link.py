@@ -145,6 +145,7 @@ def rebuild_commentary_links(title, user):
         for c in library.get_commentary_version_titles(i.title):
             rebuild_commentary_links(Ref(c), user)
         return
+    delete_commentary_links(title, user)
     add_commentary_links(Ref(title), user)
 
 
