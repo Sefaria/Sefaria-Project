@@ -96,6 +96,7 @@ def test_es_cleanup():
     n._report = True
     n._clean_elastisearch()
 
+@pytest.mark.deep
 def test_sheet_cleanup():
     n = Splicer().splice_next_into_this(Ref("Shabbat 25b:11"))
     n._report = True
