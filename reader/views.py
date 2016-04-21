@@ -1206,14 +1206,15 @@ def notes_api(request, note_id_or_ref):
     """
     API for user notes.
     Is this still true? "Currently only handles deleting. Adding and editing are handled throughout the links API."
-    A called to this API with GET returns the list of public notes and private notes belong to the current user on this Ref. 
+    A call to this API with GET returns the list of public notes and private notes belong to the current user on this Ref. 
     """
     if request.method == "GET":
         if not note_id_or_ref:
             raise Http404
         oref = Ref(note_id_or_ref)
         cb = request.GET.get("callback", None)
-        res = get_notes(oref, uid=request.user.id)
+        private = request.GET.get("private", False)
+        res = get_notes(oref, uid=request.user.id, public=(not private))
         return jsonResponse(res, cb)
 
     if request.method == "POST":

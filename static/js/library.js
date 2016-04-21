@@ -327,6 +327,7 @@ sjs.library = {
     }
   },
   linksLoaded: function(ref) {
+    // Returns true if link data has been loaded for `ref`.
     if (typeof ref == "string") {
       return ref in this._links;
     } else {
@@ -337,6 +338,7 @@ sjs.library = {
     }
   },
   linkCount: function(ref, filter) {
+    // Returns the number links available for `ref` filtered by `filter`, an array of strings.
     if (!(ref in this._links)) { return 0; }
     var links = this._links[ref];
     links = filter ? this._filterLinks(links, filter) : links;
@@ -456,7 +458,7 @@ sjs.library = {
     return books;     
   },
   _notes: {},
-  notes: function(ref, cb) {
+  notes: function(ref, callback) {
     var notes = null;
     if (typeof ref == "string") {
       if (ref in this._notes) { 
@@ -470,26 +472,55 @@ sjs.library = {
       });
     }
     if (notes) {
-      if (cb) { cb(notes); }
+      if (callback) { callback(notes); }
     } else {
       sjs.library.related(ref, function(data) {
-        if (cb) { cb(data.notes); }
+        if (callback) { callback(data.notes); }
       });
     }
     return notes;
   },
   _saveNoteData: function(ref, data) {
-    this._notes[ref] = data;
+    //this._notes[ref] = data; -- seems redudant?
     this._saveItemsByRef(data, this._notes);
   },
+  _privateNotes: {},
+  privateNotes: function(ref, callback) {
+    var notes = null;
+    if (typeof ref == "string") {
+      if (ref in this._privateNotes) { 
+        notes = this._privateNotes[ref];
+      }
+    } else {
+      var notes = [];
+      ref.map(function(r) {
+        var newNotes = sjs.library.privateNotes(r);
+        notes = newNotes ? notes.concat(newNotes) : notes;
+      });
+    }
+    if (notes) {
+      if (callback) { callback(notes); }
+    } else {
+       var url = "/api/notes/%s?private=1" % normRef(ref);
+       this._api(url, function(data) {
+          if ("error" in data) { 
+            // sjs.alert.message(data.error);
+            return;
+          }
+          this._saveItemsByRef(ref, data);
+          callback(data);
+        }.bind(this));
+    }
+    return notes;
+  },
   _related: {},
-  related: function(ref, cb) {
+  related: function(ref, callback) {
     // Single API to bundle links, sheets, and notes by ref.
-    if (!cb) {
+    if (!callback) {
       return this._related[ref] || null;
     }
     if (ref in this._related) {
-      cb(this._related[ref]);
+      callback(this._related[ref]);
     } else {
        var url = "/api/related/" + normRef(ref);
        this._api(url, function(data) {
@@ -501,7 +532,7 @@ sjs.library = {
           this._saveNoteData(ref, data.notes);
           this.sheets._saveSheetsByRefData(ref, data.sheets);
           this._related[ref] = data;
-          cb(data);
+          callback(data);
         }.bind(this));
     }
   },
@@ -544,7 +575,7 @@ sjs.library = {
     this._relatedSummaries[ref] = summary;
     return summary;
   },
-  textTocHtml: function(title, cb) {
+  textTocHtml: function(title, callback) {
     // Returns an HTML fragment of the table of contents of the text 'title'
     if (!title) { return ""; }
     if (title in this._textTocHtml) {
@@ -556,7 +587,7 @@ sjs.library = {
         success: function(html) {
           html = this._makeTextTocHtml(html, title);
           this._textTocHtml[title] = html;
-          cb(html);
+          callback(html);
         }.bind(this)
       });
       return null;
@@ -688,57 +719,62 @@ sjs.library = {
   },
   sheets: {
     _trendingTags: null,
-    trendingTags: function(cb) {
+    trendingTags: function(callback) {
+      // Returns a list of trending tags -- source sheet tags which have been used often recently.
       var tags = this._trendingTags;
       if (tags) {
-        if (cb) { cb(tags); }
+        if (callback) { callback(tags); }
       } else {
         var url = "/api/sheets/trending-tags";
          sjs.library._api(url, function(data) {
             this._trendingTags = data;
-            if (cb) { cb(data); }
+            if (callback) { callback(data); }
           }.bind(this));
         }
       return tags;
     },
     _tagList: null,
-    tagList: function(cb) {
+    tagList: function(callback) {
+      // Returns a list of all public source sheet tags, ordered by populartiy
       var tags = this._tagList;
       if (tags) {
-        if (cb) { cb(tags); }
+        if (callback) { callback(tags); }
       } else {
         var url = "/api/sheets/tag-list";
          sjs.library._api(url, function(data) {
             this._tagList = data;
-            if (cb) { cb(data); }
+            if (callback) { callback(data); }
           }.bind(this));
         }
       return tags;
     },
     _sheetsByTag: {},
-    sheetsByTag: function(tag, cb) {
+    sheetsByTag: function(tag, callback) {
+      // Returns a list of public sheets matching a given tag.
       var sheets = this._sheetsByTag[tag];
       if (sheets) {
-        if (cb) { cb(sheets); }
+        if (callback) { callback(sheets); }
       } else {
         var url = "/api/sheets/tag/" + tag;
          $.getJSON(url, function(data) {
             this._sheetsByTag[tag] = data.sheets;
-            if (cb) { cb(data.sheets); }
+            if (callback) { callback(data.sheets); }
           }.bind(this));
         }
       return sheets;
     },
     _userSheets: {},
-    userSheets: function(uid, cb) {
+    userSheets: function(uid, callback) {
+      // Returns a list of source sheets belonging to `uid`
+      // Only a user logged in as `uid` will get data back from this API call.
       var sheets = this._userSheets[uid];
       if (sheets) {
-        if (cb) { cb(sheets); }
+        if (callback) { callback(sheets); }
       } else {
         var url = "/api/sheets/user/" + uid;
          sjs.library._api(url, function(data) {
             this._userSheets[uid] = data.sheets;
-            if (cb) { cb(data.sheets); }
+            if (callback) { callback(data.sheets); }
           }.bind(this));
         }
       return sheets;
@@ -748,6 +784,7 @@ sjs.library = {
     },  
     _sheetsByRef: {},
     sheetsByRef: function(ref, cb) {
+      // Returns a list of public sheets that include `ref`.
       var sheets = null;
       if (typeof ref == "string") {
         if (ref in this._sheetsByRef) { 
@@ -777,6 +814,7 @@ sjs.library = {
     }
   },
   hebrewCategory: function(cat) {
+    // Returns a string translating `cat` into Hebrew.
     var categories = {
       "Torah":                "תורה",
       "Tanach":               'תנ"ך',
@@ -943,6 +981,7 @@ sjs.library = {
     }
   }
 };
+
 
 // Unpack sjs.toc into index cache
 sjs.library._cacheIndexFromToc(sjs.toc);
