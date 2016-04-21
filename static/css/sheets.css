@@ -1417,3 +1417,12 @@ input[type="file"] {
     box-shadow: none;
 
 }
+
+.activeSource {
+	background-color: #eee;
+	border:solid 1px #EFB4B6;
+}
+
+.inlineAddButton {
+
+}

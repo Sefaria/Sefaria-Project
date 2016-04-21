@@ -573,6 +573,7 @@ $(function() {
 		}
 
 		sjs.removeCKEditor = function(e) {
+
 			stopCkEditorContinuous();
 			var editor = e.editor;
 			var $el = $(editor.element.$);
@@ -905,6 +906,30 @@ $(function() {
 
 
 						"</div>";
+
+	$("html").on( "click", "#sheet", function(e) {
+		//clicked off of a sheetitem
+		if ($(e.target).closest(".sheetItem").length) {
+			return;
+		}
+
+		$(".activeSource").removeClass("activeSource");
+		$(".inlineAddButton").remove();
+
+	});
+
+
+	$("#sheet").on( "click", ".sheetItem", function(e) {
+		//clicked on a sheet item
+			$(".activeSource").removeClass("activeSource");
+			$(".inlineAddButton").remove();
+			$(this).addClass("activeSource");
+			var inlineAddButton = "<div class='inlineAddButton'><i class='fa fa-plus-circle'></i></div>";
+			$(this).append(inlineAddButton);
+			$("#sheetLayoutLanguageMenuItems").hide();
+
+	});
+
 
 
 	$("#sheet").on( "mouseenter", ".sheetItem", function(e) {
