@@ -3125,14 +3125,23 @@ var ConnectionsPanel = React.createClass({
 
     } else if (this.props.mode === "Add Note") {
       content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
+
     } else if (this.props.mode === "My Notes") {
-      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
+      content = (<MyNotesPanel 
+                  srefs={this.props.srefs}
+                  fullPanel={this.props.fullPanel}
+                  closePanel={this.props.closePanel}
+                  setConnectionsMode={this.props.setConnectionsMode} />);
+
     } else if (this.props.mode === "Add Connection") {
       content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
+
     } else if (this.props.mode === "Edit Text") {
       content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
+
     } else if (this.props.mode === "Add Translation") {
       content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
+
     } else if (this.props.mode === "Login") {
       content = (<LoginPanel />);
     }
@@ -3368,16 +3377,14 @@ var TextList = React.createClass({
       } else if (filter.compare(["Notes"])) {
         var notes   = sjs.library.notes(refs);
         var content = notes ? notes.map(function(note) {
-          return (
-            <div className="note" key={note._id}>
-              <a href={note.ownerProfileUrl}>
-                <img className="noteAuthorImg" src={note.ownerImageUrl} />
-              </a>
-              <a href={note.ownerProfileUrl} className="noteAuthor">{note.ownerName}</a>
-              <div className="noteTitle">{note.title}</div>
-              <span className="noteText" dangerouslySetInnerHTML={{__html:note.text}}></span>
-            </div>) 
-        }) : <LoadingMessage />;
+          return (<Note 
+                    title={note.title}
+                    text={note.text}
+                    ownerName={note.ownerName}
+                    ownerProfileUrl={note.ownerProfileUrl}
+                    ownerImageUrl={note.ownerImageUrl}
+                    key={note._id} />) 
+        }) : (<LoadingMessage />);
         content = content.length ? content : <LoadingMessage message="No notes here." />;
       } else {
         // Viewing Text Connections
@@ -3480,6 +3487,37 @@ var TextList = React.createClass({
         </div>
       );
     }
+  }
+});
+
+
+var Note = React.createClass({
+  propTypes: {
+    title:           React.PropTypes.string.isRequired,
+    text:            React.PropTypes.string.isRequired,
+    ownerName:       React.PropTypes.string.isRequired,
+    ownerImageUrl:   React.PropTypes.string.isRequired,
+    ownerProfileUrl: React.PropTypes.string.isRequired,
+    text:            React.PropTypes.string.isRequired,
+    isPrivate:       React.PropTypes.bool
+  },
+  render: function() {
+     var authorInfo = this.props.isPrivate ? null :  
+          (<div className="noteAuthorInfo">
+            <a href={this.props.ownerProfileUrl}>
+              <img className="noteAuthorImg" src={this.props.ownerImageUrl} />
+            </a>
+            <a href={this.props.ownerProfileUrl} className="noteAuthor">{this.props.ownerName}</a>
+          </div>);
+     
+     var buttons = this.props.isPrivate ? null : null; 
+     
+     return (<div className="note">
+                {authorInfo}
+                <div className="noteTitle">{this.props.title}</div>
+                <span className="noteText" dangerouslySetInnerHTML={{__html:this.props.text}}></span>
+                {buttons}
+              </div>);
   }
 });
 
@@ -3776,9 +3814,9 @@ var SharePanel = React.createClass({
 
 var AddToSourceSheetPanel = React.createClass({
   propTypes: {
-    srefs: React.PropTypes.array.isRequired,
+    srefs:              React.PropTypes.array.isRequired,
     setConnectionsMode: React.PropTypes.func.isRequired,
-    fullPanel: React.PropTypes.bool
+    fullPanel:          React.PropTypes.bool
   },
   getInitialState: function() {
     return {
@@ -3871,6 +3909,50 @@ var ConfirmAddToSheetPanel = React.createClass({
                 <span className="en">Go to Source Sheet <i className="fa fa-angle-right"></i></span>
                 <span className="he">לדפ מקורות<i className="fa fa-angle-left"></i></span>
               </a>
+            </div>);
+  }
+});
+
+
+var MyNotesPanel = React.createClass({
+  propTypes: {
+    srefs:              React.PropTypes.array.isRequired,
+    setConnectionsMode: React.PropTypes.func.isRequired,
+    closePanel:         React.PropTypes.func.isRequired,
+    fullPanel:          React.PropTypes.bool
+  },
+  componentDidMount: function() {
+    this.loadNotes();
+  },
+  loadNotes: function() {
+    // Rerender this component when privateNotes arrive.
+    sjs.library.privateNotes(this.props.srefs, this.rerender);
+  },
+  rerender: function() {
+    this.forceUpdate();
+  },
+  render: function() {
+    var myNotesData = sjs.library.privateNotes(this.props.srefs);
+    var myNotes = myNotesData ? myNotesData.map(function(note) {
+      return (<Note 
+                title={note.title}
+                text={note.text} 
+                isPrivate={true} />);
+    }) : (<LoadingMessage />);
+
+    mayNotes = myNotes.length ? myNotes : 
+      (<div>
+        <div>You don&apos;t have any note here.</div>
+        <ToolsButton en="Add Note" he="Add Note" icon="pencil" onClick={function() {this.props.setConnectionsMode("Add Note")}.bind(this)} /> 
+      </div>);
+
+    var classes = classNames({myNotesPanel: 1, textList: 1, fullPanel: this.props.fullPanel});
+    return (<div className={classes}>
+              <div className="texts">
+                <div className="contentInner">
+                  {myNotes}
+                </div>
+              </div>
             </div>);
   }
 });
@@ -4477,6 +4559,7 @@ var LoadingMessage = React.createClass({
 
 
 var TestMessage = React.createClass({
+  // Modal explaining development status with links to send feedback or go back to the old site
   propTypes: {
     hide:   React.PropTypes.func
   },

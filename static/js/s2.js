@@ -1,6 +1,10 @@
 "use strict";
 
+var _propTypes;
+
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 var sjs = sjs || {};
 
@@ -3760,7 +3764,11 @@ var ConnectionsPanel = React.createClass({
     } else if (this.props.mode === "Add Note") {
       content = React.createElement(LoadingMessage, { className: "toolsMessage", message: "Coming Soon." });
     } else if (this.props.mode === "My Notes") {
-      content = React.createElement(LoadingMessage, { className: "toolsMessage", message: "Coming Soon." });
+      content = React.createElement(MyNotesPanel, {
+        srefs: this.props.srefs,
+        fullPanel: this.props.fullPanel,
+        closePanel: this.props.closePanel,
+        setConnectionsMode: this.props.setConnectionsMode });
     } else if (this.props.mode === "Add Connection") {
       content = React.createElement(LoadingMessage, { className: "toolsMessage", message: "Coming Soon." });
     } else if (this.props.mode === "Edit Text") {
@@ -4030,26 +4038,13 @@ var TextList = React.createClass({
       } else if (filter.compare(["Notes"])) {
         var notes = sjs.library.notes(refs);
         var content = notes ? notes.map(function (note) {
-          return React.createElement(
-            "div",
-            { className: "note", key: note._id },
-            React.createElement(
-              "a",
-              { href: note.ownerProfileUrl },
-              React.createElement("img", { className: "noteAuthorImg", src: note.ownerImageUrl })
-            ),
-            React.createElement(
-              "a",
-              { href: note.ownerProfileUrl, className: "noteAuthor" },
-              note.ownerName
-            ),
-            React.createElement(
-              "div",
-              { className: "noteTitle" },
-              note.title
-            ),
-            React.createElement("span", { className: "noteText", dangerouslySetInnerHTML: { __html: note.text } })
-          );
+          return React.createElement(Note, {
+            title: note.title,
+            text: note.text,
+            ownerName: note.ownerName,
+            ownerProfileUrl: note.ownerProfileUrl,
+            ownerImageUrl: note.ownerImageUrl,
+            key: note._id });
         }) : React.createElement(LoadingMessage, null);
         content = content.length ? content : React.createElement(LoadingMessage, { message: "No notes here." });
       } else {
@@ -4164,6 +4159,49 @@ var TextList = React.createClass({
         )
       );
     }
+  }
+});
+
+var Note = React.createClass({
+  displayName: "Note",
+
+  propTypes: (_propTypes = {
+    title: React.PropTypes.string.isRequired,
+    text: React.PropTypes.string.isRequired,
+    ownerName: React.PropTypes.string.isRequired,
+    ownerImageUrl: React.PropTypes.string.isRequired,
+    ownerProfileUrl: React.PropTypes.string.isRequired
+  }, _defineProperty(_propTypes, "text", React.PropTypes.string.isRequired), _defineProperty(_propTypes, "isPrivate", React.PropTypes.bool), _propTypes),
+  render: function render() {
+    var authorInfo = this.props.isPrivate ? null : React.createElement(
+      "div",
+      { className: "noteAuthorInfo" },
+      React.createElement(
+        "a",
+        { href: this.props.ownerProfileUrl },
+        React.createElement("img", { className: "noteAuthorImg", src: this.props.ownerImageUrl })
+      ),
+      React.createElement(
+        "a",
+        { href: this.props.ownerProfileUrl, className: "noteAuthor" },
+        this.props.ownerName
+      )
+    );
+
+    var buttons = this.props.isPrivate ? null : null;
+
+    return React.createElement(
+      "div",
+      { className: "note" },
+      authorInfo,
+      React.createElement(
+        "div",
+        { className: "noteTitle" },
+        this.props.title
+      ),
+      React.createElement("span", { className: "noteText", dangerouslySetInnerHTML: { __html: this.props.text } }),
+      buttons
+    );
   }
 });
 
@@ -4724,6 +4762,64 @@ var ConfirmAddToSheetPanel = React.createClass({
           { className: "he" },
           "לדפ מקורות",
           React.createElement("i", { className: "fa fa-angle-left" })
+        )
+      )
+    );
+  }
+});
+
+var MyNotesPanel = React.createClass({
+  displayName: "MyNotesPanel",
+
+  propTypes: {
+    srefs: React.PropTypes.array.isRequired,
+    setConnectionsMode: React.PropTypes.func.isRequired,
+    closePanel: React.PropTypes.func.isRequired,
+    fullPanel: React.PropTypes.bool
+  },
+  componentDidMount: function componentDidMount() {
+    this.loadNotes();
+  },
+  loadNotes: function loadNotes() {
+    // Rerender this component when privateNotes arrive.
+    sjs.library.privateNotes(this.props.srefs, this.rerender);
+  },
+  rerender: function rerender() {
+    this.forceUpdate();
+  },
+  render: function render() {
+    var myNotesData = sjs.library.privateNotes(this.props.srefs);
+    var myNotes = myNotesData ? myNotesData.map(function (note) {
+      return React.createElement(Note, {
+        title: note.title,
+        text: note.text,
+        isPrivate: true });
+    }) : React.createElement(LoadingMessage, null);
+
+    mayNotes = myNotes.length ? myNotes : React.createElement(
+      "div",
+      null,
+      React.createElement(
+        "div",
+        null,
+        "You don't have any note here."
+      ),
+      React.createElement(ToolsButton, { en: "Add Note", he: "Add Note", icon: "pencil", onClick: function () {
+          this.props.setConnectionsMode("Add Note");
+        }.bind(this) })
+    );
+
+    var classes = classNames({ myNotesPanel: 1, textList: 1, fullPanel: this.props.fullPanel });
+    return React.createElement(
+      "div",
+      { className: classes },
+      React.createElement(
+        "div",
+        { className: "texts" },
+        React.createElement(
+          "div",
+          { className: "contentInner" },
+          myNotes
         )
       )
     );
@@ -5493,6 +5589,7 @@ var LoadingMessage = React.createClass({
 var TestMessage = React.createClass({
   displayName: "TestMessage",
 
+  // Modal explaining development status with links to send feedback or go back to the old site
   propTypes: {
     hide: React.PropTypes.func
   },

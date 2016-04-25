@@ -1957,6 +1957,7 @@ display: block;margin: 0 auto;}
 }
 .toolsPanel .texts .contentInner,
 .sharePanel .texts .contentInner,
+.myNotesPanel .texts .contentInner,
 .addToSourceSheetPanel .texts .contentInner {
   margin: 30px auto;
 }
@@ -2051,6 +2052,14 @@ display: block;margin: 0 auto;}
 }
 .confirmAddToSheetPanel .button {
   width: 100%;
+}
+.myNotesPanel.textList .note {
+  background-color: transparent;
+  padding-bottom: 40px;
+}
+.myNotesPanel.textList .note + .note {
+  border-top: 1px solid #ccc;
+  padding-top: 40px;
 }
 .loginPanel {
   width: 100%;

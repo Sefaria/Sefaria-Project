@@ -501,14 +501,14 @@ sjs.library = {
     if (notes) {
       if (callback) { callback(notes); }
     } else {
-       var url = "/api/notes/%s?private=1" % normRef(ref);
+       var url = "/api/notes/" + normRef(ref) + "?private=1";
        this._api(url, function(data) {
           if ("error" in data) { 
             // sjs.alert.message(data.error);
             return;
           }
-          this._saveItemsByRef(ref, data);
-          callback(data);
+          this._saveItemsByRef(data, this._privateNotes);
+          if (callback) { callback(data); }
         }.bind(this));
     }
     return notes;
