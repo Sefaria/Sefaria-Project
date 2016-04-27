@@ -41,7 +41,7 @@ def attach_branch(new_node, parent_node, place=0):
 
     # Add node to versions & commentary versions
     vs = [v for v in index.versionSet()]
-    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
+    vsc = [v for idx in library.get_dependant_indices(index.title, dependence_type='commentary', full_records=True) for v in idx.versionSet()]
     for v in vs + vsc:
         pc = v.content_node(parent_node)
         pc[new_node.key] = new_node.create_skeleton()
@@ -72,7 +72,7 @@ def remove_branch(node):
     # todo: commentary linkset
 
     vs = [v for v in index.versionSet()]
-    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
+    vsc = [v for idx in library.get_dependant_indices(index.title, dependence_type='commentary', full_records=True) for v in idx.versionSet()]
     for v in vs + vsc:
         assert isinstance(v, Version)
         pc = v.content_node(parent)
@@ -117,7 +117,7 @@ def change_parent(node, new_parent, place=0):
     linkset = [l for l in node.ref().linkset()]
 
     vs = [v for v in index.versionSet()]
-    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
+    vsc = [v for idx in library.get_dependant_indices(index.title, dependence_type='commentary', full_records=True) for v in idx.versionSet()]
     for v in vs + vsc:
         assert isinstance(v, Version)
         old_parent_content = v.content_node(old_parent)
@@ -141,7 +141,6 @@ def change_parent(node, new_parent, place=0):
 
 
 def refresh_version_state(base_title):
-    #//todo: mark for commentary refactor?
     """
     VersionState is *not* altered on Index save.  It is only created on Index creation.
 
@@ -152,7 +151,7 @@ def refresh_version_state(base_title):
     To regenerate VersionState, we save the flags, delete the old one, and regenerate a new one.
 
     """
-    vtitles = library.get_commentary_version_titles_on_book(base_title) + [base_title]
+    vtitles = library.get_dependant_indices(book_title=base_title, dependence_type='commentary') + [base_title]
     for title in vtitles:
         vs = VersionState(title)
         flags = vs.flags

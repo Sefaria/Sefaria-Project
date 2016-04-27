@@ -42,8 +42,8 @@ def migrate_to_complex_structure(title, schema, mappings):
 
     #are there commentaries? Need to move the text for them to conform to the new structure
     #basically a repeat process of the above, sans creating the index record
-    commentaries = library.get_commentary_versions_on_book(title)
-    migrate_versions_of_text(commentaries, mappings, title, temp_index.title, temp_index)
+    #commentaries = library.get_commentary_versions_on_book(title)
+    #migrate_versions_of_text(commentaries, mappings, title, temp_index.title, temp_index)
     #duplicate versionstate
     #TODO: untested
     vstate_old = VersionState().load({'title':title })
@@ -103,8 +103,9 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
             new_tc.save()
             VersionState(dRef.index.title).refresh()
             #links
-            if dRef.is_commentary():
-                add_commentary_links(dRef, 8646)
+            linker = dref.autolinker(user=8646)
+            if linker:
+                linker.refresh_links()
             add_links_from_text(dRef, new_version.language, new_tc.text, new_version._id, 8646)
             if i == 0: #links are the same across versions
                 migrate_links_of_ref(orRef, dRef)

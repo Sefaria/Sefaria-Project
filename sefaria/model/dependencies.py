@@ -6,7 +6,6 @@ from . import abstract, link, note, history, schema, text, layer, version_state,
 
 from abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache
-#//todo: mark for commentary refactor
 
 # Index Save / Create
 subscribe(text.process_index_change_in_core_cache,                      text.Index, "save")

@@ -114,17 +114,12 @@ REORDER_RULES = {
     "Commentary2": ["Commentary"],
 }
 
-#//todo: mark for commentary refactor
 def update_table_of_contents():
     toc = []
     sparseness_dict = get_sparesness_lookup()
     # Add an entry for every text we know about
     indices = IndexSet()
     for i in indices:
-        if i.is_commentary() or i.categories[0] == "Commentary2":
-            # Special case commentary below
-            continue
-
         if i.categories[0] in REORDER_RULES:
             cats = REORDER_RULES[i.categories[0]] + i.categories[1:]
         else:
@@ -136,28 +131,6 @@ def update_table_of_contents():
         text = i.toc_contents()
         text["sparseness"] = sparseness_dict[text["title"]]
         node.append(text)
-
-    # Special handling to list available commentary texts
-    commentary_texts = library.get_commentary_version_titles(with_commentary2=True)
-    for c in commentary_texts:
-
-        try:
-            i = library.get_index(c)
-        except BookNameError:
-            continue
-
-        if i.categories[0] in REORDER_RULES:
-            cats = REORDER_RULES[i.categories[0]] + i.categories[1:]
-        else:
-            cats = i.categories[:]
-
-        text = i.toc_contents()
-        text["sparseness"] = sparseness_dict[text["title"]]
-
-        cats[0], cats[1] = cats[1], cats[0] # Swap "Commentary" with toplevel category (e.g., "Tanach")
-        node = get_or_make_summary_node(toc, cats)
-        node.append(text)
-
     # Recursively sort categories and texts
     return sort_toc_node(toc, recur=True)
 
@@ -177,7 +150,6 @@ def recur_delete_element_from_toc(bookname, toc):
                 toc_elem['to_delete'] = True
     return toc
 
-#//todo: mark for commentary refactor
 def update_title_in_toc(toc, index, old_ref=None, recount=True):
     """
     Update text summary docs to account for change or insertion of 'text'
@@ -192,17 +164,11 @@ def update_title_in_toc(toc, index, old_ref=None, recount=True):
     if indx_dict["categories"][0] in REORDER_RULES:
         indx_dict["categories"] = REORDER_RULES[indx_dict["categories"][0]] + indx_dict["categories"][1:]
 
-    if indx_dict["categories"][0] != "Commentary":
-        if indx_dict["categories"][0] not in ORDER:
-            indx_dict["categories"].insert(0, "Other")
-            resort_other = True
-        node = get_or_make_summary_node(toc, indx_dict["categories"])
-        text = add_counts_to_index(indx_dict)
-    else:
-        commentator = indx_dict["commentator"]
-        cats = [indx_dict["categories"][1], "Commentary", commentator]
-        node = get_or_make_summary_node(toc, cats)
-        text = add_counts_to_index(indx_dict)
+    if indx_dict["categories"][0] not in ORDER:
+        indx_dict["categories"].insert(0, "Other")
+        resort_other = True
+    node = get_or_make_summary_node(toc, indx_dict["categories"])
+    text = add_counts_to_index(indx_dict)
 
     found = False
     test_title = old_ref or text["title"]

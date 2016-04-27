@@ -648,12 +648,9 @@ def text_toc(request, oref):
     categories    = index.categories[:]
     if categories[0] in REORDER_RULES:
         categories = REORDER_RULES[categories[0]] + categories[1:]
-    if categories[0] == "Commentary":
-        categories = [categories[1], "Commentary", index.toc_contents()["commentator"]]
     cat_slices    = [categories[:n+1] for n in range(len(categories))]  # successive sublists of cats, for category links
 
-    c_titles      = model.library.get_commentary_version_titles_on_book(title, with_commentary2=True)
-    c_indexes     = [library.get_index(commentary) for commentary in c_titles]
+    c_indexes     = library.get_dependant_indices(book_title=title, dependence_type='commentary', full_records=True)
     commentaries  = [i.toc_contents() for i in c_indexes]
 
     if index.is_complex():

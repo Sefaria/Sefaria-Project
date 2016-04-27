@@ -46,11 +46,8 @@ class NoteSet(abst.AbstractMongoSet):
 
 def process_index_title_change_in_notes(indx, **kwargs):
     print "Cascading Notes {} to {}".format(kwargs['old'], kwargs['new'])
-    if indx.is_commentary():
-        pattern = r'{} on '.format(re.escape(kwargs["old"]))
-    else:
-        pattern = Ref(indx.title).base_text_and_commentary_regex()
-        pattern = pattern.replace(re.escape(indx.title), re.escape(kwargs["old"]))
+    pattern = Ref(indx.title).regex()
+    pattern = pattern.replace(re.escape(indx.title), re.escape(kwargs["old"]))
     notes = NoteSet({"ref": {"$regex": pattern}})
     for n in notes:
         try:

@@ -102,8 +102,8 @@ class Splicer(object):
         self.section_ref = self.first_ref.section_ref()
         self.book_ref = self.first_ref.context_ref(self.first_ref.index_node.depth)
         self.index = self.book_ref.index
-        self.commentary_titles = library.get_commentary_version_titles_on_book(self.first_ref.index.title)
-        self.commentary_versions = library.get_commentary_versions_on_book(self.first_ref.index.title)
+        self.commentary_titles = library.get_dependant_indices(self.first_ref.index.title, dependence_type='commentary')
+        self.commentary_versions = VersionSet({'title': {'$regex': ur'^({})'.format("|".join(self.commentary_titles))}})
         self.versionSet = VersionSet({"title": self.first_ref.index.title})
         self.last_segment_number = len(self.section_ref.get_state_ja().subarray_with_ref(self.section_ref))
         self.last_segment_ref = self.section_ref.subref(self.last_segment_number)
@@ -119,10 +119,10 @@ class Splicer(object):
         # todo: merge into _setup_refs_for_join?
         # How many comments are there for each commenter on the base text?
         ret = {}
-        for vtitle in library.get_commentary_version_titles_on_book(ref.index.title):
-            commentator_book_ref = Ref(vtitle)
+        for ctitle in library.get_dependant_indices(ref.index.title, dependence_type='commentary'):
+            commentator_book_ref = Ref(ctitle)
             commentator_segment_ref = commentator_book_ref.subref(ref.sections)
-            ret[vtitle] = len(commentator_segment_ref.get_state_ja().subarray_with_ref(commentator_segment_ref))
+            ret[ctitle] = len(commentator_segment_ref.get_state_ja().subarray_with_ref(commentator_segment_ref))
         return ret
 
     ### Execution Methods ####
@@ -263,6 +263,7 @@ class Splicer(object):
                 tc.save()
 
     def _insert_commentary_version_sections(self):
+
         for v in self.commentary_versions:
             assert isinstance(v, Version)
             commentator_chapter_ref = Ref(v.title).subref(self.section_ref.sections)

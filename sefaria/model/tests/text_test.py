@@ -61,57 +61,7 @@ def test_dup_index_save():
     assert model.IndexSet({"title": title}).count() == 1
 
 
-def test_dup2_index_save():
-    title = 'Test Commentator Name'
-    model.IndexSet({"title": title}).delete()
-    d = {
-            "title": title,
-            "heTitle": u"פרשן ב",
-            "titleVariants": [title],
-            "sectionNames": ["Chapter", "Paragraph"],
-            "categories": ["Commentary"],
-            "lengths": [50, 501]
-        }
-    idx = model.Index(d)
-    idx.save()
-    assert model.IndexSet({"title": title}).count() == 1
-    try:
-        d2 = {
-             "categories" : [
-                "Liturgy"
-            ],
-            "title" : title,
-            "schema" : {
-                "titles" : [
-                    {
-                        "lang" : "en",
-                        "text" : title,
-                        "primary" : True
-                    },
-                    {
-                        "lang" : "he",
-                        "text" : "פרשן",
-                        "primary" : True
-                    }
-                ],
-                "nodeType" : "JaggedArrayNode",
-                "depth" : 2,
-                "sectionNames" : [
-                    "Section",
-                    "Line"
-                ],
-                "addressTypes" : [
-                    "Integer",
-                    "Integer"
-                ],
-                "key": title
-            },
-        }
-        idx2 = model.Index(d2).save()
-    except:
-        pass
 
-    assert model.IndexSet({"title": title}).count() == 1
 
 def test_index_title_setter():
     title = 'Test Index Name'
@@ -175,14 +125,9 @@ def test_index_title_setter():
     idx.delete()
 
 
-def test_index_methods():
-    assert model.Index().load({"title": "Rashi"}).is_commentary()
-    assert not model.Index().load({"title": "Exodus"}).is_commentary()
-
-
 def test_get_index():
     r = model.library.get_index("Rashi on Exodus")
-    assert isinstance(r, model.CommentaryIndex)
+    assert isinstance(r, model.Index)
     assert u'Rashi on Exodus' == r.title
     assert u'Rashi on Exodus' in r.titleVariants
     assert u'Rashi' not in r.titleVariants
@@ -194,23 +139,22 @@ def test_get_index():
 
 
 def test_text_helpers():
-    res = model.library.get_commentary_version_titles()
+    res = model.library.get_dependant_indices()
     assert u'Rashbam on Genesis' in res
     assert u'Rashi on Bava Batra' in res
     assert u'Bartenura on Mishnah Oholot' in res
 
-    res = model.library.get_commentary_version_titles("Rashi")
+    res = model.library.get_indices_by_work_title("Rashi")
     assert u'Rashi on Bava Batra' in res
     assert u'Rashi on Genesis' in res
     assert u'Rashbam on Genesis' not in res
 
-    res = model.library.get_commentary_version_titles(["Rashi", "Bartenura"])
-    assert u'Rashi on Bava Batra' in res
+    res = model.library.get_indices_by_work_title("Bartenura")
     assert u'Rashi on Genesis' in res
     assert u'Bartenura on Mishnah Oholot' in res
     assert u'Rashbam on Genesis' not in res
 
-    res = model.library.get_commentary_version_titles_on_book("Exodus")
+    res = model.library.get_dependant_indices(book_title="Exodus", dependence_type='commentary')
     assert u'Ibn Ezra on Exodus' in res
     assert u'Ramban on Exodus' in res
     assert u'Rashi on Genesis' not in res

@@ -159,14 +159,9 @@ def process_index_title_change_in_history(indx, **kwargs):
     """
     Update all history entries which reference 'old' to 'new'.
     """
-    if indx.is_commentary():
-        pattern = ur'{} on '.format(re.escape(kwargs["old"]))
-        title_pattern = ur'(^{}$)|({} on)'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
-    else:
-        pattern = text.Ref(indx.title).base_text_and_commentary_regex()
-        pattern = pattern.replace(re.escape(indx.title), re.escape(kwargs["old"]))
-        commentators = text.library.get_commentary_version_titles_on_book(kwargs["old"], with_commentary2=True)
-        title_pattern = ur'(^{}$)|(^({}) on {}$)'.format(re.escape(kwargs["old"]), "|".join(commentators), re.escape(kwargs["old"]))
+    pattern = text.Ref(indx.title).regex()
+    pattern = pattern.replace(re.escape(indx.title), re.escape(kwargs["old"]))
+    title_pattern = ur'(^{}$)'.format(re.escape(kwargs["old"]))
 
     text_hist = HistorySet({"ref": {"$regex": pattern}})
     print "Cascading Text History {} to {}".format(kwargs['old'], kwargs['new'])

@@ -63,15 +63,7 @@ class AbstractAutoLinker(object):
         self.delete_links()
         return self.build_links()
         # TODO: move this commentator name catching out to the view.
-        """try:
-            oref = Ref(title)
-        except InputError:
-            # Allow commentators alone, rebuild for each text we have
-            i = library.get_index(title)
-            for c in library.get_commentary_version_titles(i.title):
-                rebuild_commentary_links(Ref(c), user)
-            return
-        add_commentary_links(Ref(title), user)"""
+
 
     def _load_links(self):
         if not self._links:

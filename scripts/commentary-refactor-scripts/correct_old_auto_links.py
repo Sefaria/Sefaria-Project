@@ -79,9 +79,9 @@ def correct_commentary_links(oref, text=None, **kwargs):
                         pass
     return fixed_links
 
-
-titles = library.get_commentary_version_titles()
-for c in titles:
+old_style_commentary_texts = IndexSet({'dependence' : 'commentary',
+                             'auto_linking_scheme': 'commentary_increment_base_text_depth'}).distinct("title")
+for c in old_style_commentary_texts:
     print c
     rf = Ref(c)
     links = correct_commentary_links(rf)

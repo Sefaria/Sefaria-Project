@@ -479,13 +479,7 @@ def refresh_all_states():
     for index in indices:
         logger.debug(u"Rebuilding state for {}".format(index.title))
         try:
-            if index.is_commentary():
-                c_re = "^{} on ".format(index.title)
-                texts = VersionSet({"title": {"$regex": c_re}}).distinct("title")
-                for text in texts:
-                    VersionState(text).refresh()
-            else:
-                VersionState(index).refresh()
+            VersionState(index).refresh()
         except Exception as e:
             logger.warning(u"Got exception rebuilding state for {}: {}".format(index.title, e))
 
@@ -496,23 +490,10 @@ def process_index_delete_in_version_state(indx, **kwargs):
     from sefaria.system.database import db
     db.vstate.remove({"title": indx.title})
 
-#//todo: mark for commentary refactor
 def process_index_title_change_in_version_state(indx, **kwargs):
-
     VersionStateSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
-    if indx.is_commentary():  # and "commentaryBook" not in d:  # looks useless
-        commentator_re = "^(%s) on " % kwargs["old"]
-    else:
-        commentators = text.library.get_commentary_version_titles_on_book(kwargs["old"], with_commentary2=True)
-        commentator_re = r"^({}) on {}$".format("|".join(commentators), kwargs["old"])
-    old_titles = VersionStateSet({"title": {"$regex": commentator_re}}).distinct("title")
-    old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]
-    for pair in old_new:
-        VersionStateSet({"title": pair[0]}).update({"title": pair[1]})
 
-#//todo: mark for commentary refactor
+
 def create_version_state_on_index_creation(indx, **kwargs):
-    if indx.is_commentary():
-        return
     # If it's already there, this should be harmless
     VersionState(indx.title).save()
