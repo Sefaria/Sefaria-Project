@@ -1205,7 +1205,6 @@ def link_summary_api(request, ref):
 def notes_api(request, note_id_or_ref):
     """
     API for user notes.
-    Is this still true? "Currently only handles deleting. Adding and editing are handled throughout the links API."
     A call to this API with GET returns the list of public notes and private notes belong to the current user on this Ref. 
     """
     if request.method == "GET":
@@ -1222,6 +1221,13 @@ def notes_api(request, note_id_or_ref):
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
         note = json.loads(j)
+
+        if "refs" in note:
+            # If data was posted with an array or refs, squish them into one
+            # This assumes `refs` are sequential.
+            note["ref"] = Ref(note["refs"][0]).to(Ref(note["refs"][-1])).normal()
+            del note["refs"]
+
         func = tracker.update if "_id" in note else tracker.add
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
@@ -1435,6 +1441,7 @@ def lock_text_api(request, title, lang, version):
     vobj.save()
     return jsonResponse({"status": "ok"})
 
+
 @catch_error_as_json
 @csrf_exempt
 def flag_text_api(request, title, lang, version):
@@ -1477,6 +1484,7 @@ def flag_text_api(request, title, lang, version):
         return protected_post(request)
     else:
         return jsonResponse({"error": "Unauthorized"})
+
 
 @catch_error_as_json
 def dictionary_api(request, word):

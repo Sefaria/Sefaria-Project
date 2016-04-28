@@ -3131,7 +3131,11 @@ var ConnectionsPanel = React.createClass({
         setConnectionsMode={this.props.setConnectionsMode} />);
 
     } else if (this.props.mode === "Add Note") {
-      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
+      content = (<AddNotePanel 
+                  srefs={this.props.srefs}
+                  fullPanel={this.props.fullPanel}
+                  closePanel={this.props.closePanel}
+                  setConnectionsMode={this.props.setConnectionsMode} />);
 
     } else if (this.props.mode === "My Notes") {
       content = (<MyNotesPanel 
@@ -3915,6 +3919,98 @@ var ConfirmAddToSheetPanel = React.createClass({
                 <span className="en">Go to Source Sheet <i className="fa fa-angle-right"></i></span>
                 <span className="he">לדפ מקורות<i className="fa fa-angle-left"></i></span>
               </a>
+            </div>);
+  }
+});
+
+
+var AddNotePanel = React.createClass({
+  propTypes: {
+    srefs:              React.PropTypes.array.isRequired,
+    setConnectionsMode: React.PropTypes.func.isRequired,
+    closePanel:         React.PropTypes.func.isRequired,
+    fullPanel:          React.PropTypes.bool,
+    noteId:             React.PropTypes.string,
+    noteText:           React.PropTypes.string
+  },
+  getInitialState: function() {
+    return {
+      isPrivate: true,
+      saving: false
+    };
+  },
+  componentDidMount: function() {
+    this.focusNoteText();
+  },
+  focusNoteText: function() {
+    $(ReactDOM.findDOMNode(this)).find(".noteText").focus();
+  },
+  saveNote: function() {
+    var note = {
+      text: $(ReactDOM.findDOMNode(this)).find(".noteText").val(),
+      refs: this.props.srefs,
+      anchorText: "",
+      type:  "note",
+      title: "",
+      public: !this.state.isPrivate
+    };
+    var postData = { json: JSON.stringify(note) };
+    var url = (this.props.noteId ? "/api/notes/" + this.props.noteId : "/api/notes/");
+    $.post(url, postData, function(data) {
+      if (data.error) {
+        sjs.alert.message(data.error);
+      } else if (data) {
+        sjs.library.addPrivateNote(data);
+        this.props.setConnectionsMode("My Notes");
+      } else {
+        sjs.alert.message("Sorry, there was a problem saving your note.");
+      }
+    }.bind(this)).fail( function(xhr, textStatus, errorThrown) {
+      sjs.alert.message("Unfortunately, there was an error saving this note. Please try again or try reloading this page.");
+    });
+    this.setState({saving: true});
+  },
+  setPrivate: function() {
+    this.setState({isPrivate: true});
+  },
+  setPublic: function() {
+    this.setState({isPrivate: false});
+  },
+  cancel: function() {
+    this.props.setConnectionsMode("Tools");
+  },
+  render: function() {
+    var classes        = classNames({addNotePanel: 1, textList: 1, fullPanel: this.props.fullPanel});
+    var privateClasses = classNames({notePrivateButton: 1, active: this.state.isPrivate});
+    var publicClasses  = classNames({notePublicButton: 1, active: !this.state.isPrivate});
+    return (<div className={classes}>
+              <div className="texts">
+                <div className="contentInner">
+                 
+                  <textarea className="noteText" placeholder="Write a note...">{this.props.noteText}</textarea>
+                  <div className="noteSharingToggle">
+                    <div className={privateClasses} onClick={this.setPrivate}>
+
+                      <span className="en"><i className="fa fa-lock"></i> Private</span>
+                      <span className="he"><i className="fa fa-lock"></i> פְּרָטִי</span>                      
+                    </div>
+                    <div className={publicClasses} onClick={this.setPublic}>
+                      <span className="en">Public</span>
+                      <span className="he">פּוּמְבֵּי</span>
+                    </div>
+                  </div>
+                  <div className="line"></div>
+                  <div className="button fillWidth" onClick={this.saveNote}>
+                    <span className="en">Add Note</span>
+                    <span className="he">להוסיף הערה</span>                  
+                  </div>
+                  <div className="button white fillWidth" onClick={this.cancel}>
+                    <span className="en">Cancel</span>
+                    <span className="he">לְבַטֵל</span>    
+                  </div>
+
+                </div>
+              </div>
             </div>);
   }
 });

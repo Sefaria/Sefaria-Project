@@ -515,6 +515,12 @@ sjs.library = {
     }
     return notes;
   },
+  addPrivateNote: function(note) {
+    // Add a single private note to the cache of private notes.
+    var notes = this.privateNotes(note["anchorRef"]) || [];
+    notes.push(note);
+    this._saveItemsByRef(notes, this._privateNotes);
+  },
   _related: {},
   related: function(ref, callback) {
     // Single API to bundle links, sheets, and notes by ref.

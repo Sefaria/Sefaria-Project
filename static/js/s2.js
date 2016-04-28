@@ -3767,7 +3767,11 @@ var ConnectionsPanel = React.createClass({
         fullPanel: this.props.fullPanel,
         setConnectionsMode: this.props.setConnectionsMode });
     } else if (this.props.mode === "Add Note") {
-      content = React.createElement(LoadingMessage, { className: "toolsMessage", message: "Coming Soon." });
+      content = React.createElement(AddNotePanel, {
+        srefs: this.props.srefs,
+        fullPanel: this.props.fullPanel,
+        closePanel: this.props.closePanel,
+        setConnectionsMode: this.props.setConnectionsMode });
     } else if (this.props.mode === "My Notes") {
       content = React.createElement(MyNotesPanel, {
         srefs: this.props.srefs,
@@ -4768,6 +4772,150 @@ var ConfirmAddToSheetPanel = React.createClass({
           { className: "he" },
           "לדפ מקורות",
           React.createElement("i", { className: "fa fa-angle-left" })
+        )
+      )
+    );
+  }
+});
+
+var AddNotePanel = React.createClass({
+  displayName: "AddNotePanel",
+
+  propTypes: {
+    srefs: React.PropTypes.array.isRequired,
+    setConnectionsMode: React.PropTypes.func.isRequired,
+    closePanel: React.PropTypes.func.isRequired,
+    fullPanel: React.PropTypes.bool,
+    noteId: React.PropTypes.string,
+    noteText: React.PropTypes.string
+  },
+  getInitialState: function getInitialState() {
+    return {
+      isPrivate: true,
+      saving: false
+    };
+  },
+  componentDidMount: function componentDidMount() {
+    this.focusNoteText();
+  },
+  focusNoteText: function focusNoteText() {
+    $(ReactDOM.findDOMNode(this)).find(".noteText").focus();
+  },
+  saveNote: function saveNote() {
+    var note = {
+      text: $(ReactDOM.findDOMNode(this)).find(".noteText").val(),
+      refs: this.props.srefs,
+      anchorText: "",
+      type: "note",
+      title: "",
+      public: !this.state.isPrivate
+    };
+    var postData = { json: JSON.stringify(note) };
+    var url = this.props.noteId ? "/api/notes/" + this.props.noteId : "/api/notes/";
+    $.post(url, postData, function (data) {
+      if (data.error) {
+        sjs.alert.message(data.error);
+      } else if (data) {
+        sjs.library.addPrivateNote(data);
+        this.props.setConnectionsMode("My Notes");
+      } else {
+        sjs.alert.message("Sorry, there was a problem saving your note.");
+      }
+    }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
+      sjs.alert.message("Unfortunately, there was an error saving this note. Please try again or try reloading this page.");
+    });
+    this.setState({ saving: true });
+  },
+  setPrivate: function setPrivate() {
+    this.setState({ isPrivate: true });
+  },
+  setPublic: function setPublic() {
+    this.setState({ isPrivate: false });
+  },
+  cancel: function cancel() {
+    this.props.setConnectionsMode("Tools");
+  },
+  render: function render() {
+    var classes = classNames({ addNotePanel: 1, textList: 1, fullPanel: this.props.fullPanel });
+    var privateClasses = classNames({ notePrivateButton: 1, active: this.state.isPrivate });
+    var publicClasses = classNames({ notePublicButton: 1, active: !this.state.isPrivate });
+    return React.createElement(
+      "div",
+      { className: classes },
+      React.createElement(
+        "div",
+        { className: "texts" },
+        React.createElement(
+          "div",
+          { className: "contentInner" },
+          React.createElement(
+            "textarea",
+            { className: "noteText", placeholder: "Write a note..." },
+            this.props.noteText
+          ),
+          React.createElement(
+            "div",
+            { className: "noteSharingToggle" },
+            React.createElement(
+              "div",
+              { className: privateClasses, onClick: this.setPrivate },
+              React.createElement(
+                "span",
+                { className: "en" },
+                React.createElement("i", { className: "fa fa-lock" }),
+                " Private"
+              ),
+              React.createElement(
+                "span",
+                { className: "he" },
+                React.createElement("i", { className: "fa fa-lock" }),
+                " פְּרָטִי"
+              )
+            ),
+            React.createElement(
+              "div",
+              { className: publicClasses, onClick: this.setPublic },
+              React.createElement(
+                "span",
+                { className: "en" },
+                "Public"
+              ),
+              React.createElement(
+                "span",
+                { className: "he" },
+                "פּוּמְבֵּי"
+              )
+            )
+          ),
+          React.createElement("div", { className: "line" }),
+          React.createElement(
+            "div",
+            { className: "button fillWidth", onClick: this.saveNote },
+            React.createElement(
+              "span",
+              { className: "en" },
+              "Add Note"
+            ),
+            React.createElement(
+              "span",
+              { className: "he" },
+              "להוסיף הערה"
+            )
+          ),
+          React.createElement(
+            "div",
+            { className: "button white fillWidth", onClick: this.cancel },
+            React.createElement(
+              "span",
+              { className: "en" },
+              "Cancel"
+            ),
+            React.createElement(
+              "span",
+              { className: "he" },
+              "לְבַטֵל"
+            )
+          )
         )
       )
     );
