@@ -204,18 +204,19 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return getattr(self, "nodes", None) and self.nodes.has_children()
 
     def contents(self, v2=False, raw=False, **kwargs):
-        if not getattr(self, "nodes", None) or raw:  # Commentator
-            return super(Index, self).contents()
+        # leaving this here since it's not harmful, but there should not be any more records with no 'nodes'
+        if not getattr(self, "nodes", None) or raw:
+            return super(Index, self).contents() #returns the JSON in the db
         elif v2:
+            # adds a set of legacy fields like 'titleVariants', expands alt structures with preview, etc.
             return self.nodes.as_index_contents()
-        return self.legacy_form()
+        return self.legacy_form() # old index style, excludes 'schema'
 
     def legacy_form(self):
         """
         :return: Returns an Index object as a flat dictionary, in version one form.
         :raise: Exception if the Index cannot be expressed in the old form
         """
-        #//todo: mark for comemntary refactor? raises exception in actual old style index records
         if not self.nodes.is_flat():
             raise InputError("Index record {} can not be converted to legacy API form".format(self.title))
 
@@ -268,7 +269,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if self.nodes:
             return self.nodes.all_tree_titles(lang)
         else:
-            return None  # Handle commentary case differently?
+            return None
 
     '''         Alternate Title Structures          '''
     def set_alt_structure(self, name, struct_obj):
@@ -378,8 +379,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
             # Data is being loaded from dict in old format, rewrite to new format
             # Assumption is that d has a complete title collection
-            #//TODO: mark for commentary refactor
-            if "schema" not in d and d["categories"][0] != "Commentary":
+            if "schema" not in d:
                 node = getattr(self, "nodes", None)
                 if node:
                     node._init_titles()
@@ -449,36 +449,13 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if isinstance(getattr(self, "authors", None), basestring):
             self.authors = [self.authors]
 
-        #//TODO: mark for commentary refactor
-        if not self.is_commentary():
-            if not self.is_new():
-                for t in [self.title, self.nodes.primary_title("en"), self.nodes.key]:  # This sets a precedence order
-                    if t != self.pkeys_orig_values["title"]:  # One title changed, update all of them.
-                        self.title = t
-                        self.nodes.key = t
-                        self.nodes.add_title(t, "en", True, True)
-                        break
-
-        if getattr(self, "nodes", None) is None:
-            if not getattr(self, "titleVariants", None):
-                self.titleVariants = []
-
-            self.titleVariants = [v[0].upper() + v[1:] for v in self.titleVariants]
-            # Ensure primary title is listed among title variants
-            if self.title not in self.titleVariants:
-                self.titleVariants.append(self.title)
-            self.titleVariants = list(set([v for v in self.titleVariants if v]))
-
-        # Not sure how these string values are sneaking in here...
-        if getattr(self, "heTitleVariants", None) is not None and isinstance(self.heTitleVariants, basestring):
-            self.heTitleVariants = [self.heTitleVariants]
-
-        if getattr(self, "heTitle", None) is not None:
-            if getattr(self, "heTitleVariants", None) is None:
-                self.heTitleVariants = [self.heTitle]
-            elif self.heTitle not in self.heTitleVariants:
-                self.heTitleVariants.append(self.heTitle)
-            self.heTitleVariants = list(set([v for v in getattr(self, "heTitleVariants", []) if v]))
+        if not self.is_new():
+            for t in [self.title, self.nodes.primary_title("en"), self.nodes.key]:  # This sets a precedence order
+                if t != self.pkeys_orig_values["title"]:  # One title changed, update all of them.
+                    self.title = t
+                    self.nodes.key = t
+                    self.nodes.add_title(t, "en", True, True)
+                    break
 
     def _validate(self):
         assert super(Index, self)._validate()
@@ -486,10 +463,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         # Keys that should be non empty lists
         non_empty = ["categories"]
 
-        ''' No longer required for new format
-        if not self.is_commentary():
-            non_empty.append("sectionNames")
-        '''
         for key in non_empty:
             if not isinstance(getattr(self, key, None), list) or len(getattr(self, key, [])) == 0:
                 raise InputError(u"{} field must be a non empty list of strings.".format(key))
@@ -509,13 +482,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             if any((c in '.-') for c in cat):
                 raise InputError("Categories may not contain periods or hyphens.")
 
-        # Disallow special character in sectionNames
-        if getattr(self, "sectionNames", None):
-            for sec in self.sectionNames:
-                if any((c in '.-\\/') for c in sec):
-                    raise InputError("Text Structure names may not contain periods, hyphens or slashes.")
-
-        #New style records
+        #complex style records- all records should now conform to this
         if self.nodes:
             # Make sure that all primary titles match
             if self.title != self.nodes.primary_title("en") or self.title != self.nodes.key:
@@ -543,21 +510,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             for key, tree in self.get_alt_structures().items():
                 tree.validate()
 
-        else:  # old style commentator record
-            assert self.is_commentary(), "Saw old style index record that's not a commentary.  Panic!"
-            assert getattr(self, "titleVariants", None)
-            if not getattr(self, "heTitle", None):
-                raise InputError(u'Missing Hebrew title on {}.'.format(self.title))
-            if not getattr(self, "heTitleVariants", None):
-                raise InputError(u'Missing Hebrew title variants on {}.'.format(self.title))
-
-        # Make sure all title variants are unique
-        if getattr(self, "titleVariants", None):
-            for variant in self.titleVariants:
-                existing = Index().load({"$or": [{"titleVariants": variant}, {"title": variant}]})
-                if existing and not self.same_record(existing) and existing.title != self.pkeys_orig_values.get("title"):
-                    #if not getattr(self, "oldTitle", None) or existing.title != self.oldTitle:
-                    raise InputError(u'A text called "{}" already exists.'.format(variant))
+        else:  # old style commentator record are no longer supported
+            raise InputError(u'All new Index records must have a valid schema.')
 
         if getattr(self, "authors", None) and not isinstance(self.authors, list):
             raise InputError(u'{} authors must be a list.'.format(self.title))
@@ -587,17 +541,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         }
         if hasattr(self,"order"):
             toc_contents_dict["order"] = self.order[:]
-        if self.categories[0] == u"Commentary2":
-            toc_contents_dict["commentator"]   = self.categories[2]
-            toc_contents_dict["heCommentator"] = hebrew_term(self.categories[2])
-            on_split = self.get_title().split(" on ")
-            if len(on_split) == 2:
-                try:
-                    i = library.get_index(on_split[1])
-                    if getattr(i, "order", None):
-                        toc_contents_dict["order"] = i.order
-                except BookNameError:
-                    pass
+
+        #//TODO: can we do away with this special casing?
+        if getattr(self, 'dependence', None) == 'commentary':
+            toc_contents_dict["commentator"]   = self.work_title
+            toc_contents_dict["heCommentator"] = hebrew_term(self.work_title)
 
         return toc_contents_dict
 

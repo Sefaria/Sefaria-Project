@@ -156,6 +156,9 @@ class Term(abst.AbstractMongoRecord):
     def get_titles(self, lang=None):
         return self.title_group.all_titles(lang)
 
+    def get_primary_title(self, lang=None):
+        return self.title_group.primary_title(lang)
+
 
 class TermSet(abst.AbstractMongoSet):
     recordClass = Term
@@ -688,6 +691,10 @@ class NumberedTitledTreeNode(TitledTreeNode):
         for p in ["addressTypes", "sectionNames"]:
             if len(getattr(self, p)) != self.depth:
                 raise IndexSchemaError("Parameter {} in {} {} does not have depth {}".format(p, self.__class__.__name__, self.key, self.depth))
+
+        for sec in getattr(self, 'sectionNames', []):
+            if any((c in '.-\\/') for c in sec):
+                raise InputError("Text Structure names may not contain periods, hyphens or slashes.")
 
     def address_class(self, depth):
         return self._addressTypes[depth]

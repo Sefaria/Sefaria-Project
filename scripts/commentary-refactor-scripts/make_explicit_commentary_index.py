@@ -26,6 +26,27 @@ def make_explicit_commentary_index(title):
     }
 
     Index(new_idx).save()
+    if not Term().load({"name": idx.commentator}):
+        term = Term({"name": idx.commentator, 'scheme': 'commentary_works'})
+        titles = [
+            {
+                "lang": "en",
+                "text": idx.commentator,
+                "primary": True
+            },
+            {
+                "lang": "he",
+                "text": getattr(idx.c_index, "heTitle", None),
+                "primary": True
+            }
+        ]
+        for he_title_var in getattr(self.c_index, "heTitleVariants", []):
+            titles.append({"lang": "he", "text": he_title_var})
+        for en_title_var in getattr(self.c_index, "titleVariants", []):
+            titles.append({"lang": "en", "text": en_title_var})
+        term.set_titles(titles)
+        term.save()
+
     return idx.c_index.title
 
 def del_old_commentator(index):

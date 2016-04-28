@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from sefaria.model import *
+from sefaria.utils.hebrew import hebrew_term
+
 
 commentary2 = IndexSet({"categories.0": "Commentary2"})
 targums = IndexSet({"categories.1": "Targum"})
@@ -25,7 +27,6 @@ for trg in targums:
         trg.related_categories = [c for c in bidx.categories if c not in trg.categories]
     trg.save()
 
-
 for com2 in commentary2:
     print com2.title
     if ' on ' in com2.title:
@@ -48,6 +49,23 @@ for com2 in commentary2:
             other_categories += o_cats
         com2.related_categories = other_categories
     com2.save()
+
+    if not Term().load({"name": com2.work_title}):
+        term = Term({"name": com2.work_title, 'scheme': 'commentary_works'})
+        titles = [
+            {
+                "lang": "en",
+                "text": com2.work_title,
+                "primary": True
+            },
+            {
+                "lang": "he",
+                "text": hebrew_term(com2.work_title),
+                "primary": True
+            }
+        ]
+        term.set_titles(titles)
+        term.save()
 
 
 

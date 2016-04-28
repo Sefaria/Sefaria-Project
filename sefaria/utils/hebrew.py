@@ -528,11 +528,12 @@ def hebrew_term(s):
 
 	# If s is a text title, look for a stored Hebrew title
 	try:
-		from sefaria.model import library, IndexSet
+		from sefaria.model import library, IndexSet, Term
 		from sefaria.system.exceptions import BookNameError
 		i = library.get_index(s)
 		return i.get_title("he")
 	except BookNameError:
-		pass
-
-	return s
+		term = Term().load({'name': s})
+		if term:
+			return term.get_primary_title('he')
+	return ''
