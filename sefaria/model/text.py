@@ -1393,7 +1393,7 @@ class TextFamily(object):
 
         if oref.is_spanning():
             self.spanning = True
-
+        #// todo: should this parameter be renamed? it gets all links, not strictly commentary...
         if commentary:
             from sefaria.client.wrapper import get_links
             if not oref.is_spanning():
@@ -1490,10 +1490,13 @@ class TextFamily(object):
             d[attr] = getattr(self._original_oref, attr)
         for attr in ["sections", "toSections"]:
             d[attr] = getattr(self._original_oref, attr)[:]
-        if self._context_oref.is_commentary():
-            #//TODO: mark for commentary refactor
-            for attr in ["commentaryBook", "commentaryCategories", "commentator", "heCommentator"]:
-                d[attr] = getattr(self._inode.index, attr, "")
+
+        if self._context_oref._inode.index.is_dependant_text():
+            d["commentaryBook"] = getattr(self._inode.index, 'base_text_titles', "")
+            d["commentaryCategories"] = getattr(self._inode.index, 'related_categories', "")
+            d["commentator"] = getattr(self._inode.index, 'work_title', "")
+            d["heCommentator"] = hebrew_term(getattr(self._inode.index, work_title, ""))
+
         d["isComplex"]    = self.isComplex
         d["indexTitle"]   = self._inode.index.title
         d["heIndexTitle"] = self._inode.index.get_title("he")
@@ -1529,8 +1532,8 @@ class TextFamily(object):
                 d["heBook"] = d["heTitle"]
                 d["heTitle"] = self._context_oref.he_normal()
             #//mark for comemntary refactor?
-            if d["type"] == "Commentary" and self._context_oref.is_talmud() and len(d["sections"]) > 1:
-                d["title"] = "%s Line %d" % (d["title"], d["sections"][1])
+            """if d["type"] == "Commentary" and self._context_oref.is_talmud() and len(d["sections"]) > 1:
+                d["title"] = "%s Line %d" % (d["title"], d["sections"][1])"""
 
         elif self._context_oref.is_commentary():
             dep = len(d["sections"]) if len(d["sections"]) < 2 else 2
@@ -1798,18 +1801,7 @@ class Ref(object):
                     raise InputError(u"Please specify a text that {} comments on.".format(self.index.title))
 
         else:  # This may be a new version, try to build a schema node.
-            match = library.all_titles_regex(self._lang, commentary=True).match(base)
-            if match:
-                #//mark for commentary refactor
-                title = match.group('title')
-                on_node = library.get_schema_node(match.group('commentee'))  # May be SchemaNode or JaggedArrayNode
-                self.index = library.get_index(match.group('commentor') + " on " + on_node.index.title)
-                self.index_node = self.index.nodes.title_dict(self._lang).get(title)
-                self.book = self.index_node.full_title("en")
-                if not self.index_node:
-                    raise BookNameError(u"Can not find index record for {}".format(title))
-            else:
-                raise InputError(u"Unrecognized Index record: {}".format(base))
+            raise InputError(u"Unrecognized Index record: {}".format(base))
 
         if title is None:
             raise InputError(u"Could not find title in reference: {}".format(self.tref))
@@ -1857,7 +1849,7 @@ class Ref(object):
 
         # Look for alternate structure
         # todo: handle commentator on alt structure
-        if not self.sections and not self.index.is_commentary():
+        if not self.sections:
             alt_struct_regex = self.index.alt_titles_regex(self._lang)
             if alt_struct_regex:
                 match = alt_struct_regex.match(base)
