@@ -1,10 +1,6 @@
 "use strict";
 
-var _propTypes;
-
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 var sjs = sjs || {};
 
@@ -329,6 +325,7 @@ var ReaderApp = React.createClass({
       refs: state.refs || [], // array of ref strings
       mode: state.mode, // "Text", "TextAndConnections", "Connections"
       filter: state.filter || [],
+      connectionsMode: state.connectionsMode || "Tools",
       version: state.version || null,
       versionLanguage: state.versionLanguage || null,
       highlightedRefs: state.highlightedRefs || [],
@@ -338,7 +335,6 @@ var ReaderApp = React.createClass({
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag: state.sheetsTag || null,
       searchQuery: state.searchQuery || null,
-      connectionsMode: "Connections",
       displaySettingsOpen: false
     };
     if (this.state && panel.refs.length && !panel.version) {
@@ -375,8 +371,8 @@ var ReaderApp = React.createClass({
   handleSegmentClick: function handleSegmentClick(n, ref) {
     // Handle a click on a text segment `ref` in from panel in position `n`
     // Update or add panel after this one to be a TextList
-    this.openTextListAt(n + 1, [ref]);
     this.setTextListHighlight(n, [ref]);
+    this.openTextListAt(n + 1, [ref]);
   },
   handleCitationClick: function handleCitationClick(n, citationRef, textRef) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
@@ -407,6 +403,7 @@ var ReaderApp = React.createClass({
     this.setState({ panels: this.state.panels });
   },
   selectVersion: function selectVersion(n, versionName, versionLanguage) {
+    // Set the version for panel `n`.
     var panel = this.state.panels[n];
     if (versionName && versionLanguage) {
       panel.version = versionName;
@@ -456,36 +453,44 @@ var ReaderApp = React.createClass({
     // `refs` is an array of ref strings
     var panel = this.state.panels[n] || {};
     if (panel.mode === "Connections") {
+      // what does "a new text" mean here?
+      // Pretty sure this can be deleted -- was from a previous case where you could navigate in an individual panel.
+      /*
+      // If this is a new text reset the filter, otherwise keep the current filter
       var oref1 = parseRef(panel.refs.slice(-1)[0]);
       var oref2 = parseRef(refs.slice(-1)[0]);
-      // If this is a new text reset the filter, otherwise keep the current filter
-      panel.filter = oref1.book === oref2.book ? panel.filter : [];
+      panel.filter = oref1.book === oref2.book ? panel.filter : [];      
+      */
     } else {
-      this.state.panels.splice(n, 0, {});
-      panel = this.state.panels[n];
-      panel.filter = [];
-    }
+        // No connctions panel is open yet, splice in a new one
+        this.state.panels.splice(n, 0, {});
+        panel = this.state.panels[n];
+        panel.filter = [];
+      }
 
     panel.refs = refs;
     panel.menuOpen = null;
-    panel.mode = "Connections";
+    panel.mode = panel.mode || "Connections";
     this.state.panels[n] = this.makePanelState(panel);
     this.setState({ panels: this.state.panels });
   },
   setTextListHighlight: function setTextListHighlight(n, refs) {
     // Set the textListHighlight for panel `n` to `refs`
-    // If a connections panel is opened after n, update its refs as well.
+    console.log("setTextListHighlight");
     refs = typeof refs === "string" ? [refs] : refs;
     this.state.panels[n].highlightedRefs = refs;
     this.setState({ panels: this.state.panels });
 
-    var next = this.state.panels[n + 1];
+    /*   
+    // If a connections panel is opened after n, update its refs as well.
+    var next = this.state.panels[n+1];
     if (next && next.mode === "Connections" && !next.menuOpen) {
-      this.openTextListAt(n + 1, refs);
+      this.openTextListAt(n+1, refs);
     }
-    return;
+    */
   },
   closePanel: function closePanel(n) {
+    // Removes the panel in position `n`, as well as connections panel in position `n+1` if it exists.
     this.saveRecentlyViewed(this.state.panels[n], n);
     if (this.state.panels.length == 1 && n == 0) {
       this.state.panels = [];
@@ -649,7 +654,6 @@ var Header = React.createClass({
       this.setState(nextProps.initialState);
     }
   },
-  componentDidUpdate: function componentDidUpdate(prevProps, prevState) {},
   initAutocomplete: function initAutocomplete() {
     $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete({
       position: { my: "left-12 top+14", at: "left bottom" },
@@ -836,6 +840,7 @@ var ReaderPanel = React.createClass({
   propTypes: {
     initialRefs: React.PropTypes.array,
     initialMode: React.PropTypes.string,
+    initialConnectionsMode: React.PropTypes.string,
     initialVersion: React.PropTypes.string,
     initialVersionLanguage: React.PropTypes.string,
     initialFilter: React.PropTypes.array,
@@ -873,6 +878,7 @@ var ReaderPanel = React.createClass({
     return {
       refs: this.props.initialRefs || [], // array of ref strings
       mode: this.props.initialMode, // "Text", "TextAndConnections", "Connections"
+      connectionsMode: this.props.initialConnectionsMode,
       filter: this.props.initialFilter || [],
       version: this.props.initialVersion,
       versionLanguage: this.props.initialVersionLanguage,
@@ -890,7 +896,6 @@ var ReaderPanel = React.createClass({
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag: this.props.initialSheetsTag || null,
       searchQuery: this.props.initialQuery || null,
-      connectionsMode: "Connections",
       displaySettingsOpen: false
     };
   },
@@ -923,7 +928,6 @@ var ReaderPanel = React.createClass({
       });
     }
   },
-  componentWillUpdate: function componentWillUpdate(nextProps, nextState) {},
   componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
     this.setHeadroom();
     if (prevState.refs.compare(this.state.refs)) {
@@ -949,7 +953,6 @@ var ReaderPanel = React.createClass({
       this.closeConnectionsInPanel();
     } else if (this.state.mode === "Text") {
       if (this.props.multiPanel) {
-        this.setTextListHightlight(ref);
         this.props.onSegmentClick(ref);
       } else {
         this.openConnectionsInPanel(ref);
@@ -1120,6 +1123,8 @@ var ReaderPanel = React.createClass({
     if (mode === "Connections") {
       state["filter"] = [];
     }
+    console.log("setConnectionsMode");
+    console.log(state);
     this.conditionalSetState(state);
   },
   setWidth: function setWidth() {
@@ -1220,7 +1225,7 @@ var ReaderPanel = React.createClass({
         multiPanel: this.props.multiPanel,
         setFilter: this.setFilter,
         setConnectionsMode: this.setConnectionsMode,
-        cloneConectionsInPanel: this.closeConnectionsInPanel,
+        closeConectionsInPanel: this.closeConnectionsInPanel,
         openNav: this.openMenu.bind(null, "navigation"),
         openDisplaySettings: this.openDisplaySettings,
         onTextClick: this.handleTextListClick,
@@ -4165,13 +4170,14 @@ var TextList = React.createClass({
 var Note = React.createClass({
   displayName: "Note",
 
-  propTypes: (_propTypes = {
+  propTypes: {
     title: React.PropTypes.string.isRequired,
     text: React.PropTypes.string.isRequired,
-    ownerName: React.PropTypes.string.isRequired,
-    ownerImageUrl: React.PropTypes.string.isRequired,
-    ownerProfileUrl: React.PropTypes.string.isRequired
-  }, _defineProperty(_propTypes, "text", React.PropTypes.string.isRequired), _defineProperty(_propTypes, "isPrivate", React.PropTypes.bool), _propTypes),
+    ownerName: React.PropTypes.string,
+    ownerImageUrl: React.PropTypes.string,
+    ownerProfileUrl: React.PropTypes.string,
+    isPrivate: React.PropTypes.bool
+  },
   render: function render() {
     var authorInfo = this.props.isPrivate ? null : React.createElement(
       "div",
@@ -4794,20 +4800,15 @@ var MyNotesPanel = React.createClass({
         title: note.title,
         text: note.text,
         isPrivate: true });
-    }) : React.createElement(LoadingMessage, null);
+    }) : [React.createElement(LoadingMessage, null)];
 
-    mayNotes = myNotes.length ? myNotes : React.createElement(
-      "div",
-      null,
-      React.createElement(
-        "div",
-        null,
-        "You don't have any note here."
-      ),
-      React.createElement(ToolsButton, { en: "Add Note", he: "Add Note", icon: "pencil", onClick: function () {
-          this.props.setConnectionsMode("Add Note");
-        }.bind(this) })
-    );
+    myNotes.push(React.createElement(ToolsButton, {
+      en: "Add Note",
+      he: "Add Note",
+      icon: "pencil",
+      onClick: function () {
+        this.props.setConnectionsMode("Add Note");
+      }.bind(this) }));
 
     var classes = classNames({ myNotesPanel: 1, textList: 1, fullPanel: this.props.fullPanel });
     return React.createElement(

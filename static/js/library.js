@@ -486,6 +486,8 @@ sjs.library = {
   },
   _privateNotes: {},
   privateNotes: function(ref, callback) {
+    console.log("Private Noate");
+    console.log(ref);
     var notes = null;
     if (typeof ref == "string") {
       if (ref in this._privateNotes) { 
