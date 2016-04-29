@@ -485,41 +485,73 @@ sjs.library = {
     this._saveItemsByRef(data, this._notes);
   },
   _privateNotes: {},
-  privateNotes: function(ref, callback) {
-    console.log("Private Noate");
-    console.log(ref);
+  privateNotes: function(refs, callback) {
+    // Returns an array of private notes for `refs` (a string or array or strings) or `null` if notes have not yet been loaded.
+    console.log("privateNotes")
+    console.log(refs)
     var notes = null;
-    if (typeof ref == "string") {
-      if (ref in this._privateNotes) { 
-        notes = this._privateNotes[ref];
+    if (typeof refs == "string") {
+      if (refs in this._privateNotes) { 
+        notes = this._privateNotes[refs];
       }
+      refs = [refs] // Stanfardize type to simplify processing below
     } else {
-      var notes = [];
-      ref.map(function(r) {
-        var newNotes = sjs.library.privateNotes(r);
-        notes = newNotes ? notes.concat(newNotes) : notes;
+      var notesByRef = refs.map(function(ref) {
+        return sjs.library._privateNotes[ref];
       });
+      console.log("notesByRef");
+      console.log(notesByRef);
+      if (notesByRef.some(function(e) { return !e })) {
+        // If any ref in `refs` returned `null`, treat the whole thing as not yet loaded, call the API.
+        notes = null;
+      } else {
+        notes = [];
+        notesByRef.map(function(n) { notes = notes.concat(n); });
+      }
     }
+
     if (notes) {
       if (callback) { callback(notes); }
     } else {
+      var aggregateCallback = function() {
+        // Check if all refs have loaded, call callback if so
+       if (sjs.library.privateNotesLoaded(refs) && callback) {
+        callback(sjs.library.privateNotes(refs));
+       }      
+      };
+      refs.map(function(ref) {
+       if (ref in sjs.library._privateNotes) { return; } // Only make API calls for unloaded refs
        var url = "/api/notes/" + normRef(ref) + "?private=1";
        this._api(url, function(data) {
           if ("error" in data) { 
             // sjs.alert.message(data.error);
             return;
           }
+          console.log("saving private notes")
           this._saveItemsByRef(data, this._privateNotes);
-          if (callback) { callback(data); }
+          aggregateCallback(data);
         }.bind(this));
+      }.bind(this));
     }
     return notes;
+  },
+  privateNotesLoaded: function(refs) {
+    // Returns true if private notes have been loaded for every ref in `refs.
+    refs.map(function(ref) {
+      if (!(ref in sjs.library._privateNotes)) {
+        return false;
+      }
+    });
+    return true;
   },
   addPrivateNote: function(note) {
     // Add a single private note to the cache of private notes.
     var notes = this.privateNotes(note["anchorRef"]) || [];
     notes.push(note);
     this._saveItemsByRef(notes, this._privateNotes);
+  },
+  clearPrivateNotes: function() {
+    this._privateNotes = {};
   },
   _related: {},
   related: function(ref, callback) {

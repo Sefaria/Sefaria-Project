@@ -476,7 +476,6 @@ var ReaderApp = React.createClass({
   },
   setTextListHighlight: function setTextListHighlight(n, refs) {
     // Set the textListHighlight for panel `n` to `refs`
-    console.log("setTextListHighlight");
     refs = typeof refs === "string" ? [refs] : refs;
     this.state.panels[n].highlightedRefs = refs;
     this.setState({ panels: this.state.panels });
@@ -1123,9 +1122,13 @@ var ReaderPanel = React.createClass({
     if (mode === "Connections") {
       state["filter"] = [];
     }
-    console.log("setConnectionsMode");
-    console.log(state);
     this.conditionalSetState(state);
+  },
+  editNote: function editNote(note) {
+    this.conditionalSetState({
+      connectionsMode: "Edit Note",
+      noteBeingEdited: note
+    });
   },
   setWidth: function setWidth() {
     this.width = $(ReactDOM.findDOMNode(this)).width();
@@ -1228,6 +1231,8 @@ var ReaderPanel = React.createClass({
         closeConectionsInPanel: this.closeConnectionsInPanel,
         openNav: this.openMenu.bind(null, "navigation"),
         openDisplaySettings: this.openDisplaySettings,
+        editNote: this.editNote,
+        noteBeingEdited: this.state.noteBeingEdited,
         onTextClick: this.handleTextListClick,
         onCitationClick: this.handleCitationClick,
         onNavigationClick: this.props.onNavigationClick,
@@ -3054,7 +3059,7 @@ var TextColumn = React.createClass({
   },
   adjustInfiniteScroll: function adjustInfiniteScroll() {
     // Add or remove TextRanges from the top or bottom, depending on scroll position
-    console.log("ais");
+    //console.log("ais");
     if (!this.isMounted()) {
       return;
     }
@@ -3702,9 +3707,11 @@ var ConnectionsPanel = React.createClass({
     srefs: React.PropTypes.array.isRequired, // an array of ref strings
     filter: React.PropTypes.array.isRequired,
     recentFilters: React.PropTypes.array.isRequired,
-    mode: React.PropTypes.string.isRequired, // "Connections", "Tools"
+    mode: React.PropTypes.string.isRequired, // "Connections", "Tools", etc. called `connectionsMode` above
     setFilter: React.PropTypes.func.isRequired,
     setConnectionsMode: React.PropTypes.func.isRequired,
+    editNote: React.PropTypes.func.isRequired,
+    noteBeingEdited: React.PropTypes.object,
     fullPanel: React.PropTypes.bool,
     multiPanel: React.PropTypes.bool,
     onTextClick: React.PropTypes.func,
@@ -3716,7 +3723,6 @@ var ConnectionsPanel = React.createClass({
     openDisplaySettings: React.PropTypes.func,
     closePanel: React.PropTypes.func,
     toggleLanguage: React.PropTypes.func
-
   },
   render: function render() {
     var content = null;
@@ -3772,12 +3778,23 @@ var ConnectionsPanel = React.createClass({
         fullPanel: this.props.fullPanel,
         closePanel: this.props.closePanel,
         setConnectionsMode: this.props.setConnectionsMode });
+    } else if (this.props.mode === "Edit Note") {
+      content = React.createElement(AddNotePanel, {
+        srefs: this.props.srefs,
+        noteId: this.props.noteBeingEdited._id,
+        noteText: this.props.noteBeingEdited.text,
+        noteTitle: this.props.noteBeingEdited.title,
+        noteIsPublic: this.props.noteBeingEdited.isPublic,
+        fullPanel: this.props.fullPanel,
+        closePanel: this.props.closePanel,
+        setConnectionsMode: this.props.setConnectionsMode });
     } else if (this.props.mode === "My Notes") {
       content = React.createElement(MyNotesPanel, {
         srefs: this.props.srefs,
         fullPanel: this.props.fullPanel,
         closePanel: this.props.closePanel,
-        setConnectionsMode: this.props.setConnectionsMode });
+        setConnectionsMode: this.props.setConnectionsMode,
+        editNote: this.props.editNote });
     } else if (this.props.mode === "Add Connection") {
       content = React.createElement(LoadingMessage, { className: "toolsMessage", message: "Coming Soon." });
     } else if (this.props.mode === "Edit Text") {
@@ -4180,9 +4197,11 @@ var Note = React.createClass({
     ownerName: React.PropTypes.string,
     ownerImageUrl: React.PropTypes.string,
     ownerProfileUrl: React.PropTypes.string,
-    isPrivate: React.PropTypes.bool
+    isPrivate: React.PropTypes.bool,
+    editNote: React.PropTypes.func
   },
   render: function render() {
+
     var authorInfo = this.props.isPrivate ? null : React.createElement(
       "div",
       { className: "noteAuthorInfo" },
@@ -4198,7 +4217,12 @@ var Note = React.createClass({
       )
     );
 
-    var buttons = this.props.isPrivate ? null : null;
+    var buttons = this.props.isPrivate ? React.createElement(
+      "div",
+      { className: "noteButtons" },
+      React.createElement("i", { className: "fa fa-pencil", onClick: this.props.editNote }),
+      this.props.isPrivate ? null : React.createElement("i", { className: "fa fa-unlock-alt" })
+    ) : null;
 
     return React.createElement(
       "div",
@@ -4787,11 +4811,13 @@ var AddNotePanel = React.createClass({
     closePanel: React.PropTypes.func.isRequired,
     fullPanel: React.PropTypes.bool,
     noteId: React.PropTypes.string,
-    noteText: React.PropTypes.string
+    noteText: React.PropTypes.string,
+    noteTitle: React.PropTypes.string,
+    noteIsPublic: React.PropTypes.bool
   },
   getInitialState: function getInitialState() {
     return {
-      isPrivate: true,
+      isPrivate: !this.props.noteIsPublic,
       saving: false
     };
   },
@@ -4816,7 +4842,11 @@ var AddNotePanel = React.createClass({
       if (data.error) {
         sjs.alert.message(data.error);
       } else if (data) {
-        sjs.library.addPrivateNote(data);
+        if (this.props.noteId) {
+          sjs.library.clearPrivateNotes(data);
+        } else {
+          sjs.library.addPrivateNote(data);
+        }
         this.props.setConnectionsMode("My Notes");
       } else {
         sjs.alert.message("Sorry, there was a problem saving your note.");
@@ -4835,6 +4865,21 @@ var AddNotePanel = React.createClass({
   cancel: function cancel() {
     this.props.setConnectionsMode("Tools");
   },
+  deleteNote: function deleteNote() {
+    var url = "/api/notes/" + this.props.noteId;
+    $.ajax({
+      type: "delete",
+      url: url,
+      success: function () {
+        sjs.alert.message("Source deleted.");
+        sjs.library.clearPrivateNotes();
+        this.props.setConnectionsMode("My Notes");
+      }.bind(this),
+      error: function error() {
+        sjs.alert.message("Something went wrong (that's all I know).");
+      }
+    });
+  },
   render: function render() {
     var classes = classNames({ addNotePanel: 1, textList: 1, fullPanel: this.props.fullPanel });
     var privateClasses = classNames({ notePrivateButton: 1, active: this.state.isPrivate });
@@ -4848,11 +4893,7 @@ var AddNotePanel = React.createClass({
         React.createElement(
           "div",
           { className: "contentInner" },
-          React.createElement(
-            "textarea",
-            { className: "noteText", placeholder: "Write a note..." },
-            this.props.noteText
-          ),
+          React.createElement("textarea", { className: "noteText", placeholder: "Write a note...", defaultValue: this.props.noteText }),
           React.createElement(
             "div",
             { className: "noteSharingToggle" },
@@ -4894,12 +4935,12 @@ var AddNotePanel = React.createClass({
             React.createElement(
               "span",
               { className: "en" },
-              "Add Note"
+              this.props.noteId ? "Save" : "Add Note"
             ),
             React.createElement(
               "span",
               { className: "he" },
-              "להוסיף הערה"
+              this.props.noteId ? "להציל" : "להוסיף הערה"
             )
           ),
           React.createElement(
@@ -4915,7 +4956,21 @@ var AddNotePanel = React.createClass({
               { className: "he" },
               "לְבַטֵל"
             )
-          )
+          ),
+          this.props.noteId ? React.createElement(
+            "div",
+            { className: "deleteNote", onClick: this.deleteNote },
+            React.createElement(
+              "span",
+              { className: "en" },
+              "Delete Note"
+            ),
+            React.createElement(
+              "span",
+              { className: "he" },
+              "מחק הערה"
+            )
+          ) : null
         )
       )
     );
@@ -4929,6 +4984,7 @@ var MyNotesPanel = React.createClass({
     srefs: React.PropTypes.array.isRequired,
     setConnectionsMode: React.PropTypes.func.isRequired,
     closePanel: React.PropTypes.func.isRequired,
+    editNote: React.PropTypes.func.isRequired,
     fullPanel: React.PropTypes.bool
   },
   componentDidMount: function componentDidMount() {
@@ -4939,24 +4995,24 @@ var MyNotesPanel = React.createClass({
     sjs.library.privateNotes(this.props.srefs, this.rerender);
   },
   rerender: function rerender() {
+    console.log("RErender mynotespanel");
     this.forceUpdate();
   },
   render: function render() {
     var myNotesData = sjs.library.privateNotes(this.props.srefs);
+    console.log("rendering mnp");
+    console.log(myNotesData);
     var myNotes = myNotesData ? myNotesData.map(function (note) {
+      var editNote = function () {
+        this.props.editNote(note);
+      }.bind(this);
       return React.createElement(Note, {
         title: note.title,
         text: note.text,
-        isPrivate: true });
-    }) : [React.createElement(LoadingMessage, null)];
-
-    myNotes.push(React.createElement(ToolsButton, {
-      en: "Add Note",
-      he: "Add Note",
-      icon: "pencil",
-      onClick: function () {
-        this.props.setConnectionsMode("Add Note");
-      }.bind(this) }));
+        isPrivate: !note.public,
+        editNote: editNote,
+        key: note._id });
+    }.bind(this)) : [React.createElement(LoadingMessage, null)];
 
     var classes = classNames({ myNotesPanel: 1, textList: 1, fullPanel: this.props.fullPanel });
     return React.createElement(
@@ -4968,7 +5024,14 @@ var MyNotesPanel = React.createClass({
         React.createElement(
           "div",
           { className: "contentInner" },
-          myNotes
+          myNotes,
+          React.createElement(ToolsButton, {
+            en: "Add Note",
+            he: "להוסיף הערה",
+            icon: "pencil",
+            onClick: function () {
+              this.props.setConnectionsMode("Add Note");
+            }.bind(this) })
         )
       )
     );
