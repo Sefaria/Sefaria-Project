@@ -1805,16 +1805,9 @@ class Ref(object):
                         self.index_node = old_index_node
                         self.sections = []
 
-            # Don't accept references like "Rashi" (Can delete in commentary refactor)
-            #//mark for commentary refactor
-            elif self.index.is_commentary() and self._lang == "en":
-                if not getattr(self.index, "commentaryBook", None):
-                    raise InputError(u"Please specify a text that {} comments on.".format(self.index.title))
+            # Don't accept references like "Rashi" (deleted in commentary refactor)
 
         else:  # This may be a new version, try to build a schema node.
-            raise InputError(u"Unrecognized Index record: {}".format(base))
-
-        if title is None:
             raise InputError(u"Could not find title in reference: {}".format(self.tref))
 
         self.type = self.index_node.index.categories[0]

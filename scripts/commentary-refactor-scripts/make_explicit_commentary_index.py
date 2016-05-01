@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from sefaria.model import *
+from sefaria.model import Index, IndexSet, VersionSet, Term
 from sefaria.system.database import db
+import re
 
 
 
 def make_explicit_commentary_index(title):
     pattern = r'(?P<commentor>.*) on (?P<book>.*)'
-    m = regex.match(pattern, title)
+    m = re.match(pattern, title)
     if m:
         idx = CommentaryIndex(m.group('commentor'), m.group('book'))
     else:
