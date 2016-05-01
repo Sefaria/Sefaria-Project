@@ -422,7 +422,8 @@ var ReaderApp = React.createClass({
       }
     }
   },
-  handleNavigationClick: function(ref, version, versionLanguage) {
+  handleNavigationClick: function(ref, version, versionLanguage, options) {
+    //todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
     this.saveOpenPanelsToRecentlyViewed();
     this.setState({
       panels: [this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"})],
@@ -714,6 +715,7 @@ var ReaderApp = React.createClass({
                       onSegmentClick={onSegmentClick}
                       onCitationClick={onCitationClick}
                       onTextListClick={onTextListClick}
+                      onSearchResultClick={this.handleNavigationClick}
                       onNavigationClick={this.handleNavigationClick}
                       onRecentClick={this.handleRecentClick}
                       onOpenConnectionsClick={onOpenConnectionsClick}
@@ -1366,7 +1368,7 @@ var ReaderPanel = React.createClass({
                     initialPage={1}
                     appliedFilters={this.state.appliedSearchFilters}
                     settings={clone(this.state.settings)}
-                    onResultClick={this.props.onSearchResultClick || this.showBaseText}
+                    onResultClick={this.props.onSearchResultClick}
                     openDisplaySettings={this.openDisplaySettings}
                     toggleLanguage={this.toggleLanguage}
                     close={this.closeMenus}
@@ -4739,7 +4741,8 @@ var SearchTextResult = React.createClass({
     handleResultClick: function(event) {
         if(this.props.onResultClick) {
             event.preventDefault();
-            this.props.onResultClick(this.props.data._source.ref);
+            var s = this.props.data._source;
+            this.props.onResultClick(s.ref, s.version, s.lang, {"highlight": this.props.query}); //highlight not yet handled, above in ReaderApp.handleNavigationClick()
         }
     },
     render: function () {
