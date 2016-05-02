@@ -153,8 +153,8 @@ class WorkflowyParser(object):
         return None
 
     def parse_implied_depth(self, element):
-        ja_depth_pattern = ur"\[(\d)\]"
-        ja_sections_pattern = ur"\[(.*)\]"
+        ja_depth_pattern = ur"\[(\d)\]$"
+        ja_sections_pattern = ur"\[(.*)\]$"
         title_str = element.get('text')
 
         depth_match = re.search(ja_depth_pattern, title_str)
