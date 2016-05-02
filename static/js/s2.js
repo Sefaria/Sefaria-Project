@@ -325,11 +325,11 @@ var ReaderApp = React.createClass({
       refs: state.refs || [], // array of ref strings
       mode: state.mode, // "Text", "TextAndConnections", "Connections"
       filter: state.filter || [],
-      connectionsMode: state.connectionsMode || "Tools",
+      connectionsMode: state.connectionsMode || "Connections",
       version: state.version || null,
       versionLanguage: state.versionLanguage || null,
       highlightedRefs: state.highlightedRefs || [],
-      recentFilters: [],
+      recentFilters: state.filter || [],
       settings: state.settings ? clone(state.settings) : clone(this.state.defaultPanelSettings),
       menuOpen: state.menuOpen || null, // "navigation", "text toc", "display", "search", "sheets", "home"
       navigationCategories: state.navigationCategories || [],

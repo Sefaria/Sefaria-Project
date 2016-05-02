@@ -1770,6 +1770,10 @@ display: block;margin: 0 auto;}
   text-overflow: ellipsis;
   vertical-align: middle;
 }
+.textList.fullPanel .topFiltersInner {
+  max-width: none;
+  white-space: normal;
+}
 .showMoreFilters {
   vertical-align: middle;
   float: right;
