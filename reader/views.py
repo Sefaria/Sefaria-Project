@@ -180,7 +180,6 @@ def switch_to_s2(request):
     return response
 
 
-
 def s2(request, ref, version=None, lang=None):
     """
     New interfaces in development
@@ -257,8 +256,7 @@ def s2(request, ref, version=None, lang=None):
         panels += [panel]
 
     return render_to_response('s2.html', {
-            "panels": json.dumps(panels),
-            "query": request.GET.get("q")
+            "panels": json.dumps(panels)
         }, RequestContext(request))
 
 
@@ -280,6 +278,16 @@ def s2_texts_category(request, cats):
                                 }, RequestContext(request))
 
 
+def s2_search(request):
+    search_filters = request.GET.get("filters").split("|") if request.GET.get("filters") else []
+
+    return render_to_response('s2.html', {
+            "initialMenu": "search",
+            "query": request.GET.get("q") or "",
+            "searchFilters": json.dumps(search_filters)
+        }, RequestContext(request))
+
+
 def s2_page(request, page):
     """
     View into an S2 page
@@ -291,10 +299,6 @@ def s2_page(request, page):
 
 def s2_home(request):
     return s2_page(request, "home")
-
-
-def s2_search(request):
-    return s2_page(request, "search")
 
 
 def s2_texts(request):
@@ -795,7 +799,7 @@ def texts_category_list(request, cats):
 @ensure_csrf_cookie
 def search(request):
     if request.flavour == "mobile" or request.COOKIES.get('s2'):
-        return s2_page(request, "search")
+        return s2_search(request)
     return render_to_response('search.html',
                              {},
                              RequestContext(request))
@@ -846,6 +850,10 @@ def texts_api(request, tref, lang=None, version=None):
         except AttributeError as e:
             oref = oref.default_child_ref()
             text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
+        except NoVersionFoundError as e:
+            # Extended data is used by S2 in TextList.preloadAllCommentaryText()
+            return jsonResponse({"error": unicode(e), "ref": oref.normal(), "versionTitle": version, "lang": lang, "commentator": getattr(oref.index, "commentator", "")})
+
 
         # Use a padded ref for calculating next and prev
         # TODO: what if pad is false and the ref is of an entire book?

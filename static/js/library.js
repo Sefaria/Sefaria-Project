@@ -17,10 +17,10 @@ sjs.library = {
     };
     var key = this._textKey(ref, settings);
     if (!cb) {
-      return this._getOrBuildTextData(key);
+      return this._getOrBuildTextData(key, ref, settings);
     }          
     if (key in this._texts) {
-      var data = this._getOrBuildTextData(key);
+      var data = this._getOrBuildTextData(key, ref, settings);
       cb(data);
       return data;
     }
@@ -63,12 +63,12 @@ sjs.library = {
     }
     return key;
   },
-  _getOrBuildTextData: function(key) {
+  _getOrBuildTextData: function(key, ref, settings) {
     var cached = this._texts[key];
     if (!cached || !cached.buildable) { return cached; }
     if (cached.buildable === "Add Context") {
-      var segmentData = clone(this.text(cached.ref));
-      var contextData = this.text(cached.sectionRef) || this.text(cached.sectionRef, {context: 1});
+      var segmentData = clone(this.text(cached.ref, $.extend(settings, {context: 0})));
+      var contextData = this.text(cached.sectionRef, $.extend(settings, {context: 0})) || this.text(cached.sectionRef, $.extend(settings, {context: 1}));
       segmentData.text = contextData.text;
       segmentData.he   = contextData.he;
       return segmentData;
@@ -383,7 +383,7 @@ sjs.library = {
         category.books[link.commentator] = {count: 1};
       }
     }
-    // Add Zero counts for every commentator in this section not alredy in list
+    // Add Zero counts for every commentator in this section not already in list
     var baseRef    = typeof ref == "string" ? ref : ref[0]; // TODO handle refs spanning sections
     var oRef       = sjs.library.ref(baseRef);
     var sectionRef = oRef ? oRef.sectionRef : baseRef;
@@ -418,7 +418,7 @@ sjs.library = {
         var topByCategory = {
           "Tanach": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
           "Talmud": ["Rashi", "Tosafot"]
-        }
+        };
         var cat = oRef ? oRef["categories"][0] : null;
         var top = topByCategory[cat] || [];
         var aTop = top.indexOf(a.book);
@@ -987,7 +987,7 @@ sjs.library = {
                       }
                   }
               };
-          } else if (!applied_filters) {
+          } else if (!applied_filters || applied_filters.length == 0) {
               o['query'] = core_query;
           } else {
               //Filtered query.  Add clauses.  Don't re-request potential filters.
@@ -1009,6 +1009,13 @@ sjs.library = {
               };
           }
           return o;
+      },
+
+      //FilterTree object - for category filters
+      FilterNode: function() {
+        this.children = [];
+        this.parent = null;
+        this.selected = 0; //0 - not selected, 1 - selected, 2 - partially selected
       }
   },
   _apiCallbacks: {},
@@ -1027,6 +1034,124 @@ sjs.library = {
       }.bind(this));
     }
   }
+};
+
+
+sjs.library.search.FilterNode.prototype = {
+    append : function(child) {
+        this.children.push(child);
+        child.parent = this;
+    },
+    hasChildren: function() {
+        return (this.children.length > 0);
+    },
+    getLeafNodes: function() {
+        //Return ordered array of leaf (book) level filters
+        if (!this.hasChildren()) {
+            return this;
+        }
+        var results = [];
+        for (var i = 0; i < this.children.length; i++) {
+            results = results.concat(this.children[i].getLeafNodes());
+        }
+        return results;
+    },
+    getId: function() {
+        return this.path.replace(new RegExp("[/',()]", 'g'),"-").replace(new RegExp(" ", 'g'),"_");
+    },
+    isSelected: function() {
+        return (this.selected == 1);
+    },
+    isPartial: function() {
+        return (this.selected == 2);
+    },
+    isUnselected: function() {
+        return (this.selected == 0);
+    },
+    setSelected : function(propogateParent, noPropogateChild) {
+        //default is to propogate children and not parents.
+        //Calls from front end should use (true, false), or just (true)
+        this.selected = 1;
+        if (!(noPropogateChild)) {
+            for (var i = 0; i < this.children.length; i++) {
+                this.children[i].setSelected(false);
+            }
+        }
+        if(propogateParent) {
+            if(this.parent) this.parent._deriveState();
+        }
+    },
+    setUnselected : function(propogateParent, noPropogateChild) {
+        //default is to propogate children and not parents.
+        //Calls from front end should use (true, false), or just (true)
+        this.selected = 0;
+        if (!(noPropogateChild)) {
+            for (var i = 0; i < this.children.length; i++) {
+                this.children[i].setUnselected(false);
+            }
+        }
+        if(propogateParent) {
+            if(this.parent) this.parent._deriveState();
+        }
+
+    },
+    setPartial : function() {
+        //Never propogate to children.  Always propogate to parents
+        this.selected = 2;
+        if(this.parent) this.parent._deriveState();
+    },
+
+    _deriveState: function() {
+        //Always called from children, so we can assume at least one
+        var potentialState = this.children[0].selected;
+        if (potentialState == 2) {
+            this.setPartial();
+            return
+        }
+        for (var i = 1; i < this.children.length; i++) {
+            if (this.children[i].selected != potentialState) {
+                this.setPartial();
+                return
+            }
+        }
+        //Don't use setters, so as to avoid looping back through children.
+        if(potentialState == 1) {
+            this.setSelected(true, true);
+        } else {
+            this.setUnselected(true, true);
+        }
+    },
+
+    hasAppliedFilters: function() {
+        return (this.getAppliedFilters().length > 0)
+    },
+
+    getAppliedFilters: function() {
+        if (this.isUnselected()) {
+            return [];
+        }
+        if (this.isSelected()) {
+            return[this.path];
+        }
+        var results = [];
+        for (var i = 0; i < this.children.length; i++) {
+            results = results.concat(this.children[i].getAppliedFilters());
+        }
+        return results;
+    },
+    getSelectedTitles: function(lang) {
+        if (this.isUnselected()) {
+            return [];
+        }
+        if (this.isSelected()) {
+            return[(lang == "en")?this.title:this.heTitle];
+        }
+        var results = [];
+        for (var i = 0; i < this.children.length; i++) {
+            results = results.concat(this.children[i].getSelectedTitles(lang));
+        }
+        return results;
+    }
 };
 
 
@@ -1083,4 +1208,4 @@ sjs.categoryColor = function(cat) {
     return sjs.categoryColors[cat];
   }
   return "transparent";
-}
+};

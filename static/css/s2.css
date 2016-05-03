@@ -950,19 +950,93 @@ display: block;margin: 0 auto;}
 .searchContent {
   padding: 15px 10px 0;
 }
-.searchContent > .loadingMessage {
+
+.searchContent .searchTopMatter {
+  padding-bottom: 10px;
 }
-.searchContent .results-count {
-  color: #999;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  letter-spacing: 1px;
-  font-size: 12px;
+
+.searchContent .searchStatusLine {
   padding: 10px 0 36px 0;
   margin-top: -60px;
   text-align: center;
+  font-size: 12px;
+  height: 20px;
 }
+.searchContent .results-count,
+.searchContent .searchStatusLine > .loadingMessage {
+  color: #999;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  letter-spacing: 1px;
+}
+
+.searchContent .searchFilterToggle {
+  color: #999;
+  font-size: 12px;
+}
+
+.searchContent .searchFilterToggle i {
+  color: #999;
+  font-size: 12px;
+  padding-left: 5px;
+}
+.hebrew .searchContent .searchFilterToggle i {
+  padding-left: 0;
+  padding-right: 5px;
+}
+
+.searchContent .searchFilterBoxes {
+  margin: 10px 0;
+  background: #eee;
+  width: 100%;
+}
+
+.searchContent .searchFilterBoxes li {
+  display: block;
+  padding: 10px 0 10px 15px;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+.hebrew .searchContent .searchFilterBoxes li {
+  padding: 10px 15px 10px 0;
+}
+
+.searchContent .searchFilterBoxes li input {
+  padding-right: 10px
+}
+
+.searchContent .searchFilterBoxes li .filter-title {
+   color: #222;
+}
+
+.searchContent .searchFilterBoxes li .filter-count {
+   color: #999;
+}
+.searchContent .searchFilterBoxes li .in-focus-arrow {
+    float: right;
+    padding-right: 10px;
+    color: #999;
+}
+.hebrew .searchContent .searchFilterBoxes li .in-focus-arrow {
+  float: left;
+  padding-left: 10px;
+  padding-right: 0;
+}
+
+.searchContent .searchFilterCategoryBox,
+.searchContent .searchFilterBookBox {
+  float: left;
+  width: 50%;
+  height: 150px;
+  overflow-y: auto;
+}
+
+.hebrew .searchContent .searchFilterCategoryBox,
+.hebrew .searchContent .searchFilterBookBox {
+  float: right;
+}
+
 .searchContent .result {
-  border-bottom: thin solid #eee;
+  border-top: thin solid #eee;
   padding-bottom: 12px;
 }
 .searchContent .result a:hover {
