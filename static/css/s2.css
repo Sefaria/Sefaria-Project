@@ -2142,10 +2142,12 @@ display: block;margin: 0 auto;}
   margin-top: 20px;
 }
 .loginPanel {
-  width: 100%;
-  padding: 130px 20px 0;
   text-align: center;
-  background-color: #F9F9F7;
+  padding-top: 40px;
+}
+.loginPanel .loginPanelMessage {
+  font-size: 18px;
+  margin: 80px 0 30px;
 }
 .sefariaLogo {
   text-align: center;

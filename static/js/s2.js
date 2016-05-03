@@ -21,6 +21,8 @@ var ReaderApp = React.createClass({
     initialDefaultVersions: React.PropTypes.object
   },
   getInitialState: function getInitialState() {
+    // TODO clean up generation of initial panels objects.
+    // Currently these get generated in reader/views.py, then regenerated in s2.html then regenerated again in ReaderApp.
     var panels = [];
     var defaultVersions = clone(this.props.initialDefaultVersions) || {};
     var defaultPanelSettings = clone(this.props.initialSettings);
@@ -480,13 +482,11 @@ var ReaderApp = React.createClass({
     this.state.panels[n].highlightedRefs = refs;
     this.setState({ panels: this.state.panels });
 
-    /*   
     // If a connections panel is opened after n, update its refs as well.
-    var next = this.state.panels[n+1];
+    var next = this.state.panels[n + 1];
     if (next && next.mode === "Connections" && !next.menuOpen) {
-      this.openTextListAt(n+1, refs);
+      this.openTextListAt(n + 1, refs);
     }
-    */
   },
   closePanel: function closePanel(n) {
     // Removes the panel in position `n`, as well as connections panel in position `n+1` if it exists.
@@ -3021,7 +3021,7 @@ var TextColumn = React.createClass({
     }
   },
   setScrollPosition: function setScrollPosition() {
-    console.log("ssp");
+    //console.log("ssp");
     // Called on every update, checking flags on `this` to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
@@ -3108,13 +3108,14 @@ var TextColumn = React.createClass({
     }
   },
   adjustTextListHighlight: function adjustTextListHighlight() {
+    console.log("atlh");
     // When scrolling while the TextList is open, update which segment should be highlighted.
     if (this.props.layoutWidth == 100) {
-      return;
+      return; // Hacky - don't move around highlighted segment when scrolling a single panel,
     }
-    // Hacky - don't move around highlighted segment when scrolling a single panel,
-    // but we do want to keep the highlightedRefs value in the panel so it will return to the right location after closing other panels.
-    window.requestAnimationFrame(function () {
+    // but we do want to keep the highlightedRefs value in the panel
+    // so it will return to the right location after closing other panels.
+    var adjustTextListHighlightInner = function () {
       //var start = new Date();
       if (!this.isMounted()) {
         return;
@@ -3123,7 +3124,7 @@ var TextColumn = React.createClass({
       var $readerPanel = $container.closest(".readerPanel");
       var viewport = $container.outerHeight() - $readerPanel.find(".textList").outerHeight();
       var center = viewport / 2;
-      var midTop = 200;
+      var midTop = 300;
       var threshhold = this.props.multiPanel ? midTop : center;
       $container.find(".basetext .segment").each(function (i, segment) {
         var $segment = $(segment);
@@ -3136,32 +3137,35 @@ var TextColumn = React.createClass({
           return false;
         }
       }.bind(this));
+    }.bind(this);
 
-      /*
-      // Caching segment heights
-      // Incomplete, needs to update on infinite scroll, window resize
-      // Not clear there's a great perfomance benefit
-      if (!this.state.segmentHeights) {
-        this.state.segmentHeights = [];
-        $readerPanel.find(".basetext .segment").each(function(i, segment) {
-          var $segment = $(segment);
-          var top = $segment.offset().top;
-          this.state.segmentHeights.push({
-              top: top,
-              bottom: top + $segment.outerHeight(),
-              ref: $segment.attr("data-ref")})
-        }.bind(this));
-        this.setState(this.state);    
+    adjustTextListHighlightInner();
+    //window.requestAnimationFrame(adjustTextListHighlightInner);
+
+    /*
+    // Caching segment heights
+    // Incomplete, needs to update on infinite scroll, window resize
+    // Not clear there's a great perfomance benefit
+    if (!this.state.segmentHeights) {
+      this.state.segmentHeights = [];
+      $readerPanel.find(".basetext .segment").each(function(i, segment) {
+        var $segment = $(segment);
+        var top = $segment.offset().top;
+        this.state.segmentHeights.push({
+            top: top,
+            bottom: top + $segment.outerHeight(),
+            ref: $segment.attr("data-ref")})
+      }.bind(this));
+      this.setState(this.state);    
+    }
+     for (var i = 0; i < this.state.segmentHeights.length; i++) {
+      var segment = this.state.segmentHeights[i];
+      if (segment.bottom > center) {
+        this.showTextList(segment.ref);
+        return;
       }
-       for (var i = 0; i < this.state.segmentHeights.length; i++) {
-        var segment = this.state.segmentHeights[i];
-        if (segment.bottom > center) {
-          this.showTextList(segment.ref);
-          return;
-        }
-      }
-      */
-    }.bind(this));
+    }
+    */
   },
   scrollToHighlighted: function scrollToHighlighted() {
     window.requestAnimationFrame(function () {
@@ -3802,7 +3806,7 @@ var ConnectionsPanel = React.createClass({
     } else if (this.props.mode === "Add Translation") {
       content = React.createElement(LoadingMessage, { className: "toolsMessage", message: "Coming Soon." });
     } else if (this.props.mode === "Login") {
-      content = React.createElement(LoginPanel, null);
+      content = React.createElement(LoginPanel, { fullPanel: this.props.fullPanel });
     }
     return content;
   }
@@ -5041,51 +5045,63 @@ var MyNotesPanel = React.createClass({
 var LoginPanel = React.createClass({
   displayName: "LoginPanel",
 
+  propTypes: {
+    fullPanel: React.PropTypes.bool
+  },
   render: function render() {
     var currentPath = window.location.pathname + window.location.search;
+    var classes = classNames({ loginPanel: 1, textList: 1, fullPanel: this.props.fullPanel });
     return React.createElement(
       "div",
-      { className: "loginPanel" },
+      { className: classes },
       React.createElement(
         "div",
-        { className: "loginPanelMessage" },
+        { className: "texts" },
         React.createElement(
-          "span",
-          { className: "en" },
-          "You must be logged in to use this feature."
-        ),
-        React.createElement(
-          "span",
-          { className: "he" },
-          "אתה חייב להיות מחובר כדי להשתמש בתכונה זו."
-        )
-      ),
-      React.createElement(
-        "a",
-        { className: "button", href: "/login?next=" + currentPath },
-        React.createElement(
-          "span",
-          { className: "en" },
-          "Log In"
-        ),
-        React.createElement(
-          "span",
-          { className: "he" },
-          "התחבר"
-        )
-      ),
-      React.createElement(
-        "a",
-        { className: "button", href: "/register?next=" + currentPath },
-        React.createElement(
-          "span",
-          { className: "en" },
-          "Sign Up"
-        ),
-        React.createElement(
-          "span",
-          { className: "he" },
-          "להירשם"
+          "div",
+          { className: "contentInner" },
+          React.createElement(
+            "div",
+            { className: "loginPanelMessage" },
+            React.createElement(
+              "span",
+              { className: "en" },
+              "You must be logged in to use this feature."
+            ),
+            React.createElement(
+              "span",
+              { className: "he" },
+              "אתה חייב להיות מחובר כדי להשתמש בתכונה זו."
+            )
+          ),
+          React.createElement(
+            "a",
+            { className: "button", href: "/login?next=" + currentPath },
+            React.createElement(
+              "span",
+              { className: "en" },
+              "Log In"
+            ),
+            React.createElement(
+              "span",
+              { className: "he" },
+              "התחבר"
+            )
+          ),
+          React.createElement(
+            "a",
+            { className: "button", href: "/register?next=" + currentPath },
+            React.createElement(
+              "span",
+              { className: "en" },
+              "Sign Up"
+            ),
+            React.createElement(
+              "span",
+              { className: "he" },
+              "להירשם"
+            )
+          )
         )
       )
     );

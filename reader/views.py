@@ -192,6 +192,8 @@ def s2(request, ref, version=None, lang=None):
     max_panels = 4
     panels = []
 
+    # TODO clean up generation of initial panels objects. 
+    # Currently these get generated in reader/views.py, then regenerated in s2.html then regenerated again in ReaderApp.
 
     # Handle first panel
     panel_1 = {}
@@ -213,6 +215,8 @@ def s2(request, ref, version=None, lang=None):
     text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
 
     panel_1["ref"] = oref.normal()
+    if oref.is_segment_level():
+        panel_1["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
     panel_1["text"] = text
     panel_1["filter"] = request.GET.get("with").replace("_"," ").split("+") if request.GET.get("with") else None
 
@@ -245,6 +249,8 @@ def s2(request, ref, version=None, lang=None):
         text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
 
         panel["ref"] = oref.normal()
+        if oref.is_segment_level():
+            panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
         panel["text"] = text
         panel["filter"] = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
 

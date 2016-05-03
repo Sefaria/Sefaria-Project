@@ -2842,22 +2842,20 @@ class Ref(object):
     def range_list(self):
         """
         :return: list of :class:`Ref` objects corresponding to each point in the range of this :class:`Ref`
-
-        Does not work for spanning refs
         """
         if not self._ranged_refs:
+            results = []
             if not self.is_range():
                 return [self]
             if self.is_spanning():
-                raise InputError(u"Can not get range of spanning ref: {}".format(self))
-
-            results = []
-
-            for s in range(self.sections[-1], self.toSections[-1] + 1):
-                d = self._core_dict()
-                d["sections"][-1] = s
-                d["toSections"][-1] = s
-                results.append(Ref(_obj=d))
+                for oref in self.split_spanning_ref():
+                    results += oref.range_list() if oref.is_range() else oref.all_subrefs()
+            else:
+                for s in range(self.sections[-1], self.toSections[-1] + 1):
+                    d = self._core_dict()
+                    d["sections"][-1] = s
+                    d["toSections"][-1] = s
+                    results.append(Ref(_obj=d))
 
             self._ranged_refs = results
         return self._ranged_refs

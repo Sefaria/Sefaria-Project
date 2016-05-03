@@ -16,6 +16,8 @@ var ReaderApp = React.createClass({
     initialDefaultVersions:      React.PropTypes.object 
   },
   getInitialState: function() {
+    // TODO clean up generation of initial panels objects. 
+    // Currently these get generated in reader/views.py, then regenerated in s2.html then regenerated again in ReaderApp.
     var panels               = [];
     var defaultVersions      = clone(this.props.initialDefaultVersions) || {};
     var defaultPanelSettings = clone(this.props.initialSettings);
@@ -479,14 +481,12 @@ var ReaderApp = React.createClass({
     refs = typeof refs === "string" ? [refs] : refs;
     this.state.panels[n].highlightedRefs = refs;
     this.setState({panels: this.state.panels});
-
-    /*   
+ 
     // If a connections panel is opened after n, update its refs as well.
     var next = this.state.panels[n+1];
     if (next && next.mode === "Connections" && !next.menuOpen) {
       this.openTextListAt(n+1, refs);
     }
-    */
   },
   closePanel: function(n) {
     // Removes the panel in position `n`, as well as connections panel in position `n+1` if it exists.
@@ -2476,7 +2476,7 @@ var TextColumn = React.createClass({
     }
   },
   setScrollPosition: function() {
-    console.log("ssp");
+    //console.log("ssp");
     // Called on every update, checking flags on `this` to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
@@ -2557,18 +2557,21 @@ var TextColumn = React.createClass({
     }
   },
   adjustTextListHighlight: function() {
+    console.log("atlh");
     // When scrolling while the TextList is open, update which segment should be highlighted.
-    if (this.props.layoutWidth == 100) { return; }
-    // Hacky - don't move around highlighted segment when scrolling a single panel,
-    // but we do want to keep the highlightedRefs value in the panel so it will return to the right location after closing other panels.
-    window.requestAnimationFrame(function() {
+    if (this.props.layoutWidth == 100) { 
+      return; // Hacky - don't move around highlighted segment when scrolling a single panel,
+    }
+    // but we do want to keep the highlightedRefs value in the panel 
+    // so it will return to the right location after closing other panels.
+    var adjustTextListHighlightInner = function() {
       //var start = new Date();
       if (!this.isMounted()) { return; }
       var $container   = $(ReactDOM.findDOMNode(this));
       var $readerPanel = $container.closest(".readerPanel");
       var viewport     = $container.outerHeight() - $readerPanel.find(".textList").outerHeight();
       var center       = (viewport/2);
-      var midTop       = 200;
+      var midTop       = 300;
       var threshhold   = this.props.multiPanel ? midTop : center;
       $container.find(".basetext .segment").each(function(i, segment) {
         var $segment = $(segment);
@@ -2581,6 +2584,10 @@ var TextColumn = React.createClass({
           return false;
         }
       }.bind(this));
+    }.bind(this);
+
+    adjustTextListHighlightInner();
+    //window.requestAnimationFrame(adjustTextListHighlightInner);
       
       /*
       // Caching segment heights
@@ -2607,8 +2614,6 @@ var TextColumn = React.createClass({
         }
       }
       */
-
-    }.bind(this));
   },
   scrollToHighlighted: function() {
     window.requestAnimationFrame(function() {
@@ -3173,7 +3178,7 @@ var ConnectionsPanel = React.createClass({
       content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
 
     } else if (this.props.mode === "Login") {
-      content = (<LoginPanel />);
+      content = (<LoginPanel fullPanel={this.props.fullPanel} />);
     }
     return content;
   }
@@ -4120,21 +4125,31 @@ var MyNotesPanel = React.createClass({
 
 
 var LoginPanel = React.createClass({
+  propTypes: {
+    fullPanel: React.PropTypes.bool,
+  },
   render: function() {
     var currentPath = window.location.pathname + window.location.search;
-    return (<div className="loginPanel">
-              <div className="loginPanelMessage">
-                <span className="en">You must be logged in to use this feature.</span>
-                <span className="he">אתה חייב להיות מחובר כדי להשתמש בתכונה זו.</span>
+    var classes     = classNames({loginPanel: 1, textList: 1, fullPanel: this.props.fullPanel});
+    return (<div className={classes}>
+              <div className="texts">
+                <div className="contentInner">
+
+                  <div className="loginPanelMessage">
+                    <span className="en">You must be logged in to use this feature.</span>
+                    <span className="he">אתה חייב להיות מחובר כדי להשתמש בתכונה זו.</span>
+                  </div>
+                  <a className="button" href={"/login?next=" + currentPath}>
+                    <span className="en">Log In</span>
+                    <span className="he">התחבר</span>
+                  </a>
+                  <a className="button" href={"/register?next=" + currentPath}>
+                    <span className="en">Sign Up</span>
+                    <span className="he">להירשם</span>
+                  </a>
+
+                </div>
               </div>
-              <a className="button" href={"/login?next=" + currentPath}>
-                <span className="en">Log In</span>
-                <span className="he">התחבר</span>
-              </a>
-              <a className="button" href={"/register?next=" + currentPath}>
-                <span className="en">Sign Up</span>
-                <span className="he">להירשם</span>
-              </a>
             </div>);
   }
 });
