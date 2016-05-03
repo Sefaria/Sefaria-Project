@@ -3538,15 +3538,17 @@ var Note = React.createClass({
   },
   render: function() {
 
-     var authorInfo = this.props.isPrivate ? null :  
-          (<div className="noteAuthorInfo">
-            <a href={this.props.ownerProfileUrl}>
-              <img className="noteAuthorImg" src={this.props.ownerImageUrl} />
-            </a>
-            <a href={this.props.ownerProfileUrl} className="noteAuthor">{this.props.ownerName}</a>
-          </div>);
+    var isInMyNotes = !this.props.ownerName; // public notes can appear inside myNotesPanel, use ownerName as a proxy for context
+
+    var authorInfo = isInMyNotes ? null :
+        (<div className="noteAuthorInfo">
+          <a href={this.props.ownerProfileUrl}>
+            <img className="noteAuthorImg" src={this.props.ownerImageUrl} />
+          </a>
+          <a href={this.props.ownerProfileUrl} className="noteAuthor">{this.props.ownerName}</a>
+        </div>);
      
-     var buttons = this.props.isPrivate ? 
+     var buttons = isInMyNotes ? 
                     (<div className="noteButtons">
                       <i className="fa fa-pencil" onClick={this.props.editNote} ></i>
                       {this.props.isPrivate ? null : (<i className="fa fa-unlock-alt"></i>)}
@@ -4106,7 +4108,7 @@ var MyNotesPanel = React.createClass({
                 isPrivate={!note.public}
                 editNote={editNote}
                 key={note._id} />);
-    }.bind(this)) : [(<LoadingMessage />)];
+    }.bind(this)) : null ;
 
     var classes = classNames({myNotesPanel: 1, textList: 1, fullPanel: this.props.fullPanel});
     return (<div className={classes}>

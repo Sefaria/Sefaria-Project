@@ -4206,7 +4206,9 @@ var Note = React.createClass({
   },
   render: function render() {
 
-    var authorInfo = this.props.isPrivate ? null : React.createElement(
+    var isInMyNotes = !this.props.ownerName; // public notes can appear inside myNotesPanel, use ownerName as a proxy for context
+
+    var authorInfo = isInMyNotes ? null : React.createElement(
       "div",
       { className: "noteAuthorInfo" },
       React.createElement(
@@ -4221,7 +4223,7 @@ var Note = React.createClass({
       )
     );
 
-    var buttons = this.props.isPrivate ? React.createElement(
+    var buttons = isInMyNotes ? React.createElement(
       "div",
       { className: "noteButtons" },
       React.createElement("i", { className: "fa fa-pencil", onClick: this.props.editNote }),
@@ -5019,7 +5021,7 @@ var MyNotesPanel = React.createClass({
         isPrivate: !note.public,
         editNote: editNote,
         key: note._id });
-    }.bind(this)) : [React.createElement(LoadingMessage, null)];
+    }.bind(this)) : null;
 
     var classes = classNames({ myNotesPanel: 1, textList: 1, fullPanel: this.props.fullPanel });
     return React.createElement(
