@@ -26,7 +26,10 @@ def make_explicit_commentary_index(title):
         'related_categories': other_categories
     }
 
-    Index(new_idx).save()
+    nidx = Index(new_idx)
+    if hasattr(nidx.nodes, 'lengths'):
+        delattr(nidx.nodes, 'lengths')
+    nidx.save()
     if not Term().load({"name": idx.commentator}):
         term = Term({"name": idx.commentator, 'scheme': 'commentary_works'})
         titles = [
@@ -41,9 +44,9 @@ def make_explicit_commentary_index(title):
                 "primary": True
             }
         ]
-        for he_title_var in getattr(self.c_index, "heTitleVariants", []):
+        for he_title_var in getattr(idx.c_index, "heTitleVariants", []):
             titles.append({"lang": "he", "text": he_title_var})
-        for en_title_var in getattr(self.c_index, "titleVariants", []):
+        for en_title_var in getattr(idx.c_index, "titleVariants", []):
             titles.append({"lang": "en", "text": en_title_var})
         term.set_titles(titles)
         term.save()
@@ -60,6 +63,7 @@ commentary_re = ur"^({}) on ".format("|".join(commentator_titles))
 query = {"title": {"$regex": commentary_re}}
 titles = VersionSet(query).distinct("title")
 """ ---- """
+
 
 
 #titles = library.get_commentary_version_titles()
