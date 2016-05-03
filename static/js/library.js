@@ -481,12 +481,12 @@ sjs.library = {
     return notes;
   },
   _saveNoteData: function(ref, data) {
-    //this._notes[ref] = data; -- seems redudant?
     this._saveItemsByRef(data, this._notes);
   },
   _privateNotes: {},
   privateNotes: function(refs, callback) {
-    // Returns an array of private notes for `refs` (a string or array or strings) or `null` if notes have not yet been loaded.
+    // Returns an array of private notes for `refs` (a string or array or strings)
+    // or `null` if notes have not yet been loaded.
     console.log("privateNotes")
     console.log(refs)
     var notes = null;
@@ -528,7 +528,7 @@ sjs.library = {
             return;
           }
           console.log("saving private notes")
-          this._saveItemsByRef(data, this._privateNotes);
+          this._savePrivateNoteData(ref, data);
           aggregateCallback(data);
         }.bind(this));
       }.bind(this));
@@ -552,6 +552,13 @@ sjs.library = {
   },
   clearPrivateNotes: function() {
     this._privateNotes = {};
+  },
+  _savePrivateNoteData: function(ref, data) {
+    if (data.length) {
+      this._saveItemsByRef(data, this._privateNotes); 
+    } else {
+      this._privateNotes[ref] = [];
+    }
   },
   _related: {},
   related: function(ref, callback) {

@@ -4016,6 +4016,7 @@ var AddNotePanel = React.createClass({
     this.props.setConnectionsMode("Tools");
   },
   deleteNote: function() {
+    if (!confirm("Are you sure you want to delete this note?")) { return; }
     var url = "/api/notes/" + this.props.noteId;
     $.ajax({
       type: "delete",
