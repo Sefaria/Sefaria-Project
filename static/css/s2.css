@@ -321,14 +321,14 @@ body.dark {
 }
 .textColumn .loadingMessage.base.next.final {
 }
+.he, .heOnly .en {
+  font-size: 120%;
+}
 .readerPanel .he,
-.readerPanel .heOnly {
+.readerPanel .heOnly .en {
   font-family: "Taamey Frank", "Times New Roman", serif;
   direction: rtl;
   text-align: right;
-}
-.he, .heOnly .en {
-  font-size: 120%;
 }
 .readerPanel.hebrew {
   direction: rtl;
@@ -349,9 +349,9 @@ body.dark {
 .readerPanel.hebrew .en {
   display: none;
 }
-body .bilingual .heOnly .en,
-body .bilingual .enOnly .he {
-  display: none;
+.readerPanel.english .heOnly .he,
+.readerPanel.bilingual .heOnly .he {
+  display: inline;
 }
 .languageToggle {
   display: inline;
