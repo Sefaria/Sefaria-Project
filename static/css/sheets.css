@@ -1244,26 +1244,26 @@ input[type="file"] {
 }
 
 
-#sheet .source.sheetItem.sideBySide.hebLeft > .en {
+#sheet .source.sheetItem.sideBySide.heLeft > .en {
 	float: right;
 	display: block;
 	width: 48%;
 }
 
-#sheet .source.sheetItem.sideBySide.hebLeft > .he {
+#sheet .source.sheetItem.sideBySide.heLeft > .he {
 	float: left;
 	display: block;
 	width: 48%;
 }
 
-#sheet .source.sheetItem.sideBySide.hebRight > .he {
+#sheet .source.sheetItem.sideBySide.heRight > .he {
 	float: right;
 	display: block;
 	width: 48%;
 
 }
 
-#sheet .source.sheetItem.sideBySide.hebRight > .en {
+#sheet .source.sheetItem.sideBySide.heRight > .en {
 	float: left;
 	display: block;
 	width: 48%;
@@ -1425,4 +1425,8 @@ input[type="file"] {
 
 .inlineAddButton {
 
+}
+
+#sourceLayoutLanguageMenuItems {
+	display: none;
 }
