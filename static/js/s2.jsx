@@ -3664,12 +3664,6 @@ var TextList = React.createClass({
       return (
         <div className={classes}>
           <div className="textListTop">
-            <div className="leftButtons">
-              <ReaderNavigationMenuSearchButton onClick={this.props.openNav} />
-             </div>
-            <div className="rightButtons">
-              <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-            </div>
             <RecentFilterSet 
               asHeader={true}
               showText={this.props.showText}

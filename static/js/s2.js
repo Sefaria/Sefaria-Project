@@ -4314,16 +4314,6 @@ var TextList = React.createClass({
         React.createElement(
           "div",
           { className: "textListTop" },
-          React.createElement(
-            "div",
-            { className: "leftButtons" },
-            React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.props.openNav })
-          ),
-          React.createElement(
-            "div",
-            { className: "rightButtons" },
-            React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings })
-          ),
           React.createElement(RecentFilterSet, {
             asHeader: true,
             showText: this.props.showText,

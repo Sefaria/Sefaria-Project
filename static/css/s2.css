@@ -1724,6 +1724,7 @@ display: block;margin: 0 auto;}
 .addToSourceSheetPanel.textList.fullPanel .texts {
   padding: 0 50px;
 }
+.textList .texts,
 .textList .fullFilterView {
   padding: 30px 30px 80px 30px;
 }
@@ -1929,8 +1930,6 @@ display: block;margin: 0 auto;}
 }
 .dark .fullFilterView .categoryFilter {
   background-color: #333;
-}
-.fullFilterView .textFilter {
 }
 .fullFilterView .categoryFilterGroup {
   margin-bottom: 30px;
