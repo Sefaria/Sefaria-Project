@@ -410,9 +410,6 @@ $(function() {
 		}
 	});
 
-
-
-
 	$(".sideBySideToggleOption div").click(function(){
 		if ($(".activeSource").length) {
 			var $target = $(".activeSource");
@@ -437,9 +434,6 @@ $(function() {
 			autoSave();
 		}
 	});
-
-
-
 
 	// Language Options specific to Sheets
 	// General behavior covered in sjs.changeContentLang in headers.js
@@ -548,6 +542,28 @@ $(function() {
 
 	});
 
+
+	// Reset Text
+
+	$("#resetText").click(function() {
+			options = {
+			message: "Reset text of Hebrew, English or both?<br><small>Any edits you have made to this source will be lost.</small>",
+			options: ["Hebrew", "English", "Both"]
+		};
+		$target = $(".activeSource");
+		var resetSource = function(option) {
+			var loadClosure = function(data) {
+				loadSource(data, $target, option)
+			};
+			var getStr = "/api/texts/" + normRef($target.attr("data-ref")) + "?commentary=0&context=0&pad=0";
+			$.getJSON(getStr, loadClosure);
+			sjs.openRequests += 1;
+		}
+
+		sjs.alert.options(options, resetSource)
+		sjs.track.sheets("Reset Source");
+
+	});
 
 	// ------------ Empty Instructions ---------------------
 
