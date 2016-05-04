@@ -1862,6 +1862,7 @@ var ReaderNavigationMenu = React.createClass({
               <div className="content">
                 <div className="contentInner">
                 <h1>
+                  <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
                   <span className="en">The Sefaria Library</span>
                   <span className="he">האוסף של ספאריה</span>
                 </h1>
