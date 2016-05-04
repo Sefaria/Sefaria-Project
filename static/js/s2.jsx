@@ -4920,10 +4920,10 @@ var SearchFilters = React.createClass({
     var runningQueryLine = (<LoadingMessage message="Searching..." />);
     var show_filters_classes = (this.state.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down";
     var filter_panel = (<div>
-          <div className="searchFilterToggle">
+          <div className="searchFilterToggle" onClick={this.toggleFilterView}>
             <span className="en">Filter by Text   </span>
             <span className="he">סנן לפי כותר   </span>
-            <i className={show_filters_classes} onClick={this.toggleFilterView}/>
+            <i className={show_filters_classes} />
           </div>
           <div className="searchFilterBoxes" style={{display: this.state.displayFilters?"block":"none"}}>
             <div className="searchFilterCategoryBox">

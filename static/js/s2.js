@@ -5959,7 +5959,7 @@ var SearchFilters = React.createClass({
       null,
       React.createElement(
         "div",
-        { className: "searchFilterToggle" },
+        { className: "searchFilterToggle", onClick: this.toggleFilterView },
         React.createElement(
           "span",
           { className: "en" },
@@ -5970,7 +5970,7 @@ var SearchFilters = React.createClass({
           { className: "he" },
           "סנן לפי כותר   "
         ),
-        React.createElement("i", { className: show_filters_classes, onClick: this.toggleFilterView })
+        React.createElement("i", { className: show_filters_classes })
       ),
       React.createElement(
         "div",
