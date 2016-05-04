@@ -844,7 +844,7 @@ class AbstractTextRecord(object):
     """
     text_attr = "chapter"
     ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img")
-    ALLOWED_ATTRS   = {'img': lambda name, value: name == 'src' and value.startswith("data:image/")}
+    ALLOWED_ATTRS   = {'i': ['data-commentator', 'data-order'], 'img': lambda name, value: name == 'src' and value.startswith("data:image/")}
 
     def word_count(self):
         """ Returns the number of words in this text """
@@ -1786,6 +1786,12 @@ class Ref(object):
         self.__init_tref()
 
     def __init_tref(self):
+        """
+        Parse self.tref
+        Populate self.index, self.index_node, self.type, self.book, self.sections, self.toSections, ...
+        :return:
+        """
+        # Split ranges based on '-' symbol, store in `parts` variable
         parts = [s.strip() for s in self.tref.split("-")]
         if len(parts) > 2:
             raise InputError(u"Couldn't understand ref '{}' (too many -'s).".format(self.tref))
@@ -1793,6 +1799,7 @@ class Ref(object):
         base = parts[0]
         title = None
 
+        # Remove letter from end of base reference until TitleNode or Term name matched, set `title` variable with matched title
         tndict = library.get_title_node_dict(self._lang, with_commentary=True)
         termdict = library.get_term_dict(self._lang)
         for l in range(len(base), 0, -1):
@@ -1805,9 +1812,11 @@ class Ref(object):
                     title = base[0:l - 1]
                 break
             if new_tref:
+                # If a term is matched, reinit with the real tref
                 self.__reinit_tref(new_tref)
                 return
 
+        # At this `title` is something like "Exodus" or "Rashi on Exodus" or "Pesach Haggadah, Magid, Four Sons"
         if title:
             assert isinstance(self.index_node, SchemaNode)
             self.index = self.index_node.index
@@ -1838,6 +1847,7 @@ class Ref(object):
                         self.index_node = old_index_node
                         self.sections = []
 
+            # Don't accept references like "Rashi" (Can delete in commentary refactor)
             elif self.index.is_commentary() and self._lang == "en":
                 if not getattr(self.index, "commentaryBook", None):
                     raise InputError(u"Please specify a text that {} comments on.".format(self.index.title))
@@ -1860,7 +1870,7 @@ class Ref(object):
 
         self.type = self.index_node.index.categories[0]
 
-        if title == base:  # Bare book.
+        if title == base:  # Bare book, like "Genesis" or "Rashi on Genesis".
             if self.index_node.is_default():  # Without any further specification, match the parent of the fall-through node
                 self.index_node = self.index_node.parent
                 self.book = self.index_node.full_title("en")
@@ -1869,6 +1879,7 @@ class Ref(object):
         try:
             reg = self.index_node.full_regex(title, self._lang)  # Try to treat this as a JaggedArray
         except AttributeError:
+            # We matched a schema node followed by an illegal number. (Are there other cases here?)
             matched = self.index_node.full_title(self._lang)
             msg = u"Partial reference match for '{}' - failed to find continuation for '{}'.\nValid continuations are:\n".format(self.tref, matched)
             continuations = []
@@ -1889,6 +1900,7 @@ class Ref(object):
                 pass
             #todo: ranges that cross structures
 
+        # Numbered Structure node parsed - return. (Verify this comment.  Should this be indented?)
         if title == base:
             return
 
@@ -1947,6 +1959,7 @@ class Ref(object):
 
         self.toSections = self.sections[:]
 
+        # Parse range end portion, if it exists
         if len(parts) == 2:
             self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
             if self._lang == "he" or any([a != "Integer" for a in self.index_node.addressTypes[1:]]):     # in process. developing logic that should work for all languages / texts
