@@ -337,7 +337,12 @@ $(function() {
 			$target.addClass("english");
 			$target.addClass("stacked");
 			$target.removeClass("sideBySide heLeft heRight");
+
+			$toggleTarget.find("#layoutToggleGroup div .fa-check").addClass("hidden");
+			$toggleTarget.find("#layoutToggleGroup .stacked .fa-check").removeClass("hidden")
 			$toggleTarget.find("#layoutToggleGroup").addClass("disabled");
+
+			$toggleTarget.find("#sideBySideToggleGroup div .fa-check").addClass("hidden");
 			$toggleTarget.find("#sideBySideToggleGroup").addClass("disabled");
 
 		}
@@ -345,8 +350,14 @@ $(function() {
 			$target.addClass("hebrew");
 			$target.addClass("stacked");
 			$target.removeClass("sideBySide heLeft heRight");
+
+			$toggleTarget.find("#layoutToggleGroup div .fa-check").addClass("hidden");
+			$toggleTarget.find("#layoutToggleGroup .stacked .fa-check").removeClass("hidden")
 			$toggleTarget.find("#layoutToggleGroup").addClass("disabled");
+
+			$toggleTarget.find("#sideBySideToggleGroup div .fa-check").addClass("hidden");
 			$toggleTarget.find("#sideBySideToggleGroup").addClass("disabled");
+
 		}
 		else if ( $(this).hasClass("bilingual") ) {
 			$target.addClass("bilingual");
@@ -380,7 +391,12 @@ $(function() {
 		if ( $(this).hasClass("stacked") ) {
 			$target.addClass("stacked");
 			$target.removeClass("heLeft heRight");
+
+			$toggleTarget.find("#sideBySideToggleGroup div .fa-check").addClass("hidden");
+			$toggleTarget.find("#sideBySideToggleGroup .heRight .fa-check").removeClass("hidden")
 			$toggleTarget.find("#sideBySideToggleGroup").addClass("disabled");
+
+
 		}
 		else if ( $(this).hasClass("sideBySide") ) {
 			$target.addClass("sideBySide");
@@ -960,6 +976,43 @@ $(function() {
 			$(this).append(inlineAddButton);
 			$("#sheetLayoutLanguageMenuItems").hide();
 			$("#sourceLayoutLanguageMenuItems").show();
+
+			//set checkboxes for language/layout menus for active source
+			if ($(this).hasClass("hebrew")) {
+				$("#sourceLayoutLanguageMenuItems").find(".hebrew .fa-check").removeClass("hidden");
+			}
+			else if ( $(this).hasClass("bilingual") ) {
+			 $("#sourceLayoutLanguageMenuItems").find(".bilingual .fa-check").removeClass("hidden");
+			 $("#sourceLayoutLanguageMenuItems").find("#layoutToggleGroup").removeClass("disabled");
+			}
+			else {
+				$("#sourceLayoutLanguageMenuItems").find(".english .fa-check").removeClass("hidden");
+			}
+
+
+			if ($(this).hasClass("stacked")) {
+				$("#sourceLayoutLanguageMenuItems").find(".stacked .fa-check").removeClass("hidden")
+			}
+			else {
+				$("#sourceLayoutLanguageMenuItems").find(".sideBySide .fa-check").removeClass("hidden");
+			    $("#sourceLayoutLanguageMenuItems").find("#sideBySideToggleGroup").removeClass("disabled");
+			}
+
+
+			if ($(this).hasClass("heLeft")){
+				$("#sourceLayoutLanguageMenuItems").find(".heLeft .fa-check").removeClass("hidden")
+			}
+			else {
+				$("#sourceLayoutLanguageMenuItems").find(".heRight .fa-check").removeClass("hidden")
+			}
+
+
+
+			if (!($(this).hasClass("source"))) {
+				$("#resetText").hide();
+				$("#sourceLayoutLanguageMenuItems").hide();
+			}
+
 		});
 
 	}
@@ -1974,9 +2027,9 @@ function buildSheet(data){
 	$("#" + data.options.language).trigger("click");
 	$("#" + data.options.divineNames).trigger("click");
 
-	$(".sideBySideToggleOption ." + data.options.langLayout).trigger("click");
-	$(".layoutToggleOption ." + data.options.layout).trigger("click");
-	$(".languageToggleOption ." + data.options.language).trigger("click");
+	$("#sheetLayoutLanguageMenuItems .sideBySideToggleOption ." + data.options.langLayout).trigger("click");
+	$("#sheetLayoutLanguageMenuItems .layoutToggleOption ." + data.options.layout).trigger("click");
+	$("#sheetLayoutLanguageMenuItems .languageToggleOption ." + data.options.language).trigger("click");
 
 
 
