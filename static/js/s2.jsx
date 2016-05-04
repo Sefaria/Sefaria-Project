@@ -3956,13 +3956,13 @@ var ToolsPanel = React.createClass({
       <div className={classes}>
         <div className="texts">
           <div className="contentInner">
-            <ToolsButton en="Share" he="Share" icon="share-square-o" onClick={function() {this.props.setConnectionsMode("Share")}.bind(this)} /> 
-            <ToolsButton en="Add to Source Sheet" he="Add to Source Sheet" icon="plus-circle" onClick={function() {this.props.setConnectionsMode("Add to Source Sheet")}.bind(this)} /> 
-            <ToolsButton en="Add Note" he="Add Note" icon="pencil" onClick={function() {this.props.setConnectionsMode("Add Note")}.bind(this)} /> 
-            <ToolsButton en="My Notes" he="My Notes" icon="file-text-o" onClick={function() {this.props.setConnectionsMode("My Notes")}.bind(this)} /> 
-            <ToolsButton en="Add Connection" he="Add Connection" icon="link" onClick={function() {this.props.setConnectionsMode("Add Connection")}.bind(this)} /> 
-            <ToolsButton en="Edit Text" he="Edit Text" icon="edit" onClick={function() {this.props.setConnectionsMode("Edit Text")}.bind(this)} /> 
-            <ToolsButton en="Add Translation" he="Add Translation" icon="language" onClick={function() {this.props.setConnectionsMode("Edit Text")}.bind(this)} /> 
+            <ToolsButton en="Share" he="שתף" icon="share-square-o" onClick={function() {this.props.setConnectionsMode("Share")}.bind(this)} />
+            <ToolsButton en="Add to Source Sheet" he="הוסף לדף מקורות" icon="plus-circle" onClick={function() {this.props.setConnectionsMode("Add to Source Sheet")}.bind(this)} />
+            <ToolsButton en="Add Note" he="הוסף הערה" icon="pencil" onClick={function() {this.props.setConnectionsMode("Add Note")}.bind(this)} />
+            <ToolsButton en="My Notes" he="ההערות שלי" icon="file-text-o" onClick={function() {this.props.setConnectionsMode("My Notes")}.bind(this)} />
+            <ToolsButton en="Add Connection" he="הוסף קישור לטקסט אחר" icon="link" onClick={function() {this.props.setConnectionsMode("Add Connection")}.bind(this)} />
+            <ToolsButton en="Edit Text" he="ערוך טקסט" icon="edit" onClick={function() {this.props.setConnectionsMode("Edit Text")}.bind(this)} />
+            <ToolsButton en="Add Translation" he="הוסף תרגום" icon="language" onClick={function() {this.props.setConnectionsMode("Edit Text")}.bind(this)} />
           </div>
         </div>
       </div>);
