@@ -247,7 +247,7 @@ sjs.library = {
       // i.e., in "Shabbat 2a:5-2b:8" what is the last segment of Shabbat 2a?
       // For now, just return the first non-spanning ref.
       oref.toSections = oref.sections;
-      return [humaRef(makeRef(oref))];
+      return [humanRef(makeRef(oref))];
     } else {
       var refs  = [];
       var start = oref.sections[oref.sections.length-1];
