@@ -1491,7 +1491,7 @@ class TextFamily(object):
         for attr in ["sections", "toSections"]:
             d[attr] = getattr(self._original_oref, attr)[:]
 
-        if self._context_oref._inode.index.is_dependant_text():
+        if self._inode.index.is_dependant_text():
             d["commentaryBook"] = getattr(self._inode.index, 'base_text_titles', "")
             d["commentaryCategories"] = getattr(self._inode.index, 'related_categories', "")
             d["commentator"] = getattr(self._inode.index, 'work_title', "")
