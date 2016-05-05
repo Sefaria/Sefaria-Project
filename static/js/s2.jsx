@@ -882,7 +882,7 @@ var Header = React.createClass({
     var currentPath = window.location.pathname + window.location.search;
     var signUpLink = (<a className="login" href={"/register?next=" + currentPath}>
                         <span className="en">Sign Up</span>
-                        <span className="he">להירשם</span>
+                        <span className="he">הירשם</span>
                        </a>);
     return (<div className="header">
               <div className="headerInner">
@@ -1771,7 +1771,7 @@ var ReaderNavigationMenu = React.createClass({
                     [(<a className="siteLink" key='profile' href="/my/profile">
                         <i className="fa fa-user"></i>
                         <span className="en">Your Profile</span>
-                        <span className="he">הפרופיל שלך</span>
+                        <span className="he">הפרופיל שלי</span>
                       </a>), 
                      (<span className='divider' key="d1">•</span>),
                      (<a className="siteLink" key='about' href="/about">
@@ -1813,7 +1813,7 @@ var ReaderNavigationMenu = React.createClass({
                     (<a className="sheetsLink" style={sheetsStyle} href="/people">
                         <i className="fa fa-book"></i>
                         <span className="en">Authors</span>
-                        <span className="he">המחברים</span>
+                        <span className="he">רשימת מחברים</span>
                       </a>)];
       resources = (<div className="readerNavCalendar"><TwoOrThreeBox content={resources} width={this.width} /></div>);
 
@@ -3142,17 +3142,17 @@ var TextRange = React.createClass({
                         <span className="openLink" onClick={open}>
                           <img src="/static/img/open-64.png" />
                           <span className="en">Open</span>
-                          <span className="he">לִפְתוֹחַ</span>
+                          <span className="he">פתח</span>
                         </span>
                         <span className="compareLink" onClick={compare}>
                           <img src="/static/img/compare-64.png" />
                           <span className="en">Compare</span>
-                          <span className="he">לִפְתוֹחַ</span>
+                          <span className="he">השווה</span>
                         </span>
                         <span className="connectionsLink" onClick={connections}>
                           <i className="fa fa-link"></i>
                           <span className="en">Connections</span>
-                          <span className="he">לִפְתוֹחַ</span>
+                          <span className="he">קשרים</span>
                         </span>
                       </div>);
     return (
@@ -4084,7 +4084,7 @@ var AddToSourceSheetPanel = React.createClass({
       return (<div className={classes} onClick={selectSheet} key={sheet.id}>{sheet.title.stripHtml()}</div>);
     }.bind(this)) : <LoadingMessage />;
     sheetsContent     = sheets && sheets.length == 0 ? 
-                          (<div className="sheet"><span className="en">You don't have any Source Sheets yet.</span><span className="he">לא נמצאו לך דפי מקורות</span></div>) :
+                          (<div className="sheet"><span className="en">You don't have any Source Sheets yet.</span><span className="he">טרם יצרת דפי מקורות</span></div>) :
                           sheetsContent; 
     var createSheet = this.state.showNewSheetInput ? 
           (<div>
@@ -4916,7 +4916,7 @@ var SearchFilters = React.createClass({
           {(this.state.sheet_total > 0 && this.state.text_total > 0) ? totalBreakdown : null}
       </div>);
 
-    var runningQueryLine = (<LoadingMessage message="Searching..." />);
+    var runningQueryLine = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
     var show_filters_classes = (this.state.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down";
     var filter_panel = (<div>
           <div className="searchFilterToggle" onClick={this.toggleFilterView}>
