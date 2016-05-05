@@ -482,3 +482,11 @@ def library_stats(request):
 
 def core_link_stats(request):
     return HttpResponse(get_core_link_stats(), content_type="text/csv")
+
+
+def run_tests(request):
+    from subprocess import call
+    from local_settings import DEBUG
+    if not DEBUG:
+        return
+    call(["/var/bin/run_tests.sh"])
