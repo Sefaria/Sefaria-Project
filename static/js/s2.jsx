@@ -1749,7 +1749,7 @@ var ReaderNavigationMenu = React.createClass({
         var style = {"borderColor": sjs.categoryColor(cat)};
         var openCat = function() {this.props.setCategories([cat])}.bind(this);
         var heCat   = sjs.library.hebrewCategory(cat);
-        return (<div className="readerNavCategory" style={style} onClick={openCat}>
+        return (<div className="readerNavCategory" data-cat={cat} style={style} onClick={openCat}>
                   <span className="en">{cat}</span>
                   <span className="he">{heCat}</span>
                 </div>);
@@ -3818,7 +3818,7 @@ var TextFilter = React.createClass({
     var name = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
     var count = this.props.hideCounts || !this.props.count ? "" : ( <span className="enInHe"> ({this.props.count})</span>);
     return (
-      <div 
+      <div data-name={name}
         className={classes} 
         style={style}
         onClick={this.handleClick}>

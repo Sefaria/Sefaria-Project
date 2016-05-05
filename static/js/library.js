@@ -1100,7 +1100,6 @@ sjs.library.search.FilterNode.prototype = {
         this.selected = 2;
         if(this.parent) this.parent._deriveState();
     },
-
     _deriveState: function() {
         //Always called from children, so we can assume at least one
         var potentialState = this.children[0].selected;
@@ -1121,11 +1120,9 @@ sjs.library.search.FilterNode.prototype = {
             this.setUnselected(true, true);
         }
     },
-
     hasAppliedFilters: function() {
         return (this.getAppliedFilters().length > 0)
     },
-
     getAppliedFilters: function() {
         if (this.isUnselected()) {
             return [];
