@@ -5289,7 +5289,7 @@ var LoadingMessage = React.createClass({
   },
   render: function() {
     var message = this.props.message || "Loading...";
-    var heMessage = this.props.heMessage || "בטעינה...";
+    var heMessage = this.props.heMessage || "טוען מידע...";
     var classes = "loadingMessage " + (this.props.className || "");
     return (<div className={classes}>
               <span className="en">{message}</span>
