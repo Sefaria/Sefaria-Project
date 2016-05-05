@@ -21,8 +21,10 @@ def get_local_driver():
     driver.implicitly_wait(30)
     return driver
 
+
 def cap_to_string(cap):
-    return "{} {} on {} {}".format(cap.get("browser"), cap.get("browser_version"), cap.get("os"), cap.get("os_version"))
+    return cap.get["device"] or "{} {} on {} {}".format(cap.get("browser"), cap.get("browser_version"), cap.get("os"), cap.get("os_version"))
+
 
 class AtomicTest(object):
     """
@@ -63,12 +65,12 @@ def test_all(build):
             'tests': tests
         })
 
-    p = Pool(5)
-    results = p.map(_test_one, caps)
+    p = Pool(10)
+    results = p.map(_test_all_on_one_browser, caps)
     print "\n".join(results)
 
 
-def _test_one(cap):
+def _test_all_on_one_browser(cap):
     tests = cap.pop("tests")
     driver = get_browserstack_driver(cap)
 
