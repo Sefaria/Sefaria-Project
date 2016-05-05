@@ -52,37 +52,39 @@ def get_atomic_tests():
 def test_all(build):
     tests = get_atomic_tests()
     shuffle(tests)
+    description = ", ".join([test.__name__ for test in tests])
 
     caps = DESKTOP + MOBILE
-
-    def test_one(cap):
-        description = ", ".join([test.__name__ for test in tests])
+    for cap in caps:
         cap.update({
             'build': build,
             'project': 'Reader S2',
-            'name': description
+            'name': description,
+            'tests': tests
         })
-        driver = get_browserstack_driver(cap)
-
-        # Insure that we're on s2
-        driver.get(REMOTE_URL + "/s2")
-
-        for test_class in tests:
-            test = test_class(REMOTE_URL)
-            try:
-                test.run(driver)
-            except:
-                return "Fail: {}".format(cap_to_string(cap))
-            else:
-                return "Pass: {}".format(cap_to_string(cap))
-
-        driver.quit()
 
     p = Pool(5)
-    results = p.map(test_one, caps)
+    results = p.map(_test_one, caps)
     print "\n".join(results)
 
 
+def _test_one(cap):
+    tests = cap.pop("tests")
+    driver = get_browserstack_driver(cap)
+
+    # Insure that we're on s2
+    driver.get(REMOTE_URL + "/s2")
+
+    for test_class in tests:
+        test = test_class(REMOTE_URL)
+        try:
+            test.run(driver)
+        except:
+            return "Fail: {}".format(cap_to_string(cap))
+        else:
+            return "Pass: {}".format(cap_to_string(cap))
+
+    driver.quit()
 
 
 def test_local():
