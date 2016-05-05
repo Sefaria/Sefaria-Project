@@ -498,6 +498,16 @@ body {
 #sourceControls div:hover {
 	color: #08c;
 }
+.sideControls {
+	width: 20px !important;
+	left: 5px !important;
+	margin-left: 0 !important;
+	top: 32px !important;
+}
+
+.sideControls div {
+	display: block !important
+}
 
 .source {
 	position: relative;
@@ -1424,9 +1434,16 @@ input[type="file"] {
 }
 
 .inlineAddButton {
+    text-align: center;
+    width: 100%;
+    padding: 0;
+    bottom: -45px;
+    position: relative;
+    font-size: 30px;
 
 }
 
 #sourceLayoutLanguageMenuItems {
 	display: none;
 }
+
