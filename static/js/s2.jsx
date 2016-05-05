@@ -1791,7 +1791,7 @@ var ReaderNavigationMenu = React.createClass({
                      (<span className='divider' key="d1">•</span>),
                      (<a className="siteLink" key='login' href="/login">
                         <span className="en">Sign In</span>
-                        <span className="he">הירשם</span>
+                        <span className="he">התחבר</span>
                       </a>)];
       var calendar = [(<TextBlockLink sref={sjs.calendar.parasha} title={sjs.calendar.parashaName} heTitle="פרשה" category="Tanach" />),
                       (<TextBlockLink sref={sjs.calendar.haftara} title="Haftara" heTitle="הפטרה" category="Tanach" />),
