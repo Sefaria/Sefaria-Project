@@ -4320,7 +4320,7 @@ var LoginPanel = React.createClass({
 
                   <div className="loginPanelMessage">
                     <span className="en">You must be logged in to use this feature.</span>
-                    <span className="he">אתה חייב להיות מחובר כדי להשתמש בתכונה זו.</span>
+                    <span className="he">עליך להיות מחובר בכדי להשתמש באפשרות זו.</span>
                   </div>
                   <a className="button" href={"/login?next=" + currentPath}>
                     <span className="en">Log In</span>
@@ -4328,7 +4328,7 @@ var LoginPanel = React.createClass({
                   </a>
                   <a className="button" href={"/register?next=" + currentPath}>
                     <span className="en">Sign Up</span>
-                    <span className="he">להירשם</span>
+                    <span className="he">הרשם</span>
                   </a>
 
                 </div>
