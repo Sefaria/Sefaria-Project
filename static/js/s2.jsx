@@ -161,16 +161,6 @@ var ReaderApp = React.createClass({
       var nextPanels = this.state.panels; 
     }
 
-    // If search is active, and has changed
-    if ((nextPanels[0] && nextPanels[0].menuOpen == "search")
-        && ((prevPanels[0].searchQuery !== nextPanels[0].searchQuery)
-            || (prevPanels[0].appliedSearchFilters.length !== nextPanels[0].appliedSearchFilters.length)
-            || !(prevPanels[0].appliedSearchFilters.every((v, i) => v === nextPanels[0].appliedSearchFilters[i]))
-          )
-        ) {
-          return true;
-    }
-
     for (var i = 0; i < prevPanels.length; i++) {
       // Cycle through each panel, compare previous state to next state, looking for differences
       var prev  = prevPanels[i];
@@ -186,7 +176,10 @@ var ReaderApp = React.createClass({
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
           (prev.navigationSheetTag !== next.navigationSheetTag) ||
           (prev.version !== next.version) ||
-          (prev.versionLanguage !== next.versionLanguage))
+          (prev.versionLanguage !== next.versionLanguage) ||
+          (prev.searchQuery != next.searchQuery) ||
+          (prev.appliedSearchFilters.length !== next.appliedSearchFilters.length) ||
+          (!(prev.appliedSearchFilters.compare(next.appliedSearchFilters))))
           {
          return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
@@ -1862,6 +1855,7 @@ var ReaderNavigationMenu = React.createClass({
               <div className="content">
                 <div className="contentInner">
                 <h1>
+                  <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
                   <span className="en">The Sefaria Library</span>
                   <span className="he">האוסף של ספאריה</span>
                 </h1>
@@ -3226,8 +3220,8 @@ var TextSegment = React.createClass({
                                                       <span className="en"> <span className="segmentNumberInner">{this.props.segmentNumber}</span> </span>
                                                       <span className="he"> <span className="segmentNumberInner">{encodeHebrewNumeral(this.props.segmentNumber)}</span> </span>
                                                     </div>) : null;
-    var he = this.props.he || ""; // this.props.en;
-    var en = this.props.en || ""; // this.props.he;
+    var he = this.props.he || "";
+    var en = this.props.en || "";
     var classes=classNames({ segment: 1,
                      highlight: this.props.highlight,
                      heOnly: !this.props.en,
@@ -3663,12 +3657,6 @@ var TextList = React.createClass({
       return (
         <div className={classes}>
           <div className="textListTop">
-            <div className="leftButtons">
-              <ReaderNavigationMenuSearchButton onClick={this.props.openNav} />
-             </div>
-            <div className="rightButtons">
-              <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-            </div>
             <RecentFilterSet 
               asHeader={true}
               showText={this.props.showText}
@@ -4920,10 +4908,10 @@ var SearchFilters = React.createClass({
     var runningQueryLine = (<LoadingMessage message="Searching..." />);
     var show_filters_classes = (this.state.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down";
     var filter_panel = (<div>
-          <div className="searchFilterToggle">
+          <div className="searchFilterToggle" onClick={this.toggleFilterView}>
             <span className="en">Filter by Text   </span>
             <span className="he">סנן לפי כותר   </span>
-            <i className={show_filters_classes} onClick={this.toggleFilterView}/>
+            <i className={show_filters_classes} />
           </div>
           <div className="searchFilterBoxes" style={{display: this.state.displayFilters?"block":"none"}}>
             <div className="searchFilterCategoryBox">

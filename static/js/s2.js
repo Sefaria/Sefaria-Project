@@ -160,13 +160,6 @@ var ReaderApp = React.createClass({
       var nextPanels = this.state.panels;
     }
 
-    // If search is active, and has changed
-    if (nextPanels[0] && nextPanels[0].menuOpen == "search" && (prevPanels[0].searchQuery !== nextPanels[0].searchQuery || prevPanels[0].appliedSearchFilters.length !== nextPanels[0].appliedSearchFilters.length || !prevPanels[0].appliedSearchFilters.every(function (v, i) {
-      return v === nextPanels[0].appliedSearchFilters[i];
-    }))) {
-      return true;
-    }
-
     for (var i = 0; i < prevPanels.length; i++) {
       // Cycle through each panel, compare previous state to next state, looking for differences
       var prev = prevPanels[i];
@@ -176,7 +169,7 @@ var ReaderApp = React.createClass({
         return true;
       }
 
-      if (prev.mode !== next.mode || prev.menuOpen !== next.menuOpen || next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0] || next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0] || (next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter) || next.mode === "Connections" && !prev.refs.compare(next.refs) || prev.navigationSheetTag !== next.navigationSheetTag || prev.version !== next.version || prev.versionLanguage !== next.versionLanguage) {
+      if (prev.mode !== next.mode || prev.menuOpen !== next.menuOpen || next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0] || next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0] || (next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter) || next.mode === "Connections" && !prev.refs.compare(next.refs) || prev.navigationSheetTag !== next.navigationSheetTag || prev.version !== next.version || prev.versionLanguage !== next.versionLanguage || prev.searchQuery != next.searchQuery || prev.appliedSearchFilters.length !== next.appliedSearchFilters.length || !prev.appliedSearchFilters.compare(next.appliedSearchFilters)) {
         return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
         // Handle array comparison, !== could mean one is null or both are arrays
@@ -2053,6 +2046,7 @@ var ReaderNavigationMenu = React.createClass({
             React.createElement(
               "h1",
               null,
+              React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
               React.createElement(
                 "span",
                 { className: "en" },
@@ -3858,8 +3852,8 @@ var TextSegment = React.createClass({
         " "
       )
     ) : null;
-    var he = this.props.he || ""; // this.props.en;
-    var en = this.props.en || ""; // this.props.he;
+    var he = this.props.he || "";
+    var en = this.props.en || "";
     var classes = classNames({ segment: 1,
       highlight: this.props.highlight,
       heOnly: !this.props.en,
@@ -4313,16 +4307,6 @@ var TextList = React.createClass({
         React.createElement(
           "div",
           { className: "textListTop" },
-          React.createElement(
-            "div",
-            { className: "leftButtons" },
-            React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.props.openNav })
-          ),
-          React.createElement(
-            "div",
-            { className: "rightButtons" },
-            React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings })
-          ),
           React.createElement(RecentFilterSet, {
             asHeader: true,
             showText: this.props.showText,
@@ -5959,7 +5943,7 @@ var SearchFilters = React.createClass({
       null,
       React.createElement(
         "div",
-        { className: "searchFilterToggle" },
+        { className: "searchFilterToggle", onClick: this.toggleFilterView },
         React.createElement(
           "span",
           { className: "en" },
@@ -5970,7 +5954,7 @@ var SearchFilters = React.createClass({
           { className: "he" },
           "סנן לפי כותר   "
         ),
-        React.createElement("i", { className: show_filters_classes, onClick: this.toggleFilterView })
+        React.createElement("i", { className: show_filters_classes })
       ),
       React.createElement(
         "div",

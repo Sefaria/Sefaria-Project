@@ -321,14 +321,14 @@ body.dark {
 }
 .textColumn .loadingMessage.base.next.final {
 }
+.he, .heOnly .en {
+  font-size: 120%;
+}
 .readerPanel .he,
-.readerPanel .heOnly {
+.readerPanel .heOnly .en {
   font-family: "Taamey Frank", "Times New Roman", serif;
   direction: rtl;
   text-align: right;
-}
-.he, .heOnly .en {
-  font-size: 120%;
 }
 .readerPanel.hebrew {
   direction: rtl;
@@ -349,9 +349,9 @@ body.dark {
 .readerPanel.hebrew .en {
   display: none;
 }
-body .bilingual .heOnly .en,
-body .bilingual .enOnly .he {
-  display: none;
+.readerPanel.english .heOnly .he,
+.readerPanel.bilingual .heOnly .he {
+  display: inline;
 }
 .languageToggle {
   display: inline;
@@ -953,6 +953,8 @@ display: block;margin: 0 auto;}
 
 .searchContent .searchTopMatter {
   padding-bottom: 10px;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 30px;
 }
 
 .searchContent .searchStatusLine {
@@ -968,46 +970,54 @@ display: block;margin: 0 auto;}
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
 }
-
 .searchContent .searchFilterToggle {
   color: #999;
-  font-size: 12px;
+  font-size: 18px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  font-weight: lighter;
 }
-
+.searchContent .searchFilterToggle:hover {
+  text-decoration: underline;
+}
+.searchContent .searchFilterToggle .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.searchContent .searchFilterToggle .he {
+  font-family: "Open Sans Hebrew", sans-serif;
+}
 .searchContent .searchFilterToggle i {
   color: #999;
-  font-size: 12px;
   padding-left: 5px;
 }
 .hebrew .searchContent .searchFilterToggle i {
   padding-left: 0;
   padding-right: 5px;
 }
-
 .searchContent .searchFilterBoxes {
   margin: 10px 0;
   background: #eee;
   width: 100%;
 }
-
 .searchContent .searchFilterBoxes li {
   display: block;
   padding: 10px 0 10px 15px;
   font-size: 14px;
   letter-spacing: 1px;
+  cursor: pointer;
+}
+.searchContent .searchFilterBoxes li:hover {
+  background-color: #e0e0e0;
 }
 .hebrew .searchContent .searchFilterBoxes li {
   padding: 10px 15px 10px 0;
 }
-
 .searchContent .searchFilterBoxes li input {
   padding-right: 10px
 }
-
 .searchContent .searchFilterBoxes li .filter-title {
    color: #222;
 }
-
 .searchContent .searchFilterBoxes li .filter-count {
    color: #999;
 }
@@ -1036,7 +1046,7 @@ display: block;margin: 0 auto;}
 }
 
 .searchContent .result {
-  border-top: thin solid #eee;
+  border-bottom: thin solid #eee;
   padding-bottom: 12px;
 }
 .searchContent .result a:hover {
@@ -1051,7 +1061,6 @@ display: block;margin: 0 auto;}
 .searchContent .result .result-title {
   color: #999;
   font-weight: lighter;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   font-size: 1.7em;
   display: block;
@@ -1715,6 +1724,7 @@ display: block;margin: 0 auto;}
 .addToSourceSheetPanel.textList.fullPanel .texts {
   padding: 0 50px;
 }
+.textList .texts,
 .textList .fullFilterView {
   padding: 30px 30px 80px 30px;
 }
@@ -1920,8 +1930,6 @@ display: block;margin: 0 auto;}
 }
 .dark .fullFilterView .categoryFilter {
   background-color: #333;
-}
-.fullFilterView .textFilter {
 }
 .fullFilterView .categoryFilterGroup {
   margin-bottom: 30px;
