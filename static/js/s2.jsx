@@ -3339,13 +3339,13 @@ var ConnectionsPanel = React.createClass({
                   editNote={this.props.editNote} />);
 
     } else if (this.props.mode === "Add Connection") {
-      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
+      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." heMessage="הרכיב הזה נמצא בבנייה..." />);
 
     } else if (this.props.mode === "Edit Text") {
-      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
+      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." heMessage="הרכיב הזה נמצא בבנייה..." />);
 
     } else if (this.props.mode === "Add Translation") {
-      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." />);
+      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." heMessage="הרכיב הזה נמצא בבנייה..." />);
 
     } else if (this.props.mode === "Login") {
       content = (<LoginPanel fullPanel={this.props.fullPanel} />);
@@ -3382,14 +3382,17 @@ var ConnectionsPanelTabs = React.createClass({
     setConnectionsMode: React.PropTypes.func.isRequired
   },
   render: function() {
-    var tabNames = ["Connections", "Tools"];
+    var tabNames = [{"en": "Connections", "he": "קישורים"}, {"en": "Tools", "he":"כלים"}];
     var tabs = tabNames.map(function(item) {
       var tabClick = function() {
-        this.props.setConnectionsMode(item)
+        this.props.setConnectionsMode(item["en"])
       }.bind(this);
-      var active  = item === this.props.activeTab;
+      var active  = item["en"] === this.props.activeTab;
       var classes = classNames({connectionsPanelTab: 1, active: active});
-      return (<span className={classes} onClick={tabClick} key={item}>{item}</span>);
+      return (<div className={classes} onClick={tabClick} key={item["en"]}>
+                <span className="en">{item["en"]}</span>
+                <span className="he">{item["he"]}</span>
+              </div>);
     }.bind(this));
 
     return (<div className="connectionsPanelTabs">{tabs}</div>);
@@ -3946,8 +3949,8 @@ var ToolsPanel = React.createClass({
           <div className="contentInner">
             <ToolsButton en="Share" he="שתף" icon="share-square-o" onClick={function() {this.props.setConnectionsMode("Share")}.bind(this)} />
             <ToolsButton en="Add to Source Sheet" he="הוסף לדף מקורות" icon="plus-circle" onClick={function() {this.props.setConnectionsMode("Add to Source Sheet")}.bind(this)} />
-            <ToolsButton en="Add Note" he="הוסף הערה" icon="pencil" onClick={function() {this.props.setConnectionsMode("Add Note")}.bind(this)} />
-            <ToolsButton en="My Notes" he="ההערות שלי" icon="file-text-o" onClick={function() {this.props.setConnectionsMode("My Notes")}.bind(this)} />
+            <ToolsButton en="Add Note" he="הוסף רשומה" icon="pencil" onClick={function() {this.props.setConnectionsMode("Add Note")}.bind(this)} />
+            <ToolsButton en="My Notes" he="הרשומות שלי" icon="file-text-o" onClick={function() {this.props.setConnectionsMode("My Notes")}.bind(this)} />
             <ToolsButton en="Add Connection" he="הוסף קישור לטקסט אחר" icon="link" onClick={function() {this.props.setConnectionsMode("Add Connection")}.bind(this)} />
             <ToolsButton en="Edit Text" he="ערוך טקסט" icon="edit" onClick={function() {this.props.setConnectionsMode("Edit Text")}.bind(this)} />
             <ToolsButton en="Add Translation" he="הוסף תרגום" icon="language" onClick={function() {this.props.setConnectionsMode("Edit Text")}.bind(this)} />
@@ -4013,9 +4016,9 @@ var SharePanel = React.createClass({
         <div className="texts">
           <div className="contentInner">
             <input className="shareInput" value={this.props.url} />
-            <ToolsButton en="Facebook" he="Facebook" icon="facebook" onClick={shareFacebook} /> 
-            <ToolsButton en="Twitter" he="Twitter" icon="twitter" onClick={shareTwitter} /> 
-            <ToolsButton en="Email" he="Email" icon="envelope-o" onClick={shareEmail} /> 
+            <ToolsButton en="Facebook" he="פייסבוק" icon="facebook" onClick={shareFacebook} />
+            <ToolsButton en="Twitter" he="טוויטר" icon="twitter" onClick={shareTwitter} />
+            <ToolsButton en="Email" he="אימייל" icon="envelope-o" onClick={shareEmail} />
           </div>
         </div>
       </div>);
@@ -4081,16 +4084,21 @@ var AddToSourceSheetPanel = React.createClass({
       return (<div className={classes} onClick={selectSheet} key={sheet.id}>{sheet.title.stripHtml()}</div>);
     }.bind(this)) : <LoadingMessage />;
     sheetsContent     = sheets && sheets.length == 0 ? 
-                          (<div className="sheet"><span className="en">You don't have any Source Sheets yet.</span><span className="he">You do't have any Source Sheet yet.</span></div>) : 
+                          (<div className="sheet"><span className="en">You don't have any Source Sheets yet.</span><span className="he">לא נמצאו לך דפי מקורות</span></div>) :
                           sheetsContent; 
     var createSheet = this.state.showNewSheetInput ? 
           (<div>
             <input className="newSheetInput" placeholder="Title your Sheet"/>
             <div className="button white small" onClick={this.createSheet} >
               <span className="en">Create</span>
-              <span className="he">לִיצוֹר</span>
+              <span className="he">צור חדש</span>
             </div>
-           </div>) : (<div className="button white" onClick={this.openNewSheet}>Create a Source Sheet</div>);
+           </div>)
+          :
+          (<div className="button white" onClick={this.openNewSheet}>
+              <span className="en">Create a Source Sheet</span>
+              <span className="he">צור דף מקורות חדש</span>
+          </div>);
     var classes = classNames({addToSourceSheetPanel: 1, textList: 1, fullPanel: this.props.fullPanel});
     return (
       <div className={classes}>
@@ -4098,7 +4106,10 @@ var AddToSourceSheetPanel = React.createClass({
           <div className="contentInner">
             {createSheet}
             <div className="sourceSheetSelector">{sheetsContent}</div>
-            <div className="button" onClick={this.addToSourceSheet}>Add to Sheet</div>
+            <div className="button" onClick={this.addToSourceSheet}>
+              <span className="en">Add to Sheet</span>
+              <span className="he">הוסף לדף המקורות</span>
+            </div>
           </div>
         </div>
       </div>);
@@ -4114,11 +4125,11 @@ var ConfirmAddToSheetPanel = React.createClass({
     return (<div className="confirmAddToSheetPanel">
               <div className="message">
                 <span className="en">Your source has been added.</span>
-                <span className="he">המקור שלך נמחק.</span>
+                <span className="he">הטקסט נוסף בהצלחה לדף המקורות</span>
               </div>
               <a className="button white" href={"/sheets/" + this.props.sheetId}>
                 <span className="en">Go to Source Sheet <i className="fa fa-angle-right"></i></span>
-                <span className="he">לדפ מקורות<i className="fa fa-angle-left"></i></span>
+                <span className="he">עבור לדף המקורות<i className="fa fa-angle-left"></i></span>
               </a>
             </div>);
   }
@@ -4215,26 +4226,26 @@ var AddNotePanel = React.createClass({
                     <div className={privateClasses} onClick={this.setPrivate}>
 
                       <span className="en"><i className="fa fa-lock"></i> Private</span>
-                      <span className="he"><i className="fa fa-lock"></i> פְּרָטִי</span>                      
+                      <span className="he"><i className="fa fa-lock"></i>רשומה פרטית</span>
                     </div>
                     <div className={publicClasses} onClick={this.setPublic}>
                       <span className="en">Public</span>
-                      <span className="he">פּוּמְבֵּי</span>
+                      <span className="he">רשומה כללית</span>
                     </div>
                   </div>
                   <div className="line"></div>
                   <div className="button fillWidth" onClick={this.saveNote}>
                     <span className="en">{this.props.noteId ? "Save" : "Add Note"}</span>
-                    <span className="he">{this.props.noteId ? "להציל": "להוסיף הערה"}</span>                  
+                    <span className="he">{this.props.noteId ? "שמור": "הוסף רשומה"}</span>
                   </div>
                   <div className="button white fillWidth" onClick={this.cancel}>
                     <span className="en">Cancel</span>
-                    <span className="he">לְבַטֵל</span>    
+                    <span className="he">בטל</span>
                   </div>
                   {this.props.noteId ? 
                     (<div className="deleteNote" onClick={this.deleteNote}>
                       <span className="en">Delete Note</span>
-                      <span className="he">מחק הערה</span>   
+                      <span className="he">מחק רשומה</span>
                      </div>): null }
 
                 </div>
@@ -4286,7 +4297,7 @@ var MyNotesPanel = React.createClass({
                   {myNotes}
                   <ToolsButton 
                     en="Add Note" 
-                    he="להוסיף הערה" 
+                    he="הוסף רשומה"
                     icon="pencil" 
                     onClick={function() {this.props.setConnectionsMode("Add Note")}.bind(this)} />
                 </div>
@@ -5278,7 +5289,7 @@ var LoadingMessage = React.createClass({
   },
   render: function() {
     var message = this.props.message || "Loading...";
-    var heMessage = this.props.heMessage || "טעינה...";
+    var heMessage = this.props.heMessage || "בטעינה...";
     var classes = "loadingMessage " + (this.props.className || "");
     return (<div className={classes}>
               <span className="en">{message}</span>
