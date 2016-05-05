@@ -3,6 +3,7 @@ from config import *
 from selenium import webdriver
 from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException
 from random import shuffle
+from multiprocessing import Pool
 import time
 
 
@@ -50,15 +51,11 @@ def get_atomic_tests():
 
 def test_all(build):
     tests = get_atomic_tests()
-    
-    results = []
-    caps =  DESKTOP + MOBILE
-    total = len(caps)
-    passed = 0
-    failed = 0
+    shuffle(tests)
 
-    for cap in caps:
-        shuffle(tests)
+    caps = DESKTOP + MOBILE
+
+    def test_one(cap):
         description = ", ".join([test.__name__ for test in tests])
         cap.update({
             'build': build,
@@ -71,22 +68,22 @@ def test_all(build):
         driver.get(REMOTE_URL + "/s2")
 
         for test_class in tests:
-
             test = test_class(REMOTE_URL)
             try:
                 test.run(driver)
             except:
-                results.append("Fail: {}".format(cap_to_string(cap)))
-                failed += 1
-                break
-        else:
-            results.append("Pass: {}".format(cap_to_string(cap)))
-            passed += 1
+                return "Fail: {}".format(cap_to_string(cap))
+            else:
+                return "Pass: {}".format(cap_to_string(cap))
 
         driver.quit()
 
+    p = Pool(5)
+    results = p.map(test_one, caps)
     print "\n".join(results)
-    print "{}/{} ({}%) passed".format(passed, total, (passed / total) * 100)
+
+
+
 
 def test_local():
     tests = get_atomic_tests()
