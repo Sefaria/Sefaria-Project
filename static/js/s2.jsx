@@ -1791,7 +1791,7 @@ var ReaderNavigationMenu = React.createClass({
                      (<span className='divider' key="d1">•</span>),
                      (<a className="siteLink" key='login' href="/login">
                         <span className="en">Sign In</span>
-                        <span className="he">התחבר</span>
+                        <span className="he"></span>
                       </a>)];
       var calendar = [(<TextBlockLink sref={sjs.calendar.parasha} title={sjs.calendar.parashaName} heTitle="פרשה" category="Tanach" />),
                       (<TextBlockLink sref={sjs.calendar.haftara} title="Haftara" heTitle="הפטרה" category="Tanach" />),
@@ -5122,12 +5122,12 @@ var AccountPanel = React.createClass({
   render: function() {
     var width = $(window).width();
     var accountContent = [
-      (<BlockLink target="/my/profile" title="Profile" heTitle="Profile"/>),
+      (<BlockLink target="/my/profile" title="Profile" heTitle="פרופיל"/>),
       (<BlockLink target="/sheets/private" title="Source Sheets" heTitle="דפי מקורות" />),
-      (<BlockLink target="#" title="Reading History" heTitle="Reading History" />),
-      (<BlockLink target="#" title="Notes" heTitle="Notes" />),
-      (<BlockLink target="/settings/account" title="Settings" heTitle="Settings" />),
-      (<BlockLink target="/logout" title="Log Out" heTitle="Log Out" />)
+      (<BlockLink target="#" title="Reading History" heTitle="היסטוריה קריאה" />),
+      (<BlockLink target="#" title="Notes" heTitle="רשומות" />),
+      (<BlockLink target="/settings/account" title="Settings" heTitle="הגדרות" />),
+      (<BlockLink target="/logout" title="Log Out" heTitle="ניתוק" />)
     ];
     accountContent = (<TwoOrThreeBox content={accountContent} width={width} />);
 
@@ -5136,16 +5136,16 @@ var AccountPanel = React.createClass({
       (<BlockLink target="/faq" title="FAQ" heTitle="שאלות נפוצות" />),
       (<BlockLink target="http://blog.sefaria.org" title="Blog" heTitle="בלוג" />),
       (<BlockLink target="/educators" title="Educators" heTitle="מחנכים" />),
-      (<BlockLink target="/help" title="Help" heTitle="Help" />),
+      (<BlockLink target="/help" title="Help" heTitle="עזרה" />),
       (<BlockLink target="/team" title="Team" heTitle="צוות" />)
     ];
 
     learnContent = (<TwoOrThreeBox content={learnContent} width={width} />);
 
     var contributeContent = [
-      (<BlockLink target="/activity" title="Recent Activity" heTitle="פעילות אחרונהs" />),
-      (<BlockLink target="/metrics" title="Metrics" heTitle="מדדים" />),  
-      (<BlockLink target="/contribute" title="Contribute" heTitle="הצטרף אלינו" />),
+      (<BlockLink target="/activity" title="Recent Activity" heTitle="פעילות אחרונה" />),
+      (<BlockLink target="/metrics" title="Metrics" heTitle="מדדים" />),
+      (<BlockLink target="/contribute" title="Contribute" heTitle="הצטרפות לעשיה" />),
       (<BlockLink target="/donate" title="Donate" heTitle="תרומות" />),
       (<BlockLink target="/supporters" title="Supporters" heTitle="תומכים" />),
       (<BlockLink target="/jobs" title="Jobs" heTitle="דרושים" />),
@@ -5158,7 +5158,7 @@ var AccountPanel = React.createClass({
       (<BlockLink target="http://twitter.com/SefariaProject" title="Twitter" heTitle="טוויטר" />),      
       (<BlockLink target="http://www.youtube.com/user/SefariaProject" title="YouTube" heTitle="יוטיוב" />),
       (<BlockLink target="http://www.github.com/Sefaria" title="GitHub" heTitle="גיטהאב" />),
-      (<BlockLink target="mailto:hello@sefaria.org" title="Email" heTitle='דוא"ל' />)
+      (<BlockLink target="mailto:hello@sefaria.org" title="Email" heTitle='אימייל' />)
     ];
     connectContent = (<TwoOrThreeBox content={connectContent} width={width} />);
 
@@ -5166,10 +5166,10 @@ var AccountPanel = React.createClass({
       <div className="accountPanel readerNavMenu">
         <div className="content">
           <div className="contentInner">
-           <ReaderNavigationMenuSection title="Account" heTitle="Account" content={accountContent} />
-           <ReaderNavigationMenuSection title="Learn" heTitle="למיד" content={learnContent} />
-           <ReaderNavigationMenuSection title="Contribute" heTitle="Contribute" content={contributeContent} />
-           <ReaderNavigationMenuSection title="Connect" heTitle="התחבר" content={connectContent} />
+           <ReaderNavigationMenuSection title="Account" heTitle="חשבון משתמש" content={accountContent} />
+           <ReaderNavigationMenuSection title="Learn" heTitle="לימוד" content={learnContent} />
+           <ReaderNavigationMenuSection title="Contribute" heTitle="עשייה" content={contributeContent} />
+           <ReaderNavigationMenuSection title="Connect" heTitle="התחברות" content={connectContent} />
           </div>
         </div>
       </div>
