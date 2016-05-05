@@ -20,6 +20,8 @@ def get_local_driver():
     driver.implicitly_wait(30)
     return driver
 
+def cap_to_string(cap):
+    return "{} {} on {} {}".format(cap.get("browser"), cap.get("browser_version"), cap.get("os"), cap.get("os_version"))
 
 class AtomicTest(object):
     """
@@ -48,8 +50,14 @@ def get_atomic_tests():
 
 def test_all(build):
     tests = get_atomic_tests()
+    
+    results = []
+    caps =  DESKTOP + MOBILE
+    total = len(caps)
+    passed = 0
+    failed = 0
 
-    for cap in DESKTOP + MOBILE:
+    for cap in caps:
         shuffle(tests)
         description = ", ".join([test.__name__ for test in tests])
         cap.update({
@@ -63,10 +71,22 @@ def test_all(build):
         driver.get(REMOTE_URL + "/s2")
 
         for test_class in tests:
+
             test = test_class(REMOTE_URL)
-            test.run(driver)
+            try:
+                test.run(driver)
+            except:
+                results.append("Fail: {}".format(cap_to_string(cap)))
+                failed += 1
+                break
+        else:
+            results.append("Pass: {}".format(cap_to_string(cap)))
+            passed += 1
+
         driver.quit()
 
+    print "\n".join(results)
+    print "{}/{} ({}%) passed".format(passed, total, (passed / total) * 100)
 
 def test_local():
     tests = get_atomic_tests()
