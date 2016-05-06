@@ -3175,10 +3175,9 @@ var TextColumn = React.createClass({
     if (this.loadingContentAtTop || !this.initialScrollTopSet) {
       console.log("text load, setting scroll");
       this.setScrollPosition();
-    } else {
-      console.log("text load, ais");
-      this.adjustInfiniteScroll();
     }
+    console.log("text load, ais");
+    this.adjustInfiniteScroll();
   },
   setScrollPosition: function setScrollPosition() {
     //console.log("ssp");
