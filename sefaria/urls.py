@@ -96,6 +96,8 @@ urlpatterns += patterns('reader.views',
     (r'^add/(?P<ref>.+)$', 'edit_text'),
     (r'^translate/(?P<ref>.+)$', 'edit_text'),
     (r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'edit_text'),
+    (r'^edit/(?P<ref>.+)$', 'edit_text'),
+
 )
 
 # Texts Page

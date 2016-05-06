@@ -730,6 +730,7 @@ var ReaderApp = React.createClass({
           registerAvailableFilters: this.updateAvailableFiltersInPanel,
           closePanel: closePanel,
           panelsOpen: this.state.panels.length,
+          masterPanelLanguage: panel.mode === "Connections" ? this.state.panels[i - 1].settings.language : panel.settings.language,
           layoutWidth: width })
       ));
     }
@@ -988,6 +989,7 @@ var ReaderPanel = React.createClass({
     highlightedRefs: React.PropTypes.array,
     hideNavHeader: React.PropTypes.bool,
     multiPanel: React.PropTypes.bool,
+    masterPanelLanguage: React.PropTypes.string,
     panelsOpen: React.PropTypes.number,
     layoutWidth: React.PropTypes.number
   },
@@ -1372,13 +1374,21 @@ var ReaderPanel = React.createClass({
         key: "text" }));
     }
     if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections") {
+      var langMode = this.props.masterPanelLanguage || this.state.settings.language;
+      var data = this.currentData();
+      var enLocked = data.versionStatus === "locked";
+      var heLocked = data.heVersionStatus === "locked";
+      var canEditText = langMode === "hebrew" && !heLocked || langMode === "english" && !enLocked || sjs.is_moderator && langMode !== "bilingual";
       items.push(React.createElement(ConnectionsPanel, {
         srefs: this.state.mode === "Connections" ? this.state.refs : this.state.highlightedRefs,
         filter: this.state.filter || [],
         mode: this.state.connectionsMode || "Connections",
         recentFilters: this.state.recentFilters,
+        version: this.state.version,
+        versionLanguage: this.state.versionLanguage,
         fullPanel: this.props.multiPanel,
         multiPanel: this.props.multiPanel,
+        canEditText: canEditText,
         setFilter: this.setFilter,
         setConnectionsMode: this.setConnectionsMode,
         closeConectionsInPanel: this.closeConnectionsInPanel,
@@ -3878,9 +3888,12 @@ var ConnectionsPanel = React.createClass({
     setFilter: React.PropTypes.func.isRequired,
     setConnectionsMode: React.PropTypes.func.isRequired,
     editNote: React.PropTypes.func.isRequired,
+    version: React.PropTypes.string,
+    versionLanguge: React.PropTypes.string,
     noteBeingEdited: React.PropTypes.object,
     fullPanel: React.PropTypes.bool,
     multiPanel: React.PropTypes.bool,
+    canEditText: React.PropTypes.bool,
     onTextClick: React.PropTypes.func,
     onCitationClick: React.PropTypes.func,
     onNavigationClick: React.PropTypes.func,
@@ -3918,6 +3931,7 @@ var ConnectionsPanel = React.createClass({
         recentFilters: this.props.recentFilters,
         fullPanel: this.props.fullPanel,
         multiPanel: this.props.multiPanel,
+        canEditText: this.props.canEditText,
         setFilter: this.props.setFilter,
         setConnectionsMode: this.props.setConnectionsMode,
         onTextClick: this.props.onTextClick,
@@ -4655,8 +4669,11 @@ var ToolsPanel = React.createClass({
     filter: React.PropTypes.array.isRequired,
     recentFilters: React.PropTypes.array.isRequired,
     setConnectionsMode: React.PropTypes.func.isRequired,
+    version: React.PropTypes.string,
+    versionLanguge: React.PropTypes.string,
     fullPanel: React.PropTypes.bool,
     multiPanel: React.PropTypes.bool,
+    canEditText: React.PropTypes.bool,
     setFilter: React.PropTypes.func,
     onTextClick: React.PropTypes.func,
     onCitationClick: React.PropTypes.func,
@@ -4671,6 +4688,20 @@ var ToolsPanel = React.createClass({
     return {};
   },
   render: function render() {
+    var currentPath = window.location.pathname + window.location.search;
+    var editText = this.props.canEditText ? function () {
+      // TODO this is only an approximation
+
+      var path = "/edit/" + this.props.srefs[0];
+      if (this.props.version) {
+        path += "/" + this.props.versionLanguage + "/" + this.props.version;
+      }
+      path += "?next=" + currentPath;
+      window.location = path;
+    }.bind(this) : null;
+    var addTranslation = function () {
+      window.location = "/translate/" + this.props.srefs[0] + "?next=" + currentPath;
+    }.bind(this);
     var classes = classNames({ toolsPanel: 1, textList: 1, fullPanel: this.props.fullPanel });
     return React.createElement(
       "div",
@@ -4693,15 +4724,11 @@ var ToolsPanel = React.createClass({
           React.createElement(ToolsButton, { en: "My Notes", he: "My Notes", icon: "file-text-o", onClick: function () {
               this.props.setConnectionsMode("My Notes");
             }.bind(this) }),
+          React.createElement(ToolsButton, { en: "Add Translation", he: "Add Translation", icon: "language", onClick: addTranslation }),
           React.createElement(ToolsButton, { en: "Add Connection", he: "Add Connection", icon: "link", onClick: function () {
               this.props.setConnectionsMode("Add Connection");
             }.bind(this) }),
-          React.createElement(ToolsButton, { en: "Edit Text", he: "Edit Text", icon: "edit", onClick: function () {
-              this.props.setConnectionsMode("Edit Text");
-            }.bind(this) }),
-          React.createElement(ToolsButton, { en: "Add Translation", he: "Add Translation", icon: "language", onClick: function () {
-              this.props.setConnectionsMode("Edit Text");
-            }.bind(this) })
+          editText ? React.createElement(ToolsButton, { en: "Edit Text", he: "Edit Text", icon: "edit", onClick: editText }) : null
         )
       )
     );

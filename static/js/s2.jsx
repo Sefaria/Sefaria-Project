@@ -728,6 +728,7 @@ var ReaderApp = React.createClass({
                       registerAvailableFilters={this.updateAvailableFiltersInPanel}
                       closePanel={closePanel}
                       panelsOpen={this.state.panels.length}
+                      masterPanelLanguage={panel.mode === "Connections" ? this.state.panels[i-1].settings.language : panel.settings.language}
                       layoutWidth={width} />
                   </div>);
     }
@@ -913,38 +914,39 @@ var Header = React.createClass({
 
 var ReaderPanel = React.createClass({
   propTypes: {
-    initialRefs:            React.PropTypes.array,
-    initialMode:            React.PropTypes.string,
-    initialConnectionsMode: React.PropTypes.string,
-    initialVersion:         React.PropTypes.string,
-    initialVersionLanguage: React.PropTypes.string,
-    initialFilter:          React.PropTypes.array,
-    initialHighlightedRefs: React.PropTypes.array,
-    initialMenu:            React.PropTypes.string,
-    initialQuery:           React.PropTypes.string,
-    initialAppliedSearchFilters:   React.PropTypes.array,
-    initialSheetsTag:       React.PropTypes.string,
-    initialState:           React.PropTypes.object, // if present, trumps all props above
-    setCentralState:        React.PropTypes.func,
-    onSegmentClick:         React.PropTypes.func,
-    onCitationClick:        React.PropTypes.func,
-    onTextListClick:        React.PropTypes.func,
-    onNavTextClick:         React.PropTypes.func,
-    onRecentClick:          React.PropTypes.func,
-    onSearchResultClick:    React.PropTypes.func,
-    onUpdate:               React.PropTypes.func,
-    closePanel:             React.PropTypes.func,
-    closeMenus:             React.PropTypes.func,
-    setDefaultLanguage:     React.PropTypes.func,
-    selectVersion:          React.PropTypes.func,
-    onQueryChange:          React.PropTypes.func,
-    updateSearchFilter:     React.PropTypes.func,
-    registerAvailableFilters: React.PropTypes.func,
-    highlightedRefs:        React.PropTypes.array,
-    hideNavHeader:          React.PropTypes.bool,
-    multiPanel:             React.PropTypes.bool,
-    panelsOpen:             React.PropTypes.number,
-    layoutWidth:            React.PropTypes.number
+    initialRefs:                 React.PropTypes.array,
+    initialMode:                 React.PropTypes.string,
+    initialConnectionsMode:      React.PropTypes.string,
+    initialVersion:              React.PropTypes.string,
+    initialVersionLanguage:      React.PropTypes.string,
+    initialFilter:               React.PropTypes.array,
+    initialHighlightedRefs:      React.PropTypes.array,
+    initialMenu:                 React.PropTypes.string,
+    initialQuery:                React.PropTypes.string,
+    initialAppliedSearchFilters: React.PropTypes.array,
+    initialSheetsTag:            React.PropTypes.string,
+    initialState:                React.PropTypes.object, // if present, trumps all props above
+    setCentralState:             React.PropTypes.func,
+    onSegmentClick:              React.PropTypes.func,
+    onCitationClick:             React.PropTypes.func,
+    onTextListClick:             React.PropTypes.func,
+    onNavTextClick:              React.PropTypes.func,
+    onRecentClick:               React.PropTypes.func,
+    onSearchResultClick:         React.PropTypes.func,
+    onUpdate:                    React.PropTypes.func,
+    closePanel:                  React.PropTypes.func,
+    closeMenus:                  React.PropTypes.func,
+    setDefaultLanguage:          React.PropTypes.func,
+    selectVersion:               React.PropTypes.func,
+    onQueryChange:               React.PropTypes.func,
+    updateSearchFilter:          React.PropTypes.func,
+    registerAvailableFilters:    React.PropTypes.func,
+    highlightedRefs:             React.PropTypes.array,
+    hideNavHeader:               React.PropTypes.bool,
+    multiPanel:                  React.PropTypes.bool,
+    masterPanelLanguage:         React.PropTypes.string,
+    panelsOpen:                  React.PropTypes.number,
+    layoutWidth:                 React.PropTypes.number
   },
   getInitialState: function() {
     // When this component is managed by a parent, all it takes is initialState
@@ -1313,13 +1315,23 @@ var ReaderPanel = React.createClass({
           key="text" />);
     }
     if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections") {
+      var langMode = this.props.masterPanelLanguage || this.state.settings.language;
+      var data     = this.currentData();
+      var enLocked = data.versionStatus === "locked";
+      var heLocked = data.heVersionStatus === "locked";
+      var canEditText = langMode === "hebrew" && !heLocked ||
+                        langMode === "english" && !enLocked ||
+                        sjs.is_moderator && langMode !== "bilingual";
       items.push(<ConnectionsPanel 
           srefs={this.state.mode === "Connections" ? this.state.refs : this.state.highlightedRefs} 
           filter={this.state.filter || []}
           mode={this.state.connectionsMode || "Connections"}
           recentFilters={this.state.recentFilters}
+          version={this.state.version}
+          versionLanguage={this.state.versionLanguage}
           fullPanel={this.props.multiPanel}
           multiPanel={this.props.multiPanel}
+          canEditText={canEditText}
           setFilter={this.setFilter}
           setConnectionsMode={this.setConnectionsMode}
           closeConectionsInPanel={this.closeConnectionsInPanel} 
@@ -3245,9 +3257,12 @@ var ConnectionsPanel = React.createClass({
     setFilter:               React.PropTypes.func.isRequired,
     setConnectionsMode:      React.PropTypes.func.isRequired,
     editNote:                React.PropTypes.func.isRequired,
+    version:                 React.PropTypes.string,
+    versionLanguge:          React.PropTypes.string,
     noteBeingEdited:         React.PropTypes.object,
     fullPanel:               React.PropTypes.bool,
     multiPanel:              React.PropTypes.bool,
+    canEditText:             React.PropTypes.bool,
     onTextClick:             React.PropTypes.func,
     onCitationClick:         React.PropTypes.func,
     onNavigationClick:       React.PropTypes.func,
@@ -3286,6 +3301,7 @@ var ConnectionsPanel = React.createClass({
                     recentFilters={this.props.recentFilters}
                     fullPanel={this.props.fullPanel}
                     multiPanel={this.props.multiPanel}
+                    canEditText={this.props.canEditText}
                     setFilter={this.props.setFilter}
                     setConnectionsMode={this.props.setConnectionsMode}
                     onTextClick={this.props.onTextClick}
@@ -3919,8 +3935,11 @@ var ToolsPanel = React.createClass({
     filter:                  React.PropTypes.array.isRequired,
     recentFilters:           React.PropTypes.array.isRequired,
     setConnectionsMode:      React.PropTypes.func.isRequired,
+    version:                 React.PropTypes.string,
+    versionLanguge:          React.PropTypes.string,
     fullPanel:               React.PropTypes.bool,
     multiPanel:              React.PropTypes.bool,
+    canEditText:             React.PropTypes.bool,
     setFilter:               React.PropTypes.func,
     onTextClick:             React.PropTypes.func,
     onCitationClick:         React.PropTypes.func,
@@ -3937,6 +3956,20 @@ var ToolsPanel = React.createClass({
     };
   },
   render: function() {
+    var currentPath = window.location.pathname + window.location.search;
+    var editText = this.props.canEditText ? function() {
+      // TODO this is only an approximation
+      
+      var path = "/edit/" + this.props.srefs[0];
+      if (this.props.version) {
+        path += "/" + this.props.versionLanguage + "/" + this.props.version;
+      }
+      path += "?next=" + currentPath;
+      window.location = path;
+    }.bind(this) : null;
+    var addTranslation = function() {
+      window.location = "/translate/" + this.props.srefs[0] + "?next=" + currentPath;
+    }.bind(this);
     var classes = classNames({toolsPanel: 1, textList: 1, fullPanel: this.props.fullPanel});
     return (
       <div className={classes}>
@@ -3946,9 +3979,9 @@ var ToolsPanel = React.createClass({
             <ToolsButton en="Add to Source Sheet" he="Add to Source Sheet" icon="plus-circle" onClick={function() {this.props.setConnectionsMode("Add to Source Sheet")}.bind(this)} /> 
             <ToolsButton en="Add Note" he="Add Note" icon="pencil" onClick={function() {this.props.setConnectionsMode("Add Note")}.bind(this)} /> 
             <ToolsButton en="My Notes" he="My Notes" icon="file-text-o" onClick={function() {this.props.setConnectionsMode("My Notes")}.bind(this)} /> 
+            <ToolsButton en="Add Translation" he="Add Translation" icon="language" onClick={addTranslation} /> 
             <ToolsButton en="Add Connection" he="Add Connection" icon="link" onClick={function() {this.props.setConnectionsMode("Add Connection")}.bind(this)} /> 
-            <ToolsButton en="Edit Text" he="Edit Text" icon="edit" onClick={function() {this.props.setConnectionsMode("Edit Text")}.bind(this)} /> 
-            <ToolsButton en="Add Translation" he="Add Translation" icon="language" onClick={function() {this.props.setConnectionsMode("Edit Text")}.bind(this)} /> 
+            { editText ? (<ToolsButton en="Edit Text" he="Edit Text" icon="edit" onClick={editText} />) : null } 
           </div>
         </div>
       </div>);
