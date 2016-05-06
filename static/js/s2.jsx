@@ -2677,7 +2677,7 @@ var TextColumn = React.createClass({
   },
   adjustInfiniteScroll: function() {
     // Add or remove TextRanges from the top or bottom, depending on scroll position
-    //console.log("ais");
+    console.log("ais");
     if (!this.isMounted()) { return; }
     var node         = ReactDOM.findDOMNode(this);
     var refs         = this.props.srefs;
@@ -2724,7 +2724,7 @@ var TextColumn = React.createClass({
   adjustTextListHighlight: function() {
     console.log("atlh");
     // When scrolling while the TextList is open, update which segment should be highlighted.
-    if (this.props.layoutWidth == 100) { 
+    if (this.props.multipanel && this.props.layoutWidth == 100) { 
       return; // Hacky - don't move around highlighted segment when scrolling a single panel,
     }
     // but we do want to keep the highlightedRefs value in the panel 
