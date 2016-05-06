@@ -596,6 +596,13 @@ var ReaderApp = React.createClass({
       this.openTextListAt(n+1, refs);
     }
   },
+  openComparePanel: function(n) {
+    var comparePanel = this.makePanelState({
+      menuOpen: "navigation"
+    });
+    this.state.panels[n] = comparePanel;
+    this.setState({panels: this.state.panels});
+  },
   closePanel: function(n) {
     // Removes the panel in position `n`, as well as connections panel in position `n+1` if it exists.
     this.saveRecentlyViewed(this.state.panels[n], n);
@@ -698,6 +705,7 @@ var ReaderApp = React.createClass({
       var onTextListClick          = null; // this.openPanelAt.bind(null, i);
       var onOpenConnectionsClick   = this.openTextListAt.bind(null, i+1);
       var setTextListHightlight    = this.setTextListHighlight.bind(null, i);
+      var openComparePanel         = this.openComparePanel.bind(null, i);
       var closePanel               = this.closePanel.bind(null, i);
       var setPanelState            = this.setPanelState.bind(null, i);
       var selectVersion            = this.selectVersion.bind(null, i);
@@ -720,6 +728,7 @@ var ReaderApp = React.createClass({
                       onNavigationClick={this.handleNavigationClick}
                       onRecentClick={this.handleRecentClick}
                       onOpenConnectionsClick={onOpenConnectionsClick}
+                      openComparePanel={openComparePanel}
                       setTextListHightlight={setTextListHightlight}
                       selectVersion={selectVersion}
                       setDefaultOption={this.setDefaultOption}
@@ -941,6 +950,7 @@ var ReaderPanel = React.createClass({
     onQueryChange:               React.PropTypes.func,
     updateSearchFilter:          React.PropTypes.func,
     registerAvailableFilters:    React.PropTypes.func,
+    openComparePanel:            React.PropTypes.func,
     highlightedRefs:             React.PropTypes.array,
     hideNavHeader:               React.PropTypes.bool,
     multiPanel:                  React.PropTypes.bool,
@@ -1344,6 +1354,7 @@ var ReaderPanel = React.createClass({
           onNavigationClick={this.props.onNavigationClick}
           onOpenConnectionsClick={this.props.onOpenConnectionsClick}
           onCompareClick={this.showBaseText}
+          openComparePanel={this.props.openComparePanel}
           closePanel={this.props.closePanel}      
           key="connections" />
       );
@@ -3257,6 +3268,7 @@ var ConnectionsPanel = React.createClass({
     setFilter:               React.PropTypes.func.isRequired,
     setConnectionsMode:      React.PropTypes.func.isRequired,
     editNote:                React.PropTypes.func.isRequired,
+    openComparePanel:        React.PropTypes.func.isRequired,
     version:                 React.PropTypes.string,
     versionLanguge:          React.PropTypes.string,
     noteBeingEdited:         React.PropTypes.object,
@@ -3311,6 +3323,7 @@ var ConnectionsPanel = React.createClass({
                     onOpenConnectionsClick={this.props.onOpenConnectionsClick}
                     openNav={this.props.openNav}
                     openDisplaySettings={this.props.openDisplaySettings}
+                    openComparePanel={this.props.openComparePanel}
                     closePanel={this.props.closePanel} />);
 
     } else if (this.props.mode === "Share") {
@@ -3935,6 +3948,7 @@ var ToolsPanel = React.createClass({
     filter:                  React.PropTypes.array.isRequired,
     recentFilters:           React.PropTypes.array.isRequired,
     setConnectionsMode:      React.PropTypes.func.isRequired,
+    openComparePanel:        React.PropTypes.func.isRequired,
     version:                 React.PropTypes.string,
     versionLanguge:          React.PropTypes.string,
     fullPanel:               React.PropTypes.bool,
@@ -3979,6 +3993,7 @@ var ToolsPanel = React.createClass({
             <ToolsButton en="Add to Source Sheet" he="Add to Source Sheet" icon="plus-circle" onClick={function() {this.props.setConnectionsMode("Add to Source Sheet")}.bind(this)} /> 
             <ToolsButton en="Add Note" he="Add Note" icon="pencil" onClick={function() {this.props.setConnectionsMode("Add Note")}.bind(this)} /> 
             <ToolsButton en="My Notes" he="My Notes" icon="file-text-o" onClick={function() {this.props.setConnectionsMode("My Notes")}.bind(this)} /> 
+            <ToolsButton en="Compare" he="Compare" image="compare-64.png" onClick={this.props.openComparePanel} /> 
             <ToolsButton en="Add Translation" he="Add Translation" icon="language" onClick={addTranslation} /> 
             <ToolsButton en="Add Connection" he="Add Connection" icon="link" onClick={function() {this.props.setConnectionsMode("Add Connection")}.bind(this)} /> 
             { editText ? (<ToolsButton en="Edit Text" he="Edit Text" icon="edit" onClick={editText} />) : null } 
@@ -3993,17 +4008,24 @@ var ToolsButton = React.createClass({
   propTypes: {
     en:      React.PropTypes.string.isRequired,
     he:      React.PropTypes.string.isRequired,
-    icon:    React.PropTypes.string.isRequired,
+    icon:    React.PropTypes.string,
+    image:   React.PropTypes.string,
     onClick: React.PropTypes.func,
   },
   render: function() {
-    var icon = "fa-" + this.props.icon;
-    var classes = {fa: 1};
-    classes[icon] = 1;
+    var icon = null;
+    if (this.props.icon) {
+      var iconName = "fa-" + this.props.icon;
+      var classes = {fa: 1, toolsButtonIcon: 1};
+      classes[iconName] = 1;
+      icon = (<i className={classNames(classes)} />)
+    } else if (this.props.image) {
+      icon = (<img src={"/static/img/" + this.props.image} className="toolsButtonIcon" />);
+    }
 
     return (
       <div className="toolsButton" onClick={this.props.onClick}>
-        <i className={classNames(classes)} />
+        {icon}
         <div className="en">{this.props.en}</div>
         <div className="he">{this.props.he}</div>
       </div>)
