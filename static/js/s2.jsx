@@ -1024,7 +1024,6 @@ var ReaderPanel = React.createClass({
   conditionalSetState: function(state) {
     // Set state either in the central app or in the local component,
     // depending on whether a setCentralState function was given.
-    console.log(state);
     if (this.props.setCentralState) {
       this.props.setCentralState(state, this.replaceHistory);
       this.replaceHistory = false;
@@ -4255,18 +4254,20 @@ var MyNotesPanel = React.createClass({
   componentDidMount: function() {
     this.loadNotes();
   },
+  componentDidUpdate: function(prevProps, prevState) {
+    if (!prevProps.srefs.compare(this.props.srefs)) {
+      this.loadNotes();
+    }
+  },
   loadNotes: function() {
     // Rerender this component when privateNotes arrive.
     sjs.library.privateNotes(this.props.srefs, this.rerender);
   },
   rerender: function() {
-    console.log("RErender mynotespanel")
     this.forceUpdate();
   },
   render: function() {
     var myNotesData = sjs.library.privateNotes(this.props.srefs);
-    console.log("rendering mnp")
-    console.log(myNotesData)
     var myNotes = myNotesData ? myNotesData.map(function(note) {
       var editNote = function() {
         this.props.editNote(note);
