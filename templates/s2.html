@@ -74,24 +74,20 @@
       var multiPanel    = $(window).width() > 600;
       var initialPanels = [];
 
+      // TODO clean up generation of initial panels objects. 
+      // Currently these get generated in reader/views.py, then regenerated in s2.html then regenerated again in ReaderApp.
+
       var panel = panels.shift();
       if (panel) {
           version = panel.version;
           language = panel.language;
           if (panel.ref) {
-              ref = humanRef(panel.ref);
+              ref = panel.ref;
               sjs.library._saveText(panel.text, {context: 1, version: version, language: language});
           }
           //initialMenu = panel.initialMenu;
           filter = panel.filter && panel.filter.length === 1 && panel.filter[0] === "all" ? [] : panel.filter;
       }
-
-      /*
-      if (ref) {
-        ref = humanRef(ref);
-        sjs.library._saveText({{ data|jsonify }}, {context: 1, version: version, language: language});
-      }
-      */
 
       if (!multiPanel) {
         if (initialMenu) {
@@ -116,7 +112,13 @@
 
           if (panel.ref && !panel.ref.match(/^texts|^sheets|^search/)) {
             sjs.library._saveText(panel.text, {context: 1, version: panel.version, language: panel.language});
-            initialPanels.push({mode: "Text", refs: [humanRef(panel.ref)], menuOpen: panel.initialMenu, version: panel.version, versionLanguage: panel.language});
+            initialPanels.push({
+              mode: "Text", 
+              refs: [humanRef(panel.ref)], 
+              menuOpen: panel.initialMenu, 
+              version: panel.version, 
+              versionLanguage: panel.language
+            });
           }
           if (panel.filter) {
             var pfilter = panel.filter && panel.filter.length === 1 && panel.filter[0] === "all" ? [] : panel.filter;
@@ -142,6 +144,7 @@
           initialFilter: filter,
           initialMenu: initialMenu,
           initialQuery: "{{ query }}",
+          initialSearchFilters: {{ searchFilters|default:"[]" }},
           initialSheetsTag: "{{ initialSheetsTag }}",
           initialNavigationCategories: {{ initialNavigationCategories|default:"[]" }},
           initialSettings: settings,

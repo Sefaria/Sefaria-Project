@@ -9,15 +9,8 @@ $.extend(sjs, {
     currentPage: "search",
     currentFacet: null,
 
-    //FilterTree object - for category filters
-    FilterNode: function() {
-        this.children = [];
-        this.parent = null;
-        this.selected = 0; //0 - not selected, 1 - selected, 2 - partially selected
-    },
-
     FilterTree: function() {
-        sjs.FilterNode.call(this); //Inherits from FilterNode
+        sjs.library.search.FilterNode.call(this); //Inherits from FilterNode
         this.path = "_root";
         this.title = "All Sources";
         this.heTitle = "כל המקורות";
@@ -417,31 +410,13 @@ $.extend(sjs.search, {
 /* Working with filter trees:
 1) Add all Available Filters with addAvailableFilter
 2) _build
+*/
 
- */
-sjs.FilterNode.prototype = {
+$.extend(sjs.library.search.FilterNode.prototype, {
+    //Extend the 'set...' methods to also mutate DOM
     $el : function() {
         var selector = ".filter#" + this.getId();
         return $(selector);
-    },
-    append : function(child) {
-        this.children.push(child);
-        child.parent = this;
-    },
-    hasChildren: function() {
-        return (this.children.length > 0);
-    },
-    getId: function() {
-        return this.path.replace(new RegExp("[/',()]", 'g'),"-").replace(new RegExp(" ", 'g'),"_");
-    },
-    isSelected: function() {
-        return (this.selected == 1);
-    },
-    isPartial: function() {
-        return (this.selected == 2);
-    },
-    isUnselected: function() {
-        return (this.selected == 0);
     },
     setSelected : function(propogateParent, noPropogateChild) {
         //default is to propogate children and not parents.
@@ -481,59 +456,6 @@ sjs.FilterNode.prototype = {
         this.$el().prop('checked', false);
         if(this.parent) this.parent._deriveState();
     },
-
-    _deriveState: function() {
-        //Always called from children, so we can assume at least one
-        var potentialState = this.children[0].selected;
-        if (potentialState == 2) {
-            this.setPartial();
-            return
-        }
-        for (var i = 1; i < this.children.length; i++) {
-            if (this.children[i].selected != potentialState) {
-                this.setPartial();
-                return
-            }
-        }
-        //Don't use setters, so as to avoid looping back through children.
-        if(potentialState == 1) {
-            this.setSelected(true, true);
-        } else {
-            this.setUnselected(true, true);
-        }
-    },
-
-    hasAppliedFilters: function() {
-        return (this.getAppliedFilters().length > 0)
-    },
-
-    getAppliedFilters: function() {
-        if (this.isUnselected()) {
-            return [];
-        }
-        if (this.isSelected()) {
-            return[this.path];
-        }
-        var results = [];
-        for (var i = 0; i < this.children.length; i++) {
-            results = results.concat(this.children[i].getAppliedFilters());
-        }
-        return results;
-    },
-    getSelectedTitles: function(lang) {
-        if (this.isUnselected()) {
-            return [];
-        }
-        if (this.isSelected()) {
-            return[(lang == "en")?this.title:this.heTitle];
-        }
-        var results = [];
-        for (var i = 0; i < this.children.length; i++) {
-            results = results.concat(this.children[i].getSelectedTitles(lang));
-        }
-        return results;
-    },
-
     toHtml: function() {
         var html = '<li'
             + (this.hasChildren()?" class='filter-parent'":"")
@@ -554,16 +476,14 @@ sjs.FilterNode.prototype = {
         html += ' </li> ';
         return html;
     }
-};
-
-
-sjs.FilterTree.prototype = Object.create(sjs.FilterNode.prototype);
+});
+sjs.FilterTree.prototype = Object.create(sjs.library.search.FilterNode.prototype);
 sjs.FilterTree.prototype.constructor = sjs.FilterTree;
 $.extend(sjs.FilterTree.prototype, {
 
     setUnselected: function(propogateParent, noPropogateChild) {
         sjs.search.filter_tree.orphanFilters = [];
-        sjs.FilterNode.prototype.setUnselected.call(this, propogateParent, noPropogateChild);
+        sjs.library.search.FilterNode.prototype.setUnselected.call(this, propogateParent, noPropogateChild);
     },
     updateAvailableFilters: function(filters) {
         this.orphanFilters = this.getAppliedFilters();
@@ -638,7 +558,7 @@ $.extend(sjs.FilterTree.prototype, {
         var path = [];
 
         //Manually add base commentary branch
-        var commentaryNode = new sjs.FilterNode();
+        var commentaryNode = new sjs.library.search.FilterNode();
         var rnode = ftree.rawTree["Commentary"];
         if (rnode) {
             $.extend(commentaryNode, {
@@ -659,7 +579,7 @@ $.extend(sjs.FilterTree.prototype, {
         if (rnode) this.append(commentaryNode);
 
         function walk(branch, parentNode) {
-            var node = new sjs.FilterNode();
+            var node = new sjs.library.search.FilterNode();
 
             if("category" in branch) { // Category node
                 if(branch["category"] == "Commentary") { // Special case commentary
