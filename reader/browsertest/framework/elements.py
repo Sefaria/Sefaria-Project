@@ -23,7 +23,7 @@ def get_local_driver():
 
 
 def cap_to_string(cap):
-    return cap.get["device"] or "{} {} on {} {}".format(cap.get("browser"), cap.get("browser_version"), cap.get("os"), cap.get("os_version"))
+    return cap.get("device") or "{} {} on {} {}".format(cap.get("browser"), cap.get("browser_version"), cap.get("os"), cap.get("os_version"))
 
 
 class AtomicTest(object):
@@ -88,9 +88,9 @@ def _test_on_one_browser(cap):
         try:
             driver.execute_script('"**** Enter {} ****"'.format(test_class.__name__))
             test.run(driver)
-            driver.execute_script('"**** Enter {} ****"'.format(test_class.__name__))
-        except:
-            return "Fail: {}".format(cap_to_string(cap))
+            driver.execute_script('"**** Exit {} ****"'.format(test_class.__name__))
+        except Exception as e:
+            return "Fail: {} on {}: {}".format(test_class.__name__, cap_to_string(cap), e)
         else:
             return "Pass: {}".format(cap_to_string(cap))
 
