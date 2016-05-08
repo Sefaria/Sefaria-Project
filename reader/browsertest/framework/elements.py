@@ -54,14 +54,12 @@ def get_atomic_tests():
 def test_all(build):
     tests = get_atomic_tests()
     shuffle(tests)
-    description = ", ".join([test.__name__ for test in tests])
 
     caps = DESKTOP + MOBILE
     for cap in caps:
         cap.update({
             'build': build,
             'project': 'Reader S2',
-            'name': description,
             'tests': tests
         })
 
@@ -80,6 +78,9 @@ def _test_on_one_browser(cap):
     tests = cap.pop("tests")
     driver = get_browserstack_driver(cap)
 
+    description = '"' + "Test order:\n" + "\n".join([test.__name__ for test in tests]) + '"'
+    driver.execute_script(description)
+
     # Insure that we're on s2
     driver.get(REMOTE_URL + "/s2")
 
@@ -93,7 +94,6 @@ def _test_on_one_browser(cap):
             return "Fail: {} on {}: {}".format(test_class.__name__, cap_to_string(cap), e)
     driver.quit()
     return "Pass: {}".format(cap_to_string(cap))
-
 
 
 def test_local():
