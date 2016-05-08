@@ -14,6 +14,15 @@ def get_browserstack_driver(desired_cap):
     return driver
 
 
+def get_sauce_driver(desired_cap):
+    driver = webdriver.Remote(
+        command_executor='http://{}:{}@ondemand.saucelabs.com:80/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
+        desired_capabilities=desired_cap)
+    driver.implicitly_wait(30)
+
+    return driver
+
+
 def get_local_driver():
     driver = webdriver.Chrome()
     driver.implicitly_wait(30)
@@ -21,7 +30,10 @@ def get_local_driver():
 
 
 def cap_to_string(cap):
-    return cap.get("device") or "{} {} on {} {}".format(cap.get("browser"), cap.get("browser_version"), cap.get("os"), cap.get("os_version"))
+    return (cap.get("device") or  # browserstack mobile
+            cap.get("deviceName") or  # sauce mobile
+            "{} {} on {} {}".format(cap.get("browser"), cap.get("browser_version"), cap.get("os"), cap.get("os_version")) if cap.get("browser") else  # browserstack desktop
+            "{} {} on {}".format(cap.get('browserName'), cap.get("version"), cap.get('platform')))  # sauce desktop
 
 
 class AtomicTest(object):
@@ -49,16 +61,35 @@ def get_atomic_tests():
     return get_subclasses(AtomicTest)
 
 
-def test_all(build, caps = None):
+def test_all_on_bstack(build, caps = None):
     tests = get_atomic_tests()
     shuffle(tests)
 
-    caps = caps or DESKTOP + MOBILE
+    caps = caps or BS_DESKTOP + BS_MOBILE
     for cap in caps:
         cap.update({
             'build': build,
             'project': 'Reader S2',
-            'tests': tests
+            'tests': tests,
+            "testing_platform": "bstack"
+        })
+
+    p = Pool(MAX_THREADS)
+    results = p.map(_test_on_one_browser, caps)
+    print "\n".join(results)
+
+
+def test_all_on_sauce(build, caps = None):
+    tests = get_atomic_tests()
+    shuffle(tests)
+
+    caps = caps or SAUCE_DESKTOP + SAUCE_MOBILE
+    for cap in caps:
+        cap.update({
+            'name': "S2 {}".format(build),
+            'build': build,
+            'tests': tests,
+            "testing_platform": "sauce"
         })
 
     p = Pool(MAX_THREADS)
@@ -68,13 +99,21 @@ def test_all(build, caps = None):
 
 def one_test_on_one_browser(test_class, cap):
     cap["tests"] = [test_class]
+    cap["testing_platform"] = "bstack"
     result = _test_on_one_browser(cap)
     print result
 
 
 def _test_on_one_browser(cap):
     tests = cap.pop("tests")
-    driver = get_browserstack_driver(cap)
+    testing_platform = cap.pop("testing_platform")
+
+    if testing_platform == "bstack":
+        driver = get_browserstack_driver(cap)
+    elif testing_platform == "sauce":
+        driver = get_sauce_driver(cap)
+    else:
+        raise Exception("Unknown platform: {}".format(testing_platform))
 
     description = '"' + "Test order: " + ", ".join([test.__name__ for test in tests]) + '"'
     driver.execute_script(description)
