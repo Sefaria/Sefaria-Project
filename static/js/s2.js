@@ -904,7 +904,7 @@ var Header = React.createClass({
       React.createElement(
         "span",
         { className: "he" },
-        "להירשם"
+        "הירשם"
       )
     );
     return React.createElement(
@@ -1892,7 +1892,7 @@ var ReaderNavigationMenu = React.createClass({
         React.createElement(
           "span",
           { className: "he" },
-          "הפרופיל שלך"
+          "הפרופיל שלי"
         )
       ), React.createElement(
         "span",
@@ -1953,11 +1953,7 @@ var ReaderNavigationMenu = React.createClass({
           { className: "en" },
           "Sign In"
         ),
-        React.createElement(
-          "span",
-          { className: "he" },
-          "הירשם"
-        )
+        React.createElement("span", { className: "he" })
       )];
       var calendar = [React.createElement(TextBlockLink, { sref: sjs.calendar.parasha, title: sjs.calendar.parashaName, heTitle: "פרשה", category: "Tanach" }), React.createElement(TextBlockLink, { sref: sjs.calendar.haftara, title: "Haftara", heTitle: "הפטרה", category: "Tanach" }), React.createElement(TextBlockLink, { sref: sjs.calendar.daf_yomi, title: "Daf Yomi", heTitle: "דף יומי", category: "Talmud" })];
       calendar = React.createElement(
@@ -2007,7 +2003,7 @@ var ReaderNavigationMenu = React.createClass({
         React.createElement(
           "span",
           { className: "he" },
-          "המחברים"
+          "רשימת מחברים"
         )
       )];
       resources = React.createElement(
@@ -3715,7 +3711,7 @@ var TextRange = React.createClass({
         React.createElement(
           "span",
           { className: "he" },
-          "לִפְתוֹחַ"
+          "פתח"
         )
       ),
       React.createElement(
@@ -3730,7 +3726,7 @@ var TextRange = React.createClass({
         React.createElement(
           "span",
           { className: "he" },
-          "לִפְתוֹחַ"
+          "השווה"
         )
       ),
       React.createElement(
@@ -3745,7 +3741,7 @@ var TextRange = React.createClass({
         React.createElement(
           "span",
           { className: "he" },
-          "לִפְתוֹחַ"
+          "קשרים"
         )
       )
     );
@@ -3990,11 +3986,11 @@ var ConnectionsPanel = React.createClass({
         setConnectionsMode: this.props.setConnectionsMode,
         editNote: this.props.editNote });
     } else if (this.props.mode === "Add Connection") {
-      content = React.createElement(LoadingMessage, { className: "toolsMessage", message: "Coming Soon." });
+      content = React.createElement(LoadingMessage, { className: "toolsMessage", message: "Coming Soon.", heMessage: "הרכיב הזה נמצא בבנייה..." });
     } else if (this.props.mode === "Edit Text") {
-      content = React.createElement(LoadingMessage, { className: "toolsMessage", message: "Coming Soon." });
+      content = React.createElement(LoadingMessage, { className: "toolsMessage", message: "Coming Soon.", heMessage: "הרכיב הזה נמצא בבנייה..." });
     } else if (this.props.mode === "Add Translation") {
-      content = React.createElement(LoadingMessage, { className: "toolsMessage", message: "Coming Soon." });
+      content = React.createElement(LoadingMessage, { className: "toolsMessage", message: "Coming Soon.", heMessage: "הרכיב הזה נמצא בבנייה..." });
     } else if (this.props.mode === "Login") {
       content = React.createElement(LoginPanel, { fullPanel: this.props.fullPanel });
     }
@@ -4036,17 +4032,26 @@ var ConnectionsPanelTabs = React.createClass({
     setConnectionsMode: React.PropTypes.func.isRequired
   },
   render: function render() {
-    var tabNames = ["Connections", "Tools"];
+    var tabNames = [{ "en": "Connections", "he": "קישורים" }, { "en": "Tools", "he": "כלים" }];
     var tabs = tabNames.map(function (item) {
       var tabClick = function () {
-        this.props.setConnectionsMode(item);
+        this.props.setConnectionsMode(item["en"]);
       }.bind(this);
-      var active = item === this.props.activeTab;
+      var active = item["en"] === this.props.activeTab;
       var classes = classNames({ connectionsPanelTab: 1, active: active });
       return React.createElement(
-        "span",
-        { className: classes, onClick: tabClick, key: item },
-        item
+        "div",
+        { className: classes, onClick: tabClick, key: item["en"] },
+        React.createElement(
+          "span",
+          { className: "en" },
+          item["en"]
+        ),
+        React.createElement(
+          "span",
+          { className: "he" },
+          item["he"]
+        )
       );
     }.bind(this));
 
@@ -4726,24 +4731,24 @@ var ToolsPanel = React.createClass({
         React.createElement(
           "div",
           { className: "contentInner" },
-          React.createElement(ToolsButton, { en: "Share", he: "Share", icon: "share-square-o", onClick: function () {
+          React.createElement(ToolsButton, { en: "Share", he: "שתף", icon: "share-square-o", onClick: function () {
               this.props.setConnectionsMode("Share");
             }.bind(this) }),
-          React.createElement(ToolsButton, { en: "Add to Source Sheet", he: "Add to Source Sheet", icon: "plus-circle", onClick: function () {
+          React.createElement(ToolsButton, { en: "Add to Source Sheet", he: "הוסף לדף מקורות", icon: "plus-circle", onClick: function () {
               this.props.setConnectionsMode("Add to Source Sheet");
             }.bind(this) }),
-          React.createElement(ToolsButton, { en: "Add Note", he: "Add Note", icon: "pencil", onClick: function () {
+          React.createElement(ToolsButton, { en: "Add Note", he: "הוסף רשומה", icon: "pencil", onClick: function () {
               this.props.setConnectionsMode("Add Note");
             }.bind(this) }),
-          React.createElement(ToolsButton, { en: "My Notes", he: "My Notes", icon: "file-text-o", onClick: function () {
+          React.createElement(ToolsButton, { en: "My Notes", he: "הרשומות שלי", icon: "file-text-o", onClick: function () {
               this.props.setConnectionsMode("My Notes");
             }.bind(this) }),
-          React.createElement(ToolsButton, { en: "Compare", he: "Compare", image: "compare-64.png", onClick: this.props.openComparePanel }),
-          React.createElement(ToolsButton, { en: "Add Translation", he: "Add Translation", icon: "language", onClick: addTranslation }),
-          React.createElement(ToolsButton, { en: "Add Connection", he: "Add Connection", icon: "link", onClick: function () {
+          React.createElement(ToolsButton, { en: "Compare", he: "השווה", image: "compare-64.png", onClick: this.props.openComparePanel }),
+          React.createElement(ToolsButton, { en: "Add Translation", he: "הוסף תרגום", icon: "language", onClick: addTranslation }),
+          React.createElement(ToolsButton, { en: "Add Connection", he: "הוסף קישור לטקסט אחר", icon: "link", onClick: function () {
               this.props.setConnectionsMode("Add Connection");
             }.bind(this) }),
-          editText ? React.createElement(ToolsButton, { en: "Edit Text", he: "Edit Text", icon: "edit", onClick: editText }) : null
+          editText ? React.createElement(ToolsButton, { en: "Edit Text", he: "ערוך טקסט", icon: "edit", onClick: editText }) : null
         )
       )
     );
@@ -4829,9 +4834,9 @@ var SharePanel = React.createClass({
           "div",
           { className: "contentInner" },
           React.createElement("input", { className: "shareInput", value: this.props.url }),
-          React.createElement(ToolsButton, { en: "Facebook", he: "Facebook", icon: "facebook", onClick: shareFacebook }),
-          React.createElement(ToolsButton, { en: "Twitter", he: "Twitter", icon: "twitter", onClick: shareTwitter }),
-          React.createElement(ToolsButton, { en: "Email", he: "Email", icon: "envelope-o", onClick: shareEmail })
+          React.createElement(ToolsButton, { en: "Facebook", he: "פייסבוק", icon: "facebook", onClick: shareFacebook }),
+          React.createElement(ToolsButton, { en: "Twitter", he: "טוויטר", icon: "twitter", onClick: shareTwitter }),
+          React.createElement(ToolsButton, { en: "Email", he: "אימייל", icon: "envelope-o", onClick: shareEmail })
         )
       )
     );
@@ -4918,7 +4923,7 @@ var AddToSourceSheetPanel = React.createClass({
       React.createElement(
         "span",
         { className: "he" },
-        "You do't have any Source Sheet yet."
+        "טרם יצרת דפי מקורות"
       )
     ) : sheetsContent;
     var createSheet = this.state.showNewSheetInput ? React.createElement(
@@ -4936,13 +4941,22 @@ var AddToSourceSheetPanel = React.createClass({
         React.createElement(
           "span",
           { className: "he" },
-          "לִיצוֹר"
+          "צור חדש"
         )
       )
     ) : React.createElement(
       "div",
       { className: "button white", onClick: this.openNewSheet },
-      "Create a Source Sheet"
+      React.createElement(
+        "span",
+        { className: "en" },
+        "Create a Source Sheet"
+      ),
+      React.createElement(
+        "span",
+        { className: "he" },
+        "צור דף מקורות חדש"
+      )
     );
     var classes = classNames({ addToSourceSheetPanel: 1, textList: 1, fullPanel: this.props.fullPanel });
     return React.createElement(
@@ -4963,7 +4977,16 @@ var AddToSourceSheetPanel = React.createClass({
           React.createElement(
             "div",
             { className: "button", onClick: this.addToSourceSheet },
-            "Add to Sheet"
+            React.createElement(
+              "span",
+              { className: "en" },
+              "Add to Sheet"
+            ),
+            React.createElement(
+              "span",
+              { className: "he" },
+              "הוסף לדף המקורות"
+            )
           )
         )
       )
@@ -4992,7 +5015,7 @@ var ConfirmAddToSheetPanel = React.createClass({
         React.createElement(
           "span",
           { className: "he" },
-          "המקור שלך נמחק."
+          "הטקסט נוסף בהצלחה לדף המקורות"
         )
       ),
       React.createElement(
@@ -5007,7 +5030,7 @@ var ConfirmAddToSheetPanel = React.createClass({
         React.createElement(
           "span",
           { className: "he" },
-          "לדפ מקורות",
+          "עבור לדף המקורות",
           React.createElement("i", { className: "fa fa-angle-left" })
         )
       )
@@ -5126,7 +5149,7 @@ var AddNotePanel = React.createClass({
                 "span",
                 { className: "he" },
                 React.createElement("i", { className: "fa fa-lock" }),
-                " פְּרָטִי"
+                "רשומה פרטית"
               )
             ),
             React.createElement(
@@ -5140,7 +5163,7 @@ var AddNotePanel = React.createClass({
               React.createElement(
                 "span",
                 { className: "he" },
-                "פּוּמְבֵּי"
+                "רשומה כללית"
               )
             )
           ),
@@ -5156,7 +5179,7 @@ var AddNotePanel = React.createClass({
             React.createElement(
               "span",
               { className: "he" },
-              this.props.noteId ? "להציל" : "להוסיף הערה"
+              this.props.noteId ? "שמור" : "הוסף רשומה"
             )
           ),
           React.createElement(
@@ -5170,7 +5193,7 @@ var AddNotePanel = React.createClass({
             React.createElement(
               "span",
               { className: "he" },
-              "לְבַטֵל"
+              "בטל"
             )
           ),
           this.props.noteId ? React.createElement(
@@ -5184,7 +5207,7 @@ var AddNotePanel = React.createClass({
             React.createElement(
               "span",
               { className: "he" },
-              "מחק הערה"
+              "מחק רשומה"
             )
           ) : null
         )
@@ -5245,7 +5268,7 @@ var MyNotesPanel = React.createClass({
           myNotes,
           React.createElement(ToolsButton, {
             en: "Add Note",
-            he: "להוסיף הערה",
+            he: "הוסף רשומה",
             icon: "pencil",
             onClick: function () {
               this.props.setConnectionsMode("Add Note");
@@ -5285,7 +5308,7 @@ var LoginPanel = React.createClass({
             React.createElement(
               "span",
               { className: "he" },
-              "אתה חייב להיות מחובר כדי להשתמש בתכונה זו."
+              "עליך להיות מחובר בכדי להשתמש באפשרות זו."
             )
           ),
           React.createElement(
@@ -5313,7 +5336,7 @@ var LoginPanel = React.createClass({
             React.createElement(
               "span",
               { className: "he" },
-              "להירשם"
+              "הרשם"
             )
           )
         )
@@ -5985,7 +6008,7 @@ var SearchFilters = React.createClass({
       this.state.sheet_total > 0 && this.state.text_total > 0 ? totalBreakdown : null
     );
 
-    var runningQueryLine = React.createElement(LoadingMessage, { message: "Searching..." });
+    var runningQueryLine = React.createElement(LoadingMessage, { message: "Searching...", heMessage: "מבצע חיפוש..." });
     var show_filters_classes = this.state.displayFilters ? "fa fa-caret-down fa-angle-down" : "fa fa-caret-down";
     var filter_panel = React.createElement(
       "div",
@@ -6288,17 +6311,17 @@ var AccountPanel = React.createClass({
 
   render: function render() {
     var width = $(window).width();
-    var accountContent = [React.createElement(BlockLink, { target: "/my/profile", title: "Profile", heTitle: "Profile" }), React.createElement(BlockLink, { target: "/sheets/private", title: "Source Sheets", heTitle: "דפי מקורות" }), React.createElement(BlockLink, { target: "#", title: "Reading History", heTitle: "Reading History" }), React.createElement(BlockLink, { target: "#", title: "Notes", heTitle: "Notes" }), React.createElement(BlockLink, { target: "/settings/account", title: "Settings", heTitle: "Settings" }), React.createElement(BlockLink, { target: "/logout", title: "Log Out", heTitle: "Log Out" })];
+    var accountContent = [React.createElement(BlockLink, { target: "/my/profile", title: "Profile", heTitle: "פרופיל" }), React.createElement(BlockLink, { target: "/sheets/private", title: "Source Sheets", heTitle: "דפי מקורות" }), React.createElement(BlockLink, { target: "#", title: "Reading History", heTitle: "היסטוריה קריאה" }), React.createElement(BlockLink, { target: "#", title: "Notes", heTitle: "רשומות" }), React.createElement(BlockLink, { target: "/settings/account", title: "Settings", heTitle: "הגדרות" }), React.createElement(BlockLink, { target: "/logout", title: "Log Out", heTitle: "ניתוק" })];
     accountContent = React.createElement(TwoOrThreeBox, { content: accountContent, width: width });
 
-    var learnContent = [React.createElement(BlockLink, { target: "/about", title: "About", heTitle: "אודות" }), React.createElement(BlockLink, { target: "/faq", title: "FAQ", heTitle: "שאלות נפוצות" }), React.createElement(BlockLink, { target: "http://blog.sefaria.org", title: "Blog", heTitle: "בלוג" }), React.createElement(BlockLink, { target: "/educators", title: "Educators", heTitle: "מחנכים" }), React.createElement(BlockLink, { target: "/help", title: "Help", heTitle: "Help" }), React.createElement(BlockLink, { target: "/team", title: "Team", heTitle: "צוות" })];
+    var learnContent = [React.createElement(BlockLink, { target: "/about", title: "About", heTitle: "אודות" }), React.createElement(BlockLink, { target: "/faq", title: "FAQ", heTitle: "שאלות נפוצות" }), React.createElement(BlockLink, { target: "http://blog.sefaria.org", title: "Blog", heTitle: "בלוג" }), React.createElement(BlockLink, { target: "/educators", title: "Educators", heTitle: "מחנכים" }), React.createElement(BlockLink, { target: "/help", title: "Help", heTitle: "עזרה" }), React.createElement(BlockLink, { target: "/team", title: "Team", heTitle: "צוות" })];
 
     learnContent = React.createElement(TwoOrThreeBox, { content: learnContent, width: width });
 
-    var contributeContent = [React.createElement(BlockLink, { target: "/activity", title: "Recent Activity", heTitle: "פעילות אחרונהs" }), React.createElement(BlockLink, { target: "/metrics", title: "Metrics", heTitle: "מדדים" }), React.createElement(BlockLink, { target: "/contribute", title: "Contribute", heTitle: "הצטרף אלינו" }), React.createElement(BlockLink, { target: "/donate", title: "Donate", heTitle: "תרומות" }), React.createElement(BlockLink, { target: "/supporters", title: "Supporters", heTitle: "תומכים" }), React.createElement(BlockLink, { target: "/jobs", title: "Jobs", heTitle: "דרושים" })];
+    var contributeContent = [React.createElement(BlockLink, { target: "/activity", title: "Recent Activity", heTitle: "פעילות אחרונה" }), React.createElement(BlockLink, { target: "/metrics", title: "Metrics", heTitle: "מדדים" }), React.createElement(BlockLink, { target: "/contribute", title: "Contribute", heTitle: "הצטרפות לעשיה" }), React.createElement(BlockLink, { target: "/donate", title: "Donate", heTitle: "תרומות" }), React.createElement(BlockLink, { target: "/supporters", title: "Supporters", heTitle: "תומכים" }), React.createElement(BlockLink, { target: "/jobs", title: "Jobs", heTitle: "דרושים" })];
     contributeContent = React.createElement(TwoOrThreeBox, { content: contributeContent, width: width });
 
-    var connectContent = [React.createElement(BlockLink, { target: "https://groups.google.com/forum/?fromgroups#!forum/sefaria", title: "Forum", heTitle: "פורום" }), React.createElement(BlockLink, { target: "http://www.facebook.com/sefaria.org", title: "Facebook", heTitle: "פייסבוק" }), React.createElement(BlockLink, { target: "http://twitter.com/SefariaProject", title: "Twitter", heTitle: "טוויטר" }), React.createElement(BlockLink, { target: "http://www.youtube.com/user/SefariaProject", title: "YouTube", heTitle: "יוטיוב" }), React.createElement(BlockLink, { target: "http://www.github.com/Sefaria", title: "GitHub", heTitle: "גיטהאב" }), React.createElement(BlockLink, { target: "mailto:hello@sefaria.org", title: "Email", heTitle: "דוא\"ל" })];
+    var connectContent = [React.createElement(BlockLink, { target: "https://groups.google.com/forum/?fromgroups#!forum/sefaria", title: "Forum", heTitle: "פורום" }), React.createElement(BlockLink, { target: "http://www.facebook.com/sefaria.org", title: "Facebook", heTitle: "פייסבוק" }), React.createElement(BlockLink, { target: "http://twitter.com/SefariaProject", title: "Twitter", heTitle: "טוויטר" }), React.createElement(BlockLink, { target: "http://www.youtube.com/user/SefariaProject", title: "YouTube", heTitle: "יוטיוב" }), React.createElement(BlockLink, { target: "http://www.github.com/Sefaria", title: "GitHub", heTitle: "גיטהאב" }), React.createElement(BlockLink, { target: "mailto:hello@sefaria.org", title: "Email", heTitle: "אימייל" })];
     connectContent = React.createElement(TwoOrThreeBox, { content: connectContent, width: width });
 
     return React.createElement(
@@ -6310,10 +6333,10 @@ var AccountPanel = React.createClass({
         React.createElement(
           "div",
           { className: "contentInner" },
-          React.createElement(ReaderNavigationMenuSection, { title: "Account", heTitle: "Account", content: accountContent }),
-          React.createElement(ReaderNavigationMenuSection, { title: "Learn", heTitle: "למיד", content: learnContent }),
-          React.createElement(ReaderNavigationMenuSection, { title: "Contribute", heTitle: "Contribute", content: contributeContent }),
-          React.createElement(ReaderNavigationMenuSection, { title: "Connect", heTitle: "התחבר", content: connectContent })
+          React.createElement(ReaderNavigationMenuSection, { title: "Account", heTitle: "חשבון משתמש", content: accountContent }),
+          React.createElement(ReaderNavigationMenuSection, { title: "Learn", heTitle: "לימוד", content: learnContent }),
+          React.createElement(ReaderNavigationMenuSection, { title: "Contribute", heTitle: "עשייה", content: contributeContent }),
+          React.createElement(ReaderNavigationMenuSection, { title: "Connect", heTitle: "התחברות", content: connectContent })
         )
       )
     );
@@ -6465,7 +6488,7 @@ var LoadingMessage = React.createClass({
   },
   render: function render() {
     var message = this.props.message || "Loading...";
-    var heMessage = this.props.heMessage || "טעינה...";
+    var heMessage = this.props.heMessage || "טוען מידע...";
     var classes = "loadingMessage " + (this.props.className || "");
     return React.createElement(
       "div",
