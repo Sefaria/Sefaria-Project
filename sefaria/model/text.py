@@ -2421,11 +2421,11 @@ class Ref(object):
             self._prev = self._iter_text_section(False)
             if self._prev is None and not self.index_node.children:
                 current_leaf = self.index_node
-                #we now need to iterate over the prev leaves, finding the first available section
+                # we now need to iterate over the prev leaves, finding the first available section
                 while True:
-                    prev_leaf = current_leaf.prev_leaf() #prev schema/JANode
+                    prev_leaf = current_leaf.prev_leaf()  # prev schema/JANode
                     if prev_leaf:
-                        prev_node_ref = prev_leaf.ref() #get a ref so we can do the next lines
+                        prev_node_ref = prev_leaf.ref()  # get a ref so we can do the next lines
                         potential_prev = prev_node_ref._iter_text_section(forward=False, depth_up=0 if prev_leaf.depth == 1 else 1)
                         if potential_prev:
                             self._prev = potential_prev
@@ -2848,22 +2848,20 @@ class Ref(object):
     def range_list(self):
         """
         :return: list of :class:`Ref` objects corresponding to each point in the range of this :class:`Ref`
-
-        Does not work for spanning refs
         """
         if not self._ranged_refs:
+            results = []
             if not self.is_range():
                 return [self]
             if self.is_spanning():
-                raise InputError(u"Can not get range of spanning ref: {}".format(self))
-
-            results = []
-
-            for s in range(self.sections[-1], self.toSections[-1] + 1):
-                d = self._core_dict()
-                d["sections"][-1] = s
-                d["toSections"][-1] = s
-                results.append(Ref(_obj=d))
+                for oref in self.split_spanning_ref():
+                    results += oref.range_list() if oref.is_range() else oref.all_subrefs()
+            else:
+                for s in range(self.sections[-1], self.toSections[-1] + 1):
+                    d = self._core_dict()
+                    d["sections"][-1] = s
+                    d["toSections"][-1] = s
+                    results.append(Ref(_obj=d))
 
             self._ranged_refs = results
         return self._ranged_refs

@@ -180,7 +180,6 @@ def switch_to_s2(request):
     return response
 
 
-
 def s2(request, ref, version=None, lang=None):
     """
     New interfaces in development
@@ -192,6 +191,8 @@ def s2(request, ref, version=None, lang=None):
     max_panels = 4
     panels = []
 
+    # TODO clean up generation of initial panels objects. 
+    # Currently these get generated in reader/views.py, then regenerated in s2.html then regenerated again in ReaderApp.
 
     # Handle first panel
     panel_1 = {}
@@ -213,6 +214,8 @@ def s2(request, ref, version=None, lang=None):
     text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
 
     panel_1["ref"] = oref.normal()
+    if oref.is_segment_level():
+        panel_1["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
     panel_1["text"] = text
     panel_1["filter"] = request.GET.get("with").replace("_"," ").split("+") if request.GET.get("with") else None
 
@@ -245,14 +248,15 @@ def s2(request, ref, version=None, lang=None):
         text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
 
         panel["ref"] = oref.normal()
+        if oref.is_segment_level():
+            panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
         panel["text"] = text
         panel["filter"] = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
 
         panels += [panel]
 
     return render_to_response('s2.html', {
-            "panels": json.dumps(panels),
-            "query": request.GET.get("q")
+            "panels": json.dumps(panels)
         }, RequestContext(request))
 
 
@@ -274,6 +278,16 @@ def s2_texts_category(request, cats):
                                 }, RequestContext(request))
 
 
+def s2_search(request):
+    search_filters = request.GET.get("filters").split("|") if request.GET.get("filters") else []
+
+    return render_to_response('s2.html', {
+            "initialMenu": "search",
+            "query": request.GET.get("q") or "",
+            "searchFilters": json.dumps(search_filters)
+        }, RequestContext(request))
+
+
 def s2_page(request, page):
     """
     View into an S2 page
@@ -285,10 +299,6 @@ def s2_page(request, page):
 
 def s2_home(request):
     return s2_page(request, "home")
-
-
-def s2_search(request):
-    return s2_page(request, "search")
 
 
 def s2_texts(request):
@@ -789,7 +799,7 @@ def texts_category_list(request, cats):
 @ensure_csrf_cookie
 def search(request):
     if request.flavour == "mobile" or request.COOKIES.get('s2'):
-        return s2_page(request, "search")
+        return s2_search(request)
     return render_to_response('search.html',
                              {},
                              RequestContext(request))
@@ -840,6 +850,10 @@ def texts_api(request, tref, lang=None, version=None):
         except AttributeError as e:
             oref = oref.default_child_ref()
             text = TextFamily(oref, version=version, lang=lang, commentary=commentary, context=context, pad=pad, alts=alts).contents()
+        except NoVersionFoundError as e:
+            # Extended data is used by S2 in TextList.preloadAllCommentaryText()
+            return jsonResponse({"error": unicode(e), "ref": oref.normal(), "versionTitle": version, "lang": lang, "commentator": getattr(oref.index, "commentator", "")})
+
 
         # Use a padded ref for calculating next and prev
         # TODO: what if pad is false and the ref is of an entire book?
@@ -1205,15 +1219,15 @@ def link_summary_api(request, ref):
 def notes_api(request, note_id_or_ref):
     """
     API for user notes.
-    Is this still true? "Currently only handles deleting. Adding and editing are handled throughout the links API."
-    A called to this API with GET returns the list of public notes and private notes belong to the current user on this Ref. 
+    A call to this API with GET returns the list of public notes and private notes belong to the current user on this Ref. 
     """
     if request.method == "GET":
         if not note_id_or_ref:
             raise Http404
         oref = Ref(note_id_or_ref)
         cb = request.GET.get("callback", None)
-        res = get_notes(oref, uid=request.user.id)
+        private = request.GET.get("private", False)
+        res = get_notes(oref, uid=request.user.id, public=(not private))
         return jsonResponse(res, cb)
 
     if request.method == "POST":
@@ -1221,6 +1235,13 @@ def notes_api(request, note_id_or_ref):
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
         note = json.loads(j)
+
+        if "refs" in note:
+            # If data was posted with an array or refs, squish them into one
+            # This assumes `refs` are sequential.
+            note["ref"] = Ref(note["refs"][0]).to(Ref(note["refs"][-1])).normal()
+            del note["refs"]
+
         func = tracker.update if "_id" in note else tracker.add
         if not request.user.is_authenticated():
             key = request.POST.get("apikey")
@@ -1434,6 +1455,7 @@ def lock_text_api(request, title, lang, version):
     vobj.save()
     return jsonResponse({"status": "ok"})
 
+
 @catch_error_as_json
 @csrf_exempt
 def flag_text_api(request, title, lang, version):
@@ -1476,6 +1498,7 @@ def flag_text_api(request, title, lang, version):
         return protected_post(request)
     else:
         return jsonResponse({"error": "Unauthorized"})
+
 
 @catch_error_as_json
 def dictionary_api(request, word):
@@ -2348,6 +2371,15 @@ def metrics(request):
                                     "metrics_json": metrics_json,
                                 },
                                 RequestContext(request))
+
+@ensure_csrf_cookie
+def connectPage(request):
+    """
+    Connect page - mailing list sign up, social media etc
+    """
+    # TODO update this for S2
+    return redirect(iri_to_uri("/#homeConnect"), permanent=False)
+
 
 
 @ensure_csrf_cookie

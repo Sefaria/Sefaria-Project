@@ -436,7 +436,8 @@ def hebrew_term(s):
 		"Maadaney Yom Tov":     u"מעדני יום טב",
 		"Shita Mekubetzet":     u'שיטה מקובצת',
 		"Modern Works":		u"יצירות מודרניות",
-		"Maharshal":		u'מהרש"ל'
+		"Maharshal":		u'מהרש"ל',
+		"Gur Aryeh":		u'גור אריה'
 	}
 
 	pseudo_categories = {
