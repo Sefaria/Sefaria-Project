@@ -91,10 +91,9 @@ def _test_on_one_browser(cap):
             driver.execute_script('"**** Exit {} ****"'.format(test_class.__name__))
         except Exception as e:
             return "Fail: {} on {}: {}".format(test_class.__name__, cap_to_string(cap), e)
-        else:
-            return "Pass: {}".format(cap_to_string(cap))
-
     driver.quit()
+    return "Pass: {}".format(cap_to_string(cap))
+
 
 
 def test_local():
