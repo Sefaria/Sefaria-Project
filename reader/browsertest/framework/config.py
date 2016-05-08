@@ -1,6 +1,8 @@
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 from creds import BS_USER, BS_KEY
+MAX_THREADS = 5
+
 REMOTE_URL = "http://test.sefaria.org"
 LOCAL_URL = "http://localhost:8000"
 

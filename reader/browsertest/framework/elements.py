@@ -65,12 +65,18 @@ def test_all(build):
             'tests': tests
         })
 
-    p = Pool(10)
-    results = p.map(_test_all_on_one_browser, caps)
+    p = Pool(MAX_THREADS)
+    results = p.map(_test_on_one_browser, caps)
     print "\n".join(results)
 
 
-def _test_all_on_one_browser(cap):
+def one_test_on_one_browser(test_class, cap):
+    cap["tests"] = [test_class]
+    result = _test_on_one_browser(cap)
+    print result
+
+
+def _test_on_one_browser(cap):
     tests = cap.pop("tests")
     driver = get_browserstack_driver(cap)
 
@@ -80,7 +86,9 @@ def _test_all_on_one_browser(cap):
     for test_class in tests:
         test = test_class(REMOTE_URL)
         try:
+            driver.execute_script('"**** Enter {} ****"'.format(test_class.__name__))
             test.run(driver)
+            driver.execute_script('"**** Enter {} ****"'.format(test_class.__name__))
         except:
             return "Fail: {}".format(cap_to_string(cap))
         else:
