@@ -1,10 +1,8 @@
 
 from config import *
 from selenium import webdriver
-from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException
 from random import shuffle
 from multiprocessing import Pool
-import time
 
 
 def get_browserstack_driver(desired_cap):
@@ -51,11 +49,11 @@ def get_atomic_tests():
     return get_subclasses(AtomicTest)
 
 
-def test_all(build):
+def test_all(build, caps = None):
     tests = get_atomic_tests()
     shuffle(tests)
 
-    caps = DESKTOP + MOBILE
+    caps = caps or DESKTOP + MOBILE
     for cap in caps:
         cap.update({
             'build': build,
@@ -110,67 +108,3 @@ def test_local():
         test = test_class(LOCAL_URL)
         test.run(driver)
     driver.quit()
-
-
-# http://www.obeythetestinggoat.com/how-to-get-selenium-to-wait-for-page-load-after-a-click.html
-# use as:
-# with wait_for_page_load(driver):
-#     assert test == test1
-class wait_for_page_load(object):
-    def __init__(self, browser):
-        self.browser = browser
-
-    def __enter__(self):
-        self.old_page = self.browser.find_element_by_tag_name('html')
-
-    def page_has_loaded(self):
-        new_page = self.browser.find_element_by_tag_name('html')
-        return new_page.id != self.old_page.id
-
-    def __exit__(self, *_):
-        wait_for(self.page_has_loaded)
-
-
-def wait_for(condition_function):
-    start_time = time.time()
-    while time.time() < start_time + 6:
-        if condition_function():
-            return True
-        else:
-            time.sleep(0.1)
-    raise Exception(
-        'Timeout waiting for {}'.format(condition_function.__name__)
-        )
-
-
-def click_and_expect(element_to_click, driver, css_selector):
-    element_to_click.click()
-
-    def element_has_appeared():
-        try:
-            driver.find_element_by_css_selector(css_selector)
-            return True
-        except NoSuchElementException:
-            return False
-
-    wait_for(element_has_appeared)
-
-
-def click_and_wait_for_change(element_to_click, element_to_poll = None):
-    """
-    :param element_to_click:
-    :param element_to_poll: Element that we expect to go stale after the click finishes
-    :return:
-    """
-    element_to_poll = element_to_poll or element_to_click
-    element_to_click.click()
-
-    def link_has_gone_stale():
-        try:
-            # poll the link with an arbitrary call
-            element_to_poll.find_elements_by_id('doesnt-matter')
-            return False
-        except StaleElementReferenceException:
-            return True
-
-    wait_for(link_has_gone_stale)

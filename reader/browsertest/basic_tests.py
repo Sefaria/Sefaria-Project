@@ -1,4 +1,7 @@
-from framework import AtomicTest, wait_for_page_load, click_and_wait_for_change, click_and_expect
+from framework import AtomicTest
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.expected_conditions import title_contains, staleness_of, element_to_be_clickable, visibility_of_element_located
 
 
 class RecentInToc(AtomicTest):
@@ -6,29 +9,31 @@ class RecentInToc(AtomicTest):
         driver.get(self.base_url + "/texts")
 
         driver.find_element_by_class_name('readerNavCategory[data-cat="Tanach"]').click()  # The "Tanach" category is first
-        assert "Tanach" in driver.title
+        WebDriverWait(driver, 10).until(title_contains("Tanach"))
 
         p1 = driver.find_element_by_css_selector('.refLink[data-ref="Psalms 1"]')
-        click_and_wait_for_change(p1)
-        assert "Psalms" in driver.title
+        p1.click()
+        WebDriverWait(driver, 10).until(title_contains("Psalms"))
 
         driver.get(self.base_url + "/texts")
-        assert "Texts" in driver.title
+        WebDriverWait(driver, 10).until(title_contains("Texts"))
 
         recent = driver.find_element_by_css_selector('.recentItem[data-ref="Psalms 1"]')
-        assert recent
-        click_and_wait_for_change(recent)
-        assert "Psalms" in driver.title
+        recent.click()
+        WebDriverWait(driver, 10).until(title_contains("Psalms"))
 
 
 class LoadRefAndClickSegment(AtomicTest):
     def run(self, driver):
         driver.get(self.base_url + "/Psalms.65.5")
-        assert "Psalms 65:5" in driver.title
+        WebDriverWait(driver, 10).until(title_contains("Psalms 65:5"))
+
         segment = driver.find_element_by_css_selector('.segment[data-ref="Psalms 65:5"]')
-        click_and_expect(segment, driver, ".textFilter")
+        segment.click()
+        WebDriverWait(driver, 10).until(title_contains("Psalms 65:5 with Connections"))
         assert "Psalms.65.5?with=all" in driver.current_url
-        assert "Psalms 65:5 with Connections" in driver.title
+        rashi = driver.find_element_by_css_selector('.textFilter[data-name="Malbim"]')
+        assert rashi
 
 
 class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
@@ -36,5 +41,6 @@ class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
         driver.get(self.base_url + "/Psalms.45.5?with=all")
         assert "Psalms 45:5 with Connections" in driver.title, driver.title
         rashi = driver.find_element_by_css_selector('.textFilter[data-name="Rashi"]')
-        click_and_wait_for_change(rashi)
+        rashi.click()
+        WebDriverWait(driver, 10).until(staleness_of(rashi))
         assert "Psalms.45.5?with=Rashi" in driver.current_url, driver.current_url
