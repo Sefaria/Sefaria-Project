@@ -78,7 +78,7 @@ def _test_on_one_browser(cap):
     tests = cap.pop("tests")
     driver = get_browserstack_driver(cap)
 
-    description = '"' + "Test order:\n" + "\n".join([test.__name__ for test in tests]) + '"'
+    description = '"' + "Test order: " + ", ".join([test.__name__ for test in tests]) + '"'
     driver.execute_script(description)
 
     # Insure that we're on s2

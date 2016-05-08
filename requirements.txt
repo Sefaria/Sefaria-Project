@@ -21,3 +21,4 @@ python-varnish
 geojson
 django-recaptcha
 unicodecsv
+multiprocessing
