@@ -96,6 +96,8 @@ urlpatterns += patterns('reader.views',
     (r'^add/(?P<ref>.+)$', 'edit_text'),
     (r'^translate/(?P<ref>.+)$', 'edit_text'),
     (r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'edit_text'),
+    (r'^edit/(?P<ref>.+)$', 'edit_text'),
+
 )
 
 # Texts Page
@@ -240,10 +242,11 @@ static_pages = [
     "contributed-to-sefaria",
 ]
 
-# Static Content 
+# Static and Semi Static Content 
 urlpatterns += patterns('reader.views', 
     url(r'^$', 'home', name="home"),
     (r'^metrics/?$', 'metrics'),
+    (r'^connect/?$', 'connectPage'),
     (r'^digitized-by-sefaria/?$', 'digitized_by_sefaria'),
     (r'^(%s)/?$' % "|".join(static_pages), 'serve_static'),
 )

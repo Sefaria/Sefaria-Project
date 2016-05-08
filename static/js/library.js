@@ -487,8 +487,6 @@ sjs.library = {
   privateNotes: function(refs, callback) {
     // Returns an array of private notes for `refs` (a string or array or strings)
     // or `null` if notes have not yet been loaded.
-    console.log("privateNotes")
-    console.log(refs)
     var notes = null;
     if (typeof refs == "string") {
       if (refs in this._privateNotes) { 
@@ -499,8 +497,6 @@ sjs.library = {
       var notesByRef = refs.map(function(ref) {
         return sjs.library._privateNotes[ref];
       });
-      console.log("notesByRef");
-      console.log(notesByRef);
       if (notesByRef.some(function(e) { return !e })) {
         // If any ref in `refs` returned `null`, treat the whole thing as not yet loaded, call the API.
         notes = null;
@@ -527,7 +523,6 @@ sjs.library = {
             // sjs.alert.message(data.error);
             return;
           }
-          console.log("saving private notes")
           this._savePrivateNoteData(ref, data);
           aggregateCallback(data);
         }.bind(this));

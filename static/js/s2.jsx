@@ -596,6 +596,13 @@ var ReaderApp = React.createClass({
       this.openTextListAt(n+1, refs);
     }
   },
+  openComparePanel: function(n) {
+    var comparePanel = this.makePanelState({
+      menuOpen: "navigation"
+    });
+    this.state.panels[n] = comparePanel;
+    this.setState({panels: this.state.panels});
+  },
   closePanel: function(n) {
     // Removes the panel in position `n`, as well as connections panel in position `n+1` if it exists.
     this.saveRecentlyViewed(this.state.panels[n], n);
@@ -698,6 +705,7 @@ var ReaderApp = React.createClass({
       var onTextListClick          = null; // this.openPanelAt.bind(null, i);
       var onOpenConnectionsClick   = this.openTextListAt.bind(null, i+1);
       var setTextListHightlight    = this.setTextListHighlight.bind(null, i);
+      var openComparePanel         = this.openComparePanel.bind(null, i);
       var closePanel               = this.closePanel.bind(null, i);
       var setPanelState            = this.setPanelState.bind(null, i);
       var selectVersion            = this.selectVersion.bind(null, i);
@@ -720,6 +728,7 @@ var ReaderApp = React.createClass({
                       onNavigationClick={this.handleNavigationClick}
                       onRecentClick={this.handleRecentClick}
                       onOpenConnectionsClick={onOpenConnectionsClick}
+                      openComparePanel={openComparePanel}
                       setTextListHightlight={setTextListHightlight}
                       selectVersion={selectVersion}
                       setDefaultOption={this.setDefaultOption}
@@ -728,6 +737,7 @@ var ReaderApp = React.createClass({
                       registerAvailableFilters={this.updateAvailableFiltersInPanel}
                       closePanel={closePanel}
                       panelsOpen={this.state.panels.length}
+                      masterPanelLanguage={panel.mode === "Connections" ? this.state.panels[i-1].settings.language : panel.settings.language}
                       layoutWidth={width} />
                   </div>);
     }
@@ -913,38 +923,40 @@ var Header = React.createClass({
 
 var ReaderPanel = React.createClass({
   propTypes: {
-    initialRefs:            React.PropTypes.array,
-    initialMode:            React.PropTypes.string,
-    initialConnectionsMode: React.PropTypes.string,
-    initialVersion:         React.PropTypes.string,
-    initialVersionLanguage: React.PropTypes.string,
-    initialFilter:          React.PropTypes.array,
-    initialHighlightedRefs: React.PropTypes.array,
-    initialMenu:            React.PropTypes.string,
-    initialQuery:           React.PropTypes.string,
-    initialAppliedSearchFilters:   React.PropTypes.array,
-    initialSheetsTag:       React.PropTypes.string,
-    initialState:           React.PropTypes.object, // if present, trumps all props above
-    setCentralState:        React.PropTypes.func,
-    onSegmentClick:         React.PropTypes.func,
-    onCitationClick:        React.PropTypes.func,
-    onTextListClick:        React.PropTypes.func,
-    onNavTextClick:         React.PropTypes.func,
-    onRecentClick:          React.PropTypes.func,
-    onSearchResultClick:    React.PropTypes.func,
-    onUpdate:               React.PropTypes.func,
-    closePanel:             React.PropTypes.func,
-    closeMenus:             React.PropTypes.func,
-    setDefaultLanguage:     React.PropTypes.func,
-    selectVersion:          React.PropTypes.func,
-    onQueryChange:          React.PropTypes.func,
-    updateSearchFilter:     React.PropTypes.func,
-    registerAvailableFilters: React.PropTypes.func,
-    highlightedRefs:        React.PropTypes.array,
-    hideNavHeader:          React.PropTypes.bool,
-    multiPanel:             React.PropTypes.bool,
-    panelsOpen:             React.PropTypes.number,
-    layoutWidth:            React.PropTypes.number
+    initialRefs:                 React.PropTypes.array,
+    initialMode:                 React.PropTypes.string,
+    initialConnectionsMode:      React.PropTypes.string,
+    initialVersion:              React.PropTypes.string,
+    initialVersionLanguage:      React.PropTypes.string,
+    initialFilter:               React.PropTypes.array,
+    initialHighlightedRefs:      React.PropTypes.array,
+    initialMenu:                 React.PropTypes.string,
+    initialQuery:                React.PropTypes.string,
+    initialAppliedSearchFilters: React.PropTypes.array,
+    initialSheetsTag:            React.PropTypes.string,
+    initialState:                React.PropTypes.object, // if present, trumps all props above
+    setCentralState:             React.PropTypes.func,
+    onSegmentClick:              React.PropTypes.func,
+    onCitationClick:             React.PropTypes.func,
+    onTextListClick:             React.PropTypes.func,
+    onNavTextClick:              React.PropTypes.func,
+    onRecentClick:               React.PropTypes.func,
+    onSearchResultClick:         React.PropTypes.func,
+    onUpdate:                    React.PropTypes.func,
+    closePanel:                  React.PropTypes.func,
+    closeMenus:                  React.PropTypes.func,
+    setDefaultLanguage:          React.PropTypes.func,
+    selectVersion:               React.PropTypes.func,
+    onQueryChange:               React.PropTypes.func,
+    updateSearchFilter:          React.PropTypes.func,
+    registerAvailableFilters:    React.PropTypes.func,
+    openComparePanel:            React.PropTypes.func,
+    highlightedRefs:             React.PropTypes.array,
+    hideNavHeader:               React.PropTypes.bool,
+    multiPanel:                  React.PropTypes.bool,
+    masterPanelLanguage:         React.PropTypes.string,
+    panelsOpen:                  React.PropTypes.number,
+    layoutWidth:                 React.PropTypes.number
   },
   getInitialState: function() {
     // When this component is managed by a parent, all it takes is initialState
@@ -1024,7 +1036,6 @@ var ReaderPanel = React.createClass({
   conditionalSetState: function(state) {
     // Set state either in the central app or in the local component,
     // depending on whether a setCentralState function was given.
-    console.log(state);
     if (this.props.setCentralState) {
       this.props.setCentralState(state, this.replaceHistory);
       this.replaceHistory = false;
@@ -1314,13 +1325,23 @@ var ReaderPanel = React.createClass({
           key="text" />);
     }
     if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections") {
+      var langMode = this.props.masterPanelLanguage || this.state.settings.language;
+      var data     = this.currentData();
+      var enLocked = data.versionStatus === "locked";
+      var heLocked = data.heVersionStatus === "locked";
+      var canEditText = langMode === "hebrew" && !heLocked ||
+                        langMode === "english" && !enLocked ||
+                        sjs.is_moderator && langMode !== "bilingual";
       items.push(<ConnectionsPanel 
           srefs={this.state.mode === "Connections" ? this.state.refs : this.state.highlightedRefs} 
           filter={this.state.filter || []}
           mode={this.state.connectionsMode || "Connections"}
           recentFilters={this.state.recentFilters}
+          version={this.state.version}
+          versionLanguage={this.state.versionLanguage}
           fullPanel={this.props.multiPanel}
           multiPanel={this.props.multiPanel}
+          canEditText={canEditText}
           setFilter={this.setFilter}
           setConnectionsMode={this.setConnectionsMode}
           closeConectionsInPanel={this.closeConnectionsInPanel} 
@@ -1333,6 +1354,7 @@ var ReaderPanel = React.createClass({
           onNavigationClick={this.props.onNavigationClick}
           onOpenConnectionsClick={this.props.onOpenConnectionsClick}
           onCompareClick={this.showBaseText}
+          openComparePanel={this.props.openComparePanel}
           closePanel={this.props.closePanel}      
           key="connections" />
       );
@@ -2636,10 +2658,9 @@ var TextColumn = React.createClass({
     if (this.loadingContentAtTop || !this.initialScrollTopSet) {
       console.log("text load, setting scroll");
       this.setScrollPosition();
-    } else {
-      console.log("text load, ais");
-      this.adjustInfiniteScroll();
     }
+    console.log("text load, ais");
+    this.adjustInfiniteScroll();
   },
   setScrollPosition: function() {
     //console.log("ssp");
@@ -2678,7 +2699,7 @@ var TextColumn = React.createClass({
   },
   adjustInfiniteScroll: function() {
     // Add or remove TextRanges from the top or bottom, depending on scroll position
-    //console.log("ais");
+    console.log("ais");
     if (!this.isMounted()) { return; }
     var node         = ReactDOM.findDOMNode(this);
     var refs         = this.props.srefs;
@@ -2725,7 +2746,7 @@ var TextColumn = React.createClass({
   adjustTextListHighlight: function() {
     console.log("atlh");
     // When scrolling while the TextList is open, update which segment should be highlighted.
-    if (this.props.layoutWidth == 100) { 
+    if (this.props.multipanel && this.props.layoutWidth == 100) { 
       return; // Hacky - don't move around highlighted segment when scrolling a single panel,
     }
     // but we do want to keep the highlightedRefs value in the panel 
@@ -3247,9 +3268,13 @@ var ConnectionsPanel = React.createClass({
     setFilter:               React.PropTypes.func.isRequired,
     setConnectionsMode:      React.PropTypes.func.isRequired,
     editNote:                React.PropTypes.func.isRequired,
+    openComparePanel:        React.PropTypes.func.isRequired,
+    version:                 React.PropTypes.string,
+    versionLanguge:          React.PropTypes.string,
     noteBeingEdited:         React.PropTypes.object,
     fullPanel:               React.PropTypes.bool,
     multiPanel:              React.PropTypes.bool,
+    canEditText:             React.PropTypes.bool,
     onTextClick:             React.PropTypes.func,
     onCitationClick:         React.PropTypes.func,
     onNavigationClick:       React.PropTypes.func,
@@ -3288,6 +3313,7 @@ var ConnectionsPanel = React.createClass({
                     recentFilters={this.props.recentFilters}
                     fullPanel={this.props.fullPanel}
                     multiPanel={this.props.multiPanel}
+                    canEditText={this.props.canEditText}
                     setFilter={this.props.setFilter}
                     setConnectionsMode={this.props.setConnectionsMode}
                     onTextClick={this.props.onTextClick}
@@ -3297,6 +3323,7 @@ var ConnectionsPanel = React.createClass({
                     onOpenConnectionsClick={this.props.onOpenConnectionsClick}
                     openNav={this.props.openNav}
                     openDisplaySettings={this.props.openDisplaySettings}
+                    openComparePanel={this.props.openComparePanel}
                     closePanel={this.props.closePanel} />);
 
     } else if (this.props.mode === "Share") {
@@ -3921,8 +3948,12 @@ var ToolsPanel = React.createClass({
     filter:                  React.PropTypes.array.isRequired,
     recentFilters:           React.PropTypes.array.isRequired,
     setConnectionsMode:      React.PropTypes.func.isRequired,
+    openComparePanel:        React.PropTypes.func.isRequired,
+    version:                 React.PropTypes.string,
+    versionLanguge:          React.PropTypes.string,
     fullPanel:               React.PropTypes.bool,
     multiPanel:              React.PropTypes.bool,
+    canEditText:             React.PropTypes.bool,
     setFilter:               React.PropTypes.func,
     onTextClick:             React.PropTypes.func,
     onCitationClick:         React.PropTypes.func,
@@ -3939,6 +3970,20 @@ var ToolsPanel = React.createClass({
     };
   },
   render: function() {
+    var currentPath = window.location.pathname + window.location.search;
+    var editText = this.props.canEditText ? function() {
+      // TODO this is only an approximation
+      
+      var path = "/edit/" + this.props.srefs[0];
+      if (this.props.version) {
+        path += "/" + this.props.versionLanguage + "/" + this.props.version;
+      }
+      path += "?next=" + currentPath;
+      window.location = path;
+    }.bind(this) : null;
+    var addTranslation = function() {
+      window.location = "/translate/" + this.props.srefs[0] + "?next=" + currentPath;
+    }.bind(this);
     var classes = classNames({toolsPanel: 1, textList: 1, fullPanel: this.props.fullPanel});
     return (
       <div className={classes}>
@@ -3948,9 +3993,10 @@ var ToolsPanel = React.createClass({
             <ToolsButton en="Add to Source Sheet" he="Add to Source Sheet" icon="plus-circle" onClick={function() {this.props.setConnectionsMode("Add to Source Sheet")}.bind(this)} /> 
             <ToolsButton en="Add Note" he="Add Note" icon="pencil" onClick={function() {this.props.setConnectionsMode("Add Note")}.bind(this)} /> 
             <ToolsButton en="My Notes" he="My Notes" icon="file-text-o" onClick={function() {this.props.setConnectionsMode("My Notes")}.bind(this)} /> 
+            <ToolsButton en="Compare" he="Compare" image="compare-64.png" onClick={this.props.openComparePanel} /> 
+            <ToolsButton en="Add Translation" he="Add Translation" icon="language" onClick={addTranslation} /> 
             <ToolsButton en="Add Connection" he="Add Connection" icon="link" onClick={function() {this.props.setConnectionsMode("Add Connection")}.bind(this)} /> 
-            <ToolsButton en="Edit Text" he="Edit Text" icon="edit" onClick={function() {this.props.setConnectionsMode("Edit Text")}.bind(this)} /> 
-            <ToolsButton en="Add Translation" he="Add Translation" icon="language" onClick={function() {this.props.setConnectionsMode("Edit Text")}.bind(this)} /> 
+            { editText ? (<ToolsButton en="Edit Text" he="Edit Text" icon="edit" onClick={editText} />) : null } 
           </div>
         </div>
       </div>);
@@ -3962,17 +4008,24 @@ var ToolsButton = React.createClass({
   propTypes: {
     en:      React.PropTypes.string.isRequired,
     he:      React.PropTypes.string.isRequired,
-    icon:    React.PropTypes.string.isRequired,
+    icon:    React.PropTypes.string,
+    image:   React.PropTypes.string,
     onClick: React.PropTypes.func,
   },
   render: function() {
-    var icon = "fa-" + this.props.icon;
-    var classes = {fa: 1};
-    classes[icon] = 1;
+    var icon = null;
+    if (this.props.icon) {
+      var iconName = "fa-" + this.props.icon;
+      var classes = {fa: 1, toolsButtonIcon: 1};
+      classes[iconName] = 1;
+      icon = (<i className={classNames(classes)} />)
+    } else if (this.props.image) {
+      icon = (<img src={"/static/img/" + this.props.image} className="toolsButtonIcon" />);
+    }
 
     return (
       <div className="toolsButton" onClick={this.props.onClick}>
-        <i className={classNames(classes)} />
+        {icon}
         <div className="en">{this.props.en}</div>
         <div className="he">{this.props.he}</div>
       </div>)
@@ -4255,18 +4308,20 @@ var MyNotesPanel = React.createClass({
   componentDidMount: function() {
     this.loadNotes();
   },
+  componentDidUpdate: function(prevProps, prevState) {
+    if (!prevProps.srefs.compare(this.props.srefs)) {
+      this.loadNotes();
+    }
+  },
   loadNotes: function() {
     // Rerender this component when privateNotes arrive.
     sjs.library.privateNotes(this.props.srefs, this.rerender);
   },
   rerender: function() {
-    console.log("RErender mynotespanel")
     this.forceUpdate();
   },
   render: function() {
     var myNotesData = sjs.library.privateNotes(this.props.srefs);
-    console.log("rendering mnp")
-    console.log(myNotesData)
     var myNotes = myNotesData ? myNotesData.map(function(note) {
       var editNote = function() {
         this.props.editNote(note);
