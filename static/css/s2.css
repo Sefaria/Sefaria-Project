@@ -2067,12 +2067,17 @@ display: block;margin: 0 auto;}
 .toolsButton .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.toolsButton .fa {
+.toolsButton .toolsButtonIcon {
   float: right;
   color: #ccc;
   font-size: 22px;
 }
-.hebrew .toolsButton .fa {
+.toolsButton img.toolsButtonIcon {
+  width: 22px;
+  height: 22px;
+  opacity: 0.2;
+}
+.hebrew .toolsButton .toolsButtonIcon {
   float: left;
 }
 .sharePanel input {

@@ -2372,6 +2372,15 @@ def metrics(request):
                                 },
                                 RequestContext(request))
 
+@ensure_csrf_cookie
+def connectPage(request):
+    """
+    Connect page - mailing list sign up, social media etc
+    """
+    # TODO update this for S2
+    return redirect(iri_to_uri("/#homeConnect"), permanent=False)
+
+
 
 @ensure_csrf_cookie
 def digitized_by_sefaria(request):
