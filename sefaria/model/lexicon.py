@@ -4,9 +4,6 @@ Writes to MongoDB Collection:
 """
 import re
 from . import abstract as abst
-from . import text
-from . import history
-from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
 
@@ -128,3 +125,38 @@ class LexiconEntrySet(abst.AbstractMongoSet):
             self.max = len(self.records)
 
 
+class LexiconLookupAggregator(object):
+
+    @staticmethod
+    def single_lookup(input_word, as_query=False, **kwargs):
+        from sefaria.utils.hebrew import is_hebrew, strip_cantillation, has_cantillation
+
+        lookup_ref = kwargs.GET.get("lookup_ref", None)
+        wform_pkey = 'form'
+        if is_hebrew(input_word):
+            word = strip_cantillation(input_word)
+            if not has_cantillation(input_word, detect_vowels=True):
+                wform_pkey = 'c_form'
+
+        query_obj = {wform_pkey: input_word}
+        if lookup_ref:
+            nref = Ref(lookup_ref).normal()
+            query_obj["refs"] = {'$regex': '^{}'.format(nref)}
+        form = WordForm().load(query_obj)
+        if not form:
+            del query_obj["refs"]
+            form = WordForm().load(query_obj)
+        if form:
+            result = []
+            headword_query = []
+            for lookup in form.lookups:
+                headword_query.append({'headword': lookup['headword']})
+                # TODO: if we want the 'lookups' in wf to be a dict we can pass as is to the lexiconentry, we need to change the key 'lexicon' to 'parent_lexicon' in word forms
+            if as_query:
+                return headword_query
+            else:
+                return LexiconEntrySet({"$or": headword_query})
+
+    @staticmethod
+    def multiple_lookup(input_str):
+        pass
