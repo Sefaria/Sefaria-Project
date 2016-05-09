@@ -30,8 +30,8 @@ def get_local_driver():
 
 
 def cap_to_string(cap):
-    return (cap.get("device") or  # browserstack mobile
-            cap.get("deviceName") or  # sauce mobile
+    return (cap.get("deviceName") or  # sauce mobile
+            cap.get("device") or  # browserstack mobile
             "{} {} on {} {}".format(cap.get("browser"), cap.get("browser_version"), cap.get("os"), cap.get("os_version")) if cap.get("browser") else  # browserstack desktop
             "{} {} on {}".format(cap.get('browserName'), cap.get("version"), cap.get('platform')))  # sauce desktop
 
@@ -42,11 +42,19 @@ class AtomicTest(object):
     AtomicTests are designed to be composed in any order, so as to test a wide range of orders of events
     A concrete AtomicTest implements the run method.
     """
+    suite_key = None
+    mobile = True  # run this test on mobile?
+    desktop = True  # run this test on desktop?
+
     def __init__(self, url):
         self.base_url = url
+        if not self.suite_key:
+            raise Exception("Missing required variable - test_suite")
+        if not self.mobile and not self.desktop:
+            raise Exception("Tests must run on at least one of mobile or desktop")
 
     def run(self, driver):
-        pass
+        raise Exception("AtomicTest.run() needs to be defined for each test.")
 
 
 def get_subclasses(c):
@@ -61,40 +69,67 @@ def get_atomic_tests():
     return get_subclasses(AtomicTest)
 
 
-def test_all_on_bstack(build, caps = None):
-    tests = get_atomic_tests()
-    shuffle(tests)
+def get_test_suite_keys():
+    return list(set([t.suite_key for t in get_atomic_tests()]))
 
-    caps = caps or BS_DESKTOP + BS_MOBILE
-    for cap in caps:
-        cap.update({
-            'build': build,
-            'project': 'Reader S2',
-            'tests': tests,
-            "testing_platform": "bstack"
-        })
 
+def get_tests_in_suite(key):
+    return [t for t in get_atomic_tests() if t.suite_key == key]
+
+
+def get_mobile_tests(tests):
+    return [t for t in tests if t.mobile]
+
+
+def get_desktop_tests(tests):
+    return [t for t in tests if t.desktop]
+
+
+def get_multiplatform_tests(tests):
+    return [t for t in tests if t.desktop and t.mobile]
+
+
+def _test_all(build, caps, default_desktop_caps, default_mobile_caps, platform_string):
     p = Pool(MAX_THREADS)
-    results = p.map(_test_on_one_browser, caps)
-    print "\n".join(results)
+    for key in get_test_suite_keys():
+        tests = get_tests_in_suite(key)
+        shuffle(tests)
+
+        if not caps:
+            for cap in default_desktop_caps:
+                cap.update({
+                    'name': "{} on {}".format(key, cap_to_string(cap)),
+                    'build': build,
+                    'tests': get_desktop_tests(tests),
+                    "testing_platform": platform_string
+                })
+            for cap in default_mobile_caps:
+                cap.update({
+                    'name': "{} on {}".format(key, cap_to_string(cap)),
+                    'build': build,
+                    'tests': get_mobile_tests(tests),
+                    "testing_platform": platform_string
+                })
+            caps = default_desktop_caps + default_mobile_caps
+        else:
+            for cap in caps:
+                cap.update({
+                    'name': "{} on {}".format(key, cap_to_string(cap)),
+                    'build': build,
+                    'tests': tests,  # Lazy assumption that all tests are run if caps are provided as an arg.
+                    "testing_platform": platform_string
+                })
+        results = p.map(_test_on_one_browser, caps)
+        print "\n\nSuite: {}".format(key)
+        print "\n".join(results)
+
+
+def test_all_on_bstack(build, caps = None):
+    _test_all(build, caps, BS_DESKTOP, BS_MOBILE, "bstack")
 
 
 def test_all_on_sauce(build, caps = None):
-    tests = get_atomic_tests()
-    shuffle(tests)
-
-    caps = caps or SAUCE_DESKTOP + SAUCE_MOBILE
-    for cap in caps:
-        cap.update({
-            'name': "S2 {}".format(build),
-            'build': build,
-            'tests': tests,
-            "testing_platform": "sauce"
-        })
-
-    p = Pool(MAX_THREADS)
-    results = p.map(_test_on_one_browser, caps)
-    print "\n".join(results)
+    _test_all(build, caps, SAUCE_DESKTOP, SAUCE_MOBILE, "sauce")
 
 
 def one_test_on_one_browser(test_class, cap):
@@ -128,6 +163,7 @@ def _test_on_one_browser(cap):
             test.run(driver)
             driver.execute_script('"**** Exit {} ****"'.format(test_class.__name__))
         except Exception as e:
+            driver.quit()
             return "Fail: {} on {}: {}".format(test_class.__name__, cap_to_string(cap), e)
     driver.quit()
     return "Pass: {}".format(cap_to_string(cap))
@@ -147,3 +183,4 @@ def test_local():
         test = test_class(LOCAL_URL)
         test.run(driver)
     driver.quit()
+

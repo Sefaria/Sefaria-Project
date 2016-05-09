@@ -21,7 +21,7 @@ SAUCE_DESKTOP = [
 ]
 SAUCE_MOBILE = [
     {'browserName': "iPhone", 'platform':"OS X 10.10", 'version': "9.2", 'deviceName': "iPhone 5s", 'deviceOrientation':"portrait"},
-    {'browserName': "iPhone", 'platform':"OS X 10.10", 'version': "9.2", 'deviceName': "iPad2", 'deviceOrientation':"portrait"},
+    {'browserName': "iPhone", 'platform':"OS X 10.10", 'version': "9.2", 'deviceName': "iPad Air", 'deviceOrientation':"portrait"},
     {'browserName': "android", 'deviceName': "Samsung Galaxy S4 Emulator", 'deviceOrientation':  "portrait"}
 ]
 

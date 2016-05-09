@@ -5,5 +5,5 @@ import sys
 
 build = sys.argv[1]
 
-test_all_on_bstack(build)
-#test_all_on_sauce(build)
+#test_all_on_bstack(build)
+test_all_on_sauce(build)
