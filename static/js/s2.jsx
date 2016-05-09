@@ -1771,7 +1771,7 @@ var ReaderNavigationMenu = React.createClass({
         var style = {"borderColor": sjs.categoryColor(cat)};
         var openCat = function() {this.props.setCategories([cat])}.bind(this);
         var heCat   = sjs.library.hebrewCategory(cat);
-        return (<div className="readerNavCategory" style={style} onClick={openCat}>
+        return (<div className="readerNavCategory" data-cat={cat} style={style} onClick={openCat}>
                   <span className="en">{cat}</span>
                   <span className="he">{heCat}</span>
                 </div>);
@@ -2310,14 +2310,22 @@ var ReaderTextTableOfContents = React.createClass({
 
 
     return (<div className="readerTextTableOfContents readerNavMenu" onClick={this.handleClick}>
-              <div className="readerNavTop">
-                <CategoryColorLine category={this.props.category} />
-                <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
-                <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-                <h2>
-                  <span className="en">Table of Contents</span>
-                  <span className="he">תוכן העניינים</span>
-                </h2>
+              <CategoryColorLine category={this.props.category} />
+              <div className="readerControls">
+                <div className="readerControlsInner">
+                  <div className="leftButtons">
+                    <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
+                  </div>
+                  <div className="rightButtons">
+                    <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+                  </div>
+                  <div className="readerTextToc">
+                    <div className="readerTextTocBox">
+                      <span className="en">Table of Contents</span>
+                      <span className="he">תוכן העניינים</span>
+                    </div>
+                  </div>
+                </div>
               </div>
               <div className="content">
                 <div className="contentInner">
@@ -3848,7 +3856,7 @@ var TextFilter = React.createClass({
     var name = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
     var count = this.props.hideCounts || !this.props.count ? "" : ( <span className="enInHe"> ({this.props.count})</span>);
     return (
-      <div 
+      <div data-name={name}
         className={classes} 
         style={style}
         onClick={this.handleClick}>

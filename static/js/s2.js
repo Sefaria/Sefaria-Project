@@ -1837,7 +1837,7 @@ var ReaderNavigationMenu = React.createClass({
         var heCat = sjs.library.hebrewCategory(cat);
         return React.createElement(
           "div",
-          { className: "readerNavCategory", style: style, onClick: openCat },
+          { className: "readerNavCategory", "data-cat": cat, style: style, onClick: openCat },
           React.createElement(
             "span",
             { className: "en" },
@@ -4546,7 +4546,7 @@ var TextFilter = React.createClass({
     );
     return React.createElement(
       "div",
-      {
+      { "data-name": name,
         className: classes,
         style: style,
         onClick: this.handleClick },
