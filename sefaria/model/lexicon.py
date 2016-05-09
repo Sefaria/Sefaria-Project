@@ -178,7 +178,7 @@ class LexiconLookupAggregator(object):
         for i in reversed(range(input_length)):
             ngrams = cls._create_ngrams(words, i)
             for ng in ngrams:
-                res = cls._single_lookup(ng, as_query=True, **kwargs)
+                res = cls._single_lookup(ng, **kwargs)
                 if res:
                     queries += res
         return queries
