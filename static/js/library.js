@@ -17,10 +17,10 @@ sjs.library = {
     };
     var key = this._textKey(ref, settings);
     if (!cb) {
-      return this._getOrBuildTextData(key);
+      return this._getOrBuildTextData(key, ref, settings);
     }          
     if (key in this._texts) {
-      var data = this._getOrBuildTextData(key);
+      var data = this._getOrBuildTextData(key, ref, settings);
       cb(data);
       return data;
     }
@@ -63,12 +63,12 @@ sjs.library = {
     }
     return key;
   },
-  _getOrBuildTextData: function(key) {
+  _getOrBuildTextData: function(key, ref, settings) {
     var cached = this._texts[key];
     if (!cached || !cached.buildable) { return cached; }
     if (cached.buildable === "Add Context") {
-      var segmentData = clone(this.text(cached.ref));
-      var contextData = this.text(cached.sectionRef) || this.text(cached.sectionRef, {context: 1});
+      var segmentData = clone(this.text(cached.ref, $.extend(settings, {context: 0})));
+      var contextData = this.text(cached.sectionRef, $.extend(settings, {context: 0})) || this.text(cached.sectionRef, $.extend(settings, {context: 1}));
       segmentData.text = contextData.text;
       segmentData.he   = contextData.he;
       return segmentData;
@@ -247,7 +247,7 @@ sjs.library = {
       // i.e., in "Shabbat 2a:5-2b:8" what is the last segment of Shabbat 2a?
       // For now, just return the first non-spanning ref.
       oref.toSections = oref.sections;
-      return [humaRef(makeRef(oref))];
+      return [humanRef(makeRef(oref))];
     } else {
       var refs  = [];
       var start = oref.sections[oref.sections.length-1];
@@ -327,6 +327,7 @@ sjs.library = {
     }
   },
   linksLoaded: function(ref) {
+    // Returns true if link data has been loaded for `ref`.
     if (typeof ref == "string") {
       return ref in this._links;
     } else {
@@ -337,6 +338,7 @@ sjs.library = {
     }
   },
   linkCount: function(ref, filter) {
+    // Returns the number links available for `ref` filtered by `filter`, an array of strings.
     if (!(ref in this._links)) { return 0; }
     var links = this._links[ref];
     links = filter ? this._filterLinks(links, filter) : links;
@@ -381,7 +383,7 @@ sjs.library = {
         category.books[link.commentator] = {count: 1};
       }
     }
-    // Add Zero counts for every commentator in this section not alredy in list
+    // Add Zero counts for every commentator in this section not already in list
     var baseRef    = typeof ref == "string" ? ref : ref[0]; // TODO handle refs spanning sections
     var oRef       = sjs.library.ref(baseRef);
     var sectionRef = oRef ? oRef.sectionRef : baseRef;
@@ -416,7 +418,7 @@ sjs.library = {
         var topByCategory = {
           "Tanach": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
           "Talmud": ["Rashi", "Tosafot"]
-        }
+        };
         var cat = oRef ? oRef["categories"][0] : null;
         var top = topByCategory[cat] || [];
         var aTop = top.indexOf(a.book);
@@ -456,7 +458,7 @@ sjs.library = {
     return books;     
   },
   _notes: {},
-  notes: function(ref, cb) {
+  notes: function(ref, callback) {
     var notes = null;
     if (typeof ref == "string") {
       if (ref in this._notes) { 
@@ -470,26 +472,97 @@ sjs.library = {
       });
     }
     if (notes) {
-      if (cb) { cb(notes); }
+      if (callback) { callback(notes); }
     } else {
       sjs.library.related(ref, function(data) {
-        if (cb) { cb(data.notes); }
+        if (callback) { callback(data.notes); }
       });
     }
     return notes;
   },
   _saveNoteData: function(ref, data) {
-    this._notes[ref] = data;
     this._saveItemsByRef(data, this._notes);
   },
+  _privateNotes: {},
+  privateNotes: function(refs, callback) {
+    // Returns an array of private notes for `refs` (a string or array or strings)
+    // or `null` if notes have not yet been loaded.
+    var notes = null;
+    if (typeof refs == "string") {
+      if (refs in this._privateNotes) { 
+        notes = this._privateNotes[refs];
+      }
+      refs = [refs] // Stanfardize type to simplify processing below
+    } else {
+      var notesByRef = refs.map(function(ref) {
+        return sjs.library._privateNotes[ref];
+      });
+      if (notesByRef.some(function(e) { return !e })) {
+        // If any ref in `refs` returned `null`, treat the whole thing as not yet loaded, call the API.
+        notes = null;
+      } else {
+        notes = [];
+        notesByRef.map(function(n) { notes = notes.concat(n); });
+      }
+    }
+
+    if (notes) {
+      if (callback) { callback(notes); }
+    } else {
+      var aggregateCallback = function() {
+        // Check if all refs have loaded, call callback if so
+       if (sjs.library.privateNotesLoaded(refs) && callback) {
+        callback(sjs.library.privateNotes(refs));
+       }      
+      };
+      refs.map(function(ref) {
+       if (ref in sjs.library._privateNotes) { return; } // Only make API calls for unloaded refs
+       var url = "/api/notes/" + normRef(ref) + "?private=1";
+       this._api(url, function(data) {
+          if ("error" in data) { 
+            // sjs.alert.message(data.error);
+            return;
+          }
+          this._savePrivateNoteData(ref, data);
+          aggregateCallback(data);
+        }.bind(this));
+      }.bind(this));
+    }
+    return notes;
+  },
+  privateNotesLoaded: function(refs) {
+    // Returns true if private notes have been loaded for every ref in `refs.
+    refs.map(function(ref) {
+      if (!(ref in sjs.library._privateNotes)) {
+        return false;
+      }
+    });
+    return true;
+  },
+  addPrivateNote: function(note) {
+    // Add a single private note to the cache of private notes.
+    var notes = this.privateNotes(note["anchorRef"]) || [];
+    notes.push(note);
+    this._saveItemsByRef(notes, this._privateNotes);
+  },
+  clearPrivateNotes: function() {
+    this._privateNotes = {};
+  },
+  _savePrivateNoteData: function(ref, data) {
+    if (data.length) {
+      this._saveItemsByRef(data, this._privateNotes); 
+    } else {
+      this._privateNotes[ref] = [];
+    }
+  },
   _related: {},
-  related: function(ref, cb) {
+  related: function(ref, callback) {
     // Single API to bundle links, sheets, and notes by ref.
-    if (!cb) {
+    if (!callback) {
       return this._related[ref] || null;
     }
     if (ref in this._related) {
-      cb(this._related[ref]);
+      callback(this._related[ref]);
     } else {
        var url = "/api/related/" + normRef(ref);
        this._api(url, function(data) {
@@ -501,7 +574,7 @@ sjs.library = {
           this._saveNoteData(ref, data.notes);
           this.sheets._saveSheetsByRefData(ref, data.sheets);
           this._related[ref] = data;
-          cb(data);
+          callback(data);
         }.bind(this));
     }
   },
@@ -544,7 +617,7 @@ sjs.library = {
     this._relatedSummaries[ref] = summary;
     return summary;
   },
-  textTocHtml: function(title, cb) {
+  textTocHtml: function(title, callback) {
     // Returns an HTML fragment of the table of contents of the text 'title'
     if (!title) { return ""; }
     if (title in this._textTocHtml) {
@@ -556,7 +629,7 @@ sjs.library = {
         success: function(html) {
           html = this._makeTextTocHtml(html, title);
           this._textTocHtml[title] = html;
-          cb(html);
+          callback(html);
         }.bind(this)
       });
       return null;
@@ -688,57 +761,62 @@ sjs.library = {
   },
   sheets: {
     _trendingTags: null,
-    trendingTags: function(cb) {
+    trendingTags: function(callback) {
+      // Returns a list of trending tags -- source sheet tags which have been used often recently.
       var tags = this._trendingTags;
       if (tags) {
-        if (cb) { cb(tags); }
+        if (callback) { callback(tags); }
       } else {
         var url = "/api/sheets/trending-tags";
          sjs.library._api(url, function(data) {
             this._trendingTags = data;
-            if (cb) { cb(data); }
+            if (callback) { callback(data); }
           }.bind(this));
         }
       return tags;
     },
     _tagList: null,
-    tagList: function(cb) {
+    tagList: function(callback) {
+      // Returns a list of all public source sheet tags, ordered by populartiy
       var tags = this._tagList;
       if (tags) {
-        if (cb) { cb(tags); }
+        if (callback) { callback(tags); }
       } else {
         var url = "/api/sheets/tag-list";
          sjs.library._api(url, function(data) {
             this._tagList = data;
-            if (cb) { cb(data); }
+            if (callback) { callback(data); }
           }.bind(this));
         }
       return tags;
     },
     _sheetsByTag: {},
-    sheetsByTag: function(tag, cb) {
+    sheetsByTag: function(tag, callback) {
+      // Returns a list of public sheets matching a given tag.
       var sheets = this._sheetsByTag[tag];
       if (sheets) {
-        if (cb) { cb(sheets); }
+        if (callback) { callback(sheets); }
       } else {
         var url = "/api/sheets/tag/" + tag;
          $.getJSON(url, function(data) {
             this._sheetsByTag[tag] = data.sheets;
-            if (cb) { cb(data.sheets); }
+            if (callback) { callback(data.sheets); }
           }.bind(this));
         }
       return sheets;
     },
     _userSheets: {},
-    userSheets: function(uid, cb) {
+    userSheets: function(uid, callback) {
+      // Returns a list of source sheets belonging to `uid`
+      // Only a user logged in as `uid` will get data back from this API call.
       var sheets = this._userSheets[uid];
       if (sheets) {
-        if (cb) { cb(sheets); }
+        if (callback) { callback(sheets); }
       } else {
         var url = "/api/sheets/user/" + uid;
          sjs.library._api(url, function(data) {
             this._userSheets[uid] = data.sheets;
-            if (cb) { cb(data.sheets); }
+            if (callback) { callback(data.sheets); }
           }.bind(this));
         }
       return sheets;
@@ -748,6 +826,7 @@ sjs.library = {
     },  
     _sheetsByRef: {},
     sheetsByRef: function(ref, cb) {
+      // Returns a list of public sheets that include `ref`.
       var sheets = null;
       if (typeof ref == "string") {
         if (ref in this._sheetsByRef) { 
@@ -777,6 +856,7 @@ sjs.library = {
     }
   },
   hebrewCategory: function(cat) {
+    // Returns a string translating `cat` into Hebrew.
     var categories = {
       "Torah":                "תורה",
       "Tanach":               'תנ"ך',
@@ -902,7 +982,7 @@ sjs.library = {
                       }
                   }
               };
-          } else if (!applied_filters) {
+          } else if (!applied_filters || applied_filters.length == 0) {
               o['query'] = core_query;
           } else {
               //Filtered query.  Add clauses.  Don't re-request potential filters.
@@ -924,6 +1004,13 @@ sjs.library = {
               };
           }
           return o;
+      },
+
+      //FilterTree object - for category filters
+      FilterNode: function() {
+        this.children = [];
+        this.parent = null;
+        this.selected = 0; //0 - not selected, 1 - selected, 2 - partially selected
       }
   },
   _apiCallbacks: {},
@@ -943,6 +1030,122 @@ sjs.library = {
     }
   }
 };
+
+
+sjs.library.search.FilterNode.prototype = {
+    append : function(child) {
+        this.children.push(child);
+        child.parent = this;
+    },
+    hasChildren: function() {
+        return (this.children.length > 0);
+    },
+    getLeafNodes: function() {
+        //Return ordered array of leaf (book) level filters
+        if (!this.hasChildren()) {
+            return this;
+        }
+        var results = [];
+        for (var i = 0; i < this.children.length; i++) {
+            results = results.concat(this.children[i].getLeafNodes());
+        }
+        return results;
+    },
+    getId: function() {
+        return this.path.replace(new RegExp("[/',()]", 'g'),"-").replace(new RegExp(" ", 'g'),"_");
+    },
+    isSelected: function() {
+        return (this.selected == 1);
+    },
+    isPartial: function() {
+        return (this.selected == 2);
+    },
+    isUnselected: function() {
+        return (this.selected == 0);
+    },
+    setSelected : function(propogateParent, noPropogateChild) {
+        //default is to propogate children and not parents.
+        //Calls from front end should use (true, false), or just (true)
+        this.selected = 1;
+        if (!(noPropogateChild)) {
+            for (var i = 0; i < this.children.length; i++) {
+                this.children[i].setSelected(false);
+            }
+        }
+        if(propogateParent) {
+            if(this.parent) this.parent._deriveState();
+        }
+    },
+    setUnselected : function(propogateParent, noPropogateChild) {
+        //default is to propogate children and not parents.
+        //Calls from front end should use (true, false), or just (true)
+        this.selected = 0;
+        if (!(noPropogateChild)) {
+            for (var i = 0; i < this.children.length; i++) {
+                this.children[i].setUnselected(false);
+            }
+        }
+        if(propogateParent) {
+            if(this.parent) this.parent._deriveState();
+        }
+
+    },
+    setPartial : function() {
+        //Never propogate to children.  Always propogate to parents
+        this.selected = 2;
+        if(this.parent) this.parent._deriveState();
+    },
+    _deriveState: function() {
+        //Always called from children, so we can assume at least one
+        var potentialState = this.children[0].selected;
+        if (potentialState == 2) {
+            this.setPartial();
+            return
+        }
+        for (var i = 1; i < this.children.length; i++) {
+            if (this.children[i].selected != potentialState) {
+                this.setPartial();
+                return
+            }
+        }
+        //Don't use setters, so as to avoid looping back through children.
+        if(potentialState == 1) {
+            this.setSelected(true, true);
+        } else {
+            this.setUnselected(true, true);
+        }
+    },
+    hasAppliedFilters: function() {
+        return (this.getAppliedFilters().length > 0)
+    },
+    getAppliedFilters: function() {
+        if (this.isUnselected()) {
+            return [];
+        }
+        if (this.isSelected()) {
+            return[this.path];
+        }
+        var results = [];
+        for (var i = 0; i < this.children.length; i++) {
+            results = results.concat(this.children[i].getAppliedFilters());
+        }
+        return results;
+    },
+    getSelectedTitles: function(lang) {
+        if (this.isUnselected()) {
+            return [];
+        }
+        if (this.isSelected()) {
+            return[(lang == "en")?this.title:this.heTitle];
+        }
+        var results = [];
+        for (var i = 0; i < this.children.length; i++) {
+            results = results.concat(this.children[i].getSelectedTitles(lang));
+        }
+        return results;
+    }
+};
+
 
 // Unpack sjs.toc into index cache
 sjs.library._cacheIndexFromToc(sjs.toc);
@@ -997,4 +1200,4 @@ sjs.categoryColor = function(cat) {
     return sjs.categoryColors[cat];
   }
   return "transparent";
-}
+};
