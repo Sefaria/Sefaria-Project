@@ -2310,14 +2310,22 @@ var ReaderTextTableOfContents = React.createClass({
 
 
     return (<div className="readerTextTableOfContents readerNavMenu" onClick={this.handleClick}>
-              <div className="readerNavTop">
-                <CategoryColorLine category={this.props.category} />
-                <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
-                <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-                <h2>
-                  <span className="en">Table of Contents</span>
-                  <span className="he">תוכן העניינים</span>
-                </h2>
+              <CategoryColorLine category={this.props.category} />
+              <div className="readerControls">
+                <div className="readerControlsInner">
+                  <div className="leftButtons">
+                    <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
+                  </div>
+                  <div className="rightButtons">
+                    <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+                  </div>
+                  <div className="readerTextToc">
+                    <div className="readerTextTocBox">
+                      <span className="en">Table of Contents</span>
+                      <span className="he">תוכן העניינים</span>
+                    </div>
+                  </div>
+                </div>
               </div>
               <div className="content">
                 <div className="contentInner">

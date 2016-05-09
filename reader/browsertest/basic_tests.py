@@ -4,6 +4,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.expected_conditions import title_contains, staleness_of, element_to_be_clickable, visibility_of_element_located
 from selenium.webdriver.common.keys import Keys
 
+
 class RecentInToc(AtomicTest):
     suite_key = "S2 Reader"
     mobile = False
@@ -28,7 +29,7 @@ class RecentInToc(AtomicTest):
 
 class LoadRefAndClickSegment(AtomicTest):
     suite_key = "S2 Reader"
-    
+
     def run(self, driver):
         driver.get(self.base_url + "/Psalms.65.5")
         WebDriverWait(driver, 10).until(title_contains("Psalms 65:5"))
