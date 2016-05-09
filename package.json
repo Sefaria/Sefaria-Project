@@ -1,0 +1,29 @@
+{      
+    "name": "sefaria",
+    "description": "Code for Jewish texts.",
+    "dependencies":      {          
+    },
+    "config" : { 
+        "port" : "4040"
+    },
+    "main": "node/main.js",
+    "scripts": {
+        "start": "node index.js",
+        "test": "echo im gonna test node",
+        "predeploy": "echo im about to deploy",
+        "postdeploy": "echo ive deployed",
+      },
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/Sefaria/Sefaria-Project"
+    },
+    "bugs": {
+      "url": "https://github.com/Sefaria/Sefaria-Project/issues"
+    },
+    "keywords": [
+      "jewish",
+      "torah",
+      "talmud"
+    ],
+    "license": "GPL-3.0"
+}
