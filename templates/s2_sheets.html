@@ -313,7 +313,9 @@
 	<ol id="sources">
 		{% include "sheet.html" with sources=sheet.sources %}
 	</ol>
-	<div id="sheetLoading" style="display:none">Loading...</div>
+    <div id="addInterface"></div>
+
+    <div id="sheetLoading" style="display:none">Loading...</div>
 
 	{% if new_sheet and not hide_video %}
 	<div id="empty" class="well">

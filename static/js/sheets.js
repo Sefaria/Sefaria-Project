@@ -969,29 +969,32 @@ $(function() {
 	if ($.cookie("s2") == "true") {
 
 
-	var ownerControls = "<div id='sourceControls' class='sideControls'>" +
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
-							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
-							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
-							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
-						"</div>";
+		var ownerControls = "<div id='sourceControls' class='sideControls'>" +
+								"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
+								"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
+								"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
+								"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
+							"</div>";
 
-	var adderControls = "<div id='sourceControls' class='sideControls'>" +
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
-							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
-							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
-						"</div>";
+		var adderControls = "<div id='sourceControls' class='sideControls'>" +
+								"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
+								"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
+								"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
+							"</div>";
 
-	var viewerControls = "<div id='sourceControls' class='sideControls'>" +
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
-						"</div>";
+		var viewerControls = "<div id='sourceControls' class='sideControls'>" +
+								"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
+							"</div>";
 
-	var ownerSimpleControls = "<div id='sourceControls' class='sideControls'>" +
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
-							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
-							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
-							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
-						"</div>";
+		var ownerSimpleControls = "<div id='sourceControls' class='sideControls'>" +
+								"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
+								"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
+								"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
+								"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
+							"</div>";
+
+
+
 
 
 
@@ -1000,13 +1003,19 @@ $(function() {
 			if ($(e.target).closest(".sheetItem").length) {
 				return;
 			}
-
-			cleanupActiveSource();
-
+			cleanupActiveSource(e.target);
 		});
 
+		$(".sheetItem").on("click", ".inlineAddButtonIcon", function (e) {
 
-		function cleanupActiveSource(){
+			$("#addInterface").insertAfter( $(this).parent().closest(".sheetItem") );
+
+
+		})
+
+
+		function cleanupActiveSource(target){
+			console.log(target);
 			var $customTitle = $(".activeSource .customTitle");
 			if ($customTitle.text() === "Source Title") {
 				$customTitle.text("");
@@ -1019,13 +1028,16 @@ $(function() {
 			$(".inlineAddButton").remove();
 			$("#sheetLayoutLanguageMenuItems").show();
 			$("#sourceLayoutLanguageMenuItems").hide();
+			if (!$(target).hasClass('inlineAddButtonIcon')) {
+				$("#addInterface").insertAfter( $("#sources") );
+			}
 		}
 
 		$("#sheet").on("click", ".sheetItem", function (e) {
 			//clicked on a sheet item
-			cleanupActiveSource();
+			cleanupActiveSource(e.target);
 			$(this).addClass("activeSource");
-			var inlineAddButton = "<div class='inlineAddButton'><i class='fa fa-plus-circle'></i></div>";
+			var inlineAddButton = "<div class='inlineAddButton'><i class='fa fa-plus-circle inlineAddButtonIcon'></i></div>";
 			$(this).append(inlineAddButton);
 			$("#sheetLayoutLanguageMenuItems").hide();
 			$("#sourceLayoutLanguageMenuItems").show();

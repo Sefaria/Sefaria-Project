@@ -1447,3 +1447,8 @@ input[type="file"] {
 	display: none;
 }
 
+#addInterface {
+	width:100%;
+	background-color: red;
+	height:200px;
+}
