@@ -3,6 +3,7 @@ from config import *
 from selenium import webdriver
 from random import shuffle
 from multiprocessing import Pool
+import inspect
 
 
 class AtomicTest(object):
@@ -28,15 +29,42 @@ class AtomicTest(object):
 
 
 class TestResult(object):
-    def __init__(self, trial, test, success, message=""):
-        assert isinstance(trial, Trial)
-        assert isinstance(test, AtomicTest)
+    def __init__(self, test, cap, success, message=""):
+        assert isinstance(test, AtomicTest) or inspect.isclass(cap)
         assert isinstance(success, bool)
         assert isinstance(message, basestring)
-        self.trial = trial
+        self.cap = cap
         self.test = test
         self.success = success
         self.message = message
+
+    def __str__(self):
+        return "{} - {} on {}{}".format(
+            "Pass" if self.success else "Fail",
+            self.test.__class__.__name__,
+            Trial.cap_to_string(self.cap),
+            ": {}".format(self.message) if self.message else ""
+        )
+
+
+class ResultSet(object):
+    def __init__(self, results=None):
+        """
+        :param results: list of TestResult objects, or a list of lists
+        :return:
+        """
+        self.testResults = [] if results is None else results
+        assert (isinstance(t, TestResult) for t in self.testResults)
+
+    def include(self, result):
+        if isinstance(result, TestResult):
+            self.testResults.append(result)
+        elif isinstance(result, list):
+            for res in result:
+                self.include(res)
+
+    def __str__(self):
+        return "\n".join([str(r) for r in self.testResults])
 
 
 class Trial(object):
@@ -52,6 +80,7 @@ class Trial(object):
         assert platform in ["sauce", "bstack", "local"]
         self.platform = platform
         self.build = build
+        self._results = ResultSet()
         if platform == "local":
             self.is_local = True
             self.BASE_URL = LOCAL_URL
@@ -87,7 +116,7 @@ class Trial(object):
         driver.get(self.BASE_URL + "/s2")
         return driver
 
-    def _test_one(self, driver, test_class):
+    def _test_one(self, driver, test_class, cap):
         """
         :param test_class:
         :return:
@@ -99,9 +128,9 @@ class Trial(object):
             test.run()
             driver.execute_script('"**** Exit {} ****"'.format(test_class.__name__))
         except Exception as e:
-            return TestResult(self, test, False, e.message)
+            return TestResult(test, cap, False, e.message)
         else:
-            return TestResult(self, test, True)
+            return TestResult(test, cap, True)
     '''
     def _test_each_on(self, cap):
         """
@@ -124,7 +153,7 @@ class Trial(object):
         :param test:
         :return:
         """
-        results = []
+        tresults = []
         for cap in self.caps:
             # TODO: Mobile / Desktop
             if not self.is_local:
@@ -133,16 +162,22 @@ class Trial(object):
                     'build': self.build,
                 })
             driver = self._get_driver(cap)
-            results.append(self._test_one(driver, test))
+            tresults.append(self._test_one(driver, test, cap))
             driver.quit()
-        return results
+        return tresults
 
     def run(self):
         for test in self.tests:
-            self._test_on_all(test)
+            self._results.include(self._test_on_all(test))
+        return self
+
+    def results(self):
+        return self._results
 
     @staticmethod
     def cap_to_string(cap):
+        if inspect.isclass(cap):
+            return cap.__name__
         return (cap.get("deviceName") or  # sauce mobile
                 cap.get("device") or  # browserstack mobile
                 "{} {} on {} {}".format(cap.get("browser"), cap.get("browser_version"), cap.get("os"), cap.get("os_version")) if cap.get("browser") else  # browserstack desktop
