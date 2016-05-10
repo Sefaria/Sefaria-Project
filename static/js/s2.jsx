@@ -2183,6 +2183,8 @@ var ReaderTextTableOfContents = React.createClass({
       source:   currentLanguage == "he" ? d.heVersionSource: d.versionSource,
       license:  currentLanguage == "he" ? d.heLicense: d.license,
       sources:  currentLanguage == "he" ? d.heSources: d.sources,
+      notes:    currentLanguage == "he" ? d.heVersionNotes: d.versionNotes,
+      digitizedBySefaria:  currentLanguage == "he" ? d.heDigitizedBySefaria: d.digitizedBySefaria
     };
     currentVersion.merged = !!(currentVersion.sources);
 
@@ -2292,7 +2294,7 @@ var ReaderTextTableOfContents = React.createClass({
               { parseURL(this.state.currentVersion.source).host }
             </a>
             <span>-</span>
-            <span className="currentVersionLicense">{this.state.currentVersion.license}</span>
+            <span className="currentVersionLicense">{this.state.currentVersion.license == "unknown" ? "License Unknown" : (this.state.currentVersion.license + (this.state.currentVersion.digitizedBySefaria ? " - Digitized by Sefaria": "" ))}</span>
             <span>-</span>
             <a className="versionHistoryLink" href="#">Version History &gt;</a>
           </span>);
