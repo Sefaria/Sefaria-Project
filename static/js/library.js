@@ -1,6 +1,11 @@
-var sjs = sjs || {};
-// Dependancies: util.js, sjs.toc
-
+if (require) {
+  var sjs = {toc: []};
+  // Include utils.js with this hack because it has so many spaghetti methods
+  // and extra methods on built-in types.
+  var read = function(f) { return fs.readFileSync(f).toString(); }
+  var include = function(f) { eval.apply(global, [read(f)]); }}
+  include('./util.js');
+}
 
 sjs.library = {
   _texts: {},
@@ -1095,7 +1100,6 @@ sjs.library.search.FilterNode.prototype = {
         this.selected = 2;
         if(this.parent) this.parent._deriveState();
     },
-
     _deriveState: function() {
         //Always called from children, so we can assume at least one
         var potentialState = this.children[0].selected;
@@ -1116,11 +1120,9 @@ sjs.library.search.FilterNode.prototype = {
             this.setUnselected(true, true);
         }
     },
-
     hasAppliedFilters: function() {
         return (this.getAppliedFilters().length > 0)
     },
-
     getAppliedFilters: function() {
         if (this.isUnselected()) {
             return [];
@@ -1204,3 +1206,7 @@ sjs.categoryColor = function(cat) {
   }
   return "transparent";
 };
+
+if (module) {
+  module.exports = sjs.library;
+}
