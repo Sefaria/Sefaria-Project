@@ -3,7 +3,7 @@ if (require) {
   // Include utils.js with this hack because it has so many spaghetti methods
   // and extra methods on built-in types.
   var read = function(f) { return fs.readFileSync(f).toString(); }
-  var include = function(f) { eval.apply(global, [read(f)]); }}
+  var include = function(f) { eval.apply(global, [read(f)]); }
   include('./util.js');
 }
 
