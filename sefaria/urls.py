@@ -96,6 +96,8 @@ urlpatterns += patterns('reader.views',
     (r'^add/(?P<ref>.+)$', 'edit_text'),
     (r'^translate/(?P<ref>.+)$', 'edit_text'),
     (r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', 'edit_text'),
+    (r'^edit/(?P<ref>.+)$', 'edit_text'),
+
 )
 
 # Texts Page
@@ -240,10 +242,11 @@ static_pages = [
     "contributed-to-sefaria",
 ]
 
-# Static Content 
+# Static and Semi Static Content 
 urlpatterns += patterns('reader.views', 
     url(r'^$', 'home', name="home"),
     (r'^metrics/?$', 'metrics'),
+    (r'^connect/?$', 'connectPage'),
     (r'^digitized-by-sefaria/?$', 'digitized_by_sefaria'),
     (r'^(%s)/?$' % "|".join(static_pages), 'serve_static'),
 )
@@ -316,6 +319,7 @@ urlpatterns += patterns('',
     (r'^admin/delete/citation-links/(?P<title>.+)$', 'sefaria.views.delete_citation_links'),
     (r'^admin/cache/stats', 'sefaria.views.cache_stats'),
     (r'^admin/cache/dump', 'sefaria.views.cache_dump'),
+    (r'^admin/run/tests', 'sefaria.views.run_tests'),
     (r'^admin/export/all', 'sefaria.views.export_all'),
     (r'^admin/error', 'sefaria.views.cause_error'),
     (r'^admin/create/commentary-version/(?P<commentator>.+)/(?P<book>.+)/(?P<lang>.+)/(?P<vtitle>.+)/(?P<vsource>.+)$', 'sefaria.views.create_commentator_version'),

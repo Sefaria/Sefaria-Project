@@ -120,13 +120,12 @@ def get_notes(oref, public=True, uid=None, context=1):
     If public, include any public note.
     If uid is set, return private notes of uid.
     """
-    notes = []
-
-    noteset = oref.padded_ref().context_ref(context).noteset(public, uid)
-
-    for note in noteset:
-        com = format_note_object_for_client(note)
-        notes.append(com)
+    if public:
+        # S2 sets pulblic=False for fetching private notes.
+        # Only maintain legacy behavior of return for context in old case
+        oref = oref.padded_ref().context_ref()
+    noteset = oref.noteset(public, uid)
+    notes = [format_object_for_client(n) for n in noteset]
 
     return notes
 

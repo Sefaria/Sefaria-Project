@@ -3,7 +3,7 @@ var sjs = sjs || {};
 sjs.cache = {
 	// Caching of texts
 	// Handles remaking opjects to match requests.
-	// E.g, text for "Shemot 4:7" is the same as that for "Shemot 4:3" (since context is given)
+	// E.g, text for "Shemot 4:7" is the same as that for "Shemot 4:3" (since context is given)x
 	// save/get will trim data of "Shemot 4:7" to "Shemot 4" so it can be remade into "Shemot 4:3" if requested
 	get: function(ref, callback) {
 		// Take a ref and return data if available else false
