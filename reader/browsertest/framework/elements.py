@@ -92,8 +92,8 @@ class Trial(object):
         :param test_class:
         :return:
         """
-        assert isinstance(test_class, AtomicTest)
-        test = test_class(self.driver, self.BASE_URL)
+        assert issubclass(test_class, AtomicTest)
+        test = test_class(driver, self.BASE_URL)
         try:
             driver.execute_script('"**** Enter {} ****"'.format(test_class.__name__))
             test.run()
