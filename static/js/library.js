@@ -1,6 +1,11 @@
-var sjs = sjs || {};
-// Dependancies: util.js, sjs.toc
-
+if (require) {
+  var sjs = {toc: []};
+  // Include utils.js with this hack because it has so many spaghetti methods
+  // and extra methods on built-in types.
+  var read = function(f) { return fs.readFileSync(f).toString(); }
+  var include = function(f) { eval.apply(global, [read(f)]); }}
+  include('./util.js');
+}
 
 sjs.library = {
   _texts: {},
@@ -1201,3 +1206,7 @@ sjs.categoryColor = function(cat) {
   }
   return "transparent";
 };
+
+if (module) {
+  module.exports = sjs.library;
+}

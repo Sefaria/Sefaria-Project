@@ -1,0 +1,42 @@
+{      
+    "name": "sefaria-react",
+    "version": "1.0.0",
+    "description": "Server for rendering React components for Sefaria, a library of Jewish texts.",
+    "config" : { 
+        "port" : "4040"
+    },
+    "main": "node/main.js",
+    "scripts": {
+        "start": "node node/main.js",
+        "test": "echo im gonna test node",
+        "build": "npm run build-jsx",
+        "build-jsx": "babel static/js/s2.jsx > static/js/s2.js"
+      },
+    "dependencies": {
+      "react": "^15.0.1",
+      "react-dom": "^15.0.1"
+    },
+    "devDependencies": {
+      "babel-cli": "^6.0.0",
+      "babel-core": "^6.0.0",
+      "babel-preset-es2015": "^6.0.0",
+      "babel-preset-react": "^6.0.0"
+    },
+    "babel": {
+      "presets": ["es2015", "react"],
+      "compact": false
+    },
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/Sefaria/Sefaria-Project"
+    },
+    "bugs": {
+      "url": "https://github.com/Sefaria/Sefaria-Project/issues"
+    },
+    "keywords": [
+      "torah",
+      "talmud",
+      "free culture"
+    ],
+    "license": "GPL-3.0"
+}

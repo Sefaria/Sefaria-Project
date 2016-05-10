@@ -54,7 +54,7 @@ class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
         assert "Psalms.45.5?with=Rashi" in driver.current_url, driver.current_url
 
 
-class ClickVersionedSearchResultMobile(AtomicTest):
+class ClickVersionedSearchResultDesktop(AtomicTest):
     suite_key = "S2 Search"
     mobile = False
 
@@ -70,7 +70,7 @@ class ClickVersionedSearchResultMobile(AtomicTest):
         assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in driver.current_url
 
 
-class ClickVersionedSearchResultDesktop(AtomicTest):
+class ClickVersionedSearchResultMobile(AtomicTest):
     suite_key = "S2 Search"
     desktop = False
 
@@ -80,7 +80,7 @@ class ClickVersionedSearchResultDesktop(AtomicTest):
         if hamburger:
             hamburger.click()
             wait = WebDriverWait(driver, 10)
-            wait.until(staleness_of("hamburger"))
+            wait.until(staleness_of(hamburger))
         elem = driver.find_element_by_css_selector("input.search")
         elem.send_keys("Dogs")
         elem.send_keys(Keys.RETURN)
