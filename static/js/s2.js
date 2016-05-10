@@ -2,7 +2,7 @@
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
-if (require) {
+if (typeof require !== 'undefined') {
   var React = require('react');
   var ReactDOM = require('react-dom');
   sjs = { library: require('./library.js') };
@@ -6586,7 +6586,7 @@ var backToS1 = function backToS1() {
   window.location = "/";
 };
 
-if (exports) {
+if (typeof exports !== 'undefined') {
   // Make this a CommonJS module if it's run from Node
   exports.ReaderApp = ReaderApp;
   exports.ReaderPanel = ReaderPanel;

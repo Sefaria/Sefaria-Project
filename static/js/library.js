@@ -1,4 +1,4 @@
-if (require) {
+if (typeof require !== 'undefined') {
   var sjs = {toc: []};
   // Include utils.js with this hack because it has so many spaghetti methods
   // and extra methods on built-in types.
@@ -1207,6 +1207,6 @@ sjs.categoryColor = function(cat) {
   return "transparent";
 };
 
-if (module) {
+if (typeof module !== 'undefined') {
   module.exports = sjs.library;
 }
