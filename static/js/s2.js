@@ -300,7 +300,7 @@ var ReaderApp = React.createClass({
     var title = histories.length ? histories[0].title : "Sefaria";
 
     var url = "/" + (histories.length ? histories[0].url : "");
-    if (histories[0].versionLanguage && histories[0].version) {
+    if (histories[0] && histories[0].versionLanguage && histories[0].version) {
       url += "/" + histories[0].versionLanguage + "/" + histories[0].version.replace(/\s/g, "_");
     }
     if (histories[0].mode === "TextAndConnections") {
@@ -2707,24 +2707,40 @@ var ReaderTextTableOfContents = React.createClass({
     return React.createElement(
       "div",
       { className: "readerTextTableOfContents readerNavMenu", onClick: this.handleClick },
+      React.createElement(CategoryColorLine, { category: this.props.category }),
       React.createElement(
         "div",
-        { className: "readerNavTop" },
-        React.createElement(CategoryColorLine, { category: this.props.category }),
-        React.createElement(ReaderNavigationMenuCloseButton, { onClick: this.props.close }),
-        React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings }),
+        { className: "readerControls" },
         React.createElement(
-          "h2",
-          null,
+          "div",
+          { className: "readerControlsInner" },
           React.createElement(
-            "span",
-            { className: "en" },
-            "Table of Contents"
+            "div",
+            { className: "leftButtons" },
+            React.createElement(ReaderNavigationMenuCloseButton, { onClick: this.props.close })
           ),
           React.createElement(
-            "span",
-            { className: "he" },
-            "תוכן העניינים"
+            "div",
+            { className: "rightButtons" },
+            React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings })
+          ),
+          React.createElement(
+            "div",
+            { className: "readerTextToc" },
+            React.createElement(
+              "div",
+              { className: "readerTextTocBox" },
+              React.createElement(
+                "span",
+                { className: "en" },
+                "Table of Contents"
+              ),
+              React.createElement(
+                "span",
+                { className: "he" },
+                "תוכן העניינים"
+              )
+            )
           )
         )
       ),

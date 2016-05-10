@@ -307,7 +307,7 @@ var ReaderApp = React.createClass({
     var title =  histories.length ? histories[0].title : "Sefaria";
 
     var url   = "/" + (histories.length ? histories[0].url : "");
-    if(histories[0].versionLanguage && histories[0].version) {
+    if(histories[0] && histories[0].versionLanguage && histories[0].version) {
         url += "/" + histories[0].versionLanguage + "/" + histories[0].version.replace(/\s/g,"_");
     }
     if (histories[0].mode === "TextAndConnections") {
