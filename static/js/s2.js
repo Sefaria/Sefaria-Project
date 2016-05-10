@@ -2528,7 +2528,9 @@ var ReaderTextTableOfContents = React.createClass({
       title: currentLanguage == "he" ? d.heVersionTitle : d.versionTitle,
       source: currentLanguage == "he" ? d.heVersionSource : d.versionSource,
       license: currentLanguage == "he" ? d.heLicense : d.license,
-      sources: currentLanguage == "he" ? d.heSources : d.sources
+      sources: currentLanguage == "he" ? d.heSources : d.sources,
+      notes: currentLanguage == "he" ? d.heVersionNotes : d.versionNotes,
+      digitizedBySefaria: currentLanguage == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria
     };
     currentVersion.merged = !!currentVersion.sources;
 
@@ -2671,7 +2673,7 @@ var ReaderTextTableOfContents = React.createClass({
           React.createElement(
             'span',
             { className: 'currentVersionLicense' },
-            this.state.currentVersion.license
+            this.state.currentVersion.license == "unknown" ? "License Unknown" : this.state.currentVersion.license + (this.state.currentVersion.digitizedBySefaria ? " - Digitized by Sefaria" : "")
           ),
           React.createElement(
             'span',

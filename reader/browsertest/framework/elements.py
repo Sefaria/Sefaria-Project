@@ -5,37 +5,6 @@ from random import shuffle
 from multiprocessing import Pool
 
 
-def get_browserstack_driver(desired_cap):
-    driver = webdriver.Remote(
-        command_executor='http://{}:{}@hub.browserstack.com:80/wd/hub'.format(BS_USER, BS_KEY),
-        desired_capabilities=desired_cap)
-    driver.implicitly_wait(30)
-
-    return driver
-
-
-def get_sauce_driver(desired_cap):
-    driver = webdriver.Remote(
-        command_executor='http://{}:{}@ondemand.saucelabs.com:80/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
-        desired_capabilities=desired_cap)
-    driver.implicitly_wait(30)
-
-    return driver
-
-
-def get_local_driver():
-    driver = webdriver.Chrome()
-    driver.implicitly_wait(30)
-    return driver
-
-
-def cap_to_string(cap):
-    return (cap.get("deviceName") or  # sauce mobile
-            cap.get("device") or  # browserstack mobile
-            "{} {} on {} {}".format(cap.get("browser"), cap.get("browser_version"), cap.get("os"), cap.get("os_version")) if cap.get("browser") else  # browserstack desktop
-            "{} {} on {}".format(cap.get('browserName'), cap.get("version"), cap.get('platform')))  # sauce desktop
-
-
 class AtomicTest(object):
     """
     Abstract Class
@@ -46,15 +15,138 @@ class AtomicTest(object):
     mobile = True  # run this test on mobile?
     desktop = True  # run this test on desktop?
 
-    def __init__(self, url):
+    def __init__(self, driver, url):
         self.base_url = url
+        self.driver = driver
         if not self.suite_key:
             raise Exception("Missing required variable - test_suite")
         if not self.mobile and not self.desktop:
             raise Exception("Tests must run on at least one of mobile or desktop")
 
-    def run(self, driver):
+    def run(self):
         raise Exception("AtomicTest.run() needs to be defined for each test.")
+
+
+class TestResult(object):
+    def __init__(self, trial, test, success, message=""):
+        assert isinstance(trial, Trial)
+        assert isinstance(test, AtomicTest)
+        assert isinstance(success, bool)
+        assert isinstance(message, basestring)
+        self.trial = trial
+        self.test = test
+        self.success = success
+        self.message = message
+
+
+class Trial(object):
+    default_local_driver = webdriver.Chrome
+
+    def __init__(self, platform="local", build=None, tests=None, caps=None):
+        """
+        :param caps: If local: webdriver classes, if remote, dictionaries of capabilities
+        :param platform: "sauce", "bstack", "local"
+        :return:
+        """
+        self.tests = get_atomic_tests() if tests is None else tests
+        assert platform in ["sauce", "bstack", "local"]
+        self.platform = platform
+        self.build = build
+        if platform == "local":
+            self.is_local = True
+            self.BASE_URL = LOCAL_URL
+            self.caps = caps if caps else [self.default_local_driver]
+        else:
+            self.is_local = False
+            self.BASE_URL = REMOTE_URL
+            self.caps = caps if caps else SAUCE_CAPS if platform == "sauce" else BS_CAPS
+
+    def _get_driver(self, cap=None):
+        """
+        :param cap: If remote, cap is a dictionary of capabilities.
+                    If local, it's a webdriver class
+        :return:
+        """
+        if self.platform == "local":
+            cap = cap if cap else self.default_local_driver
+            driver = cap()
+        elif self.platform == "sauce":
+            assert cap is not None
+            driver = webdriver.Remote(
+                command_executor='http://{}:{}@ondemand.saucelabs.com:80/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
+                desired_capabilities=cap)
+        elif self.platform == "bstack":
+            assert cap is not None
+            driver = webdriver.Remote(
+                command_executor='http://{}:{}@hub.browserstack.com:80/wd/hub'.format(BS_USER, BS_KEY),
+                desired_capabilities=cap)
+        else:
+            raise Exception("Unrecognized platform: {}".format(self.platform))
+
+        #todo: better way to do this?
+        driver.get(self.BASE_URL + "/s2")
+        return driver
+
+    def _test_one(self, driver, test_class):
+        """
+        :param test_class:
+        :return:
+        """
+        assert isinstance(test_class, AtomicTest)
+        test = test_class(self.driver, self.BASE_URL)
+        try:
+            driver.execute_script('"**** Enter {} ****"'.format(test_class.__name__))
+            test.run()
+            driver.execute_script('"**** Exit {} ****"'.format(test_class.__name__))
+        except Exception as e:
+            return TestResult(self, test, False, e.message)
+        else:
+            return TestResult(self, test, True)
+    '''
+    def _test_each_on(self, cap):
+        """
+        Given a browser, test every test on that browser
+        :param cap:
+        :return:
+        """
+        results = []
+        for test in self.tests:
+            # TODO: Mobile / Desktop
+            driver = self._get_driver(cap)
+            results.append(self._test_one(driver, test))
+            driver.quit()
+        return results
+    '''
+
+    def _test_on_all(self, test):
+        """
+        Given a test, test it on all browsers
+        :param test:
+        :return:
+        """
+        results = []
+        for cap in self.caps:
+            # TODO: Mobile / Desktop
+            if not self.is_local:
+                cap.update({
+                    'name': "{} on {}".format(test.__name__, self.cap_to_string(cap)),
+                    'build': self.build,
+                })
+            driver = self._get_driver(cap)
+            results.append(self._test_one(driver, test))
+            driver.quit()
+        return results
+
+    def run(self):
+        for test in self.tests:
+            self._test_on_all(test)
+
+    @staticmethod
+    def cap_to_string(cap):
+        return (cap.get("deviceName") or  # sauce mobile
+                cap.get("device") or  # browserstack mobile
+                "{} {} on {} {}".format(cap.get("browser"), cap.get("browser_version"), cap.get("os"), cap.get("os_version")) if cap.get("browser") else  # browserstack desktop
+                "{} {} on {}".format(cap.get('browserName'), cap.get("version"), cap.get('platform')))  # sauce desktop
 
 
 def get_subclasses(c):
@@ -89,98 +181,59 @@ def get_multiplatform_tests(tests):
     return [t for t in tests if t.desktop and t.mobile]
 
 
-def _test_all(build, caps, default_desktop_caps, default_mobile_caps, platform_string):
-    p = Pool(MAX_THREADS)
-    for key in get_test_suite_keys():
-        tests = get_tests_in_suite(key)
+
+'''
+    def test_local(self):
+        tests = get_atomic_tests()
         shuffle(tests)
+        driver = self._get_driver()
 
-        if not caps:
-            for cap in default_desktop_caps:
-                cap.update({
-                    'name': "{} on {}".format(key, cap_to_string(cap)),
-                    'build': build,
-                    'tests': get_desktop_tests(tests),
-                    "testing_platform": platform_string
-                })
-            for cap in default_mobile_caps:
-                cap.update({
-                    'name': "{} on {}".format(key, cap_to_string(cap)),
-                    'build': build,
-                    'tests': get_mobile_tests(tests),
-                    "testing_platform": platform_string
-                })
-            caps = default_desktop_caps + default_mobile_caps
-        else:
-            for cap in caps:
-                cap.update({
-                    'name': "{} on {}".format(key, cap_to_string(cap)),
-                    'build': build,
-                    'tests': tests,  # Lazy assumption that all tests are run if caps are provided as an arg.
-                    "testing_platform": platform_string
-                })
-        results = p.map(_test_on_one_browser, caps)
-        print "\n\nSuite: {}".format(key)
-        print "\n".join(results)
+        # Insure that we're on s2
+        driver.get(LOCAL_URL + "/s2")
 
+        print ", ".join([test.__name__ for test in tests])
 
-def test_all_on_bstack(build, caps = None):
-    _test_all(build, caps, BS_DESKTOP, BS_MOBILE, "bstack")
-
-
-def test_all_on_sauce(build, caps = None):
-    _test_all(build, caps, SAUCE_DESKTOP, SAUCE_MOBILE, "sauce")
-
-
-def one_test_on_one_browser(test_class, cap):
-    cap["tests"] = [test_class]
-    cap["testing_platform"] = "bstack"
-    result = _test_on_one_browser(cap)
-    print result
-
-
-def _test_on_one_browser(cap):
-    tests = cap.pop("tests")
-    testing_platform = cap.pop("testing_platform")
-
-    if testing_platform == "bstack":
-        driver = get_browserstack_driver(cap)
-    elif testing_platform == "sauce":
-        driver = get_sauce_driver(cap)
-    else:
-        raise Exception("Unknown platform: {}".format(testing_platform))
-
-    description = '"' + "Test order: " + ", ".join([test.__name__ for test in tests]) + '"'
-    driver.execute_script(description)
-
-    # Insure that we're on s2
-    driver.get(REMOTE_URL + "/s2")
-
-    for test_class in tests:
-        test = test_class(REMOTE_URL)
-        try:
-            driver.execute_script('"**** Enter {} ****"'.format(test_class.__name__))
+        for test_class in tests:
+            test = test_class(LOCAL_URL)
             test.run(driver)
-            driver.execute_script('"**** Exit {} ****"'.format(test_class.__name__))
-        except Exception as e:
-            driver.quit()
-            return "Fail: {} on {}: {}".format(test_class.__name__, cap_to_string(cap), e)
-    driver.quit()
-    return "Pass: {}".format(cap_to_string(cap))
+        driver.quit()
 
 
-def test_local():
-    tests = get_atomic_tests()
-    shuffle(tests)
-    driver = get_local_driver()
+    def _test_all(self, build):
+        p = Pool(MAX_THREADS)
+        for key in get_test_suite_keys():
+            tests = get_tests_in_suite(key)
+            shuffle(tests)
 
-    # Insure that we're on s2
-    driver.get(LOCAL_URL + "/s2")
+            if not caps:
+                for cap in default_desktop_caps:
+                    cap.update({
+                        'name': "{} on {}".format(key, cap_to_string(cap)),
+                        'build': build,
+                        'tests': get_desktop_tests(tests),
+                        "testing_platform": platform_string
+                    })
+                for cap in default_mobile_caps:
+                    cap.update({
+                        'name': "{} on {}".format(key, cap_to_string(cap)),
+                        'build': build,
+                        'tests': get_mobile_tests(tests),
+                        "testing_platform": platform_string
+                    })
+                caps = default_desktop_caps + default_mobile_caps
+            else:
+                for cap in caps:
+                    cap.update({
+                        'name': "{} on {}".format(key, cap_to_string(cap)),
+                        'build': build,
+                        'tests': tests,  # Lazy assumption that all tests are run if caps are provided as an arg.
+                        "testing_platform": platform_string
+                    })
+            results = p.map(_test_on_one_browser, caps)
+            print "\n\nSuite: {}".format(key)
+            print "\n".join(results)
+'''
 
-    print ", ".join([test.__name__ for test in tests])
 
-    for test_class in tests:
-        test = test_class(LOCAL_URL)
-        test.run(driver)
-    driver.quit()
+
 
