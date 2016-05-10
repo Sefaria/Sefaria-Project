@@ -2,57 +2,46 @@
 // https://github.com/mhart/react-server-example/blob/master/server.js
 
 var http = require('http'),
-    browserify = require('browserify'),
-    literalify = require('literalify'),
+    url = require('url'),
+    fs = require('fs'),
     React = require('react'),
     ReactDOMServer = require('react-dom/server'),
-    DOM = React.DOM, body = DOM.body, div = DOM.div, script = DOM.script,
-    // This is our React component, shared by server and browser thanks to browserify
-    App = React.createFactory(require('../static/js/s2.js'));
+    SefariaReact = require('../static/js/s2'),
+    ReaderApp = React.createFactory(SefariaReact.ReaderApp);
 
-
-// Just create a plain old HTTP server that responds to endpoints correspond to React Class names.
 http.createServer(function(req, res) {
 
-  // If we hit the homepage, then we want to serve up some HTML - including the
-  // server-side rendered React component(s), as well as the script tags
-  // pointing to the client-side code
+  var query = url.parse(req.url,true).query;
+  
+  
+  //console.log("Request");
+  //console.log(req);
+
   if (req.url == '/ReaderApp') {
 
     res.setHeader('Content-Type', 'text/html')
 
-    // `props` represents the data to be passed in to the React component for
-    // rendering - just as you would pass data, or expose variables in
-    // templates such as Jade or Handlebars.  We just use some dummy data
-    // here (with some potentially dangerous values for testing), but you could
-    // imagine this would be objects typically fetched async from a DB,
-    // filesystem or API, depending on the logged-in user, etc.
     var props = {
-      items: [
-        'Item 0',
-        'Item 1',
-        'Item </script>',
-        'Item <!--inject!-->',
-      ]
+        multiPanel:                  JSON.parse(query.multiPanel || null),
+        initialRefs:                 JSON.parse(query.initialRefs || null),
+        initialFilter:               JSON.parse(query.initialFilter || null),
+        initialMenu:                 JSON.parse(query.initialMenu || null),
+        initialQuery:                JSON.parse(query.initialQuery || null),
+        initialSearchFilters:        JSON.parse(query.initialSearchFilters || null),
+        initialSheetsTag:            JSON.parse(query.initialSheetsTag || null),
+        initialNavigationCategories: JSON.parse(query.initialNavigationCategories || null),
+        initialSettings:             JSON.parse(query.initialSettings || null),
+        initialPanels:               JSON.parse(query.initialPanels || null),
+        initialDefaultVersions:      JSON.parse(query.initialDefaultVersions || null),
+        headerMode:                  false
     }
 
-    // Here we're using React to render the outer body, so we just use the
-    // simpler renderToStaticMarkup function, but you could use any templating
-    // language (or just a string) for the outer page template
-    var html = ReactDOMServer.renderToStaticMarkup(body(null,
+    var html = ReactDOMServer.renderToString(ReaderApp(props));
 
-      // The actual server-side rendering of our component occurs here, and we
-      // pass our data in as `props`. This div is the same one that the client
-      // will "render" into on the browser from browser.js
-      div({id: 'content', dangerouslySetInnerHTML: {__html:
-        ReactDOMServer.renderToString(App(props))
-      }}),
-
-    ));
-
-    // Return the page to the browser
     res.end(html)
 
+  } else {
+    res.end("Unsupported Route - please specificy a component name.");
   }
 
 // The http server listens on port 4040, TODO read from package.json config

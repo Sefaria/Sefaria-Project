@@ -1,4 +1,15 @@
-var sjs = sjs || {};
+if (require) {
+  var React    = require('react');
+  var ReactDOM = require('react-dom');
+  sjs = {library: require('./library.js')}
+  // Include utils.js with this hack because it has so many spaghetti methods
+  // and extra methods on built-in types.
+  var read = function(f) { return fs.readFileSync(f).toString(); }
+  var include = function(f) { eval.apply(global, [read(f)]); }
+  console.log("util.js");
+  console.log(read('../static/js/util.js'));
+  include('../static/js/util.js');
+}
 
 
 var ReaderApp = React.createClass({
@@ -4145,7 +4156,7 @@ var AddToSourceSheetPanel = React.createClass({
       return (<div className={classes} onClick={selectSheet} key={sheet.id}>{sheet.title.stripHtml()}</div>);
     }.bind(this)) : <LoadingMessage />;
     sheetsContent     = sheets && sheets.length == 0 ? 
-                          (<div className="sheet"><span className="en">You don't have any Source Sheets yet.</span><span className="he">טרם יצרת דפי מקורות</span></div>) :
+                          (<div className="sheet"><span className="en">You don&rsquo;t have any Source Sheets yet.</span><span className="he">טרם יצרת דפי מקורות</span></div>) :
                           sheetsContent; 
     var createSheet = this.state.showNewSheetInput ? 
           (<div>
@@ -4862,8 +4873,7 @@ var SearchResultList = React.createClass({
                   availableFilters={this.props.availableFilters}
                   appliedFilters = {this.props.appliedFilters}
                   updateAppliedFilter = {this.props.updateAppliedFilter}
-                  isQueryRunning = {this.state.isQueryRunning}
-                />
+                  isQueryRunning = {this.state.isQueryRunning} />
                 {this.state.textHits.map(function(result) {
                     return (<SearchTextResult
                               data={result}
@@ -5391,3 +5401,12 @@ var backToS1 = function() {
   $.cookie("s2", "", {path: "/"});
   window.location = "/";
 };
+
+if (exports) {
+  // Make this a CommonJS module if it's run from Node 
+  exports.ReaderApp        = ReaderApp;
+  exports.ReaderPanel      = ReaderPanel;
+  exports.ConnectionsPanel = ConnectionsPanel;
+  exports.TextRange        = TextRange;
+  exports.TextColumn       = TextColumn;
+}
