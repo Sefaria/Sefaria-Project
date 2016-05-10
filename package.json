@@ -1,8 +1,6 @@
 {      
-    "name": "sefaria",
-    "description": "Code for Jewish texts.",
-    "dependencies":      {          
-    },
+    "name": "sefaria-react",
+    "description": "Server for rendering React components for Sefaria, a library of Jewish texts.",
     "config" : { 
         "port" : "4040"
     },
@@ -13,6 +11,12 @@
         "predeploy": "echo im about to deploy",
         "postdeploy": "echo ive deployed",
       },
+    "dependencies": {
+      "browserify": "^13.0.0",
+      "literalify": "^0.4.0",
+      "react": "^15.0.1",
+      "react-dom": "^15.0.1"
+    },
     "repository": {
       "type": "git",
       "url": "https://github.com/Sefaria/Sefaria-Project"
