@@ -1,4 +1,5 @@
-from framework import test_local
-from basic_tests import *
+from framework import *
+import basic_tests
 
-test_local()
+t = Trial().run()
+print t.results().report()

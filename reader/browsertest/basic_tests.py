@@ -4,11 +4,12 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.expected_conditions import title_contains, staleness_of, element_to_be_clickable, visibility_of_element_located
 from selenium.webdriver.common.keys import Keys
 
-TEMPER = 5
+TEMPER = 10
+
 
 class RecentInToc(AtomicTest):
     suite_key = "S2 Reader"
-    mobile = False
+    single_panel = False
 
     def run(self):
         self.driver.get(self.base_url + "/texts")
@@ -39,8 +40,8 @@ class LoadRefAndClickSegment(AtomicTest):
         segment.click()
         WebDriverWait(self.driver, TEMPER).until(title_contains("Psalms 65:5 with Connections"))
         assert "Psalms.65.5?with=all" in self.driver.current_url
-        rashi = self.driver.find_element_by_css_selector('.textFilter[data-name="Malbim"]')
-        assert rashi
+        malbim = self.driver.find_element_by_css_selector('.textFilter[data-name="Malbim"]')
+        assert malbim
 
 
 class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
@@ -48,7 +49,7 @@ class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
 
     def run(self):
         self.driver.get(self.base_url + "/Psalms.45.5?with=all")
-        assert "Psalms 45:5 with Connections" in self.driver.title, self.driver.title
+        WebDriverWait(self.driver, TEMPER).until(title_contains("Psalms 45:5 with Connections"))
         rashi = self.driver.find_element_by_css_selector('.textFilter[data-name="Rashi"]')
         rashi.click()
         WebDriverWait(self.driver, TEMPER).until(staleness_of(rashi))
@@ -57,7 +58,7 @@ class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
 
 class ClickVersionedSearchResultDesktop(AtomicTest):
     suite_key = "S2 Search"
-    mobile = False
+    single_panel = False
 
     def run(self):
         self.driver.get(self.base_url + "/s2")
@@ -73,10 +74,10 @@ class ClickVersionedSearchResultDesktop(AtomicTest):
 
 class ClickVersionedSearchResultMobile(AtomicTest):
     suite_key = "S2 Search"
-    desktop = False
+    multi_panel = False
 
     def run(self):
-        self.driver.get(self.base_url + "/s2")
+        self.driver.get(self.base_url + "/Psalms.23")
         hamburger = self.driver.find_element_by_css_selector(".readerNavMenuMenuButton")
         if hamburger:
             hamburger.click()
