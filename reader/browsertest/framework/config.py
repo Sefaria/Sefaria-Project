@@ -34,31 +34,31 @@ BS_CAPS = [
 ]
 SAUCE_CAPS = [
     {'browserName': "chrome", 'platform': "Windows 8", 'version': "48.0", 
-        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Chr/Win8'},
+        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Cr/w8'},
 
     {'browserName': "internet explorer", 'platform': "Windows 10", 'version': "11.103",
-        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'IE/Win10'},
+        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'IE/w10'},
 
     {'browserName': "firefox", 'platform': "OS X 10.10", 'version': "44.0",
-        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'FF/OSX10.10'},
+        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'FF/x.10'},
 
     {'browserName': "safari", 'platform': "OS X 10.11", 'version': "9.0",
-        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Saf/OSX10.11'},
+        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Sf/x.11'},
 
     {'browserName': "iPhone", 'platform': "OS X 10.10", 'version': "9.2", 'deviceName': "iPhone 5s", 'deviceOrientation':"portrait",
-        'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPhone5s'},
+        'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPh5s'},
 
     {'browserName': "iPhone", 'platform': "OS X 10.10", 'version': "9.2", 'deviceName': "iPad Air", 'deviceOrientation': "portrait",
-        'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPadAir'},
+        'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPadA/p'},
 
     {'browserName': "iPhone", 'platform': "OS X 10.10", 'version': "9.2", 'deviceName': "iPad Air", 'deviceOrientation': "landscape",
-        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'iPadAir'},
+        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'iPadA/l'},
 
     {'browserName': 'android', 'platform': 'Linux', 'version': '4.4', 'deviceName': "Google Nexus 7 HD Emulator", 'deviceOrientation': "portrait",
-        'sefaria_mode': 'single_panel', 'sefaria_short_name': 'Nexus7/4.4'},
+        'sefaria_mode': 'single_panel', 'sefaria_short_name': 'Nex7/4.4'},
 
     {'browserName': 'android', 'platform': 'Linux', 'version': '5.1', 'deviceName': "Android Emulator", 'deviceType': 'phone', 'deviceOrientation': "portrait",
-        'sefaria_mode': 'single_panel', 'sefaria_short_name': 'GalaxyS4'},
+        'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/5.1'},
 ]
 
 
