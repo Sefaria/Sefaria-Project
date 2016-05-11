@@ -2,7 +2,7 @@
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
-if (require) {
+if (typeof require !== 'undefined') {
   var React = require('react');
   var ReactDOM = require('react-dom');
   sjs = { library: require('./library.js') };
@@ -2528,7 +2528,9 @@ var ReaderTextTableOfContents = React.createClass({
       title: currentLanguage == "he" ? d.heVersionTitle : d.versionTitle,
       source: currentLanguage == "he" ? d.heVersionSource : d.versionSource,
       license: currentLanguage == "he" ? d.heLicense : d.license,
-      sources: currentLanguage == "he" ? d.heSources : d.sources
+      sources: currentLanguage == "he" ? d.heSources : d.sources,
+      notes: currentLanguage == "he" ? d.heVersionNotes : d.versionNotes,
+      digitizedBySefaria: currentLanguage == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria
     };
     currentVersion.merged = !!currentVersion.sources;
 
@@ -2671,7 +2673,7 @@ var ReaderTextTableOfContents = React.createClass({
           React.createElement(
             'span',
             { className: 'currentVersionLicense' },
-            this.state.currentVersion.license
+            this.state.currentVersion.license == "unknown" ? "License Unknown" : this.state.currentVersion.license + (this.state.currentVersion.digitizedBySefaria ? " - Digitized by Sefaria" : "")
           ),
           React.createElement(
             'span',
@@ -6584,7 +6586,7 @@ var backToS1 = function backToS1() {
   window.location = "/";
 };
 
-if (exports) {
+if (typeof exports !== 'undefined') {
   // Make this a CommonJS module if it's run from Node
   exports.ReaderApp = ReaderApp;
   exports.ReaderPanel = ReaderPanel;

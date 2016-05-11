@@ -1,4 +1,4 @@
-if (require) {
+if (typeof require !== 'undefined') {
   var React    = require('react');
   var ReactDOM = require('react-dom');
   sjs = {library: require('./library.js')}
@@ -5404,7 +5404,7 @@ var backToS1 = function() {
   window.location = "/";
 };
 
-if (exports) {
+if (typeof exports !== 'undefined') {
   // Make this a CommonJS module if it's run from Node 
   exports.ReaderApp        = ReaderApp;
   exports.ReaderPanel      = ReaderPanel;
