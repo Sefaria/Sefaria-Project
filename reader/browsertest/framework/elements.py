@@ -1,13 +1,16 @@
 
 from config import *
-from selenium import webdriver
 from random import shuffle
 from multiprocessing import Pool
 import inspect
 import httplib
 import base64
 import json
-
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.expected_conditions import title_contains, staleness_of, element_to_be_clickable, visibility_of_element_located
+from selenium.webdriver.common.keys import Keys
 
 class AtomicTest(object):
     """
@@ -29,6 +32,37 @@ class AtomicTest(object):
 
     def run(self):
         raise Exception("AtomicTest.run() needs to be defined for each test.")
+
+    # Component methods
+    def s2(self):
+        self.driver.get(self.base_url + "/s2")
+        WebDriverWait(self.driver, TEMPER).until(title_contains("Texts"))
+        return self
+
+    def load_toc(self):
+        self.driver.get(self.base_url + "/texts")
+        WebDriverWait(self.driver, TEMPER).until(title_contains("Texts"))
+        return self
+
+    def click_toc_category(self, category_name):
+        self.driver.find_element_by_css_selector('.readerNavCategory[data-cat="{}"]'.format(category_name)).click()
+        WebDriverWait(self.driver, TEMPER).until(title_contains(category_name))
+        return self
+
+    def click_toc_text(self, text_name):
+        p1 = self.driver.find_element_by_css_selector('.refLink[data-ref^="{}"]'.format(text_name))
+        p1.click()
+        WebDriverWait(self.driver, TEMPER).until(title_contains(text_name))
+        return self
+
+    def click_toc_recent(self, tref):
+        recent = self.driver.find_element_by_css_selector('.recentItem[data-ref="{}"]'.format(tref))
+        recent.click()
+        # not testing, since loaded page may have title of next section
+
+    def search_for(self, search):
+        return self
+
 
 
 class TestResult(object):
@@ -163,7 +197,7 @@ class Trial(object):
             raise Exception("Unrecognized platform: {}".format(self.platform))
 
         #todo: better way to do this?
-        driver.get(self.BASE_URL + "/s2")
+        #driver.get(self.BASE_URL + "/s2")
         return driver
 
     def _run_one_atomic_test(self, driver, test_class, cap):
@@ -256,10 +290,12 @@ class Trial(object):
             return cap.__module__.split(".")[-2]
         return cap.get("sefaria_short_name")
 
-#  This function is used to get around the limitations of multiprocessing.Pool.map - that it only take a function as first argument
+
+#  This function is used to get around the limitations of multiprocessing.Pool.map - that it will not take a method as first argument
 #  http://www.rueckstiess.net/research/snippets/show/ca1d7d90
 def _test_one_worker(arg, **kwargs):
     return Trial._test_one(*arg, **kwargs)
+
 
 def get_subclasses(c):
     subclasses = c.__subclasses__()
@@ -267,7 +303,6 @@ def get_subclasses(c):
         subclasses.extend(get_subclasses(d))
 
     return subclasses
-
 
 
 def get_atomic_tests():
@@ -346,8 +381,6 @@ def get_multiplatform_tests(tests):
             print "\n\nSuite: {}".format(key)
             print "\n".join(results)
 '''
-
-
 
 
 '''
