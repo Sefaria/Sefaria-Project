@@ -4,27 +4,18 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.expected_conditions import title_contains, staleness_of, element_to_be_clickable, visibility_of_element_located
 from selenium.webdriver.common.keys import Keys
 
-TEMPER = 5
+TEMPER = 10
+
 
 class RecentInToc(AtomicTest):
     suite_key = "S2 Reader"
-    mobile = False
+    single_panel = False
 
     def run(self):
-        self.driver.get(self.base_url + "/texts")
+        self.s2().click_toc_category("Tanach").click_toc_text("Psalms")
 
-        self.driver.find_element_by_class_name('readerNavCategory[data-cat="Tanach"]').click()  # The "Tanach" category is first
-        WebDriverWait(self.driver, TEMPER).until(title_contains("Tanach"))
+        self.load_toc().click_toc_recent("Psalms 1")
 
-        p1 = self.driver.find_element_by_css_selector('.refLink[data-ref="Psalms 1"]')
-        p1.click()
-        WebDriverWait(self.driver, TEMPER).until(title_contains("Psalms"))
-
-        self.driver.get(self.base_url + "/texts")
-        WebDriverWait(self.driver, TEMPER).until(title_contains("Texts"))
-
-        recent = self.driver.find_element_by_css_selector('.recentItem[data-ref="Psalms 1"]')
-        recent.click()
         WebDriverWait(self.driver, TEMPER).until(title_contains("Psalms"))
 
 
@@ -32,6 +23,7 @@ class LoadRefAndClickSegment(AtomicTest):
     suite_key = "S2 Reader"
 
     def run(self):
+        self.s2()
         self.driver.get(self.base_url + "/Psalms.65.5")
         WebDriverWait(self.driver, TEMPER).until(title_contains("Psalms 65:5"))
 
@@ -39,16 +31,18 @@ class LoadRefAndClickSegment(AtomicTest):
         segment.click()
         WebDriverWait(self.driver, TEMPER).until(title_contains("Psalms 65:5 with Connections"))
         assert "Psalms.65.5?with=all" in self.driver.current_url
-        rashi = self.driver.find_element_by_css_selector('.textFilter[data-name="Malbim"]')
-        assert rashi
+        malbim = self.driver.find_element_by_css_selector('.textFilter[data-name="Malbim"]')
+        assert malbim
 
 
 class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
     suite_key = "S2 Reader"
 
     def run(self):
+        self.s2()
+
         self.driver.get(self.base_url + "/Psalms.45.5?with=all")
-        assert "Psalms 45:5 with Connections" in self.driver.title, self.driver.title
+        WebDriverWait(self.driver, TEMPER).until(title_contains("Psalms 45:5 with Connections"))
         rashi = self.driver.find_element_by_css_selector('.textFilter[data-name="Rashi"]')
         rashi.click()
         WebDriverWait(self.driver, TEMPER).until(staleness_of(rashi))
@@ -57,10 +51,10 @@ class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
 
 class ClickVersionedSearchResultDesktop(AtomicTest):
     suite_key = "S2 Search"
-    mobile = False
+    single_panel = False
 
     def run(self):
-        self.driver.get(self.base_url + "/s2")
+        self.s2()
         elem = self.driver.find_element_by_css_selector("input.search")
         elem.send_keys("Dogs")
         elem.send_keys(Keys.RETURN)
@@ -73,10 +67,11 @@ class ClickVersionedSearchResultDesktop(AtomicTest):
 
 class ClickVersionedSearchResultMobile(AtomicTest):
     suite_key = "S2 Search"
-    desktop = False
+    multi_panel = False
 
     def run(self):
-        self.driver.get(self.base_url + "/s2")
+        self.s2()
+        self.driver.get(self.base_url + "/Psalms.23")
         hamburger = self.driver.find_element_by_css_selector(".readerNavMenuMenuButton")
         if hamburger:
             hamburger.click()

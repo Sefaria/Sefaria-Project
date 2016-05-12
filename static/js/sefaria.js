@@ -1,5 +1,5 @@
 if (typeof require !== 'undefined') {
-  var $ = require('jQuery'),
+  var $       = require('jQuery'),
       Sefaria = require('./sefaria-util.js');
 }
 
