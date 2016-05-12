@@ -55,10 +55,11 @@ class AtomicTest(object):
         WebDriverWait(self.driver, TEMPER).until(title_contains(text_name))
         return self
 
-    def click_toc_recent(self, tref):
+    def click_toc_recent(self, tref, until=None):
         recent = self.driver.find_element_by_css_selector('.recentItem[data-ref="{}"]'.format(tref))
         recent.click()
-        # not testing, since loaded page may have title of next section
+        until = title_contains(tref) if until is None else until
+        WebDriverWait(self.driver, TEMPER).until(until)
 
     def search_for(self, search):
         return self
