@@ -276,7 +276,6 @@ urlpatterns += patterns('reader.views',
     (r'^visualize/torah-quant$', 'visualize_torah_quant'),
     (r'^visualize/steve$', 'visualize_steve'),
     (r'^visualize/yoni$', 'visualize_yoni'),
-    (r'visualize/yoni$', 'visualize_yoni'),
     (r'^visualize/links_through_rashi$', 'visualize_rashi_interlinks'),
 )
 

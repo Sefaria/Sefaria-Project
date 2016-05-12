@@ -53,7 +53,8 @@
   
   <script src="/static/js/headroom.js"></script>
   <script src="/static/js/jquery.scrollTo.js"></script>
-  <script src="/static/js/library.js"></script>
+  <script src="/static/js/sefaria-util.js"></script>
+  <script src="/static/js/sefaria.js"></script>
   {% if DEBUG %}
   <script src="/static/js/react.js"></script>
   <script src="/static/js/react-dom.js"></script>
@@ -83,7 +84,7 @@
           language = panel.language;
           if (panel.ref) {
               ref = panel.ref;
-              sjs.library._saveText(panel.text, {context: 1, version: version, language: language});
+              Sefaria._saveText(panel.text, {context: 1, version: version, language: language});
           }
           //initialMenu = panel.initialMenu;
           filter = panel.filter && panel.filter.length === 1 && panel.filter[0] === "all" ? [] : panel.filter;

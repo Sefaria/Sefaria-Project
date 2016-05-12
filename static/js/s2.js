@@ -15,8 +15,8 @@ if (typeof require !== 'undefined') {
     eval.apply(global, [read(f)]);
   };
   console.log("util.js");
-  console.log(read('../static/js/util.js'));
-  include('../static/js/util.js');
+  console.log(read('./util.js'));
+  include('./util.js');
 }
 
 var ReaderApp = React.createClass({

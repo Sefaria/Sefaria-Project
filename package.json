@@ -1,5 +1,5 @@
 {      
-    "name": "sefaria-react",
+    "name": "sefaria-web",
     "version": "1.0.0",
     "description": "Server for rendering React components for Sefaria, a library of Jewish texts.",
     "config" : { 
@@ -7,12 +7,13 @@
     },
     "main": "node/main.js",
     "scripts": {
-        "start": "node node/main.js",
+        "start": "node node/server.js",
         "test": "echo im gonna test node",
         "build": "npm run build-jsx",
         "build-jsx": "babel static/js/s2.jsx > static/js/s2.js"
       },
     "dependencies": {
+      "jQuery": "^1.7.2",
       "react": "^15.0.1",
       "react-dom": "^15.0.1"
     },
