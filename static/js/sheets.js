@@ -53,7 +53,7 @@ window.onerror = function (errorMsg, url, lineNumber) {
 }
 
 $(function() {
-	
+
 	// ------------- Top Controls -------------------
 	
 	
@@ -754,7 +754,7 @@ $(function() {
 		
 		if (sjs.can_edit) {
 			// Bind init of CKEditor to mouseup, so dragging can start first
-			$("#title, .comment, .outside, .customTitle, .text .en, .text .he, #author")
+			$("#title, .comment, .outside, .customTitle, .text .en, .text .he, #author, .contentToAdd")
 				.live("mouseup", sjs.initCKEditor);			
 		} 
 		else if (sjs.can_add) {
@@ -907,7 +907,7 @@ $(function() {
 		sjs.sortOptions = { 
 							start: sjs.sortStart,
 							stop: sjs.sortStop,
-							cancel: ':input, button, .cke_editable',
+							cancel: ':input, button, .cke_editable, #addInterface',
 							placeholder: 'sortPlaceholder',
 							revert: 100,
 							delay: 300,
@@ -995,7 +995,31 @@ $(function() {
 
 
 
+		// Add Interface
 
+		$("#addInterface").on("click", ".buttonBar .button", function (e) {
+			$("#addInterface .button").removeClass('active');
+			$(this).addClass('active');
+			var divToShow = "#add"+($(this).attr('id').replace('Button',''))+"Div";
+			$(".contentDiv > div").hide();
+			$(divToShow).show();
+		});
+
+		$("#addcommentDiv").on("click", ".button", function (e) {
+			var $target = $("#addInterface").prev(".sheetItem");
+			console.log($target);
+			var source = {comment: $(e.target).prev(".contentToAdd").html(), isNew: true};
+			if (sjs.can_add) { source.userLink = sjs._userLink; }
+			buildSource($target, source, "insert");
+			autoSave();
+			$(".contentToAdd").html('');
+			$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
+
+		});
+
+		
+		
+		// </add interface>
 
 
 		$("html").on("click", "#sheet", function (e) {
@@ -1003,6 +1027,7 @@ $(function() {
 			if ($(e.target).closest(".sheetItem").length) {
 				return;
 			}
+			if ($(e.target).closest("#addInterface").length) return
 			cleanupActiveSource(e.target);
 		});
 
@@ -1015,7 +1040,6 @@ $(function() {
 
 
 		function cleanupActiveSource(target){
-			console.log(target);
 			var $customTitle = $(".activeSource .customTitle");
 			if ($customTitle.text() === "Source Title") {
 				$customTitle.text("");
@@ -1029,8 +1053,10 @@ $(function() {
 			$("#sheetLayoutLanguageMenuItems").show();
 			$("#sourceLayoutLanguageMenuItems").hide();
 			if (!$(target).hasClass('inlineAddButtonIcon')) {
-				$("#addInterface").insertAfter( $("#sources") );
+//				$("#addInterface").insertAfter( $("#sources") );
+				$("#addInterface").insertAfter( $(".sheetItem").last() );
 			}
+
 		}
 
 		$("#sheet").on("click", ".sheetItem", function (e) {

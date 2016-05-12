@@ -313,7 +313,33 @@
 	<ol id="sources">
 		{% include "sheet.html" with sources=sheet.sources %}
 	</ol>
-    <div id="addInterface"></div>
+    <div id="addInterface">
+        <div class="buttonBar">
+            <div class="button" id="sourceButton">Source</div>
+            <div class="button" id="connectionButton">Connection</div>
+            <div class="button" id="customTextButton">Custom Text</div>
+            <div class="button" id="commentButton">Comment</div>
+        </div>
+        <div class="contentDiv">
+            <div id="addsourceDiv">
+                <div>Select a text</div>
+                <div class="contentToAdd"></div>
+            </div>
+            <div id="addconnectionDiv">
+                <div>Select connected texts</div>
+                <div class="contentToAdd"></div>
+            </div>
+            <div id="addcustomTextDiv">
+                <div>Write or paste text</div>
+                <div class="contentToAdd"></div>
+            </div>
+            <div id="addcommentDiv">
+                <div>Comment on this section</div>
+                <div class="contentToAdd"></div>
+                <div class="button">Add to Sheet</div>
+            </div>
+        </div>
+    </div>
 
     <div id="sheetLoading" style="display:none">Loading...</div>
 

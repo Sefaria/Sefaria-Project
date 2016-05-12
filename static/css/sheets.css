@@ -585,7 +585,7 @@ body {
 .comment span,
 .outside span,
 .outsideBi .text .he span,
-.outsideBi .text .en span,  {
+.outsideBi .text .en span  {
 	display: inline-block;
 }
 
@@ -1430,7 +1430,7 @@ input[type="file"] {
 
 .activeSource {
 	background-color: #eee;
-	border:solid 1px #EFB4B6;
+	border-left:solid 3px #4e6eff;
 }
 
 .inlineAddButton {
@@ -1449,6 +1449,22 @@ input[type="file"] {
 
 #addInterface {
 	width:100%;
-	background-color: red;
-	height:200px;
+	background-color: #eee;
+	padding-top: 40px;
+	text-align: center;
+}
+
+.button.active {
+	border: 2px solid red;
+}
+
+.contentDiv > div {
+	display: none;
+}
+
+.contentToAdd {
+	min-height:60px;
+	flex:1;
+	margin:30px;
+	background-color: #fff;
 }
