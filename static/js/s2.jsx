@@ -1,4 +1,15 @@
-var sjs = sjs || {};
+if (typeof require !== 'undefined') {
+  var React    = require('react');
+  var ReactDOM = require('react-dom');
+  sjs = {library: require('./library.js')}
+  // Include utils.js with this hack because it has so many spaghetti methods
+  // and extra methods on built-in types.
+  var read = function(f) { return fs.readFileSync(f).toString(); }
+  var include = function(f) { eval.apply(global, [read(f)]); }
+  console.log("util.js");
+  console.log(read('../static/js/util.js'));
+  include('../static/js/util.js');
+}
 
 
 var ReaderApp = React.createClass({
@@ -307,7 +318,7 @@ var ReaderApp = React.createClass({
     var title =  histories.length ? histories[0].title : "Sefaria";
 
     var url   = "/" + (histories.length ? histories[0].url : "");
-    if(histories[0].versionLanguage && histories[0].version) {
+    if(histories[0] && histories[0].versionLanguage && histories[0].version) {
         url += "/" + histories[0].versionLanguage + "/" + histories[0].version.replace(/\s/g,"_");
     }
     if (histories[0].mode === "TextAndConnections") {
@@ -2172,6 +2183,8 @@ var ReaderTextTableOfContents = React.createClass({
       source:   currentLanguage == "he" ? d.heVersionSource: d.versionSource,
       license:  currentLanguage == "he" ? d.heLicense: d.license,
       sources:  currentLanguage == "he" ? d.heSources: d.sources,
+      notes:    currentLanguage == "he" ? d.heVersionNotes: d.versionNotes,
+      digitizedBySefaria:  currentLanguage == "he" ? d.heDigitizedBySefaria: d.digitizedBySefaria
     };
     currentVersion.merged = !!(currentVersion.sources);
 
@@ -2281,7 +2294,7 @@ var ReaderTextTableOfContents = React.createClass({
               { parseURL(this.state.currentVersion.source).host }
             </a>
             <span>-</span>
-            <span className="currentVersionLicense">{this.state.currentVersion.license}</span>
+            <span className="currentVersionLicense">{this.state.currentVersion.license == "unknown" ? "License Unknown" : (this.state.currentVersion.license + (this.state.currentVersion.digitizedBySefaria ? " - Digitized by Sefaria": "" ))}</span>
             <span>-</span>
             <a className="versionHistoryLink" href="#">Version History &gt;</a>
           </span>);
@@ -4145,7 +4158,7 @@ var AddToSourceSheetPanel = React.createClass({
       return (<div className={classes} onClick={selectSheet} key={sheet.id}>{sheet.title.stripHtml()}</div>);
     }.bind(this)) : <LoadingMessage />;
     sheetsContent     = sheets && sheets.length == 0 ? 
-                          (<div className="sheet"><span className="en">You don't have any Source Sheets yet.</span><span className="he">טרם יצרת דפי מקורות</span></div>) :
+                          (<div className="sheet"><span className="en">You don&rsquo;t have any Source Sheets yet.</span><span className="he">טרם יצרת דפי מקורות</span></div>) :
                           sheetsContent; 
     var createSheet = this.state.showNewSheetInput ? 
           (<div>
@@ -4862,8 +4875,7 @@ var SearchResultList = React.createClass({
                   availableFilters={this.props.availableFilters}
                   appliedFilters = {this.props.appliedFilters}
                   updateAppliedFilter = {this.props.updateAppliedFilter}
-                  isQueryRunning = {this.state.isQueryRunning}
-                />
+                  isQueryRunning = {this.state.isQueryRunning} />
                 {this.state.textHits.map(function(result) {
                     return (<SearchTextResult
                               data={result}
@@ -5391,3 +5403,12 @@ var backToS1 = function() {
   $.cookie("s2", "", {path: "/"});
   window.location = "/";
 };
+
+if (typeof exports !== 'undefined') {
+  // Make this a CommonJS module if it's run from Node 
+  exports.ReaderApp        = ReaderApp;
+  exports.ReaderPanel      = ReaderPanel;
+  exports.ConnectionsPanel = ConnectionsPanel;
+  exports.TextRange        = TextRange;
+  exports.TextColumn       = TextColumn;
+}
