@@ -290,6 +290,13 @@ urlpatterns += patterns('',
 
 )
 
+# Packaged JavaScript
+urlpatterns += patterns('sefaria.views',
+    (r'^data\.js$', 'data_js'),
+    (r'^sefaria\.js$', 'sefaria_js'),
+)
+
+
 # Linker js
 urlpatterns += patterns('sefaria.views',
     (r'^linker\.js$', 'linker_js'),

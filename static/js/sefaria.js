@@ -6,7 +6,8 @@ if (typeof require !== 'undefined') {
   var extend  = $.extend;
 }
 
-var Sefaria = Sefaria || {}; 
+var Sefaria = Sefaria || {};
+
 Sefaria = extend(Sefaria, {
   _texts: {},
   _refmap: {}, // Mapping of simple ref/context keys to the (potentially) versioned key for that ref in _texts. 

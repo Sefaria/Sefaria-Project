@@ -326,6 +326,7 @@ def s2_sheets_by_tag(request, tag):
                                     "initialSheetsTag": tag,
                                 }, RequestContext(request))
 
+
 @ensure_csrf_cookie
 def edit_text(request, ref=None, lang=None, version=None):
     """
