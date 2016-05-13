@@ -1,9 +1,14 @@
 if (typeof require !== 'undefined') {
-  var React    = require('react'),
-      ReactDOM = require('react-dom'),
-      $        = require('jQuery'),
-      Sefaria  = require('./sefaria.js');
+  var React       = require('react'),
+      ReactDOM    = require('react-dom'),
+      $           = require('jquery'),
+      extend      = require('extend'),
+      classsNames = require('classnames');
+      Sefaria     = require('./sefaria.js');
+} else {
+  var extend      = $.extend; 
 }
+
 
 
 var ReaderApp = React.createClass({
@@ -208,8 +213,8 @@ var ReaderApp = React.createClass({
       panel.searchFiltersValid = false;
       panel.availableFilters = [];
       panel.filterRegistry = {};
-      var newPanel = (trimFilters) ? Sefaria.util.clone(panel) : $.extend(Sefaria.util.clone(panel), savedAttributes);
-      $.extend(panel, savedAttributes);
+      var newPanel = (trimFilters) ? Sefaria.util.clone(panel) : extend(Sefaria.util.clone(panel), savedAttributes);
+      extend(panel, savedAttributes);
       return newPanel;
     } else {
       return Sefaria.util.clone(panel);
@@ -519,7 +524,7 @@ var ReaderApp = React.createClass({
         next.settings.language = state.settings.language;
     }
 
-    this.state.panels[n] = $.extend(this.state.panels[n], state);
+    this.state.panels[n] = extend(this.state.panels[n], state);
     this.setState({panels: this.state.panels});
   },
   selectVersion: function(n, versionName, versionLanguage) {
@@ -549,7 +554,7 @@ var ReaderApp = React.createClass({
     this.state.defaultVersions[indexTitle][language] = versionTitle;  // Does this need a setState?  I think not.
   },
   setHeaderState: function(state, replaceHistory) {
-    this.state.header = $.extend(this.state.header, state);
+    this.state.header = extend(this.state.header, state);
     this.setState({header: this.state.header});
   },
   setDefaultOption: function(option, value) {
@@ -1062,8 +1067,8 @@ var ReaderPanel = React.createClass({
          filterRegistry: panel.filterRegistry
       };
       panel.availableFilters = panel.searchFiltersValid = panel.filterRegistry = null;
-      var newpanel = $.extend(Sefaria.util.clone(panel), savedAttributes);
-      $.extend(panel, savedAttributes);
+      var newpanel = extend(Sefaria.util.clone(panel), savedAttributes);
+      extend(panel, savedAttributes);
       return newpanel;
     } else {
       return Sefaria.util.clone(panel);
@@ -4755,7 +4760,7 @@ var SearchResultList = React.createClass({
       var commentaryNode = new sjs.FilterNode();
       var rnode = rawTree["Commentary"];
       if (rnode) {
-          $.extend(commentaryNode, {
+          extend(commentaryNode, {
               "title": "Commentary",
               "path": "Commentary",
               "heTitle": "מפרשים",
@@ -4780,14 +4785,14 @@ var SearchResultList = React.createClass({
               /*if(branch["category"] == "Commentary") { // Special case commentary
 
                   path.unshift(branch["category"]);  // Place "Commentary" at the *beginning* of the path
-                   $.extend(node, {
+                   extend(node, {
                        "title": parentNode.title,
                        "path": path.join("/"),
                        "heTitle": parentNode.heTitle
                    });
               } else {*/
                   path.push(branch["category"]);  // Place this category at the *end* of the path
-                  $.extend(node, {
+                  extend(node, {
                      "title": path.slice(-1)[0],
                      "path": path.join("/"),
                      "heTitle": branch["heCategory"]
@@ -4800,7 +4805,7 @@ var SearchResultList = React.createClass({
           }
           else if ("title" in branch) { // Text Node
               path.push(branch["title"]);
-              $.extend(node, {
+              extend(node, {
                  "title": path.slice(-1)[0],
                  "path": path.join("/"),
                  "heTitle": branch["heTitle"]

@@ -1,3 +1,7 @@
+if (typeof require !== 'undefined') {
+  var $ = require('jquery');
+}
+
 var Sefaria = {};
 
 if (typeof sjs !== 'undefined') {
@@ -17,6 +21,7 @@ if (typeof sjs !== 'undefined') {
 } else {
     Sefaria.books             = [];
     Sefaria.booksDict         = {};
+    Sefaria.toc               = [];
     Sefaria.notifications     = [];
     Sefaria.notificationCount = 0;
 }
@@ -231,7 +236,7 @@ Sefaria.util = {
             if (callNow) func.apply(context, args);
         };
     },
-    setup: function() {
+    setupPrototypes: function() {
 
         String.prototype.toProperCase = function() {
           // Treat anything after ", " as a new clause
@@ -348,7 +353,9 @@ Sefaria.util = {
         RegExp.escape = function(s) {
             return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
         };
-
+    },
+    setupJQuery: function() {
+        if (!$.hasOwnProperty("fn")) { return; }
         $.fn.serializeObject = function() {
             var o = {};
             var a = this.serializeArray();
@@ -364,58 +371,7 @@ Sefaria.util = {
             });
             return o;
         };
-
-        /*
-          classnames
-          Copyright (c) 2015 Jed Watson.
-          Licensed under the MIT License (MIT), see
-          http://jedwatson.github.io/classnames
-        */
-        (function () {
-            'use strict';
-
-            function classNames () {
-
-                var classes = '';
-
-                for (var i = 0; i < arguments.length; i++) {
-                    var arg = arguments[i];
-                    if (!arg) continue;
-
-                    var argType = typeof arg;
-
-                    if ('string' === argType || 'number' === argType) {
-                        classes += ' ' + arg;
-
-                    } else if (Array.isArray(arg)) {
-                        classes += ' ' + classNames.apply(null, arg);
-
-                    } else if ('object' === argType) {
-                        for (var key in arg) {
-                            if (arg.hasOwnProperty(key) && arg[key]) {
-                                classes += ' ' + key;
-                            }
-                        }
-                    }
-                }
-
-                return classes.substr(1);
-            }
-
-            if (typeof module !== 'undefined' && module.exports) {
-                module.exports = classNames;
-            } else if (typeof define === 'function' && typeof define.amd === 'object' && define.amd){
-                // AMD. Register as an anonymous module.
-                define(function () {
-                    return classNames;
-                });
-            } else {
-                window.classNames = classNames;
-            }
-
-        }());
-
-        /*!
+    /*!
          * jQuery Cookie Plugin v1.3
          * https://github.com/carhartl/jquery-cookie
          *
@@ -488,11 +444,69 @@ Sefaria.util = {
 
         })($, document);
 
+    },
+    setupMisc: function() {
+        /*
+          classnames
+          Copyright (c) 2015 Jed Watson.
+          Licensed under the MIT License (MIT), see
+          http://jedwatson.github.io/classnames
+        */
+        (function () {
+            'use strict';
+
+            function classNames () {
+
+                var classes = '';
+
+                for (var i = 0; i < arguments.length; i++) {
+                    var arg = arguments[i];
+                    if (!arg) continue;
+
+                    var argType = typeof arg;
+
+                    if ('string' === argType || 'number' === argType) {
+                        classes += ' ' + arg;
+
+                    } else if (Array.isArray(arg)) {
+                        classes += ' ' + classNames.apply(null, arg);
+
+                    } else if ('object' === argType) {
+                        for (var key in arg) {
+                            if (arg.hasOwnProperty(key) && arg[key]) {
+                                classes += ' ' + key;
+                            }
+                        }
+                    }
+                }
+
+                return classes.substr(1);
+            }
+
+            if (typeof module !== 'undefined' && module.exports) {
+                module.exports = classNames;
+            } else if (typeof define === 'function' && typeof define.amd === 'object' && define.amd){
+                // AMD. Register as an anonymous module.
+                define(function () {
+                    return classNames;
+                });
+            } else {
+                window.classNames = classNames;
+            }
+
+        }());
+
+
         // Protect against browsers without consoles and forgotten console statements
         if(typeof(console) === 'undefined') {
             var console = {}
             console.log = function() {};
         }
+    },
+    setup: function() {
+        Sefaria.util.setupPrototypes();
+        Sefaria.util.setupJQuery();
+        Sefaria.util.setupMisc();
     }
 }
 

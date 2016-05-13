@@ -13,7 +13,9 @@
         "build-jsx": "babel static/js/s2.jsx > static/js/s2.js"
       },
     "dependencies": {
-      "jQuery": "^1.7.2",
+      "jquery": "^2.2.0",
+      "extend": "^3.0.0",
+      "classnames": "^2.2.5",
       "react": "^15.0.1",
       "react-dom": "^15.0.1"
     },

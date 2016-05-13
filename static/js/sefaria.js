@@ -1,10 +1,13 @@
 if (typeof require !== 'undefined') {
-  var $       = require('jQuery'),
+  var $       = require('jquery'),
+      extend  = require('extend'),
       Sefaria = require('./sefaria-util.js');
+} else {
+  var extend  = $.extend;
 }
 
 var Sefaria = Sefaria || {}; 
-Sefaria = $.extend(Sefaria, {
+Sefaria = extend(Sefaria, {
   _texts: {},
   _refmap: {}, // Mapping of simple ref/context keys to the (potentially) versioned key for that ref in _texts. 
   text: function(ref, settings, cb) {
@@ -69,8 +72,8 @@ Sefaria = $.extend(Sefaria, {
     var cached = this._texts[key];
     if (!cached || !cached.buildable) { return cached; }
     if (cached.buildable === "Add Context") {
-      var segmentData = clone(this.text(cached.ref, $.extend(settings, {context: 0})));
-      var contextData = this.text(cached.sectionRef, $.extend(settings, {context: 0})) || this.text(cached.sectionRef, $.extend(settings, {context: 1}));
+      var segmentData = clone(this.text(cached.ref, extend(settings, {context: 0})));
+      var contextData = this.text(cached.sectionRef, extend(settings, {context: 0})) || this.text(cached.sectionRef, extend(settings, {context: 1}));
       segmentData.text = contextData.text;
       segmentData.he   = contextData.he;
       return segmentData;
@@ -141,7 +144,7 @@ Sefaria = $.extend(Sefaria, {
       var ref          = data.ref + delim + (i+start);
       var sectionRef   = superSectionLevel ? data.sectionRef : ref;
       var segment_data = clone(data);
-      $.extend(segment_data, {
+      extend(segment_data, {
         ref: ref,
         heRef: data.heRef + delim + encodeHebrewNumeral(i+start),
         text: en[i],
@@ -909,7 +912,7 @@ Sefaria = $.extend(Sefaria, {
     return cat in categories ? categories[cat] : cat;
   },
   search: {
-      baseUrl: sjs.searchBaseUrl + "/" + sjs.searchIndex + "/_search", // TODO don't use sjs to get these values
+      baseUrl: Sefaria.searchBaseUrl + "/" + Sefaria.searchIndex + "/_search",
       execute_query: function (args) {
           // To replace sjs.search.post in search.js
 
@@ -1030,117 +1033,117 @@ Sefaria = $.extend(Sefaria, {
 
 
 Sefaria.search.FilterNode.prototype = {
-    append : function(child) {
-        this.children.push(child);
-        child.parent = this;
-    },
-    hasChildren: function() {
-        return (this.children.length > 0);
-    },
-    getLeafNodes: function() {
-        //Return ordered array of leaf (book) level filters
-        if (!this.hasChildren()) {
-            return this;
-        }
-        var results = [];
-        for (var i = 0; i < this.children.length; i++) {
-            results = results.concat(this.children[i].getLeafNodes());
-        }
-        return results;
-    },
-    getId: function() {
-        return this.path.replace(new RegExp("[/',()]", 'g'),"-").replace(new RegExp(" ", 'g'),"_");
-    },
-    isSelected: function() {
-        return (this.selected == 1);
-    },
-    isPartial: function() {
-        return (this.selected == 2);
-    },
-    isUnselected: function() {
-        return (this.selected == 0);
-    },
-    setSelected : function(propogateParent, noPropogateChild) {
-        //default is to propogate children and not parents.
-        //Calls from front end should use (true, false), or just (true)
-        this.selected = 1;
-        if (!(noPropogateChild)) {
-            for (var i = 0; i < this.children.length; i++) {
-                this.children[i].setSelected(false);
-            }
-        }
-        if(propogateParent) {
-            if(this.parent) this.parent._deriveState();
-        }
-    },
-    setUnselected : function(propogateParent, noPropogateChild) {
-        //default is to propogate children and not parents.
-        //Calls from front end should use (true, false), or just (true)
-        this.selected = 0;
-        if (!(noPropogateChild)) {
-            for (var i = 0; i < this.children.length; i++) {
-                this.children[i].setUnselected(false);
-            }
-        }
-        if(propogateParent) {
-            if(this.parent) this.parent._deriveState();
-        }
+  append : function(child) {
+      this.children.push(child);
+      child.parent = this;
+  },
+  hasChildren: function() {
+      return (this.children.length > 0);
+  },
+  getLeafNodes: function() {
+      //Return ordered array of leaf (book) level filters
+      if (!this.hasChildren()) {
+          return this;
+      }
+      var results = [];
+      for (var i = 0; i < this.children.length; i++) {
+          results = results.concat(this.children[i].getLeafNodes());
+      }
+      return results;
+  },
+  getId: function() {
+      return this.path.replace(new RegExp("[/',()]", 'g'),"-").replace(new RegExp(" ", 'g'),"_");
+  },
+  isSelected: function() {
+      return (this.selected == 1);
+  },
+  isPartial: function() {
+      return (this.selected == 2);
+  },
+  isUnselected: function() {
+      return (this.selected == 0);
+  },
+  setSelected : function(propogateParent, noPropogateChild) {
+      //default is to propogate children and not parents.
+      //Calls from front end should use (true, false), or just (true)
+      this.selected = 1;
+      if (!(noPropogateChild)) {
+          for (var i = 0; i < this.children.length; i++) {
+              this.children[i].setSelected(false);
+          }
+      }
+      if(propogateParent) {
+          if(this.parent) this.parent._deriveState();
+      }
+  },
+  setUnselected : function(propogateParent, noPropogateChild) {
+      //default is to propogate children and not parents.
+      //Calls from front end should use (true, false), or just (true)
+      this.selected = 0;
+      if (!(noPropogateChild)) {
+          for (var i = 0; i < this.children.length; i++) {
+              this.children[i].setUnselected(false);
+          }
+      }
+      if(propogateParent) {
+          if(this.parent) this.parent._deriveState();
+      }
 
-    },
-    setPartial : function() {
-        //Never propogate to children.  Always propogate to parents
-        this.selected = 2;
-        if(this.parent) this.parent._deriveState();
-    },
-    _deriveState: function() {
-        //Always called from children, so we can assume at least one
-        var potentialState = this.children[0].selected;
-        if (potentialState == 2) {
-            this.setPartial();
-            return
-        }
-        for (var i = 1; i < this.children.length; i++) {
-            if (this.children[i].selected != potentialState) {
-                this.setPartial();
-                return
-            }
-        }
-        //Don't use setters, so as to avoid looping back through children.
-        if(potentialState == 1) {
-            this.setSelected(true, true);
-        } else {
-            this.setUnselected(true, true);
-        }
-    },
-    hasAppliedFilters: function() {
-        return (this.getAppliedFilters().length > 0)
-    },
-    getAppliedFilters: function() {
-        if (this.isUnselected()) {
-            return [];
-        }
-        if (this.isSelected()) {
-            return[this.path];
-        }
-        var results = [];
-        for (var i = 0; i < this.children.length; i++) {
-            results = results.concat(this.children[i].getAppliedFilters());
-        }
-        return results;
-    },
-    getSelectedTitles: function(lang) {
-        if (this.isUnselected()) {
-            return [];
-        }
-        if (this.isSelected()) {
-            return[(lang == "en")?this.title:this.heTitle];
-        }
-        var results = [];
-        for (var i = 0; i < this.children.length; i++) {
-            results = results.concat(this.children[i].getSelectedTitles(lang));
-        }
-        return results;
-    }
+  },
+  setPartial : function() {
+      //Never propogate to children.  Always propogate to parents
+      this.selected = 2;
+      if(this.parent) this.parent._deriveState();
+  },
+  _deriveState: function() {
+      //Always called from children, so we can assume at least one
+      var potentialState = this.children[0].selected;
+      if (potentialState == 2) {
+          this.setPartial();
+          return
+      }
+      for (var i = 1; i < this.children.length; i++) {
+          if (this.children[i].selected != potentialState) {
+              this.setPartial();
+              return
+          }
+      }
+      //Don't use setters, so as to avoid looping back through children.
+      if(potentialState == 1) {
+          this.setSelected(true, true);
+      } else {
+          this.setUnselected(true, true);
+      }
+  },
+  hasAppliedFilters: function() {
+      return (this.getAppliedFilters().length > 0)
+  },
+  getAppliedFilters: function() {
+      if (this.isUnselected()) {
+          return [];
+      }
+      if (this.isSelected()) {
+          return[this.path];
+      }
+      var results = [];
+      for (var i = 0; i < this.children.length; i++) {
+          results = results.concat(this.children[i].getAppliedFilters());
+      }
+      return results;
+  },
+  getSelectedTitles: function(lang) {
+      if (this.isUnselected()) {
+          return [];
+      }
+      if (this.isSelected()) {
+          return[(lang == "en")?this.title:this.heTitle];
+      }
+      var results = [];
+      for (var i = 0; i < this.children.length; i++) {
+          results = results.concat(this.children[i].getSelectedTitles(lang));
+      }
+      return results;
+  }
 };
 
 

@@ -11,12 +11,14 @@ var http = require('http'),
 
 http.createServer(function(req, res) {
 
-  var query = url.parse(req.url,true).query;
+  var parsed   = url.parse(req.url, true);
+  var pathname = parsed.pathname
+  var query    = parsed.query;
   
   //console.log("Request");
-  //console.log(req);
+  console.log(pathname);
 
-  if (req.url == '/ReaderApp') {
+  if (pathname == '/ReaderApp') {
 
     res.setHeader('Content-Type', 'text/html')
 

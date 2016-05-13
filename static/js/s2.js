@@ -3,20 +3,14 @@
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 if (typeof require !== 'undefined') {
-  var React = require('react');
-  var ReactDOM = require('react-dom');
-  sjs = { library: require('./library.js') };
-  // Include utils.js with this hack because it has so many spaghetti methods
-  // and extra methods on built-in types.
-  var read = function read(f) {
-    return fs.readFileSync(f).toString();
-  };
-  var include = function include(f) {
-    eval.apply(global, [read(f)]);
-  };
-  console.log("util.js");
-  console.log(read('./util.js'));
-  include('./util.js');
+  var React = require('react'),
+      ReactDOM = require('react-dom'),
+      $ = require('jquery'),
+      extend = require('extend'),
+      classsNames = require('classnames');
+  Sefaria = require('./sefaria.js');
+} else {
+  var extend = $.extend;
 }
 
 var ReaderApp = React.createClass({
@@ -41,8 +35,8 @@ var ReaderApp = React.createClass({
     // Currently these get generated in reader/views.py, then regenerated in s2.html then regenerated again in ReaderApp.
     var panels = [];
     var header = {};
-    var defaultVersions = clone(this.props.initialDefaultVersions) || {};
-    var defaultPanelSettings = clone(this.props.initialSettings);
+    var defaultVersions = Sefaria.util.clone(this.props.initialDefaultVersions) || {};
+    var defaultPanelSettings = this.getDefaultPanelSettings();
 
     if (!this.props.multiPanel && !this.props.headerMode) {
       var mode = this.props.initialFilter ? "TextAndConnections" : "Text";
@@ -55,7 +49,7 @@ var ReaderApp = React.createClass({
         versionLanguage: this.props.initialPanels.length ? this.props.initialPanels[0].versionLanguage : null,
         searchQuery: this.props.initialQuery,
         appliedSearchFilters: this.props.initialSearchFilters,
-        settings: clone(defaultPanelSettings)
+        settings: Sefaria.util.clone(defaultPanelSettings)
       };
       if (panels[0].versionLanguage) {
         panels[0].settings.language = panels[0].versionLanguage == "he" ? "hebrew" : "english";
@@ -73,7 +67,7 @@ var ReaderApp = React.createClass({
         appliedSearchFilters: this.props.initialSearchFilters,
         navigationCategories: this.props.initialNavigationCategories,
         sheetsTag: this.props.initialSheetsTag,
-        settings: clone(defaultPanelSettings)
+        settings: Sefaria.util.clone(defaultPanelSettings)
       };
       header = this.makePanelState(headerState);
       if (this.props.initialRefs.length) {
@@ -83,7 +77,7 @@ var ReaderApp = React.createClass({
           menuOpen: this.props.initialPanels[0].menuOpen,
           version: this.props.initialPanels.length ? this.props.initialPanels[0].version : null,
           versionLanguage: this.props.initialPanels.length ? this.props.initialPanels[0].versionLanguage : null,
-          settings: clone(defaultPanelSettings)
+          settings: Sefaria.util.clone(defaultPanelSettings)
         };
         if (p.versionLanguage) {
           p.settings.language = p.versionLanguage == "he" ? "hebrew" : "english";
@@ -94,12 +88,12 @@ var ReaderApp = React.createClass({
             refs: this.props.initialRefs,
             filter: this.props.initialFilter,
             mode: "Connections",
-            settings: clone(defaultPanelSettings)
+            settings: Sefaria.util.clone(defaultPanelSettings)
           });
         }
         for (var i = panels.length; i < this.props.initialPanels.length; i++) {
           var panel = this.clonePanel(this.props.initialPanels[i]);
-          panel.settings = clone(defaultPanelSettings);
+          panel.settings = Sefaria.util.clone(defaultPanelSettings);
           if (panel.versionLanguage) {
             panel.settings.language = panel.versionLanguage == "he" ? "hebrew" : "english";
           }
@@ -120,7 +114,7 @@ var ReaderApp = React.createClass({
       panels: panels,
       header: header,
       defaultVersions: defaultVersions,
-      defaultPanelSettings: defaultPanelSettings,
+      defaultPanelSettings: Sefaria.util.clone(defaultPanelSettings),
       layoutOrientation: layoutOrientation
     };
   },
@@ -142,8 +136,6 @@ var ReaderApp = React.createClass({
       this.justPopped = false;
       return;
     }
-    // Central State TODO
-    // - carry panel language change to dependent panel
 
     this.setContainerMode();
     this.updateHistoryState(this.replaceHistory);
@@ -209,11 +201,11 @@ var ReaderApp = React.createClass({
       panel.searchFiltersValid = false;
       panel.availableFilters = [];
       panel.filterRegistry = {};
-      var newPanel = trimFilters ? clone(panel) : $.extend(clone(panel), savedAttributes);
-      $.extend(panel, savedAttributes);
+      var newPanel = trimFilters ? Sefaria.util.clone(panel) : extend(Sefaria.util.clone(panel), savedAttributes);
+      extend(panel, savedAttributes);
       return newPanel;
     } else {
-      return clone(panel);
+      return Sefaria.util.clone(panel);
     }
   },
   makeHistoryState: function makeHistoryState() {
@@ -378,19 +370,15 @@ var ReaderApp = React.createClass({
   },
   makePanelState: function makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
-    if (!state.settings && !this.state) {
-      debugger;
-    }
     var panel = {
-      refs: state.refs || [], // array of ref strings
       mode: state.mode, // "Text", "TextAndConnections", "Connections"
+      refs: state.refs || [], // array of ref strings
       filter: state.filter || [],
       connectionsMode: state.connectionsMode || "Connections",
       version: state.version || null,
       versionLanguage: state.versionLanguage || null,
       highlightedRefs: state.highlightedRefs || [],
       recentFilters: state.filter || [],
-      settings: state.settings ? clone(state.settings) : clone(this.state.defaultPanelSettings),
       menuOpen: state.menuOpen || null, // "navigation", "text toc", "display", "search", "sheets", "home"
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag: state.sheetsTag || null,
@@ -400,10 +388,11 @@ var ReaderApp = React.createClass({
       availableFilters: state.availableFilters || [],
       filterRegistry: state.filterRegistry || {},
       orphanSearchFilters: state.orphanSearchFilters || [],
+      settings: state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
       displaySettingsOpen: false
     };
     if (this.state && panel.refs.length && !panel.version) {
-      var oRef = sjs.library.ref(panel.refs[0]);
+      var oRef = Sefaria.ref(panel.refs[0]);
       if (oRef) {
         var lang = panel.versionLanguage || (panel.settings.language == "hebrew" ? "he" : "en");
         panel.version = this.getCachedVersion(oRef.indexTitle, lang);
@@ -413,6 +402,13 @@ var ReaderApp = React.createClass({
       }
     }
     return panel;
+  },
+  getDefaultPanelSettings: function getDefaultPanelSettings() {
+    if (this.state && this.state.defaultPanelSettings) {
+      return this.state.defaultPanelSettings;
+    } else {
+      return this.props.initialSettings;
+    }
   },
   setContainerMode: function setContainerMode() {
     // Applies CSS classes to the React container so that S2 can function as a header only on top of another page.
@@ -519,7 +515,7 @@ var ReaderApp = React.createClass({
       next.settings.language = state.settings.language;
     }
 
-    this.state.panels[n] = $.extend(this.state.panels[n], state);
+    this.state.panels[n] = extend(this.state.panels[n], state);
     this.setState({ panels: this.state.panels });
   },
   selectVersion: function selectVersion(n, versionName, versionLanguage) {
@@ -530,7 +526,7 @@ var ReaderApp = React.createClass({
       panel.versionLanguage = versionLanguage;
       panel.settings.language = panel.versionLanguage == "he" ? "hebrew" : "english";
 
-      var oRef = sjs.library.ref(panel.refs[0]);
+      var oRef = Sefaria.ref(panel.refs[0]);
       this.setCachedVersion(oRef.indexTitle, panel.versionLanguage, panel.version);
     } else {
       panel.version = null;
@@ -550,7 +546,7 @@ var ReaderApp = React.createClass({
     this.state.defaultVersions[indexTitle][language] = versionTitle; // Does this need a setState?  I think not.
   },
   setHeaderState: function setHeaderState(state, replaceHistory) {
-    this.state.header = $.extend(this.state.header, state);
+    this.state.header = extend(this.state.header, state);
     this.setState({ header: this.state.header });
   },
   setDefaultOption: function setDefaultOption(option, value) {
@@ -660,7 +656,7 @@ var ReaderApp = React.createClass({
       return;
     }
     var ref = panel.refs[0];
-    var oRef = sjs.library.ref(ref);
+    var oRef = Sefaria.ref(ref);
     var json = $.cookie("recentlyViewed");
     var recent = json ? JSON.parse(json) : [];
     recent = recent.filter(function (item) {
@@ -800,7 +796,7 @@ var Header = React.createClass({
     $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete({
       position: { my: "left-12 top+14", at: "left bottom" },
       source: function source(request, response) {
-        var matches = $.map(sjs.books, function (tag) {
+        var matches = $.map(Sefaria.books, function (tag) {
           if (tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0) {
             return tag;
           }
@@ -844,12 +840,12 @@ var Header = React.createClass({
   },
   submitSearch: function submitSearch(query, skipNormalization) {
     //window.location = "/search?q=" + query.replace(/ /g, "+");
-    if (query in sjs.booksDict) {
-      var index = sjs.library.index(query);
+    if (query in Sefaria.booksDict) {
+      var index = Sefaria.index(query);
       if (index) {
         query = index.firstSection;
       } else if (!skipNormalization) {
-        sjs.library.normalizeTitle(query, function (title) {
+        Sefaria.normalizeTitle(query, function (title) {
           this.submitSearch(title, true);
         }.bind(this));
         return;
@@ -906,7 +902,7 @@ var Header = React.createClass({
       registerAvailableFilters: this.props.registerAvailableFilters,
       hideNavHeader: true }) : null;
 
-    var notifcationsClasses = classNames({ notifications: 1, unread: sjs.notificationCount > 0 });
+    var notifcationsClasses = classNames({ notifications: 1, unread: Sefaria.notificationCount > 0 });
     var currentPath = window.location.pathname + window.location.search;
     var signUpLink = React.createElement(
       'a',
@@ -945,17 +941,17 @@ var Header = React.createClass({
             { className: 'testWarning', onClick: this.showTestMessage },
             'Attention: You are testing the New Sefaria'
           ),
-          sjs.loggedIn ? React.createElement(
+          Sefaria.loggedIn ? React.createElement(
             'div',
             { className: 'account', onClick: this.showAccount },
             React.createElement('img', { src: '/static/img/user-64.png' })
           ) : null,
-          sjs.loggedIn ? React.createElement(
+          Sefaria.loggedIn ? React.createElement(
             'div',
             { className: notifcationsClasses, onClick: this.showNotifications },
             sjs.notificationCount
           ) : null,
-          sjs.loggedIn ? null : signUpLink
+          Sefaria.loggedIn ? null : signUpLink
         ),
         React.createElement(
           'span',
@@ -1113,11 +1109,11 @@ var ReaderPanel = React.createClass({
         filterRegistry: panel.filterRegistry
       };
       panel.availableFilters = panel.searchFiltersValid = panel.filterRegistry = null;
-      var newpanel = $.extend(clone(panel), savedAttributes);
-      $.extend(panel, savedAttributes);
+      var newpanel = extend(Sefaria.util.clone(panel), savedAttributes);
+      extend(panel, savedAttributes);
       return newpanel;
     } else {
-      return clone(panel);
+      return Sefaria.util.clone(panel);
     }
   },
   handleBaseSegmentClick: function handleBaseSegmentClick(ref) {
@@ -1218,14 +1214,6 @@ var ReaderPanel = React.createClass({
   setFilter: function setFilter(filter, updateRecent) {
     // Sets the current filter for Connected Texts (TextList)
     // If updateRecent is true, include the current setting in the list of recent filters.
-
-    /*  Hack to open commentaries immediately as full texts
-    if (filter && sjs.library.index(filter) && sjs.library.index(filter).categories[0] == "Commentary") {
-      this.openCommentary(filter);
-      return;
-    }
-    */
-
     if (updateRecent && filter) {
       if ($.inArray(filter, this.state.recentFilters) !== -1) {
         this.state.recentFilters.toggle(filter);
@@ -1245,7 +1233,7 @@ var ReaderPanel = React.createClass({
   openCommentary: function openCommentary(commentator) {
     // Tranforms a connections panel into an text panel with a particular commentary
     var baseRef = this.state.refs[0];
-    var links = sjs.library._filterLinks(sjs.library.links(baseRef), [commentator]);
+    var links = Sefaria._filterLinks(Sefaria.links(baseRef), [commentator]);
     if (links.length) {
       var ref = links[0].sourceRef;
       // TODO, Hack - stripping at last : to get section level ref for commentary. Breaks for Commentary2?
@@ -1295,7 +1283,7 @@ var ReaderPanel = React.createClass({
       "Add Connections": 1,
       "Add Translation": 1
     };
-    if (!sjs._uid && mode in loginRequired) {
+    if (!Sefaria._uid && mode in loginRequired) {
       mode = "Login";
     };
     var state = { connectionsMode: mode };
@@ -1348,7 +1336,7 @@ var ReaderPanel = React.createClass({
     if (!ref) {
       return null;
     }
-    var data = sjs.library.ref(ref);
+    var data = Sefaria.ref(ref);
     return data;
   },
   currentBook: function currentBook() {
@@ -1362,7 +1350,7 @@ var ReaderPanel = React.createClass({
   },
   currentCategory: function currentCategory() {
     var book = this.currentBook();
-    return sjs.library.index(book) ? sjs.library.index(book).categories[0] : null;
+    return Sefaria.index(book) ? Sefaria.index(book).categories[0] : null;
   },
   currentLayout: function currentLayout() {
     var category = this.currentCategory();
@@ -1386,7 +1374,7 @@ var ReaderPanel = React.createClass({
         prefetchNextPrev: true,
         multiPanel: this.props.multiPanel,
         mode: this.state.mode,
-        settings: clone(this.state.settings),
+        settings: Sefaria.util.clone(this.state.settings),
         setOption: this.setOption,
         showBaseText: this.showBaseText,
         updateTextColumn: this.updateTextColumn,
@@ -1403,7 +1391,7 @@ var ReaderPanel = React.createClass({
       var data = this.currentData();
       var enLocked = data.versionStatus === "locked";
       var heLocked = data.heVersionStatus === "locked";
-      var canEditText = langMode === "hebrew" && !heLocked || langMode === "english" && !enLocked || sjs.is_moderator && langMode !== "bilingual";
+      var canEditText = langMode === "hebrew" && !heLocked || langMode === "english" && !enLocked || Sefaria.is_moderator && langMode !== "bilingual";
       items.push(React.createElement(ConnectionsPanel, {
         srefs: this.state.mode === "Connections" ? this.state.refs : this.state.highlightedRefs,
         filter: this.state.filter || [],
@@ -1467,7 +1455,7 @@ var ReaderPanel = React.createClass({
         query: this.state.searchQuery,
         initialPage: 1,
         appliedFilters: this.state.appliedSearchFilters,
-        settings: clone(this.state.settings),
+        settings: Sefaria.util.clone(this.state.settings),
         onResultClick: this.props.onSearchResultClick,
         openDisplaySettings: this.openDisplaySettings,
         toggleLanguage: this.toggleLanguage,
@@ -1567,7 +1555,7 @@ var ReaderControls = React.createClass({
   render: function render() {
     var title = this.props.currentRef;
     if (title) {
-      var oref = sjs.library.ref(title);
+      var oref = Sefaria.ref(title);
       var heTitle = oref ? oref.heTitle : "";
     } else {
       var heTitle = "";
@@ -1579,7 +1567,7 @@ var ReaderControls = React.createClass({
 
     if (title && !oref) {
       // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-      sjs.library.text(title, { context: 1 }, function () {
+      Sefaria.text(title, { context: 1 }, function () {
         if (this.isMounted()) {
           this.setState({});
         }
@@ -1845,11 +1833,11 @@ var ReaderNavigationMenu = React.createClass({
     } else {
       var categories = ["Tanach", "Mishnah", "Talmud", "Midrash", "Halakhah", "Kabbalah", "Liturgy", "Philosophy", "Tosefta", "Parshanut", "Chasidut", "Musar", "Responsa", "Apocrypha", "Other"];
       categories = categories.map(function (cat) {
-        var style = { "borderColor": sjs.categoryColor(cat) };
+        var style = { "borderColor": Sefaria.palette.categoryColor(cat) };
         var openCat = function () {
           this.props.setCategories([cat]);
         }.bind(this);
-        var heCat = sjs.library.hebrewCategory(cat);
+        var heCat = Sefaria.hebrewCategory(cat);
         return React.createElement(
           'div',
           { className: 'readerNavCategory', 'data-cat': cat, style: style, onClick: openCat },
@@ -1867,7 +1855,7 @@ var ReaderNavigationMenu = React.createClass({
       }.bind(this));;
       var more = React.createElement(
         'div',
-        { className: 'readerNavCategory', style: { "borderColor": sjs.palette.darkblue }, onClick: this.showMore },
+        { className: 'readerNavCategory', style: { "borderColor": Sefaria.palette.darkblue }, onClick: this.showMore },
         React.createElement(
           'span',
           { className: 'en' },
@@ -1895,7 +1883,7 @@ var ReaderNavigationMenu = React.createClass({
         );
       }
 
-      var siteLinks = sjs._uid ? [React.createElement(
+      var siteLinks = Sefaria._uid ? [React.createElement(
         'a',
         { className: 'siteLink', key: 'profile', href: '/my/profile' },
         React.createElement('i', { className: 'fa fa-user' }),
@@ -1970,14 +1958,14 @@ var ReaderNavigationMenu = React.createClass({
         ),
         React.createElement('span', { className: 'he' })
       )];
-      var calendar = [React.createElement(TextBlockLink, { sref: sjs.calendar.parasha, title: sjs.calendar.parashaName, heTitle: 'פרשה', category: 'Tanach' }), React.createElement(TextBlockLink, { sref: sjs.calendar.haftara, title: 'Haftara', heTitle: 'הפטרה', category: 'Tanach' }), React.createElement(TextBlockLink, { sref: sjs.calendar.daf_yomi, title: 'Daf Yomi', heTitle: 'דף יומי', category: 'Talmud' })];
+      var calendar = Sefaria.calendar ? [React.createElement(TextBlockLink, { sref: Sefaria.calendar.parasha, title: Sefaria.calendar.parashaName, heTitle: 'פרשה', category: 'Tanach' }), React.createElement(TextBlockLink, { sref: Sefaria.calendar.haftara, title: 'Haftara', heTitle: 'הפטרה', category: 'Tanach' }), React.createElement(TextBlockLink, { sref: Sefaria.calendar.daf_yomi, title: 'Daf Yomi', heTitle: 'דף יומי', category: 'Talmud' })] : [];
       calendar = React.createElement(
         'div',
         { className: 'readerNavCalendar' },
         React.createElement(TwoOrThreeBox, { content: calendar, width: this.width })
       );
 
-      var sheetsStyle = { "borderColor": sjs.categoryColor("Sheets") };
+      var sheetsStyle = { "borderColor": Sefaria.palette.categoryColor("Sheets") };
       var resources = [React.createElement(
         'span',
         { className: 'sheetsLink', style: sheetsStyle, onClick: this.props.openMenu.bind(null, "sheets") },
@@ -2157,9 +2145,9 @@ var TextBlockLink = React.createClass({
     position: React.PropTypes.number
   },
   render: function render() {
-    var index = sjs.library.index(this.props.book);
+    var index = Sefaria.index(this.props.book);
     var category = this.props.category || index.categories[0];
-    var style = { "borderColor": sjs.categoryColor(category) };
+    var style = { "borderColor": Sefaria.palette.categoryColor(category) };
     var title = this.props.title || (this.props.showSections ? this.props.sref : this.props.book);
     var heTitle = this.props.heTitle || (this.props.showSections ? this.props.heRef : index.heTitle);
 
@@ -2301,7 +2289,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
       var toggle = null;
     }
 
-    var catContents = sjs.library.tocItemsByCategories(categories);
+    var catContents = Sefaria.tocItemsByCategories(categories);
     var navMenuClasses = classNames({ readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader });
     var navTopClasses = classNames({ readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader });
     return React.createElement(
@@ -2324,7 +2312,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
           React.createElement(
             'span',
             { className: 'he' },
-            sjs.library.hebrewCategory(this.props.category)
+            Sefaria.hebrewCategory(this.props.category)
           )
         )
       ),
@@ -2359,7 +2347,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
             React.createElement(
               'span',
               { className: 'he' },
-              sjs.library.hebrewCategory(this.props.category)
+              Sefaria.hebrewCategory(this.props.category)
             )
           ) : null,
           toggle,
@@ -2403,7 +2391,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
             React.createElement(
               'span',
               { className: 'he' },
-              sjs.library.hebrewCategory(item.category)
+              Sefaria.hebrewCategory(item.category)
             )
           ));
           continue;
@@ -2512,12 +2500,12 @@ var ReaderTextTableOfContents = React.createClass({
     this.shrinkWrap();
   },
   loadVersions: function loadVersions() {
-    var ref = sjs.library.sectionRef(this.props.currentRef) || this.props.currentRef;
+    var ref = Sefaria.sectionRef(this.props.currentRef) || this.props.currentRef;
     if (!ref) {
       this.setState({ versionsLoaded: true });
       return;
     }
-    sjs.library.text(ref, { context: 1, version: this.state.version, language: this.state.versionLanguage }, this.loadVersionsData);
+    Sefaria.text(ref, { context: 1, version: this.state.version, language: this.state.versionLanguage }, this.loadVersionsData);
   },
   loadVersionsData: function loadVersionsData(d) {
     // For now treat bilinguale as english. TODO show attribution for 2 versions in bilingual case.
@@ -2609,16 +2597,16 @@ var ReaderTextTableOfContents = React.createClass({
   render: function render() {
     var _this = this;
 
-    var tocHtml = sjs.library.textTocHtml(this.props.title, function () {
+    var tocHtml = Sefaria.textTocHtml(this.props.title, function () {
       this.setState({});
     }.bind(this));
     tocHtml = tocHtml || '<div class="loadingMessage"><span class="en">Loading...</span><span class="he">טעינה...</span></div>';
 
     var title = this.props.title;
-    var heTitle = sjs.library.index(title) ? sjs.library.index(title).heTitle : title;
+    var heTitle = Sefaria.index(title) ? sjs.library.index(title).heTitle : title;
 
-    var section = sjs.library.sectionString(this.props.currentRef).en.named;
-    var heSection = sjs.library.sectionString(this.props.currentRef).he.named;
+    var section = Sefaria.sectionString(this.props.currentRef).en.named;
+    var heSection = Sefaria.sectionString(this.props.currentRef).he.named;
 
     var currentVersionElement = null;
     var defaultVersionString = "Default Version";
@@ -2848,18 +2836,18 @@ var SheetsNav = React.createClass({
     this.setState({ tag: nextProps.initialTag, sheets: [] });
   },
   getTags: function getTags() {
-    sjs.library.sheets.trendingTags(this.loadTags);
-    sjs.library.sheets.tagList(this.loadTags);
+    Sefaria.sheets.trendingTags(this.loadTags);
+    Sefaria.sheets.tagList(this.loadTags);
   },
   loadTags: function loadTags() {
     this.setState({
-      trendingTags: sjs.library.sheets.trendingTags() || [],
-      tagList: sjs.library.sheets.tagList() || []
+      trendingTags: Sefaria.sheets.trendingTags() || [],
+      tagList: Sefaria.sheets.tagList() || []
     });
   },
   setTag: function setTag(tag) {
     this.setState({ tag: tag });
-    sjs.library.sheets.sheetsByTag(tag, this.loadSheets);
+    Sefaria.sheets.sheetsByTag(tag, this.loadSheets);
     this.props.setSheetTag(tag);
   },
   loadSheets: function loadSheets(sheets) {
@@ -2867,7 +2855,7 @@ var SheetsNav = React.createClass({
   },
   showYourSheets: function showYourSheets() {
     this.setState({ tag: "Your Sheets" });
-    sjs.library.sheets.userSheets(sjs._uid, this.loadSheets);
+    Sefaria.sheets.userSheets(Sefaria._uid, this.loadSheets);
     this.props.setSheetTag("Your Sheets");
   },
   render: function render() {
@@ -2911,7 +2899,7 @@ var SheetsNav = React.createClass({
         )
       );
     } else {
-      var yourSheets = sjs._uid ? React.createElement(
+      var yourSheets = Sefaria._uid ? React.createElement(
         'div',
         { className: 'yourSheetsLink navButton', onClick: this.showYourSheets },
         'Your Source Sheets ',
@@ -3118,7 +3106,7 @@ var CategoryColorLine = React.createClass({
   displayName: 'CategoryColorLine',
 
   render: function render() {
-    var style = { backgroundColor: sjs.categoryColor(this.props.category) };
+    var style = { backgroundColor: Sefaria.palette.categoryColor(this.props.category) };
     return React.createElement('div', { className: 'categoryColorLine', style: style });
   }
 });
@@ -3295,7 +3283,7 @@ var TextColumn = React.createClass({
       }
       console.log("Add next section");
       var currentRef = refs.slice(-1)[0];
-      var data = sjs.library.ref(currentRef);
+      var data = Sefaria.ref(currentRef);
       if (data && data.next) {
         refs.push(data.next);
         this.props.updateTextColumn(refs);
@@ -3304,7 +3292,7 @@ var TextColumn = React.createClass({
     } else if (windowTop < 20) {
       // Scroll up for previous
       var topRef = refs[0];
-      var data = sjs.library.ref(topRef);
+      var data = Sefaria.ref(topRef);
       if (data && data.prev) {
         console.log("up!");
         refs.splice(refs, 0, data.prev);
@@ -3416,8 +3404,8 @@ var TextColumn = React.createClass({
 
     if (content.length) {
       // Add Next and Previous loading indicators
-      var first = sjs.library.ref(this.props.srefs[0]);
-      var last = sjs.library.ref(this.props.srefs.slice(-1)[0]);
+      var first = Sefaria.ref(this.props.srefs[0]);
+      var last = Sefaria.ref(this.props.srefs.slice(-1)[0]);
       var hasPrev = first && first.prev;
       var hasNext = last && last.next;
       var topSymbol = " ";
@@ -3532,7 +3520,7 @@ var TextRange = React.createClass({
       version: this.props.version || null,
       language: this.props.versionLanguage || null
     };
-    sjs.library.text(this.props.sref, settings, function (data) {
+    Sefaria.text(this.props.sref, settings, function (data) {
       this.loadText(data);
       if (doRenumber) {
         window.requestAnimationFrame(function () {
@@ -3630,35 +3618,35 @@ var TextRange = React.createClass({
       return ref;
     });
 
-    if (this.props.loadLinks && !sjs.library.linksLoaded(sectionRefs)) {
+    if (this.props.loadLinks && !Sefaria.linksLoaded(sectionRefs)) {
       // Calling when links are loaded will overwrite state.segments
       for (var i = 0; i < sectionRefs.length; i++) {
-        sjs.library.related(sectionRefs[i], this.loadLinkCounts);
+        Sefaria.related(sectionRefs[i], this.loadLinkCounts);
       }
     }
 
     if (this.props.prefetchNextPrev) {
       if (data.next) {
-        sjs.library.text(data.next, {
+        Sefaria.text(data.next, {
           context: 1,
           version: this.props.version || null,
           language: this.props.versionLanguage || null
         }, function () {});
       }
       if (data.prev) {
-        sjs.library.text(data.prev, {
+        Sefaria.text(data.prev, {
           context: 1,
           version: this.props.version || null,
           language: this.props.versionLanguage || null
         }, function () {});
       }
       if (data.book) {
-        sjs.library.textTocHtml(data.book, function () {});
+        Sefaria.textTocHtml(data.book, function () {});
       }
     }
   },
   loadLinkCounts: function loadLinkCounts() {
-    // When link data has been loaded into sjs.library, load the counts into the UI
+    // When link data has been loaded into the cache, load the counts into the UI
     if (this.isMounted()) {
       this.setState({ linksLoaded: true });
     }
@@ -3677,8 +3665,8 @@ var TextRange = React.createClass({
   render: function render() {
     if (this.props.basetext && this.state.loaded) {
       var ref = this.props.withContext ? this.state.data.sectionRef : this.state.data.ref;
-      var sectionStrings = sjs.library.sectionString(ref);
-      var oref = sjs.library.ref(ref);
+      var sectionStrings = Sefaria.sectionString(ref);
+      var oref = Sefaria.ref(ref);
       var useShortString = oref && $.inArray(oref.categories[0], ["Tanach", "Mishnah", "Talmud", "Tosefta", "Commentary"]) !== -1;
       var title = useShortString ? sectionStrings.en.numbered : sectionStrings.en.named;
       var heTitle = useShortString ? sectionStrings.he.numbered : sectionStrings.he.named;
@@ -3852,7 +3840,7 @@ var TextSegment = React.createClass({
   },
   render: function render() {
     if (this.props.showLinkCount) {
-      var linkCount = sjs.library.linkCount(this.props.sref, this.props.filter);
+      var linkCount = Sefaria.linkCount(this.props.sref, this.props.filter);
       var minOpacity = 20,
           maxOpacity = 70;
       var linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
@@ -4145,7 +4133,7 @@ var TextList = React.createClass({
   },
   getSectionRef: function getSectionRef() {
     var ref = this.props.srefs[0]; // TODO account for selections spanning sections
-    var sectionRef = sjs.library.sectionRef(ref) || ref;
+    var sectionRef = Sefaria.sectionRef(ref) || ref;
     return sectionRef;
   },
   loadConnections: function loadConnections() {
@@ -4154,7 +4142,7 @@ var TextList = React.createClass({
     if (!sectionRef) {
       return;
     }
-    sjs.library.related(sectionRef, function (data) {
+    Sefaria.related(sectionRef, function (data) {
       if (this.isMounted()) {
         this.preloadText(this.props.filter);
         this.setState({
@@ -4165,7 +4153,7 @@ var TextList = React.createClass({
   },
   preloadText: function preloadText(filter) {
     // Preload text of links if `filter` is a single commentary, or all commentary
-    if (filter.length == 1 && sjs.library.index(filter[0]) && sjs.library.index(filter[0]).categories == "Commentary") {
+    if (filter.length == 1 && Sefaria.index(filter[0]) && Sefaria.index(filter[0]).categories == "Commentary") {
       this.preloadSingleCommentaryText(filter);
     } else if (filter.length == 1 && filter[0] == "Commentary") {
       this.preloadAllCommentaryText(filter);
@@ -4177,7 +4165,7 @@ var TextList = React.createClass({
     var basetext = this.getSectionRef();
     var commentary = filter[0] + " on " + basetext;
     this.setState({ textLoaded: false, waitForText: true });
-    sjs.library.text(commentary, {}, function () {
+    Sefaria.text(commentary, {}, function () {
       if (this.isMounted()) {
         this.setState({ textLoaded: true });
       }
@@ -4185,27 +4173,27 @@ var TextList = React.createClass({
   },
   preloadAllCommentaryText: function preloadAllCommentaryText() {
     var basetext = this.getSectionRef();
-    var summary = sjs.library.linkSummary(basetext);
+    var summary = Sefaria.linkSummary(basetext);
     if (summary.length && summary[0].category == "Commentary") {
       this.setState({ textLoaded: false, waitForText: true });
       // Get a list of commentators on this section that we need don't have in the cache
-      var links = sjs.library.links(basetext);
+      var links = Sefaria.links(basetext);
       var commentators = summary[0].books.map(function (item) {
         return item.book;
       }).filter(function (commentator) {
-        var link = sjs.library._filterLinks(links, [commentator])[0];
+        var link = Sefaria._filterLinks(links, [commentator])[0];
         if (link.sourceRef.indexOf(link.anchorRef) == -1) {
           // Check if this is Commentary2, exclude if so
           return false;
         }
         // Exclude if we already have this in the cache
-        return !sjs.library.text(commentator + " on " + basetext);
+        return !Sefaria.text(commentator + " on " + basetext);
       });
       if (commentators.length) {
-        this.waitingFor = clone(commentators);
+        this.waitingFor = Sefaria.util.clone(commentators);
         this.target = 0;
         for (var i = 0; i < commentators.length; i++) {
-          sjs.library.text(commentators[i] + " on " + basetext, {}, function (data) {
+          Sefaria.text(commentators[i] + " on " + basetext, {}, function (data) {
             var index = this.waitingFor.indexOf(data.commentator);
             if (index == -1) {
               console.log("Failed to clear commentator:");
@@ -4253,22 +4241,22 @@ var TextList = React.createClass({
   },
   render: function render() {
     var refs = this.props.srefs;
-    var summary = sjs.library.relatedSummary(refs);
-    var oref = sjs.library.ref(refs[0]);
+    var summary = Sefaria.relatedSummary(refs);
+    var oref = Sefaria.ref(refs[0]);
     var filter = this.props.filter;
     var sectionRef = this.getSectionRef();
-    var isSingleCommentary = filter.length == 1 && sjs.library.index(filter[0]) && sjs.library.index(filter[0]).categories == "Commentary";
+    var isSingleCommentary = filter.length == 1 && Sefaria.index(filter[0]) && Sefaria.index(filter[0]).categories == "Commentary";
 
     //if (summary.length && !links.length) { debugger; }
     var en = "No connections known" + (filter.length ? " for " + filter.join(", ") : "") + ".";
     var he = "אין קשרים ידועים" + (filter.length ? " ל" + filter.join(", ") : "") + ".";
-    var loaded = sjs.library.linksLoaded(sectionRef);
+    var loaded = Sefaria.linksLoaded(sectionRef);
     var message = !loaded ? React.createElement(LoadingMessage, null) : summary.length === 0 ? React.createElement(LoadingMessage, { message: en, heMessage: he }) : null;
 
     var showAllFilters = !filter.length;
     if (!showAllFilters) {
       if (filter.compare(["Sheets"])) {
-        var sheets = sjs.library.sheets.sheetsByRef(refs);
+        var sheets = Sefaria.sheets.sheetsByRef(refs);
         var content = sheets ? sheets.map(function (sheet) {
           return React.createElement(
             'div',
@@ -4299,7 +4287,7 @@ var TextList = React.createClass({
         }) : React.createElement(LoadingMessage, null);
         content = content.length ? content : React.createElement(LoadingMessage, { message: 'No sheets here.' });
       } else if (filter.compare(["Notes"])) {
-        var notes = sjs.library.notes(refs);
+        var notes = Sefaria.notes(refs);
         var content = notes ? notes.map(function (note) {
           return React.createElement(Note, {
             title: note.title,
@@ -4312,7 +4300,7 @@ var TextList = React.createClass({
         content = content.length ? content : React.createElement(LoadingMessage, { message: 'No notes here.' });
       } else {
         // Viewing Text Connections
-        var sectionLinks = sjs.library.links(sectionRef);
+        var sectionLinks = Sefaria.links(sectionRef);
         var links = sectionLinks.filter(function (link) {
           if ($.inArray(link.anchorRef, refs) === -1 && (this.props.multiPanel || !isSingleCommentary)) {
             // Only show section level links for an individual commentary
@@ -4476,7 +4464,7 @@ var AllFilterSet = React.createClass({
       return React.createElement(CategoryFilter, {
         key: i,
         category: cat.category,
-        heCategory: sjs.library.hebrewCategory(cat.category),
+        heCategory: Sefaria.hebrewCategory(cat.category),
         count: cat.count,
         books: cat.books,
         filter: this.props.filter,
@@ -4514,7 +4502,7 @@ var CategoryFilter = React.createClass({
     }.bind(this));
 
     var notClickable = this.props.category == "Community";
-    var color = sjs.categoryColor(this.props.category);
+    var color = Sefaria.palette.categoryColor(this.props.category);
     var style = notClickable ? {} : { "borderTop": "4px solid " + color };
     var classes = classNames({ categoryFilter: 1, on: this.props.on, notClickable: notClickable });
     var count = notClickable ? null : React.createElement(
@@ -4566,7 +4554,7 @@ var TextFilter = React.createClass({
     var classes = classNames({ textFilter: 1, on: this.props.on, lowlight: this.props.count == 0 });
 
     if (!this.props.hideColors) {
-      var color = sjs.categoryColor(this.props.category);
+      var color = Sefaria.palette.categoryColor(this.props.category);
       var style = { "borderTop": "4px solid " + color };
     }
     var name = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
@@ -4617,7 +4605,7 @@ var RecentFilterSet = React.createClass({
     this.setState({ showAllFilters: !this.state.showAllFilters });
   },
   render: function render() {
-    var topLinks = []; // sjs.library.topLinks(this.props.sref);
+    var topLinks = [];
 
     // Filter top links to exclude items already in recent filter
     topLinks = topLinks.filter(function (link) {
@@ -4626,10 +4614,10 @@ var RecentFilterSet = React.createClass({
 
     // Annotate filter texts with category           
     var recentFilters = this.props.recentFilters.map(function (filter) {
-      var index = sjs.library.index(filter);
+      var index = Sefaria.index(filter);
       return {
         book: filter,
-        heBook: index ? index.heTitle : sjs.library.hebrewCategory(filter),
+        heBook: index ? index.heTitle : Sefaria.hebrewCategory(filter),
         category: index ? index.categories[0] : filter };
     });
     topLinks = recentFilters.concat(topLinks).slice(0, 5);
@@ -4643,7 +4631,7 @@ var RecentFilterSet = React.createClass({
         }
       }
       if (i == topLinks.length) {
-        var index = sjs.library.index(filter);
+        var index = Sefaria.index(filter);
         if (index) {
           var annotatedFilter = { book: filter, heBook: index.heTitle, category: index.categories[0] };
         } else {
@@ -4696,7 +4684,7 @@ var RecentFilterSet = React.createClass({
         )
       )
     ) : null;
-    var style = this.props.asHeader ? { "borderTopColor": sjs.categoryColor(this.props.textCategory) } : {};
+    var style = this.props.asHeader ? { "borderTopColor": Sefaria.palette.categoryColor(this.props.textCategory) } : {};
     var classes = classNames({ recentFilterSet: 1, topFilters: this.props.asHeader, filterSet: 1 });
     return React.createElement(
       'div',
@@ -4893,7 +4881,7 @@ var AddToSourceSheetPanel = React.createClass({
     this.loadSheets();
   },
   loadSheets: function loadSheets() {
-    sjs.library.sheets.userSheets(sjs._uid, function () {
+    Sefaria.sheets.userSheets(Sefaria._uid, function () {
       this.forceUpdate();
     }.bind(this));
   },
@@ -4920,7 +4908,7 @@ var AddToSourceSheetPanel = React.createClass({
       this.setState({ selectedSheet: data.id }, function () {
         this.addToSourceSheet();
       });
-      sjs.library.sheets.clearUserSheets(sjs._uid);
+      Sefaria.sheets.clearUserSheets(Sefaria._uid);
     }.bind(this));
   },
   openNewSheet: function openNewSheet() {
@@ -4933,7 +4921,7 @@ var AddToSourceSheetPanel = React.createClass({
     if (this.state.confirm) {
       return React.createElement(ConfirmAddToSheetPanel, { sheetId: this.state.selectedSheet });
     }
-    var sheets = sjs.library.sheets.userSheets(sjs._uid);
+    var sheets = Sefaria.sheets.userSheets(Sefaria._uid);
     var sheetsContent = sheets ? sheets.map(function (sheet) {
       var classes = classNames({ sheet: 1, selected: this.state.selectedSheet == sheet.id });
       var selectSheet = function () {
@@ -5112,9 +5100,9 @@ var AddNotePanel = React.createClass({
         sjs.alert.message(data.error);
       } else if (data) {
         if (this.props.noteId) {
-          sjs.library.clearPrivateNotes(data);
+          Sefaria.clearPrivateNotes(data);
         } else {
-          sjs.library.addPrivateNote(data);
+          Sefaria.addPrivateNote(data);
         }
         this.props.setConnectionsMode("My Notes");
       } else {
@@ -5144,7 +5132,7 @@ var AddNotePanel = React.createClass({
       url: url,
       success: function () {
         sjs.alert.message("Source deleted.");
-        sjs.library.clearPrivateNotes();
+        Sefaria.clearPrivateNotes();
         this.props.setConnectionsMode("My Notes");
       }.bind(this),
       error: function error() {
@@ -5269,13 +5257,13 @@ var MyNotesPanel = React.createClass({
   },
   loadNotes: function loadNotes() {
     // Rerender this component when privateNotes arrive.
-    sjs.library.privateNotes(this.props.srefs, this.rerender);
+    Sefaria.privateNotes(this.props.srefs, this.rerender);
   },
   rerender: function rerender() {
     this.forceUpdate();
   },
   render: function render() {
-    var myNotesData = sjs.library.privateNotes(this.props.srefs);
+    var myNotesData = Sefaria.privateNotes(this.props.srefs);
     var myNotes = myNotesData ? myNotesData.map(function (note) {
       var editNote = function () {
         this.props.editNote(note);
@@ -5635,7 +5623,7 @@ var SearchResultList = React.createClass({
     // 2) Apply filters (Triggered from componentWillReceiveProps)
     var request_applied = props.filtersValid && props.appliedFilters;
 
-    var runningQuery = sjs.library.search.execute_query({
+    var runningQuery = Sefaria.search.execute_query({
       query: props.query,
       get_filters: !props.filtersValid,
       applied_filters: request_applied,
@@ -5760,7 +5748,7 @@ var SearchResultList = React.createClass({
   },
   _build: function _build(rawTree) {
     //returns dict w/ keys 'availableFilters', 'registry'
-    //Aggregate counts, then sort rawTree into filter objects and add Hebrew using sjs.toc as reference
+    //Aggregate counts, then sort rawTree into filter objects and add Hebrew using Sefaria.toc as reference
     //Nod to http://stackoverflow.com/a/17546800/213042
     var path = [];
     var filters = [];
@@ -5770,7 +5758,7 @@ var SearchResultList = React.createClass({
     var commentaryNode = new sjs.FilterNode();
     var rnode = rawTree["Commentary"];
     if (rnode) {
-        $.extend(commentaryNode, {
+        extend(commentaryNode, {
             "title": "Commentary",
             "path": "Commentary",
             "heTitle": "מפרשים",
@@ -5780,8 +5768,8 @@ var SearchResultList = React.createClass({
     }
     //End commentary base hack
     */
-    for (var j = 0; j < sjs.toc.length; j++) {
-      var b = walk.call(this, sjs.toc[j]);
+    for (var j = 0; j < Sefaria.toc.length; j++) {
+      var b = walk.call(this, Sefaria.toc[j]);
       if (b) filters.push(b);
     }
     return { availableFilters: filters, registry: registry };
@@ -5789,20 +5777,20 @@ var SearchResultList = React.createClass({
     //if (rnode) this.state.children.append(commentaryNode);
 
     function walk(branch, parentNode) {
-      var node = new sjs.library.search.FilterNode();
+      var node = new Sefaria.search.FilterNode();
 
       if ("category" in branch) {
         // Category node
         /*if(branch["category"] == "Commentary") { // Special case commentary
              path.unshift(branch["category"]);  // Place "Commentary" at the *beginning* of the path
-             $.extend(node, {
+             extend(node, {
                  "title": parentNode.title,
                  "path": path.join("/"),
                  "heTitle": parentNode.heTitle
              });
         } else {*/
         path.push(branch["category"]); // Place this category at the *end* of the path
-        $.extend(node, {
+        extend(node, {
           "title": path.slice(-1)[0],
           "path": path.join("/"),
           "heTitle": branch["heCategory"]
@@ -5815,7 +5803,7 @@ var SearchResultList = React.createClass({
       } else if ("title" in branch) {
         // Text Node
         path.push(branch["title"]);
-        $.extend(node, {
+        extend(node, {
           "title": path.slice(-1)[0],
           "path": path.join("/"),
           "heTitle": branch["heTitle"]
