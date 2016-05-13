@@ -13,10 +13,7 @@ class RecentInToc(AtomicTest):
 
     def run(self):
         self.s2().click_toc_category("Tanach").click_toc_text("Psalms")
-
-        self.load_toc().click_toc_recent("Psalms 1")
-
-        WebDriverWait(self.driver, TEMPER).until(title_contains("Psalms"))
+        self.load_toc().click_toc_recent("Psalms 1", until=title_contains("Psalms"))
 
 
 class LoadRefAndClickSegment(AtomicTest):
@@ -24,15 +21,12 @@ class LoadRefAndClickSegment(AtomicTest):
 
     def run(self):
         self.s2()
-        self.driver.get(self.base_url + "/Psalms.65.5")
-        WebDriverWait(self.driver, TEMPER).until(title_contains("Psalms 65:5"))
 
-        segment = self.driver.find_element_by_css_selector('.segment[data-ref="Psalms 65:5"]')
-        segment.click()
-        WebDriverWait(self.driver, TEMPER).until(title_contains("Psalms 65:5 with Connections"))
+        self.load_ref("Psalms 65:5").click_segment("Psalms 65:5")
         assert "Psalms.65.5?with=all" in self.driver.current_url
-        malbim = self.driver.find_element_by_css_selector('.textFilter[data-name="Malbim"]')
-        assert malbim
+
+        self.click_text_filter("Malbim")
+
 
 
 class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
@@ -40,12 +34,7 @@ class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
 
     def run(self):
         self.s2()
-
-        self.driver.get(self.base_url + "/Psalms.45.5?with=all")
-        WebDriverWait(self.driver, TEMPER).until(title_contains("Psalms 45:5 with Connections"))
-        rashi = self.driver.find_element_by_css_selector('.textFilter[data-name="Rashi"]')
-        rashi.click()
-        WebDriverWait(self.driver, TEMPER).until(staleness_of(rashi))
+        self.load_ref("Psalms 45:5", filter="all").click_text_filter("Rashi")
         assert "Psalms.45.5?with=Rashi" in self.driver.current_url, self.driver.current_url
 
 
@@ -54,11 +43,7 @@ class ClickVersionedSearchResultDesktop(AtomicTest):
     single_panel = False
 
     def run(self):
-        self.s2()
-        elem = self.driver.find_element_by_css_selector("input.search")
-        elem.send_keys("Dogs")
-        elem.send_keys(Keys.RETURN)
-        WebDriverWait(self.driver, TEMPER).until(title_contains("Dogs"))
+        self.s2().search_for("Dogs")
         versionedResult = self.driver.find_element_by_css_selector('a[href="/Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein?qh=Dogs"]')
         versionedResult.click()
         WebDriverWait(self.driver, TEMPER).until(staleness_of(versionedResult))
@@ -77,11 +62,9 @@ class ClickVersionedSearchResultMobile(AtomicTest):
             hamburger.click()
             wait = WebDriverWait(self.driver, TEMPER)
             wait.until(staleness_of(hamburger))
-        elem = self.driver.find_element_by_css_selector("input.search")
-        elem.send_keys("Dogs")
-        elem.send_keys(Keys.RETURN)
-        WebDriverWait(self.driver, TEMPER).until(title_contains("Dogs"))
+        self.search_for("Dogs")
         versionedResult = self.driver.find_element_by_css_selector('a[href="/Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein?qh=Dogs"]')
         versionedResult.click()
         WebDriverWait(self.driver, TEMPER).until(staleness_of(versionedResult))
         assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url
+
