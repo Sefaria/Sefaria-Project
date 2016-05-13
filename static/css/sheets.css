@@ -1463,8 +1463,14 @@ input[type="file"] {
 }
 
 .contentToAdd {
-	min-height:60px;
+	min-height:120px;
 	flex:1;
 	margin:30px;
 	background-color: #fff;
+	display: flex;
+  	flex-direction: column;
+  	justify-content: flex-start;
+}
+.flexContainer {
+	display:flex;
 }

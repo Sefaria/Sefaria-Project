@@ -1007,17 +1007,53 @@ $(function() {
 
 		$("#addcommentDiv").on("click", ".button", function (e) {
 			var $target = $("#addInterface").prev(".sheetItem");
-			console.log($target);
 			var source = {comment: $(e.target).prev(".contentToAdd").html(), isNew: true};
 			if (sjs.can_add) { source.userLink = sjs._userLink; }
-			buildSource($target, source, "insert");
+			$target.length == 0 ? buildSource($("#sources"), source, "append"): buildSource($target, source, "insert");
 			autoSave();
 			$(".contentToAdd").html('');
+			$("#sheet").click();
 			$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
 
 		});
 
-		
+		$("#addcustomTextDiv").on("click", "#customTextLanguageToggle .toggleOption", function (e) {
+
+			$("#customTextLanguageToggle .toggleOption").removeClass('active');
+			$(this).addClass('active');
+			if ($(this).attr('id') == 'bilingualCustomText') {
+				$("#addcustomTextDiv").find(".contentToAdd").show();
+			} 
+			else if ($(this).attr('id') == 'englishCustomText') {
+				$("#addcustomTextDiv").find(".en").show();
+				$("#addcustomTextDiv").find(".he").hide();
+			}
+			else if ($(this).attr('id') == 'hebrewCustomText') {
+				$("#addcustomTextDiv").find(".he").show();
+				$("#addcustomTextDiv").find(".en").hide();
+			}
+
+		});
+
+		$("#addcustomTextDiv").on("click", ".button", function (e) {
+			var $target = $("#addInterface").prev(".sheetItem");
+			if ($(e.target).prev(".flexContainer").find(".contentToAdd:visible").length == 1) {
+				source = {outsideText: $(e.target).prev(".flexContainer").find(".contentToAdd:visible").html(), isNew: true};
+			}
+			else {
+				source = {outsideBiText: {en: $(e.target).prev(".flexContainer").find(".en").html(), he: $(e.target).prev(".flexContainer").find(".he").html()}, isNew: true};
+			}
+
+			if (sjs.can_add) { source.userLink = sjs._userLink; }
+			$target.length == 0 ? buildSource($("#sources"), source, "append"): buildSource($target, source, "insert");
+			autoSave();
+			$(".contentToAdd").html('');
+			$("#sheet").click();
+		//	$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
+
+		});
+
+
 		
 		// </add interface>
 
@@ -2241,9 +2277,14 @@ function buildSource($target, source, appendOrInsert) {
 							"</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</li>";
-				if (appendOrInsert == "append") {
-					$target.append(outsideHtml);
-					}
+		if (appendOrInsert == "append") {
+			$target.append(outsideHtml);
+		}
+		else if (appendOrInsert == "insert") {
+			$target.after(outsideHtml);
+		}
+
+
 
 	} else if ("outsideText" in source) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideWrapper");
@@ -2252,9 +2293,12 @@ function buildSource($target, source, appendOrInsert) {
 							"<div class='outside " + (sjs.loading ? "" : "new") + "'>" + source.outsideText + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</li>";
-			if (appendOrInsert == "append") {
-				$target.append(outsideHtml);
-			}
+		if (appendOrInsert == "append") {
+			$target.append(outsideHtml);
+		}
+		else if (appendOrInsert == "insert") {
+			$target.after(outsideHtml);
+		}
 	}
 	else if ("media" in source) {
 		var mediaLink;
