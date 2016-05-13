@@ -5,7 +5,7 @@
     "config" : { 
         "port" : "4040"
     },
-    "main": "node/main.js",
+    "main": "node/server.js",
     "scripts": {
         "start": "node node/server.js",
         "test": "echo im gonna test node",
@@ -23,7 +23,9 @@
       "babel-cli": "^6.0.0",
       "babel-core": "^6.0.0",
       "babel-preset-es2015": "^6.0.0",
-      "babel-preset-react": "^6.0.0"
+      "babel-preset-react": "^6.0.0",
+      "babel-watch": "^2.0.0",
+      "webpack": "^1.0.0"
     },
     "babel": {
       "presets": ["es2015", "react"],

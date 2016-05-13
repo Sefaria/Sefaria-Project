@@ -3,7 +3,7 @@ if (typeof require !== 'undefined') {
       ReactDOM    = require('react-dom'),
       $           = require('jquery'),
       extend      = require('extend'),
-      classsNames = require('classnames');
+      classNames  = require('classnames'),
       Sefaria     = require('./sefaria.js');
 } else {
   var extend      = $.extend; 
@@ -102,7 +102,7 @@ var ReaderApp = React.createClass({
     }.bind(this) );
 
     var layoutOrientation = "ltr";
-    if ((panels.length > 0 && panels[0].settings.language == "hebrew")
+    if ((panels.length > 0 && panels[0].settings && panels[0].settings.language == "hebrew")
        || (header.settings && header.settings.language == "hebrew")) {
       layoutOrientation = "rtl";
     }
@@ -248,7 +248,7 @@ var ReaderApp = React.createClass({
             break;
           case "text toc":
             var ref    = states[i].refs.slice(-1)[0];
-            var bookTitle  = ref ? parseRef(ref).book : "404";
+            var bookTitle  = ref ? Sefaria.util.parseRef(ref).book : "404";
             hist.title = bookTitle + " | Sefaria";
             hist.url   = bookTitle.replace(/ /g, "_");
             hist.mode  = "text toc";
@@ -415,8 +415,17 @@ var ReaderApp = React.createClass({
   getDefaultPanelSettings: function() {
     if (this.state && this.state.defaultPanelSettings) {
       return this.state.defaultPanelSettings;
-    } else {
+    } else if (this.props.initialSettings) {
       return this.props.initialSettings;
+    } else {
+      return {
+        language:      "bilingual",
+        layoutDefault: "segmented",
+        layoutTalmud:  "continuous",
+        layoutTanach:  "segmented",
+        color:         "light",
+        fontSize:      62.5
+      };
     }
   },
   setContainerMode: function() {
@@ -576,16 +585,7 @@ var ReaderApp = React.createClass({
     // Replace panel there if already a connections panel, otherwise splice new panel into position `n`
     // `refs` is an array of ref strings
     var panel = this.state.panels[n] || {};
-    if (panel.mode === "Connections") {
-      // what does "a new text" mean here?
-      // Pretty sure this can be deleted -- was from a previous case where you could navigate in an individual panel.
-      /*
-      // If this is a new text reset the filter, otherwise keep the current filter
-      var oref1 = parseRef(panel.refs.slice(-1)[0]);
-      var oref2 = parseRef(refs.slice(-1)[0]);
-      panel.filter = oref1.book === oref2.book ? panel.filter : [];      
-      */
-    } else {
+    if (panel.mode !== "Connections") {
       // No connctions panel is open yet, splice in a new one
       this.state.panels.splice(n, 0, {});
       panel = this.state.panels[n];
@@ -725,7 +725,7 @@ var ReaderApp = React.createClass({
       var selectVersion            = this.selectVersion.bind(null, i);
 
       var ref   = panel.refs && panel.refs.length ? panel.refs[0] : null;
-      var oref  = ref ? parseRef(ref) : null;
+      var oref  = ref ? Sefaria.util.parseRef(ref) : null;
       var title = oref && oref.book ? oref.book : 0;
       // Keys must be constant as text scrolls, but changing as new panels open in new positions
       // Use a combination of the panel number and text title
@@ -1290,7 +1290,7 @@ var ReaderPanel = React.createClass({
     if (data) {
       return data.indexTitle;
     } else {
-      var pRef = parseRef(this.currentRef());
+      var pRef = Sefaria.util.parseRef(this.currentRef());
       return "book" in pRef ? pRef.book : null;
     }
   },
