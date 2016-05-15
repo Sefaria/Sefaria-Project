@@ -189,7 +189,10 @@ class LexiconLookupAggregator(object):
         if not kwargs.get('never_split', None) and (len(results) == 0 or kwargs.get("always_split", None)):
             ngram_results = cls._ngram_lookup(input_str, **kwargs)
             results += ngram_results
-        return LexiconEntrySet({"$or": results})
+        if len(results):
+            return LexiconEntrySet({"$or": results})
+        else:
+            return None
 
 
 

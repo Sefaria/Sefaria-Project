@@ -1519,10 +1519,11 @@ def dictionary_api(request, word):
             kwargs[key] = request.GET.get(key)
     result = []
     ls = LexiconLookupAggregator.lexicon_lookup(word, **kwargs)
-    for l in ls:
-        result.append(l.contents())
-    if len(result):
-        return jsonResponse(result)
+    if ls:
+        for l in ls:
+            result.append(l.contents())
+        if len(result):
+            return jsonResponse(result)
     else:
         return jsonResponse({"error": "No information found for given word."})
 
