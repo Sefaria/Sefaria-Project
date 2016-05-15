@@ -28,7 +28,6 @@ class LoadRefAndClickSegment(AtomicTest):
         self.click_text_filter("Malbim")
 
 
-
 class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
     suite_key = "S2 Reader"
 

@@ -257,15 +257,21 @@ class Trial(object):
         :param test_class:
         :return:
         """
+        name = "{} / {}".format(test_class.__name__, Trial.cap_to_string(cap))
+        print "{} - Starting".format(name)
         assert issubclass(test_class, AtomicTest)
         test = test_class(driver, self.BASE_URL)
         try:
-            driver.execute_script('"**** Enter {} ****"'.format(test_class.__name__))
+            driver.execute_script('"**** Enter {} ****"'.format(test))
             test.run()
-            driver.execute_script('"**** Exit {} ****"'.format(test_class.__name__))
+            driver.execute_script('"**** Exit {} ****"'.format(test))
         except Exception as e:
+            print "{} - Failed".format(name, e.msg)
+            if e.message or e.msg:
+                print "{}".format(e.message if e.message else e.msg)
             return TestResult(test, cap, False, e.msg)
         else:
+            print "{} - Passed".format(name)
             return TestResult(test, cap, True)
 
     def _test_one(self, test, cap):
