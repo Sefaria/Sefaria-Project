@@ -1,4 +1,7 @@
-from framework import test_local
-from basic_tests import *
+# This script runs all available tests locally, and displays a report
 
-test_local()
+from framework import *
+import basic_tests
+
+t = Trial().run()
+print t.results().report()
