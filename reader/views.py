@@ -1504,7 +1504,7 @@ def flag_text_api(request, title, lang, version):
 def dictionary_api(request, word):
     """
     Looks for lexicon entries for the given string.
-    If the string is more than one word will look for substring matches upon not finding for the original input
+    If the string is more than one word, this will look for substring matches when not finding for the original input
     Optional attributes:
     'lookup_ref' to fine tune the search
     'never_split' to limit lookup to only the actual input string

@@ -967,7 +967,8 @@ var ReaderPanel = React.createClass({
     multiPanel:                  React.PropTypes.bool,
     masterPanelLanguage:         React.PropTypes.string,
     panelsOpen:                  React.PropTypes.number,
-    layoutWidth:                 React.PropTypes.number
+    layoutWidth:                 React.PropTypes.number,
+    setTextListHightlight:       React.PropTypes.func
   },
   getInitialState: function() {
     // When this component is managed by a parent, all it takes is initialState
@@ -1134,6 +1135,13 @@ var ReaderPanel = React.createClass({
     this.conditionalSetState({highlightedRefs: refs});
     if (this.props.multiPanel) {
       this.props.setTextListHightlight(refs);
+    }
+  },
+  setSelectedWords: function(words){
+    if(words.trim().length > 0){
+      console.log(words);
+      words = words.trim();
+      this.setState({'selectedWords':  words});
     }
   },
   closeMenus: function() {
@@ -1310,6 +1318,7 @@ var ReaderPanel = React.createClass({
     return this.state.settings[option];  
   },
   render: function() {
+    console.log(this.state);
     var items = [];
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       items.push(<TextColumn
@@ -1330,6 +1339,7 @@ var ReaderPanel = React.createClass({
           onSegmentClick={this.handleBaseSegmentClick}
           onCitationClick={this.handleCitationClick}
           setTextListHightlight={this.setTextListHightlight}
+          setSelectedWords={this.setSelectedWords}
           panelsOpen={this.props.panelsOpen}
           layoutWidth={this.props.layoutWidth}
           filter={this.state.filter}
@@ -1366,7 +1376,8 @@ var ReaderPanel = React.createClass({
           onOpenConnectionsClick={this.props.onOpenConnectionsClick}
           onCompareClick={this.showBaseText}
           openComparePanel={this.props.openComparePanel}
-          closePanel={this.props.closePanel}      
+          closePanel={this.props.closePanel}
+          selectedWords={this.state.selectedWords}
           key="connections" />
       );
     }
@@ -2596,6 +2607,7 @@ var TextColumn = React.createClass({
     onSegmentClick:        React.PropTypes.func,
     onCitationClick:       React.PropTypes.func,
     setTextListHightlight: React.PropTypes.func,
+    setSelectedWords:      React.PropTypes.func,
     onTextLoad:            React.PropTypes.func,
     panelsOpen:            React.PropTypes.number,
     layoutWidth:           React.PropTypes.number
@@ -2674,6 +2686,7 @@ var TextColumn = React.createClass({
 
       this.props.setTextListHightlight(refs);
     }
+    this.props.setSelectedWords(selection.toString());
   },
   handleTextLoad: function() {
     if (this.loadingContentAtTop || !this.initialScrollTopSet) {
@@ -3304,12 +3317,16 @@ var ConnectionsPanel = React.createClass({
     openNav:                 React.PropTypes.func,
     openDisplaySettings:     React.PropTypes.func,
     closePanel:              React.PropTypes.func,
-    toggleLanguage:          React.PropTypes.func
+    toggleLanguage:          React.PropTypes.func,
+    selectedWords:           React.PropTypes.string
   },
   render: function() {
     var content = null;
+    console.log(this.props.selectedWords);
     if (this.props.mode == "Connections") {
-      content = (<TextList 
+      content = (<div>
+                <LexiconPanel selectedWords={this.props.selectedWords} />
+                <TextList
                     srefs={this.props.srefs}
                     filter={this.props.filter}
                     recentFilters={this.props.recentFilters}
@@ -3324,7 +3341,8 @@ var ConnectionsPanel = React.createClass({
                     onOpenConnectionsClick={this.props.onOpenConnectionsClick}
                     openNav={this.props.openNav}
                     openDisplaySettings={this.props.openDisplaySettings}
-                    closePanel={this.props.closePanel} />);
+                    closePanel={this.props.closePanel} />
+                </div>);
 
     } else if (this.props.mode === "Tools") {
       content = (<ToolsPanel
@@ -3964,6 +3982,77 @@ var RecentFilterSet = React.createClass({
   }
 });
 
+var LexiconPanel = React.createClass({
+  propTypes: {
+    selectedWords: React.PropTypes.string.isRequired,
+  },
+  getInitialState: function() {
+    return {
+      resultsLoaded: false
+    };
+  },
+  componentDidMount: function(){
+    this.getLookups();
+  },
+  componentDidUpdate: function(prevProps, prevState){
+    if (prevProps.selectedWords != this.props.selectedWords){
+      this.getLookups();
+    }
+  },
+  getLookups: function(){
+     sjs.library.lexicon(this.props.selectedWords, function(data) {
+      if (this.isMounted()) {
+        this.setState({
+          resultsLoaded: true,
+          entries: data
+        });
+      }
+    }.bind(this));
+  },
+
+  shouldRenderLexicon: function(){
+    if(!this.props.selectedWords){
+      return false;
+    }
+    wordList = this.props.selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
+    inputLength = wordList.length;
+    if(inputLength > 0 && inputLength <= 3) {
+          return true;
+    }
+    return false;
+  },
+  render: function(){
+    var enEmpty = "No results found.";
+    var heEmpty = "לא נמצאו תוצאות";
+    if(!this.shouldRenderLexicon()){
+      return null;
+    }
+    if(!this.state.resultsLoaded){
+      return (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..." />)
+    }
+    if("error" in this.state.data){
+      return (<LoadingMessage message={enEmpty} heMessage={heEmpty} />)
+    }
+    var entries = this.state.entries;
+    var content =  entries ? entries.map(function(entry) {
+          return (<LexiconEntry
+                    headword={entry.headword}
+                    content={entry.content} />)
+        }) : (<LoadingMessage message={enEmpty} heMessage={heEmpty} />);
+    content = content.length ? content : <LoadingMessage message={enEmpty} heMessage={heEmpty} />;
+
+    return (
+        <div className={classes}>
+          <div className="texts">
+            <div className="contentInner">
+              { content }
+            </div>
+          </div>
+        </div>
+      );
+
+  }
+});
 
 var ToolsPanel = React.createClass({
   propTypes: {
