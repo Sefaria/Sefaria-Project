@@ -187,8 +187,8 @@ class ResultSet(object):
 
         total_tests = len(self._test_results)
         passed_tests = len([t for t in self._test_results if t.success])
-        percentage_passed = (passed_tests / total_tests) * 100
-        ret += "\n\n{}/{} - {}% passed".format(passed_tests, total_tests, percentage_passed)
+        percentage_passed = (float(passed_tests) / total_tests) * 100
+        ret += "\n\n{}/{} - {:.0f}% passed".format(passed_tests, total_tests, percentage_passed)
         return ret
 
     def include(self, result):
