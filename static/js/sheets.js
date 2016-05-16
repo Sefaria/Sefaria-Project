@@ -179,7 +179,7 @@ $(function() {
 
 
 
-	$("#addBrowse").click(function() {
+	$("#addBrowse, #inlineAddBrowse").click(function() {
 		$("#closeAddSource").trigger("click");
 		sjs.textBrowser.show({
 			callback: function(ref) {
@@ -199,7 +199,22 @@ $(function() {
 		sjs.track.sheets("Add Source");
 	
 	});
-	
+
+	$(document).on("click", "#inlineAddSourceOK", function() {
+		var $target = $("#addInterface").prev(".sheetItem");
+		$("#addSourceModal").data("target", $target);
+		var q = parseRef($("#inlineAdd").val());
+		addSource(q, undefined,"insert");
+		$('#inlineAdd').val('');
+		$("#inlineTextPreview").remove();
+		$("#inlineAddDialogTitle").text("Select a text")
+		$("#sheets").click();
+
+		sjs.track.sheets("Add Source");
+	});
+
+
+
 	$("#addComment").click(function(e) {
 		// Add a new comment to the end of the sheet
 		var source = {comment: "", isNew: true};
@@ -278,6 +293,36 @@ $(function() {
 			}
 		}					
 	});
+
+
+	$("#inlineAdd").autocomplete({ source: function( request, response ) {
+				var matches = $.map( sjs.books, function(tag) {
+						if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
+							return tag;
+						}
+					});
+				response(matches);
+			},
+			focus: function(event, ui) { return false; } });
+
+	// Wrapper function for checkRef for adding sources for sheets
+	var checkInlineAddSource = function(e) {
+		checkRef($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddOK"), 0, inlineAddSourcePreview, false);
+	}
+
+	// Adding unknown Texts from Add modal
+	$("#inlineAdd").keyup(checkInlineAddSource )
+		.keyup(function(e) {
+		if (e.keyCode == 13) {
+			if ($("#inlineAddSourceOK").length) {
+				$("#inlineAddSourceOK").trigger("click");
+			} else if ($("#inlineAddDialogTitle").text() === "Unknown text. Would you like to add it?") {
+				var path = parseURL(document.URL).path;
+				window.location = "/add/textinfo/" + $("#add").val().replace(/ /g, "_") + "?after=" + path;
+			}
+		}
+	});
+
 
 
 	// Printing
@@ -2507,6 +2552,33 @@ function addSourcePreview(e) {
 			.position({my: "left top", at: "left bottom", of: $("#add"), collision: "none" }).width($("#add").width())
 	});
 }
+
+function inlineAddSourcePreview(e) {
+	if (sjs.editing.index.categories[0] === "Talmud") {
+		$("#inlineAddDialogTitle").html("Daf found. You may also specify numbered segments below.<span class='btn btn-primary' id='inlineAddSourceOK'>Add This Source</span>");
+	} else if (sjs.editing.index.categories[0] === "Commentary") {
+        $("#inlineAddDialogTitle").html("Commentary found. You may also specify numbered comments below.<span class='btn btn-primary' id='inlineAddSourceOK'>Add This Source</span>");
+    } else if (sjs.editing.index.depth && sjs.editing.index.depth == 1) {
+		$("#inlineAddDialogTitle").html("Source found. You can add it, or specify a subsection.<span class='btn btn-primary' id='inlineAddSourceOK'>Add This Source</span>");
+	} else {
+		$("#inlineAddDialogTitle").html("Source found. Specify a range with '-'.<span class='btn btn-primary' id='inlineAddSourceOK'>Add This Source</span>");
+	}
+	var ref = $("#inlineAdd").val();
+	if (!$("#inlineTextPreview").length) { $("body").append("<div id='inlineTextPreview'></div>"); }
+
+	textPreview(ref, $("#inlineTextPreview"), function() {
+		if ($("#inlineTextPreview .previewNoText").length === 2) {
+			$("#inlineAddDialogTitle").html("<i>No text available. Click below to add this text.</i>");
+		}
+		if ($("#inlineTextPreview .error").length > 0) {
+			$("#inlineAddDialogTitle").html("Uh-Oh");
+		}
+		$("#inlineTextPreview")
+			.position({my: "left top", at: "left bottom", of: $("#inlineAdd"), collision: "none" }).width($("#inlineAdd").width())
+	});
+}
+
+
 
 sjs.saveLastEdit = function($el) {
 	// Save a last edit record for replayable edits

@@ -316,7 +316,7 @@ body {
 	bottom: -43px;
 }
 
-#textPreview {
+#textPreview, #inlineTextPreview  {
 	position: absolute;
 	padding: 4px;
 	background: white;
@@ -326,28 +326,28 @@ body {
 	width: 600px;
 }
 
-#textPreview .previewLine {
+#textPreview .previewLine, #inlineTextPreview .previewLine {
 	display: inline;
 }
 
-#textPreview .previewNumber {
+#textPreview .previewNumber, #inlineTextPreview .previewNumber {
 	font-weight: bold;
 	font-variant: small-caps;
 }
 
-#textPreview .he, #textPreview .en {
+#textPreview .he, #textPreview .en, #inlineTextPreview .en, #inlineTextPreview .he {
 	padding: 10px;
 }
 
-#textPreview .he {
+#textPreview .he , #inlineTextPreview .he {
 	direction: rtl;
 }
 
-#textPreview .previewNoText {
+#textPreview .previewNoText, #inlineTextPreview .previewNoText {
 	direction: ltr;
 }
 
-#textPreview .previewWarn {
+#textPreview .previewWarn, #inlineTextPreview .previewWarn {
 	color: #B94A48;
 	padding: 20px;
 }
@@ -1491,4 +1491,8 @@ input[type="file"] {
 
 #connectionButton {
 	display:none;
+}
+
+#inlineAdd {
+	width: 70%;
 }
