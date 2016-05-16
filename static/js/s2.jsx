@@ -607,6 +607,10 @@ var ReaderApp = React.createClass({
       this.openTextListAt(n+1, refs);
     }
   },
+  setSelectedWords: function(n, words){
+      this.state.panels[n+1].selectedWords = words;
+      this.setState({panels: this.state.panels});
+  },
   openComparePanel: function(n) {
     var comparePanel = this.makePanelState({
       menuOpen: "navigation"
@@ -716,6 +720,7 @@ var ReaderApp = React.createClass({
       var onTextListClick          = null; // this.openPanelAt.bind(null, i);
       var onOpenConnectionsClick   = this.openTextListAt.bind(null, i+1);
       var setTextListHightlight    = this.setTextListHighlight.bind(null, i);
+      var setSelectedWords         = this.setSelectedWords.bind(null, i);
       var openComparePanel         = this.openComparePanel.bind(null, i);
       var closePanel               = this.closePanel.bind(null, i);
       var setPanelState            = this.setPanelState.bind(null, i);
@@ -741,6 +746,7 @@ var ReaderApp = React.createClass({
                       onOpenConnectionsClick={onOpenConnectionsClick}
                       openComparePanel={openComparePanel}
                       setTextListHightlight={setTextListHightlight}
+                      setSelectedWords={setSelectedWords}
                       selectVersion={selectVersion}
                       setDefaultOption={this.setDefaultOption}
                       onQueryChange={this.updateQueryInPanel}
@@ -968,7 +974,8 @@ var ReaderPanel = React.createClass({
     masterPanelLanguage:         React.PropTypes.string,
     panelsOpen:                  React.PropTypes.number,
     layoutWidth:                 React.PropTypes.number,
-    setTextListHightlight:       React.PropTypes.func
+    setTextListHightlight:       React.PropTypes.func,
+    setSelectedWords:            React.PropTypes.func
   },
   getInitialState: function() {
     // When this component is managed by a parent, all it takes is initialState
@@ -1141,7 +1148,10 @@ var ReaderPanel = React.createClass({
     if(words.trim().length > 0){
       console.log(words);
       words = words.trim();
-      this.setState({'selectedWords':  words});
+      this.conditionalSetState({'selectedWords':  words});
+      if (this.props.multiPanel) {
+        this.props.setSelectedWords(words);
+      }
     }
   },
   closeMenus: function() {
@@ -1318,7 +1328,6 @@ var ReaderPanel = React.createClass({
     return this.state.settings[option];  
   },
   render: function() {
-    console.log(this.state);
     var items = [];
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       items.push(<TextColumn
@@ -4032,8 +4041,8 @@ var LexiconPanel = React.createClass({
       content = <LoadingMessage message={enEmpty} heMessage={heEmpty} />;
     }
     var entries = this.state.entries;
-    content =  entries ? entries.map(function(entry) {
-          return (<LexiconEntry data={entry} />)
+    content =  entries ? entries.map(function(entry, i) {
+          return (<LexiconEntry data={entry} key={i} />)
         }) : (<LoadingMessage message={enEmpty} heMessage={heEmpty} />);
     content = content.length ? content : <LoadingMessage message={enEmpty} heMessage={heEmpty} />;
 
