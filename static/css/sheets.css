@@ -1458,6 +1458,11 @@ input[type="file"] {
 	border: 2px solid red;
 }
 
+.sourceConnection.active {
+	border: 2px solid red;
+}
+
+
 .contentDiv > div {
 	display: none;
 }
@@ -1471,6 +1476,19 @@ input[type="file"] {
   	flex-direction: column;
   	justify-content: flex-start;
 }
+.sourceConnection{
+	width: 48%;
+	margin: 10px 5px;
+	border: 1px solid #eee;
+	padding: 20px 0;
+	display: inline-block;
+	background-color: #fff;
+}
+
 .flexContainer {
 	display:flex;
+}
+
+#connectionButton {
+	display:none;
 }

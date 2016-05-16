@@ -1005,6 +1005,105 @@ $(function() {
 			$(divToShow).show();
 		});
 
+
+		$("#connectionsToAdd").on("click",".sourceConnection", function(e) {
+			$(this).hasClass("active") ? $(this).removeClass("active") : $(this).addClass("active");
+		});
+
+		$("#addconnectionDiv").on("click", ".button", function (e) {
+
+			var $target = $("#addInterface").prev(".sheetItem");
+
+
+
+			$( ".sourceConnection.active" ).each(function( index ) {
+
+
+				refs = $(this).data("refs").split(";");
+
+				for (var i = 0; i < refs.length; i++) {
+
+					var source = {
+					ref: refs[i]
+					}
+
+					buildSource($target, source, "insert");
+
+				}
+
+			});
+
+			autoSave();
+			$(".sourceConnection").removeClass('active');
+			$("#sheet").click();
+			$("#sourceButton").click();
+
+
+
+		});
+
+		$("#addInterface").on("click", "#connectionButton", function (e) {
+
+			var ref = $("#addInterface").prev(".source").attr("data-ref");
+			var $target = $("#addInterface").prev(".sheetItem");
+			$("#connectionsToAdd").text("Looking up Connections...");
+
+			$.getJSON("/api/texts/" + ref + "?context=0&pad=0", function (data) {
+				sjs.alert.clear();
+				if ("error" in data) {
+					$("#connectionsToAdd").text(data.error)
+				} else if (data.commentary.length == 0) {
+					$("#connectionsToAdd").text("No connections known for this source.");
+				} else {
+					data.commentary = [].concat.apply([], data.commentary);
+
+					data.commentary = data.commentary.sort(SortBySourceRef);
+
+					var categorySum = {}
+					for (var i = 0; i < data.commentary.length; i++) {
+						var c = data.commentary[i];
+						if (categorySum[c.commentator]) {
+							categorySum[c.commentator]++;
+						} else {
+							categorySum[c.commentator] = 1;
+						}
+					}
+					var categories = [];
+					for (var k in categorySum) {
+						categories.push(k);
+					}
+					categories.sort();
+
+					var labels = [];
+					for (var k in categorySum) {
+						labels.push(k + " (" + categorySum[k] + ")");
+					}
+					labels.sort();
+
+					var connectionsToSource = '<div>';
+					for (var j = 0; j < labels.length; j++) {
+						var dataRefs = "";
+
+						for (var i = 0; i < data.commentary.length; i++) {
+								var c = data.commentary[i];
+								if (categories[j] ==c.commentator) {
+									dataRefs = dataRefs + c.sourceRef + ";";
+									//continue;
+								}
+							}
+							dataRefs = dataRefs.slice(0, -1); //remove trailing ";"
+							connectionsToSource += '<div class="sourceConnection" data-refs="'+dataRefs+'">'+labels[j]+'</div>';
+					}
+							connectionsToSource += "</div>";
+
+					$("#connectionsToAdd").html(connectionsToSource);
+
+				}
+
+
+			});
+		});
+
 		$("#addcommentDiv").on("click", ".button", function (e) {
 			var $target = $("#addInterface").prev(".sheetItem");
 			var source = {comment: $(e.target).prev(".contentToAdd").html(), isNew: true};
@@ -1064,13 +1163,15 @@ $(function() {
 				return;
 			}
 			if ($(e.target).closest("#addInterface").length) return
+			$("#connectionButton").hide();
+
 			cleanupActiveSource(e.target);
 		});
 
 		$(".sheetItem").on("click", ".inlineAddButtonIcon", function (e) {
 
 			$("#addInterface").insertAfter( $(this).parent().closest(".sheetItem") );
-
+			$(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
 
 		})
 
@@ -1084,14 +1185,25 @@ $(function() {
 				.removeClass("hasCustom");
 
 			}
+
 			$(".activeSource").removeClass("activeSource");
 			$(".inlineAddButton").remove();
 			$("#sheetLayoutLanguageMenuItems").show();
 			$("#sourceLayoutLanguageMenuItems").hide();
 			if (!$(target).hasClass('inlineAddButtonIcon')) {
-//				$("#addInterface").insertAfter( $("#sources") );
 				$("#addInterface").insertAfter( $(".sheetItem").last() );
 			}
+
+
+    		$(".sheetItem .inlineAddButtonIcon").off();
+
+			$(".sheetItem").on("click", ".inlineAddButtonIcon", function (e) {
+
+				$("#addInterface").insertAfter( $(this).parent().closest(".sheetItem") );
+				$(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
+
+			})
+
 
 		}
 
