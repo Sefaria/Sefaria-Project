@@ -3984,7 +3984,7 @@ var RecentFilterSet = React.createClass({
 
 var LexiconPanel = React.createClass({
   propTypes: {
-    selectedWords: React.PropTypes.string.isRequired,
+    selectedWords: React.PropTypes.string
   },
   getInitialState: function() {
     return {
@@ -4010,47 +4010,92 @@ var LexiconPanel = React.createClass({
     }.bind(this));
   },
 
-  shouldRenderLexicon: function(){
+  shouldRenderSelf: function(){
     if(!this.props.selectedWords){
       return false;
     }
     wordList = this.props.selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
     inputLength = wordList.length;
-    if(inputLength > 0 && inputLength <= 3) {
-          return true;
-    }
-    return false;
+    return (inputLength > 0 && inputLength <= 3);
   },
   render: function(){
     var enEmpty = "No results found.";
     var heEmpty = "לא נמצאו תוצאות";
-    if(!this.shouldRenderLexicon()){
+    if(!this.shouldRenderSelf()){
       return null;
     }
     if(!this.state.resultsLoaded){
       return (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..." />)
     }
+    var content; 
     if("error" in this.state.data){
-      return (<LoadingMessage message={enEmpty} heMessage={heEmpty} />)
+      content = <LoadingMessage message={enEmpty} heMessage={heEmpty} />;
     }
     var entries = this.state.entries;
-    var content =  entries ? entries.map(function(entry) {
-          return (<LexiconEntry
-                    headword={entry.headword}
-                    content={entry.content} />)
+    content =  entries ? entries.map(function(entry) {
+          return (<LexiconEntry data={entry} />)
         }) : (<LoadingMessage message={enEmpty} heMessage={heEmpty} />);
     content = content.length ? content : <LoadingMessage message={enEmpty} heMessage={heEmpty} />;
 
     return (
-        <div className={classes}>
-          <div className="texts">
-            <div className="contentInner">
-              { content }
-            </div>
+        <div className="lexicon-content">
+          <div className="lexicon-header"><h4>{this.props.selectedWords}</h4></div>
+          <div className="lexicon-results">
+            { content }
           </div>
         </div>
       );
 
+  }
+});
+
+LexiconEntry = React.createClass({
+  propTypes: {
+    data: React.PropTypes.object.isRequired
+  },
+  render: function(){
+    var entry = this.props.data;
+    var entryHeadStr =  (<span className="headword">{entry['headword']}</span>);
+    var morphologyStr = ('morphology' in entry['content']) ?
+        (<span className="morphology"><em>({entry['content']['morphology']})</em></span>) :"";
+    var senses = this.renderLexiconEntrySenses(entry['content']);
+    var attribution = this.renderLexiconAttribution();
+    return (
+        <div className="entry">
+          <div className="headword">{entryHeadStr}{morphologyStr}</div>
+          <ol className="definition">{senses}</ol>
+          <div className="attribution">{attribution}</div>
+        </div>
+    );
+  },
+  renderLexiconEntrySenses: function(content){
+		var grammar = ('grammar' in content) ? '('+ content['grammar']['verbal_stem'] + ')' : "";
+		var def = ('definition' in content) ? content['definition'] : "";
+        var notes = ('notes' in content) ? (<span className="notes">{content['notes']}</span>) : "";
+        var sensesElems =  ('senses' in content) ? content['senses'].map(function(sense) {
+          return this.renderLexiconEntrySenses(sense)
+        }) : "";
+        var senses = sensesElems.length ? (<ol className="senses">{sensesElems}</ol>) : "";
+        return (<li className="sense">
+          {grammar}
+          {def}
+          {notes}
+          {senses}</li>);
+  },
+
+  renderLexiconAttribution: function(){
+        var entry = this.props.data;
+		var lexicon_dtls = entry['parent_lexicon_details'];
+        return (<small>
+            <a target="_blank"
+                href={('source_url' in lexicon_dtls) ? lexicon_dtls['source_url'] : ""}>
+              Definitions from: {'source' in lexicon_dtls ? lexicon_dtls['source'] : lexicon_dtls['source_url']}
+            </a>
+            <a target="_blank"
+                href={('attribution_url' in lexicon_dtls) ? lexicon_dtls['attribution_url'] : ""}>
+              Created by: {'attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']}
+            </a>
+          </small>);
   }
 });
 
