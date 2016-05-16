@@ -1,5 +1,6 @@
 
 from config import *
+from sefaria.model import *
 from random import shuffle
 from multiprocessing import Pool
 import inspect
@@ -11,6 +12,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.expected_conditions import title_contains, staleness_of, element_to_be_clickable, visibility_of_element_located
 from selenium.webdriver.common.keys import Keys
+
 
 class AtomicTest(object):
     """
@@ -39,6 +41,7 @@ class AtomicTest(object):
         WebDriverWait(self.driver, TEMPER).until(title_contains("Texts"))
         return self
 
+    # TOC
     def load_toc(self):
         self.driver.get(self.base_url + "/texts")
         WebDriverWait(self.driver, TEMPER).until(title_contains("Texts"))
@@ -55,12 +58,61 @@ class AtomicTest(object):
         WebDriverWait(self.driver, TEMPER).until(title_contains(text_name))
         return self
 
-    def click_toc_recent(self, tref):
+    def click_toc_recent(self, tref, until=None):
         recent = self.driver.find_element_by_css_selector('.recentItem[data-ref="{}"]'.format(tref))
         recent.click()
-        # not testing, since loaded page may have title of next section
+        until = title_contains(tref) if until is None else until
+        WebDriverWait(self.driver, TEMPER).until(until)
 
-    def search_for(self, search):
+    # Text Panel
+    def load_ref(self, ref, filter=None):
+        """
+        takes string ref or object Ref
+        :param ref:
+        :param filter: "all", "Rashi", etc
+        :return:
+        """
+        if isinstance(ref, basestring):
+            ref = Ref(ref)
+        assert isinstance(ref, Ref)
+        url = self.base_url + "/" + ref.url()
+        if filter is not None:
+            url += "?with={}".format(filter)
+        self.driver.get(url)
+        WebDriverWait(self.driver, TEMPER).until(title_contains(ref.normal()))
+        return self
+
+    def click_segment(self, ref):
+        if isinstance(ref, basestring):
+            ref = Ref(ref)
+        assert isinstance(ref, Ref)
+        segment = self.driver.find_element_by_css_selector('.segment[data-ref="{}"]'.format(ref.normal()))
+        segment.click()
+        WebDriverWait(self.driver, TEMPER).until(title_contains("{} with".format(ref.normal())))
+
+    def scroll_to_segment(self, ref):
+        if isinstance(ref, basestring):
+            ref = Ref(ref)
+        assert isinstance(ref, Ref)
+        #todo
+
+    # Connections Panel
+    def find_text_filter(self, name):
+        return self.driver.find_element_by_css_selector('.textFilter[data-name="{}"]'.format(name))
+
+    def click_text_filter(self, name):
+        f = self.find_text_filter(name)
+        assert f, "Can not find text filter {}".format(name)
+        f.click()
+        WebDriverWait(self.driver, TEMPER).until(title_contains("with {}".format(name)))
+        return self
+
+    # Search
+    def search_for(self, query):
+        elem = self.driver.find_element_by_css_selector("input.search")
+        elem.send_keys(query)
+        elem.send_keys(Keys.RETURN)
+        WebDriverWait(self.driver, TEMPER).until(title_contains(query))
         return self
 
 
@@ -136,7 +188,7 @@ class ResultSet(object):
         total_tests = len(self._test_results)
         passed_tests = len([t for t in self._test_results if t.success])
         percentage_passed = (passed_tests / total_tests) * 100
-        ret += "\n\n{0}/{1} - {2:.2f} passed".format(passed_tests, total_tests, percentage_passed)
+        ret += "\n\n{}/{} - {}% passed".format(passed_tests, total_tests, percentage_passed)
         return ret
 
     def include(self, result):
@@ -205,15 +257,21 @@ class Trial(object):
         :param test_class:
         :return:
         """
+        name = "{} / {}".format(test_class.__name__, Trial.cap_to_string(cap))
+        print "{} - Starting".format(name)
         assert issubclass(test_class, AtomicTest)
         test = test_class(driver, self.BASE_URL)
         try:
-            driver.execute_script('"**** Enter {} ****"'.format(test_class.__name__))
+            driver.execute_script('"**** Enter {} ****"'.format(test))
             test.run()
-            driver.execute_script('"**** Exit {} ****"'.format(test_class.__name__))
+            driver.execute_script('"**** Exit {} ****"'.format(test))
         except Exception as e:
-            return TestResult(test, cap, False, e.message)
+            print "{} - Failed".format(name, e.msg)
+            if e.message or e.msg:
+                print "{}".format(e.message if e.message else e.msg)
+            return TestResult(test, cap, False, e.msg)
         else:
+            print "{} - Passed".format(name)
             return TestResult(test, cap, True)
 
     def _test_one(self, test, cap):

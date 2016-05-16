@@ -5398,34 +5398,15 @@ var SearchPage = React.createClass({
   getInitialState: function getInitialState() {
     return {
       page: this.props.initialPage || 1
-      //runningQuery: null,
-      //isQueryRunning: false
     };
   },
-  componentWillMount: function componentWillMount() {},
 
   getDefaultProps: function getDefaultProps() {
     return {
       appliedFilters: []
     };
   },
-  componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
-    /*
-    if ((nextProps.query !== this.props.query)
-    || (nextProps.appliedFilters.length !== this.props.appliedFilters.length)
-    || !(nextProps.appliedFilters.every((v,i) => v === this.props.appliedFilters[i]))
-    ) {
-      this.updateQuery(nextProps.query, nextProps.appliedFilters);
-    }
-    */
-  },
-  /*
-    updateRunningQuery: function(ajax) {
-        this.setState({
-            runningQuery: ajax,
-            isQueryRunning: !!ajax
-        })
-    }, */
+
   render: function render() {
 
     var style = { "fontSize": this.props.settings.fontSize + "%" };
@@ -5594,8 +5575,6 @@ var SearchResultList = React.createClass({
   componentDidMount: function componentDidMount() {
     this._executeQuery();
   },
-  componentWillMount: function componentWillMount() {},
-
   componentWillUnmount: function componentWillUnmount() {
     this._abortRunningQuery();
   },
