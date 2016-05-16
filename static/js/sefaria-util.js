@@ -18,12 +18,6 @@ if (typeof sjs !== 'undefined') {
     Sefaria.is_moderator      =  sjs.is_moderator;
     Sefaria.notificationCount =  sjs.notificationCount;
     Sefaria.notifications     =  sjs.notifications;
-} else {
-    Sefaria.books             = [];
-    Sefaria.booksDict         = {};
-    Sefaria.toc               = [];
-    Sefaria.notifications     = [];
-    Sefaria.notificationCount = 0;
 }
 
 Sefaria.util = {

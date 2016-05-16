@@ -1148,7 +1148,9 @@ Sefaria.search.FilterNode.prototype = {
 };
 
 
-Sefaria._cacheIndexFromToc(Sefaria.toc);
+if ("toc" in Sefaria) {
+  Sefaria._cacheIndexFromToc(Sefaria.toc);  
+}
 
 
 Sefaria.palette = {
