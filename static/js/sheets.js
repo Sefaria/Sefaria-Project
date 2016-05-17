@@ -1044,10 +1044,12 @@ $(function() {
 
 		$("#addInterface").on("click", ".buttonBar .addInterfaceButton", function (e) {
 			$("#addInterface .addInterfaceButton").removeClass('active');
+			$("#inlineTextPreview").remove();
 			$(this).addClass('active');
 			var divToShow = "#add"+($(this).attr('id').replace('Button',''))+"Div";
 			$(".contentDiv > div").hide();
 			$(divToShow).show();
+
 		});
 
 
