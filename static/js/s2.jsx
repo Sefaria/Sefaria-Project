@@ -1403,21 +1403,34 @@ var ReaderPanel = React.createClass({
                     hideNavHeader={this.props.hideNavHeader} />);
 
     } 
-    else if (this.state.menuOpen === "text toc" || this.state.menuOpen === "book toc") {
-      var menu = (<ReaderTextTableOfContents 
-                    mode={this.state.menuOpen}
-                    close={this.closeMenus}
-                    title={this.currentBook()}
-                    version={this.state.version}
-                    versionLanguage={this.state.versionLanguage}
-                    settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
-                    category={this.currentCategory()}
-                    currentRef={(this.state.menuOpen === "text toc")?this.lastCurrentRef():this.state.bookRef}
-                    openNav={this.openMenu.bind(null, "navigation")}
-                    openDisplaySettings={this.openDisplaySettings}
-                    selectVersion={this.props.selectVersion}
-                    showBaseText={this.showBaseText} />);
-
+    else if (this.state.menuOpen === "text toc") {
+      var menu = (<ReaderTextTableOfContents
+          mode={this.state.menuOpen}
+          close={this.closeMenus}
+          title={this.currentBook()}
+          version={this.state.version}
+          versionLanguage={this.state.versionLanguage}
+          settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
+          category={this.currentCategory()}
+          currentRef={this.lastCurrentRef()}
+          openNav={this.openMenu.bind(null, "navigation")}
+          openDisplaySettings={this.openDisplaySettings}
+          selectVersion={this.props.selectVersion}
+          showBaseText={this.showBaseText}/>);
+    } else if (this.state.menuOpen === "book toc") {
+      var menu = (<ReaderTextTableOfContents
+          mode={this.state.menuOpen}
+          close={this.props.closePanel}
+          title={this.state.bookRef}
+          //version={this.state.version}
+          //versionLanguage={this.state.versionLanguage}
+          settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
+          category={sjs.library.index(this.state.bookRef) ? sjs.library.index(this.state.bookRef).categories[0] : null}
+          currentRef={this.state.bookRef}
+          openNav={this.openMenu.bind(null, "navigation")}
+          openDisplaySettings={this.openDisplaySettings}
+          selectVersion={this.props.selectVersion}
+          showBaseText={this.showBaseText}/>);
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       var menu = (<SearchPage
                     query={this.state.searchQuery}
@@ -1802,7 +1815,7 @@ var ReaderNavigationMenu = React.createClass({
                   <span className="en">{cat}</span>
                   <span className="he">{heCat}</span>
                 </div>);
-      }.bind(this));;
+      }.bind(this));
       var more = (<div className="readerNavCategory" style={{"borderColor": sjs.palette.darkblue}} onClick={this.showMore}>
                       <span className="en">More &gt;</span>
                       <span className="he">עוד &gt;</span>

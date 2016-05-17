@@ -595,7 +595,7 @@ var ReaderApp = React.createClass({
       panel.filter = oref1.book === oref2.book ? panel.filter : [];      
       */
     } else {
-        // No connctions panel is open yet, splice in a new one
+        // No connections panel is open yet, splice in a new one
         this.state.panels.splice(n, 0, {});
         panel = this.state.panels[n];
         panel.filter = [];
@@ -1463,7 +1463,7 @@ var ReaderPanel = React.createClass({
           this.showBaseText(ref);
         }.bind(this),
         hideNavHeader: this.props.hideNavHeader });
-    } else if (this.state.menuOpen === "text toc" || this.state.menuOpen === "book toc") {
+    } else if (this.state.menuOpen === "text toc") {
       var menu = React.createElement(ReaderTextTableOfContents, {
         mode: this.state.menuOpen,
         close: this.closeMenus,
@@ -1472,7 +1472,21 @@ var ReaderPanel = React.createClass({
         versionLanguage: this.state.versionLanguage,
         settingsLanguage: this.state.settings.language == "hebrew" ? "he" : "en",
         category: this.currentCategory(),
-        currentRef: this.state.menuOpen === "text toc" ? this.lastCurrentRef() : this.state.bookRef,
+        currentRef: this.lastCurrentRef(),
+        openNav: this.openMenu.bind(null, "navigation"),
+        openDisplaySettings: this.openDisplaySettings,
+        selectVersion: this.props.selectVersion,
+        showBaseText: this.showBaseText });
+    } else if (this.state.menuOpen === "book toc") {
+      var menu = React.createElement(ReaderTextTableOfContents, {
+        mode: this.state.menuOpen,
+        close: this.props.closePanel,
+        title: this.state.bookRef
+        //version={this.state.version}
+        //versionLanguage={this.state.versionLanguage}
+        , settingsLanguage: this.state.settings.language == "hebrew" ? "he" : "en",
+        category: sjs.library.index(this.state.bookRef) ? sjs.library.index(this.state.bookRef).categories[0] : null,
+        currentRef: this.state.bookRef,
         openNav: this.openMenu.bind(null, "navigation"),
         openDisplaySettings: this.openDisplaySettings,
         selectVersion: this.props.selectVersion,
@@ -1879,7 +1893,7 @@ var ReaderNavigationMenu = React.createClass({
             heCat
           )
         );
-      }.bind(this));;
+      }.bind(this));
       var more = React.createElement(
         'div',
         { className: 'readerNavCategory', style: { "borderColor": sjs.palette.darkblue }, onClick: this.showMore },
