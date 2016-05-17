@@ -73,8 +73,7 @@
       var panels        = {{ panels|default:"[]" }};
       var multiPanel    = $(window).width() > 600;
       var initialPanels = [];
-        debugger;
-      // TODO clean up generation of initial panels objects. 
+      // TODO clean up generation of initial panels objects.
       // Currently these get generated in reader/views.py, then regenerated in s2.html then regenerated again in ReaderApp.
       var panel = panels.shift();
       if (panel) {

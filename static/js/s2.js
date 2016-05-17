@@ -39,30 +39,37 @@ var ReaderApp = React.createClass({
   getInitialState: function getInitialState() {
     // TODO clean up generation of initial panels objects.
     // Currently these get generated in reader/views.py, then regenerated in s2.html then regenerated again in ReaderApp.
-    debugger;
     var panels = [];
     var header = {};
     var defaultVersions = clone(this.props.initialDefaultVersions) || {};
     var defaultPanelSettings = clone(this.props.initialSettings);
 
     if (!this.props.multiPanel && !this.props.headerMode) {
-      var mode = this.props.initialFilter ? "TextAndConnections" : "Text";
-      panels[0] = {
-        refs: this.props.initialRefs,
-        mode: mode,
-        filter: this.props.initialFilter,
-        menuOpen: this.props.initialMenu,
-        version: this.props.initialPanels.length ? this.props.initialPanels[0].version : null,
-        versionLanguage: this.props.initialPanels.length ? this.props.initialPanels[0].versionLanguage : null,
-        searchQuery: this.props.initialQuery,
-        appliedSearchFilters: this.props.initialSearchFilters,
-        settings: clone(defaultPanelSettings)
-      };
-      if (panels[0].versionLanguage) {
-        panels[0].settings.language = panels[0].versionLanguage == "he" ? "hebrew" : "english";
-      }
-      if (mode === "TextAndConnections") {
-        panels[0].highlightedRefs = this.props.initialRefs;
+      if (this.props.initialPanels[0].menuOpen == "book toc") {
+        panels[0] = {
+          settings: clone(defaultPanelSettings),
+          menuOpen: this.props.initialPanels[0].menuOpen,
+          bookRef: this.props.initialPanels[0].bookRef
+        };
+      } else {
+        var mode = this.props.initialFilter ? "TextAndConnections" : "Text";
+        panels[0] = {
+          refs: this.props.initialRefs,
+          mode: mode,
+          filter: this.props.initialFilter,
+          menuOpen: this.props.initialMenu,
+          version: this.props.initialPanels.length ? this.props.initialPanels[0].version : null,
+          versionLanguage: this.props.initialPanels.length ? this.props.initialPanels[0].versionLanguage : null,
+          searchQuery: this.props.initialQuery,
+          appliedSearchFilters: this.props.initialSearchFilters,
+          settings: clone(defaultPanelSettings)
+        };
+        if (panels[0].versionLanguage) {
+          panels[0].settings.language = panels[0].versionLanguage == "he" ? "hebrew" : "english";
+        }
+        if (mode === "TextAndConnections") {
+          panels[0].highlightedRefs = this.props.initialRefs;
+        }
       }
     } else {
       // this.props.multiPanel || this.props.headerMode
