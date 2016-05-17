@@ -10,7 +10,6 @@ if (typeof require !== 'undefined') {
 }
 
 
-
 var ReaderApp = React.createClass({
   propTypes: {
     multiPanel:                  React.PropTypes.bool,
@@ -25,6 +24,21 @@ var ReaderApp = React.createClass({
     initialSettings:             React.PropTypes.object,
     initialPanels:               React.PropTypes.array,
     initialDefaultVersions:      React.PropTypes.object 
+  },
+  getDefaultProps: function() {
+    return {
+      multiPanel:                  true,
+      headerMode:                  false,  // is S2 serving only as a header on top of another page?
+      initialRefs:                 [],
+      initialFilter:               [],
+      initialMenu:                 null,
+      initialQuery:                null,
+      initialSearchFilters:        [],
+      initialSheetsTag:            null,
+      initialNavigationCategories: [],
+      initialPanels:               [],
+      initialDefaultVersions:      {},
+    };
   },
   getInitialState: function() {
     // TODO clean up generation of initial panels objects. 

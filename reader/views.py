@@ -7,6 +7,8 @@ from random import choice
 from pprint import pprint
 import json
 import urlparse
+import urllib2
+import urllib
 import dateutil.parser
 from bson.json_util import dumps
 import p929
@@ -40,10 +42,7 @@ from sefaria.datatype.jagged_array import JaggedArray
 import sefaria.utils.calendars
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
-try:
-    from sefaria.settings import USE_VARNISH
-except ImportError:
-    USE_VARNISH = False
+from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST
 if USE_VARNISH:
     from sefaria.system.sf_varnish import invalidate_ref, invalidate_linked
 
@@ -172,6 +171,30 @@ def esi_account_box(request):
     return render_to_response('elements/accountBox.html', {}, RequestContext(request))
 
 
+def render_react_component(component, props):
+    """
+    Asks the Node Server to render `component` with `props`.
+    Returns HTML.
+    """
+    if not USE_NODE:
+        return """
+                <div id="s2Loading">
+                    <div class='loadingMessage'>
+                      <img src="/static/img/sefaria.png" />
+                      <br>
+                      <span class="en">Loading...</span>
+                      <span className="he">טעינה...</span>
+                    </div>
+                </div>
+                """
+    url = "%s/%s?%s" % (NODE_HOST, component, urllib.urlencode(props))
+
+    response = urllib2.urlopen(url)
+    html = response.read()
+
+    return html
+
+
 def switch_to_s2(request):
     """Set the S2 cookie then redirect to /texts"""
 
@@ -255,9 +278,12 @@ def s2(request, ref, version=None, lang=None):
 
         panels += [panel]
 
-    return render_to_response('s2.html', {
-            "panels": json.dumps(panels)
-        }, RequestContext(request))
+    props = {
+        "initialPanels": json.dumps(panels),
+        "ref": oref.normal(),
+    }
+    props["html"] = render_react_component("ReaderApp", props)
+    return render_to_response('s2.html', props, RequestContext(request))
 
 
 def s2_texts_category(request, cats):
@@ -272,29 +298,35 @@ def s2_texts_category(request, cats):
     if cat_toc is None:
         return s2_texts(request)
 
-    return render_to_response('s2.html', {
-                                    "initialMenu": "navigation",
-                                    "initialNavigationCategories": json.dumps(cats),
-                                }, RequestContext(request))
+    props = {
+        "initialMenu": "navigation",
+        "initialNavigationCategories": json.dumps(cats),
+    }
+    props["html"] = render_react_component("ReaderApp", props)
+    return render_to_response('s2.html', props, RequestContext(request))
 
 
 def s2_search(request):
     search_filters = request.GET.get("filters").split("|") if request.GET.get("filters") else []
 
-    return render_to_response('s2.html', {
-            "initialMenu": "search",
-            "query": request.GET.get("q") or "",
-            "searchFilters": json.dumps(search_filters)
-        }, RequestContext(request))
+    props = {
+        "initialMenu": "search",
+        "query": request.GET.get("q") or "",
+        "searchFilters": json.dumps(search_filters)
+    }
+    props["html"] = render_react_component("ReaderApp", props)
+    return render_to_response('s2.html', props, RequestContext(request))
 
 
 def s2_page(request, page):
     """
     View into an S2 page
     """
-    return render_to_response('s2.html', {
-                                    "initialMenu": page
-                                }, RequestContext(request))
+    props = {
+        "initialMenu": page
+    }
+    props["html"] = render_react_component("ReaderApp", props)
+    return render_to_response('s2.html', props, RequestContext(request))
 
 
 def s2_home(request):
@@ -321,10 +353,12 @@ def s2_sheets_by_tag(request, tag):
     """
     Standalone page for new sheets list
     """
-    return render_to_response('s2.html', {
-                                    "initialMenu": "sheets",
-                                    "initialSheetsTag": tag,
-                                }, RequestContext(request))
+    props = {
+        "initialMenu": "sheets",
+        "initialSheetsTag": tag,
+    }
+    props["html"] = render_react_component("ReaderApp", props)
+    return render_to_response('s2.html', props, RequestContext(request))
 
 
 @ensure_csrf_cookie

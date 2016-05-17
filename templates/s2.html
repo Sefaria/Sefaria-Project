@@ -34,14 +34,17 @@
 <body>
     
   <div id="s2">
+    {{ html }}
+    <!--
     <div id="s2Loading">
         <div class='loadingMessage'>
           <img src="/static/img/sefaria.png" />
           <br>
           <span class="en">Loading...</span>
-          <!--<span className="he">טעינה...</span>-->
+          <span className="he">טעינה...</span>
         </div>
     </div>
+    -->
   </div>
 
   <div id="overlay"></div>
@@ -71,7 +74,7 @@
     $(function() {        
       var version, language, filter, ref; // all may be null
       var initialMenu   = "{{ initialMenu }}";
-      var panels        = {{ panels|default:"[]" }};
+      var panels        = {{ initialPanels|default:"[]" }};
       var multiPanel    = $(window).width() > 600;
       var initialPanels = [];
 
@@ -129,7 +132,7 @@
       }
 
       var settings = {
-        language: "{{ contentLang }}",
+        language:      "{{ contentLang }}",
         layoutDefault: $.cookie("layoutDefault") || "segmented",
         layoutTalmud:  $.cookie("layoutTalmud")  || "continuous",
         layoutTanach:  $.cookie("layoutTanach")  || "segmented",

@@ -14,7 +14,7 @@ var http = require('http'),
     ReaderApp = React.createFactory(SefariaReact.ReaderApp);
 
 http.createServer(function(req, res) {
-
+  console.log(req.url);
   var parsed   = url.parse(req.url, true);
   var pathname = parsed.pathname
   var query    = parsed.query;
@@ -42,9 +42,7 @@ http.createServer(function(req, res) {
     // redisClient = redis.createClient(); // TODO don't assume database 0
     request("http://localhost:8000/data.js", function(error, response, body) {
       if (!error && response.statusCode == 200) {
-        //vm.runInThisContext(body, "remote/data.js");
         eval(body);
-        console.log(Sefaria.books.length);
         var html = ReactDOMServer.renderToString(ReaderApp(props));
         res.end(html)
       } else {
@@ -53,7 +51,7 @@ http.createServer(function(req, res) {
     });
 
   } else {
-    res.end("Unsupported Route - please specificy a component name.");
+    res.end("Unsupported Route - please specify a component name.");
   }
 
 // The http server listens on port 4040, TODO read from package.json config

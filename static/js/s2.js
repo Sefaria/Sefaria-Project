@@ -30,6 +30,21 @@ var ReaderApp = React.createClass({
     initialPanels: React.PropTypes.array,
     initialDefaultVersions: React.PropTypes.object
   },
+  getDefaultProps: function getDefaultProps() {
+    return {
+      multiPanel: true,
+      headerMode: false, // is S2 serving only as a header on top of another page?
+      initialRefs: [],
+      initialFilter: [],
+      initialMenu: null,
+      initialQuery: null,
+      initialSearchFilters: [],
+      initialSheetsTag: null,
+      initialNavigationCategories: [],
+      initialPanels: [],
+      initialDefaultVersions: {}
+    };
+  },
   getInitialState: function getInitialState() {
     // TODO clean up generation of initial panels objects.
     // Currently these get generated in reader/views.py, then regenerated in s2.html then regenerated again in ReaderApp.
