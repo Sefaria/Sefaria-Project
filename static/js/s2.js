@@ -39,6 +39,7 @@ var ReaderApp = React.createClass({
   getInitialState: function getInitialState() {
     // TODO clean up generation of initial panels objects.
     // Currently these get generated in reader/views.py, then regenerated in s2.html then regenerated again in ReaderApp.
+    debugger;
     var panels = [];
     var header = {};
     var defaultVersions = clone(this.props.initialDefaultVersions) || {};
@@ -97,20 +98,23 @@ var ReaderApp = React.createClass({
             settings: clone(defaultPanelSettings)
           });
         }
-        for (var i = panels.length; i < this.props.initialPanels.length; i++) {
-          var panel = this.clonePanel(this.props.initialPanels[i]);
+      }
+      for (var i = panels.length; i < this.props.initialPanels.length; i++) {
+        var panel;
+        if (this.props.initialPanels[i].menuOpen == "book toc") {
+          panel = {
+            settings: clone(defaultPanelSettings),
+            menuOpen: this.props.initialPanels[i].menuOpen,
+            bookRef: this.props.initialPanels[i].bookRef
+          };
+        } else {
+          panel = this.clonePanel(this.props.initialPanels[i]);
           panel.settings = clone(defaultPanelSettings);
           if (panel.versionLanguage) {
             panel.settings.language = panel.versionLanguage == "he" ? "hebrew" : "english";
           }
-          panels.push(panel);
         }
-      } else if (this.props.initialPanels && this.props.initialPanels.length && this.props.initialPanels[0].menuOpen == "book toc") {
-        panels.push({
-          settings: clone(defaultPanelSettings),
-          menuOpen: this.props.initialPanels[0].menuOpen,
-          bookRef: this.props.initialPanels[0].bookRef
-        });
+        panels.push(panel);
       }
     }
     panels = panels.map(function (panel) {

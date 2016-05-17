@@ -73,7 +73,7 @@
       var panels        = {{ panels|default:"[]" }};
       var multiPanel    = $(window).width() > 600;
       var initialPanels = [];
-
+        debugger;
       // TODO clean up generation of initial panels objects. 
       // Currently these get generated in reader/views.py, then regenerated in s2.html then regenerated again in ReaderApp.
       var panel = panels.shift();
@@ -115,7 +115,7 @@
 
         while (panels.length > 0) {
           panel = panels.shift();
-          if (panel.ref && panel.initialMenu == "book toc") {
+          if (panel && panel.initialMenu == "book toc") {
             initialPanels.push({bookRef: panel.bookRef, menuOpen: panel.initialMenu})
           } else {
             if (panel.ref && panel.text && !panel.ref.match(/^texts|^sheets|^search/)) {
