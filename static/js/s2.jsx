@@ -2205,7 +2205,8 @@ var ReaderTextTableOfContents = React.createClass({
     this.shrinkWrap();
   },
   loadVersions: function() {
-    var ref = sjs.library.sectionRef(this.props.currentRef) || this.props.currentRef;
+    var ref;
+    ref = sjs.library.sectionRef(this.props.currentRef) || this.props.currentRef;
     if (!ref) {
       this.setState({versionsLoaded: true});
       return;
