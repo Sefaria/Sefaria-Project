@@ -1480,7 +1480,8 @@ var ReaderPanel = React.createClass({
     } else if (this.state.menuOpen === "book toc") {
       var menu = React.createElement(ReaderTextTableOfContents, {
         mode: this.state.menuOpen,
-        close: this.props.closePanel,
+        closePanel: this.props.closePanel,
+        close: this.closeMenus,
         title: this.state.bookRef
         //version={this.state.version}
         //versionLanguage={this.state.versionLanguage}
@@ -2634,7 +2635,9 @@ var ReaderTextTableOfContents = React.createClass({
       var v = this.state.versions[i];
       this.props.selectVersion(v.versionTitle, v.language);
     }
-    this.props.close();
+    if (this.props.mode == "text toc") {
+      this.props.close();
+    }
   },
   render: function render() {
     var _this = this;
@@ -2751,6 +2754,7 @@ var ReaderTextTableOfContents = React.createClass({
       )
     );
 
+    var closeClick = this.props.mode == "book toc" ? this.props.closePanel : this.props.close;
     return React.createElement(
       'div',
       { className: 'readerTextTableOfContents readerNavMenu', onClick: this.handleClick },
@@ -2764,7 +2768,7 @@ var ReaderTextTableOfContents = React.createClass({
           React.createElement(
             'div',
             { className: 'leftButtons' },
-            React.createElement(ReaderNavigationMenuCloseButton, { onClick: this.props.close })
+            React.createElement(ReaderNavigationMenuCloseButton, { onClick: closeClick })
           ),
           React.createElement(
             'div',

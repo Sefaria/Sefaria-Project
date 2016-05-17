@@ -1420,7 +1420,8 @@ var ReaderPanel = React.createClass({
     } else if (this.state.menuOpen === "book toc") {
       var menu = (<ReaderTextTableOfContents
           mode={this.state.menuOpen}
-          close={this.props.closePanel}
+          closePanel={this.props.closePanel}
+          close={this.closeMenus}
           title={this.state.bookRef}
           //version={this.state.version}
           //versionLanguage={this.state.versionLanguage}
@@ -2285,7 +2286,9 @@ var ReaderTextTableOfContents = React.createClass({
       var v = this.state.versions[i];
       this.props.selectVersion(v.versionTitle, v.language);
     }
-    this.props.close();
+    if (this.props.mode == "text toc") {
+      this.props.close();
+    }
   },
   render: function() {
     var tocHtml = sjs.library.textTocHtml(this.props.title, function() {
@@ -2351,13 +2354,13 @@ var ReaderTextTableOfContents = React.createClass({
                            </select>
                          </div>);
 
-
+    var closeClick = (this.props.mode == "book toc")?this.props.closePanel:this.props.close;
     return (<div className="readerTextTableOfContents readerNavMenu" onClick={this.handleClick}>
               <CategoryColorLine category={this.props.category} />
               <div className="readerControls">
                 <div className="readerControlsInner">
                   <div className="leftButtons">
-                    <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
+                    <ReaderNavigationMenuCloseButton onClick={closeClick}/>
                   </div>
                   <div className="rightButtons">
                     <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
