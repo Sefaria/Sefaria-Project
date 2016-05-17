@@ -22,6 +22,7 @@ from pyelasticsearch import ElasticSearch
 from sefaria.model import *
 from sefaria.model.user_profile import user_link
 from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
 from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME
 from sefaria.summaries import REORDER_RULES
@@ -38,18 +39,26 @@ tracer.addHandler(NullHandler())
 doc_count = 0
 
 
-def index_text(oref, version=None, lang=None, bavli_amud=True):
+def index_text(oref, version=None, lang=None, bavli_amud=True, merged=False):
     """
     Index the text designated by ref.
     If no version and lang are given, this function will be called for each available version.
+    If `merged` is true, and lang is given, it will index a merged version of this document
     Currently assumes ref is at section level. 
     """
     assert isinstance(oref, Ref)
     oref = oref.default_child_ref()
+
     # Recall this function for each specific text version, if none provided
-    if not (version and lang):
+    if merged and version:
+        raise InputError("index_text() called with version title and merged flag.")
+    if not merged and not (version and lang):
         for v in oref.version_list():
             index_text(oref, version=v["versionTitle"], lang=v["language"], bavli_amud=bavli_amud)
+        return
+    elif merged and not lang:
+        for l in ["he", "en"]:
+            index_text(oref, lang=l, bavli_amud=bavli_amud, merged=merged)
         return
 
     # Index each segment of this document individually
@@ -57,10 +66,10 @@ def index_text(oref, version=None, lang=None, bavli_amud=True):
     if bavli_amud and padded_oref.is_bavli():  # Index bavli by amud. and commentaries by line
         pass
     elif len(padded_oref.sections) < len(padded_oref.index_node.sectionNames):
-        t = TextChunk(oref, lang=lang, vtitle=version)
+        t = TextChunk(oref, lang=lang, vtitle=version) if not merged else TextChunk(oref, lang=lang)
 
         for ref in oref.subrefs(len(t.text)):
-            index_text(ref, version=version, lang=lang, bavli_amud=bavli_amud)
+            index_text(ref, version=version, lang=lang, bavli_amud=bavli_amud, merged=merged)
         return  # Returning at this level prevents indexing of full chapters
 
     '''   Can't get here after the return above
@@ -79,19 +88,24 @@ def index_text(oref, version=None, lang=None, bavli_amud=True):
     if doc:
         try:
             global doc_count
+            search_index = SEARCH_INDEX_NAME if not merged else "merged"
             if doc_count % 5000 == 0:
                 logger.info(u"[{}] Indexing {} / {} / {}".format(doc_count, oref.normal(), version, lang))
-            es.index('sefaria', 'text', doc, make_text_doc_id(oref.normal(), version, lang))
+            es.index(search_index, 'text', doc, make_text_doc_id(oref.normal(), version, lang))
             doc_count += 1
         except Exception, e:
             logger.error(u"ERROR indexing {} / {} / {} : {}".format(oref.normal(), version, lang, e))
 
+
 def delete_text(oref, version, lang):
     try:
         id = make_text_doc_id(oref.normal(), version, lang)
-        es.delete('sefaria', 'text', id)
+        es.delete(SEARCH_INDEX_NAME, 'text', id)
+        id = make_text_doc_id(oref.normal(), None, lang)
+        es.delete("merged", 'text', id)
     except Exception, e:
         logger.error(u"ERROR deleting {} / {} / {} : {}".format(oref.normal(), version, lang, e))
+
 
 def make_text_index_document(tref, version, lang):
     """
@@ -121,7 +135,6 @@ def make_text_index_document(tref, version, lang):
     if lang == "he":
         title = text.get("heTitle", "") + " " + title
 
-
     if text["categories"][0] in REORDER_RULES:
         categories = REORDER_RULES[text["categories"][0]] + text["categories"][1:]
     else:
@@ -136,8 +149,6 @@ def make_text_index_document(tref, version, lang):
         "titleVariants": text["titleVariants"],
         "content": content,
         "he_content": content if (lang == "he") else "",
-#        "context_3": oref.surrounding_ref().text(lang, version).ja().flatten_to_string(),
-#        "context_7": oref.surrounding_ref(3).text(lang, version).ja().flatten_to_string(),
         "categories": categories,
         "order": oref.order_id(),
         # and
@@ -153,10 +164,13 @@ def make_text_doc_id(ref, version, lang):
     into a number using unicode_number. This mapping should be unique, but actually isn't.
     (any tips welcome) 
     """
-    try:
-        version.decode('ascii')
-    except Exception, e:
-        version = str(unicode_number(version))
+    if not version:
+        version = "merged"
+    else:
+        try:
+            version.decode('ascii')
+        except Exception, e:
+            version = str(unicode_number(version))
 
     id = "%s (%s [%s])" % (ref, version, lang)
     return id
@@ -189,7 +203,7 @@ def index_sheet(id):
         "sheetId": id,
     }
     try:
-        es.index('sefaria', 'sheet', doc, id)
+        es.index(SEARCH_INDEX_NAME, 'sheet', doc, id)
         global doc_count
         doc_count += 1
     except Exception, e:
@@ -234,11 +248,11 @@ def source_text(source):
     return text
 
 
-def create_index():
+def create_index(merged=False):
     """
-    Clears the "sefaria" index and creates it fresh with the below settings.
+    Clears the "sefaria" and "merged" indexes and creates it fresh with the below settings.
     """
-    clear_index()
+    clear_index(merged=merged)
 
     settings = {
         "index" : {
@@ -265,13 +279,14 @@ def create_index():
             }
         }
     }
-    es.create_index(SEARCH_INDEX_NAME, settings)
+    es.create_index(SEARCH_INDEX_NAME if not merged else "merged", settings)
 
-    put_text_mapping()
-    put_sheet_mapping()
+    put_text_mapping(merged=merged)
+    if not merged:
+        put_sheet_mapping()
 
 
-def put_text_mapping():
+def put_text_mapping(merged=False):
     """
     Settings mapping for the text document type.
     """
@@ -317,7 +332,7 @@ def put_text_mapping():
             }
         }
     }
-    es.put_mapping(SEARCH_INDEX_NAME, "text", text_mapping)
+    es.put_mapping(SEARCH_INDEX_NAME if not merged else "merged", "text", text_mapping)
 
 
 def put_sheet_mapping():
@@ -341,20 +356,18 @@ def put_sheet_mapping():
     return
 
 
-def index_all_sections(skip=0):
+def index_all_sections(skip=0, merged=False):
     """
     Step through refs of all sections of available text and index each. 
     """
     global doc_count
     doc_count = 0
 
-    #refs = counts.generate_refs_list()
     refs = library.ref_list()
     print "Beginning index of %d refs." % len(refs)
 
-
     for i in range(skip, len(refs)):
-        index_text(refs[i])
+        index_text(refs[i], merged=merged)
         if i % 200 == 0:
             print "Indexed Ref #%d" % i
 
@@ -363,7 +376,7 @@ def index_all_sections(skip=0):
 
 def index_public_sheets():
     """
-    Index all source sheets that are publically listed.
+    Index all source sheets that are publicly listed.
     """
     ids = db.sheets.find({"status": "public"}).distinct("id")
     for id in ids:
@@ -379,14 +392,15 @@ def index_public_notes():
     pass
 
 
-def clear_index():
+def clear_index(merged=False):
     """
     Delete the search index.
     """
+    index_name = SEARCH_INDEX_NAME if not merged else "merged"
     try:
-        es.delete_index(SEARCH_INDEX_NAME)
+        es.delete_index(index_name)
     except Exception, e:
-        print "Error deleting Elasticsearch Index named %s" % SEARCH_INDEX_NAME
+        print "Error deleting Elasticsearch Index named %s" % index_name
         print e
 
 
@@ -413,6 +427,7 @@ def index_from_queue():
     for item in queue:
         try:
             index_text(Ref(item["ref"]), version=item["version"], lang=item["lang"])
+            index_text(Ref(item["ref"]), lang=item["lang"], merged=True)
             db.index_queue.remove(item)
         except Exception, e:
             import sys
@@ -439,15 +454,16 @@ def add_recent_to_queue(ndays):
         add_ref_to_index_queue(ref[0], ref[1], ref[2])
 
 
-def index_all(skip=0, clear=False):
+def index_all(skip=0, clear=False, merged=False):
     """
     Fully create the search index from scratch.
     """
     start = datetime.now()
     if clear:
-        create_index()
-    index_all_sections(skip=skip)
-    index_public_sheets()
+        create_index(merged=merged)
+    index_all_sections(skip=skip, merged=merged)
+    if not merged:
+        index_public_sheets()
     end = datetime.now()
     print "Elapsed time: %s" % str(end-start)
 
@@ -477,12 +493,12 @@ def query(q, override=False):
     }
 
     full_query["size"] = 0
-    res = es.search(full_query, index="sefaria", doc_type="text")
+    res = es.search(full_query, index=SEARCH_INDEX_NAME, doc_type="text")
     size = res['hits']['total']
     if size > 4000 and not override:
         raise Exception("Size of query is {}.  Call again with override to proceed.".format(size))
     full_query["size"] = size
-    res = es.search(full_query, index="sefaria", doc_type="text")
+    res = es.search(full_query, index=SEARCH_INDEX_NAME, doc_type="text")
     return res
 
     #print("Got %d Hits:" % res['hits']['total'])
