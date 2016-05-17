@@ -183,7 +183,7 @@ def render_react_component(component, props):
                       <img src="/static/img/sefaria.png" />
                       <br>
                       <span class="en">Loading...</span>
-                      <span className="he">טעינה...</span>
+                      <!--<span className="he">טעינה...</span>-->
                     </div>
                 </div>
                 """
