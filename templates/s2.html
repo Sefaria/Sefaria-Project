@@ -76,12 +76,11 @@
 
       // TODO clean up generation of initial panels objects. 
       // Currently these get generated in reader/views.py, then regenerated in s2.html then regenerated again in ReaderApp.
-
       var panel = panels.shift();
       if (panel) {
           version = panel.version;
           language = panel.language;
-          if (panel.ref) {
+          if ((panel.ref) && (!(panel.initialMenu && panel.initialMenu == "book toc")))  {
               ref = panel.ref;
               sjs.library._saveText(panel.text, {context: 1, version: version, language: language});
           }
@@ -94,35 +93,45 @@
           initialPanels = [];
         } else if (filter) {
           initialPanels = [{mode: "TextAndConnections", refs: [ref], menuOpen: panel.initialMenu, filter: filter, version: version, versionLanguage: language}];
+        } else if (panel && panel.initialMenu == "book toc") {
+          initialPanels = [{bookRef: panel.bookRef, menuOpen: panel.initialMenu}]
         } else if (panel) {
           initialPanels = [{mode: "Text", refs: [ref], menuOpen: panel.initialMenu, version: version, versionLanguage: language}];
         } else {
           initialMenu = initialMenu || "home";
         }
       } else { //multiPanel
-        if (ref) {
-          initialPanels = [{mode: "Text", refs: [ref], menuOpen: panel.initialMenu, version: version, versionLanguage: language}];
+        if (panel && panel.initialMenu == "book toc") {
+          initialPanels = [{bookRef: panel.bookRef, menuOpen: panel.initialMenu}]
+        } else {
+          if (ref) {
+            initialPanels = [{mode: "Text", refs: [ref], menuOpen: panel.initialMenu, version: version, versionLanguage: language}];
+          }
+          if (filter) {
+            initialPanels.push({mode: "Connections", refs: [ref], menuOpen: panel.initialMenu, filter: filter});
+          }
         }
-        if (filter) {
-          initialPanels.push({mode: "Connections", refs: [ref], menuOpen: panel.initialMenu, filter: filter});
-        }
+
 
         while (panels.length > 0) {
           panel = panels.shift();
-
-          if (panel.ref && !panel.ref.match(/^texts|^sheets|^search/)) {
-            sjs.library._saveText(panel.text, {context: 1, version: panel.version, language: panel.language});
-            initialPanels.push({
-              mode: "Text", 
-              refs: [humanRef(panel.ref)], 
-              menuOpen: panel.initialMenu, 
-              version: panel.version, 
-              versionLanguage: panel.language
-            });
-          }
-          if (panel.filter) {
-            var pfilter = panel.filter && panel.filter.length === 1 && panel.filter[0] === "all" ? [] : panel.filter;
-            initialPanels.push({mode: "Connections", refs: [humanRef(panel.ref)], menuOpen: panel.initialMenu, filter: pfilter});
+          if (panel.ref && panel.initialMenu == "book toc") {
+            initialPanels.push({bookRef: panel.bookRef, menuOpen: panel.initialMenu})
+          } else {
+            if (panel.ref && panel.text && !panel.ref.match(/^texts|^sheets|^search/)) {
+              sjs.library._saveText(panel.text, {context: 1, version: panel.version, language: panel.language});
+              initialPanels.push({
+                mode: "Text",
+                refs: [humanRef(panel.ref)],
+                menuOpen: panel.initialMenu,
+                version: panel.version,
+                versionLanguage: panel.language
+              });
+            }
+            if (panel.filter) {
+              var pfilter = panel.filter && panel.filter.length === 1 && panel.filter[0] === "all" ? [] : panel.filter;
+              initialPanels.push({mode: "Connections", refs: [humanRef(panel.ref)], menuOpen: panel.initialMenu, filter: pfilter});
+            }
           }
         }
       }

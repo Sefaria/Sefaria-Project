@@ -1,11 +1,11 @@
 if (typeof require !== 'undefined') {
   var React    = require('react');
   var ReactDOM = require('react-dom');
-  sjs = {library: require('./library.js')}
+  sjs = {library: require('./library.js')};
   // Include utils.js with this hack because it has so many spaghetti methods
   // and extra methods on built-in types.
-  var read = function(f) { return fs.readFileSync(f).toString(); }
-  var include = function(f) { eval.apply(global, [read(f)]); }
+  var read = function(f) { return fs.readFileSync(f).toString(); };
+  var include = function(f) { eval.apply(global, [read(f)]); };
   console.log("util.js");
   console.log(read('../static/js/util.js'));
   include('../static/js/util.js');
@@ -28,7 +28,7 @@ var ReaderApp = React.createClass({
     initialDefaultVersions:      React.PropTypes.object 
   },
   getInitialState: function() {
-    // TODO clean up generation of initial panels objects. 
+    // TODO clean up generation of initial panels objects.
     // Currently these get generated in reader/views.py, then regenerated in s2.html then regenerated again in ReaderApp.
     var panels               = [];
     var header               = {};
@@ -96,6 +96,12 @@ var ReaderApp = React.createClass({
           }
           panels.push(panel);
         }
+      } else if (this.props.initialPanels && this.props.initialPanels.length && this.props.initialPanels[0].menuOpen == "book toc") {
+        panels.push({
+            settings: clone(defaultPanelSettings),
+            menuOpen: this.props.initialPanels[0].menuOpen,
+            bookRef:  this.props.initialPanels[0].bookRef
+        })
       }
     }
     panels = panels.map(function(panel) { 
@@ -256,10 +262,16 @@ var ReaderApp = React.createClass({
             hist.url   = bookTitle.replace(/ /g, "_");
             hist.mode  = "text toc";
             break;
+          case "book toc":
+            var bookTitle = states[i].bookRef;
+            hist.title = bookTitle + " | Sefaria";
+            hist.url = bookTitle.replace(/ /g, "_");
+            hist.mode = "book toc";
+            break;
           case "search":
             hist.title = states[i].searchQuery ? states[i].searchQuery + " | " : "";
             hist.title += "Sefaria Search";
-            hist.url   = "search" + (states[i].searchQuery ? "&q=" + states[i].searchQuery + (!!states[i].appliedSearchFilters.length ? "&filters=" + states[i].appliedSearchFilters.join("|") : "") : "");
+            hist.url   = "search" + (states[i].searchQuery ? "&q=" + states[i].searchQuery + ((!!states[i].appliedSearchFilters && !!states[i].appliedSearchFilters.length) ? "&filters=" + states[i].appliedSearchFilters.join("|") : "") : "");
             hist.mode  = "search";
             break;
           case "sheets":
@@ -393,7 +405,7 @@ var ReaderApp = React.createClass({
       highlightedRefs:      state.highlightedRefs || [],
       recentFilters:        state.filter || [],
       settings:             state.settings ? clone(state.settings): clone(this.state.defaultPanelSettings),
-      menuOpen:             state.menuOpen || null, // "navigation", "text toc", "display", "search", "sheets", "home"
+      menuOpen:             state.menuOpen || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home"
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag:   state.sheetsTag || null,
       searchQuery:          state.searchQuery || null,
@@ -402,6 +414,7 @@ var ReaderApp = React.createClass({
       availableFilters:     state.availableFilters     || [],
       filterRegistry:       state.filterRegistry       || {},
       orphanSearchFilters:  state.orphanSearchFilters  || [],
+      bookRef:              state.bookRef              || "",
       displaySettingsOpen:  false
     };
     if (this.state && panel.refs.length && !panel.version) {
@@ -979,6 +992,7 @@ var ReaderPanel = React.createClass({
     // When this component is independent and manages itself, it takes individual initial state props, with defaults listed here. 
     return {
       refs: this.props.initialRefs || [], // array of ref strings
+      bookRef: "",
       mode: this.props.initialMode, // "Text", "TextAndConnections", "Connections"
       connectionsMode: this.props.initialConnectionsMode,
       filter: this.props.initialFilter || [],
@@ -994,7 +1008,7 @@ var ReaderPanel = React.createClass({
         color:         "light",
         fontSize:      62.5
       },
-      menuOpen:             this.props.initialMenu || null, // "navigation", "text toc", "display", "search", "sheets", "home"
+      menuOpen:             this.props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home"
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag:   this.props.initialSheetsTag || null,
       searchQuery:          this.props.initialQuery || null,
@@ -1388,15 +1402,17 @@ var ReaderPanel = React.createClass({
                     onRecentClick={this.props.onRecentClick || function(pos, ref) { this.showBaseText(ref) }.bind(this) }
                     hideNavHeader={this.props.hideNavHeader} />);
 
-    } else if (this.state.menuOpen === "text toc") {
+    } 
+    else if (this.state.menuOpen === "text toc" || this.state.menuOpen === "book toc") {
       var menu = (<ReaderTextTableOfContents 
+                    mode={this.state.menuOpen}
                     close={this.closeMenus}
                     title={this.currentBook()}
                     version={this.state.version}
                     versionLanguage={this.state.versionLanguage}
                     settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
                     category={this.currentCategory()}
-                    currentRef={this.lastCurrentRef()}
+                    currentRef={(this.state.menuOpen === "text toc")?this.lastCurrentRef():this.state.bookRef}
                     openNav={this.openMenu.bind(null, "navigation")}
                     openDisplaySettings={this.openDisplaySettings}
                     selectVersion={this.props.selectVersion}
@@ -2131,6 +2147,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
 var ReaderTextTableOfContents = React.createClass({
   // Menu for the Table of Contents for a single text
   propTypes: {
+    mode:             React.PropTypes.string.isRequired,
     title:            React.PropTypes.string.isRequired,
     category:         React.PropTypes.string.isRequired,
     currentRef:       React.PropTypes.string.isRequired,

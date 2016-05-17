@@ -199,25 +199,27 @@ def s2(request, ref, version=None, lang=None):
     if version and lang:
         panel_1["version"] = version.replace(u"_", u" ")
         panel_1["language"] = lang
-    if oref.is_book_level(): #oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
-        panel_1["initialMenu"] = "text toc"
-        oref = oref.first_available_section_ref()
+
+    if oref.is_book_level():
+        panel_1["initialMenu"] = "book toc"
+        panel_1["bookRef"] = oref.normal()
+        # oref = oref.first_available_section_ref()
         # If there's a version specified, should we use Version.first_section_ref()?
     else:
         panel_1["initialMenu"] = ""
-    try:
-        text = TextFamily(oref, version=panel_1.get("version"), lang=panel_1.get("language"), commentary=False, context=True, pad=True, alts=True).contents()
-    except NoVersionFoundError:
-        raise Http404
+        try:
+            text = TextFamily(oref, version=panel_1.get("version"), lang=panel_1.get("language"), commentary=False, context=True, pad=True, alts=True).contents()
+        except NoVersionFoundError:
+            raise Http404
         
-    text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-    text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+        text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+        text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
 
-    panel_1["ref"] = oref.normal()
-    if oref.is_segment_level():
-        panel_1["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
-    panel_1["text"] = text
-    panel_1["filter"] = request.GET.get("with").replace("_"," ").split("+") if request.GET.get("with") else None
+        if oref.is_segment_level():
+            panel_1["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
+        panel_1["filter"] = request.GET.get("with").replace("_", " ").split("+") if request.GET.get("with") else None
+        panel_1["text"] = text
+        panel_1["ref"] = oref.normal()
 
     panels += [panel_1]
 
@@ -235,23 +237,27 @@ def s2(request, ref, version=None, lang=None):
         panel["version"] = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
         panel["language"] = request.GET.get("l{}".format(i))
         # Can we replace the below with a Ref method?
-        if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
-            panel["initialMenu"] = "text toc"
-            oref = oref.first_available_section_ref()
+        if oref.is_book_level(): #oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
+            panel["initialMenu"] = "book toc"
+            panel["bookRef"] = oref.normal()
+
+            # oref = oref.first_available_section_ref()
         else:
             panel["initialMenu"] = ""
-        try:
-            text = TextFamily(oref, version=panel["version"], lang=panel["language"], commentary=False, context=True, pad=True, alts=True).contents()
-        except NoVersionFoundError:
-            continue # Stop processing all panels?
-        text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-        text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+            try:
+                text = TextFamily(oref, version=panel["version"], lang=panel["language"], commentary=False, context=True, pad=True, alts=True).contents()
+            except NoVersionFoundError:
+                continue  # Stop processing all panels?
 
-        panel["ref"] = oref.normal()
-        if oref.is_segment_level():
-            panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
-        panel["text"] = text
-        panel["filter"] = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
+            text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+            text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+
+            if oref.is_segment_level():
+                panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
+            panel["text"] = text
+
+            panel["ref"] = oref.normal()
+            panel["filter"] = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
 
         panels += [panel]
 
