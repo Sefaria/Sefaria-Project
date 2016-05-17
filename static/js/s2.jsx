@@ -583,7 +583,7 @@ var ReaderApp = React.createClass({
       panel.filter = oref1.book === oref2.book ? panel.filter : [];      
       */
     } else {
-      // No connctions panel is open yet, splice in a new one
+      // No connections panel is open yet, splice in a new one
       this.state.panels.splice(n, 0, {});
       panel = this.state.panels[n];
       panel.filter = [];

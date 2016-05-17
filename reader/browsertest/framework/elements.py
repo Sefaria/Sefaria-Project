@@ -7,10 +7,14 @@ import inspect
 import httplib
 import base64
 import json
+import traceback
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support.expected_conditions import title_contains, staleness_of, element_to_be_clickable, visibility_of_element_located
+
+# http://selenium-python.readthedocs.io/waits.html
+# http://selenium-python.readthedocs.io/api.html#module-selenium.webdriver.support.expected_conditions
+from selenium.webdriver.support.expected_conditions import title_contains, presence_of_element_located, staleness_of, element_to_be_clickable, visibility_of_element_located
 from selenium.webdriver.common.keys import Keys
 
 
@@ -79,7 +83,11 @@ class AtomicTest(object):
         if filter is not None:
             url += "?with={}".format(filter)
         self.driver.get(url)
-        WebDriverWait(self.driver, TEMPER).until(title_contains(ref.normal()))
+        if filter is not None:
+            # Filters load slower than the main page
+            WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".filterSet")))
+        else:
+            WebDriverWait(self.driver, TEMPER).until(title_contains(ref.normal()))
         return self
 
     def click_segment(self, ref):
@@ -88,7 +96,8 @@ class AtomicTest(object):
         assert isinstance(ref, Ref)
         segment = self.driver.find_element_by_css_selector('.segment[data-ref="{}"]'.format(ref.normal()))
         segment.click()
-        WebDriverWait(self.driver, TEMPER).until(title_contains("{} with".format(ref.normal())))
+        # Todo: put a data-* attribute on .filterSet, for the multi-panel case
+        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".filterSet")))
 
     def scroll_to_segment(self, ref):
         if isinstance(ref, basestring):
@@ -112,7 +121,8 @@ class AtomicTest(object):
         elem = self.driver.find_element_by_css_selector("input.search")
         elem.send_keys(query)
         elem.send_keys(Keys.RETURN)
-        WebDriverWait(self.driver, TEMPER).until(title_contains(query))
+        # todo: does this work for a second search?
+        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".result")))
         return self
 
 
@@ -187,8 +197,8 @@ class ResultSet(object):
 
         total_tests = len(self._test_results)
         passed_tests = len([t for t in self._test_results if t.success])
-        percentage_passed = (passed_tests / total_tests) * 100
-        ret += "\n\n{}/{} - {}% passed".format(passed_tests, total_tests, percentage_passed)
+        percentage_passed = (float(passed_tests) / total_tests) * 100
+        ret += "\n\n{}/{} - {:.0f}% passed".format(passed_tests, total_tests, percentage_passed)
         return ret
 
     def include(self, result):
@@ -266,15 +276,17 @@ class Trial(object):
             test.run()
             driver.execute_script('"**** Exit {} ****"'.format(test))
         except Exception as e:
-            print "{} - Failed".format(name, e.msg)
-            if e.message or e.msg:
-                print "{}".format(e.message if e.message else e.msg)
-            return TestResult(test, cap, False, e.msg)
+            msg = getattr(e, "message", None) or getattr(e, "msg", None)
+            print "{} - Failed".format(name)
+            traceback.print_exc()
+            return TestResult(test, cap, False, msg)
         else:
             print "{} - Passed".format(name)
             return TestResult(test, cap, True)
 
     def _test_one(self, test, cap):
+        driver = None
+        try:
             if self.is_local:
                 mode = "multi_panel"   # Assuming that local isn't single panel
             else:
@@ -291,6 +303,14 @@ class Trial(object):
                 self.set_sauce_result(driver, result.success)
             driver.quit()
             return result
+        except Exception as e:
+            if driver is not None:
+                driver.quit()
+            name = "{} / {}".format(test.__name__, Trial.cap_to_string(cap))
+            msg = getattr(e, "message", None) or getattr(e, "msg", None)
+            print "{} - Aborted".format(name)
+            traceback.print_exc()
+            return TestResult(test, cap, False, msg)
 
     def _test_on_all(self, test):
         """
