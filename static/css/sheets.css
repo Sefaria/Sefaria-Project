@@ -1454,13 +1454,6 @@ input[type="file"] {
 	text-align: center;
 }
 
-.button.active {
-	border: 2px solid red;
-}
-
-.sourceConnection.active {
-	border: 2px solid red;
-}
 
 
 .contentDiv > div {
@@ -1483,7 +1476,37 @@ input[type="file"] {
 	padding: 20px 0;
 	display: inline-block;
 	background-color: #fff;
+	color: #999;
+
 }
+
+.sourceConnection.active {
+	border: 2px solid #6c6c6c;
+	color: black;
+}
+
+
+.addInterfaceButton{
+	width: 120px;
+	color: #999;
+	margin: 10px -2px;
+	padding: 20px;
+	border-left: 1px solid #fff;
+	border-right: 1px solid #fff;
+	border-top: 1px solid #cecece;
+	border-bottom: 1px solid #cecece;
+	display: inline-block;
+	background-color: #fff;
+}
+
+.addInterfaceButton.active {
+	border-top: 1px solid #6c6c6c;
+	border-bottom: 1px solid #6c6c6c;
+	border-left: 1px solid #6c6c6c;
+	border-right: 1px solid #6c6c6c;
+	color: black;
+}
+
 
 .flexContainer {
 	display:flex;
