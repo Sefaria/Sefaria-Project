@@ -316,7 +316,7 @@ body {
 	bottom: -43px;
 }
 
-#textPreview {
+#textPreview, #inlineTextPreview  {
 	position: absolute;
 	padding: 4px;
 	background: white;
@@ -326,28 +326,28 @@ body {
 	width: 600px;
 }
 
-#textPreview .previewLine {
+#textPreview .previewLine, #inlineTextPreview .previewLine {
 	display: inline;
 }
 
-#textPreview .previewNumber {
+#textPreview .previewNumber, #inlineTextPreview .previewNumber {
 	font-weight: bold;
 	font-variant: small-caps;
 }
 
-#textPreview .he, #textPreview .en {
+#textPreview .he, #textPreview .en, #inlineTextPreview .en, #inlineTextPreview .he {
 	padding: 10px;
 }
 
-#textPreview .he {
+#textPreview .he , #inlineTextPreview .he {
 	direction: rtl;
 }
 
-#textPreview .previewNoText {
+#textPreview .previewNoText, #inlineTextPreview .previewNoText {
 	direction: ltr;
 }
 
-#textPreview .previewWarn {
+#textPreview .previewWarn, #inlineTextPreview .previewWarn {
 	color: #B94A48;
 	padding: 20px;
 }
@@ -498,6 +498,16 @@ body {
 #sourceControls div:hover {
 	color: #08c;
 }
+.sideControls {
+	width: 20px !important;
+	left: 5px !important;
+	margin-left: 0 !important;
+	top: 32px !important;
+}
+
+.sideControls div {
+	display: block !important
+}
 
 .source {
 	position: relative;
@@ -575,7 +585,7 @@ body {
 .comment span,
 .outside span,
 .outsideBi .text .he span,
-.outsideBi .text .en span,  {
+.outsideBi .text .en span  {
 	display: inline-block;
 }
 
@@ -1244,26 +1254,26 @@ input[type="file"] {
 }
 
 
-#sheet .source.sheetItem.sideBySide.hebLeft > .en {
+#sheet .source.sheetItem.sideBySide.heLeft > .en {
 	float: right;
 	display: block;
 	width: 48%;
 }
 
-#sheet .source.sheetItem.sideBySide.hebLeft > .he {
+#sheet .source.sheetItem.sideBySide.heLeft > .he {
 	float: left;
 	display: block;
 	width: 48%;
 }
 
-#sheet .source.sheetItem.sideBySide.hebRight > .he {
+#sheet .source.sheetItem.sideBySide.heRight > .he {
 	float: right;
 	display: block;
 	width: 48%;
 
 }
 
-#sheet .source.sheetItem.sideBySide.hebRight > .en {
+#sheet .source.sheetItem.sideBySide.heRight > .en {
 	float: left;
 	display: block;
 	width: 48%;
@@ -1416,4 +1426,96 @@ input[type="file"] {
     -webkit-box-shadow: none;
     box-shadow: none;
 
+}
+
+.activeSource {
+	background-color: #eee;
+	border-left:solid 3px #4e6eff;
+}
+
+.inlineAddButton {
+    text-align: center;
+    width: 100%;
+    padding: 0;
+    bottom: -45px;
+    position: relative;
+    font-size: 30px;
+
+}
+
+#sourceLayoutLanguageMenuItems {
+	display: none;
+}
+
+#addInterface {
+	width:100%;
+	background-color: #eee;
+	padding-top: 40px;
+	text-align: center;
+}
+
+
+
+.contentDiv > div {
+	display: none;
+}
+
+.contentToAdd {
+	min-height:120px;
+	flex:1;
+	margin:30px;
+	background-color: #fff;
+	display: flex;
+  	flex-direction: column;
+  	justify-content: flex-start;
+}
+.sourceConnection{
+	width: 48%;
+	margin: 10px 5px;
+	border: 1px solid #eee;
+	padding: 20px 0;
+	display: inline-block;
+	background-color: #fff;
+	color: #999;
+
+}
+
+.sourceConnection.active {
+	border: 2px solid #6c6c6c;
+	color: black;
+}
+
+
+.addInterfaceButton{
+	width: 120px;
+	color: #999;
+	margin: 10px -2px;
+	padding: 20px;
+	border-left: 1px solid #fff;
+	border-right: 1px solid #fff;
+	border-top: 1px solid #cecece;
+	border-bottom: 1px solid #cecece;
+	display: inline-block;
+	background-color: #fff;
+}
+
+.addInterfaceButton.active {
+	border-top: 1px solid #6c6c6c;
+	border-bottom: 1px solid #6c6c6c;
+	border-left: 1px solid #6c6c6c;
+	border-right: 1px solid #6c6c6c;
+	color: black;
+}
+
+
+.flexContainer {
+	display:flex;
+}
+
+#connectionButton {
+	display:none;
+}
+
+#inlineAdd {
+	width: 70%;
 }

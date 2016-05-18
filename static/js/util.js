@@ -1506,6 +1506,7 @@ function checkRef($input, $msg, $ok, level, success, commentatorOnly) {
 	
 	// Specfic to sheets for now, remove preview text
 	$("#textPreview").remove();
+	$("#inlineTextPreview").remove();
 
 	// sort books by length so longest matches first in regex
 	if (!sjs.sortedBooks) {
@@ -3347,7 +3348,8 @@ window.findAndReplaceDOMText = (function() {
 
 }());
 
-/*!
+/*
+  classnames
   Copyright (c) 2015 Jed Watson.
   Licensed under the MIT License (MIT), see
   http://jedwatson.github.io/classnames

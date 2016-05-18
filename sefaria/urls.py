@@ -276,7 +276,6 @@ urlpatterns += patterns('reader.views',
     (r'^visualize/torah-quant$', 'visualize_torah_quant'),
     (r'^visualize/steve$', 'visualize_steve'),
     (r'^visualize/yoni$', 'visualize_yoni'),
-    (r'visualize/yoni$', 'visualize_yoni'),
     (r'^visualize/links_through_rashi$', 'visualize_rashi_interlinks'),
 )
 
@@ -290,6 +289,13 @@ urlpatterns += patterns('',
     (r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions')),
 
 )
+
+# Packaged JavaScript
+urlpatterns += patterns('sefaria.views',
+    (r'^data\.js$', 'data_js'),
+    (r'^sefaria\.js$', 'sefaria_js'),
+)
+
 
 # Linker js
 urlpatterns += patterns('sefaria.views',

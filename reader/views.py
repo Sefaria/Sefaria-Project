@@ -7,6 +7,8 @@ from random import choice
 from pprint import pprint
 import json
 import urlparse
+import urllib2
+import urllib
 import dateutil.parser
 from bson.json_util import dumps
 import p929
@@ -40,10 +42,7 @@ from sefaria.datatype.jagged_array import JaggedArray
 import sefaria.utils.calendars
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
-try:
-    from sefaria.settings import USE_VARNISH
-except ImportError:
-    USE_VARNISH = False
+from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST
 if USE_VARNISH:
     from sefaria.system.sf_varnish import invalidate_ref, invalidate_linked
 
@@ -172,6 +171,30 @@ def esi_account_box(request):
     return render_to_response('elements/accountBox.html', {}, RequestContext(request))
 
 
+def render_react_component(component, props):
+    """
+    Asks the Node Server to render `component` with `props`.
+    Returns HTML.
+    """
+    if not USE_NODE:
+        return """
+                <div id="s2Loading">
+                    <div class='loadingMessage'>
+                      <img src="/static/img/sefaria.png" />
+                      <br>
+                      <span class="en">Loading...</span>
+                      <!--<span className="he">טעינה...</span>-->
+                    </div>
+                </div>
+                """
+    url = "%s/%s?%s" % (NODE_HOST, component, urllib.urlencode(props))
+
+    response = urllib2.urlopen(url)
+    html = response.read()
+
+    return html
+
+
 def switch_to_s2(request):
     """Set the S2 cookie then redirect to /texts"""
 
@@ -199,25 +222,27 @@ def s2(request, ref, version=None, lang=None):
     if version and lang:
         panel_1["version"] = version.replace(u"_", u" ")
         panel_1["language"] = lang
-    if oref.is_book_level(): #oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
-        panel_1["initialMenu"] = "text toc"
-        oref = oref.first_available_section_ref()
+
+    if oref.is_book_level():
+        panel_1["initialMenu"] = "book toc"
+        panel_1["bookRef"] = oref.normal()
+        # oref = oref.first_available_section_ref()
         # If there's a version specified, should we use Version.first_section_ref()?
     else:
         panel_1["initialMenu"] = ""
-    try:
-        text = TextFamily(oref, version=panel_1.get("version"), lang=panel_1.get("language"), commentary=False, context=True, pad=True, alts=True).contents()
-    except NoVersionFoundError:
-        raise Http404
+        try:
+            text = TextFamily(oref, version=panel_1.get("version"), lang=panel_1.get("language"), commentary=False, context=True, pad=True, alts=True).contents()
+        except NoVersionFoundError:
+            raise Http404
         
-    text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-    text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+        text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+        text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
 
-    panel_1["ref"] = oref.normal()
-    if oref.is_segment_level():
-        panel_1["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
-    panel_1["text"] = text
-    panel_1["filter"] = request.GET.get("with").replace("_"," ").split("+") if request.GET.get("with") else None
+        if oref.is_segment_level():
+            panel_1["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
+        panel_1["filter"] = request.GET.get("with").replace("_", " ").split("+") if request.GET.get("with") else None
+        panel_1["text"] = text
+        panel_1["ref"] = oref.normal()
 
     panels += [panel_1]
 
@@ -235,29 +260,36 @@ def s2(request, ref, version=None, lang=None):
         panel["version"] = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
         panel["language"] = request.GET.get("l{}".format(i))
         # Can we replace the below with a Ref method?
-        if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
-            panel["initialMenu"] = "text toc"
-            oref = oref.first_available_section_ref()
+        if oref.is_book_level(): #oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
+            panel["initialMenu"] = "book toc"
+            panel["bookRef"] = oref.normal()
+
+            # oref = oref.first_available_section_ref()
         else:
             panel["initialMenu"] = ""
-        try:
-            text = TextFamily(oref, version=panel["version"], lang=panel["language"], commentary=False, context=True, pad=True, alts=True).contents()
-        except NoVersionFoundError:
-            continue # Stop processing all panels?
-        text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-        text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+            try:
+                text = TextFamily(oref, version=panel["version"], lang=panel["language"], commentary=False, context=True, pad=True, alts=True).contents()
+            except NoVersionFoundError:
+                continue  # Stop processing all panels?
 
-        panel["ref"] = oref.normal()
-        if oref.is_segment_level():
-            panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
-        panel["text"] = text
-        panel["filter"] = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
+            text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+            text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+
+            if oref.is_segment_level():
+                panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
+            panel["text"] = text
+
+            panel["ref"] = oref.normal()
+            panel["filter"] = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
 
         panels += [panel]
 
-    return render_to_response('s2.html', {
-            "panels": json.dumps(panels)
-        }, RequestContext(request))
+    props = {
+        "initialPanels": json.dumps(panels),
+        "ref": oref.normal(),
+    }
+    props["html"] = render_react_component("ReaderApp", props)
+    return render_to_response('s2.html', props, RequestContext(request))
 
 
 def s2_texts_category(request, cats):
@@ -272,29 +304,35 @@ def s2_texts_category(request, cats):
     if cat_toc is None:
         return s2_texts(request)
 
-    return render_to_response('s2.html', {
-                                    "initialMenu": "navigation",
-                                    "initialNavigationCategories": json.dumps(cats),
-                                }, RequestContext(request))
+    props = {
+        "initialMenu": "navigation",
+        "initialNavigationCategories": json.dumps(cats),
+    }
+    props["html"] = render_react_component("ReaderApp", props)
+    return render_to_response('s2.html', props, RequestContext(request))
 
 
 def s2_search(request):
     search_filters = request.GET.get("filters").split("|") if request.GET.get("filters") else []
 
-    return render_to_response('s2.html', {
-            "initialMenu": "search",
-            "query": request.GET.get("q") or "",
-            "searchFilters": json.dumps(search_filters)
-        }, RequestContext(request))
+    props = {
+        "initialMenu": "search",
+        "query": request.GET.get("q") or "",
+        "searchFilters": json.dumps(search_filters)
+    }
+    props["html"] = render_react_component("ReaderApp", props)
+    return render_to_response('s2.html', props, RequestContext(request))
 
 
 def s2_page(request, page):
     """
     View into an S2 page
     """
-    return render_to_response('s2.html', {
-                                    "initialMenu": page
-                                }, RequestContext(request))
+    props = {
+        "initialMenu": page
+    }
+    props["html"] = render_react_component("ReaderApp", props)
+    return render_to_response('s2.html', props, RequestContext(request))
 
 
 def s2_home(request):
@@ -321,10 +359,13 @@ def s2_sheets_by_tag(request, tag):
     """
     Standalone page for new sheets list
     """
-    return render_to_response('s2.html', {
-                                    "initialMenu": "sheets",
-                                    "initialSheetsTag": tag,
-                                }, RequestContext(request))
+    props = {
+        "initialMenu": "sheets",
+        "initialSheetsTag": tag,
+    }
+    props["html"] = render_react_component("ReaderApp", props)
+    return render_to_response('s2.html', props, RequestContext(request))
+
 
 @ensure_csrf_cookie
 def edit_text(request, ref=None, lang=None, version=None):

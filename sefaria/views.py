@@ -172,7 +172,26 @@ def subscribe(request, email):
         return jsonResponse({"error": "Sorry, there was an error."})
 
 
+def data_js(request):
+    """
+    Javascript populating dynamic data like book lists, toc.
+    """
+    return render_to_response("js/data.js", {}, RequestContext(request), mimetype= "text/javascript")    
+
+
+def sefaria_js(request):
+    """
+    Packaged Sefaria.js.
+    """
+    # TODO
+    attrs = {}
+    return render_to_response("js/sefaria.js", attrs, RequestContext(request), mimetype= "text/javascript")    
+
+
 def linker_js(request):
+    """
+    Javascript of Linker plugin.
+    """
     attrs = {
         "book_titles": json.dumps(model.library.full_title_list("en", with_commentary=True, with_commentators=False)
                       + model.library.full_title_list("he", with_commentary=True, with_commentators=False))

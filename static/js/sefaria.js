@@ -1,13 +1,14 @@
 if (typeof require !== 'undefined') {
-  var sjs = {toc: []};
-  // Include utils.js with this hack because it has so many spaghetti methods
-  // and extra methods on built-in types.
-  var read = function(f) { return fs.readFileSync(f).toString(); };
-  var include = function(f) { eval.apply(global, [read(f)]); };
-  include('./util.js');
+  var $       = require('jquery'),
+      extend  = require('extend'),
+      Sefaria = require('./sefaria-util.js');
+} else {
+  var extend  = $.extend;
 }
 
-sjs.library = {
+var Sefaria = Sefaria || {};
+
+Sefaria = extend(Sefaria, {
   _texts: {},
   _refmap: {}, // Mapping of simple ref/context keys to the (potentially) versioned key for that ref in _texts. 
   text: function(ref, settings, cb) {
@@ -72,8 +73,8 @@ sjs.library = {
     var cached = this._texts[key];
     if (!cached || !cached.buildable) { return cached; }
     if (cached.buildable === "Add Context") {
-      var segmentData = clone(this.text(cached.ref, $.extend(settings, {context: 0})));
-      var contextData = this.text(cached.sectionRef, $.extend(settings, {context: 0})) || this.text(cached.sectionRef, $.extend(settings, {context: 1}));
+      var segmentData = clone(this.text(cached.ref, extend(settings, {context: 0})));
+      var contextData = this.text(cached.sectionRef, extend(settings, {context: 0})) || this.text(cached.sectionRef, extend(settings, {context: 1}));
       segmentData.text = contextData.text;
       segmentData.he   = contextData.he;
       return segmentData;
@@ -81,7 +82,6 @@ sjs.library = {
   },
   _saveText: function(data, settings, skipWrap) {
     if (!data || "error" in data) { 
-      //sjs.alert.message(data.error);
       return;
     }
     settings         = settings || {};
@@ -115,7 +115,7 @@ sjs.library = {
       for (var i = 0; i < data.spanningRefs.length; i++) {
         // For spanning refs, request each section ref to prime cache.
         // console.log("calling spanning prefetch " + data.spanningRefs[i])
-        sjs.library.text(data.spanningRefs[i], spanning_context_settings, function(data) {})
+        Sefaria.text(data.spanningRefs[i], spanning_context_settings, function(data) {})
       }      
     }
 
@@ -145,7 +145,7 @@ sjs.library = {
       var ref          = data.ref + delim + (i+start);
       var sectionRef   = superSectionLevel ? data.sectionRef : ref;
       var segment_data = clone(data);
-      $.extend(segment_data, {
+      extend(segment_data, {
         ref: ref,
         heRef: data.heRef + delim + encodeHebrewNumeral(i+start),
         text: en[i],
@@ -192,9 +192,9 @@ sjs.library = {
     // Wraps citations found in text of data
     if (!data.text) { return data; }
     if (typeof data.text === "string") {
-      data.text = sjs.wrapRefLinks(data.text);
+      data.text = Sefaria.util.wrapRefLinks(data.text);
     } else {
-      data.text = data.text.map(sjs.wrapRefLinks);
+      data.text = data.text.map(Sefaria.util.wrapRefLinks);
     }
     return data;
   },
@@ -208,12 +208,12 @@ sjs.library = {
     }
   },
   _cacheIndexFromToc: function(toc) {
-    // Unpacks contents of sjs.toc and stores it in index cache.
+    // Unpacks contents of Sefaria.toc into index cache.
     for (var i = 0; i < toc.length; i++) {
       if ("category" in toc[i]) {
-        sjs.library._cacheIndexFromToc(toc[i].contents)
+        Sefaria._cacheIndexFromToc(toc[i].contents)
       } else {
-        sjs.library.index(toc[i].title, toc[i]);
+        Sefaria.index(toc[i].title, toc[i]);
       }
     }
   },
@@ -222,7 +222,7 @@ sjs.library = {
     if (title in this._titleVariants) {  callback(this._titleVariants[title]); }
     this._api("/api/index/" + title, function(data) {
       for (var i = 0; i < data.titleVariants.length; i ++) {
-        sjs.library._titleVariants[data.titleVariants[i]] = data.title;
+        Sefaria._titleVariants[data.titleVariants[i]] = data.title;
       }
        callback(data.title);
     })
@@ -232,9 +232,8 @@ sjs.library = {
     // Uses this._refmap to find the refkey that has information for this ref.
     // Used in cases when the textual information is not important, so it can
     // be called without worrying about the `settings` parameter for what is available in cache.
-
-    var versioned_key = this._refmap[this._refKey(ref)] || this._refmap[this._refKey(ref, {context:1})];
-    if (versioned_key) { return this._getOrBuildTextData(versioned_key);  }
+    var versionedKey = this._refmap[this._refKey(ref)] || this._refmap[this._refKey(ref, {context:1})];
+    if (versionedKey) { return this._getOrBuildTextData(versionedKey);  }
     return null;
   },
   sectionRef: function(ref) {
@@ -245,7 +244,7 @@ sjs.library = {
   splitSpanningRef: function(ref) {
     // Returns an array of non-spanning refs which correspond to the spanning `ref`
     // e.g. "Genesis 1:1-2" -> ["Genesis 1:1", "Genesis 1:2"]
-    var oref = parseRef(ref);
+    var oref = Sefaria.util.parseRef(ref);
     var isDepth1 = oref.sections.length == 1;
     if (!isDepth1 && oref.sections[oref.sections.length - 2] !== oref.toSections[oref.sections.length - 2]) {
       // TODO handle ranging refs, which requires knowledge of the segment count of each included section
@@ -302,7 +301,6 @@ sjs.library = {
        var url = "/api/links/" + normRef(ref) + "?with_text=0";
        this._api(url, function(data) {
           if ("error" in data) { 
-            // sjs.alert.message(data.error);
             return;
           }
           this._saveLinkData(ref, data);
@@ -336,7 +334,7 @@ sjs.library = {
     var splitItems = {}; // Aggregate links by anchorRef
     for (var i=0; i < data.length; i++) {
       var ref = data[i].anchorRef;
-      var refs = sjs.library.splitSpanningRef(ref);
+      var refs = Sefaria.splitSpanningRef(ref);
       for (var j = 0; j < refs.length; j++) {
         ref = refs[j];
         if (ref in splitItems) {
@@ -387,7 +385,7 @@ sjs.library = {
     } else {
       var links = [];
       ref.map(function(r) {
-        var newlinks = sjs.library.links(r);
+        var newlinks = Sefaria.links(r);
         links = links.concat(newlinks);
       });
     }
@@ -411,10 +409,10 @@ sjs.library = {
     }
     // Add Zero counts for every commentator in this section not already in list
     var baseRef    = typeof ref == "string" ? ref : ref[0]; // TODO handle refs spanning sections
-    var oRef       = sjs.library.ref(baseRef);
+    var oRef       = Sefaria.ref(baseRef);
     var sectionRef = oRef ? oRef.sectionRef : baseRef;
     if (ref !== sectionRef) {
-      var sectionLinks = sjs.library.links(sectionRef);
+      var sectionLinks = Sefaria.links(sectionRef);
       for (var i = 0; i < sectionLinks.length; i++) {
         var l = sectionLinks[i]; 
         if (l.category === "Commentary") {
@@ -432,7 +430,7 @@ sjs.library = {
     summary = $.map(summary, function(value, category) {
       value.category = category;
       value.books = $.map(value.books, function(value, book) {
-        var index      = sjs.library.index(book);
+        var index      = Sefaria.index(book);
         value.book     = index.title;
         value.heBook   = index.heTitle;
         value.category = index.categories[0];
@@ -473,7 +471,7 @@ sjs.library = {
   },
   flatLinkSummary: function(ref) {
     // Returns an array containing texts and categories with counts for ref
-    var summary = sjs.library.linkSummary(ref);
+    var summary = Sefaria.linkSummary(ref);
     var booksByCat = summary.map(function(cat) { 
       return cat.books.map(function(book) {
         return book;
@@ -493,14 +491,14 @@ sjs.library = {
     } else {
       var notes = [];
       ref.map(function(r) {
-        var newNotes = sjs.library.notes(r);
+        var newNotes = Sefaria.notes(r);
         notes = newNotes ? notes.concat(newNotes) : notes;
       });
     }
     if (notes) {
       if (callback) { callback(notes); }
     } else {
-      sjs.library.related(ref, function(data) {
+      Sefaria.related(ref, function(data) {
         if (callback) { callback(data.notes); }
       });
     }
@@ -521,7 +519,7 @@ sjs.library = {
       refs = [refs] // Stanfardize type to simplify processing below
     } else {
       var notesByRef = refs.map(function(ref) {
-        return sjs.library._privateNotes[ref];
+        return Sefaria._privateNotes[ref];
       });
       if (notesByRef.some(function(e) { return !e })) {
         // If any ref in `refs` returned `null`, treat the whole thing as not yet loaded, call the API.
@@ -537,16 +535,15 @@ sjs.library = {
     } else {
       var aggregateCallback = function() {
         // Check if all refs have loaded, call callback if so
-       if (sjs.library.privateNotesLoaded(refs) && callback) {
-        callback(sjs.library.privateNotes(refs));
+       if (Sefaria.privateNotesLoaded(refs) && callback) {
+        callback(Sefaria.privateNotes(refs));
        }      
       };
       refs.map(function(ref) {
-       if (ref in sjs.library._privateNotes) { return; } // Only make API calls for unloaded refs
+       if (ref in Sefaria._privateNotes) { return; } // Only make API calls for unloaded refs
        var url = "/api/notes/" + normRef(ref) + "?private=1";
        this._api(url, function(data) {
           if ("error" in data) { 
-            // sjs.alert.message(data.error);
             return;
           }
           this._savePrivateNoteData(ref, data);
@@ -559,7 +556,7 @@ sjs.library = {
   privateNotesLoaded: function(refs) {
     // Returns true if private notes have been loaded for every ref in `refs.
     refs.map(function(ref) {
-      if (!(ref in sjs.library._privateNotes)) {
+      if (!(ref in Sefaria._privateNotes)) {
         return false;
       }
     });
@@ -593,7 +590,6 @@ sjs.library = {
        var url = "/api/related/" + normRef(ref);
        this._api(url, function(data) {
           if ("error" in data) { 
-            // sjs.alert.message(data.error);
             return;
           }
           this._saveLinkData(ref, data.links);
@@ -615,9 +611,9 @@ sjs.library = {
       var sheets = [];
       var notes  = [];
       ref.map(function(r) {
-        var newSheets = sjs.library.sheets.sheetsByRef(r);
+        var newSheets = Sefaria.sheets.sheetsByRef(r);
         sheets = newSheets ? sheets.concat(newSheets) : sheets;
-        var newNotes = sjs.library.notes(r);
+        var newNotes = Sefaria.notes(r);
         notes = newNotes ? notes.concat(newNotes) : notes;
       });
     }
@@ -627,7 +623,7 @@ sjs.library = {
       if (!section) { debugger; }
       return {
         book: section[0].category,
-        heBook: sjs.library.hebrewCategory(section[0].category),
+        heBook: Sefaria.hebrewCategory(section[0].category),
         category: "Community",
         count: section.length
       };
@@ -747,7 +743,7 @@ sjs.library = {
   },
   _textTocHtml: {},
   commentaryList: function(title) {
-    // Returns the list of commentaries for 'title' which are found in sjs.toc
+    // Returns the list of commentaries for 'title' which are found in Sefaria.toc
     var index = this.index(title);
     if (!index) { return []; }
     var cats   = [index.categories[0], "Commentary"];
@@ -771,7 +767,7 @@ sjs.library = {
   },
   tocItemsByCategories: function(cats) {
     // Returns the TOC items that correspond to the list of categories 'cats'
-    var list = clone(sjs.toc);
+    var list = Sefaria.util.clone(Sefaria.toc);
     for (var i = 0; i < cats.length; i++) {
       var found = false;
       for (var k = 0; k < list.length; k++) {
@@ -794,7 +790,7 @@ sjs.library = {
         if (callback) { callback(tags); }
       } else {
         var url = "/api/sheets/trending-tags";
-         sjs.library._api(url, function(data) {
+         Sefaria._api(url, function(data) {
             this._trendingTags = data;
             if (callback) { callback(data); }
           }.bind(this));
@@ -809,7 +805,7 @@ sjs.library = {
         if (callback) { callback(tags); }
       } else {
         var url = "/api/sheets/tag-list";
-         sjs.library._api(url, function(data) {
+         Sefaria._api(url, function(data) {
             this._tagList = data;
             if (callback) { callback(data); }
           }.bind(this));
@@ -840,7 +836,7 @@ sjs.library = {
         if (callback) { callback(sheets); }
       } else {
         var url = "/api/sheets/user/" + uid;
-         sjs.library._api(url, function(data) {
+         Sefaria._api(url, function(data) {
             this._userSheets[uid] = data.sheets;
             if (callback) { callback(data.sheets); }
           }.bind(this));
@@ -861,7 +857,7 @@ sjs.library = {
       } else {
         var sheets = [];
         ref.map(function(r) {
-          var newSheets = sjs.library.sheets.sheetsByRef(r);
+          var newSheets = Sefaria.sheets.sheetsByRef(r);
           if (newSheets) {
             sheets = sheets.concat(newSheets);
           }
@@ -870,7 +866,7 @@ sjs.library = {
       if (sheets) {
         if (cb) { cb(sheets); }
       } else {
-        sjs.library.related(ref, function(data) {
+        Sefaria.related(ref, function(data) {
           if (cb) { cb(data.sheets); }
         });
       }
@@ -878,7 +874,7 @@ sjs.library = {
     },
     _saveSheetsByRefData: function(ref, data) {
       this._sheetsByRef[ref] = data;
-      sjs.library._saveItemsByRef(data, this._sheetsByRef);
+      Sefaria._saveItemsByRef(data, this._sheetsByRef);
     }
   },
   hebrewCategory: function(cat) {
@@ -938,7 +934,7 @@ sjs.library = {
     return cat in categories ? categories[cat] : cat;
   },
   search: {
-      baseUrl: sjs.searchBaseUrl + "/" + sjs.searchIndex + "/_search",
+      baseUrl: Sefaria.searchBaseUrl + "/" + Sefaria.searchIndex + "/_search",
       execute_query: function (args) {
           // To replace sjs.search.post in search.js
 
@@ -955,7 +951,7 @@ sjs.library = {
               return;
           }
 
-          var url = sjs.library.search.baseUrl;
+          var url = Sefaria.search.baseUrl;
           url += "?size=" + args.size;
           if (args.from) {
               url += "&from=" + args.from;
@@ -964,7 +960,7 @@ sjs.library = {
           return $.ajax({
               url: url,
               type: 'POST',
-              data: JSON.stringify(sjs.library.search.get_query_object(args.query, args.get_filters, args.applied_filters)),
+              data: JSON.stringify(Sefaria.search.get_query_object(args.query, args.get_filters, args.applied_filters)),
               crossDomain: true,
               processData: false,
               dataType: 'json',
@@ -1055,179 +1051,181 @@ sjs.library = {
       }.bind(this));
     }
   }
+});
+
+
+Sefaria.search.FilterNode.prototype = {
+  append : function(child) {
+      this.children.push(child);
+      child.parent = this;
+  },
+  hasChildren: function() {
+      return (this.children.length > 0);
+  },
+  getLeafNodes: function() {
+      //Return ordered array of leaf (book) level filters
+      if (!this.hasChildren()) {
+          return this;
+      }
+      var results = [];
+      for (var i = 0; i < this.children.length; i++) {
+          results = results.concat(this.children[i].getLeafNodes());
+      }
+      return results;
+  },
+  getId: function() {
+      return this.path.replace(new RegExp("[/',()]", 'g'),"-").replace(new RegExp(" ", 'g'),"_");
+  },
+  isSelected: function() {
+      return (this.selected == 1);
+  },
+  isPartial: function() {
+      return (this.selected == 2);
+  },
+  isUnselected: function() {
+      return (this.selected == 0);
+  },
+  setSelected : function(propogateParent, noPropogateChild) {
+      //default is to propogate children and not parents.
+      //Calls from front end should use (true, false), or just (true)
+      this.selected = 1;
+      if (!(noPropogateChild)) {
+          for (var i = 0; i < this.children.length; i++) {
+              this.children[i].setSelected(false);
+          }
+      }
+      if(propogateParent) {
+          if(this.parent) this.parent._deriveState();
+      }
+  },
+  setUnselected : function(propogateParent, noPropogateChild) {
+      //default is to propogate children and not parents.
+      //Calls from front end should use (true, false), or just (true)
+      this.selected = 0;
+      if (!(noPropogateChild)) {
+          for (var i = 0; i < this.children.length; i++) {
+              this.children[i].setUnselected(false);
+          }
+      }
+      if(propogateParent) {
+          if(this.parent) this.parent._deriveState();
+      }
+
+  },
+  setPartial : function() {
+      //Never propogate to children.  Always propogate to parents
+      this.selected = 2;
+      if(this.parent) this.parent._deriveState();
+  },
+  _deriveState: function() {
+      //Always called from children, so we can assume at least one
+      var potentialState = this.children[0].selected;
+      if (potentialState == 2) {
+          this.setPartial();
+          return
+      }
+      for (var i = 1; i < this.children.length; i++) {
+          if (this.children[i].selected != potentialState) {
+              this.setPartial();
+              return
+          }
+      }
+      //Don't use setters, so as to avoid looping back through children.
+      if(potentialState == 1) {
+          this.setSelected(true, true);
+      } else {
+          this.setUnselected(true, true);
+      }
+  },
+  hasAppliedFilters: function() {
+      return (this.getAppliedFilters().length > 0)
+  },
+  getAppliedFilters: function() {
+      if (this.isUnselected()) {
+          return [];
+      }
+      if (this.isSelected()) {
+          return[this.path];
+      }
+      var results = [];
+      for (var i = 0; i < this.children.length; i++) {
+          results = results.concat(this.children[i].getAppliedFilters());
+      }
+      return results;
+  },
+  getSelectedTitles: function(lang) {
+      if (this.isUnselected()) {
+          return [];
+      }
+      if (this.isSelected()) {
+          return[(lang == "en")?this.title:this.heTitle];
+      }
+      var results = [];
+      for (var i = 0; i < this.children.length; i++) {
+          results = results.concat(this.children[i].getSelectedTitles(lang));
+      }
+      return results;
+  }
 };
 
 
-sjs.library.search.FilterNode.prototype = {
-    append : function(child) {
-        this.children.push(child);
-        child.parent = this;
-    },
-    hasChildren: function() {
-        return (this.children.length > 0);
-    },
-    getLeafNodes: function() {
-        //Return ordered array of leaf (book) level filters
-        if (!this.hasChildren()) {
-            return this;
-        }
-        var results = [];
-        for (var i = 0; i < this.children.length; i++) {
-            results = results.concat(this.children[i].getLeafNodes());
-        }
-        return results;
-    },
-    getId: function() {
-        return this.path.replace(new RegExp("[/',()]", 'g'),"-").replace(new RegExp(" ", 'g'),"_");
-    },
-    isSelected: function() {
-        return (this.selected == 1);
-    },
-    isPartial: function() {
-        return (this.selected == 2);
-    },
-    isUnselected: function() {
-        return (this.selected == 0);
-    },
-    setSelected : function(propogateParent, noPropogateChild) {
-        //default is to propogate children and not parents.
-        //Calls from front end should use (true, false), or just (true)
-        this.selected = 1;
-        if (!(noPropogateChild)) {
-            for (var i = 0; i < this.children.length; i++) {
-                this.children[i].setSelected(false);
-            }
-        }
-        if(propogateParent) {
-            if(this.parent) this.parent._deriveState();
-        }
-    },
-    setUnselected : function(propogateParent, noPropogateChild) {
-        //default is to propogate children and not parents.
-        //Calls from front end should use (true, false), or just (true)
-        this.selected = 0;
-        if (!(noPropogateChild)) {
-            for (var i = 0; i < this.children.length; i++) {
-                this.children[i].setUnselected(false);
-            }
-        }
-        if(propogateParent) {
-            if(this.parent) this.parent._deriveState();
-        }
+if ("toc" in Sefaria) {
+  Sefaria._cacheIndexFromToc(Sefaria.toc);  
+}
 
-    },
-    setPartial : function() {
-        //Never propogate to children.  Always propogate to parents
-        this.selected = 2;
-        if(this.parent) this.parent._deriveState();
-    },
-    _deriveState: function() {
-        //Always called from children, so we can assume at least one
-        var potentialState = this.children[0].selected;
-        if (potentialState == 2) {
-            this.setPartial();
-            return
-        }
-        for (var i = 1; i < this.children.length; i++) {
-            if (this.children[i].selected != potentialState) {
-                this.setPartial();
-                return
-            }
-        }
-        //Don't use setters, so as to avoid looping back through children.
-        if(potentialState == 1) {
-            this.setSelected(true, true);
-        } else {
-            this.setUnselected(true, true);
-        }
-    },
-    hasAppliedFilters: function() {
-        return (this.getAppliedFilters().length > 0)
-    },
-    getAppliedFilters: function() {
-        if (this.isUnselected()) {
-            return [];
-        }
-        if (this.isSelected()) {
-            return[this.path];
-        }
-        var results = [];
-        for (var i = 0; i < this.children.length; i++) {
-            results = results.concat(this.children[i].getAppliedFilters());
-        }
-        return results;
-    },
-    getSelectedTitles: function(lang) {
-        if (this.isUnselected()) {
-            return [];
-        }
-        if (this.isSelected()) {
-            return[(lang == "en")?this.title:this.heTitle];
-        }
-        var results = [];
-        for (var i = 0; i < this.children.length; i++) {
-            results = results.concat(this.children[i].getSelectedTitles(lang));
-        }
-        return results;
-    }
+
+Sefaria.palette = {
+  colors: {
+    darkteal:  "#004e5f",
+    raspberry: "#7c406f",
+    green:     "#5d956f",
+    paleblue:  "#9ab8cb",
+    blue:      "#4871bf",
+    orange:    "#cb6158",
+    lightpink: "#c7a7b4",
+    darkblue:  "#073570",
+    darkpink:  "#ab4e66",
+    lavender:  "#7f85a9",
+    yellow:    "#ccb479",
+    purple:    "#594176",
+    lightblue: "#5a99b7",
+    lightgreen:"#97b386",
+    red:       "#802f3e",
+    teal:      "#00827f"  
+  }
 };
-
-
-// Unpack sjs.toc into index cache
-sjs.library._cacheIndexFromToc(sjs.toc);
-
-
-sjs.palette = {
-  darkteal:  "#004e5f",
-  raspberry: "#7c406f",
-  green:     "#5d956f",
-  paleblue:  "#9ab8cb",
-  blue:      "#4871bf",
-  orange:    "#cb6158",
-  lightpink: "#c7a7b4",
-  darkblue:  "#073570",
-  darkpink:  "#ab4e66",
-  lavender:  "#7f85a9",
-  yellow:    "#ccb479",
-  purple:    "#594176",
-  lightblue: "#5a99b7",
-  lightgreen:"#97b386",
-  red:       "#802f3e",
-  teal:      "#00827f"  
+Sefaria.palette.categoryColors = {
+  "Commentary":         Sefaria.palette.colors.blue,
+  "Tanach" :            Sefaria.palette.colors.darkteal,
+  "Midrash":            Sefaria.palette.colors.green,
+  "Mishnah":            Sefaria.palette.colors.lightblue,
+  "Talmud":             Sefaria.palette.colors.yellow,
+  "Halakhah":           Sefaria.palette.colors.red,
+  "Kabbalah":           Sefaria.palette.colors.purple,
+  "Philosophy":         Sefaria.palette.colors.lavender,
+  "Liturgy":            Sefaria.palette.colors.darkpink,
+  "Tosefta":            Sefaria.palette.colors.teal,
+  "Parshanut":          Sefaria.palette.colors.paleblue,
+  "Chasidut":           Sefaria.palette.colors.lightgreen,
+  "Musar":              Sefaria.palette.colors.raspberry,
+  "Responsa":           Sefaria.palette.colors.orange,
+  "Apocrypha":          Sefaria.palette.colors.lightpink,
+  "Other":              Sefaria.palette.colors.darkblue,
+  "Quoting Commentary": Sefaria.palette.colors.orange,
+  "Commentary2":        Sefaria.palette.colors.blue,
+  "Sheets":             Sefaria.palette.colors.raspberry,
+  "Community":          Sefaria.palette.colors.raspberry,
+  "Targum":             Sefaria.palette.colors.lavender,
+  "Modern Works":       Sefaria.palette.colors.raspberry
 };
-
-sjs.categoryColors = {
-  "Commentary":         sjs.palette.blue,
-  "Tanach" :            sjs.palette.darkteal,
-  "Midrash":            sjs.palette.green,
-  "Mishnah":            sjs.palette.lightblue,
-  "Talmud":             sjs.palette.yellow,
-  "Halakhah":           sjs.palette.red,
-  "Kabbalah":           sjs.palette.purple,
-  "Philosophy":         sjs.palette.lavender,
-  "Liturgy":            sjs.palette.darkpink,
-  "Tosefta":            sjs.palette.teal,
-  "Parshanut":          sjs.palette.paleblue,
-  "Chasidut":           sjs.palette.lightgreen,
-  "Musar":              sjs.palette.raspberry,
-  "Responsa":           sjs.palette.orange,
-  "Apocrypha":          sjs.palette.lightpink,
-  "Other":              sjs.palette.darkblue,
-  "Quoting Commentary": sjs.palette.orange,
-  "Commentary2":        sjs.palette.blue,
-  "Sheets":             sjs.palette.raspberry,
-  "Community":          sjs.palette.raspberry,
-  "Targum":             sjs.palette.lavender,
-  "Modern Works":       sjs.palette.raspberry
-};
-
-sjs.categoryColor = function(cat) {
-  if (cat in sjs.categoryColors) {
-    return sjs.categoryColors[cat];
+Sefaria.palette.categoryColor = function(cat) {
+  if (cat in Sefaria.palette.categoryColors) {
+    return Sefaria.palette.categoryColors[cat];
   }
   return "transparent";
 };
 
+
 if (typeof module !== 'undefined') {
-  module.exports = sjs.library;
+  module.exports = Sefaria;
 }
