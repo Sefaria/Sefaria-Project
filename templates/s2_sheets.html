@@ -123,39 +123,81 @@
 
                 <div class="line"></div>
 
-                <div class="optionGroup">
-					<div class="optionTitle"><i class="fa"></i> Sheet Language <i class='fa fa-caret-right'></i></div>
-					<div class="subMenu languageToggleOption">
-						<div class="english">
-							<i class="fa fa-check hidden"></i> English</div>
-						<div class="hebrew">
-							<i class="fa fa-check hidden"></i> Hebrew</div>
-						<div class="bilingual">
-							<i class="fa fa-check hidden"></i> Bilingual</span></div>
-					</div>
-				</div>
+				<div class="optionItem" id="resetText">
+					<i class="fa fa-reload "></i> Reset Source Text</div>
+
+                <div class="line"></div>
+                <div id="sheetLayoutLanguageMenuItems">
+                    <div class="optionGroup">
+                        <div class="optionTitle"><i class="fa"></i> Sheet Language <i class='fa fa-caret-right'></i></div>
+                        <div class="subMenu languageToggleOption">
+                            <div class="english">
+                                <i class="fa fa-check hidden"></i> English</div>
+                            <div class="hebrew">
+                                <i class="fa fa-check hidden"></i> Hebrew</div>
+                            <div class="bilingual">
+                                <i class="fa fa-check hidden"></i> Bilingual</div>
+                        </div>
+                    </div>
 
 
-                <div class="optionGroup disabled" id="layoutToggleGroup">
-					<div class="optionTitle"><i class="fa"></i> Sheet Layout <i class='fa fa-caret-right'></i></div>
-					<div class="subMenu layoutToggleOption">
-						<div class="stacked">
-							<i class="fa fa-check hidden"></i> Stacked</div>
-						<div class="sideBySide">
-							<i class="fa fa-check hidden"></i> Side-by-Side</div>
-					</div>
-				</div>
+                    <div class="optionGroup disabled" id="layoutToggleGroup">
+                        <div class="optionTitle"><i class="fa"></i> Sheet Layout <i class='fa fa-caret-right'></i></div>
+                        <div class="subMenu layoutToggleOption">
+                            <div class="stacked">
+                                <i class="fa fa-check hidden"></i> Stacked</div>
+                            <div class="sideBySide">
+                                <i class="fa fa-check hidden"></i> Side-by-Side</div>
+                        </div>
+                    </div>
 
 
-                <div class="optionGroup disabled" id="sideBySideToggleGroup">
-					<div class="optionTitle"><i class="fa"></i> Side-by-Side Layout <i class='fa fa-caret-right'></i></div>
-					<div class="subMenu sideBySideToggleOption">
-						<div class="heLeft">
-							<i class="fa fa-check hidden"></i> Hebrew Left</div>
-						<div class="heRight">
-							<i class="fa fa-check hidden"></i> Hebrew Right</div>
-					</div>
-				</div>
+                    <div class="optionGroup disabled" id="sideBySideToggleGroup">
+                        <div class="optionTitle"><i class="fa"></i> Side-by-Side Layout <i class='fa fa-caret-right'></i></div>
+                        <div class="subMenu sideBySideToggleOption">
+                            <div class="heLeft">
+                                <i class="fa fa-check hidden"></i> Hebrew Left</div>
+                            <div class="heRight">
+                                <i class="fa fa-check hidden"></i> Hebrew Right</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="sourceLayoutLanguageMenuItems">
+                    <div class="optionGroup">
+                        <div class="optionTitle"><i class="fa"></i> Source Language <i class='fa fa-caret-right'></i></div>
+                        <div class="subMenu languageToggleOption">
+                            <div class="english">
+                                <i class="fa fa-check hidden"></i> English</div>
+                            <div class="hebrew">
+                                <i class="fa fa-check hidden"></i> Hebrew</div>
+                            <div class="bilingual">
+                                <i class="fa fa-check hidden"></i> Bilingual</div>
+                        </div>
+                    </div>
+
+
+                    <div class="optionGroup disabled" id="layoutToggleGroup">
+                        <div class="optionTitle"><i class="fa"></i> Source Layout <i class='fa fa-caret-right'></i></div>
+                        <div class="subMenu layoutToggleOption">
+                            <div class="stacked">
+                                <i class="fa fa-check hidden"></i> Stacked</div>
+                            <div class="sideBySide">
+                                <i class="fa fa-check hidden"></i> Side-by-Side</div>
+                        </div>
+                    </div>
+
+
+                    <div class="optionGroup disabled" id="sideBySideToggleGroup">
+                        <div class="optionTitle"><i class="fa"></i> Side-by-Side Layout <i class='fa fa-caret-right'></i></div>
+                        <div class="subMenu sideBySideToggleOption">
+                            <div class="heLeft">
+                                <i class="fa fa-check hidden"></i> Hebrew Left</div>
+                            <div class="heRight">
+                                <i class="fa fa-check hidden"></i> Hebrew Right</div>
+                        </div>
+                    </div>
+                </div>
 
 
             </div>
@@ -271,7 +313,50 @@
 	<ol id="sources">
 		{% include "sheet.html" with sources=sheet.sources %}
 	</ol>
-	<div id="sheetLoading" style="display:none">Loading...</div>
+    <div id="addInterface">
+        <div class="buttonBar">
+            <div class="addInterfaceButton" id="sourceButton">Source</div>
+            <div class="addInterfaceButton" id="connectionButton">Connection</div>
+            <div class="addInterfaceButton" id="customTextButton">Custom Text</div>
+            <div class="addInterfaceButton" id="commentButton">Comment</div>
+        </div>
+        <div class="contentDiv">
+            <div id="addsourceDiv">
+                <div id="inlineAddDialogTitle" class="dialogTitle">Select a text</div>
+                <input id="inlineAdd" />
+                <div id="inlineAddEg">e.g., Mishnah Peah 3:4, Psalms 4:12-15, Rashi on Genesis 1:1</div>
+                <div id="inlineAddOr">- or -</div>
+                <div id="inlineAddBrowseBox">
+                    <div id="inlineAddBrowse" class='button'>Browse Sources</div>
+                </div>
+
+
+
+            </div>
+            <div id="addconnectionDiv">
+                <div>Select connected texts</div>
+                <div id="connectionsToAdd"></div>
+                <div class="button">Add to Sheet</div>
+            </div>
+            <div id="addcustomTextDiv">
+                <div>Write or paste text</div>
+                <span id="customTextLanguageToggle" class="toggle"><span id="englishCustomText" class="toggleOption"><img src="/static/img/english.png"></span><span id="bilingualCustomText" class="toggleOption active"><img src="/static/img/bilingual.png"></span><span id="hebrewCustomText" class="toggleOption"><img src="/static/img/hebrew.png"></span></span>
+
+                <div class="flexContainer">
+                    <div class="contentToAdd he">עברית</div>
+                    <div class="contentToAdd en">English</div>
+                </div>
+                <div class="button">Add to Sheet</div>
+            </div>
+            <div id="addcommentDiv">
+                <div>Comment on this section</div>
+                <div class="contentToAdd"></div>
+                <div class="button">Add to Sheet</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="sheetLoading" style="display:none">Loading...</div>
 
 	{% if new_sheet and not hide_video %}
 	<div id="empty" class="well">
