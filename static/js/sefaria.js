@@ -278,7 +278,7 @@ Sefaria = extend(Sefaria, {
       cb(this._lexiconLookups[cache_key]);
     } else {
       var url = "/api/words/" + encodeURIComponent(words) /*+ "?lookup_ref="+ normRef(ref)*/;
-      console.log(url);
+      //console.log(url);
       this._api(url, function(data) {
         this._lexiconLookups[cache_key] = data;
         cb(data);

@@ -3389,8 +3389,7 @@ var ConnectionsPanel = React.createClass({
   render: function() {
     var content = null;
     if (this.props.mode == "Connections") {
-      content = (<div>
-                <TextList
+      content = (<TextList
                     srefs={this.props.srefs}
                     filter={this.props.filter}
                     recentFilters={this.props.recentFilters}
@@ -3407,7 +3406,7 @@ var ConnectionsPanel = React.createClass({
                     openDisplaySettings={this.props.openDisplaySettings}
                     closePanel={this.props.closePanel}
                     selectedWords={this.props.selectedWords}/>
-                </div>);
+                );
 
     } else if (this.props.mode === "Tools") {
       content = (<ToolsPanel
@@ -3686,6 +3685,7 @@ var TextList = React.createClass({
     sjs.track.event("Reader", "Show All Filters Click", "1");
   },
   render: function() {
+    console.log("Text LIst Lexicon words: "+this.props.selectedWords);
     var refs               = this.props.srefs;
     var summary            = Sefaria.relatedSummary(refs);
     var oref               = Sefaria.ref(refs[0]);
@@ -3777,54 +3777,55 @@ var TextList = React.createClass({
     var classes = classNames({textList: 1, fullPanel: this.props.fullPanel});
     if (showAllFilters) {
       return (
-        <div className={classes}>
-          <div className="textListTop">
-              {message}
-          </div>
-          <AllFilterSet 
-            summary={summary}
-            showText={this.props.showText}
-            filter={this.props.fitler}
-            recentFilters={this.props.recentFilters}
-            setFilter={this.props.setFilter} />
-        </div>);
+            <div className={classes}>
+              <div className="textListTop">
+                  {message}
+              </div>
+              <LexiconPanel selectedWords={this.props.selectedWords} oref={oref.sectionRef}/>
+              <AllFilterSet
+                summary={summary}
+                showText={this.props.showText}
+                filter={this.props.fitler}
+                recentFilters={this.props.recentFilters}
+                setFilter={this.props.setFilter} />
+            </div>);
     } else if (!this.props.fullPanel) {
       return (
-        <div className={classes}>
-          <div className="textListTop">
-            <RecentFilterSet 
-              asHeader={true}
-              showText={this.props.showText}
-              filter={this.props.filter}
-              recentFilters={this.props.recentFilters}
-              textCategory={oref ? oref.categories[0] : null}
-              setFilter={this.props.setFilter}
-              showAllFilters={this.showAllFilters} />
-          </div>
-          <div className="texts">
-            <div className="contentInner">
-              { content }
-            </div>
-          </div>
-        </div>);
+            <div className={classes}>
+              <div className="textListTop">
+                <RecentFilterSet
+                  asHeader={true}
+                  showText={this.props.showText}
+                  filter={this.props.filter}
+                  recentFilters={this.props.recentFilters}
+                  textCategory={oref ? oref.categories[0] : null}
+                  setFilter={this.props.setFilter}
+                  showAllFilters={this.showAllFilters} />
+              </div>
+              <div className="texts">
+                <div className="contentInner">
+                  { content }
+                </div>
+              </div>
+            </div>);
     } else {
       return (
-        <div className={classes}>
-          <div className="texts">
-            <div className="contentInner">
-              <RecentFilterSet 
-                asHeader={false}
-                showText={this.props.showText}
-                filter={this.props.filter}
-                recentFilters={this.props.recentFilters}
-                textCategory={oref ? oref.categories[0] : null}
-                setFilter={this.props.setFilter}
-                showAllFilters={this.showAllFilters} />
-              { content }
+            <div className={classes}>
+              <div className="texts">
+                <div className="contentInner">
+                  <RecentFilterSet
+                    asHeader={false}
+                    showText={this.props.showText}
+                    filter={this.props.filter}
+                    recentFilters={this.props.recentFilters}
+                    textCategory={oref ? oref.categories[0] : null}
+                    setFilter={this.props.setFilter}
+                    showAllFilters={this.showAllFilters} />
+                  { content }
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      );
+            );
     }
   }
 });
@@ -4050,7 +4051,8 @@ var RecentFilterSet = React.createClass({
 
 var LexiconPanel = React.createClass({
   propTypes: {
-    selectedWords: React.PropTypes.string
+    selectedWords: React.PropTypes.string,
+    sectionRef: React.PropTypes.string
   },
   getInitialState: function() {
     return {
@@ -4073,7 +4075,7 @@ var LexiconPanel = React.createClass({
       return;
     }
     console.log("lexicon doing lookup: "+this.props.selectedWords);
-    sjs.library.lexicon(this.props.selectedWords, null, function(data) {
+    Sefaria.lexicon(this.props.selectedWords, null, function(data) {
         console.log(data);
         if (this.isMounted()) {
           this.setState({
