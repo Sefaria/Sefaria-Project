@@ -2888,7 +2888,7 @@ class Ref(object):
             patterns.append("%s$" % sections)   # exact match
             if self.index_node.has_titled_continuation():
                 patterns.append(u"{}({}).".format(sections, u"|".join(self.index_node.title_separators)))
-            elif self.index_node.has_numeric_continuation():
+            if self.index_node.has_numeric_continuation():
                 patterns.append("%s:" % sections)   # more granualar, exact match followed by :
                 patterns.append("%s \d" % sections) # extra granularity following space
 
