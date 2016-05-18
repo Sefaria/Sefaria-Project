@@ -2220,12 +2220,16 @@ var ReaderTextTableOfContents = React.createClass({
       this.setState({versionsLoaded: true});
       return;
     }
-    Sefaria.text(
-      ref,
-      {context: 1, version: this.state.version, language: this.state.versionLanguage},
-      this.loadVersionsData);
+    if (Sefaria.ref(ref)) {
+      Sefaria.text(
+        ref,
+        {context: 1, version: this.state.version, language: this.state.versionLanguage},
+        this.loadVersionsDataFromText);
+    } else {
+      Sefaria.versions(ref, function(d) {this.setState({ versions: d, versionsLoaded: true})}.bind(this));
+    }
   },
-  loadVersionsData: function(d) {
+  loadVersionsDataFromText: function(d) {
     // For now treat bilinguale as english. TODO show attribution for 2 versions in bilingual case.
     var currentLanguage = this.props.settingsLanguage == "he" ? "he" : "en";
     // Todo handle independent Text TOC case where there is no current version
@@ -2320,15 +2324,16 @@ var ReaderTextTableOfContents = React.createClass({
     var title     = this.props.title;
     var heTitle   = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
 
-    var section   = Sefaria.sectionString(this.props.currentRef).en.named;
-    var heSection = Sefaria.sectionString(this.props.currentRef).he.named;
+    var sectionStrings = Sefaria.sectionString(this.props.currentRef);
+    var section   = sectionStrings.en.named;
+    var heSection = sectionStrings.he.named;
 
     var currentVersionElement = null;
     var defaultVersionString = "Default Version";
     var defaultVersionObject = null;
 
     if (this.state.versionsLoaded) {
-      if (this.state.currentVersion.merged) {
+      if (this.state.currentVersion && this.state.currentVersion.merged) {
         var uniqueSources = this.state.currentVersion.sources.filter(function(item, i, ar){ return ar.indexOf(item) === i; }).join(", ");
         defaultVersionString += " (Merged from " + uniqueSources + ")";
         currentVersionElement = (
@@ -2336,7 +2341,7 @@ var ReaderTextTableOfContents = React.createClass({
             <span className="currentVersionTitle">Merged from { uniqueSources }</span>
             <a className="versionHistoryLink" href="#">Version History &gt;</a>
           </span>);
-      } else {
+      } else if (this.state.currentVersion) {
         if (!this.props.version) {
           defaultVersionObject = this.state.versions.find(v => (this.state.currentVersion.language == v.language && this.state.currentVersion.title == v.versionTitle));
           defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";

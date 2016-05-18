@@ -470,6 +470,7 @@ class Sheet(abstract.AbstractMongoRecord):
 		"id"
 	]
 	optional_attrs = [
+		"included_refs",
 		"views",
 		"nextNode",
 		"tags",

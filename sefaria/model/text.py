@@ -3154,7 +3154,13 @@ class Ref(object):
             d.update({"language": lang})
 
         condition_addr = self.storage_address()
-        if not self.sections:
+        if not isinstance(self.index_node, JaggedArrayNode):
+            # This will also return versions with no content in this Ref location - since on the version, there is a dictionary present.
+            # We could enter the dictionary and check each array, but it's not clear that it's neccesary.
+            d.update({
+                condition_addr: {"$exists": True}
+            })
+        elif not self.sections:
             d.update({
                 condition_addr: {"$exists": True, "$elemMatch": {"$nin": ["", [], 0]}}  # any non-empty element will do
             })
@@ -3198,13 +3204,11 @@ class Ref(object):
 
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
-        vlist = []
-        for v in VersionSet(self.condition_query(), proj={"versionTitle": 1, "language": 1}):
-            vlist.append({
-                "versionTitle": v.versionTitle,
-                 "language": v.language
-            })
-        return vlist
+        return [{
+            "versionSource": v.versionSource,
+            "versionTitle": v.versionTitle,
+            "language": v.language
+        } for v in VersionSet(self.condition_query(), proj={"versionTitle": 1, "versionSource": 1, "language": 1})]
 
     """ String Representations """
     def __str__(self):
