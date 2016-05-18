@@ -51,7 +51,7 @@ def compare_number_of_mishnayot(chapter, allowed=0):
     :return: True or False
     """
 
-    if abs(len(chapter[0]) - len(chapter[2])) > allowed:
+    if abs(chapter[0].verse_count() - chapter[1].verse_count()) > allowed:
         return False
     else:
         return True
@@ -65,7 +65,35 @@ def compare_number_of_words(mishnah, allowed=0):
     :return: boolean
     """
 
-    if abs(len(mishnah[0].split()) - len(mishnah[1].split())) > allowed:
+    if abs(mishnah[0].word_count() - mishnah[1].word_count()) > allowed:
         return False
     else:
         return True
+
+
+def run(outfile):
+
+    outfile.write(u'Tractate,Chapter,Mishnah Count,Word Count\n')
+    books = get_relevant_books()
+    for book in books:
+        chapters = Ref(book).all_subrefs()
+
+        for chap_ind, chapter in enumerate(chapters):
+            outfile.write(u'{},{},'.format(book, chap_ind+1))
+            v1 = TextChunk(chapter, 'he', 'Vilna Mishna')
+            v2 = TextChunk(chapter, 'he', 'Wikisource Mishnah')
+
+            if compare_number_of_mishnayot((v1, v2)):
+                outfile.write(u'Passed,')
+            else:
+                outfile.write(u'Failed,')
+
+            word_count = []
+
+            for m_index, mishna in enumerate(chapter.all_subrefs()):
+                v1 = TextChunk(mishna, 'he', 'Vilna Mishna')
+                v2 = TextChunk(mishna, 'he', 'Wikisource Mishnah')
+                if not compare_number_of_words((v1, v2)):
+                    word_count.append(m_index+1)
+
+            outfile.write(u'{}\n'.format(u' '.join(word_count)))
