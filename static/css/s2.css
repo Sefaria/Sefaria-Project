@@ -247,16 +247,12 @@ body.dark {
 }
 .multiPanel .readerPanelBox {
   box-sizing: border-box;
-  margin-top: 54px;
+  padding-top: 54px;
 }
 .readerPanelBox {
   position: absolute;
   height: 100%;
   width: 100%;
-}
-.multiPanel .readerPanelBox {
-  box-sizing: border-box;
-  margin-top: 54px;
 }
 .readerPanelBox + .readerPanelBox {
 }
@@ -2320,4 +2316,13 @@ display: block;margin: 0 auto;}
 }
 input {
   outline: none;
+}
+
+.lexicon-content{
+  overflow-y: auto;
+  height:45%;
+}
+
+.lexicon-content + .fullFilterView{
+  height: 55%;
 }
