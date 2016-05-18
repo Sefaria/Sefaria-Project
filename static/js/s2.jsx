@@ -600,7 +600,7 @@ var ReaderApp = React.createClass({
     refs = typeof refs === "string" ? [refs] : refs;
     this.state.panels[n].highlightedRefs = refs;
     this.setState({panels: this.state.panels});
- 
+
     // If a connections panel is opened after n, update its refs as well.
     var next = this.state.panels[n+1];
     if (next && next.mode === "Connections" && !next.menuOpen) {
@@ -608,8 +608,12 @@ var ReaderApp = React.createClass({
     }
   },
   setSelectedWords: function(n, words){
+    //console.log(this.state.panels[n].refs);
+    words = (typeof words !== "undefined" && words.length) ?  words : "";
+    if(this.state.panels[n+1]){
       this.state.panels[n+1].selectedWords = words;
       this.setState({panels: this.state.panels});
+    }
   },
   openComparePanel: function(n) {
     var comparePanel = this.makePanelState({
@@ -1145,13 +1149,12 @@ var ReaderPanel = React.createClass({
     }
   },
   setSelectedWords: function(words){
-    if(words.trim().length > 0){
-      console.log(words);
-      words = words.trim();
-      this.conditionalSetState({'selectedWords':  words});
-      if (this.props.multiPanel) {
-        this.props.setSelectedWords(words);
-      }
+    words = (typeof words !== "undefined" && words.length) ?  words : "";
+    words = words.trim();
+    this.replaceHistory = false;
+    this.conditionalSetState({'selectedWords':  words});
+    if (this.props.multiPanel) {
+      this.props.setSelectedWords(words);
     }
   },
   closeMenus: function() {
@@ -3331,10 +3334,8 @@ var ConnectionsPanel = React.createClass({
   },
   render: function() {
     var content = null;
-    console.log(this.props.selectedWords);
     if (this.props.mode == "Connections") {
       content = (<div>
-                <LexiconPanel selectedWords={this.props.selectedWords} />
                 <TextList
                     srefs={this.props.srefs}
                     filter={this.props.filter}
@@ -3350,7 +3351,8 @@ var ConnectionsPanel = React.createClass({
                     onOpenConnectionsClick={this.props.onOpenConnectionsClick}
                     openNav={this.props.openNav}
                     openDisplaySettings={this.props.openDisplaySettings}
-                    closePanel={this.props.closePanel} />
+                    closePanel={this.props.closePanel}
+                    selectedWords={this.props.selectedWords}/>
                 </div>);
 
     } else if (this.props.mode === "Tools") {
@@ -3491,7 +3493,8 @@ var TextList = React.createClass({
     onOpenConnectionsClick:  React.PropTypes.func,
     openNav:                 React.PropTypes.func,
     openDisplaySettings:     React.PropTypes.func,
-    closePanel:              React.PropTypes.func
+    closePanel:              React.PropTypes.func,
+    selectedWords:           React.PropTypes.string
   },
   getInitialState: function() {
     return {
@@ -4001,21 +4004,29 @@ var LexiconPanel = React.createClass({
     };
   },
   componentDidMount: function(){
+    console.log("lexicon did mount: "+this.props.selectedWords);
     this.getLookups();
   },
   componentDidUpdate: function(prevProps, prevState){
+    console.log("lexicon did update");
     if (prevProps.selectedWords != this.props.selectedWords){
+      console.log("lexicon did update and is different: "+this.props.selectedWords);
       this.getLookups();
     }
   },
   getLookups: function(){
-     sjs.library.lexicon(this.props.selectedWords, function(data) {
-      if (this.isMounted()) {
-        this.setState({
-          resultsLoaded: true,
-          entries: data
-        });
-      }
+    if(!this.shouldRenderSelf()){
+      return;
+    }
+    console.log("lexicon doing lookup: "+this.props.selectedWords);
+    sjs.library.lexicon(this.props.selectedWords, null, function(data) {
+        console.log(data);
+        if (this.isMounted()) {
+          this.setState({
+            resultsLoaded: true,
+            entries: data
+          });
+        }
     }.bind(this));
   },
 
@@ -4028,23 +4039,26 @@ var LexiconPanel = React.createClass({
     return (inputLength > 0 && inputLength <= 3);
   },
   render: function(){
+    console.log("lexicon: "+this.props.selectedWords);
     var enEmpty = "No results found.";
     var heEmpty = "לא נמצאו תוצאות";
     if(!this.shouldRenderSelf()){
       return null;
     }
-    if(!this.state.resultsLoaded){
-      return (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..." />)
+    var content;
+    if(!this.state.resultsLoaded) {
+      content = (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..."/>);
     }
-    var content; 
-    if("error" in this.state.data){
-      content = <LoadingMessage message={enEmpty} heMessage={heEmpty} />;
+    else if("error" in this.state.entries){
+      content = (<LoadingMessage message={enEmpty} heMessage={heEmpty} />);
     }
-    var entries = this.state.entries;
-    content =  entries ? entries.map(function(entry, i) {
-          return (<LexiconEntry data={entry} key={i} />)
-        }) : (<LoadingMessage message={enEmpty} heMessage={heEmpty} />);
-    content = content.length ? content : <LoadingMessage message={enEmpty} heMessage={heEmpty} />;
+    else{
+      var entries = this.state.entries;
+      content =  entries ? entries.map(function(entry, i) {
+            return (<LexiconEntry data={entry} key={i} />)
+          }) : (<LoadingMessage message={enEmpty} heMessage={heEmpty} />);
+      content = content.length ? content : <LoadingMessage message={enEmpty} heMessage={heEmpty} />;
+    }
 
     return (
         <div className="lexicon-content">
@@ -4081,7 +4095,7 @@ LexiconEntry = React.createClass({
 		var grammar = ('grammar' in content) ? '('+ content['grammar']['verbal_stem'] + ')' : "";
 		var def = ('definition' in content) ? content['definition'] : "";
         var notes = ('notes' in content) ? (<span className="notes">{content['notes']}</span>) : "";
-        var sensesElems =  ('senses' in content) ? content['senses'].map(function(sense) {
+        var sensesElems =  ('senses' in content) ? content['senses'].map((sense)=> {
           return this.renderLexiconEntrySenses(sense)
         }) : "";
         var senses = sensesElems.length ? (<ol className="senses">{sensesElems}</ol>) : "";

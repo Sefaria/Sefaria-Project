@@ -267,12 +267,8 @@ sjs.library = {
   },
   _lexiconLookups: {},
   lexicon: function(words, ref, cb){
-    // Returns a list of links known for `ref`.
-    // WARNING: calling this function with spanning refs can cause bad state in cache.
-    // When processing links for "Genesis 2:4-4:4", a link to the entire chapter "Genesis 3" will be split and stored with that key.
-    // The data for "Genesis 3" then represents only links to the entire chapter, not all links within the chapter.
-    // Fixing this generally on the client side requires more understanding of ref logic.
-    var cache_key = words
+    // Returns a list of lexicon entries for the given words
+    var cache_key = words;
     if (typeof ref != 'undefined'){
       cache_key += "|" + ref
     }
@@ -282,15 +278,10 @@ sjs.library = {
     if (words in this._lexiconLookups) {
       cb(this._lexiconLookups[cache_key]);
     } else {
-       var url = "/api/words/" + encodeURIComponent(words) + "?lookup_ref="+ normRef(ref);
+      var url = "/api/words/" + encodeURIComponent(words) /*+ "?lookup_ref="+ normRef(ref)*/;
       console.log(url);
       this._api(url, function(data) {
-        if ("error" in data) {
-          // sjs.alert.message(data.error);
-          //return;
-        }else{
-          this._lexiconLookups[cache_key] = data;
-        }
+        this._lexiconLookups[cache_key] = data;
         cb(data);
       }.bind(this));
     }
