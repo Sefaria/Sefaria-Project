@@ -55,3 +55,17 @@ def compare_number_of_mishnayot(chapter, allowed=0):
         return False
     else:
         return True
+
+
+def compare_number_of_words(mishnah, allowed=0):
+    """
+    Compares number of words in a mishna from two parallel versions
+    :param mishnah: Tuple with each value containing a string of text from each version from one mishnah
+    :param allowed: Allowed difference between both versions before test returns false
+    :return: boolean
+    """
+
+    if abs(len(mishnah[0].split()) - len(mishnah[1].split())) > allowed:
+        return False
+    else:
+        return True
