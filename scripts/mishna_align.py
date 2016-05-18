@@ -9,8 +9,8 @@ The text of different editions of the Mishnah can have significant differences. 
 
 import os
 import sys
+import codecs
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-print p
 sys.path.insert(0, p)
 from sefaria.local_settings import *
 os.environ['DJANGO_SETTINGS_MODULE'] = 'sefaria.settings'
@@ -81,7 +81,7 @@ def run(outfile):
         for chap_ind, chapter in enumerate(chapters):
             outfile.write(u'{},{},'.format(book, chap_ind+1))
             v1 = TextChunk(chapter, 'he', 'Vilna Mishna')
-            v2 = TextChunk(chapter, 'he', 'Wikisource Mishnah')
+            v2 = TextChunk(chapter, 'he', 'Wikisource Mishna')
 
             if compare_number_of_mishnayot((v1, v2)):
                 outfile.write(u'Passed,')
@@ -92,8 +92,12 @@ def run(outfile):
 
             for m_index, mishna in enumerate(chapter.all_subrefs()):
                 v1 = TextChunk(mishna, 'he', 'Vilna Mishna')
-                v2 = TextChunk(mishna, 'he', 'Wikisource Mishnah')
-                if not compare_number_of_words((v1, v2)):
+                v2 = TextChunk(mishna, 'he', 'Wikisource Mishna')
+                if not compare_number_of_words((v1, v2), 1):
                     word_count.append(m_index+1)
 
-            outfile.write(u'{}\n'.format(u' '.join(word_count)))
+            outfile.write(u'{}\n'.format(u' '.join(str(index) for index in word_count)))
+
+output = codecs.open('Mishna version comparison.csv', 'w', 'utf-8')
+run(output)
+output.close()
