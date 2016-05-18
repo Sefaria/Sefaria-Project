@@ -41,3 +41,17 @@ def get_relevant_books():
                 relevant.append(book)
                 break
     return relevant
+
+
+def compare_number_of_mishnayot(chapter, allowed=0):
+    """
+    Compares number of mishnayot between two versions.
+    :param chapter: Tuple, each value is a list of Mishnayot from each version.
+    :param allowed: Allowed difference between number of Mishnayot.
+    :return: True or False
+    """
+
+    if abs(len(chapter[0]) - len(chapter[2])) > allowed:
+        return False
+    else:
+        return True
