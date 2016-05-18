@@ -300,14 +300,32 @@ class Test_Ref(object):
     def test_split_spanning_ref_expanded(self):
         assert Ref("Leviticus 15:3 - 17:12").split_spanning_ref(True) == [Ref('Leviticus 15:3-33'), Ref('Leviticus 16:1-34'), Ref('Leviticus 17:1-12')]
 
-    def test_range_refs(self):
+    def test_range_list(self):
         assert Ref("Leviticus 15:12-17").range_list() ==  [Ref('Leviticus 15:12'), Ref('Leviticus 15:13'), Ref('Leviticus 15:14'), Ref('Leviticus 15:15'), Ref('Leviticus 15:16'), Ref('Leviticus 15:17')]
         assert Ref("Shabbat 15b:5-8").range_list() ==  [Ref('Shabbat 15b:5'), Ref('Shabbat 15b:6'), Ref('Shabbat 15b:7'), Ref('Shabbat 15b:8')]
 
-        with pytest.raises(InputError):
-            Ref("Shabbat 15a:13-15b:2").range_list()
-        with pytest.raises(InputError):
-            Ref("Exodus 15:12-16:1").range_list()
+        assert Ref("Exodus 15:25-16:2").range_list() == [
+                             Ref('Exodus 15:25'),
+                             Ref('Exodus 15:26'),
+                             Ref('Exodus 15:27'),
+                             Ref('Exodus 16:1'),
+                             Ref('Exodus 16:2')]
+
+        assert Ref("Shabbat 15a:54-15b:2").range_list() == [Ref('Shabbat 15a:54'),
+                                                        Ref('Shabbat 15a:55'),
+                                                        Ref('Shabbat 15b:1'),
+                                                        Ref('Shabbat 15b:2')]
+
+    def test_range_list_first_and_last_segment(self):
+        assert Ref("Shabbat 15a:54-15b:1").range_list() == [Ref('Shabbat 15a:54'),
+                                                            Ref('Shabbat 15a:55'),
+                                                            Ref('Shabbat 15b:1')]
+        assert Ref("Shabbat 15a:55-15b:1").range_list() == [Ref('Shabbat 15a:55'),
+                                                            Ref('Shabbat 15b:1')]
+        assert Ref("Shabbat 15a:55-15b:2").range_list() == [Ref('Shabbat 15a:55'),
+                                                            Ref('Shabbat 15b:1'), Ref('Shabbat 15b:2')]
+        assert Ref("Exodus 15:25-16:1").range_list() == [Ref('Exodus 15:25'), Ref('Exodus 15:26'), Ref('Exodus 15:27'),
+                                                         Ref('Exodus 16:1')]
 
     def test_subref(self):
         assert Ref("Exodus").subref(5) == Ref("Exodus 5")
