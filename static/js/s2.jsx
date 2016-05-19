@@ -2792,6 +2792,7 @@ var TextColumn = React.createClass({
   },
   handleTextSelection: function() {
     var selection = window.getSelection();
+
     if (selection.type === "Range") {
       var $start    = $(getSelectionBoundaryElement(true)).closest(".segment");
       var $end      = $(getSelectionBoundaryElement(false)).closest(".segment");
@@ -2804,6 +2805,7 @@ var TextColumn = React.createClass({
 
       this.props.setTextListHightlight(refs);
     }
+    console.log("Currently selected words: "+ selection.toString());
     this.props.setSelectedWords(selection.toString());
   },
   handleTextLoad: function() {
@@ -4112,13 +4114,10 @@ var LexiconPanel = React.createClass({
     };
   },
   componentDidMount: function(){
-    console.log("lexicon did mount: "+this.props.selectedWords);
     this.getLookups();
   },
   componentDidUpdate: function(prevProps, prevState){
-    console.log("lexicon did update");
     if (prevProps.selectedWords != this.props.selectedWords){
-      console.log("lexicon did update and is different: "+this.props.selectedWords);
       this.getLookups();
     }
   },
@@ -4126,7 +4125,6 @@ var LexiconPanel = React.createClass({
     if(!this.shouldRenderSelf()){
       return;
     }
-    console.log("lexicon doing lookup: "+this.props.selectedWords);
     Sefaria.lexicon(this.props.selectedWords, null, function(data) {
         console.log(data);
         if (this.isMounted()) {
@@ -4167,10 +4165,10 @@ var LexiconPanel = React.createClass({
           }) : (<LoadingMessage message={enEmpty} heMessage={heEmpty} />);
       content = content.length ? content : <LoadingMessage message={enEmpty} heMessage={heEmpty} />;
     }
-
+    /*var header = (<div className="lexicon-header"><h4>{this.props.selectedWords}</h4></div>);*/
     return (
         <div className="lexicon-content">
-          <div className="lexicon-header"><h4>{this.props.selectedWords}</h4></div>
+
           <div className="lexicon-results">
             { content }
           </div>
@@ -4186,15 +4184,14 @@ LexiconEntry = React.createClass({
   },
   render: function(){
     var entry = this.props.data;
-    var entryHeadStr =  (<span className="headword">{entry['headword']}</span>);
-    var morphologyStr = ('morphology' in entry['content']) ?
-        (<span className="morphology"><em>({entry['content']['morphology']})</em></span>) :"";
+    var entryHeadHtml =  (<span className="headword">{entry['headword']}</span>);
+    var morphologyHtml = ('morphology' in entry['content']) ?  (<span className="morphology">({entry['content']['morphology']})</span>) :"";
     var senses = this.renderLexiconEntrySenses(entry['content']);
     var attribution = this.renderLexiconAttribution();
     return (
         <div className="entry">
-          <div className="headword">{entryHeadStr}{morphologyStr}</div>
-          <ol className="definition">{senses}</ol>
+          <div className="headword">{entryHeadHtml}</div>
+          <div className="definition-content">{morphologyHtml}<ol className="definition">{senses}</ol></div>
           <div className="attribution">{attribution}</div>
         </div>
     );
@@ -4207,26 +4204,35 @@ LexiconEntry = React.createClass({
           return this.renderLexiconEntrySenses(sense)
         }) : "";
         var senses = sensesElems.length ? (<ol className="senses">{sensesElems}</ol>) : "";
-        return (<li className="sense">
-          {grammar}
-          {def}
-          {notes}
-          {senses}</li>);
+        return (
+            <li className="sense">
+              {grammar}
+              {def}
+              {notes}
+              {senses}
+            </li>
+        );
   },
 
   renderLexiconAttribution: function(){
         var entry = this.props.data;
 		var lexicon_dtls = entry['parent_lexicon_details'];
-        return (<small>
-            <a target="_blank"
-                href={('source_url' in lexicon_dtls) ? lexicon_dtls['source_url'] : ""}>
-              Definitions from: {'source' in lexicon_dtls ? lexicon_dtls['source'] : lexicon_dtls['source_url']}
-            </a>
-            <a target="_blank"
-                href={('attribution_url' in lexicon_dtls) ? lexicon_dtls['attribution_url'] : ""}>
-              Created by: {'attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']}
-            </a>
-          </small>);
+        return (
+            <div>
+                <span>
+                  <a target="_blank"
+                      href={('source_url' in lexicon_dtls) ? lexicon_dtls['source_url'] : ""}>
+                    Source: {'source' in lexicon_dtls ? lexicon_dtls['source'] : lexicon_dtls['source_url']}
+                  </a>
+                </span>
+                <span>
+                  <a target="_blank"
+                      href={('attribution_url' in lexicon_dtls) ? lexicon_dtls['attribution_url'] : ""}>
+                    Creator: {'attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']}
+                  </a>
+                </span>
+            </div>
+        );
   }
 });
 

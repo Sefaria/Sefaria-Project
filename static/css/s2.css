@@ -2373,6 +2373,14 @@ input {
   outline: none;
 }
 
+.textList .lexicon-content {
+  padding: 30px 30px 80px 30px;
+}
+.textList.fullPanel .lexicon-content {
+  padding: 30px 50px 80px 50px;
+  box-sizing: border-box;
+}
+
 .lexicon-content{
   overflow-y: auto;
   height:45%;
@@ -2381,3 +2389,98 @@ input {
 .lexicon-content + .fullFilterView{
   height: 55%;
 }
+
+.lexicon-link:hover {
+	text-decoration: underline;
+}
+
+
+.lexicon-header {
+	padding: 10px;
+	border-bottom: 1px solid #e5e5e5;
+	background-color: #AAAAAA;
+}
+
+.lexicon-header h4{
+	font-size: 1.2em;
+	margin: 0px;
+}
+
+.entry + .entry {
+	padding-top: 10px;
+  	/*border-top: 1px inset #AAAAAA;*/
+}
+
+.lexicon-results .entry > div{
+  padding: 1% 0 1% 0;
+}
+
+.lexicon-results .entry .headword{
+	/*font-weight: bold;*/
+  color: #333;
+  font-size: 1.4em;
+  display: block;
+}
+
+.lexicon-results .entry .morphology{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #444;
+  display: block;
+}
+
+.lexicon-results .entry .definition-content{
+	font-size: 0.9em;
+    color: #666;
+}
+
+.lexicon-results ol {
+	list-style-position: inside;
+}
+
+.lexicon-results .entry .definition li.sense{
+	margin-left: 15px;
+	padding: 0px;
+	/*margin: 0;*/
+}
+
+.lexicon-results .entry .definition ol.senses{
+	/*list-style-type: none;*/
+	padding-left: 0px;
+}
+
+.lexicon-results .entry .definition > li.sense{
+	/*list-style-type: none;*/
+	margin-left: 0px;
+}
+
+.lexicon-results .entry ol.definition {
+	list-style-type: none;
+	padding-top: 2px;
+	padding-left: 0px;
+}
+
+/*.sense + .sense {
+	margin-top: 3px;
+	padding-top: 3px;
+	border-top: 1px solid #eee;}*/
+
+/*.lexicon-results a {
+	font-size: 12px;
+}*/
+
+.lexicon-results .attribution{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #aaa;
+  font-size: 0.4em;
+}
+
+.lexicon-results .attribution span{
+  display: block;
+  font-size: 0.4em;
+}
+
+.lexicon-results .attribution a{
+  font-size: 5px;
+}
+
+
