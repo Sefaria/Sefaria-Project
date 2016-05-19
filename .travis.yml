@@ -15,6 +15,8 @@ install: "pip install -r requirements.txt"
 # The issue is intermittent, and the only reliable way to avoid it is to inject an artificial wait before making the first connection:
 before_script:
   # Install mongo 2.6.6 (default is too old)
+  - mkdir log
+  - chmod 777 log
   - sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
   - echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/mongodb.list
   - sudo apt-get update
