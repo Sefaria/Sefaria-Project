@@ -10,8 +10,14 @@ install: "pip install -r requirements.txt"
 # A few users have reported that MongoDB does not accept connections when from the build script.
 # The issue is intermittent, and the only reliable way to avoid it is to inject an artificial wait before making the first connection:
 before_script:
+  # Install mongo 2.6.6 (default is too old)
+  - sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+  - echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/mongodb.list
+  - sudo apt-get update
+  - sudo apt-get install -y mongodb-org=2.6.6 mongodb-org-server=2.6.6 mongodb-org-shell=2.6.6 mongodb-org-mongos=2.6.6 mongodb-org-tools=2.6.6
   - wget http://dev.sefaria.org/static/dump_small.tar.gz
   - tar -xzvf dump_small.tar.gz
+  - mongo --version
   - mongorestore --drop
   - cp ./sefaria/.travis.settings.py ./sefaria/local_settings.py
 
