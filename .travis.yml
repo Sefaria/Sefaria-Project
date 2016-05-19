@@ -4,6 +4,10 @@ python:
 services:
   - mongodb
 
+env:
+  PYTHONPATH=$TRAVIS_BUILD_DIR
+  DJANGO_SETTINGS_MODULE=sefaria.settings
+
 # command to install dependencies
 install: "pip install -r requirements.txt"
 
@@ -25,3 +29,6 @@ before_script:
 # command to run tests
 script:
  - py.test -vv -m "not deep and not failing"
+
+notifications:
+  slack: sefaria:Pm1FEncrRV9CbtuBVlgUlZbC
