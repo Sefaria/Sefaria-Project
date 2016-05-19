@@ -2384,7 +2384,9 @@ input {
 .lexicon-content{
   overflow-y: auto;
   height:45%;
+  font-size: 15px;
 }
+
 
 .lexicon-content + .fullFilterView{
   height: 55%;
@@ -2413,24 +2415,24 @@ input {
 
 .lexicon-results .entry > div{
   padding: 1% 0 1% 0;
+  margin: auto;
 }
 
 .lexicon-results .entry .headword{
 	/*font-weight: bold;*/
   color: #333;
-  font-size: 1.4em;
+  font-size: 1.2em;
   display: block;
 }
 
 .lexicon-results .entry .morphology{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #444;
+  color: #999;
   display: block;
 }
 
 .lexicon-results .entry .definition-content{
-	font-size: 0.9em;
-    color: #666;
+    color: #444;
 }
 
 .lexicon-results ol {
@@ -2457,6 +2459,7 @@ input {
 	list-style-type: none;
 	padding-top: 2px;
 	padding-left: 0px;
+    margin: 0px;
 }
 
 /*.sense + .sense {
@@ -2469,18 +2472,17 @@ input {
 }*/
 
 .lexicon-results .attribution{
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #aaa;
-  font-size: 0.4em;
+
 }
 
 .lexicon-results .attribution span{
   display: block;
-  font-size: 0.4em;
 }
 
 .lexicon-results .attribution a{
-  font-size: 5px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #aaa;
+  font-size: 10px;
 }
 
 
