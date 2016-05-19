@@ -901,9 +901,12 @@ h1 .languageToggle .he {
   margin: 0 4px;
 }
 .readerTextTableOfContents .content .tocLevel {
-display: block;margin: 0 auto;}
+  display: block;
+  margin: 0 auto;
+}
+
 .readerTextTableOfContents .schema-node-toc.depth1 {
-    margin: 10px auto 0;
+    margin: 10px 0 0;
 }
 .readerTextTableOfContents .schema-node-toc.depth2 {
     margin: 6px 20px 0;
