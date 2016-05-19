@@ -2379,8 +2379,8 @@ var ReaderTextTableOfContents = React.createClass({
         ));
 
         versionBlocks = <div className="versionBlocks">
-          {(!!heVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="en">Hebrew Versions</span><span className="he">בעברית</span></div>{heVersionBlocks}</div>:""}
-          {(!!enVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="en">English Versions</span><span className="he">באנגלית</span></div>{enVersionBlocks}</div>:""}
+          {(!!heVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="en">Hebrew Versions</span><span className="he">בעברית</span></div><div>{heVersionBlocks}</div></div>:""}
+          {(!!enVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="en">English Versions</span><span className="he">באנגלית</span></div><div>{enVersionBlocks}</div></div>:""}
         </div>
       }
     }
