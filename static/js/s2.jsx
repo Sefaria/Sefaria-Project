@@ -2311,9 +2311,15 @@ var ReaderTextTableOfContents = React.createClass({
       var v = this.state.versions[i];
       this.props.selectVersion(v.versionTitle, v.language);
     }
-    if (this.props.mode == "text toc") {
+    if (this.isTextToc()) {
       this.props.close();
     }
+  },
+  isBookToc: function() {
+    return (this.props.mode == "book toc")
+  },
+  isTextToc: function() {
+    return (this.props.mode == "text toc")
   },
   render: function() {
     var tocHtml = Sefaria.textTocHtml(this.props.title, function() {
@@ -2331,6 +2337,7 @@ var ReaderTextTableOfContents = React.createClass({
     var currentVersionElement = null;
     var defaultVersionString = "Default Version";
     var defaultVersionObject = null;
+    var versionBlocks = "";
 
     if (this.state.versionsLoaded) {
       if (this.state.currentVersion && this.state.currentVersion.merged) {
@@ -2358,29 +2365,49 @@ var ReaderTextTableOfContents = React.createClass({
             <a className="versionHistoryLink" href="#">Version History &gt;</a>
           </span>);
       }
+      if (this.isBookToc()) {
+        var [heVersionBlocks, enVersionBlocks] = ["he","en"].map(lang =>
+         this.state.versions.filter(v => v.language == lang).map(v =>
+              <div className = "versionBlock" key={v.versionTitle + "/" + v.language}>
+                <div className="versionTitle">{v.versionTitle}</div>
+                <div>
+                  <a className="versionSource" target="_blank" href={v.versionSource}>
+                  { parseURL(v.versionSource).host }
+                  </a>
+                </div>
+              </div>
+        ));
+
+        versionBlocks = <div className="versionBlocks">
+          {(!!heVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="en">Hebrew Versions</span><span className="he">בעברית</span></div>{heVersionBlocks}</div>:""}
+          {(!!enVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="en">English Versions</span><span className="he">באנגלית</span></div>{enVersionBlocks}</div>:""}
+        </div>
+      }
     }
 
-    var selectOptions = [];
-    selectOptions.push(<option key="0" value="0">{defaultVersionString}</option>);    // todo: add description of current version.
-    var selectedOption = 0;
-    for (var i = 0; i < this.state.versions.length; i++) {
-      var v = this.state.versions[i];
-      if (v == defaultVersionObject) {
-        continue;
+    if (this.isTextToc()) {
+      var selectOptions = [];
+      selectOptions.push(<option key="0" value="0">{defaultVersionString}</option>);    // todo: add description of current version.
+      var selectedOption = 0;
+      for (var i = 0; i < this.state.versions.length; i++) {
+        var v = this.state.versions[i];
+        if (v == defaultVersionObject) {
+          continue;
+        }
+        if (this.props.versionLanguage == v.language && this.props.version == v.versionTitle) {
+          selectedOption = i+1;
+        }
+        var versionString = v.versionTitle + " (" + v.language + ")";  // Can not inline this, because of https://github.com/facebook/react-devtools/issues/248
+        selectOptions.push(<option key={i+1} value={i+1} >{ versionString }</option>);
       }
-      if (this.props.versionLanguage == v.language && this.props.version == v.versionTitle) {
-        selectedOption = i+1;
-      }
-      var versionString = v.versionTitle + " (" + v.language + ")";  // Can not inline this, because of https://github.com/facebook/react-devtools/issues/248
-      selectOptions.push(<option key={i+1} value={i+1} >{ versionString }</option>);
+      var selectElement = (<div className="versionSelect">
+                             <select value={selectedOption} onChange={this.onVersionSelectChange}>
+                               {selectOptions}
+                             </select>
+                           </div>);
     }
-    var selectElement = (<div className="versionSelect">
-                           <select value={selectedOption} onChange={this.onVersionSelectChange}>
-                             {selectOptions}
-                           </select>
-                         </div>);
 
-    var closeClick = (this.props.mode == "book toc")?this.props.closePanel:this.props.close;
+    var closeClick = (this.isBookToc())?this.props.closePanel:this.props.close;
     return (<div className="readerTextTableOfContents readerNavMenu" onClick={this.handleClick}>
               <CategoryColorLine category={this.props.category} />
               <div className="readerControls">
@@ -2409,12 +2436,15 @@ var ReaderTextTableOfContents = React.createClass({
                       <span className="he">{heSection}</span>
                     </div>
                   </div>
-                  <div className="versionBox">
-                      {(!this.state.versionsLoaded) ? (<span>Loading...</span>): ""}
-                      {(this.state.versionsLoaded)? currentVersionElement: ""}
-                      {(this.state.versionsLoaded && this.state.versions.length > 1) ? selectElement: ""}
-                  </div>
+                  {this.isTextToc()?
+                    <div className="versionBox">
+                        {(!this.state.versionsLoaded) ? (<span>Loading...</span>): ""}
+                        {(this.state.versionsLoaded)? currentVersionElement: ""}
+                        {(this.state.versionsLoaded && this.state.versions.length > 1) ? selectElement: ""}
+                    </div>
+                  :""}
                   <div className="tocContent" dangerouslySetInnerHTML={ {__html: tocHtml} }></div>
+                  {versionBlocks}
                 </div>
               </div>
             </div>);

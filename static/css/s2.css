@@ -782,8 +782,6 @@ h1 .languageToggle .he {
 }
 .readerTextTableOfContents .versionBox {
   margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #ccc;
   text-align: center;
   direction: ltr;
 }
@@ -867,6 +865,8 @@ h1 .languageToggle .he {
   display: block;
 }
 .readerTextTableOfContents .content .tocContent {
+  padding: 20px 0;
+  border-top: 1px solid #ccc;
   text-align: left;
 } 
 .readerTextTableOfContents .content .tocSection {
@@ -947,6 +947,42 @@ display: block;margin: 0 auto;}
 .hebrew .readerTextTableOfContents .content .tocContent {
   text-align: right;
 }
+
+.readerTextTableOfContents .versionBlocks {
+  border-top: 1px solid #ccc;
+}
+.readerTextTableOfContents .versionBlocks .versionLanguageBlock {
+  padding-top: 20px;
+  clear: both;
+}
+.readerTextTableOfContents .versionBlocks .versionLanguageHeader {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: .2em;
+  color: #999;
+  padding: 10px 0;
+}
+.readerTextTableOfContents .versionBlocks .versionBlock {
+  padding: 10px 0;
+  width: 50%;
+  float: left;
+}
+.readerTextTableOfContents .versionBlocks .versionBlock .versionTitle {
+  color: #222;
+  font-size: 20px;
+}
+.readerTextTableOfContents .versionBlocks .versionBlock a.versionSource {
+  color: #999;
+  font-size: 16px;
+}
+
+@media (max-width: 450px) {
+  .readerTextTableOfContents .versionBlocks .versionBlock {
+    float: none;
+    width: auto;
+  }
+}
+
 .searchContent {
   padding: 15px 10px 0;
 }
