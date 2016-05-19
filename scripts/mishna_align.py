@@ -18,10 +18,22 @@ from sefaria.model import *
 
 tractates = library.get_indexes_in_category('Mishnah')
 
-"""
-Phase I: The goal of these functions is to roughly compare the two versions and to find "suspicious" sections
-and to gain a better understanding of the differences between them.
-"""
+
+class ComparisonTest:
+    """
+    Parent class for testing classes.
+    """
+    def __init__(self, versions, result):
+        if len(versions) != 2:
+            raise TypeError('You must have 2 objects to compare!')
+
+        self.v1 = versions[0]
+        self.v2 = versions[1]
+        self.result = result
+
+    def run_test(self):
+        return None
+
 
 
 def get_relevant_books():
@@ -29,7 +41,7 @@ def get_relevant_books():
     As not all tractates have had the Vilna edition uploaded yet, get those tractates for which the version has
     been uploaded.
     :return: List of tractates for which the Vilna edition has been uploaded.
-    """
+ """
 
     relevant = []
 
