@@ -19,6 +19,25 @@ from sefaria.model import *
 tractates = library.get_indexes_in_category('Mishnah')
 
 
+def get_relevant_books():
+    """
+    As not all tractates have had the Vilna edition uploaded yet, get those tractates for which the version has
+    been uploaded.
+    :return: List of tractates for which the Vilna edition has been uploaded.
+    """
+
+    relevant = []
+
+    for book in tractates:
+
+        ref = Ref(book)
+        for version in ref.version_list():
+            if version['versionTitle'] == 'Vilna Mishna':
+                relevant.append(book)
+                break
+    return relevant
+
+
 class ComparisonTest:
     """
     Parent class for testing classes.
@@ -33,6 +52,24 @@ class ComparisonTest:
 
     def run_test(self):
         return None
+
+
+class TestMeta:
+    """
+    Contains meta-data necessary to run a test.
+    """
+    def __init__(self, test, test_name, required_depth, fail_condition=None):
+        """
+        :param test: The test to run
+        :param test_name: The name of the test to display in output.
+        :param required_depth: specifies what level of the jagged array is necessary to run test
+        :param fail_condition: Indicates what constitutes a failure of the test.
+        """
+
+        self.test = test
+        self.name = test_name
+        self.depth = required_depth
+        self.fail = fail_condition
 
 
 class TestResult:
@@ -53,23 +90,21 @@ class TestResult:
         self.diff = diff
         self.passed = passed
 
-def get_relevant_books():
+
+class TestSuite:
     """
-    As not all tractates have had the Vilna edition uploaded yet, get those tractates for which the version has
-    been uploaded.
-    :return: List of tractates for which the Vilna edition has been uploaded.
- """
+    Class to get data and run a series of tests on them.
+    """
 
-    relevant = []
+    def __init__(self, test_list, output_file):
+        """
+        :param test_list: A list of TestMeta objects
+        :param output_file: File to write results.
+        """
 
-    for book in tractates:
-
-        ref = Ref(book)
-        for version in ref.version_list():
-            if version['versionTitle'] == 'Vilna Mishna':
-                relevant.append(book)
-                break
-    return relevant
+        self.texts = get_relevant_books()
+        self.tests = test_list
+        self.output = output_file
 
 
 class CompareNumberOfMishnayot(ComparisonTest):
