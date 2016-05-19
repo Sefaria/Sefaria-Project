@@ -1,0 +1,21 @@
+language: python
+python:
+  - "2.7"
+services:
+  - mongodb
+
+# command to install dependencies
+install: "pip install -r requirements.txt"
+
+# A few users have reported that MongoDB does not accept connections when from the build script.
+# The issue is intermittent, and the only reliable way to avoid it is to inject an artificial wait before making the first connection:
+before_script:
+  - wget http://dev.sefaria.org/static/dump_small.tar.gz
+  - tar -xzvf dump_small.tar.gz
+  - mongorestore --drop
+  - cp ./sefaria/.travis.settings.py ./sefaria/local_settings.py
+
+
+# command to run tests
+script:
+ - py.test -vv -m "not deep and not failing"

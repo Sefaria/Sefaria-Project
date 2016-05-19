@@ -18,11 +18,6 @@ from sefaria.model import *
 
 tractates = library.get_indexes_in_category('Mishnah')
 
-"""
-Phase I: The goal of these functions is to roughly compare the two versions and to find "suspicious" sections
-and to gain a better understanding of the differences between them.
-"""
-
 
 def get_relevant_books():
     """
@@ -43,32 +38,104 @@ def get_relevant_books():
     return relevant
 
 
-def compare_number_of_mishnayot(chapter, allowed=0):
+class ComparisonTest:
+    """
+    Parent class for testing classes.
+    """
+    def __init__(self, versions, result):
+        if len(versions) != 2:
+            raise TypeError('You must have 2 objects to compare!')
+
+        self.v1 = versions[0]
+        self.v2 = versions[1]
+        self.result = result
+
+    def run_test(self):
+        return None
+
+
+class TestMeta:
+    """
+    Contains meta-data necessary to run a test.
+    """
+    def __init__(self, test, test_name, required_depth, fail_condition=None):
+        """
+        :param test: The test to run
+        :param test_name: The name of the test to display in output.
+        :param required_depth: specifies what level of the jagged array is necessary to run test
+        :param fail_condition: Indicates what constitutes a failure of the test.
+        """
+
+        self.test = test
+        self.name = test_name
+        self.depth = required_depth
+        self.fail = fail_condition
+
+
+class TestResult:
+    """
+    Holds result of the test. Members include identification for the texts on which the test was run,
+    the exact difference between the texts as discovered by the test, and a boolean which declares if the
+    test passed or failed.
+    """
+
+    def __init__(self, ref_id, diff=None, passed=True):
+        """
+        :param ref_id: Identifies the documents on which the test was run.
+        :param diff: Holds numeric or textual data returned from the test.
+        :param passed: Defaults to True, if a pass/fail condition was passed to the test, store it here.
+        """
+
+        self.id = ref_id
+        self.diff = diff
+        self.passed = passed
+
+
+class TestSuite:
+    """
+    Class to get data and run a series of tests on them.
+    """
+
+    def __init__(self, test_list, output_file):
+        """
+        :param test_list: A list of TestMeta objects
+        :param output_file: File to write results.
+        """
+
+        self.texts = get_relevant_books()
+        self.tests = test_list
+        self.output = output_file
+
+
+class CompareNumberOfMishnayot(ComparisonTest):
     """
     Compares number of mishnayot between two versions.
-    :param chapter: Tuple, each value is a list of Mishnayot from each version.
-    :param allowed: Allowed difference between number of Mishnayot.
-    :return: True or False
     """
 
-    if abs(chapter[0].verse_count() - chapter[1].verse_count()) > allowed:
-        return False
-    else:
-        return True
+    def run_test(self, max_diff=0):
+        """
+        :param max_diff: Maximum difference in words allowed before function declares a failed test
+        """
+
+        self.result.diff = abs(self.v1.word_count() - self.v2.word_count())
+
+        if self.result.diff > max_diff:
+            self.result.passed = False
 
 
-def compare_number_of_words(mishnah, allowed=0):
+class CompareNumberOfWords(ComparisonTest):
     """
     Compares number of words in a mishna from two parallel versions
-    :param mishnah: Tuple with each value containing a string of text from each version from one mishnah
-    :param allowed: Allowed difference between both versions before test returns false
-    :return: boolean
     """
 
-    if abs(mishnah[0].word_count() - mishnah[1].word_count()) > allowed:
-        return False
-    else:
-        return True
+    def run_test(self, max_diff=0):
+        """
+        :param max_diff: Maximum difference in words allowed before function declares a failed test
+        """
+        self.result.diff = abs(self.v1.word_count() - self.v2.word_count())
+
+        if self.result.diff > max_diff:
+            self.result.passed = False
 
 
 def run(outfile):
