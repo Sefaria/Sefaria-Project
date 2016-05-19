@@ -1,5 +1,7 @@
 'use strict';
 
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 if (typeof require !== 'undefined') {
@@ -2573,14 +2575,20 @@ var ReaderTextTableOfContents = React.createClass({
   loadVersionsDataFromText: function loadVersionsDataFromText(d) {
     // For now treat bilinguale as english. TODO show attribution for 2 versions in bilingual case.
     var currentLanguage = this.props.settingsLanguage == "he" ? "he" : "en";
-    // Todo handle independent Text TOC case where there is no current version
+    if (currentLanguage == "en" && !d.text.length) {
+      currentLanguage = "he";
+    }
+    if (currentLanguage == "he" && !d.he.length) {
+      currentLanguage = "en";
+    }
+
     var currentVersion = {
       language: currentLanguage,
-      title: currentLanguage == "he" ? d.heVersionTitle : d.versionTitle,
-      source: currentLanguage == "he" ? d.heVersionSource : d.versionSource,
+      versionTitle: currentLanguage == "he" ? d.heVersionTitle : d.versionTitle,
+      versionSource: currentLanguage == "he" ? d.heVersionSource : d.versionSource,
       license: currentLanguage == "he" ? d.heLicense : d.license,
       sources: currentLanguage == "he" ? d.heSources : d.sources,
-      notes: currentLanguage == "he" ? d.heVersionNotes : d.versionNotes,
+      versionNotes: currentLanguage == "he" ? d.heVersionNotes : d.versionNotes,
       digitizedBySefaria: currentLanguage == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria
     };
     currentVersion.merged = !!currentVersion.sources;
@@ -2655,9 +2663,15 @@ var ReaderTextTableOfContents = React.createClass({
       var v = this.state.versions[i];
       this.props.selectVersion(v.versionTitle, v.language);
     }
-    if (this.props.mode == "text toc") {
+    if (this.isTextToc()) {
       this.props.close();
     }
+  },
+  isBookToc: function isBookToc() {
+    return this.props.mode == "book toc";
+  },
+  isTextToc: function isTextToc() {
+    return this.props.mode == "text toc";
   },
   render: function render() {
     var _this = this;
@@ -2677,108 +2691,135 @@ var ReaderTextTableOfContents = React.createClass({
     var currentVersionElement = null;
     var defaultVersionString = "Default Version";
     var defaultVersionObject = null;
+    var versionBlocks = "";
 
     if (this.state.versionsLoaded) {
-      if (this.state.currentVersion && this.state.currentVersion.merged) {
-        var uniqueSources = this.state.currentVersion.sources.filter(function (item, i, ar) {
+      var cv = this.state.currentVersion;
+      if (cv && cv.merged) {
+        var uniqueSources = cv.sources.filter(function (item, i, ar) {
           return ar.indexOf(item) === i;
         }).join(", ");
         defaultVersionString += " (Merged from " + uniqueSources + ")";
         currentVersionElement = React.createElement(
-          'span',
-          { className: 'currentVersionInfo' },
-          React.createElement(
-            'span',
-            { className: 'currentVersionTitle' },
-            'Merged from ',
-            uniqueSources
-          ),
-          React.createElement(
-            'a',
-            { className: 'versionHistoryLink', href: '#' },
-            'Version History >'
-          )
+          'div',
+          { className: 'versionTitle' },
+          'Merged from ',
+          uniqueSources
         );
-      } else if (this.state.currentVersion) {
+      } else if (cv) {
         if (!this.props.version) {
           defaultVersionObject = this.state.versions.find(function (v) {
-            return _this.state.currentVersion.language == v.language && _this.state.currentVersion.title == v.versionTitle;
+            return cv.language == v.language && cv.versionTitle == v.versionTitle;
           });
           defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
         }
-        currentVersionElement = React.createElement(
-          'span',
-          { className: 'currentVersionInfo' },
-          React.createElement(
-            'span',
-            { className: 'currentVersionTitle' },
-            this.state.currentVersion.title
-          ),
-          React.createElement(
-            'a',
-            { className: 'currentVersionSource', target: '_blank', href: this.state.currentVersion.source },
-            parseURL(this.state.currentVersion.source).host
-          ),
-          React.createElement(
-            'span',
-            null,
-            '-'
-          ),
-          React.createElement(
-            'span',
-            { className: 'currentVersionLicense' },
-            this.state.currentVersion.license == "unknown" ? "License Unknown" : this.state.currentVersion.license + (this.state.currentVersion.digitizedBySefaria ? " - Digitized by Sefaria" : "")
-          ),
-          React.createElement(
-            'span',
-            null,
-            '-'
-          ),
-          React.createElement(
-            'a',
-            { className: 'versionHistoryLink', href: '#' },
-            'Version History >'
-          )
-        );
+        currentVersionElement = React.createElement(VersionBlock, { version: cv, currentRef: this.props.currentRef, showHistory: true });
       }
+
+      var _map = ["he", "en"].map(function (lang) {
+        return _this.state.versions.filter(function (v) {
+          return v.language == lang;
+        }).map(function (v) {
+          return React.createElement(VersionBlock, { version: v, showNotes: true, key: v.versionTitle + "/" + v.language });
+        });
+      });
+
+      var _map2 = _slicedToArray(_map, 2);
+
+      var heVersionBlocks = _map2[0];
+      var enVersionBlocks = _map2[1];
+
+
+      versionBlocks = React.createElement(
+        'div',
+        { className: 'versionBlocks' },
+        !!heVersionBlocks.length ? React.createElement(
+          'div',
+          { className: 'versionLanguageBlock' },
+          React.createElement(
+            'div',
+            { className: 'versionLanguageHeader' },
+            React.createElement(
+              'span',
+              { className: 'en' },
+              'Hebrew Versions'
+            ),
+            React.createElement(
+              'span',
+              { className: 'he' },
+              'בעברית'
+            )
+          ),
+          React.createElement(
+            'div',
+            null,
+            heVersionBlocks
+          )
+        ) : "",
+        !!enVersionBlocks.length ? React.createElement(
+          'div',
+          { className: 'versionLanguageBlock' },
+          React.createElement(
+            'div',
+            { className: 'versionLanguageHeader' },
+            React.createElement(
+              'span',
+              { className: 'en' },
+              'English Versions'
+            ),
+            React.createElement(
+              'span',
+              { className: 'he' },
+              'באנגלית'
+            )
+          ),
+          React.createElement(
+            'div',
+            null,
+            enVersionBlocks
+          )
+        ) : ""
+      );
     }
 
-    var selectOptions = [];
-    selectOptions.push(React.createElement(
-      'option',
-      { key: '0', value: '0' },
-      defaultVersionString
-    )); // todo: add description of current version.
-    var selectedOption = 0;
-    for (var i = 0; i < this.state.versions.length; i++) {
-      var v = this.state.versions[i];
-      if (v == defaultVersionObject) {
-        continue;
-      }
-      if (this.props.versionLanguage == v.language && this.props.version == v.versionTitle) {
-        selectedOption = i + 1;
-      }
-      var versionString = v.versionTitle + " (" + v.language + ")"; // Can not inline this, because of https://github.com/facebook/react-devtools/issues/248
+    if (this.isTextToc()) {
+      var selectOptions = [];
       selectOptions.push(React.createElement(
         'option',
-        { key: i + 1, value: i + 1 },
-        versionString
-      ));
+        { key: '0', value: '0' },
+        defaultVersionString
+      )); // todo: add description of current version.
+      var selectedOption = 0;
+      for (var i = 0; i < this.state.versions.length; i++) {
+        var v = this.state.versions[i];
+        if (v == defaultVersionObject) {
+          continue;
+        }
+        if (this.props.versionLanguage == v.language && this.props.version == v.versionTitle) {
+          selectedOption = i + 1;
+        }
+        var versionString = v.versionTitle + " (" + v.language + ")"; // Can not inline this, because of https://github.com/facebook/react-devtools/issues/248
+        selectOptions.push(React.createElement(
+          'option',
+          { key: i + 1, value: i + 1 },
+          versionString
+        ));
+      }
+      var selectElement = React.createElement(
+        'div',
+        { className: 'versionSelect' },
+        React.createElement(
+          'select',
+          { value: selectedOption, onChange: this.onVersionSelectChange },
+          selectOptions
+        )
+      );
     }
-    var selectElement = React.createElement(
-      'div',
-      { className: 'versionSelect' },
-      React.createElement(
-        'select',
-        { value: selectedOption, onChange: this.onVersionSelectChange },
-        selectOptions
-      )
-    );
 
-    var closeClick = this.props.mode == "book toc" ? this.props.closePanel : this.props.close;
+    var closeClick = this.isBookToc() ? this.props.closePanel : this.props.close;
     return React.createElement(
       'div',
-      { className: 'readerTextTableOfContents readerNavMenu', onClick: this.handleClick },
+      { className: 'readerTextTableOfContents readerNavMenu' },
       React.createElement(CategoryColorLine, { category: this.props.category }),
       React.createElement(
         'div',
@@ -2850,9 +2891,9 @@ var ReaderTextTableOfContents = React.createClass({
               )
             )
           ),
-          React.createElement(
+          this.isTextToc() ? React.createElement(
             'div',
-            { className: 'versionBox' },
+            { className: 'currentVersionBox' },
             !this.state.versionsLoaded ? React.createElement(
               'span',
               null,
@@ -2860,10 +2901,76 @@ var ReaderTextTableOfContents = React.createClass({
             ) : "",
             this.state.versionsLoaded ? currentVersionElement : "",
             this.state.versionsLoaded && this.state.versions.length > 1 ? selectElement : ""
-          ),
-          React.createElement('div', { className: 'tocContent', dangerouslySetInnerHTML: { __html: tocHtml } })
+          ) : "",
+          React.createElement('div', { className: 'tocContent', dangerouslySetInnerHTML: { __html: tocHtml }, onClick: this.handleClick }),
+          versionBlocks
         )
       )
+    );
+  }
+});
+
+var VersionBlock = React.createClass({
+  displayName: 'VersionBlock',
+
+  propTypes: {
+    version: React.PropTypes.object.isRequired,
+    currentRef: React.PropTypes.string,
+    showHistory: React.PropTypes.bool,
+    showNotes: React.PropTypes.bool
+  },
+  getDefaultProps: function getDefaultProps() {
+    return {
+      ref: "",
+      showHistory: false,
+      showNotes: false
+    };
+  },
+  render: function render() {
+    var v = this.props.version;
+
+    return React.createElement(
+      'div',
+      { className: 'versionBlock' },
+      React.createElement(
+        'div',
+        { className: 'versionTitle' },
+        v.versionTitle
+      ),
+      React.createElement(
+        'div',
+        null,
+        React.createElement(
+          'a',
+          { className: 'versionSource', target: '_blank', href: v.versionSource },
+          parseURL(v.versionSource).host
+        ),
+        React.createElement(
+          'span',
+          null,
+          '-'
+        ),
+        React.createElement(
+          'span',
+          { className: 'versionLicense' },
+          v.license == "unknown" || !v.license ? "License Unknown" : v.license + (v.digitizedBySefaria ? " - Digitized by Sefaria" : "")
+        ),
+        this.props.showHistory ? React.createElement(
+          'span',
+          null,
+          '-'
+        ) : "",
+        this.props.showHistory ? React.createElement(
+          'a',
+          { className: 'versionHistoryLink', href: '/activity/' + normRef(this.props.currentRef) + '/' + v.language + '/' + (v.versionTitle && v.versionTitle.replace(/\s/g, "_")) },
+          'Version History >'
+        ) : ""
+      ),
+      this.props.showNotes ? React.createElement(
+        'div',
+        { className: 'versionNotes' },
+        v.versionNotes
+      ) : ""
     );
   }
 });

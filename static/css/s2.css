@@ -776,33 +776,33 @@ h1 .languageToggle .he {
   margin-top: 6px;
   letter-spacing: 1px;
 }
-.readerTextTableOfContents .versionBox {
+.readerTextTableOfContents .currentVersionBox {
   margin-bottom: 20px;
   text-align: center;
   direction: ltr;
 }
 
-.readerTextTableOfContents .versionBox .versionSelect {
+.readerTextTableOfContents .currentVersionBox .versionSelect {
   width: 80%;
   max-width: 300px;
   margin: 5px auto;
 }
-.readerTextTableOfContents .versionBox .versionSelect select {
+.readerTextTableOfContents .currentVersionBox .versionSelect select {
   width: 100%;
 }
-.readerTextTableOfContents .versionBox .currentVersionInfo > span, 
-.readerTextTableOfContents .versionBox .currentVersionInfo > a {
+.readerTextTableOfContents .currentVersionBox .versionBlock span,
+.readerTextTableOfContents .currentVersionBox .versionBlock  a {
   margin: 3px;
   color: #999;
 }
-.readerTextTableOfContents .versionBox span.currentVersionTitle {
+.readerTextTableOfContents .currentVersionBox .versionTitle {
   display: block;
   font-size: 17px;
   color: #333;
 }
-.readerTextTableOfContents .versionBox .currentVersionSource,
-.readerTextTableOfContents .versionBox .currentVersionLicense,
-.readerTextTableOfContents .versionBox .versionHistoryLink {
+.readerTextTableOfContents .currentVersionBox .versionSource,
+.readerTextTableOfContents .currentVersionBox .versionLicense,
+.readerTextTableOfContents .currentVersionBox .versionHistoryLink {
   display: inline-block;
   font-size: 13px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -897,9 +897,12 @@ h1 .languageToggle .he {
   margin: 0 4px;
 }
 .readerTextTableOfContents .content .tocLevel {
-display: block;margin: 0 auto;}
+  display: block;
+  margin: 0 auto;
+}
+
 .readerTextTableOfContents .schema-node-toc.depth1 {
-    margin: 10px auto 0;
+    margin: 10px 0 0;
 }
 .readerTextTableOfContents .schema-node-toc.depth2 {
     margin: 6px 20px 0;
@@ -968,13 +971,24 @@ display: block;margin: 0 auto;}
     width: auto;
 }
 
+.readerTextTableOfContents .versionBlocks .versionBlock,
+.readerTextTableOfContents .versionBlocks .versionBlock a.versionSource {
+  color: #999;
+  font-size: 16px;
+}
+
+.readerTextTableOfContents .versionBlocks .versionBlock a.versionSource,
+.readerTextTableOfContents .versionBlocks .versionBlock .versionLicense {
+  margin: 0 3px;
+}
+
 .readerTextTableOfContents .versionBlocks .versionBlock .versionTitle {
   color: #222;
   font-size: 20px;
 }
-.readerTextTableOfContents .versionBlocks .versionBlock a.versionSource {
-  color: #999;
-  font-size: 16px;
+
+.readerTextTableOfContents .versionBlocks .versionBlock .versionNotes {
+  padding-top: 8px;
 }
 
 @media (max-width: 450px) {

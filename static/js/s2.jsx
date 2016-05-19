@@ -2255,14 +2255,16 @@ var ReaderTextTableOfContents = React.createClass({
   loadVersionsDataFromText: function(d) {
     // For now treat bilinguale as english. TODO show attribution for 2 versions in bilingual case.
     var currentLanguage = this.props.settingsLanguage == "he" ? "he" : "en";
-    // Todo handle independent Text TOC case where there is no current version
+    if (currentLanguage == "en" && !d.text.length) {currentLanguage = "he"}
+    if (currentLanguage == "he" && !d.he.length) {currentLanguage = "en"}
+
     var currentVersion = {
       language: currentLanguage,
-      title:    currentLanguage == "he" ? d.heVersionTitle: d.versionTitle,
-      source:   currentLanguage == "he" ? d.heVersionSource: d.versionSource,
+      versionTitle:    currentLanguage == "he" ? d.heVersionTitle: d.versionTitle,
+      versionSource:   currentLanguage == "he" ? d.heVersionSource: d.versionSource,
       license:  currentLanguage == "he" ? d.heLicense: d.license,
       sources:  currentLanguage == "he" ? d.heSources: d.sources,
-      notes:    currentLanguage == "he" ? d.heVersionNotes: d.versionNotes,
+      versionNotes:    currentLanguage == "he" ? d.heVersionNotes: d.versionNotes,
       digitizedBySefaria:  currentLanguage == "he" ? d.heDigitizedBySefaria: d.digitizedBySefaria
     };
     currentVersion.merged = !!(currentVersion.sources);
@@ -2363,50 +2365,31 @@ var ReaderTextTableOfContents = React.createClass({
     var versionBlocks = "";
 
     if (this.state.versionsLoaded) {
-      if (this.state.currentVersion && this.state.currentVersion.merged) {
-        var uniqueSources = this.state.currentVersion.sources.filter(function(item, i, ar){ return ar.indexOf(item) === i; }).join(", ");
+      var cv = this.state.currentVersion;
+      if (cv && cv.merged) {
+        var uniqueSources = cv.sources.filter(function(item, i, ar){ return ar.indexOf(item) === i; }).join(", ");
         defaultVersionString += " (Merged from " + uniqueSources + ")";
-        currentVersionElement = (
-          <span className="currentVersionInfo">
-            <span className="currentVersionTitle">Merged from { uniqueSources }</span>
-            <a className="versionHistoryLink" href="#">Version History &gt;</a>
-          </span>);
-      } else if (this.state.currentVersion) {
+        currentVersionElement = (<div className="versionTitle">Merged from { uniqueSources }</div>);
+      } else if (cv) {
         if (!this.props.version) {
-          defaultVersionObject = this.state.versions.find(v => (this.state.currentVersion.language == v.language && this.state.currentVersion.title == v.versionTitle));
+          defaultVersionObject = this.state.versions.find(v => (cv.language == v.language && cv.versionTitle == v.versionTitle));
           defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
         }
-        currentVersionElement = (
-            <span className="currentVersionInfo">
-            <span className="currentVersionTitle">{this.state.currentVersion.title}</span>
-            <a className="currentVersionSource" target="_blank" href={this.state.currentVersion.source}>
-              { parseURL(this.state.currentVersion.source).host }
-            </a>
-            <span>-</span>
-            <span className="currentVersionLicense">{this.state.currentVersion.license == "unknown" ? "License Unknown" : (this.state.currentVersion.license + (this.state.currentVersion.digitizedBySefaria ? " - Digitized by Sefaria": "" ))}</span>
-            <span>-</span>
-            <a className="versionHistoryLink" href="#">Version History &gt;</a>
-          </span>);
+        currentVersionElement = (<VersionBlock version={cv} currentRef={this.props.currentRef} showHistory={true}/>);
       }
-      if (this.isBookToc()) {
-        var [heVersionBlocks, enVersionBlocks] = ["he","en"].map(lang =>
-         this.state.versions.filter(v => v.language == lang).map(v =>
-              <div className = "versionBlock" key={v.versionTitle + "/" + v.language}>
-                <div className="versionTitle">{v.versionTitle}</div>
-                <div>
-                  <a className="versionSource" target="_blank" href={v.versionSource}>
-                  { parseURL(v.versionSource).host }
-                  </a>
-                </div>
-              </div>
-        ));
 
-        versionBlocks = <div className="versionBlocks">
-          {(!!heVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="en">Hebrew Versions</span><span className="he">בעברית</span></div><div>{heVersionBlocks}</div></div>:""}
-          {(!!enVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="en">English Versions</span><span className="he">באנגלית</span></div><div>{enVersionBlocks}</div></div>:""}
-        </div>
-      }
+      var [heVersionBlocks, enVersionBlocks] = ["he","en"].map(lang =>
+       this.state.versions.filter(v => v.language == lang).map(v =>
+           <VersionBlock version={v} showNotes={true} key={v.versionTitle + "/" + v.language}/>
+       )
+      );
+
+      versionBlocks = <div className="versionBlocks">
+        {(!!heVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="en">Hebrew Versions</span><span className="he">בעברית</span></div><div>{heVersionBlocks}</div></div>:""}
+        {(!!enVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="en">English Versions</span><span className="he">באנגלית</span></div><div>{enVersionBlocks}</div></div>:""}
+      </div>
     }
+
 
     if (this.isTextToc()) {
       var selectOptions = [];
@@ -2431,7 +2414,7 @@ var ReaderTextTableOfContents = React.createClass({
     }
 
     var closeClick = (this.isBookToc())?this.props.closePanel:this.props.close;
-    return (<div className="readerTextTableOfContents readerNavMenu" onClick={this.handleClick}>
+    return (<div className="readerTextTableOfContents readerNavMenu">
               <CategoryColorLine category={this.props.category} />
               <div className="readerControls">
                 <div className="readerControlsInner">
@@ -2460,13 +2443,13 @@ var ReaderTextTableOfContents = React.createClass({
                     </div>
                   </div>
                   {this.isTextToc()?
-                    <div className="versionBox">
+                    <div className="currentVersionBox">
                         {(!this.state.versionsLoaded) ? (<span>Loading...</span>): ""}
                         {(this.state.versionsLoaded)? currentVersionElement: ""}
                         {(this.state.versionsLoaded && this.state.versions.length > 1) ? selectElement: ""}
                     </div>
                   :""}
-                  <div className="tocContent" dangerouslySetInnerHTML={ {__html: tocHtml} }></div>
+                  <div className="tocContent" dangerouslySetInnerHTML={ {__html: tocHtml} }  onClick={this.handleClick}></div>
                   {versionBlocks}
                 </div>
               </div>
@@ -2474,6 +2457,40 @@ var ReaderTextTableOfContents = React.createClass({
   }
 });
 
+var VersionBlock = React.createClass({
+  propTypes: {
+    version: React.PropTypes.object.isRequired,
+    currentRef: React.PropTypes.string,
+    showHistory: React.PropTypes.bool,
+    showNotes: React.PropTypes.bool
+  },
+  getDefaultProps: function() {
+    return {
+      ref: "",
+      showHistory: false,
+      showNotes: false
+    }
+  },
+  render: function() {
+    var v = this.props.version;
+
+    return (
+      <div className = "versionBlock">
+        <div className="versionTitle">{v.versionTitle}</div>
+        <div>
+          <a className="versionSource" target="_blank" href={v.versionSource}>
+          { parseURL(v.versionSource).host }
+          </a>
+          <span>-</span>
+          <span className="versionLicense">{(v.license == "unknown" || !v.license) ? "License Unknown" : (v.license + (v.digitizedBySefaria ? " - Digitized by Sefaria": "" ))}</span>
+          {this.props.showHistory?<span>-</span>:""}
+          {this.props.showHistory?<a className="versionHistoryLink" href={`/activity/${normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>Version History &gt;</a>:""}
+        </div>
+        {this.props.showNotes?<div className="versionNotes">{v.versionNotes}</div>:""}
+      </div>
+    );
+  }
+});
 
 var SheetsNav = React.createClass({
   // Navigation for Sheets
