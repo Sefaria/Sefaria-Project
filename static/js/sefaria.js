@@ -37,6 +37,12 @@ Sefaria = extend(Sefaria, {
       //console.log("API return for " + data.ref)
     }.bind(this));
   },
+  versions: function(ref, cb) {
+    var url = "/api/texts/versions/" + normRef(ref);
+    this._api(url, function(data) {
+      cb(data);
+    });
+  },
   _textUrl: function(ref, settings) {
     // copy the parts of settings that are used as parameters, but not other
     var params = $.param({

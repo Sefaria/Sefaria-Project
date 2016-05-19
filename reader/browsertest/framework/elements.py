@@ -126,7 +126,6 @@ class AtomicTest(object):
         return self
 
 
-
 class TestResult(object):
     def __init__(self, test, cap, success, message=""):
         assert isinstance(test, AtomicTest) or inspect.isclass(cap)
@@ -156,7 +155,6 @@ class ResultSet(object):
         self._test_results = [] if results is None else results
         assert (isinstance(t, TestResult) for t in self._test_results)
         self._indexed_tests = {}
-
 
     def __str__(self):
         return "\n".join([str(r) for r in self._test_results])

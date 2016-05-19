@@ -1355,16 +1355,9 @@ def versions_api(request, tref):
     API for retrieving available text versions list of a ref.
     """
     oref = model.Ref(tref)
-    versions = model.VersionSet({"title": oref.book})
-    results = []
-    for v in versions:
-        results.append({
-            "title": v.versionTitle,
-            "source": v.versionSource,
-            "langauge": v.language
-        })
+    versions = oref.version_list()
 
-    return jsonResponse(results, callback=request.GET.get("callback", None))
+    return jsonResponse(versions, callback=request.GET.get("callback", None))
 
 @catch_error_as_json
 def version_status_api(request):

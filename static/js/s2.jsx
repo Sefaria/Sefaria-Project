@@ -2243,12 +2243,16 @@ var ReaderTextTableOfContents = React.createClass({
       this.setState({versionsLoaded: true});
       return;
     }
-    Sefaria.text(
-      ref,
-      {context: 1, version: this.state.version, language: this.state.versionLanguage},
-      this.loadVersionsData);
+    if (Sefaria.ref(ref)) {
+      Sefaria.text(
+        ref,
+        {context: 1, version: this.state.version, language: this.state.versionLanguage},
+        this.loadVersionsDataFromText);
+    } else {
+      Sefaria.versions(ref, function(d) {this.setState({ versions: d, versionsLoaded: true})}.bind(this));
+    }
   },
-  loadVersionsData: function(d) {
+  loadVersionsDataFromText: function(d) {
     // For now treat bilinguale as english. TODO show attribution for 2 versions in bilingual case.
     var currentLanguage = this.props.settingsLanguage == "he" ? "he" : "en";
     // Todo handle independent Text TOC case where there is no current version
@@ -2330,9 +2334,15 @@ var ReaderTextTableOfContents = React.createClass({
       var v = this.state.versions[i];
       this.props.selectVersion(v.versionTitle, v.language);
     }
-    if (this.props.mode == "text toc") {
+    if (this.isTextToc()) {
       this.props.close();
     }
+  },
+  isBookToc: function() {
+    return (this.props.mode == "book toc")
+  },
+  isTextToc: function() {
+    return (this.props.mode == "text toc")
   },
   render: function() {
     var tocHtml = Sefaria.textTocHtml(this.props.title, function() {
@@ -2343,15 +2353,17 @@ var ReaderTextTableOfContents = React.createClass({
     var title     = this.props.title;
     var heTitle   = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
 
-    var section   = Sefaria.sectionString(this.props.currentRef).en.named;
-    var heSection = Sefaria.sectionString(this.props.currentRef).he.named;
+    var sectionStrings = Sefaria.sectionString(this.props.currentRef);
+    var section   = sectionStrings.en.named;
+    var heSection = sectionStrings.he.named;
 
     var currentVersionElement = null;
     var defaultVersionString = "Default Version";
     var defaultVersionObject = null;
+    var versionBlocks = "";
 
     if (this.state.versionsLoaded) {
-      if (this.state.currentVersion.merged) {
+      if (this.state.currentVersion && this.state.currentVersion.merged) {
         var uniqueSources = this.state.currentVersion.sources.filter(function(item, i, ar){ return ar.indexOf(item) === i; }).join(", ");
         defaultVersionString += " (Merged from " + uniqueSources + ")";
         currentVersionElement = (
@@ -2359,7 +2371,7 @@ var ReaderTextTableOfContents = React.createClass({
             <span className="currentVersionTitle">Merged from { uniqueSources }</span>
             <a className="versionHistoryLink" href="#">Version History &gt;</a>
           </span>);
-      } else {
+      } else if (this.state.currentVersion) {
         if (!this.props.version) {
           defaultVersionObject = this.state.versions.find(v => (this.state.currentVersion.language == v.language && this.state.currentVersion.title == v.versionTitle));
           defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
@@ -2376,29 +2388,49 @@ var ReaderTextTableOfContents = React.createClass({
             <a className="versionHistoryLink" href="#">Version History &gt;</a>
           </span>);
       }
+      if (this.isBookToc()) {
+        var [heVersionBlocks, enVersionBlocks] = ["he","en"].map(lang =>
+         this.state.versions.filter(v => v.language == lang).map(v =>
+              <div className = "versionBlock" key={v.versionTitle + "/" + v.language}>
+                <div className="versionTitle">{v.versionTitle}</div>
+                <div>
+                  <a className="versionSource" target="_blank" href={v.versionSource}>
+                  { parseURL(v.versionSource).host }
+                  </a>
+                </div>
+              </div>
+        ));
+
+        versionBlocks = <div className="versionBlocks">
+          {(!!heVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="en">Hebrew Versions</span><span className="he">בעברית</span></div>{heVersionBlocks}</div>:""}
+          {(!!enVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="en">English Versions</span><span className="he">באנגלית</span></div>{enVersionBlocks}</div>:""}
+        </div>
+      }
     }
 
-    var selectOptions = [];
-    selectOptions.push(<option key="0" value="0">{defaultVersionString}</option>);    // todo: add description of current version.
-    var selectedOption = 0;
-    for (var i = 0; i < this.state.versions.length; i++) {
-      var v = this.state.versions[i];
-      if (v == defaultVersionObject) {
-        continue;
+    if (this.isTextToc()) {
+      var selectOptions = [];
+      selectOptions.push(<option key="0" value="0">{defaultVersionString}</option>);    // todo: add description of current version.
+      var selectedOption = 0;
+      for (var i = 0; i < this.state.versions.length; i++) {
+        var v = this.state.versions[i];
+        if (v == defaultVersionObject) {
+          continue;
+        }
+        if (this.props.versionLanguage == v.language && this.props.version == v.versionTitle) {
+          selectedOption = i+1;
+        }
+        var versionString = v.versionTitle + " (" + v.language + ")";  // Can not inline this, because of https://github.com/facebook/react-devtools/issues/248
+        selectOptions.push(<option key={i+1} value={i+1} >{ versionString }</option>);
       }
-      if (this.props.versionLanguage == v.language && this.props.version == v.versionTitle) {
-        selectedOption = i+1;
-      }
-      var versionString = v.versionTitle + " (" + v.language + ")";  // Can not inline this, because of https://github.com/facebook/react-devtools/issues/248
-      selectOptions.push(<option key={i+1} value={i+1} >{ versionString }</option>);
+      var selectElement = (<div className="versionSelect">
+                             <select value={selectedOption} onChange={this.onVersionSelectChange}>
+                               {selectOptions}
+                             </select>
+                           </div>);
     }
-    var selectElement = (<div className="versionSelect">
-                           <select value={selectedOption} onChange={this.onVersionSelectChange}>
-                             {selectOptions}
-                           </select>
-                         </div>);
 
-    var closeClick = (this.props.mode == "book toc")?this.props.closePanel:this.props.close;
+    var closeClick = (this.isBookToc())?this.props.closePanel:this.props.close;
     return (<div className="readerTextTableOfContents readerNavMenu" onClick={this.handleClick}>
               <CategoryColorLine category={this.props.category} />
               <div className="readerControls">
@@ -2427,12 +2459,15 @@ var ReaderTextTableOfContents = React.createClass({
                       <span className="he">{heSection}</span>
                     </div>
                   </div>
-                  <div className="versionBox">
-                      {(!this.state.versionsLoaded) ? (<span>Loading...</span>): ""}
-                      {(this.state.versionsLoaded)? currentVersionElement: ""}
-                      {(this.state.versionsLoaded && this.state.versions.length > 1) ? selectElement: ""}
-                  </div>
+                  {this.isTextToc()?
+                    <div className="versionBox">
+                        {(!this.state.versionsLoaded) ? (<span>Loading...</span>): ""}
+                        {(this.state.versionsLoaded)? currentVersionElement: ""}
+                        {(this.state.versionsLoaded && this.state.versions.length > 1) ? selectElement: ""}
+                    </div>
+                  :""}
                   <div className="tocContent" dangerouslySetInnerHTML={ {__html: tocHtml} }></div>
+                  {versionBlocks}
                 </div>
               </div>
             </div>);

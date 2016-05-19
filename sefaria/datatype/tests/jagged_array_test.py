@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sefaria.datatype.jagged_array as ja
+import pytest
 
 
 def setup_module(module):
@@ -173,7 +174,8 @@ class Test_Jagged_Text_Array(object):
         assert ja.JaggedTextArray(twoby).sections() == [[0],[1],[2]]
         assert ja.JaggedTextArray(threeby).sections() == [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]]
 
-    def test_FAILING_IN_SUITE_trim_ending_whitespace(self):
+    @pytest.mark.failing
+    def test_trim_ending_whitespace(self):
         # Note - this test can fail when run in the full suite, because earlier test data bleeds through.
         # See warning at top of jagged_array.py
         #do no harm
