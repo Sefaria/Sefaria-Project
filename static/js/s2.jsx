@@ -2232,7 +2232,9 @@ var ReaderTextTableOfContents = React.createClass({
   loadVersionsDataFromText: function(d) {
     // For now treat bilinguale as english. TODO show attribution for 2 versions in bilingual case.
     var currentLanguage = this.props.settingsLanguage == "he" ? "he" : "en";
-    // Todo handle independent Text TOC case where there is no current version
+    if (currentLanguage == "en" && !d.text.length) {currentLanguage = "he"}
+    if (currentLanguage == "he" && !d.he.length) {currentLanguage = "en"}
+
     var currentVersion = {
       language: currentLanguage,
       versionTitle:    currentLanguage == "he" ? d.heVersionTitle: d.versionTitle,
@@ -2340,27 +2342,28 @@ var ReaderTextTableOfContents = React.createClass({
     var versionBlocks = "";
 
     if (this.state.versionsLoaded) {
-      if (this.state.currentVersion && this.state.currentVersion.merged) {
-        var uniqueSources = this.state.currentVersion.sources.filter(function(item, i, ar){ return ar.indexOf(item) === i; }).join(", ");
+      var cv = this.state.currentVersion;
+      if (cv && cv.merged) {
+        var uniqueSources = cv.sources.filter(function(item, i, ar){ return ar.indexOf(item) === i; }).join(", ");
         defaultVersionString += " (Merged from " + uniqueSources + ")";
         currentVersionElement = (
           <span className="currentVersionInfo">
             <span className="currentVersionTitle">Merged from { uniqueSources }</span>
           </span>);
-      } else if (this.state.currentVersion) {
+      } else if (cv) {
         if (!this.props.version) {
-          defaultVersionObject = this.state.versions.find(v => (this.state.currentVersion.language == v.language && this.state.currentVersion.versionTitle == v.versionTitle));
+          defaultVersionObject = this.state.versions.find(v => (cv.language == v.language && cv.versionTitle == v.versionTitle));
           defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
         }
-        var activityUrl = `/activity/${normRef(this.props.currentRef)}/${this.state.currentVersion.language}/${this.state.currentVersion.versionTitle.replace(/\s/g,"_")}`;
+        var activityUrl = `/activity/${normRef(this.props.currentRef)}/${cv.language}/${cv.versionTitle && cv.versionTitle.replace(/\s/g,"_")}`;
         currentVersionElement = (
             <span className="currentVersionInfo">
-            <span className="currentVersionTitle">{this.state.currentVersion.versionTitle}</span>
-            <a className="currentVersionSource" target="_blank" href={this.state.currentVersion.versionSource}>
-              { parseURL(this.state.currentVersion.versionSource).host }
+            <span className="currentVersionTitle">{cv.versionTitle}</span>
+            <a className="currentVersionSource" target="_blank" href={cv.versionSource}>
+              { parseURL(cv.versionSource).host }
             </a>
             <span>-</span>
-            <span className="currentVersionLicense">{this.state.currentVersion.license == "unknown" ? "License Unknown" : (this.state.currentVersion.license + (this.state.currentVersion.digitizedBySefaria ? " - Digitized by Sefaria": "" ))}</span>
+            <span className="currentVersionLicense">{cv.license == "unknown" ? "License Unknown" : (cv.license + (cv.digitizedBySefaria ? " - Digitized by Sefaria": "" ))}</span>
             <span>-</span>
             <a className="versionHistoryLink" href={activityUrl}>Version History &gt;</a>
           </span>);
