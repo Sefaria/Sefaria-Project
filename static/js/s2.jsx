@@ -2235,11 +2235,11 @@ var ReaderTextTableOfContents = React.createClass({
     // Todo handle independent Text TOC case where there is no current version
     var currentVersion = {
       language: currentLanguage,
-      title:    currentLanguage == "he" ? d.heVersionTitle: d.versionTitle,
-      source:   currentLanguage == "he" ? d.heVersionSource: d.versionSource,
+      versionTitle:    currentLanguage == "he" ? d.heVersionTitle: d.versionTitle,
+      versionSource:   currentLanguage == "he" ? d.heVersionSource: d.versionSource,
       license:  currentLanguage == "he" ? d.heLicense: d.license,
       sources:  currentLanguage == "he" ? d.heSources: d.sources,
-      notes:    currentLanguage == "he" ? d.heVersionNotes: d.versionNotes,
+      versionNotes:    currentLanguage == "he" ? d.heVersionNotes: d.versionNotes,
       digitizedBySefaria:  currentLanguage == "he" ? d.heDigitizedBySefaria: d.digitizedBySefaria
     };
     currentVersion.merged = !!(currentVersion.sources);
@@ -2346,23 +2346,23 @@ var ReaderTextTableOfContents = React.createClass({
         currentVersionElement = (
           <span className="currentVersionInfo">
             <span className="currentVersionTitle">Merged from { uniqueSources }</span>
-            <a className="versionHistoryLink" href="#">Version History &gt;</a>
           </span>);
       } else if (this.state.currentVersion) {
         if (!this.props.version) {
-          defaultVersionObject = this.state.versions.find(v => (this.state.currentVersion.language == v.language && this.state.currentVersion.title == v.versionTitle));
+          defaultVersionObject = this.state.versions.find(v => (this.state.currentVersion.language == v.language && this.state.currentVersion.versionTitle == v.versionTitle));
           defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
         }
+        var activityUrl = `/activity/${normRef(this.props.currentRef)}/${this.state.currentVersion.language}/${this.state.currentVersion.versionTitle.replace(/\s/g,"_")}`;
         currentVersionElement = (
             <span className="currentVersionInfo">
-            <span className="currentVersionTitle">{this.state.currentVersion.title}</span>
-            <a className="currentVersionSource" target="_blank" href={this.state.currentVersion.source}>
-              { parseURL(this.state.currentVersion.source).host }
+            <span className="currentVersionTitle">{this.state.currentVersion.versionTitle}</span>
+            <a className="currentVersionSource" target="_blank" href={this.state.currentVersion.versionSource}>
+              { parseURL(this.state.currentVersion.versionSource).host }
             </a>
             <span>-</span>
             <span className="currentVersionLicense">{this.state.currentVersion.license == "unknown" ? "License Unknown" : (this.state.currentVersion.license + (this.state.currentVersion.digitizedBySefaria ? " - Digitized by Sefaria": "" ))}</span>
             <span>-</span>
-            <a className="versionHistoryLink" href="#">Version History &gt;</a>
+            <a className="versionHistoryLink" href={activityUrl}>Version History &gt;</a>
           </span>);
       }
       if (this.isBookToc()) {
@@ -2374,7 +2374,10 @@ var ReaderTextTableOfContents = React.createClass({
                   <a className="versionSource" target="_blank" href={v.versionSource}>
                   { parseURL(v.versionSource).host }
                   </a>
+                  <span>-</span>
+                  <span className="versionLicense">{(v.license == "unknown" || !v.license) ? "License Unknown" : (v.license + (v.digitizedBySefaria ? " - Digitized by Sefaria": "" ))}</span>
                 </div>
+                <div className="versionNotes">{v.versionNotes}</div>
               </div>
         ));
 
@@ -2408,7 +2411,7 @@ var ReaderTextTableOfContents = React.createClass({
     }
 
     var closeClick = (this.isBookToc())?this.props.closePanel:this.props.close;
-    return (<div className="readerTextTableOfContents readerNavMenu" onClick={this.handleClick}>
+    return (<div className="readerTextTableOfContents readerNavMenu">
               <CategoryColorLine category={this.props.category} />
               <div className="readerControls">
                 <div className="readerControlsInner">
@@ -2443,7 +2446,7 @@ var ReaderTextTableOfContents = React.createClass({
                         {(this.state.versionsLoaded && this.state.versions.length > 1) ? selectElement: ""}
                     </div>
                   :""}
-                  <div className="tocContent" dangerouslySetInnerHTML={ {__html: tocHtml} }></div>
+                  <div className="tocContent" dangerouslySetInnerHTML={ {__html: tocHtml} }  onClick={this.handleClick}></div>
                   {versionBlocks}
                 </div>
               </div>

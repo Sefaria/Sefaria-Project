@@ -972,13 +972,24 @@ display: block;margin: 0 auto;}
     width: auto;
 }
 
+.readerTextTableOfContents .versionBlocks .versionBlock,
+.readerTextTableOfContents .versionBlocks .versionBlock a.versionSource {
+  color: #999;
+  font-size: 16px;
+}
+
+.readerTextTableOfContents .versionBlocks .versionBlock a.versionSource,
+.readerTextTableOfContents .versionBlocks .versionBlock .versionLicense {
+  margin: 0 3px;
+}
+
 .readerTextTableOfContents .versionBlocks .versionBlock .versionTitle {
   color: #222;
   font-size: 20px;
 }
-.readerTextTableOfContents .versionBlocks .versionBlock a.versionSource {
-  color: #999;
-  font-size: 16px;
+
+.readerTextTableOfContents .versionBlocks .versionBlock .versionNotes {
+  padding-top: 8px;
 }
 
 @media (max-width: 450px) {
