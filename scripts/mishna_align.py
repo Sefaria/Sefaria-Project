@@ -35,6 +35,23 @@ class ComparisonTest:
         return None
 
 
+class TestResult:
+    """
+    Holds result of the test. Members include identification for the texts on which the test was run,
+    the exact difference between the texts as discovered by the test, and a boolean which declares if the
+    test passed or failed.
+    """
+
+    def __init__(self, ref_id, diff=None, passed=True):
+        """
+        :param ref_id: Identifies the documents on which the test was run.
+        :param diff: Holds numeric or textual data returned from the test.
+        :param passed: Defaults to True, if a pass/fail condition was passed to the test, store it here.
+        """
+
+        self.id = ref_id
+        self.diff = diff
+        self.passed = passed
 
 def get_relevant_books():
     """
@@ -55,32 +72,35 @@ def get_relevant_books():
     return relevant
 
 
-def compare_number_of_mishnayot(chapter, allowed=0):
+class CompareNumberOfMishnayot(ComparisonTest):
     """
     Compares number of mishnayot between two versions.
-    :param chapter: Tuple, each value is a list of Mishnayot from each version.
-    :param allowed: Allowed difference between number of Mishnayot.
-    :return: True or False
     """
 
-    if abs(chapter[0].verse_count() - chapter[1].verse_count()) > allowed:
-        return False
-    else:
-        return True
+    def run_test(self, max_diff=0):
+        """
+        :param max_diff: Maximum difference in words allowed before function declares a failed test
+        """
+
+        self.result.diff = abs(self.v1.word_count() - self.v2.word_count())
+
+        if self.result.diff > max_diff:
+            self.result.passed = False
 
 
-def compare_number_of_words(mishnah, allowed=0):
+class CompareNumberOfWords(ComparisonTest):
     """
     Compares number of words in a mishna from two parallel versions
-    :param mishnah: Tuple with each value containing a string of text from each version from one mishnah
-    :param allowed: Allowed difference between both versions before test returns false
-    :return: boolean
     """
 
-    if abs(mishnah[0].word_count() - mishnah[1].word_count()) > allowed:
-        return False
-    else:
-        return True
+    def run_test(self, max_diff=0):
+        """
+        :param max_diff: Maximum difference in words allowed before function declares a failed test
+        """
+        self.result.diff = abs(self.v1.word_count() - self.v2.word_count())
+
+        if self.result.diff > max_diff:
+            self.result.passed = False
 
 
 def run(outfile):
