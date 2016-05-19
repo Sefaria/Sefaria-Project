@@ -780,33 +780,33 @@ h1 .languageToggle .he {
   margin-top: 6px;
   letter-spacing: 1px;
 }
-.readerTextTableOfContents .versionBox {
+.readerTextTableOfContents .currentVersionBox {
   margin-bottom: 20px;
   text-align: center;
   direction: ltr;
 }
 
-.readerTextTableOfContents .versionBox .versionSelect {
+.readerTextTableOfContents .currentVersionBox .versionSelect {
   width: 80%;
   max-width: 300px;
   margin: 5px auto;
 }
-.readerTextTableOfContents .versionBox .versionSelect select {
+.readerTextTableOfContents .currentVersionBox .versionSelect select {
   width: 100%;
 }
-.readerTextTableOfContents .versionBox .currentVersionInfo > span, 
-.readerTextTableOfContents .versionBox .currentVersionInfo > a {
+.readerTextTableOfContents .currentVersionBox .versionBlock span,
+.readerTextTableOfContents .currentVersionBox .versionBlock  a {
   margin: 3px;
   color: #999;
 }
-.readerTextTableOfContents .versionBox span.currentVersionTitle {
+.readerTextTableOfContents .currentVersionBox .versionTitle {
   display: block;
   font-size: 17px;
   color: #333;
 }
-.readerTextTableOfContents .versionBox .currentVersionSource,
-.readerTextTableOfContents .versionBox .currentVersionLicense,
-.readerTextTableOfContents .versionBox .versionHistoryLink {
+.readerTextTableOfContents .currentVersionBox .versionSource,
+.readerTextTableOfContents .currentVersionBox .versionLicense,
+.readerTextTableOfContents .currentVersionBox .versionHistoryLink {
   display: inline-block;
   font-size: 13px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;

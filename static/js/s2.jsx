@@ -2346,50 +2346,27 @@ var ReaderTextTableOfContents = React.createClass({
       if (cv && cv.merged) {
         var uniqueSources = cv.sources.filter(function(item, i, ar){ return ar.indexOf(item) === i; }).join(", ");
         defaultVersionString += " (Merged from " + uniqueSources + ")";
-        currentVersionElement = (
-          <span className="currentVersionInfo">
-            <span className="currentVersionTitle">Merged from { uniqueSources }</span>
-          </span>);
+        currentVersionElement = (<div className="versionTitle">Merged from { uniqueSources }</div>);
       } else if (cv) {
         if (!this.props.version) {
           defaultVersionObject = this.state.versions.find(v => (cv.language == v.language && cv.versionTitle == v.versionTitle));
           defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
         }
-        var activityUrl = `/activity/${normRef(this.props.currentRef)}/${cv.language}/${cv.versionTitle && cv.versionTitle.replace(/\s/g,"_")}`;
-        currentVersionElement = (
-            <span className="currentVersionInfo">
-            <span className="currentVersionTitle">{cv.versionTitle}</span>
-            <a className="currentVersionSource" target="_blank" href={cv.versionSource}>
-              { parseURL(cv.versionSource).host }
-            </a>
-            <span>-</span>
-            <span className="currentVersionLicense">{cv.license == "unknown" ? "License Unknown" : (cv.license + (cv.digitizedBySefaria ? " - Digitized by Sefaria": "" ))}</span>
-            <span>-</span>
-            <a className="versionHistoryLink" href={activityUrl}>Version History &gt;</a>
-          </span>);
+        currentVersionElement = (<VersionBlock version={cv} currentRef={this.props.currentRef} showHistory={true}/>);
       }
-      if (this.isBookToc()) {
-        var [heVersionBlocks, enVersionBlocks] = ["he","en"].map(lang =>
-         this.state.versions.filter(v => v.language == lang).map(v =>
-              <div className = "versionBlock" key={v.versionTitle + "/" + v.language}>
-                <div className="versionTitle">{v.versionTitle}</div>
-                <div>
-                  <a className="versionSource" target="_blank" href={v.versionSource}>
-                  { parseURL(v.versionSource).host }
-                  </a>
-                  <span>-</span>
-                  <span className="versionLicense">{(v.license == "unknown" || !v.license) ? "License Unknown" : (v.license + (v.digitizedBySefaria ? " - Digitized by Sefaria": "" ))}</span>
-                </div>
-                <div className="versionNotes">{v.versionNotes}</div>
-              </div>
-        ));
 
-        versionBlocks = <div className="versionBlocks">
-          {(!!heVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="en">Hebrew Versions</span><span className="he">בעברית</span></div><div>{heVersionBlocks}</div></div>:""}
-          {(!!enVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="en">English Versions</span><span className="he">באנגלית</span></div><div>{enVersionBlocks}</div></div>:""}
-        </div>
-      }
+      var [heVersionBlocks, enVersionBlocks] = ["he","en"].map(lang =>
+       this.state.versions.filter(v => v.language == lang).map(v =>
+           <VersionBlock version={v} showNotes={true} key={v.versionTitle + "/" + v.language}/>
+       )
+      );
+
+      versionBlocks = <div className="versionBlocks">
+        {(!!heVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="en">Hebrew Versions</span><span className="he">בעברית</span></div><div>{heVersionBlocks}</div></div>:""}
+        {(!!enVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="en">English Versions</span><span className="he">באנגלית</span></div><div>{enVersionBlocks}</div></div>:""}
+      </div>
     }
+
 
     if (this.isTextToc()) {
       var selectOptions = [];
@@ -2443,7 +2420,7 @@ var ReaderTextTableOfContents = React.createClass({
                     </div>
                   </div>
                   {this.isTextToc()?
-                    <div className="versionBox">
+                    <div className="currentVersionBox">
                         {(!this.state.versionsLoaded) ? (<span>Loading...</span>): ""}
                         {(this.state.versionsLoaded)? currentVersionElement: ""}
                         {(this.state.versionsLoaded && this.state.versions.length > 1) ? selectElement: ""}
@@ -2457,6 +2434,40 @@ var ReaderTextTableOfContents = React.createClass({
   }
 });
 
+var VersionBlock = React.createClass({
+  propTypes: {
+    version: React.PropTypes.object.isRequired,
+    currentRef: React.PropTypes.string,
+    showHistory: React.PropTypes.bool,
+    showNotes: React.PropTypes.bool
+  },
+  getDefaultProps: function() {
+    return {
+      ref: "",
+      showHistory: false,
+      showNotes: false
+    }
+  },
+  render: function() {
+    var v = this.props.version;
+
+    return (
+      <div className = "versionBlock">
+        <div className="versionTitle">{v.versionTitle}</div>
+        <div>
+          <a className="versionSource" target="_blank" href={v.versionSource}>
+          { parseURL(v.versionSource).host }
+          </a>
+          <span>-</span>
+          <span className="versionLicense">{(v.license == "unknown" || !v.license) ? "License Unknown" : (v.license + (v.digitizedBySefaria ? " - Digitized by Sefaria": "" ))}</span>
+          {this.props.showHistory?<span>-</span>:""}
+          {this.props.showHistory?<a className="versionHistoryLink" href={`/activity/${normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>Version History &gt;</a>:""}
+        </div>
+        {this.props.showNotes?<div className="versionNotes">{v.versionNotes}</div>:""}
+      </div>
+    );
+  }
+});
 
 var SheetsNav = React.createClass({
   // Navigation for Sheets
