@@ -51,11 +51,11 @@ class ComparisonTest:
         if len(versions) != 2:
             raise TypeError('You must have 2 versions to compare!')
 
-        self.book = book
+        self.book = Ref(book)
         self.language = language
         self.v1 = versions[0]
         self.v2 = versions[1]
-        self.get_data(book)
+        self.get_data(self.book)
 
     def run_test(self, test_data):
         return None
@@ -121,6 +121,8 @@ class TestSuite:
     Class to get data and run a series of tests on them.
     """
 
+    results = {}
+
     def __init__(self, test_list, output_file):
         """
         :param test_list: A list of TestMeta objects
@@ -144,7 +146,7 @@ class CompareNumberOfMishnayot(ComparisonTest):
         :param max_diff: Maximum difference in words allowed before function declares a failed test
         """
 
-        data['result'].diff = abs(self.v1.word_count() - self.v2.word_count())
+        data['result'].diff = abs(data['v1'].verse_count() - data['v2'].verse_count())
 
         if data['result'].diff > max_diff:
             data['result'].passed = False
@@ -172,31 +174,24 @@ class CompareNumberOfWords(ComparisonTest):
 
 def run(outfile):
 
-    outfile.write(u'Tractate,Chapter,Mishnah Count,Word Count\n')
     books = get_relevant_books()
+
     for book in books:
-        chapters = Ref(book).all_subrefs()
 
-        for chap_ind, chapter in enumerate(chapters):
-            outfile.write(u'{},{},'.format(book, chap_ind+1))
-            v1 = TextChunk(chapter, 'he', 'Vilna Mishna')
-            v2 = TextChunk(chapter, 'he', 'Wikisource Mishna')
+        # instantiate test classes
+        mi = CompareNumberOfMishnayot(book, 'he', ('Wikisource Mishna', 'Vilna Mishna'))
+        mi.run_test_series()
 
-            if compare_number_of_mishnayot((v1, v2)):
-                outfile.write(u'Passed,')
+        for ref in Ref(book).all_subrefs():
+            outfile.write(u'{},'.format(ref.uid()))
+
+            result = mi.test_results[ref.uid()]
+
+            if result.passed:
+                outfile.write(u'Passed\n')
             else:
-                outfile.write(u'Failed,')
+                outfile.write(u'Failed\n')
 
-            word_count = []
-
-            for m_index, mishna in enumerate(chapter.all_subrefs()):
-                v1 = TextChunk(mishna, 'he', 'Vilna Mishna')
-                v2 = TextChunk(mishna, 'he', 'Wikisource Mishna')
-                if not compare_number_of_words((v1, v2), 1):
-                    word_count.append(m_index+1)
-
-            outfile.write(u'{}\n'.format(u' '.join(str(index) for index in word_count)))
-
-output = codecs.open('Mishna version comparison.csv', 'w', 'utf-8')
+output = codecs.open('Mishna version test.csv', 'w', 'utf-8')
 run(output)
 output.close()
