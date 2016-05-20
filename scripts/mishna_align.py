@@ -42,10 +42,6 @@ class ComparisonTest:
     """
     Parent class for testing classes.
     """
-    depth = Ref.is_section_level
-    drop_level = Ref.all_subrefs
-    ref_list = []
-    test_results = {}
 
     def __init__(self, book, language, versions):
         if len(versions) != 2:
@@ -55,6 +51,10 @@ class ComparisonTest:
         self.language = language
         self.v1 = versions[0]
         self.v2 = versions[1]
+        self.test_results = {}
+        self.depth = Ref.is_section_level
+        self.drop_level = Ref.all_subrefs
+        self.ref_list = []
         self.get_data(self.book)
 
     def run_test(self, test_data):
@@ -81,10 +81,7 @@ class ComparisonTest:
 
         test_data = {}
 
-        # get data and instantiate result object
-        test_data['v1'] = TextChunk(ref, self.language, self.v1)
-        test_data['v2'] = TextChunk(ref, self.language, self.v2)
-        test_data['result'] = TestResult(ref.uid())
+
 
         return test_data
 
@@ -94,7 +91,7 @@ class ComparisonTest:
         """
 
         for ref in self.ref_list:
-            self.test_results[ref.uid()] = self.run_test(self.prepare_test(ref))
+            self.test_results[ref.uid()] = self.run_test(ref)
 
 
 class TestResult:
@@ -139,19 +136,21 @@ class CompareNumberOfMishnayot(ComparisonTest):
     Compares number of mishnayot between two versions.
     """
 
-    depth = Ref.is_section_level
-
-    def run_test(self, data, max_diff=0):
+    def run_test(self, ref, max_diff=0):
         """
         :param max_diff: Maximum difference in words allowed before function declares a failed test
         """
+        # get data and instantiate result object
+        v1 = TextChunk(ref, self.language, self.v1)
+        v2 = TextChunk(ref, self.language, self.v2)
+        result = TestResult(ref.uid())
 
-        data['result'].diff = abs(data['v1'].verse_count() - data['v2'].verse_count())
+        result.diff = abs(v1.verse_count() - v2.verse_count())
 
-        if data['result'].diff > max_diff:
-            data['result'].passed = False
+        if result.diff > max_diff:
+            result.passed = False
 
-        return data['result']
+        return result
 
 
 class CompareNumberOfWords(ComparisonTest):
@@ -159,18 +158,28 @@ class CompareNumberOfWords(ComparisonTest):
     Compares number of words in a mishna from two parallel versions
     """
 
-    def run_test(self, data, max_diff=0):
+    def run_test(self, chapter, max_diff=0):
         """
         :param ref: A ref object upon which to run the test
         :param max_diff: Maximum difference in words allowed before function declares a failed test
         """
 
-        data['result'].diff = abs(data['v1'].word_count() - data['v2'].word_count())
+        # get segment level data and instantiate result
+        ref_list = chapter.all_subrefs()
+        result = TestResult(chapter.uid(), [], False)
 
-        if data['result'].diff > max_diff:
-            data['result'].passed = False
+        for index, ref in enumerate(ref_list):
+            # get TextChunks
+            v1 = TextChunk(ref, self.language, self.v1)
+            v2 = TextChunk(ref, self.language, self.v2)
 
-        return data['result']
+            if abs(v1.word_count() - v2.word_count()) > max_diff:
+                result.diff.append(index+1)
+
+        if len(result.diff) == 0:
+            result.passed = True
+
+        return result
 
 def run(outfile):
 
@@ -178,9 +187,13 @@ def run(outfile):
 
     for book in books:
 
+        print book
+
         # instantiate test classes
         mi = CompareNumberOfMishnayot(book, 'he', ('Wikisource Mishna', 'Vilna Mishna'))
         mi.run_test_series()
+        words = CompareNumberOfWords(book, 'he', ('Wikisource Mishna', 'Vilna Mishna'))
+        words.run_test_series()
 
         for ref in Ref(book).all_subrefs():
             outfile.write(u'{},'.format(ref.uid()))
@@ -188,9 +201,16 @@ def run(outfile):
             result = mi.test_results[ref.uid()]
 
             if result.passed:
+                outfile.write(u'Passed,')
+            else:
+                outfile.write(u'Failed,')
+
+            result = words.test_results[ref.uid()]
+
+            if result.passed:
                 outfile.write(u'Passed\n')
             else:
-                outfile.write(u'Failed\n')
+                outfile.write(u'{}\n'.format(u' '.join(str(index) for index in result.diff)))
 
 output = codecs.open('Mishna version test.csv', 'w', 'utf-8')
 run(output)
