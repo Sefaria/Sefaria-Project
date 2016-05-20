@@ -10,6 +10,7 @@ The text of different editions of the Mishnah can have significant differences. 
 import os
 import sys
 import codecs
+import re
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, p)
 from sefaria.local_settings import *
@@ -181,9 +182,44 @@ class CompareNumberOfWords(ComparisonTest):
 
         return result
 
+
+class CompareStrings(ComparisonTest):
+    """
+    Strips strings of anything not a hebrew letter or a single space, then checks if strings are identical
+    """
+
+    def run_test(self, chapter):
+
+        # get segment level data and instantiate result
+        ref_list = chapter.all_subrefs()
+        result = TestResult(chapter.uid(), [], False)
+
+        for index, ref in enumerate(ref_list):
+            # get TextChunks
+            v1 = TextChunk(ref, self.language, self.v1).text
+            v2 = TextChunk(ref, self.language, self.v2).text
+
+            # strip out non hebrew letter characters or spaces
+            v1 = re.sub(u'[^א-ת^ ]+', u'', v1)
+            v2 = re.sub(u'[^א-ת^ ]+', u'', v2)
+
+            # remove multiple spaces
+            v1 = re.sub(u' +', u' ', v1)
+            v2 = re.sub(u' +', u' ', v2)
+
+            if v1 != v2:
+                result.diff.append(index+1)
+
+        if len(result.diff) == 0:
+            result.passed = True
+        return result
+
+
 def run(outfile):
 
     books = get_relevant_books()
+
+    outfile.write(u'Ref, Mishna Count Test, Word Count Test, String Match Test\n')
 
     for book in books:
 
@@ -194,6 +230,8 @@ def run(outfile):
         mi.run_test_series()
         words = CompareNumberOfWords(book, 'he', ('Wikisource Mishna', 'Vilna Mishna'))
         words.run_test_series()
+        exact = CompareStrings(book, 'he', ('Wikisource Mishna', 'Vilna Mishna'))
+        exact.run_test_series()
 
         for ref in Ref(book).all_subrefs():
             outfile.write(u'{},'.format(ref.uid()))
@@ -208,10 +246,17 @@ def run(outfile):
             result = words.test_results[ref.uid()]
 
             if result.passed:
+                outfile.write(u'Passed,')
+            else:
+                outfile.write(u'{},'.format(u' '.join(str(index) for index in result.diff)))
+
+            result = exact.test_results[ref.uid()]
+
+            if result.passed:
                 outfile.write(u'Passed\n')
             else:
                 outfile.write(u'{}\n'.format(u' '.join(str(index) for index in result.diff)))
 
-output = codecs.open('Mishna version test.csv', 'w', 'utf-8')
+output = codecs.open('Mishna version comparison.csv', 'w', 'utf-8')
 run(output)
 output.close()
