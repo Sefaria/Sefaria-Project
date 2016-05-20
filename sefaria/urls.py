@@ -155,6 +155,7 @@ urlpatterns += patterns('sheets.views',
     (r'^api/sheets/tag/(?P<tag>[^/]+)?$',                          'sheets_by_tag_api'),
     (r'^api/sheets/trending-tags/?$',                              'trending_tags_api'),
     (r'^api/sheets/tag-list/?$',                                   'tag_list_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            'export_to_drive')
 
 )
 
@@ -339,6 +340,12 @@ urlpatterns += patterns('',
 urlpatterns += patterns('',
     (r'^api/stats/library-stats', 'sefaria.views.library_stats'),
     (r'^api/stats/core-link-stats', 'sefaria.views.core_link_stats'),
+)
+
+# Google API OAuth 2.0
+urlpatterns += patterns('gauth.views',
+    # (r'^gauth$', 'index'),
+    (r'^gauthcallback$', 'auth_return'),
 )
 
 # Catch all to send to Reader
