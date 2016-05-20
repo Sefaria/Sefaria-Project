@@ -79,3 +79,6 @@ system.users.bson
 
 #Docs
 /doc/_build
+
+# Client secrets for Google OAuth 2.0
+client_secrets.json
