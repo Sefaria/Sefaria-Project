@@ -42,34 +42,59 @@ class ComparisonTest:
     """
     Parent class for testing classes.
     """
-    def __init__(self, versions, result):
-        if len(versions) != 2:
-            raise TypeError('You must have 2 objects to compare!')
+    depth = Ref.is_section_level
+    drop_level = Ref.all_subrefs
+    ref_list = []
+    test_results = {}
 
+    def __init__(self, book, language, versions):
+        if len(versions) != 2:
+            raise TypeError('You must have 2 versions to compare!')
+
+        self.book = book
+        self.language = language
         self.v1 = versions[0]
         self.v2 = versions[1]
-        self.result = result
+        self.get_data(book)
 
-    def run_test(self):
+    def run_test(self, test_data):
         return None
 
-
-class TestMeta:
-    """
-    Contains meta-data necessary to run a test.
-    """
-    def __init__(self, test, test_name, required_depth, fail_condition=None):
+    def get_data(self, ref):
         """
-        :param test: The test to run
-        :param test_name: The name of the test to display in output.
-        :param required_depth: specifies what level of the jagged array is necessary to run test
-        :param fail_condition: Indicates what constitutes a failure of the test.
+        :param ref: a ref object used to extract data
+        :return: A list of Ref objects upon which to run tests.
         """
 
-        self.test = test
-        self.name = test_name
-        self.depth = required_depth
-        self.fail = fail_condition
+        if not self.depth(ref):
+            for data in self.drop_level(ref):
+                self.get_data(data)
+        else:
+            self.ref_list.append(ref)
+
+    def prepare_test(self, ref):
+        """
+        Gets necessary data for the test and instantiates a new test result class
+        :param ref: Ref from which to extract results
+        :return: Dictionary with keys v1, v2 and result
+        """
+
+        test_data = {}
+
+        # get data and instantiate result object
+        test_data['v1'] = TextChunk(ref, self.language, self.v1)
+        test_data['v2'] = TextChunk(ref, self.language, self.v2)
+        test_data['result'] = TestResult(ref.uid())
+
+        return test_data
+
+    def run_test_series(self):
+        """
+        Runs tests on all ref objects in ref_list
+        """
+
+        for ref in self.ref_list:
+            self.test_results[ref.uid()] = self.run_test(self.prepare_test(ref))
 
 
 class TestResult:
@@ -112,15 +137,19 @@ class CompareNumberOfMishnayot(ComparisonTest):
     Compares number of mishnayot between two versions.
     """
 
-    def run_test(self, max_diff=0):
+    depth = Ref.is_section_level
+
+    def run_test(self, data, max_diff=0):
         """
         :param max_diff: Maximum difference in words allowed before function declares a failed test
         """
 
-        self.result.diff = abs(self.v1.word_count() - self.v2.word_count())
+        data['result'].diff = abs(self.v1.word_count() - self.v2.word_count())
 
-        if self.result.diff > max_diff:
-            self.result.passed = False
+        if data['result'].diff > max_diff:
+            data['result'].passed = False
+
+        return data['result']
 
 
 class CompareNumberOfWords(ComparisonTest):
@@ -128,15 +157,18 @@ class CompareNumberOfWords(ComparisonTest):
     Compares number of words in a mishna from two parallel versions
     """
 
-    def run_test(self, max_diff=0):
+    def run_test(self, data, max_diff=0):
         """
+        :param ref: A ref object upon which to run the test
         :param max_diff: Maximum difference in words allowed before function declares a failed test
         """
-        self.result.diff = abs(self.v1.word_count() - self.v2.word_count())
 
-        if self.result.diff > max_diff:
-            self.result.passed = False
+        data['result'].diff = abs(data['v1'].word_count() - data['v2'].word_count())
 
+        if data['result'].diff > max_diff:
+            data['result'].passed = False
+
+        return data['result']
 
 def run(outfile):
 
