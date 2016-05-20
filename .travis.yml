@@ -32,7 +32,6 @@ before_script:
   - mongorestore --drop
   - cp ./sefaria/.travis.settings.py ./sefaria/local_settings.py
 
-
 # command to run tests
 script:
  - py.test -vv -m "not deep and not failing"
