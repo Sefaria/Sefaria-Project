@@ -42,7 +42,7 @@ before_script:
 script:
  - python manage.py runserver &
  - py.test -vv -m "not deep and not failing"
- - [ "${TRAVIS_PULL_REQUEST}" = "false" ] && cd reader/browsertest && python run_test_on_travis $TRAVIS_BUILD_NUMBER || false
+ - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && cd reader/browsertest && python run_test_on_travis $TRAVIS_BUILD_NUMBER || false'
 
 
 notifications:
