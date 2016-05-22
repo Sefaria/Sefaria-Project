@@ -44,6 +44,9 @@ class ComparisonTest:
     Parent class for testing classes.
     """
 
+    name = u'Comparison Test'
+    depth = Ref.is_segment_level
+
     def __init__(self, book, language, versions):
         if len(versions) != 2:
             raise TypeError('You must have 2 versions to compare!')
@@ -53,7 +56,6 @@ class ComparisonTest:
         self.v1 = versions[0]
         self.v2 = versions[1]
         self.test_results = {}
-        self.depth = Ref.is_section_level
         self.drop_level = Ref.all_subrefs
         self.ref_list = []
         self.get_data(self.book)
@@ -73,18 +75,22 @@ class ComparisonTest:
         else:
             self.ref_list.append(ref)
 
-    def prepare_test(self, ref):
+    def output_result(self, reference, output_file):
         """
-        Gets necessary data for the test and instantiates a new test result class
-        :param ref: Ref from which to extract results
-        :return: Dictionary with keys v1, v2 and result
+        Defines how the test should output data to a file
+        :param reference: key to look up a result object
+        :param output_file: file to write results
         """
 
-        test_data = {}
-
-
-
-        return test_data
+        try:
+            result = self.test_results[reference]
+        except KeyError:
+            output_file.write(u'N/A,')
+            return
+        if result.passed:
+            output_file.write(u'passed,')
+        else:
+            output_file.write(u'{},'.format(result.diff))
 
     def run_test_series(self):
         """
@@ -119,23 +125,72 @@ class TestSuite:
     Class to get data and run a series of tests on them.
     """
 
-    results = {}
-
-    def __init__(self, test_list, output_file):
+    def __init__(self, test_list, output_file, lang, versions):
         """
         :param test_list: A list of TestMeta objects
         :param output_file: File to write results.
+        :param lang: language of texts to compare.
+        :param versions: Names of versions to compare.
         """
 
         self.texts = get_relevant_books()
         self.tests = test_list
         self.output = output_file
+        self.lang = lang
+        if len(versions) != 2:
+            raise AttributeError("Must have 2 versions to compare!")
+        self.versions = versions
+
+        # Write column names to output file
+        output_file.write(u'Reference,')
+        for test in test_list:
+            output_file.write(u'{},'.format(test.name))
+        self.output.write(u'\n')
+
+    def write_results(self, finished_tests, reference):
+        """
+        Take a series of completed tests and write results to file
+        :param finished_tests: A list of instantiated test objects that have run their tests.
+        :param reference: A reference to look up results
+        """
+
+        self.output.write(u'{},'.format(reference))
+
+        for test in finished_tests:
+            test.output_result(reference, self.output)
+
+        self.output.write(u'\n')
+
+        if not Ref(reference).is_segment_level():
+            for ref in Ref(reference).all_subrefs():
+                self.write_results(finished_tests, ref.uid())
+
+    def run_tests(self):
+        """
+        Call run_test_series on all texts and tests
+        """
+
+        for book in self.texts:
+
+            finished_tests = []
+
+            for test in self.tests:
+
+                new_test = test(book, self.lang, self.versions)
+                new_test.run_test_series()
+                finished_tests.append(new_test)
+
+            self.write_results(finished_tests, book)
+            self.output.write(u'\n')
 
 
 class CompareNumberOfMishnayot(ComparisonTest):
     """
     Compares number of mishnayot between two versions.
     """
+
+    name = u'Mishna Count Test'
+    depth = Ref.is_section_level
 
     def run_test(self, ref, max_diff=0):
         """
@@ -159,25 +214,24 @@ class CompareNumberOfWords(ComparisonTest):
     Compares number of words in a mishna from two parallel versions
     """
 
-    def run_test(self, chapter, max_diff=0):
+    name = u'Word Comparison Test'
+
+    def run_test(self, mishna, max_diff=0):
         """
         :param ref: A ref object upon which to run the test
         :param max_diff: Maximum difference in words allowed before function declares a failed test
         """
 
-        # get segment level data and instantiate result
-        ref_list = chapter.all_subrefs()
-        result = TestResult(chapter.uid(), [], False)
+        # instantiate result
+        result = TestResult(mishna.uid(), [], False)
 
-        for index, ref in enumerate(ref_list):
-            # get TextChunks
-            v1 = TextChunk(ref, self.language, self.v1)
-            v2 = TextChunk(ref, self.language, self.v2)
+        # get TextChunks
+        v1 = TextChunk(mishna, self.language, self.v1)
+        v2 = TextChunk(mishna, self.language, self.v2)
 
-            if abs(v1.word_count() - v2.word_count()) > max_diff:
-                result.diff.append(index+1)
+        result.diff = abs(v1.word_count() - v2.word_count())
 
-        if len(result.diff) == 0:
+        if result.diff <= max_diff:
             result.passed = True
 
         return result
@@ -188,30 +242,30 @@ class CompareStrings(ComparisonTest):
     Strips strings of anything not a hebrew letter or a single space, then checks if strings are identical
     """
 
-    def run_test(self, chapter):
+    name = u'Exact String Match Test'
 
-        # get segment level data and instantiate result
-        ref_list = chapter.all_subrefs()
-        result = TestResult(chapter.uid(), [], False)
+    def run_test(self, mishna):
 
-        for index, ref in enumerate(ref_list):
-            # get TextChunks
-            v1 = TextChunk(ref, self.language, self.v1).text
-            v2 = TextChunk(ref, self.language, self.v2).text
+        # instantiate result
+        result = TestResult(mishna.uid(), [], False)
 
-            # strip out non hebrew letter characters or spaces
-            v1 = re.sub(u'[^א-ת^ ]+', u'', v1)
-            v2 = re.sub(u'[^א-ת^ ]+', u'', v2)
+        # get TextChunks
+        v1 = TextChunk(mishna, self.language, self.v1).text
+        v2 = TextChunk(mishna, self.language, self.v2).text
 
-            # remove multiple spaces
-            v1 = re.sub(u' +', u' ', v1)
-            v2 = re.sub(u' +', u' ', v2)
+        # strip out non hebrew letter characters or spaces
+        v1 = re.sub(u'[^א-ת^ ]+', u'', v1)
+        v2 = re.sub(u'[^א-ת^ ]+', u'', v2)
 
-            if v1 != v2:
-                result.diff.append(index+1)
+        # remove multiple spaces
+        v1 = re.sub(u' +', u' ', v1)
+        v2 = re.sub(u' +', u' ', v2)
 
-        if len(result.diff) == 0:
+        if v1 != v2:
+            result.diff = u'Fail'
+        else:
             result.passed = True
+
         return result
 
 
@@ -257,6 +311,9 @@ def run(outfile):
             else:
                 outfile.write(u'{}\n'.format(u' '.join(str(index) for index in result.diff)))
 
-output = codecs.open('Mishna version comparison.csv', 'w', 'utf-8')
-run(output)
-output.close()
+tests = [CompareNumberOfMishnayot, CompareNumberOfWords, CompareStrings]
+versions = ['Wikisource Mishna', 'Vilna Mishna']
+outfile = codecs.open('Mishna version test.csv', 'w', 'utf-8')
+testrunner = TestSuite(tests, outfile, 'he', versions)
+testrunner.run_tests()
+outfile.close()
