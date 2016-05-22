@@ -3,6 +3,7 @@ from config import *
 from sefaria.model import *
 from random import shuffle
 from multiprocessing import Pool
+import os
 import inspect
 import httplib
 import base64
@@ -27,6 +28,8 @@ class AtomicTest(object):
     suite_key = None
     single_panel = True  # run this test on mobile?
     multi_panel = True  # run this test on desktop?
+
+    every_build = False  # Run this test on every build?
 
     def __init__(self, driver, url):
         self.base_url = url
@@ -69,6 +72,7 @@ class AtomicTest(object):
         WebDriverWait(self.driver, TEMPER).until(until)
 
     # Text Panel
+    # Todo: handle the case when the loaded page has different URL - because of scroll
     def load_ref(self, ref, filter=None):
         """
         takes string ref or object Ref
@@ -89,6 +93,10 @@ class AtomicTest(object):
         else:
             WebDriverWait(self.driver, TEMPER).until(title_contains(ref.normal()))
         return self
+
+    #todo:
+    def load_refs(self):
+        pass
 
     def click_segment(self, ref):
         if isinstance(ref, basestring):
@@ -125,6 +133,11 @@ class AtomicTest(object):
         WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".result")))
         return self
 
+    #Source Sheets
+    def load_sheets(self):
+        url = self.base_url + "/sheets"
+        self.driver.get(url)
+        WebDriverWait(self.driver, TEMPER).until(title_contains("Sheets"))
 
 
 class TestResult(object):
@@ -216,22 +229,34 @@ class Trial(object):
     def __init__(self, platform="local", build=None, tests=None, caps=None, parallel=None):
         """
         :param caps: If local: webdriver classes, if remote, dictionaries of capabilities
-        :param platform: "sauce", "bstack", "local"
+        :param platform: "sauce", "bstack", "local", "travis"
         :return:
         """
-        self.tests = get_atomic_tests() if tests is None else tests
-        assert platform in ["sauce", "bstack", "local"]
-        self.platform = platform
-        self.build = build
-        self._results = ResultSet()
-        if platform == "local":
+        assert platform in ["sauce", "bstack", "local", "travis"]
+        if platform == "travis":
+            global SAUCE_USERNAME, SAUCE_ACCESS_KEY
+            SAUCE_USERNAME = os.getenv('SAUCE_USERNAME')
+            SAUCE_ACCESS_KEY = os.getenv('SAUCE_ACCESS_KEY')
+            self.BASE_URL = LOCAL_URL
+            self.caps = caps if caps else SAUCE_CORE_CAPS
+            for cap in self.caps:
+                cap["tunnelIdentifier"] = os.getenv('TRAVIS_JOB_NUMBER')
+            self.tests = get_every_build_tests(get_atomic_tests()) if tests is None else tests
+            self.is_local = False
+            platform = "sauce"  # After this initial setup - use the sauce platform
+        elif platform == "local":
             self.is_local = True
             self.BASE_URL = LOCAL_URL
             self.caps = caps if caps else [self.default_local_driver]
+            self.tests = get_atomic_tests() if tests is None else tests
         else:
             self.is_local = False
             self.BASE_URL = REMOTE_URL
             self.caps = caps if caps else SAUCE_CAPS if platform == "sauce" else BS_CAPS
+            self.tests = get_atomic_tests() if tests is None else tests
+        self.platform = platform
+        self.build = build
+        self._results = ResultSet()
         self.parallel = parallel if parallel is not None else False if self.is_local else True
         if self.parallel:
             self.thread_count = BS_MAX_THREADS if self.platform == "bstack" else SAUCE_MAX_THREADS
@@ -406,6 +431,9 @@ def get_desktop_tests(tests):
 def get_multiplatform_tests(tests):
     return [t for t in tests if t.desktop and t.mobile]
 
+
+def get_every_build_tests(tests):
+    return [t for t in tests if t.every_build]
 
 
 '''
