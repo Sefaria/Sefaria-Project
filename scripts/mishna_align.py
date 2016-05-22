@@ -331,7 +331,7 @@ def csv_to_html(infile, outfile):
     :param outfile: output file
     """
 
-    outfile.write(u'<!DOCTYPE html>\n<html>\n<body>\n<table>\n')
+    outfile.write(u'<!DOCTYPE html>\n<html><meta charset="utf-8">\n<body>\n<table>\n')
 
     for row in infile:
         row = row.replace(u'\n', u'')
