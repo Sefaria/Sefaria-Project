@@ -2849,7 +2849,7 @@ class Ref(object):
                 return [self]
             if self.is_spanning():
                 for oref in self.split_spanning_ref():
-                    results += oref.range_list() if oref.is_range() else oref.all_subrefs()
+                    results += oref.range_list() if oref.is_range() else [oref] if oref.is_segment_level() else oref.all_subrefs()
             else:
                 for s in range(self.sections[-1], self.toSections[-1] + 1):
                     d = self._core_dict()
@@ -3154,7 +3154,13 @@ class Ref(object):
             d.update({"language": lang})
 
         condition_addr = self.storage_address()
-        if not self.sections:
+        if not isinstance(self.index_node, JaggedArrayNode):
+            # This will also return versions with no content in this Ref location - since on the version, there is a dictionary present.
+            # We could enter the dictionary and check each array, but it's not clear that it's neccesary.
+            d.update({
+                condition_addr: {"$exists": True}
+            })
+        elif not self.sections:
             d.update({
                 condition_addr: {"$exists": True, "$elemMatch": {"$nin": ["", [], 0]}}  # any non-empty element will do
             })
@@ -3198,13 +3204,11 @@ class Ref(object):
 
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
-        vlist = []
-        for v in VersionSet(self.condition_query(), proj={"versionTitle": 1, "language": 1}):
-            vlist.append({
-                "versionTitle": v.versionTitle,
-                 "language": v.language
-            })
-        return vlist
+        fields = ["versionTitle", "versionSource", "language", "license", "versionNotes", "digitizedBySefaria"]
+        return [
+            {f: getattr(v, f, "") for f in fields}
+            for v in VersionSet(self.condition_query(), proj={f: 1 for f in fields})
+        ]
 
     """ String Representations """
     def __str__(self):
