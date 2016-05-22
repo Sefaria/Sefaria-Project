@@ -39,7 +39,7 @@ before_script:
   - cp ./sefaria/.travis.settings.py ./sefaria/local_settings.py
   - cp ./reader/browsertest/framework/creds-example.py ./reader/browsertest/framework/creds.py
   - python manage.py syncdb --noinput
-  - python manage.py runserver &
+  - python manage.py runserver > server.log &
 
 
 # command to run tests
