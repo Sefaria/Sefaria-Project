@@ -37,12 +37,13 @@ before_script:
   - mongo --version
   - mongorestore --drop
   - cp ./sefaria/.travis.settings.py ./sefaria/local_settings.py
+  - cp ./reader/browsertest/framework/creds-example.py ./reader/browsertest/framework/creds.py
 
 # command to run tests
 script:
  - python manage.py runserver &
  - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && cd reader/browsertest && python run_tests_on_travis.py $TRAVIS_BUILD_NUMBER || false'
- - py.test -vv -m "not deep and not failing"
+ - `cd ../.. && py.test -vv -m "not deep and not failing"`
 
 
 notifications:
