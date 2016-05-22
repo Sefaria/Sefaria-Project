@@ -7,9 +7,22 @@ from selenium.webdriver.common.keys import Keys
 TEMPER = 10
 
 
+class PagesLoad(AtomicTest):
+    suite_key = "S2 Reader"
+    every_build = True
+
+    def run(self):
+        self.s2()
+        self.load_toc().click_toc_category("Midrash").click_toc_text("Midrash Tanchuma")
+        self.load_ref("Psalms.104")
+        self.load_sheets()
+
+
 class RecentInToc(AtomicTest):
     suite_key = "S2 Reader"
     single_panel = False
+    every_build = True
+
 
     def run(self):
         self.s2().click_toc_category("Tanach").click_toc_text("Psalms")
@@ -18,6 +31,7 @@ class RecentInToc(AtomicTest):
 
 class LoadRefAndClickSegment(AtomicTest):
     suite_key = "S2 Reader"
+    every_build = True
 
     def run(self):
         self.s2()
@@ -30,6 +44,7 @@ class LoadRefAndClickSegment(AtomicTest):
 
 class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
     suite_key = "S2 Reader"
+    every_build = True
 
     def run(self):
         self.s2()
