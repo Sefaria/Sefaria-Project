@@ -9,4 +9,7 @@ build = sys.argv[1]
 
 t = Trial(platform="travis", build=build)
 t.run()
-print t.results().report()
+results = t.results()
+
+print results.report()
+sys.exit(results.number_failed())

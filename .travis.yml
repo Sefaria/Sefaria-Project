@@ -41,8 +41,8 @@ before_script:
 # command to run tests
 script:
  - python manage.py runserver &
+ - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && cd reader/browsertest && python run_tests_on_travis.py $TRAVIS_BUILD_NUMBER || false'
  - py.test -vv -m "not deep and not failing"
- - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && cd reader/browsertest && python run_test_on_travis $TRAVIS_BUILD_NUMBER || false'
 
 
 notifications:

@@ -197,6 +197,12 @@ class ResultSet(object):
         results = [[""] + caps] + results
         return results
 
+    def number_passed(self):
+        return len([t for t in self._test_results if t.success])
+
+    def number_failed(self):
+        return len([t for t in self._test_results if not t.success])
+
     def report(self):
         ret = ""
 
@@ -209,7 +215,7 @@ class ResultSet(object):
         ret += '\n'.join(table)
 
         total_tests = len(self._test_results)
-        passed_tests = len([t for t in self._test_results if t.success])
+        passed_tests = self.number_passed()
         percentage_passed = (float(passed_tests) / total_tests) * 100
         ret += "\n\n{}/{} - {:.0f}% passed".format(passed_tests, total_tests, percentage_passed)
         return ret
