@@ -38,6 +38,7 @@ before_script:
   - mongorestore --drop
   - cp ./sefaria/.travis.settings.py ./sefaria/local_settings.py
   - cp ./reader/browsertest/framework/creds-example.py ./reader/browsertest/framework/creds.py
+  - python manage.py syncdb
 
 # command to run tests
 script:
