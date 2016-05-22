@@ -39,11 +39,12 @@ before_script:
   - cp ./sefaria/.travis.settings.py ./sefaria/local_settings.py
   - cp ./reader/browsertest/framework/creds-example.py ./reader/browsertest/framework/creds.py
   - python manage.py syncdb --noinput
+  - python manage.py runserver &
+
 
 # command to run tests
 script:
- - 'cd ../.. && py.test -vv -m "not deep and not failing"'
- - python manage.py runserver > server.log &
+ - 'py.test -vv -m "not deep and not failing"'
  - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && cd reader/browsertest && python run_tests_on_travis.py "Build - ${TRAVIS_BUILD_NUMBER}"'
 
 notifications:
