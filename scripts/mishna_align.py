@@ -11,6 +11,8 @@ import os
 import sys
 import codecs
 import re
+import diff_match_patch
+import csv
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, p)
 from sefaria.local_settings import *
@@ -125,7 +127,7 @@ class TestSuite:
     Class to get data and run a series of tests on them.
     """
 
-    def __init__(self, test_list, output_file, lang, versions):
+    def __init__(self, test_list, output_file, lang, versions, html=False):
         """
         :param test_list: A list of TestMeta objects
         :param output_file: File to write results.
@@ -140,6 +142,7 @@ class TestSuite:
         if len(versions) != 2:
             raise AttributeError("Must have 2 versions to compare!")
         self.versions = versions
+        self.html = html
 
         # Write column names to output file
         output_file.write(u'Reference,')
@@ -154,7 +157,13 @@ class TestSuite:
         :param reference: A reference to look up results
         """
 
-        self.output.write(u'{},'.format(reference))
+        if self.html:
+            self.output.write(u'<a href="http://draft.sefaria.org/{}">'.format(reference.replace(u' ', u'_')))
+            self.output.write(u'{}'.format(reference))
+            self.output.write(u'</a>,')
+
+        else:
+            self.output.write(u'{},'.format(reference))
 
         for test in finished_tests:
             test.output_result(reference, self.output)
@@ -254,17 +263,20 @@ class CompareStrings(ComparisonTest):
         v2 = TextChunk(mishna, self.language, self.v2).text
 
         # strip out non hebrew letter characters or spaces
-        v1 = re.sub(u'[^א-ת^ ]+', u'', v1)
+        v1 = re.sub(u'[^א-ת^ ^"^\(\)]+', u'', v1)
         v2 = re.sub(u'[^א-ת^ ]+', u'', v2)
 
         # remove multiple spaces
         v1 = re.sub(u' +', u' ', v1)
         v2 = re.sub(u' +', u' ', v2)
 
-        if v1 != v2:
-            result.diff = u'Fail'
-        else:
+        if v1 == v2:
             result.passed = True
+
+        # create diff object
+        checker = diff_match_patch.diff_match_patch()
+        diff = checker.diff_main(v1, v2)
+        result.diff = checker.diff_prettyHtml(diff)
 
         return result
 
@@ -311,9 +323,35 @@ def run(outfile):
             else:
                 outfile.write(u'{}\n'.format(u' '.join(str(index) for index in result.diff)))
 
+
+def csv_to_html(infile, outfile):
+    """
+    Convert a csv file to html
+    :param infile: input file
+    :param outfile: output file
+    """
+
+    outfile.write(u'<!DOCTYPE html>\n<html>\n<body>\n<table>\n')
+
+    for row in infile:
+        row = row.replace(u'\n', u'')
+        row = row.split(u',')
+        outfile.write(u'<tr><td>')
+        outfile.write(u'</td><td>'.join(row))
+        outfile.write(u'</td></tr>\n')
+
+    outfile.write(u'</table>\n</body>\n</html>')
+
+
 tests = [CompareNumberOfMishnayot, CompareNumberOfWords, CompareStrings]
 versions = ['Wikisource Mishna', 'Vilna Mishna']
-outfile = codecs.open('Mishna version test.csv', 'w', 'utf-8')
-testrunner = TestSuite(tests, outfile, 'he', versions)
+output_file = codecs.open('Mishna version test.csv', 'w', 'utf-8')
+testrunner = TestSuite(tests, output_file, 'he', versions, True)
 testrunner.run_tests()
-outfile.close()
+output_file.close()
+input_file = codecs.open('Mishna version test.csv', 'r', 'utf-8')
+html = codecs.open('Mishna version test.html', 'w', 'utf-8')
+csv_to_html(input_file, html)
+input_file.close()
+html.close()
+
