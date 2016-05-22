@@ -137,7 +137,7 @@ class AtomicTest(object):
     def load_sheets(self):
         url = self.base_url + "/sheets"
         self.driver.get(url)
-        WebDriverWait(self.driver, TEMPER).until(title_contains("Sheets"))
+        WebDriverWait(self.driver, TEMPER).until(title_contains("Sheet"))
 
 
 class TestResult(object):
