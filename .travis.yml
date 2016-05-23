@@ -4,7 +4,7 @@ python:
   - "2.7"
 
 cache:
-  - pip
+  pip: true
   # https://docs.travis-ci.com/user/caching/ says not to cache packages, but I think the mongo servers are the slow ones in this dance.
   directories:
     - /var/cache/apt/archives
@@ -53,7 +53,6 @@ before_script:
   - python manage.py syncdb --noinput
   - python manage.py runserver 2> server.error.log > server.log &
 
-# command to run tests
 script:
  - 'py.test -vv -m "not deep and not failing"'
  - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && cd reader/browsertest && python run_tests_on_travis.py "Build - ${TRAVIS_BUILD_NUMBER}"'
