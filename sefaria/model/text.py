@@ -3204,11 +3204,11 @@ class Ref(object):
 
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
-        return [{
-            "versionSource": v.versionSource,
-            "versionTitle": v.versionTitle,
-            "language": v.language
-        } for v in VersionSet(self.condition_query(), proj={"versionTitle": 1, "versionSource": 1, "language": 1})]
+        fields = ["versionTitle", "versionSource", "language", "license", "versionNotes", "digitizedBySefaria"]
+        return [
+            {f: getattr(v, f, "") for f in fields}
+            for v in VersionSet(self.condition_query(), proj={f: 1 for f in fields})
+        ]
 
     """ String Representations """
     def __str__(self):

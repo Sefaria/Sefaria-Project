@@ -246,9 +246,9 @@ class Test_Hebrew_Quoting_Styles(object):
 
 
 
-
-class Test_FAILING_parse_he_commentary(object):
-    def test_FAILING_hebrew_commentary(self):
+#todo: surprised this works. Had been marked as failing.  What's the coverage of these kinds of refs?
+class Test_parse_he_commentary(object):
+    def test_hebrew_commentary(self):
         assert m.Ref(u'רש"י על ויקרא ט״ו:ג׳') == m.Ref("Rashi on Leviticus 15:3")
 
 

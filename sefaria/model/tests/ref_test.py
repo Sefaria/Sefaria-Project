@@ -141,7 +141,7 @@ class Test_Ref(object):
         assert Ref("Rashi on Genesis 5:32:2").next_section_ref().normal() == "Rashi on Genesis 6:2"
         assert Ref("Mekhilta 35.3").next_section_ref() is None
         # This will start to fail when we fill in this text
-        assert Ref("Mekhilta 23:19").next_section_ref().normal() == "Mekhilta 31:12"
+        assert Ref("Mekhilta d'Rabbi Yishmael 23:19").next_section_ref().normal() == "Mekhilta d'Rabbi Yishmael 31:12"
 
     def test_complex_next_ref(self): #at time of test we only had complex commentaries stable to test with
         assert Ref('Pesach Haggadah, Kadesh').next_section_ref().normal() == 'Pesach Haggadah, Urchatz'
@@ -162,7 +162,7 @@ class Test_Ref(object):
         assert Ref("Rashi on Genesis 6:2:1").prev_section_ref().normal() == "Rashi on Genesis 5:32"
         assert Ref("Mekhilta 12:1").prev_section_ref() is None
         # This will start to fail when we fill in this text
-        assert Ref("Mekhilta 31:12").prev_section_ref().normal() == "Mekhilta 23:19"
+        assert Ref("Mekhilta d'Rabbi Yishmael 31:12").prev_section_ref().normal() == "Mekhilta d'Rabbi Yishmael 23:19"
 
     def test_complex_prev_ref(self):
         assert Ref('Pesach Haggadah, Urchatz').prev_section_ref().normal() == 'Pesach Haggadah, Kadesh'
@@ -180,7 +180,7 @@ class Test_Ref(object):
         assert Ref("Exodus 3:22").next_segment_ref() == Ref("Exodus 4:1")
         assert Ref("Rashi on Exodus 3:1:1").next_segment_ref() == Ref("Rashi on Exodus 3:1:2")
         assert Ref("Rashi on Exodus 2:25:1").next_segment_ref() == Ref("Rashi on Exodus 3:1:1")
-        assert Ref("Rashi on Exodus 3:19:2").next_segment_ref() == Ref("Rashi on Exodus 3:21:1")
+        assert Ref("Rashi on Exodus 3:19:2").next_segment_ref() == Ref("Rashi on Exodus 3:22:1")
         assert Ref("Shabbat 5b:12").next_segment_ref() == Ref("Shabbat 5b:13")
         assert Ref("Shabbat 5b:38").next_segment_ref() == Ref("Shabbat 6a:1")
         assert Ref("Rashi on Shabbat 5b:34:4").next_segment_ref() == Ref("Rashi on Shabbat 5b:34:5")
@@ -193,7 +193,7 @@ class Test_Ref(object):
         assert Ref("Exodus 4:1").prev_segment_ref() == Ref("Exodus 3:22")
         assert Ref("Rashi on Exodus 3:1:2").prev_segment_ref() == Ref("Rashi on Exodus 3:1:1")
         assert Ref("Rashi on Exodus 3:1:1").prev_segment_ref() == Ref("Rashi on Exodus 2:25:1")
-        assert Ref("Rashi on Exodus 3:21:1").prev_segment_ref() == Ref("Rashi on Exodus 3:19:2")
+        assert Ref("Rashi on Exodus 3:22:1").prev_segment_ref() == Ref("Rashi on Exodus 3:19:2")
         assert Ref("Shabbat 5b:13").prev_segment_ref() == Ref("Shabbat 5b:12")
         assert Ref("Shabbat 6a:1").prev_segment_ref() == Ref("Shabbat 5b:38")
         assert Ref("Rashi on Shabbat 5b:34:5").prev_segment_ref() == Ref("Rashi on Shabbat 5b:34:4")
