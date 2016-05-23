@@ -9,6 +9,9 @@ cache:
   directories:
     - /var/cache/apt/archives
 
+before_cache:
+  - sudo rm -f /var/cache/apt/archives/lock
+
 services:
   - mongodb
 
