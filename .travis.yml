@@ -3,15 +3,7 @@ language: python
 python:
   - "2.7"
 
-cache:
-  pip: true
-  # https://docs.travis-ci.com/user/caching/ says not to cache packages, but I think the mongo servers are the slow ones in this dance.
-  directories:
-    - /var/cache/apt/archives
-
-before_cache:
-  # Get rid of a pesky lock file
-  - sudo rm -f /var/cache/apt/archives/lock
+cache: pip
 
 services:
   - mongodb
