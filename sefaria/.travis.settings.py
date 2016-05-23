@@ -23,7 +23,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '/path/to/your/sefaria/data/db.sqlite', # Or path to database file if using sqlite3.
+        'NAME': '{}/data/db.sqlite'.format(HOME_DIR), # Or path to database file if using sqlite3.
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -70,6 +70,12 @@ SEARCH_HOST = "http://localhost:9200"
 SEARCH_ADMIN = "http://localhost:9200"
 SEARCH_INDEX_ON_SAVE = True  # Whether to send texts and source sheet to Search Host for indexing after save
 SEARCH_INDEX_NAME = 'sefaria'  # name of the ElasticSearch index to use
+
+DJANGO_HOST  = "http://localhost:8000" # Where is Django running
+
+# Node Server
+USE_NODE = False
+NODE_HOST = "http://localhost:4040"
 
 SEFARIA_DATA_PATH = '{}/data'.format(HOME_DIR)  # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export'  # used for exporting texts
