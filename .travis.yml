@@ -43,7 +43,7 @@ before_script:
   - cp ./reader/browsertest/framework/creds-example.py ./reader/browsertest/framework/creds.py
 
   # Get rid of the conftest that forces a copy of the datastore to a test db
-  - rm conftest.py
+  - rm ./sefaria/conftest.py
 
   # Create the user db, and run the django server, redirecting output to log files
   - python manage.py syncdb --noinput
