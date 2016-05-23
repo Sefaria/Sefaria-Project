@@ -1,0 +1,434 @@
+Ref, Mishna Count Test, Word Count Test, String Match Test
+Mishnah Berakhot 1,Passed,2 3 4,1 2 3 4 5
+Mishnah Berakhot 2,Passed,1 2 3 4 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Berakhot 3,Passed,1 2 5 6,1 2 3 4 5
+Mishnah Berakhot 4,Passed,2 4 5 7,1 2 3 4 5 6 7
+Mishnah Berakhot 5,Passed,1 2 3 4,2 3 4 5
+Mishnah Berakhot 6,Passed,1 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Berakhot 7,Passed,2 3 5,1 2 3 4 5
+Mishnah Berakhot 8,Passed,1 2 3 5 6,1 2 3 4 5 6 7 8
+Mishnah Berakhot 9,Passed,1 2 3 4 5,1 2 3 4 5
+Mishnah Demai 1,Passed,1 3 4,1 2 3 4
+Mishnah Demai 2,Passed,1 2 3 4 5,1 2 3 4 5
+Mishnah Demai 3,Passed,1 2 3 4 6,1 2 3 4 5 6
+Mishnah Demai 4,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Demai 5,Passed,1 3 4 6 7 8 9 10 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Demai 6,Passed,1 2 3 4 5 6 7 10 11 12,1 2 3 4 5 6 7 8 9 10 11 12
+Mishnah Demai 7,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Sheviit 1,Passed,1 2 3 4 5 7,1 2 3 4 5 6 7 8
+Mishnah Sheviit 2,Passed,1 2 3 4 5 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Sheviit 3,Passed,1 2 3 4 5 6 7 8 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Sheviit 4,Passed,1 2 3 4 5 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Sheviit 5,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8 9
+Mishnah Sheviit 6,Passed,2 3 4 5 6,1 2 3 4 5 6
+Mishnah Sheviit 7,Failed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Sheviit 8,Failed,1 2 3 4 5 6 7 8 9 10 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Sheviit 9,Passed,1 2 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Sheviit 10,Passed,1 3 4 5 6 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Terumot 1,Failed,1 2 3 4 5 6 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Terumot 2,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Terumot 3,Passed,1 2 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Terumot 4,Passed,1 2 3 4 5 6 7 8 9 10 12 13,1 2 3 4 5 6 7 8 9 10 11 12 13
+Mishnah Terumot 5,Passed,1 2 3 4 5 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Terumot 6,Passed,1 4 5 6,1 2 3 4 5 6
+Mishnah Terumot 7,Passed,1 2 4 5 7,1 2 3 4 5 6 7
+Mishnah Terumot 8,Passed,1 2 3 4 5 6 7 8 10 11 12,1 2 3 4 5 6 7 8 9 10 11 12
+Mishnah Terumot 9,Passed,1 2 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Terumot 10,Passed,1 2 3 4 5 6 7 9 10 11 12,1 2 3 4 5 6 7 8 9 10 11 12
+Mishnah Terumot 11,Passed,1 2 3 4 5 6 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Challah 1,Passed,1 2 3 6,1 2 3 4 5 6 7 8 9
+Mishnah Challah 2,Passed,1 2 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Challah 3,Passed,1 2 3 4 5 6 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Challah 4,Passed,1 2 3 4 5 6 7 8 9 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Orlah 1,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8 9
+Mishnah Orlah 2,Passed,1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17,1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+Mishnah Orlah 3,Failed,1 2 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Bikkurim 1,Passed,2 3 4 5 6 7 8 9 10 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Bikkurim 2,Passed,3 4 5 6 7 8 9 10 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Bikkurim 3,Passed,7 9 10 12,1 2 3 4 6 7 8 9 10 12
+Mishnah Bikkurim 4,Passed,Passed,Passed
+Mishnah Shabbat 1,Passed,1 3 4 5 6 7 8 9 10 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Shabbat 2,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Shabbat 3,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Shabbat 4,Passed,1,1 2
+Mishnah Shabbat 5,Passed,1 2 3 4,1 2 3 4
+Mishnah Shabbat 6,Passed,2 3 4 6 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Shabbat 7,Passed,1 2 3 4,1 2 3 4
+Mishnah Shabbat 8,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Shabbat 9,Passed,3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Shabbat 10,Passed,1 2 3 6,1 2 3 4 5 6
+Mishnah Shabbat 11,Passed,2 3 4 5 6,1 2 3 4 5 6
+Mishnah Shabbat 12,Passed,1 2 4 5,1 2 3 4 5 6
+Mishnah Shabbat 13,Passed,2 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Shabbat 14,Passed,1 2 3,1 2 3 4
+Mishnah Shabbat 15,Passed,1 2 3,1 2 3
+Mishnah Shabbat 16,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Shabbat 17,Passed,1 2 3 4 5 8,1 2 3 4 5 6 7 8
+Mishnah Shabbat 18,Passed,Passed,1 2 3
+Mishnah Shabbat 19,Passed,4 5,1 2 3 4 5 6
+Mishnah Shabbat 20,Passed,1 2 4,1 2 3 4 5
+Mishnah Shabbat 21,Passed,2 3,1 2 3
+Mishnah Shabbat 22,Passed,1 2 3 4 5,1 2 3 4 5 6
+Mishnah Shabbat 23,Passed,4 5,1 2 3 4 5
+Mishnah Shabbat 24,Passed,2 5,1 2 3 4 5
+Mishnah Shekalim 1,Passed,2 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Shekalim 2,Passed,2 3 4,1 2 3 4 5
+Mishnah Shekalim 3,Passed,1 2 3 4,1 2 3 4
+Mishnah Shekalim 4,Passed,2 3 4 5 7 8,1 2 3 4 5 6 7 8 9
+Mishnah Shekalim 5,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Shekalim 6,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Shekalim 7,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Shekalim 8,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Yoma 1,Passed,2 4 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Yoma 2,Passed,1 3 4 5 7,1 2 3 4 5 7
+Mishnah Yoma 3,Passed,2 4 5 6 7 8 10 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Yoma 4,Passed,1 2 5 6,1 2 3 4 5 6
+Mishnah Yoma 5,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Yoma 6,Passed,1 2 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Yoma 7,Passed,1 2 3 4 5,1 2 3 4 5
+Mishnah Yoma 8,Passed,1 2 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Sukkah 1,Passed,1 2 5 7 8 10 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Sukkah 2,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8 9
+Mishnah Sukkah 3,Passed,1 3 4 5 6 8 9 10 11 12 13,1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+Mishnah Sukkah 4,Passed,1 2 3 4 6 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Sukkah 5,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Beitzah 1,Passed,2 3 4 5 6 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Beitzah 2,Passed,1 3 4 5 6 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Beitzah 3,Passed,1 2 3 5 6,1 2 3 4 5 6 7 8
+Mishnah Beitzah 4,Passed,1 2 3 4 5 6,1 2 3 4 5 6 7
+Mishnah Beitzah 5,Passed,1 3 6 7,1 2 3 4 5 6 7
+Mishnah Rosh Hashanah 1,Passed,1 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Rosh Hashanah 2,Passed,1 2 3 4 6 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Rosh Hashanah 3,Passed,2 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Rosh Hashanah 4,Passed,1 3 5 6 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Taanit 1,Passed,1 2 4 5 6,1 2 3 4 5 6 7
+Mishnah Taanit 2,Passed,2 3 4 6 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Taanit 3,Passed,2 3 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Taanit 4,Passed,3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Megillah 1,Passed,1 2 5 6 7 9 10 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Megillah 2,Passed,2 3 4 5 6,1 2 3 4 5 6
+Mishnah Megillah 3,Passed,1 3 4 5 6,1 2 3 4 5 6
+Mishnah Megillah 4,Passed,2 3 4 5 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Moed Katan 1,Passed,1 3 5 6 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Moed Katan 2,Passed,1 3 4 5,1 2 3 4 5
+Mishnah Moed Katan 3,Passed,1 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Chagigah 1,Passed,1 2 3 7,1 2 3 4 5 6 7 8
+Mishnah Chagigah 2,Passed,1 2 3 4 6 7,1 2 3 4 5 6 7
+Mishnah Chagigah 3,Passed,3 4 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Ketubot 1,Passed,1 3 4 6 7 8 9,1 2 3 4 5 6 7 8 9 10
+Mishnah Ketubot 2,Passed,1 2 3 4 5 6 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Ketubot 3,Passed,1 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Ketubot 4,Passed,1 2 3 5 6 7 8 9 10 11 12,1 2 3 4 5 6 7 8 9 10 11 12
+Mishnah Ketubot 5,Passed,1 2 3 4 5 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Ketubot 6,Passed,2 3 4 6 7,1 2 3 4 5 6 7
+Mishnah Ketubot 7,Passed,1 2 3 4 5 6 7 9,1 2 3 4 5 6 7 8 9 10
+Mishnah Ketubot 8,Passed,1 2 3 4 5 7,1 2 3 4 5 6 7 8
+Mishnah Ketubot 9,Passed,1 3 4 6 7 8,1 2 3 4 5 6 7 8 9
+Mishnah Ketubot 10,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Ketubot 11,Passed,1 2 3 5 6,1 2 3 4 5 6
+Mishnah Ketubot 12,Passed,1 2 3 4,1 2 3 4
+Mishnah Ketubot 13,Passed,1 2 4 5 6 7 8 9 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Nazir 1,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Nazir 2,Passed,1 2 3 4 5 6 7 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Nazir 3,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Nazir 4,Passed,1 2 3 5 6 7,1 2 3 4 5 6 7
+Mishnah Nazir 5,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Nazir 6,Passed,1 2 3 4 5 6 7 8 10 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Nazir 7,Passed,1 2 3,1 2 3 4
+Mishnah Nazir 8,Passed,1 2,1 2
+Mishnah Nazir 9,Passed,1 2 3 4 5,1 2 3 4 5
+Mishnah Sotah 1,Passed,1 2 3 4 5 6 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Sotah 2,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Sotah 3,Passed,1 4 6 7,1 2 3 4 5 6 7 8
+Mishnah Sotah 4,Passed,1 2 3 4 5,1 2 3 4 5
+Mishnah Sotah 5,Passed,1 2 3 5,1 2 3 4 5
+Mishnah Sotah 6,Passed,2 3 4,1 2 3 4
+Mishnah Sotah 7,Passed,3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Sotah 8,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Sotah 9,Passed,1 2 3 4 5 6 8 9 10 13 14 15,1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+Mishnah Gittin 1,Passed,1 2 3 4 5,1 2 3 4 5 6
+Mishnah Gittin 2,Passed,2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Gittin 3,Passed,1 2 4 5 6 7,1 2 3 4 5 6 7 8
+Mishnah Gittin 4,Passed,1 2 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Gittin 5,Passed,1 2 3 6 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Gittin 6,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Gittin 7,Passed,2 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Gittin 8,Passed,1 3 4 5 6 7 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Gittin 9,Passed,2 3 4 5 6 7 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Kiddushin 1,Passed,1 2 4 5 6 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Kiddushin 2,Passed,1 2 3 4 5 6 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Kiddushin 3,Passed,2 3 4 5 7 8 9 10 11 12 13,1 2 3 4 5 6 7 8 9 10 11 12 13
+Mishnah Kiddushin 4,Passed,2 3 5 6 8 9 10 11 12 13 14,1 2 3 4 5 6 7 8 9 10 11 12 13 14
+Mishnah Bava Kamma 1,Passed,1 3,1 2 3 4
+Mishnah Bava Kamma 2,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Bava Kamma 3,Passed,1 2 3 5 7 8 9 10 11,1 2 3 4 5 8 9 10 11
+Mishnah Bava Kamma 4,Passed,1 2 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Bava Kamma 5,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Bava Kamma 6,Passed,1 2 3 5 6,1 2 3 4 5 6
+Mishnah Bava Kamma 7,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Bava Kamma 8,Passed,1 2 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Bava Kamma 9,Passed,1 5 6 10 11 12,1 2 3 4 5 6 7 8 9 10 11 12
+Mishnah Bava Kamma 10,Passed,1 2 3 4 5 6 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Bava Metzia 1,Passed,1 2 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Bava Metzia 2,Passed,1 2 4 5 6 8 10 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Bava Metzia 3,Passed,1 3 5 6 9 10 11 12,1 2 3 4 5 6 7 8 9 10 11 12
+Mishnah Bava Metzia 4,Passed,1 2 3 4 6 7 8 10 11 12,1 2 3 4 5 6 7 8 9 10 11 12
+Mishnah Bava Metzia 5,Passed,1 2 3 4 5 6 7 8 9 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Bava Metzia 6,Passed,1 2 3 5 6 7,1 2 3 4 5 6 7 8
+Mishnah Bava Metzia 7,Passed,1 2 6 9 10,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Bava Metzia 8,Passed,1 2 4 5 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Bava Metzia 9,Passed,2 4 5 6 7 8 9 10 11 12,1 2 3 4 5 6 7 8 9 10 11 12 13
+Mishnah Bava Metzia 10,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Bava Batra 1,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Bava Batra 2,Passed,1 2 4 5 6 7 8 9 10 11 12 13 14,1 2 3 4 5 6 7 8 9 10 11 12 13 14
+Mishnah Bava Batra 3,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Bava Batra 4,Passed,1 2 3 4 6 7 8,1 2 3 4 5 6 7 8 9
+Mishnah Bava Batra 5,Passed,1 2 4 5 6 7 8 9 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Bava Batra 6,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7 8
+Mishnah Bava Batra 7,Passed,1 2 3 4,1 2 3 4
+Mishnah Bava Batra 8,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Bava Batra 9,Passed,1 2 4 5 6 7 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Bava Batra 10,Passed,1 2 3 4 5 7 8,1 2 3 4 5 6 7 8
+Mishnah Makkot 1,Passed,2 3 4 5 8 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Makkot 2,Passed,1 2 3 5 6 7,1 2 3 4 5 6 7 8
+Mishnah Makkot 3,Passed,1 2 3 4 6 7 8 9 10 11 12 13 14 16,1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+Mishnah Shevuot 1,Passed,1 2 4 5 7,1 2 3 4 5 6 7
+Mishnah Shevuot 2,Passed,1 2 3 5,1 2 3 4 5
+Mishnah Shevuot 3,Passed,1 2 3 4 5 6 7 8 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Shevuot 4,Passed,2 3 4 5 11 13,1 2 3 4 5 6 7 8 9 10 11 12 13
+Mishnah Shevuot 5,Passed,1 2 3 4 5,1 2 3 4 5
+Mishnah Shevuot 6,Passed,1 2 3 4 6 7,1 2 3 4 5 6 7
+Mishnah Shevuot 7,Passed,1 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Shevuot 8,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Eduyot 1,Passed,2 4 6 7 9 10 12 13 14,1 2 3 4 5 6 7 8 9 10 11 12 13 14
+Mishnah Eduyot 2,Passed,2 3 4 5 6 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Eduyot 3,Passed,5 6 7 9 10 11 12,1 2 3 4 5 6 7 8 9 10 11 12
+Mishnah Eduyot 4,Passed,1 4 7 8 9 10 11 12,1 2 3 4 5 6 7 8 9 10 11 12
+Mishnah Eduyot 5,Passed,1 2 3 4 5,1 2 3 4 5 6 7
+Mishnah Eduyot 6,Passed,1 2 3,1 2 3
+Mishnah Eduyot 7,Passed,1 2 4 7,1 2 3 4 5 6 7 8 9
+Mishnah Eduyot 8,Passed,1 2 3 7,1 2 3 4 5 6 7
+Mishnah Avodah Zarah 1,Passed,1 2 3 4 6,1 2 3 4 5 6 7 8 9
+Mishnah Avodah Zarah 2,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Avodah Zarah 3,Passed,1 2 3 4 6 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Avodah Zarah 4,Passed,1 2 4 5 10 12,1 2 3 4 5 6 7 8 9 10 11 12
+Mishnah Avodah Zarah 5,Passed,1 2 3 4 5 6 7 8 10 11 12,1 2 3 4 5 6 7 8 9 10 11 12
+Pirkei Avot 1,Passed,1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17,1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18
+Pirkei Avot 2,Passed,2 3 4 5 6 7 8 9 10 11 12 13 14 15 16,1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+Pirkei Avot 3,Passed,1 2 3 5 6 7 8 9 10 12 13 14 15 16 17,1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18
+Pirkei Avot 4,Passed,1 2 3 6 7 8 9 10 13 14 16 18 21 22,1 2 3 4 5 6 7 8 9 10 11 12 13 14 16 17 18 19 20 21 22
+Pirkei Avot 5,Passed,1 2 3 4 5 6 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23,1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
+Pirkei Avot 6,Failed,1 2 3 4 5 6 7 8 10 11 12,1 2 3 4 5 6 7 8 9 10 11 12
+Mishnah Horayot 1,Passed,1 3 4 5,1 2 3 4 5
+Mishnah Horayot 2,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Horayot 3,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Zevachim 1,Passed,1 2 3 4,1 2 3 4
+Mishnah Zevachim 2,Passed,1 2 4 5,1 2 3 4 5
+Mishnah Zevachim 3,Passed,1 2 3 6,1 2 3 4 5 6
+Mishnah Zevachim 4,Passed,1 2 4 5 6,1 2 3 4 5 6
+Mishnah Zevachim 5,Passed,3 4 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Zevachim 6,Passed,1 2 5 6 7,1 2 3 4 5 6 7
+Mishnah Zevachim 7,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Zevachim 8,Passed,1 2 3 5 7 8 9 10 11 12,1 2 3 4 5 6 7 8 9 10 11 12
+Mishnah Zevachim 9,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Zevachim 10,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7 8
+Mishnah Zevachim 11,Passed,2 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Zevachim 12,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Zevachim 13,Passed,1 2 3 4 5 7 8,1 2 3 4 5 6 7 8
+Mishnah Zevachim 14,Passed,1 2 4 5 6 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Menachot 1,Passed,1 2 3 4,1 2 3 4
+Mishnah Menachot 2,Passed,1 3 4,1 2 3 4 5
+Mishnah Menachot 3,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Menachot 4,Passed,1 2 4 5,1 2 3 4 5
+Mishnah Menachot 5,Passed,1 2 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Menachot 6,Passed,1 2 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Menachot 7,Passed,1 2 3 5 6,1 2 3 4 5 6
+Mishnah Menachot 8,Passed,1 2 3 4 6,1 2 3 4 5 6 7
+Mishnah Menachot 9,Passed,1 2 3 4 5 6 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Menachot 10,Passed,1 2 3 4 6 7 8,1 2 3 4 5 6 7 8 9
+Mishnah Menachot 11,Passed,2 3 4 5 6 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Menachot 12,Passed,1 2 3 4 5,1 2 3 4 5
+Mishnah Menachot 13,Passed,1 2 3 4 5 6 7 9 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Chullin 1,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Chullin 2,Passed,1 2 4 5 8 9,1 2 3 4 5 6 7 8 9 10
+Mishnah Chullin 3,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Chullin 4,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Chullin 5,Passed,1 3 4 5,1 2 3 4 5
+Mishnah Chullin 6,Passed,1 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Chullin 7,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Chullin 8,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Chullin 9,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Chullin 10,Passed,1 3 4,1 2 3 4
+Mishnah Chullin 11,Passed,1,1 2
+Mishnah Chullin 12,Passed,1 2 3 4 5,1 2 3 4 5
+Mishnah Bekhorot 1,Failed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Bekhorot 2,Passed,1 2 3 4 6 7 9,1 2 3 4 5 6 7 8 9
+Mishnah Bekhorot 3,Passed,1 2 3 4,1 2 3 4
+Mishnah Bekhorot 4,Passed,1 2 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9 10
+Mishnah Bekhorot 5,Passed,1 2 4 5 6,1 2 3 4 5 6
+Mishnah Bekhorot 6,Passed,2 3 4 5 6 7 8 9 10 11 12,1 2 3 4 5 6 7 8 9 10 11 12
+Mishnah Bekhorot 7,Passed,1 2 3 4 7,1 2 3 4 5 6 7
+Mishnah Bekhorot 8,Passed,2 3 4 5 6 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Bekhorot 9,Passed,1 2 3 4 5 7 8,1 2 3 4 5 6 7 8
+Mishnah Arakhin 1,Passed,1 2 3 4,1 2 3 4
+Mishnah Arakhin 2,Passed,2 3 4 5 6,1 2 3 4 5 6
+Mishnah Arakhin 3,Passed,1 3 4 5,1 2 3 4 5
+Mishnah Arakhin 4,Failed,1 2 3 4,1 2 3 4
+Mishnah Arakhin 5,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Arakhin 6,Passed,1 5,1 2 3 4 5
+Mishnah Arakhin 7,Passed,1 2 3 4 5,1 2 3 4 5
+Mishnah Arakhin 8,Passed,2 3 4 5 7,1 2 3 4 5 6 7
+Mishnah Arakhin 9,Passed,1 3 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Keritot 1,Passed,2 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Keritot 2,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Keritot 3,Passed,1 2 3 4 5 6 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Keritot 4,Passed,1 2 3,1 2 3
+Mishnah Keritot 5,Passed,1 2 3 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Keritot 6,Passed,2 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Meilah 1,Passed,1 2 3 4,1 2 3 4
+Mishnah Meilah 2,Passed,1 2 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Meilah 3,Passed,1 2 3 4 5,1 2 3 4 5 6 7 8
+Mishnah Meilah 4,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Meilah 5,Passed,1 2 3 4 5,1 2 3 4 5
+Mishnah Meilah 6,Passed,2 3 4 5 6,1 2 3 4 5 6
+Mishnah Tamid 1,Passed,1 2 3 4,1 2 3 4
+Mishnah Tamid 2,Passed,1 3 4 5,1 2 3 4 5
+Mishnah Tamid 3,Passed,1 2 3 4 5 6 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Tamid 4,Passed,1 2 3,1 2 3
+Mishnah Tamid 5,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Tamid 6,Passed,1 2 3,1 2 3
+Mishnah Tamid 7,Passed,1 2 4,1 2 3 4
+Mishnah Middot 1,Passed,1 2 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Middot 2,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Middot 3,Passed,1 2 3 4 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Middot 4,Passed,1 2 3 4 5 6,1 2 3 4 5 6 7
+Mishnah Middot 5,Failed,1 2 3 4,1 2 3 4
+Mishnah Kinnim 1,Failed,1 3 4 5,1 2 3 4 5
+Mishnah Kinnim 2,Passed,1 2 3 4,1 2 3 4 5
+Mishnah Kinnim 3,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Kelim 1,Passed,4 5 6 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Kelim 2,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7 8
+Mishnah Kelim 3,Passed,1 2 3 4 5 7 8,1 2 3 4 5 6 7 8
+Mishnah Kelim 4,Passed,1 3 4,1 2 3 4
+Mishnah Kelim 5,Passed,1 2 3 4 5 6 7 8 9 10 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Kelim 6,Passed,1 2 3 4,1 2 3 4
+Mishnah Kelim 7,Passed,1 3 4 5 6,1 2 3 4 5 6
+Mishnah Kelim 8,Passed,1 2 3 4 5 6 7 8 9 10 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Kelim 9,Passed,1 3 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Kelim 10,Passed,2 3 4 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Kelim 11,Passed,1 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Kelim 12,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Kelim 13,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Kelim 14,Passed,1 2 3 4 5 6 8,1 2 3 4 5 6 7 8
+Mishnah Kelim 15,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Kelim 16,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Kelim 17,Passed,1 2 3 4 6 8 10 11 12 13 15 16 17,1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+Mishnah Kelim 18,Passed,1 2 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Kelim 19,Passed,1 2 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9 10
+Mishnah Kelim 20,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Kelim 21,Passed,1 2 3,1 2 3
+Mishnah Kelim 22,Passed,3 4 6 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Kelim 23,Passed,1 3 4 5,1 2 3 4 5
+Mishnah Kelim 24,Passed,1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17,1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17
+Mishnah Kelim 25,Passed,3 4 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Kelim 26,Passed,1 3 4 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Kelim 27,Passed,1 2 3 5 6 8 9 10 11,1 2 3 4 5 6 7 8 9 10 11 12
+Mishnah Kelim 28,Passed,1 5 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Kelim 29,Passed,1 2 3 4 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Kelim 30,Passed,1 2 4,1 2 3 4
+Mishnah Oholot 1,Passed,1 2 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Oholot 2,Passed,1 3 4 5 7,1 2 3 4 5 6 7
+Mishnah Oholot 3,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Oholot 4,Passed,1 2 3,1 2 3
+Mishnah Oholot 5,Passed,1 2 3 4 5 6,1 2 3 4 5 6 7
+Mishnah Oholot 6,Passed,1 2 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Oholot 7,Passed,1 2 4 5 6,1 2 3 4 5 6
+Mishnah Oholot 8,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Oholot 9,Passed,1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16,1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+Mishnah Oholot 10,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Oholot 11,Passed,1 2 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Oholot 12,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Oholot 13,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Oholot 14,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Oholot 15,Passed,1 2 3 4 5 6 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Oholot 16,Passed,1 2 3 4 5,1 2 3 4 5
+Mishnah Oholot 17,Passed,1 2 3 4 5,1 2 3 4 5
+Mishnah Oholot 18,Passed,1 2 3 4 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Negaim 1,Passed,2 3 4 5 6,1 2 3 4 5 6
+Mishnah Negaim 2,Passed,1 3 4 5,1 2 3 4 5
+Mishnah Negaim 3,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Negaim 4,Passed,1 2 3 4 5 7 8 9 10 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Negaim 5,Passed,1 2 3 4 5,1 2 3 4 5
+Mishnah Negaim 6,Passed,1 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Negaim 7,Passed,1 2 3 4 5,1 2 3 4 5
+Mishnah Negaim 8,Passed,1 2 3 4 5 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Negaim 9,Passed,1 2 3,1 2 3
+Mishnah Negaim 10,Passed,1 2 3 4 5 6 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Negaim 11,Passed,1 2 3 4 6 8 10 11 12,1 2 3 4 5 6 7 8 9 10 11 12
+Mishnah Negaim 12,Passed,1 2 3 4 5 6,1 2 3 4 5 6 7
+Mishnah Negaim 13,Passed,1 2 4 5 6 7 8 9 11 12,1 2 3 4 5 6 7 8 9 10 11 12
+Mishnah Negaim 14,Passed,1 2 3 4 5 6 7 8 9 10 11 12 13,1 2 3 4 5 6 7 8 9 10 11 12 13
+Mishnah Parah 1,Failed,1 2 3 4,1 2 3 4
+Mishnah Parah 2,Passed,1 2 3 4 5,1 2 3 4 5
+Mishnah Parah 3,Passed,1 2 3 4 5 6 7 8 9 10 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Parah 4,Passed,1 2 3 4,1 2 3 4
+Mishnah Parah 5,Passed,1 2 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Parah 6,Passed,1 4 5,1 2 3 4 5
+Mishnah Parah 7,Passed,1 2 3 4 5 6 7 8 9 10 11 12,1 2 3 4 5 6 7 8 9 10 11 12
+Mishnah Parah 8,Passed,1 2 3 4 5 6 7 8 9 10 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Parah 9,Passed,1 2 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Parah 10,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Parah 11,Passed,1 2 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Parah 12,Passed,1 2 3 4 5 6 8 9 10 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Tahorot 1,Passed,2 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Tahorot 2,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Tahorot 3,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Tahorot 4,Passed,1 3 4 5 6 7 8 9 10 11 12 13,1 2 3 4 5 6 7 8 9 10 11 12 13
+Mishnah Tahorot 5,Passed,2 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Tahorot 6,Failed,1 2 3 4 6 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Tahorot 7,Passed,1 2 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Tahorot 8,Passed,1 2 3 4 5 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Tahorot 9,Passed,1 2 4 6 7 8 9,1 2 3 4 5 6 7 8 9
+Mishnah Tahorot 10,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Mikvaot 1,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Mikvaot 2,Passed,1 2 4 5 6 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Mikvaot 3,Passed,1 2 3 4,1 2 3 4
+Mishnah Mikvaot 4,Passed,1 2 3 4 5,1 2 3 4 5
+Mishnah Mikvaot 5,Passed,2 3 4 5 6,1 2 3 4 5 6
+Mishnah Mikvaot 6,Passed,1 2 3 4 5 6 7 8 9 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Mikvaot 7,Passed,2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Mikvaot 8,Passed,1 2 3 4 5,1 2 3 4 5
+Mishnah Mikvaot 9,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Mikvaot 10,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Niddah 1,Passed,1 2 3 4 6 7,1 2 3 4 5 6 7
+Mishnah Niddah 2,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Niddah 3,Passed,1 2 3 4 5 6 7,1 2 3 4 5 6 7
+Mishnah Niddah 4,Passed,1 2 3 4 5 7,1 2 3 4 5 6 7
+Mishnah Niddah 5,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8 9
+Mishnah Niddah 6,Passed,1 2 3 4 5 6 7 8 9 10 11 12 14,1 2 3 4 5 6 7 8 9 10 11 12 13 14
+Mishnah Niddah 7,Passed,1 5,1 2 3 4 5
+Mishnah Niddah 8,Passed,1 2 3 4,1 2 3 4
+Mishnah Niddah 9,Passed,1 2 3 4 6 7 9 10 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Niddah 10,Passed,1 2 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Makhshirin 1,Passed,1 2 3 4 5 6,1 2 3 4 5 6
+Mishnah Makhshirin 2,Passed,1 2 3 5 6 7 8 9 11,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Makhshirin 3,Passed,1 2 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Makhshirin 4,Passed,1 2 3 4 5 6 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Makhshirin 5,Passed,3 4 5 6 8 9 10,1 2 3 4 5 6 7 8 9 10 11
+Mishnah Makhshirin 6,Passed,1 2 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Zavim 1,Passed,1 2 3 4 6,1 2 3 4 5 6
+Mishnah Zavim 2,Passed,1 2 3 4,1 2 3 4
+Mishnah Zavim 3,Passed,1 2 3,1 2 3
+Mishnah Zavim 4,Passed,1 2 4 6,1 2 3 4 5 6 7
+Mishnah Zavim 5,Passed,1 2 3 4 5 6 7 8 9 10 11 12,1 2 3 4 5 6 7 8 9 10 11 12
+Mishnah Tevul Yom 1,Passed,1 2 5,1 2 3 4 5
+Mishnah Tevul Yom 2,Passed,1 3 4 5 6 7 8,1 2 3 4 5 6 7 8
+Mishnah Tevul Yom 3,Passed,2 3 4 5 6,1 2 3 4 5 6
+Mishnah Tevul Yom 4,Passed,1 2 3 4 5 7,1 2 3 4 5 6 7
+Mishnah Yadayim 1,Passed,2 3 4 5,1 2 3 4 5
+Mishnah Yadayim 2,Passed,2 4,1 2 3 4
+Mishnah Yadayim 3,Passed,1 2 3 5,1 2 3 4 5
+Mishnah Yadayim 4,Passed,2 3 4 5 7 8,1 2 3 4 5 6 7 8
+Mishnah Oktzin 1,Passed,1 3 4 6,1 2 3 4 5 6
+Mishnah Oktzin 2,Passed,1 2 3 4 5 6 7 8 9 10,1 2 3 4 5 6 7 8 9 10
+Mishnah Oktzin 3,Passed,1 2 3 4 5 6 7 8 9 10 11,1 2 3 4 5 6 7 8 9 10 11 12
