@@ -6,7 +6,8 @@ python:
 cache:
   - pip
   # https://docs.travis-ci.com/user/caching/ says not to cache packages, but I think the mongo servers are the slow ones in this dance.
-  - /var/cache/apt/archives
+  directories:
+    - /var/cache/apt/archives
 
 services:
   - mongodb
