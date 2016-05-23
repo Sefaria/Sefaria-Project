@@ -87,9 +87,11 @@ class AtomicTest(object):
         if filter is not None:
             url += "?with={}".format(filter)
         self.driver.get(url)
-        if filter is not None:
+        if filter == "all":
+            WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".categoryFilter")))
+        elif filter is not None:
             # Filters load slower than the main page
-            WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".filterSet")))
+            WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".textRange")))
         else:
             WebDriverWait(self.driver, TEMPER).until(title_contains(ref.normal()))
         return self
