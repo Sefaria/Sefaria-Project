@@ -2373,43 +2373,35 @@ input {
   outline: none;
 }
 
-.textList .lexicon-content {
-  padding: 30px 30px 80px 30px;
-}
-.textList.fullPanel .lexicon-content {
-  padding: 30px 50px 80px 50px;
-  box-sizing: border-box;
-}
 
 .lexicon-content{
-  overflow-y: auto;
-  height:45%;
+  /*max-height:45%;*/
   font-size: 15px;
+  padding-bottom: 10px;
+  margin-bottom: 1px;
+  border-bottom: 1px solid #e5e5e5;
 }
 
 
-.lexicon-content + .fullFilterView{
-  height: 55%;
-}
 
 .lexicon-link:hover {
-	text-decoration: underline;
+  text-decoration: underline;
 }
 
 
 .lexicon-header {
-	padding: 10px;
-	border-bottom: 1px solid #e5e5e5;
-	background-color: #AAAAAA;
+  padding: 10px;
+  border-bottom: 1px solid #e5e5e5;
+  background-color: #AAAAAA;
 }
 
 .lexicon-header h4{
-	font-size: 1.2em;
-	margin: 0px;
+  font-size: 1.2em;
+  margin: 0px;
 }
 
 .entry + .entry {
-	padding-top: 10px;
+  padding-top: 10px;
   	/*border-top: 1px inset #AAAAAA;*/
 }
 

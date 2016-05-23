@@ -3834,13 +3834,14 @@ var TextList = React.createClass({
               <div className="textListTop">
                   {message}
               </div>
-              <LexiconPanel selectedWords={this.props.selectedWords} oref={oref}/>
               <AllFilterSet
                 summary={summary}
                 showText={this.props.showText}
-                filter={this.props.fitler}
+                filter={this.props.filter}
                 recentFilters={this.props.recentFilters}
-                setFilter={this.props.setFilter} />
+                setFilter={this.props.setFilter}
+                selectedWords={this.props.selectedWords}
+                oref={oref}/>
             </div>);
     } else if (!this.props.fullPanel) {
       return (
@@ -3940,6 +3941,7 @@ var AllFilterSet = React.createClass({
     }.bind(this));
     return (
       <div className="fullFilterView filterSet">
+        <LexiconPanel selectedWords={this.props.selectedWords} oref={this.props.oref}/>
         {categories}
       </div>
     );
