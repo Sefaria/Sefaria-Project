@@ -71,6 +71,12 @@ SEARCH_ADMIN = "http://localhost:9200"
 SEARCH_INDEX_ON_SAVE = True  # Whether to send texts and source sheet to Search Host for indexing after save
 SEARCH_INDEX_NAME = 'sefaria'  # name of the ElasticSearch index to use
 
+DJANGO_HOST  = "http://localhost:8000" # Where is Django running
+
+# Node Server
+USE_NODE = False
+NODE_HOST = "http://localhost:4040"
+
 SEFARIA_DATA_PATH = '{}/data'.format(HOME_DIR)  # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export'  # used for exporting texts
 
