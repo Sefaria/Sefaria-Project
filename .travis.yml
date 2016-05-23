@@ -10,6 +10,7 @@ cache:
     - /var/cache/apt/archives
 
 before_cache:
+  # Get rid of a pesky lock file
   - sudo rm -f /var/cache/apt/archives/lock
 
 services:
