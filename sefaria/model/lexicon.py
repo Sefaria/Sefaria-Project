@@ -36,7 +36,8 @@ class Lexicon(abst.AbstractMongoRecord):
     required_attrs = [
         "name",
         'language',
-        'to_language'
+        'to_language',
+        'text_categories'
     ]
 
     optional_attrs = [

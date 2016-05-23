@@ -3739,7 +3739,6 @@ var TextList = React.createClass({
     sjs.track.event("Reader", "Show All Filters Click", "1");
   },
   render: function() {
-    console.log("Text LIst Lexicon words: "+this.props.selectedWords);
     var refs               = this.props.srefs;
     var summary            = Sefaria.relatedSummary(refs);
     var oref               = Sefaria.ref(refs[0]);
@@ -4145,11 +4144,13 @@ var LexiconPanel = React.createClass({
     inputLength = wordList.length;
     return (inputLength > 0 && inputLength <= 3);
   },
-  filter: function(){
+  filter: function(entries){
 
+    return entries.map()
   },
   render: function(){
     console.log("lexicon: "+this.props.selectedWords);
+    var ref_cats = this.props.oref.categories.join(", ");
     var enEmpty = "No results found.";
     var heEmpty = "לא נמצאו תוצאות";
     if(!this.shouldRenderSelf()){
@@ -4164,7 +4165,7 @@ var LexiconPanel = React.createClass({
     }
     else{
       var entries = this.state.entries;
-      content =  entries ? entries.map(function(entry, i) {
+      content =  entries ? entries.filter(e => e['parent_lexicon_details']['text_categories'].indexOf(ref_cats) > -1).map(function(entry, i) {
             return (<LexiconEntry data={entry} key={i} />)
           }) : (<LoadingMessage message={enEmpty} heMessage={heEmpty} />);
       content = content.length ? content : <LoadingMessage message={enEmpty} heMessage={heEmpty} />;
@@ -4188,7 +4189,7 @@ LexiconEntry = React.createClass({
   },
   render: function(){
     var entry = this.props.data;
-    var headwordClassNames = classNames('headword', entry['parent_lexicon_details']["language"].slice(0,2));
+    var headwordClassNames = classNames('headword', entry['parent_lexicon_details']["to_language"].slice(0,2));
     var definitionClassNames = classNames('definition-content', entry['parent_lexicon_details']["to_language"].slice(0,2));
     var entryHeadHtml =  (<span className="headword">{entry['headword']}</span>);
     var morphologyHtml = ('morphology' in entry['content']) ?  (<span className="morphology">({entry['content']['morphology']})</span>) :"";
