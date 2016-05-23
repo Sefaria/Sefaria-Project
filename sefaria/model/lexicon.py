@@ -35,12 +35,12 @@ class Lexicon(abst.AbstractMongoRecord):
     collection = 'lexicon'
     required_attrs = [
         "name",
+        'language',
+        'to_language'
     ]
 
     optional_attrs = [
         'title',
-        'language',
-        'to_language',
         'pub_location',
         'pub_date',
         'editor',

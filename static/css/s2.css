@@ -2485,4 +2485,18 @@ input {
   font-size: 10px;
 }
 
+.lexicon-content .headword.en, .lexicon-content .headword.he,
+.lexicon-content .definition-content.en, .lexicon-content .definition-content.he,
+.lexicon-content .lexicon-results .attribution{
+  display: inline;
+}
+
+.lexicon-content .headword.he, .lexicon-content .definition-content.he{
+  direction: rtl;
+}
+
+.lexicon-content .headword.en, .lexicon-content .definition-content.en{
+  direction: ltr;
+}
+
 

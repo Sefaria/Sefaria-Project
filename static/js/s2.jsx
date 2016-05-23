@@ -3835,7 +3835,7 @@ var TextList = React.createClass({
               <div className="textListTop">
                   {message}
               </div>
-              <LexiconPanel selectedWords={this.props.selectedWords} oref={oref.sectionRef}/>
+              <LexiconPanel selectedWords={this.props.selectedWords} oref={oref}/>
               <AllFilterSet
                 summary={summary}
                 showText={this.props.showText}
@@ -4106,7 +4106,7 @@ var RecentFilterSet = React.createClass({
 var LexiconPanel = React.createClass({
   propTypes: {
     selectedWords: React.PropTypes.string,
-    sectionRef: React.PropTypes.string
+    oref: React.PropTypes.object
   },
   getInitialState: function() {
     return {
@@ -4122,10 +4122,11 @@ var LexiconPanel = React.createClass({
     }
   },
   getLookups: function(){
+    console.log("Lexicon Ref: ", this.props.oref);
     if(!this.shouldRenderSelf()){
       return;
     }
-    Sefaria.lexicon(this.props.selectedWords, null, function(data) {
+    Sefaria.lexicon(this.props.selectedWords, this.props.oref.ref, function(data) {
         console.log(data);
         if (this.isMounted()) {
           this.setState({
@@ -4143,6 +4144,9 @@ var LexiconPanel = React.createClass({
     wordList = this.props.selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
     inputLength = wordList.length;
     return (inputLength > 0 && inputLength <= 3);
+  },
+  filter: function(){
+
   },
   render: function(){
     console.log("lexicon: "+this.props.selectedWords);
@@ -4184,14 +4188,16 @@ LexiconEntry = React.createClass({
   },
   render: function(){
     var entry = this.props.data;
+    var headwordClassNames = classNames('headword', entry['parent_lexicon_details']["language"].slice(0,2));
+    var definitionClassNames = classNames('definition-content', entry['parent_lexicon_details']["to_language"].slice(0,2));
     var entryHeadHtml =  (<span className="headword">{entry['headword']}</span>);
     var morphologyHtml = ('morphology' in entry['content']) ?  (<span className="morphology">({entry['content']['morphology']})</span>) :"";
     var senses = this.renderLexiconEntrySenses(entry['content']);
     var attribution = this.renderLexiconAttribution();
     return (
         <div className="entry">
-          <div className="headword">{entryHeadHtml}</div>
-          <div className="definition-content">{morphologyHtml}<ol className="definition">{senses}</ol></div>
+          <div className={headwordClassNames}>{entryHeadHtml}</div>
+          <div className={definitionClassNames}>{morphologyHtml}<ol className="definition">{senses}</ol></div>
           <div className="attribution">{attribution}</div>
         </div>
     );
@@ -4222,13 +4228,17 @@ LexiconEntry = React.createClass({
                 <span>
                   <a target="_blank"
                       href={('source_url' in lexicon_dtls) ? lexicon_dtls['source_url'] : ""}>
-                    Source: {'source' in lexicon_dtls ? lexicon_dtls['source'] : lexicon_dtls['source_url']}
+                    <span className="en">Source: </span>
+                    <span className="he">מקור:</span>
+                    {'source' in lexicon_dtls ? lexicon_dtls['source'] : lexicon_dtls['source_url']}
                   </a>
                 </span>
                 <span>
                   <a target="_blank"
                       href={('attribution_url' in lexicon_dtls) ? lexicon_dtls['attribution_url'] : ""}>
-                    Creator: {'attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']}
+                    <span className="en">Creator: </span>
+                    <span className="he">יוצר:</span>
+                    {'attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']}
                   </a>
                 </span>
             </div>

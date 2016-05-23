@@ -273,17 +273,21 @@ Sefaria = extend(Sefaria, {
   _lexiconLookups: {},
   lexicon: function(words, ref, cb){
     // Returns a list of lexicon entries for the given words
-    var cache_key = words;
-    if (typeof ref != 'undefined'){
+    ref = typeof ref !== "undefined" ? ref : null;
+    var cache_key = ref ? words + "|" + ref : words;
+    /*if (typeof ref != 'undefined'){
       cache_key += "|" + ref
-    }
+    }*/
     if (!cb) {
       return this._lexiconLookups[cache_key] || [];
     }
     if (words in this._lexiconLookups) {
       cb(this._lexiconLookups[cache_key]);
     } else {
-      var url = "/api/words/" + encodeURIComponent(words) /*+ "?lookup_ref="+ normRef(ref)*/;
+      var url = "/api/words/" + encodeURIComponent(words)+"?never_split=1";
+      if(ref){
+        url+="&lookup_ref="+ref;
+      }
       //console.log(url);
       this._api(url, function(data) {
         this._lexiconLookups[cache_key] = data;
