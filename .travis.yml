@@ -58,9 +58,8 @@ script:
  - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && cd reader/browsertest && python run_tests_on_travis.py "Build - ${TRAVIS_BUILD_NUMBER}"'
 
 after_failure:
-- 'echo "\n\n------------\nServer Error\n------------\n" && cat $TRAVIS_BUILD_DIR/server.error.log'
-- 'echo "\n\n----------\nServer Log\n----------\n" && cat $TRAVIS_BUILD_DIR/server.log'
- 
+- cat $TRAVIS_BUILD_DIR/server.error.log
+
 notifications:
   slack:
     rooms:
