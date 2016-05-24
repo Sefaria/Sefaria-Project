@@ -835,8 +835,11 @@ $(function() {
 			if (editor.checkDirty() == true) {
 				autoSave();
 				editor.resetDirty();
+				console.log('saved');
 			}
 			sjs.ckeSaveChain = setTimeout(ckeSaveChain , 10000)
+
+			console.log('savechaintriggered');
 		}
 		sjs.ckeSaveChain = setTimeout(ckeSaveChain , 10000);
 	}
@@ -2235,6 +2238,7 @@ function handleSave() {
 
 
 function autoSave() {
+	console.log(Date());
 	if (sjs.can_save && sjs.current.id && !sjs.loading && !sjs.openRequests) {
 		$("#lastSaved").text("Saving...")
 		var sheet = readSheet();
