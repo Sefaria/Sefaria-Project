@@ -7,6 +7,20 @@ from selenium.webdriver.common.keys import Keys
 TEMPER = 10
 
 
+class SinglePanelOnMobile(AtomicTest):
+    suite_key = "S2 Reader"
+    every_build = True
+    multi_panel = False
+
+    def run(self):
+        self.load_toc().click_toc_category("Tanach").click_toc_text("Exodus")
+        elems = self.driver.find_elements_by_css_selector(".readerApp.multiPanel")
+        assert len(elems) == 0
+        self.click_segment("Exodus 1:1")
+        elems = self.driver.find_elements_by_css_selector(".readerApp > .readerPanelBox")
+        assert len(elems) == 1
+
+
 class PagesLoad(AtomicTest):
     suite_key = "S2 Reader"
     every_build = True
