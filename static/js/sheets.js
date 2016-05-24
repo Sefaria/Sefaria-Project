@@ -2251,6 +2251,7 @@ function saveSheet(sheet, reload) {
  	var postJSON = JSON.stringify(sheet);
 	$.post("/api/sheets/", {"json": postJSON}, function(data) {
 		if (data.error && data.rebuild) {
+			console.log(data.error);
 			rebuildUpdatedSheet(data);
 			return;
 		} else if (data.id) {
@@ -2670,6 +2671,7 @@ function pollForUpdates() {
 		if ("error" in data) {
 			sjs.alert.flash(data.error);
 		} else if (data.modified) {
+			console.log(data);
 			rebuildUpdatedSheet(data);
 		}
 	})
