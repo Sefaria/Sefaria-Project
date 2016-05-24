@@ -2251,7 +2251,7 @@ function saveSheet(sheet, reload) {
  	var postJSON = JSON.stringify(sheet);
 	$.post("/api/sheets/", {"json": postJSON}, function(data) {
 		if (data.error && data.rebuild) {
-			console.log(data.error);
+			console.log(data);
 			rebuildUpdatedSheet(data);
 			return;
 		} else if (data.id) {
