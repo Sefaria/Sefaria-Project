@@ -442,6 +442,7 @@ body {
 .sheetItem {
 	position: relative;
 	padding: 32px 32px;
+	border-left: solid 3px transparent;
 }
 
 #sheet #sources .sheetItem .sourceNumber.en {
