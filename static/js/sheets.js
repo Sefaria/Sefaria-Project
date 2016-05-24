@@ -787,11 +787,14 @@ $(function() {
 				});
 			}
 		var ed = $(this).ckeditorGet();
-		saveCkEditorContinuous(ed);
 
-				$(this).on('keydown', function(e) {
-				$("#lastSaved").text("Saving...");
+			if (!$(this).hasClass('contentToAdd')) {
+
+				saveCkEditorContinuous(ed);
+				$(this).on('keydown', function (e) {
+					$("#lastSaved").text("Saving...");
 				});
+			}
 
 
 		};
@@ -2255,7 +2258,6 @@ function saveSheet(sheet, reload) {
  	var postJSON = JSON.stringify(sheet);
 	$.post("/api/sheets/", {"json": postJSON}, function(data) {
 		if (data.error && data.rebuild) {
-			console.log(data);
 			rebuildUpdatedSheet(data);
 			return;
 		} else if (data.id) {
