@@ -1078,6 +1078,13 @@ Sefaria = extend(Sefaria, {
   },
   search: {
       baseUrl: Sefaria.searchBaseUrl + "/" + Sefaria.searchIndex + "/_search",
+      _cache: {},
+      cache: function(key, result) {
+          if (result !== undefined) {
+             this._cache[key] = result;
+          }
+          return this._cache[key]
+      },
       execute_query: function (args) {
           // To replace sjs.search.post in search.js
 
@@ -1093,7 +1100,12 @@ Sefaria = extend(Sefaria, {
           if (!args.query) {
               return;
           }
-
+          var req = JSON.stringify(Sefaria.search.get_query_object(args.query, args.get_filters, args.applied_filters))
+          var cache_result = this.cache(req);
+          if (cache_result) {
+              args.success(cache_result);
+              return null;
+          }
           var url = Sefaria.search.baseUrl;
           url += "?size=" + args.size;
           if (args.from) {
@@ -1103,11 +1115,14 @@ Sefaria = extend(Sefaria, {
           return $.ajax({
               url: url,
               type: 'POST',
-              data: JSON.stringify(Sefaria.search.get_query_object(args.query, args.get_filters, args.applied_filters)),
+              data: req,
               crossDomain: true,
               processData: false,
               dataType: 'json',
-              success: args.success,
+              success: function(data) {
+                  this.cache(req, data);
+                  args.success(data);
+              }.bind(this),
               error: args.error
           });
       },
