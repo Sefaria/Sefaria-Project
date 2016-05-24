@@ -12,7 +12,6 @@ import sys
 import codecs
 import re
 import diff_match_patch
-import csv
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, p)
 from sefaria.local_settings import *
@@ -39,6 +38,28 @@ def get_relevant_books():
                 relevant.append(book)
                 break
     return relevant
+
+
+def my_prettyHtml(diff_class, diffs):
+    """Convert a diff array into a pretty HTML report.
+
+    Args:
+      diffs: Array of diff tuples.
+
+    Returns:
+      HTML representation.
+    """
+    html = []
+    for (op, data) in diffs:
+        text = (data.replace("&", "&amp;").replace("<", "&lt;")
+                 .replace(">", "&gt;").replace("\n", "&para;<br>"))
+        if op == diff_class.DIFF_INSERT:
+            html.append("<ins class=\"diff_add\">%s</ins>" % text)
+        elif op == diff_class.DIFF_DELETE:
+            html.append("<del class=\"diff_sub\">%s</del>" % text)
+        elif op == diff_class.DIFF_EQUAL:
+            html.append("<span>%s</span>" % text)
+    return "".join(html)
 
 
 class ComparisonTest:
@@ -87,12 +108,12 @@ class ComparisonTest:
         try:
             result = self.test_results[reference]
         except KeyError:
-            output_file.write(u'N/A,')
+            output_file.write(u' ')
             return
         if result.passed:
-            output_file.write(u'passed,')
+            output_file.write(u'passed')
         else:
-            output_file.write(u'{},'.format(result.diff))
+            output_file.write(u'{}'.format(result.diff))
 
     def run_test_series(self):
         """
@@ -127,10 +148,11 @@ class TestSuite:
     Class to get data and run a series of tests on them.
     """
 
-    def __init__(self, test_list, output_file, lang, versions, html=False):
+    def __init__(self, test_list, lang, versions, html=False, output_file=None):
         """
         :param test_list: A list of TestMeta objects
-        :param output_file: File to write results.
+        :param output_file: File to write results. If not set, script will generate its own files for each
+        book.
         :param lang: language of texts to compare.
         :param versions: Names of versions to compare.
         """
@@ -138,17 +160,50 @@ class TestSuite:
         self.texts = get_relevant_books()
         self.tests = test_list
         self.output = output_file
+        if not self.output:
+            self.new_file = True
+        else:
+            self.new_file = False
         self.lang = lang
         if len(versions) != 2:
             raise AttributeError("Must have 2 versions to compare!")
         self.versions = versions
         self.html = html
 
-        # Write column names to output file
-        output_file.write(u'Reference,')
-        for test in test_list:
-            output_file.write(u'{},'.format(test.name))
-        self.output.write(u'\n')
+    def html_header(self):
+        """
+        Writes the HTML header to output file.
+        """
+
+        self.output.write(u'<!DOCTYPE html>\n<html><meta charset="utf-8">\n<body>\n<table>\n')
+        self.output.write(u'<style type="text/css">\
+        table.diff {font-family:Courier; border:medium;}\
+        .diff_header {background-color:#e0e0e0}\
+        td.diff_header {text-align:right}\
+        .diff_next {background-color:#c0c0c0}\
+        .diff_add {background-color:#aaffaa}\
+        .diff_chg {background-color:#ffff77}\
+        .diff_sub {background-color:#ffaaaa}\
+    </style>')
+        self.output.write(u'<table class="diff" summary="Legends">\
+        <tr> <th colspan="2"> Legends </th> </tr>\
+        <tr> <td> <table border="" summary="Colors">\
+                      <tr><th> Colors </th> </tr>\
+                      <tr><td class="diff_add">&nbsp;Added to Vilna Mishna&nbsp;</td></tr>\
+                      <tr><td class="diff_sub">Missing from Vilna Mishna</td> </tr>\
+                  </table>')
+        self.output.write(u'<tr>')
+        self.output.write(u'<td>Reference</td>')
+        for test in self.tests:
+            self.output.write(u'<td>{}</td>'.format(test.name))
+        self.output.write(u'</tr>')
+
+    def html_footer(self):
+        """
+        Writes the HTML footer to output file
+        """
+
+        self.output.write(u'</table>\n</body>\n</html>')
 
     def write_results(self, finished_tests, reference):
         """
@@ -158,17 +213,28 @@ class TestSuite:
         """
 
         if self.html:
+            self.output.write(u'<tr><td>')
             self.output.write(u'<a href="http://draft.sefaria.org/{}">'.format(reference.replace(u' ', u'_')))
             self.output.write(u'{}'.format(reference))
-            self.output.write(u'</a>,')
+            self.output.write(u'</a></td>')
 
         else:
             self.output.write(u'{},'.format(reference))
 
         for test in finished_tests:
-            test.output_result(reference, self.output)
 
-        self.output.write(u'\n')
+            if self.html:
+                self.output.write(u'<td>')
+                test.output_result(reference, self.output)
+                self.output.write(u'</td>')
+            else:
+                test.output_result(reference, self.output)
+                self.output.write(u',')
+
+        if self.html:
+            self.output.write(u'</tr>')
+        else:
+            self.output.write(u'\n')
 
         if not Ref(reference).is_segment_level():
             for ref in Ref(reference).all_subrefs():
@@ -179,7 +245,17 @@ class TestSuite:
         Call run_test_series on all texts and tests
         """
 
+        if not self.new_file:
+            self.html_header()
+
         for book in self.texts:
+
+            if self.new_file:
+                script_dir = os.path.dirname(os.path.dirname(__file__))
+                rel_path = u'data/test_results/{}.html'.format(book)
+                abs_file_path = os.path.join(script_dir, rel_path)
+                self.output = codecs.open(abs_file_path, 'w', 'utf-8')
+                self.html_header()
 
             finished_tests = []
 
@@ -190,7 +266,12 @@ class TestSuite:
                 finished_tests.append(new_test)
 
             self.write_results(finished_tests, book)
-            self.output.write(u'\n')
+
+            if self.new_file:
+                self.html_footer()
+                self.output.close()
+        if not self.new_file:
+            self.html_footer()
 
 
 class CompareNumberOfMishnayot(ComparisonTest):
@@ -263,8 +344,8 @@ class CompareStrings(ComparisonTest):
         v2 = TextChunk(mishna, self.language, self.v2).text
 
         # strip out non hebrew letter characters or spaces
-        v1 = re.sub(u'[^א-ת^ ^"^\(\)]+', u'', v1)
-        v2 = re.sub(u'[^א-ת^ ]+', u'', v2)
+        v1 = re.sub(u'[^א-ת^ ^"^\(^\)]+', u'', v1)
+        v2 = re.sub(u'[^א-ת^ ^"^\(^\)]+', u'', v2)
 
         # remove multiple spaces
         v1 = re.sub(u' +', u' ', v1)
@@ -276,7 +357,7 @@ class CompareStrings(ComparisonTest):
         # create diff object
         checker = diff_match_patch.diff_match_patch()
         diff = checker.diff_main(v1, v2)
-        result.diff = checker.diff_prettyHtml(diff)
+        result.diff = my_prettyHtml(checker, diff)
 
         return result
 
@@ -343,15 +424,10 @@ def csv_to_html(infile, outfile):
     outfile.write(u'</table>\n</body>\n</html>')
 
 
+#output_file = codecs.open('Mishna version test.html', 'w', 'utf-8')
 tests = [CompareNumberOfMishnayot, CompareNumberOfWords, CompareStrings]
 versions = ['Wikisource Mishna', 'Vilna Mishna']
-output_file = codecs.open('Mishna version test.csv', 'w', 'utf-8')
-testrunner = TestSuite(tests, output_file, 'he', versions, True)
+testrunner = TestSuite(tests, 'he', versions, True)
 testrunner.run_tests()
-output_file.close()
-input_file = codecs.open('Mishna version test.csv', 'r', 'utf-8')
-html = codecs.open('Mishna version test.html', 'w', 'utf-8')
-csv_to_html(input_file, html)
-input_file.close()
-html.close()
+#output_file.close()
 

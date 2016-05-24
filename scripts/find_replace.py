@@ -34,7 +34,7 @@ if __name__ == "__main__":
 		uid = args.uid
 		lang = args.language
 		title = args.title
-		csvfile = open('./data/tmp/find_replace_'+lang+'.csv')
+		csvfile = open('./data/temp/find_replace_'+lang+'.csv')
 		reader = csv.reader(csvfile)
 		find_strings = []
 		replace_strings = []
