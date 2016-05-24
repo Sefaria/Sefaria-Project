@@ -887,7 +887,7 @@ var Header = React.createClass({
         return;
       }
     }
-    if (isRef(query)) {
+    if (Sefaria.isRef(query)) {
       this.props.onRefClick(query);
       this.showDesktop();
       if (Sefaria.site) { Sefaria.site.track.ui("Nav Query"); }
@@ -1842,7 +1842,7 @@ var ReaderNavigationMenu = React.createClass({
                   <span className="he">{heCat}</span>
                 </div>);
       }.bind(this));;
-      var more = (<div className="readerNavCategory" style={{"borderColor": Sefaria.palette.darkblue}} onClick={this.showMore}>
+      var more = (<div className="readerNavCategory" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.showMore}>
                       <span className="en">More &gt;</span>
                       <span className="he">עוד &gt;</span>
                   </div>);

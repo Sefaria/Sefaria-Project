@@ -59,8 +59,10 @@
     {% autoescape off %}
     {% include "js/django-csrf.js" %}
     $(function() {
-      
-      var initialPanels = {{ initialPanels|jsonify|default:"[]" }};
+
+      var props = {{ propsJSON }};
+
+      var initialPanels = props.initialPanels || [];
       for (var i = 0; i < initialPanels.length; i++) {
           var panel = initialPanels[i];
           if (panel.text) {
@@ -68,19 +70,6 @@
           }
       }
 
-      var props = {
-          multiPanel:                  {{ multiPanel|jsonify|default:"true" }},
-          headerMode:                  {{ headerMode|jsonify|default:"false" }},
-          initialRefs:                 {{ initialRefs|jsonify|default:"[]" }},
-          initialFilter:               {{ initialFilter|jsonify|default:"null" }},
-          initialMenu:                 {{ initialMenu|jsonify|default:"null" }},
-          initialQuery:                {{ initialQuery|jsonify|default:"null" }},
-          initialSearchFilters:        {{ initialSearchFilters|jsonify|default:"null" }},
-          initialSheetsTag:            {{ initialSheetsTag|jsonify|default:"null" }},
-          initialNavigationCategories: {{ initialNavigationCategories|jsonify|default:"null" }},
-          initialSettings:             {{ initialSettings|jsonify|default:"{}" }},
-          initialPanels:               initialPanels
-      };
       var container = document.getElementById('s2');
       var component = React.createElement(ReaderApp, props);
       ReactDOM.render(component, container);

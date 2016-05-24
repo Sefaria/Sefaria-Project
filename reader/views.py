@@ -15,6 +15,7 @@ import p929
 
 from django.views.decorators.cache import cache_page
 from django.template import RequestContext
+from django.template.loader import render_to_string
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.http import Http404, HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -171,13 +172,22 @@ def esi_account_box(request):
     return render_to_response('elements/accountBox.html', {}, RequestContext(request))
 
 
+
+def switch_to_s2(request):
+    """Set the S2 cookie then redirect to /texts"""
+
+    response = redirect("/texts")
+    response.set_cookie("s2", "true");
+    return response
+
+
 def render_react_component(component, props):
     """
     Asks the Node Server to render `component` with `props`.
     Returns HTML.
     """
     if not USE_NODE:
-        return render("elements/loading.html")
+        return render_to_string("elements/loading.html")
 
     url = NODE_HOST + "/" + component
     encoded_args = urllib.urlencode({
@@ -189,12 +199,54 @@ def render_react_component(component, props):
     return html
 
 
-def switch_to_s2(request):
-    """Set the S2 cookie then redirect to /texts"""
+def make_panel_dict(oref, version, language, filter, mode):
+    """
+    Returns a dictionary corresponding to the React panel state,
+    additionally setting `text` field with textual content.
+    """
+    panel = {
+        "mode": mode,
+        "ref": oref.normal(),
+        "refs": [oref.normal()],
+        "version": version,
+        "versionLanguage": language,
+        "filter": filter,
+    }
 
-    response = redirect("/texts")
-    response.set_cookie("s2", "true");
-    return response
+    if oref.is_book_level():
+        panel["menuOpen"] = "book toc"
+        panel["bookRef"] = oref.normal()
+    else:
+        try:
+            text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True).contents()
+        except NoVersionFoundError:
+            text = {}
+
+        text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+        text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+        panel["text"] = text
+
+        if oref.is_segment_level():
+            panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
+
+    return panel
+
+
+def make_panel_dicts(oref, version, language, filter, multi_panel):
+    """
+    Returns an array of panel dictionaries.
+    Depending on whether `multi_panel` is True, connections set in `filter` are displayed in either 1 or 2 panels.
+    """
+    panels = []
+    if filter and  multi_panel:
+        panels += [make_panel_dict(oref, version, language, filter, "Text")]
+        panels += [make_panel_dict(oref, version, language, filter, "Connections")]
+    elif filter and not multi_panel:
+        panels += [make_panel_dict(oref, version, language, filter, "TextAndConnections")]
+    else:
+        panels += [make_panel_dict(oref, version, language, filter, "Text")]
+
+    return panels
 
 
 def s2(request, ref, version=None, lang=None):
@@ -208,54 +260,6 @@ def s2(request, ref, version=None, lang=None):
    
     panels = []
     multi_panel = request.flavour != "mobile"
-
-    def make_panel_dict(oref, version, language, filter, mode):
-        """
-        Returns a dictionary corresponding to the React panel state,
-        additionally setting `text` field with textual content.
-        """
-        panel = {
-            "mode": mode,
-            "ref": oref.normal(),
-            "refs": [oref.normal()],
-            "version": version,
-            "versionLanguage": language,
-            "filter": filter,
-        }
-
-        if oref.is_book_level():
-            panel["menuOpen"] = "book toc"
-            panel["bookRef"] = oref.normal()
-        else:
-            try:
-                text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True).contents()
-            except NoVersionFoundError:
-                text = {}
-
-            text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-            text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
-            panel["text"] = text
-
-            if oref.is_segment_level():
-                panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
-
-        return panel
-
-    def make_panel_dicts(oref, version, language, filter, multi_panel):
-        """
-        Returns an array of panel dictionaries.
-        Depending on whether `multi_panel` is True, connections set in `filter` are displayed in either 1 or 2 panels.
-        """
-        panels = []
-        if filter and  multi_panel:
-            panels += [make_panel_dict(oref, version, language, filter, "Text")]
-            panels += [make_panel_dict(oref, version, language, filter, "Connections")]
-        elif filter and not multi_panel:
-            panels += [make_panel_dict(oref, version, language, filter, "TextAndConnections")]
-        else:
-            panels += [make_panel_dict(oref, version, language, filter, "Text")]
-
-        return panels
 
     # Handle first panel which has a different signature in params & URL (`version` and `lang` if set come from URL).
     version = version.replace(u"_", " ") if version else version
@@ -299,7 +303,6 @@ def s2(request, ref, version=None, lang=None):
         "multiPanel":                  multi_panel,
         "headerMode":                  False,
         "interfaceLang":               request_context.get("interfaceLang"),
-        "ref":                         oref.normal(),
         "initialRefs":                 panels[0]["refs"],
         "initialFilter":               panels[0].get("filter", None),
         "initialMenu":                 panels[0].get("menuOpen", None),
@@ -312,8 +315,12 @@ def s2(request, ref, version=None, lang=None):
         "initialNavigationCategories": None,
     }
     pprint(props)
-    props["html"] = render_react_component("ReaderApp", props)
-    return render_to_response('s2.html', props, RequestContext(request))
+    html = render_react_component("ReaderApp", props)
+    return render_to_response('s2.html', {
+        "propsJSON": json.dumps(props),
+        "html":      html,
+        "ref":       oref.normal(),
+    }, RequestContext(request))
 
 
 def s2_texts_category(request, cats):
@@ -332,11 +339,17 @@ def s2_texts_category(request, cats):
         "initialMenu": "navigation",
         "initialNavigationCategories": json.dumps(cats),
     }
-    props["html"] = render_react_component("ReaderApp", props)
-    return render_to_response('s2.html', props, RequestContext(request))
+    html = render_react_component("ReaderApp", props)
+    return render_to_response('s2.html', {
+        "propsJSON": json.dumps(props),
+        "html":      html,
+    }, RequestContext(request))
 
 
 def s2_search(request):
+    """
+    Search or Search Results page.
+    """
     search_filters = request.GET.get("filters").split("|") if request.GET.get("filters") else []
 
     props = {
@@ -344,19 +357,25 @@ def s2_search(request):
         "query": request.GET.get("q") or "",
         "searchFilters": json.dumps(search_filters)
     }
-    props["html"] = render_react_component("ReaderApp", props)
-    return render_to_response('s2.html', props, RequestContext(request))
+    html = render_react_component("ReaderApp", props)
+    return render_to_response('s2.html', {
+        "propsJSON": json.dumps(props),
+        "html":      html,
+    }, RequestContext(request))
 
 
 def s2_page(request, page):
     """
-    View into an S2 page
+    View for any S2 page that can descripted with the `menuOpen` param in React
     """
     props = {
         "initialMenu": page
     }
-    props["html"] = render_react_component("ReaderApp", props)
-    return render_to_response('s2.html', props, RequestContext(request))
+    html = render_react_component("ReaderApp", props)
+    return render_to_response('s2.html', {
+        "propsJSON": json.dumps(props),
+        "html":      html,
+    }, RequestContext(request))
 
 
 def s2_home(request):

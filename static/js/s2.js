@@ -317,7 +317,7 @@ var ReaderApp = React.createClass({
       } else if (states[i].mode === "Text") {
         //debugger;
         hist.title = states[i].refs.slice(-1)[0];
-        hist.url = normRef(hist.title);
+        hist.url = Sefaria.normRef(hist.title);
         hist.version = states[i].version;
         hist.versionLanguage = states[i].versionLanguage;
         hist.mode = "Text";
@@ -325,13 +325,13 @@ var ReaderApp = React.createClass({
         var ref = states[i].refs.slice(-1)[0];
         hist.sources = states[i].filter.length ? states[i].filter.join("+") : "all";
         hist.title = ref + " with " + (hist.sources === "all" ? "Connections" : hist.sources);
-        hist.url = normRef(ref); // + "?with=" + sources;
+        hist.url = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.mode = "Connections";
       } else if (states[i].mode === "TextAndConnections") {
         var ref = states[i].highlightedRefs.slice(-1)[0];
         hist.sources = states[i].filter.length ? states[i].filter[0] : "all";
         hist.title = ref + " with " + (hist.sources === "all" ? "Connections" : hist.sources);
-        hist.url = normRef(ref); // + "?with=" + sources;
+        hist.url = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.version = states[i].version;
         hist.versionLanguage = states[i].versionLanguage;
         hist.mode = "TextAndConnections";
@@ -896,7 +896,7 @@ var Header = React.createClass({
         return;
       }
     }
-    if (isRef(query)) {
+    if (Sefaria.isRef(query)) {
       this.props.onRefClick(query);
       this.showDesktop();
       if (Sefaria.site) {
@@ -1942,7 +1942,7 @@ var ReaderNavigationMenu = React.createClass({
       }.bind(this));;
       var more = React.createElement(
         'div',
-        { className: 'readerNavCategory', style: { "borderColor": Sefaria.palette.darkblue }, onClick: this.showMore },
+        { className: 'readerNavCategory', style: { "borderColor": Sefaria.palette.colors.darkblue }, onClick: this.showMore },
         React.createElement(
           'span',
           { className: 'en' },
@@ -3241,7 +3241,7 @@ var TextColumn = React.createClass({
   componentDidMount: function componentDidMount() {
     this.initialScrollTopSet = false;
     this.justTransitioned = true;
-    this.debouncedAdjustTextListHighlight = debounce(this.adjustTextListHighlight, 100);
+    this.debouncedAdjustTextListHighlight = Sefaria.util.debounce(this.adjustTextListHighlight, 100);
     var node = ReactDOM.findDOMNode(this);
     node.addEventListener("scroll", this.handleScroll);
     this.adjustInfiniteScroll();
@@ -3993,7 +3993,7 @@ var TextSegment = React.createClass({
         React.createElement(
           'span',
           { className: 'segmentNumberInner' },
-          encodeHebrewNumeral(this.props.segmentNumber)
+          Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)
         ),
         ' '
       )
@@ -6298,7 +6298,7 @@ var SearchTextResult = React.createClass({
   render: function render() {
     var data = this.props.data;
     var s = this.props.data._source;
-    var href = '/' + normRef(s.ref) + "/" + s.lang + "/" + s.version.replace(/ +/g, "_") + '?qh=' + this.props.query;
+    var href = '/' + Sefaria.normRef(s.ref) + "/" + s.lang + "/" + s.version.replace(/ +/g, "_") + '?qh=' + this.props.query;
 
     function get_snippet_markup() {
       var snippet;
