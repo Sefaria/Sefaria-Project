@@ -251,8 +251,8 @@ class TestSuite:
         for book in self.texts:
 
             if self.new_file:
-                script_dir = os.path.dirname(__file__)
-                rel_path = u'test_results/{}.html'.format(book)
+                script_dir = os.path.dirname(os.path.dirname(__file__))
+                rel_path = u'data/test_results/{}.html'.format(book)
                 abs_file_path = os.path.join(script_dir, rel_path)
                 self.output = codecs.open(abs_file_path, 'w', 'utf-8')
                 self.html_header()
