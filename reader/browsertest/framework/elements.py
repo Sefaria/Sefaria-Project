@@ -91,9 +91,9 @@ class AtomicTest(object):
             WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".categoryFilter")))
         elif filter is not None:
             # Filters load slower than the main page
-            WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".textRange")))
+            WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".filterSet > .textRange")))
         else:
-            WebDriverWait(self.driver, TEMPER).until(title_contains(ref.normal()))
+            WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".textColumn")))
         return self
 
     #todo:
@@ -146,7 +146,6 @@ class TestResult(object):
     def __init__(self, test, cap, success, message=""):
         assert isinstance(test, AtomicTest) or inspect.isclass(cap)
         assert isinstance(success, bool)
-        assert isinstance(message, basestring)
         self.cap = cap
         self.test = test
         self.success = success
