@@ -651,7 +651,8 @@ var ReaderApp = React.createClass({
   setSelectedWords: function(n, words){
     //console.log(this.state.panels[n].refs);
     words = (typeof words !== "undefined" && words.length) ?  words : "";
-    if(this.state.panels[n+1]){
+    var next = this.state.panels[n+1];
+    if (next && !next.menuOpen) {
       this.state.panels[n+1].selectedWords = words;
       this.setState({panels: this.state.panels});
     }
