@@ -740,7 +740,9 @@ $(function() {
 					sjs.saveLastEdit($el);
 				}
 
-				autoSave(); 
+				if (!$el.hasClass('contentToAdd')) {
+					autoSave();
+				}
 			}
 
 			editor.destroy();
@@ -787,11 +789,14 @@ $(function() {
 				});
 			}
 		var ed = $(this).ckeditorGet();
-		saveCkEditorContinuous(ed);
 
-				$(this).on('keydown', function(e) {
-				$("#lastSaved").text("Saving...");
+			if (!$(this).hasClass('contentToAdd')) {
+
+				saveCkEditorContinuous(ed);
+				$(this).on('keydown', function (e) {
+					$("#lastSaved").text("Saving...");
 				});
+			}
 
 
 		};
@@ -1159,7 +1164,7 @@ $(function() {
 			autoSave();
 			$(".contentToAdd").html('');
 			$("#sheet").click();
-			$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
+			//$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
 
 		});
 
