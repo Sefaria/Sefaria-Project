@@ -9,8 +9,13 @@
     "scripts": {
         "start": "node node/server.js",
         "test": "echo im gonna test node",
-        "build": "npm run build-jsx",
-        "build-jsx": "babel static/js/s2.jsx > static/js/s2.js"
+        "build": "npm run build:jsx",
+        "build:jsx": "babel static/js/s2.jsx > static/js/s2.js",
+        "build:webpack": "webpack — config node/webpack-production.config.js — progress — profile — colors",
+        "dev-server": "webpack-dev-server — config node/webpack-dev-server.config.js — progress — colors — port 2992 — inline",
+        "hot-dev-server": "webpack-dev-server — config node/webpack-hot-dev-server.config.js — hot — progress — colors — port 2992 — inline",
+        "s": "npm start",
+        "bs": "npm run build;npm start"
       },
     "dependencies": {
       "jquery": "^2.2.0",
@@ -19,7 +24,9 @@
       "react": "^15.0.1",
       "react-dom": "^15.0.1",
       "redis": "^2.6.0-2",
-      "request": "^2.72.0"
+      "request": "^2.72.0",
+      "express": "^4.x",
+      "body-parser": "^1.15.1"
     },
     "devDependencies": {
       "babel-cli": "^6.0.0",
