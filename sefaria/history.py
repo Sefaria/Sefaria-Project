@@ -1,9 +1,8 @@
 """
 history.py - managing the revision/activity history.
 
-Write to MongoDB collection: history
+Writes to MongoDB collection: history
 """
-
 from datetime import datetime
 from diff_match_patch import diff_match_patch
 from bson.code import Code
@@ -21,7 +20,8 @@ def get_activity(query={}, page_size=100, page=1, filter_type=None, initial_skip
     """
     query.update(filter_type_to_query(filter_type))
     skip = initial_skip + (page - 1) * page_size
-    activity = list(db.history.find(query).sort([["date", -1]]).skip(skip).limit(page_size))
+    projection = { "revert_patch": 0 }
+    activity = list(db.history.find(query, projection).sort([["date", -1]]).skip(skip).limit(page_size))
 
     for i in range(len(activity)):
         a = activity[i]
@@ -33,7 +33,7 @@ def get_activity(query={}, page_size=100, page=1, filter_type=None, initial_skip
     return activity
 
 
-def text_history(oref, version, lang, filter_type=None):
+def text_history(oref, version, lang, filter_type=None, page=1):
     """
     Return a complete list of changes to a segment of text (identified by ref/version/lang)
     """
@@ -43,7 +43,7 @@ def text_history(oref, version, lang, filter_type=None):
     query = {"$or": text_ref_clauses + link_ref_clauses}
     query.update(filter_type_to_query(filter_type))
 
-    return get_activity(query, page_size=0, page=1, filter_type=filter_type)
+    return get_activity(query, page_size=100, page=page, filter_type=filter_type)
 
 
 def filter_type_to_query(filter_type):
