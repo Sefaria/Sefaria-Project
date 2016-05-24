@@ -1165,7 +1165,7 @@ $(function() {
 			autoSave();
 			$(".contentToAdd").html('');
 			$("#sheet").click();
-			$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
+			//$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
 
 		});
 
