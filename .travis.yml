@@ -51,7 +51,7 @@ before_script:
 
 script:
  - 'py.test -vv -m "not deep and not failing"'
- - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && cd reader/browsertest && python run_tests_on_travis.py "Build - ${TRAVIS_BUILD_NUMBER}"'
+ - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then cd reader/browsertest && python run_tests_on_travis.py "Build - ${TRAVIS_BUILD_NUMBER}"; else true; fi;'
 
 after_failure:
 - cat $TRAVIS_BUILD_DIR/server.error.log

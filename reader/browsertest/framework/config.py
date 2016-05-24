@@ -43,18 +43,23 @@ SAUCE_CORE_CAPS = [
 
     {'browserName': "chrome", 'platform': "Windows 8", 'version': "48.0",
         'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Cr/w8'},
-]
-SAUCE_EXTENDED_CAPS = [
-    {'browserName': "internet explorer", 'platform': "Windows 10", 'version': "11.103",
-     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'IE/w10'},
 
     {'browserName': "iPhone", 'platform': "OS X 10.10", 'version': "9.2", 'deviceName': "iPhone 5s",
      'deviceOrientation': "portrait",
      'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPh5s'},
 
+    {'browserName': 'android', 'platform': 'Linux', 'version': '5.1', 'deviceName': "Android Emulator",
+     'deviceType': 'phone', 'deviceOrientation': "portrait",
+     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/5.1'},
+
+]
+SAUCE_EXTENDED_CAPS = [
+    {'browserName': "internet explorer", 'platform': "Windows 10", 'version': "11.103",
+     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'IE/w10'},
+
     {'browserName': "iPhone", 'platform': "OS X 10.10", 'version': "9.2", 'deviceName': "iPad Air",
      'deviceOrientation': "portrait",
-     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPadA/p'},
+     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'iPadA/p'},
 
     {'browserName': "iPhone", 'platform': "OS X 10.10", 'version': "9.2", 'deviceName': "iPad Air",
      'deviceOrientation': "landscape",
@@ -62,11 +67,9 @@ SAUCE_EXTENDED_CAPS = [
 
     {'browserName': 'android', 'platform': 'Linux', 'version': '4.4', 'deviceName': "Google Nexus 7 HD Emulator",
      'deviceOrientation': "portrait",
-     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'Nex7/4.4'},
+     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Nex7/4.4'},
 
-    {'browserName': 'android', 'platform': 'Linux', 'version': '5.1', 'deviceName': "Android Emulator",
-     'deviceType': 'phone', 'deviceOrientation': "portrait",
-     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/5.1'},
+
 ]
 
 SAUCE_CAPS = SAUCE_CORE_CAPS + SAUCE_EXTENDED_CAPS
