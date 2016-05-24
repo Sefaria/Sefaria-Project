@@ -5,57 +5,61 @@ var http = require('http'),
     url = require('url'),
     fs = require('fs'),
     vm = require('vm'),
+    express = require('express'),
+    bodyParser = require('body-parser'),
     request = require('request'),
     redis = require('redis'),
     React = require('react'),
     ReactDOMServer = require('react-dom/server'),
-    Sefaria = require('../static/js/sefaria')
-    SefariaReact = require('../static/js/s2'),
+    SefariaReact = require('../static/js/s2');
     ReaderApp = React.createFactory(SefariaReact.ReaderApp);
 
-http.createServer(function(req, res) {
-  console.log(req.url);
-  var parsed   = url.parse(req.url, true);
-  var pathname = parsed.pathname
-  var query    = parsed.query;
+var server = express();
 
-  if (pathname == '/ReaderApp') {
+server.use(bodyParser.urlencoded({ extended: false }));
+server.use(bodyParser.json());
 
-    res.setHeader('Content-Type', 'text/html')
-
-    var props = {
-        multiPanel:                  JSON.parse(query.multiPanel || null),
-        initialRefs:                 JSON.parse(query.initialRefs || null),
-        initialFilter:               JSON.parse(query.initialFilter || null),
-        initialMenu:                 query.initialMenu || null,
-        initialQuery:                query.initialQuery || null,
-        initialSearchFilters:        JSON.parse(query.initialSearchFilters || null),
-        initialSheetsTag:            JSON.parse(query.initialSheetsTag || null),
-        initialNavigationCategories: JSON.parse(query.initialNavigationCategories || null),
-        initialSettings:             JSON.parse(query.initialSettings || null),
-        initialPanels:               JSON.parse(query.initialPanels || null),
-        initialDefaultVersions:      JSON.parse(query.initialDefaultVersions || null),
-        headerMode:                  false
+var renderReaderApp = function(props, data, timer) {
+  // Returns HTML of ReaderApp component given `props` and `data`
+  SefariaReact.setData(data);
+  var panels = props.initialPanels || [];
+  for (var i = 0; i < panels.length; i++) {
+    var panel = panels[i];
+    if ("text" in panel) {
+      SefariaReact.saveTextData(panel.text, {context: 1, version: panel.version, language: panel.language});
     }
-
-    // TODO is direct to redis better than http/django? 
-    // redisClient = redis.createClient(); // TODO don't assume database 0
-    request("http://localhost:8000/data.js", function(error, response, body) {
-      if (!error && response.statusCode == 200) {
-        eval(body);
-        var html = ReactDOMServer.renderToString(ReaderApp(props));
-        res.end(html)
-      } else {
-        res.end("There was an error accessing /data.js.");
-      }
-    });
-
-  } else {
-    res.end("Unsupported Route - please specify a component name.");
   }
+  console.log("Time to set data: %dms", timer.elapsed());
+  
+  var html  = ReactDOMServer.renderToString(ReaderApp(props));
+  console.log("Time to render: %dms", timer.elapsed());
+  
+  return html;
+}
 
-// The http server listens on port 4040, TODO read from package.json config
-}).listen(4040, function(err) {
-  if (err) throw err;
+server.post('/ReaderApp', function(req, res) {
+  var timer = {
+    start: new Date(), 
+    elapsed: function() { return (new Date() - this.start); }
+  };
+  var props = JSON.parse(req.body.propsJSON);
+  console.log(props.initialRefs);
+  console.log("Time to props: %dms", timer.elapsed());
+
+  request("http://localhost:8000/data.js", function(error, response, body) {
+    if (!error && response.statusCode == 200) {
+      console.log("Time to get data.js: %dms", timer.elapsed());
+      eval(body);
+      console.log("Time to eval data.js: %dms", timer.elapsed());
+      var html = renderReaderApp(props, data, timer);
+      res.end(html);
+      console.log("Time to complete: %dms", timer.elapsed());  
+    } else {
+      res.end("There was an error accessing /data.js.");
+    }
+  });
+});
+
+server.listen(4040, function() {
   console.log('Listening on 4040...');
 });

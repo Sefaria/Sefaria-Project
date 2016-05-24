@@ -1,15 +1,173 @@
 if (typeof require !== 'undefined') {
   var $       = require('jquery'),
-      extend  = require('extend'),
-      Sefaria = require('./sefaria-util.js');
+      extend  = require('extend')
 } else {
   var extend  = $.extend;
 }
 
-var Sefaria = Sefaria || {};
+var Sefaria = Sefaria || {
+  _dataLoaded: false,
+  toc: [],
+  books: [],
+  booksDict: {}
+};
 
 Sefaria = extend(Sefaria, {
-  _texts: {},
+  _parseRef: {}, // cache for results of local ref parsing
+  parseRef: function(q) {
+  // Client side ref parsing without depending on book index data.
+  // Does depend on Sefaria.booksDict.
+  // One of the oldest functions in Sefaria! But should be intelligently merged into Sefaria.ref()
+      q = q || "";
+      q = decodeURIComponent(q);
+      q = q.replace(/_/g, " ").replace(/[.:]/g, " ").replace(/ +/, " ");
+      q = q.trim().toFirstCapital();
+      if (q in Sefaria._parseRef) { return Sefaria._parseRef[q]; }
+      
+      var response = {book: false, 
+                      sections: [],
+                      toSections: [],
+                      ref: ""};               
+      if (!q) { 
+          Sefaria._parseRef[q] = response;
+          return response;
+      }
+
+      var toSplit = q.split("-");
+      var first   = toSplit[0];
+      
+      for (var i = first.length; i >= 0; i--) {
+          var book   = first.slice(0, i);
+          var bookOn = book.split(" on ");
+          if (book in Sefaria.booksDict || 
+              (bookOn.length == 2 && bookOn[0] in Sefaria.booksDict && bookOn[1] in Sefaria.booksDict)) { 
+              var nums = first.slice(i+1);
+              break;
+          }
+      }
+      if (!book) { 
+          Sefaria._parseRef[q] = {"error": "Unknown book."};
+          return Sefaria._parseRef[q];
+      }
+
+      if (nums && !nums.match(/\d+[ab]?( \d+)*/)) {
+          Sefaria._parseRef[q] = {"error": "Bad section string."};
+          return Sefaria._parseRef[q];
+      }
+
+      response.book       = book;
+      response.sections   = nums ? nums.split(" ") : [];
+      response.toSections = nums ? nums.split(" ") : [];
+      response.ref        = q;
+      
+      // Parse range end (if any)
+      if (toSplit.length == 2) {
+          var toSections = toSplit[1].replace(/[.:]/g, " ").split(" ");
+          
+          var diff = response.sections.length - toSections.length;
+          
+          for (var i = diff; i < toSections.length + diff; i++) {
+              response.toSections[i] = toSections[i-diff];
+          }
+      }
+
+      Sefaria._parseRef[q] = response;    
+      return response;
+  },
+  makeRef: function(q) {
+  // Returns a string ref correpsonding to the parsed ref `q` (aka oref.norma() in pythonn)
+      if (!(q.book && q.sections && q.toSections)) {
+          return {"error": "Bad input."};
+      }
+      var ref = q.book.replace(/ /g, "_");
+
+      if (q.sections.length)
+          ref += "." + q.sections.join(".");
+      
+      if (!q.sections.compare(q.toSections)) {
+          for (var i = 0; i < q.toSections.length; i ++)
+              if (q.sections[i] != q.toSections[i]) break;
+          ref += "-" + q.toSections.slice(i).join(".");
+      }
+
+      return ref;
+  },
+  normRef: function(ref) {
+      var norm = Sefaria.makeRef(Sefaria.parseRef(ref));
+      if (typeof norm == "object" && "error" in norm) {
+          // Return the original string if the ref doesn't parse
+          return ref;
+      }
+      return norm;
+  },
+  humanRef: function(ref) {
+      var pRef = Sefaria.parseRef(ref);
+      if (pRef.sections.length == 0) { return pRef.book; }
+      var book = pRef.book + " ";
+      var nRef = pRef.ref;
+      var hRef = nRef.replace(/ /g, ":");
+      return book + hRef.slice(book.length);
+  },
+  isRef: function(ref) {
+      // Returns true if `ref` appears to be a ref relative to known books in Sefaria.books
+      q = Sefaria.parseRef(ref);
+      return ("book" in q && q.book);
+  },
+  titlesInText: function(text) {
+      // Returns an array of the known book titles that appear in text.
+      return Sefaria.books.filter(function(title) {
+          return (text.indexOf(title) > -1);
+      });
+  },
+  makeRefRe: function(titles) {
+      // Construct and store a Regular Expression for matching citations
+      // based on known books, or a list of titles explicitly passed
+      titles = titles || Sefaria.books;
+      var books = "(" + titles.map(RegExp.escape).join("|")+ ")";
+      var refReStr = books + " (\\d+[ab]?)(?:[:., ]+)?(\\d+)?(?:(?:[\\-–])?(\\d+[ab]?)?(?:[:., ]+)?(\\d+)?)?";
+      return new RegExp(refReStr, "gi");  
+  },
+  wrapRefLinks: function(text) {
+      if (typeof text !== "string") { 
+          return text;
+      }
+      var titles = Sefaria.titlesInText(text);
+      if (titles.length == 0) {
+          return text;
+      }
+      var refRe    = Sefaria.makeRefRe(titles);
+      var replacer = function(match, p1, p2, p3, p4, p5, offset, string) {
+          // p1: Book
+          // p2: From section
+          // p3: From segment
+          // p4: To section
+          // p5: To segment
+          var uref;
+          var nref;
+          var r;
+          uref = p1 + "." + p2;
+          nref = p1 + " " + p2;
+          if (p3) {
+              uref += "." + p3;
+              nref += ":" + p3;
+          }
+          if (p4) {
+              uref += "-" + p4;
+              nref += "-" + p4;
+          }
+          if (p5) {
+              uref += "." + p5;
+              nref += ":" + p5;
+          }
+          r = '<span class="refLink" data-ref="' + uref + '">' + nref + '</span>';
+          if (match.slice(-1)[0] === " ") { 
+              r = r + " ";
+          }
+          return r;
+      };
+      return text.replace(refRe, replacer);
+  },
+  _texts: {},  // cache for data from /api/texts/
   _refmap: {}, // Mapping of simple ref/context keys to the (potentially) versioned key for that ref in _texts. 
   text: function(ref, settings, cb) {
     if (!ref || typeof ref == "object" || typeof ref == "undefined") { debugger; }
@@ -38,7 +196,8 @@ Sefaria = extend(Sefaria, {
     }.bind(this));
   },
   versions: function(ref, cb) {
-    var url = "/api/texts/versions/" + normRef(ref);
+    // Returns a list of available text versions for `ref`.
+    var url = "/api/texts/versions/" + Sefaria.normRef(ref);
     this._api(url, function(data) {
       cb(data);
     });
@@ -50,7 +209,7 @@ Sefaria = extend(Sefaria, {
       context:    settings.context,
       pad:        settings.pad
     });
-    var url = "/api/texts/" + normRef(ref);
+    var url = "/api/texts/" + Sefaria.normRef(ref);
     if (settings.language && settings.version) {
         url += "/" + settings.language + "/" + settings.version.replace(" ","_");
     }
@@ -79,8 +238,8 @@ Sefaria = extend(Sefaria, {
     var cached = this._texts[key];
     if (!cached || !cached.buildable) { return cached; }
     if (cached.buildable === "Add Context") {
-      var segmentData = clone(this.text(cached.ref, extend(settings, {context: 0})));
-      var contextData = this.text(cached.sectionRef, extend(settings, {context: 0})) || this.text(cached.sectionRef, extend(settings, {context: 1}));
+      var segmentData  = Sefaria.util.clone(this.text(cached.ref, extend(settings, {context: 0})));
+      var contextData  = this.text(cached.sectionRef, extend(settings, {context: 0})) || this.text(cached.sectionRef, extend(settings, {context: 1}));
       segmentData.text = contextData.text;
       segmentData.he   = contextData.he;
       return segmentData;
@@ -102,7 +261,7 @@ Sefaria = extend(Sefaria, {
       this._splitTextSection(data, settings);
     } else if (settings.context) {
       // Save a copy of the data at context level
-      var newData        = clone(data);
+      var newData        = Sefaria.util.clone(data);
       newData.ref        = data.sectionRef;
       newData.sections   = data.sections.slice(0,-1);
       newData.toSections = data.toSections.slice(0,-1);
@@ -150,10 +309,10 @@ Sefaria = extend(Sefaria, {
     for (var i = 0; i < length; i++) {
       var ref          = data.ref + delim + (i+start);
       var sectionRef   = superSectionLevel ? data.sectionRef : ref;
-      var segment_data = clone(data);
+      var segment_data = Sefaria.util.clone(data);
       extend(segment_data, {
         ref: ref,
-        heRef: data.heRef + delim + encodeHebrewNumeral(i+start),
+        heRef: data.heRef + delim + Sefaria.hebrew.encodeHebrewNumeral(i+start),
         text: en[i],
         he: he[i],
         sections: data.sections.concat(i+1),
@@ -189,7 +348,7 @@ Sefaria = extend(Sefaria, {
     he = he.pad(length, []);
     var length = Math.max(data.text.length, data.he.length);
     for (var i = 0; i < length; i++) {
-      var section        = clone(data);
+      var section        = Sefaria.util.clone(data);
       section.text       = en[i];
       section.he         = he[i];
     }
@@ -198,15 +357,14 @@ Sefaria = extend(Sefaria, {
     // Wraps citations found in text of data
     if (!data.text) { return data; }
     if (typeof data.text === "string") {
-      data.text = Sefaria.util.wrapRefLinks(data.text);
+      data.text = Sefaria.wrapRefLinks(data.text);
     } else {
-      data.text = data.text.map(Sefaria.util.wrapRefLinks);
+      data.text = data.text.map(Sefaria.wrapRefLinks);
     }
     return data;
   },
-  _index: {},
+  _index: {}, // Cache for text index records
   index: function(text, index) {
-    // Cache for text index records
     if (!index) {
       return this._index[text];
     } else {
@@ -250,14 +408,14 @@ Sefaria = extend(Sefaria, {
   splitSpanningRef: function(ref) {
     // Returns an array of non-spanning refs which correspond to the spanning `ref`
     // e.g. "Genesis 1:1-2" -> ["Genesis 1:1", "Genesis 1:2"]
-    var oref = Sefaria.util.parseRef(ref);
+    var oref = Sefaria.parseRef(ref);
     var isDepth1 = oref.sections.length == 1;
     if (!isDepth1 && oref.sections[oref.sections.length - 2] !== oref.toSections[oref.sections.length - 2]) {
       // TODO handle ranging refs, which requires knowledge of the segment count of each included section
       // i.e., in "Shabbat 2a:5-2b:8" what is the last segment of Shabbat 2a?
       // For now, just return the first non-spanning ref.
       oref.toSections = oref.sections;
-      return [humanRef(makeRef(oref))];
+      return [this.humanRef(this.makeRef(oref))];
     } else {
       var refs  = [];
       var start = oref.sections[oref.sections.length-1];
@@ -265,7 +423,7 @@ Sefaria = extend(Sefaria, {
       for (var i = start; i <= end; i++) {
         oref.sections[oref.sections.length-1]   = i;
         oref.toSections[oref.sections.length-1] = i;
-        refs.push(humanRef(makeRef(oref)));
+        refs.push(this.humanRef(this.makeRef(oref)));
       }
       return refs;
     }
@@ -283,7 +441,7 @@ Sefaria = extend(Sefaria, {
     if (ref in this._links) {
       cb(this._links[ref]);
     } else {
-       var url = "/api/links/" + normRef(ref) + "?with_text=0";
+       var url = "/api/links/" + Sefaria.normRef(ref) + "?with_text=0";
        this._api(url, function(data) {
           if ("error" in data) { 
             return;
@@ -526,7 +684,7 @@ Sefaria = extend(Sefaria, {
       };
       refs.map(function(ref) {
        if (ref in Sefaria._privateNotes) { return; } // Only make API calls for unloaded refs
-       var url = "/api/notes/" + normRef(ref) + "?private=1";
+       var url = "/api/notes/" + Sefaria.normRef(ref) + "?private=1";
        this._api(url, function(data) {
           if ("error" in data) { 
             return;
@@ -572,7 +730,7 @@ Sefaria = extend(Sefaria, {
     if (ref in this._related) {
       callback(this._related[ref]);
     } else {
-       var url = "/api/related/" + normRef(ref);
+       var url = "/api/related/" + Sefaria.normRef(ref);
        this._api(url, function(data) {
           if ("error" in data) { 
             return;
@@ -757,7 +915,7 @@ Sefaria = extend(Sefaria, {
       var found = false;
       for (var k = 0; k < list.length; k++) {
         if (list[k].category == cats[i]) { 
-          list = clone(list[k].contents);
+          list = Sefaria.util.clone(list[k].contents);
           found = true;
           break;
         }
@@ -1019,6 +1177,14 @@ Sefaria = extend(Sefaria, {
         this.parent = null;
         this.selected = 0; //0 - not selected, 1 - selected, 2 - partially selected
       }
+  },  
+  _makeBooksDict: function() {
+    // Transform books array into a dictionary for quick lookup
+    // Which is worse: the cycles wasted in computing this on the client
+    // or the bandwitdh wasted in letting the server computer once and trasmiting the same data twice in differnt form?
+    for (var i = 0; i < this.books.length; i++) {
+      this.booksDict[this.books[i]] = 1;
+    }    
   },
   _apiCallbacks: {},
   _api: function(url, callback) {
@@ -1154,10 +1320,579 @@ Sefaria.search.FilterNode.prototype = {
 };
 
 
-if ("toc" in Sefaria) {
-  Sefaria._cacheIndexFromToc(Sefaria.toc);  
-}
+Sefaria.util = {
+    clone: function clone(obj) {
+        // Handle the 3 simple types, and null or undefined
+        if (null == obj || "object" != typeof obj) return obj;
 
+        // Handle Date
+        if (obj instanceof Date) {
+            var copy = new Date();
+            copy.setTime(obj.getTime());
+            return copy;
+        }
+
+        // Handle Array
+        if (obj instanceof Array) {
+            var copy = [];
+            var len = obj.length;
+            for (var i = 0; i < len; ++i) {
+                copy[i] = clone(obj[i]);
+            }
+            return copy;
+        }
+
+        // Handle Object
+        if (obj instanceof Object) {
+            var copy = {};
+            for (var attr in obj) {
+                if (obj.hasOwnProperty(attr)) copy[attr] = clone(obj[attr]);
+            }
+            return copy;
+        }
+
+        throw new Error("Unable to copy obj! Its type isn't supported.");
+    },
+    throttle: function(func, limit) {
+      // Returns a functions which throttle `func`
+        var wait = false;                 // Initially, we're not waiting
+        return function () {              // We return a throttled function
+            if (!wait) {                  // If we're not waiting
+                func.call();          // Execute users function
+                wait = true;              // Prevent future invocations
+                setTimeout(function () {  // After a period of time
+                    wait = false;         // And allow future invocations
+                }, limit);
+            }
+        }
+    },
+    debounce: function(func, wait, immediate) {
+      // Returns a function which debounces `func`
+        var timeout;
+        return function() {
+            var context = this, args = arguments;
+            var later = function() {
+                timeout = null;
+                if (!immediate) func.apply(context, args);
+            };
+            var callNow = immediate && !timeout;
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+            if (callNow) func.apply(context, args);
+        };
+    },
+    currentPath: function() {
+      // Returns the current path plus search string if a browser context
+      // or "/" in a browser-less context.
+      return (typeof window === "undefined" ) ? "/" :
+                window.location.pathname + window.location.search;
+    },
+    setupPrototypes: function() {
+
+        String.prototype.toProperCase = function() {
+          // Treat anything after ", " as a new clause
+          // so that titles like "Orot, The Ideals of Israel" keep a capital The
+          var clauses = this.split(", ");
+
+          for (var n = 0; n < clauses.length; n++) {
+              var i, j, str, lowers, uppers;
+              str = clauses[n].replace(/([^\W_]+[^\s-]*) */g, function(txt) {
+                // We're not lowercasing the end of the string because of cases like "HaRambam"
+                return txt.charAt(0).toUpperCase() + txt.substr(1);
+              });
+
+              // Certain minor words should be left lowercase unless 
+              // they are the first or last words in the string
+              lowers = ['A', 'An', 'The', 'And', 'But', 'Or', 'For', 'Nor', 'As', 'At', 
+              'By', 'For', 'From', 'Is', 'In', 'Into', 'Near', 'Of', 'On', 'Onto', 'To', 'With'];
+              for (i = 0, j = lowers.length; i < j; i++) {
+                str = str.replace(new RegExp('\\s' + lowers[i] + '\\s', 'g'), 
+                  function(txt) {
+                    return txt.toLowerCase();
+                  });
+               }
+
+              // Certain words such as initialisms or acronyms should be left uppercase
+              uppers = ['Id', 'Tv', 'Ii', 'Iii', "Iv"];
+              for (i = 0, j = uppers.length; i < j; i++) {
+                str = str.replace(new RegExp('\\b' + uppers[i] + '\\b', 'g'), 
+                  uppers[i].toUpperCase());
+              }
+
+              clauses[n] = str;     
+          }
+
+          return clauses.join(", ");
+        };
+
+        String.prototype.toFirstCapital = function() {
+            return this.charAt(0).toUpperCase() + this.substr(1);
+        };
+
+        String.prototype.stripHtml = function() {
+           var tmp = document.createElement("div");
+           tmp.innerHTML = this;
+           return tmp.textContent|| "";
+        };
+
+        String.prototype.escapeHtml = function() {
+            return this.replace(/&/g,'&amp;')
+                        .replace(/</g,'&lt;')
+                        .replace(/>/g,'&gt;')
+                        .replace(/'/g,'&apos;')
+                        .replace(/"/g,'&quot;')
+                        .replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br />$2');
+        };
+
+        Array.prototype.compare = function(testArr) {
+            if (this.length != testArr.length) return false;
+            for (var i = 0; i < testArr.length; i++) {
+                if (this[i].compare) { 
+                    if (!this[i].compare(testArr[i])) return false;
+                }
+                if (this[i] !== testArr[i]) return false;
+            }
+            return true;
+        };
+
+        Array.prototype.pad = function(s,v) {
+            var l = Math.abs(s) - this.length;
+            var a = [].concat(this);
+            if (l <= 0)
+              return a;
+            for(var i=0; i<l; i++)
+              s < 0 ? a.unshift(v) : a.push(v);
+            return a;
+        };
+
+        Array.prototype.unique = function() {
+            var a = [];
+            var l = this.length;
+            for(var i=0; i<l; i++) {
+              for(var j=i+1; j<l; j++) {
+                // If this[i] is found later in the array
+                if (this[i] === this[j])
+                  j = ++i;
+              }
+              a.push(this[i]);
+            }
+            return a;
+        };
+
+        Array.prototype.toggle = function(value) {
+            var index = this.indexOf(value);
+
+            if (index === -1) {
+                this.push(value);
+            } else {
+                this.splice(index, 1);
+            }
+            return this;
+        };
+
+        Array.prototype.move = function (old_index, new_index) {
+            if (new_index >= this.length) {
+                var k = new_index - this.length;
+                while ((k--) + 1) {
+                    this.push(undefined);
+                }
+            }
+            this.splice(new_index, 0, this.splice(old_index, 1)[0]);
+            return this; // for testing purposes
+        };
+
+        RegExp.escape = function(s) {
+            return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        };
+    },
+    setupJQuery: function() {
+        if (!$.hasOwnProperty("fn")) { return; }
+        $.fn.serializeObject = function() {
+            var o = {};
+            var a = this.serializeArray();
+            $.each(a, function() {
+                if (o[this.name] !== undefined) {
+                    if (!o[this.name].push) {
+                        o[this.name] = [o[this.name]];
+                    }
+                    o[this.name].push(this.value || '');
+                } else {
+                    o[this.name] = this.value || '';
+                }
+            });
+            return o;
+        };
+    /*!
+         * jQuery Cookie Plugin v1.3
+         * https://github.com/carhartl/jquery-cookie
+         *
+         * Copyright 2011, Klaus Hartl
+         * Dual licensed under the MIT or GPL Version 2 licenses.
+         * http://www.opensource.org/licenses/mit-license.php
+         * http://www.opensource.org/licenses/GPL-2.0
+         */
+        (function ($, document, undefined) {
+
+            var pluses = /\+/g;
+
+            function raw(s) {
+                return s;
+            }
+
+            function decoded(s) {
+                return decodeURIComponent(s.replace(pluses, ' '));
+            }
+
+            var config = $.cookie = function (key, value, options) {
+
+                // write
+                if (value !== undefined) {
+                    options = $.extend({}, config.defaults, options);
+
+                    if (value === null) {
+                        options.expires = -1;
+                    }
+
+                    if (typeof options.expires === 'number') {
+                        var days = options.expires, t = options.expires = new Date();
+                        t.setDate(t.getDate() + days);
+                    }
+
+                    value = config.json ? JSON.stringify(value) : String(value);
+
+                    return (document.cookie = [
+                        encodeURIComponent(key), '=', config.raw ? value : encodeURIComponent(value),
+                        options.expires ? '; expires=' + options.expires.toUTCString() : '', // use expires attribute, max-age is not supported by IE
+                        options.path    ? '; path=' + options.path : '',
+                        options.domain  ? '; domain=' + options.domain : '',
+                        options.secure  ? '; secure' : ''
+                    ].join(''));
+                }
+
+                // read
+                var decode = config.raw ? raw : decoded;
+                var cookies = document.cookie.split('; ');
+                for (var i = 0, l = cookies.length; i < l; i++) {
+                    var parts = cookies[i].split('=');
+                    if (decode(parts.shift()) === key) {
+                        var cookie = decode(parts.join('='));
+                        return config.json ? JSON.parse(cookie) : cookie;
+                    }
+                }
+
+                return null;
+            };
+
+            config.defaults = {};
+
+            $.removeCookie = function (key, options) {
+                if ($.cookie(key) !== null) {
+                    $.cookie(key, null, options);
+                    return true;
+                }
+                return false;
+            };
+
+        })($, document);
+
+    },
+    setupMisc: function() {
+        /*
+          classnames
+          Copyright (c) 2015 Jed Watson.
+          Licensed under the MIT License (MIT), see
+          http://jedwatson.github.io/classnames
+        */
+        (function () {
+            'use strict';
+
+            function classNames () {
+
+                var classes = '';
+
+                for (var i = 0; i < arguments.length; i++) {
+                    var arg = arguments[i];
+                    if (!arg) continue;
+
+                    var argType = typeof arg;
+
+                    if ('string' === argType || 'number' === argType) {
+                        classes += ' ' + arg;
+
+                    } else if (Array.isArray(arg)) {
+                        classes += ' ' + classNames.apply(null, arg);
+
+                    } else if ('object' === argType) {
+                        for (var key in arg) {
+                            if (arg.hasOwnProperty(key) && arg[key]) {
+                                classes += ' ' + key;
+                            }
+                        }
+                    }
+                }
+
+                return classes.substr(1);
+            }
+
+            if (typeof module !== 'undefined' && module.exports) {
+                module.exports = classNames;
+            } else if (typeof define === 'function' && typeof define.amd === 'object' && define.amd){
+                // AMD. Register as an anonymous module.
+                define(function () {
+                    return classNames;
+                });
+            } else {
+                window.classNames = classNames;
+            }
+
+        }());
+
+        // Protect against browsers without consoles and forgotten console statements
+        if(typeof(console) === 'undefined') {
+            var console = {}
+            console.log = function() {};
+        }
+    }
+
+}
+Sefaria.setup =function() {
+    Sefaria.util.setupPrototypes();
+    Sefaria.util.setupJQuery();
+    Sefaria.util.setupMisc();
+    Sefaria._makeBooksDict();
+    Sefaria._cacheIndexFromToc(Sefaria.toc);  
+};
+Sefaria.setup();
+
+
+Sefaria.hebrew = {
+  hebrewNumerals: { 
+    "\u05D0": 1,
+    "\u05D1": 2,
+    "\u05D2": 3,
+    "\u05D3": 4,
+    "\u05D4": 5,
+    "\u05D5": 6,
+    "\u05D6": 7,
+    "\u05D7": 8,
+    "\u05D8": 9,
+    "\u05D9": 10,
+    "\u05D8\u05D5": 15,
+    "\u05D8\u05D6": 16,
+    "\u05DB": 20,
+    "\u05DC": 30,
+    "\u05DE": 40,
+    "\u05E0": 50,
+    "\u05E1": 60,
+    "\u05E2": 70,
+    "\u05E4": 80,
+    "\u05E6": 90,
+    "\u05E7": 100,
+    "\u05E8": 200,
+    "\u05E9": 300,
+    "\u05EA": 400,
+    "\u05EA\u05E7": 500,
+    "\u05EA\u05E8": 600,
+    "\u05EA\u05E9": 700,
+    "\u05EA\u05EA": 800,
+    1: "\u05D0",
+    2: "\u05D1",
+    3: "\u05D2",
+    4: "\u05D3",
+    5: "\u05D4",
+    6: "\u05D5",
+    7: "\u05D6",
+    8: "\u05D7",
+    9: "\u05D8",
+    10: "\u05D9",
+    15: "\u05D8\u05D5",
+    16: "\u05D8\u05D6",
+    20: "\u05DB",
+    30: "\u05DC",
+    40: "\u05DE",
+    50: "\u05E0",
+    60: "\u05E1",
+    70: "\u05E2",
+    80: "\u05E4",
+    90: "\u05E6",
+    100: "\u05E7",
+    200: "\u05E8",
+    300: "\u05E9",
+    400: "\u05EA",
+    500: "\u05EA\u05E7",
+    600: "\u05EA\u05E8",
+    700: "\u05EA\u05E9",
+    800: "\u05EA\u05EA"
+  },
+  decodeHebrewNumeral: function(h) {
+    // Takes a string representing a Hebrew numeral and returns it integer value. 
+    var values = Sefaria.hebrew.hebrewNumerals;
+
+    if (h === values[15] || h === values[16]) {
+      return values[h];
+    } 
+    
+    var n = 0
+    for (c in h) {
+      n += values[h[c]];
+    }
+
+    return n;
+  },
+  encodeHebrewNumeral: function(n) {
+    // Takes an integer and returns a string encoding it as a Hebrew numeral. 
+    if (n >= 900) {
+      return n;
+    }
+
+    var values = Sefaria.hebrew.hebrewNumerals;
+
+    if (n === 15 || n === 16) {
+      return values[n];
+    }
+    
+    var heb = "";
+    if (n >= 100) { 
+      var hundreds = n - (n % 100);
+      heb += values[hundreds];
+      n -= hundreds;
+    } 
+    if (n >= 10) {
+      var tens = n - (n % 10);
+      heb += values[tens];
+      n -= tens;
+    }
+    
+    if (n > 0) {
+      heb += values[n]; 
+    } 
+    
+    return heb;
+  },
+  encodeHebrewDaf: function(daf, form) {
+    // Ruturns Hebrew daf strings from "32b"
+    var form = form || "short"
+    var n = parseInt(daf.slice(0,-1));
+    var a = daf.slice(-1);
+    if (form === "short") {
+      a = {a: ".", b: ":"}[a];
+      return Sefaria.hebrew.encodeHebrewNumeral(n) + a;
+    }   
+    else if (form === "long"){
+      a = {a: 1, b: 2}[a];
+      return Sefaria.hebrew.encodeHebrewNumeral(n) + " " + Sefaria.hebrew.encodeHebrewNumeral(a);
+    }
+  },
+  stripNikkud: function(rawString) {
+    return rawString.replace(/[\u0591-\u05C7]/g,"");
+  },
+  isHebrew: function(text) {
+    // Returns true if text is (mostly) Hebrew
+    // Examines up to the first 60 characters, ignoring punctuation and numbers
+    // 60 is needed to cover cases where a Hebrew text starts with 31 chars like: <big><strong>גמ׳</strong></big>
+    var heCount = 0;
+    var enCount = 0;
+    var punctuationRE = /[0-9 .,'"?!;:\-=@#$%^&*()/<>]/;
+
+    for (var i = 0; i < Math.min(60, text.length); i++) {
+      if (punctuationRE.test(text[i])) { continue; }
+      if ((text.charCodeAt(i) > 0x590) && (text.charCodeAt(i) < 0x5FF)) {
+        heCount++;
+      } else {
+        enCount++;
+      }
+    }
+
+    return (heCount >= enCount);
+  },
+  containsHebrew: function(text) {
+    // Returns true if there are any Hebrew characters in text
+    for (var i = 0; i < text.length; i++) {
+      if ((text.charCodeAt(i) > 0x590) && (text.charCodeAt(i) < 0x5FF)) {
+        return true;
+      }
+    }
+    return false;
+  },
+  hebrewPlural: function(s) {
+    var known = {
+      "Daf":      "Dappim",
+      "Mitzvah":  "Mitzvot",
+      "Mitsva":   "Mitzvot",
+      "Mesechet": "Mesechtot",
+      "Perek":    "Perokim",
+      "Siman":    "Simanim",
+      "Seif":     "Seifim",
+      "Se'if":    "Se'ifim",
+      "Mishnah":  "Mishnayot",
+      "Mishna":   "Mishnayot",
+      "Chelek":   "Chelekim",
+      "Parasha":  "Parshiot",
+      "Parsha":   "Parshiot",
+      "Pasuk":    "Psukim",
+      "Midrash":  "Midrashim",
+      "Aliyah":   "Aliyot"
+    };
+
+    return (s in known ? known[s] : s + "s");
+  },
+  intToDaf: function(i) {
+    i += 1;
+    daf = Math.ceil(i/2);
+    return daf + (i%2 ? "a" : "b");
+  },
+  dafToInt: function(daf) {
+    amud = daf.slice(-1)
+    i = parseInt(daf.slice(0, -1)) - 1;
+    i = amud == "a" ? i * 2 : i*2 +1;
+    return i;
+  }
+};
+
+Sefaria.site = { 
+  track: {
+    // Helper functions for event tracking (with Google Analytics and Mixpanel)
+    event: function(category, action, label) {
+        // Generic event tracker
+        _gaq.push(['_trackEvent', category, action, label]);
+        //mixpanel.track(category + " " + action, {label: label});
+        //console.log([category, action, label].join(" / "));
+    },
+    pageview: function(url) {
+        _gaq.push(['_trackPageview', url]);
+    },
+    open: function(ref) {
+        // Track opening a specific text ref
+        Sefaria.site.track.event("Reader", "Open", ref);
+        var text = Sefaria.parseRef(ref).book;
+        Sefaria.site.track.event("Reader", "Open Text", text);
+    },
+    ui: function(label) {
+        // Track some action in the Reader UI
+        Sefaria.site.track.event("Reader", "UI", label);
+    },
+    action: function(label) {
+        // Track an action from the Reader
+        Sefaria.site.track.event("Reader", "Action", label);     
+    },
+    sheets: function(label) {
+        Sefaria.site.track.event("Sheets", "UI", label);
+    },
+    search: function(query) {
+        Sefaria.site.track.event("Search", "Search", query);
+    },
+    exploreUrl: function(url) {
+        Sefaria.site.track.event("Explorer", "Open", url);
+        Sefaria.site.track.pageview(url);
+    },
+    exploreBook: function(book) {
+        Sefaria.site.track.event("Explorer", "Book", book);
+    },
+    exploreBrush: function(book) {
+        Sefaria.site.track.event("Explorer", "Brush", book);
+    }
+  }
+};
 
 Sefaria.palette = {
   colors: {
