@@ -1260,7 +1260,7 @@ $(function() {
 
 			function cleanupActiveSource(target){
 				$(".activeSource").removeClass("activeSource");
-				$(".inlineAddButton").remove();
+	//			$(".inlineAddButton").remove();
 				$("#sheetLayoutLanguageMenuItems").show();
 				$("#sourceLayoutLanguageMenuItems").hide();
 				if (!$(target).hasClass('inlineAddButtonIcon')) {
@@ -1286,8 +1286,8 @@ $(function() {
 			//clicked on a sheet item
 			cleanupActiveSource(e.target);
 			$(this).addClass("activeSource");
-			var inlineAddButton = "<div class='inlineAddButton'><i class='fa fa-plus-circle inlineAddButtonIcon'></i></div>";
-			$(this).append(inlineAddButton);
+//			var inlineAddButton = "<div class='inlineAddButton'><i class='fa fa-plus-circle inlineAddButtonIcon'></i></div>";
+//			$(this).append(inlineAddButton);
 			$("#sheetLayoutLanguageMenuItems").hide();
 			$("#sourceLayoutLanguageMenuItems").show();
 
@@ -1869,8 +1869,7 @@ function addSource(q, source, appendOrInsert) {
 	var refLink = badRef == true ? "#" : "/"+makeRef(q).replace(/'/g, "&apos;");
 
 
-	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>" +"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +"<div class='customTitle'></div>" +"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " <span class='ui-icon ui-icon-extlink'></a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" +"</div>" +"<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> <span class='ui-icon ui-icon-extlink'></a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" +"</div>" +"<div class='clear'></div>" + attributionLink + "</li>";
-
+	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>" +"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +"<div class='customTitle'></div>" +"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " <span class='ui-icon ui-icon-extlink'></a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" +"</div>" +"<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> <span class='ui-icon ui-icon-extlink'></a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
 
 	if (appendOrInsert == "append") {
 		$("#sources").append(newsource);
@@ -2438,6 +2437,7 @@ function buildSource($target, source, appendOrInsert) {
 							"<div class='comment " + (sjs.loading ? "" : "new") + "'>" + source.comment + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</div>";
+		commentHtml = appendInlineAddButton(commentHtml);
 		if (appendOrInsert == "append") {
 			$target.append(commentHtml);
 		}
@@ -2458,6 +2458,7 @@ function buildSource($target, source, appendOrInsert) {
 							"</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</li>";
+		outsideHtml = appendInlineAddButton(outsideHtml);
 		if (appendOrInsert == "append") {
 			$target.append(outsideHtml);
 		}
@@ -2474,6 +2475,7 @@ function buildSource($target, source, appendOrInsert) {
 							"<div class='outside " + (sjs.loading ? "" : "new") + "'>" + source.outsideText + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</li>";
+		outsideHtml = appendInlineAddButton(outsideHtml);
 		if (appendOrInsert == "append") {
 			$target.append(outsideHtml);
 		}
@@ -2506,6 +2508,7 @@ function buildSource($target, source, appendOrInsert) {
 							"<div class='media " + (sjs.loading ? "" : "new") + "'>" + mediaLink + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</li>";
+		outsideHtml = appendInlineAddButton(outsideHtml);
 				if (appendOrInsert == "append") {
 					$target.append(outsideHtml);
 				}
@@ -2523,6 +2526,7 @@ function buildSource($target, source, appendOrInsert) {
 							"</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</li>";
+		outsideHtml = appendInlineAddButton(outsideHtml);
 				if (appendOrInsert == "append") {
 					$target.append(outsideHtml);
 				}
@@ -2530,6 +2534,16 @@ function buildSource($target, source, appendOrInsert) {
 
 	}
 }
+
+function appendInlineAddButton(source) {
+	if ($.cookie("s2") == "true") {
+		if (!source) {source = ''}
+		source = source + "<div class='inlineAddButton'><i class='fa fa-plus-circle inlineAddButtonIcon'></i></div>";
+		return source;
+	}
+}
+
+
 
 function attributionDataString(uid, newItem, classStr) {
 	// Returns string to be added inside a tag containing class attribute and data-added-by attribute
