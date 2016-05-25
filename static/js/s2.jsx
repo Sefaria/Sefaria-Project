@@ -4735,15 +4735,29 @@ var SearchResultList = React.createClass({
                     this.setState({
                         textHits: hitarrays.texts,
                         sheetHits: hitarrays.sheets,
-                        total: data.hits.total,
-                        textTotal: hitarrays.texts.length,
-                        sheetTotal: hitarrays.sheets.length
+                        total: data.hits.total
                     });
                     if (data.aggregations) {
-                      var ftree = this._buildFilterTree(data.aggregations.category.buckets);
-                      var orphans = this._applyFilters(ftree, this.props.appliedFilters);
-                      this.props.registerAvailableFilters(ftree.availableFilters, ftree.registry, orphans);
-                    }
+                      if (data.aggregations.category) {
+                        var ftree = this._buildFilterTree(data.aggregations.category.buckets);
+                        var orphans = this._applyFilters(ftree, this.props.appliedFilters);
+                        this.props.registerAvailableFilters(ftree.availableFilters, ftree.registry, orphans);
+                      }
+                      if (data.aggregations.type) {
+                        var types = {};
+                        data.aggregations.type.buckets.forEach(function(b) {types[b["key"]] = b["doc_count"];});
+                        if (types["text"]) {
+                          this.setState({
+                            textTotal: types["text"]
+                          });
+                        }
+                        if (types["sheet"]) {
+                          this.setState({
+                            sheetTotal: types["sheet"]
+                          });
+                        }
+                      }
+                   }
                 }
             }.bind(this),
             error: function(jqXHR, textStatus, errorThrown) {
@@ -5078,7 +5092,7 @@ var SearchFilters = React.createClass({
       <div className="results-count">
           <span className="en">{totalWithCommas} Results{enFilterLine}</span>
           <span className="he">{totalWithCommas} תוצאות{heFilterLine}</span>
-          {(this.state.sheet_total > 0 && this.state.text_total > 0) ? totalBreakdown : null}
+          {(this.props.sheetTotal > 0 && this.props.textTotal > 0) ? totalBreakdown : null}
       </div>);
 
     var runningQueryLine = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
@@ -5173,7 +5187,6 @@ var SearchTextResult = React.createClass({
     propTypes: {
         query: React.PropTypes.string,
         data: React.PropTypes.object,
-        key: React.PropTypes.string,
         onResultClick: React.PropTypes.func
     },
     getInitialState: function() {
@@ -5260,7 +5273,6 @@ var SearchSheetResult = React.createClass({
     propTypes: {
         query: React.PropTypes.string,
         data: React.PropTypes.object,
-        key: React.PropTypes.string
     },
     render: function() {
         var data = this.props.data;

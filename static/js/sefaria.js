@@ -1160,6 +1160,12 @@ Sefaria = extend(Sefaria, {
                           "field": "path",
                           "size": 0
                       }
+                  },
+                  "type": {
+                      "terms": {
+                          "field": "_type",
+                          "size": 0
+                      }
                   }
               };
           } else if (!applied_filters || applied_filters.length == 0) {
@@ -1179,6 +1185,14 @@ Sefaria = extend(Sefaria, {
                       "query": core_query,
                       "filter": {
                           "or": clauses
+                      }
+                  }
+              };
+              o['aggs'] = {
+                  "type": {
+                      "terms": {
+                          "field": "_type",
+                          "size": 0
                       }
                   }
               };
