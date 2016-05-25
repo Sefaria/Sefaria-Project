@@ -1047,230 +1047,242 @@ $(function() {
 
 		// Add Interface
 
-		$("#addInterface").on("click", ".buttonBar .addInterfaceButton", function (e) {
-			$("#addInterface .addInterfaceButton").removeClass('active');
-			$("#inlineTextPreview").remove();
-			$(this).addClass('active');
-			var divToShow = "#add"+($(this).attr('id').replace('Button',''))+"Div";
-			$(".contentDiv > div").hide();
-			$(divToShow).show();
-
-		});
+		if (sjs.is_owner||sjs.can_edit||sjs.can_add) {
 
 
-		$("#connectionsToAdd").on("click",".sourceConnection", function(e) {
-			$(this).hasClass("active") ? $(this).removeClass("active") : $(this).addClass("active");
-		});
-
-		$("#addconnectionDiv").on("click", ".button", function (e) {
-
-			var $target = $("#addInterface").prev(".sheetItem");
-
-
-
-			$( ".sourceConnection.active" ).each(function( index ) {
-
-
-				refs = $(this).data("refs").split(";");
-
-				for (var i = 0; i < refs.length; i++) {
-
-					var source = {
-					ref: refs[i]
-					}
-
-					buildSource($target, source, "insert");
-
-				}
+			$("#addInterface").on("click", ".buttonBar .addInterfaceButton", function (e) {
+				$("#addInterface .addInterfaceButton").removeClass('active');
+				$("#inlineTextPreview").remove();
+				$(this).addClass('active');
+				var divToShow = "#add" + ($(this).attr('id').replace('Button', '')) + "Div";
+				$(".contentDiv > div").hide();
+				$(divToShow).show();
 
 			});
 
-			autoSave();
-			$(".sourceConnection").removeClass('active');
-			$("#sheet").click();
-			$("#sourceButton").click();
+
+			$("#connectionsToAdd").on("click", ".sourceConnection", function (e) {
+				$(this).hasClass("active") ? $(this).removeClass("active") : $(this).addClass("active");
+			});
+
+			$("#addconnectionDiv").on("click", ".button", function (e) {
+
+				var $target = $("#addInterface").prev(".sheetItem");
 
 
+				$(".sourceConnection.active").each(function (index) {
 
-		});
 
-		$("#addSourceMenu").click(function() {
-			$("#sheet").click();
-			$("#sourceButton").click();
-			$("html, body").animate({scrollTop: $(document).height() }, 750);
-		});
+					refs = $(this).data("refs").split(";");
 
-		$("#addCustomMenu").click(function() {
-			$("#sheet").click();
-			$("#customTextButton").click();
-			$("html, body").animate({scrollTop: $(document).height() }, 750);
-		});
+					for (var i = 0; i < refs.length; i++) {
 
-		$("#addCommentMenu").click(function() {
-			$("#sheet").click();
-			$("#commentButton").click();
-			$("html, body").animate({scrollTop: $(document).height() }, 750);
-		});
-
-		$("#addInterface").on("click", "#connectionButton", function (e) {
-
-			var ref = $("#addInterface").prev(".source").attr("data-ref");
-			var $target = $("#addInterface").prev(".sheetItem");
-			$("#connectionsToAdd").text("Looking up Connections...");
-
-			$.getJSON("/api/texts/" + ref + "?context=0&pad=0", function (data) {
-				sjs.alert.clear();
-				if ("error" in data) {
-					$("#connectionsToAdd").text(data.error)
-				} else if (data.commentary.length == 0) {
-					$("#connectionsToAdd").text("No connections known for this source.");
-				} else {
-					data.commentary = [].concat.apply([], data.commentary);
-
-					data.commentary = data.commentary.sort(SortBySourceRef);
-
-					var categorySum = {}
-					for (var i = 0; i < data.commentary.length; i++) {
-						var c = data.commentary[i];
-						if (categorySum[c.commentator]) {
-							categorySum[c.commentator]++;
-						} else {
-							categorySum[c.commentator] = 1;
+						var source = {
+							ref: refs[i]
 						}
-					}
-					var categories = [];
-					for (var k in categorySum) {
-						categories.push(k);
-					}
-					categories.sort();
 
-					var labels = [];
-					for (var k in categorySum) {
-						labels.push(k + " (" + categorySum[k] + ")");
+						buildSource($target, source, "insert");
+
 					}
-					labels.sort();
 
-					var connectionsToSource = '<div>';
-					for (var j = 0; j < labels.length; j++) {
-						var dataRefs = "";
+				});
 
+				autoSave();
+				$(".sourceConnection").removeClass('active');
+				$("#sheet").click();
+				$("#sourceButton").click();
+
+
+			});
+
+			$("#addSourceMenu").click(function () {
+				$("#sheet").click();
+				$("#sourceButton").click();
+				$("html, body").animate({scrollTop: $(document).height()}, 750);
+			});
+
+			$("#addCustomMenu").click(function () {
+				$("#sheet").click();
+				$("#customTextButton").click();
+				$("html, body").animate({scrollTop: $(document).height()}, 750);
+			});
+
+			$("#addCommentMenu").click(function () {
+				$("#sheet").click();
+				$("#commentButton").click();
+				$("html, body").animate({scrollTop: $(document).height()}, 750);
+			});
+
+			$("#addInterface").on("click", "#connectionButton", function (e) {
+
+				var ref = $("#addInterface").prev(".source").attr("data-ref");
+				var $target = $("#addInterface").prev(".sheetItem");
+				$("#connectionsToAdd").text("Looking up Connections...");
+
+				$.getJSON("/api/texts/" + ref + "?context=0&pad=0", function (data) {
+					sjs.alert.clear();
+					if ("error" in data) {
+						$("#connectionsToAdd").text(data.error)
+					} else if (data.commentary.length == 0) {
+						$("#connectionsToAdd").text("No connections known for this source.");
+					} else {
+						data.commentary = [].concat.apply([], data.commentary);
+
+						data.commentary = data.commentary.sort(SortBySourceRef);
+
+						var categorySum = {}
 						for (var i = 0; i < data.commentary.length; i++) {
+							var c = data.commentary[i];
+							if (categorySum[c.commentator]) {
+								categorySum[c.commentator]++;
+							} else {
+								categorySum[c.commentator] = 1;
+							}
+						}
+						var categories = [];
+						for (var k in categorySum) {
+							categories.push(k);
+						}
+						categories.sort();
+
+						var labels = [];
+						for (var k in categorySum) {
+							labels.push(k + " (" + categorySum[k] + ")");
+						}
+						labels.sort();
+
+						var connectionsToSource = '<div>';
+						for (var j = 0; j < labels.length; j++) {
+							var dataRefs = "";
+
+							for (var i = 0; i < data.commentary.length; i++) {
 								var c = data.commentary[i];
-								if (categories[j] ==c.commentator) {
+								if (categories[j] == c.commentator) {
 									dataRefs = dataRefs + c.sourceRef + ";";
 									//continue;
 								}
 							}
 							dataRefs = dataRefs.slice(0, -1); //remove trailing ";"
-							connectionsToSource += '<div class="sourceConnection" data-refs="'+dataRefs+'">'+labels[j]+'</div>';
+							connectionsToSource += '<div class="sourceConnection" data-refs="' + dataRefs + '">' + labels[j] + '</div>';
+						}
+						connectionsToSource += "</div>";
+
+						$("#connectionsToAdd").html(connectionsToSource);
+
 					}
-							connectionsToSource += "</div>";
 
-					$("#connectionsToAdd").html(connectionsToSource);
 
+				});
+			});
+
+			$("#addcommentDiv").on("click", ".button", function (e) {
+				var $target = $("#addInterface").prev(".sheetItem");
+				var source = {comment: $(e.target).prev(".contentToAdd").html(), isNew: true};
+				if (sjs.can_add) {
+					source.userLink = sjs._userLink;
 				}
-
+				$target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
+				autoSave();
+				$(".contentToAdd").html('');
+				$("#sheet").click();
+				//$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
 
 			});
-		});
 
-		$("#addcommentDiv").on("click", ".button", function (e) {
-			var $target = $("#addInterface").prev(".sheetItem");
-			var source = {comment: $(e.target).prev(".contentToAdd").html(), isNew: true};
-			if (sjs.can_add) { source.userLink = sjs._userLink; }
-			$target.length == 0 ? buildSource($("#sources"), source, "append"): buildSource($target, source, "insert");
-			autoSave();
-			$(".contentToAdd").html('');
-			$("#sheet").click();
-			//$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
+			$("#addcustomTextDiv").on("click", "#customTextLanguageToggle .toggleOption", function (e) {
 
-		});
+				$("#customTextLanguageToggle .toggleOption").removeClass('active');
+				$(this).addClass('active');
+				if ($(this).attr('id') == 'bilingualCustomText') {
+					$("#addcustomTextDiv").find(".contentToAdd").show();
+				}
+				else if ($(this).attr('id') == 'englishCustomText') {
+					$("#addcustomTextDiv").find(".en").show();
+					$("#addcustomTextDiv").find(".he").hide();
+				}
+				else if ($(this).attr('id') == 'hebrewCustomText') {
+					$("#addcustomTextDiv").find(".he").show();
+					$("#addcustomTextDiv").find(".en").hide();
+				}
 
-		$("#addcustomTextDiv").on("click", "#customTextLanguageToggle .toggleOption", function (e) {
+			});
 
-			$("#customTextLanguageToggle .toggleOption").removeClass('active');
-			$(this).addClass('active');
-			if ($(this).attr('id') == 'bilingualCustomText') {
-				$("#addcustomTextDiv").find(".contentToAdd").show();
-			} 
-			else if ($(this).attr('id') == 'englishCustomText') {
-				$("#addcustomTextDiv").find(".en").show();
-				$("#addcustomTextDiv").find(".he").hide();
-			}
-			else if ($(this).attr('id') == 'hebrewCustomText') {
-				$("#addcustomTextDiv").find(".he").show();
-				$("#addcustomTextDiv").find(".en").hide();
-			}
+			$("#addcustomTextDiv").on("click", ".button", function (e) {
+				var $target = $("#addInterface").prev(".sheetItem");
+				if ($(e.target).prev(".flexContainer").find(".contentToAdd:visible").length == 1) {
+					source = {
+						outsideText: $(e.target).prev(".flexContainer").find(".contentToAdd:visible").html(),
+						isNew: true
+					};
+				}
+				else {
+					source = {
+						outsideBiText: {
+							en: $(e.target).prev(".flexContainer").find(".en").html(),
+							he: $(e.target).prev(".flexContainer").find(".he").html()
+						}, isNew: true
+					};
+				}
 
-		});
+				if (sjs.can_add) {
+					source.userLink = sjs._userLink;
+				}
+				$target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
+				autoSave();
+				$(".contentToAdd").html('');
+				$("#sheet").click();
+				//	$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
 
-		$("#addcustomTextDiv").on("click", ".button", function (e) {
-			var $target = $("#addInterface").prev(".sheetItem");
-			if ($(e.target).prev(".flexContainer").find(".contentToAdd:visible").length == 1) {
-				source = {outsideText: $(e.target).prev(".flexContainer").find(".contentToAdd:visible").html(), isNew: true};
-			}
-			else {
-				source = {outsideBiText: {en: $(e.target).prev(".flexContainer").find(".en").html(), he: $(e.target).prev(".flexContainer").find(".he").html()}, isNew: true};
-			}
-
-			if (sjs.can_add) { source.userLink = sjs._userLink; }
-			$target.length == 0 ? buildSource($("#sources"), source, "append"): buildSource($target, source, "insert");
-			autoSave();
-			$(".contentToAdd").html('');
-			$("#sheet").click();
-		//	$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
-
-		});
+			});
 
 
-		
-		// </add interface>
 
 
-		$("html").on("click", "#sheet", function (e) {
-			//clicked off of a sheetitem
-			if ($(e.target).closest(".sheetItem").length) {
-				return;
-			}
-			if ($(e.target).closest("#addInterface").length) return
-			$("#connectionButton").hide();
 
-			cleanupActiveSource(e.target);
-		});
+			$("html").on("click", "#sheet", function (e) {
+				//clicked off of a sheetitem
+				if ($(e.target).closest(".sheetItem").length) {
+					return;
+				}
+				if ($(e.target).closest("#addInterface").length) return
+				$("#connectionButton").hide();
 
-/*		$(".sheetItem").on("click", ".inlineAddButtonIcon", function (e) {
+				cleanupActiveSource(e.target);
+			});
 
-			$("#addInterface").insertAfter( $(this).parent().closest(".sheetItem") );
-			$(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
-
-		});
-*/
-
-		function cleanupActiveSource(target){
-			$(".activeSource").removeClass("activeSource");
-			$(".inlineAddButton").remove();
-			$("#sheetLayoutLanguageMenuItems").show();
-			$("#sourceLayoutLanguageMenuItems").hide();
-			if (!$(target).hasClass('inlineAddButtonIcon')) {
-				$("#addInterface").insertAfter( $(".sheetItem").last() );
-			}
-
-
-    		$(".sheetItem .inlineAddButtonIcon").off();
-
-			$(".sheetItem").on("click", ".inlineAddButtonIcon", function (e) {
+	/*		$(".sheetItem").on("click", ".inlineAddButtonIcon", function (e) {
 
 				$("#addInterface").insertAfter( $(this).parent().closest(".sheetItem") );
 				$(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
 
 			});
+	*/
 
-			$("#sourceButton").click();
+			function cleanupActiveSource(target){
+				$(".activeSource").removeClass("activeSource");
+				$(".inlineAddButton").remove();
+				$("#sheetLayoutLanguageMenuItems").show();
+				$("#sourceLayoutLanguageMenuItems").hide();
+				if (!$(target).hasClass('inlineAddButtonIcon')) {
+					$("#addInterface").insertAfter( $(".sheetItem").last() );
+				}
 
 
-		}
+				$(".sheetItem .inlineAddButtonIcon").off();
 
-		$("#sheet").on("click", ".sheetItem", function (e) {
+				$(".sheetItem").on("click", ".inlineAddButtonIcon", function (e) {
+
+					$("#addInterface").insertAfter( $(this).parent().closest(".sheetItem") );
+					$(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
+
+				});
+
+				$("#sourceButton").click();
+
+
+			}
+
+			$("#sheet").on("click", ".sheetItem", function (e) {
 			//clicked on a sheet item
 			cleanupActiveSource(e.target);
 			$(this).addClass("activeSource");
@@ -1316,7 +1328,8 @@ $(function() {
 			}
 		});
 		
-		$("#sheet").click();
+			$("#sheet").click();
+		}
 	}
 
 	$("#sheet").on( "mouseenter", ".sheetItem", function(e) {

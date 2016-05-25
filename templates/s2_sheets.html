@@ -312,6 +312,7 @@
 	<ol id="sources">
 		{% include "sheet.html" with sources=sheet.sources %}
 	</ol>
+    {% if can_edit or can_add %}
     <div id="addInterface">
         <div class="buttonBar">
             <div class="addInterfaceButton" id="sourceButton">Source</div>
@@ -354,6 +355,7 @@
             </div>
         </div>
     </div>
+	{% endif %}
 
     <div id="sheetLoading" style="display:none">Loading...</div>
 
