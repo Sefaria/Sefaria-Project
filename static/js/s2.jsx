@@ -4749,7 +4749,12 @@ var SearchResultList = React.createClass({
                         data.aggregations.type.buckets.forEach(function(b) {types[b["key"]] = b["doc_count"];});
                         if (types["text"]) {
                           this.setState({
-                            textTotal: types["text"]
+                            textTotal: types["text"],
+                            activeTab: "texts"
+                          });
+                        } else {
+                          this.setState({
+                            activeTab: "sheets"
                           });
                         }
                         if (types["sheet"]) {
@@ -5100,25 +5105,24 @@ var SearchFilters = React.createClass({
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   },
   render: function() {
-    var buttons_and_summary = (
-      <div>
-        <div className="type-buttons">
-          {this._type_button("Text", "Texts", "מקור", "מקורות", this.props.textTotal, this.props.clickTextButton, (this.props.activeTab == "texts"))}
-          {this._type_button("Sheet", "Sheets", "דף מקורות", "דפי מקורות", this.props.sheetTotal, this.props.clickSheetButton, (this.props.activeTab == "sheets"))}
-        </div>
-        <div className="results-count">
-            <span className="en">
-              {(!!this.props.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("en").join(", ")):""}
-            </span>
-            <span className="he">
-              {(!!this.props.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("he").join(", ")):""}
-            </span>
-        </div>
-      </div>
-    );
 
     var runningQueryLine = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
 
+    var buttons = (
+      <div className="type-buttons">
+        {this._type_button("Text", "Texts", "מקור", "מקורות", this.props.textTotal, this.props.clickTextButton, (this.props.activeTab == "texts"))}
+        {this._type_button("Sheet", "Sheets", "דף מקורות", "דפי מקורות", this.props.sheetTotal, this.props.clickSheetButton, (this.props.activeTab == "sheets"))}
+      </div>
+    );
+
+    var selected_filters = (<div className="results-count">
+          <span className="en">
+            {(!!this.props.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("en").join(", ")):""}
+          </span>
+          <span className="he">
+            {(!!this.props.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("he").join(", ")):""}
+          </span>
+      </div>);
     var filter_panel = (<div>
       <div className="searchFilterToggle" onClick={this.toggleFilterView}>
         <span className="en">Filter by Text   </span>
@@ -5151,9 +5155,10 @@ var SearchFilters = React.createClass({
     return (
       <div className="searchTopMatter">
         <div className="searchStatusLine">
-        { (this.props.isQueryRunning) ? runningQueryLine : buttons_and_summary }
+          { (this.props.isQueryRunning) ? runningQueryLine : buttons }
+          { (this.props.textTotal > 0 && this.props.activeTab == "texts") ? selected_filters : ""}
         </div>
-        { (this.props.textTotal > 0) ? filter_panel : "" }
+        { (this.props.textTotal > 0 && this.props.activeTab == "texts") ? filter_panel : "" }
       </div>)
   }
 });

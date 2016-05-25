@@ -1126,7 +1126,7 @@ Sefaria = extend(Sefaria, {
               error: args.error
           });
       },
-      get_query_object: function (query, get_filters, applied_filters) {
+      get_query_object: function (query, get_filters, applied_filters, type) {
           // query: string
           // get_filters: boolean
           // applied_filters: null or list of applied filters (in format supplied by Filter_Tree...)
@@ -1137,7 +1137,13 @@ Sefaria = extend(Sefaria, {
                   "fields": ["content"]
               }
           };
-
+          if (type) {
+              core_query["filtered"] = {
+                  "filter" : {
+                      "type" : {"value": type}
+                  }
+              };
+          }
           var o = {
               "sort": [{
                   "order": {}                 // the sort field name is "order"
