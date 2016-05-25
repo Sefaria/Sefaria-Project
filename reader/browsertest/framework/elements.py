@@ -127,6 +127,13 @@ class AtomicTest(object):
         return self
 
     # Search
+    def load_search_url(self, query=None):
+        url = self.base_url + "/search"
+        if query is not None:
+            url += "?q={}".format(query)
+        self.driver.get(url)
+        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".results-count")))
+
     def search_for(self, query):
         elem = self.driver.find_element_by_css_selector("input.search")
         elem.send_keys(query)

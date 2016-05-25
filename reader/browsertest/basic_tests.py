@@ -65,6 +65,14 @@ class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
         assert "Psalms.45.5?with=Rashi" in self.driver.current_url, self.driver.current_url
 
 
+class LoadSearchFromURL(AtomicTest):
+    suite_key = "S2 Search"
+    every_build = True
+
+    def run(self):
+        self.s2().load_search_url("Passover")
+
+
 class ClickVersionedSearchResultDesktop(AtomicTest):
     suite_key = "S2 Search"
     single_panel = False
