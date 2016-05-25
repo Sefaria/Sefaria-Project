@@ -740,7 +740,9 @@ $(function() {
 					sjs.saveLastEdit($el);
 				}
 
-				autoSave(); 
+				if (!$el.hasClass('contentToAdd')) {
+					autoSave();
+				}
 			}
 
 			editor.destroy();
@@ -787,11 +789,14 @@ $(function() {
 				});
 			}
 		var ed = $(this).ckeditorGet();
-		saveCkEditorContinuous(ed);
 
-				$(this).on('keydown', function(e) {
-				$("#lastSaved").text("Saving...");
+			if (!$(this).hasClass('contentToAdd')) {
+
+				saveCkEditorContinuous(ed);
+				$(this).on('keydown', function (e) {
+					$("#lastSaved").text("Saving...");
 				});
+			}
 
 
 		};
@@ -1159,7 +1164,7 @@ $(function() {
 			autoSave();
 			$(".contentToAdd").html('');
 			$("#sheet").click();
-			$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
+			//$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
 
 		});
 
@@ -1224,15 +1229,6 @@ $(function() {
 */
 
 		function cleanupActiveSource(target){
-			var $customTitle = $(".activeSource .customTitle");
-			if ($customTitle.text() === "Source Title") {
-				$customTitle.text("");
-				$customTitle.css('display', 'none')
-				.closest(".sheetItem")
-				.removeClass("hasCustom");
-
-			}
-
 			$(".activeSource").removeClass("activeSource");
 			$(".inlineAddButton").remove();
 			$("#sheetLayoutLanguageMenuItems").show();
@@ -1300,19 +1296,6 @@ $(function() {
 				$("#resetText").hide();
 				$("#sourceLayoutLanguageMenuItems").hide();
 			}
-
-			else {
-				var $customTitle = $(".customTitle", $(this));
-				if ($customTitle.text() === "") {
-					$customTitle.text("Source Title");
-				}
-				$customTitle.css('display', 'inline-block')
-					.closest(".sheetItem")
-					.addClass("hasCustom");
-
-				//e.stopPropagation();
-			}
-
 		});
 		
 		$("#sheet").click();
@@ -1817,6 +1800,7 @@ function addSource(q, source, appendOrInsert) {
 	var badRef = q.ref == undefined ? true : false;
 	
 	var $listTarget = $("#addSourceModal").data("target");
+	if ($listTarget.length == 0) appendOrInsert = "append";
 
 	if ($listTarget.hasClass('sheetItem') ) {
 		appendOrInsert = "insert";
@@ -1858,8 +1842,8 @@ function addSource(q, source, appendOrInsert) {
 
 
 	if (appendOrInsert == "append") {
-		$listTarget.append(newsource);
-		var $target = $(".source", $listTarget).last();
+		$("#sources").append(newsource);
+		var $target = $(".source", $("#sources")).last();
 	}
 
 	else if (appendOrInsert == "insert") {
@@ -1987,7 +1971,7 @@ function loadSource(data, $target, optionStr) {
 
 	if (sjs.openRequests == 0) {
 		var top = $target.offset().top - 200;
-		$("html, body").animate({scrollTop: top}, 300);		
+		$("html, body").animate({scrollTop: top}, 300);
 	}
 
 	autoSave();
