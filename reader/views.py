@@ -87,6 +87,9 @@ def reader(request, tref, lang=None, version=None):
     if request.flavour == "mobile" or request.COOKIES.get('s2'):
         return s2(request, ref=tref, lang=lang, version=version)
 
+
+    # TODO Everything below is S1 and will be removed
+
     # BANDAID - for spanning refs, return the first section
     oref = oref.padded_ref()
     if oref.is_spanning():
@@ -172,7 +175,6 @@ def esi_account_box(request):
     return render_to_response('elements/accountBox.html', {}, RequestContext(request))
 
 
-
 def switch_to_s2(request):
     """Set the S2 cookie then redirect to /texts"""
 
@@ -193,10 +195,13 @@ def render_react_component(component, props):
     encoded_args = urllib.urlencode({
         "propsJSON": json.dumps(props),
     })
-    response = urllib2.urlopen(url, encoded_args)
-    html = response.read()
-
-    return html
+    try:
+        response = urllib2.urlopen(url, encoded_args)
+        html = response.read()
+        return html
+    except:
+        # If anything goes wrong with Node, fall back to client-side rendering
+        return render_to_string("elements/loading.html")
 
 
 def make_panel_dict(oref, version, language, filter, mode):
@@ -314,12 +319,12 @@ def s2(request, ref, version=None, lang=None):
         "initialSheetsTag":            None,
         "initialNavigationCategories": None,
     }
-    pprint(props)
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
-        "propsJSON": json.dumps(props),
-        "html":      html,
-        "ref":       oref.normal(),
+        "propsJSON":      json.dumps(props),
+        "html":           html,
+        "ref":            oref.normal(),
+        "recentlyViewed": request.COOKIES.get("recentlyViewed", None),
     }, RequestContext(request))
 
 
