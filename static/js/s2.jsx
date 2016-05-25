@@ -4628,7 +4628,7 @@ var SearchResultList = React.createClass({
     getDefaultProps: function() {
         return {
             page: 1,
-            size: 100,
+            size: 1000,
             appliedFilters: []
         };
     },
@@ -4970,19 +4970,19 @@ var SearchResultList = React.createClass({
                   activeTab = {this.state.activeTab}
                   clickTextButton = {this.showTexts}
                   clickSheetButton = {this.showSheets} />
-                {this.state.textHits.map(function(result) {
+                {(this.state.activeTab == "texts")?this.state.textHits.map(function(result) {
                     return (<SearchTextResult
                               data={result}
                               query={this.props.query}
                               key={result._id}
                               onResultClick={this.props.onResultClick} />);
-                }.bind(this))}
-                {this.state.sheetHits.map(function(result) {
+                }.bind(this)):""}
+                {(this.state.activeTab == "sheets")?this.state.sheetHits.map(function(result) {
                     return (<SearchSheetResult
                               data={result}
                               query={this.props.query}
                               key={result._id} />);
-                }.bind(this))}
+                }.bind(this)):""}
             </div>
         );
     }
