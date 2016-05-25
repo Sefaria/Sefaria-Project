@@ -66,9 +66,9 @@ SEFARIA_DB_USER = ''
 SEFARIA_DB_PASSWORD = ''
 
 # ElasticSearch server
-SEARCH_HOST = "http://localhost:9200"
-SEARCH_ADMIN = "http://localhost:9200"
-SEARCH_INDEX_ON_SAVE = True  # Whether to send texts and source sheet to Search Host for indexing after save
+SEARCH_HOST = "http://search.sefaria.org:788"
+SEARCH_ADMIN = "http://search.sefaria.org"
+SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
 SEARCH_INDEX_NAME = 'sefaria'  # name of the ElasticSearch index to use
 
 DJANGO_HOST  = "http://localhost:8000" # Where is Django running
