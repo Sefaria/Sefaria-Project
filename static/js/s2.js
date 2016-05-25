@@ -5,7 +5,8 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 if (typeof require !== 'undefined') {
-  var React = require('react'),
+  var INBROWSER = false,
+      React = require('react'),
       ReactDOM = require('react-dom'),
       $ = require('jquery'),
       extend = require('extend'),
@@ -15,8 +16,9 @@ if (typeof require !== 'undefined') {
     return null;
   }; // TODO Node needs to read recentlyViewed cookies from Django
 } else {
-    var extend = $.extend;
-    cookie = $.cookie;
+    var INBROWSER = true,
+        extend = $.extend,
+        cookie = $.cookie;
   }
 
 var ReaderApp = React.createClass({
@@ -1283,7 +1285,7 @@ var ReaderPanel = React.createClass({
     // Sets the current filter for Connected Texts (TextList)
     // If updateRecent is true, include the current setting in the list of recent filters.
     if (updateRecent && filter) {
-      if ($.inArray(filter, this.state.recentFilters) !== -1) {
+      if (Sefaria.util.inArray(filter, this.state.recentFilters) !== -1) {
         this.state.recentFilters.toggle(filter);
       }
       this.state.recentFilters = [filter].concat(this.state.recentFilters);
@@ -1377,7 +1379,7 @@ var ReaderPanel = React.createClass({
     // Do a little dance to avoid tracking something we've already just tracked
     // e.g. when refs goes from ["Genesis 5"] to ["Genesis 4", "Genesis 5"] don't track 5 again
     for (var i = 0; i < this.state.refs.length; i++) {
-      if ($.inArray(this.state.refs[i], this.tracked) == -1) {
+      if (Sefaria.util.inArray(this.state.refs[i], this.tracked) == -1) {
         if (Sefaria.site) {
           Sefaria.site.track.open(this.state.refs[i]);
         }
@@ -1828,7 +1830,7 @@ var ReaderNavigationMenu = React.createClass({
     home: React.PropTypes.bool
   },
   getInitialState: function getInitialState() {
-    this.width = 0;
+    this.width = 1000;
     return {
       showMore: false
     };
@@ -2468,7 +2470,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
         var newCats = cats.concat(item.category);
         // Special Case categories which should nest
         var subcats = ["Mishneh Torah", "Shulchan Arukh", "Midrash Rabbah", "Maharal"];
-        if ($.inArray(item.category, subcats) > -1) {
+        if (Sefaria.util.inArray(item.category, subcats) > -1) {
           content.push(React.createElement(
             'span',
             { className: 'catLink', 'data-cats': newCats.join("|"), key: i },
@@ -2635,7 +2637,7 @@ var ReaderTextTableOfContents = React.createClass({
     if ($a.length) {
       var ref = $a.attr("data-ref");
       ref = decodeURIComponent(ref);
-      ref = humanRef(ref);
+      ref = Sefaria.humanRef(ref);
       this.props.close();
       this.props.showBaseText(ref);
       e.preventDefault();
@@ -2974,7 +2976,7 @@ var VersionBlock = React.createClass({
         React.createElement(
           'a',
           { className: 'versionSource', target: '_blank', href: v.versionSource },
-          parseURL(v.versionSource).host
+          Sefaria.util.parseURL(v.versionSource).host
         ),
         React.createElement(
           'span',
@@ -3376,7 +3378,7 @@ var TextColumn = React.createClass({
       this.initialScrollTopSet = true;
     } else if (this.props.panelsOpen !== nextProps.panelsOpen) {
       this.scrolledToHighlight = false;
-    } else if (nextProps.srefs.length == 1 && $.inArray(nextProps.srefs[0], this.props.srefs) == -1) {
+    } else if (nextProps.srefs.length == 1 && Sefaria.util.inArray(nextProps.srefs[0], this.props.srefs) == -1) {
       // If we are switching to a single ref not in the current TextColumn, treat it as a fresh open.
       this.initialScrollTopSet = false;
       this.scrolledToHighlight = false;
@@ -3621,7 +3623,7 @@ var TextColumn = React.createClass({
       var hasNext = last && last.next;
       var topSymbol = " ";
       var bottomSymbol = " ";
-      if (hasPrev) {
+      if (hasPrev && INBROWSER) {
         content.splice(0, 0, React.createElement(LoadingMessage, { className: 'base prev', key: 'prev' }));
       } else {
         content.splice(0, 0, React.createElement(LoadingMessage, { message: topSymbol, heMessage: topSymbol, className: 'base prev', key: 'prev' }));
@@ -3672,16 +3674,7 @@ var TextRange = React.createClass({
     layoutWidth: React.PropTypes.number,
     showActionLinks: React.PropTypes.bool
   },
-  getInitialState: function getInitialState() {
-    return {
-      segments: [],
-      loaded: false,
-      linksLoaded: false,
-      data: { ref: this.props.sref }
-    };
-  },
   componentDidMount: function componentDidMount() {
-    this.getText();
     if (this.props.basetext || this.props.segmentNumber) {
       this.placeSegmentNumbers();
     }
@@ -3691,22 +3684,22 @@ var TextRange = React.createClass({
     window.removeEventListener('resize', this.handleResize);
   },
   componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
+    /* Doesn't seem to be need in addition to below
     // Reload text if version changed
     if (this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage) {
       this.getText(true);
     }
+    */
     // Place segment numbers again if update affected layout
-    else if (this.props.basetext || this.props.segmentNumber) {
-        if (!prevState.loaded && this.state.loaded || !prevState.linksLoaded && this.state.linksLoaded || prevProps.settings.language !== this.props.settings.language || prevProps.settings.layoutDefault !== this.props.settings.layoutDefault || prevProps.settings.layoutTanach !== this.props.settings.layoutTanach || prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud || prevProps.settings.fontSize !== this.props.settings.fontSize || prevProps.layoutWidth !== this.props.layoutWidth) {
-          window.requestAnimationFrame(function () {
-            if (this.isMounted()) {
-              this.placeSegmentNumbers();
-            }
-          }.bind(this));
-        }
+    if (this.props.basetext || this.props.segmentNumber) {
+      if (this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage || prevProps.settings.language !== this.props.settings.language || prevProps.settings.layoutDefault !== this.props.settings.layoutDefault || prevProps.settings.layoutTanach !== this.props.settings.layoutTanach || prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud || prevProps.settings.fontSize !== this.props.settings.fontSize || prevProps.layoutWidth !== this.props.layoutWidth) {
+        this.forceUpdate();
+        window.requestAnimationFrame(function () {
+          if (this.isMounted()) {
+            this.placeSegmentNumbers();
+          }
+        }.bind(this));
       }
-    if (this.props.onTextLoad && !prevState.loaded && this.state.loaded) {
-      this.props.onTextLoad();
     }
   },
   handleResize: function handleResize() {
@@ -3727,27 +3720,71 @@ var TextRange = React.createClass({
       }
     }
   },
-  getText: function getText(doRenumber) {
+  getText: function getText() {
     var settings = {
       context: this.props.withContext ? 1 : 0,
       version: this.props.version || null,
       language: this.props.versionLanguage || null
     };
-    Sefaria.text(this.props.sref, settings, function (data) {
-      this.loadText(data);
-      if (doRenumber) {
-        window.requestAnimationFrame(function () {
-          if (this.isMounted()) {
-            this.placeSegmentNumbers();
-          }
-        }.bind(this));
+    var data = Sefaria.text(this.props.sref, settings);
+    if (!data) {
+      // If we don't have data yet, call again with a callback to trigger API call
+      Sefaria.text(this.props.sref, settings, this.loadText);
+    }
+    return data;
+  },
+  loadText: function loadText(data) {
+    // Initiate additional API calls when text data first loads
+    if (this.props.basetext && this.props.sref !== data.ref) {
+      // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
+      // Pass parameter to showBaseText to replaceHistory
+      this.props.showBaseText(data.ref, true);
+    }
+
+    // Load links at section level if spanning, so that cache is properly primed with section level refs
+    var sectionRefs = data.isSpanning ? data.spanningRefs : [data.sectionRef];
+    sectionRefs = sectionRefs.map(function (ref) {
+      if (ref.indexOf("-") > -1) {
+        ref = ref.split("-")[0];
+        ref = ref.slice(0, ref.lastIndexOf(":"));
       }
-    }.bind(this));
+      return ref;
+    });
+
+    if (this.props.loadLinks && !Sefaria.linksLoaded(sectionRefs)) {
+      for (var i = 0; i < sectionRefs.length; i++) {
+        Sefaria.related(sectionRefs[i], function () {});
+      }
+    }
+
+    if (this.props.prefetchNextPrev) {
+      if (data.next) {
+        Sefaria.text(data.next, {
+          context: 1,
+          version: this.props.version || null,
+          language: this.props.versionLanguage || null
+        }, function () {});
+      }
+      if (data.prev) {
+        Sefaria.text(data.prev, {
+          context: 1,
+          version: this.props.version || null,
+          language: this.props.versionLanguage || null
+        }, function () {});
+      }
+      if (data.book) {
+        Sefaria.textTocHtml(data.book, function () {});
+      }
+    }
+
+    if (this.props.onTextLoad) {
+      this.props.onTextLoad();
+    }
   },
   makeSegments: function makeSegments(data) {
     // Returns a flat list of annotated segment objects,
     // derived from the walking the text in data
-    if ("error" in data) {
+    if (!data || "error" in data) {
       return [];
     }
     var segments = [];
@@ -3803,67 +3840,6 @@ var TextRange = React.createClass({
     }
     return segments;
   },
-  loadText: function loadText(data) {
-    // When data is actually available, load the text into the UI
-    if (this.props.basetext && this.props.sref !== data.ref) {
-      // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
-      // Pass parameter to showBaseText to replaceHistory
-      this.props.showBaseText(data.ref, true);
-    }
-
-    var segments = this.makeSegments(data);
-    if (this.isMounted()) {
-      this.setState({
-        data: data,
-        segments: segments,
-        loaded: true,
-        sref: data.ref
-      });
-    }
-
-    // Load links at section level if spanning, so that cache is properly primed with section level refs
-    var sectionRefs = data.isSpanning ? data.spanningRefs : [data.sectionRef];
-    sectionRefs = sectionRefs.map(function (ref) {
-      if (ref.indexOf("-") > -1) {
-        ref = ref.split("-")[0];
-        ref = ref.slice(0, ref.lastIndexOf(":"));
-      }
-      return ref;
-    });
-
-    if (this.props.loadLinks && !Sefaria.linksLoaded(sectionRefs)) {
-      // Calling when links are loaded will overwrite state.segments
-      for (var i = 0; i < sectionRefs.length; i++) {
-        Sefaria.related(sectionRefs[i], this.loadLinkCounts);
-      }
-    }
-
-    if (this.props.prefetchNextPrev) {
-      if (data.next) {
-        Sefaria.text(data.next, {
-          context: 1,
-          version: this.props.version || null,
-          language: this.props.versionLanguage || null
-        }, function () {});
-      }
-      if (data.prev) {
-        Sefaria.text(data.prev, {
-          context: 1,
-          version: this.props.version || null,
-          language: this.props.versionLanguage || null
-        }, function () {});
-      }
-      if (data.book) {
-        Sefaria.textTocHtml(data.book, function () {});
-      }
-    }
-  },
-  loadLinkCounts: function loadLinkCounts() {
-    // When link data has been loaded into the cache, load the counts into the UI
-    if (this.isMounted()) {
-      this.setState({ linksLoaded: true });
-    }
-  },
   placeSegmentNumbers: function placeSegmentNumbers() {
     // Set the vertical offsets for segment numbers and link counts, which are dependent
     // on the rendered height of the text of each segment.
@@ -3876,28 +3852,30 @@ var TextRange = React.createClass({
     $text.find(".linkCount").each(setTop);
   },
   render: function render() {
-    if (this.props.basetext && this.state.loaded) {
-      var ref = this.props.withContext ? this.state.data.sectionRef : this.state.data.ref;
+    var data = this.getText();
+    if (this.props.basetext && data) {
+      var ref = this.props.withContext ? data.sectionRef : data.ref;
       var sectionStrings = Sefaria.sectionString(ref);
       var oref = Sefaria.ref(ref);
-      var useShortString = oref && $.inArray(oref.categories[0], ["Tanach", "Mishnah", "Talmud", "Tosefta", "Commentary"]) !== -1;
+      var useShortString = oref && Sefaria.util.inArray(oref.categories[0], ["Tanach", "Mishnah", "Talmud", "Tosefta", "Commentary"]) !== -1;
       var title = useShortString ? sectionStrings.en.numbered : sectionStrings.en.named;
       var heTitle = useShortString ? sectionStrings.he.numbered : sectionStrings.he.named;
     } else if (this.props.basetext) {
       var title = "Loading...";
       var heTitle = "טעינה...";
     } else {
-      var title = this.state.data.ref;
-      var heTitle = this.state.data.heRef;
+      var title = data.ref;
+      var heTitle = data.heRef;
     }
 
-    var showNumberLabel = this.state.data.categories && this.state.data.categories[0] !== "Talmud" && this.state.data.categories[0] !== "Liturgy";
+    var showNumberLabel = data && data.categories && data.categories[0] !== "Talmud" && data.categories[0] !== "Liturgy";
 
     var showSegmentNumbers = showNumberLabel && this.props.basetext;
 
-    var textSegments = this.state.segments.map(function (segment, i) {
+    var segments = this.makeSegments(data);
+    var textSegments = segments.map(function (segment, i) {
       var highlight = this.props.highlightedRefs && this.props.highlightedRefs.length ? // if highlighted refs are explicitly set
-      $.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
+      Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
       this.props.basetext && segment.highlight; // otherwise highlight if this a basetext and the ref is specific
       return React.createElement(TextSegment, {
         sref: segment.ref,
@@ -3915,7 +3893,7 @@ var TextRange = React.createClass({
     var classes = {
       textRange: 1,
       basetext: this.props.basetext,
-      loading: !this.state.loaded,
+      loading: !data,
       lowlight: this.props.lowlight
     };
     classes = classNames(classes);
@@ -4042,7 +4020,7 @@ var TextSegment = React.createClass({
   handleClick: function handleClick(event) {
     if ($(event.target).hasClass("refLink")) {
       //Click of citation
-      var ref = humanRef($(event.target).attr("data-ref"));
+      var ref = Sefaria.humanRef($(event.target).attr("data-ref"));
       this.props.onCitationClick(ref, this.props.sref);
       event.stopPropagation();
       if (Sefaria.site) {
@@ -4521,11 +4499,11 @@ var TextList = React.createClass({
         // Viewing Text Connections
         var sectionLinks = Sefaria.links(sectionRef);
         var links = sectionLinks.filter(function (link) {
-          if ($.inArray(link.anchorRef, refs) === -1 && (this.props.multiPanel || !isSingleCommentary)) {
+          if (Sefaria.util.inArray(link.anchorRef, refs) === -1 && (this.props.multiPanel || !isSingleCommentary)) {
             // Only show section level links for an individual commentary
             return false;
           }
-          return filter.length == 0 || $.inArray(link.category, filter) !== -1 || $.inArray(link.commentator, filter) !== -1;
+          return filter.length == 0 || Sefaria.util.inArray(link.category, filter) !== -1 || Sefaria.util.inArray(link.commentator, filter) !== -1;
         }.bind(this)).sort(function (a, b) {
           if (a.anchorVerse !== b.anchorVerse) {
             return a.anchorVerse - b.anchorVerse;
@@ -4540,7 +4518,7 @@ var TextList = React.createClass({
           return React.createElement(TextRange, {
             sref: link.sourceRef,
             key: i + link.sourceRef,
-            lowlight: $.inArray(link.anchorRef, refs) === -1,
+            lowlight: Sefaria.util.inArray(link.anchorRef, refs) === -1,
             hideTitle: hideTitle,
             numberLabel: link.category === "Commentary" ? link.anchorVerse : 0,
             basetext: false,
@@ -4689,7 +4667,7 @@ var AllFilterSet = React.createClass({
         filter: this.props.filter,
         updateRecent: true,
         setFilter: this.props.setFilter,
-        on: $.inArray(cat.category, this.props.filter) !== -1 });
+        on: Sefaria.util.inArray(cat.category, this.props.filter) !== -1 });
     }.bind(this));
     return React.createElement(
       'div',
@@ -4719,7 +4697,7 @@ var CategoryFilter = React.createClass({
         hideColors: true,
         updateRecent: true,
         setFilter: this.props.setFilter,
-        on: $.inArray(book.book, this.props.filter) !== -1 });
+        on: Sefaria.util.inArray(book.book, this.props.filter) !== -1 });
     }.bind(this));
 
     var notClickable = this.props.category == "Community";
@@ -4832,7 +4810,7 @@ var RecentFilterSet = React.createClass({
 
     // Filter top links to exclude items already in recent filter
     topLinks = topLinks.filter(function (link) {
-      return $.inArray(link.book, this.props.recentFilters) == -1;
+      return Sefaria.util.inArray(link.book, this.props.recentFilters) == -1;
     }.bind(this));
 
     // Annotate filter texts with category           
@@ -4877,7 +4855,7 @@ var RecentFilterSet = React.createClass({
         count: book.count,
         updateRecent: false,
         setFilter: this.props.setFilter,
-        on: $.inArray(book.book, this.props.filter) !== -1 });
+        on: Sefaria.util.inArray(book.book, this.props.filter) !== -1 });
     }.bind(this));
 
     var moreButton = this.props.asHeader ? React.createElement(
@@ -5616,7 +5594,6 @@ var SearchPage = React.createClass({
   },
 
   render: function render() {
-
     var style = { "fontSize": this.props.settings.fontSize + "%" };
     var classes = classNames({ readerNavMenu: 1, noHeader: this.props.hideNavHeader });
     return React.createElement(
@@ -5721,7 +5698,6 @@ var SearchBar = React.createClass({
     this.setState({ query: event.target.value });
   },
   render: function render() {
-
     return React.createElement(
       'div',
       null,
@@ -6783,10 +6759,18 @@ if (typeof exports !== 'undefined') {
     // Set core data in the module that was loaded in a different scope
     Sefaria.toc = data.toc;
     Sefaria.books = data.books;
+    Sefaria.calendar = data.calendar;
     if ("booksDict" in data) {
       Sefaria.booksDict = data.booksDict;
     } else {
       Sefaria._makeBooksDict();
+    }
+    if ("recentlyViewed" in data) {
+      // Create mock cookie function in global namespace for data that the browser expects from cookies
+      // (Node donesn't have direct access to Django's cookies, so pass through props in POST data)
+      cookie = function cookie(key) {
+        return data.recentlyViewed;
+      };
     }
   };
   exports.saveTextData = function (data, settings) {

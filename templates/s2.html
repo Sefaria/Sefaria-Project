@@ -66,7 +66,8 @@
       for (var i = 0; i < initialPanels.length; i++) {
           var panel = initialPanels[i];
           if (panel.text) {
-            Sefaria._saveText(panel.text, {context: 1, version: panel.version, language: panel.language});
+            var settings = {context: 1, version: panel.version, language: panel.versionLanguage};
+            Sefaria._saveText(panel.text, settings);
           }
       }
 
