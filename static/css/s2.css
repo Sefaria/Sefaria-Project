@@ -1030,6 +1030,9 @@ h1 .languageToggle .he {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
 }
+.searchContent .type-button.active {
+  color: #000;
+}
 .searchContent .type-button-title,
 .searchContent .type-button-total {
   display: inline-block;

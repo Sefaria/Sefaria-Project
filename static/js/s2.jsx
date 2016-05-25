@@ -4664,7 +4664,8 @@ var SearchResultList = React.createClass({
             textTotal: 0,
             sheetTotal: 0,
             textHits: [],
-            sheetHits: []
+            sheetHits: [],
+            activeTab: "texts"
         }
     },
     updateRunningQuery: function(ajax) {
@@ -4963,7 +4964,12 @@ var SearchResultList = React.createClass({
       });
       return orphans;
     },
-
+    showSheets: function() {
+      this.setState({"activeTab": "sheets"});
+    },
+    showTexts:  function() {
+      this.setState({"activeTab": "texts"});
+    },
     render: function () {
         if (!(this.props.query)) {  // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
             return null;
@@ -4979,7 +4985,10 @@ var SearchResultList = React.createClass({
                   availableFilters={this.props.availableFilters}
                   appliedFilters = {this.props.appliedFilters}
                   updateAppliedFilter = {this.props.updateAppliedFilter}
-                  isQueryRunning = {this.state.isQueryRunning} />
+                  isQueryRunning = {this.state.isQueryRunning}
+                  activeTab = {this.state.activeTab}
+                  clickTextButton = {this.showTexts}
+                  clickSheetButton = {this.showSheets} />
                 {this.state.textHits.map(function(result) {
                     return (<SearchTextResult
                               data={result}
@@ -5008,7 +5017,10 @@ var SearchFilters = React.createClass({
     appliedFilters:       React.PropTypes.array,
     availableFilters:     React.PropTypes.array,
     updateAppliedFilter:  React.PropTypes.func,
-    isQueryRunning:       React.PropTypes.bool
+    isQueryRunning:       React.PropTypes.bool,
+    activeTab:            React.PropTypes.string,
+    clickTextButton:      React.PropTypes.func,
+    clickSheetButton:     React.PropTypes.func
   },
   getInitialState: function() {
     return {
@@ -5022,10 +5034,6 @@ var SearchFilters = React.createClass({
       appliedFilters: [],
       availableFilters: []
     };
-  },
-  componentWillMount() {
-  },
-  componentWillUnmount() {
   },
   componentWillReceiveProps(newProps) {
     // Save current filters
@@ -5073,10 +5081,12 @@ var SearchFilters = React.createClass({
   toggleFilterView: function() {
     this.setState({displayFilters: !this.state.displayFilters});
   },
-  _type_button: function(en_singular, en_plural, he_singular, he_plural, total) {
+  _type_button: function(en_singular, en_plural, he_singular, he_plural, total, on_click, active) {
     if (!total) { return "" }
       var total_with_commas = this._add_commas(total);
-      return <div className="type-button">
+      var classes = classNames({"type-button": 1, active: active});
+
+      return <div className={classes} onClick={on_click}>
       <div className="type-button-total">
         {total_with_commas}
       </div>
@@ -5090,60 +5100,53 @@ var SearchFilters = React.createClass({
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   },
   render: function() {
-    var buttons = <div className="type-buttons">
-      {this._type_button("Text", "Texts", "מקור", "מקורות", this.props.textTotal)}
-      {this._type_button("Sheet", "Sheets", "דף מקורות", "דפי מקורות", this.props.sheetTotal )}
-    </div>;
-    /*
-    var totalBreakdown = (
-      <span className="results-breakdown">&nbsp;
-        <span className="he">({totalTextsWithCommas} {(this.props.textTotal > 1) ? "מקורות":"מקור"}, {totalSheetsWithCommas} {(this.props.sheetTotal > 1)?"דפי מקורות":"דף מקורות"})</span>
-        <span className="en">({totalTextsWithCommas} {(this.props.textTotal > 1) ? "Texts":"Text"}, {totalSheetsWithCommas} {(this.props.sheetTotal > 1)?"Sheets":"Sheet"})</span>
-      </span>);
-    */
-    var enFilterLine = (!!this.props.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("en").join(", ")):"";
-    var heFilterLine = (!!this.props.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("he").join(", ")):"";
-
     var buttons_and_summary = (
-    <div>
-      {buttons}
-      <div className="results-count">
-          <span className="en">{enFilterLine}</span>
-          <span className="he">{heFilterLine}</span>
+      <div>
+        <div className="type-buttons">
+          {this._type_button("Text", "Texts", "מקור", "מקורות", this.props.textTotal, this.props.clickTextButton, (this.props.activeTab == "texts"))}
+          {this._type_button("Sheet", "Sheets", "דף מקורות", "דפי מקורות", this.props.sheetTotal, this.props.clickSheetButton, (this.props.activeTab == "sheets"))}
+        </div>
+        <div className="results-count">
+            <span className="en">
+              {(!!this.props.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("en").join(", ")):""}
+            </span>
+            <span className="he">
+              {(!!this.props.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("he").join(", ")):""}
+            </span>
+        </div>
       </div>
-    </div>
     );
 
     var runningQueryLine = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
-    var show_filters_classes = (this.state.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down";
+
     var filter_panel = (<div>
-          <div className="searchFilterToggle" onClick={this.toggleFilterView}>
-            <span className="en">Filter by Text   </span>
-            <span className="he">סנן לפי כותר   </span>
-            <i className={show_filters_classes} />
-          </div>
-          <div className="searchFilterBoxes" style={{display: this.state.displayFilters?"block":"none"}}>
-            <div className="searchFilterCategoryBox">
-            {this.props.availableFilters.map(function(filter) {
-                return (<SearchFilter
-                    filter={filter}
-                    isInFocus={this.state.openedCategory === filter}
-                    focusCategory={this.handleFocusCategory}
-                    updateSelected={this.props.updateAppliedFilter}
-                    key={filter.path}/>);
-            }.bind(this))}
-            </div>
-            <div className="searchFilterBookBox">
-            {this.state.openedCategoryBooks.map(function(filter) {
-                return (<SearchFilter
-                    filter={filter}
-                    updateSelected={this.props.updateAppliedFilter}
-                    key={filter.path}/>);
-            }.bind(this))}
-            </div>
-            <div style={{clear: "both"}}/>
-          </div>
-        </div>);
+      <div className="searchFilterToggle" onClick={this.toggleFilterView}>
+        <span className="en">Filter by Text   </span>
+        <span className="he">סנן לפי כותר   </span>
+        <i className={(this.state.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down"} />
+      </div>
+      <div className="searchFilterBoxes" style={{display: this.state.displayFilters?"block":"none"}}>
+        <div className="searchFilterCategoryBox">
+        {this.props.availableFilters.map(function(filter) {
+            return (<SearchFilter
+                filter={filter}
+                isInFocus={this.state.openedCategory === filter}
+                focusCategory={this.handleFocusCategory}
+                updateSelected={this.props.updateAppliedFilter}
+                key={filter.path}/>);
+        }.bind(this))}
+        </div>
+        <div className="searchFilterBookBox">
+        {this.state.openedCategoryBooks.map(function(filter) {
+            return (<SearchFilter
+                filter={filter}
+                updateSelected={this.props.updateAppliedFilter}
+                key={filter.path}/>);
+        }.bind(this))}
+        </div>
+        <div style={{clear: "both"}}/>
+      </div>
+    </div>);
 
     return (
       <div className="searchTopMatter">
