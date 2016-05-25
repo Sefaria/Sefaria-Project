@@ -1029,6 +1029,7 @@ h1 .languageToggle .he {
   color: #999;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
+  cursor: pointer;
 }
 .searchContent .type-button.active {
   color: #000;

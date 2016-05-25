@@ -179,7 +179,7 @@ def switch_to_s2(request):
     """Set the S2 cookie then redirect to /texts"""
 
     response = redirect("/texts")
-    response.set_cookie("s2", "true");
+    response.set_cookie("s2", "true")
     return response
 
 
@@ -342,7 +342,7 @@ def s2_texts_category(request, cats):
 
     props = {
         "initialMenu": "navigation",
-        "initialNavigationCategories": json.dumps(cats),
+        "initialNavigationCategories": cats,
     }
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
@@ -359,8 +359,8 @@ def s2_search(request):
 
     props = {
         "initialMenu": "search",
-        "query": request.GET.get("q") or "",
-        "searchFilters": json.dumps(search_filters)
+        "initialQuery": request.GET.get("q") or "",
+        "initialSearchFilters": search_filters
     }
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
