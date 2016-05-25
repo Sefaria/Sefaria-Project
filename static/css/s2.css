@@ -1017,8 +1017,25 @@ h1 .languageToggle .he {
   margin-top: -60px;
   text-align: center;
   font-size: 12px;
-  height: 20px;
+  height: 64px;
 }
+.searchContent .type-button {
+  padding: 5px;
+  margin: 10px;
+  border: solid 1px;
+  border-radius: 10px;
+  display: inline-block;
+  font-size: 12px;
+  color: #999;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  letter-spacing: 1px;
+}
+.searchContent .type-button-title,
+.searchContent .type-button-total {
+  display: inline-block;
+  padding: 2px;
+}
+
 .searchContent .results-count,
 .searchContent .searchStatusLine > .loadingMessage {
   color: #999;

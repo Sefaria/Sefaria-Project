@@ -5073,27 +5073,46 @@ var SearchFilters = React.createClass({
   toggleFilterView: function() {
     this.setState({displayFilters: !this.state.displayFilters});
   },
+  _type_button: function(en_singular, en_plural, he_singular, he_plural, total) {
+    if (!total) { return "" }
+      var total_with_commas = this._add_commas(total);
+      return <div className="type-button">
+      <div className="type-button-total">
+        {total_with_commas}
+      </div>
+      <div className="type-button-title">
+        <span className="en">{(total > 1) ? en_plural : en_singular}</span>
+        <span className="he">{(total > 1) ? he_plural : he_singular}</span>
+      </div>
+    </div>;
+  },
+  _add_commas: function(number) {
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  },
   render: function() {
-    var addCommas = function(number) { return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); };
-    var totalWithCommas = addCommas(this.props.total);
-    var totalSheetsWithCommas = addCommas(this.props.sheetTotal);
-    var totalTextsWithCommas = addCommas(this.props.textTotal);
-
+    var buttons = <div className="type-buttons">
+      {this._type_button("Text", "Texts", "מקור", "מקורות", this.props.textTotal)}
+      {this._type_button("Sheet", "Sheets", "דף מקורות", "דפי מקורות", this.props.sheetTotal )}
+    </div>;
+    /*
     var totalBreakdown = (
       <span className="results-breakdown">&nbsp;
         <span className="he">({totalTextsWithCommas} {(this.props.textTotal > 1) ? "מקורות":"מקור"}, {totalSheetsWithCommas} {(this.props.sheetTotal > 1)?"דפי מקורות":"דף מקורות"})</span>
         <span className="en">({totalTextsWithCommas} {(this.props.textTotal > 1) ? "Texts":"Text"}, {totalSheetsWithCommas} {(this.props.sheetTotal > 1)?"Sheets":"Sheet"})</span>
       </span>);
+    */
+    var enFilterLine = (!!this.props.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("en").join(", ")):"";
+    var heFilterLine = (!!this.props.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("he").join(", ")):"";
 
-    var enFilterLine = (!!this.props.appliedFilters.length && !!this.props.total)?(": " + this.getSelectedTitles("en").join(", ")):"";
-    var heFilterLine = (!!this.props.appliedFilters.length && !!this.props.total)?(": " + this.getSelectedTitles("he").join(", ")):"";
-
-    var summaryLines = (
+    var buttons_and_summary = (
+    <div>
+      {buttons}
       <div className="results-count">
-          <span className="en">{totalWithCommas} Results{enFilterLine}</span>
-          <span className="he">{totalWithCommas} תוצאות{heFilterLine}</span>
-          {(this.props.sheetTotal > 0 && this.props.textTotal > 0) ? totalBreakdown : null}
-      </div>);
+          <span className="en">{enFilterLine}</span>
+          <span className="he">{heFilterLine}</span>
+      </div>
+    </div>
+    );
 
     var runningQueryLine = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
     var show_filters_classes = (this.state.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down";
@@ -5129,7 +5148,7 @@ var SearchFilters = React.createClass({
     return (
       <div className="searchTopMatter">
         <div className="searchStatusLine">
-        { (this.props.isQueryRunning) ? runningQueryLine : summaryLines }
+        { (this.props.isQueryRunning) ? runningQueryLine : buttons_and_summary }
         </div>
         { (this.props.textTotal > 0) ? filter_panel : "" }
       </div>)
