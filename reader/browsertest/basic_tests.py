@@ -7,6 +7,20 @@ from selenium.webdriver.common.keys import Keys
 TEMPER = 10
 
 
+class SinglePanelOnMobile(AtomicTest):
+    suite_key = "S2 Reader"
+    every_build = True
+    multi_panel = False
+
+    def run(self):
+        self.load_toc().click_toc_category("Tanach").click_toc_text("Exodus")
+        elems = self.driver.find_elements_by_css_selector(".readerApp.multiPanel")
+        assert len(elems) == 0
+        self.click_segment("Exodus 1:1")
+        elems = self.driver.find_elements_by_css_selector(".readerApp > .readerPanelBox")
+        assert len(elems) == 1
+
+
 class PagesLoad(AtomicTest):
     suite_key = "S2 Reader"
     every_build = True
@@ -49,6 +63,14 @@ class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
         self.s2()
         self.load_ref("Psalms 45:5", filter="all").click_text_filter("Rashi")
         assert "Psalms.45.5?with=Rashi" in self.driver.current_url, self.driver.current_url
+
+
+class LoadSearchFromURL(AtomicTest):
+    suite_key = "S2 Search"
+    every_build = True
+
+    def run(self):
+        self.s2().load_search_url("Passover")
 
 
 class ClickVersionedSearchResultDesktop(AtomicTest):
