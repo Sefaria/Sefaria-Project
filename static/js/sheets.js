@@ -66,7 +66,7 @@ $(function() {
 	  function() {
 	  
 	  }
-	); 
+	);
 
 
 	$("#addSource, #addButton").click(function() { 
@@ -1092,6 +1092,24 @@ $(function() {
 
 
 
+		});
+
+		$("#addSourceMenu").click(function() {
+			$("#sheet").click();
+			$("#sourceButton").click();
+			$("html, body").animate({scrollTop: $(document).height() }, 750);
+		});
+
+		$("#addCustomMenu").click(function() {
+			$("#sheet").click();
+			$("#customTextButton").click();
+			$("html, body").animate({scrollTop: $(document).height() }, 750);
+		});
+
+		$("#addCommentMenu").click(function() {
+			$("#sheet").click();
+			$("#commentButton").click();
+			$("html, body").animate({scrollTop: $(document).height() }, 750);
 		});
 
 		$("#addInterface").on("click", "#connectionButton", function (e) {

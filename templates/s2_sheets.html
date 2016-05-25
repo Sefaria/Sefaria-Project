@@ -206,13 +206,12 @@
             {% if can_edit or can_add %}
         <div class="sheetsMenuBarItem" id="insertMenu">Insert
 			<div class="optionsMenu">
-				<div class="optionItem" id="addSource"><i class='fa fa-link'></i> Source</div>
+				<div class="optionItem" id="addSourceMenu"><i class='fa fa-link'></i> Source</div>
    				{% if is_owner %}
                 <div class="optionItem" id="addParashaToSheetModalTrigger"><i class='fa fa-book'></i> Parasha</div>
 				{% endif %}
-                <div class="optionItem" id="addBiOutside"><i class='fa fa-columns'></i> Outside Text (Bilingual)</div>
-				<div class="optionItem" id="addOutside"><i class='fa fa-file-o'></i> Outside Text</div>
-				<div class="optionItem" id="addComment"><i class='fa fa-comment'></i> Comment</div>
+                <div class="optionItem" id="addCustomMenu"><i class='fa fa-columns'></i> Custom Text</div>
+				<div class="optionItem" id="addCommentMenu"><i class='fa fa-comment'></i> Comment</div>
 				<div class="optionItem" id="addMedia"><i class='fa fa-youtube-play'></i> Media</div>
             </div>
         </div>
