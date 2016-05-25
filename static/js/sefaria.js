@@ -1096,6 +1096,7 @@ Sefaria = extend(Sefaria, {
            query: query string
            size: size of result set
            from: from what result to start
+           type: null, "sheet" or "text"
            get_filters: if to fetch initial filters
            applied_filters: filter query by these filters
            success: callback on success
@@ -1104,17 +1105,13 @@ Sefaria = extend(Sefaria, {
           if (!args.query) {
               return;
           }
-          var req = JSON.stringify(Sefaria.search.get_query_object(args.query, args.get_filters, args.applied_filters))
+          var req = JSON.stringify(Sefaria.search.get_query_object(args.query, args.get_filters, args.applied_filters, args.size, args.from, args.type));
           var cache_result = this.cache(req);
           if (cache_result) {
               args.success(cache_result);
               return null;
           }
           var url = Sefaria.search.baseUrl;
-          url += "?size=" + args.size;
-          if (args.from) {
-              url += "&from=" + args.from;
-          }
 
           return $.ajax({
               url: url,
@@ -1130,7 +1127,7 @@ Sefaria = extend(Sefaria, {
               error: args.error
           });
       },
-      get_query_object: function (query, get_filters, applied_filters, type) {
+      get_query_object: function (query, get_filters, applied_filters, size, from, type) {
           // query: string
           // get_filters: boolean
           // applied_filters: null or list of applied filters (in format supplied by Filter_Tree...)
@@ -1149,6 +1146,8 @@ Sefaria = extend(Sefaria, {
               };
           }
           var o = {
+              "from": from,
+              "size": size,
               "sort": [{
                   "order": {}                 // the sort field name is "order"
               }],

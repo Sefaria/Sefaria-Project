@@ -1463,7 +1463,6 @@ var ReaderPanel = React.createClass({
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       var menu = (<SearchPage
                     query={this.state.searchQuery}
-                    initialPage={1}
                     appliedFilters={this.state.appliedSearchFilters}
                     settings={Sefaria.util.clone(this.state.settings)}
                     onResultClick={this.props.onSearchResultClick}
@@ -4505,7 +4504,6 @@ var LoginPanel = React.createClass({
 var SearchPage = React.createClass({
     propTypes: {
         query:                React.PropTypes.string,
-        initialPage:          React.PropTypes.number,
         appliedFilters:       React.PropTypes.array,
         settings:             React.PropTypes.object,
         close:                React.PropTypes.func,
@@ -4518,9 +4516,7 @@ var SearchPage = React.createClass({
         hideNavHeader:        React.PropTypes.bool
     },
     getInitialState: function() {
-        return {
-            page: this.props.initialPage || 1
-        };
+        return {};
     },
 
     getDefaultProps: function() {
@@ -4559,7 +4555,6 @@ var SearchPage = React.createClass({
                           <div className="searchContent" style={style}>
                               <SearchResultList
                                   query = { this.props.query }
-                                  page = { this.state.page }
                                   appliedFilters = {this.props.appliedFilters}
                                   onResultClick={this.props.onResultClick}
                                   updateAppliedFilter = {this.props.updateAppliedFilter}
@@ -4617,18 +4612,17 @@ var SearchResultList = React.createClass({
     propTypes: {
         query:                React.PropTypes.string,
         appliedFilters:       React.PropTypes.array,
-        page:                 React.PropTypes.number,
-        size:                 React.PropTypes.number,
         onResultClick:        React.PropTypes.func,
         filtersValid:         React.PropTypes.bool,
         availableFilters:     React.PropTypes.array,
         updateAppliedFilter:  React.PropTypes.func,
         registerAvailableFilters: React.PropTypes.func
     },
+    initialQuerySize: 100,
+    backgroundQuerySize: 1000,
+    maxResultSize: 10000,
     getDefaultProps: function() {
         return {
-            page: 1,
-            size: 1000,
             appliedFilters: []
         };
     },
@@ -4678,13 +4672,31 @@ var SearchResultList = React.createClass({
           !(this.props.appliedFilters.every((v,i) => v === newProps.appliedFilters[i]))) {
            this._executeQuery(newProps)
         }
-        else if (this.props.size != newProps.size || this.props.page != newProps.page) {
-          this._executeQuery(newProps);
-        }
         // Execute a second query to apply filters after an initial query which got available filters
         else if ((this.props.filtersValid != newProps.filtersValid) && this.props.appliedFilters.length > 0) {
            this._executeQuery(newProps);
         }
+    },
+    _loadRemainder: function(last, total, currentTextHits, currentSheetHits) {
+    // Having loaded "last" results, and with "total" results to load, load the rest, this.backgroundQuerySize at a time
+      if (last >= total || last >= this.maxResultSize) {
+        return;
+      }
+      Sefaria.search.execute_query({
+        query: this.props.query,
+        get_filters: false,
+        applied_filters: this.props.appliedFilters,
+        size: this.backgroundQuerySize,
+        from: last,
+        error: function() {  console.log("Failure in SearchResultList._loadRemainder"); }, // Fail silently, since first load was okay?
+        success: function(data) {
+          var hitarrays = this._process_hits(data.hits.hits);
+          var nextTextHits = currentTextHits.concat(hitarrays.texts);
+          var nextSheetHits = currentSheetHits.concat(hitarrays.sheets);
+          this.setState({textHits: nextTextHits, sheetHits: nextSheetHits});
+          this._loadRemainder(last + this.backgroundQuerySize, total, nextTextHits, nextSheetHits);
+        }.bind(this)
+      });
     },
     _executeQuery: function(props) {
         //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
@@ -4699,13 +4711,15 @@ var SearchResultList = React.createClass({
         // 1) Get all potential filters and counts
         // 2) Apply filters (Triggered from componentWillReceiveProps)
         var request_applied = props.filtersValid && props.appliedFilters;
+        var isCompletionStep = !!request_applied || props.appliedFilters.length == 0;
 
         var runningQuery = Sefaria.search.execute_query({
             query: props.query,
             get_filters: !props.filtersValid,
             applied_filters: request_applied,
-            size: props.page * props.size,
+            size: this.initialQuerySize,
             success: function(data) {
+                //debugger;
                 this.updateRunningQuery(null);
                 if (this.isMounted()) {
                     var hitarrays = this._process_hits(data.hits.hits);
@@ -4739,6 +4753,9 @@ var SearchResultList = React.createClass({
                           });
                         }
                       }
+                   }
+                   if(isCompletionStep) {
+                     this._loadRemainder(this.initialQuerySize, data.hits.total, hitarrays.texts, hitarrays.sheets);
                    }
                 }
             }.bind(this),
@@ -4852,7 +4869,6 @@ var SearchResultList = React.createClass({
       }
       return {availableFilters: filters, registry: registry};
 
-\
       function walk(branch, parentNode) {
           var node = new Sefaria.search.FilterNode();
 
