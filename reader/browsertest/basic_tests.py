@@ -70,7 +70,7 @@ class LoadSearchFromURL(AtomicTest):
     every_build = True
 
     def run(self):
-        self.s2().search_for("Passover")
+        self.s2().load_search_url("Passover")
 
 
 class ClickVersionedSearchResultDesktop(AtomicTest):

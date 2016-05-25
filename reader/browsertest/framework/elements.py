@@ -127,7 +127,7 @@ class AtomicTest(object):
         return self
 
     # Search
-    def load_search(self, query=None):
+    def load_search_url(self, query=None):
         url = self.base_url + "/search"
         if query is not None:
             url += "?q={}".format(query)
