@@ -4845,49 +4845,25 @@ var SearchResultList = React.createClass({
       var path = [];
       var filters = [];
       var registry = {};
-      /*
-      //Manually add base commentary branch
-      var commentaryNode = new Sefaria.FilterNode();
-      var rnode = rawTree["Commentary"];
-      if (rnode) {
-          extend(commentaryNode, {
-              "title": "Commentary",
-              "path": "Commentary",
-              "heTitle": "מפרשים",
-              "doc_count": rnode.doc_count
-          });
-          //ftree.registry[commentaryNode.path] = commentaryNode;
-      }
-      //End commentary base hack
-      */
+
       for(var j = 0; j < Sefaria.toc.length; j++) {
           var b = walk.call(this, Sefaria.toc[j]);
           if (b) filters.push(b);
       }
       return {availableFilters: filters, registry: registry};
 
-      //if (rnode) this.state.children.append(commentaryNode);
-
+\
       function walk(branch, parentNode) {
           var node = new Sefaria.search.FilterNode();
 
           if("category" in branch) { // Category node
-              /*if(branch["category"] == "Commentary") { // Special case commentary
+              path.push(branch["category"]);  // Place this category at the *end* of the path
+              extend(node, {
+                 "title": path.slice(-1)[0],
+                 "path": path.join("/"),
+                 "heTitle": branch["heCategory"]
+              });
 
-                  path.unshift(branch["category"]);  // Place "Commentary" at the *beginning* of the path
-                   extend(node, {
-                       "title": parentNode.title,
-                       "path": path.join("/"),
-                       "heTitle": parentNode.heTitle
-                   });
-              } else {*/
-                  path.push(branch["category"]);  // Place this category at the *end* of the path
-                  extend(node, {
-                     "title": path.slice(-1)[0],
-                     "path": path.join("/"),
-                     "heTitle": branch["heCategory"]
-                  });
-              //}
               for(var j = 0; j < branch["contents"].length; j++) {
                   var b = walk.call(this, branch["contents"][j], node);
                   if (b) node.append(b);
@@ -4914,24 +4890,12 @@ var SearchResultList = React.createClass({
               // Do we need both of these in the registry?
               registry[node.getId()] = node;
               registry[node.path] = node;
-              /*
-                if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
-                  commentaryNode.append(node);
-                  path.shift();
-                  return false;
-              }
-              */
+
               path.pop();
               return node;
           }
           catch (e) {
-            /*
-            if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
-                  path.shift();
-              } else {
-              */
               path.pop();
-              //}
               return false;
           }
       }
