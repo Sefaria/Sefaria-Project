@@ -432,6 +432,31 @@ Sefaria = extend(Sefaria, {
       return refs;
     }
   },
+  _lexiconLookups: {},
+  lexicon: function(words, ref, cb){
+    // Returns a list of lexicon entries for the given words
+    ref = typeof ref !== "undefined" ? ref : null;
+    var cache_key = ref ? words + "|" + ref : words;
+    /*if (typeof ref != 'undefined'){
+      cache_key += "|" + ref
+    }*/
+    if (!cb) {
+      return this._lexiconLookups[cache_key] || [];
+    }
+    if (words in this._lexiconLookups) {
+      cb(this._lexiconLookups[cache_key]);
+    } else {
+      var url = "/api/words/" + encodeURIComponent(words)+"?never_split=1";
+      if(ref){
+        url+="&lookup_ref="+ref;
+      }
+      //console.log(url);
+      this._api(url, function(data) {
+        this._lexiconLookups[cache_key] = data;
+        cb(data);
+      }.bind(this));
+    }
+  },
   _links: {},
   links: function(ref, cb) {
     // Returns a list of links known for `ref`.
@@ -1096,6 +1121,7 @@ Sefaria = extend(Sefaria, {
            query: query string
            size: size of result set
            from: from what result to start
+           type: null, "sheet" or "text"
            get_filters: if to fetch initial filters
            applied_filters: filter query by these filters
            success: callback on success
@@ -1104,17 +1130,13 @@ Sefaria = extend(Sefaria, {
           if (!args.query) {
               return;
           }
-          var req = JSON.stringify(Sefaria.search.get_query_object(args.query, args.get_filters, args.applied_filters))
+          var req = JSON.stringify(Sefaria.search.get_query_object(args.query, args.get_filters, args.applied_filters, args.size, args.from, args.type));
           var cache_result = this.cache(req);
           if (cache_result) {
               args.success(cache_result);
               return null;
           }
           var url = Sefaria.search.baseUrl;
-          url += "?size=" + args.size;
-          if (args.from) {
-              url += "&from=" + args.from;
-          }
 
           return $.ajax({
               url: url,
@@ -1130,7 +1152,7 @@ Sefaria = extend(Sefaria, {
               error: args.error
           });
       },
-      get_query_object: function (query, get_filters, applied_filters) {
+      get_query_object: function (query, get_filters, applied_filters, size, from, type) {
           // query: string
           // get_filters: boolean
           // applied_filters: null or list of applied filters (in format supplied by Filter_Tree...)
@@ -1141,8 +1163,16 @@ Sefaria = extend(Sefaria, {
                   "fields": ["content"]
               }
           };
-
+          if (type) {
+              core_query["filtered"] = {
+                  "filter" : {
+                      "type" : {"value": type}
+                  }
+              };
+          }
           var o = {
+              "from": from,
+              "size": size,
               "sort": [{
                   "order": {}                 // the sort field name is "order"
               }],
@@ -1164,6 +1194,12 @@ Sefaria = extend(Sefaria, {
                           "field": "path",
                           "size": 0
                       }
+                  },
+                  "type": {
+                      "terms": {
+                          "field": "_type",
+                          "size": 0
+                      }
                   }
               };
           } else if (!applied_filters || applied_filters.length == 0) {
@@ -1183,6 +1219,14 @@ Sefaria = extend(Sefaria, {
                       "query": core_query,
                       "filter": {
                           "or": clauses
+                      }
+                  }
+              };
+              o['aggs'] = {
+                  "type": {
+                      "terms": {
+                          "field": "_type",
+                          "size": 0
                       }
                   }
               };
@@ -1401,6 +1445,7 @@ Sefaria.util = {
         };
     },
     inArray: function(needle, haystack) {
+      if (!haystack) { return -1 } //For parity of behavior w/ JQuery inArray
       var index = -1;
       for (var i = 0; i < haystack.length; i++) {
         if (haystack[i] === needle) {
@@ -1707,6 +1752,41 @@ Sefaria.util = {
         if(typeof(console) === 'undefined') {
             var console = {}
             console.log = function() {};
+        }
+    },
+    
+    getSelectionBoundaryElement: function(isStart) {
+        // http://stackoverflow.com/questions/1335252/how-can-i-get-the-dom-element-which-contains-the-current-selection
+        var range, sel, container;
+        if (document.selection) {
+            range = document.selection.createRange();
+            range.collapse(isStart);
+            return range.parentElement();
+        } else {
+            sel = window.getSelection();
+            if (sel.getRangeAt) {
+                if (sel.rangeCount > 0) {
+                    range = sel.getRangeAt(0);
+                }
+            } else {
+                // Old WebKit
+                range = document.createRange();
+                range.setStart(sel.anchorNode, sel.anchorOffset);
+                range.setEnd(sel.focusNode, sel.focusOffset);
+    
+                // Handle the case when the selection was selected backwards (from the end to the start in the document)
+                if (range.collapsed !== sel.isCollapsed) {
+                    range.setStart(sel.focusNode, sel.focusOffset);
+                    range.setEnd(sel.anchorNode, sel.anchorOffset);
+                }
+           }
+    
+            if (range) {
+               container = range[isStart ? "startContainer" : "endContainer"];
+    
+               // Check if the container is a text node and return its parent if so
+               return container.nodeType === 3 ? container.parentNode : container;
+            }   
         }
     }
 

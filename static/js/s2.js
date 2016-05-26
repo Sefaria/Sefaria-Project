@@ -1541,7 +1541,6 @@ var ReaderPanel = React.createClass({
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       var menu = React.createElement(SearchPage, {
         query: this.state.searchQuery,
-        initialPage: 1,
         appliedFilters: this.state.appliedSearchFilters,
         settings: Sefaria.util.clone(this.state.settings),
         onResultClick: this.props.onSearchResultClick,
@@ -5569,7 +5568,6 @@ var SearchPage = React.createClass({
 
   propTypes: {
     query: React.PropTypes.string,
-    initialPage: React.PropTypes.number,
     appliedFilters: React.PropTypes.array,
     settings: React.PropTypes.object,
     close: React.PropTypes.func,
@@ -5582,9 +5580,7 @@ var SearchPage = React.createClass({
     hideNavHeader: React.PropTypes.bool
   },
   getInitialState: function getInitialState() {
-    return {
-      page: this.props.initialPage || 1
-    };
+    return {};
   },
 
   getDefaultProps: function getDefaultProps() {
@@ -5656,7 +5652,6 @@ var SearchPage = React.createClass({
               { className: 'searchContent', style: style },
               React.createElement(SearchResultList, {
                 query: this.props.query,
-                page: this.state.page,
                 appliedFilters: this.props.appliedFilters,
                 onResultClick: this.props.onResultClick,
                 updateAppliedFilter: this.props.updateAppliedFilter,
@@ -5718,18 +5713,17 @@ var SearchResultList = React.createClass({
   propTypes: {
     query: React.PropTypes.string,
     appliedFilters: React.PropTypes.array,
-    page: React.PropTypes.number,
-    size: React.PropTypes.number,
     onResultClick: React.PropTypes.func,
     filtersValid: React.PropTypes.bool,
     availableFilters: React.PropTypes.array,
     updateAppliedFilter: React.PropTypes.func,
     registerAvailableFilters: React.PropTypes.func
   },
+  initialQuerySize: 100,
+  backgroundQuerySize: 1000,
+  maxResultSize: 10000,
   getDefaultProps: function getDefaultProps() {
     return {
-      page: 1,
-      size: 100,
       appliedFilters: []
     };
   },
@@ -5741,7 +5735,8 @@ var SearchResultList = React.createClass({
       textTotal: 0,
       sheetTotal: 0,
       textHits: [],
-      sheetHits: []
+      sheetHits: [],
+      activeTab: "texts"
     };
   },
   updateRunningQuery: function updateRunningQuery(ajax) {
@@ -5776,13 +5771,34 @@ var SearchResultList = React.createClass({
       return v === newProps.appliedFilters[i];
     })) {
       this._executeQuery(newProps);
-    } else if (this.props.size != newProps.size || this.props.page != newProps.page) {
-      this._executeQuery(newProps);
     }
     // Execute a second query to apply filters after an initial query which got available filters
     else if (this.props.filtersValid != newProps.filtersValid && this.props.appliedFilters.length > 0) {
         this._executeQuery(newProps);
       }
+  },
+  _loadRemainder: function _loadRemainder(last, total, currentTextHits, currentSheetHits) {
+    // Having loaded "last" results, and with "total" results to load, load the rest, this.backgroundQuerySize at a time
+    if (last >= total || last >= this.maxResultSize) {
+      return;
+    }
+    Sefaria.search.execute_query({
+      query: this.props.query,
+      get_filters: false,
+      applied_filters: this.props.appliedFilters,
+      size: this.backgroundQuerySize,
+      from: last,
+      error: function error() {
+        console.log("Failure in SearchResultList._loadRemainder");
+      }, // Fail silently, since first load was okay?
+      success: function (data) {
+        var hitarrays = this._process_hits(data.hits.hits);
+        var nextTextHits = currentTextHits.concat(hitarrays.texts);
+        var nextSheetHits = currentSheetHits.concat(hitarrays.sheets);
+        this.setState({ textHits: nextTextHits, sheetHits: nextSheetHits });
+        this._loadRemainder(last + this.backgroundQuerySize, total, nextTextHits, nextSheetHits);
+      }.bind(this)
+    });
   },
   _executeQuery: function _executeQuery(props) {
     //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
@@ -5797,27 +5813,53 @@ var SearchResultList = React.createClass({
     // 1) Get all potential filters and counts
     // 2) Apply filters (Triggered from componentWillReceiveProps)
     var request_applied = props.filtersValid && props.appliedFilters;
+    var isCompletionStep = !!request_applied || props.appliedFilters.length == 0;
 
     var runningQuery = Sefaria.search.execute_query({
       query: props.query,
       get_filters: !props.filtersValid,
       applied_filters: request_applied,
-      size: props.page * props.size,
+      size: this.initialQuerySize,
       success: function (data) {
+        //debugger;
         this.updateRunningQuery(null);
         if (this.isMounted()) {
           var hitarrays = this._process_hits(data.hits.hits);
           this.setState({
             textHits: hitarrays.texts,
             sheetHits: hitarrays.sheets,
-            total: data.hits.total,
-            textTotal: hitarrays.texts.length,
-            sheetTotal: hitarrays.sheets.length
+            total: data.hits.total
           });
           if (data.aggregations) {
-            var ftree = this._buildFilterTree(data.aggregations.category.buckets);
-            var orphans = this._applyFilters(ftree, this.props.appliedFilters);
-            this.props.registerAvailableFilters(ftree.availableFilters, ftree.registry, orphans);
+            if (data.aggregations.category) {
+              var ftree = this._buildFilterTree(data.aggregations.category.buckets);
+              var orphans = this._applyFilters(ftree, this.props.appliedFilters);
+              this.props.registerAvailableFilters(ftree.availableFilters, ftree.registry, orphans);
+            }
+            if (data.aggregations.type) {
+              var types = {};
+              data.aggregations.type.buckets.forEach(function (b) {
+                types[b["key"]] = b["doc_count"];
+              });
+              if (types["text"]) {
+                this.setState({
+                  textTotal: types["text"],
+                  activeTab: "texts"
+                });
+              } else {
+                this.setState({
+                  activeTab: "sheets"
+                });
+              }
+              if (types["sheet"]) {
+                this.setState({
+                  sheetTotal: types["sheet"]
+                });
+              }
+            }
+          }
+          if (isCompletionStep) {
+            this._loadRemainder(this.initialQuerySize, data.hits.total, hitarrays.texts, hitarrays.sheets);
           }
         }
       }.bind(this),
@@ -5928,49 +5970,25 @@ var SearchResultList = React.createClass({
     var path = [];
     var filters = [];
     var registry = {};
-    /*
-    //Manually add base commentary branch
-    var commentaryNode = new Sefaria.FilterNode();
-    var rnode = rawTree["Commentary"];
-    if (rnode) {
-        extend(commentaryNode, {
-            "title": "Commentary",
-            "path": "Commentary",
-            "heTitle": "מפרשים",
-            "doc_count": rnode.doc_count
-        });
-        //ftree.registry[commentaryNode.path] = commentaryNode;
-    }
-    //End commentary base hack
-    */
+
     for (var j = 0; j < Sefaria.toc.length; j++) {
       var b = walk.call(this, Sefaria.toc[j]);
       if (b) filters.push(b);
     }
     return { availableFilters: filters, registry: registry };
 
-    //if (rnode) this.state.children.append(commentaryNode);
-
     function walk(branch, parentNode) {
       var node = new Sefaria.search.FilterNode();
 
       if ("category" in branch) {
         // Category node
-        /*if(branch["category"] == "Commentary") { // Special case commentary
-             path.unshift(branch["category"]);  // Place "Commentary" at the *beginning* of the path
-             extend(node, {
-                 "title": parentNode.title,
-                 "path": path.join("/"),
-                 "heTitle": parentNode.heTitle
-             });
-        } else {*/
         path.push(branch["category"]); // Place this category at the *end* of the path
         extend(node, {
           "title": path.slice(-1)[0],
           "path": path.join("/"),
           "heTitle": branch["heCategory"]
         });
-        //}
+
         for (var j = 0; j < branch["contents"].length; j++) {
           var b = walk.call(this, branch["contents"][j], node);
           if (b) node.append(b);
@@ -5997,23 +6015,11 @@ var SearchResultList = React.createClass({
         // Do we need both of these in the registry?
         registry[node.getId()] = node;
         registry[node.path] = node;
-        /*
-          if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
-            commentaryNode.append(node);
-            path.shift();
-            return false;
-        }
-        */
+
         path.pop();
         return node;
       } catch (e) {
-        /*
-        if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
-              path.shift();
-          } else {
-          */
         path.pop();
-        //}
         return false;
       }
     }
@@ -6030,7 +6036,12 @@ var SearchResultList = React.createClass({
     });
     return orphans;
   },
-
+  showSheets: function showSheets() {
+    this.setState({ "activeTab": "sheets" });
+  },
+  showTexts: function showTexts() {
+    this.setState({ "activeTab": "texts" });
+  },
   render: function render() {
     if (!this.props.query) {
       // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
@@ -6048,20 +6059,23 @@ var SearchResultList = React.createClass({
         availableFilters: this.props.availableFilters,
         appliedFilters: this.props.appliedFilters,
         updateAppliedFilter: this.props.updateAppliedFilter,
-        isQueryRunning: this.state.isQueryRunning }),
-      this.state.textHits.map(function (result) {
+        isQueryRunning: this.state.isQueryRunning,
+        activeTab: this.state.activeTab,
+        clickTextButton: this.showTexts,
+        clickSheetButton: this.showSheets }),
+      this.state.activeTab == "texts" ? this.state.textHits.map(function (result) {
         return React.createElement(SearchTextResult, {
           data: result,
           query: this.props.query,
           key: result._id,
           onResultClick: this.props.onResultClick });
-      }.bind(this)),
-      this.state.sheetHits.map(function (result) {
+      }.bind(this)) : "",
+      this.state.activeTab == "sheets" ? this.state.sheetHits.map(function (result) {
         return React.createElement(SearchSheetResult, {
           data: result,
           query: this.props.query,
           key: result._id });
-      }.bind(this))
+      }.bind(this)) : ""
     );
   }
 });
@@ -6077,7 +6091,10 @@ var SearchFilters = React.createClass({
     appliedFilters: React.PropTypes.array,
     availableFilters: React.PropTypes.array,
     updateAppliedFilter: React.PropTypes.func,
-    isQueryRunning: React.PropTypes.bool
+    isQueryRunning: React.PropTypes.bool,
+    activeTab: React.PropTypes.string,
+    clickTextButton: React.PropTypes.func,
+    clickSheetButton: React.PropTypes.func
   },
   getInitialState: function getInitialState() {
     return {
@@ -6092,8 +6109,6 @@ var SearchFilters = React.createClass({
       availableFilters: []
     };
   },
-  componentWillMount: function componentWillMount() {},
-  componentWillUnmount: function componentWillUnmount() {},
   componentWillReceiveProps: function componentWillReceiveProps(newProps) {
     // Save current filters
     // this.props
@@ -6140,71 +6155,65 @@ var SearchFilters = React.createClass({
   toggleFilterView: function toggleFilterView() {
     this.setState({ displayFilters: !this.state.displayFilters });
   },
-  render: function render() {
-    var addCommas = function addCommas(number) {
-      return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    };
-    var totalWithCommas = addCommas(this.props.total);
-    var totalSheetsWithCommas = addCommas(this.props.sheetTotal);
-    var totalTextsWithCommas = addCommas(this.props.textTotal);
+  _type_button: function _type_button(en_singular, en_plural, he_singular, he_plural, total, on_click, active) {
+    if (!total) {
+      return "";
+    }
+    var total_with_commas = this._add_commas(total);
+    var classes = classNames({ "type-button": 1, active: active });
 
-    var totalBreakdown = React.createElement(
-      'span',
-      { className: 'results-breakdown' },
-      ' ',
+    return React.createElement(
+      'div',
+      { className: classes, onClick: on_click },
       React.createElement(
-        'span',
-        { className: 'he' },
-        '(',
-        totalTextsWithCommas,
-        ' ',
-        this.props.textTotal > 1 ? "מקורות" : "מקור",
-        ', ',
-        totalSheetsWithCommas,
-        ' ',
-        this.props.sheetTotal > 1 ? "דפי מקורות" : "דף מקורות",
-        ')'
+        'div',
+        { className: 'type-button-total' },
+        total_with_commas
       ),
       React.createElement(
-        'span',
-        { className: 'en' },
-        '(',
-        totalTextsWithCommas,
-        ' ',
-        this.props.textTotal > 1 ? "Texts" : "Text",
-        ', ',
-        totalSheetsWithCommas,
-        ' ',
-        this.props.sheetTotal > 1 ? "Sheets" : "Sheet",
-        ')'
+        'div',
+        { className: 'type-button-title' },
+        React.createElement(
+          'span',
+          { className: 'en' },
+          total > 1 ? en_plural : en_singular
+        ),
+        React.createElement(
+          'span',
+          { className: 'he' },
+          total > 1 ? he_plural : he_singular
+        )
       )
     );
+  },
+  _add_commas: function _add_commas(number) {
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  },
+  render: function render() {
 
-    var enFilterLine = !!this.props.appliedFilters.length && !!this.props.total ? ": " + this.getSelectedTitles("en").join(", ") : "";
-    var heFilterLine = !!this.props.appliedFilters.length && !!this.props.total ? ": " + this.getSelectedTitles("he").join(", ") : "";
+    var runningQueryLine = React.createElement(LoadingMessage, { message: 'Searching...', heMessage: 'מבצע חיפוש...' });
 
-    var summaryLines = React.createElement(
+    var buttons = React.createElement(
+      'div',
+      { className: 'type-buttons' },
+      this._type_button("Text", "Texts", "מקור", "מקורות", this.props.textTotal, this.props.clickTextButton, this.props.activeTab == "texts"),
+      this._type_button("Sheet", "Sheets", "דף מקורות", "דפי מקורות", this.props.sheetTotal, this.props.clickSheetButton, this.props.activeTab == "sheets")
+    );
+
+    var selected_filters = React.createElement(
       'div',
       { className: 'results-count' },
       React.createElement(
         'span',
         { className: 'en' },
-        totalWithCommas,
-        ' Results',
-        enFilterLine
+        !!this.props.appliedFilters.length && !!this.props.total ? this.getSelectedTitles("en").join(", ") : ""
       ),
       React.createElement(
         'span',
         { className: 'he' },
-        totalWithCommas,
-        ' תוצאות',
-        heFilterLine
-      ),
-      this.state.sheet_total > 0 && this.state.text_total > 0 ? totalBreakdown : null
+        !!this.props.appliedFilters.length && !!this.props.total ? this.getSelectedTitles("he").join(", ") : ""
+      )
     );
-
-    var runningQueryLine = React.createElement(LoadingMessage, { message: 'Searching...', heMessage: 'מבצע חיפוש...' });
-    var show_filters_classes = this.state.displayFilters ? "fa fa-caret-down fa-angle-down" : "fa fa-caret-down";
     var filter_panel = React.createElement(
       'div',
       null,
@@ -6221,7 +6230,7 @@ var SearchFilters = React.createClass({
           { className: 'he' },
           'סנן לפי כותר   '
         ),
-        React.createElement('i', { className: show_filters_classes })
+        React.createElement('i', { className: this.state.displayFilters ? "fa fa-caret-down fa-angle-down" : "fa fa-caret-down" })
       ),
       React.createElement(
         'div',
@@ -6258,9 +6267,10 @@ var SearchFilters = React.createClass({
       React.createElement(
         'div',
         { className: 'searchStatusLine' },
-        this.props.isQueryRunning ? runningQueryLine : summaryLines
+        this.props.isQueryRunning ? runningQueryLine : buttons,
+        this.props.textTotal > 0 && this.props.activeTab == "texts" ? selected_filters : ""
       ),
-      this.props.textTotal > 0 ? filter_panel : ""
+      this.props.textTotal > 0 && this.props.activeTab == "texts" ? filter_panel : ""
     );
   }
 });
@@ -6358,7 +6368,6 @@ var SearchTextResult = React.createClass({
   propTypes: {
     query: React.PropTypes.string,
     data: React.PropTypes.object,
-    key: React.PropTypes.string,
     onResultClick: React.PropTypes.func
   },
   getInitialState: function getInitialState() {
@@ -6468,8 +6477,7 @@ var SearchSheetResult = React.createClass({
 
   propTypes: {
     query: React.PropTypes.string,
-    data: React.PropTypes.object,
-    key: React.PropTypes.string
+    data: React.PropTypes.object
   },
   render: function render() {
     var data = this.props.data;

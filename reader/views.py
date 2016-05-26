@@ -179,7 +179,7 @@ def switch_to_s2(request):
     """Set the S2 cookie then redirect to /texts"""
 
     response = redirect("/texts")
-    response.set_cookie("s2", "true");
+    response.set_cookie("s2", "true")
     return response
 
 
@@ -342,7 +342,7 @@ def s2_texts_category(request, cats):
 
     props = {
         "initialMenu": "navigation",
-        "initialNavigationCategories": json.dumps(cats),
+        "initialNavigationCategories": cats,
     }
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
@@ -359,8 +359,8 @@ def s2_search(request):
 
     props = {
         "initialMenu": "search",
-        "query": request.GET.get("q") or "",
-        "searchFilters": json.dumps(search_filters)
+        "initialQuery": request.GET.get("q") or "",
+        "initialSearchFilters": search_filters
     }
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
@@ -1584,29 +1584,28 @@ def flag_text_api(request, title, lang, version):
 
 @catch_error_as_json
 def dictionary_api(request, word):
-    lookup_ref=request.GET.get("lookup_ref", None)
-    wform_pkey = 'form'
-    if is_hebrew(word):
-        word = strip_cantillation(word)
-        if not has_cantillation(word, detect_vowels=True):
-            wform_pkey = 'c_form'
-
-    query_obj = {wform_pkey: word}
-    if lookup_ref:
-        nref = Ref(lookup_ref).normal()
-        query_obj["refs"] = {'$regex': '^{}'.format(nref)}
-    form = WordForm().load(query_obj)
-    if not form:
-        del query_obj["refs"]
-        form = WordForm().load(query_obj)
-    if form:
-        result = []
-        for lookup in form.lookups:
-            #TODO: if we want the 'lookups' in wf to be a dict we can pass as is to the lexiconentry, we need to change the key 'lexicon' to 'parent_lxicon' in word forms
-            ls = LexiconEntrySet({'headword': lookup['headword']})
-            for l in ls:
-                result.append(l.contents())
-        return jsonResponse(result)
+    """
+    Looks for lexicon entries for the given string.
+    If the string is more than one word, this will look for substring matches when not finding for the original input
+    Optional attributes:
+    'lookup_ref' to fine tune the search
+    'never_split' to limit lookup to only the actual input string
+    'always_split' to look for substring matches regardless of results for original input
+    :param request:
+    :param word:
+    :return:
+    """
+    kwargs = {}
+    for key in ["lookup_ref", "never_split", "always_split"]:
+        if request.GET.get(key, None):
+            kwargs[key] = request.GET.get(key)
+    result = []
+    ls = LexiconLookupAggregator.lexicon_lookup(word, **kwargs)
+    if ls:
+        for l in ls:
+            result.append(l.contents())
+        if len(result):
+            return jsonResponse(result)
     else:
         return jsonResponse({"error": "No information found for given word."})
 

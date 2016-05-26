@@ -28,7 +28,7 @@ from following import FollowRelationship, FollowersSet, FolloweesSet
 from user_profile import UserProfile, annotate_user_list
 from version_state import VersionState, VersionStateSet, StateNode, refresh_all_states
 from time import TimePeriod, TimePeriodSet
-from lexicon import Lexicon, LexiconEntry, LexiconEntrySet, Dictionary, DictionaryEntry, StrongsDictionaryEntry, RashiDictionaryEntry, WordForm, WordFormSet
+from lexicon import Lexicon, LexiconEntry, LexiconEntrySet, Dictionary, DictionaryEntry, StrongsDictionaryEntry, RashiDictionaryEntry, WordForm, WordFormSet, LexiconLookupAggregator
 from place import Place, PlaceSet
 from person import Person, PersonSet, PersonRelationship, PersonRelationshipSet, PersonRelationshipType, PersonRelationshipTypeSet
 from garden import Garden, GardenStop, GardenStopRelation, GardenSet, GardenStopSet, GardenStopRelationSet
