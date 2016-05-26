@@ -345,6 +345,9 @@ var ReaderApp = React.createClass({
       } else if (states[i].mode === "Header") {
         hist.title  = document.title;
         hist.url    = window.location.pathname.slice(1);
+        if (window.location.search != ""){
+          hist.url+= window.location.search;
+        }
         hist.mode   = "Header"
       }
       histories.push(hist);     

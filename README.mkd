@@ -76,7 +76,7 @@ If you don't already have it, [install MongoDB](http://docs.mongodb.org/manual/i
 
 #### Put some texts in your database:
 
-A MongoDB dump of our database is available [via DropBox](https://www.dropbox.com/sh/z5xdi4b7725ems5/AI4Jyg0xcY). Download this content, then from the parent directory which contains `dump` run:
+A MongoDB dump of our database is available http://dev.sefaria.org/static/dump.tar.gz . Download this content, then from the parent directory which contains `dump` run:
 
     mongorestore --drop
 

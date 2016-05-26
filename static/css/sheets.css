@@ -1441,7 +1441,11 @@ input[type="file"] {
     bottom: -45px;
     position: relative;
     font-size: 30px;
+	z-index: 3;
+}
 
+.inlineAddButtonIcon.active {
+	color: #0663c9;
 }
 
 #sourceLayoutLanguageMenuItems {
