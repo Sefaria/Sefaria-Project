@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 from pyelasticsearch import ElasticSearch
 
 from sefaria.model import *
-from sefaria.model.user_profile import user_link
+from sefaria.model.user_profile import user_link, public_user_data
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
@@ -195,9 +195,14 @@ def index_sheet(id):
     sheet = db.sheets.find_one({"id": id})
     if not sheet: return False
 
+    pud = public_user_data(sheet["owner"])
     doc = {
         "title": sheet["title"],
         "content": make_sheet_text(sheet),
+        "owner_id": sheet["owner"],
+        "owner_name": pud["name"],
+        "owner_image": pud["imageUrl"],
+        "profile_url": pud["profileUrl"],
         "version": "Source Sheet by " + user_link(sheet["owner"]),
         "tags": ",".join(sheet.get("tags",[])),
         "sheetId": id,

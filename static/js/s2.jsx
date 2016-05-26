@@ -4688,7 +4688,7 @@ var SearchResultList = React.createClass({
         applied_filters: this.props.appliedFilters,
         size: this.backgroundQuerySize,
         from: last,
-        error: function() {  console.log("Failure in SearchResultList._loadRemainder"); }, // Fail silently, since first load was okay?
+        error: function() {  console.log("Failure in SearchResultList._loadRemainder"); },
         success: function(data) {
           var hitarrays = this._process_hits(data.hits.hits);
           var nextTextHits = currentTextHits.concat(hitarrays.texts);
@@ -5233,7 +5233,7 @@ var SearchTextResult = React.createClass({
             </div>) : null;
 
         return (
-            <div className="result">
+            <div className="result text_result">
                 <a href={href} onClick={this.handleResultClick}>
                     <div className="result-title">
                         <span className="en">{s.ref}</span>
@@ -5253,12 +5253,13 @@ var SearchTextResult = React.createClass({
 var SearchSheetResult = React.createClass({
     propTypes: {
         query: React.PropTypes.string,
-        data: React.PropTypes.object,
+        data: React.PropTypes.object
     },
+
     render: function() {
         var data = this.props.data;
-        var s = this.props.data._source;
-
+        var s = data._source;
+      
         var snippet = data.highlight ? data.highlight.content.join("...") : s.content;
         snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").text();
 
@@ -5267,11 +5268,16 @@ var SearchSheetResult = React.createClass({
         }
         var clean_title = $("<span>" + s.title + "</span>").text();
         var href = "/sheets/" + s.sheetId;
-        return (<div className='result'>
-            <a className='result-title' href={href}>{clean_title}</a>
-            <div className="snippet">{snippet}</div>
-            <div className='version' dangerouslySetInnerHTML={get_version_markup()} ></div>
-            </div>);
+        return (
+            <div className='result sheet_result'>
+              <div className="result_img_box"><a href={s.profile_url}><img className='owner_image' src={s.owner_image}/></a></div>
+              <div className="result_text_box">
+                <a href={s.profile_url} className='owner_name'>{s.owner_name}</a>
+                <a className='result-title' href={href}>{clean_title}</a>
+                <div className="snippet">{snippet}</div>
+              </div>
+            </div>
+        );
     }
 });
 
