@@ -357,7 +357,7 @@ def edit_text(request, ref=None, lang=None, version=None):
     titles = json.dumps(model.library.full_title_list())
     page_title = "%s %s" % (mode, ref) if ref else "Add a New Text"
 
-    return render_to_response('reader.html',
+    return render_to_response('edit_text.html',
                              {'titles': titles,
                              'initJSON': initJSON,
                              'page_title': page_title,

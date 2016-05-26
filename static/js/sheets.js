@@ -2521,22 +2521,15 @@ function buildSource($target, source, appendOrInsert) {
 }
 
 function appendInlineAddButton(source) {
+	if (!source) {
+		source = ''
+		}
 	if ($.cookie("s2") == "true") {
 		if (sjs.is_owner||sjs.can_edit||sjs.can_add) {
-			if (!source) {
-				source = ''
-			}
 			source = source + "<div class='inlineAddButton'><i class='fa fa-plus-circle inlineAddButtonIcon'></i></div>";
-			return source;
-		}
-		else {
-			return ''
 		}
 	}
-	else {
-		return ''
-	}
-
+	return source
 }
 
 
