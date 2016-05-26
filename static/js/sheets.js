@@ -1250,6 +1250,7 @@ $(function() {
 
 				$("#addInterface").insertAfter( $(this).parent().closest(".sheetItem") );
 				$(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
+				$(".inlineAddButtonIcon").removeClass("active");
 				$(this).addClass("active");
 				e.stopImmediatePropagation();
 			});
