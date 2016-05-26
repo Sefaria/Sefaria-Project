@@ -343,6 +343,7 @@ def s2_texts_category(request, cats):
     props = {
         "initialMenu": "navigation",
         "initialNavigationCategories": cats,
+        "multiPanel": request.flavour != "mobile",
     }
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
@@ -360,7 +361,8 @@ def s2_search(request):
     props = {
         "initialMenu": "search",
         "initialQuery": request.GET.get("q") or "",
-        "initialSearchFilters": search_filters
+        "initialSearchFilters": search_filters,
+        "multiPanel": request.flavour != "mobile",
     }
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
@@ -369,12 +371,26 @@ def s2_search(request):
     }, RequestContext(request))
 
 
+def s2_sheets_by_tag(request, tag):
+    """
+    Standalone page for new sheets list
+    """
+    props = {
+        "initialMenu": "sheets",
+        "initialSheetsTag": tag,
+        "multiPanel": request.flavour != "mobile",
+    }
+    props["html"] = render_react_component("ReaderApp", props)
+    return render_to_response('s2.html', props, RequestContext(request))
+
+
 def s2_page(request, page):
     """
     View for any S2 page that can descripted with the `menuOpen` param in React
     """
     props = {
-        "initialMenu": page
+        "initialMenu": page,
+        "multiPanel": request.flavour != "mobile",
     }
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
@@ -401,18 +417,6 @@ def s2_notifications(request):
 
 def s2_sheets(request):
     return s2_page(request, "sheets")
-
-
-def s2_sheets_by_tag(request, tag):
-    """
-    Standalone page for new sheets list
-    """
-    props = {
-        "initialMenu": "sheets",
-        "initialSheetsTag": tag,
-    }
-    props["html"] = render_react_component("ReaderApp", props)
-    return render_to_response('s2.html', props, RequestContext(request))
 
 
 @ensure_csrf_cookie
