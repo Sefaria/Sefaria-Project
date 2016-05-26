@@ -1235,10 +1235,6 @@ $(function() {
 
 			});
 
-
-
-
-
 			$("html").on("click", "#sheet", function (e) {
 				//clicked off of a sheetitem
 				if ($(e.target).closest(".sheetItem").length) {
@@ -1250,49 +1246,37 @@ $(function() {
 				cleanupActiveSource(e.target);
 			});
 
-	/*		$(".sheetItem").on("click", ".inlineAddButtonIcon", function (e) {
+			$(".sheetItem").on("click", ".inlineAddButtonIcon", function (e) {
 
 				$("#addInterface").insertAfter( $(this).parent().closest(".sheetItem") );
 				$(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
-
+				$(this).addClass("active");
+				e.stopImmediatePropagation();
 			});
-	*/
 
 			function cleanupActiveSource(target){
+				$(".inlineAddButtonIcon").removeClass("active");
 				$(".activeSource").removeClass("activeSource");
-	//			$(".inlineAddButton").remove();
 				$("#sheetLayoutLanguageMenuItems").show();
 				$("#sourceLayoutLanguageMenuItems").hide();
 				if (!$(target).hasClass('inlineAddButtonIcon')) {
-					$("#addInterface").insertAfter( $(".sheetItem").last() );
+					$(".inlineAddButtonIcon").last().click();
 				}
-
-
 				$(".sheetItem .inlineAddButtonIcon").off();
-
 				$(".sheetItem").on("click", ".inlineAddButtonIcon", function (e) {
-
 					$("#addInterface").insertAfter( $(this).parent().closest(".sheetItem") );
 					$(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
-
 				});
-
 				$("#sourceButton").click();
-
-
 			}
 
 			$("#sheet").on("click", ".sheetItem", function (e) {
 			//clicked on a sheet item
 			cleanupActiveSource(e.target);
 			$(this).addClass("activeSource");
-//			var inlineAddButton = "<div class='inlineAddButton'><i class='fa fa-plus-circle inlineAddButtonIcon'></i></div>";
-//			$(this).append(inlineAddButton);
 			$("#sheetLayoutLanguageMenuItems").hide();
 			$("#sourceLayoutLanguageMenuItems").show();
-
-			$("#addInterface").insertAfter( $(this) );
-			$(this).hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
+			//$(this).hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
 
 
 			//set checkboxes for language/layout menus for active source
@@ -1327,7 +1311,7 @@ $(function() {
 				$("#sourceLayoutLanguageMenuItems").hide();
 			}
 		});
-		
+
 			$("#sheet").click();
 		}
 	}
