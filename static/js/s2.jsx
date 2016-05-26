@@ -2338,9 +2338,6 @@ var ReaderTextTableOfContents = React.createClass({
     var title     = this.props.title;
     var heTitle   = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
 
-    var sectionStrings = Sefaria.sectionString(this.props.currentRef);
-    var section   = sectionStrings.en.named;
-    var heSection = sectionStrings.he.named;
 
     var currentVersionElement = null;
     var defaultVersionString = "Default Version";
@@ -2375,6 +2372,10 @@ var ReaderTextTableOfContents = React.createClass({
 
 
     if (this.isTextToc()) {
+      var sectionStrings = Sefaria.sectionString(this.props.currentRef);
+      var section   = sectionStrings.en.named;
+      var heSection = sectionStrings.he.named;
+
       var selectOptions = [];
       selectOptions.push(<option key="0" value="0">{defaultVersionString}</option>);    // todo: add description of current version.
       var selectedOption = 0;
@@ -2420,10 +2421,12 @@ var ReaderTextTableOfContents = React.createClass({
                   <div className="tocTitle">
                     <span className="en">{title}</span>
                     <span className="he">{heTitle}</span>
-                    <div className="currentSection">
-                      <span className="en">{section}</span>
-                      <span className="he">{heSection}</span>
-                    </div>
+                    {this.isTextToc()?
+                      <div className="currentSection">
+                        <span className="en">{section}</span>
+                        <span className="he">{heSection}</span>
+                      </div>
+                    :""}
                   </div>
                   {this.isTextToc()?
                     <div className="currentVersionBox">
@@ -2467,7 +2470,7 @@ var VersionBlock = React.createClass({
           <span>-</span>
           <span className="versionLicense">{(v.license == "unknown" || !v.license) ? "License Unknown" : (v.license + (v.digitizedBySefaria ? " - Digitized by Sefaria": "" ))}</span>
           {this.props.showHistory?<span>-</span>:""}
-          {this.props.showHistory?<a className="versionHistoryLink" href={`/activity/${normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>Version History &gt;</a>:""}
+          {this.props.showHistory?<a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>Version History &gt;</a>:""}
         </div>
         {this.props.showNotes?<div className="versionNotes">{v.versionNotes}</div>:""}
       </div>

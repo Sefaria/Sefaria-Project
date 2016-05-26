@@ -1420,6 +1420,7 @@ Sefaria.util = {
         };
     },
     inArray: function(needle, haystack) {
+      if (!haystack) { return -1 } //For parity of behavior w/ JQuery inArray
       var index = -1;
       for (var i = 0; i < haystack.length; i++) {
         if (haystack[i] === needle) {
