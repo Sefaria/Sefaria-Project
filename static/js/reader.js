@@ -4175,7 +4175,9 @@ function saveText(text) {
 				} else {
 					window.location = params["after"];
 				}
-			} else {
+			} else if("next" in params){
+				window.location = params["next"];
+			}else {
 				hardRefresh(ref);
 				sjs.editing = {};
 				sjs.alert.message("Text saved.");
