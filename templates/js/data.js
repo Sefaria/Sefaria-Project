@@ -18,7 +18,7 @@ var data = {
   is_moderator:       {% if user.is_staff %}true{% else %}false{% endif %},
   notificationCount:  {{ notifications_count|default:'0' }},
   notifications:      {{ notifications_json|default:'[]' }},
-  _email:             "{{ request.user.email|default:'null' }}",
+  _email:             "{{ request.user.email|default:'' }}",
   _uid:               {{ request.user.id|default:"null" }}
 };
 

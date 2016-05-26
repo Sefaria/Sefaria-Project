@@ -1,5 +1,6 @@
 if (typeof require !== 'undefined') {
-  var React       = require('react'),
+  var INBROWSER   = false,
+      React       = require('react'),
       ReactDOM    = require('react-dom'),
       $           = require('jquery'),
       extend      = require('extend'),
@@ -7,7 +8,8 @@ if (typeof require !== 'undefined') {
       Sefaria     = require('./sefaria.js'),
       cookie      = function() { return null; }; // TODO Node needs to read recentlyViewed cookies from Django
 } else {
-  var extend      = $.extend;
+  var INBROWSER   = true,
+      extend      = $.extend,
       cookie      = $.cookie;
 }
 
@@ -1236,7 +1238,7 @@ var ReaderPanel = React.createClass({
     // Sets the current filter for Connected Texts (TextList)
     // If updateRecent is true, include the current setting in the list of recent filters.
     if (updateRecent && filter) {
-      if ($.inArray(filter, this.state.recentFilters) !== -1) {
+      if (Sefaria.util.inArray(filter, this.state.recentFilters) !== -1) {
         this.state.recentFilters.toggle(filter);
       }
       this.state.recentFilters = [filter].concat(this.state.recentFilters);
@@ -1326,7 +1328,7 @@ var ReaderPanel = React.createClass({
     // Do a little dance to avoid tracking something we've already just tracked
     // e.g. when refs goes from ["Genesis 5"] to ["Genesis 4", "Genesis 5"] don't track 5 again
     for (var i = 0; i < this.state.refs.length; i++) {
-      if ($.inArray(this.state.refs[i], this.tracked) == -1) {
+      if (Sefaria.util.inArray(this.state.refs[i], this.tracked) == -1) {
         if (Sefaria.site) { Sefaria.site.track.open(this.state.refs[i]); }
         this.tracked.push(this.state.refs[i]);
       }
@@ -1485,7 +1487,6 @@ var ReaderPanel = React.createClass({
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       var menu = (<SearchPage
                     query={this.state.searchQuery}
-                    initialPage={1}
                     appliedFilters={this.state.appliedSearchFilters}
                     settings={Sefaria.util.clone(this.state.settings)}
                     onResultClick={this.props.onSearchResultClick}
@@ -1753,7 +1754,7 @@ var ReaderNavigationMenu = React.createClass({
     home:          React.PropTypes.bool
   },
   getInitialState: function() {
-    this.width = 0;
+    this.width = 1000;
     return {
       showMore: false,
     };
@@ -2161,7 +2162,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
           var newCats = cats.concat(item.category);
           // Special Case categories which should nest
           var subcats = [ "Mishneh Torah", "Shulchan Arukh", "Midrash Rabbah", "Maharal" ];
-          if ($.inArray(item.category, subcats) > -1) {
+          if (Sefaria.util.inArray(item.category, subcats) > -1) {
             content.push((<span className="catLink" data-cats={newCats.join("|")} key={i}>
                            <span className='en'>{item.category}</span>
                            <span className='he'>{Sefaria.hebrewCategory(item.category)}</span>
@@ -2286,7 +2287,7 @@ var ReaderTextTableOfContents = React.createClass({
     if ($a.length) {
       var ref = $a.attr("data-ref");
       ref = decodeURIComponent(ref);
-      ref = humanRef(ref);
+      ref = Sefaria.humanRef(ref);
       this.props.close();
       this.props.showBaseText(ref);
       e.preventDefault();
@@ -2361,9 +2362,6 @@ var ReaderTextTableOfContents = React.createClass({
     var title     = this.props.title;
     var heTitle   = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
 
-    var sectionStrings = Sefaria.sectionString(this.props.currentRef);
-    var section   = sectionStrings.en.named;
-    var heSection = sectionStrings.he.named;
 
     var currentVersionElement = null;
     var defaultVersionString = "Default Version";
@@ -2398,6 +2396,10 @@ var ReaderTextTableOfContents = React.createClass({
 
 
     if (this.isTextToc()) {
+      var sectionStrings = Sefaria.sectionString(this.props.currentRef);
+      var section   = sectionStrings.en.named;
+      var heSection = sectionStrings.he.named;
+
       var selectOptions = [];
       selectOptions.push(<option key="0" value="0">{defaultVersionString}</option>);    // todo: add description of current version.
       var selectedOption = 0;
@@ -2443,10 +2445,12 @@ var ReaderTextTableOfContents = React.createClass({
                   <div className="tocTitle">
                     <span className="en">{title}</span>
                     <span className="he">{heTitle}</span>
-                    <div className="currentSection">
-                      <span className="en">{section}</span>
-                      <span className="he">{heSection}</span>
-                    </div>
+                    {this.isTextToc()?
+                      <div className="currentSection">
+                        <span className="en">{section}</span>
+                        <span className="he">{heSection}</span>
+                      </div>
+                    :""}
                   </div>
                   {this.isTextToc()?
                     <div className="currentVersionBox">
@@ -2485,12 +2489,12 @@ var VersionBlock = React.createClass({
         <div className="versionTitle">{v.versionTitle}</div>
         <div>
           <a className="versionSource" target="_blank" href={v.versionSource}>
-          { parseURL(v.versionSource).host }
+          { Sefaria.util.parseURL(v.versionSource).host }
           </a>
           <span>-</span>
           <span className="versionLicense">{(v.license == "unknown" || !v.license) ? "License Unknown" : (v.license + (v.digitizedBySefaria ? " - Digitized by Sefaria": "" ))}</span>
           {this.props.showHistory?<span>-</span>:""}
-          {this.props.showHistory?<a className="versionHistoryLink" href={`/activity/${normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>Version History &gt;</a>:""}
+          {this.props.showHistory?<a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>Version History &gt;</a>:""}
         </div>
         {this.props.showNotes?<div className="versionNotes">{v.versionNotes}</div>:""}
       </div>
@@ -2770,7 +2774,7 @@ var TextColumn = React.createClass({
 
     } else if (this.props.panelsOpen !== nextProps.panelsOpen) {
       this.scrolledToHighlight = false;
-    } else if (nextProps.srefs.length == 1 && $.inArray(nextProps.srefs[0], this.props.srefs) == -1) {
+    } else if (nextProps.srefs.length == 1 && Sefaria.util.inArray(nextProps.srefs[0], this.props.srefs) == -1) {
       // If we are switching to a single ref not in the current TextColumn, treat it as a fresh open.
       this.initialScrollTopSet = false;
       this.scrolledToHighlight = false;
@@ -3008,7 +3012,7 @@ var TextColumn = React.createClass({
       var hasNext = last && last.next;
       var topSymbol  = " ";
       var bottomSymbol = " ";
-      if (hasPrev) {
+      if (hasPrev && INBROWSER) {
         content.splice(0, 0, (<LoadingMessage className="base prev" key="prev"/>));
       } else {
         content.splice(0, 0, (<LoadingMessage message={topSymbol} heMessage={topSymbol} className="base prev" key="prev"/>));        
@@ -3055,16 +3059,7 @@ var TextRange = React.createClass({
     layoutWidth:            React.PropTypes.number,
     showActionLinks:        React.PropTypes.bool
   },
-  getInitialState: function() {
-    return { 
-      segments: [],
-      loaded: false,
-      linksLoaded: false,
-      data: {ref: this.props.sref}
-    };
-  },
   componentDidMount: function() {
-    this.getText();
     if (this.props.basetext || this.props.segmentNumber) { 
       this.placeSegmentNumbers();
     }
@@ -3074,29 +3069,29 @@ var TextRange = React.createClass({
     window.removeEventListener('resize', this.handleResize);
   },
   componentDidUpdate: function(prevProps, prevState) {
+    /* Doesn't seem to be need in addition to below
     // Reload text if version changed
     if (this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage) {
       this.getText(true);
     }
+    */
     // Place segment numbers again if update affected layout
-    else if (this.props.basetext || this.props.segmentNumber) {
-      if ((!prevState.loaded && this.state.loaded) ||
-          (!prevState.linksLoaded && this.state.linksLoaded) ||
+    if (this.props.basetext || this.props.segmentNumber) {
+      if (this.props.version != prevProps.version ||
+          this.props.versionLanguage != prevProps.versionLanguage ||
           prevProps.settings.language !== this.props.settings.language ||
           prevProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
           prevProps.settings.layoutTanach !== this.props.settings.layoutTanach ||
           prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
           prevProps.settings.fontSize !== this.props.settings.fontSize ||
           prevProps.layoutWidth !== this.props.layoutWidth) {
+            this.forceUpdate();
             window.requestAnimationFrame(function() { 
               if (this.isMounted()) {
                 this.placeSegmentNumbers();
               }
             }.bind(this));        
       }
-    }
-    if (this.props.onTextLoad && !prevState.loaded && this.state.loaded) {
-      this.props.onTextLoad();
     }
   },
   handleResize: function() {
@@ -3115,27 +3110,68 @@ var TextRange = React.createClass({
       if (Sefaria.site) { Sefaria.site.track.event("Reader", "Click Text from TextList", this.props.sref); }
     }
   },
-  getText: function(doRenumber) {
+  getText: function() {
     var settings = {
       context: this.props.withContext ? 1 : 0,
       version: this.props.version || null,
       language: this.props.versionLanguage || null
     };
-    Sefaria.text(this.props.sref, settings, function(data) {
-      this.loadText(data);
-      if (doRenumber) {
-        window.requestAnimationFrame(function() {
-            if (this.isMounted()) {
-              this.placeSegmentNumbers();
-            }
-          }.bind(this));
+    var data = Sefaria.text(this.props.sref, settings);
+    if (!data) { // If we don't have data yet, call again with a callback to trigger API call
+      Sefaria.text(this.props.sref, settings, this.loadText);
+    }
+    return data;
+  },
+  loadText: function(data) {
+    // Initiate additional API calls when text data first loads
+    if (this.props.basetext && this.props.sref !== data.ref) {
+      // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
+      // Pass parameter to showBaseText to replaceHistory
+      this.props.showBaseText(data.ref, true);        
+    }
+
+    // Load links at section level if spanning, so that cache is properly primed with section level refs
+    var sectionRefs = data.isSpanning ? data.spanningRefs : [data.sectionRef];
+    sectionRefs = sectionRefs.map(function(ref) {
+      if (ref.indexOf("-") > -1) {
+        ref = ref.split("-")[0];
+        ref = ref.slice(0, ref.lastIndexOf(":"));
       }
-    }.bind(this));
+      return ref;
+    });
+
+    if (this.props.loadLinks && !Sefaria.linksLoaded(sectionRefs)) {
+      for (var i = 0; i < sectionRefs.length; i++) {
+        Sefaria.related(sectionRefs[i], function() {});
+      }
+    }
+
+    if (this.props.prefetchNextPrev) {
+     if (data.next) {
+       Sefaria.text(data.next, {
+         context: 1,
+         version: this.props.version || null,
+         language: this.props.versionLanguage || null
+       }, function() {});
+     }
+     if (data.prev) {
+       Sefaria.text(data.prev, {
+         context: 1,
+         version: this.props.version || null,
+         language: this.props.versionLanguage || null
+       }, function() {});
+     }
+     if (data.book) { Sefaria.textTocHtml(data.book, function() {}); }
+    }
+
+    if (this.props.onTextLoad) {
+      this.props.onTextLoad();
+    }
   },
   makeSegments: function(data) {
     // Returns a flat list of annotated segment objects,
     // derived from the walking the text in data
-    if ("error" in data) { return []; }
+    if (!data || "error" in data) { return []; }
     var segments  = [];
     var highlight = data.sections.length === data.textDepth; 
     var wrap = (typeof data.text == "string");
@@ -3193,65 +3229,6 @@ var TextRange = React.createClass({
     }
     return segments;
   },
-  loadText: function(data) {
-    // When data is actually available, load the text into the UI
-    if (this.props.basetext && this.props.sref !== data.ref) {
-      // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
-      // Pass parameter to showBaseText to replaceHistory
-      this.props.showBaseText(data.ref, true);        
-    }
-
-    var segments  = this.makeSegments(data);
-    if (this.isMounted()) {
-      this.setState({
-        data: data,
-        segments: segments,
-        loaded: true,
-        sref: data.ref
-      });      
-    }
-
-    // Load links at section level if spanning, so that cache is properly primed with section level refs
-    var sectionRefs = data.isSpanning ? data.spanningRefs : [data.sectionRef];
-    sectionRefs = sectionRefs.map(function(ref) {
-      if (ref.indexOf("-") > -1) {
-        ref = ref.split("-")[0];
-        ref = ref.slice(0, ref.lastIndexOf(":"));
-      }
-      return ref;
-    });
-
-    if (this.props.loadLinks && !Sefaria.linksLoaded(sectionRefs)) {
-      // Calling when links are loaded will overwrite state.segments
-      for (var i = 0; i < sectionRefs.length; i++) {
-        Sefaria.related(sectionRefs[i], this.loadLinkCounts);
-      }
-    }
-
-    if (this.props.prefetchNextPrev) {
-     if (data.next) {
-       Sefaria.text(data.next, {
-         context: 1,
-         version: this.props.version || null,
-         language: this.props.versionLanguage || null
-       }, function() {});
-     }
-     if (data.prev) {
-       Sefaria.text(data.prev, {
-         context: 1,
-         version: this.props.version || null,
-         language: this.props.versionLanguage || null
-       }, function() {});
-     }
-     if (data.book) { Sefaria.textTocHtml(data.book, function() {}); }
-    }
-  },
-  loadLinkCounts: function() {
-    // When link data has been loaded into the cache, load the counts into the UI
-    if (this.isMounted()) {
-      this.setState({linksLoaded: true});
-    }
-  },
   placeSegmentNumbers: function() {
     // Set the vertical offsets for segment numbers and link counts, which are dependent
     // on the rendered height of the text of each segment.
@@ -3264,31 +3241,34 @@ var TextRange = React.createClass({
     $text.find(".linkCount").each(setTop);
   },
   render: function() {
-    if (this.props.basetext && this.state.loaded) {
-      var ref              = this.props.withContext ? this.state.data.sectionRef : this.state.data.ref;
+    var data = this.getText();
+    if (this.props.basetext && data) {
+      var ref              = this.props.withContext ? data.sectionRef : data.ref;
       var sectionStrings   = Sefaria.sectionString(ref);
       var oref             = Sefaria.ref(ref);
-      var useShortString   = oref && $.inArray(oref.categories[0], ["Tanach", "Mishnah", "Talmud", "Tosefta", "Commentary"]) !== -1;
+      var useShortString   = oref && Sefaria.util.inArray(oref.categories[0], ["Tanach", "Mishnah", "Talmud", "Tosefta", "Commentary"]) !== -1;
       var title            = useShortString ? sectionStrings.en.numbered : sectionStrings.en.named;
       var heTitle          = useShortString ? sectionStrings.he.numbered : sectionStrings.he.named;   
     } else if (this.props.basetext) {
       var title            = "Loading...";
       var heTitle          = "טעינה...";      
     } else {  
-      var title            = this.state.data.ref;
-      var heTitle          = this.state.data.heRef;
+      var title            = data.ref;
+      var heTitle          = data.heRef;
     }
 
-    var showNumberLabel    = this.state.data.categories &&
-                              this.state.data.categories[0] !== "Talmud" &&
-                              this.state.data.categories[0] !== "Liturgy";
+    var showNumberLabel    =  data &&
+                              data.categories &&
+                              data.categories[0] !== "Talmud" &&
+                              data.categories[0] !== "Liturgy";
 
     var showSegmentNumbers = showNumberLabel && this.props.basetext;
                               
 
-    var textSegments = this.state.segments.map(function (segment, i) {
+    var segments = this.makeSegments(data);
+    var textSegments = segments.map(function (segment, i) {
       var highlight = this.props.highlightedRefs && this.props.highlightedRefs.length ?                                  // if highlighted refs are explicitly set
-                        $.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
+                        Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
                         this.props.basetext && segment.highlight;                   // otherwise highlight if this a basetext and the ref is specific
       return (
         <TextSegment
@@ -3310,7 +3290,7 @@ var TextRange = React.createClass({
     var classes = {
                     textRange: 1,
                     basetext: this.props.basetext,
-                    loading: !this.state.loaded,
+                    loading: !data,
                     lowlight: this.props.lowlight,
                   };
     classes = classNames(classes);
@@ -3375,7 +3355,7 @@ var TextSegment = React.createClass({
   handleClick: function(event) {
     if ($(event.target).hasClass("refLink")) {
       //Click of citation
-      var ref = humanRef($(event.target).attr("data-ref"));
+      var ref = Sefaria.humanRef($(event.target).attr("data-ref"));
       this.props.onCitationClick(ref, this.props.sref);
       event.stopPropagation();
       if (Sefaria.site) { Sefaria.site.track.event("Reader", "Citation Link Click", ref); }
@@ -3794,13 +3774,13 @@ var TextList = React.createClass({
         // Viewing Text Connections
         var sectionLinks = Sefaria.links(sectionRef);
         var links        = sectionLinks.filter(function(link) {
-          if ($.inArray(link.anchorRef, refs) === -1 && (this.props.multiPanel || !isSingleCommentary) ) {
+          if (Sefaria.util.inArray(link.anchorRef, refs) === -1 && (this.props.multiPanel || !isSingleCommentary) ) {
             // Only show section level links for an individual commentary
             return false;
           }
           return (filter.length == 0 ||
-                  $.inArray(link.category, filter) !== -1 || 
-                  $.inArray(link.commentator, filter) !== -1 );
+                  Sefaria.util.inArray(link.category, filter) !== -1 || 
+                  Sefaria.util.inArray(link.commentator, filter) !== -1 );
 
           }.bind(this)).sort(function(a, b) {
             if (a.anchorVerse !== b.anchorVerse) {
@@ -3819,7 +3799,7 @@ var TextList = React.createClass({
                             return (<TextRange 
                                         sref={link.sourceRef}
                                         key={i + link.sourceRef}
-                                        lowlight={$.inArray(link.anchorRef, refs) === -1}
+                                        lowlight={Sefaria.util.inArray(link.anchorRef, refs) === -1}
                                         hideTitle={hideTitle}
                                         numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
                                         basetext={false}
@@ -3942,7 +3922,7 @@ var AllFilterSet = React.createClass({
           filter={this.props.filter}
           updateRecent={true}
           setFilter={this.props.setFilter}
-          on={$.inArray(cat.category, this.props.filter) !== -1} />
+          on={Sefaria.util.inArray(cat.category, this.props.filter) !== -1} />
       );
     }.bind(this));
     return (
@@ -3971,7 +3951,7 @@ var CategoryFilter = React.createClass({
                 hideColors={true}
                 updateRecent={true}
                 setFilter={this.props.setFilter}
-                on={$.inArray(book.book, this.props.filter) !== -1} />);
+                on={Sefaria.util.inArray(book.book, this.props.filter) !== -1} />);
     }.bind(this));
     
     var notClickable = this.props.category == "Community";
@@ -4045,7 +4025,7 @@ var RecentFilterSet = React.createClass({
 
     // Filter top links to exclude items already in recent filter
     topLinks = topLinks.filter(function(link) {
-      return ($.inArray(link.book, this.props.recentFilters) == -1);
+      return (Sefaria.util.inArray(link.book, this.props.recentFilters) == -1);
     }.bind(this));
     
     // Annotate filter texts with category            
@@ -4089,7 +4069,7 @@ var RecentFilterSet = React.createClass({
                 count={book.count}
                 updateRecent={false}
                 setFilter={this.props.setFilter}
-                on={$.inArray(book.book, this.props.filter) !== -1} />);
+                on={Sefaria.util.inArray(book.book, this.props.filter) !== -1} />);
     }.bind(this));
 
     var moreButton = this.props.asHeader ? (<div className="showMoreFilters textFilter" style={style}
@@ -4706,7 +4686,6 @@ var LoginPanel = React.createClass({
 var SearchPage = React.createClass({
     propTypes: {
         query:                React.PropTypes.string,
-        initialPage:          React.PropTypes.number,
         appliedFilters:       React.PropTypes.array,
         settings:             React.PropTypes.object,
         close:                React.PropTypes.func,
@@ -4719,9 +4698,7 @@ var SearchPage = React.createClass({
         hideNavHeader:        React.PropTypes.bool
     },
     getInitialState: function() {
-        return {
-            page: this.props.initialPage || 1
-        }
+        return {};
     },
 
     getDefaultProps: function() {
@@ -4732,7 +4709,6 @@ var SearchPage = React.createClass({
 
 
     render: function () {
-
         var style      = {"fontSize": this.props.settings.fontSize + "%"};
         var classes = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader});
         return (<div className={classes}>
@@ -4761,7 +4737,6 @@ var SearchPage = React.createClass({
                           <div className="searchContent" style={style}>
                               <SearchResultList
                                   query = { this.props.query }
-                                  page = { this.state.page }
                                   appliedFilters = {this.props.appliedFilters}
                                   onResultClick={this.props.onResultClick}
                                   updateAppliedFilter = {this.props.updateAppliedFilter}
@@ -4802,7 +4777,6 @@ var SearchBar = React.createClass({
         this.setState({query: event.target.value});
     },
     render: function () {
-
         return (
             <div>
                 <div className="searchBox">
@@ -4820,18 +4794,17 @@ var SearchResultList = React.createClass({
     propTypes: {
         query:                React.PropTypes.string,
         appliedFilters:       React.PropTypes.array,
-        page:                 React.PropTypes.number,
-        size:                 React.PropTypes.number,
         onResultClick:        React.PropTypes.func,
         filtersValid:         React.PropTypes.bool,
         availableFilters:     React.PropTypes.array,
         updateAppliedFilter:  React.PropTypes.func,
         registerAvailableFilters: React.PropTypes.func
     },
+    initialQuerySize: 100,
+    backgroundQuerySize: 1000,
+    maxResultSize: 10000,
     getDefaultProps: function() {
         return {
-            page: 1,
-            size: 100,
             appliedFilters: []
         };
     },
@@ -4843,7 +4816,8 @@ var SearchResultList = React.createClass({
             textTotal: 0,
             sheetTotal: 0,
             textHits: [],
-            sheetHits: []
+            sheetHits: [],
+            activeTab: "texts"
         }
     },
     updateRunningQuery: function(ajax) {
@@ -4880,13 +4854,31 @@ var SearchResultList = React.createClass({
           !(this.props.appliedFilters.every((v,i) => v === newProps.appliedFilters[i]))) {
            this._executeQuery(newProps)
         }
-        else if (this.props.size != newProps.size || this.props.page != newProps.page) {
-          this._executeQuery(newProps);
-        }
         // Execute a second query to apply filters after an initial query which got available filters
         else if ((this.props.filtersValid != newProps.filtersValid) && this.props.appliedFilters.length > 0) {
            this._executeQuery(newProps);
         }
+    },
+    _loadRemainder: function(last, total, currentTextHits, currentSheetHits) {
+    // Having loaded "last" results, and with "total" results to load, load the rest, this.backgroundQuerySize at a time
+      if (last >= total || last >= this.maxResultSize) {
+        return;
+      }
+      Sefaria.search.execute_query({
+        query: this.props.query,
+        get_filters: false,
+        applied_filters: this.props.appliedFilters,
+        size: this.backgroundQuerySize,
+        from: last,
+        error: function() {  console.log("Failure in SearchResultList._loadRemainder"); },
+        success: function(data) {
+          var hitarrays = this._process_hits(data.hits.hits);
+          var nextTextHits = currentTextHits.concat(hitarrays.texts);
+          var nextSheetHits = currentSheetHits.concat(hitarrays.sheets);
+          this.setState({textHits: nextTextHits, sheetHits: nextSheetHits});
+          this._loadRemainder(last + this.backgroundQuerySize, total, nextTextHits, nextSheetHits);
+        }.bind(this)
+      });
     },
     _executeQuery: function(props) {
         //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
@@ -4901,28 +4893,52 @@ var SearchResultList = React.createClass({
         // 1) Get all potential filters and counts
         // 2) Apply filters (Triggered from componentWillReceiveProps)
         var request_applied = props.filtersValid && props.appliedFilters;
+        var isCompletionStep = !!request_applied || props.appliedFilters.length == 0;
 
         var runningQuery = Sefaria.search.execute_query({
             query: props.query,
             get_filters: !props.filtersValid,
             applied_filters: request_applied,
-            size: props.page * props.size,
+            size: this.initialQuerySize,
             success: function(data) {
+                //debugger;
                 this.updateRunningQuery(null);
                 if (this.isMounted()) {
                     var hitarrays = this._process_hits(data.hits.hits);
                     this.setState({
                         textHits: hitarrays.texts,
                         sheetHits: hitarrays.sheets,
-                        total: data.hits.total,
-                        textTotal: hitarrays.texts.length,
-                        sheetTotal: hitarrays.sheets.length
+                        total: data.hits.total
                     });
                     if (data.aggregations) {
-                      var ftree = this._buildFilterTree(data.aggregations.category.buckets);
-                      var orphans = this._applyFilters(ftree, this.props.appliedFilters);
-                      this.props.registerAvailableFilters(ftree.availableFilters, ftree.registry, orphans);
-                    }
+                      if (data.aggregations.category) {
+                        var ftree = this._buildFilterTree(data.aggregations.category.buckets);
+                        var orphans = this._applyFilters(ftree, this.props.appliedFilters);
+                        this.props.registerAvailableFilters(ftree.availableFilters, ftree.registry, orphans);
+                      }
+                      if (data.aggregations.type) {
+                        var types = {};
+                        data.aggregations.type.buckets.forEach(function(b) {types[b["key"]] = b["doc_count"];});
+                        if (types["text"]) {
+                          this.setState({
+                            textTotal: types["text"],
+                            activeTab: "texts"
+                          });
+                        } else {
+                          this.setState({
+                            activeTab: "sheets"
+                          });
+                        }
+                        if (types["sheet"]) {
+                          this.setState({
+                            sheetTotal: types["sheet"]
+                          });
+                        }
+                      }
+                   }
+                   if(isCompletionStep) {
+                     this._loadRemainder(this.initialQuerySize, data.hits.total, hitarrays.texts, hitarrays.sheets);
+                   }
                 }
             }.bind(this),
             error: function(jqXHR, textStatus, errorThrown) {
@@ -5028,49 +5044,24 @@ var SearchResultList = React.createClass({
       var path = [];
       var filters = [];
       var registry = {};
-      /*
-      //Manually add base commentary branch
-      var commentaryNode = new Sefaria.FilterNode();
-      var rnode = rawTree["Commentary"];
-      if (rnode) {
-          extend(commentaryNode, {
-              "title": "Commentary",
-              "path": "Commentary",
-              "heTitle": "מפרשים",
-              "doc_count": rnode.doc_count
-          });
-          //ftree.registry[commentaryNode.path] = commentaryNode;
-      }
-      //End commentary base hack
-      */
+
       for(var j = 0; j < Sefaria.toc.length; j++) {
           var b = walk.call(this, Sefaria.toc[j]);
           if (b) filters.push(b);
       }
       return {availableFilters: filters, registry: registry};
 
-      //if (rnode) this.state.children.append(commentaryNode);
-
       function walk(branch, parentNode) {
           var node = new Sefaria.search.FilterNode();
 
           if("category" in branch) { // Category node
-              /*if(branch["category"] == "Commentary") { // Special case commentary
+              path.push(branch["category"]);  // Place this category at the *end* of the path
+              extend(node, {
+                 "title": path.slice(-1)[0],
+                 "path": path.join("/"),
+                 "heTitle": branch["heCategory"]
+              });
 
-                  path.unshift(branch["category"]);  // Place "Commentary" at the *beginning* of the path
-                   extend(node, {
-                       "title": parentNode.title,
-                       "path": path.join("/"),
-                       "heTitle": parentNode.heTitle
-                   });
-              } else {*/
-                  path.push(branch["category"]);  // Place this category at the *end* of the path
-                  extend(node, {
-                     "title": path.slice(-1)[0],
-                     "path": path.join("/"),
-                     "heTitle": branch["heCategory"]
-                  });
-              //}
               for(var j = 0; j < branch["contents"].length; j++) {
                   var b = walk.call(this, branch["contents"][j], node);
                   if (b) node.append(b);
@@ -5097,24 +5088,12 @@ var SearchResultList = React.createClass({
               // Do we need both of these in the registry?
               registry[node.getId()] = node;
               registry[node.path] = node;
-              /*
-                if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
-                  commentaryNode.append(node);
-                  path.shift();
-                  return false;
-              }
-              */
+
               path.pop();
               return node;
           }
           catch (e) {
-            /*
-            if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
-                  path.shift();
-              } else {
-              */
               path.pop();
-              //}
               return false;
           }
       }
@@ -5128,7 +5107,12 @@ var SearchResultList = React.createClass({
       });
       return orphans;
     },
-
+    showSheets: function() {
+      this.setState({"activeTab": "sheets"});
+    },
+    showTexts:  function() {
+      this.setState({"activeTab": "texts"});
+    },
     render: function () {
         if (!(this.props.query)) {  // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
             return null;
@@ -5144,20 +5128,23 @@ var SearchResultList = React.createClass({
                   availableFilters={this.props.availableFilters}
                   appliedFilters = {this.props.appliedFilters}
                   updateAppliedFilter = {this.props.updateAppliedFilter}
-                  isQueryRunning = {this.state.isQueryRunning} />
-                {this.state.textHits.map(function(result) {
+                  isQueryRunning = {this.state.isQueryRunning}
+                  activeTab = {this.state.activeTab}
+                  clickTextButton = {this.showTexts}
+                  clickSheetButton = {this.showSheets} />
+                {(this.state.activeTab == "texts")?this.state.textHits.map(function(result) {
                     return (<SearchTextResult
                               data={result}
                               query={this.props.query}
                               key={result._id}
                               onResultClick={this.props.onResultClick} />);
-                }.bind(this))}
-                {this.state.sheetHits.map(function(result) {
+                }.bind(this)):""}
+                {(this.state.activeTab == "sheets")?this.state.sheetHits.map(function(result) {
                     return (<SearchSheetResult
                               data={result}
                               query={this.props.query}
                               key={result._id} />);
-                }.bind(this))}
+                }.bind(this)):""}
             </div>
         );
     }
@@ -5173,7 +5160,10 @@ var SearchFilters = React.createClass({
     appliedFilters:       React.PropTypes.array,
     availableFilters:     React.PropTypes.array,
     updateAppliedFilter:  React.PropTypes.func,
-    isQueryRunning:       React.PropTypes.bool
+    isQueryRunning:       React.PropTypes.bool,
+    activeTab:            React.PropTypes.string,
+    clickTextButton:      React.PropTypes.func,
+    clickSheetButton:     React.PropTypes.func
   },
   getInitialState: function() {
     return {
@@ -5187,10 +5177,6 @@ var SearchFilters = React.createClass({
       appliedFilters: [],
       availableFilters: []
     };
-  },
-  componentWillMount() {
-  },
-  componentWillUnmount() {
   },
   componentWillReceiveProps(newProps) {
     // Save current filters
@@ -5238,65 +5224,79 @@ var SearchFilters = React.createClass({
   toggleFilterView: function() {
     this.setState({displayFilters: !this.state.displayFilters});
   },
+  _type_button: function(en_singular, en_plural, he_singular, he_plural, total, on_click, active) {
+    if (!total) { return "" }
+      var total_with_commas = this._add_commas(total);
+      var classes = classNames({"type-button": 1, active: active});
+
+      return <div className={classes} onClick={on_click}>
+      <div className="type-button-total">
+        {total_with_commas}
+      </div>
+      <div className="type-button-title">
+        <span className="en">{(total > 1) ? en_plural : en_singular}</span>
+        <span className="he">{(total > 1) ? he_plural : he_singular}</span>
+      </div>
+    </div>;
+  },
+  _add_commas: function(number) {
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  },
   render: function() {
-    var addCommas = function(number) { return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); };
-    var totalWithCommas = addCommas(this.props.total);
-    var totalSheetsWithCommas = addCommas(this.props.sheetTotal);
-    var totalTextsWithCommas = addCommas(this.props.textTotal);
-
-    var totalBreakdown = (
-      <span className="results-breakdown">&nbsp;
-        <span className="he">({totalTextsWithCommas} {(this.props.textTotal > 1) ? "מקורות":"מקור"}, {totalSheetsWithCommas} {(this.props.sheetTotal > 1)?"דפי מקורות":"דף מקורות"})</span>
-        <span className="en">({totalTextsWithCommas} {(this.props.textTotal > 1) ? "Texts":"Text"}, {totalSheetsWithCommas} {(this.props.sheetTotal > 1)?"Sheets":"Sheet"})</span>
-      </span>);
-
-    var enFilterLine = (!!this.props.appliedFilters.length && !!this.props.total)?(": " + this.getSelectedTitles("en").join(", ")):"";
-    var heFilterLine = (!!this.props.appliedFilters.length && !!this.props.total)?(": " + this.getSelectedTitles("he").join(", ")):"";
-
-    var summaryLines = (
-      <div className="results-count">
-          <span className="en">{totalWithCommas} Results{enFilterLine}</span>
-          <span className="he">{totalWithCommas} תוצאות{heFilterLine}</span>
-          {(this.state.sheet_total > 0 && this.state.text_total > 0) ? totalBreakdown : null}
-      </div>);
 
     var runningQueryLine = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
-    var show_filters_classes = (this.state.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down";
+
+    var buttons = (
+      <div className="type-buttons">
+        {this._type_button("Text", "Texts", "מקור", "מקורות", this.props.textTotal, this.props.clickTextButton, (this.props.activeTab == "texts"))}
+        {this._type_button("Sheet", "Sheets", "דף מקורות", "דפי מקורות", this.props.sheetTotal, this.props.clickSheetButton, (this.props.activeTab == "sheets"))}
+      </div>
+    );
+
+    var selected_filters = (<div className="results-count">
+          <span className="en">
+            {(!!this.props.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("en").join(", ")):""}
+          </span>
+          <span className="he">
+            {(!!this.props.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("he").join(", ")):""}
+          </span>
+      </div>);
     var filter_panel = (<div>
-          <div className="searchFilterToggle" onClick={this.toggleFilterView}>
-            <span className="en">Filter by Text   </span>
-            <span className="he">סנן לפי כותר   </span>
-            <i className={show_filters_classes} />
-          </div>
-          <div className="searchFilterBoxes" style={{display: this.state.displayFilters?"block":"none"}}>
-            <div className="searchFilterCategoryBox">
-            {this.props.availableFilters.map(function(filter) {
-                return (<SearchFilter
-                    filter={filter}
-                    isInFocus={this.state.openedCategory === filter}
-                    focusCategory={this.handleFocusCategory}
-                    updateSelected={this.props.updateAppliedFilter}
-                    key={filter.path}/>);
-            }.bind(this))}
-            </div>
-            <div className="searchFilterBookBox">
-            {this.state.openedCategoryBooks.map(function(filter) {
-                return (<SearchFilter
-                    filter={filter}
-                    updateSelected={this.props.updateAppliedFilter}
-                    key={filter.path}/>);
-            }.bind(this))}
-            </div>
-            <div style={{clear: "both"}}/>
-          </div>
-        </div>);
+      <div className="searchFilterToggle" onClick={this.toggleFilterView}>
+        <span className="en">Filter by Text   </span>
+        <span className="he">סנן לפי כותר   </span>
+        <i className={(this.state.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down"} />
+      </div>
+      <div className="searchFilterBoxes" style={{display: this.state.displayFilters?"block":"none"}}>
+        <div className="searchFilterCategoryBox">
+        {this.props.availableFilters.map(function(filter) {
+            return (<SearchFilter
+                filter={filter}
+                isInFocus={this.state.openedCategory === filter}
+                focusCategory={this.handleFocusCategory}
+                updateSelected={this.props.updateAppliedFilter}
+                key={filter.path}/>);
+        }.bind(this))}
+        </div>
+        <div className="searchFilterBookBox">
+        {this.state.openedCategoryBooks.map(function(filter) {
+            return (<SearchFilter
+                filter={filter}
+                updateSelected={this.props.updateAppliedFilter}
+                key={filter.path}/>);
+        }.bind(this))}
+        </div>
+        <div style={{clear: "both"}}/>
+      </div>
+    </div>);
 
     return (
       <div className="searchTopMatter">
         <div className="searchStatusLine">
-        { (this.props.isQueryRunning) ? runningQueryLine : summaryLines }
+          { (this.props.isQueryRunning) ? runningQueryLine : buttons }
+          { (this.props.textTotal > 0 && this.props.activeTab == "texts") ? selected_filters : ""}
         </div>
-        { (this.props.textTotal > 0) ? filter_panel : "" }
+        { (this.props.textTotal > 0 && this.props.activeTab == "texts") ? filter_panel : "" }
       </div>)
   }
 });
@@ -5341,9 +5341,7 @@ var SearchFilter = React.createClass({
         <span className="he" dir="rtl"><span className="filter-title">{this.props.filter.heTitle}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         {this.props.isInFocus?<span className="en"><i className="in-focus-arrow fa fa-caret-right"/></span>:""}
         {this.props.isInFocus?<span className="he"><i className="in-focus-arrow fa fa-caret-left"/></span>:""}
-
-      </li>
-      )
+      </li>);
   }
 });
 
@@ -5352,7 +5350,6 @@ var SearchTextResult = React.createClass({
     propTypes: {
         query: React.PropTypes.string,
         data: React.PropTypes.object,
-        key: React.PropTypes.string,
         onResultClick: React.PropTypes.func
     },
     getInitialState: function() {
@@ -5418,7 +5415,7 @@ var SearchTextResult = React.createClass({
             </div>) : null;
 
         return (
-            <div className="result">
+            <div className="result text_result">
                 <a href={href} onClick={this.handleResultClick}>
                     <div className="result-title">
                         <span className="en">{s.ref}</span>
@@ -5438,13 +5435,13 @@ var SearchTextResult = React.createClass({
 var SearchSheetResult = React.createClass({
     propTypes: {
         query: React.PropTypes.string,
-        data: React.PropTypes.object,
-        key: React.PropTypes.string
+        data: React.PropTypes.object
     },
+
     render: function() {
         var data = this.props.data;
-        var s = this.props.data._source;
-
+        var s = data._source;
+      
         var snippet = data.highlight ? data.highlight.content.join("...") : s.content;
         snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").text();
 
@@ -5453,11 +5450,16 @@ var SearchSheetResult = React.createClass({
         }
         var clean_title = $("<span>" + s.title + "</span>").text();
         var href = "/sheets/" + s.sheetId;
-        return (<div className='result'>
-            <a className='result-title' href={href}>{clean_title}</a>
-            <div className="snippet">{snippet}</div>
-            <div className='version' dangerouslySetInnerHTML={get_version_markup()} ></div>
-            </div>);
+        return (
+            <div className='result sheet_result'>
+              <div className="result_img_box"><a href={s.profile_url}><img className='owner_image' src={s.owner_image}/></a></div>
+              <div className="result_text_box">
+                <a href={s.profile_url} className='owner_name'>{s.owner_name}</a>
+                <a className='result-title' href={href}>{clean_title}</a>
+                <div className="snippet">{snippet}</div>
+              </div>
+            </div>
+        );
     }
 });
 
@@ -5684,10 +5686,18 @@ if (typeof exports !== 'undefined') {
     // Set core data in the module that was loaded in a different scope
     Sefaria.toc       = data.toc;
     Sefaria.books     = data.books;
+    Sefaria.calendar  = data.calendar;
     if ("booksDict" in data) {
       Sefaria.booksDict = data.booksDict;
     } else {
       Sefaria._makeBooksDict();
+    }
+    if ("recentlyViewed" in data) {
+      // Create mock cookie function in global namespace for data that the browser expects from cookies
+      // (Node donesn't have direct access to Django's cookies, so pass through props in POST data)
+      cookie = function(key) {
+        return data.recentlyViewed;
+      };
     }
   };
   exports.saveTextData     = function(data, settings) {

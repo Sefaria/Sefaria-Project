@@ -1,8 +1,11 @@
 if (typeof require !== 'undefined') {
   var $       = require('jquery'),
-      extend  = require('extend')
+      extend  = require('extend'),
+      param   = require('querystring').stringify;
 } else {
-  var extend  = $.extend;
+  // Browser context, assuming $
+  var extend  = $.extend,
+      param   = $.param;
 }
 
 var Sefaria = Sefaria || {
@@ -109,23 +112,23 @@ Sefaria = extend(Sefaria, {
       return book + hRef.slice(book.length);
   },
   isRef: function(ref) {
-      // Returns true if `ref` appears to be a ref relative to known books in Sefaria.books
-      q = Sefaria.parseRef(ref);
-      return ("book" in q && q.book);
+    // Returns true if `ref` appears to be a ref relative to known books in Sefaria.books
+    q = Sefaria.parseRef(ref);
+    return ("book" in q && q.book);
   },
   titlesInText: function(text) {
-      // Returns an array of the known book titles that appear in text.
-      return Sefaria.books.filter(function(title) {
-          return (text.indexOf(title) > -1);
-      });
+    // Returns an array of the known book titles that appear in text.
+    return Sefaria.books.filter(function(title) {
+        return (text.indexOf(title) > -1);
+    });
   },
   makeRefRe: function(titles) {
-      // Construct and store a Regular Expression for matching citations
-      // based on known books, or a list of titles explicitly passed
-      titles = titles || Sefaria.books;
-      var books = "(" + titles.map(RegExp.escape).join("|")+ ")";
-      var refReStr = books + " (\\d+[ab]?)(?:[:., ]+)?(\\d+)?(?:(?:[\\-–])?(\\d+[ab]?)?(?:[:., ]+)?(\\d+)?)?";
-      return new RegExp(refReStr, "gi");  
+    // Construct and store a Regular Expression for matching citations
+    // based on known books, or a list of titles explicitly passed
+    titles = titles || Sefaria.books;
+    var books = "(" + titles.map(RegExp.escape).join("|")+ ")";
+    var refReStr = books + " (\\d+[ab]?)(?:[:., ]+)?(\\d+)?(?:(?:[\\-–])?(\\d+[ab]?)?(?:[:., ]+)?(\\d+)?)?";
+    return new RegExp(refReStr, "gi");  
   },
   wrapRefLinks: function(text) {
       if (typeof text !== "string") { 
@@ -204,7 +207,7 @@ Sefaria = extend(Sefaria, {
   },
   _textUrl: function(ref, settings) {
     // copy the parts of settings that are used as parameters, but not other
-    var params = $.param({
+    var params = param({
       commentary: settings.commentary,
       context:    settings.context,
       pad:        settings.pad
@@ -247,6 +250,7 @@ Sefaria = extend(Sefaria, {
   },
   _saveText: function(data, settings, skipWrap) {
     if (!data || "error" in data) { 
+      console.log("Returning!")
       return;
     }
     settings         = settings || {};
@@ -294,10 +298,10 @@ Sefaria = extend(Sefaria, {
   _splitTextSection: function(data, settings) {
     // Takes data for a section level text and populates cache with segment levels.
     // Runs recursively for Refs above section level like "Rashi on Genesis 1".
-    // Pad the shorter array to make stepping through them easier.
     settings = settings || {};
     var en = typeof data.text == "string" ? [data.text] : data.text;
     var he = typeof data.he == "string" ? [data.he] : data.he;
+    // Pad the shorter array to make stepping through them easier.
     var length = Math.max(en.length, he.length);
     var superSectionLevel = data.textDepth == data.sections.length + 1;
     var padContent = superSectionLevel ? [] : "";
@@ -1117,6 +1121,7 @@ Sefaria = extend(Sefaria, {
            query: query string
            size: size of result set
            from: from what result to start
+           type: null, "sheet" or "text"
            get_filters: if to fetch initial filters
            applied_filters: filter query by these filters
            success: callback on success
@@ -1125,17 +1130,13 @@ Sefaria = extend(Sefaria, {
           if (!args.query) {
               return;
           }
-          var req = JSON.stringify(Sefaria.search.get_query_object(args.query, args.get_filters, args.applied_filters))
+          var req = JSON.stringify(Sefaria.search.get_query_object(args.query, args.get_filters, args.applied_filters, args.size, args.from, args.type));
           var cache_result = this.cache(req);
           if (cache_result) {
               args.success(cache_result);
               return null;
           }
           var url = Sefaria.search.baseUrl;
-          url += "?size=" + args.size;
-          if (args.from) {
-              url += "&from=" + args.from;
-          }
 
           return $.ajax({
               url: url,
@@ -1151,7 +1152,7 @@ Sefaria = extend(Sefaria, {
               error: args.error
           });
       },
-      get_query_object: function (query, get_filters, applied_filters) {
+      get_query_object: function (query, get_filters, applied_filters, size, from, type) {
           // query: string
           // get_filters: boolean
           // applied_filters: null or list of applied filters (in format supplied by Filter_Tree...)
@@ -1162,8 +1163,16 @@ Sefaria = extend(Sefaria, {
                   "fields": ["content"]
               }
           };
-
+          if (type) {
+              core_query["filtered"] = {
+                  "filter" : {
+                      "type" : {"value": type}
+                  }
+              };
+          }
           var o = {
+              "from": from,
+              "size": size,
               "sort": [{
                   "order": {}                 // the sort field name is "order"
               }],
@@ -1185,6 +1194,12 @@ Sefaria = extend(Sefaria, {
                           "field": "path",
                           "size": 0
                       }
+                  },
+                  "type": {
+                      "terms": {
+                          "field": "_type",
+                          "size": 0
+                      }
                   }
               };
           } else if (!applied_filters || applied_filters.length == 0) {
@@ -1204,6 +1219,14 @@ Sefaria = extend(Sefaria, {
                       "query": core_query,
                       "filter": {
                           "or": clauses
+                      }
+                  }
+              };
+              o['aggs'] = {
+                  "type": {
+                      "terms": {
+                          "field": "_type",
+                          "size": 0
                       }
                   }
               };
@@ -1421,11 +1444,49 @@ Sefaria.util = {
             if (callNow) func.apply(context, args);
         };
     },
+    inArray: function(needle, haystack) {
+      if (!haystack) { return -1 } //For parity of behavior w/ JQuery inArray
+      var index = -1;
+      for (var i = 0; i < haystack.length; i++) {
+        if (haystack[i] === needle) {
+          index = i;
+          break;
+        }
+      }
+      return index;
+    },
     currentPath: function() {
       // Returns the current path plus search string if a browser context
       // or "/" in a browser-less context.
       return (typeof window === "undefined" ) ? "/" :
                 window.location.pathname + window.location.search;
+    },
+    parseURL: function(url) {
+      var a =  document.createElement('a');
+      a.href = url;
+      return {
+        source: url,
+        protocol: a.protocol.replace(':',''),
+        host: a.hostname,
+        port: a.port,
+        query: a.search,
+        params: (function(){
+          var ret = {},
+            seg = a.search.replace(/^\?/,'').split('&'),
+            len = seg.length, i = 0, s;
+          for (;i<len;i++) {
+            if (!seg[i]) { continue; }
+            s = seg[i].split('=');
+            ret[s[0]] = s[1];
+          }
+          return ret;
+        })(),
+        file: (a.pathname.match(/\/([^\/?#]+)$/i) || [,''])[1],
+        hash: a.hash.replace('#',''),
+        path: a.pathname.replace(/^([^\/])/,'/$1'),
+        relative: (a.href.match(/tps?:\/\/[^\/]+(.+)/) || [,''])[1],
+        segments: a.pathname.replace(/^\//,'').split('/')
+      };
     },
     setupPrototypes: function() {
 

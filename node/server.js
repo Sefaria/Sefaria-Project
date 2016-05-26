@@ -1,18 +1,16 @@
 // Initially copypasta'd from https://github.com/mhart/react-server-example
 // https://github.com/mhart/react-server-example/blob/master/server.js
 
-var http = require('http'),
-    url = require('url'),
-    fs = require('fs'),
-    vm = require('vm'),
-    express = require('express'),
-    bodyParser = require('body-parser'),
-    request = require('request'),
-    redis = require('redis'),
-    React = require('react'),
+var http           = require('http'),
+    express        = require('express'),
+    bodyParser     = require('body-parser'),
+    cookieParser    = require('cookie-parser'),
+    request        = require('request'),
+    React          = require('react'),
     ReactDOMServer = require('react-dom/server'),
-    SefariaReact = require('../static/js/s2');
-    ReaderApp = React.createFactory(SefariaReact.ReaderApp);
+    SefariaReact   = require('../static/js/s2'),
+    ReaderApp      = React.createFactory(SefariaReact.ReaderApp);
+
 
 var server = express();
 
@@ -26,11 +24,11 @@ var renderReaderApp = function(props, data, timer) {
   for (var i = 0; i < panels.length; i++) {
     var panel = panels[i];
     if ("text" in panel) {
-      SefariaReact.saveTextData(panel.text, {context: 1, version: panel.version, language: panel.language});
+      SefariaReact.saveTextData(panel.text, {context: 1, version: panel.version, language: panel.versionLanguage});
     }
   }
   console.log("Time to set data: %dms", timer.elapsed());
-  
+
   var html  = ReactDOMServer.renderToString(ReaderApp(props));
   console.log("Time to render: %dms", timer.elapsed());
   
@@ -43,7 +41,7 @@ server.post('/ReaderApp', function(req, res) {
     elapsed: function() { return (new Date() - this.start); }
   };
   var props = JSON.parse(req.body.propsJSON);
-  console.log(props.initialRefs);
+  console.log(props.initialRefs || props.initialMenu);
   console.log("Time to props: %dms", timer.elapsed());
 
   request("http://localhost:8000/data.js", function(error, response, body) {
