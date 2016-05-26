@@ -36,7 +36,6 @@ class RecentInToc(AtomicTest):
     single_panel = False
     every_build = True
 
-
     def run(self):
         self.s2().click_toc_category("Tanach").click_toc_text("Psalms")
         self.load_toc().click_toc_recent("Psalms 1", until=title_contains("Psalms"))
@@ -105,6 +104,14 @@ class ClickVersionedSearchResultMobile(AtomicTest):
 
 
 class InfiniteScrollUp(AtomicTest):
+    suite_key = "Reader"
+    every_build = True
+
+    def run(self):
+        self.s2().load_ref("Job 32")
+        
+
+class InfiniteScrollDown(AtomicTest):
     suite_key = "Reader"
     every_build = True
 

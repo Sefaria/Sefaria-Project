@@ -342,6 +342,9 @@ var ReaderApp = React.createClass({
       } else if (states[i].mode === "Header") {
         hist.title = document.title;
         hist.url = window.location.pathname.slice(1);
+        if (window.location.search != "") {
+          hist.url += window.location.search;
+        }
         hist.mode = "Header";
       }
       histories.push(hist);
@@ -652,6 +655,15 @@ var ReaderApp = React.createClass({
       this.openTextListAt(n + 1, refs);
     }
   },
+  setSelectedWords: function setSelectedWords(n, words) {
+    //console.log(this.state.panels[n].refs);
+    words = typeof words !== "undefined" && words.length ? words : "";
+    var next = this.state.panels[n + 1];
+    if (next && !next.menuOpen) {
+      this.state.panels[n + 1].selectedWords = words;
+      this.setState({ panels: this.state.panels });
+    }
+  },
   openComparePanel: function openComparePanel(n) {
     var comparePanel = this.makePanelState({
       menuOpen: "navigation"
@@ -766,6 +778,7 @@ var ReaderApp = React.createClass({
       var onTextListClick = null; // this.openPanelAt.bind(null, i);
       var onOpenConnectionsClick = this.openTextListAt.bind(null, i + 1);
       var setTextListHightlight = this.setTextListHighlight.bind(null, i);
+      var setSelectedWords = this.setSelectedWords.bind(null, i);
       var openComparePanel = this.openComparePanel.bind(null, i);
       var closePanel = this.closePanel.bind(null, i);
       var setPanelState = this.setPanelState.bind(null, i);
@@ -793,6 +806,7 @@ var ReaderApp = React.createClass({
           onOpenConnectionsClick: onOpenConnectionsClick,
           openComparePanel: openComparePanel,
           setTextListHightlight: setTextListHightlight,
+          setSelectedWords: setSelectedWords,
           selectVersion: selectVersion,
           setDefaultOption: this.setDefaultOption,
           onQueryChange: this.updateQueryInPanel,
@@ -1081,7 +1095,9 @@ var ReaderPanel = React.createClass({
     multiPanel: React.PropTypes.bool,
     masterPanelLanguage: React.PropTypes.string,
     panelsOpen: React.PropTypes.number,
-    layoutWidth: React.PropTypes.number
+    layoutWidth: React.PropTypes.number,
+    setTextListHightlight: React.PropTypes.func,
+    setSelectedWords: React.PropTypes.func
   },
   getInitialState: function getInitialState() {
     // When this component is managed by a parent, all it takes is initialState
@@ -1253,6 +1269,15 @@ var ReaderPanel = React.createClass({
     this.conditionalSetState({ highlightedRefs: refs });
     if (this.props.multiPanel) {
       this.props.setTextListHightlight(refs);
+    }
+  },
+  setSelectedWords: function setSelectedWords(words) {
+    words = typeof words !== "undefined" && words.length ? words : "";
+    words = words.trim();
+    this.replaceHistory = false;
+    this.conditionalSetState({ 'selectedWords': words });
+    if (this.props.multiPanel) {
+      this.props.setSelectedWords(words);
     }
   },
   closeMenus: function closeMenus() {
@@ -1453,6 +1478,7 @@ var ReaderPanel = React.createClass({
         onSegmentClick: this.handleBaseSegmentClick,
         onCitationClick: this.handleCitationClick,
         setTextListHightlight: this.setTextListHightlight,
+        setSelectedWords: this.setSelectedWords,
         panelsOpen: this.props.panelsOpen,
         layoutWidth: this.props.layoutWidth,
         filter: this.state.filter,
@@ -1488,6 +1514,7 @@ var ReaderPanel = React.createClass({
         onCompareClick: this.showBaseText,
         openComparePanel: this.props.openComparePanel,
         closePanel: this.props.closePanel,
+        selectedWords: this.state.selectedWords,
         key: 'connections' }));
     }
 
@@ -2716,10 +2743,6 @@ var ReaderTextTableOfContents = React.createClass({
     var title = this.props.title;
     var heTitle = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
 
-    var sectionStrings = Sefaria.sectionString(this.props.currentRef);
-    var section = sectionStrings.en.named;
-    var heSection = sectionStrings.he.named;
-
     var currentVersionElement = null;
     var defaultVersionString = "Default Version";
     var defaultVersionObject = null;
@@ -2815,6 +2838,10 @@ var ReaderTextTableOfContents = React.createClass({
     }
 
     if (this.isTextToc()) {
+      var sectionStrings = Sefaria.sectionString(this.props.currentRef);
+      var section = sectionStrings.en.named;
+      var heSection = sectionStrings.he.named;
+
       var selectOptions = [];
       selectOptions.push(React.createElement(
         'option',
@@ -2908,7 +2935,7 @@ var ReaderTextTableOfContents = React.createClass({
               { className: 'he' },
               heTitle
             ),
-            React.createElement(
+            this.isTextToc() ? React.createElement(
               'div',
               { className: 'currentSection' },
               React.createElement(
@@ -2921,7 +2948,7 @@ var ReaderTextTableOfContents = React.createClass({
                 { className: 'he' },
                 heSection
               )
-            )
+            ) : ""
           ),
           this.isTextToc() ? React.createElement(
             'div',
@@ -2994,7 +3021,7 @@ var VersionBlock = React.createClass({
         ) : "",
         this.props.showHistory ? React.createElement(
           'a',
-          { className: 'versionHistoryLink', href: '/activity/' + normRef(this.props.currentRef) + '/' + v.language + '/' + (v.versionTitle && v.versionTitle.replace(/\s/g, "_")) },
+          { className: 'versionHistoryLink', href: '/activity/' + Sefaria.normRef(this.props.currentRef) + '/' + v.language + '/' + (v.versionTitle && v.versionTitle.replace(/\s/g, "_")) },
           'Version History >'
         ) : ""
       ),
@@ -3342,6 +3369,7 @@ var TextColumn = React.createClass({
     onSegmentClick: React.PropTypes.func,
     onCitationClick: React.PropTypes.func,
     setTextListHightlight: React.PropTypes.func,
+    setSelectedWords: React.PropTypes.func,
     onTextLoad: React.PropTypes.func,
     panelsOpen: React.PropTypes.number,
     layoutWidth: React.PropTypes.number
@@ -3352,6 +3380,7 @@ var TextColumn = React.createClass({
     this.debouncedAdjustTextListHighlight = Sefaria.util.debounce(this.adjustTextListHighlight, 100);
     var node = ReactDOM.findDOMNode(this);
     node.addEventListener("scroll", this.handleScroll);
+    this.setScrollPosition();
     this.adjustInfiniteScroll();
   },
   componentWillUnmount: function componentWillUnmount() {
@@ -3404,9 +3433,10 @@ var TextColumn = React.createClass({
   },
   handleTextSelection: function handleTextSelection() {
     var selection = window.getSelection();
+
     if (selection.type === "Range") {
-      var $start = $(getSelectionBoundaryElement(true)).closest(".segment");
-      var $end = $(getSelectionBoundaryElement(false)).closest(".segment");
+      var $start = $(Sefaria.util.getSelectionBoundaryElement(true)).closest(".segment");
+      var $end = $(Sefaria.util.getSelectionBoundaryElement(false)).closest(".segment");
       var $segments = $start.is($end) ? $start : $start.nextUntil($end, ".segment").add($start).add($end);
       var refs = [];
 
@@ -3416,6 +3446,8 @@ var TextColumn = React.createClass({
 
       this.props.setTextListHightlight(refs);
     }
+    console.log("Currently selected words: " + selection.toString());
+    this.props.setSelectedWords(selection.toString());
   },
   handleTextLoad: function handleTextLoad() {
     if (this.loadingContentAtTop || !this.initialScrollTopSet) {
@@ -3426,11 +3458,11 @@ var TextColumn = React.createClass({
     this.adjustInfiniteScroll();
   },
   setScrollPosition: function setScrollPosition() {
-    //console.log("ssp");
+    console.log("ssp");
     // Called on every update, checking flags on `this` to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-      //console.log("loading at top")
+      console.log("loading at top");
       var $node = $(ReactDOM.findDOMNode(this));
       var adjust = 118; // Height of .loadingMessage.base
       var $texts = $node.find(".basetext");
@@ -3464,7 +3496,7 @@ var TextColumn = React.createClass({
   },
   adjustInfiniteScroll: function adjustInfiniteScroll() {
     // Add or remove TextRanges from the top or bottom, depending on scroll position
-    console.log("ais");
+    console.log("adjust Infinite Scroll");
     if (!this.isMounted()) {
       return;
     }
@@ -3484,33 +3516,33 @@ var TextColumn = React.createClass({
       refs = refs.slice(0, -1);
       this.props.updateTextColumn(refs);
     } else if (lastBottom < windowHeight + 80) {
-      // Add the next section to bottom
+      // DOWN: add the next section to bottom
       if ($lastText.hasClass("loading")) {
-        console.log("last text is loading");
+        console.log("last text is loading - don't add next section");
         return;
       }
-      console.log("Add next section");
+      console.log("Down! Add next section");
       var currentRef = refs.slice(-1)[0];
       var data = Sefaria.ref(currentRef);
       if (data && data.next) {
         refs.push(data.next);
         this.props.updateTextColumn(refs);
-      }
-      if (Sefaria.site) {
-        Sefaria.site.track.event("Reader", "Infinite Scroll", "Down");
+        if (Sefaria.site) {
+          Sefaria.site.track.event("Reader", "Infinite Scroll", "Down");
+        }
       }
     } else if (windowTop < 20) {
-      // Scroll up for previous
+      // UP: add the previous section above then adjust scroll position so page doesn't jump
       var topRef = refs[0];
       var data = Sefaria.ref(topRef);
       if (data && data.prev) {
-        console.log("up!");
+        console.log("Up! Add previous section");
         refs.splice(refs, 0, data.prev);
         this.loadingContentAtTop = true;
         this.props.updateTextColumn(refs);
-      }
-      if (Sefaria.site) {
-        Sefaria.site.track.event("Reader", "Infinite Scroll", "Up");
+        if (Sefaria.site) {
+          Sefaria.site.track.event("Reader", "Infinite Scroll", "Up");
+        }
       }
     } else {
       // nothing happens
@@ -3674,6 +3706,11 @@ var TextRange = React.createClass({
     showActionLinks: React.PropTypes.bool
   },
   componentDidMount: function componentDidMount() {
+    var data = this.getText();
+    if (data && !this.dataPrefetched) {
+      // If data was populated server side, onTextLoad was never called
+      this.onTextLoad(data);
+    }
     if (this.props.basetext || this.props.segmentNumber) {
       this.placeSegmentNumbers();
     }
@@ -3692,7 +3729,9 @@ var TextRange = React.createClass({
     // Place segment numbers again if update affected layout
     if (this.props.basetext || this.props.segmentNumber) {
       if (this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage || prevProps.settings.language !== this.props.settings.language || prevProps.settings.layoutDefault !== this.props.settings.layoutDefault || prevProps.settings.layoutTanach !== this.props.settings.layoutTanach || prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud || prevProps.settings.fontSize !== this.props.settings.fontSize || prevProps.layoutWidth !== this.props.layoutWidth) {
+        // Rerender in case version has changed
         this.forceUpdate();
+        // TODO: are these animationFrames still needed?
         window.requestAnimationFrame(function () {
           if (this.isMounted()) {
             this.placeSegmentNumbers();
@@ -3728,16 +3767,39 @@ var TextRange = React.createClass({
     var data = Sefaria.text(this.props.sref, settings);
     if (!data) {
       // If we don't have data yet, call again with a callback to trigger API call
-      Sefaria.text(this.props.sref, settings, this.loadText);
+      console.log("getText calling API");
+      Sefaria.text(this.props.sref, settings, this.onTextLoad);
     }
     return data;
   },
-  loadText: function loadText(data) {
+  onTextLoad: function onTextLoad(data) {
+    console.log("onTextLoad in TextColumn");
     // Initiate additional API calls when text data first loads
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
-      // Pass parameter to showBaseText to replaceHistory
+      // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
       this.props.showBaseText(data.ref, true);
+    }
+
+    this.prefetchData();
+
+    if (this.props.onTextLoad) {
+      this.props.onTextLoad();
+    }
+
+    if (this.isMounted()) {
+      this.forceUpdate();
+    }
+  },
+  prefetchData: function prefetchData() {
+    // Prefetch addtional data (next, prev, links, notes etc) for this ref
+    if (this.dataPrefetched) {
+      return;
+    }
+
+    var data = this.getText();
+    if (!data) {
+      return;
     }
 
     // Load links at section level if spanning, so that cache is properly primed with section level refs
@@ -3752,7 +3814,11 @@ var TextRange = React.createClass({
 
     if (this.props.loadLinks && !Sefaria.linksLoaded(sectionRefs)) {
       for (var i = 0; i < sectionRefs.length; i++) {
-        Sefaria.related(sectionRefs[i], function () {});
+        Sefaria.related(sectionRefs[i], function () {
+          if (this.isMounted()) {
+            this.forceUpdate();
+          }
+        }.bind(this));
       }
     }
 
@@ -3775,10 +3841,7 @@ var TextRange = React.createClass({
         Sefaria.textTocHtml(data.book, function () {});
       }
     }
-
-    if (this.props.onTextLoad) {
-      this.props.onTextLoad();
-    }
+    this.dataPrefetched = true;
   },
   makeSegments: function makeSegments(data) {
     // Returns a flat list of annotated segment objects,
@@ -4125,7 +4188,8 @@ var ConnectionsPanel = React.createClass({
     openNav: React.PropTypes.func,
     openDisplaySettings: React.PropTypes.func,
     closePanel: React.PropTypes.func,
-    toggleLanguage: React.PropTypes.func
+    toggleLanguage: React.PropTypes.func,
+    selectedWords: React.PropTypes.string
   },
   render: function render() {
     var content = null;
@@ -4145,7 +4209,8 @@ var ConnectionsPanel = React.createClass({
         onOpenConnectionsClick: this.props.onOpenConnectionsClick,
         openNav: this.props.openNav,
         openDisplaySettings: this.props.openDisplaySettings,
-        closePanel: this.props.closePanel });
+        closePanel: this.props.closePanel,
+        selectedWords: this.props.selectedWords });
     } else if (this.props.mode === "Tools") {
       content = React.createElement(ToolsPanel, {
         srefs: this.props.srefs,
@@ -4296,7 +4361,8 @@ var TextList = React.createClass({
     onOpenConnectionsClick: React.PropTypes.func,
     openNav: React.PropTypes.func,
     openDisplaySettings: React.PropTypes.func,
-    closePanel: React.PropTypes.func
+    closePanel: React.PropTypes.func,
+    selectedWords: React.PropTypes.string
   },
   getInitialState: function getInitialState() {
     return {
@@ -4543,9 +4609,11 @@ var TextList = React.createClass({
         React.createElement(AllFilterSet, {
           summary: summary,
           showText: this.props.showText,
-          filter: this.props.fitler,
+          filter: this.props.filter,
           recentFilters: this.props.recentFilters,
-          setFilter: this.props.setFilter })
+          setFilter: this.props.setFilter,
+          selectedWords: this.props.selectedWords,
+          oref: oref })
       );
     } else if (!this.props.fullPanel) {
       return React.createElement(
@@ -4671,6 +4739,7 @@ var AllFilterSet = React.createClass({
     return React.createElement(
       'div',
       { className: 'fullFilterView filterSet' },
+      React.createElement(LexiconPanel, { selectedWords: this.props.selectedWords, oref: this.props.oref }),
       categories
     );
   }
@@ -4892,6 +4961,215 @@ var RecentFilterSet = React.createClass({
         topFilters
       ),
       moreButton
+    );
+  }
+});
+
+var LexiconPanel = React.createClass({
+  displayName: 'LexiconPanel',
+
+  propTypes: {
+    selectedWords: React.PropTypes.string,
+    oref: React.PropTypes.object
+  },
+  getInitialState: function getInitialState() {
+    return {
+      resultsLoaded: false
+    };
+  },
+  componentDidMount: function componentDidMount() {
+    this.getLookups();
+  },
+  componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
+    if (prevProps.selectedWords != this.props.selectedWords) {
+      this.getLookups();
+    }
+  },
+  getLookups: function getLookups() {
+    console.log("Lexicon Ref: ", this.props.oref);
+    if (!this.shouldRenderSelf()) {
+      return;
+    }
+    Sefaria.lexicon(this.props.selectedWords, this.props.oref.ref, function (data) {
+      console.log(data);
+      if (this.isMounted()) {
+        this.setState({
+          resultsLoaded: true,
+          entries: data
+        });
+      }
+    }.bind(this));
+  },
+
+  shouldRenderSelf: function shouldRenderSelf() {
+    if (!this.props.selectedWords) {
+      return false;
+    }
+    wordList = this.props.selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
+    inputLength = wordList.length;
+    return inputLength > 0 && inputLength <= 3;
+  },
+  filter: function filter(entries) {
+
+    return entries.map();
+  },
+  render: function render() {
+    console.log("lexicon: " + this.props.selectedWords);
+    var ref_cats = this.props.oref.categories.join(", ");
+    var enEmpty = "No results found.";
+    var heEmpty = "לא נמצאו תוצאות";
+    if (!this.shouldRenderSelf()) {
+      return null;
+    }
+    var content;
+    if (!this.state.resultsLoaded) {
+      content = React.createElement(LoadingMessage, { message: 'Looking up words...', heMessage: 'מחפש מילים...' });
+    } else if ("error" in this.state.entries) {
+      content = React.createElement(LoadingMessage, { message: enEmpty, heMessage: heEmpty });
+    } else {
+      var entries = this.state.entries;
+      content = entries ? entries.filter(function (e) {
+        return e['parent_lexicon_details']['text_categories'].indexOf(ref_cats) > -1;
+      }).map(function (entry, i) {
+        return React.createElement(LexiconEntry, { data: entry, key: i });
+      }) : React.createElement(LoadingMessage, { message: enEmpty, heMessage: heEmpty });
+      content = content.length ? content : React.createElement(LoadingMessage, { message: enEmpty, heMessage: heEmpty });
+    }
+    /*var header = (<div className="lexicon-header"><h4>{this.props.selectedWords}</h4></div>);*/
+    return React.createElement(
+      'div',
+      { className: 'lexicon-content' },
+      React.createElement(
+        'div',
+        { className: 'lexicon-results' },
+        content
+      )
+    );
+  }
+});
+
+var LexiconEntry = React.createClass({
+  displayName: 'LexiconEntry',
+
+  propTypes: {
+    data: React.PropTypes.object.isRequired
+  },
+  render: function render() {
+    var entry = this.props.data;
+    var headwordClassNames = classNames('headword', entry['parent_lexicon_details']["to_language"].slice(0, 2));
+    var definitionClassNames = classNames('definition-content', entry['parent_lexicon_details']["to_language"].slice(0, 2));
+    var entryHeadHtml = React.createElement(
+      'span',
+      { className: 'headword' },
+      entry['headword']
+    );
+    var morphologyHtml = 'morphology' in entry['content'] ? React.createElement(
+      'span',
+      { className: 'morphology' },
+      '(',
+      entry['content']['morphology'],
+      ')'
+    ) : "";
+    var senses = this.renderLexiconEntrySenses(entry['content']);
+    var attribution = this.renderLexiconAttribution();
+    return React.createElement(
+      'div',
+      { className: 'entry' },
+      React.createElement(
+        'div',
+        { className: headwordClassNames },
+        entryHeadHtml
+      ),
+      React.createElement(
+        'div',
+        { className: definitionClassNames },
+        morphologyHtml,
+        React.createElement(
+          'ol',
+          { className: 'definition' },
+          senses
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'attribution' },
+        attribution
+      )
+    );
+  },
+  renderLexiconEntrySenses: function renderLexiconEntrySenses(content) {
+    var _this2 = this;
+
+    var grammar = 'grammar' in content ? '(' + content['grammar']['verbal_stem'] + ')' : "";
+    var def = 'definition' in content ? content['definition'] : "";
+    var notes = 'notes' in content ? React.createElement(
+      'span',
+      { className: 'notes' },
+      content['notes']
+    ) : "";
+    var sensesElems = 'senses' in content ? content['senses'].map(function (sense) {
+      return _this2.renderLexiconEntrySenses(sense);
+    }) : "";
+    var senses = sensesElems.length ? React.createElement(
+      'ol',
+      { className: 'senses' },
+      sensesElems
+    ) : "";
+    return React.createElement(
+      'li',
+      { className: 'sense' },
+      grammar,
+      def,
+      notes,
+      senses
+    );
+  },
+  renderLexiconAttribution: function renderLexiconAttribution() {
+    var entry = this.props.data;
+    var lexicon_dtls = entry['parent_lexicon_details'];
+    return React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'span',
+        null,
+        React.createElement(
+          'a',
+          { target: '_blank',
+            href: 'source_url' in lexicon_dtls ? lexicon_dtls['source_url'] : "" },
+          React.createElement(
+            'span',
+            { className: 'en' },
+            'Source: '
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            'מקור:'
+          ),
+          'source' in lexicon_dtls ? lexicon_dtls['source'] : lexicon_dtls['source_url']
+        )
+      ),
+      React.createElement(
+        'span',
+        null,
+        React.createElement(
+          'a',
+          { target: '_blank',
+            href: 'attribution_url' in lexicon_dtls ? lexicon_dtls['attribution_url'] : "" },
+          React.createElement(
+            'span',
+            { className: 'en' },
+            'Creator: '
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            'יוצר:'
+          ),
+          'attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']
+        )
+      )
     );
   }
 });
@@ -5790,7 +6068,7 @@ var SearchResultList = React.createClass({
       from: last,
       error: function error() {
         console.log("Failure in SearchResultList._loadRemainder");
-      }, // Fail silently, since first load was okay?
+      },
       success: function (data) {
         var hitarrays = this._process_hits(data.hits.hits);
         var nextTextHits = currentTextHits.concat(hitarrays.texts);
@@ -5907,13 +6185,13 @@ var SearchResultList = React.createClass({
     };
   },
   _buildFilterTree: function _buildFilterTree(aggregation_buckets) {
-    var _this2 = this;
+    var _this3 = this;
 
     //returns object w/ keys 'availableFilters', 'registry'
     //Add already applied filters w/ empty doc count?
     var rawTree = {};
     aggregation_buckets.forEach(function (f) {
-      return _this2._addAvailableFilter(rawTree, f["key"], { "docCount": f["doc_count"] });
+      return _this3._addAvailableFilter(rawTree, f["key"], { "docCount": f["doc_count"] });
     });
     this._aggregate(rawTree);
     return this._build(rawTree);
@@ -6441,7 +6719,7 @@ var SearchTextResult = React.createClass({
 
     return React.createElement(
       'div',
-      { className: 'result' },
+      { className: 'result text_result' },
       React.createElement(
         'a',
         { href: href, onClick: this.handleResultClick },
@@ -6479,9 +6757,10 @@ var SearchSheetResult = React.createClass({
     query: React.PropTypes.string,
     data: React.PropTypes.object
   },
+
   render: function render() {
     var data = this.props.data;
-    var s = this.props.data._source;
+    var s = data._source;
 
     var snippet = data.highlight ? data.highlight.content.join("...") : s.content;
     snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").text();
@@ -6493,18 +6772,35 @@ var SearchSheetResult = React.createClass({
     var href = "/sheets/" + s.sheetId;
     return React.createElement(
       'div',
-      { className: 'result' },
+      { className: 'result sheet_result' },
       React.createElement(
-        'a',
-        { className: 'result-title', href: href },
-        clean_title
+        'div',
+        { className: 'result_img_box' },
+        React.createElement(
+          'a',
+          { href: s.profile_url },
+          React.createElement('img', { className: 'owner_image', src: s.owner_image })
+        )
       ),
       React.createElement(
         'div',
-        { className: 'snippet' },
-        snippet
-      ),
-      React.createElement('div', { className: 'version', dangerouslySetInnerHTML: get_version_markup() })
+        { className: 'result_text_box' },
+        React.createElement(
+          'a',
+          { href: s.profile_url, className: 'owner_name' },
+          s.owner_name
+        ),
+        React.createElement(
+          'a',
+          { className: 'result-title', href: href },
+          clean_title
+        ),
+        React.createElement(
+          'div',
+          { className: 'snippet' },
+          snippet
+        )
+      )
     );
   }
 });

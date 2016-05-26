@@ -115,6 +115,14 @@ class AtomicTest(object):
         assert isinstance(ref, Ref)
         #todo
 
+    def scroll_to_top(self):
+        """Scrolls the first text panel to the top"""
+        pass
+
+    def scroll_to_bottom(self):
+        """Scrolls the first text panel to the top"""
+        pass
+
     # Connections Panel
     def find_text_filter(self, name):
         return self.driver.find_element_by_css_selector('.textFilter[data-name="{}"]'.format(name))

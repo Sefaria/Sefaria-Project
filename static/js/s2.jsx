@@ -2749,6 +2749,7 @@ var TextColumn = React.createClass({
     this.debouncedAdjustTextListHighlight = Sefaria.util.debounce(this.adjustTextListHighlight, 100);
     var node = ReactDOM.findDOMNode(this);
     node.addEventListener("scroll", this.handleScroll);
+    this.setScrollPosition();
     this.adjustInfiniteScroll();
   },
   componentWillUnmount: function() {
@@ -2830,11 +2831,11 @@ var TextColumn = React.createClass({
     this.adjustInfiniteScroll();
   },
   setScrollPosition: function() {
-    //console.log("ssp");
+    console.log("ssp");
     // Called on every update, checking flags on `this` to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-      //console.log("loading at top")
+      console.log("loading at top")
       var $node   = $(ReactDOM.findDOMNode(this));
       var adjust  = 118; // Height of .loadingMessage.base
       var $texts  = $node.find(".basetext");
@@ -2866,7 +2867,7 @@ var TextColumn = React.createClass({
   },
   adjustInfiniteScroll: function() {
     // Add or remove TextRanges from the top or bottom, depending on scroll position
-    console.log("ais");
+    console.log("adjust Infinite Scroll");
     if (!this.isMounted()) { return; }
     var node         = ReactDOM.findDOMNode(this);
     var refs         = this.props.srefs;
@@ -2882,30 +2883,30 @@ var TextColumn = React.createClass({
       refs = refs.slice(0,-1);
       this.props.updateTextColumn(refs);
     } else if ( lastBottom < windowHeight + 80 ) {
-      // Add the next section to bottom
+      // DOWN: add the next section to bottom
       if ($lastText.hasClass("loading")) { 
-        console.log("last text is loading")
+        console.log("last text is loading - don't add next section")
         return;
       }
-      console.log("Add next section");
+      console.log("Down! Add next section");
       var currentRef = refs.slice(-1)[0];
       var data       = Sefaria.ref(currentRef);
       if (data && data.next) {
         refs.push(data.next);
         this.props.updateTextColumn(refs);
+        if (Sefaria.site) { Sefaria.site.track.event("Reader", "Infinite Scroll", "Down"); }
       }
-      if (Sefaria.site) { Sefaria.site.track.event("Reader", "Infinite Scroll", "Down"); }
     } else if (windowTop < 20) {
-      // Scroll up for previous
+      // UP: add the previous section above then adjust scroll position so page doesn't jump
       var topRef = refs[0];
       var data   = Sefaria.ref(topRef);
       if (data && data.prev) {
-        console.log("up!")
+        console.log("Up! Add previous section");
         refs.splice(refs, 0, data.prev);
         this.loadingContentAtTop = true;
         this.props.updateTextColumn(refs);
+        if (Sefaria.site) { Sefaria.site.track.event("Reader", "Infinite Scroll", "Up"); }
       }
-      if (Sefaria.site) { Sefaria.site.track.event("Reader", "Infinite Scroll", "Up"); }
     } else {
       // nothing happens
     }
@@ -3063,6 +3064,11 @@ var TextRange = React.createClass({
     showActionLinks:        React.PropTypes.bool
   },
   componentDidMount: function() {
+    var data = this.getText();
+    if (data && !this.dataPrefetched) {
+      // If data was populated server side, onTextLoad was never called
+      this.onTextLoad(data);
+    }
     if (this.props.basetext || this.props.segmentNumber) { 
       this.placeSegmentNumbers();
     }
@@ -3088,7 +3094,9 @@ var TextRange = React.createClass({
           prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
           prevProps.settings.fontSize !== this.props.settings.fontSize ||
           prevProps.layoutWidth !== this.props.layoutWidth) {
+            // Rerender in case version has changed
             this.forceUpdate();
+            // TODO: are these animationFrames still needed?
             window.requestAnimationFrame(function() { 
               if (this.isMounted()) {
                 this.placeSegmentNumbers();
@@ -3121,17 +3129,34 @@ var TextRange = React.createClass({
     };
     var data = Sefaria.text(this.props.sref, settings);
     if (!data) { // If we don't have data yet, call again with a callback to trigger API call
-      Sefaria.text(this.props.sref, settings, this.loadText);
+      console.log("getText calling API");
+      Sefaria.text(this.props.sref, settings, this.onTextLoad);
     }
     return data;
   },
-  loadText: function(data) {
+  onTextLoad: function(data) {
+    console.log("onTextLoad in TextColumn")
     // Initiate additional API calls when text data first loads
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
-      // Pass parameter to showBaseText to replaceHistory
+      // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
       this.props.showBaseText(data.ref, true);        
     }
+
+    this.prefetchData();
+    
+    if (this.props.onTextLoad) {
+      this.props.onTextLoad();
+    }
+
+    if (this.isMounted()) { this.forceUpdate(); }
+  },
+  prefetchData: function() {
+    // Prefetch addtional data (next, prev, links, notes etc) for this ref
+    if (this.dataPrefetched) { return; }
+
+    var data = this.getText();
+    if (!data) { return; }
 
     // Load links at section level if spanning, so that cache is properly primed with section level refs
     var sectionRefs = data.isSpanning ? data.spanningRefs : [data.sectionRef];
@@ -3145,7 +3170,9 @@ var TextRange = React.createClass({
 
     if (this.props.loadLinks && !Sefaria.linksLoaded(sectionRefs)) {
       for (var i = 0; i < sectionRefs.length; i++) {
-        Sefaria.related(sectionRefs[i], function() {});
+        Sefaria.related(sectionRefs[i], function() {
+          if (this.isMounted()) { this.forceUpdate(); }
+        }.bind(this));
       }
     }
 
@@ -3166,10 +3193,7 @@ var TextRange = React.createClass({
      }
      if (data.book) { Sefaria.textTocHtml(data.book, function() {}); }
     }
-
-    if (this.props.onTextLoad) {
-      this.props.onTextLoad();
-    }
+    this.dataPrefetched = true;
   },
   makeSegments: function(data) {
     // Returns a flat list of annotated segment objects,
@@ -4173,7 +4197,7 @@ var LexiconPanel = React.createClass({
   }
 });
 
-LexiconEntry = React.createClass({
+var LexiconEntry = React.createClass({
   propTypes: {
     data: React.PropTypes.object.isRequired
   },
@@ -4210,9 +4234,8 @@ LexiconEntry = React.createClass({
             </li>
         );
   },
-
   renderLexiconAttribution: function(){
-        var entry = this.props.data;
+    var entry = this.props.data;
 		var lexicon_dtls = entry['parent_lexicon_details'];
         return (
             <div>
