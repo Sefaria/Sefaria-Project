@@ -2804,8 +2804,8 @@ var TextColumn = React.createClass({
     var selection = window.getSelection();
 
     if (selection.type === "Range") {
-      var $start    = $(getSelectionBoundaryElement(true)).closest(".segment");
-      var $end      = $(getSelectionBoundaryElement(false)).closest(".segment");
+      var $start    = $(Sefaria.util.getSelectionBoundaryElement(true)).closest(".segment");
+      var $end      = $(Sefaria.util.getSelectionBoundaryElement(false)).closest(".segment");
       var $segments = $start.is($end) ? $start : $start.nextUntil($end, ".segment").add($start).add($end);
       var refs      = [];
  
