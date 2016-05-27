@@ -873,6 +873,9 @@ $(function() {
 	// ---------- Delete Sheet ----------------
 	$("#deleteSheet").click(deleteSheet);
 
+	// ---------- Export Sheet to Google Drive ----------------
+	$("#exportToDrive").click(exportToDrive);
+
 
 	// ------- Sheet Tags --------------
 	sjs.sheetTagger.init(sjs.current.id, sjs.current.tags);
@@ -2899,6 +2902,15 @@ function copySheet() {
 
 }
 
+function exportToDrive() {
+	$.post("/api/sheets/" + sjs.current.id + "/export_to_drive", function(data) {
+		if ("error" in data) {
+			sjs.alert.message(data.error.message);
+		} else {
+			sjs.alert.message("Source Sheet exported to Google Drive.<br><br><a href='" + data.webViewLink + "'></a>");
+		}
+	})
+}
 
 function showEmebed() { 
 	$("#embedSheetModal").show().position({of: window})
