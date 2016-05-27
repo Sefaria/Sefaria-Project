@@ -768,6 +768,7 @@ Sefaria = extend(Sefaria, {
           this._saveNoteData(ref, data.notes);
           this.sheets._saveSheetsByRefData(ref, data.sheets);
           this._related[ref] = data;
+          this._relatedSummaries[ref] = null; // Reset in case previously cached before API returned
           callback(data);
         }.bind(this));
     }
@@ -789,7 +790,6 @@ Sefaria = extend(Sefaria, {
         notes = newNotes ? notes.concat(newNotes) : notes;
       });
     }
-
     var summary           = this.linkSummary(ref);
     var commmunityContent = [sheets, notes].filter(function(section) { return section.length > 0; } ).map(function(section) {
       if (!section) { debugger; }

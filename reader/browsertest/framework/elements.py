@@ -114,14 +114,15 @@ class AtomicTest(object):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         #todo
+        return self
 
     def scroll_to_top(self):
         """Scrolls the first text panel to the top"""
-        pass
+        return self
 
     def scroll_to_bottom(self):
         """Scrolls the first text panel to the top"""
-        pass
+        return self
 
     # Connections Panel
     def find_text_filter(self, name):

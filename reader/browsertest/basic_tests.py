@@ -108,7 +108,7 @@ class InfiniteScrollUp(AtomicTest):
     every_build = True
 
     def run(self):
-        self.s2().load_ref("Job 32")
+        self.s2().load_ref("Job 32").scroll_to_top()
         
 
 class InfiniteScrollDown(AtomicTest):
