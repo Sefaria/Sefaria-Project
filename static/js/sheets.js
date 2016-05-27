@@ -102,78 +102,72 @@ $(function() {
 		});
 		
 
-	
-	
-	$( "#addMediaModal .ok" ).click(function() {
+	function makeMediaEmbedLink(mediaURL) {
+	    var re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
+   		var m;
 
-    var re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i; 
-    var m;
-	var $target = $("#addMediaModal").data("target");
-
-    if ((m = re.exec($("#addMediaInput").val())) !== null) {
-        if (m.index === re.lastIndex) {
-            re.lastIndex++;
-        }
-			if (m.length>0) {
-			//	$("#mediaPreview").html('<iframe width="560" height="315" src="https://www.youtube.com/embed/'+m[m.length-1]+'?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>');
-				$target.html('<iframe width="560" height="315" src="https://www.youtube.com/embed/'+m[m.length-1]+'?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>');
-
+		if ((m = re.exec(mediaURL)) !== null) {
+			if (m.index === re.lastIndex) {
+				re.lastIndex++;
 			}
-			
-		autoSave();
+				if (m.length>0) {
+					embedHTML = '<iframe width="560" height="315" src="https://www.youtube.com/embed/'+m[m.length-1]+'?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>';
+				}
+		}
 
-    }
-    
-    else if ( ($("#addMediaInput").val()).match(/https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null ) {
-    			$target.html('<img class="addedMedia" src="'+$("#addMediaInput").val()+'" />');
-    }
+		else if ( (mediaURL).match(/https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null ) {
+					embedHTML = '<img class="addedMedia" src="'+mediaURL+'" />';
+		}
 
 
-    else if ( ($("#addMediaInput").val()).match(/https?:\/\/(www\.)?.+\.(mp3)$/i) != null ) {
-    			$target.html('<audio src="'+$("#addMediaInput").val()+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>')
-    }
+		else if ( (mediaURL).match(/https?:\/\/(www\.)?.+\.(mp3)$/i) != null ) {
+					embedHTML = '<audio src="'+mediaURL+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
+		}
 
-    else if ( ($("#addMediaInput").val()).match(/https?:\/\/.*clyp\.it\/.+/i) != null ) {
-    			$target.html('<audio src="'+$("#addMediaInput").val()+'.mp3" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>')
-    }
-    
+		else if ( (mediaURL).match(/https?:\/\/.*clyp\.it\/.+/i) != null ) {
+					embedHTML = '<audio src="'+mediaURL+'.mp3" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
+		}
 
-	else {
-		$target.parent().remove();
-		sjs.alert.flash("We couldn't understand your link.<br/>No media added.")
-		autoSave();	
+		else embedHTML = false;
+
+		return embedHTML
 	}
 
-	$("#addMediaModal, #overlay").hide();
-
-
-
-	//if the image or audio is a bad link or can't be loaded
-	$target.find('audio, img').last()
-	    .on('error', function() { 
+	function mediaCheck(target){
+		$target = target;
+		$target.find('audio, img').last()
+	    .on('error', function() {
 	    	$target.parent().remove();
 			sjs.alert.flash("There was an error adding your media.")
-			autoSave();
-	     });     
-	   
-	//if the image is loaded    
-	$target.find('img').last()     
-	    .on('load', function() { 
-		    autoSave();
-	     });
+	     })
+	}
 
-	//if the audio starts to load    
-	$target.find('audio').last()
-	    .on('loadedmetadata', function() { 
-		    autoSave();
-	     });
+
+
+	$( "#addMediaModal .ok" ).click(function() {
+
+		var $target = $("#addMediaModal").data("target");
+		var embedHTML = makeMediaEmbedLink($("#addMediaInput").val())
+		if (embedHTML != false) {
+			$target.html(embedHTML);
+		}
+		else {
+			$target.parent().remove();
+			sjs.alert.flash("We couldn't understand your link.<br/>No media added.")
+		}
+
+		$("#addMediaModal, #overlay").hide();
+
+
+		mediaCheck($target);
+		autoSave();
 
 	if (sjs.openRequests == 0) {
 		var top = $target.offset().top - 200;
-		$("html, body").animate({scrollTop: top}, 300);		
+		$("html, body").animate({scrollTop: top}, 300);
 	}
 
-	
+
 	});	
 	
 
@@ -1188,6 +1182,33 @@ $(function() {
 				//$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
 
 			});
+
+			$("#addmediaDiv").on("click", ".button", function (e) {
+
+
+				var $target = $("#addInterface").prev(".sheetItem");
+				var source = {media: "", isNew: true};
+				if (sjs.can_add) {
+					source.userLink = sjs._userLink;
+				}
+				$target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
+
+				var embedHTML = makeMediaEmbedLink($("#inlineAddMediaInput").val());
+
+				if (embedHTML != false) {
+					$target.next(".sheetItem").find(".media").html(embedHTML);
+				}
+				else {
+//					$target.parent().remove();
+					sjs.alert.flash("We couldn't understand your link.<br/>No media added.")
+				}
+
+				mediaCheck($target.next(".sheetItem").find(".media"));
+				autoSave();
+
+
+			});
+
 
 			$("#addcustomTextDiv").on("click", "#customTextLanguageToggle .toggleOption", function (e) {
 
@@ -2497,6 +2518,10 @@ function buildSource($target, source, appendOrInsert) {
 				if (appendOrInsert == "append") {
 					$target.append(outsideHtml);
 				}
+				else if (appendOrInsert == "insert") {
+					$target.after(outsideHtml);
+				}
+
 	}
 	
 	else if ("text" in source) {
