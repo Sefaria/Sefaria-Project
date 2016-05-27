@@ -4,8 +4,9 @@
 var http           = require('http'),
     express        = require('express'),
     bodyParser     = require('body-parser'),
-    cookieParser    = require('cookie-parser'),
+    cookieParser   = require('cookie-parser'),
     request        = require('request'),
+    settings       = require('./local_settings.json'),
     React          = require('react'),
     ReactDOMServer = require('react-dom/server'),
     SefariaReact   = require('../static/js/s2'),
@@ -44,7 +45,7 @@ server.post('/ReaderApp', function(req, res) {
   console.log(props.initialRefs || props.initialMenu);
   console.log("Time to props: %dms", timer.elapsed());
 
-  request("http://localhost:8000/data.js", function(error, response, body) {
+  request(settings.DJANGO_HOST + "/data.js", function(error, response, body) {
     if (!error && response.statusCode == 200) {
       console.log("Time to get data.js: %dms", timer.elapsed());
       eval(body);
@@ -53,11 +54,12 @@ server.post('/ReaderApp', function(req, res) {
       res.end(html);
       console.log("Time to complete: %dms", timer.elapsed());  
     } else {
+      console.log(error);
       res.end("There was an error accessing /data.js.");
     }
   });
 });
 
-server.listen(4040, function() {
-  console.log('Listening on 4040...');
+server.listen(settings.PORT, function() {
+  console.log('Listening on ' + settings.PORT);
 });
