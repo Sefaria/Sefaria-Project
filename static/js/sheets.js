@@ -2906,12 +2906,12 @@ function exportToDrive() {
 		if ("error" in data) {
 			sjs.alert.message(data.error.message);
 		} else {
-			sjs.alert.message("Source Sheet exported to Google Drive.<br><br><a href='" + data.webViewLink + "'></a>");
+			sjs.alert.message("Source Sheet exported to Google Drive.<br><br><a href='" + data.webViewLink + "'>Open in Google Drive &raquo;</a>");
 		}
 	})
 }
 
-function showEmebed() { 
+function showEmebed() {
 	$("#embedSheetModal").show().position({of: window})
 			.find("textarea").focus()
 		.end()
@@ -2937,7 +2937,7 @@ function deleteSheet() {
 // Regex for identifying divine name with or without nikkud / trop
 sjs.divineRE = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C7]*|יי|יקוק|ה\')(?=[\s.,;:'"\-]|$)/g;
 sjs.divineSubs = {
-					"noSub": "יהוה", 
+					"noSub": "יהוה",
 					"yy": "יי",
 					"ykvk": "יקוק",
 					"h": "ה'"
@@ -2947,8 +2947,8 @@ sjs.divineSubs = {
 function substituteDivineNames(text) {
 	// Returns 'text' with divine names substituted according to the current
 	// setting in sjs.current.options.divineNames
-	if (!sjs.current.options.divineNames || sjs.current.options.divineNames === "noSub") { 
-		return text; 
+	if (!sjs.current.options.divineNames || sjs.current.options.divineNames === "noSub") {
+		return text;
 	}
 	var sub = sjs.divineSubs[sjs.current.options.divineNames];
 	text = text.replace(sjs.divineRE, "$1$2"+sub);
