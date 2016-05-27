@@ -7,12 +7,15 @@ from random import choice
 from pprint import pprint
 import json
 import urlparse
+import urllib2
+import urllib
 import dateutil.parser
 from bson.json_util import dumps
 import p929
 
 from django.views.decorators.cache import cache_page
 from django.template import RequestContext
+from django.template.loader import render_to_string
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.http import Http404, HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -40,10 +43,7 @@ from sefaria.datatype.jagged_array import JaggedArray
 import sefaria.utils.calendars
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
-try:
-    from sefaria.settings import USE_VARNISH
-except ImportError:
-    USE_VARNISH = False
+from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST
 if USE_VARNISH:
     from sefaria.system.sf_varnish import invalidate_ref, invalidate_linked
 
@@ -86,6 +86,9 @@ def reader(request, tref, lang=None, version=None):
 
     if request.flavour == "mobile" or request.COOKIES.get('s2'):
         return s2(request, ref=tref, lang=lang, version=version)
+
+
+    # TODO Everything below is S1 and will be removed
 
     # BANDAID - for spanning refs, return the first section
     oref = oref.padded_ref()
@@ -176,52 +179,102 @@ def switch_to_s2(request):
     """Set the S2 cookie then redirect to /texts"""
 
     response = redirect("/texts")
-    response.set_cookie("s2", "true");
+    response.set_cookie("s2", "true")
     return response
+
+
+def render_react_component(component, props):
+    """
+    Asks the Node Server to render `component` with `props`.
+    Returns HTML.
+    """
+    if not USE_NODE:
+        return render_to_string("elements/loading.html")
+
+    url = NODE_HOST + "/" + component
+    encoded_args = urllib.urlencode({
+        "propsJSON": json.dumps(props),
+    })
+    try:
+        response = urllib2.urlopen(url, encoded_args)
+        html = response.read()
+        return html
+    except:
+        # If anything goes wrong with Node, fall back to client-side rendering
+        return render_to_string("elements/loading.html")
+
+
+def make_panel_dict(oref, version, language, filter, mode):
+    """
+    Returns a dictionary corresponding to the React panel state,
+    additionally setting `text` field with textual content.
+    """
+    panel = {
+        "mode": mode,
+        "ref": oref.normal(),
+        "refs": [oref.normal()],
+        "version": version,
+        "versionLanguage": language,
+        "filter": filter,
+    }
+
+    if oref.is_book_level():
+        panel["menuOpen"] = "book toc"
+        panel["bookRef"] = oref.normal()
+    else:
+        try:
+            text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True).contents()
+        except NoVersionFoundError:
+            text = {}
+
+        text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+        text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+        panel["text"] = text
+
+        if oref.is_segment_level():
+            panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
+
+    return panel
+
+
+def make_panel_dicts(oref, version, language, filter, multi_panel):
+    """
+    Returns an array of panel dictionaries.
+    Depending on whether `multi_panel` is True, connections set in `filter` are displayed in either 1 or 2 panels.
+    """
+    panels = []
+    if filter and  multi_panel:
+        panels += [make_panel_dict(oref, version, language, filter, "Text")]
+        panels += [make_panel_dict(oref, version, language, filter, "Connections")]
+    elif filter and not multi_panel:
+        panels += [make_panel_dict(oref, version, language, filter, "TextAndConnections")]
+    else:
+        panels += [make_panel_dict(oref, version, language, filter, "Text")]
+
+    return panels
 
 
 def s2(request, ref, version=None, lang=None):
     """
-    New interfaces in development
+    Reader App.
     """
     try:
         oref = Ref(ref)
     except InputError:
         raise Http404
-    max_panels = 4
+   
     panels = []
+    multi_panel = request.flavour != "mobile"
 
-    # TODO clean up generation of initial panels objects. 
-    # Currently these get generated in reader/views.py, then regenerated in s2.html then regenerated again in ReaderApp.
+    # Handle first panel which has a different signature in params & URL (`version` and `lang` if set come from URL).
+    version = version.replace(u"_", " ") if version else version
+    filter = request.GET.get("with").replace("_", " ").split("+") if request.GET.get("with") else None
+    filter = [] if filter == ["all"] else filter
+    panels += make_panel_dicts(oref, version, lang, filter, multi_panel)
 
-    # Handle first panel
-    panel_1 = {}
-    if version and lang:
-        panel_1["version"] = version.replace(u"_", u" ")
-        panel_1["language"] = lang
-    if oref.is_book_level(): #oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
-        panel_1["initialMenu"] = "text toc"
-        oref = oref.first_available_section_ref()
-        # If there's a version specified, should we use Version.first_section_ref()?
-    else:
-        panel_1["initialMenu"] = ""
-    try:
-        text = TextFamily(oref, version=panel_1.get("version"), lang=panel_1.get("language"), commentary=False, context=True, pad=True, alts=True).contents()
-    except NoVersionFoundError:
-        raise Http404
-        
-    text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-    text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
-
-    panel_1["ref"] = oref.normal()
-    if oref.is_segment_level():
-        panel_1["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
-    panel_1["text"] = text
-    panel_1["filter"] = request.GET.get("with").replace("_"," ").split("+") if request.GET.get("with") else None
-
-    panels += [panel_1]
-
-    for i in range(2, max_panels + 1):
+    # Handle any panels after 1 which are identified with params like `p2`, `v2`, `l2`.
+    i = 2
+    while True:
         ref = request.GET.get("p{}".format(i))
         if not ref:
             break
@@ -230,34 +283,49 @@ def s2(request, ref, version=None, lang=None):
         except InputError:
             continue # Stop processing all panels?
             #raise Http404
+        
+        version  = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
+        language = request.GET.get("l{}".format(i))
+        filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
+        filter   = [] if filter == ["all"] else filter
+        panels += make_panel_dicts(oref, version, language, filter, multi_panel)
+        i += 1
 
-        panel = {}
-        panel["version"] = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
-        panel["language"] = request.GET.get("l{}".format(i))
-        # Can we replace the below with a Ref method?
-        if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
-            panel["initialMenu"] = "text toc"
-            oref = oref.first_available_section_ref()
-        else:
-            panel["initialMenu"] = ""
-        try:
-            text = TextFamily(oref, version=panel["version"], lang=panel["language"], commentary=False, context=True, pad=True, alts=True).contents()
-        except NoVersionFoundError:
-            continue # Stop processing all panels?
-        text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-        text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+    request_context = RequestContext(request)
 
-        panel["ref"] = oref.normal()
-        if oref.is_segment_level():
-            panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
-        panel["text"] = text
-        panel["filter"] = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
+    settings = {
+        "language":      request_context.get("contentLang"),
+        "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),
+        "layoutTalmud":  request.COOKIES.get("layoutTalmud", "continuous"),
+        "layoutTanach":  request.COOKIES.get("layoutTanach", "segmented"),
+        "color":         request.COOKIES.get("color", "light"),
+        "fontSize":      request.COOKIES.get("fontSize", 62.5),
+    }
 
-        panels += [panel]
+    cache_key = request.get_full_path() # TODO include cookie values (language in particular) here
 
+    props = {
+        "multiPanel":                  multi_panel,
+        "headerMode":                  False,
+        "interfaceLang":               request_context.get("interfaceLang"),
+        "initialRefs":                 panels[0]["refs"],
+        "initialFilter":               panels[0].get("filter", None),
+        "initialMenu":                 panels[0].get("menuOpen", None),
+        "initialSettings":             settings,
+        "initialPanels":               panels,
+        "cacheKey":                    cache_key,
+        "initialQuery":                None,
+        "initialSearchFilters":        None,
+        "initialSheetsTag":            None,
+        "initialNavigationCategories": None,
+    }
+    html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
-            "panels": json.dumps(panels)
-        }, RequestContext(request))
+        "propsJSON":      json.dumps(props),
+        "html":           html,
+        "ref":            oref.normal(),
+        "recentlyViewed": request.COOKIES.get("recentlyViewed", None),
+    }, RequestContext(request))
 
 
 def s2_texts_category(request, cats):
@@ -272,29 +340,63 @@ def s2_texts_category(request, cats):
     if cat_toc is None:
         return s2_texts(request)
 
+    props = {
+        "initialMenu": "navigation",
+        "initialNavigationCategories": cats,
+        "multiPanel": request.flavour != "mobile",
+    }
+    html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
-                                    "initialMenu": "navigation",
-                                    "initialNavigationCategories": json.dumps(cats),
-                                }, RequestContext(request))
+        "propsJSON": json.dumps(props),
+        "html":      html,
+    }, RequestContext(request))
 
 
 def s2_search(request):
+    """
+    Search or Search Results page.
+    """
     search_filters = request.GET.get("filters").split("|") if request.GET.get("filters") else []
 
+    props = {
+        "initialMenu": "search",
+        "initialQuery": request.GET.get("q") or "",
+        "initialSearchFilters": search_filters,
+        "multiPanel": request.flavour != "mobile",
+    }
+    html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
-            "initialMenu": "search",
-            "query": request.GET.get("q") or "",
-            "searchFilters": json.dumps(search_filters)
-        }, RequestContext(request))
+        "propsJSON": json.dumps(props),
+        "html":      html,
+    }, RequestContext(request))
+
+
+def s2_sheets_by_tag(request, tag):
+    """
+    Standalone page for new sheets list
+    """
+    props = {
+        "initialMenu": "sheets",
+        "initialSheetsTag": tag,
+        "multiPanel": request.flavour != "mobile",
+    }
+    props["html"] = render_react_component("ReaderApp", props)
+    return render_to_response('s2.html', props, RequestContext(request))
 
 
 def s2_page(request, page):
     """
-    View into an S2 page
+    View for any S2 page that can descripted with the `menuOpen` param in React
     """
+    props = {
+        "initialMenu": page,
+        "multiPanel": request.flavour != "mobile",
+    }
+    html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
-                                    "initialMenu": page
-                                }, RequestContext(request))
+        "propsJSON": json.dumps(props),
+        "html":      html,
+    }, RequestContext(request))
 
 
 def s2_home(request):
@@ -316,15 +418,6 @@ def s2_notifications(request):
 def s2_sheets(request):
     return s2_page(request, "sheets")
 
-
-def s2_sheets_by_tag(request, tag):
-    """
-    Standalone page for new sheets list
-    """
-    return render_to_response('s2.html', {
-                                    "initialMenu": "sheets",
-                                    "initialSheetsTag": tag,
-                                }, RequestContext(request))
 
 @ensure_csrf_cookie
 def edit_text(request, ref=None, lang=None, version=None):
@@ -1314,16 +1407,9 @@ def versions_api(request, tref):
     API for retrieving available text versions list of a ref.
     """
     oref = model.Ref(tref)
-    versions = model.VersionSet({"title": oref.book})
-    results = []
-    for v in versions:
-        results.append({
-            "title": v.versionTitle,
-            "source": v.versionSource,
-            "langauge": v.language
-        })
+    versions = oref.version_list()
 
-    return jsonResponse(results, callback=request.GET.get("callback", None))
+    return jsonResponse(versions, callback=request.GET.get("callback", None))
 
 @catch_error_as_json
 def version_status_api(request):
@@ -1502,29 +1588,28 @@ def flag_text_api(request, title, lang, version):
 
 @catch_error_as_json
 def dictionary_api(request, word):
-    lookup_ref=request.GET.get("lookup_ref", None)
-    wform_pkey = 'form'
-    if is_hebrew(word):
-        word = strip_cantillation(word)
-        if not has_cantillation(word, detect_vowels=True):
-            wform_pkey = 'c_form'
-
-    query_obj = {wform_pkey: word}
-    if lookup_ref:
-        nref = Ref(lookup_ref).normal()
-        query_obj["refs"] = {'$regex': '^{}'.format(nref)}
-    form = WordForm().load(query_obj)
-    if not form:
-        del query_obj["refs"]
-        form = WordForm().load(query_obj)
-    if form:
-        result = []
-        for lookup in form.lookups:
-            #TODO: if we want the 'lookups' in wf to be a dict we can pass as is to the lexiconentry, we need to change the key 'lexicon' to 'parent_lxicon' in word forms
-            ls = LexiconEntrySet({'headword': lookup['headword']})
-            for l in ls:
-                result.append(l.contents())
-        return jsonResponse(result)
+    """
+    Looks for lexicon entries for the given string.
+    If the string is more than one word, this will look for substring matches when not finding for the original input
+    Optional attributes:
+    'lookup_ref' to fine tune the search
+    'never_split' to limit lookup to only the actual input string
+    'always_split' to look for substring matches regardless of results for original input
+    :param request:
+    :param word:
+    :return:
+    """
+    kwargs = {}
+    for key in ["lookup_ref", "never_split", "always_split"]:
+        if request.GET.get(key, None):
+            kwargs[key] = request.GET.get(key)
+    result = []
+    ls = LexiconLookupAggregator.lexicon_lookup(word, **kwargs)
+    if ls:
+        for l in ls:
+            result.append(l.contents())
+        if len(result):
+            return jsonResponse(result)
     else:
         return jsonResponse({"error": "No information found for given word."})
 

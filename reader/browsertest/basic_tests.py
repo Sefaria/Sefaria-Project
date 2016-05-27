@@ -8,7 +8,7 @@ TEMPER = 10
 
 
 class SinglePanelOnMobile(AtomicTest):
-    suite_key = "S2 Reader"
+    suite_key = "Reader"
     every_build = True
     multi_panel = False
 
@@ -22,7 +22,7 @@ class SinglePanelOnMobile(AtomicTest):
 
 
 class PagesLoad(AtomicTest):
-    suite_key = "S2 Reader"
+    suite_key = "Reader"
     every_build = True
 
     def run(self):
@@ -32,10 +32,9 @@ class PagesLoad(AtomicTest):
 
 
 class RecentInToc(AtomicTest):
-    suite_key = "S2 Reader"
+    suite_key = "Reader"
     single_panel = False
     every_build = True
-
 
     def run(self):
         self.s2().click_toc_category("Tanach").click_toc_text("Psalms")
@@ -43,7 +42,7 @@ class RecentInToc(AtomicTest):
 
 
 class LoadRefAndClickSegment(AtomicTest):
-    suite_key = "S2 Reader"
+    suite_key = "Reader"
     every_build = True
 
     def run(self):
@@ -56,7 +55,7 @@ class LoadRefAndClickSegment(AtomicTest):
 
 
 class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
-    suite_key = "S2 Reader"
+    suite_key = "Reader"
     every_build = True
 
     def run(self):
@@ -66,7 +65,7 @@ class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
 
 
 class LoadSearchFromURL(AtomicTest):
-    suite_key = "S2 Search"
+    suite_key = "Search"
     every_build = True
 
     def run(self):
@@ -74,7 +73,7 @@ class LoadSearchFromURL(AtomicTest):
 
 
 class ClickVersionedSearchResultDesktop(AtomicTest):
-    suite_key = "S2 Search"
+    suite_key = "Search"
     single_panel = False
 
     def run(self):
@@ -86,7 +85,7 @@ class ClickVersionedSearchResultDesktop(AtomicTest):
 
 
 class ClickVersionedSearchResultMobile(AtomicTest):
-    suite_key = "S2 Search"
+    suite_key = "Search"
     multi_panel = False
 
     def run(self):
@@ -102,6 +101,7 @@ class ClickVersionedSearchResultMobile(AtomicTest):
         versionedResult.click()
         WebDriverWait(self.driver, TEMPER).until(staleness_of(versionedResult))
         assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url
+
 
 
 
@@ -123,4 +123,21 @@ class SaveNewSourceSheet(AtomicTest):
         saveButton.click()
         WebDriverWait(self.driver, TEMPER).until(title_is("New Source Sheet | Sefaria Source Sheet Builder"))
 """
+
+
+class InfiniteScrollUp(AtomicTest):
+    suite_key = "Reader"
+    every_build = True
+
+    def run(self):
+        self.s2().load_ref("Job 32")
+        
+
+class InfiniteScrollDown(AtomicTest):
+    suite_key = "Reader"
+    every_build = True
+
+    def run(self):
+        self.s2().load_ref("Job 32")
+        
 

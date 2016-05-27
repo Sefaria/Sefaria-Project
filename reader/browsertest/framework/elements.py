@@ -115,6 +115,14 @@ class AtomicTest(object):
         assert isinstance(ref, Ref)
         #todo
 
+    def scroll_to_top(self):
+        """Scrolls the first text panel to the top"""
+        pass
+
+    def scroll_to_bottom(self):
+        """Scrolls the first text panel to the top"""
+        pass
+
     # Connections Panel
     def find_text_filter(self, name):
         return self.driver.find_element_by_css_selector('.textFilter[data-name="{}"]'.format(name))
@@ -148,7 +156,6 @@ class AtomicTest(object):
         self.driver.get(url)
         WebDriverWait(self.driver, TEMPER).until(title_contains("Sheet"))
 
-
 class TestResult(object):
     def __init__(self, test, cap, success, message=""):
         assert isinstance(test, AtomicTest) or inspect.isclass(cap)
@@ -177,7 +184,6 @@ class ResultSet(object):
         self._test_results = [] if results is None else results
         assert (isinstance(t, TestResult) for t in self._test_results)
         self._indexed_tests = {}
-
 
     def __str__(self):
         return "\n".join([str(r) for r in self._test_results])

@@ -3550,7 +3550,7 @@ sjs.showNewText = function () {
 				return;
 			} else {
 				var text = sjs.makePlainText(sjs.editing.sct);
-				sjs._$newVersion.val(text)
+				sjs._$newVersion.val(text);
 				sjs.padEditorText(sjs.editing.pad);
 				sjs._$newVersion.trigger("keyup");				
 			}
@@ -3561,11 +3561,11 @@ sjs.showNewText = function () {
 	// Autocomplete version title with existing, autofill source for existing versions
 	$.getJSON("/api/texts/versions/" + sjs.editing.indexTitle, function(data) {
 		if ("error" in data) { return; }
-		map = {};
-		titles = [];
+		var map = {};
+		var titles = [];
 		for (var i = 0; i < data.length; i++) {
-			titles.push(data[i].title);
-			map[data[i].title] = data[i].source;
+			titles.push(data[i].versionTitle);
+			map[data[i].versionTitle] = data[i].versionSource;
 		}
 
 		$("#versionTitle").autocomplete({source: titles, select: function(e, ui) {

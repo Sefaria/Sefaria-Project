@@ -3348,7 +3348,8 @@ window.findAndReplaceDOMText = (function() {
 
 }());
 
-/*!
+/*
+  classnames
   Copyright (c) 2015 Jed Watson.
   Licensed under the MIT License (MIT), see
   http://jedwatson.github.io/classnames
