@@ -958,16 +958,20 @@ var Header = React.createClass({
 
     var notifcationsClasses = classNames({notifications: 1, unread: Sefaria.notificationCount > 0});
     var nextParam = "?next=" + Sefaria.util.currentPath();
-    var accountLinks = (<div>
-                         <a className="login" href={"/register" + nextParam}>
-                           <span className="en">Sign up</span>
-                           <span className="he">הירשם</span>
-                         </a>
-                         <a className="login" href={"/login" + nextParam}>
-                           <span className="en">Log in</span>
-                           <span className="he">כניסה</span>
-                         </a>
-                       </div>);
+    var loggedInLinks  = (<div className="accountLinks">
+                            <div className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" /></div>
+                            <div className={notifcationsClasses} onClick={this.showNotifications}>{Sefaria.notificationCount}</div>
+                         </div>);
+    var loggedOutLinks = (<div className="accountLinks">
+                           <a className="login" href={"/register" + nextParam}>
+                             <span className="en">Sign up</span>
+                             <span className="he">הירשם</span>
+                           </a>
+                           <a className="login" href={"/login" + nextParam}>
+                             <span className="en">Log in</span>
+                             <span className="he">כניסה</span>
+                           </a>
+                         </div>);
     return (<div className="header">
               <div className="headerInner">
                 <div className="left">
@@ -975,9 +979,7 @@ var Header = React.createClass({
                 </div>
                 <div className="right">
                   <div className="testWarning" onClick={this.showTestMessage} >Attention: You are testing the New Sefaria</div>
-                  { Sefaria.loggedIn ? (<div className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" /></div>) : null }
-                  { Sefaria.loggedIn ? (<div className={notifcationsClasses} onClick={this.showNotifications}>{Sefaria.notificationCount}</div>) : null }
-                  { Sefaria.loggedIn ? null : accountLinks }
+                  { Sefaria.loggedIn ? loggedInLinks : loggedOutLinks }
                 </div>
                 <span className="searchBox">
                   <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />

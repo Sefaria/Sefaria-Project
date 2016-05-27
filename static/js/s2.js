@@ -969,9 +969,23 @@ var Header = React.createClass({
 
     var notifcationsClasses = classNames({ notifications: 1, unread: Sefaria.notificationCount > 0 });
     var nextParam = "?next=" + Sefaria.util.currentPath();
-    var accountLinks = React.createElement(
+    var loggedInLinks = React.createElement(
       'div',
-      null,
+      { className: 'accountLinks' },
+      React.createElement(
+        'div',
+        { className: 'account', onClick: this.showAccount },
+        React.createElement('img', { src: '/static/img/user-64.png' })
+      ),
+      React.createElement(
+        'div',
+        { className: notifcationsClasses, onClick: this.showNotifications },
+        Sefaria.notificationCount
+      )
+    );
+    var loggedOutLinks = React.createElement(
+      'div',
+      { className: 'accountLinks' },
       React.createElement(
         'a',
         { className: 'login', href: "/register" + nextParam },
@@ -1024,17 +1038,7 @@ var Header = React.createClass({
             { className: 'testWarning', onClick: this.showTestMessage },
             'Attention: You are testing the New Sefaria'
           ),
-          Sefaria.loggedIn ? React.createElement(
-            'div',
-            { className: 'account', onClick: this.showAccount },
-            React.createElement('img', { src: '/static/img/user-64.png' })
-          ) : null,
-          Sefaria.loggedIn ? React.createElement(
-            'div',
-            { className: notifcationsClasses, onClick: this.showNotifications },
-            Sefaria.notificationCount
-          ) : null,
-          Sefaria.loggedIn ? null : accountLinks
+          Sefaria.loggedIn ? loggedInLinks : loggedOutLinks
         ),
         React.createElement(
           'span',
