@@ -1197,13 +1197,13 @@ $(function() {
 
 				if (embedHTML != false) {
 					$target.next(".sheetItem").find(".media").html(embedHTML);
+					mediaCheck($target.next(".sheetItem").find(".media"));
 				}
 				else {
-//					$target.parent().remove();
+					$target.next(".sheetItem").remove();
 					sjs.alert.flash("We couldn't understand your link.<br/>No media added.")
 				}
 
-				mediaCheck($target.next(".sheetItem").find(".media"));
 				autoSave();
 
 
