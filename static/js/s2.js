@@ -43,7 +43,7 @@ var ReaderApp = React.createClass({
       multiPanel: true,
       headerMode: false, // is S2 serving only as a header on top of another page?
       initialRefs: [],
-      initialFilter: [],
+      initialFilter: null,
       initialMenu: null,
       initialQuery: null,
       initialSearchFilters: [],
@@ -62,21 +62,23 @@ var ReaderApp = React.createClass({
     var defaultPanelSettings = this.getDefaultPanelSettings();
 
     if (!this.props.multiPanel && !this.props.headerMode) {
-      if (this.props.initialPanels[0].menuOpen == "book toc") {
+      if (this.props.initialMenu == "book toc") {
         panels[0] = {
           settings: Sefaria.util.clone(defaultPanelSettings),
-          menuOpen: this.props.initialPanels[0].menuOpen,
+          menuOpen: "book toc",
+          mode: "Text",
           bookRef: this.props.initialPanels[0].bookRef
         };
       } else {
         var mode = this.props.initialFilter ? "TextAndConnections" : "Text";
+        var initialPanel = this.props.initialPanels && this.props.initialPanels.length ? this.props.initialPanels[0] : {};
         panels[0] = {
           refs: this.props.initialRefs,
           mode: mode,
           filter: this.props.initialFilter,
           menuOpen: this.props.initialMenu,
-          version: this.props.initialPanels.length ? this.props.initialPanels[0].version : null,
-          versionLanguage: this.props.initialPanels.length ? this.props.initialPanels[0].versionLanguage : null,
+          version: initialPanel.version || null,
+          versionLanguage: initialPanel.versionLanguage || null,
           searchQuery: this.props.initialQuery,
           appliedSearchFilters: this.props.initialSearchFilters,
           settings: Sefaria.util.clone(defaultPanelSettings)
@@ -1491,9 +1493,7 @@ var ReaderPanel = React.createClass({
     if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections") {
       var langMode = this.props.masterPanelLanguage || this.state.settings.language;
       var data = this.currentData();
-      var enLocked = data.versionStatus === "locked";
-      var heLocked = data.heVersionStatus === "locked";
-      var canEditText = langMode === "hebrew" && !heLocked || langMode === "english" && !enLocked || Sefaria.is_moderator && langMode !== "bilingual";
+      var canEditText = data && langMode === "hebrew" && data.heVersionStatus !== "locked" || langMode === "english" && data.versionStatus !== "locked" || Sefaria.is_moderator && langMode !== "bilingual";
       items.push(React.createElement(ConnectionsPanel, {
         srefs: this.state.mode === "Connections" ? this.state.refs : this.state.highlightedRefs,
         filter: this.state.filter || [],
