@@ -264,7 +264,7 @@ def s2(request, ref, version=None, lang=None):
         raise Http404
    
     panels = []
-    multi_panel = request.flavour != "mobile"
+    multi_panel = request.flavour != "mobile" and not "mobile" in request.GET
 
     # Handle first panel which has a different signature in params & URL (`version` and `lang` if set come from URL).
     version = version.replace(u"_", " ") if version else version
@@ -343,7 +343,7 @@ def s2_texts_category(request, cats):
     props = {
         "initialMenu": "navigation",
         "initialNavigationCategories": cats,
-        "multiPanel": request.flavour != "mobile",
+        "multiPanel": request.flavour != "mobile" and not "mobile" in request.GET,
     }
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
@@ -362,7 +362,7 @@ def s2_search(request):
         "initialMenu": "search",
         "initialQuery": request.GET.get("q") or "",
         "initialSearchFilters": search_filters,
-        "multiPanel": request.flavour != "mobile",
+        "multiPanel": request.flavour != "mobile" and not "mobile" in request.GET,
     }
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
@@ -378,7 +378,7 @@ def s2_sheets_by_tag(request, tag):
     props = {
         "initialMenu": "sheets",
         "initialSheetsTag": tag,
-        "multiPanel": request.flavour != "mobile",
+        "multiPanel": request.flavour != "mobile" and not "mobile" in request.GET,
     }
     props["html"] = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', props, RequestContext(request))
@@ -390,7 +390,7 @@ def s2_page(request, page):
     """
     props = {
         "initialMenu": page,
-        "multiPanel": request.flavour != "mobile",
+        "multiPanel": request.flavour != "mobile" and not "mobile" in request.GET,
     }
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
