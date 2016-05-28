@@ -510,6 +510,12 @@ var ReaderApp = React.createClass({
       this.handleNavigationClick(ref, version, versionLanguage);
     }
   },
+  handleCompareSearchClick: function(n, ref, version, versionLanguage, options) {
+    // Handle clicking a searh result in a compare panel, so that clicks don't clobber open panels
+    // todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
+    this.saveOpenPanelsToRecentlyViewed();
+    this.replacePanel(n, ref, version, versionLanguage);
+  },
   updateQueryInHeader: function(query) {
     var updates = {searchQuery: query, searchFiltersValid:  false};
     this.setHeaderState(updates);
@@ -669,9 +675,14 @@ var ReaderApp = React.createClass({
       this.setState({panels: this.state.panels});
     }
   },
+  replacePanel: function(n, ref, version, versionLanguage) {
+    // Opens a text in in place of the panel currently open at `n`.
+    this.state.panels[n] = this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"});
+    this.setState({panels: this.state.panels});
+  },
   openComparePanel: function(n) {
     var comparePanel = this.makePanelState({
-      menuOpen: "navigation"
+      menuOpen: "compare"
     });
     this.state.panels[n] = comparePanel;
     this.setState({panels: this.state.panels});
@@ -775,6 +786,7 @@ var ReaderApp = React.createClass({
       var style                    = (this.state.layoutOrientation=="ltr")?{width: width + "%", left: offset + "%"}:{width: width + "%", right: offset + "%"};
       var onSegmentClick           = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
       var onCitationClick          = this.handleCitationClick.bind(null, i);
+      var onSearchResultClick      = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
       var onTextListClick          = null; // this.openPanelAt.bind(null, i);
       var onOpenConnectionsClick   = this.openTextListAt.bind(null, i+1);
       var setTextListHightlight    = this.setTextListHighlight.bind(null, i);
@@ -798,7 +810,7 @@ var ReaderApp = React.createClass({
                       onSegmentClick={onSegmentClick}
                       onCitationClick={onCitationClick}
                       onTextListClick={onTextListClick}
-                      onSearchResultClick={this.handleNavigationClick}
+                      onSearchResultClick={onSearchResultClick}
                       onNavigationClick={this.handleNavigationClick}
                       onRecentClick={this.handleRecentClick}
                       onOpenConnectionsClick={onOpenConnectionsClick}
@@ -1129,8 +1141,8 @@ var ReaderPanel = React.createClass({
     }
   },
   clonePanel: function(panel) {
-    //Set aside self-referential objects before cloning
-    //Todo: Move the multiple instances of this out to a utils file
+    // Set aside self-referential objects before cloning
+    // Todo: Move the multiple instances of this out to a utils file
     if (panel.availableFilters || panel.filterRegistry) {
       var savedAttributes = {
          availableFilters: panel.availableFilters,
@@ -1447,15 +1459,17 @@ var ReaderPanel = React.createClass({
       );
     }
 
-    if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation") {
+    if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation" || this.state.menuOpen == "compare") {
       var menu = (<ReaderNavigationMenu 
                     home={this.state.menuOpen === "home"}
+                    compare={this.state.menuOpen === "compare"}
                     categories={this.state.navigationCategories || []}
                     settings={this.state.settings}
                     setCategories={this.setNavigationCategories || []}
                     setOption={this.setOption}
                     toggleLanguage={this.toggleLanguage}
                     closeNav={this.closeMenus}
+                    closePanel={this.props.closePanel}
                     openNav={this.openMenu.bind(null, "navigation")}
                     openSearch={this.openSearch}
                     openMenu={this.openMenu}
@@ -1479,6 +1493,7 @@ var ReaderPanel = React.createClass({
           openDisplaySettings={this.openDisplaySettings}
           selectVersion={this.props.selectVersion}
           showBaseText={this.showBaseText}/>);
+
     } else if (this.state.menuOpen === "book toc") {
       var menu = (<ReaderTextTableOfContents
           mode={this.state.menuOpen}
@@ -1494,6 +1509,7 @@ var ReaderPanel = React.createClass({
           openDisplaySettings={this.openDisplaySettings}
           selectVersion={this.props.selectVersion}
           showBaseText={this.showBaseText}/>);
+
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       var menu = (<SearchPage
                     query={this.state.searchQuery}
@@ -1508,8 +1524,7 @@ var ReaderPanel = React.createClass({
                     updateAppliedFilter={this.props.updateSearchFilter}
                     availableFilters={this.state.availableFilters}
                     filtersValid={this.state.searchFiltersValid}
-                    registerAvailableFilters={this.props.registerAvailableFilters}
-      />);
+                    registerAvailableFilters={this.props.registerAvailableFilters} />);
 
     } else if (this.state.menuOpen === "sheets") {
       var menu = (<SheetsNav
@@ -1517,6 +1532,7 @@ var ReaderPanel = React.createClass({
                     close={this.closeMenus}
                     initialTag={this.state.navigationSheetTag}
                     setSheetTag={this.setSheetTag} />);
+
     } else if (this.state.menuOpen === "account") {
       var menu = (<AccountPanel />);
 
@@ -1763,8 +1779,10 @@ var ReaderNavigationMenu = React.createClass({
     openSearch:    React.PropTypes.func.isRequired,
     onTextClick:   React.PropTypes.func.isRequired,
     onRecentClick: React.PropTypes.func.isRequired,
+    closePanel:    React.PropTypes.func,
     hideNavHeader: React.PropTypes.bool,
-    home:          React.PropTypes.bool
+    home:          React.PropTypes.bool,
+    compare:       React.PropTypes.bool
   },
   getInitialState: function() {
     this.width = 1000;
@@ -1793,12 +1811,16 @@ var ReaderNavigationMenu = React.createClass({
     }
   },
   navHome: function() {
-    this.props.setCategories([])
+    this.props.setCategories([]);
     this.props.openNav();
   },
   closeNav: function() {
-    this.props.setCategories([])
-    this.props.closeNav();
+    if (this.props.compare) {
+      this.props.closePanel();
+    } else {
+      this.props.setCategories([]);
+      this.props.closeNav();
+    }
   },
   showMore: function() {
     this.setState({showMore: true});
@@ -1891,7 +1913,6 @@ var ReaderNavigationMenu = React.createClass({
         categories = this.state.showMore ? categories : categories.slice(0,8).concat(more);
         categories = (<div className="readerNavCategories"><ThreeBox content={categories} /></div>);
       }
-                    
 
       var siteLinks = Sefaria._uid ? 
                     [(<a className="siteLink" key='profile' href="/my/profile">
@@ -1919,6 +1940,10 @@ var ReaderNavigationMenu = React.createClass({
                         <span className="en">Sign In</span>
                         <span className="he"></span>
                       </a>)];
+      siteLinks = (<div className="siteLinks">
+                    {siteLinks}
+                  </div>);
+
       var calendar = Sefaria.calendar ?
                      [(<TextBlockLink sref={Sefaria.calendar.parasha} title={Sefaria.calendar.parashaName} heTitle="פרשה" category="Tanach" />),
                       (<TextBlockLink sref={Sefaria.calendar.haftara} title="Haftara" heTitle="הפטרה" category="Tanach" />),
@@ -1976,24 +2001,23 @@ var ReaderNavigationMenu = React.createClass({
       }) : null;
       recentlyViewed = recentlyViewed ? <TwoOrThreeBox content={recentlyViewed} width={this.width} /> : null;
 
-      var classes = classNames({readerNavMenu:1, noHeader: !this.props.hideHeader});
+      var title = (<h1>
+                    <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
+                    <span className="en">The Sefaria Library</span>
+                    <span className="he">האוסף של ספאריה</span>
+                  </h1>);
+
+      var classes = classNames({readerNavMenu:1, noHeader: !this.props.hideHeader, compare: this.props.compare });
       return(<div className={classes} onClick={this.handleClick} key="0">
               {topContent}
               <div className="content">
                 <div className="contentInner">
-                <h1>
-                  <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
-                  <span className="en">The Sefaria Library</span>
-                  <span className="he">האוסף של ספאריה</span>
-                </h1>
-                  
+                  { this.props.compare ? null : title }
                   <ReaderNavigationMenuSection title="Recent" heTitle="נצפו לאחרונה" content={recentlyViewed} />
                   <ReaderNavigationMenuSection title="Browse" heTitle="טקסטים" content={categories} />
                   <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} />
-                  <ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />
-                  <div className="siteLinks">
-                    {siteLinks}
-                  </div>
+                  { this.props.compare ? null : (<ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />) }
+                  { this.props.compare ? null : siteLinks }
                 </div>
               </div>
             </div>);
@@ -4742,8 +4766,6 @@ var SearchPage = React.createClass({
         appliedFilters: []
       };
     },
-
-
     render: function () {
         var style      = {"fontSize": this.props.settings.fontSize + "%"};
         var classes = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader});
@@ -4778,8 +4800,7 @@ var SearchPage = React.createClass({
                                   updateAppliedFilter = {this.props.updateAppliedFilter}
                                   registerAvailableFilters={this.props.registerAvailableFilters}
                                   availableFilters={this.props.availableFilters}
-                                  filtersValid={this.props.filtersValid}
-                              />
+                                  filtersValid={this.props.filtersValid} />
                           </div>
                       </div>
                     </div>
@@ -5327,13 +5348,13 @@ var SearchFilters = React.createClass({
     </div>);
 
     return (
-      <div className="searchTopMatter">
+      <div className={ classNames({searchTopMatter: 1, loading: this.props.isQueryRunning}) }>
         <div className="searchStatusLine">
           { (this.props.isQueryRunning) ? runningQueryLine : buttons }
           { (this.props.textTotal > 0 && this.props.activeTab == "texts") ? selected_filters : ""}
         </div>
         { (this.props.textTotal > 0 && this.props.activeTab == "texts") ? filter_panel : "" }
-      </div>)
+      </div>);
   }
 });
 

@@ -510,6 +510,12 @@ var ReaderApp = React.createClass({
       this.handleNavigationClick(ref, version, versionLanguage);
     }
   },
+  handleCompareSearchClick: function handleCompareSearchClick(n, ref, version, versionLanguage, options) {
+    // Handle clicking a searh result in a compare panel, so that clicks don't clobber open panels
+    // todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
+    this.saveOpenPanelsToRecentlyViewed();
+    this.replacePanel(n, ref, version, versionLanguage);
+  },
   updateQueryInHeader: function updateQueryInHeader(query) {
     var updates = { searchQuery: query, searchFiltersValid: false };
     this.setHeaderState(updates);
@@ -670,9 +676,14 @@ var ReaderApp = React.createClass({
       this.setState({ panels: this.state.panels });
     }
   },
+  replacePanel: function replacePanel(n, ref, version, versionLanguage) {
+    // Opens a text in in place of the panel currently open at `n`.
+    this.state.panels[n] = this.makePanelState({ refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text" });
+    this.setState({ panels: this.state.panels });
+  },
   openComparePanel: function openComparePanel(n) {
     var comparePanel = this.makePanelState({
-      menuOpen: "navigation"
+      menuOpen: "compare"
     });
     this.state.panels[n] = comparePanel;
     this.setState({ panels: this.state.panels });
@@ -781,6 +792,7 @@ var ReaderApp = React.createClass({
       var style = this.state.layoutOrientation == "ltr" ? { width: width + "%", left: offset + "%" } : { width: width + "%", right: offset + "%" };
       var onSegmentClick = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
       var onCitationClick = this.handleCitationClick.bind(null, i);
+      var onSearchResultClick = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
       var onTextListClick = null; // this.openPanelAt.bind(null, i);
       var onOpenConnectionsClick = this.openTextListAt.bind(null, i + 1);
       var setTextListHightlight = this.setTextListHighlight.bind(null, i);
@@ -806,7 +818,7 @@ var ReaderApp = React.createClass({
           onSegmentClick: onSegmentClick,
           onCitationClick: onCitationClick,
           onTextListClick: onTextListClick,
-          onSearchResultClick: this.handleNavigationClick,
+          onSearchResultClick: onSearchResultClick,
           onNavigationClick: this.handleNavigationClick,
           onRecentClick: this.handleRecentClick,
           onOpenConnectionsClick: onOpenConnectionsClick,
@@ -1196,8 +1208,8 @@ var ReaderPanel = React.createClass({
     }
   },
   clonePanel: function clonePanel(panel) {
-    //Set aside self-referential objects before cloning
-    //Todo: Move the multiple instances of this out to a utils file
+    // Set aside self-referential objects before cloning
+    // Todo: Move the multiple instances of this out to a utils file
     if (panel.availableFilters || panel.filterRegistry) {
       var savedAttributes = {
         availableFilters: panel.availableFilters,
@@ -1526,15 +1538,17 @@ var ReaderPanel = React.createClass({
         key: 'connections' }));
     }
 
-    if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation") {
+    if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation" || this.state.menuOpen == "compare") {
       var menu = React.createElement(ReaderNavigationMenu, {
         home: this.state.menuOpen === "home",
+        compare: this.state.menuOpen === "compare",
         categories: this.state.navigationCategories || [],
         settings: this.state.settings,
         setCategories: this.setNavigationCategories || [],
         setOption: this.setOption,
         toggleLanguage: this.toggleLanguage,
         closeNav: this.closeMenus,
+        closePanel: this.props.closePanel,
         openNav: this.openMenu.bind(null, "navigation"),
         openSearch: this.openSearch,
         openMenu: this.openMenu,
@@ -1587,8 +1601,7 @@ var ReaderPanel = React.createClass({
         updateAppliedFilter: this.props.updateSearchFilter,
         availableFilters: this.state.availableFilters,
         filtersValid: this.state.searchFiltersValid,
-        registerAvailableFilters: this.props.registerAvailableFilters
-      });
+        registerAvailableFilters: this.props.registerAvailableFilters });
     } else if (this.state.menuOpen === "sheets") {
       var menu = React.createElement(SheetsNav, {
         openNav: this.openMenu.bind(null, "navigation"),
@@ -1863,8 +1876,10 @@ var ReaderNavigationMenu = React.createClass({
     openSearch: React.PropTypes.func.isRequired,
     onTextClick: React.PropTypes.func.isRequired,
     onRecentClick: React.PropTypes.func.isRequired,
+    closePanel: React.PropTypes.func,
     hideNavHeader: React.PropTypes.bool,
-    home: React.PropTypes.bool
+    home: React.PropTypes.bool,
+    compare: React.PropTypes.bool
   },
   getInitialState: function getInitialState() {
     this.width = 1000;
@@ -1896,8 +1911,12 @@ var ReaderNavigationMenu = React.createClass({
     this.props.openNav();
   },
   closeNav: function closeNav() {
-    this.props.setCategories([]);
-    this.props.closeNav();
+    if (this.props.compare) {
+      this.props.closePanel();
+    } else {
+      this.props.setCategories([]);
+      this.props.closeNav();
+    }
   },
   showMore: function showMore() {
     this.setState({ showMore: true });
@@ -2086,6 +2105,12 @@ var ReaderNavigationMenu = React.createClass({
         ),
         React.createElement('span', { className: 'he' })
       )];
+      siteLinks = React.createElement(
+        'div',
+        { className: 'siteLinks' },
+        siteLinks
+      );
+
       var calendar = Sefaria.calendar ? [React.createElement(TextBlockLink, { sref: Sefaria.calendar.parasha, title: Sefaria.calendar.parashaName, heTitle: 'פרשה', category: 'Tanach' }), React.createElement(TextBlockLink, { sref: Sefaria.calendar.haftara, title: 'Haftara', heTitle: 'הפטרה', category: 'Tanach' }), React.createElement(TextBlockLink, { sref: Sefaria.calendar.daf_yomi, title: 'Daf Yomi', heTitle: 'דף יומי', category: 'Talmud' })] : [];
       calendar = React.createElement(
         'div',
@@ -2179,7 +2204,23 @@ var ReaderNavigationMenu = React.createClass({
       }) : null;
       recentlyViewed = recentlyViewed ? React.createElement(TwoOrThreeBox, { content: recentlyViewed, width: this.width }) : null;
 
-      var classes = classNames({ readerNavMenu: 1, noHeader: !this.props.hideHeader });
+      var title = React.createElement(
+        'h1',
+        null,
+        React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
+        React.createElement(
+          'span',
+          { className: 'en' },
+          'The Sefaria Library'
+        ),
+        React.createElement(
+          'span',
+          { className: 'he' },
+          'האוסף של ספאריה'
+        )
+      );
+
+      var classes = classNames({ readerNavMenu: 1, noHeader: !this.props.hideHeader, compare: this.props.compare });
       return React.createElement(
         'div',
         { className: classes, onClick: this.handleClick, key: '0' },
@@ -2190,30 +2231,12 @@ var ReaderNavigationMenu = React.createClass({
           React.createElement(
             'div',
             { className: 'contentInner' },
-            React.createElement(
-              'h1',
-              null,
-              React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
-              React.createElement(
-                'span',
-                { className: 'en' },
-                'The Sefaria Library'
-              ),
-              React.createElement(
-                'span',
-                { className: 'he' },
-                'האוסף של ספאריה'
-              )
-            ),
+            this.props.compare ? null : title,
             React.createElement(ReaderNavigationMenuSection, { title: 'Recent', heTitle: 'נצפו לאחרונה', content: recentlyViewed }),
             React.createElement(ReaderNavigationMenuSection, { title: 'Browse', heTitle: 'טקסטים', content: categories }),
             React.createElement(ReaderNavigationMenuSection, { title: 'Calendar', heTitle: 'לוח יומי', content: calendar }),
-            React.createElement(ReaderNavigationMenuSection, { title: 'Resources', heTitle: 'קהילה', content: resources }),
-            React.createElement(
-              'div',
-              { className: 'siteLinks' },
-              siteLinks
-            )
+            this.props.compare ? null : React.createElement(ReaderNavigationMenuSection, { title: 'Resources', heTitle: 'קהילה', content: resources }),
+            this.props.compare ? null : siteLinks
           )
         )
       );
@@ -5877,7 +5900,6 @@ var SearchPage = React.createClass({
       appliedFilters: []
     };
   },
-
   render: function render() {
     var style = { "fontSize": this.props.settings.fontSize + "%" };
     var classes = classNames({ readerNavMenu: 1, noHeader: this.props.hideNavHeader });
@@ -5946,8 +5968,7 @@ var SearchPage = React.createClass({
                 updateAppliedFilter: this.props.updateAppliedFilter,
                 registerAvailableFilters: this.props.registerAvailableFilters,
                 availableFilters: this.props.availableFilters,
-                filtersValid: this.props.filtersValid
-              })
+                filtersValid: this.props.filtersValid })
             )
           )
         )
@@ -6552,7 +6573,7 @@ var SearchFilters = React.createClass({
 
     return React.createElement(
       'div',
-      { className: 'searchTopMatter' },
+      { className: classNames({ searchTopMatter: 1, loading: this.props.isQueryRunning }) },
       React.createElement(
         'div',
         { className: 'searchStatusLine' },

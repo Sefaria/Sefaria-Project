@@ -421,6 +421,9 @@ body.dark {
 .multiPanel .readerNavMenu.noHeader .content {
   padding-top: 40px;
 }
+.multiPanel .readerNavMenu.noHeader.compare .content {
+  padding-top: 80px;
+}
 .readerNavMenu .content .contentInner {
   max-width: 660px;
   margin: 0 auto;
@@ -975,44 +978,39 @@ h1 .languageToggle .he {
     float: none;
     width: auto;
 }
-
 .readerTextTableOfContents .versionBlocks .versionBlock,
 .readerTextTableOfContents .versionBlocks .versionBlock a.versionSource {
   color: #999;
   font-size: 16px;
 }
-
 .readerTextTableOfContents .versionBlocks .versionBlock a.versionSource,
 .readerTextTableOfContents .versionBlocks .versionBlock .versionLicense {
   margin: 0 3px;
 }
-
 .readerTextTableOfContents .versionBlocks .versionBlock .versionTitle {
   color: #222;
   font-size: 20px;
 }
-
 .readerTextTableOfContents .versionBlocks .versionBlock .versionNotes {
   padding-top: 8px;
 }
-
 @media (max-width: 450px) {
   .readerTextTableOfContents .versionBlocks .versionBlock {
     float: none;
     width: auto;
   }
 }
-
 .searchContent {
   padding: 15px 10px 0;
 }
-
 .searchContent .searchTopMatter {
   padding-bottom: 10px;
   border-bottom: 1px solid #ccc;
   margin-bottom: 30px;
 }
-
+.searchContent .searchTopMatter.loading {
+  border-bottom: none;
+}
 .searchContent .searchStatusLine {
   padding: 10px 0 36px 0;
   margin-top: -60px;
@@ -1021,10 +1019,10 @@ h1 .languageToggle .he {
   height: 64px;
 }
 .searchContent .type-button {
-  padding: 5px;
-  margin: 10px;
-  border: solid 1px;
-  border-radius: 14px;
+  padding: 6px 14px;
+  margin: 5px;
+  border-radius: 12px;
+  border: 1px solid #DADADA;
   display: inline-block;
   font-size: 12px;
   color: #999;
@@ -1034,13 +1032,13 @@ h1 .languageToggle .he {
 }
 .searchContent .type-button.active {
   color: #000;
+  background-color: white;
 }
 .searchContent .type-button-title,
 .searchContent .type-button-total {
   display: inline-block;
   padding: 2px;
 }
-
 .searchContent .results-count,
 .searchContent .searchStatusLine > .loadingMessage {
   color: #999;
