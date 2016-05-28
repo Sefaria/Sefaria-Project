@@ -1038,7 +1038,7 @@ var Header = React.createClass({
           React.createElement(
             'div',
             { className: 'testWarning', onClick: this.showTestMessage },
-            'Attention: You are testing the New Sefaria'
+            'You are testing the New Sefaria'
           ),
           Sefaria.loggedIn ? loggedInLinks : loggedOutLinks
         ),

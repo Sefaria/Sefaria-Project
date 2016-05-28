@@ -980,7 +980,7 @@ var Header = React.createClass({
                   <div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div>
                 </div>
                 <div className="right">
-                  <div className="testWarning" onClick={this.showTestMessage} >Attention: You are testing the New Sefaria</div>
+                  <div className="testWarning" onClick={this.showTestMessage} >You are testing the New Sefaria</div>
                   { Sefaria.loggedIn ? loggedInLinks : loggedOutLinks }
                 </div>
                 <span className="searchBox">

@@ -1,7 +1,9 @@
 if (typeof require !== 'undefined') {
-  var $       = require('jquery'),
-      extend  = require('extend'),
-      param   = require('querystring').stringify;
+  var $         = require('jquery'),
+      extend    = require('extend'),
+      param     = require('querystring').stringify;
+      $.ajax    = function() {}; // Fail gracefully if we reach one of these methods server side
+      $.getJSON = function() {};
 } else {
   // Browser context, assuming $
   var extend  = $.extend,
@@ -543,13 +545,13 @@ Sefaria = extend(Sefaria, {
   _filterLinks: function(links, filter) {
      return links.filter(function(link){
         return (filter.length == 0 ||
-                $.inArray(link.category, filter) !== -1 || 
-                $.inArray(link.commentator, filter) !== -1 );
+                Sefaria.util.inArray(link.category, filter) !== -1 || 
+                Sefaria.util.inArray(link.commentator, filter) !== -1 );
       }); 
   },
   _linkSummaries: {},
   linkSummary: function(ref) {
-    // Returns an object summarizing the link counts by category and text
+    // Returns an ordered array summarizing the link counts by category and text
     // Takes either a single string `ref` or an array of string refs.
     if (typeof ref == "string") {
       if (ref in this._linkSummaries) { return this._linkSummaries[ref]; }
@@ -597,19 +599,20 @@ Sefaria = extend(Sefaria, {
         }
       }
     }
-
     // Convert object into ordered list
-    summary = $.map(summary, function(value, category) {
-      value.category = category;
-      value.books = $.map(value.books, function(value, book) {
+    var summaryList = Object.keys(summary).map(function(category) {
+      var categoryData = summary[category];
+      categoryData.category = category;
+      categoryData.books = Object.keys(categoryData.books).map(function(book) {
+        var bookData = categoryData.books[book];
         var index      = Sefaria.index(book);
-        value.book     = index.title;
-        value.heBook   = index.heTitle;
-        value.category = index.categories[0];
-        return value;
+        bookData.book     = index.title;
+        bookData.heBook   = index.heTitle;
+        bookData.category = index.categories[0];
+        return bookData;
       });
       // Sort the books in the category
-      value.books.sort(function(a, b) { 
+      categoryData.books.sort(function(a, b) { 
         // First sort by predefined "top"
         var topByCategory = {
           "Tanach": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
@@ -627,10 +630,10 @@ Sefaria = extend(Sefaria, {
         // Then sort alphabetically
         return a.book > b.book ? 1 : -1; 
       });
-      return value;
+      return categoryData;
     });
     // Sort the categories
-    summary.sort(function(a, b) {
+    summaryList.sort(function(a, b) {
       // always put Commentary first 
       if      (a.category === "Commentary") { return -1; }
       else if (b.category === "Commentary") { return  1; }
@@ -639,7 +642,7 @@ Sefaria = extend(Sefaria, {
       else if (b.category === "Modern Works") { return -1; }
       return b.count - a.count;
     });
-    return summary;
+    return summaryList;
   },
   flatLinkSummary: function(ref) {
     // Returns an array containing texts and categories with counts for ref
