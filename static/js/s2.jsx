@@ -1565,6 +1565,7 @@ var ReaderPanel = React.createClass({
         {menu}
         {this.state.displaySettingsOpen ? (<ReaderDisplayOptionsMenu
                                               settings={this.state.settings}
+                                              multiPanel={this.props.multiPanel}
                                               setOption={this.setOption}
                                               currentLayout={this.currentLayout} 
                                               menuOpen={this.state.menuOpen} />) : null}
@@ -1666,9 +1667,10 @@ var ReaderControls = React.createClass({
 var ReaderDisplayOptionsMenu = React.createClass({
   propTyps: {
     setOption:     React.PropTypes.func.isRequired,
-    settings:      React.PropTypes.object.isRequired,
     currentLayout: React.PropTypes.func.isRequired,
-    menuOpen:      React.PropTypes.string.isRequired
+    menuOpen:      React.PropTypes.string.isRequired,
+    multiPanel:    React.PropTypes.bool.isRequired,
+    settings:      React.PropTypes.object.isRequired,
   },
   render: function() {
     var languageOptions = [
@@ -1707,6 +1709,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
           options={colorOptions}
           setOption={this.props.setOption}
           settings={this.props.settings} />);
+    colorToggle = this.props.multiPanel ? null : colorToggle;
 
     var sizeOptions = [
       {name: "smaller", content: "Aa" },
