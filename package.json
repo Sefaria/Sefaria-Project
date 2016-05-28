@@ -23,6 +23,7 @@
       "jquery": "^2.2.0",
       "extend": "^3.0.0",
       "classnames": "^2.2.5",
+      "cheerio": "^0.20.0",
       "react": "^15.0.1",
       "react-dom": "^15.0.1",
       "redis": "^2.6.0-2",

@@ -1,5 +1,5 @@
 if (typeof require !== 'undefined') {
-  var $         = require('jquery'),
+  var $         = require('cheerio'),
       extend    = require('extend'),
       param     = require('querystring').stringify;
       $.ajax    = function() {}; // Fail gracefully if we reach one of these methods server side
@@ -402,6 +402,7 @@ Sefaria = extend(Sefaria, {
     // Uses this._refmap to find the refkey that has information for this ref.
     // Used in cases when the textual information is not important, so it can
     // be called without worrying about the `settings` parameter for what is available in cache.
+    if (!ref) { return null; }
     var versionedKey = this._refmap[this._refKey(ref)] || this._refmap[this._refKey(ref, {context:1})];
     if (versionedKey) { return this._getOrBuildTextData(versionedKey);  }
     return null;
@@ -816,25 +817,30 @@ Sefaria = extend(Sefaria, {
   },
   textTocHtml: function(title, callback) {
     // Returns an HTML fragment of the table of contents of the text 'title'
-    if (!title) { return ""; }
-    if (title in this._textTocHtml) {
-      return this._textTocHtml[title]
+    if (!title) { return null; }
+    var html = this._textTocHtml[title] || null;
+    if (!callback) {
+      return html;
+    }
+    if (html) {
+      callback(html);
+      return html;
     } else {
       $.ajax({
         url: "/api/toc-html/" + title,
         dataType: "html",
         success: function(html) {
-          html = this._makeTextTocHtml(html, title);
-          this._textTocHtml[title] = html;
-          callback(html);
+          this._saveTextTocHtml(title, html);
+          callback(this._textTocHtml[title]);
         }.bind(this)
       });
       return null;
     } 
   },
-  _makeTextTocHtml: function(html, title) {
+  _makeTextTocHtml: function(title, html) {
     // Modifies Text TOC HTML received from server
     // Replaces links and adds commentary setion
+    // TODO after S1 is deprecated, merge this logic into server
     html = html.replace(/ href="\//g, ' data-ref="');
     var commentaryList  = this.commentaryList(title);
     if (commentaryList.length) {
@@ -868,6 +874,11 @@ Sefaria = extend(Sefaria, {
       html = $html.html();
     }
     return html;
+  },
+  _saveTextTocHtml: function(title, html) {
+    // Takes html fragment from /api/toc-html/, modifies and saves it in local cache.
+    html = this._makeTextTocHtml(title, html);
+    this._textTocHtml[title] = html;
   },
   sectionString: function(ref) {
     // Returns a pair of nice strings (en, he) of the sections indicated in ref. e.g.,

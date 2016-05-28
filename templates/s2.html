@@ -69,6 +69,9 @@
             var settings = {context: 1, version: panel.version, language: panel.versionLanguage};
             Sefaria._saveText(panel.text, settings);
           }
+          if (panel.textTocHtml) {
+            Sefaria._saveTextTocHtml(panel.bookRef, panel.textTocHtml);
+          }
       }
 
       var container = document.getElementById('s2');

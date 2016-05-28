@@ -27,6 +27,9 @@ var renderReaderApp = function(props, data, timer) {
     if ("text" in panel) {
       SefariaReact.saveTextData(panel.text, {context: 1, version: panel.version, language: panel.versionLanguage});
     }
+    if ("textTocHtml" in panel) {
+      SefariaReact.saveTextTocHtml(panel["bookRef"], panel["textTocHtml"]);
+    }
   }
   console.log("Time to set data: %dms", timer.elapsed());
 

@@ -219,8 +219,9 @@ def make_panel_dict(oref, version, language, filter, mode):
     }
 
     if oref.is_book_level():
-        panel["menuOpen"] = "book toc"
-        panel["bookRef"] = oref.normal()
+        panel["menuOpen"]    = "book toc"
+        panel["bookRef"]     = oref.normal()
+        panel["textTocHtml"] = make_toc_html(oref)
     else:
         try:
             text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True).contents()
@@ -311,6 +312,7 @@ def s2(request, ref, version=None, lang=None):
         "initialRefs":                 panels[0]["refs"],
         "initialFilter":               panels[0].get("filter", None),
         "initialMenu":                 panels[0].get("menuOpen", None),
+        "initialBookRef":              panels[0].get("bookRef", None),
         "initialSettings":             settings,
         "initialPanels":               panels,
         "cacheKey":                    cache_key,
@@ -318,13 +320,13 @@ def s2(request, ref, version=None, lang=None):
         "initialSearchFilters":        None,
         "initialSheetsTag":            None,
         "initialNavigationCategories": None,
+        "recentlyViewed":              request.COOKIES.get("recentlyViewed", None),
     }
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
         "propsJSON":      json.dumps(props),
         "html":           html,
         "ref":            oref.normal(),
-        "recentlyViewed": request.COOKIES.get("recentlyViewed", None),
     }, RequestContext(request))
 
 

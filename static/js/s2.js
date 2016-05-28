@@ -94,6 +94,7 @@ var ReaderApp = React.createClass({
       var headerState = {
         mode: "Header",
         refs: this.props.initialRefs,
+        bookRef: this.props.initialBookRef,
         menuOpen: this.props.initialMenu,
         searchQuery: this.props.initialQuery,
         appliedSearchFilters: this.props.initialSearchFilters,
@@ -442,7 +443,7 @@ var ReaderApp = React.createClass({
       availableFilters: state.availableFilters || [],
       filterRegistry: state.filterRegistry || {},
       orphanSearchFilters: state.orphanSearchFilters || [],
-      bookRef: state.bookRef || "",
+      bookRef: state.bookRef || null,
       settings: state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
       displaySettingsOpen: false
     };
@@ -1131,7 +1132,7 @@ var ReaderPanel = React.createClass({
     // When this component is independent and manages itself, it takes individual initial state props, with defaults listed here.
     return {
       refs: this.props.initialRefs || [], // array of ref strings
-      bookRef: "",
+      bookRef: null,
       mode: this.props.initialMode, // "Text", "TextAndConnections", "Connections"
       connectionsMode: this.props.initialConnectionsMode,
       filter: this.props.initialFilter || [],
@@ -1573,14 +1574,14 @@ var ReaderPanel = React.createClass({
         selectVersion: this.props.selectVersion,
         showBaseText: this.showBaseText });
     } else if (this.state.menuOpen === "book toc") {
+      console.log("Rendering book toc");
+      console.log(this.state);
       var menu = React.createElement(ReaderTextTableOfContents, {
         mode: this.state.menuOpen,
         closePanel: this.props.closePanel,
         close: this.closeMenus,
-        title: this.state.bookRef
-        //version={this.state.version}
-        //versionLanguage={this.state.versionLanguage}
-        , settingsLanguage: this.state.settings.language == "hebrew" ? "he" : "en",
+        title: this.state.bookRef,
+        settingsLanguage: this.state.settings.language == "hebrew" ? "he" : "en",
         category: Sefaria.index(this.state.bookRef) ? Sefaria.index(this.state.bookRef).categories[0] : null,
         currentRef: this.state.bookRef,
         openNav: this.openMenu.bind(null, "navigation"),
@@ -2629,7 +2630,7 @@ var ReaderTextTableOfContents = React.createClass({
     close: React.PropTypes.func.isRequired,
     openNav: React.PropTypes.func.isRequired,
     showBaseText: React.PropTypes.func.isRequired,
-    selectVersion: React.PropTypes.func.isRequired
+    selectVersion: React.PropTypes.func
   },
   getInitialState: function getInitialState() {
     return {
@@ -2639,6 +2640,7 @@ var ReaderTextTableOfContents = React.createClass({
     };
   },
   componentDidMount: function componentDidMount() {
+    this.loadHtml();
     this.loadVersions();
     this.bindToggles();
     this.shrinkWrap();
@@ -2650,6 +2652,14 @@ var ReaderTextTableOfContents = React.createClass({
   componentDidUpdate: function componentDidUpdate() {
     this.bindToggles();
     this.shrinkWrap();
+  },
+  loadHtml: function loadHtml() {
+    var textTocHtml = Sefaria.textTocHtml(this.props.title);
+    if (!textTocHtml) {
+      Sefaria.textTocHtml(this.props.title, function () {
+        this.forceUpdate();
+      });
+    }
   },
   loadVersions: function loadVersions() {
     var ref = Sefaria.sectionRef(this.props.currentRef) || this.props.currentRef;
@@ -2769,9 +2779,8 @@ var ReaderTextTableOfContents = React.createClass({
   render: function render() {
     var _this = this;
 
-    var tocHtml = Sefaria.textTocHtml(this.props.title, function () {
-      this.setState({});
-    }.bind(this));
+    var tocHtml = Sefaria.textTocHtml(this.props.title);
+
     tocHtml = tocHtml || '<div class="loadingMessage"><span class="en">Loading...</span><span class="he">טעינה...</span></div>';
 
     var title = this.props.title;
@@ -7101,6 +7110,9 @@ if (typeof exports !== 'undefined') {
     } else {
       Sefaria._makeBooksDict();
     }
+
+    Sefaria._cacheIndexFromToc(Sefaria.toc);
+
     if ("recentlyViewed" in data) {
       // Create mock cookie function in global namespace for data that the browser expects from cookies
       // (Node donesn't have direct access to Django's cookies, so pass through props in POST data)
@@ -7112,6 +7124,9 @@ if (typeof exports !== 'undefined') {
   exports.saveTextData = function (data, settings) {
     // Populate texts cache with data loaded in a different scope
     Sefaria._saveText(data, settings, false);
+  };
+  exports.saveTextTocHtml = function (title, html) {
+    Sefaria._saveTextTocHtml(title, html);
   };
 }
 
