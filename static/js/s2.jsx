@@ -489,10 +489,7 @@ var ReaderApp = React.createClass({
   handleNavigationClick: function(ref, version, versionLanguage, options) {
     //todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
     this.saveOpenPanelsToRecentlyViewed();
-    this.setState({
-      panels: [this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"})],
-      header: {menuOpen: null}
-    });
+    this.openPanel(ref, version, versionLanguage);
   },
   handleSegmentClick: function(n, ref) {
     // Handle a click on a text segment `ref` in from panel in position `n`
@@ -508,7 +505,7 @@ var ReaderApp = React.createClass({
   handleRecentClick: function(pos, ref, version, versionLanguage) {
     // Click on an item in your Recently Viewed
     if (this.props.multiPanel) {
-      this.openPanelAt(pos, ref, version, versionLanguage);
+      this.openPanel(ref, version, versionLanguage);
     } else {
       this.handleNavigationClick(ref, version, versionLanguage);
     }
@@ -617,6 +614,13 @@ var ReaderApp = React.createClass({
       this.state.defaultPanelSettings[option] = value;
       this.setState(this.state);
     }
+  },
+  openPanel: function(ref, version, versionLanguage) {
+    // Opens a text panel, replacing all panels currently open.
+    this.setState({
+      panels: [this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"})],
+      header: {menuOpen: null}
+    });
   },
   openPanelAt: function(n, ref, version, versionLanguage) {
     // Open a new panel after `n` with the new ref
