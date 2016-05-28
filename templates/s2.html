@@ -55,7 +55,7 @@
   <script src="/static/js/s2.js"></script>
   {% endif %}
 
-  <script type="text/jsx;harmony=true">
+  <script {% if DEBUG %}type="text/jsx;harmony=true"{% endif %}>
     {% autoescape off %}
     {% include "js/django-csrf.js" %}
     $(function() {
