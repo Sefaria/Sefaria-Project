@@ -23,6 +23,8 @@ var renderReaderApp = function(props, data, timer) {
   if ("recentlyViewed" in props) {
     data.recentlyViewed = props.recentlyViewed;
   }
+  data.path     = props.path;
+  data.loggedIn = props.loggedIn;
   SefariaReact.setData(data);
   var panels = props.initialPanels || [];
   for (var i = 0; i < panels.length; i++) {

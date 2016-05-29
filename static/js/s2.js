@@ -25,6 +25,7 @@ var ReaderApp = React.createClass({
   propTypes: {
     multiPanel: React.PropTypes.bool,
     headerMode: React.PropTypes.bool, // is S2 serving only as a header on top of another page?
+    loggedIn: React.PropTypes.bool,
     initialRefs: React.PropTypes.array,
     initialFilter: React.PropTypes.array,
     initialMenu: React.PropTypes.string,
@@ -34,7 +35,8 @@ var ReaderApp = React.createClass({
     initialNavigationCategories: React.PropTypes.array,
     initialSettings: React.PropTypes.object,
     initialPanels: React.PropTypes.array,
-    initialDefaultVersions: React.PropTypes.object
+    initialDefaultVersions: React.PropTypes.object,
+    initialPath: React.PropTypes.string
   },
   getDefaultProps: function getDefaultProps() {
     return {
@@ -48,7 +50,8 @@ var ReaderApp = React.createClass({
       initialSheetsTag: null,
       initialNavigationCategories: [],
       initialPanels: [],
-      initialDefaultVersions: {}
+      initialDefaultVersions: {},
+      initialPath: "/"
     };
   },
   getInitialState: function getInitialState() {
@@ -155,7 +158,8 @@ var ReaderApp = React.createClass({
       header: header,
       defaultVersions: defaultVersions,
       defaultPanelSettings: Sefaria.util.clone(defaultPanelSettings),
-      layoutOrientation: layoutOrientation
+      layoutOrientation: layoutOrientation,
+      path: this.props.initialPath
     };
   },
   componentDidMount: function componentDidMount() {
@@ -983,7 +987,8 @@ var Header = React.createClass({
       registerAvailableFilters: this.props.registerAvailableFilters,
       hideNavHeader: true }) : null;
 
-    var notifcationsClasses = classNames({ notifications: 1, unread: Sefaria.notificationCount > 0 });
+    var notificationCount = Sefaria.notificationCount || 0;
+    var notifcationsClasses = classNames({ notifications: 1, unread: notificationCount > 0 });
     var nextParam = "?next=" + Sefaria.util.currentPath();
     var loggedInLinks = React.createElement(
       'div',
@@ -996,7 +1001,7 @@ var Header = React.createClass({
       React.createElement(
         'div',
         { className: notifcationsClasses, onClick: this.showNotifications },
-        Sefaria.notificationCount
+        notificationCount
       )
     );
     var loggedOutLinks = React.createElement(
@@ -5243,10 +5248,9 @@ var ToolsPanel = React.createClass({
     return {};
   },
   render: function render() {
-    var nextParam = "?next=" + Sefaria.util.currentPath();
     var editText = this.props.canEditText ? function () {
       // TODO this is only an approximation
-
+      var nextParam = "?next=" + Sefaria.util.currentPath();
       var path = "/edit/" + this.props.srefs[0];
       if (this.props.version) {
         path += "/" + this.props.versionLanguage + "/" + this.props.version;
@@ -5254,9 +5258,12 @@ var ToolsPanel = React.createClass({
       path += "?next=" + currentPath;
       window.location = path;
     }.bind(this) : null;
+
     var addTranslation = function () {
+      var nextParam = "?next=" + Sefaria.util.currentPath();
       window.location = "/translate/" + this.props.srefs[0] + nextParam;
     }.bind(this);
+
     var classes = classNames({ toolsPanel: 1, textList: 1, fullPanel: this.props.fullPanel });
     return React.createElement(
       'div',
@@ -7107,14 +7114,12 @@ var setData = function setData(data) {
   if ("recentlyViewed" in data) {
     // Store data in a mock cookie function
     // (Node doesn't have direct access to Django's cookies, so pass through props in POST data)
-    console.log("Setting recentlyViewed data");
-    console.log(data.recentlyViewed);
     var json = decodeURIComponent(data.recentlyViewed);
     cookie("recentlyViewed", json);
-    console.log("called to set cookie with " + json);
   }
-  console.log("mock cookie");
-  console.log(cookie("recentlyViewed"));
+
+  Sefaria.util._defaultPath = data.path;
+  Sefaria.loggedIn = data.loggedIn;
 };
 
 var saveTextData = function saveTextData(data, settings) {
@@ -7123,6 +7128,7 @@ var saveTextData = function saveTextData(data, settings) {
 };
 
 var saveTextTocHtml = function saveTextTocHtml(title, html) {
+  // Populate textTocHtml cache with data loaded in a different scope
   Sefaria._saveTextTocHtml(title, html);
 };
 

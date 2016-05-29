@@ -1469,10 +1469,11 @@ Sefaria.util = {
       }
       return index;
     },
+    _defaultPath: "/",
     currentPath: function() {
       // Returns the current path plus search string if a browser context
       // or "/" in a browser-less context.
-      return (typeof window === "undefined" ) ? "/" :
+      return (typeof window === "undefined" ) ? Sefaria.util._defaultPath :
                 window.location.pathname + window.location.search;
     },
     parseURL: function(url) {
