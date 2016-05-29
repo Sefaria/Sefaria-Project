@@ -1,16 +1,16 @@
 if (typeof require !== 'undefined') {
-  var INBROWSER   = false,
-      React       = require('react'),
-      ReactDOM    = require('react-dom'),
-      $           = require('jquery'),
-      extend      = require('extend'),
-      classNames  = require('classnames'),
-      Sefaria     = require('./sefaria.js'),
-      cookie      = function() { return null; }; // TODO Node needs to read recentlyViewed cookies from Django
-} else {
-  var INBROWSER   = true,
-      extend      = $.extend,
-      cookie      = $.cookie;
+  var INBROWSER    = false,
+      React        = require('react'),
+      ReactDOM     = require('react-dom'),
+      $            = require('jquery'),
+      extend       = require('extend'),
+      classNames   = require('classnames'),
+      Sefaria      = require('./sefaria.js'),
+      cookie       = Sefaria.util.cookie;
+} else { 
+  var INBROWSER    = true,
+      extend       = $.extend,
+      cookie       = $.cookie;
 }
 
 
@@ -5731,10 +5731,10 @@ var TestMessage = React.createClass({
 });
 
 
-function openInNewTab(url) {
+var openInNewTab = function(url) {
   var win = window.open(url, '_blank');
   win.focus();
-}
+};
 
 
 var backToS1 = function() { 
@@ -5743,38 +5743,52 @@ var backToS1 = function() {
 };
 
 
+var setData = function(data) {
+  // Set core data in the module that was loaded in a different scope
+  Sefaria.toc       = data.toc;
+  Sefaria.books     = data.books;
+  Sefaria.calendar  = data.calendar;
+  if ("booksDict" in data) {
+    Sefaria.booksDict = data.booksDict;
+  } else {
+    Sefaria._makeBooksDict();
+  }
+
+  Sefaria._cacheIndexFromToc(Sefaria.toc);  
+
+  if ("recentlyViewed" in data) {
+    // Store data in a mock cookie function
+    // (Node doesn't have direct access to Django's cookies, so pass through props in POST data)
+    console.log("Setting recentlyViewed data")
+    console.log(data.recentlyViewed);
+    var json = decodeURIComponent(data.recentlyViewed);
+    cookie("recentlyViewed", json);
+    console.log("called to set cookie with " + json);
+  }
+  console.log("mock cookie");
+  console.log(cookie("recentlyViewed"));
+};
+
+
+var saveTextData = function(data, settings) {
+  // Populate texts cache with data loaded in a different scope
+  Sefaria._saveText(data, settings, false);
+};
+
+
+var saveTextTocHtml = function(title, html) {
+  Sefaria._saveTextTocHtml(title, html);
+};
+
+
+
 if (typeof exports !== 'undefined') {
   exports.ReaderApp        = ReaderApp;
   exports.ReaderPanel      = ReaderPanel;
   exports.ConnectionsPanel = ConnectionsPanel;
   exports.TextRange        = TextRange;
   exports.TextColumn       = TextColumn;
-  exports.setData          = function(data) {
-    // Set core data in the module that was loaded in a different scope
-    Sefaria.toc       = data.toc;
-    Sefaria.books     = data.books;
-    Sefaria.calendar  = data.calendar;
-    if ("booksDict" in data) {
-      Sefaria.booksDict = data.booksDict;
-    } else {
-      Sefaria._makeBooksDict();
-    }
-
-    Sefaria._cacheIndexFromToc(Sefaria.toc);  
-
-    if ("recentlyViewed" in data) {
-      // Create mock cookie function in global namespace for data that the browser expects from cookies
-      // (Node donesn't have direct access to Django's cookies, so pass through props in POST data)
-      cookie = function(key) {
-        return data.recentlyViewed;
-      };
-    }
-  };
-  exports.saveTextData     = function(data, settings) {
-    // Populate texts cache with data loaded in a different scope
-    Sefaria._saveText(data, settings, false);
-  };
-  exports.saveTextTocHtml  = function(title, html) {
-    Sefaria._saveTextTocHtml(title, html);
-  };
+  exports.setData          = setData;
+  exports.saveTextData     = saveTextData;
+  exports.saveTextTocHtml  = saveTextTocHtml;
 }

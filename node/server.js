@@ -20,6 +20,9 @@ server.use(bodyParser.json());
 
 var renderReaderApp = function(props, data, timer) {
   // Returns HTML of ReaderApp component given `props` and `data`
+  if ("recentlyViewed" in props) {
+    data.recentlyViewed = props.recentlyViewed;
+  }
   SefariaReact.setData(data);
   var panels = props.initialPanels || [];
   for (var i = 0; i < panels.length; i++) {

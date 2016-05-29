@@ -321,7 +321,6 @@ def s2(request, ref, version=None, lang=None):
         "initialSearchFilters":        None,
         "initialSheetsTag":            None,
         "initialNavigationCategories": None,
-        "recentlyViewed":              request.COOKIES.get("recentlyViewed", None),
     }
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
@@ -376,7 +375,7 @@ def s2_search(request):
 
 def s2_sheets_by_tag(request, tag):
     """
-    Standalone page for new sheets list
+    Page of sheets by tag.
     """
     props = {
         "initialMenu": "sheets",
@@ -394,11 +393,12 @@ def s2_page(request, page):
     props = {
         "initialMenu": page,
         "multiPanel": request.flavour != "mobile" and not "mobile" in request.GET,
+        "recentlyViewed": request.COOKIES.get("recentlyViewed", None),
     }
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
-        "propsJSON": json.dumps(props),
-        "html":      html,
+        "propsJSON":      json.dumps(props),
+        "html":           html,
     }, RequestContext(request))
 
 

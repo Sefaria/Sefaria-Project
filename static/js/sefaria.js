@@ -1502,6 +1502,17 @@ Sefaria.util = {
         segments: a.pathname.replace(/^\//,'').split('/')
       };
     },
+    _cookies: {},
+    cookie: function(key, value) {
+     // Mock cookie function to mirror $.cookie for use Server Side
+     console.log("mock cookie called with " + key + " / " + value);
+     if (typeof value === "undefined") {
+      return Sefaria.util._cookies[key];
+     }
+     console.log("setting mock cookie")
+     Sefaria.util._cookies[key] = value;
+     console.log(Sefaria.util._cookies);
+    },  
     setupPrototypes: function() {
 
         String.prototype.toProperCase = function() {

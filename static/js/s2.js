@@ -12,14 +12,12 @@ if (typeof require !== 'undefined') {
       extend = require('extend'),
       classNames = require('classnames'),
       Sefaria = require('./sefaria.js'),
-      cookie = function cookie() {
-    return null;
-  }; // TODO Node needs to read recentlyViewed cookies from Django
+      cookie = Sefaria.util.cookie;
 } else {
-    var INBROWSER = true,
-        extend = $.extend,
-        cookie = $.cookie;
-  }
+  var INBROWSER = true,
+      extend = $.extend,
+      cookie = $.cookie;
+}
 
 var ReaderApp = React.createClass({
   displayName: 'ReaderApp',
@@ -62,11 +60,11 @@ var ReaderApp = React.createClass({
     var defaultPanelSettings = this.getDefaultPanelSettings();
 
     if (!this.props.multiPanel && !this.props.headerMode) {
-      if (this.props.initialMenu == "book toc") {
+      if (this.props.initialPanels[0].menuOpen == "book toc") {
         panels[0] = {
           settings: Sefaria.util.clone(defaultPanelSettings),
           menuOpen: "book toc",
-          mode: "Text",
+          //mode: "Text",
           bookRef: this.props.initialPanels[0].bookRef
         };
       } else {
@@ -768,7 +766,6 @@ var ReaderApp = React.createClass({
         return evenWidth;
       });
     }
-
     var header = this.props.multiPanel || this.state.panels.length == 0 ? React.createElement(Header, {
       initialState: this.state.header,
       setCentralState: this.setHeaderState,
@@ -3810,7 +3807,7 @@ var TextRange = React.createClass({
     var data = Sefaria.text(this.props.sref, settings);
     if (!data) {
       // If we don't have data yet, call again with a callback to trigger API call
-      console.log("getText calling API");
+      console.log("getText calling API: " + this.props.sref);
       Sefaria.text(this.props.sref, settings, this.onTextLoad);
     }
     return data;
@@ -7084,14 +7081,49 @@ var TestMessage = React.createClass({
   }
 });
 
-function openInNewTab(url) {
+var openInNewTab = function openInNewTab(url) {
   var win = window.open(url, '_blank');
   win.focus();
-}
+};
 
 var backToS1 = function backToS1() {
   cookie("s2", "", { path: "/" });
   window.location = "/";
+};
+
+var setData = function setData(data) {
+  // Set core data in the module that was loaded in a different scope
+  Sefaria.toc = data.toc;
+  Sefaria.books = data.books;
+  Sefaria.calendar = data.calendar;
+  if ("booksDict" in data) {
+    Sefaria.booksDict = data.booksDict;
+  } else {
+    Sefaria._makeBooksDict();
+  }
+
+  Sefaria._cacheIndexFromToc(Sefaria.toc);
+
+  if ("recentlyViewed" in data) {
+    // Store data in a mock cookie function
+    // (Node doesn't have direct access to Django's cookies, so pass through props in POST data)
+    console.log("Setting recentlyViewed data");
+    console.log(data.recentlyViewed);
+    var json = decodeURIComponent(data.recentlyViewed);
+    cookie("recentlyViewed", json);
+    console.log("called to set cookie with " + json);
+  }
+  console.log("mock cookie");
+  console.log(cookie("recentlyViewed"));
+};
+
+var saveTextData = function saveTextData(data, settings) {
+  // Populate texts cache with data loaded in a different scope
+  Sefaria._saveText(data, settings, false);
+};
+
+var saveTextTocHtml = function saveTextTocHtml(title, html) {
+  Sefaria._saveTextTocHtml(title, html);
 };
 
 if (typeof exports !== 'undefined') {
@@ -7100,33 +7132,8 @@ if (typeof exports !== 'undefined') {
   exports.ConnectionsPanel = ConnectionsPanel;
   exports.TextRange = TextRange;
   exports.TextColumn = TextColumn;
-  exports.setData = function (data) {
-    // Set core data in the module that was loaded in a different scope
-    Sefaria.toc = data.toc;
-    Sefaria.books = data.books;
-    Sefaria.calendar = data.calendar;
-    if ("booksDict" in data) {
-      Sefaria.booksDict = data.booksDict;
-    } else {
-      Sefaria._makeBooksDict();
-    }
-
-    Sefaria._cacheIndexFromToc(Sefaria.toc);
-
-    if ("recentlyViewed" in data) {
-      // Create mock cookie function in global namespace for data that the browser expects from cookies
-      // (Node donesn't have direct access to Django's cookies, so pass through props in POST data)
-      cookie = function cookie(key) {
-        return data.recentlyViewed;
-      };
-    }
-  };
-  exports.saveTextData = function (data, settings) {
-    // Populate texts cache with data loaded in a different scope
-    Sefaria._saveText(data, settings, false);
-  };
-  exports.saveTextTocHtml = function (title, html) {
-    Sefaria._saveTextTocHtml(title, html);
-  };
+  exports.setData = setData;
+  exports.saveTextData = saveTextData;
+  exports.saveTextTocHtml = saveTextTocHtml;
 }
 
