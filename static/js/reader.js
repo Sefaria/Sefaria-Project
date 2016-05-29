@@ -84,7 +84,9 @@ sjs.Init.all = function() {
 			sjs.showNewText();	
 			break;
 		case "edit":
-			sjs.langMode = sjs.current.text.length ? 'en' : 'he';
+			if(!sjs.langMode){
+				sjs.langMode = sjs.current.text.length ? 'en' : 'he';
+			}
 			sjs.editText(sjs.current);
 			break;
 		case "translate":
@@ -3610,7 +3612,6 @@ sjs.editText = function(data) {
 	if (!sjs._uid) {
 		return sjs.loginPrompt();
 	}
-
 	if ((sjs.langMode === 'en' && "sources" in data) || 
 		(sjs.langMode === 'he' && "heSources" in data)) {
 		sjs.alert.message("You are viewing a page that includes mutliple text versions. To edit, please first select a single version in the About Text panel.");
@@ -3645,6 +3646,9 @@ sjs.editText = function(data) {
 
 	var text = sjs.makePlainText(sjs.editing.text);
 	sjs._$newVersion.val(text).trigger("autosize").trigger('keyup');
+	if (sjs.langMode === 'he') {
+		$("#newVersion").css("direction", "rtl");
+	}
 };
 
 
