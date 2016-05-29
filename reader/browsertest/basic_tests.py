@@ -63,6 +63,7 @@ class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
         self.load_ref("Psalms 45:5", filter="all").click_text_filter("Rashi")
         assert "Psalms.45.5?with=Rashi" in self.driver.current_url, self.driver.current_url
 
+
 class LoadAndVerifyIndepenedentTOC(AtomicTest):
     suite_key = "Reader"
     every_build = True
@@ -80,6 +81,7 @@ class LoadAndVerifyIndepenedentTOC(AtomicTest):
         for title in titles:
             self.load_text_toc(title)
 
+       # self.load_text_toc("Numbers").click_text_toc_section("Numbers 12").back().click_text_toc_section("Numbers 3").back()
 
 class LoadSearchFromURL(AtomicTest):
     suite_key = "Search"

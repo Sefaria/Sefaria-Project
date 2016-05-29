@@ -103,6 +103,16 @@ class AtomicTest(object):
         url = self.base_url + "/" + ref.url()
         self.driver.get(url)
         WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".tocContent")))
+        return self
+
+    def click_text_toc_section(self, ref):
+        if isinstance(ref, basestring):
+            ref = Ref(ref)
+        assert isinstance(ref, Ref)
+        p1 = self.driver.find_element_by_css_selector('.sectionLink[data-ref^="{}"]'.format(ref.url()))
+        p1.click()
+        WebDriverWait(self.driver, TEMPER).until(title_contains(ref.normal()))
+        return self
 
     #todo:
     def load_refs(self):
@@ -122,6 +132,17 @@ class AtomicTest(object):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         #todo
+        return self
+
+    # Basic navigation
+    def back(self):
+        # These may not work as expected...
+        self.driver.back()
+        return self
+
+    def forward(self):
+        # These may not work as expected...
+        self.driver.forward()
         return self
 
     def scroll_to_top(self):
