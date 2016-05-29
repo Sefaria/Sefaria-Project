@@ -312,7 +312,7 @@ def s2(request, ref, version=None, lang=None):
         "interfaceLang":               request_context.get("interfaceLang"),
         "initialRefs":                 panels[0].get("refs", []),
         "initialFilter":               panels[0].get("filter", None),
-        "initialMenu":                 panels[0].get("menuOpen", None),
+        # "initialMenu":                 panels[0].get("menuOpen", None),
         "initialBookRef":              panels[0].get("bookRef", None),
         "initialSettings":             settings,
         "initialPanels":               panels,

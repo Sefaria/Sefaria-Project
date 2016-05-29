@@ -763,8 +763,7 @@ var ReaderApp = React.createClass({
     } else {
       var widths = this.state.panels.map(function(){ return evenWidth; });
     }
-
-    var header = this.props.multiPanel || this.state.panels.length == 0 ? 
+    var header = this.props.multiPanel || this.state.panels.length == 0 ?
                   (<Header 
                     initialState={this.state.header}
                     setCentralState={this.setHeaderState}
