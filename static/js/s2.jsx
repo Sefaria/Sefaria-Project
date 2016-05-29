@@ -53,11 +53,11 @@ var ReaderApp = React.createClass({
     var defaultPanelSettings = this.getDefaultPanelSettings();
 
     if (!this.props.multiPanel && !this.props.headerMode) {
-      if (this.props.initialMenu == "book toc") {
+      if (this.props.initialPanels[0].menuOpen == "book toc") {
         panels[0] = {
             settings: Sefaria.util.clone(defaultPanelSettings),
             menuOpen: "book toc",
-            mode: "Text",
+            //mode: "Text",
             bookRef:  this.props.initialPanels[0].bookRef
         };
       } else {
@@ -3362,7 +3362,7 @@ var TextRange = React.createClass({
                     textRange: 1,
                     basetext: this.props.basetext,
                     loading: !data,
-                    lowlight: this.props.lowlight,
+                    lowlight: this.props.lowlight
                   };
     classes = classNames(classes);
 

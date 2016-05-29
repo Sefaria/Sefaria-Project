@@ -209,12 +209,12 @@ def make_panel_dict(oref, version, language, filter, mode):
     Returns a dictionary corresponding to the React panel state,
     additionally setting `text` field with textual content.
     """
-    panel = {}
-
     if oref.is_book_level():
-        panel["menuOpen"]    = "book toc"
-        panel["bookRef"]     = oref.normal()
-        panel["textTocHtml"] = make_toc_html(oref)
+        panel = {
+            "menuOpen": "book toc",
+            "bookRef": oref.normal(),
+            "textTocHtml": make_toc_html(oref),
+        }
     else:
         panel = {
             "mode": mode,
@@ -245,7 +245,7 @@ def make_panel_dicts(oref, version, language, filter, multi_panel):
     Depending on whether `multi_panel` is True, connections set in `filter` are displayed in either 1 or 2 panels.
     """
     panels = []
-    if filter and  multi_panel:
+    if filter and multi_panel:
         panels += [make_panel_dict(oref, version, language, filter, "Text")]
         panels += [make_panel_dict(oref, version, language, filter, "Connections")]
     elif filter and not multi_panel:
