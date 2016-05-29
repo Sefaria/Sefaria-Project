@@ -96,6 +96,14 @@ class AtomicTest(object):
             WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".textColumn")))
         return self
 
+    def load_text_toc(self, ref):
+        if isinstance(ref, basestring):
+            ref = Ref(ref)
+        assert isinstance(ref, Ref)
+        url = self.base_url + "/" + ref.url()
+        self.driver.get(url)
+        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".tocContent")))
+
     #todo:
     def load_refs(self):
         pass

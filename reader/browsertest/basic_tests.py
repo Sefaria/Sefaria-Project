@@ -63,6 +63,23 @@ class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
         self.load_ref("Psalms 45:5", filter="all").click_text_filter("Rashi")
         assert "Psalms.45.5?with=Rashi" in self.driver.current_url, self.driver.current_url
 
+class LoadAndVerifyIndepenedentTOC(AtomicTest):
+    suite_key = "Reader"
+    every_build = True
+
+    def run(self):
+        self.s2()
+        titles = [
+            "Genesis",  # Simple Text
+            "Shabbat",  # Talmud Numbering
+            "Ibn Ezra on Psalms",  # Commentary on Simple text
+            "Zohar",  # Zohar, just cuz
+            "Tosafot on Shabbat",  # Commentary on Talmud
+            "Pesach Haggadah" # Complex text
+        ]
+        for title in titles:
+            self.load_text_toc(title)
+
 
 class LoadSearchFromURL(AtomicTest):
     suite_key = "Search"
