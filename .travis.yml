@@ -50,7 +50,7 @@ before_script:
   - python manage.py runserver 2> server.error.log > server.log &
 
 script:
- - 'py.test -vv -m "not deep and not failing"'
+ - 'py.test -m "not deep and not failing"'
  - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then cd reader/browsertest && python run_tests_on_travis.py "Build - ${TRAVIS_BUILD_NUMBER}"; else true; fi;'
 
 after_failure:
