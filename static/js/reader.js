@@ -676,6 +676,8 @@ $(function() {
 		
 		if ("after" in params) {
 			window.location = params["after"];
+		}else if ("next" in params){
+			window.location = params["next"];
 		} else {
 			sjs.clearNewText();
 			sjs._direction = 0;
