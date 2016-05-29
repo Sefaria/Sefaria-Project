@@ -63,7 +63,7 @@ var ReaderApp = React.createClass({
     var defaultPanelSettings = this.getDefaultPanelSettings();
 
     if (!this.props.multiPanel && !this.props.headerMode) {
-      if (this.props.initialPanels[0].menuOpen == "book toc") {
+      if (this.props.initialPanels && this.props.initialPanels.length > 0 && this.props.initialPanels[0].menuOpen == "book toc") {
         panels[0] = {
           settings: Sefaria.util.clone(defaultPanelSettings),
           menuOpen: "book toc",
