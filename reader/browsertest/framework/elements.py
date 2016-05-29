@@ -93,7 +93,7 @@ class AtomicTest(object):
             # Filters load slower than the main page
             WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".filterSet > .textRange")))
         else:
-            WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".textColumn")))
+            WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".textColumn .textRange .segment")))
         return self
 
     def load_text_toc(self, ref):
@@ -102,7 +102,7 @@ class AtomicTest(object):
         assert isinstance(ref, Ref)
         url = self.base_url + "/" + ref.url()
         self.driver.get(url)
-        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".tocContent")))
+        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".tocContent > :not(.loadingMessage)")))
         return self
 
     def click_text_toc_section(self, ref):
