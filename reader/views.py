@@ -209,20 +209,21 @@ def make_panel_dict(oref, version, language, filter, mode):
     Returns a dictionary corresponding to the React panel state,
     additionally setting `text` field with textual content.
     """
-    panel = {
-        "mode": mode,
-        "ref": oref.normal(),
-        "refs": [oref.normal()],
-        "version": version,
-        "versionLanguage": language,
-        "filter": filter,
-    }
+    panel = {}
 
     if oref.is_book_level():
         panel["menuOpen"]    = "book toc"
         panel["bookRef"]     = oref.normal()
         panel["textTocHtml"] = make_toc_html(oref)
     else:
+        panel = {
+            "mode": mode,
+            "ref": oref.normal(),
+            "refs": [oref.normal()],
+            "version": version,
+            "versionLanguage": language,
+            "filter": filter,
+        }
         try:
             text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True).contents()
         except NoVersionFoundError:
@@ -309,7 +310,7 @@ def s2(request, ref, version=None, lang=None):
         "multiPanel":                  multi_panel,
         "headerMode":                  False,
         "interfaceLang":               request_context.get("interfaceLang"),
-        "initialRefs":                 panels[0]["refs"],
+        "initialRefs":                 panels[0].get("refs", []),
         "initialFilter":               panels[0].get("filter", None),
         "initialMenu":                 panels[0].get("menuOpen", None),
         "initialBookRef":              panels[0].get("bookRef", None),

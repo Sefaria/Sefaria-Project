@@ -2930,7 +2930,7 @@ var TextColumn = React.createClass({
     } else if ( lastBottom < windowHeight + 80 ) {
       // DOWN: add the next section to bottom
       if ($lastText.hasClass("loading")) { 
-        console.log("last text is loading - don't add next section")
+        console.log("last text is loading - don't add next section");
         return;
       }
       console.log("Down! Add next section");
@@ -3174,13 +3174,13 @@ var TextRange = React.createClass({
     };
     var data = Sefaria.text(this.props.sref, settings);
     if (!data) { // If we don't have data yet, call again with a callback to trigger API call
-      console.log("getText calling API");
+      console.log("getText calling API: " + this.props.sref);
       Sefaria.text(this.props.sref, settings, this.onTextLoad);
     }
     return data;
   },
   onTextLoad: function(data) {
-    console.log("onTextLoad in TextColumn")
+    console.log("onTextLoad in TextColumn");
     // Initiate additional API calls when text data first loads
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.

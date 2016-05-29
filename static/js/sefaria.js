@@ -252,7 +252,7 @@ Sefaria = extend(Sefaria, {
   },
   _saveText: function(data, settings, skipWrap) {
     if (!data || "error" in data) { 
-      console.log("Returning!")
+      console.log("Returning!");
       return;
     }
     settings         = settings || {};
