@@ -658,16 +658,21 @@ var ReaderApp = React.createClass({
     // Replace panel there if already a connections panel, otherwise splice new panel into position `n`
     // `refs` is an array of ref strings
     var panel = this.state.panels[n] || {};
+    var parentPanel = (n >= 1 && this.state.panels[n-1].mode == 'Text') ? this.state.panels[n-1] : null;
+
     if (panel.mode !== "Connections") {
       // No connctions panel is open yet, splice in a new one
       this.state.panels.splice(n, 0, {});
       panel = this.state.panels[n];
       panel.filter = [];
     }
-
     panel.refs           = refs;
     panel.menuOpen       = null;
     panel.mode           = panel.mode || "Connections";
+    if(parentPanel){
+      panel.version         = parentPanel.version;
+      panel.versionLanguage = parentPanel.versionLanguage;
+    }
     this.state.panels[n] = this.makePanelState(panel);
     this.setState({panels: this.state.panels});
   },
@@ -773,8 +778,11 @@ var ReaderApp = React.createClass({
     }
   },
   render: function() {
-     // Only look at the last panels if we've above panel Cap
+     // Only look at the last N panels if we're above panelCap
     var panelStates = this.state.panels.slice(-this.state.panelCap);
+    if (panelStates.length && panelStates[0].mode === "Connections") {
+      panelStates = panelStates.slice(1); // Don't leave an orphaned connections panel at the beginning
+    }
 
     var evenWidth = 100.0/panelStates.length;
     if (panelStates.length == 2 && panelStates[0].mode == "Text" && panelStates[1].mode == "Connections") {
@@ -795,7 +803,7 @@ var ReaderApp = React.createClass({
                     updateSearchFilter={this.updateSearchFilterInHeader}
                     registerAvailableFilters={this.updateAvailableFiltersInHeader}
                     headerMode={this.props.headerMode}
-                    panelsOpen={this.state.panels.length} />) : null;
+                    panelsOpen={panelStates.length} />) : null;
 
     var panels = [];
     for (var i = 0; i < panelStates.length; i++) {
@@ -842,8 +850,8 @@ var ReaderApp = React.createClass({
                       updateSearchFilter={this.updateSearchFilterInPanel}
                       registerAvailableFilters={this.updateAvailableFiltersInPanel}
                       closePanel={closePanel}
-                      panelsOpen={this.state.panels.length}
-                      masterPanelLanguage={panel.mode === "Connections" ? this.state.panels[i-1].settings.language : panel.settings.language}
+                      panelsOpen={panelStates.length}
+                      masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
                       layoutWidth={width} />
                   </div>);
     }
@@ -1515,8 +1523,6 @@ var ReaderPanel = React.createClass({
                     showBaseText={this.showBaseText}/>);
 
     } else if (this.state.menuOpen === "book toc") {
-      console.log("Rendering book toc")
-      console.log(this.state);
       var menu = (<ReaderTextTableOfContents
                     mode={this.state.menuOpen}
                     closePanel={this.props.closePanel}
@@ -3501,7 +3507,7 @@ var ConnectionsPanel = React.createClass({
     editNote:                React.PropTypes.func.isRequired,
     openComparePanel:        React.PropTypes.func.isRequired,
     version:                 React.PropTypes.string,
-    versionLanguge:          React.PropTypes.string,
+    versionLanguage:          React.PropTypes.string,
     noteBeingEdited:         React.PropTypes.object,
     fullPanel:               React.PropTypes.bool,
     multiPanel:              React.PropTypes.bool,
@@ -3558,7 +3564,10 @@ var ConnectionsPanel = React.createClass({
                     openNav={this.props.openNav}
                     openDisplaySettings={this.props.openDisplaySettings}
                     openComparePanel={this.props.openComparePanel}
-                    closePanel={this.props.closePanel} />);
+                    closePanel={this.props.closePanel}
+                    version={this.props.version}
+                    versionLanguage={this.props.versionLanguage}
+                      />);
 
     } else if (this.props.mode === "Share") {
       content = (<SharePanel
@@ -4333,7 +4342,7 @@ var ToolsPanel = React.createClass({
     setConnectionsMode:      React.PropTypes.func.isRequired,
     openComparePanel:        React.PropTypes.func.isRequired,
     version:                 React.PropTypes.string,
-    versionLanguge:          React.PropTypes.string,
+    versionLanguage:         React.PropTypes.string,
     fullPanel:               React.PropTypes.bool,
     multiPanel:              React.PropTypes.bool,
     canEditText:             React.PropTypes.bool,
