@@ -1535,6 +1535,7 @@ var ReaderPanel = React.createClass({
       var menu = (<SheetsNav
                     openNav={this.openMenu.bind(null, "navigation")}
                     close={this.closeMenus}
+                    hideNavHeader={this.props.hideNavHeader}
                     initialTag={this.state.navigationSheetTag}
                     setSheetTag={this.setSheetTag} />);
 
@@ -2557,10 +2558,12 @@ var VersionBlock = React.createClass({
 var SheetsNav = React.createClass({
   // Navigation for Sheets
   propTypes: {
-    initialTag:   React.PropTypes.string,
-    close:        React.PropTypes.func.isRequired,
-    openNav:      React.PropTypes.func.isRequired,
-    setSheetTag:  React.PropTypes.func.isRequired
+    initialTag:    React.PropTypes.string,
+    close:         React.PropTypes.func.isRequired,
+    openNav:       React.PropTypes.func.isRequired,
+    setSheetTag:   React.PropTypes.func.isRequired,
+    hideNavHeader: React.PropTypes.bool
+
   },
   getInitialState: function() {
     return {
@@ -2650,12 +2653,15 @@ var SheetsNav = React.createClass({
       }      
     }
 
-    return (<div className="readerSheetsNav readerNavMenu">
-              <div className="readerNavTop searchOnly" key="navTop">
+    var classes = classNames({readerNavMenu: 1, readerSheetsNav: 1, noHeader: this.props.hideNavHeader});
+
+    return (<div className={classes}>
+           {this.props.hideNavHeader ? null :
+               (<div className="readerNavTop searchOnly" key="navTop">
                 <CategoryColorLine category="Sheets" />
                 <ReaderNavigationMenuMenuButton onClick={this.props.openNav} />
                 <h2><span className="en">{enTitle}</span></h2>
-              </div>
+              </div>)}
               {content}
             </div>);
   }
