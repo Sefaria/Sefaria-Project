@@ -373,6 +373,9 @@ def sheets_list(request, type=None):
 		if request.flavour == "mobile":
 			return s2_sheets(request)
 
+		elif request.COOKIES.get('s2'):
+			return s2_sheets(request)
+
 		query       = {"status": "public"}
 		public      = db.sheets.find(query).sort([["dateModified", -1]]).limit(32)
 		public_tags = recent_public_tags()

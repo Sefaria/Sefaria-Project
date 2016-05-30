@@ -2640,6 +2640,9 @@ var SheetsNav = React.createClass({
         var tagList      = this.state.tagList.map(makeTagButton);
         var content = (<div className="content">
                         <div className="contentInner">
+                          {this.props.hideNavHeader ? (<h1>
+                            <span className="en">Source Sheets</span>
+                          </h1>) : null}
                           {yourSheets}
                           <h2><span className="en">Trending Tags</span></h2>
                           <TwoOrThreeBox content={trendingTags} width={this.state.width} />
