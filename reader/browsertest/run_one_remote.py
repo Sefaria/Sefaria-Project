@@ -13,6 +13,6 @@ assert klass
 
 t = Trial(platform="sauce",
           tests=[klass],
-          build="{} - {}".format(klass.__name__, strftime("%Y-%m-%d %H:%M:%S", gmtime()))
-          ).run()
+          build="{} - {}".format(klass.__name__, strftime("%Y-%m-%d %H:%M:%S", gmtime())),
+          verbose=True).run()
 print t.results()
