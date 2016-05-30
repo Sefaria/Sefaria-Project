@@ -1,7 +1,9 @@
 if (typeof require !== 'undefined') {
-  var $       = require('jquery'),
-      extend  = require('extend'),
-      param   = require('querystring').stringify;
+  var $         = require('cheerio'),
+      extend    = require('extend'),
+      param     = require('querystring').stringify;
+      $.ajax    = function() {}; // Fail gracefully if we reach one of these methods server side
+      $.getJSON = function() {};
 } else {
   // Browser context, assuming $
   var extend  = $.extend,
@@ -250,7 +252,7 @@ Sefaria = extend(Sefaria, {
   },
   _saveText: function(data, settings, skipWrap) {
     if (!data || "error" in data) { 
-      console.log("Returning!")
+      console.log("Returning!");
       return;
     }
     settings         = settings || {};
@@ -400,6 +402,7 @@ Sefaria = extend(Sefaria, {
     // Uses this._refmap to find the refkey that has information for this ref.
     // Used in cases when the textual information is not important, so it can
     // be called without worrying about the `settings` parameter for what is available in cache.
+    if (!ref) { return null; }
     var versionedKey = this._refmap[this._refKey(ref)] || this._refmap[this._refKey(ref, {context:1})];
     if (versionedKey) { return this._getOrBuildTextData(versionedKey);  }
     return null;
@@ -543,13 +546,13 @@ Sefaria = extend(Sefaria, {
   _filterLinks: function(links, filter) {
      return links.filter(function(link){
         return (filter.length == 0 ||
-                $.inArray(link.category, filter) !== -1 || 
-                $.inArray(link.commentator, filter) !== -1 );
+                Sefaria.util.inArray(link.category, filter) !== -1 || 
+                Sefaria.util.inArray(link.commentator, filter) !== -1 );
       }); 
   },
   _linkSummaries: {},
   linkSummary: function(ref) {
-    // Returns an object summarizing the link counts by category and text
+    // Returns an ordered array summarizing the link counts by category and text
     // Takes either a single string `ref` or an array of string refs.
     if (typeof ref == "string") {
       if (ref in this._linkSummaries) { return this._linkSummaries[ref]; }
@@ -597,19 +600,20 @@ Sefaria = extend(Sefaria, {
         }
       }
     }
-
     // Convert object into ordered list
-    summary = $.map(summary, function(value, category) {
-      value.category = category;
-      value.books = $.map(value.books, function(value, book) {
+    var summaryList = Object.keys(summary).map(function(category) {
+      var categoryData = summary[category];
+      categoryData.category = category;
+      categoryData.books = Object.keys(categoryData.books).map(function(book) {
+        var bookData = categoryData.books[book];
         var index      = Sefaria.index(book);
-        value.book     = index.title;
-        value.heBook   = index.heTitle;
-        value.category = index.categories[0];
-        return value;
+        bookData.book     = index.title;
+        bookData.heBook   = index.heTitle;
+        bookData.category = index.categories[0];
+        return bookData;
       });
       // Sort the books in the category
-      value.books.sort(function(a, b) { 
+      categoryData.books.sort(function(a, b) { 
         // First sort by predefined "top"
         var topByCategory = {
           "Tanach": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
@@ -627,10 +631,10 @@ Sefaria = extend(Sefaria, {
         // Then sort alphabetically
         return a.book > b.book ? 1 : -1; 
       });
-      return value;
+      return categoryData;
     });
     // Sort the categories
-    summary.sort(function(a, b) {
+    summaryList.sort(function(a, b) {
       // always put Commentary first 
       if      (a.category === "Commentary") { return -1; }
       else if (b.category === "Commentary") { return  1; }
@@ -639,7 +643,7 @@ Sefaria = extend(Sefaria, {
       else if (b.category === "Modern Works") { return -1; }
       return b.count - a.count;
     });
-    return summary;
+    return summaryList;
   },
   flatLinkSummary: function(ref) {
     // Returns an array containing texts and categories with counts for ref
@@ -768,6 +772,7 @@ Sefaria = extend(Sefaria, {
           this._saveNoteData(ref, data.notes);
           this.sheets._saveSheetsByRefData(ref, data.sheets);
           this._related[ref] = data;
+          this._relatedSummaries[ref] = null; // Reset in case previously cached before API returned
           callback(data);
         }.bind(this));
     }
@@ -789,7 +794,6 @@ Sefaria = extend(Sefaria, {
         notes = newNotes ? notes.concat(newNotes) : notes;
       });
     }
-
     var summary           = this.linkSummary(ref);
     var commmunityContent = [sheets, notes].filter(function(section) { return section.length > 0; } ).map(function(section) {
       if (!section) { debugger; }
@@ -813,25 +817,30 @@ Sefaria = extend(Sefaria, {
   },
   textTocHtml: function(title, callback) {
     // Returns an HTML fragment of the table of contents of the text 'title'
-    if (!title) { return ""; }
-    if (title in this._textTocHtml) {
-      return this._textTocHtml[title]
+    if (!title) { return null; }
+    var html = this._textTocHtml[title] || null;
+    if (!callback) {
+      return html;
+    }
+    if (html) {
+      callback(html);
+      return html;
     } else {
       $.ajax({
         url: "/api/toc-html/" + title,
         dataType: "html",
         success: function(html) {
-          html = this._makeTextTocHtml(html, title);
-          this._textTocHtml[title] = html;
-          callback(html);
+          this._saveTextTocHtml(title, html);
+          callback(this._textTocHtml[title]);
         }.bind(this)
       });
       return null;
     } 
   },
-  _makeTextTocHtml: function(html, title) {
+  _makeTextTocHtml: function(title, html) {
     // Modifies Text TOC HTML received from server
     // Replaces links and adds commentary setion
+    // TODO after S1 is deprecated, merge this logic into server
     html = html.replace(/ href="\//g, ' data-ref="');
     var commentaryList  = this.commentaryList(title);
     if (commentaryList.length) {
@@ -865,6 +874,11 @@ Sefaria = extend(Sefaria, {
       html = $html.html();
     }
     return html;
+  },
+  _saveTextTocHtml: function(title, html) {
+    // Takes html fragment from /api/toc-html/, modifies and saves it in local cache.
+    html = this._makeTextTocHtml(title, html);
+    this._textTocHtml[title] = html;
   },
   sectionString: function(ref) {
     // Returns a pair of nice strings (en, he) of the sections indicated in ref. e.g.,
@@ -1455,10 +1469,11 @@ Sefaria.util = {
       }
       return index;
     },
+    _defaultPath: "/",
     currentPath: function() {
       // Returns the current path plus search string if a browser context
       // or "/" in a browser-less context.
-      return (typeof window === "undefined" ) ? "/" :
+      return (typeof window === "undefined" ) ? Sefaria.util._defaultPath :
                 window.location.pathname + window.location.search;
     },
     parseURL: function(url) {
@@ -1488,6 +1503,17 @@ Sefaria.util = {
         segments: a.pathname.replace(/^\//,'').split('/')
       };
     },
+    _cookies: {},
+    cookie: function(key, value) {
+     // Mock cookie function to mirror $.cookie for use Server Side
+     console.log("mock cookie called with " + key + " / " + value);
+     if (typeof value === "undefined") {
+      return Sefaria.util._cookies[key];
+     }
+     console.log("setting mock cookie")
+     Sefaria.util._cookies[key] = value;
+     console.log(Sefaria.util._cookies);
+    },  
     setupPrototypes: function() {
 
         String.prototype.toProperCase = function() {

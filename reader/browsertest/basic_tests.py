@@ -64,6 +64,25 @@ class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
         assert "Psalms.45.5?with=Rashi" in self.driver.current_url, self.driver.current_url
 
 
+class LoadAndVerifyIndepenedentTOC(AtomicTest):
+    suite_key = "Reader"
+    every_build = True
+
+    def run(self):
+        self.s2()
+        titles = [
+            "Genesis",  # Simple Text
+            "Shabbat",  # Talmud Numbering
+            "Ibn Ezra on Psalms",  # Commentary on Simple text
+            "Zohar",  # Zohar, just cuz
+            "Tosafot on Shabbat",  # Commentary on Talmud
+            "Pesach Haggadah" # Complex text
+        ]
+        for title in titles:
+            self.load_text_toc(title)
+
+       # self.load_text_toc("Numbers").click_text_toc_section("Numbers 12").back().click_text_toc_section("Numbers 3").back()
+
 class LoadSearchFromURL(AtomicTest):
     suite_key = "Search"
     every_build = True
@@ -130,7 +149,7 @@ class InfiniteScrollUp(AtomicTest):
     every_build = True
 
     def run(self):
-        self.s2().load_ref("Job 32")
+        self.s2().load_ref("Job 32").scroll_to_top()
         
 
 class InfiniteScrollDown(AtomicTest):

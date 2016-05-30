@@ -55,7 +55,7 @@
   <script src="/static/js/s2.js"></script>
   {% endif %}
 
-  <script type="text/jsx;harmony=true">
+  <script {% if DEBUG %}type="text/jsx;harmony=true"{% endif %}>
     {% autoescape off %}
     {% include "js/django-csrf.js" %}
     $(function() {
@@ -68,6 +68,9 @@
           if (panel.text) {
             var settings = {context: 1, version: panel.version, language: panel.versionLanguage};
             Sefaria._saveText(panel.text, settings);
+          }
+          if (panel.textTocHtml) {
+            Sefaria._saveTextTocHtml(panel.bookRef, panel.textTocHtml);
           }
       }
 

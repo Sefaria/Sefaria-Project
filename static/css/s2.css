@@ -50,16 +50,13 @@ body.dark {
   left: 0;
   width: 100%;
   height: 54px;
+  line-height: 54px;
   background: white;
   z-index: 1001;
   border-bottom: 1px solid #999;
   box-sizing: border-box;
-}
-.headerInner {
-  line-height: 54px;
   padding: 0px 20px;
   text-align: center;
-  height: 54px;
   overflow: hidden;
 }
 .header .left {
@@ -106,6 +103,14 @@ body.dark {
 .header .home img {
   opacity: 0.5;
 }
+.header .accountLinks {
+  display: inline-block;
+  font-size: 15px;
+}
+.header .account, .header .notifications {
+  display: inline-block;
+  vertical-align: middle;
+}
 .header .library, .header .account {
   margin: 0px 17px;
   font-size: 24px;
@@ -120,7 +125,6 @@ body.dark {
   border-radius: 15px;
   background-color: #aaa;
   color: white;
-  vertical-align: 16%;
   font-size: 16px;
 }
 .header .notifications.unread {
@@ -128,7 +132,7 @@ body.dark {
 }
 .header .login {
   color: #999;
-  margin: 0 20px;
+  margin: 0 15px;
   display: inline-block;
   line-height: 1;
 }
@@ -147,13 +151,14 @@ body.dark {
   font-size: 14px;
   line-height: 1;
   padding: 6px 16px;
-  vertical-align: text-bottom;
+  vertical-align: middle;
   height: 14px;
   max-width: 100%;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
   cursor: pointer;
+  margin-right: 15px;
 }
 .header .testWarning:hover {
   text-decoration: underline;
@@ -415,6 +420,9 @@ body.dark {
 }
 .multiPanel .readerNavMenu.noHeader .content {
   padding-top: 40px;
+}
+.multiPanel .readerNavMenu.noHeader.compare .content {
+  padding-top: 80px;
 }
 .readerNavMenu .content .contentInner {
   max-width: 660px;
@@ -970,44 +978,39 @@ h1 .languageToggle .he {
     float: none;
     width: auto;
 }
-
 .readerTextTableOfContents .versionBlocks .versionBlock,
 .readerTextTableOfContents .versionBlocks .versionBlock a.versionSource {
   color: #999;
   font-size: 16px;
 }
-
 .readerTextTableOfContents .versionBlocks .versionBlock a.versionSource,
 .readerTextTableOfContents .versionBlocks .versionBlock .versionLicense {
   margin: 0 3px;
 }
-
 .readerTextTableOfContents .versionBlocks .versionBlock .versionTitle {
   color: #222;
   font-size: 20px;
 }
-
 .readerTextTableOfContents .versionBlocks .versionBlock .versionNotes {
   padding-top: 8px;
 }
-
 @media (max-width: 450px) {
   .readerTextTableOfContents .versionBlocks .versionBlock {
     float: none;
     width: auto;
   }
 }
-
 .searchContent {
   padding: 15px 10px 0;
 }
-
 .searchContent .searchTopMatter {
   padding-bottom: 10px;
   border-bottom: 1px solid #ccc;
   margin-bottom: 30px;
 }
-
+.searchContent .searchTopMatter.loading {
+  border-bottom: none;
+}
 .searchContent .searchStatusLine {
   padding: 10px 0 36px 0;
   margin-top: -60px;
@@ -1016,10 +1019,10 @@ h1 .languageToggle .he {
   height: 64px;
 }
 .searchContent .type-button {
-  padding: 5px;
-  margin: 10px;
-  border: solid 1px;
-  border-radius: 14px;
+  padding: 6px 14px;
+  margin: 5px;
+  border-radius: 12px;
+  border: 1px solid #DADADA;
   display: inline-block;
   font-size: 12px;
   color: #999;
@@ -1029,13 +1032,13 @@ h1 .languageToggle .he {
 }
 .searchContent .type-button.active {
   color: #000;
+  background-color: white;
 }
 .searchContent .type-button-title,
 .searchContent .type-button-total {
   display: inline-block;
   padding: 2px;
 }
-
 .searchContent .results-count,
 .searchContent .searchStatusLine > .loadingMessage {
   color: #999;

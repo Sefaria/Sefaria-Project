@@ -209,19 +209,21 @@ def make_panel_dict(oref, version, language, filter, mode):
     Returns a dictionary corresponding to the React panel state,
     additionally setting `text` field with textual content.
     """
-    panel = {
-        "mode": mode,
-        "ref": oref.normal(),
-        "refs": [oref.normal()],
-        "version": version,
-        "versionLanguage": language,
-        "filter": filter,
-    }
-
     if oref.is_book_level():
-        panel["menuOpen"] = "book toc"
-        panel["bookRef"] = oref.normal()
+        panel = {
+            "menuOpen": "book toc",
+            "bookRef": oref.normal(),
+            "textTocHtml": make_toc_html(oref),
+        }
     else:
+        panel = {
+            "mode": mode,
+            "ref": oref.normal(),
+            "refs": [oref.normal()],
+            "version": version,
+            "versionLanguage": language,
+            "filter": filter,
+        }
         try:
             text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True).contents()
         except NoVersionFoundError:
@@ -243,7 +245,7 @@ def make_panel_dicts(oref, version, language, filter, multi_panel):
     Depending on whether `multi_panel` is True, connections set in `filter` are displayed in either 1 or 2 panels.
     """
     panels = []
-    if filter and  multi_panel:
+    if filter and multi_panel:
         panels += [make_panel_dict(oref, version, language, filter, "Text")]
         panels += [make_panel_dict(oref, version, language, filter, "Connections")]
     elif filter and not multi_panel:
@@ -252,6 +254,18 @@ def make_panel_dicts(oref, version, language, filter, multi_panel):
         panels += [make_panel_dict(oref, version, language, filter, "Text")]
 
     return panels
+
+
+def s2_props(request):
+    """
+    Returns a dictionary of props that all S2 pages get based on the request.
+    """ 
+    return {
+        "multiPanel": request.flavour != "mobile" and not "mobile" in request.GET,
+        "initialPath": request.get_full_path(),
+        "recentlyViewed": request.COOKIES.get("recentlyViewed", None),
+        "loggedIn": request.user.is_authenticated(),
+    }
 
 
 def s2(request, ref, version=None, lang=None):
@@ -263,9 +277,10 @@ def s2(request, ref, version=None, lang=None):
     except InputError:
         raise Http404
    
-    panels = []
-    multi_panel = request.flavour != "mobile"
+    props = s2_props(request)
 
+    panels = []
+    multi_panel = props["multiPanel"]
     # Handle first panel which has a different signature in params & URL (`version` and `lang` if set come from URL).
     version = version.replace(u"_", " ") if version else version
     filter = request.GET.get("with").replace("_", " ").split("+") if request.GET.get("with") else None
@@ -302,49 +317,43 @@ def s2(request, ref, version=None, lang=None):
         "fontSize":      request.COOKIES.get("fontSize", 62.5),
     }
 
-    cache_key = request.get_full_path() # TODO include cookie values (language in particular) here
-
-    props = {
-        "multiPanel":                  multi_panel,
+    props.update({
         "headerMode":                  False,
         "interfaceLang":               request_context.get("interfaceLang"),
-        "initialRefs":                 panels[0]["refs"],
+        "initialRefs":                 panels[0].get("refs", []),
         "initialFilter":               panels[0].get("filter", None),
-        "initialMenu":                 panels[0].get("menuOpen", None),
+        # "initialMenu":                 panels[0].get("menuOpen", None),
+        "initialBookRef":              panels[0].get("bookRef", None),
         "initialSettings":             settings,
         "initialPanels":               panels,
-        "cacheKey":                    cache_key,
         "initialQuery":                None,
         "initialSearchFilters":        None,
         "initialSheetsTag":            None,
         "initialNavigationCategories": None,
-    }
+    })
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
         "propsJSON":      json.dumps(props),
         "html":           html,
         "ref":            oref.normal(),
-        "recentlyViewed": request.COOKIES.get("recentlyViewed", None),
     }, RequestContext(request))
 
 
 def s2_texts_category(request, cats):
     """
-    Listing of texts in a category.
+    List of texts in a category.
     """
-    print cats
     cats       = cats.split("/")
     toc        = library.get_toc()
     cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
-    print cat_toc
     if cat_toc is None:
         return s2_texts(request)
 
-    props = {
+    props = s2_props(request)
+    props.update({
         "initialMenu": "navigation",
         "initialNavigationCategories": cats,
-        "multiPanel": request.flavour != "mobile",
-    }
+    })
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
         "propsJSON": json.dumps(props),
@@ -358,12 +367,12 @@ def s2_search(request):
     """
     search_filters = request.GET.get("filters").split("|") if request.GET.get("filters") else []
 
-    props = {
+    props = s2_props(request)
+    props.update({
         "initialMenu": "search",
         "initialQuery": request.GET.get("q") or "",
         "initialSearchFilters": search_filters,
-        "multiPanel": request.flavour != "mobile",
-    }
+    })
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
         "propsJSON": json.dumps(props),
@@ -373,13 +382,13 @@ def s2_search(request):
 
 def s2_sheets_by_tag(request, tag):
     """
-    Standalone page for new sheets list
+    Page of sheets by tag.
     """
-    props = {
+    props = s2_props(request)
+    props.update({
         "initialMenu": "sheets",
         "initialSheetsTag": tag,
-        "multiPanel": request.flavour != "mobile",
-    }
+    })
     props["html"] = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', props, RequestContext(request))
 
@@ -388,14 +397,14 @@ def s2_page(request, page):
     """
     View for any S2 page that can descripted with the `menuOpen` param in React
     """
-    props = {
+    props = s2_props(request)
+    props.update({
         "initialMenu": page,
-        "multiPanel": request.flavour != "mobile",
-    }
+    })
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
-        "propsJSON": json.dumps(props),
-        "html":      html,
+        "propsJSON":      json.dumps(props),
+        "html":           html,
     }, RequestContext(request))
 
 

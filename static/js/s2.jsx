@@ -1,16 +1,16 @@
 if (typeof require !== 'undefined') {
-  var INBROWSER   = false,
-      React       = require('react'),
-      ReactDOM    = require('react-dom'),
-      $           = require('jquery'),
-      extend      = require('extend'),
-      classNames  = require('classnames'),
-      Sefaria     = require('./sefaria.js'),
-      cookie      = function() { return null; }; // TODO Node needs to read recentlyViewed cookies from Django
-} else {
-  var INBROWSER   = true,
-      extend      = $.extend,
-      cookie      = $.cookie;
+  var INBROWSER    = false,
+      React        = require('react'),
+      ReactDOM     = require('react-dom'),
+      $            = require('jquery'),
+      extend       = require('extend'),
+      classNames   = require('classnames'),
+      Sefaria      = require('./sefaria.js'),
+      cookie       = Sefaria.util.cookie;
+} else { 
+  var INBROWSER    = true,
+      extend       = $.extend,
+      cookie       = $.cookie;
 }
 
 
@@ -18,6 +18,7 @@ var ReaderApp = React.createClass({
   propTypes: {
     multiPanel:                  React.PropTypes.bool,
     headerMode:                  React.PropTypes.bool,  // is S2 serving only as a header on top of another page?
+    loggedIn:                    React.PropTypes.bool,
     initialRefs:                 React.PropTypes.array,
     initialFilter:               React.PropTypes.array,
     initialMenu:                 React.PropTypes.string,
@@ -27,14 +28,15 @@ var ReaderApp = React.createClass({
     initialNavigationCategories: React.PropTypes.array,
     initialSettings:             React.PropTypes.object,
     initialPanels:               React.PropTypes.array,
-    initialDefaultVersions:      React.PropTypes.object 
+    initialDefaultVersions:      React.PropTypes.object,
+    initialPath:                 React.PropTypes.string
   },
   getDefaultProps: function() {
     return {
       multiPanel:                  true,
       headerMode:                  false,  // is S2 serving only as a header on top of another page?
       initialRefs:                 [],
-      initialFilter:               [],
+      initialFilter:               null,
       initialMenu:                 null,
       initialQuery:                null,
       initialSearchFilters:        [],
@@ -42,6 +44,7 @@ var ReaderApp = React.createClass({
       initialNavigationCategories: [],
       initialPanels:               [],
       initialDefaultVersions:      {},
+      initialPath:                 "/"
     };
   },
   getInitialState: function() {
@@ -53,21 +56,23 @@ var ReaderApp = React.createClass({
     var defaultPanelSettings = this.getDefaultPanelSettings();
 
     if (!this.props.multiPanel && !this.props.headerMode) {
-      if (this.props.initialPanels[0].menuOpen == "book toc") {
+      if (this.props.initialPanels && this.props.initialPanels.length > 0 && this.props.initialPanels[0].menuOpen == "book toc") {
         panels[0] = {
             settings: Sefaria.util.clone(defaultPanelSettings),
-            menuOpen: this.props.initialPanels[0].menuOpen,
+            menuOpen: "book toc",
+            //mode: "Text",
             bookRef:  this.props.initialPanels[0].bookRef
         };
       } else {
         var mode = this.props.initialFilter ? "TextAndConnections" : "Text";
+        var initialPanel = this.props.initialPanels && this.props.initialPanels.length ? this.props.initialPanels[0] : {};
         panels[0] = {
           refs: this.props.initialRefs,
           mode: mode,
           filter: this.props.initialFilter,
           menuOpen: this.props.initialMenu,
-          version: this.props.initialPanels.length ? this.props.initialPanels[0].version : null,
-          versionLanguage: this.props.initialPanels.length ? this.props.initialPanels[0].versionLanguage : null,
+          version: initialPanel.version || null,
+          versionLanguage: initialPanel.versionLanguage || null,
           searchQuery: this.props.initialQuery,
           appliedSearchFilters: this.props.initialSearchFilters,
           settings: Sefaria.util.clone(defaultPanelSettings)
@@ -83,6 +88,7 @@ var ReaderApp = React.createClass({
       var headerState = {
         mode: "Header",
         refs: this.props.initialRefs,
+        bookRef: this.props.initialBookRef,
         menuOpen: this.props.initialMenu,
         searchQuery: this.props.initialQuery,
         appliedSearchFilters: this.props.initialSearchFilters,
@@ -146,7 +152,8 @@ var ReaderApp = React.createClass({
       header: header,
       defaultVersions: defaultVersions,
       defaultPanelSettings: Sefaria.util.clone(defaultPanelSettings),
-      layoutOrientation: layoutOrientation
+      layoutOrientation: layoutOrientation,
+      path: this.props.initialPath
     };
   },
   componentDidMount: function() {
@@ -440,7 +447,7 @@ var ReaderApp = React.createClass({
       availableFilters:     state.availableFilters     || [],
       filterRegistry:       state.filterRegistry       || {},
       orphanSearchFilters:  state.orphanSearchFilters  || [],
-      bookRef:              state.bookRef              || "",
+      bookRef:              state.bookRef              || null,
       settings:             state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
       displaySettingsOpen:  false
     };
@@ -487,10 +494,7 @@ var ReaderApp = React.createClass({
   handleNavigationClick: function(ref, version, versionLanguage, options) {
     //todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
     this.saveOpenPanelsToRecentlyViewed();
-    this.setState({
-      panels: [this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"})],
-      header: {menuOpen: null}
-    });
+    this.openPanel(ref, version, versionLanguage);
   },
   handleSegmentClick: function(n, ref) {
     // Handle a click on a text segment `ref` in from panel in position `n`
@@ -506,10 +510,16 @@ var ReaderApp = React.createClass({
   handleRecentClick: function(pos, ref, version, versionLanguage) {
     // Click on an item in your Recently Viewed
     if (this.props.multiPanel) {
-      this.openPanelAt(pos, ref, version, versionLanguage);
+      this.openPanel(ref, version, versionLanguage);
     } else {
       this.handleNavigationClick(ref, version, versionLanguage);
     }
+  },
+  handleCompareSearchClick: function(n, ref, version, versionLanguage, options) {
+    // Handle clicking a searh result in a compare panel, so that clicks don't clobber open panels
+    // todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
+    this.saveOpenPanelsToRecentlyViewed();
+    this.replacePanel(n, ref, version, versionLanguage);
   },
   updateQueryInHeader: function(query) {
     var updates = {searchQuery: query, searchFiltersValid:  false};
@@ -616,6 +626,13 @@ var ReaderApp = React.createClass({
       this.setState(this.state);
     }
   },
+  openPanel: function(ref, version, versionLanguage) {
+    // Opens a text panel, replacing all panels currently open.
+    this.setState({
+      panels: [this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"})],
+      header: {menuOpen: null}
+    });
+  },
   openPanelAt: function(n, ref, version, versionLanguage) {
     // Open a new panel after `n` with the new ref
     this.state.panels.splice(n+1, 0, this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"}));
@@ -663,9 +680,14 @@ var ReaderApp = React.createClass({
       this.setState({panels: this.state.panels});
     }
   },
+  replacePanel: function(n, ref, version, versionLanguage) {
+    // Opens a text in in place of the panel currently open at `n`.
+    this.state.panels[n] = this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"});
+    this.setState({panels: this.state.panels});
+  },
   openComparePanel: function(n) {
     var comparePanel = this.makePanelState({
-      menuOpen: "navigation"
+      menuOpen: "compare"
     });
     this.state.panels[n] = comparePanel;
     this.setState({panels: this.state.panels});
@@ -745,8 +767,7 @@ var ReaderApp = React.createClass({
     } else {
       var widths = this.state.panels.map(function(){ return evenWidth; });
     }
-
-    var header = this.props.multiPanel || this.state.panels.length == 0 ? 
+    var header = this.props.multiPanel || this.state.panels.length == 0 ?
                   (<Header 
                     initialState={this.state.header}
                     setCentralState={this.setHeaderState}
@@ -769,6 +790,7 @@ var ReaderApp = React.createClass({
       var style                    = (this.state.layoutOrientation=="ltr")?{width: width + "%", left: offset + "%"}:{width: width + "%", right: offset + "%"};
       var onSegmentClick           = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
       var onCitationClick          = this.handleCitationClick.bind(null, i);
+      var onSearchResultClick      = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
       var onTextListClick          = null; // this.openPanelAt.bind(null, i);
       var onOpenConnectionsClick   = this.openTextListAt.bind(null, i+1);
       var setTextListHightlight    = this.setTextListHighlight.bind(null, i);
@@ -792,7 +814,7 @@ var ReaderApp = React.createClass({
                       onSegmentClick={onSegmentClick}
                       onCitationClick={onCitationClick}
                       onTextListClick={onTextListClick}
-                      onSearchResultClick={this.handleNavigationClick}
+                      onSearchResultClick={onSearchResultClick}
                       onNavigationClick={this.handleNavigationClick}
                       onRecentClick={this.handleRecentClick}
                       onOpenConnectionsClick={onOpenConnectionsClick}
@@ -822,17 +844,17 @@ var ReaderApp = React.createClass({
 
 var Header = React.createClass({
   propTypes: {
-    initialState:        React.PropTypes.object.isRequired,
-    setCentralState:     React.PropTypes.func,
-    onRefClick:          React.PropTypes.func,
-    onRecentClick:       React.PropTypes.func,
-    showLibrary:         React.PropTypes.func,
-    showSearch:          React.PropTypes.func,
-    setDefaultOption:    React.PropTypes.func,
-    onQueryChange:       React.PropTypes.func,
-    updateSearchFilter:  React.PropTypes.func,
+    initialState:             React.PropTypes.object.isRequired,
+    setCentralState:          React.PropTypes.func,
+    onRefClick:               React.PropTypes.func,
+    onRecentClick:            React.PropTypes.func,
+    showLibrary:              React.PropTypes.func,
+    showSearch:               React.PropTypes.func,
+    setDefaultOption:         React.PropTypes.func,
+    onQueryChange:            React.PropTypes.func,
+    updateSearchFilter:       React.PropTypes.func,
     registerAvailableFilters: React.PropTypes.func,
-    panelsOpen:          React.PropTypes.number
+    panelsOpen:               React.PropTypes.number
   },
   getInitialState: function() {
     return this.props.initialState;
@@ -956,28 +978,31 @@ var Header = React.createClass({
                           hideNavHeader={true} />) : null;
 
 
-    var notifcationsClasses = classNames({notifications: 1, unread: Sefaria.notificationCount > 0});
+    var notificationCount = Sefaria.notificationCount || 0;
+    var notifcationsClasses = classNames({notifications: 1, unread: notificationCount > 0});
     var nextParam = "?next=" + Sefaria.util.currentPath();
-    var accountLinks = (<div>
-                         <a className="login" href={"/register" + nextParam}>
-                           <span className="en">Sign up</span>
-                           <span className="he">הירשם</span>
-                         </a>
-                         <a className="login" href={"/login" + nextParam}>
-                           <span className="en">Log in</span>
-                           <span className="he">כניסה</span>
-                         </a>
-                       </div>);
+    var loggedInLinks  = (<div className="accountLinks">
+                            <div className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" /></div>
+                            <div className={notifcationsClasses} onClick={this.showNotifications}>{notificationCount}</div>
+                         </div>);
+    var loggedOutLinks = (<div className="accountLinks">
+                           <a className="login" href={"/register" + nextParam}>
+                             <span className="en">Sign up</span>
+                             <span className="he">הירשם</span>
+                           </a>
+                           <a className="login" href={"/login" + nextParam}>
+                             <span className="en">Log in</span>
+                             <span className="he">כניסה</span>
+                           </a>
+                         </div>);
     return (<div className="header">
               <div className="headerInner">
                 <div className="left">
                   <div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div>
                 </div>
                 <div className="right">
-                  <div className="testWarning" onClick={this.showTestMessage} >Attention: You are testing the New Sefaria</div>
-                  { Sefaria.loggedIn ? (<div className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" /></div>) : null }
-                  { Sefaria.loggedIn ? (<div className={notifcationsClasses} onClick={this.showNotifications}>{Sefaria.notificationCount}</div>) : null }
-                  { Sefaria.loggedIn ? null : accountLinks }
+                  <div className="testWarning" onClick={this.showTestMessage} >You are testing the New Sefaria</div>
+                  { Sefaria.loggedIn ? loggedInLinks : loggedOutLinks }
                 </div>
                 <span className="searchBox">
                   <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
@@ -1044,7 +1069,7 @@ var ReaderPanel = React.createClass({
     // When this component is independent and manages itself, it takes individual initial state props, with defaults listed here. 
     return {
       refs: this.props.initialRefs || [], // array of ref strings
-      bookRef: "",
+      bookRef: null,
       mode: this.props.initialMode, // "Text", "TextAndConnections", "Connections"
       connectionsMode: this.props.initialConnectionsMode,
       filter: this.props.initialFilter || [],
@@ -1121,8 +1146,8 @@ var ReaderPanel = React.createClass({
     }
   },
   clonePanel: function(panel) {
-    //Set aside self-referential objects before cloning
-    //Todo: Move the multiple instances of this out to a utils file
+    // Set aside self-referential objects before cloning
+    // Todo: Move the multiple instances of this out to a utils file
     if (panel.availableFilters || panel.filterRegistry) {
       var savedAttributes = {
          availableFilters: panel.availableFilters,
@@ -1406,11 +1431,10 @@ var ReaderPanel = React.createClass({
     if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections") {
       var langMode = this.props.masterPanelLanguage || this.state.settings.language;
       var data     = this.currentData();
-      var enLocked = data.versionStatus === "locked";
-      var heLocked = data.heVersionStatus === "locked";
-      var canEditText = langMode === "hebrew" && !heLocked ||
-                        langMode === "english" && !enLocked ||
-                        Sefaria.is_moderator && langMode !== "bilingual";
+      var canEditText = data && 
+                        (langMode === "hebrew" && data.heVersionStatus !== "locked") ||
+                        (langMode === "english" && data.versionStatus !== "locked") ||
+                        (Sefaria.is_moderator && langMode !== "bilingual");
       items.push(<ConnectionsPanel 
           srefs={this.state.mode === "Connections" ? this.state.refs : this.state.highlightedRefs} 
           filter={this.state.filter || []}
@@ -1440,15 +1464,17 @@ var ReaderPanel = React.createClass({
       );
     }
 
-    if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation") {
+    if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation" || this.state.menuOpen == "compare") {
       var menu = (<ReaderNavigationMenu 
                     home={this.state.menuOpen === "home"}
+                    compare={this.state.menuOpen === "compare"}
                     categories={this.state.navigationCategories || []}
                     settings={this.state.settings}
                     setCategories={this.setNavigationCategories || []}
                     setOption={this.setOption}
                     toggleLanguage={this.toggleLanguage}
                     closeNav={this.closeMenus}
+                    closePanel={this.props.closePanel}
                     openNav={this.openMenu.bind(null, "navigation")}
                     openSearch={this.openSearch}
                     openMenu={this.openMenu}
@@ -1460,33 +1486,35 @@ var ReaderPanel = React.createClass({
     } 
     else if (this.state.menuOpen === "text toc") {
       var menu = (<ReaderTextTableOfContents
-          mode={this.state.menuOpen}
-          close={this.closeMenus}
-          title={this.currentBook()}
-          version={this.state.version}
-          versionLanguage={this.state.versionLanguage}
-          settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
-          category={this.currentCategory()}
-          currentRef={this.lastCurrentRef()}
-          openNav={this.openMenu.bind(null, "navigation")}
-          openDisplaySettings={this.openDisplaySettings}
-          selectVersion={this.props.selectVersion}
-          showBaseText={this.showBaseText}/>);
+                    mode={this.state.menuOpen}
+                    close={this.closeMenus}
+                    title={this.currentBook()}
+                    version={this.state.version}
+                    versionLanguage={this.state.versionLanguage}
+                    settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
+                    category={this.currentCategory()}
+                    currentRef={this.lastCurrentRef()}
+                    openNav={this.openMenu.bind(null, "navigation")}
+                    openDisplaySettings={this.openDisplaySettings}
+                    selectVersion={this.props.selectVersion}
+                    showBaseText={this.showBaseText}/>);
+
     } else if (this.state.menuOpen === "book toc") {
+      console.log("Rendering book toc")
+      console.log(this.state);
       var menu = (<ReaderTextTableOfContents
-          mode={this.state.menuOpen}
-          closePanel={this.props.closePanel}
-          close={this.closeMenus}
-          title={this.state.bookRef}
-          //version={this.state.version}
-          //versionLanguage={this.state.versionLanguage}
-          settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
-          category={Sefaria.index(this.state.bookRef) ? Sefaria.index(this.state.bookRef).categories[0] : null}
-          currentRef={this.state.bookRef}
-          openNav={this.openMenu.bind(null, "navigation")}
-          openDisplaySettings={this.openDisplaySettings}
-          selectVersion={this.props.selectVersion}
-          showBaseText={this.showBaseText}/>);
+                    mode={this.state.menuOpen}
+                    closePanel={this.props.closePanel}
+                    close={this.closeMenus}
+                    title={this.state.bookRef}
+                    settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
+                    category={Sefaria.index(this.state.bookRef) ? Sefaria.index(this.state.bookRef).categories[0] : null}
+                    currentRef={this.state.bookRef}
+                    openNav={this.openMenu.bind(null, "navigation")}
+                    openDisplaySettings={this.openDisplaySettings}
+                    selectVersion={this.props.selectVersion}
+                    showBaseText={this.showBaseText}/>);
+
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       var menu = (<SearchPage
                     query={this.state.searchQuery}
@@ -1501,8 +1529,7 @@ var ReaderPanel = React.createClass({
                     updateAppliedFilter={this.props.updateSearchFilter}
                     availableFilters={this.state.availableFilters}
                     filtersValid={this.state.searchFiltersValid}
-                    registerAvailableFilters={this.props.registerAvailableFilters}
-      />);
+                    registerAvailableFilters={this.props.registerAvailableFilters} />);
 
     } else if (this.state.menuOpen === "sheets") {
       var menu = (<SheetsNav
@@ -1510,6 +1537,7 @@ var ReaderPanel = React.createClass({
                     close={this.closeMenus}
                     initialTag={this.state.navigationSheetTag}
                     setSheetTag={this.setSheetTag} />);
+
     } else if (this.state.menuOpen === "account") {
       var menu = (<AccountPanel />);
 
@@ -1558,6 +1586,7 @@ var ReaderPanel = React.createClass({
         {menu}
         {this.state.displaySettingsOpen ? (<ReaderDisplayOptionsMenu
                                               settings={this.state.settings}
+                                              multiPanel={this.props.multiPanel}
                                               setOption={this.setOption}
                                               currentLayout={this.currentLayout} 
                                               menuOpen={this.state.menuOpen} />) : null}
@@ -1659,9 +1688,10 @@ var ReaderControls = React.createClass({
 var ReaderDisplayOptionsMenu = React.createClass({
   propTyps: {
     setOption:     React.PropTypes.func.isRequired,
-    settings:      React.PropTypes.object.isRequired,
     currentLayout: React.PropTypes.func.isRequired,
-    menuOpen:      React.PropTypes.string.isRequired
+    menuOpen:      React.PropTypes.string.isRequired,
+    multiPanel:    React.PropTypes.bool.isRequired,
+    settings:      React.PropTypes.object.isRequired,
   },
   render: function() {
     var languageOptions = [
@@ -1700,6 +1730,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
           options={colorOptions}
           setOption={this.props.setOption}
           settings={this.props.settings} />);
+    colorToggle = this.props.multiPanel ? null : colorToggle;
 
     var sizeOptions = [
       {name: "smaller", content: "Aa" },
@@ -1753,8 +1784,10 @@ var ReaderNavigationMenu = React.createClass({
     openSearch:    React.PropTypes.func.isRequired,
     onTextClick:   React.PropTypes.func.isRequired,
     onRecentClick: React.PropTypes.func.isRequired,
+    closePanel:    React.PropTypes.func,
     hideNavHeader: React.PropTypes.bool,
-    home:          React.PropTypes.bool
+    home:          React.PropTypes.bool,
+    compare:       React.PropTypes.bool
   },
   getInitialState: function() {
     this.width = 1000;
@@ -1783,12 +1816,16 @@ var ReaderNavigationMenu = React.createClass({
     }
   },
   navHome: function() {
-    this.props.setCategories([])
+    this.props.setCategories([]);
     this.props.openNav();
   },
   closeNav: function() {
-    this.props.setCategories([])
-    this.props.closeNav();
+    if (this.props.compare) {
+      this.props.closePanel();
+    } else {
+      this.props.setCategories([]);
+      this.props.closeNav();
+    }
   },
   showMore: function() {
     this.setState({showMore: true});
@@ -1881,7 +1918,6 @@ var ReaderNavigationMenu = React.createClass({
         categories = this.state.showMore ? categories : categories.slice(0,8).concat(more);
         categories = (<div className="readerNavCategories"><ThreeBox content={categories} /></div>);
       }
-                    
 
       var siteLinks = Sefaria._uid ? 
                     [(<a className="siteLink" key='profile' href="/my/profile">
@@ -1909,6 +1945,10 @@ var ReaderNavigationMenu = React.createClass({
                         <span className="en">Sign In</span>
                         <span className="he"></span>
                       </a>)];
+      siteLinks = (<div className="siteLinks">
+                    {siteLinks}
+                  </div>);
+
       var calendar = Sefaria.calendar ?
                      [(<TextBlockLink sref={Sefaria.calendar.parasha} title={Sefaria.calendar.parashaName} heTitle="פרשה" category="Tanach" />),
                       (<TextBlockLink sref={Sefaria.calendar.haftara} title="Haftara" heTitle="הפטרה" category="Tanach" />),
@@ -1966,24 +2006,23 @@ var ReaderNavigationMenu = React.createClass({
       }) : null;
       recentlyViewed = recentlyViewed ? <TwoOrThreeBox content={recentlyViewed} width={this.width} /> : null;
 
-      var classes = classNames({readerNavMenu:1, noHeader: !this.props.hideHeader});
+      var title = (<h1>
+                    <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
+                    <span className="en">The Sefaria Library</span>
+                    <span className="he">האוסף של ספאריה</span>
+                  </h1>);
+
+      var classes = classNames({readerNavMenu:1, noHeader: !this.props.hideHeader, compare: this.props.compare });
       return(<div className={classes} onClick={this.handleClick} key="0">
               {topContent}
               <div className="content">
                 <div className="contentInner">
-                <h1>
-                  <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
-                  <span className="en">The Sefaria Library</span>
-                  <span className="he">האוסף של ספאריה</span>
-                </h1>
-                  
+                  { this.props.compare ? null : title }
                   <ReaderNavigationMenuSection title="Recent" heTitle="נצפו לאחרונה" content={recentlyViewed} />
                   <ReaderNavigationMenuSection title="Browse" heTitle="טקסטים" content={categories} />
                   <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} />
-                  <ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />
-                  <div className="siteLinks">
-                    {siteLinks}
-                  </div>
+                  { this.props.compare ? null : (<ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />) }
+                  { this.props.compare ? null : siteLinks }
                 </div>
               </div>
             </div>);
@@ -2225,7 +2264,7 @@ var ReaderTextTableOfContents = React.createClass({
     close:            React.PropTypes.func.isRequired,
     openNav:          React.PropTypes.func.isRequired,
     showBaseText:     React.PropTypes.func.isRequired,
-    selectVersion:    React.PropTypes.func.isRequired
+    selectVersion:    React.PropTypes.func
   },
   getInitialState: function() {
     return {
@@ -2235,6 +2274,7 @@ var ReaderTextTableOfContents = React.createClass({
     }
   },
   componentDidMount: function() {
+    this.loadHtml();
     this.loadVersions();
     this.bindToggles();
     this.shrinkWrap();
@@ -2246,6 +2286,14 @@ var ReaderTextTableOfContents = React.createClass({
   componentDidUpdate: function() {
     this.bindToggles();
     this.shrinkWrap();
+  },
+  loadHtml: function() {
+    var textTocHtml = Sefaria.textTocHtml(this.props.title);
+    if (!textTocHtml) {
+      Sefaria.textTocHtml(this.props.title, function() {
+        this.forceUpdate();
+      });
+    }
   },
   loadVersions: function() {
     var ref = Sefaria.sectionRef(this.props.currentRef) || this.props.currentRef;
@@ -2357,9 +2405,8 @@ var ReaderTextTableOfContents = React.createClass({
     return (this.props.mode == "text toc")
   },
   render: function() {
-    var tocHtml = Sefaria.textTocHtml(this.props.title, function() {
-      this.setState({});
-    }.bind(this));
+    var tocHtml = Sefaria.textTocHtml(this.props.title);
+
     tocHtml = tocHtml || '<div class="loadingMessage"><span class="en">Loading...</span><span class="he">טעינה...</span></div>';
 
     var title     = this.props.title;
@@ -2470,6 +2517,7 @@ var ReaderTextTableOfContents = React.createClass({
   }
 });
 
+
 var VersionBlock = React.createClass({
   propTypes: {
     version: React.PropTypes.object.isRequired,
@@ -2504,6 +2552,7 @@ var VersionBlock = React.createClass({
     );
   }
 });
+
 
 var SheetsNav = React.createClass({
   // Navigation for Sheets
@@ -2885,7 +2934,7 @@ var TextColumn = React.createClass({
     } else if ( lastBottom < windowHeight + 80 ) {
       // DOWN: add the next section to bottom
       if ($lastText.hasClass("loading")) { 
-        console.log("last text is loading - don't add next section")
+        console.log("last text is loading - don't add next section");
         return;
       }
       console.log("Down! Add next section");
@@ -3129,13 +3178,13 @@ var TextRange = React.createClass({
     };
     var data = Sefaria.text(this.props.sref, settings);
     if (!data) { // If we don't have data yet, call again with a callback to trigger API call
-      console.log("getText calling API");
+      console.log("getText calling API: " + this.props.sref);
       Sefaria.text(this.props.sref, settings, this.onTextLoad);
     }
     return data;
   },
   onTextLoad: function(data) {
-    console.log("onTextLoad in TextColumn")
+    console.log("onTextLoad in TextColumn");
     // Initiate additional API calls when text data first loads
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
@@ -3318,7 +3367,7 @@ var TextRange = React.createClass({
                     textRange: 1,
                     basetext: this.props.basetext,
                     loading: !data,
-                    lowlight: this.props.lowlight,
+                    lowlight: this.props.lowlight
                   };
     classes = classNames(classes);
 
@@ -4289,10 +4338,9 @@ var ToolsPanel = React.createClass({
     };
   },
   render: function() {
-    var nextParam = "?next=" + Sefaria.util.currentPath();
     var editText  = this.props.canEditText ? function() {
       // TODO this is only an approximation
-      
+      var nextParam = "?next=" + Sefaria.util.currentPath();    
       var path = "/edit/" + this.props.srefs[0];
       if (this.props.version) {
         path += "/" + this.props.versionLanguage + "/" + this.props.version;
@@ -4300,9 +4348,12 @@ var ToolsPanel = React.createClass({
       path += "?next=" + currentPath;
       window.location = path;
     }.bind(this) : null;
+    
     var addTranslation = function() {
+      var nextParam = "?next=" + Sefaria.util.currentPath();
       window.location = "/translate/" + this.props.srefs[0] + nextParam;
     }.bind(this);
+    
     var classes = classNames({toolsPanel: 1, textList: 1, fullPanel: this.props.fullPanel});
     return (
       <div className={classes}>
@@ -4732,8 +4783,6 @@ var SearchPage = React.createClass({
         appliedFilters: []
       };
     },
-
-
     render: function () {
         var style      = {"fontSize": this.props.settings.fontSize + "%"};
         var classes = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader});
@@ -4768,8 +4817,7 @@ var SearchPage = React.createClass({
                                   updateAppliedFilter = {this.props.updateAppliedFilter}
                                   registerAvailableFilters={this.props.registerAvailableFilters}
                                   availableFilters={this.props.availableFilters}
-                                  filtersValid={this.props.filtersValid}
-                              />
+                                  filtersValid={this.props.filtersValid} />
                           </div>
                       </div>
                     </div>
@@ -5317,13 +5365,13 @@ var SearchFilters = React.createClass({
     </div>);
 
     return (
-      <div className="searchTopMatter">
+      <div className={ classNames({searchTopMatter: 1, loading: this.props.isQueryRunning}) }>
         <div className="searchStatusLine">
           { (this.props.isQueryRunning) ? runningQueryLine : buttons }
           { (this.props.textTotal > 0 && this.props.activeTab == "texts") ? selected_filters : ""}
         </div>
         { (this.props.textTotal > 0 && this.props.activeTab == "texts") ? filter_panel : "" }
-      </div>)
+      </div>);
   }
 });
 
@@ -5690,10 +5738,10 @@ var TestMessage = React.createClass({
 });
 
 
-function openInNewTab(url) {
+var openInNewTab = function(url) {
   var win = window.open(url, '_blank');
   win.focus();
-}
+};
 
 
 var backToS1 = function() { 
@@ -5702,32 +5750,51 @@ var backToS1 = function() {
 };
 
 
+var setData = function(data) {
+  // Set core data in the module that was loaded in a different scope
+  Sefaria.toc       = data.toc;
+  Sefaria.books     = data.books;
+  Sefaria.calendar  = data.calendar;
+  if ("booksDict" in data) {
+    Sefaria.booksDict = data.booksDict;
+  } else {
+    Sefaria._makeBooksDict();
+  }
+
+  Sefaria._cacheIndexFromToc(Sefaria.toc);  
+
+  if ("recentlyViewed" in data) {
+    // Store data in a mock cookie function
+    // (Node doesn't have direct access to Django's cookies, so pass through props in POST data)
+    var json = decodeURIComponent(data.recentlyViewed);
+    cookie("recentlyViewed", json);
+  }
+
+  Sefaria.util._defaultPath = data.path;
+  Sefaria.loggedIn = data.loggedIn;
+};
+
+
+var saveTextData = function(data, settings) {
+  // Populate texts cache with data loaded in a different scope
+  Sefaria._saveText(data, settings, false);
+};
+
+
+var saveTextTocHtml = function(title, html) {
+  // Populate textTocHtml cache with data loaded in a different scope
+  Sefaria._saveTextTocHtml(title, html);
+};
+
+
+
 if (typeof exports !== 'undefined') {
   exports.ReaderApp        = ReaderApp;
   exports.ReaderPanel      = ReaderPanel;
   exports.ConnectionsPanel = ConnectionsPanel;
   exports.TextRange        = TextRange;
   exports.TextColumn       = TextColumn;
-  exports.setData          = function(data) {
-    // Set core data in the module that was loaded in a different scope
-    Sefaria.toc       = data.toc;
-    Sefaria.books     = data.books;
-    Sefaria.calendar  = data.calendar;
-    if ("booksDict" in data) {
-      Sefaria.booksDict = data.booksDict;
-    } else {
-      Sefaria._makeBooksDict();
-    }
-    if ("recentlyViewed" in data) {
-      // Create mock cookie function in global namespace for data that the browser expects from cookies
-      // (Node donesn't have direct access to Django's cookies, so pass through props in POST data)
-      cookie = function(key) {
-        return data.recentlyViewed;
-      };
-    }
-  };
-  exports.saveTextData     = function(data, settings) {
-    // Populate texts cache with data loaded in a different scope
-    Sefaria._saveText(data, settings, false);
-  };
+  exports.setData          = setData;
+  exports.saveTextData     = saveTextData;
+  exports.saveTextTocHtml  = saveTextTocHtml;
 }

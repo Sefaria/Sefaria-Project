@@ -8,13 +8,14 @@
     "main": "node/server.js",
     "scripts": {
       "start": "nodemon node/server.js",
+      "daemon": "forever start node/server.js",
       "test": "./run reader/browsertest/run_local.py",
       "build": "npm run build:jsx",
       "build:jsx": "babel static/js/s2.jsx > static/js/s2.js",
       "build:webpack": "webpack — config node/webpack-production.config.js — progress — profile — colors",
       "dev-server": "webpack-dev-server — config node/webpack-dev-server.config.js — progress — colors — port 2992 — inline",
       "hot-dev-server": "webpack-dev-server — config node/webpack-hot-dev-server.config.js — hot — progress — colors — port 2992 — inline",
-      "setup": "npm install -g nodemon; npm install -g babel-cli",
+      "setup": "npm install -g nodemon; npm install -g babel-cli; npm install -g forever",
       "b": "npm run build",
       "t": "npm run test"
     },
@@ -22,6 +23,7 @@
       "jquery": "^2.2.0",
       "extend": "^3.0.0",
       "classnames": "^2.2.5",
+      "cheerio": "^0.20.0",
       "react": "^15.0.1",
       "react-dom": "^15.0.1",
       "redis": "^2.6.0-2",

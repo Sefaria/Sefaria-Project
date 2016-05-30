@@ -12,4 +12,8 @@ t.run()
 results = t.results()
 
 print results.report()
-sys.exit(results.number_failed())
+fails = results.number_failed()
+if fails > 0:
+    sys.stderr.write(str(results))
+    sys.stderr.flush()
+sys.exit(fails)
