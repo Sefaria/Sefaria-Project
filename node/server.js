@@ -44,12 +44,13 @@ var renderReaderApp = function(props, data, timer) {
   return html;
 }
 
-server.post('/ReaderApp', function(req, res) {
+server.post('/ReaderApp/:cachekey', function(req, res) {
   var timer = {
     start: new Date(), 
     elapsed: function() { return (new Date() - this.start); }
   };
   var props = JSON.parse(req.body.propsJSON);
+  // var cacheKey = req.params.cachekey 
   console.log(props.initialRefs || props.initialMenu);
   console.log("Time to props: %dms", timer.elapsed());
 

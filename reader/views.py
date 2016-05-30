@@ -10,6 +10,8 @@ import urlparse
 import urllib2
 import urllib
 import dateutil.parser
+import base64
+import zlib
 from bson.json_util import dumps
 import p929
 
@@ -186,14 +188,19 @@ def switch_to_s2(request):
 def render_react_component(component, props):
     """
     Asks the Node Server to render `component` with `props`.
+    `props` may either be JSON (to save reencoding) or a dictionary.
     Returns HTML.
     """
     if not USE_NODE:
         return render_to_string("elements/loading.html")
 
-    url = NODE_HOST + "/" + component
+    propsJSON = json.dumps(props) 
+    cache_key = "todo" # zlib.compress(propsJSON)
+    url = NODE_HOST + "/" + component + "/" + cache_key
+
+
     encoded_args = urllib.urlencode({
-        "propsJSON": json.dumps(props),
+        "propsJSON": propsJSON,
     })
     try:
         response = urllib2.urlopen(url, encoded_args)
@@ -322,7 +329,6 @@ def s2(request, ref, version=None, lang=None):
         "interfaceLang":               request_context.get("interfaceLang"),
         "initialRefs":                 panels[0].get("refs", []),
         "initialFilter":               panels[0].get("filter", None),
-        # "initialMenu":                 panels[0].get("menuOpen", None),
         "initialBookRef":              panels[0].get("bookRef", None),
         "initialSettings":             settings,
         "initialPanels":               panels,
@@ -331,9 +337,10 @@ def s2(request, ref, version=None, lang=None):
         "initialSheetsTag":            None,
         "initialNavigationCategories": None,
     })
+    propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
-        "propsJSON":      json.dumps(props),
+        "propsJSON":      propsJSON,
         "html":           html,
         "ref":            oref.normal(),
     }, RequestContext(request))
