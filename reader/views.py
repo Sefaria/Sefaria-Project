@@ -332,6 +332,7 @@ def s2(request, ref, version=None, lang=None):
         "initialBookRef":              panels[0].get("bookRef", None),
         "initialSettings":             settings,
         "initialPanels":               panels,
+        "initialPanelCap":             len(panels),
         "initialQuery":                None,
         "initialSearchFilters":        None,
         "initialSheetsTag":            None,

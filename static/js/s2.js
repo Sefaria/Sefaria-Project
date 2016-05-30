@@ -36,7 +36,8 @@ var ReaderApp = React.createClass({
     initialSettings: React.PropTypes.object,
     initialPanels: React.PropTypes.array,
     initialDefaultVersions: React.PropTypes.object,
-    initialPath: React.PropTypes.string
+    initialPath: React.PropTypes.string,
+    initialPanelCap: React.PropTypes.number
   },
   getDefaultProps: function getDefaultProps() {
     return {
@@ -159,19 +160,23 @@ var ReaderApp = React.createClass({
       defaultVersions: defaultVersions,
       defaultPanelSettings: Sefaria.util.clone(defaultPanelSettings),
       layoutOrientation: layoutOrientation,
-      path: this.props.initialPath
+      path: this.props.initialPath,
+      panelCap: this.props.initialPanelCap
     };
   },
   componentDidMount: function componentDidMount() {
     this.updateHistoryState(true); // make sure initial page state is in history, (passing true to replace)
     window.addEventListener("popstate", this.handlePopState);
+    window.addEventListener("resize", this.setPanelCap);
     window.addEventListener("beforeunload", this.saveOpenPanelsToRecentlyViewed);
-
+    this.setPanelCap();
     // Set S2 cookie, putting user into S2 mode site wide
     cookie("s2", true, { path: "/" });
   },
   componentWillUnmount: function componentWillUnmount() {
     window.removeEventListener("popstate", this.handlePopState);
+    window.removeEventListener("resize", this.setPanelCap);
+    window.removeEventListener("beforeunload", this.saveOpenPanelsToRecentlyViewed);
   },
   componentWillUpdate: function componentWillUpdate(nextProps, nextState) {},
   componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
@@ -489,6 +494,13 @@ var ReaderApp = React.createClass({
       }
     }
   },
+  setPanelCap: function setPanelCap() {
+    // In multi panel mode, set the maximum number of visible panels depending on the window width.
+    var MIN_PANEL_WIDTH = 360;
+    var width = $(window).width();
+    var panelCap = Math.floor(width / MIN_PANEL_WIDTH);
+    this.setState({ panelCap: panelCap });
+  },
   handleNavigationClick: function handleNavigationClick(ref, version, versionLanguage, options) {
     //todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
     this.saveOpenPanelsToRecentlyViewed();
@@ -762,11 +774,14 @@ var ReaderApp = React.createClass({
     }
   },
   render: function render() {
-    var evenWidth = 100.0 / this.state.panels.length;
-    if (this.state.panels.length == 2 && this.state.panels[0].mode == "Text" && this.state.panels[1].mode == "Connections") {
+    // Only look at the last panels if we've above panel Cap
+    var panelStates = this.state.panels.slice(-this.state.panelCap);
+
+    var evenWidth = 100.0 / panelStates.length;
+    if (panelStates.length == 2 && panelStates[0].mode == "Text" && panelStates[1].mode == "Connections") {
       var widths = [60.0, 40.0];
     } else {
-      var widths = this.state.panels.map(function () {
+      var widths = panelStates.map(function () {
         return evenWidth;
       });
     }
@@ -785,8 +800,8 @@ var ReaderApp = React.createClass({
       panelsOpen: this.state.panels.length }) : null;
 
     var panels = [];
-    for (var i = 0; i < this.state.panels.length; i++) {
-      var panel = this.clonePanel(this.state.panels[i]);
+    for (var i = 0; i < panelStates.length; i++) {
+      var panel = this.clonePanel(panelStates[i]);
       var offset = widths.reduce(function (prev, curr, index, arr) {
         return index < i ? prev + curr : prev;
       }, 0);
