@@ -576,6 +576,9 @@ var ReaderApp = React.createClass({
     // Replace panel there if already a connections panel, otherwise splice new panel into position `n`
     // `refs` is an array of ref strings
     var panel = this.state.panels[n] || {};
+
+    //is this too hacky?
+    var parentPanel = (n >= 1 && this.state.panels[n-1].mode == 'Text') ? this.state.panels[n-1] : null;
     if (panel.mode === "Connections") {
       // what does "a new text" mean here?
       // Pretty sure this can be deleted -- was from a previous case where you could navigate in an individual panel.
@@ -591,10 +594,13 @@ var ReaderApp = React.createClass({
       panel = this.state.panels[n];
       panel.filter = [];
     }
-
     panel.refs           = refs;
     panel.menuOpen       = null;
     panel.mode           = panel.mode || "Connections";
+    if(parentPanel){
+      panel.version         = parentPanel.version;
+      panel.versionLanguage = parentPanel.versionLanguage;
+    }
     this.state.panels[n] = this.makePanelState(panel);
     this.setState({panels: this.state.panels});
   },
@@ -3294,7 +3300,7 @@ var ConnectionsPanel = React.createClass({
     editNote:                React.PropTypes.func.isRequired,
     openComparePanel:        React.PropTypes.func.isRequired,
     version:                 React.PropTypes.string,
-    versionLanguge:          React.PropTypes.string,
+    versionLanguage:          React.PropTypes.string,
     noteBeingEdited:         React.PropTypes.object,
     fullPanel:               React.PropTypes.bool,
     multiPanel:              React.PropTypes.bool,
@@ -3348,7 +3354,10 @@ var ConnectionsPanel = React.createClass({
                     openNav={this.props.openNav}
                     openDisplaySettings={this.props.openDisplaySettings}
                     openComparePanel={this.props.openComparePanel}
-                    closePanel={this.props.closePanel} />);
+                    closePanel={this.props.closePanel}
+                    version={this.props.version}
+                    versionLanguage={this.props.versionLanguage}
+                      />);
 
     } else if (this.props.mode === "Share") {
       content = (<SharePanel
@@ -3977,7 +3986,7 @@ var ToolsPanel = React.createClass({
     setConnectionsMode:      React.PropTypes.func.isRequired,
     openComparePanel:        React.PropTypes.func.isRequired,
     version:                 React.PropTypes.string,
-    versionLanguge:          React.PropTypes.string,
+    versionLanguage:         React.PropTypes.string,
     fullPanel:               React.PropTypes.bool,
     multiPanel:              React.PropTypes.bool,
     canEditText:             React.PropTypes.bool,
