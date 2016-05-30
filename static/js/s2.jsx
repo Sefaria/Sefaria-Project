@@ -1536,6 +1536,7 @@ var ReaderPanel = React.createClass({
                     openNav={this.openMenu.bind(null, "navigation")}
                     close={this.closeMenus}
                     hideNavHeader={this.props.hideNavHeader}
+                    toggleLanguage={this.toggleLanguage}
                     initialTag={this.state.navigationSheetTag}
                     setSheetTag={this.setSheetTag} />);
 
@@ -2641,7 +2642,12 @@ var SheetsNav = React.createClass({
         var content = (<div className="content">
                         <div className="contentInner">
                           {this.props.hideNavHeader ? (<h1>
+                            <div className="languageToggle" onClick={this.props.toggleLanguage}>
+                              <span className="en">א</span>
+                              <span className="he">A</span>
+                            </div>
                             <span className="en">Source Sheets</span>
+                            <span className="he">דפי מקורות</span>
                           </h1>) : null}
                           {yourSheets}
                           <h2><span className="en">Trending Tags</span></h2>
