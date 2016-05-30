@@ -280,7 +280,6 @@ class Trial(object):
     . - pass
     F - Fail
     A - Abort
-    s - skip
     """
     default_local_driver = webdriver.Chrome
 
@@ -387,8 +386,6 @@ class Trial(object):
                     'build': self.build,
                 })
             if (mode == "multi_panel" and not test.multi_panel) or (mode == "single_panel" and not test.single_panel):
-                sys.stdout.write("s")
-                sys.stdout.flush()
                 return None
             driver = self._get_driver(cap)
             result = self._run_one_atomic_test(driver, test, cap)
