@@ -1469,10 +1469,11 @@ Sefaria.util = {
       }
       return index;
     },
+    _defaultPath: "/",
     currentPath: function() {
       // Returns the current path plus search string if a browser context
       // or "/" in a browser-less context.
-      return (typeof window === "undefined" ) ? "/" :
+      return (typeof window === "undefined" ) ? Sefaria.util._defaultPath :
                 window.location.pathname + window.location.search;
     },
     parseURL: function(url) {
@@ -1502,6 +1503,17 @@ Sefaria.util = {
         segments: a.pathname.replace(/^\//,'').split('/')
       };
     },
+    _cookies: {},
+    cookie: function(key, value) {
+     // Mock cookie function to mirror $.cookie for use Server Side
+     console.log("mock cookie called with " + key + " / " + value);
+     if (typeof value === "undefined") {
+      return Sefaria.util._cookies[key];
+     }
+     console.log("setting mock cookie")
+     Sefaria.util._cookies[key] = value;
+     console.log(Sefaria.util._cookies);
+    },  
     setupPrototypes: function() {
 
         String.prototype.toProperCase = function() {

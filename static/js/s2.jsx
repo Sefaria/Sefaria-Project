@@ -1,16 +1,16 @@
 if (typeof require !== 'undefined') {
-  var INBROWSER   = false,
-      React       = require('react'),
-      ReactDOM    = require('react-dom'),
-      $           = require('jquery'),
-      extend      = require('extend'),
-      classNames  = require('classnames'),
-      Sefaria     = require('./sefaria.js'),
-      cookie      = function() { return null; }; // TODO Node needs to read recentlyViewed cookies from Django
-} else {
-  var INBROWSER   = true,
-      extend      = $.extend,
-      cookie      = $.cookie;
+  var INBROWSER    = false,
+      React        = require('react'),
+      ReactDOM     = require('react-dom'),
+      $            = require('jquery'),
+      extend       = require('extend'),
+      classNames   = require('classnames'),
+      Sefaria      = require('./sefaria.js'),
+      cookie       = Sefaria.util.cookie;
+} else { 
+  var INBROWSER    = true,
+      extend       = $.extend,
+      cookie       = $.cookie;
 }
 
 
@@ -18,6 +18,7 @@ var ReaderApp = React.createClass({
   propTypes: {
     multiPanel:                  React.PropTypes.bool,
     headerMode:                  React.PropTypes.bool,  // is S2 serving only as a header on top of another page?
+    loggedIn:                    React.PropTypes.bool,
     initialRefs:                 React.PropTypes.array,
     initialFilter:               React.PropTypes.array,
     initialMenu:                 React.PropTypes.string,
@@ -27,7 +28,8 @@ var ReaderApp = React.createClass({
     initialNavigationCategories: React.PropTypes.array,
     initialSettings:             React.PropTypes.object,
     initialPanels:               React.PropTypes.array,
-    initialDefaultVersions:      React.PropTypes.object 
+    initialDefaultVersions:      React.PropTypes.object,
+    initialPath:                 React.PropTypes.string
   },
   getDefaultProps: function() {
     return {
@@ -42,6 +44,7 @@ var ReaderApp = React.createClass({
       initialNavigationCategories: [],
       initialPanels:               [],
       initialDefaultVersions:      {},
+      initialPath:                 "/"
     };
   },
   getInitialState: function() {
@@ -149,7 +152,8 @@ var ReaderApp = React.createClass({
       header: header,
       defaultVersions: defaultVersions,
       defaultPanelSettings: Sefaria.util.clone(defaultPanelSettings),
-      layoutOrientation: layoutOrientation
+      layoutOrientation: layoutOrientation,
+      path: this.props.initialPath
     };
   },
   componentDidMount: function() {
@@ -974,11 +978,12 @@ var Header = React.createClass({
                           hideNavHeader={true} />) : null;
 
 
-    var notifcationsClasses = classNames({notifications: 1, unread: Sefaria.notificationCount > 0});
+    var notificationCount = Sefaria.notificationCount || 0;
+    var notifcationsClasses = classNames({notifications: 1, unread: notificationCount > 0});
     var nextParam = "?next=" + Sefaria.util.currentPath();
     var loggedInLinks  = (<div className="accountLinks">
                             <div className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" /></div>
-                            <div className={notifcationsClasses} onClick={this.showNotifications}>{Sefaria.notificationCount}</div>
+                            <div className={notifcationsClasses} onClick={this.showNotifications}>{notificationCount}</div>
                          </div>);
     var loggedOutLinks = (<div className="accountLinks">
                            <a className="login" href={"/register" + nextParam}>
@@ -4333,10 +4338,9 @@ var ToolsPanel = React.createClass({
     };
   },
   render: function() {
-    var nextParam = "?next=" + Sefaria.util.currentPath();
     var editText  = this.props.canEditText ? function() {
       // TODO this is only an approximation
-      
+      var nextParam = "?next=" + Sefaria.util.currentPath();    
       var path = "/edit/" + this.props.srefs[0];
       if (this.props.version) {
         path += "/" + this.props.versionLanguage + "/" + this.props.version;
@@ -4344,9 +4348,12 @@ var ToolsPanel = React.createClass({
       path += "?next=" + currentPath;
       window.location = path;
     }.bind(this) : null;
+    
     var addTranslation = function() {
+      var nextParam = "?next=" + Sefaria.util.currentPath();
       window.location = "/translate/" + this.props.srefs[0] + nextParam;
     }.bind(this);
+    
     var classes = classNames({toolsPanel: 1, textList: 1, fullPanel: this.props.fullPanel});
     return (
       <div className={classes}>
@@ -5731,10 +5738,10 @@ var TestMessage = React.createClass({
 });
 
 
-function openInNewTab(url) {
+var openInNewTab = function(url) {
   var win = window.open(url, '_blank');
   win.focus();
-}
+};
 
 
 var backToS1 = function() { 
@@ -5743,38 +5750,51 @@ var backToS1 = function() {
 };
 
 
+var setData = function(data) {
+  // Set core data in the module that was loaded in a different scope
+  Sefaria.toc       = data.toc;
+  Sefaria.books     = data.books;
+  Sefaria.calendar  = data.calendar;
+  if ("booksDict" in data) {
+    Sefaria.booksDict = data.booksDict;
+  } else {
+    Sefaria._makeBooksDict();
+  }
+
+  Sefaria._cacheIndexFromToc(Sefaria.toc);  
+
+  if ("recentlyViewed" in data) {
+    // Store data in a mock cookie function
+    // (Node doesn't have direct access to Django's cookies, so pass through props in POST data)
+    var json = decodeURIComponent(data.recentlyViewed);
+    cookie("recentlyViewed", json);
+  }
+
+  Sefaria.util._defaultPath = data.path;
+  Sefaria.loggedIn = data.loggedIn;
+};
+
+
+var saveTextData = function(data, settings) {
+  // Populate texts cache with data loaded in a different scope
+  Sefaria._saveText(data, settings, false);
+};
+
+
+var saveTextTocHtml = function(title, html) {
+  // Populate textTocHtml cache with data loaded in a different scope
+  Sefaria._saveTextTocHtml(title, html);
+};
+
+
+
 if (typeof exports !== 'undefined') {
   exports.ReaderApp        = ReaderApp;
   exports.ReaderPanel      = ReaderPanel;
   exports.ConnectionsPanel = ConnectionsPanel;
   exports.TextRange        = TextRange;
   exports.TextColumn       = TextColumn;
-  exports.setData          = function(data) {
-    // Set core data in the module that was loaded in a different scope
-    Sefaria.toc       = data.toc;
-    Sefaria.books     = data.books;
-    Sefaria.calendar  = data.calendar;
-    if ("booksDict" in data) {
-      Sefaria.booksDict = data.booksDict;
-    } else {
-      Sefaria._makeBooksDict();
-    }
-
-    Sefaria._cacheIndexFromToc(Sefaria.toc);  
-
-    if ("recentlyViewed" in data) {
-      // Create mock cookie function in global namespace for data that the browser expects from cookies
-      // (Node donesn't have direct access to Django's cookies, so pass through props in POST data)
-      cookie = function(key) {
-        return data.recentlyViewed;
-      };
-    }
-  };
-  exports.saveTextData     = function(data, settings) {
-    // Populate texts cache with data loaded in a different scope
-    Sefaria._saveText(data, settings, false);
-  };
-  exports.saveTextTocHtml  = function(title, html) {
-    Sefaria._saveTextTocHtml(title, html);
-  };
+  exports.setData          = setData;
+  exports.saveTextData     = saveTextData;
+  exports.saveTextTocHtml  = saveTextTocHtml;
 }
