@@ -36,7 +36,8 @@ var ReaderApp = React.createClass({
     initialSettings: React.PropTypes.object,
     initialPanels: React.PropTypes.array,
     initialDefaultVersions: React.PropTypes.object,
-    initialPath: React.PropTypes.string
+    initialPath: React.PropTypes.string,
+    initialPanelCap: React.PropTypes.number
   },
   getDefaultProps: function getDefaultProps() {
     return {
@@ -159,19 +160,23 @@ var ReaderApp = React.createClass({
       defaultVersions: defaultVersions,
       defaultPanelSettings: Sefaria.util.clone(defaultPanelSettings),
       layoutOrientation: layoutOrientation,
-      path: this.props.initialPath
+      path: this.props.initialPath,
+      panelCap: this.props.initialPanelCap
     };
   },
   componentDidMount: function componentDidMount() {
     this.updateHistoryState(true); // make sure initial page state is in history, (passing true to replace)
     window.addEventListener("popstate", this.handlePopState);
+    window.addEventListener("resize", this.setPanelCap);
     window.addEventListener("beforeunload", this.saveOpenPanelsToRecentlyViewed);
-
+    this.setPanelCap();
     // Set S2 cookie, putting user into S2 mode site wide
     cookie("s2", true, { path: "/" });
   },
   componentWillUnmount: function componentWillUnmount() {
     window.removeEventListener("popstate", this.handlePopState);
+    window.removeEventListener("resize", this.setPanelCap);
+    window.removeEventListener("beforeunload", this.saveOpenPanelsToRecentlyViewed);
   },
   componentWillUpdate: function componentWillUpdate(nextProps, nextState) {},
   componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
@@ -489,6 +494,13 @@ var ReaderApp = React.createClass({
       }
     }
   },
+  setPanelCap: function setPanelCap() {
+    // In multi panel mode, set the maximum number of visible panels depending on the window width.
+    var MIN_PANEL_WIDTH = 360;
+    var width = $(window).width();
+    var panelCap = Math.floor(width / MIN_PANEL_WIDTH);
+    this.setState({ panelCap: panelCap });
+  },
   handleNavigationClick: function handleNavigationClick(ref, version, versionLanguage, options) {
     //todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
     this.saveOpenPanelsToRecentlyViewed();
@@ -645,16 +657,21 @@ var ReaderApp = React.createClass({
     // Replace panel there if already a connections panel, otherwise splice new panel into position `n`
     // `refs` is an array of ref strings
     var panel = this.state.panels[n] || {};
+    var parentPanel = n >= 1 && this.state.panels[n - 1].mode == 'Text' ? this.state.panels[n - 1] : null;
+
     if (panel.mode !== "Connections") {
       // No connctions panel is open yet, splice in a new one
       this.state.panels.splice(n, 0, {});
       panel = this.state.panels[n];
       panel.filter = [];
     }
-
     panel.refs = refs;
     panel.menuOpen = null;
     panel.mode = panel.mode || "Connections";
+    if (parentPanel) {
+      panel.version = parentPanel.version;
+      panel.versionLanguage = parentPanel.versionLanguage;
+    }
     this.state.panels[n] = this.makePanelState(panel);
     this.setState({ panels: this.state.panels });
   },
@@ -762,11 +779,17 @@ var ReaderApp = React.createClass({
     }
   },
   render: function render() {
-    var evenWidth = 100.0 / this.state.panels.length;
-    if (this.state.panels.length == 2 && this.state.panels[0].mode == "Text" && this.state.panels[1].mode == "Connections") {
+    // Only look at the last N panels if we're above panelCap
+    var panelStates = this.state.panels.slice(-this.state.panelCap);
+    if (panelStates.length && panelStates[0].mode === "Connections") {
+      panelStates = panelStates.slice(1); // Don't leave an orphaned connections panel at the beginning
+    }
+
+    var evenWidth = 100.0 / panelStates.length;
+    if (panelStates.length == 2 && panelStates[0].mode == "Text" && panelStates[1].mode == "Connections") {
       var widths = [60.0, 40.0];
     } else {
-      var widths = this.state.panels.map(function () {
+      var widths = panelStates.map(function () {
         return evenWidth;
       });
     }
@@ -782,11 +805,11 @@ var ReaderApp = React.createClass({
       updateSearchFilter: this.updateSearchFilterInHeader,
       registerAvailableFilters: this.updateAvailableFiltersInHeader,
       headerMode: this.props.headerMode,
-      panelsOpen: this.state.panels.length }) : null;
+      panelsOpen: panelStates.length }) : null;
 
     var panels = [];
-    for (var i = 0; i < this.state.panels.length; i++) {
-      var panel = this.clonePanel(this.state.panels[i]);
+    for (var i = 0; i < panelStates.length; i++) {
+      var panel = this.clonePanel(panelStates[i]);
       var offset = widths.reduce(function (prev, curr, index, arr) {
         return index < i ? prev + curr : prev;
       }, 0);
@@ -833,8 +856,8 @@ var ReaderApp = React.createClass({
           updateSearchFilter: this.updateSearchFilterInPanel,
           registerAvailableFilters: this.updateAvailableFiltersInPanel,
           closePanel: closePanel,
-          panelsOpen: this.state.panels.length,
-          masterPanelLanguage: panel.mode === "Connections" ? this.state.panels[i - 1].settings.language : panel.settings.language,
+          panelsOpen: panelStates.length,
+          masterPanelLanguage: panel.mode === "Connections" ? panelStates[i - 1].settings.language : panel.settings.language,
           layoutWidth: width })
       ));
     }
@@ -1576,8 +1599,6 @@ var ReaderPanel = React.createClass({
         selectVersion: this.props.selectVersion,
         showBaseText: this.showBaseText });
     } else if (this.state.menuOpen === "book toc") {
-      console.log("Rendering book toc");
-      console.log(this.state);
       var menu = React.createElement(ReaderTextTableOfContents, {
         mode: this.state.menuOpen,
         closePanel: this.props.closePanel,
@@ -4220,7 +4241,7 @@ var ConnectionsPanel = React.createClass({
     editNote: React.PropTypes.func.isRequired,
     openComparePanel: React.PropTypes.func.isRequired,
     version: React.PropTypes.string,
-    versionLanguge: React.PropTypes.string,
+    versionLanguage: React.PropTypes.string,
     noteBeingEdited: React.PropTypes.object,
     fullPanel: React.PropTypes.bool,
     multiPanel: React.PropTypes.bool,
@@ -4275,7 +4296,9 @@ var ConnectionsPanel = React.createClass({
         openNav: this.props.openNav,
         openDisplaySettings: this.props.openDisplaySettings,
         openComparePanel: this.props.openComparePanel,
-        closePanel: this.props.closePanel });
+        closePanel: this.props.closePanel,
+        version: this.props.version,
+        versionLanguage: this.props.versionLanguage });
     } else if (this.props.mode === "Share") {
       content = React.createElement(SharePanel, {
         url: window.location.href,
@@ -5230,7 +5253,7 @@ var ToolsPanel = React.createClass({
     setConnectionsMode: React.PropTypes.func.isRequired,
     openComparePanel: React.PropTypes.func.isRequired,
     version: React.PropTypes.string,
-    versionLanguge: React.PropTypes.string,
+    versionLanguage: React.PropTypes.string,
     fullPanel: React.PropTypes.bool,
     multiPanel: React.PropTypes.bool,
     canEditText: React.PropTypes.bool,
@@ -6893,7 +6916,7 @@ var NotificationsPanel = React.createClass({
   render: function render() {
     return React.createElement(
       'div',
-      { className: 'notifcationsPanel readerNavMenu' },
+      { className: 'notificationsPanel readerNavMenu noHeader' },
       React.createElement(
         'div',
         { className: 'content' },
@@ -6901,10 +6924,20 @@ var NotificationsPanel = React.createClass({
           'div',
           { className: 'contentInner' },
           React.createElement(
-            'center',
+            'h1',
             null,
-            'Notifications Coming Soon!'
-          )
+            React.createElement(
+              'span',
+              { className: 'en' },
+              'Notifications'
+            ),
+            React.createElement(
+              'span',
+              { className: 'he' },
+              'התראות'
+            )
+          ),
+          Sefaria.loggedIn ? React.createElement('div', { className: 'notificationsList', dangerouslySetInnerHTML: { __html: Sefaria.notificationsHtml } }) : React.createElement(LoginPanel, { fullPanel: true })
         )
       )
     );

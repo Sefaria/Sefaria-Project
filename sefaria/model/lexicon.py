@@ -49,7 +49,8 @@ class Lexicon(abst.AbstractMongoRecord):
         'source',
         'source_url',
         'attribution',
-        'attribution_url'
+        'attribution_url',
+        'text_categories'
     ]
 
 class Dictionary(Lexicon):
