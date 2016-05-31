@@ -43,12 +43,17 @@ def auth_return(request):
     """
     Step 2 of Google OAuth 2.0 flow.
     """
+    if 'state' not in request.REQUEST:
+        return HttpResponseRedirect('/gauth')
+
     if not xsrfutil.validate_token(settings.SECRET_KEY,
                                    str(request.REQUEST['state']),
                                    request.user):
         return HttpResponseBadRequest()
 
     FLOW = Storage(FlowModel, 'id', request.user, 'flow').get()
+    # Not sure if this test is needed in addition to
+    # the `if 'state' not in request.REQUEST` test.
     if FLOW is None:
         return HttpResponseRedirect('/gauth')
 
