@@ -2573,7 +2573,6 @@ var SheetsNav = React.createClass({
       yourSheets: null,
       sheets: [],
       tag: this.props.initialTag,
-      width: 0
     };
   },
   componentDidMount: function() {
@@ -2650,10 +2649,8 @@ var SheetsNav = React.createClass({
                             <span className="he">דפי מקורות</span>
                           </h1>) : null}
                           {yourSheets}
-                          <h2><span className="en">Trending Tags</span></h2>
                           <TwoOrThreeBox content={trendingTags} width={this.state.width} />
                           <br /><br />
-                          <h2><span className="en">All Tags</span></h2>
                           <TwoOrThreeBox content={tagList} width={this.state.width} />
                         </div>
                        </div>);

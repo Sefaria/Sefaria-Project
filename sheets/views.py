@@ -739,6 +739,20 @@ def trending_tags_api(request):
 	response["Cache-Control"] = "max-age=3600"
 	return response
 
+def all_sheets_api(request, limiter):
+	limiter = int(limiter)
+	query = {"status": "public"}
+	public = db.sheets.find(query).sort([["dateModified", -1]]).limit(limiter)
+	sheets = [{"title": s["title"], "id": s["id"], "owner": s["owner"], "views": s["views"]} for s in public]
+	for sheet in sheets:
+		profile = UserProfile(id=sheet["owner"])
+		sheet["ownerName"] = profile.full_name
+		sheet["ownerImageUrl"] = profile.gravatar_url_small
+	response = {"sheets": sheets}
+	response = jsonResponse(response, callback=request.GET.get("callback", None))
+	response["Cache-Control"] = "max-age=3600"
+	return response
+
 
 def sheets_by_tag_api(request, tag):
 	"""
