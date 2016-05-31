@@ -24,6 +24,7 @@ FLOW = flow_from_clientsecrets(
     redirect_uri='http://localhost:8000/gauth/callback')
 
 
+@login_required
 def index(request):
     """
     Step 1 of Google OAuth 2.0 flow.
@@ -34,6 +35,7 @@ def index(request):
     return HttpResponseRedirect(authorize_url)
 
 
+@login_required
 def auth_return(request):
     """
     Step 2 of Google OAuth 2.0 flow.
