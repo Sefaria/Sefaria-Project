@@ -10,6 +10,8 @@ import urlparse
 import urllib2
 import urllib
 import dateutil.parser
+import base64
+import zlib
 from bson.json_util import dumps
 import p929
 
@@ -186,14 +188,19 @@ def switch_to_s2(request):
 def render_react_component(component, props):
     """
     Asks the Node Server to render `component` with `props`.
+    `props` may either be JSON (to save reencoding) or a dictionary.
     Returns HTML.
     """
     if not USE_NODE:
         return render_to_string("elements/loading.html")
 
-    url = NODE_HOST + "/" + component
+    propsJSON = json.dumps(props) 
+    cache_key = "todo" # zlib.compress(propsJSON)
+    url = NODE_HOST + "/" + component + "/" + cache_key
+
+
     encoded_args = urllib.urlencode({
-        "propsJSON": json.dumps(props),
+        "propsJSON": propsJSON,
     })
     try:
         response = urllib2.urlopen(url, encoded_args)
@@ -285,6 +292,10 @@ def s2(request, ref, version=None, lang=None):
     version = version.replace(u"_", " ") if version else version
     filter = request.GET.get("with").replace("_", " ").split("+") if request.GET.get("with") else None
     filter = [] if filter == ["all"] else filter
+
+    if version and not Version().load({"versionTitle": version, "language": lang}):
+        raise Http404
+
     panels += make_panel_dicts(oref, version, lang, filter, multi_panel)
 
     # Handle any panels after 1 which are identified with params like `p2`, `v2`, `l2`.
@@ -296,13 +307,20 @@ def s2(request, ref, version=None, lang=None):
         try:
             oref = Ref(ref)
         except InputError:
-            continue # Stop processing all panels?
-            #raise Http404
+            i += 1
+            continue  # Stop processing all panels?
+            # raise Http404
         
         version  = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
         language = request.GET.get("l{}".format(i))
         filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
         filter   = [] if filter == ["all"] else filter
+
+        if version and not Version().load({"versionTitle": version, "language": language}):
+            i += 1
+            continue  # Stop processing all panels?
+            # raise Http404
+
         panels += make_panel_dicts(oref, version, language, filter, multi_panel)
         i += 1
 
@@ -322,18 +340,19 @@ def s2(request, ref, version=None, lang=None):
         "interfaceLang":               request_context.get("interfaceLang"),
         "initialRefs":                 panels[0].get("refs", []),
         "initialFilter":               panels[0].get("filter", None),
-        # "initialMenu":                 panels[0].get("menuOpen", None),
         "initialBookRef":              panels[0].get("bookRef", None),
         "initialSettings":             settings,
         "initialPanels":               panels,
+        "initialPanelCap":             len(panels),
         "initialQuery":                None,
         "initialSearchFilters":        None,
         "initialSheetsTag":            None,
         "initialNavigationCategories": None,
     })
+    propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
-        "propsJSON":      json.dumps(props),
+        "propsJSON":      propsJSON,
         "html":           html,
         "ref":            oref.normal(),
     }, RequestContext(request))
