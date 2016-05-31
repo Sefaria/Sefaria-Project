@@ -343,8 +343,8 @@ urlpatterns += patterns('',
 
 # Google API OAuth 2.0
 urlpatterns += patterns('gauth.views',
-    # (r'^gauth$', 'index'),
-    (r'^gauthcallback$', 'auth_return'),
+    (r'^gauth$', 'index'),
+    (r'^gauth/callback$', 'auth_return'),
 )
 
 # Catch all to send to Reader
