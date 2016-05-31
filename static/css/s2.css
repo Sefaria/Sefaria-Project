@@ -1218,7 +1218,12 @@ h1 .languageToggle .he {
   text-decoration: none;
   letter-spacing: 1px;
   font-size: 1.7em;
-  padding: 8px 0;
+  padding: 0;
+  margin: 8px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4em;
+  max-height: 2.8em;
 }
 
 
