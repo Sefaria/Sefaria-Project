@@ -24,5 +24,6 @@ def gauth_required(func):
             request.session['next_view'] = request.path
             return HttpResponseRedirect('/gauth')
 
-        return func(request, credential, *args, **kwargs)
+        kwargs['credential'] = credential
+        return func(request, *args, **kwargs)
     return inner
