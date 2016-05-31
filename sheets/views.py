@@ -795,8 +795,6 @@ def export_to_drive(request, credential, sheet_id):
 	"""
 	Export a sheet to Google Drive.
 	"""
-	# if credential is None:
-	# 	pass
 
 	http = credential.authorize(httplib2.Http())
 	service = build('drive', 'v3', http=http)
