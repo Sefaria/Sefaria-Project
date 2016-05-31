@@ -191,9 +191,11 @@ def normalize_url(value):
 		value = 'http://' + value
 	return value
 
+
 @register.filter(is_safe=True)
 def user_link(uid):
 	return mark_safe(ulink(uid))
+
 
 @register.filter(is_safe=True)
 def user_name(uid):
@@ -236,6 +238,16 @@ def strip_tags(value):
 	Returns the given HTML with all tags stripped.
 	"""
 	return mark_safe(strip_tags_func(value))
+
+
+@register.filter(is_safe=True)
+def escape_quotes(value):
+	"""
+	Returns the given HTML with single and double quotes escpaed with \ for a JS context
+	"""
+	value = value.replace("'", "\\'")
+	value = value.replace('"', '\\"')
+	return mark_safe(value)
 
 
 @register.filter(is_safe=True)

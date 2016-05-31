@@ -3566,8 +3566,7 @@ var ConnectionsPanel = React.createClass({
                     openComparePanel={this.props.openComparePanel}
                     closePanel={this.props.closePanel}
                     version={this.props.version}
-                    versionLanguage={this.props.versionLanguage}
-                      />);
+                    versionLanguage={this.props.versionLanguage} />);
 
     } else if (this.props.mode === "Share") {
       content = (<SharePanel
@@ -5625,10 +5624,16 @@ var AccountPanel = React.createClass({
 var NotificationsPanel = React.createClass({
     render: function() {
     return (
-      <div className="notifcationsPanel readerNavMenu">
+      <div className="notificationsPanel readerNavMenu noHeader">
         <div className="content">
           <div className="contentInner">
-           <center>Notifications Coming Soon!</center>
+            <h1>
+              <span className="en">Notifications</span>
+              <span className="he">התראות</span>
+            </h1>
+            { Sefaria.loggedIn ? 
+              (<div className="notificationsList" dangerouslySetInnerHTML={ {__html: Sefaria.notificationsHtml } }></div>) :
+              (<LoginPanel fullPanel={true} />) }
           </div>
         </div>
       </div>

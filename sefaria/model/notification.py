@@ -6,6 +6,7 @@ Writes to MongoDB Collection: notifications
 import copy
 import os
 import sys
+import re
 from datetime import datetime
 
 import json
@@ -87,7 +88,9 @@ class Notification(abst.AbstractMongoRecord):
         return json.dumps(notification)
 
     def to_HTML(self):
-        return render_to_string("elements/notification.html", {"notification": self})
+        html = render_to_string("elements/notification.html", {"notification": self}).strip()
+        html = re.sub("\n", "", html)
+        return html
 
     @property
     def id(self):

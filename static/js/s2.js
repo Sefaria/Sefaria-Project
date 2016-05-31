@@ -4298,8 +4298,7 @@ var ConnectionsPanel = React.createClass({
         openComparePanel: this.props.openComparePanel,
         closePanel: this.props.closePanel,
         version: this.props.version,
-        versionLanguage: this.props.versionLanguage
-      });
+        versionLanguage: this.props.versionLanguage });
     } else if (this.props.mode === "Share") {
       content = React.createElement(SharePanel, {
         url: window.location.href,
@@ -6917,7 +6916,7 @@ var NotificationsPanel = React.createClass({
   render: function render() {
     return React.createElement(
       'div',
-      { className: 'notifcationsPanel readerNavMenu' },
+      { className: 'notificationsPanel readerNavMenu noHeader' },
       React.createElement(
         'div',
         { className: 'content' },
@@ -6925,10 +6924,20 @@ var NotificationsPanel = React.createClass({
           'div',
           { className: 'contentInner' },
           React.createElement(
-            'center',
+            'h1',
             null,
-            'Notifications Coming Soon!'
-          )
+            React.createElement(
+              'span',
+              { className: 'en' },
+              'Notifications'
+            ),
+            React.createElement(
+              'span',
+              { className: 'he' },
+              'התראות'
+            )
+          ),
+          Sefaria.loggedIn ? React.createElement('div', { className: 'notificationsList', dangerouslySetInnerHTML: { __html: Sefaria.notificationsHtml } }) : React.createElement(LoginPanel, { fullPanel: true })
         )
       )
     );
