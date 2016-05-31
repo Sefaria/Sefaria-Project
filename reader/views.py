@@ -292,6 +292,10 @@ def s2(request, ref, version=None, lang=None):
     version = version.replace(u"_", " ") if version else version
     filter = request.GET.get("with").replace("_", " ").split("+") if request.GET.get("with") else None
     filter = [] if filter == ["all"] else filter
+
+    if version and not Version().load({"versionTitle": version, "language": lang}):
+        raise Http404
+
     panels += make_panel_dicts(oref, version, lang, filter, multi_panel)
 
     # Handle any panels after 1 which are identified with params like `p2`, `v2`, `l2`.
@@ -303,13 +307,20 @@ def s2(request, ref, version=None, lang=None):
         try:
             oref = Ref(ref)
         except InputError:
-            continue # Stop processing all panels?
-            #raise Http404
+            i += 1
+            continue  # Stop processing all panels?
+            # raise Http404
         
         version  = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
         language = request.GET.get("l{}".format(i))
         filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
         filter   = [] if filter == ["all"] else filter
+
+        if version and not Version().load({"versionTitle": version, "language": language}):
+            i += 1
+            continue  # Stop processing all panels?
+            # raise Http404
+
         panels += make_panel_dicts(oref, version, language, filter, multi_panel)
         i += 1
 
