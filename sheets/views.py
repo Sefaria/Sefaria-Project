@@ -814,7 +814,7 @@ def sheet_to_html_string_local(sheet, request):
 # 	return jsonResponse({'webViewLink': 'http://palmerpaul.com/'})
 
 @gauth_required
-def export_to_drive(request, sheet_id, credential=None):
+def export_to_drive(request, credential, sheet_id):
 	"""
 	Export a sheet to Google Drive.
 	"""
