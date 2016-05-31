@@ -249,7 +249,7 @@ class ResultSet(object):
         return len([t for t in self._test_results if not t.success])
 
     def report(self):
-        ret = ""
+        ret = "\n"
 
         # http://stackoverflow.com/a/13214945/213042
         matrix = self._results_as_matrix()
@@ -262,7 +262,7 @@ class ResultSet(object):
         total_tests = len(self._test_results)
         passed_tests = self.number_passed()
         percentage_passed = (float(passed_tests) / total_tests) * 100
-        ret += "\n\n{}/{} - {:.0f}% passed".format(passed_tests, total_tests, percentage_passed)
+        ret += "\n\n{}/{} - {:.0f}% passed\n".format(passed_tests, total_tests, percentage_passed)
         return ret
 
     def include(self, result):
