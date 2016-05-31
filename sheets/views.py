@@ -842,6 +842,6 @@ def export_to_drive(request, credential, sheet_id):
 
 	new_file = service.files().create(body=file_metadata,
 									  media_body=media,
-									  fields='id,webViewLink').execute()
+									  fields='webViewLink').execute()
 
 	return jsonResponse(new_file)
