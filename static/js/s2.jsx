@@ -2569,14 +2569,17 @@ var SheetsNav = React.createClass({
   getInitialState: function() {
     return {
       trendingTags: null,
+      allSheets: null,
       tagList: null,
       yourSheets: null,
       sheets: [],
       tag: this.props.initialTag,
+      width: 400
     };
   },
   componentDidMount: function() {
     this.getTags();
+    this.getAllSheets();
     this.setState({width: $(ReactDOM.findDOMNode(this)).width()});
     if (this.props.initialTag) {
       if (this.props.initialTag === "Your Sheets") {
@@ -2588,6 +2591,14 @@ var SheetsNav = React.createClass({
   },
   componentWillReceiveProps: function(nextProps) {
     this.setState({tag: nextProps.initialTag, sheets: []});
+  },
+  getAllSheets: function() {
+    Sefaria.sheets.allSheetsList(this.loadAllSheets);
+  },
+  loadAllSheets: function(){
+    this.setState({
+      allSheets: Sefaria.sheets.allSheetsList() || []
+    });
   },
   getTags: function() {
     Sefaria.sheets.trendingTags(this.loadTags);
@@ -2635,9 +2646,25 @@ var SheetsNav = React.createClass({
         return (<div className="navButton" onClick={setThisTag} key={tag.tag}>{tag.tag} ({tag.count})</div>);
       }.bind(this);
 
-      if (this.state.trendingTags !== null && this.state.tagList !== null) {
+      if (this.state.trendingTags !== null && this.state.tagList !== null && this.state.allSheets !== null) {
         var trendingTags = this.state.trendingTags.slice(0,6).map(makeTagButton);
-        var tagList      = this.state.tagList.map(makeTagButton);
+
+        var allSheets = this.state.allSheets.sheets;
+
+        var publicSheetList = allSheets.map(function(sheet) {
+          var title = sheet.title.stripHtml();
+          var url = "/sheets/" + sheet.id;
+          return (<a className="sheet" href={url} key={url}>
+            {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl}/>) : null}
+            <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
+            <div className="sheetAuthor">{sheet.ownerName}</div>
+            <div className="sheetTitle">{title}</div>
+          </a>);
+
+        });
+
+
+        var tagList = this.state.tagList.map(makeTagButton);
         var content = (<div className="content">
                         <div className="contentInner">
                           {this.props.hideNavHeader ? (<h1>
@@ -2649,8 +2676,24 @@ var SheetsNav = React.createClass({
                             <span className="he">דפי מקורות</span>
                           </h1>) : null}
                           {yourSheets}
+                          <h2>
+                            <span className="en">Public Sheets</span>
+                            <span className="he">Public Sheets [he]</span>
+                          </h2>
+                          {publicSheetList}
+                          <br /><br />
+
+
+                          <h2>
+                            <span className="en">Trending Tags</span>
+                            <span className="he">Trending Tags [he]</span>
+                          </h2>
                           <TwoOrThreeBox content={trendingTags} width={this.state.width} />
                           <br /><br />
+                          <h2>
+                            <span className="en">All Tags</span>
+                            <span className="he">All Tags [he]</span>
+                          </h2>
                           <TwoOrThreeBox content={tagList} width={this.state.width} />
                         </div>
                        </div>);
@@ -2661,7 +2704,10 @@ var SheetsNav = React.createClass({
 
     var classes = classNames({readerNavMenu: 1, readerSheetsNav: 1, noHeader: this.props.hideNavHeader});
 
+
     return (<div className={classes}>
+           <CategoryColorLine category="Sheets"  />
+
            {this.props.hideNavHeader ? null :
                (<div className="readerNavTop searchOnly" key="navTop">
                 <CategoryColorLine category="Sheets" />
