@@ -519,6 +519,7 @@ def hebrew_term(s):
 		"Contents":         u"תוכן",
 		"Article":	    u"סעיף",
 		"Shoresh":	u"שורש",
+		"Story":	u"סיפור",
 		"Remez":	u"רמז"
 	}
 
