@@ -8,20 +8,15 @@ from oauth2client.contrib import xsrfutil
 from oauth2client.contrib.django_orm import Storage
 from oauth2client.client import flow_from_clientsecrets
 
-from models import CredentialsModel
+from models import (CredentialsModel,
+                    FlowModel)
 from sefaria import settings
 
 # CLIENT_SECRETS, name of a file containing the OAuth 2.0 information for this
 # application, including client_id and client_secret, which are found
 # on the API Access tab on the Google APIs
 # Console <http://code.google.com/apis/console>
-CLIENT_SECRETS = os.path.join(os.path.dirname(
-    __file__), 'client_secrets.json')
-
-FLOW = flow_from_clientsecrets(
-    CLIENT_SECRETS,
-    scope='https://www.googleapis.com/auth/drive',
-    redirect_uri='http://localhost:8000/gauth/callback')
+CLIENT_SECRETS = os.path.join(os.path.dirname(__file__), 'client_secrets.json')
 
 
 @login_required
@@ -29,9 +24,17 @@ def index(request):
     """
     Step 1 of Google OAuth 2.0 flow.
     """
+    FLOW = flow_from_clientsecrets(
+        CLIENT_SECRETS,
+        scope='https://www.googleapis.com/auth/drive',  # change scope for production
+        redirect_uri='http://localhost:8000/gauth/callback')  # http://www.sefaria.org/gauth/callback for production
+
     FLOW.params['state'] = xsrfutil.generate_token(settings.SECRET_KEY,
                                                    request.user)
     authorize_url = FLOW.step1_get_authorize_url()
+    flow_storage = Storage(FlowModel, 'id', request.user, 'flow')
+    flow_storage.put(FLOW)
+
     return HttpResponseRedirect(authorize_url)
 
 
@@ -45,8 +48,12 @@ def auth_return(request):
                                    request.user):
         return HttpResponseBadRequest()
 
+    FLOW = Storage(FlowModel, 'id', request.user, 'flow').get()
+    if FLOW is None:
+        return HttpResponseRedirect('/gauth')
+
     credential = FLOW.step2_exchange(request.REQUEST)
-    storage = Storage(CredentialsModel, 'id', request.user, 'credential')
-    storage.put(credential)
+    cred_storage = Storage(CredentialsModel, 'id', request.user, 'credential')
+    cred_storage.put(credential)
 
     return redirect(request.session.get('next_view', '/'))
