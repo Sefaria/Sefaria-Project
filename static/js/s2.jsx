@@ -489,10 +489,10 @@ var ReaderApp = React.createClass({
     if (this.props.headerMode) {
       if (this.state.header.menuOpen || this.state.panels.length) {
         $("#s2").removeClass("headerOnly");
-        $("body").css({overflow: "hidden"});
+//        $("body").css({overflow: "hidden"});
       } else {
         $("#s2").addClass("headerOnly");
-        $("body").css({overflow: "hidden"});
+  //      $("body").css({overflow: "hidden"});
       }
     }
   },
