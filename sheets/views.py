@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import json
 from bson.son import SON
 from datetime import datetime, timedelta
@@ -782,36 +780,10 @@ from django.template import RequestContext
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 
-# from sefaria.sheets import (get_sheet,
-# 							sheet_to_html_string)
+from sefaria.sheets import get_sheet
+from sheets.utils import (sheet_to_html_string,
+						  sheet_to_html_string_naive)
 from gauth.decorators import gauth_required
-
-def sheet_to_html_string_local(sheet, request):
-    """Makes an html string from the JSON formatted sheet"""
-    html = ''
-
-    title = unicode(sheet.get('title', '')).strip()
-    html += '{}<br>'.format(title)
-
-    # author = ''
-    # html += '<em>Source Sheet by <a href="{}">{}</a><em>'
-
-    for source in sheet['sources']:
-        if 'text' in source:
-            english = unicode(source['text'].get('en', '')).strip()
-            hebrew = unicode(source['text'].get('he', '')).strip()
-            html += '{}<br>{}'.format(english, hebrew)
-        elif 'outsideText' in source:
-            html += unicode(source['outsideText']).strip()
-        elif 'comment' in source:
-            html += unicode(source['comment']).strip()
-        html += '<br><br>'
-
-    return html.encode('utf-8')
-
-
-# def export_to_drive(request, sheet_id):
-# 	return jsonResponse({'webViewLink': 'http://palmerpaul.com/'})
 
 @gauth_required
 def export_to_drive(request, credential, sheet_id):
@@ -833,7 +805,7 @@ def export_to_drive(request, credential, sheet_id):
 		'mimeType': 'application/vnd.google-apps.document'
 	}
 
-	html_string = sheet_to_html_string_local(sheet, request)
+	html_string = sheet_to_html_string_naive(sheet)
 
 	media = MediaIoBaseUpload(
 		StringIO(html_string),
