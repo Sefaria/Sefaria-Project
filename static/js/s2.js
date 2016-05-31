@@ -2127,7 +2127,11 @@ var ReaderNavigationMenu = React.createClass({
           { className: 'en' },
           'Sign In'
         ),
-        React.createElement('span', { className: 'he' })
+        React.createElement(
+          'span',
+          { className: 'he' },
+          'התחבר'
+        )
       )];
       siteLinks = React.createElement(
         'div',
@@ -6077,6 +6081,7 @@ var SearchResultList = React.createClass({
     return {
       runningQuery: null,
       isQueryRunning: false,
+      moreToLoad: true,
       total: 0,
       textTotal: 0,
       sheetTotal: 0,
@@ -6126,6 +6131,7 @@ var SearchResultList = React.createClass({
   _loadRemainder: function _loadRemainder(last, total, currentTextHits, currentSheetHits) {
     // Having loaded "last" results, and with "total" results to load, load the rest, this.backgroundQuerySize at a time
     if (last >= total || last >= this.maxResultSize) {
+      this.setState({ "moreToLoad": false });
       return;
     }
     Sefaria.search.execute_query({
@@ -6389,11 +6395,23 @@ var SearchResultList = React.createClass({
     this.setState({ "activeTab": "texts" });
   },
   render: function render() {
+    var _this4 = this;
+
     if (!this.props.query) {
       // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
       return null;
     }
-
+    var sheetContent = "";
+    if (this.state.sheetHits.length == 0 && this.state.moreToLoad) {
+      sheetContent = React.createElement(LoadingMessage, { message: 'Searching...', heMessage: 'מבצע חיפוש...' });
+    } else {
+      sheetContent = this.state.sheetHits.map(function (result) {
+        return React.createElement(SearchSheetResult, {
+          data: result,
+          query: _this4.props.query,
+          key: result._id });
+      });
+    }
     return React.createElement(
       'div',
       null,
@@ -6412,16 +6430,11 @@ var SearchResultList = React.createClass({
       this.state.activeTab == "texts" ? this.state.textHits.map(function (result) {
         return React.createElement(SearchTextResult, {
           data: result,
-          query: this.props.query,
+          query: _this4.props.query,
           key: result._id,
-          onResultClick: this.props.onResultClick });
-      }.bind(this)) : "",
-      this.state.activeTab == "sheets" ? this.state.sheetHits.map(function (result) {
-        return React.createElement(SearchSheetResult, {
-          data: result,
-          query: this.props.query,
-          key: result._id });
-      }.bind(this)) : ""
+          onResultClick: _this4.props.onResultClick });
+      }) : "",
+      this.state.activeTab == "sheets" ? sheetContent : ""
     );
   }
 });
