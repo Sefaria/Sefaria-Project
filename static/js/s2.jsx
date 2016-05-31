@@ -1964,7 +1964,7 @@ var ReaderNavigationMenu = React.createClass({
                      (<span className='divider' key="d1">•</span>),
                      (<a className="siteLink" key='login' href="/login">
                         <span className="en">Sign In</span>
-                        <span className="he"></span>
+                        <span className="he">התחבר</span>
                       </a>)];
       siteLinks = (<div className="siteLinks">
                     {siteLinks}
