@@ -219,7 +219,7 @@ class Test_Jagged_Text_Array(object):
     def test_resize(self):
         assert ja.JaggedTextArray(twoby).resize(1).resize(-1) == ja.JaggedTextArray(twoby)
 
-    def test_flatten(self):
+    def test_flatten_to_array(self):
         assert ja.JaggedTextArray(threeby).flatten_to_array() == [
             "Part 1 Line 1:1", "This is the first second", "First third",
             "Chapter 2, Verse 1", "2:2", "2:3",
@@ -231,6 +231,10 @@ class Test_Jagged_Text_Array(object):
             "Chapter 2, Verse 1", "2:2", "2:3",
             "Third first", "Third second", "Third third"
         ]
+
+    def test_flatten_to_string(self):
+        assert ja.JaggedTextArray("Test").flatten_to_string() == "Test"
+        assert ja.JaggedTextArray(["Test", "More", "Test"]).flatten_to_string() == "Test More Test"
 
     def test_next_prev(self):
         sparse_ja = ja.JaggedTextArray([["","",""],["","foo","","bar",""],["","",""]])
@@ -250,5 +254,5 @@ class Test_Depth_0(object):
         assert not j.is_empty()
         assert j.verse_count() == 1
         assert j.mask() == ja.JaggedIntArray(1)
-        assert j.flatten_to_array() == "Fee Fi Fo Fum"
+        assert j.flatten_to_array() == ["Fee Fi Fo Fum"]
 
