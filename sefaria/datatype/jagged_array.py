@@ -388,7 +388,7 @@ class JaggedArray(object):
     def flatten_to_array(self, _cur=None):
         if _cur is None:
             if isinstance(self._store, basestring):
-                return self._store
+                return [self._store]
             return self.flatten_to_array(_cur=self._store)
 
         flat = []
@@ -473,7 +473,7 @@ class JaggedTextArray(JaggedArray):
 
         if _cur is None:
             if isinstance(self._store, basestring):
-                return self._store
+                return [self._store]
             return self.flatten_to_array(_cur=self._store)
 
         flat = []
