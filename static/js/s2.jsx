@@ -492,7 +492,7 @@ var ReaderApp = React.createClass({
         $("body").css({overflow: "hidden"});
       } else {
         $("#s2").addClass("headerOnly");
-        $("body").css({overflow: "hidden"});
+        $("body").css({overflow: "auto"});
       }
     }
   },
