@@ -1,6 +1,8 @@
 import json
 from bson.son import SON
 from datetime import datetime, timedelta
+import httplib2
+from StringIO import StringIO
 
 from django.template import RequestContext
 from django.shortcuts import render_to_response, redirect
@@ -16,6 +18,9 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Group as DjangoGroup
 
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseUpload
+
 from reader.views import s2_sheets, s2_sheets_by_tag
 
 # noinspection PyUnresolvedReferences
@@ -29,6 +34,9 @@ from sefaria.system.exceptions import InputError
 # sefaria.model.dependencies makes sure that model listeners are loaded.
 # noinspection PyUnresolvedReferences
 import sefaria.model.dependencies
+
+from sheets.utils import sheet_to_html_string
+from gauth.decorators import gauth_required
 
 
 def annotate_user_links(sources):
@@ -776,19 +784,6 @@ def make_sheet_from_text_api(request, ref, sources=None):
 	sources = sources.replace("_", " ").split("+") if sources else None
 	sheet = make_sheet_from_text(ref, sources=sources, uid=request.user.id, generatedBy=None, title=None)
 	return redirect("/sheets/%d" % sheet["id"])
-
-
-import httplib2
-from StringIO import StringIO
-
-from django.template import RequestContext
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseUpload
-
-from sefaria.sheets import get_sheet
-from sheets.utils import (sheet_to_html_string,
-						  sheet_to_html_string_naive)
-from gauth.decorators import gauth_required
 
 
 @gauth_required(scope='https://www.googleapis.com/auth/drive.file')
