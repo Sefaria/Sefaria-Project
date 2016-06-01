@@ -655,9 +655,7 @@ text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
   -webkit-user-select: auto;
 }
 
-.notification.unread {
-  background-color: #E7EDF3;
-}
+.notification.unread {background-color: #eee;}
 
 .notification+.notification  {
   border-top: 1px solid #999;

@@ -490,7 +490,7 @@ var ReaderApp = React.createClass({
         $("body").css({ overflow: "hidden" });
       } else {
         $("#s2").addClass("headerOnly");
-        $("body").css({ overflow: "hidden" });
+        $("body").css({ overflow: "auto" });
       }
     }
   },
@@ -696,6 +696,10 @@ var ReaderApp = React.createClass({
       this.setState({ panels: this.state.panels });
     }
   },
+  setUnreadNotificationsCount: function setUnreadNotificationsCount(n) {
+    Sefaria.notificationCount = n;
+    this.forceUpdate();
+  },
   replacePanel: function replacePanel(n, ref, version, versionLanguage) {
     // Opens a text in in place of the panel currently open at `n`.
     this.state.panels[n] = this.makePanelState({ refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text" });
@@ -804,6 +808,7 @@ var ReaderApp = React.createClass({
       onQueryChange: this.updateQueryInHeader,
       updateSearchFilter: this.updateSearchFilterInHeader,
       registerAvailableFilters: this.updateAvailableFiltersInHeader,
+      setUnreadNotificationsCount: this.setUnreadNotificationsCount,
       headerMode: this.props.headerMode,
       panelsOpen: panelStates.length }) : null;
 
@@ -855,6 +860,7 @@ var ReaderApp = React.createClass({
           onQueryChange: this.updateQueryInPanel,
           updateSearchFilter: this.updateSearchFilterInPanel,
           registerAvailableFilters: this.updateAvailableFiltersInPanel,
+          setUnreadNotificationsCount: this.setUnreadNotificationsCount,
           closePanel: closePanel,
           panelsOpen: panelStates.length,
           masterPanelLanguage: panel.mode === "Connections" ? panelStates[i - 1].settings.language : panel.settings.language,
@@ -886,6 +892,7 @@ var Header = React.createClass({
     onQueryChange: React.PropTypes.func,
     updateSearchFilter: React.PropTypes.func,
     registerAvailableFilters: React.PropTypes.func,
+    setUnreadNotificationsCount: React.PropTypes.func,
     panelsOpen: React.PropTypes.number
   },
   getInitialState: function getInitialState() {
@@ -1008,6 +1015,7 @@ var Header = React.createClass({
       onQueryChange: this.props.onQueryChange,
       updateSearchFilter: this.props.updateSearchFilter,
       registerAvailableFilters: this.props.registerAvailableFilters,
+      setUnreadNotificationsCount: this.props.setUnreadNotificationsCount,
       hideNavHeader: true }) : null;
 
     var notificationCount = Sefaria.notificationCount || 0;
@@ -1138,6 +1146,7 @@ var ReaderPanel = React.createClass({
     updateSearchFilter: React.PropTypes.func,
     registerAvailableFilters: React.PropTypes.func,
     openComparePanel: React.PropTypes.func,
+    setUnreadNotificationsCount: React.PropTypes.func,
     highlightedRefs: React.PropTypes.array,
     hideNavHeader: React.PropTypes.bool,
     multiPanel: React.PropTypes.bool,
@@ -1633,9 +1642,12 @@ var ReaderPanel = React.createClass({
         initialTag: this.state.navigationSheetTag,
         setSheetTag: this.setSheetTag });
     } else if (this.state.menuOpen === "account") {
-      var menu = React.createElement(AccountPanel, null);
+      var menu = React.createElement(AccountPanel, {
+        toggleLanguage: this.toggleLanguage });
     } else if (this.state.menuOpen === "notifications") {
-      var menu = React.createElement(NotificationsPanel, null);
+      var menu = React.createElement(NotificationsPanel, {
+        setUnreadNotificationsCount: this.props.setUnreadNotificationsCount,
+        toggleLanguage: this.toggleLanguage });
     } else {
       var menu = null;
     }
@@ -3985,21 +3997,20 @@ var TextRange = React.createClass({
   },
   render: function render() {
     var data = this.getText();
-    if (this.props.basetext && data) {
+    if (data && this.props.basetext) {
       var ref = this.props.withContext ? data.sectionRef : data.ref;
       var sectionStrings = Sefaria.sectionString(ref);
       var oref = Sefaria.ref(ref);
       var useShortString = oref && Sefaria.util.inArray(oref.categories[0], ["Tanach", "Mishnah", "Talmud", "Tosefta", "Commentary"]) !== -1;
       var title = useShortString ? sectionStrings.en.numbered : sectionStrings.en.named;
       var heTitle = useShortString ? sectionStrings.he.numbered : sectionStrings.he.named;
-    } else if (this.props.basetext) {
-      var title = "Loading...";
-      var heTitle = "טעינה...";
-    } else {
+    } else if (data && !this.props.basetext) {
       var title = data.ref;
       var heTitle = data.heRef;
+    } else if (!data) {
+      var title = "Loading...";
+      var heTitle = "טעינה...";
     }
-
     var showNumberLabel = data && data.categories && data.categories[0] !== "Talmud" && data.categories[0] !== "Liturgy";
 
     var showSegmentNumbers = showNumberLabel && this.props.basetext;
@@ -6889,13 +6900,15 @@ var SearchSheetResult = React.createClass({
 var AccountPanel = React.createClass({
   displayName: 'AccountPanel',
 
+  propTypes: {
+    toggleLanguage: React.PropTypes.func.isRequired
+  },
   render: function render() {
     var width = $(window).width();
     var accountContent = [React.createElement(BlockLink, { target: '/my/profile', title: 'Profile', heTitle: 'פרופיל' }), React.createElement(BlockLink, { target: '/sheets/private', title: 'Source Sheets', heTitle: 'דפי מקורות' }), React.createElement(BlockLink, { target: '#', title: 'Reading History', heTitle: 'היסטוריה קריאה' }), React.createElement(BlockLink, { target: '#', title: 'Notes', heTitle: 'רשומות' }), React.createElement(BlockLink, { target: '/settings/account', title: 'Settings', heTitle: 'הגדרות' }), React.createElement(BlockLink, { target: '/logout', title: 'Log Out', heTitle: 'ניתוק' })];
     accountContent = React.createElement(TwoOrThreeBox, { content: accountContent, width: width });
 
     var learnContent = [React.createElement(BlockLink, { target: '/about', title: 'About', heTitle: 'אודות' }), React.createElement(BlockLink, { target: '/faq', title: 'FAQ', heTitle: 'שאלות נפוצות' }), React.createElement(BlockLink, { target: 'http://blog.sefaria.org', title: 'Blog', heTitle: 'בלוג' }), React.createElement(BlockLink, { target: '/educators', title: 'Educators', heTitle: 'מחנכים' }), React.createElement(BlockLink, { target: '/help', title: 'Help', heTitle: 'עזרה' }), React.createElement(BlockLink, { target: '/team', title: 'Team', heTitle: 'צוות' })];
-
     learnContent = React.createElement(TwoOrThreeBox, { content: learnContent, width: width });
 
     var contributeContent = [React.createElement(BlockLink, { target: '/activity', title: 'Recent Activity', heTitle: 'פעילות אחרונה' }), React.createElement(BlockLink, { target: '/metrics', title: 'Metrics', heTitle: 'מדדים' }), React.createElement(BlockLink, { target: '/contribute', title: 'Contribute', heTitle: 'הצטרפות לעשיה' }), React.createElement(BlockLink, { target: '/donate', title: 'Donate', heTitle: 'תרומות' }), React.createElement(BlockLink, { target: '/supporters', title: 'Supporters', heTitle: 'תומכים' }), React.createElement(BlockLink, { target: '/jobs', title: 'Jobs', heTitle: 'דרושים' })];
@@ -6906,14 +6919,29 @@ var AccountPanel = React.createClass({
 
     return React.createElement(
       'div',
-      { className: 'accountPanel readerNavMenu' },
+      { className: 'accountPanel systemPanel readerNavMenu noHeader' },
       React.createElement(
         'div',
         { className: 'content' },
         React.createElement(
           'div',
           { className: 'contentInner' },
-          React.createElement(ReaderNavigationMenuSection, { title: 'Account', heTitle: 'חשבון משתמש', content: accountContent }),
+          React.createElement(
+            'h1',
+            null,
+            React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
+            React.createElement(
+              'span',
+              { className: 'en' },
+              'Account'
+            ),
+            React.createElement(
+              'span',
+              { className: 'he' },
+              'חשבון משתמש'
+            )
+          ),
+          React.createElement(ReaderNavigationMenuSection, { content: accountContent }),
           React.createElement(ReaderNavigationMenuSection, { title: 'Learn', heTitle: 'לימוד', content: learnContent }),
           React.createElement(ReaderNavigationMenuSection, { title: 'Contribute', heTitle: 'עשייה', content: contributeContent }),
           React.createElement(ReaderNavigationMenuSection, { title: 'Connect', heTitle: 'התחברות', content: connectContent })
@@ -6926,10 +6954,64 @@ var AccountPanel = React.createClass({
 var NotificationsPanel = React.createClass({
   displayName: 'NotificationsPanel',
 
+  propTypes: {
+    setUnreadNotificationsCount: React.PropTypes.func.isRequired,
+    toggleLanguage: React.PropTypes.func.isRequired
+  },
+  getInitialState: function getInitialState() {
+    return {
+      page: 2,
+      loadedToEnd: false,
+      loading: false
+    };
+  },
+  componentDidMount: function componentDidMount() {
+    $(ReactDOM.findDOMNode(this)).find(".content").bind("scroll", this.handleScroll);
+    this.markAsRead();
+  },
+  componentDidUpdate: function componentDidUpdate() {
+    this.markAsRead();
+  },
+  handleScroll: function handleScroll() {
+    if (this.state.loadedToEnd || this.state.loading) {
+      return;
+    }
+    var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
+    var margin = 100;
+    if ($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+      this.getMoreNotifications();
+    }
+  },
+  markAsRead: function markAsRead() {
+    // Marks each notification that is loaded into the page as read via API call
+    var ids = [];
+    $(".notification.unread").not(".marked").each(function () {
+      ids.push($(this).attr("data-id"));
+    });
+    if (ids.length) {
+      $.post("/api/notifications/read", { notifications: JSON.stringify(ids) }, function (data) {
+        $(".notification.unread").addClass("marked");
+        this.props.setUnreadNotificationsCount(data.unreadCount);
+      }.bind(this));
+    }
+  },
+  getMoreNotifications: function getMoreNotifications() {
+    console.log("getting more notifications");
+    $.getJSON("/api/notifications?page=" + this.state.page, this.loadMoreNotifications);
+    this.setState({ loading: true });
+  },
+  loadMoreNotifications: function loadMoreNotifications(data) {
+    if (data.count < data.page_size) {
+      this.setState({ loadedToEnd: true });
+    }
+    Sefaria.notificationsHtml += data.html;
+    this.setState({ page: data.page + 1, loading: false });
+    this.forceUpdate();
+  },
   render: function render() {
     return React.createElement(
       'div',
-      { className: 'notificationsPanel readerNavMenu noHeader' },
+      { className: 'notificationsPanel systemPanel readerNavMenu noHeader' },
       React.createElement(
         'div',
         { className: 'content' },
@@ -6939,6 +7021,7 @@ var NotificationsPanel = React.createClass({
           React.createElement(
             'h1',
             null,
+            React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
             React.createElement(
               'span',
               { className: 'en' },

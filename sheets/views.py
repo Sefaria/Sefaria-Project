@@ -302,6 +302,7 @@ def delete_sheet_api(request, sheet_id):
 	"""
 	Deletes sheet with id, only if the requester is the sheet owner. 
 	"""
+	import sefaria.search as search
 	id = int(sheet_id)
 	sheet = db.sheets.find_one({"id": id})
 	if not sheet:
@@ -311,6 +312,7 @@ def delete_sheet_api(request, sheet_id):
 		return jsonResponse({"error": "Only the sheet owner may delete a sheet."})
 
 	db.sheets.remove({"id": id})
+	search.delete_sheet(id)
 
 	return jsonResponse({"status": "ok"})
 
