@@ -26,7 +26,7 @@ def index(request):
     """
     FLOW = flow_from_clientsecrets(
         CLIENT_SECRETS,
-        scope='https://www.googleapis.com/auth/drive',  # change scope for production
+        scope=request.GET.get('scope', ''),
         redirect_uri='http://localhost:8000/gauth/callback')  # http://www.sefaria.org/gauth/callback for production
 
     FLOW.params['state'] = xsrfutil.generate_token(settings.SECRET_KEY,

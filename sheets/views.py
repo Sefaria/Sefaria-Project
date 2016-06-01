@@ -785,7 +785,8 @@ from sheets.utils import (sheet_to_html_string,
 						  sheet_to_html_string_naive)
 from gauth.decorators import gauth_required
 
-@gauth_required
+
+@gauth_required(scope='https://www.googleapis.com/auth/drive.file')
 def export_to_drive(request, credential, sheet_id):
 	"""
 	Export a sheet to Google Drive.
@@ -803,7 +804,7 @@ def export_to_drive(request, credential, sheet_id):
 		'mimeType': 'application/vnd.google-apps.document'
 	}
 
-	html_string = sheet_to_html_string_naive(sheet)
+	html_string = sheet_to_html_string(sheet)
 
 	media = MediaIoBaseUpload(
 		StringIO(html_string),
