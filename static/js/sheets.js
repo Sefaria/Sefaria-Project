@@ -1300,7 +1300,6 @@ $(function() {
 			$("#sourceLayoutLanguageMenuItems").show();
 			//$(this).hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
 
-
 			//set checkboxes for language/layout menus for active source
 			if ($(this).hasClass("hebrew")) {
 				$("#sourceLayoutLanguageMenuItems").find(".hebrew .fa-check").removeClass("hidden");
@@ -1309,14 +1308,14 @@ $(function() {
 			 $("#sourceLayoutLanguageMenuItems").find(".bilingual .fa-check").removeClass("hidden");
 			 $("#sourceLayoutLanguageMenuItems").find("#layoutToggleGroup").removeClass("disabled");
 			}
-			else {
+			else if ( $(this).hasClass("english") ) {
 				$("#sourceLayoutLanguageMenuItems").find(".english .fa-check").removeClass("hidden");
 			}
 
 			if ($(this).hasClass("stacked")) {
 				$("#sourceLayoutLanguageMenuItems").find(".stacked .fa-check").removeClass("hidden")
 			}
-			else {
+			else if ( $(this).hasClass("sideBySide") ) {
 				$("#sourceLayoutLanguageMenuItems").find(".sideBySide .fa-check").removeClass("hidden");
 			    $("#sourceLayoutLanguageMenuItems").find("#sideBySideToggleGroup").removeClass("disabled");
 			}
@@ -1324,7 +1323,7 @@ $(function() {
 			if ($(this).hasClass("heLeft")){
 				$("#sourceLayoutLanguageMenuItems").find(".heLeft .fa-check").removeClass("hidden")
 			}
-			else {
+			else if ($(this).hasClass("heRight")){
 				$("#sourceLayoutLanguageMenuItems").find(".heRight .fa-check").removeClass("hidden")
 			}
 
