@@ -803,7 +803,7 @@ $(function() {
 		} 
 		else if (sjs.can_add) {
 			// For colloborative adders, only allow edits on their on content
-			$(".addedByMe .comment, .addedByMe  .outside, .addedByMe .customTitle, .addedByMe .text .en, .addedByMe .text .he")
+			$(".addedByMe .comment, .addedByMe  .outside, .addedByMe .customTitle, .addedByMe .text .en, .addedByMe .text .he, .contentToAdd")
 				.live("mouseup", sjs.initCKEditor);			
 		}
 
@@ -2432,16 +2432,27 @@ function buildSource($target, source, appendOrInsert) {
 
 		
 		if (source.title) {
-			$(".customTitle").last().html(source.title).css('display', 'inline-block');;
+			$(".customTitle").last().html(source.title).css('display', 'inline-block');
 			$(".sheetItem").last().addClass("hasCustom");
 		}
 
 	} else if ("comment" in source) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "commentWrapper");
-		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'>" + 
+		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'>" +
 							"<div class='comment " + (sjs.loading ? "" : "new") + "'>" + source.comment + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</div>";
+
+		if ($.cookie("s2") == "true") {
+
+					var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'><span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
+						("userLink" in source ? "<div class='addedBy s2AddedBy'>" + source.userLink + "</div>" : "")	+
+						"<div class='comment " + (sjs.loading ? "" : "new") + "'>" + source.comment + "</div>"
+
+						  "</div>";
+
+		}
+
 		commentHtml = appendInlineAddButton(commentHtml);
 		if (appendOrInsert == "append") {
 			$target.append(commentHtml);

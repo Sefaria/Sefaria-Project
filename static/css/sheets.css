@@ -3,6 +3,7 @@ html {
 
 body {
 	overflow-x: visible;
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
 }
 
 #right {
@@ -720,6 +721,7 @@ body {
 .comment {
 	font-size: 17px;
 	min-height: 30px;
+	padding-top:4px;
 }
 
 .outsideBi {
@@ -1458,8 +1460,8 @@ input[type="file"] {
 	background-color: #eee;
 	padding-top: 40px;
 	text-align: center;
-	font-family: "Montserrat", "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
-	font-size: 16px;
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	font-size: 14px;
 }
 
 
@@ -1478,9 +1480,10 @@ input[type="file"] {
   	justify-content: flex-start;
 }
 .sourceConnection{
-	width: 48%;
+	width: 47%;
 	margin: 10px 5px;
 	border: 1px solid #eee;
+	border-radius: 5px;
 	padding: 20px 0;
 	display: inline-block;
 	background-color: #fff;
@@ -1507,8 +1510,8 @@ input[type="file"] {
 .addInterfaceButton{
 	width: 106px;
 	color: #999;
-	margin: 10px -2px;
-	padding: 20px;
+	margin: 10px 0;
+	padding: 10px 20px;
 	border-left: 1px solid rgba(255,255,255,0);
 	border-right: 1px solid rgba(255,255,255,0);
 	border-top: 1px solid #cecece;
@@ -1524,9 +1527,15 @@ input[type="file"] {
 	border-right: 1px solid #6c6c6c;
 	color: black;
 	border-radius: 5px;
-
 }
 
+.inlineAddDesc {
+    text-transform: uppercase;
+	color: #999;
+	font-size:12px;
+	margin: 20px 0 10px 0;
+
+}
 
 .flexContainer {
 	display:flex;
@@ -1537,5 +1546,69 @@ input[type="file"] {
 }
 
 #inlineAdd {
-	width: 70%;
+	width: 60%;
+}
+
+#inlineAddOr {
+	display:inline-block;
+	color: #999;
+    margin: 6px;
+
+}
+#inlineAddBrowseBox {
+	display:inline-block;
+}
+.button {
+	background-color: #0663c9 !important;
+	border-color: #0663c9 !important;
+
+}
+#customTextLanguageToggle {
+	float: right;
+    margin-top: -40px;
+    margin-right: 16px;
+}
+
+.contentToAdd {
+	padding: 5px;
+	border: 1px solid #cecece;
+	border-radius: 5px;
+	margin: 30px 15px;
+	text-align:left;
+}
+
+.contentToAdd > * {
+	margin:0 !important;
+}
+
+
+.customTextEditables.en {
+	font-family: "Times New Roman", "Georgia", serif;
+}
+.customTextEditables.he {
+	text-align: right;
+}
+#inlineAddMediaInput{
+	width:60%;
+}
+
+.s2AddedBy {
+	font-size:inherit;
+	font-style: inherit;
+	color:#999;
+	font-weight:bold;
+	display:inline;
+	float:left;
+	margin-right: 7px;
+}
+
+.s2AddedBy .userLink{
+	color:#999;
+}
+
+.commentIcon {
+	color:#999;
+	font-size: .75em;
+	float:left;
+	margin-right: 7px;
 }
