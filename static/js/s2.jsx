@@ -697,6 +697,10 @@ var ReaderApp = React.createClass({
       this.setState({panels: this.state.panels});
     }
   },
+  setUnreadNotificationsCount: function(n) {
+    Sefaria.notificationCount = n;
+    this.forceUpdate();
+  },
   replacePanel: function(n, ref, version, versionLanguage) {
     // Opens a text in in place of the panel currently open at `n`.
     this.state.panels[n] = this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"});
@@ -802,6 +806,7 @@ var ReaderApp = React.createClass({
                     onQueryChange={this.updateQueryInHeader}
                     updateSearchFilter={this.updateSearchFilterInHeader}
                     registerAvailableFilters={this.updateAvailableFiltersInHeader}
+                    setUnreadNotificationsCount={this.setUnreadNotificationsCount}
                     headerMode={this.props.headerMode}
                     panelsOpen={panelStates.length} />) : null;
 
@@ -849,6 +854,7 @@ var ReaderApp = React.createClass({
                       onQueryChange={this.updateQueryInPanel}
                       updateSearchFilter={this.updateSearchFilterInPanel}
                       registerAvailableFilters={this.updateAvailableFiltersInPanel}
+                      setUnreadNotificationsCount={this.setUnreadNotificationsCount}
                       closePanel={closePanel}
                       panelsOpen={panelStates.length}
                       masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
@@ -867,17 +873,18 @@ var ReaderApp = React.createClass({
 
 var Header = React.createClass({
   propTypes: {
-    initialState:             React.PropTypes.object.isRequired,
-    setCentralState:          React.PropTypes.func,
-    onRefClick:               React.PropTypes.func,
-    onRecentClick:            React.PropTypes.func,
-    showLibrary:              React.PropTypes.func,
-    showSearch:               React.PropTypes.func,
-    setDefaultOption:         React.PropTypes.func,
-    onQueryChange:            React.PropTypes.func,
-    updateSearchFilter:       React.PropTypes.func,
-    registerAvailableFilters: React.PropTypes.func,
-    panelsOpen:               React.PropTypes.number
+    initialState:                React.PropTypes.object.isRequired,
+    setCentralState:             React.PropTypes.func,
+    onRefClick:                  React.PropTypes.func,
+    onRecentClick:               React.PropTypes.func,
+    showLibrary:                 React.PropTypes.func,
+    showSearch:                  React.PropTypes.func,
+    setDefaultOption:            React.PropTypes.func,
+    onQueryChange:               React.PropTypes.func,
+    updateSearchFilter:          React.PropTypes.func,
+    registerAvailableFilters:    React.PropTypes.func,
+    setUnreadNotificationsCount: React.PropTypes.func,
+    panelsOpen:                  React.PropTypes.number
   },
   getInitialState: function() {
     return this.props.initialState;
@@ -998,6 +1005,7 @@ var Header = React.createClass({
                           onQueryChange={this.props.onQueryChange}
                           updateSearchFilter={this.props.updateSearchFilter}
                           registerAvailableFilters={this.props.registerAvailableFilters}
+                          setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
                           hideNavHeader={true} />) : null;
 
 
@@ -1073,6 +1081,7 @@ var ReaderPanel = React.createClass({
     updateSearchFilter:          React.PropTypes.func,
     registerAvailableFilters:    React.PropTypes.func,
     openComparePanel:            React.PropTypes.func,
+    setUnreadNotificationsCount: React.PropTypes.func,
     highlightedRefs:             React.PropTypes.array,
     hideNavHeader:               React.PropTypes.bool,
     multiPanel:                  React.PropTypes.bool,
@@ -1563,7 +1572,8 @@ var ReaderPanel = React.createClass({
       var menu = (<AccountPanel />);
 
     } else if (this.state.menuOpen === "notifications") {
-      var menu = (<NotificationsPanel />);
+      var menu = (<NotificationsPanel 
+                    setUnreadNotificationsCount={this.props.setUnreadNotificationsCount} k />);
 
     } else {
       var menu = null;
@@ -3339,21 +3349,20 @@ var TextRange = React.createClass({
   },
   render: function() {
     var data = this.getText();
-    if (this.props.basetext && data) {
+    if (data && this.props.basetext) {
       var ref              = this.props.withContext ? data.sectionRef : data.ref;
       var sectionStrings   = Sefaria.sectionString(ref);
       var oref             = Sefaria.ref(ref);
       var useShortString   = oref && Sefaria.util.inArray(oref.categories[0], ["Tanach", "Mishnah", "Talmud", "Tosefta", "Commentary"]) !== -1;
       var title            = useShortString ? sectionStrings.en.numbered : sectionStrings.en.named;
       var heTitle          = useShortString ? sectionStrings.he.numbered : sectionStrings.he.named;   
-    } else if (this.props.basetext) {
-      var title            = "Loading...";
-      var heTitle          = "טעינה...";      
-    } else {  
+    } else if (data && !this.props.basetext) {  
       var title            = data.ref;
       var heTitle          = data.heRef;
-    }
-
+    } else if (!data) {
+      var title            = "Loading...";
+      var heTitle          = "טעינה...";      
+    } 
     var showNumberLabel    =  data &&
                               data.categories &&
                               data.categories[0] !== "Talmud" &&
@@ -5630,7 +5639,59 @@ var AccountPanel = React.createClass({
 
 
 var NotificationsPanel = React.createClass({
-    render: function() {
+  propTypes: {
+    setUnreadNotificationsCount: React.PropTypes.func.isRequired
+  },
+  getInitialState: function() {
+    return {
+      page: 2,
+      loadedToEnd: false,
+      loading: false
+    };
+  },
+  componentDidMount: function() {
+    $(ReactDOM.findDOMNode(this)).find(".content").bind("scroll", this.handleScroll);
+    this.markAsRead();
+  },
+  componentDidUpdate: function() {
+    this.markAsRead();
+  },
+  handleScroll: function() {
+    if (this.state.loadedToEnd || this.state.loading) { return; }
+    var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
+    var margin = 100;
+    if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+      this.getMoreNotifications();
+    }
+  },
+  markAsRead: function() {
+    // Marks each notification that is loaded into the page as read via API call
+    var ids = [];
+    $(".notification.unread").not(".marked").each(function() {
+      ids.push($(this).attr("data-id"));
+    });
+    if (ids.length) {
+      $.post("/api/notifications/read", {notifications: JSON.stringify(ids)}, function(data) {
+        var unread = Sefaria.notificationCount - ids.length;
+        $(".notification.unread").addClass("marked");
+        this.props.setUnreadNotificationsCount(unread);
+      }.bind(this));     
+    }
+  },
+  getMoreNotifications: function() {
+    console.log("getting more notifications");
+    $.getJSON("/api/notifications?page=" + this.state.page, this.loadMoreNotifications);
+    this.setState({loading: true});
+  },
+  loadMoreNotifications: function(data) {
+    if (data.count < data.page_size) {
+      this.setState({loadedToEnd: true});
+    } 
+    Sefaria.notificationsHtml += data.html;
+    this.setState({page: data.page + 1, loading: false});
+    this.forceUpdate();
+  },
+  render: function() {
     return (
       <div className="notificationsPanel readerNavMenu noHeader">
         <div className="content">
@@ -5644,9 +5705,8 @@ var NotificationsPanel = React.createClass({
               (<LoginPanel fullPanel={true} />) }
           </div>
         </div>
-      </div>
-      );
-    }
+      </div>);
+  }
 });
 
 

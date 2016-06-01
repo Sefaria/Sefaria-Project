@@ -1,4 +1,4 @@
-body {
+ body {
   padding: 0;
   margin: 0;
   overflow: hidden;
@@ -128,7 +128,7 @@ body.dark {
   font-size: 16px;
 }
 .header .notifications.unread {
-  color: #d9534f;
+  background-color: #EFB4B6;
 }
 .header .login {
   color: #999;
@@ -2380,6 +2380,9 @@ h1 .languageToggle .he {
 }
 .notificationsPanel a {
   color: #333;
+}
+.notificationsList {
+  margin-bottom: 100px;
 }
 .notificationsList .notification {
   width: auto;
