@@ -232,8 +232,8 @@ var ReaderApp = React.createClass({
           (prev.version !== next.version) ||
           (prev.versionLanguage !== next.versionLanguage) ||
           (prev.searchQuery != next.searchQuery) ||
-          (prev.appliedSearchFilters.length !== next.appliedSearchFilters.length) ||
-          (!(prev.appliedSearchFilters.compare(next.appliedSearchFilters))))
+          (prev.appliedSearchFilters && next.appliedSearchFilters && (prev.appliedSearchFilters.length !== next.appliedSearchFilters.length)) ||
+          (prev.appliedSearchFilters && next.appliedSearchFilters && !(prev.appliedSearchFilters.compare(next.appliedSearchFilters))))
           {
          return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
@@ -922,17 +922,45 @@ var Header = React.createClass({
       this.setState(nextProps.initialState);
     }
   },
+  _searchOverridePre: 'Search for: "',
+  _searchOverridePost: '"',
+  _searchOverrideRegex: function() {
+    return RegExp(`^${RegExp.escape(this._searchOverridePre)}(.*)${RegExp.escape(this._searchOverridePost)}`);
+  },
   initAutocomplete: function() {
-    $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete({
+    $.widget( "custom.sefaria_autocomplete", $.ui.autocomplete, {
+      _renderItem: function( ul, item) {
+        var override = item.label.match(this._searchOverrideRegex());
+		return $( "<li></li>" )
+			.data( "item.autocomplete", item )
+            .toggleClass("search-override", !!override)
+			.append( $( "<a></a>" ).text( item.label ) )
+			.appendTo( ul );
+	  }.bind(this)
+    } );
+    $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete({
       position: {my: "left-12 top+14", at: "left bottom"},
+      select: function( event, ui ) {
+        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  //This will dissapear when the next line executes, but the eye can sometimes catch it.
+        this.submitSearch(ui.item.value);
+        return false;
+      }.bind(this),
       source: function( request, response ) {
+        var exact = false;
         var matches = $.map( Sefaria.books, function(tag) {
             if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
+              if (tag.toUpperCase() == request.term.toUpperCase()) {
+                exact = true;
+              }
               return tag;
             }
           });
-        response(matches.slice(0, 16)); // limits return to 16 items
-      }
+        var resp = matches.slice(0, 16); // limits return to 16 items
+        if (exact) {
+          resp.push(`${this._searchOverridePre}${request.term}${this._searchOverridePost}`)
+        }
+        response(resp);
+      }.bind(this)
     });
   },
   showDesktop: function() {
@@ -952,7 +980,7 @@ var Header = React.createClass({
   },
   showSearch: function(query) {
     this.props.showSearch(query);
-    $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("close");
+    $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   },
   showAccount: function() {
     this.props.setCentralState({menuOpen: "account"});
@@ -969,6 +997,12 @@ var Header = React.createClass({
     this.props.setCentralState({showTestMessage: false});
   },
   submitSearch: function(query, skipNormalization) {
+    var override = query.match(this._searchOverrideRegex());
+    if (override) {
+      this.showSearch(override[1]);
+      return;
+    }
+
     if (query in Sefaria.booksDict) {
       var index = Sefaria.index(query);
       if (!index && !skipNormalization) {
@@ -987,7 +1021,7 @@ var Header = React.createClass({
     }
   },
   clearSearchBox: function() {
-    $(ReactDOM.findDOMNode(this)).find("input.search").val("").autocomplete("close");
+    $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
   },
   handleLibraryClick: function() {
     if (this.state.menuOpen === "home") {

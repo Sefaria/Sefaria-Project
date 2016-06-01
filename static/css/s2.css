@@ -93,6 +93,10 @@ body.dark {
   width: 90%;
   margin: 0;
 }
+.search-override {
+  border-top: solid 1px #999;
+  padding-top: 5px;
+}
 .header .home {
   display: inline-block;
   position: absolute;
