@@ -227,7 +227,7 @@ var ReaderApp = React.createClass({
         return true;
       }
 
-      if (prev.mode !== next.mode || prev.menuOpen !== next.menuOpen || next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0] || next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0] || (next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter) || next.mode === "Connections" && !prev.refs.compare(next.refs) || prev.navigationSheetTag !== next.navigationSheetTag || prev.version !== next.version || prev.versionLanguage !== next.versionLanguage || prev.searchQuery != next.searchQuery || prev.appliedSearchFilters.length !== next.appliedSearchFilters.length || !prev.appliedSearchFilters.compare(next.appliedSearchFilters)) {
+      if (prev.mode !== next.mode || prev.menuOpen !== next.menuOpen || next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0] || next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0] || (next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter) || next.mode === "Connections" && !prev.refs.compare(next.refs) || prev.navigationSheetTag !== next.navigationSheetTag || prev.version !== next.version || prev.versionLanguage !== next.versionLanguage || prev.searchQuery != next.searchQuery || prev.appliedSearchFilters && next.appliedSearchFilters && prev.appliedSearchFilters.length !== next.appliedSearchFilters.length || prev.appliedSearchFilters && next.appliedSearchFilters && !prev.appliedSearchFilters.compare(next.appliedSearchFilters)) {
         return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
         // Handle array comparison, !== could mean one is null or both are arrays
@@ -441,7 +441,7 @@ var ReaderApp = React.createClass({
       versionLanguage: state.versionLanguage || null,
       highlightedRefs: state.highlightedRefs || [],
       recentFilters: state.filter || [],
-      menuOpen: state.menuOpen || null, // "navigation", "text toc", "display", "search", "sheets", "home"
+      menuOpen: state.menuOpen || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag: state.sheetsTag || null,
       searchQuery: state.searchQuery || null,
@@ -502,9 +502,8 @@ var ReaderApp = React.createClass({
     this.setState({ panelCap: panelCap });
   },
   handleNavigationClick: function handleNavigationClick(ref, version, versionLanguage, options) {
-    //todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
     this.saveOpenPanelsToRecentlyViewed();
-    this.openPanel(ref, version, versionLanguage);
+    this.openPanel(ref, version, versionLanguage, options);
   },
   handleSegmentClick: function handleSegmentClick(n, ref) {
     // Handle a click on a text segment `ref` in from panel in position `n`
@@ -637,16 +636,42 @@ var ReaderApp = React.createClass({
       this.setState(this.state);
     }
   },
-  openPanel: function openPanel(ref, version, versionLanguage) {
+  openPanel: function openPanel(ref, version, versionLanguage, options) {
     // Opens a text panel, replacing all panels currently open.
+
+    //todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
+    var highlight;
+    if (options) {
+      highlight = options.highlight;
+    }
+
+    // If book level, Open book toc
+    var index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.submitSearch()?
+    var panel;
+    if (index) {
+      panel = this.makePanelState({ "menuOpen": "book toc", "bookRef": index.title });
+    } else {
+      panel = this.makePanelState({ refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text" });
+    }
+
     this.setState({
-      panels: [this.makePanelState({ refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text" })],
+      panels: [panel],
       header: { menuOpen: null }
     });
   },
   openPanelAt: function openPanelAt(n, ref, version, versionLanguage) {
     // Open a new panel after `n` with the new ref
-    this.state.panels.splice(n + 1, 0, this.makePanelState({ refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text" }));
+
+    // If book level, Open book toc
+    var index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.subimtSearch()?
+    var panel;
+    if (index) {
+      panel = this.makePanelState({ "menuOpen": "book toc", "bookRef": index.title });
+    } else {
+      panel = this.makePanelState({ refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text" });
+    }
+
+    this.state.panels.splice(n + 1, 0, panel);
     this.setState({ panels: this.state.panels, header: { menuOpen: null } });
   },
   openPanelAtEnd: function openPanelAtEnd(ref, version, versionLanguage) {
@@ -906,17 +931,41 @@ var Header = React.createClass({
       this.setState(nextProps.initialState);
     }
   },
+  _searchOverridePre: 'Search for: "',
+  _searchOverridePost: '"',
+  _searchOverrideRegex: function _searchOverrideRegex() {
+    return RegExp('^' + RegExp.escape(this._searchOverridePre) + '(.*)' + RegExp.escape(this._searchOverridePost));
+  },
   initAutocomplete: function initAutocomplete() {
-    $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete({
+    $.widget("custom.sefaria_autocomplete", $.ui.autocomplete, {
+      _renderItem: function (ul, item) {
+        var override = item.label.match(this._searchOverrideRegex());
+        return $("<li></li>").data("item.autocomplete", item).toggleClass("search-override", !!override).append($("<a></a>").text(item.label)).appendTo(ul);
+      }.bind(this)
+    });
+    $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete({
       position: { my: "left-12 top+14", at: "left bottom" },
-      source: function source(request, response) {
+      select: function (event, ui) {
+        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value); //This will dissapear when the next line executes, but the eye can sometimes catch it.
+        this.submitSearch(ui.item.value);
+        return false;
+      }.bind(this),
+      source: function (request, response) {
+        var exact = false;
         var matches = $.map(Sefaria.books, function (tag) {
           if (tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0) {
+            if (tag.toUpperCase() == request.term.toUpperCase()) {
+              exact = true;
+            }
             return tag;
           }
         });
-        response(matches.slice(0, 16)); // limits return to 16 items
-      }
+        var resp = matches.slice(0, 16); // limits return to 16 items
+        if (exact) {
+          resp.push('' + this._searchOverridePre + request.term + this._searchOverridePost);
+        }
+        response(resp);
+      }.bind(this)
     });
   },
   showDesktop: function showDesktop() {
@@ -936,7 +985,7 @@ var Header = React.createClass({
   },
   showSearch: function showSearch(query) {
     this.props.showSearch(query);
-    $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("close");
+    $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   },
   showAccount: function showAccount() {
     this.props.setCentralState({ menuOpen: "account" });
@@ -953,11 +1002,15 @@ var Header = React.createClass({
     this.props.setCentralState({ showTestMessage: false });
   },
   submitSearch: function submitSearch(query, skipNormalization) {
+    var override = query.match(this._searchOverrideRegex());
+    if (override) {
+      this.showSearch(override[1]);
+      return;
+    }
+
     if (query in Sefaria.booksDict) {
       var index = Sefaria.index(query);
-      if (index) {
-        query = index.firstSection;
-      } else if (!skipNormalization) {
+      if (!index && !skipNormalization) {
         Sefaria.normalizeTitle(query, function (title) {
           this.submitSearch(title, true);
         }.bind(this));
@@ -975,7 +1028,7 @@ var Header = React.createClass({
     }
   },
   clearSearchBox: function clearSearchBox() {
-    $(ReactDOM.findDOMNode(this)).find("input.search").val("").autocomplete("close");
+    $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
   },
   handleLibraryClick: function handleLibraryClick() {
     if (this.state.menuOpen === "home") {
@@ -1616,6 +1669,7 @@ var ReaderPanel = React.createClass({
         settingsLanguage: this.state.settings.language == "hebrew" ? "he" : "en",
         category: Sefaria.index(this.state.bookRef) ? Sefaria.index(this.state.bookRef).categories[0] : null,
         currentRef: this.state.bookRef,
+        key: this.state.bookRef,
         openNav: this.openMenu.bind(null, "navigation"),
         openDisplaySettings: this.openDisplaySettings,
         selectVersion: this.props.selectVersion,
@@ -1639,6 +1693,8 @@ var ReaderPanel = React.createClass({
       var menu = React.createElement(SheetsNav, {
         openNav: this.openMenu.bind(null, "navigation"),
         close: this.closeMenus,
+        hideNavHeader: this.props.hideNavHeader,
+        toggleLanguage: this.toggleLanguage,
         initialTag: this.state.navigationSheetTag,
         setSheetTag: this.setSheetTag });
     } else if (this.state.menuOpen === "account") {
@@ -2014,7 +2070,7 @@ var ReaderNavigationMenu = React.createClass({
           width: this.width })
       );
     } else {
-      var categories = ["Tanach", "Mishnah", "Talmud", "Midrash", "Halakhah", "Kabbalah", "Liturgy", "Philosophy", "Tosefta", "Parshanut", "Chasidut", "Musar", "Responsa", "Apocrypha", "Other"];
+      var categories = ["Tanach", "Mishnah", "Talmud", "Midrash", "Halakhah", "Kabbalah", "Liturgy", "Philosophy", "Tosefta", "Chasidut", "Musar", "Responsa", "Apocrypha", "Other"];
       categories = categories.map(function (cat) {
         var style = { "borderColor": Sefaria.palette.categoryColor(cat) };
         var openCat = function () {
@@ -2697,7 +2753,7 @@ var ReaderTextTableOfContents = React.createClass({
     if (!textTocHtml) {
       Sefaria.textTocHtml(this.props.title, function () {
         this.forceUpdate();
-      });
+      }.bind(this));
     }
   },
   loadVersions: function loadVersions() {
@@ -3124,20 +3180,24 @@ var SheetsNav = React.createClass({
     initialTag: React.PropTypes.string,
     close: React.PropTypes.func.isRequired,
     openNav: React.PropTypes.func.isRequired,
-    setSheetTag: React.PropTypes.func.isRequired
+    setSheetTag: React.PropTypes.func.isRequired,
+    hideNavHeader: React.PropTypes.bool
+
   },
   getInitialState: function getInitialState() {
     return {
       trendingTags: null,
+      allSheets: null,
       tagList: null,
       yourSheets: null,
       sheets: [],
       tag: this.props.initialTag,
-      width: 0
+      width: 400
     };
   },
   componentDidMount: function componentDidMount() {
     this.getTags();
+    this.getAllSheets();
     this.setState({ width: $(ReactDOM.findDOMNode(this)).width() });
     if (this.props.initialTag) {
       if (this.props.initialTag === "Your Sheets") {
@@ -3149,6 +3209,14 @@ var SheetsNav = React.createClass({
   },
   componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
     this.setState({ tag: nextProps.initialTag, sheets: [] });
+  },
+  getAllSheets: function getAllSheets() {
+    Sefaria.sheets.allSheetsList(this.loadAllSheets);
+  },
+  loadAllSheets: function loadAllSheets() {
+    this.setState({
+      allSheets: Sefaria.sheets.allSheetsList() || []
+    });
   },
   getTags: function getTags() {
     Sefaria.sheets.trendingTags(this.loadTags);
@@ -3232,8 +3300,38 @@ var SheetsNav = React.createClass({
         );
       }.bind(this);
 
-      if (this.state.trendingTags !== null && this.state.tagList !== null) {
+      if (this.state.trendingTags !== null && this.state.tagList !== null && this.state.allSheets !== null) {
         var trendingTags = this.state.trendingTags.slice(0, 6).map(makeTagButton);
+
+        var allSheets = this.state.allSheets.sheets;
+
+        var publicSheetList = allSheets.map(function (sheet) {
+          var title = sheet.title.stripHtml();
+          var url = "/sheets/" + sheet.id;
+          return React.createElement(
+            'a',
+            { className: 'sheet', href: url, key: url },
+            sheet.ownerImageUrl ? React.createElement('img', { className: 'sheetImg', src: sheet.ownerImageUrl }) : null,
+            React.createElement(
+              'span',
+              { className: 'sheetViews' },
+              React.createElement('i', { className: 'fa fa-eye' }),
+              ' ',
+              sheet.views
+            ),
+            React.createElement(
+              'div',
+              { className: 'sheetAuthor' },
+              sheet.ownerName
+            ),
+            React.createElement(
+              'div',
+              { className: 'sheetTitle' },
+              title
+            )
+          );
+        });
+
         var tagList = this.state.tagList.map(makeTagButton);
         var content = React.createElement(
           'div',
@@ -3241,6 +3339,34 @@ var SheetsNav = React.createClass({
           React.createElement(
             'div',
             { className: 'contentInner' },
+            this.props.hideNavHeader ? React.createElement(
+              'h1',
+              null,
+              React.createElement(
+                'div',
+                { className: 'languageToggle', onClick: this.props.toggleLanguage },
+                React.createElement(
+                  'span',
+                  { className: 'en' },
+                  'א'
+                ),
+                React.createElement(
+                  'span',
+                  { className: 'he' },
+                  'A'
+                )
+              ),
+              React.createElement(
+                'span',
+                { className: 'en' },
+                'Source Sheets'
+              ),
+              React.createElement(
+                'span',
+                { className: 'he' },
+                'דפי מקורות'
+              )
+            ) : null,
             yourSheets,
             React.createElement(
               'h2',
@@ -3248,7 +3374,29 @@ var SheetsNav = React.createClass({
               React.createElement(
                 'span',
                 { className: 'en' },
+                'Public Sheets'
+              ),
+              React.createElement(
+                'span',
+                { className: 'he' },
+                'Public Sheets [he]'
+              )
+            ),
+            publicSheetList,
+            React.createElement('br', null),
+            React.createElement('br', null),
+            React.createElement(
+              'h2',
+              null,
+              React.createElement(
+                'span',
+                { className: 'en' },
                 'Trending Tags'
+              ),
+              React.createElement(
+                'span',
+                { className: 'he' },
+                'Trending Tags [he]'
               )
             ),
             React.createElement(TwoOrThreeBox, { content: trendingTags, width: this.state.width }),
@@ -3261,6 +3409,11 @@ var SheetsNav = React.createClass({
                 'span',
                 { className: 'en' },
                 'All Tags'
+              ),
+              React.createElement(
+                'span',
+                { className: 'he' },
+                'All Tags [he]'
               )
             ),
             React.createElement(TwoOrThreeBox, { content: tagList, width: this.state.width })
@@ -3279,10 +3432,13 @@ var SheetsNav = React.createClass({
       }
     }
 
+    var classes = classNames({ readerNavMenu: 1, readerSheetsNav: 1, noHeader: this.props.hideNavHeader });
+
     return React.createElement(
       'div',
-      { className: 'readerSheetsNav readerNavMenu' },
-      React.createElement(
+      { className: classes },
+      React.createElement(CategoryColorLine, { category: 'Sheets' }),
+      this.props.hideNavHeader ? null : React.createElement(
         'div',
         { className: 'readerNavTop searchOnly', key: 'navTop' },
         React.createElement(CategoryColorLine, { category: 'Sheets' }),
