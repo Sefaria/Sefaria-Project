@@ -126,7 +126,8 @@ class AtomicTest(object):
         segment = self.driver.find_element_by_css_selector('.segment[data-ref="{}"]'.format(ref.normal()))
         segment.click()
         # Todo: put a data-* attribute on .filterSet, for the multi-panel case
-        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".filterSet")))
+        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".textFilter")))
+        return self
 
     def scroll_to_segment(self, ref):
         if isinstance(ref, basestring):
