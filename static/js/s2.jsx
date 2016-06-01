@@ -443,7 +443,7 @@ var ReaderApp = React.createClass({
       versionLanguage:      state.versionLanguage      || null,
       highlightedRefs:      state.highlightedRefs      || [],
       recentFilters:        state.filter               || [],
-      menuOpen:             state.menuOpen             || null, // "navigation", "text toc", "display", "search", "sheets", "home"
+      menuOpen:             state.menuOpen             || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag:   state.sheetsTag            || null,
       searchQuery:          state.searchQuery          || null,
@@ -504,9 +504,8 @@ var ReaderApp = React.createClass({
     this.setState({panelCap: panelCap});
   },
   handleNavigationClick: function(ref, version, versionLanguage, options) {
-    //todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
     this.saveOpenPanelsToRecentlyViewed();
-    this.openPanel(ref, version, versionLanguage);
+    this.openPanel(ref, version, versionLanguage, options);
   },
   handleSegmentClick: function(n, ref) {
     // Handle a click on a text segment `ref` in from panel in position `n`
@@ -638,16 +637,42 @@ var ReaderApp = React.createClass({
       this.setState(this.state);
     }
   },
-  openPanel: function(ref, version, versionLanguage) {
+  openPanel: function(ref, version, versionLanguage, options) {
     // Opens a text panel, replacing all panels currently open.
+
+    //todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
+    var highlight;
+    if (options) {
+      highlight = options.highlight;
+    }
+
+    // If book level, Open book toc
+    var index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.submitSearch()?
+    var panel;
+    if (index) {
+      panel = this.makePanelState({"menuOpen": "book toc", "bookRef": index.title});
+    } else {
+      panel = this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"});
+    }
+    
     this.setState({
-      panels: [this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"})],
+      panels: [panel],
       header: {menuOpen: null}
     });
   },
   openPanelAt: function(n, ref, version, versionLanguage) {
     // Open a new panel after `n` with the new ref
-    this.state.panels.splice(n+1, 0, this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"}));
+
+    // If book level, Open book toc
+    var index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.subimtSearch()?
+    var panel;
+    if (index) {
+      panel = this.makePanelState({"menuOpen": "book toc", "bookRef": index.title});
+    } else {
+      panel = this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"});
+    }
+
+    this.state.panels.splice(n+1, 0, panel);
     this.setState({panels: this.state.panels, header: {menuOpen: null}});
   },
   openPanelAtEnd: function(ref, version, versionLanguage) {
@@ -946,9 +971,7 @@ var Header = React.createClass({
   submitSearch: function(query, skipNormalization) {
     if (query in Sefaria.booksDict) {
       var index = Sefaria.index(query);
-      if (index) {
-        query = index.firstSection;
-      } else if (!skipNormalization) {
+      if (!index && !skipNormalization) {
         Sefaria.normalizeTitle(query, function(title) {
           this.submitSearch(title, true)
         }.bind(this));
@@ -1540,6 +1563,7 @@ var ReaderPanel = React.createClass({
                     settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
                     category={Sefaria.index(this.state.bookRef) ? Sefaria.index(this.state.bookRef).categories[0] : null}
                     currentRef={this.state.bookRef}
+                    key={this.state.bookRef}
                     openNav={this.openMenu.bind(null, "navigation")}
                     openDisplaySettings={this.openDisplaySettings}
                     selectVersion={this.props.selectVersion}
@@ -2325,7 +2349,7 @@ var ReaderTextTableOfContents = React.createClass({
     if (!textTocHtml) {
       Sefaria.textTocHtml(this.props.title, function() {
         this.forceUpdate();
-      });
+      }.bind(this));
     }
   },
   loadVersions: function() {
@@ -3107,7 +3131,6 @@ var TextColumn = React.createClass({
         content.push((<LoadingMessage className="base next" key="next"/>));
       } else {
         content.push((<LoadingMessage message={bottomSymbol} heMessage={bottomSymbol} className="base next final" key="next"/>));
-
       }
     }
 
