@@ -49,7 +49,7 @@ def sheet_to_html_string(sheet, request=None):
 
 	if request is not None:
 		return render_to_string('sheets.html', context, RequestContext(request))
-	return render_to_string('sheets.html', context).encode('utf-8')
+	return render_to_string('sheet_for_gdrive.html', context).encode('utf-8')
 
 
 def sheet_to_html_string_naive(sheet, request=None):
