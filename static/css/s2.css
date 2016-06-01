@@ -356,6 +356,15 @@ body.dark {
 }
 .languageToggle {
   display: inline;
+  line-height: 32px;
+}
+.systemPanel.readerNavMenu .languageToggle span.en {
+  font-family: "Taamey Frank", "Times New Roman", serif;
+  font-size: 26px;
+}
+.systemPanel.readerNavMenu .languageToggle span.he {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 22px;
 }
 .loadingMessage {
   font-size: 14px;
@@ -1787,7 +1796,7 @@ h1 .languageToggle .he {
 .connectionsPanelHeader .languageToggle {
   background-color: transparent;
   border: 1px solid #ccc;
-  font-size: 30px;
+  font-size: 30px;lan
 }
 .connectionsPanelHeader .languageToggle .he {
    font-family: "adobe-garamond-pro", Georgia, serif;
@@ -2370,13 +2379,18 @@ h1 .languageToggle .he {
   font-size: 17px;
   color: #666;
 }
-.notificationsPanel.readerNavMenu h1 {
+.systemPanel.readerNavMenu h1 {
   font-size: 17px;
   color: #999;
   height: auto;
 }
-.notificationsPanel.readerNavMenu h1 .en {
+.systemPanel.readerNavMenu h1 .en {
   text-transform: uppercase;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.systemPanel.readerNavMenu h1 .he {
+  text-transform: uppercase;
+  font-family: "Open Sans Hebrew", sans-serif;
 }
 .notificationsPanel a {
   color: #333;

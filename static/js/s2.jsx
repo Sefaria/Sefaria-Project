@@ -1569,11 +1569,14 @@ var ReaderPanel = React.createClass({
                     setSheetTag={this.setSheetTag} />);
 
     } else if (this.state.menuOpen === "account") {
-      var menu = (<AccountPanel />);
+      var menu = (<AccountPanel
+                    toggleLanguage={this.toggleLanguage} />);
+
 
     } else if (this.state.menuOpen === "notifications") {
       var menu = (<NotificationsPanel 
-                    setUnreadNotificationsCount={this.props.setUnreadNotificationsCount} k />);
+                    setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
+                    toggleLanguage={this.toggleLanguage} />);
 
     } else {
       var menu = null;
@@ -5579,6 +5582,9 @@ var SearchSheetResult = React.createClass({
 
 
 var AccountPanel = React.createClass({
+  propTypes: {
+    toggleLanguage: React.PropTypes.func.isRequired
+  },
   render: function() {
     var width = $(window).width();
     var accountContent = [
@@ -5599,7 +5605,6 @@ var AccountPanel = React.createClass({
       (<BlockLink target="/help" title="Help" heTitle="עזרה" />),
       (<BlockLink target="/team" title="Team" heTitle="צוות" />)
     ];
-
     learnContent = (<TwoOrThreeBox content={learnContent} width={width} />);
 
     var contributeContent = [
@@ -5623,10 +5628,15 @@ var AccountPanel = React.createClass({
     connectContent = (<TwoOrThreeBox content={connectContent} width={width} />);
 
     return (
-      <div className="accountPanel readerNavMenu">
+      <div className="accountPanel systemPanel readerNavMenu noHeader">
         <div className="content">
           <div className="contentInner">
-           <ReaderNavigationMenuSection title="Account" heTitle="חשבון משתמש" content={accountContent} />
+            <h1>
+              <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
+              <span className="en">Account</span>
+              <span className="he">חשבון משתמש</span>
+            </h1>
+           <ReaderNavigationMenuSection content={accountContent} />
            <ReaderNavigationMenuSection title="Learn" heTitle="לימוד" content={learnContent} />
            <ReaderNavigationMenuSection title="Contribute" heTitle="עשייה" content={contributeContent} />
            <ReaderNavigationMenuSection title="Connect" heTitle="התחברות" content={connectContent} />
@@ -5640,7 +5650,8 @@ var AccountPanel = React.createClass({
 
 var NotificationsPanel = React.createClass({
   propTypes: {
-    setUnreadNotificationsCount: React.PropTypes.func.isRequired
+    setUnreadNotificationsCount: React.PropTypes.func.isRequired,
+    toggleLanguage:              React.PropTypes.func.isRequired
   },
   getInitialState: function() {
     return {
@@ -5692,10 +5703,11 @@ var NotificationsPanel = React.createClass({
   },
   render: function() {
     return (
-      <div className="notificationsPanel readerNavMenu noHeader">
+      <div className="notificationsPanel systemPanel readerNavMenu noHeader">
         <div className="content">
           <div className="contentInner">
             <h1>
+              <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
               <span className="en">Notifications</span>
               <span className="he">התראות</span>
             </h1>
