@@ -29,7 +29,7 @@ from django.contrib.auth.models import User
 from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
-from sefaria.model.user_profile import user_link, user_started_text
+from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError
 # noinspection PyUnresolvedReferences
@@ -1683,7 +1683,10 @@ def notifications_read_api(request):
                 continue
             notification.mark_read().save()
 
-        return jsonResponse({"status": "ok"})
+        return jsonResponse({
+                                "status": "ok", 
+                                "unreadCount": unread_notifications_count_for_user(request.user.id)
+                            })
 
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})

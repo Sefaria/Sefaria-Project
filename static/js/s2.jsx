@@ -5672,10 +5672,9 @@ var NotificationsPanel = React.createClass({
     });
     if (ids.length) {
       $.post("/api/notifications/read", {notifications: JSON.stringify(ids)}, function(data) {
-        var unread = Sefaria.notificationCount - ids.length;
         $(".notification.unread").addClass("marked");
-        this.props.setUnreadNotificationsCount(unread);
-      }.bind(this));     
+        this.props.setUnreadNotificationsCount(data.unreadCount);
+      }.bind(this));
     }
   },
   getMoreNotifications: function() {
