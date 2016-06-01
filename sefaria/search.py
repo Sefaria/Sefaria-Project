@@ -107,6 +107,13 @@ def delete_text(oref, version, lang):
         logger.error(u"ERROR deleting {} / {} / {} : {}".format(oref.normal(), version, lang, e))
 
 
+def delete_sheet(id):
+    try:
+        es.delete(SEARCH_INDEX_NAME, "sheet", id)
+    except Exception, e:
+        logger.error(u"ERROR deleting sheet {}".format(id))
+
+
 def make_text_index_document(tref, version, lang):
     """
     Create a document for indexing from the text specified by ref/version/lang
