@@ -335,6 +335,9 @@ body.dark {
   direction: rtl;
   text-align: right;
 }
+.readerPanel.bilingual .he {
+    display: none;
+}
 .readerPanel.hebrew {
   direction: rtl;
 }
