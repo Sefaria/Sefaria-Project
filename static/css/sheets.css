@@ -1402,6 +1402,7 @@ input[type="file"] {
 .sheetsMenuBarItem {
 	display: inline-block;
 	margin: 10px 20px;
+	font-size: 16px;
 }
 
 #fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu {
@@ -1457,6 +1458,8 @@ input[type="file"] {
 	background-color: #eee;
 	padding-top: 40px;
 	text-align: center;
+	font-family: "Montserrat", "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
+	font-size: 16px;
 }
 
 
@@ -1491,13 +1494,23 @@ input[type="file"] {
 }
 
 
+.addInterfaceButton:first-of-type {
+	border-left: 1px solid #cecece;
+	border-radius: 5px 0 0 5px;
+
+}
+.addInterfaceButton:last-of-type {
+	border-right: 1px solid #cecece;
+	border-radius: 0 5px 5px 0;
+}
+
 .addInterfaceButton{
-	width: 105px;
+	width: 106px;
 	color: #999;
 	margin: 10px -2px;
 	padding: 20px;
-	border-left: 1px solid #fff;
-	border-right: 1px solid #fff;
+	border-left: 1px solid rgba(255,255,255,0);
+	border-right: 1px solid rgba(255,255,255,0);
 	border-top: 1px solid #cecece;
 	border-bottom: 1px solid #cecece;
 	display: inline-block;
@@ -1510,6 +1523,8 @@ input[type="file"] {
 	border-left: 1px solid #6c6c6c;
 	border-right: 1px solid #6c6c6c;
 	color: black;
+	border-radius: 5px;
+
 }
 
 
