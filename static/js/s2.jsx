@@ -1925,7 +1925,6 @@ var ReaderNavigationMenu = React.createClass({
         "Liturgy",
         "Philosophy",
         "Tosefta",
-        "Parshanut",
         "Chasidut",
         "Musar",
         "Responsa",

@@ -437,7 +437,8 @@ def hebrew_term(s):
 		"Shita Mekubetzet":     u'שיטה מקובצת',
 		"Modern Works":		u"יצירות מודרניות",
 		"Maharshal":		u'מהרש"ל',
-		"Gur Aryeh":		u'גור אריה'
+		"Gur Aryeh":		u'גור אריה',
+		"Tur and Commentaries": u'טור ומפרשים'
 	}
 
 	pseudo_categories = {
@@ -519,6 +520,7 @@ def hebrew_term(s):
 		"Contents":         u"תוכן",
 		"Article":	    u"סעיף",
 		"Shoresh":	u"שורש",
+		"Story":	u"סיפור",
 		"Remez":	u"רמז"
 	}
 
