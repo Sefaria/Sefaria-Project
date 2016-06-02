@@ -1629,7 +1629,7 @@ var ReaderPanel = React.createClass({
     if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation" || this.state.menuOpen == "compare") {
       var menu = React.createElement(ReaderNavigationMenu, {
         home: this.state.menuOpen === "home",
-        compare: this.state.menuOpen === "compare",
+        multiPanel: this.props.multiPanel,
         categories: this.state.navigationCategories || [],
         settings: this.state.settings,
         setCategories: this.setNavigationCategories || [],
@@ -1968,6 +1968,7 @@ var ReaderNavigationMenu = React.createClass({
     onRecentClick: React.PropTypes.func.isRequired,
     closePanel: React.PropTypes.func,
     hideNavHeader: React.PropTypes.bool,
+    multiPanel: React.PropTypes.bool,
     home: React.PropTypes.bool,
     compare: React.PropTypes.bool
   },
@@ -2229,17 +2230,17 @@ var ReaderNavigationMenu = React.createClass({
         )
       ), React.createElement(
         'a',
-        { className: 'sheetsLink', style: sheetsStyle, href: '/explore' },
+        { className: 'sheetsLink', style: sheetsStyle, href: '/visualizations' },
         React.createElement('i', { className: 'fa fa-link' }),
         React.createElement(
           'span',
           { className: 'en' },
-          'Link Explorer'
+          'Visualizations'
         ),
         React.createElement(
           'span',
           { className: 'he' },
-          'מפת ציטוטים'
+          'חזותיים'
         )
       ), React.createElement(
         'a',
@@ -2330,7 +2331,7 @@ var ReaderNavigationMenu = React.createClass({
             React.createElement(ReaderNavigationMenuSection, { title: 'Browse', heTitle: 'טקסטים', content: categories }),
             React.createElement(ReaderNavigationMenuSection, { title: 'Calendar', heTitle: 'לוח יומי', content: calendar }),
             this.props.compare ? null : React.createElement(ReaderNavigationMenuSection, { title: 'Resources', heTitle: 'קהילה', content: resources }),
-            this.props.compare ? null : siteLinks
+            this.props.multiPanel ? null : siteLinks
           )
         )
       );
