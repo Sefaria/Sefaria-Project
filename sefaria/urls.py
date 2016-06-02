@@ -5,7 +5,7 @@ from django.http import HttpResponseRedirect
 
 from emailusernames.forms import EmailAuthenticationForm
 
-from sefaria.forms import HTMLPasswordResetForm
+from sefaria.forms import HTMLPasswordResetForm, SefariaLoginForm
 from sefaria.settings import DOWN_FOR_MAINTENANCE
 
 admin.autodiscover()
@@ -211,7 +211,7 @@ urlpatterns += patterns('sheets.views',
 
 # Registration
 urlpatterns += patterns('',
-    url(r'^login/?$', 'sefaria.views.login', {'authentication_form': EmailAuthenticationForm}, name='login'),
+    url(r'^login/?$', 'sefaria.views.login', {'authentication_form': SefariaLoginForm}, name='login'),
     url(r'^logout/?$', 'django.contrib.auth.views.logout', {'next_page': '/', 'redirect_field_name': 'next'}, name='logout'),
     url(r'^register/?$', 'sefaria.views.register', name='register'),
     url(r'^password/reset/?$', 'django.contrib.auth.views.password_reset', {'password_reset_form': HTMLPasswordResetForm}, name='password_reset'),

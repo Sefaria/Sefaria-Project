@@ -9,7 +9,7 @@ Includes logic for subscribing to mailing list on register and for
 from django import forms
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import *
-from emailusernames.forms import EmailUserCreationForm
+from emailusernames.forms import EmailUserCreationForm, EmailAuthenticationForm
 from emailusernames.utils import get_user, user_exists
 from sefaria.client.util import subscribe_to_announce
 from captcha.fields import ReCaptchaField
@@ -18,10 +18,18 @@ from sefaria.local_settings import DEBUG
 SEED_GROUP = "User Seeds"
 
 
+class SefariaLoginForm(EmailAuthenticationForm):
+    email = forms.EmailField(max_length=75, widget=forms.TextInput(attrs={'placeholder': 'Email Address'}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Password'}))
+
+
+
 class NewUserForm(EmailUserCreationForm):
-    first_name = forms.CharField()
-    last_name = forms.CharField()
-    subscribe_announce = forms.BooleanField(label="Receive important announcements",  initial=True, required=False)
+    email = forms.EmailField(max_length=75, widget=forms.TextInput(attrs={'placeholder': 'Email Address', 'autocomplete': 'off'}))
+    first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'First Name', 'autocomplete': 'off'}))
+    last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Last Name', 'autocomplete': 'off'}))
+    password1 = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Password', 'autocomplete': 'off'}))
+    #subscribe_announce = forms.BooleanField(label="Receive important announcements",  initial=True, required=False)
     if not DEBUG:
         captcha = ReCaptchaField(attrs={'theme' : 'clean'})
     
@@ -32,7 +40,8 @@ class NewUserForm(EmailUserCreationForm):
     def __init__(self, *args, **kwargs):
         super(EmailUserCreationForm, self).__init__(*args, **kwargs)
         del self.fields['password2']
-        self.fields.keyOrder = ["email", "first_name", "last_name", "password1", "subscribe_announce"]
+        self.fields.keyOrder = ["email", "first_name", "last_name", "password1"]
+        #self.fields.keyOrder.append("subscribe_announce")
         if not DEBUG:
             self.fields.keyOrder.append("captcha")
 
@@ -60,11 +69,12 @@ class NewUserForm(EmailUserCreationForm):
                
         if commit:
             user.save()
-        if self.cleaned_data["subscribe_announce"]:
+        """if self.cleaned_data["subscribe_announce"]:
             try:
                 subscribe_to_announce(user.email, first_name=user.first_name, last_name=user.last_name)
             except:
                 pass
+        """
         return user
 
 

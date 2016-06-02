@@ -12,12 +12,15 @@
 {% else %}
 	<div id="login" class="registrationContent">
 	{% if message %}<p id="message">{{ message }}</p>{% endif %}
-	<h1>Login to Sefaria</h1>
+	<h1>
+        <span class="en">Login to Sefaria</span>
+        <!---<span class="he">התחבר לספאריה</span>--->
+    </h1>
 	{% if form.errors %}
 	<p class="error">Your username and password didn't match. Please try again.</p>
 	{% endif %}
 
-	<form method="post" action="{% url login %}">
+	<form id="login-form" method="post" action="{% url login %}">
 		{% csrf_token %}
 
 		<p>
@@ -29,11 +32,12 @@
 		    <td>{{ form.password }}</td>
 		</p>
 
-		<button type="submit" class="btn btn-primary btn-large">Login</button> <a href="{% url password_reset %}" id="resetLink">Forgot your password?</a>
+		<button type="submit" class="btn btn-primary btn-large">Login</button>
+        <a href="{% url password_reset %}" id="resetLink">Forgot your password?</a>
 		<input type="hidden" name="next" value="{{ next }}" />
 	</form>
 	<div class="clearfix"></div>
-	<a href="{% url register %}{% if next %}?next={{ next }}{% endif %}">Create a new account.</a>
+	<a href="{% url register %}{% if next %}?next={{ next }}{% endif %}">Create a new account</a>
 	</div>
 {% endif %}
 {% endblock %}
