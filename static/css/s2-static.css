@@ -1,0 +1,108 @@
+.wrapper{
+    background-color: #F9F9F7;
+    font-family: "adobe-garamond-pro", Georgia, serif;
+}
+
+h1{
+    text-align: center;
+    color: #555;
+    height: 70px;
+    position: relative;
+    font-size: 26px;
+    font-weight: lighter;
+    letter-spacing: 1px;
+}
+
+.registrationContent label{
+    display: none;
+}
+
+.registrationContent input{
+    padding: 20px 20px;
+    margin: 0;
+    cursor: pointer;
+    font-size: 15px;
+    border-radius: 4px;
+    box-shadow: none;
+    border: 1px solid #bbb;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+    color: #999;
+    font-size: 14px;
+}
+
+.registrationContent ::placeholder{
+    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+    color: #999;
+    font-size: 14px;
+}
+
+.registrationContent ::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+    color: #999;
+    font-size: 14px;
+    font-style: normal;
+}
+.registrationContent ::-moz-placeholder { /* Firefox 19+ */
+    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+    color: #999;
+    font-size: 14px;
+}
+.registrationContent :-ms-input-placeholder { /* IE 10+ */
+    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+    color: #999;
+    font-size: 14px;
+    font-style: normal;
+}
+.registrationContent :-moz-placeholder { /* Firefox 18- */
+    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+    color: #999;
+    font-size: 14px;
+    font-style: normal;
+}
+
+/* Override Chrome's yellow autofill. Change the white to any color ;) */
+.registrationContent input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0px 1000px white inset;
+}
+
+.registrationContent button{
+    all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
+    display: block;
+    width: 100%;
+    color: white;
+    background-color: #212E50;
+    border: 1px solid #212E50;
+    border-radius: 4px;
+    padding: 12px 0px;
+    margin-top: 30px;
+    cursor: pointer;
+    font-size: 15px;
+    letter-spacing: 1px;
+    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.registrationContent button:hover{
+    background-color: #212E50;
+    color: #999;
+}
+
+
+.registrationContent a{
+    display: block;
+    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+    text-align: center;
+    color: #999;
+    font-size: 14px;
+    font-style: normal;
+}
+
+#login.registrationContent #resetLink{
+    margin: 20px 0;
+    color: #999;
+    font-size: 14px;
+    font-style: normal;
+}
