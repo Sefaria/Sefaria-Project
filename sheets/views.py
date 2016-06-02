@@ -781,7 +781,7 @@ def make_sheet_from_text_api(request, ref, sources=None):
 	return redirect("/sheets/%d" % sheet["id"])
 
 
-def sheet_to_html_string(sheet, request=None):
+def sheet_to_html_string(sheet):
 	"""
 	Create the html string of sheet with sheet_id.
 	"""
@@ -813,8 +813,6 @@ def sheet_to_html_string(sheet, request=None):
 		"assignments_from_sheet": assignments_from_sheet(sheet['id']),
 	}
 
-	if request is not None:
-		return render_to_string('sheets.html', context, RequestContext(request))
 	return render_to_string('sheet_for_gdrive.html', context).encode('utf-8')
 
 
