@@ -1556,7 +1556,7 @@ var ReaderPanel = React.createClass({
     if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation" || this.state.menuOpen == "compare") {
       var menu = (<ReaderNavigationMenu 
                     home={this.state.menuOpen === "home"}
-                    compare={this.state.menuOpen === "compare"}
+                    multiPanel={this.props.multiPanel}
                     categories={this.state.navigationCategories || []}
                     settings={this.state.settings}
                     setCategories={this.setNavigationCategories || []}
@@ -1878,6 +1878,7 @@ var ReaderNavigationMenu = React.createClass({
     onRecentClick: React.PropTypes.func.isRequired,
     closePanel:    React.PropTypes.func,
     hideNavHeader: React.PropTypes.bool,
+    multiPanel:    React.PropTypes.bool,
     home:          React.PropTypes.bool,
     compare:       React.PropTypes.bool
   },
@@ -2053,10 +2054,10 @@ var ReaderNavigationMenu = React.createClass({
                         <span className="en">Source Sheets</span>
                         <span className="he">דפי מקורות</span>
                       </span>),
-                     (<a className="sheetsLink" style={sheetsStyle} href="/explore">
+                     (<a className="sheetsLink" style={sheetsStyle} href="/visualizations">
                         <i className="fa fa-link"></i>
-                        <span className="en">Link Explorer</span>
-                        <span className="he">מפת ציטוטים</span>
+                        <span className="en">Visualizations</span>
+                        <span className="he">חזותיים</span>
                       </a>),
                     (<a className="sheetsLink" style={sheetsStyle} href="/people">
                         <i className="fa fa-book"></i>
@@ -2113,7 +2114,7 @@ var ReaderNavigationMenu = React.createClass({
                   <ReaderNavigationMenuSection title="Browse" heTitle="טקסטים" content={categories} />
                   <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} />
                   { this.props.compare ? null : (<ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />) }
-                  { this.props.compare ? null : siteLinks }
+                  { this.props.multiPanel ? null : siteLinks }
                 </div>
               </div>
             </div>);
