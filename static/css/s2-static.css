@@ -3,8 +3,25 @@
     font-family: "adobe-garamond-pro", Georgia, serif;
 }
 
-h1{
+#content{
+    width: 60%;
     text-align: center;
+    margin: auto;
+}
+
+.container{
+    width: 100%;
+}
+
+.page-title{
+    margin-bottom: 50px;
+}
+
+.row{
+
+}
+
+h1{
     color: #555;
     height: 70px;
     position: relative;
@@ -12,6 +29,37 @@ h1{
     font-weight: lighter;
     letter-spacing: 1px;
 }
+
+h2{
+    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+    font-weight: normal;
+}
+
+.additional-text h3{
+    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+    font-weight: normal;
+    text-transform: uppercase;
+    color: #aaa;
+    margin-bottom: 10px;
+    margin-top: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+p.tagline{
+    font-style: italic;
+    margin-bottom: 25px;
+}
+.static-text{
+    margin: 0;
+    text-align: justify
+}
+
+.static-text p{
+    font-size: 20px;
+    line-height: 30px;
+    color: #555;
+    }
 
 .registrationContent label{
     display: none;
