@@ -963,7 +963,9 @@ var Header = React.createClass({
         });
         var resp = matches.slice(0, 16); // limits return to 16 items
         //if (exact) {
-        resp.push('' + this._searchOverridePre + request.term + this._searchOverridePost);
+        if (resp.length > 0) {
+          resp.push('' + this._searchOverridePre + request.term + this._searchOverridePost);
+        }
         //}
         response(resp);
       }.bind(this)
