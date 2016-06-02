@@ -632,6 +632,7 @@ $(function() {
 		    evt.data.dataValue = evt.data.dataValue.replace(/&nbsp;/g,' ');
 		  }, null, null, 9);
 		});
+		CKEDITOR.dtd.$removeEmpty.span = 0;
 		CKEDITOR.config.font_names =
 			'Arial/Arial, Helvetica, sans-serif;' +
 			'Comic Sans/Comic Sans MS, cursive;' +
