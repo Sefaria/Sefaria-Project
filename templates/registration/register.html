@@ -5,8 +5,8 @@
 {% block content %}
 
 <div id="register" class="registrationContent">
-  <h1>Create an Account</h1>
-  <form action="{% url register %}" method="post">
+  <h1>Create Your Account</h1>
+  <form id="register-form" action="{% url register %}" method="post" autocomplete="false">
     {% csrf_token %}
     {{ form.as_p }}
     {% if next %}
@@ -15,7 +15,7 @@
     <button type="submit" class="btn btn-primary btn-large">Create Account</button>
   </form>
   <div class="clearfix"></div>
-  <a href="{% url login %}{% if next %}?next={{ next }}{% endif %}">I have an account already.</a>
+  <a href="{% url login %}{% if next %}?next={{ next }}{% endif %}">Already have an account? Log in</a>
 
 </div>
 {% endblock %}

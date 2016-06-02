@@ -11,6 +11,10 @@
     <link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
     <link rel="stylesheet" href="/static/css/base.css">
     <link rel="stylesheet" href="/static/css/common.css">
+    {% if S2 or request.flavour == "mobile" %}
+        <link rel="stylesheet" href="/static/css/s2-static.css">
+
+    {%  endif %}
     <style>
         {% block css %}{% endblock %}
     </style>
@@ -35,22 +39,28 @@
 <body>
     <div class="wrapper">
         <div id="content" class="{% if contentLang == "bilingual" %}english{% else %}{{ contentLang }}{% endif %}">
-            {% include "header.html" %}
+            {% if not S2 and not request.flavour == "mobile" %}
+                {% include "header.html" %}
+                {% include "elements/login_prompt.html" with msg="Please log in to edit." %}
+            {% endif %}
             {% block content %}{% endblock %}
-            {% include "elements/login_prompt.html" with msg="Please log in to edit." %}
+
         </div>
     </div>
-	
-    {% block footer %}
-        {% include "elements/footer.html" with class=contentLang %}
-    {% endblock %}
+
+    {% if not S2 and not request.flavour == "mobile" %}
+        {% block footer %}
+            {% include "elements/footer.html" with class=contentLang %}
+        {% endblock %}
+    {% endif %}
 
     {% include "js/jquery.html" %}
     <script src="/static/js/jquery.tooltipster.min.js"></script>
     <script>{% include "js/django-csrf.js" %}</script>
     <script src="/static/js/util.js"></script>
-    {% include "js/headers.js" %}
-    
+    {% if not S2 and not request.flavour == "mobile" %}
+        {% include "js/headers.js" %}
+    {%  endif %}
     {% block js %}{% endblock %}
     {% if S2 or request.flavour == "mobile" %}
         {% include "elements/s2_header.html" %}

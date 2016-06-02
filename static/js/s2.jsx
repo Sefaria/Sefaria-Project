@@ -941,24 +941,25 @@ var Header = React.createClass({
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete({
       position: {my: "left-12 top+14", at: "left bottom"},
       select: function( event, ui ) {
-        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  //This will dissapear when the next line executes, but the eye can sometimes catch it.
+        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  //This will disappear when the next line executes, but the eye can sometimes catch it.
         this.submitSearch(ui.item.value);
         return false;
       }.bind(this),
       source: function( request, response ) {
-        var exact = false;
+        // Commented out code will only put the "Search for: " in the list if the search is an exact match.
+        //var exact = false;
         var matches = $.map( Sefaria.books, function(tag) {
             if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
-              if (tag.toUpperCase() == request.term.toUpperCase()) {
-                exact = true;
-              }
+              //if (tag.toUpperCase() == request.term.toUpperCase()) {
+              //  exact = true;
+              //}
               return tag;
             }
           });
         var resp = matches.slice(0, 16); // limits return to 16 items
-        if (exact) {
+        //if (exact) {
           resp.push(`${this._searchOverridePre}${request.term}${this._searchOverridePost}`)
-        }
+        //}
         response(resp);
       }.bind(this)
     });
@@ -1556,7 +1557,7 @@ var ReaderPanel = React.createClass({
     if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation" || this.state.menuOpen == "compare") {
       var menu = (<ReaderNavigationMenu 
                     home={this.state.menuOpen === "home"}
-                    compare={this.state.menuOpen === "compare"}
+                    multiPanel={this.props.multiPanel}
                     categories={this.state.navigationCategories || []}
                     settings={this.state.settings}
                     setCategories={this.setNavigationCategories || []}
@@ -1880,6 +1881,7 @@ var ReaderNavigationMenu = React.createClass({
     onRecentClick: React.PropTypes.func.isRequired,
     closePanel:    React.PropTypes.func,
     hideNavHeader: React.PropTypes.bool,
+    multiPanel:    React.PropTypes.bool,
     home:          React.PropTypes.bool,
     compare:       React.PropTypes.bool
   },
@@ -2055,10 +2057,10 @@ var ReaderNavigationMenu = React.createClass({
                         <span className="en">Source Sheets</span>
                         <span className="he">דפי מקורות</span>
                       </span>),
-                     (<a className="sheetsLink" style={sheetsStyle} href="/explore">
+                     (<a className="sheetsLink" style={sheetsStyle} href="/visualizations">
                         <i className="fa fa-link"></i>
-                        <span className="en">Link Explorer</span>
-                        <span className="he">מפת ציטוטים</span>
+                        <span className="en">Visualizations</span>
+                        <span className="he">חזותיים</span>
                       </a>),
                     (<a className="sheetsLink" style={sheetsStyle} href="/people">
                         <i className="fa fa-book"></i>
@@ -2115,7 +2117,7 @@ var ReaderNavigationMenu = React.createClass({
                   <ReaderNavigationMenuSection title="Browse" heTitle="טקסטים" content={categories} />
                   <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} />
                   { this.props.compare ? null : (<ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />) }
-                  { this.props.compare ? null : siteLinks }
+                  { this.props.multiPanel ? null : siteLinks }
                 </div>
               </div>
             </div>);

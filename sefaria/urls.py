@@ -5,7 +5,7 @@ from django.http import HttpResponseRedirect
 
 from emailusernames.forms import EmailAuthenticationForm
 
-from sefaria.forms import HTMLPasswordResetForm
+from sefaria.forms import HTMLPasswordResetForm, SefariaLoginForm
 from sefaria.settings import DOWN_FOR_MAINTENANCE
 
 admin.autodiscover()
@@ -211,7 +211,7 @@ urlpatterns += patterns('sheets.views',
 
 # Registration
 urlpatterns += patterns('',
-    url(r'^login/?$', 'sefaria.views.login', {'authentication_form': EmailAuthenticationForm}, name='login'),
+    url(r'^login/?$', 'sefaria.views.login', {'authentication_form': SefariaLoginForm}, name='login'),
     url(r'^logout/?$', 'django.contrib.auth.views.logout', {'next_page': '/', 'redirect_field_name': 'next'}, name='logout'),
     url(r'^register/?$', 'sefaria.views.register', name='register'),
     url(r'^password/reset/?$', 'django.contrib.auth.views.password_reset', {'password_reset_form': HTMLPasswordResetForm}, name='password_reset'),
@@ -226,21 +226,22 @@ static_pages = [
     "strategy",
     "supporters",
     "team",
-    "translation-guidelines",
-    "transliteration-guidelines",
-    "even-haezer-guidelines",
-    "related-projects",
+    "visualizations",
     "jobs",
     "terms",
     "privacy-policy",
-    "meetup1",
-    "meetup2",
-    "random-walk-through-torah",
     "shraga-silverstein",
     "linker",
     "sefaria-edition",
     "sefaria-community-translation",
     "contributed-to-sefaria",
+    "translation-guidelines",
+    "transliteration-guidelines",
+    "even-haezer-guidelines",
+    "related-projects",
+    "meetup1",
+    "meetup2",
+    "random-walk-through-torah",
 ]
 
 # Static and Semi Static Content 
@@ -274,9 +275,7 @@ urlpatterns += patterns('reader.views',
     (r'^visualize/library/(?P<lang>[enh]*)/?(?P<cats>.*)/?$', 'visualize_library'),
     (r'^visualize/library/?(?P<cats>.*)/?$', 'visualize_library'),
     (r'^visualize/toc$', 'visualize_toc'),
-    (r'^visualize/torah-quant$', 'visualize_torah_quant'),
-    (r'^visualize/steve$', 'visualize_steve'),
-    (r'^visualize/yoni$', 'visualize_yoni'),
+    (r'^visualize/parasha-colors$', 'visualize_parasha_colors'),
     (r'^visualize/links_through_rashi$', 'visualize_rashi_interlinks'),
 )
 

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Visualizations | Sefaria{% endblock %}
+
+{% block content %}
+<div id="visualizationsPage" class="static">
+    <div class="inner">
+        <h1>
+            <span class="en">Visualizations</span>
+            <span class="he"></span>
+        </h1>
+
+        <div class="section">
+            <h2>
+               <span class="en">Link Explorer</span>
+               <span class="he"></span>
+            </h2>
+            <div class="description">
+                <span class="en">Explore over 30,000 instances of the Talmud quoting a verse from Tanakh. Zoom in to particular books either above or below to explore deeper.</span>
+                <span class="he"></span>
+            </div>
+            <a href="/explore">
+                <img src="/static/img/link-explorer.png" class="fullWidth">
+            </a>
+        </div>
+
+        <div class="section">
+            <h2>
+               <span class="en">Words Sunburst</span>
+               <span class="he"></span>
+            </h2>
+            <div class="description">
+                <span class="en">How big is Torah compared to Talmud? This sunburst diagram lets you see the number of words in the texts and categories of Sefaria's library (which is growing every day!).</span>
+                <span class="he"></span>
+            </div>
+            <a href="/visualize/library">
+                <img src="/static/img/words-sunburst.png" class="fullWidth">
+            </a>
+        </div>
+
+        <div class="section">
+            <h2>
+               <span class="en">Liz Shayne's Visualizations</span>
+               <span class="he"></span>
+               <i class="fa fa-external-link"></i>
+            </h2>
+            <div class="description">
+                <span class="en">While working as a graduate student at UCSB, Liz Shayne put her background in digital humanities to work on the Sefaria dataset, which snagged her (and us) a mention in <a target="_blank" href="http://www.wired.com/2014/07/the-network-structure-of-jewish-texts/">Wired</a>.</span>
+                <span class="he"></span>
+            </div>
+            <a target="_blank" href="https://lizshayne.wordpress.com/2014/06/17/sefaria_in_gephi/">
+                <img src="/static/img/liz-shayne-visualizations.png" class="fullWidth">
+            </a>
+        </div>
+
+        <div class="section">
+            <h2>
+               <span class="en">Parasha Stats</span>
+               <span class="he"></span>
+            </h2>
+            <div class="description">
+                <span class="en">Visualizing stats about each Parasha, and deriving a color for each depending on its total gematria.</span>
+                <span class="he"></span>
+            </div>
+            <a href="/visualize/parasha-colors">
+                <img src="/static/img/parasha-colors.png" class="fullWidth">
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
