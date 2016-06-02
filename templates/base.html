@@ -12,19 +12,29 @@
     <link rel="stylesheet" href="/static/css/base.css">
     <link rel="stylesheet" href="/static/css/common.css">
     {% if S2 or request.flavour == "mobile" %}
+        <link rel="stylesheet" href="/static/css/s2.css">
         <link rel="stylesheet" href="/static/css/s2-static.css">
 
     {%  endif %}
     <style>
         {% block css %}{% endblock %}
     </style>
+    {% if S2 or request.flavour == "mobile" %}
+    <style>
+      body {
+        overflow: visible;
+      }
+    </style>
+    {%  endif %}
 
 	<script>
         {% include "js/analytics.js" %}
     </script>
 
     {% if not OFFLINE %}
+    <script src="https://use.typekit.net/aeg8div.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/webfont/1.5.10/webfont.js"></script>
+    <script>try{Typekit.load({ async: true });}catch(e){}</script>
     <script>
       WebFont.load({
         google: {
@@ -43,6 +53,9 @@
                 {% include "header.html" %}
                 {% include "elements/login_prompt.html" with msg="Please log in to edit." %}
             {% endif %}
+            {% if S2 or request.flavour == "mobile" %}
+                {% include "elements/s2_header.html" %}
+            {% endif %}
             {% block content %}{% endblock %}
 
         </div>
@@ -57,13 +70,58 @@
     {% include "js/jquery.html" %}
     <script src="/static/js/jquery.tooltipster.min.js"></script>
     <script>{% include "js/django-csrf.js" %}</script>
-    <script src="/static/js/util.js"></script>
     {% if not S2 and not request.flavour == "mobile" %}
         {% include "js/headers.js" %}
     {%  endif %}
     {% block js %}{% endblock %}
     {% if S2 or request.flavour == "mobile" %}
-        {% include "elements/s2_header.html" %}
-    {% endif %}
+        <script src="/static/js/headroom.js"></script>
+        <script src="/static/js/jquery.scrollTo.js"></script>
+        <script src="/data.js"></script>
+        <script src="/static/js/sefaria.js"></script>
+        {% if DEBUG %}
+        <script src="/static/js/react.js"></script>
+        <script src="/static/js/react-dom.js"></script>
+        <script src="/static/js/JSXTransformer.js"></script>
+        <script type="text/jsx" src="/static/js/s2.jsx"></script>
+        {% else %}
+        <script src="/static/js/react-min.js"></script>
+        <script src="/static/js/react-dom-min.js"></script>
+        <script src="/static/js/s2.js"></script>
+        {% endif %}
+        <script {% if DEBUG %}type="text/jsx"{% endif %}>
+          {% autoescape off %}
+          $(function() {
+
+            var settings = {
+              language: "{{ contentLang }}",
+              layoutDefault: $.cookie("layoutDefault") || "segmented",
+              layoutTalmud:  $.cookie("layoutTalmud")  || "continuous",
+              layoutTanach:  $.cookie("layoutTanach")  || "segmented",
+              color:         $.cookie("color")         || "light",
+              fontSize:      $.cookie("fontSize")      || 62.5
+            };
+            var multiPanel    = $(window).width() > 600;
+
+            ReactDOM.render(
+              React.createElement(ReaderApp, {
+                headerMode: true,
+                multiPanel: multiPanel,
+                initialRefs: [],
+                initialFilter: [],
+                initialMenu: null,
+                initialQuery: null,
+                initialSheetsTag: null,
+                initialNavigationCategories: [],
+                initialSettings: settings,
+                initialPanels: []}),
+              document.getElementById('s2')
+            );
+
+          });
+          {% endautoescape %}
+        </script>
+    {%  endif %}
+
 </body>
 </html>
