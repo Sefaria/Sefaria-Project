@@ -2502,48 +2502,6 @@ h1 .languageToggle .he {
 input {
   outline: none;
 }
-.static {
-  color: #333333;
-  background-color: #F9F9F7;
-}
-.static .inner {
-  width: 94%;
-  max-width: 660px;
-  margin: 0 auto;
-  padding: 40px 0;
-}
-.static .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.static .he {
-  font-family: "Open Sans Hebrew", sans-serif;
-}
-.static h1 {
-  text-align: center;
-  font-weight: lighter;
-  font-size: 26px;
-  margin-bottom: 20px;
-}
-.static h2 {
-  font-weight: lighter;
-  font-size: 15px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: #999;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 16px;
-  margin-bottom: 16px;
-  line-height: 1;
-}
-.static .section {
-  margin-bottom: 40px;
-}
-.static img.fullWidth {
-  width: 100%;
-  box-sizing: border-box;
-  margin: 30px 0;
-  border: 1px solid #ddd;
-}
 
 .lexicon-content{
   /*max-height:45%;*/

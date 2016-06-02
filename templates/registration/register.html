@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<div id="register" class="registrationContent">
+<div id="register" class="registrationContent static">
   <h1>Create Your Account</h1>
   <form id="register-form" action="{% url register %}" method="post" autocomplete="false">
     {% csrf_token %}

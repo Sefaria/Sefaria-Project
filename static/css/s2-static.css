@@ -1,24 +1,63 @@
+/* FOUT or wait?
+.wf-loading {
+    display: none;
+}
+*/
 .wrapper{
     background-color: #F9F9F7;
     font-family: "adobe-garamond-pro", Georgia, serif;
-}
 
-#content{
-    width: 60%;
-    text-align: center;
-    margin: auto;
 }
-
 .container{
     width: 100%;
 }
-
 .page-title{
     margin-bottom: 50px;
 }
-
 .row{
 
+}
+.static {
+  color: #333333;
+  background-color: #F9F9F7;
+}
+.static .inner {
+  width: 94%;
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 40px 0;
+}
+.static .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.static .he {
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+.static h1 {
+  text-align: center;
+  font-weight: lighter;
+  font-size: 26px;
+  margin-bottom: 20px;
+}
+.static h2 {
+  font-weight: lighter;
+  font-size: 15px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #999;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+.static .section {
+  margin-bottom: 40px;
+}
+.static img.fullWidth {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 30px 0;
+  border: 1px solid #ddd;
 }
 
 h1{
@@ -26,6 +65,7 @@ h1{
     height: 70px;
     position: relative;
     font-size: 26px;
+    line-height: 1;
     font-weight: lighter;
     letter-spacing: 1px;
 }
@@ -45,7 +85,6 @@ h2{
     padding-bottom: 15px;
     border-bottom: 1px solid #eee;
 }
-
 p.tagline{
     font-style: italic;
     margin-bottom: 25px;
@@ -54,17 +93,50 @@ p.tagline{
     margin: 0;
     text-align: justify
 }
-
 .static-text p{
     font-size: 20px;
     line-height: 30px;
     color: #555;
-    }
-
+}
+#homePage {
+    overflow: hidden;
+    font-family: "adobe-garamond-pro", Georgia, serif;
+    text-align: center;
+}
+#homePage #homeCover {
+    color: white;
+    background-image: url("/static/img/landing.png");
+    height: 600px;
+    padding: 160px 0;
+    box-sizing: border-box;
+}
+#homePage #homeCover h1 {
+    color: white;
+    font-weight: normal;
+    font-size: 49px;
+    margin-bottom: 40px;
+}
+#homePage #homeCover .sub {
+    font-size: 22px;
+    font-style: italic;
+    margin: 0;
+}
+#homePage #homeCover a {
+    color: white;
+    font-style: normal;
+}
+#homePage #homeCover .button {
+    margin-top: 80px;
+    text-transform: uppercase;
+    padding: 16px 34px;
+}
+.registrationContent {
+    text-align: center;
+    margin: 100px auto 0;
+}
 .registrationContent label{
     display: none;
 }
-
 .registrationContent input{
     padding: 20px 20px;
     margin: 0;
@@ -78,13 +150,11 @@ p.tagline{
     color: #999;
     font-size: 14px;
 }
-
 .registrationContent ::placeholder{
-    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif; 
     color: #999;
     font-size: 14px;
 }
-
 .registrationContent ::-webkit-input-placeholder { /* Chrome/Opera/Safari */
     font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
     color: #999;
@@ -108,12 +178,10 @@ p.tagline{
     font-size: 14px;
     font-style: normal;
 }
-
 /* Override Chrome's yellow autofill. Change the white to any color ;) */
 .registrationContent input:-webkit-autofill {
     -webkit-box-shadow: 0 0 0px 1000px white inset;
 }
-
 .registrationContent button{
     all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
     display: block;
@@ -152,4 +220,8 @@ p.tagline{
     color: #999;
     font-size: 14px;
     font-style: normal;
+}
+
+#visualizationsPage {
+    text-align: left;
 }

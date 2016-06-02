@@ -226,6 +226,7 @@ static_pages = [
     "strategy",
     "supporters",
     "team",
+    "help",
     "visualizations",
     "jobs",
     "terms",

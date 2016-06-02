@@ -14,31 +14,24 @@
 {% endblock %}
 
 {% block css %}
-    .wf-loading {
-        display: none;
-    }
-    #homePage { 
-        overflow: hidden;
-        padding: 120px 20px;
-        font-family: "adobe-garamond-pro", Georgia, serif;
-        text-align: center;
-    }
-    #homePage h1 {
-        font-weight: normal;
-        font-size: 44px;
-    }
-    #homePage .sub {
-        font-size: 18px;
-        color: #999;
-        font-style: italic;
-        margin-top: 50px;
-    }
 {% endblock %}
 
 {% block content %}
     <div id="homePage">
-        <h1>A Living Library of Jewish Texts</h1>
-        <div class="sub">You are currently test-driving the New Sefaria, which is still under active development. <a href="#" id="backToOldSefaria">To return to the Old Sefaria, click here</a>.</div>
+        <div id="homeCover">
+            <h1>
+                <span class="en">A Living Library of Jewish Texts</span>
+                <span class="he"></span>
+            </h1>
+            <div class="sub">
+                <span class="en">Explore thousands of open source works in Hebrew and English translation. <a href="/about">Learn More &raquo;</a></span>
+                <span class="he"></span>
+            </div>
+            <div class="button white">
+                <span class="en">Get Started</span>
+                <span class="he"></span>
+            </div>
+        </div>
     </div>
 {% endblock %}
 
