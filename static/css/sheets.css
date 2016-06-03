@@ -3,6 +3,7 @@ html {
 
 body {
 	overflow-x: visible;
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
 }
 
 #right {
@@ -720,6 +721,7 @@ body {
 .comment {
 	font-size: 17px;
 	min-height: 30px;
+	padding-top:4px;
 }
 
 .outsideBi {
@@ -1390,6 +1392,7 @@ input[type="file"] {
     direction: ltr;
     z-index: 21;
     padding: 13px 20px;
+	color:#999;
 }
 
 #sheet p {
@@ -1402,6 +1405,7 @@ input[type="file"] {
 .sheetsMenuBarItem {
 	display: inline-block;
 	margin: 10px 20px;
+	font-size: 16px;
 }
 
 #fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu {
@@ -1457,6 +1461,8 @@ input[type="file"] {
 	background-color: #eee;
 	padding-top: 40px;
 	text-align: center;
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	font-size: 14px;
 }
 
 
@@ -1475,9 +1481,10 @@ input[type="file"] {
   	justify-content: flex-start;
 }
 .sourceConnection{
-	width: 48%;
+	width: 47%;
 	margin: 10px 5px;
 	border: 1px solid #eee;
+	border-radius: 5px;
 	padding: 20px 0;
 	display: inline-block;
 	background-color: #fff;
@@ -1491,13 +1498,23 @@ input[type="file"] {
 }
 
 
+.addInterfaceButton:first-of-type {
+	border-left: 1px solid #cecece;
+	border-radius: 5px 0 0 5px;
+
+}
+.addInterfaceButton:last-of-type {
+	border-right: 1px solid #cecece;
+	border-radius: 0 5px 5px 0;
+}
+
 .addInterfaceButton{
-	width: 120px;
+	width: 106px;
 	color: #999;
-	margin: 10px -2px;
-	padding: 20px;
-	border-left: 1px solid #fff;
-	border-right: 1px solid #fff;
+	margin: 10px 0;
+	padding: 10px 20px;
+	border-left: 1px solid rgba(255,255,255,0);
+	border-right: 1px solid rgba(255,255,255,0);
 	border-top: 1px solid #cecece;
 	border-bottom: 1px solid #cecece;
 	display: inline-block;
@@ -1510,8 +1527,16 @@ input[type="file"] {
 	border-left: 1px solid #6c6c6c;
 	border-right: 1px solid #6c6c6c;
 	color: black;
+	border-radius: 5px;
 }
 
+.inlineAddDesc {
+    text-transform: uppercase;
+	color: #999;
+	font-size:12px;
+	margin: 20px 0 10px 0;
+
+}
 
 .flexContainer {
 	display:flex;
@@ -1522,5 +1547,69 @@ input[type="file"] {
 }
 
 #inlineAdd {
-	width: 70%;
+	width: 60%;
+}
+
+#inlineAddOr {
+	display:inline-block;
+	color: #999;
+    margin: 6px;
+
+}
+#inlineAddBrowseBox {
+	display:inline-block;
+}
+.button {
+	background-color: #0663c9 !important;
+	border-color: #0663c9 !important;
+
+}
+#customTextLanguageToggle {
+	float: right;
+    margin-top: -40px;
+    margin-right: 16px;
+}
+
+.contentToAdd {
+	padding: 5px;
+	border: 1px solid #cecece;
+	border-radius: 5px;
+	margin: 30px 15px;
+	text-align:left;
+}
+
+.contentToAdd > * {
+	margin:0 !important;
+}
+
+
+.customTextEditables.en {
+	font-family: "Times New Roman", "Georgia", serif;
+}
+.customTextEditables.he {
+	text-align: right;
+}
+#inlineAddMediaInput{
+	width:60%;
+}
+
+.s2AddedBy {
+	font-size:inherit;
+	font-style: inherit;
+	color:#999;
+	font-weight:bold;
+	display:inline;
+	float:left;
+	margin-right: 7px;
+}
+
+.s2AddedBy .userLink{
+	color:#999;
+}
+
+.commentIcon {
+	color:#999;
+	font-size: .75em;
+	float:left;
+	margin-right: 7px;
 }

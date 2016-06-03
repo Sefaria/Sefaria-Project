@@ -1002,6 +1002,21 @@ Sefaria = extend(Sefaria, {
         }
       return tags;
     },
+    _allSheetsList: null,
+    allSheetsList: function(callback) {
+      // Returns a list of all public source sheets
+      var allSheets = this._allSheetsList;
+      if (allSheets) {
+        if (callback) { callback(allSheets); }
+      } else {
+        var url = "/api/sheets/all-sheets/3"; //remove hard coded limiter here
+         Sefaria._api(url, function(data) {
+            this._allSheetsList = data;
+            if (callback) { callback(data); }
+          }.bind(this));
+        }
+      return allSheets;
+    },
     _sheetsByTag: {},
     sheetsByTag: function(tag, callback) {
       // Returns a list of public sheets matching a given tag.
