@@ -272,44 +272,45 @@ var ReaderApp = React.createClass({
       if (!states[i]) {
         debugger;
       }
+      var state = states[i];
       var hist = { url: "" };
 
-      if (states[i].menuOpen) {
-        switch (states[i].menuOpen) {
+      if (state.menuOpen) {
+        switch (state.menuOpen) {
           case "home":
             hist.title = "Sefaria: a Living Library of Jewish Texts Online";
             hist.url = "";
             hist.mode = "home";
             break;
           case "navigation":
-            var cats = states[i].navigationCategories ? states[i].navigationCategories.join("/") : "";
-            hist.title = cats ? states[i].navigationCategories.join(", ") + " | Sefaria" : "Texts | Sefaria";
+            var cats = state.navigationCategories ? state.navigationCategories.join("/") : "";
+            hist.title = cats ? state.navigationCategories.join(", ") + " | Sefaria" : "Texts | Sefaria";
             hist.url = "texts" + (cats ? "/" + cats : "");
             hist.mode = "navigation";
             break;
           case "text toc":
-            var ref = states[i].refs.slice(-1)[0];
+            var ref = state.refs.slice(-1)[0];
             var bookTitle = ref ? Sefaria.parseRef(ref).book : "404";
             hist.title = bookTitle + " | Sefaria";
             hist.url = bookTitle.replace(/ /g, "_");
             hist.mode = "text toc";
             break;
           case "book toc":
-            var bookTitle = states[i].bookRef;
+            var bookTitle = state.bookRef;
             hist.title = bookTitle + " | Sefaria";
             hist.url = bookTitle.replace(/ /g, "_");
             hist.mode = "book toc";
             break;
           case "search":
-            hist.title = states[i].searchQuery ? states[i].searchQuery + " | " : "";
+            hist.title = state.searchQuery ? states[i].searchQuery + " | " : "";
             hist.title += "Sefaria Search";
             hist.url = "search" + (states[i].searchQuery ? "&q=" + states[i].searchQuery + (!!states[i].appliedSearchFilters && !!states[i].appliedSearchFilters.length ? "&filters=" + states[i].appliedSearchFilters.join("|") : "") : "");
             hist.mode = "search";
             break;
           case "sheets":
             if (states[i].navigationSheetTag) {
-              hist.url = "sheets/tags/" + states[i].navigationSheetTag;
-              hist.title = states[i].navigationSheetTag + " | Sefaria Source Sheets";
+              hist.url = "sheets/tags/" + state.navigationSheetTag;
+              hist.title = state.navigationSheetTag + " | Sefaria Source Sheets";
               hist.mode = "sheets tag";
             } else {
               hist.url = "sheets";
@@ -328,28 +329,27 @@ var ReaderApp = React.createClass({
             hist.mode = "notifications";
             break;
         }
-      } else if (states[i].mode === "Text") {
-        //debugger;
-        hist.title = states[i].refs.slice(-1)[0];
+      } else if (state.mode === "Text") {
+        hist.title = state.refs.slice(-1)[0];
         hist.url = Sefaria.normRef(hist.title);
-        hist.version = states[i].version;
-        hist.versionLanguage = states[i].versionLanguage;
+        hist.version = state.version;
+        hist.versionLanguage = state.versionLanguage;
         hist.mode = "Text";
-      } else if (states[i].mode === "Connections") {
-        var ref = states[i].refs.slice(-1)[0];
-        hist.sources = states[i].filter.length ? states[i].filter.join("+") : "all";
+      } else if (state.mode === "Connections") {
+        var ref = state.refs.slice(-1)[0];
+        hist.sources = state.filter.length ? state.filter.join("+") : "all";
         hist.title = ref + " with " + (hist.sources === "all" ? "Connections" : hist.sources);
         hist.url = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.mode = "Connections";
-      } else if (states[i].mode === "TextAndConnections") {
-        var ref = states[i].highlightedRefs.slice(-1)[0];
-        hist.sources = states[i].filter.length ? states[i].filter[0] : "all";
+      } else if (state.mode === "TextAndConnections") {
+        var ref = state.highlightedRefs.slice(-1)[0];
+        hist.sources = state.filter.length ? state.filter[0] : "all";
         hist.title = ref + " with " + (hist.sources === "all" ? "Connections" : hist.sources);
         hist.url = Sefaria.normRef(ref); // + "?with=" + sources;
-        hist.version = states[i].version;
-        hist.versionLanguage = states[i].versionLanguage;
+        hist.version = state.version;
+        hist.versionLanguage = state.versionLanguage;
         hist.mode = "TextAndConnections";
-      } else if (states[i].mode === "Header") {
+      } else if (state.mode === "Header") {
         hist.title = document.title;
         hist.url = window.location.pathname.slice(1);
         if (window.location.search != "") {
@@ -357,6 +357,9 @@ var ReaderApp = React.createClass({
         }
         hist.mode = "Header";
       }
+      var lang = state.settings.language.substring(0, 2);
+      var connector = hist.url.indexOf("?") == -1 ? "?" : "&";
+      hist.url += connector + "lang=" + lang;
       histories.push(hist);
     }
     if (!histories.length) {
