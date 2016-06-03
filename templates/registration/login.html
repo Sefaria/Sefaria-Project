@@ -10,34 +10,34 @@
 	</p>
 
 {% else %}
-	<div id="login" class="registrationContent">
-	{% if message %}<p id="message">{{ message }}</p>{% endif %}
-	<h1>
-        <span class="en">Login to Sefaria</span>
-        <!---<span class="he">התחבר לספאריה</span>--->
-    </h1>
-	{% if form.errors %}
-	<p class="error">Your username and password didn't match. Please try again.</p>
-	{% endif %}
+	<div id="login" class="registrationContent static">
+		{% if message %}<p id="message">{{ message }}</p>{% endif %}
+		<h1>
+	        <span class="en">Login to Sefaria</span>
+	        <!---<span class="he">התחבר לספאריה</span>-->
+	    </h1>
+		{% if form.errors %}
+		<p class="error">Your username and password didn't match. Please try again.</p>
+		{% endif %}
 
-	<form id="login-form" method="post" action="{% url login %}">
-		{% csrf_token %}
+		<form id="login-form" method="post" action="{% url login %}">
+			{% csrf_token %}
 
-		<p>
-			{{ form.email.label_tag }}
-		    <td>{{ form.email }}</td>
-		</p>
-		<p>
-			{{ form.password.label_tag }}
-		    <td>{{ form.password }}</td>
-		</p>
+			<p>
+				{{ form.email.label_tag }}
+			    <td>{{ form.email }}</td>
+			</p>
+			<p>
+				{{ form.password.label_tag }}
+			    <td>{{ form.password }}</td>
+			</p>
 
-		<button type="submit" class="btn btn-primary btn-large">Login</button>
-        <a href="{% url password_reset %}" id="resetLink">Forgot your password?</a>
-		<input type="hidden" name="next" value="{{ next }}" />
-	</form>
-	<div class="clearfix"></div>
-	<a href="{% url register %}{% if next %}?next={{ next }}{% endif %}">Create a new account</a>
+			<button type="submit" class="btn btn-primary btn-large">Login</button>
+	        <a href="{% url password_reset %}" id="resetLink">Forgot your password?</a>
+			<input type="hidden" name="next" value="{{ next }}" />
+		</form>
+		<div class="clearfix"></div>
+		<a href="{% url register %}{% if next %}?next={{ next }}{% endif %}">Create a new account</a>
 	</div>
 {% endif %}
 {% endblock %}

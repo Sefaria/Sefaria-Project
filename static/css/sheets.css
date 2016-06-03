@@ -7,11 +7,11 @@ body {
 }
 
 #right {
-	width: 510px;	
+	width: 510px;
 }
 
-#languageToggle, 
-#sheetLayoutToggle { 
+#languageToggle,
+#sheetLayoutToggle {
 	display: inline-block;
 }
 
@@ -85,8 +85,8 @@ body {
 	width: 770px;
 	min-height: 980px;
 	padding: 60px 40px;
-	margin: 110px auto 56px; 
-	box-shadow: 0px 0px 6px #777;
+	margin: 130px auto 56px;
+	box-shadow: 0px 0px 2px #777;
 	font-family: "Times New Roman", "Georgia", serif;
 }
 
@@ -179,6 +179,14 @@ body {
 	right: auto;
 	left: 50px;
 	line-height: 1.2;
+}
+
+.sheetsMenuBarItem .optionsMenu i {
+	color: #999;
+}
+
+.sheetsMenuBarItem .optionsMenu {
+	background-color: #f2f2f2;
 }
 
 #addButton:hover .optionsMenu, #options:hover .optionsMenu {
@@ -356,7 +364,7 @@ body {
 #textPreview .previewWarn .btn {
 	float: right;
 }
-	
+
 #title {
 	font-size: 36px;
 	min-height: 40px;
@@ -378,6 +386,11 @@ body {
 #bottomAuthor {
 	text-align: center;
 	font-style: italic;
+	color: #999;
+}
+
+#bottomAuthor a {
+	color: #333;
 }
 
 #bottomVia {
@@ -392,6 +405,18 @@ body {
 #likes {
 	display: none;
 	text-align: center;
+}
+
+#s2LikeContainer {
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	color: #666;
+	font-size:12px;
+	height:26px;
+	width:52px;
+	border: 1px solid #ccc;
+	padding: 4px 10px;
+	border-radius: 3px;
+
 }
 
 #sheet.public #likes {
@@ -419,7 +444,7 @@ body {
 	list-style-type: none;
 }
 
-#sources { 
+#sources {
 	margin-top: 40px;
 }
 
@@ -620,7 +645,7 @@ body {
 	position: relative;
 	top: -2px;
 
-} 
+}
 #sheet.bilingual .source > .en,
 #sheet.bilingual .outsideBi .en {
 	display: block;
@@ -639,9 +664,9 @@ body {
 }
 
 
-#sheet.bilingual.stacked .source > .en, 
+#sheet.bilingual.stacked .source > .en,
 #sheet.bilingual.stacked .source > .he,
-#sheet.bilingual.stacked .outsideBi .en, 
+#sheet.bilingual.stacked .outsideBi .en,
 #sheet.bilingual.stacked .outsideBi .he {
 	float: none;
 	width: 100%;
@@ -655,7 +680,7 @@ body {
 #sheet.bilingual .verse .clear {
 	display: block;
 }
- 
+
 .source .text.open {
 	max-height: 266px;
 	overflow-y: scroll;
@@ -766,10 +791,10 @@ body {
 	padding: 4px 8px;
 }
 
-#tooltip h3, #tooltip div { 
+#tooltip h3, #tooltip div {
 	font-size: 17px;
 	margin: 0;
- }	
+ }
 
 #addToSheetModal {
 	width: 400px;
@@ -849,7 +874,7 @@ body {
 	max-height: 300px;
 	overflow: auto;
 }
- 
+
 #sheetList .sheet {
 	text-align: left;
 	cursor: pointer;
@@ -872,8 +897,8 @@ body {
 	margin: 3px;
 	font-family: sans-serif;
 	cursor: pointer;
-}	
-	
+}
+
 #empty {
 	display: none;
 	text-align: center;
@@ -977,7 +1002,7 @@ body {
 
 .clear {
 	clear: both;
-}	
+}
 
 
 a {
@@ -1285,8 +1310,8 @@ input[type="file"] {
 
 
 
-#sheet .source.sheetItem.stacked > .en, 
-#sheet .source.sheetItem.stacked > .he {	
+#sheet .source.sheetItem.stacked > .en,
+#sheet .source.sheetItem.stacked > .he {
 	float: none;
 	width: 100%;
 	margin-bottom: 12px;
@@ -1298,7 +1323,7 @@ input[type="file"] {
 #sheet .source.english .en,
 #sheet .source.hebrew .he {
 	display: block;
-} 
+}
 
 #sheet .source.english > .he,
 #sheet.numbered #sources .source.english > .sourceNumber.he
@@ -1319,7 +1344,7 @@ input[type="file"] {
 	cursor: pointer;
 }
 
-.disabled { 
+.disabled {
 	pointer-events: none;
 	opacity: .3;
 }
@@ -1391,8 +1416,7 @@ input[type="file"] {
     box-sizing: border-box;
     direction: ltr;
     z-index: 21;
-    padding: 13px 20px;
-	color:#999;
+    padding: 8px 20px;
 }
 
 #sheet p {
@@ -1404,23 +1428,40 @@ input[type="file"] {
 
 .sheetsMenuBarItem {
 	display: inline-block;
-	margin: 10px 20px;
+	padding: 10px 20px;
 	font-size: 16px;
+	border: 1px solid transparent;
+
 }
+
+.sheetsMenuBarItem:hover {
+	border: 1px solid #ccc;
+	border-bottom: 1px solid #f2f2f2;
+	position: relative;
+}
+
+/* css hack to get menu item borders just right */
+.sheetsMenuBarItem:hover:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  z-index: 6;
+  border-bottom: 14px solid #f2f2f2;
+}
+
+
 
 #fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu {
 	display: block;
-	top:40px;
-}
-#fileMenu:hover .optionsMenu {
-	left:40px;
-}
-#formatMenu:hover .optionsMenu {
-	left:100px;
+	top:38px;
+	left:-1px;
+	opacity: .99;
 }
 
 #insertMenu:hover .optionsMenu {
-	left:190px;
 	width:240px;
 }
 
@@ -1430,6 +1471,13 @@ input[type="file"] {
 	-moz-box-shadow: none;
     -webkit-box-shadow: none;
     box-shadow: none;
+	width:100%;
+}
+
+#ckeTopMenu .cke_inner {
+	border-top: 1px solid #E2E2E1;
+    padding: 0 7px;
+	background: #f2f2f2;
 
 }
 

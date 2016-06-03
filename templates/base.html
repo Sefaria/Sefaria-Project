@@ -15,8 +15,9 @@
     {% if S2 or request.flavour == "mobile" %}
         <link rel="stylesheet" href="/static/css/s2.css">
         {% block exclude_block_on_source_sheets %}
-            <link rel="stylesheet" href="/static/css/s2-static.css">
+            <link rel="stylesheet" href="/static/css/static.css">
         {% endblock %}
+
     {%  endif %}
     <style>
         {% block css %}{% endblock %}
@@ -51,19 +52,17 @@
 <body>
     <div class="wrapper">
         <div id="content" class="{% if contentLang == "bilingual" %}english{% else %}{{ contentLang }}{% endif %}">
+            {% include "header.html" %}
             {% if not S2 and not request.flavour == "mobile" %}
-                {% include "header.html" %}
                 {% include "elements/login_prompt.html" with msg="Please log in to edit." %}
             {% endif %}
-            {% if S2 or request.flavour == "mobile" %}
-                {% include "elements/s2_header.html" %}
-            {% endif %}
+
             {% block content %}{% endblock %}
 
         </div>
     </div>
 
-    {% if not S2 and not request.flavour == "mobile" %}
+    {% if not request.flavour == "mobile" %}
         {% block footer %}
             {% include "elements/footer.html" with class=contentLang %}
         {% endblock %}
@@ -75,7 +74,6 @@
     {% if not S2 and not request.flavour == "mobile" %}
         {% include "js/headers.js" %}
     {%  endif %}
-    {% block js %}{% endblock %}
     {% if S2 or request.flavour == "mobile" %}
         <script src="/static/js/headroom.js"></script>
         <script src="/static/js/jquery.scrollTo.js"></script>
@@ -124,6 +122,6 @@
           {% endautoescape %}
         </script>
     {%  endif %}
-
+    {% block js %}{% endblock %}
 </body>
 </html>
