@@ -413,9 +413,43 @@ p.tagline {
 #visualizationsPage {
   text-align: left;
 }
-
 #aboutPage {
     margin: 70px auto;
     width: 60%;
     text-align: center;
+}
+footer#footer {
+  background-color: white;
+  border-top: 1px solid #F4F4F4;
+  overflow: hidden;
+  padding: 18px 40px;
+  text-align: left;
+}
+#footerInner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+footer .section {
+  display: inline-block;
+  vertical-align: top;
+  width: 170px;
+  text-align: left;
+}
+#footer .section .header {
+  color: #666;
+  margin-bottom: 12px;
+  font-weight: normal;
+  font-size: 13px;
+}
+footer .section a {
+  color: #aaa;
+  font-size: 12px;
+}
+footer .fa {
+  margin: 0 3px;
+}
+footer .section.last {
+  float: right;
+  text-align: right;
+  border-left: 1px solid #EAEAEA;
 }
