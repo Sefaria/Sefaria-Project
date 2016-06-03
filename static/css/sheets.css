@@ -1392,6 +1392,7 @@ input[type="file"] {
     direction: ltr;
     z-index: 21;
     padding: 13px 20px;
+	color:#999;
 }
 
 #sheet p {
