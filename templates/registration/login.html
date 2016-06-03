@@ -5,6 +5,7 @@
 {% block content %}
 
 {% if user.email %}
+    <div class="biReady">
 	<p id="message">
         <span class="en">You are already logged in as </span>
         <span class="he">הנך מחובר כבר בתור</span>
@@ -14,8 +15,10 @@
             <span class="he">התנתק.</span>
         </a>
 	</p>
+    </div>
 
 {% else %}
+
 	<div id="login" class="biReady registrationContent static">
 		{% if message %}<p id="message">{{ message }}</p>{% endif %}
 		<h1>
