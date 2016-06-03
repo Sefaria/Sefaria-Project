@@ -133,7 +133,8 @@ Sefaria = extend(Sefaria, {
     return new RegExp(refReStr, "gi");  
   },
   wrapRefLinks: function(text) {
-      if (typeof text !== "string") { 
+      if (typeof text !== "string" ||
+          text.indexOf("data-ref") !== -1) { 
           return text;
       }
       var titles = Sefaria.titlesInText(text);
