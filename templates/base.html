@@ -72,6 +72,7 @@
     <script src="/static/js/jquery.tooltipster.min.js"></script>
     <script>{% include "js/django-csrf.js" %}</script>
     {% if not S2 and not request.flavour == "mobile" %}
+         <script src="/static/js/util.js"></script>
         {% include "js/headers.js" %}
     {%  endif %}
     {% if S2 or request.flavour == "mobile" %}
