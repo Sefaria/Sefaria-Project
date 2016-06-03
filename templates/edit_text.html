@@ -102,9 +102,7 @@
 		</div>
 	</div>
 
-	{% if not S2 %}
-	    {% include "header.html" %}
-    {% endif %}
+    {% include "header.html" %}
 
 	<div id="newTextModal" class="modal">
 		<div class="header">Add a New Text</div>
@@ -319,8 +317,8 @@
 {% if not OFFLINE %}
 <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-4f0b68586603bc9f"></script>
 {% endif %}
-{% if S2 %}
-    {% include "elements/s2_header.html" %}
-{% endif %}
+{% if S2 or request.flavour == "mobile" %}
+    {% include "react_header_activate.html" %}
+{%  endif %}
 </body>
 </html>
