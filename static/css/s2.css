@@ -571,7 +571,7 @@ h1 .languageToggle .he {
   font-size: 22px;
 }
 .readerNavMenu h1 .en {
-  font-family: font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .readerNavMenu h1 .he {
   font-family: "Taamey Frank", "Times New Roman", serif;
@@ -1806,7 +1806,7 @@ h1 .languageToggle .he {
 .connectionsPanelHeader .languageToggle {
   background-color: transparent;
   border: 1px solid #ccc;
-  font-size: 30px;lan
+  font-size: 30px;
 }
 .connectionsPanelHeader .languageToggle .he {
    font-family: "adobe-garamond-pro", Georgia, serif;
@@ -2623,4 +2623,11 @@ input {
   direction: ltr;
 }
 
+h2.splitHeader {
+  margin-bottom:50px;
+}
 
+.splitHeader .actionText {
+  float:right;
+  text-transform: none;
+}

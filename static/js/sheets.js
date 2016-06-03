@@ -102,78 +102,72 @@ $(function() {
 		});
 		
 
-	
-	
-	$( "#addMediaModal .ok" ).click(function() {
+	function makeMediaEmbedLink(mediaURL) {
+	    var re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
+   		var m;
 
-    var re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i; 
-    var m;
-	var $target = $("#addMediaModal").data("target");
-
-    if ((m = re.exec($("#addMediaInput").val())) !== null) {
-        if (m.index === re.lastIndex) {
-            re.lastIndex++;
-        }
-			if (m.length>0) {
-			//	$("#mediaPreview").html('<iframe width="560" height="315" src="https://www.youtube.com/embed/'+m[m.length-1]+'?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>');
-				$target.html('<iframe width="560" height="315" src="https://www.youtube.com/embed/'+m[m.length-1]+'?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>');
-
+		if ((m = re.exec(mediaURL)) !== null) {
+			if (m.index === re.lastIndex) {
+				re.lastIndex++;
 			}
-			
-		autoSave();
+				if (m.length>0) {
+					embedHTML = '<iframe width="560" height="315" src="https://www.youtube.com/embed/'+m[m.length-1]+'?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>';
+				}
+		}
 
-    }
-    
-    else if ( ($("#addMediaInput").val()).match(/https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null ) {
-    			$target.html('<img class="addedMedia" src="'+$("#addMediaInput").val()+'" />');
-    }
+		else if ( (mediaURL).match(/https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null ) {
+					embedHTML = '<img class="addedMedia" src="'+mediaURL+'" />';
+		}
 
 
-    else if ( ($("#addMediaInput").val()).match(/https?:\/\/(www\.)?.+\.(mp3)$/i) != null ) {
-    			$target.html('<audio src="'+$("#addMediaInput").val()+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>')
-    }
+		else if ( (mediaURL).match(/https?:\/\/(www\.)?.+\.(mp3)$/i) != null ) {
+					embedHTML = '<audio src="'+mediaURL+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
+		}
 
-    else if ( ($("#addMediaInput").val()).match(/https?:\/\/.*clyp\.it\/.+/i) != null ) {
-    			$target.html('<audio src="'+$("#addMediaInput").val()+'.mp3" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>')
-    }
-    
+		else if ( (mediaURL).match(/https?:\/\/.*clyp\.it\/.+/i) != null ) {
+					embedHTML = '<audio src="'+mediaURL+'.mp3" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
+		}
 
-	else {
-		$target.parent().remove();
-		sjs.alert.flash("We couldn't understand your link.<br/>No media added.")
-		autoSave();	
+		else embedHTML = false;
+
+		return embedHTML
 	}
 
-	$("#addMediaModal, #overlay").hide();
-
-
-
-	//if the image or audio is a bad link or can't be loaded
-	$target.find('audio, img').last()
-	    .on('error', function() { 
+	function mediaCheck(target){
+		$target = target;
+		$target.find('audio, img').last()
+	    .on('error', function() {
 	    	$target.parent().remove();
 			sjs.alert.flash("There was an error adding your media.")
-			autoSave();
-	     });     
-	   
-	//if the image is loaded    
-	$target.find('img').last()     
-	    .on('load', function() { 
-		    autoSave();
-	     });
+	     })
+	}
 
-	//if the audio starts to load    
-	$target.find('audio').last()
-	    .on('loadedmetadata', function() { 
-		    autoSave();
-	     });
+
+
+	$( "#addMediaModal .ok" ).click(function() {
+
+		var $target = $("#addMediaModal").data("target");
+		var embedHTML = makeMediaEmbedLink($("#addMediaInput").val())
+		if (embedHTML != false) {
+			$target.html(embedHTML);
+		}
+		else {
+			$target.parent().remove();
+			sjs.alert.flash("We couldn't understand your link.<br/>No media added.")
+		}
+
+		$("#addMediaModal, #overlay").hide();
+
+
+		mediaCheck($target);
+		autoSave();
 
 	if (sjs.openRequests == 0) {
 		var top = $target.offset().top - 200;
-		$("html, body").animate({scrollTop: top}, 300);		
+		$("html, body").animate({scrollTop: top}, 300);
 	}
 
-	
+
 	});	
 	
 
@@ -638,6 +632,7 @@ $(function() {
 		    evt.data.dataValue = evt.data.dataValue.replace(/&nbsp;/g,' ');
 		  }, null, null, 9);
 		});
+		CKEDITOR.dtd.$removeEmpty.span = 0;
 		CKEDITOR.config.font_names =
 			'Arial/Arial, Helvetica, sans-serif;' +
 			'Comic Sans/Comic Sans MS, cursive;' +
@@ -809,7 +804,7 @@ $(function() {
 		} 
 		else if (sjs.can_add) {
 			// For colloborative adders, only allow edits on their on content
-			$(".addedByMe .comment, .addedByMe  .outside, .addedByMe .customTitle, .addedByMe .text .en, .addedByMe .text .he")
+			$(".addedByMe .comment, .addedByMe  .outside, .addedByMe .customTitle, .addedByMe .text .en, .addedByMe .text .he, .contentToAdd")
 				.live("mouseup", sjs.initCKEditor);			
 		}
 
@@ -1189,6 +1184,33 @@ $(function() {
 
 			});
 
+			$("#addmediaDiv").on("click", ".button", function (e) {
+
+
+				var $target = $("#addInterface").prev(".sheetItem");
+				var source = {media: "", isNew: true};
+				if (sjs.can_add) {
+					source.userLink = sjs._userLink;
+				}
+				$target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
+
+				var embedHTML = makeMediaEmbedLink($("#inlineAddMediaInput").val());
+
+				if (embedHTML != false) {
+					$target.next(".sheetItem").find(".media").html(embedHTML);
+					mediaCheck($target.next(".sheetItem").find(".media"));
+				}
+				else {
+					$target.next(".sheetItem").remove();
+					sjs.alert.flash("We couldn't understand your link.<br/>No media added.")
+				}
+
+				autoSave();
+
+
+			});
+
+
 			$("#addcustomTextDiv").on("click", "#customTextLanguageToggle .toggleOption", function (e) {
 
 				$("#customTextLanguageToggle .toggleOption").removeClass('active');
@@ -1250,6 +1272,7 @@ $(function() {
 
 				$("#addInterface").insertAfter( $(this).parent().closest(".sheetItem") );
 				$(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
+				$(".inlineAddButtonIcon").removeClass("active");
 				$(this).addClass("active");
 				e.stopImmediatePropagation();
 			});
@@ -1278,7 +1301,6 @@ $(function() {
 			$("#sourceLayoutLanguageMenuItems").show();
 			//$(this).hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
 
-
 			//set checkboxes for language/layout menus for active source
 			if ($(this).hasClass("hebrew")) {
 				$("#sourceLayoutLanguageMenuItems").find(".hebrew .fa-check").removeClass("hidden");
@@ -1287,14 +1309,14 @@ $(function() {
 			 $("#sourceLayoutLanguageMenuItems").find(".bilingual .fa-check").removeClass("hidden");
 			 $("#sourceLayoutLanguageMenuItems").find("#layoutToggleGroup").removeClass("disabled");
 			}
-			else {
+			else if ( $(this).hasClass("english") ) {
 				$("#sourceLayoutLanguageMenuItems").find(".english .fa-check").removeClass("hidden");
 			}
 
 			if ($(this).hasClass("stacked")) {
 				$("#sourceLayoutLanguageMenuItems").find(".stacked .fa-check").removeClass("hidden")
 			}
-			else {
+			else if ( $(this).hasClass("sideBySide") ) {
 				$("#sourceLayoutLanguageMenuItems").find(".sideBySide .fa-check").removeClass("hidden");
 			    $("#sourceLayoutLanguageMenuItems").find("#sideBySideToggleGroup").removeClass("disabled");
 			}
@@ -1302,7 +1324,7 @@ $(function() {
 			if ($(this).hasClass("heLeft")){
 				$("#sourceLayoutLanguageMenuItems").find(".heLeft .fa-check").removeClass("hidden")
 			}
-			else {
+			else if ($(this).hasClass("heRight")){
 				$("#sourceLayoutLanguageMenuItems").find(".heRight .fa-check").removeClass("hidden")
 			}
 
@@ -2411,16 +2433,27 @@ function buildSource($target, source, appendOrInsert) {
 
 		
 		if (source.title) {
-			$(".customTitle").last().html(source.title).css('display', 'inline-block');;
+			$(".customTitle").last().html(source.title).css('display', 'inline-block');
 			$(".sheetItem").last().addClass("hasCustom");
 		}
 
 	} else if ("comment" in source) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "commentWrapper");
-		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'>" + 
+		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'>" +
 							"<div class='comment " + (sjs.loading ? "" : "new") + "'>" + source.comment + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</div>";
+
+		if ($.cookie("s2") == "true") {
+
+					var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'><span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
+						("userLink" in source ? "<div class='addedBy s2AddedBy'>" + source.userLink + "</div>" : "")	+
+						"<div class='comment " + (sjs.loading ? "" : "new") + "'>" + source.comment + "</div>"
+
+						  "</div>";
+
+		}
+
 		commentHtml = appendInlineAddButton(commentHtml);
 		if (appendOrInsert == "append") {
 			$target.append(commentHtml);
@@ -2496,6 +2529,10 @@ function buildSource($target, source, appendOrInsert) {
 				if (appendOrInsert == "append") {
 					$target.append(outsideHtml);
 				}
+				else if (appendOrInsert == "insert") {
+					$target.after(outsideHtml);
+				}
+
 	}
 	
 	else if ("text" in source) {

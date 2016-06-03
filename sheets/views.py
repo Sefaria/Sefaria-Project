@@ -375,6 +375,9 @@ def sheets_list(request, type=None):
 		if request.flavour == "mobile":
 			return s2_sheets(request)
 
+		elif request.COOKIES.get('s2'):
+			return s2_sheets(request)
+
 		query       = {"status": "public"}
 		public      = db.sheets.find(query).sort([["dateModified", -1]]).limit(32)
 		public_tags = recent_public_tags()
@@ -727,6 +730,20 @@ def trending_tags_api(request):
 	API to retrieve the list of peopke who like sheet_id.
 	"""
 	response = recent_public_tags(days=14)
+	response = jsonResponse(response, callback=request.GET.get("callback", None))
+	response["Cache-Control"] = "max-age=3600"
+	return response
+
+def all_sheets_api(request, limiter):
+	limiter = int(limiter)
+	query = {"status": "public"}
+	public = db.sheets.find(query).sort([["dateModified", -1]]).limit(limiter)
+	sheets = [{"title": s["title"], "id": s["id"], "owner": s["owner"], "views": s["views"]} for s in public]
+	for sheet in sheets:
+		profile = UserProfile(id=sheet["owner"])
+		sheet["ownerName"] = profile.full_name
+		sheet["ownerImageUrl"] = profile.gravatar_url_small
+	response = {"sheets": sheets}
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response

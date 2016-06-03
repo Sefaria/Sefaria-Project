@@ -1696,6 +1696,9 @@ var ReaderPanel = React.createClass({
       var menu = React.createElement(SheetsNav, {
         openNav: this.openMenu.bind(null, "navigation"),
         close: this.closeMenus,
+        multiPanel: this.props.multiPanel,
+        hideNavHeader: this.props.hideNavHeader,
+        toggleLanguage: this.toggleLanguage,
         initialTag: this.state.navigationSheetTag,
         setSheetTag: this.setSheetTag });
     } else if (this.state.menuOpen === "account") {
@@ -3179,23 +3182,28 @@ var SheetsNav = React.createClass({
 
   // Navigation for Sheets
   propTypes: {
+    multiPanel: React.PropTypes.bool,
     initialTag: React.PropTypes.string,
     close: React.PropTypes.func.isRequired,
     openNav: React.PropTypes.func.isRequired,
-    setSheetTag: React.PropTypes.func.isRequired
+    setSheetTag: React.PropTypes.func.isRequired,
+    hideNavHeader: React.PropTypes.bool
+
   },
   getInitialState: function getInitialState() {
     return {
       trendingTags: null,
+      allSheets: null,
       tagList: null,
       yourSheets: null,
       sheets: [],
       tag: this.props.initialTag,
-      width: 0
+      width: 400
     };
   },
   componentDidMount: function componentDidMount() {
     this.getTags();
+    this.getAllSheets();
     this.setState({ width: $(ReactDOM.findDOMNode(this)).width() });
     if (this.props.initialTag) {
       if (this.props.initialTag === "Your Sheets") {
@@ -3207,6 +3215,14 @@ var SheetsNav = React.createClass({
   },
   componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
     this.setState({ tag: nextProps.initialTag, sheets: [] });
+  },
+  getAllSheets: function getAllSheets() {
+    Sefaria.sheets.allSheetsList(this.loadAllSheets);
+  },
+  loadAllSheets: function loadAllSheets() {
+    this.setState({
+      allSheets: Sefaria.sheets.allSheetsList() || []
+    });
   },
   getTags: function getTags() {
     Sefaria.sheets.trendingTags(this.loadTags);
@@ -3290,8 +3306,38 @@ var SheetsNav = React.createClass({
         );
       }.bind(this);
 
-      if (this.state.trendingTags !== null && this.state.tagList !== null) {
+      if (this.state.trendingTags !== null && this.state.tagList !== null && this.state.allSheets !== null) {
         var trendingTags = this.state.trendingTags.slice(0, 6).map(makeTagButton);
+
+        var allSheets = this.state.allSheets.sheets;
+
+        var publicSheetList = allSheets.map(function (sheet) {
+          var title = sheet.title.stripHtml();
+          var url = "/sheets/" + sheet.id;
+          return React.createElement(
+            'a',
+            { className: 'sheet', href: url, key: url },
+            sheet.ownerImageUrl ? React.createElement('img', { className: 'sheetImg', src: sheet.ownerImageUrl }) : null,
+            React.createElement(
+              'span',
+              { className: 'sheetViews' },
+              React.createElement('i', { className: 'fa fa-eye' }),
+              ' ',
+              sheet.views
+            ),
+            React.createElement(
+              'div',
+              { className: 'sheetAuthor' },
+              sheet.ownerName
+            ),
+            React.createElement(
+              'div',
+              { className: 'sheetTitle' },
+              title
+            )
+          );
+        });
+
         var tagList = this.state.tagList.map(makeTagButton);
         var content = React.createElement(
           'div',
@@ -3299,26 +3345,131 @@ var SheetsNav = React.createClass({
           React.createElement(
             'div',
             { className: 'contentInner' },
-            yourSheets,
-            React.createElement(
+            this.props.hideNavHeader ? React.createElement(
+              'h1',
+              null,
+              React.createElement(
+                'div',
+                { className: 'languageToggle', onClick: this.props.toggleLanguage },
+                React.createElement(
+                  'span',
+                  { className: 'en' },
+                  'א'
+                ),
+                React.createElement(
+                  'span',
+                  { className: 'he' },
+                  'A'
+                )
+              ),
+              React.createElement(
+                'span',
+                { className: 'en' },
+                'Source Sheets'
+              ),
+              React.createElement(
+                'span',
+                { className: 'he' },
+                'דפי מקורות'
+              )
+            ) : null,
+            this.props.multiPanel ? null : yourSheets,
+            this.props.multiPanel ? React.createElement(
+              'h2',
+              { className: 'splitHeader' },
+              React.createElement(
+                'span',
+                { className: 'en', style: { float: 'left' } },
+                'Public Sheets'
+              ),
+              React.createElement(
+                'span',
+                { className: 'he' },
+                'Public Sheets [he]'
+              ),
+              React.createElement(
+                'span',
+                { className: 'en actionText' },
+                'See All ',
+                React.createElement('i', { className: 'fa fa-angle-right' })
+              ),
+              React.createElement(
+                'span',
+                { className: 'he actionText' },
+                'See All [he] ',
+                React.createElement('i', { className: 'fa fa-angle-right' })
+              )
+            ) : React.createElement(
+              'h2',
+              null,
+              React.createElement(
+                'span',
+                { className: 'en' },
+                'Public Sheets'
+              ),
+              React.createElement(
+                'span',
+                { className: 'he' },
+                'Public Sheets [he]'
+              )
+            ),
+            publicSheetList,
+            React.createElement('br', null),
+            React.createElement('br', null),
+            this.props.multiPanel ? null : React.createElement(
               'h2',
               null,
               React.createElement(
                 'span',
                 { className: 'en' },
                 'Trending Tags'
+              ),
+              React.createElement(
+                'span',
+                { className: 'he' },
+                'Trending Tags [he]'
               )
             ),
-            React.createElement(TwoOrThreeBox, { content: trendingTags, width: this.state.width }),
+            this.props.multiPanel ? null : React.createElement(TwoOrThreeBox, { content: trendingTags, width: this.state.width }),
             React.createElement('br', null),
             React.createElement('br', null),
-            React.createElement(
+            this.props.multiPanel ? React.createElement(
+              'h2',
+              { className: 'splitHeader' },
+              React.createElement(
+                'span',
+                { className: 'en', style: { float: 'left' } },
+                'All Tags'
+              ),
+              React.createElement(
+                'span',
+                { className: 'he' },
+                'All Tags [he]'
+              ),
+              React.createElement(
+                'span',
+                { className: 'en actionText' },
+                'Sort By ',
+                React.createElement('i', { className: 'fa fa-angle-down' })
+              ),
+              React.createElement(
+                'span',
+                { className: 'he actionText' },
+                'Sort By [he] ',
+                React.createElement('i', { className: 'fa fa-angle-down' })
+              )
+            ) : React.createElement(
               'h2',
               null,
               React.createElement(
                 'span',
                 { className: 'en' },
                 'All Tags'
+              ),
+              React.createElement(
+                'span',
+                { className: 'he' },
+                'All Tags [he]'
               )
             ),
             React.createElement(TwoOrThreeBox, { content: tagList, width: this.state.width })
@@ -3337,10 +3488,13 @@ var SheetsNav = React.createClass({
       }
     }
 
+    var classes = classNames({ readerNavMenu: 1, readerSheetsNav: 1, noHeader: this.props.hideNavHeader });
+
     return React.createElement(
       'div',
-      { className: 'readerSheetsNav readerNavMenu' },
-      React.createElement(
+      { className: classes },
+      React.createElement(CategoryColorLine, { category: 'Sheets' }),
+      this.props.hideNavHeader ? null : React.createElement(
         'div',
         { className: 'readerNavTop searchOnly', key: 'navTop' },
         React.createElement(CategoryColorLine, { category: 'Sheets' }),
