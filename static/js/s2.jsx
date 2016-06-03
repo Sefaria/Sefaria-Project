@@ -1624,6 +1624,7 @@ var ReaderPanel = React.createClass({
       var menu = (<SheetsNav
                     openNav={this.openMenu.bind(null, "navigation")}
                     close={this.closeMenus}
+                    multiPanel={this.props.multiPanel}
                     hideNavHeader={this.props.hideNavHeader}
                     toggleLanguage={this.toggleLanguage}
                     initialTag={this.state.navigationSheetTag}
@@ -2652,6 +2653,7 @@ var VersionBlock = React.createClass({
 var SheetsNav = React.createClass({
   // Navigation for Sheets
   propTypes: {
+    multiPanel:    React.PropTypes.bool,
     initialTag:    React.PropTypes.string,
     close:         React.PropTypes.func.isRequired,
     openNav:       React.PropTypes.func.isRequired,
@@ -2768,25 +2770,53 @@ var SheetsNav = React.createClass({
                             <span className="en">Source Sheets</span>
                             <span className="he">דפי מקורות</span>
                           </h1>) : null}
-                          {yourSheets}
+                          { this.props.multiPanel ? null : yourSheets }
+
+                          { this.props.multiPanel ? (
+                          <h2 className="splitHeader">
+                            <span className="en" style={{float: 'left'}}>Public Sheets</span>
+                            <span className="he">Public Sheets [he]</span>
+
+                            <span className="en actionText">See All <i className="fa fa-angle-right"></i></span>
+                            <span className="he actionText">See All [he] <i className="fa fa-angle-right"></i></span>
+
+                          </h2>) : (
                           <h2>
                             <span className="en">Public Sheets</span>
                             <span className="he">Public Sheets [he]</span>
                           </h2>
+                          )}
                           {publicSheetList}
                           <br /><br />
 
+                          { this.props.multiPanel ? null : (
 
                           <h2>
                             <span className="en">Trending Tags</span>
                             <span className="he">Trending Tags [he]</span>
                           </h2>
-                          <TwoOrThreeBox content={trendingTags} width={this.state.width} />
+                          )}
+
+                          { this.props.multiPanel ? null : (<TwoOrThreeBox content={trendingTags} width={this.state.width} /> )}
                           <br /><br />
+
+
+
+                          { this.props.multiPanel ? (
+                          <h2 className="splitHeader">
+                            <span className="en" style={{float: 'left'}}>All Tags</span>
+                            <span className="he">All Tags [he]</span>
+
+                            <span className="en actionText">Sort By <i className="fa fa-angle-down"></i></span>
+                            <span className="he actionText">Sort By [he] <i className="fa fa-angle-down"></i></span>
+
+                          </h2>) : (
                           <h2>
                             <span className="en">All Tags</span>
                             <span className="he">All Tags [he]</span>
                           </h2>
+                          )}
+
                           <TwoOrThreeBox content={tagList} width={this.state.width} />
                         </div>
                        </div>);
