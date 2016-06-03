@@ -104,7 +104,7 @@ p.tagline {
   font-style: italic;
   margin-bottom: 25px;
 }
-.static-tex {
+.static-text {
   margin: 0;
   text-align: justify
 }
@@ -409,4 +409,10 @@ p.tagline {
 }
 #visualizationsPage {
   text-align: left;
+}
+
+#aboutPage {
+    margin: 70px auto;
+    width: 60%;
+    text-align: center;
 }
