@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Override of Django forms for new users and password reset.
 
@@ -19,16 +20,16 @@ SEED_GROUP = "User Seeds"
 
 
 class SefariaLoginForm(EmailAuthenticationForm):
-    email = forms.EmailField(max_length=75, widget=forms.TextInput(attrs={'placeholder': 'Email Address'}))
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Password'}))
+    email = forms.EmailField(max_length=75, widget=forms.TextInput(attrs={'placeholder': u'Email Address | כתובת אימייל'}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': u'Password | סיסמא'}))
 
 
 
 class NewUserForm(EmailUserCreationForm):
-    email = forms.EmailField(max_length=75, widget=forms.TextInput(attrs={'placeholder': 'Email Address', 'autocomplete': 'off'}))
-    first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'First Name', 'autocomplete': 'off'}))
-    last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Last Name', 'autocomplete': 'off'}))
-    password1 = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Password', 'autocomplete': 'off'}))
+    email = forms.EmailField(max_length=75, widget=forms.TextInput(attrs={'placeholder': u'Email Address | כתובת אימייל', 'autocomplete': 'off'}))
+    first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': u'First Name | שם פרטי', 'autocomplete': 'off'}))
+    last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': u'Last Name | שם משפחה', 'autocomplete': 'off'}))
+    password1 = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': u'Password | סיסמא', 'autocomplete': 'off'}))
     #subscribe_announce = forms.BooleanField(label="Receive important announcements",  initial=True, required=False)
     if not DEBUG:
         captcha = ReCaptchaField(attrs={'theme' : 'clean'})

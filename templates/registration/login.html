@@ -5,19 +5,28 @@
 {% block content %}
 
 {% if user.email %}
-	<p id="message">You are already logged in as {{ user.email }}.
-	<a href="{% url logout %}">Logout.</a>
+	<p id="message">
+        <span class="en">You are already logged in as </span>
+        <span class="he">הנך מחובר כבר בתור</span>
+        {{ user.email }}.
+        <a href="{% url logout %}">
+            <span class="en">Logout.</span>
+            <span class="he">התנתק.</span>
+        </a>
 	</p>
 
 {% else %}
-	<div id="login" class="registrationContent static">
+	<div id="login" class="biReady registrationContent static">
 		{% if message %}<p id="message">{{ message }}</p>{% endif %}
 		<h1>
 	        <span class="en">Login to Sefaria</span>
-	        <!---<span class="he">התחבר לספאריה</span>-->
+	        <span class="he">התחבר לספאריה</span>
 	    </h1>
 		{% if form.errors %}
-		<p class="error">Your username and password didn't match. Please try again.</p>
+		<p class="error">
+            <span class="en">Your username and password didn't match. Please try again.</span>
+	        <span class="he">בעיה בשם המשתמש או בסיסמא, אנא נסה שוב.</span>
+        </p>
 		{% endif %}
 
 		<form id="login-form" method="post" action="{% url login %}">
@@ -32,12 +41,22 @@
 			    <td>{{ form.password }}</td>
 			</p>
 
-			<button type="submit" class="btn btn-primary btn-large">Login</button>
-	        <a href="{% url password_reset %}" id="resetLink">Forgot your password?</a>
+			<button type="submit" class="btn btn-primary btn-large">
+                <span class="en">Login</span>
+                <span class="he">התחבר</span>
+            </button>
+	        <a href="{% url password_reset %}" id="resetLink">
+                <span class="en">Forgot your password?</span>
+                <span class="he">שכחתי את הסיסמא שלי</span>
+            </a>
 			<input type="hidden" name="next" value="{{ next }}" />
 		</form>
 		<div class="clearfix"></div>
-		<a href="{% url register %}{% if next %}?next={{ next }}{% endif %}">Create a new account</a>
+		<a href="{% url register %}{% if next %}?next={{ next }}{% endif %}">
+            <span class="en">Create a new account</span>
+            <span class="he">חדש? צור חשבון משתמש חדש</span>
+
+        </a>
 	</div>
 {% endif %}
 {% endblock %}
