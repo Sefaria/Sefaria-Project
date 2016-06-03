@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="/static/css/common.css">
     {% if S2 or request.flavour == "mobile" %}
         <link rel="stylesheet" href="/static/css/s2.css">
-        <link rel="stylesheet" href="/static/css/s2-static.css">
+        <link rel="stylesheet" href="/static/css/static.css">
 
     {%  endif %}
     <style>
@@ -73,7 +73,6 @@
     {% if not S2 and not request.flavour == "mobile" %}
         {% include "js/headers.js" %}
     {%  endif %}
-    {% block js %}{% endblock %}
     {% if S2 or request.flavour == "mobile" %}
         <script src="/static/js/headroom.js"></script>
         <script src="/static/js/jquery.scrollTo.js"></script>
@@ -122,6 +121,6 @@
           {% endautoescape %}
         </script>
     {%  endif %}
-
+    {% block js %}{% endblock %}
 </body>
 </html>

@@ -1,4 +1,4 @@
- body {
+body {
   padding: 0;
   margin: 0;
   overflow: hidden;
@@ -681,7 +681,7 @@ h1 .languageToggle .he {
 .readerNavCalendar .gridBox td:last-child {
   border-right: 0;
 }
-.readerNavMenu .blockLink,
+.blockLink,
 .readerNavMenu .sheetsLink {
   display: inline-block;
   color: black;
@@ -692,6 +692,9 @@ h1 .languageToggle .he {
   border-top: 4px solid transparent;
   width: 100%;
   cursor: pointer;
+}
+.blockLink + .blockLink {
+  margin: 5px 0;
 }
 .gridBox td > a {
   height: 100%;

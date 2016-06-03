@@ -1,0 +1,412 @@
+/* always wait for fonts to load before show text, applies to Google Web Fonts. What about Adobe? */
+.wf-loading {
+  display: none;
+}
+#content.english .he {
+  display: none;
+}
+#content.hebrew .en {
+  display: none;
+}
+.wrapper{
+  background-color: #F9F9F7;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.container{
+  width: 100%;
+}
+h1 {
+  color: #555;
+  height: 70px;
+  position: relative;
+  font-size: 26px;
+  line-height: 1;
+  font-weight: lighter;
+  letter-spacing: 1px;
+}
+h2 {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: normal;
+}
+input {
+  padding: 20px 20px;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 4px;
+  box-shadow: none;
+  border: 1px solid #bbb;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #999;
+  font-size: 14px;
+}
+input:focus {
+  outline: none;
+}
+.page-title{
+  margin-bottom: 50px;
+}
+.row{
+
+}
+.static {
+  color: #333333;
+  background-color: #F9F9F7;
+}
+.static .inner {
+  width: 94%;
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 40px 0;
+}
+.static .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.static .he {
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+.static h1 {
+  text-align: center;
+  font-weight: lighter;
+  font-size: 26px;
+  margin-bottom: 20px;
+}
+.static h2 {
+  font-weight: lighter;
+  font-size: 15px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #999;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+.static .section {
+  margin-bottom: 40px;
+}
+.static img.fullWidth {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 30px 0;
+  border: 1px solid #ddd;
+}
+.additional-text h3 {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: normal;
+  text-transform: uppercase;
+  color: #aaa;
+  margin-bottom: 10px;
+  margin-top: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+p.tagline {
+  font-style: italic;
+  margin-bottom: 25px;
+}
+.static-tex {
+  margin: 0;
+  text-align: justify
+}
+.static-text p {
+  font-size: 20px;
+  line-height: 30px;
+  color: #555;
+}
+#homePage {
+  overflow: hidden;
+  color: #333;
+}
+#homePage .en {
+  font-family: "adobe-garamond-pro", Georgia, serif;  
+}
+#homePage .he {
+
+}
+#homePage .button .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#homePage .button .he {
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+#homePage #homeCover {
+  color: white;
+  background-image: url("/static/img/landing.png");
+  height: 560px;
+  padding: 157px 0;
+  box-sizing: border-box;
+  text-align: center;
+}
+#homePage #homeCover h1 {
+  color: white;
+  font-weight: normal;
+  font-size: 49px;
+  margin-bottom: 50px;
+}
+#homePage #homeCover .sub {
+  font-size: 21px;
+  font-style: italic;
+  margin: 0;
+}
+#homePage #homeCover a {
+  color: white;
+  font-style: normal;
+  font-size: 21px;
+}
+#homePage #homeCover .button {
+  margin-top: 90px;
+  text-transform: uppercase;
+  padding: 16px 34px;
+}
+#homePage .section {
+  overflow: hidden;
+  padding: 80px 0;
+}
+#homePage .sectionInner {
+  width: 720px;
+  max-width: 94%;
+  margin: auto; 
+}
+#homePage .section:nth-child(odd) {
+  background-color: white;
+}
+#homePage .textBox {
+  display: inline-block;
+  width: 350px;
+}
+#homePage .imageBox {
+  display: inline-block;
+  width: 300px;
+}
+#homePage .textLeft .textBox {
+  float: left;
+}
+#homePage .textLeft .imageBox {
+  float: right;
+}
+#homePage .textRight .textBox {
+  float: right;
+}
+#homePage .textRight .imageBox {
+  float: left;
+}
+#homePage .section.center {
+  text-align: center;
+}
+#homePage h2 {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  margin-bottom: 12px;
+  font-style: italic;
+  font-size: 28px;
+  letter-spacing: 1px;
+  color:  #666;
+}
+#homePage .description {
+  margin: 26px 0 34px;
+  color: #999;
+  font-size: 17px;
+  font-style: italic;
+  line-height: 1.2;
+}
+#homePage .section .button {
+  margin: 0;
+}
+#homePage #homeBlog .blogTag {
+  text-transform: uppercase;
+  color: #999;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+  font-size: 15px;
+  font-weight: lighter;
+}
+#homePage #homeBlog .blogTag .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#homePage #homeBlog .blogTag .he {
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+#homePage #homeBlog .blogText {
+  font-size: 18px;
+  margin: 40px 0 40px;
+  line-height: 1.2;
+  text-align: justify;
+}
+#homePage a {
+  color: #999;
+  font-size: 16px;
+}
+#homePage a.refLink {
+  color: #333;
+  font-size: 16px;
+  padding: 12px 0px 15px;
+}
+#homePage #homeProgress {
+  text-align: center;
+}
+#homeProgress h2 {
+  font-style: normal;
+  font-size: 17px;
+  font-weight: lighter;
+  color: #999;
+  margin-bottom: 20px;
+}
+#homeProgress h2 .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  text-transform: uppercase;
+}
+#homeProgress h2 .he {
+  font-family: "Open Sans Hebrew", sans-serif;
+
+}
+#homeProgress .stat {
+  display: inline-block;
+  width: 33%;
+  margin: 20px 0;
+  text-align: center;
+  letter-spacing: 1px
+}
+#homeProgress .stat > * {
+  display: block;
+}
+#homeProgress img.statIcon {
+  width: 50px;
+  height: 50px;
+  margin: 10px auto;
+  opacity: .13;
+  text-align: center;
+}
+#homeProgress .fa.statIcon {
+  line-height: 50px;
+  font-size: 40px;
+  color: #ccc;
+  margin-bottom: 8px;
+}
+#homeProgress .stat .wordCount {
+  font-size: 28px;
+  margin: 18px 0;
+}
+#homeProgress .stat .en {
+  color: #999;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#homeProgress .stat .he {
+  color: #999;
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+#homeProgress #moreMetrics {
+  display: block;
+  margin-top: 50px;
+}
+#homeConnect h2 {
+  margin-bottom: 30px;
+}
+#homeConnect #mailingListTitle {
+  margin-bottom: 20px; 
+  color: #999;
+  font-size: 14px;
+}
+#homeConnect #mailingListTitle .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#homeConnect #mailingListTitle .he {
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+#homeConnect #mailingListEmail {
+  padding: 16px 24px 16px;
+  margin: -4px 8px 0 0;
+  width: 240px;
+}
+#homeConnect #subscribeMsg {
+  margin-top: 40px;
+  font-size: 20px;
+}
+.registrationContent {
+  text-align: center;
+  margin: 100px auto 0;
+}
+.registrationContent label {
+  display: none;
+}
+.registrationContent input {
+  padding: 20px 20px;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 4px;
+  box-shadow: none;
+  border: 1px solid #bbb;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #999;
+  font-size: 14px;
+}
+.registrationContent ::placeholder{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif; 
+  color: #999;
+  font-size: 14px;
+}
+.registrationContent ::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #999;
+  font-size: 14px;
+  font-style: normal;
+}
+.registrationContent ::-moz-placeholder { /* Firefox 19+ */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #999;
+  font-size: 14px;
+}
+.registrationContent :-ms-input-placeholder { /* IE 10+ */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #999;
+  font-size: 14px;
+  font-style: normal;
+}
+.registrationContent :-moz-placeholder { /* Firefox 18- */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #999;
+  font-size: 14px;
+  font-style: normal;
+}
+/* Override Chrome's yellow autofill. Change the white to any color ;) */
+.registrationContent input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px white inset;
+}
+.registrationContent button {
+  all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
+  display: block;
+  width: 100%;
+  color: white;
+  background-color: #212E50;
+  border: 1px solid #212E50;
+  border-radius: 4px;
+  padding: 12px 0px;
+  margin-top: 30px;
+  cursor: pointer;
+  font-size: 15px;
+  letter-spacing: 1px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  box-sizing: border-box;
+  text-align: center;
+}
+.registrationContent button:hover {
+  background-color: #212E50;
+  color: #999;
+}
+.registrationContent a {
+  display: block;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  font-style: normal;
+}
+#login.registrationContent #resetLink{
+  margin: 20px 0;
+  color: #999;
+  font-size: 14px;
+  font-style: normal;
+}
+#visualizationsPage {
+  text-align: left;
+}
