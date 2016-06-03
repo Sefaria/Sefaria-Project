@@ -4434,13 +4434,12 @@ var ToolsPanel = React.createClass({
   },
   render: function() {
     var editText  = this.props.canEditText ? function() {
-      // TODO this is only an approximation
-      var nextParam = "?next=" + Sefaria.util.currentPath();    
       var path = "/edit/" + this.props.srefs[0];
       if (this.props.version) {
         path += "/" + this.props.versionLanguage + "/" + this.props.version;
       }
-      path += "?next=" + currentPath;
+      var nextParam = "?next=" + Sefaria.util.currentPath();    
+      path += nextParam;
       window.location = path;
     }.bind(this) : null;
     
