@@ -87,7 +87,7 @@
 		</div>
 
 		{% if profile.bio %}
-		<div id="bio">
+		<div id="bio" class="section">
 			{% autoescape off %}
 			{{ profile.bio }}
 			{% endautoescape %}
@@ -95,7 +95,7 @@
 		{% endif %}
 
 		{% if sheets.count %}
-		<div id="profileSheets">
+		<div id="profileSheets" class="section">
 			<h2>Source Sheets | {{ sheets.count }}</h2>
 			
 			<ul id="pinnedSheets" class="sheetsBox">
@@ -115,9 +115,17 @@
 		{% endif %}
 
 		{% if notes|length %}
-		<div id="profileNotes">
+		<div id="profileNotes" class="section">
 			<h2>Notes - {{ notes|length }}</h2>
 			{% include "elements/activity_feed.html" with activity=notes single=1 %}
+		</div>
+		{% endif %}
+
+		{% if activity|length %}
+		<div id="profileActivity" class="section">
+			<h2>Activity</h2>
+			{% include "elements/activity_feed.html" with activity=activity|slice:":3" single=1 hide_more_link=1 %}
+			<a id="moreActivity" href="/activity/{{ profile.slug }}/">More Activity &rsaquo;</a>
 		</div>
 		{% endif %}
 	</div>

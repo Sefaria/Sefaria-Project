@@ -85,7 +85,7 @@ input:focus {
   line-height: 1;
 }
 .static .section {
-  margin-bottom: 40px;
+  margin-bottom: 60px;
 }
 .static img.fullWidth {
   width: 100%;
@@ -134,6 +134,7 @@ p.tagline {
 }
 #homePage #homeCover {
   color: white;
+  background-color: #005666;
   background-image: url("/static/img/landing.png");
   height: 560px;
   padding: 157px 0;
@@ -332,6 +333,7 @@ p.tagline {
 #profileImage {
   border: 1px solid #E6E5E6;
   width: 200px;
+  height: 200px;
 }
 #profileName {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -350,7 +352,7 @@ p.tagline {
 #profileSnippets > div {
   display: inline-block;
   color: #999;
-  margin: 5px;
+  margin: 2px 7px;
   font-size: 14px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: lighter;
@@ -361,8 +363,10 @@ p.tagline {
 #profilePage #buttons {
   margin: 24px 0 50px;
 }
+#profilePage .sections {
+  margin-bottom: 50px;
+}
 #profilePage #bio {
-  margin-bottom: 40px;
   font-size: 22px;
 }
 #profilePage #bio,
@@ -387,6 +391,31 @@ p.tagline {
 }
 #profilePage .sheet a {
   color: #333;
+}
+#profileActivity {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #666;
+}
+#profileActivity a {
+  color: #333;
+  font-weight: normal;
+}
+#profilePage #moreActivity {
+  display: block;
+  margin-top: 30px;
+  font-size: 15px;
+}
+#activityList .topline {
+  font-weight: normal;
+}
+#activityList .text.en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#activityList .text.he {
+  font-family: "Taamey Frank", "Times New Roman", serif;
+}
+#activityList .time {
+  color: #ccc;
 }
 .registrationContent {
   text-align: center;

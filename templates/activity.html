@@ -7,6 +7,8 @@
 {% block title %}
 	{% if single %}
 		Revision History of {{ ref }} ({{ version }})</h3>
+	{% elif for_user %}
+		{{ profile.full_name }}'s Activity on Sefaria
 	{% else %}
 		Sefaria Activity
 	{% endif %}
@@ -18,6 +20,10 @@
 	{% if single %}
 		<h1>Revision History of <a href="/{{ref}}">{{ ref }}</a></h1>
 		<h3>Version: {{ version }}</h3>
+		{% include "elements/activity_filter.html" %}
+
+	{% elif for_user %}
+		<h1>{{ profile.id|user_link }}'s Activity on Sefaria</h1>
 		{% include "elements/activity_filter.html" %}
 
 	{% else %}
