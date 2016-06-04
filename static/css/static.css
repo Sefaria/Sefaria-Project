@@ -59,7 +59,7 @@ input:focus {
   width: 94%;
   max-width: 660px;
   margin: 0 auto;
-  padding: 40px 0;
+  padding: 40px 0 100px;
 }
 .static .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -322,6 +322,71 @@ p.tagline {
 #homeConnect #subscribeMsg {
   margin-top: 40px;
   font-size: 20px;
+}
+#profilePage {
+  padding-top: 40px;
+}
+#profileTop {
+  text-align: center;
+}
+#profileImage {
+  border: 1px solid #E6E5E6;
+  width: 200px;
+}
+#profileName {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #333;
+  height: auto;
+  margin: 20px 0 24px;
+  font-weight: lighter;
+  font-size: 40px;
+}
+#profileTagline {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  margin-bottom: 24px;
+  font-size: 18px;
+  color: #666;
+}
+#profileSnippets > div {
+  display: inline-block;
+  color: #999;
+  margin: 5px;
+  font-size: 14px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: lighter;
+}
+#profileSnippets a {
+  color: #999
+}
+#profilePage #buttons {
+  margin: 24px 0 50px;
+}
+#profilePage #bio {
+  margin-bottom: 40px;
+  font-size: 22px;
+}
+#profilePage #bio,
+#profilePage #bio p {
+  font-size: 16px;
+  line-height: 1.3;
+}
+#profilePage #bio a {
+  color: #333;
+}
+#profilePage ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+#profilePage li {
+}
+#profilePage .sheet {
+  margin: 26px 0;
+  font-size: 18px;
+  color: #333;
+}
+#profilePage .sheet a {
+  color: #333;
 }
 .registrationContent {
   text-align: center;
