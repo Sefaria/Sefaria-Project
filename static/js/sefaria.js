@@ -988,19 +988,21 @@ Sefaria = extend(Sefaria, {
         }
       return tags;
     },
-    _tagList: null,
-    tagList: function(callback) {
+    _tagList: null, _lastSortBy: null,
+    tagList: function(callback,sortBy) {
       // Returns a list of all public source sheet tags, ordered by populartiy
+        console.log(sortBy);
       var tags = this._tagList;
-      if (tags) {
+      if (tags && this._lastSortBy == sortBy) {
         if (callback) { callback(tags); }
       } else {
-        var url = "/api/sheets/tag-list";
+        var url = "/api/sheets/tag-list/"+sortBy;
          Sefaria._api(url, function(data) {
             this._tagList = data;
             if (callback) { callback(data); }
           }.bind(this));
         }
+      this._lastSortBy = sortBy;
       return tags;
     },
     _allSheetsList: null,

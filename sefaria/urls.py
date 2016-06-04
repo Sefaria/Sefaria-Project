@@ -155,6 +155,7 @@ urlpatterns += patterns('sheets.views',
     (r'^api/sheets/tag/(?P<tag>[^/]+)?$',                          'sheets_by_tag_api'),
     (r'^api/sheets/trending-tags/?$',                              'trending_tags_api'),
     (r'^api/sheets/tag-list/?$',                                   'tag_list_api'),
+    (r'^api/sheets/tag-list/(?P<sort_by>\w+)$',                    'tag_list_api'),
     (r'^api/sheets/all-sheets/(?P<limiter>\d+)$',                  'all_sheets_api'),
 )
 

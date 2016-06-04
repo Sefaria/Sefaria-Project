@@ -1161,7 +1161,6 @@ var ReaderPanel = React.createClass({
       return state;
     }
 
-    // When this component is independent and manages itself, it takes individual initial state props, with defaults listed here. 
     return {
       refs: this.props.initialRefs || [], // array of ref strings
       bookRef: null,
@@ -1189,7 +1188,6 @@ var ReaderPanel = React.createClass({
       availableFilters:     [],
       filterRegistry:       {},
       orphanSearchFilters:  [],
-      displaySettingsOpen:  false
     }
   },
   componentDidMount: function() {
@@ -1634,7 +1632,6 @@ var ReaderPanel = React.createClass({
                     toggleLanguage={this.toggleLanguage}
                     initialTag={this.state.navigationSheetTag}
                     setSheetTag={this.setSheetTag} />);
-
     } else if (this.state.menuOpen === "account") {
       var menu = (<AccountPanel
                     toggleLanguage={this.toggleLanguage} />);
@@ -2702,12 +2699,10 @@ var SheetsNav = React.createClass({
   },
   getTags: function() {
     Sefaria.sheets.trendingTags(this.loadTags);
-    Sefaria.sheets.tagList(this.loadTags);
   },
   loadTags: function() {
     this.setState({
       trendingTags: Sefaria.sheets.trendingTags() || [],
-      tagList:      Sefaria.sheets.tagList() || []
     });
   },
   setTag: function(tag) {
@@ -2812,8 +2807,6 @@ var SheetsNav = React.createClass({
                             <span className="en" style={{float: 'left'}}>All Tags</span>
                             <span className="he">All Tags [he]</span>
 
-                            <span className="en actionText">Sort By <i className="fa fa-angle-down"></i></span>
-                            <span className="he actionText">Sort By [he] <i className="fa fa-angle-down"></i></span>
 
                           </h2>) : (
                           <h2>

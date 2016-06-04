@@ -317,16 +317,21 @@ def delete_sheet_api(request, sheet_id):
 	return jsonResponse({"status": "ok"})
 
 
-def sheet_tag_counts(query):
+def sheet_tag_counts(query,sort_by="count"):
 	"""
 	Returns tags ordered by count for sheets matching query.
 	"""
+	if sort_by == "count":
+		sort_query = SON([("count", -1), ("_id", -1)])
+	elif sort_by == "alpha":
+		sort_query = SON([("_id", 1)])
+
 	tags = db.sheets.aggregate([
 		{"$match": query },
 		{"$unwind": "$tags"},
 		{"$group": {"_id": "$tags", "count": {"$sum": 1}}},
-		{"$sort": SON([("count", -1), ("_id", -1)])},
-		{"$project": { "_id": 0, "tag": "$_id", "count": "$count" }}
+		{"$sort": sort_query },
+		{"$project": { "_id": 0, "tag": "$_id", "count": "$count"}}
 	])
 	return tags["result"]
 
@@ -715,15 +720,14 @@ def sheet_likers_api(request, sheet_id):
 	return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
-def tag_list_api(request):
+def tag_list_api(request, sort_by="count"):
 	"""
 	API to retrieve the list of public tags ordered by count.
 	"""
-	response = sheet_tag_counts({"status": "public"})
+	response = sheet_tag_counts({"status": "public"},sort_by)
 	response =  jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response
-
 
 def trending_tags_api(request):
 	"""
