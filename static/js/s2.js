@@ -302,9 +302,9 @@ var ReaderApp = React.createClass({
             hist.mode = "book toc";
             break;
           case "search":
-            hist.title = state.searchQuery ? states[i].searchQuery + " | " : "";
+            hist.title = state.searchQuery ? state.searchQuery + " | " : "";
             hist.title += "Sefaria Search";
-            hist.url = "search" + (states[i].searchQuery ? "&q=" + states[i].searchQuery + (!!states[i].appliedSearchFilters && !!states[i].appliedSearchFilters.length ? "&filters=" + states[i].appliedSearchFilters.join("|") : "") : "");
+            hist.url = "search" + (state.searchQuery ? "&q=" + state.searchQuery + (!!state.appliedSearchFilters && !!state.appliedSearchFilters.length ? "&filters=" + state.appliedSearchFilters.join("|") : "") : "");
             hist.mode = "search";
             break;
           case "sheets":
@@ -357,9 +357,9 @@ var ReaderApp = React.createClass({
         }
         hist.mode = "Header";
       }
+      console.log(hist.url);
       var lang = state.settings.language.substring(0, 2);
-      var connector = hist.url.indexOf("?") == -1 ? "?" : "&";
-      hist.url += connector + "lang=" + lang;
+      hist.url += "&lang=" + lang;
       histories.push(hist);
     }
     if (!histories.length) {
@@ -2102,16 +2102,18 @@ var ReaderNavigationMenu = React.createClass({
       }.bind(this));;
       var more = React.createElement(
         'div',
-        { className: 'readerNavCategory', style: { "borderColor": Sefaria.palette.colors.darkblue }, onClick: this.showMore },
+        { className: 'readerNavCategory readerNavMore', style: { "borderColor": Sefaria.palette.colors.darkblue }, onClick: this.showMore },
         React.createElement(
           'span',
           { className: 'en' },
-          'More >'
+          'More ',
+          React.createElement('img', { src: '/static/img/arrow-right.png' })
         ),
         React.createElement(
           'span',
           { className: 'he' },
-          'עוד >'
+          'עוד ',
+          React.createElement('img', { src: '/static/img/arrow-left.png' })
         )
       );
       if (this.width < 450) {
@@ -2225,7 +2227,7 @@ var ReaderNavigationMenu = React.createClass({
       var sheetsStyle = { "borderColor": Sefaria.palette.categoryColor("Sheets") };
       var resources = [React.createElement(
         'span',
-        { className: 'sheetsLink', style: sheetsStyle, onClick: this.props.openMenu.bind(null, "sheets") },
+        { className: 'resourcesLink', style: sheetsStyle, onClick: this.props.openMenu.bind(null, "sheets") },
         React.createElement('i', { className: 'fa fa-file-text-o' }),
         React.createElement(
           'span',
@@ -2236,10 +2238,11 @@ var ReaderNavigationMenu = React.createClass({
           'span',
           { className: 'he' },
           'דפי מקורות'
-        )
+        ),
+        React.createElement('i', { className: 'fa fa-file-text-o hidden' })
       ), React.createElement(
         'a',
-        { className: 'sheetsLink', style: sheetsStyle, href: '/visualizations' },
+        { className: 'resourcesLink', style: sheetsStyle, href: '/visualizations' },
         React.createElement('i', { className: 'fa fa-link' }),
         React.createElement(
           'span',
@@ -2250,10 +2253,11 @@ var ReaderNavigationMenu = React.createClass({
           'span',
           { className: 'he' },
           'חזותיים'
-        )
+        ),
+        React.createElement('i', { className: 'fa fa-link hidden' })
       ), React.createElement(
         'a',
-        { className: 'sheetsLink', style: sheetsStyle, href: '/people' },
+        { className: 'resourcesLink', style: sheetsStyle, href: '/people' },
         React.createElement('i', { className: 'fa fa-book' }),
         React.createElement(
           'span',
@@ -2264,7 +2268,8 @@ var ReaderNavigationMenu = React.createClass({
           'span',
           { className: 'he' },
           'רשימת מחברים'
-        )
+        ),
+        React.createElement('i', { className: 'fa fa-book hidden' })
       )];
       resources = React.createElement(
         'div',
@@ -3044,7 +3049,7 @@ var ReaderTextTableOfContents = React.createClass({
           ),
           React.createElement(
             'div',
-            { className: 'readerTextToc' },
+            { className: 'readerTextToc readerTextTocHeader' },
             React.createElement(
               'div',
               { className: 'readerTextTocBox' },
@@ -6166,7 +6171,8 @@ var SearchPage = React.createClass({
     };
   },
   render: function render() {
-    var style = { "fontSize": this.props.settings.fontSize + "%" };
+    var fontSize = 62.5; // this.props.settings.fontSize, to make this respond to user setting. disabled for now.
+    var style = { "fontSize": fontSize + "%" };
     var classes = classNames({ readerNavMenu: 1, noHeader: this.props.hideNavHeader });
     return React.createElement(
       'div',

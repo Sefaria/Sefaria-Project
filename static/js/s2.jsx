@@ -307,9 +307,9 @@ var ReaderApp = React.createClass({
             hist.mode = "book toc";
             break;
           case "search":
-            hist.title = state.searchQuery ? states[i].searchQuery + " | " : "";
+            hist.title = state.searchQuery ? state.searchQuery + " | " : "";
             hist.title += "Sefaria Search";
-            hist.url   = "search" + (states[i].searchQuery ? "&q=" + states[i].searchQuery + ((!!states[i].appliedSearchFilters && !!states[i].appliedSearchFilters.length) ? "&filters=" + states[i].appliedSearchFilters.join("|") : "") : "");
+            hist.url   = "search" + (state.searchQuery ? "&q=" + state.searchQuery + ((!!state.appliedSearchFilters && !!state.appliedSearchFilters.length) ? "&filters=" + state.appliedSearchFilters.join("|") : "") : "");
             hist.mode  = "search";
             break;
           case "sheets":
@@ -362,9 +362,9 @@ var ReaderApp = React.createClass({
         }
         hist.mode   = "Header"
       }
-      var lang = state.settings.language.substring(0,2);
-      var connector = hist.url.indexOf("?") == -1 ? "?" : "&";
-      hist.url += connector + "lang=" + lang;
+      console.log(hist.url);
+      var lang  = state.settings.language.substring(0,2);
+      hist.url += "&lang=" + lang;
       histories.push(hist);     
     }
     if (!histories.length) {debugger;}
@@ -405,7 +405,8 @@ var ReaderApp = React.createClass({
         next        = next.replace("?", "&").replace(/=/g, (i+1) + "=");
         hist.url   += next;
         if(histories[i].versionLanguage && histories[i].version) {
-          hist.url += "&l" + (i+1) + "=" + histories[i].versionLanguage + "&v" + (i+1) + "=" + histories[i].version.replace(/\s/g,"_");
+          hist.url += "&l" + (i+1) + "=" + histories[i].versionLanguage + 
+                      "&v" + (i+1) + "=" + histories[i].version.replace(/\s/g,"_");
         }
         hist.title += " & " + histories[i].title;
 
@@ -2008,9 +2009,9 @@ var ReaderNavigationMenu = React.createClass({
                   <span className="he">{heCat}</span>
                 </div>);
       }.bind(this));;
-      var more = (<div className="readerNavCategory" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.showMore}>
-                      <span className="en">More &gt;</span>
-                      <span className="he">עוד &gt;</span>
+      var more = (<div className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.showMore}>
+                      <span className="en">More <img src="/static/img/arrow-right.png" /></span>
+                      <span className="he">עוד <img src="/static/img/arrow-left.png" /></span>
                   </div>);
       if (this.width < 450) {
         categories = this.state.showMore ? categories : categories.slice(0,9).concat(more);
@@ -2058,20 +2059,23 @@ var ReaderNavigationMenu = React.createClass({
 
 
       var sheetsStyle = {"borderColor": Sefaria.palette.categoryColor("Sheets")};
-      var resources = [(<span className="sheetsLink" style={sheetsStyle} onClick={this.props.openMenu.bind(null, "sheets")}>
+      var resources = [(<span className="resourcesLink" style={sheetsStyle} onClick={this.props.openMenu.bind(null, "sheets")}>
                         <i className="fa fa-file-text-o"></i>
                         <span className="en">Source Sheets</span>
                         <span className="he">דפי מקורות</span>
+                        <i className="fa fa-file-text-o hidden"></i>
                       </span>),
-                     (<a className="sheetsLink" style={sheetsStyle} href="/visualizations">
+                     (<a className="resourcesLink" style={sheetsStyle} href="/visualizations">
                         <i className="fa fa-link"></i>
                         <span className="en">Visualizations</span>
                         <span className="he">חזותיים</span>
+                        <i className="fa fa-link hidden"></i>
                       </a>),
-                    (<a className="sheetsLink" style={sheetsStyle} href="/people">
+                    (<a className="resourcesLink" style={sheetsStyle} href="/people">
                         <i className="fa fa-book"></i>
                         <span className="en">Authors</span>
                         <span className="he">רשימת מחברים</span>
+                        <i className="fa fa-book hidden"></i>
                       </a>)];
       resources = (<div className="readerNavCalendar"><TwoOrThreeBox content={resources} width={this.width} /></div>);
 
@@ -2583,7 +2587,7 @@ var ReaderTextTableOfContents = React.createClass({
                   <div className="rightButtons">
                     <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
                   </div>
-                  <div className="readerTextToc">
+                  <div className="readerTextToc readerTextTocHeader">
                     <div className="readerTextTocBox">
                       <span className="en">Table of Contents</span>
                       <span className="he">תוכן העניינים</span>
@@ -4969,7 +4973,8 @@ var SearchPage = React.createClass({
       };
     },
     render: function () {
-        var style      = {"fontSize": this.props.settings.fontSize + "%"};
+        var fontSize = 62.5; // this.props.settings.fontSize, to make this respond to user setting. disabled for now.
+        var style      = {"fontSize": fontSize + "%"};
         var classes = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader});
         return (<div className={classes}>
                   {this.props.hideNavHeader ? null :
