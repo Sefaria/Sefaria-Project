@@ -185,7 +185,7 @@ body {
 	color: #999;
 }
 
-.sheetsMenuBarItem .optionsMenu {
+.sheetsMenuBarItem .optionsMenu, .sheetsMenuBarItem .subMenu {
 	background-color: #f2f2f2;
 }
 
@@ -376,7 +376,7 @@ body {
 #author {
 	text-align: center;
 	font-style: italic;
-	margin-bottom: 4px;
+	margin-bottom: 10px;
 }
 
 #via {
@@ -728,18 +728,18 @@ body {
 }
 
 .indented-1 {
-	margin-left: 30px !important;
-	margin-right: 30px !important;
+	padding-left: 30px !important;
+	padding-right: 30px !important;
 }
 
 .indented-2 {
-	margin-left: 60px !important;
-	margin-right: 60px !important;
+	padding-left: 60px !important;
+	padding-right: 60px !important;
 }
 
 .indented-3 {
-	margin-left: 90px !important;
-	margin-right: 90px !important;
+	padding-left: 90px !important;
+	padding-right: 90px !important;
 }
 
 
@@ -1416,7 +1416,9 @@ input[type="file"] {
     box-sizing: border-box;
     direction: ltr;
     z-index: 21;
-    padding: 8px 20px;
+    padding: 7px 20px 6px 16px;
+	font-size: 16px;
+    color: #333;
 }
 
 #sheet p {
@@ -1435,30 +1437,28 @@ input[type="file"] {
 }
 
 .sheetsMenuBarItem:hover {
-	border: 1px solid #ccc;
-	border-bottom: 1px solid #f2f2f2;
 	position: relative;
 }
 
-/* css hack to get menu item borders just right */
 .sheetsMenuBarItem:hover:after {
-  content: '';
+  content: ' ';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  bottom: -1px;
+  bottom: -10px;
   z-index: 6;
-  border-bottom: 14px solid #f2f2f2;
+  border-bottom: 1px solid #f2f2f2;
 }
+
 
 
 
 #fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu {
 	display: block;
-	top:38px;
-	left:-1px;
-	opacity: .99;
+	top:45px;
+	left:20px;
+	background-color: #F9F9F7;
 }
 
 #insertMenu:hover .optionsMenu {
@@ -1475,10 +1475,22 @@ input[type="file"] {
 }
 
 #ckeTopMenu .cke_inner {
-	border-top: 1px solid #E2E2E1;
     padding: 0 7px;
 	background: #f2f2f2;
+	position: relative;
+	margin-bottom: -8px;
+	border-bottom: 1px solid #E2E2E1;
 
+
+}
+
+#ckeTopMenu .cke_inner:after {
+  	content: '';
+  	position: absolute;
+  	top: -1px;
+	left:-20px;
+	right:-20px;
+	border-top: 1px solid #E2E2E1;
 }
 
 .activeSource {
