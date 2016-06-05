@@ -505,6 +505,12 @@ def sheets_tags_list(request):
 	"""
 	View public sheets organized by tags.
 	"""
+	if request.flavour == "mobile":
+		return s2_sheets(request)
+
+	elif request.COOKIES.get('s2'):
+		return s2_sheets(request)
+
 	tags_list = make_tag_list()
 	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))	
 
