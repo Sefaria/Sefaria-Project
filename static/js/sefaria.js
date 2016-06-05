@@ -1229,6 +1229,9 @@ Sefaria = extend(Sefaria, {
               "sort": [{
                   "order": {}                 // the sort field name is "order"
               }],
+              "_source": {
+                "exclude": [ "content" ]
+              },
               "highlight": {
                   "pre_tags": ["<b>"],
                   "post_tags": ["</b>"],
