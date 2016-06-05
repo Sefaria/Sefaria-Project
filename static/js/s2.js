@@ -3847,6 +3847,7 @@ var TextColumn = React.createClass({
         this.initialScrollTopSet = true;
         this.justScrolled = true;
         ReactDOM.findDOMNode(this).scrollTop = top;
+        this.scrollToHighlighted();
         //console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {

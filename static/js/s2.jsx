@@ -3125,6 +3125,7 @@ var TextColumn = React.createClass({
         this.initialScrollTopSet = true;
         this.justScrolled = true;
         ReactDOM.findDOMNode(this).scrollTop = top;
+        this.scrollToHighlighted();
         //console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
@@ -4021,7 +4022,7 @@ var TextList = React.createClass({
       if (!this.isMounted()) { return; }
       var $highlighted = $(ReactDOM.findDOMNode(this)).find(".texts .textRange").not(".lowlight").first();
       if ($highlighted.length) {
-        var $texts = $(ReactDOM.findDOMNode(this)).find(".texts")
+        var $texts = $(ReactDOM.findDOMNode(this)).find(".texts");
         var adjust = parseInt($texts.css("padding-top")) + 18;
         $texts.scrollTo($highlighted, 0, {offset: -adjust});
       }
