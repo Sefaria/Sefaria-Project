@@ -214,7 +214,7 @@ var ReaderApp = React.createClass({
       var prevPanels = [history.state.header];
       var nextPanels = [this.state.header];
     } else {
-      var prevPanels = history.state.panels;
+      var prevPanels = history.state.panels || [];
       var nextPanels = this.state.panels;
     }
 
