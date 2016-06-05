@@ -92,6 +92,7 @@ input:focus {
   margin: 30px 0;
   border: 1px solid #ddd;
 }
+
 .additional-text h3 {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: normal;
@@ -514,6 +515,10 @@ p.tagline {
     margin: 70px auto;
     width: 60%;
     text-align: center;
+}
+
+.full-text-static .page-title h1{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 footer#footer {
   background-color: white;
