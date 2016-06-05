@@ -3175,7 +3175,7 @@ var TextColumn = React.createClass({
         this.props.updateTextColumn(refs);
         if (Sefaria.site) { Sefaria.site.track.event("Reader", "Infinite Scroll", "Down"); }
       }
-    } else if (windowTop < 20) {
+    } else if (windowTop < 21) {
       // UP: add the previous section above then adjust scroll position so page doesn't jump
       var topRef = refs[0];
       var data   = Sefaria.ref(topRef);
