@@ -1050,6 +1050,24 @@ Sefaria = extend(Sefaria, {
         }
       return sheets;
     },
+
+    _publicSheets: {},
+    publicSheets: function(callback) {
+      // Returns a list of public sheets
+      var sheets = this._publicSheets;
+      if (sheets && !($.isEmptyObject(sheets))) {
+        if (callback) { callback(sheets); }
+      } else {
+        var url = "/api/sheets/all-sheets/0";
+          console.log(url);
+         Sefaria._api(url, function(data) {
+            this._publicSheets = data.sheets;
+            if (callback) { callback(data.sheets); }
+          }.bind(this));
+        }
+      return sheets;
+    },
+
     clearUserSheets: function(uid) {
       this._userSheets[uid] = null;
     },  

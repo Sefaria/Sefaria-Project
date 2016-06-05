@@ -410,12 +410,25 @@ def sheets_list(request, type=None):
 	response = { "status": 0 }
 
 	if type == "public":
+		if request.flavour == "mobile":
+			return s2_sheets_by_tag(request,"All Sheets")
+
+		elif request.COOKIES.get('s2'):
+			return s2_sheets_by_tag(request,"All Sheets")
+
 		query              = {"status": "public"}
 		response["title"]  = "Public Source Sheets"
 		response["public"] = True
 		tags               = recent_public_tags()
 
 	elif type == "private":
+		if request.flavour == "mobile":
+			return s2_sheets_by_tag(request,"Your Sheets")
+
+		elif request.COOKIES.get('s2'):
+			return s2_sheets_by_tag(request,"Your Sheets")
+
+
 		query              = {"owner": request.user.id or -1 }
 		response["title"]  = "Your Source Sheets"
 		response["groups"] = get_user_groups(request.user)
@@ -602,6 +615,9 @@ def user_sheet_list_api(request, user_id):
 		return jsonResponse({"error": "You are not authorized to view that."})
 	return jsonResponse(sheet_list(user_id), callback=request.GET.get("callback", None))
 
+def public_sheet_list_api(request):
+	return jsonResponse(sheet_list(), callback=request.GET.get("callback", None))
+
 
 def sheet_api(request, sheet_id):
 	"""
@@ -749,7 +765,10 @@ def trending_tags_api(request):
 def all_sheets_api(request, limiter):
 	limiter = int(limiter)
 	query = {"status": "public"}
-	public = db.sheets.find(query).sort([["dateModified", -1]]).limit(limiter)
+	if limiter==0:
+		public = db.sheets.find(query).sort([["dateModified", -1]])
+	else:
+		public = db.sheets.find(query).sort([["dateModified", -1]]).limit(limiter)
 	sheets = [{"title": s["title"], "id": s["id"], "owner": s["owner"], "views": s["views"]} for s in public]
 	for sheet in sheets:
 		profile = UserProfile(id=sheet["owner"])

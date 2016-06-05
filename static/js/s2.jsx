@@ -2699,7 +2699,11 @@ var SheetsNav = React.createClass({
     if (this.props.initialTag) {
       if (this.props.initialTag === "Your Sheets") {
         this.showYourSheets();
-      } else {
+      }
+      else if(this.props.initialTag === "All Sheets"){
+        this.showAllSheets();
+      }
+      else {
         this.setTag(this.props.initialTag);
       }
     }
@@ -2735,6 +2739,7 @@ var SheetsNav = React.createClass({
     this.props.setSheetTag(tag);
   },
   loadSheets: function(sheets) {
+    console.log(sheets);
     this.setState({sheets: sheets});
   },
   showYourSheets: function() {
@@ -2742,10 +2747,14 @@ var SheetsNav = React.createClass({
     Sefaria.sheets.userSheets(Sefaria._uid, this.loadSheets);
     this.props.setSheetTag("Your Sheets");    
   },
+  showAllSheets: function() {
+    this.setState({tag: "All Sheets"});
+    Sefaria.sheets.publicSheets(this.loadSheets);
+    this.props.setSheetTag("All Sheets");
+  },
   render: function() {
     var enTitle = this.state.tag || "Source Sheets";
     var heTitle = this.state.tag || "דפי מקורות";
-    console.log(enTitle);
 
     if (this.state.tag) {
       var sheets = this.state.sheets.map(function(sheet) {
@@ -2807,9 +2816,8 @@ var SheetsNav = React.createClass({
                           <h2 className="splitHeader">
                             <span className="en" style={{float: 'left'}}>Public Sheets</span>
                             <span className="he">Public Sheets [he]</span>
-
-                            <span className="en actionText">See All <i className="fa fa-angle-right"></i></span>
-                            <span className="he actionText">See All [he] <i className="fa fa-angle-right"></i></span>
+                            <span className="en actionText" onClick={this.showAllSheets}>See All <i className="fa fa-angle-right"></i></span>
+                            <span className="he actionText" onClick={this.showAllSheets}>See All [he] <i className="fa fa-angle-right"></i></span>
 
                           </h2>) : (
                           <h2>
