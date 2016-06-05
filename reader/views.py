@@ -1881,6 +1881,44 @@ def global_activity(request, page=1):
 
 
 @ensure_csrf_cookie
+def user_activity(request, slug, page=1):
+    """
+    Recent Activity page for a single user.
+    """
+    page = int(page) if page else 1
+    page_size = 100
+
+    try:
+        profile = UserProfile(slug=slug)
+    except Exception, e:
+        raise Http404
+
+
+    if page > 40:
+        generic_response = { "title": "Activity Unavailable", "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>." }
+        return render_to_response('static/generic.html', generic_response, RequestContext(request))
+
+    q              = {"user": profile.id}
+    filter_type    = request.GET.get("type", None)
+    activity, page = get_maximal_collapsed_activity(query=q, page_size=page_size, page=page, filter_type=filter_type)
+
+    next_page = page + 1 if page else None
+    next_page = "/activity/%d" % next_page if next_page else None
+    next_page = "%s?type=%s" % (next_page, filter_type) if next_page and filter_type else next_page
+
+    email = request.user.email if request.user.is_authenticated() else False
+    return render_to_response('activity.html',
+                             {'activity': activity,
+                                'filter_type': filter_type,
+                                'profile': profile,
+                                'for_user': True,
+                                'email': email,
+                                'next_page': next_page,
+                                },
+                             RequestContext(request))
+
+
+@ensure_csrf_cookie
 def segment_history(request, tref, lang, version, page=1):
     """
     View revision history for the text segment named by ref / lang / version.
