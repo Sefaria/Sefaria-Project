@@ -16,34 +16,41 @@
 {% block content %}
 
     
-<div id="talmudicPeoplePage" class="container doc biReady">
-    <a href="/people" id="textTocLink">
-        <span class='en'>&laquo; All Authors</span>
-        <span class='he'>&laquo; כל המחברים</span>
-    </a>
-    <h1>
+<div id="talmudicPeoplePage" class="container full-text-static biReady">
+    <div class="page-title"><h1>
         <span class="en">People in the Talmud</span>
         <span class="he">אנשים בתלמוד</span>
-    </h1>
-    {% for r in gens|partition_by:"4" %}
-        <div class="row">
-            {% for gen in r %}
-                <div class="talmudic-generation span3">
-                <h3>
-                    <span class="en">{{ gen.name_en }}</span>
-                    <span class="he">{{ gen.name_he }}</span>
-                </h3>
-                <h4>
-                    <span class="en">{{ gen.years_en }}</span>
-                    <span class="he">{{ gen.years_he }}</span>
-                </h4>
-                {% for person in gen.people %}
-                   {{ person|person_link }}
-                {% endfor %}
+    </h1></div>
+    <div class="row static-text" id="about">
+        <div class="about main-text">
+            <a href="/people" id="textTocLink">
+                <span class='en'>&laquo; All Authors</span>
+                <span class='he'>&laquo; כל המחברים</span>
+            </a>
+
+            {% for r in gens|partition_by:"2" %}
+                <div class="row">
+                    {% for gen in r %}
+                        <div class="talmudic-generation span4">
+                        <h3>
+                            <span class="en">{{ gen.name_en }}</span>
+                            <span class="he">{{ gen.name_he }}</span>
+                        </h3>
+                        <h4>
+                            <span class="en">{{ gen.years_en }}</span>
+                            <span class="he">{{ gen.years_he }}</span>
+                        </h4>
+                        {% for person in gen.people %}
+                            <p class="author">
+                            {{ person|person_link }}
+                            </p>
+                        {% endfor %}
+                        </div>
+                    {% endfor %}
                 </div>
             {% endfor %}
         </div>
-    {% endfor %}
+    </div>
 </div>
 
 {% endblock %}

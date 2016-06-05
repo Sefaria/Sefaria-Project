@@ -642,7 +642,7 @@ footer .section.last {
   margin-top: 20px;
   white-space: normal;
 }
-#peoplePage .author a{
+#peoplePage .author a, #talmudicPeoplePage .author a{
   color: #666;
 }
 
