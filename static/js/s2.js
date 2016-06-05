@@ -922,6 +922,7 @@ var Header = React.createClass({
     updateSearchFilter: React.PropTypes.func,
     registerAvailableFilters: React.PropTypes.func,
     setUnreadNotificationsCount: React.PropTypes.func,
+    headerMesssage: React.PropTypes.string,
     panelsOpen: React.PropTypes.number
   },
   getInitialState: function getInitialState() {
@@ -1081,6 +1082,11 @@ var Header = React.createClass({
     var notificationCount = Sefaria.notificationCount || 0;
     var notifcationsClasses = classNames({ notifications: 1, unread: notificationCount > 0 });
     var nextParam = "?next=" + Sefaria.util.currentPath();
+    var headerMessage = this.props.headerMessage ? React.createElement(
+      'div',
+      { className: 'testWarning', onClick: this.showTestMessage },
+      this.props.headerMessage
+    ) : null;
     var loggedInLinks = React.createElement(
       'div',
       { className: 'accountLinks' },
@@ -1145,11 +1151,7 @@ var Header = React.createClass({
         React.createElement(
           'div',
           { className: 'right' },
-          React.createElement(
-            'div',
-            { className: 'testWarning', onClick: this.showTestMessage },
-            'You are testing the New Sefaria'
-          ),
+          headerMessage,
           Sefaria.loggedIn ? loggedInLinks : loggedOutLinks
         ),
         React.createElement(

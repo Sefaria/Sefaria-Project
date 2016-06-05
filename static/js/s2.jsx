@@ -914,6 +914,7 @@ var Header = React.createClass({
     updateSearchFilter:          React.PropTypes.func,
     registerAvailableFilters:    React.PropTypes.func,
     setUnreadNotificationsCount: React.PropTypes.func,
+    headerMesssage:              React.PropTypes.string,
     panelsOpen:                  React.PropTypes.number
   },
   getInitialState: function() {
@@ -1077,6 +1078,9 @@ var Header = React.createClass({
     var notificationCount = Sefaria.notificationCount || 0;
     var notifcationsClasses = classNames({notifications: 1, unread: notificationCount > 0});
     var nextParam = "?next=" + Sefaria.util.currentPath();
+    var headerMessage = this.props.headerMessage ?
+                          (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
+                          null;
     var loggedInLinks  = (<div className="accountLinks">
                             <div className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" /></div>
                             <div className={notifcationsClasses} onClick={this.showNotifications}>{notificationCount}</div>
@@ -1097,7 +1101,7 @@ var Header = React.createClass({
                   <div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div>
                 </div>
                 <div className="right">
-                  <div className="testWarning" onClick={this.showTestMessage} >You are testing the New Sefaria</div>
+                  { headerMessage }
                   { Sefaria.loggedIn ? loggedInLinks : loggedOutLinks }
                 </div>
                 <span className="searchBox">
