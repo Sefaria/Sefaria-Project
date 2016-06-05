@@ -98,7 +98,7 @@ input:focus {
   text-transform: uppercase;
   color: #aaa;
   margin-bottom: 10px;
-  margin-top: 20px;
+  margin-top: 40px;
   padding-bottom: 15px;
   border-bottom: 1px solid #eee;
 }
@@ -506,7 +506,7 @@ p.tagline {
 #visualizationsPage {
   text-align: left;
 }
-#aboutPage {
+.full-text-static {
     margin: 70px auto;
     width: 60%;
     text-align: center;
@@ -546,3 +546,47 @@ footer .section.last {
   text-align: right;
   border-left: 1px solid #EAEAEA;
 }
+#donatePage div.single-button{
+  text-align: center;
+  margin: 5% 0;
+}
+.full-text-static .static-text .main-text div.single-button a.btn{
+  margin: auto;
+}
+.full-text-static .static-text .main-text a.btn {
+  all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
+  display: block;
+  width: 25%;
+  color: white;
+  background-color: #212E50;
+  border: 1px solid #212E50;
+  border-radius: 4px;
+  padding: 12px 0px;
+  margin-top: 30px;
+  cursor: pointer;
+  font-size: 15px;
+  letter-spacing: 1px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  box-sizing: border-box;
+  text-align: center;
+}
+#donatePage pre{
+  all: initial;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  display: block;
+  unicode-bidi: embed;
+  white-space: pre;
+  font-style: italic;
+  font-size: 1.2em;
+}
+.static-text .static-content-note{
+  margin: 60px 0;
+}
+.static-text .static-content-not > p:first-child{
+  font-weight: bold;
+}
+
+#linkerPage .linkerOption{
+  margin: 50px 0;
+}
+
