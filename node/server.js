@@ -42,7 +42,7 @@ var renderReaderApp = function(props, data, timer) {
   console.log("Time to render: %dms", timer.elapsed());
   
   return html;
-}
+};
 
 server.post('/ReaderApp/:cachekey', function(req, res) {
   var timer = {
