@@ -550,10 +550,10 @@ footer .section.last {
   text-align: center;
   margin: 5% 0;
 }
-#donatePage div.single-button a.btn{
+.full-text-static .static-text .main-text div.single-button a.btn{
   margin: auto;
 }
-#donatePage a.btn {
+.full-text-static .static-text .main-text a.btn {
   all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
   display: block;
   width: 25%;
@@ -584,5 +584,9 @@ footer .section.last {
 }
 .static-text .static-content-not > p:first-child{
   font-weight: bold;
+}
+
+#linkerPage .linkerOption{
+  margin: 50px 0;
 }
 
