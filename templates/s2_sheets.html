@@ -217,23 +217,26 @@
         </div>
             {% endif %}
 
-    <div id="ckeTopMenu"></div>
-    </div>
-<div id="link"></div>
-<div id="error"></div>
-<div id="controls">
-    <div>
-     <span id="lastSaved">
+    <div class="sheetsMenuBarItem">
+             <span id="lastSaved">
         {% if sheet.dateModified %}
                     {% if can_edit or can_add %}
                         Last Saved: {{sheet.dateModified|date_string_to_date|naturaltime}}
                     {% endif %}
         {% endif %}
      </span>
+
+    </div>
+    <div id="ckeTopMenu"></div>
+    </div>
+<div id="link"></div>
+<div id="error"></div>
+<div id="controls">
+    <div>
     </div>
 </div>
 
-<div id="sheet" class="{{ sheet_class|default:'bilingual' }}">
+<div id="sheet" class="s2Sheet {{ sheet_class|default:'bilingual' }}">
 	{% if new_sheet %}
 	<div id="fileControls">
 
@@ -327,8 +330,11 @@
             <div id="addsourceDiv">
                 <div id="inlineAddDialogTitle" class="inlineAddDesc">Select a text</div>
                 <input id="inlineAdd" placeholder="Search for a Text or Commentator"/>
+                <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
+                    <div id="inlineAddSourceOK" class='button disabled'>Add Source</div>
+                </div>
                 <div id="inlineAddOr"> or </div>
-                <div id="inlineAddBrowseBox">
+                <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
                     <div id="inlineAddBrowse" class='button'>Browse Sources</div>
                 </div>
 
