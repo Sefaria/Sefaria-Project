@@ -2744,6 +2744,8 @@ var SheetsNav = React.createClass({
   },
   render: function() {
     var enTitle = this.state.tag || "Source Sheets";
+    var heTitle = this.state.tag || "דפי מקורות";
+    console.log(enTitle);
 
     if (this.state.tag) {
       var sheets = this.state.sheets.map(function(sheet) {
@@ -2757,8 +2759,13 @@ var SheetsNav = React.createClass({
                 </a>);
       });
       sheets = sheets.length ? sheets : (<LoadingMessage />);
-      var content = (<div className="content sheetList"><div className="contentInner">{sheets}</div></div>);
-    } else {
+      var content = (<div className="content sheetList"><div className="contentInner">
+                          {this.props.hideNavHeader ? (<h1>
+                            <span className="en">{enTitle}</span>
+                          </h1>) : null}
+                          {sheets}</div></div>);
+    }
+    else {
       var yourSheets  = Sefaria._uid ? (<div className="yourSheetsLink navButton" onClick={this.showYourSheets}>Your Source Sheets <i className="fa fa-chevron-right"></i></div>) : null;
       var makeTagButton = function(tag) {
         var setThisTag = this.setTag.bind(null, tag.tag);
@@ -2791,8 +2798,8 @@ var SheetsNav = React.createClass({
                               <span className="en">א</span>
                               <span className="he">A</span>
                             </div>
-                            <span className="en">Source Sheets</span>
-                            <span className="he">דפי מקורות</span>
+                            <span className="en">{enTitle}</span>
+                            <span className="he">{heTitle}</span>
                           </h1>) : null}
                           { this.props.multiPanel ? null : yourSheets }
 

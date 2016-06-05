@@ -408,8 +408,11 @@ def s2_sheets_by_tag(request, tag):
         "initialMenu": "sheets",
         "initialSheetsTag": tag,
     })
-    props["html"] = render_react_component("ReaderApp", props)
-    return render_to_response('s2.html', props, RequestContext(request))
+    html = render_react_component("ReaderApp", props)
+    return render_to_response('s2.html', {
+        "propsJSON":      json.dumps(props),
+        "html":           html,
+    }, RequestContext(request))
 
 
 def s2_page(request, page):

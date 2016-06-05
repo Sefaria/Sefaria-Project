@@ -516,6 +516,8 @@ def sheets_tag(request, tag, public=True, group=None):
 	if public:
 		if request.flavour == "mobile":
 			return s2_sheets_by_tag(request, tag)
+		elif request.COOKIES.get('s2'):
+			return s2_sheets_by_tag(request, tag)
 		sheets = get_sheets_by_tag(tag)
 	elif group:
 		sheets = get_sheets_by_tag(tag, group=group)

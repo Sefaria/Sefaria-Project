@@ -991,7 +991,6 @@ Sefaria = extend(Sefaria, {
     _tagList: null, _lastSortBy: null,
     tagList: function(callback,sortBy) {
       // Returns a list of all public source sheet tags, ordered by populartiy
-        console.log(sortBy);
       var tags = this._tagList;
       if (tags && this._lastSortBy == sortBy) {
         if (callback) { callback(tags); }
