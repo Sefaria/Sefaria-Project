@@ -86,7 +86,7 @@ def reader(request, tref, lang=None, version=None):
     if (not getattr(oref.index_node, "depth", None)):
         return text_toc(request, oref)
 
-    if request.flavour == "mobile" or request.COOKIES.get('s2'):
+    if not request.COOKIES.get('s1'):
         return s2(request, ref=tref, lang=lang, version=version)
 
 
@@ -768,7 +768,7 @@ def text_toc(request, oref):
     """
     Page representing a single text, showing its Table of Contents and related info.
     """
-    if request.flavour == "mobile" or request.COOKIES.get('s2'):
+    if not request.COOKIES.get('s1'):
         return s2(request, ref=oref.normal())
 
     index         = oref.index
@@ -879,8 +879,9 @@ def texts_list(request):
     """
     Page listing every text in the library.
     """
-    if request.flavour == "mobile" or request.COOKIES.get('s2'):
+    if not request.COOKIES.get('s1'):
         return s2_texts(request)
+
     return render_to_response('texts.html',
                              {},
                              RequestContext(request))
@@ -890,7 +891,7 @@ def texts_category_list(request, cats):
     """
     Page listing every text in category
     """
-    if request.flavour == "mobile" or request.COOKIES.get('s2'):
+    if not request.COOKIES.get('s1'):
         return s2_texts_category(request, cats)
     
     cats       = cats.split("/")
@@ -922,8 +923,9 @@ def texts_category_list(request, cats):
 
 @ensure_csrf_cookie
 def search(request):
-    if request.flavour == "mobile" or request.COOKIES.get('s2'):
+    if not request.COOKIES.get('s1'):
         return s2_search(request)
+
     return render_to_response('search.html',
                              {},
                              RequestContext(request))
@@ -2118,7 +2120,7 @@ def home(request):
     Homepage
     """
     recent = request.COOKIES.get("recentlyViewed", None)
-    if recent and not "home" in request.GET and request.COOKIES.get('s2'):
+    if recent and not "home" in request.GET and not request.COOKIES.get('s1'):
         recent = json.loads(urlparse.unquote(recent))
         return redirect("/%s" % recent[0]["ref"])
 
@@ -2133,7 +2135,7 @@ def home(request):
     p929_ref           = "%s %s" % (p929_chapter.book_name, p929_chapter.book_chapter)
     metrics            = db.metrics.find().sort("timestamp", -1).limit(1)[0]
 
-    return render_to_response('static/s2_home.html' if request.COOKIES.get('s2') else 'static/home.html',
+    return render_to_response('static/s2_home.html' if not request.COOKIES.get('s1') else 'static/home.html',
                              {
                               "metrics": metrics,
                               "daf_today": daf_today,

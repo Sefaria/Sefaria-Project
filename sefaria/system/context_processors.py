@@ -19,7 +19,7 @@ def global_settings(request):
         "OFFLINE":                OFFLINE,
         "GLOBAL_WARNING":         GLOBAL_WARNING,
         "GLOBAL_WARNING_MESSAGE": GLOBAL_WARNING_MESSAGE,
-        "S2":                     "s2" in request.GET or request.COOKIES.get('s2'),
+        "S2":                     not request.COOKIES.get('s1', False),
         #"USE_VARNISH":            USE_VARNISH,
         #"VARNISH_ADDR":           VARNISH_ADDR,
         #"USE_VARNISH_ESI":        USE_VARNISH_ESI
