@@ -7056,11 +7056,11 @@ var SearchTextResult = React.createClass({
 
     function get_snippet_markup() {
       var snippet;
-      if (data.highlight && data.highlight["content"]) {
-        snippet = data.highlight["content"].join("...");
-      } else {
-        snippet = s["content"];
-      }
+      // if (data.highlight && data.highlight["content"]) {
+      snippet = data.highlight["content"].join("...");
+      // } else {
+      //     snippet = s["content"];  // We're filtering out content, because it's *huge*, especially on Sheets
+      // }
       snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").html();
       return { __html: snippet };
     }
@@ -7146,7 +7146,7 @@ var SearchSheetResult = React.createClass({
     var data = this.props.data;
     var s = data._source;
 
-    var snippet = data.highlight ? data.highlight.content.join("...") : s.content;
+    var snippet = data.highlight.content.join("..."); // data.highlight ? data.highlight.content.join("...") : s.content;
     snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").text();
 
     function get_version_markup() {
