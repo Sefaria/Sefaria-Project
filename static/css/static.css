@@ -22,7 +22,7 @@ h1 {
   color: #555;
   height: 70px;
   position: relative;
-  font-size: 26px;
+  font-size: 30px;
   font-weight: lighter;
   letter-spacing: 1px;
 }
@@ -113,7 +113,7 @@ p.tagline {
   text-align: justify
 }
 .static-text p {
-  font-size: 20px;
+  font-size: 23px;
   line-height: 30px;
   color: #555;
 }
