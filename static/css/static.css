@@ -30,6 +30,17 @@ h2 {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: normal;
 }
+
+h3 {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: normal;
+  text-transform: uppercase;
+  color: #aaa;
+  margin-bottom: 10px;
+  margin-top: 40px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
 input {
   padding: 20px 20px;
   margin: 0;
@@ -93,16 +104,6 @@ input:focus {
   border: 1px solid #ddd;
 }
 
-.additional-text h3 {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  font-weight: normal;
-  text-transform: uppercase;
-  color: #aaa;
-  margin-bottom: 10px;
-  margin-top: 40px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #eee;
-}
 p.tagline {
   font-style: italic;
   margin-bottom: 25px;
@@ -594,8 +595,56 @@ footer .section.last {
 .static-text .static-content-not > p:first-child{
   font-weight: bold;
 }
-
 #linkerPage .linkerOption{
   margin: 50px 0;
 }
+#teamPage{
+  width: 50%;
+}
+#teamPage .teamMember{
+  font-size: 20px;
+  line-height: 1.2em;
+  display: inline-block;
+  width: 100%;
+  border-bottom: 1px solid  #ddd;
+  margin-bottom: 35px;
+  padding-bottom: 35px;
+}
+#teamPage .teamMember .teamMemberImage{
+  display: inline-block;
+  float: left;
+}
+#teamPage .teamMember .teamMemberDetails{
+  display: inline-block;
+  white-space:nowrap;
+  max-width: 65%;
+  margin: 0 20px;
+}
+#teamPage .teamMember .teamMemberImage img{
+  border: 1px solid #E6E5E6;
+  width: 170px;
+  height: 170px;
+  vertical-align:middle;
+}
+#teamPage .teamMember .teamName{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  margin-bottom: 20px;
+  font-size: 25px;
+  color: #555;
+}
+#teamPage .teamMember .teamTitle{
+
+}
+#teamPage .teamMember .teamEmail{
+  color: #999;
+}
+#teamPage .teamMember .teamBio {
+  margin-top: 20px;
+  white-space: normal;
+}
+
+
+
+
+
 
