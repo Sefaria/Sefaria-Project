@@ -2662,7 +2662,7 @@ var VersionBlock = React.createClass({
           {this.props.showHistory?<span>-</span>:""}
           {this.props.showHistory?<a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>Version History &gt;</a>:""}
         </div>
-        {this.props.showNotes?<div className="versionNotes">{v.versionNotes}</div>:""}
+        {this.props.showNotes?<div className="versionNotes" dangerouslySetInnerHTML={ {__html: v.versionNotes} }></div>:""}
       </div>
     );
   }
