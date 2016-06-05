@@ -2657,4 +2657,5 @@ h2.splitHeader {
 .splitHeader .actionText {
   float:right;
   text-transform: none;
+  cursor: pointer;
 }

@@ -317,16 +317,21 @@ def delete_sheet_api(request, sheet_id):
 	return jsonResponse({"status": "ok"})
 
 
-def sheet_tag_counts(query):
+def sheet_tag_counts(query,sort_by="count"):
 	"""
 	Returns tags ordered by count for sheets matching query.
 	"""
+	if sort_by == "count":
+		sort_query = SON([("count", -1), ("_id", -1)])
+	elif sort_by == "alpha":
+		sort_query = SON([("_id", 1)])
+
 	tags = db.sheets.aggregate([
 		{"$match": query },
 		{"$unwind": "$tags"},
 		{"$group": {"_id": "$tags", "count": {"$sum": 1}}},
-		{"$sort": SON([("count", -1), ("_id", -1)])},
-		{"$project": { "_id": 0, "tag": "$_id", "count": "$count" }}
+		{"$sort": sort_query },
+		{"$project": { "_id": 0, "tag": "$_id", "count": "$count"}}
 	])
 	return tags["result"]
 
@@ -405,12 +410,25 @@ def sheets_list(request, type=None):
 	response = { "status": 0 }
 
 	if type == "public":
+		if request.flavour == "mobile":
+			return s2_sheets_by_tag(request,"All Sheets")
+
+		elif request.COOKIES.get('s2'):
+			return s2_sheets_by_tag(request,"All Sheets")
+
 		query              = {"status": "public"}
 		response["title"]  = "Public Source Sheets"
 		response["public"] = True
 		tags               = recent_public_tags()
 
 	elif type == "private":
+		if request.flavour == "mobile":
+			return s2_sheets_by_tag(request,"Your Sheets")
+
+		elif request.COOKIES.get('s2'):
+			return s2_sheets_by_tag(request,"Your Sheets")
+
+
 		query              = {"owner": request.user.id or -1 }
 		response["title"]  = "Your Source Sheets"
 		response["groups"] = get_user_groups(request.user)
@@ -500,6 +518,12 @@ def sheets_tags_list(request):
 	"""
 	View public sheets organized by tags.
 	"""
+	if request.flavour == "mobile":
+		return s2_sheets(request)
+
+	elif request.COOKIES.get('s2'):
+		return s2_sheets(request)
+
 	tags_list = make_tag_list()
 	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))	
 
@@ -510,6 +534,8 @@ def sheets_tag(request, tag, public=True, group=None):
 	"""
 	if public:
 		if request.flavour == "mobile":
+			return s2_sheets_by_tag(request, tag)
+		elif request.COOKIES.get('s2'):
 			return s2_sheets_by_tag(request, tag)
 		sheets = get_sheets_by_tag(tag)
 	elif group:
@@ -588,6 +614,9 @@ def user_sheet_list_api(request, user_id):
 	if int(user_id) != request.user.id:
 		return jsonResponse({"error": "You are not authorized to view that."})
 	return jsonResponse(sheet_list(user_id), callback=request.GET.get("callback", None))
+
+def public_sheet_list_api(request):
+	return jsonResponse(sheet_list(), callback=request.GET.get("callback", None))
 
 
 def sheet_api(request, sheet_id):
@@ -715,15 +744,14 @@ def sheet_likers_api(request, sheet_id):
 	return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
-def tag_list_api(request):
+def tag_list_api(request, sort_by="count"):
 	"""
 	API to retrieve the list of public tags ordered by count.
 	"""
-	response = sheet_tag_counts({"status": "public"})
+	response = sheet_tag_counts({"status": "public"},sort_by)
 	response =  jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response
-
 
 def trending_tags_api(request):
 	"""
@@ -737,7 +765,10 @@ def trending_tags_api(request):
 def all_sheets_api(request, limiter):
 	limiter = int(limiter)
 	query = {"status": "public"}
-	public = db.sheets.find(query).sort([["dateModified", -1]]).limit(limiter)
+	if limiter==0:
+		public = db.sheets.find(query).sort([["dateModified", -1]])
+	else:
+		public = db.sheets.find(query).sort([["dateModified", -1]]).limit(limiter)
 	sheets = [{"title": s["title"], "id": s["id"], "owner": s["owner"], "views": s["views"]} for s in public]
 	for sheet in sheets:
 		profile = UserProfile(id=sheet["owner"])

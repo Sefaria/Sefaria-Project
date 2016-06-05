@@ -988,19 +988,20 @@ Sefaria = extend(Sefaria, {
         }
       return tags;
     },
-    _tagList: null,
-    tagList: function(callback) {
+    _tagList: null, _lastSortBy: null,
+    tagList: function(callback,sortBy) {
       // Returns a list of all public source sheet tags, ordered by populartiy
       var tags = this._tagList;
-      if (tags) {
+      if (tags && this._lastSortBy == sortBy) {
         if (callback) { callback(tags); }
       } else {
-        var url = "/api/sheets/tag-list";
+        var url = "/api/sheets/tag-list/"+sortBy;
          Sefaria._api(url, function(data) {
             this._tagList = data;
             if (callback) { callback(data); }
           }.bind(this));
         }
+      this._lastSortBy = sortBy;
       return tags;
     },
     _allSheetsList: null,
@@ -1049,6 +1050,24 @@ Sefaria = extend(Sefaria, {
         }
       return sheets;
     },
+
+    _publicSheets: {},
+    publicSheets: function(callback) {
+      // Returns a list of public sheets
+      var sheets = this._publicSheets;
+      if (sheets && !($.isEmptyObject(sheets))) {
+        if (callback) { callback(sheets); }
+      } else {
+        var url = "/api/sheets/all-sheets/0";
+          console.log(url);
+         Sefaria._api(url, function(data) {
+            this._publicSheets = data.sheets;
+            if (callback) { callback(data.sheets); }
+          }.bind(this));
+        }
+      return sheets;
+    },
+
     clearUserSheets: function(uid) {
       this._userSheets[uid] = null;
     },  

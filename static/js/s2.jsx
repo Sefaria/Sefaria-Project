@@ -458,7 +458,8 @@ var ReaderApp = React.createClass({
       orphanSearchFilters:  state.orphanSearchFilters  || [],
       bookRef:              state.bookRef              || null,
       settings:             state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
-      displaySettingsOpen:  false
+      displaySettingsOpen:  false,
+      tagSort:              state.tagSort              || "alpha"
     };
     if (this.state && panel.refs.length && !panel.version) {
       var oRef = Sefaria.ref(panel.refs[0]);
@@ -1162,7 +1163,7 @@ var ReaderPanel = React.createClass({
       return state;
     }
 
-    // When this component is independent and manages itself, it takes individual initial state props, with defaults listed here. 
+    // When this component is independent and manages itself, it takes individual initial state props, with defaults listed here.
     return {
       refs: this.props.initialRefs || [], // array of ref strings
       bookRef: null,
@@ -1190,7 +1191,8 @@ var ReaderPanel = React.createClass({
       availableFilters:     [],
       filterRegistry:       {},
       orphanSearchFilters:  [],
-      displaySettingsOpen:  false
+      displaySettingsOpen:  false,
+      tagSort: "alpha"
     }
   },
   componentDidMount: function() {
@@ -1446,6 +1448,11 @@ var ReaderPanel = React.createClass({
   setWidth: function() {
     this.width = $(ReactDOM.findDOMNode(this)).width();
   },
+  setSheetTagSort: function(sort) {
+    this.conditionalSetState({
+      tagSort: sort,
+    });
+  },
   trackPanelOpens: function() {
     if (this.state.mode === "Connections") { return; }
     this.tracked = this.tracked || [];
@@ -1634,8 +1641,11 @@ var ReaderPanel = React.createClass({
                     hideNavHeader={this.props.hideNavHeader}
                     toggleLanguage={this.toggleLanguage}
                     initialTag={this.state.navigationSheetTag}
-                    setSheetTag={this.setSheetTag} />);
-
+                    tagSort={this.state.tagSort}
+                    setSheetTagSort={this.setSheetTagSort}
+                    setSheetTag={this.setSheetTag}
+                    key={this.state.key}
+                  />);
     } else if (this.state.menuOpen === "account") {
       var menu = (<AccountPanel
                     toggleLanguage={this.toggleLanguage} />);
@@ -2667,6 +2677,7 @@ var SheetsNav = React.createClass({
     close:         React.PropTypes.func.isRequired,
     openNav:       React.PropTypes.func.isRequired,
     setSheetTag:   React.PropTypes.func.isRequired,
+    setSheetTagSort:   React.PropTypes.func.isRequired,
     hideNavHeader: React.PropTypes.bool
 
   },
@@ -2674,10 +2685,10 @@ var SheetsNav = React.createClass({
     return {
       trendingTags: null,
       allSheets: null,
-      tagList: null,
       yourSheets: null,
       sheets: [],
       tag: this.props.initialTag,
+      tagSort: this.props.tagSort,
       width: 400
     };
   },
@@ -2688,13 +2699,17 @@ var SheetsNav = React.createClass({
     if (this.props.initialTag) {
       if (this.props.initialTag === "Your Sheets") {
         this.showYourSheets();
-      } else {
+      }
+      else if(this.props.initialTag === "All Sheets"){
+        this.showAllSheets();
+      }
+      else {
         this.setTag(this.props.initialTag);
       }
     }
   },
   componentWillReceiveProps: function(nextProps) {
-    this.setState({tag: nextProps.initialTag, sheets: []});
+    this.setState({tagSort: nextProps.tagSort, tag: nextProps.initialTag, sheets: []});
   },
   getAllSheets: function() {
     Sefaria.sheets.allSheetsList(this.loadAllSheets);
@@ -2704,14 +2719,18 @@ var SheetsNav = React.createClass({
       allSheets: Sefaria.sheets.allSheetsList() || []
     });
   },
+  changeSort: function(event) {
+    this.props.setSheetTagSort(event.target.value);
+    Sefaria.sheets.tagList(this.loadTags,event.target.value);
+  },
   getTags: function() {
     Sefaria.sheets.trendingTags(this.loadTags);
-    Sefaria.sheets.tagList(this.loadTags);
+    Sefaria.sheets.tagList(this.loadTags,this.props.tagSort);
   },
   loadTags: function() {
     this.setState({
       trendingTags: Sefaria.sheets.trendingTags() || [],
-      tagList:      Sefaria.sheets.tagList() || []
+      tagList:      Sefaria.sheets.tagList(null,this.props.tagSort) || [],
     });
   },
   setTag: function(tag) {
@@ -2720,6 +2739,7 @@ var SheetsNav = React.createClass({
     this.props.setSheetTag(tag);
   },
   loadSheets: function(sheets) {
+    console.log(sheets);
     this.setState({sheets: sheets});
   },
   showYourSheets: function() {
@@ -2727,8 +2747,14 @@ var SheetsNav = React.createClass({
     Sefaria.sheets.userSheets(Sefaria._uid, this.loadSheets);
     this.props.setSheetTag("Your Sheets");    
   },
+  showAllSheets: function() {
+    this.setState({tag: "All Sheets"});
+    Sefaria.sheets.publicSheets(this.loadSheets);
+    this.props.setSheetTag("All Sheets");
+  },
   render: function() {
     var enTitle = this.state.tag || "Source Sheets";
+    var heTitle = this.state.tag || "דפי מקורות";
 
     if (this.state.tag) {
       var sheets = this.state.sheets.map(function(sheet) {
@@ -2742,8 +2768,13 @@ var SheetsNav = React.createClass({
                 </a>);
       });
       sheets = sheets.length ? sheets : (<LoadingMessage />);
-      var content = (<div className="content sheetList"><div className="contentInner">{sheets}</div></div>);
-    } else {
+      var content = (<div className="content sheetList"><div className="contentInner">
+                          {this.props.hideNavHeader ? (<h1>
+                            <span className="en">{enTitle}</span>
+                          </h1>) : null}
+                          {sheets}</div></div>);
+    }
+    else {
       var yourSheets  = Sefaria._uid ? (<div className="yourSheetsLink navButton" onClick={this.showYourSheets}>Your Source Sheets <i className="fa fa-chevron-right"></i></div>) : null;
       var makeTagButton = function(tag) {
         var setThisTag = this.setTag.bind(null, tag.tag);
@@ -2776,8 +2807,8 @@ var SheetsNav = React.createClass({
                               <span className="en">א</span>
                               <span className="he">A</span>
                             </div>
-                            <span className="en">Source Sheets</span>
-                            <span className="he">דפי מקורות</span>
+                            <span className="en">{enTitle}</span>
+                            <span className="he">{heTitle}</span>
                           </h1>) : null}
                           { this.props.multiPanel ? null : yourSheets }
 
@@ -2785,9 +2816,8 @@ var SheetsNav = React.createClass({
                           <h2 className="splitHeader">
                             <span className="en" style={{float: 'left'}}>Public Sheets</span>
                             <span className="he">Public Sheets [he]</span>
-
-                            <span className="en actionText">See All <i className="fa fa-angle-right"></i></span>
-                            <span className="he actionText">See All [he] <i className="fa fa-angle-right"></i></span>
+                            <span className="en actionText" onClick={this.showAllSheets}>See All <i className="fa fa-angle-right"></i></span>
+                            <span className="he actionText" onClick={this.showAllSheets}>See All [he] <i className="fa fa-angle-right"></i></span>
 
                           </h2>) : (
                           <h2>
@@ -2816,8 +2846,18 @@ var SheetsNav = React.createClass({
                             <span className="en" style={{float: 'left'}}>All Tags</span>
                             <span className="he">All Tags [he]</span>
 
-                            <span className="en actionText">Sort By <i className="fa fa-angle-down"></i></span>
-                            <span className="he actionText">Sort By [he] <i className="fa fa-angle-down"></i></span>
+                            <span className="en actionText">Sort By:
+                              <select value={this.props.tagSort} onChange={this.changeSort}>
+                               <option value="alpha">Alphabetical</option>
+                               <option value="count">Most Used</option>
+                               <option value="trending">Trending</option>
+                             </select> <i className="fa fa-angle-down"></i></span>
+                            <span className="he actionText">Sort By [he]:
+                                <select value={this.props.tagSort} onChange={this.changeSort}>
+                               <option value="alpha">Alphabetical</option>
+                               <option value="count">Most Used</option>
+                               <option value="trending">Trending</option>
+                             </select> <i className="fa fa-angle-down"></i></span>
 
                           </h2>) : (
                           <h2>
