@@ -362,7 +362,7 @@ var ReaderApp = React.createClass({
         }
         hist.mode   = "Header"
       }
-      console.log(hist.url);
+      console.log("History Panel: " + hist.url);
       var lang  = state.settings.language.substring(0,2);
       hist.url += "&lang=" + lang;
       histories.push(hist);     
@@ -3114,7 +3114,7 @@ var TextColumn = React.createClass({
     // Called on every update, checking flags on `this` to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-      console.log("loading at top")
+      console.log("loading at top");
       var $node   = $(ReactDOM.findDOMNode(this));
       var adjust  = 118; // Height of .loadingMessage.base
       var $texts  = $node.find(".basetext");
@@ -3140,8 +3140,8 @@ var TextColumn = React.createClass({
       node.scrollTop = 30;
       this.initialScrollTopSet = true;
     }
-    // This fixes loading of next content when current content is short in viewpot,
-    // but breaks loading highlted ref, jumping back up to top of section
+    // This fixes loading of next content when current content is short in viewport,
+    // but breaks loading highlighted ref, jumping back up to top of section
     // this.adjustInfiniteScroll();
   },
   adjustInfiniteScroll: function() {
@@ -3418,7 +3418,8 @@ var TextRange = React.createClass({
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
-      this.props.showBaseText(data.ref, true);        
+      this.props.showBaseText(data.ref, true);
+      return;
     }
 
     this.prefetchData();
