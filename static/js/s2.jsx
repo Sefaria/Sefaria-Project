@@ -457,7 +457,8 @@ var ReaderApp = React.createClass({
       orphanSearchFilters:  state.orphanSearchFilters  || [],
       bookRef:              state.bookRef              || null,
       settings:             state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
-      displaySettingsOpen:  false
+      displaySettingsOpen:  false,
+      tagSort:              state.tagSort              || "alpha"
     };
     if (this.state && panel.refs.length && !panel.version) {
       var oRef = Sefaria.ref(panel.refs[0]);
@@ -1161,6 +1162,7 @@ var ReaderPanel = React.createClass({
       return state;
     }
 
+    // When this component is independent and manages itself, it takes individual initial state props, with defaults listed here.
     return {
       refs: this.props.initialRefs || [], // array of ref strings
       bookRef: null,
@@ -1188,6 +1190,8 @@ var ReaderPanel = React.createClass({
       availableFilters:     [],
       filterRegistry:       {},
       orphanSearchFilters:  [],
+      displaySettingsOpen:  false,
+      tagSort: "alpha"
     }
   },
   componentDidMount: function() {
@@ -1443,6 +1447,11 @@ var ReaderPanel = React.createClass({
   setWidth: function() {
     this.width = $(ReactDOM.findDOMNode(this)).width();
   },
+  setSheetTagSort: function(sort) {
+    this.conditionalSetState({
+      tagSort: sort,
+    });
+  },
   trackPanelOpens: function() {
     if (this.state.mode === "Connections") { return; }
     this.tracked = this.tracked || [];
@@ -1631,7 +1640,11 @@ var ReaderPanel = React.createClass({
                     hideNavHeader={this.props.hideNavHeader}
                     toggleLanguage={this.toggleLanguage}
                     initialTag={this.state.navigationSheetTag}
-                    setSheetTag={this.setSheetTag} />);
+                    tagSort={this.state.tagSort}
+                    setSheetTagSort={this.setSheetTagSort}
+                    setSheetTag={this.setSheetTag}
+                    key={this.state.key}
+                  />);
     } else if (this.state.menuOpen === "account") {
       var menu = (<AccountPanel
                     toggleLanguage={this.toggleLanguage} />);
@@ -2660,6 +2673,7 @@ var SheetsNav = React.createClass({
     close:         React.PropTypes.func.isRequired,
     openNav:       React.PropTypes.func.isRequired,
     setSheetTag:   React.PropTypes.func.isRequired,
+    setSheetTagSort:   React.PropTypes.func.isRequired,
     hideNavHeader: React.PropTypes.bool
 
   },
@@ -2667,10 +2681,10 @@ var SheetsNav = React.createClass({
     return {
       trendingTags: null,
       allSheets: null,
-      tagList: null,
       yourSheets: null,
       sheets: [],
       tag: this.props.initialTag,
+      tagSort: this.props.tagSort,
       width: 400
     };
   },
@@ -2687,7 +2701,7 @@ var SheetsNav = React.createClass({
     }
   },
   componentWillReceiveProps: function(nextProps) {
-    this.setState({tag: nextProps.initialTag, sheets: []});
+    this.setState({tagSort: nextProps.tagSort, tag: nextProps.initialTag, sheets: []});
   },
   getAllSheets: function() {
     Sefaria.sheets.allSheetsList(this.loadAllSheets);
@@ -2697,12 +2711,18 @@ var SheetsNav = React.createClass({
       allSheets: Sefaria.sheets.allSheetsList() || []
     });
   },
+  changeSort: function(event) {
+    this.props.setSheetTagSort(event.target.value);
+    Sefaria.sheets.tagList(this.loadTags,event.target.value);
+  },
   getTags: function() {
     Sefaria.sheets.trendingTags(this.loadTags);
+    Sefaria.sheets.tagList(this.loadTags,this.props.tagSort);
   },
   loadTags: function() {
     this.setState({
       trendingTags: Sefaria.sheets.trendingTags() || [],
+      tagList:      Sefaria.sheets.tagList(null,this.props.tagSort) || [],
     });
   },
   setTag: function(tag) {
@@ -2807,6 +2827,18 @@ var SheetsNav = React.createClass({
                             <span className="en" style={{float: 'left'}}>All Tags</span>
                             <span className="he">All Tags [he]</span>
 
+                            <span className="en actionText">Sort By:
+                              <select value={this.props.tagSort} onChange={this.changeSort}>
+                               <option value="alpha">Alphabetical</option>
+                               <option value="count">Most Used</option>
+                               <option value="trending">Trending</option>
+                             </select> <i className="fa fa-angle-down"></i></span>
+                            <span className="he actionText">Sort By [he]:
+                                <select value={this.props.tagSort} onChange={this.changeSort}>
+                               <option value="alpha">Alphabetical</option>
+                               <option value="count">Most Used</option>
+                               <option value="trending">Trending</option>
+                             </select> <i className="fa fa-angle-down"></i></span>
 
                           </h2>) : (
                           <h2>
