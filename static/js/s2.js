@@ -157,6 +157,7 @@ var ReaderApp = React.createClass({
     return {
       panels: panels,
       header: header,
+      headerMode: this.props.headerMode,
       defaultVersions: defaultVersions,
       defaultPanelSettings: Sefaria.util.clone(defaultPanelSettings),
       layoutOrientation: layoutOrientation,
@@ -263,8 +264,8 @@ var ReaderApp = React.createClass({
     // Returns an object with state, title and url params for the current state
     var histories = [];
     // When the header has a panel open, only look at its content for history
-    var headerMode = this.state.header.menuOpen || !this.state.panels.length && this.state.header.mode === "Header";
-    var panels = headerMode ? [this.state.header] : this.state.panels;
+    var headerPanel = this.state.header.menuOpen || !this.state.panels.length && this.state.header.mode === "Header";
+    var panels = headerPanel ? [this.state.header] : this.state.panels;
     var states = [];
     for (var i = 0; i < panels.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
@@ -377,7 +378,7 @@ var ReaderApp = React.createClass({
       url += "&with=" + histories[0].sources;
     }
 
-    hist = headerMode ? { state: { header: states[0] }, url: url, title: title } : { state: { panels: states }, url: url, title: title };
+    hist = headerPanel ? { state: { header: states[0] }, url: url, title: title } : { state: { panels: states }, url: url, title: title };
 
     for (var i = 1; i < histories.length; i++) {
       if (histories[i - 1].mode === "Text" && histories[i].mode === "Connections") {
@@ -405,6 +406,7 @@ var ReaderApp = React.createClass({
           hist.title += " & " + histories[i].title;
         }
     }
+    // Replace the first only & with a ?
     hist.url = hist.url.replace(/&/, "?");
 
     return hist;
@@ -758,9 +760,12 @@ var ReaderApp = React.createClass({
       }
     }
     var state = { panels: this.state.panels };
-    if (state.panels.length == 0 && !this.props.headerMode) {
+    if (state.panels.length == 0) {
       this.showLibrary();
+      console.log("closed last panel, show library");
     }
+    console.log("close panel, new state:");
+    console.log(state);
     this.setState(state);
   },
   showLibrary: function showLibrary() {
