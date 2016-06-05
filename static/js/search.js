@@ -379,7 +379,7 @@ $.extend(Sefaria.search, {
                 dataType: 'json',
                 success: function (data) {
                     Sefaria.search.hits = data.hits;
-                    if (data.aggregations) {
+                    if (data.aggregations && data.aggregations.category) {
                         //Sefaria.search.aggs = data.aggregations;
                         Sefaria.search.filter_tree.updateAvailableFilters(data.aggregations.category.buckets);
                     }
