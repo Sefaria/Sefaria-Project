@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<div id="supportersPage" class="biReady container doc">
+<div id="supportersPage" class="biReady container full-text-static">
     <div class="page-title"><h2>
         <span class='en'>Our Supporters</span>
         <span class='he'>התומכים שלנו</span>
@@ -79,15 +79,18 @@
             <div class='supporter'><a href="https://www.jetbrains.com/pycharm/">JetBrains / PyCharm</a></div>
             <div class='supporter'><a href="https://www.browserstack.com/">BrowserStack </a></div>
         </div>
+        <div class="supporters main-text">
+            <div>
+                <h4>Make a Donation</h4>
+                <p>Sefaria is a 501(c)(3) charitable organization; donations are tax-deductible as allowed by law.</p>
+                <div class="single-button">
+                    <a class="btn btn-large purple" href="/donate">Donate to Sefaria</a>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <span class="row">
-        <div>
-            <h2>Make a Donation</h2>
-            <div>Sefaria is a 501(c)(3) charitable organization; donations are tax-deductible as allowed by law.</div>
-            <a class="btn btn-large purple" href="/donate">Donate to Sefaria</a>
-        </div>
-    </span>
+
 </div>
 
 {% endblock %}

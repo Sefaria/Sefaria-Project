@@ -420,6 +420,10 @@ p.tagline {
   text-align: center;
   margin: 100px auto 0;
 }
+
+.registrationContent h1 span.en{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
 .registrationContent label {
   display: none;
 }
