@@ -177,6 +177,14 @@ def esi_account_box(request):
     return render_to_response('elements/accountBox.html', {}, RequestContext(request))
 
 
+def switch_to_s1(request):
+    """Set the S1 cookie then redirect to /"""
+
+    response = redirect("/")
+    response.set_cookie("s1", "true")
+    return response
+
+
 def switch_to_s2(request):
     """Set the S2 cookie then redirect to /texts"""
 

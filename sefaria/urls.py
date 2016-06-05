@@ -264,6 +264,7 @@ urlpatterns += patterns('reader.views',
 
 # Features under Development (not generally linked publicly yet)
 urlpatterns += patterns('reader.views',
+    (r'^s1/?$', 'switch_to_s1'),
     (r'^s2/?$', 'switch_to_s2'),
     (r'^account?$', 's2_account'),
     (r'^notifications?$', 's2_notifications'),
