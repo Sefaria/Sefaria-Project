@@ -347,6 +347,14 @@ body {
 	z-index: 101;
 	width: 600px;
 }
+#inlineTextPreview .en {
+	font-family: "adobe-garamond-pro", Georgia, serif
+}
+
+#inlineTextPreview .he {
+	font-family: "Taamey Frank", "Times New Roman", serif
+}
+
 
 #textPreview .previewLine, #inlineTextPreview .previewLine {
 	display: inline;
@@ -1547,7 +1555,7 @@ input[type="file"] {
 #addInterface {
 	width:100%;
 	background-color: #eee;
-	padding-top: 40px;
+	padding: 40px 0;
 	text-align: center;
 	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
 	font-size: 14px;
@@ -1635,7 +1643,7 @@ input[type="file"] {
 }
 
 #inlineAdd {
-	width: 60%;
+	width: 40%;
 }
 
 #inlineAddOr {
@@ -1644,7 +1652,7 @@ input[type="file"] {
     margin: 6px;
 
 }
-#inlineAddBrowseBox {
+.inlineAddSourceByttons {
 	display:inline-block;
 }
 .button {
