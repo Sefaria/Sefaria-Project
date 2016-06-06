@@ -1206,9 +1206,18 @@ Sefaria = extend(Sefaria, {
           });
       },
       get_query_object: function (query, get_filters, applied_filters, size, from, type) {
-          // query: string
-          // get_filters: boolean
-          // applied_filters: null or list of applied filters (in format supplied by Filter_Tree...)
+          /*
+           Only the first argument - "query" - is required.
+
+           query: string
+           get_filters: boolean
+           applied_filters: null or list of applied filters (in format supplied by Filter_Tree...)
+           size: int - number of results to request
+           from: int - start from result # (skip from - 1 results)
+           type: string - currently either "texts" or "sheets"
+           */
+
+
           var core_query = {
               "query_string": {
                   "query": query.replace(/(\S)"(\S)/g, '$1\u05f4$2'), //Replace internal quotes with gershaim.
@@ -1216,13 +1225,7 @@ Sefaria = extend(Sefaria, {
                   "fields": ["content"]
               }
           };
-          if (type) {
-              core_query["filtered"] = {
-                  "filter" : {
-                      "type" : {"value": type}
-                  }
-              };
-          }
+
           var o = {
               "from": from,
               "size": size,
@@ -1243,7 +1246,17 @@ Sefaria = extend(Sefaria, {
 
           if (get_filters) {
               //Initial, unfiltered query.  Get potential filters.
-              o['query'] = core_query;
+              if (type) {
+                o['query'] = {
+                    filtered: {
+                        query: core_query,
+                        filter: {type: {value: type}}
+                    }
+                };
+              } else {
+                o['query'] = core_query;
+              }
+
               o['aggs'] = {
                   "category": {
                       "terms": {
@@ -1259,7 +1272,17 @@ Sefaria = extend(Sefaria, {
                   }
               };
           } else if (!applied_filters || applied_filters.length == 0) {
-              o['query'] = core_query;
+              // This is identical to above - can be cleaned up into a variable
+              if (type) {
+                o['query'] = {
+                    filtered: {
+                        query: core_query,
+                        filter: {type: {value: type}}
+                    }
+                };
+              } else {
+                o['query'] = core_query;
+              }
           } else {
               //Filtered query.  Add clauses.  Don't re-request potential filters.
               var clauses = [];
@@ -1270,14 +1293,30 @@ Sefaria = extend(Sefaria, {
                       }
                   })
               }
-              o['query'] = {
-                  "filtered": {
-                      "query": core_query,
-                      "filter": {
-                          "or": clauses
+              if (type) {
+                  o['query'] = {
+                      "filtered": {
+                          "query": core_query,
+                          "filter": {
+                              "bool": {
+                                  "must": [
+                                      {"or": clauses},
+                                      {type: {value: type}}
+                                  ]
+                              }
+                          }
                       }
-                  }
-              };
+                  };
+              } else {
+                  o['query'] = {
+                      "filtered": {
+                          "query": core_query,
+                          "filter": {
+                              "or": clauses
+                          }
+                      }
+                  };
+              }
               o['aggs'] = {
                   "type": {
                       "terms": {

@@ -2,21 +2,12 @@
 .wf-loading {
   display: none;
 }
-#content.english .he {
-  display: none;
-}
-#content.hebrew .en {
-  display: none;
-}
 .wrapper{
   background-color: #F9F9F7;
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .container{
   width: 100%;
-}
-#content.hebrew .biReady #message{
-  text-align: center;
 }
 h1 {
   color: #555;
@@ -76,6 +67,15 @@ input:focus {
 }
 .static .he {
   font-family: "Open Sans Hebrew", sans-serif;
+}
+.english .static .he {
+  display: none;
+}
+.hebrew .static .en {
+  display: none;
+}
+#content.hebrew .biReady #message{
+  text-align: center;
 }
 .static h1 {
   text-align: center;
@@ -199,11 +199,15 @@ p.tagline {
   text-align: center;
 }
 #homePage h2 {
-  font-family: "adobe-garamond-pro", Georgia, serif;
   margin-bottom: 12px;
+  padding: 0;
+  font-family: "adobe-garamond-pro", Georgia, serif;
   font-style: italic;
   font-size: 28px;
+  font-weight: normal;
   letter-spacing: 1px;
+  text-transform: none;
+  border: none;
   color:  #666;
 }
 #homePage .description {

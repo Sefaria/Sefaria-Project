@@ -1655,10 +1655,10 @@ input[type="file"] {
 .inlineAddSourceByttons {
 	display:inline-block;
 }
-.button {
-	background-color: #0663c9 !important;
-	border-color: #0663c9 !important;
-
+#sheet .button, .sheetsEditNavTop .button, .modal .button {
+	background-color: #0663c9;
+	border-color: #0663c9;
+	padding: 8px 24px;
 }
 #customTextLanguageToggle {
 	float: right;
@@ -1708,4 +1708,50 @@ input[type="file"] {
 	font-size: .75em;
 	float:left;
 	margin-right: 7px;
+}
+.sheetsEditNavTop #save, .sheetsEditNavTop #share  {
+	float: right;
+    margin: 3px 0 0 0;
+}
+
+#shareURL {
+	cursor: text;
+	background-color: #fff;
+    font-style: italic;
+    width: 100%;
+}
+
+#shareWithOthers .title {
+	font-size: 16px;
+	margin: 5px 0 16px 0;
+	text-align: center;
+}
+
+#shareWithOthers .content {
+	color: #999;
+	text-align: left;
+}
+
+#shareWithOthers .content .inputHeader {
+	margin: 10px 0 5px 0;
+}
+#shareWithOthers .content select {
+	width: 100%;
+}
+
+#shareWithOthers .ok.button {
+	margin: 10px auto;
+}
+
+
+#shareWithOthers {
+	text-align: center;
+	padding:20px;
+	width:400px;
+}
+
+#sharingDesc {
+	color: #999;
+	text-align: center;
+
 }
