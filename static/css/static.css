@@ -16,6 +16,7 @@ h1 {
   font-size: 30px;
   font-weight: lighter;
   letter-spacing: 1px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 h2 {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -46,6 +47,9 @@ input {
 input:focus {
   outline: none;
 }
+a {
+  color: #333;
+}
 .page-title{
   margin-bottom: 50px;
 }
@@ -54,6 +58,7 @@ input:focus {
 }
 .static {
   color: #333333;
+  font-size: 15px;
   background-color: #F9F9F7;
 }
 .static .inner {
@@ -649,9 +654,140 @@ footer .section.last {
 #peoplePage .author a, #talmudicPeoplePage .author a{
   color: #666;
 }
-
-
-
-
+#editProfilePage {
+  color: #666;
+}
+#editProfilePage .inner {
+  position: relative; 
+}
+#editProfilePage #profileButtons {
+  position: absolute;
+  top: 40px;
+  right: 0px;
+}
+#editProfilePage #profileButtons .button {
+  padding: 10px 16px;
+}
+#editProfilePage #profileBox,
+#editProfilePage #contactBox,
+#editProfilePage #sheetsBox {
+  text-align: left;
+  margin-bottom: 60px;
+}
+.editProfileContentLeft {
+  float: left;
+  width: 310px;
+  margin-right: 0px;
+}
+.editProfileContentRight {
+  width: 310px;
+  float: right;
+}
+#editProfilePage h2 {
+  text-align: center;
+}
+#editProfilePage label {
+   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+   color: #999;
+   letter-spacing: 1px;
+   font-size: 16px;
+   height: 18px;
+   margin-bottom: 10px;
+   position: relative;
+}
+#editProfilePage label .sub {
+  font-size: 12px;
+  margin-left: 4px;
+  color: #999;
+  letter-spacing: normal;
+  white-space: nowrap;
+}
+#editProfilePage input {
+  padding: 18px 12px;
+  border: none;
+}
+#editProfilePage #profilePictureBox {
+  width: 100%;
+}
+#editProfilePage #profilePictureBox img {
+  vertical-align: top;
+  float: left;
+  width: 80px;
+  height: 80px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
+#editProfilePage #aboutBox {
+  margin-bottom: 12px;
+}
+#editProfilePage #bio {
+  width: 100%;
+  min-height: 100px;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 3px;
+  padding: 10px 14px;
+  font-size: 18px;
+  background-color: white;
+}
+#editProfilePage .field {
+  margin-bottom: 20px;
+}
+#editProfilePage .field input {
+  width: 100%;
+  color: #333;
+  box-sizing: border-box;
+}
+#editProfilePage ul {
+  list-style-type: none;
+  padding: 0px;
+  margin: 0px;
+}
+#editProfilePage #jewishEducation li {
+  position: relative;
+  margin: 8px 0;
+}
+#editProfilePage #jewishEducation li:first-child .remove {
+  display: none;
+}
+#editProfilePage #addEducation {
+  font-size: 12px;
+  font-style: italic;
+  color: #555;
+  margin-left: 24px;
+  margin-top: 4px;
+  cursor: pointer;
+}
+#editProfilePage #addEducation:hover {
+  text-decoration: underline;
+}
+#editProfilePage #jewishEducation .remove {
+  position: absolute;
+  right: 6px;
+  top: 7px;
+  cursor: pointer;
+}
+#editProfilePage #sheetsBox #pinnedSheetsMessage {
+  margin-bottom: 4px;
+  font-style: italic;
+}
+#editProfilePage .sheetSet {
+  margin: 14px 0;
+}
+#editProfilePage #sheetsBox ul {
+  background: white;
+  border-radius: 3px;
+  border: none;
+  margin: 0;
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+}
+#editProfilePage #sheetsBox li {
+  margin: 6px 0;
+}
+#editProfilePage #pinnedSheets ul {
+  min-height: 36px;
+}
 
 

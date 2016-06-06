@@ -2499,6 +2499,7 @@ h1 .languageToggle .he {
   letter-spacing: 1px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   box-sizing: border-box;
+  line-height: 1;
 }
 .button:hover {
   color: white;
