@@ -1946,8 +1946,12 @@ function addSource(q, source, appendOrInsert) {
 
 
 	var badRef = q.ref == undefined ? true : false;
-	
+
+	if ($("#addSourceModal").data("target") == null) {
+		$("#addSourceModal").data("target", $("#sources"));
+	}
 	var $listTarget = $("#addSourceModal").data("target");
+
 	if ($listTarget.length == 0) appendOrInsert = "append";
 
 	if ($listTarget.hasClass('sheetItem') ) {
