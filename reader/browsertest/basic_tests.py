@@ -49,7 +49,8 @@ class LoadRefAndClickSegment(AtomicTest):
         self.s2()
 
         self.load_ref("Psalms 65:5").click_segment("Psalms 65:5")
-        assert "Psalms.65.5?with=all" in self.driver.current_url
+        assert "Psalms.65.5" in self.driver.current_url, self.driver.current_url
+        assert "with=all" in self.driver.current_url, self.driver.current_url
 
         self.click_text_filter("Malbim")
 
@@ -61,7 +62,8 @@ class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
     def run(self):
         self.s2()
         self.load_ref("Psalms 45:5", filter="all").click_text_filter("Rashi")
-        assert "Psalms.45.5?with=Rashi" in self.driver.current_url, self.driver.current_url
+        assert "Psalms.45.5" in self.driver.current_url, self.driver.current_url
+        assert "with=Rashi" in self.driver.current_url, self.driver.current_url
 
 
 class LoadAndVerifyIndepenedentTOC(AtomicTest):
@@ -100,7 +102,7 @@ class ClickVersionedSearchResultDesktop(AtomicTest):
         versionedResult = self.driver.find_element_by_css_selector('a[href="/Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein?qh=Dogs"]')
         versionedResult.click()
         WebDriverWait(self.driver, TEMPER).until(staleness_of(versionedResult))
-        assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url
+        assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url, self.driver.current_url
 
 
 class ClickVersionedSearchResultMobile(AtomicTest):
@@ -119,7 +121,7 @@ class ClickVersionedSearchResultMobile(AtomicTest):
         versionedResult = self.driver.find_element_by_css_selector('a[href="/Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein?qh=Dogs"]')
         versionedResult.click()
         WebDriverWait(self.driver, TEMPER).until(staleness_of(versionedResult))
-        assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url
+        assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url, self.driver.current_url
 
 
 

@@ -328,17 +328,13 @@ body.dark {
 }
 .textColumn .loadingMessage.base.next.final {
 }
-.he, .heOnly .en {
+.he {
   font-size: 120%;
 }
-.readerPanel .he,
-.readerPanel .heOnly .en {
+.readerPanel .he {
   font-family: "Taamey Frank", "Times New Roman", serif;
   direction: rtl;
   text-align: right;
-}
-.readerPanel.bilingual .he {
-    display: none;
 }
 .readerPanel.hebrew {
   direction: rtl;
@@ -1047,7 +1043,7 @@ h1 .languageToggle .he {
   }
 }
 .searchContent {
-  padding: 15px 10px 0;
+  padding: 15px 10px 100px;
 }
 .searchContent .searchTopMatter {
   padding-bottom: 10px;
@@ -1685,6 +1681,18 @@ h1 .languageToggle .he {
 }
 .segment {
 }
+.segment.heOnly {
+  text-align: right;
+}
+.segment.enOnly {
+  text-align: left;
+}
+.segment.heOnly .en {
+  display: none;
+}
+.segment.enOnly .he {
+  display: none;
+}
 .segment .segmentNumber,
 .segment .linkCount,
 .textRange .numberLabel {
@@ -2222,6 +2230,9 @@ h1 .languageToggle .he {
 .addToSourceSheetPanel .texts .contentInner,
 .addNotePanel .texts .contentInner {
   margin: 30px auto;
+}
+.readerPanel.bilingual .toolsPanel .he {
+  display: none;
 }
 .toolsMessage.loadingMessage {
   margin-top: 130px;

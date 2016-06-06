@@ -2,12 +2,6 @@
 .wf-loading {
   display: none;
 }
-#content.english .he {
-  display: none;
-}
-#content.hebrew .en {
-  display: none;
-}
 .wrapper{
   background-color: #F9F9F7;
   font-family: "adobe-garamond-pro", Georgia, serif;
@@ -15,20 +9,28 @@
 .container{
   width: 100%;
 }
-#content.hebrew .biReady #message{
-  text-align: center;
-}
 h1 {
   color: #555;
   height: 70px;
   position: relative;
-  font-size: 26px;
+  font-size: 30px;
   font-weight: lighter;
   letter-spacing: 1px;
 }
 h2 {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: normal;
+}
+
+h3 {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: normal;
+  text-transform: uppercase;
+  color: #aaa;
+  margin-bottom: 10px;
+  margin-top: 40px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
 }
 input {
   padding: 20px 20px;
@@ -66,6 +68,15 @@ input:focus {
 .static .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
+.english .static .he {
+  display: none;
+}
+.hebrew .static .en {
+  display: none;
+}
+#content.hebrew .biReady #message{
+  text-align: center;
+}
 .static h1 {
   text-align: center;
   font-weight: lighter;
@@ -92,16 +103,7 @@ input:focus {
   margin: 30px 0;
   border: 1px solid #ddd;
 }
-.additional-text h3 {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  font-weight: normal;
-  text-transform: uppercase;
-  color: #aaa;
-  margin-bottom: 10px;
-  margin-top: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #eee;
-}
+
 p.tagline {
   font-style: italic;
   margin-bottom: 25px;
@@ -111,7 +113,7 @@ p.tagline {
   text-align: justify
 }
 .static-text p {
-  font-size: 20px;
+  font-size: 23px;
   line-height: 30px;
   color: #555;
 }
@@ -197,11 +199,15 @@ p.tagline {
   text-align: center;
 }
 #homePage h2 {
-  font-family: "adobe-garamond-pro", Georgia, serif;
   margin-bottom: 12px;
+  padding: 0;
+  font-family: "adobe-garamond-pro", Georgia, serif;
   font-style: italic;
   font-size: 28px;
+  font-weight: normal;
   letter-spacing: 1px;
+  text-transform: none;
+  border: none;
   color:  #666;
 }
 #homePage .description {
@@ -420,6 +426,10 @@ p.tagline {
   text-align: center;
   margin: 100px auto 0;
 }
+
+.registrationContent h1 span.en{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
 .registrationContent label {
   display: none;
 }
@@ -506,10 +516,14 @@ p.tagline {
 #visualizationsPage {
   text-align: left;
 }
-#aboutPage {
+.full-text-static {
     margin: 70px auto;
     width: 60%;
     text-align: center;
+}
+
+.full-text-static .page-title h1{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 footer#footer {
   background-color: white;
@@ -546,3 +560,98 @@ footer .section.last {
   text-align: right;
   border-left: 1px solid #EAEAEA;
 }
+#donatePage div.single-button{
+  text-align: center;
+  margin: 5% 0;
+}
+.full-text-static .static-text .main-text div.single-button a.btn{
+  margin: auto;
+}
+.full-text-static .static-text .main-text a.btn {
+  all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
+  display: block;
+  width: 25%;
+  color: white;
+  background-color: #212E50;
+  border: 1px solid #212E50;
+  border-radius: 4px;
+  padding: 12px 0px;
+  margin-top: 30px;
+  cursor: pointer;
+  font-size: 15px;
+  letter-spacing: 1px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  box-sizing: border-box;
+  text-align: center;
+}
+#donatePage pre{
+  all: initial;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  display: block;
+  unicode-bidi: embed;
+  white-space: pre;
+  font-style: italic;
+  font-size: 1.2em;
+}
+.static-text .static-content-note{
+  margin: 60px 0;
+}
+.static-text .static-content-not > p:first-child{
+  font-weight: bold;
+}
+#linkerPage .linkerOption{
+  margin: 50px 0;
+}
+#teamPage{
+  width: 50%;
+}
+#teamPage .teamMember{
+  font-size: 20px;
+  line-height: 1.2em;
+  display: inline-block;
+  width: 100%;
+  border-bottom: 1px solid  #ddd;
+  margin-bottom: 35px;
+  padding-bottom: 35px;
+}
+#teamPage .teamMember .teamMemberImage{
+  display: inline-block;
+  float: left;
+}
+#teamPage .teamMember .teamMemberDetails{
+  display: inline-block;
+  white-space:nowrap;
+  max-width: 65%;
+  margin: 0 20px;
+}
+#teamPage .teamMember .teamMemberImage img{
+  border: 1px solid #E6E5E6;
+  width: 170px;
+  height: 170px;
+  vertical-align:middle;
+}
+#teamPage .teamMember .teamName{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  margin-bottom: 20px;
+  font-size: 25px;
+  color: #555;
+}
+#teamPage .teamMember .teamTitle{
+
+}
+#teamPage .teamMember .teamEmail{
+  color: #999;
+}
+#teamPage .teamMember .teamBio {
+  margin-top: 20px;
+  white-space: normal;
+}
+#peoplePage .author a, #talmudicPeoplePage .author a{
+  color: #666;
+}
+
+
+
+
+
+

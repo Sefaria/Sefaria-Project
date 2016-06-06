@@ -16,44 +16,45 @@
 {% block content %}
 
     
-<div id="peoplePage" class="container doc biReady">
-    <h1>
+<div id="peoplePage" class="container full-text-static biReady">
+    <div class="page-title"><h1>
         <span class="en">Authors</span>
         <span class="he">מחברים</span>
-    </h1>
-
-
-    <div class="row">
-        <span class="author span4">
-            <span class="en"><a href="/people/Talmud">People in the Talmud</a> </span>
-            <span class="he"><a href="/people/Talmud">אנשים בתלמוד</a></span>
-        </span>
-    </div>
-
-    {% for era in eras %}
-
-    <div class="row">
-        <span class="span12">
-            <h2>
-                <span class="en">{{ era.name_en }} <span class="subtitle"> {{ era.years_en }}</span> </span>
-                <span class="he">{{ era.name_he }} <span class="subtitle"> {{ era.years_he }}</span> </span>
-            </h2>
-        </span>
-    </div>
-
-    {% for r in era.people|partition_by:"3" %}
-        <div class="row">
-            {%  for person in r %}
+    </h1></div>
+    <div class="row static-text" id="about">
+        <div class="about main-text">
+            <div class="row">
                 <span class="author span4">
-                   {{ person|person_link }}
+                    <span class="en"><a href="/people/Talmud">People in the Talmud</a> </span>
+                    <span class="he"><a href="/people/Talmud">אנשים בתלמוד</a></span>
                 </span>
-            {%  endfor %}
+            </div>
+
+            {% for era in eras %}
+
+                <div class="row">
+                    <span class="span12">
+                        <h3>
+                            <span class="en">{{ era.name_en }} <span class="subtitle"> {{ era.years_en }}</span> </span>
+                            <span class="he">{{ era.name_he }} <span class="subtitle"> {{ era.years_he }}</span> </span>
+                        </h3>
+                    </span>
+                </div>
+
+                {% for r in era.people|partition_by:"2" %}
+                    <div class="row">
+                        {%  for person in r %}
+                            <p class="author span4">
+                               {{ person|person_link }}
+                            </p>
+                        {%  endfor %}
+                    </div>
+                {% endfor %}
+
+
+            {% endfor %}
         </div>
-    {% endfor %}
-
-
-    {% endfor %}
-
+    </div>
 </div>
 
 {% endblock %}

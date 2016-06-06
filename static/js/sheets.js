@@ -202,6 +202,7 @@ $(function() {
 		$('#inlineAdd').val('');
 		$("#inlineTextPreview").remove();
 		$("#inlineAddDialogTitle").text("Select a text")
+		$("#inlineAddSourceOK").addClass("disabled");
 		$("#sheets").click();
 
 		sjs.track.sheets("Add Source");
@@ -2618,13 +2619,17 @@ function addSourcePreview(e) {
 
 function inlineAddSourcePreview(e) {
 	if (sjs.editing.index.categories[0] === "Talmud") {
-		$("#inlineAddDialogTitle").html("Daf found. You may also specify numbered segments below.<span class='btn btn-primary' id='inlineAddSourceOK'>Add This Source</span>");
+		$("#inlineAddDialogTitle").html("Daf found. You may also specify numbered segments below.");
+		$("#inlineAddSourceOK").removeClass("disabled");
 	} else if (sjs.editing.index.categories[0] === "Commentary") {
-        $("#inlineAddDialogTitle").html("Commentary found. You may also specify numbered comments below.<span class='btn btn-primary' id='inlineAddSourceOK'>Add This Source</span>");
+        $("#inlineAddDialogTitle").html("Commentary found. You may also specify numbered comments below.");
+		$("#inlineAddSourceOK").removeClass("disabled");
     } else if (sjs.editing.index.depth && sjs.editing.index.depth == 1) {
-		$("#inlineAddDialogTitle").html("Source found. You can add it, or specify a subsection.<span class='btn btn-primary' id='inlineAddSourceOK'>Add This Source</span>");
+		$("#inlineAddDialogTitle").html("Source found. You can add it, or specify a subsection.");
+		$("#inlineAddSourceOK").removeClass("disabled");
 	} else {
-		$("#inlineAddDialogTitle").html("Source found. Specify a range with '-'.<span class='btn btn-primary' id='inlineAddSourceOK'>Add This Source</span>");
+		$("#inlineAddDialogTitle").html("Source found. Specify a range with '-'.");
+		$("#inlineAddSourceOK").removeClass("disabled");
 	}
 	var ref = $("#inlineAdd").val();
 	if (!$("#inlineTextPreview").length) { $("body").append("<div id='inlineTextPreview'></div>"); }
@@ -2637,7 +2642,7 @@ function inlineAddSourcePreview(e) {
 			$("#inlineAddDialogTitle").html("Uh-Oh");
 		}
 		$("#inlineTextPreview")
-			.position({my: "left top", at: "left bottom", of: $("#inlineAdd"), collision: "none" }).width($("#inlineAdd").width())
+			.position({my: "left top", at: "left bottom", of: $("#inlineAdd"), collision: "none" }).width('700px').css('margin-top','20px');
 	});
 }
 

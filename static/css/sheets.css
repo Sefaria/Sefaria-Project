@@ -79,6 +79,14 @@ body {
 	background-color: #eee;
 }
 
+.sheetsMenuBarItem #lastSaved {
+		position: relative;
+	top:0;
+	right:0;
+	background-color: transparent;
+
+
+}
 
 #sheet {
 	background: white;
@@ -88,6 +96,11 @@ body {
 	margin: 130px auto 56px;
 	box-shadow: 0px 0px 2px #777;
 	font-family: "Times New Roman", "Georgia", serif;
+}
+
+#sheet.s2Sheet {
+	width:850px;
+	padding:60px 0px;
 }
 
 #sheet.paperless {
@@ -185,7 +198,7 @@ body {
 	color: #999;
 }
 
-.sheetsMenuBarItem .optionsMenu {
+.sheetsMenuBarItem .optionsMenu, .sheetsMenuBarItem .subMenu {
 	background-color: #f2f2f2;
 }
 
@@ -334,6 +347,14 @@ body {
 	z-index: 101;
 	width: 600px;
 }
+#inlineTextPreview .en {
+	font-family: "adobe-garamond-pro", Georgia, serif
+}
+
+#inlineTextPreview .he {
+	font-family: "Taamey Frank", "Times New Roman", serif
+}
+
 
 #textPreview .previewLine, #inlineTextPreview .previewLine {
 	display: inline;
@@ -376,7 +397,7 @@ body {
 #author {
 	text-align: center;
 	font-style: italic;
-	margin-bottom: 4px;
+	margin-bottom: 10px;
 }
 
 #via {
@@ -496,8 +517,10 @@ body {
 }
 
 #sheet .sourceControlsOpen {
-	background-color: #eee;
+	background-color: #F7F7F9;
 	z-index: 2;
+	border-top:solid 1px #F2F2F2;
+	border-bottom:solid 1px #F2F2F2;
 }
 
 #sourceControls {
@@ -520,17 +543,23 @@ body {
 	margin: 0 5px;
 	font-size: 15px;
 	cursor: pointer;
+	background-color: #F7F7F9 !important;
 }
 
 #sourceControls div:hover {
 	color: #08c;
+	background-color: #F7F7F9 !important;
+
 }
 .sideControls {
 	width: 20px !important;
 	left: 5px !important;
 	margin-left: 0 !important;
 	top: 32px !important;
+	background-color: #F7F7F9 !important;
+
 }
+
 
 .sideControls div {
 	display: block !important
@@ -728,18 +757,18 @@ body {
 }
 
 .indented-1 {
-	margin-left: 30px !important;
-	margin-right: 30px !important;
+	padding-left: 30px !important;
+	padding-right: 30px !important;
 }
 
 .indented-2 {
-	margin-left: 60px !important;
-	margin-right: 60px !important;
+	padding-left: 60px !important;
+	padding-right: 60px !important;
 }
 
 .indented-3 {
-	margin-left: 90px !important;
-	margin-right: 90px !important;
+	padding-left: 90px !important;
+	padding-right: 90px !important;
 }
 
 
@@ -1044,6 +1073,11 @@ a:active {
 		margin: 100px auto 70px;
 		box-shadow: none;
 	}
+	#sheet.s2Sheet {
+	width:auto;
+	padding: 0px;
+	}
+
 
 	#addSourceModal {
 		width: 80%;
@@ -1416,7 +1450,9 @@ input[type="file"] {
     box-sizing: border-box;
     direction: ltr;
     z-index: 21;
-    padding: 8px 20px;
+    padding: 7px 20px 6px 16px;
+	font-size: 16px;
+    color: #333;
 }
 
 #sheet p {
@@ -1435,30 +1471,28 @@ input[type="file"] {
 }
 
 .sheetsMenuBarItem:hover {
-	border: 1px solid #ccc;
-	border-bottom: 1px solid #f2f2f2;
 	position: relative;
 }
 
-/* css hack to get menu item borders just right */
 .sheetsMenuBarItem:hover:after {
-  content: '';
+  content: ' ';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  bottom: -1px;
+  bottom: -10px;
   z-index: 6;
-  border-bottom: 14px solid #f2f2f2;
+  border-bottom: 1px solid #f2f2f2;
 }
+
 
 
 
 #fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu {
 	display: block;
-	top:38px;
-	left:-1px;
-	opacity: .99;
+	top:45px;
+	left:20px;
+	background-color: #F9F9F7;
 }
 
 #insertMenu:hover .optionsMenu {
@@ -1475,15 +1509,29 @@ input[type="file"] {
 }
 
 #ckeTopMenu .cke_inner {
-	border-top: 1px solid #E2E2E1;
     padding: 0 7px;
 	background: #f2f2f2;
+	position: relative;
+	margin-bottom: -8px;
+	border-bottom: 1px solid #E2E2E1;
+
 
 }
 
+#ckeTopMenu .cke_inner:after {
+  	content: '';
+  	position: absolute;
+  	top: -1px;
+	left:-20px;
+	right:-20px;
+	border-top: 1px solid #E2E2E1;
+}
+
 .activeSource {
-	background-color: #eee;
+	background-color: #F7F7F9;
 	border-left:solid 3px #4e6eff;
+	border-top:solid 1px #F2F2F2;
+	border-bottom:solid 1px #F2F2F2;
 }
 
 .inlineAddButton {
@@ -1507,7 +1555,7 @@ input[type="file"] {
 #addInterface {
 	width:100%;
 	background-color: #eee;
-	padding-top: 40px;
+	padding: 40px 0;
 	text-align: center;
 	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
 	font-size: 14px;
@@ -1595,7 +1643,7 @@ input[type="file"] {
 }
 
 #inlineAdd {
-	width: 60%;
+	width: 40%;
 }
 
 #inlineAddOr {
@@ -1604,7 +1652,7 @@ input[type="file"] {
     margin: 6px;
 
 }
-#inlineAddBrowseBox {
+.inlineAddSourceByttons {
 	display:inline-block;
 }
 .button {

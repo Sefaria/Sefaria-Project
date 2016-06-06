@@ -157,6 +157,7 @@ var ReaderApp = React.createClass({
     return {
       panels: panels,
       header: header,
+      headerMode: this.props.headerMode,
       defaultVersions: defaultVersions,
       defaultPanelSettings: Sefaria.util.clone(defaultPanelSettings),
       layoutOrientation: layoutOrientation,
@@ -214,7 +215,7 @@ var ReaderApp = React.createClass({
       var prevPanels = [history.state.header];
       var nextPanels = [this.state.header];
     } else {
-      var prevPanels = history.state.panels;
+      var prevPanels = history.state.panels || [];
       var nextPanels = this.state.panels;
     }
 
@@ -263,8 +264,8 @@ var ReaderApp = React.createClass({
     // Returns an object with state, title and url params for the current state
     var histories = [];
     // When the header has a panel open, only look at its content for history
-    var headerMode = this.state.header.menuOpen || !this.state.panels.length && this.state.header.mode === "Header";
-    var panels = headerMode ? [this.state.header] : this.state.panels;
+    var headerPanel = this.state.header.menuOpen || !this.state.panels.length && this.state.header.mode === "Header";
+    var panels = headerPanel ? [this.state.header] : this.state.panels;
     var states = [];
     for (var i = 0; i < panels.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
@@ -357,7 +358,7 @@ var ReaderApp = React.createClass({
         }
         hist.mode = "Header";
       }
-      console.log(hist.url);
+      console.log("History Panel: " + hist.url);
       var lang = state.settings.language.substring(0, 2);
       hist.url += "&lang=" + lang;
       histories.push(hist);
@@ -377,7 +378,7 @@ var ReaderApp = React.createClass({
       url += "&with=" + histories[0].sources;
     }
 
-    hist = headerMode ? { state: { header: states[0] }, url: url, title: title } : { state: { panels: states }, url: url, title: title };
+    hist = headerPanel ? { state: { header: states[0] }, url: url, title: title } : { state: { panels: states }, url: url, title: title };
 
     for (var i = 1; i < histories.length; i++) {
       if (histories[i - 1].mode === "Text" && histories[i].mode === "Connections") {
@@ -405,6 +406,7 @@ var ReaderApp = React.createClass({
           hist.title += " & " + histories[i].title;
         }
     }
+    // Replace the first only & with a ?
     hist.url = hist.url.replace(/&/, "?");
 
     return hist;
@@ -455,7 +457,8 @@ var ReaderApp = React.createClass({
       orphanSearchFilters: state.orphanSearchFilters || [],
       bookRef: state.bookRef || null,
       settings: state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
-      displaySettingsOpen: false
+      displaySettingsOpen: false,
+      tagSort: state.tagSort || "alpha"
     };
     if (this.state && panel.refs.length && !panel.version) {
       var oRef = Sefaria.ref(panel.refs[0]);
@@ -757,9 +760,12 @@ var ReaderApp = React.createClass({
       }
     }
     var state = { panels: this.state.panels };
-    if (state.panels.length == 0 && !this.props.headerMode) {
+    if (state.panels.length == 0) {
       this.showLibrary();
+      console.log("closed last panel, show library");
     }
+    console.log("close panel, new state:");
+    console.log(state);
     this.setState(state);
   },
   showLibrary: function showLibrary() {
@@ -1250,7 +1256,8 @@ var ReaderPanel = React.createClass({
       availableFilters: [],
       filterRegistry: {},
       orphanSearchFilters: [],
-      displaySettingsOpen: false
+      displaySettingsOpen: false,
+      tagSort: "alpha"
     };
   },
   componentDidMount: function componentDidMount() {
@@ -1512,6 +1519,11 @@ var ReaderPanel = React.createClass({
   setWidth: function setWidth() {
     this.width = $(ReactDOM.findDOMNode(this)).width();
   },
+  setSheetTagSort: function setSheetTagSort(sort) {
+    this.conditionalSetState({
+      tagSort: sort
+    });
+  },
   trackPanelOpens: function trackPanelOpens() {
     if (this.state.mode === "Connections") {
       return;
@@ -1703,7 +1715,11 @@ var ReaderPanel = React.createClass({
         hideNavHeader: this.props.hideNavHeader,
         toggleLanguage: this.toggleLanguage,
         initialTag: this.state.navigationSheetTag,
-        setSheetTag: this.setSheetTag });
+        tagSort: this.state.tagSort,
+        setSheetTagSort: this.setSheetTagSort,
+        setSheetTag: this.setSheetTag,
+        key: this.state.key
+      });
     } else if (this.state.menuOpen === "account") {
       var menu = React.createElement(AccountPanel, {
         toggleLanguage: this.toggleLanguage });
@@ -3176,11 +3192,7 @@ var VersionBlock = React.createClass({
           'Version History >'
         ) : ""
       ),
-      this.props.showNotes ? React.createElement(
-        'div',
-        { className: 'versionNotes' },
-        v.versionNotes
-      ) : ""
+      this.props.showNotes ? React.createElement('div', { className: 'versionNotes', dangerouslySetInnerHTML: { __html: v.versionNotes } }) : ""
     );
   }
 });
@@ -3195,6 +3207,7 @@ var SheetsNav = React.createClass({
     close: React.PropTypes.func.isRequired,
     openNav: React.PropTypes.func.isRequired,
     setSheetTag: React.PropTypes.func.isRequired,
+    setSheetTagSort: React.PropTypes.func.isRequired,
     hideNavHeader: React.PropTypes.bool
 
   },
@@ -3202,10 +3215,10 @@ var SheetsNav = React.createClass({
     return {
       trendingTags: null,
       allSheets: null,
-      tagList: null,
       yourSheets: null,
       sheets: [],
       tag: this.props.initialTag,
+      tagSort: this.props.tagSort,
       width: 400
     };
   },
@@ -3216,13 +3229,15 @@ var SheetsNav = React.createClass({
     if (this.props.initialTag) {
       if (this.props.initialTag === "Your Sheets") {
         this.showYourSheets();
+      } else if (this.props.initialTag === "All Sheets") {
+        this.showAllSheets();
       } else {
         this.setTag(this.props.initialTag);
       }
     }
   },
   componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
-    this.setState({ tag: nextProps.initialTag, sheets: [] });
+    this.setState({ tagSort: nextProps.tagSort, tag: nextProps.initialTag, sheets: [] });
   },
   getAllSheets: function getAllSheets() {
     Sefaria.sheets.allSheetsList(this.loadAllSheets);
@@ -3232,14 +3247,18 @@ var SheetsNav = React.createClass({
       allSheets: Sefaria.sheets.allSheetsList() || []
     });
   },
+  changeSort: function changeSort(event) {
+    this.props.setSheetTagSort(event.target.value);
+    Sefaria.sheets.tagList(this.loadTags, event.target.value);
+  },
   getTags: function getTags() {
     Sefaria.sheets.trendingTags(this.loadTags);
-    Sefaria.sheets.tagList(this.loadTags);
+    Sefaria.sheets.tagList(this.loadTags, this.props.tagSort);
   },
   loadTags: function loadTags() {
     this.setState({
       trendingTags: Sefaria.sheets.trendingTags() || [],
-      tagList: Sefaria.sheets.tagList() || []
+      tagList: Sefaria.sheets.tagList(null, this.props.tagSort) || []
     });
   },
   setTag: function setTag(tag) {
@@ -3248,6 +3267,7 @@ var SheetsNav = React.createClass({
     this.props.setSheetTag(tag);
   },
   loadSheets: function loadSheets(sheets) {
+    console.log(sheets);
     this.setState({ sheets: sheets });
   },
   showYourSheets: function showYourSheets() {
@@ -3255,8 +3275,14 @@ var SheetsNav = React.createClass({
     Sefaria.sheets.userSheets(Sefaria._uid, this.loadSheets);
     this.props.setSheetTag("Your Sheets");
   },
+  showAllSheets: function showAllSheets() {
+    this.setState({ tag: "All Sheets" });
+    Sefaria.sheets.publicSheets(this.loadSheets);
+    this.props.setSheetTag("All Sheets");
+  },
   render: function render() {
     var enTitle = this.state.tag || "Source Sheets";
+    var heTitle = this.state.tag || "דפי מקורות";
 
     if (this.state.tag) {
       var sheets = this.state.sheets.map(function (sheet) {
@@ -3292,6 +3318,15 @@ var SheetsNav = React.createClass({
         React.createElement(
           'div',
           { className: 'contentInner' },
+          this.props.hideNavHeader ? React.createElement(
+            'h1',
+            null,
+            React.createElement(
+              'span',
+              { className: 'en' },
+              enTitle
+            )
+          ) : null,
           sheets
         )
       );
@@ -3373,12 +3408,12 @@ var SheetsNav = React.createClass({
               React.createElement(
                 'span',
                 { className: 'en' },
-                'Source Sheets'
+                enTitle
               ),
               React.createElement(
                 'span',
                 { className: 'he' },
-                'דפי מקורות'
+                heTitle
               )
             ) : null,
             this.props.multiPanel ? null : yourSheets,
@@ -3397,13 +3432,13 @@ var SheetsNav = React.createClass({
               ),
               React.createElement(
                 'span',
-                { className: 'en actionText' },
+                { className: 'en actionText', onClick: this.showAllSheets },
                 'See All ',
                 React.createElement('i', { className: 'fa fa-angle-right' })
               ),
               React.createElement(
                 'span',
-                { className: 'he actionText' },
+                { className: 'he actionText', onClick: this.showAllSheets },
                 'See All [he] ',
                 React.createElement('i', { className: 'fa fa-angle-right' })
               )
@@ -3457,13 +3492,53 @@ var SheetsNav = React.createClass({
               React.createElement(
                 'span',
                 { className: 'en actionText' },
-                'Sort By ',
+                'Sort By:',
+                React.createElement(
+                  'select',
+                  { value: this.props.tagSort, onChange: this.changeSort },
+                  React.createElement(
+                    'option',
+                    { value: 'alpha' },
+                    'Alphabetical'
+                  ),
+                  React.createElement(
+                    'option',
+                    { value: 'count' },
+                    'Most Used'
+                  ),
+                  React.createElement(
+                    'option',
+                    { value: 'trending' },
+                    'Trending'
+                  )
+                ),
+                ' ',
                 React.createElement('i', { className: 'fa fa-angle-down' })
               ),
               React.createElement(
                 'span',
                 { className: 'he actionText' },
-                'Sort By [he] ',
+                'Sort By [he]:',
+                React.createElement(
+                  'select',
+                  { value: this.props.tagSort, onChange: this.changeSort },
+                  React.createElement(
+                    'option',
+                    { value: 'alpha' },
+                    'Alphabetical'
+                  ),
+                  React.createElement(
+                    'option',
+                    { value: 'count' },
+                    'Most Used'
+                  ),
+                  React.createElement(
+                    'option',
+                    { value: 'trending' },
+                    'Trending'
+                  )
+                ),
+                ' ',
                 React.createElement('i', { className: 'fa fa-angle-down' })
               )
             ) : React.createElement(
@@ -3777,6 +3852,7 @@ var TextColumn = React.createClass({
         this.initialScrollTopSet = true;
         this.justScrolled = true;
         ReactDOM.findDOMNode(this).scrollTop = top;
+        this.scrollToHighlighted();
         //console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
@@ -3792,8 +3868,8 @@ var TextColumn = React.createClass({
         node.scrollTop = 30;
         this.initialScrollTopSet = true;
       }
-    // This fixes loading of next content when current content is short in viewpot,
-    // but breaks loading highlted ref, jumping back up to top of section
+    // This fixes loading of next content when current content is short in viewport,
+    // but breaks loading highlighted ref, jumping back up to top of section
     // this.adjustInfiniteScroll();
   },
   adjustInfiniteScroll: function adjustInfiniteScroll() {
@@ -3833,7 +3909,7 @@ var TextColumn = React.createClass({
           Sefaria.site.track.event("Reader", "Infinite Scroll", "Down");
         }
       }
-    } else if (windowTop < 20) {
+    } else if (windowTop < 21) {
       // UP: add the previous section above then adjust scroll position so page doesn't jump
       var topRef = refs[0];
       var data = Sefaria.ref(topRef);
@@ -4081,6 +4157,7 @@ var TextRange = React.createClass({
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
       this.props.showBaseText(data.ref, true);
+      return;
     }
 
     this.prefetchData();
@@ -6632,40 +6709,46 @@ var SearchResultList = React.createClass({
       // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
       return null;
     }
-    var sheetContent = "";
-    if (this.state.sheetHits.length == 0 && this.state.moreToLoad) {
-      sheetContent = React.createElement(LoadingMessage, { message: 'Searching...', heMessage: 'מבצע חיפוש...' });
-    } else {
-      sheetContent = this.state.sheetHits.map(function (result) {
+
+    if (this.state.activeTab == "texts") {
+      var results = this.state.textHits.map(function (result) {
+        return React.createElement(SearchTextResult, {
+          data: result,
+          query: _this4.props.query,
+          key: result._id,
+          onResultClick: _this4.props.onResultClick });
+      });
+    } else if (this.state.activeTab == "sheets") {
+      var results = this.state.sheetHits.map(function (result) {
         return React.createElement(SearchSheetResult, {
           data: result,
           query: _this4.props.query,
           key: result._id });
       });
     }
+
+    var queryLoaded = !this.state.moreToLoad && !this.state.isQueryRunning;
+    var haveResults = !!results.length;
+    var loadingMessage = React.createElement(LoadingMessage, { message: 'Searching...', heMessage: 'מבצע חיפוש...' });
+    var noResultsMessage = React.createElement(LoadingMessage, { message: '0 results.', heMessage: '0 תוצאות.' });
+    results = haveResults ? results : noResultsMessage;
+    var searchFilters = React.createElement(SearchFilters, {
+      query: this.props.query,
+      total: this.state.total,
+      textTotal: this.state.textTotal,
+      sheetTotal: this.state.sheetTotal,
+      availableFilters: this.props.availableFilters,
+      appliedFilters: this.props.appliedFilters,
+      updateAppliedFilter: this.props.updateAppliedFilter,
+      isQueryRunning: this.state.isQueryRunning,
+      activeTab: this.state.activeTab,
+      clickTextButton: this.showTexts,
+      clickSheetButton: this.showSheets });
     return React.createElement(
       'div',
       null,
-      React.createElement(SearchFilters, {
-        query: this.props.query,
-        total: this.state.total,
-        textTotal: this.state.textTotal,
-        sheetTotal: this.state.sheetTotal,
-        availableFilters: this.props.availableFilters,
-        appliedFilters: this.props.appliedFilters,
-        updateAppliedFilter: this.props.updateAppliedFilter,
-        isQueryRunning: this.state.isQueryRunning,
-        activeTab: this.state.activeTab,
-        clickTextButton: this.showTexts,
-        clickSheetButton: this.showSheets }),
-      this.state.activeTab == "texts" ? this.state.textHits.map(function (result) {
-        return React.createElement(SearchTextResult, {
-          data: result,
-          query: _this4.props.query,
-          key: result._id,
-          onResultClick: _this4.props.onResultClick });
-      }) : "",
-      this.state.activeTab == "sheets" ? sheetContent : ""
+      haveResults && queryLoaded ? searchFilters : null,
+      queryLoaded ? results : loadingMessage
     );
   }
 });
@@ -6984,11 +7067,11 @@ var SearchTextResult = React.createClass({
 
     function get_snippet_markup() {
       var snippet;
-      if (data.highlight && data.highlight["content"]) {
-        snippet = data.highlight["content"].join("...");
-      } else {
-        snippet = s["content"];
-      }
+      // if (data.highlight && data.highlight["content"]) {
+      snippet = data.highlight["content"].join("...");
+      // } else {
+      //     snippet = s["content"];  // We're filtering out content, because it's *huge*, especially on Sheets
+      // }
       snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").html();
       return { __html: snippet };
     }
@@ -7074,7 +7157,7 @@ var SearchSheetResult = React.createClass({
     var data = this.props.data;
     var s = data._source;
 
-    var snippet = data.highlight ? data.highlight.content.join("...") : s.content;
+    var snippet = data.highlight.content.join("..."); // data.highlight ? data.highlight.content.join("...") : s.content;
     snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").text();
 
     function get_version_markup() {

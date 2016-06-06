@@ -151,6 +151,7 @@ var ReaderApp = React.createClass({
     return {
       panels: panels,
       header: header,
+      headerMode: this.props.headerMode,
       defaultVersions: defaultVersions,
       defaultPanelSettings: Sefaria.util.clone(defaultPanelSettings),
       layoutOrientation: layoutOrientation,
@@ -211,7 +212,7 @@ var ReaderApp = React.createClass({
       var prevPanels = [history.state.header];
       var nextPanels = [this.state.header];
     } else {
-      var prevPanels = history.state.panels;
+      var prevPanels = history.state.panels || [];
       var nextPanels = this.state.panels; 
     }
 
@@ -270,8 +271,8 @@ var ReaderApp = React.createClass({
     // Returns an object with state, title and url params for the current state
     var histories = [];
     // When the header has a panel open, only look at its content for history
-    var headerMode = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
-    var panels = headerMode ? [this.state.header] : this.state.panels;
+    var headerPanel = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
+    var panels = headerPanel ? [this.state.header] : this.state.panels;
     var states = [];
     for (var i = 0; i < panels.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
@@ -358,11 +359,11 @@ var ReaderApp = React.createClass({
         hist.title    = document.title;
         hist.url      = window.location.pathname.slice(1);
         if (window.location.search != ""){
-          hist.url+= window.location.search;
+          hist.url += window.location.search;
         }
         hist.mode   = "Header"
       }
-      console.log(hist.url);
+      console.log("History Panel: " + hist.url);
       var lang  = state.settings.language.substring(0,2);
       hist.url += "&lang=" + lang;
       histories.push(hist);     
@@ -380,7 +381,7 @@ var ReaderApp = React.createClass({
         url += "&with=" + histories[0].sources;
     }
 
-    hist = (headerMode)
+    hist = (headerPanel)
         ? {state: {header: states[0]}, url: url, title: title}
         : {state: {panels: states}, url: url, title: title};
 
@@ -409,9 +410,9 @@ var ReaderApp = React.createClass({
                       "&v" + (i+1) + "=" + histories[i].version.replace(/\s/g,"_");
         }
         hist.title += " & " + histories[i].title;
-
       }
     }
+    // Replace the first only & with a ? 
     hist.url = hist.url.replace(/&/, "?");
 
     return hist;
@@ -760,9 +761,12 @@ var ReaderApp = React.createClass({
       }
     }
     var state = {panels: this.state.panels};
-    if (state.panels.length == 0 && !this.props.headerMode) {
+    if (state.panels.length == 0) {
       this.showLibrary();
+      console.log("closed last panel, show library")
     }
+    console.log("close panel, new state:");
+    console.log(state);
     this.setState(state);
   },
   showLibrary: function() {
@@ -2662,7 +2666,7 @@ var VersionBlock = React.createClass({
           {this.props.showHistory?<span>-</span>:""}
           {this.props.showHistory?<a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>Version History &gt;</a>:""}
         </div>
-        {this.props.showNotes?<div className="versionNotes">{v.versionNotes}</div>:""}
+        {this.props.showNotes?<div className="versionNotes" dangerouslySetInnerHTML={ {__html: v.versionNotes} }></div>:""}
       </div>
     );
   }
@@ -3114,7 +3118,7 @@ var TextColumn = React.createClass({
     // Called on every update, checking flags on `this` to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
       // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-      console.log("loading at top")
+      console.log("loading at top");
       var $node   = $(ReactDOM.findDOMNode(this));
       var adjust  = 118; // Height of .loadingMessage.base
       var $texts  = $node.find(".basetext");
@@ -3125,6 +3129,7 @@ var TextColumn = React.createClass({
         this.initialScrollTopSet = true;
         this.justScrolled = true;
         ReactDOM.findDOMNode(this).scrollTop = top;
+        this.scrollToHighlighted();
         //console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
@@ -3140,8 +3145,8 @@ var TextColumn = React.createClass({
       node.scrollTop = 30;
       this.initialScrollTopSet = true;
     }
-    // This fixes loading of next content when current content is short in viewpot,
-    // but breaks loading highlted ref, jumping back up to top of section
+    // This fixes loading of next content when current content is short in viewport,
+    // but breaks loading highlighted ref, jumping back up to top of section
     // this.adjustInfiniteScroll();
   },
   adjustInfiniteScroll: function() {
@@ -3175,7 +3180,7 @@ var TextColumn = React.createClass({
         this.props.updateTextColumn(refs);
         if (Sefaria.site) { Sefaria.site.track.event("Reader", "Infinite Scroll", "Down"); }
       }
-    } else if (windowTop < 20) {
+    } else if (windowTop < 21) {
       // UP: add the previous section above then adjust scroll position so page doesn't jump
       var topRef = refs[0];
       var data   = Sefaria.ref(topRef);
@@ -3418,7 +3423,8 @@ var TextRange = React.createClass({
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
-      this.props.showBaseText(data.ref, true);        
+      this.props.showBaseText(data.ref, true);
+      return;
     }
 
     this.prefetchData();
@@ -4020,7 +4026,7 @@ var TextList = React.createClass({
       if (!this.isMounted()) { return; }
       var $highlighted = $(ReactDOM.findDOMNode(this)).find(".texts .textRange").not(".lowlight").first();
       if ($highlighted.length) {
-        var $texts = $(ReactDOM.findDOMNode(this)).find(".texts")
+        var $texts = $(ReactDOM.findDOMNode(this)).find(".texts");
         var adjust = parseInt($texts.css("padding-top")) + 18;
         $texts.scrollTo($highlighted, 0, {offset: -adjust});
       }
@@ -5014,8 +5020,8 @@ var SearchPage = React.createClass({
     },
     render: function () {
         var fontSize = 62.5; // this.props.settings.fontSize, to make this respond to user setting. disabled for now.
-        var style      = {"fontSize": fontSize + "%"};
-        var classes = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader});
+        var style    = {"fontSize": fontSize + "%"};
+        var classes  = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader});
         return (<div className={classes}>
                   {this.props.hideNavHeader ? null :
                     (<div className="readerNavTop search">
@@ -5423,41 +5429,45 @@ var SearchResultList = React.createClass({
         if (!(this.props.query)) {  // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
             return null;
         }
-        var sheetContent = "";
-        if (this.state.sheetHits.length == 0 && this.state.moreToLoad) {
-          sheetContent = <LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />;
+
+        if (this.state.activeTab == "texts") {
+          var results = this.state.textHits.map(result =>
+            <SearchTextResult
+                data={result}
+                query={this.props.query}
+                key={result._id}
+                onResultClick={this.props.onResultClick} />);
+
+        } else if (this.state.activeTab == "sheets") {
+            var results = this.state.sheetHits.map(result =>
+                <SearchSheetResult
+                      data={result}
+                      query={this.props.query}
+                      key={result._id} />);
         }
-        else {
-          sheetContent = this.state.sheetHits.map(result =>
-              <SearchSheetResult
-                    data={result}
-                    query={this.props.query}
-                    key={result._id} />
-          );
-        }
+
+        var queryLoaded      = !this.state.moreToLoad && !this.state.isQueryRunning;
+        var haveResults      = !!results.length;
+        var loadingMessage   = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
+        var noResultsMessage = (<LoadingMessage message="0 results." heMessage="0 תוצאות." />);
+        results              = haveResults ? results : noResultsMessage;
+        var searchFilters    = (<SearchFilters
+                                  query = {this.props.query}
+                                  total = {this.state.total}
+                                  textTotal = {this.state.textTotal}
+                                  sheetTotal = {this.state.sheetTotal}
+                                  availableFilters={this.props.availableFilters}
+                                  appliedFilters = {this.props.appliedFilters}
+                                  updateAppliedFilter = {this.props.updateAppliedFilter}
+                                  isQueryRunning = {this.state.isQueryRunning}
+                                  activeTab = {this.state.activeTab}
+                                  clickTextButton = {this.showTexts}
+                                  clickSheetButton = {this.showSheets} />);
         return (
-            <div>
-                <SearchFilters
-                  query = {this.props.query}
-                  total = {this.state.total}
-                  textTotal = {this.state.textTotal}
-                  sheetTotal = {this.state.sheetTotal}
-                  availableFilters={this.props.availableFilters}
-                  appliedFilters = {this.props.appliedFilters}
-                  updateAppliedFilter = {this.props.updateAppliedFilter}
-                  isQueryRunning = {this.state.isQueryRunning}
-                  activeTab = {this.state.activeTab}
-                  clickTextButton = {this.showTexts}
-                  clickSheetButton = {this.showSheets} />
-                {(this.state.activeTab == "texts")?this.state.textHits.map(result =>
-                    <SearchTextResult
-                        data={result}
-                        query={this.props.query}
-                        key={result._id}
-                        onResultClick={this.props.onResultClick} />)
-                :""}
-                {(this.state.activeTab == "sheets")? sheetContent: ""}
-            </div>
+          <div>
+            { haveResults && queryLoaded ? searchFilters : null }
+            { queryLoaded ? results : loadingMessage }
+          </div>
         );
     }
 });
@@ -5688,11 +5698,11 @@ var SearchTextResult = React.createClass({
 
         function get_snippet_markup() {
             var snippet;
-            if (data.highlight && data.highlight["content"]) {
-                snippet = data.highlight["content"].join("...");
-            } else {
-                snippet = s["content"];
-            }
+            // if (data.highlight && data.highlight["content"]) {
+            snippet = data.highlight["content"].join("...");
+            // } else {
+            //     snippet = s["content"];  // We're filtering out content, because it's *huge*, especially on Sheets
+            // }
             snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").html();
             return {__html:snippet}
         }
@@ -5754,7 +5764,7 @@ var SearchSheetResult = React.createClass({
         var data = this.props.data;
         var s = data._source;
       
-        var snippet = data.highlight ? data.highlight.content.join("...") : s.content;
+        var snippet = data.highlight.content.join("..."); // data.highlight ? data.highlight.content.join("...") : s.content;
         snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").text();
 
         function get_version_markup() {
