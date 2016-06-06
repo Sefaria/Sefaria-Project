@@ -857,6 +857,10 @@ $(function() {
 	$("#save").click(handleSave);
 
 
+	// ---------- Share Sheet --------------
+	$("#share").click(showShareModal);
+
+
 	// ---------- Copy Sheet ----------------
 	$("#copySheet").click(copySheet);
 
@@ -1469,6 +1473,109 @@ $(function() {
 
 	});
 
+	$("#shareWithOthers .ok").click(function(){
+		$("#shareWithOthers, #overlay").hide();
+		autoSave();
+	});
+
+	function changeSharing() {
+			if ($("#sourceSheetGroupSelect").val()=="None"||($("#sourceSheetGroupSelect").val() == null)) {
+
+				switch ($("#sourceSheetShareSelect").val()) {
+
+					case 'private':
+						$("#sharingDesc").html('Only people with the direct link can view the source sheet.');
+						$("#sharingType").data("sharing", "private");
+						break;
+
+					case 'public':
+						$("#sharingDesc").html('Anyone browsing Sefaria can find and view your source sheet.');
+						$("#sharingType").data("sharing", "public");
+						break;
+
+					case 'publicAdd':
+						$("#sharingDesc").html('Anyone browsing Sefaria can find and view and add sources & comments to your sheet.');
+						$("#sharingType").data("sharing", "publicAdd");
+						break;
+
+					case 'privateAdd':
+						$("#sharingDesc").html('Anyone with the link to your sheet can view and add sources & comments.');
+						$("#sharingType").data("sharing", "privateAdd");
+						break;
+
+					case 'publicEdit':
+						$("#sharingDesc").html('Anyone browsing Sefaria can make any change to your source sheet.<br/><br/>Please be advised: There is no way to track or undo changes made by other editors, including deletions.<br/>Consider making a copy of this source sheet before allowing anyone to edit.');
+						$("#sharingType").data("sharing", "publicEdit");
+						break;
+
+					case 'privateEdit':
+						$("#sharingDesc").html('Anyone with the link to your sheet can make any change. The sheet will not be publicly listed.<br/><br/>Please be advised: There is no way to track or undo changes made by other editors, including deletions.<br/>Consider making a copy of this source sheet before allowing anyone to edit.');
+						$("#sharingType").data("sharing", "privateEdit");
+						break;
+
+				};
+			}
+			else {
+
+				switch ($("#sourceSheetShareSelect").val()) {
+
+					case 'private':
+						$("#sharingDesc").html('Anyone in <span class="groupName">your group</span> can find and view your source sheet.');
+						$("#sharingType").data("sharing", "private");
+						break;
+
+					case 'public':
+						$("#sharingDesc").html('Anyone browsing Sefaria can find and view your source sheet.');
+						$("#sharingType").data("sharing", "public");
+						break;
+
+					case 'publicAdd':
+						$("#sharingDesc").html('Anyone browsing Sefaria can find and view and add sources & comments to your sheet.');
+						$("#sharingType").data("sharing", "publicAdd");
+						break;
+
+					case 'privateAdd':
+						$("#sharingDesc").html('Anyone in <span class="groupName">your group</span> can find and view and add sources & comments to your sheet.');
+						$("#sharingType").data("sharing", "groupAdd");
+						break;
+
+					case 'publicEdit':
+						$("#sharingDesc").html('Anyone browsing Sefaria can make any change to your source sheet.<br/><br/>Please be advised: There is no way to track or undo changes made by other editors, including deletions.<br/>Consider making a copy of this source sheet before allowing anyone to edit.');
+						$("#sharingType").data("sharing", "publicEdit");
+						break;
+
+					case 'privateEdit':
+						$("#sharingType").data("sharing", "groupEdit");
+						$("#sharingDesc").html('Anyone in <span class="groupName">your group</span> can make any change to your source sheet.<br/><br/>Please be advised: There is no way to track or undo changes made by other editors, including deletions.<br/>Consider making a copy of this source sheet before allowing anyone to edit.');
+						break;
+
+				};
+
+
+			}
+
+	}
+
+	$("#sourceSheetShareSelect").change(function() {
+			changeSharing();
+	});
+
+	$("#sourceSheetGroupSelect").change(function() {
+			changeSharing();
+			if ($(this).val()!="None") {
+				var groupUrl = $(this).val().replace(/ /g, "_");
+				$("#partnerLogo").attr("src", $("#sourceSheetGroupSelect option:selected").attr("data-image")).show()
+					.closest("a").attr("href", "/partners/" + groupUrl);
+				$("#sheetHeader").show();
+				$(".groupName").text($(this).val());
+			}
+			else {
+				$("#sheetHeader").hide();
+				$(".groupName").text("your group");
+			}
+	});
+
+
 	$("#sharingModal .ok").click(function(){
 
 		$("#sharingModal, #overlay").hide();
@@ -2068,7 +2175,7 @@ function readSheet() {
 
 	
 
-	switch ($("#sharingModal input[type='radio'][name='sharingOptions']:checked").val()) {
+	switch ($("#sharingModal input[type='radio'][name='sharingOptions']:checked").val() || $("#sharingType").data("sharing")){
 
 		case 'private':
 			sheet.options.collaboration = "none";
@@ -2121,7 +2228,7 @@ function readSheet() {
 		
 	}
 	
-	var group = $(".groupOption .fa-check").not(".hidden").parent().attr("data-group");
+	var group = $(".groupOption .fa-check").not(".hidden").parent().attr("data-group") || $("#sourceSheetGroupSelect").val();
 
 	if (group === undefined && sjs.current && sjs.current.group !== "None") {
 		// When working on someone else's group sheet
@@ -2370,6 +2477,18 @@ function buildSheet(data){
 	else if (data.options.collaboration == "anyone-can-edit" && data.status == "unlisted") $("#sharingModal input[type='radio'][name='sharingOptions'][value='privateEdit']").attr('checked', 'checked');
 	else if (data.options.collaboration == "group-can-edit" && data.status == "unlisted") $("#sharingModal input[type='radio'][name='sharingOptions'][value='groupEdit']").attr('checked', 'checked');
 
+
+
+	if (data.options.collaboration == "none" && data.status == "unlisted")  $("#sourceSheetShareSelect").val('private');
+	else if (data.options.collaboration == "none" && data.status == "public") $("#sourceSheetShareSelect").val('public');
+	else if (data.options.collaboration == "anyone-can-add" && data.status == "public") $("#sourceSheetShareSelect").val('publicAdd');
+	else if (data.options.collaboration == "anyone-can-add" && data.status == "unlisted") $("#sourceSheetShareSelect").val('privateAdd');
+	else if (data.options.collaboration == "group-can-add" && data.status == "unlisted") $("#sourceSheetShareSelect").val('privateAdd');
+	else if (data.options.collaboration == "anyone-can-edit" && data.status == "public") $("#sourceSheetShareSelect").val('publicEdit');
+	else if (data.options.collaboration == "anyone-can-edit" && data.status == "unlisted") $("#sourceSheetShareSelect").val('privateEdit');
+	else if (data.options.collaboration == "group-can-edit" && data.status == "unlisted") $("#sourceSheetShareSelect").val('privateEdit');
+
+
 	// Set Sheet Group
 	if (data.group) {
 		$(".groupOption .fa-check").addClass("hidden");	
@@ -2380,6 +2499,7 @@ function buildSheet(data){
 		var groupUrl = data.group.replace(/ /g, "_");
 		var groupImage = $(".groupOption[data-group='"+ data.group + "']").attr("data-image"); 
 		$("#partnerLogo").attr("src", groupImage).show();
+		$("#sourceSheetGroupSelect").val(data.group);
 	} else {
 		$(".groupSharing").hide();
 		$(".individualSharing").show();
@@ -2948,6 +3068,11 @@ function showEmebed() {
 			.find(".ok").unbind().click(function() {
 				$("#embedSheetModal, #overlay").hide();
 			});
+	$("#overlay").show();
+}
+
+function showShareModal(){
+	$("#shareWithOthers").show().position({of: window})
 	$("#overlay").show();
 }
 
