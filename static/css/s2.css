@@ -2670,3 +2670,11 @@ h2.splitHeader {
   text-transform: none;
   cursor: pointer;
 }
+
+.sheetsNewButton {
+  text-align:center;
+}
+
+.sheetsNewButton a {
+  font-color: inherit;
+}

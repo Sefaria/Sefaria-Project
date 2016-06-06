@@ -2743,13 +2743,12 @@ var SheetsNav = React.createClass({
     this.props.setSheetTag(tag);
   },
   loadSheets: function(sheets) {
-    console.log(sheets);
     this.setState({sheets: sheets});
   },
   showYourSheets: function() {
     this.setState({tag: "Your Sheets"});
     Sefaria.sheets.userSheets(Sefaria._uid, this.loadSheets);
-    this.props.setSheetTag("Your Sheets");    
+    this.props.setSheetTag("Your Sheets");
   },
   showAllSheets: function() {
     this.setState({tag: "All Sheets"});
@@ -2761,22 +2760,71 @@ var SheetsNav = React.createClass({
     var heTitle = this.state.tag || "דפי מקורות";
 
     if (this.state.tag) {
-      var sheets = this.state.sheets.map(function(sheet) {
-        var title = sheet.title.stripHtml();
-        var url   = "/sheets/" + sheet.id;
-        return (<a className="sheet" href={url} key={url}>
-                  {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl} />) : null}
-                  <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
-                  <div className="sheetAuthor">{sheet.ownerName}</div>
-                  <div className="sheetTitle">{title}</div>
-                </a>);
-      });
-      sheets = sheets.length ? sheets : (<LoadingMessage />);
-      var content = (<div className="content sheetList"><div className="contentInner">
-                          {this.props.hideNavHeader ? (<h1>
-                            <span className="en">{enTitle}</span>
-                          </h1>) : null}
-                          {sheets}</div></div>);
+
+      if (this.state.tag == "Your Sheets") {
+
+        var sheets = this.state.sheets.map(function (sheet) {
+          var title = sheet.title.stripHtml();
+          var url = "/sheets/" + sheet.id;
+          var tagString = sheet.tags.map(function (tag) {
+              return(tag);
+          });
+
+
+
+          return (<a className="sheet" href={url} key={url}>
+            {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl}/>) : null}
+            <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
+            <div className="sheetAuthor">{sheet.ownerName}</div>
+            <div className="sheetTitle">{title}</div>
+            {tagString}
+          </a>);
+        });
+        sheets = sheets.length ? sheets : (<LoadingMessage />);
+        var content = (<div className="content sheetList">
+          <div className="contentInner">
+            {this.props.hideNavHeader ? (<h1>
+              <span className="en">My Source Sheets</span>
+            </h1>) : null}
+            {this.props.hideNavHeader ? (
+              <div className="sheetsNewButton">
+                <a className="button white" href="/sheets/new">
+                    <span className="en">Create a Source Sheet</span>
+                    <span className="he">צור דף מקורות חדש</span>
+                </a>
+              </div>
+
+              ) : null }
+
+
+            {sheets}</div>
+        </div>);
+      }
+
+
+      else {
+
+        var sheets = this.state.sheets.map(function (sheet) {
+          var title = sheet.title.stripHtml();
+          var url = "/sheets/" + sheet.id;
+          return (<a className="sheet" href={url} key={url}>
+            {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl}/>) : null}
+            <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
+            <div className="sheetAuthor">{sheet.ownerName}</div>
+            <div className="sheetTitle">{title}</div>
+          </a>);
+        });
+        sheets = sheets.length ? sheets : (<LoadingMessage />);
+        var content = (<div className="content sheetList">
+          <div className="contentInner">
+            {this.props.hideNavHeader ? (<h1>
+              <span className="en">{enTitle}</span>
+            </h1>) : null}
+            {sheets}</div>
+        </div>);
+      }
+
+
     }
     else {
       var yourSheets  = Sefaria._uid ? (<div className="yourSheetsLink navButton" onClick={this.showYourSheets}>Your Source Sheets <i className="fa fa-chevron-right"></i></div>) : null;

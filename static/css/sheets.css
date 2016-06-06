@@ -96,11 +96,14 @@ body {
 	margin: 130px auto 56px;
 	box-shadow: 0px 0px 2px #777;
 	font-family: "Times New Roman", "Georgia", serif;
+
+
+	width:850px;
+	padding:60px 0px;
+
 }
 
 #sheet.s2Sheet {
-	width:850px;
-	padding:60px 0px;
 }
 
 #sheet.paperless {
@@ -192,6 +195,10 @@ body {
 	right: auto;
 	left: 50px;
 	line-height: 1.2;
+}
+
+.optionsMenu img, .addInterfaceButton img {
+	margin-right: 5px;
 }
 
 .sheetsMenuBarItem .optionsMenu i {
@@ -488,7 +495,8 @@ body {
 
 .sheetItem {
 	position: relative;
-	padding: 32px 32px;
+	padding: 32px 72px;
+	border: solid 1px transparent;
 	border-left: solid 3px transparent;
 }
 
@@ -552,8 +560,8 @@ body {
 
 }
 .sideControls {
-	width: 20px !important;
-	left: 5px !important;
+	width: 16px !important;
+	left: 20px !important;
 	margin-left: 0 !important;
 	top: 32px !important;
 	background-color: #F7F7F9 !important;
@@ -564,6 +572,11 @@ body {
 .sideControls div {
 	display: block !important
 }
+
+.sideControls div img {
+	margin: 3px 0;
+}
+
 
 .source {
 	position: relative;
@@ -757,18 +770,18 @@ body {
 }
 
 .indented-1 {
-	padding-left: 30px !important;
-	padding-right: 30px !important;
+	padding-left: 100px !important;
+	padding-right: 100px !important;
 }
 
 .indented-2 {
-	padding-left: 60px !important;
-	padding-right: 60px !important;
+	padding-left: 130px !important;
+	padding-right: 130px !important;
 }
 
 .indented-3 {
-	padding-left: 90px !important;
-	padding-right: 90px !important;
+	padding-left: 160px !important;
+	padding-right: 160px !important;
 }
 
 
