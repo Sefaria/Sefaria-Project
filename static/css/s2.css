@@ -2507,11 +2507,16 @@ h1 .languageToggle .he {
 }
 .button.white {
   background-color: white;
-  color: black;
+  color: #333;
   border: 1px solid #ccc;
 }
 .button.white:hover {
 
+}
+.button.transparent {
+  color: #666;
+  background-color: transparent;
+  border: 1px solid transparent;
 }
 .button.fillWidth {
   width: 100%;

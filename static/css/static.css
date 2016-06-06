@@ -50,6 +50,22 @@ input:focus {
 a {
   color: #333;
 }
+label {
+   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+   color: #999;
+   letter-spacing: 1px;
+   font-size: 16px;
+   height: 18px;
+   margin-bottom: 10px;
+   position: relative;
+}
+label .sub {
+  font-size: 12px;
+  margin-left: 4px;
+  color: #999;
+  letter-spacing: normal;
+  white-space: nowrap;
+}
 .page-title{
   margin-bottom: 50px;
 }
@@ -660,12 +676,12 @@ footer .section.last {
 #editProfilePage .inner {
   position: relative; 
 }
-#editProfilePage #profileButtons {
+#saveCancelButtons {
   position: absolute;
   top: 40px;
   right: 0px;
 }
-#editProfilePage #profileButtons .button {
+#saveCancelButtons .button {
   padding: 10px 16px;
 }
 #editProfilePage #profileBox,
@@ -685,22 +701,6 @@ footer .section.last {
 }
 #editProfilePage h2 {
   text-align: center;
-}
-#editProfilePage label {
-   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-   color: #999;
-   letter-spacing: 1px;
-   font-size: 16px;
-   height: 18px;
-   margin-bottom: 10px;
-   position: relative;
-}
-#editProfilePage label .sub {
-  font-size: 12px;
-  margin-left: 4px;
-  color: #999;
-  letter-spacing: normal;
-  white-space: nowrap;
 }
 #editProfilePage input {
   padding: 18px 12px;
@@ -789,5 +789,24 @@ footer .section.last {
 #editProfilePage #pinnedSheets ul {
   min-height: 36px;
 }
-
-
+#accountSettingsPage .inner{
+  position: relative;
+}
+#accountSettingsPage .toggleOption {
+  font-size: 14px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.doubleOption .toggleOption {
+  width: 50%;
+}
+.tripleOption .toggleOption {
+  width: 33.3%;
+}
+.toggleOption {
+  background-color: white;
+  color: #999;
+}
+.toggleOption.active {
+  color: #333;
+  background-color: white;
+}

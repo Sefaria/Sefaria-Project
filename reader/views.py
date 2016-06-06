@@ -2083,7 +2083,7 @@ def my_profile(request):
 @ensure_csrf_cookie
 def edit_profile(request):
     """
-    Page for managing a user's account settings.
+    Page for editing a user's profile.
     """
     profile = UserProfile(id=request.user.id)
     sheets  = db.sheets.find({"owner": profile.id, "status": "public"}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
