@@ -40,10 +40,24 @@
     <div class="sheetsEditNavTop">
         <div class="sheetsMenuBarItem" id="fileMenu">File
 			<div class="optionsMenu">
+				{% if not new_sheet %}
+					{% if user.email %}
+					<div class="optionItem" id="copySheet">
+						<i class="fa fa-copy"></i> Copy Sheet</div>
+					{% endif %}
+					<div class="optionItem" id="embedSheet">
+						<i class="fa fa-code"></i> Embed Sheet</div>
+					{% if is_owner %}
+					<div class="optionItem" id="deleteSheet">
+						<i class="fa fa-trash-o"></i> Delete Sheet</div>
+					{% endif %}
+					<div class="line"></div>
+
+					{% if user.email %}
+					<div class="optionItem" id="editTags">
+						<i class="fa fa-pencil"></i> Edit Sheet Tags</div>
+					{% endif %}
 				{% if is_owner %}
-				<div class="optionGroup">
-					<div class="optionTitle" id="sharingModalTrigger"><i class="fa fa-share-alt"></i> Sharing </div>
-				</div>
 	    			{% if not sheet.assigner_id %}
 
                     <div class="optionGroup">
@@ -55,44 +69,14 @@
 
 				{% endif %}
 
-				{% if owner_groups %}
-				<div class="optionGroup">
-					<div class="optionTitle"><i class="fa fa-group"></i> Group <i class='fa fa-caret-right'></i></div>
-					<div class="subMenu">
-						<div class="optionItem groupOption" data-group="None">
-							<i class="fa fa-check"></i> <i>None</i></div>
-						{% for group in owner_groups %}
-						<div class="optionItem groupOption" data-group="{{ group.name }}" data-image="{{ group.headerUrl }}">
-							<i class="fa fa-check hidden"></i> {{ group.name }}</div>
-						{% endfor %}
-					</div>
-				</div>
+
+
 				{% endif %}
 
-				{% if not new_sheet %}
-					<div class="line"></div>
-					{% if user.email %}
-					<div class="optionItem" id="copySheet">
-						<i class="fa fa-copy"></i> Copy Sheet</div>
-					{% endif %}
-					<div class="optionItem" id="embedSheet">
-						<i class="fa fa-code"></i> Embed Sheet</div>
-					{% if is_owner %}
-					<div class="optionItem" id="deleteSheet">
-						<i class="fa fa-trash-o"></i> Delete Sheet</div>
-					{% endif %}
-
-					{% if user.email %}
-					<div class="line"></div>
-					<div class="optionItem" id="editTags">
-						<i class="fa fa-pencil"></i> Edit Sheet Tags</div>
-					{% endif %}
-				{% endif %}
-
-				<div class="line"></div>
+				<!-- <div class="line"></div>
 				<div class="optionItem" id="visualize">
 					<a href="/sheets/visual/{{sheet.id}}"><i class="fa fa-picture-o"></i>Visualize</a></div>
-
+                -->
 				<div class="line"></div>
 
 				<div class="optionItem" id="print">
@@ -499,7 +483,7 @@
     <div class="content">
         <div class="inputHeader"><i class='fa fa-group'></i> Group</div>
         <select id="sourceSheetGroupSelect">
-            <option value="none">None</option>
+            <option value="None">None</option>
 
     		{% for group in owner_groups %}
               <option value="{{ group.name }}" data-group="{{ group.name }}" data-image="{{ group.headerUrl }}">{{ group.name }}</option>
@@ -509,100 +493,9 @@
 	{% endif %}
 
     <br/>
-    <span id="sharingDesc">Only people with the direct link can view the source sheet.</span>
+    <span id="sharingDesc"></span><span id="sharingType" data-sharing=""></span>
     <br/>
     <div class="ok button">Ok</div>
-</div>
-
-
-<div id="sharingModal" class="modal">
-	<div class="header">Sharing & Collaboration</div>
-
-	<div class="radio">
-	  <label>
-		<input type="radio" name="sharingOptions" id="sharePrivate" value="private">
-		<span class="iconHolder"><i class="fa fa-user fa-2x fa-pull-left"></i></span>
-		<span class="sharingLabel">Private</span>
-		<span class="sharingDesc">Only people with the direct link can view the source sheet.</span>
-	  </label>
-	</div>
-
-
-	<div class="radio groupSharing">
-	  <label>
-		<input type="radio" name="sharingOptions" id="shareGroup" value="group">
-		<span class="iconHolder"><i class="fa fa-group fa-2x fa-pull-left"></i></span>
-		<span class="sharingLabel">Listed for Group Members</span>
-		<span class="sharingDesc">Anyone in <span class="groupName">your group</span> can find and view your source sheet.</span>
-	  </label>
-	</div>
-
-
-	<div class="radio">
-	  <label>
-		<input type="radio" name="sharingOptions" id="sharePublic" value="public">
-		<span class="iconHolder"><i class="fa fa-globe fa-2x fa-pull-left"></i></span>
-		<span class="sharingLabel">Listed for Sefaria Users</span>
-		<span class="sharingDesc">Anyone browsing Sefaria can find and view your source sheet.</span>
-	  </label>
-	</div>
-
-	<div class="radio groupSharing">
-	  <label>
-		<input type="radio" name="sharingOptions" id="shareGroupAdd" value="groupAdd">
-		<span class="iconHolder"><i class="fa fa-group fa-2x fa-pull-left"></i> <i class="fa fa-plus-circle fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Group Members can Add</span>
-		<span class="sharingDesc">Anyone in <span class="groupName">your group</span> can find and view and add sources & comments to your sheet.</span>
-	  </label>
-	</div>
-
-	<div class="radio">
-	  <label>
-		<input type="radio" name="sharingOptions" id="sharePublicAdd" value="publicAdd">
-		<span class="iconHolder"><i class="fa fa-globe fa-2x fa-pull-left"></i> <i class="fa fa-plus-circle fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Anyone can Add</span>
-		<span class="sharingDesc">Anyone browsing Sefaria can find and view and add sources & comments to your sheet.</span>
-	  </label>
-	</div>
-
-	<div class="radio individualSharing">
-	  <label>
-		<input type="radio" name="sharingOptions" id="sharePrivateAdd" value="privateAdd">
-		<span class="iconHolder"><i class="fa fa-link fa-2x fa-pull-left"></i> <i class="fa fa-plus-circle fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Anyone can Add - Unlisted</span>
-		<span class="sharingDesc">Anyone with the link to your sheet can view and add sources & comments.</span>
-	  </label>
-	</div>
-
-	<div class="radio groupSharing">
-	  <label>
-		<input type="radio" name="sharingOptions" id="shareGroupEdit" value="groupEdit">
-		<span class="iconHolder"><i class="fa fa-group fa-2x fa-pull-left"></i> <i class="fa fa-pencil fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Group Members can Edit</span>
-		<span class="sharingDesc">Anyone in <span class="groupName">your group</span> can make any change to your source sheet.</span>
-	  </label>
-	</div>
-
-	<div class="radio">
-	  <label>
-		<input type="radio" name="sharingOptions" id="sharePublicEdit" value="publicEdit">
-		<span class="iconHolder"><i class="fa fa-globe fa-2x fa-pull-left"></i> <i class="fa fa-pencil fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Anyone can Edit</span>
-		<span class="sharingDesc">Anyone browsing Sefaria can make any change to your source sheet.</span>
-	  </label>
-	</div>
-
-	<div class="radio individualSharing">
-	  <label>
-		<input type="radio" name="sharingOptions" id="sharePrivateEdit" value="privateEdit">
-		<span class="iconHolder"><i class="fa fa-link fa-2x fa-pull-left"></i> <i class="fa fa-pencil fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Anyone can Edit - Unlisted</span>
-		<span class="sharingDesc">Anyone with the link to your sheet can make any change. The sheet will not be publicly listed.</span>
-	  </label>
-	</div>
-
-
-	<div class="btn ok">Save</div>
 </div>
 
 
