@@ -1479,7 +1479,7 @@ $(function() {
 	});
 
 	function changeSharing() {
-			if ($("#sourceSheetGroupSelect").val()=="None") {
+			if ($("#sourceSheetGroupSelect").val()=="None"||($("#sourceSheetGroupSelect").val() == null)) {
 
 				switch ($("#sourceSheetShareSelect").val()) {
 
