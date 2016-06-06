@@ -1279,6 +1279,9 @@ $(function() {
 				$(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
 				$(".inlineAddButtonIcon").removeClass("active");
 				$(this).addClass("active");
+				$("#sourceButton").click();
+				var top = $(this).offset().top - 200;
+				$("html, body").animate({scrollTop: top}, 750);
 				e.stopImmediatePropagation();
 			});
 
