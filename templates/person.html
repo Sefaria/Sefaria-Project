@@ -20,8 +20,23 @@
 {% block content %}
 
     
-<div id="personPage" class="container doc biReady">
-
+<div id="personPage" class="container full-text-static biReady">
+    <div class="page-title">
+        <h1>
+            <span class='en'>{{ primary_name.en }}</span>
+            <span class='he'>{{ primary_name.he }}</span>
+        </h1>
+        {% if time_period_name.en or time_period_name.he %}
+            <div id="periodNameLine">
+                <span class='en'>{{ time_period_name.en }}</span>
+                <span class='he'>{{ time_period_name.he }}</span>
+            </div>
+        {% endif %}
+        <div id="yearLine">
+            <span class='en'>{{ time_period.en }}</span>
+            <span class='he'>{{ time_period.he }}</span>
+        </div>
+    </div>
     {% if post_talmudic %}
         <a href="/people" id="textTocLink">
             <span class='en'>&laquo; All Authors</span>
@@ -33,65 +48,46 @@
             <span class='he'>&laquo; אנשים בתלמוד</span>
         </a>
     {% endif %}
-
-    <div class="row">
-        <span class="span8 offset2">
-            <h1>
-                <span class='en'>{{ primary_name.en }}</span>
-                <span class='he'>{{ primary_name.he }}</span>
-            </h1>
-
-            {% if time_period_name.en or time_period_name.he %}
-            <div id="periodNameLine">
-                <span class='en'>{{ time_period_name.en }}</span>
-                <span class='he'>{{ time_period_name.he }}</span>
-            </div>
-            {% endif %}
-
-            <div id="yearLine">
-                <span class='en'>{{ time_period.en }}</span>
-                <span class='he'>{{ time_period.he }}</span>
-            </div>
-
+    <div class="row static-text">
+        <div class="main-text">
             {% if enBio or heBio %}
-            <div id="bio">
+            <p id="bio">
                 <span class='en'>{{ enBio }}</span>
                 <span class='he'>{{ heBio }}</span>
-            </div>
+            </p>
             {% endif %}
         </span>
     </div>
-    <div class="row">
-        <span id="person-graphic-column" class="span4">
-            {% if places %}
-                <div id="place-map"></div>
-            {% endif %}
-        </span>
-        <span id="person-text-column" class="span4 offset2">
+    <div class="additional-text">
+        <span id="person-text-column">
            <div id="external_links">
+                <h3>
+                    <span class='en'>Learn More</span>
+                    <span class='he'>להרחבה</span>
+                </h3>
                 {% if enWikiLink and heWikiLink %}
-                    <div>
+                    <p>
                         <span class="en"><a href="{{ enWikiLink }}">Wikipedia</a><i class="fa fa-external-link"></i></span>
                         <span class="he"><a href="{{ heWikiLink }}">וויקיפדיה</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
-                    </div>
+                    </p>
 
                 {% elif enWikiLink %}
-                    <div>
+                    <p>
                         <span class="en"><a href="{{ enWikiLink }}">Wikipedia</a><i class="fa fa-external-link"></i></span>
                         <span class="he"><a href="{{ enWikiLink }}">וויקיפדיה (אנגלית)</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
-                    </div>
+                    </p>
                 {% elif heWikiLink %}
-                    <div>
+                    <p>
                         <span class="en"><a href="{{ heWikiLink }}">Wikipedia (Hebrew)</a><i class="fa fa-external-link"></i></span>
                         <span class="he"><a href="{{ heWikiLink }}">וויקיפדיה</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
-                    </div>
+                    </p>
                 {% endif %}
 
                 {% if jeLink %}
-                    <div>
+                    <p>
                         <span class="en"><a href="{{ jeLink }}">Jewish Encyclopedia</a><i class="fa fa-external-link"></i></span>
                         <span class="he"><a href="{{ jeLink }}">האנציקלופדיה היהודית (אנגלית)</a><i class="fa fa-external-link fa-flip-horizontal"></i></span>
-                    </div>
+                    </p>
                 {% endif %}
             </div>
             <div id="relationships">
@@ -101,7 +97,9 @@
                      <span class='he'>{{ rel_type.he }}</span>
                  </h3>
                      {% for person in rel_type.people %}
-                         {{ person|person_link }}
+                         <p>
+                            {{ person|person_link }}
+                         </p>
                      {% endfor %}
                  {% endfor %}
             </div>
@@ -112,9 +110,20 @@
                      <span class='he'>ספרים</span>
                 </h3>
                 {% for indx in indexes %}
+                    <p>
                     {{ indx|text_toc_link }}
+                    </p>
                 {% endfor %}
             </div>
+            {% endif %}
+        </span>
+        <span id="person-graphic-column">
+            <h3>
+                <span class='en'>Map</span>
+                <span class='he'>מפה</span>
+            </h3>
+            {% if places %}
+                <div id="place-map"></div>
             {% endif %}
         </span>
     </div>
@@ -178,7 +187,7 @@
               .attr("y", function(d) { return d[1]; });
 
         // Tooltip
-        var tooltip = d3.select("body").append("div")
+        var tooltip = d3.select("#personPage").append("div")
             .attr("class", "person_tooltip biReady")   //todo: check that the biReady applies
             .style("opacity", 0);
 

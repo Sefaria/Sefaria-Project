@@ -21,10 +21,10 @@
         <span class="en">Authors</span>
         <span class="he">מחברים</span>
     </h1></div>
-    <div class="row static-text" id="about">
-        <div class="about main-text">
+    <div class="row static-text">
+        <div class="main-text">
             <div class="row">
-                <span class="author span4">
+                <span>
                     <span class="en"><a href="/people/Talmud">People in the Talmud</a> </span>
                     <span class="he"><a href="/people/Talmud">אנשים בתלמוד</a></span>
                 </span>
@@ -33,7 +33,7 @@
             {% for era in eras %}
 
                 <div class="row">
-                    <span class="span12">
+                    <span>
                         <h3>
                             <span class="en">{{ era.name_en }} <span class="subtitle"> {{ era.years_en }}</span> </span>
                             <span class="he">{{ era.name_he }} <span class="subtitle"> {{ era.years_he }}</span> </span>

@@ -646,8 +646,39 @@ footer .section.last {
   margin-top: 20px;
   white-space: normal;
 }
-#peoplePage .author a, #talmudicPeoplePage .author a{
+#peoplePage .author a, #talmudicPeoplePage .author a, #personPage a{
   color: #666;
+}
+
+#peoplePage .author, #talmudicPeoplePage .author{
+  margin-left: 0;
+}
+#personPage #periodNameLine, #personPage #yearLine{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: normal;
+  text-transform: uppercase;
+  color: #aaa;
+  padding-bottom: 15px;
+}
+#personPage #external_links i{
+  padding: 0 5px;
+}
+
+#personPage #external_links a{
+  padding: 0 5px;
+}
+
+
+
+#personPage div.person_tooltip {
+    position: absolute;
+    text-align: center;
+    padding: 6px;
+    font: 12px sans-serif;
+    background: lightsteelblue;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
 }
 
 
