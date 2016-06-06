@@ -3544,12 +3544,41 @@ var TextRange = React.createClass({
     // Set the vertical offsets for segment numbers and link counts, which are dependent
     // on the rendered height of the text of each segment.
     var $text  = $(ReactDOM.findDOMNode(this));
+    var elemsAtPosition = {}; // Keyed by top position, an array of elements found there
     var setTop = function() {
-       var top  = $(this).parent().position().top;
-      $(this).css({top: top}).show();   
+      var $elem = $(this);
+      var top   = $elem.parent().position().top;
+      $elem.css({top: top});
+      var list = elemsAtPosition[top] || [];
+      list.push($elem);
+      elemsAtPosition[top] = list;  
     };
-    $text.find(".segmentNumber").each(setTop);
     $text.find(".linkCount").each(setTop);
+    elemsAtPosition = {} // resetting because we only want it to track segmentNumbers
+    $text.find(".segmentNumber").each(setTop).show();
+    var fixCollision = function ($elems) {
+      // Takes an array of jQuery elements that all currenlty appear at the same top position
+      if ($elems.length == 1) { return; }
+      if ($elems.length == 2) {
+        var adjust = 8;
+        $elems[0].css({top: "-=" + adjust});
+        $elems[1].css({top: "+=" + adjust});
+      }
+      /* Sketching a general solution for any number of elements, incomplete.
+      var halfOrLess = Math.floor($elems.length / 2);
+      var above = $elems.slice(0, halfOrLess);
+      var below = $elems.slice(-halfOrLess);
+      for (var i = 0; i < halfOrLess; i++) {
+
+      }
+      */
+    };
+    for (var top in elemsAtPosition) {
+      if (elemsAtPosition.hasOwnProperty(top)) {
+        fixCollision(elemsAtPosition[top]);
+      }
+    }
+    $text.find(".segmentNumber").show();
   },
   render: function() {
     var data = this.getText();
