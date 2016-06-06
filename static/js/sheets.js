@@ -1280,8 +1280,6 @@ $(function() {
 				$(".inlineAddButtonIcon").removeClass("active");
 				$(this).addClass("active");
 				$("#sourceButton").click();
-				var top = $(this).offset().top - 200;
-				$("html, body").animate({scrollTop: top}, 750);
 				e.stopImmediatePropagation();
 			});
 
@@ -1946,8 +1944,12 @@ function addSource(q, source, appendOrInsert) {
 
 
 	var badRef = q.ref == undefined ? true : false;
-	
+
+	if ($("#addSourceModal").data("target") == null) {
+		$("#addSourceModal").data("target", $("#sources"));
+	}
 	var $listTarget = $("#addSourceModal").data("target");
+
 	if ($listTarget.length == 0) appendOrInsert = "append";
 
 	if ($listTarget.hasClass('sheetItem') ) {
