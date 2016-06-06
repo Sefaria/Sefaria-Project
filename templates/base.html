@@ -51,7 +51,7 @@
 
 <body>
     <div class="wrapper">
-        <div id="content" class="{% if contentLang == "bilingual" %}english{% else %}{{ contentLang }}{% endif %}">
+        <div id="content" class="{{ interfaceLang }}">
             {% include "header.html" %}
             {% if not S2 and not request.flavour == "mobile" %}
                 {% include "elements/login_prompt.html" with msg="Please log in to edit." %}

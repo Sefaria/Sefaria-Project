@@ -5,7 +5,7 @@ from datetime import datetime
 
 from sefaria.settings import *
 from sefaria.model import library, NotificationSet
-from sefaria.model.user_profile import unread_notifications_count_for_user
+from sefaria.model.user_profile import UserProfile, unread_notifications_count_for_user
 from sefaria.utils import calendars
 
 
@@ -52,11 +52,15 @@ def language_settings(request):
     content = 'english' if content not in ('english', 'hebrew', 'bilingual') else content
 
     # INTERFACE
-    # Pull language setting from cookie or Accept-Lanugage header or default to english
-    interface = request.COOKIES.get('interfaceLang') or request.LANGUAGE_CODE or 'english'
-    interface = 'hebrew' if interface in ('he', 'he-il') else interface
-    # Don't allow languages other than what we currently handle
-    interface = 'english' if interface not in ('english', 'hebrew') else interface
+    if request.user.is_authenticated():
+        profile = UserProfile(id=request.user.id)
+        interface = profile.settings["interface_language"] if "interface_language" in profile.settings else None 
+    if not interface: 
+        # Pull language setting from cookie or Accept-Lanugage header or default to english
+        interface = request.COOKIES.get('interfaceLang') or request.LANGUAGE_CODE or 'english'
+        interface = 'hebrew' if interface in ('he', 'he-il') else interface
+        # Don't allow languages other than what we currently handle
+        interface = 'english' if interface not in ('english', 'hebrew') else interface
 
     return {"contentLang": content, "interfaceLang": interface}
 
