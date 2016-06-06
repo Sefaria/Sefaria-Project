@@ -1098,20 +1098,31 @@ $(function() {
 			$("#addSourceMenu").click(function () {
 				$("#sheet").click();
 				$("#sourceButton").click();
-				$("html, body").animate({scrollTop: $(document).height()}, 750);
+				var top = $("#sourceButton").offset().top - 200;
+				$("html, body").animate({scrollTop: top}, 300);
 			});
 
 			$("#addCustomMenu").click(function () {
 				$("#sheet").click();
 				$("#customTextButton").click();
-				$("html, body").animate({scrollTop: $(document).height()}, 750);
+				var top = $("#customTextButton").offset().top - 200;
+				$("html, body").animate({scrollTop: top}, 300);
 			});
 
 			$("#addCommentMenu").click(function () {
 				$("#sheet").click();
 				$("#commentButton").click();
-				$("html, body").animate({scrollTop: $(document).height()}, 750);
+				var top = $("#commentButton").offset().top - 200;
+				$("html, body").animate({scrollTop: top}, 300);
 			});
+
+			$("#addMediaMenu").click(function () {
+				$("#sheet").click();
+				$("#mediaButton").click();
+				var top = $("#mediaButton").offset().top - 200;
+				$("html, body").animate({scrollTop: top}, 300);
+			});
+
 
 			$("#addInterface").on("click", "#connectionButton", function (e) {
 
