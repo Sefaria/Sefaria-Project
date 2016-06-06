@@ -6790,7 +6790,7 @@ var SearchResultList = React.createClass({
     return React.createElement(
       'div',
       null,
-      haveResults && queryLoaded ? searchFilters : null,
+      searchFilters,
       queryLoaded ? results : loadingMessage
     );
   }

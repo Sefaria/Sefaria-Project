@@ -5507,7 +5507,7 @@ var SearchResultList = React.createClass({
                                   clickSheetButton = {this.showSheets} />);
         return (
           <div>
-            { haveResults && queryLoaded ? searchFilters : null }
+            { searchFilters }
             { queryLoaded ? results : loadingMessage }
           </div>
         );
