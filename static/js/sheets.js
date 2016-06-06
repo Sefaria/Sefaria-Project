@@ -857,6 +857,10 @@ $(function() {
 	$("#save").click(handleSave);
 
 
+	// ---------- Share Sheet --------------
+	$("#share").click(showShareModal);
+
+
 	// ---------- Copy Sheet ----------------
 	$("#copySheet").click(copySheet);
 
@@ -1468,6 +1472,78 @@ $(function() {
 		$("#overlay").show();
 
 	});
+
+	$("#shareWithOthers .ok").click(function(){
+		$("#shareWithOthers, #overlay").hide();
+	});
+
+	$("#sourceSheetShareSelect, #sourceSheetGroupSelect").change(function() {
+    
+
+			if ($("#sourceSheetGroupSelect").val()=="none") {
+
+				switch ($("#sourceSheetShareSelect").val()) {
+
+					case 'private':
+						$("#sharingDesc").html('Only people with the direct link can view the source sheet.');
+						break;
+
+					case 'public':
+						$("#sharingDesc").html('Anyone browsing Sefaria can find and view your source sheet.');
+						break;
+
+					case 'publicAdd':
+						$("#sharingDesc").html('Anyone browsing Sefaria can find and view and add sources & comments to your sheet.');
+						break;
+
+					case 'privateAdd':
+						$("#sharingDesc").html('Anyone with the link to your sheet can view and add sources & comments.');
+						break;
+
+					case 'publicEdit':
+						$("#sharingDesc").html('Anyone browsing Sefaria can make any change to your source sheet.');
+						break;
+
+					case 'privateEdit':
+						$("#sharingDesc").html('Anyone with the link to your sheet can make any change. The sheet will not be publicly listed.');
+						break;
+
+				};
+			}
+			else {
+
+				switch ($("#sourceSheetShareSelect").val()) {
+
+					case 'private':
+						$("#sharingDesc").html('Anyone in <span class="groupName">your group</span> can find and view your source sheet.');
+						break;
+
+					case 'public':
+						$("#sharingDesc").html('Anyone browsing Sefaria can find and view your source sheet.');
+						break;
+
+					case 'publicAdd':
+						$("#sharingDesc").html('Anyone browsing Sefaria can find and view and add sources & comments to your sheet.');
+						break;
+
+					case 'privateAdd':
+						$("#sharingDesc").html('Anyone in <span class="groupName">your group</span> can find and view and add sources & comments to your sheet.');
+						break;
+
+					case 'publicEdit':
+						$("#sharingDesc").html('Only people with the direct link can view the source sheet.');
+						break;
+
+					case 'privateEdit':
+						$("#sharingDesc").html('Anyone in <span class="groupName">your group</span> can make any change to your source sheet.');
+						break;
+
+				};
+
+
+			}
+	});
+
 
 	$("#sharingModal .ok").click(function(){
 
@@ -2948,6 +3024,11 @@ function showEmebed() {
 			.find(".ok").unbind().click(function() {
 				$("#embedSheetModal, #overlay").hide();
 			});
+	$("#overlay").show();
+}
+
+function showShareModal(){
+	$("#shareWithOthers").show().position({of: window})
 	$("#overlay").show();
 }
 

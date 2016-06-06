@@ -227,7 +227,16 @@
      </span>
 
     </div>
-    <div id="ckeTopMenu"></div>
+	{% if new_sheet %}
+        <span id="save" class="button"><i class="fa fa-floppy-o"></i> Save</span>
+	{% endif %}
+
+    {% if is_owner and not new_sheet %}
+        <span id="share" class="button"><i class="fa fa-link"></i> Share</span>
+	{% endif %}
+
+        <div id="ckeTopMenu"></div>
+
     </div>
 <div id="link"></div>
 <div id="error"></div>
@@ -237,18 +246,12 @@
 </div>
 
 <div id="sheet" class="s2Sheet {{ sheet_class|default:'bilingual' }}">
-	{% if new_sheet %}
+    {% if not user.email %}
 	<div id="fileControls">
 
         <div id="fileControlMsg">
-            {% if not user.email %}
                 Take a spin! But you'll need to <a href="/login?next=/sheets/new">login</a> or <a href="/register?next=/sheets/new">register</a> to save your work.
-            {% else %}
-                Add a source, a comment, or some other media using the buttons above.
-
-            {% endif %}
         </div>
-        <span id="save" class="btn btn-large btn-success">Save</span>
 	</div>
 	{% endif %}
 
@@ -471,6 +474,45 @@
 </div>
 
 
+
+<div id="shareWithOthers" class="modal">
+    <div class="title">Share with Others</div>
+
+    <div class="content">
+        <div class="inputHeader"><i class='fa fa-link'></i> Sharable Link</div>
+        <input id="shareURL" value="{{ request.META.HTTP_HOST }}/sheets/{{sheet.id}}" readonly="readonly"/>
+    </div>
+
+    <div class="content">
+        <div class="inputHeader"><i class='fa fa-unlock-alt'></i> Access</div>
+        <select id="sourceSheetShareSelect">
+          <option value="private">Private</option>
+          <option value="public">Listed for Sefaria Users</option>
+          <option value="publicAdd">Anyone can Add</option>
+          <option value="privateAdd">Anyone can Add - Unlisted</option>
+          <option value="publicEdit">Anyone can Edit</option>
+          <option value="privateEdit">Anyone can Edit - Unlisted</option>
+        </select>
+    </div>
+
+   {% if owner_groups %}
+    <div class="content">
+        <div class="inputHeader"><i class='fa fa-group'></i> Group</div>
+        <select id="sourceSheetGroupSelect">
+            <option value="none">None</option>
+
+    		{% for group in owner_groups %}
+              <option value="{{ group.name }}" data-group="{{ group.name }}" data-image="{{ group.headerUrl }}">{{ group.name }}</option>
+			{% endfor %}
+        </select>
+    </div>
+	{% endif %}
+
+    <br/>
+    <span id="sharingDesc">Only people with the direct link can view the source sheet.</span>
+    <br/>
+    <div class="ok button">Ok</div>
+</div>
 
 
 <div id="sharingModal" class="modal">
