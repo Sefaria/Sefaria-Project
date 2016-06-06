@@ -6709,40 +6709,46 @@ var SearchResultList = React.createClass({
       // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
       return null;
     }
-    var sheetContent = "";
-    if (this.state.sheetHits.length == 0 && this.state.moreToLoad) {
-      sheetContent = React.createElement(LoadingMessage, { message: 'Searching...', heMessage: 'מבצע חיפוש...' });
-    } else {
-      sheetContent = this.state.sheetHits.map(function (result) {
+
+    if (this.state.activeTab == "texts") {
+      var results = this.state.textHits.map(function (result) {
+        return React.createElement(SearchTextResult, {
+          data: result,
+          query: _this4.props.query,
+          key: result._id,
+          onResultClick: _this4.props.onResultClick });
+      });
+    } else if (this.state.activeTab == "sheets") {
+      var results = this.state.sheetHits.map(function (result) {
         return React.createElement(SearchSheetResult, {
           data: result,
           query: _this4.props.query,
           key: result._id });
       });
     }
+
+    var queryLoaded = !this.state.moreToLoad && !this.state.isQueryRunning;
+    var haveResults = !!results.length;
+    var loadingMessage = React.createElement(LoadingMessage, { message: 'Searching...', heMessage: 'מבצע חיפוש...' });
+    var noResultsMessage = React.createElement(LoadingMessage, { message: '0 results.', heMessage: '0 תוצאות.' });
+    results = haveResults ? results : noResultsMessage;
+    var searchFilters = React.createElement(SearchFilters, {
+      query: this.props.query,
+      total: this.state.total,
+      textTotal: this.state.textTotal,
+      sheetTotal: this.state.sheetTotal,
+      availableFilters: this.props.availableFilters,
+      appliedFilters: this.props.appliedFilters,
+      updateAppliedFilter: this.props.updateAppliedFilter,
+      isQueryRunning: this.state.isQueryRunning,
+      activeTab: this.state.activeTab,
+      clickTextButton: this.showTexts,
+      clickSheetButton: this.showSheets });
     return React.createElement(
       'div',
       null,
-      React.createElement(SearchFilters, {
-        query: this.props.query,
-        total: this.state.total,
-        textTotal: this.state.textTotal,
-        sheetTotal: this.state.sheetTotal,
-        availableFilters: this.props.availableFilters,
-        appliedFilters: this.props.appliedFilters,
-        updateAppliedFilter: this.props.updateAppliedFilter,
-        isQueryRunning: this.state.isQueryRunning,
-        activeTab: this.state.activeTab,
-        clickTextButton: this.showTexts,
-        clickSheetButton: this.showSheets }),
-      this.state.activeTab == "texts" ? this.state.textHits.map(function (result) {
-        return React.createElement(SearchTextResult, {
-          data: result,
-          query: _this4.props.query,
-          key: result._id,
-          onResultClick: _this4.props.onResultClick });
-      }) : "",
-      this.state.activeTab == "sheets" ? sheetContent : ""
+      haveResults && queryLoaded ? searchFilters : null,
+      queryLoaded ? results : loadingMessage
     );
   }
 });

@@ -5020,8 +5020,8 @@ var SearchPage = React.createClass({
     },
     render: function () {
         var fontSize = 62.5; // this.props.settings.fontSize, to make this respond to user setting. disabled for now.
-        var style      = {"fontSize": fontSize + "%"};
-        var classes = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader});
+        var style    = {"fontSize": fontSize + "%"};
+        var classes  = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader});
         return (<div className={classes}>
                   {this.props.hideNavHeader ? null :
                     (<div className="readerNavTop search">
@@ -5429,41 +5429,45 @@ var SearchResultList = React.createClass({
         if (!(this.props.query)) {  // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
             return null;
         }
-        var sheetContent = "";
-        if (this.state.sheetHits.length == 0 && this.state.moreToLoad) {
-          sheetContent = <LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />;
+
+        if (this.state.activeTab == "texts") {
+          var results = this.state.textHits.map(result =>
+            <SearchTextResult
+                data={result}
+                query={this.props.query}
+                key={result._id}
+                onResultClick={this.props.onResultClick} />);
+
+        } else if (this.state.activeTab == "sheets") {
+            var results = this.state.sheetHits.map(result =>
+                <SearchSheetResult
+                      data={result}
+                      query={this.props.query}
+                      key={result._id} />);
         }
-        else {
-          sheetContent = this.state.sheetHits.map(result =>
-              <SearchSheetResult
-                    data={result}
-                    query={this.props.query}
-                    key={result._id} />
-          );
-        }
+
+        var queryLoaded      = !this.state.moreToLoad && !this.state.isQueryRunning;
+        var haveResults      = !!results.length;
+        var loadingMessage   = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
+        var noResultsMessage = (<LoadingMessage message="0 results." heMessage="0 תוצאות." />);
+        results              = haveResults ? results : noResultsMessage;
+        var searchFilters    = (<SearchFilters
+                                  query = {this.props.query}
+                                  total = {this.state.total}
+                                  textTotal = {this.state.textTotal}
+                                  sheetTotal = {this.state.sheetTotal}
+                                  availableFilters={this.props.availableFilters}
+                                  appliedFilters = {this.props.appliedFilters}
+                                  updateAppliedFilter = {this.props.updateAppliedFilter}
+                                  isQueryRunning = {this.state.isQueryRunning}
+                                  activeTab = {this.state.activeTab}
+                                  clickTextButton = {this.showTexts}
+                                  clickSheetButton = {this.showSheets} />);
         return (
-            <div>
-                <SearchFilters
-                  query = {this.props.query}
-                  total = {this.state.total}
-                  textTotal = {this.state.textTotal}
-                  sheetTotal = {this.state.sheetTotal}
-                  availableFilters={this.props.availableFilters}
-                  appliedFilters = {this.props.appliedFilters}
-                  updateAppliedFilter = {this.props.updateAppliedFilter}
-                  isQueryRunning = {this.state.isQueryRunning}
-                  activeTab = {this.state.activeTab}
-                  clickTextButton = {this.showTexts}
-                  clickSheetButton = {this.showSheets} />
-                {(this.state.activeTab == "texts")?this.state.textHits.map(result =>
-                    <SearchTextResult
-                        data={result}
-                        query={this.props.query}
-                        key={result._id}
-                        onResultClick={this.props.onResultClick} />)
-                :""}
-                {(this.state.activeTab == "sheets")? sheetContent: ""}
-            </div>
+          <div>
+            { haveResults && queryLoaded ? searchFilters : null }
+            { queryLoaded ? results : loadingMessage }
+          </div>
         );
     }
 });
