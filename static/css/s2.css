@@ -363,6 +363,20 @@ body.dark {
   display: inline;
   line-height: 32px;
 }
+.systemPanel.english .content .he {
+  display: none;
+}
+.systemPanel.hebrew .content .en {
+  display: none;
+}
+.systemPanel.english .content .en {
+  display: inline;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.systemPanel.hebrew .content .he {
+  display: inline;
+  font-family: "Open Sans Hebrew", sans-serif;
+}
 .systemPanel.readerNavMenu .languageToggle span.en {
   font-family: "Taamey Frank", "Times New Roman", serif;
   font-size: 26px;

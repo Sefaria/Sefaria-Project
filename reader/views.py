@@ -267,11 +267,21 @@ def s2_props(request):
     """
     Returns a dictionary of props that all S2 pages get based on the request.
     """ 
+    request_context = RequestContext(request)
     return {
         "multiPanel": request.flavour != "mobile" and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "recentlyViewed": request.COOKIES.get("recentlyViewed", None),
         "loggedIn": request.user.is_authenticated(),
+        "interfaceLang": request_context.get("interfaceLang"),
+        "settings": {
+            "language":      request_context.get("contentLang"),
+            "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),
+            "layoutTalmud":  request.COOKIES.get("layoutTalmud", "continuous"),
+            "layoutTanach":  request.COOKIES.get("layoutTanach", "segmented"),
+            "color":         request.COOKIES.get("color", "light"),
+            "fontSize":      request.COOKIES.get("fontSize", 62.5),
+        },
     }
 
 
@@ -324,20 +334,8 @@ def s2(request, ref, version=None, lang=None):
         panels += make_panel_dicts(oref, version, language, filter, multi_panel)
         i += 1
 
-    request_context = RequestContext(request)
-
-    settings = {
-        "language":      request_context.get("contentLang"),
-        "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),
-        "layoutTalmud":  request.COOKIES.get("layoutTalmud", "continuous"),
-        "layoutTanach":  request.COOKIES.get("layoutTanach", "segmented"),
-        "color":         request.COOKIES.get("color", "light"),
-        "fontSize":      request.COOKIES.get("fontSize", 62.5),
-    }
-
     props.update({
         "headerMode":                  False,
-        "interfaceLang":               request_context.get("interfaceLang"),
         "initialRefs":                 panels[0].get("refs", []),
         "initialFilter":               panels[0].get("filter", None),
         "initialBookRef":              panels[0].get("bookRef", None),

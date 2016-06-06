@@ -26,6 +26,7 @@ var ReaderApp = React.createClass({
     multiPanel: React.PropTypes.bool,
     headerMode: React.PropTypes.bool, // is S2 serving only as a header on top of another page?
     loggedIn: React.PropTypes.bool,
+    interfaceLang: React.PropTypes.string,
     initialRefs: React.PropTypes.array,
     initialFilter: React.PropTypes.array,
     initialMenu: React.PropTypes.string,
@@ -43,6 +44,7 @@ var ReaderApp = React.createClass({
     return {
       multiPanel: true,
       headerMode: false, // is S2 serving only as a header on top of another page?
+      interfaceLang: "english",
       initialRefs: [],
       initialFilter: null,
       initialMenu: null,
@@ -833,6 +835,7 @@ var ReaderApp = React.createClass({
     }
     var header = this.props.multiPanel || this.state.panels.length == 0 ? React.createElement(Header, {
       initialState: this.state.header,
+      interfaceLang: this.props.interfaceLang,
       setCentralState: this.setHeaderState,
       onRefClick: this.handleNavigationClick,
       onRecentClick: this.handleRecentClick,
@@ -877,6 +880,7 @@ var ReaderApp = React.createClass({
         { className: 'readerPanelBox', style: style, key: key },
         React.createElement(ReaderPanel, {
           initialState: panel,
+          interfaceLang: this.props.interfaceLang,
           setCentralState: setPanelState,
           multiPanel: this.props.multiPanel,
           onSegmentClick: onSegmentClick,
@@ -918,6 +922,7 @@ var Header = React.createClass({
   propTypes: {
     initialState: React.PropTypes.object.isRequired,
     setCentralState: React.PropTypes.func,
+    interfaceLang: React.PropTypes.string,
     onRefClick: React.PropTypes.func,
     onRecentClick: React.PropTypes.func,
     showLibrary: React.PropTypes.func,
@@ -1071,6 +1076,7 @@ var Header = React.createClass({
   render: function render() {
     var viewContent = this.state.menuOpen ? React.createElement(ReaderPanel, {
       initialState: this.state,
+      interfaceLang: this.props.interfaceLang,
       setCentralState: this.props.setCentralState,
       multiPanel: true,
       onNavTextClick: this.props.onRefClick,
@@ -1195,6 +1201,7 @@ var ReaderPanel = React.createClass({
     initialAppliedSearchFilters: React.PropTypes.array,
     initialSheetsTag: React.PropTypes.string,
     initialState: React.PropTypes.object, // if present, trumps all props above
+    interfaceLang: React.PropTypes.string,
     setCentralState: React.PropTypes.func,
     onSegmentClick: React.PropTypes.func,
     onCitationClick: React.PropTypes.func,
@@ -1621,6 +1628,7 @@ var ReaderPanel = React.createClass({
         filter: this.state.filter || [],
         mode: this.state.connectionsMode || "Connections",
         recentFilters: this.state.recentFilters,
+        interfaceLang: this.props.interfaceLang,
         version: this.state.version,
         versionLanguage: this.state.versionLanguage,
         fullPanel: this.props.multiPanel,
@@ -1647,6 +1655,7 @@ var ReaderPanel = React.createClass({
     if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation" || this.state.menuOpen == "compare") {
       var menu = React.createElement(ReaderNavigationMenu, {
         home: this.state.menuOpen === "home",
+        interfaceLang: this.props.interfaceLang,
         multiPanel: this.props.multiPanel,
         categories: this.state.navigationCategories || [],
         settings: this.state.settings,
@@ -1667,6 +1676,7 @@ var ReaderPanel = React.createClass({
     } else if (this.state.menuOpen === "text toc") {
       var menu = React.createElement(ReaderTextTableOfContents, {
         mode: this.state.menuOpen,
+        interfaceLang: this.props.interfaceLang,
         close: this.closeMenus,
         title: this.currentBook(),
         version: this.state.version,
@@ -1681,6 +1691,7 @@ var ReaderPanel = React.createClass({
     } else if (this.state.menuOpen === "book toc") {
       var menu = React.createElement(ReaderTextTableOfContents, {
         mode: this.state.menuOpen,
+        interfaceLang: this.props.interfaceLang,
         closePanel: this.props.closePanel,
         close: this.closeMenus,
         title: this.state.bookRef,
@@ -1709,6 +1720,7 @@ var ReaderPanel = React.createClass({
         registerAvailableFilters: this.props.registerAvailableFilters });
     } else if (this.state.menuOpen === "sheets") {
       var menu = React.createElement(SheetsNav, {
+        interfaceLang: this.props.interfaceLang,
         openNav: this.openMenu.bind(null, "navigation"),
         close: this.closeMenus,
         multiPanel: this.props.multiPanel,
@@ -1718,15 +1730,14 @@ var ReaderPanel = React.createClass({
         tagSort: this.state.tagSort,
         setSheetTagSort: this.setSheetTagSort,
         setSheetTag: this.setSheetTag,
-        key: this.state.key
-      });
+        key: this.state.key });
     } else if (this.state.menuOpen === "account") {
       var menu = React.createElement(AccountPanel, {
-        toggleLanguage: this.toggleLanguage });
+        interfaceLang: this.props.interfaceLang });
     } else if (this.state.menuOpen === "notifications") {
       var menu = React.createElement(NotificationsPanel, {
         setUnreadNotificationsCount: this.props.setUnreadNotificationsCount,
-        toggleLanguage: this.toggleLanguage });
+        interfaceLang: this.props.interfaceLang });
     } else {
       var menu = null;
     }
@@ -3267,7 +3278,6 @@ var SheetsNav = React.createClass({
     this.props.setSheetTag(tag);
   },
   loadSheets: function loadSheets(sheets) {
-    console.log(sheets);
     this.setState({ sheets: sheets });
   },
   showYourSheets: function showYourSheets() {
@@ -3285,51 +3295,125 @@ var SheetsNav = React.createClass({
     var heTitle = this.state.tag || "דפי מקורות";
 
     if (this.state.tag) {
-      var sheets = this.state.sheets.map(function (sheet) {
-        var title = sheet.title.stripHtml();
-        var url = "/sheets/" + sheet.id;
-        return React.createElement(
-          'a',
-          { className: 'sheet', href: url, key: url },
-          sheet.ownerImageUrl ? React.createElement('img', { className: 'sheetImg', src: sheet.ownerImageUrl }) : null,
-          React.createElement(
-            'span',
-            { className: 'sheetViews' },
-            React.createElement('i', { className: 'fa fa-eye' }),
-            ' ',
-            sheet.views
-          ),
-          React.createElement(
-            'div',
-            { className: 'sheetAuthor' },
-            sheet.ownerName
-          ),
-          React.createElement(
-            'div',
-            { className: 'sheetTitle' },
-            title
-          )
-        );
-      });
-      sheets = sheets.length ? sheets : React.createElement(LoadingMessage, null);
-      var content = React.createElement(
-        'div',
-        { className: 'content sheetList' },
-        React.createElement(
-          'div',
-          { className: 'contentInner' },
-          this.props.hideNavHeader ? React.createElement(
-            'h1',
-            null,
+
+      if (this.state.tag == "Your Sheets") {
+
+        var sheets = this.state.sheets.map(function (sheet) {
+          var title = sheet.title.stripHtml();
+          var url = "/sheets/" + sheet.id;
+          var tagString = sheet.tags.map(function (tag) {
+            return tag;
+          });
+
+          return React.createElement(
+            'a',
+            { className: 'sheet', href: url, key: url },
+            sheet.ownerImageUrl ? React.createElement('img', { className: 'sheetImg', src: sheet.ownerImageUrl }) : null,
             React.createElement(
               'span',
-              { className: 'en' },
-              enTitle
+              { className: 'sheetViews' },
+              React.createElement('i', { className: 'fa fa-eye' }),
+              ' ',
+              sheet.views
+            ),
+            React.createElement(
+              'div',
+              { className: 'sheetAuthor' },
+              sheet.ownerName
+            ),
+            React.createElement(
+              'div',
+              { className: 'sheetTitle' },
+              title
+            ),
+            tagString
+          );
+        });
+        sheets = sheets.length ? sheets : React.createElement(LoadingMessage, null);
+        var content = React.createElement(
+          'div',
+          { className: 'content sheetList' },
+          React.createElement(
+            'div',
+            { className: 'contentInner' },
+            this.props.hideNavHeader ? React.createElement(
+              'h1',
+              null,
+              React.createElement(
+                'span',
+                { className: 'en' },
+                'My Source Sheets'
+              )
+            ) : null,
+            this.props.hideNavHeader ? React.createElement(
+              'div',
+              { className: 'sheetsNewButton' },
+              React.createElement(
+                'a',
+                { className: 'button white', href: '/sheets/new' },
+                React.createElement(
+                  'span',
+                  { className: 'en' },
+                  'Create a Source Sheet'
+                ),
+                React.createElement(
+                  'span',
+                  { className: 'he' },
+                  'צור דף מקורות חדש'
+                )
+              )
+            ) : null,
+            sheets
+          )
+        );
+      } else {
+
+        var sheets = this.state.sheets.map(function (sheet) {
+          var title = sheet.title.stripHtml();
+          var url = "/sheets/" + sheet.id;
+          return React.createElement(
+            'a',
+            { className: 'sheet', href: url, key: url },
+            sheet.ownerImageUrl ? React.createElement('img', { className: 'sheetImg', src: sheet.ownerImageUrl }) : null,
+            React.createElement(
+              'span',
+              { className: 'sheetViews' },
+              React.createElement('i', { className: 'fa fa-eye' }),
+              ' ',
+              sheet.views
+            ),
+            React.createElement(
+              'div',
+              { className: 'sheetAuthor' },
+              sheet.ownerName
+            ),
+            React.createElement(
+              'div',
+              { className: 'sheetTitle' },
+              title
             )
-          ) : null,
-          sheets
-        )
-      );
+          );
+        });
+        sheets = sheets.length ? sheets : React.createElement(LoadingMessage, null);
+        var content = React.createElement(
+          'div',
+          { className: 'content sheetList' },
+          React.createElement(
+            'div',
+            { className: 'contentInner' },
+            this.props.hideNavHeader ? React.createElement(
+              'h1',
+              null,
+              React.createElement(
+                'span',
+                { className: 'en' },
+                enTitle
+              )
+            ) : null,
+            sheets
+          )
+        );
+      }
     } else {
       var yourSheets = Sefaria._uid ? React.createElement(
         'div',
@@ -7247,10 +7331,10 @@ var AccountPanel = React.createClass({
   displayName: 'AccountPanel',
 
   propTypes: {
-    toggleLanguage: React.PropTypes.func.isRequired
+    interfaceLang: React.PropTypes.string
   },
   render: function render() {
-    var width = $(window).width();
+    var width = window ? $(window).width() : 1000;
     var accountContent = [React.createElement(BlockLink, { target: '/my/profile', title: 'Profile', heTitle: 'פרופיל' }), React.createElement(BlockLink, { target: '/sheets/private', title: 'Source Sheets', heTitle: 'דפי מקורות' }), React.createElement(BlockLink, { target: '#', title: 'Reading History', heTitle: 'היסטוריה קריאה' }), React.createElement(BlockLink, { target: '#', title: 'Notes', heTitle: 'רשומות' }), React.createElement(BlockLink, { target: '/settings/account', title: 'Settings', heTitle: 'הגדרות' }), React.createElement(BlockLink, { target: '/logout', title: 'Log Out', heTitle: 'ניתוק' })];
     accountContent = React.createElement(TwoOrThreeBox, { content: accountContent, width: width });
 
@@ -7263,9 +7347,12 @@ var AccountPanel = React.createClass({
     var connectContent = [React.createElement(BlockLink, { target: 'https://groups.google.com/forum/?fromgroups#!forum/sefaria', title: 'Forum', heTitle: 'פורום' }), React.createElement(BlockLink, { target: 'http://www.facebook.com/sefaria.org', title: 'Facebook', heTitle: 'פייסבוק' }), React.createElement(BlockLink, { target: 'http://twitter.com/SefariaProject', title: 'Twitter', heTitle: 'טוויטר' }), React.createElement(BlockLink, { target: 'http://www.youtube.com/user/SefariaProject', title: 'YouTube', heTitle: 'יוטיוב' }), React.createElement(BlockLink, { target: 'http://www.github.com/Sefaria', title: 'GitHub', heTitle: 'גיטהאב' }), React.createElement(BlockLink, { target: 'mailto:hello@sefaria.org', title: 'Email', heTitle: 'אימייל' })];
     connectContent = React.createElement(TwoOrThreeBox, { content: connectContent, width: width });
 
+    var classes = { accountPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    classes[this.props.interfaceLang] = 1;
+    var classStr = classNames(classes);
     return React.createElement(
       'div',
-      { className: 'accountPanel systemPanel readerNavMenu noHeader' },
+      { className: classStr },
       React.createElement(
         'div',
         { className: 'content' },
@@ -7275,7 +7362,6 @@ var AccountPanel = React.createClass({
           React.createElement(
             'h1',
             null,
-            React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
             React.createElement(
               'span',
               { className: 'en' },
@@ -7302,7 +7388,7 @@ var NotificationsPanel = React.createClass({
 
   propTypes: {
     setUnreadNotificationsCount: React.PropTypes.func.isRequired,
-    toggleLanguage: React.PropTypes.func.isRequired
+    interfaceLang: React.PropTypes.string
   },
   getInitialState: function getInitialState() {
     return {
@@ -7355,9 +7441,12 @@ var NotificationsPanel = React.createClass({
     this.forceUpdate();
   },
   render: function render() {
+    var classes = { notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    classes[this.props.interfaceLang] = 1;
+    var classStr = classNames(classes);
     return React.createElement(
       'div',
-      { className: 'notificationsPanel systemPanel readerNavMenu noHeader' },
+      { className: classStr },
       React.createElement(
         'div',
         { className: 'content' },
@@ -7367,7 +7456,6 @@ var NotificationsPanel = React.createClass({
           React.createElement(
             'h1',
             null,
-            React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
             React.createElement(
               'span',
               { className: 'en' },

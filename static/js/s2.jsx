@@ -19,6 +19,7 @@ var ReaderApp = React.createClass({
     multiPanel:                  React.PropTypes.bool,
     headerMode:                  React.PropTypes.bool,  // is S2 serving only as a header on top of another page?
     loggedIn:                    React.PropTypes.bool,
+    interfaceLang:               React.PropTypes.string,
     initialRefs:                 React.PropTypes.array,
     initialFilter:               React.PropTypes.array,
     initialMenu:                 React.PropTypes.string,
@@ -36,6 +37,7 @@ var ReaderApp = React.createClass({
     return {
       multiPanel:                  true,
       headerMode:                  false,  // is S2 serving only as a header on top of another page?
+      interfaceLang:               "english",
       initialRefs:                 [],
       initialFilter:               null,
       initialMenu:                 null,
@@ -831,6 +833,7 @@ var ReaderApp = React.createClass({
     var header = this.props.multiPanel || this.state.panels.length == 0 ?
                   (<Header 
                     initialState={this.state.header}
+                    interfaceLang={this.props.interfaceLang}
                     setCentralState={this.setHeaderState}
                     onRefClick={this.handleNavigationClick}
                     onRecentClick={this.handleRecentClick}
@@ -871,6 +874,7 @@ var ReaderApp = React.createClass({
       panels.push(<div className="readerPanelBox" style={style} key={key}>
                     <ReaderPanel 
                       initialState={panel}
+                      interfaceLang={this.props.interfaceLang}
                       setCentralState={setPanelState}
                       multiPanel={this.props.multiPanel}
                       onSegmentClick={onSegmentClick}
@@ -909,6 +913,7 @@ var Header = React.createClass({
   propTypes: {
     initialState:                React.PropTypes.object.isRequired,
     setCentralState:             React.PropTypes.func,
+    interfaceLang:               React.PropTypes.string,
     onRefClick:                  React.PropTypes.func,
     onRecentClick:               React.PropTypes.func,
     showLibrary:                 React.PropTypes.func,
@@ -1065,6 +1070,7 @@ var Header = React.createClass({
     var viewContent = this.state.menuOpen ?
                         (<ReaderPanel
                           initialState={this.state}
+                          interfaceLang={this.props.interfaceLang}
                           setCentralState={this.props.setCentralState}
                           multiPanel={true}
                           onNavTextClick={this.props.onRefClick}
@@ -1134,6 +1140,7 @@ var ReaderPanel = React.createClass({
     initialAppliedSearchFilters: React.PropTypes.array,
     initialSheetsTag:            React.PropTypes.string,
     initialState:                React.PropTypes.object, // if present, trumps all props above
+    interfaceLang:               React.PropTypes.string,
     setCentralState:             React.PropTypes.func,
     onSegmentClick:              React.PropTypes.func,
     onCitationClick:             React.PropTypes.func,
@@ -1547,6 +1554,7 @@ var ReaderPanel = React.createClass({
           filter={this.state.filter || []}
           mode={this.state.connectionsMode || "Connections"}
           recentFilters={this.state.recentFilters}
+          interfaceLang={this.props.interfaceLang}
           version={this.state.version}
           versionLanguage={this.state.versionLanguage}
           fullPanel={this.props.multiPanel}
@@ -1574,6 +1582,7 @@ var ReaderPanel = React.createClass({
     if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation" || this.state.menuOpen == "compare") {
       var menu = (<ReaderNavigationMenu 
                     home={this.state.menuOpen === "home"}
+                    interfaceLang={this.props.interfaceLang}
                     multiPanel={this.props.multiPanel}
                     categories={this.state.navigationCategories || []}
                     settings={this.state.settings}
@@ -1594,6 +1603,7 @@ var ReaderPanel = React.createClass({
     else if (this.state.menuOpen === "text toc") {
       var menu = (<ReaderTextTableOfContents
                     mode={this.state.menuOpen}
+                    interfaceLang={this.props.interfaceLang}
                     close={this.closeMenus}
                     title={this.currentBook()}
                     version={this.state.version}
@@ -1609,6 +1619,7 @@ var ReaderPanel = React.createClass({
     } else if (this.state.menuOpen === "book toc") {
       var menu = (<ReaderTextTableOfContents
                     mode={this.state.menuOpen}
+                    interfaceLang={this.props.interfaceLang}
                     closePanel={this.props.closePanel}
                     close={this.closeMenus}
                     title={this.state.bookRef}
@@ -1639,6 +1650,7 @@ var ReaderPanel = React.createClass({
 
     } else if (this.state.menuOpen === "sheets") {
       var menu = (<SheetsNav
+                    interfaceLang={this.props.interfaceLang}
                     openNav={this.openMenu.bind(null, "navigation")}
                     close={this.closeMenus}
                     multiPanel={this.props.multiPanel}
@@ -1648,17 +1660,17 @@ var ReaderPanel = React.createClass({
                     tagSort={this.state.tagSort}
                     setSheetTagSort={this.setSheetTagSort}
                     setSheetTag={this.setSheetTag}
-                    key={this.state.key}
-                  />);
+                    key={this.state.key} />);
+
     } else if (this.state.menuOpen === "account") {
       var menu = (<AccountPanel
-                    toggleLanguage={this.toggleLanguage} />);
+                    interfaceLang={this.props.interfaceLang} />);
 
 
     } else if (this.state.menuOpen === "notifications") {
       var menu = (<NotificationsPanel 
                     setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
-                    toggleLanguage={this.toggleLanguage} />);
+                    interfaceLang={this.props.interfaceLang} />);
 
     } else {
       var menu = null;
@@ -5878,10 +5890,10 @@ var SearchSheetResult = React.createClass({
 
 var AccountPanel = React.createClass({
   propTypes: {
-    toggleLanguage: React.PropTypes.func.isRequired
+    interfaceLang: React.PropTypes.string,
   },
   render: function() {
-    var width = $(window).width();
+    var width = window ? $(window).width() : 1000;
     var accountContent = [
       (<BlockLink target="/my/profile" title="Profile" heTitle="פרופיל"/>),
       (<BlockLink target="/sheets/private" title="Source Sheets" heTitle="דפי מקורות" />),
@@ -5922,12 +5934,14 @@ var AccountPanel = React.createClass({
     ];
     connectContent = (<TwoOrThreeBox content={connectContent} width={width} />);
 
+    var classes = {accountPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    classes[this.props.interfaceLang] = 1;
+    var classStr = classNames(classes);
     return (
-      <div className="accountPanel systemPanel readerNavMenu noHeader">
+      <div className={classStr}>
         <div className="content">
           <div className="contentInner">
             <h1>
-              <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
               <span className="en">Account</span>
               <span className="he">חשבון משתמש</span>
             </h1>
@@ -5946,7 +5960,7 @@ var AccountPanel = React.createClass({
 var NotificationsPanel = React.createClass({
   propTypes: {
     setUnreadNotificationsCount: React.PropTypes.func.isRequired,
-    toggleLanguage:              React.PropTypes.func.isRequired
+    interfaceLang:               React.PropTypes.string,
   },
   getInitialState: function() {
     return {
@@ -5997,12 +6011,14 @@ var NotificationsPanel = React.createClass({
     this.forceUpdate();
   },
   render: function() {
+    var classes = {notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    classes[this.props.interfaceLang] = 1;
+    var classStr = classNames(classes);
     return (
-      <div className="notificationsPanel systemPanel readerNavMenu noHeader">
+      <div className={classStr}>
         <div className="content">
           <div className="contentInner">
             <h1>
-              <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
               <span className="en">Notifications</span>
               <span className="he">התראות</span>
             </h1>
