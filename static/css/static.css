@@ -651,6 +651,48 @@ footer .section.last {
 }
 
 
+#activityPage h2{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 25px;
+  font-style: italic;
+  color: #aaa;
+
+}
+
+#activityPage #activityFeed {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #666;
+}
+#activityPage #activityFeed a {
+  color: #333;
+  font-weight: normal;
+}
+#activityPage #activityFeed #moreActivity {
+  display: block;
+  margin-top: 30px;
+  font-size: 15px;
+}
+#activityPage #activityFeed .topline {
+  font-weight: normal;
+}
+#activityPage #activityFeed .text.en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#activityPage #activityFeed .text.he {
+  font-family: "Taamey Frank", "Times New Roman", serif;
+}
+#activityPage #activityList .time {
+  color: #ccc;
+}
+.full-text-static select{
+  width: 25%;
+  background-color: #ffffff;
+  height: 3em;
+  padding: 0 3%;
+  font-size: 1.3em;
+}
+
+
 
 
 
