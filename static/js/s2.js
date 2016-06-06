@@ -3267,7 +3267,6 @@ var SheetsNav = React.createClass({
     this.props.setSheetTag(tag);
   },
   loadSheets: function loadSheets(sheets) {
-    console.log(sheets);
     this.setState({ sheets: sheets });
   },
   showYourSheets: function showYourSheets() {
@@ -3285,51 +3284,125 @@ var SheetsNav = React.createClass({
     var heTitle = this.state.tag || "דפי מקורות";
 
     if (this.state.tag) {
-      var sheets = this.state.sheets.map(function (sheet) {
-        var title = sheet.title.stripHtml();
-        var url = "/sheets/" + sheet.id;
-        return React.createElement(
-          'a',
-          { className: 'sheet', href: url, key: url },
-          sheet.ownerImageUrl ? React.createElement('img', { className: 'sheetImg', src: sheet.ownerImageUrl }) : null,
-          React.createElement(
-            'span',
-            { className: 'sheetViews' },
-            React.createElement('i', { className: 'fa fa-eye' }),
-            ' ',
-            sheet.views
-          ),
-          React.createElement(
-            'div',
-            { className: 'sheetAuthor' },
-            sheet.ownerName
-          ),
-          React.createElement(
-            'div',
-            { className: 'sheetTitle' },
-            title
-          )
-        );
-      });
-      sheets = sheets.length ? sheets : React.createElement(LoadingMessage, null);
-      var content = React.createElement(
-        'div',
-        { className: 'content sheetList' },
-        React.createElement(
-          'div',
-          { className: 'contentInner' },
-          this.props.hideNavHeader ? React.createElement(
-            'h1',
-            null,
+
+      if (this.state.tag == "Your Sheets") {
+
+        var sheets = this.state.sheets.map(function (sheet) {
+          var title = sheet.title.stripHtml();
+          var url = "/sheets/" + sheet.id;
+          var tagString = sheet.tags.map(function (tag) {
+            return tag;
+          });
+
+          return React.createElement(
+            'a',
+            { className: 'sheet', href: url, key: url },
+            sheet.ownerImageUrl ? React.createElement('img', { className: 'sheetImg', src: sheet.ownerImageUrl }) : null,
             React.createElement(
               'span',
-              { className: 'en' },
-              enTitle
+              { className: 'sheetViews' },
+              React.createElement('i', { className: 'fa fa-eye' }),
+              ' ',
+              sheet.views
+            ),
+            React.createElement(
+              'div',
+              { className: 'sheetAuthor' },
+              sheet.ownerName
+            ),
+            React.createElement(
+              'div',
+              { className: 'sheetTitle' },
+              title
+            ),
+            tagString
+          );
+        });
+        sheets = sheets.length ? sheets : React.createElement(LoadingMessage, null);
+        var content = React.createElement(
+          'div',
+          { className: 'content sheetList' },
+          React.createElement(
+            'div',
+            { className: 'contentInner' },
+            this.props.hideNavHeader ? React.createElement(
+              'h1',
+              null,
+              React.createElement(
+                'span',
+                { className: 'en' },
+                'My Source Sheets'
+              )
+            ) : null,
+            this.props.hideNavHeader ? React.createElement(
+              'div',
+              { className: 'sheetsNewButton' },
+              React.createElement(
+                'a',
+                { className: 'button white', href: '/sheets/new' },
+                React.createElement(
+                  'span',
+                  { className: 'en' },
+                  'Create a Source Sheet'
+                ),
+                React.createElement(
+                  'span',
+                  { className: 'he' },
+                  'צור דף מקורות חדש'
+                )
+              )
+            ) : null,
+            sheets
+          )
+        );
+      } else {
+
+        var sheets = this.state.sheets.map(function (sheet) {
+          var title = sheet.title.stripHtml();
+          var url = "/sheets/" + sheet.id;
+          return React.createElement(
+            'a',
+            { className: 'sheet', href: url, key: url },
+            sheet.ownerImageUrl ? React.createElement('img', { className: 'sheetImg', src: sheet.ownerImageUrl }) : null,
+            React.createElement(
+              'span',
+              { className: 'sheetViews' },
+              React.createElement('i', { className: 'fa fa-eye' }),
+              ' ',
+              sheet.views
+            ),
+            React.createElement(
+              'div',
+              { className: 'sheetAuthor' },
+              sheet.ownerName
+            ),
+            React.createElement(
+              'div',
+              { className: 'sheetTitle' },
+              title
             )
-          ) : null,
-          sheets
-        )
-      );
+          );
+        });
+        sheets = sheets.length ? sheets : React.createElement(LoadingMessage, null);
+        var content = React.createElement(
+          'div',
+          { className: 'content sheetList' },
+          React.createElement(
+            'div',
+            { className: 'contentInner' },
+            this.props.hideNavHeader ? React.createElement(
+              'h1',
+              null,
+              React.createElement(
+                'span',
+                { className: 'en' },
+                enTitle
+              )
+            ) : null,
+            sheets
+          )
+        );
+      }
     } else {
       var yourSheets = Sefaria._uid ? React.createElement(
         'div',
@@ -6410,6 +6483,7 @@ var SearchResultList = React.createClass({
   initialQuerySize: 100,
   backgroundQuerySize: 1000,
   maxResultSize: 10000,
+  resultDisplayStep: 50,
   getDefaultProps: function getDefaultProps() {
     return {
       appliedFilters: []
@@ -6422,12 +6496,8 @@ var SearchResultList = React.createClass({
       isQueryRunning: { "text": false, "sheet": false },
       moreToLoad: { "text": true, "sheet": true },
       totals: { "text": 0, "sheet": 0 },
-      // total: 0,
-      // textTotal: 0,
-      // sheetTotal: 0,
+      displayedUntil: { "text": 50, "sheet": 50 },
       hits: { "text": [], "sheet": [] },
-      // textHits: [],
-      // sheetHits: [],
       activeTab: "text",
       error: false
     };
@@ -6455,15 +6525,39 @@ var SearchResultList = React.createClass({
   },
   componentDidMount: function componentDidMount() {
     this._executeQueries();
+    $(ReactDOM.findDOMNode(this)).closest(".content").bind("scroll", this.handleScroll);
   },
   componentWillUnmount: function componentWillUnmount() {
     this._abortRunningQueries();
+    $(ReactDOM.findDOMNode(this)).closest(".content").unbind("scroll", this.handleScroll);
+  },
+  handleScroll: function handleScroll() {
+    var tab = this.state.activeTab;
+    if (this.state.displayedUntil[tab] >= this.state.totals[tab]) {
+      return;
+    }
+    var $scrollable = $(ReactDOM.findDOMNode(this)).closest(".content");
+    var margin = 100;
+    if ($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+      this._extendResultsDisplayed();
+    }
+  },
+  _extendResultsDisplayed: function _extendResultsDisplayed() {
+    console.log("displaying more search results");
+    var tab = this.state.activeTab;
+    this.state.displayedUntil[tab] += this.resultDisplayStep;
+    if (this.state.displayedUntil[tab] >= this.state.totals[tab]) {
+      this.state.displayedUntil[tab] = this.state.totals[tab];
+    }
+    this.setState({ displayedUntil: this.state.displayedUntil });
   },
   componentWillReceiveProps: function componentWillReceiveProps(newProps) {
     if (this.props.query != newProps.query) {
       this.setState({
         totals: { "text": 0, "sheet": 0 },
-        hits: { "text": [], "sheet": [] }
+        hits: { "text": [], "sheet": [] },
+        moreToLoad: { "text": true, "sheet": true },
+        displayedUntil: { "text": 50, "sheet": 50 }
       });
       this._executeQueries(newProps);
     } else if (this.props.appliedFilters.length !== newProps.appliedFilters.length || !this.props.appliedFilters.every(function (v, i) {
@@ -6479,7 +6573,8 @@ var SearchResultList = React.createClass({
   _loadRemainder: function _loadRemainder(type, last, total, currentHits) {
     // Having loaded "last" results, and with "total" results to load, load the rest, this.backgroundQuerySize at a time
     if (last >= total || last >= this.maxResultSize) {
-      this.setState({ "moreToLoad": false });
+      this.state.moreToLoad[type] = false;
+      this.setState({ moreToLoad: this.state.moreToLoad });
       return;
     }
     var query_props = {
@@ -6753,7 +6848,7 @@ var SearchResultList = React.createClass({
     var results = [];
 
     if (tab == "text") {
-      results = this.state.hits.text.map(function (result) {
+      results = this.state.hits.text.slice(0, this.state.displayedUntil["text"]).map(function (result) {
         return React.createElement(SearchTextResult, {
           data: result,
           query: _this5.props.query,
@@ -6761,7 +6856,7 @@ var SearchResultList = React.createClass({
           onResultClick: _this5.props.onResultClick });
       });
     } else if (tab == "sheet") {
-      results = this.state.hits.sheet.map(function (result) {
+      results = this.state.hits.sheet.slice(0, this.state.displayedUntil["sheet"]).map(function (result) {
         return React.createElement(SearchSheetResult, {
           data: result,
           query: _this5.props.query,
