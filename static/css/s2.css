@@ -577,6 +577,7 @@ h1 .languageToggle {
 h1 div.languageToggle .en {
   font-family: "Taamey Frank", "Times New Roman", serif;
   font-size: 26px;
+  font-weight: normal;
 }
 h1 .languageToggle .he {
   font-family: "adobe-garamond-pro", Georgia, serif;
