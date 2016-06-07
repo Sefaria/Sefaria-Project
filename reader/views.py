@@ -887,6 +887,10 @@ def texts_category_list(request, cats):
     """
     Page listing every text in category
     """
+    if "Tanach" in cats:
+        cats = cats.replace("Tanach", "Tanakh")
+        return redirect("/texts/%s" % cats)
+
     if request.flavour == "mobile" or request.COOKIES.get('s2'):
         return s2_texts_category(request, cats)
     
