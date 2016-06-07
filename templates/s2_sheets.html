@@ -216,7 +216,7 @@
 	{% endif %}
 
     {% if is_owner and not new_sheet %}
-        <span id="share" class="button"><i class="fa fa-link"></i> Share</span>
+        <span id="share" class="button"><img src="/static/img/share.png"> Share</span>
 	{% endif %}
 
         <div id="ckeTopMenu"></div>
@@ -316,16 +316,18 @@
         <div class="contentDiv">
             <div id="addsourceDiv">
                 <div id="inlineAddDialogTitle" class="inlineAddDesc">Select a text</div>
-                <input id="inlineAdd" placeholder="Search for a Text or Commentator"/>
-                <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
-                    <div id="inlineAddSourceOK" class='button disabled'>Add Source</div>
+                <div class="blockContainer">
+                    <input id="inlineAdd" placeholder="Search for a Text or Commentator"/>
+                    <div class="buttonContainer">
+                        <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
+                            <div id="inlineAddSourceOK" class='button disabled'>Add Source</div>
+                        </div>
+                        <div id="inlineAddOr"> or </div>
+                        <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
+                            <div id="inlineAddBrowse" class='button'>Browse Sources</div>
+                        </div>
+                    </div>
                 </div>
-                <div id="inlineAddOr"> or </div>
-                <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
-                    <div id="inlineAddBrowse" class='button'>Browse Sources</div>
-                </div>
-
-
 
             </div>
             <div id="addconnectionDiv">
@@ -409,7 +411,7 @@
 <div id="belowSheet"></div>
 
 
-<div id="addSourceModal" class="modal">
+<div id="addSourceModal" class="modal s2Modal">
 			<div id="closeAddSource" class="icon-remove"></div>
 			<div id="addDialogTitle" class="dialogTitle">Enter a text or commentator name:</div>
 			<input id="add" />
@@ -420,7 +422,7 @@
 			</div>
 </div>
 
-<div id="addMediaModal" class="modal">
+<div id="addMediaModal" class="modal s2Modal">
 			<div class="header">Enter the URL of your image, YouTube video, or mp3 file:</div>
 			<input id="addMediaInput" placeholder="http://" />
 			<div id="mediaPreview"></div>
@@ -428,7 +430,7 @@
 </div>
 
 
-<div id="assignmentsModal" class="modal">
+<div id="assignmentsModal" class="modal s2Modal">
 
         <div class="header">
             <h3>Assignments:</h3>
@@ -459,11 +461,11 @@
 
 
 
-<div id="shareWithOthers" class="modal">
+<div id="shareWithOthers" class="modal s2Modal">
     <div class="title">Share with Others</div>
 
     <div class="content">
-        <div class="inputHeader"><i class='fa fa-link'></i> Sharable Link</div>
+        <div class="inputHeader"><img src="/static/img/shareablelink.png"> Sharable Link</div>
         <input id="shareURL" value="{{ request.META.HTTP_HOST }}/sheets/{{sheet.id}}" readonly="readonly"/>
     </div>
 
@@ -499,7 +501,7 @@
 </div>
 
 
-<div id="addToSheetModal" class="modal">
+<div id="addToSheetModal" class="modal s2Modal">
 	<div class="header">Add <span class="sourceName"></span> to a Source Sheet</div>
 	<ul id="sheetList">
 	</ul>
@@ -509,14 +511,14 @@
 	</div>
 </div>
 
-<div id="embedSheetModal" class="gradient modal">
+<div id="embedSheetModal" class="gradient modal s2Modal">
 	<div class="header">Copy and paste the embed code below:</div>
 	<textarea><iframe src="{{ request.build_absolute_uri }}?embed=1" width="600px" height="600px"></iframe></textarea>
 	<div class="sub">Adjust the values of width and height to best fit your design.</div>
 	<div class="btn ok">OK</div>
 </div>
 
-<div id="addParashaToSheetModal" class="modal">
+<div id="addParashaToSheetModal" class="modal s2Modal">
 	<div class="header">Add a Parasha to a Source Sheet</div>
         <ol>
             <li class="parshahToAdd">Bereshit</li>
@@ -579,8 +581,9 @@
 	</div>
 </div>
 
+<div id="overlay"></div>
 
-<div id="overrideLayoutModal" class="modal">
+<div id="overrideLayoutModal" class="modal s2Modal">
 	<div class="header">Change this source's layout:</div>
 
 		<span id="biLayoutToggleSource" class="toggle"><span id="hebLeftSource" class="toggleOption"><img src="/static/img/backs.png"></span><span id="hebRightSource" class="toggleOption"><img src="/static/img/faces.png"></span></span>
@@ -597,7 +600,7 @@
 </div>
 
 
-<div id="publishPromptModal" class="modal">
+<div id="publishPromptModal" class="modal s2Modal">
 	<div id="prompt">
 		<div class="header">Would you like to make your Source Sheet public?</div>
 
