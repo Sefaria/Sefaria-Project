@@ -3250,7 +3250,9 @@ var SheetsNav = React.createClass({
       sheets: [],
       tag: this.props.initialTag,
       tagSort: this.props.tagSort,
-      width: 400
+      width: 400,
+      yourSheetTags: [],
+      showYourSheetTags: false
     };
   },
   componentDidMount: function componentDidMount() {
@@ -3260,6 +3262,7 @@ var SheetsNav = React.createClass({
     if (this.props.initialTag) {
       if (this.props.initialTag === "Your Sheets") {
         this.showYourSheets();
+        Sefaria.sheets.userTagList(this.setUserTags, Sefaria._uid);
       } else if (this.props.initialTag === "All Sheets") {
         this.showAllSheets();
       } else {
@@ -3269,6 +3272,9 @@ var SheetsNav = React.createClass({
   },
   componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
     this.setState({ tagSort: nextProps.tagSort, tag: nextProps.initialTag });
+  },
+  toggleSheetTags: function toggleSheetTags() {
+    this.state.showYourSheetTags == true ? this.setState({ showYourSheetTags: false }) : this.setState({ showYourSheetTags: true });
   },
   getAllSheets: function getAllSheets() {
     Sefaria.sheets.allSheetsList(this.loadAllSheets);
@@ -3310,6 +3316,10 @@ var SheetsNav = React.createClass({
     Sefaria.sheets.userSheets(Sefaria._uid, this.loadSheets);
     this.props.setSheetTag("Your Sheets");
   },
+  setUserTags: function setUserTags(tags) {
+    this.setState({ userTagList: tags });
+  },
+
   showAllSheets: function showAllSheets() {
     this.setState({ tag: "All Sheets" });
     Sefaria.sheets.publicSheets(this.loadSheets);
@@ -3333,45 +3343,81 @@ var SheetsNav = React.createClass({
             return tag + ", ";
           });
 
-          return React.createElement(
-            'div',
-            { className: 'sheet userSheet', key: url },
-            React.createElement(
+          if (this.props.multiPanel) {
+            return React.createElement(
+              'div',
+              { className: 'sheet userSheet', key: url },
+              React.createElement(
+                'a',
+                { className: 'sheetEditButtons', href: url },
+                React.createElement(
+                  'span',
+                  null,
+                  React.createElement('i', { className: 'fa fa-pencil' }),
+                  ' '
+                )
+              ),
+              React.createElement(
+                'div',
+                { className: 'sheetEditButtons', onClick: editSheetTags },
+                React.createElement(
+                  'span',
+                  null,
+                  React.createElement('i', { className: 'fa fa-tag' }),
+                  ' '
+                )
+              ),
+              React.createElement(
+                'div',
+                { className: 'sheetTitle' },
+                title
+              ),
+              React.createElement(
+                'div',
+                null,
+                sheet.views,
+                ' Views · ',
+                sheet.modified,
+                ' · ',
+                tagString
+              )
+            );
+          } else {
+
+            return React.createElement(
               'a',
-              { className: 'sheetEditButtons', href: url },
+              { className: 'sheet userSheet', href: url, key: url },
               React.createElement(
-                'span',
-                null,
-                React.createElement('i', { className: 'fa fa-pencil' }),
-                ' '
-              )
-            ),
-            React.createElement(
-              'div',
-              { className: 'sheetEditButtons', onClick: editSheetTags },
+                'div',
+                { className: 'sheetTitle' },
+                title
+              ),
               React.createElement(
-                'span',
+                'div',
                 null,
-                React.createElement('i', { className: 'fa fa-tag' }),
-                ' '
+                sheet.views,
+                ' Views · ',
+                sheet.modified,
+                ' · ',
+                tagString
               )
-            ),
-            React.createElement(
+            );
+          }
+        }, this);
+
+        if (this.state.userTagList != null) {
+
+          var userTagList = this.state.userTagList.map(function (tag) {
+            return React.createElement(
               'div',
-              { className: 'sheetTitle' },
-              title
-            ),
-            React.createElement(
-              'div',
-              null,
-              sheet.views,
-              ' Views · ',
-              sheet.modified,
-              ' · ',
-              tagString
-            )
-          );
-        });
+              { className: 'navButton', onClick: console.log(), key: tag.tag },
+              tag.tag,
+              ' (',
+              tag.count,
+              ')'
+            );
+          }, this);
+        }
 
         var content = React.createElement(
           'div',
@@ -3411,8 +3457,9 @@ var SheetsNav = React.createClass({
               { className: 'splitHeader' },
               React.createElement(
                 'span',
-                { className: 'en actionText', style: { float: 'left' } },
-                'Filter By Tag'
+                { className: 'en actionText', style: { float: 'left' }, onClick: this.toggleSheetTags },
+                'Filter By Tag ',
+                React.createElement('i', { className: 'fa fa-angle-down' })
               ),
               React.createElement(
                 'span',
@@ -3436,6 +3483,7 @@ var SheetsNav = React.createClass({
                 React.createElement('i', { className: 'fa fa-angle-down' })
               )
             ) : null,
+            this.state.showYourSheetTags == true ? React.createElement(TwoOrThreeBox, { content: userTagList, width: this.state.width }) : null,
             sheets
           )
         );
@@ -4065,7 +4113,7 @@ var TextColumn = React.createClass({
           Sefaria.site.track.event("Reader", "Infinite Scroll", "Down");
         }
       }
-    } else if (windowTop < 21) {
+    } else if (windowTop < 21 && !this.loadingContentAtTop) {
       // UP: add the previous section above then adjust scroll position so page doesn't jump
       var topRef = refs[0];
       var data = Sefaria.ref(topRef);
@@ -4307,7 +4355,7 @@ var TextRange = React.createClass({
     return data;
   },
   onTextLoad: function onTextLoad(data) {
-    console.log("onTextLoad in TextColumn");
+    console.log("onTextLoad in TextRange");
     // Initiate additional API calls when text data first loads
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.

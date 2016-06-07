@@ -3322,7 +3322,7 @@ var TextColumn = React.createClass({
         this.props.updateTextColumn(refs);
         if (Sefaria.site) { Sefaria.site.track.event("Reader", "Infinite Scroll", "Down"); }
       }
-    } else if (windowTop < 21) {
+    } else if (windowTop < 21 && !this.loadingContentAtTop) {
       // UP: add the previous section above then adjust scroll position so page doesn't jump
       var topRef = refs[0];
       var data   = Sefaria.ref(topRef);
@@ -3560,7 +3560,7 @@ var TextRange = React.createClass({
     return data;
   },
   onTextLoad: function(data) {
-    console.log("onTextLoad in TextColumn");
+    console.log("onTextLoad in TextRange");
     // Initiate additional API calls when text data first loads
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
