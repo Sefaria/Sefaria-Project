@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="/static/js/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
     <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css">
     <link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
-    <link rel="stylesheet" href="/static/css/base.css">
     <link rel="stylesheet" href="/static/css/common.css">
 
     {% if S2 or request.flavour == "mobile" %}
@@ -50,10 +49,13 @@
 </head>
 
 <body>
+    {% if S2 or request.flavor == "mobile "%}
+        {% include "header.html" %}
+    {% endif %}
     <div class="wrapper">
         <div id="content" class="{{ interfaceLang }}">
-            {% include "header.html" %}
             {% if not S2 and not request.flavour == "mobile" %}
+                {% include "header.html" %}
                 {% include "elements/login_prompt.html" with msg="Please log in to edit." %}
             {% endif %}
 
