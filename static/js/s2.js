@@ -1049,11 +1049,14 @@ var Header = React.createClass({
       }
     }
     if (Sefaria.isRef(query)) {
-      this.props.onRefClick(query);
-      this.showDesktop();
+      this.handleRefClick(query);
       if (Sefaria.site) {
         Sefaria.site.track.ui("Nav Query");
       }
+      if (this.props.headerMode) {
+        return;
+      }
+      this.showDesktop();
     } else {
       this.showSearch(query);
     }
@@ -1075,6 +1078,10 @@ var Header = React.createClass({
     }
   },
   handleRefClick: function handleRefClick(ref, version, versionLanguage) {
+    if (this.props.headerMode) {
+      window.location.assign("/" + ref);
+      return;
+    }
     this.props.onRefClick(ref, version, versionLanguage);
   },
   handleSearchKeyUp: function handleSearchKeyUp(event) {
