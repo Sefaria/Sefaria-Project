@@ -26,7 +26,7 @@ class PagesLoad(AtomicTest):
     every_build = True
 
     def run(self):
-        self.s2().click_toc_category("Midrash").click_toc_text("Midrash Tanchuma")
+        self.load_toc().click_toc_category("Midrash").click_toc_text("Midrash Tanchuma")
         self.load_ref("Psalms.104")
         self.load_sheets()
 
@@ -37,7 +37,7 @@ class RecentInToc(AtomicTest):
     every_build = True
 
     def run(self):
-        self.s2().click_toc_category("Tanach").click_toc_text("Psalms")
+        self.load_toc().click_toc_category("Tanach").click_toc_text("Psalms")
         self.load_toc().click_toc_recent("Psalms 1", until=title_contains("Psalms"))
 
 
@@ -46,8 +46,6 @@ class LoadRefAndClickSegment(AtomicTest):
     every_build = True
 
     def run(self):
-        self.s2()
-
         self.load_ref("Psalms 65:5").click_segment("Psalms 65:5")
         assert "Psalms.65.5" in self.driver.current_url, self.driver.current_url
         assert "with=all" in self.driver.current_url, self.driver.current_url
@@ -60,7 +58,6 @@ class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
     every_build = True
 
     def run(self):
-        self.s2()
         self.load_ref("Psalms 45:5", filter="all").click_text_filter("Rashi")
         assert "Psalms.45.5" in self.driver.current_url, self.driver.current_url
         assert "with=Rashi" in self.driver.current_url, self.driver.current_url
@@ -71,7 +68,6 @@ class LoadAndVerifyIndepenedentTOC(AtomicTest):
     every_build = True
 
     def run(self):
-        self.s2()
         titles = [
             "Genesis",  # Simple Text
             "Shabbat",  # Talmud Numbering
@@ -90,7 +86,7 @@ class LoadSearchFromURL(AtomicTest):
     every_build = True
 
     def run(self):
-        self.s2().load_search_url("Passover")
+        self.load_search_url("Passover")
 
 
 class ClickVersionedSearchResultDesktop(AtomicTest):
@@ -98,7 +94,7 @@ class ClickVersionedSearchResultDesktop(AtomicTest):
     single_panel = False
 
     def run(self):
-        self.s2().search_for("Dogs")
+        self.load_toc().search_for("Dogs")
         versionedResult = self.driver.find_element_by_css_selector('a[href="/Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein?qh=Dogs"]')
         versionedResult.click()
         WebDriverWait(self.driver, TEMPER).until(staleness_of(versionedResult))
@@ -110,7 +106,6 @@ class ClickVersionedSearchResultMobile(AtomicTest):
     multi_panel = False
 
     def run(self):
-        self.s2()
         self.driver.get(self.base_url + "/Psalms.23")
         hamburger = self.driver.find_element_by_css_selector(".readerNavMenuMenuButton")
         if hamburger:
@@ -151,14 +146,14 @@ class InfiniteScrollUp(AtomicTest):
     every_build = True
 
     def run(self):
-        self.s2().load_ref("Job 32").scroll_to_top()
-        
+        self.load_ref("Job 32").scroll_to_top()
+
 
 class InfiniteScrollDown(AtomicTest):
     suite_key = "Reader"
     every_build = True
 
     def run(self):
-        self.s2().load_ref("Job 32")
+        self.load_ref("Job 32")
         
 
