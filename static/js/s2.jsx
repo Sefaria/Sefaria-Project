@@ -2793,20 +2793,36 @@ var SheetsNav = React.createClass({
               return(tag+", ");
           });
 
-          return (<div className="sheet userSheet" key={url}>
-                    <a className="sheetEditButtons" href={url}>
-                      <span><i className="fa fa-pencil"></i> </span>
-                    </a>
-                    <div className="sheetEditButtons" onClick={editSheetTags}>
-                      <span><i className="fa fa-tag"></i> </span>
+
+          if (this.props.multiPanel) {
+                return (<div className="sheet userSheet" key={url}>
+                          <a className="sheetEditButtons" href={url}>
+                            <span><i className="fa fa-pencil"></i> </span>
+                          </a>
+                          <div className="sheetEditButtons" onClick={editSheetTags}>
+                            <span><i className="fa fa-tag"></i> </span>
+                          </div>
+
+                          <div className="sheetTitle">{title}</div>
+                          <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
+
                     </div>
+                );
 
-                    <div className="sheetTitle">{title}</div>
-                    <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
+          }
 
-              </div>
-          );
-        });
+          else {
+
+              return (<a className="sheet userSheet" href={url} key={url}>
+                        <div className="sheetTitle">{title}</div>
+                        <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
+                  </a>
+              );
+
+
+          }
+
+        }, this);
 
               var content = (<div className="content sheetList">
                 <div className="contentInner">
