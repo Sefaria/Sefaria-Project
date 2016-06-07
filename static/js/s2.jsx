@@ -2709,7 +2709,9 @@ var SheetsNav = React.createClass({
       sheets: [],
       tag: this.props.initialTag,
       tagSort: this.props.tagSort,
-      width: 400
+      width: 400,
+      yourSheetTags: [],
+      showYourSheetTags: false
     };
   },
   componentDidMount: function() {
@@ -2719,6 +2721,9 @@ var SheetsNav = React.createClass({
     if (this.props.initialTag) {
       if (this.props.initialTag === "Your Sheets") {
         this.showYourSheets();
+        Sefaria.sheets.userTagList(this.setUserTags,Sefaria._uid);
+
+
       }
       else if(this.props.initialTag === "All Sheets"){
         this.showAllSheets();
@@ -2730,6 +2735,9 @@ var SheetsNav = React.createClass({
   },
   componentWillReceiveProps: function(nextProps) {
     this.setState({tagSort: nextProps.tagSort, tag: nextProps.initialTag});
+  },
+  toggleSheetTags: function() {
+    this.state.showYourSheetTags == true ? this.setState({showYourSheetTags: false}) : this.setState({showYourSheetTags: true});
   },
   getAllSheets: function() {
     Sefaria.sheets.allSheetsList(this.loadAllSheets);
@@ -2771,6 +2779,10 @@ var SheetsNav = React.createClass({
     Sefaria.sheets.userSheets(Sefaria._uid, this.loadSheets);
     this.props.setSheetTag("Your Sheets");
   },
+  setUserTags: function(tags){
+    this.setState({userTagList: tags});
+  },
+
   showAllSheets: function() {
     this.setState({tag: "All Sheets"});
     Sefaria.sheets.publicSheets(this.loadSheets);
@@ -2792,7 +2804,6 @@ var SheetsNav = React.createClass({
           var tagString = sheet.tags.map(function (tag) {
               return(tag+", ");
           });
-
 
           if (this.props.multiPanel) {
                 return (<div className="sheet userSheet" key={url}>
@@ -2824,6 +2835,16 @@ var SheetsNav = React.createClass({
 
         }, this);
 
+        if (this.state.userTagList != null){
+
+        var userTagList = this.state.userTagList.map(function (tag) {
+             return (<div className="navButton" onClick={console.log()} key={tag.tag}>{tag.tag} ({tag.count})</div>);
+        }, this);
+
+
+        }
+
+
               var content = (<div className="content sheetList">
                 <div className="contentInner">
                   {this.props.hideNavHeader ? (<h1>
@@ -2842,7 +2863,7 @@ var SheetsNav = React.createClass({
                                     {this.props.hideNavHeader ? (
 
                                             <h2 className="splitHeader">
-                            <span className="en actionText" style={{float: 'left'}}>Filter By Tag</span>
+                            <span className="en actionText" style={{float: 'left'}} onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
 
                             <span className="en actionText">Sort By:
                               <select value={this.props.tagSort} onChange={this.changeSortYourSheets}>
@@ -2851,6 +2872,7 @@ var SheetsNav = React.createClass({
                              </select> <i className="fa fa-angle-down"></i></span>
 
                           </h2>) : null }
+                  {this.state.showYourSheetTags == true ? <TwoOrThreeBox content={userTagList} width={this.state.width} /> : null}
 
 
                   {sheets}</div>
