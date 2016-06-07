@@ -560,7 +560,7 @@ footer#footer {
 footer .section {
   display: inline-block;
   vertical-align: top;
-  width: 170px;
+  width: 160px;
   text-align: left;
 }
 #footer .section .header {
@@ -571,7 +571,8 @@ footer .section {
 }
 footer .section a {
   color: #aaa;
-  font-size: 12px;
+  font-size: 14px;
+  margin: 2px 0;
 }
 footer .fa {
   margin: 0 3px;
@@ -579,7 +580,26 @@ footer .fa {
 footer .section.last {
   float: right;
   text-align: right;
+  width: 210px;
   border-left: 1px solid #EAEAEA;
+}
+#siteLanguageToggle {
+  color: #999;
+  margin-top: 15px;
+  font-size: 13px;
+}
+a#siteLanguageEnglish, a#siteLanguageHebrew {
+  cursor: pointer;
+  color: #666;
+  display: inline;
+  margin: 0 3px;
+  font-size: 13px;
+}
+#siteLanguageEnglish:hover, #siteLanguageHebrew:hover {
+  text-decoration: underline;
+}
+a#siteLanguageHebrew {
+  font-size: 15px;
 }
 #donatePage div.single-button{
   text-align: center;

@@ -176,6 +176,7 @@ urlpatterns += patterns('reader.views',
     (r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', 'profile_redirect'),
     (r'^settings/account?$', 'account_settings'),
     (r'^settings/profile?$', 'edit_profile'),
+    (r'^interface/(?P<language>english|hebrew)$', 'interface_language_redirect'),
     (r'^api/profile$', 'profile_api'),
 )
 
@@ -200,7 +201,6 @@ urlpatterns += patterns('reader.views',
 urlpatterns += patterns('reader.views',
     (r'^api/(?P<action>(follow|unfollow))/(?P<uid>\d+)$', 'follow_api'),
     (r'^api/(?P<kind>(followers|followees))/(?P<uid>\d+)$', 'follow_list_api'),
-
 )
 
 # Groups 
@@ -209,6 +209,10 @@ urlpatterns += patterns('sheets.views',
     (r'^api/groups$', 'groups_api'),
     (r'^partners/(?P<partner>[^/]+)$', 'partner_page'),
     (r'^partners/(?P<partner>[^/]+)/tags/(?P<tag>.+)$', 'partner_sheets_tag'),
+)
+
+# Redirects for setting interface language
+urlpatterns += patterns('reader.views',
 )
 
 # Registration

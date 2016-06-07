@@ -274,7 +274,7 @@ def s2_props(request):
         "recentlyViewed": request.COOKIES.get("recentlyViewed", None),
         "loggedIn": request.user.is_authenticated(),
         "interfaceLang": request_context.get("interfaceLang"),
-        "settings": {
+        "initialSettings": {
             "language":      request_context.get("contentLang"),
             "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),
             "layoutTalmud":  request.COOKIES.get("layoutTalmud", "continuous"),
@@ -339,7 +339,6 @@ def s2(request, ref, version=None, lang=None):
         "initialRefs":                 panels[0].get("refs", []),
         "initialFilter":               panels[0].get("filter", None),
         "initialBookRef":              panels[0].get("bookRef", None),
-        "initialSettings":             settings,
         "initialPanels":               panels,
         "initialPanelCap":             len(panels),
         "initialQuery":                None,
@@ -925,6 +924,18 @@ def search(request):
     return render_to_response('search.html',
                              {},
                              RequestContext(request))
+
+
+def interface_language_redirect(request, language):
+    """Set the interfaceLang cooki"""
+    next = request.GET.get("next", "/?home")
+    response = redirect(next)
+    response.set_cookie("interfaceLang", language)
+    if request.user.is_authenticated():
+        p = UserProfile(id=request.user.id)
+        p.settings["interface_language"] = language
+        p.save()
+    return response
 
 
 #todo: is this used elsewhere? move it?
