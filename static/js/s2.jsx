@@ -5202,6 +5202,7 @@ var SearchResultList = React.createClass({
     initialQuerySize: 100,
     backgroundQuerySize: 1000,
     maxResultSize: 10000,
+    resultDisplayStep: 50,
     getDefaultProps: function() {
         return {
             appliedFilters: []
@@ -5214,12 +5215,8 @@ var SearchResultList = React.createClass({
             isQueryRunning: {"text": false, "sheet": false},
             moreToLoad: {"text": true, "sheet": true},
             totals: {"text":0, "sheet":0},
-            // total: 0,
-            // textTotal: 0,
-            // sheetTotal: 0,
+            displayedUntil: {"text":50, "sheet":50},
             hits: {"text": [], "sheet": []},
-            // textHits: [],
-            // sheetHits: [],
             activeTab: "text",
             error: false
         }
@@ -5243,15 +5240,37 @@ var SearchResultList = React.createClass({
     },
     componentDidMount: function() {
         this._executeQueries();
+        $(ReactDOM.findDOMNode(this)).closest(".content").bind("scroll", this.handleScroll);
     },
     componentWillUnmount: function() {
         this._abortRunningQueries();
+        $(ReactDOM.findDOMNode(this)).closest(".content").unbind("scroll", this.handleScroll);
+    },
+    handleScroll: function() {
+      var tab = this.state.activeTab;
+      if (this.state.displayedUntil[tab] >= this.state.totals[tab]) { return; }
+      var $scrollable = $(ReactDOM.findDOMNode(this)).closest(".content");
+      var margin = 100;
+      if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+        this._extendResultsDisplayed();
+      }
+    },
+    _extendResultsDisplayed: function() {
+      console.log("displaying more search results");
+      var tab = this.state.activeTab;
+      this.state.displayedUntil[tab] += this.resultDisplayStep;
+      if (this.state.displayedUntil[tab] >= this.state.totals[tab]) {
+        this.state.displayedUntil[tab] = this.state.totals[tab];
+      }
+      this.setState({displayedUntil: this.state.displayedUntil});
     },
     componentWillReceiveProps: function(newProps) {
         if(this.props.query != newProps.query) {
            this.setState({
              totals: {"text":0, "sheet":0},
-             hits: {"text": [], "sheet": []}
+             hits: {"text": [], "sheet": []},
+             moreToLoad: {"text": true, "sheet": true},
+             displayedUntil: {"text":50, "sheet":50}
            });
            this._executeQueries(newProps)
         }
@@ -5268,7 +5287,8 @@ var SearchResultList = React.createClass({
     _loadRemainder: function(type, last, total, currentHits) {
     // Having loaded "last" results, and with "total" results to load, load the rest, this.backgroundQuerySize at a time
       if (last >= total || last >= this.maxResultSize) {
-        this.setState({"moreToLoad":false});
+        this.state.moreToLoad[type] = false;
+        this.setState({moreToLoad: this.state.moreToLoad});
         return;
       }
       var query_props = {
@@ -5532,7 +5552,7 @@ var SearchResultList = React.createClass({
         var results = [];
 
         if (tab == "text") {
-          results = this.state.hits.text.map(result =>
+          results = this.state.hits.text.slice(0,this.state.displayedUntil["text"]).map(result =>
             <SearchTextResult
                 data={result}
                 query={this.props.query}
@@ -5540,7 +5560,7 @@ var SearchResultList = React.createClass({
                 onResultClick={this.props.onResultClick} />);
 
         } else if (tab == "sheet") {
-          results = this.state.hits.sheet.map(result =>
+          results = this.state.hits.sheet.slice(0, this.state.displayedUntil["sheet"]).map(result =>
               <SearchSheetResult
                     data={result}
                     query={this.props.query}

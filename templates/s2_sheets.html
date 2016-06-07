@@ -194,7 +194,7 @@
    				{% if is_owner %}
                 <div class="optionItem" id="addParashaToSheetModalTrigger"><img src="/static/img/parasha.png"> Parasha</div>
 				{% endif %}
-                <div class="optionItem" id="addCustomMenu"><img src="/static/img/custom%20text.png"> Custom Text</div>
+                <div class="optionItem" id="addCustomMenu"><img src="/static/img/custom%20text.png"> Text</div>
 				<div class="optionItem" id="addCommentMenu"><img src="/static/img/comment.png"> Comment</div>
 				<div class="optionItem" id="addMediaMenu"><img src="/static/img/media.png"> Media</div>
             </div>
@@ -309,7 +309,7 @@
         <div class="buttonBar">
             <div class="addInterfaceButton" id="sourceButton"><img src="/static/img/source.png"> Source</div><!--
          --><div class="addInterfaceButton" id="connectionButton"><img src="/static/img/connection.png"> Connection</div><!--
-         --><div class="addInterfaceButton" id="customTextButton"><img src="/static/img/custom%20text.png"> Custom Text</div><!--
+         --><div class="addInterfaceButton" id="customTextButton"><img src="/static/img/custom%20text.png"> Text</div><!--
          --><div class="addInterfaceButton" id="mediaButton"><img src="/static/img/media.png"> Media</div><!--
          --><div class="addInterfaceButton" id="commentButton"><img src="/static/img/comment.png">  Comment</div>
         </div>
@@ -337,15 +337,15 @@
                 <div class="inlineAddDesc">Write or paste text</div>
                 <div id="customTextLanguageToggle" class="toggle"><span id="englishCustomText" class="toggleOption"><img src="/static/img/english.png"></span><span id="bilingualCustomText" class="toggleOption active"><img src="/static/img/bilingual.png"></span><span id="hebrewCustomText" class="toggleOption"><img src="/static/img/hebrew.png"></span></div>
 
-                <div class="flexContainer">
+                <div id="customTextContainer" class="flexContainer">
                     <div class="contentToAdd en customTextEditables" tabindex="0">English</div>
                     <div class="contentToAdd he customTextEditables" tabindex="0">עברית</div>
                 </div>
                 <div class="button">Add to Sheet</div>
             </div>
             <div id="addmediaDiv">
-                <div class="inlineAddDesc">Paste URL</div>
-                <input id="inlineAddMediaInput" placeholder="Link to your image, YouTube video, or mp3 file"><br/>
+                <div class="inlineAddDesc">Add Image, Youtube Video, or MP3</div>
+                <input id="inlineAddMediaInput" placeholder="Paste URL"><br/>
                 <div class="button">Add to Sheet</div>
             </div>
 

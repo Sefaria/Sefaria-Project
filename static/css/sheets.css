@@ -495,7 +495,7 @@ body {
 
 .sheetItem {
 	position: relative;
-	padding: 32px 72px;
+	padding: 32px 76px;
 	border: solid 1px transparent;
 	border-left: solid 3px transparent;
 }
@@ -561,7 +561,7 @@ body {
 }
 .sideControls {
 	width: 16px !important;
-	left: 20px !important;
+	left: 23px !important;
 	margin-left: 0 !important;
 	top: 32px !important;
 	background-color: #F7F7F9 !important;
@@ -1542,7 +1542,7 @@ input[type="file"] {
 
 .activeSource {
 	background-color: #F7F7F9;
-	border-left:solid 3px #4e6eff;
+	border-left:solid 3px #212e50;
 	border-top:solid 1px #F2F2F2;
 	border-bottom:solid 1px #F2F2F2;
 }
@@ -1558,7 +1558,7 @@ input[type="file"] {
 }
 
 .inlineAddButtonIcon.active {
-	color: #0663c9;
+	color: #212e50;
 }
 
 #sourceLayoutLanguageMenuItems {
@@ -1568,12 +1568,18 @@ input[type="file"] {
 #addInterface {
 	width:100%;
 	background-color: #eee;
-	padding: 40px 0;
+	padding: 40px 0 60px 0;
 	text-align: center;
 	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
 	font-size: 14px;
+	border-top: 1px #999 solid;
 }
 
+#addInterface .buttonBar {
+	width: 702px;
+	margin: 20px 74px;
+	display:flex;
+}
 
 
 .contentDiv > div {
@@ -1590,60 +1596,66 @@ input[type="file"] {
   	justify-content: flex-start;
 }
 .sourceConnection{
-	width: 47%;
-	margin: 10px 5px;
+	width: 346px;
 	border: 1px solid #eee;
 	border-radius: 5px;
 	padding: 20px 0;
+	margin-bottom:6px;
 	display: inline-block;
 	background-color: #fff;
 	color: #999;
+}
+.sourceConnection:nth-child(odd) {
+	margin-right:6px;
+}
 
+#connectionsToAdd {
+    width: 702px;
+    margin: 0 74px 40px 74px;
 }
 
 .sourceConnection.active {
-	border: 2px solid #6c6c6c;
+	border: 1px solid #6c6c6c;
 	color: black;
 }
 
-
 .addInterfaceButton:first-of-type {
 	border-left: 1px solid #cecece;
-	border-radius: 5px 0 0 5px;
 
 }
 .addInterfaceButton:last-of-type {
 	border-right: 1px solid #cecece;
-	border-radius: 0 5px 5px 0;
 }
 
 .addInterfaceButton{
 	width: 106px;
 	color: #999;
-	margin: 10px 0;
-	padding: 10px 20px;
-	border-left: 1px solid rgba(255,255,255,0);
-	border-right: 1px solid rgba(255,255,255,0);
+	margin: 0;
+	padding: 12px 12px;
+	border-right: 1px solid #cecece;
 	border-top: 1px solid #cecece;
 	border-bottom: 1px solid #cecece;
 	display: inline-block;
 	background-color: #fff;
+
+	flex:1;
+  	flex-direction: column;
+  	justify-content: flex-start;
+
 }
 
 .addInterfaceButton.active {
-	border-top: 1px solid #6c6c6c;
-	border-bottom: 1px solid #6c6c6c;
-	border-left: 1px solid #6c6c6c;
-	border-right: 1px solid #6c6c6c;
+	border-bottom: 3px solid #6c6c6c;
 	color: black;
-	border-radius: 5px;
+	padding: 12px 12px 10px 12px;
+
 }
 
 .inlineAddDesc {
     text-transform: uppercase;
 	color: #999;
 	font-size:12px;
-	margin: 20px 0 10px 0;
+	margin: 40px 0;
 
 }
 
@@ -1669,23 +1681,57 @@ input[type="file"] {
 	display:inline-block;
 }
 #sheet .button, .sheetsEditNavTop .button, .modal .button {
-	background-color: #0663c9;
-	border-color: #0663c9;
+	background-color: #212e50;
+	border-color: #212e50;
+	padding: 12px 24px;
+}
+.sheetsEditNavTop .button {
 	padding: 8px 24px;
 }
+
 #customTextLanguageToggle {
 	float: right;
-    margin-top: -40px;
-    margin-right: 16px;
+    margin-top: -65px;
+    margin-right: 67px;
+	height:30px;
+	width:160px;
+
 }
+
+#customTextLanguageToggle .toggleOption {
+	height: 30px;
+	line-height: inherit;
+	width: 50px;
+}
+
+#customTextLanguageToggle .toggleOption img {
+	height: 16px;
+	width: 16px;
+}
+
+#customTextContainer, #addmediaDiv, #addcommentDiv{
+	width: 702px;
+    margin: 0 74px 40px 74px;
+
+}
+
+#addcommentDiv .contentToAdd {
+	margin-bottom:40px;
+}
+
 
 .contentToAdd {
 	padding: 5px;
 	border: 1px solid #cecece;
 	border-radius: 5px;
-	margin: 30px 15px;
+	margin: 0;
 	text-align:left;
 }
+
+.contentToAdd:nth-child(even) {
+	margin-left:6px;
+}
+
 
 .contentToAdd > * {
 	margin:0 !important;
@@ -1699,7 +1745,8 @@ input[type="file"] {
 	text-align: right;
 }
 #inlineAddMediaInput{
-	width:60%;
+	width:100%;
+	margin-bottom:40px;
 }
 
 .s2AddedBy {
