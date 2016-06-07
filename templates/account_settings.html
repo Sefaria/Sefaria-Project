@@ -1,8 +1,42 @@
 {% extends "base.html" %}
 
 {% block content %}
+
+{% if S2 %}
+<div id="accountSettingsPage" class="static">
+	<div class="inner">
+	<h1>Account Settings</h1>
+	<div id="saveCancelButtons">
+		<a class="button transparent" href="/my/profile">
+			<span class="en">Cancel</span>
+			<span class="he">בטל</span>
+		</a>
+		<div id="saveAccountSettings" class="button">
+			<span class="en">Save</span>
+			<span class="he">להציל</span>
+		</div>
+	</div>
+	<div id="emailNotifications" class="section">
+		<label>Email Frequency (Maximum)</label>
+		<div class="toggleSet tripleOption">
+			<div data-value="daily" class="toggleOption {% if profile.settings.email_notifications == "daily" %} active{% endif %}">Daily</div><!--
+			--><div data-value="weekly" class="toggleOption {% if profile.settings.email_notifications == "weekly" %} active{% endif %}">Weekly</div><!--
+			--><div data-value="never" class="toggleOption {% if profile.settings.email_notifications == "never" %} active{% endif %}">Never</div>
+		</div>
+	</div>
+	<div id="siteLanguage" class="section">
+		<label>Site Language</label>
+		<div class="toggleSet doubleOption">
+			<div data-value="english" class="toggleOption {% if profile.settings.interface_language == "english" %} active{% endif %}">English</div><!--
+			--><div data-value="hebrew" class="toggleOption {% if profile.settings.interface_language == "hebrew" %} active{% endif %}">עברית</div>
+		</div>
+	</div>
+	</div>
+</div>
+
+{% else %}
 <div id="accountSettingsContent">
-	<h1>Sefaria Account Settings</h1>
+	<h1>Account Settings</h1>
 	<br>
 	<div id="emailNotifications" class="well">
 		<h3>Send summary emails for unread notifications at most:</h3>
@@ -12,11 +46,37 @@
 	</div>
 	<div id="saveAccountSettings" class="btn btn-primary">Save</div>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block js %}
 	<script>
 		$(function(){
+			$(".toggleOption").click(function() {
+				$(this).closest(".toggleSet").find(".toggleOption").removeClass("active");
+				$(this).addClass("active");
+			});
+
+			{% if S2 %}
+			$("#saveAccountSettings").click(function(){
+				var profile = {
+						settings: {
+							email_notifications: $("#emailNotifications .toggleOption.active").attr("data-value"),
+							interface_language: $("#siteLanguage .toggleOption.active").attr("data-value")
+						}
+				};
+
+				$.post("/api/profile", {json: JSON.stringify(profile)}, function(data) {
+					if ("error" in data) {
+						alert(data.error);
+					} else {
+						alert("Settings Saved.");
+						Sefaria.site.track.event("Settings", "Settings Save", $("#emailNotifications input:checked").val());
+						window.location = "/account";
+					}
+				});
+			});
+			{% else %}
 			$("#saveAccountSettings").click(function(){
 				var profile = {
 						settings: {
@@ -33,6 +93,7 @@
 					}
 				});
 			});
+			{% endif %}
 		});
 	</script>
 {% endblock %}

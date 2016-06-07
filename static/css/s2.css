@@ -363,6 +363,20 @@ body.dark {
   display: inline;
   line-height: 32px;
 }
+.systemPanel.english .content .he {
+  display: none;
+}
+.systemPanel.hebrew .content .en {
+  display: none;
+}
+.systemPanel.english .content .en {
+  display: inline;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.systemPanel.hebrew .content .he {
+  display: inline;
+  font-family: "Open Sans Hebrew", sans-serif;
+}
 .systemPanel.readerNavMenu .languageToggle span.en {
   font-family: "Taamey Frank", "Times New Roman", serif;
   font-size: 26px;
@@ -2499,6 +2513,7 @@ h1 .languageToggle .he {
   letter-spacing: 1px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   box-sizing: border-box;
+  line-height: 1;
 }
 .button:hover {
   color: white;
@@ -2506,11 +2521,16 @@ h1 .languageToggle .he {
 }
 .button.white {
   background-color: white;
-  color: black;
+  color: #333;
   border: 1px solid #ccc;
 }
 .button.white:hover {
 
+}
+.button.transparent {
+  color: #666;
+  background-color: transparent;
+  border: 1px solid transparent;
 }
 .button.fillWidth {
   width: 100%;
@@ -2669,4 +2689,12 @@ h2.splitHeader {
   float:right;
   text-transform: none;
   cursor: pointer;
+}
+
+.sheetsNewButton {
+  text-align:center;
+}
+
+.sheetsNewButton a {
+  font-color: inherit;
 }

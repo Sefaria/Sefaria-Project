@@ -16,6 +16,7 @@ h1 {
   font-size: 30px;
   font-weight: lighter;
   letter-spacing: 1px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 h2 {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -46,6 +47,25 @@ input {
 input:focus {
   outline: none;
 }
+a {
+  color: #333;
+}
+label {
+   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+   color: #999;
+   letter-spacing: 1px;
+   font-size: 16px;
+   height: 18px;
+   margin-bottom: 10px;
+   position: relative;
+}
+label .sub {
+  font-size: 12px;
+  margin-left: 4px;
+  color: #999;
+  letter-spacing: normal;
+  white-space: nowrap;
+}
 .page-title{
   margin-bottom: 50px;
 }
@@ -54,6 +74,7 @@ input:focus {
 }
 .static {
   color: #333333;
+  font-size: 15px;
   background-color: #F9F9F7;
 }
 .static .inner {
@@ -539,7 +560,7 @@ footer#footer {
 footer .section {
   display: inline-block;
   vertical-align: top;
-  width: 170px;
+  width: 160px;
   text-align: left;
 }
 #footer .section .header {
@@ -550,7 +571,8 @@ footer .section {
 }
 footer .section a {
   color: #aaa;
-  font-size: 12px;
+  font-size: 14px;
+  margin: 2px 0;
 }
 footer .fa {
   margin: 0 3px;
@@ -558,7 +580,26 @@ footer .fa {
 footer .section.last {
   float: right;
   text-align: right;
+  width: 210px;
   border-left: 1px solid #EAEAEA;
+}
+#siteLanguageToggle {
+  color: #999;
+  margin-top: 15px;
+  font-size: 13px;
+}
+a#siteLanguageEnglish, a#siteLanguageHebrew {
+  cursor: pointer;
+  color: #666;
+  display: inline;
+  margin: 0 3px;
+  font-size: 13px;
+}
+#siteLanguageEnglish:hover, #siteLanguageHebrew:hover {
+  text-decoration: underline;
+}
+a#siteLanguageHebrew {
+  font-size: 15px;
 }
 #donatePage div.single-button{
   text-align: center;
@@ -646,12 +687,214 @@ footer .section.last {
   margin-top: 20px;
   white-space: normal;
 }
-#peoplePage .author a, #talmudicPeoplePage .author a{
+#editProfilePage {
   color: #666;
+}
+#editProfilePage .inner {
+  position: relative; 
+}
+#saveCancelButtons {
+  position: absolute;
+  top: 40px;
+  right: 0px;
+}
+#saveCancelButtons .button {
+  padding: 10px 16px;
+}
+#editProfilePage #profileBox,
+#editProfilePage #contactBox,
+#editProfilePage #sheetsBox {
+  text-align: left;
+  margin-bottom: 60px;
+}
+.editProfileContentLeft {
+  float: left;
+  width: 310px;
+  margin-right: 0px;
+}
+.editProfileContentRight {
+  width: 310px;
+  float: right;
+}
+#editProfilePage h2 {
+  text-align: center;
+}
+#editProfilePage input {
+  padding: 18px 12px;
+  border: none;
+}
+#editProfilePage #profilePictureBox {
+  width: 100%;
+}
+#editProfilePage #profilePictureBox img {
+  vertical-align: top;
+  float: left;
+  width: 80px;
+  height: 80px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
+#editProfilePage #aboutBox {
+  margin-bottom: 12px;
+}
+#editProfilePage #bio {
+  width: 100%;
+  min-height: 100px;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 3px;
+  padding: 10px 14px;
+  font-size: 18px;
+  background-color: white;
+}
+#editProfilePage .field {
+  margin-bottom: 20px;
+}
+#editProfilePage .field input {
+  width: 100%;
+  color: #333;
+  box-sizing: border-box;
+}
+#editProfilePage ul {
+  list-style-type: none;
+  padding: 0px;
+  margin: 0px;
+}
+#editProfilePage #jewishEducation li {
+  position: relative;
+  margin: 8px 0;
+}
+#editProfilePage #jewishEducation li:first-child .remove {
+  display: none;
+}
+#editProfilePage #addEducation {
+  font-size: 12px;
+  font-style: italic;
+  color: #555;
+  margin-left: 24px;
+  margin-top: 4px;
+  cursor: pointer;
+}
+#editProfilePage #addEducation:hover {
+  text-decoration: underline;
+}
+#editProfilePage #jewishEducation .remove {
+  position: absolute;
+  right: 6px;
+  top: 7px;
+  cursor: pointer;
+}
+#editProfilePage #sheetsBox #pinnedSheetsMessage {
+  margin-bottom: 4px;
+  font-style: italic;
+}
+#editProfilePage .sheetSet {
+  margin: 14px 0;
+}
+#editProfilePage #sheetsBox ul {
+  background: white;
+  border-radius: 3px;
+  border: none;
+  margin: 0;
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+}
+#editProfilePage #sheetsBox li {
+  margin: 6px 0;
+}
+#editProfilePage #pinnedSheets ul {
+  min-height: 36px;
+}
+#accountSettingsPage .inner{
+  position: relative;
+}
+#accountSettingsPage .toggleOption {
+  font-size: 14px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.doubleOption .toggleOption {
+  width: 50%;
+}
+.tripleOption .toggleOption {
+  width: 33.3%;
+}
+.toggleOption {
+  background-color: white;
+  color: #999;
+}
+.toggleOption.active {
+  color: #333;
+  background-color: white;
+}
+#peoplePage .author a, #talmudicPeoplePage .author a, #personPage a{
+  color: #666;
+}
+#peoplePage .author, #talmudicPeoplePage .author{
+  margin-left: 0;
+}
+#personPage #periodNameLine, #personPage #yearLine{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: normal;
+  text-transform: uppercase;
+  color: #aaa;
+  padding-bottom: 15px;
+}
+#personPage #external_links i{
+  padding: 0 5px;
+}
+#personPage #external_links a{
+  padding: 0 5px;
+}
+#personPage div.person_tooltip {
+    position: absolute;
+    text-align: center;
+    padding: 6px;
+    font: 12px sans-serif;
+    background: lightsteelblue;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
 }
 
 
+#activityPage h2{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 25px;
+  font-style: italic;
+  color: #aaa;
 
+}
 
-
-
+#activityPage #activityFeed {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #666;
+}
+#activityPage #activityFeed a {
+  color: #333;
+  font-weight: normal;
+}
+#activityPage #activityFeed #moreActivity {
+  display: block;
+  margin-top: 30px;
+  font-size: 15px;
+}
+#activityPage #activityFeed .topline {
+  font-weight: normal;
+}
+#activityPage #activityFeed .text.en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#activityPage #activityFeed .text.he {
+  font-family: "Taamey Frank", "Times New Roman", serif;
+}
+#activityPage #activityList .time {
+  color: #ccc;
+}
+.full-text-static select {
+  width: 25%;
+  background-color: #ffffff;
+  height: 3em;
+  padding: 0 3%;
+  font-size: 1.3em;
+}

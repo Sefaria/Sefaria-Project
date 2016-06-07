@@ -19,6 +19,7 @@ var ReaderApp = React.createClass({
     multiPanel:                  React.PropTypes.bool,
     headerMode:                  React.PropTypes.bool,  // is S2 serving only as a header on top of another page?
     loggedIn:                    React.PropTypes.bool,
+    interfaceLang:               React.PropTypes.string,
     initialRefs:                 React.PropTypes.array,
     initialFilter:               React.PropTypes.array,
     initialMenu:                 React.PropTypes.string,
@@ -36,6 +37,7 @@ var ReaderApp = React.createClass({
     return {
       multiPanel:                  true,
       headerMode:                  false,  // is S2 serving only as a header on top of another page?
+      interfaceLang:               "english",
       initialRefs:                 [],
       initialFilter:               null,
       initialMenu:                 null,
@@ -831,6 +833,7 @@ var ReaderApp = React.createClass({
     var header = this.props.multiPanel || this.state.panels.length == 0 ?
                   (<Header 
                     initialState={this.state.header}
+                    interfaceLang={this.props.interfaceLang}
                     setCentralState={this.setHeaderState}
                     onRefClick={this.handleNavigationClick}
                     onRecentClick={this.handleRecentClick}
@@ -871,6 +874,7 @@ var ReaderApp = React.createClass({
       panels.push(<div className="readerPanelBox" style={style} key={key}>
                     <ReaderPanel 
                       initialState={panel}
+                      interfaceLang={this.props.interfaceLang}
                       setCentralState={setPanelState}
                       multiPanel={this.props.multiPanel}
                       onSegmentClick={onSegmentClick}
@@ -909,6 +913,7 @@ var Header = React.createClass({
   propTypes: {
     initialState:                React.PropTypes.object.isRequired,
     setCentralState:             React.PropTypes.func,
+    interfaceLang:               React.PropTypes.string,
     onRefClick:                  React.PropTypes.func,
     onRecentClick:               React.PropTypes.func,
     showLibrary:                 React.PropTypes.func,
@@ -1066,6 +1071,7 @@ var Header = React.createClass({
     var viewContent = this.state.menuOpen ?
                         (<ReaderPanel
                           initialState={this.state}
+                          interfaceLang={this.props.interfaceLang}
                           setCentralState={this.props.setCentralState}
                           multiPanel={true}
                           onNavTextClick={this.props.onRefClick}
@@ -1138,6 +1144,7 @@ var ReaderPanel = React.createClass({
     initialAppliedSearchFilters: React.PropTypes.array,
     initialSheetsTag:            React.PropTypes.string,
     initialState:                React.PropTypes.object, // if present, trumps all props above
+    interfaceLang:               React.PropTypes.string,
     setCentralState:             React.PropTypes.func,
     onSegmentClick:              React.PropTypes.func,
     onCitationClick:             React.PropTypes.func,
@@ -1551,6 +1558,7 @@ var ReaderPanel = React.createClass({
           filter={this.state.filter || []}
           mode={this.state.connectionsMode || "Connections"}
           recentFilters={this.state.recentFilters}
+          interfaceLang={this.props.interfaceLang}
           version={this.state.version}
           versionLanguage={this.state.versionLanguage}
           fullPanel={this.props.multiPanel}
@@ -1578,6 +1586,7 @@ var ReaderPanel = React.createClass({
     if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation" || this.state.menuOpen == "compare") {
       var menu = (<ReaderNavigationMenu 
                     home={this.state.menuOpen === "home"}
+                    interfaceLang={this.props.interfaceLang}
                     multiPanel={this.props.multiPanel}
                     categories={this.state.navigationCategories || []}
                     settings={this.state.settings}
@@ -1598,6 +1607,7 @@ var ReaderPanel = React.createClass({
     else if (this.state.menuOpen === "text toc") {
       var menu = (<ReaderTextTableOfContents
                     mode={this.state.menuOpen}
+                    interfaceLang={this.props.interfaceLang}
                     close={this.closeMenus}
                     title={this.currentBook()}
                     version={this.state.version}
@@ -1613,6 +1623,7 @@ var ReaderPanel = React.createClass({
     } else if (this.state.menuOpen === "book toc") {
       var menu = (<ReaderTextTableOfContents
                     mode={this.state.menuOpen}
+                    interfaceLang={this.props.interfaceLang}
                     closePanel={this.props.closePanel}
                     close={this.closeMenus}
                     title={this.state.bookRef}
@@ -1643,6 +1654,7 @@ var ReaderPanel = React.createClass({
 
     } else if (this.state.menuOpen === "sheets") {
       var menu = (<SheetsNav
+                    interfaceLang={this.props.interfaceLang}
                     openNav={this.openMenu.bind(null, "navigation")}
                     close={this.closeMenus}
                     multiPanel={this.props.multiPanel}
@@ -1652,17 +1664,17 @@ var ReaderPanel = React.createClass({
                     tagSort={this.state.tagSort}
                     setSheetTagSort={this.setSheetTagSort}
                     setSheetTag={this.setSheetTag}
-                    key={this.state.key}
-                  />);
+                    key={this.state.key} />);
+
     } else if (this.state.menuOpen === "account") {
       var menu = (<AccountPanel
-                    toggleLanguage={this.toggleLanguage} />);
+                    interfaceLang={this.props.interfaceLang} />);
 
 
     } else if (this.state.menuOpen === "notifications") {
       var menu = (<NotificationsPanel 
                     setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
-                    toggleLanguage={this.toggleLanguage} />);
+                    interfaceLang={this.props.interfaceLang} />);
 
     } else {
       var menu = null;
@@ -2747,13 +2759,12 @@ var SheetsNav = React.createClass({
     this.props.setSheetTag(tag);
   },
   loadSheets: function(sheets) {
-    console.log(sheets);
     this.setState({sheets: sheets});
   },
   showYourSheets: function() {
     this.setState({tag: "Your Sheets"});
     Sefaria.sheets.userSheets(Sefaria._uid, this.loadSheets);
-    this.props.setSheetTag("Your Sheets");    
+    this.props.setSheetTag("Your Sheets");
   },
   showAllSheets: function() {
     this.setState({tag: "All Sheets"});
@@ -2765,22 +2776,71 @@ var SheetsNav = React.createClass({
     var heTitle = this.state.tag || "דפי מקורות";
 
     if (this.state.tag) {
-      var sheets = this.state.sheets.map(function(sheet) {
-        var title = sheet.title.stripHtml();
-        var url   = "/sheets/" + sheet.id;
-        return (<a className="sheet" href={url} key={url}>
-                  {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl} />) : null}
-                  <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
-                  <div className="sheetAuthor">{sheet.ownerName}</div>
-                  <div className="sheetTitle">{title}</div>
-                </a>);
-      });
-      sheets = sheets.length ? sheets : (<LoadingMessage />);
-      var content = (<div className="content sheetList"><div className="contentInner">
-                          {this.props.hideNavHeader ? (<h1>
-                            <span className="en">{enTitle}</span>
-                          </h1>) : null}
-                          {sheets}</div></div>);
+
+      if (this.state.tag == "Your Sheets") {
+
+        var sheets = this.state.sheets.map(function (sheet) {
+          var title = sheet.title.stripHtml();
+          var url = "/sheets/" + sheet.id;
+          var tagString = sheet.tags.map(function (tag) {
+              return(tag);
+          });
+
+
+
+          return (<a className="sheet" href={url} key={url}>
+            {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl}/>) : null}
+            <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
+            <div className="sheetAuthor">{sheet.ownerName}</div>
+            <div className="sheetTitle">{title}</div>
+            {tagString}
+          </a>);
+        });
+        sheets = sheets.length ? sheets : (<LoadingMessage />);
+        var content = (<div className="content sheetList">
+          <div className="contentInner">
+            {this.props.hideNavHeader ? (<h1>
+              <span className="en">My Source Sheets</span>
+            </h1>) : null}
+            {this.props.hideNavHeader ? (
+              <div className="sheetsNewButton">
+                <a className="button white" href="/sheets/new">
+                    <span className="en">Create a Source Sheet</span>
+                    <span className="he">צור דף מקורות חדש</span>
+                </a>
+              </div>
+
+              ) : null }
+
+
+            {sheets}</div>
+        </div>);
+      }
+
+
+      else {
+
+        var sheets = this.state.sheets.map(function (sheet) {
+          var title = sheet.title.stripHtml();
+          var url = "/sheets/" + sheet.id;
+          return (<a className="sheet" href={url} key={url}>
+            {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl}/>) : null}
+            <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
+            <div className="sheetAuthor">{sheet.ownerName}</div>
+            <div className="sheetTitle">{title}</div>
+          </a>);
+        });
+        sheets = sheets.length ? sheets : (<LoadingMessage />);
+        var content = (<div className="content sheetList">
+          <div className="contentInner">
+            {this.props.hideNavHeader ? (<h1>
+              <span className="en">{enTitle}</span>
+            </h1>) : null}
+            {sheets}</div>
+        </div>);
+      }
+
+
     }
     else {
       var yourSheets  = Sefaria._uid ? (<div className="yourSheetsLink navButton" onClick={this.showYourSheets}>Your Source Sheets <i className="fa fa-chevron-right"></i></div>) : null;
@@ -5146,6 +5206,7 @@ var SearchResultList = React.createClass({
     initialQuerySize: 100,
     backgroundQuerySize: 1000,
     maxResultSize: 10000,
+    resultDisplayStep: 50,
     getDefaultProps: function() {
         return {
             appliedFilters: []
@@ -5158,12 +5219,8 @@ var SearchResultList = React.createClass({
             isQueryRunning: {"text": false, "sheet": false},
             moreToLoad: {"text": true, "sheet": true},
             totals: {"text":0, "sheet":0},
-            // total: 0,
-            // textTotal: 0,
-            // sheetTotal: 0,
+            displayedUntil: {"text":50, "sheet":50},
             hits: {"text": [], "sheet": []},
-            // textHits: [],
-            // sheetHits: [],
             activeTab: "text",
             error: false
         }
@@ -5187,15 +5244,37 @@ var SearchResultList = React.createClass({
     },
     componentDidMount: function() {
         this._executeQueries();
+        $(ReactDOM.findDOMNode(this)).closest(".content").bind("scroll", this.handleScroll);
     },
     componentWillUnmount: function() {
         this._abortRunningQueries();
+        $(ReactDOM.findDOMNode(this)).closest(".content").unbind("scroll", this.handleScroll);
+    },
+    handleScroll: function() {
+      var tab = this.state.activeTab;
+      if (this.state.displayedUntil[tab] >= this.state.totals[tab]) { return; }
+      var $scrollable = $(ReactDOM.findDOMNode(this)).closest(".content");
+      var margin = 100;
+      if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+        this._extendResultsDisplayed();
+      }
+    },
+    _extendResultsDisplayed: function() {
+      console.log("displaying more search results");
+      var tab = this.state.activeTab;
+      this.state.displayedUntil[tab] += this.resultDisplayStep;
+      if (this.state.displayedUntil[tab] >= this.state.totals[tab]) {
+        this.state.displayedUntil[tab] = this.state.totals[tab];
+      }
+      this.setState({displayedUntil: this.state.displayedUntil});
     },
     componentWillReceiveProps: function(newProps) {
         if(this.props.query != newProps.query) {
            this.setState({
              totals: {"text":0, "sheet":0},
-             hits: {"text": [], "sheet": []}
+             hits: {"text": [], "sheet": []},
+             moreToLoad: {"text": true, "sheet": true},
+             displayedUntil: {"text":50, "sheet":50}
            });
            this._executeQueries(newProps)
         }
@@ -5212,7 +5291,8 @@ var SearchResultList = React.createClass({
     _loadRemainder: function(type, last, total, currentHits) {
     // Having loaded "last" results, and with "total" results to load, load the rest, this.backgroundQuerySize at a time
       if (last >= total || last >= this.maxResultSize) {
-        this.setState({"moreToLoad":false});
+        this.state.moreToLoad[type] = false;
+        this.setState({moreToLoad: this.state.moreToLoad});
         return;
       }
       var query_props = {
@@ -5476,7 +5556,7 @@ var SearchResultList = React.createClass({
         var results = [];
 
         if (tab == "text") {
-          results = this.state.hits.text.map(result =>
+          results = this.state.hits.text.slice(0,this.state.displayedUntil["text"]).map(result =>
             <SearchTextResult
                 data={result}
                 query={this.props.query}
@@ -5484,7 +5564,7 @@ var SearchResultList = React.createClass({
                 onResultClick={this.props.onResultClick} />);
 
         } else if (tab == "sheet") {
-          results = this.state.hits.sheet.map(result =>
+          results = this.state.hits.sheet.slice(0, this.state.displayedUntil["sheet"]).map(result =>
               <SearchSheetResult
                     data={result}
                     query={this.props.query}
@@ -5834,10 +5914,10 @@ var SearchSheetResult = React.createClass({
 
 var AccountPanel = React.createClass({
   propTypes: {
-    toggleLanguage: React.PropTypes.func.isRequired
+    interfaceLang: React.PropTypes.string,
   },
   render: function() {
-    var width = $(window).width();
+    var width = window ? $(window).width() : 1000;
     var accountContent = [
       (<BlockLink target="/my/profile" title="Profile" heTitle="פרופיל"/>),
       (<BlockLink target="/sheets/private" title="Source Sheets" heTitle="דפי מקורות" />),
@@ -5878,12 +5958,14 @@ var AccountPanel = React.createClass({
     ];
     connectContent = (<TwoOrThreeBox content={connectContent} width={width} />);
 
+    var classes = {accountPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    classes[this.props.interfaceLang] = 1;
+    var classStr = classNames(classes);
     return (
-      <div className="accountPanel systemPanel readerNavMenu noHeader">
+      <div className={classStr}>
         <div className="content">
           <div className="contentInner">
             <h1>
-              <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
               <span className="en">Account</span>
               <span className="he">חשבון משתמש</span>
             </h1>
@@ -5902,7 +5984,7 @@ var AccountPanel = React.createClass({
 var NotificationsPanel = React.createClass({
   propTypes: {
     setUnreadNotificationsCount: React.PropTypes.func.isRequired,
-    toggleLanguage:              React.PropTypes.func.isRequired
+    interfaceLang:               React.PropTypes.string,
   },
   getInitialState: function() {
     return {
@@ -5953,12 +6035,14 @@ var NotificationsPanel = React.createClass({
     this.forceUpdate();
   },
   render: function() {
+    var classes = {notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    classes[this.props.interfaceLang] = 1;
+    var classStr = classNames(classes);
     return (
-      <div className="notificationsPanel systemPanel readerNavMenu noHeader">
+      <div className={classStr}>
         <div className="content">
           <div className="contentInner">
             <h1>
-              <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
               <span className="en">Notifications</span>
               <span className="he">התראות</span>
             </h1>

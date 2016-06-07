@@ -61,6 +61,7 @@ def sheet_list(user_id=None):
 		s["size"]     = len(sheet["sources"])
 		s["views"]    = sheet["views"]
 		s["modified"] = dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y")
+		s["tags"]    = sheet["tags"]
 
 		response["sheets"].append(s)
  

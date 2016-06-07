@@ -1020,27 +1020,27 @@ $(function() {
 
 
 		var ownerControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
-								"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
-								"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
-								"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
+								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
+								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
+								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
+								"<div class='removeSource' title='Remove'><img src='/static/img/remove.png'></div>" +
 							"</div>";
 
 		var adderControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
-								"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
-								"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
+								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
+								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
+								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
 							"</div>";
 
 		var viewerControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
+								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
 							"</div>";
 
 		var ownerSimpleControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
-								"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
-								"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
-								"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
+								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
+								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
+								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
+								"<div class='removeSource' title='Remove'><img src='/static/img/remove.png'></div>" +
 							"</div>";
 
 

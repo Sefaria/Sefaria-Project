@@ -43,25 +43,25 @@
 				{% if not new_sheet %}
 					{% if user.email %}
 					<div class="optionItem" id="copySheet">
-						<i class="fa fa-copy"></i> Copy Sheet</div>
+						<img src="/static/img/copy.png"> Copy Sheet</div>
 					{% endif %}
 					<div class="optionItem" id="embedSheet">
-						<i class="fa fa-code"></i> Embed Sheet</div>
+						<img src="/static/img/embed.png"> Embed Sheet</div>
 					{% if is_owner %}
 					<div class="optionItem" id="deleteSheet">
-						<i class="fa fa-trash-o"></i> Delete Sheet</div>
+						<img src="/static/img/delete.png"> Delete Sheet</div>
 					{% endif %}
 					<div class="line"></div>
 
 					{% if user.email %}
 					<div class="optionItem" id="editTags">
-						<i class="fa fa-pencil"></i> Edit Sheet Tags</div>
+						<img src="/static/img/edittags.png"> Edit Sheet Tags</div>
 					{% endif %}
 				{% if is_owner %}
 	    			{% if not sheet.assigner_id %}
 
                     <div class="optionGroup">
-                        <div class="optionTitle" id="assignmentsModalTrigger"><i class="fa fa-edit"></i> Assignments</div>
+                        <div class="optionTitle" id="assignmentsModalTrigger"><img src="/static/img/assignment.png"> Assignments</div>
                     </div>
 
 
@@ -80,13 +80,13 @@
 				<div class="line"></div>
 
 				<div class="optionItem" id="print">
-					<i class="fa fa-print"></i>Print</div>
+					<img src="/static/img/print.png"> Print</div>
 			</div>
         </div>
         <div class="sheetsMenuBarItem" id="formatMenu">Format
 			<div class="optionsMenu">
 				<div class="optionGroup">
-					<div class="optionTitle"><i class="fa fa-cloud"></i> Divine Names <i class='fa fa-caret-right'></i></div>
+					<div class="optionTitle"><img src="/static/img/divine.png"> Divine Names <i class='fa fa-caret-right'></i></div>
 					<div class="subMenu">
 						<div class="optionItem divineNamesOption" id="noSub">
 							<i class="fa fa-check"></i> <i>No substitution</i></div>
@@ -108,7 +108,7 @@
                 <div class="line"></div>
 
 				<div class="optionItem" id="resetText">
-					<i class="fa fa-refresh "></i> Reset Source Text</div>
+					<img src="/static/img/reset%20text.png"> Reset Source Text</div>
 
                 <div class="line"></div>
                 <div id="sheetLayoutLanguageMenuItems">
@@ -190,13 +190,13 @@
             {% if can_edit or can_add %}
         <div class="sheetsMenuBarItem" id="insertMenu">Insert
 			<div class="optionsMenu">
-				<div class="optionItem" id="addSourceMenu"><i class='fa fa-link'></i> Source</div>
+				<div class="optionItem" id="addSourceMenu"><img src="/static/img/source.png"> Source</div>
    				{% if is_owner %}
-                <div class="optionItem" id="addParashaToSheetModalTrigger"><i class='fa fa-book'></i> Parasha</div>
+                <div class="optionItem" id="addParashaToSheetModalTrigger"><img src="/static/img/parasha.png"> Parasha</div>
 				{% endif %}
-                <div class="optionItem" id="addCustomMenu"><i class='fa fa-columns'></i> Custom Text</div>
-				<div class="optionItem" id="addCommentMenu"><i class='fa fa-comment'></i> Comment</div>
-				<div class="optionItem" id="addMediaMenu"><i class='fa fa-youtube-play'></i> Media</div>
+                <div class="optionItem" id="addCustomMenu"><img src="/static/img/custom%20text.png"> Text</div>
+				<div class="optionItem" id="addCommentMenu"><img src="/static/img/comment.png"> Comment</div>
+				<div class="optionItem" id="addMediaMenu"><img src="/static/img/media.png"> Media</div>
             </div>
         </div>
             {% endif %}
@@ -229,7 +229,7 @@
     </div>
 </div>
 
-<div id="sheet" class="s2Sheet {{ sheet_class|default:'bilingual' }}">
+<div id="sheet" class="{{ sheet_class|default:'bilingual' }}">
     {% if not user.email %}
 	<div id="fileControls">
 
@@ -307,11 +307,11 @@
     {% if can_edit or can_add %}
     <div id="addInterface">
         <div class="buttonBar">
-            <div class="addInterfaceButton" id="sourceButton"><i class="fa fa-book"></i> Source</div><!--
-         --><div class="addInterfaceButton" id="connectionButton"><i class="fa fa-link"></i> Connection</div><!--
-         --><div class="addInterfaceButton" id="customTextButton"><i class="fa fa-file-text-o"></i> Custom Text</div><!--
-         --><div class="addInterfaceButton" id="mediaButton"><i class="fa fa-picture-o"></i> Media</div><!--
-         --><div class="addInterfaceButton" id="commentButton"><i class="fa fa-comment-o"></i> Comment</div>
+            <div class="addInterfaceButton" id="sourceButton"><img src="/static/img/source.png"> Source</div><!--
+         --><div class="addInterfaceButton" id="connectionButton"><img src="/static/img/connection.png"> Connection</div><!--
+         --><div class="addInterfaceButton" id="customTextButton"><img src="/static/img/custom%20text.png"> Text</div><!--
+         --><div class="addInterfaceButton" id="mediaButton"><img src="/static/img/media.png"> Media</div><!--
+         --><div class="addInterfaceButton" id="commentButton"><img src="/static/img/comment.png">  Comment</div>
         </div>
         <div class="contentDiv">
             <div id="addsourceDiv">
@@ -337,15 +337,15 @@
                 <div class="inlineAddDesc">Write or paste text</div>
                 <div id="customTextLanguageToggle" class="toggle"><span id="englishCustomText" class="toggleOption"><img src="/static/img/english.png"></span><span id="bilingualCustomText" class="toggleOption active"><img src="/static/img/bilingual.png"></span><span id="hebrewCustomText" class="toggleOption"><img src="/static/img/hebrew.png"></span></div>
 
-                <div class="flexContainer">
+                <div id="customTextContainer" class="flexContainer">
                     <div class="contentToAdd en customTextEditables" tabindex="0">English</div>
                     <div class="contentToAdd he customTextEditables" tabindex="0">עברית</div>
                 </div>
                 <div class="button">Add to Sheet</div>
             </div>
             <div id="addmediaDiv">
-                <div class="inlineAddDesc">Paste URL</div>
-                <input id="inlineAddMediaInput" placeholder="Link to your image, YouTube video, or mp3 file"><br/>
+                <div class="inlineAddDesc">Add Image, Youtube Video, or MP3</div>
+                <input id="inlineAddMediaInput" placeholder="Paste URL"><br/>
                 <div class="button">Add to Sheet</div>
             </div>
 
