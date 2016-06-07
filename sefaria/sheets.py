@@ -37,6 +37,29 @@ def get_sheet(id=None):
 	s["_id"] = str(s["_id"])
 	return s
 
+def user_sheets(user_id,sort_by):
+	if sort_by == "date":
+		sheet_list = db.sheets.find({"owner": int(user_id), "status": {"$ne": 5}}).sort([["dateModified", -1]])
+	elif sort_by == "views":
+		sheet_list = db.sheets.find({"owner": int(user_id), "status": {"$ne": 5}}).sort([["views", -1]])
+
+	response = {
+		"sheets": [],
+	}
+
+	for sheet in sheet_list:
+		s = {}
+		s["id"] = sheet["id"]
+		s["title"] = sheet["title"] if "title" in sheet else "Untitled Sheet"
+		s["author"] = sheet["owner"]
+		s["size"] = len(sheet["sources"])
+		s["views"] = sheet["views"]
+		s["modified"] = dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y")
+		s["tags"] = sheet["tags"]
+
+		response["sheets"].append(s)
+
+	return response
 
 
 def sheet_list(user_id=None):
@@ -64,7 +87,7 @@ def sheet_list(user_id=None):
 		s["tags"]    = sheet["tags"]
 
 		response["sheets"].append(s)
- 
+
 	return response
 
 

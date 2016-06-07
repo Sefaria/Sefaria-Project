@@ -1034,20 +1034,23 @@ Sefaria = extend(Sefaria, {
         }
       return sheets;
     },
-    _userSheets: {},
-    userSheets: function(uid, callback) {
+    _userSheets: {}, _lastUserSortBy: null,
+    userSheets: function(uid, callback,sortBy) {
       // Returns a list of source sheets belonging to `uid`
       // Only a user logged in as `uid` will get data back from this API call.
+        //
+      if (sortBy==null) sortBy = "date";
       var sheets = this._userSheets[uid];
-      if (sheets) {
+      if (sheets && this._lastUserSortBy == sortBy) {
         if (callback) { callback(sheets); }
       } else {
-        var url = "/api/sheets/user/" + uid;
+        var url = "/api/sheets/user/" + uid+"/"+sortBy;
          Sefaria._api(url, function(data) {
             this._userSheets[uid] = data.sheets;
             if (callback) { callback(data.sheets); }
           }.bind(this));
         }
+      this._lastUserSortBy = sortBy;
       return sheets;
     },
 
