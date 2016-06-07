@@ -494,6 +494,7 @@ var ReaderApp = React.createClass({
   },
   setContainerMode: function() {
     // Applies CSS classes to the React container so that S2 can function as a header only on top of another page.
+    // todo: because headerMode CSS was messing stuff up, header links are reloads in headerMode.  So - not sure if this method is still needed.
     if (this.props.headerMode) {
       if (this.state.header.menuOpen || this.state.panels.length) {
         $("#s2").removeClass("headerOnly");
@@ -912,6 +913,7 @@ var ReaderApp = React.createClass({
 var Header = React.createClass({
   propTypes: {
     initialState:                React.PropTypes.object.isRequired,
+    headerMode:                  React.PropTypes.bool,
     setCentralState:             React.PropTypes.func,
     interfaceLang:               React.PropTypes.string,
     onRefClick:                  React.PropTypes.func,
@@ -997,14 +999,26 @@ var Header = React.createClass({
     this.clearSearchBox();
   },
   showSearch: function(query) {
+    if (this.props.headerMode) {
+      window.location = `/search?q=${query}`;
+      return;
+    }
     this.props.showSearch(query);
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   },
   showAccount: function() {
+    if (this.props.headerMode) {
+      window.location = "/account";
+      return;
+    }
     this.props.setCentralState({menuOpen: "account"});
     this.clearSearchBox();
   },
   showNotifications: function() {
+    if (this.props.headerMode) {
+      window.location = "/notifications";
+      return;
+    }
     this.props.setCentralState({menuOpen: "notifications"});
     this.clearSearchBox();
   },
@@ -1042,6 +1056,10 @@ var Header = React.createClass({
     $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
   },
   handleLibraryClick: function() {
+    if (this.props.headerMode) {
+      window.location = "/texts";
+      return;
+    }
     if (this.state.menuOpen === "home") {
       return;
     } else if (this.state.menuOpen === "navigation" && this.state.navigationCategories.length == 0) {

@@ -675,6 +675,7 @@ a#siteLanguageHebrew {
   white-space:nowrap;
   max-width: 65%;
   margin: 0 20px;
+  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #teamPage .teamMember .teamMemberImage img{
   border: 1px solid #E6E5E6;
@@ -838,11 +839,18 @@ a#siteLanguageHebrew {
   color: #333;
   background-color: white;
 }
+#personPage p{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 20px;
+  line-height: 1.1em;
+}
 #peoplePage .author a, #talmudicPeoplePage .author a, #personPage a{
   color: #666;
 }
 #peoplePage .author, #talmudicPeoplePage .author{
   margin-left: 0;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 20px;
 }
 #personPage #periodNameLine, #personPage #yearLine{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -906,3 +914,12 @@ a#siteLanguageHebrew {
   padding: 0 3%;
   font-size: 1.3em;
 }
+
+.full-text-static {
+  margin: 70px auto;
+  width: 60%;
+  text-align: center;
+ }
+.full-text-static .page-title h1{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+ }
