@@ -145,6 +145,8 @@ class SaveNewSourceSheet(AtomicTest):
         WebDriverWait(self.driver, TEMPER).until(title_is("New Source Sheet | Sefaria Source Sheet Builder"))
 """
 
+"""
+# Not complete
 
 class InfiniteScrollUp(AtomicTest):
     suite_key = "Reader"
@@ -160,5 +162,6 @@ class InfiniteScrollDown(AtomicTest):
 
     def run(self):
         self.s2().load_ref("Job 32")
-        
+
+"""
 
