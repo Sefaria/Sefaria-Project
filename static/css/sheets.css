@@ -574,6 +574,10 @@ body {
 
 }
 
+.tooltipster-default {
+	background-color: #999 !important;
+	color: #fff;
+}
 
 
 
