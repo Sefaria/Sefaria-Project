@@ -537,6 +537,7 @@ body.hebrew #home #homeConnect .followButton .fa {
 
 #aboutPage {
   margin: 70px auto;
+  width: 600px;
 }
 
 body.hebrew #aboutPage .span5 {

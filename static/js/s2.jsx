@@ -2729,7 +2729,7 @@ var SheetsNav = React.createClass({
     }
   },
   componentWillReceiveProps: function(nextProps) {
-    this.setState({tagSort: nextProps.tagSort, tag: nextProps.initialTag, sheets: []});
+    this.setState({tagSort: nextProps.tagSort, tag: nextProps.initialTag});
   },
   getAllSheets: function() {
     Sefaria.sheets.allSheetsList(this.loadAllSheets);
@@ -2742,6 +2742,11 @@ var SheetsNav = React.createClass({
   changeSort: function(event) {
     this.props.setSheetTagSort(event.target.value);
     Sefaria.sheets.tagList(this.loadTags,event.target.value);
+  },
+  changeSortYourSheets: function(event) {
+    this.props.setSheetTagSort(event.target.value);
+    this.showYourSheets();
+    Sefaria.sheets.userSheets(Sefaria._uid, this.loadSheets,event.target.value);
   },
   getTags: function() {
     Sefaria.sheets.trendingTags(this.loadTags);
@@ -2775,48 +2780,67 @@ var SheetsNav = React.createClass({
     var enTitle = this.state.tag || "Source Sheets";
     var heTitle = this.state.tag || "דפי מקורות";
 
+
     if (this.state.tag) {
 
       if (this.state.tag == "Your Sheets") {
 
         var sheets = this.state.sheets.map(function (sheet) {
+          var editSheetTags = function() { console.log(sheet.id)}.bind(this);
           var title = sheet.title.stripHtml();
           var url = "/sheets/" + sheet.id;
           var tagString = sheet.tags.map(function (tag) {
-              return(tag);
+              return(tag+", ");
           });
 
+          return (<div className="sheet userSheet" key={url}>
+                    <a className="sheetEditButtons" href={url}>
+                      <span><i className="fa fa-pencil"></i> </span>
+                    </a>
+                    <div className="sheetEditButtons" onClick={editSheetTags}>
+                      <span><i className="fa fa-tag"></i> </span>
+                    </div>
 
+                    <div className="sheetTitle">{title}</div>
+                    <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
 
-          return (<a className="sheet" href={url} key={url}>
-            {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl}/>) : null}
-            <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
-            <div className="sheetAuthor">{sheet.ownerName}</div>
-            <div className="sheetTitle">{title}</div>
-            {tagString}
-          </a>);
-        });
-        sheets = sheets.length ? sheets : (<LoadingMessage />);
-        var content = (<div className="content sheetList">
-          <div className="contentInner">
-            {this.props.hideNavHeader ? (<h1>
-              <span className="en">My Source Sheets</span>
-            </h1>) : null}
-            {this.props.hideNavHeader ? (
-              <div className="sheetsNewButton">
-                <a className="button white" href="/sheets/new">
-                    <span className="en">Create a Source Sheet</span>
-                    <span className="he">צור דף מקורות חדש</span>
-                </a>
               </div>
+          );
+        });
 
-              ) : null }
+              var content = (<div className="content sheetList">
+                <div className="contentInner">
+                  {this.props.hideNavHeader ? (<h1>
+                    <span className="en">{enTitle}</span>
+                  </h1>) : null}
+                  {this.props.hideNavHeader ? (
+                    <div className="sheetsNewButton">
+                      <a className="button white" href="/sheets/new">
+                          <span className="en">Create a Source Sheet</span>
+                          <span className="he">צור דף מקורות חדש</span>
+                      </a>
+                    </div>
+
+                    ) : null }
+
+                                    {this.props.hideNavHeader ? (
+
+                                            <h2 className="splitHeader">
+                            <span className="en actionText" style={{float: 'left'}}>Filter By Tag</span>
+
+                            <span className="en actionText">Sort By:
+                              <select value={this.props.tagSort} onChange={this.changeSortYourSheets}>
+                               <option value="date">Recent</option>
+                               <option value="views">Most Viewed</option>
+                             </select> <i className="fa fa-angle-down"></i></span>
+
+                          </h2>) : null }
 
 
-            {sheets}</div>
-        </div>);
+                  {sheets}</div>
+              </div>);
+
       }
-
 
       else {
 
@@ -2830,7 +2854,6 @@ var SheetsNav = React.createClass({
             <div className="sheetTitle">{title}</div>
           </a>);
         });
-        sheets = sheets.length ? sheets : (<LoadingMessage />);
         var content = (<div className="content sheetList">
           <div className="contentInner">
             {this.props.hideNavHeader ? (<h1>
@@ -2839,7 +2862,6 @@ var SheetsNav = React.createClass({
             {sheets}</div>
         </div>);
       }
-
 
     }
     else {
