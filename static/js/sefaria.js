@@ -621,7 +621,7 @@ Sefaria = extend(Sefaria, {
       categoryData.books.sort(function(a, b) { 
         // First sort by predefined "top"
         var topByCategory = {
-          "Tanach": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
+          "Tanakh": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
           "Talmud": ["Rashi", "Tosafot"]
         };
         var cat = oRef ? oRef["categories"][0] : null;
@@ -1109,7 +1109,7 @@ Sefaria = extend(Sefaria, {
     // Returns a string translating `cat` into Hebrew.
     var categories = {
       "Torah":                "תורה",
-      "Tanach":               'תנ"ך',
+      "Tanakh":               'תנ"ך',
       "Tanakh":               'תנ"ך',
       "Prophets":             "נביאים",
       "Writings":             "כתובים",
@@ -2163,7 +2163,7 @@ Sefaria.palette = {
 };
 Sefaria.palette.categoryColors = {
   "Commentary":         Sefaria.palette.colors.blue,
-  "Tanach" :            Sefaria.palette.colors.darkteal,
+  "Tanakh" :            Sefaria.palette.colors.darkteal,
   "Midrash":            Sefaria.palette.colors.green,
   "Mishnah":            Sefaria.palette.colors.lightblue,
   "Talmud":             Sefaria.palette.colors.yellow,

@@ -141,7 +141,7 @@ def reader(request, tref, lang=None, version=None):
         description_text = "Unknown Text."
 
     initJSON    = json.dumps(text)
-    lines       = request.GET.get("layout", None) or "lines" if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else "block"
+    lines       = request.GET.get("layout", None) or "lines" if "error" in text or text["type"] not in ('Tanakh', 'Talmud') or text["book"] == "Psalms" else "block"
     layout      = request.GET.get("layout") if request.GET.get("layout") in ("heLeft", "heRight") else "heLeft"
     sidebarLang = request.GET.get('sidebarLang', None) or request.COOKIES.get('sidebarLang', "all")
     sidebarLang = {"all": "sidebarAll", "he": "sidebarHebrew", "en": "sidebarEnglish"}.get(sidebarLang, "sidebarAll")
@@ -278,7 +278,7 @@ def s2_props(request):
             "language":      request_context.get("contentLang"),
             "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),
             "layoutTalmud":  request.COOKIES.get("layoutTalmud", "continuous"),
-            "layoutTanach":  request.COOKIES.get("layoutTanach", "segmented"),
+            "layoutTanakh":  request.COOKIES.get("layoutTanakh", "segmented"),
             "color":         request.COOKIES.get("color", "light"),
             "fontSize":      request.COOKIES.get("fontSize", 62.5),
         },

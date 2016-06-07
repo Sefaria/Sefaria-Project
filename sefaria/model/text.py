@@ -2046,7 +2046,7 @@ class Ref(object):
         return getattr(self.index_node, "addressTypes", None) and len(self.index_node.addressTypes) and self.index_node.addressTypes[0] == "Talmud"
 
     def is_tanach(self):
-        return u"Tanach" in self.index.b_index.categories if self.is_commentary() else u"Tanach" in self.index.categories
+        return u"Tanakh" in self.index.b_index.categories if self.is_commentary() else u"Tanakh" in self.index.categories
 
     def is_bavli(self):
         """
