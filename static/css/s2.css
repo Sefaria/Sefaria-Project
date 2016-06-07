@@ -91,7 +91,6 @@ body.dark {
   font-size:  18px;
   font-family: "adobe-garamond-pro", Georgia, serif;
   vertical-align: 1px;
-  width: 90%;
   margin: 0;
 }
 .search-override {
@@ -1057,8 +1056,12 @@ h1 .languageToggle .he {
     width: auto;
   }
 }
+
+.searchContentFrame h1 {
+  height: 40px;
+}
 .searchContent {
-  padding: 15px 10px 100px;
+  padding: 0 10px 100px;
 }
 .searchContent .searchTopMatter {
   padding-bottom: 10px;
@@ -1069,8 +1072,7 @@ h1 .languageToggle .he {
   border-bottom: none;
 }
 .searchContent .searchStatusLine {
-  padding: 10px 0 36px 0;
-  margin-top: -60px;
+  padding: 0 0 36px 0;
   text-align: center;
   font-size: 12px;
   height: 64px;
