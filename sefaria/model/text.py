@@ -18,7 +18,7 @@ try:
     re.set_fallback_notification(re.FALLBACK_WARNING)
 except ImportError:
     logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines")
-    import regex as re
+    import re
 
 from . import abstract as abst
 from schema import deserialize_tree, SchemaNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, TermSet, TitleGroup
