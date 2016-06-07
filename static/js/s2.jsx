@@ -4554,7 +4554,6 @@ var LexiconPanel = React.createClass({
     }
   },
   getLookups: function(){
-    console.log("Lexicon Ref: ", this.props.oref);
     if(!this.shouldRenderSelf()){
       return;
     }
@@ -4573,16 +4572,14 @@ var LexiconPanel = React.createClass({
     if(!this.props.selectedWords){
       return false;
     }
-    wordList = this.props.selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
-    inputLength = wordList.length;
+    var wordList = this.props.selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
+    var inputLength = wordList.length;
     return (inputLength > 0 && inputLength <= 3);
   },
   filter: function(entries){
-
     return entries.map()
   },
   render: function(){
-    console.log("lexicon: "+this.props.selectedWords);
     var ref_cats = this.props.oref.categories.join(", ");
     var enEmpty = "No results found.";
     var heEmpty = "לא נמצאו תוצאות";
