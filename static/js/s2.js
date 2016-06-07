@@ -492,6 +492,7 @@ var ReaderApp = React.createClass({
   },
   setContainerMode: function setContainerMode() {
     // Applies CSS classes to the React container so that S2 can function as a header only on top of another page.
+    // todo: because headerMode CSS was messing stuff up, header links are reloads in headerMode.  So - not sure if this method is still needed.
     if (this.props.headerMode) {
       if (this.state.header.menuOpen || this.state.panels.length) {
         $("#s2").removeClass("headerOnly");
@@ -921,6 +922,7 @@ var Header = React.createClass({
 
   propTypes: {
     initialState: React.PropTypes.object.isRequired,
+    headerMode: React.PropTypes.bool,
     setCentralState: React.PropTypes.func,
     interfaceLang: React.PropTypes.string,
     onRefClick: React.PropTypes.func,
@@ -1001,14 +1003,26 @@ var Header = React.createClass({
     this.clearSearchBox();
   },
   showSearch: function showSearch(query) {
+    if (this.props.headerMode) {
+      window.location = '/search?q=' + query;
+      return;
+    }
     this.props.showSearch(query);
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   },
   showAccount: function showAccount() {
+    if (this.props.headerMode) {
+      window.location = "/account";
+      return;
+    }
     this.props.setCentralState({ menuOpen: "account" });
     this.clearSearchBox();
   },
   showNotifications: function showNotifications() {
+    if (this.props.headerMode) {
+      window.location = "/notifications";
+      return;
+    }
     this.props.setCentralState({ menuOpen: "notifications" });
     this.clearSearchBox();
   },
@@ -1048,6 +1062,10 @@ var Header = React.createClass({
     $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
   },
   handleLibraryClick: function handleLibraryClick() {
+    if (this.props.headerMode) {
+      window.location = "/texts";
+      return;
+    }
     if (this.state.menuOpen === "home") {
       return;
     } else if (this.state.menuOpen === "navigation" && this.state.navigationCategories.length == 0) {
@@ -3248,7 +3266,7 @@ var SheetsNav = React.createClass({
     }
   },
   componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
-    this.setState({ tagSort: nextProps.tagSort, tag: nextProps.initialTag, sheets: [] });
+    this.setState({ tagSort: nextProps.tagSort, tag: nextProps.initialTag });
   },
   getAllSheets: function getAllSheets() {
     Sefaria.sheets.allSheetsList(this.loadAllSheets);
@@ -3261,6 +3279,11 @@ var SheetsNav = React.createClass({
   changeSort: function changeSort(event) {
     this.props.setSheetTagSort(event.target.value);
     Sefaria.sheets.tagList(this.loadTags, event.target.value);
+  },
+  changeSortYourSheets: function changeSortYourSheets(event) {
+    this.props.setSheetTagSort(event.target.value);
+    this.showYourSheets();
+    Sefaria.sheets.userSheets(Sefaria._uid, this.loadSheets, event.target.value);
   },
   getTags: function getTags() {
     Sefaria.sheets.trendingTags(this.loadTags);
@@ -3299,37 +3322,55 @@ var SheetsNav = React.createClass({
       if (this.state.tag == "Your Sheets") {
 
         var sheets = this.state.sheets.map(function (sheet) {
+          var editSheetTags = function () {
+            console.log(sheet.id);
+          }.bind(this);
           var title = sheet.title.stripHtml();
           var url = "/sheets/" + sheet.id;
           var tagString = sheet.tags.map(function (tag) {
-            return tag;
+            return tag + ", ";
           });
 
           return React.createElement(
-            'a',
-            { className: 'sheet', href: url, key: url },
-            sheet.ownerImageUrl ? React.createElement('img', { className: 'sheetImg', src: sheet.ownerImageUrl }) : null,
+            'div',
+            { className: 'sheet userSheet', key: url },
             React.createElement(
-              'span',
-              { className: 'sheetViews' },
-              React.createElement('i', { className: 'fa fa-eye' }),
-              ' ',
-              sheet.views
+              'a',
+              { className: 'sheetEditButtons', href: url },
+              React.createElement(
+                'span',
+                null,
+                React.createElement('i', { className: 'fa fa-pencil' }),
+                ' '
+              )
             ),
             React.createElement(
               'div',
-              { className: 'sheetAuthor' },
-              sheet.ownerName
+              { className: 'sheetEditButtons', onClick: editSheetTags },
+              React.createElement(
+                'span',
+                null,
+                React.createElement('i', { className: 'fa fa-tag' }),
+                ' '
+              )
             ),
             React.createElement(
               'div',
               { className: 'sheetTitle' },
               title
             ),
-            tagString
+            React.createElement(
+              'div',
+              null,
+              sheet.views,
+              ' Views · ',
+              sheet.modified,
+              ' · ',
+              tagString
+            )
           );
         });
-        sheets = sheets.length ? sheets : React.createElement(LoadingMessage, null);
+
         var content = React.createElement(
           'div',
           { className: 'content sheetList' },
@@ -3342,7 +3383,7 @@ var SheetsNav = React.createClass({
               React.createElement(
                 'span',
                 { className: 'en' },
-                'My Source Sheets'
+                enTitle
               )
             ) : null,
             this.props.hideNavHeader ? React.createElement(
@@ -3361,6 +3402,36 @@ var SheetsNav = React.createClass({
                   { className: 'he' },
                   'צור דף מקורות חדש'
                 )
+              )
+            ) : null,
+            this.props.hideNavHeader ? React.createElement(
+              'h2',
+              { className: 'splitHeader' },
+              React.createElement(
+                'span',
+                { className: 'en actionText', style: { float: 'left' } },
+                'Filter By Tag'
+              ),
+              React.createElement(
+                'span',
+                { className: 'en actionText' },
+                'Sort By:',
+                React.createElement(
+                  'select',
+                  { value: this.props.tagSort, onChange: this.changeSortYourSheets },
+                  React.createElement(
+                    'option',
+                    { value: 'date' },
+                    'Recent'
+                  ),
+                  React.createElement(
+                    'option',
+                    { value: 'views' },
+                    'Most Viewed'
+                  )
+                ),
+                ' ',
+                React.createElement('i', { className: 'fa fa-angle-down' })
               )
             ) : null,
             sheets
@@ -3394,7 +3465,6 @@ var SheetsNav = React.createClass({
             )
           );
         });
-        sheets = sheets.length ? sheets : React.createElement(LoadingMessage, null);
         var content = React.createElement(
           'div',
           { className: 'content sheetList' },
