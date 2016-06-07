@@ -52,6 +52,7 @@ def language_settings(request):
     content = 'english' if content not in ('english', 'hebrew', 'bilingual') else content
 
     # INTERFACE
+    interface = None
     if request.user.is_authenticated():
         profile = UserProfile(id=request.user.id)
         interface = profile.settings["interface_language"] if "interface_language" in profile.settings else None 
