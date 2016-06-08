@@ -2832,6 +2832,7 @@ var SheetsNav = React.createClass({
           var editSheetTags = function() { console.log(sheet.id)}.bind(this);
           var title = sheet.title.stripHtml();
           var url = "/sheets/" + sheet.id;
+          sheet.tag ? sheet.tag : [];
           var tagString = sheet.tags.map(function (tag) {
               return(tag+", ");
           });
