@@ -615,6 +615,12 @@ def user_sheet_list_api(request, user_id):
 		return jsonResponse({"error": "You are not authorized to view that."})
 	return jsonResponse(sheet_list(user_id), callback=request.GET.get("callback", None))
 
+def user_sheet_list_api_with_sort(request, user_id, sort_by="date"):
+	if int(user_id) != request.user.id:
+		return jsonResponse({"error": "You are not authorized to view that."})
+	return jsonResponse(user_sheets(user_id,sort_by), callback=request.GET.get("callback", None))
+
+
 def public_sheet_list_api(request):
 	return jsonResponse(sheet_list(), callback=request.GET.get("callback", None))
 

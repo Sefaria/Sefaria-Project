@@ -19,6 +19,7 @@ var ReaderApp = React.createClass({
     multiPanel:                  React.PropTypes.bool,
     headerMode:                  React.PropTypes.bool,  // is S2 serving only as a header on top of another page?
     loggedIn:                    React.PropTypes.bool,
+    interfaceLang:               React.PropTypes.string,
     initialRefs:                 React.PropTypes.array,
     initialFilter:               React.PropTypes.array,
     initialMenu:                 React.PropTypes.string,
@@ -36,6 +37,7 @@ var ReaderApp = React.createClass({
     return {
       multiPanel:                  true,
       headerMode:                  false,  // is S2 serving only as a header on top of another page?
+      interfaceLang:               "english",
       initialRefs:                 [],
       initialFilter:               null,
       initialMenu:                 null,
@@ -308,9 +310,10 @@ var ReaderApp = React.createClass({
             hist.mode = "book toc";
             break;
           case "search":
+            var query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
             hist.title = state.searchQuery ? state.searchQuery + " | " : "";
             hist.title += "Sefaria Search";
-            hist.url   = "search" + (state.searchQuery ? "&q=" + state.searchQuery + ((!!state.appliedSearchFilters && !!state.appliedSearchFilters.length) ? "&filters=" + state.appliedSearchFilters.join("|") : "") : "");
+            hist.url   = "search" + (state.searchQuery ? "&q=" + query + ((!!state.appliedSearchFilters && !!state.appliedSearchFilters.length) ? "&filters=" + state.appliedSearchFilters.join("|") : "") : "");
             hist.mode  = "search";
             break;
           case "sheets":
@@ -484,7 +487,7 @@ var ReaderApp = React.createClass({
         language:      "bilingual",
         layoutDefault: "segmented",
         layoutTalmud:  "continuous",
-        layoutTanach:  "segmented",
+        layoutTanakh:  "segmented",
         color:         "light",
         fontSize:      62.5
       };
@@ -492,6 +495,7 @@ var ReaderApp = React.createClass({
   },
   setContainerMode: function() {
     // Applies CSS classes to the React container so that S2 can function as a header only on top of another page.
+    // todo: because headerMode CSS was messing stuff up, header links are reloads in headerMode.  So - not sure if this method is still needed.
     if (this.props.headerMode) {
       if (this.state.header.menuOpen || this.state.panels.length) {
         $("#s2").removeClass("headerOnly");
@@ -831,6 +835,7 @@ var ReaderApp = React.createClass({
     var header = this.props.multiPanel || this.state.panels.length == 0 ?
                   (<Header 
                     initialState={this.state.header}
+                    interfaceLang={this.props.interfaceLang}
                     setCentralState={this.setHeaderState}
                     onRefClick={this.handleNavigationClick}
                     onRecentClick={this.handleRecentClick}
@@ -871,6 +876,7 @@ var ReaderApp = React.createClass({
       panels.push(<div className="readerPanelBox" style={style} key={key}>
                     <ReaderPanel 
                       initialState={panel}
+                      interfaceLang={this.props.interfaceLang}
                       setCentralState={setPanelState}
                       multiPanel={this.props.multiPanel}
                       onSegmentClick={onSegmentClick}
@@ -908,7 +914,9 @@ var ReaderApp = React.createClass({
 var Header = React.createClass({
   propTypes: {
     initialState:                React.PropTypes.object.isRequired,
+    headerMode:                  React.PropTypes.bool,
     setCentralState:             React.PropTypes.func,
+    interfaceLang:               React.PropTypes.string,
     onRefClick:                  React.PropTypes.func,
     onRecentClick:               React.PropTypes.func,
     showLibrary:                 React.PropTypes.func,
@@ -991,14 +999,27 @@ var Header = React.createClass({
     this.clearSearchBox();
   },
   showSearch: function(query) {
+    if (this.props.headerMode) {
+      query = encodeURIComponent(query);
+      window.location = `/search?q=${query}`;
+      return;
+    }
     this.props.showSearch(query);
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   },
   showAccount: function() {
+    if (this.props.headerMode) {
+      window.location = "/account";
+      return;
+    }
     this.props.setCentralState({menuOpen: "account"});
     this.clearSearchBox();
   },
   showNotifications: function() {
+    if (this.props.headerMode) {
+      window.location = "/notifications";
+      return;
+    }
     this.props.setCentralState({menuOpen: "notifications"});
     this.clearSearchBox();
   },
@@ -1025,9 +1046,10 @@ var Header = React.createClass({
       }
     }
     if (Sefaria.isRef(query)) {
-      this.props.onRefClick(query);
-      this.showDesktop();
+      this.handleRefClick(query);
       if (Sefaria.site) { Sefaria.site.track.ui("Nav Query"); }
+      if (this.props.headerMode) { return; }
+      this.showDesktop();
     } else {
       this.showSearch(query);
     }
@@ -1036,6 +1058,10 @@ var Header = React.createClass({
     $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
   },
   handleLibraryClick: function() {
+    if (this.props.headerMode) {
+      window.location = "/texts";
+      return;
+    }
     if (this.state.menuOpen === "home") {
       return;
     } else if (this.state.menuOpen === "navigation" && this.state.navigationCategories.length == 0) {
@@ -1045,6 +1071,10 @@ var Header = React.createClass({
     }
   },
   handleRefClick: function(ref, version, versionLanguage) {
+    if (this.props.headerMode) {
+      window.location.assign("/" + ref);
+      return;
+    }
     this.props.onRefClick(ref, version, versionLanguage);
   },
   handleSearchKeyUp: function(event) {
@@ -1065,6 +1095,7 @@ var Header = React.createClass({
     var viewContent = this.state.menuOpen ?
                         (<ReaderPanel
                           initialState={this.state}
+                          interfaceLang={this.props.interfaceLang}
                           setCentralState={this.props.setCentralState}
                           multiPanel={true}
                           onNavTextClick={this.props.onRefClick}
@@ -1134,6 +1165,7 @@ var ReaderPanel = React.createClass({
     initialAppliedSearchFilters: React.PropTypes.array,
     initialSheetsTag:            React.PropTypes.string,
     initialState:                React.PropTypes.object, // if present, trumps all props above
+    interfaceLang:               React.PropTypes.string,
     setCentralState:             React.PropTypes.func,
     onSegmentClick:              React.PropTypes.func,
     onCitationClick:             React.PropTypes.func,
@@ -1182,7 +1214,7 @@ var ReaderPanel = React.createClass({
         language:      "bilingual",
         layoutDefault: "segmented",
         layoutTalmud:  "continuous",
-        layoutTanach:  "segmented",
+        layoutTanakh:  "segmented",
         color:         "light",
         fontSize:      62.5
       },
@@ -1413,7 +1445,7 @@ var ReaderPanel = React.createClass({
       value = (value === "smaller" ? size/step : size*step);
     } else if (option === "layout") {
       var category = this.currentCategory();
-      var option = category === "Tanach" || category === "Talmud" ? "layout" + category : "layoutDefault";
+      var option = category === "Tanakh" || category === "Talmud" ? "layout" + category : "layoutDefault";
     }
 
     this.state.settings[option] = value;
@@ -1505,7 +1537,7 @@ var ReaderPanel = React.createClass({
   currentLayout: function() {
     var category = this.currentCategory();
     if (!category) { return "layoutDefault"; }
-    var option = category === "Tanach" || category === "Talmud" ? "layout" + category : "layoutDefault";
+    var option = category === "Tanakh" || category === "Talmud" ? "layout" + category : "layoutDefault";
     return this.state.settings[option];  
   },
   render: function() {
@@ -1547,6 +1579,7 @@ var ReaderPanel = React.createClass({
           filter={this.state.filter || []}
           mode={this.state.connectionsMode || "Connections"}
           recentFilters={this.state.recentFilters}
+          interfaceLang={this.props.interfaceLang}
           version={this.state.version}
           versionLanguage={this.state.versionLanguage}
           fullPanel={this.props.multiPanel}
@@ -1574,6 +1607,7 @@ var ReaderPanel = React.createClass({
     if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation" || this.state.menuOpen == "compare") {
       var menu = (<ReaderNavigationMenu 
                     home={this.state.menuOpen === "home"}
+                    interfaceLang={this.props.interfaceLang}
                     multiPanel={this.props.multiPanel}
                     categories={this.state.navigationCategories || []}
                     settings={this.state.settings}
@@ -1594,6 +1628,7 @@ var ReaderPanel = React.createClass({
     else if (this.state.menuOpen === "text toc") {
       var menu = (<ReaderTextTableOfContents
                     mode={this.state.menuOpen}
+                    interfaceLang={this.props.interfaceLang}
                     close={this.closeMenus}
                     title={this.currentBook()}
                     version={this.state.version}
@@ -1609,6 +1644,7 @@ var ReaderPanel = React.createClass({
     } else if (this.state.menuOpen === "book toc") {
       var menu = (<ReaderTextTableOfContents
                     mode={this.state.menuOpen}
+                    interfaceLang={this.props.interfaceLang}
                     closePanel={this.props.closePanel}
                     close={this.closeMenus}
                     title={this.state.bookRef}
@@ -1639,6 +1675,7 @@ var ReaderPanel = React.createClass({
 
     } else if (this.state.menuOpen === "sheets") {
       var menu = (<SheetsNav
+                    interfaceLang={this.props.interfaceLang}
                     openNav={this.openMenu.bind(null, "navigation")}
                     close={this.closeMenus}
                     multiPanel={this.props.multiPanel}
@@ -1648,17 +1685,17 @@ var ReaderPanel = React.createClass({
                     tagSort={this.state.tagSort}
                     setSheetTagSort={this.setSheetTagSort}
                     setSheetTag={this.setSheetTag}
-                    key={this.state.key}
-                  />);
+                    key={this.state.key} />);
+
     } else if (this.state.menuOpen === "account") {
       var menu = (<AccountPanel
-                    toggleLanguage={this.toggleLanguage} />);
+                    interfaceLang={this.props.interfaceLang} />);
 
 
     } else if (this.state.menuOpen === "notifications") {
       var menu = (<NotificationsPanel 
                     setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
-                    toggleLanguage={this.toggleLanguage} />);
+                    interfaceLang={this.props.interfaceLang} />);
 
     } else {
       var menu = null;
@@ -1999,7 +2036,7 @@ var ReaderNavigationMenu = React.createClass({
               </div>);
     } else {
       var categories = [
-        "Tanach",
+        "Tanakh",
         "Mishnah",
         "Talmud",
         "Midrash",
@@ -2066,30 +2103,27 @@ var ReaderNavigationMenu = React.createClass({
                   </div>);
 
       var calendar = Sefaria.calendar ?
-                     [(<TextBlockLink sref={Sefaria.calendar.parasha} title={Sefaria.calendar.parashaName} heTitle="פרשה" category="Tanach" />),
-                      (<TextBlockLink sref={Sefaria.calendar.haftara} title="Haftara" heTitle="הפטרה" category="Tanach" />),
+                     [(<TextBlockLink sref={Sefaria.calendar.parasha} title={Sefaria.calendar.parashaName} heTitle="פרשה" category="Tanakh" />),
+                      (<TextBlockLink sref={Sefaria.calendar.haftara} title="Haftara" heTitle="הפטרה" category="Tanakh" />),
                       (<TextBlockLink sref={Sefaria.calendar.daf_yomi} title="Daf Yomi" heTitle="דף יומי" category="Talmud" />)] : [];
       calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={this.width} /></div>);
 
 
       var sheetsStyle = {"borderColor": Sefaria.palette.categoryColor("Sheets")};
       var resources = [(<span className="resourcesLink" style={sheetsStyle} onClick={this.props.openMenu.bind(null, "sheets")}>
-                        <i className="fa fa-file-text-o"></i>
+                        <img src="/static/img/sheet-icon.png" />
                         <span className="en">Source Sheets</span>
                         <span className="he">דפי מקורות</span>
-                        <i className="fa fa-file-text-o hidden"></i>
                       </span>),
                      (<a className="resourcesLink" style={sheetsStyle} href="/visualizations">
-                        <i className="fa fa-link"></i>
+                        <img src="/static/img/visualizations-icon.png" />
                         <span className="en">Visualizations</span>
                         <span className="he">חזותיים</span>
-                        <i className="fa fa-link hidden"></i>
                       </a>),
                     (<a className="resourcesLink" style={sheetsStyle} href="/people">
-                        <i className="fa fa-book"></i>
+                        <img src="/static/img/authors-icon.png" />
                         <span className="en">Authors</span>
                         <span className="he">רשימת מחברים</span>
-                        <i className="fa fa-book hidden"></i>
                       </a>)];
       resources = (<div className="readerNavCalendar"><TwoOrThreeBox content={resources} width={this.width} /></div>);
 
@@ -2713,7 +2747,7 @@ var SheetsNav = React.createClass({
     }
   },
   componentWillReceiveProps: function(nextProps) {
-    this.setState({tagSort: nextProps.tagSort, tag: nextProps.initialTag, sheets: []});
+    this.setState({tagSort: nextProps.tagSort, tag: nextProps.initialTag});
   },
   getAllSheets: function() {
     Sefaria.sheets.allSheetsList(this.loadAllSheets);
@@ -2726,6 +2760,11 @@ var SheetsNav = React.createClass({
   changeSort: function(event) {
     this.props.setSheetTagSort(event.target.value);
     Sefaria.sheets.tagList(this.loadTags,event.target.value);
+  },
+  changeSortYourSheets: function(event) {
+    this.props.setSheetTagSort(event.target.value);
+    this.showYourSheets();
+    Sefaria.sheets.userSheets(Sefaria._uid, this.loadSheets,event.target.value);
   },
   getTags: function() {
     Sefaria.sheets.trendingTags(this.loadTags);
@@ -2743,13 +2782,12 @@ var SheetsNav = React.createClass({
     this.props.setSheetTag(tag);
   },
   loadSheets: function(sheets) {
-    console.log(sheets);
     this.setState({sheets: sheets});
   },
   showYourSheets: function() {
     this.setState({tag: "Your Sheets"});
     Sefaria.sheets.userSheets(Sefaria._uid, this.loadSheets);
-    this.props.setSheetTag("Your Sheets");    
+    this.props.setSheetTag("Your Sheets");
   },
   showAllSheets: function() {
     this.setState({tag: "All Sheets"});
@@ -2760,23 +2798,105 @@ var SheetsNav = React.createClass({
     var enTitle = this.state.tag || "Source Sheets";
     var heTitle = this.state.tag || "דפי מקורות";
 
+
     if (this.state.tag) {
-      var sheets = this.state.sheets.map(function(sheet) {
-        var title = sheet.title.stripHtml();
-        var url   = "/sheets/" + sheet.id;
-        return (<a className="sheet" href={url} key={url}>
-                  {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl} />) : null}
-                  <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
-                  <div className="sheetAuthor">{sheet.ownerName}</div>
-                  <div className="sheetTitle">{title}</div>
-                </a>);
-      });
-      sheets = sheets.length ? sheets : (<LoadingMessage />);
-      var content = (<div className="content sheetList"><div className="contentInner">
-                          {this.props.hideNavHeader ? (<h1>
-                            <span className="en">{enTitle}</span>
-                          </h1>) : null}
-                          {sheets}</div></div>);
+
+      if (this.state.tag == "Your Sheets") {
+
+        var sheets = this.state.sheets.map(function (sheet) {
+          var editSheetTags = function() { console.log(sheet.id)}.bind(this);
+          var title = sheet.title.stripHtml();
+          var url = "/sheets/" + sheet.id;
+          var tagString = sheet.tags.map(function (tag) {
+              return(tag+", ");
+          });
+
+
+          if (this.props.multiPanel) {
+                return (<div className="sheet userSheet" key={url}>
+                          <a className="sheetEditButtons" href={url}>
+                            <span><i className="fa fa-pencil"></i> </span>
+                          </a>
+                          <div className="sheetEditButtons" onClick={editSheetTags}>
+                            <span><i className="fa fa-tag"></i> </span>
+                          </div>
+
+                          <div className="sheetTitle">{title}</div>
+                          <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
+
+                    </div>
+                );
+
+          }
+
+          else {
+
+              return (<a className="sheet userSheet" href={url} key={url}>
+                        <div className="sheetTitle">{title}</div>
+                        <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
+                  </a>
+              );
+
+
+          }
+
+        }, this);
+
+              var content = (<div className="content sheetList">
+                <div className="contentInner">
+                  {this.props.hideNavHeader ? (<h1>
+                    <span className="en">{enTitle}</span>
+                  </h1>) : null}
+                  {this.props.hideNavHeader ? (
+                    <div className="sheetsNewButton">
+                      <a className="button white" href="/sheets/new">
+                          <span className="en">Create a Source Sheet</span>
+                          <span className="he">צור דף מקורות חדש</span>
+                      </a>
+                    </div>
+
+                    ) : null }
+
+                                    {this.props.hideNavHeader ? (
+
+                                            <h2 className="splitHeader">
+                            <span className="en actionText" style={{float: 'left'}}>Filter By Tag</span>
+
+                            <span className="en actionText">Sort By:
+                              <select value={this.props.tagSort} onChange={this.changeSortYourSheets}>
+                               <option value="date">Recent</option>
+                               <option value="views">Most Viewed</option>
+                             </select> <i className="fa fa-angle-down"></i></span>
+
+                          </h2>) : null }
+
+
+                  {sheets}</div>
+              </div>);
+
+      }
+
+      else {
+
+        var sheets = this.state.sheets.map(function (sheet) {
+          var title = sheet.title.stripHtml();
+          var url = "/sheets/" + sheet.id;
+          return (<a className="sheet" href={url} key={url}>
+            {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl}/>) : null}
+            <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
+            <div className="sheetAuthor">{sheet.ownerName}</div>
+            <div className="sheetTitle">{title}</div>
+          </a>);
+        });
+        var content = (<div className="content sheetList">
+          <div className="contentInner">
+            {this.props.hideNavHeader ? (<h1>
+              <span className="en">{enTitle}</span>
+            </h1>) : null}
+            {sheets}</div>
+        </div>);
+      }
+
     }
     else {
       var yourSheets  = Sefaria._uid ? (<div className="yourSheetsLink navButton" onClick={this.showYourSheets}>Your Source Sheets <i className="fa fa-chevron-right"></i></div>) : null;
@@ -3180,7 +3300,7 @@ var TextColumn = React.createClass({
         this.props.updateTextColumn(refs);
         if (Sefaria.site) { Sefaria.site.track.event("Reader", "Infinite Scroll", "Down"); }
       }
-    } else if (windowTop < 21) {
+    } else if (windowTop < 21 && !this.loadingContentAtTop) {
       // UP: add the previous section above then adjust scroll position so page doesn't jump
       var topRef = refs[0];
       var data   = Sefaria.ref(topRef);
@@ -3373,7 +3493,7 @@ var TextRange = React.createClass({
           this.props.versionLanguage != prevProps.versionLanguage ||
           prevProps.settings.language !== this.props.settings.language ||
           prevProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
-          prevProps.settings.layoutTanach !== this.props.settings.layoutTanach ||
+          prevProps.settings.layoutTanakh !== this.props.settings.layoutTanakh ||
           prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
           prevProps.settings.fontSize !== this.props.settings.fontSize ||
           prevProps.layoutWidth !== this.props.layoutWidth) {
@@ -3544,12 +3664,41 @@ var TextRange = React.createClass({
     // Set the vertical offsets for segment numbers and link counts, which are dependent
     // on the rendered height of the text of each segment.
     var $text  = $(ReactDOM.findDOMNode(this));
+    var elemsAtPosition = {}; // Keyed by top position, an array of elements found there
     var setTop = function() {
-       var top  = $(this).parent().position().top;
-      $(this).css({top: top}).show();   
+      var $elem = $(this);
+      var top   = $elem.parent().position().top;
+      $elem.css({top: top});
+      var list = elemsAtPosition[top] || [];
+      list.push($elem);
+      elemsAtPosition[top] = list;  
     };
-    $text.find(".segmentNumber").each(setTop);
     $text.find(".linkCount").each(setTop);
+    elemsAtPosition = {} // resetting because we only want it to track segmentNumbers
+    $text.find(".segmentNumber").each(setTop).show();
+    var fixCollision = function ($elems) {
+      // Takes an array of jQuery elements that all currenlty appear at the same top position
+      if ($elems.length == 1) { return; }
+      if ($elems.length == 2) {
+        var adjust = 8;
+        $elems[0].css({top: "-=" + adjust});
+        $elems[1].css({top: "+=" + adjust});
+      }
+      /* Sketching a general solution for any number of elements, incomplete.
+      var halfOrLess = Math.floor($elems.length / 2);
+      var above = $elems.slice(0, halfOrLess);
+      var below = $elems.slice(-halfOrLess);
+      for (var i = 0; i < halfOrLess; i++) {
+
+      }
+      */
+    };
+    for (var top in elemsAtPosition) {
+      if (elemsAtPosition.hasOwnProperty(top)) {
+        fixCollision(elemsAtPosition[top]);
+      }
+    }
+    $text.find(".segmentNumber").show();
   },
   render: function() {
     var data = this.getText();
@@ -3557,7 +3706,7 @@ var TextRange = React.createClass({
       var ref              = this.props.withContext ? data.sectionRef : data.ref;
       var sectionStrings   = Sefaria.sectionString(ref);
       var oref             = Sefaria.ref(ref);
-      var useShortString   = oref && Sefaria.util.inArray(oref.categories[0], ["Tanach", "Mishnah", "Talmud", "Tosefta", "Commentary"]) !== -1;
+      var useShortString   = oref && Sefaria.util.inArray(oref.categories[0], ["Tanakh", "Mishnah", "Talmud", "Tosefta", "Commentary"]) !== -1;
       var title            = useShortString ? sectionStrings.en.numbered : sectionStrings.en.named;
       var heTitle          = useShortString ? sectionStrings.he.numbered : sectionStrings.he.named;   
     } else if (data && !this.props.basetext) {  
@@ -4420,7 +4569,6 @@ var LexiconPanel = React.createClass({
     }
   },
   getLookups: function(){
-    console.log("Lexicon Ref: ", this.props.oref);
     if(!this.shouldRenderSelf()){
       return;
     }
@@ -4439,16 +4587,14 @@ var LexiconPanel = React.createClass({
     if(!this.props.selectedWords){
       return false;
     }
-    wordList = this.props.selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
-    inputLength = wordList.length;
+    var wordList = this.props.selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
+    var inputLength = wordList.length;
     return (inputLength > 0 && inputLength <= 3);
   },
   filter: function(entries){
-
     return entries.map()
   },
   render: function(){
-    console.log("lexicon: "+this.props.selectedWords);
     var ref_cats = this.props.oref.categories.join(", ");
     var enEmpty = "No results found.";
     var heEmpty = "לא נמצאו תוצאות";
@@ -5113,6 +5259,7 @@ var SearchResultList = React.createClass({
     initialQuerySize: 100,
     backgroundQuerySize: 1000,
     maxResultSize: 10000,
+    resultDisplayStep: 50,
     getDefaultProps: function() {
         return {
             appliedFilters: []
@@ -5120,86 +5267,118 @@ var SearchResultList = React.createClass({
     },
     getInitialState: function() {
         return {
-            runningQuery: null,
-            isQueryRunning: false,
-            moreToLoad: true,
-            total: 0,
-            textTotal: 0,
-            sheetTotal: 0,
-            textHits: [],
-            sheetHits: [],
-            activeTab: "texts"
+            types: ["text", "sheet"],
+            runningQueries: {"text": null, "sheet": null},
+            isQueryRunning: {"text": false, "sheet": false},
+            moreToLoad: {"text": true, "sheet": true},
+            totals: {"text":0, "sheet":0},
+            displayedUntil: {"text":50, "sheet":50},
+            hits: {"text": [], "sheet": []},
+            activeTab: "text",
+            error: false
         }
     },
-    updateRunningQuery: function(ajax) {
+    updateRunningQuery: function(type, ajax) {
+        this.state.runningQueries[type] = ajax;
+        this.state.isQueryRunning[type] = !!ajax;
         this.setState({
-          runningQuery: ajax,
-          isQueryRunning: !!ajax
+          runningQueries: this.state.runningQueries,
+          isQueryRunning: this.state.isQueryRunning
         });
     },
-    _abortRunningQuery: function() {
-        if(this.state.runningQuery) {
-            this.state.runningQuery.abort();
+    _abortRunningQueries: function() {
+        this.state.types.forEach(t => this._abortRunningQuery(t));
+    },
+    _abortRunningQuery: function(type) {
+        if(this.state.runningQueries[type]) {
+            this.state.runningQueries[type].abort();
         }
-        this.updateRunningQuery(null);
+        this.updateRunningQuery(type, null);
     },
     componentDidMount: function() {
-        this._executeQuery();
+        this._executeQueries();
+        $(ReactDOM.findDOMNode(this)).closest(".content").bind("scroll", this.handleScroll);
     },
     componentWillUnmount: function() {
-        this._abortRunningQuery();
+        this._abortRunningQueries();
+        $(ReactDOM.findDOMNode(this)).closest(".content").unbind("scroll", this.handleScroll);
+    },
+    handleScroll: function() {
+      var tab = this.state.activeTab;
+      if (this.state.displayedUntil[tab] >= this.state.totals[tab]) { return; }
+      var $scrollable = $(ReactDOM.findDOMNode(this)).closest(".content");
+      var margin = 100;
+      if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+        this._extendResultsDisplayed();
+      }
+    },
+    _extendResultsDisplayed: function() {
+      console.log("displaying more search results");
+      var tab = this.state.activeTab;
+      this.state.displayedUntil[tab] += this.resultDisplayStep;
+      if (this.state.displayedUntil[tab] >= this.state.totals[tab]) {
+        this.state.displayedUntil[tab] = this.state.totals[tab];
+      }
+      this.setState({displayedUntil: this.state.displayedUntil});
     },
     componentWillReceiveProps: function(newProps) {
         if(this.props.query != newProps.query) {
            this.setState({
-                total: 0,
-                textTotal: 0,
-                sheetTotal: 0,
-                textHits: [],
-                sheetHits: []
+             totals: {"text":0, "sheet":0},
+             hits: {"text": [], "sheet": []},
+             moreToLoad: {"text": true, "sheet": true},
+             displayedUntil: {"text":50, "sheet":50}
            });
-           this._executeQuery(newProps)
+           this._executeQueries(newProps)
         }
         else if (
         (this.props.appliedFilters.length !== newProps.appliedFilters.length) ||
           !(this.props.appliedFilters.every((v,i) => v === newProps.appliedFilters[i]))) {
-           this._executeQuery(newProps)
+           this._executeQueries(newProps)
         }
         // Execute a second query to apply filters after an initial query which got available filters
         else if ((this.props.filtersValid != newProps.filtersValid) && this.props.appliedFilters.length > 0) {
-           this._executeQuery(newProps);
+           this._executeQueries(newProps);
         }
     },
-    _loadRemainder: function(last, total, currentTextHits, currentSheetHits) {
+    _loadRemainder: function(type, last, total, currentHits) {
     // Having loaded "last" results, and with "total" results to load, load the rest, this.backgroundQuerySize at a time
       if (last >= total || last >= this.maxResultSize) {
-        this.setState({"moreToLoad":false})
+        this.state.moreToLoad[type] = false;
+        this.setState({moreToLoad: this.state.moreToLoad});
         return;
       }
-      Sefaria.search.execute_query({
+      var query_props = {
         query: this.props.query,
-        get_filters: false,
-        applied_filters: this.props.appliedFilters,
+        type: type,
         size: this.backgroundQuerySize,
         from: last,
         error: function() {  console.log("Failure in SearchResultList._loadRemainder"); },
         success: function(data) {
-          var hitarrays = this._process_hits(data.hits.hits);
-          var nextTextHits = currentTextHits.concat(hitarrays.texts);
-          var nextSheetHits = currentSheetHits.concat(hitarrays.sheets);
-          this.setState({textHits: nextTextHits, sheetHits: nextSheetHits});
-          this._loadRemainder(last + this.backgroundQuerySize, total, nextTextHits, nextSheetHits);
+          var hitArray = (type == "text")?this._process_text_hits(data.hits.hits):data.hits.hits;
+          var nextHits = currentHits.concat(hitArray);
+          this.state.hits[type] = nextHits;
+          
+          this.setState({hits: this.state.hits});
+          this._loadRemainder(type, last + this.backgroundQuerySize, total, nextHits);
         }.bind(this)
-      });
+      };
+      if (type == "text") {
+        extend(query_props, {
+          get_filters: false,
+          applied_filters: this.props.appliedFilters
+        });
+      }
+      Sefaria.search.execute_query(query_props);
     },
-    _executeQuery: function(props) {
+    _executeQueries: function(props) {
         //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
         props = props || this.props;
         if (!props.query) {
             return;
         }
 
-        this._abortRunningQuery();
+        this._abortRunningQueries();
 
         // If there are no available filters yet, don't apply filters.  Split into two queries:
         // 1) Get all potential filters and counts
@@ -5207,20 +5386,41 @@ var SearchResultList = React.createClass({
         var request_applied = props.filtersValid && props.appliedFilters;
         var isCompletionStep = !!request_applied || props.appliedFilters.length == 0;
 
-        var runningQuery = Sefaria.search.execute_query({
+        var runningSheetQuery = Sefaria.search.execute_query({
             query: props.query,
+            type: "sheet",
+            size: this.initialQuerySize,
+            success: function(data) {
+                //debugger;
+                this.updateRunningQuery("sheet", null);
+                if (this.isMounted()) {
+                  this.setState({
+                    hits: extend(this.state.hits, {"sheet": data.hits.hits}),
+                    totals: extend(this.state.totals, {"sheet": data.hits.total})
+                  });
+                }
+                if(isCompletionStep) {
+                  this._loadRemainder("sheet", this.initialQuerySize, data.hits.total, data.hits.hits);
+                }
+
+            }.bind(this),
+            error: this._handle_error
+        });
+
+        var runningTextQuery = Sefaria.search.execute_query({
+            query: props.query,
+            type: "text",
             get_filters: !props.filtersValid,
             applied_filters: request_applied,
             size: this.initialQuerySize,
             success: function(data) {
                 //debugger;
-                this.updateRunningQuery(null);
+                this.updateRunningQuery("text", null);
                 if (this.isMounted()) {
-                    var hitarrays = this._process_hits(data.hits.hits);
+                    var hitArray = this._process_text_hits(data.hits.hits);
                     this.setState({
-                        textHits: hitarrays.texts,
-                        sheetHits: hitarrays.sheets,
-                        total: data.hits.total
+                      hits: extend(this.state.hits, {"text": hitArray}),
+                      totals: extend(this.state.totals, {"text": data.hits.total})
                     });
                     if (data.aggregations) {
                       if (data.aggregations.category) {
@@ -5228,58 +5428,36 @@ var SearchResultList = React.createClass({
                         var orphans = this._applyFilters(ftree, this.props.appliedFilters);
                         this.props.registerAvailableFilters(ftree.availableFilters, ftree.registry, orphans);
                       }
-                      if (data.aggregations.type) {
-                        var types = {};
-                        data.aggregations.type.buckets.forEach(function(b) {types[b["key"]] = b["doc_count"];});
-                        if (types["text"]) {
-                          this.setState({
-                            textTotal: types["text"],
-                            activeTab: "texts"
-                          });
-                        } else {
-                          this.setState({
-                            activeTab: "sheets"
-                          });
-                        }
-                        if (types["sheet"]) {
-                          this.setState({
-                            sheetTotal: types["sheet"]
-                          });
-                        }
-                      }
-                   }
-                   if(isCompletionStep) {
-                     this._loadRemainder(this.initialQuerySize, data.hits.total, hitarrays.texts, hitarrays.sheets);
-                   }
+                    }
+                    if(isCompletionStep) {
+                      this._loadRemainder("text", this.initialQuerySize, data.hits.total, hitArray);
+                    }
                 }
             }.bind(this),
-            error: function(jqXHR, textStatus, errorThrown) {
-                if (textStatus == "abort") {
-                    // Abort is immediately followed by new query, above.  Worried there would be a race if we call updateCurrentQuery(null) from here
-                    //this.updateCurrentQuery(null);
-                    return;
-                }
-                if (this.isMounted()) {
-                    this.setState({
-                        error: true
-                    });
-                    this.updateRunningQuery(null);
-                }
-            }.bind(this)
+            error: this._handle_error
         });
-        this.updateRunningQuery(runningQuery);
+
+        this.updateRunningQuery("text", runningTextQuery);
+        this.updateRunningQuery("sheet", runningSheetQuery);
     },
-    _process_hits: function(hits) {
+    _handle_error: function(jqXHR, textStatus, errorThrown) {
+        if (textStatus == "abort") {
+            // Abort is immediately followed by new query, above.  Worried there would be a race if we call updateCurrentQuery(null) from here
+            //this.updateCurrentQuery(null);
+            return;
+        }
+        if (this.isMounted()) {
+            this.setState({
+                error: true
+            });
+            this.updateRunningQuery(null);
+        }
+    },
+    _process_text_hits: function(hits) {
         var comparingRef = null;
         var newHits = [];
-        var sheetHits = [];
 
         for(var i = 0, j = 0; i < hits.length; i++) {
-            if (hits[i]._type == "sheet") { //Assume that the rest of the array is sheets, slice and return.
-                sheetHits = hits.slice(i);
-                break;
-            }
-
             var currentRef = hits[i]._source.ref;
             if(currentRef == comparingRef) {
                 newHits[j - 1].duplicates = newHits[j-1].duplicates || [];
@@ -5290,10 +5468,7 @@ var SearchResultList = React.createClass({
                 comparingRef = currentRef;
             }
         }
-        return {
-            texts: newHits,
-            sheets: sheetHits
-        };
+        return newHits;
     },
     _buildFilterTree(aggregation_buckets) {
       //returns object w/ keys 'availableFilters', 'registry'
@@ -5420,52 +5595,56 @@ var SearchResultList = React.createClass({
       return orphans;
     },
     showSheets: function() {
-      this.setState({"activeTab": "sheets"});
+      this.setState({"activeTab": "sheet"});
     },
     showTexts:  function() {
-      this.setState({"activeTab": "texts"});
+      this.setState({"activeTab": "text"});
     },
     render: function () {
         if (!(this.props.query)) {  // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
             return null;
         }
 
-        if (this.state.activeTab == "texts") {
-          var results = this.state.textHits.map(result =>
+        var tab = this.state.activeTab;
+        var results = [];
+
+        if (tab == "text") {
+          results = this.state.hits.text.slice(0,this.state.displayedUntil["text"]).map(result =>
             <SearchTextResult
                 data={result}
                 query={this.props.query}
                 key={result._id}
                 onResultClick={this.props.onResultClick} />);
 
-        } else if (this.state.activeTab == "sheets") {
-            var results = this.state.sheetHits.map(result =>
-                <SearchSheetResult
-                      data={result}
-                      query={this.props.query}
-                      key={result._id} />);
+        } else if (tab == "sheet") {
+          results = this.state.hits.sheet.slice(0, this.state.displayedUntil["sheet"]).map(result =>
+              <SearchSheetResult
+                    data={result}
+                    query={this.props.query}
+                    key={result._id} />);
         }
 
-        var queryLoaded      = !this.state.moreToLoad && !this.state.isQueryRunning;
-        var haveResults      = !!results.length;
         var loadingMessage   = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
         var noResultsMessage = (<LoadingMessage message="0 results." heMessage="0 תוצאות." />);
+
+        var queryLoaded      = !this.state.moreToLoad[tab] && !this.state.isQueryRunning[tab];
+        var haveResults      = !!results.length;
         results              = haveResults ? results : noResultsMessage;
         var searchFilters    = (<SearchFilters
                                   query = {this.props.query}
-                                  total = {this.state.total}
-                                  textTotal = {this.state.textTotal}
-                                  sheetTotal = {this.state.sheetTotal}
+                                  total = {this.state.totals["text"] + this.state.totals["sheet"]}
+                                  textTotal = {this.state.totals["text"]}
+                                  sheetTotal = {this.state.totals["sheet"]}
                                   availableFilters={this.props.availableFilters}
                                   appliedFilters = {this.props.appliedFilters}
                                   updateAppliedFilter = {this.props.updateAppliedFilter}
-                                  isQueryRunning = {this.state.isQueryRunning}
+                                  isQueryRunning = {this.state.isQueryRunning[tab]}
                                   activeTab = {this.state.activeTab}
                                   clickTextButton = {this.showTexts}
                                   clickSheetButton = {this.showSheets} />);
         return (
           <div>
-            { haveResults && queryLoaded ? searchFilters : null }
+            { searchFilters }
             { queryLoaded ? results : loadingMessage }
           </div>
         );
@@ -5570,8 +5749,8 @@ var SearchFilters = React.createClass({
 
     var buttons = (
       <div className="type-buttons">
-        {this._type_button("Text", "Texts", "מקור", "מקורות", this.props.textTotal, this.props.clickTextButton, (this.props.activeTab == "texts"))}
-        {this._type_button("Sheet", "Sheets", "דף מקורות", "דפי מקורות", this.props.sheetTotal, this.props.clickSheetButton, (this.props.activeTab == "sheets"))}
+        {this._type_button("Text", "Texts", "מקור", "מקורות", this.props.textTotal, this.props.clickTextButton, (this.props.activeTab == "text"))}
+        {this._type_button("Sheet", "Sheets", "דף מקורות", "דפי מקורות", this.props.sheetTotal, this.props.clickSheetButton, (this.props.activeTab == "sheet"))}
       </div>
     );
 
@@ -5616,9 +5795,9 @@ var SearchFilters = React.createClass({
       <div className={ classNames({searchTopMatter: 1, loading: this.props.isQueryRunning}) }>
         <div className="searchStatusLine">
           { (this.props.isQueryRunning) ? runningQueryLine : buttons }
-          { (this.props.textTotal > 0 && this.props.activeTab == "texts") ? selected_filters : ""}
+          { (this.props.textTotal > 0 && this.props.activeTab == "text") ? selected_filters : ""}
         </div>
-        { (this.props.textTotal > 0 && this.props.activeTab == "texts") ? filter_panel : "" }
+        { (this.props.textTotal > 0 && this.props.activeTab == "text") ? filter_panel : "" }
       </div>);
   }
 });
@@ -5788,10 +5967,10 @@ var SearchSheetResult = React.createClass({
 
 var AccountPanel = React.createClass({
   propTypes: {
-    toggleLanguage: React.PropTypes.func.isRequired
+    interfaceLang: React.PropTypes.string,
   },
   render: function() {
-    var width = $(window).width();
+    var width = window ? $(window).width() : 1000;
     var accountContent = [
       (<BlockLink target="/my/profile" title="Profile" heTitle="פרופיל"/>),
       (<BlockLink target="/sheets/private" title="Source Sheets" heTitle="דפי מקורות" />),
@@ -5832,12 +6011,14 @@ var AccountPanel = React.createClass({
     ];
     connectContent = (<TwoOrThreeBox content={connectContent} width={width} />);
 
+    var classes = {accountPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    classes[this.props.interfaceLang] = 1;
+    var classStr = classNames(classes);
     return (
-      <div className="accountPanel systemPanel readerNavMenu noHeader">
+      <div className={classStr}>
         <div className="content">
           <div className="contentInner">
             <h1>
-              <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
               <span className="en">Account</span>
               <span className="he">חשבון משתמש</span>
             </h1>
@@ -5856,7 +6037,7 @@ var AccountPanel = React.createClass({
 var NotificationsPanel = React.createClass({
   propTypes: {
     setUnreadNotificationsCount: React.PropTypes.func.isRequired,
-    toggleLanguage:              React.PropTypes.func.isRequired
+    interfaceLang:               React.PropTypes.string,
   },
   getInitialState: function() {
     return {
@@ -5907,12 +6088,14 @@ var NotificationsPanel = React.createClass({
     this.forceUpdate();
   },
   render: function() {
+    var classes = {notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    classes[this.props.interfaceLang] = 1;
+    var classStr = classNames(classes);
     return (
-      <div className="notificationsPanel systemPanel readerNavMenu noHeader">
+      <div className={classStr}>
         <div className="content">
           <div className="contentInner">
             <h1>
-              <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
               <span className="en">Notifications</span>
               <span className="he">התראות</span>
             </h1>

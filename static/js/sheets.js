@@ -1020,27 +1020,27 @@ $(function() {
 
 
 		var ownerControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
-								"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
-								"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
-								"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
+								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
+								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
+								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
+								"<div class='removeSource' title='Remove'><img src='/static/img/remove.png'></div>" +
 							"</div>";
 
 		var adderControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
-								"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
-								"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
+								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
+								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
+								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
 							"</div>";
 
 		var viewerControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
+								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
 							"</div>";
 
 		var ownerSimpleControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
-								"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
-								"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
-								"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
+								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
+								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
+								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
+								"<div class='removeSource' title='Remove'><img src='/static/img/remove.png'></div>" +
 							"</div>";
 
 
@@ -1098,20 +1098,31 @@ $(function() {
 			$("#addSourceMenu").click(function () {
 				$("#sheet").click();
 				$("#sourceButton").click();
-				$("html, body").animate({scrollTop: $(document).height()}, 750);
+				var top = $("#sourceButton").offset().top - 200;
+				$("html, body").animate({scrollTop: top}, 300);
 			});
 
 			$("#addCustomMenu").click(function () {
 				$("#sheet").click();
 				$("#customTextButton").click();
-				$("html, body").animate({scrollTop: $(document).height()}, 750);
+				var top = $("#customTextButton").offset().top - 200;
+				$("html, body").animate({scrollTop: top}, 300);
 			});
 
 			$("#addCommentMenu").click(function () {
 				$("#sheet").click();
 				$("#commentButton").click();
-				$("html, body").animate({scrollTop: $(document).height()}, 750);
+				var top = $("#commentButton").offset().top - 200;
+				$("html, body").animate({scrollTop: top}, 300);
 			});
+
+			$("#addMediaMenu").click(function () {
+				$("#sheet").click();
+				$("#mediaButton").click();
+				var top = $("#mediaButton").offset().top - 200;
+				$("html, body").animate({scrollTop: top}, 300);
+			});
+
 
 			$("#addInterface").on("click", "#connectionButton", function (e) {
 
@@ -1279,6 +1290,7 @@ $(function() {
 				$(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
 				$(".inlineAddButtonIcon").removeClass("active");
 				$(this).addClass("active");
+				$("#sourceButton").click();
 				e.stopImmediatePropagation();
 			});
 
@@ -1943,8 +1955,12 @@ function addSource(q, source, appendOrInsert) {
 
 
 	var badRef = q.ref == undefined ? true : false;
-	
+
+	if ($("#addSourceModal").data("target") == null) {
+		$("#addSourceModal").data("target", $("#sources"));
+	}
 	var $listTarget = $("#addSourceModal").data("target");
+
 	if ($listTarget.length == 0) appendOrInsert = "append";
 
 	if ($listTarget.hasClass('sheetItem') ) {
@@ -2077,7 +2093,7 @@ function loadSource(data, $target, optionStr) {
 
         var includeNumbers = $.inArray("Talmud", data.categories) > -1 ? false : true;
         includeNumbers = data.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
-        var segmented = !(data.categories[0] in {"Tanach": 1, "Talmud": 1});
+        var segmented = !(data.categories[0] in {"Tanakh": 1, "Talmud": 1});
         for (var i = 0; i < Math.max(curEnglishText.length, curHebrewText.length); i++) {
             if (!curEnglishText[i] && !curHebrewText[i]) {
                 continue;

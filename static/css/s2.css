@@ -83,6 +83,10 @@ body.dark {
   padding: 0;
   text-align: left;
 }
+
+.header .searchBox input{
+  background-color: transparent; /*for firefox */
+}
 .header .search {
   outline: none;
   border: none;
@@ -91,7 +95,6 @@ body.dark {
   font-size:  18px;
   font-family: "adobe-garamond-pro", Georgia, serif;
   vertical-align: 1px;
-  width: 90%;
   margin: 0;
 }
 .search-override {
@@ -99,14 +102,16 @@ body.dark {
   padding-top: 5px;
 }
 .header .home {
-  display: inline-block;
   position: absolute;
-  top: 3px;
+  top: 0px;
   left: 50%;
-  margin-left: -50px;
+  margin-left: -46px;
 }
 .header .home img {
-  opacity: 0.5;
+  height: 18px;
+  width: 92px;
+  opacity: 0.6;
+  vertical-align: middle;
 }
 .header .accountLinks {
   display: inline-block;
@@ -217,11 +222,6 @@ body.dark {
   font-size: 17px;
   position: relative;
   top: -2px;
-}
-.header .home img {
-  height: 28px;
-  vertical-align: middle;
-  margin-top: -9px;
 }
 .header .headerNavContent {
   position: fixed;
@@ -362,6 +362,20 @@ body.dark {
 .languageToggle {
   display: inline;
   line-height: 32px;
+}
+.systemPanel.english .content .he {
+  display: none;
+}
+.systemPanel.hebrew .content .en {
+  display: none;
+}
+.systemPanel.english .content .en {
+  display: inline;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.systemPanel.hebrew .content .he {
+  display: inline;
+  font-family: "Open Sans Hebrew", sans-serif;
 }
 .systemPanel.readerNavMenu .languageToggle span.en {
   font-family: "Taamey Frank", "Times New Roman", serif;
@@ -563,6 +577,7 @@ h1 .languageToggle {
 h1 div.languageToggle .en {
   font-family: "Taamey Frank", "Times New Roman", serif;
   font-size: 26px;
+  font-weight: normal;
 }
 h1 .languageToggle .he {
   font-family: "adobe-garamond-pro", Georgia, serif;
@@ -716,9 +731,11 @@ h1 .languageToggle .he {
   margin: 0 6px;
   color: #999;
 }
-.readerNavMenu .resourcesLink .fa.hidden { 
-  opacity: 0;
-  display: none;
+.readerNavMenu .resourcesLink img {
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+  margin: -2px 5px;
 }
 .readerNavMenu .siteLinks {
   margin-top: 20px;
@@ -1042,8 +1059,12 @@ h1 .languageToggle .he {
     width: auto;
   }
 }
+
+.searchContentFrame h1 {
+  height: 40px;
+}
 .searchContent {
-  padding: 15px 10px 100px;
+  padding: 0 10px 100px;
 }
 .searchContent .searchTopMatter {
   padding-bottom: 10px;
@@ -1054,8 +1075,7 @@ h1 .languageToggle .he {
   border-bottom: none;
 }
 .searchContent .searchStatusLine {
-  padding: 10px 0 36px 0;
-  margin-top: -60px;
+  padding: 0 0 36px 0;
   text-align: center;
   font-size: 12px;
   height: 64px;
@@ -1270,7 +1290,6 @@ h1 .languageToggle .he {
 
 
 .readerNavMenu .content.sheetList {
-  background-color: white;
   padding: 80px 15px 15px;
 }
 .readerNavMenu .yourSheetsLink.navButton {
@@ -1455,7 +1474,8 @@ h1 .languageToggle .he {
   padding-right: 0;
 }
 .readerOptions img {
-  height: 26px;
+  height: 18px;
+  width: 30px;
   vertical-align: middle;
 }
 .readerOptionsPanel {
@@ -2499,6 +2519,7 @@ h1 .languageToggle .he {
   letter-spacing: 1px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   box-sizing: border-box;
+  line-height: 1;
 }
 .button:hover {
   color: white;
@@ -2506,11 +2527,16 @@ h1 .languageToggle .he {
 }
 .button.white {
   background-color: white;
-  color: black;
+  color: #333;
   border: 1px solid #ccc;
 }
 .button.white:hover {
 
+}
+.button.transparent {
+  color: #666;
+  background-color: transparent;
+  border: 1px solid transparent;
 }
 .button.fillWidth {
   width: 100%;
@@ -2670,3 +2696,48 @@ h2.splitHeader {
   text-transform: none;
   cursor: pointer;
 }
+
+.sheetsNewButton {
+  text-align:center;
+}
+
+.sheetsNewButton a {
+  font-color: inherit;
+}
+
+.sheet.userSheet .sheetTitle  {
+   font-family: "adobe-garamond-pro", Georgia, serif;
+   font-size: 20px;
+   color:#333;
+   margin-bottom: 6px;
+}
+
+.sheet.userSheet {
+   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+   font-size: 14px;
+   color:#999;
+  text-decoration: none;
+}
+
+.sheet.userSheet:hover .sheetEditButtons {
+	display: inline-block;
+}
+
+.sheet.userSheet .sheetEditButtons {
+  font-size: 24px;
+  height: 32px;
+  width: 32px;
+  text-align: center;
+  line-height: 32px;
+  background-color: white;
+  border: 1px solid #E6E6E6;
+  border-radius: 4px;
+  margin-left: 10px;
+  display: none;
+  float:right;
+  cursor: pointer;
+  color: #999;
+  text-decoration: none;
+
+}
+

@@ -141,7 +141,7 @@ def reader(request, tref, lang=None, version=None):
         description_text = "Unknown Text."
 
     initJSON    = json.dumps(text)
-    lines       = request.GET.get("layout", None) or "lines" if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else "block"
+    lines       = request.GET.get("layout", None) or "lines" if "error" in text or text["type"] not in ('Tanakh', 'Talmud') or text["book"] == "Psalms" else "block"
     layout      = request.GET.get("layout") if request.GET.get("layout") in ("heLeft", "heRight") else "heLeft"
     sidebarLang = request.GET.get('sidebarLang', None) or request.COOKIES.get('sidebarLang', "all")
     sidebarLang = {"all": "sidebarAll", "he": "sidebarHebrew", "en": "sidebarEnglish"}.get(sidebarLang, "sidebarAll")
@@ -267,11 +267,21 @@ def s2_props(request):
     """
     Returns a dictionary of props that all S2 pages get based on the request.
     """ 
+    request_context = RequestContext(request)
     return {
         "multiPanel": request.flavour != "mobile" and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "recentlyViewed": request.COOKIES.get("recentlyViewed", None),
         "loggedIn": request.user.is_authenticated(),
+        "interfaceLang": request_context.get("interfaceLang"),
+        "initialSettings": {
+            "language":      request_context.get("contentLang"),
+            "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),
+            "layoutTalmud":  request.COOKIES.get("layoutTalmud", "continuous"),
+            "layoutTanakh":  request.COOKIES.get("layoutTanakh", "segmented"),
+            "color":         request.COOKIES.get("color", "light"),
+            "fontSize":      request.COOKIES.get("fontSize", 62.5),
+        },
     }
 
 
@@ -324,24 +334,11 @@ def s2(request, ref, version=None, lang=None):
         panels += make_panel_dicts(oref, version, language, filter, multi_panel)
         i += 1
 
-    request_context = RequestContext(request)
-
-    settings = {
-        "language":      request_context.get("contentLang"),
-        "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),
-        "layoutTalmud":  request.COOKIES.get("layoutTalmud", "continuous"),
-        "layoutTanach":  request.COOKIES.get("layoutTanach", "segmented"),
-        "color":         request.COOKIES.get("color", "light"),
-        "fontSize":      request.COOKIES.get("fontSize", 62.5),
-    }
-
     props.update({
         "headerMode":                  False,
-        "interfaceLang":               request_context.get("interfaceLang"),
         "initialRefs":                 panels[0].get("refs", []),
         "initialFilter":               panels[0].get("filter", None),
         "initialBookRef":              panels[0].get("bookRef", None),
-        "initialSettings":             settings,
         "initialPanels":               panels,
         "initialPanelCap":             len(panels),
         "initialQuery":                None,
@@ -389,7 +386,7 @@ def s2_search(request):
     props = s2_props(request)
     props.update({
         "initialMenu": "search",
-        "initialQuery": request.GET.get("q") or "",
+        "initialQuery": urllib.unquote(request.GET.get("q")) if request.GET.get("q") else "",
         "initialSearchFilters": search_filters,
     })
     html = render_react_component("ReaderApp", props)
@@ -890,6 +887,10 @@ def texts_category_list(request, cats):
     """
     Page listing every text in category
     """
+    if "Tanach" in cats:
+        cats = cats.replace("Tanach", "Tanakh")
+        return redirect("/texts/%s" % cats)
+
     if request.flavour == "mobile" or request.COOKIES.get('s2'):
         return s2_texts_category(request, cats)
     
@@ -927,6 +928,18 @@ def search(request):
     return render_to_response('search.html',
                              {},
                              RequestContext(request))
+
+
+def interface_language_redirect(request, language):
+    """Set the interfaceLang cooki"""
+    next = request.GET.get("next", "/?home")
+    response = redirect(next)
+    response.set_cookie("interfaceLang", language)
+    if request.user.is_authenticated():
+        p = UserProfile(id=request.user.id)
+        p.settings["interface_language"] = language
+        p.save()
+    return response
 
 
 #todo: is this used elsewhere? move it?
@@ -2083,7 +2096,7 @@ def my_profile(request):
 @ensure_csrf_cookie
 def edit_profile(request):
     """
-    Page for managing a user's account settings.
+    Page for editing a user's profile.
     """
     profile = UserProfile(id=request.user.id)
     sheets  = db.sheets.find({"owner": profile.id, "status": "public"}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])

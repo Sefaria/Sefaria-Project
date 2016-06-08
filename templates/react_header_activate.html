@@ -6,13 +6,13 @@
 <script src="/static/js/react.js"></script>
 <script src="/static/js/react-dom.js"></script>
 <script src="/static/js/JSXTransformer.js"></script>
-<script type="text/jsx" src="/static/js/s2.jsx"></script>
+<script type="text/jsx;harmony=true" src="/static/js/s2.jsx"></script>
 {% else %}
 <script src="/static/js/react-min.js"></script>
 <script src="/static/js/react-dom-min.js"></script>
 <script src="/static/js/s2.js"></script>
 {% endif %}
-<script {% if DEBUG %}type="text/jsx"{% endif %}>
+<script {% if DEBUG %}type="text/jsx;harmony=true"{% endif %}>
   {% autoescape off %}
   $(function() {
 
@@ -20,14 +20,14 @@
       language: "{{ contentLang }}",
       layoutDefault: $.cookie("layoutDefault") || "segmented",
       layoutTalmud:  $.cookie("layoutTalmud")  || "continuous",
-      layoutTanach:  $.cookie("layoutTanach")  || "segmented",
+      layoutTanakh:  $.cookie("layoutTanakh")  || "segmented",
       color:         $.cookie("color")         || "light",
       fontSize:      $.cookie("fontSize")      || 62.5
     };
     var multiPanel    = $(window).width() > 600;
 
-    ReactDOM.render(
-      React.createElement(ReaderApp, {
+    var container = document.getElementById('s2');
+    var component = React.createElement(ReaderApp, {
         headerMode: true,
         multiPanel: multiPanel,
         initialRefs: [],
@@ -37,9 +37,8 @@
         initialSheetsTag: null,
         initialNavigationCategories: [],
         initialSettings: settings,
-        initialPanels: []}),
-      document.getElementById('s2')
-    );
+        initialPanels: []});
+    ReactDOM.render(component, container);
 
   });
   {% endautoescape %}
