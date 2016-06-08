@@ -3256,7 +3256,8 @@ var SheetsNav = React.createClass({
       tagSort: this.props.tagSort,
       width: 400,
       yourSheetTags: [],
-      showYourSheetTags: false
+      showYourSheetTags: false,
+      sheetFilterTag: null
     };
   },
   componentDidMount: function componentDidMount() {
@@ -3280,6 +3281,15 @@ var SheetsNav = React.createClass({
   toggleSheetTags: function toggleSheetTags() {
     this.state.showYourSheetTags == true ? this.setState({ showYourSheetTags: false }) : this.setState({ showYourSheetTags: true });
   },
+
+  filterYourSheetsByTag: function filterYourSheetsByTag(tag) {
+    if (tag.tag == this.state.sheetFilterTag) {
+      this.setState({ sheetFilterTag: null });
+    } else {
+      this.setState({ sheetFilterTag: tag.tag });
+    }
+  },
+
   getAllSheets: function getAllSheets() {
     Sefaria.sheets.allSheetsList(this.loadAllSheets);
   },
@@ -3343,83 +3353,99 @@ var SheetsNav = React.createClass({
           }.bind(this);
           var title = sheet.title.stripHtml();
           var url = "/sheets/" + sheet.id;
+          sheet.tags ? sheet.tags : [];
           var tagString = sheet.tags.map(function (tag) {
             return tag + ", ";
           });
 
-          if (this.props.multiPanel) {
-            return React.createElement(
-              'div',
-              { className: 'sheet userSheet', key: url },
-              React.createElement(
-                'a',
-                { className: 'sheetEditButtons', href: url },
-                React.createElement(
-                  'span',
-                  null,
-                  React.createElement('i', { className: 'fa fa-pencil' }),
-                  ' '
-                )
-              ),
-              React.createElement(
-                'div',
-                { className: 'sheetEditButtons', onClick: editSheetTags },
-                React.createElement(
-                  'span',
-                  null,
-                  React.createElement('i', { className: 'fa fa-tag' }),
-                  ' '
-                )
-              ),
-              React.createElement(
-                'div',
-                { className: 'sheetTitle' },
-                title
-              ),
-              React.createElement(
-                'div',
-                null,
-                sheet.views,
-                ' Views · ',
-                sheet.modified,
-                ' · ',
-                tagString
-              )
-            );
-          } else {
+          if ($.inArray(this.state.sheetFilterTag, sheet.tags) >= 0 || this.state.sheetFilterTag == null) {
+            if (this.props.multiPanel) {
 
-            return React.createElement(
-              'a',
-              { className: 'sheet userSheet', href: url, key: url },
-              React.createElement(
+              return React.createElement(
                 'div',
-                { className: 'sheetTitle' },
-                title
-              ),
-              React.createElement(
-                'div',
-                null,
-                sheet.views,
-                ' Views · ',
-                sheet.modified,
-                ' · ',
-                tagString
-              )
-            );
+                { className: 'sheet userSheet', key: url },
+                React.createElement(
+                  'a',
+                  { className: 'sheetEditButtons', href: url },
+                  React.createElement(
+                    'span',
+                    null,
+                    React.createElement('i', { className: 'fa fa-pencil' }),
+                    ' '
+                  )
+                ),
+                React.createElement(
+                  'div',
+                  { className: 'sheetEditButtons', onClick: editSheetTags },
+                  React.createElement(
+                    'span',
+                    null,
+                    React.createElement('i', { className: 'fa fa-tag' }),
+                    ' '
+                  )
+                ),
+                React.createElement(
+                  'div',
+                  { className: 'sheetTitle' },
+                  title
+                ),
+                React.createElement(
+                  'div',
+                  null,
+                  sheet.views,
+                  ' Views · ',
+                  sheet.modified,
+                  ' · ',
+                  tagString
+                )
+              );
+            } else {
+
+              return React.createElement(
+                'a',
+                { className: 'sheet userSheet', href: url, key: url },
+                React.createElement(
+                  'div',
+                  { className: 'sheetTitle' },
+                  title
+                ),
+                React.createElement(
+                  'div',
+                  null,
+                  sheet.views,
+                  ' Views · ',
+                  sheet.modified,
+                  ' · ',
+                  tagString
+                )
+              );
+            }
           }
         }, this);
 
         if (this.state.userTagList != null) {
 
           var userTagList = this.state.userTagList.map(function (tag) {
-            return React.createElement(
-              'div',
-              { className: 'navButton', onClick: console.log(), key: tag.tag },
-              tag.tag,
-              ' (',
-              tag.count,
-              ')'
-            );
+            var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
+            if (this.state.sheetFilterTag == tag.tag) {
+              return React.createElement(
+                'div',
+                { className: 'navButton sheetButton active', onClick: filterThisTag, key: tag.tag },
+                tag.tag,
+                ' (',
+                tag.count,
+                ')'
+              );
+            } else {
+              return React.createElement(
+                'div',
+                { className: 'navButton sheetButton', onClick: filterThisTag, key: tag.tag },
+                tag.tag,
+                ' (',
+                tag.count,
+                ')'
+              );
+            }
           }, this);
         }
 
@@ -3635,19 +3661,8 @@ var SheetsNav = React.createClass({
               ),
               React.createElement(
                 'span',
-                { className: 'he' },
-                'Public Sheets [he]'
-              ),
-              React.createElement(
-                'span',
                 { className: 'en actionText', onClick: this.showAllSheets },
                 'See All ',
-                React.createElement('i', { className: 'fa fa-angle-right' })
-              ),
-              React.createElement(
-                'span',
-                { className: 'he actionText', onClick: this.showAllSheets },
-                'See All [he] ',
                 React.createElement('i', { className: 'fa fa-angle-right' })
               )
             ) : React.createElement(
@@ -3657,11 +3672,6 @@ var SheetsNav = React.createClass({
                 'span',
                 { className: 'en' },
                 'Public Sheets'
-              ),
-              React.createElement(
-                'span',
-                { className: 'he' },
-                'Public Sheets [he]'
               )
             ),
             publicSheetList,
@@ -3674,11 +3684,6 @@ var SheetsNav = React.createClass({
                 'span',
                 { className: 'en' },
                 'Trending Tags'
-              ),
-              React.createElement(
-                'span',
-                { className: 'he' },
-                'Trending Tags [he]'
               )
             ),
             this.props.multiPanel ? null : React.createElement(TwoOrThreeBox, { content: trendingTags, width: this.state.width }),
@@ -3691,11 +3696,6 @@ var SheetsNav = React.createClass({
                 'span',
                 { className: 'en', style: { float: 'left' } },
                 'All Tags'
-              ),
-              React.createElement(
-                'span',
-                { className: 'he' },
-                'All Tags [he]'
               ),
               React.createElement(
                 'span',
@@ -3722,32 +3722,6 @@ var SheetsNav = React.createClass({
                 ),
                 ' ',
                 React.createElement('i', { className: 'fa fa-angle-down' })
-              ),
-              React.createElement(
-                'span',
-                { className: 'he actionText' },
-                'Sort By [he]:',
-                React.createElement(
-                  'select',
-                  { value: this.props.tagSort, onChange: this.changeSort },
-                  React.createElement(
-                    'option',
-                    { value: 'alpha' },
-                    'Alphabetical'
-                  ),
-                  React.createElement(
-                    'option',
-                    { value: 'count' },
-                    'Most Used'
-                  ),
-                  React.createElement(
-                    'option',
-                    { value: 'trending' },
-                    'Trending'
-                  )
-                ),
-                ' ',
-                React.createElement('i', { className: 'fa fa-angle-down' })
               )
             ) : React.createElement(
               'h2',
@@ -3756,11 +3730,6 @@ var SheetsNav = React.createClass({
                 'span',
                 { className: 'en' },
                 'All Tags'
-              ),
-              React.createElement(
-                'span',
-                { className: 'he' },
-                'All Tags [he]'
               )
             ),
             React.createElement(TwoOrThreeBox, { content: tagList, width: this.state.width })
