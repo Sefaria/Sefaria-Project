@@ -83,6 +83,10 @@ body.dark {
   padding: 0;
   text-align: left;
 }
+
+.header .searchBox input{
+  background-color: transparent; /*for firefox */
+}
 .header .search {
   outline: none;
   border: none;
