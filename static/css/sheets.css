@@ -1513,7 +1513,7 @@ input[type="file"] {
 
 #fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu {
 	display: block;
-	top:45px;
+	top:46px;
 	left:20px;
 	background-color: #F9F9F7;
 }
