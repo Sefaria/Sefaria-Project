@@ -2832,10 +2832,14 @@ var SheetsNav = React.createClass({
           var editSheetTags = function() { console.log(sheet.id)}.bind(this);
           var title = sheet.title.stripHtml();
           var url = "/sheets/" + sheet.id;
-          sheet.tags ? sheet.tags : [];
+          if (sheet.tags) {
           var tagString = sheet.tags.map(function (tag) {
-              return(tag+", ");
-          });
+               return(tag+", ");
+              });
+          }
+          else {
+            tagString = "";
+          }
 
 
           if ($.inArray(this.state.sheetFilterTag, sheet.tags) >= 0 || this.state.sheetFilterTag == null ) {
