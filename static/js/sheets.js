@@ -34,10 +34,15 @@ sjs.current.nextNode = sjs.current.nextNode || 1;
 // another user updates the currently loaded sheet. 
 sjs.lastEdit = null;
 
-$(window).on("beforeunload", function() { 
+$(window).on("beforeunload", function() {
 	if (sjs._uid && !(sjs.current.id) && $("#empty").length === 0) {
 		return "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.";
 	}	
+	else if ($("#lastSaved").text() == "Saving...") {
+		return "Your Source Sheet has unsaved changes. Please wait for the autosave to finish.";
+	}
+
+
 });
 
 var oldOnError = window.onerror || function(){};
