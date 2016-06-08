@@ -1496,7 +1496,7 @@ input[type="file"] {
 .sheetsMenuBarItem:hover {
 	position: relative;
 }
-
+/*
 .sheetsMenuBarItem:hover:after {
   content: ' ';
   position: absolute;
@@ -1507,13 +1507,13 @@ input[type="file"] {
   z-index: 6;
   border-bottom: 1px solid #f2f2f2;
 }
-
+*/
 
 
 
 #fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu {
 	display: block;
-	top:46px;
+	top:47px;
 	left:20px;
 	background-color: #F9F9F7;
 }
