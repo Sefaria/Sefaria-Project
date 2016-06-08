@@ -447,6 +447,31 @@ p.tagline {
   margin-top: 30px;
   font-size: 15px;
 }
+#profilePage  #followMe span{
+  font-size: inherit;
+}
+#profilePage  .button span.en{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#profilePage  .button span.he{
+  font-family: "Open Sans Hebrew", sans-serif;
+  font-size: inherit;
+}
+#profilePage #followMe.follow span.following{
+  display: none;
+}
+#profilePage #followMe.following span.follow{
+  display: none;
+}
+#profilePage #followMe span.action{
+  display:none;
+}
+#profilePage #followMe.following:hover span.action{
+  display:inherit;
+}
+#profilePage #followMe.following:hover span.state{
+  display:none;
+}
 #activityList .topline {
   font-weight: normal;
 }

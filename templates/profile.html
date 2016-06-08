@@ -73,11 +73,19 @@
 				{% if profile.id != request.user.id %}
 					<div id="messageMe" class="button white">
 						<span class="en">Message</span>
-						<span class="he"></span>
+						<span class="he">שלח הודעה</span>
 					</div>
-					<div id="followMe" class="{% if following %}following{% endif %} button">
-						<span class="en">{% if following %}Following{% else %}Follow{% endif %}</span>
-						<span class="he"></span>
+					<div id="followMe" class="{% if following %}following{% else %}follow{% endif %} button">
+						<span class="en">
+                            <span class="en state follow">Follow</span>
+                            <span class="en state following">Following</span>
+                            <span class="en action">Unfollow</span>
+                        </span>
+                        <span class="he">
+                            <span class="he state follow">עקוב</span>
+                            <span class="he state following">עוקב</span>
+                            <span class="he action">הפסק לעקוב</span>
+                        </span>
 					</div>
 				{% endif %}
 				{% if profile.id == request.user.id %}
@@ -370,7 +378,7 @@
 		<script>
 		$(function(){
 
-			$("#followMe").on("mouseenter", function(){ 
+			/*$("#followMe").on("mouseenter", function(){
 				if ($(this).hasClass("following")) {
 					$(this).text("Unfollow");
 				}
@@ -380,16 +388,16 @@
 				} else {
 					$(this).text("Follow");
 				}
-			});
+			});*/
 
 			$("#followMe").click(function(){
 				{% if request.user.is_authenticated %}		
 					if ($(this).hasClass("following")) {
 						var action = "unfollow";
-						$(this).removeClass("following");
+						$(this).removeClass("following").addClass('follow');
 					} else {
 						var action = "follow";
-						$(this).addClass("following");
+						$(this).removeClass('follow').addClass("following");
 					}  
 					$.post("/api/" + action + "/{{ profile.id }}", {}, function(data) {
 						Sefaria.site.track.event("Following", "New Follow", "");

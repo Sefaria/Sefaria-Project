@@ -45,7 +45,7 @@
                     <td>{{ form.password }}</td>
                 </p>
 
-                <button type="submit" class="">
+                <button type="submit" class="sans">
                     <span class="en">Login</span>
                     <span class="he">התחבר</span>
                 </button>
@@ -55,7 +55,6 @@
                 </a>
                 <input type="hidden" name="next" value="{{ next }}" />
             </form>
-            <div class="clearfix"></div>
             <a href="{% url register %}{% if next %}?next={{ next }}{% endif %}">
                 <span class="en">Create a new account</span>
                 <span class="he">חדש? צור חשבון משתמש חדש</span>
