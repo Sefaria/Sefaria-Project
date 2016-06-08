@@ -91,7 +91,6 @@ body.dark {
   font-size:  18px;
   font-family: "adobe-garamond-pro", Georgia, serif;
   vertical-align: 1px;
-  width: 90%;
   margin: 0;
 }
 .search-override {
@@ -99,14 +98,16 @@ body.dark {
   padding-top: 5px;
 }
 .header .home {
-  display: inline-block;
   position: absolute;
-  top: 3px;
+  top: 0px;
   left: 50%;
-  margin-left: -50px;
+  margin-left: -46px;
 }
 .header .home img {
-  opacity: 0.5;
+  height: 18px;
+  width: 92px;
+  opacity: 0.6;
+  vertical-align: middle;
 }
 .header .accountLinks {
   display: inline-block;
@@ -217,11 +218,6 @@ body.dark {
   font-size: 17px;
   position: relative;
   top: -2px;
-}
-.header .home img {
-  height: 28px;
-  vertical-align: middle;
-  margin-top: -9px;
 }
 .header .headerNavContent {
   position: fixed;
@@ -731,9 +727,11 @@ h1 .languageToggle .he {
   margin: 0 6px;
   color: #999;
 }
-.readerNavMenu .resourcesLink .fa.hidden { 
-  opacity: 0;
-  display: none;
+.readerNavMenu .resourcesLink img {
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+  margin: -2px 5px;
 }
 .readerNavMenu .siteLinks {
   margin-top: 20px;
@@ -1057,8 +1055,12 @@ h1 .languageToggle .he {
     width: auto;
   }
 }
+
+.searchContentFrame h1 {
+  height: 40px;
+}
 .searchContent {
-  padding: 15px 10px 100px;
+  padding: 0 10px 100px;
 }
 .searchContent .searchTopMatter {
   padding-bottom: 10px;
@@ -1069,8 +1071,7 @@ h1 .languageToggle .he {
   border-bottom: none;
 }
 .searchContent .searchStatusLine {
-  padding: 10px 0 36px 0;
-  margin-top: -60px;
+  padding: 0 0 36px 0;
   text-align: center;
   font-size: 12px;
   height: 64px;
@@ -1469,7 +1470,8 @@ h1 .languageToggle .he {
   padding-right: 0;
 }
 .readerOptions img {
-  height: 26px;
+  height: 18px;
+  width: 30px;
   vertical-align: middle;
 }
 .readerOptionsPanel {

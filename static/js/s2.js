@@ -1050,11 +1050,14 @@ var Header = React.createClass({
       }
     }
     if (Sefaria.isRef(query)) {
-      this.props.onRefClick(query);
-      this.showDesktop();
+      this.handleRefClick(query);
       if (Sefaria.site) {
         Sefaria.site.track.ui("Nav Query");
       }
+      if (this.props.headerMode) {
+        return;
+      }
+      this.showDesktop();
     } else {
       this.showSearch(query);
     }
@@ -1076,6 +1079,10 @@ var Header = React.createClass({
     }
   },
   handleRefClick: function handleRefClick(ref, version, versionLanguage) {
+    if (this.props.headerMode) {
+      window.location.assign("/" + ref);
+      return;
+    }
     this.props.onRefClick(ref, version, versionLanguage);
   },
   handleSearchKeyUp: function handleSearchKeyUp(event) {
@@ -2275,7 +2282,7 @@ var ReaderNavigationMenu = React.createClass({
       var resources = [React.createElement(
         'span',
         { className: 'resourcesLink', style: sheetsStyle, onClick: this.props.openMenu.bind(null, "sheets") },
-        React.createElement('i', { className: 'fa fa-file-text-o' }),
+        React.createElement('img', { src: '/static/img/sheet-icon.png' }),
         React.createElement(
           'span',
           { className: 'en' },
@@ -2285,12 +2292,11 @@ var ReaderNavigationMenu = React.createClass({
           'span',
           { className: 'he' },
           'דפי מקורות'
-        ),
-        React.createElement('i', { className: 'fa fa-file-text-o hidden' })
+        )
       ), React.createElement(
         'a',
         { className: 'resourcesLink', style: sheetsStyle, href: '/visualizations' },
-        React.createElement('i', { className: 'fa fa-link' }),
+        React.createElement('img', { src: '/static/img/visualizations-icon.png' }),
         React.createElement(
           'span',
           { className: 'en' },
@@ -2300,12 +2306,11 @@ var ReaderNavigationMenu = React.createClass({
           'span',
           { className: 'he' },
           'חזותיים'
-        ),
-        React.createElement('i', { className: 'fa fa-link hidden' })
+        )
       ), React.createElement(
         'a',
         { className: 'resourcesLink', style: sheetsStyle, href: '/people' },
-        React.createElement('i', { className: 'fa fa-book' }),
+        React.createElement('img', { src: '/static/img/authors-icon.png' }),
         React.createElement(
           'span',
           { className: 'en' },
@@ -2315,8 +2320,7 @@ var ReaderNavigationMenu = React.createClass({
           'span',
           { className: 'he' },
           'רשימת מחברים'
-        ),
-        React.createElement('i', { className: 'fa fa-book hidden' })
+        )
       )];
       resources = React.createElement(
         'div',
@@ -5600,7 +5604,6 @@ var LexiconPanel = React.createClass({
     }
   },
   getLookups: function getLookups() {
-    console.log("Lexicon Ref: ", this.props.oref);
     if (!this.shouldRenderSelf()) {
       return;
     }
@@ -5619,16 +5622,14 @@ var LexiconPanel = React.createClass({
     if (!this.props.selectedWords) {
       return false;
     }
-    wordList = this.props.selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
-    inputLength = wordList.length;
+    var wordList = this.props.selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
+    var inputLength = wordList.length;
     return inputLength > 0 && inputLength <= 3;
   },
   filter: function filter(entries) {
-
     return entries.map();
   },
   render: function render() {
-    console.log("lexicon: " + this.props.selectedWords);
     var ref_cats = this.props.oref.categories.join(", ");
     var enEmpty = "No results found.";
     var heEmpty = "לא נמצאו תוצאות";
