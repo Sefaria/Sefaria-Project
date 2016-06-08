@@ -2365,13 +2365,59 @@ function readSource($target) {
 			en: $target.find(".text .en").html(),
 			he: $target.find(".text .he").html(),
 		};
+		//Set indentation level
+		if ($target.hasClass("indented-1")) {
+			var sourceIndentLevel = "indented-1"
+		} else if ($target.hasClass("indented-2")) {
+			var sourceIndentLevel = "indented-2"
+		} else if ($target.hasClass("indented-3")) {
+			var sourceIndentLevel = "indented-3"
+		} else {
+			var sourceIndentLevel ="";
+		}
+
+		source["options"] = {
+							 indented: sourceIndentLevel
+		};
 
 	} else if ($target.hasClass("outsideWrapper")) {
 		source["outsideText"] = $target.find(".outside").html();
+
+		//Set indentation level
+		if ($target.hasClass("indented-1")) {
+			var sourceIndentLevel = "indented-1"
+		} else if ($target.hasClass("indented-2")) {
+			var sourceIndentLevel = "indented-2"
+		} else if ($target.hasClass("indented-3")) {
+			var sourceIndentLevel = "indented-3"
+		} else {
+			var sourceIndentLevel ="";
+		}
+
+		source["options"] = {
+							 indented: sourceIndentLevel
+		};
+
 	}
 	
 	 else if ($target.hasClass("mediaWrapper")) {
 		source["media"] = $target.find(".media iframe, .media img, .media audio").attr("src");
+
+		//Set indentation level
+		if ($target.hasClass("indented-1")) {
+			var sourceIndentLevel = "indented-1"
+		} else if ($target.hasClass("indented-2")) {
+			var sourceIndentLevel = "indented-2"
+		} else if ($target.hasClass("indented-3")) {
+			var sourceIndentLevel = "indented-3"
+		} else {
+			var sourceIndentLevel ="";
+		}
+
+		source["options"] = {
+							 indented: sourceIndentLevel
+		};
+
 	}
 	
 
@@ -2624,9 +2670,9 @@ function buildSource($target, source, appendOrInsert) {
 		else if (appendOrInsert == "insert") {
 			$target.after(outsideHtml);
 		}
-
-
-
+		if ("options" in source) {
+			$(".sheetItem").last().addClass(source.options.indented);
+		}
 	} else if ("outsideText" in source) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideWrapper");
 		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
@@ -2640,6 +2686,9 @@ function buildSource($target, source, appendOrInsert) {
 		}
 		else if (appendOrInsert == "insert") {
 			$target.after(outsideHtml);
+		}
+		if ("options" in source) {
+			$(".sheetItem").last().addClass(source.options.indented);
 		}
 	}
 	else if ("media" in source) {
@@ -2675,6 +2724,9 @@ function buildSource($target, source, appendOrInsert) {
 					$target.after(outsideHtml);
 				}
 
+		if ("options" in source) {
+			$(".sheetItem").last().addClass(source.options.indented);
+		}
 	}
 	
 	else if ("text" in source) {
