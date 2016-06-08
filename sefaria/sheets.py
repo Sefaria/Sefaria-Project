@@ -55,8 +55,8 @@ def user_sheets(user_id,sort_by):
 		s["size"] = len(sheet["sources"])
 		s["views"] = sheet["views"]
 		s["modified"] = dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y")
-		s["tags"] = sheet["tags"]
-
+		if "tags" in sheet:
+			s["tags"] = sheet["tags"]
 		response["sheets"].append(s)
 
 	return response
@@ -84,7 +84,8 @@ def sheet_list(user_id=None):
 		s["size"]     = len(sheet["sources"])
 		s["views"]    = sheet["views"]
 		s["modified"] = dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y")
-		s["tags"]    = sheet["tags"]
+		if "tags" in sheet:
+			s["tags"] = sheet["tags"]
 
 		response["sheets"].append(s)
 
