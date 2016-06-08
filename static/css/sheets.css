@@ -132,6 +132,8 @@ body {
 	font-size: 18px;
 	position: relative;
 	top: -40px;
+	right: 40px;
+
 }
 
 #sheet.bsd #bsdHeader {
@@ -1116,10 +1118,6 @@ a:active {
 	#controls {
 		margin-left: 0;
 		left: 0;
-	}
-
-	#bsdHeader {
-		right: 0px;
 	}
 
 	#rightButtons #controls {
