@@ -2280,7 +2280,7 @@ var ReaderNavigationMenu = React.createClass({
       var resources = [React.createElement(
         'span',
         { className: 'resourcesLink', style: sheetsStyle, onClick: this.props.openMenu.bind(null, "sheets") },
-        React.createElement('i', { className: 'fa fa-file-text-o' }),
+        React.createElement('img', { src: '/static/img/sheet-icon.png' }),
         React.createElement(
           'span',
           { className: 'en' },
@@ -2290,12 +2290,11 @@ var ReaderNavigationMenu = React.createClass({
           'span',
           { className: 'he' },
           'דפי מקורות'
-        ),
-        React.createElement('i', { className: 'fa fa-file-text-o hidden' })
+        )
       ), React.createElement(
         'a',
         { className: 'resourcesLink', style: sheetsStyle, href: '/visualizations' },
-        React.createElement('i', { className: 'fa fa-link' }),
+        React.createElement('img', { src: '/static/img/visualizations-icon.png' }),
         React.createElement(
           'span',
           { className: 'en' },
@@ -2305,12 +2304,11 @@ var ReaderNavigationMenu = React.createClass({
           'span',
           { className: 'he' },
           'חזותיים'
-        ),
-        React.createElement('i', { className: 'fa fa-link hidden' })
+        )
       ), React.createElement(
         'a',
         { className: 'resourcesLink', style: sheetsStyle, href: '/people' },
-        React.createElement('i', { className: 'fa fa-book' }),
+        React.createElement('img', { src: '/static/img/authors-icon.png' }),
         React.createElement(
           'span',
           { className: 'en' },
@@ -2320,8 +2318,7 @@ var ReaderNavigationMenu = React.createClass({
           'span',
           { className: 'he' },
           'רשימת מחברים'
-        ),
-        React.createElement('i', { className: 'fa fa-book hidden' })
+        )
       )];
       resources = React.createElement(
         'div',

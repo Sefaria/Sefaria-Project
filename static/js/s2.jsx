@@ -2109,22 +2109,19 @@ var ReaderNavigationMenu = React.createClass({
 
       var sheetsStyle = {"borderColor": Sefaria.palette.categoryColor("Sheets")};
       var resources = [(<span className="resourcesLink" style={sheetsStyle} onClick={this.props.openMenu.bind(null, "sheets")}>
-                        <i className="fa fa-file-text-o"></i>
+                        <img src="/static/img/sheet-icon.png" />
                         <span className="en">Source Sheets</span>
                         <span className="he">דפי מקורות</span>
-                        <i className="fa fa-file-text-o hidden"></i>
                       </span>),
                      (<a className="resourcesLink" style={sheetsStyle} href="/visualizations">
-                        <i className="fa fa-link"></i>
+                        <img src="/static/img/visualizations-icon.png" />
                         <span className="en">Visualizations</span>
                         <span className="he">חזותיים</span>
-                        <i className="fa fa-link hidden"></i>
                       </a>),
                     (<a className="resourcesLink" style={sheetsStyle} href="/people">
-                        <i className="fa fa-book"></i>
+                        <img src="/static/img/authors-icon.png" />
                         <span className="en">Authors</span>
                         <span className="he">רשימת מחברים</span>
-                        <i className="fa fa-book hidden"></i>
                       </a>)];
       resources = (<div className="readerNavCalendar"><TwoOrThreeBox content={resources} width={this.width} /></div>);
 

@@ -105,7 +105,9 @@ body.dark {
   margin-left: -50px;
 }
 .header .home img {
-  opacity: 0.5;
+  height: 18px;
+  width: 92px;
+  opacity: 0.6;
 }
 .header .accountLinks {
   display: inline-block;
@@ -216,11 +218,6 @@ body.dark {
   font-size: 17px;
   position: relative;
   top: -2px;
-}
-.header .home img {
-  height: 28px;
-  vertical-align: middle;
-  margin-top: -9px;
 }
 .header .headerNavContent {
   position: fixed;
@@ -730,9 +727,11 @@ h1 .languageToggle .he {
   margin: 0 6px;
   color: #999;
 }
-.readerNavMenu .resourcesLink .fa.hidden { 
-  opacity: 0;
-  display: none;
+.readerNavMenu .resourcesLink img {
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+  margin: -2px 5px;
 }
 .readerNavMenu .siteLinks {
   margin-top: 20px;
@@ -1471,7 +1470,8 @@ h1 .languageToggle .he {
   padding-right: 0;
 }
 .readerOptions img {
-  height: 26px;
+  height: 18px;
+  width: 30px;
   vertical-align: middle;
 }
 .readerOptionsPanel {
