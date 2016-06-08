@@ -20,46 +20,48 @@
 {% else %}
 
 	<div id="login" class="biReady registrationContent static">
-		{% if message %}<p id="message">{{ message }}</p>{% endif %}
-		<h1>
-	        <span class="en">Login to Sefaria</span>
-	        <span class="he">התחבר לספאריה</span>
-	    </h1>
-		{% if form.errors %}
-		<p class="error">
-            <span class="en">Your username and password didn't match. Please try again.</span>
-	        <span class="he">בעיה בשם המשתמש או בסיסמא, אנא נסה שוב.</span>
-        </p>
-		{% endif %}
+        <div class="inner">
+            {% if message %}<p id="message">{{ message }}</p>{% endif %}
+            <h1>
+                <span class="en">Login to Sefaria</span>
+                <span class="he">התחבר לספאריה</span>
+            </h1>
+            {% if form.errors %}
+            <p class="error">
+                <span class="en">Your username and password didn't match. Please try again.</span>
+                <span class="he">בעיה בשם המשתמש או בסיסמא, אנא נסה שוב.</span>
+            </p>
+            {% endif %}
 
-		<form id="login-form" method="post" action="{% url login %}">
-			{% csrf_token %}
+            <form id="login-form" method="post" action="{% url login %}">
+                {% csrf_token %}
 
-			<p>
-				{{ form.email.label_tag }}
-			    <td>{{ form.email }}</td>
-			</p>
-			<p>
-				{{ form.password.label_tag }}
-			    <td>{{ form.password }}</td>
-			</p>
+                <p>
+                    {{ form.email.label_tag }}
+                    <td>{{ form.email }}</td>
+                </p>
+                <p>
+                    {{ form.password.label_tag }}
+                    <td>{{ form.password }}</td>
+                </p>
 
-			<button type="submit" class="btn btn-primary btn-large">
-                <span class="en">Login</span>
-                <span class="he">התחבר</span>
-            </button>
-	        <a href="{% url password_reset %}" id="resetLink">
-                <span class="en">Forgot your password?</span>
-                <span class="he">שכחתי את הסיסמא שלי</span>
+                <button type="submit" class="">
+                    <span class="en">Login</span>
+                    <span class="he">התחבר</span>
+                </button>
+                <a href="{% url password_reset %}" id="resetLink">
+                    <span class="en">Forgot your password?</span>
+                    <span class="he">שכחתי את הסיסמא שלי</span>
+                </a>
+                <input type="hidden" name="next" value="{{ next }}" />
+            </form>
+            <div class="clearfix"></div>
+            <a href="{% url register %}{% if next %}?next={{ next }}{% endif %}">
+                <span class="en">Create a new account</span>
+                <span class="he">חדש? צור חשבון משתמש חדש</span>
+
             </a>
-			<input type="hidden" name="next" value="{{ next }}" />
-		</form>
-		<div class="clearfix"></div>
-		<a href="{% url register %}{% if next %}?next={{ next }}{% endif %}">
-            <span class="en">Create a new account</span>
-            <span class="he">חדש? צור חשבון משתמש חדש</span>
-
-        </a>
-	</div>
+	    </div>
+    </div>
 {% endif %}
 {% endblock %}

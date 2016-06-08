@@ -147,6 +147,7 @@ p.tagline {
   text-align: justify
 }
 .static p {
+  margin: initial;
   font-size: 23px;
   line-height: 1.5;
 }
@@ -460,7 +461,8 @@ p.tagline {
 }
 .registrationContent {
   text-align: center;
-  margin: 100px auto 0;
+  margin: 1% auto 0;
+  width: 25%;
 }
 
 .registrationContent h1 span.en{
@@ -470,8 +472,9 @@ p.tagline {
   display: none;
 }
 .registrationContent input {
-  padding: 20px 20px;
-  margin: 0;
+  padding: 12px 20px;
+  height: initial;
+  margin: 1% 0px;
   cursor: pointer;
   border-radius: 4px;
   box-shadow: none;
@@ -537,12 +540,19 @@ p.tagline {
 }
 .registrationContent a {
   display: block;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   text-align: center;
   color: #999;
   font-size: 14px;
   font-style: normal;
 }
+.registrationContent a .en, .registrationContent button .en{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.registrationContent a .he, .registrationContent button .he{
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+
+
 #login.registrationContent #resetLink{
   margin: 20px 0;
   color: #999;
