@@ -1044,9 +1044,10 @@ var Header = React.createClass({
       }
     }
     if (Sefaria.isRef(query)) {
-      this.props.onRefClick(query);
-      this.showDesktop();
+      this.handleRefClick(query);
       if (Sefaria.site) { Sefaria.site.track.ui("Nav Query"); }
+      if (this.props.headerMode) { return; }
+      this.showDesktop();
     } else {
       this.showSearch(query);
     }
@@ -1068,6 +1069,10 @@ var Header = React.createClass({
     }
   },
   handleRefClick: function(ref, version, versionLanguage) {
+    if (this.props.headerMode) {
+      window.location.assign("/" + ref);
+      return;
+    }
     this.props.onRefClick(ref, version, versionLanguage);
   },
   handleSearchKeyUp: function(event) {
@@ -2104,22 +2109,19 @@ var ReaderNavigationMenu = React.createClass({
 
       var sheetsStyle = {"borderColor": Sefaria.palette.categoryColor("Sheets")};
       var resources = [(<span className="resourcesLink" style={sheetsStyle} onClick={this.props.openMenu.bind(null, "sheets")}>
-                        <i className="fa fa-file-text-o"></i>
+                        <img src="/static/img/sheet-icon.png" />
                         <span className="en">Source Sheets</span>
                         <span className="he">דפי מקורות</span>
-                        <i className="fa fa-file-text-o hidden"></i>
                       </span>),
                      (<a className="resourcesLink" style={sheetsStyle} href="/visualizations">
-                        <i className="fa fa-link"></i>
+                        <img src="/static/img/visualizations-icon.png" />
                         <span className="en">Visualizations</span>
                         <span className="he">חזותיים</span>
-                        <i className="fa fa-link hidden"></i>
                       </a>),
                     (<a className="resourcesLink" style={sheetsStyle} href="/people">
-                        <i className="fa fa-book"></i>
+                        <img src="/static/img/authors-icon.png" />
                         <span className="en">Authors</span>
                         <span className="he">רשימת מחברים</span>
-                        <i className="fa fa-book hidden"></i>
                       </a>)];
       resources = (<div className="readerNavCalendar"><TwoOrThreeBox content={resources} width={this.width} /></div>);
 
@@ -4549,7 +4551,6 @@ var LexiconPanel = React.createClass({
     }
   },
   getLookups: function(){
-    console.log("Lexicon Ref: ", this.props.oref);
     if(!this.shouldRenderSelf()){
       return;
     }
@@ -4568,16 +4569,14 @@ var LexiconPanel = React.createClass({
     if(!this.props.selectedWords){
       return false;
     }
-    wordList = this.props.selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
-    inputLength = wordList.length;
+    var wordList = this.props.selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
+    var inputLength = wordList.length;
     return (inputLength > 0 && inputLength <= 3);
   },
   filter: function(entries){
-
     return entries.map()
   },
   render: function(){
-    console.log("lexicon: "+this.props.selectedWords);
     var ref_cats = this.props.oref.categories.join(", ");
     var enEmpty = "No results found.";
     var heEmpty = "לא נמצאו תוצאות";
