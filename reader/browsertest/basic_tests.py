@@ -13,7 +13,7 @@ class SinglePanelOnMobile(AtomicTest):
     multi_panel = False
 
     def run(self):
-        self.load_toc().click_toc_category("Tanach").click_toc_text("Exodus")
+        self.load_toc().click_toc_category("Tanakh").click_toc_text("Exodus")
         elems = self.driver.find_elements_by_css_selector(".readerApp.multiPanel")
         assert len(elems) == 0
         self.click_segment("Exodus 1:1")
@@ -37,7 +37,7 @@ class RecentInToc(AtomicTest):
     every_build = True
 
     def run(self):
-        self.load_toc().click_toc_category("Tanach").click_toc_text("Psalms")
+        self.s2().click_toc_category("Tanakh").click_toc_text("Psalms")
         self.load_toc().click_toc_recent("Psalms 1", until=title_contains("Psalms"))
 
 

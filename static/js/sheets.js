@@ -2093,7 +2093,7 @@ function loadSource(data, $target, optionStr) {
 
         var includeNumbers = $.inArray("Talmud", data.categories) > -1 ? false : true;
         includeNumbers = data.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
-        var segmented = !(data.categories[0] in {"Tanach": 1, "Talmud": 1});
+        var segmented = !(data.categories[0] in {"Tanakh": 1, "Talmud": 1});
         for (var i = 0; i < Math.max(curEnglishText.length, curHebrewText.length); i++) {
             if (!curEnglishText[i] && !curHebrewText[i]) {
                 continue;

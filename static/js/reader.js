@@ -1278,7 +1278,7 @@ sjs.lexicon = {
 
 	enabledCategories : {
 		'en' :  ['Mishnah'],
-		'he' : ['Tanach']
+		'he' : ['Tanakh']
 	},
 
 
@@ -1306,7 +1306,7 @@ sjs.lexicon = {
 		/*if (params['url_enabled']){*/
 		switch (lang){
 			case 'he':
-				if(currentText.categories[0] == 'Tanach' &&
+				if(currentText.categories[0] == 'Tanakh' &&
 					!(currentText.categories[1] == 'Targum' || currentText.categories[1] == 'Commentary')){
 					return true;
 				}
@@ -1758,8 +1758,8 @@ function buildView(data) {
 	}
 	if (!sjs._$basetext.hasClass("bilingual")) $("#layoutToggle").show();
 	
-	// Texts that default to paragraph view - Tanach excluding Psalms and Talmud
-	if (!(data.type in {Tanach:1, Talmud:1}) || data.book in {Psalms:1}) {
+	// Texts that default to paragraph view - Tanakh excluding Psalms and Talmud
+	if (!(data.type in {Tanakh:1, Talmud:1}) || data.book in {Psalms:1}) {
 		$("#layoutToggle .toggleOption").removeClass("active");
 		$("#block").addClass("active");
 		sjs._$basetext.addClass("lines");
