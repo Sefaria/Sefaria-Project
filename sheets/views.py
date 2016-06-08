@@ -759,6 +759,17 @@ def tag_list_api(request, sort_by="count"):
 	response["Cache-Control"] = "max-age=3600"
 	return response
 
+def user_tag_list_api(request, user_id):
+	"""
+	API to retrieve the list of public tags ordered by count.
+	"""
+	#if int(user_id) != request.user.id:
+		#return jsonResponse({"error": "You are not authorized to view that."})
+	response = sheet_tag_counts({ "owner": int(user_id) })
+	response =  jsonResponse(response, callback=request.GET.get("callback", None))
+	response["Cache-Control"] = "max-age=3600"
+	return response
+
 def trending_tags_api(request):
 	"""
 	API to retrieve the list of peopke who like sheet_id.
