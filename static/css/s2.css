@@ -2737,3 +2737,15 @@ h2.splitHeader {
 
 }
 
+.sheetButton:hover {
+  text-decoration: underline;
+}
+
+.sheetButton{
+  border: 1px solid #fff;
+}
+
+
+.sheetButton.active {
+  border: 1px solid #333;
+}

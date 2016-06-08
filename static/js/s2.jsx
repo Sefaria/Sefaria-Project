@@ -2731,7 +2731,8 @@ var SheetsNav = React.createClass({
       tagSort: this.props.tagSort,
       width: 400,
       yourSheetTags: [],
-      showYourSheetTags: false
+      showYourSheetTags: false,
+      sheetFilterTag: null
     };
   },
   componentDidMount: function() {
@@ -2759,6 +2760,16 @@ var SheetsNav = React.createClass({
   toggleSheetTags: function() {
     this.state.showYourSheetTags == true ? this.setState({showYourSheetTags: false}) : this.setState({showYourSheetTags: true});
   },
+
+  filterYourSheetsByTag: function (tag) {
+    if (tag.tag == this.state.sheetFilterTag) {
+       this.setState({sheetFilterTag: null});
+    }
+    else {
+      this.setState({sheetFilterTag: tag.tag});
+    }
+  },
+
   getAllSheets: function() {
     Sefaria.sheets.allSheetsList(this.loadAllSheets);
   },
@@ -2825,22 +2836,25 @@ var SheetsNav = React.createClass({
               return(tag+", ");
           });
 
-          if (this.props.multiPanel) {
-                return (<div className="sheet userSheet" key={url}>
-                          <a className="sheetEditButtons" href={url}>
-                            <span><i className="fa fa-pencil"></i> </span>
-                          </a>
-                          <div className="sheetEditButtons" onClick={editSheetTags}>
-                            <span><i className="fa fa-tag"></i> </span>
-                          </div>
 
-                          <div className="sheetTitle">{title}</div>
-                          <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
+          if ($.inArray(this.state.sheetFilterTag, sheet.tags) >= 0 || this.state.sheetFilterTag == null ) {
+              if (this.props.multiPanel) {
 
-                    </div>
-                );
+                    return (<div className="sheet userSheet" key={url}>
+                              <a className="sheetEditButtons" href={url}>
+                                <span><i className="fa fa-pencil"></i> </span>
+                              </a>
+                              <div className="sheetEditButtons" onClick={editSheetTags}>
+                                <span><i className="fa fa-tag"></i> </span>
+                              </div>
 
-          }
+                              <div className="sheetTitle">{title}</div>
+                              <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
+
+                        </div>
+                    );
+
+              }
 
           else {
 
@@ -2853,12 +2867,22 @@ var SheetsNav = React.createClass({
 
           }
 
+            }
         }, this);
 
         if (this.state.userTagList != null){
 
+
         var userTagList = this.state.userTagList.map(function (tag) {
-             return (<div className="navButton" onClick={console.log()} key={tag.tag}>{tag.tag} ({tag.count})</div>);
+             var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
+              if (this.state.sheetFilterTag == tag.tag) {
+                  return (<div className="navButton sheetButton active" onClick={filterThisTag} key={tag.tag}>{tag.tag} ({tag.count})</div>);
+              }
+              else {
+                  return (<div className="navButton sheetButton" onClick={filterThisTag} key={tag.tag}>{tag.tag} ({tag.count})</div>);
+
+              }
+
         }, this);
 
 
@@ -2963,14 +2987,11 @@ var SheetsNav = React.createClass({
                           { this.props.multiPanel ? (
                           <h2 className="splitHeader">
                             <span className="en" style={{float: 'left'}}>Public Sheets</span>
-                            <span className="he">Public Sheets [he]</span>
                             <span className="en actionText" onClick={this.showAllSheets}>See All <i className="fa fa-angle-right"></i></span>
-                            <span className="he actionText" onClick={this.showAllSheets}>See All [he] <i className="fa fa-angle-right"></i></span>
 
                           </h2>) : (
                           <h2>
                             <span className="en">Public Sheets</span>
-                            <span className="he">Public Sheets [he]</span>
                           </h2>
                           )}
                           {publicSheetList}
@@ -2980,7 +3001,6 @@ var SheetsNav = React.createClass({
 
                           <h2>
                             <span className="en">Trending Tags</span>
-                            <span className="he">Trending Tags [he]</span>
                           </h2>
                           )}
 
@@ -2992,7 +3012,6 @@ var SheetsNav = React.createClass({
                           { this.props.multiPanel ? (
                           <h2 className="splitHeader">
                             <span className="en" style={{float: 'left'}}>All Tags</span>
-                            <span className="he">All Tags [he]</span>
 
                             <span className="en actionText">Sort By:
                               <select value={this.props.tagSort} onChange={this.changeSort}>
@@ -3000,17 +3019,9 @@ var SheetsNav = React.createClass({
                                <option value="count">Most Used</option>
                                <option value="trending">Trending</option>
                              </select> <i className="fa fa-angle-down"></i></span>
-                            <span className="he actionText">Sort By [he]:
-                                <select value={this.props.tagSort} onChange={this.changeSort}>
-                               <option value="alpha">Alphabetical</option>
-                               <option value="count">Most Used</option>
-                               <option value="trending">Trending</option>
-                             </select> <i className="fa fa-angle-down"></i></span>
-
                           </h2>) : (
                           <h2>
                             <span className="en">All Tags</span>
-                            <span className="he">All Tags [he]</span>
                           </h2>
                           )}
 
