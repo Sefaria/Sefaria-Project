@@ -3353,7 +3353,7 @@ var SheetsNav = React.createClass({
           }.bind(this);
           var title = sheet.title.stripHtml();
           var url = "/sheets/" + sheet.id;
-          sheet.tags ? sheet.tags : [];
+          console.log(sheet.id + " " + sheet.tags);
           var tagString = sheet.tags.map(function (tag) {
             return tag + ", ";
           });
