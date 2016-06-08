@@ -132,6 +132,8 @@ body {
 	font-size: 18px;
 	position: relative;
 	top: -40px;
+	right: 40px;
+
 }
 
 #sheet.bsd #bsdHeader {
@@ -199,6 +201,8 @@ body {
 
 .optionsMenu img, .addInterfaceButton img {
 	margin-right: 5px;
+	margin-bottom: 2px;
+
 }
 
 .sheetsMenuBarItem .optionsMenu i {
@@ -213,17 +217,13 @@ body {
 	display: block;
 }
 
-.optionTitle {
-	padding: 5px 12px;
-}
-
 .optionHeader {
 	font-weight: bold;
 	margin-left: 12px;
 }
 
-.optionItem, .optionLink, .languageToggleOption div, .layoutToggleOption div, .sideBySideToggleOption div {
-	padding: 5px 12px;
+.optionItem, .optionLink, .languageToggleOption div, .layoutToggleOption div, .sideBySideToggleOption div, .optionTitle {
+	padding: 10px 12px;
 	cursor: pointer;
 	white-space: nowrap;
 }
@@ -267,7 +267,7 @@ body {
 .optionGroup .optionTitle .fa-caret-right {
 	position: absolute;
 	right: 6px;
-	top: 5px;
+	top: 15px;
 }
 
 .optionGroup:hover .subMenu {
@@ -405,7 +405,9 @@ body {
 	text-align: center;
 	font-style: italic;
 	margin-bottom: 10px;
+	color: #999;
 }
+
 
 #via {
 	font-size: 13px;
@@ -497,7 +499,7 @@ body {
 	position: relative;
 	padding: 32px 76px;
 	border: solid 1px transparent;
-	border-left: solid 3px transparent;
+	border-left: solid 6px transparent;
 }
 
 #sheet #sources .sheetItem .sourceNumber.en {
@@ -525,7 +527,7 @@ body {
 }
 
 #sheet .sourceControlsOpen {
-	background-color: #F7F7F9;
+	background-color: #F9F9F7;
 	z-index: 2;
 	border-top:solid 1px #F2F2F2;
 	border-bottom:solid 1px #F2F2F2;
@@ -551,12 +553,12 @@ body {
 	margin: 0 5px;
 	font-size: 15px;
 	cursor: pointer;
-	background-color: #F7F7F9 !important;
+	background-color: #F9F9F7 !important;
 }
 
 #sourceControls div:hover {
 	color: #08c;
-	background-color: #F7F7F9 !important;
+	background-color: #F9F9F7 !important;
 
 }
 .sideControls {
@@ -564,9 +566,21 @@ body {
 	left: 23px !important;
 	margin-left: 0 !important;
 	top: 32px !important;
-	background-color: #F7F7F9 !important;
+	background-color: #F9F9F7 !important;
 
 }
+
+#sourceControls.sideControls div:hover {
+	color: #999;
+	background-color: #F9F9F7 !important;
+
+}
+
+.tooltipster-default {
+	background-color: #999 !important;
+	color: #fff;
+}
+
 
 
 .sideControls div {
@@ -1106,10 +1120,6 @@ a:active {
 		left: 0;
 	}
 
-	#bsdHeader {
-		right: 0px;
-	}
-
 	#rightButtons #controls {
 		position: static;
 		display: block;
@@ -1486,7 +1496,7 @@ input[type="file"] {
 .sheetsMenuBarItem:hover {
 	position: relative;
 }
-
+/*
 .sheetsMenuBarItem:hover:after {
   content: ' ';
   position: absolute;
@@ -1497,13 +1507,13 @@ input[type="file"] {
   z-index: 6;
   border-bottom: 1px solid #f2f2f2;
 }
-
+*/
 
 
 
 #fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu {
 	display: block;
-	top:45px;
+	top:47px;
 	left:20px;
 	background-color: #F9F9F7;
 }
@@ -1541,8 +1551,8 @@ input[type="file"] {
 }
 
 .activeSource {
-	background-color: #F7F7F9;
-	border-left:solid 3px #212e50;
+	background-color: #F9F9F7;
+	border-left:solid 6px #212e50;
 	border-top:solid 1px #F2F2F2;
 	border-bottom:solid 1px #F2F2F2;
 }
@@ -1557,8 +1567,14 @@ input[type="file"] {
 	z-index: 3;
 }
 
+
+.inlineAddButtonIcon::before {
+	content: url("../img/add icon.png");
+}
+
+
 .inlineAddButtonIcon.active {
-	color: #212e50;
+	content: url("../img/add icon active.png");
 }
 
 #sourceLayoutLanguageMenuItems {
@@ -1567,12 +1583,13 @@ input[type="file"] {
 
 #addInterface {
 	width:100%;
-	background-color: #eee;
+	background-color: #f2f2f2;
 	padding: 40px 0 60px 0;
 	text-align: center;
 	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
 	font-size: 14px;
-	border-top: 1px #999 solid;
+	border-top: 1px #ccc solid;
+	border-bottom: 1px #ccc solid;
 }
 
 #addInterface .buttonBar {
@@ -1599,7 +1616,7 @@ input[type="file"] {
 	width: 346px;
 	border: 1px solid #eee;
 	border-radius: 5px;
-	padding: 20px 0;
+	padding: 12px 0;
 	margin-bottom:6px;
 	display: inline-block;
 	background-color: #fff;
@@ -1615,8 +1632,8 @@ input[type="file"] {
 }
 
 .sourceConnection.active {
-	border: 1px solid #6c6c6c;
-	color: black;
+	border: 1px solid #999;
+	color: #333;
 }
 
 .addInterfaceButton:first-of-type {
@@ -1668,7 +1685,11 @@ input[type="file"] {
 }
 
 #inlineAdd {
-	width: 40%;
+	width: 320px;
+	height: 32px;
+	margin: 0;
+	float:left;
+
 }
 
 #inlineAddOr {
@@ -1686,7 +1707,7 @@ input[type="file"] {
 	padding: 12px 24px;
 }
 .sheetsEditNavTop .button {
-	padding: 8px 24px;
+    padding: 5px 12px;
 }
 
 #customTextLanguageToggle {
@@ -1707,12 +1728,24 @@ input[type="file"] {
 #customTextLanguageToggle .toggleOption img {
 	height: 16px;
 	width: 16px;
+    margin-bottom: 2px;
 }
 
-#customTextContainer, #addmediaDiv, #addcommentDiv{
+#customTextContainer, #addmediaDiv, #addcommentDiv, #addsourceDiv{
 	width: 702px;
-    margin: 0 74px 40px 74px;
+    margin: 0 74px 0 74px;
+}
+.blockContainer {
+	display: inline-block;
+	width:100%;
+}
 
+#customTextContainer{
+	margin-bottom: 40px;
+}
+
+#addsourceDiv .buttonContainer{
+	float:right;
 }
 
 #addcommentDiv .contentToAdd {
@@ -1721,7 +1754,7 @@ input[type="file"] {
 
 
 .contentToAdd {
-	padding: 5px;
+	padding: 10px;
 	border: 1px solid #cecece;
 	border-radius: 5px;
 	margin: 0;
@@ -1747,6 +1780,8 @@ input[type="file"] {
 #inlineAddMediaInput{
 	width:100%;
 	margin-bottom:40px;
+	height:32px;
+	font-size:14px;
 }
 
 .s2AddedBy {
@@ -1759,9 +1794,15 @@ input[type="file"] {
 	margin-right: 7px;
 }
 
-.s2AddedBy .userLink{
+a.userLink{
+	color:#333;
+}
+
+
+.s2AddedBy a.userLink{
 	color:#999;
 }
+
 
 .commentIcon {
 	color:#999;
@@ -1771,8 +1812,14 @@ input[type="file"] {
 }
 .sheetsEditNavTop #save, .sheetsEditNavTop #share  {
 	float: right;
-    margin: 3px 0 0 0;
+    margin: 8px 0 0 0;
+	border-radius: 3px;
+	font-weight: 300;
 }
+.sheetsEditNavTop #save img, .sheetsEditNavTop #share img  {
+    margin-bottom: 2px;
+}
+
 
 #shareURL {
 	cursor: text;
@@ -1814,4 +1861,11 @@ input[type="file"] {
 	color: #999;
 	text-align: center;
 
+}
+
+.s2Modal {
+	padding: 30px;
+	background-color: #F9F9F7;
+	border: 1px solid #999;
+	border-radius: 6px;
 }

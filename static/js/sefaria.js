@@ -1004,6 +1004,21 @@ Sefaria = extend(Sefaria, {
       this._lastSortBy = sortBy;
       return tags;
     },
+    _userTagList: null,
+    userTagList: function(callback,uid) {
+      // Returns a list of all public source sheet tags, ordered by populartiy
+      var tags = this._userTagList;
+      if (tags) {
+        if (callback) { callback(tags); }
+      } else {
+        var url = "/api/sheets/tag-list/user/"+uid;
+         Sefaria._api(url, function(data) {
+            this.userTagList = data;
+             if (callback) { callback(data); }
+          }.bind(this));
+        }
+      return tags;
+    },
     _allSheetsList: null,
     allSheetsList: function(callback) {
       // Returns a list of all public source sheets
