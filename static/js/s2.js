@@ -305,9 +305,10 @@ var ReaderApp = React.createClass({
             hist.mode = "book toc";
             break;
           case "search":
+            var query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
             hist.title = state.searchQuery ? state.searchQuery + " | " : "";
             hist.title += "Sefaria Search";
-            hist.url = "search" + (state.searchQuery ? "&q=" + state.searchQuery + (!!state.appliedSearchFilters && !!state.appliedSearchFilters.length ? "&filters=" + state.appliedSearchFilters.join("|") : "") : "");
+            hist.url = "search" + (state.searchQuery ? "&q=" + query + (!!state.appliedSearchFilters && !!state.appliedSearchFilters.length ? "&filters=" + state.appliedSearchFilters.join("|") : "") : "");
             hist.mode = "search";
             break;
           case "sheets":
@@ -1004,6 +1005,7 @@ var Header = React.createClass({
   },
   showSearch: function showSearch(query) {
     if (this.props.headerMode) {
+      query = encodeURIComponent(query);
       window.location = '/search?q=' + query;
       return;
     }

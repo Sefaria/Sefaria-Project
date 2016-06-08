@@ -386,7 +386,7 @@ def s2_search(request):
     props = s2_props(request)
     props.update({
         "initialMenu": "search",
-        "initialQuery": request.GET.get("q") or "",
+        "initialQuery": urllib.unquote(request.GET.get("q")) if request.GET.get("q") else "",
         "initialSearchFilters": search_filters,
     })
     html = render_react_component("ReaderApp", props)
