@@ -99,6 +99,34 @@ label .sub {
   margin: 0 auto;
   padding: 60px 0 100px;
 }
+.static .inner div.single-button a.button{
+  margin: auto;
+}
+.static .inner .button{
+  /*all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
+  border-radius: 4px;
+  padding: 16px 24px;
+  cursor: pointer;
+  font-size: 15px;
+  letter-spacing: 1px;
+  box-sizing: border-box;
+  text-align: center;
+}
+.static .inner .button.big{
+  width: 250px;
+}
+.static .inner .button.blue{
+  background-color: #212E50;
+  border: 1px solid #212E50;
+  color: white;
+}
+.static .inner .button .he{
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+.static .inner .button .en{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+
 .static h1 .en, .static  h2 .en, .static h3 .en, .static h4 .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
@@ -640,25 +668,23 @@ a#siteLanguageHebrew {
   text-align: center;
   margin: 5% 0;
 }
-.full-text-static .static-text .main-text div.single-button a.btn{
-  margin: auto;
+#donatePage #donateOptions .donateOption {
+    margin-bottom: 35px;
 }
-.full-text-static .static-text .main-text a.btn {
-  all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
-  display: block;
-  width: 25%;
-  color: white;
-  background-color: #212E50;
-  border: 1px solid #212E50;
-  border-radius: 4px;
-  padding: 12px 0px;
-  margin-top: 30px;
-  cursor: pointer;
-  font-size: 15px;
-  letter-spacing: 1px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  box-sizing: border-box;
-  text-align: center;
+#donatePage .faqs p{
+  font-size: 0.8em;
+}
+#donatePage .faq p.question{
+  font-weight: bold;
+}
+#donatePage .faq p.question:before{
+  content: "Q)";
+}
+#donatePage .faq p.answer{
+
+}
+#donatePage .faq p.answer:before{
+  content: "A)";
 }
 #aboutPage {
   margin: 0;
