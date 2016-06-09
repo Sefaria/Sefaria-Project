@@ -6,7 +6,7 @@ Migration script to convert all old comments to outside texts. Primarily to pres
 from sefaria.model import *
 from sefaria.system.database import db
 
-sheets = db.sheets.find({ "id": 25502 })
+sheets = db.sheets.find()
 
 for sheet in sheets:
 	sources = sheet.get("sources", [])
