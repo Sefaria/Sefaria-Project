@@ -34,10 +34,15 @@ sjs.current.nextNode = sjs.current.nextNode || 1;
 // another user updates the currently loaded sheet. 
 sjs.lastEdit = null;
 
-$(window).on("beforeunload", function() { 
+$(window).on("beforeunload", function() {
 	if (sjs._uid && !(sjs.current.id) && $("#empty").length === 0) {
 		return "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.";
 	}	
+	else if ($("#lastSaved").text() == "Saving...") {
+		return "Your Source Sheet has unsaved changes. Please wait for the autosave to finish.";
+	}
+
+
 });
 
 var oldOnError = window.onerror || function(){};
@@ -203,7 +208,7 @@ $(function() {
 		$("#inlineTextPreview").remove();
 		$("#inlineAddDialogTitle").text("Select a text")
 		$("#inlineAddSourceOK").addClass("disabled");
-		$("#sheets").click();
+		$("#sheet").click();
 
 		sjs.track.sheets("Add Source");
 	});
@@ -475,6 +480,15 @@ $(function() {
 		}
 	});
 
+		$("#resetSourceTogglesToSheetGroup").click(function() {
+			$(".activeSource").removeClass("bilingual english hebrew sideBySide heLeft heRight stacked");
+
+			if (sjs.can_edit) {
+				autoSave();
+			}
+		});
+
+
 	// Language Options specific to Sheets
 	// General behavior covered in sjs.changeContentLang in headers.js
 	$("#hebrew, #english, #bilingual").click(function(){
@@ -604,6 +618,23 @@ $(function() {
 		sjs.track.sheets("Reset Source");
 
 	});
+
+	$("#addSourceTitle").click(function() {
+
+		var $customTitle = $(".customTitle", $(".activeSource"));
+		if ($customTitle.text() === "") {
+			$customTitle.text("Source Title");
+		}
+		$customTitle.css('display', 'inline-block')
+			.focus()
+			.trigger("mouseup")
+			.closest(".sheetItem")
+			.addClass("hasCustom");
+
+		sjs.track.sheets("Edit Source Title");
+	});
+
+
 
 	// ------------ Empty Instructions ---------------------
 
@@ -1021,15 +1052,15 @@ $(function() {
 
 		var ownerControls = "<div id='sourceControls' class='sideControls'>" +
 								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
-								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
 								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
+								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
 								"<div class='removeSource' title='Remove'><img src='/static/img/remove.png'></div>" +
 							"</div>";
 
 		var adderControls = "<div id='sourceControls' class='sideControls'>" +
 								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
-								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
 								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
+								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
 							"</div>";
 
 		var viewerControls = "<div id='sourceControls' class='sideControls'>" +
@@ -1038,8 +1069,8 @@ $(function() {
 
 		var ownerSimpleControls = "<div id='sourceControls' class='sideControls'>" +
 								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
-								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
 								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
+								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
 								"<div class='removeSource' title='Remove'><img src='/static/img/remove.png'></div>" +
 							"</div>";
 
@@ -1273,7 +1304,7 @@ $(function() {
 
 			});
 
-			$("html").on("click", "#sheet", function (e) {
+			$("html").on("click", "#content", function (e) {
 				//clicked off of a sheetitem
 				if ($(e.target).closest(".sheetItem").length) {
 					return;
@@ -1299,6 +1330,8 @@ $(function() {
 				$(".activeSource").removeClass("activeSource");
 				$("#sheetLayoutLanguageMenuItems").show();
 				$("#sourceLayoutLanguageMenuItems").hide();
+				$("#resetText").hide();
+				$("#addSourceTitle").hide();
 				if (!$(target).hasClass('inlineAddButtonIcon')) {
 					$(".inlineAddButtonIcon").last().click();
 				}
@@ -1312,10 +1345,13 @@ $(function() {
 
 			$("#sheet").on("click", ".sheetItem", function (e) {
 			//clicked on a sheet item
+				if ($(e.target).hasClass("inlineAddButtonIcon")) return;
 			cleanupActiveSource(e.target);
 			$(this).addClass("activeSource");
 			$("#sheetLayoutLanguageMenuItems").hide();
 			$("#sourceLayoutLanguageMenuItems").show();
+			$("#resetText").show();
+			$("#addSourceTitle").show();
 			//$(this).hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
 
 			//set checkboxes for language/layout menus for active source
@@ -1347,6 +1383,7 @@ $(function() {
 
 			if (!($(this).hasClass("source"))) {
 				$("#resetText").hide();
+				$("#addSourceTitle").hide();
 				$("#sourceLayoutLanguageMenuItems").hide();
 			}
 		});
@@ -1415,7 +1452,7 @@ $(function() {
 		e.stopPropagation();
 		sjs.track.sheets("Edit Source Title");
 	});
-	
+
 
 	// Reset Source Text 
 	$(".resetSource").live("click", function() { 
@@ -2360,13 +2397,59 @@ function readSource($target) {
 			en: $target.find(".text .en").html(),
 			he: $target.find(".text .he").html(),
 		};
+		//Set indentation level
+		if ($target.hasClass("indented-1")) {
+			var sourceIndentLevel = "indented-1"
+		} else if ($target.hasClass("indented-2")) {
+			var sourceIndentLevel = "indented-2"
+		} else if ($target.hasClass("indented-3")) {
+			var sourceIndentLevel = "indented-3"
+		} else {
+			var sourceIndentLevel ="";
+		}
+
+		source["options"] = {
+							 indented: sourceIndentLevel
+		};
 
 	} else if ($target.hasClass("outsideWrapper")) {
 		source["outsideText"] = $target.find(".outside").html();
+
+		//Set indentation level
+		if ($target.hasClass("indented-1")) {
+			var sourceIndentLevel = "indented-1"
+		} else if ($target.hasClass("indented-2")) {
+			var sourceIndentLevel = "indented-2"
+		} else if ($target.hasClass("indented-3")) {
+			var sourceIndentLevel = "indented-3"
+		} else {
+			var sourceIndentLevel ="";
+		}
+
+		source["options"] = {
+							 indented: sourceIndentLevel
+		};
+
 	}
 	
 	 else if ($target.hasClass("mediaWrapper")) {
 		source["media"] = $target.find(".media iframe, .media img, .media audio").attr("src");
+
+		//Set indentation level
+		if ($target.hasClass("indented-1")) {
+			var sourceIndentLevel = "indented-1"
+		} else if ($target.hasClass("indented-2")) {
+			var sourceIndentLevel = "indented-2"
+		} else if ($target.hasClass("indented-3")) {
+			var sourceIndentLevel = "indented-3"
+		} else {
+			var sourceIndentLevel ="";
+		}
+
+		source["options"] = {
+							 indented: sourceIndentLevel
+		};
+
 	}
 	
 
@@ -2619,9 +2702,9 @@ function buildSource($target, source, appendOrInsert) {
 		else if (appendOrInsert == "insert") {
 			$target.after(outsideHtml);
 		}
-
-
-
+		if ("options" in source) {
+			$(".sheetItem").last().addClass(source.options.indented);
+		}
 	} else if ("outsideText" in source) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideWrapper");
 		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
@@ -2635,6 +2718,9 @@ function buildSource($target, source, appendOrInsert) {
 		}
 		else if (appendOrInsert == "insert") {
 			$target.after(outsideHtml);
+		}
+		if ("options" in source) {
+			$(".sheetItem").last().addClass(source.options.indented);
 		}
 	}
 	else if ("media" in source) {
@@ -2670,6 +2756,9 @@ function buildSource($target, source, appendOrInsert) {
 					$target.after(outsideHtml);
 				}
 
+		if ("options" in source) {
+			$(".sheetItem").last().addClass(source.options.indented);
+		}
 	}
 	
 	else if ("text" in source) {
@@ -2699,7 +2788,7 @@ function appendInlineAddButton(source) {
 		}
 	if ($.cookie("s2") == "true") {
 		if (sjs.is_owner||sjs.can_edit||sjs.can_add) {
-			source = source + "<div class='inlineAddButton'><i class='fa fa-plus-circle inlineAddButtonIcon'></i></div>";
+			source = source + "<div class='inlineAddButton'><i class='inlineAddButtonIcon'></i></div>";
 		}
 	}
 	return source
@@ -2778,7 +2867,7 @@ function inlineAddSourcePreview(e) {
 			$("#inlineAddDialogTitle").html("Uh-Oh");
 		}
 		$("#inlineTextPreview")
-			.position({my: "left top", at: "left bottom", of: $("#inlineAdd"), collision: "none" }).width('700px').css('margin-top','20px');
+			.position({my: "left top", at: "left bottom", of: $("#inlineAdd"), collision: "none" }).width('691px').css('margin-top','20px');
 	});
 }
 
