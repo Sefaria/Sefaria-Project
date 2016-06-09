@@ -6819,6 +6819,11 @@ var SearchResultList = React.createClass({
     //returns object w/ keys 'availableFilters', 'registry'
     //Add already applied filters w/ empty doc count?
     var rawTree = {};
+
+    this.props.appliedFilters.forEach(function (fkey) {
+      return _this4._addAvailableFilter(rawTree, fkey, { "docCount": 0 });
+    });
+
     aggregation_buckets.forEach(function (f) {
       return _this4._addAvailableFilter(rawTree, f["key"], { "docCount": f["doc_count"] });
     });
@@ -6878,29 +6883,13 @@ var SearchResultList = React.createClass({
     var filters = [];
     var registry = {};
 
-    // Remove after commentary refactor
-    // Manually add base commentary branch
     var commentaryNode = new Sefaria.search.FilterNode();
-    //var rnode = rawTree["Commentary"];
-    //var rnode2 = rawTree["Commentary2"];
-    //if (rnode || rnode2) {
-    //var docCount = 0;
-    //if (rnode) {docCount += rnode["docCount"];}
-    //if (rnode2) {docCount += rnode2["docCount"];}
-    //extend(commentaryNode, {
-    //    "title": "Commentary",
-    //   "path": "Commentary",
-    //    "heTitle": "מפרשים",
-    //    "docCount": docCount
-    //});
-    //registry[commentaryNode.path] = commentaryNode;
-    //}
-    // End commentary code
 
     for (var j = 0; j < Sefaria.toc.length; j++) {
       var b = walk.call(this, Sefaria.toc[j]);
       if (b) filters.push(b);
 
+      // Remove after commentary refactor ?
       // If there is commentary on this node, add it as a sibling
       if (commentaryNode.hasChildren()) {
         var toc_branch = Sefaria.toc[j];
@@ -7178,9 +7167,7 @@ var SearchFilters = React.createClass({
     this.setState({ displayFilters: !this.state.displayFilters });
   },
   _type_button: function _type_button(en_singular, en_plural, he_singular, he_plural, total, on_click, active) {
-    if (!total) {
-      return "";
-    }
+    // if (!total) { return "" }
     var total_with_commas = this._add_commas(total);
     var classes = classNames({ "type-button": 1, active: active });
 
@@ -7198,12 +7185,12 @@ var SearchFilters = React.createClass({
         React.createElement(
           'span',
           { className: 'en' },
-          total > 1 ? en_plural : en_singular
+          total != 1 ? en_plural : en_singular
         ),
         React.createElement(
           'span',
           { className: 'he' },
-          total > 1 ? he_plural : he_singular
+          total != 1 ? he_plural : he_singular
         )
       )
     );
@@ -7290,9 +7277,9 @@ var SearchFilters = React.createClass({
         'div',
         { className: 'searchStatusLine' },
         this.props.isQueryRunning ? runningQueryLine : buttons,
-        this.props.textTotal > 0 && this.props.activeTab == "text" ? selected_filters : ""
+        this.props.availableFilters.length > 0 && this.props.activeTab == "text" ? selected_filters : ""
       ),
-      this.props.textTotal > 0 && this.props.activeTab == "text" ? filter_panel : ""
+      this.props.availableFilters.length > 0 && this.props.activeTab == "text" ? filter_panel : ""
     );
   }
 });
