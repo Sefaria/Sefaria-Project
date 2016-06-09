@@ -686,6 +686,12 @@ a#siteLanguageHebrew {
 #donatePage .faq p.answer:before{
   content: "A)";
 }
+#supportersPage h2{
+    margin-top: 25px;
+}
+#supportersPage h2 span{
+  font-size: 1.3em;
+}
 #aboutPage {
   margin: 0;
   width: 100%;
