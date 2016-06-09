@@ -535,7 +535,7 @@ var ReaderApp = React.createClass({
     }
   },
   handleCompareSearchClick: function handleCompareSearchClick(n, ref, version, versionLanguage, options) {
-    // Handle clicking a searh result in a compare panel, so that clicks don't clobber open panels
+    // Handle clicking a search result in a compare panel, so that clicks don't clobber open panels
     // todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
     this.saveOpenPanelsToRecentlyViewed();
     this.replacePanel(n, ref, version, versionLanguage);
@@ -6818,6 +6818,11 @@ var SearchResultList = React.createClass({
     //returns object w/ keys 'availableFilters', 'registry'
     //Add already applied filters w/ empty doc count?
     var rawTree = {};
+
+    this.props.appliedFilters.forEach(function (fkey) {
+      return _this4._addAvailableFilter(rawTree, fkey, { "docCount": 0 });
+    });
+
     aggregation_buckets.forEach(function (f) {
       return _this4._addAvailableFilter(rawTree, f["key"], { "docCount": f["doc_count"] });
     });
@@ -6877,23 +6882,70 @@ var SearchResultList = React.createClass({
     var filters = [];
     var registry = {};
 
+    var commentaryNode = new Sefaria.search.FilterNode();
+
     for (var j = 0; j < Sefaria.toc.length; j++) {
       var b = walk.call(this, Sefaria.toc[j]);
       if (b) filters.push(b);
+
+      // Remove after commentary refactor ?
+      // If there is commentary on this node, add it as a sibling
+      if (commentaryNode.hasChildren()) {
+        var toc_branch = Sefaria.toc[j];
+        var cat = toc_branch["category"];
+        // Append commentary node to result filters, add a fresh one for the next round
+        var docCount = 0;
+        if (rawTree.Commentary && rawTree.Commentary[cat]) {
+          docCount += rawTree.Commentary[cat].docCount;
+        }
+        if (rawTree.Commentary2 && rawTree.Commentary2[cat]) {
+          docCount += rawTree.Commentary2[cat].docCount;
+        }
+        extend(commentaryNode, {
+          "title": cat + " Commentary",
+          "path": "Commentary/" + cat,
+          "heTitle": "מפרשי" + " " + toc_branch["heCategory"],
+          "docCount": docCount
+        });
+        registry[commentaryNode.path] = commentaryNode;
+        filters.push(commentaryNode);
+        commentaryNode = new Sefaria.search.FilterNode();
+      }
     }
+
     return { availableFilters: filters, registry: registry };
 
     function walk(branch, parentNode) {
       var node = new Sefaria.search.FilterNode();
 
+      //Remove after commentary refactor
+      node["docCount"] = 0;
+      //
+
       if ("category" in branch) {
         // Category node
-        path.push(branch["category"]); // Place this category at the *end* of the path
-        extend(node, {
-          "title": path.slice(-1)[0],
-          "path": path.join("/"),
-          "heTitle": branch["heCategory"]
-        });
+        // Remove after commentary refactor
+        if (branch["category"] == "Commentary") {
+          // Special case commentary
+          path.unshift(branch["category"]); // Place "Commentary" at the *beginning* of the path
+          extend(node, {
+            "title": parentNode.title,
+            "path": path.join("/"),
+            "heTitle": parentNode.heTitle
+          });
+        } else {
+          // End commentary code
+
+          path.push(branch["category"]); // Place this category at the *end* of the path
+          extend(node, {
+            "title": path.slice(-1)[0],
+            "path": path.join("/"),
+            "heTitle": branch["heCategory"]
+          });
+
+          // Remove after commentary refactor
+        }
+        // End commentary code
 
         for (var j = 0; j < branch["contents"].length; j++) {
           var b = walk.call(this, branch["contents"][j], node);
@@ -6912,20 +6964,55 @@ var SearchResultList = React.createClass({
       try {
         var rawNode = rawTree;
         var i;
-        for (i = 0; i < path.length; i++) {
-          //For TOC nodes that we don't have results for, this will throw an exception, caught below.
-          rawNode = rawNode[path[i]];
+
+        // Remove try and entire catch after commentary refactor
+        try {
+          for (i = 0; i < path.length; i++) {
+            //For TOC nodes that we don't have results for, we catch the exception below.  For commentary / commentary2, we catch it here.
+            rawNode = rawNode[path[i]];
+          }
+          node["docCount"] += rawNode.docCount;
+        } catch (e) {
+          if (path[0] == "Commentary") {
+            rawNode = rawTree["Commentary2"];
+            for (i = 1; i < path.length; i++) {
+              rawNode = rawNode[path[i]];
+            }
+            node["docCount"] += rawNode.docCount;
+          } else {
+            throw e;
+          }
         }
 
-        node["docCount"] = rawNode.docCount;
         // Do we need both of these in the registry?
         registry[node.getId()] = node;
         registry[node.path] = node;
 
+        // Remove after commentary refactor
+        if ("category" in branch && branch["category"] == "Commentary") {
+          // Special case commentary
+          commentaryNode.append(node);
+          path.shift();
+          return false;
+        }
+        // End commentary code
+
         path.pop();
         return node;
       } catch (e) {
-        path.pop();
+        // Remove after commentary refactor
+        if ("category" in branch && branch["category"] == "Commentary") {
+          // Special case commentary
+          path.shift();
+        } else {
+          // End commentary code
+
+          path.pop();
+
+          // Remove after commentary refactor
+        }
+        // End commentary code
+
         return false;
       }
     }
@@ -7079,9 +7166,7 @@ var SearchFilters = React.createClass({
     this.setState({ displayFilters: !this.state.displayFilters });
   },
   _type_button: function _type_button(en_singular, en_plural, he_singular, he_plural, total, on_click, active) {
-    if (!total) {
-      return "";
-    }
+    // if (!total) { return "" }
     var total_with_commas = this._add_commas(total);
     var classes = classNames({ "type-button": 1, active: active });
 
@@ -7099,12 +7184,12 @@ var SearchFilters = React.createClass({
         React.createElement(
           'span',
           { className: 'en' },
-          total > 1 ? en_plural : en_singular
+          total != 1 ? en_plural : en_singular
         ),
         React.createElement(
           'span',
           { className: 'he' },
-          total > 1 ? he_plural : he_singular
+          total != 1 ? he_plural : he_singular
         )
       )
     );
@@ -7191,9 +7276,9 @@ var SearchFilters = React.createClass({
         'div',
         { className: 'searchStatusLine' },
         this.props.isQueryRunning ? runningQueryLine : buttons,
-        this.props.textTotal > 0 && this.props.activeTab == "text" ? selected_filters : ""
+        this.props.availableFilters.length > 0 && this.props.activeTab == "text" ? selected_filters : ""
       ),
-      this.props.textTotal > 0 && this.props.activeTab == "text" ? filter_panel : ""
+      this.props.availableFilters.length > 0 && this.props.activeTab == "text" ? filter_panel : ""
     );
   }
 });
