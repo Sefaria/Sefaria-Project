@@ -705,8 +705,7 @@ $(function() {
         Sefaria.search.updateUrlParams();
         return
     }
-
-    var query = vars["q"].replace(/\+/g, " ");
+    var query = decodeURIComponent(vars["q"]).replace(/\+/g, " ");
     $(".searchInput").val(query);
     Sefaria.search.query = query;
 

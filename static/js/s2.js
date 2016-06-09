@@ -305,9 +305,10 @@ var ReaderApp = React.createClass({
             hist.mode = "book toc";
             break;
           case "search":
+            var query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
             hist.title = state.searchQuery ? state.searchQuery + " | " : "";
             hist.title += "Sefaria Search";
-            hist.url = "search" + (state.searchQuery ? "&q=" + state.searchQuery + (!!state.appliedSearchFilters && !!state.appliedSearchFilters.length ? "&filters=" + state.appliedSearchFilters.join("|") : "") : "");
+            hist.url = "search" + (state.searchQuery ? "&q=" + query + (!!state.appliedSearchFilters && !!state.appliedSearchFilters.length ? "&filters=" + state.appliedSearchFilters.join("|") : "") : "");
             hist.mode = "search";
             break;
           case "sheets":
@@ -907,7 +908,7 @@ var ReaderApp = React.createClass({
       ));
     }
 
-    var classes = classNames({ readerApp: 1, multiPanel: this.props.multiPanel });
+    var classes = classNames({ readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel });
     return React.createElement(
       'div',
       { className: classes },
@@ -1005,6 +1006,7 @@ var Header = React.createClass({
   },
   showSearch: function showSearch(query) {
     if (this.props.headerMode) {
+      query = encodeURIComponent(query);
       window.location = '/search?q=' + query;
       return;
     }
@@ -1769,7 +1771,7 @@ var ReaderPanel = React.createClass({
       var menu = null;
     }
 
-    var classes = { readerPanel: 1, wideColumn: this.width > 450 };
+    var classes = { readerPanel: 1, narrowColumn: this.width < 730 };
     classes[this.currentLayout()] = 1;
     classes[this.state.settings.color] = 1;
     classes[this.state.settings.language] = 1;
@@ -2117,6 +2119,7 @@ var ReaderNavigationMenu = React.createClass({
   },
   render: function render() {
     if (this.props.categories.length) {
+      // List of Text in a Category
       return React.createElement(
         'div',
         { className: 'readerNavMenu', onClick: this.handleClick },
@@ -2132,6 +2135,7 @@ var ReaderNavigationMenu = React.createClass({
           width: this.width })
       );
     } else {
+      // Root Library Menu
       var categories = ["Tanakh", "Mishnah", "Talmud", "Midrash", "Halakhah", "Kabbalah", "Liturgy", "Philosophy", "Tosefta", "Chasidut", "Musar", "Responsa", "Apocrypha", "Other"];
       categories = categories.map(function (cat) {
         var style = { "borderColor": Sefaria.palette.categoryColor(cat) };
@@ -2380,7 +2384,7 @@ var ReaderNavigationMenu = React.createClass({
         )
       );
 
-      var classes = classNames({ readerNavMenu: 1, noHeader: !this.props.hideHeader, compare: this.props.compare });
+      var classes = classNames({ readerNavMenu: 1, noHeader: !this.props.hideHeader, compare: this.props.compare, home: this.props.home });
       return React.createElement(
         'div',
         { className: classes, onClick: this.handleClick, key: '0' },
@@ -3289,7 +3293,6 @@ var SheetsNav = React.createClass({
       this.setState({ sheetFilterTag: tag.tag });
     }
   },
-
   getAllSheets: function getAllSheets() {
     Sefaria.sheets.allSheetsList(this.loadAllSheets);
   },
@@ -3357,10 +3360,8 @@ var SheetsNav = React.createClass({
           var tagString = sheet.tags.map(function (tag) {
             return tag + ", ";
           });
-
           if ($.inArray(this.state.sheetFilterTag, sheet.tags) >= 0 || this.state.sheetFilterTag == null) {
             if (this.props.multiPanel) {
-
               return React.createElement(
                 'div',
                 { className: 'sheet userSheet', key: url },
@@ -4345,6 +4346,7 @@ var TextRange = React.createClass({
 
     if (this.isMounted()) {
       this.forceUpdate();
+      this.placeSegmentNumbers();
     }
   },
   prefetchData: function prefetchData() {
@@ -4498,6 +4500,7 @@ var TextRange = React.createClass({
       }
     }
     $text.find(".segmentNumber").show();
+    $text.find(".linkCount").show();
   },
   render: function render() {
     var data = this.getText();
@@ -4609,14 +4612,21 @@ var TextRange = React.createClass({
       { className: classes, onClick: this.handleClick },
       showNumberLabel && this.props.numberLabel ? React.createElement(
         'div',
-        { className: 'numberLabel' },
-        ' ',
+        { className: 'numberLabel sans' },
         React.createElement(
           'span',
           { className: 'numberLabelInner' },
-          this.props.numberLabel
-        ),
-        ' '
+          React.createElement(
+            'span',
+            { className: 'en' },
+            this.props.numberLabel
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)
+          )
+        )
       ) : null,
       this.props.hideTitle ? "" : React.createElement(
         'div',
@@ -4689,7 +4699,7 @@ var TextSegment = React.createClass({
       var style = { opacity: linkScore };
       var linkCount = this.props.showLinkCount ? React.createElement(
         'div',
-        { className: 'linkCount' },
+        { className: 'linkCount sans' },
         React.createElement(
           'span',
           { className: 'en' },
@@ -4706,7 +4716,7 @@ var TextSegment = React.createClass({
     }
     var segmentNumber = this.props.segmentNumber ? React.createElement(
       'div',
-      { className: 'segmentNumber' },
+      { className: 'segmentNumber sans' },
       React.createElement(
         'span',
         { className: 'en' },

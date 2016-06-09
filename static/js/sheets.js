@@ -208,7 +208,7 @@ $(function() {
 		$("#inlineTextPreview").remove();
 		$("#inlineAddDialogTitle").text("Select a text")
 		$("#inlineAddSourceOK").addClass("disabled");
-		$("#sheets").click();
+		$("#sheet").click();
 
 		sjs.track.sheets("Add Source");
 	});
@@ -480,6 +480,15 @@ $(function() {
 		}
 	});
 
+		$("#resetSourceTogglesToSheetGroup").click(function() {
+			$(".activeSource").removeClass("bilingual english hebrew sideBySide heLeft heRight stacked");
+
+			if (sjs.can_edit) {
+				autoSave();
+			}
+		});
+
+
 	// Language Options specific to Sheets
 	// General behavior covered in sjs.changeContentLang in headers.js
 	$("#hebrew, #english, #bilingual").click(function(){
@@ -609,6 +618,23 @@ $(function() {
 		sjs.track.sheets("Reset Source");
 
 	});
+
+	$("#addSourceTitle").click(function() {
+
+		var $customTitle = $(".customTitle", $(".activeSource"));
+		if ($customTitle.text() === "") {
+			$customTitle.text("Source Title");
+		}
+		$customTitle.css('display', 'inline-block')
+			.focus()
+			.trigger("mouseup")
+			.closest(".sheetItem")
+			.addClass("hasCustom");
+
+		sjs.track.sheets("Edit Source Title");
+	});
+
+
 
 	// ------------ Empty Instructions ---------------------
 
@@ -1278,7 +1304,7 @@ $(function() {
 
 			});
 
-			$("html").on("click", "#sheet", function (e) {
+			$("html").on("click", "#content", function (e) {
 				//clicked off of a sheetitem
 				if ($(e.target).closest(".sheetItem").length) {
 					return;
@@ -1304,6 +1330,8 @@ $(function() {
 				$(".activeSource").removeClass("activeSource");
 				$("#sheetLayoutLanguageMenuItems").show();
 				$("#sourceLayoutLanguageMenuItems").hide();
+				$("#resetText").hide();
+				$("#addSourceTitle").hide();
 				if (!$(target).hasClass('inlineAddButtonIcon')) {
 					$(".inlineAddButtonIcon").last().click();
 				}
@@ -1317,10 +1345,13 @@ $(function() {
 
 			$("#sheet").on("click", ".sheetItem", function (e) {
 			//clicked on a sheet item
+				if ($(e.target).hasClass("inlineAddButtonIcon")) return;
 			cleanupActiveSource(e.target);
 			$(this).addClass("activeSource");
 			$("#sheetLayoutLanguageMenuItems").hide();
 			$("#sourceLayoutLanguageMenuItems").show();
+			$("#resetText").show();
+			$("#addSourceTitle").show();
 			//$(this).hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
 
 			//set checkboxes for language/layout menus for active source
@@ -1352,6 +1383,7 @@ $(function() {
 
 			if (!($(this).hasClass("source"))) {
 				$("#resetText").hide();
+				$("#addSourceTitle").hide();
 				$("#sourceLayoutLanguageMenuItems").hide();
 			}
 		});
@@ -1420,7 +1452,7 @@ $(function() {
 		e.stopPropagation();
 		sjs.track.sheets("Edit Source Title");
 	});
-	
+
 
 	// Reset Source Text 
 	$(".resetSource").live("click", function() { 
@@ -2365,13 +2397,59 @@ function readSource($target) {
 			en: $target.find(".text .en").html(),
 			he: $target.find(".text .he").html(),
 		};
+		//Set indentation level
+		if ($target.hasClass("indented-1")) {
+			var sourceIndentLevel = "indented-1"
+		} else if ($target.hasClass("indented-2")) {
+			var sourceIndentLevel = "indented-2"
+		} else if ($target.hasClass("indented-3")) {
+			var sourceIndentLevel = "indented-3"
+		} else {
+			var sourceIndentLevel ="";
+		}
+
+		source["options"] = {
+							 indented: sourceIndentLevel
+		};
 
 	} else if ($target.hasClass("outsideWrapper")) {
 		source["outsideText"] = $target.find(".outside").html();
+
+		//Set indentation level
+		if ($target.hasClass("indented-1")) {
+			var sourceIndentLevel = "indented-1"
+		} else if ($target.hasClass("indented-2")) {
+			var sourceIndentLevel = "indented-2"
+		} else if ($target.hasClass("indented-3")) {
+			var sourceIndentLevel = "indented-3"
+		} else {
+			var sourceIndentLevel ="";
+		}
+
+		source["options"] = {
+							 indented: sourceIndentLevel
+		};
+
 	}
 	
 	 else if ($target.hasClass("mediaWrapper")) {
 		source["media"] = $target.find(".media iframe, .media img, .media audio").attr("src");
+
+		//Set indentation level
+		if ($target.hasClass("indented-1")) {
+			var sourceIndentLevel = "indented-1"
+		} else if ($target.hasClass("indented-2")) {
+			var sourceIndentLevel = "indented-2"
+		} else if ($target.hasClass("indented-3")) {
+			var sourceIndentLevel = "indented-3"
+		} else {
+			var sourceIndentLevel ="";
+		}
+
+		source["options"] = {
+							 indented: sourceIndentLevel
+		};
+
 	}
 	
 
@@ -2624,9 +2702,9 @@ function buildSource($target, source, appendOrInsert) {
 		else if (appendOrInsert == "insert") {
 			$target.after(outsideHtml);
 		}
-
-
-
+		if ("options" in source) {
+			$(".sheetItem").last().addClass(source.options.indented);
+		}
 	} else if ("outsideText" in source) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideWrapper");
 		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
@@ -2640,6 +2718,9 @@ function buildSource($target, source, appendOrInsert) {
 		}
 		else if (appendOrInsert == "insert") {
 			$target.after(outsideHtml);
+		}
+		if ("options" in source) {
+			$(".sheetItem").last().addClass(source.options.indented);
 		}
 	}
 	else if ("media" in source) {
@@ -2675,6 +2756,9 @@ function buildSource($target, source, appendOrInsert) {
 					$target.after(outsideHtml);
 				}
 
+		if ("options" in source) {
+			$(".sheetItem").last().addClass(source.options.indented);
+		}
 	}
 	
 	else if ("text" in source) {

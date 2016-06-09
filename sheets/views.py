@@ -43,7 +43,7 @@ def annotate_user_links(sources):
 
 	return sources
 
-
+@login_required
 @ensure_csrf_cookie
 def new_sheet(request):
 	"""

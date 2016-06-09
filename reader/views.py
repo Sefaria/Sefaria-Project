@@ -394,7 +394,7 @@ def s2_search(request):
     props = s2_props(request)
     props.update({
         "initialMenu": "search",
-        "initialQuery": request.GET.get("q") or "",
+        "initialQuery": urllib.unquote(request.GET.get("q")) if request.GET.get("q") else "",
         "initialSearchFilters": search_filters,
     })
     html = render_react_component("ReaderApp", props)
@@ -2142,8 +2142,9 @@ def home(request):
     """
     recent = request.COOKIES.get("recentlyViewed", None)
     if recent and not "home" in request.GET and not request.COOKIES.get('s1'):
-        recent = json.loads(urlparse.unquote(recent))
-        return redirect("/%s" % recent[0]["ref"])
+        # recent = json.loads(urlparse.unquote(recent))
+        #return redirect("/%s" % recent[0]["ref"])
+        return redirect("/texts")
 
     if request.flavour == "mobile":
         return s2_page(request, "home")
