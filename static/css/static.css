@@ -457,13 +457,13 @@ p.tagline {
 #profilePage #followMe.following span.follow{
   display: none;
 }
-#profilePage #followMe span.action{
+#profilePage #followMe span.unfollow{
   display:none;
 }
-#profilePage #followMe.following:hover span.action{
+#profilePage #followMe.following:hover span.unfollow{
   display:inherit;
 }
-#profilePage #followMe.following:hover span.state{
+#profilePage #followMe.following:hover span.following{
   display:none;
 }
 #activityList .topline {
@@ -783,7 +783,7 @@ a#siteLanguageHebrew {
   text-align: center;
 }
 #editProfilePage input {
-  padding: 18px 12px;
+  padding: 15px 12px;
   border: none;
 }
 #editProfilePage #profilePictureBox {
@@ -816,7 +816,8 @@ a#siteLanguageHebrew {
 #editProfilePage .field input {
   width: 100%;
   color: #333;
-  box-sizing: border-box;
+  background-color: white;
+  /*box-sizing: border-box;*/
 }
 #editProfilePage ul {
   list-style-type: none;
@@ -829,6 +830,9 @@ a#siteLanguageHebrew {
 }
 #editProfilePage #jewishEducation li:first-child .remove {
   display: none;
+}
+#editProfilePage #jewishEducation label{
+  display: inline-block;
 }
 #editProfilePage #addEducation {
   font-size: 12px;
