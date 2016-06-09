@@ -208,7 +208,7 @@ $(function() {
 		$("#inlineTextPreview").remove();
 		$("#inlineAddDialogTitle").text("Select a text")
 		$("#inlineAddSourceOK").addClass("disabled");
-		$("#sheets").click();
+		$("#sheet").click();
 
 		sjs.track.sheets("Add Source");
 	});
@@ -479,6 +479,15 @@ $(function() {
 			autoSave();
 		}
 	});
+
+		$("#resetSourceTogglesToSheetGroup").click(function() {
+			$(".activeSource").removeClass("bilingual english hebrew sideBySide heLeft heRight stacked");
+
+			if (sjs.can_edit) {
+				autoSave();
+			}
+		});
+
 
 	// Language Options specific to Sheets
 	// General behavior covered in sjs.changeContentLang in headers.js
@@ -1295,7 +1304,7 @@ $(function() {
 
 			});
 
-			$("html").on("click", "#sheet", function (e) {
+			$("html").on("click", "#content", function (e) {
 				//clicked off of a sheetitem
 				if ($(e.target).closest(".sheetItem").length) {
 					return;
