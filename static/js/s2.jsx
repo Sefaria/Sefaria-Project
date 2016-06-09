@@ -1605,6 +1605,9 @@ var ReaderPanel = React.createClass({
     }
 
     if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation" || this.state.menuOpen == "compare") {
+      var openInPanel   = function(pos, ref) { this.showBaseText(ref) }.bind(this);
+      var onRecentClick = this.state.menuOpen === "compare" || !this.props.onRecentClick ? openInPanel : this.props.onRecentClick;
+
       var menu = (<ReaderNavigationMenu 
                     home={this.state.menuOpen === "home"}
                     compare={this.state.menuOpen === "compare"}
@@ -1622,7 +1625,7 @@ var ReaderPanel = React.createClass({
                     openMenu={this.openMenu}
                     openDisplaySettings={this.openDisplaySettings}
                     onTextClick={this.props.onNavTextClick || this.showBaseText}
-                    onRecentClick={this.props.onRecentClick || function(pos, ref) { this.showBaseText(ref) }.bind(this) }
+                    onRecentClick={onRecentClick}
                     hideNavHeader={this.props.hideNavHeader} />);
 
     } 
