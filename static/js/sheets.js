@@ -610,6 +610,23 @@ $(function() {
 
 	});
 
+	$("#addSourceTitle").click(function() {
+
+		var $customTitle = $(".customTitle", $(".activeSource"));
+		if ($customTitle.text() === "") {
+			$customTitle.text("Source Title");
+		}
+		$customTitle.css('display', 'inline-block')
+			.focus()
+			.trigger("mouseup")
+			.closest(".sheetItem")
+			.addClass("hasCustom");
+
+		sjs.track.sheets("Edit Source Title");
+	});
+
+
+
 	// ------------ Empty Instructions ---------------------
 
 	$("#empty .remove").click(function() { $("#empty").remove(); });
@@ -1304,6 +1321,8 @@ $(function() {
 				$(".activeSource").removeClass("activeSource");
 				$("#sheetLayoutLanguageMenuItems").show();
 				$("#sourceLayoutLanguageMenuItems").hide();
+				$("#resetText").hide();
+				$("#addSourceTitle").hide();
 				if (!$(target).hasClass('inlineAddButtonIcon')) {
 					$(".inlineAddButtonIcon").last().click();
 				}
@@ -1322,6 +1341,8 @@ $(function() {
 			$(this).addClass("activeSource");
 			$("#sheetLayoutLanguageMenuItems").hide();
 			$("#sourceLayoutLanguageMenuItems").show();
+			$("#resetText").show();
+			$("#addSourceTitle").show();
 			//$(this).hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
 
 			//set checkboxes for language/layout menus for active source
@@ -1353,6 +1374,7 @@ $(function() {
 
 			if (!($(this).hasClass("source"))) {
 				$("#resetText").hide();
+				$("#addSourceTitle").hide();
 				$("#sourceLayoutLanguageMenuItems").hide();
 			}
 		});
@@ -1421,7 +1443,7 @@ $(function() {
 		e.stopPropagation();
 		sjs.track.sheets("Edit Source Title");
 	});
-	
+
 
 	// Reset Source Text 
 	$(".resetSource").live("click", function() { 
