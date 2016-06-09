@@ -671,9 +671,6 @@ a#siteLanguageHebrew {
 #donatePage #donateOptions .donateOption {
     margin-bottom: 35px;
 }
-#donatePage .faqs p{
-  font-size: 0.8em;
-}
 #donatePage .faq p.question{
   font-weight: bold;
 }
@@ -681,7 +678,8 @@ a#siteLanguageHebrew {
   content: "Q)";
 }
 #donatePage .faq p.answer{
-
+  margin-left: 40px;
+  text-indent: -20px;
 }
 #donatePage .faq p.answer:before{
   content: "A)";

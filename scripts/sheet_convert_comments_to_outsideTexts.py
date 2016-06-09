@@ -12,7 +12,7 @@ for sheet in sheets:
 	sources = sheet.get("sources", [])
 	for source in sources:
 		if "comment" in source:
-			source["outsideText"] = source["comment"]
+			source["outsideText"] = "<div class='oldComment'>"+source["comment"]+"</div>"
 			source["comment"]
 			del source["comment"]
 	db.sheets.save(sheet)

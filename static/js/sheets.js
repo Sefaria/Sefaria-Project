@@ -650,7 +650,7 @@ $(function() {
 	if (sjs.can_edit || sjs.can_add ) {
 		CKEDITOR.disableAutoInline = true;
 		CKEDITOR.config.startupFocus = true;
-		CKEDITOR.config.extraAllowedContent = 'small; span(segment)';
+		CKEDITOR.config.extraAllowedContent = 'small; span(segment);div(oldComment)';
 
 		if ($.cookie("s2") == "true") {
 
