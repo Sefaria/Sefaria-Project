@@ -1300,6 +1300,7 @@ $(function() {
 			});
 
 			function cleanupActiveSource(target){
+				console.log(target);
 				$(".inlineAddButtonIcon").removeClass("active");
 				$(".activeSource").removeClass("activeSource");
 				$("#sheetLayoutLanguageMenuItems").show();
@@ -1317,6 +1318,7 @@ $(function() {
 
 			$("#sheet").on("click", ".sheetItem", function (e) {
 			//clicked on a sheet item
+				if ($(e.target).hasClass("inlineAddButtonIcon")) return;
 			cleanupActiveSource(e.target);
 			$(this).addClass("activeSource");
 			$("#sheetLayoutLanguageMenuItems").hide();
