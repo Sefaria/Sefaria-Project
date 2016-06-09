@@ -5579,32 +5579,45 @@ var SearchResultList = React.createClass({
       // Remove after commentary refactor
       // Manually add base commentary branch
       var commentaryNode = new Sefaria.search.FilterNode();
-      var rnode = rawTree["Commentary"];
-      var rnode2 = rawTree["Commentary2"];
-      if (rnode || rnode2) {
-          var docCount = 0;
-          if (rnode) {docCount += rnode["docCount"];}
-          if (rnode2) {docCount += rnode2["docCount"];}
-          extend(commentaryNode, {
-              "title": "Commentary",
-              "path": "Commentary",
-              "heTitle": "מפרשים",
-              "docCount": docCount
-          });
-          registry[commentaryNode.path] = commentaryNode;
-      }
+      //var rnode = rawTree["Commentary"];
+      //var rnode2 = rawTree["Commentary2"];
+      //if (rnode || rnode2) {
+          //var docCount = 0;
+          //if (rnode) {docCount += rnode["docCount"];}
+          //if (rnode2) {docCount += rnode2["docCount"];}
+          //extend(commentaryNode, {
+          //    "title": "Commentary",
+          //   "path": "Commentary",
+          //    "heTitle": "מפרשים",
+          //    "docCount": docCount
+          //});
+          //registry[commentaryNode.path] = commentaryNode;
+      //}
       // End commentary code
-
-      debugger;
 
       for(var j = 0; j < Sefaria.toc.length; j++) {
           var b = walk.call(this, Sefaria.toc[j]);
           if (b) filters.push(b);
-      }
 
-      // Remove after commentary refactor
-      if (rnode || rnode2) { filters.push(commentaryNode); }
-      // End commentary code
+          // If there is commentary on this node, add it as a sibling
+          if (commentaryNode.hasChildren()) {
+            var toc_branch = Sefaria.toc[j];
+            var cat = toc_branch["category"];
+            // Append commentary node to result filters, add a fresh one for the next round
+            var docCount = 0;
+            if (rawTree.Commentary && rawTree.Commentary[cat]) { docCount += rawTree.Commentary[cat].docCount; }
+            if (rawTree.Commentary2 && rawTree.Commentary2[cat]) { docCount += rawTree.Commentary2[cat].docCount; }
+            extend(commentaryNode, {
+                "title": cat + " Commentary",
+                "path": "Commentary/" + cat,
+                "heTitle": "מפרשי" + " " + toc_branch["heCategory"],
+                "docCount": docCount
+            });
+            registry[commentaryNode.path] = commentaryNode;
+            filters.push(commentaryNode);
+            commentaryNode = new Sefaria.search.FilterNode();
+          }
+      }
 
       return {availableFilters: filters, registry: registry};
 
