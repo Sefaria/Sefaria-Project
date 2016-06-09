@@ -908,7 +908,7 @@ var ReaderApp = React.createClass({
       ));
     }
 
-    var classes = classNames({ readerApp: 1, multiPanel: this.props.multiPanel });
+    var classes = classNames({ readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel });
     return React.createElement(
       'div',
       { className: classes },
@@ -1769,7 +1769,7 @@ var ReaderPanel = React.createClass({
       var menu = null;
     }
 
-    var classes = { readerPanel: 1, wideColumn: this.width > 450 };
+    var classes = { readerPanel: 1, narrowColumn: this.width < 730 };
     classes[this.currentLayout()] = 1;
     classes[this.state.settings.color] = 1;
     classes[this.state.settings.language] = 1;
@@ -2117,6 +2117,7 @@ var ReaderNavigationMenu = React.createClass({
   },
   render: function render() {
     if (this.props.categories.length) {
+      // List of Text in a Category
       return React.createElement(
         'div',
         { className: 'readerNavMenu', onClick: this.handleClick },
@@ -2132,6 +2133,7 @@ var ReaderNavigationMenu = React.createClass({
           width: this.width })
       );
     } else {
+      // Root Library Menu
       var categories = ["Tanakh", "Mishnah", "Talmud", "Midrash", "Halakhah", "Kabbalah", "Liturgy", "Philosophy", "Tosefta", "Chasidut", "Musar", "Responsa", "Apocrypha", "Other"];
       categories = categories.map(function (cat) {
         var style = { "borderColor": Sefaria.palette.categoryColor(cat) };
@@ -2380,7 +2382,7 @@ var ReaderNavigationMenu = React.createClass({
         )
       );
 
-      var classes = classNames({ readerNavMenu: 1, noHeader: !this.props.hideHeader, compare: this.props.compare });
+      var classes = classNames({ readerNavMenu: 1, noHeader: !this.props.hideHeader, compare: this.props.compare, home: this.props.home });
       return React.createElement(
         'div',
         { className: classes, onClick: this.handleClick, key: '0' },
@@ -3254,7 +3256,10 @@ var SheetsNav = React.createClass({
       sheets: [],
       tag: this.props.initialTag,
       tagSort: this.props.tagSort,
-      width: 400
+      width: 400,
+      yourSheetTags: [],
+      showYourSheetTags: false,
+      sheetFilterTag: null
     };
   },
   componentDidMount: function componentDidMount() {
@@ -3264,6 +3269,7 @@ var SheetsNav = React.createClass({
     if (this.props.initialTag) {
       if (this.props.initialTag === "Your Sheets") {
         this.showYourSheets();
+        Sefaria.sheets.userTagList(this.setUserTags, Sefaria._uid);
       } else if (this.props.initialTag === "All Sheets") {
         this.showAllSheets();
       } else {
@@ -3274,6 +3280,18 @@ var SheetsNav = React.createClass({
   componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
     this.setState({ tagSort: nextProps.tagSort, tag: nextProps.initialTag });
   },
+  toggleSheetTags: function toggleSheetTags() {
+    this.state.showYourSheetTags == true ? this.setState({ showYourSheetTags: false }) : this.setState({ showYourSheetTags: true });
+  },
+
+  filterYourSheetsByTag: function filterYourSheetsByTag(tag) {
+    if (tag.tag == this.state.sheetFilterTag) {
+      this.setState({ sheetFilterTag: null });
+    } else {
+      this.setState({ sheetFilterTag: tag.tag });
+    }
+  },
+
   getAllSheets: function getAllSheets() {
     Sefaria.sheets.allSheetsList(this.loadAllSheets);
   },
@@ -3314,6 +3332,10 @@ var SheetsNav = React.createClass({
     Sefaria.sheets.userSheets(Sefaria._uid, this.loadSheets);
     this.props.setSheetTag("Your Sheets");
   },
+  setUserTags: function setUserTags(tags) {
+    this.setState({ userTagList: tags });
+  },
+
   showAllSheets: function showAllSheets() {
     this.setState({ tag: "All Sheets" });
     Sefaria.sheets.publicSheets(this.loadSheets);
@@ -3333,49 +3355,101 @@ var SheetsNav = React.createClass({
           }.bind(this);
           var title = sheet.title.stripHtml();
           var url = "/sheets/" + sheet.id;
+          if (sheet.tags === undefined) sheet.tags = [];
           var tagString = sheet.tags.map(function (tag) {
             return tag + ", ";
           });
 
-          return React.createElement(
-            'div',
-            { className: 'sheet userSheet', key: url },
-            React.createElement(
-              'a',
-              { className: 'sheetEditButtons', href: url },
-              React.createElement(
-                'span',
-                null,
-                React.createElement('i', { className: 'fa fa-pencil' }),
-                ' '
-              )
-            ),
-            React.createElement(
-              'div',
-              { className: 'sheetEditButtons', onClick: editSheetTags },
-              React.createElement(
-                'span',
-                null,
-                React.createElement('i', { className: 'fa fa-tag' }),
-                ' '
-              )
-            ),
-            React.createElement(
-              'div',
-              { className: 'sheetTitle' },
-              title
-            ),
-            React.createElement(
-              'div',
-              null,
-              sheet.views,
-              ' Views · ',
-              sheet.modified,
-              ' · ',
-              tagString
-            )
-          );
-        });
+          if ($.inArray(this.state.sheetFilterTag, sheet.tags) >= 0 || this.state.sheetFilterTag == null) {
+            if (this.props.multiPanel) {
+
+              return React.createElement(
+                'div',
+                { className: 'sheet userSheet', key: url },
+                React.createElement(
+                  'a',
+                  { className: 'sheetEditButtons', href: url },
+                  React.createElement(
+                    'span',
+                    null,
+                    React.createElement('i', { className: 'fa fa-pencil' }),
+                    ' '
+                  )
+                ),
+                React.createElement(
+                  'div',
+                  { className: 'sheetEditButtons', onClick: editSheetTags },
+                  React.createElement(
+                    'span',
+                    null,
+                    React.createElement('i', { className: 'fa fa-tag' }),
+                    ' '
+                  )
+                ),
+                React.createElement(
+                  'div',
+                  { className: 'sheetTitle' },
+                  title
+                ),
+                React.createElement(
+                  'div',
+                  null,
+                  sheet.views,
+                  ' Views · ',
+                  sheet.modified,
+                  ' · ',
+                  tagString
+                )
+              );
+            } else {
+
+              return React.createElement(
+                'a',
+                { className: 'sheet userSheet', href: url, key: url },
+                React.createElement(
+                  'div',
+                  { className: 'sheetTitle' },
+                  title
+                ),
+                React.createElement(
+                  'div',
+                  null,
+                  sheet.views,
+                  ' Views · ',
+                  sheet.modified,
+                  ' · ',
+                  tagString
+                )
+              );
+            }
+          }
+        }, this);
+
+        if (this.state.userTagList != null) {
+
+          var userTagList = this.state.userTagList.map(function (tag) {
+            var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
+            if (this.state.sheetFilterTag == tag.tag) {
+              return React.createElement(
+                'div',
+                { className: 'navButton sheetButton active', onClick: filterThisTag, key: tag.tag },
+                tag.tag,
+                ' (',
+                tag.count,
+                ')'
+              );
+            } else {
+              return React.createElement(
+                'div',
+                { className: 'navButton sheetButton', onClick: filterThisTag, key: tag.tag },
+                tag.tag,
+                ' (',
+                tag.count,
+                ')'
+              );
+            }
+          }, this);
+        }
 
         var content = React.createElement(
           'div',
@@ -3415,8 +3489,9 @@ var SheetsNav = React.createClass({
               { className: 'splitHeader' },
               React.createElement(
                 'span',
-                { className: 'en actionText', style: { float: 'left' } },
-                'Filter By Tag'
+                { className: 'en actionText', style: { float: 'left' }, onClick: this.toggleSheetTags },
+                'Filter By Tag ',
+                React.createElement('i', { className: 'fa fa-angle-down' })
               ),
               React.createElement(
                 'span',
@@ -3440,6 +3515,7 @@ var SheetsNav = React.createClass({
                 React.createElement('i', { className: 'fa fa-angle-down' })
               )
             ) : null,
+            this.state.showYourSheetTags == true ? React.createElement(TwoOrThreeBox, { content: userTagList, width: this.state.width }) : null,
             sheets
           )
         );
@@ -3587,19 +3663,8 @@ var SheetsNav = React.createClass({
               ),
               React.createElement(
                 'span',
-                { className: 'he' },
-                'Public Sheets [he]'
-              ),
-              React.createElement(
-                'span',
                 { className: 'en actionText', onClick: this.showAllSheets },
                 'See All ',
-                React.createElement('i', { className: 'fa fa-angle-right' })
-              ),
-              React.createElement(
-                'span',
-                { className: 'he actionText', onClick: this.showAllSheets },
-                'See All [he] ',
                 React.createElement('i', { className: 'fa fa-angle-right' })
               )
             ) : React.createElement(
@@ -3609,11 +3674,6 @@ var SheetsNav = React.createClass({
                 'span',
                 { className: 'en' },
                 'Public Sheets'
-              ),
-              React.createElement(
-                'span',
-                { className: 'he' },
-                'Public Sheets [he]'
               )
             ),
             publicSheetList,
@@ -3626,11 +3686,6 @@ var SheetsNav = React.createClass({
                 'span',
                 { className: 'en' },
                 'Trending Tags'
-              ),
-              React.createElement(
-                'span',
-                { className: 'he' },
-                'Trending Tags [he]'
               )
             ),
             this.props.multiPanel ? null : React.createElement(TwoOrThreeBox, { content: trendingTags, width: this.state.width }),
@@ -3643,11 +3698,6 @@ var SheetsNav = React.createClass({
                 'span',
                 { className: 'en', style: { float: 'left' } },
                 'All Tags'
-              ),
-              React.createElement(
-                'span',
-                { className: 'he' },
-                'All Tags [he]'
               ),
               React.createElement(
                 'span',
@@ -3674,32 +3724,6 @@ var SheetsNav = React.createClass({
                 ),
                 ' ',
                 React.createElement('i', { className: 'fa fa-angle-down' })
-              ),
-              React.createElement(
-                'span',
-                { className: 'he actionText' },
-                'Sort By [he]:',
-                React.createElement(
-                  'select',
-                  { value: this.props.tagSort, onChange: this.changeSort },
-                  React.createElement(
-                    'option',
-                    { value: 'alpha' },
-                    'Alphabetical'
-                  ),
-                  React.createElement(
-                    'option',
-                    { value: 'count' },
-                    'Most Used'
-                  ),
-                  React.createElement(
-                    'option',
-                    { value: 'trending' },
-                    'Trending'
-                  )
-                ),
-                ' ',
-                React.createElement('i', { className: 'fa fa-angle-down' })
               )
             ) : React.createElement(
               'h2',
@@ -3708,11 +3732,6 @@ var SheetsNav = React.createClass({
                 'span',
                 { className: 'en' },
                 'All Tags'
-              ),
-              React.createElement(
-                'span',
-                { className: 'he' },
-                'All Tags [he]'
               )
             ),
             React.createElement(TwoOrThreeBox, { content: tagList, width: this.state.width })
@@ -4328,6 +4347,7 @@ var TextRange = React.createClass({
 
     if (this.isMounted()) {
       this.forceUpdate();
+      this.placeSegmentNumbers();
     }
   },
   prefetchData: function prefetchData() {
@@ -4481,6 +4501,7 @@ var TextRange = React.createClass({
       }
     }
     $text.find(".segmentNumber").show();
+    $text.find(".linkCount").show();
   },
   render: function render() {
     var data = this.getText();
@@ -4592,14 +4613,21 @@ var TextRange = React.createClass({
       { className: classes, onClick: this.handleClick },
       showNumberLabel && this.props.numberLabel ? React.createElement(
         'div',
-        { className: 'numberLabel' },
-        ' ',
+        { className: 'numberLabel sans' },
         React.createElement(
           'span',
           { className: 'numberLabelInner' },
-          this.props.numberLabel
-        ),
-        ' '
+          React.createElement(
+            'span',
+            { className: 'en' },
+            this.props.numberLabel
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)
+          )
+        )
       ) : null,
       this.props.hideTitle ? "" : React.createElement(
         'div',
@@ -4672,7 +4700,7 @@ var TextSegment = React.createClass({
       var style = { opacity: linkScore };
       var linkCount = this.props.showLinkCount ? React.createElement(
         'div',
-        { className: 'linkCount' },
+        { className: 'linkCount sans' },
         React.createElement(
           'span',
           { className: 'en' },
@@ -4689,7 +4717,7 @@ var TextSegment = React.createClass({
     }
     var segmentNumber = this.props.segmentNumber ? React.createElement(
       'div',
-      { className: 'segmentNumber' },
+      { className: 'segmentNumber sans' },
       React.createElement(
         'span',
         { className: 'en' },

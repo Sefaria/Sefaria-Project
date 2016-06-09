@@ -902,7 +902,7 @@ var ReaderApp = React.createClass({
                   </div>);
     }
 
-    var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel});
+    var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel});
     return (<div className={classes}>
               {header}
               {panels}
@@ -1701,7 +1701,7 @@ var ReaderPanel = React.createClass({
       var menu = null;
     }
 
-    var classes  = {readerPanel: 1, wideColumn: this.width > 450};
+    var classes  = {readerPanel: 1, narrowColumn: this.width < 730};
     classes[this.currentLayout()]             = 1;
     classes[this.state.settings.color]        = 1;
     classes[this.state.settings.language]     = 1;
@@ -2022,6 +2022,7 @@ var ReaderNavigationMenu = React.createClass({
   },  
   render: function() {
     if (this.props.categories.length) {
+      // List of Text in a Category
       return (<div className="readerNavMenu" onClick={this.handleClick} >
                 <ReaderNavigationCategoryMenu
                   categories={this.props.categories}
@@ -2035,6 +2036,7 @@ var ReaderNavigationMenu = React.createClass({
                   width={this.width} />
               </div>);
     } else {
+      // Root Library Menu
       var categories = [
         "Tanakh",
         "Mishnah",
@@ -2165,7 +2167,7 @@ var ReaderNavigationMenu = React.createClass({
                     <span className="he">האוסף של ספאריה</span>
                   </h1>);
 
-      var classes = classNames({readerNavMenu:1, noHeader: !this.props.hideHeader, compare: this.props.compare });
+      var classes = classNames({readerNavMenu:1, noHeader: !this.props.hideHeader, compare: this.props.compare, home: this.props.home });
       return(<div className={classes} onClick={this.handleClick} key="0">
               {topContent}
               <div className="content">
@@ -3584,7 +3586,10 @@ var TextRange = React.createClass({
       this.props.onTextLoad();
     }
 
-    if (this.isMounted()) { this.forceUpdate(); }
+    if (this.isMounted()) { 
+      this.forceUpdate();
+      this.placeSegmentNumbers();
+    }
   },
   prefetchData: function() {
     // Prefetch addtional data (next, prev, links, notes etc) for this ref
@@ -3730,6 +3735,8 @@ var TextRange = React.createClass({
       }
     }
     $text.find(".segmentNumber").show();
+    $text.find(".linkCount").show();
+
   },
   render: function() {
     var data = this.getText();
@@ -3809,7 +3816,12 @@ var TextRange = React.createClass({
     return (
       <div className={classes} onClick={this.handleClick}>
         {showNumberLabel && this.props.numberLabel ? 
-          (<div className="numberLabel"> <span className="numberLabelInner">{this.props.numberLabel}</span> </div>)
+          (<div className="numberLabel sans">
+            <span className="numberLabelInner">
+              <span className="en">{this.props.numberLabel}</span>
+              <span className="he">{Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)}</span>
+            </span>
+          </div>)
           : null}
         {this.props.hideTitle ? "" :
         (<div className="title">
@@ -3860,14 +3872,14 @@ var TextSegment = React.createClass({
       var minOpacity = 20, maxOpacity = 70;
       var linkScore = linkCount ? Math.min(linkCount+minOpacity, maxOpacity) / 100.0 : 0;
       var style = {opacity: linkScore};
-      var linkCount = this.props.showLinkCount ? (<div className="linkCount">
+      var linkCount = this.props.showLinkCount ? (<div className="linkCount sans">
                                                     <span className="en"><span className="linkCountDot" style={style}></span></span>
                                                     <span className="he"><span className="linkCountDot" style={style}></span></span>
                                                   </div>) : null;      
     } else {
       var linkCount = "";
     }
-    var segmentNumber = this.props.segmentNumber ? (<div className="segmentNumber">
+    var segmentNumber = this.props.segmentNumber ? (<div className="segmentNumber sans">
                                                       <span className="en"> <span className="segmentNumberInner">{this.props.segmentNumber}</span> </span>
                                                       <span className="he"> <span className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}</span> </span>
                                                     </div>) : null;
