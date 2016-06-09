@@ -1300,7 +1300,6 @@ $(function() {
 			});
 
 			function cleanupActiveSource(target){
-				console.log(target);
 				$(".inlineAddButtonIcon").removeClass("active");
 				$(".activeSource").removeClass("activeSource");
 				$("#sheetLayoutLanguageMenuItems").show();
