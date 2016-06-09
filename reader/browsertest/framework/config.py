@@ -36,10 +36,10 @@ BS_CAPS = [
 
 SAUCE_CORE_CAPS = [
     {'browserName': "firefox", 'platform': "OS X 10.10", 'version': "44.0",
-        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'FF/x.10'},
+        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'FF/x10'},
 
     {'browserName': "safari", 'platform': "OS X 10.11", 'version': "9.0",
-        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Sf/x.11'},
+        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Sf/x11'},
 
     {'browserName': "chrome", 'platform': "Windows 8", 'version': "48.0",
         'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Cr/w8'},
