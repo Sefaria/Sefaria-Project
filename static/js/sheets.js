@@ -791,7 +791,12 @@ $(function() {
 			if ($(e.target).find(".cke_editable").length) { return; }
 			// Don't init if element clicked is not on the source sheet (i.e. it's some other s2 reader element)
 			if( !$("#sheet").has($(this)).length > 0  ) { return }
-
+			// Don't init if on mobile
+			if ($(".readerApp").length) {
+				if (!$(".readerApp").hasClass("multiPanel")) {
+					return
+				}
+			}
 			// Remove any existing editors first
 			$(".cke_editable").each(function() {
 				var ed = $(this).ckeditorGet();
@@ -828,18 +833,17 @@ $(function() {
 
 		};
 
-		
+
 		if (sjs.can_edit) {
 			// Bind init of CKEditor to mouseup, so dragging can start first
 			$("#title, .comment, .outside, .customTitle, .text .en, .text .he, #author, .contentToAdd")
-				.live("mouseup", sjs.initCKEditor);			
-		} 
+				.live("mouseup", sjs.initCKEditor);
+		}
 		else if (sjs.can_add) {
 			// For colloborative adders, only allow edits on their on content
 			$(".addedByMe .comment, .addedByMe  .outside, .addedByMe .customTitle, .addedByMe .text .en, .addedByMe .text .he, .contentToAdd")
-				.live("mouseup", sjs.initCKEditor);			
+				.live("mouseup", sjs.initCKEditor);
 		}
-
 
 		// So clicks on editor or editable area don't destroy editor
 		$("#title, .comment, .outside, .customTitle, .en, .he, #author, .cke, .cke_dialog, .cke_dialog_background_cover")
@@ -1316,7 +1320,6 @@ $(function() {
 			});
 
 			$(".sheetItem").on("click", ".inlineAddButtonIcon", function (e) {
-
 				$("#addInterface").insertAfter( $(this).parent().closest(".sheetItem") );
 				$(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
 				$(".inlineAddButtonIcon").removeClass("active");
@@ -1346,6 +1349,8 @@ $(function() {
 			$("#sheet").on("click", ".sheetItem", function (e) {
 			//clicked on a sheet item
 				if ($(e.target).hasClass("inlineAddButtonIcon")) return;
+				if (!$(".readerApp").hasClass("multiPanel")) return; //prevent active source on mobile
+
 			cleanupActiveSource(e.target);
 			$(this).addClass("activeSource");
 			$("#sheetLayoutLanguageMenuItems").hide();

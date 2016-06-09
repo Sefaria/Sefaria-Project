@@ -107,13 +107,14 @@
 					<i class="fa fa-check hidden"></i> בס"ד</div>
 
                 <div class="line"></div>
+            {% if can_edit or can_add %}
 
 				<div class="optionItem" id="resetText">
 					<img src="/static/img/reset%20text.png"> Reset Source Text</div>
 
 				<div class="optionItem" id="addSourceTitle">
 					 <i class="fa fa-pencil"></i> Add Source Title</div>
-
+            {% endif %}
                 <div class="line"></div>
                 <div id="sheetLayoutLanguageMenuItems">
                     <div class="optionGroup" id="languageToggleGroup">
