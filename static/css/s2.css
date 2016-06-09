@@ -40,7 +40,6 @@ body.dark {
 #s2.headerOnly {
   z-index: 1000;
   height: 54px;
-  overflow: hidden;
 }
 .readerApp {
   position: absolute;

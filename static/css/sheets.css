@@ -1134,6 +1134,11 @@ a:active {
 		width: 100%;
 		height: auto;
 	}
+
+	#lastSaved, .sheetsEditNavTop, .inlineAddButton, #addInterface, #sourceControls {
+		display: none;
+	}
+
 }
 
 @media screen and (max-width: 520px) {
