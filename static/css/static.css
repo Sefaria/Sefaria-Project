@@ -686,11 +686,25 @@ a#siteLanguageHebrew {
 #donatePage .faq p.answer:before{
   content: "A)";
 }
+#supportersPage .leading-supporters p.tagline:first-child{
+  text-align: center;
+  max-width: 500px;
+  margin: auto;
+}
+#supportersPage .leading-supporters p.tagline:last-child{
+  margin-top: 20px;
+}
+#supportersPage .supporters p.tagline:first-child{
+  margin-bottom: 20px;
+}
 #supportersPage h2{
     margin-top: 25px;
 }
 #supportersPage h2 span{
   font-size: 1.3em;
+}
+#supportersPage .donate-link{
+  margin-top:20px;
 }
 #aboutPage {
   margin: 0;
