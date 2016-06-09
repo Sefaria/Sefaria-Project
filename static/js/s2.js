@@ -1682,6 +1682,7 @@ var ReaderPanel = React.createClass({
     if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation" || this.state.menuOpen == "compare") {
       var menu = React.createElement(ReaderNavigationMenu, {
         home: this.state.menuOpen === "home",
+        compare: this.state.menuOpen === "compare",
         interfaceLang: this.props.interfaceLang,
         multiPanel: this.props.multiPanel,
         categories: this.state.navigationCategories || [],
