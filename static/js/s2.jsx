@@ -366,9 +366,10 @@ var ReaderApp = React.createClass({
         }
         hist.mode   = "Header"
       }
-      console.log("History Panel: " + hist.url);
-      var lang  = state.settings.language.substring(0,2);
-      hist.url += "&lang=" + lang;
+      if (state.mode !== "Header") {
+        var lang  = state.settings.language.substring(0,2);
+        hist.url += "&lang=" + lang;
+      }
       histories.push(hist);     
     }
     if (!histories.length) {debugger;}
