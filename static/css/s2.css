@@ -1590,11 +1590,11 @@ h1 .languageToggle .he {
   display: none;
 }
 .basetext .text {
-  padding: 30px;
+  padding: 30px 44px;
   background-color: inherit;
 }
 .narrowColumn .basetext .text {
-  padding: 13px;
+  padding: 26px;
 }
 .basetext .segment {
   cursor: pointer;
@@ -1748,14 +1748,14 @@ h1 .languageToggle .he {
   -webkit-filter: invert(100%);
 }
 .readerPanel.english .segment .segmentNumber {
-  left: -24px;
+  left: -36px;
 }
 .readerPanel.hebrew .segment .segmentNumber,
 .readerPanel.bilingual .segment .segmentNumber {
   right: -20px;
 }
 .readerPanel.english .segment .linkCount {
-  right: -20px;
+  right: -34px;
 }
 .readerPanel.hebrew .segment .linkCount,
 .readerPanel.bilingual .segment .linkCount {
