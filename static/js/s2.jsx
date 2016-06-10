@@ -2837,21 +2837,21 @@ getAllSheets: function() {
           var url = "/sheets/" + sheet.id;
           if (sheet.tags === undefined) sheet.tags = [];
           var tagString = sheet.tags.map(function (tag) {
-              return(tag+", ");
+              return(<span>{tag}, </span>);
           });
 
           if ($.inArray(this.state.sheetFilterTag, sheet.tags) >= 0 || this.state.sheetFilterTag == null ) {
               if (this.props.multiPanel) {
 
-                    return (<div className="sheet userSheet" key={url}>
-                              <a className="sheetEditButtons" href={url}>
+                    return (<div className="sheet userSheet" href={url} key={url}>
+                               <a className="sheetEditButtons" href={url}>
                                 <span><i className="fa fa-pencil"></i> </span>
                               </a>
                               <div className="sheetEditButtons" onClick={editSheetTags}>
                                 <span><i className="fa fa-tag"></i> </span>
                               </div>
 
-                              <div className="sheetTitle">{title}</div>
+                              <a className="sheetTitle" href={url}>{title}</a>
                               <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
 
                         </div>
