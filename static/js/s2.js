@@ -7547,7 +7547,7 @@ var AccountPanel = React.createClass({
     interfaceLang: React.PropTypes.string
   },
   render: function render() {
-    var width = window ? $(window).width() : 1000;
+    var width = typeof window !== "undefined" ? $(window).width() : 1000;
     var accountContent = [React.createElement(BlockLink, { target: '/my/profile', title: 'Profile', heTitle: 'פרופיל' }), React.createElement(BlockLink, { target: '/sheets/private', title: 'Source Sheets', heTitle: 'דפי מקורות' }), React.createElement(BlockLink, { target: '#', title: 'Reading History', heTitle: 'היסטוריה קריאה' }), React.createElement(BlockLink, { target: '#', title: 'Notes', heTitle: 'רשומות' }), React.createElement(BlockLink, { target: '/settings/account', title: 'Settings', heTitle: 'הגדרות' }), React.createElement(BlockLink, { target: '/logout', title: 'Log Out', heTitle: 'ניתוק' })];
     accountContent = React.createElement(TwoOrThreeBox, { content: accountContent, width: width });
 

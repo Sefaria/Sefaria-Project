@@ -2491,6 +2491,9 @@ h1 .languageToggle .he {
   width: 100%;
   text-align: center;
 }
+a .button:hover {
+  text-decoration: none;
+}
 #backToS1 {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   top: 20px;

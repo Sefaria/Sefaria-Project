@@ -102,7 +102,7 @@ label .sub {
 .static .inner div.single-button a.button{
   margin: auto;
 }
-.static .inner .button{
+.static .inner .button {
   /*all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
   border-radius: 4px;
   padding: 16px 24px;
@@ -112,10 +112,10 @@ label .sub {
   box-sizing: border-box;
   text-align: center;
 }
-.static .inner .button.big{
+.static .inner .button.big {
   width: 250px;
 }
-.static .inner .button.blue{
+.static .inner .button.blue {
   background-color: #212E50;
   border: 1px solid #212E50;
   color: white;
@@ -151,6 +151,11 @@ label .sub {
   margin-bottom: 16px;
   line-height: 1;
 }
+.static p {
+  margin: initial;
+  font-size: 18px;
+  line-height: 1.5;
+}
 .static .section {
   margin-bottom: 60px;
 }
@@ -160,7 +165,7 @@ label .sub {
   margin: 30px 0;
   border: 1px solid #ddd;
 }
-p.tagline {
+.static p.tagline {
   font-style: italic;
   margin-bottom: 25px;
 }
@@ -168,11 +173,7 @@ p.tagline {
   margin: 0;
   text-align: justify
 }
-.static p {
-  margin: initial;
-  font-size: 18px;
-  line-height: 1.5;
-}
+
 #homePage {
   overflow: hidden;
   color: #333;
@@ -252,8 +253,25 @@ p.tagline {
 #homePage .textRight .imageBox {
   float: left;
 }
+#homePage .section a .button {
+  display: block;
+  width: 240px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+#homePage .section .button .fa {
+  color: #ccc;
+  font-size: 25px;
+  margin: 0 3px;
+  position: absolute;
+  left: 11px;
+  top: 10px;
+}
 #homePage .section.center {
   text-align: center;
+}
+#homePage .section.center .button {
+  margin: 0 auto;
 }
 #homePage h2 {
   margin-bottom: 12px;
@@ -276,6 +294,7 @@ p.tagline {
 }
 #homePage .section .button {
   margin: 0;
+  position: relative;
 }
 #homePage #homeBlog .blogTag {
   text-transform: uppercase;
@@ -1006,6 +1025,15 @@ a#siteLanguageHebrew {
 #activityPage #activityList .time {
   color: #ccc;
 }
+#iosPage p {
+  margin-bottom: 30px;
+}
+#iosPage a {
+  text-decoration: underline;
+}
+#connectPage {
+  text-align: center;
+}
 .full-text-static select {
   width: 25%;
   background-color: #ffffff;
@@ -1013,7 +1041,6 @@ a#siteLanguageHebrew {
   padding: 0 3%;
   font-size: 1.3em;
 }
-
 .full-text-static {
   margin: 70px auto;
   width: 60%;

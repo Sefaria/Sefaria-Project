@@ -6100,7 +6100,7 @@ var AccountPanel = React.createClass({
     interfaceLang: React.PropTypes.string,
   },
   render: function() {
-    var width = window ? $(window).width() : 1000;
+    var width = typeof window !== "undefined" ? $(window).width() : 1000;
     var accountContent = [
       (<BlockLink target="/my/profile" title="Profile" heTitle="פרופיל"/>),
       (<BlockLink target="/sheets/private" title="Source Sheets" heTitle="דפי מקורות" />),
