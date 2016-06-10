@@ -183,6 +183,18 @@ class UserProfile(object):
 	def followed_by(self, uid):
 		"""Returns true if this user is followed by uid"""
 		return uid in self.followers.uids
+    
+    def recent_notifications(self):
+    	return NotificationSet().recent_for_user(self.id)
+
+    def unread_notification_count(self):
+    	return unread_notifications_count_for_user(self.id)
+
+    def interrupting_message(self):
+    	"""
+    	Returns an message to interupt the user with, any exist.
+    	"""
+    	return None
 
 	def to_DICT(self):
 		"""Return a json serializble dictionary this profile"""

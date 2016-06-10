@@ -3,6 +3,8 @@ Djagno Context Processors, for decorating all HTTP request with common data.
 """
 from datetime import datetime
 
+from django.template.loader import render_to_string
+
 from sefaria.settings import *
 from sefaria.model import library, NotificationSet
 from sefaria.model.user_profile import UserProfile, unread_notifications_count_for_user
@@ -68,15 +70,25 @@ def language_settings(request):
 
 def notifications(request):
     if not request.user.is_authenticated():
+        if request.COOKIES.get("_ga", None) and not request.COOKIES.get("welcomeToS2", None):
+            # Welcome returning visitors only to the new Sefaria. TODO this should be removed after some time.
+            return {
+                "interruptingMessage": {
+                        "name": "welcomeToS2",
+                        "html": render_to_string("messages/welcomeToS2LoggedOut.html")
+                    }
+            }
         return {}
-    notifications = NotificationSet().recent_for_user(request.user.id)
+    
+    profile = UserProfile(id=request.user.id)
+    notifications = profile.recent_notifications()
     notifications_json = "[" + ",".join([n.to_JSON() for n in notifications]) + "]"
-    unread_count  = unread_notifications_count_for_user(request.user.id)
     return {
             "notifications": notifications, 
             "notifications_json": notifications_json,
             "notifications_html": notifications.to_HTML(),
-            "notifications_count": unread_count
+            "notifications_count": profile.unread_notifications_count(),
+            "interrupting_message": profile.interrupting_message()
             }
 
 
