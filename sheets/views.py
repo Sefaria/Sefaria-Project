@@ -423,10 +423,10 @@ def sheets_list(request, type=None):
 
 	elif type == "private":
 		if request.flavour == "mobile":
-			return s2_sheets_by_tag(request,"Your Sheets")
+			return s2_sheets_by_tag(request,"My Sheets")
 
 		elif request.COOKIES.get('s2'):
-			return s2_sheets_by_tag(request,"Your Sheets")
+			return s2_sheets_by_tag(request,"My Sheets")
 
 
 		query              = {"owner": request.user.id or -1 }

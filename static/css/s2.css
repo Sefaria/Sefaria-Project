@@ -2671,9 +2671,11 @@ h2.splitHeader {
   text-decoration: none;
 }
 
+/*  Add back in when we're ready for tag/edit hover buttons on 'My Sheets'
 .sheet.userSheet:hover .sheetEditButtons {
 	display: inline-block;
 }
+*/
 
 .sheet.userSheet .sheetEditButtons {
   font-size: 24px;
