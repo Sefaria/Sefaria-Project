@@ -2745,7 +2745,7 @@ var SheetsNav = React.createClass({
     this.getAllSheets();
     this.setState({width: $(ReactDOM.findDOMNode(this)).width()});
     if (this.props.initialTag) {
-      if (this.props.initialTag === "Your Sheets") {
+      if (this.props.initialTag === "My Sheets") {
         this.showYourSheets();
         Sefaria.sheets.userTagList(this.setUserTags,Sefaria._uid);
       }
@@ -2809,9 +2809,9 @@ getAllSheets: function() {
     this.setState({sheets: sheets});
   },
   showYourSheets: function() {
-    this.setState({tag: "Your Sheets"});
+    this.setState({tag: "My Sheets"});
     Sefaria.sheets.userSheets(Sefaria._uid, this.loadSheets);
-    this.props.setSheetTag("Your Sheets");
+    this.props.setSheetTag("My Sheets");
   },
   setUserTags: function(tags){
     this.setState({userTagList: tags});
@@ -2829,7 +2829,7 @@ getAllSheets: function() {
 
     if (this.state.tag) {
 
-      if (this.state.tag == "Your Sheets") {
+      if (this.state.tag == "My Sheets") {
 
         var sheets = this.state.sheets.map(function (sheet) {
           var editSheetTags = function() { console.log(sheet.id)}.bind(this);
@@ -2950,7 +2950,7 @@ getAllSheets: function() {
 
     }
     else {
-      var yourSheets  = Sefaria._uid ? (<div className="yourSheetsLink navButton" onClick={this.showYourSheets}>Your Source Sheets <i className="fa fa-chevron-right"></i></div>) : null;
+      var yourSheets  = Sefaria._uid ? (<div className="yourSheetsLink navButton" onClick={this.showYourSheets}>My Source Sheets <i className="fa fa-chevron-right"></i></div>) : null;
       var makeTagButton = function(tag) {
         var setThisTag = this.setTag.bind(null, tag.tag);
         return (<div className="navButton" onClick={setThisTag} key={tag.tag}>{tag.tag} ({tag.count})</div>);
@@ -6103,9 +6103,9 @@ var AccountPanel = React.createClass({
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
     var accountContent = [
       (<BlockLink target="/my/profile" title="Profile" heTitle="פרופיל"/>),
-      (<BlockLink target="/sheets/private" title="Source Sheets" heTitle="דפי מקורות" />),
+      (<BlockLink target="/sheets/private" title="My Source Sheets" heTitle="דפי מקורות" />),
       (<BlockLink target="#" title="Reading History" heTitle="היסטוריה קריאה" />),
-      (<BlockLink target="#" title="Notes" heTitle="רשומות" />),
+      (<BlockLink target="#" title="My Notes" heTitle="רשומות" />),
       (<BlockLink target="/settings/account" title="Settings" heTitle="הגדרות" />),
       (<BlockLink target="/logout" title="Log Out" heTitle="ניתוק" />)
     ];
