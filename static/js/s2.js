@@ -3272,7 +3272,7 @@ var SheetsNav = React.createClass({
     this.getAllSheets();
     this.setState({ width: $(ReactDOM.findDOMNode(this)).width() });
     if (this.props.initialTag) {
-      if (this.props.initialTag === "Your Sheets") {
+      if (this.props.initialTag === "My Sheets") {
         this.showYourSheets();
         Sefaria.sheets.userTagList(this.setUserTags, Sefaria._uid);
       } else if (this.props.initialTag === "All Sheets") {
@@ -3333,9 +3333,9 @@ var SheetsNav = React.createClass({
     this.setState({ sheets: sheets });
   },
   showYourSheets: function showYourSheets() {
-    this.setState({ tag: "Your Sheets" });
+    this.setState({ tag: "My Sheets" });
     Sefaria.sheets.userSheets(Sefaria._uid, this.loadSheets);
-    this.props.setSheetTag("Your Sheets");
+    this.props.setSheetTag("My Sheets");
   },
   setUserTags: function setUserTags(tags) {
     this.setState({ userTagList: tags });
@@ -3352,7 +3352,7 @@ var SheetsNav = React.createClass({
 
     if (this.state.tag) {
 
-      if (this.state.tag == "Your Sheets") {
+      if (this.state.tag == "My Sheets") {
 
         var sheets = this.state.sheets.map(function (sheet) {
           var editSheetTags = function () {
@@ -3362,7 +3362,12 @@ var SheetsNav = React.createClass({
           var url = "/sheets/" + sheet.id;
           if (sheet.tags === undefined) sheet.tags = [];
           var tagString = sheet.tags.map(function (tag) {
-            return tag + ", ";
+            return React.createElement(
+              'span',
+              null,
+              tag,
+              ', '
+            );
           });
 
           if ($.inArray(this.state.sheetFilterTag, sheet.tags) >= 0 || this.state.sheetFilterTag == null) {
@@ -3370,7 +3375,7 @@ var SheetsNav = React.createClass({
 
               return React.createElement(
                 'div',
-                { className: 'sheet userSheet', key: url },
+                { className: 'sheet userSheet', href: url, key: url },
                 React.createElement(
                   'a',
                   { className: 'sheetEditButtons', href: url },
@@ -3392,8 +3397,8 @@ var SheetsNav = React.createClass({
                   )
                 ),
                 React.createElement(
-                  'div',
-                  { className: 'sheetTitle' },
+                  'a',
+                  { className: 'sheetTitle', href: url },
                   title
                 ),
                 React.createElement(
@@ -3575,7 +3580,7 @@ var SheetsNav = React.createClass({
       var yourSheets = Sefaria._uid ? React.createElement(
         'div',
         { className: 'yourSheetsLink navButton', onClick: this.showYourSheets },
-        'Your Source Sheets ',
+        'My Source Sheets ',
         React.createElement('i', { className: 'fa fa-chevron-right' })
       ) : null;
       var makeTagButton = function (tag) {
@@ -7548,7 +7553,7 @@ var AccountPanel = React.createClass({
   },
   render: function render() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
-    var accountContent = [React.createElement(BlockLink, { target: '/my/profile', title: 'Profile', heTitle: 'פרופיל' }), React.createElement(BlockLink, { target: '/sheets/private', title: 'Source Sheets', heTitle: 'דפי מקורות' }), React.createElement(BlockLink, { target: '#', title: 'Reading History', heTitle: 'היסטוריה קריאה' }), React.createElement(BlockLink, { target: '#', title: 'Notes', heTitle: 'רשומות' }), React.createElement(BlockLink, { target: '/settings/account', title: 'Settings', heTitle: 'הגדרות' }), React.createElement(BlockLink, { target: '/logout', title: 'Log Out', heTitle: 'ניתוק' })];
+    var accountContent = [React.createElement(BlockLink, { target: '/my/profile', title: 'Profile', heTitle: 'פרופיל' }), React.createElement(BlockLink, { target: '/sheets/private', title: 'My Source Sheets', heTitle: 'דפי מקורות' }), React.createElement(BlockLink, { target: '#', title: 'Reading History', heTitle: 'היסטוריה קריאה' }), React.createElement(BlockLink, { target: '#', title: 'My Notes', heTitle: 'רשומות' }), React.createElement(BlockLink, { target: '/settings/account', title: 'Settings', heTitle: 'הגדרות' }), React.createElement(BlockLink, { target: '/logout', title: 'Log Out', heTitle: 'ניתוק' })];
     accountContent = React.createElement(TwoOrThreeBox, { content: accountContent, width: width });
 
     var learnContent = [React.createElement(BlockLink, { target: '/about', title: 'About', heTitle: 'אודות' }), React.createElement(BlockLink, { target: '/faq', title: 'FAQ', heTitle: 'שאלות נפוצות' }), React.createElement(BlockLink, { target: 'http://blog.sefaria.org', title: 'Blog', heTitle: 'בלוג' }), React.createElement(BlockLink, { target: '/educators', title: 'Educators', heTitle: 'מחנכים' }), React.createElement(BlockLink, { target: '/help', title: 'Help', heTitle: 'עזרה' }), React.createElement(BlockLink, { target: '/team', title: 'Team', heTitle: 'צוות' })];
