@@ -1395,6 +1395,41 @@ Sefaria = extend(Sefaria, {
   }
 });
 
+Sefaria.unpackDataFromProps = function(props) {
+  // Populate local cache with various data passed as a rider on props. 
+  var initialPanels = props.initialPanels || [];
+  for (var i = 0; i < initialPanels.length; i++) {
+      var panel = initialPanels[i];
+      if (panel.text) {
+        var settings = {context: 1, version: panel.version, language: panel.versionLanguage};
+        Sefaria._saveText(panel.text, settings);
+      }
+      if (panel.textTocHtml) {
+        Sefaria._saveTextTocHtml(panel.bookRef, panel.textTocHtml);
+      }
+  }
+  if (props.userSheets) {
+    Sefaria.sheets._userSheets[Sefaria._uid + "date"] = props.userSheets;
+  }
+  if (props.userTags) {
+    Sefaria.sheets._userTagList = props.userTags;
+  }
+  if (props.publicSheets) {
+    Sefaria.sheets._publicSheets = props.publicSheets;
+  }
+  if (props.tagSheets) {
+    Sefaria.sheets._sheetsByTag[props.initialSheetsTag] = props.tagSheets;
+  }
+  if (props.tagList) {
+    Sefaria.sheets._tagList["count"] = props.tagList;
+  }
+  if (props.trendingTags) {
+    Sefaria.sheets._trendingTags = props.trendingTags;
+  }
+  if (props.topSheets) {
+    Sefaria.sheets._topSheets = props.topSheets;
+  }
+}
 
 Sefaria.search.FilterNode.prototype = {
   append : function(child) {

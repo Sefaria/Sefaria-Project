@@ -3255,7 +3255,7 @@ var SheetsNav = React.createClass({
   },
   getInitialState: function getInitialState() {
     return {
-      width: 400
+      width: this.props.multiPanel ? 1000 : 400
     };
   },
   componentDidMount: function componentDidMount() {
@@ -8049,32 +8049,6 @@ var setData = function setData(data) {
   Sefaria.loggedIn = data.loggedIn;
 };
 
-var unpackDataFromProps = function unpackDataFromProps(props) {
-  /// Set request specific data thas was passed as a rider on props
-  var panels = props.initialPanels || [];
-  for (var i = 0; i < panels.length; i++) {
-    var panel = panels[i];
-    if ("text" in panel) {
-      Sefaria._saveText(panel.text, { context: 1, version: panel.version, language: panel.versionLanguage }, false);
-    }
-    if ("textTocHtml" in panel) {
-      Sefaria._saveTextTocHtml(panel["bookRef"], panel["textTocHtml"]);
-    }
-  }
-  if (props.userSheets) {
-    Sefaria.sheets._userSheets[Sefaria._uid + "date"] = props.userSheets;
-  }
-  if (props.userTags) {
-    Sefaria.sheets._userTagList = props.userTags;
-  }
-  if (props.publicSheets) {
-    Sefaria.sheets._publicSheets = props.publicSheets;
-  }
-  if (props.tagSheets) {
-    Sefaria.sheets._sheetsByTag[props.initialSheetsTag] = props.tagSheets;
-  }
-};
-
 if (typeof exports !== 'undefined') {
   exports.ReaderApp = ReaderApp;
   exports.ReaderPanel = ReaderPanel;
@@ -8082,6 +8056,6 @@ if (typeof exports !== 'undefined') {
   exports.TextRange = TextRange;
   exports.TextColumn = TextColumn;
   exports.setData = setData;
-  exports.unpackDataFromProps = unpackDataFromProps;
+  exports.unpackDataFromProps = Sefaria.unpackDataFromProps;
 }
 

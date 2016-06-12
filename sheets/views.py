@@ -738,7 +738,7 @@ def all_sheets_api(request, limiter):
 	else:
 		public = db.sheets.find(query).sort([["dateModified", -1]]).limit(limiter)
 	
-	sheets   = [sheet_to_dict(s) for s in pubic]
+	sheets   = [sheet_to_dict(s) for s in public]
 	response = {"sheets": sheets}
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"

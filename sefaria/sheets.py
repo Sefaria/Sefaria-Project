@@ -124,7 +124,7 @@ def order_tags_for_user(tag_counts, uid):
 	return tag_counts
 
 
-def recent_public_tags(days=14, ntags=10):
+def recent_public_tags(days=14, ntags=0):
 	"""
 	Returns list of tag/counts on public sheets modified in the last 'days'.
 	"""
@@ -333,7 +333,7 @@ def update_included_refs(hours=1):
 
 def get_public_sheets(page=None):
 	"""
-	Returns a list of pubic source sheets.
+	Returns a list of public source sheets.
 	"""
 	page_size = 50
 	query     = {"status": "public"}
@@ -344,6 +344,16 @@ def get_public_sheets(page=None):
 		public_sheets = db.sheets.find(query).sort([["dateModified", -1]]).skip(page*page_size).limit(page_size)
 
 	return public_sheets
+
+
+def get_top_sheets(limit=3):
+	"""
+	Returns 'top' sheets according to some magic heuristic.
+	Currently: return the most recently active sheets with more than 100 views. 
+	"""
+	query = {"status": "public", "views": {"$gte": 100}}
+	sheets = db.sheets.find(query).sort([["dateModified", -1]]).limit(limit)
+	return sheets
 
 
 def get_sheets_for_ref(tref, pad=True, context=1):
@@ -427,29 +437,30 @@ def get_last_updated_time(sheet_id):
 	return sheet["dateModified"]
 
 
-def make_tag_list(include_sheets=False):
+def make_tag_list(sort_by="alpha"):
 	"""
-	Returns an alphabetized list of tags and sheets included in each tag.
+	Returns a list of all public tags, sorted either alphabetically ("alpha") or by popularity ("count")
 	"""
 	tags = {}
 	results = []
-	projection = {"tags": 1, "title": 1, "id": 1, "views": 1} if include_sheets else {"tags": 1}
+	projection = {"tags": 1}
 
 	sheet_list = db.sheets.find({"status": "public"}, projection)
 	for sheet in sheet_list:
 		sheet_tags = sheet.get("tags", [])
 		for tag in sheet_tags:
 			if tag not in tags:
-				tags[tag] = {"tag": tag, "count": 0, "sheets": []}
-			if include_sheets:
-				tags[tag]["sheets"].append({"title": strip_tags(sheet["title"]), "id": sheet["id"], "views": sheet["views"]})
+				tags[tag] = {"tag": tag, "count": 0}
 			tags[tag]["count"] += 1
 
 	for tag in tags.values():
-		tag["sheets"] = sorted(tag["sheets"], key=lambda x: -x["views"] )
 		results.append(tag)
 
-	results = sorted(results, key=lambda x: x["tag"])
+	sort_keys =  {
+		"alpha": lambda x: x["tag"],
+		"count": lambda x: -x["count"],
+	}
+	results  = sorted(results, key=sort_keys[sort_by])
 
 	return results
 

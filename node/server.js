@@ -15,8 +15,8 @@ var http           = require('http'),
 
 var server = express();
 
-server.use(bodyParser.urlencoded({ extended: false }));
-server.use(bodyParser.json());
+server.use(bodyParser.urlencoded({ extended: false, limit: '50mb' }));
+server.use(bodyParser.json({limit: '50mb'}));
 
 var renderReaderApp = function(props, data, timer) {
   // Returns HTML of ReaderApp component given `props` and `data`
