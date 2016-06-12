@@ -3387,13 +3387,13 @@ var SheetsHomePage = React.createClass({
 
     var makeTagButton = function (tag) {
       var setThisTag = this.props.setSheetTag.bind(null, tag.tag);
-      return React.createElement(SheetTagButton, { onClick: setThisTag, tag: tag.tag, count: tag.count });
+      return React.createElement(SheetTagButton, { onClick: setThisTag, tag: tag.tag, count: tag.count, key: tag.tag });
     }.bind(this);
 
     var trendingTags = trendingTags ? trendingTags.slice(0, 6).map(makeTagButton) : [React.createElement(LoadingMessage, null)];
     var tagList = tagList ? tagList.map(makeTagButton) : [React.createElement(LoadingMessage, null)];
     var publicSheetList = topSheets ? topSheets.map(function (sheet) {
-      return React.createElement(PublicSheetListing, { sheet: sheet });
+      return React.createElement(PublicSheetListing, { sheet: sheet, key: sheet.id });
     }) : [React.createElement(LoadingMessage, null)];
 
     var yourSheetsButton = Sefaria._uid ? React.createElement(
@@ -3498,13 +3498,13 @@ var SheetsHomePage = React.createClass({
               { value: this.props.tagSort, onChange: this.changeSort },
               React.createElement(
                 'option',
-                { value: 'alpha' },
-                'Alphabetical'
+                { value: 'count' },
+                'Most Popular'
               ),
               React.createElement(
                 'option',
-                { value: 'count' },
-                'Most Used'
+                { value: 'alpha' },
+                'Alphabetical'
               ),
               React.createElement(
                 'option',
@@ -8049,14 +8049,30 @@ var setData = function setData(data) {
   Sefaria.loggedIn = data.loggedIn;
 };
 
-var saveTextData = function saveTextData(data, settings) {
-  // Populate texts cache with data loaded in a different scope
-  Sefaria._saveText(data, settings, false);
-};
-
-var saveTextTocHtml = function saveTextTocHtml(title, html) {
-  // Populate textTocHtml cache with data loaded in a different scope
-  Sefaria._saveTextTocHtml(title, html);
+var unpackDataFromProps = function unpackDataFromProps(props) {
+  /// Set request specific data thas was passed as a rider on props
+  var panels = props.initialPanels || [];
+  for (var i = 0; i < panels.length; i++) {
+    var panel = panels[i];
+    if ("text" in panel) {
+      Sefaria._saveText(panel.text, { context: 1, version: panel.version, language: panel.versionLanguage }, false);
+    }
+    if ("textTocHtml" in panel) {
+      Sefaria._saveTextTocHtml(panel["bookRef"], panel["textTocHtml"]);
+    }
+  }
+  if (props.userSheets) {
+    Sefaria.sheets._userSheets[Sefaria._uid + "date"] = props.userSheets;
+  }
+  if (props.userTags) {
+    Sefaria.sheets._userTagList = props.userTags;
+  }
+  if (props.publicSheets) {
+    Sefaria.sheets._publicSheets = props.publicSheets;
+  }
+  if (props.tagSheets) {
+    Sefaria.sheets._sheetsByTag[props.initialSheetsTag] = props.tagSheets;
+  }
 };
 
 if (typeof exports !== 'undefined') {
@@ -8066,7 +8082,6 @@ if (typeof exports !== 'undefined') {
   exports.TextRange = TextRange;
   exports.TextColumn = TextColumn;
   exports.setData = setData;
-  exports.saveTextData = saveTextData;
-  exports.saveTextTocHtml = saveTextTocHtml;
+  exports.unpackDataFromProps = unpackDataFromProps;
 }
 

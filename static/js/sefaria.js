@@ -1,13 +1,15 @@
 if (typeof require !== 'undefined') {
-  var $         = require('cheerio'),
+  var INBROWSER = false,
+      $         = require('cheerio'),
       extend    = require('extend'),
-      param     = require('querystring').stringify;
+      param     = require('querystring').stringify,
+      striptags = require('striptags');
       $.ajax    = function() {}; // Fail gracefully if we reach one of these methods server side
-      $.getJSON = function() {};
+      $.getJSON = function() {}; // ditto
 } else {
-  // Browser context, assuming $
-  var extend  = $.extend,
-      param   = $.param;
+  var INBROWSER = true,
+      extend    = $.extend,
+      param     = $.param;
 }
 
 var Sefaria = Sefaria || {
@@ -1670,9 +1672,13 @@ Sefaria.util = {
         };
 
         String.prototype.stripHtml = function() {
-           var tmp = document.createElement("div");
-           tmp.innerHTML = this;
-           return tmp.textContent|| "";
+           if (INBROWSER) {
+             var tmp = document.createElement("div");
+             tmp.innerHTML = this;
+             return tmp.textContent|| "";            
+           } else {
+            return striptags(this);
+           }
         };
 
         String.prototype.escapeHtml = function() {

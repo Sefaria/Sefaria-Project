@@ -37,7 +37,7 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.summaries import flatten_toc, get_or_make_summary_node, REORDER_RULES
-from sefaria.sheets import get_sheets_for_ref
+from sefaria.sheets import get_sheets_for_ref, get_public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -396,21 +396,44 @@ def s2_search(request):
     }, RequestContext(request))
 
 
+def s2_sheets(request):
+    """
+    Source Sheets Home Page.
+    """
+    public_tags = recent_public_tags()
+
+    props = s2_props(request)
+    props.update({
+        "initialMenu":     "sheets",
+        "topSheets": [],
+        "tagList": [],
+        "trendingTags": []
+    })
+    html = render_react_component("ReaderApp", props)
+    return render_to_response('s2.html', {
+        "propsJSON":      json.dumps(props),
+        "html":           html,
+    }, RequestContext(request))
+
+
 def s2_sheets_by_tag(request, tag):
     """
     Page of sheets by tag.
+    Currently used to for "My Sheets" and  "All Sheets" as well.
     """
-    if tag == "My Sheets":
-        sheets = []
-    elif tag == "All Sheets":
-        sheets = []
-    else:
-        sheets = []
     props = s2_props(request)
     props.update({
         "initialMenu":     "sheets",
         "initialSheetsTag": tag,
     })
+    if tag == "My Sheets":
+        props["userSheets"]   = user_sheets(request.user.id)["sheets"]
+        props["userTags"]     = user_tags(request.user.id)
+    elif tag == "All Sheets":
+        props["publicSheets"] = [sheet_to_dict(s) for s in get_public_sheets()] #TODO Pagination
+    else:
+        props["tagSheets"]    = [sheet_to_dict(s) for s in get_sheets_by_tag(tag)]
+
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
         "propsJSON":      json.dumps(props),
@@ -446,11 +469,8 @@ def s2_account(request):
 
 
 def s2_notifications(request):
+    # TODO Server Side rendering
     return s2_page(request, "notifications")
-
-
-def s2_sheets(request):
-    return s2_page(request, "sheets")
 
 
 @ensure_csrf_cookie

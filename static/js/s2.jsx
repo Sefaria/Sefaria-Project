@@ -2846,13 +2846,13 @@ var SheetsHomePage = React.createClass({
 
     var makeTagButton = function(tag) {
       var setThisTag = this.props.setSheetTag.bind(null, tag.tag);
-      return (<SheetTagButton onClick={setThisTag} tag={tag.tag} count={tag.count} />);      
+      return (<SheetTagButton onClick={setThisTag} tag={tag.tag} count={tag.count} key={tag.tag} />);      
     }.bind(this);
 
     var trendingTags    = trendingTags ? trendingTags.slice(0,6).map(makeTagButton) : [<LoadingMessage />];
     var tagList         = tagList ? tagList.map(makeTagButton) : [<LoadingMessage />];
     var publicSheetList = topSheets ? topSheets.map(function(sheet) {
-      return (<PublicSheetListing sheet={sheet} />);
+      return (<PublicSheetListing sheet={sheet} key={sheet.id} />);
     }) : [<LoadingMessage />];
 
     var yourSheetsButton  = Sefaria._uid ? 
@@ -2899,8 +2899,8 @@ var SheetsHomePage = React.createClass({
 
                   <span className="en actionText">Sort By:
                     <select value={this.props.tagSort} onChange={this.changeSort}>
+                     <option value="count">Most Popular</option>
                      <option value="alpha">Alphabetical</option>
-                     <option value="count">Most Used</option>
                      <option value="trending">Trending</option>
                    </select> <i className="fa fa-angle-down"></i></span>
                 </h2>) : (
@@ -6501,27 +6501,39 @@ var setData = function(data) {
   Sefaria.loggedIn = data.loggedIn;
 };
 
-
-var saveTextData = function(data, settings) {
-  // Populate texts cache with data loaded in a different scope
-  Sefaria._saveText(data, settings, false);
-};
-
-
-var saveTextTocHtml = function(title, html) {
-  // Populate textTocHtml cache with data loaded in a different scope
-  Sefaria._saveTextTocHtml(title, html);
-};
-
+var unpackDataFromProps = function(props) {
+  /// Set request specific data thas was passed as a rider on props
+  var panels = props.initialPanels || [];
+  for (var i = 0; i < panels.length; i++) {
+    var panel = panels[i];
+    if ("text" in panel) {
+      Sefaria._saveText(panel.text, {context: 1, version: panel.version, language: panel.versionLanguage}, false);
+    }
+    if ("textTocHtml" in panel) {
+      Sefaria._saveTextTocHtml(panel["bookRef"], panel["textTocHtml"]);
+    }
+  }
+  if (props.userSheets) {
+    Sefaria.sheets._userSheets[Sefaria._uid + "date"] = props.userSheets;
+  }
+  if (props.userTags) {
+    Sefaria.sheets._userTagList = props.userTags;
+  }
+  if (props.publicSheets) {
+    Sefaria.sheets._publicSheets = props.publicSheets;
+  }
+  if (props.tagSheets) {
+    Sefaria.sheets._sheetsByTag[props.initialSheetsTag] = props.tagSheets;
+  }
+}
 
 
 if (typeof exports !== 'undefined') {
-  exports.ReaderApp        = ReaderApp;
-  exports.ReaderPanel      = ReaderPanel;
-  exports.ConnectionsPanel = ConnectionsPanel;
-  exports.TextRange        = TextRange;
-  exports.TextColumn       = TextColumn;
-  exports.setData          = setData;
-  exports.saveTextData     = saveTextData;
-  exports.saveTextTocHtml  = saveTextTocHtml;
+  exports.ReaderApp           = ReaderApp;
+  exports.ReaderPanel         = ReaderPanel;
+  exports.ConnectionsPanel    = ConnectionsPanel;
+  exports.TextRange           = TextRange;
+  exports.TextColumn          = TextColumn;
+  exports.setData             = setData;
+  exports.unpackDataFromProps = unpackDataFromProps;
 }

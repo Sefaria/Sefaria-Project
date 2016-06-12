@@ -1,5 +1,4 @@
 import json
-from bson.son import SON
 from datetime import datetime, timedelta
 
 from django.template import RequestContext
@@ -316,61 +315,6 @@ def delete_sheet_api(request, sheet_id):
 
 	return jsonResponse({"status": "ok"})
 
-
-def sheet_tag_counts(query, sort_by="count"):
-	"""
-	Returns tags ordered by count for sheets matching query.
-	"""
-	if sort_by == "count":
-		sort_query = SON([("count", -1), ("_id", -1)])
-	elif sort_by == "alpha":
-		sort_query = SON([("_id", 1)])
-	elif sort_by == "trending":
-		return recent_public_tags(days=14)
-	else:
-		return []
-
-	tags = db.sheets.aggregate([
-		{"$match": query },
-		{"$unwind": "$tags"},
-		{"$group": {"_id": "$tags", "count": {"$sum": 1}}},
-		{"$sort": sort_query },
-		{"$project": { "_id": 0, "tag": "$_id", "count": "$count"}}
-	])
-	return tags["result"]
-
-
-def order_tags_for_user(tag_counts, uid):
-	"""
-	Returns of list of tag/count dicts order according to user's preference,
-	Adds empty tags if any appear in user's sort list but not in tags passed in
-	"""
-	profile   = UserProfile(id=uid)
-	tag_order = getattr(profile, "tag_order", None)
-	if tag_order:
-		empty_tags = tag_order[:]
-		tags = [tag_count["tag"] for tag_count in tag_counts]		
-		empty_tags = [tag for tag in tag_order if tag not in tags]
-		
-		for tag in empty_tags:
-			tag_counts.append({"tag": tag, "count": 0})
-		try:
-			tag_counts = sorted(tag_counts, key=lambda x: tag_order.index(x["tag"]))
-		except:
-			pass
-
-	return tag_counts
-
-
-def recent_public_tags(days=14, ntags=10):
-	"""
-	Returns list of tag/counts on public sheets modified in the last 'days'.
-	"""
-	cutoff      = datetime.now() - timedelta(days=days)
-	query       = {"status": "public", "dateModified": { "$gt": cutoff.isoformat() } }
-	tags        = sheet_tag_counts(query)[:ntags]
-
-	return tags
 
 
 def sheets_list(request, type=None):
@@ -793,11 +737,8 @@ def all_sheets_api(request, limiter):
 		public = db.sheets.find(query).sort([["dateModified", -1]])
 	else:
 		public = db.sheets.find(query).sort([["dateModified", -1]]).limit(limiter)
-	sheets = [{"title": s["title"], "id": s["id"], "owner": s["owner"], "views": s["views"]} for s in public]
-	for sheet in sheets:
-		profile = UserProfile(id=sheet["owner"])
-		sheet["ownerName"] = profile.full_name
-		sheet["ownerImageUrl"] = profile.gravatar_url_small
+	
+	sheets   = [sheet_to_dict(s) for s in pubic]
 	response = {"sheets": sheets}
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
@@ -806,14 +747,10 @@ def all_sheets_api(request, limiter):
 
 def sheets_by_tag_api(request, tag):
 	"""
-	API to retrieve the list of peopke who like sheet_id.
+	API to get a list of sheets by `tag`.
 	"""
-	sheets = get_sheets_by_tag(tag, public=True)
-	sheets = [{"title": s["title"], "id": s["id"], "owner": s["owner"], "views": s["views"]} for s in sheets]
-	for sheet in sheets:
-		profile                = UserProfile(id=sheet["owner"])
-		sheet["ownerName"]     = profile.full_name
-		sheet["ownerImageUrl"] = profile.gravatar_url_small
+	sheets   = get_sheets_by_tag(tag, public=True)
+	sheets   = [sheet_to_dict(s) for s in sheets]
 	response = {"tag": tag, "sheets": sheets}
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
