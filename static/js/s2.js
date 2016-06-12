@@ -462,7 +462,7 @@ var ReaderApp = React.createClass({
       bookRef: state.bookRef || null,
       settings: state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
       displaySettingsOpen: false,
-      tagSort: state.tagSort || "alpha"
+      tagSort: state.tagSort || "count"
     };
     if (this.state && panel.refs.length && !panel.version) {
       var oRef = Sefaria.ref(panel.refs[0]);
@@ -1292,7 +1292,7 @@ var ReaderPanel = React.createClass({
       filterRegistry: {},
       orphanSearchFilters: [],
       displaySettingsOpen: false,
-      tagSort: "alpha"
+      tagSort: "count"
     };
   },
   componentDidMount: function componentDidMount() {
@@ -1758,7 +1758,7 @@ var ReaderPanel = React.createClass({
         multiPanel: this.props.multiPanel,
         hideNavHeader: this.props.hideNavHeader,
         toggleLanguage: this.toggleLanguage,
-        initialTag: this.state.navigationSheetTag,
+        tag: this.state.navigationSheetTag,
         tagSort: this.state.tagSort,
         setSheetTagSort: this.setSheetTagSort,
         setSheetTag: this.setSheetTag,
@@ -3245,523 +3245,59 @@ var SheetsNav = React.createClass({
   // Navigation for Sheets
   propTypes: {
     multiPanel: React.PropTypes.bool,
-    initialTag: React.PropTypes.string,
+    tag: React.PropTypes.string,
+    tagSort: React.PropTypes.string,
     close: React.PropTypes.func.isRequired,
     openNav: React.PropTypes.func.isRequired,
     setSheetTag: React.PropTypes.func.isRequired,
     setSheetTagSort: React.PropTypes.func.isRequired,
     hideNavHeader: React.PropTypes.bool
-
   },
   getInitialState: function getInitialState() {
     return {
-      trendingTags: null,
-      allSheets: null,
-      yourSheets: null,
-      sheets: [],
-      tag: this.props.initialTag,
-      tagSort: this.props.tagSort,
-      width: 400,
-      yourSheetTags: [],
-      showYourSheetTags: false,
-      sheetFilterTag: null
+      width: 400
     };
   },
   componentDidMount: function componentDidMount() {
-    this.getTags();
-    this.getAllSheets();
     this.setState({ width: $(ReactDOM.findDOMNode(this)).width() });
-    if (this.props.initialTag) {
-      if (this.props.initialTag === "My Sheets") {
-        this.showYourSheets();
-        Sefaria.sheets.userTagList(this.setUserTags, Sefaria._uid);
-      } else if (this.props.initialTag === "All Sheets") {
-        this.showAllSheets();
-      } else {
-        this.setTag(this.props.initialTag);
-      }
-    }
   },
-  componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
-    this.setState({ tagSort: nextProps.tagSort, tag: nextProps.initialTag });
-  },
-  toggleSheetTags: function toggleSheetTags() {
-    this.state.showYourSheetTags == true ? this.setState({ showYourSheetTags: false }) : this.setState({ showYourSheetTags: true });
-  },
-
-  filterYourSheetsByTag: function filterYourSheetsByTag(tag) {
-    if (tag.tag == this.state.sheetFilterTag) {
-      this.setState({ sheetFilterTag: null });
-    } else {
-      this.setState({ sheetFilterTag: tag.tag });
-    }
-  },
-
-  getAllSheets: function getAllSheets() {
-    Sefaria.sheets.allSheetsList(this.loadAllSheets);
-  },
-  loadAllSheets: function loadAllSheets() {
-    this.setState({
-      allSheets: Sefaria.sheets.allSheetsList() || []
-    });
-  },
+  componentWillReceiveProps: function componentWillReceiveProps(nextProps) {},
   changeSort: function changeSort(event) {
     this.props.setSheetTagSort(event.target.value);
-    Sefaria.sheets.tagList(this.loadTags, event.target.value);
-  },
-  changeSortYourSheets: function changeSortYourSheets(event) {
-    this.props.setSheetTagSort(event.target.value);
-    this.showYourSheets();
-    Sefaria.sheets.userSheets(Sefaria._uid, this.loadSheets, event.target.value);
-  },
-  getTags: function getTags() {
-    Sefaria.sheets.trendingTags(this.loadTags);
-    Sefaria.sheets.tagList(this.loadTags, this.props.tagSort);
-  },
-  loadTags: function loadTags() {
-    this.setState({
-      trendingTags: Sefaria.sheets.trendingTags() || [],
-      tagList: Sefaria.sheets.tagList(null, this.props.tagSort) || []
-    });
-  },
-  setTag: function setTag(tag) {
-    this.setState({ tag: tag });
-    Sefaria.sheets.sheetsByTag(tag, this.loadSheets);
-    this.props.setSheetTag(tag);
-  },
-  loadSheets: function loadSheets(sheets) {
-    this.setState({ sheets: sheets });
-  },
-  showYourSheets: function showYourSheets() {
-    this.setState({ tag: "My Sheets" });
-    Sefaria.sheets.userSheets(Sefaria._uid, this.loadSheets);
-    this.props.setSheetTag("My Sheets");
-  },
-  setUserTags: function setUserTags(tags) {
-    this.setState({ userTagList: tags });
-  },
-
-  showAllSheets: function showAllSheets() {
-    this.setState({ tag: "All Sheets" });
-    Sefaria.sheets.publicSheets(this.loadSheets);
-    this.props.setSheetTag("All Sheets");
+    //Sefaria.sheets.tagList(this.loadTags, event.target.value);
   },
   render: function render() {
-    var enTitle = this.state.tag || "Source Sheets";
-    var heTitle = this.state.tag || "דפי מקורות";
+    var enTitle = this.props.tag || "Source Sheets";
+    var heTitle = this.props.tag || "דפי מקורות";
 
-    if (this.state.tag) {
-
-      if (this.state.tag == "My Sheets") {
-
-        var sheets = this.state.sheets.map(function (sheet) {
-          var editSheetTags = function () {
-            console.log(sheet.id);
-          }.bind(this);
-          var title = sheet.title.stripHtml();
-          var url = "/sheets/" + sheet.id;
-          if (sheet.tags === undefined) sheet.tags = [];
-          var tagString = sheet.tags.map(function (tag) {
-            return React.createElement(
-              'span',
-              null,
-              tag,
-              ', '
-            );
-          });
-
-          if ($.inArray(this.state.sheetFilterTag, sheet.tags) >= 0 || this.state.sheetFilterTag == null) {
-            if (this.props.multiPanel) {
-
-              return React.createElement(
-                'div',
-                { className: 'sheet userSheet', href: url, key: url },
-                React.createElement(
-                  'a',
-                  { className: 'sheetEditButtons', href: url },
-                  React.createElement(
-                    'span',
-                    null,
-                    React.createElement('i', { className: 'fa fa-pencil' }),
-                    ' '
-                  )
-                ),
-                React.createElement(
-                  'div',
-                  { className: 'sheetEditButtons', onClick: editSheetTags },
-                  React.createElement(
-                    'span',
-                    null,
-                    React.createElement('i', { className: 'fa fa-tag' }),
-                    ' '
-                  )
-                ),
-                React.createElement(
-                  'a',
-                  { className: 'sheetTitle', href: url },
-                  title
-                ),
-                React.createElement(
-                  'div',
-                  null,
-                  sheet.views,
-                  ' Views · ',
-                  sheet.modified,
-                  ' · ',
-                  tagString
-                )
-              );
-            } else {
-
-              return React.createElement(
-                'a',
-                { className: 'sheet userSheet', href: url, key: url },
-                React.createElement(
-                  'div',
-                  { className: 'sheetTitle' },
-                  title
-                ),
-                React.createElement(
-                  'div',
-                  null,
-                  sheet.views,
-                  ' Views · ',
-                  sheet.modified,
-                  ' · ',
-                  tagString
-                )
-              );
-            }
-          }
-        }, this);
-
-        if (this.state.userTagList != null) {
-
-          var userTagList = this.state.userTagList.map(function (tag) {
-            var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
-            if (this.state.sheetFilterTag == tag.tag) {
-              return React.createElement(
-                'div',
-                { className: 'navButton sheetButton active', onClick: filterThisTag, key: tag.tag },
-                tag.tag,
-                ' (',
-                tag.count,
-                ')'
-              );
-            } else {
-              return React.createElement(
-                'div',
-                { className: 'navButton sheetButton', onClick: filterThisTag, key: tag.tag },
-                tag.tag,
-                ' (',
-                tag.count,
-                ')'
-              );
-            }
-          }, this);
-        }
-
-        var content = React.createElement(
-          'div',
-          { className: 'content sheetList' },
-          React.createElement(
-            'div',
-            { className: 'contentInner' },
-            this.props.hideNavHeader ? React.createElement(
-              'h1',
-              null,
-              React.createElement(
-                'span',
-                { className: 'en' },
-                enTitle
-              )
-            ) : null,
-            this.props.hideNavHeader ? React.createElement(
-              'div',
-              { className: 'sheetsNewButton' },
-              React.createElement(
-                'a',
-                { className: 'button white', href: '/sheets/new' },
-                React.createElement(
-                  'span',
-                  { className: 'en' },
-                  'Create a Source Sheet'
-                ),
-                React.createElement(
-                  'span',
-                  { className: 'he' },
-                  'צור דף מקורות חדש'
-                )
-              )
-            ) : null,
-            this.props.hideNavHeader ? React.createElement(
-              'h2',
-              { className: 'splitHeader' },
-              React.createElement(
-                'span',
-                { className: 'en actionText', style: { float: 'left' }, onClick: this.toggleSheetTags },
-                'Filter By Tag ',
-                React.createElement('i', { className: 'fa fa-angle-down' })
-              ),
-              React.createElement(
-                'span',
-                { className: 'en actionText' },
-                'Sort By:',
-                React.createElement(
-                  'select',
-                  { value: this.props.tagSort, onChange: this.changeSortYourSheets },
-                  React.createElement(
-                    'option',
-                    { value: 'date' },
-                    'Recent'
-                  ),
-                  React.createElement(
-                    'option',
-                    { value: 'views' },
-                    'Most Viewed'
-                  )
-                ),
-                ' ',
-                React.createElement('i', { className: 'fa fa-angle-down' })
-              )
-            ) : null,
-            this.state.showYourSheetTags == true ? React.createElement(TwoOrThreeBox, { content: userTagList, width: this.state.width }) : null,
-            sheets
-          )
-        );
-      } else {
-
-        var sheets = this.state.sheets.map(function (sheet) {
-          var title = sheet.title.stripHtml();
-          var url = "/sheets/" + sheet.id;
-          return React.createElement(
-            'a',
-            { className: 'sheet', href: url, key: url },
-            sheet.ownerImageUrl ? React.createElement('img', { className: 'sheetImg', src: sheet.ownerImageUrl }) : null,
-            React.createElement(
-              'span',
-              { className: 'sheetViews' },
-              React.createElement('i', { className: 'fa fa-eye' }),
-              ' ',
-              sheet.views
-            ),
-            React.createElement(
-              'div',
-              { className: 'sheetAuthor' },
-              sheet.ownerName
-            ),
-            React.createElement(
-              'div',
-              { className: 'sheetTitle' },
-              title
-            )
-          );
-        });
-        var content = React.createElement(
-          'div',
-          { className: 'content sheetList' },
-          React.createElement(
-            'div',
-            { className: 'contentInner' },
-            this.props.hideNavHeader ? React.createElement(
-              'h1',
-              null,
-              React.createElement(
-                'span',
-                { className: 'en' },
-                enTitle
-              )
-            ) : null,
-            sheets
-          )
-        );
-      }
+    if (this.props.tag == "My Sheets") {
+      var content = React.createElement(MySheetsPage, {
+        hideNavHeader: this.props.hideNavHeader,
+        multiPanel: this.props.multiPanel,
+        setSheetTag: this.props.setSheetTag,
+        setSheetTagSort: this.props.setSheetTagSort,
+        width: this.state.width });
+    } else if (this.props.tag == "All Sheets") {
+      var content = React.createElement(AllSheetsPage, {
+        hideNavHeader: this.props.hideNavHeader });
+    } else if (this.props.tag) {
+      var content = React.createElement(TagSheetsPage, {
+        tag: this.props.tag,
+        setSheetTag: this.props.setSheetTag,
+        multiPanel: this.props.multiPanel,
+        hideNavHeader: this.props.hideNavHeader,
+        width: this.state.width });
     } else {
-      var yourSheets = Sefaria._uid ? React.createElement(
-        'div',
-        { className: 'yourSheetsLink navButton', onClick: this.showYourSheets },
-        'My Source Sheets ',
-        React.createElement('i', { className: 'fa fa-chevron-right' })
-      ) : null;
-      var makeTagButton = function (tag) {
-        var setThisTag = this.setTag.bind(null, tag.tag);
-        return React.createElement(
-          'div',
-          { className: 'navButton', onClick: setThisTag, key: tag.tag },
-          tag.tag,
-          ' (',
-          tag.count,
-          ')'
-        );
-      }.bind(this);
-
-      if (this.state.trendingTags !== null && this.state.tagList !== null && this.state.allSheets !== null) {
-        var trendingTags = this.state.trendingTags.slice(0, 6).map(makeTagButton);
-
-        var allSheets = this.state.allSheets.sheets;
-
-        var publicSheetList = allSheets.map(function (sheet) {
-          var title = sheet.title.stripHtml();
-          var url = "/sheets/" + sheet.id;
-          return React.createElement(
-            'a',
-            { className: 'sheet', href: url, key: url },
-            sheet.ownerImageUrl ? React.createElement('img', { className: 'sheetImg', src: sheet.ownerImageUrl }) : null,
-            React.createElement(
-              'span',
-              { className: 'sheetViews' },
-              React.createElement('i', { className: 'fa fa-eye' }),
-              ' ',
-              sheet.views
-            ),
-            React.createElement(
-              'div',
-              { className: 'sheetAuthor' },
-              sheet.ownerName
-            ),
-            React.createElement(
-              'div',
-              { className: 'sheetTitle' },
-              title
-            )
-          );
-        });
-
-        var tagList = this.state.tagList.map(makeTagButton);
-        var content = React.createElement(
-          'div',
-          { className: 'content' },
-          React.createElement(
-            'div',
-            { className: 'contentInner' },
-            this.props.hideNavHeader ? React.createElement(
-              'h1',
-              null,
-              React.createElement(
-                'div',
-                { className: 'languageToggle', onClick: this.props.toggleLanguage },
-                React.createElement(
-                  'span',
-                  { className: 'en' },
-                  'א'
-                ),
-                React.createElement(
-                  'span',
-                  { className: 'he' },
-                  'A'
-                )
-              ),
-              React.createElement(
-                'span',
-                { className: 'en' },
-                enTitle
-              ),
-              React.createElement(
-                'span',
-                { className: 'he' },
-                heTitle
-              )
-            ) : null,
-            this.props.multiPanel ? null : yourSheets,
-            this.props.multiPanel ? React.createElement(
-              'h2',
-              { className: 'splitHeader' },
-              React.createElement(
-                'span',
-                { className: 'en', style: { float: 'left' } },
-                'Public Sheets'
-              ),
-              React.createElement(
-                'span',
-                { className: 'en actionText', onClick: this.showAllSheets },
-                'See All ',
-                React.createElement('i', { className: 'fa fa-angle-right' })
-              )
-            ) : React.createElement(
-              'h2',
-              null,
-              React.createElement(
-                'span',
-                { className: 'en' },
-                'Public Sheets'
-              )
-            ),
-            publicSheetList,
-            React.createElement('br', null),
-            React.createElement('br', null),
-            this.props.multiPanel ? null : React.createElement(
-              'h2',
-              null,
-              React.createElement(
-                'span',
-                { className: 'en' },
-                'Trending Tags'
-              )
-            ),
-            this.props.multiPanel ? null : React.createElement(TwoOrThreeBox, { content: trendingTags, width: this.state.width }),
-            React.createElement('br', null),
-            React.createElement('br', null),
-            this.props.multiPanel ? React.createElement(
-              'h2',
-              { className: 'splitHeader' },
-              React.createElement(
-                'span',
-                { className: 'en', style: { float: 'left' } },
-                'All Tags'
-              ),
-              React.createElement(
-                'span',
-                { className: 'en actionText' },
-                'Sort By:',
-                React.createElement(
-                  'select',
-                  { value: this.props.tagSort, onChange: this.changeSort },
-                  React.createElement(
-                    'option',
-                    { value: 'alpha' },
-                    'Alphabetical'
-                  ),
-                  React.createElement(
-                    'option',
-                    { value: 'count' },
-                    'Most Used'
-                  ),
-                  React.createElement(
-                    'option',
-                    { value: 'trending' },
-                    'Trending'
-                  )
-                ),
-                ' ',
-                React.createElement('i', { className: 'fa fa-angle-down' })
-              )
-            ) : React.createElement(
-              'h2',
-              null,
-              React.createElement(
-                'span',
-                { className: 'en' },
-                'All Tags'
-              )
-            ),
-            React.createElement(TwoOrThreeBox, { content: tagList, width: this.state.width })
-          )
-        );
-      } else {
-        var content = React.createElement(
-          'div',
-          { className: 'content', key: 'content' },
-          React.createElement(
-            'div',
-            { className: 'contentInner' },
-            React.createElement(LoadingMessage, null)
-          )
-        );
-      }
+      var content = React.createElement(SheetsHomePage, {
+        tagSort: this.props.tagSort,
+        setSheetTag: this.props.setSheetTag,
+        setSheetTagSort: this.props.setSheetTagSort,
+        multiPanel: this.props.multiPanel,
+        hideNavHeader: this.props.hideNavHeader,
+        width: this.state.width });
     }
 
     var classes = classNames({ readerNavMenu: 1, readerSheetsNav: 1, noHeader: this.props.hideNavHeader });
-
     return React.createElement(
       'div',
       { className: classes },
@@ -3778,11 +3314,626 @@ var SheetsNav = React.createClass({
             'span',
             { className: 'en' },
             enTitle
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            heTitle
           )
         )
       ),
       content
     );
+  }
+});
+
+var SheetsHomePage = React.createClass({
+  displayName: 'SheetsHomePage',
+
+  // A set of options grouped together.
+  propTypes: {
+    setSheetTag: React.PropTypes.func.isRequired,
+    setSheetTagSort: React.PropTypes.func.isRequired,
+    hideNavHeader: React.PropTypes.bool
+  },
+  componentDidMount: function componentDidMount() {
+    this.ensureData();
+  },
+  getTopSheetsFromCache: function getTopSheetsFromCache() {
+    return Sefaria.sheets.topSheets();
+  },
+  getSheetsFromAPI: function getSheetsFromAPI() {
+    Sefaria.sheets.topSheets(this.onDataLoad);
+  },
+  getTagListFromCache: function getTagListFromCache() {
+    return Sefaria.sheets.tagList(this.props.tagSort);
+  },
+  getTagListFromAPI: function getTagListFromAPI() {
+    Sefaria.sheets.tagList(this.props.tagSort, this.onDataLoad);
+  },
+  getTrendingTagsFromCache: function getTrendingTagsFromCache() {
+    return Sefaria.sheets.trendingTags();
+  },
+  getTrendingTagsFromAPI: function getTrendingTagsFromAPI() {
+    Sefaria.sheets.trendingTags(this.onDataLoad);
+  },
+  onDataLoad: function onDataLoad(data) {
+    this.forceUpdate();
+  },
+  ensureData: function ensureData() {
+    if (!this.getTopSheetsFromCache()) {
+      this.getSheetsFromAPI();
+    }
+    if (!this.getTagListFromCache()) {
+      this.getTagListFromAPI();
+    }
+    if (!this.getTrendingTagsFromCache()) {
+      this.getTrendingTagsFromAPI();
+    }
+  },
+  showYourSheets: function showYourSheets() {
+    this.props.setSheetTag("My Sheets");
+  },
+  showAllSheets: function showAllSheets() {
+    this.props.setSheetTag("All Sheets");
+  },
+  changeSort: function changeSort(event) {
+    this.props.setSheetTagSort(event.target.value);
+  },
+  render: function render() {
+    var trendingTags = this.getTrendingTagsFromCache();
+    var tagList = this.getTagListFromCache();
+    var topSheets = this.getTopSheetsFromCache();
+
+    var makeTagButton = function (tag) {
+      var setThisTag = this.props.setSheetTag.bind(null, tag.tag);
+      return React.createElement(SheetTagButton, { onClick: setThisTag, tag: tag.tag, count: tag.count });
+    }.bind(this);
+
+    var trendingTags = trendingTags ? trendingTags.slice(0, 6).map(makeTagButton) : [React.createElement(LoadingMessage, null)];
+    var tagList = tagList ? tagList.map(makeTagButton) : [React.createElement(LoadingMessage, null)];
+    var publicSheetList = topSheets ? topSheets.map(function (sheet) {
+      return React.createElement(PublicSheetListing, { sheet: sheet });
+    }) : [React.createElement(LoadingMessage, null)];
+
+    var yourSheetsButton = Sefaria._uid ? React.createElement(
+      'div',
+      { className: 'yourSheetsLink navButton', onClick: this.showYourSheets },
+      React.createElement(
+        'span',
+        { 'class': 'en' },
+        'My Source Sheets ',
+        React.createElement('i', { className: 'fa fa-chevron-right' })
+      ),
+      React.createElement('span', { 'class': 'he' })
+    ) : null;
+
+    return React.createElement(
+      'div',
+      { className: 'content' },
+      React.createElement(
+        'div',
+        { className: 'contentInner' },
+        this.props.hideNavHeader ? React.createElement(
+          'h1',
+          null,
+          React.createElement(
+            'div',
+            { className: 'languageToggle', onClick: this.props.toggleLanguage },
+            React.createElement(
+              'span',
+              { className: 'en' },
+              'א'
+            ),
+            React.createElement(
+              'span',
+              { className: 'he' },
+              'A'
+            )
+          ),
+          React.createElement(
+            'span',
+            { className: 'en' },
+            'Source Sheets'
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            'דפי מקורות'
+          )
+        ) : null,
+        this.props.multiPanel ? null : yourSheetsButton,
+        this.props.multiPanel ? React.createElement(
+          'h2',
+          { className: 'splitHeader' },
+          React.createElement(
+            'span',
+            { className: 'en', style: { float: 'left' } },
+            'Public Sheets'
+          ),
+          React.createElement(
+            'span',
+            { className: 'en actionText', onClick: this.showAllSheets },
+            'See All ',
+            React.createElement('i', { className: 'fa fa-angle-right' })
+          )
+        ) : React.createElement(
+          'h2',
+          null,
+          React.createElement(
+            'span',
+            { className: 'en' },
+            'Public Sheets'
+          )
+        ),
+        publicSheetList,
+        React.createElement('br', null),
+        React.createElement('br', null),
+        this.props.multiPanel ? null : React.createElement(
+          'h2',
+          null,
+          React.createElement(
+            'span',
+            { className: 'en' },
+            'Trending Tags'
+          )
+        ),
+        this.props.multiPanel ? null : React.createElement(TwoOrThreeBox, { content: trendingTags, width: this.props.width }),
+        React.createElement('br', null),
+        React.createElement('br', null),
+        this.props.multiPanel ? React.createElement(
+          'h2',
+          { className: 'splitHeader' },
+          React.createElement(
+            'span',
+            { className: 'en', style: { float: 'left' } },
+            'All Tags'
+          ),
+          React.createElement(
+            'span',
+            { className: 'en actionText' },
+            'Sort By:',
+            React.createElement(
+              'select',
+              { value: this.props.tagSort, onChange: this.changeSort },
+              React.createElement(
+                'option',
+                { value: 'alpha' },
+                'Alphabetical'
+              ),
+              React.createElement(
+                'option',
+                { value: 'count' },
+                'Most Used'
+              ),
+              React.createElement(
+                'option',
+                { value: 'trending' },
+                'Trending'
+              )
+            ),
+            ' ',
+            React.createElement('i', { className: 'fa fa-angle-down' })
+          )
+        ) : React.createElement(
+          'h2',
+          null,
+          React.createElement(
+            'span',
+            { className: 'en' },
+            'All Tags'
+          )
+        ),
+        React.createElement(TwoOrThreeBox, { content: tagList, width: this.props.width })
+      )
+    );
+  }
+});
+
+var TagSheetsPage = React.createClass({
+  displayName: 'TagSheetsPage',
+
+  // Page list all public sheets.
+  propTypes: {
+    hideNavHeader: React.PropTypes.bool
+  },
+  componentDidMount: function componentDidMount() {
+    this.ensureData();
+  },
+  getSheetsFromCache: function getSheetsFromCache() {
+    return Sefaria.sheets.sheetsByTag(this.props.tag);
+  },
+  getSheetsFromAPI: function getSheetsFromAPI() {
+    Sefaria.sheets.sheetsByTag(this.props.tag, this.onDataLoad);
+  },
+  onDataLoad: function onDataLoad(data) {
+    this.forceUpdate();
+  },
+  ensureData: function ensureData() {
+    if (!this.getSheetsFromCache()) {
+      this.getSheetsFromAPI();
+    }
+  },
+  render: function render() {
+    var sheets = this.getSheetsFromCache();
+    sheets = sheets ? sheets.map(function (sheet) {
+      return React.createElement(PublicSheetListing, { sheet: sheet });
+    }) : React.createElement(LoadingMessage, null);
+    return React.createElement(
+      'div',
+      { className: 'content sheetList' },
+      React.createElement(
+        'div',
+        { className: 'contentInner' },
+        this.props.hideNavHeader ? React.createElement(
+          'h1',
+          null,
+          React.createElement(
+            'span',
+            { className: 'en' },
+            this.props.tag
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            this.props.tag
+          )
+        ) : null,
+        sheets
+      )
+    );
+  }
+});
+
+var AllSheetsPage = React.createClass({
+  displayName: 'AllSheetsPage',
+
+  // Page list all public sheets.
+  // TODO this is currently loading all public sheets at once, needs pagination
+  propTypes: {
+    hideNavHeader: React.PropTypes.bool
+  },
+  componentDidMount: function componentDidMount() {
+    this.ensureData();
+  },
+  getSheetsFromCache: function getSheetsFromCache() {
+    return Sefaria.sheets.publicSheets(0);
+  },
+  getSheetsFromAPI: function getSheetsFromAPI() {
+    Sefaria.sheets.publicSheets(0, this.onDataLoad);
+  },
+  onDataLoad: function onDataLoad(data) {
+    this.forceUpdate();
+  },
+  ensureData: function ensureData() {
+    if (!this.getSheetsFromCache()) {
+      this.getSheetsFromAPI();
+    }
+  },
+  render: function render() {
+    var sheets = this.getSheetsFromCache();
+    sheets = sheets ? sheets.map(function (sheet) {
+      return React.createElement(PublicSheetListing, { sheet: sheet });
+    }) : React.createElement(LoadingMessage, null);
+    return React.createElement(
+      'div',
+      { className: 'content sheetList' },
+      React.createElement(
+        'div',
+        { className: 'contentInner' },
+        this.props.hideNavHeader ? React.createElement(
+          'h1',
+          null,
+          React.createElement(
+            'span',
+            { className: 'en' },
+            'All Sheets'
+          ),
+          React.createElement('span', { className: 'he' })
+        ) : null,
+        sheets
+      )
+    );
+  }
+});
+
+var PublicSheetListing = React.createClass({
+  displayName: 'PublicSheetListing',
+
+  propTypes: {
+    sheet: React.PropTypes.object.isRequired
+  },
+  render: function render() {
+    var sheet = this.props.sheet;
+    var title = sheet.title.stripHtml();
+    var url = "/sheets/" + sheet.id;
+    return React.createElement(
+      'a',
+      { className: 'sheet', href: url, key: url },
+      sheet.ownerImageUrl ? React.createElement('img', { className: 'sheetImg', src: sheet.ownerImageUrl }) : null,
+      React.createElement(
+        'span',
+        { className: 'sheetViews' },
+        React.createElement('i', { className: 'fa fa-eye' }),
+        ' ',
+        sheet.views
+      ),
+      React.createElement(
+        'div',
+        { className: 'sheetAuthor' },
+        sheet.ownerName
+      ),
+      React.createElement(
+        'div',
+        { className: 'sheetTitle' },
+        title
+      )
+    );
+  }
+});
+
+var SheetTagButton = React.createClass({
+  displayName: 'SheetTagButton',
+
+  propTypes: {
+    tag: React.PropTypes.string.isRequired,
+    count: React.PropTypes.number.isRequired,
+    onClick: React.PropTypes.func.isRequired
+  },
+  render: function render() {
+    return React.createElement(
+      'div',
+      { className: 'navButton', onClick: this.props.onClick },
+      this.props.tag,
+      ' (',
+      this.props.count,
+      ')'
+    );
+  }
+});
+var makeTagButton = function (tag) {
+  var setThisTag = this.props.setSheetTag.bind(null, tag.tag);
+  return React.createElement(
+    'div',
+    { className: 'navButton', onClick: setThisTag, key: tag.tag },
+    tag.tag,
+    ' (',
+    tag.count,
+    ')'
+  );
+}.bind(undefined);
+
+var MySheetsPage = React.createClass({
+  displayName: 'MySheetsPage',
+
+  propTypes: {
+    setSheetTag: React.PropTypes.func.isRequired,
+    setSheetTagSort: React.PropTypes.func.isRequired,
+    multiPanel: React.PropTypes.bool,
+    hideNavHeader: React.PropTypes.bool
+  },
+  getInitialState: function getInitialState() {
+    return {
+      showYourSheetTags: false,
+      sheetFilterTag: null
+    };
+  },
+  componentDidMount: function componentDidMount() {
+    this.ensureData();
+  },
+  getSheetsFromCache: function getSheetsFromCache() {
+    return Sefaria.sheets.userSheets(Sefaria._uid);
+  },
+  getSheetsFromAPI: function getSheetsFromAPI() {
+    Sefaria.sheets.userSheets(Sefaria._uid, this.onDataLoad);
+  },
+  getTagsFromCache: function getTagsFromCache() {
+    return Sefaria.sheets.userTagList(Sefaria._uid);
+  },
+  getTagsFromAPI: function getTagsFromAPI() {
+    Sefaria.sheets.userSheets(Sefaria._uid, this.onDataLoad);
+  },
+  onDataLoad: function onDataLoad(data) {
+    this.forceUpdate();
+  },
+  ensureData: function ensureData() {
+    if (!this.getSheetsFromCache()) {
+      this.getSheetsFromAPI();
+    }
+    if (!this.getTagsFromCache()) {
+      this.getTagsFromAPI();
+    }
+  },
+  toggleSheetTags: function toggleSheetTags() {
+    this.state.showYourSheetTags ? this.setState({ showYourSheetTags: false }) : this.setState({ showYourSheetTags: true });
+  },
+  filterYourSheetsByTag: function filterYourSheetsByTag(tag) {
+    if (tag.tag == this.state.sheetFilterTag) {
+      this.setState({ sheetFilterTag: null, showYourSheetTags: false });
+    } else {
+      this.setState({ sheetFilterTag: tag.tag, showYourSheetTags: false });
+    }
+  },
+  changeSortYourSheets: function changeSortYourSheets(event) {
+    this.props.setSheetTagSort(event.target.value);
+  },
+  render: function render() {
+    var sheets = this.getSheetsFromCache();
+    sheets = sheets && this.state.sheetFilterTag ? sheets.filter(function (sheet) {
+      return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
+    }.bind(this)) : sheets;
+    sheets = sheets ? sheets.map(function (sheet) {
+      return React.createElement(PrivateSheetListing, { sheet: sheet, multiPanel: this.props.multiPanel });
+    }.bind(this)) : React.createElement(LoadingMessage, null);
+
+    var userTagList = this.getTagsFromCache();
+    userTagList = userTagList ? userTagList.map(function (tag) {
+      var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
+      var classes = classNames({ navButton: 1, sheetButton: 1, active: this.state.sheetFilterTag == tag.tag });
+      return React.createElement(
+        'div',
+        { className: classes, onClick: filterThisTag, key: tag.tag },
+        tag.tag,
+        ' (',
+        tag.count,
+        ')'
+      );
+    }.bind(this)) : null;
+
+    return React.createElement(
+      'div',
+      { className: 'content sheetList' },
+      React.createElement(
+        'div',
+        { className: 'contentInner' },
+        this.props.hideNavHeader ? React.createElement(
+          'h1',
+          null,
+          React.createElement(
+            'span',
+            { className: 'en' },
+            'My Source Sheets'
+          )
+        ) : null,
+        this.props.hideNavHeader ? React.createElement(
+          'div',
+          { className: 'sheetsNewButton' },
+          React.createElement(
+            'a',
+            { className: 'button white', href: '/sheets/new' },
+            React.createElement(
+              'span',
+              { className: 'en' },
+              'Create a Source Sheet'
+            ),
+            React.createElement(
+              'span',
+              { className: 'he' },
+              'צור דף מקורות חדש'
+            )
+          )
+        ) : null,
+        this.props.hideNavHeader ? React.createElement(
+          'h2',
+          { className: 'splitHeader' },
+          React.createElement(
+            'span',
+            { className: 'en actionText', style: { float: 'left' }, onClick: this.toggleSheetTags },
+            'Filter By Tag ',
+            React.createElement('i', { className: 'fa fa-angle-down' })
+          ),
+          React.createElement(
+            'span',
+            { className: 'en actionText' },
+            'Sort By:',
+            React.createElement(
+              'select',
+              { value: this.props.tagSort, onChange: this.changeSortYourSheets },
+              React.createElement(
+                'option',
+                { value: 'date' },
+                'Recent'
+              ),
+              React.createElement(
+                'option',
+                { value: 'views' },
+                'Most Viewed'
+              )
+            ),
+            ' ',
+            React.createElement('i', { className: 'fa fa-angle-down' })
+          )
+        ) : null,
+        this.state.showYourSheetTags ? React.createElement(TwoOrThreeBox, { content: userTagList, width: this.props.width }) : null,
+        sheets
+      )
+    );
+  }
+});
+
+var PrivateSheetListing = React.createClass({
+  displayName: 'PrivateSheetListing',
+
+  propTypes: {
+    sheet: React.PropTypes.object.isRequired,
+    multiPanel: React.PropTypes.bool
+  },
+  render: function render() {
+    var sheet = this.props.sheet;
+    var editSheetTags = function () {
+      console.log(sheet.id);
+    }.bind(this);
+    var title = sheet.title.stripHtml();
+    var url = "/sheets/" + sheet.id;
+    if (sheet.tags === undefined) sheet.tags = [];
+    var tagString = sheet.tags.map(function (tag) {
+      return React.createElement(
+        'span',
+        null,
+        tag,
+        ', '
+      );
+    });
+
+    if (this.props.multiPanel) {
+      return React.createElement(
+        'div',
+        { className: 'sheet userSheet', href: url, key: url },
+        React.createElement(
+          'a',
+          { className: 'sheetEditButtons', href: url },
+          React.createElement(
+            'span',
+            null,
+            React.createElement('i', { className: 'fa fa-pencil' }),
+            ' '
+          )
+        ),
+        React.createElement(
+          'div',
+          { className: 'sheetEditButtons', onClick: editSheetTags },
+          React.createElement(
+            'span',
+            null,
+            React.createElement('i', { className: 'fa fa-tag' }),
+            ' '
+          )
+        ),
+        React.createElement(
+          'a',
+          { className: 'sheetTitle', href: url },
+          title
+        ),
+        React.createElement(
+          'div',
+          null,
+          sheet.views,
+          ' Views · ',
+          sheet.modified,
+          ' · ',
+          tagString
+        )
+      );
+    } else {
+      return React.createElement(
+        'a',
+        { className: 'sheet userSheet', href: url, key: url },
+        React.createElement(
+          'div',
+          { className: 'sheetTitle' },
+          title
+        ),
+        React.createElement(
+          'div',
+          null,
+          sheet.views,
+          ' Views · ',
+          sheet.modified,
+          ' · ',
+          tagString
+        )
+      );
+    }
   }
 });
 
@@ -3797,9 +3948,6 @@ var ToggleSet = React.createClass({
     settings: React.PropTypes.object.isRequired,
     options: React.PropTypes.array.isRequired,
     separated: React.PropTypes.bool
-  },
-  getInitialState: function getInitialState() {
-    return {};
   },
   render: function render() {
     var classes = { toggleSet: 1, separated: this.props.separated };
@@ -4334,7 +4482,6 @@ var TextRange = React.createClass({
     var data = Sefaria.text(this.props.sref, settings);
     if (!data) {
       // If we don't have data yet, call again with a callback to trigger API call
-      console.log("getText calling API: " + this.props.sref);
       Sefaria.text(this.props.sref, settings, this.onTextLoad);
     }
     return data;
@@ -5607,7 +5754,6 @@ var LexiconPanel = React.createClass({
       }
     }.bind(this));
   },
-
   shouldRenderSelf: function shouldRenderSelf() {
     if (!this.props.selectedWords) {
       return false;

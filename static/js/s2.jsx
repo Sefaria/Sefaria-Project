@@ -464,7 +464,7 @@ var ReaderApp = React.createClass({
       bookRef:              state.bookRef              || null,
       settings:             state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
       displaySettingsOpen:  false,
-      tagSort:              state.tagSort              || "alpha"
+      tagSort:              state.tagSort              || "count"
     };
     if (this.state && panel.refs.length && !panel.version) {
       var oRef = Sefaria.ref(panel.refs[0]);
@@ -1229,7 +1229,7 @@ var ReaderPanel = React.createClass({
       filterRegistry:       {},
       orphanSearchFilters:  [],
       displaySettingsOpen:  false,
-      tagSort: "alpha"
+      tagSort: "count"
     }
   },
   componentDidMount: function() {
@@ -1686,7 +1686,7 @@ var ReaderPanel = React.createClass({
                     multiPanel={this.props.multiPanel}
                     hideNavHeader={this.props.hideNavHeader}
                     toggleLanguage={this.toggleLanguage}
-                    initialTag={this.state.navigationSheetTag}
+                    tag={this.state.navigationSheetTag}
                     tagSort={this.state.tagSort}
                     setSheetTagSort={this.setSheetTagSort}
                     setSheetTag={this.setSheetTag}
@@ -2717,339 +2717,445 @@ var VersionBlock = React.createClass({
 var SheetsNav = React.createClass({
   // Navigation for Sheets
   propTypes: {
-    multiPanel:    React.PropTypes.bool,
-    initialTag:    React.PropTypes.string,
-    close:         React.PropTypes.func.isRequired,
-    openNav:       React.PropTypes.func.isRequired,
-    setSheetTag:   React.PropTypes.func.isRequired,
-    setSheetTagSort:   React.PropTypes.func.isRequired,
-    hideNavHeader: React.PropTypes.bool
-
+    multiPanel:      React.PropTypes.bool,
+    tag:             React.PropTypes.string,
+    tagSort:         React.PropTypes.string,
+    close:           React.PropTypes.func.isRequired,
+    openNav:         React.PropTypes.func.isRequired,
+    setSheetTag:     React.PropTypes.func.isRequired,
+    setSheetTagSort: React.PropTypes.func.isRequired,
+    hideNavHeader:   React.PropTypes.bool
   },
   getInitialState: function() {
     return {
-      trendingTags: null,
-      allSheets: null,
-      yourSheets: null,
-      sheets: [],
-      tag: this.props.initialTag,
-      tagSort: this.props.tagSort,
       width: 400,
-      yourSheetTags: [],
+    };
+  },
+  componentDidMount: function() {
+    this.setState({width: $(ReactDOM.findDOMNode(this)).width()});
+  },
+  componentWillReceiveProps: function(nextProps) {
+    
+  },
+  changeSort: function(event) {
+    this.props.setSheetTagSort(event.target.value);
+    //Sefaria.sheets.tagList(this.loadTags, event.target.value);
+  },
+  render: function() {
+    var enTitle = this.props.tag || "Source Sheets";
+    var heTitle = this.props.tag || "דפי מקורות";
+
+    if (this.props.tag == "My Sheets") {
+      var content = (<MySheetsPage
+                        hideNavHeader={this.props.hideNavHeader}
+                        multiPanel={this.props.multiPanel}
+                        setSheetTag={this.props.setSheetTag}
+                        setSheetTagSort={this.props.setSheetTagSort}
+                        width={this.state.width} />);
+
+
+    } else if (this.props.tag == "All Sheets") {
+      var content = (<AllSheetsPage
+                        hideNavHeader={this.props.hideNavHeader} />);
+
+    } else if (this.props.tag) {
+      var content = (<TagSheetsPage 
+                        tag={this.props.tag}
+                        setSheetTag={this.props.setSheetTag}
+                        multiPanel={this.props.multiPanel}
+                        hideNavHeader={this.props.hideNavHeader}
+                        width={this.state.width} />);  
+
+    } else {
+      var content = (<SheetsHomePage
+                       tagSort={this.props.tagSort} 
+                       setSheetTag={this.props.setSheetTag}
+                       setSheetTagSort={this.props.setSheetTagSort}
+                       multiPanel={this.props.multiPanel}
+                       hideNavHeader={this.props.hideNavHeader}
+                       width={this.state.width} />);  
+    }
+
+    var classes = classNames({readerNavMenu: 1, readerSheetsNav: 1, noHeader: this.props.hideNavHeader});
+    return (<div className={classes}>
+              <CategoryColorLine category="Sheets" />
+              {this.props.hideNavHeader ? null :
+                 (<div className="readerNavTop searchOnly" key="navTop">
+                    <CategoryColorLine category="Sheets" />
+                    <ReaderNavigationMenuMenuButton onClick={this.props.openNav} />
+                    <h2>
+                      <span className="en">{enTitle}</span>
+                      <span className="he">{heTitle}</span>
+                    </h2>
+                  </div>)}
+              {content}
+            </div>);
+  }
+});
+
+
+var SheetsHomePage = React.createClass({
+  // A set of options grouped together.
+  propTypes: {
+    setSheetTag:     React.PropTypes.func.isRequired,
+    setSheetTagSort: React.PropTypes.func.isRequired,
+    hideNavHeader:   React.PropTypes.bool
+  },
+  componentDidMount: function() {
+    this.ensureData();
+  },
+  getTopSheetsFromCache: function() {
+    return Sefaria.sheets.topSheets();
+  },
+  getSheetsFromAPI: function() {
+     Sefaria.sheets.topSheets(this.onDataLoad);
+  },
+  getTagListFromCache: function() {
+    return Sefaria.sheets.tagList(this.props.tagSort);
+  },
+  getTagListFromAPI: function() {
+    Sefaria.sheets.tagList(this.props.tagSort, this.onDataLoad);
+  },
+  getTrendingTagsFromCache: function() {
+    return Sefaria.sheets.trendingTags();
+  },
+  getTrendingTagsFromAPI: function() {
+    Sefaria.sheets.trendingTags(this.onDataLoad);
+  },
+  onDataLoad: function(data) {
+    this.forceUpdate();
+  },
+  ensureData: function() {
+    if (!this.getTopSheetsFromCache()) { this.getSheetsFromAPI(); }
+    if (!this.getTagListFromCache()) { this.getTagListFromAPI(); }    
+    if (!this.getTrendingTagsFromCache()) { this.getTrendingTagsFromAPI(); }    
+  },
+  showYourSheets: function() {
+    this.props.setSheetTag("My Sheets");
+  },
+  showAllSheets: function() { 
+    this.props.setSheetTag("All Sheets");
+  },
+  changeSort: function(event) {
+    this.props.setSheetTagSort(event.target.value);
+  },
+  render: function() {
+    var trendingTags = this.getTrendingTagsFromCache();
+    var tagList      = this.getTagListFromCache();
+    var topSheets    = this.getTopSheetsFromCache();
+
+    var makeTagButton = function(tag) {
+      var setThisTag = this.props.setSheetTag.bind(null, tag.tag);
+      return (<SheetTagButton onClick={setThisTag} tag={tag.tag} count={tag.count} />);      
+    }.bind(this);
+
+    var trendingTags    = trendingTags ? trendingTags.slice(0,6).map(makeTagButton) : [<LoadingMessage />];
+    var tagList         = tagList ? tagList.map(makeTagButton) : [<LoadingMessage />];
+    var publicSheetList = topSheets ? topSheets.map(function(sheet) {
+      return (<PublicSheetListing sheet={sheet} />);
+    }) : [<LoadingMessage />];
+
+    var yourSheetsButton  = Sefaria._uid ? 
+      (<div className="yourSheetsLink navButton" onClick={this.showYourSheets}>
+        <span class="en">My Source Sheets <i className="fa fa-chevron-right"></i></span>
+        <span class="he"></span>
+       </div>) : null;
+
+    return (<div className="content">
+              <div className="contentInner">
+                {this.props.hideNavHeader ? (<h1>
+                  <div className="languageToggle" onClick={this.props.toggleLanguage}>
+                    <span className="en">א</span>
+                    <span className="he">A</span>
+                  </div>
+                  <span className="en">Source Sheets</span>
+                  <span className="he">דפי מקורות</span>
+                </h1>) : null}
+                { this.props.multiPanel ? null : yourSheetsButton }
+
+                { this.props.multiPanel ?
+                  (<h2 className="splitHeader">
+                    <span className="en" style={{float: 'left'}}>Public Sheets</span>
+                    <span className="en actionText" onClick={this.showAllSheets}>See All <i className="fa fa-angle-right"></i></span>
+                  </h2>) : 
+                  (<h2>
+                     <span className="en">Public Sheets</span>
+                   </h2>)}
+
+                {publicSheetList}
+                <br /><br />
+
+                { this.props.multiPanel ? null : 
+                  (<h2>
+                     <span className="en">Trending Tags</span>
+                   </h2>)}
+
+                { this.props.multiPanel ? null : (<TwoOrThreeBox content={trendingTags} width={this.props.width} /> )}
+                <br /><br />
+
+                { this.props.multiPanel ? (
+                <h2 className="splitHeader">
+                  <span className="en" style={{float: 'left'}}>All Tags</span>
+
+                  <span className="en actionText">Sort By:
+                    <select value={this.props.tagSort} onChange={this.changeSort}>
+                     <option value="alpha">Alphabetical</option>
+                     <option value="count">Most Used</option>
+                     <option value="trending">Trending</option>
+                   </select> <i className="fa fa-angle-down"></i></span>
+                </h2>) : (
+                <h2>
+                  <span className="en">All Tags</span>
+                </h2>
+                )}
+
+                <TwoOrThreeBox content={tagList} width={this.props.width} />
+              </div>
+             </div>);
+  }
+});
+
+
+var TagSheetsPage = React.createClass({
+  // Page list all public sheets.
+  propTypes: {
+    hideNavHeader:   React.PropTypes.bool
+  },
+  componentDidMount: function() {
+    this.ensureData();
+  },
+  getSheetsFromCache: function() {
+    return  Sefaria.sheets.sheetsByTag(this.props.tag);
+  },
+  getSheetsFromAPI: function() {
+     Sefaria.sheets.sheetsByTag(this.props.tag, this.onDataLoad);
+  },
+  onDataLoad: function(data) {
+    this.forceUpdate();
+  },
+  ensureData: function() {
+    if (!this.getSheetsFromCache()) { this.getSheetsFromAPI(); }
+  },
+  render: function() {
+    var sheets = this.getSheetsFromCache();
+    sheets = sheets ? sheets.map(function (sheet) {
+      return (<PublicSheetListing sheet={sheet} />);
+    }) : (<LoadingMessage />);
+    return (<div className="content sheetList">
+                      <div className="contentInner">
+                        {this.props.hideNavHeader ? (<h1>
+                          <span className="en">{this.props.tag}</span>
+                          <span className="he">{this.props.tag}</span>
+                        </h1>) : null}
+                        {sheets}
+                      </div>
+                    </div>);
+  }
+});
+
+
+var AllSheetsPage = React.createClass({
+  // Page list all public sheets.
+  // TODO this is currently loading all public sheets at once, needs pagination
+  propTypes: {
+    hideNavHeader:   React.PropTypes.bool
+  },
+  componentDidMount: function() {
+    this.ensureData();
+  },
+  getSheetsFromCache: function() {
+    return  Sefaria.sheets.publicSheets(0);
+  },
+  getSheetsFromAPI: function() {
+     Sefaria.sheets.publicSheets(0, this.onDataLoad);
+  },
+  onDataLoad: function(data) {
+    this.forceUpdate();
+  },
+  ensureData: function() {
+    if (!this.getSheetsFromCache()) { this.getSheetsFromAPI(); }
+  },
+  render: function() {
+    var sheets = this.getSheetsFromCache();
+    sheets = sheets ? sheets.map(function (sheet) {
+      return (<PublicSheetListing sheet={sheet} />);
+    }) : (<LoadingMessage />);
+    return (<div className="content sheetList">
+                      <div className="contentInner">
+                        {this.props.hideNavHeader ? (<h1>
+                          <span className="en">All Sheets</span>
+                          <span className="he"></span>
+                        </h1>) : null}
+                        {sheets}
+                      </div>
+                    </div>);
+  }
+});
+
+
+var PublicSheetListing = React.createClass({
+  propTypes: {
+    sheet: React.PropTypes.object.isRequired
+  },
+  render: function() {
+    var sheet = this.props.sheet;
+    var title = sheet.title.stripHtml();
+    var url = "/sheets/" + sheet.id;
+    return (<a className="sheet" href={url} key={url}>
+              {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl}/>) : null}
+              <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
+              <div className="sheetAuthor">{sheet.ownerName}</div>
+              <div className="sheetTitle">{title}</div>
+            </a>);   
+  }
+});
+
+
+var SheetTagButton = React.createClass({
+  propTypes: {
+    tag:   React.PropTypes.string.isRequired,
+    count: React.PropTypes.number.isRequired,
+    onClick: React.PropTypes.func.isRequired
+  },
+  render: function() {
+    return (<div className="navButton" onClick={this.props.onClick}>{this.props.tag} ({this.props.count})</div>);
+  }
+});
+    var makeTagButton = function(tag) {
+      var setThisTag = this.props.setSheetTag.bind(null, tag.tag);
+      return (<div className="navButton" onClick={setThisTag} key={tag.tag}>{tag.tag} ({tag.count})</div>);
+    }.bind(this);
+
+
+var MySheetsPage = React.createClass({
+  propTypes: {
+    setSheetTag:     React.PropTypes.func.isRequired,
+    setSheetTagSort: React.PropTypes.func.isRequired,
+    multiPanel:      React.PropTypes.bool,
+    hideNavHeader:   React.PropTypes.bool
+  },
+  getInitialState: function() {
+    return {
       showYourSheetTags: false,
       sheetFilterTag: null
     };
   },
   componentDidMount: function() {
-    this.getTags();
-    this.getAllSheets();
-    this.setState({width: $(ReactDOM.findDOMNode(this)).width()});
-    if (this.props.initialTag) {
-      if (this.props.initialTag === "My Sheets") {
-        this.showYourSheets();
-        Sefaria.sheets.userTagList(this.setUserTags,Sefaria._uid);
-      }
-      else if(this.props.initialTag === "All Sheets"){
-        this.showAllSheets();
-      }
-      else {
-        this.setTag(this.props.initialTag);
-      }
-    }
+    this.ensureData();
   },
-  componentWillReceiveProps: function(nextProps) {
-    this.setState({tagSort: nextProps.tagSort, tag: nextProps.initialTag});
+  getSheetsFromCache: function() {
+    return  Sefaria.sheets.userSheets(Sefaria._uid);
+  },
+  getSheetsFromAPI: function() {
+     Sefaria.sheets.userSheets(Sefaria._uid, this.onDataLoad);
+  },
+  getTagsFromCache: function() {
+    return Sefaria.sheets.userTagList(Sefaria._uid)
+  },
+  getTagsFromAPI: function() {
+    Sefaria.sheets.userSheets(Sefaria._uid, this.onDataLoad);
+  },
+  onDataLoad: function(data) {
+    this.forceUpdate();
+  },
+  ensureData: function() {
+    if (!this.getSheetsFromCache()) { this.getSheetsFromAPI(); }
+    if (!this.getTagsFromCache())   { this.getTagsFromAPI(); }    
   },
   toggleSheetTags: function() {
-    this.state.showYourSheetTags == true ? this.setState({showYourSheetTags: false}) : this.setState({showYourSheetTags: true});
+    this.state.showYourSheetTags ? this.setState({showYourSheetTags: false}) : this.setState({showYourSheetTags: true});
   },
-
   filterYourSheetsByTag: function (tag) {
     if (tag.tag == this.state.sheetFilterTag) {
-       this.setState({sheetFilterTag: null});
+       this.setState({sheetFilterTag: null, showYourSheetTags: false});
+    } else {
+      this.setState({sheetFilterTag: tag.tag, showYourSheetTags: false});
     }
-    else {
-      this.setState({sheetFilterTag: tag.tag});
-    }
-  },
-
-getAllSheets: function() {
-    Sefaria.sheets.allSheetsList(this.loadAllSheets);
-  },
-  loadAllSheets: function(){
-    this.setState({
-      allSheets: Sefaria.sheets.allSheetsList() || []
-    });
-  },
-  changeSort: function(event) {
-    this.props.setSheetTagSort(event.target.value);
-    Sefaria.sheets.tagList(this.loadTags,event.target.value);
   },
   changeSortYourSheets: function(event) {
     this.props.setSheetTagSort(event.target.value);
-    this.showYourSheets();
-    Sefaria.sheets.userSheets(Sefaria._uid, this.loadSheets,event.target.value);
-  },
-  getTags: function() {
-    Sefaria.sheets.trendingTags(this.loadTags);
-    Sefaria.sheets.tagList(this.loadTags,this.props.tagSort);
-  },
-  loadTags: function() {
-    this.setState({
-      trendingTags: Sefaria.sheets.trendingTags() || [],
-      tagList:      Sefaria.sheets.tagList(null,this.props.tagSort) || [],
-    });
-  },
-  setTag: function(tag) {
-    this.setState({tag: tag});
-    Sefaria.sheets.sheetsByTag(tag, this.loadSheets);
-    this.props.setSheetTag(tag);
-  },
-  loadSheets: function(sheets) {
-    this.setState({sheets: sheets});
-  },
-  showYourSheets: function() {
-    this.setState({tag: "My Sheets"});
-    Sefaria.sheets.userSheets(Sefaria._uid, this.loadSheets);
-    this.props.setSheetTag("My Sheets");
-  },
-  setUserTags: function(tags){
-    this.setState({userTagList: tags});
-  },
-
-  showAllSheets: function() {
-    this.setState({tag: "All Sheets"});
-    Sefaria.sheets.publicSheets(this.loadSheets);
-    this.props.setSheetTag("All Sheets");
   },
   render: function() {
-    var enTitle = this.state.tag || "Source Sheets";
-    var heTitle = this.state.tag || "דפי מקורות";
+    var sheets = this.getSheetsFromCache();
+    sheets = sheets && this.state.sheetFilterTag ? sheets.filter(function(sheet) {
+      return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
+    }.bind(this)) : sheets;
+    sheets = sheets ? sheets.map(function(sheet) {
+      return (<PrivateSheetListing sheet={sheet} multiPanel={this.props.multiPanel} />);
+    }.bind(this)) : (<LoadingMessage />);
 
-
-    if (this.state.tag) {
-
-      if (this.state.tag == "My Sheets") {
-
-        var sheets = this.state.sheets.map(function (sheet) {
-          var editSheetTags = function() { console.log(sheet.id)}.bind(this);
-          var title = sheet.title.stripHtml();
-          var url = "/sheets/" + sheet.id;
-          if (sheet.tags === undefined) sheet.tags = [];
-          var tagString = sheet.tags.map(function (tag) {
-              return(<span>{tag}, </span>);
-          });
-
-          if ($.inArray(this.state.sheetFilterTag, sheet.tags) >= 0 || this.state.sheetFilterTag == null ) {
-              if (this.props.multiPanel) {
-
-                    return (<div className="sheet userSheet" href={url} key={url}>
-                               <a className="sheetEditButtons" href={url}>
-                                <span><i className="fa fa-pencil"></i> </span>
-                              </a>
-                              <div className="sheetEditButtons" onClick={editSheetTags}>
-                                <span><i className="fa fa-tag"></i> </span>
-                              </div>
-
-                              <a className="sheetTitle" href={url}>{title}</a>
-                              <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
-
-                        </div>
-                    );
-
-              }
-
-          else {
-
-              return (<a className="sheet userSheet" href={url} key={url}>
-                        <div className="sheetTitle">{title}</div>
-                        <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
-                  </a>
-              );
-
-
-          }
-
-            }
-        }, this);
-
-        if (this.state.userTagList != null){
-
-
-        var userTagList = this.state.userTagList.map(function (tag) {
-             var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
-              if (this.state.sheetFilterTag == tag.tag) {
-                  return (<div className="navButton sheetButton active" onClick={filterThisTag} key={tag.tag}>{tag.tag} ({tag.count})</div>);
-              }
-              else {
-                  return (<div className="navButton sheetButton" onClick={filterThisTag} key={tag.tag}>{tag.tag} ({tag.count})</div>);
-
-              }
-
-        }, this);
-
-
-        }
-
-
-              var content = (<div className="content sheetList">
-                <div className="contentInner">
-                  {this.props.hideNavHeader ? (<h1>
-                    <span className="en">{enTitle}</span>
+    var userTagList = this.getTagsFromCache();
+    userTagList = userTagList ? userTagList.map(function (tag) {
+      var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
+      var classes = classNames({navButton: 1, sheetButton: 1, active: this.state.sheetFilterTag == tag.tag});
+      return (<div className={classes} onClick={filterThisTag} key={tag.tag}>{tag.tag} ({tag.count})</div>);
+    }.bind(this)) : null;
+  
+    return (<div className="content sheetList">
+              <div className="contentInner">
+                {this.props.hideNavHeader ? 
+                  (<h1>
+                    <span className="en">My Source Sheets</span>
                   </h1>) : null}
-                  {this.props.hideNavHeader ? (
-                    <div className="sheetsNewButton">
-                      <a className="button white" href="/sheets/new">
-                          <span className="en">Create a Source Sheet</span>
-                          <span className="he">צור דף מקורות חדש</span>
-                      </a>
-                    </div>
+                {this.props.hideNavHeader ? 
+                  (<div className="sheetsNewButton">
+                    <a className="button white" href="/sheets/new">
+                        <span className="en">Create a Source Sheet</span>
+                        <span className="he">צור דף מקורות חדש</span>
+                    </a>
+                  </div>) : null }
 
-                    ) : null }
+                {this.props.hideNavHeader ?
+                 (<h2 className="splitHeader">
+                    <span className="en actionText" style={{float: 'left'}} onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
+                    <span className="en actionText">Sort By:
+                      <select value={this.props.tagSort} onChange={this.changeSortYourSheets}>
+                       <option value="date">Recent</option>
+                       <option value="views">Most Viewed</option>
+                     </select> <i className="fa fa-angle-down"></i></span>
 
-                                    {this.props.hideNavHeader ? (
-
-                                            <h2 className="splitHeader">
-                            <span className="en actionText" style={{float: 'left'}} onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
-
-                            <span className="en actionText">Sort By:
-                              <select value={this.props.tagSort} onChange={this.changeSortYourSheets}>
-                               <option value="date">Recent</option>
-                               <option value="views">Most Viewed</option>
-                             </select> <i className="fa fa-angle-down"></i></span>
-
-                          </h2>) : null }
-                  {this.state.showYourSheetTags == true ? <TwoOrThreeBox content={userTagList} width={this.state.width} /> : null}
-
-
-                  {sheets}</div>
-              </div>);
-
-      }
-
-      else {
-
-        var sheets = this.state.sheets.map(function (sheet) {
-          var title = sheet.title.stripHtml();
-          var url = "/sheets/" + sheet.id;
-          return (<a className="sheet" href={url} key={url}>
-            {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl}/>) : null}
-            <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
-            <div className="sheetAuthor">{sheet.ownerName}</div>
-            <div className="sheetTitle">{title}</div>
-          </a>);
-        });
-        var content = (<div className="content sheetList">
-          <div className="contentInner">
-            {this.props.hideNavHeader ? (<h1>
-              <span className="en">{enTitle}</span>
-            </h1>) : null}
-            {sheets}</div>
-        </div>);
-      }
-
-    }
-    else {
-      var yourSheets  = Sefaria._uid ? (<div className="yourSheetsLink navButton" onClick={this.showYourSheets}>My Source Sheets <i className="fa fa-chevron-right"></i></div>) : null;
-      var makeTagButton = function(tag) {
-        var setThisTag = this.setTag.bind(null, tag.tag);
-        return (<div className="navButton" onClick={setThisTag} key={tag.tag}>{tag.tag} ({tag.count})</div>);
-      }.bind(this);
-
-      if (this.state.trendingTags !== null && this.state.tagList !== null && this.state.allSheets !== null) {
-        var trendingTags = this.state.trendingTags.slice(0,6).map(makeTagButton);
-
-        var allSheets = this.state.allSheets.sheets;
-
-        var publicSheetList = allSheets.map(function(sheet) {
-          var title = sheet.title.stripHtml();
-          var url = "/sheets/" + sheet.id;
-          return (<a className="sheet" href={url} key={url}>
-            {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl}/>) : null}
-            <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
-            <div className="sheetAuthor">{sheet.ownerName}</div>
-            <div className="sheetTitle">{title}</div>
-          </a>);
-
-        });
-
-
-        var tagList = this.state.tagList.map(makeTagButton);
-        var content = (<div className="content">
-                        <div className="contentInner">
-                          {this.props.hideNavHeader ? (<h1>
-                            <div className="languageToggle" onClick={this.props.toggleLanguage}>
-                              <span className="en">א</span>
-                              <span className="he">A</span>
-                            </div>
-                            <span className="en">{enTitle}</span>
-                            <span className="he">{heTitle}</span>
-                          </h1>) : null}
-                          { this.props.multiPanel ? null : yourSheets }
-
-                          { this.props.multiPanel ? (
-                          <h2 className="splitHeader">
-                            <span className="en" style={{float: 'left'}}>Public Sheets</span>
-                            <span className="en actionText" onClick={this.showAllSheets}>See All <i className="fa fa-angle-right"></i></span>
-
-                          </h2>) : (
-                          <h2>
-                            <span className="en">Public Sheets</span>
-                          </h2>
-                          )}
-                          {publicSheetList}
-                          <br /><br />
-
-                          { this.props.multiPanel ? null : (
-
-                          <h2>
-                            <span className="en">Trending Tags</span>
-                          </h2>
-                          )}
-
-                          { this.props.multiPanel ? null : (<TwoOrThreeBox content={trendingTags} width={this.state.width} /> )}
-                          <br /><br />
-
-
-
-                          { this.props.multiPanel ? (
-                          <h2 className="splitHeader">
-                            <span className="en" style={{float: 'left'}}>All Tags</span>
-
-                            <span className="en actionText">Sort By:
-                              <select value={this.props.tagSort} onChange={this.changeSort}>
-                               <option value="alpha">Alphabetical</option>
-                               <option value="count">Most Used</option>
-                               <option value="trending">Trending</option>
-                             </select> <i className="fa fa-angle-down"></i></span>
-                          </h2>) : (
-                          <h2>
-                            <span className="en">All Tags</span>
-                          </h2>
-                          )}
-
-                          <TwoOrThreeBox content={tagList} width={this.state.width} />
-                        </div>
-                       </div>);
-      } else {
-        var content = (<div className="content" key="content"><div className="contentInner"><LoadingMessage /></div></div>);
-      }      
-    }
-
-    var classes = classNames({readerNavMenu: 1, readerSheetsNav: 1, noHeader: this.props.hideNavHeader});
-
-
-    return (<div className={classes}>
-           <CategoryColorLine category="Sheets"  />
-
-           {this.props.hideNavHeader ? null :
-               (<div className="readerNavTop searchOnly" key="navTop">
-                <CategoryColorLine category="Sheets" />
-                <ReaderNavigationMenuMenuButton onClick={this.props.openNav} />
-                <h2><span className="en">{enTitle}</span></h2>
-              </div>)}
-              {content}
+                  </h2>) : null }
+                {this.state.showYourSheetTags ? <TwoOrThreeBox content={userTagList} width={this.props.width} /> : null}
+                {sheets}
+              </div>
             </div>);
+  }
+});
+
+
+var PrivateSheetListing = React.createClass({
+  propTypes: {
+    sheet:      React.PropTypes.object.isRequired,
+    multiPanel: React.PropTypes.bool
+  },
+  render: function() {
+    var sheet = this.props.sheet;
+    var editSheetTags = function() { console.log(sheet.id)}.bind(this);
+    var title = sheet.title.stripHtml();
+    var url = "/sheets/" + sheet.id;
+    if (sheet.tags === undefined) sheet.tags = [];
+    var tagString = sheet.tags.map(function (tag) {
+        return(<span>{tag}, </span>);
+    });
+
+    if (this.props.multiPanel) {
+      return (<div className="sheet userSheet" href={url} key={url}>
+                 <a className="sheetEditButtons" href={url}>
+                  <span><i className="fa fa-pencil"></i> </span>
+                </a>
+                <div className="sheetEditButtons" onClick={editSheetTags}>
+                  <span><i className="fa fa-tag"></i> </span>
+                </div>
+
+                <a className="sheetTitle" href={url}>{title}</a>
+                <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
+            </div>);
+    } else {
+      return (<a className="sheet userSheet" href={url} key={url}>
+                <div className="sheetTitle">{title}</div>
+                <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
+              </a>);
+    }
   }
 });
 
@@ -3063,9 +3169,6 @@ var ToggleSet = React.createClass({
     settings:      React.PropTypes.object.isRequired,
     options:       React.PropTypes.array.isRequired,
     separated:     React.PropTypes.bool
-  },
-  getInitialState: function() {
-    return {};
   },
   render: function() {
     var classes = {toggleSet: 1, separated: this.props.separated };
@@ -3570,7 +3673,6 @@ var TextRange = React.createClass({
     };
     var data = Sefaria.text(this.props.sref, settings);
     if (!data) { // If we don't have data yet, call again with a callback to trigger API call
-      console.log("getText calling API: " + this.props.sref);
       Sefaria.text(this.props.sref, settings, this.onTextLoad);
     }
     return data;
@@ -4630,7 +4732,6 @@ var LexiconPanel = React.createClass({
         }
     }.bind(this));
   },
-
   shouldRenderSelf: function(){
     if(!this.props.selectedWords){
       return false;

@@ -317,7 +317,7 @@ def delete_sheet_api(request, sheet_id):
 	return jsonResponse({"status": "ok"})
 
 
-def sheet_tag_counts(query,sort_by="count"):
+def sheet_tag_counts(query, sort_by="count"):
 	"""
 	Returns tags ordered by count for sheets matching query.
 	"""
@@ -325,6 +325,10 @@ def sheet_tag_counts(query,sort_by="count"):
 		sort_query = SON([("count", -1), ("_id", -1)])
 	elif sort_by == "alpha":
 		sort_query = SON([("_id", 1)])
+	elif sort_by == "trending":
+		return recent_public_tags(days=14)
+	else:
+		return []
 
 	tags = db.sheets.aggregate([
 		{"$match": query },
@@ -754,10 +758,11 @@ def tag_list_api(request, sort_by="count"):
 	"""
 	API to retrieve the list of public tags ordered by count.
 	"""
-	response = sheet_tag_counts({"status": "public"},sort_by)
-	response =  jsonResponse(response, callback=request.GET.get("callback", None))
+	response = sheet_tag_counts({"status": "public"}, sort_by)
+	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response
+
 
 def user_tag_list_api(request, user_id):
 	"""
@@ -766,9 +771,10 @@ def user_tag_list_api(request, user_id):
 	#if int(user_id) != request.user.id:
 		#return jsonResponse({"error": "You are not authorized to view that."})
 	response = sheet_tag_counts({ "owner": int(user_id) })
-	response =  jsonResponse(response, callback=request.GET.get("callback", None))
+	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response
+
 
 def trending_tags_api(request):
 	"""
@@ -778,6 +784,7 @@ def trending_tags_api(request):
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response
+
 
 def all_sheets_api(request, limiter):
 	limiter = int(limiter)
@@ -811,6 +818,7 @@ def sheets_by_tag_api(request, tag):
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response
+
 
 def get_aliyot_by_parasha_api(request, parasha):
 	response = {"ref":[]};

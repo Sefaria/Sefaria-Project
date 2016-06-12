@@ -400,9 +400,15 @@ def s2_sheets_by_tag(request, tag):
     """
     Page of sheets by tag.
     """
+    if tag == "My Sheets":
+        sheets = []
+    elif tag == "All Sheets":
+        sheets = []
+    else:
+        sheets = []
     props = s2_props(request)
     props.update({
-        "initialMenu": "sheets",
+        "initialMenu":     "sheets",
         "initialSheetsTag": tag,
     })
     html = render_react_component("ReaderApp", props)
