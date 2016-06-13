@@ -2266,8 +2266,8 @@ var LanguageToggleButton = React.createClass({
   },
   render: function() {
     return (<div className="languageToggle" onClick={this.props.toggleLanguage}>
-              <span className="en">א</span>
-              <span className="he">A</span>
+              <span className="en"><img src="/static/img/aleph.svg" /></span>
+              <span className="he"><img src="static/img/aye.svg" /></span>
             </div>);
   }
 });
@@ -2347,10 +2347,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
               <div className="content">
                 <div className="contentInner">
                   {this.props.hideNavHeader ? (<h1>
-                      <div className="languageToggle" onClick={this.props.toggleLanguage}>
-                        <span className="en">א</span>
-                        <span className="he">A</span>
-                      </div>
+                      <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
                       <span className="en">{this.props.category}</span>
                       <span className="he">{Sefaria.hebrewCategory(this.props.category)}</span>
                     </h1>) : null}
@@ -2883,10 +2880,7 @@ var SheetsHomePage = React.createClass({
     return (<div className="content">
               <div className="contentInner">
                 {this.props.hideNavHeader ? (<h1>
-                  <div className="languageToggle" onClick={this.props.toggleLanguage}>
-                    <span className="en">א</span>
-                    <span className="he">A</span>
-                  </div>
+                  <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
                   <span className="en">Source Sheets</span>
                   <span className="he">דפי מקורות</span>
                 </h1>) : null}
@@ -3267,7 +3261,7 @@ var ReaderNavigationMenuCloseButton = React.createClass({
 
 var ReaderNavigationMenuDisplaySettingsButton = React.createClass({
   render: function() { 
-    return (<div className="readerOptions" onClick={this.props.onClick}><img src="/static/img/bilingual2.png" /></div>);
+    return (<div className="readerOptions" onClick={this.props.onClick}><img src="/static/img/ayealeph.svg" /></div>);
   }
 });
 
@@ -5366,10 +5360,7 @@ var SearchPage = React.createClass({
                     <div className="contentInner">
                       <div className="searchContentFrame">
                           <h1>
-                            <div className="languageToggle" onClick={this.props.toggleLanguage}>
-                              <span className="en">א</span>
-                              <span className="he">A</span>
-                            </div>
+                            <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
                             <span className="en">&ldquo;{ this.props.query }&rdquo;</span>
                             <span className="he">&rdquo;{ this.props.query }&ldquo;</span>
                           </h1>

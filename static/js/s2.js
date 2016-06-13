@@ -2527,12 +2527,12 @@ var LanguageToggleButton = React.createClass({
       React.createElement(
         'span',
         { className: 'en' },
-        'א'
+        React.createElement('img', { src: '/static/img/aleph.svg' })
       ),
       React.createElement(
         'span',
         { className: 'he' },
-        'A'
+        React.createElement('img', { src: 'static/img/aye.svg' })
       )
     );
   }
@@ -2669,20 +2669,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
           this.props.hideNavHeader ? React.createElement(
             'h1',
             null,
-            React.createElement(
-              'div',
-              { className: 'languageToggle', onClick: this.props.toggleLanguage },
-              React.createElement(
-                'span',
-                { className: 'en' },
-                'א'
-              ),
-              React.createElement(
-                'span',
-                { className: 'he' },
-                'A'
-              )
-            ),
+            React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
             React.createElement(
               'span',
               { className: 'en' },
@@ -3454,20 +3441,7 @@ var SheetsHomePage = React.createClass({
         this.props.hideNavHeader ? React.createElement(
           'h1',
           null,
-          React.createElement(
-            'div',
-            { className: 'languageToggle', onClick: this.props.toggleLanguage },
-            React.createElement(
-              'span',
-              { className: 'en' },
-              'א'
-            ),
-            React.createElement(
-              'span',
-              { className: 'he' },
-              'A'
-            )
-          ),
+          React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
           React.createElement(
             'span',
             { className: 'en' },
@@ -4076,7 +4050,7 @@ var ReaderNavigationMenuDisplaySettingsButton = React.createClass({
     return React.createElement(
       'div',
       { className: 'readerOptions', onClick: this.props.onClick },
-      React.createElement('img', { src: '/static/img/bilingual2.png' })
+      React.createElement('img', { src: '/static/img/ayealeph.svg' })
     );
   }
 });
@@ -6699,20 +6673,7 @@ var SearchPage = React.createClass({
             React.createElement(
               'h1',
               null,
-              React.createElement(
-                'div',
-                { className: 'languageToggle', onClick: this.props.toggleLanguage },
-                React.createElement(
-                  'span',
-                  { className: 'en' },
-                  'א'
-                ),
-                React.createElement(
-                  'span',
-                  { className: 'he' },
-                  'A'
-                )
-              ),
+              React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
               React.createElement(
                 'span',
                 { className: 'en' },

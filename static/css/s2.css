@@ -358,6 +358,10 @@ body.dark {
   display: inline;
   line-height: 32px;
 }
+.languageToggle img {
+  opacity: 0.2;
+  height: 18px;
+}
 .systemPanel.english .content .he {
   display: none;
 }
@@ -371,14 +375,6 @@ body.dark {
 .systemPanel.hebrew .content .he {
   display: inline;
   font-family: "Open Sans Hebrew", sans-serif;
-}
-.systemPanel.readerNavMenu .languageToggle span.en {
-  font-family: "Taamey Frank", "Times New Roman", serif;
-  font-size: 26px;
-}
-.systemPanel.readerNavMenu .languageToggle span.he {
-  font-family: "adobe-garamond-pro", Georgia, serif;
-  font-size: 22px;
 }
 .loadingMessage {
   font-size: 14px;
@@ -1452,6 +1448,7 @@ h1 .languageToggle .he {
 .readerOptions img {
   height: 18px;
   width: 30px;
+  opacity: 0.2;
   vertical-align: middle;
 }
 .readerOptionsPanel {
@@ -1830,13 +1827,6 @@ h1 .languageToggle .he {
   background-color: transparent;
   border: 1px solid #ccc;
   font-size: 30px;
-}
-.connectionsPanelHeader .languageToggle .he {
-   font-family: "adobe-garamond-pro", Georgia, serif;
-   font-size: 84%;
-}
-.connectionsPanelHeader .languageToggle .en {
-  font-family: "Taamey Frank", "Times New Roman", serif;
 }
 .connectionsPanelTabs {
   text-align: left;
