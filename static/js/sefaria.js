@@ -846,9 +846,9 @@ Sefaria = extend(Sefaria, {
   },
   _makeTextTocHtml: function(title, html) {
     // Modifies Text TOC HTML received from server
-    // Replaces links and adds commentary setion
+    // Replaces links and adds commentary section
     // TODO after S1 is deprecated, merge this logic into server
-    html = html.replace(/ href="\//g, ' data-ref="');
+    html = html.replace(/ href="\/([^"]*)"/g, ' href="$1" data-ref="$1"');
     var commentaryList  = this.commentaryList(title);
     if (commentaryList.length) {
       var commentaryHtml = "<div class='altStruct' style='display:none'>" + 
