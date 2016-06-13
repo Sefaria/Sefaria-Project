@@ -196,6 +196,7 @@ var ReaderApp = React.createClass({
       if (Sefaria.site) { Sefaria.site.track.event("Reader", "Pop State", kind); }
       this.justPopped = true;
       this.setState(state);
+      this.setContainerMode();
     }
   },
   shouldHistoryUpdate: function() {
@@ -1001,7 +1002,7 @@ var Header = React.createClass({
     this.clearSearchBox();
   },
   showSearch: function(query) {
-    if (this.props.headerMode) {
+    if (typeof sjs !== "undefined") {
       query = encodeURIComponent(query);
       window.location = `/search?q=${query}`;
       return;
@@ -1010,7 +1011,7 @@ var Header = React.createClass({
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   },
   showAccount: function() {
-    if (this.props.headerMode) {
+    if (typeof sjs !== "undefined") {
       window.location = "/account";
       return;
     }
@@ -1018,7 +1019,7 @@ var Header = React.createClass({
     this.clearSearchBox();
   },
   showNotifications: function() {
-    if (this.props.headerMode) {
+    if (typeof sjs !== "undefined") {
       window.location = "/notifications";
       return;
     }
@@ -1061,7 +1062,7 @@ var Header = React.createClass({
   },
   handleLibraryClick: function(e) {
     e.preventDefault();
-    if (this.props.headerMode) {
+    if (typeof sjs !== "undefined") {
       window.location = "/texts";
       return;
     }
@@ -1132,14 +1133,11 @@ var Header = React.createClass({
                              <span className="he">כניסה</span>
                            </a>
                          </div>);
-    var showLibraryLink = (this.props.headerMode || this.state.menuOpen !== "navigation" || this.state.navigationCategories.length != 0);
 
     return (<div className="header">
               <div className="headerInner">
                 <div className="left">
-                    {showLibraryLink
-                        ? <a href="/texts"><div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div></a>
-                        : <div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div>}
+                  <a href="/texts"><div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div></a>
                 </div>
                 <div className="right">
                   { headerMessage }
@@ -1149,7 +1147,7 @@ var Header = React.createClass({
                   <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                   <input className="search" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
                 </span>
-                <a className="home" href="/?home" ><img src="/static/img/sefaria-on-white.png" /></a>
+                <a className="home" href="/?home" ><img src="/static/img/sefaria.svg" /></a>
               </div>
               { viewContent ? 
                 (<div className="headerNavContent">
@@ -2270,8 +2268,8 @@ var LanguageToggleButton = React.createClass({
   },
   render: function() {
     return (<div className="languageToggle" onClick={this.props.toggleLanguage}>
-              <span className="en">א</span>
-              <span className="he">A</span>
+              <span className="en"><img src="/static/img/aleph.svg" /></span>
+              <span className="he"><img src="static/img/aye.svg" /></span>
             </div>);
   }
 });
@@ -2351,10 +2349,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
               <div className="content">
                 <div className="contentInner">
                   {this.props.hideNavHeader ? (<h1>
-                      <div className="languageToggle" onClick={this.props.toggleLanguage}>
-                        <span className="en">א</span>
-                        <span className="he">A</span>
-                      </div>
+                      <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
                       <span className="en">{this.props.category}</span>
                       <span className="he">{Sefaria.hebrewCategory(this.props.category)}</span>
                     </h1>) : null}
@@ -2887,10 +2882,7 @@ var SheetsHomePage = React.createClass({
     return (<div className="content">
               <div className="contentInner">
                 {this.props.hideNavHeader ? (<h1>
-                  <div className="languageToggle" onClick={this.props.toggleLanguage}>
-                    <span className="en">א</span>
-                    <span className="he">A</span>
-                  </div>
+                  <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
                   <span className="en">Source Sheets</span>
                   <span className="he">דפי מקורות</span>
                 </h1>) : null}
@@ -3271,7 +3263,7 @@ var ReaderNavigationMenuCloseButton = React.createClass({
 
 var ReaderNavigationMenuDisplaySettingsButton = React.createClass({
   render: function() { 
-    return (<div className="readerOptions" onClick={this.props.onClick}><img src="/static/img/bilingual2.png" /></div>);
+    return (<div className="readerOptions" onClick={this.props.onClick}><img src="/static/img/ayealeph.svg" /></div>);
   }
 });
 
@@ -5370,10 +5362,7 @@ var SearchPage = React.createClass({
                     <div className="contentInner">
                       <div className="searchContentFrame">
                           <h1>
-                            <div className="languageToggle" onClick={this.props.toggleLanguage}>
-                              <span className="en">א</span>
-                              <span className="he">A</span>
-                            </div>
+                            <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
                             <span className="en">&ldquo;{ this.props.query }&rdquo;</span>
                             <span className="he">&rdquo;{ this.props.query }&ldquo;</span>
                           </h1>

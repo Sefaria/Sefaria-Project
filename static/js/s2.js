@@ -203,6 +203,7 @@ var ReaderApp = React.createClass({
       }
       this.justPopped = true;
       this.setState(state);
+      this.setContainerMode();
     }
   },
   shouldHistoryUpdate: function shouldHistoryUpdate() {
@@ -1006,7 +1007,7 @@ var Header = React.createClass({
     this.clearSearchBox();
   },
   showSearch: function showSearch(query) {
-    if (this.props.headerMode) {
+    if (typeof sjs !== "undefined") {
       query = encodeURIComponent(query);
       window.location = '/search?q=' + query;
       return;
@@ -1015,7 +1016,7 @@ var Header = React.createClass({
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   },
   showAccount: function showAccount() {
-    if (this.props.headerMode) {
+    if (typeof sjs !== "undefined") {
       window.location = "/account";
       return;
     }
@@ -1023,7 +1024,7 @@ var Header = React.createClass({
     this.clearSearchBox();
   },
   showNotifications: function showNotifications() {
-    if (this.props.headerMode) {
+    if (typeof sjs !== "undefined") {
       window.location = "/notifications";
       return;
     }
@@ -1070,7 +1071,7 @@ var Header = React.createClass({
   },
   handleLibraryClick: function handleLibraryClick(e) {
     e.preventDefault();
-    if (this.props.headerMode) {
+    if (typeof sjs !== "undefined") {
       window.location = "/texts";
       return;
     }
@@ -1173,7 +1174,6 @@ var Header = React.createClass({
         )
       )
     );
-    var showLibraryLink = this.props.headerMode || this.state.menuOpen !== "navigation" || this.state.navigationCategories.length != 0;
 
     return React.createElement(
       'div',
@@ -1184,7 +1184,7 @@ var Header = React.createClass({
         React.createElement(
           'div',
           { className: 'left' },
-          showLibraryLink ? React.createElement(
+          React.createElement(
             'a',
             { href: '/texts' },
             React.createElement(
@@ -1192,10 +1192,6 @@ var Header = React.createClass({
               { className: 'library', onClick: this.handleLibraryClick },
               React.createElement('i', { className: 'fa fa-bars' })
             )
-          ) : React.createElement(
-            'div',
-            { className: 'library', onClick: this.handleLibraryClick },
-            React.createElement('i', { className: 'fa fa-bars' })
           )
         ),
         React.createElement(
@@ -1213,7 +1209,7 @@ var Header = React.createClass({
         React.createElement(
           'a',
           { className: 'home', href: '/?home' },
-          React.createElement('img', { src: '/static/img/sefaria-on-white.png' })
+          React.createElement('img', { src: '/static/img/sefaria.svg' })
         )
       ),
       viewContent ? React.createElement(
@@ -2529,12 +2525,12 @@ var LanguageToggleButton = React.createClass({
       React.createElement(
         'span',
         { className: 'en' },
-        'א'
+        React.createElement('img', { src: '/static/img/aleph.svg' })
       ),
       React.createElement(
         'span',
         { className: 'he' },
-        'A'
+        React.createElement('img', { src: 'static/img/aye.svg' })
       )
     );
   }
@@ -2671,20 +2667,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
           this.props.hideNavHeader ? React.createElement(
             'h1',
             null,
-            React.createElement(
-              'div',
-              { className: 'languageToggle', onClick: this.props.toggleLanguage },
-              React.createElement(
-                'span',
-                { className: 'en' },
-                'א'
-              ),
-              React.createElement(
-                'span',
-                { className: 'he' },
-                'A'
-              )
-            ),
+            React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
             React.createElement(
               'span',
               { className: 'en' },
@@ -3456,20 +3439,7 @@ var SheetsHomePage = React.createClass({
         this.props.hideNavHeader ? React.createElement(
           'h1',
           null,
-          React.createElement(
-            'div',
-            { className: 'languageToggle', onClick: this.props.toggleLanguage },
-            React.createElement(
-              'span',
-              { className: 'en' },
-              'א'
-            ),
-            React.createElement(
-              'span',
-              { className: 'he' },
-              'A'
-            )
-          ),
+          React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
           React.createElement(
             'span',
             { className: 'en' },
@@ -4078,7 +4048,7 @@ var ReaderNavigationMenuDisplaySettingsButton = React.createClass({
     return React.createElement(
       'div',
       { className: 'readerOptions', onClick: this.props.onClick },
-      React.createElement('img', { src: '/static/img/bilingual2.png' })
+      React.createElement('img', { src: '/static/img/ayealeph.svg' })
     );
   }
 });
@@ -6701,20 +6671,7 @@ var SearchPage = React.createClass({
             React.createElement(
               'h1',
               null,
-              React.createElement(
-                'div',
-                { className: 'languageToggle', onClick: this.props.toggleLanguage },
-                React.createElement(
-                  'span',
-                  { className: 'en' },
-                  'א'
-                ),
-                React.createElement(
-                  'span',
-                  { className: 'he' },
-                  'A'
-                )
-              ),
+              React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
               React.createElement(
                 'span',
                 { className: 'en' },

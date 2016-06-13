@@ -3384,7 +3384,6 @@ text-align: left;width: 250px;display: inline-block;}
 
 body.hebrew #footer {
 	direction: rtl;
-
 }
 body.english #footer .he {
 	display: none;
