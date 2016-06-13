@@ -1857,6 +1857,10 @@ var ReaderControls = React.createClass({
     connectionsMode: React.PropTypes.string,
     multiPanel: React.PropTypes.bool
   },
+  openTextToc: function openTextToc(e) {
+    e.preventDefault();
+    this.props.openMenu("text toc");
+  },
   render: function render() {
     var title = this.props.currentRef;
     if (title) {
@@ -1889,32 +1893,36 @@ var ReaderControls = React.createClass({
         closePanel: this.props.closePanel,
         toggleLanguage: this.props.toggleLanguage })
     ) : React.createElement(
-      'div',
-      { className: 'readerTextToc', onClick: this.props.openMenu.bind(null, "text toc") },
-      title ? React.createElement('i', { className: 'fa fa-caret-down invisible' }) : null,
+      'a',
+      { href: "/" + Sefaria.normRef(title) },
       React.createElement(
         'div',
-        { className: 'readerTextTocBox' },
+        { className: 'readerTextToc', onClick: this.openTextToc },
+        title ? React.createElement('i', { className: 'fa fa-caret-down invisible' }) : null,
         React.createElement(
-          'span',
-          { className: 'en' },
-          title
-        ),
-        React.createElement(
-          'span',
-          { className: 'he' },
-          heTitle
-        ),
-        title ? React.createElement('i', { className: 'fa fa-caret-down' }) : null,
-        this.props.versionLanguage == "en" && this.props.settings.language == "english" ? React.createElement(
-          'span',
-          { className: 'readerTextVersion' },
+          'div',
+          { className: 'readerTextTocBox' },
           React.createElement(
             'span',
             { className: 'en' },
-            versionTitle
-          )
-        ) : null
+            title
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            heTitle
+          ),
+          title ? React.createElement('i', { className: 'fa fa-caret-down' }) : null,
+          this.props.versionLanguage == "en" && this.props.settings.language == "english" ? React.createElement(
+            'span',
+            { className: 'readerTextVersion' },
+            React.createElement(
+              'span',
+              { className: 'en' },
+              versionTitle
+            )
+          ) : null
+        )
       )
     );
     var leftControls = hideHeader || connectionsHeader ? null : React.createElement(

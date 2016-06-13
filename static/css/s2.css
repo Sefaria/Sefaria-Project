@@ -1427,7 +1427,9 @@ h1 .languageToggle .he {
   overflow: hidden;
   max-width: 60%;
   vertical-align: middle;
+  color: #333;
 }
+
 .readerControls .readerTextToc .readerTextVersion {
   font-style: italic;
   color: #999;

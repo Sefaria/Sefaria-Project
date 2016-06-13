@@ -1784,6 +1784,10 @@ var ReaderControls = React.createClass({
     connectionsMode:         React.PropTypes.string,
     multiPanel:              React.PropTypes.bool
   },
+  openTextToc: function(e) {
+    e.preventDefault();
+    this.props.openMenu("text toc");
+  },
   render: function() {
     var title     = this.props.currentRef;
     if (title) {
@@ -1811,15 +1815,17 @@ var ReaderControls = React.createClass({
             closePanel={this.props.closePanel}
             toggleLanguage={this.props.toggleLanguage} />
         </div>) :
-      (<div className="readerTextToc" onClick={this.props.openMenu.bind(null, "text toc")}>
-          { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
-          <div className="readerTextTocBox">
-            <span className="en">{title}</span>
-            <span className="he">{heTitle}</span>
-            { title ? (<i className="fa fa-caret-down"></i>) : null }
-            { (this.props.versionLanguage == "en" && this.props.settings.language == "english") ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
+      (<a href={"/" + Sefaria.normRef(title)}>
+          <div className="readerTextToc" onClick={this.openTextToc}>
+            { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
+            <div className="readerTextTocBox">
+              <span className="en">{title}</span>
+              <span className="he">{heTitle}</span>
+              { title ? (<i className="fa fa-caret-down"></i>) : null }
+              { (this.props.versionLanguage == "en" && this.props.settings.language == "english") ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
+            </div>
           </div>
-        </div>);
+        </a>);
     var leftControls = hideHeader || connectionsHeader ? null :
       (<div className="leftButtons">
           {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
