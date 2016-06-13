@@ -17,30 +17,30 @@
             </div>
             <div class="linkerOption">
                 <p>This one will find references, and turn them into links to Sefaria.</p>
-                <a class="button big blue" href="javascript: (function () {
+                <div class="single-button"><a class="button big blue" href="javascript: (function () {
                 var linkerScript = document.createElement('script');
                 linkerScript.setAttribute('charset','utf-8');
                 linkerScript.setAttribute('src', 'http://sefaria.org/linker.js');
                 linkerScript.onload = function() { sefaria.link({mode: 'link'}); };
-                document.body.appendChild(linkerScript);  }());">Sefariate!</a>
+                document.body.appendChild(linkerScript);  }());">Sefariate!</a></div>
             </div>
             <div class="linkerOption">
                 <p>This one will make references into links and also let you click a ref to popup content</p>
-                <a class="button big blue" href="javascript: (function () {
+                <div class="single-button"><a class="button big blue" href="javascript: (function () {
                 var linkerScript = document.createElement('script');
                 linkerScript.setAttribute('charset','utf-8');
                 linkerScript.setAttribute('src', 'http://sefaria.org/linker.js');
                 linkerScript.onload = function() { sefaria.link({mode: 'popup-click'}); };
-                document.body.appendChild(linkerScript);  }());">Sefariate!</a>
+                document.body.appendChild(linkerScript);  }());">Sefariate!</a></div>
             </div>
             <div class="linkerOption">
                 <p>And this one will make references into links, and popup content when you hover over a reference.</p>
-                <a class="button big blue" href="javascript: (function () {
+                <div class="single-button"><a class="button big blue" href="javascript: (function () {
                 var linkerScript = document.createElement('script');
                 linkerScript.setAttribute('charset','utf-8');
                 linkerScript.setAttribute('src', 'http://sefaria.org/linker.js');
                 linkerScript.onload = function() { sefaria.link(); };
-                document.body.appendChild(linkerScript);  }());">Sefariate!</a>
+                document.body.appendChild(linkerScript);  }());">Sefariate!</a></div>
             </div>
         </div>
 

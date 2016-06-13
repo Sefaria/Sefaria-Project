@@ -683,10 +683,13 @@ a#siteLanguageEnglish, a#siteLanguageHebrew {
 a#siteLanguageHebrew {
   font-size: 15px;
 }
-#donatePage div.single-button{
-  text-align: center;
+.static div.single-button{
   margin: 5% 0;
 }
+.static div.single-button.center{
+  text-align: center;
+}
+
 #donatePage #donateOptions .donateOption {
     margin-bottom: 35px;
 }
@@ -998,7 +1001,9 @@ a#siteLanguageHebrew {
   font-size: 25px;
   font-style: italic;
   color: #aaa;
-
+  text-align: center;
+  border: none;
+  text-transform: none;
 }
 #activityPage #activityFeed {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -1025,6 +1030,17 @@ a#siteLanguageHebrew {
 #activityPage #activityList .time {
   color: #ccc;
 }
+#activityPage .activityFilterSection{
+  text-align: center;
+  margin: 30px 0;
+}
+#activityPage select{
+  min-width: 165px;
+  background-color: #ffffff;
+  height: 3em;
+  padding: 0 15px;
+  font-size: 1.3em;
+}
 #iosPage p {
   margin-bottom: 30px;
 }
@@ -1034,18 +1050,5 @@ a#siteLanguageHebrew {
 #connectPage {
   text-align: center;
 }
-.full-text-static select {
-  width: 25%;
-  background-color: #ffffff;
-  height: 3em;
-  padding: 0 3%;
-  font-size: 1.3em;
-}
-.full-text-static {
-  margin: 70px auto;
-  width: 60%;
-  text-align: center;
- }
-.full-text-static .page-title h1{
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
- }
+
+
