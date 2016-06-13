@@ -799,7 +799,7 @@ body {
 }
 
 
-.comment {
+.comment, .oldComment {
 	font-size: 17px;
 	min-height: 30px;
 	padding-top:4px;
@@ -1870,3 +1870,4 @@ a.userLink{
 	border: 1px solid #999;
 	border-radius: 6px;
 }
+

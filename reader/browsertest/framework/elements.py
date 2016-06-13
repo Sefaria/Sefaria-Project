@@ -188,6 +188,14 @@ class AtomicTest(object):
         self.driver.get(url)
         WebDriverWait(self.driver, TEMPER).until(title_contains("Sheet"))
 
+
+"""
+
+                    Test Running Infrastructure
+
+"""
+
+
 class TestResult(object):
     def __init__(self, test, cap, success, message=""):
         assert isinstance(test, AtomicTest) or inspect.isclass(cap)
@@ -232,9 +240,9 @@ class ResultSet(object):
         caps = list({Trial.cap_to_short_string(res.cap) for res in self._test_results})
 
         def text_result(test, cap):
-            r = self._indexed_tests.get((test, cap), "N/A")
+            r = self._indexed_tests.get((test, cap), "s")
             if r is True:
-                return "Pass"
+                return "."
             if r is False:
                 return "Fail"
             return r

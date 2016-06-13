@@ -99,6 +99,34 @@ label .sub {
   margin: 0 auto;
   padding: 60px 0 100px;
 }
+.static .inner div.single-button a.button{
+  margin: auto;
+}
+.static .inner .button {
+  /*all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
+  border-radius: 4px;
+  padding: 16px 24px;
+  cursor: pointer;
+  font-size: 15px;
+  letter-spacing: 1px;
+  box-sizing: border-box;
+  text-align: center;
+}
+.static .inner .button.big {
+  width: 250px;
+}
+.static .inner .button.blue {
+  background-color: #212E50;
+  border: 1px solid #212E50;
+  color: white;
+}
+.static .inner .button .he{
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+.static .inner .button .en{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+
 .static h1 .en, .static  h2 .en, .static h3 .en, .static h4 .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
@@ -123,6 +151,11 @@ label .sub {
   margin-bottom: 16px;
   line-height: 1;
 }
+.static p {
+  margin: initial;
+  font-size: 18px;
+  line-height: 1.5;
+}
 .static .section {
   margin-bottom: 60px;
 }
@@ -132,7 +165,7 @@ label .sub {
   margin: 30px 0;
   border: 1px solid #ddd;
 }
-p.tagline {
+.static p.tagline {
   font-style: italic;
   margin-bottom: 25px;
 }
@@ -140,11 +173,7 @@ p.tagline {
   margin: 0;
   text-align: justify
 }
-.static p {
-  margin: initial;
-  font-size: 23px;
-  line-height: 1.5;
-}
+
 #homePage {
   overflow: hidden;
   color: #333;
@@ -224,8 +253,25 @@ p.tagline {
 #homePage .textRight .imageBox {
   float: left;
 }
+#homePage .section a .button {
+  display: block;
+  width: 240px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+#homePage .section .button .fa {
+  color: #ccc;
+  font-size: 25px;
+  margin: 0 3px;
+  position: absolute;
+  left: 11px;
+  top: 10px;
+}
 #homePage .section.center {
   text-align: center;
+}
+#homePage .section.center .button {
+  margin: 0 auto;
 }
 #homePage h2 {
   margin-bottom: 12px;
@@ -248,6 +294,7 @@ p.tagline {
 }
 #homePage .section .button {
   margin: 0;
+  position: relative;
 }
 #homePage #homeBlog .blogTag {
   text-transform: uppercase;
@@ -457,13 +504,13 @@ p.tagline {
 #profilePage #followMe.following span.follow{
   display: none;
 }
-#profilePage #followMe span.action{
+#profilePage #followMe span.unfollow{
   display:none;
 }
-#profilePage #followMe.following:hover span.action{
+#profilePage #followMe.following:hover span.unfollow{
   display:inherit;
 }
-#profilePage #followMe.following:hover span.state{
+#profilePage #followMe.following:hover span.following{
   display:none;
 }
 #activityList .topline {
@@ -481,7 +528,7 @@ p.tagline {
 .registrationContent {
   text-align: center;
   margin: 1% auto 0;
-  width: 25%;
+  width: 320px;
 }
 
 .registrationContent h1 span.en{
@@ -636,29 +683,48 @@ a#siteLanguageEnglish, a#siteLanguageHebrew {
 a#siteLanguageHebrew {
   font-size: 15px;
 }
-#donatePage div.single-button{
-  text-align: center;
+.static div.single-button{
   margin: 5% 0;
 }
-.full-text-static .static-text .main-text div.single-button a.btn{
+.static div.single-button.center{
+  text-align: center;
+}
+
+#donatePage #donateOptions .donateOption {
+    margin-bottom: 35px;
+}
+#donatePage .faq p.question{
+  font-weight: bold;
+}
+#donatePage .faq p.question:before{
+  content: "Q)";
+}
+#donatePage .faq p.answer{
+  margin-left: 40px;
+  text-indent: -20px;
+}
+#donatePage .faq p.answer:before{
+  content: "A)";
+}
+#supportersPage .leading-supporters p.tagline:first-child{
+  text-align: center;
+  max-width: 500px;
   margin: auto;
 }
-.full-text-static .static-text .main-text a.btn {
-  all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
-  display: block;
-  width: 25%;
-  color: white;
-  background-color: #212E50;
-  border: 1px solid #212E50;
-  border-radius: 4px;
-  padding: 12px 0px;
-  margin-top: 30px;
-  cursor: pointer;
-  font-size: 15px;
-  letter-spacing: 1px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  box-sizing: border-box;
-  text-align: center;
+#supportersPage .leading-supporters p.tagline:last-child{
+  margin-top: 20px;
+}
+#supportersPage .supporters p.tagline:first-child{
+  margin-bottom: 20px;
+}
+#supportersPage h2{
+    margin-top: 25px;
+}
+#supportersPage h2 span{
+  font-size: 1.3em;
+}
+#supportersPage .donate-link{
+  margin-top:20px;
 }
 #aboutPage {
   margin: 0;
@@ -783,7 +849,7 @@ a#siteLanguageHebrew {
   text-align: center;
 }
 #editProfilePage input {
-  padding: 18px 12px;
+  padding: 15px 12px;
   border: none;
 }
 #editProfilePage #profilePictureBox {
@@ -816,7 +882,8 @@ a#siteLanguageHebrew {
 #editProfilePage .field input {
   width: 100%;
   color: #333;
-  box-sizing: border-box;
+  background-color: white;
+  /*box-sizing: border-box;*/
 }
 #editProfilePage ul {
   list-style-type: none;
@@ -829,6 +896,9 @@ a#siteLanguageHebrew {
 }
 #editProfilePage #jewishEducation li:first-child .remove {
   display: none;
+}
+#editProfilePage #jewishEducation label{
+  display: inline-block;
 }
 #editProfilePage #addEducation {
   font-size: 12px;
@@ -931,7 +1001,9 @@ a#siteLanguageHebrew {
   font-size: 25px;
   font-style: italic;
   color: #aaa;
-
+  text-align: center;
+  border: none;
+  text-transform: none;
 }
 #activityPage #activityFeed {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -958,19 +1030,25 @@ a#siteLanguageHebrew {
 #activityPage #activityList .time {
   color: #ccc;
 }
-.full-text-static select {
-  width: 25%;
+#activityPage .activityFilterSection{
+  text-align: center;
+  margin: 30px 0;
+}
+#activityPage select{
+  min-width: 165px;
   background-color: #ffffff;
   height: 3em;
-  padding: 0 3%;
+  padding: 0 15px;
   font-size: 1.3em;
 }
-
-.full-text-static {
-  margin: 70px auto;
-  width: 60%;
+#iosPage p {
+  margin-bottom: 30px;
+}
+#iosPage a {
+  text-decoration: underline;
+}
+#connectPage {
   text-align: center;
- }
-.full-text-static .page-title h1{
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
- }
+}
+
+

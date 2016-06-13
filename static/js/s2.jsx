@@ -279,7 +279,7 @@ var ReaderApp = React.createClass({
     for (var i = 0; i < panels.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
       states[i] = this.clonePanel(panels[i], true);
-      if (!states[i]) { debugger }
+      if (!states[i]) { debugger; }
       var state = states[i];
       var hist  = {url: ""};
     
@@ -366,9 +366,10 @@ var ReaderApp = React.createClass({
         }
         hist.mode   = "Header"
       }
-      console.log("History Panel: " + hist.url);
-      var lang  = state.settings.language.substring(0,2);
-      hist.url += "&lang=" + lang;
+      if (state.mode !== "Header") {
+        var lang  = state.settings.language.substring(0,2);
+        hist.url += "&lang=" + lang;
+      }
       histories.push(hist);     
     }
     if (!histories.length) {debugger;}
@@ -463,7 +464,7 @@ var ReaderApp = React.createClass({
       bookRef:              state.bookRef              || null,
       settings:             state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
       displaySettingsOpen:  false,
-      tagSort:              state.tagSort              || "alpha"
+      tagSort:              state.tagSort              || "count"
     };
     if (this.state && panel.refs.length && !panel.version) {
       var oRef = Sefaria.ref(panel.refs[0]);
@@ -537,7 +538,7 @@ var ReaderApp = React.createClass({
     }
   },
   handleCompareSearchClick: function(n, ref, version, versionLanguage, options) {
-    // Handle clicking a searh result in a compare panel, so that clicks don't clobber open panels
+    // Handle clicking a search result in a compare panel, so that clicks don't clobber open panels
     // todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
     this.saveOpenPanelsToRecentlyViewed();
     this.replacePanel(n, ref, version, versionLanguage);
@@ -1058,7 +1059,8 @@ var Header = React.createClass({
   clearSearchBox: function() {
     $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
   },
-  handleLibraryClick: function() {
+  handleLibraryClick: function(e) {
+    e.preventDefault();
     if (this.props.headerMode) {
       window.location = "/texts";
       return;
@@ -1130,10 +1132,14 @@ var Header = React.createClass({
                              <span className="he">כניסה</span>
                            </a>
                          </div>);
+    var showLibraryLink = (this.props.headerMode || this.state.menuOpen !== "navigation" || this.state.navigationCategories.length != 0);
+
     return (<div className="header">
               <div className="headerInner">
                 <div className="left">
-                  <div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div>
+                    {showLibraryLink
+                        ? <a href="/texts"><div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div></a>
+                        : <div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div>}
                 </div>
                 <div className="right">
                   { headerMessage }
@@ -1232,7 +1238,7 @@ var ReaderPanel = React.createClass({
       filterRegistry:       {},
       orphanSearchFilters:  [],
       displaySettingsOpen:  false,
-      tagSort: "alpha"
+      tagSort: "count"
     }
   },
   componentDidMount: function() {
@@ -1609,6 +1615,9 @@ var ReaderPanel = React.createClass({
     }
 
     if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation" || this.state.menuOpen == "compare") {
+      var openInPanel   = function(pos, ref) { this.showBaseText(ref) }.bind(this);
+      var onRecentClick = this.state.menuOpen === "compare" || !this.props.onRecentClick ? openInPanel : this.props.onRecentClick;
+
       var menu = (<ReaderNavigationMenu 
                     home={this.state.menuOpen === "home"}
                     compare={this.state.menuOpen === "compare"}
@@ -1626,7 +1635,7 @@ var ReaderPanel = React.createClass({
                     openMenu={this.openMenu}
                     openDisplaySettings={this.openDisplaySettings}
                     onTextClick={this.props.onNavTextClick || this.showBaseText}
-                    onRecentClick={this.props.onRecentClick || function(pos, ref) { this.showBaseText(ref) }.bind(this) }
+                    onRecentClick={onRecentClick}
                     hideNavHeader={this.props.hideNavHeader} />);
 
     } 
@@ -1686,7 +1695,7 @@ var ReaderPanel = React.createClass({
                     multiPanel={this.props.multiPanel}
                     hideNavHeader={this.props.hideNavHeader}
                     toggleLanguage={this.toggleLanguage}
-                    initialTag={this.state.navigationSheetTag}
+                    tag={this.state.navigationSheetTag}
                     tagSort={this.state.tagSort}
                     setSheetTagSort={this.setSheetTagSort}
                     setSheetTag={this.setSheetTag}
@@ -1779,6 +1788,10 @@ var ReaderControls = React.createClass({
     connectionsMode:         React.PropTypes.string,
     multiPanel:              React.PropTypes.bool
   },
+  openTextToc: function(e) {
+    e.preventDefault();
+    this.props.openMenu("text toc");
+  },
   render: function() {
     var title     = this.props.currentRef;
     if (title) {
@@ -1798,6 +1811,7 @@ var ReaderControls = React.createClass({
     }
 
     var versionTitle = this.props.version ? this.props.version.replace(/_/g," "):"";
+    var url = Sefaria.ref(title)?"/" + Sefaria.normRef(Sefaria.ref(title).book):Sefaria.normRef(title);
     var centerContent = connectionsHeader ?
       (<div className="readerTextToc">
           <ConnectionsPanelHeader
@@ -1806,15 +1820,17 @@ var ReaderControls = React.createClass({
             closePanel={this.props.closePanel}
             toggleLanguage={this.props.toggleLanguage} />
         </div>) :
-      (<div className="readerTextToc" onClick={this.props.openMenu.bind(null, "text toc")}>
-          { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
-          <div className="readerTextTocBox">
-            <span className="en">{title}</span>
-            <span className="he">{heTitle}</span>
-            { title ? (<i className="fa fa-caret-down"></i>) : null }
-            { (this.props.versionLanguage == "en" && this.props.settings.language == "english") ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
+      (<a href={url}>
+          <div className="readerTextToc" onClick={this.openTextToc}>
+            { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
+            <div className="readerTextTocBox">
+              <span className="en">{title}</span>
+              <span className="he">{heTitle}</span>
+              { title ? (<i className="fa fa-caret-down"></i>) : null }
+              { (this.props.versionLanguage == "en" && this.props.settings.language == "english") ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
+            </div>
           </div>
-        </div>);
+        </a>);
     var leftControls = hideHeader || connectionsHeader ? null :
       (<div className="leftButtons">
           {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
@@ -1995,6 +2011,7 @@ var ReaderNavigationMenu = React.createClass({
     return recentlyViewed;
   },
   handleClick: function(event) {
+    event.preventDefault();
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
       var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
       var pos = $(event.target).attr("data-position") || $(event.target).parent().attr("data-position");
@@ -2060,13 +2077,15 @@ var ReaderNavigationMenu = React.createClass({
       ];
       categories = categories.map(function(cat) {
         var style = {"borderColor": Sefaria.palette.categoryColor(cat)};
-        var openCat = function() {this.props.setCategories([cat])}.bind(this);
+        var openCat = function(e) {e.preventDefault(); this.props.setCategories([cat])}.bind(this);
         var heCat   = Sefaria.hebrewCategory(cat);
-        return (<div className="readerNavCategory" data-cat={cat} style={style} onClick={openCat}>
-                  <span className="en">{cat}</span>
-                  <span className="he">{heCat}</span>
-                </div>);
-      }.bind(this));;
+        return (<a href={`/texts/${cat}`}>
+                  <div className="readerNavCategory" data-cat={cat} style={style} onClick={openCat}>
+                    <span className="en">{cat}</span>
+                    <span className="he">{heCat}</span>
+                  </div>
+                </a>);
+      }.bind(this));
       var more = (<div className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.showMore}>
                       <span className="en">More <img src="/static/img/arrow-right.png" /></span>
                       <span className="he">עוד <img src="/static/img/arrow-left.png" /></span>
@@ -2236,7 +2255,8 @@ var TextBlockLink = React.createClass({
 
     var position = this.props.position || 0;
     var classes  = classNames({refLink: 1, blockLink: 1, recentItem: this.props.recentItem});
-    return (<a className={classes} data-ref={this.props.sref} data-version={this.props.version} data-versionlanguage={this.props.versionLanguage} data-position={position} style={style}>
+    var url      = "/" + Sefaria.normRef(this.props.sref) + (this.props.version?`/${this.props.versionLanguage}/${this.props.version}`:"");
+    return (<a href={url} className={classes} data-ref={this.props.sref} data-version={this.props.version} data-versionlanguage={this.props.versionLanguage} data-position={position} style={style}>
               <span className="en">{title}</span>
               <span className="he">{heTitle}</span>
              </a>);
@@ -2365,10 +2385,13 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
           // Special Case categories which should nest
           var subcats = [ "Mishneh Torah", "Shulchan Arukh", "Midrash Rabbah", "Maharal" ];
           if (Sefaria.util.inArray(item.category, subcats) > -1) {
-            content.push((<span className="catLink" data-cats={newCats.join("|")} key={i}>
-                           <span className='en'>{item.category}</span>
-                           <span className='he'>{Sefaria.hebrewCategory(item.category)}</span>
-                          </span>));
+            url = "/texts/" + newCats.join("/");
+            content.push((<a href={url}>
+                            <span className="catLink" data-cats={newCats.join("|")} key={i}>
+                              <span className='en'>{item.category}</span>
+                              <span className='he'>{Sefaria.hebrewCategory(item.category)}</span>
+                            </span>
+                          </a>));
             continue;
           }
           // Add a Category
@@ -2383,23 +2406,26 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
           // Add a Text
           var title   = item.title.replace(/(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud) /, "");
           var heTitle = item.heTitle.replace(/(משנה תורה,|תלמוד ירושלמי) /, "");
-          content.push((<span className={'refLink sparse' + item.sparseness} data-ref={item.firstSection} key={i}> 
-                          <span className='en'>{title}</span>
-                          <span className='he'>{heTitle}</span>
-                        </span>));
+          var url     = "/" + Sefaria.normRef(item.firstSection);
+          content.push((<a href={url}>
+                          <span className={'refLink sparse' + item.sparseness} data-ref={item.firstSection} key={i}>
+                            <span className='en'>{title}</span>
+                            <span className='he'>{heTitle}</span>
+                          </span>
+                        </a>));
         }
       }
       var boxedContent = [];
       var currentRun   = [];
       for (var i = 0; i < content.length; i++) {
-        // Walk through content looking for runs of spans to group together into a table
+        // Walk through content looking for runs of texts/subcats to group together into a table
         if (content[i].type == "div") { // this is a subcategory
           if (currentRun.length) {
             boxedContent.push((<TwoOrThreeBox content={currentRun} width={this.props.width} key={i} />));
             currentRun = [];
           }
           boxedContent.push(content[i]);
-        } else if (content[i].type == "span") { // this is a single text
+        } else  { // this is a single text
           currentRun.push(content[i]);
         }
       }
@@ -2717,336 +2743,442 @@ var VersionBlock = React.createClass({
 var SheetsNav = React.createClass({
   // Navigation for Sheets
   propTypes: {
-    multiPanel:    React.PropTypes.bool,
-    initialTag:    React.PropTypes.string,
-    close:         React.PropTypes.func.isRequired,
-    openNav:       React.PropTypes.func.isRequired,
-    setSheetTag:   React.PropTypes.func.isRequired,
-    setSheetTagSort:   React.PropTypes.func.isRequired,
-    hideNavHeader: React.PropTypes.bool
-
+    multiPanel:      React.PropTypes.bool,
+    tag:             React.PropTypes.string,
+    tagSort:         React.PropTypes.string,
+    close:           React.PropTypes.func.isRequired,
+    openNav:         React.PropTypes.func.isRequired,
+    setSheetTag:     React.PropTypes.func.isRequired,
+    setSheetTagSort: React.PropTypes.func.isRequired,
+    hideNavHeader:   React.PropTypes.bool
   },
   getInitialState: function() {
     return {
-      trendingTags: null,
-      allSheets: null,
-      yourSheets: null,
-      sheets: [],
-      tag: this.props.initialTag,
-      tagSort: this.props.tagSort,
-      width: 400,
-      yourSheetTags: [],
+      width: this.props.multiPanel ? 1000 : 400,
+    };
+  },
+  componentDidMount: function() {
+    this.setState({width: $(ReactDOM.findDOMNode(this)).width()});
+  },
+  componentWillReceiveProps: function(nextProps) {
+    
+  },
+  changeSort: function(event) {
+    this.props.setSheetTagSort(event.target.value);
+    //Sefaria.sheets.tagList(this.loadTags, event.target.value);
+  },
+  render: function() {
+    var enTitle = this.props.tag || "Source Sheets";
+    var heTitle = this.props.tag || "דפי מקורות";
+
+    if (this.props.tag == "My Sheets") {
+      var content = (<MySheetsPage
+                        hideNavHeader={this.props.hideNavHeader}
+                        multiPanel={this.props.multiPanel}
+                        setSheetTag={this.props.setSheetTag}
+                        setSheetTagSort={this.props.setSheetTagSort}
+                        width={this.state.width} />);
+
+
+    } else if (this.props.tag == "All Sheets") {
+      var content = (<AllSheetsPage
+                        hideNavHeader={this.props.hideNavHeader} />);
+
+    } else if (this.props.tag) {
+      var content = (<TagSheetsPage 
+                        tag={this.props.tag}
+                        setSheetTag={this.props.setSheetTag}
+                        multiPanel={this.props.multiPanel}
+                        hideNavHeader={this.props.hideNavHeader}
+                        width={this.state.width} />);  
+
+    } else {
+      var content = (<SheetsHomePage
+                       tagSort={this.props.tagSort} 
+                       setSheetTag={this.props.setSheetTag}
+                       setSheetTagSort={this.props.setSheetTagSort}
+                       multiPanel={this.props.multiPanel}
+                       hideNavHeader={this.props.hideNavHeader}
+                       width={this.state.width} />);  
+    }
+
+    var classes = classNames({readerNavMenu: 1, readerSheetsNav: 1, noHeader: this.props.hideNavHeader});
+    return (<div className={classes}>
+              <CategoryColorLine category="Sheets" />
+              {this.props.hideNavHeader ? null :
+                 (<div className="readerNavTop searchOnly" key="navTop">
+                    <CategoryColorLine category="Sheets" />
+                    <ReaderNavigationMenuMenuButton onClick={this.props.openNav} />
+                    <h2>
+                      <span className="en">{enTitle}</span>
+                      <span className="he">{heTitle}</span>
+                    </h2>
+                  </div>)}
+              {content}
+            </div>);
+  }
+});
+
+
+var SheetsHomePage = React.createClass({
+  // A set of options grouped together.
+  propTypes: {
+    setSheetTag:     React.PropTypes.func.isRequired,
+    setSheetTagSort: React.PropTypes.func.isRequired,
+    hideNavHeader:   React.PropTypes.bool
+  },
+  componentDidMount: function() {
+    this.ensureData();
+  },
+  getTopSheetsFromCache: function() {
+    return Sefaria.sheets.topSheets();
+  },
+  getSheetsFromAPI: function() {
+     Sefaria.sheets.topSheets(this.onDataLoad);
+  },
+  getTagListFromCache: function() {
+    return Sefaria.sheets.tagList(this.props.tagSort);
+  },
+  getTagListFromAPI: function() {
+    Sefaria.sheets.tagList(this.props.tagSort, this.onDataLoad);
+  },
+  getTrendingTagsFromCache: function() {
+    return Sefaria.sheets.trendingTags();
+  },
+  getTrendingTagsFromAPI: function() {
+    Sefaria.sheets.trendingTags(this.onDataLoad);
+  },
+  onDataLoad: function(data) {
+    this.forceUpdate();
+  },
+  ensureData: function() {
+    if (!this.getTopSheetsFromCache()) { this.getSheetsFromAPI(); }
+    if (!this.getTagListFromCache()) { this.getTagListFromAPI(); }    
+    if (!this.getTrendingTagsFromCache()) { this.getTrendingTagsFromAPI(); }    
+  },
+  showYourSheets: function() {
+    this.props.setSheetTag("My Sheets");
+  },
+  showAllSheets: function() { 
+    this.props.setSheetTag("All Sheets");
+  },
+  changeSort: function(event) {
+    this.props.setSheetTagSort(event.target.value);
+  },
+  render: function() {
+    var trendingTags = this.getTrendingTagsFromCache();
+    var tagList      = this.getTagListFromCache();
+    var topSheets    = this.getTopSheetsFromCache();
+
+    var makeTagButton = tag => <SheetTagButton setSheetTag={this.props.setSheetTag} tag={tag.tag} count={tag.count} key={tag.tag} />;
+
+    var trendingTags    = trendingTags ? trendingTags.slice(0,6).map(makeTagButton) : [<LoadingMessage />];
+    var tagList         = tagList ? tagList.map(makeTagButton) : [<LoadingMessage />];
+    var publicSheetList = topSheets ? topSheets.map(function(sheet) {
+      return (<PublicSheetListing sheet={sheet} key={sheet.id} />);
+    }) : [<LoadingMessage />];
+
+    var yourSheetsButton  = Sefaria._uid ? 
+      (<div className="yourSheetsLink navButton" onClick={this.showYourSheets}>
+        <span class="en">My Source Sheets <i className="fa fa-chevron-right"></i></span>
+        <span class="he"></span>
+       </div>) : null;
+
+    return (<div className="content">
+              <div className="contentInner">
+                {this.props.hideNavHeader ? (<h1>
+                  <div className="languageToggle" onClick={this.props.toggleLanguage}>
+                    <span className="en">א</span>
+                    <span className="he">A</span>
+                  </div>
+                  <span className="en">Source Sheets</span>
+                  <span className="he">דפי מקורות</span>
+                </h1>) : null}
+                { this.props.multiPanel ? null : yourSheetsButton }
+
+                { this.props.multiPanel ?
+                  (<h2 className="splitHeader">
+                    <span className="en" style={{float: 'left'}}>Public Sheets</span>
+                    <span className="en actionText" onClick={this.showAllSheets}>See All <i className="fa fa-angle-right"></i></span>
+                  </h2>) : 
+                  (<h2>
+                     <span className="en">Public Sheets</span>
+                   </h2>)}
+
+                {publicSheetList}
+                <br /><br />
+
+                { this.props.multiPanel ? null : 
+                  (<h2>
+                     <span className="en">Trending Tags</span>
+                   </h2>)}
+
+                { this.props.multiPanel ? null : (<TwoOrThreeBox content={trendingTags} width={this.props.width} /> )}
+                <br /><br />
+
+                { this.props.multiPanel ? (
+                <h2 className="splitHeader">
+                  <span className="en" style={{float: 'left'}}>All Tags</span>
+
+                  <span className="en actionText">Sort By:
+                    <select value={this.props.tagSort} onChange={this.changeSort}>
+                     <option value="count">Most Popular</option>
+                     <option value="alpha">Alphabetical</option>
+                     <option value="trending">Trending</option>
+                   </select> <i className="fa fa-angle-down"></i></span>
+                </h2>) : (
+                <h2>
+                  <span className="en">All Tags</span>
+                </h2>
+                )}
+
+                <TwoOrThreeBox content={tagList} width={this.props.width} />
+              </div>
+             </div>);
+  }
+});
+
+
+var TagSheetsPage = React.createClass({
+  // Page list all public sheets.
+  propTypes: {
+    hideNavHeader:   React.PropTypes.bool
+  },
+  componentDidMount: function() {
+    this.ensureData();
+  },
+  getSheetsFromCache: function() {
+    return  Sefaria.sheets.sheetsByTag(this.props.tag);
+  },
+  getSheetsFromAPI: function() {
+     Sefaria.sheets.sheetsByTag(this.props.tag, this.onDataLoad);
+  },
+  onDataLoad: function(data) {
+    this.forceUpdate();
+  },
+  ensureData: function() {
+    if (!this.getSheetsFromCache()) { this.getSheetsFromAPI(); }
+  },
+  render: function() {
+    var sheets = this.getSheetsFromCache();
+    sheets = sheets ? sheets.map(function (sheet) {
+      return (<PublicSheetListing sheet={sheet} />);
+    }) : (<LoadingMessage />);
+    return (<div className="content sheetList">
+                      <div className="contentInner">
+                        {this.props.hideNavHeader ? (<h1>
+                          <span className="en">{this.props.tag}</span>
+                          <span className="he">{this.props.tag}</span>
+                        </h1>) : null}
+                        {sheets}
+                      </div>
+                    </div>);
+  }
+});
+
+
+var AllSheetsPage = React.createClass({
+  // Page list all public sheets.
+  // TODO this is currently loading all public sheets at once, needs pagination
+  propTypes: {
+    hideNavHeader:   React.PropTypes.bool
+  },
+  componentDidMount: function() {
+    this.ensureData();
+  },
+  getSheetsFromCache: function() {
+    return  Sefaria.sheets.publicSheets(0);
+  },
+  getSheetsFromAPI: function() {
+     Sefaria.sheets.publicSheets(0, this.onDataLoad);
+  },
+  onDataLoad: function(data) {
+    this.forceUpdate();
+  },
+  ensureData: function() {
+    if (!this.getSheetsFromCache()) { this.getSheetsFromAPI(); }
+  },
+  render: function() {
+    var sheets = this.getSheetsFromCache();
+    sheets = sheets ? sheets.map(function (sheet) {
+      return (<PublicSheetListing sheet={sheet} />);
+    }) : (<LoadingMessage />);
+    return (<div className="content sheetList">
+                      <div className="contentInner">
+                        {this.props.hideNavHeader ? (<h1>
+                          <span className="en">All Sheets</span>
+                          <span className="he"></span>
+                        </h1>) : null}
+                        {sheets}
+                      </div>
+                    </div>);
+  }
+});
+
+
+var PublicSheetListing = React.createClass({
+  propTypes: {
+    sheet: React.PropTypes.object.isRequired
+  },
+  render: function() {
+    var sheet = this.props.sheet;
+    var title = sheet.title.stripHtml();
+    var url = "/sheets/" + sheet.id;
+    return (<a className="sheet" href={url} key={url}>
+              {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl}/>) : null}
+              <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
+              <div className="sheetAuthor">{sheet.ownerName}</div>
+              <div className="sheetTitle">{title}</div>
+            </a>);   
+  }
+});
+
+
+var SheetTagButton = React.createClass({
+  propTypes: {
+    tag:   React.PropTypes.string.isRequired,
+    count: React.PropTypes.number.isRequired,
+    setSheetTag: React.PropTypes.func.isRequired
+  },
+  handleTagClick: function(e) {
+    e.preventDefault();
+    this.props.setSheetTag(this.props.tag);
+  },
+  render: function() {
+    return (<a href={`/sheets/tag/${this.props.tag}`} className="navButton" onClick={this.handleTagClick}>{this.props.tag} ({this.props.count})</a>);
+  }
+});
+
+
+var MySheetsPage = React.createClass({
+  propTypes: {
+    setSheetTag:     React.PropTypes.func.isRequired,
+    setSheetTagSort: React.PropTypes.func.isRequired,
+    multiPanel:      React.PropTypes.bool,
+    hideNavHeader:   React.PropTypes.bool
+  },
+  getInitialState: function() {
+    return {
       showYourSheetTags: false,
       sheetFilterTag: null
     };
   },
   componentDidMount: function() {
-    this.getTags();
-    this.getAllSheets();
-    this.setState({width: $(ReactDOM.findDOMNode(this)).width()});
-    if (this.props.initialTag) {
-      if (this.props.initialTag === "Your Sheets") {
-        this.showYourSheets();
-        Sefaria.sheets.userTagList(this.setUserTags,Sefaria._uid);
-      }
-      else if(this.props.initialTag === "All Sheets"){
-        this.showAllSheets();
-      }
-      else {
-        this.setTag(this.props.initialTag);
-      }
-    }
+    this.ensureData();
   },
-  componentWillReceiveProps: function(nextProps) {
-    this.setState({tagSort: nextProps.tagSort, tag: nextProps.initialTag});
+  getSheetsFromCache: function() {
+    return  Sefaria.sheets.userSheets(Sefaria._uid);
+  },
+  getSheetsFromAPI: function() {
+     Sefaria.sheets.userSheets(Sefaria._uid, this.onDataLoad);
+  },
+  getTagsFromCache: function() {
+    return Sefaria.sheets.userTagList(Sefaria._uid)
+  },
+  getTagsFromAPI: function() {
+    Sefaria.sheets.userSheets(Sefaria._uid, this.onDataLoad);
+  },
+  onDataLoad: function(data) {
+    this.forceUpdate();
+  },
+  ensureData: function() {
+    if (!this.getSheetsFromCache()) { this.getSheetsFromAPI(); }
+    if (!this.getTagsFromCache())   { this.getTagsFromAPI(); }    
   },
   toggleSheetTags: function() {
-    this.state.showYourSheetTags == true ? this.setState({showYourSheetTags: false}) : this.setState({showYourSheetTags: true});
+    this.state.showYourSheetTags ? this.setState({showYourSheetTags: false}) : this.setState({showYourSheetTags: true});
   },
-
   filterYourSheetsByTag: function (tag) {
     if (tag.tag == this.state.sheetFilterTag) {
-       this.setState({sheetFilterTag: null});
+       this.setState({sheetFilterTag: null, showYourSheetTags: false});
+    } else {
+      this.setState({sheetFilterTag: tag.tag, showYourSheetTags: false});
     }
-    else {
-      this.setState({sheetFilterTag: tag.tag});
-    }
-  },
-  getAllSheets: function() {
-    Sefaria.sheets.allSheetsList(this.loadAllSheets);
-  },
-  loadAllSheets: function(){
-    this.setState({
-      allSheets: Sefaria.sheets.allSheetsList() || []
-    });
-  },
-  changeSort: function(event) {
-    this.props.setSheetTagSort(event.target.value);
-    Sefaria.sheets.tagList(this.loadTags,event.target.value);
   },
   changeSortYourSheets: function(event) {
     this.props.setSheetTagSort(event.target.value);
-    this.showYourSheets();
-    Sefaria.sheets.userSheets(Sefaria._uid, this.loadSheets,event.target.value);
-  },
-  getTags: function() {
-    Sefaria.sheets.trendingTags(this.loadTags);
-    Sefaria.sheets.tagList(this.loadTags,this.props.tagSort);
-  },
-  loadTags: function() {
-    this.setState({
-      trendingTags: Sefaria.sheets.trendingTags() || [],
-      tagList:      Sefaria.sheets.tagList(null,this.props.tagSort) || [],
-    });
-  },
-  setTag: function(tag) {
-    this.setState({tag: tag});
-    Sefaria.sheets.sheetsByTag(tag, this.loadSheets);
-    this.props.setSheetTag(tag);
-  },
-  loadSheets: function(sheets) {
-    this.setState({sheets: sheets});
-  },
-  showYourSheets: function() {
-    this.setState({tag: "Your Sheets"});
-    Sefaria.sheets.userSheets(Sefaria._uid, this.loadSheets);
-    this.props.setSheetTag("Your Sheets");
-  },
-  setUserTags: function(tags){
-    this.setState({userTagList: tags});
-  },
-
-  showAllSheets: function() {
-    this.setState({tag: "All Sheets"});
-    Sefaria.sheets.publicSheets(this.loadSheets);
-    this.props.setSheetTag("All Sheets");
   },
   render: function() {
-    var enTitle = this.state.tag || "Source Sheets";
-    var heTitle = this.state.tag || "דפי מקורות";
+    var sheets = this.getSheetsFromCache();
+    sheets = sheets && this.state.sheetFilterTag ? sheets.filter(function(sheet) {
+      return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
+    }.bind(this)) : sheets;
+    sheets = sheets ? sheets.map(function(sheet) {
+      return (<PrivateSheetListing sheet={sheet} multiPanel={this.props.multiPanel} />);
+    }.bind(this)) : (<LoadingMessage />);
 
-
-    if (this.state.tag) {
-
-      if (this.state.tag == "Your Sheets") {
-
-        var sheets = this.state.sheets.map(function (sheet) {
-          var editSheetTags = function() { console.log(sheet.id)}.bind(this);
-          var title = sheet.title.stripHtml();
-          var url = "/sheets/" + sheet.id;
-          if (sheet.tags === undefined) sheet.tags = [];
-          var tagString = sheet.tags.map(function (tag) {
-              return(tag+", ");
-          });
-          if ($.inArray(this.state.sheetFilterTag, sheet.tags) >= 0 || this.state.sheetFilterTag == null ) {
-              if (this.props.multiPanel) {
-                    return (<div className="sheet userSheet" key={url}>
-                              <a className="sheetEditButtons" href={url}>
-                                <span><i className="fa fa-pencil"></i> </span>
-                              </a>
-                              <div className="sheetEditButtons" onClick={editSheetTags}>
-                                <span><i className="fa fa-tag"></i> </span>
-                              </div>
-
-                              <div className="sheetTitle">{title}</div>
-                              <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
-
-                        </div>
-                    );
-
-              }
-
-          else {
-
-              return (<a className="sheet userSheet" href={url} key={url}>
-                        <div className="sheetTitle">{title}</div>
-                        <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
-                  </a>
-              );
-
-
-          }
-
-            }
-        }, this);
-
-        if (this.state.userTagList != null){
-
-
-        var userTagList = this.state.userTagList.map(function (tag) {
-             var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
-              if (this.state.sheetFilterTag == tag.tag) {
-                  return (<div className="navButton sheetButton active" onClick={filterThisTag} key={tag.tag}>{tag.tag} ({tag.count})</div>);
-              }
-              else {
-                  return (<div className="navButton sheetButton" onClick={filterThisTag} key={tag.tag}>{tag.tag} ({tag.count})</div>);
-
-              }
-
-        }, this);
-
-
-        }
-
-
-              var content = (<div className="content sheetList">
-                <div className="contentInner">
-                  {this.props.hideNavHeader ? (<h1>
-                    <span className="en">{enTitle}</span>
+    var userTagList = this.getTagsFromCache();
+    userTagList = userTagList ? userTagList.map(function (tag) {
+      var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
+      var classes = classNames({navButton: 1, sheetButton: 1, active: this.state.sheetFilterTag == tag.tag});
+      return (<div className={classes} onClick={filterThisTag} key={tag.tag}>{tag.tag} ({tag.count})</div>);
+    }.bind(this)) : null;
+  
+    return (<div className="content sheetList">
+              <div className="contentInner">
+                {this.props.hideNavHeader ? 
+                  (<h1>
+                    <span className="en">My Source Sheets</span>
                   </h1>) : null}
-                  {this.props.hideNavHeader ? (
-                    <div className="sheetsNewButton">
-                      <a className="button white" href="/sheets/new">
-                          <span className="en">Create a Source Sheet</span>
-                          <span className="he">צור דף מקורות חדש</span>
-                      </a>
-                    </div>
+                {this.props.hideNavHeader ? 
+                  (<div className="sheetsNewButton">
+                    <a className="button white" href="/sheets/new">
+                        <span className="en">Create a Source Sheet</span>
+                        <span className="he">צור דף מקורות חדש</span>
+                    </a>
+                  </div>) : null }
 
-                    ) : null }
+                {this.props.hideNavHeader ?
+                 (<h2 className="splitHeader">
+                    <span className="en actionText" style={{float: 'left'}} onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
+                    <span className="en actionText">Sort By:
+                      <select value={this.props.tagSort} onChange={this.changeSortYourSheets}>
+                       <option value="date">Recent</option>
+                       <option value="views">Most Viewed</option>
+                     </select> <i className="fa fa-angle-down"></i></span>
 
-                                    {this.props.hideNavHeader ? (
-
-                                            <h2 className="splitHeader">
-                            <span className="en actionText" style={{float: 'left'}} onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
-
-                            <span className="en actionText">Sort By:
-                              <select value={this.props.tagSort} onChange={this.changeSortYourSheets}>
-                               <option value="date">Recent</option>
-                               <option value="views">Most Viewed</option>
-                             </select> <i className="fa fa-angle-down"></i></span>
-
-                          </h2>) : null }
-                  {this.state.showYourSheetTags == true ? <TwoOrThreeBox content={userTagList} width={this.state.width} /> : null}
-
-
-                  {sheets}</div>
-              </div>);
-
-      }
-
-      else {
-
-        var sheets = this.state.sheets.map(function (sheet) {
-          var title = sheet.title.stripHtml();
-          var url = "/sheets/" + sheet.id;
-          return (<a className="sheet" href={url} key={url}>
-            {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl}/>) : null}
-            <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
-            <div className="sheetAuthor">{sheet.ownerName}</div>
-            <div className="sheetTitle">{title}</div>
-          </a>);
-        });
-        var content = (<div className="content sheetList">
-          <div className="contentInner">
-            {this.props.hideNavHeader ? (<h1>
-              <span className="en">{enTitle}</span>
-            </h1>) : null}
-            {sheets}</div>
-        </div>);
-      }
-
-    }
-    else {
-      var yourSheets  = Sefaria._uid ? (<div className="yourSheetsLink navButton" onClick={this.showYourSheets}>Your Source Sheets <i className="fa fa-chevron-right"></i></div>) : null;
-      var makeTagButton = function(tag) {
-        var setThisTag = this.setTag.bind(null, tag.tag);
-        return (<div className="navButton" onClick={setThisTag} key={tag.tag}>{tag.tag} ({tag.count})</div>);
-      }.bind(this);
-
-      if (this.state.trendingTags !== null && this.state.tagList !== null && this.state.allSheets !== null) {
-        var trendingTags = this.state.trendingTags.slice(0,6).map(makeTagButton);
-
-        var allSheets = this.state.allSheets.sheets;
-
-        var publicSheetList = allSheets.map(function(sheet) {
-          var title = sheet.title.stripHtml();
-          var url = "/sheets/" + sheet.id;
-          return (<a className="sheet" href={url} key={url}>
-            {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl}/>) : null}
-            <span className="sheetViews"><i className="fa fa-eye"></i> {sheet.views}</span>
-            <div className="sheetAuthor">{sheet.ownerName}</div>
-            <div className="sheetTitle">{title}</div>
-          </a>);
-
-        });
-
-
-        var tagList = this.state.tagList.map(makeTagButton);
-        var content = (<div className="content">
-                        <div className="contentInner">
-                          {this.props.hideNavHeader ? (<h1>
-                            <div className="languageToggle" onClick={this.props.toggleLanguage}>
-                              <span className="en">א</span>
-                              <span className="he">A</span>
-                            </div>
-                            <span className="en">{enTitle}</span>
-                            <span className="he">{heTitle}</span>
-                          </h1>) : null}
-                          { this.props.multiPanel ? null : yourSheets }
-
-                          { this.props.multiPanel ? (
-                          <h2 className="splitHeader">
-                            <span className="en" style={{float: 'left'}}>Public Sheets</span>
-                            <span className="en actionText" onClick={this.showAllSheets}>See All <i className="fa fa-angle-right"></i></span>
-
-                          </h2>) : (
-                          <h2>
-                            <span className="en">Public Sheets</span>
-                          </h2>
-                          )}
-                          {publicSheetList}
-                          <br /><br />
-
-                          { this.props.multiPanel ? null : (
-
-                          <h2>
-                            <span className="en">Trending Tags</span>
-                          </h2>
-                          )}
-
-                          { this.props.multiPanel ? null : (<TwoOrThreeBox content={trendingTags} width={this.state.width} /> )}
-                          <br /><br />
-
-
-
-                          { this.props.multiPanel ? (
-                          <h2 className="splitHeader">
-                            <span className="en" style={{float: 'left'}}>All Tags</span>
-
-                            <span className="en actionText">Sort By:
-                              <select value={this.props.tagSort} onChange={this.changeSort}>
-                               <option value="alpha">Alphabetical</option>
-                               <option value="count">Most Used</option>
-                               <option value="trending">Trending</option>
-                             </select> <i className="fa fa-angle-down"></i></span>
-                          </h2>) : (
-                          <h2>
-                            <span className="en">All Tags</span>
-                          </h2>
-                          )}
-
-                          <TwoOrThreeBox content={tagList} width={this.state.width} />
-                        </div>
-                       </div>);
-      } else {
-        var content = (<div className="content" key="content"><div className="contentInner"><LoadingMessage /></div></div>);
-      }      
-    }
-
-    var classes = classNames({readerNavMenu: 1, readerSheetsNav: 1, noHeader: this.props.hideNavHeader});
-
-
-    return (<div className={classes}>
-           <CategoryColorLine category="Sheets"  />
-
-           {this.props.hideNavHeader ? null :
-               (<div className="readerNavTop searchOnly" key="navTop">
-                <CategoryColorLine category="Sheets" />
-                <ReaderNavigationMenuMenuButton onClick={this.props.openNav} />
-                <h2><span className="en">{enTitle}</span></h2>
-              </div>)}
-              {content}
+                  </h2>) : null }
+                {this.state.showYourSheetTags ? <TwoOrThreeBox content={userTagList} width={this.props.width} /> : null}
+                {sheets}
+              </div>
             </div>);
+  }
+});
+
+
+var PrivateSheetListing = React.createClass({
+  propTypes: {
+    sheet:      React.PropTypes.object.isRequired,
+    multiPanel: React.PropTypes.bool
+  },
+  render: function() {
+    var sheet = this.props.sheet;
+    var editSheetTags = function() { console.log(sheet.id)}.bind(this);
+    var title = sheet.title.stripHtml();
+    var url = "/sheets/" + sheet.id;
+    if (sheet.tags === undefined) sheet.tags = [];
+    var tagString = sheet.tags.map(function (tag) {
+        return(<span>{tag}, </span>);
+    });
+
+    if (this.props.multiPanel) {
+      return (<div className="sheet userSheet" href={url} key={url}>
+                 <a className="sheetEditButtons" href={url}>
+                  <span><i className="fa fa-pencil"></i> </span>
+                </a>
+                <div className="sheetEditButtons" onClick={editSheetTags}>
+                  <span><i className="fa fa-tag"></i> </span>
+                </div>
+
+                <a className="sheetTitle" href={url}>{title}</a>
+                <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
+            </div>);
+    } else {
+      return (<a className="sheet userSheet" href={url} key={url}>
+                <div className="sheetTitle">{title}</div>
+                <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
+              </a>);
+    }
   }
 });
 
@@ -3060,9 +3192,6 @@ var ToggleSet = React.createClass({
     settings:      React.PropTypes.object.isRequired,
     options:       React.PropTypes.array.isRequired,
     separated:     React.PropTypes.bool
-  },
-  getInitialState: function() {
-    return {};
   },
   render: function() {
     var classes = {toggleSet: 1, separated: this.props.separated };
@@ -3567,7 +3696,6 @@ var TextRange = React.createClass({
     };
     var data = Sefaria.text(this.props.sref, settings);
     if (!data) { // If we don't have data yet, call again with a callback to trigger API call
-      console.log("getText calling API: " + this.props.sref);
       Sefaria.text(this.props.sref, settings, this.onTextLoad);
     }
     return data;
@@ -4098,7 +4226,7 @@ var TextList = React.createClass({
   getInitialState: function() {
     return {
       linksLoaded: false,
-      textLoaded: false,
+      textLoaded: false
     }
   },
   componentDidMount: function() {
@@ -4327,6 +4455,7 @@ var TextList = React.createClass({
                   {message}
               </div>
               <AllFilterSet
+                srefs={this.props.srefs}
                 summary={summary}
                 showText={this.props.showText}
                 filter={this.props.filter}
@@ -4340,6 +4469,7 @@ var TextList = React.createClass({
             <div className={classes}>
               <div className="textListTop">
                 <RecentFilterSet
+                  srefs={this.props.srefs}
                   asHeader={true}
                   showText={this.props.showText}
                   filter={this.props.filter}
@@ -4360,6 +4490,7 @@ var TextList = React.createClass({
               <div className="texts">
                 <div className="contentInner">
                   <RecentFilterSet
+                    srefs={this.props.srefs}
                     asHeader={false}
                     showText={this.props.showText}
                     filter={this.props.filter}
@@ -4419,7 +4550,8 @@ var AllFilterSet = React.createClass({
   render: function() {
     var categories = this.props.summary.map(function(cat, i) {
       return (
-        <CategoryFilter 
+        <CategoryFilter
+          srefs={this.props.srefs}
           key={i}
           category={cat.category}
           heCategory={Sefaria.hebrewCategory(cat.category)}
@@ -4442,14 +4574,16 @@ var AllFilterSet = React.createClass({
 
 
 var CategoryFilter = React.createClass({
-  handleClick: function() {
+  handleClick: function(e) {
+    e.preventDefault();
     this.props.setFilter(this.props.category, this.props.updateRecent);
     if (Sefaria.site) { Sefaria.site.track.event("Reader", "Category Filter Click", this.props.category); }
   },
   render: function() {
     var textFilters = this.props.books.map(function(book, i) {
      return (<TextFilter 
-                key={i} 
+                srefs={this.props.srefs}
+                key={i}
                 book={book.book}
                 heBook={book.heBook} 
                 count={book.count}
@@ -4466,12 +4600,15 @@ var CategoryFilter = React.createClass({
     var classes      = classNames({categoryFilter: 1, on: this.props.on, notClickable: notClickable});
     var count        = notClickable ? null : (<span className="enInHe"> | {this.props.count}</span>);
     var handleClick  = notClickable ? null : this.handleClick;
+    var url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + this.props.category:"";
+    var innerFilter = (<div className={classes} onClick={handleClick}>
+            <span className="en">{this.props.category}{count}</span>
+            <span className="he">{this.props.heCategory}{count}</span>
+          </div>);
+    var wrappedFilter = notClickable ? innerFilter : <a href={url}>{innerFilter}</a>;
     return (
       <div className="categoryFilterGroup" style={style}>
-        <div className={classes} onClick={handleClick}>
-          <span className="en">{this.props.category}{count}</span>
-          <span className="he">{this.props.heCategory}{count}</span>
-        </div>
+        {wrappedFilter}
         <TwoBox content={ textFilters } />
       </div>
     );
@@ -4481,13 +4618,15 @@ var CategoryFilter = React.createClass({
 
 var TextFilter = React.createClass({
   propTypes: {
+    srefs:        React.PropTypes.array.isRequired,
     book:         React.PropTypes.string.isRequired,
     heBook:       React.PropTypes.string.isRequired,
     on:           React.PropTypes.bool.isRequired,
     setFilter:    React.PropTypes.func.isRequired,
-    updateRecent: React.PropTypes.bool,
+    updateRecent: React.PropTypes.bool
   },
-  handleClick: function() {
+  handleClick: function(e) {
+    e.preventDefault();
     this.props.setFilter(this.props.book, this.props.updateRecent);
     if (Sefaria.site) { Sefaria.site.track.event("Reader", "Text Filter Click", this.props.book); }
   },
@@ -4495,21 +4634,24 @@ var TextFilter = React.createClass({
     var classes = classNames({textFilter: 1, on: this.props.on, lowlight: this.props.count == 0});
 
     if (!this.props.hideColors) {
-      var color = Sefaria.palette.categoryColor(this.props.category)
+      var color = Sefaria.palette.categoryColor(this.props.category);
       var style = {"borderTop": "4px solid " + color};
     }
     var name = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
     var count = this.props.hideCounts || !this.props.count ? "" : ( <span className="enInHe"> ({this.props.count})</span>);
+    var url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + name:"";
     return (
-      <div data-name={name}
-        className={classes} 
-        style={style}
-        onClick={this.handleClick}>
-          <div>  
-            <span className="en">{name}{count}</span>
-            <span className="he">{this.props.heBook}{count}</span>
-          </div>
-      </div>
+      <a href={url}>
+        <div data-name={name}
+          className={classes}
+          style={style}
+          onClick={this.handleClick}>
+            <div>
+              <span className="en">{name}{count}</span>
+              <span className="he">{this.props.heBook}{count}</span>
+            </div>
+        </div>
+      </a>
     );
   }
 });
@@ -4517,6 +4659,7 @@ var TextFilter = React.createClass({
 
 var RecentFilterSet = React.createClass({
   propTypes: {
+    srefs:          React.PropTypes.array.isRequired,
     filter:         React.PropTypes.array.isRequired,
     recentFilters:  React.PropTypes.array.isRequired,
     textCategory:   React.PropTypes.string.isRequired,
@@ -4565,7 +4708,8 @@ var RecentFilterSet = React.createClass({
       }        
     }
     var topFilters = topLinks.map(function(book) {
-     return (<TextFilter 
+     return (<TextFilter
+                srefs={this.props.srefs}
                 key={book.book} 
                 book={book.book}
                 heBook={book.heBook}
@@ -4627,7 +4771,6 @@ var LexiconPanel = React.createClass({
         }
     }.bind(this));
   },
-
   shouldRenderSelf: function(){
     if(!this.props.selectedWords){
       return false;
@@ -5519,6 +5662,11 @@ var SearchResultList = React.createClass({
       //returns object w/ keys 'availableFilters', 'registry'
       //Add already applied filters w/ empty doc count?
       var rawTree = {};
+
+      this.props.appliedFilters.forEach(
+          fkey => this._addAvailableFilter(rawTree, fkey, {"docCount":0})
+      );
+
       aggregation_buckets.forEach(
           f => this._addAvailableFilter(rawTree, f["key"], {"docCount":f["doc_count"]})
       );
@@ -5577,22 +5725,65 @@ var SearchResultList = React.createClass({
       var filters = [];
       var registry = {};
 
+      var commentaryNode = new Sefaria.search.FilterNode();
+
+
       for(var j = 0; j < Sefaria.toc.length; j++) {
           var b = walk.call(this, Sefaria.toc[j]);
           if (b) filters.push(b);
+
+          // Remove after commentary refactor ?
+          // If there is commentary on this node, add it as a sibling
+          if (commentaryNode.hasChildren()) {
+            var toc_branch = Sefaria.toc[j];
+            var cat = toc_branch["category"];
+            // Append commentary node to result filters, add a fresh one for the next round
+            var docCount = 0;
+            if (rawTree.Commentary && rawTree.Commentary[cat]) { docCount += rawTree.Commentary[cat].docCount; }
+            if (rawTree.Commentary2 && rawTree.Commentary2[cat]) { docCount += rawTree.Commentary2[cat].docCount; }
+            extend(commentaryNode, {
+                "title": cat + " Commentary",
+                "path": "Commentary/" + cat,
+                "heTitle": "מפרשי" + " " + toc_branch["heCategory"],
+                "docCount": docCount
+            });
+            registry[commentaryNode.path] = commentaryNode;
+            filters.push(commentaryNode);
+            commentaryNode = new Sefaria.search.FilterNode();
+          }
       }
+
       return {availableFilters: filters, registry: registry};
 
       function walk(branch, parentNode) {
           var node = new Sefaria.search.FilterNode();
 
+          //Remove after commentary refactor
+          node["docCount"] = 0;
+          //
+
           if("category" in branch) { // Category node
-              path.push(branch["category"]);  // Place this category at the *end* of the path
-              extend(node, {
-                 "title": path.slice(-1)[0],
-                 "path": path.join("/"),
-                 "heTitle": branch["heCategory"]
-              });
+              // Remove after commentary refactor
+              if(branch["category"] == "Commentary") { // Special case commentary
+                  path.unshift(branch["category"]);  // Place "Commentary" at the *beginning* of the path
+                   extend(node, {
+                       "title": parentNode.title,
+                       "path": path.join("/"),
+                       "heTitle": parentNode.heTitle
+                   });
+              } else {
+              // End commentary code
+
+                path.push(branch["category"]);  // Place this category at the *end* of the path
+                extend(node, {
+                  "title": path.slice(-1)[0],
+                  "path": path.join("/"),
+                  "heTitle": branch["heCategory"]
+                });
+
+              // Remove after commentary refactor
+              }
+              // End commentary code
 
               for(var j = 0; j < branch["contents"].length; j++) {
                   var b = walk.call(this, branch["contents"][j], node);
@@ -5611,21 +5802,55 @@ var SearchResultList = React.createClass({
           try {
               var rawNode = rawTree;
               var i;
-              for (i = 0; i < path.length; i++) {
-                  //For TOC nodes that we don't have results for, this will throw an exception, caught below.
+
+              // Remove try and entire catch after commentary refactor
+              try {
+                for (i = 0; i < path.length; i++) {
+                  //For TOC nodes that we don't have results for, we catch the exception below.  For commentary / commentary2, we catch it here.
                   rawNode = rawNode[path[i]];
+                }
+                node["docCount"] += rawNode.docCount;
+              }
+              catch (e) {
+                if (path[0] == "Commentary") {
+                  rawNode = rawTree["Commentary2"];
+                  for (i = 1; i < path.length; i++) {
+                    rawNode = rawNode[path[i]];
+                  }
+                  node["docCount"] += rawNode.docCount;
+                } else {
+                  throw e; 
+                }
               }
 
-              node["docCount"] = rawNode.docCount;
               // Do we need both of these in the registry?
               registry[node.getId()] = node;
               registry[node.path] = node;
+
+              // Remove after commentary refactor
+              if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
+                  commentaryNode.append(node);
+                  path.shift();
+                  return false;
+              }
+              // End commentary code
 
               path.pop();
               return node;
           }
           catch (e) {
-              path.pop();
+              // Remove after commentary refactor
+              if(("category" in branch) && (branch["category"] == "Commentary")) {  // Special case commentary
+                  path.shift();
+              } else {
+              // End commentary code
+
+                path.pop();
+
+              // Remove after commentary refactor
+              }
+              // End commentary code
+
               return false;
           }
       }
@@ -5771,7 +5996,7 @@ var SearchFilters = React.createClass({
     this.setState({displayFilters: !this.state.displayFilters});
   },
   _type_button: function(en_singular, en_plural, he_singular, he_plural, total, on_click, active) {
-    if (!total) { return "" }
+    // if (!total) { return "" }
       var total_with_commas = this._add_commas(total);
       var classes = classNames({"type-button": 1, active: active});
 
@@ -5780,8 +6005,8 @@ var SearchFilters = React.createClass({
         {total_with_commas}
       </div>
       <div className="type-button-title">
-        <span className="en">{(total > 1) ? en_plural : en_singular}</span>
-        <span className="he">{(total > 1) ? he_plural : he_singular}</span>
+        <span className="en">{(total != 1) ? en_plural : en_singular}</span>
+        <span className="he">{(total != 1) ? he_plural : he_singular}</span>
       </div>
     </div>;
   },
@@ -5840,9 +6065,9 @@ var SearchFilters = React.createClass({
       <div className={ classNames({searchTopMatter: 1, loading: this.props.isQueryRunning}) }>
         <div className="searchStatusLine">
           { (this.props.isQueryRunning) ? runningQueryLine : buttons }
-          { (this.props.textTotal > 0 && this.props.activeTab == "text") ? selected_filters : ""}
+          { (this.props.availableFilters.length > 0 && this.props.activeTab == "text") ? selected_filters : ""}
         </div>
-        { (this.props.textTotal > 0 && this.props.activeTab == "text") ? filter_panel : "" }
+        { (this.props.availableFilters.length > 0 && this.props.activeTab == "text") ? filter_panel : "" }
       </div>);
   }
 });
@@ -6015,12 +6240,12 @@ var AccountPanel = React.createClass({
     interfaceLang: React.PropTypes.string,
   },
   render: function() {
-    var width = window ? $(window).width() : 1000;
+    var width = typeof window !== "undefined" ? $(window).width() : 1000;
     var accountContent = [
       (<BlockLink target="/my/profile" title="Profile" heTitle="פרופיל"/>),
-      (<BlockLink target="/sheets/private" title="Source Sheets" heTitle="דפי מקורות" />),
+      (<BlockLink target="/sheets/private" title="My Source Sheets" heTitle="דפי מקורות" />),
       (<BlockLink target="#" title="Reading History" heTitle="היסטוריה קריאה" />),
-      (<BlockLink target="#" title="Notes" heTitle="רשומות" />),
+      (<BlockLink target="#" title="My Notes" heTitle="רשומות" />),
       (<BlockLink target="/settings/account" title="Settings" heTitle="הגדרות" />),
       (<BlockLink target="/logout" title="Log Out" heTitle="ניתוק" />)
     ];
@@ -6316,26 +6541,12 @@ var setData = function(data) {
 };
 
 
-var saveTextData = function(data, settings) {
-  // Populate texts cache with data loaded in a different scope
-  Sefaria._saveText(data, settings, false);
-};
-
-
-var saveTextTocHtml = function(title, html) {
-  // Populate textTocHtml cache with data loaded in a different scope
-  Sefaria._saveTextTocHtml(title, html);
-};
-
-
-
 if (typeof exports !== 'undefined') {
-  exports.ReaderApp        = ReaderApp;
-  exports.ReaderPanel      = ReaderPanel;
-  exports.ConnectionsPanel = ConnectionsPanel;
-  exports.TextRange        = TextRange;
-  exports.TextColumn       = TextColumn;
-  exports.setData          = setData;
-  exports.saveTextData     = saveTextData;
-  exports.saveTextTocHtml  = saveTextTocHtml;
+  exports.ReaderApp           = ReaderApp;
+  exports.ReaderPanel         = ReaderPanel;
+  exports.ConnectionsPanel    = ConnectionsPanel;
+  exports.TextRange           = TextRange;
+  exports.TextColumn          = TextColumn;
+  exports.setData             = setData;
+  exports.unpackDataFromProps = Sefaria.unpackDataFromProps;
 }
