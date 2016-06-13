@@ -2866,10 +2866,7 @@ var SheetsHomePage = React.createClass({
     var tagList      = this.getTagListFromCache();
     var topSheets    = this.getTopSheetsFromCache();
 
-    var makeTagButton = function(tag) {
-      var setThisTag = this.props.setSheetTag.bind(null, tag.tag);
-      return (<SheetTagButton onClick={setThisTag} tag={tag.tag} count={tag.count} key={tag.tag} />);      
-    }.bind(this);
+    var makeTagButton = tag => <SheetTagButton setSheetTag={this.props.setSheetTag} tag={tag.tag} count={tag.count} key={tag.tag} />;
 
     var trendingTags    = trendingTags ? trendingTags.slice(0,6).map(makeTagButton) : [<LoadingMessage />];
     var tagList         = tagList ? tagList.map(makeTagButton) : [<LoadingMessage />];
@@ -3037,16 +3034,16 @@ var SheetTagButton = React.createClass({
   propTypes: {
     tag:   React.PropTypes.string.isRequired,
     count: React.PropTypes.number.isRequired,
-    onClick: React.PropTypes.func.isRequired
+    setSheetTag: React.PropTypes.func.isRequired
+  },
+  handleTagClick: function(e) {
+    e.preventDefault();
+    this.props.setSheetTag(this.props.tag);
   },
   render: function() {
-    return (<div className="navButton" onClick={this.props.onClick}>{this.props.tag} ({this.props.count})</div>);
+    return (<a href={`/sheets/tag/${this.props.tag}`} className="navButton" onClick={this.handleTagClick}>{this.props.tag} ({this.props.count})</a>);
   }
 });
-    var makeTagButton = function(tag) {
-      var setThisTag = this.props.setSheetTag.bind(null, tag.tag);
-      return (<div className="navButton" onClick={setThisTag} key={tag.tag}>{tag.tag} ({tag.count})</div>);
-    }.bind(this);
 
 
 var MySheetsPage = React.createClass({

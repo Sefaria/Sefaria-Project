@@ -783,6 +783,11 @@ h1 .languageToggle .he {
   background-color: white;
   border: 6px solid #F9F9F7;
 }
+
+.readerSheetsNav .navButton:hover {
+  text-decoration: none;
+}
+
 @media (max-width: 450px) {
   .readerNavMenu .readerNavCategoryMenu td,
   .readerSheetsNav .gridBox td {

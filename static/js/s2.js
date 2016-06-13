@@ -3417,14 +3417,15 @@ var SheetsHomePage = React.createClass({
     this.props.setSheetTagSort(event.target.value);
   },
   render: function render() {
+    var _this2 = this;
+
     var trendingTags = this.getTrendingTagsFromCache();
     var tagList = this.getTagListFromCache();
     var topSheets = this.getTopSheetsFromCache();
 
-    var makeTagButton = function (tag) {
-      var setThisTag = this.props.setSheetTag.bind(null, tag.tag);
-      return React.createElement(SheetTagButton, { onClick: setThisTag, tag: tag.tag, count: tag.count, key: tag.tag });
-    }.bind(this);
+    var makeTagButton = function makeTagButton(tag) {
+      return React.createElement(SheetTagButton, { setSheetTag: _this2.props.setSheetTag, tag: tag.tag, count: tag.count, key: tag.tag });
+    };
 
     var trendingTags = trendingTags ? trendingTags.slice(0, 6).map(makeTagButton) : [React.createElement(LoadingMessage, null)];
     var tagList = tagList ? tagList.map(makeTagButton) : [React.createElement(LoadingMessage, null)];
@@ -3714,12 +3715,16 @@ var SheetTagButton = React.createClass({
   propTypes: {
     tag: React.PropTypes.string.isRequired,
     count: React.PropTypes.number.isRequired,
-    onClick: React.PropTypes.func.isRequired
+    setSheetTag: React.PropTypes.func.isRequired
+  },
+  handleTagClick: function handleTagClick(e) {
+    e.preventDefault();
+    this.props.setSheetTag(this.props.tag);
   },
   render: function render() {
     return React.createElement(
-      'div',
-      { className: 'navButton', onClick: this.props.onClick },
+      'a',
+      { href: '/sheets/tag/' + this.props.tag, className: 'navButton', onClick: this.handleTagClick },
       this.props.tag,
       ' (',
       this.props.count,
@@ -3727,17 +3732,6 @@ var SheetTagButton = React.createClass({
     );
   }
 });
-var makeTagButton = function (tag) {
-  var setThisTag = this.props.setSheetTag.bind(null, tag.tag);
-  return React.createElement(
-    'div',
-    { className: 'navButton', onClick: setThisTag, key: tag.tag },
-    tag.tag,
-    ' (',
-    tag.count,
-    ')'
-  );
-}.bind(undefined);
 
 var MySheetsPage = React.createClass({
   displayName: 'MySheetsPage',
@@ -5907,7 +5901,7 @@ var LexiconEntry = React.createClass({
     );
   },
   renderLexiconEntrySenses: function renderLexiconEntrySenses(content) {
-    var _this2 = this;
+    var _this3 = this;
 
     var grammar = 'grammar' in content ? '(' + content['grammar']['verbal_stem'] + ')' : "";
     var def = 'definition' in content ? content['definition'] : "";
@@ -5917,7 +5911,7 @@ var LexiconEntry = React.createClass({
       content['notes']
     ) : "";
     var sensesElems = 'senses' in content ? content['senses'].map(function (sense) {
-      return _this2.renderLexiconEntrySenses(sense);
+      return _this3.renderLexiconEntrySenses(sense);
     }) : "";
     var senses = sensesElems.length ? React.createElement(
       'ol',
@@ -6837,10 +6831,10 @@ var SearchResultList = React.createClass({
     });
   },
   _abortRunningQueries: function _abortRunningQueries() {
-    var _this3 = this;
+    var _this4 = this;
 
     this.state.types.forEach(function (t) {
-      return _this3._abortRunningQuery(t);
+      return _this4._abortRunningQuery(t);
     });
   },
   _abortRunningQuery: function _abortRunningQuery(type) {
@@ -7027,18 +7021,18 @@ var SearchResultList = React.createClass({
     return newHits;
   },
   _buildFilterTree: function _buildFilterTree(aggregation_buckets) {
-    var _this4 = this;
+    var _this5 = this;
 
     //returns object w/ keys 'availableFilters', 'registry'
     //Add already applied filters w/ empty doc count?
     var rawTree = {};
 
     this.props.appliedFilters.forEach(function (fkey) {
-      return _this4._addAvailableFilter(rawTree, fkey, { "docCount": 0 });
+      return _this5._addAvailableFilter(rawTree, fkey, { "docCount": 0 });
     });
 
     aggregation_buckets.forEach(function (f) {
-      return _this4._addAvailableFilter(rawTree, f["key"], { "docCount": f["doc_count"] });
+      return _this5._addAvailableFilter(rawTree, f["key"], { "docCount": f["doc_count"] });
     });
     this._aggregate(rawTree);
     return this._build(rawTree);
@@ -7250,7 +7244,7 @@ var SearchResultList = React.createClass({
     this.setState({ "activeTab": "text" });
   },
   render: function render() {
-    var _this5 = this;
+    var _this6 = this;
 
     if (!this.props.query) {
       // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
@@ -7264,15 +7258,15 @@ var SearchResultList = React.createClass({
       results = this.state.hits.text.slice(0, this.state.displayedUntil["text"]).map(function (result) {
         return React.createElement(SearchTextResult, {
           data: result,
-          query: _this5.props.query,
+          query: _this6.props.query,
           key: result._id,
-          onResultClick: _this5.props.onResultClick });
+          onResultClick: _this6.props.onResultClick });
       });
     } else if (tab == "sheet") {
       results = this.state.hits.sheet.slice(0, this.state.displayedUntil["sheet"]).map(function (result) {
         return React.createElement(SearchSheetResult, {
           data: result,
-          query: _this5.props.query,
+          query: _this6.props.query,
           key: result._id });
       });
     }
