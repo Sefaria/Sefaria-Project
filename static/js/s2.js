@@ -1884,6 +1884,7 @@ var ReaderControls = React.createClass({
     }
 
     var versionTitle = this.props.version ? this.props.version.replace(/_/g, " ") : "";
+    var url = Sefaria.ref(title) ? "/" + Sefaria.normRef(Sefaria.ref(title).book) : Sefaria.normRef(title);
     var centerContent = connectionsHeader ? React.createElement(
       'div',
       { className: 'readerTextToc' },
@@ -1894,7 +1895,7 @@ var ReaderControls = React.createClass({
         toggleLanguage: this.props.toggleLanguage })
     ) : React.createElement(
       'a',
-      { href: "/" + Sefaria.normRef(title) },
+      { href: url },
       React.createElement(
         'div',
         { className: 'readerTextToc', onClick: this.openTextToc },
@@ -5397,6 +5398,7 @@ var TextList = React.createClass({
           message
         ),
         React.createElement(AllFilterSet, {
+          srefs: this.props.srefs,
           summary: summary,
           showText: this.props.showText,
           filter: this.props.filter,
@@ -5413,6 +5415,7 @@ var TextList = React.createClass({
           'div',
           { className: 'textListTop' },
           React.createElement(RecentFilterSet, {
+            srefs: this.props.srefs,
             asHeader: true,
             showText: this.props.showText,
             filter: this.props.filter,
@@ -5442,6 +5445,7 @@ var TextList = React.createClass({
             'div',
             { className: 'contentInner' },
             React.createElement(RecentFilterSet, {
+              srefs: this.props.srefs,
               asHeader: false,
               showText: this.props.showText,
               filter: this.props.filter,
@@ -5516,6 +5520,7 @@ var AllFilterSet = React.createClass({
   render: function render() {
     var categories = this.props.summary.map(function (cat, i) {
       return React.createElement(CategoryFilter, {
+        srefs: this.props.srefs,
         key: i,
         category: cat.category,
         heCategory: Sefaria.hebrewCategory(cat.category),
@@ -5538,7 +5543,8 @@ var AllFilterSet = React.createClass({
 var CategoryFilter = React.createClass({
   displayName: 'CategoryFilter',
 
-  handleClick: function handleClick() {
+  handleClick: function handleClick(e) {
+    e.preventDefault();
     this.props.setFilter(this.props.category, this.props.updateRecent);
     if (Sefaria.site) {
       Sefaria.site.track.event("Reader", "Category Filter Click", this.props.category);
@@ -5547,6 +5553,7 @@ var CategoryFilter = React.createClass({
   render: function render() {
     var textFilters = this.props.books.map(function (book, i) {
       return React.createElement(TextFilter, {
+        srefs: this.props.srefs,
         key: i,
         book: book.book,
         heBook: book.heBook,
@@ -5569,25 +5576,32 @@ var CategoryFilter = React.createClass({
       this.props.count
     );
     var handleClick = notClickable ? null : this.handleClick;
+    var url = this.props.srefs && this.props.srefs.length > 0 ? "/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + this.props.category : "";
+    var innerFilter = React.createElement(
+      'div',
+      { className: classes, onClick: handleClick },
+      React.createElement(
+        'span',
+        { className: 'en' },
+        this.props.category,
+        count
+      ),
+      React.createElement(
+        'span',
+        { className: 'he' },
+        this.props.heCategory,
+        count
+      )
+    );
+    var wrappedFilter = notClickable ? innerFilter : React.createElement(
+      'a',
+      { href: url },
+      innerFilter
+    );
     return React.createElement(
       'div',
       { className: 'categoryFilterGroup', style: style },
-      React.createElement(
-        'div',
-        { className: classes, onClick: handleClick },
-        React.createElement(
-          'span',
-          { className: 'en' },
-          this.props.category,
-          count
-        ),
-        React.createElement(
-          'span',
-          { className: 'he' },
-          this.props.heCategory,
-          count
-        )
-      ),
+      wrappedFilter,
       React.createElement(TwoBox, { content: textFilters })
     );
   }
@@ -5597,13 +5611,15 @@ var TextFilter = React.createClass({
   displayName: 'TextFilter',
 
   propTypes: {
+    srefs: React.PropTypes.array.isRequired,
     book: React.PropTypes.string.isRequired,
     heBook: React.PropTypes.string.isRequired,
     on: React.PropTypes.bool.isRequired,
     setFilter: React.PropTypes.func.isRequired,
     updateRecent: React.PropTypes.bool
   },
-  handleClick: function handleClick() {
+  handleClick: function handleClick(e) {
+    e.preventDefault();
     this.props.setFilter(this.props.book, this.props.updateRecent);
     if (Sefaria.site) {
       Sefaria.site.track.event("Reader", "Text Filter Click", this.props.book);
@@ -5624,26 +5640,31 @@ var TextFilter = React.createClass({
       this.props.count,
       ')'
     );
+    var url = this.props.srefs && this.props.srefs.length > 0 ? "/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + name : "";
     return React.createElement(
-      'div',
-      { 'data-name': name,
-        className: classes,
-        style: style,
-        onClick: this.handleClick },
+      'a',
+      { href: url },
       React.createElement(
         'div',
-        null,
+        { 'data-name': name,
+          className: classes,
+          style: style,
+          onClick: this.handleClick },
         React.createElement(
-          'span',
-          { className: 'en' },
-          name,
-          count
-        ),
-        React.createElement(
-          'span',
-          { className: 'he' },
-          this.props.heBook,
-          count
+          'div',
+          null,
+          React.createElement(
+            'span',
+            { className: 'en' },
+            name,
+            count
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            this.props.heBook,
+            count
+          )
         )
       )
     );
@@ -5654,6 +5675,7 @@ var RecentFilterSet = React.createClass({
   displayName: 'RecentFilterSet',
 
   propTypes: {
+    srefs: React.PropTypes.array.isRequired,
     filter: React.PropTypes.array.isRequired,
     recentFilters: React.PropTypes.array.isRequired,
     textCategory: React.PropTypes.string.isRequired,
@@ -5704,6 +5726,7 @@ var RecentFilterSet = React.createClass({
     }
     var topFilters = topLinks.map(function (book) {
       return React.createElement(TextFilter, {
+        srefs: this.props.srefs,
         key: book.book,
         book: book.book,
         heBook: book.heBook,

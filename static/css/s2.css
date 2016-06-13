@@ -2036,6 +2036,7 @@ h1 .languageToggle .he {
   font-size: 15px;
   cursor: pointer;
   line-height: 18px;
+  color: #333;
 }
 .textFilter {
   padding: 12px 4px;
@@ -2044,6 +2045,10 @@ h1 .languageToggle .he {
   line-height: 1.2;
   display: block;
   cursor: pointer;
+  color: #333;
+}
+.categoryFilterGroup a:hover {
+  text-decoration: none;
 }
 .categoryFilter.on, .textFilter.on {
   color: black;

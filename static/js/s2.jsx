@@ -1807,6 +1807,7 @@ var ReaderControls = React.createClass({
     }
 
     var versionTitle = this.props.version ? this.props.version.replace(/_/g," "):"";
+    var url = Sefaria.ref(title)?"/" + Sefaria.normRef(Sefaria.ref(title).book):Sefaria.normRef(title);
     var centerContent = connectionsHeader ?
       (<div className="readerTextToc">
           <ConnectionsPanelHeader
@@ -1815,7 +1816,7 @@ var ReaderControls = React.createClass({
             closePanel={this.props.closePanel}
             toggleLanguage={this.props.toggleLanguage} />
         </div>) :
-      (<a href={"/" + Sefaria.normRef(title)}>
+      (<a href={url}>
           <div className="readerTextToc" onClick={this.openTextToc}>
             { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
             <div className="readerTextTocBox">
@@ -4224,7 +4225,7 @@ var TextList = React.createClass({
   getInitialState: function() {
     return {
       linksLoaded: false,
-      textLoaded: false,
+      textLoaded: false
     }
   },
   componentDidMount: function() {
@@ -4453,6 +4454,7 @@ var TextList = React.createClass({
                   {message}
               </div>
               <AllFilterSet
+                srefs={this.props.srefs}
                 summary={summary}
                 showText={this.props.showText}
                 filter={this.props.filter}
@@ -4466,6 +4468,7 @@ var TextList = React.createClass({
             <div className={classes}>
               <div className="textListTop">
                 <RecentFilterSet
+                  srefs={this.props.srefs}
                   asHeader={true}
                   showText={this.props.showText}
                   filter={this.props.filter}
@@ -4486,6 +4489,7 @@ var TextList = React.createClass({
               <div className="texts">
                 <div className="contentInner">
                   <RecentFilterSet
+                    srefs={this.props.srefs}
                     asHeader={false}
                     showText={this.props.showText}
                     filter={this.props.filter}
@@ -4545,7 +4549,8 @@ var AllFilterSet = React.createClass({
   render: function() {
     var categories = this.props.summary.map(function(cat, i) {
       return (
-        <CategoryFilter 
+        <CategoryFilter
+          srefs={this.props.srefs}
           key={i}
           category={cat.category}
           heCategory={Sefaria.hebrewCategory(cat.category)}
@@ -4568,14 +4573,16 @@ var AllFilterSet = React.createClass({
 
 
 var CategoryFilter = React.createClass({
-  handleClick: function() {
+  handleClick: function(e) {
+    e.preventDefault();
     this.props.setFilter(this.props.category, this.props.updateRecent);
     if (Sefaria.site) { Sefaria.site.track.event("Reader", "Category Filter Click", this.props.category); }
   },
   render: function() {
     var textFilters = this.props.books.map(function(book, i) {
      return (<TextFilter 
-                key={i} 
+                srefs={this.props.srefs}
+                key={i}
                 book={book.book}
                 heBook={book.heBook} 
                 count={book.count}
@@ -4592,12 +4599,15 @@ var CategoryFilter = React.createClass({
     var classes      = classNames({categoryFilter: 1, on: this.props.on, notClickable: notClickable});
     var count        = notClickable ? null : (<span className="enInHe"> | {this.props.count}</span>);
     var handleClick  = notClickable ? null : this.handleClick;
+    var url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + this.props.category:"";
+    var innerFilter = (<div className={classes} onClick={handleClick}>
+            <span className="en">{this.props.category}{count}</span>
+            <span className="he">{this.props.heCategory}{count}</span>
+          </div>);
+    var wrappedFilter = notClickable ? innerFilter : <a href={url}>{innerFilter}</a>;
     return (
       <div className="categoryFilterGroup" style={style}>
-        <div className={classes} onClick={handleClick}>
-          <span className="en">{this.props.category}{count}</span>
-          <span className="he">{this.props.heCategory}{count}</span>
-        </div>
+        {wrappedFilter}
         <TwoBox content={ textFilters } />
       </div>
     );
@@ -4607,13 +4617,15 @@ var CategoryFilter = React.createClass({
 
 var TextFilter = React.createClass({
   propTypes: {
+    srefs:        React.PropTypes.array.isRequired,
     book:         React.PropTypes.string.isRequired,
     heBook:       React.PropTypes.string.isRequired,
     on:           React.PropTypes.bool.isRequired,
     setFilter:    React.PropTypes.func.isRequired,
-    updateRecent: React.PropTypes.bool,
+    updateRecent: React.PropTypes.bool
   },
-  handleClick: function() {
+  handleClick: function(e) {
+    e.preventDefault();
     this.props.setFilter(this.props.book, this.props.updateRecent);
     if (Sefaria.site) { Sefaria.site.track.event("Reader", "Text Filter Click", this.props.book); }
   },
@@ -4621,21 +4633,24 @@ var TextFilter = React.createClass({
     var classes = classNames({textFilter: 1, on: this.props.on, lowlight: this.props.count == 0});
 
     if (!this.props.hideColors) {
-      var color = Sefaria.palette.categoryColor(this.props.category)
+      var color = Sefaria.palette.categoryColor(this.props.category);
       var style = {"borderTop": "4px solid " + color};
     }
     var name = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
     var count = this.props.hideCounts || !this.props.count ? "" : ( <span className="enInHe"> ({this.props.count})</span>);
+    var url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + name:"";
     return (
-      <div data-name={name}
-        className={classes} 
-        style={style}
-        onClick={this.handleClick}>
-          <div>  
-            <span className="en">{name}{count}</span>
-            <span className="he">{this.props.heBook}{count}</span>
-          </div>
-      </div>
+      <a href={url}>
+        <div data-name={name}
+          className={classes}
+          style={style}
+          onClick={this.handleClick}>
+            <div>
+              <span className="en">{name}{count}</span>
+              <span className="he">{this.props.heBook}{count}</span>
+            </div>
+        </div>
+      </a>
     );
   }
 });
@@ -4643,6 +4658,7 @@ var TextFilter = React.createClass({
 
 var RecentFilterSet = React.createClass({
   propTypes: {
+    srefs:          React.PropTypes.array.isRequired,
     filter:         React.PropTypes.array.isRequired,
     recentFilters:  React.PropTypes.array.isRequired,
     textCategory:   React.PropTypes.string.isRequired,
@@ -4691,7 +4707,8 @@ var RecentFilterSet = React.createClass({
       }        
     }
     var topFilters = topLinks.map(function(book) {
-     return (<TextFilter 
+     return (<TextFilter
+                srefs={this.props.srefs}
                 key={book.book} 
                 book={book.book}
                 heBook={book.heBook}
