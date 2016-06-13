@@ -853,7 +853,7 @@ Sefaria = extend(Sefaria, {
     if (commentaryList.length) {
       var commentaryHtml = "<div class='altStruct' style='display:none'>" + 
                               commentaryList.map(function(item) {
-                                  return "<a class='refLink' data-ref='" + item.firstSection + "'>" + 
+                                  return "<a class='refLink' href='" + Sefaria.normRef(item.firstSection) + "' data-ref='" + item.firstSection + "'>" +
                                             "<span class='en'>" + item.commentator + "</span>" +
                                             "<span class='he'>" + item.heCommentator + "</span>" +
                                           "</a>";
