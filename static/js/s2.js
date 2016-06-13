@@ -1067,7 +1067,8 @@ var Header = React.createClass({
   clearSearchBox: function clearSearchBox() {
     $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
   },
-  handleLibraryClick: function handleLibraryClick() {
+  handleLibraryClick: function handleLibraryClick(e) {
+    e.preventDefault();
     if (this.props.headerMode) {
       window.location = "/texts";
       return;
@@ -1166,6 +1167,8 @@ var Header = React.createClass({
         )
       )
     );
+    var showLibraryLink = this.props.headerMode || this.state.menuOpen !== "navigation" || this.state.navigationCategories.length != 0;
+
     return React.createElement(
       'div',
       { className: 'header' },
@@ -1175,7 +1178,15 @@ var Header = React.createClass({
         React.createElement(
           'div',
           { className: 'left' },
-          React.createElement(
+          showLibraryLink ? React.createElement(
+            'a',
+            { href: '/texts' },
+            React.createElement(
+              'div',
+              { className: 'library', onClick: this.handleLibraryClick },
+              React.createElement('i', { className: 'fa fa-bars' })
+            )
+          ) : React.createElement(
             'div',
             { className: 'library', onClick: this.handleLibraryClick },
             React.createElement('i', { className: 'fa fa-bars' })
@@ -2086,6 +2097,7 @@ var ReaderNavigationMenu = React.createClass({
     return recentlyViewed;
   },
   handleClick: function handleClick(event) {
+    event.preventDefault();
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
       var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
       var pos = $(event.target).attr("data-position") || $(event.target).parent().attr("data-position");
@@ -2142,25 +2154,29 @@ var ReaderNavigationMenu = React.createClass({
       var categories = ["Tanakh", "Mishnah", "Talmud", "Midrash", "Halakhah", "Kabbalah", "Liturgy", "Philosophy", "Tosefta", "Chasidut", "Musar", "Responsa", "Apocrypha", "Other"];
       categories = categories.map(function (cat) {
         var style = { "borderColor": Sefaria.palette.categoryColor(cat) };
-        var openCat = function () {
-          this.props.setCategories([cat]);
+        var openCat = function (e) {
+          e.preventDefault();this.props.setCategories([cat]);
         }.bind(this);
         var heCat = Sefaria.hebrewCategory(cat);
         return React.createElement(
-          'div',
-          { className: 'readerNavCategory', 'data-cat': cat, style: style, onClick: openCat },
+          'a',
+          { href: '/texts/' + cat },
           React.createElement(
-            'span',
-            { className: 'en' },
-            cat
-          ),
-          React.createElement(
-            'span',
-            { className: 'he' },
-            heCat
+            'div',
+            { className: 'readerNavCategory', 'data-cat': cat, style: style, onClick: openCat },
+            React.createElement(
+              'span',
+              { className: 'en' },
+              cat
+            ),
+            React.createElement(
+              'span',
+              { className: 'he' },
+              heCat
+            )
           )
         );
-      }.bind(this));;
+      }.bind(this));
       var more = React.createElement(
         'div',
         { className: 'readerNavCategory readerNavMore', style: { "borderColor": Sefaria.palette.colors.darkblue }, onClick: this.showMore },
@@ -2471,9 +2487,10 @@ var TextBlockLink = React.createClass({
 
     var position = this.props.position || 0;
     var classes = classNames({ refLink: 1, blockLink: 1, recentItem: this.props.recentItem });
+    var url = "/" + Sefaria.normRef(this.props.sref) + (this.props.version ? '/' + this.props.versionLanguage + '/' + this.props.version : "");
     return React.createElement(
       'a',
-      { className: classes, 'data-ref': this.props.sref, 'data-version': this.props.version, 'data-versionlanguage': this.props.versionLanguage, 'data-position': position, style: style },
+      { href: url, className: classes, 'data-ref': this.props.sref, 'data-version': this.props.version, 'data-versionlanguage': this.props.versionLanguage, 'data-position': position, style: style },
       React.createElement(
         'span',
         { className: 'en' },
@@ -2698,18 +2715,23 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
         // Special Case categories which should nest
         var subcats = ["Mishneh Torah", "Shulchan Arukh", "Midrash Rabbah", "Maharal"];
         if (Sefaria.util.inArray(item.category, subcats) > -1) {
+          url = "/texts/" + newCats.join("/");
           content.push(React.createElement(
-            'span',
-            { className: 'catLink', 'data-cats': newCats.join("|"), key: i },
+            'a',
+            { href: url },
             React.createElement(
               'span',
-              { className: 'en' },
-              item.category
-            ),
-            React.createElement(
-              'span',
-              { className: 'he' },
-              Sefaria.hebrewCategory(item.category)
+              { className: 'catLink', 'data-cats': newCats.join("|"), key: i },
+              React.createElement(
+                'span',
+                { className: 'en' },
+                item.category
+              ),
+              React.createElement(
+                'span',
+                { className: 'he' },
+                Sefaria.hebrewCategory(item.category)
+              )
             )
           ));
           continue;
@@ -2738,18 +2760,23 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
         // Add a Text
         var title = item.title.replace(/(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud) /, "");
         var heTitle = item.heTitle.replace(/(משנה תורה,|תלמוד ירושלמי) /, "");
+        var url = "/" + Sefaria.normRef(item.firstSection);
         content.push(React.createElement(
-          'span',
-          { className: 'refLink sparse' + item.sparseness, 'data-ref': item.firstSection, key: i },
+          'a',
+          { href: url },
           React.createElement(
             'span',
-            { className: 'en' },
-            title
-          ),
-          React.createElement(
-            'span',
-            { className: 'he' },
-            heTitle
+            { className: 'refLink sparse' + item.sparseness, 'data-ref': item.firstSection, key: i },
+            React.createElement(
+              'span',
+              { className: 'en' },
+              title
+            ),
+            React.createElement(
+              'span',
+              { className: 'he' },
+              heTitle
+            )
           )
         ));
       }
@@ -2757,7 +2784,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
     var boxedContent = [];
     var currentRun = [];
     for (var i = 0; i < content.length; i++) {
-      // Walk through content looking for runs of spans to group together into a table
+      // Walk through content looking for runs of texts/subcats to group together into a table
       if (content[i].type == "div") {
         // this is a subcategory
         if (currentRun.length) {
@@ -2765,7 +2792,7 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
           currentRun = [];
         }
         boxedContent.push(content[i]);
-      } else if (content[i].type == "span") {
+      } else {
         // this is a single text
         currentRun.push(content[i]);
       }

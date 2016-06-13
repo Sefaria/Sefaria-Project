@@ -635,6 +635,12 @@ h1 .languageToggle .he {
 .readerNavCategories .threeBox td {
   border: none;
 }
+.readerNavCategories a {
+  color: #333;
+}
+.readerNavCategories a:hover {
+  text-decoration: none;
+}
 .readerNavCategory {
   background-color: white;
   text-transform: uppercase;

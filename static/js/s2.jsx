@@ -279,7 +279,7 @@ var ReaderApp = React.createClass({
     for (var i = 0; i < panels.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
       states[i] = this.clonePanel(panels[i], true);
-      if (!states[i]) { debugger }
+      if (!states[i]) { debugger; }
       var state = states[i];
       var hist  = {url: ""};
     
@@ -1058,7 +1058,8 @@ var Header = React.createClass({
   clearSearchBox: function() {
     $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
   },
-  handleLibraryClick: function() {
+  handleLibraryClick: function(e) {
+    e.preventDefault();
     if (this.props.headerMode) {
       window.location = "/texts";
       return;
@@ -1127,10 +1128,14 @@ var Header = React.createClass({
                              <span className="he">כניסה</span>
                            </a>
                          </div>);
+    var showLibraryLink = (this.props.headerMode || this.state.menuOpen !== "navigation" || this.state.navigationCategories.length != 0);
+
     return (<div className="header">
               <div className="headerInner">
                 <div className="left">
-                  <div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div>
+                    {showLibraryLink
+                        ? <a href="/texts"><div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div></a>
+                        : <div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div>}
                 </div>
                 <div className="right">
                   <div className="testWarning" onClick={this.showTestMessage} >You are testing the New Sefaria</div>
@@ -1995,6 +2000,7 @@ var ReaderNavigationMenu = React.createClass({
     return recentlyViewed;
   },
   handleClick: function(event) {
+    event.preventDefault();
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
       var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
       var pos = $(event.target).attr("data-position") || $(event.target).parent().attr("data-position");
@@ -2060,13 +2066,15 @@ var ReaderNavigationMenu = React.createClass({
       ];
       categories = categories.map(function(cat) {
         var style = {"borderColor": Sefaria.palette.categoryColor(cat)};
-        var openCat = function() {this.props.setCategories([cat])}.bind(this);
+        var openCat = function(e) {e.preventDefault(); this.props.setCategories([cat])}.bind(this);
         var heCat   = Sefaria.hebrewCategory(cat);
-        return (<div className="readerNavCategory" data-cat={cat} style={style} onClick={openCat}>
-                  <span className="en">{cat}</span>
-                  <span className="he">{heCat}</span>
-                </div>);
-      }.bind(this));;
+        return (<a href={`/texts/${cat}`}>
+                  <div className="readerNavCategory" data-cat={cat} style={style} onClick={openCat}>
+                    <span className="en">{cat}</span>
+                    <span className="he">{heCat}</span>
+                  </div>
+                </a>);
+      }.bind(this));
       var more = (<div className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.showMore}>
                       <span className="en">More <img src="/static/img/arrow-right.png" /></span>
                       <span className="he">עוד <img src="/static/img/arrow-left.png" /></span>
@@ -2236,7 +2244,8 @@ var TextBlockLink = React.createClass({
 
     var position = this.props.position || 0;
     var classes  = classNames({refLink: 1, blockLink: 1, recentItem: this.props.recentItem});
-    return (<a className={classes} data-ref={this.props.sref} data-version={this.props.version} data-versionlanguage={this.props.versionLanguage} data-position={position} style={style}>
+    var url      = "/" + Sefaria.normRef(this.props.sref) + (this.props.version?`/${this.props.versionLanguage}/${this.props.version}`:"");
+    return (<a href={url} className={classes} data-ref={this.props.sref} data-version={this.props.version} data-versionlanguage={this.props.versionLanguage} data-position={position} style={style}>
               <span className="en">{title}</span>
               <span className="he">{heTitle}</span>
              </a>);
@@ -2365,10 +2374,13 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
           // Special Case categories which should nest
           var subcats = [ "Mishneh Torah", "Shulchan Arukh", "Midrash Rabbah", "Maharal" ];
           if (Sefaria.util.inArray(item.category, subcats) > -1) {
-            content.push((<span className="catLink" data-cats={newCats.join("|")} key={i}>
-                           <span className='en'>{item.category}</span>
-                           <span className='he'>{Sefaria.hebrewCategory(item.category)}</span>
-                          </span>));
+            url = "/texts/" + newCats.join("/");
+            content.push((<a href={url}>
+                            <span className="catLink" data-cats={newCats.join("|")} key={i}>
+                              <span className='en'>{item.category}</span>
+                              <span className='he'>{Sefaria.hebrewCategory(item.category)}</span>
+                            </span>
+                          </a>));
             continue;
           }
           // Add a Category
@@ -2383,23 +2395,26 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
           // Add a Text
           var title   = item.title.replace(/(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud) /, "");
           var heTitle = item.heTitle.replace(/(משנה תורה,|תלמוד ירושלמי) /, "");
-          content.push((<span className={'refLink sparse' + item.sparseness} data-ref={item.firstSection} key={i}> 
-                          <span className='en'>{title}</span>
-                          <span className='he'>{heTitle}</span>
-                        </span>));
+          var url     = "/" + Sefaria.normRef(item.firstSection);
+          content.push((<a href={url}>
+                          <span className={'refLink sparse' + item.sparseness} data-ref={item.firstSection} key={i}>
+                            <span className='en'>{title}</span>
+                            <span className='he'>{heTitle}</span>
+                          </span>
+                        </a>));
         }
       }
       var boxedContent = [];
       var currentRun   = [];
       for (var i = 0; i < content.length; i++) {
-        // Walk through content looking for runs of spans to group together into a table
+        // Walk through content looking for runs of texts/subcats to group together into a table
         if (content[i].type == "div") { // this is a subcategory
           if (currentRun.length) {
             boxedContent.push((<TwoOrThreeBox content={currentRun} width={this.props.width} key={i} />));
             currentRun = [];
           }
           boxedContent.push(content[i]);
-        } else if (content[i].type == "span") { // this is a single text
+        } else  { // this is a single text
           currentRun.push(content[i]);
         }
       }
