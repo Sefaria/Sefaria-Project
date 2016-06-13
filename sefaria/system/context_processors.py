@@ -7,6 +7,7 @@ from sefaria.settings import *
 from sefaria.model import library, NotificationSet
 from sefaria.model.user_profile import UserProfile, unread_notifications_count_for_user
 from sefaria.utils import calendars
+from reader.views import render_react_component
 
 
 def global_settings(request):
@@ -78,6 +79,22 @@ def notifications(request):
             "notifications_html": notifications.to_HTML(),
             "notifications_count": unread_count
             }
+
+
+LOGGED_OUT_HEADER = None
+LOGGED_IN_HEADER  = None
+def header_html(request):
+    """
+    Uses React to prerender a logged in and and logged out header for use in pages that extend `base.html`.
+    Cached in memory -- restarting Django is necessary for catch any HTML changes to header.
+    """
+    global LOGGED_OUT_HEADER, LOGGED_IN_HEADER
+    LOGGED_OUT_HEADER = LOGGED_OUT_HEADER or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": False})
+    LOGGED_IN_HEADER = LOGGED_IN_HEADER or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": True})
+    return {
+        "logged_in_header": LOGGED_IN_HEADER,
+        "logged_out_header": LOGGED_OUT_HEADER,
+    }
 
 
 def calendar_links(request):

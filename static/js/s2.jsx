@@ -1145,7 +1145,7 @@ var Header = React.createClass({
                   <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                   <input className="search" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
                 </span>
-                <a className="home" href="/?home" ><img src="/static/img/sefaria-on-white.png" /></a>
+                <a className="home" href="/?home" ><img src="/static/img/sefaria.svg" /></a>
               </div>
               { viewContent ? 
                 (<div className="headerNavContent">

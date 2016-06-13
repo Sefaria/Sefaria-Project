@@ -1211,7 +1211,7 @@ var Header = React.createClass({
         React.createElement(
           'a',
           { className: 'home', href: '/?home' },
-          React.createElement('img', { src: '/static/img/sefaria-on-white.png' })
+          React.createElement('img', { src: '/static/img/sefaria.svg' })
         )
       ),
       viewContent ? React.createElement(
