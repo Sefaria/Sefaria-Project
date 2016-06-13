@@ -196,6 +196,7 @@ var ReaderApp = React.createClass({
       if (Sefaria.site) { Sefaria.site.track.event("Reader", "Pop State", kind); }
       this.justPopped = true;
       this.setState(state);
+      this.setContainerMode();
     }
   },
   shouldHistoryUpdate: function() {
@@ -1000,7 +1001,7 @@ var Header = React.createClass({
     this.clearSearchBox();
   },
   showSearch: function(query) {
-    if (this.props.headerMode) {
+    if (typeof sjs !== "undefined") {
       query = encodeURIComponent(query);
       window.location = `/search?q=${query}`;
       return;
@@ -1009,7 +1010,7 @@ var Header = React.createClass({
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   },
   showAccount: function() {
-    if (this.props.headerMode) {
+    if (typeof sjs !== "undefined") {
       window.location = "/account";
       return;
     }
@@ -1017,7 +1018,7 @@ var Header = React.createClass({
     this.clearSearchBox();
   },
   showNotifications: function() {
-    if (this.props.headerMode) {
+    if (typeof sjs !== "undefined") {
       window.location = "/notifications";
       return;
     }
@@ -1060,7 +1061,7 @@ var Header = React.createClass({
   },
   handleLibraryClick: function(e) {
     e.preventDefault();
-    if (this.props.headerMode) {
+    if (typeof sjs !== "undefined") {
       window.location = "/texts";
       return;
     }
@@ -1128,14 +1129,11 @@ var Header = React.createClass({
                              <span className="he">כניסה</span>
                            </a>
                          </div>);
-    var showLibraryLink = (this.props.headerMode || this.state.menuOpen !== "navigation" || this.state.navigationCategories.length != 0);
 
     return (<div className="header">
               <div className="headerInner">
                 <div className="left">
-                    {showLibraryLink
-                        ? <a href="/texts"><div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div></a>
-                        : <div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div>}
+                  <a href="/texts"><div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div></a>
                 </div>
                 <div className="right">
                   <div className="testWarning" onClick={this.showTestMessage} >You are testing the New Sefaria</div>

@@ -203,6 +203,7 @@ var ReaderApp = React.createClass({
       }
       this.justPopped = true;
       this.setState(state);
+      this.setContainerMode();
     }
   },
   shouldHistoryUpdate: function shouldHistoryUpdate() {
@@ -1005,7 +1006,7 @@ var Header = React.createClass({
     this.clearSearchBox();
   },
   showSearch: function showSearch(query) {
-    if (this.props.headerMode) {
+    if (typeof sjs !== "undefined") {
       query = encodeURIComponent(query);
       window.location = '/search?q=' + query;
       return;
@@ -1014,7 +1015,7 @@ var Header = React.createClass({
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   },
   showAccount: function showAccount() {
-    if (this.props.headerMode) {
+    if (typeof sjs !== "undefined") {
       window.location = "/account";
       return;
     }
@@ -1022,7 +1023,7 @@ var Header = React.createClass({
     this.clearSearchBox();
   },
   showNotifications: function showNotifications() {
-    if (this.props.headerMode) {
+    if (typeof sjs !== "undefined") {
       window.location = "/notifications";
       return;
     }
@@ -1069,7 +1070,7 @@ var Header = React.createClass({
   },
   handleLibraryClick: function handleLibraryClick(e) {
     e.preventDefault();
-    if (this.props.headerMode) {
+    if (typeof sjs !== "undefined") {
       window.location = "/texts";
       return;
     }
@@ -1167,7 +1168,6 @@ var Header = React.createClass({
         )
       )
     );
-    var showLibraryLink = this.props.headerMode || this.state.menuOpen !== "navigation" || this.state.navigationCategories.length != 0;
 
     return React.createElement(
       'div',
@@ -1178,7 +1178,7 @@ var Header = React.createClass({
         React.createElement(
           'div',
           { className: 'left' },
-          showLibraryLink ? React.createElement(
+          React.createElement(
             'a',
             { href: '/texts' },
             React.createElement(
@@ -1186,10 +1186,6 @@ var Header = React.createClass({
               { className: 'library', onClick: this.handleLibraryClick },
               React.createElement('i', { className: 'fa fa-bars' })
             )
-          ) : React.createElement(
-            'div',
-            { className: 'library', onClick: this.handleLibraryClick },
-            React.createElement('i', { className: 'fa fa-bars' })
           )
         ),
         React.createElement(

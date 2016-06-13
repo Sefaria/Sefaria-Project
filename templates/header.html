@@ -1,9 +1,11 @@
 {% if S2 or request.flavour == "mobile" %}
+	{% autoescape off %}
 	{% if request.user.is_authenticated %}
 	<div id="s2" class="headerOnly">{{ logged_in_header }}</div>
 	{% else %}
 	<div id="s2" class="headerOnly">{{ logged_out_header }}</div>
 	{% endif %}
+	{% endautoescape %}
 {% else %}
 
 {% load sefaria_tags %}

@@ -2477,6 +2477,9 @@ h1 .languageToggle .he {
   box-sizing: border-box;
   line-height: 1;
 }
+a.button {
+  color: white;
+}
 .button:hover {
   color: white;
   text-decoration: none;
@@ -2485,6 +2488,9 @@ h1 .languageToggle .he {
   background-color: white;
   color: #333;
   border: 1px solid #ccc;
+}
+a.button.white {
+  color: #333;
 }
 .button.white:hover {
 
