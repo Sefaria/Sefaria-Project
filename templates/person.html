@@ -26,40 +26,26 @@
             <span class='he'>{{ primary_name.he }}</span>
         </h1>
         {% if time_period_name.en or time_period_name.he %}
-            <div id="periodNameLine">
+            <h2 id="periodNameLine">
                 <span class='en'>{{ time_period_name.en }}</span>
                 <span class='he'>{{ time_period_name.he }}</span>
-            </div>
+            </h2>
         {% endif %}
-        <div id="yearLine">
+        <h2 id="yearLine">
             <span class='en'>{{ time_period.en }}</span>
             <span class='he'>{{ time_period.he }}</span>
-        </div>
-    </div>
-    {% if post_talmudic %}
-        <a href="/people" id="textTocLink">
-            <span class='en'>&laquo; All Authors</span>
-            <span class='he'>&laquo; כל המחברים</span>
-        </a>
-    {% else %}
-        <a href="/people/Talmud" id="textTocLink">
-            <span class='en'>&laquo; People in the Talmud</span>
-            <span class='he'>&laquo; אנשים בתלמוד</span>
-        </a>
-    {% endif %}
-    <div class="row static-text">
-        <div class="main-text">
+        </h2>
+        <div class="section">
             {% if enBio or heBio %}
             <p id="bio">
                 <span class='en'>{{ enBio }}</span>
                 <span class='he'>{{ heBio }}</span>
             </p>
             {% endif %}
-        </span>
-    </div>
-    <div class="additional-text">
-        <span id="person-text-column">
-           <div id="external_links">
+        </div>
+
+        <div class="section">
+            <div id="external_links">
                 <h3>
                     <span class='en'>Learn More</span>
                     <span class='he'>להרחבה</span>
@@ -115,16 +101,16 @@
                 {% endfor %}
             </div>
             {% endif %}
-        </span>
-        <span id="person-graphic-column">
-            <h3>
-                <span class='en'>Map</span>
-                <span class='he'>מפה</span>
-            </h3>
-            {% if places %}
-                <div id="place-map"></div>
-            {% endif %}
-        </span>
+            <div id="person-graphic-column">
+                <h3>
+                    <span class='en'>Map</span>
+                    <span class='he'>מפה</span>
+                </h3>
+                {% if places %}
+                    <div id="place-map"></div>
+                {% endif %}
+            </div>
+        </div>
     </div>
 </div>
 

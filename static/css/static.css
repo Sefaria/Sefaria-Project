@@ -989,10 +989,21 @@
   color: #333;
   background-color: white;
 }
+#personPage h1{
+  margin-bottom: 40px;
+}
+#personPage h2{
+  text-align: center;
+  border-bottom: none;
+  margin-bottom: 40px;
+}
 #personPage p{
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 20px;
   line-height: 1.1em;
+}
+#personPage #bio{
+  color: #666;
 }
 #peoplePage .authors-row{
   display: flex;
