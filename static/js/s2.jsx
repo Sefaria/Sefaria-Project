@@ -167,6 +167,9 @@ var ReaderApp = React.createClass({
     window.addEventListener("resize", this.setPanelCap);
     window.addEventListener("beforeunload", this.saveOpenPanelsToRecentlyViewed);
     this.setPanelCap();
+    if (this.props.headerMode) {
+      $(".inAppLink").on("click", this.handleInAppLinkClick);
+    }
     // Set S2 cookie, putting user into S2 mode site wide
     cookie("s2", true, {path: "/"});
   },
@@ -556,6 +559,17 @@ var ReaderApp = React.createClass({
     this.saveOpenPanelsToRecentlyViewed();
     this.replacePanel(n, ref, version, versionLanguage);
   },
+  handleInAppLinkClick: function(e) {
+    e.preventDefault();
+    var path = $(e.currentTarget).attr("href").slice(1);
+    if (path == "texts") {
+      this.showLibrary();
+    } else if (path == "sheets") {
+      this.showSheets();
+    } else if (Sefaria.isRef(path)) {
+      this.openPanel(Sefaria.humanRef(path));
+    }
+  },
   updateQueryInHeader: function(query) {
     var updates = {searchQuery: query, searchFiltersValid:  false};
     this.setHeaderState(updates);
@@ -823,6 +837,14 @@ var ReaderApp = React.createClass({
       this.setPanelState(0, updates);
     }
   },
+  showSheets: function() {
+    var updates = {menuOpen: "sheets"};
+    if (this.props.multiPanel) {
+      this.setHeaderState(updates);
+    } else {
+      this.setPanelState(0, updates);
+    }
+  },
   saveRecentlyViewed: function(panel, n) {
     if (panel.mode == "Connections" || !panel.refs.length) { return; }
     var ref  = panel.refs[0];
@@ -855,6 +877,8 @@ var ReaderApp = React.createClass({
     if (panelStates.length && panelStates[0].mode === "Connections") {
       panelStates = panelStates.slice(1); // Don't leave an orphaned connections panel at the beginning
     }
+
+    var panelStates = this.state.panels;
 
     var evenWidth = 100.0/panelStates.length;
     if (panelStates.length == 2 && panelStates[0].mode == "Text" && panelStates[1].mode == "Connections") {
@@ -903,7 +927,8 @@ var ReaderApp = React.createClass({
       var title = oref && oref.book ? oref.book : 0;
       // Keys must be constant as text scrolls, but changing as new panels open in new positions
       // Use a combination of the panel number and text title
-      var key   = i + title;
+      var offset = this.state.panelCap - panelStates.length;
+      var key   = (i+offset) + title;
       var classes = classNames({readerPanelBox: 1, sidebar: panel.mode == "Connections"})
       panels.push(<div className={classes} style={style} key={key}>
                     <ReaderPanel 

@@ -52,9 +52,9 @@
 					<div class="optionItem" id="deleteSheet">
 						<img src="/static/img/delete.png"> Delete Sheet</div>
 					{% endif %}
-					<div class="line"></div>
 
 					{% if user.email %}
+					<div class="line"></div>
 					<div class="optionItem" id="editTags">
 						<img src="/static/img/edittags.png"> Edit Sheet Tags</div>
 					{% endif %}
@@ -244,7 +244,7 @@
 	<div id="fileControls">
 
         <div id="fileControlMsg">
-                Take a spin! But you'll need to <a href="/login?next=/sheets/new">login</a> or <a href="/register?next=/sheets/new">register</a> to save your work.
+                Like this? <a href="/login?next=/sheets/new">Login</a> or <a href="/register?next=/sheets/new">register</a> to create your own source sheet.
         </div>
 	</div>
 	{% endif %}

@@ -189,7 +189,7 @@
   font-family: "adobe-garamond-pro", Georgia, serif;  
 }
 #homePage .he {
-
+  font-family: "Taamey Frank", "Times New Roman", serif;
 }
 #homePage .button .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -300,7 +300,14 @@
   color:  #666;
 }
 #homePage .description {
-  margin: 26px 0 34px;
+  margin: 26px 0 34px 0;
+  color: #999;
+  font-size: 17px;
+  font-style: italic;
+  line-height: 1.2;
+}
+#homePage .dedication {
+  margin: -12px 0 34px;
   color: #999;
   font-size: 17px;
   font-style: italic;
@@ -667,18 +674,6 @@
   font-size: 14px;
   font-style: normal;
 }*/
-.registrationContent .recaptcha_widget_div{
-  transform:scale(0.68);
-  -webkit-transform:scale(0.68);
-  transform-origin:0 0;
-  -webkit-transform-origin:0 0;
-  margin-bottom: -50px;
-}
-/*@media screen and (max-height: 575px){
-#rc-imageselect, .g-recaptcha {
-
-}
-}*/
 #visualizationsPage {
   text-align: left;
 }
@@ -808,6 +803,7 @@
   margin-bottom: 35px;
   padding-bottom: 35px;
   display: flex;
+  display: -webkit-flex
 }
 #teamPage .teamBoardMember{
   border-bottom: none;
@@ -993,13 +989,25 @@
   color: #333;
   background-color: white;
 }
+#personPage h1{
+  margin-bottom: 40px;
+}
+#personPage h2{
+  text-align: center;
+  border-bottom: none;
+  margin-bottom: 40px;
+}
 #personPage p{
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 20px;
   line-height: 1.1em;
 }
+#personPage #bio{
+  color: #666;
+}
 #peoplePage .authors-row{
   display: flex;
+  display: -webkit-flex
 }
 #peoplePage .author a, #talmudicPeoplePage .author a, #personPage a{
   color: #666;
@@ -1170,12 +1178,13 @@ footer .section.last {
   padding: 20px 0 20px 0;
   margin: 0;
   display: flex;
+  display: -webkit-flex
   justify-content: space-between;
+  -webkit-justify-content:space-between;
 }
 #translationRequestsPage .translationRequest > div{
   all: initial;
 }
-
 #translationRequestsPage .translationRequest .requestRank,
 #translationRequestsPage .translationRequest .requestText,
 #translationRequestsPage .translationRequest .requestCountBox{
@@ -1205,7 +1214,6 @@ footer .section.last {
   width: 100%;
   line-height: 5px;
 }
-
 #translationRequestsPage .translationRequest .requestText .requestCompleter span{
   font-size: 0.8em;
 }
@@ -1222,5 +1230,14 @@ footer .section.last {
     display: inline;
     vertical-align: middle;
 }
-
-
+#metricsPage .chart {
+  margin-bottom: 80px;
+  border: 1px solid #ddd;
+}
+#metricsPage .chartLabel {
+  text-align: center;
+  display: block;
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
