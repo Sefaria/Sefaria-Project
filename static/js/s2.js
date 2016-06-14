@@ -314,9 +314,15 @@ var ReaderApp = React.createClass({
             break;
           case "sheets":
             if (states[i].navigationSheetTag) {
-              hist.url = "sheets/tags/" + state.navigationSheetTag;
-              hist.title = state.navigationSheetTag + " | Sefaria Source Sheets";
-              hist.mode = "sheets tag";
+              if (states[i].navigationSheetTag == "My Sheets") {
+                hist.url = "sheets/private";
+                hist.title = "My Sheets | Sefaria Source Sheets";
+                hist.mode = "sheets tag";
+              } else {
+                hist.url = "sheets/tags/" + state.navigationSheetTag;
+                hist.title = state.navigationSheetTag + " | Sefaria Source Sheets";
+                hist.mode = "sheets tag";
+              }
             } else {
               hist.url = "sheets";
               hist.title = "Sefaria Source Sheets";
@@ -3284,8 +3290,8 @@ var SheetsNav = React.createClass({
     this.setState({ width: $(ReactDOM.findDOMNode(this)).width() });
   },
   componentWillReceiveProps: function componentWillReceiveProps(nextProps) {},
-  changeSort: function changeSort(event) {
-    this.props.setSheetTagSort(event.target.value);
+  changeSort: function changeSort(sort) {
+    this.props.setSheetTagSort(sort);
     //Sefaria.sheets.tagList(this.loadTags, event.target.value);
   },
   render: function render() {
@@ -3399,15 +3405,42 @@ var SheetsHomePage = React.createClass({
   showAllSheets: function showAllSheets() {
     this.props.setSheetTag("All Sheets");
   },
-  changeSort: function changeSort(event) {
-    this.props.setSheetTagSort(event.target.value);
+  changeSort: function changeSort(sort) {
+    this.props.setSheetTagSort(sort);
   },
+  _type_sheet_button: function _type_sheet_button(en, he, on_click, active) {
+    var classes = classNames({ "type-button": 1, active: active });
+
+    return React.createElement(
+      'div',
+      { className: classes, onClick: on_click },
+      React.createElement(
+        'div',
+        { className: 'type-button-title' },
+        React.createElement(
+          'span',
+          { className: 'en' },
+          en
+        ),
+        React.createElement(
+          'span',
+          { className: 'he' },
+          he
+        )
+      )
+    );
+  },
+
   render: function render() {
     var _this2 = this;
 
     var trendingTags = this.getTrendingTagsFromCache();
-    var tagList = this.getTagListFromCache();
     var topSheets = this.getTopSheetsFromCache();
+    if (this.props.tagSort == "trending") {
+      var tagList = this.getTrendingTagsFromCache();
+    } else {
+      var tagList = this.getTagListFromCache();
+    }
 
     var makeTagButton = function makeTagButton(tag) {
       return React.createElement(SheetTagButton, { setSheetTag: _this2.props.setSheetTag, tag: tag.tag, count: tag.count, key: tag.tag });
@@ -3440,7 +3473,6 @@ var SheetsHomePage = React.createClass({
         this.props.hideNavHeader ? React.createElement(
           'h1',
           null,
-          React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
           React.createElement(
             'span',
             { className: 'en' },
@@ -3495,7 +3527,7 @@ var SheetsHomePage = React.createClass({
         React.createElement('br', null),
         this.props.multiPanel ? React.createElement(
           'h2',
-          { className: 'splitHeader' },
+          null,
           React.createElement(
             'span',
             { className: 'en' },
@@ -3503,29 +3535,25 @@ var SheetsHomePage = React.createClass({
           ),
           React.createElement(
             'span',
-            { className: 'en actionText' },
-            'Sort By:',
+            { className: 'he' },
+            'All Tags [he]'
+          ),
+          React.createElement(
+            'div',
+            { className: 'actionText' },
             React.createElement(
-              'select',
-              { value: this.props.tagSort, onChange: this.changeSort },
-              React.createElement(
-                'option',
-                { value: 'count' },
-                'Most Popular'
-              ),
-              React.createElement(
-                'option',
-                { value: 'alpha' },
-                'Alphabetical'
-              ),
-              React.createElement(
-                'option',
-                { value: 'trending' },
-                'Trending'
-              )
-            ),
-            ' ',
-            React.createElement('i', { className: 'fa fa-angle-down' })
+              'div',
+              { className: 'type-buttons' },
+              this._type_sheet_button("Most Used", "Most Used [he]", function () {
+                return _this2.changeSort("count");
+              }, this.props.tagSort == "count"),
+              this._type_sheet_button("Alphabetical", "Alpha [he]", function () {
+                return _this2.changeSort("alpha");
+              }, this.props.tagSort == "alpha"),
+              this._type_sheet_button("Trending", "Trending [he]", function () {
+                return _this2.changeSort("trending");
+              }, this.props.tagSort == "trending")
+            )
           )
         ) : React.createElement(
           'h2',
@@ -3768,7 +3796,7 @@ var MySheetsPage = React.createClass({
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function (sheet) {
-      return React.createElement(PrivateSheetListing, { sheet: sheet, multiPanel: this.props.multiPanel });
+      return React.createElement(PrivateSheetListing, { sheet: sheet, multiPanel: this.props.multiPanel, setSheetTag: this.props.setSheetTag });
     }.bind(this)) : React.createElement(LoadingMessage, null);
 
     var userTagList = this.getTagsFromCache();
@@ -3861,7 +3889,8 @@ var PrivateSheetListing = React.createClass({
 
   propTypes: {
     sheet: React.PropTypes.object.isRequired,
-    multiPanel: React.PropTypes.bool
+    multiPanel: React.PropTypes.bool,
+    setSheetTag: React.PropTypes.func.isRequired
   },
   render: function render() {
     var sheet = this.props.sheet;
@@ -3870,15 +3899,11 @@ var PrivateSheetListing = React.createClass({
     }.bind(this);
     var title = sheet.title.stripHtml();
     var url = "/sheets/" + sheet.id;
+
     if (sheet.tags === undefined) sheet.tags = [];
     var tagString = sheet.tags.map(function (tag) {
-      return React.createElement(
-        'span',
-        null,
-        tag,
-        ', '
-      );
-    });
+      return React.createElement(SheetTagLink, { setSheetTag: this.props.setSheetTag, tag: tag, key: tag });
+    }, this);
 
     if (this.props.multiPanel) {
       return React.createElement(
@@ -3916,7 +3941,11 @@ var PrivateSheetListing = React.createClass({
           ' Views · ',
           sheet.modified,
           ' · ',
-          tagString
+          React.createElement(
+            'span',
+            { className: 'tagString' },
+            tagString
+          )
         )
       );
     } else {
@@ -3939,6 +3968,26 @@ var PrivateSheetListing = React.createClass({
         )
       );
     }
+  }
+});
+
+var SheetTagLink = React.createClass({
+  displayName: 'SheetTagLink',
+
+  propTypes: {
+    tag: React.PropTypes.string.isRequired,
+    setSheetTag: React.PropTypes.func.isRequired
+  },
+  handleTagClick: function handleTagClick(e) {
+    e.preventDefault();
+    this.props.setSheetTag(this.props.tag);
+  },
+  render: function render() {
+    return React.createElement(
+      'a',
+      { href: '/sheets/tag/' + this.props.tag, onClick: this.handleTagClick },
+      this.props.tag
+    );
   }
 });
 
