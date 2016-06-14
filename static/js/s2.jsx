@@ -3208,7 +3208,7 @@ var PrivateSheetListing = React.createClass({
     } else {
       return (<a className="sheet userSheet" href={url} key={url}>
                 <div className="sheetTitle">{title}</div>
-                <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
+                <div>{sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
               </a>);
     }
   }

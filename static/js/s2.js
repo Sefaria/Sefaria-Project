@@ -3980,7 +3980,11 @@ var PrivateSheetListing = React.createClass({
           ' Views · ',
           sheet.modified,
           ' · ',
-          tagString
+          React.createElement(
+            'span',
+            { className: 'tagString' },
+            tagString
+          )
         )
       );
     }
