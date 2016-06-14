@@ -498,7 +498,7 @@
 #profilePage .sheet a {
   color: #333;
 }
-#profileActivity {
+#activityList{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #666;
 }
@@ -506,11 +506,11 @@
   color: #333;
   font-weight: normal;
 }
-#profilePage #moreActivity {
+/*#profilePage #moreActivity {
   display: block;
   margin-top: 30px;
   font-size: 15px;
-}
+}*/
 #profilePage  #followMe span{
   font-size: inherit;
 }
@@ -539,15 +539,27 @@
 #activityList .topline {
   font-weight: normal;
 }
-#activityList .text.en {
+#activityList .text.en, #activityList .text{
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
-#activityList .text.he {
+#activityList .text.he{
   font-family: "Taamey Frank", "Times New Roman", serif;
 }
 #activityList .time {
   color: #ccc;
 }
+#activityList li > :not(:first-child){
+  margin-top:5px;
+}
+#activityList li{
+  margin-bottom: 15px;
+  list-style-type: none;
+}
+#activityList + a.page-link{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 14px;
+}
+
 .registrationContent {
   text-align: center;
   margin: 1% auto 0;
