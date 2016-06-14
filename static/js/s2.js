@@ -717,6 +717,8 @@ var ReaderApp = React.createClass({
     panel.menuOpen = null;
     panel.mode = panel.mode || "Connections";
     if (parentPanel) {
+      panel.filter = parentPanel.filter;
+      panel.recentFilters = parentPanel.recentFilters;
       panel.version = parentPanel.version;
       panel.versionLanguage = parentPanel.versionLanguage;
     }
@@ -734,6 +736,20 @@ var ReaderApp = React.createClass({
     if (next && next.mode === "Connections" && !next.menuOpen) {
       this.openTextListAt(n + 1, refs);
     }
+  },
+  setConnectionsFilter: function setConnectionsFilter(n, filter) {
+    // Set the filter for connections panel at `n`, carry data onto the panel's basetext as well.
+    var connectionsPanel = this.state.panels[n];
+    var basePanel = this.state.panels[n - 1];
+    if (filter) {
+      connectionsPanel.recentFilters.push(filter);
+      connectionsPanel.filter = [filter];
+    } else {
+      connectionsPanel.filter = [];
+    }
+    basePanel.filter = connectionsPanel.filter;
+    basePanel.recentFilters = connectionsPanel.recentFilters;
+    this.setState({ panels: this.state.panels });
   },
   setSelectedWords: function setSelectedWords(n, words) {
     //console.log(this.state.panels[n].refs);
@@ -882,6 +898,7 @@ var ReaderApp = React.createClass({
       var openComparePanel = this.openComparePanel.bind(null, i);
       var closePanel = this.closePanel.bind(null, i);
       var setPanelState = this.setPanelState.bind(null, i);
+      var setConnectionsFilter = this.setConnectionsFilter.bind(null, i);
       var selectVersion = this.selectVersion.bind(null, i);
 
       var ref = panel.refs && panel.refs.length ? panel.refs[0] : null;
@@ -908,6 +925,7 @@ var ReaderApp = React.createClass({
           onOpenConnectionsClick: onOpenConnectionsClick,
           openComparePanel: openComparePanel,
           setTextListHightlight: setTextListHightlight,
+          setConnectionsFilter: setConnectionsFilter,
           setSelectedWords: setSelectedWords,
           selectVersion: selectVersion,
           setDefaultOption: this.setDefaultOption,
@@ -1259,6 +1277,7 @@ var ReaderPanel = React.createClass({
     onUpdate: React.PropTypes.func,
     closePanel: React.PropTypes.func,
     closeMenus: React.PropTypes.func,
+    setConnectionsFilter: React.PropTypes.func,
     setDefaultLanguage: React.PropTypes.func,
     selectVersion: React.PropTypes.func,
     onQueryChange: React.PropTypes.func,
@@ -1488,14 +1507,18 @@ var ReaderPanel = React.createClass({
   setFilter: function setFilter(filter, updateRecent) {
     // Sets the current filter for Connected Texts (TextList)
     // If updateRecent is true, include the current setting in the list of recent filters.
-    if (updateRecent && filter) {
-      if (Sefaria.util.inArray(filter, this.state.recentFilters) !== -1) {
-        this.state.recentFilters.toggle(filter);
+    if (this.props.setConnectionsFilter) {
+      this.props.setConnectionsFilter(filter);
+    } else {
+      if (updateRecent && filter) {
+        if (Sefaria.util.inArray(filter, this.state.recentFilters) !== -1) {
+          this.state.recentFilters.toggle(filter);
+        }
+        this.state.recentFilters = [filter].concat(this.state.recentFilters);
       }
-      this.state.recentFilters = [filter].concat(this.state.recentFilters);
+      filter = filter ? [filter] : [];
+      this.conditionalSetState({ recentFilters: this.state.recentFilters, filter: filter });
     }
-    filter = filter ? [filter] : [];
-    this.conditionalSetState({ recentFilters: this.state.recentFilters, filter: filter });
   },
   toggleLanguage: function toggleLanguage() {
     if (this.state.settings.language == "hebrew") {
