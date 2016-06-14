@@ -533,6 +533,9 @@ var ReaderApp = React.createClass({
   },
   handleCitationClick: function handleCitationClick(n, citationRef, textRef) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
+    if (this.state.panels.length >= n && this.state.panels[n + 1].mode === "Connections") {
+      this.closePanel(n + 1);
+    }
     this.openPanelAt(n, citationRef);
     this.setTextListHighlight(n, [textRef]);
   },
@@ -714,6 +717,8 @@ var ReaderApp = React.createClass({
     panel.menuOpen = null;
     panel.mode = panel.mode || "Connections";
     if (parentPanel) {
+      panel.filter = parentPanel.filter;
+      panel.recentFilters = parentPanel.recentFilters;
       panel.version = parentPanel.version;
       panel.versionLanguage = parentPanel.versionLanguage;
     }
@@ -731,6 +736,20 @@ var ReaderApp = React.createClass({
     if (next && next.mode === "Connections" && !next.menuOpen) {
       this.openTextListAt(n + 1, refs);
     }
+  },
+  setConnectionsFilter: function setConnectionsFilter(n, filter) {
+    // Set the filter for connections panel at `n`, carry data onto the panel's basetext as well.
+    var connectionsPanel = this.state.panels[n];
+    var basePanel = this.state.panels[n - 1];
+    if (filter) {
+      connectionsPanel.recentFilters.push(filter);
+      connectionsPanel.filter = [filter];
+    } else {
+      connectionsPanel.filter = [];
+    }
+    basePanel.filter = connectionsPanel.filter;
+    basePanel.recentFilters = connectionsPanel.recentFilters;
+    this.setState({ panels: this.state.panels });
   },
   setSelectedWords: function setSelectedWords(n, words) {
     //console.log(this.state.panels[n].refs);
@@ -879,6 +898,7 @@ var ReaderApp = React.createClass({
       var openComparePanel = this.openComparePanel.bind(null, i);
       var closePanel = this.closePanel.bind(null, i);
       var setPanelState = this.setPanelState.bind(null, i);
+      var setConnectionsFilter = this.setConnectionsFilter.bind(null, i);
       var selectVersion = this.selectVersion.bind(null, i);
 
       var ref = panel.refs && panel.refs.length ? panel.refs[0] : null;
@@ -905,6 +925,7 @@ var ReaderApp = React.createClass({
           onOpenConnectionsClick: onOpenConnectionsClick,
           openComparePanel: openComparePanel,
           setTextListHightlight: setTextListHightlight,
+          setConnectionsFilter: setConnectionsFilter,
           setSelectedWords: setSelectedWords,
           selectVersion: selectVersion,
           setDefaultOption: this.setDefaultOption,
@@ -1258,6 +1279,7 @@ var ReaderPanel = React.createClass({
     onUpdate: React.PropTypes.func,
     closePanel: React.PropTypes.func,
     closeMenus: React.PropTypes.func,
+    setConnectionsFilter: React.PropTypes.func,
     setDefaultLanguage: React.PropTypes.func,
     selectVersion: React.PropTypes.func,
     onQueryChange: React.PropTypes.func,
@@ -1487,14 +1509,18 @@ var ReaderPanel = React.createClass({
   setFilter: function setFilter(filter, updateRecent) {
     // Sets the current filter for Connected Texts (TextList)
     // If updateRecent is true, include the current setting in the list of recent filters.
-    if (updateRecent && filter) {
-      if (Sefaria.util.inArray(filter, this.state.recentFilters) !== -1) {
-        this.state.recentFilters.toggle(filter);
+    if (this.props.setConnectionsFilter) {
+      this.props.setConnectionsFilter(filter);
+    } else {
+      if (updateRecent && filter) {
+        if (Sefaria.util.inArray(filter, this.state.recentFilters) !== -1) {
+          this.state.recentFilters.toggle(filter);
+        }
+        this.state.recentFilters = [filter].concat(this.state.recentFilters);
       }
-      this.state.recentFilters = [filter].concat(this.state.recentFilters);
+      filter = filter ? [filter] : [];
+      this.conditionalSetState({ recentFilters: this.state.recentFilters, filter: filter });
     }
-    filter = filter ? [filter] : [];
-    this.conditionalSetState({ recentFilters: this.state.recentFilters, filter: filter });
   },
   toggleLanguage: function toggleLanguage() {
     if (this.state.settings.language == "hebrew") {
@@ -2122,7 +2148,9 @@ var ReaderNavigationMenu = React.createClass({
     return recentlyViewed;
   },
   handleClick: function handleClick(event) {
-    event.preventDefault();
+    if (!$(event.target).hasClass("outOfAppLink")) {
+      event.preventDefault();
+    }
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
       var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
       var pos = $(event.target).attr("data-position") || $(event.target).parent().attr("data-position");
@@ -2329,8 +2357,8 @@ var ReaderNavigationMenu = React.createClass({
 
       var sheetsStyle = { "borderColor": Sefaria.palette.categoryColor("Sheets") };
       var resources = [React.createElement(
-        'span',
-        { className: 'resourcesLink', style: sheetsStyle, onClick: this.props.openMenu.bind(null, "sheets") },
+        'a',
+        { className: 'resourcesLink', style: sheetsStyle, href: '/sheets', onClick: this.props.openMenu.bind(null, "sheets") },
         React.createElement('img', { src: '/static/img/sheet-icon.png' }),
         React.createElement(
           'span',
@@ -2344,7 +2372,7 @@ var ReaderNavigationMenu = React.createClass({
         )
       ), React.createElement(
         'a',
-        { className: 'resourcesLink', style: sheetsStyle, href: '/visualizations' },
+        { className: 'resourcesLink outOfAppLink', style: sheetsStyle, href: '/visualizations' },
         React.createElement('img', { src: '/static/img/visualizations-icon.png' }),
         React.createElement(
           'span',
@@ -2358,7 +2386,7 @@ var ReaderNavigationMenu = React.createClass({
         )
       ), React.createElement(
         'a',
-        { className: 'resourcesLink', style: sheetsStyle, href: '/people' },
+        { className: 'resourcesLink outOfAppLink', style: sheetsStyle, href: '/people' },
         React.createElement('img', { src: '/static/img/authors-icon.png' }),
         React.createElement(
           'span',
@@ -3235,8 +3263,28 @@ var VersionBlock = React.createClass({
       showNotes: false
     };
   },
+  licenseMap: {
+    "Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
+    "CC0": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "CC-BY": "http://creativecommons.org/licenses/by/3.0/",
+    "CC-BY-SA": "http://creativecommons.org/licenses/by-sa/3.0/"
+  },
   render: function render() {
     var v = this.props.version;
+    var license = this.licenseMap[v.license] ? React.createElement(
+      'a',
+      { href: this.licenseMap[v.license], target: '_blank' },
+      v.license
+    ) : v.license;
+    var licenseLine = "";
+    if (v.license && v.license != "unknown") {
+      licenseLine = React.createElement(
+        'span',
+        { className: 'versionLicense' },
+        license,
+        v.digitizedBySefaria ? " - Digitized by Sefaria" : ""
+      );
+    }
 
     return React.createElement(
       'div',
@@ -3254,16 +3302,12 @@ var VersionBlock = React.createClass({
           { className: 'versionSource', target: '_blank', href: v.versionSource },
           Sefaria.util.parseURL(v.versionSource).host
         ),
-        React.createElement(
+        licenseLine ? React.createElement(
           'span',
           null,
           '-'
-        ),
-        React.createElement(
-          'span',
-          { className: 'versionLicense' },
-          v.license == "unknown" || !v.license ? "License Unknown" : v.license + (v.digitizedBySefaria ? " - Digitized by Sefaria" : "")
-        ),
+        ) : "",
+        licenseLine,
         this.props.showHistory ? React.createElement(
           'span',
           null,
@@ -3982,7 +4026,11 @@ var PrivateSheetListing = React.createClass({
           ' Views · ',
           sheet.modified,
           ' · ',
-          tagString
+          React.createElement(
+            'span',
+            { className: 'tagString' },
+            tagString
+          )
         )
       );
     }
@@ -6736,6 +6784,7 @@ var SearchPage = React.createClass({
     var fontSize = 62.5; // this.props.settings.fontSize, to make this respond to user setting. disabled for now.
     var style = { "fontSize": fontSize + "%" };
     var classes = classNames({ readerNavMenu: 1, noHeader: this.props.hideNavHeader });
+    var isQueryHebrew = Sefaria.hebrew.isHebrew(this.props.query);
     return React.createElement(
       'div',
       { className: classes },
@@ -6760,22 +6809,11 @@ var SearchPage = React.createClass({
             { className: 'searchContentFrame' },
             React.createElement(
               'h1',
-              null,
+              { classNames: isQueryHebrew ? "hebrewQuery" : "englishQuery" },
               React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
-              React.createElement(
-                'span',
-                { className: 'en' },
-                '“',
-                this.props.query,
-                '”'
-              ),
-              React.createElement(
-                'span',
-                { className: 'he' },
-                '”',
-                this.props.query,
-                '“'
-              )
+              '“',
+              this.props.query,
+              '”'
             ),
             React.createElement('div', { className: 'searchControlsBox' }),
             React.createElement(

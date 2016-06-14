@@ -536,6 +536,9 @@ var ReaderApp = React.createClass({
   },
   handleCitationClick: function(n, citationRef, textRef) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
+    if (this.state.panels.length >= n  && this.state.panels[n+1].mode === "Connections") {
+      this.closePanel(n+1);
+    }
     this.openPanelAt(n, citationRef);
     this.setTextListHighlight(n, [textRef]);
   },
@@ -716,6 +719,8 @@ var ReaderApp = React.createClass({
     panel.menuOpen       = null;
     panel.mode           = panel.mode || "Connections";
     if(parentPanel){
+      panel.filter           = parentPanel.filter;
+      panel.recentFilters   = parentPanel.recentFilters;
       panel.version         = parentPanel.version;
       panel.versionLanguage = parentPanel.versionLanguage;
     }
@@ -733,6 +738,20 @@ var ReaderApp = React.createClass({
     if (next && next.mode === "Connections" && !next.menuOpen) {
       this.openTextListAt(n+1, refs);
     }
+  },
+  setConnectionsFilter: function(n, filter) {
+    // Set the filter for connections panel at `n`, carry data onto the panel's basetext as well.
+    var connectionsPanel = this.state.panels[n];
+    var basePanel        = this.state.panels[n-1];
+    if (filter) {
+      connectionsPanel.recentFilters.push(filter);
+      connectionsPanel.filter = [filter];
+    } else {
+      connectionsPanel.filter = [];
+    }
+    basePanel.filter        = connectionsPanel.filter;
+    basePanel.recentFilters = connectionsPanel.recentFilters;
+    this.setState({panels: this.state.panels});
   },
   setSelectedWords: function(n, words){
     //console.log(this.state.panels[n].refs);
@@ -876,6 +895,7 @@ var ReaderApp = React.createClass({
       var openComparePanel         = this.openComparePanel.bind(null, i);
       var closePanel               = this.closePanel.bind(null, i);
       var setPanelState            = this.setPanelState.bind(null, i);
+      var setConnectionsFilter     = this.setConnectionsFilter.bind(null, i);
       var selectVersion            = this.selectVersion.bind(null, i);
 
       var ref   = panel.refs && panel.refs.length ? panel.refs[0] : null;
@@ -900,6 +920,7 @@ var ReaderApp = React.createClass({
                       onOpenConnectionsClick={onOpenConnectionsClick}
                       openComparePanel={openComparePanel}
                       setTextListHightlight={setTextListHightlight}
+                      setConnectionsFilter={setConnectionsFilter}
                       setSelectedWords={setSelectedWords}
                       selectVersion={selectVersion}
                       setDefaultOption={this.setDefaultOption}
@@ -1194,6 +1215,7 @@ var ReaderPanel = React.createClass({
     onUpdate:                    React.PropTypes.func,
     closePanel:                  React.PropTypes.func,
     closeMenus:                  React.PropTypes.func,
+    setConnectionsFilter:        React.PropTypes.func,
     setDefaultLanguage:          React.PropTypes.func,
     selectVersion:               React.PropTypes.func,
     onQueryChange:               React.PropTypes.func,
@@ -1419,14 +1441,19 @@ var ReaderPanel = React.createClass({
   setFilter: function(filter, updateRecent) {
     // Sets the current filter for Connected Texts (TextList)
     // If updateRecent is true, include the current setting in the list of recent filters.
-    if (updateRecent && filter) {
-      if (Sefaria.util.inArray(filter, this.state.recentFilters) !== -1) {
-        this.state.recentFilters.toggle(filter);
+    if (this.props.setConnectionsFilter) {
+      this.props.setConnectionsFilter(filter);
+    } else {
+      if (updateRecent && filter) {
+        if (Sefaria.util.inArray(filter, this.state.recentFilters) !== -1) {
+          this.state.recentFilters.toggle(filter);
+        }
+        this.state.recentFilters = [filter].concat(this.state.recentFilters);
       }
-      this.state.recentFilters = [filter].concat(this.state.recentFilters);
+      filter = filter ? [filter] : [];
+      this.conditionalSetState({recentFilters: this.state.recentFilters, filter: filter});      
     }
-    filter = filter ? [filter] : [];
-    this.conditionalSetState({recentFilters: this.state.recentFilters, filter: filter});
+
   },
   toggleLanguage: function() {
     if (this.state.settings.language == "hebrew") {
@@ -2028,7 +2055,9 @@ var ReaderNavigationMenu = React.createClass({
     return recentlyViewed;
   },
   handleClick: function(event) {
-    event.preventDefault();
+    if (!$(event.target).hasClass("outOfAppLink")) {
+      event.preventDefault();
+    }
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
       var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
       var pos = $(event.target).attr("data-position") || $(event.target).parent().attr("data-position");
@@ -2154,17 +2183,17 @@ var ReaderNavigationMenu = React.createClass({
 
 
       var sheetsStyle = {"borderColor": Sefaria.palette.categoryColor("Sheets")};
-      var resources = [(<span className="resourcesLink" style={sheetsStyle} onClick={this.props.openMenu.bind(null, "sheets")}>
+      var resources = [(<a className="resourcesLink" style={sheetsStyle} href="/sheets" onClick={this.props.openMenu.bind(null, "sheets")}>
                         <img src="/static/img/sheet-icon.png" />
                         <span className="en">Source Sheets</span>
                         <span className="he">דפי מקורות</span>
-                      </span>),
-                     (<a className="resourcesLink" style={sheetsStyle} href="/visualizations">
+                      </a>),
+                     (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/visualizations">
                         <img src="/static/img/visualizations-icon.png" />
                         <span className="en">Visualizations</span>
                         <span className="he">חזותיים</span>
                       </a>),
-                    (<a className="resourcesLink" style={sheetsStyle} href="/people">
+                    (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/people">
                         <img src="/static/img/authors-icon.png" />
                         <span className="en">Authors</span>
                         <span className="he">רשימת מחברים</span>
@@ -2734,9 +2763,25 @@ var VersionBlock = React.createClass({
       showNotes: false
     }
   },
+  licenseMap: {
+    "Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
+    "CC0": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "CC-BY": "http://creativecommons.org/licenses/by/3.0/",
+    "CC-BY-SA": "http://creativecommons.org/licenses/by-sa/3.0/"
+  },
   render: function() {
     var v = this.props.version;
-
+    var license = this.licenseMap[v.license]?<a href={this.licenseMap[v.license]} target="_blank">{v.license}</a>:v.license;
+    var licenseLine = "";
+    if (v.license && v.license != "unknown") { 
+      licenseLine =
+        <span className="versionLicense">
+          {license}
+          {(v.digitizedBySefaria ? " - Digitized by Sefaria": "" )}
+        </span>
+      ;
+    }
+        
     return (
       <div className = "versionBlock">
         <div className="versionTitle">{v.versionTitle}</div>
@@ -2744,8 +2789,8 @@ var VersionBlock = React.createClass({
           <a className="versionSource" target="_blank" href={v.versionSource}>
           { Sefaria.util.parseURL(v.versionSource).host }
           </a>
-          <span>-</span>
-          <span className="versionLicense">{(v.license == "unknown" || !v.license) ? "License Unknown" : (v.license + (v.digitizedBySefaria ? " - Digitized by Sefaria": "" ))}</span>
+          {licenseLine?<span>-</span>:""}
+          {licenseLine}
           {this.props.showHistory?<span>-</span>:""}
           {this.props.showHistory?<a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>Version History &gt;</a>:""}
         </div>
@@ -3212,7 +3257,7 @@ var PrivateSheetListing = React.createClass({
     } else {
       return (<a className="sheet userSheet" href={url} key={url}>
                 <div className="sheetTitle">{title}</div>
-                <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
+                <div>{sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
               </a>);
     }
   }
@@ -5406,6 +5451,7 @@ var SearchPage = React.createClass({
         var fontSize = 62.5; // this.props.settings.fontSize, to make this respond to user setting. disabled for now.
         var style    = {"fontSize": fontSize + "%"};
         var classes  = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader});
+        var isQueryHebrew = Sefaria.hebrew.isHebrew(this.props.query);
         return (<div className={classes}>
                   {this.props.hideNavHeader ? null :
                     (<div className="readerNavTop search">
@@ -5419,10 +5465,9 @@ var SearchPage = React.createClass({
                   <div className="content">
                     <div className="contentInner">
                       <div className="searchContentFrame">
-                          <h1>
+                          <h1 classNames={isQueryHebrew?"hebrewQuery":"englishQuery"}>
                             <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
-                            <span className="en">&ldquo;{ this.props.query }&rdquo;</span>
-                            <span className="he">&rdquo;{ this.props.query }&ldquo;</span>
+                            &ldquo;{ this.props.query }&rdquo;
                           </h1>
                           <div className="searchControlsBox">
                           </div>

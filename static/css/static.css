@@ -8,6 +8,9 @@
 .static .wf-loading {
   display: none;
 }
+.hebrew .static.biReady{
+  direction:rtl;
+}
 .static {
   color: #333333;
   font-size: 15px;
@@ -90,6 +93,9 @@
 .static a.button.white {
   color: #333;
 }
+.static a.button.transparent {
+  color: #666;
+}
 .static label {
    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
    color: #999;
@@ -125,7 +131,7 @@
 
 }
 .static .error {
-  color: red; 
+  color: red;
 }
 .static .inner div.single-button a.button{
   margin: auto;
@@ -498,7 +504,7 @@
 #profilePage .sheet a {
   color: #333;
 }
-#profileActivity {
+#activityList{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #666;
 }
@@ -506,11 +512,11 @@
   color: #333;
   font-weight: normal;
 }
-#profilePage #moreActivity {
+/*#profilePage #moreActivity {
   display: block;
   margin-top: 30px;
   font-size: 15px;
-}
+}*/
 #profilePage  #followMe span{
   font-size: inherit;
 }
@@ -539,15 +545,27 @@
 #activityList .topline {
   font-weight: normal;
 }
-#activityList .text.en {
+#activityList .text.en, #activityList .text{
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
-#activityList .text.he {
+#activityList .text.he{
   font-family: "Taamey Frank", "Times New Roman", serif;
 }
 #activityList .time {
   color: #ccc;
 }
+#activityList li > :not(:first-child){
+  margin-top:5px;
+}
+#activityList li{
+  margin-bottom: 15px;
+  list-style-type: none;
+}
+#activityList + a.page-link{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 14px;
+}
+
 .registrationContent {
   text-align: center;
   margin: 1% auto 0;
@@ -634,18 +652,33 @@
   font-size: 14px;
   font-style: normal;
 }
+.registrationContent a.registration-links{
+  margin-top: 20px;
+}
 .registrationContent a .en, .registrationContent button .en{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .registrationContent a .he, .registrationContent button .he{
   font-family: "Open Sans Hebrew", sans-serif;
 }
-#login.registrationContent #resetLink{
+/*#login.registrationContent #resetLink{
   margin: 20px 0;
   color: #999;
   font-size: 14px;
   font-style: normal;
+}*/
+.registrationContent .recaptcha_widget_div{
+  transform:scale(0.68);
+  -webkit-transform:scale(0.68);
+  transform-origin:0 0;
+  -webkit-transform-origin:0 0;
+  margin-bottom: -50px;
 }
+/*@media screen and (max-height: 575px){
+#rc-imageselect, .g-recaptcha {
+
+}
+}*/
 #visualizationsPage {
   text-align: left;
 }
@@ -690,6 +723,9 @@
 }
 #donatePage .faq p.answer:before{
   content: "A)";
+}
+#supportersPage{
+  text-align: center;
 }
 #supportersPage .leading-supporters p.tagline:first-child{
   text-align: center;
@@ -756,7 +792,14 @@
 #linkerPage .linkerOption {
   margin: 50px 0;
 }
-#teamPage .teamMember {
+#teamPage h2{
+  font-size: 16px;
+  letter-spacing: 2px;
+  color: #999;
+  text-align: center;
+  padding-bottom: 40px;
+}
+#teamPage .teamMember, #teamPage .teamBoardMember {
   font-size: 20px;
   line-height: 1.2em;
   display: inline-block;
@@ -764,17 +807,25 @@
   border-bottom: 1px solid  #ddd;
   margin-bottom: 35px;
   padding-bottom: 35px;
+  display: flex;
+}
+#teamPage .teamBoardMember{
+  border-bottom: none;
+  margin-bottom: 10px;
 }
 #teamPage .teamMember .teamMemberImage{
   display: inline-block;
-  float: left;
+  /*float: left;*/
 }
-#teamPage .teamMember .teamMemberDetails{
+#teamPage .teamMember .teamMemberDetails, #teamPage .teamBoardMember .teamMemberDetails{
   display: inline-block;
   white-space:nowrap;
   max-width: 65%;
   margin: 0 20px;
   font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#teamPage .teamBoardMember .teamMemberDetails{
+  margin: 0;
 }
 #teamPage .teamMember .teamMemberImage img{
   border: 1px solid #E6E5E6;
@@ -782,13 +833,13 @@
   height: 170px;
   vertical-align:middle;
 }
-#teamPage .teamMember .teamName{
+#teamPage .teamMember .teamName, #teamPage .teamBoardMember .teamName{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   margin-bottom: 20px;
   font-size: 25px;
   color: #555;
 }
-#teamPage .teamMember .teamTitle{
+#teamPage .teamMember .teamTitle, #teamPage .teamBoardMember .teamTitle{
 
 }
 #teamPage .teamMember .teamEmail{
@@ -947,6 +998,9 @@
   font-size: 20px;
   line-height: 1.1em;
 }
+#peoplePage .authors-row{
+  display: flex;
+}
 #peoplePage .author a, #talmudicPeoplePage .author a, #personPage a{
   color: #666;
 }
@@ -954,6 +1008,9 @@
   margin-left: 0;
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 20px;
+  display: inline-flex;
+  width: 50%;
+  min-width: 320px;
 }
 #personPage #periodNameLine, #personPage #yearLine{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -1105,3 +1162,65 @@ footer .section.last {
   width: 210px;
   border-left: 1px solid #EAEAEA;
 }
+#translationRequestsPage .translationRequest{
+  background-color: inherit;
+  text-align: justify;
+  /*display: block;*/
+  border-bottom: 1px solid #eee;
+  padding: 20px 0 20px 0;
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+}
+#translationRequestsPage .translationRequest > div{
+  all: initial;
+}
+
+#translationRequestsPage .translationRequest .requestRank,
+#translationRequestsPage .translationRequest .requestText,
+#translationRequestsPage .translationRequest .requestCountBox{
+  display: inline-block;
+  vertical-align: middle;
+}
+#translationRequestsPage .translationRequest span{
+  font-size: 1.3em;
+}
+#translationRequestsPage .translationRequest .requestRank{
+  display: inline-block;
+}
+#translationRequestsPage .translationRequest .requestCountBox{
+  display: inline-block;
+  text-align: right;
+}
+#translationRequestsPage .translationRequest .requestText{
+  display: inline-block;
+  width: 80%
+}
+#translationRequestsPage .translationRequest .requestText > div{
+  display: block;
+}
+.translationRequest .requestRef a {
+  float: none;
+  display: inline;
+  width: 100%;
+  line-height: 5px;
+}
+
+#translationRequestsPage .translationRequest .requestText .requestCompleter span{
+  font-size: 0.8em;
+}
+#translationRequestsPage .translationRequest .requestFeatured {
+    float: none;
+    cursor: pointer;
+    /*color: #FFCC00;*/
+    font-size: 16px;
+    vertical-align: middle;
+}
+#translationRequestsPage .translationRequest .requestButton {
+    width: 20px;
+    padding: 10px;
+    display: inline;
+    vertical-align: middle;
+}
+
+
