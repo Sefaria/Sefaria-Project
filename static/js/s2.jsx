@@ -2051,7 +2051,9 @@ var ReaderNavigationMenu = React.createClass({
     return recentlyViewed;
   },
   handleClick: function(event) {
-    event.preventDefault();
+    if (!$(event.target).hasClass("outOfAppLink")) {
+      event.preventDefault();
+    }
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
       var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
       var pos = $(event.target).attr("data-position") || $(event.target).parent().attr("data-position");
@@ -2177,17 +2179,17 @@ var ReaderNavigationMenu = React.createClass({
 
 
       var sheetsStyle = {"borderColor": Sefaria.palette.categoryColor("Sheets")};
-      var resources = [(<span className="resourcesLink" style={sheetsStyle} onClick={this.props.openMenu.bind(null, "sheets")}>
+      var resources = [(<a className="resourcesLink" style={sheetsStyle} href="/sheets" onClick={this.props.openMenu.bind(null, "sheets")}>
                         <img src="/static/img/sheet-icon.png" />
                         <span className="en">Source Sheets</span>
                         <span className="he">דפי מקורות</span>
-                      </span>),
-                     (<a className="resourcesLink" style={sheetsStyle} href="/visualizations">
+                      </a>),
+                     (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/visualizations">
                         <img src="/static/img/visualizations-icon.png" />
                         <span className="en">Visualizations</span>
                         <span className="he">חזותיים</span>
                       </a>),
-                    (<a className="resourcesLink" style={sheetsStyle} href="/people">
+                    (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/people">
                         <img src="/static/img/authors-icon.png" />
                         <span className="en">Authors</span>
                         <span className="he">רשימת מחברים</span>

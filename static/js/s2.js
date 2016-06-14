@@ -2146,7 +2146,9 @@ var ReaderNavigationMenu = React.createClass({
     return recentlyViewed;
   },
   handleClick: function handleClick(event) {
-    event.preventDefault();
+    if (!$(event.target).hasClass("outOfAppLink")) {
+      event.preventDefault();
+    }
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
       var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
       var pos = $(event.target).attr("data-position") || $(event.target).parent().attr("data-position");
@@ -2353,8 +2355,8 @@ var ReaderNavigationMenu = React.createClass({
 
       var sheetsStyle = { "borderColor": Sefaria.palette.categoryColor("Sheets") };
       var resources = [React.createElement(
-        'span',
-        { className: 'resourcesLink', style: sheetsStyle, onClick: this.props.openMenu.bind(null, "sheets") },
+        'a',
+        { className: 'resourcesLink', style: sheetsStyle, href: '/sheets', onClick: this.props.openMenu.bind(null, "sheets") },
         React.createElement('img', { src: '/static/img/sheet-icon.png' }),
         React.createElement(
           'span',
@@ -2368,7 +2370,7 @@ var ReaderNavigationMenu = React.createClass({
         )
       ), React.createElement(
         'a',
-        { className: 'resourcesLink', style: sheetsStyle, href: '/visualizations' },
+        { className: 'resourcesLink outOfAppLink', style: sheetsStyle, href: '/visualizations' },
         React.createElement('img', { src: '/static/img/visualizations-icon.png' }),
         React.createElement(
           'span',
@@ -2382,7 +2384,7 @@ var ReaderNavigationMenu = React.createClass({
         )
       ), React.createElement(
         'a',
-        { className: 'resourcesLink', style: sheetsStyle, href: '/people' },
+        { className: 'resourcesLink outOfAppLink', style: sheetsStyle, href: '/people' },
         React.createElement('img', { src: '/static/img/authors-icon.png' }),
         React.createElement(
           'span',
