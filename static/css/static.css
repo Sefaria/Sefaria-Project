@@ -8,6 +8,9 @@
 .static .wf-loading {
   display: none;
 }
+.hebrew .static{
+  direction:rtl;
+}
 .static {
   color: #333333;
   font-size: 15px;
@@ -89,6 +92,9 @@
 }
 .static a.button.white {
   color: #333;
+}
+.static a.button.transparent {
+  color: #666;
 }
 .static label {
    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
