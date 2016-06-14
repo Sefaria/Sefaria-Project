@@ -3115,7 +3115,7 @@ var MySheetsPage = React.createClass({
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function(sheet) {
-      return (<PrivateSheetListing sheet={sheet} multiPanel={this.props.multiPanel} />);
+      return (<PrivateSheetListing sheet={sheet} multiPanel={this.props.multiPanel} setSheetTag={this.props.setSheetTag} />);
     }.bind(this)) : (<LoadingMessage />);
 
     var userTagList = this.getTagsFromCache();
@@ -3160,17 +3160,21 @@ var MySheetsPage = React.createClass({
 var PrivateSheetListing = React.createClass({
   propTypes: {
     sheet:      React.PropTypes.object.isRequired,
-    multiPanel: React.PropTypes.bool
+    multiPanel: React.PropTypes.bool,
+    setSheetTag: React.PropTypes.func.isRequired
   },
   render: function() {
     var sheet = this.props.sheet;
     var editSheetTags = function() { console.log(sheet.id)}.bind(this);
     var title = sheet.title.stripHtml();
     var url = "/sheets/" + sheet.id;
+
+
+
     if (sheet.tags === undefined) sheet.tags = [];
-    var tagString = sheet.tags.map(function (tag) {
-        return(<span>{tag}, </span>);
-    });
+      var tagString = sheet.tags.map(function (tag) {
+          return(<SheetTagLink setSheetTag={this.props.setSheetTag} tag={tag} key={tag} />);
+    },this);
 
     if (this.props.multiPanel) {
       return (<div className="sheet userSheet" href={url} key={url}>
@@ -3182,7 +3186,7 @@ var PrivateSheetListing = React.createClass({
                 </div>
 
                 <a className="sheetTitle" href={url}>{title}</a>
-                <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
+                <div>{sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
             </div>);
     } else {
       return (<a className="sheet userSheet" href={url} key={url}>
@@ -3190,6 +3194,20 @@ var PrivateSheetListing = React.createClass({
                 <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
               </a>);
     }
+  }
+});
+
+var SheetTagLink = React.createClass({
+  propTypes: {
+    tag:   React.PropTypes.string.isRequired,
+    setSheetTag: React.PropTypes.func.isRequired
+  },
+  handleTagClick: function(e) {
+    e.preventDefault();
+    this.props.setSheetTag(this.props.tag);
+  },
+  render: function() {
+    return (<a href={`/sheets/tag/${this.props.tag}`} onClick={this.handleTagClick}>{this.props.tag}</a>);
   }
 });
 

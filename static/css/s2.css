@@ -2727,6 +2727,16 @@ h2.splitHeader .he {
   border: 1px solid #333;
 }
 
-.clickableTag {
-  cursor: pointer;
+.tagString a {
+  text-decoration: none;
+  color: #999;
+}
+
+.tagString a:after {
+content: ", ";
+color: #999;
+}
+
+.tagString a:last-child:after {
+content: "";
 }
