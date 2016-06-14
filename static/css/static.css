@@ -8,7 +8,7 @@
 .static .wf-loading {
   display: none;
 }
-.hebrew .static{
+.hebrew .static.biReady{
   direction:rtl;
 }
 .static {
@@ -792,7 +792,14 @@
 #linkerPage .linkerOption {
   margin: 50px 0;
 }
-#teamPage .teamMember {
+#teamPage h2{
+  font-size: 16px;
+  letter-spacing: 2px;
+  color: #999;
+  text-align: center;
+  padding-bottom: 40px;
+}
+#teamPage .teamMember, #teamPage .teamBoardMember {
   font-size: 20px;
   line-height: 1.2em;
   display: inline-block;
@@ -802,16 +809,23 @@
   padding-bottom: 35px;
   display: flex;
 }
+#teamPage .teamBoardMember{
+  border-bottom: none;
+  margin-bottom: 10px;
+}
 #teamPage .teamMember .teamMemberImage{
   display: inline-block;
   /*float: left;*/
 }
-#teamPage .teamMember .teamMemberDetails{
+#teamPage .teamMember .teamMemberDetails, #teamPage .teamBoardMember .teamMemberDetails{
   display: inline-block;
   white-space:nowrap;
   max-width: 65%;
   margin: 0 20px;
   font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#teamPage .teamBoardMember .teamMemberDetails{
+  margin: 0;
 }
 #teamPage .teamMember .teamMemberImage img{
   border: 1px solid #E6E5E6;
@@ -819,13 +833,13 @@
   height: 170px;
   vertical-align:middle;
 }
-#teamPage .teamMember .teamName{
+#teamPage .teamMember .teamName, #teamPage .teamBoardMember .teamName{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   margin-bottom: 20px;
   font-size: 25px;
   color: #555;
 }
-#teamPage .teamMember .teamTitle{
+#teamPage .teamMember .teamTitle, #teamPage .teamBoardMember .teamTitle{
 
 }
 #teamPage .teamMember .teamEmail{
@@ -984,6 +998,9 @@
   font-size: 20px;
   line-height: 1.1em;
 }
+#peoplePage .authors-row{
+  display: flex;
+}
 #peoplePage .author a, #talmudicPeoplePage .author a, #personPage a{
   color: #666;
 }
@@ -991,6 +1008,9 @@
   margin-left: 0;
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 20px;
+  display: inline-flex;
+  width: 50%;
+  min-width: 320px;
 }
 #personPage #periodNameLine, #personPage #yearLine{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
