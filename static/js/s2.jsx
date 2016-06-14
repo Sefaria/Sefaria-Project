@@ -5419,6 +5419,7 @@ var SearchPage = React.createClass({
         var fontSize = 62.5; // this.props.settings.fontSize, to make this respond to user setting. disabled for now.
         var style    = {"fontSize": fontSize + "%"};
         var classes  = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader});
+        var isQueryHebrew = Sefaria.hebrew.isHebrew(this.props.query);
         return (<div className={classes}>
                   {this.props.hideNavHeader ? null :
                     (<div className="readerNavTop search">
@@ -5432,10 +5433,9 @@ var SearchPage = React.createClass({
                   <div className="content">
                     <div className="contentInner">
                       <div className="searchContentFrame">
-                          <h1>
+                          <h1 classNames={isQueryHebrew?"hebrewQuery":"englishQuery"}>
                             <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
-                            <span className="en">&ldquo;{ this.props.query }&rdquo;</span>
-                            <span className="he">&rdquo;{ this.props.query }&ldquo;</span>
+                            &ldquo;{ this.props.query }&rdquo;
                           </h1>
                           <div className="searchControlsBox">
                           </div>
