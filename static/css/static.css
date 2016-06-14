@@ -18,7 +18,7 @@
   width: 94%;
   max-width: 660px;
   margin: 0 auto;
-  padding: 110px 0 100px;
+  padding: 124px 0 100px;
 }
 .static h1 {
   color: #333;
@@ -28,7 +28,7 @@
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   text-align: center;
   font-size: 26px;
-  margin-bottom: 70px;
+  margin: 0 0 80px 0;
   height: auto;
 }
 .static h2 {
@@ -59,7 +59,7 @@
   line-height: 1.5;
 }
 .static .section {
-  margin-bottom: 0;
+  margin-bottom: 30px;
 }
 .static .sans .en, .static.sans .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -190,6 +190,9 @@
 }
 #homePage .button .he {
   font-family: "Open Sans Hebrew", sans-serif;
+}
+#homePage .section {
+  margin-bottom: 0;
 }
 #homePage #homeCover {
   color: white;
