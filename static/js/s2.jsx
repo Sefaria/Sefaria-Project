@@ -318,9 +318,16 @@ var ReaderApp = React.createClass({
             break;
           case "sheets":
             if (states[i].navigationSheetTag) {
-              hist.url   = "sheets/tags/" + state.navigationSheetTag;
-              hist.title = state.navigationSheetTag + " | Sefaria Source Sheets";
-              hist.mode  = "sheets tag";
+              if (states[i].navigationSheetTag == "My Sheets") {
+                hist.url   = "sheets/private";
+                hist.title = "My Sheets | Sefaria Source Sheets";
+                hist.mode  = "sheets tag";
+              }
+              else {
+                hist.url   = "sheets/tags/" + state.navigationSheetTag;
+                hist.title = state.navigationSheetTag + " | Sefaria Source Sheets";
+                hist.mode  = "sheets tag";
+              }
             } else {
               hist.url   = "sheets";
               hist.title = "Sefaria Source Sheets";
@@ -464,7 +471,7 @@ var ReaderApp = React.createClass({
       bookRef:              state.bookRef              || null,
       settings:             state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
       displaySettingsOpen:  false,
-      tagSort:              state.tagSort              || "alpha"
+      tagSort:              state.tagSort              || "count"
     };
     if (this.state && panel.refs.length && !panel.version) {
       var oRef = Sefaria.ref(panel.refs[0]);
@@ -1229,7 +1236,7 @@ var ReaderPanel = React.createClass({
       filterRegistry:       {},
       orphanSearchFilters:  [],
       displaySettingsOpen:  false,
-      tagSort: "alpha"
+      tagSort: "count"
     }
   },
   componentDidMount: function() {
@@ -1487,7 +1494,7 @@ var ReaderPanel = React.createClass({
   },
   setSheetTagSort: function(sort) {
     this.conditionalSetState({
-      tagSort: sort,
+      tagSort: sort
     });
   },
   trackPanelOpens: function() {
@@ -2781,9 +2788,18 @@ getAllSheets: function() {
       allSheets: Sefaria.sheets.allSheetsList() || []
     });
   },
-  changeSort: function(event) {
-    this.props.setSheetTagSort(event.target.value);
-    Sefaria.sheets.tagList(this.loadTags,event.target.value);
+  changeSort: function(sort) {
+    this.props.setSheetTagSort(sort);
+    Sefaria.sheets.tagList(this.loadTags,sort);
+  },
+  changeSortTrending: function(){
+    this.props.setSheetTagSort("trending");
+    Sefaria.sheets.trendingTags(this.loadTrendingTags);
+  },
+  loadTrendingTags: function(){
+    this.setState({
+      tagList:      Sefaria.sheets.trendingTags() || [],
+    });
   },
   changeSortYourSheets: function(event) {
     this.props.setSheetTagSort(event.target.value);
@@ -2816,7 +2832,20 @@ getAllSheets: function() {
   setUserTags: function(tags){
     this.setState({userTagList: tags});
   },
+  _type_sheet_button: function(en, he, on_click, active) {
+    var classes = classNames({"type-button": 1, active: active});
 
+      return <div className={classes} onClick={on_click}>
+      <div className="type-button-title">
+        <span className="en">{en}</span>
+        <span className="he">{he}</span>
+      </div>
+    </div>;
+  },
+  createClickableTag: function(tagName) {
+     var setThisTag = this.setTag.bind(null, tagName);
+    return <span onClick={setThisTag}>{tagName}</span>
+  },
   showAllSheets: function() {
     this.setState({tag: "All Sheets"});
     Sefaria.sheets.publicSheets(this.loadSheets);
@@ -2837,8 +2866,8 @@ getAllSheets: function() {
           var url = "/sheets/" + sheet.id;
           if (sheet.tags === undefined) sheet.tags = [];
           var tagString = sheet.tags.map(function (tag) {
-              return(<span>{tag}, </span>);
-          });
+              return(<span className="clickableTag">{this.createClickableTag(tag)}, </span>);
+          },this);
 
           if ($.inArray(this.state.sheetFilterTag, sheet.tags) >= 0 || this.state.sheetFilterTag == null ) {
               if (this.props.multiPanel) {
@@ -2896,6 +2925,7 @@ getAllSheets: function() {
                 <div className="contentInner">
                   {this.props.hideNavHeader ? (<h1>
                     <span className="en">{enTitle}</span>
+                    <span className="he">{heTitle}</span>
                   </h1>) : null}
                   {this.props.hideNavHeader ? (
                     <div className="sheetsNewButton">
@@ -2911,11 +2941,19 @@ getAllSheets: function() {
 
                                             <h2 className="splitHeader">
                             <span className="en actionText" style={{float: 'left'}} onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
+                            <span className="he actionText" style={{float: 'right'}} onClick={this.toggleSheetTags}><i className="fa fa-angle-down"></i> Filter By Tag [he]</span>
 
                             <span className="en actionText">Sort By:
                               <select value={this.props.tagSort} onChange={this.changeSortYourSheets}>
                                <option value="date">Recent</option>
                                <option value="views">Most Viewed</option>
+                             </select> <i className="fa fa-angle-down"></i></span>
+
+
+                            <span className="he actionText">Sort By:
+                              <select value={this.props.tagSort} onChange={this.changeSortYourSheets}>
+                               <option value="date">Recent [he]</option>
+                               <option value="views">Most Viewed [he]</option>
                              </select> <i className="fa fa-angle-down"></i></span>
 
                           </h2>) : null }
@@ -2924,7 +2962,6 @@ getAllSheets: function() {
 
                   {sheets}</div>
               </div>);
-
       }
 
       else {
@@ -2943,6 +2980,7 @@ getAllSheets: function() {
           <div className="contentInner">
             {this.props.hideNavHeader ? (<h1>
               <span className="en">{enTitle}</span>
+              <span className="he">{heTitle}</span>
             </h1>) : null}
             {sheets}</div>
         </div>);
@@ -2990,11 +3028,14 @@ getAllSheets: function() {
                           { this.props.multiPanel ? (
                           <h2 className="splitHeader">
                             <span className="en" style={{float: 'left'}}>Public Sheets</span>
+                            <span className="he" style={{float: 'right'}}>Public Sheets [he]</span>
                             <span className="en actionText" onClick={this.showAllSheets}>See All <i className="fa fa-angle-right"></i></span>
+                            <span className="he actionText" onClick={this.showAllSheets}>See All [he]<i className="fa fa-angle-right"></i></span>
 
                           </h2>) : (
                           <h2>
                             <span className="en">Public Sheets</span>
+                            <span className="he">Public Sheets [he]</span>
                           </h2>
                           )}
                           {publicSheetList}
@@ -3004,6 +3045,7 @@ getAllSheets: function() {
 
                           <h2>
                             <span className="en">Trending Tags</span>
+                            <span className="he">Trending Tags [he]</span>
                           </h2>
                           )}
 
@@ -3013,18 +3055,25 @@ getAllSheets: function() {
 
 
                           { this.props.multiPanel ? (
-                          <h2 className="splitHeader">
-                            <span className="en" style={{float: 'left'}}>All Tags</span>
+                          <h2>
+                            <span className="en">All Tags</span>
+                            <span className="he">All Tags [he]</span>
 
-                            <span className="en actionText">Sort By:
-                              <select value={this.props.tagSort} onChange={this.changeSort}>
-                               <option value="alpha">Alphabetical</option>
-                               <option value="count">Most Used</option>
-                               <option value="trending">Trending</option>
-                             </select> <i className="fa fa-angle-down"></i></span>
+
+                            <div className="actionText">
+                              <div className="type-buttons">
+                              {this._type_sheet_button("Most Used", "Most Used [he]", () => this.changeSort("count"), (this.props.tagSort == "count"))}
+                              {this._type_sheet_button("Alphabetical", "Alpha [he]", () => this.changeSort("alpha"), (this.props.tagSort == "alpha"))}
+                              {this._type_sheet_button("Trending", "Trending [he]", this.changeSortTrending, (this.props.tagSort == "trending"))}
+                            </div>
+
+
+                            </div>
+
                           </h2>) : (
                           <h2>
                             <span className="en">All Tags</span>
+                            <span className="he">All Tags [he]</span>
                           </h2>
                           )}
 
@@ -3046,7 +3095,10 @@ getAllSheets: function() {
                (<div className="readerNavTop searchOnly" key="navTop">
                 <CategoryColorLine category="Sheets" />
                 <ReaderNavigationMenuMenuButton onClick={this.props.openNav} />
-                <h2><span className="en">{enTitle}</span></h2>
+                <h2>
+                  <span className="en">{enTitle}</span>
+                  <span className="he">{heTitle}</span>
+                </h2>
               </div>)}
               {content}
             </div>);

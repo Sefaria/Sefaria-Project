@@ -518,14 +518,6 @@ body {
 	right: -32px;
 }
 
-#sheet.boxed #sources .sheetItem .sourceNumber {
-	top: 17px;
-}
-
-#sheet #sources .sheetItem.hasCustom .sourceNumber {
-	top: 56px;
-}
-
 #sheet .sourceControlsOpen {
 	background-color: #F9F9F7;
 	z-index: 2;
@@ -748,22 +740,13 @@ body {
 	font-weight: bold;
 }
 
-#sheet.boxed .source,
-#sheet.boxed .outsideWrapper,
-#sheet.boxed .outsideBiWrapper {
-	margin: 32px 0;
-	border: 1px solid #888;
-	padding: 12px 24px 0px 24px;
-	background-color: #eee;
-}
-
 #sheet.boxed .sourceControlsOpen {
-	background-color: #ddd;
+	background-color: #F9F9F7;
 }
 
 #sheet.boxed .text,
 #sheet.boxed .outside  {
-	border: 1px solid #888;
+	border: 1px solid #333;
 	padding: 4px;
 	background-color: white;
 }
@@ -1155,12 +1138,6 @@ a:active {
 	#sheet #sources .sheetItem .sourceNumber.he {
 		right: -2px;
 		text-align: right;
-	}
-	#sheet.boxed #sources .sheetItem .sourceNumber.en {
-		left: 6px;
-	}
-	#sheet.boxed #sources .sheetItem .sourceNumber.he {
-		right: 6px;
 	}
 	#sheet.bilingual.sideBySide .en {
 		text-align: left !important;
