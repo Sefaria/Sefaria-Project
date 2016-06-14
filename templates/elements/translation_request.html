@@ -35,7 +35,7 @@
                 {% endif %}
             </span>
             <span class="requestCount tooltipster {% if request.user.id in trans_request.requesters %}check{% else %}plus{% endif %}" title="{{ trans_request.request_count|intcomma }} people have requested this text section">
-                {{ trans_request.request_count|intcomma }} {% if request.user.id in trans_request.requesters %}✓{% else %}+{% endif %}
+                {{ trans_request.request_count|intcomma }}{% if request.user.id in trans_request.requesters %}✓{% else %}+{% endif %}
             </span>
         </div>
     </div>

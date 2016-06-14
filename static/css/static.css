@@ -1108,10 +1108,12 @@ footer .section.last {
 #translationRequestsPage .translationRequest{
   background-color: inherit;
   text-align: justify;
-  display: block;
+  /*display: block;*/
   border-bottom: 1px solid #eee;
   padding: 20px 0 20px 0;
   margin: 0;
+  display: flex;
+  justify-content: space-between;
 }
 #translationRequestsPage .translationRequest > div{
   all: initial;
@@ -1127,17 +1129,18 @@ footer .section.last {
   font-size: 1.3em;
 }
 #translationRequestsPage .translationRequest .requestRank{
-
+  display: inline-block;
 }
 #translationRequestsPage .translationRequest .requestCountBox{
-  display: inline;
+  display: inline-block;
+  text-align: right;
 }
 #translationRequestsPage .translationRequest .requestText{
-  width: 70%
+  display: inline-block;
+  width: 80%
 }
 #translationRequestsPage .translationRequest .requestText > div{
   display: block;
-  margin: 5px;
 }
 .translationRequest .requestRef a {
   float: none;
@@ -1152,7 +1155,7 @@ footer .section.last {
 #translationRequestsPage .translationRequest .requestFeatured {
     float: none;
     cursor: pointer;
-    color: #FFCC00;
+    /*color: #FFCC00;*/
     font-size: 16px;
     vertical-align: middle;
 }
