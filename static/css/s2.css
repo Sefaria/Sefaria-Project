@@ -47,6 +47,14 @@ body.dark {
   height: 100%;
   top: 0;
 }
+#panelWrapBox {
+  position: relative;
+  padding-top: 54px;
+  height: 100%;
+}
+#panelWrapBox.wrapBoxScroll {
+  overflow-x: scroll;
+}
 .headerInner {
   position: fixed;
   top: 0;
@@ -107,7 +115,7 @@ body.dark {
   position: absolute;
   top: 0px;
   left: 50%;
-  margin-left: -46px;
+  margin-left: -51px;
 }
 .header .home img {
   opacity: 0.8;
@@ -258,7 +266,6 @@ body.dark {
 }
 .multiPanel .readerPanelBox {
   box-sizing: border-box;
-  padding-top: 54px;
 }
 .readerPanelBox {
   position: absolute;

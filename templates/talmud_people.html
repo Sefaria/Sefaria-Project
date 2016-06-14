@@ -22,30 +22,28 @@
             <span class="en">People in the Talmud</span>
             <span class="he">אנשים בתלמוד</span>
         </h1>
-        <div class="row static-text" id="about">
-            <div class="about main-text">
-                {% for r in gens|partition_by:"2" %}
-                    <div class="row">
-                        {% for gen in r %}
-                            <div class="talmudic-generation span4">
-                            <h3>
-                                <span class="en">{{ gen.name_en }}</span>
-                                <span class="he">{{ gen.name_he }}</span>
-                            </h3>
-                            <h4>
-                                <span class="en">{{ gen.years_en }}</span>
-                                <span class="he">{{ gen.years_he }}</span>
-                            </h4>
-                            {% for person in gen.people %}
-                                <p class="author">
-                                {{ person|person_link }}
-                                </p>
-                            {% endfor %}
-                            </div>
+        <div class="section">
+            {% for r in gens|partition_by:"2" %}
+                <div class="generations-row">
+                    {% for gen in r %}
+                        <div class="talmudic-generation">
+                        <h3>
+                            <span class="en">{{ gen.name_en }}</span>
+                            <span class="he">{{ gen.name_he }}</span>
+                        </h3>
+                        <h4>
+                            <span class="en">{{ gen.years_en }}</span>
+                            <span class="he">{{ gen.years_he }}</span>
+                        </h4>
+                        {% for person in gen.people %}
+                            <p class="author">
+                            {{ person|person_link }}
+                            </p>
                         {% endfor %}
-                    </div>
-                {% endfor %}
-            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
         </div>
 
     </div>
