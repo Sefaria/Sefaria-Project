@@ -110,10 +110,9 @@ body.dark {
   margin-left: -46px;
 }
 .header .home img {
-  height: 18px;
-  width: 92px;
-  opacity: 0.6;
+  opacity: 0.8;
   vertical-align: middle;
+  height: 22px;
 }
 .header .accountLinks {
   display: inline-block;
@@ -359,6 +358,10 @@ body.dark {
   display: inline;
   line-height: 32px;
 }
+.languageToggle img {
+  opacity: 0.2;
+  height: 18px;
+}
 .systemPanel.english .content .he {
   display: none;
 }
@@ -372,14 +375,6 @@ body.dark {
 .systemPanel.hebrew .content .he {
   display: inline;
   font-family: "Open Sans Hebrew", sans-serif;
-}
-.systemPanel.readerNavMenu .languageToggle span.en {
-  font-family: "Taamey Frank", "Times New Roman", serif;
-  font-size: 26px;
-}
-.systemPanel.readerNavMenu .languageToggle span.he {
-  font-family: "adobe-garamond-pro", Georgia, serif;
-  font-size: 22px;
 }
 .loadingMessage {
   font-size: 14px;
@@ -635,6 +630,12 @@ h1 .languageToggle .he {
 .readerNavCategories .threeBox td {
   border: none;
 }
+.readerNavCategories a {
+  color: #333;
+}
+.readerNavCategories a:hover {
+  text-decoration: none;
+}
 .readerNavCategory {
   background-color: white;
   text-transform: uppercase;
@@ -777,6 +778,11 @@ h1 .languageToggle .he {
   background-color: white;
   border: 6px solid #F9F9F7;
 }
+
+.readerSheetsNav .navButton:hover {
+  text-decoration: none;
+}
+
 @media (max-width: 450px) {
   .readerNavMenu .readerNavCategoryMenu td,
   .readerSheetsNav .gridBox td {
@@ -1424,7 +1430,9 @@ h1 .languageToggle .he {
   overflow: hidden;
   max-width: 60%;
   vertical-align: middle;
+  color: #333;
 }
+
 .readerControls .readerTextToc .readerTextVersion {
   font-style: italic;
   color: #999;
@@ -1443,6 +1451,7 @@ h1 .languageToggle .he {
 .readerOptions img {
   height: 18px;
   width: 30px;
+  opacity: 0.2;
   vertical-align: middle;
 }
 .readerOptionsPanel {
@@ -1593,11 +1602,11 @@ h1 .languageToggle .he {
   display: none;
 }
 .basetext .text {
-  padding: 30px;
+  padding: 30px 44px;
   background-color: inherit;
 }
 .narrowColumn .basetext .text {
-  padding: 13px;
+  padding: 26px;
 }
 .basetext .segment {
   cursor: pointer;
@@ -1751,14 +1760,14 @@ h1 .languageToggle .he {
   -webkit-filter: invert(100%);
 }
 .readerPanel.english .segment .segmentNumber {
-  left: -24px;
+  left: -36px;
 }
 .readerPanel.hebrew .segment .segmentNumber,
 .readerPanel.bilingual .segment .segmentNumber {
   right: -20px;
 }
 .readerPanel.english .segment .linkCount {
-  right: -20px;
+  right: -34px;
 }
 .readerPanel.hebrew .segment .linkCount,
 .readerPanel.bilingual .segment .linkCount {
@@ -1821,13 +1830,6 @@ h1 .languageToggle .he {
   background-color: transparent;
   border: 1px solid #ccc;
   font-size: 30px;
-}
-.connectionsPanelHeader .languageToggle .he {
-   font-family: "adobe-garamond-pro", Georgia, serif;
-   font-size: 84%;
-}
-.connectionsPanelHeader .languageToggle .en {
-  font-family: "Taamey Frank", "Times New Roman", serif;
 }
 .connectionsPanelTabs {
   text-align: left;
@@ -2031,6 +2033,7 @@ h1 .languageToggle .he {
   font-size: 15px;
   cursor: pointer;
   line-height: 18px;
+  color: #333;
 }
 .textFilter {
   padding: 12px 4px;
@@ -2039,6 +2042,10 @@ h1 .languageToggle .he {
   line-height: 1.2;
   display: block;
   cursor: pointer;
+  color: #333;
+}
+.categoryFilterGroup a:hover {
+  text-decoration: none;
 }
 .categoryFilter.on, .textFilter.on {
   color: black;
@@ -2473,6 +2480,9 @@ h1 .languageToggle .he {
   box-sizing: border-box;
   line-height: 1;
 }
+a.button {
+  color: white;
+}
 .button:hover {
   color: white;
   text-decoration: none;
@@ -2481,6 +2491,9 @@ h1 .languageToggle .he {
   background-color: white;
   color: #333;
   border: 1px solid #ccc;
+}
+a.button.white {
+  color: #333;
 }
 .button.white:hover {
 

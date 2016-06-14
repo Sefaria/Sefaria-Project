@@ -15,8 +15,8 @@ var http           = require('http'),
 
 var server = express();
 
-server.use(bodyParser.urlencoded({ extended: false }));
-server.use(bodyParser.json());
+server.use(bodyParser.urlencoded({ extended: false, limit: '50mb' }));
+server.use(bodyParser.json({limit: '50mb'}));
 
 var renderReaderApp = function(props, data, timer) {
   // Returns HTML of ReaderApp component given `props` and `data`
@@ -26,16 +26,7 @@ var renderReaderApp = function(props, data, timer) {
   data.path     = props.path;
   data.loggedIn = props.loggedIn;
   SefariaReact.setData(data);
-  var panels = props.initialPanels || [];
-  for (var i = 0; i < panels.length; i++) {
-    var panel = panels[i];
-    if ("text" in panel) {
-      SefariaReact.saveTextData(panel.text, {context: 1, version: panel.version, language: panel.versionLanguage});
-    }
-    if ("textTocHtml" in panel) {
-      SefariaReact.saveTextTocHtml(panel["bookRef"], panel["textTocHtml"]);
-    }
-  }
+  SefariaReact.unpackDataFromProps(props);
   console.log("Time to set data: %dms", timer.elapsed());
 
   var html  = ReactDOMServer.renderToString(ReaderApp(props));
