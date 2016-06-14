@@ -879,9 +879,10 @@ var ReaderApp = React.createClass({
       // Keys must be constant as text scrolls, but changing as new panels open in new positions
       // Use a combination of the panel number and text title
       var key = i + title;
+      var classes = classNames({ readerPanelBox: 1, sidebar: panel.mode == "Connections" });
       panels.push(React.createElement(
         'div',
-        { className: 'readerPanelBox', style: style, key: key },
+        { className: classes, style: style, key: key },
         React.createElement(ReaderPanel, {
           initialState: panel,
           interfaceLang: this.props.interfaceLang,
@@ -5078,7 +5079,7 @@ var ConnectionsPanelTabs = React.createClass({
         this.props.setConnectionsMode(item["en"]);
       }.bind(this);
       var active = item["en"] === this.props.activeTab;
-      var classes = classNames({ connectionsPanelTab: 1, active: active });
+      var classes = classNames({ connectionsPanelTab: 1, sans: 1, active: active });
       return React.createElement(
         'div',
         { className: classes, onClick: tabClick, key: item["en"] },
@@ -6053,7 +6054,7 @@ var ToolsButton = React.createClass({
 
     return React.createElement(
       'div',
-      { className: 'toolsButton', onClick: this.props.onClick },
+      { className: 'toolsButton sans', onClick: this.props.onClick },
       icon,
       React.createElement(
         'div',
