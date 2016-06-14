@@ -88,6 +88,8 @@ def header_html(request):
     Uses React to prerender a logged in and and logged out header for use in pages that extend `base.html`.
     Cached in memory -- restarting Django is necessary for catch any HTML changes to header.
     """
+    if request.path == "/data.js":
+        return {}
     global LOGGED_OUT_HEADER, LOGGED_IN_HEADER
     if USE_NODE:
         LOGGED_OUT_HEADER = LOGGED_OUT_HEADER or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": False})
