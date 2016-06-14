@@ -784,6 +784,10 @@
 .static-text .static-content-not > p:first-child {
   font-weight: bold;
 }
+#linkerPage p{
+  font-size: 16px;
+  color: #666;
+}
 #linkerPage .linkerOption {
   margin: 50px 0;
 }
