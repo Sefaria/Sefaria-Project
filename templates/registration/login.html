@@ -49,13 +49,13 @@
                     <span class="en">Login</span>
                     <span class="he">התחבר</span>
                 </button>
-                <a href="{% url password_reset %}" id="resetLink">
+                <a class="registration-links" href="{% url password_reset %}" id="resetLink">
                     <span class="en">Forgot your password?</span>
                     <span class="he">שכחתי את הסיסמא שלי</span>
                 </a>
                 <input type="hidden" name="next" value="{{ next }}" />
             </form>
-            <a href="{% url register %}{% if next %}?next={{ next }}{% endif %}">
+            <a class="registration-links" href="{% url register %}{% if next %}?next={{ next }}{% endif %}">
                 <span class="en">Create a new account</span>
                 <span class="he">חדש? צור חשבון משתמש חדש</span>
 
