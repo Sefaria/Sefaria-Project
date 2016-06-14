@@ -808,6 +808,7 @@
   margin-bottom: 35px;
   padding-bottom: 35px;
   display: flex;
+  display: -webkit-flex
 }
 #teamPage .teamBoardMember{
   border-bottom: none;
@@ -1000,6 +1001,7 @@
 }
 #peoplePage .authors-row{
   display: flex;
+  display: -webkit-flex
 }
 #peoplePage .author a, #talmudicPeoplePage .author a, #personPage a{
   color: #666;
@@ -1170,7 +1172,9 @@ footer .section.last {
   padding: 20px 0 20px 0;
   margin: 0;
   display: flex;
+  display: -webkit-flex
   justify-content: space-between;
+  -webkit-justify-content:space-between;
 }
 #translationRequestsPage .translationRequest > div{
   all: initial;
