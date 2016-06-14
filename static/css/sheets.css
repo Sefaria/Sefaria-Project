@@ -1863,3 +1863,6 @@ a.userLink{
 	border-radius: 6px;
 }
 
+#panelWrapBox {
+	display: none;
+}
