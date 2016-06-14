@@ -1016,7 +1016,16 @@
   margin-left: 0;
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 20px;
-  display: inline-flex;
+}
+#peoplePage .author{
+  width: 50%;
+  min-width: 320px;
+}
+#talmudicPeoplePage .generations-row{
+  display: flex;
+  display: -webkit-flex
+}
+#talmudicPeoplePage .talmudic-generation{
   width: 50%;
   min-width: 320px;
 }
