@@ -5094,11 +5094,30 @@ var ConnectionsPanel = React.createClass({
         setConnectionsMode: this.props.setConnectionsMode,
         editNote: this.props.editNote });
     } else if (this.props.mode === "Add Connection") {
-      content = React.createElement(LoadingMessage, { className: 'toolsMessage', message: 'Coming Soon.', heMessage: 'הרכיב הזה נמצא בבנייה...' });
-    } else if (this.props.mode === "Edit Text") {
-      content = React.createElement(LoadingMessage, { className: 'toolsMessage', message: 'Coming Soon.', heMessage: 'הרכיב הזה נמצא בבנייה...' });
-    } else if (this.props.mode === "Add Translation") {
-      content = React.createElement(LoadingMessage, { className: 'toolsMessage', message: 'Coming Soon.', heMessage: 'הרכיב הזה נמצא בבנייה...' });
+      var url = "/s1?next=" + window.location.pathname;
+      var link = React.createElement(
+        'a',
+        { href: url },
+        'old Sefaria'
+      );
+      content = React.createElement(
+        'div',
+        { className: 'toolsMessage sans' },
+        React.createElement(
+          'span',
+          { className: 'en' },
+          'We\'re still working on updating this feature for the new Sefaria. In the meantime, to add a connection please use the ',
+          link,
+          '.'
+        ),
+        React.createElement(
+          'span',
+          { className: 'he' },
+          'We\'re still working on updating this feature for the new Sefaria. In the meantime, to add a connection please use the ',
+          link,
+          '.'
+        )
+      );
     } else if (this.props.mode === "Login") {
       content = React.createElement(LoginPanel, { fullPanel: this.props.fullPanel });
     }

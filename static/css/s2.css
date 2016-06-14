@@ -2230,9 +2230,10 @@ a.recentItem {
 .readerPanel.bilingual .toolsPanel .he {
   display: none;
 }
-.toolsMessage.loadingMessage {
-  margin-top: 130px;
+.toolsMessage {
+  margin: 130px 60px;
   text-align: center;
+  font-size: 18px;
 }
 .toolsButton {
   background-color: white;

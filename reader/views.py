@@ -179,17 +179,17 @@ def esi_account_box(request):
 
 def switch_to_s1(request):
     """Set the S1 cookie then redirect to /"""
-
-    response = redirect("/")
+    next = request.GET.get("next", "/")
+    response = redirect(next)
     response.set_cookie("s1", "true")
     return response
 
 
 def switch_to_s2(request):
     """Set the S2 cookie then redirect to /texts"""
-
-    response = redirect("/texts")
-    response.set_cookie("s2", "true")
+    next = request.GET.get("next", "/texts")
+    response = redirect(next)
+    response.set_cookie("s1", "")
     return response
 
 

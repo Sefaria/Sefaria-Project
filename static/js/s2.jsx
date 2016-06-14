@@ -4194,13 +4194,12 @@ var ConnectionsPanel = React.createClass({
                   editNote={this.props.editNote} />);
 
     } else if (this.props.mode === "Add Connection") {
-      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." heMessage="הרכיב הזה נמצא בבנייה..." />);
-
-    } else if (this.props.mode === "Edit Text") {
-      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." heMessage="הרכיב הזה נמצא בבנייה..." />);
-
-    } else if (this.props.mode === "Add Translation") {
-      content = (<LoadingMessage className="toolsMessage" message="Coming Soon." heMessage="הרכיב הזה נמצא בבנייה..." />);
+      var url  = "/s1?next=" + window.location.pathname;
+      var link = (<a href={url}>old Sefaria</a>);
+      content = (<div className="toolsMessage sans">
+                    <span className="en">We&apos;re still working on updating this feature for the new Sefaria. In the meantime, to add a connection please use the {link}.</span>
+                    <span className="he">We&apos;re still working on updating this feature for the new Sefaria. In the meantime, to add a connection please use the {link}.</span>
+                  </div>);
 
     } else if (this.props.mode === "Login") {
       content = (<LoginPanel fullPanel={this.props.fullPanel} />);
