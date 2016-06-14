@@ -186,12 +186,17 @@ var ReaderApp = React.createClass({
       this.justPopped = false;
       return;
     }
+
+    // If a new panel has been added, and the panels extend beyond the viewable area, check horizontal scroll
     if (this.state.panels.length > this.state.panelCap && this.state.panels.length > prevState.panels.length) {
       var elem = document.getElementById("panelWrapBox");
-      var rightmostPixel = elem.scrollLeft + this.state.windowWidth;
-      var lastCompletelyVisible = Math.floor(rightmostPixel / this.MIN_PANEL_WIDTH);
-      var leftover = rightmostPixel % this.MIN_PANEL_WIDTH;
-      var newPanelPosition;
+      var viewExtent = (this.state.layoutOrientation == "ltr")                      // How far (px) current view extends into viewable area
+          ? elem.scrollLeft + this.state.windowWidth
+          : elem.scrollWidth - elem.scrollLeft;
+      var lastCompletelyVisible = Math.floor(viewExtent / this.MIN_PANEL_WIDTH);    // # of last visible panel - base 1
+      var leftover = viewExtent % this.MIN_PANEL_WIDTH;                             // Leftover viewable pixels after last fully visible panel
+
+      var newPanelPosition;                                                         // # of newly inserted panel - base 1
       for (var i = 0; i < this.state.panels.length; i++) {
         if (!prevState.panels[i] || this.state.panels[i] != prevState.panels[i]) {
           newPanelPosition = i+1;
@@ -199,17 +204,19 @@ var ReaderApp = React.createClass({
         }
       }
       if(newPanelPosition > lastCompletelyVisible) {
-        var scrollBy = 0;
-        var panelOffset = 0;
-        if (leftover > 0) {
+        var scrollBy = 0;      // Pixels to scroll by
+        var panelOffset = 0;   // Account for partial panel scroll
+        if (leftover > 0) {    // If a panel is half scrolled, bring it fully into view
           scrollBy += this.MIN_PANEL_WIDTH - leftover;
           panelOffset += 1;
         }
         scrollBy += (newPanelPosition - lastCompletelyVisible - panelOffset) * this.MIN_PANEL_WIDTH;
-        elem.scrollLeft = elem.scrollLeft + scrollBy;
+        elem.scrollLeft = (this.state.layoutOrientation == "ltr")
+            ? elem.scrollLeft + scrollBy
+            : elem.scrollLeft - scrollBy;
       }
-
     }
+
     this.setContainerMode();
     this.updateHistoryState(this.replaceHistory);
   },
@@ -999,7 +1006,8 @@ var ReaderApp = React.createClass({
 
     var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel});
     var boxClasses = classNames({wrapBoxScroll: wrapBoxScroll});
-    var boxStyle = {width: this.state.windowWidth};
+    var boxStyle = {width: this.state.windowWidth, direction: this.state.layoutOrientation};
+
     return (<div className={classes}>
               {header}
               <div id="panelWrapBox" className={boxClasses} style={boxStyle}>

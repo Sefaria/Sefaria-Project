@@ -567,6 +567,8 @@
 #activityList li{
   margin-bottom: 15px;
   list-style-type: none;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
 }
 #activityList + a.page-link{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -682,6 +684,9 @@
   margin-top: 15px;
   font-size: 13px;
 }
+#footer #siteLanguageToggle #siteLanguageToggleLabel {
+  display: block;
+}
 #footer a#siteLanguageEnglish,
 #footer a#siteLanguageHebrew {
   cursor: pointer;
@@ -783,6 +788,10 @@
 }
 .static-text .static-content-not > p:first-child {
   font-weight: bold;
+}
+#linkerPage p, #supportersPage p{
+  font-size: 16px;
+  color: #666;
 }
 #linkerPage .linkerOption {
   margin: 50px 0;
@@ -1021,6 +1030,12 @@
   width: 50%;
   min-width: 320px;
 }
+#peoplePage .authors-row{
+  padding-bottom: 5px;
+}
+#peoplePage .authors-row:first-of-type{
+  padding-top: 10px;
+}
 #talmudicPeoplePage .generations-row{
   display: flex;
   display: -webkit-flex
@@ -1028,6 +1043,17 @@
 #talmudicPeoplePage .talmudic-generation{
   width: 50%;
   min-width: 320px;
+}
+#talmudicPeoplePage h4{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #ccc;
+  padding-bottom: 10px;
+}
+#talmudicPeoplePage p.author{
+  padding-bottom: 5px;
+}
+#talmudicPeoplePage p.author:first-of-type{
+  padding-top: 10px;
 }
 #personPage #periodNameLine, #personPage #yearLine{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -1089,13 +1115,15 @@
 #activityPage .activityFilterSection{
   text-align: center;
   margin: 30px 0;
+  padding-bottom: 30px;
+
 }
 #activityPage select{
   min-width: 165px;
   background-color: #ffffff;
   height: 3em;
   padding: 0 15px;
-  font-size: 1.3em;
+  letter-spacing: 1px
 }
 #iosPage p {
   margin-bottom: 30px;
@@ -1129,35 +1157,38 @@
 #footer a {
   display: block;
 }
-#footer .he {
-  display: none;
-}
-body.hebrew #footer {
+#footer.hebrew {
   direction: rtl;
+  text-align: right;
 }
-body.english #footer .he {
+#footer.english .he {
   display: none;
 }
-body.english #footer .en {
+#footer.english .en {
   display: inline;
 }
-body.hebrew #footer .he {
+#footer.hebrew .he {
   display: inline;
   font-size: 120%;
   text-align: right;
 }
-body.hebrew #footer .en {
+#footer.hebrew .en {
   display: none;
 }
 #footerInner {
   max-width: 900px;
   margin: 0 auto;
 }
-footer .section {
+#footer .section {
   display: inline-block;
   vertical-align: top;
   width: 160px;
-  text-align: left;
+}
+#footer.english .section {
+  text-align: left;  
+}
+#footer.hebrew .section {
+  text-align: right;
 }
 #footer .section .header {
   color: #666;
@@ -1165,19 +1196,25 @@ footer .section {
   font-weight: normal;
   font-size: 13px;
 }
-footer .section a {
-  color: #aaa;
-  font-size: 14px;
-  margin: 2px 0;
-}
-footer .fa {
-  margin: 0 3px;
-}
-footer .section.last {
+#footer .section.last {
   float: right;
   text-align: right;
   width: 210px;
   border-left: 1px solid #EAEAEA;
+}
+#footer.hebrew .section.last {
+  float: left;
+  text-align: left;
+  border-left: none;
+  border-right: 1px solid #EAEAEA;
+}
+#footer .section a {
+  color: #aaa;
+  font-size: 14px;
+  margin: 2px 0;
+}
+#footer .fa {
+  margin: 0 3px;
 }
 #translationRequestsPage .translationRequest{
   background-color: inherit;
