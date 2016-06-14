@@ -8,12 +8,8 @@
 			<span class='he'>אודות</span>
 		</div>
 		<a href="/about">
-			<span class='en'>Mission</span>
+			<span class='en'>What is Sefaria?</span>
 			<span class='he'></span>
-		</a>
-		<a href="https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions" target="_blank">
-			<span class='en'>FAQ</span>
-			<span class='he'>שאלות נפוצות</span>
 		</a>
 		<a href="/help">
 			<span class='en'>Help</span>
@@ -22,6 +18,10 @@
 		<a href="https://blog.sefaria.org" target="_blank">
 			<span class='en'>Blog</span>
 			<span class='he'></span>
+		</a>
+		<a href="https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions" target="_blank">
+			<span class='en'>FAQ</span>
+			<span class='he'>שאלות נפוצות</span>
 		</a>
 		<a href="/team">
 			<span class='en'>Team</span>
@@ -86,7 +86,7 @@
 	<div class="section">
 		<div class="header">
 			<span class='en'>Join Us</span>
-			<span class='he'></span>
+			<span class='he'>הצטרף אלינו</span>
 		</div>
 		<a href="/donate">
 			<span class='en'>Donate</span>
@@ -139,8 +139,10 @@
 			<span class='he'>דוא"ל</span>
 		</a>
 		<div id="siteLanguageToggle">
-			<div class='en'>Site Language:</div>
-			<div class='he'>שפת האתר</div>
+			<div id="siteLanguageToggleLabel">
+				<div class='en'>Site Language:</div>
+				<div class='he'>שפת האתר</div>
+			</div>
 			<a href="/interface/english?next={{ request.get_full_path }}" id="siteLanguageEnglish">English</a>
 			|
 			<a href="/interface/hebrew?next={{ request.get_full_path }}" id="siteLanguageHebrew">עברית</a>
