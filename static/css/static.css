@@ -649,6 +649,18 @@
   font-size: 14px;
   font-style: normal;
 }*/
+.registrationContent .recaptcha_widget_div{
+  transform:scale(0.68);
+  -webkit-transform:scale(0.68);
+  transform-origin:0 0;
+  -webkit-transform-origin:0 0;
+  margin-bottom: -50px;
+}
+/*@media screen and (max-height: 575px){
+#rc-imageselect, .g-recaptcha {
+
+}
+}*/
 #visualizationsPage {
   text-align: left;
 }
