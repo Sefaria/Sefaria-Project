@@ -3455,7 +3455,7 @@ var SheetsHomePage = React.createClass({
           { className: 'splitHeader' },
           React.createElement(
             'span',
-            { className: 'en', style: { float: 'left' } },
+            { className: 'en' },
             'Public Sheets'
           ),
           React.createElement(
@@ -3473,9 +3473,11 @@ var SheetsHomePage = React.createClass({
             'Public Sheets'
           )
         ),
-        publicSheetList,
-        React.createElement('br', null),
-        React.createElement('br', null),
+        React.createElement(
+          'div',
+          { className: 'topSheetsBox' },
+          publicSheetList
+        ),
         this.props.multiPanel ? null : React.createElement(
           'h2',
           null,
@@ -3493,7 +3495,7 @@ var SheetsHomePage = React.createClass({
           { className: 'splitHeader' },
           React.createElement(
             'span',
-            { className: 'en', style: { float: 'left' } },
+            { className: 'en' },
             'All Tags'
           ),
           React.createElement(
@@ -3818,7 +3820,7 @@ var MySheetsPage = React.createClass({
           { className: 'splitHeader' },
           React.createElement(
             'span',
-            { className: 'en actionText', style: { float: 'left' }, onClick: this.toggleSheetTags },
+            { className: 'en', onClick: this.toggleSheetTags },
             'Filter By Tag ',
             React.createElement('i', { className: 'fa fa-angle-down' })
           ),
