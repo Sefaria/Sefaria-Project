@@ -687,6 +687,9 @@ h1 .languageToggle .he {
   width: 100%;
   cursor: pointer;
 }
+.blockLink:hover {
+  color: #333;
+}
 .blockLink + .blockLink {
   margin: 5px 0;
 }
@@ -1057,7 +1060,8 @@ h1 .languageToggle .he {
   font-size: 12px;
   height: 64px;
 }
-.searchContent .type-button {
+.searchContent .type-button,
+.readerSheetsNav .type-button {
   padding: 6px 14px;
   margin: 5px;
   border-radius: 12px;
@@ -1069,12 +1073,14 @@ h1 .languageToggle .he {
   letter-spacing: 1px;
   cursor: pointer;
 }
-.searchContent .type-button.active {
+.searchContent .type-button.active,
+.readerSheetsNav .type-button.active {
   color: #000;
   background-color: white;
 }
 .searchContent .type-button-title,
-.searchContent .type-button-total {
+.searchContent .type-button-total,
+.readerSheetsNav .type-button-title{
   display: inline-block;
   padding: 2px;
 }
@@ -1926,8 +1932,8 @@ h1 .languageToggle .he {
 }
 .gridBox td {
   padding: 0;
-  border-top: 10px solid transparent;;
-  border-bottom: 10px solid transparent;;
+  border-top: 6px solid transparent;;
+  border-bottom: 6px solid transparent;;
   border-right: 6px solid transparent;;
   border-left: 6px solid transparent;;
 }
@@ -2396,16 +2402,19 @@ h1 .languageToggle .he {
   color: #666;
 }
 .systemPanel.readerNavMenu h1 {
-  font-size: 17px;
-  color: #999;
+  color: #333;
+  position: relative;
+  font-weight: lighter;
+  letter-spacing: 1px;
+  text-align: center;
+  font-size: 26px;
+  margin: 0 0 80px 0;
   height: auto;
 }
 .systemPanel.readerNavMenu h1 .en {
-  text-transform: uppercase;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .systemPanel.readerNavMenu h1 .he {
-  text-transform: uppercase;
   font-family: "Open Sans Hebrew", sans-serif;
 }
 .notificationsPanel a {
@@ -2716,4 +2725,8 @@ h2.splitHeader .he {
 
 .sheetButton.active {
   border: 1px solid #333;
+}
+
+.clickableTag {
+  cursor: pointer;
 }
