@@ -268,6 +268,9 @@ body.dark {
 .readerPanelBox + .readerPanelBox {
   border-left: 1px solid #eee;
 }
+.readerPanelBox.sidebar {
+  border-left: none;
+}
 .readerPanel {
   position: relative;
   width: 100%;
@@ -435,7 +438,7 @@ body.dark {
   padding-right: 37px;
 }
 .multiPanel .readerNavMenu .content {
-  padding: 80px 25px 10px;
+  padding: 110px 25px 10px;
 }
 .multiPanel .readerNavMenu.noHeader .content {
   padding-top: 70px;
@@ -624,6 +627,12 @@ h1 .languageToggle .he {
 .readerNavSection {
   margin-bottom: 44px;
 }
+a.recentItem {
+  white-space: nowrap;
+  overflow: hidden;              /* "overflow" value must be different from "visible" */
+  text-overflow: ellipsis;
+  width: 100%;
+}
 .readerNavCategories {
   width: 100%;
 }
@@ -692,6 +701,9 @@ h1 .languageToggle .he {
 }
 .blockLink + .blockLink {
   margin: 5px 0;
+}
+.gridBox {
+  table-layout: fixed;
 }
 .gridBox td > a {
   height: 100%;
@@ -793,7 +805,7 @@ h1 .languageToggle .he {
   top: 0;
   left: 0;
   width: 100%;
-  height: 8px;
+  height: 6px;
   z-index: 101;
 }
 .bilingual .readerTextTableOfContents .he {
@@ -824,7 +836,7 @@ h1 .languageToggle .he {
   letter-spacing: 1px;
 }
 .readerTextTableOfContents .currentVersionBox {
-  margin-bottom: 20px;
+  margin-bottom: 50px;
   text-align: center;
   direction: ltr;
 }
@@ -832,10 +844,13 @@ h1 .languageToggle .he {
 .readerTextTableOfContents .currentVersionBox .versionSelect {
   width: 80%;
   max-width: 300px;
-  margin: 5px auto;
+  margin: 20px auto 5px;
 }
 .readerTextTableOfContents .currentVersionBox .versionSelect select {
   width: 100%;
+  background-color: white;
+  font-size: 13px;
+  height: 3em;
 }
 .readerTextTableOfContents .currentVersionBox .versionBlock span,
 .readerTextTableOfContents .currentVersionBox .versionBlock  a {
@@ -868,13 +883,18 @@ h1 .languageToggle .he {
   line-height: 38px;
   vertical-align: middle;
   font-size: 13px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: lighter;
   margin: 1px;
   text-align: center;
   background-color: white;
   color: #666;
   cursor: pointer;
+}
+.readerTextTableOfContents .content .sectionLink .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.readerTextTableOfContents .content .sectionLink  .he {
+  /*font-family: "Open Sans Hebrew", sans-serif;*/
 }
 .readerTextTableOfContents .content #structToggles {
   margin-bottom: 20px;
@@ -908,7 +928,7 @@ h1 .languageToggle .he {
   display: block;
 }
 .readerTextTableOfContents .content .tocContent {
-  padding: 20px 0;
+  padding: 50px 0;
   border-top: 1px solid #ccc;
   text-align: left;
 } 
@@ -998,7 +1018,7 @@ h1 .languageToggle .he {
   border-top: 1px solid #ccc;
 }
 .readerTextTableOfContents .versionBlocks .versionLanguageBlock {
-  padding-top: 20px;
+  padding-top: 50px;
   clear: both;
 }
 .readerTextTableOfContents .versionBlocks .versionLanguageHeader {
@@ -1009,9 +1029,10 @@ h1 .languageToggle .he {
   padding: 10px 0;
 }
 .readerTextTableOfContents .versionBlocks .versionBlock {
-  padding: 10px 0;
+  padding: 10px 30px;
   width: 50%;
   float: left;
+  box-sizing: border-box;
 }
 .readerTextTableOfContents .versionBlocks .versionBlock:only-child {
     float: none;
@@ -1412,11 +1433,13 @@ h1 .languageToggle .he {
 .leftButtons .readerNavMenuCloseButton span {
   vertical-align: middle;
 }
-
 .readerControls .readerTextToc {
   font-size: 17px;
   box-sizing: border-box;
   display: block;
+}
+.readerTextTocHeader.readerTextToc {
+  font-size: 14px;
 }
 .hebrew .readerControls .readerTextToc {
   direction: rtl;
@@ -1447,8 +1470,7 @@ h1 .languageToggle .he {
   display: none;
 }
 .readerOptions img {
-  height: 18px;
-  width: 30px;
+  height: 16px;
   opacity: 0.2;
   vertical-align: middle;
 }
@@ -1758,18 +1780,18 @@ h1 .languageToggle .he {
   -webkit-filter: invert(100%);
 }
 .readerPanel.english .segment .segmentNumber {
-  left: -36px;
+  left: -38px;
 }
 .readerPanel.hebrew .segment .segmentNumber,
 .readerPanel.bilingual .segment .segmentNumber {
-  right: -20px;
+  right: -38px;
 }
 .readerPanel.english .segment .linkCount {
   right: -34px;
 }
 .readerPanel.hebrew .segment .linkCount,
 .readerPanel.bilingual .segment .linkCount {
-  left: -24px;
+  left: -36px;
 }
 .segment .refLink {
   font-size: .8em;
@@ -1816,7 +1838,7 @@ h1 .languageToggle .he {
   width: 32px;
   text-align: center;
   line-height: 32px;
-  background-color: white;
+  background-color: #f9f9f7;
   border: 1px solid #E6E6E6;
   border-radius: 4px;
   margin-left: 10px;
@@ -1891,7 +1913,7 @@ h1 .languageToggle .he {
   padding: 30px 30px 80px 30px;
 }
 .textList.fullPanel .fullFilterView {
-  padding: 30px 48px 80px 60px;
+  padding: 60px 48px 80px 60px;
 }
 .textListTop {
   position: absolute;
@@ -2203,7 +2225,7 @@ h1 .languageToggle .he {
 .myNotesPanel .texts .contentInner,
 .addToSourceSheetPanel .texts .contentInner,
 .addNotePanel .texts .contentInner {
-  margin: 30px auto;
+  margin: 60px auto;
 }
 .readerPanel.bilingual .toolsPanel .he {
   display: none;
@@ -2219,7 +2241,7 @@ h1 .languageToggle .he {
   border-radius: 7px;
   cursor: pointer;
   text-transform: uppercase;
-  font-size: 16px;
+  font-size: 14px;
   letter-spacing: 1px;
   padding: 20px 26px;
   margin: 10px 0;
@@ -2727,6 +2749,16 @@ h2.splitHeader .he {
   border: 1px solid #333;
 }
 
-.clickableTag {
-  cursor: pointer;
+.tagString a {
+  text-decoration: none;
+  color: #999;
+}
+
+.tagString a:after {
+content: ", ";
+color: #999;
+}
+
+.tagString a:last-child:after {
+content: "";
 }
