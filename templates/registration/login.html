@@ -5,16 +5,18 @@
 {% block content %}
 
 {% if user.email %}
-    <div class="biReady">
-	<p id="message">
-        <span class="en">You are already logged in as </span>
-        <span class="he">הנך מחובר כבר בתור</span>
-        {{ user.email }}.
-        <a href="{% url logout %}">
-            <span class="en">Logout.</span>
-            <span class="he">התנתק.</span>
-        </a>
-	</p>
+    <div id="login" class="biReady registrationContent static">
+        <div class="inner">
+            <p id="message">
+                <span class="en">You are already logged in as </span>
+                <span class="he">הנך מחובר כבר בתור</span>
+                {{ user.email }}.
+                <a href="{% url logout %}">
+                    <span class="en">Logout.</span>
+                    <span class="he">התנתק.</span>
+                </a>
+            </p>
+        </div>
     </div>
 
 {% else %}
