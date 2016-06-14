@@ -878,6 +878,8 @@ var ReaderApp = React.createClass({
       panelStates = panelStates.slice(1); // Don't leave an orphaned connections panel at the beginning
     }
 
+    var panelStates = this.state.panels;
+
     var evenWidth = 100.0/panelStates.length;
     if (panelStates.length == 2 && panelStates[0].mode == "Text" && panelStates[1].mode == "Connections") {
       var widths = [60.0, 40.0];
@@ -925,7 +927,8 @@ var ReaderApp = React.createClass({
       var title = oref && oref.book ? oref.book : 0;
       // Keys must be constant as text scrolls, but changing as new panels open in new positions
       // Use a combination of the panel number and text title
-      var key   = i + title;
+      var offset = this.state.panelCap - panelStates.length;
+      var key   = (i+offset) + title;
       var classes = classNames({readerPanelBox: 1, sidebar: panel.mode == "Connections"})
       panels.push(<div className={classes} style={style} key={key}>
                     <ReaderPanel 
