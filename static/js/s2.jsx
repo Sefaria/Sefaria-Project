@@ -319,9 +319,16 @@ var ReaderApp = React.createClass({
             break;
           case "sheets":
             if (states[i].navigationSheetTag) {
-              hist.url   = "sheets/tags/" + state.navigationSheetTag;
-              hist.title = state.navigationSheetTag + " | Sefaria Source Sheets";
-              hist.mode  = "sheets tag";
+              if (states[i].navigationSheetTag == "My Sheets") {
+                hist.url   = "sheets/private";
+                hist.title = "My Sheets | Sefaria Source Sheets";
+                hist.mode  = "sheets tag";
+              }
+              else {
+                hist.url   = "sheets/tags/" + state.navigationSheetTag;
+                hist.title = state.navigationSheetTag + " | Sefaria Source Sheets";
+                hist.mode  = "sheets tag";
+              }
             } else {
               hist.url   = "sheets";
               hist.title = "Sefaria Source Sheets";
@@ -2756,8 +2763,8 @@ var SheetsNav = React.createClass({
   componentWillReceiveProps: function(nextProps) {
     
   },
-  changeSort: function(event) {
-    this.props.setSheetTagSort(event.target.value);
+  changeSort: function(sort) {
+    this.props.setSheetTagSort(sort);
     //Sefaria.sheets.tagList(this.loadTags, event.target.value);
   },
   render: function() {
@@ -2855,13 +2862,25 @@ var SheetsHomePage = React.createClass({
   showAllSheets: function() { 
     this.props.setSheetTag("All Sheets");
   },
-  changeSort: function(event) {
-    this.props.setSheetTagSort(event.target.value);
+  changeSort: function(sort) {
+    this.props.setSheetTagSort(sort);
   },
+  _type_sheet_button: function(en, he, on_click, active) {
+    var classes = classNames({"type-button": 1, active: active});
+
+      return <div className={classes} onClick={on_click}>
+      <div className="type-button-title">
+        <span className="en">{en}</span>
+        <span className="he">{he}</span>
+      </div>
+    </div>;
+  },
+
   render: function() {
     var trendingTags = this.getTrendingTagsFromCache();
-    var tagList      = this.getTagListFromCache();
     var topSheets    = this.getTopSheetsFromCache();
+    if (this.props.tagSort == "trending") { var tagList  = this.getTrendingTagsFromCache(); }
+    else { var tagList = this.getTagListFromCache(); }
 
     var makeTagButton = tag => <SheetTagButton setSheetTag={this.props.setSheetTag} tag={tag.tag} count={tag.count} key={tag.tag} />;
 
@@ -2880,7 +2899,6 @@ var SheetsHomePage = React.createClass({
     return (<div className="content">
               <div className="contentInner">
                 {this.props.hideNavHeader ? (<h1>
-                  <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
                   <span className="en">Source Sheets</span>
                   <span className="he">דפי מקורות</span>
                 </h1>) : null}
@@ -2908,16 +2926,18 @@ var SheetsHomePage = React.createClass({
                 <br /><br />
 
                 { this.props.multiPanel ? (
-                <h2 className="splitHeader">
-                  <span className="en">All Tags</span>
-
-                  <span className="en actionText">Sort By:
-                    <select value={this.props.tagSort} onChange={this.changeSort}>
-                     <option value="count">Most Popular</option>
-                     <option value="alpha">Alphabetical</option>
-                     <option value="trending">Trending</option>
-                   </select> <i className="fa fa-angle-down"></i></span>
-                </h2>) : (
+                    <h2>
+                      <span className="en">All Tags</span>
+                      <span className="he">All Tags [he]</span>
+                      <div className="actionText">
+                        <div className="type-buttons">
+                          {this._type_sheet_button("Most Used", "Most Used [he]", () => this.changeSort("count"), (this.props.tagSort == "count"))}
+                          {this._type_sheet_button("Alphabetical", "Alpha [he]", () => this.changeSort("alpha"), (this.props.tagSort == "alpha"))}
+                          {this._type_sheet_button("Trending", "Trending [he]", () => this.changeSort("trending"), (this.props.tagSort == "trending"))}
+                        </div>
+                      </div>
+                    </h2>
+                ) : (
                 <h2>
                   <span className="en">All Tags</span>
                 </h2>
