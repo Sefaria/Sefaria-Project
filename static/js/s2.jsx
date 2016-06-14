@@ -2890,15 +2890,16 @@ var SheetsHomePage = React.createClass({
 
                 { this.props.multiPanel ?
                   (<h2 className="splitHeader">
-                    <span className="en" style={{float: 'left'}}>Public Sheets</span>
+                    <span className="en">Public Sheets</span>
                     <span className="en actionText" onClick={this.showAllSheets}>See All <i className="fa fa-angle-right"></i></span>
                   </h2>) : 
                   (<h2>
                      <span className="en">Public Sheets</span>
                    </h2>)}
 
-                {publicSheetList}
-                <br /><br />
+                <div className="topSheetsBox">
+                  {publicSheetList}
+                </div>
 
                 { this.props.multiPanel ? null : 
                   (<h2>
@@ -2910,7 +2911,7 @@ var SheetsHomePage = React.createClass({
 
                 { this.props.multiPanel ? (
                 <h2 className="splitHeader">
-                  <span className="en" style={{float: 'left'}}>All Tags</span>
+                  <span className="en">All Tags</span>
 
                   <span className="en actionText">Sort By:
                     <select value={this.props.tagSort} onChange={this.changeSort}>
@@ -3122,7 +3123,7 @@ var MySheetsPage = React.createClass({
 
                 {this.props.hideNavHeader ?
                  (<h2 className="splitHeader">
-                    <span className="en actionText" style={{float: 'left'}} onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
+                    <span className="en" onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
                     <span className="en actionText">Sort By:
                       <select value={this.props.tagSort} onChange={this.changeSortYourSheets}>
                        <option value="date">Recent</option>
