@@ -125,7 +125,7 @@
 
 }
 .static .error {
-  color: red; 
+  color: red;
 }
 .static .inner div.single-button a.button{
   margin: auto;
@@ -1102,3 +1102,62 @@ footer .section.last {
   width: 210px;
   border-left: 1px solid #EAEAEA;
 }
+#translationRequestsPage .translationRequest{
+  background-color: inherit;
+  text-align: justify;
+  display: block;
+  border-bottom: 1px solid #eee;
+  padding: 20px 0 20px 0;
+  margin: 0;
+}
+#translationRequestsPage .translationRequest > div{
+  all: initial;
+}
+
+#translationRequestsPage .translationRequest .requestRank,
+#translationRequestsPage .translationRequest .requestText,
+#translationRequestsPage .translationRequest .requestCountBox{
+  display: inline-block;
+  vertical-align: middle;
+}
+#translationRequestsPage .translationRequest span{
+  font-size: 1.3em;
+}
+#translationRequestsPage .translationRequest .requestRank{
+
+}
+#translationRequestsPage .translationRequest .requestCountBox{
+  display: inline;
+}
+#translationRequestsPage .translationRequest .requestText{
+  width: 70%
+}
+#translationRequestsPage .translationRequest .requestText > div{
+  display: block;
+  margin: 5px;
+}
+.translationRequest .requestRef a {
+  float: none;
+  display: inline;
+  width: 100%;
+  line-height: 5px;
+}
+
+#translationRequestsPage .translationRequest .requestText .requestCompleter span{
+  font-size: 0.8em;
+}
+#translationRequestsPage .translationRequest .requestFeatured {
+    float: none;
+    cursor: pointer;
+    color: #FFCC00;
+    font-size: 16px;
+    vertical-align: middle;
+}
+#translationRequestsPage .translationRequest .requestButton {
+    width: 20px;
+    padding: 10px;
+    display: inline;
+    vertical-align: middle;
+}
+
+
