@@ -1060,7 +1060,8 @@ h1 .languageToggle .he {
   font-size: 12px;
   height: 64px;
 }
-.searchContent .type-button {
+.searchContent .type-button,
+.readerSheetsNav .type-button {
   padding: 6px 14px;
   margin: 5px;
   border-radius: 12px;
@@ -1072,12 +1073,14 @@ h1 .languageToggle .he {
   letter-spacing: 1px;
   cursor: pointer;
 }
-.searchContent .type-button.active {
+.searchContent .type-button.active,
+.readerSheetsNav .type-button.active {
   color: #000;
   background-color: white;
 }
 .searchContent .type-button-title,
-.searchContent .type-button-total {
+.searchContent .type-button-total,
+.readerSheetsNav .type-button-title{
   display: inline-block;
   padding: 2px;
 }
@@ -2722,4 +2725,8 @@ h2.splitHeader .he {
 
 .sheetButton.active {
   border: 1px solid #333;
+}
+
+.clickableTag {
+  cursor: pointer;
 }
