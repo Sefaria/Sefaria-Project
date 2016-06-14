@@ -80,6 +80,7 @@ class NewUserForm(EmailUserCreationForm):
 
 
 class HTMLPasswordResetForm(PasswordResetForm):
+    email = forms.EmailField(max_length=75, widget=forms.TextInput(attrs={'placeholder': u'Email Address | כתובת אימייל', 'autocomplete': 'off'}))
     def save(self, domain_override=None, email_template_name='registration/password_reset_email.html', subject_template_name='registration/pass_reset_subject.txt',
              use_https=False, token_generator=default_token_generator, from_email=None, request=None):
         """

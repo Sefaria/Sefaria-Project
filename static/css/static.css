@@ -634,18 +634,33 @@
   font-size: 14px;
   font-style: normal;
 }
+.registrationContent a.registration-links{
+  margin-top: 20px;
+}
 .registrationContent a .en, .registrationContent button .en{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .registrationContent a .he, .registrationContent button .he{
   font-family: "Open Sans Hebrew", sans-serif;
 }
-#login.registrationContent #resetLink{
+/*#login.registrationContent #resetLink{
   margin: 20px 0;
   color: #999;
   font-size: 14px;
   font-style: normal;
+}*/
+.registrationContent .recaptcha_widget_div{
+  transform:scale(0.68);
+  -webkit-transform:scale(0.68);
+  transform-origin:0 0;
+  -webkit-transform-origin:0 0;
+  margin-bottom: -50px;
 }
+/*@media screen and (max-height: 575px){
+#rc-imageselect, .g-recaptcha {
+
+}
+}*/
 #visualizationsPage {
   text-align: left;
 }
