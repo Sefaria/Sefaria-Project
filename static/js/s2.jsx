@@ -795,8 +795,10 @@ var ReaderApp = React.createClass({
     } else {
       connectionsPanel.filter = [];
     }
-    basePanel.filter        = connectionsPanel.filter;
-    basePanel.recentFilters = connectionsPanel.recentFilters;
+    if (basePanel) {
+      basePanel.filter        = connectionsPanel.filter;
+      basePanel.recentFilters = connectionsPanel.recentFilters;
+    }
     this.setState({panels: this.state.panels});
   },
   setSelectedWords: function(n, words){
