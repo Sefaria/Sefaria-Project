@@ -1038,13 +1038,15 @@ a.recentItem {
     float: none;
     width: auto;
 }
-.readerTextTableOfContents .versionBlocks .versionBlock,
-.readerTextTableOfContents .versionBlocks .versionBlock a.versionSource {
+.readerTextTableOfContents .versionBlocks .versionBlock {
   color: #999;
   font-size: 16px;
 }
 .readerTextTableOfContents .versionBlocks .versionBlock a.versionSource,
-.readerTextTableOfContents .versionBlocks .versionBlock .versionLicense {
+.readerTextTableOfContents .versionBlocks .versionBlock .versionLicense,
+.readerTextTableOfContents .versionBlocks .versionBlock .versionLicense a {
+  color: #999;
+  font-size: 16px;
   margin: 0 3px;
 }
 .readerTextTableOfContents .versionBlocks .versionBlock .versionTitle {
@@ -1113,7 +1115,8 @@ a.recentItem {
 }
 .searchContent .searchFilterToggle {
   color: #999;
-  font-size: 18px;
+  font-size: 14px;
+  text-transform: uppercase;
   letter-spacing: 1px;
   cursor: pointer;
   font-weight: lighter;
@@ -1142,7 +1145,7 @@ a.recentItem {
 }
 .searchContent .searchFilterBoxes li {
   display: block;
-  padding: 10px 0 10px 15px;
+  padding: 12px 0 12px 15px;
   font-size: 14px;
   letter-spacing: 1px;
   cursor: pointer;
@@ -1154,18 +1157,18 @@ a.recentItem {
   padding: 10px 15px 10px 0;
 }
 .searchContent .searchFilterBoxes li input {
-  padding-right: 10px
+  margin: 0 13px
 }
 .searchContent .searchFilterBoxes li .filter-title {
-   color: #222;
+  color: #222;
 }
 .searchContent .searchFilterBoxes li .filter-count {
-   color: #999;
+  color: #999;
 }
 .searchContent .searchFilterBoxes li .in-focus-arrow {
-    float: right;
-    padding-right: 10px;
-    color: #999;
+  float: right;
+  padding-right: 10px;
+  color: #999;
 }
 .hebrew .searchContent .searchFilterBoxes li .in-focus-arrow {
   float: left;

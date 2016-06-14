@@ -3233,8 +3233,28 @@ var VersionBlock = React.createClass({
       showNotes: false
     };
   },
+  licenseMap: {
+    "Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
+    "CC0": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "CC-BY": "http://creativecommons.org/licenses/by/3.0/",
+    "CC-BY-SA": "http://creativecommons.org/licenses/by-sa/3.0/"
+  },
   render: function render() {
     var v = this.props.version;
+    var license = this.licenseMap[v.license] ? React.createElement(
+      'a',
+      { href: this.licenseMap[v.license], target: '_blank' },
+      v.license
+    ) : v.license;
+    var licenseLine = "";
+    if (v.license && v.license != "unknown") {
+      licenseLine = React.createElement(
+        'span',
+        { className: 'versionLicense' },
+        license,
+        v.digitizedBySefaria ? " - Digitized by Sefaria" : ""
+      );
+    }
 
     return React.createElement(
       'div',
@@ -3252,16 +3272,12 @@ var VersionBlock = React.createClass({
           { className: 'versionSource', target: '_blank', href: v.versionSource },
           Sefaria.util.parseURL(v.versionSource).host
         ),
-        React.createElement(
+        licenseLine ? React.createElement(
           'span',
           null,
           '-'
-        ),
-        React.createElement(
-          'span',
-          { className: 'versionLicense' },
-          v.license == "unknown" || !v.license ? "License Unknown" : v.license + (v.digitizedBySefaria ? " - Digitized by Sefaria" : "")
-        ),
+        ) : "",
+        licenseLine,
         this.props.showHistory ? React.createElement(
           'span',
           null,
