@@ -319,9 +319,16 @@ var ReaderApp = React.createClass({
             break;
           case "sheets":
             if (states[i].navigationSheetTag) {
-              hist.url   = "sheets/tags/" + state.navigationSheetTag;
-              hist.title = state.navigationSheetTag + " | Sefaria Source Sheets";
-              hist.mode  = "sheets tag";
+              if (states[i].navigationSheetTag == "My Sheets") {
+                hist.url   = "sheets/private";
+                hist.title = "My Sheets | Sefaria Source Sheets";
+                hist.mode  = "sheets tag";
+              }
+              else {
+                hist.url   = "sheets/tags/" + state.navigationSheetTag;
+                hist.title = state.navigationSheetTag + " | Sefaria Source Sheets";
+                hist.mode  = "sheets tag";
+              }
             } else {
               hist.url   = "sheets";
               hist.title = "Sefaria Source Sheets";
@@ -875,7 +882,8 @@ var ReaderApp = React.createClass({
       // Keys must be constant as text scrolls, but changing as new panels open in new positions
       // Use a combination of the panel number and text title
       var key   = i + title;
-      panels.push(<div className="readerPanelBox" style={style} key={key}>
+      var classes = classNames({readerPanelBox: 1, sidebar: panel.mode == "Connections"})
+      panels.push(<div className={classes} style={style} key={key}>
                     <ReaderPanel 
                       initialState={panel}
                       interfaceLang={this.props.interfaceLang}
@@ -2760,8 +2768,8 @@ var SheetsNav = React.createClass({
   componentWillReceiveProps: function(nextProps) {
     
   },
-  changeSort: function(event) {
-    this.props.setSheetTagSort(event.target.value);
+  changeSort: function(sort) {
+    this.props.setSheetTagSort(sort);
     //Sefaria.sheets.tagList(this.loadTags, event.target.value);
   },
   render: function() {
@@ -2859,13 +2867,25 @@ var SheetsHomePage = React.createClass({
   showAllSheets: function() { 
     this.props.setSheetTag("All Sheets");
   },
-  changeSort: function(event) {
-    this.props.setSheetTagSort(event.target.value);
+  changeSort: function(sort) {
+    this.props.setSheetTagSort(sort);
   },
+  _type_sheet_button: function(en, he, on_click, active) {
+    var classes = classNames({"type-button": 1, active: active});
+
+      return <div className={classes} onClick={on_click}>
+      <div className="type-button-title">
+        <span className="en">{en}</span>
+        <span className="he">{he}</span>
+      </div>
+    </div>;
+  },
+
   render: function() {
     var trendingTags = this.getTrendingTagsFromCache();
-    var tagList      = this.getTagListFromCache();
     var topSheets    = this.getTopSheetsFromCache();
+    if (this.props.tagSort == "trending") { var tagList  = this.getTrendingTagsFromCache(); }
+    else { var tagList = this.getTagListFromCache(); }
 
     var makeTagButton = tag => <SheetTagButton setSheetTag={this.props.setSheetTag} tag={tag.tag} count={tag.count} key={tag.tag} />;
 
@@ -2884,7 +2904,6 @@ var SheetsHomePage = React.createClass({
     return (<div className="content">
               <div className="contentInner">
                 {this.props.hideNavHeader ? (<h1>
-                  <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
                   <span className="en">Source Sheets</span>
                   <span className="he">דפי מקורות</span>
                 </h1>) : null}
@@ -2912,16 +2931,18 @@ var SheetsHomePage = React.createClass({
                 <br /><br />
 
                 { this.props.multiPanel ? (
-                <h2 className="splitHeader">
-                  <span className="en">All Tags</span>
-
-                  <span className="en actionText">Sort By:
-                    <select value={this.props.tagSort} onChange={this.changeSort}>
-                     <option value="count">Most Popular</option>
-                     <option value="alpha">Alphabetical</option>
-                     <option value="trending">Trending</option>
-                   </select> <i className="fa fa-angle-down"></i></span>
-                </h2>) : (
+                    <h2>
+                      <span className="en">All Tags</span>
+                      <span className="he">All Tags [he]</span>
+                      <div className="actionText">
+                        <div className="type-buttons">
+                          {this._type_sheet_button("Most Used", "Most Used [he]", () => this.changeSort("count"), (this.props.tagSort == "count"))}
+                          {this._type_sheet_button("Alphabetical", "Alpha [he]", () => this.changeSort("alpha"), (this.props.tagSort == "alpha"))}
+                          {this._type_sheet_button("Trending", "Trending [he]", () => this.changeSort("trending"), (this.props.tagSort == "trending"))}
+                        </div>
+                      </div>
+                    </h2>
+                ) : (
                 <h2>
                   <span className="en">All Tags</span>
                 </h2>
@@ -3099,7 +3120,7 @@ var MySheetsPage = React.createClass({
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function(sheet) {
-      return (<PrivateSheetListing sheet={sheet} multiPanel={this.props.multiPanel} />);
+      return (<PrivateSheetListing sheet={sheet} multiPanel={this.props.multiPanel} setSheetTag={this.props.setSheetTag} />);
     }.bind(this)) : (<LoadingMessage />);
 
     var userTagList = this.getTagsFromCache();
@@ -3144,17 +3165,21 @@ var MySheetsPage = React.createClass({
 var PrivateSheetListing = React.createClass({
   propTypes: {
     sheet:      React.PropTypes.object.isRequired,
-    multiPanel: React.PropTypes.bool
+    multiPanel: React.PropTypes.bool,
+    setSheetTag: React.PropTypes.func.isRequired
   },
   render: function() {
     var sheet = this.props.sheet;
     var editSheetTags = function() { console.log(sheet.id)}.bind(this);
     var title = sheet.title.stripHtml();
     var url = "/sheets/" + sheet.id;
+
+
+
     if (sheet.tags === undefined) sheet.tags = [];
-    var tagString = sheet.tags.map(function (tag) {
-        return(<span>{tag}, </span>);
-    });
+      var tagString = sheet.tags.map(function (tag) {
+          return(<SheetTagLink setSheetTag={this.props.setSheetTag} tag={tag} key={tag} />);
+    },this);
 
     if (this.props.multiPanel) {
       return (<div className="sheet userSheet" href={url} key={url}>
@@ -3166,7 +3191,7 @@ var PrivateSheetListing = React.createClass({
                 </div>
 
                 <a className="sheetTitle" href={url}>{title}</a>
-                <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
+                <div>{sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
             </div>);
     } else {
       return (<a className="sheet userSheet" href={url} key={url}>
@@ -3174,6 +3199,20 @@ var PrivateSheetListing = React.createClass({
                 <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
               </a>);
     }
+  }
+});
+
+var SheetTagLink = React.createClass({
+  propTypes: {
+    tag:   React.PropTypes.string.isRequired,
+    setSheetTag: React.PropTypes.func.isRequired
+  },
+  handleTagClick: function(e) {
+    e.preventDefault();
+    this.props.setSheetTag(this.props.tag);
+  },
+  render: function() {
+    return (<a href={`/sheets/tag/${this.props.tag}`} onClick={this.handleTagClick}>{this.props.tag}</a>);
   }
 });
 
@@ -4188,7 +4227,7 @@ var ConnectionsPanelTabs = React.createClass({
         this.props.setConnectionsMode(item["en"])
       }.bind(this);
       var active  = item["en"] === this.props.activeTab;
-      var classes = classNames({connectionsPanelTab: 1, active: active});
+      var classes = classNames({connectionsPanelTab: 1, sans: 1, active: active});
       return (<div className={classes} onClick={tabClick} key={item["en"]}>
                 <span className="en">{item["en"]}</span>
                 <span className="he">{item["he"]}</span>
@@ -4959,7 +4998,7 @@ var ToolsButton = React.createClass({
     }
 
     return (
-      <div className="toolsButton" onClick={this.props.onClick}>
+      <div className="toolsButton sans" onClick={this.props.onClick}>
         {icon}
         <div className="en">{this.props.en}</div>
         <div className="he">{this.props.he}</div>
