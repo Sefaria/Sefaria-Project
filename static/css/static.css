@@ -59,7 +59,13 @@
   line-height: 1.5;
 }
 .static .section {
-  margin-bottom: 60px;
+  margin-bottom: 0;
+}
+.static .sans .en, .static.sans .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.static .sans .he, .static.sans .he  {
+  font-family: "Open Sans Hebrew", sans-serif;
 }
 .static input {
   padding: 20px 20px;
@@ -189,6 +195,7 @@
   color: white;
   background-color: #005666;
   background-image: url("/static/img/landing.png");
+  background-size: cover;
   height: 560px;
   padding: 157px 0;
   box-sizing: border-box;
@@ -199,10 +206,10 @@
   font-weight: normal;
   font-size: 49px;
   height: 70px;
-  margin-bottom: 50px;
+  margin-bottom: 30px;
 }
 #homePage #homeCover .sub {
-  font-size: 21px;
+  font-size: 22px;
   font-style: italic;
   margin: 0;
 }
@@ -212,13 +219,13 @@
   font-size: 21px;
 }
 #homePage #homeCover .button {
-  margin-top: 90px;
+  margin-top: 80px;
   text-transform: uppercase;
   padding: 16px 34px;
 }
 #homePage .section {
   overflow: hidden;
-  padding: 80px 0;
+  padding: 100px 0;
 }
 #homePage .sectionInner {
   width: 720px;
@@ -235,6 +242,9 @@
 #homePage .imageBox {
   display: inline-block;
   width: 300px;
+}
+#homePage .imageBox.bordered {
+  border: 1px solid #ccc;
 }
 #homePage .textLeft .textBox {
   float: left;
@@ -269,7 +279,7 @@
   margin: 0 auto;
 }
 #homePage h2 {
-  margin-bottom: 12px;
+  margin: 0 0 12px 0;
   padding: 0;
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-style: italic;
@@ -333,10 +343,11 @@
 #homeProgress h2 .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
+  font-size: 14px;
 }
 #homeProgress h2 .he {
   font-family: "Open Sans Hebrew", sans-serif;
-
+  font-size: 13px;
 }
 #homeProgress .stat {
   display: inline-block;
@@ -352,10 +363,7 @@
   display: block;
 }
 #homeProgress img.statIcon {
-  width: 70px;
-  height: 70px;
-  margin: 10px auto;
-  opacity: .13;
+  margin: 20px auto;
   text-align: center;
 }
 #homeProgress .fa.statIcon {
@@ -380,11 +388,14 @@
   display: block;
   margin-top: 50px;
 }
+#homeHelp .description {
+  margin: 30px 0 40px;
+}
 #homeConnect h2 {
   margin-bottom: 30px;
 }
 #homeConnect #mailingListTitle {
-  margin-bottom: 20px; 
+  margin-bottom: 40px;
   color: #999;
   font-size: 14px;
 }
@@ -395,13 +406,27 @@
   font-family: "Open Sans Hebrew", sans-serif;
 }
 #homeConnect #mailingListEmail {
-  padding: 16px 24px 16px;
+  padding: 14px 24px;
   margin: -4px 8px 0 0;
   width: 240px;
+  font-size: 16px;
+}
+#homeConnect #mailingListEmail::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#homeConnect #mailingListEmail::-moz-placeholder { /* Firefox 19+ */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#homeConnect #mailingListEmail:-ms-input-placeholder { /* IE 10+ */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#homeConnect #mailingListEmail:-moz-placeholder { /* Firefox 18- */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #homeConnect #subscribeMsg {
   margin-top: 40px;
   font-size: 20px;
+  display: none;
 }
 #profilePage {
 }
@@ -621,23 +646,25 @@
 #visualizationsPage {
   text-align: left;
 }
-#siteLanguageToggle {
+#footer #siteLanguageToggle {
   color: #999;
   margin-top: 15px;
   font-size: 13px;
 }
-a#siteLanguageEnglish, a#siteLanguageHebrew {
+#footer a#siteLanguageEnglish,
+#footer a#siteLanguageHebrew {
   cursor: pointer;
   color: #666;
   display: inline;
   margin: 0 3px;
   font-size: 13px;
 }
-#siteLanguageEnglish:hover, #siteLanguageHebrew:hover {
+#footer #siteLanguageEnglish:hover,
+#footer #siteLanguageHebrew:hover {
   text-decoration: underline;
 }
-a#siteLanguageHebrew {
-  font-size: 15px;
+#footer a#siteLanguageHebrew {
+  font-size: 14px;
 }
 .static div.single-button{
   margin: 5% 0;
@@ -645,7 +672,6 @@ a#siteLanguageHebrew {
 .static div.single-button.center{
   text-align: center;
 }
-
 #donatePage #donateOptions .donateOption {
     margin-bottom: 35px;
 }

@@ -140,7 +140,7 @@
                         </div>
                     </a>
                 </div>
-                <div class="imageBox">
+                <div class="imageBox bordered">
                     <a href="/sheets">
                         <img src="/static/img/home-sheets.png" />
                     </a>
@@ -167,7 +167,7 @@
                         </div>
                     </a>
                 </div>
-                <div class="imageBox">
+                <div class="imageBox bordered">
                     <a href="/explore">
                         <img src="/static/img/home-explore.png" />
                     </a>
@@ -205,28 +205,28 @@
                     <span class="he"></span>
                 </h2>
                 <p class="stat">
-                    <img class="statIcon" src="/static/img/user-64.png">
+                    <img class="statIcon" src="/static/img/progress-contributors.png">
                     <span class="wordCount">{{ metrics.contributors|intcomma }}</span>
                     <span class='en'>Contributors</span>
                     <span class='he'>משתמשים שתרמו טקסטים</span>
                 </p>
 
                 <p class="stat">
-                    <i class="fa fa-file-o statIcon"></i>
+                    <img class="statIcon" src="/static/img/progress-sheets.png">
                     <span class="wordCount">{{ metrics.sheets|intcomma }}</span>
                     <span class='en'>Source Sheets</span>
                     <span class='he'>דפי מקורות</span>
                 </p>
 
                 <p class="stat">
-                    <i class="fa fa-link statIcon"></i>
+                    <img class="statIcon" src="/static/img/progress-connections.png">
                     <span class="wordCount">{{ metrics.links|intcomma }}</span>
                     <span class='en'>Connections</span>
                     <span class='he'>הפניות וקישורים</span>
                 </p>
 
                 <p class="stat">
-                    <i class="fa fa-refresh statIcon"></i>
+                    <img class="statIcon" src="/static/img/progress-translation.png">
                     <span class="wordCount">{{ metrics.transWords|intcomma }}</span>
                     <span class='en'>Words of Translation</span>
                     <span class='he'>מלים מתורגמות</span>
@@ -234,7 +234,7 @@
                 </p>
 
                 <p class="stat">
-                    <i class="fa fa-bar-chart-o statIcon"></i>
+                    <img class="statIcon" src="/static/img/progress-words.png">
                     <span class="wordCount">{{ metrics.heWords|add:metrics.transWords|intcomma }}</span>
                     <span class='en'>Total Words</span>
                     <span class='he'>מילים במאגר</span>
@@ -279,7 +279,7 @@
                         <span class="en">Subscribe to our mailing list</span>
                         <span class="he">הצטרפו לרשימת התפוצה</span>
                     </div>
-                    <input id="mailingListEmail" placeholder="Email">
+                    <input id="mailingListEmail" placeholder="Email Address">
                     <span id="subscribe" class="button">
                         <span class="en">Subscribe</span>
                         <span class="he">הרשמו</span>
@@ -303,15 +303,15 @@
                 $("#subscribeMsg").html("<i>Subscribing...</i>");
                 $.post("/api/subscribe/" + email, function(data) {
                     if ("error" in data) {
-                        $("#subscribeMsg").text(data.error);
+                        $("#subscribeMsg").text(data.error).show();
                     } else {
-                        $("#subscribeMsg").text("Subscribed! Welcome to our list.");
+                        $("#subscribeMsg").text("Subscribed! Welcome to our list.").show();
                     }
                 }).error(function(data) {
-                    $("#subscribeMsg").text("Sorry, there was an error.");
+                    $("#subscribeMsg").text("Sorry, there was an error.").show();
                 })
             } else {
-                $("#subscribeMsg").text("Sorry, that's not a valid email address.");
+                $("#subscribeMsg").text("Sorry, that's not a valid email address.").show();
             }
         });
         $("#mailingListEmail").keyup(function(e){
