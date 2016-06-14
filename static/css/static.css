@@ -1021,6 +1021,12 @@
   width: 50%;
   min-width: 320px;
 }
+#peoplePage .authors-row{
+  padding-bottom: 5px;
+}
+#peoplePage .authors-row:first-of-type{
+  padding-top: 10px;
+}
 #talmudicPeoplePage .generations-row{
   display: flex;
   display: -webkit-flex
@@ -1028,6 +1034,17 @@
 #talmudicPeoplePage .talmudic-generation{
   width: 50%;
   min-width: 320px;
+}
+#talmudicPeoplePage h4{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #ccc;
+  padding-bottom: 10px;
+}
+#talmudicPeoplePage p.author{
+  padding-bottom: 5px;
+}
+#talmudicPeoplePage p.author:first-of-type{
+  padding-top: 10px;
 }
 #personPage #periodNameLine, #personPage #yearLine{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
