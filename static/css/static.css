@@ -567,6 +567,8 @@
 #activityList li{
   margin-bottom: 15px;
   list-style-type: none;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
 }
 #activityList + a.page-link{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -787,7 +789,7 @@
 .static-text .static-content-not > p:first-child {
   font-weight: bold;
 }
-#linkerPage p{
+#linkerPage p, #supportersPage p{
   font-size: 16px;
   color: #666;
 }
@@ -1113,13 +1115,15 @@
 #activityPage .activityFilterSection{
   text-align: center;
   margin: 30px 0;
+  padding-bottom: 30px;
+
 }
 #activityPage select{
   min-width: 165px;
   background-color: #ffffff;
   height: 3em;
   padding: 0 15px;
-  font-size: 1.3em;
+  letter-spacing: 1px
 }
 #iosPage p {
   margin-bottom: 30px;
