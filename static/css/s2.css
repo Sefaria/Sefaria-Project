@@ -47,6 +47,17 @@ body.dark {
   height: 100%;
   top: 0;
 }
+#panelWrapBox {
+  position: relative;
+  padding-top: 54px;
+  height: 100%;
+}
+#panelWrapBox.wrapBoxScroll {
+  overflow-x: scroll;
+}
+.singlePanel #panelWrapBox {
+  padding-top: 0;
+}
 .headerInner {
   position: fixed;
   top: 0;
@@ -258,7 +269,6 @@ body.dark {
 }
 .multiPanel .readerPanelBox {
   box-sizing: border-box;
-  padding-top: 54px;
 }
 .readerPanelBox {
   position: absolute;
@@ -1615,6 +1625,9 @@ a.recentItem {
   position: relative;
   padding: 0 30px;
 }
+.singlePanel .textRange.basetext {
+  padding: 0;
+}
 .narrowColumn .textRange.basetext {
 }
 .textRange.basetext .title {
@@ -1646,6 +1659,9 @@ a.recentItem {
 }
 .narrowColumn .basetext .text {
   padding: 26px;
+}
+.singlePanel .basetext .text {
+  padding: 30px 34px;
 }
 .basetext .segment {
   cursor: pointer;
@@ -1811,6 +1827,20 @@ a.recentItem {
 .readerPanel.hebrew .segment .linkCount,
 .readerPanel.bilingual .segment .linkCount {
   left: -36px;
+}
+.singlePanel .readerPanel.english .segment .segmentNumber {
+  left: -21px;
+}
+.singlePanel .readerPanel.hebrew .segment .segmentNumber,
+.singlePanel .readerPanel.bilingual .segment .segmentNumber {
+  right: -28px;
+}
+.singlePanel .readerPanel.english .segment .linkCount {
+  right: -30px;
+}
+.singlePanel .readerPanel.hebrew .segment .linkCount,
+.singlePanel .readerPanel.bilingual .segment .linkCount {
+  left: -20px;
 }
 .segment .refLink {
   font-size: .8em;

@@ -158,7 +158,7 @@ var ReaderApp = React.createClass({
       defaultPanelSettings: Sefaria.util.clone(defaultPanelSettings),
       layoutOrientation: layoutOrientation,
       path: this.props.initialPath,
-      panelCap: this.props.initialPanelCap,
+      panelCap: this.props.initialPanelCap
     };
   },
   componentDidMount: function() {
@@ -185,6 +185,36 @@ var ReaderApp = React.createClass({
       //console.log("Skipping history update - just popped")
       this.justPopped = false;
       return;
+    }
+
+    // If a new panel has been added, and the panels extend beyond the viewable area, check horizontal scroll
+    if (this.state.panels.length > this.state.panelCap && this.state.panels.length > prevState.panels.length) {
+      var elem = document.getElementById("panelWrapBox");
+      var viewExtent = (this.state.layoutOrientation == "ltr")                      // How far (px) current view extends into viewable area
+          ? elem.scrollLeft + this.state.windowWidth
+          : elem.scrollWidth - elem.scrollLeft;
+      var lastCompletelyVisible = Math.floor(viewExtent / this.MIN_PANEL_WIDTH);    // # of last visible panel - base 1
+      var leftover = viewExtent % this.MIN_PANEL_WIDTH;                             // Leftover viewable pixels after last fully visible panel
+
+      var newPanelPosition;                                                         // # of newly inserted panel - base 1
+      for (var i = 0; i < this.state.panels.length; i++) {
+        if (!prevState.panels[i] || this.state.panels[i] != prevState.panels[i]) {
+          newPanelPosition = i+1;
+          break;
+        }
+      }
+      if(newPanelPosition > lastCompletelyVisible) {
+        var scrollBy = 0;      // Pixels to scroll by
+        var panelOffset = 0;   // Account for partial panel scroll
+        if (leftover > 0) {    // If a panel is half scrolled, bring it fully into view
+          scrollBy += this.MIN_PANEL_WIDTH - leftover;
+          panelOffset += 1;
+        }
+        scrollBy += (newPanelPosition - lastCompletelyVisible - panelOffset) * this.MIN_PANEL_WIDTH;
+        elem.scrollLeft = (this.state.layoutOrientation == "ltr")
+            ? elem.scrollLeft + scrollBy
+            : elem.scrollLeft - scrollBy;
+      }
     }
 
     this.setContainerMode();
@@ -520,12 +550,12 @@ var ReaderApp = React.createClass({
       }
     }
   },
+  MIN_PANEL_WIDTH: 360.0,
   setPanelCap: function() {
     // In multi panel mode, set the maximum number of visible panels depending on the window width.
-    var MIN_PANEL_WIDTH = 360;
     var width           = $(window).width();
-    var panelCap        = Math.floor(width / MIN_PANEL_WIDTH);
-    this.setState({panelCap: panelCap});
+    var panelCap        = Math.floor(width / this.MIN_PANEL_WIDTH);
+    this.setState({panelCap: panelCap, windowWidth: width});
   },
   handleNavigationClick: function(ref, version, versionLanguage, options) {
     this.saveOpenPanelsToRecentlyViewed();
@@ -710,8 +740,9 @@ var ReaderApp = React.createClass({
       panel = this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"});
     }
 
-    this.state.panels.splice(n+1, 0, panel);
-    this.setState({panels: this.state.panels, header: {menuOpen: null}});
+    var newPanels = this.state.panels.slice();
+    newPanels.splice(n+1, 0, panel);
+    this.setState({panels: newPanels, header: {menuOpen: null}});
   },
   openPanelAtEnd: function(ref, version, versionLanguage) {
     this.openPanelAt(this.state.panels.length+1, ref, version, versionLanguage);
@@ -720,13 +751,14 @@ var ReaderApp = React.createClass({
     // Open a connections panel at position `n` for `refs`
     // Replace panel there if already a connections panel, otherwise splice new panel into position `n`
     // `refs` is an array of ref strings
-    var panel = this.state.panels[n] || {};
-    var parentPanel = (n >= 1 && this.state.panels[n-1].mode == 'Text') ? this.state.panels[n-1] : null;
+    var newPanels = this.state.panels.slice();
+    var panel = newPanels[n] || {};
+    var parentPanel = (n >= 1 && newPanels[n-1].mode == 'Text') ? newPanels[n-1] : null;
 
     if (panel.mode !== "Connections") {
-      // No connctions panel is open yet, splice in a new one
-      this.state.panels.splice(n, 0, {});
-      panel = this.state.panels[n];
+      // No connections panel is open yet, splice in a new one
+      newPanels.splice(n, 0, {});
+      panel = newPanels[n];
       panel.filter = [];
     }
     panel.refs           = refs;
@@ -738,8 +770,8 @@ var ReaderApp = React.createClass({
       panel.version         = parentPanel.version;
       panel.versionLanguage = parentPanel.versionLanguage;
     }
-    this.state.panels[n] = this.makePanelState(panel);
-    this.setState({panels: this.state.panels});
+    newPanels[n] = this.makePanelState(panel);
+    this.setState({panels: newPanels});
   },
   setTextListHighlight: function(n, refs) {
     // Set the textListHighlight for panel `n` to `refs`
@@ -763,8 +795,10 @@ var ReaderApp = React.createClass({
     } else {
       connectionsPanel.filter = [];
     }
-    basePanel.filter        = connectionsPanel.filter;
-    basePanel.recentFilters = connectionsPanel.recentFilters;
+    if (basePanel) {
+      basePanel.filter        = connectionsPanel.filter;
+      basePanel.recentFilters = connectionsPanel.recentFilters;
+    }
     this.setState({panels: this.state.panels});
   },
   setSelectedWords: function(n, words){
@@ -873,18 +907,31 @@ var ReaderApp = React.createClass({
   },
   render: function() {
      // Only look at the last N panels if we're above panelCap
-    var panelStates = this.state.panels.slice(-this.state.panelCap);
-    if (panelStates.length && panelStates[0].mode === "Connections") {
-      panelStates = panelStates.slice(1); // Don't leave an orphaned connections panel at the beginning
-    }
-
+    //var panelStates = this.state.panels.slice(-this.state.panelCap);
+    //if (panelStates.length && panelStates[0].mode === "Connections") {
+    //  panelStates = panelStates.slice(1); // Don't leave an orphaned connections panel at the beginning
+    //}
     var panelStates = this.state.panels;
 
-    var evenWidth = 100.0/panelStates.length;
-    if (panelStates.length == 2 && panelStates[0].mode == "Text" && panelStates[1].mode == "Connections") {
-      var widths = [60.0, 40.0];
+    var evenWidth;
+    var widths;
+    var unit;
+    var wrapBoxScroll = false;
+
+    if (panelStates.length <= this.state.panelCap) {
+      evenWidth = (100.0/panelStates.length);
+      unit = "%";
     } else {
-      var widths = panelStates.map(function() { return evenWidth; });
+      evenWidth = this.MIN_PANEL_WIDTH;
+      unit = "px";
+      wrapBoxScroll = true;
+    }
+
+    if (panelStates.length == 2 && panelStates[0].mode == "Text" && panelStates[1].mode == "Connections") {
+      widths = [60.0, 40.0];
+      unit = "%";
+    } else {
+      widths = panelStates.map(function() { return evenWidth; });
     }
     var header = this.props.multiPanel || this.state.panels.length == 0 ?
                   (<Header 
@@ -908,7 +955,7 @@ var ReaderApp = React.createClass({
       var panel                    = this.clonePanel(panelStates[i]);
       var offset                   = widths.reduce(function(prev, curr, index, arr) { return index < i ? prev+curr : prev}, 0);
       var width                    = widths[i];
-      var style                    = (this.state.layoutOrientation=="ltr")?{width: width + "%", left: offset + "%"}:{width: width + "%", right: offset + "%"};
+      var style                    = (this.state.layoutOrientation=="ltr")?{width: width + unit, left: offset + unit}:{width: width + unit, right: offset + unit};
       var onSegmentClick           = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
       var onCitationClick          = this.handleCitationClick.bind(null, i);
       var onSearchResultClick      = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
@@ -927,9 +974,8 @@ var ReaderApp = React.createClass({
       var title = oref && oref.book ? oref.book : 0;
       // Keys must be constant as text scrolls, but changing as new panels open in new positions
       // Use a combination of the panel number and text title
-      var offset = this.state.panelCap - panelStates.length;
-      var key   = (i+offset) + title;
-      var classes = classNames({readerPanelBox: 1, sidebar: panel.mode == "Connections"})
+      var key   = i + title;
+      var classes = classNames({readerPanelBox: 1, sidebar: panel.mode == "Connections"});
       panels.push(<div className={classes} style={style} key={key}>
                     <ReaderPanel 
                       initialState={panel}
@@ -961,11 +1007,17 @@ var ReaderApp = React.createClass({
     }
 
     var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel});
+    var boxClasses = classNames({wrapBoxScroll: wrapBoxScroll});
+    var boxStyle = {width: this.state.windowWidth, direction: this.state.layoutOrientation};
+
     return (<div className={classes}>
               {header}
-              {panels}
+              <div id="panelWrapBox" className={boxClasses} style={boxStyle}>
+                {panels}
+              </div>
             </div>);
-  }
+  },
+
 });
 
 
