@@ -1322,7 +1322,9 @@ input[type="file"] {
   line-height: 28px;
 }
 
-
+img {
+	vertical-align: middle;
+}
 
 /* overrides for layout option by source */
 #sheet .source.sheetItem.sideBySide > .en {
@@ -1474,8 +1476,9 @@ input[type="file"] {
     direction: ltr;
     z-index: 21;
     padding: 7px 20px 6px 16px;
-	font-size: 16px;
+    font-size: 16px;
     color: #333;
+    top: 54px;
 }
 
 #sheet p {

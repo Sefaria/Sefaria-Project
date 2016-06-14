@@ -1,91 +1,12 @@
-/* always wait for fonts to load before show text, applies to Google Web Fonts. What about Adobe? */
-.wf-loading {
-  display: none;
-}
-body {
-  font-family: "adobe-garamond-pro", Georgia, serif;
-}
 .wrapper{
   background-color: #F9F9F7;
 }
 .container{
   width: 100%;
 }
-h1 {
-  color: #333;
-  position: relative;
-  font-size: 30px;
-  font-weight: lighter;
-  letter-spacing: 1px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-}
-h2 {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  font-weight: normal;
-}
-h3 {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  font-weight: normal;
-  text-transform: uppercase;
-  color: #aaa;
-  margin-bottom: 10px;
-  margin-top: 40px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #eee;
-}
-input {
-  padding: 20px 20px;
-  margin: 0;
-  cursor: pointer;
-  border-radius: 4px;
-  box-shadow: none;
-  border: 1px solid #bbb;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
-  font-size: 14px;
-}
-input:focus {
-  outline: none;
-}
-a {
-  color: #333;
-}
-label {
-   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-   color: #999;
-   letter-spacing: 1px;
-   font-size: 16px;
-   height: 18px;
-   margin-bottom: 10px;
-   position: relative;
-}
-label .sub {
-  font-size: 12px;
-  margin-left: 4px;
-  color: #999;
-  letter-spacing: normal;
-  white-space: nowrap;
-}
-.en {
-  font-family: "adobe-garamond-pro", Georgia, serif;  
-}
-.he {
-  font-family: "Taamey Frank", "Times New Roman", serif;
-}
-.sans .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.sans .he {
-  font-family: "Open Sans Hebrew", sans-serif;
-}
-.page-title{
-  margin-bottom: 50px;
-}
-.row{
-
-}
-.error {
-  color: red; 
+/* always wait for fonts to load before show text, applies to Google Web Fonts. What about Adobe? */
+.static .wf-loading {
+  display: none;
 }
 .static {
   color: #333333;
@@ -93,32 +14,25 @@ label .sub {
   background-color: #F9F9F7;
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
-.english .static .he {
-  display: none;
-}
-.hebrew .static .en {
-  display: none;
-}
 .static .inner {
   width: 94%;
   max-width: 660px;
   margin: 0 auto;
-  padding: 60px 0 100px;
-}
-.static h1 .en, .static  h2 .en, .static h3 .en, .static h4 .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.static h1 .he, .static  h2 .he, .static h3 .he, .static h4 .he {
-  font-family: "Open Sans Hebrew", sans-serif;
+  padding: 110px 0 100px;
 }
 .static h1 {
-  text-align: center;
+  color: #333;
+  position: relative;
   font-weight: lighter;
+  letter-spacing: 1px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  text-align: center;
   font-size: 26px;
-  margin-bottom: 50px;
+  margin-bottom: 70px;
   height: auto;
 }
 .static h2 {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: lighter;
   font-size: 15px;
   letter-spacing: 1px;
@@ -129,8 +43,116 @@ label .sub {
   margin-bottom: 16px;
   line-height: 1;
 }
+.static h3 {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: normal;
+  text-transform: uppercase;
+  color: #aaa;
+  margin-bottom: 10px;
+  margin-top: 40px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+.static p {
+  margin: initial;
+  font-size: 18px;
+  line-height: 1.5;
+}
 .static .section {
   margin-bottom: 60px;
+}
+.static input {
+  padding: 20px 20px;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 4px;
+  box-shadow: none;
+  border: 1px solid #bbb;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #999;
+  font-size: 14px;
+}
+.static input:focus {
+  outline: none;
+}
+.static a {
+  color: #333;
+}
+.static a.button {
+  color: white;
+}
+.static a.button.white {
+  color: #333;
+}
+.static label {
+   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+   color: #999;
+   letter-spacing: 1px;
+   font-size: 16px;
+   height: 18px;
+   margin-bottom: 10px;
+   position: relative;
+}
+.static label .sub {
+  font-size: 12px;
+  margin-left: 4px;
+  color: #999;
+  letter-spacing: normal;
+  white-space: nowrap;
+}
+.static .en {
+  font-family: "adobe-garamond-pro", Georgia, serif;  
+}
+.static .he {
+  font-family: "Taamey Frank", "Times New Roman", serif;
+}
+.english .static .he {
+  display: none;
+}
+.hebrew .static .en {
+  display: none;
+}
+.static .page-title{
+  margin-bottom: 50px;
+}
+.static .row{
+
+}
+.static .error {
+  color: red; 
+}
+.static .inner div.single-button a.button{
+  margin: auto;
+}
+.static .inner .button {
+  /*all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
+  border-radius: 4px;
+  padding: 16px 24px;
+  cursor: pointer;
+  font-size: 15px;
+  letter-spacing: 1px;
+  box-sizing: border-box;
+  text-align: center;
+}
+.static .inner .button.big {
+  width: 250px;
+}
+.static .inner .button.blue {
+  background-color: #212E50;
+  border: 1px solid #212E50;
+  color: white;
+}
+.static .inner .button .he{
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+.static .inner .button .en{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.static h1 .en, .static  h2 .en, .static h3 .en, .static h4 .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.static h1 .he, .static  h2 .he, .static h3 .he, .static h4 .he {
+  font-family: "Open Sans Hebrew", sans-serif;
 }
 .static img.fullWidth {
   width: 100%;
@@ -138,7 +160,7 @@ label .sub {
   margin: 30px 0;
   border: 1px solid #ddd;
 }
-p.tagline {
+.static p.tagline {
   font-style: italic;
   margin-bottom: 25px;
 }
@@ -146,11 +168,7 @@ p.tagline {
   margin: 0;
   text-align: justify
 }
-.static p {
-  margin: initial;
-  font-size: 23px;
-  line-height: 1.5;
-}
+
 #homePage {
   overflow: hidden;
   color: #333;
@@ -230,8 +248,25 @@ p.tagline {
 #homePage .textRight .imageBox {
   float: left;
 }
+#homePage .section a .button {
+  display: block;
+  width: 240px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+#homePage .section .button .fa {
+  color: #ccc;
+  font-size: 25px;
+  margin: 0 3px;
+  position: absolute;
+  left: 11px;
+  top: 10px;
+}
 #homePage .section.center {
   text-align: center;
+}
+#homePage .section.center .button {
+  margin: 0 auto;
 }
 #homePage h2 {
   margin-bottom: 12px;
@@ -254,6 +289,7 @@ p.tagline {
 }
 #homePage .section .button {
   margin: 0;
+  position: relative;
 }
 #homePage #homeBlog .blogTag {
   text-transform: uppercase;
@@ -463,13 +499,13 @@ p.tagline {
 #profilePage #followMe.following span.follow{
   display: none;
 }
-#profilePage #followMe span.action{
+#profilePage #followMe span.unfollow{
   display:none;
 }
-#profilePage #followMe.following:hover span.action{
+#profilePage #followMe.following:hover span.unfollow{
   display:inherit;
 }
-#profilePage #followMe.following:hover span.state{
+#profilePage #followMe.following:hover span.following{
   display:none;
 }
 #activityList .topline {
@@ -487,7 +523,7 @@ p.tagline {
 .registrationContent {
   text-align: center;
   margin: 1% auto 0;
-  width: 25%;
+  width: 320px;
 }
 
 .registrationContent h1 span.en{
@@ -576,8 +612,6 @@ p.tagline {
 .registrationContent a .he, .registrationContent button .he{
   font-family: "Open Sans Hebrew", sans-serif;
 }
-
-
 #login.registrationContent #resetLink{
   margin: 20px 0;
   color: #999;
@@ -586,43 +620,6 @@ p.tagline {
 }
 #visualizationsPage {
   text-align: left;
-}
-footer#footer {
-  background-color: white;
-  border-top: 1px solid #F4F4F4;
-  overflow: hidden;
-  padding: 18px 40px;
-  text-align: left;
-}
-#footerInner {
-  max-width: 900px;
-  margin: 0 auto;
-}
-footer .section {
-  display: inline-block;
-  vertical-align: top;
-  width: 160px;
-  text-align: left;
-}
-#footer .section .header {
-  color: #666;
-  margin-bottom: 12px;
-  font-weight: normal;
-  font-size: 13px;
-}
-footer .section a {
-  color: #aaa;
-  font-size: 14px;
-  margin: 2px 0;
-}
-footer .fa {
-  margin: 0 3px;
-}
-footer .section.last {
-  float: right;
-  text-align: right;
-  width: 210px;
-  border-left: 1px solid #EAEAEA;
 }
 #siteLanguageToggle {
   color: #999;
@@ -642,29 +639,48 @@ a#siteLanguageEnglish, a#siteLanguageHebrew {
 a#siteLanguageHebrew {
   font-size: 15px;
 }
-#donatePage div.single-button{
-  text-align: center;
+.static div.single-button{
   margin: 5% 0;
 }
-.full-text-static .static-text .main-text div.single-button a.btn{
+.static div.single-button.center{
+  text-align: center;
+}
+
+#donatePage #donateOptions .donateOption {
+    margin-bottom: 35px;
+}
+#donatePage .faq p.question{
+  font-weight: bold;
+}
+#donatePage .faq p.question:before{
+  content: "Q)";
+}
+#donatePage .faq p.answer{
+  margin-left: 40px;
+  text-indent: -20px;
+}
+#donatePage .faq p.answer:before{
+  content: "A)";
+}
+#supportersPage .leading-supporters p.tagline:first-child{
+  text-align: center;
+  max-width: 500px;
   margin: auto;
 }
-.full-text-static .static-text .main-text a.btn {
-  all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
-  display: block;
-  width: 25%;
-  color: white;
-  background-color: #212E50;
-  border: 1px solid #212E50;
-  border-radius: 4px;
-  padding: 12px 0px;
-  margin-top: 30px;
-  cursor: pointer;
-  font-size: 15px;
-  letter-spacing: 1px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  box-sizing: border-box;
-  text-align: center;
+#supportersPage .leading-supporters p.tagline:last-child{
+  margin-top: 20px;
+}
+#supportersPage .supporters p.tagline:first-child{
+  margin-bottom: 20px;
+}
+#supportersPage h2{
+    margin-top: 25px;
+}
+#supportersPage h2 span{
+  font-size: 1.3em;
+}
+#supportersPage .donate-link{
+  margin-top:20px;
 }
 #aboutPage {
   margin: 0;
@@ -710,9 +726,6 @@ a#siteLanguageHebrew {
 }
 #linkerPage .linkerOption {
   margin: 50px 0;
-}
-#teamPage {
-  width: 50%;
 }
 #teamPage .teamMember {
   font-size: 20px;
@@ -764,7 +777,7 @@ a#siteLanguageHebrew {
 }
 #saveCancelButtons {
   position: absolute;
-  top: 60px;
+  top: 127px;
   right: 0px;
 }
 #saveCancelButtons .button {
@@ -789,7 +802,7 @@ a#siteLanguageHebrew {
   text-align: center;
 }
 #editProfilePage input {
-  padding: 18px 12px;
+  padding: 15px 12px;
   border: none;
 }
 #editProfilePage #profilePictureBox {
@@ -822,7 +835,8 @@ a#siteLanguageHebrew {
 #editProfilePage .field input {
   width: 100%;
   color: #333;
-  box-sizing: border-box;
+  background-color: white;
+  /*box-sizing: border-box;*/
 }
 #editProfilePage ul {
   list-style-type: none;
@@ -835,6 +849,9 @@ a#siteLanguageHebrew {
 }
 #editProfilePage #jewishEducation li:first-child .remove {
   display: none;
+}
+#editProfilePage #jewishEducation label{
+  display: inline-block;
 }
 #editProfilePage #addEducation {
   font-size: 12px;
@@ -882,17 +899,17 @@ a#siteLanguageHebrew {
   font-size: 14px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.doubleOption .toggleOption {
+.static .doubleOption .toggleOption {
   width: 50%;
 }
-.tripleOption .toggleOption {
+.static .tripleOption .toggleOption {
   width: 33.3%;
 }
-.toggleOption {
+.static .toggleOption {
   background-color: white;
   color: #999;
 }
-.toggleOption.active {
+.static .toggleOption.active {
   color: #333;
   background-color: white;
 }
@@ -937,7 +954,9 @@ a#siteLanguageHebrew {
   font-size: 25px;
   font-style: italic;
   color: #aaa;
-
+  text-align: center;
+  border: none;
+  text-transform: none;
 }
 #activityPage #activityFeed {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -964,19 +983,96 @@ a#siteLanguageHebrew {
 #activityPage #activityList .time {
   color: #ccc;
 }
-.full-text-static select {
-  width: 25%;
+#activityPage .activityFilterSection{
+  text-align: center;
+  margin: 30px 0;
+}
+#activityPage select{
+  min-width: 165px;
   background-color: #ffffff;
   height: 3em;
-  padding: 0 3%;
+  padding: 0 15px;
   font-size: 1.3em;
 }
-
-.full-text-static {
-  margin: 70px auto;
-  width: 60%;
+#iosPage p {
+  margin-bottom: 30px;
+}
+#iosPage a {
+  text-decoration: underline;
+}
+#connectPage {
   text-align: center;
- }
-.full-text-static .page-title h1{
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
- }
+}
+#jobs h2.anchorable {
+  padding-top: 50px;
+}
+
+#footer {
+  background-color: white;
+  border-top: 1px solid #F4F4F4;
+  overflow: hidden;
+  padding: 18px 40px;
+  text-align: left;
+}
+#footer .section {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+#footer .header {
+  font-weight: bold;
+  font-size: 15px;
+  margin-bottom: 3px;
+}
+#footer a {
+  display: block;
+}
+#footer .he {
+  display: none;
+}
+body.hebrew #footer {
+  direction: rtl;
+}
+body.english #footer .he {
+  display: none;
+}
+body.english #footer .en {
+  display: inline;
+}
+body.hebrew #footer .he {
+  display: inline;
+  font-size: 120%;
+  text-align: right;
+}
+body.hebrew #footer .en {
+  display: none;
+}
+#footerInner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+footer .section {
+  display: inline-block;
+  vertical-align: top;
+  width: 160px;
+  text-align: left;
+}
+#footer .section .header {
+  color: #666;
+  margin-bottom: 12px;
+  font-weight: normal;
+  font-size: 13px;
+}
+footer .section a {
+  color: #aaa;
+  font-size: 14px;
+  margin: 2px 0;
+}
+footer .fa {
+  margin: 0 3px;
+}
+footer .section.last {
+  float: right;
+  text-align: right;
+  width: 210px;
+  border-left: 1px solid #EAEAEA;
+}

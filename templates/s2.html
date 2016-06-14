@@ -62,17 +62,7 @@
 
       var props = {{ propsJSON }};
 
-      var initialPanels = props.initialPanels || [];
-      for (var i = 0; i < initialPanels.length; i++) {
-          var panel = initialPanels[i];
-          if (panel.text) {
-            var settings = {context: 1, version: panel.version, language: panel.versionLanguage};
-            Sefaria._saveText(panel.text, settings);
-          }
-          if (panel.textTocHtml) {
-            Sefaria._saveTextTocHtml(panel.bookRef, panel.textTocHtml);
-          }
-      }
+      Sefaria.unpackDataFromProps(props);
 
       var container = document.getElementById('s2');
       var component = React.createElement(ReaderApp, props);

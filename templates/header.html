@@ -1,6 +1,13 @@
 {% if S2 or request.flavour == "mobile" %}
-<div id="s2" class="headerOnly"><div data-reactroot="" class="readerApp multiPanel"><div class="header"><div class="headerInner"><div class="left"><div class="library"><i class="fa fa-bars"></i></div></div><div class="right"><div class="testWarning">You are testing the New Sefaria</div><div><a class="login" href="/register?next=/?home"><span class="en">Sign up</span><span class="he">הירשם</span></a><a class="login" href="/login?next=/?home"><span class="en">Log in</span><span class="he">התחבר</span></a></div></div><span class="searchBox"><span class="readerNavMenuSearchButton"><i class="fa fa-search"></i></span><input class="search ui-autocomplete-input" placeholder="Search" autocomplete="off"><span role="status" aria-live="polite" class="ui-helper-hidden-accessible"></span></span><a class="home" href="/?home"><img src="/static/img/sefaria-on-white.png"></a></div></div></div></div>
+	{% autoescape off %}
+	{% if request.user.is_authenticated %}
+	<div id="s2" class="headerOnly">{{ logged_in_header }}</div>
+	{% else %}
+	<div id="s2" class="headerOnly">{{ logged_out_header }}</div>
+	{% endif %}
+	{% endautoescape %}
 {% else %}
+
 {% load sefaria_tags %}
 <header id="top" class=''>
 	<div id="right" class="">

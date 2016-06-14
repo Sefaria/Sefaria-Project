@@ -196,6 +196,7 @@ var ReaderApp = React.createClass({
       if (Sefaria.site) { Sefaria.site.track.event("Reader", "Pop State", kind); }
       this.justPopped = true;
       this.setState(state);
+      this.setContainerMode();
     }
   },
   shouldHistoryUpdate: function() {
@@ -279,7 +280,7 @@ var ReaderApp = React.createClass({
     for (var i = 0; i < panels.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
       states[i] = this.clonePanel(panels[i], true);
-      if (!states[i]) { debugger }
+      if (!states[i]) { debugger; }
       var state = states[i];
       var hist  = {url: ""};
     
@@ -999,7 +1000,7 @@ var Header = React.createClass({
     this.clearSearchBox();
   },
   showSearch: function(query) {
-    if (this.props.headerMode) {
+    if (typeof sjs !== "undefined") {
       query = encodeURIComponent(query);
       window.location = `/search?q=${query}`;
       return;
@@ -1008,7 +1009,7 @@ var Header = React.createClass({
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   },
   showAccount: function() {
-    if (this.props.headerMode) {
+    if (typeof sjs !== "undefined") {
       window.location = "/account";
       return;
     }
@@ -1016,7 +1017,7 @@ var Header = React.createClass({
     this.clearSearchBox();
   },
   showNotifications: function() {
-    if (this.props.headerMode) {
+    if (typeof sjs !== "undefined") {
       window.location = "/notifications";
       return;
     }
@@ -1057,8 +1058,9 @@ var Header = React.createClass({
   clearSearchBox: function() {
     $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
   },
-  handleLibraryClick: function() {
-    if (this.props.headerMode) {
+  handleLibraryClick: function(e) {
+    e.preventDefault();
+    if (typeof sjs !== "undefined") {
       window.location = "/texts";
       return;
     }
@@ -1126,10 +1128,11 @@ var Header = React.createClass({
                              <span className="he">כניסה</span>
                            </a>
                          </div>);
+
     return (<div className="header">
               <div className="headerInner">
                 <div className="left">
-                  <div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div>
+                  <a href="/texts"><div className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></div></a>
                 </div>
                 <div className="right">
                   <div className="testWarning" onClick={this.showTestMessage} >You are testing the New Sefaria</div>
@@ -1139,7 +1142,7 @@ var Header = React.createClass({
                   <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                   <input className="search" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
                 </span>
-                <a className="home" href="/?home" ><img src="/static/img/sefaria-on-white.png" /></a>
+                <a className="home" href="/?home" ><img src="/static/img/sefaria.svg" /></a>
               </div>
               { viewContent ? 
                 (<div className="headerNavContent">
@@ -1681,7 +1684,7 @@ var ReaderPanel = React.createClass({
                     multiPanel={this.props.multiPanel}
                     hideNavHeader={this.props.hideNavHeader}
                     toggleLanguage={this.toggleLanguage}
-                    initialTag={this.state.navigationSheetTag}
+                    tag={this.state.navigationSheetTag}
                     tagSort={this.state.tagSort}
                     setSheetTagSort={this.setSheetTagSort}
                     setSheetTag={this.setSheetTag}
@@ -1774,6 +1777,10 @@ var ReaderControls = React.createClass({
     connectionsMode:         React.PropTypes.string,
     multiPanel:              React.PropTypes.bool
   },
+  openTextToc: function(e) {
+    e.preventDefault();
+    this.props.openMenu("text toc");
+  },
   render: function() {
     var title     = this.props.currentRef;
     if (title) {
@@ -1793,6 +1800,7 @@ var ReaderControls = React.createClass({
     }
 
     var versionTitle = this.props.version ? this.props.version.replace(/_/g," "):"";
+    var url = Sefaria.ref(title)?"/" + Sefaria.normRef(Sefaria.ref(title).book):Sefaria.normRef(title);
     var centerContent = connectionsHeader ?
       (<div className="readerTextToc">
           <ConnectionsPanelHeader
@@ -1801,15 +1809,17 @@ var ReaderControls = React.createClass({
             closePanel={this.props.closePanel}
             toggleLanguage={this.props.toggleLanguage} />
         </div>) :
-      (<div className="readerTextToc" onClick={this.props.openMenu.bind(null, "text toc")}>
-          { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
-          <div className="readerTextTocBox">
-            <span className="en">{title}</span>
-            <span className="he">{heTitle}</span>
-            { title ? (<i className="fa fa-caret-down"></i>) : null }
-            { (this.props.versionLanguage == "en" && this.props.settings.language == "english") ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
+      (<a href={url}>
+          <div className="readerTextToc" onClick={this.openTextToc}>
+            { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
+            <div className="readerTextTocBox">
+              <span className="en">{title}</span>
+              <span className="he">{heTitle}</span>
+              { title ? (<i className="fa fa-caret-down"></i>) : null }
+              { (this.props.versionLanguage == "en" && this.props.settings.language == "english") ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
+            </div>
           </div>
-        </div>);
+        </a>);
     var leftControls = hideHeader || connectionsHeader ? null :
       (<div className="leftButtons">
           {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
@@ -1990,6 +2000,7 @@ var ReaderNavigationMenu = React.createClass({
     return recentlyViewed;
   },
   handleClick: function(event) {
+    event.preventDefault();
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
       var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
       var pos = $(event.target).attr("data-position") || $(event.target).parent().attr("data-position");
@@ -2053,13 +2064,15 @@ var ReaderNavigationMenu = React.createClass({
       ];
       categories = categories.map(function(cat) {
         var style = {"borderColor": Sefaria.palette.categoryColor(cat)};
-        var openCat = function() {this.props.setCategories([cat])}.bind(this);
+        var openCat = function(e) {e.preventDefault(); this.props.setCategories([cat])}.bind(this);
         var heCat   = Sefaria.hebrewCategory(cat);
-        return (<div className="readerNavCategory" data-cat={cat} style={style} onClick={openCat}>
-                  <span className="en">{cat}</span>
-                  <span className="he">{heCat}</span>
-                </div>);
-      }.bind(this));;
+        return (<a href={`/texts/${cat}`}>
+                  <div className="readerNavCategory" data-cat={cat} style={style} onClick={openCat}>
+                    <span className="en">{cat}</span>
+                    <span className="he">{heCat}</span>
+                  </div>
+                </a>);
+      }.bind(this));
       var more = (<div className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.showMore}>
                       <span className="en">More <img src="/static/img/arrow-right.png" /></span>
                       <span className="he">עוד <img src="/static/img/arrow-left.png" /></span>
@@ -2229,7 +2242,8 @@ var TextBlockLink = React.createClass({
 
     var position = this.props.position || 0;
     var classes  = classNames({refLink: 1, blockLink: 1, recentItem: this.props.recentItem});
-    return (<a className={classes} data-ref={this.props.sref} data-version={this.props.version} data-versionlanguage={this.props.versionLanguage} data-position={position} style={style}>
+    var url      = "/" + Sefaria.normRef(this.props.sref) + (this.props.version?`/${this.props.versionLanguage}/${this.props.version}`:"");
+    return (<a href={url} className={classes} data-ref={this.props.sref} data-version={this.props.version} data-versionlanguage={this.props.versionLanguage} data-position={position} style={style}>
               <span className="en">{title}</span>
               <span className="he">{heTitle}</span>
              </a>);
@@ -2243,8 +2257,8 @@ var LanguageToggleButton = React.createClass({
   },
   render: function() {
     return (<div className="languageToggle" onClick={this.props.toggleLanguage}>
-              <span className="en">א</span>
-              <span className="he">A</span>
+              <span className="en"><img src="/static/img/aleph.svg" /></span>
+              <span className="he"><img src="static/img/aye.svg" /></span>
             </div>);
   }
 });
@@ -2324,10 +2338,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
               <div className="content">
                 <div className="contentInner">
                   {this.props.hideNavHeader ? (<h1>
-                      <div className="languageToggle" onClick={this.props.toggleLanguage}>
-                        <span className="en">א</span>
-                        <span className="he">A</span>
-                      </div>
+                      <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
                       <span className="en">{this.props.category}</span>
                       <span className="he">{Sefaria.hebrewCategory(this.props.category)}</span>
                     </h1>) : null}
@@ -2358,10 +2369,13 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
           // Special Case categories which should nest
           var subcats = [ "Mishneh Torah", "Shulchan Arukh", "Midrash Rabbah", "Maharal" ];
           if (Sefaria.util.inArray(item.category, subcats) > -1) {
-            content.push((<span className="catLink" data-cats={newCats.join("|")} key={i}>
-                           <span className='en'>{item.category}</span>
-                           <span className='he'>{Sefaria.hebrewCategory(item.category)}</span>
-                          </span>));
+            url = "/texts/" + newCats.join("/");
+            content.push((<a href={url}>
+                            <span className="catLink" data-cats={newCats.join("|")} key={i}>
+                              <span className='en'>{item.category}</span>
+                              <span className='he'>{Sefaria.hebrewCategory(item.category)}</span>
+                            </span>
+                          </a>));
             continue;
           }
           // Add a Category
@@ -2376,23 +2390,26 @@ var ReaderNavigationCategoryMenuContents = React.createClass({
           // Add a Text
           var title   = item.title.replace(/(Mishneh Torah,|Shulchan Arukh,|Jerusalem Talmud) /, "");
           var heTitle = item.heTitle.replace(/(משנה תורה,|תלמוד ירושלמי) /, "");
-          content.push((<span className={'refLink sparse' + item.sparseness} data-ref={item.firstSection} key={i}> 
-                          <span className='en'>{title}</span>
-                          <span className='he'>{heTitle}</span>
-                        </span>));
+          var url     = "/" + Sefaria.normRef(item.firstSection);
+          content.push((<a href={url}>
+                          <span className={'refLink sparse' + item.sparseness} data-ref={item.firstSection} key={i}>
+                            <span className='en'>{title}</span>
+                            <span className='he'>{heTitle}</span>
+                          </span>
+                        </a>));
         }
       }
       var boxedContent = [];
       var currentRun   = [];
       for (var i = 0; i < content.length; i++) {
-        // Walk through content looking for runs of spans to group together into a table
+        // Walk through content looking for runs of texts/subcats to group together into a table
         if (content[i].type == "div") { // this is a subcategory
           if (currentRun.length) {
             boxedContent.push((<TwoOrThreeBox content={currentRun} width={this.props.width} key={i} />));
             currentRun = [];
           }
           boxedContent.push(content[i]);
-        } else if (content[i].type == "span") { // this is a single text
+        } else  { // this is a single text
           currentRun.push(content[i]);
         }
       }
@@ -2710,27 +2727,18 @@ var VersionBlock = React.createClass({
 var SheetsNav = React.createClass({
   // Navigation for Sheets
   propTypes: {
-    multiPanel:    React.PropTypes.bool,
-    initialTag:    React.PropTypes.string,
-    close:         React.PropTypes.func.isRequired,
-    openNav:       React.PropTypes.func.isRequired,
-    setSheetTag:   React.PropTypes.func.isRequired,
-    setSheetTagSort:   React.PropTypes.func.isRequired,
-    hideNavHeader: React.PropTypes.bool
-
+    multiPanel:      React.PropTypes.bool,
+    tag:             React.PropTypes.string,
+    tagSort:         React.PropTypes.string,
+    close:           React.PropTypes.func.isRequired,
+    openNav:         React.PropTypes.func.isRequired,
+    setSheetTag:     React.PropTypes.func.isRequired,
+    setSheetTagSort: React.PropTypes.func.isRequired,
+    hideNavHeader:   React.PropTypes.bool
   },
   getInitialState: function() {
     return {
-      trendingTags: null,
-      allSheets: null,
-      yourSheets: null,
-      sheets: [],
-      tag: this.props.initialTag,
-      tagSort: this.props.tagSort,
-      width: 400,
-      yourSheetTags: [],
-      showYourSheetTags: false,
-      sheetFilterTag: null
+      width: this.props.multiPanel ? 1000 : 400,
     };
   },
   componentDidMount: function() {

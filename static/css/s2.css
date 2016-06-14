@@ -20,8 +20,11 @@ body.sepia {
 body.dark {
   background-color: #333331; 
 }
-#sefaria {
-  text-align: center;
+.sans .en, #s2 .sans .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.sans .he, #s2 .sans .he {
+  font-family: "Open Sans Hebrew", sans-serif;
 }
 #s2 {
   position: fixed;
@@ -37,7 +40,6 @@ body.dark {
 #s2.headerOnly {
   z-index: 1000;
   height: 54px;
-  overflow: hidden;
 }
 .readerApp {
   position: absolute;
@@ -56,7 +58,7 @@ body.dark {
   z-index: 1001;
   border-bottom: 1px solid #999;
   box-sizing: border-box;
-  padding: 0px 20px;
+  padding: 0px 30px;
   text-align: center;
   overflow: hidden;
 }
@@ -108,10 +110,9 @@ body.dark {
   margin-left: -46px;
 }
 .header .home img {
-  height: 18px;
-  width: 92px;
-  opacity: 0.6;
+  opacity: 0.8;
   vertical-align: middle;
+  height: 22px;
 }
 .header .accountLinks {
   display: inline-block;
@@ -122,7 +123,7 @@ body.dark {
   vertical-align: middle;
 }
 .header .library, .header .account {
-  margin: 0px 17px;
+  margin: 0px 17px 0 0;
   font-size: 24px;
 }
 .header .notifications {
@@ -302,12 +303,6 @@ body.dark {
 .multiPanel .hebrew .textColumn {
   padding-right: 17px;
 }
-.wideColumn .textColumn {
-  padding: 0 25px 50% 42px;
-}
-.wideColumn .hebrew .textColumn {
-  padding: 0 42px 50% 25px;
-}
 .textColumn .loadingMessage.base {
   margin: 30px 0;
   color: #999;
@@ -363,6 +358,10 @@ body.dark {
   display: inline;
   line-height: 32px;
 }
+.languageToggle img {
+  opacity: 0.2;
+  height: 18px;
+}
 .systemPanel.english .content .he {
   display: none;
 }
@@ -376,14 +375,6 @@ body.dark {
 .systemPanel.hebrew .content .he {
   display: inline;
   font-family: "Open Sans Hebrew", sans-serif;
-}
-.systemPanel.readerNavMenu .languageToggle span.en {
-  font-family: "Taamey Frank", "Times New Roman", serif;
-  font-size: 26px;
-}
-.systemPanel.readerNavMenu .languageToggle span.he {
-  font-family: "adobe-garamond-pro", Georgia, serif;
-  font-size: 22px;
 }
 .loadingMessage {
   font-size: 14px;
@@ -497,9 +488,6 @@ body.dark {
 .readerNavMenu .readerSearch:focus {
   outline: 0;
 }
-.wideColumn .readerNavMenu .readerSearch {
-  padding: 19px 10px 8px 90px;
-}
 .readerNavTop .readerNavMenuSearchButton,
 .readerNavTop .readerNavMenuCloseButton,
 .readerNavTop .readerNavMenuMenuButton,
@@ -535,20 +523,6 @@ body.dark {
 .readerNavMenu.home .readerNavMenuSearchButton,
 .readerNavTop.searchOnly .readerNavMenuSearchButton {
   left: 0;
-}
-.wideColumn .readerNavTop .readerNavMenuSearchButton,
-.wideColumn .home .readerNavTop .readerNavMenuSearchButton,
-.wideColumn .readerNavTop.searchOnly .readerNavMenuSearchButton,
-.wideColumn .readerNavTop .readerNavMenuCloseButton,
-.wideColumn .readerNavTop .readerOptions {
-  left: 10px;
-}
-.wideColumn .readerNavTop .readerOptions {
-  left: auto;
-  right: 10px;
-}
-.wideColumn .readerNavTop .readerNavMenuSearchButton {
-  left: 46px;
 }
 .sefariaLogo img {
   width: 110px;
@@ -655,6 +629,12 @@ h1 .languageToggle .he {
 }
 .readerNavCategories .threeBox td {
   border: none;
+}
+.readerNavCategories a {
+  color: #333;
+}
+.readerNavCategories a:hover {
+  text-decoration: none;
 }
 .readerNavCategory {
   background-color: white;
@@ -798,6 +778,11 @@ h1 .languageToggle .he {
   background-color: white;
   border: 6px solid #F9F9F7;
 }
+
+.readerSheetsNav .navButton:hover {
+  text-decoration: none;
+}
+
 @media (max-width: 450px) {
   .readerNavMenu .readerNavCategoryMenu td,
   .readerSheetsNav .gridBox td {
@@ -1080,7 +1065,8 @@ h1 .languageToggle .he {
   font-size: 12px;
   height: 64px;
 }
-.searchContent .type-button {
+.searchContent .type-button,
+.readerSheetsNav .type-button {
   padding: 6px 14px;
   margin: 5px;
   border-radius: 12px;
@@ -1092,12 +1078,14 @@ h1 .languageToggle .he {
   letter-spacing: 1px;
   cursor: pointer;
 }
-.searchContent .type-button.active {
+.searchContent .type-button.active,
+.readerSheetsNav .type-button.active {
   color: #000;
   background-color: white;
 }
 .searchContent .type-button-title,
-.searchContent .type-button-total {
+.searchContent .type-button-total,
+.readerSheetsNav .type-button-title{
   display: inline-block;
   padding: 2px;
 }
@@ -1168,7 +1156,6 @@ h1 .languageToggle .he {
   padding-left: 10px;
   padding-right: 0;
 }
-
 .searchContent .searchFilterCategoryBox,
 .searchContent .searchFilterBookBox {
   float: left;
@@ -1176,12 +1163,10 @@ h1 .languageToggle .he {
   height: 150px;
   overflow-y: auto;
 }
-
 .hebrew .searchContent .searchFilterCategoryBox,
 .hebrew .searchContent .searchFilterBookBox {
   float: right;
 }
-
 .searchContent .result {
   border-bottom: thin solid #eee;
   padding-bottom: 12px;
@@ -1206,7 +1191,6 @@ h1 .languageToggle .he {
 .searchContent .result .result-title:hover {
   text-decoration: underline;
 }
-
 .searchContent .text_result .snippet {
   color: #000;
   font-size: 1.8em;
@@ -1219,7 +1203,6 @@ h1 .languageToggle .he {
   line-height: 1.4em;
   max-height: 2.8em;
 }
-
 .searchContent .similar-results .result .result-title {
   padding: 0 0 5px;
 }
@@ -1365,12 +1348,15 @@ h1 .languageToggle .he {
 }
 .readerControls .readerControlsInner {
   position: relative;
-  width: 680px;
+  width: 700px;
   padding: 0;
-  padding: 0 10px;
+  padding: 0 30px;
   display: inline-block;
   max-width:  100%;
   box-sizing: border-box;
+}
+.singlePanel .readerControls .readerControlsInner {
+  padding: 0 10px;
 }
 .readerControls .readerTextToc {
   text-align: center;
@@ -1382,7 +1368,6 @@ h1 .languageToggle .he {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   color: #999;
-  padding: 0 54px 0 40px;
   direction: ltr !important;
 }
 .leftButtons,
@@ -1445,7 +1430,9 @@ h1 .languageToggle .he {
   overflow: hidden;
   max-width: 60%;
   vertical-align: middle;
+  color: #333;
 }
+
 .readerControls .readerTextToc .readerTextVersion {
   font-style: italic;
   color: #999;
@@ -1461,21 +1448,10 @@ h1 .languageToggle .he {
 .bilingual .readerTextToc .he {
   display: none;
 }
-.leftButtons div:first-child {
-}
-.rightButtons div:last-child {
-}
-.wideColumn .leftButtons div:first-child {
-  margin-left: 0;
-  padding-left: 0;
-}
-.wideColumn .rightButtons div:last-child {
-  margin-right: 0;
-  padding-right: 0;
-}
 .readerOptions img {
   height: 18px;
   width: 30px;
+  opacity: 0.2;
   vertical-align: middle;
 }
 .readerOptionsPanel {
@@ -1596,8 +1572,11 @@ h1 .languageToggle .he {
   text-align: justify;
   background-color: inherit;
   margin: 0 auto;
-  max-width: 660px;
+  max-width: 700px;
   position: relative;
+  padding: 0 30px;
+}
+.narrowColumn .textRange.basetext {
 }
 .textRange.basetext .title {
   padding: 24px 28px 24px;
@@ -1623,8 +1602,11 @@ h1 .languageToggle .he {
   display: none;
 }
 .basetext .text {
-  padding: 0 30px;
+  padding: 30px 44px;
   background-color: inherit;
+}
+.narrowColumn .basetext .text {
+  padding: 26px;
 }
 .basetext .segment {
   cursor: pointer;
@@ -1717,10 +1699,11 @@ h1 .languageToggle .he {
 .segment .linkCount,
 .textRange .numberLabel {
   position: absolute;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   background-color: inherit;
   font-weight: lighter;
-  width: 30px;
+  color: #ccc;
+  display: block;
+  width: 8px;
   text-align: center;
   -webkit-text-size-adjust: 100%;
   -moz-user-select: none;
@@ -1745,17 +1728,16 @@ h1 .languageToggle .he {
 .segment .segmentNumber,
 .segment .linkCount {
   display: none;
-  line-height: 1.3;
+  line-height: 1.6;
 }
 .segment .segmentNumber .segmentNumberInner,
 .textRange .numberLabel .numberLabelInner {
   font-size: 12px;
   vertical-align: middle;
-  font-family: "Open Sans";
 }
 .segment .segmentNumber,
 .textRagnge .numberLabel {
-  color: #666;
+  color: #999;
   top: 0;
 }
 .dark .segment .segmentNumber,
@@ -1778,32 +1760,18 @@ h1 .languageToggle .he {
   -webkit-filter: invert(100%);
 }
 .readerPanel.english .segment .segmentNumber {
-  left: -30px;
+  left: -36px;
 }
 .readerPanel.hebrew .segment .segmentNumber,
 .readerPanel.bilingual .segment .segmentNumber {
-  right: -30px;
+  right: -20px;
 }
 .readerPanel.english .segment .linkCount {
-  right: -30px;
+  right: -34px;
 }
 .readerPanel.hebrew .segment .linkCount,
 .readerPanel.bilingual .segment .linkCount {
-  left: -30px;
-}
-.readerPanel.english.wideColumn .segment .segmentNumber {
-  left: -36px;
-}
-.readerPanel.hebrew.wideColumn .segment .segmentNumber,
-.readerPanel.bilingual.wideColumn .segment .segmentNumber {
-  right: -36px;
-}
-.readerPanel.english.wideColumn .segment .linkCount {
-  right: -31px;
-}
-.readerPanel.hebrew.wideColumn .segment .linkCount,
-.readerPanel.bilingual.wideColumn .segment .linkCount {
-  left: -32px;
+  left: -24px;
 }
 .segment .refLink {
   font-size: .8em;
@@ -1863,13 +1831,6 @@ h1 .languageToggle .he {
   border: 1px solid #ccc;
   font-size: 30px;
 }
-.connectionsPanelHeader .languageToggle .he {
-   font-family: "adobe-garamond-pro", Georgia, serif;
-   font-size: 84%;
-}
-.connectionsPanelHeader .languageToggle .en {
-  font-family: "Taamey Frank", "Times New Roman", serif;
-}
 .connectionsPanelTabs {
   text-align: left;
 }
@@ -1922,7 +1883,7 @@ h1 .languageToggle .he {
   margin: 0 auto; 
 }
 .textList.fullPanel .texts {
-  padding: 0 50px 300px;
+  padding: 0 48px 300px 60px;
 }
 .addToSourceSheetPanel.textList.fullPanel .texts {
   padding: 0 50px;
@@ -1932,7 +1893,7 @@ h1 .languageToggle .he {
   padding: 30px 30px 80px 30px;
 }
 .textList.fullPanel .fullFilterView {
-  padding: 30px 50px 80px 50px;
+  padding: 30px 48px 80px 60px;
 }
 .textListTop {
   position: absolute;
@@ -2072,6 +2033,7 @@ h1 .languageToggle .he {
   font-size: 15px;
   cursor: pointer;
   line-height: 18px;
+  color: #333;
 }
 .textFilter {
   padding: 12px 4px;
@@ -2080,6 +2042,10 @@ h1 .languageToggle .he {
   line-height: 1.2;
   display: block;
   cursor: pointer;
+  color: #333;
+}
+.categoryFilterGroup a:hover {
+  text-decoration: none;
 }
 .categoryFilter.on, .textFilter.on {
   color: black;
@@ -2228,18 +2194,11 @@ h1 .languageToggle .he {
   top: 14px;
 }
 .english .textRange .numberLabel {
-  left: -30px;
+  left: -24px;
 }
 .hebrew .textRange .numberLabel,
 .bilingual .textRange .numberLabel  {
-  right: -30px;
-}
-.wideColumn .english .textRange .numberLabel {
-  left: -32px;
-}
-.wideColumn .hebrew .textRange .numberLabel,
-.wideColumn .bilingual .textRange .numberLabel  {
-  right: -32px;
+  right: -14px;
 }
 .textRange.lowlight .numberLabel {
   color: #999;
@@ -2521,6 +2480,9 @@ h1 .languageToggle .he {
   box-sizing: border-box;
   line-height: 1;
 }
+a.button {
+  color: white;
+}
 .button:hover {
   color: white;
   text-decoration: none;
@@ -2529,6 +2491,9 @@ h1 .languageToggle .he {
   background-color: white;
   color: #333;
   border: 1px solid #ccc;
+}
+a.button.white {
+  color: #333;
 }
 .button.white:hover {
 
@@ -2541,6 +2506,9 @@ h1 .languageToggle .he {
 .button.fillWidth {
   width: 100%;
   text-align: center;
+}
+a .button:hover {
+  text-decoration: none;
 }
 #backToS1 {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -2719,9 +2687,11 @@ h2.splitHeader {
   text-decoration: none;
 }
 
+/*  Add back in when we're ready for tag/edit hover buttons on 'My Sheets'
 .sheet.userSheet:hover .sheetEditButtons {
 	display: inline-block;
 }
+*/
 
 .sheet.userSheet .sheetEditButtons {
   font-size: 24px;
@@ -2752,4 +2722,8 @@ h2.splitHeader {
 
 .sheetButton.active {
   border: 1px solid #333;
+}
+
+.clickableTag {
+  cursor: pointer;
 }
