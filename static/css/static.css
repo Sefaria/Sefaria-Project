@@ -300,7 +300,14 @@
   color:  #666;
 }
 #homePage .description {
-  margin: 26px 0 34px;
+  margin: 26px 0 34px 0;
+  color: #999;
+  font-size: 17px;
+  font-style: italic;
+  line-height: 1.2;
+}
+#homePage .dedication {
+  margin: -12px 0 34px;
   color: #999;
   font-size: 17px;
   font-style: italic;
