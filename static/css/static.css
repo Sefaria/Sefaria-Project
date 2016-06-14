@@ -61,6 +61,9 @@
   font-size: 18px;
   line-height: 1.5;
 }
+.static p a {
+  text-decoration: underline;
+}
 .static .section {
   margin-bottom: 30px;
 }
@@ -87,10 +90,11 @@
 .static a {
   color: #333;
 }
-.static a.button {
+.static a.button, .static .button a, .static a .button {
   color: white;
+  text-decoration: none;
 }
-.static a.button.white {
+.static a.button.white, .static .button.white a, .static a .button.white {
   color: #333;
 }
 .static a.button.transparent {
