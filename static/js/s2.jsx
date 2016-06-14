@@ -536,6 +536,9 @@ var ReaderApp = React.createClass({
   },
   handleCitationClick: function(n, citationRef, textRef) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
+    if (this.state.panels.length >= n  && this.state.panels[n+1].mode === "Connections") {
+      this.closePanel(n+1);
+    }
     this.openPanelAt(n, citationRef);
     this.setTextListHighlight(n, [textRef]);
   },
