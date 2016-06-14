@@ -627,6 +627,12 @@ h1 .languageToggle .he {
 .readerNavSection {
   margin-bottom: 44px;
 }
+a.recentItem {
+  white-space: nowrap;
+  overflow: hidden;              /* "overflow" value must be different from "visible" */
+  text-overflow: ellipsis;
+  width: 100%;
+}
 .readerNavCategories {
   width: 100%;
 }
@@ -695,6 +701,9 @@ h1 .languageToggle .he {
 }
 .blockLink + .blockLink {
   margin: 5px 0;
+}
+.gridBox {
+  table-layout: fixed;
 }
 .gridBox td > a {
   height: 100%;

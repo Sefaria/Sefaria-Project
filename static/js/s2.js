@@ -469,7 +469,9 @@ var ReaderApp = React.createClass({
       bookRef: state.bookRef || null,
       settings: state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
       displaySettingsOpen: false,
-      tagSort: state.tagSort || "count"
+      tagSort: state.tagSort || "count",
+      mySheetSort: state.mySheetSort || "date"
+
     };
     if (this.state && panel.refs.length && !panel.version) {
       var oRef = Sefaria.ref(panel.refs[0]);
@@ -1308,7 +1310,9 @@ var ReaderPanel = React.createClass({
       filterRegistry: {},
       orphanSearchFilters: [],
       displaySettingsOpen: false,
-      tagSort: "count"
+      tagSort: "count",
+      mySheetSort: "date"
+
     };
   },
   componentDidMount: function componentDidMount() {
@@ -1575,6 +1579,11 @@ var ReaderPanel = React.createClass({
       tagSort: sort
     });
   },
+  setMySheetSort: function setMySheetSort(sort) {
+    this.conditionalSetState({
+      mySheetSort: sort
+    });
+  },
   trackPanelOpens: function trackPanelOpens() {
     if (this.state.mode === "Connections") {
       return;
@@ -1776,6 +1785,8 @@ var ReaderPanel = React.createClass({
         toggleLanguage: this.toggleLanguage,
         tag: this.state.navigationSheetTag,
         tagSort: this.state.tagSort,
+        mySheetSort: this.state.mySheetSort,
+        setMySheetSort: this.setMySheetSort,
         setSheetTagSort: this.setSheetTagSort,
         setSheetTag: this.setSheetTag,
         key: this.state.key });
@@ -3303,7 +3314,10 @@ var SheetsNav = React.createClass({
     if (this.props.tag == "My Sheets") {
       var content = React.createElement(MySheetsPage, {
         hideNavHeader: this.props.hideNavHeader,
+        tagSort: this.props.tagSort,
+        mySheetSort: this.props.mySheetSort,
         multiPanel: this.props.multiPanel,
+        setMySheetSort: this.props.setMySheetSort,
         setSheetTag: this.props.setSheetTag,
         setSheetTagSort: this.props.setSheetTagSort,
         width: this.state.width });
@@ -3746,6 +3760,7 @@ var MySheetsPage = React.createClass({
     setSheetTagSort: React.PropTypes.func.isRequired,
     multiPanel: React.PropTypes.bool,
     hideNavHeader: React.PropTypes.bool
+
   },
   getInitialState: function getInitialState() {
     return {
@@ -3757,10 +3772,10 @@ var MySheetsPage = React.createClass({
     this.ensureData();
   },
   getSheetsFromCache: function getSheetsFromCache() {
-    return Sefaria.sheets.userSheets(Sefaria._uid);
+    return Sefaria.sheets.userSheets(Sefaria._uid, null, this.props.mySheetSort);
   },
   getSheetsFromAPI: function getSheetsFromAPI() {
-    Sefaria.sheets.userSheets(Sefaria._uid, this.onDataLoad);
+    Sefaria.sheets.userSheets(Sefaria._uid, this.onDataLoad, this.props.mySheetSort);
   },
   getTagsFromCache: function getTagsFromCache() {
     return Sefaria.sheets.userTagList(Sefaria._uid);
@@ -3790,7 +3805,8 @@ var MySheetsPage = React.createClass({
     }
   },
   changeSortYourSheets: function changeSortYourSheets(event) {
-    this.props.setSheetTagSort(event.target.value);
+    this.props.setMySheetSort(event.target.value);
+    Sefaria.sheets.userSheets(Sefaria._uid, this.onDataLoad, event.target.value);
   },
   render: function render() {
     var sheets = this.getSheetsFromCache();
@@ -3863,7 +3879,7 @@ var MySheetsPage = React.createClass({
             'Sort By:',
             React.createElement(
               'select',
-              { value: this.props.tagSort, onChange: this.changeSortYourSheets },
+              { value: this.props.mySheetSort, onChange: this.changeSortYourSheets },
               React.createElement(
                 'option',
                 { value: 'date' },

@@ -472,7 +472,9 @@ var ReaderApp = React.createClass({
       bookRef:              state.bookRef              || null,
       settings:             state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
       displaySettingsOpen:  false,
-      tagSort:              state.tagSort              || "count"
+      tagSort:              state.tagSort              || "count",
+      mySheetSort:          state.mySheetSort          || "date"
+
     };
     if (this.state && panel.refs.length && !panel.version) {
       var oRef = Sefaria.ref(panel.refs[0]);
@@ -1244,7 +1246,9 @@ var ReaderPanel = React.createClass({
       filterRegistry:       {},
       orphanSearchFilters:  [],
       displaySettingsOpen:  false,
-      tagSort: "count"
+      tagSort: "count",
+      mySheetSort: "date"
+
     }
   },
   componentDidMount: function() {
@@ -1505,6 +1509,11 @@ var ReaderPanel = React.createClass({
       tagSort: sort,
     });
   },
+  setMySheetSort: function(sort) {
+    this.conditionalSetState({
+      mySheetSort: sort,
+    });
+  },
   trackPanelOpens: function() {
     if (this.state.mode === "Connections") { return; }
     this.tracked = this.tracked || [];
@@ -1703,6 +1712,8 @@ var ReaderPanel = React.createClass({
                     toggleLanguage={this.toggleLanguage}
                     tag={this.state.navigationSheetTag}
                     tagSort={this.state.tagSort}
+                    mySheetSort={this.state.mySheetSort}
+                    setMySheetSort={this.setMySheetSort}
                     setSheetTagSort={this.setSheetTagSort}
                     setSheetTag={this.setSheetTag}
                     key={this.state.key} />);
@@ -2779,7 +2790,10 @@ var SheetsNav = React.createClass({
     if (this.props.tag == "My Sheets") {
       var content = (<MySheetsPage
                         hideNavHeader={this.props.hideNavHeader}
+                        tagSort={this.props.tagSort}
+                        mySheetSort={this.props.mySheetSort}
                         multiPanel={this.props.multiPanel}
+                        setMySheetSort={this.props.setMySheetSort}
                         setSheetTag={this.props.setSheetTag}
                         setSheetTagSort={this.props.setSheetTagSort}
                         width={this.state.width} />);
@@ -3072,6 +3086,7 @@ var MySheetsPage = React.createClass({
     setSheetTagSort: React.PropTypes.func.isRequired,
     multiPanel:      React.PropTypes.bool,
     hideNavHeader:   React.PropTypes.bool
+
   },
   getInitialState: function() {
     return {
@@ -3083,10 +3098,10 @@ var MySheetsPage = React.createClass({
     this.ensureData();
   },
   getSheetsFromCache: function() {
-    return  Sefaria.sheets.userSheets(Sefaria._uid);
+    return  Sefaria.sheets.userSheets(Sefaria._uid, null, this.props.mySheetSort);
   },
   getSheetsFromAPI: function() {
-     Sefaria.sheets.userSheets(Sefaria._uid, this.onDataLoad);
+     Sefaria.sheets.userSheets(Sefaria._uid, this.onDataLoad, this.props.mySheetSort);
   },
   getTagsFromCache: function() {
     return Sefaria.sheets.userTagList(Sefaria._uid)
@@ -3112,7 +3127,8 @@ var MySheetsPage = React.createClass({
     }
   },
   changeSortYourSheets: function(event) {
-    this.props.setSheetTagSort(event.target.value);
+    this.props.setMySheetSort(event.target.value);
+    Sefaria.sheets.userSheets(Sefaria._uid, this.onDataLoad, event.target.value);
   },
   render: function() {
     var sheets = this.getSheetsFromCache();
@@ -3148,7 +3164,7 @@ var MySheetsPage = React.createClass({
                  (<h2 className="splitHeader">
                     <span className="en" onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
                     <span className="en actionText">Sort By:
-                      <select value={this.props.tagSort} onChange={this.changeSortYourSheets}>
+                      <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
                        <option value="date">Recent</option>
                        <option value="views">Most Viewed</option>
                      </select> <i className="fa fa-angle-down"></i></span>
