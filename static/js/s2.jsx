@@ -2052,6 +2052,7 @@ var ReaderNavigationMenu = React.createClass({
                   toggleLanguage={this.props.toggleLanguage}
                   openDisplaySettings={this.props.openDisplaySettings}
                   navHome={this.navHome}
+                  compare={this.props.compare}
                   hideNavHeader={this.props.hideNavHeader}
                   width={this.width} />
               </div>);
@@ -2299,6 +2300,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
     setCategories: React.PropTypes.func.isRequired,
     navHome:       React.PropTypes.func.isRequired,
     width:         React.PropTypes.number,
+    compare:       React.PropTypes.bool,
     hideNavHeader: React.PropTypes.bool
   },
   render: function() {
@@ -2339,7 +2341,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
     return (<div className={navMenuClasses}>
               <div className={navTopClasses}>
                 <CategoryColorLine category={categories[0]} />
-                {this.props.hideNavHeader ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.navHome} />)}
+                {this.props.hideNavHeader ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.navHome} compare={this.props.compare} />)}
                 {this.props.hideNavHeader ? null : (<ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />)}
                 {this.props.hideNavHeader ? null : (<h2>
                   <span className="en">{this.props.category}</span>
@@ -3247,8 +3249,9 @@ var ReaderNavigationMenuSearchButton = React.createClass({
 
 
 var ReaderNavigationMenuMenuButton = React.createClass({
-  render: function() { 
-    return (<span className="readerNavMenuMenuButton" onClick={this.props.onClick}><i className="fa fa-bars"></i></span>);
+  render: function() {
+    var icon = this.props.compare ? (<i className="fa fa-arrow-left"></i>) : (<i className="fa fa-bars"></i>);
+    return (<span className="readerNavMenuMenuButton" onClick={this.props.onClick}>{icon}</span>);
   }
 });
 

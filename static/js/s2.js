@@ -2153,6 +2153,7 @@ var ReaderNavigationMenu = React.createClass({
           toggleLanguage: this.props.toggleLanguage,
           openDisplaySettings: this.props.openDisplaySettings,
           navHome: this.navHome,
+          compare: this.props.compare,
           hideNavHeader: this.props.hideNavHeader,
           width: this.width })
       );
@@ -2573,6 +2574,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
     setCategories: React.PropTypes.func.isRequired,
     navHome: React.PropTypes.func.isRequired,
     width: React.PropTypes.number,
+    compare: React.PropTypes.bool,
     hideNavHeader: React.PropTypes.bool
   },
   render: function render() {
@@ -2641,7 +2643,7 @@ var ReaderNavigationCategoryMenu = React.createClass({
         'div',
         { className: navTopClasses },
         React.createElement(CategoryColorLine, { category: categories[0] }),
-        this.props.hideNavHeader ? null : React.createElement(ReaderNavigationMenuMenuButton, { onClick: this.props.navHome }),
+        this.props.hideNavHeader ? null : React.createElement(ReaderNavigationMenuMenuButton, { onClick: this.props.navHome, compare: this.props.compare }),
         this.props.hideNavHeader ? null : React.createElement(ReaderNavigationMenuDisplaySettingsButton, { onClick: this.props.openDisplaySettings }),
         this.props.hideNavHeader ? null : React.createElement(
           'h2',
@@ -4021,10 +4023,11 @@ var ReaderNavigationMenuMenuButton = React.createClass({
   displayName: 'ReaderNavigationMenuMenuButton',
 
   render: function render() {
+    var icon = this.props.compare ? React.createElement('i', { className: 'fa fa-arrow-left' }) : React.createElement('i', { className: 'fa fa-bars' });
     return React.createElement(
       'span',
       { className: 'readerNavMenuMenuButton', onClick: this.props.onClick },
-      React.createElement('i', { className: 'fa fa-bars' })
+      icon
     );
   }
 });

@@ -89,8 +89,12 @@ def header_html(request):
     Cached in memory -- restarting Django is necessary for catch any HTML changes to header.
     """
     global LOGGED_OUT_HEADER, LOGGED_IN_HEADER
-    LOGGED_OUT_HEADER = LOGGED_OUT_HEADER or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": False})
-    LOGGED_IN_HEADER = LOGGED_IN_HEADER or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": True})
+    if USE_NODE:
+        LOGGED_OUT_HEADER = LOGGED_OUT_HEADER or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": False})
+        LOGGED_IN_HEADER = LOGGED_IN_HEADER or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": True})
+    else:
+        LOGGED_OUT_HEADER = ""
+        LOGGED_IN_HEADER = ""
     return {
         "logged_in_header": LOGGED_IN_HEADER,
         "logged_out_header": LOGGED_OUT_HEADER,
