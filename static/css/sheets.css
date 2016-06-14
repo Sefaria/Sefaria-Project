@@ -1494,7 +1494,7 @@ img {
 
 #fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu {
 	display: block;
-	top:47px;
+	top:45px;
 	left:20px;
 	background-color: #F9F9F7;
 }

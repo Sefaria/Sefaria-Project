@@ -2734,9 +2734,25 @@ var VersionBlock = React.createClass({
       showNotes: false
     }
   },
+  licenseMap: {
+    "Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
+    "CC0": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "CC-BY": "http://creativecommons.org/licenses/by/3.0/",
+    "CC-BY-SA": "http://creativecommons.org/licenses/by-sa/3.0/"
+  },
   render: function() {
     var v = this.props.version;
-
+    var license = this.licenseMap[v.license]?<a href={this.licenseMap[v.license]} target="_blank">{v.license}</a>:v.license;
+    var licenseLine = "";
+    if (v.license && v.license != "unknown") { 
+      licenseLine =
+        <span className="versionLicense">
+          {license}
+          {(v.digitizedBySefaria ? " - Digitized by Sefaria": "" )}
+        </span>
+      ;
+    }
+        
     return (
       <div className = "versionBlock">
         <div className="versionTitle">{v.versionTitle}</div>
@@ -2744,8 +2760,8 @@ var VersionBlock = React.createClass({
           <a className="versionSource" target="_blank" href={v.versionSource}>
           { Sefaria.util.parseURL(v.versionSource).host }
           </a>
-          <span>-</span>
-          <span className="versionLicense">{(v.license == "unknown" || !v.license) ? "License Unknown" : (v.license + (v.digitizedBySefaria ? " - Digitized by Sefaria": "" ))}</span>
+          {licenseLine?<span>-</span>:""}
+          {licenseLine}
           {this.props.showHistory?<span>-</span>:""}
           {this.props.showHistory?<a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>Version History &gt;</a>:""}
         </div>
@@ -3212,7 +3228,7 @@ var PrivateSheetListing = React.createClass({
     } else {
       return (<a className="sheet userSheet" href={url} key={url}>
                 <div className="sheetTitle">{title}</div>
-                <div>{sheet.views} Views · {sheet.modified} · {tagString}</div>
+                <div>{sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
               </a>);
     }
   }
@@ -5406,6 +5422,7 @@ var SearchPage = React.createClass({
         var fontSize = 62.5; // this.props.settings.fontSize, to make this respond to user setting. disabled for now.
         var style    = {"fontSize": fontSize + "%"};
         var classes  = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader});
+        var isQueryHebrew = Sefaria.hebrew.isHebrew(this.props.query);
         return (<div className={classes}>
                   {this.props.hideNavHeader ? null :
                     (<div className="readerNavTop search">
@@ -5419,10 +5436,9 @@ var SearchPage = React.createClass({
                   <div className="content">
                     <div className="contentInner">
                       <div className="searchContentFrame">
-                          <h1>
+                          <h1 classNames={isQueryHebrew?"hebrewQuery":"englishQuery"}>
                             <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
-                            <span className="en">&ldquo;{ this.props.query }&rdquo;</span>
-                            <span className="he">&rdquo;{ this.props.query }&ldquo;</span>
+                            &ldquo;{ this.props.query }&rdquo;
                           </h1>
                           <div className="searchControlsBox">
                           </div>

@@ -21,8 +21,7 @@
             <span class="he">צור חשבון</span>
         </button>
         </form>
-        <div class="clearfix"></div>
-        <a href="{% url login %}{% if next %}?next={{ next }}{% endif %}">
+        <a class="registration-links" href="{% url login %}{% if next %}?next={{ next }}{% endif %}">
           <span class="en">Already have an account? Log in</span>
           <span class="he">יש לך חשבון כבר? התחבר</span>
         </a>

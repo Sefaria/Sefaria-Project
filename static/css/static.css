@@ -125,7 +125,7 @@
 
 }
 .static .error {
-  color: red; 
+  color: red;
 }
 .static .inner div.single-button a.button{
   margin: auto;
@@ -634,18 +634,33 @@
   font-size: 14px;
   font-style: normal;
 }
+.registrationContent a.registration-links{
+  margin-top: 20px;
+}
 .registrationContent a .en, .registrationContent button .en{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .registrationContent a .he, .registrationContent button .he{
   font-family: "Open Sans Hebrew", sans-serif;
 }
-#login.registrationContent #resetLink{
+/*#login.registrationContent #resetLink{
   margin: 20px 0;
   color: #999;
   font-size: 14px;
   font-style: normal;
+}*/
+.registrationContent .recaptcha_widget_div{
+  transform:scale(0.68);
+  -webkit-transform:scale(0.68);
+  transform-origin:0 0;
+  -webkit-transform-origin:0 0;
+  margin-bottom: -50px;
 }
+/*@media screen and (max-height: 575px){
+#rc-imageselect, .g-recaptcha {
+
+}
+}*/
 #visualizationsPage {
   text-align: left;
 }
@@ -1105,3 +1120,65 @@ footer .section.last {
   width: 210px;
   border-left: 1px solid #EAEAEA;
 }
+#translationRequestsPage .translationRequest{
+  background-color: inherit;
+  text-align: justify;
+  /*display: block;*/
+  border-bottom: 1px solid #eee;
+  padding: 20px 0 20px 0;
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+}
+#translationRequestsPage .translationRequest > div{
+  all: initial;
+}
+
+#translationRequestsPage .translationRequest .requestRank,
+#translationRequestsPage .translationRequest .requestText,
+#translationRequestsPage .translationRequest .requestCountBox{
+  display: inline-block;
+  vertical-align: middle;
+}
+#translationRequestsPage .translationRequest span{
+  font-size: 1.3em;
+}
+#translationRequestsPage .translationRequest .requestRank{
+  display: inline-block;
+}
+#translationRequestsPage .translationRequest .requestCountBox{
+  display: inline-block;
+  text-align: right;
+}
+#translationRequestsPage .translationRequest .requestText{
+  display: inline-block;
+  width: 80%
+}
+#translationRequestsPage .translationRequest .requestText > div{
+  display: block;
+}
+.translationRequest .requestRef a {
+  float: none;
+  display: inline;
+  width: 100%;
+  line-height: 5px;
+}
+
+#translationRequestsPage .translationRequest .requestText .requestCompleter span{
+  font-size: 0.8em;
+}
+#translationRequestsPage .translationRequest .requestFeatured {
+    float: none;
+    cursor: pointer;
+    /*color: #FFCC00;*/
+    font-size: 16px;
+    vertical-align: middle;
+}
+#translationRequestsPage .translationRequest .requestButton {
+    width: 20px;
+    padding: 10px;
+    display: inline;
+    vertical-align: middle;
+}
+
+

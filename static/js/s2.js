@@ -3235,8 +3235,28 @@ var VersionBlock = React.createClass({
       showNotes: false
     };
   },
+  licenseMap: {
+    "Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
+    "CC0": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "CC-BY": "http://creativecommons.org/licenses/by/3.0/",
+    "CC-BY-SA": "http://creativecommons.org/licenses/by-sa/3.0/"
+  },
   render: function render() {
     var v = this.props.version;
+    var license = this.licenseMap[v.license] ? React.createElement(
+      'a',
+      { href: this.licenseMap[v.license], target: '_blank' },
+      v.license
+    ) : v.license;
+    var licenseLine = "";
+    if (v.license && v.license != "unknown") {
+      licenseLine = React.createElement(
+        'span',
+        { className: 'versionLicense' },
+        license,
+        v.digitizedBySefaria ? " - Digitized by Sefaria" : ""
+      );
+    }
 
     return React.createElement(
       'div',
@@ -3254,16 +3274,12 @@ var VersionBlock = React.createClass({
           { className: 'versionSource', target: '_blank', href: v.versionSource },
           Sefaria.util.parseURL(v.versionSource).host
         ),
-        React.createElement(
+        licenseLine ? React.createElement(
           'span',
           null,
           '-'
-        ),
-        React.createElement(
-          'span',
-          { className: 'versionLicense' },
-          v.license == "unknown" || !v.license ? "License Unknown" : v.license + (v.digitizedBySefaria ? " - Digitized by Sefaria" : "")
-        ),
+        ) : "",
+        licenseLine,
         this.props.showHistory ? React.createElement(
           'span',
           null,
@@ -3982,7 +3998,11 @@ var PrivateSheetListing = React.createClass({
           ' Views · ',
           sheet.modified,
           ' · ',
-          tagString
+          React.createElement(
+            'span',
+            { className: 'tagString' },
+            tagString
+          )
         )
       );
     }
@@ -6736,6 +6756,7 @@ var SearchPage = React.createClass({
     var fontSize = 62.5; // this.props.settings.fontSize, to make this respond to user setting. disabled for now.
     var style = { "fontSize": fontSize + "%" };
     var classes = classNames({ readerNavMenu: 1, noHeader: this.props.hideNavHeader });
+    var isQueryHebrew = Sefaria.hebrew.isHebrew(this.props.query);
     return React.createElement(
       'div',
       { className: classes },
@@ -6760,22 +6781,11 @@ var SearchPage = React.createClass({
             { className: 'searchContentFrame' },
             React.createElement(
               'h1',
-              null,
+              { classNames: isQueryHebrew ? "hebrewQuery" : "englishQuery" },
               React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
-              React.createElement(
-                'span',
-                { className: 'en' },
-                '“',
-                this.props.query,
-                '”'
-              ),
-              React.createElement(
-                'span',
-                { className: 'he' },
-                '”',
-                this.props.query,
-                '“'
-              )
+              '“',
+              this.props.query,
+              '”'
             ),
             React.createElement('div', { className: 'searchControlsBox' }),
             React.createElement(
