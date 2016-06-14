@@ -173,6 +173,9 @@ var ReaderApp = React.createClass({
     window.addEventListener("resize", this.setPanelCap);
     window.addEventListener("beforeunload", this.saveOpenPanelsToRecentlyViewed);
     this.setPanelCap();
+    if (this.props.headerMode) {
+      $(".inAppLink").on("click", this.handleInAppLinkClick);
+    }
     // Set S2 cookie, putting user into S2 mode site wide
     cookie("s2", true, { path: "/" });
   },
@@ -553,6 +556,17 @@ var ReaderApp = React.createClass({
     this.saveOpenPanelsToRecentlyViewed();
     this.replacePanel(n, ref, version, versionLanguage);
   },
+  handleInAppLinkClick: function handleInAppLinkClick(e) {
+    e.preventDefault();
+    var path = $(e.currentTarget).attr("href").slice(1);
+    if (path == "texts") {
+      this.showLibrary();
+    } else if (path == "sheets") {
+      this.showSheets();
+    } else if (Sefaria.isRef(path)) {
+      this.openPanel(Sefaria.humanRef(path));
+    }
+  },
   updateQueryInHeader: function updateQueryInHeader(query) {
     var updates = { searchQuery: query, searchFiltersValid: false };
     this.setHeaderState(updates);
@@ -815,6 +829,14 @@ var ReaderApp = React.createClass({
   },
   showSearch: function showSearch(query) {
     var updates = { menuOpen: "search", searchQuery: query, searchFiltersValid: false };
+    if (this.props.multiPanel) {
+      this.setHeaderState(updates);
+    } else {
+      this.setPanelState(0, updates);
+    }
+  },
+  showSheets: function showSheets() {
+    var updates = { menuOpen: "sheets" };
     if (this.props.multiPanel) {
       this.setHeaderState(updates);
     } else {
