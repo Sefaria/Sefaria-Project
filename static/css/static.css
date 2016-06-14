@@ -1186,7 +1186,6 @@ footer .section.last {
 #translationRequestsPage .translationRequest > div{
   all: initial;
 }
-
 #translationRequestsPage .translationRequest .requestRank,
 #translationRequestsPage .translationRequest .requestText,
 #translationRequestsPage .translationRequest .requestCountBox{
@@ -1216,7 +1215,6 @@ footer .section.last {
   width: 100%;
   line-height: 5px;
 }
-
 #translationRequestsPage .translationRequest .requestText .requestCompleter span{
   font-size: 0.8em;
 }
@@ -1233,5 +1231,14 @@ footer .section.last {
     display: inline;
     vertical-align: middle;
 }
-
-
+#metricsPage .chart {
+  margin-bottom: 80px;
+  border: 1px solid #ddd;
+}
+#metricsPage .chartLabel {
+  text-align: center;
+  display: block;
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
