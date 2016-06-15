@@ -1872,7 +1872,8 @@ var ReaderPanel = React.createClass({
           currentLayout={this.currentLayout}
           connectionsMode={this.state.filter.length && this.state.connectionsMode === "Connections" ? "Connection Text" : this.state.connectionsMode}
           closePanel={this.props.closePanel}
-          toggleLanguage={this.toggleLanguage} />)}
+          toggleLanguage={this.toggleLanguage}
+          interfaceLang={this.props.interfaceLang}/>)}
 
         <div className="readerContent" style={style}>
           {items}
@@ -1914,7 +1915,8 @@ var ReaderControls = React.createClass({
     version:                 React.PropTypes.string,
     versionLanguage:         React.PropTypes.string,
     connectionsMode:         React.PropTypes.string,
-    multiPanel:              React.PropTypes.bool
+    multiPanel:              React.PropTypes.bool,
+    interfaceLang:           React.PropTypes.string
   },
   openTextToc: function(e) {
     e.preventDefault();
@@ -1946,7 +1948,8 @@ var ReaderControls = React.createClass({
             activeTab={this.props.connectionsMode}
             setConnectionsMode={this.props.setConnectionsMode}
             closePanel={this.props.closePanel}
-            toggleLanguage={this.props.toggleLanguage} />
+            toggleLanguage={this.props.toggleLanguage}
+            interfaceLang={this.props.interfaceLang}/>
         </div>) :
       (<a href={url}>
           <div className="readerTextToc" onClick={this.openTextToc}>
@@ -3572,8 +3575,15 @@ var ReaderNavigationMenuMenuButton = React.createClass({
 
 
 var ReaderNavigationMenuCloseButton = React.createClass({
-  render: function() { 
-    var icon = this.props.icon === "arrow" ? (<i className="fa fa-caret-left"></i>) : "×";
+  render: function() {
+    if(this.props.icon == "arrow"){
+      var icon_dir = (this.props.interfaceLang == 'english') ? 'left' : 'right';
+      var icon_class = "fa fa-caret-"+icon_dir;
+      var icon = (<i className={icon_class}></i>);
+    }else{
+      var icon = "×";
+    }
+    /*var icon = this.props.icon === "arrow" ? (<i className="fa fa-caret-{icon_dir}"></i>) : "×";*/
     var classes = classNames({readerNavMenuCloseButton: 1, arrow: this.props.icon === "arrow"});
     return (<div className={classes} onClick={this.props.onClick}>{icon}</div>);
   }
@@ -4367,7 +4377,8 @@ var ConnectionsPanel = React.createClass({
     openDisplaySettings:     React.PropTypes.func,
     closePanel:              React.PropTypes.func,
     toggleLanguage:          React.PropTypes.func,
-    selectedWords:           React.PropTypes.string
+    selectedWords:           React.PropTypes.string,
+    interfaceLang:           React.PropTypes.string
   },
   render: function() {
     var content = null;
@@ -4475,17 +4486,19 @@ var ConnectionsPanelHeader = React.createClass({
     activeTab:          React.PropTypes.string.isRequired, // "Connections", "Tools"
     setConnectionsMode: React.PropTypes.func.isRequired,
     closePanel:         React.PropTypes.func.isRequired,
-    toggleLanguage:     React.PropTypes.func.isRequired
+    toggleLanguage:     React.PropTypes.func.isRequired,
+    interfaceLang:      React.PropTypes.string.isRequired
   },
   render: function() {
     return (<div className="connectionsPanelHeader">
               <div className="rightButtons">
                 <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
-                <ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} />
+                <ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} interfaceLang={this.props.interfaceLang} />
                </div>
               <ConnectionsPanelTabs
                 activeTab={this.props.activeTab}
-                setConnectionsMode={this.props.setConnectionsMode} />
+                setConnectionsMode={this.props.setConnectionsMode}
+                interfaceLang={this.props.interfaceLang}/>
             </div>);
   }
 });
@@ -4494,7 +4507,8 @@ var ConnectionsPanelHeader = React.createClass({
 var ConnectionsPanelTabs = React.createClass({
   propTypes: {
     activeTab:          React.PropTypes.string.isRequired, // "Connections", "Tools"
-    setConnectionsMode: React.PropTypes.func.isRequired
+    setConnectionsMode: React.PropTypes.func.isRequired,
+    interfaceLang:      React.PropTypes.string.isRequired
   },
   render: function() {
     var tabNames = [{"en": "Connections", "he": "קישורים"}, {"en": "Tools", "he":"כלים"}];
