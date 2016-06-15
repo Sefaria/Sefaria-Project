@@ -3370,13 +3370,19 @@ var VersionBlock = React.createClass({
       { href: this.licenseMap[v.license], target: '_blank' },
       v.license
     ) : v.license;
+    var digitizedBySefaria = v.digitizedBySefaria ? React.createElement(
+      'a',
+      { className: 'versionDigitizedBySefaria', href: '/digitized-by-sefaria' },
+      'Digitized by Sefaria'
+    ) : "";
     var licenseLine = "";
     if (v.license && v.license != "unknown") {
       licenseLine = React.createElement(
         'span',
         { className: 'versionLicense' },
         license,
-        v.digitizedBySefaria ? " - Digitized by Sefaria" : ""
+        digitizedBySefaria ? " - " : "",
+        digitizedBySefaria
       );
     }
 

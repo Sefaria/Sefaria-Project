@@ -2868,12 +2868,13 @@ var VersionBlock = React.createClass({
   render: function() {
     var v = this.props.version;
     var license = this.licenseMap[v.license]?<a href={this.licenseMap[v.license]} target="_blank">{v.license}</a>:v.license;
+    var digitizedBySefaria = v.digitizedBySefaria ? <a className="versionDigitizedBySefaria" href="/digitized-by-sefaria">Digitized by Sefaria</a> : "";
     var licenseLine = "";
     if (v.license && v.license != "unknown") { 
       licenseLine =
         <span className="versionLicense">
           {license}
-          {(v.digitizedBySefaria ? " - Digitized by Sefaria": "" )}
+          {digitizedBySefaria?" - ":""}{digitizedBySefaria}
         </span>
       ;
     }
