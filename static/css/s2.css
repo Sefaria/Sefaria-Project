@@ -207,7 +207,7 @@ body.dark {
 }
 #interruptingMessage {
   width: 600px;
-  max-width: 94%;
+  max-width: 90%;
   padding: 40px;
   box-sizing: border-box;
   position: fixed;
@@ -219,6 +219,12 @@ body.dark {
   background: white;
   text-align: center;
   color: #666;
+}
+@media (max-width: 540px) {
+  #interruptingMessage {
+    margin: 0 auto;
+    left: 5%;
+  }
 }
 #interruptingMessageClose {
   position: absolute;
