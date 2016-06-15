@@ -226,8 +226,7 @@ var ReaderApp = React.createClass({
   },
   handlePopState: function handlePopState(event) {
     var state = event.state;
-    console.log("Pop - " + window.location.pathname);
-    console.log(state);
+
     if (state) {
       var kind = "";
       if (Sefaria.site) {
@@ -460,16 +459,16 @@ var ReaderApp = React.createClass({
     }
     var hist = this.makeHistoryState();
     if (replace) {
-      history.replaceState(hist.state, hist.title, hist.url);
-      console.log("Replace History - " + hist.url);
       //console.log(hist);
+
+      history.replaceState(hist.state, hist.title, hist.url);
     } else {
         if (window.location.pathname + window.location.search == hist.url) {
           return;
         } // Never push history with the same URL
-        history.pushState(hist.state, hist.title, hist.url);
-        console.log("Push History - " + hist.url);
+
         //console.log(hist);
+        history.pushState(hist.state, hist.title, hist.url);
       }
 
     $("title").html(hist.title);
@@ -551,11 +550,10 @@ var ReaderApp = React.createClass({
     // In multi panel mode, set the maximum number of visible panels depending on the window width.
     this.setWindowWidth();
     var panelCap = Math.floor($(window).outerWidth() / this.MIN_PANEL_WIDTH);
-    console.log("Setting panelCap: " + panelCap);
+
     this.setState({ panelCap: panelCap });
   },
   setWindowWidth: function setWindowWidth() {
-    console.log("Setting window width: " + $(window).outerWidth());
     this.setState({ windowWidth: $(window).outerWidth() });
   },
   handleNavigationClick: function handleNavigationClick(ref, version, versionLanguage, options) {
@@ -847,10 +845,8 @@ var ReaderApp = React.createClass({
     var state = { panels: this.state.panels };
     if (state.panels.length == 0) {
       this.showLibrary();
-      console.log("closed last panel, show library");
     }
-    console.log("close panel, new state:");
-    console.log(state);
+
     this.setState(state);
   },
   showLibrary: function showLibrary() {
@@ -1947,7 +1943,8 @@ var ReaderPanel = React.createClass({
         currentLayout: this.currentLayout,
         connectionsMode: this.state.filter.length && this.state.connectionsMode === "Connections" ? "Connection Text" : this.state.connectionsMode,
         closePanel: this.props.closePanel,
-        toggleLanguage: this.toggleLanguage }),
+        toggleLanguage: this.toggleLanguage,
+        interfaceLang: this.props.interfaceLang }),
       React.createElement(
         'div',
         { className: 'readerContent', style: style },
@@ -1988,7 +1985,8 @@ var ReaderControls = React.createClass({
     version: React.PropTypes.string,
     versionLanguage: React.PropTypes.string,
     connectionsMode: React.PropTypes.string,
-    multiPanel: React.PropTypes.bool
+    multiPanel: React.PropTypes.bool,
+    interfaceLang: React.PropTypes.string
   },
   openTextToc: function openTextToc(e) {
     e.preventDefault();
@@ -2025,7 +2023,8 @@ var ReaderControls = React.createClass({
         activeTab: this.props.connectionsMode,
         setConnectionsMode: this.props.setConnectionsMode,
         closePanel: this.props.closePanel,
-        toggleLanguage: this.props.toggleLanguage })
+        toggleLanguage: this.props.toggleLanguage,
+        interfaceLang: this.props.interfaceLang })
     ) : React.createElement(
       'a',
       { href: url },
@@ -2208,10 +2207,10 @@ var ReaderNavigationMenu = React.createClass({
   },
   setWidth: function setWidth() {
     var width = $(ReactDOM.findDOMNode(this)).width();
-    console.log("Setting RNM width: " + width);
+
     var winWidth = $(window).width();
     var winHeight = $(window).height();
-    console.log("Window width: " + winWidth + ", Window height: " + winHeight);
+
     var oldWidth = this.width;
     this.width = width;
     if (oldWidth <= 450 && width > 450 || oldWidth > 450 && width <= 450) {
@@ -4224,9 +4223,7 @@ var PrivateSheetListing = React.createClass({
   },
   render: function render() {
     var sheet = this.props.sheet;
-    var editSheetTags = function () {
-      console.log(sheet.id);
-    }.bind(this);
+    var editSheetTags = function () {}.bind(this);
     var title = sheet.title.stripHtml();
     var url = "/sheets/" + sheet.id;
 
@@ -4418,7 +4415,14 @@ var ReaderNavigationMenuCloseButton = React.createClass({
   displayName: 'ReaderNavigationMenuCloseButton',
 
   render: function render() {
-    var icon = this.props.icon === "arrow" ? React.createElement('i', { className: 'fa fa-caret-left' }) : "×";
+    if (this.props.icon == "arrow") {
+      var icon_dir = this.props.interfaceLang == 'english' ? 'left' : 'right';
+      var icon_class = "fa fa-caret-" + icon_dir;
+      var icon = React.createElement('i', { className: icon_class });
+    } else {
+      var icon = "×";
+    }
+    /*var icon = this.props.icon === "arrow" ? (<i className="fa fa-caret-{icon_dir}"></i>) : "×";*/
     var classes = classNames({ readerNavMenuCloseButton: 1, arrow: this.props.icon === "arrow" });
     return React.createElement(
       'div',
@@ -4549,24 +4553,22 @@ var TextColumn = React.createClass({
 
       this.props.setTextListHightlight(refs);
     }
-    console.log("Currently selected words: " + selection.toString());
+
     this.props.setSelectedWords(selection.toString());
   },
   handleTextLoad: function handleTextLoad() {
     if (this.loadingContentAtTop || !this.initialScrollTopSet) {
-      console.log("text load, setting scroll");
       this.setScrollPosition();
     }
-    console.log("text load, ais");
+
     this.adjustInfiniteScroll();
   },
   setScrollPosition: function setScrollPosition() {
-    console.log("ssp");
     // Called on every update, checking flags on `this` to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
-      // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-      console.log("loading at top");
       var $node = $(ReactDOM.findDOMNode(this));
+      // After adding content by infinite scrolling up, scroll back to what the user was just seeing
+
       var adjust = 118; // Height of .loadingMessage.base
       var $texts = $node.find(".basetext");
       if ($texts.length < 2) {
@@ -4599,16 +4601,16 @@ var TextColumn = React.createClass({
     // this.adjustInfiniteScroll();
   },
   adjustInfiniteScroll: function adjustInfiniteScroll() {
-    // Add or remove TextRanges from the top or bottom, depending on scroll position
-    console.log("adjust Infinite Scroll");
     if (!this.isMounted()) {
       return;
     }
+    // Add or remove TextRanges from the top or bottom, depending on scroll position
+
     var node = ReactDOM.findDOMNode(this);
     var refs = this.props.srefs;
     var $lastText = $(node).find(".textRange.basetext").last();
     if (!$lastText.length) {
-      console.log("no last basetext");return;
+      return;
     }
     var lastTop = $lastText.position().top;
     var lastBottom = lastTop + $lastText.outerHeight();
@@ -4622,10 +4624,9 @@ var TextColumn = React.createClass({
     } else if (lastBottom < windowHeight + 80) {
       // DOWN: add the next section to bottom
       if ($lastText.hasClass("loading")) {
-        console.log("last text is loading - don't add next section");
         return;
       }
-      console.log("Down! Add next section");
+
       var currentRef = refs.slice(-1)[0];
       var data = Sefaria.ref(currentRef);
       if (data && data.next) {
@@ -4640,7 +4641,6 @@ var TextColumn = React.createClass({
       var topRef = refs[0];
       var data = Sefaria.ref(topRef);
       if (data && data.prev) {
-        console.log("Up! Add previous section");
         refs.splice(refs, 0, data.prev);
         this.loadingContentAtTop = true;
         this.props.updateTextColumn(refs);
@@ -4653,7 +4653,6 @@ var TextColumn = React.createClass({
     }
   },
   adjustTextListHighlight: function adjustTextListHighlight() {
-    console.log("atlh");
     // When scrolling while the TextList is open, update which segment should be highlighted.
     if (this.props.multipanel && this.props.layoutWidth == 100) {
       return; // Hacky - don't move around highlighted segment when scrolling a single panel,
@@ -4876,7 +4875,6 @@ var TextRange = React.createClass({
     return data;
   },
   onTextLoad: function onTextLoad(data) {
-    console.log("onTextLoad in TextColumn");
     // Initiate additional API calls when text data first loads
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
@@ -5331,7 +5329,8 @@ var ConnectionsPanel = React.createClass({
     openDisplaySettings: React.PropTypes.func,
     closePanel: React.PropTypes.func,
     toggleLanguage: React.PropTypes.func,
-    selectedWords: React.PropTypes.string
+    selectedWords: React.PropTypes.string,
+    interfaceLang: React.PropTypes.string
   },
   render: function render() {
     var content = null;
@@ -5429,7 +5428,8 @@ var ConnectionsPanelHeader = React.createClass({
     activeTab: React.PropTypes.string.isRequired, // "Connections", "Tools"
     setConnectionsMode: React.PropTypes.func.isRequired,
     closePanel: React.PropTypes.func.isRequired,
-    toggleLanguage: React.PropTypes.func.isRequired
+    toggleLanguage: React.PropTypes.func.isRequired,
+    interfaceLang: React.PropTypes.string.isRequired
   },
   render: function render() {
     return React.createElement(
@@ -5439,11 +5439,12 @@ var ConnectionsPanelHeader = React.createClass({
         'div',
         { className: 'rightButtons' },
         React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
-        React.createElement(ReaderNavigationMenuCloseButton, { icon: 'arrow', onClick: this.props.closePanel })
+        React.createElement(ReaderNavigationMenuCloseButton, { icon: 'arrow', onClick: this.props.closePanel, interfaceLang: this.props.interfaceLang })
       ),
       React.createElement(ConnectionsPanelTabs, {
         activeTab: this.props.activeTab,
-        setConnectionsMode: this.props.setConnectionsMode })
+        setConnectionsMode: this.props.setConnectionsMode,
+        interfaceLang: this.props.interfaceLang })
     );
   }
 });
@@ -5453,7 +5454,8 @@ var ConnectionsPanelTabs = React.createClass({
 
   propTypes: {
     activeTab: React.PropTypes.string.isRequired, // "Connections", "Tools"
-    setConnectionsMode: React.PropTypes.func.isRequired
+    setConnectionsMode: React.PropTypes.func.isRequired,
+    interfaceLang: React.PropTypes.string.isRequired
   },
   render: function render() {
     var tabNames = [{ "en": "Connections", "he": "קישורים" }, { "en": "Tools", "he": "כלים" }];
@@ -5600,8 +5602,6 @@ var TextList = React.createClass({
           Sefaria.text(commentators[i] + " on " + basetext, {}, function (data) {
             var index = this.waitingFor.indexOf(data.commentator);
             if (index == -1) {
-              console.log("Failed to clear commentator:");
-              console.log(data);
               this.target += 1;
             }
             if (index > -1) {
@@ -6156,7 +6156,6 @@ var LexiconPanel = React.createClass({
       return;
     }
     Sefaria.lexicon(this.props.selectedWords, this.props.oref.ref, function (data) {
-      console.log(data);
       if (this.isMounted()) {
         this.setState({
           resultsLoaded: true,
@@ -7199,7 +7198,6 @@ var SearchResultList = React.createClass({
     }
   },
   _extendResultsDisplayed: function _extendResultsDisplayed() {
-    console.log("displaying more search results");
     var tab = this.state.activeTab;
     this.state.displayedUntil[tab] += this.resultDisplayStep;
     if (this.state.displayedUntil[tab] >= this.state.totals[tab]) {
@@ -7238,9 +7236,7 @@ var SearchResultList = React.createClass({
       type: type,
       size: this.backgroundQuerySize,
       from: last,
-      error: function error() {
-        console.log("Failure in SearchResultList._loadRemainder");
-      },
+      error: function error() {},
       success: function (data) {
         var hitArray = type == "text" ? this._process_text_hits(data.hits.hits) : data.hits.hits;
         var nextHits = currentHits.concat(hitArray);
@@ -8185,7 +8181,6 @@ var NotificationsPanel = React.createClass({
     }
   },
   getMoreNotifications: function getMoreNotifications() {
-    console.log("getting more notifications");
     $.getJSON("/api/notifications?page=" + this.state.page, this.loadMoreNotifications);
     this.setState({ loading: true });
   },
