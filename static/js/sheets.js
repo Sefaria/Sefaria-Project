@@ -1310,7 +1310,7 @@ $(function() {
 
 			$("html").on("click", "#content", function (e) {
 				//clicked off of a sheetitem
-				if ($(e.target).closest(".sheetItem").length) {
+				if ($(e.target).closest(".sheetItem").length || $(e.target).closest(".sheetsEditNavTop") ) {
 					return;
 				}
 				if ($(e.target).closest("#addInterface").length) return
