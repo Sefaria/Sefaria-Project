@@ -2426,7 +2426,7 @@ var LanguageToggleButton = React.createClass({
   render: function() {
     return (<div className="languageToggle" onClick={this.props.toggleLanguage}>
               <span className="en"><img src="/static/img/aleph.svg" /></span>
-              <span className="he"><img src="static/img/aye.svg" /></span>
+              <span className="he"><img src="/static/img/aye.svg" /></span>
             </div>);
   }
 });

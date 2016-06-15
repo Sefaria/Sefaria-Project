@@ -2679,7 +2679,7 @@ var LanguageToggleButton = React.createClass({
       React.createElement(
         'span',
         { className: 'he' },
-        React.createElement('img', { src: 'static/img/aye.svg' })
+        React.createElement('img', { src: '/static/img/aye.svg' })
       )
     );
   }
