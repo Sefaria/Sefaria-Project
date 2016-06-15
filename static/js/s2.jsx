@@ -2251,28 +2251,28 @@ var ReaderNavigationMenu = React.createClass({
       }
 
       var siteLinks = Sefaria._uid ? 
-                    [(<a className="siteLink" key='profile' href="/my/profile">
+                    [(<a className="siteLink outOfAppLink" key='profile' href="/my/profile">
                         <i className="fa fa-user"></i>
                         <span className="en">Your Profile</span>
                         <span className="he">הפרופיל שלי</span>
                       </a>), 
                      (<span className='divider' key="d1">•</span>),
-                     (<a className="siteLink" key='about' href="/about">
+                     (<a className="siteLink outOfAppLink" key='about' href="/about">
                         <span className="en">About Sefaria</span>
                         <span className="he">אודות ספאריה</span>
                       </a>),
                      (<span className='divider' key="d2">•</span>),
-                     (<a className="siteLink" key='logout' href="/logout">
+                     (<a className="siteLink outOfAppLink" key='logout' href="/logout">
                         <span className="en">Logout</span>
                         <span className="he">התנתק</span>
                       </a>)] :
                     
-                    [(<a className="siteLink" key='about' href="/about">
+                    [(<a className="siteLink outOfAppLink" key='about' href="/about">
                         <span className="en">About Sefaria</span>
                         <span className="he">אודות ספאריה</span>
                       </a>),
                      (<span className='divider' key="d1">•</span>),
-                     (<a className="siteLink" key='login' href="/login">
+                     (<a className="siteLink outOfAppLink" key='login' href="/login">
                         <span className="en">Sign In</span>
                         <span className="he">התחבר</span>
                       </a>)];
