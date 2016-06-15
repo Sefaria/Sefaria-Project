@@ -676,9 +676,10 @@ h1 .languageToggle .he {
 .readerNavSection {
   margin-bottom: 44px;
 }
-a.recentItem {
+a.recentItem,
+a.resourcesLink {
   white-space: nowrap;
-  overflow: hidden;              /* "overflow" value must be different from "visible" */
+  overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
 }
