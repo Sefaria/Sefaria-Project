@@ -2363,7 +2363,7 @@ var ReaderNavigationMenu = React.createClass({
 
       var siteLinks = Sefaria._uid ? [React.createElement(
         'a',
-        { className: 'siteLink', key: 'profile', href: '/my/profile' },
+        { className: 'siteLink outOfAppLink', key: 'profile', href: '/my/profile' },
         React.createElement('i', { className: 'fa fa-user' }),
         React.createElement(
           'span',
@@ -2381,7 +2381,7 @@ var ReaderNavigationMenu = React.createClass({
         '•'
       ), React.createElement(
         'a',
-        { className: 'siteLink', key: 'about', href: '/about' },
+        { className: 'siteLink outOfAppLink', key: 'about', href: '/about' },
         React.createElement(
           'span',
           { className: 'en' },
@@ -2398,7 +2398,7 @@ var ReaderNavigationMenu = React.createClass({
         '•'
       ), React.createElement(
         'a',
-        { className: 'siteLink', key: 'logout', href: '/logout' },
+        { className: 'siteLink outOfAppLink', key: 'logout', href: '/logout' },
         React.createElement(
           'span',
           { className: 'en' },
@@ -2411,7 +2411,7 @@ var ReaderNavigationMenu = React.createClass({
         )
       )] : [React.createElement(
         'a',
-        { className: 'siteLink', key: 'about', href: '/about' },
+        { className: 'siteLink outOfAppLink', key: 'about', href: '/about' },
         React.createElement(
           'span',
           { className: 'en' },
@@ -2428,7 +2428,7 @@ var ReaderNavigationMenu = React.createClass({
         '•'
       ), React.createElement(
         'a',
-        { className: 'siteLink', key: 'login', href: '/login' },
+        { className: 'siteLink outOfAppLink', key: 'login', href: '/login' },
         React.createElement(
           'span',
           { className: 'en' },
