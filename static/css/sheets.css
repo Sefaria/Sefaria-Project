@@ -1868,3 +1868,35 @@ a.userLink{
 #panelWrapBox {
 	display: none;
 }
+
+#tags {
+	border: 1px solid #aaaaaa;
+	background: #ffffff;
+	color: #222222;
+}
+
+.ui-widget-content {
+	border: 1px solid #d3d3d3;
+    background: #e6e6e6;
+    font-weight: normal;
+}
+
+.ui-icon-close {
+    background-position: -80px -128px;
+}
+
+ul.tagit li.tagit-choice .tagit-close .text-icon {
+	display:block;
+}
+
+.ui-icon {
+    width: 16px;
+    height: 16px;
+}
+.ui-icon {
+    display: block;
+    text-indent: -99999px;
+    overflow: hidden;
+    background-repeat: no-repeat;
+}
+
