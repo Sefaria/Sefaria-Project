@@ -74,6 +74,7 @@ body.dark {
   padding: 0px 30px;
   text-align: center;
   overflow: hidden;
+  white-space: nowrap;
 }
 .header .left {
   float: left;
@@ -121,6 +122,14 @@ body.dark {
   top: -3px;
   left: 50%;
   margin-left: -51px;
+}
+@media (max-width: 540px) {
+  .header .home {
+    display: none;
+  }
+  .header .accountLinks .login {
+    margin-left: 16px;
+  }
 }
 .header .home img {
   opacity: 0.8;
