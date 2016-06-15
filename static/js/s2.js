@@ -2584,7 +2584,7 @@ var ReaderNavigationMenuSection = React.createClass({
     return React.createElement(
       'div',
       { className: 'readerNavSection' },
-      React.createElement(
+      this.props.title ? React.createElement(
         'h2',
         null,
         React.createElement(
@@ -2597,7 +2597,7 @@ var ReaderNavigationMenuSection = React.createClass({
           { className: 'he' },
           this.props.heTitle
         )
-      ),
+      ) : null,
       this.props.content
     );
   }
@@ -3372,13 +3372,19 @@ var VersionBlock = React.createClass({
       { href: this.licenseMap[v.license], target: '_blank' },
       v.license
     ) : v.license;
+    var digitizedBySefaria = v.digitizedBySefaria ? React.createElement(
+      'a',
+      { className: 'versionDigitizedBySefaria', href: '/digitized-by-sefaria' },
+      'Digitized by Sefaria'
+    ) : "";
     var licenseLine = "";
     if (v.license && v.license != "unknown") {
       licenseLine = React.createElement(
         'span',
         { className: 'versionLicense' },
         license,
-        v.digitizedBySefaria ? " - Digitized by Sefaria" : ""
+        digitizedBySefaria ? " - " : "",
+        digitizedBySefaria
       );
     }
 
@@ -6617,7 +6623,7 @@ var AddToSourceSheetPanel = React.createClass({
       React.createElement(
         'span',
         { className: 'en' },
-        'Create a Source Sheet'
+        'Start a Source Sheet'
       ),
       React.createElement(
         'span',
@@ -7873,7 +7879,12 @@ var SearchFilter = React.createClass({
     return React.createElement(
       'li',
       { onClick: this.handleFocusCategory },
-      React.createElement('input', { type: 'checkbox', className: 'filter', checked: this.state.selected == 1, onChange: this.handleFilterClick }),
+      React.createElement('input', { type: 'checkbox', id: this.props.filter.path, className: 'filter', checked: this.state.selected == 1, onChange: this.handleFilterClick }),
+      React.createElement(
+        'label',
+        { onClick: this.handleFilterClick, 'for': this.props.filter.path },
+        React.createElement('span', null)
+      ),
       React.createElement(
         'span',
         { className: 'en' },
