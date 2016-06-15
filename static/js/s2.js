@@ -2234,7 +2234,7 @@ var ReaderNavigationMenu = React.createClass({
     return recentlyViewed;
   },
   handleClick: function handleClick(event) {
-    if (!$(event.target).hasClass("outOfAppLink")) {
+    if (!$(event.target).hasClass("outOfAppLink") && !$(event.target.parentElement).hasClass("outOfAppLink")) {
       event.preventDefault();
     }
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
@@ -3842,11 +3842,9 @@ var SheetsHomePage = React.createClass({
           )
         ),
         this.props.multiPanel ? null : React.createElement(TwoOrThreeBox, { content: trendingTags, width: this.props.width }),
-        React.createElement('br', null),
-        React.createElement('br', null),
         this.props.multiPanel ? React.createElement(
           'h2',
-          null,
+          { className: 'tagsHeader' },
           React.createElement(
             'span',
             { className: 'en' },
@@ -6400,24 +6398,24 @@ var ToolsPanel = React.createClass({
         React.createElement(
           'div',
           { className: 'contentInner' },
-          React.createElement(ToolsButton, { en: 'Share', he: 'שתף', icon: 'share-square-o', onClick: function () {
+          React.createElement(ToolsButton, { en: 'Share', he: 'שתף', image: 'tools-share.svg', onClick: function () {
               this.props.setConnectionsMode("Share");
             }.bind(this) }),
-          React.createElement(ToolsButton, { en: 'Add to Source Sheet', he: 'הוסף לדף מקורות', icon: 'plus-circle', onClick: function () {
+          React.createElement(ToolsButton, { en: 'Add to Source Sheet', he: 'הוסף לדף מקורות', image: 'tools-add-to-sheet.svg', onClick: function () {
               this.props.setConnectionsMode("Add to Source Sheet");
             }.bind(this) }),
-          React.createElement(ToolsButton, { en: 'Add Note', he: 'הוסף רשומה', icon: 'pencil', onClick: function () {
+          React.createElement(ToolsButton, { en: 'Add Note', he: 'הוסף רשומה', image: 'tools-write-note.svg', onClick: function () {
               this.props.setConnectionsMode("Add Note");
             }.bind(this) }),
-          React.createElement(ToolsButton, { en: 'My Notes', he: 'הרשומות שלי', icon: 'file-text-o', onClick: function () {
+          React.createElement(ToolsButton, { en: 'My Notes', he: 'הרשומות שלי', image: 'tools-my-notes.svg', onClick: function () {
               this.props.setConnectionsMode("My Notes");
             }.bind(this) }),
-          React.createElement(ToolsButton, { en: 'Compare', he: 'השווה', image: 'compare-64.png', onClick: this.props.openComparePanel }),
-          React.createElement(ToolsButton, { en: 'Add Translation', he: 'הוסף תרגום', icon: 'language', onClick: addTranslation }),
-          React.createElement(ToolsButton, { en: 'Add Connection', he: 'הוסף קישור לטקסט אחר', icon: 'link', onClick: function () {
+          React.createElement(ToolsButton, { en: 'Compare', he: 'השווה', image: 'tools-compare.svg', onClick: this.props.openComparePanel }),
+          React.createElement(ToolsButton, { en: 'Add Translation', he: 'הוסף תרגום', image: 'tools-translate.svg', onClick: addTranslation }),
+          React.createElement(ToolsButton, { en: 'Add Connection', he: 'הוסף קישור לטקסט אחר', image: 'tools-add-connection.svg', onClick: function () {
               this.props.setConnectionsMode("Add Connection");
             }.bind(this) }),
-          editText ? React.createElement(ToolsButton, { en: 'Edit Text', he: 'ערוך טקסט', icon: 'edit', onClick: editText }) : null
+          editText ? React.createElement(ToolsButton, { en: 'Edit Text', he: 'ערוך טקסט', image: 'tools-edit-text.svg', onClick: editText }) : null
         )
       )
     );
@@ -6503,7 +6501,7 @@ var SharePanel = React.createClass({
           'div',
           { className: 'contentInner' },
           React.createElement('input', { className: 'shareInput', value: this.props.url }),
-          React.createElement(ToolsButton, { en: 'Facebook', he: 'פייסבוק', icon: 'facebook', onClick: shareFacebook }),
+          React.createElement(ToolsButton, { en: 'Facebook', he: 'פייסבוק', icon: 'facebook-official', onClick: shareFacebook }),
           React.createElement(ToolsButton, { en: 'Twitter', he: 'טוויטר', icon: 'twitter', onClick: shareTwitter }),
           React.createElement(ToolsButton, { en: 'Email', he: 'אימייל', icon: 'envelope-o', onClick: shareEmail })
         )
@@ -8354,12 +8352,12 @@ var TwoBox = React.createClass({
               'td',
               null,
               row[0]
-            ) : null,
+            ) : React.createElement('td', { className: 'empty' }),
             row[1] ? React.createElement(
               'td',
               null,
               row[1]
-            ) : null
+            ) : React.createElement('td', { className: 'empty' })
           );
         })
       )

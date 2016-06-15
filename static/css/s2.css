@@ -51,6 +51,7 @@ body.dark {
   position: relative;
   padding-top: 54px;
   height: 100%;
+  box-sizing: border-box;
 }
 #panelWrapBox.wrapBoxScroll {
   overflow-x: scroll;
@@ -482,7 +483,7 @@ body.dark {
   padding-right: 40px;
 }
 .multiPanel .readerNavMenu .content {
-  padding: 110px 25px 10px;
+  padding: 110px 25px;
 }
 .multiPanel .readerNavMenu.noHeader .content {
   padding-top: 70px;
@@ -725,18 +726,6 @@ a.recentItem {
   margin-bottom: 30px;
   margin-top: -8px;
 }
-.english .readerNavCalendar .gridBox td:first-child {
-  border-left: 0;
-}
-.english .readerNavCalendar .gridBox td:last-child {
-  border-right: 0;
-}
-.hebrew .readerNavCalendar .gridBox td:first-child {
-  border-right: 0;
-}
-.hebrew .readerNavCalendar .gridBox td:last-child {
-  border-left: 0;
-}
 .blockLink,
 .readerNavMenu .resourcesLink {
   display: inline-block;
@@ -763,7 +752,20 @@ a.recentItem {
 .gridBox {
   table-layout: fixed;
 }
-.gridBox td > a {
+.gridBox td {
+  border: 3px solid transparent;
+}
+.english .gridBox td:first-child {
+  border-left: 0;
+}
+.english .gridBox td:last-child {
+  border-right: 0;
+}
+.hebrew .gridBox td:first-child {
+  border-right: 0;
+}
+.hebrew .gridBox td:last-child {
+  border-left: 0;
 }
 .readerNavMenu .resourcesLink .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -779,7 +781,7 @@ a.recentItem {
   width: 16px;
   height: 16px;
   opacity: 0.6;
-  margin: 0 9px 0 0;
+  margin: 0px 5px;
   position: relative;
   top: 2px;
 }
@@ -842,7 +844,7 @@ a.recentItem {
 .readerNavMenu .readerNavCategoryMenu td,
 .readerSheetsNav .gridBox td {
   background-color: white;
-  border: 6px solid #F9F9F7;
+  border: 3px solid #F9F9F7;
 }
 
 .readerSheetsNav .navButton:hover {
@@ -908,8 +910,12 @@ a.recentItem {
 .readerTextTableOfContents .currentVersionBox .versionSelect select {
   width: 100%;
   background-color: white;
-  font-size: 13px;
+  font-size: 14px;
   height: 3em;
+  border-color: #ccc;
+  border-radius: 3px;
+  color: #333;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerTextTableOfContents .currentVersionBox .versionBlock span,
 .readerTextTableOfContents .currentVersionBox .versionBlock  a {
@@ -1433,6 +1439,15 @@ a.recentItem {
 }
 .readerSheetsNav h2 .en {
   display: inline;
+}
+.readerSheetsNav .tagsHeader {
+  margin: 50px 0 30px;
+  height: auto
+}
+.readerSheetsNav .tagsHeader .actionText{
+  display: block;
+  margin-top: 20px;
+  text-transform: none;
 }
 .readerSheetsNav .loadingMessage {
   text-align: center;
@@ -2065,8 +2080,8 @@ a.recentItem {
 }
 .gridBox {
   width: 100%;
-  border-collapse: collapse;
-  border: 0px;
+  border-spacing: 0;
+  background-color: transparent;
 }
 .gridBox table {
   width: 100%;
@@ -2075,10 +2090,6 @@ a.recentItem {
 }
 .gridBox td {
   padding: 0;
-  border-top: 6px solid transparent;;
-  border-bottom: 6px solid transparent;;
-  border-right: 6px solid transparent;;
-  border-left: 6px solid transparent;;
 }
 @media (max-width: 450px) {
   .gridBox td {
@@ -2144,6 +2155,12 @@ a.recentItem {
   border-radius: 12px;
   border: 1px solid #DADADA;
   background-color: transparent;
+}
+.english .textList.fullPanel .recentFilterSet .textFilter {
+  margin-left: 0;
+}
+.hebrew .textList.fullPanel .recentFilterSet .textFilter {
+  margin-right: 0;
 }
 .textList.fullPanel .recentFilterSet .textFilter.on {
   background-color: white;
@@ -2217,8 +2234,8 @@ a.recentItem {
   background-color: white;
   border: 2px solid #F9F9F7;
 }
-.fullFilterView td {
-  border: 2px solid #F3F3F1;
+.fullFilterView td.empty {
+  background-color: transparent;
 }
 .dark .fullFilterView td {
   background-color: #333331;
@@ -2227,6 +2244,7 @@ a.recentItem {
 }
 .fullFilterView .categoryFilter {
   background-color: white;
+  margin-bottom: 1px;
 }
 .fullFilterView .categoryFilter.notClickable {
   color: #999;
@@ -2391,6 +2409,7 @@ a.recentItem {
   border: 1px solid #F7F7F7;
   box-shadow: none;
   font-size: 18px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   padding: 20px 26px;
   outline: none;
@@ -2458,6 +2477,7 @@ a.recentItem {
   outline: none;
   box-sizing: border-box;
   font-size: 18px;
+  font-family: "adobe-garamond-pro", Georgia, serif;
   margin-bottom: 10px
 }
 .addNotePanel .noteSharingToggle {
@@ -2510,15 +2530,25 @@ a.recentItem {
 }
 .myNotesPanel.textList .note {
   background-color: transparent;
-  padding: 10px 0;
+  padding: 40px 0 30px;
+  position: relative;
 }
-.myNotesPanel.textList .note + .note {
+.myNotesPanel.textList .note {
   border-top: 1px solid #ccc;
-  padding-top: 40px;
+}
+.myNotesPanel.textList .note:first-child {
+  padding-top: 10px;
+  border-top: none;
 }
 .myNotesPanel .noteButtons {
   text-align: right;
   visibility: hidden;
+  position: absolute;
+  top: 44px;
+  right: -40px;
+}
+.myNotesPanel.textList .note:first-child .noteButtons {
+  top: 14px;
 }
 .myNotesPanel .note:hover .noteButtons {
   visibility: visible;
@@ -2648,6 +2678,8 @@ a.button.white {
 .button.fillWidth {
   width: 100%;
   text-align: center;
+  display: block;
+  margin: 0 0 6px 0;
 }
 a .button:hover {
   text-decoration: none;

@@ -291,7 +291,7 @@ urlpatterns += patterns('reader.views',
     (r'^visualize/links_through_rashi$', 'visualize_rashi_interlinks'),
 )
 
-# Redirects to Forum, Wiki
+# Redirects to Forum, Wiki, etc
 urlpatterns += patterns('',
     (r'^forum/?$', lambda x: HttpResponseRedirect('https://groups.google.com/forum/?fromgroups#!forum/sefaria')),
     (r'^wiki/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki')),
@@ -299,7 +299,7 @@ urlpatterns += patterns('',
     (r'^developers/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#developers')),
     (r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Guide-to-Contributing')),
     (r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions')),
-
+    (r'^textmap/?$', lambda x: HttpResponseRedirect('/static/files/Sefaria-Text-Map-June-2016.pdf')),
 )
 
 # Packaged JavaScript
