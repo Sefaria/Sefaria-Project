@@ -3202,10 +3202,9 @@ var SheetsHomePage = React.createClass({
                    </h2>)}
 
                 { this.props.multiPanel ? null : (<TwoOrThreeBox content={trendingTags} width={this.props.width} /> )}
-                <br /><br />
 
                 { this.props.multiPanel ? (
-                    <h2>
+                    <h2 className="tagsHeader">
                       <span className="en">All Tags</span>
                       <span className="he">All Tags [he]</span>
                       <div className="actionText">
@@ -5239,14 +5238,14 @@ var ToolsPanel = React.createClass({
       <div className={classes}>
         <div className="texts">
           <div className="contentInner">
-            <ToolsButton en="Share" he="שתף" icon="share-square-o" onClick={function() {this.props.setConnectionsMode("Share")}.bind(this)} /> 
-            <ToolsButton en="Add to Source Sheet" he="הוסף לדף מקורות" icon="plus-circle" onClick={function() {this.props.setConnectionsMode("Add to Source Sheet")}.bind(this)} /> 
-            <ToolsButton en="Add Note" he="הוסף רשומה" icon="pencil" onClick={function() {this.props.setConnectionsMode("Add Note")}.bind(this)} /> 
-            <ToolsButton en="My Notes" he="הרשומות שלי" icon="file-text-o" onClick={function() {this.props.setConnectionsMode("My Notes")}.bind(this)} /> 
-            <ToolsButton en="Compare" he="השווה" image="compare-64.png" onClick={this.props.openComparePanel} /> 
-            <ToolsButton en="Add Translation" he="הוסף תרגום" icon="language" onClick={addTranslation} /> 
-            <ToolsButton en="Add Connection" he="הוסף קישור לטקסט אחר" icon="link" onClick={function() {this.props.setConnectionsMode("Add Connection")}.bind(this)} /> 
-            { editText ? (<ToolsButton en="Edit Text" he="ערוך טקסט" icon="edit" onClick={editText} />) : null }
+            <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={function() {this.props.setConnectionsMode("Share")}.bind(this)} /> 
+            <ToolsButton en="Add to Source Sheet" he="הוסף לדף מקורות" image="tools-add-to-sheet.svg" onClick={function() {this.props.setConnectionsMode("Add to Source Sheet")}.bind(this)} /> 
+            <ToolsButton en="Add Note" he="הוסף רשומה" image="tools-write-note.svg" onClick={function() {this.props.setConnectionsMode("Add Note")}.bind(this)} /> 
+            <ToolsButton en="My Notes" he="הרשומות שלי" image="tools-my-notes.svg" onClick={function() {this.props.setConnectionsMode("My Notes")}.bind(this)} /> 
+            <ToolsButton en="Compare" he="השווה" image="tools-compare.svg" onClick={this.props.openComparePanel} /> 
+            <ToolsButton en="Add Translation" he="הוסף תרגום" image="tools-translate.svg" onClick={addTranslation} /> 
+            <ToolsButton en="Add Connection" he="הוסף קישור לטקסט אחר" image="tools-add-connection.svg"onClick={function() {this.props.setConnectionsMode("Add Connection")}.bind(this)} /> 
+            { editText ? (<ToolsButton en="Edit Text" he="ערוך טקסט" image="tools-edit-text.svg" onClick={editText} />) : null }
           </div>
         </div>
       </div>);
@@ -5316,7 +5315,7 @@ var SharePanel = React.createClass({
         <div className="texts">
           <div className="contentInner">
             <input className="shareInput" value={this.props.url} />
-            <ToolsButton en="Facebook" he="פייסבוק" icon="facebook" onClick={shareFacebook} />
+            <ToolsButton en="Facebook" he="פייסבוק" icon="facebook-official" onClick={shareFacebook} />
             <ToolsButton en="Twitter" he="טוויטר" icon="twitter" onClick={shareTwitter} />
             <ToolsButton en="Email" he="אימייל" icon="envelope-o" onClick={shareEmail} />
           </div>
@@ -6773,8 +6772,8 @@ var TwoBox = React.createClass({
             twos.map(function(row, i) {
               return (
                 <tr key={i}>
-                  {row[0] ? (<td>{row[0]}</td>) : null}
-                  {row[1] ? (<td>{row[1]}</td>) : null}
+                  {row[0] ? (<td>{row[0]}</td>) : <td className="empty"></td>}
+                  {row[1] ? (<td>{row[1]}</td>) : <td className="empty"></td>}
                 </tr>
               );
             })
