@@ -145,11 +145,11 @@ var ReaderApp = React.createClass({
       return this.makePanelState(panel); 
     }.bind(this) );
 
-    var layoutOrientation = "ltr";
-    if ((panels.length > 0 && panels[0].settings && panels[0].settings.language == "hebrew")
+    var layoutOrientation = (this.props.interfaceLang == "english") ? "ltr" : "rtl";
+    /*if ((panels.length > 0 && panels[0].settings && panels[0].settings.language == "hebrew")
        || (header.settings && header.settings.language == "hebrew")) {
       layoutOrientation = "rtl";
-    }
+    }*/
 
     return {
       panels: panels,
@@ -2736,7 +2736,7 @@ var ReaderTextTableOfContents = React.createClass({
   render: function() {
     var tocHtml = Sefaria.textTocHtml(this.props.title);
 
-    tocHtml = tocHtml || '<div class="loadingMessage"><span class="en">Loading...</span><span class="he">טעינה...</span></div>';
+    tocHtml = tocHtml || '<div class="loadingMessage"><span class="en">Loading...</span><span class="he">טוען...</span></div>';
 
     var title     = this.props.title;
     var heTitle   = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
@@ -3184,7 +3184,7 @@ var SheetsHomePage = React.createClass({
     var yourSheetsButton  = Sefaria._uid ? 
       (<div className="yourSheetsLink navButton" onClick={this.showYourSheets}>
         <span class="en">My Source Sheets <i className="fa fa-chevron-right"></i></span>
-        <span class="he"></span>
+        <span class="he">דפי המקורות שלי <i className="fa fa-chevron-left"></i></span>
        </div>) : null;
 
     return (<div className="content">
