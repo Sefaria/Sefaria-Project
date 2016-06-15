@@ -6551,10 +6551,10 @@ var AccountPanel = React.createClass({
 
     var learnContent = [
       (<BlockLink target="/about" title="About" heTitle="אודות" />),
-      (<BlockLink target="/faq" title="FAQ" heTitle="שאלות נפוצות" />),
-      (<BlockLink target="http://blog.sefaria.org" title="Blog" heTitle="בלוג" />),
-      (<BlockLink target="/educators" title="Educators" heTitle="מחנכים" />),
       (<BlockLink target="/help" title="Help" heTitle="עזרה" />),
+      (<BlockLink target="http://blog.sefaria.org" title="Blog" heTitle="בלוג" />),
+      (<BlockLink target="/help" title="Help" heTitle="עזרה" />),
+      (<BlockLink target="/educators" title="Educators" heTitle="מחנכים" />),
       (<BlockLink target="/team" title="Team" heTitle="צוות" />)
     ];
     learnContent = (<TwoOrThreeBox content={learnContent} width={width} />);

@@ -1220,6 +1220,9 @@
 #footer .fa {
   margin: 0 3px;
 }
+#helpPage .section {
+  margin-bottom: 60px;
+}
 #translationRequestsPage .translationRequest{
   background-color: inherit;
   text-align: justify;
