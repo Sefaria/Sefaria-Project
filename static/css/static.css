@@ -1315,3 +1315,23 @@
   font-size: 18px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
+#digitizedBySefaria p {
+  margin-bottom: 20px;
+}
+#digitizedBySefaria #texts {
+  margin-top: 40px;
+  padding: 0;
+}
+#digitizedBySefaria .sub {
+  color: #666;
+  font-size: 13px;
+}
+#digitizedBySefaria ul {
+  list-style-type: none
+}
+#digitizedBySefaria li {
+  margin-bottom: 12px;
+}
+#digitizedBySefaria li a {
+  font-size: 18px;
+}
