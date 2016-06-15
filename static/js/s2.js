@@ -7858,7 +7858,12 @@ var SearchFilter = React.createClass({
     return React.createElement(
       'li',
       { onClick: this.handleFocusCategory },
-      React.createElement('input', { type: 'checkbox', className: 'filter', checked: this.state.selected == 1, onChange: this.handleFilterClick }),
+      React.createElement('input', { type: 'checkbox', id: this.props.filter.path, className: 'filter', checked: this.state.selected == 1, onChange: this.handleFilterClick }),
+      React.createElement(
+        'label',
+        { onClick: this.handleFilterClick, 'for': this.props.filter.path },
+        React.createElement('span', null)
+      ),
       React.createElement(
         'span',
         { className: 'en' },

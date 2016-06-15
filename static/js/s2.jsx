@@ -6415,7 +6415,8 @@ var SearchFilter = React.createClass({
   render: function() {
     return(
       <li onClick={this.handleFocusCategory}>
-        <input type="checkbox" className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
+        <input type="checkbox" id={this.props.filter.path} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
+        <label onClick={this.handleFilterClick} for={this.props.filter.path}><span></span></label>
         <span className="en"><span className="filter-title">{this.props.filter.title}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         <span className="he" dir="rtl"><span className="filter-title">{this.props.filter.heTitle}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         {this.props.isInFocus?<span className="en"><i className="in-focus-arrow fa fa-caret-right"/></span>:""}
