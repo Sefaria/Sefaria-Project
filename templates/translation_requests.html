@@ -10,6 +10,101 @@
 {% endblock %}
 
 {% block content %}
+
+{% if S2 %}
+<div id="translationRequestsPage" class="biReady container static">
+    <div class="inner">
+        <h1>
+            <span class="en">Translation Requests</span>
+            <span class="he">בקשות תרגום</span>
+        </h1>
+        <div class="section">
+            <p class="tagline">
+                <span class="en">
+                    This page lists the most requested text sections that Sefaria users would like to have translated.
+                Requests are made automatically whenever you add an unstranslated source to a Source Sheet.
+                You can add your support to an existing request, or make a new request here.
+                </span>
+                <span class="he">
+                    This page lists the most requested text sections that Sefaria users would like to have translated.
+                Requests are made automatically whenever you add an unstranslated source to a Source Sheet.
+                You can add your support to an existing request, or make a new request here.
+                </span>
+            </p>
+            <div class="single-button center">
+                <div id="makeRequest" class="button blue big">
+                    <span class="en">Make Request</span>
+                    <span class="he">בקש תרגום</span>
+                </div>
+            </div>
+            <div class="translation-counts">
+                <div class="count">
+                    <a href="/translation-requests">{{ request_count|intcomma }} text sections</a> have been requested.
+                </div>
+
+                <div class="count">
+                    <a href="/translation-requests/completed">{{ complete_count|intcomma }} requests</a> have been completed.
+                </div>
+
+                <div class="count">
+                    <a href="/translation-requests/featured-completed">{{ featured_complete|intcomma }} featured requests</a> have been completed.
+                </div>
+            </div>
+
+            {% if show_featured %}
+            <div id="featuredRequests">
+                <h3>{{ featured_current }} Featured Requests</h3>
+                <div class='single-button center'>
+                    <a class="button blue big" href="http://blog.sefaria.org/contests" target="_blank">View Prizes</a>
+                    <h4>Monthly Contests</h4>
+                    <p class="tagline">Help translate featured requests and you'll be automatically entered in a lottery for monthly prizes.</p>
+                </div>
+                {% for trans_request in featured %}
+                    {% if forloop.counter0 < featured_current or request.user.is_staff %}
+                        {% if forloop.counter0 == featured_current %}
+                            <i id="futureRequests">Future Featured Requests</i>
+                        {% endif %}
+                        {% include "elements/translation_request.html" %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div id="translationRequests">
+                <h3>
+                    {% if not completed_only and not page_offset %}
+                        All Requests
+                    {% elif not completed_only and page_offset %}
+                        Requests {{ page_offset }}-{{ page_offset|add:99 }}
+                        <a href="/translation-requests">back to top</a>
+                    {% elif complete_only and not featured_only %}
+                        Completed Requests
+                        <a href="/translation-requests">all requests</a>
+                    {% elif completed_only and featured_only % }
+                        Completed Featured Requests
+                        <a href="/translation-requests">all requests</a>
+                    {% endif %}
+                </h3>
+                {% for trans_request in requests %}
+                    {% include "elements/translation_request.html" %}
+                {% endfor %}
+            </div>
+
+
+            {% if next_page %}
+                <a id="moreRequests" href="?page={{ next_page }}">More requests &raquo;</a>
+            {% endif %}
+
+
+            {% include "elements/social_share_buttons.html" with URL="http://www.sefaria.org/translation-requests" description="The most requested text sections for translation on Sefaria." %}
+        </div>
+
+    {% include "elements/login_prompt.html" with msg="Please log in to make requests." %}
+
+    </div>
+</div>
+
+{% else %}
 <div class="container doc">
     <div class="row">
         <div class="span8 offset2">
@@ -95,7 +190,7 @@
 
     </div>
 </div>
-
+{% endif %}
 {% endblock %}
 
 {% block js %}

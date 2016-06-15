@@ -133,7 +133,7 @@
 		<div id="profileActivity" class="section">
 			<h2>Activity</h2>
 			{% include "elements/activity_feed.html" with activity=activity|slice:":3" single=1 hide_more_link=1 %}
-			<a id="moreActivity" href="/activity/{{ profile.slug }}/">More Activity &rsaquo;</a>
+			<a id="moreActivity" class="page-link" href="/activity/{{ profile.slug }}/">More Activity &rsaquo;</a>
 		</div>
 		{% endif %}
 	</div>

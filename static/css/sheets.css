@@ -93,7 +93,7 @@ body {
 	width: 770px;
 	min-height: 980px;
 	padding: 60px 40px;
-	margin: 130px auto 56px;
+	margin: 150px auto 56px;
 	box-shadow: 0px 0px 2px #777;
 	font-family: "Times New Roman", "Georgia", serif;
 
@@ -201,7 +201,7 @@ body {
 
 .optionsMenu img, .addInterfaceButton img {
 	margin-right: 5px;
-	margin-bottom: 2px;
+	margin-bottom: 3px;
 
 }
 
@@ -419,7 +419,7 @@ body {
 	color: #999;
 }
 
-#bottomAuthor a {
+#bottomAuthor a, #via a {
 	color: #333;
 }
 
@@ -507,7 +507,7 @@ body {
 	width: 50px;
 	text-align: right;
 	top: 35px;
-	left: -32px;
+	left: 6px;
 }
 
 #sheet #sources .sheetItem .sourceNumber.he {
@@ -515,15 +515,7 @@ body {
 	width: 50px;
 	text-align: left;
 	top: 37px;
-	right: -32px;
-}
-
-#sheet.boxed #sources .sheetItem .sourceNumber {
-	top: 17px;
-}
-
-#sheet #sources .sheetItem.hasCustom .sourceNumber {
-	top: 56px;
+	right: 6px;
 }
 
 #sheet .sourceControlsOpen {
@@ -579,6 +571,7 @@ body {
 .tooltipster-default {
 	background-color: #999 !important;
 	color: #fff;
+	margin-left:5px;
 }
 
 
@@ -748,22 +741,13 @@ body {
 	font-weight: bold;
 }
 
-#sheet.boxed .source,
-#sheet.boxed .outsideWrapper,
-#sheet.boxed .outsideBiWrapper {
-	margin: 32px 0;
-	border: 1px solid #888;
-	padding: 12px 24px 0px 24px;
-	background-color: #eee;
-}
-
 #sheet.boxed .sourceControlsOpen {
-	background-color: #ddd;
+	background-color: #F9F9F7;
 }
 
 #sheet.boxed .text,
 #sheet.boxed .outside  {
-	border: 1px solid #888;
+	border: 1px solid #333;
 	padding: 4px;
 	background-color: white;
 }
@@ -1156,12 +1140,6 @@ a:active {
 		right: -2px;
 		text-align: right;
 	}
-	#sheet.boxed #sources .sheetItem .sourceNumber.en {
-		left: 6px;
-	}
-	#sheet.boxed #sources .sheetItem .sourceNumber.he {
-		right: 6px;
-	}
 	#sheet.bilingual.sideBySide .en {
 		text-align: left !important;
 		width: 100%;
@@ -1327,7 +1305,9 @@ input[type="file"] {
   line-height: 28px;
 }
 
-
+img {
+	vertical-align: middle;
+}
 
 /* overrides for layout option by source */
 #sheet .source.sheetItem.sideBySide > .en {
@@ -1478,9 +1458,14 @@ input[type="file"] {
     box-sizing: border-box;
     direction: ltr;
     z-index: 21;
-    padding: 7px 20px 6px 16px;
-	font-size: 16px;
+    padding: 7px 30px 6px 10px;
+    font-size: 16px;
     color: #333;
+    top: 54px;
+}
+
+.sheetsEditNavTop .optionsMenu {
+	color: #333;
 }
 
 #sheet p {
@@ -1512,12 +1497,9 @@ input[type="file"] {
   z-index: 6;
 }
 
-
-
-
 #fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu {
 	display: block;
-	top:47px;
+	top:45px;
 	left:20px;
 	background-color: #F9F9F7;
 }
@@ -1565,8 +1547,8 @@ input[type="file"] {
     text-align: center;
     width: 100%;
     padding: 0;
-    bottom: -45px;
-    position: relative;
+    bottom: -53px;
+	position: relative;
     font-size: 30px;
 	z-index: 3;
 }
@@ -1693,6 +1675,9 @@ input[type="file"] {
 	height: 32px;
 	margin: 0;
 	float:left;
+	font-size:14px;
+	padding-left: 12px;
+	padding-right: 12px;
 
 }
 
@@ -1732,7 +1717,7 @@ input[type="file"] {
 #customTextLanguageToggle .toggleOption img {
 	height: 16px;
 	width: 16px;
-    margin-bottom: 2px;
+    margin-bottom: 13px;
 }
 
 #customTextContainer, #addmediaDiv, #addcommentDiv, #addsourceDiv{
@@ -1816,12 +1801,16 @@ a.userLink{
 }
 .sheetsEditNavTop #save, .sheetsEditNavTop #share  {
 	float: right;
-    margin: 8px 0 0 0;
+    margin: 5px 0 0 0;
 	border-radius: 3px;
 	font-weight: 300;
+	font-size: 12px;
+	height: 30px;
 }
 .sheetsEditNavTop #save img, .sheetsEditNavTop #share img  {
     margin-bottom: 2px;
+    margin-right: 2px;
+
 }
 
 
@@ -1830,10 +1819,12 @@ a.userLink{
 	background-color: #fff;
     font-style: italic;
     width: 100%;
+    box-sizing: border-box;
+    height: 30px;
 }
 
 #shareWithOthers .title {
-	font-size: 16px;
+	font-size: 20px;
 	margin: 5px 0 16px 0;
 	text-align: center;
 }
@@ -1872,4 +1863,8 @@ a.userLink{
 	background-color: #F9F9F7;
 	border: 1px solid #999;
 	border-radius: 6px;
+}
+
+#panelWrapBox {
+	display: none;
 }

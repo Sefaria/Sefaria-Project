@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Sefaria Team{% endblock %}
+{% block title %}Team{% endblock %}
 
 {% block content %}
-<div id="teamPage" class="container full-text-static">
-    <div class="page-title"><h1>
-        <span class='en'>Sefaria Team</span>
-    </h1></div>
+<div id="teamPage" class="container static">
+    <div class="inner">
+    <h1>
+        <span class='en'>Team</span>
+        <span class='he'>הצוות של ספאריה</span>
+    </h1>
     <div class="row static-text">
         <div class="main-text">
-            <h2>STAFF</h2>
-            <!--<h3>MANAGEMENT</h3>--->
             <div class="teamMember">
                 <div class="teamMemberImage">
                     <img src="/static/img/headshots/daniel.png">
@@ -147,18 +147,33 @@
                     <div class="teamBio"></div>
                 </div>
             </div>
+            <div class="teamMember">
+                <div class="teamMemberImage">
+                    <img src="/static/img/headshots/shmuel.png">
+                </div>
+                <div class="teamMemberDetails">
+                    <div class="teamName">Shmuel Weissman</div>
+                    <div class="teamTitle">Manager of Text Acquisition and Text Quality</div>
+                    <a class="teamEmail" href="mailto:shmuel@sefaria.org">shmuel@sefaria.org</a>
+                    <div class="teamBio"></div>
+                </div>
+            </div>
 
 
 
-            <h2>BOARD OF DIRECTORS</h2>
-            <div class="teamBoardMember">Joshua Foer, Chairman and Co-Founder</div>
-            <div class="teamBoardMember">Brett Lockspeiser, Co-Founder</div>
-            <div class="teamBoardMember">Mo Koyfman</div>
-            <div class="teamBoardMember">Elana Stein Hain</div>
-            <div class="teamBoardMember">Felicia Herman</div>
-            <div class="teamBoardMember">Jonathan Koschitzky</div>
-            <div class="teamBoardMember">Joshua Kushner </div>
+            <h2>
+                <span class='en'>BOARD OF DIRECTORS</span>
+        `       <span class='he'>מועצת המנהלים</span>
+            </h2>
+            <div class="teamBoardMember"><div class="teamMemberDetails"><div class="teamName">Joshua Foer</div><div class="teamTitle">Chairman and Co-Founder</div></div></div>
+            <div class="teamBoardMember"><div class="teamMemberDetails"><div class="teamName">Brett Lockspeiser</div><div class="teamTitle">Co-Founder</div></div></div>
+            <div class="teamBoardMember"><div class="teamMemberDetails"><div class="teamName">Mo Koyfman</div><div class="teamTitle"></div></div></div>
+            <div class="teamBoardMember"><div class="teamMemberDetails"><div class="teamName">Elana Stein Hain</div><div class="teamTitle"></div></div></div>
+            <div class="teamBoardMember"><div class="teamMemberDetails"><div class="teamName">Felicia Herman</div><div class="teamTitle"></div></div></div>
+            <div class="teamBoardMember"><div class="teamMemberDetails"><div class="teamName">Jonathan Koschitzky</div><div class="teamTitle"></div></div></div>
+            <div class="teamBoardMember"><div class="teamMemberDetails"><div class="teamName">Joshua Kushner </div><div class="teamTitle"></div></div></div>
         </div>
+    </div>
     </div>
 </div>
 
