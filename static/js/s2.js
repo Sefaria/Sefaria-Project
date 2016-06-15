@@ -1942,7 +1942,8 @@ var ReaderPanel = React.createClass({
         currentLayout: this.currentLayout,
         connectionsMode: this.state.filter.length && this.state.connectionsMode === "Connections" ? "Connection Text" : this.state.connectionsMode,
         closePanel: this.props.closePanel,
-        toggleLanguage: this.toggleLanguage }),
+        toggleLanguage: this.toggleLanguage,
+        interfaceLang: this.props.interfaceLang }),
       React.createElement(
         'div',
         { className: 'readerContent', style: style },
@@ -1983,7 +1984,8 @@ var ReaderControls = React.createClass({
     version: React.PropTypes.string,
     versionLanguage: React.PropTypes.string,
     connectionsMode: React.PropTypes.string,
-    multiPanel: React.PropTypes.bool
+    multiPanel: React.PropTypes.bool,
+    interfaceLang: React.PropTypes.string
   },
   openTextToc: function openTextToc(e) {
     e.preventDefault();
@@ -2020,7 +2022,8 @@ var ReaderControls = React.createClass({
         activeTab: this.props.connectionsMode,
         setConnectionsMode: this.props.setConnectionsMode,
         closePanel: this.props.closePanel,
-        toggleLanguage: this.props.toggleLanguage })
+        toggleLanguage: this.props.toggleLanguage,
+        interfaceLang: this.props.interfaceLang })
     ) : React.createElement(
       'a',
       { href: url },
@@ -4413,7 +4416,14 @@ var ReaderNavigationMenuCloseButton = React.createClass({
   displayName: 'ReaderNavigationMenuCloseButton',
 
   render: function render() {
-    var icon = this.props.icon === "arrow" ? React.createElement('i', { className: 'fa fa-caret-left' }) : "×";
+    if (this.props.icon == "arrow") {
+      var icon_dir = this.props.interfaceLang == 'english' ? 'left' : 'right';
+      var icon_class = "fa fa-caret-" + icon_dir;
+      var icon = React.createElement('i', { className: icon_class });
+    } else {
+      var icon = "×";
+    }
+    /*var icon = this.props.icon === "arrow" ? (<i className="fa fa-caret-{icon_dir}"></i>) : "×";*/
     var classes = classNames({ readerNavMenuCloseButton: 1, arrow: this.props.icon === "arrow" });
     return React.createElement(
       'div',
@@ -5326,7 +5336,8 @@ var ConnectionsPanel = React.createClass({
     openDisplaySettings: React.PropTypes.func,
     closePanel: React.PropTypes.func,
     toggleLanguage: React.PropTypes.func,
-    selectedWords: React.PropTypes.string
+    selectedWords: React.PropTypes.string,
+    interfaceLang: React.PropTypes.string
   },
   render: function render() {
     var content = null;
@@ -5443,7 +5454,8 @@ var ConnectionsPanelHeader = React.createClass({
     activeTab: React.PropTypes.string.isRequired, // "Connections", "Tools"
     setConnectionsMode: React.PropTypes.func.isRequired,
     closePanel: React.PropTypes.func.isRequired,
-    toggleLanguage: React.PropTypes.func.isRequired
+    toggleLanguage: React.PropTypes.func.isRequired,
+    interfaceLang: React.PropTypes.string.isRequired
   },
   render: function render() {
     return React.createElement(
@@ -5453,11 +5465,12 @@ var ConnectionsPanelHeader = React.createClass({
         'div',
         { className: 'rightButtons' },
         React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
-        React.createElement(ReaderNavigationMenuCloseButton, { icon: 'arrow', onClick: this.props.closePanel })
+        React.createElement(ReaderNavigationMenuCloseButton, { icon: 'arrow', onClick: this.props.closePanel, interfaceLang: this.props.interfaceLang })
       ),
       React.createElement(ConnectionsPanelTabs, {
         activeTab: this.props.activeTab,
-        setConnectionsMode: this.props.setConnectionsMode })
+        setConnectionsMode: this.props.setConnectionsMode,
+        interfaceLang: this.props.interfaceLang })
     );
   }
 });
@@ -5467,7 +5480,8 @@ var ConnectionsPanelTabs = React.createClass({
 
   propTypes: {
     activeTab: React.PropTypes.string.isRequired, // "Connections", "Tools"
-    setConnectionsMode: React.PropTypes.func.isRequired
+    setConnectionsMode: React.PropTypes.func.isRequired,
+    interfaceLang: React.PropTypes.string.isRequired
   },
   render: function render() {
     var tabNames = [{ "en": "Connections", "he": "קישורים" }, { "en": "Tools", "he": "כלים" }];
