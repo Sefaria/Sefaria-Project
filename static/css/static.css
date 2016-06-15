@@ -1335,3 +1335,20 @@
 #digitizedBySefaria li a {
   font-size: 18px;
 }
+.static.legal iframe {
+  width: 100%;
+  height: 600px;
+  border: 1px solid #aaa;
+}
+#legalTabs a {
+  padding: 4px 8px;
+  margin-right: 4px;
+  background-color: #eee;
+  border: 1px solid #aaa;
+  border-bottom: none;
+  font-size: 15px;
+  display: inline-block;
+}
+#legalTabs a.current {
+  background-color: white;
+}
