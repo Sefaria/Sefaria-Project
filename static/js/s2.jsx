@@ -918,6 +918,7 @@ var ReaderApp = React.createClass({
     var unit;
     var wrapBoxScroll = false;
 
+    if (panelStates.length <= this.state.panelCap || this.state.panelCap == 0) {
       evenWidth = (100.0/panelStates.length);
       unit = "%";
     } else {
