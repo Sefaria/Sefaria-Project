@@ -2353,10 +2353,11 @@ var ReaderNavigationMenuSection = React.createClass({
     if (!this.props.content) { return null; }
     return (
       <div className="readerNavSection">
-        <h2>
+        
+        {this.props.title ? (<h2>
           <span className="en">{this.props.title}</span>
           <span className="he">{this.props.heTitle}</span>
-        </h2>
+        </h2>) : null }
         {this.props.content}
       </div>
       );
@@ -5395,7 +5396,7 @@ var AddToSourceSheetPanel = React.createClass({
            </div>)
           :
           (<div className="button white" onClick={this.openNewSheet}>
-              <span className="en">Create a Source Sheet</span>
+              <span className="en">Start a Source Sheet</span>
               <span className="he">צור דף מקורות חדש</span>
           </div>);
     var classes = classNames({addToSourceSheetPanel: 1, textList: 1, fullPanel: this.props.fullPanel});

@@ -2845,6 +2845,7 @@ h2.splitHeader .he {
 
 .sheetsNewButton {
   text-align:center;
+  margin-bottom: 30px;
 }
 
 .sheetsNewButton a {

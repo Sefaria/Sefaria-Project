@@ -2582,7 +2582,7 @@ var ReaderNavigationMenuSection = React.createClass({
     return React.createElement(
       'div',
       { className: 'readerNavSection' },
-      React.createElement(
+      this.props.title ? React.createElement(
         'h2',
         null,
         React.createElement(
@@ -2595,7 +2595,7 @@ var ReaderNavigationMenuSection = React.createClass({
           { className: 'he' },
           this.props.heTitle
         )
-      ),
+      ) : null,
       this.props.content
     );
   }
@@ -6596,7 +6596,7 @@ var AddToSourceSheetPanel = React.createClass({
       React.createElement(
         'span',
         { className: 'en' },
-        'Create a Source Sheet'
+        'Start a Source Sheet'
       ),
       React.createElement(
         'span',
