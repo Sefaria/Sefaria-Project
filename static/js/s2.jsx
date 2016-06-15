@@ -3206,9 +3206,12 @@ var SheetsHomePage = React.createClass({
                   (<h2 className="splitHeader">
                     <span className="en">Public Sheets</span>
                     <span className="en actionText" onClick={this.showAllSheets}>See All <i className="fa fa-angle-right"></i></span>
+                    <span className="he">דפי מקורות פומביים</span>
+                    <span className="he actionText" onClick={this.showAllSheets}>צפה בהכל <i className="fa fa-angle-left"></i></span>
                   </h2>) : 
                   (<h2>
-                     <span className="en">Public Sheets</span>
+                      <span className="en">Public Sheets</span>
+                      <span className="he">דפי מקורות פומביים</span>
                    </h2>)}
 
                 <div className="topSheetsBox">
@@ -3218,6 +3221,7 @@ var SheetsHomePage = React.createClass({
                 { this.props.multiPanel ? null : 
                   (<h2>
                      <span className="en">Trending Tags</span>
+                    <span className="he">תוויות פופולריות</span>
                    </h2>)}
 
                 { this.props.multiPanel ? null : (<TwoOrThreeBox content={trendingTags} width={this.props.width} /> )}
@@ -3225,18 +3229,19 @@ var SheetsHomePage = React.createClass({
                 { this.props.multiPanel ? (
                     <h2 className="tagsHeader">
                       <span className="en">All Tags</span>
-                      <span className="he">All Tags [he]</span>
+                      <span className="he">כל התוויות</span>
                       <div className="actionText">
                         <div className="type-buttons">
-                          {this._type_sheet_button("Most Used", "Most Used [he]", () => this.changeSort("count"), (this.props.tagSort == "count"))}
-                          {this._type_sheet_button("Alphabetical", "Alpha [he]", () => this.changeSort("alpha"), (this.props.tagSort == "alpha"))}
-                          {this._type_sheet_button("Trending", "Trending [he]", () => this.changeSort("trending"), (this.props.tagSort == "trending"))}
+                          {this._type_sheet_button("Most Used", "הכי בשימוש", () => this.changeSort("count"), (this.props.tagSort == "count"))}
+                          {this._type_sheet_button("Alphabetical", "אלפביתי", () => this.changeSort("alpha"), (this.props.tagSort == "alpha"))}
+                          {this._type_sheet_button("Trending", "פופולרי", () => this.changeSort("trending"), (this.props.tagSort == "trending"))}
                         </div>
                       </div>
                     </h2>
                 ) : (
                 <h2>
                   <span className="en">All Tags</span>
+                  <span className="he">כל התוויות</span>
                 </h2>
                 )}
 
@@ -3315,7 +3320,7 @@ var AllSheetsPage = React.createClass({
                       <div className="contentInner">
                         {this.props.hideNavHeader ? (<h1>
                           <span className="en">All Sheets</span>
-                          <span className="he"></span>
+                          <span className="he">כל דפי המקורות</span>
                         </h1>) : null}
                         {sheets}
                       </div>
@@ -3429,6 +3434,7 @@ var MySheetsPage = React.createClass({
                 {this.props.hideNavHeader ? 
                   (<h1>
                     <span className="en">My Source Sheets</span>
+                    <span className="he">דפי המקורות שלי</span>
                   </h1>) : null}
                 {this.props.hideNavHeader ? 
                   (<div className="sheetsNewButton">
@@ -3441,10 +3447,16 @@ var MySheetsPage = React.createClass({
                 {this.props.hideNavHeader ?
                  (<h2 className="splitHeader">
                     <span className="en" onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
+                    <span className="he" onClick={this.toggleSheetTags}>סנן לפי תווית<i className="fa fa-angle-down"></i></span>
                     <span className="en actionText">Sort By:
                       <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
                        <option value="date">Recent</option>
                        <option value="views">Most Viewed</option>
+                     </select> <i className="fa fa-angle-down"></i></span>
+                    <span className="he actionText">סנן לפי:
+                      <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
+                       <option value="date">הכי חדש</option>
+                       <option value="views">הכי נצפה</option>
                      </select> <i className="fa fa-angle-down"></i></span>
 
                   </h2>) : null }

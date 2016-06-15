@@ -3840,6 +3840,17 @@ var SheetsHomePage = React.createClass({
             { className: 'en actionText', onClick: this.showAllSheets },
             'See All ',
             React.createElement('i', { className: 'fa fa-angle-right' })
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            'דפי מקורות פומביים'
+          ),
+          React.createElement(
+            'span',
+            { className: 'he actionText', onClick: this.showAllSheets },
+            'צפה בהכל ',
+            React.createElement('i', { className: 'fa fa-angle-left' })
           )
         ) : React.createElement(
           'h2',
@@ -3848,6 +3859,11 @@ var SheetsHomePage = React.createClass({
             'span',
             { className: 'en' },
             'Public Sheets'
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            'דפי מקורות פומביים'
           )
         ),
         React.createElement(
@@ -3862,6 +3878,11 @@ var SheetsHomePage = React.createClass({
             'span',
             { className: 'en' },
             'Trending Tags'
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            'תוויות פופולריות'
           )
         ),
         this.props.multiPanel ? null : React.createElement(TwoOrThreeBox, { content: trendingTags, width: this.props.width }),
@@ -3876,7 +3897,7 @@ var SheetsHomePage = React.createClass({
           React.createElement(
             'span',
             { className: 'he' },
-            'All Tags [he]'
+            'כל התוויות'
           ),
           React.createElement(
             'div',
@@ -3884,13 +3905,13 @@ var SheetsHomePage = React.createClass({
             React.createElement(
               'div',
               { className: 'type-buttons' },
-              this._type_sheet_button("Most Used", "Most Used [he]", function () {
+              this._type_sheet_button("Most Used", "הכי בשימוש", function () {
                 return _this2.changeSort("count");
               }, this.props.tagSort == "count"),
-              this._type_sheet_button("Alphabetical", "Alpha [he]", function () {
+              this._type_sheet_button("Alphabetical", "אלפביתי", function () {
                 return _this2.changeSort("alpha");
               }, this.props.tagSort == "alpha"),
-              this._type_sheet_button("Trending", "Trending [he]", function () {
+              this._type_sheet_button("Trending", "פופולרי", function () {
                 return _this2.changeSort("trending");
               }, this.props.tagSort == "trending")
             )
@@ -3902,6 +3923,11 @@ var SheetsHomePage = React.createClass({
             'span',
             { className: 'en' },
             'All Tags'
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            'כל התוויות'
           )
         ),
         React.createElement(TwoOrThreeBox, { content: tagList, width: this.props.width })
@@ -4009,7 +4035,11 @@ var AllSheetsPage = React.createClass({
             { className: 'en' },
             'All Sheets'
           ),
-          React.createElement('span', { className: 'he' })
+          React.createElement(
+            'span',
+            { className: 'he' },
+            'כל דפי המקורות'
+          )
         ) : null,
         sheets
       )
@@ -4168,6 +4198,11 @@ var MySheetsPage = React.createClass({
             'span',
             { className: 'en' },
             'My Source Sheets'
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            'דפי המקורות שלי'
           )
         ) : null,
         this.props.hideNavHeader ? React.createElement(
@@ -4199,6 +4234,12 @@ var MySheetsPage = React.createClass({
           ),
           React.createElement(
             'span',
+            { className: 'he', onClick: this.toggleSheetTags },
+            'סנן לפי תווית',
+            React.createElement('i', { className: 'fa fa-angle-down' })
+          ),
+          React.createElement(
+            'span',
             { className: 'en actionText' },
             'Sort By:',
             React.createElement(
@@ -4213,6 +4254,27 @@ var MySheetsPage = React.createClass({
                 'option',
                 { value: 'views' },
                 'Most Viewed'
+              )
+            ),
+            ' ',
+            React.createElement('i', { className: 'fa fa-angle-down' })
+          ),
+          React.createElement(
+            'span',
+            { className: 'he actionText' },
+            'סנן לפי:',
+            React.createElement(
+              'select',
+              { value: this.props.mySheetSort, onChange: this.changeSortYourSheets },
+              React.createElement(
+                'option',
+                { value: 'date' },
+                'הכי חדש'
+              ),
+              React.createElement(
+                'option',
+                { value: 'views' },
+                'הכי נצפה'
               )
             ),
             ' ',
