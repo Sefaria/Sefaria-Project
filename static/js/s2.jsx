@@ -3194,8 +3194,8 @@ var SheetsHomePage = React.createClass({
 
     var yourSheetsButton  = Sefaria._uid ? 
       (<div className="yourSheetsLink navButton" onClick={this.showYourSheets}>
-        <span class="en">My Source Sheets <i className="fa fa-chevron-right"></i></span>
-        <span class="he">דפי המקורות שלי <i className="fa fa-chevron-left"></i></span>
+        <span className="en">My Source Sheets <i className="fa fa-chevron-right"></i></span>
+        <span className="he">דפי המקורות שלי <i className="fa fa-chevron-left"></i></span>
        </div>) : null;
 
     return (<div className="content">
