@@ -1805,6 +1805,7 @@ a.userLink{
 	border-radius: 3px;
 	font-weight: 300;
 	font-size: 12px;
+	height: 30px;
 }
 .sheetsEditNavTop #save img, .sheetsEditNavTop #share img  {
     margin-bottom: 2px;
