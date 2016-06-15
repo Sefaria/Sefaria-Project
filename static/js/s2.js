@@ -226,8 +226,7 @@ var ReaderApp = React.createClass({
   },
   handlePopState: function handlePopState(event) {
     var state = event.state;
-    console.log("Pop - " + window.location.pathname);
-    console.log(state);
+
     if (state) {
       var kind = "";
       if (Sefaria.site) {
@@ -460,16 +459,16 @@ var ReaderApp = React.createClass({
     }
     var hist = this.makeHistoryState();
     if (replace) {
-      history.replaceState(hist.state, hist.title, hist.url);
-      console.log("Replace History - " + hist.url);
       //console.log(hist);
+
+      history.replaceState(hist.state, hist.title, hist.url);
     } else {
         if (window.location.pathname + window.location.search == hist.url) {
           return;
         } // Never push history with the same URL
-        history.pushState(hist.state, hist.title, hist.url);
-        console.log("Push History - " + hist.url);
+
         //console.log(hist);
+        history.pushState(hist.state, hist.title, hist.url);
       }
 
     $("title").html(hist.title);
@@ -551,11 +550,10 @@ var ReaderApp = React.createClass({
     // In multi panel mode, set the maximum number of visible panels depending on the window width.
     this.setWindowWidth();
     var panelCap = Math.floor($(window).outerWidth() / this.MIN_PANEL_WIDTH);
-    console.log("Setting panelCap: " + panelCap);
+
     this.setState({ panelCap: panelCap });
   },
   setWindowWidth: function setWindowWidth() {
-    console.log("Setting window width: " + $(window).outerWidth());
     this.setState({ windowWidth: $(window).outerWidth() });
   },
   handleNavigationClick: function handleNavigationClick(ref, version, versionLanguage, options) {
@@ -847,10 +845,8 @@ var ReaderApp = React.createClass({
     var state = { panels: this.state.panels };
     if (state.panels.length == 0) {
       this.showLibrary();
-      console.log("closed last panel, show library");
     }
-    console.log("close panel, new state:");
-    console.log(state);
+
     this.setState(state);
   },
   showLibrary: function showLibrary() {
@@ -2213,10 +2209,10 @@ var ReaderNavigationMenu = React.createClass({
   },
   setWidth: function setWidth() {
     var width = $(ReactDOM.findDOMNode(this)).width();
-    console.log("Setting RNM width: " + width);
+
     var winWidth = $(window).width();
     var winHeight = $(window).height();
-    console.log("Window width: " + winWidth + ", Window height: " + winHeight);
+
     var oldWidth = this.width;
     this.width = width;
     if (oldWidth <= 450 && width > 450 || oldWidth > 450 && width <= 450) {
@@ -4229,9 +4225,7 @@ var PrivateSheetListing = React.createClass({
   },
   render: function render() {
     var sheet = this.props.sheet;
-    var editSheetTags = function () {
-      console.log(sheet.id);
-    }.bind(this);
+    var editSheetTags = function () {}.bind(this);
     var title = sheet.title.stripHtml();
     var url = "/sheets/" + sheet.id;
 
@@ -4561,24 +4555,22 @@ var TextColumn = React.createClass({
 
       this.props.setTextListHightlight(refs);
     }
-    console.log("Currently selected words: " + selection.toString());
+
     this.props.setSelectedWords(selection.toString());
   },
   handleTextLoad: function handleTextLoad() {
     if (this.loadingContentAtTop || !this.initialScrollTopSet) {
-      console.log("text load, setting scroll");
       this.setScrollPosition();
     }
-    console.log("text load, ais");
+
     this.adjustInfiniteScroll();
   },
   setScrollPosition: function setScrollPosition() {
-    console.log("ssp");
     // Called on every update, checking flags on `this` to see if scroll position needs to be set
     if (this.loadingContentAtTop) {
-      // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-      console.log("loading at top");
       var $node = $(ReactDOM.findDOMNode(this));
+      // After adding content by infinite scrolling up, scroll back to what the user was just seeing
+
       var adjust = 118; // Height of .loadingMessage.base
       var $texts = $node.find(".basetext");
       if ($texts.length < 2) {
@@ -4611,16 +4603,16 @@ var TextColumn = React.createClass({
     // this.adjustInfiniteScroll();
   },
   adjustInfiniteScroll: function adjustInfiniteScroll() {
-    // Add or remove TextRanges from the top or bottom, depending on scroll position
-    console.log("adjust Infinite Scroll");
     if (!this.isMounted()) {
       return;
     }
+    // Add or remove TextRanges from the top or bottom, depending on scroll position
+
     var node = ReactDOM.findDOMNode(this);
     var refs = this.props.srefs;
     var $lastText = $(node).find(".textRange.basetext").last();
     if (!$lastText.length) {
-      console.log("no last basetext");return;
+      return;
     }
     var lastTop = $lastText.position().top;
     var lastBottom = lastTop + $lastText.outerHeight();
@@ -4634,10 +4626,9 @@ var TextColumn = React.createClass({
     } else if (lastBottom < windowHeight + 80) {
       // DOWN: add the next section to bottom
       if ($lastText.hasClass("loading")) {
-        console.log("last text is loading - don't add next section");
         return;
       }
-      console.log("Down! Add next section");
+
       var currentRef = refs.slice(-1)[0];
       var data = Sefaria.ref(currentRef);
       if (data && data.next) {
@@ -4652,7 +4643,6 @@ var TextColumn = React.createClass({
       var topRef = refs[0];
       var data = Sefaria.ref(topRef);
       if (data && data.prev) {
-        console.log("Up! Add previous section");
         refs.splice(refs, 0, data.prev);
         this.loadingContentAtTop = true;
         this.props.updateTextColumn(refs);
@@ -4665,7 +4655,6 @@ var TextColumn = React.createClass({
     }
   },
   adjustTextListHighlight: function adjustTextListHighlight() {
-    console.log("atlh");
     // When scrolling while the TextList is open, update which segment should be highlighted.
     if (this.props.multipanel && this.props.layoutWidth == 100) {
       return; // Hacky - don't move around highlighted segment when scrolling a single panel,
@@ -4888,7 +4877,6 @@ var TextRange = React.createClass({
     return data;
   },
   onTextLoad: function onTextLoad(data) {
-    console.log("onTextLoad in TextRange");
     // Initiate additional API calls when text data first loads
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
@@ -5635,8 +5623,6 @@ var TextList = React.createClass({
           Sefaria.text(commentators[i] + " on " + basetext, {}, function (data) {
             var index = this.waitingFor.indexOf(data.commentator);
             if (index == -1) {
-              console.log("Failed to clear commentator:");
-              console.log(data);
               this.target += 1;
             }
             if (index > -1) {
@@ -6191,7 +6177,6 @@ var LexiconPanel = React.createClass({
       return;
     }
     Sefaria.lexicon(this.props.selectedWords, this.props.oref.ref, function (data) {
-      console.log(data);
       if (this.isMounted()) {
         this.setState({
           resultsLoaded: true,
@@ -7234,7 +7219,6 @@ var SearchResultList = React.createClass({
     }
   },
   _extendResultsDisplayed: function _extendResultsDisplayed() {
-    console.log("displaying more search results");
     var tab = this.state.activeTab;
     this.state.displayedUntil[tab] += this.resultDisplayStep;
     if (this.state.displayedUntil[tab] >= this.state.totals[tab]) {
@@ -7273,9 +7257,7 @@ var SearchResultList = React.createClass({
       type: type,
       size: this.backgroundQuerySize,
       from: last,
-      error: function error() {
-        console.log("Failure in SearchResultList._loadRemainder");
-      },
+      error: function error() {},
       success: function (data) {
         var hitArray = type == "text" ? this._process_text_hits(data.hits.hits) : data.hits.hits;
         var nextHits = currentHits.concat(hitArray);
@@ -8220,7 +8202,6 @@ var NotificationsPanel = React.createClass({
     }
   },
   getMoreNotifications: function getMoreNotifications() {
-    console.log("getting more notifications");
     $.getJSON("/api/notifications?page=" + this.state.page, this.loadMoreNotifications);
     this.setState({ loading: true });
   },
