@@ -180,6 +180,7 @@ urlpatterns += patterns('reader.views',
     (r'^settings/profile?$', 'edit_profile'),
     (r'^interface/(?P<language>english|hebrew)$', 'interface_language_redirect'),
     (r'^api/profile$', 'profile_api'),
+    (r'^api/interrupting-messages/read/(?P<message>.+)$', 'interrupting_messages_read_api'),
 )
 
 # Random Text 
