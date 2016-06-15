@@ -409,8 +409,7 @@ var ReaderApp = React.createClass({
         hist.mode   = "Header"
       }
       if (state.mode !== "Header") {
-        var lang  = state.settings.language.substring(0,2);
-        hist.url += "&lang=" + lang;
+        hist.lang =  state.settings.language.substring(0,2);
       }
       histories.push(hist);     
     }
@@ -426,7 +425,9 @@ var ReaderApp = React.createClass({
     if (histories[0].mode === "TextAndConnections") {
         url += "&with=" + histories[0].sources;
     }
-
+    if(histories[0].lang) {
+        url += "&lang=" + histories[0].lang;
+    }
     hist = (headerPanel)
         ? {state: {header: states[0]}, url: url, title: title}
         : {state: {panels: states}, url: url, title: title};
@@ -438,6 +439,9 @@ var ReaderApp = React.createClass({
           hist.url   = "/" + histories[1].url; // Rewrite the URL
           if(histories[0].versionLanguage && histories[0].version) {
             hist.url += "/" + histories[0].versionLanguage + "/" + histories[0].version.replace(/\s/g,"_");
+          }
+          if(histories[0].lang) {
+            hist.url += "&lang=" + histories[0].lang;
           }
           hist.url += "&with=" + histories[1].sources;
           hist.title = histories[1].title;
@@ -456,6 +460,9 @@ var ReaderApp = React.createClass({
                       "&v" + (i+1) + "=" + histories[i].version.replace(/\s/g,"_");
         }
         hist.title += " & " + histories[i].title;
+      }
+      if(histories[i].lang) {
+        hist.url += "&lang" + (i+1) + "=" + histories[i].lang;
       }
     }
     // Replace the first only & with a ? 
