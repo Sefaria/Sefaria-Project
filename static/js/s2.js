@@ -2505,7 +2505,9 @@ var ReaderNavigationMenu = React.createClass({
       topContent = this.props.hideNavHeader ? null : topContent;
 
       var recentlyViewed = this.getRecentlyViewed();
-      recentlyViewed = recentlyViewed ? recentlyViewed.map(function (item) {
+      recentlyViewed = recentlyViewed ? recentlyViewed.filter(function (item) {
+        return Sefaria.isRef(item.ref); // after a text has been deleted a recent ref may be invalid.
+      }).map(function (item) {
         return React.createElement(TextBlockLink, {
           sref: item.ref,
           heRef: item.heRef,
@@ -3001,6 +3003,7 @@ var ReaderTextTableOfContents = React.createClass({
       language: currentLanguage,
       versionTitle: currentLanguage == "he" ? d.heVersionTitle : d.versionTitle,
       versionSource: currentLanguage == "he" ? d.heVersionSource : d.versionSource,
+      versionStatus: currentLanguage == "he" ? d.heStatus : d.status,
       license: currentLanguage == "he" ? d.heLicense : d.license,
       sources: currentLanguage == "he" ? d.heSources : d.sources,
       versionNotes: currentLanguage == "he" ? d.heVersionNotes : d.versionNotes,
@@ -3230,6 +3233,12 @@ var ReaderTextTableOfContents = React.createClass({
       );
     }
 
+    var moderatorSection = Sefaria.is_moderator ? React.createElement(ModeratorButtons, {
+      title: title,
+      versionTitle: this.state.currentVersion ? this.state.currentVersion.versionTitle : null,
+      versionLanguage: this.state.currentVersion ? this.state.currentVersion.language : null,
+      versionStatus: this.state.currentVersion ? this.state.currentVersion.versionStatus : null }) : null;
+
     var closeClick = this.isBookToc() ? this.props.closePanel : this.props.close;
     return React.createElement(
       'div',
@@ -3303,7 +3312,7 @@ var ReaderTextTableOfContents = React.createClass({
                 { className: 'he' },
                 heSection
               )
-            ) : ""
+            ) : null
           ),
           this.isTextToc() ? React.createElement(
             'div',
@@ -3315,7 +3324,8 @@ var ReaderTextTableOfContents = React.createClass({
             ) : "",
             this.state.versionsLoaded ? currentVersionElement : "",
             this.state.versionsLoaded && this.state.versions.length > 1 ? selectElement : ""
-          ) : "",
+          ) : null,
+          moderatorSection,
           React.createElement('div', { className: 'tocContent', dangerouslySetInnerHTML: { __html: tocHtml }, onClick: this.handleClick }),
           versionBlocks
         )
@@ -3397,6 +3407,169 @@ var VersionBlock = React.createClass({
         ) : ""
       ),
       this.props.showNotes ? React.createElement('div', { className: 'versionNotes', dangerouslySetInnerHTML: { __html: v.versionNotes } }) : ""
+    );
+  }
+});
+
+var ModeratorButtons = React.createClass({
+  displayName: 'ModeratorButtons',
+
+  propTypes: {
+    title: React.PropTypes.string.isRequired,
+    currentRef: React.PropTypes.string,
+    versionTitle: React.PropTypes.string,
+    versionLanguage: React.PropTypes.string,
+    versionStatus: React.PropTypes.string
+  },
+  getInitialState: function getInitialState() {
+    return {
+      expanded: false,
+      message: null
+    };
+  },
+  expand: function expand() {
+    this.setState({ expanded: true });
+  },
+  toggleLock: function toggleLock() {
+    var title = this.props.title;
+    var url = "/api/locktext/" + title + "/" + this.props.versionLanguage + "/" + this.props.versionTitle;
+    var unlocking = this.props.versionStatus == "locked";
+    if (unlocking) {
+      url += "?action=unlock";
+    }
+
+    $.post(url, {}, function (data) {
+      if ("error" in data) {
+        alert(data.error);
+      } else {
+        alert(unlocking ? "Text Unlocked" : "Text Locked");
+      }
+    }).fail(function () {
+      alert("Something went wrong. Sorry!");
+    });
+  },
+  deleteVersion: function deleteVersion() {
+    var title = this.props.title;
+    var url = "/api/texts/" + title + "/" + this.props.versionLanguage + "/" + this.props.versionTitle;
+
+    $.ajax({
+      url: url,
+      type: "DELETE",
+      success: function success(data) {
+        if ("error" in data) {
+          alert(data.error);
+        } else {
+          alert("Text Version Deleted.");
+          window.location = "/" + Sefaria.normRef(title);
+        }
+      }
+    }).fail(function () {
+      alert("Something went wrong. Sorry!");
+    });
+  },
+  editIndex: function editIndex() {
+    window.location = "/edit/textinfo/" + this.props.title;
+  },
+  deleteIndex: function deleteIndex() {
+    var title = this.props.title;
+
+    var confirm = prompt("Are you sure you want to delete this text version? Doing so will completely delete this text from Sefaria, including all existing versions and links. This action CANNOT be undone. Type DELETE to confirm.", "");
+    if (confirm !== "DELETE") {
+      alert("Delete canceled.");
+      return;
+    }
+
+    var url = "/api/index/" + title;
+    $.ajax({
+      url: url,
+      type: "DELETE",
+      success: function success(data) {
+        if ("error" in data) {
+          alert(data.error);
+        } else {
+          alert("Text Deleted.");
+          window.location = "/";
+        }
+      }
+    }).fail(function () {
+      alert("Something went wrong. Sorry!");
+    });
+    this.setState({ message: "Deleteing text (this may time a while)..." });
+  },
+  render: function render() {
+    if (!this.state.expanded) {
+      return React.createElement(
+        'div',
+        { className: 'moderatorSectionExpand', onClick: this.expand },
+        React.createElement('i', { className: 'fa fa-cog' }),
+        ' Moderator Tools'
+      );
+    }
+    var versionButtons = this.props.versionTitle ? React.createElement(
+      'span',
+      { className: 'moderatorVersionButtons' },
+      React.createElement(
+        'div',
+        { className: 'button white', onClick: this.toggleLock },
+        this.props.versionStatus == "locked" ? React.createElement(
+          'span',
+          null,
+          React.createElement('i', { className: 'fa fa-unlock' }),
+          ' Unlock'
+        ) : React.createElement(
+          'span',
+          null,
+          React.createElement('i', { className: 'fa fa-lock' }),
+          ' Lock'
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'button white', onClick: this.deleteVersion },
+        React.createElement(
+          'span',
+          null,
+          React.createElement('i', { className: 'fa fa-trash' }),
+          ' Delete Version'
+        )
+      )
+    ) : null;
+    var textButtons = React.createElement(
+      'span',
+      { className: 'moderatorTextButtons' },
+      React.createElement(
+        'div',
+        { className: 'button white', onClick: this.editIndex },
+        React.createElement(
+          'span',
+          null,
+          React.createElement('i', { className: 'fa fa-info-circle' }),
+          ' Edit Text Info'
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'button white', onClick: this.deleteIndex },
+        React.createElement(
+          'span',
+          null,
+          React.createElement('i', { className: 'fa fa-exclamation-triangle' }),
+          ' Delete ',
+          this.props.title
+        )
+      )
+    );
+    var message = this.state.message ? React.createElement(
+      'div',
+      { className: 'moderatorSectionMessage' },
+      this.state.message
+    ) : null;
+    return React.createElement(
+      'div',
+      { className: 'moderatorSection' },
+      versionButtons,
+      textButtons,
+      message
     );
   }
 });

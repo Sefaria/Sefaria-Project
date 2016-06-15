@@ -93,7 +93,7 @@ body {
 	width: 770px;
 	min-height: 980px;
 	padding: 60px 40px;
-	margin: 130px auto 56px;
+	margin: 150px auto 56px;
 	box-shadow: 0px 0px 2px #777;
 	font-family: "Times New Roman", "Georgia", serif;
 
@@ -201,7 +201,7 @@ body {
 
 .optionsMenu img, .addInterfaceButton img {
 	margin-right: 5px;
-	margin-bottom: 2px;
+	margin-bottom: 3px;
 
 }
 
@@ -419,7 +419,7 @@ body {
 	color: #999;
 }
 
-#bottomAuthor a {
+#bottomAuthor a, #via a {
 	color: #333;
 }
 
@@ -507,7 +507,7 @@ body {
 	width: 50px;
 	text-align: right;
 	top: 35px;
-	left: -32px;
+	left: 6px;
 }
 
 #sheet #sources .sheetItem .sourceNumber.he {
@@ -515,7 +515,7 @@ body {
 	width: 50px;
 	text-align: left;
 	top: 37px;
-	right: -32px;
+	right: 6px;
 }
 
 #sheet .sourceControlsOpen {
@@ -571,6 +571,7 @@ body {
 .tooltipster-default {
 	background-color: #999 !important;
 	color: #fff;
+	margin-left:5px;
 }
 
 
@@ -1457,7 +1458,7 @@ img {
     box-sizing: border-box;
     direction: ltr;
     z-index: 21;
-    padding: 7px 20px 6px 16px;
+    padding: 7px 30px 6px 10px;
     font-size: 16px;
     color: #333;
     top: 54px;
@@ -1546,8 +1547,8 @@ img {
     text-align: center;
     width: 100%;
     padding: 0;
-    bottom: -45px;
-    position: relative;
+    bottom: -53px;
+	position: relative;
     font-size: 30px;
 	z-index: 3;
 }
@@ -1800,7 +1801,7 @@ a.userLink{
 }
 .sheetsEditNavTop #save, .sheetsEditNavTop #share  {
 	float: right;
-    margin: 8px 0 0 0;
+    margin: 5px 0 0 0;
 	border-radius: 3px;
 	font-weight: 300;
 	font-size: 12px;
