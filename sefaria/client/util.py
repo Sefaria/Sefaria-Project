@@ -4,6 +4,7 @@ from rauth import OAuth2Service
 from datetime import datetime
 
 from django.http import HttpResponse
+from django.core.mail import EmailMultiAlternatives
 
 from sefaria import local_settings as sls
 
@@ -40,6 +41,17 @@ def subscribe_to_announce(email, first_name=None, last_name=None, direct_sign_up
     """
     if not sls.NATIONBUILDER:
         return
+
+    message_html  = "%s %s - %s" % (first_name, last_name, email)
+    subject       = "Someone wants to be on our mailing list"
+    from_email    = "Sefaria <hello@sefaria.org>"
+    to            = "hello@sefaria.org"
+
+    msg = EmailMultiAlternatives(subject, message_html, from_email, [to])
+    msg.content_subtype = "html"  # Main content is now text/html
+    msg.send()
+
+    return jsonResponse({"status": "ok"})
 
     tags = ["Announcements_General", "Newsletter_Sign_Up"] if direct_sign_up else ["Announcements_General", "Signed_Up_on_Sefaria"]
     post = {
