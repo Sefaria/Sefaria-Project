@@ -1008,20 +1008,20 @@ var ReaderApp = React.createClass({
           layoutWidth: width })
       ));
     }
-
-    var classes = classNames({ readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel });
     var boxClasses = classNames({ wrapBoxScroll: wrapBoxScroll });
     var boxStyle = { width: this.state.windowWidth, direction: this.state.layoutOrientation };
+    panels = panels.length ? React.createElement(
+      'div',
+      { id: 'panelWrapBox', className: boxClasses, style: boxStyle },
+      panels
+    ) : null;
 
+    var classes = classNames({ readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel });
     return React.createElement(
       'div',
       { className: classes },
       header,
-      React.createElement(
-        'div',
-        { id: 'panelWrapBox', className: boxClasses, style: boxStyle },
-        panels
-      )
+      panels
     );
   }
 

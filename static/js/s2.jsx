@@ -1005,16 +1005,17 @@ var ReaderApp = React.createClass({
                       layoutWidth={width} />
                   </div>);
     }
-
-    var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel});
     var boxClasses = classNames({wrapBoxScroll: wrapBoxScroll});
     var boxStyle = {width: this.state.windowWidth, direction: this.state.layoutOrientation};
+    panels = panels.length ? 
+              (<div id="panelWrapBox" className={boxClasses} style={boxStyle}>
+                {panels}
+              </div>) : null;
 
+    var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel});
     return (<div className={classes}>
               {header}
-              <div id="panelWrapBox" className={boxClasses} style={boxStyle}>
-                {panels}
-              </div>
+              {panels}
             </div>);
   },
 
