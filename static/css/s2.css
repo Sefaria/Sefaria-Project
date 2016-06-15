@@ -55,6 +55,7 @@ body.dark {
 }
 #panelWrapBox.wrapBoxScroll {
   overflow-x: scroll;
+  overflow-y: hidden;
 }
 .singlePanel #panelWrapBox {
   padding-top: 0;
