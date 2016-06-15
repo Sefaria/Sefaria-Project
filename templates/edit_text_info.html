@@ -64,7 +64,10 @@
         </li>
     {% else %}
     <!-- OLD VERSION, still shows by default-->
-
+    <link rel="stylesheet" href="/static/js/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="/static/css/base.css">
+    <script src="/static/js/util.js"></script>
     <div id="newIndex">
     
         <div id="newIndexMsg">Sefaria doesn't yet know about the text "<span id="textName"></span>".<div class="sub">Please provide some basic information about this text.</div></div>
@@ -639,7 +642,11 @@
         };
         var mtIndex = {schema: mt};
     {% else %}
+
     $(function() {
+        if (typeof Sefaria !== "undefined") {
+            sjs._uid = Sefaria._uid;
+        }
         if (!sjs._uid) {
             return sjs.loginPrompt();
         }

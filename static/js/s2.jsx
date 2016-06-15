@@ -2292,7 +2292,9 @@ var ReaderNavigationMenu = React.createClass({
 
 
       var recentlyViewed = this.getRecentlyViewed();
-      recentlyViewed = recentlyViewed ? recentlyViewed.map(function(item) {
+      recentlyViewed = recentlyViewed ? recentlyViewed.filter(function(item){
+        return Sefaria.isRef(item.ref); // after a text has been deleted a recent ref may be invalid.
+      }).map(function(item) {
         return (<TextBlockLink 
                   sref={item.ref}
                   heRef={item.heRef}
@@ -2621,13 +2623,14 @@ var ReaderTextTableOfContents = React.createClass({
     if (currentLanguage == "he" && !d.he.length) {currentLanguage = "en"}
 
     var currentVersion = {
-      language: currentLanguage,
-      versionTitle:    currentLanguage == "he" ? d.heVersionTitle: d.versionTitle,
-      versionSource:   currentLanguage == "he" ? d.heVersionSource: d.versionSource,
-      license:  currentLanguage == "he" ? d.heLicense: d.license,
-      sources:  currentLanguage == "he" ? d.heSources: d.sources,
-      versionNotes:    currentLanguage == "he" ? d.heVersionNotes: d.versionNotes,
-      digitizedBySefaria:  currentLanguage == "he" ? d.heDigitizedBySefaria: d.digitizedBySefaria
+      language:            currentLanguage,
+      versionTitle:        currentLanguage == "he" ? d.heVersionTitle : d.versionTitle,
+      versionSource:       currentLanguage == "he" ? d.heVersionSource : d.versionSource,
+      versionStatus:       currentLanguage == "he" ? d.heStatus : d.status,
+      license:             currentLanguage == "he" ? d.heLicense : d.license,
+      sources:             currentLanguage == "he" ? d.heSources : d.sources,
+      versionNotes:        currentLanguage == "he" ? d.heVersionNotes : d.versionNotes,
+      digitizedBySefaria:  currentLanguage == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria
     };
     currentVersion.merged = !!(currentVersion.sources);
 
@@ -2775,6 +2778,14 @@ var ReaderTextTableOfContents = React.createClass({
                            </div>);
     }
 
+    var moderatorSection = Sefaria.is_moderator ? 
+      (<ModeratorButtons 
+        title={title}
+        versionTitle={this.state.currentVersion ? this.state.currentVersion.versionTitle : null}
+        versionLanguage={this.state.currentVersion ? this.state.currentVersion.language : null}
+        versionStatus={this.state.currentVersion ? this.state.currentVersion.versionStatus: null} />) :
+      null;
+
     var closeClick = (this.isBookToc())?this.props.closePanel:this.props.close;
     return (<div className="readerTextTableOfContents readerNavMenu">
               <CategoryColorLine category={this.props.category} />
@@ -2804,7 +2815,7 @@ var ReaderTextTableOfContents = React.createClass({
                         <span className="en">{section}</span>
                         <span className="he">{heSection}</span>
                       </div>
-                    :""}
+                    : null}
                   </div>
                   {this.isTextToc()?
                     <div className="currentVersionBox">
@@ -2812,7 +2823,8 @@ var ReaderTextTableOfContents = React.createClass({
                         {(this.state.versionsLoaded)? currentVersionElement: ""}
                         {(this.state.versionsLoaded && this.state.versions.length > 1) ? selectElement: ""}
                     </div>
-                  :""}
+                  : null}
+                  {moderatorSection}
                   <div className="tocContent" dangerouslySetInnerHTML={ {__html: tocHtml} }  onClick={this.handleClick}></div>
                   {versionBlocks}
                 </div>
@@ -2873,6 +2885,125 @@ var VersionBlock = React.createClass({
   }
 });
 
+
+var ModeratorButtons = React.createClass({
+  propTypes: {
+    title: React.PropTypes.string.isRequired,
+    currentRef: React.PropTypes.string,
+    versionTitle: React.PropTypes.string,
+    versionLanguage: React.PropTypes.string,
+    versionStatus: React.PropTypes.string
+  },
+  getInitialState: function() {
+    return {
+      expanded: false,
+      message: null
+    }
+  },
+  expand: function() {
+    this.setState({expanded: true});
+  },
+  toggleLock: function() {
+    var title = this.props.title;
+    var url = "/api/locktext/" + title + "/" + this.props.versionLanguage + "/" + this.props.versionTitle;
+    var unlocking = this.props.versionStatus == "locked";
+    if (unlocking) {
+      url += "?action=unlock";
+    }
+
+    $.post(url, {}, function(data) {
+      if ("error" in data) {
+        alert(data.error)
+      } else {
+        alert(unlocking ? "Text Unlocked" : "Text Locked");
+        
+      }
+    }).fail(function() {
+      alert("Something went wrong. Sorry!");
+    });
+  },
+  deleteVersion: function() {
+    var title = this.props.title;
+    var url = "/api/texts/" + title + "/" + this.props.versionLanguage + "/" + this.props.versionTitle;
+
+    $.ajax({
+      url: url,
+      type: "DELETE",
+      success: function(data) {
+        if ("error" in data) {
+          alert(data.error)
+        } else {
+          alert("Text Version Deleted.");
+          window.location = "/" + Sefaria.normRef(title);
+        }
+      }
+    }).fail(function() {
+      alert("Something went wrong. Sorry!");
+    });
+  },
+  editIndex: function() {
+    window.location = "/edit/textinfo/" + this.props.title; 
+  },
+  deleteIndex: function() {
+    var title = this.props.title;
+
+    var confirm = prompt("Are you sure you want to delete this text version? Doing so will completely delete this text from Sefaria, including all existing versions and links. This action CANNOT be undone. Type DELETE to confirm.", "");
+    if (confirm !== "DELETE") {
+      alert("Delete canceled.")
+      return;
+    }
+
+    var url = "/api/index/" + title;
+    $.ajax({
+      url: url,
+      type: "DELETE",
+      success: function(data) {
+        if ("error" in data) {
+          alert(data.error)
+        } else {
+          alert("Text Deleted.");
+          window.location = "/";
+        }
+      }
+    }).fail(function() {
+      alert("Something went wrong. Sorry!");
+    });
+    this.setState({message: "Deleteing text (this may time a while)..."});
+  },
+  render: function() {
+    if (!this.state.expanded) {
+      return (<div className="moderatorSectionExpand" onClick={this.expand}>
+                <i className="fa fa-cog"></i> Moderator Tools
+              </div>);
+    }
+    var versionButtons = this.props.versionTitle ? 
+      (<span className="moderatorVersionButtons">
+          <div className="button white" onClick={this.toggleLock}>
+            { this.props.versionStatus == "locked" ? 
+                (<span><i className="fa fa-unlock"></i> Unlock</span>) :
+                (<span><i className="fa fa-lock"></i> Lock</span>) }
+          </div>
+          <div className="button white" onClick={this.deleteVersion}>
+              <span><i className="fa fa-trash"></i> Delete Version</span>
+          </div>
+       </span>)
+      : null;
+    var textButtons = (<span className="moderatorTextButtons">
+                          <div className="button white" onClick={this.editIndex}>
+                              <span><i className="fa fa-info-circle"></i> Edit Text Info</span>
+                          </div>
+                          <div className="button white" onClick={this.deleteIndex}>
+                              <span><i className="fa fa-exclamation-triangle"></i> Delete {this.props.title}</span>
+                          </div>
+                        </span>);
+    var message = this.state.message ? (<div className="moderatorSectionMessage">{this.state.message}</div>) : null; 
+    return (<div className="moderatorSection">
+              {versionButtons}
+              {textButtons}
+              {message}
+            </div>);
+  }
+});
 
 var SheetsNav = React.createClass({
   // Navigation for Sheets

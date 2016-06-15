@@ -879,6 +879,29 @@ a.recentItem {
   font-size: 13px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
+.readerTextTableOfContents .moderatorSection {
+  margin-bottom: 30px;
+}
+.readerTextTableOfContents .moderatorSectionExpand {
+  cursor: pointer;
+  color: #666;
+  margin-bottom: 14px;
+}
+.readerTextTableOfContents .moderatorSectionExpand:hover {
+  text-decoration: underline;
+}
+.readerTextTableOfContents .moderatorSection .button {
+  padding: 12px 16px;
+  font-size: 13px;
+}
+.readerTextTableOfContents .moderatorSection .moderatorSectionMessage {
+  margin-top: 20px;
+  font-size: 18px;
+}
+.readerTextTableOfContents .moderatorSection .button .fa {
+  color: #999;
+  margin-right: 4px;
+}
 .readerTextTableOfContents .content {
   padding: 90px 10px 10px;
   box-sizing: border-box;

@@ -3204,7 +3204,7 @@ class Ref(object):
 
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
-        fields = ["versionTitle", "versionSource", "language", "license", "versionNotes", "digitizedBySefaria"]
+        fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes", "digitizedBySefaria"]
         return [
             {f: getattr(v, f, "") for f in fields}
             for v in VersionSet(self.condition_query(), proj={f: 1 for f in fields})
