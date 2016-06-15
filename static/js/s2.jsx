@@ -2129,7 +2129,7 @@ var ReaderNavigationMenu = React.createClass({
     return recentlyViewed;
   },
   handleClick: function(event) {
-    if (!$(event.target).hasClass("outOfAppLink")) {
+    if (!$(event.target).hasClass("outOfAppLink") && !$(event.target.parentElement).hasClass("outOfAppLink")) {
       event.preventDefault();
     }
     if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
