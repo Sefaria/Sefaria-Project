@@ -200,6 +200,40 @@ body.dark {
   height: 100%;
   background-color: black;
   opacity: 0.3;
+  position: fixed;
+  z-index: 1001;
+}
+#interruptingMessage {
+  width: 600px;
+  max-width: 94%;
+  padding: 40px;
+  box-sizing: border-box;
+  position: fixed;
+  top: 15%;
+  left: 50%;
+  margin-left: -300px;
+  z-index: 1001;
+  border: 1px solid #ccc;
+  background: white;
+  text-align: center;
+  color: #666;
+}
+#interruptingMessageClose {
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  color: #666;
+  font-size: 24px;
+  cursor: pointer;
+}
+#interruptingMessage h1 {
+  font-style: italic;
+  font-size: 28px;
+  font-weight: normal;
+  letter-spacing: 1px;
+  text-align: center;
+  margin: 0 0 30px;
+  color: #333;
 }
 .testMessage {
   position: fixed;

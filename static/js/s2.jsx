@@ -905,6 +905,9 @@ var ReaderApp = React.createClass({
       this.saveRecentlyViewed(this.state.panels[i], i);
     }
   },
+  rerender: function() {
+    this.forceUpdate();
+  },
   render: function() {
      // Only look at the last N panels if we're above panelCap
     //var panelStates = this.state.panels.slice(-this.state.panelCap);
@@ -1012,10 +1015,17 @@ var ReaderApp = React.createClass({
                 {panels}
               </div>) : null;
 
+    var interruptingMessage = Sefaria.interruptingMessage ?
+      (<InterruptingMessage 
+          messageName={Sefaria.interruptingMessage.name}
+          messageHTML={Sefaria.interruptingMessage.html}
+          onClose={this.rerender} />) : null;
+
     var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel});
     return (<div className={classes}>
               {header}
               {panels}
+              {interruptingMessage}
             </div>);
   },
 
@@ -6679,6 +6689,35 @@ var NotificationsPanel = React.createClass({
   }
 });
 
+
+var InterruptingMessage = React.createClass({
+  propTypes: {
+    messageName:  React.PropTypes.string.isRequired,
+    messageHTML:  React.PropTypes.string.isRequired,
+    onClose:      React.PropTypes.func.isRequired
+  },
+  componentDidMount: function() {
+    $("#interruptingMessage .button").click(this.close);
+  },
+  close: function() {
+    this.markAsRead();
+    this.props.onClose();
+  },
+  markAsRead: function() {
+    Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function(data) {});
+    cookie(this.props.messageName, true, {"path": "/"});
+    Sefaria.interruptingMessage = null;
+  },
+  render: function() {
+    return (<div className="interruptingMessageBox">
+              <div className="overlay" onClick={this.close}></div>
+              <div id="interruptingMessage">
+                  <div id="interruptingMessageClose" onClick={this.close}>×</div>
+                  <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
+              </div>
+            </div>);
+  }
+});
 
 var ThreeBox = React.createClass({
   // Wrap a list of elements into a three column table
