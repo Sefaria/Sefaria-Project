@@ -6726,6 +6726,7 @@ var InterruptingMessage = React.createClass({
   markAsRead: function() {
     Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function(data) {});
     cookie(this.props.messageName, true, {"path": "/"});
+    Sefaria.site.track.event("Interrupting Message", "read", this.props.messageName);
     Sefaria.interruptingMessage = null;
   },
   render: function() {
