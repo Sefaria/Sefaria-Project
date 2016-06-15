@@ -195,7 +195,8 @@ def export_text(text):
     export_text_doc(text)
 
 def text_is_copyright(text):
-    return "license" in text and type(text["license"]) is str and text["license"].startswith("Copyright ")
+    return "license" in text and (type(text['license']) is str or type(text['license']) is unicode) \
+           and text["license"].startswith("Copyright")
 
 def export_texts():
     """
