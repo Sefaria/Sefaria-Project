@@ -51,7 +51,7 @@ def subscribe_to_announce(email, first_name=None, last_name=None, direct_sign_up
     msg.content_subtype = "html"  # Main content is now text/html
     msg.send()
 
-    return jsonResponse({"status": "ok"})
+    return True
 
     tags = ["Announcements_General", "Newsletter_Sign_Up"] if direct_sign_up else ["Announcements_General", "Signed_Up_on_Sefaria"]
     post = {
