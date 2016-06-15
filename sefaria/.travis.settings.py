@@ -1,5 +1,4 @@
-# An example of settings needed in a local_settings.py file which is ignored by git.
-# copy this file to sefaria/local_settings.py and provide local info to run.
+# local settings used by travis CI builds
 import os
 import os.path
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(

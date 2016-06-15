@@ -49,6 +49,10 @@ before_script:
   - python manage.py syncdb --noinput
   - python manage.py runserver 2> server.error.log > server.log &
 
+  # Prime the cache
+  - GET http://localhost:8000/api/texts/Genesis.1 > /dev/null &
+  - GET http://localhost:8000/api/preview/Zohar > /dev/null &
+
 script:
  - 'py.test -m "not deep and not failing"'
  - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then cd reader/browsertest && python run_tests_on_travis.py "Build - ${TRAVIS_BUILD_NUMBER}" 2> selenium.error.log; else true; fi;'
