@@ -3358,7 +3358,7 @@ var SheetTagButton = React.createClass({
     this.props.setSheetTag(this.props.tag);
   },
   render: function() {
-    return (<a href={`/sheets/tag/${this.props.tag}`} className="navButton" onClick={this.handleTagClick}>{this.props.tag} ({this.props.count})</a>);
+    return (<a href={`/sheets/tags/${this.props.tag}`} className="navButton" onClick={this.handleTagClick}>{this.props.tag} ({this.props.count})</a>);
   }
 });
 
