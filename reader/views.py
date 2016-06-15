@@ -2116,6 +2116,13 @@ def my_profile(request):
     return redirect("/profile/%s" % UserProfile(id=request.user.id).slug)
 
 
+def interrupting_messages_read_api(request, message):
+    if not request.user.is_authenticated():
+        return jsonResponse({"error": "You must be logged in to use this API"})
+    profile = UserProfile(id=request.user.id)
+    profile.mark_interrupting_message_read(message)
+    return jsonResponse({"status": "ok"})
+
 @login_required
 @ensure_csrf_cookie
 def edit_profile(request):

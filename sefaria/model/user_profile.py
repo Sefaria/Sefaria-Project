@@ -26,33 +26,34 @@ class UserProfile(object):
 
 		try:
 			user = User.objects.get(id=id)
-			self.first_name     = user.first_name
-			self.last_name      = user.last_name
-			self.email          = user.email
-			self.date_joined    = user.date_joined
+			self.first_name        = user.first_name
+			self.last_name         = user.last_name
+			self.email             = user.email
+			self.date_joined       = user.date_joined
 		except:
 			# These default values allow profiles to function even
 			# if the Django User records are missing (for testing)
-			self.first_name     = "User"
-			self.last_name      = str(id)
-			self.email          = "test@sefaria.org"
-			self.date_joined    = None
- 
-		self._id                = None  # Mongo ID of profile doc
-		self.id                 = id    # user ID
-		self.slug               = ""
-		self.position           = ""
-		self.organization       = ""
-		self.jewish_education   = []
-		self.bio                = ""
-		self.website            = ""
-		self.location           = ""
-		self.public_email       = ""
-		self.youtube            = ""
-		self.facebook           = ""
-		self.twitter            = ""
-		self.linkedin           = ""
-		self.pinned_sheets      = []
+			self.first_name        = "User"
+			self.last_name         = str(id)
+			self.email             = "test@sefaria.org"
+			self.date_joined       = None
+    
+		self._id                   = None  # Mongo ID of profile doc
+		self.id                    = id    # user ID
+		self.slug                  = ""
+		self.position              = ""
+		self.organization          = ""
+		self.jewish_education      = []
+		self.bio                   = ""
+		self.website               = ""
+		self.location              = ""
+		self.public_email          = ""
+		self.youtube               = ""
+		self.facebook              = ""
+		self.twitter               = ""
+		self.linkedin              = ""
+		self.pinned_sheets         = []
+		self.interrupting_messages = ["newUserWelcome"]
 
 		self.settings     =  {
 			"email_notifications": "daily",
@@ -183,38 +184,48 @@ class UserProfile(object):
 	def followed_by(self, uid):
 		"""Returns true if this user is followed by uid"""
 		return uid in self.followers.uids
-    
-    def recent_notifications(self):
-    	return NotificationSet().recent_for_user(self.id)
 
-    def unread_notification_count(self):
-    	return unread_notifications_count_for_user(self.id)
+	def recent_notifications(self):
+		from sefaria.model.notification import NotificationSet
+		return NotificationSet().recent_for_user(self.id)
 
-    def interrupting_message(self):
-    	"""
-    	Returns an message to interupt the user with, any exist.
-    	"""
-    	return None
+	def unread_notification_count(self):
+		return unread_notifications_count_for_user(self.id)
+
+	def interrupting_message(self):
+		"""
+		Returns the next message to interupt the user with, if any are queued up.
+		"""
+		messages = self.interrupting_messages
+		return messages[0] if len(messages) > 0 else None
+
+	def mark_interrupting_message_read(self, message):
+		"""
+		Removes `message` from the users list of queued interrupting_messages.
+		"""
+		self.interrupting_messages.remove(message)
+		self.save()
 
 	def to_DICT(self):
 		"""Return a json serializble dictionary this profile"""
 		dictionary = {
-			"id":               self.id,
-			"slug":             self.slug,
-			"position":         self.position,
-			"organization":     self.organization,
-			"jewish_education": self.jewish_education,
-			"bio":              self.bio,
-			"website":          self.website,
-			"location":         self.location,
-			"public_email":     self.public_email,
-			"facebook":         self.facebook,
-			"twitter":          self.twitter,
-			"linkedin":         self.linkedin,
-			"youtube":          self.youtube,
-			"pinned_sheets":    self.pinned_sheets,
-			"settings":         self.settings,
-			"tag_order":       getattr(self, "tag_order", None),
+			"id":                    self.id,
+			"slug":                  self.slug,
+			"position":              self.position,
+			"organization":          self.organization,
+			"jewish_education":      self.jewish_education,
+			"bio":                   self.bio,
+			"website":               self.website,
+			"location":              self.location,
+			"public_email":          self.public_email,
+			"facebook":              self.facebook,
+			"twitter":               self.twitter,
+			"linkedin":              self.linkedin,
+			"youtube":               self.youtube,
+			"pinned_sheets":         self.pinned_sheets,
+			"settings":              self.settings,
+			"interrupting_messages": getattr(self, "interrupting_messages", []),
+			"tag_order":             getattr(self, "tag_order", None),
 		}
 		return dictionary
 

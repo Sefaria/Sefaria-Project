@@ -1,13 +1,14 @@
 """
 Djagno Context Processors, for decorating all HTTP request with common data.
 """
+import json
 from datetime import datetime
 
 from django.template.loader import render_to_string
 
 from sefaria.settings import *
-from sefaria.model import library, NotificationSet
-from sefaria.model.user_profile import UserProfile, unread_notifications_count_for_user
+from sefaria.model import library
+from sefaria.model.user_profile import UserProfile
 from sefaria.utils import calendars
 from reader.views import render_react_component
 
@@ -71,25 +72,30 @@ def language_settings(request):
 
 def notifications(request):
     if not request.user.is_authenticated():
-        if request.COOKIES.get("_ga", None) and not request.COOKIES.get("welcomeToS2", None):
+        if request.COOKIES.get("_ga", None) and not request.COOKIES.get("welcomeToS2LoggedOut", None):
             # Welcome returning visitors only to the new Sefaria. TODO this should be removed after some time.
-            return {
-                "interruptingMessage": {
-                        "name": "welcomeToS2",
-                        "html": render_to_string("messages/welcomeToS2LoggedOut.html")
-                    }
-            }
-        return {}
+            interrupting_message_json = json.dumps({
+                "name": "welcomeToS2LoggedOut",
+                "html": render_to_string("messages/welcomeToS2LoggedOut.html")
+            })
+        else:
+            interrupting_message_json = "null"
+        return {"interrupting_message_json": interrupting_message_json}
     
     profile = UserProfile(id=request.user.id)
     notifications = profile.recent_notifications()
     notifications_json = "[" + ",".join([n.to_JSON() for n in notifications]) + "]"
+    interrupting_message = profile.interrupting_message()
+    if interrupting_message:
+        interrupting_message_json = json.dumps({"name": interrupting_message, "html": render_to_string("messages/%s.html" % interrupting_message)})
+    else:
+        interrupting_message_json = "null"
     return {
-            "notifications": notifications, 
-            "notifications_json": notifications_json,
-            "notifications_html": notifications.to_HTML(),
-            "notifications_count": profile.unread_notifications_count(),
-            "interrupting_message": profile.interrupting_message()
+                "notifications": notifications, 
+                "notifications_json": notifications_json,
+                "notifications_html": notifications.to_HTML(),
+                "notifications_count": profile.unread_notification_count(),
+                "interrupting_message_json": interrupting_message_json,
             }
 
 
@@ -124,11 +130,11 @@ def calendar_links(request):
     daf_yomi_link = "<a href='/%s'>%s</a>" % (daf["url"], daf["name"])
 
     return {
-            "parasha_link":  parasha_link, 
-            "haftara_link":  haftara_link,
-            "daf_yomi_link": daf_yomi_link,
-            "parasha_ref":   parasha["ref"],
-            "parasha_name": parasha["parasha"],
-            "haftara_ref":   parasha["haftara"][0],
-            "daf_yomi_ref":  daf["url"]
-        }
+                "parasha_link":  parasha_link, 
+                "haftara_link":  haftara_link,
+                "daf_yomi_link": daf_yomi_link,
+                "parasha_ref":   parasha["ref"],
+                "parasha_name":  parasha["parasha"],
+                "haftara_ref":   parasha["haftara"][0],
+                "daf_yomi_ref":  daf["url"]
+            }
