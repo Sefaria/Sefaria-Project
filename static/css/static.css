@@ -797,6 +797,9 @@
 .static-text .static-content-not > p:first-child {
   font-weight: bold;
 }
+#linkExplorerPage {
+  padding-top: 80px;
+}
 #linkerPage p, #supportersPage p{
   font-size: 16px;
   color: #666;
