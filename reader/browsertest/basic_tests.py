@@ -17,7 +17,7 @@ class SinglePanelOnMobile(AtomicTest):
         elems = self.driver.find_elements_by_css_selector(".readerApp.multiPanel")
         assert len(elems) == 0
         self.click_segment("Exodus 1:1")
-        elems = self.driver.find_elements_by_css_selector(".readerApp > .readerPanelBox")
+        elems = self.driver.find_elements_by_css_selector(".readerApp .readerPanelBox")
         assert len(elems) == 1
 
 
