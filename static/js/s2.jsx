@@ -6575,8 +6575,8 @@ var AccountPanel = React.createClass({
     var accountContent = [
       (<BlockLink target="/my/profile" title="Profile" heTitle="פרופיל"/>),
       (<BlockLink target="/sheets/private" title="My Source Sheets" heTitle="דפי מקורות" />),
-      (<BlockLink target="#" title="Reading History" heTitle="היסטוריה קריאה" />),
-      (<BlockLink target="#" title="My Notes" heTitle="רשומות" />),
+      (<BlockLink target="/coming-soon?my-notes" title="My Notes" heTitle="רשומות" />),
+      (<BlockLink target="/coming-soon?reading-history" title="Reading History" heTitle="היסטוריה קריאה" />),
       (<BlockLink target="/settings/account" title="Settings" heTitle="הגדרות" />),
       (<BlockLink target="/logout" title="Log Out" heTitle="ניתוק" />)
     ];
