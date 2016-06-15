@@ -50,6 +50,7 @@ before_script:
   - python manage.py runserver 2> server.error.log > server.log &
 
   # Prime the cache
+  - while ! nc -z localhost 8000; do sleep 0.1; done;
   - GET http://localhost:8000/api/texts/Genesis.1 > /dev/null &
   - GET http://localhost:8000/api/preview/Zohar > /dev/null &
 
