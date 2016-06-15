@@ -1247,6 +1247,7 @@ a.recentItem {
   width: 100%;
 }
 .searchContent .searchFilterBoxes li {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   display: block;
   padding: 12px 0 12px 15px;
   font-size: 14px;
@@ -1257,13 +1258,30 @@ a.recentItem {
   background-color: #e0e0e0;
 }
 .hebrew .searchContent .searchFilterBoxes li {
+  font-family: "Open Sans Hebrew", sans-serif;
   padding: 10px 15px 10px 0;
 }
-.searchContent .searchFilterBoxes li input {
-  margin: 0 13px
+.searchContent .searchFilterBoxes li input[type="checkbox"] {
+  display: none;
+}
+.searchContent .searchFilterBoxes li input[type="checkbox"] + label span {
+    margin: 0 13px;
+    display:inline-block;
+    width: 15px;
+    height: 15px;
+    vertical-align: sub;
+    cursor:pointer;
+    background-image: url(/static/img/checkbox-unchecked.svg);
+    background-size: contain;
+}
+.searchContent .searchFilterBoxes li input[type="checkbox"]:checked + label span {
+    background-image: url(/static/img/checkbox-checked.svg);
+}
+.searchContent .searchFilterBoxes li input[type="checkbox"]:indeterminate + label span {
+    background-image: url(/static/img/checkbox-partially.svg);
 }
 .searchContent .searchFilterBoxes li .filter-title {
-  color: #222;
+  color: #333;
 }
 .searchContent .searchFilterBoxes li .filter-count {
   color: #999;

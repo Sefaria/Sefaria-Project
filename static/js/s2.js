@@ -3377,13 +3377,19 @@ var VersionBlock = React.createClass({
       { href: this.licenseMap[v.license], target: '_blank' },
       v.license
     ) : v.license;
+    var digitizedBySefaria = v.digitizedBySefaria ? React.createElement(
+      'a',
+      { className: 'versionDigitizedBySefaria', href: '/digitized-by-sefaria' },
+      'Digitized by Sefaria'
+    ) : "";
     var licenseLine = "";
     if (v.license && v.license != "unknown") {
       licenseLine = React.createElement(
         'span',
         { className: 'versionLicense' },
         license,
-        v.digitizedBySefaria ? " - Digitized by Sefaria" : ""
+        digitizedBySefaria ? " - " : "",
+        digitizedBySefaria
       );
     }
 
@@ -7859,7 +7865,12 @@ var SearchFilter = React.createClass({
     return React.createElement(
       'li',
       { onClick: this.handleFocusCategory },
-      React.createElement('input', { type: 'checkbox', className: 'filter', checked: this.state.selected == 1, onChange: this.handleFilterClick }),
+      React.createElement('input', { type: 'checkbox', id: this.props.filter.path, className: 'filter', checked: this.state.selected == 1, onChange: this.handleFilterClick }),
+      React.createElement(
+        'label',
+        { onClick: this.handleFilterClick, 'for': this.props.filter.path },
+        React.createElement('span', null)
+      ),
       React.createElement(
         'span',
         { className: 'en' },

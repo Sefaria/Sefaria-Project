@@ -1879,7 +1879,8 @@ var ReaderPanel = React.createClass({
           currentLayout={this.currentLayout}
           connectionsMode={this.state.filter.length && this.state.connectionsMode === "Connections" ? "Connection Text" : this.state.connectionsMode}
           closePanel={this.props.closePanel}
-          toggleLanguage={this.toggleLanguage} />)}
+          toggleLanguage={this.toggleLanguage}
+          interfaceLang={this.props.interfaceLang}/>)}
 
         <div className="readerContent" style={style}>
           {items}
@@ -1921,7 +1922,8 @@ var ReaderControls = React.createClass({
     version:                 React.PropTypes.string,
     versionLanguage:         React.PropTypes.string,
     connectionsMode:         React.PropTypes.string,
-    multiPanel:              React.PropTypes.bool
+    multiPanel:              React.PropTypes.bool,
+    interfaceLang:           React.PropTypes.string
   },
   openTextToc: function(e) {
     e.preventDefault();
@@ -1953,7 +1955,8 @@ var ReaderControls = React.createClass({
             activeTab={this.props.connectionsMode}
             setConnectionsMode={this.props.setConnectionsMode}
             closePanel={this.props.closePanel}
-            toggleLanguage={this.props.toggleLanguage} />
+            toggleLanguage={this.props.toggleLanguage}
+            interfaceLang={this.props.interfaceLang}/>
         </div>) :
       (<a href={url}>
           <div className="readerTextToc" onClick={this.openTextToc}>
@@ -2876,12 +2879,13 @@ var VersionBlock = React.createClass({
   render: function() {
     var v = this.props.version;
     var license = this.licenseMap[v.license]?<a href={this.licenseMap[v.license]} target="_blank">{v.license}</a>:v.license;
+    var digitizedBySefaria = v.digitizedBySefaria ? <a className="versionDigitizedBySefaria" href="/digitized-by-sefaria">Digitized by Sefaria</a> : "";
     var licenseLine = "";
     if (v.license && v.license != "unknown") { 
       licenseLine =
         <span className="versionLicense">
           {license}
-          {(v.digitizedBySefaria ? " - Digitized by Sefaria": "" )}
+          {digitizedBySefaria?" - ":""}{digitizedBySefaria}
         </span>
       ;
     }
@@ -3579,8 +3583,15 @@ var ReaderNavigationMenuMenuButton = React.createClass({
 
 
 var ReaderNavigationMenuCloseButton = React.createClass({
-  render: function() { 
-    var icon = this.props.icon === "arrow" ? (<i className="fa fa-caret-left"></i>) : "×";
+  render: function() {
+    if(this.props.icon == "arrow"){
+      var icon_dir = (this.props.interfaceLang == 'english') ? 'left' : 'right';
+      var icon_class = "fa fa-caret-"+icon_dir;
+      var icon = (<i className={icon_class}></i>);
+    }else{
+      var icon = "×";
+    }
+    /*var icon = this.props.icon === "arrow" ? (<i className="fa fa-caret-{icon_dir}"></i>) : "×";*/
     var classes = classNames({readerNavMenuCloseButton: 1, arrow: this.props.icon === "arrow"});
     return (<div className={classes} onClick={this.props.onClick}>{icon}</div>);
   }
@@ -4374,7 +4385,8 @@ var ConnectionsPanel = React.createClass({
     openDisplaySettings:     React.PropTypes.func,
     closePanel:              React.PropTypes.func,
     toggleLanguage:          React.PropTypes.func,
-    selectedWords:           React.PropTypes.string
+    selectedWords:           React.PropTypes.string,
+    interfaceLang:           React.PropTypes.string
   },
   render: function() {
     var content = null;
@@ -4482,17 +4494,19 @@ var ConnectionsPanelHeader = React.createClass({
     activeTab:          React.PropTypes.string.isRequired, // "Connections", "Tools"
     setConnectionsMode: React.PropTypes.func.isRequired,
     closePanel:         React.PropTypes.func.isRequired,
-    toggleLanguage:     React.PropTypes.func.isRequired
+    toggleLanguage:     React.PropTypes.func.isRequired,
+    interfaceLang:      React.PropTypes.string.isRequired
   },
   render: function() {
     return (<div className="connectionsPanelHeader">
               <div className="rightButtons">
                 <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
-                <ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} />
+                <ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} interfaceLang={this.props.interfaceLang} />
                </div>
               <ConnectionsPanelTabs
                 activeTab={this.props.activeTab}
-                setConnectionsMode={this.props.setConnectionsMode} />
+                setConnectionsMode={this.props.setConnectionsMode}
+                interfaceLang={this.props.interfaceLang}/>
             </div>);
   }
 });
@@ -4501,7 +4515,8 @@ var ConnectionsPanelHeader = React.createClass({
 var ConnectionsPanelTabs = React.createClass({
   propTypes: {
     activeTab:          React.PropTypes.string.isRequired, // "Connections", "Tools"
-    setConnectionsMode: React.PropTypes.func.isRequired
+    setConnectionsMode: React.PropTypes.func.isRequired,
+    interfaceLang:      React.PropTypes.string.isRequired
   },
   render: function() {
     var tabNames = [{"en": "Connections", "he": "קישורים"}, {"en": "Tools", "he":"כלים"}];
@@ -6422,7 +6437,8 @@ var SearchFilter = React.createClass({
   render: function() {
     return(
       <li onClick={this.handleFocusCategory}>
-        <input type="checkbox" className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
+        <input type="checkbox" id={this.props.filter.path} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
+        <label onClick={this.handleFilterClick} for={this.props.filter.path}><span></span></label>
         <span className="en"><span className="filter-title">{this.props.filter.title}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         <span className="he" dir="rtl"><span className="filter-title">{this.props.filter.heTitle}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
         {this.props.isInFocus?<span className="en"><i className="in-focus-arrow fa fa-caret-right"/></span>:""}
