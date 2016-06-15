@@ -442,10 +442,10 @@ body.dark {
 }
 /* Adjusting for 17px scrollbars, to keep content centered */
 .multiPanel .english .readerNavMenu .content, .multiPanel .bilingual .readerNavMenu .content {
-  padding-left: 37px;
+  padding-left: 40px;
 }
 .multiPanel .hebrew .readerNavMenu .content {
-  padding-right: 37px;
+  padding-right: 40px;
 }
 .multiPanel .readerNavMenu .content {
   padding: 110px 25px 10px;
@@ -622,6 +622,8 @@ h1 .languageToggle .he {
   color: #999;
   margin-bottom: 20px;
   letter-spacing: 2px;
+  height: 16px;
+  line-height: 16px;
 }
 .readerPanel h2 .en, .readerPanel h3 .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -660,11 +662,13 @@ a.recentItem {
   font-family: "adobe-garamond-pro", Georgia;
   text-align: center;
   font-size: 15px;
-  padding: 10px 10px 14px;
+  padding: 0 10px;
   margin: 0;
   cursor: pointer;
   border-top: 4px solid transparent;
   letter-spacing: 1px;
+  height: 46px;
+  line-height: 46px;
 }
 @media (max-width: 450px) {
   .readerNavCategory {
@@ -687,11 +691,17 @@ a.recentItem {
   margin-bottom: 30px;
   margin-top: -8px;
 }
-.readerNavCalendar .gridBox td:first-child {
+.english .readerNavCalendar .gridBox td:first-child {
   border-left: 0;
 }
-.readerNavCalendar .gridBox td:last-child {
+.english .readerNavCalendar .gridBox td:last-child {
   border-right: 0;
+}
+.hebrew .readerNavCalendar .gridBox td:first-child {
+  border-right: 0;
+}
+.hebrew .readerNavCalendar .gridBox td:last-child {
+  border-left: 0;
 }
 .blockLink,
 .readerNavMenu .resourcesLink {
@@ -705,6 +715,7 @@ a.recentItem {
   border-top: 4px solid transparent;
   width: 100%;
   cursor: pointer;
+  height: 46px;
 }
 .blockLink:hover {
   color: #333;
@@ -716,7 +727,6 @@ a.recentItem {
   table-layout: fixed;
 }
 .gridBox td > a {
-  height: 100%;
 }
 .readerNavMenu .resourcesLink .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
