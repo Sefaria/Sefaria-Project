@@ -409,8 +409,7 @@ var ReaderApp = React.createClass({
         hist.mode   = "Header"
       }
       if (state.mode !== "Header") {
-        var lang  = state.settings.language.substring(0,2);
-        hist.url += "&lang=" + lang;
+        hist.lang =  state.settings.language.substring(0,2);
       }
       histories.push(hist);     
     }
@@ -426,7 +425,9 @@ var ReaderApp = React.createClass({
     if (histories[0].mode === "TextAndConnections") {
         url += "&with=" + histories[0].sources;
     }
-
+    if(histories[0].lang) {
+        url += "&lang=" + histories[0].lang;
+    }
     hist = (headerPanel)
         ? {state: {header: states[0]}, url: url, title: title}
         : {state: {panels: states}, url: url, title: title};
@@ -438,6 +439,9 @@ var ReaderApp = React.createClass({
           hist.url   = "/" + histories[1].url; // Rewrite the URL
           if(histories[0].versionLanguage && histories[0].version) {
             hist.url += "/" + histories[0].versionLanguage + "/" + histories[0].version.replace(/\s/g,"_");
+          }
+          if(histories[0].lang) {
+            hist.url += "&lang=" + histories[0].lang;
           }
           hist.url += "&with=" + histories[1].sources;
           hist.title = histories[1].title;
@@ -456,6 +460,9 @@ var ReaderApp = React.createClass({
                       "&v" + (i+1) + "=" + histories[i].version.replace(/\s/g,"_");
         }
         hist.title += " & " + histories[i].title;
+      }
+      if(histories[i].lang) {
+        hist.url += "&lang" + (i+1) + "=" + histories[i].lang;
       }
     }
     // Replace the first only & with a ? 
@@ -3203,9 +3210,12 @@ var SheetsHomePage = React.createClass({
                   (<h2 className="splitHeader">
                     <span className="en">Public Sheets</span>
                     <span className="en actionText" onClick={this.showAllSheets}>See All <i className="fa fa-angle-right"></i></span>
+                    <span className="he">דפי מקורות פומביים</span>
+                    <span className="he actionText" onClick={this.showAllSheets}>צפה בהכל <i className="fa fa-angle-left"></i></span>
                   </h2>) : 
                   (<h2>
-                     <span className="en">Public Sheets</span>
+                      <span className="en">Public Sheets</span>
+                      <span className="he">דפי מקורות פומביים</span>
                    </h2>)}
 
                 <div className="topSheetsBox">
@@ -3215,6 +3225,7 @@ var SheetsHomePage = React.createClass({
                 { this.props.multiPanel ? null : 
                   (<h2>
                      <span className="en">Trending Tags</span>
+                    <span className="he">תוויות פופולריות</span>
                    </h2>)}
 
                 { this.props.multiPanel ? null : (<TwoOrThreeBox content={trendingTags} width={this.props.width} /> )}
@@ -3222,18 +3233,19 @@ var SheetsHomePage = React.createClass({
                 { this.props.multiPanel ? (
                     <h2 className="tagsHeader">
                       <span className="en">All Tags</span>
-                      <span className="he">All Tags [he]</span>
+                      <span className="he">כל התוויות</span>
                       <div className="actionText">
                         <div className="type-buttons">
-                          {this._type_sheet_button("Most Used", "Most Used [he]", () => this.changeSort("count"), (this.props.tagSort == "count"))}
-                          {this._type_sheet_button("Alphabetical", "Alpha [he]", () => this.changeSort("alpha"), (this.props.tagSort == "alpha"))}
-                          {this._type_sheet_button("Trending", "Trending [he]", () => this.changeSort("trending"), (this.props.tagSort == "trending"))}
+                          {this._type_sheet_button("Most Used", "הכי בשימוש", () => this.changeSort("count"), (this.props.tagSort == "count"))}
+                          {this._type_sheet_button("Alphabetical", "אלפביתי", () => this.changeSort("alpha"), (this.props.tagSort == "alpha"))}
+                          {this._type_sheet_button("Trending", "פופולרי", () => this.changeSort("trending"), (this.props.tagSort == "trending"))}
                         </div>
                       </div>
                     </h2>
                 ) : (
                 <h2>
                   <span className="en">All Tags</span>
+                  <span className="he">כל התוויות</span>
                 </h2>
                 )}
 
@@ -3312,7 +3324,7 @@ var AllSheetsPage = React.createClass({
                       <div className="contentInner">
                         {this.props.hideNavHeader ? (<h1>
                           <span className="en">All Sheets</span>
-                          <span className="he"></span>
+                          <span className="he">כל דפי המקורות</span>
                         </h1>) : null}
                         {sheets}
                       </div>
@@ -3426,6 +3438,7 @@ var MySheetsPage = React.createClass({
                 {this.props.hideNavHeader ? 
                   (<h1>
                     <span className="en">My Source Sheets</span>
+                    <span className="he">דפי המקורות שלי</span>
                   </h1>) : null}
                 {this.props.hideNavHeader ? 
                   (<div className="sheetsNewButton">
@@ -3438,10 +3451,16 @@ var MySheetsPage = React.createClass({
                 {this.props.hideNavHeader ?
                  (<h2 className="splitHeader">
                     <span className="en" onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
+                    <span className="he" onClick={this.toggleSheetTags}>סנן לפי תווית<i className="fa fa-angle-down"></i></span>
                     <span className="en actionText">Sort By:
                       <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
                        <option value="date">Recent</option>
                        <option value="views">Most Viewed</option>
+                     </select> <i className="fa fa-angle-down"></i></span>
+                    <span className="he actionText">סנן לפי:
+                      <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
+                       <option value="date">הכי חדש</option>
+                       <option value="views">הכי נצפה</option>
                      </select> <i className="fa fa-angle-down"></i></span>
 
                   </h2>) : null }
@@ -6578,8 +6597,8 @@ var AccountPanel = React.createClass({
     var accountContent = [
       (<BlockLink target="/my/profile" title="Profile" heTitle="פרופיל"/>),
       (<BlockLink target="/sheets/private" title="My Source Sheets" heTitle="דפי מקורות" />),
-      (<BlockLink target="#" title="Reading History" heTitle="היסטוריה קריאה" />),
-      (<BlockLink target="#" title="My Notes" heTitle="רשומות" />),
+      (<BlockLink target="/coming-soon?my-notes" title="My Notes" heTitle="רשומות" />),
+      (<BlockLink target="/coming-soon?reading-history" title="Reading History" heTitle="היסטוריה קריאה" />),
       (<BlockLink target="/settings/account" title="Settings" heTitle="הגדרות" />),
       (<BlockLink target="/logout" title="Log Out" heTitle="ניתוק" />)
     ];

@@ -241,6 +241,7 @@ static_pages = [
     "jobs",
     "terms",
     "privacy-policy",
+    "coming-soon",
     "shraga-silverstein",
     "linker",
     "ios",

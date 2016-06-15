@@ -309,6 +309,7 @@ body.dark {
   position: absolute;
   height: 100%;
   width: 100%;
+  direction:ltr;
 }
 .readerPanelBox + .readerPanelBox {
   border-left: 1px solid #eee;

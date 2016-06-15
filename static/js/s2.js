@@ -152,10 +152,11 @@ var ReaderApp = React.createClass({
       return this.makePanelState(panel);
     }.bind(this));
 
-    var layoutOrientation = "ltr";
-    if (panels.length > 0 && panels[0].settings && panels[0].settings.language == "hebrew" || header.settings && header.settings.language == "hebrew") {
+    var layoutOrientation = this.props.interfaceLang == "english" ? "ltr" : "rtl";
+    /*if ((panels.length > 0 && panels[0].settings && panels[0].settings.language == "hebrew")
+       || (header.settings && header.settings.language == "hebrew")) {
       layoutOrientation = "rtl";
-    }
+    }*/
 
     return {
       panels: panels,
@@ -400,8 +401,7 @@ var ReaderApp = React.createClass({
         hist.mode = "Header";
       }
       if (state.mode !== "Header") {
-        var lang = state.settings.language.substring(0, 2);
-        hist.url += "&lang=" + lang;
+        hist.lang = state.settings.language.substring(0, 2);
       }
       histories.push(hist);
     }
@@ -419,7 +419,9 @@ var ReaderApp = React.createClass({
     if (histories[0].mode === "TextAndConnections") {
       url += "&with=" + histories[0].sources;
     }
-
+    if (histories[0].lang) {
+      url += "&lang=" + histories[0].lang;
+    }
     hist = headerPanel ? { state: { header: states[0] }, url: url, title: title } : { state: { panels: states }, url: url, title: title };
 
     for (var i = 1; i < histories.length; i++) {
@@ -429,6 +431,9 @@ var ReaderApp = React.createClass({
           hist.url = "/" + histories[1].url; // Rewrite the URL
           if (histories[0].versionLanguage && histories[0].version) {
             hist.url += "/" + histories[0].versionLanguage + "/" + histories[0].version.replace(/\s/g, "_");
+          }
+          if (histories[0].lang) {
+            hist.url += "&lang=" + histories[0].lang;
           }
           hist.url += "&with=" + histories[1].sources;
           hist.title = histories[1].title;
@@ -447,6 +452,9 @@ var ReaderApp = React.createClass({
           }
           hist.title += " & " + histories[i].title;
         }
+      if (histories[i].lang) {
+        hist.url += "&lang" + (i + 1) + "=" + histories[i].lang;
+      }
     }
     // Replace the first only & with a ?
     hist.url = hist.url.replace(/&/, "?");
@@ -3111,7 +3119,7 @@ var ReaderTextTableOfContents = React.createClass({
 
     var tocHtml = Sefaria.textTocHtml(this.props.title);
 
-    tocHtml = tocHtml || '<div class="loadingMessage"><span class="en">Loading...</span><span class="he">טעינה...</span></div>';
+    tocHtml = tocHtml || '<div class="loadingMessage"><span class="en">Loading...</span><span class="he">טוען...</span></div>';
 
     var title = this.props.title;
     var heTitle = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
@@ -3792,7 +3800,12 @@ var SheetsHomePage = React.createClass({
         'My Source Sheets ',
         React.createElement('i', { className: 'fa fa-chevron-right' })
       ),
-      React.createElement('span', { 'class': 'he' })
+      React.createElement(
+        'span',
+        { 'class': 'he' },
+        'דפי המקורות שלי ',
+        React.createElement('i', { className: 'fa fa-chevron-left' })
+      )
     ) : null;
 
     return React.createElement(
@@ -3829,6 +3842,17 @@ var SheetsHomePage = React.createClass({
             { className: 'en actionText', onClick: this.showAllSheets },
             'See All ',
             React.createElement('i', { className: 'fa fa-angle-right' })
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            'דפי מקורות פומביים'
+          ),
+          React.createElement(
+            'span',
+            { className: 'he actionText', onClick: this.showAllSheets },
+            'צפה בהכל ',
+            React.createElement('i', { className: 'fa fa-angle-left' })
           )
         ) : React.createElement(
           'h2',
@@ -3837,6 +3861,11 @@ var SheetsHomePage = React.createClass({
             'span',
             { className: 'en' },
             'Public Sheets'
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            'דפי מקורות פומביים'
           )
         ),
         React.createElement(
@@ -3851,6 +3880,11 @@ var SheetsHomePage = React.createClass({
             'span',
             { className: 'en' },
             'Trending Tags'
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            'תוויות פופולריות'
           )
         ),
         this.props.multiPanel ? null : React.createElement(TwoOrThreeBox, { content: trendingTags, width: this.props.width }),
@@ -3865,7 +3899,7 @@ var SheetsHomePage = React.createClass({
           React.createElement(
             'span',
             { className: 'he' },
-            'All Tags [he]'
+            'כל התוויות'
           ),
           React.createElement(
             'div',
@@ -3873,13 +3907,13 @@ var SheetsHomePage = React.createClass({
             React.createElement(
               'div',
               { className: 'type-buttons' },
-              this._type_sheet_button("Most Used", "Most Used [he]", function () {
+              this._type_sheet_button("Most Used", "הכי בשימוש", function () {
                 return _this2.changeSort("count");
               }, this.props.tagSort == "count"),
-              this._type_sheet_button("Alphabetical", "Alpha [he]", function () {
+              this._type_sheet_button("Alphabetical", "אלפביתי", function () {
                 return _this2.changeSort("alpha");
               }, this.props.tagSort == "alpha"),
-              this._type_sheet_button("Trending", "Trending [he]", function () {
+              this._type_sheet_button("Trending", "פופולרי", function () {
                 return _this2.changeSort("trending");
               }, this.props.tagSort == "trending")
             )
@@ -3891,6 +3925,11 @@ var SheetsHomePage = React.createClass({
             'span',
             { className: 'en' },
             'All Tags'
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            'כל התוויות'
           )
         ),
         React.createElement(TwoOrThreeBox, { content: tagList, width: this.props.width })
@@ -3998,7 +4037,11 @@ var AllSheetsPage = React.createClass({
             { className: 'en' },
             'All Sheets'
           ),
-          React.createElement('span', { className: 'he' })
+          React.createElement(
+            'span',
+            { className: 'he' },
+            'כל דפי המקורות'
+          )
         ) : null,
         sheets
       )
@@ -4157,6 +4200,11 @@ var MySheetsPage = React.createClass({
             'span',
             { className: 'en' },
             'My Source Sheets'
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            'דפי המקורות שלי'
           )
         ) : null,
         this.props.hideNavHeader ? React.createElement(
@@ -4188,6 +4236,12 @@ var MySheetsPage = React.createClass({
           ),
           React.createElement(
             'span',
+            { className: 'he', onClick: this.toggleSheetTags },
+            'סנן לפי תווית',
+            React.createElement('i', { className: 'fa fa-angle-down' })
+          ),
+          React.createElement(
+            'span',
             { className: 'en actionText' },
             'Sort By:',
             React.createElement(
@@ -4202,6 +4256,27 @@ var MySheetsPage = React.createClass({
                 'option',
                 { value: 'views' },
                 'Most Viewed'
+              )
+            ),
+            ' ',
+            React.createElement('i', { className: 'fa fa-angle-down' })
+          ),
+          React.createElement(
+            'span',
+            { className: 'he actionText' },
+            'סנן לפי:',
+            React.createElement(
+              'select',
+              { value: this.props.mySheetSort, onChange: this.changeSortYourSheets },
+              React.createElement(
+                'option',
+                { value: 'date' },
+                'הכי חדש'
+              ),
+              React.createElement(
+                'option',
+                { value: 'views' },
+                'הכי נצפה'
               )
             ),
             ' ',
@@ -8109,7 +8184,7 @@ var AccountPanel = React.createClass({
   },
   render: function render() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
-    var accountContent = [React.createElement(BlockLink, { target: '/my/profile', title: 'Profile', heTitle: 'פרופיל' }), React.createElement(BlockLink, { target: '/sheets/private', title: 'My Source Sheets', heTitle: 'דפי מקורות' }), React.createElement(BlockLink, { target: '#', title: 'Reading History', heTitle: 'היסטוריה קריאה' }), React.createElement(BlockLink, { target: '#', title: 'My Notes', heTitle: 'רשומות' }), React.createElement(BlockLink, { target: '/settings/account', title: 'Settings', heTitle: 'הגדרות' }), React.createElement(BlockLink, { target: '/logout', title: 'Log Out', heTitle: 'ניתוק' })];
+    var accountContent = [React.createElement(BlockLink, { target: '/my/profile', title: 'Profile', heTitle: 'פרופיל' }), React.createElement(BlockLink, { target: '/sheets/private', title: 'My Source Sheets', heTitle: 'דפי מקורות' }), React.createElement(BlockLink, { target: '/coming-soon?my-notes', title: 'My Notes', heTitle: 'רשומות' }), React.createElement(BlockLink, { target: '/coming-soon?reading-history', title: 'Reading History', heTitle: 'היסטוריה קריאה' }), React.createElement(BlockLink, { target: '/settings/account', title: 'Settings', heTitle: 'הגדרות' }), React.createElement(BlockLink, { target: '/logout', title: 'Log Out', heTitle: 'ניתוק' })];
     accountContent = React.createElement(TwoOrThreeBox, { content: accountContent, width: width });
 
     var learnContent = [React.createElement(BlockLink, { target: '/about', title: 'About', heTitle: 'אודות' }), React.createElement(BlockLink, { target: '/help', title: 'Help', heTitle: 'עזרה' }), React.createElement(BlockLink, { target: 'http://blog.sefaria.org', title: 'Blog', heTitle: 'בלוג' }), React.createElement(BlockLink, { target: '/help', title: 'Help', heTitle: 'עזרה' }), React.createElement(BlockLink, { target: '/educators', title: 'Educators', heTitle: 'מחנכים' }), React.createElement(BlockLink, { target: '/team', title: 'Team', heTitle: 'צוות' })];
