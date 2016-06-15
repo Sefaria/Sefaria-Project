@@ -3,9 +3,13 @@
 {% block content %}
 
 {% if S2 %}
-<div id="accountSettingsPage" class="static">
+<div id="accountSettingsPage" class="static biReady">
 	<div class="inner">
-	<h1>Account Settings</h1>
+	<h1>
+        <span class="en">Account Settings</span>
+        <span class="he">הגדרות חשבון</span>
+
+    </h1>
 	<div id="saveCancelButtons">
 		<a class="button transparent" href="/my/profile">
 			<span class="en">Cancel</span>
@@ -17,15 +21,30 @@
 		</div>
 	</div>
 	<div id="emailNotifications" class="section">
-		<label>Email Frequency (Maximum)</label>
+		<label>
+            <span class="en">Email Frequency (Maximum)</span>
+			<span class="he">תדירות שליחת אימייל (מקסימלית)</span>
+        </label>
 		<div class="toggleSet tripleOption">
-			<div data-value="daily" class="toggleOption {% if profile.settings.email_notifications == "daily" %} active{% endif %}">Daily</div><!--
-			--><div data-value="weekly" class="toggleOption {% if profile.settings.email_notifications == "weekly" %} active{% endif %}">Weekly</div><!--
-			--><div data-value="never" class="toggleOption {% if profile.settings.email_notifications == "never" %} active{% endif %}">Never</div>
+			<div data-value="daily" class="toggleOption {% if profile.settings.email_notifications == "daily" %} active{% endif %}">
+                <span class="en">Daily</span>
+			    <span class="he">יומית</span>
+            </div><!--
+			--><div data-value="weekly" class="toggleOption {% if profile.settings.email_notifications == "weekly" %} active{% endif %}">
+                <span class="en">Weekly</span>
+			    <span class="he">שבועית</span>
+            </div><!--
+			--><div data-value="never" class="toggleOption {% if profile.settings.email_notifications == "never" %} active{% endif %}">
+                <span class="en">Never</span>
+			    <span class="he">לעולם לא</span>
+            </div>
 		</div>
 	</div>
 	<div id="siteLanguage" class="section">
-		<label>Site Language</label>
+		<label>
+            <span class="en">Site Language</span>
+			<span class="he">שפת ממשק</span>
+        </label>
 		<div class="toggleSet doubleOption">
 			<div data-value="english" class="toggleOption {% if profile.settings.interface_language == "english" %} active{% endif %}">English</div><!--
 			--><div data-value="hebrew" class="toggleOption {% if profile.settings.interface_language == "hebrew" %} active{% endif %}">עברית</div>
