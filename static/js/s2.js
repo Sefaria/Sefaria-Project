@@ -903,6 +903,9 @@ var ReaderApp = React.createClass({
       this.saveRecentlyViewed(this.state.panels[i], i);
     }
   },
+  rerender: function rerender() {
+    this.forceUpdate();
+  },
   render: function render() {
     // Only look at the last N panels if we're above panelCap
     //var panelStates = this.state.panels.slice(-this.state.panelCap);
@@ -1016,12 +1019,18 @@ var ReaderApp = React.createClass({
       panels
     ) : null;
 
+    var interruptingMessage = Sefaria.interruptingMessage ? React.createElement(InterruptingMessage, {
+      messageName: Sefaria.interruptingMessage.name,
+      messageHTML: Sefaria.interruptingMessage.html,
+      onClose: this.rerender }) : null;
+
     var classes = classNames({ readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel });
     return React.createElement(
       'div',
       { className: classes },
       header,
-      panels
+      panels,
+      interruptingMessage
     );
   }
 
@@ -8201,6 +8210,45 @@ var NotificationsPanel = React.createClass({
           ),
           Sefaria.loggedIn ? React.createElement('div', { className: 'notificationsList', dangerouslySetInnerHTML: { __html: Sefaria.notificationsHtml } }) : React.createElement(LoginPanel, { fullPanel: true })
         )
+      )
+    );
+  }
+});
+
+var InterruptingMessage = React.createClass({
+  displayName: 'InterruptingMessage',
+
+  propTypes: {
+    messageName: React.PropTypes.string.isRequired,
+    messageHTML: React.PropTypes.string.isRequired,
+    onClose: React.PropTypes.func.isRequired
+  },
+  componentDidMount: function componentDidMount() {
+    $("#interruptingMessage .button").click(this.close);
+  },
+  close: function close() {
+    this.markAsRead();
+    this.props.onClose();
+  },
+  markAsRead: function markAsRead() {
+    Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function (data) {});
+    cookie(this.props.messageName, true, { "path": "/" });
+    Sefaria.interruptingMessage = null;
+  },
+  render: function render() {
+    return React.createElement(
+      'div',
+      { className: 'interruptingMessageBox' },
+      React.createElement('div', { className: 'overlay', onClick: this.close }),
+      React.createElement(
+        'div',
+        { id: 'interruptingMessage' },
+        React.createElement(
+          'div',
+          { id: 'interruptingMessageClose', onClick: this.close },
+          '×'
+        ),
+        React.createElement('div', { id: 'interruptingMessageContent', dangerouslySetInnerHTML: { __html: this.props.messageHTML } })
       )
     );
   }
