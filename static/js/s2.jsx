@@ -47,6 +47,7 @@ var ReaderApp = React.createClass({
       initialNavigationCategories: [],
       initialPanels:               [],
       initialDefaultVersions:      {},
+      initialPanelCap:             2,
       initialPath:                 "/"
     };
   },
@@ -553,9 +554,14 @@ var ReaderApp = React.createClass({
   MIN_PANEL_WIDTH: 360.0,
   setPanelCap: function() {
     // In multi panel mode, set the maximum number of visible panels depending on the window width.
-    var width           = $(window).width();
-    var panelCap        = Math.floor(width / this.MIN_PANEL_WIDTH);
-    this.setState({panelCap: panelCap, windowWidth: width});
+    this.setWindowWidth();
+    var panelCap = Math.floor($(window).outerWidth() / this.MIN_PANEL_WIDTH);
+    console.log("Setting panelCap: " + panelCap);
+    this.setState({panelCap: panelCap});
+  },
+  setWindowWidth: function() {
+    console.log("Setting window width: " + $(window).outerWidth());
+    this.setState({windowWidth: $(window).outerWidth()});
   },
   handleNavigationClick: function(ref, version, versionLanguage, options) {
     this.saveOpenPanelsToRecentlyViewed();
@@ -921,8 +927,8 @@ var ReaderApp = React.createClass({
     var unit;
     var wrapBoxScroll = false;
 
-    if (panelStates.length <= this.state.panelCap || this.state.panelCap == 0) {
-      evenWidth = (100.0/panelStates.length);
+    if (panelStates.length <= this.state.panelCap || !this.state.panelCap) {
+      evenWidth = (100.0 / panelStates.length);
       unit = "%";
     } else {
       evenWidth = this.MIN_PANEL_WIDTH;
@@ -1009,7 +1015,8 @@ var ReaderApp = React.createClass({
                   </div>);
     }
     var boxClasses = classNames({wrapBoxScroll: wrapBoxScroll});
-    var boxStyle = {width: this.state.windowWidth, direction: this.state.layoutOrientation};
+    var boxWidth = wrapBoxScroll ? this.state.windowWidth + "px" : "100%";
+    var boxStyle = {width: boxWidth, direction: this.state.layoutOrientation};
     panels = panels.length ? 
               (<div id="panelWrapBox" className={boxClasses} style={boxStyle}>
                 {panels}

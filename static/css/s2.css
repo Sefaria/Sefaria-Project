@@ -117,7 +117,7 @@ body.dark {
 }
 .header .home {
   position: absolute;
-  top: 0px;
+  top: -3px;
   left: 50%;
   margin-left: -51px;
 }
