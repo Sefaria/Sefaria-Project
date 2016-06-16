@@ -3484,7 +3484,7 @@ var PrivateSheetListing = React.createClass({
   render: function() {
     var sheet = this.props.sheet;
     var editSheetTags = function() { console.log(sheet.id)}.bind(this);
-    var title = sheet.title.stripHtml();
+    var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
     var url = "/sheets/" + sheet.id;
 
 
