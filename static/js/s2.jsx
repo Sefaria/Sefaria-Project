@@ -5,7 +5,7 @@ if (typeof require !== 'undefined') {
       $            = require('jquery'),
       extend       = require('extend'),
       classNames   = require('classnames'),
-      Sefaria      = require('./sefarseia.js'),
+      Sefaria      = require('./sefaria.js'),
       cookie       = Sefaria.util.cookie;
 } else { 
   var INBROWSER    = true,
