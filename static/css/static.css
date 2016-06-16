@@ -722,16 +722,28 @@
 #donatePage .faq p.question{
   font-weight: bold;
 }
-#donatePage .faq p.question:before{
-  content: "Q)";
-}
 #donatePage .faq p.answer{
   margin-left: 40px;
   text-indent: -20px;
 }
+#donatePage .faq p.question:before{
+  content: "Q)";
+}
 #donatePage .faq p.answer:before{
   content: "A)";
 }
+.hebrew #donatePage .faq p.answer{
+  margin-right: 40px;
+  text-indent: -20px;
+}
+.hebrew #donatePage .faq p.question:before{
+  content: "ש)";
+}
+.hebrew #donatePage .faq p.answer:before{
+  content: "ת)";
+}
+
+
 #supportersPage{
   text-align: center;
 }
