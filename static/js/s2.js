@@ -11,7 +11,7 @@ if (typeof require !== 'undefined') {
       $ = require('jquery'),
       extend = require('extend'),
       classNames = require('classnames'),
-      Sefaria = require('./sefaria.js'),
+      Sefaria = require('./sefarseia.js'),
       cookie = Sefaria.util.cookie;
 } else {
   var INBROWSER = true,
@@ -3029,7 +3029,7 @@ var ReaderTextTableOfContents = React.createClass({
       language: currentLanguage,
       versionTitle: currentLanguage == "he" ? d.heVersionTitle : d.versionTitle,
       versionSource: currentLanguage == "he" ? d.heVersionSource : d.versionSource,
-      versionStatus: currentLanguage == "he" ? d.heStatus : d.status,
+      versionStatus: currentLanguage == "he" ? d.heVersionStatus : d.versionStatus,
       license: currentLanguage == "he" ? d.heLicense : d.license,
       sources: currentLanguage == "he" ? d.heSources : d.sources,
       versionNotes: currentLanguage == "he" ? d.heVersionNotes : d.versionNotes,
@@ -3258,8 +3258,11 @@ var ReaderTextTableOfContents = React.createClass({
         )
       );
     }
-
-    var moderatorSection = Sefaria.is_moderator ? React.createElement(ModeratorButtons, {
+    var showModeratorButtons = true;
+    if (this.isTextToc() && this.state.currentVersion && this.state.currentVersion.versionStatus == "locked" || !Sefaria.is_moderator) {
+      showModeratorButtons = false;
+    }
+    var moderatorSection = showModeratorButtons ? React.createElement(ModeratorButtons, {
       title: title,
       versionTitle: this.state.currentVersion ? this.state.currentVersion.versionTitle : null,
       versionLanguage: this.state.currentVersion ? this.state.currentVersion.language : null,
