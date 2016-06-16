@@ -582,11 +582,12 @@ var ReaderApp = React.createClass({
   },
   handleCitationClick: function(n, citationRef, textRef) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
-    if (this.state.panels.length >= n  && this.state.panels[n+1].mode === "Connections") {
+    if (this.state.panels.length > n+1  && this.state.panels[n+1].mode === "Connections") {
       this.closePanel(n+1);
     }
-    this.openPanelAt(n, citationRef);
     this.setTextListHighlight(n, [textRef]);
+    this.openPanelAt(n, citationRef);
+    Sefaria.site.track.event("Reader", "Citation Click", citationRef);
   },
   handleRecentClick: function(pos, ref, version, versionLanguage) {
     // Click on an item in your Recently Viewed
