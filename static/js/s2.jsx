@@ -5,7 +5,7 @@ if (typeof require !== 'undefined') {
       $            = require('jquery'),
       extend       = require('extend'),
       classNames   = require('classnames'),
-      Sefaria      = require('./sefaria.js'),
+      Sefaria      = require('./sefarseia.js'),
       cookie       = Sefaria.util.cookie;
 } else { 
   var INBROWSER    = true,
@@ -2649,6 +2649,7 @@ var ReaderTextTableOfContents = React.createClass({
     }
   },
   loadVersionsDataFromText: function(d) {
+    console.log(d);
     // For now treat bilinguale as english. TODO show attribution for 2 versions in bilingual case.
     var currentLanguage = this.props.settingsLanguage == "he" ? "he" : "en";
     if (currentLanguage == "en" && !d.text.length) {currentLanguage = "he"}
@@ -2658,7 +2659,7 @@ var ReaderTextTableOfContents = React.createClass({
       language:            currentLanguage,
       versionTitle:        currentLanguage == "he" ? d.heVersionTitle : d.versionTitle,
       versionSource:       currentLanguage == "he" ? d.heVersionSource : d.versionSource,
-      versionStatus:       currentLanguage == "he" ? d.heStatus : d.status,
+      versionStatus:       currentLanguage == "he" ? d.heVersionStatus : d.versionStatus,
       license:             currentLanguage == "he" ? d.heLicense : d.license,
       sources:             currentLanguage == "he" ? d.heSources : d.sources,
       versionNotes:        currentLanguage == "he" ? d.heVersionNotes : d.versionNotes,
@@ -2809,8 +2810,11 @@ var ReaderTextTableOfContents = React.createClass({
                              </select>
                            </div>);
     }
-
-    var moderatorSection = Sefaria.is_moderator ? 
+    var showModeratorButtons = true;
+    if((this.isTextToc() && this.state.currentVersion && this.state.currentVersion.versionStatus == "locked") || !Sefaria.is_moderator){
+      showModeratorButtons = false;
+    }
+    var moderatorSection = showModeratorButtons ?
       (<ModeratorButtons 
         title={title}
         versionTitle={this.state.currentVersion ? this.state.currentVersion.versionTitle : null}
