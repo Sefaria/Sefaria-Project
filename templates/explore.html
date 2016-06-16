@@ -710,7 +710,7 @@ function removeBrush(d) {
 function brushstart() {
   d3.event.target["b_active"] = true
   svg.classed("selecting", true);
-  sefaria.site.track.exploreBrush(d3.event.target.book)
+  Sefaria.site.track.exploreBrush(d3.event.target.book)
 }
 
 function brushmove() {
@@ -1181,7 +1181,7 @@ function replaceHistory() {
 
     changePageTitle(args.object.title);
     history.replaceState(args.object, args.argtitle, args.url);
-    args.books.forEach(function (e,a,i) { sefaria.site.track.exploreBook(e) });
+    args.books.forEach(function (e,a,i) { Sefaria.site.track.exploreBook(e) });
 
 }
 
@@ -1189,7 +1189,7 @@ function pushLanguageChange() {
     var args = _getHistory();
 
     //console.log("pushLanguageChange",args.object, args.title, args.url);
-    sefaria.site.track.exploreUrl(args.url);
+    Sefaria.site.track.exploreUrl(args.url);
     changePageTitle(args.object.title);
     history.pushState(args.object, args.argtitle, args.url);
 }
@@ -1198,10 +1198,10 @@ function pushHistory() {
     var args = _getHistory();
 
     //console.log("pushHistory",args.object, args.title, args.url);
-    sefaria.site.track.exploreUrl(args.url);
+    Sefaria.site.track.exploreUrl(args.url);
     changePageTitle(args.object.title);
     history.pushState(args.object, args.argtitle, args.url);
-    args.books.forEach(function (e,a,i) { sefaria.site.track.exploreBook(e) });
+    args.books.forEach(function (e,a,i) { Sefaria.site.track.exploreBook(e) });
 }
 
 function _getHistory() {
