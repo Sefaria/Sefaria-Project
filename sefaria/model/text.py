@@ -970,6 +970,9 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         else:
             return super(Version, self).ja()
 
+    def is_copyrighted(self):
+        return "Copyright" in getattr(self, "license", "")
+
 
 class VersionSet(abst.AbstractMongoSet):
     """
