@@ -19,12 +19,9 @@
     }
 
     #page-title {
-        color: #555;
-        height: 70px;
-        position: relative;
+        fill: #555;
         font-size: 30px;
         font-weight: lighter;
-        letter-spacing: 1px;
     }
 
     #content.english #page-title{
@@ -256,32 +253,35 @@ var lang;
 function isHebrew() { return lang == "he"; }
 function isEnglish() { return lang == "en"; }
 
-$("#english").click(swithToEnglishAndRecordState);
+function switchToEnglish() {
+    lang = "en";
+}
+function switchToHebrew() {
+    lang = "he";
+}
+/* In S2 - no longer an on screen toggle */
+/*
+$("#english").click(switchToEnglishAndRecordState);
 
-function swithToEnglishAndRecordState() {
+function switchToEnglishAndRecordState() {
     switchToEnglish();
     rebuildScreen();
     pushLanguageChange();
 }
-function switchToEnglish(){
-    lang = "en";
-}
 
-$("#hebrew").click(swithToHebrewAndRecordState);
-function swithToHebrewAndRecordState() {
+$("#hebrew").click(switchToHebrewAndRecordState);
+function switchToHebrewAndRecordState() {
     switchToHebrew();
     rebuildScreen();
     pushLanguageChange();
 }
-function switchToHebrew(){
-    lang = "he";
-}
+*/
 
 /*****          Initial screen construction            *****/
 
 var books = {{ books|safe }}; //Books specified on URL - 0, 1, or 2
 
-if ("{{ contentLang }}" == "hebrew") {
+if ("{{ interfaceLang }}" == "hebrew") {
     switchToHebrew();
 } else {
     switchToEnglish();
