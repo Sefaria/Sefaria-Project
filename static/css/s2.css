@@ -914,6 +914,9 @@ a.resourcesLink {
   margin-top: 6px;
   letter-spacing: 1px;
 }
+.readerTextTableOfContents .tocTitle .currentSection .he {
+  font-family: "Open Sans Hebrew", sans-serif;
+}
 .readerTextTableOfContents .currentVersionBox {
   margin-bottom: 50px;
   text-align: center;
@@ -1000,7 +1003,7 @@ a.resourcesLink {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerTextTableOfContents .content .sectionLink  .he {
-  /*font-family: "Open Sans Hebrew", sans-serif;*/
+  font-family: "Open Sans Hebrew", sans-serif;
 }
 .readerTextTableOfContents .content #structToggles {
   margin-bottom: 20px;
@@ -1053,6 +1056,9 @@ a.resourcesLink {
   font-size: 16px;
   display: inline-block;
   margin-bottom: 10px;
+}
+.readerTextTableOfContents .content .schema-node-title .he {
+  font-family: "Open Sans Hebrew", sans-serif;
 }
 .readerTextTableOfContents .content .schema-node-toc {
   display: block;
