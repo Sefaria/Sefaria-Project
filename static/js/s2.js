@@ -11,7 +11,7 @@ if (typeof require !== 'undefined') {
       $ = require('jquery'),
       extend = require('extend'),
       classNames = require('classnames'),
-      Sefaria = require('./sefarseia.js'),
+      Sefaria = require('./sefaria.js'),
       cookie = Sefaria.util.cookie;
 } else {
   var INBROWSER = true,
@@ -4063,7 +4063,7 @@ var PublicSheetListing = React.createClass({
   },
   render: function render() {
     var sheet = this.props.sheet;
-    var title = sheet.title.stripHtml();
+    var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
     var url = "/sheets/" + sheet.id;
     return React.createElement(
       'a',
@@ -4307,7 +4307,7 @@ var PrivateSheetListing = React.createClass({
   render: function render() {
     var sheet = this.props.sheet;
     var editSheetTags = function () {}.bind(this);
-    var title = sheet.title.stripHtml();
+    var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
     var url = "/sheets/" + sheet.id;
 
     if (sheet.tags === undefined) sheet.tags = [];
