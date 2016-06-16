@@ -576,11 +576,12 @@ var ReaderApp = React.createClass({
   },
   handleCitationClick: function handleCitationClick(n, citationRef, textRef) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
-    if (this.state.panels.length >= n && this.state.panels[n + 1].mode === "Connections") {
+    if (this.state.panels.length > n + 1 && this.state.panels[n + 1].mode === "Connections") {
       this.closePanel(n + 1);
     }
-    this.openPanelAt(n, citationRef);
     this.setTextListHighlight(n, [textRef]);
+    this.openPanelAt(n, citationRef);
+    Sefaria.site.track.event("Reader", "Citation Click", citationRef);
   },
   handleRecentClick: function handleRecentClick(pos, ref, version, versionLanguage) {
     // Click on an item in your Recently Viewed
@@ -3794,13 +3795,13 @@ var SheetsHomePage = React.createClass({
       { className: 'yourSheetsLink navButton', onClick: this.showYourSheets },
       React.createElement(
         'span',
-        { 'class': 'en' },
+        { className: 'en' },
         'My Source Sheets ',
         React.createElement('i', { className: 'fa fa-chevron-right' })
       ),
       React.createElement(
         'span',
-        { 'class': 'he' },
+        { className: 'he' },
         'דפי המקורות שלי ',
         React.createElement('i', { className: 'fa fa-chevron-left' })
       )
@@ -4097,7 +4098,7 @@ var SheetTagButton = React.createClass({
   render: function render() {
     return React.createElement(
       'a',
-      { href: '/sheets/tag/' + this.props.tag, className: 'navButton', onClick: this.handleTagClick },
+      { href: '/sheets/tags/' + this.props.tag, className: 'navButton', onClick: this.handleTagClick },
       this.props.tag,
       ' (',
       this.props.count,
