@@ -3342,7 +3342,7 @@ var PublicSheetListing = React.createClass({
   },
   render: function() {
     var sheet = this.props.sheet;
-    var title = sheet.title.stripHtml();
+    var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
     var url = "/sheets/" + sheet.id;
     return (<a className="sheet" href={url} key={url}>
               {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl}/>) : null}
