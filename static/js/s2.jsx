@@ -1486,7 +1486,9 @@ var ReaderPanel = React.createClass({
       refs: [ref],
       filter: [],
       recentFilters: [],
-      menuOpen: null
+      menuOpen: null,
+      version: null,
+      versionLanguage: null
     });
   },
   updateTextColumn: function(refs) {
