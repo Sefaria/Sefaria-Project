@@ -6606,7 +6606,7 @@ var AccountPanel = React.createClass({
       (<BlockLink target="/about" title="About" heTitle="אודות" />),
       (<BlockLink target="/help" title="Help" heTitle="עזרה" />),
       (<BlockLink target="http://blog.sefaria.org" title="Blog" heTitle="בלוג" />),
-      (<BlockLink target="/help" title="Help" heTitle="עזרה" />),
+      (<BlockLink target="/faq" title="FAQ" heTitle="שאלות נפוצות" />),
       (<BlockLink target="/educators" title="Educators" heTitle="מחנכים" />),
       (<BlockLink target="/team" title="Team" heTitle="צוות" />)
     ];
