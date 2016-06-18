@@ -1601,7 +1601,7 @@ var ReaderPanel = React.createClass({
     });
   },
   setNavigationCategories: function setNavigationCategories(categories) {
-    this.conditionalSetState({ menuOpen: "navigation", navigationCategories: categories });
+    this.conditionalSetState({ navigationCategories: categories });
   },
   setSheetTag: function setSheetTag(tag) {
     this.conditionalSetState({ navigationSheetTag: tag });
@@ -1835,6 +1835,7 @@ var ReaderPanel = React.createClass({
       var openInPanel = function (pos, ref) {
         this.showBaseText(ref);
       }.bind(this);
+      var openNav = this.state.menuOpen === "compare" ? this.openMenu.bind(null, "compare") : this.openMenu.bind(null, "navigation");
       var onRecentClick = this.state.menuOpen === "compare" || !this.props.onRecentClick ? openInPanel : this.props.onRecentClick;
 
       var menu = React.createElement(ReaderNavigationMenu, {
@@ -1849,7 +1850,7 @@ var ReaderPanel = React.createClass({
         toggleLanguage: this.toggleLanguage,
         closeNav: this.closeMenus,
         closePanel: this.props.closePanel,
-        openNav: this.openMenu.bind(null, "navigation"),
+        openNav: openNav,
         openSearch: this.openSearch,
         openMenu: this.openMenu,
         openDisplaySettings: this.openDisplaySettings,
@@ -2517,7 +2518,7 @@ var ReaderNavigationMenu = React.createClass({
         React.createElement(
           'div',
           { className: 'sefariaLogo' },
-          React.createElement('img', { src: '/static/img/sefaria.png' })
+          React.createElement('img', { src: '/static/img/sefaria.svg' })
         )
       ) : React.createElement(
         'div',
@@ -4485,7 +4486,7 @@ var ReaderNavigationMenuMenuButton = React.createClass({
   displayName: 'ReaderNavigationMenuMenuButton',
 
   render: function render() {
-    var icon = this.props.compare ? React.createElement('i', { className: 'fa fa-arrow-left' }) : React.createElement('i', { className: 'fa fa-bars' });
+    var icon = this.props.compare ? React.createElement('i', { className: 'fa fa-chevron-left' }) : React.createElement('i', { className: 'fa fa-bars' });
     return React.createElement(
       'span',
       { className: 'readerNavMenuMenuButton', onClick: this.props.onClick },

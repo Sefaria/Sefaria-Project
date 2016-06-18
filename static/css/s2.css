@@ -286,6 +286,7 @@ body.dark {
   position: relative;
   top: -1px;
 }
+
 .header .headerNavContent {
   position: fixed;
   height: 100%;
@@ -494,13 +495,12 @@ body.dark {
 }
 /* Adjusting for 17px scrollbars, to keep content centered */
 .multiPanel .english .readerNavMenu .content, .multiPanel .bilingual .readerNavMenu .content {
-  padding-left: 40px;
 }
 .multiPanel .hebrew .readerNavMenu .content {
   padding-right: 40px;
 }
 .multiPanel .readerNavMenu .content {
-  padding: 110px 25px;
+  padding: 110px 30px;
 }
 .multiPanel .readerNavMenu.noHeader .content {
   padding-top: 70px;
@@ -521,10 +521,12 @@ body.dark {
   height: 58px;
   direction: ltr;
   z-index: 1;
-  padding: 13px 20px;
+  padding: 0px 30px;
+  vertical-align: middle;
+  line-height: 58px;
 }
-.multiPanel .readerNavTop {
-
+.singlePanel .readerNavTop {
+  padding: 0 10px;
 }
 .readerNavTop.colorLineOnly {
   height: auto;
@@ -535,20 +537,20 @@ body.dark {
   margin-bottom: 0px;
   font-weight: 400;
   color: black;
+  line-height: 38px;
 }
 .readerNavTop.search {
-  padding: 0;
 }
 .readerNavMenu .readerSearch {
   margin: 0;
-  width: 100%;
+  width: 60%;
   box-sizing: border-box;
   border: none;
   background-color: inherit;
-  padding: 19px 10px 8px 80px;
-  line-height: 30px;
   font-size: 18px;
   font-family: "adobe-garamond-pro", Georgia;
+  height: 48px;
+  margin-top: 9px;
 }
 .readerNavMenu .readerSearch:focus {
   outline: 0;
@@ -557,14 +559,13 @@ body.dark {
 .readerNavTop .readerNavMenuCloseButton,
 .readerNavTop .readerNavMenuMenuButton,
 .readerNavTop .readerOptions {
-  position: absolute;
-  text-align: center;
-  top: 0;
-  left: 0;
+  text-align: left;
   width: 40px;
+  height: 48px;
+  margin-top: 5px;
   box-sizing: border-box;
-  padding: 20px 10px;
   color: #BFBFBF;
+  float: left;
   font-size: 20px;
   vertical-align: middle;
   cursor: pointer;
@@ -572,22 +573,14 @@ body.dark {
 .readerNavTop .readerNavMenuCloseButton{
   font-size: 46px;
   padding: 0;
-  line-height: 1.2;
-}
-.readerNavTop .readerNavMenuSearchButton {
-  left: 36px;
+  line-height: 48px;
 }
 .readerNavTop .readerOptions {
-  left: auto;
-  right: 0;
+  float: right;
   text-align: right;
 }
 .readerNavTop .readerOptions img {
-  float: right;
-}
-.readerNavMenu.home .readerNavMenuSearchButton,
-.readerNavTop.searchOnly .readerNavMenuSearchButton {
-  left: 0;
+
 }
 .sefariaLogo img {
   width: 110px;
@@ -1630,7 +1623,6 @@ a.resourcesLink {
 .readerOptions img {
   height: 16px;
   opacity: 0.2;
-  vertical-align: middle;
 }
 .readerOptionsPanel {
   position: absolute;

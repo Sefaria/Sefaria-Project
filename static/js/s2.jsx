@@ -1538,7 +1538,7 @@ var ReaderPanel = React.createClass({
     });
   },
   setNavigationCategories: function(categories) {
-    this.conditionalSetState({menuOpen: "navigation", navigationCategories: categories});
+    this.conditionalSetState({navigationCategories: categories});
   },
   setSheetTag: function (tag) {
     this.conditionalSetState({navigationSheetTag: tag});
@@ -1763,6 +1763,7 @@ var ReaderPanel = React.createClass({
 
     if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation" || this.state.menuOpen == "compare") {
       var openInPanel   = function(pos, ref) { this.showBaseText(ref) }.bind(this);
+      var openNav       = this.state.menuOpen === "compare" ? this.openMenu.bind(null, "compare") : this.openMenu.bind(null, "navigation");
       var onRecentClick = this.state.menuOpen === "compare" || !this.props.onRecentClick ? openInPanel : this.props.onRecentClick;
 
       var menu = (<ReaderNavigationMenu 
@@ -1777,7 +1778,7 @@ var ReaderPanel = React.createClass({
                     toggleLanguage={this.toggleLanguage}
                     closeNav={this.closeMenus}
                     closePanel={this.props.closePanel}
-                    openNav={this.openMenu.bind(null, "navigation")}
+                    openNav={openNav}
                     openSearch={this.openSearch}
                     openMenu={this.openMenu}
                     openDisplaySettings={this.openDisplaySettings}
@@ -2314,7 +2315,7 @@ var ReaderNavigationMenu = React.createClass({
                 <CategoryColorLine category="Other" />
                 <ReaderNavigationMenuSearchButton onClick={this.navHome} />
                 <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />                
-                <div className='sefariaLogo'><img src="/static/img/sefaria.png" /></div>
+                <div className='sefariaLogo'><img src="/static/img/sefaria.svg" /></div>
               </div>) :
               (<div className="readerNavTop search">
                 <CategoryColorLine category="Other" />
@@ -3606,7 +3607,7 @@ var ReaderNavigationMenuSearchButton = React.createClass({
 
 var ReaderNavigationMenuMenuButton = React.createClass({
   render: function() {
-    var icon = this.props.compare ? (<i className="fa fa-arrow-left"></i>) : (<i className="fa fa-bars"></i>);
+    var icon = this.props.compare ? (<i className="fa fa-chevron-left"></i>) : (<i className="fa fa-bars"></i>);
     return (<span className="readerNavMenuMenuButton" onClick={this.props.onClick}>{icon}</span>);
   }
 });
@@ -4401,7 +4402,7 @@ var ConnectionsPanel = React.createClass({
     editNote:                React.PropTypes.func.isRequired,
     openComparePanel:        React.PropTypes.func.isRequired,
     version:                 React.PropTypes.string,
-    versionLanguage:          React.PropTypes.string,
+    versionLanguage:         React.PropTypes.string,
     noteBeingEdited:         React.PropTypes.object,
     fullPanel:               React.PropTypes.bool,
     multiPanel:              React.PropTypes.bool,
