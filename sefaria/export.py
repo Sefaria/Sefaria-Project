@@ -30,8 +30,8 @@ lang_codes = {
 
 def make_path(doc, format):
     """
-	Returns the full path and file name for exporting 'doc' in 'format'.
-	"""
+    Returns the full path and file name for exporting 'doc' in 'format'.
+    """
     if doc["categories"][0] not in ORDER and doc["categories"][0] != "Commentary":
         doc["categories"].insert(0, "Other")
     path = "%s/%s/%s/%s/%s/%s.%s" % (SEFARIA_EXPORT_PATH,
@@ -52,20 +52,20 @@ def remove_illegal_file_chars(filename_str):
 
 def make_json(doc):
     """
-	Returns JSON of 'doc' with export settings.
-	"""
+    Returns JSON of 'doc' with export settings.
+    """
     return json.dumps(doc, indent=4, encoding='utf-8', ensure_ascii=False)
 
 
 def make_text(doc):
     """
-	Export doc into a simple text format.
+    Export doc into a simple text format.
 
-	if complex, go through nodes depth first,
-	at each node, output name of node
-	if node is leaf, run flatten on it
+    if complex, go through nodes depth first,
+    at each node, output name of node
+    if node is leaf, run flatten on it
 
-	"""
+    """
 
     index = model.library.get_index(doc["title"])
     text = "\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], doc["versionSource"]])    
@@ -120,8 +120,8 @@ export_formats = (
 
 def clear_exports():
     """
-	Deletes all files from any export directory listed in export_formats.
-	"""
+    Deletes all files from any export directory listed in export_formats.
+    """
     for format in export_formats:
         if os.path.exists(SEFARIA_EXPORT_PATH + "/" + format[0]):
             rmtree(SEFARIA_EXPORT_PATH + "/" + format[0])
@@ -131,8 +131,8 @@ def clear_exports():
 
 def export_text_doc(doc):
     """
-	Writes document to disk according to all formats in export_formats
-	"""
+    Writes document to disk according to all formats in export_formats
+    """
     for format in export_formats:
         out = format[1](doc)
         if not out:
@@ -147,9 +147,9 @@ def export_text_doc(doc):
 
 def export_text(text):
     """
-	Exports 'text' (a document from the texts collection, or virtual merged document) 
-	by preparing it as a export document and passing to 'export_text_doc'.
-	"""
+    Exports 'text' (a document from the texts collection, or virtual merged document)
+    by preparing it as a export document and passing to 'export_text_doc'.
+    """
     print text["title"]
     try:
         index = model.library.get_index(text["title"])
@@ -172,9 +172,9 @@ def export_text(text):
         def key2title(text_node, schema_node):
             for temp_schema_node in schema_node:
                 new_key = temp_schema_node["enTitle"]
-		try:
+        try:
                     text_node[new_key] = text_node.pop(temp_schema_node["key"])
-		except KeyError:
+        except KeyError:
                     text_node[new_key] = ""
 
                 del temp_schema_node["key"]
@@ -200,9 +200,9 @@ def text_is_copyright(text):
 
 def export_texts():
     """
-	Step through every text in the texts collection and export it with each format
-	listed in export_formats.
-	"""
+    Step through every text in the texts collection and export it with each format
+    listed in export_formats.
+    """
     clear_exports()
 
     texts = db.texts.find()
@@ -216,9 +216,9 @@ def export_texts():
 
 def export_merged(title, lang=None):
     """
-	Exports a "merged" version of title, including the maximal text we have available
-	in a single document.
-	"""
+    Exports a "merged" version of title, including the maximal text we have available
+    in a single document.
+    """
     if not lang:
         print title
         for lang in ("he", "en"):
@@ -265,8 +265,8 @@ def export_merged(title, lang=None):
 
 def export_all_merged():
     """
-	Iterate through all index records and exports a merged text for each.
-	"""
+    Iterate through all index records and exports a merged text for each.
+    """
     texts = db.texts.find().distinct("title")
 
     for title in texts:
@@ -297,16 +297,16 @@ def export_schemas():
                     f.write(make_json(explicit_commentary_index).encode('utf-8'))
 
             except InputError as e:
-			    print "InputError: %s" % e
-			    with open(SEFARIA_EXPORT_PATH + "/errors.log", "a") as error_log:
-			        error_log.write("%s - InputError: %s\n" % (datetime.now(), e))
-				
+                print "InputError: %s" % e
+                with open(SEFARIA_EXPORT_PATH + "/errors.log", "a") as error_log:
+                    error_log.write("%s - InputError: %s\n" % (datetime.now(), e))
+
 
 
 def export_toc():
     """
-	Exports the TOC to a JSON file.
-	"""
+    Exports the TOC to a JSON file.
+    """
     toc = model.library.get_toc()
     with open(SEFARIA_EXPORT_PATH + "/table_of_contents.json", "w") as f:
         f.write(make_json(toc).encode('utf-8'))
@@ -314,8 +314,8 @@ def export_toc():
 
 def export_links():
     """
-	Creates a single CSV file containing all links known to Sefaria.
-	"""
+    Creates a single CSV file containing all links known to Sefaria.
+    """
     print "Exporting links..."
     links_by_book = Counter()
     links_by_book_without_commentary = Counter()
@@ -407,16 +407,16 @@ def export_tag_graph():
 
 def make_export_log():
     """
-	Exports a file that logs the last export time.
-	"""
+    Exports a file that logs the last export time.
+    """
     with open(SEFARIA_EXPORT_PATH + "/last_export.txt", "w") as f:
         f.write(datetime.now().isoformat())
 
 
 def export_all():
     """
-	Export all texts, merged texts, links, schemas, toc, links & export log.
-	"""
+    Export all texts, merged texts, links, schemas, toc, links & export log.
+    """
     clear_exports()
     export_texts()
     export_all_merged()
