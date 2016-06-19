@@ -136,7 +136,7 @@ def write_text_doc_to_disk(doc):
 
     for format in export_formats:
         out = format[1](doc)
-        if not out:
+        if not doc or not out:
             print "Skipping %s - no content" % doc["title"]
             return
         path = make_path(doc, format[0])
