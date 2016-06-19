@@ -172,9 +172,9 @@ def export_text(text):
         def key2title(text_node, schema_node):
             for temp_schema_node in schema_node:
                 new_key = temp_schema_node["enTitle"]
-        try:
+                try:
                     text_node[new_key] = text_node.pop(temp_schema_node["key"])
-        except KeyError:
+                except KeyError:
                     text_node[new_key] = ""
 
                 del temp_schema_node["key"]
