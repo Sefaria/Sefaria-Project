@@ -129,10 +129,11 @@ def clear_exports():
         rmtree(SEFARIA_EXPORT_PATH + "/schemas")
 
 
-def export_text_doc(doc):
+def write_text_doc_to_disk(doc):
     """
     Writes document to disk according to all formats in export_formats
     """
+
     for format in export_formats:
         out = format[1](doc)
         if not out:
@@ -145,10 +146,10 @@ def export_text_doc(doc):
             f.write(out.encode('utf-8'))
 
 
-def export_text(text):
+def prepare_text_for_export(text):
     """
     Exports 'text' (a document from the texts collection, or virtual merged document)
-    by preparing it as a export document and passing to 'export_text_doc'.
+    by preparing it as a export document and passing to 'write_text_doc_to_disk'.
     """
     print text["title"]
     try:
@@ -191,12 +192,13 @@ def export_text(text):
         del text["_id"]
         del text["chapter"]
 
+    return text
 
-    export_text_doc(text)
 
 def text_is_copyright(text):
     return "license" in text and (type(text['license']) is str or type(text['license']) is unicode) \
            and text["license"].startswith("Copyright")
+
 
 def export_texts():
     """
@@ -211,19 +213,18 @@ def export_texts():
         if text_is_copyright(text):
             # Don't export copyrighted texts.
             continue
-        export_text(text)
+        prepped_text = prepare_text_for_export(text)
+        if prepped_text:
+            write_text_doc_to_disk(prepped_text)
 
 
-def export_merged(title, lang=None):
+def prepare_merged_text_for_export(title, lang=None):
     """
     Exports a "merged" version of title, including the maximal text we have available
     in a single document.
     """
-    if not lang:
-        print title
-        for lang in ("he", "en"):
-            export_merged(title, lang=lang)
-        return
+
+    assert lang is not None
 
     doc = {
         "title": title,
@@ -260,7 +261,7 @@ def export_merged(title, lang=None):
             "versions": merged_sources,
         })
 
-    export_text(doc)
+    return prepare_text_for_export(doc)
 
 
 def export_all_merged():
@@ -274,7 +275,12 @@ def export_all_merged():
             model.Ref(title)
         except:
             continue
-        export_merged(title)
+
+        print title
+        for lang in ("he", "en"):
+            prepped_text = prepare_merged_text_for_export(title, lang=lang)
+            if prepped_text:
+                write_text_doc_to_disk(prepped_text)
 
 
 def export_schemas():
@@ -302,7 +308,6 @@ def export_schemas():
                     error_log.write("%s - InputError: %s\n" % (datetime.now(), e))
 
 
-
 def export_toc():
     """
     Exports the TOC to a JSON file.
@@ -321,7 +326,10 @@ def export_links():
     links_by_book_without_commentary = Counter()
 
     links = db.links.find().sort([["refs.0", 1]])
-    with open(SEFARIA_EXPORT_PATH + "/links/links.csv", 'wb') as csvfile:
+    path = SEFARIA_EXPORT_PATH + "/links/"
+    if not os.path.exists(os.path.dirname(path)):
+        os.makedirs(os.path.dirname(path))
+    with open(path + "links.csv", 'wb') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow([
             "Citation 1",
@@ -354,7 +362,6 @@ def export_links():
             links_by_book[book_link] += 1
             if link["type"] not in ("commentary", "Commentary", "targum", "Targum"):
                 links_by_book_without_commentary[book_link] += 1
-    
     
     def write_aggregate_file(counter, filename):
         with open(SEFARIA_EXPORT_PATH + "/links/%s" % filename, 'wb') as csvfile:
