@@ -56,6 +56,46 @@ def export_version_csv(index, version_list):
     return output.getvalue()
 
 
+def export_merged_csv(index, lang=None):
+    assert isinstance(index, Index)
+    assert lang in ["en", "he"]
+
+    output = io.BytesIO()
+    writer = csv.writer(output)
+
+    # write header data
+    writer.writerow(["Index Title"] + [index.title])
+    writer.writerow(["Version Title"] + ["merged"])
+    writer.writerow(["Language"] + [lang])
+    writer.writerow(["Version Source"] + ["-"])
+    writer.writerow(["Version Notes"] + ["-"])
+
+    section_refs = index.all_section_refs()
+
+    for section_ref in section_refs:
+        segment_refs = section_ref.all_subrefs()
+        seg_vers = {}
+
+        # set blank array for version data
+        for ref in segment_refs:
+            seg_vers[ref.normal()] = []
+
+        # populate each version
+        for version in version_list:
+            section = section_ref.text(lang=version.lang).text
+            for ref in segment_refs:
+                if ref.sections[-1] > len(section):
+                    seg_vers[ref.normal()] += [""]
+                else:
+                    seg_vers[ref.normal()] += [section[ref.sections[-1] - 1]]
+
+        # write lines for each section
+        for ref in segment_refs:
+            writer.writerow([ref.normal()] + seg_vers[ref.normal()])
+
+    return output.getvalue()
+
+
 def import_versions(csv_filename, columns):
     """
     Import the versions in the columns listed in `columns`

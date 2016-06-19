@@ -314,7 +314,8 @@ urlpatterns += patterns('sefaria.views',
 urlpatterns += patterns('sefaria.views',
     (r'^linker\.js$', 'linker_js'),
     (r'^api/regexs/(?P<titles>.+)$', 'title_regex_api'),
-    (r'^api/bulktext/(?P<refs>.+)$', 'bulktext_api')
+    (r'^api/bulktext/(?P<refs>.+)$', 'bulktext_api'),
+    (r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>json|csv|txt)', 'text_download_api')
 )
 
 # Email Subscribe 
