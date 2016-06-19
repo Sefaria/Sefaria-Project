@@ -2816,7 +2816,7 @@ var ReaderTextTableOfContents = React.createClass({
                            </div>);
     }
     var showModeratorButtons = true;
-    if((this.isTextToc() && this.state.currentVersion && this.state.currentVersion.versionStatus == "locked") || !Sefaria.is_moderator){
+    if(/*(this.isTextToc() && this.state.currentVersion && this.state.currentVersion.versionStatus == "locked") ||*/ !Sefaria.is_moderator){
       showModeratorButtons = false;
     }
     var moderatorSection = showModeratorButtons ?
