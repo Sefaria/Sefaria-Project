@@ -66,15 +66,17 @@ def make_text(doc):
     if node is leaf, run flatten on it
 
     """
+    # We have a strange beast here - a merged content tree.  Loading it into a synthetic version.
+    version = Version({"chapter": doc["text"]})
 
     index = model.library.get_index(doc["title"])
     text = "\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], doc["versionSource"]])    
-    version = Version().load({'title': doc["title"], 'versionTitle': doc["versionTitle"], 'language': doc["language"]})	
+    # version = Version().load({'title': doc["title"], 'versionTitle': doc["versionTitle"], 'language': doc["language"]})
 
     if "versions" in doc:
         if not len(doc["versions"]):
             return None # Occurs when text versions don't actually have content
-        version = Version().load({'title': doc["title"], 'versionTitle': doc["versions"][0][0], 'language': doc["language"]})
+        # version = Version().load({'title': doc["title"], 'versionTitle': doc["versions"][0][0], 'language': doc["language"]})
         text += "\nThis file contains merged sections from the following text versions:"
         for v in doc["versions"]:
             text += "\n-%s\n-%s" % (v[0], v[1])
