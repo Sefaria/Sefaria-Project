@@ -516,7 +516,7 @@ def run_tests(request):
 
 
 @catch_error_as_http
-def text_download_api(format, title, lang, versionTitle):
+def text_download_api(request, format, title, lang, versionTitle):
     from sefaria.helper.inout import export_merged_csv, export_version_csv
     from sefaria.export import make_json, make_text, prepare_merged_text_for_export, prepare_text_for_export
 
@@ -533,10 +533,10 @@ def text_download_api(format, title, lang, versionTitle):
         content = export_version_csv(index, [version])
 
     elif format == "csv" and merged:
-        content = export_merged_csv(lang)
+        content = export_merged_csv(index, lang)
 
     elif format == "json" and not merged:
-        version_object = db.texts.find(version_query)
+        version_object = db.texts.find_one(version_query)
         assert version_object
         content = make_json(prepare_text_for_export(version_object))
 
@@ -544,7 +544,7 @@ def text_download_api(format, title, lang, versionTitle):
         content = make_json(prepare_merged_text_for_export(title, lang=lang))
 
     elif format == "txt" and not merged:
-        version_object = db.texts.find(version_query)
+        version_object = db.texts.find_one(version_query)
         assert version_object
         content = make_text(prepare_text_for_export(version_object))
 
@@ -552,8 +552,8 @@ def text_download_api(format, title, lang, versionTitle):
         content = make_text(prepare_merged_text_for_export(title, lang=lang))
 
     content_types = {
-        "json": "application/json",
-        "csv": "text/csv",
-        "txt": "text/plain"
+        "json": "application/json; charset=utf-8",
+        "csv": "text/csv; charset=utf-8",
+        "txt": "text/plain; charset=utf-8"
     }
-    return HttpResponse(content, content_type=content_types[format])
+    return HttpResponse(content,  content_type=content_types[format])

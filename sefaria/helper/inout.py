@@ -81,13 +81,12 @@ def export_merged_csv(index, lang=None):
             seg_vers[ref.normal()] = []
 
         # populate each version
-        for version in version_list:
-            section = section_ref.text(lang=version.lang).text
-            for ref in segment_refs:
-                if ref.sections[-1] > len(section):
-                    seg_vers[ref.normal()] += [""]
-                else:
-                    seg_vers[ref.normal()] += [section[ref.sections[-1] - 1]]
+        section = section_ref.text(lang=lang).text
+        for ref in segment_refs:
+            if ref.sections[-1] > len(section):
+                seg_vers[ref.normal()] += [""]
+            else:
+                seg_vers[ref.normal()] += [section[ref.sections[-1] - 1]]
 
         # write lines for each section
         for ref in segment_refs:

@@ -129,14 +129,14 @@ def clear_exports():
         rmtree(SEFARIA_EXPORT_PATH + "/schemas")
 
 
-def write_text_doc_to_disk(doc):
+def write_text_doc_to_disk(doc=None):
     """
     Writes document to disk according to all formats in export_formats
     """
-
+    assert doc is not None
     for format in export_formats:
         out = format[1](doc)
-        if not doc or not out:
+        if not out:
             print "Skipping %s - no content" % doc["title"]
             return
         path = make_path(doc, format[0])
