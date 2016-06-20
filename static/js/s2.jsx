@@ -2767,6 +2767,7 @@ var ReaderTextTableOfContents = React.createClass({
   isTextToc: function() {
     return (this.props.mode == "text toc")
   },
+  isVersionPublicDomain: v => !(v.license && v.license.startsWith("Copyright")),
   render: function() {
     var tocHtml = Sefaria.textTocHtml(this.props.title);
 
@@ -2810,24 +2811,26 @@ var ReaderTextTableOfContents = React.createClass({
 
       // Dropdown options for downloadable texts
       dl_versions = [<option key="/" value="0" disabled>Version Settings</option>];
-      
+      var pdVersions = this.state.versions.filter(this.isVersionPublicDomain);
       if (cv && cv.merged) {
         var other_lang = cv.language == "he" ? "en" : "he";
         dl_versions = dl_versions.concat([
           <option value={"merged/" + cv.language} key={"merged/" + cv.language} data-lang={cv.language} data-version="merged">Current Merged Version ({cv.language})</option>,
           <option value={"merged/" + other_lang} key={"merged/" + other_lang} data-lang={other_lang} data-version="merged">Merged Version ({other_lang})</option>
         ]);
-        dl_versions = dl_versions.concat(this.state.versions.map(v =>
+        dl_versions = dl_versions.concat(pdVersions.map(v =>
           <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
         ));
       }
       else if (cv) {
+        if (this.isVersionPublicDomain(cv)) {
+          dl_versions.push(<option value={cv.versionTitle + "/" + cv.language} key={cv.versionTitle + "/" + cv.language}>Current Version ({cv.versionTitle + " (" + cv.language + ")"})</option>);
+        }
         dl_versions = dl_versions.concat([
-          <option value={cv.versionTitle + "/" + cv.language} key={cv.versionTitle + "/" + cv.language}>Current Version ({cv.versionTitle + " (" + cv.language + ")"})</option>,
           <option value="merged/he" key="merged/he">Merged Version (he)</option>,
           <option value="merged/en" key="merged/en">Merged Version (en)</option>
         ]);
-        dl_versions = dl_versions.concat(this.state.versions.filter(v => v.language != cv.language || v.versionTitle != cv.versionTitle).map(v =>
+        dl_versions = dl_versions.concat(pdVersions.filter(v => v.language != cv.language || v.versionTitle != cv.versionTitle).map(v =>
           <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
         ));
       }
@@ -2836,10 +2839,11 @@ var ReaderTextTableOfContents = React.createClass({
           <option value="merged/he" key="merged/he">Merged Version (he)</option>,
           <option value="merged/en" key="merged/en">Merged Version (en)</option>
         ]);
-        dl_versions = dl_versions.concat(this.state.versions.map(v =>
+        dl_versions = dl_versions.concat(pdVersions.map(v =>
           <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
         ));
       }
+      // End Dropdown options for downloadable texts
     }
 
 
@@ -2881,9 +2885,6 @@ var ReaderTextTableOfContents = React.createClass({
       null;
 
     // Downloading
-    //  dlVersionTitle
-    //  dlVerionLang
-    //  dlVersionFormat
     var dlReady = (this.state.dlVersionTitle && this.state.dlVersionFormat && this.state.dlVersionLanguage);
     var downloadButton = <div className="versionDownloadButton">
         <div className="downloadButtonInner">
