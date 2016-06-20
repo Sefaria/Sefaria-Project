@@ -234,7 +234,7 @@ def prepare_merged_text_for_export(title, lang=None):
         "versionTitle": "merged",
         "versionSource": "http://www.sefaria.org/%s" % title.replace(" ", "_"),
     }
-    text_docs = db.texts.find({"title": title, "language": lang})
+    text_docs = db.texts.find({"title": title, "language": lang}).sort([["priority", -1], ["_id", 1]])
 
     print "%d versions in %s" % (text_docs.count(), lang)
 
