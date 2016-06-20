@@ -1121,6 +1121,7 @@ a.resourcesLink {
 
 .readerTextTableOfContents .versionBlocks {
   border-top: 1px solid #ccc;
+  padding-bottom: 50px;
 }
 .readerTextTableOfContents .versionBlocks .versionLanguageBlock {
   padding-top: 50px;
@@ -1166,6 +1167,61 @@ a.resourcesLink {
     float: none;
     width: auto;
   }
+}
+
+
+.readerTextTableOfContents .content .dlSection {
+  clear: both;
+  padding-top: 50px;
+  border-top: 1px solid #ccc;
+}
+.readerTextTableOfContents .content .dlSectionTitle {
+    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+    text-transform: uppercase;
+    letter-spacing: .2em;
+    color: #999;
+    padding: 10px 0;
+}
+.readerTextTableOfContents .content .dlSectionTitle .he {
+    font-family: "Open Sans Hebrew", sans-serif;
+    direction: rtl;
+    text-align: right;
+}
+.readerTextTableOfContents .content .dlVersionSelect {
+    width: 60%;
+    margin: 10px auto;
+    background-color: white;
+    font-size: 14px;
+    height: 3em;
+    border-color: #ccc;
+    border-radius: 3px;
+    color: #333;
+    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+
+.readerTextTableOfContents .content .versionDownloadButton {
+    width: 60%;
+    margin: 10px auto;
+    background-color: #7685ad;
+    font-size: 14px;
+    height: 3em;
+    border-color: #7685ad;
+    border-radius: 3px;
+    color: white;
+    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.readerTextTableOfContents .content .versionDownloadButton .downloadButtonInner {
+    font-size: 18px;
+    padding: 10px;
+}
+.readerTextTableOfContents .content .versionDownloadButton .he {
+    font-family: "Open Sans Hebrew", sans-serif;
+    direction: rtl;
+    text-align: right;
+}
+.readerTextTableOfContents .content a .versionDownloadButton {
+    border-color: #212E50;
+    background-color: #212E50;
 }
 
 .searchContentFrame h1 {

@@ -2613,7 +2613,11 @@ var ReaderTextTableOfContents = React.createClass({
     return {
       versions: [],
       versionsLoaded: false,
-      currentVersion: null
+      currentVersion: null,
+      dlVersionTitle: null,
+      dlVersionLanguage: null,
+      dlVersionFormat: null,
+      dlReady: false
     }
   },
   componentDidMount: function() {
@@ -2743,6 +2747,20 @@ var ReaderTextTableOfContents = React.createClass({
       this.props.close();
     }
   },
+  onDlVersionSelect: function(event) {
+    var versionTitle, versionLang;
+    [versionTitle, versionLang] = event.target.value.split("/");
+    this.setState({
+      dlVersionTitle: versionTitle,
+      dlVersionLanguage: versionLang
+    });
+  },
+  onDlFormatSelect: function(event) {
+    this.setState({dlVersionFormat: event.target.value});
+  },
+  versionDlLink: function() {
+    return `/download/version/${this.props.title} - ${this.state.dlVersionLanguage} - ${this.state.dlVersionTitle}.${this.state.dlVersionFormat}`;
+  },
   isBookToc: function() {
     return (this.props.mode == "book toc")
   },
@@ -2762,6 +2780,7 @@ var ReaderTextTableOfContents = React.createClass({
     var defaultVersionString = "Default Version";
     var defaultVersionObject = null;
     var versionBlocks = "";
+    var dl_versions = [];
 
     if (this.state.versionsLoaded) {
       var cv = this.state.currentVersion;
@@ -2786,7 +2805,41 @@ var ReaderTextTableOfContents = React.createClass({
       versionBlocks = <div className="versionBlocks">
         {(!!heVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="en">Hebrew Versions</span><span className="he">בעברית</span></div><div>{heVersionBlocks}</div></div>:""}
         {(!!enVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="en">English Versions</span><span className="he">באנגלית</span></div><div>{enVersionBlocks}</div></div>:""}
-      </div>
+        <div style={{clear: "both"}}></div>
+      </div>;
+
+      // Dropdown options for downloadable texts
+      dl_versions = [<option key="/" value="0" disabled>Version Settings</option>];
+      
+      if (cv && cv.merged) {
+        var other_lang = cv.language == "he" ? "en" : "he";
+        dl_versions = dl_versions.concat([
+          <option value={"merged/" + cv.language} key={"merged/" + cv.language} data-lang={cv.language} data-version="merged">Current Merged Version ({cv.language})</option>,
+          <option value={"merged/" + other_lang} key={"merged/" + other_lang} data-lang={other_lang} data-version="merged">Merged Version ({other_lang})</option>
+        ]);
+        dl_versions = dl_versions.concat(this.state.versions.map(v =>
+          <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
+        ));
+      }
+      else if (cv) {
+        dl_versions = dl_versions.concat([
+          <option value={cv.versionTitle + "/" + cv.language} key={cv.versionTitle + "/" + cv.language}>Current Version ({cv.versionTitle + " (" + cv.language + ")"})</option>,
+          <option value="merged/he" key="merged/he">Merged Version (he)</option>,
+          <option value="merged/en" key="merged/en">Merged Version (en)</option>
+        ]);
+        dl_versions = dl_versions.concat(this.state.versions.filter(v => v.language != cv.language || v.versionTitle != cv.versionTitle).map(v =>
+          <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
+        ));
+      }
+      else {
+        dl_versions = dl_versions.concat([
+          <option value="merged/he" key="merged/he">Merged Version (he)</option>,
+          <option value="merged/en" key="merged/en">Merged Version (en)</option>
+        ]);
+        dl_versions = dl_versions.concat(this.state.versions.map(v =>
+          <option value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>{v.versionTitle + " (" + v.language + ")"}</option>
+        ));
+      }
     }
 
 
@@ -2826,6 +2879,36 @@ var ReaderTextTableOfContents = React.createClass({
         versionLanguage={this.state.currentVersion ? this.state.currentVersion.language : null}
         versionStatus={this.state.currentVersion ? this.state.currentVersion.versionStatus: null} />) :
       null;
+
+    // Downloading
+    //  dlVersionTitle
+    //  dlVerionLang
+    //  dlVersionFormat
+    var dlReady = (this.state.dlVersionTitle && this.state.dlVersionFormat && this.state.dlVersionLanguage);
+    var downloadButton = <div className="versionDownloadButton">
+        <div className="downloadButtonInner">
+          <span className="en">Download</span>
+          <span className="he">להורדה</span>
+        </div>
+      </div>;
+    var downloadSection = (
+      <div className="dlSection">
+        <div className="dlSectionTitle">
+          <span className="en">Download Text</span>
+          <span className="he">להורדת טקסט</span>
+        </div>
+        <select className="dlVersionSelect dlVersionTitleSelect" value={(this.state.dlVersionTitle && this.state.dlVersionLanguage)?this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage:""} onChange={this.onDlVersionSelect}>
+          {dl_versions}
+        </select>
+        <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.dlVersionFormat || ""} onChange={this.onDlFormatSelect}>
+          <option disabled>File Format</option>
+          <option key="txt" value="txt" >Text</option>
+          <option key="csv" value="csv" >CSV</option>
+          <option key="json" value="json" >JSON</option>
+        </select>
+        {dlReady?<a href={this.versionDlLink()} download>{downloadButton}</a>:downloadButton}
+      </div>
+    );
 
     var closeClick = (this.isBookToc())?this.props.closePanel:this.props.close;
     return (<div className="readerTextTableOfContents readerNavMenu">
@@ -2868,6 +2951,7 @@ var ReaderTextTableOfContents = React.createClass({
                   {moderatorSection}
                   <div className="tocContent" dangerouslySetInnerHTML={ {__html: tocHtml} }  onClick={this.handleClick}></div>
                   {versionBlocks}
+                  {downloadSection}
                 </div>
               </div>
             </div>);
