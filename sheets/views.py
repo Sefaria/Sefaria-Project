@@ -65,7 +65,7 @@ def new_sheet(request):
 	hide_video    = db.sheets.find(query).count() > 2
 
 
-	return render_to_response('s2_sheets.html' if request.COOKIES.get('s2') else 'sheets.html', {"can_edit": True,
+	return render_to_response('sheets.html' if request.COOKIES.get('s1') else 's2_sheets.html', {"can_edit": True,
 												"new_sheet": True,
 												"is_owner": True,
 												"hide_video": hide_video,
@@ -177,7 +177,7 @@ def view_sheet(request, sheet_id):
 	viewer_is_liker = request.user.id in likes
 
 
-	return render_to_response('s2_sheets.html' if request.COOKIES.get('s2') else 'sheets.html', {"sheetJSON": json.dumps(sheet),
+	return render_to_response('sheets.html' if request.COOKIES.get('s1') else 's2_sheets.html', {"sheetJSON": json.dumps(sheet),
 												"sheet": sheet,
 												"sheet_class": sheet_class,
 												"can_edit": can_edit_flag, 
@@ -279,7 +279,7 @@ def assigned_sheet(request, assignment_id):
 	like_count      = len(likes)
 	viewer_is_liker = request.user.id in likes
 
-	return render_to_response('s2_sheets.html' if request.COOKIES.get('s2') else 'sheets.html', {"sheetJSON": json.dumps(sheet),
+	return render_to_response('sheets.html' if request.COOKIES.get('s1') else 's2_sheets.html', {"sheetJSON": json.dumps(sheet),
 												"sheet": sheet,
 												"assignment_id": assignment_id,
 												"assigner_id": assigner_id,
@@ -328,7 +328,7 @@ def sheets_list(request, type=None):
 		if request.flavour == "mobile":
 			return s2_sheets(request)
 
-		elif request.COOKIES.get('s2'):
+		elif not request.COOKIES.get('s1'):
 			return s2_sheets(request)
 
 		query       = {"status": "public"}
@@ -361,7 +361,7 @@ def sheets_list(request, type=None):
 		if request.flavour == "mobile":
 			return s2_sheets_by_tag(request,"All Sheets")
 
-		elif request.COOKIES.get('s2'):
+		elif not request.COOKIES.get('s1'):
 			return s2_sheets_by_tag(request,"All Sheets")
 
 		query              = {"status": "public"}
@@ -373,7 +373,7 @@ def sheets_list(request, type=None):
 		if request.flavour == "mobile":
 			return s2_sheets_by_tag(request,"My Sheets")
 
-		elif request.COOKIES.get('s2'):
+		elif not request.COOKIES.get('s1'):
 			return s2_sheets_by_tag(request,"My Sheets")
 
 
@@ -469,7 +469,7 @@ def sheets_tags_list(request):
 	if request.flavour == "mobile":
 		return s2_sheets(request)
 
-	elif request.COOKIES.get('s2'):
+	elif not request.COOKIES.get('s1'):
 		return s2_sheets(request)
 
 	tags_list = make_tag_list()
@@ -483,7 +483,7 @@ def sheets_tag(request, tag, public=True, group=None):
 	if public:
 		if request.flavour == "mobile":
 			return s2_sheets_by_tag(request, tag)
-		elif request.COOKIES.get('s2'):
+		elif not request.COOKIES.get('s1'):
 			return s2_sheets_by_tag(request, tag)
 		sheets = get_sheets_by_tag(tag)
 	elif group:
