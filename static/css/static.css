@@ -84,6 +84,8 @@
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   font-size: 14px;
+  background-color: white;
+}
 }
 .static input:focus {
   outline: none;
