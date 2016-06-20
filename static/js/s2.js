@@ -2977,7 +2977,11 @@ var ReaderTextTableOfContents = React.createClass({
     return {
       versions: [],
       versionsLoaded: false,
-      currentVersion: null
+      currentVersion: null,
+      dlVersionTitle: null,
+      dlVersionLanguage: null,
+      dlVersionFormat: null,
+      dlReady: false
     };
   },
   componentDidMount: function componentDidMount() {
@@ -3112,11 +3116,35 @@ var ReaderTextTableOfContents = React.createClass({
       this.props.close();
     }
   },
+  onDlVersionSelect: function onDlVersionSelect(event) {
+    var versionTitle, versionLang;
+
+    var _event$target$value$s = event.target.value.split("/");
+
+    var _event$target$value$s2 = _slicedToArray(_event$target$value$s, 2);
+
+    versionTitle = _event$target$value$s2[0];
+    versionLang = _event$target$value$s2[1];
+
+    this.setState({
+      dlVersionTitle: versionTitle,
+      dlVersionLanguage: versionLang
+    });
+  },
+  onDlFormatSelect: function onDlFormatSelect(event) {
+    this.setState({ dlVersionFormat: event.target.value });
+  },
+  versionDlLink: function versionDlLink() {
+    return '/download/version/' + this.props.title + ' - ' + this.state.dlVersionLanguage + ' - ' + this.state.dlVersionTitle + '.' + this.state.dlVersionFormat;
+  },
   isBookToc: function isBookToc() {
     return this.props.mode == "book toc";
   },
   isTextToc: function isTextToc() {
     return this.props.mode == "text toc";
+  },
+  isVersionPublicDomain: function isVersionPublicDomain(v) {
+    return !(v.license && v.license.startsWith("Copyright"));
   },
   render: function render() {
     var _this = this;
@@ -3132,6 +3160,7 @@ var ReaderTextTableOfContents = React.createClass({
     var defaultVersionString = "Default Version";
     var defaultVersionObject = null;
     var versionBlocks = "";
+    var dl_versions = [];
 
     if (this.state.versionsLoaded) {
       var cv = this.state.currentVersion;
@@ -3218,8 +3247,86 @@ var ReaderTextTableOfContents = React.createClass({
             null,
             enVersionBlocks
           )
-        ) : ""
+        ) : "",
+        React.createElement('div', { style: { clear: "both" } })
       );
+
+      // Dropdown options for downloadable texts
+      dl_versions = [React.createElement(
+        'option',
+        { key: '/', value: '0', disabled: true },
+        'Version Settings'
+      )];
+      var pdVersions = this.state.versions.filter(this.isVersionPublicDomain);
+      if (cv && cv.merged) {
+        var other_lang = cv.language == "he" ? "en" : "he";
+        dl_versions = dl_versions.concat([React.createElement(
+          'option',
+          { value: "merged/" + cv.language, key: "merged/" + cv.language, 'data-lang': cv.language, 'data-version': 'merged' },
+          'Current Merged Version (',
+          cv.language,
+          ')'
+        ), React.createElement(
+          'option',
+          { value: "merged/" + other_lang, key: "merged/" + other_lang, 'data-lang': other_lang, 'data-version': 'merged' },
+          'Merged Version (',
+          other_lang,
+          ')'
+        )]);
+        dl_versions = dl_versions.concat(pdVersions.map(function (v) {
+          return React.createElement(
+            'option',
+            { value: v.versionTitle + "/" + v.language, key: v.versionTitle + "/" + v.language },
+            v.versionTitle + " (" + v.language + ")"
+          );
+        }));
+      } else if (cv) {
+        if (this.isVersionPublicDomain(cv)) {
+          dl_versions.push(React.createElement(
+            'option',
+            { value: cv.versionTitle + "/" + cv.language, key: cv.versionTitle + "/" + cv.language },
+            'Current Version (',
+            cv.versionTitle + " (" + cv.language + ")",
+            ')'
+          ));
+        }
+        dl_versions = dl_versions.concat([React.createElement(
+          'option',
+          { value: 'merged/he', key: 'merged/he' },
+          'Merged Version (he)'
+        ), React.createElement(
+          'option',
+          { value: 'merged/en', key: 'merged/en' },
+          'Merged Version (en)'
+        )]);
+        dl_versions = dl_versions.concat(pdVersions.filter(function (v) {
+          return v.language != cv.language || v.versionTitle != cv.versionTitle;
+        }).map(function (v) {
+          return React.createElement(
+            'option',
+            { value: v.versionTitle + "/" + v.language, key: v.versionTitle + "/" + v.language },
+            v.versionTitle + " (" + v.language + ")"
+          );
+        }));
+      } else {
+        dl_versions = dl_versions.concat([React.createElement(
+          'option',
+          { value: 'merged/he', key: 'merged/he' },
+          'Merged Version (he)'
+        ), React.createElement(
+          'option',
+          { value: 'merged/en', key: 'merged/en' },
+          'Merged Version (en)'
+        )]);
+        dl_versions = dl_versions.concat(pdVersions.map(function (v) {
+          return React.createElement(
+            'option',
+            { value: v.versionTitle + "/" + v.language, key: v.versionTitle + "/" + v.language },
+            v.versionTitle + " (" + v.language + ")"
+          );
+        }));
+      }
+      // End Dropdown options for downloadable texts
     }
 
     if (this.isTextToc()) {
@@ -3268,6 +3375,79 @@ var ReaderTextTableOfContents = React.createClass({
       versionTitle: this.state.currentVersion ? this.state.currentVersion.versionTitle : null,
       versionLanguage: this.state.currentVersion ? this.state.currentVersion.language : null,
       versionStatus: this.state.currentVersion ? this.state.currentVersion.versionStatus : null }) : null;
+
+    // Downloading
+    var dlReady = this.state.dlVersionTitle && this.state.dlVersionFormat && this.state.dlVersionLanguage;
+    var downloadButton = React.createElement(
+      'div',
+      { className: 'versionDownloadButton' },
+      React.createElement(
+        'div',
+        { className: 'downloadButtonInner' },
+        React.createElement(
+          'span',
+          { className: 'en' },
+          'Download'
+        ),
+        React.createElement(
+          'span',
+          { className: 'he' },
+          'להורדה'
+        )
+      )
+    );
+    var downloadSection = React.createElement(
+      'div',
+      { className: 'dlSection' },
+      React.createElement(
+        'div',
+        { className: 'dlSectionTitle' },
+        React.createElement(
+          'span',
+          { className: 'en' },
+          'Download Text'
+        ),
+        React.createElement(
+          'span',
+          { className: 'he' },
+          'להורדת טקסט'
+        )
+      ),
+      React.createElement(
+        'select',
+        { className: 'dlVersionSelect dlVersionTitleSelect', value: this.state.dlVersionTitle && this.state.dlVersionLanguage ? this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage : "", onChange: this.onDlVersionSelect },
+        dl_versions
+      ),
+      React.createElement(
+        'select',
+        { className: 'dlVersionSelect dlVersionFormatSelect', value: this.state.dlVersionFormat || "", onChange: this.onDlFormatSelect },
+        React.createElement(
+          'option',
+          { disabled: true },
+          'File Format'
+        ),
+        React.createElement(
+          'option',
+          { key: 'txt', value: 'txt' },
+          'Text'
+        ),
+        React.createElement(
+          'option',
+          { key: 'csv', value: 'csv' },
+          'CSV'
+        ),
+        React.createElement(
+          'option',
+          { key: 'json', value: 'json' },
+          'JSON'
+        )
+      ),
+      dlReady ? React.createElement(
+        'a',
+        { href: this.versionDlLink(), download: true },
+        downloadButton
+      ) : downloadButton
+    );
 
     var closeClick = this.isBookToc() ? this.props.closePanel : this.props.close;
     return React.createElement(
@@ -3357,7 +3537,8 @@ var ReaderTextTableOfContents = React.createClass({
           ) : null,
           moderatorSection,
           React.createElement('div', { className: 'tocContent', dangerouslySetInnerHTML: { __html: tocHtml }, onClick: this.handleClick }),
-          versionBlocks
+          versionBlocks,
+          downloadSection
         )
       )
     );
