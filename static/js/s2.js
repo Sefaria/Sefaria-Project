@@ -6255,8 +6255,11 @@ var LexiconPanel = React.createClass({
     }
   },
   getLookups: function getLookups() {
-    if (!this.shouldRenderSelf()) {
-      return;
+    if (!this.shouldActivate()) {
+      this.setState({
+        resultsLoaded: false,
+        entries: []
+      });
     }
     Sefaria.lexicon(this.props.selectedWords, this.props.oref.ref, function (data) {
       if (this.isMounted()) {
@@ -6267,29 +6270,28 @@ var LexiconPanel = React.createClass({
       }
     }.bind(this));
   },
-  shouldRenderSelf: function shouldRenderSelf() {
+  shouldActivate: function shouldActivate() {
     if (!this.props.selectedWords) {
       return false;
     }
     var wordList = this.props.selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
     var inputLength = wordList.length;
-    return inputLength > 0 && inputLength <= 3;
-  },
-  filter: function filter(entries) {
-    return entries.map();
+    return inputLength <= 3;
   },
   render: function render() {
     var ref_cats = this.props.oref.categories.join(", ");
     var enEmpty = "No results found.";
     var heEmpty = "לא נמצאו תוצאות";
-    if (!this.shouldRenderSelf()) {
-      return null;
+    if (!this.shouldActivate()) {
+      return false;
     }
     var content;
     if (!this.state.resultsLoaded) {
       content = React.createElement(LoadingMessage, { message: 'Looking up words...', heMessage: 'מחפש מילים...' });
     } else if ("error" in this.state.entries) {
       content = React.createElement(LoadingMessage, { message: enEmpty, heMessage: heEmpty });
+    } else if (this.state.entries.length == 0 && this.props.selecctedWords == "") {
+      return false;
     } else {
       var entries = this.state.entries;
       content = entries ? entries.filter(function (e) {
@@ -6300,6 +6302,7 @@ var LexiconPanel = React.createClass({
       content = content.length ? content : React.createElement(LoadingMessage, { message: enEmpty, heMessage: heEmpty });
     }
     /*var header = (<div className="lexicon-header"><h4>{this.props.selectedWords}</h4></div>);*/
+
     return React.createElement(
       'div',
       { className: 'lexicon-content' },

@@ -455,6 +455,8 @@ Sefaria = extend(Sefaria, {
     }
     if (words in this._lexiconLookups) {
       cb(this._lexiconLookups[cache_key]);
+    } else if(words == ""){
+        return cb([]);
     } else {
       var url = "/api/words/" + encodeURIComponent(words)+"?never_split=1";
       if(ref){
