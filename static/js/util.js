@@ -497,7 +497,9 @@ sjs.textSync = {
 			// Copy all CSS Styles to mirror
 			var p = $text[0];
 			var mirror = $text.closest(".textSyncBox").find(".textSyncMirror")[0];
-			mirror.style.cssText = document.defaultView.getComputedStyle(p, "").cssText;
+            // The cssText method is broken on Firefox (and IE?)
+            // https://bugzilla.mozilla.org/show_bug.cgi?id=137687
+			mirror.style.cssText = this.getComputedStyleCssText(p);
 			$(mirror).css("position", "absolute").hide();
 		}
 
@@ -510,6 +512,21 @@ sjs.textSync = {
 		$text.bind("keyup", sjs.textSync.handleTextChange);
 		$text.trigger("keyup");
 	},
+    getComputedStyleCssText: function(element) {
+      //Taken from: https://bugzilla.mozilla.org/show_bug.cgi?id=137687#c7
+      var style = window.getComputedStyle(element), cssText;
+
+      if (style.cssText != "") {
+        return style.cssText;
+      }
+
+      cssText = "";
+      for (var i = 0; i < style.length; i++) {
+        cssText += style[i] + ": " + style.getPropertyValue(style[i]) + "; ";
+      }
+
+      return cssText;
+    },
 	handleTextChange: function(e) {
 		// Event handler for special considerations every time the text area changes
 		var $text  = $(this);
@@ -661,7 +678,7 @@ sjs.textSync = {
 	},
 	groupHeights: function($text, nVerses) {
 		// Returns an array of the heights (offset top) of text groups in #newVersion
-		// where groups are seprated by '\n\n'
+		// where groups are separated by '\n\n'
 		// 'nVerses' is the maximum number of groups to look at
 		var text = $text.val();
 		
