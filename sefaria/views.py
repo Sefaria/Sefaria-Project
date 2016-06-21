@@ -558,4 +558,6 @@ def text_download_api(request, format, title, lang, versionTitle):
         "csv": "text/csv; charset=utf-8",
         "txt": "text/plain; charset=utf-8"
     }
-    return HttpResponse(content, content_type=content_types[format])
+    response = HttpResponse(content, content_type=content_types[format])
+    response["Content-Disposition"] = "attachment"
+    return response
