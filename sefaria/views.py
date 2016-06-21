@@ -517,8 +517,7 @@ def run_tests(request):
 
 @catch_error_as_http
 def text_download_api(request, format, title, lang, versionTitle):
-    from sefaria.helper.inout import export_merged_csv, export_version_csv
-    from sefaria.export import make_json, make_text, prepare_merged_text_for_export, prepare_text_for_export
+    from sefaria.export import make_json, make_text, prepare_merged_text_for_export, prepare_text_for_export, export_merged_csv, export_version_csv
 
     assert lang in ["en", "he"]
     assert format in ["json", "csv", "txt"]
@@ -556,4 +555,4 @@ def text_download_api(request, format, title, lang, versionTitle):
         "csv": "text/csv; charset=utf-8",
         "txt": "text/plain; charset=utf-8"
     }
-    return HttpResponse(content,  content_type=content_types[format])
+    return HttpResponse(content, content_type=content_types[format])

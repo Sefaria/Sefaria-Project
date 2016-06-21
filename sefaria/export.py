@@ -5,7 +5,8 @@ Exports to the directory specified in SEFARIA_EXPORT_PATH.
 """
 import sys
 import os
-import csv
+import io
+import unicodecsv as csv
 import re
 import json
 from shutil import rmtree
@@ -14,8 +15,7 @@ from pprint import pprint
 from datetime import datetime
 from collections import Counter
 
-import sefaria.model as model
-from sefaria.model.text import Version
+from sefaria.model import *
 from sefaria.utils.talmud import section_to_daf
 from sefaria.system.exceptions import InputError
 from summaries import ORDER
@@ -69,7 +69,7 @@ def make_text(doc):
     # We have a strange beast here - a merged content tree.  Loading it into a synthetic version.
     version = Version({"chapter": doc["text"]})
 
-    index = model.library.get_index(doc["title"])
+    index = library.get_index(doc["title"])
     text = "\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], doc["versionSource"]])    
     # version = Version().load({'title': doc["title"], 'versionTitle': doc["versionTitle"], 'language': doc["language"]})
 
@@ -155,7 +155,7 @@ def prepare_text_for_export(text):
     """
     print text["title"]
     try:
-        index = model.library.get_index(text["title"])
+        index = library.get_index(text["title"])
     except Exception as e:
         print "Skipping %s - %s" % (text["title"], e.message)
         return
@@ -255,7 +255,7 @@ def prepare_merged_text_for_export(title, lang=None):
             texts.append(text["chapter"])
             sources.append((text["versionTitle"], text["versionSource"]))
 
-        merged, merged_sources = model.merge_texts(texts, sources)
+        merged, merged_sources = merge_texts(texts, sources)
         merged_sources = list(set(merged_sources))
 
         doc.update({
@@ -274,7 +274,7 @@ def export_all_merged():
 
     for title in texts:
         try:
-            model.Ref(title)
+            Ref(title)
         except:
             continue
 
@@ -289,11 +289,11 @@ def export_schemas():
     path = SEFARIA_EXPORT_PATH + "/schemas/"
     if not os.path.exists(path):
         os.makedirs(path)
-    for i in model.library.all_index_records(with_commentary=True):
+    for i in library.all_index_records(with_commentary=True):
         title = i.title.replace(" ", "_")
         with open(path + title + ".json", "w") as f:
             try:
-                if not isinstance(i, model.CommentaryIndex):
+                if not isinstance(i, CommentaryIndex):
                     f.write(make_json(i.contents(v2=True)).encode('utf-8'))
                 else:
                     explicit_commentary_index = {
@@ -314,7 +314,7 @@ def export_toc():
     """
     Exports the TOC to a JSON file.
     """
-    toc = model.library.get_toc()
+    toc = library.get_toc()
     with open(SEFARIA_EXPORT_PATH + "/table_of_contents.json", "w") as f:
         f.write(make_json(toc).encode('utf-8'))
 
@@ -345,8 +345,8 @@ def export_links():
         links = db.links.find().sort([["refs.0", 1]])
         for i,link in enumerate(links):
             try:
-                oref1 = model.Ref(link["refs"][0])
-                oref2 = model.Ref(link["refs"][1])
+                oref1 = Ref(link["refs"][0])
+                oref2 = Ref(link["refs"][1])
             except InputError:
                 continue
 
@@ -434,3 +434,126 @@ def export_all():
     export_toc()
     export_tag_graph()
     make_export_log()
+
+
+
+# CSV Version import export format:
+#
+# Column 1: References
+# Columns 2-n: Versions
+
+# Row 1: Index title (will repeat?)
+# Row 2: Version Title
+# Row 3: Version Language
+# Row 4: Version Source
+
+
+def export_version_csv(index, version_list):
+    assert isinstance(index, Index)
+    assert isinstance(version_list, list) or isinstance(version_list, VersionSet)
+    assert all(isinstance(v, Version) for v in version_list)
+
+    output = io.BytesIO()
+    writer = csv.writer(output)
+
+    # write header data
+    writer.writerow(["Index Title"] + [index.title for _ in version_list])
+    writer.writerow(["Version Title"] + [v.versionTitle for v in version_list])
+    writer.writerow(["Language"] + [v.language for v in version_list])
+    writer.writerow(["Version Source"] + [v.versionSource for v in version_list])
+    writer.writerow(["Version Notes"] + [getattr(v, "versionNotes", "") for v in version_list])
+
+    section_refs = index.all_section_refs()
+
+    for section_ref in section_refs:
+        segment_refs = section_ref.all_subrefs()
+        seg_vers = {}
+
+        # set blank array for version data
+        for ref in segment_refs:
+            seg_vers[ref.normal()] = []
+
+        # populate each version
+        for version in version_list:
+            section = section_ref.text(vtitle=version.versionTitle, lang=version.language).text
+            for ref in segment_refs:
+                if ref.sections[-1] > len(section):
+                    seg_vers[ref.normal()] += [""]
+                else:
+                    seg_vers[ref.normal()] += [section[ref.sections[-1] - 1]]
+
+        # write lines for each section
+        for ref in segment_refs:
+            writer.writerow([ref.normal()] + seg_vers[ref.normal()])
+
+    return output.getvalue()
+
+
+def export_merged_csv(index, lang=None):
+    assert isinstance(index, Index)
+    assert lang in ["en", "he"]
+
+    output = io.BytesIO()
+    writer = csv.writer(output)
+
+    # write header data
+    writer.writerow(["Index Title"] + [index.title])
+    writer.writerow(["Version Title"] + ["merged"])
+    writer.writerow(["Language"] + [lang])
+    writer.writerow(["Version Source"] + ["-"])
+    writer.writerow(["Version Notes"] + ["-"])
+
+    section_refs = index.all_section_refs()
+
+    for section_ref in section_refs:
+        segment_refs = section_ref.all_subrefs()
+        seg_vers = {}
+
+        # set blank array for version data
+        for ref in segment_refs:
+            seg_vers[ref.normal()] = []
+
+        # populate each version
+        section = section_ref.text(lang=lang).text
+        for ref in segment_refs:
+            if ref.sections[-1] > len(section):
+                seg_vers[ref.normal()] += [""]
+            else:
+                seg_vers[ref.normal()] += [section[ref.sections[-1] - 1]]
+
+        # write lines for each section
+        for ref in segment_refs:
+            writer.writerow([ref.normal()] + seg_vers[ref.normal()])
+
+    return output.getvalue()
+
+
+def import_versions(csv_filename, columns):
+    """
+    Import the versions in the columns listed in `columns`
+    :param columns: zero-based list of column numbers with a new version in them
+    :return:
+    """
+    with open(csv_filename, 'rb') as csvfile:
+        reader = csv.reader(csvfile)
+        rows = [row for row in reader]
+
+    index_title = rows[0][columns[0]]  # assume the same index title for all
+    index_node = Ref(index_title).index_node
+
+    for column in columns:
+        # Create version
+        v = Version({
+            "chapter": index_node.create_skeleton(),
+            "title": index_title,
+            "versionTitle": rows[1][column],
+            "language": rows[2][column],            # Language
+            "versionSource": rows[3][column],       # Version Source
+            "versionNotes": rows[4][column],        # Version Notes
+        }).save()
+
+        # Populate it
+        for row in rows[5:]:
+            tc = TextChunk(Ref(row[0]), v.language, v.versionTitle)
+            tc.text = row[column]
+            tc.save()
