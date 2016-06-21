@@ -5521,7 +5521,8 @@ var AddToSourceSheetPanel = React.createClass({
     var sheetsContent = sheets ? sheets.map(function(sheet) {
       var classes     = classNames({sheet: 1, selected: this.state.selectedSheet == sheet.id});
       var selectSheet = function() { this.setState({selectedSheet: sheet.id}); }.bind(this);
-      return (<div className={classes} onClick={selectSheet} key={sheet.id}>{sheet.title.stripHtml()}</div>);
+      var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
+      return (<div className={classes} onClick={selectSheet} key={sheet.id}>{title}</div>);
     }.bind(this)) : <LoadingMessage />;
     sheetsContent     = sheets && sheets.length == 0 ? 
                           (<div className="sheet"><span className="en">You don&rsquo;t have any Source Sheets yet.</span><span className="he">טרם יצרת דפי מקורות</span></div>) :
