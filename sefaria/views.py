@@ -517,7 +517,7 @@ def run_tests(request):
 
 @catch_error_as_http
 def text_download_api(request, format, title, lang, versionTitle):
-    from sefaria.export import make_json, make_text, prepare_merged_text_for_export, prepare_text_for_export, export_merged_csv, export_version_csv
+    from sefaria.export import text_is_copyright, make_json, make_text, prepare_merged_text_for_export, prepare_text_for_export, export_merged_csv, export_version_csv
 
     assert lang in ["en", "he"]
     assert format in ["json", "csv", "txt"]
@@ -528,7 +528,8 @@ def text_download_api(request, format, title, lang, versionTitle):
 
     if format == "csv" and not merged:
         version = Version().load(version_query)
-        assert version
+        assert version, "Can not find version of {} in {}: {}".format(title, lang, versionTitle)
+        assert not version.is_copyrighted(), "Cowardly refusing to export copyrighted text."
         content = export_version_csv(index, [version])
 
     elif format == "csv" and merged:
@@ -536,7 +537,8 @@ def text_download_api(request, format, title, lang, versionTitle):
 
     elif format == "json" and not merged:
         version_object = db.texts.find_one(version_query)
-        assert version_object
+        assert version_object, "Can not find version of {} in {}: {}".format(title, lang, versionTitle)
+        assert not text_is_copyright(version_object), "Cowardly refusing to export copyrighted text."
         content = make_json(prepare_text_for_export(version_object))
 
     elif format == "json" and merged:
@@ -544,7 +546,8 @@ def text_download_api(request, format, title, lang, versionTitle):
 
     elif format == "txt" and not merged:
         version_object = db.texts.find_one(version_query)
-        assert version_object
+        assert version_object, "Can not find version of {} in {}: {}".format(title, lang, versionTitle)
+        assert not text_is_copyright(version_object), "Cowardly refusing to export copyrighted text."
         content = make_text(prepare_text_for_export(version_object))
 
     elif format == "txt" and merged:

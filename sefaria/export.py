@@ -436,7 +436,6 @@ def export_all():
     make_export_log()
 
 
-
 # CSV Version import export format:
 #
 # Column 1: References
@@ -514,7 +513,7 @@ def export_merged_csv(index, lang=None):
             seg_vers[ref.normal()] = []
 
         # populate each version
-        section = section_ref.text(lang=lang).text
+        section = section_ref.text(lang=lang, exclude_copyrighted=True).text
         for ref in segment_refs:
             if ref.sections[-1] > len(section):
                 seg_vers[ref.normal()] += [""]

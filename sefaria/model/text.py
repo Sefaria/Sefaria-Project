@@ -1066,7 +1066,7 @@ class TextChunk(AbstractTextRecord):
     """
     text_attr = "text"
 
-    def __init__(self, oref, lang="en", vtitle=None):
+    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False):
         """
         :param oref:
         :type oref: Ref
@@ -1097,6 +1097,8 @@ class TextChunk(AbstractTextRecord):
         if lang and vtitle:
             self._saveable = True
             v = Version().load({"title": self._oref.index.title, "language": lang, "versionTitle": vtitle}, self._oref.part_projection())
+            if exclude_copyrighted and v.is_copyrighted():
+                raise InputError("Can not provision copyrighted text. {} ({}/{})".format(oref.normal(), vtitle, lang))
             if v:
                 self._versions += [v]
                 self.text = self._original_text = self.trim_text(v.content_node(self._oref.index_node))
@@ -1109,10 +1111,14 @@ class TextChunk(AbstractTextRecord):
                 return
             if vset.count() == 1:
                 v = vset[0]
+                if exclude_copyrighted and v.is_copyrighted():
+                    raise InputError("Can not provision copyrighted text. {} ({}/{})".format(oref.normal(), v.versionTitle, v.language))
                 self._versions += [v]
                 self.text = self.trim_text(v.content_node(self._oref.index_node))
                 #todo: Should this instance, and the non-merge below, be made saveable?
             else:  # multiple versions available, merge
+                if exclude_copyrighted:
+                    vset.remove(Version.is_copyrighted)
                 merged_text, sources = vset.merge(self._oref.index_node)  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
                 self.text = self.trim_text(merged_text)
                 if len(set(sources)) == 1:
@@ -3298,13 +3304,13 @@ class Ref(object):
             self._normal = self._get_normal("en")
         return self._normal
 
-    def text(self, lang="en", vtitle=None):
+    def text(self, lang="en", vtitle=None, exclude_copyrighted=False):
         """
         :param lang: "he" or "en"
         :param vtitle: optional. text title of the Version to get the text from
         :return: :class:`TextChunk` corresponding to this Ref
         """
-        return TextChunk(self, lang, vtitle)
+        return TextChunk(self, lang, vtitle, exclude_copyrighted=exclude_copyrighted)
 
     def url(self):
         """
