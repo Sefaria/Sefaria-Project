@@ -231,6 +231,7 @@ def make_panel_dict(oref, version, language, filter, mode):
             "textTocHtml": make_toc_html(oref),
         }
     else:
+        oref = oref.first_available_section_ref()
         panel = {
             "mode": mode,
             "ref": oref.normal(),
