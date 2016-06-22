@@ -2903,13 +2903,22 @@ function copySheet() {
 }
 
 function exportToDrive() {
-	$.post("/api/sheets/" + sjs.current.id + "/export_to_drive", function(data) {
-		if ("error" in data) {
-			sjs.alert.message(data.error.message);
-		} else {
-			sjs.alert.message("Source Sheet exported to Google Drive.<br><br><a href='" + data.webViewLink + "'>Open in Google Drive &raquo;</a>");
+	$.ajax({
+	  type: "POST",
+	  url: "/api/sheets/" + sjs.current.id + "/export_to_drive",
+	  success: function(data) {
+			if ("error" in data) {
+				sjs.alert.message(data.error.message);
+			} else {
+				sjs.alert.message("Source Sheet exported to Google Drive.<br><br><a href='" + data.webViewLink + "'>Open in Google Drive &raquo;</a>");
+			}
+		},
+		statusCode: {
+			401: function () {
+				window.location.href = "/gauth?next=" + window.location.href;
+			}
 		}
-	})
+	});
 }
 
 function showEmebed() {

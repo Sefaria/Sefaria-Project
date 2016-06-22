@@ -1,8 +1,8 @@
 import os
 
 from django.contrib.auth.decorators import login_required
-from django.http import (HttpResponseBadRequest,
-                         HttpResponseRedirect)
+from django.core.urlresolvers import reverse
+from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect
 from oauth2client.contrib import xsrfutil
 from oauth2client.contrib.django_orm import Storage
@@ -26,8 +26,9 @@ def index(request):
     """
     FLOW = flow_from_clientsecrets(
         CLIENT_SECRETS,
-        scope=request.GET.get('scope', ''),
-        redirect_uri='http://localhost:8000/gauth/callback')  # http://www.sefaria.org/gauth/callback for production
+        scope=request.session.get('gauth_scope', ''),
+        # approval_prompt='force',
+        redirect_uri=request.build_absolute_uri(reverse('gauth_callback')))
 
     FLOW.params['state'] = xsrfutil.generate_token(settings.SECRET_KEY,
                                                    request.user)
@@ -35,7 +36,9 @@ def index(request):
     flow_storage = Storage(FlowModel, 'id', request.user, 'flow')
     flow_storage.put(FLOW)
 
-    return HttpResponseRedirect(authorize_url)
+    request.session['next_view'] = request.GET.get('next', '/')
+
+    return redirect(authorize_url)
 
 
 @login_required
@@ -44,7 +47,7 @@ def auth_return(request):
     Step 2 of Google OAuth 2.0 flow.
     """
     if 'state' not in request.REQUEST:
-        return HttpResponseRedirect('/gauth')
+        return redirect('gauth_index')
 
     if not xsrfutil.validate_token(settings.SECRET_KEY,
                                    str(request.REQUEST['state']),
@@ -55,7 +58,7 @@ def auth_return(request):
     # Not sure if this test is needed in addition to
     # the `if 'state' not in request.REQUEST` test.
     if FLOW is None:
-        return HttpResponseRedirect('/gauth')
+        return redirect('gauth_index')
 
     credential = FLOW.step2_exchange(request.REQUEST)
     cred_storage = Storage(CredentialsModel, 'id', request.user, 'credential')

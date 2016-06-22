@@ -816,7 +816,7 @@ def sheet_to_html_string(sheet):
 	return render_to_string('sheet_for_gdrive.html', context).encode('utf-8')
 
 
-@gauth_required(scope='https://www.googleapis.com/auth/drive.file')
+@gauth_required(scope='https://www.googleapis.com/auth/drive.file', ajax=True)
 def export_to_drive(request, credential, sheet_id):
 	"""
 	Export a sheet to Google Drive.
