@@ -77,7 +77,7 @@ urlpatterns += patterns('reader.views',
     (r'^esi/account_box/?$', 'esi_account_box'),
 )
 
-# Campaigns 
+# Campaigns
 urlpatterns += patterns('reader.views',
     (r'^translate/(?P<tref>.+)$', 'translation_flow'),
     (r'^translation-requests/completed?', 'completed_translation_requests'),
@@ -136,7 +136,7 @@ urlpatterns += patterns('sheets.views',
 )
 
 # Source Sheets API
-urlpatterns += patterns('sheets.views',    
+urlpatterns += patterns('sheets.views',
     (r'^api/sheets/?$', 'sheet_list_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/delete$',                     'delete_sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/add$',                        'add_source_to_sheet_api'),
@@ -159,7 +159,7 @@ urlpatterns += patterns('sheets.views',
 
 )
 
-# Activity 
+# Activity
 urlpatterns += patterns('reader.views',
     (r'^activity/?$', 'global_activity'),
     (r'^activity/(?P<page>\d+)$', 'global_activity'),
@@ -178,7 +178,7 @@ urlpatterns += patterns('reader.views',
     (r'^api/profile$', 'profile_api'),
 )
 
-# Random Text 
+# Random Text
 urlpatterns += patterns('reader.views',
     (r'^random/link$',        'random_redirect'),
     (r'^random/?$',           'random_text_page'),
@@ -202,7 +202,7 @@ urlpatterns += patterns('reader.views',
 
 )
 
-# Groups 
+# Groups
 urlpatterns += patterns('sheets.views',
     (r'^groups/?', 'groups_page'),
     (r'^api/groups$', 'groups_api'),
@@ -244,8 +244,8 @@ static_pages = [
     "contributed-to-sefaria",
 ]
 
-# Static and Semi Static Content 
-urlpatterns += patterns('reader.views', 
+# Static and Semi Static Content
+urlpatterns += patterns('reader.views',
     url(r'^$', 'home', name="home"),
     (r'^metrics/?$', 'metrics'),
     (r'^connect/?$', 'connectPage'),
@@ -300,14 +300,14 @@ urlpatterns += patterns('sefaria.views',
     (r'^api/bulktext/(?P<refs>.+)$', 'bulktext_api')
 )
 
-# Email Subscribe 
-urlpatterns += patterns('sefaria.views', 
+# Email Subscribe
+urlpatterns += patterns('sefaria.views',
     (r'^api/subscribe/(?P<email>.+)$', 'subscribe'),
 )
 
 
-# Admin 
-urlpatterns += patterns('', 
+# Admin
+urlpatterns += patterns('',
     (r'^admin/reset/varnish/(?P<tref>.+)$', 'sefaria.views.reset_varnish'),
     (r'^admin/reset/cache$', 'sefaria.views.reset_cache'),
     (r'^admin/reset/cache/(?P<title>.+)$', 'sefaria.views.reset_index_cache_for_text'),
@@ -344,19 +344,19 @@ urlpatterns += patterns('',
 
 # Google API OAuth 2.0
 urlpatterns += patterns('gauth.views',
-    (r'^gauth$', 'index'),
-    (r'^gauth/callback$', 'auth_return'),
+    (r'^gauth$', 'index', {}, 'gauth_index'),
+    (r'^gauth/callback$', 'auth_return', {}, 'gauth_callback'),
 )
 
 # Catch all to send to Reader
-urlpatterns += patterns('reader.views', 
+urlpatterns += patterns('reader.views',
     (r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', 'reader'),
     (r'^(?P<tref>[^/]+)(/)?$', 'reader')
 )
 
 if DOWN_FOR_MAINTENANCE:
     # Keep admin accessible
-    urlpatterns = patterns('', 
+    urlpatterns = patterns('',
         (r'^admin/reset/cache', 'sefaria.views.reset_cache'),
         (r'^admin/?', include(admin.site.urls)),
     )
@@ -364,5 +364,3 @@ if DOWN_FOR_MAINTENANCE:
     urlpatterns += patterns('sefaria.views',
         (r'.*', 'maintenance_message')
     )
-
-
