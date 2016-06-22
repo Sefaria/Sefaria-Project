@@ -21,19 +21,19 @@ def gauth_required(scope, ajax=False):
         @login_required
         @wraps(func)
         def inner(request, *args, **kwargs):
+            # Try grabbing credential from storage
             storage = Storage(CredentialsModel, 'id',
                               request.user, 'credential')
             credential = storage.get()
 
+            # Begin process of getting a new credential
             if credential is None or credential.invalid:
-                # request.session['next_view'] = (next_ if next_ is not None
-                #                                 else request.path)
+                request.session['next_view'] = request.path
                 request.session['gauth_scope'] = scope
-                if ajax:
-                    return HttpResponse('Unauthorized', status=401)
-                else:
-                    return redirect('gauth_index')
+                return (HttpResponse('Unauthorized', status=401)
+                        if ajax else redirect('gauth_index'))
 
+            # Everything went well, call wrapped view and give credential to it
             kwargs['credential'] = credential
             return func(request, *args, **kwargs)
         return inner

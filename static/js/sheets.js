@@ -2914,8 +2914,8 @@ function exportToDrive() {
 			}
 		},
 		statusCode: {
-			401: function () {
-				window.location.href = "/gauth?next=" + window.location.href;
+			401: function() {
+				window.location.href = "/gauth?next=" + window.location.pathname;
 			}
 		}
 	});

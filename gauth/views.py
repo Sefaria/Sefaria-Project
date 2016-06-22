@@ -24,6 +24,7 @@ def index(request):
     """
     Step 1 of Google OAuth 2.0 flow.
     """
+    # Create and store the per-user flow object
     FLOW = flow_from_clientsecrets(
         CLIENT_SECRETS,
         scope=request.session.get('gauth_scope', ''),
@@ -36,7 +37,12 @@ def index(request):
     flow_storage = Storage(FlowModel, 'id', request.user, 'flow')
     flow_storage.put(FLOW)
 
-    request.session['next_view'] = request.GET.get('next', '/')
+    # Don't worry if a next parameter is not set. `auth_return` will use the
+    # homepage by default. Allows for `next_view` to be set from other places.
+    try:
+        request.session['next_view'] = request.GET['next']
+    except KeyError:
+        pass
 
     return redirect(authorize_url)
 
@@ -55,8 +61,6 @@ def auth_return(request):
         return HttpResponseBadRequest()
 
     FLOW = Storage(FlowModel, 'id', request.user, 'flow').get()
-    # Not sure if this test is needed in addition to
-    # the `if 'state' not in request.REQUEST` test.
     if FLOW is None:
         return redirect('gauth_index')
 
