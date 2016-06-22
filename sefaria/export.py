@@ -55,8 +55,9 @@ def make_json(doc):
     """
     Returns JSON of 'doc' with export settings.
     """
-    jdoc = {k: v for k, v in doc.iteritems() if k is not "original_text"}
-    return json.dumps(jdoc, indent=4, encoding='utf-8', ensure_ascii=False)
+    if "original_text" in doc:
+        doc = {k: v for k, v in doc.iteritems() if k is not "original_text"}
+    return json.dumps(doc, indent=4, encoding='utf-8', ensure_ascii=False)
 
 
 def make_text(doc):
@@ -69,7 +70,8 @@ def make_text(doc):
 
     """
     # We have a strange beast here - a merged content tree.  Loading it into a synthetic version.
-    version = Version({"chapter": doc["original_text"]})
+    chapter = doc.get("original_text", doc["text"])
+    version = Version({"chapter": chapter})
 
     index = library.get_index(doc["title"])
     text = "\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], doc["versionSource"]])    
@@ -163,9 +165,10 @@ def prepare_text_for_export(text):
     text["heTitle"] = index.nodes.primary_title("he")
     text["categories"] = index.categories
     text["text"] = text.get("text", None) or text.get("chapter", "")
-    text["original_text"] = deepcopy(text["text"])
 
     if index.is_complex():
+        text["original_text"] = deepcopy(text["text"])
+
         def min_node_props(node, depth, **kwargs):
             js = {"heTitle": node.primary_title("he"),
                   "enTitle": node.primary_title("en"),
