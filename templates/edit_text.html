@@ -309,6 +309,9 @@
 		current: {{ initJSON }},
 		langMode: "{{ contentLang }}".substring(0,2)
 	});
+    if("edit_lang" in sjs.current){
+        sjs.langMode = sjs.current["edit_lang"];
+    }
 
 {% endautoescape %}
 </script>

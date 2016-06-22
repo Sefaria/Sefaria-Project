@@ -676,8 +676,10 @@ $(function() {
 		
 		if ("after" in params) {
 			window.location = params["after"];
-		}else if ("next" in params){
+		}else if ("next" in params) {
 			window.location = params["next"];
+		}else if($.cookie('s2') == "true") {
+			window.location = window.location.href.replace("edit/", "");
 		} else {
 			sjs.clearNewText();
 			sjs._direction = 0;

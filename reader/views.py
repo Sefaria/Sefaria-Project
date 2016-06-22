@@ -498,6 +498,8 @@ def edit_text(request, ref=None, lang=None, version=None):
                 text = TextFamily(Ref(ref), lang=lang, version=version).contents()
                 text["mode"] = request.path.split("/")[1]
                 mode = text["mode"].capitalize()
+                text["edit_lang"] = lang
+                text["edit_version"] = version
                 initJSON = json.dumps(text)
         except:
             index = library.get_index(ref)
@@ -512,8 +514,8 @@ def edit_text(request, ref=None, lang=None, version=None):
 
     return render_to_response('edit_text.html',
                              {'titles': titles,
-                             'initJSON': initJSON,
-                             'page_title': page_title,
+                              'initJSON': initJSON,
+                              'page_title': page_title,
                              },
                              RequestContext(request))
 
