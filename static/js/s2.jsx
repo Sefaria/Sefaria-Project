@@ -6352,7 +6352,7 @@ var SearchResultList = React.createClass({
         var loadingMessage   = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
         var noResultsMessage = (<LoadingMessage message="0 results." heMessage="0 תוצאות." />);
 
-        var queryLoaded      = !this.state.moreToLoad[tab] && !this.state.isQueryRunning[tab];
+        var queryFullyLoaded      = !this.state.moreToLoad[tab] && !this.state.isQueryRunning[tab];
         var haveResults      = !!results.length;
         results              = haveResults ? results : noResultsMessage;
         var searchFilters    = (<SearchFilters
@@ -6370,7 +6370,7 @@ var SearchResultList = React.createClass({
         return (
           <div>
             { searchFilters }
-            { queryLoaded ? results : loadingMessage }
+            { queryFullyLoaded || haveResults ? results : loadingMessage }
           </div>
         );
     }
