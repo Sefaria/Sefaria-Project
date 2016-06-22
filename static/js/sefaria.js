@@ -266,7 +266,9 @@ Sefaria = extend(Sefaria, {
     var refkey           = this._refKey(data.ref, settings);
     this._refmap[refkey] = key;
 
-    if (data.ref == data.sectionRef && !data.isSpanning) {
+    if (// data.ref == data.sectionRef // Not segment level ref
+        data.textDepth - data.sections.length == 1 // Section level ref
+        && !data.isSpanning) {
       this._splitTextSection(data, settings);
     } else if (settings.context) {
       // Save a copy of the data at context level
@@ -302,7 +304,7 @@ Sefaria = extend(Sefaria, {
   },
   _splitTextSection: function(data, settings) {
     // Takes data for a section level text and populates cache with segment levels.
-    // Runs recursively for Refs above section level like "Rashi on Genesis 1".
+    // Don't do this for Refs above section level, like "Rashi on Genesis 1", since it's impossible to correctly derive next & prev.
     settings = settings || {};
     var en = typeof data.text == "string" ? [data.text] : data.text;
     var he = typeof data.he == "string" ? [data.he] : data.he;
@@ -328,7 +330,7 @@ Sefaria = extend(Sefaria, {
         toSections: data.sections.concat(i+1),
         sectionRef: sectionRef,
         nextSegment: i+start == length ? data.next + delim + 1 : data.ref + delim + (i+start+1),
-        prevSegment: i+start == 1      ? null : data.ref + delim + (i+start-1),
+        prevSegment: i+start == 1      ? null : data.ref + delim + (i+start-1)
       });
 
       var context_settings = (settings.version && settings.language) ? {
