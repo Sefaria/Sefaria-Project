@@ -691,6 +691,12 @@ var ReaderApp = React.createClass({
       panel.version = null;
       panel.versionLanguage = null;
     }
+
+    if (this.state.panels.length > n + 1 && this.state.panels[n + 1].mode == "Connections") {
+      var connectionsPanel = this.state.panels[n + 1];
+      connectionsPanel.version = panel.version;
+      connectionsPanel.versionLanguage = panel.versionLanguage;
+    }
     this.setState({ panels: this.state.panels });
   },
   // this.state.defaultVersion is a depth 2 dictionary - keyed: bookname, language
@@ -7894,7 +7900,7 @@ var SearchResultList = React.createClass({
     var loadingMessage = React.createElement(LoadingMessage, { message: 'Searching...', heMessage: 'מבצע חיפוש...' });
     var noResultsMessage = React.createElement(LoadingMessage, { message: '0 results.', heMessage: '0 תוצאות.' });
 
-    var queryLoaded = !this.state.moreToLoad[tab] && !this.state.isQueryRunning[tab];
+    var queryFullyLoaded = !this.state.moreToLoad[tab] && !this.state.isQueryRunning[tab];
     var haveResults = !!results.length;
     results = haveResults ? results : noResultsMessage;
     var searchFilters = React.createElement(SearchFilters, {
@@ -7913,7 +7919,7 @@ var SearchResultList = React.createClass({
       'div',
       null,
       searchFilters,
-      queryLoaded ? results : loadingMessage
+      queryFullyLoaded || haveResults ? results : loadingMessage
     );
   }
 });
