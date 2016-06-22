@@ -6851,10 +6851,11 @@ var AddToSourceSheetPanel = React.createClass({
       var selectSheet = function () {
         this.setState({ selectedSheet: sheet.id });
       }.bind(this);
+      var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
       return React.createElement(
         'div',
         { className: classes, onClick: selectSheet, key: sheet.id },
-        sheet.title.stripHtml()
+        title
       );
     }.bind(this)) : React.createElement(LoadingMessage, null);
     sheetsContent = sheets && sheets.length == 0 ? React.createElement(
