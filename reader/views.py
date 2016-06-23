@@ -14,6 +14,8 @@ import base64
 import zlib
 from bson.json_util import dumps
 import p929
+import socket
+import traceback
 
 from django.views.decorators.cache import cache_page
 from django.template import RequestContext
@@ -202,7 +204,9 @@ def render_react_component(component, props):
     if not USE_NODE:
         return render_to_string("elements/loading.html")
 
-    propsJSON = json.dumps(props) 
+    from sefaria.settings import NODE_TIMEOUT, NODE_TIMEOUT_MONITOR
+
+    propsJSON = json.dumps(props)
     cache_key = "todo" # zlib.compress(propsJSON)
     url = NODE_HOST + "/" + component + "/" + cache_key
 
@@ -211,11 +215,23 @@ def render_react_component(component, props):
         "propsJSON": propsJSON,
     })
     try:
-        response = urllib2.urlopen(url, encoded_args)
+        response = urllib2.urlopen(url, encoded_args, NODE_TIMEOUT)
         html = response.read()
         return html
-    except:
-        # If anything goes wrong with Node, fall back to client-side rendering
+    except (urllib2.URLError, socket.timeout) as e:
+        # Catch timeouts, however they may come.  Write to file NODE_TIMEOUT_MONITOR, which forever monitors to restart process
+        if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
+            logger.exception("Node timeout: Fell back to client-side rendering.")
+            with open(NODE_TIMEOUT_MONITOR, "a") as myfile:
+                msg = traceback.format_exc()
+                myfile.write("Node timeout: Fell back to client-side rendering. Traceback:")
+                myfile.write(msg)
+            return render_to_string("elements/loading.html")
+        else:
+            raise
+    except Exception as e:
+        # If anything else goes wrong with Node, just fall back to client-side rendering
+        logger.exception("Fell back to client-side rendering.")
         return render_to_string("elements/loading.html")
 
 
