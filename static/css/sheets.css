@@ -1823,39 +1823,25 @@ a.userLink{
     height: 30px;
 }
 
-#shareWithOthers .title {
-	font-size: 20px;
-	margin: 5px 0 16px 0;
-	text-align: center;
-}
-
-#shareWithOthers .content {
-	color: #999;
-	text-align: left;
-}
-
 #shareWithOthers .content .inputHeader {
-	margin: 10px 0 5px 0;
+	margin: 30px 0 15px 0;
 }
+
 #shareWithOthers .content select {
 	width: 100%;
 }
 
-#shareWithOthers .ok.button {
-	margin: 10px auto;
-}
-
-
 #shareWithOthers {
 	text-align: center;
-	padding:20px;
 	width:400px;
 }
 
 #sharingDesc {
-	color: #999;
-	text-align: center;
-
+    color: #999;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 30px;
+    margin-top: 10px;
 }
 
 .s2Modal {
@@ -1863,6 +1849,28 @@ a.userLink{
 	background-color: #F9F9F7;
 	border: 1px solid #999;
 	border-radius: 6px;
+}
+
+.s2Modal .title {
+	font-size: 20px;
+	margin: 5px 0 0 0;
+	text-align: center;
+}
+
+.s2Modal .content {
+	color: #999;
+	text-align: left;
+}
+
+.s2Modal .ok.button {
+	margin: 0 auto;
+}
+
+.s2Modal input, .s2Modal textarea, .s2Modal select {
+	margin-bottom: 0;
+	background-color: #fff;
+	height:40px;
+	padding: 20px 10px;
 }
 
 #panelWrapBox {
