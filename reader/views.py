@@ -15,7 +15,6 @@ import zlib
 from bson.json_util import dumps
 import p929
 import socket
-import traceback
 
 from django.views.decorators.cache import cache_page
 from django.template import RequestContext
@@ -223,9 +222,8 @@ def render_react_component(component, props):
         if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
             logger.exception("Node timeout: Fell back to client-side rendering.")
             with open(NODE_TIMEOUT_MONITOR, "a") as myfile:
-                msg = traceback.format_exc()
-                myfile.write("Node timeout: Fell back to client-side rendering. Traceback:")
-                myfile.write(msg)
+                myfile.write("Node timeout: Fell back to client-side rendering. \nRequest Props:\n")
+                myfile.write(propsJSON)
             return render_to_string("elements/loading.html")
         else:
             raise
