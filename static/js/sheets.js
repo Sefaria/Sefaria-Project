@@ -352,6 +352,9 @@ $(function() {
 		$(this).hide();
 		$("#StopCollectingAssignmentsButton").show();
 		$("#sheet").addClass('assignable');
+		$("#assignmentDirections").html('Students can complete their assignment at this link:');
+		$("#assignmentURLLink").show();
+		$("#assignedSheets").show();
 		autoSave();
 	});
 
@@ -360,6 +363,14 @@ $(function() {
 		$(this).hide();
 		$("#makeSheetAssignableButton").show();
 		$("#sheet").removeClass('assignable');
+		$("#assignmentDirections").html('Assignments allow you to create a template that your students can fill out on their own.')
+		$("#assignmentURLLink").hide();
+		if ( $("#assignedSheets a").length > 0) {
+			$("#assignedSheets").show();
+		}
+		else {
+			$("#assignedSheets").hide();
+		}
 		autoSave();
 	});
 

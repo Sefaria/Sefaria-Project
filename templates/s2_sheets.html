@@ -441,31 +441,25 @@
 
 
 <div id="assignmentsModal" class="modal s2Modal">
-
-        <div class="header">
-            <h3>Assignments:</h3>
-            Assignments allow you to create a template that your students can fill out on their own.
+        <div class="title">Assignments</div>
+        <div class="content" id="assignmentDirections">
+        Assignments allow you to create a template that your students can fill out on their own.
         </div>
-        <div class='btn btn-success' id="makeSheetAssignableButton">Make this sheet assignable</div>
-        <div class='btn btn-danger' id="StopCollectingAssignmentsButton">Stop Collecting Assignments</div>
+        <input id="assignmentURLLink" value="{{ request.META.HTTP_HOST }}/sheets/new?assignment={{sheet.id}}" />
+        <div class='button' id="makeSheetAssignableButton">Assign this Sheet</div>
+        <div class='button' id="StopCollectingAssignmentsButton">Stop Collecting Assignments</div>
         <br/>
                     <div id="assignedSheets">
-                            <div id="assignedSheetsShareURL">
-                                <div class="line"></div>
-                                Students can complete their assignment at this link:<br/>
-                                <input id="assignmentURLLink" value="{{ request.META.HTTP_HOST }}/sheets/new?assignment={{sheet.id}}" />
-                            </div>
                                 <div class="line"></div>
 
-                                <strong>Saved Assignments:</strong>
+                                <div class="title">Saved Assignments:</div>
         						{% for assignment_sheet in assignments_from_sheet %}
-                                <div class="optionLink" ><a href="./{{ assignment_sheet.id }}" target="_blank">{{ assignment_sheet.owner|user_name }}</a></div>
+                                <a href="./{{ assignment_sheet.id }}" target="_blank"><div class="button white" >{{ assignment_sheet.owner|user_name }}</div></a>
 
                                 {% empty %}
-                                    <br/><em>Your student's saved assignments will be viewable here.</em>
+                                    <em>Your student's saved assignments will be viewable here.</em>
                                 {% endfor %}
                     </div>
-        <div class='btn btn-primary ok'>Ok</div>
 
 </div>
 
@@ -504,7 +498,7 @@
     </div>
 	{% endif %}
     <div id="sharingDesc"></div><span id="sharingType" data-sharing=""></span>
-    <div class="ok button">Ok</div>
+    <div class="ok button">Save</div>
 </div>
 
 

@@ -237,13 +237,19 @@ body {
 	margin:10px;
 }
 
-#assignedSheets {
-	margin: 10px 10px 0 10px;
+#assignedSheets,#assignedSheets .title  {
+	margin: 20px 0;
 }
 
 #assignmentURLLink {
-	width:300px;
+	width:100%;
+	cursor: text;
 	text-align: center;
+	display: none;
+}
+#StopCollectingAssignmentsButton {
+	margin-top:8px;
+	width:100%;
 }
 
 #assignmentsModal .btn {
@@ -279,6 +285,11 @@ body {
 	width: 100%;
 	background: #ddd;
 	margin: 2px 0px;
+}
+
+.s2Modal .line {
+	width: 460px;
+	margin-left:-40px;
 }
 
 .optionsMenu .fa {
@@ -1844,11 +1855,30 @@ a.userLink{
     margin-top: 10px;
 }
 
+#assignmentDirections {
+	margin: 30px 0;
+	text-align: center;
+}
+
+#assignedSheets .button {
+	background-color: #fff;
+	border:#ccc;
+	width:100%;
+}
+#assignedSheets {
+	display: none;
+}
+
+#assignedSheets .button a {
+	text-decoration: none;
+}
+
 .s2Modal {
 	padding: 30px;
 	background-color: #F9F9F7;
 	border: 1px solid #999;
 	border-radius: 6px;
+	width: 400px;
 }
 
 .s2Modal .title {
@@ -1871,6 +1901,7 @@ a.userLink{
 	background-color: #fff;
 	height:40px;
 	padding: 20px 10px;
+    box-sizing: border-box;
 }
 
 #panelWrapBox {
