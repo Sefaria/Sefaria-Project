@@ -1939,3 +1939,6 @@ ul.tagit li.tagit-choice .tagit-close .text-icon {
     background-repeat: no-repeat;
 }
 
+.ui-autocomplete .ui-menu-item a.ui-state-focus {
+  background-color: #fff;
+}

@@ -314,7 +314,7 @@ $(function() {
 	$("#inlineAdd").keyup(checkInlineAddSource )
 		.keyup(function(e) {
 		if (e.keyCode == 13) {
-			if ($("#inlineAddSourceOK").length) {
+			if (!$("#inlineAddSourceOK").hasClass('disabled')) {
 				$("#inlineAddSourceOK").trigger("click");
 			} else if ($("#inlineAddDialogTitle").text() === "Unknown text. Would you like to add it?") {
 				var path = parseURL(document.URL).path;
