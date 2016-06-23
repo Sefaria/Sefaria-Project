@@ -1064,17 +1064,19 @@ Sefaria = extend(Sefaria, {
         }
       return sheets;
     },
-    _publicSheets: null,
-    publicSheets: function(callback) {
+    _publicSheets: {},
+    publicSheets: function(offset, numberToRetrieve, callback) {
+      if (!offset) offset = 0;
+      if (!numberToRetrieve) numberToRetrieve = 50;
       // Returns a list of public sheets
       // TODO Pagination!
-      var sheets = this._publicSheets;
+      var sheets = this._publicSheets["offset"+offset+"num"+numberToRetrieve];
       if (sheets) {
         if (callback) { callback(sheets); }
       } else {
-        var url = "/api/sheets/all-sheets/0";
+        var url = "/api/sheets/all-sheets/"+numberToRetrieve+"/"+offset;
         Sefaria._api(url, function(data) {
-          this._publicSheets = data.sheets;
+          this._publicSheets["offset"+offset+"num"+numberToRetrieve] = data.sheets;
           if (callback) { callback(data.sheets); }
         }.bind(this));
       }
@@ -1088,7 +1090,7 @@ Sefaria = extend(Sefaria, {
       if (sheets) {
         if (callback) { callback(sheets); }
       } else {
-        var url = "/api/sheets/all-sheets/3";
+        var url = "/api/sheets/all-sheets/3/0";
         Sefaria._api(url, function(data) {
           this._topSheets = data.sheets;
           if (callback) { callback(data.sheets); }

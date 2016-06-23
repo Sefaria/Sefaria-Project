@@ -453,7 +453,7 @@ def s2_sheets_by_tag(request, tag):
         props["userSheets"]   = user_sheets(request.user.id)["sheets"]
         props["userTags"]     = user_tags(request.user.id)
     elif tag == "All Sheets":
-        props["publicSheets"] = [sheet_to_dict(s) for s in get_public_sheets()] #TODO Pagination
+        props["publicSheets"] = [sheet_to_dict(s) for s in get_public_sheets(0)] #TODO Pagination
     else:
         props["tagSheets"]    = [sheet_to_dict(s) for s in get_sheets_by_tag(tag)]
 

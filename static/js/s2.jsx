@@ -3399,14 +3399,52 @@ var AllSheetsPage = React.createClass({
   propTypes: {
     hideNavHeader:   React.PropTypes.bool
   },
+  getInitialState: function() {
+    return {
+      page: 1,
+      loadedToEnd: false,
+      loading: false,
+      curSheets: [],
+    };
+  },
   componentDidMount: function() {
+    $(ReactDOM.findDOMNode(this)).bind("scroll", this.handleScroll);
     this.ensureData();
   },
-  getSheetsFromCache: function() {
-    return  Sefaria.sheets.publicSheets(0);
+  handleScroll: function() {
+    if (this.state.loadedToEnd || this.state.loading) { return; }
+    var $scrollable = $(ReactDOM.findDOMNode(this));
+    var margin = 100;
+    if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+      this.getMoreSheets();
+    }
   },
-  getSheetsFromAPI: function() {
-     Sefaria.sheets.publicSheets(0, this.onDataLoad);
+  getMoreSheets: function() {
+    if (this.state.page == 1) {
+      Sefaria.sheets.publicSheets(0,100,this.loadMoreSheets);
+    }
+    else {
+      Sefaria.sheets.publicSheets( ((this.state.page)*50),50,this.loadMoreSheets);
+    }
+    this.setState({loading: true});
+  },
+  loadMoreSheets: function(data) {
+    this.setState({page: this.state.page + 1});
+    this.createSheetList(data)
+  },
+  createSheetList: function(newSheets) {
+
+      if (newSheets) {
+        this.setState({curSheets: this.state.curSheets.concat(newSheets), loading: false});
+      }
+  },
+  getSheetsFromCache: function(offset) {
+    if (!offset) offset=0;
+    return  Sefaria.sheets.publicSheets(offset,50);
+  },
+  getSheetsFromAPI: function(offset) {
+    if (!offset) offset=0;
+     Sefaria.sheets.publicSheets(offset,50, this.onDataLoad);
   },
   onDataLoad: function(data) {
     this.forceUpdate();
@@ -3415,7 +3453,12 @@ var AllSheetsPage = React.createClass({
     if (!this.getSheetsFromCache()) { this.getSheetsFromAPI(); }
   },
   render: function() {
-    var sheets = this.getSheetsFromCache();
+    if (this.state.page == 1) {
+      var sheets = this.getSheetsFromCache();
+    }
+    else {
+      var sheets = this.state.curSheets;
+    }
     sheets = sheets ? sheets.map(function (sheet) {
       return (<PublicSheetListing sheet={sheet} />);
     }) : (<LoadingMessage />);
