@@ -1530,7 +1530,9 @@ $(function() {
 		$("#addParashaToSheetModal, #overlay").hide();
 	});
 
-
+	$(".close-button").click(function() {
+		$(".s2Modal, #overlay").hide();
+	});
 
 	$("#sharingModalTrigger").live("click", function() { 
 		$("#sharingModal").show().position({of: window}); 

@@ -1883,7 +1883,7 @@ a.userLink{
 
 .s2Modal .title {
 	font-size: 20px;
-	margin: 5px 0 0 0;
+	margin: 0;
 	text-align: center;
 }
 
@@ -1912,6 +1912,8 @@ a.userLink{
 	border: 1px solid #aaaaaa;
 	background: #ffffff;
 	color: #222222;
+    margin-top: 30px;
+    margin-bottom: 30px;
 }
 
 .ui-widget-content {
@@ -1941,4 +1943,26 @@ ul.tagit li.tagit-choice .tagit-close .text-icon {
 
 .ui-autocomplete .ui-menu-item a.ui-state-focus {
   background-color: #fff;
+}
+
+ul.tagit li.tagit-choice {
+    color: #333;
+	background-color: #F9F9F7;
+	border-radius: 2px;
+}
+
+a.tagit-close {
+	color: #999;
+	text-decoration: none;
+}
+
+.close-button:after {
+	color: #999;
+	font: 14px/100% arial, sans-serif;
+	position: absolute;
+	right: 15px;
+	text-decoration: none;
+	text-shadow: 0 1px 0 #fff;
+	top: 15px;
+	content: "X"
 }

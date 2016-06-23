@@ -1285,12 +1285,12 @@ sjs.sheetTagger = {
 		$("#tagsModal").unbind().remove();
 
 		// Build the modal
-		var html =	'<div id="tagsModal" class="gradient modal">' +
-					'	<div class="header">Tag this Sheet</div>' +
+		var html =	'<div id="tagsModal" class="gradient modal s2Modal">' +
+					'    <span class="close-button"></span>' +
+					'	<div class="title">Tag this Sheet</div>' +
 					'	<ul id="tags"></ul>' +
 					'	<div class="sub"></div>' +
-					'	<div class="btn ok">Save</div>' +
-					'	<div class="btn cancel">Cancel</div>' +
+					'	<div class="button">Save</div>' +
 					'</div>';
 		$(html).appendTo("body");
 
