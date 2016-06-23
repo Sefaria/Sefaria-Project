@@ -1805,7 +1805,30 @@ $(function() {
 		promptToPublish();
 	}
 
-}); // ------------------ End DOM Ready  ------------------ 
+	// ------ Check fragment identifier for state re-init'ing -------------
+	var fragIdent = (function(hash) {
+		hash = hash.substring(hash.indexOf('#') + 1);
+
+		if (hash.length === 0)
+			return {};
+
+		var fragments = hash.split('&');
+
+		var obj = {};
+		for (var i = 0; i < fragments.length; i++) {
+			var keyVal = fragments[i].split('=');
+			obj[keyVal[0]] = keyVal[1];
+		}
+		return obj;
+	}(window.location.hash));
+
+	switch (fragIdent.onload) {
+		case "exportToDrive":
+			exportToDrive();
+			break;
+	}
+
+}); // ------------------ End DOM Ready  ------------------
 
 
 function addSource(q, source, appendOrInsert) {
@@ -2915,7 +2938,7 @@ function exportToDrive() {
 		},
 		statusCode: {
 			401: function() {
-				window.location.href = "/gauth?next=" + window.location.pathname;
+				window.location.href = "/gauth?next=" + encodeURIComponent(window.location.pathname + "#onload=exportToDrive");
 			}
 		}
 	});
