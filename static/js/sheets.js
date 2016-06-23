@@ -1109,9 +1109,9 @@ $(function() {
 
 
 					refs = $(this).data("refs").split(";");
+					refs = refs.reverse()
 
 					for (var i = 0; i < refs.length; i++) {
-
 						var source = {
 							ref: refs[i]
 						}
