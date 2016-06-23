@@ -883,9 +883,9 @@ body {
 }
 
 #embedSheetModal textarea {
-	width: 90%;
-	margin-top: 8px;
-	height: 40px;
+	width: 100%;
+	margin-top: 0;
+	height: 80px;
 	padding: 8px;
 }
 
@@ -894,6 +894,9 @@ body {
 	font-size: 13px;
 }
 
+#embedSheetModal .content {
+	margin: 30px auto;
+}
 
 #publishPromptModal {
 	position: fixed;
@@ -1880,7 +1883,6 @@ a.userLink{
 	border-radius: 6px;
 	width: 400px;
 }
-
 .s2Modal .title {
 	font-size: 20px;
 	margin: 0;
@@ -1902,6 +1904,10 @@ a.userLink{
 	height:40px;
 	padding: 20px 10px;
     box-sizing: border-box;
+}
+
+.s2Modal .center {
+	text-align: center;
 }
 
 #panelWrapBox {
