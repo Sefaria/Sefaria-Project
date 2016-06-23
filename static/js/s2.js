@@ -4195,14 +4195,53 @@ var AllSheetsPage = React.createClass({
   propTypes: {
     hideNavHeader: React.PropTypes.bool
   },
+  getInitialState: function getInitialState() {
+    return {
+      page: 1,
+      loadedToEnd: false,
+      loading: false,
+      curSheets: []
+    };
+  },
   componentDidMount: function componentDidMount() {
+    $(ReactDOM.findDOMNode(this)).bind("scroll", this.handleScroll);
     this.ensureData();
   },
-  getSheetsFromCache: function getSheetsFromCache() {
-    return Sefaria.sheets.publicSheets(0);
+  handleScroll: function handleScroll() {
+    if (this.state.loadedToEnd || this.state.loading) {
+      return;
+    }
+    var $scrollable = $(ReactDOM.findDOMNode(this));
+    var margin = 100;
+    if ($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+      this.getMoreSheets();
+    }
   },
-  getSheetsFromAPI: function getSheetsFromAPI() {
-    Sefaria.sheets.publicSheets(0, this.onDataLoad);
+  getMoreSheets: function getMoreSheets() {
+    if (this.state.page == 1) {
+      Sefaria.sheets.publicSheets(0, 100, this.loadMoreSheets);
+    } else {
+      Sefaria.sheets.publicSheets(this.state.page * 50, 50, this.loadMoreSheets);
+    }
+    this.setState({ loading: true });
+  },
+  loadMoreSheets: function loadMoreSheets(data) {
+    this.setState({ page: this.state.page + 1 });
+    this.createSheetList(data);
+  },
+  createSheetList: function createSheetList(newSheets) {
+
+    if (newSheets) {
+      this.setState({ curSheets: this.state.curSheets.concat(newSheets), loading: false });
+    }
+  },
+  getSheetsFromCache: function getSheetsFromCache(offset) {
+    if (!offset) offset = 0;
+    return Sefaria.sheets.publicSheets(offset, 50);
+  },
+  getSheetsFromAPI: function getSheetsFromAPI(offset) {
+    if (!offset) offset = 0;
+    Sefaria.sheets.publicSheets(offset, 50, this.onDataLoad);
   },
   onDataLoad: function onDataLoad(data) {
     this.forceUpdate();
@@ -4213,7 +4252,11 @@ var AllSheetsPage = React.createClass({
     }
   },
   render: function render() {
-    var sheets = this.getSheetsFromCache();
+    if (this.state.page == 1) {
+      var sheets = this.getSheetsFromCache();
+    } else {
+      var sheets = this.state.curSheets;
+    }
     sheets = sheets ? sheets.map(function (sheet) {
       return React.createElement(PublicSheetListing, { sheet: sheet });
     }) : React.createElement(LoadingMessage, null);
