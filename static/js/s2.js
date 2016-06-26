@@ -3000,7 +3000,10 @@ var ReaderTextTableOfContents = React.createClass({
   componentWillUnmount: function componentWillUnmount() {
     window.removeEventListener('resize', this.shrinkWrap);
   },
-  componentDidUpdate: function componentDidUpdate() {
+  componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
+    if (this.props.settingsLanguage != prevProps.settingsLanguage) {
+      this.loadVersions();
+    }
     this.bindToggles();
     this.shrinkWrap();
   },

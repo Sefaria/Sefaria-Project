@@ -2636,7 +2636,10 @@ var ReaderTextTableOfContents = React.createClass({
   componentWillUnmount: function() {
     window.removeEventListener('resize', this.shrinkWrap);
   },
-  componentDidUpdate: function() {
+  componentDidUpdate: function(prevProps, prevState) {
+    if (this.props.settingsLanguage != prevProps.settingsLanguage) {
+      this.loadVersions();
+    }
     this.bindToggles();
     this.shrinkWrap();
   },
@@ -2664,7 +2667,6 @@ var ReaderTextTableOfContents = React.createClass({
     }
   },
   loadVersionsDataFromText: function(d) {
-    console.log(d);
     // For now treat bilinguale as english. TODO show attribution for 2 versions in bilingual case.
     var currentLanguage = this.props.settingsLanguage == "he" ? "he" : "en";
     if (currentLanguage == "en" && !d.text.length) {currentLanguage = "he"}
