@@ -2176,12 +2176,12 @@ Sefaria.site = {
     // Helper functions for event tracking (with Google Analytics and Mixpanel)
     event: function(category, action, label) {
         // Generic event tracker
-        _gaq.push(['_trackEvent', category, action, label]);
+        ga('send', 'event', category, action, label);
         //mixpanel.track(category + " " + action, {label: label});
         //console.log([category, action, label].join(" / "));
     },
     pageview: function(url) {
-        _gaq.push(['_trackPageview', url]);
+        ga('send', 'pageview', url);
     },
     open: function(ref) {
         // Track opening a specific text ref
