@@ -210,8 +210,8 @@ sjs.track = {
 		// Track an action from the Reader
 		sjs.track.event("Reader", "Action", label);		
 	},
-	sheets: function(label) {
-		sjs.track.event("Sheets", "UI", label);
+    sheets: function(action, label) {
+        sjs.track.event("Sheets", action, label);        
 	},
 	search: function(query) {
 		sjs.track.event("Search", "Search", query);

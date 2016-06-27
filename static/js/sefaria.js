@@ -2197,8 +2197,8 @@ Sefaria.site = {
         // Track an action from the Reader
         Sefaria.site.track.event("Reader", "Action", label);     
     },
-    sheets: function(label) {
-        Sefaria.site.track.event("Sheets", "UI", label);
+    sheets: function(action, label) {
+        Sefaria.site.track.event("Sheets", action, label);
     },
     search: function(query) {
         Sefaria.site.track.event("Search", "Search", query);
