@@ -122,7 +122,7 @@ body {
 }
 
 #sheetHeader #partnerLogo {
-	max-width: 100%;
+	max-width: 90%;
 }
 
 #bsdHeader {
@@ -237,13 +237,19 @@ body {
 	margin:10px;
 }
 
-#assignedSheets {
-	margin: 10px 10px 0 10px;
+#assignedSheets,#assignedSheets .title  {
+	margin: 20px 0;
 }
 
 #assignmentURLLink {
-	width:300px;
+	width:100%;
+	cursor: text;
 	text-align: center;
+	display: none;
+}
+#StopCollectingAssignmentsButton {
+	margin-top:8px;
+	width:100%;
 }
 
 #assignmentsModal .btn {
@@ -279,6 +285,11 @@ body {
 	width: 100%;
 	background: #ddd;
 	margin: 2px 0px;
+}
+
+.s2Modal .line {
+	width: 460px;
+	margin-left:-40px;
 }
 
 .optionsMenu .fa {
@@ -872,9 +883,9 @@ body {
 }
 
 #embedSheetModal textarea {
-	width: 90%;
-	margin-top: 8px;
-	height: 40px;
+	width: 100%;
+	margin-top: 0;
+	height: 80px;
 	padding: 8px;
 }
 
@@ -883,6 +894,9 @@ body {
 	font-size: 13px;
 }
 
+#embedSheetModal .content {
+	margin: 30px auto;
+}
 
 #publishPromptModal {
 	position: fixed;
@@ -1823,39 +1837,43 @@ a.userLink{
     height: 30px;
 }
 
-#shareWithOthers .title {
-	font-size: 20px;
-	margin: 5px 0 16px 0;
-	text-align: center;
-}
-
-#shareWithOthers .content {
-	color: #999;
-	text-align: left;
-}
-
 #shareWithOthers .content .inputHeader {
-	margin: 10px 0 5px 0;
+	margin: 30px 0 15px 0;
 }
+
 #shareWithOthers .content select {
 	width: 100%;
 }
 
-#shareWithOthers .ok.button {
-	margin: 10px auto;
-}
-
-
 #shareWithOthers {
 	text-align: center;
-	padding:20px;
 	width:400px;
 }
 
 #sharingDesc {
-	color: #999;
-	text-align: center;
+    color: #999;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 30px;
+    margin-top: 10px;
+}
 
+#assignmentDirections {
+	margin: 30px 0;
+	text-align: center;
+}
+
+#assignedSheets .button {
+	background-color: #fff;
+	border:#ccc;
+	width:100%;
+}
+#assignedSheets {
+	display: none;
+}
+
+#assignedSheets .button a {
+	text-decoration: none;
 }
 
 .s2Modal {
@@ -1863,6 +1881,33 @@ a.userLink{
 	background-color: #F9F9F7;
 	border: 1px solid #999;
 	border-radius: 6px;
+	width: 400px;
+}
+.s2Modal .title {
+	font-size: 20px;
+	margin: 0;
+	text-align: center;
+}
+
+.s2Modal .content {
+	color: #999;
+	text-align: left;
+}
+
+.s2Modal .ok.button {
+	margin: 0 auto;
+}
+
+.s2Modal input, .s2Modal textarea, .s2Modal select {
+	margin-bottom: 0;
+	background-color: #fff;
+	height:40px;
+	padding: 20px 10px;
+    box-sizing: border-box;
+}
+
+.s2Modal .center {
+	text-align: center;
 }
 
 #panelWrapBox {
@@ -1873,6 +1918,8 @@ a.userLink{
 	border: 1px solid #aaaaaa;
 	background: #ffffff;
 	color: #222222;
+    margin-top: 30px;
+    margin-bottom: 30px;
 }
 
 .ui-widget-content {
@@ -1900,3 +1947,28 @@ ul.tagit li.tagit-choice .tagit-close .text-icon {
     background-repeat: no-repeat;
 }
 
+.ui-autocomplete .ui-menu-item a.ui-state-focus {
+  background-color: #fff;
+}
+
+ul.tagit li.tagit-choice {
+    color: #333;
+	background-color: #F9F9F7;
+	border-radius: 2px;
+}
+
+a.tagit-close {
+	color: #999;
+	text-decoration: none;
+}
+
+.close-button:after {
+	color: #999;
+	font: 14px/100% arial, sans-serif;
+	position: absolute;
+	right: 15px;
+	text-decoration: none;
+	text-shadow: 0 1px 0 #fff;
+	top: 15px;
+	content: "X"
+}

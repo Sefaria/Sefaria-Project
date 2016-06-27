@@ -474,15 +474,15 @@ var ReaderApp = React.createClass({
         if (window.location.pathname + window.location.search == hist.url) {
           return;
         } // Never push history with the same URL
+        history.pushState(hist.state, hist.title, hist.url);
 
         //console.log(hist);
-        history.pushState(hist.state, hist.title, hist.url);
+        if (Sefaria.site) {
+          Sefaria.site.track.pageview(hist.url);
+        }
       }
 
     $("title").html(hist.title);
-    if (Sefaria.site) {
-      Sefaria.site.track.pageview(hist.url);
-    }
     this.replaceHistory = false;
   },
   makePanelState: function makePanelState(state) {
@@ -690,6 +690,12 @@ var ReaderApp = React.createClass({
     } else {
       panel.version = null;
       panel.versionLanguage = null;
+    }
+
+    if (this.state.panels.length > n + 1 && this.state.panels[n + 1].mode == "Connections") {
+      var connectionsPanel = this.state.panels[n + 1];
+      connectionsPanel.version = panel.version;
+      connectionsPanel.versionLanguage = panel.versionLanguage;
     }
     this.setState({ panels: this.state.panels });
   },
@@ -2994,7 +3000,10 @@ var ReaderTextTableOfContents = React.createClass({
   componentWillUnmount: function componentWillUnmount() {
     window.removeEventListener('resize', this.shrinkWrap);
   },
-  componentDidUpdate: function componentDidUpdate() {
+  componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
+    if (this.props.settingsLanguage != prevProps.settingsLanguage) {
+      this.loadVersions();
+    }
     this.bindToggles();
     this.shrinkWrap();
   },
@@ -4189,14 +4198,53 @@ var AllSheetsPage = React.createClass({
   propTypes: {
     hideNavHeader: React.PropTypes.bool
   },
+  getInitialState: function getInitialState() {
+    return {
+      page: 1,
+      loadedToEnd: false,
+      loading: false,
+      curSheets: []
+    };
+  },
   componentDidMount: function componentDidMount() {
+    $(ReactDOM.findDOMNode(this)).bind("scroll", this.handleScroll);
     this.ensureData();
   },
-  getSheetsFromCache: function getSheetsFromCache() {
-    return Sefaria.sheets.publicSheets(0);
+  handleScroll: function handleScroll() {
+    if (this.state.loadedToEnd || this.state.loading) {
+      return;
+    }
+    var $scrollable = $(ReactDOM.findDOMNode(this));
+    var margin = 100;
+    if ($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+      this.getMoreSheets();
+    }
   },
-  getSheetsFromAPI: function getSheetsFromAPI() {
-    Sefaria.sheets.publicSheets(0, this.onDataLoad);
+  getMoreSheets: function getMoreSheets() {
+    if (this.state.page == 1) {
+      Sefaria.sheets.publicSheets(0, 100, this.loadMoreSheets);
+    } else {
+      Sefaria.sheets.publicSheets(this.state.page * 50, 50, this.loadMoreSheets);
+    }
+    this.setState({ loading: true });
+  },
+  loadMoreSheets: function loadMoreSheets(data) {
+    this.setState({ page: this.state.page + 1 });
+    this.createSheetList(data);
+  },
+  createSheetList: function createSheetList(newSheets) {
+
+    if (newSheets) {
+      this.setState({ curSheets: this.state.curSheets.concat(newSheets), loading: false });
+    }
+  },
+  getSheetsFromCache: function getSheetsFromCache(offset) {
+    if (!offset) offset = 0;
+    return Sefaria.sheets.publicSheets(offset, 50);
+  },
+  getSheetsFromAPI: function getSheetsFromAPI(offset) {
+    if (!offset) offset = 0;
+    Sefaria.sheets.publicSheets(offset, 50, this.onDataLoad);
   },
   onDataLoad: function onDataLoad(data) {
     this.forceUpdate();
@@ -4207,7 +4255,11 @@ var AllSheetsPage = React.createClass({
     }
   },
   render: function render() {
-    var sheets = this.getSheetsFromCache();
+    if (this.state.page == 1) {
+      var sheets = this.getSheetsFromCache();
+    } else {
+      var sheets = this.state.curSheets;
+    }
     sheets = sheets ? sheets.map(function (sheet) {
       return React.createElement(PublicSheetListing, { sheet: sheet });
     }) : React.createElement(LoadingMessage, null);
@@ -6851,10 +6903,11 @@ var AddToSourceSheetPanel = React.createClass({
       var selectSheet = function () {
         this.setState({ selectedSheet: sheet.id });
       }.bind(this);
+      var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
       return React.createElement(
         'div',
         { className: classes, onClick: selectSheet, key: sheet.id },
-        sheet.title.stripHtml()
+        title
       );
     }.bind(this)) : React.createElement(LoadingMessage, null);
     sheetsContent = sheets && sheets.length == 0 ? React.createElement(
@@ -7893,7 +7946,7 @@ var SearchResultList = React.createClass({
     var loadingMessage = React.createElement(LoadingMessage, { message: 'Searching...', heMessage: 'מבצע חיפוש...' });
     var noResultsMessage = React.createElement(LoadingMessage, { message: '0 results.', heMessage: '0 תוצאות.' });
 
-    var queryLoaded = !this.state.moreToLoad[tab] && !this.state.isQueryRunning[tab];
+    var queryFullyLoaded = !this.state.moreToLoad[tab] && !this.state.isQueryRunning[tab];
     var haveResults = !!results.length;
     results = haveResults ? results : noResultsMessage;
     var searchFilters = React.createElement(SearchFilters, {
@@ -7912,7 +7965,7 @@ var SearchResultList = React.createClass({
       'div',
       null,
       searchFilters,
-      queryLoaded ? results : loadingMessage
+      queryFullyLoaded || haveResults ? results : loadingMessage
     );
   }
 });

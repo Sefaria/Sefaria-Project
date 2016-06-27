@@ -730,13 +730,14 @@ def trending_tags_api(request):
 	return response
 
 
-def all_sheets_api(request, limiter):
+def all_sheets_api(request, limiter, offset=0):
 	limiter = int(limiter)
+	offset = int(offset)
 	query = {"status": "public"}
 	if limiter==0:
 		public = db.sheets.find(query).sort([["dateModified", -1]])
 	else:
-		public = db.sheets.find(query).sort([["dateModified", -1]]).limit(limiter)
+		public = db.sheets.find(query).sort([["dateModified", -1]]).skip(offset).limit(limiter)
 	
 	sheets   = [sheet_to_dict(s) for s in public]
 	response = {"sheets": sheets}

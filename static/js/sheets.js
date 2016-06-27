@@ -77,10 +77,10 @@ $(function() {
 	$("#addSource, #addButton").click(function() { 
 		$("#addSourceModal").data("target", $("#sources")).show()
 			.position({of: $(window)}); 
-		$("#add").focus() 
+		$("#add").focus();
 		$("#overlay").show();
 		sjs.track.sheets("Open Add Source Modal");
-	})
+	});
 	
 	$("#addMedia").click(function(e) { 
 
@@ -93,7 +93,7 @@ $(function() {
 		e.stopPropagation();
 
 		$("#addMediaModal").data("target", $("#sources").find(".media").last()).show().position({of: $(window)}); 
-		$("#addMediaInput").focus() 
+		$("#addMediaInput").focus();
 		$("#overlay").show();
 //		sjs.track.sheets("Open Add Media Modal");
 
@@ -186,31 +186,33 @@ $(function() {
 				var q = parseRef(ref);
 				$("#closeAddSource").trigger("click");
 				addSource(q);
-				sjs.track.sheets("Add Source");
+				sjs.track.sheets("Add Source", ref);
 			}
 		})
 	});
 
 	$(document).on("click", "#addSourceOK", function() {
-		var q = parseRef($("#add").val());
+        var ref = $("#add").val();
+		var q = parseRef(ref);
 		$("#closeAddSource").trigger("click");
 		addSource(q);
-		sjs.track.sheets("Add Source");
+		sjs.track.sheets("Add Source", ref);
 	
 	});
 
 	$(document).on("click", "#inlineAddSourceOK", function() {
 		var $target = $("#addInterface").prev(".sheetItem");
 		$("#addSourceModal").data("target", $target);
-		var q = parseRef($("#inlineAdd").val());
+        var ref = $("#inlineAdd").val();
+		var q = parseRef(ref);
 		addSource(q, undefined,"insert");
 		$('#inlineAdd').val('');
 		$("#inlineTextPreview").remove();
-		$("#inlineAddDialogTitle").text("Select a text")
+		$("#inlineAddDialogTitle").text("Select a text");
 		$("#inlineAddSourceOK").addClass("disabled");
 		$("#sheet").click();
 
-		sjs.track.sheets("Add Source");
+		sjs.track.sheets("Add Source", ref);
 	});
 
 
@@ -261,7 +263,7 @@ $(function() {
 		$("#add").val("");
 		$("#error").empty();
 		$("#textPreview").remove();
-		$("#addDialogTitle").text("Enter a text or commentator name:")
+		$("#addDialogTitle").text("Enter a text or commentator name:");
 		sjs.track.sheets("Close Add Source Modal");
 
 	});
@@ -314,7 +316,7 @@ $(function() {
 	$("#inlineAdd").keyup(checkInlineAddSource )
 		.keyup(function(e) {
 		if (e.keyCode == 13) {
-			if ($("#inlineAddSourceOK").length) {
+			if (!$("#inlineAddSourceOK").hasClass('disabled')) {
 				$("#inlineAddSourceOK").trigger("click");
 			} else if ($("#inlineAddDialogTitle").text() === "Unknown text. Would you like to add it?") {
 				var path = parseURL(document.URL).path;
@@ -327,7 +329,7 @@ $(function() {
 
 	// Printing
 	$("#print").click(function(){
-		sjs.track.sheets("Print Sheet Clicked");
+		sjs.track.sheets("Print Sheet");
 		window.print() 
 	});
 
@@ -352,6 +354,9 @@ $(function() {
 		$(this).hide();
 		$("#StopCollectingAssignmentsButton").show();
 		$("#sheet").addClass('assignable');
+		$("#assignmentDirections").html('Students can complete their assignment at this link:');
+		$("#assignmentURLLink").show();
+		$("#assignedSheets").show();
 		autoSave();
 	});
 
@@ -360,6 +365,14 @@ $(function() {
 		$(this).hide();
 		$("#makeSheetAssignableButton").show();
 		$("#sheet").removeClass('assignable');
+		$("#assignmentDirections").html('Assignments allow you to create a template that your students can fill out on their own.')
+		$("#assignmentURLLink").hide();
+		if ( $("#assignedSheets a").length > 0) {
+			$("#assignedSheets").show();
+		}
+		else {
+			$("#assignedSheets").hide();
+		}
 		autoSave();
 	});
 
@@ -540,7 +553,7 @@ $(function() {
 		$(".fa-check", $(this)).removeClass("hidden");
 		var group = $(this).attr("data-group");
 		if (group != "None") {
-			sjs.track.sheets("Share with Group: " + group);
+			sjs.track.sheets("Share with Group", group);
 			var groupUrl = group.replace(/ /g, "_");
 			$("#partnerLogo").attr("src", $(this).attr("data-image")).show()
 				.closest("a").attr("href", "/partners/" + groupUrl );
@@ -558,7 +571,7 @@ $(function() {
 
 			
 		} else {
-			sjs.track.sheets("Unshare Sheet with Group");
+			sjs.track.sheets("Unshare Sheet with Group", group);
 			$("#sheetHeader").hide();
 
 			$(".groupSharing").hide();
@@ -604,24 +617,25 @@ $(function() {
 			message: "Reset text of Hebrew, English or both?<br><small>Any edits you have made to this source will be lost.</small>",
 			options: ["Hebrew", "English", "Both"]
 		};
-		$target = $(".activeSource");
+		var $target = $(".activeSource");
 		var resetSource = function(option) {
 			var loadClosure = function(data) {
-				loadSource(data, $target, option)
+				loadSource(data, $target, option);
+        		sjs.track.sheets("Reset Source", data.ref);
 			};
 			var getStr = "/api/texts/" + normRef($target.attr("data-ref")) + "?commentary=0&context=0&pad=0";
 			$.getJSON(getStr, loadClosure);
 			sjs.openRequests += 1;
-		}
 
-		sjs.alert.options(options, resetSource)
-		sjs.track.sheets("Reset Source");
+		};
+		sjs.alert.options(options, resetSource);
 
 	});
 
 	$("#addSourceTitle").click(function() {
-
-		var $customTitle = $(".customTitle", $(".activeSource"));
+		var $target = $(".activeSource");
+        var ref = normRef($target.attr("data-ref"));
+		var $customTitle = $(".customTitle", $target);
 		if ($customTitle.text() === "") {
 			$customTitle.text("Source Title");
 		}
@@ -631,7 +645,7 @@ $(function() {
 			.closest(".sheetItem")
 			.addClass("hasCustom");
 
-		sjs.track.sheets("Edit Source Title");
+		sjs.track.sheets("Edit Source Title", ref);
 	});
 
 
@@ -932,15 +946,16 @@ $(function() {
 			likeCount -= 1;
 			$("#likeCount").text(likeCount);
 			$.post("/api/sheets/" + sjs.current.id + "/unlike");
+    		sjs.track.sheets("Unlike", sjs.current.id);
 		} else {
 			$(this).addClass("liked").text("Unlike");
 			$.post("/api/sheets/" + sjs.current.id + "/like");
 			likeCount += 1;
 			$("#likeCount").text(likeCount);
+    		sjs.track.sheets("Like", sjs.current.id);
 		}
 		$("#likeInfoBox").toggle(likeCount != 0);
 		$("#likePlural").toggle(likeCount != 1);
-		sjs.track.sheets("Like Click");
 	});
 	$("#likeInfo").click(function(e) {
 		$.getJSON("/api/sheets/" + sjs.current.id + "/likers", function(data) {
@@ -1109,9 +1124,9 @@ $(function() {
 
 
 					refs = $(this).data("refs").split(";");
+					refs = refs.reverse()
 
 					for (var i = 0; i < refs.length; i++) {
-
 						var source = {
 							ref: refs[i]
 						}
@@ -1444,7 +1459,9 @@ $(function() {
 
 	// Custom Source Titles
 	$(".editTitle").live("click", function(e) {
-		var $customTitle = $(".customTitle", $(this).closest(".source")).eq(0);
+        var $target = $(this).closest(".source");
+        var ref = normRef($target.attr("data-ref"));
+		var $customTitle = $(".customTitle", $target).eq(0);
 		if ($customTitle.text() === "") {
 			$customTitle.text("Source Title");
 		}
@@ -1455,7 +1472,7 @@ $(function() {
 			.addClass("hasCustom");
 
 		e.stopPropagation();
-		sjs.track.sheets("Edit Source Title");
+		sjs.track.sheets("Edit Source Title", ref);
 	});
 
 
@@ -1465,38 +1482,38 @@ $(function() {
 			message: "Reset text of Hebrew, English or both?<br><small>Any edits you have made to this source will be lost.</small>",
 			options: ["Hebrew", "English", "Both"]
 		};
-		$target = $(this).closest(".source");
+		var $target = $(this).closest(".source");
 		var resetSource = function(option) {
 			var loadClosure = function(data) { 
-				loadSource(data, $target, option) 
+				loadSource(data, $target, option);
+        		sjs.track.sheets("Reset Source", data.ref);
 			};
 			var getStr = "/api/texts/" + normRef($target.attr("data-ref")) + "?commentary=0&context=0&pad=0";
 			$.getJSON(getStr, loadClosure);	
 			sjs.openRequests += 1;
-		}
+		};
 
-		sjs.alert.options(options, resetSource)
-		sjs.track.sheets("Reset Source");
+		sjs.alert.options(options, resetSource);
 
 	 });
 
 
 	$(".parshahToAdd").click(function(){
 		$("#addParashaToSheetModal, #overlay").hide();
-
-		$.getJSON("/api/sheets/"+$(this).text()+"/get_aliyot", function(data) {
+        var parasha = $(this).text();
+		$.getJSON("/api/sheets/"+ parasha +"/get_aliyot", function(data) {
 			if ("error" in data) {
 				sjs.alert.flash(data.error);
 			} else {
 				for (var i = 0; i < data.ref.length; i++) {
 					var source = {
 						ref: data.ref[i]
-					}
+					};
 					buildSource($("#sources"), source);
 				}
+        		sjs.track.sheets("Add Parasha", parasha);
 			}
 		});
-		sjs.track.sheets("Add Parasha to Sheet");
 
 		}
 	);
@@ -1519,7 +1536,9 @@ $(function() {
 		$("#addParashaToSheetModal, #overlay").hide();
 	});
 
-
+	$(".close-button").click(function() {
+		$(".s2Modal, #overlay").hide();
+	});
 
 	$("#sharingModalTrigger").live("click", function() { 
 		$("#sharingModal").show().position({of: window}); 
@@ -1803,7 +1822,7 @@ $(function() {
 		$("#biLayoutToggleSource .toggleOption").removeClass("active");			
 		$(this).addClass("active");
 		$target.removeClass("heLeft heRight")
-			.addClass($(this).attr("id").replace("Source",""))
+			.addClass($(this).attr("id").replace("Source",""));
 		sjs.track.sheets("Change Source Language Layout Button");
 	});
 

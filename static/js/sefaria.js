@@ -266,7 +266,9 @@ Sefaria = extend(Sefaria, {
     var refkey           = this._refKey(data.ref, settings);
     this._refmap[refkey] = key;
 
-    if (data.ref == data.sectionRef && !data.isSpanning) {
+    if (// data.ref == data.sectionRef // Not segment level ref
+        data.textDepth - data.sections.length == 1 // Section level ref
+        && !data.isSpanning) {
       this._splitTextSection(data, settings);
     } else if (settings.context) {
       // Save a copy of the data at context level
@@ -302,7 +304,7 @@ Sefaria = extend(Sefaria, {
   },
   _splitTextSection: function(data, settings) {
     // Takes data for a section level text and populates cache with segment levels.
-    // Runs recursively for Refs above section level like "Rashi on Genesis 1".
+    // Don't do this for Refs above section level, like "Rashi on Genesis 1", since it's impossible to correctly derive next & prev.
     settings = settings || {};
     var en = typeof data.text == "string" ? [data.text] : data.text;
     var he = typeof data.he == "string" ? [data.he] : data.he;
@@ -328,7 +330,7 @@ Sefaria = extend(Sefaria, {
         toSections: data.sections.concat(i+1),
         sectionRef: sectionRef,
         nextSegment: i+start == length ? data.next + delim + 1 : data.ref + delim + (i+start+1),
-        prevSegment: i+start == 1      ? null : data.ref + delim + (i+start-1),
+        prevSegment: i+start == 1      ? null : data.ref + delim + (i+start-1)
       });
 
       var context_settings = (settings.version && settings.language) ? {
@@ -1062,17 +1064,19 @@ Sefaria = extend(Sefaria, {
         }
       return sheets;
     },
-    _publicSheets: null,
-    publicSheets: function(callback) {
+    _publicSheets: {},
+    publicSheets: function(offset, numberToRetrieve, callback) {
+      if (!offset) offset = 0;
+      if (!numberToRetrieve) numberToRetrieve = 50;
       // Returns a list of public sheets
       // TODO Pagination!
-      var sheets = this._publicSheets;
+      var sheets = this._publicSheets["offset"+offset+"num"+numberToRetrieve];
       if (sheets) {
         if (callback) { callback(sheets); }
       } else {
-        var url = "/api/sheets/all-sheets/0";
+        var url = "/api/sheets/all-sheets/"+numberToRetrieve+"/"+offset;
         Sefaria._api(url, function(data) {
-          this._publicSheets = data.sheets;
+          this._publicSheets["offset"+offset+"num"+numberToRetrieve] = data.sheets;
           if (callback) { callback(data.sheets); }
         }.bind(this));
       }
@@ -1086,7 +1090,7 @@ Sefaria = extend(Sefaria, {
       if (sheets) {
         if (callback) { callback(sheets); }
       } else {
-        var url = "/api/sheets/all-sheets/3";
+        var url = "/api/sheets/all-sheets/3/0";
         Sefaria._api(url, function(data) {
           this._topSheets = data.sheets;
           if (callback) { callback(data.sheets); }
@@ -2172,12 +2176,12 @@ Sefaria.site = {
     // Helper functions for event tracking (with Google Analytics and Mixpanel)
     event: function(category, action, label) {
         // Generic event tracker
-        _gaq.push(['_trackEvent', category, action, label]);
+        ga('send', 'event', category, action, label);
         //mixpanel.track(category + " " + action, {label: label});
         //console.log([category, action, label].join(" / "));
     },
     pageview: function(url) {
-        _gaq.push(['_trackPageview', url]);
+        ga('send', 'pageview', url);
     },
     open: function(ref) {
         // Track opening a specific text ref
@@ -2193,8 +2197,8 @@ Sefaria.site = {
         // Track an action from the Reader
         Sefaria.site.track.event("Reader", "Action", label);     
     },
-    sheets: function(label) {
-        Sefaria.site.track.event("Sheets", "UI", label);
+    sheets: function(action, label) {
+        Sefaria.site.track.event("Sheets", action, label);
     },
     search: function(query) {
         Sefaria.site.track.event("Search", "Search", query);

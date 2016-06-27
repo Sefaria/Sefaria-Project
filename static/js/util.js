@@ -179,12 +179,12 @@ sjs.track = {
 	// Helper functions for event tracking (with Google Analytics and Mixpanel)
 	event: function(category, action, label) {
 		// Generic event tracker
-		_gaq.push(['_trackEvent', category, action, label]);
+        ga('send', 'event', category, action, label);
 		//mixpanel.track(category + " " + action, {label: label});
 		//console.log([category, action, label].join(" / "));
 	},
 	pageview: function(url) {
-        _gaq.push(['_trackPageview', url]);
+        ga('send', 'pageview', url);
 	},
 	exploreUrl: function(url) {
 	    sjs.track.event("Explorer", "Open", url);
@@ -210,8 +210,8 @@ sjs.track = {
 		// Track an action from the Reader
 		sjs.track.event("Reader", "Action", label);		
 	},
-	sheets: function(label) {
-		sjs.track.event("Sheets", "UI", label);
+    sheets: function(action, label) {
+        sjs.track.event("Sheets", action, label);        
 	},
 	search: function(query) {
 		sjs.track.event("Search", "Search", query);
@@ -1285,12 +1285,12 @@ sjs.sheetTagger = {
 		$("#tagsModal").unbind().remove();
 
 		// Build the modal
-		var html =	'<div id="tagsModal" class="gradient modal">' +
-					'	<div class="header">Tag this Sheet</div>' +
+		var html =	'<div id="tagsModal" class="gradient modal s2Modal">' +
+					'    <span class="close-button"></span>' +
+					'	<div class="title">Tag this Sheet</div>' +
 					'	<ul id="tags"></ul>' +
 					'	<div class="sub"></div>' +
-					'	<div class="btn ok">Save</div>' +
-					'	<div class="btn cancel">Cancel</div>' +
+					'	<div class="button">Save</div>' +
 					'</div>';
 		$(html).appendTo("body");
 

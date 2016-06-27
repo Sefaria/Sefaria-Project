@@ -14,6 +14,7 @@ from random import random
 from pprint import pprint
 from datetime import datetime
 from collections import Counter
+from copy import deepcopy
 
 from sefaria.model import *
 from sefaria.utils.talmud import section_to_daf
@@ -54,6 +55,8 @@ def make_json(doc):
     """
     Returns JSON of 'doc' with export settings.
     """
+    if "original_text" in doc:
+        doc = {k: v for k, v in doc.iteritems() if k is not "original_text"}
     return json.dumps(doc, indent=4, encoding='utf-8', ensure_ascii=False)
 
 
@@ -67,16 +70,15 @@ def make_text(doc):
 
     """
     # We have a strange beast here - a merged content tree.  Loading it into a synthetic version.
-    version = Version({"chapter": doc["text"]})
+    chapter = doc.get("original_text", doc["text"])
+    version = Version({"chapter": chapter})
 
     index = library.get_index(doc["title"])
     text = "\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], doc["versionSource"]])    
-    # version = Version().load({'title': doc["title"], 'versionTitle': doc["versionTitle"], 'language': doc["language"]})
 
     if "versions" in doc:
         if not len(doc["versions"]):
             return None # Occurs when text versions don't actually have content
-        # version = Version().load({'title': doc["title"], 'versionTitle': doc["versions"][0][0], 'language': doc["language"]})
         text += "\nThis file contains merged sections from the following text versions:"
         for v in doc["versions"]:
             text += "\n-%s\n-%s" % (v[0], v[1])
@@ -165,6 +167,8 @@ def prepare_text_for_export(text):
     text["text"] = text.get("text", None) or text.get("chapter", "")
 
     if index.is_complex():
+        text["original_text"] = deepcopy(text["text"])
+
         def min_node_props(node, depth, **kwargs):
             js = {"heTitle": node.primary_title("he"),
                   "enTitle": node.primary_title("en"),

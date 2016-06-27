@@ -482,12 +482,12 @@ var ReaderApp = React.createClass({
     } else {
       if ((window.location.pathname + window.location.search) == hist.url) { return; } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
+      if (Sefaria.site) { Sefaria.site.track.pageview(hist.url); }
       console.log("Push History - " + hist.url);
       //console.log(hist);
     }
 
     $("title").html(hist.title);
-    if (Sefaria.site) { Sefaria.site.track.pageview(hist.url); }
     this.replaceHistory = false;
   },
   makePanelState: function(state) {
@@ -697,6 +697,12 @@ var ReaderApp = React.createClass({
     } else {
       panel.version = null;
       panel.versionLanguage = null;
+    }
+    
+    if((this.state.panels.length > n+1) && this.state.panels[n+1].mode == "Connections"){
+      var connectionsPanel =  this.state.panels[n+1];
+      connectionsPanel.version = panel.version;
+      connectionsPanel.versionLanguage = panel.versionLanguage;
     }
     this.setState({panels: this.state.panels});
   },
@@ -2630,7 +2636,10 @@ var ReaderTextTableOfContents = React.createClass({
   componentWillUnmount: function() {
     window.removeEventListener('resize', this.shrinkWrap);
   },
-  componentDidUpdate: function() {
+  componentDidUpdate: function(prevProps, prevState) {
+    if (this.props.settingsLanguage != prevProps.settingsLanguage) {
+      this.loadVersions();
+    }
     this.bindToggles();
     this.shrinkWrap();
   },
@@ -2658,7 +2667,6 @@ var ReaderTextTableOfContents = React.createClass({
     }
   },
   loadVersionsDataFromText: function(d) {
-    console.log(d);
     // For now treat bilinguale as english. TODO show attribution for 2 versions in bilingual case.
     var currentLanguage = this.props.settingsLanguage == "he" ? "he" : "en";
     if (currentLanguage == "en" && !d.text.length) {currentLanguage = "he"}
@@ -3393,14 +3401,52 @@ var AllSheetsPage = React.createClass({
   propTypes: {
     hideNavHeader:   React.PropTypes.bool
   },
+  getInitialState: function() {
+    return {
+      page: 1,
+      loadedToEnd: false,
+      loading: false,
+      curSheets: [],
+    };
+  },
   componentDidMount: function() {
+    $(ReactDOM.findDOMNode(this)).bind("scroll", this.handleScroll);
     this.ensureData();
   },
-  getSheetsFromCache: function() {
-    return  Sefaria.sheets.publicSheets(0);
+  handleScroll: function() {
+    if (this.state.loadedToEnd || this.state.loading) { return; }
+    var $scrollable = $(ReactDOM.findDOMNode(this));
+    var margin = 100;
+    if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+      this.getMoreSheets();
+    }
   },
-  getSheetsFromAPI: function() {
-     Sefaria.sheets.publicSheets(0, this.onDataLoad);
+  getMoreSheets: function() {
+    if (this.state.page == 1) {
+      Sefaria.sheets.publicSheets(0,100,this.loadMoreSheets);
+    }
+    else {
+      Sefaria.sheets.publicSheets( ((this.state.page)*50),50,this.loadMoreSheets);
+    }
+    this.setState({loading: true});
+  },
+  loadMoreSheets: function(data) {
+    this.setState({page: this.state.page + 1});
+    this.createSheetList(data)
+  },
+  createSheetList: function(newSheets) {
+
+      if (newSheets) {
+        this.setState({curSheets: this.state.curSheets.concat(newSheets), loading: false});
+      }
+  },
+  getSheetsFromCache: function(offset) {
+    if (!offset) offset=0;
+    return  Sefaria.sheets.publicSheets(offset,50);
+  },
+  getSheetsFromAPI: function(offset) {
+    if (!offset) offset=0;
+     Sefaria.sheets.publicSheets(offset,50, this.onDataLoad);
   },
   onDataLoad: function(data) {
     this.forceUpdate();
@@ -3409,7 +3455,12 @@ var AllSheetsPage = React.createClass({
     if (!this.getSheetsFromCache()) { this.getSheetsFromAPI(); }
   },
   render: function() {
-    var sheets = this.getSheetsFromCache();
+    if (this.state.page == 1) {
+      var sheets = this.getSheetsFromCache();
+    }
+    else {
+      var sheets = this.state.curSheets;
+    }
     sheets = sheets ? sheets.map(function (sheet) {
       return (<PublicSheetListing sheet={sheet} />);
     }) : (<LoadingMessage />);
@@ -5521,7 +5572,8 @@ var AddToSourceSheetPanel = React.createClass({
     var sheetsContent = sheets ? sheets.map(function(sheet) {
       var classes     = classNames({sheet: 1, selected: this.state.selectedSheet == sheet.id});
       var selectSheet = function() { this.setState({selectedSheet: sheet.id}); }.bind(this);
-      return (<div className={classes} onClick={selectSheet} key={sheet.id}>{sheet.title.stripHtml()}</div>);
+      var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
+      return (<div className={classes} onClick={selectSheet} key={sheet.id}>{title}</div>);
     }.bind(this)) : <LoadingMessage />;
     sheetsContent     = sheets && sheets.length == 0 ? 
                           (<div className="sheet"><span className="en">You don&rsquo;t have any Source Sheets yet.</span><span className="he">טרם יצרת דפי מקורות</span></div>) :
@@ -6345,7 +6397,7 @@ var SearchResultList = React.createClass({
         var loadingMessage   = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
         var noResultsMessage = (<LoadingMessage message="0 results." heMessage="0 תוצאות." />);
 
-        var queryLoaded      = !this.state.moreToLoad[tab] && !this.state.isQueryRunning[tab];
+        var queryFullyLoaded      = !this.state.moreToLoad[tab] && !this.state.isQueryRunning[tab];
         var haveResults      = !!results.length;
         results              = haveResults ? results : noResultsMessage;
         var searchFilters    = (<SearchFilters
@@ -6363,7 +6415,7 @@ var SearchResultList = React.createClass({
         return (
           <div>
             { searchFilters }
-            { queryLoaded ? results : loadingMessage }
+            { queryFullyLoaded || haveResults ? results : loadingMessage }
           </div>
         );
     }

@@ -1202,16 +1202,16 @@ a.resourcesLink {
 .readerTextTableOfContents .content .versionDownloadButton {
     width: 60%;
     margin: 10px auto;
-    background-color: #7685ad;
+    background-color: white;
     font-size: 14px;
     height: 3em;
-    border-color: #7685ad;
+    border: 1px solid #ccc;
     border-radius: 3px;
-    color: white;
+    color: #ccc;
     font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerTextTableOfContents .content .versionDownloadButton .downloadButtonInner {
-    font-size: 18px;
+    font-size: 16px;
     padding: 10px;
 }
 .readerTextTableOfContents .content .versionDownloadButton .he {

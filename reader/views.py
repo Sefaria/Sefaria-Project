@@ -14,6 +14,7 @@ import base64
 import zlib
 from bson.json_util import dumps
 import p929
+import socket
 
 from django.views.decorators.cache import cache_page
 from django.template import RequestContext
@@ -202,7 +203,9 @@ def render_react_component(component, props):
     if not USE_NODE:
         return render_to_string("elements/loading.html")
 
-    propsJSON = json.dumps(props) 
+    from sefaria.settings import NODE_TIMEOUT, NODE_TIMEOUT_MONITOR
+
+    propsJSON = json.dumps(props)
     cache_key = "todo" # zlib.compress(propsJSON)
     url = NODE_HOST + "/" + component + "/" + cache_key
 
@@ -211,11 +214,22 @@ def render_react_component(component, props):
         "propsJSON": propsJSON,
     })
     try:
-        response = urllib2.urlopen(url, encoded_args)
+        response = urllib2.urlopen(url, encoded_args, NODE_TIMEOUT)
         html = response.read()
         return html
-    except:
-        # If anything goes wrong with Node, fall back to client-side rendering
+    except (urllib2.URLError, socket.timeout) as e:
+        # Catch timeouts, however they may come.  Write to file NODE_TIMEOUT_MONITOR, which forever monitors to restart process
+        if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
+            logger.exception("Node timeout: Fell back to client-side rendering.")
+            with open(NODE_TIMEOUT_MONITOR, "a") as myfile:
+                myfile.write("Node timeout: Fell back to client-side rendering. \nRequest Props:\n")
+                myfile.write(propsJSON)
+            return render_to_string("elements/loading.html")
+        else:
+            raise
+    except Exception as e:
+        # If anything else goes wrong with Node, just fall back to client-side rendering
+        logger.exception("Fell back to client-side rendering.")
         return render_to_string("elements/loading.html")
 
 
@@ -231,6 +245,7 @@ def make_panel_dict(oref, version, language, filter, mode):
             "textTocHtml": make_toc_html(oref),
         }
     else:
+        oref = oref.first_available_section_ref()
         panel = {
             "mode": mode,
             "ref": oref.normal(),
@@ -436,7 +451,7 @@ def s2_sheets_by_tag(request, tag):
         props["userSheets"]   = user_sheets(request.user.id)["sheets"]
         props["userTags"]     = user_tags(request.user.id)
     elif tag == "All Sheets":
-        props["publicSheets"] = [sheet_to_dict(s) for s in get_public_sheets()] #TODO Pagination
+        props["publicSheets"] = [sheet_to_dict(s) for s in get_public_sheets(0)] #TODO Pagination
     else:
         props["tagSheets"]    = [sheet_to_dict(s) for s in get_sheets_by_tag(tag)]
 
@@ -498,6 +513,8 @@ def edit_text(request, ref=None, lang=None, version=None):
                 text = TextFamily(Ref(ref), lang=lang, version=version).contents()
                 text["mode"] = request.path.split("/")[1]
                 mode = text["mode"].capitalize()
+                text["edit_lang"] = lang
+                text["edit_version"] = version
                 initJSON = json.dumps(text)
         except:
             index = library.get_index(ref)
@@ -512,8 +529,8 @@ def edit_text(request, ref=None, lang=None, version=None):
 
     return render_to_response('edit_text.html',
                              {'titles': titles,
-                             'initJSON': initJSON,
-                             'page_title': page_title,
+                              'initJSON': initJSON,
+                              'page_title': page_title,
                              },
                              RequestContext(request))
 
