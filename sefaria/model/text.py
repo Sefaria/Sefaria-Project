@@ -2325,6 +2325,47 @@ class Ref(object):
         d["toSections"] = d["toSections"][:-1] + [end]
         return Ref(_obj=d)
 
+    def as_segment_ranged_ref(self):
+        """
+        Expresses a section level (or higher) Ref as a ranged ref at segment level.
+        :return: Ref
+        """
+        # Only for section level or higher.
+        # If segment level, return self
+        # If already a range at section level or higher, extend to segment level
+
+        d = self._core_dict()
+
+        # create a temporary helper ref for finding the end of the range
+        if self.is_range():
+            temp_ref = self.ending_ref()
+        else:
+            temp_ref = self
+
+        # calculate the number of "paddings" required to get down to segment level
+        paddings = abs(self.index_node.depth - len(self.sections))
+        sec_padding, to_sec_padding = paddings, paddings
+
+        while sec_padding > 0:
+            d['sections'].append(1)
+            sec_padding -= 1
+
+        while to_sec_padding > 0:
+            size = temp_ref.get_state_ja().sub_array_length([i - 1 for i in temp_ref.sections])
+            if size > 0:
+                d['toSections'].append(size)
+            else:
+                d['toSections'].append(1)
+
+            # get the next level ending ref
+            temp_d = temp_ref._core_dict()
+            temp_d['sections'] = temp_d['toSections'][:] = d['toSections'][:]
+            temp_ref = Ref(_obj=temp_d)
+
+            to_sec_padding -= 1
+
+        return Ref(_obj=d)
+
     def starting_ref(self):
         """
         For ranged Refs, return the starting Ref

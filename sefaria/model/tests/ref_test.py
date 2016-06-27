@@ -327,6 +327,17 @@ class Test_Ref(object):
         assert Ref("Exodus 15:25-16:1").range_list() == [Ref('Exodus 15:25'), Ref('Exodus 15:26'), Ref('Exodus 15:27'),
                                                          Ref('Exodus 16:1')]
 
+    def test_as_segment_ranged_ref(self):
+        assert Ref('Genesis').as_segment_ranged_ref() == Ref('Genesis.1.1-50.26')
+        assert Ref('Shabbat.3a.1').as_segment_ranged_ref() == Ref('Shabbat.3a.1')
+        assert Ref('Rashi on Shabbat.3b').as_segment_ranged_ref() == Ref('Rashi on Shabbat.3b.1.1-3b.46.1')
+        assert Ref('Tur, Orach Chaim.57-59').as_segment_ranged_ref() == Ref('Tur, Orach Chaim.57.1-59.1')
+        # empty at the end
+        assert Ref('Tosafot on Bava Metzia.2a').as_segment_ranged_ref() == Ref('Tosafot on Bava Metzia.2a.1.1-2a.36.1')
+        # empty at the beginning
+        assert Ref('Tosafot on Bava Metzia.3a').as_segment_ranged_ref() == Ref('Tosafot on Bava Metzia.3a.1.1-3a.39.1')
+
+
     def test_subref(self):
         assert Ref("Exodus").subref(5) == Ref("Exodus 5")
         assert Ref("Exodus 5").subref(5) == Ref("Exodus 5:5")
