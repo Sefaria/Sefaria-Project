@@ -2334,6 +2334,9 @@ class Ref(object):
         # If segment level, return self
         # If already a range at section level or higher, extend to segment level
 
+        if self.is_segment_level():
+            return self
+
         d = self._core_dict()
 
         # create a temporary helper ref for finding the end of the range
