@@ -482,12 +482,12 @@ var ReaderApp = React.createClass({
     } else {
       if ((window.location.pathname + window.location.search) == hist.url) { return; } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
+      if (Sefaria.site) { Sefaria.site.track.pageview(hist.url); }
       console.log("Push History - " + hist.url);
       //console.log(hist);
     }
 
     $("title").html(hist.title);
-    if (Sefaria.site) { Sefaria.site.track.pageview(hist.url); }
     this.replaceHistory = false;
   },
   makePanelState: function(state) {
