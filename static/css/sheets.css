@@ -1898,11 +1898,16 @@ a.userLink{
 	margin: 0 auto;
 }
 
-.s2Modal input, .s2Modal textarea, .s2Modal select {
+.s2Modal input, .s2Modal textarea {
 	margin-bottom: 0;
 	background-color: #fff;
 	height:40px;
 	padding: 20px 10px;
+    box-sizing: border-box;
+}
+
+.s2Modal select {
+	background-color: #fff;
     box-sizing: border-box;
 }
 
