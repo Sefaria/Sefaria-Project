@@ -1466,7 +1466,7 @@ class TextFamily(object):
             for key, struct in oref.index.get_alt_structures().iteritems():
                 # Assuming these are in order, continue if it is before ours, break if we see one after
                 for n in struct.get_leaf_nodes():
-                    wholeRef = Ref(n.wholeRef).as_ranged_ref(1)
+                    wholeRef = Ref(n.wholeRef).as_ranged_segment_ref()
                     if wholeRef.ending_ref().precedes(oref):
                         continue
                     if wholeRef.starting_ref().follows(oref):
@@ -2325,7 +2325,7 @@ class Ref(object):
         d["toSections"] = d["toSections"][:-1] + [end]
         return Ref(_obj=d)
 
-    def as_ranged_ref(self, depth=None):
+    def as_ranged_segment_ref(self):
         """
         Expresses a section level (or higher) Ref as a ranged ref at segment level.
 
@@ -2334,7 +2334,6 @@ class Ref(object):
         """
         # Only for section level or higher.
         # If segment level, return self
-        # If already a range at section level or higher, extend to 'depth' levels
         # Only works for text that span a single jaggedArray
 
         if self.is_segment_level():
@@ -2351,13 +2350,7 @@ class Ref(object):
         # calculate the number of "paddings" required to get down to segment level
         max_depth = self.index_node.depth - len(self.sections)
 
-        if depth:
-            if depth <= max_depth:
-                sec_padding = to_sec_padding = depth
-            else:
-                raise IndexError('Cannot drop below segment level!')
-        else:
-            sec_padding = to_sec_padding = max_depth
+        sec_padding = to_sec_padding = max_depth
 
         while sec_padding > 0:
             d['sections'].append(1)
