@@ -1466,7 +1466,7 @@ class TextFamily(object):
             for key, struct in oref.index.get_alt_structures().iteritems():
                 # Assuming these are in order, continue if it is before ours, break if we see one after
                 for n in struct.get_leaf_nodes():
-                    wholeRef = Ref(n.wholeRef)
+                    wholeRef = Ref(n.wholeRef).as_ranged_ref(1)
                     if wholeRef.ending_ref().precedes(oref):
                         continue
                     if wholeRef.starting_ref().follows(oref):
@@ -2325,14 +2325,17 @@ class Ref(object):
         d["toSections"] = d["toSections"][:-1] + [end]
         return Ref(_obj=d)
 
-    def as_segment_ranged_ref(self):
+    def as_ranged_ref(self, depth=None):
         """
         Expresses a section level (or higher) Ref as a ranged ref at segment level.
+
+        :param depth: Desired depth of the range. If not specified will drop to segemnt level
         :return: Ref
         """
         # Only for section level or higher.
         # If segment level, return self
-        # If already a range at section level or higher, extend to segment level
+        # If already a range at section level or higher, extend to 'depth' levels
+        # Only works for text that span a single jaggedArray
 
         if self.is_segment_level():
             return self
@@ -2341,29 +2344,38 @@ class Ref(object):
 
         # create a temporary helper ref for finding the end of the range
         if self.is_range():
-            temp_ref = self.ending_ref()
+            current_ending_ref = self.ending_ref()
         else:
-            temp_ref = self
+            current_ending_ref = self
 
         # calculate the number of "paddings" required to get down to segment level
-        paddings = abs(self.index_node.depth - len(self.sections))
-        sec_padding, to_sec_padding = paddings, paddings
+        max_depth = self.index_node.depth - len(self.sections)
+
+        if depth:
+            if depth <= max_depth:
+                sec_padding = to_sec_padding = depth
+            else:
+                raise IndexError('Cannot drop below segment level!')
+        else:
+            sec_padding = to_sec_padding = max_depth
 
         while sec_padding > 0:
             d['sections'].append(1)
             sec_padding -= 1
 
+        state_ja = current_ending_ref.get_state_ja()
+
         while to_sec_padding > 0:
-            size = temp_ref.get_state_ja().sub_array_length([i - 1 for i in temp_ref.sections])
+            size = state_ja.sub_array_length([i - 1 for i in current_ending_ref.sections])
             if size > 0:
                 d['toSections'].append(size)
             else:
                 d['toSections'].append(1)
 
             # get the next level ending ref
-            temp_d = temp_ref._core_dict()
+            temp_d = current_ending_ref._core_dict()
             temp_d['sections'] = temp_d['toSections'][:] = d['toSections'][:]
-            temp_ref = Ref(_obj=temp_d)
+            current_ending_ref = Ref(_obj=temp_d)
 
             to_sec_padding -= 1
 
