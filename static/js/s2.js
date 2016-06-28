@@ -166,7 +166,8 @@ var ReaderApp = React.createClass({
       defaultPanelSettings: Sefaria.util.clone(defaultPanelSettings),
       layoutOrientation: layoutOrientation,
       path: this.props.initialPath,
-      panelCap: this.props.initialPanelCap
+      panelCap: this.props.initialPanelCap,
+      initialAnalyticsTracked: false
     };
   },
   componentDidMount: function componentDidMount() {
@@ -192,6 +193,11 @@ var ReaderApp = React.createClass({
       //console.log("Skipping history update - just popped")
       this.justPopped = false;
       return;
+    }
+
+    // Set initial page view (deferred from analytics.js instanciation)
+    if (!this.state.initialAnalyticsTracked) {
+      this.trackPageview();
     }
 
     // If a new panel has been added, and the panels extend beyond the viewable area, check horizontal scroll
@@ -236,6 +242,46 @@ var ReaderApp = React.createClass({
       this.justPopped = true;
       this.setState(state);
       this.setContainerMode();
+    }
+  },
+  _canTrackPageview: function _canTrackPageview() {
+    if (!Sefaria.site) {
+      return false;
+    }
+
+    var headerPanel = this.state.header.menuOpen || !this.state.panels.length && this.state.header.mode === "Header";
+    var panels = headerPanel ? [this.state.header] : this.state.panels;
+
+    // Have all refs been loaded?
+    if (!panels.every(function (panel) {
+      return !panel.refs.length || Sefaria.ref(panel.refs.slice(-1)[0]);
+    })) {
+      return false;
+    }
+    return true;
+  },
+  trackPageview: function trackPageview() {
+    if (!this._canTrackPageview()) {
+      return;
+    }
+
+    var headerPanel = this.state.header.menuOpen || !this.state.panels.length && this.state.header.mode === "Header";
+    var panels = headerPanel ? [this.state.header] : this.state.panels;
+
+    // Get top level categories
+    var primaryCats;
+    primaryCats = panels.map(function (panel) {
+      return panel.refs.length ? Sefaria.ref(panel.refs.slice(-1)[0]).categories[0] : "";
+    }).filter(function (r) {
+      return !!r;
+    }).join(", ");
+    Sefaria.site.track.primary_category(primaryCats);
+
+    var url = window.location.pathname + window.location.search;
+    Sefaria.site.track.pageview(url);
+
+    if (!this.state.initialAnalyticsTracked) {
+      this.setState({ initialAnalyticsTracked: true });
     }
   },
   shouldHistoryUpdate: function shouldHistoryUpdate() {
@@ -477,9 +523,7 @@ var ReaderApp = React.createClass({
         history.pushState(hist.state, hist.title, hist.url);
 
         //console.log(hist);
-        if (Sefaria.site) {
-          Sefaria.site.track.pageview(hist.url);
-        }
+        this.trackPageview();
       }
 
     $("title").html(hist.title);
@@ -1051,7 +1095,6 @@ var ReaderApp = React.createClass({
       interruptingMessage
     );
   }
-
 });
 
 var Header = React.createClass({

@@ -1435,7 +1435,7 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.topSheets) {
     Sefaria.sheets._topSheets = props.topSheets;
   }
-}
+};
 
 Sefaria.search.FilterNode.prototype = {
   append : function(child) {
@@ -1975,8 +1975,7 @@ Sefaria.util = {
             }   
         }
     }
-
-}
+};
 Sefaria.setup =function() {
     Sefaria.util.setupPrototypes();
     Sefaria.util.setupJQuery();
@@ -2188,6 +2187,10 @@ Sefaria.site = {
         Sefaria.site.track.event("Reader", "Open", ref);
         var text = Sefaria.parseRef(ref).book;
         Sefaria.site.track.event("Reader", "Open Text", text);
+    },
+    primary_category(category_name) {
+        console.log("Primary Category: " + category_name);
+        ga('set', 'contentGroup1', category_name);
     },
     ui: function(label) {
         // Track some action in the Reader UI

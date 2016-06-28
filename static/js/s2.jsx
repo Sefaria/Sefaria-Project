@@ -159,7 +159,8 @@ var ReaderApp = React.createClass({
       defaultPanelSettings: Sefaria.util.clone(defaultPanelSettings),
       layoutOrientation: layoutOrientation,
       path: this.props.initialPath,
-      panelCap: this.props.initialPanelCap
+      panelCap: this.props.initialPanelCap,
+      initialAnalyticsTracked: false
     };
   },
   componentDidMount: function() {
@@ -187,6 +188,9 @@ var ReaderApp = React.createClass({
       this.justPopped = false;
       return;
     }
+
+    // Set initial page view (deferred from analytics.js instanciation)
+    if (!this.state.initialAnalyticsTracked) { this.trackPageview(); }
 
     // If a new panel has been added, and the panels extend beyond the viewable area, check horizontal scroll
     if (this.state.panels.length > this.state.panelCap && this.state.panels.length > prevState.panels.length) {
@@ -232,6 +236,38 @@ var ReaderApp = React.createClass({
       this.setState(state);
       this.setContainerMode();
     }
+  },
+  _canTrackPageview: function() {
+      if (!Sefaria.site) { return false; }
+
+      var headerPanel = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
+      var panels = headerPanel ? [this.state.header] : this.state.panels;
+
+      // Have all refs been loaded?
+      if (!panels.every(panel => (!panel.refs.length) || Sefaria.ref(panel.refs.slice(-1)[0]))) {
+        return false;
+      }
+      return true;
+  },
+  trackPageview: function() {
+      if (!this._canTrackPageview()) { return; }
+
+      var headerPanel = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
+      var panels = headerPanel ? [this.state.header] : this.state.panels;
+
+      // Get top level categories
+      var primaryCats;
+      primaryCats = panels.map(panel => (panel.refs.length)? Sefaria.ref(panel.refs.slice(-1)[0]).categories[0]: "")
+                          .filter(r => !!r)
+                          .join(", ");
+      Sefaria.site.track.primary_category(primaryCats);
+
+      var url = window.location.pathname + window.location.search;
+      Sefaria.site.track.pageview(url);
+
+      if (!this.state.initialAnalyticsTracked) {
+        this.setState({initialAnalyticsTracked: true});
+      }
   },
   shouldHistoryUpdate: function() {
     // Compare the current state to the state last pushed to history,
@@ -482,7 +518,7 @@ var ReaderApp = React.createClass({
     } else {
       if ((window.location.pathname + window.location.search) == hist.url) { return; } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
-      if (Sefaria.site) { Sefaria.site.track.pageview(hist.url); }
+      this.trackPageview();
       console.log("Push History - " + hist.url);
       //console.log(hist);
     }
@@ -1048,8 +1084,7 @@ var ReaderApp = React.createClass({
               {panels}
               {interruptingMessage}
             </div>);
-  },
-
+  }
 });
 
 
