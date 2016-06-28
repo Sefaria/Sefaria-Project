@@ -1165,7 +1165,12 @@
   background-color: #ffffff;
   height: 3em;
   padding: 0 15px;
-  letter-spacing: 1px
+  letter-spacing: 1px;
+  border-radius: 3px;
+  border-color: #ccc;
+  font-size: 14px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+
 }
 #iosPage p {
   margin-bottom: 30px;
