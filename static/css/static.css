@@ -525,6 +525,7 @@
 #activityList{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #666;
+  padding: 0;
 }
 #profileActivity a {
   color: #333;
