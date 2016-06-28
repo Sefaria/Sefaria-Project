@@ -374,7 +374,6 @@ def s2(request, ref, version=None, lang=None):
     return render_to_response('s2.html', {
         "propsJSON":      propsJSON,
         "html":           html,
-        "ref":            oref.normal(),
     }, RequestContext(request))
 
 

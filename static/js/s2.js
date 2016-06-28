@@ -1447,6 +1447,7 @@ var ReaderPanel = React.createClass({
     // When this component is managed by a parent, all it takes is initialState
     if (this.props.initialState) {
       var state = this.clonePanel(this.props.initialState);
+      state["initialAnalyticsTracked"] = false;
       return state;
     }
 
@@ -1480,15 +1481,14 @@ var ReaderPanel = React.createClass({
       orphanSearchFilters: [],
       displaySettingsOpen: false,
       tagSort: "count",
-      mySheetSort: "date"
-
+      mySheetSort: "date",
+      initialAnalyticsTracked: false
     };
   },
   componentDidMount: function componentDidMount() {
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
     this.setHeadroom();
-    this.trackPanelOpens();
   },
   componentWillUnmount: function componentWillUnmount() {
     window.removeEventListener("resize", this.setWidth);
@@ -1514,7 +1514,7 @@ var ReaderPanel = React.createClass({
   },
   componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
     this.setHeadroom();
-    if (prevState.refs.compare(this.state.refs)) {
+    if (!this.state.initialAnalyticsTracked || !prevState.refs.compare(this.state.refs)) {
       this.trackPanelOpens();
     }
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
@@ -1760,6 +1760,7 @@ var ReaderPanel = React.createClass({
     });
   },
   trackPanelOpens: function trackPanelOpens() {
+    debugger;
     if (this.state.mode === "Connections") {
       return;
     }
@@ -1770,6 +1771,9 @@ var ReaderPanel = React.createClass({
       if (Sefaria.util.inArray(this.state.refs[i], this.tracked) == -1) {
         if (Sefaria.site) {
           Sefaria.site.track.open(this.state.refs[i]);
+          if (!this.state.initialAnalyticsTracked) {
+            this.setState({ initialAnalyticsTracked: true });
+          }
         }
         this.tracked.push(this.state.refs[i]);
       }

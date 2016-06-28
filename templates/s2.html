@@ -67,11 +67,6 @@
       var container = document.getElementById('s2');
       var component = React.createElement(ReaderApp, props);
       ReactDOM.render(component, container);
-      
-      var ref = "{{ ref }}";
-      if (ref) {
-        Sefaria.site.track.open(ref);
-      }
     });
     {% endautoescape %}
   </script>

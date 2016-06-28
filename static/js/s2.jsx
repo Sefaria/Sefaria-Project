@@ -1380,6 +1380,7 @@ var ReaderPanel = React.createClass({
     // When this component is managed by a parent, all it takes is initialState
     if (this.props.initialState) {
       var state = this.clonePanel(this.props.initialState);
+      state["initialAnalyticsTracked"] = false;
       return state;
     }
 
@@ -1413,15 +1414,14 @@ var ReaderPanel = React.createClass({
       orphanSearchFilters:  [],
       displaySettingsOpen:  false,
       tagSort: "count",
-      mySheetSort: "date"
-
+      mySheetSort: "date",
+      initialAnalyticsTracked: false
     }
   },
   componentDidMount: function() {
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
     this.setHeadroom();
-    this.trackPanelOpens();
   },
   componentWillUnmount: function() {
     window.removeEventListener("resize", this.setWidth);
@@ -1447,7 +1447,7 @@ var ReaderPanel = React.createClass({
   },
   componentDidUpdate: function(prevProps, prevState) {
     this.setHeadroom();
-    if (prevState.refs.compare(this.state.refs)) {
+    if (!this.state.initialAnalyticsTracked || !prevState.refs.compare(this.state.refs)) {
       this.trackPanelOpens();
     }
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
@@ -1688,13 +1688,17 @@ var ReaderPanel = React.createClass({
     });
   },
   trackPanelOpens: function() {
+    debugger;
     if (this.state.mode === "Connections") { return; }
     this.tracked = this.tracked || [];
     // Do a little dance to avoid tracking something we've already just tracked
     // e.g. when refs goes from ["Genesis 5"] to ["Genesis 4", "Genesis 5"] don't track 5 again
     for (var i = 0; i < this.state.refs.length; i++) {
       if (Sefaria.util.inArray(this.state.refs[i], this.tracked) == -1) {
-        if (Sefaria.site) { Sefaria.site.track.open(this.state.refs[i]); }
+        if (Sefaria.site) {
+          Sefaria.site.track.open(this.state.refs[i]);
+          if (!this.state.initialAnalyticsTracked) { this.setState({initialAnalyticsTracked: true}); }
+        }
         this.tracked.push(this.state.refs[i]);
       }
     }
