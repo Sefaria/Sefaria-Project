@@ -996,11 +996,16 @@ $(function() {
 
 		sjs.sortStart = function(e, ui) {
 			sjs.flags.sorting = true;
+			$( this ).sortable( 'refreshPositions' );
+			$(".inlineAddButton").hide();
+			$("#addInterface").hide();
 		};
 
 		sjs.sortStop = function(e, ui) {
 			sjs.flags.sorting = false;
 			setSourceNumbers();
+			$(".inlineAddButton").show();
+			$("#addInterface").show();
 			autoSave();
 		};
 
@@ -1009,13 +1014,36 @@ $(function() {
 							stop: sjs.sortStop,
 							cancel: ':input, button, .cke_editable, #addInterface',
 							placeholder: 'sortPlaceholder',
+							cursorAt: {bottom:5},
 							revert: 100,
 							delay: 300,
+							scroll: false,
 							scrollSpeed: 40,
 							scrollSensitivity: 60,
-							opacity: 0.9
+							helper: function(e,ui) {
+								var helper = $(ui[0]).clone();
+								helper.css({'height': '300px','overflow':'hidden',"background-color":"#f9f9f7","opacity":0.9});
+								return helper;
+							},
+							sort: function(e,ui) {
+								var top = $("body").scrollTop();
+								if (e.clientY < 120) {
+									top = top - 30;
+									$("html, body").scrollTop(top);
+								}
+								else if (e.clientY > $(window).height()-60) {
+									top = top + 30;
+									$("html, body").scrollTop(top);
+								}
+
+
+
+								//$("html, body").animate({scrollTop: top}, 300);
+
+							}
+
 						};
-							 
+
 
 		$("#sources").sortable(sjs.sortOptions);
 	}
