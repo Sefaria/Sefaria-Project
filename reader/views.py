@@ -668,7 +668,7 @@ def make_alt_toc_html(alt, index):
         he_icon = '<i class="schema-node-control fa ' + ('fa-angle-left' if linked else 'fa-angle-down') + '"></i>'
         html    = '<a href="' + urlquote(url) + '"' if linked else "<div "
         html   += ' class="schema-node-toc depth' + str(depth) + ' ' + linked + ' ' + default + '" >'
-        wrap_counts  = lambda counts: counts if list_depth(counts) == 2 else wrap_counts([counts])
+        wrap_counts  = lambda counts: counts if list_depth(counts) >= 2 else wrap_counts([counts])
         # wrap counts to ensure they are as though at section level, handles segment level refs
         if not default and depth > 0:
             html += '<span class="schema-node-title">'
