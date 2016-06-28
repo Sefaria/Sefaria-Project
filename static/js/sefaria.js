@@ -2180,7 +2180,8 @@ Sefaria.site = {
         //console.log([category, action, label].join(" / "));
     },
     pageview: function(url) {
-        ga('send', 'pageview', url);
+        ga('set', 'page', url);
+        ga('send', 'pageview');
     },
     open: function(ref) {
         // Track opening a specific text ref
@@ -2189,7 +2190,6 @@ Sefaria.site = {
         Sefaria.site.track.event("Reader", "Open Text", text);
     },
     primary_category(category_name) {
-        console.log("Primary Category: " + category_name);
         ga('set', 'contentGroup1', category_name);
     },
     ui: function(label) {

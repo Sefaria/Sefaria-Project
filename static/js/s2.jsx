@@ -259,7 +259,7 @@ var ReaderApp = React.createClass({
       var primaryCats;
       primaryCats = panels.map(panel => (panel.refs.length)? Sefaria.ref(panel.refs.slice(-1)[0]).categories[0]: "")
                           .filter(r => !!r)
-                          .join(", ");
+                          .join(" | ");
       Sefaria.site.track.primary_category(primaryCats);
 
       var url = window.location.pathname + window.location.search;
@@ -1007,7 +1007,8 @@ var ReaderApp = React.createClass({
                     registerAvailableFilters={this.updateAvailableFiltersInHeader}
                     setUnreadNotificationsCount={this.setUnreadNotificationsCount}
                     headerMode={this.props.headerMode}
-                    panelsOpen={panelStates.length} />) : null;
+                    panelsOpen={panelStates.length}
+                    analyticsInitialized={this.state.initialAnalyticsTracked} />) : null;
 
     var panels = [];
     for (var i = 0; i < panelStates.length; i++) {
@@ -1061,7 +1062,9 @@ var ReaderApp = React.createClass({
                       closePanel={closePanel}
                       panelsOpen={panelStates.length}
                       masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
-                      layoutWidth={width} />
+                      layoutWidth={width}
+                      analyticsInitialized={this.state.initialAnalyticsTracked}
+                    />
                   </div>);
     }
     var boxClasses = classNames({wrapBoxScroll: wrapBoxScroll});
@@ -1104,7 +1107,8 @@ var Header = React.createClass({
     registerAvailableFilters:    React.PropTypes.func,
     setUnreadNotificationsCount: React.PropTypes.func,
     headerMesssage:              React.PropTypes.string,
-    panelsOpen:                  React.PropTypes.number
+    panelsOpen:                  React.PropTypes.number,
+    analyticsInitialized:        React.PropTypes.bool,
   },
   getInitialState: function() {
     return this.props.initialState;
@@ -1285,7 +1289,8 @@ var Header = React.createClass({
                           updateSearchFilter={this.props.updateSearchFilter}
                           registerAvailableFilters={this.props.registerAvailableFilters}
                           setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
-                          hideNavHeader={true} />) : null;
+                          hideNavHeader={true}
+                          analyticsInitialized={this.props.analyticsInitialized}/>) : null;
 
 
     var notificationCount = Sefaria.notificationCount || 0;
@@ -1374,7 +1379,8 @@ var ReaderPanel = React.createClass({
     panelsOpen:                  React.PropTypes.number,
     layoutWidth:                 React.PropTypes.number,
     setTextListHightlight:       React.PropTypes.func,
-    setSelectedWords:            React.PropTypes.func
+    setSelectedWords:            React.PropTypes.func,
+    analyticsInitialized:        React.PropTypes.bool
   },
   getInitialState: function() {
     // When this component is managed by a parent, all it takes is initialState
@@ -1447,7 +1453,7 @@ var ReaderPanel = React.createClass({
   },
   componentDidUpdate: function(prevProps, prevState) {
     this.setHeadroom();
-    if (!this.state.initialAnalyticsTracked || !prevState.refs.compare(this.state.refs)) {
+    if (this.props.analyticsInitialized && (!this.state.initialAnalyticsTracked || !prevState.refs.compare(this.state.refs))) {
       this.trackPanelOpens();
     }
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
@@ -1688,7 +1694,6 @@ var ReaderPanel = React.createClass({
     });
   },
   trackPanelOpens: function() {
-    debugger;
     if (this.state.mode === "Connections") { return; }
     this.tracked = this.tracked || [];
     // Do a little dance to avoid tracking something we've already just tracked
@@ -1746,7 +1751,7 @@ var ReaderPanel = React.createClass({
     var items = [];
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       items.push(<TextColumn
-          srefs={this.state.refs}
+          srefs={this.state.refs.slice()}
           version={this.state.version}
           versionLanguage={this.state.versionLanguage}
           highlightedRefs={this.state.highlightedRefs}
@@ -1777,7 +1782,7 @@ var ReaderPanel = React.createClass({
                         (langMode === "english" && data.versionStatus !== "locked") ||
                         (Sefaria.is_moderator && langMode !== "bilingual");
       items.push(<ConnectionsPanel 
-          srefs={this.state.mode === "Connections" ? this.state.refs : this.state.highlightedRefs} 
+          srefs={this.state.mode === "Connections" ? this.state.refs.slice() : this.state.highlightedRefs.slice()}
           filter={this.state.filter || []}
           mode={this.state.connectionsMode || "Connections"}
           recentFilters={this.state.recentFilters}
