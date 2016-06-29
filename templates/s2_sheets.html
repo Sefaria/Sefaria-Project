@@ -464,8 +464,7 @@
 
 </div>
 
-
-
+{% if is_owner and not new_sheet %}
 <div id="shareWithOthers" class="modal s2Modal">
     <span class="close-button"></span>
     <div class="title">Share with Others</div>
@@ -502,7 +501,7 @@
     <div id="sharingDesc"></div><span id="sharingType" data-sharing=""></span>
     <div class="ok button">Save</div>
 </div>
-
+{% endif %}
 
 <div id="addToSheetModal" class="modal s2Modal">
 	<div class="header">Add <span class="sourceName"></span> to a Source Sheet</div>
