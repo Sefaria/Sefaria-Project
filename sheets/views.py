@@ -813,7 +813,7 @@ def sheet_to_html_string(sheet):
 		"assignments_from_sheet": assignments_from_sheet(sheet['id']),
 	}
 
-	return render_to_string('sheet_for_gdrive.html', context).encode('utf-8')
+	return render_to_string('gdocs_sheet.html', context).encode('utf-8')
 
 
 @gauth_required(scope='https://www.googleapis.com/auth/drive.file', ajax=True)
