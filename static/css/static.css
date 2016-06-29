@@ -1104,7 +1104,8 @@
   color: #666;
 }
 #personPage a,
-#peoplePage a {
+#peoplePage a,
+#talmudicPeoplePage a{
   text-decoration: none;
 }
 #peoplePage .authors-row{
