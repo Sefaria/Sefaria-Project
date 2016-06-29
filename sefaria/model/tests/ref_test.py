@@ -327,6 +327,20 @@ class Test_Ref(object):
         assert Ref("Exodus 15:25-16:1").range_list() == [Ref('Exodus 15:25'), Ref('Exodus 15:26'), Ref('Exodus 15:27'),
                                                          Ref('Exodus 16:1')]
 
+    def test_as_ranged_segment_ref(self):
+        assert Ref('Genesis').as_ranged_segment_ref() == Ref('Genesis.1.1-50.26')
+        assert Ref('Shabbat.3a.1').as_ranged_segment_ref() == Ref('Shabbat.3a.1')
+        assert Ref('Rashi on Shabbat.3b').as_ranged_segment_ref() == Ref('Rashi on Shabbat.3b.1.1-3b.46.1')
+        assert Ref('Tur, Orach Chaim.57-59').as_ranged_segment_ref() == Ref('Tur, Orach Chaim.57.1-59.1')
+        # empty at the end
+        assert Ref('Tosafot on Bava Metzia.2a').as_ranged_segment_ref() == Ref('Tosafot on Bava Metzia.2a.1.1-2a.36.1')
+        # empty at the beginning
+        assert Ref('Tosafot on Bava Metzia.3a').as_ranged_segment_ref() == Ref('Tosafot on Bava Metzia.3a.1.1-3a.39.1')
+        assert Ref('Genesis.1-14').as_ranged_segment_ref() == Ref('Genesis.1.1-14.24')
+        assert Ref('Pesach Haggadah, Karpas').as_ranged_segment_ref() == Ref('Pesach Haggadah, Karpas.1-4')
+        assert Ref('Marbeh_Lisaper_on_Pesach_Haggadah,_'
+                   'Karpas').as_ranged_segment_ref() == Ref('Marbeh_Lisaper_on_Pesach_Haggadah,_Karpas.1.1-1.2')
+
     def test_subref(self):
         assert Ref("Exodus").subref(5) == Ref("Exodus 5")
         assert Ref("Exodus 5").subref(5) == Ref("Exodus 5:5")

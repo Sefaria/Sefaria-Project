@@ -1466,7 +1466,7 @@ class TextFamily(object):
             for key, struct in oref.index.get_alt_structures().iteritems():
                 # Assuming these are in order, continue if it is before ours, break if we see one after
                 for n in struct.get_leaf_nodes():
-                    wholeRef = Ref(n.wholeRef)
+                    wholeRef = Ref(n.wholeRef).as_ranged_segment_ref()
                     if wholeRef.ending_ref().precedes(oref):
                         continue
                     if wholeRef.starting_ref().follows(oref):
@@ -2323,6 +2323,55 @@ class Ref(object):
         d = self._core_dict()
         d["sections"] = d["sections"][:-1] + [start]
         d["toSections"] = d["toSections"][:-1] + [end]
+        return Ref(_obj=d)
+
+    def as_ranged_segment_ref(self):
+        """
+        Expresses a section level (or higher) Ref as a ranged ref at segment level.
+
+        :param depth: Desired depth of the range. If not specified will drop to segemnt level
+        :return: Ref
+        """
+        # Only for section level or higher.
+        # If segment level, return self
+        # Only works for text that span a single jaggedArray
+
+        if self.is_segment_level():
+            return self
+
+        d = self._core_dict()
+
+        # create a temporary helper ref for finding the end of the range
+        if self.is_range():
+            current_ending_ref = self.ending_ref()
+        else:
+            current_ending_ref = self
+
+        # calculate the number of "paddings" required to get down to segment level
+        max_depth = self.index_node.depth - len(self.sections)
+
+        sec_padding = to_sec_padding = max_depth
+
+        while sec_padding > 0:
+            d['sections'].append(1)
+            sec_padding -= 1
+
+        state_ja = current_ending_ref.get_state_ja()
+
+        while to_sec_padding > 0:
+            size = state_ja.sub_array_length([i - 1 for i in current_ending_ref.sections])
+            if size > 0:
+                d['toSections'].append(size)
+            else:
+                d['toSections'].append(1)
+
+            # get the next level ending ref
+            temp_d = current_ending_ref._core_dict()
+            temp_d['sections'] = temp_d['toSections'][:] = d['toSections'][:]
+            current_ending_ref = Ref(_obj=temp_d)
+
+            to_sec_padding -= 1
+
         return Ref(_obj=d)
 
     def starting_ref(self):
