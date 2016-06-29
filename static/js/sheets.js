@@ -675,7 +675,7 @@ $(function() {
 			}
 		CKEDITOR.on('instanceReady', function(ev) {
 		  // replace &nbsp; from pasted text
-		  ev.editor.on('paste', function(evt) { 
+		  ev.editor.on('paste', function(evt) {
 		    evt.data.dataValue = evt.data.dataValue.replace(/&nbsp;/g,' ');
 		  }, null, null, 9);
 		});
@@ -3247,14 +3247,27 @@ function deleteSheet() {
 	}
 }
 
-// Regex for identifying divine name with or without nikkud / trop
-sjs.divineRE = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C7]*|יי|יקוק|ה\')(?=[\s.,;:'"\-]|$)/g;
+// Regexes for identifying divine names with or without nikkud / trop
+// Currently ignores אֵל & צְבָאוֹת & שדי
+sjs.divineRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C7]*|יי|יקוק|ה\')(?=[\s.,;:'"\-]|$)/g;
+
+sjs.adoshemRE = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05C7]*ד[\u0591-\u05C7]*נ[\u0591-\u05C7]*י[\u0591-\u05C7]*|אדושם)(?=[\s.,;:'"\-]|$)/g;
+
+sjs.elokaiRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05C7]*ל[\u0591-\u05C7]*ו?[\u0591-\u05C7]*)([הק])([\u0591-\u05C7]*)((י[\u0591-\u05C7]*)?[ךיוהםן][\u0591-\u05C7]*|(י[\u0591-\u05C7]*)?נ[\u0591-\u05C7]*ו[\u0591-\u05C7]*|(י[\u0591-\u05C7]*)?כ[\u0591-\u05C7]*[םן])(?=[\s.,;:'"\-]|$)/g;
+
+sjs.elokaRE   = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05C7]*ל[\u0591-\u05C7]*ו[\u0591-\u05C7]*)([הק])([\u0591-\u05C7]*)(?=[)(?=[\s.,;:'"\-]|$)/g;
+
+//sjs.shadaiRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(ש[\u0591-\u05C7]*[דק][\u0591-\u05C7]*י[\u0591-\u05C7]*)(?=[\s.,;:'"\-]|$)/g;
+
+
 sjs.divineSubs = {
 					"noSub": "יהוה", 
 					"yy": "יי",
 					"ykvk": "יקוק",
 					"h": "ה'"
 				};
+
+
 
 
 function substituteDivineNames(text) {
@@ -3265,15 +3278,40 @@ function substituteDivineNames(text) {
 	}
 	var sub = sjs.divineSubs[sjs.current.options.divineNames];
 	text = text.replace(sjs.divineRE, "$1$2"+sub);
+	text = text.replace(sjs.adoshemRE, "$1$2"+"אדושם");
+	text = text.replace(sjs.elokaiRE, "$1$2$3"+"ק"+"$5$6");
+	text = text.replace(sjs.elokaRE, "$1$2$3"+"ק"+"$5");
 	return text;
 }
 
 
 function substituteDivineNamesInNode(node) {
+	if (sjs.current.options.divineNames=="noSub") {
+		var adoshemSub = "אדני";
+		var elokaiSub = "ה"
+	}
+	else {
+		var adoshemSub = "אדושם";
+		var elokaiSub = "ק";
+	}
 	findAndReplaceDOMText(node, {
 		find: sjs.divineRE,
 		replace:  "$1$2"+sjs.divineSubs[sjs.current.options.divineNames]
 	});
+	findAndReplaceDOMText(node, {
+		find: sjs.adoshemRE,
+		replace:  "$1$2"+adoshemSub
+	});
+	findAndReplaceDOMText(node, {
+		find: sjs.elokaiRE,
+		replace:  "$1$2$3"+elokaiSub+"$5$6"
+	});
+	findAndReplaceDOMText(node, {
+		find: sjs.elokaRE,
+		replace:  "$1$2$3"+elokaiSub+"$5"
+	});
+
+
 }
 
 
