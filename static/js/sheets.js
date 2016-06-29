@@ -665,6 +665,7 @@ $(function() {
 		CKEDITOR.disableAutoInline = true;
 		CKEDITOR.config.startupFocus = true;
 		CKEDITOR.config.extraAllowedContent = 'small; span(segment);div(oldComment)';
+		CKEDITOR.config.removePlugins = 'magicline';
 
 		if ($.cookie("s2") == "true") {
 
