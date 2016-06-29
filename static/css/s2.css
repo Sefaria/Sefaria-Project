@@ -1867,7 +1867,7 @@ a.resourcesLink {
 }
 .bilingual .basetext .segment > .en {
   margin: 10px 0 20px;
-  color: #999;
+  color: #666;
 }
 .continuous.bilingual .segment.heOnly > .he,
 .continuous.bilingual .segment.enOnly > .en {

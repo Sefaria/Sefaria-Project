@@ -287,10 +287,10 @@
 #homePage .section .button .fa {
   color: #ccc;
   font-size: 25px;
-  margin: 0 3px;
+  /*margin: 0 3px;
   position: absolute;
   left: 11px;
-  top: 10px;
+  top: 10px;*/
 }
 #homePage .section.center {
   text-align: center;
@@ -454,6 +454,32 @@
   margin-top: 40px;
   font-size: 20px;
   display: none;
+}
+#homePage #homeMobile .button{
+  display: flex;
+  display: -webkit-flex
+  flex-direction: row;
+  -webkit-flex-direction: row;
+  padding: 12px 14px;
+  align-items: center;
+  -webkit-align-items: center;
+  -webkit-align-content: center; /* Safari */
+  align-content:         center;
+  -webkit-justify-content: space-between; /* Safari */
+  justify-content:         space-between;
+}
+#homePage #homeMobile a .button i:before
+{
+  text-decoration: none;
+  display: inline-block; /*so this does not inherit the underline from the parent a*/
+}
+#homePage #homeMobile .button .en {
+  margin-left: 15px;
+  margin-right: auto;
+}
+#homePage #homeMobile .button .he{
+  margin-right: 15px;
+  margin-left: auto;
 }
 #profilePage {
 }
@@ -897,28 +923,49 @@
 }
 #editProfilePage #profileBox,
 #editProfilePage #contactBox,
-#editProfilePage #sheetsBox {
+#editProfilePage #sheetsBox,
+#editProfilePage #aboutBox {
   text-align: left;
   margin-bottom: 60px;
+  display: flex;
+  display: -webkit-flex;
+  justify-content: space-between;
+  -webkit-justify-content:space-between;
+  flex-flow: row wrap;
 }
-.editProfileContentLeft {
-  float: left;
-  width: 310px;
-  margin-right: 0px;
+#editProfilePage #sheetsBox{
+  flex-direction: column;
+  text-align: center;
+}
+#editProfilePage #aboutBox div, #editProfilePage #contactBox input{
+  border: 1px solid #bbb;
+}
+
+/*.editProfileContentLeft {
+  width: 48%;
+  min-width: 300px;
+  margin: 0 auto 0 0;
+
 }
 .editProfileContentRight {
-  width: 310px;
-  float: right;
-}
+  width: 48%;
+  min-width: 300px;
+  margin: 0 0 0 auto;
+}*/
+
 #editProfilePage h2 {
   text-align: center;
+}
+#editProfilePage .field label{
+  padding-bottom: 10px;
+  display: block;
 }
 #editProfilePage input {
   padding: 15px 12px;
   border: none;
 }
 #editProfilePage #profilePictureBox {
-  width: 100%;
+  /*width: 100%;*/
 }
 #editProfilePage #profilePictureBox img {
   vertical-align: top;
@@ -929,7 +976,7 @@
   margin-bottom: 8px;
 }
 #editProfilePage #aboutBox {
-  margin-bottom: 12px;
+  /*margin-bottom: 12px;*/
 }
 #editProfilePage #bio {
   width: 100%;
@@ -943,12 +990,14 @@
 }
 #editProfilePage .field {
   margin-bottom: 20px;
+  width: 48%;
+  min-width: 300px;
 }
 #editProfilePage .field input {
   width: 100%;
   color: #333;
   background-color: white;
-  /*box-sizing: border-box;*/
+  box-sizing: border-box;
 }
 #editProfilePage ul {
   list-style-type: none;
@@ -978,8 +1027,8 @@
 }
 #editProfilePage #jewishEducation .remove {
   position: absolute;
-  right: 6px;
-  top: 7px;
+  right: 5px;
+  top: 15px;
   cursor: pointer;
 }
 #editProfilePage #sheetsBox #pinnedSheetsMessage {
@@ -1055,7 +1104,8 @@
   color: #666;
 }
 #personPage a,
-#peoplePage a {
+#peoplePage a,
+#talmudicPeoplePage a{
   text-decoration: none;
 }
 #peoplePage .authors-row{
@@ -1172,8 +1222,15 @@
   border-color: #ccc;
   font-size: 14px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-
+  /*-webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;*/
 }
+
+
 #iosPage p {
   margin-bottom: 30px;
 }
@@ -1276,9 +1333,11 @@
   padding: 20px 0 20px 0;
   margin: 0;
   display: flex;
-  display: -webkit-flex
+  display: -webkit-flex;
   justify-content: space-between;
   -webkit-justify-content:space-between;
+  align-items: center;
+  -webkit-align-items: center;
 }
 #translationRequestsPage .translationRequest > div{
   all: initial;
