@@ -5,7 +5,7 @@ from django.http import HttpResponseRedirect
 
 from emailusernames.forms import EmailAuthenticationForm
 
-from sefaria.forms import HTMLPasswordResetForm
+from sefaria.forms import HTMLPasswordResetForm, SefariaLoginForm
 from sefaria.settings import DOWN_FOR_MAINTENANCE
 
 admin.autodiscover()
@@ -150,19 +150,23 @@ urlpatterns += patterns('sheets.views',
     (r'^api/sheets/(?P<sheet_id>\d+)/unlike$',                     'unlike_sheet_api'),
     (r'^api/sheets/(?P<sheet_id>\d+)/likers$',                     'sheet_likers_api'),
     (r'^api/sheets/user/(?P<user_id>\d+)$',                        'user_sheet_list_api'),
+    (r'^api/sheets/user/(?P<user_id>\d+)/(?P<sort_by>\w+)$',       'user_sheet_list_api_with_sort'),
     (r'^api/sheets/modified/(?P<sheet_id>\d+)/(?P<timestamp>.+)$', 'check_sheet_modified_api'),
     (r'^api/sheets/create/(?P<ref>[^/]+)(/(?P<sources>.+))?$',     'make_sheet_from_text_api'),
     (r'^api/sheets/tag/(?P<tag>[^/]+)?$',                          'sheets_by_tag_api'),
     (r'^api/sheets/trending-tags/?$',                              'trending_tags_api'),
     (r'^api/sheets/tag-list/?$',                                   'tag_list_api'),
-    (r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            'export_to_drive')
-
+    (r'^api/sheets/tag-list/user/(?P<user_id>\d+)?$',              'user_tag_list_api'),
+    (r'^api/sheets/tag-list/(?P<sort_by>\w+)$',                    'tag_list_api'),
+    (r'^api/sheets/all-sheets/(?P<limiter>\d+)/(?P<offset>\d+)$',  'all_sheets_api'),
+    (r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            'export_to_drive'),
 )
 
 # Activity
 urlpatterns += patterns('reader.views',
     (r'^activity/?$', 'global_activity'),
     (r'^activity/(?P<page>\d+)$', 'global_activity'),
+    (r'^activity/(?P<slug>[^/]+)/(?P<page>\d+)?$', 'user_activity'),
     (r'^activity/(?P<tref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)/(?P<page>\d+)$', 'segment_history'),
     (r'^activity/(?P<tref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)$', 'segment_history'),
     (r'^api/revert/(?P<tref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)/(?P<revision>\d+)$', 'revert_api'),
@@ -175,7 +179,9 @@ urlpatterns += patterns('reader.views',
     (r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', 'profile_redirect'),
     (r'^settings/account?$', 'account_settings'),
     (r'^settings/profile?$', 'edit_profile'),
+    (r'^interface/(?P<language>english|hebrew)$', 'interface_language_redirect'),
     (r'^api/profile$', 'profile_api'),
+    (r'^api/interrupting-messages/read/(?P<message>.+)$', 'interrupting_messages_read_api'),
 )
 
 # Random Text
@@ -199,7 +205,6 @@ urlpatterns += patterns('reader.views',
 urlpatterns += patterns('reader.views',
     (r'^api/(?P<action>(follow|unfollow))/(?P<uid>\d+)$', 'follow_api'),
     (r'^api/(?P<kind>(followers|followees))/(?P<uid>\d+)$', 'follow_list_api'),
-
 )
 
 # Groups
@@ -210,9 +215,13 @@ urlpatterns += patterns('sheets.views',
     (r'^partners/(?P<partner>[^/]+)/tags/(?P<tag>.+)$', 'partner_sheets_tag'),
 )
 
+# Redirects for setting interface language
+urlpatterns += patterns('reader.views',
+)
+
 # Registration
 urlpatterns += patterns('',
-    url(r'^login/?$', 'sefaria.views.login', {'authentication_form': EmailAuthenticationForm}, name='login'),
+    url(r'^login/?$', 'sefaria.views.login', {'authentication_form': SefariaLoginForm}, name='login'),
     url(r'^logout/?$', 'django.contrib.auth.views.logout', {'next_page': '/', 'redirect_field_name': 'next'}, name='logout'),
     url(r'^register/?$', 'sefaria.views.register', name='register'),
     url(r'^password/reset/?$', 'django.contrib.auth.views.password_reset', {'password_reset_form': HTMLPasswordResetForm}, name='password_reset'),
@@ -227,28 +236,32 @@ static_pages = [
     "strategy",
     "supporters",
     "team",
+    "help",
+    "connect",
+    "visualizations",
+    "jobs",
+    "terms",
+    "privacy-policy",
+    "coming-soon",
+    "shraga-silverstein",
+    "linker",
+    "ios",
+    "sefaria-edition",
+    "sefaria-community-translation",
+    "contributed-to-sefaria",
     "translation-guidelines",
     "transliteration-guidelines",
     "even-haezer-guidelines",
     "related-projects",
-    "jobs",
-    "terms",
-    "privacy-policy",
     "meetup1",
     "meetup2",
     "random-walk-through-torah",
-    "shraga-silverstein",
-    "linker",
-    "sefaria-edition",
-    "sefaria-community-translation",
-    "contributed-to-sefaria",
 ]
 
 # Static and Semi Static Content
 urlpatterns += patterns('reader.views',
     url(r'^$', 'home', name="home"),
     (r'^metrics/?$', 'metrics'),
-    (r'^connect/?$', 'connectPage'),
     (r'^digitized-by-sefaria/?$', 'digitized_by_sefaria'),
     (r'^(%s)/?$' % "|".join(static_pages), 'serve_static'),
 )
@@ -261,6 +274,7 @@ urlpatterns += patterns('reader.views',
 
 # Features under Development (not generally linked publicly yet)
 urlpatterns += patterns('reader.views',
+    (r'^s1/?$', 'switch_to_s1'),
     (r'^s2/?$', 'switch_to_s2'),
     (r'^account?$', 's2_account'),
     (r'^notifications?$', 's2_notifications'),
@@ -275,14 +289,11 @@ urlpatterns += patterns('reader.views',
     (r'^visualize/library/(?P<lang>[enh]*)/?(?P<cats>.*)/?$', 'visualize_library'),
     (r'^visualize/library/?(?P<cats>.*)/?$', 'visualize_library'),
     (r'^visualize/toc$', 'visualize_toc'),
-    (r'^visualize/torah-quant$', 'visualize_torah_quant'),
-    (r'^visualize/steve$', 'visualize_steve'),
-    (r'^visualize/yoni$', 'visualize_yoni'),
-    (r'visualize/yoni$', 'visualize_yoni'),
+    (r'^visualize/parasha-colors$', 'visualize_parasha_colors'),
     (r'^visualize/links_through_rashi$', 'visualize_rashi_interlinks'),
 )
 
-# Redirects to Forum, Wiki
+# Redirects to Forum, Wiki, etc
 urlpatterns += patterns('',
     (r'^forum/?$', lambda x: HttpResponseRedirect('https://groups.google.com/forum/?fromgroups#!forum/sefaria')),
     (r'^wiki/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki')),
@@ -290,14 +301,22 @@ urlpatterns += patterns('',
     (r'^developers/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#developers')),
     (r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Guide-to-Contributing')),
     (r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions')),
-
+    (r'^textmap/?$', lambda x: HttpResponseRedirect('/static/files/Sefaria-Text-Map-June-2016.pdf')),
 )
+
+# Packaged JavaScript
+urlpatterns += patterns('sefaria.views',
+    (r'^data\.js$', 'data_js'),
+    (r'^sefaria\.js$', 'sefaria_js'),
+)
+
 
 # Linker js
 urlpatterns += patterns('sefaria.views',
     (r'^linker\.js$', 'linker_js'),
     (r'^api/regexs/(?P<titles>.+)$', 'title_regex_api'),
-    (r'^api/bulktext/(?P<refs>.+)$', 'bulktext_api')
+    (r'^api/bulktext/(?P<refs>.+)$', 'bulktext_api'),
+    (r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>json|csv|txt)', 'text_download_api')
 )
 
 # Email Subscribe

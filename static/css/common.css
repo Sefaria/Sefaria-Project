@@ -655,9 +655,7 @@ text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
   -webkit-user-select: auto;
 }
 
-.notification.unread {
-  background-color: #E7EDF3;
-}
+.notification.unread {background-color: #eee;}
 
 .notification+.notification  {
   border-top: 1px solid #999;
@@ -1053,7 +1051,7 @@ body.hebrew #visualGardenPage .filter-title .reset {
 }
 
 /****   Person    ****/
-
+/*
 
 #personPage #periodNameLine {
   text-align: center;
@@ -1074,7 +1072,6 @@ body.hebrew #visualGardenPage .filter-title .reset {
 
 .hebrew #personPage {
   direction: rtl;
-  /* font-size: 145%; */
 }
 
 div.person_tooltip {
@@ -1195,7 +1192,7 @@ div.person_tooltip {
     clear: both;
   }
 
-}
+}*/
 /****        Search         ****/
 
 #gotoBox {

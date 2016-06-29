@@ -14,6 +14,13 @@
     <link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
 	<link rel="stylesheet" href="/static/css/common.css">
 	<link rel="stylesheet" href="/static/css/reader-print.css" media="print" />
+    <link rel="stylesheet" href="/static/css/s2.css">
+
+    <style>
+      body {
+        overflow: visible;
+      }
+    </style>
 
 	<script>{% include "js/analytics.js" %}</script>
 
@@ -95,9 +102,7 @@
 		</div>
 	</div>
 
-	{% if not S2 %}
-	    {% include "header.html" %}
-    {% endif %}
+    {% include "header.html" %}
 
 	<div id="newTextModal" class="modal">
 		<div class="header">Add a New Text</div>
@@ -304,6 +309,9 @@
 		current: {{ initJSON }},
 		langMode: "{{ contentLang }}".substring(0,2)
 	});
+    if("edit_lang" in sjs.current){
+        sjs.langMode = sjs.current["edit_lang"];
+    }
 
 {% endautoescape %}
 </script>
@@ -312,8 +320,8 @@
 {% if not OFFLINE %}
 <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-4f0b68586603bc9f"></script>
 {% endif %}
-{% if S2 %}
-    {% include "elements/s2_header.html" %}
-{% endif %}
+{% if S2 or request.flavour == "mobile" %}
+    {% include "react_header_activate.html" %}
+{%  endif %}
 </body>
 </html>

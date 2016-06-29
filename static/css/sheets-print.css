@@ -6,7 +6,12 @@
 .controls,
 .openLink, 
 #belowSheet,
-#bottomAuthor {
+#bottomAuthor,
+.sheetsEditNavTop,
+.inlineAddButton,
+.header,
+#addInterface
+{
 	display: none !important;
 	border: 0;
 }

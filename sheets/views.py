@@ -1,5 +1,4 @@
 import json
-from bson.son import SON
 from datetime import datetime, timedelta
 import httplib2
 from StringIO import StringIO
@@ -51,7 +50,7 @@ def annotate_user_links(sources):
 
 	return sources
 
-
+@login_required
 @ensure_csrf_cookie
 def new_sheet(request):
 	"""
@@ -74,7 +73,7 @@ def new_sheet(request):
 	hide_video    = db.sheets.find(query).count() > 2
 
 
-	return render_to_response('s2_sheets.html' if request.COOKIES.get('s2') else 'sheets.html', {"can_edit": True,
+	return render_to_response('sheets.html' if request.COOKIES.get('s1') else 's2_sheets.html', {"can_edit": True,
 												"new_sheet": True,
 												"is_owner": True,
 												"hide_video": hide_video,
@@ -186,7 +185,7 @@ def view_sheet(request, sheet_id):
 	viewer_is_liker = request.user.id in likes
 
 
-	return render_to_response('s2_sheets.html' if request.COOKIES.get('s2') else 'sheets.html', {"sheetJSON": json.dumps(sheet),
+	return render_to_response('sheets.html' if request.COOKIES.get('s1') else 's2_sheets.html', {"sheetJSON": json.dumps(sheet),
 												"sheet": sheet,
 												"sheet_class": sheet_class,
 												"can_edit": can_edit_flag,
@@ -288,7 +287,7 @@ def assigned_sheet(request, assignment_id):
 	like_count      = len(likes)
 	viewer_is_liker = request.user.id in likes
 
-	return render_to_response('s2_sheets.html' if request.COOKIES.get('s2') else 'sheets.html', {"sheetJSON": json.dumps(sheet),
+	return render_to_response('sheets.html' if request.COOKIES.get('s1') else 's2_sheets.html', {"sheetJSON": json.dumps(sheet),
 												"sheet": sheet,
 												"assignment_id": assignment_id,
 												"assigner_id": assigner_id,
@@ -325,52 +324,6 @@ def delete_sheet_api(request, sheet_id):
 	return jsonResponse({"status": "ok"})
 
 
-def sheet_tag_counts(query):
-	"""
-	Returns tags ordered by count for sheets matching query.
-	"""
-	tags = db.sheets.aggregate([
-		{"$match": query },
-		{"$unwind": "$tags"},
-		{"$group": {"_id": "$tags", "count": {"$sum": 1}}},
-		{"$sort": SON([("count", -1), ("_id", -1)])},
-		{"$project": { "_id": 0, "tag": "$_id", "count": "$count" }}
-	])
-	return tags["result"]
-
-
-def order_tags_for_user(tag_counts, uid):
-	"""
-	Returns of list of tag/count dicts order according to user's preference,
-	Adds empty tags if any appear in user's sort list but not in tags passed in
-	"""
-	profile   = UserProfile(id=uid)
-	tag_order = getattr(profile, "tag_order", None)
-	if tag_order:
-		empty_tags = tag_order[:]
-		tags = [tag_count["tag"] for tag_count in tag_counts]
-		empty_tags = [tag for tag in tag_order if tag not in tags]
-
-		for tag in empty_tags:
-			tag_counts.append({"tag": tag, "count": 0})
-		try:
-			tag_counts = sorted(tag_counts, key=lambda x: tag_order.index(x["tag"]))
-		except:
-			pass
-
-	return tag_counts
-
-
-def recent_public_tags(days=14, ntags=10):
-	"""
-	Returns list of tag/counts on public sheets modified in the last 'days'.
-	"""
-	cutoff      = datetime.now() - timedelta(days=days)
-	query       = {"status": "public", "dateModified": { "$gt": cutoff.isoformat() } }
-	tags        = sheet_tag_counts(query)[:ntags]
-
-	return tags
-
 
 def sheets_list(request, type=None):
 	"""
@@ -381,6 +334,9 @@ def sheets_list(request, type=None):
 		# Sheet Splash page
 
 		if request.flavour == "mobile":
+			return s2_sheets(request)
+
+		elif not request.COOKIES.get('s1'):
 			return s2_sheets(request)
 
 		query       = {"status": "public"}
@@ -410,12 +366,25 @@ def sheets_list(request, type=None):
 	response = { "status": 0 }
 
 	if type == "public":
+		if request.flavour == "mobile":
+			return s2_sheets_by_tag(request,"All Sheets")
+
+		elif not request.COOKIES.get('s1'):
+			return s2_sheets_by_tag(request,"All Sheets")
+
 		query              = {"status": "public"}
 		response["title"]  = "Public Source Sheets"
 		response["public"] = True
 		tags               = recent_public_tags()
 
 	elif type == "private":
+		if request.flavour == "mobile":
+			return s2_sheets_by_tag(request,"My Sheets")
+
+		elif not request.COOKIES.get('s1'):
+			return s2_sheets_by_tag(request,"My Sheets")
+
+
 		query              = {"owner": request.user.id or -1 }
 		response["title"]  = "Your Source Sheets"
 		response["groups"] = get_user_groups(request.user)
@@ -505,6 +474,12 @@ def sheets_tags_list(request):
 	"""
 	View public sheets organized by tags.
 	"""
+	if request.flavour == "mobile":
+		return s2_sheets(request)
+
+	elif not request.COOKIES.get('s1'):
+		return s2_sheets(request)
+
 	tags_list = make_tag_list()
 	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))
 
@@ -515,6 +490,8 @@ def sheets_tag(request, tag, public=True, group=None):
 	"""
 	if public:
 		if request.flavour == "mobile":
+			return s2_sheets_by_tag(request, tag)
+		elif not request.COOKIES.get('s1'):
 			return s2_sheets_by_tag(request, tag)
 		sheets = get_sheets_by_tag(tag)
 	elif group:
@@ -593,6 +570,15 @@ def user_sheet_list_api(request, user_id):
 	if int(user_id) != request.user.id:
 		return jsonResponse({"error": "You are not authorized to view that."})
 	return jsonResponse(sheet_list(user_id), callback=request.GET.get("callback", None))
+
+def user_sheet_list_api_with_sort(request, user_id, sort_by="date"):
+	if int(user_id) != request.user.id:
+		return jsonResponse({"error": "You are not authorized to view that."})
+	return jsonResponse(user_sheets(user_id,sort_by), callback=request.GET.get("callback", None))
+
+
+def public_sheet_list_api(request):
+	return jsonResponse(sheet_list(), callback=request.GET.get("callback", None))
 
 
 def sheet_api(request, sheet_id):
@@ -720,12 +706,24 @@ def sheet_likers_api(request, sheet_id):
 	return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
-def tag_list_api(request):
+def tag_list_api(request, sort_by="count"):
 	"""
 	API to retrieve the list of public tags ordered by count.
 	"""
-	response = sheet_tag_counts({"status": "public"})
-	response =  jsonResponse(response, callback=request.GET.get("callback", None))
+	response = sheet_tag_counts({"status": "public"}, sort_by)
+	response = jsonResponse(response, callback=request.GET.get("callback", None))
+	response["Cache-Control"] = "max-age=3600"
+	return response
+
+
+def user_tag_list_api(request, user_id):
+	"""
+	API to retrieve the list of public tags ordered by count.
+	"""
+	#if int(user_id) != request.user.id:
+		#return jsonResponse({"error": "You are not authorized to view that."})
+	response = sheet_tag_counts({ "owner": int(user_id) })
+	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response
 
@@ -740,20 +738,33 @@ def trending_tags_api(request):
 	return response
 
 
+def all_sheets_api(request, limiter, offset=0):
+	limiter = int(limiter)
+	offset = int(offset)
+	query = {"status": "public"}
+	if limiter==0:
+		public = db.sheets.find(query).sort([["dateModified", -1]])
+	else:
+		public = db.sheets.find(query).sort([["dateModified", -1]]).skip(offset).limit(limiter)
+
+	sheets   = [sheet_to_dict(s) for s in public]
+	response = {"sheets": sheets}
+	response = jsonResponse(response, callback=request.GET.get("callback", None))
+	response["Cache-Control"] = "max-age=3600"
+	return response
+
+
 def sheets_by_tag_api(request, tag):
 	"""
-	API to retrieve the list of peopke who like sheet_id.
+	API to get a list of sheets by `tag`.
 	"""
-	sheets = get_sheets_by_tag(tag, public=True)
-	sheets = [{"title": s["title"], "id": s["id"], "owner": s["owner"], "views": s["views"]} for s in sheets]
-	for sheet in sheets:
-		profile                = UserProfile(id=sheet["owner"])
-		sheet["ownerName"]     = profile.full_name
-		sheet["ownerImageUrl"] = profile.gravatar_url_small
+	sheets   = get_sheets_by_tag(tag, public=True)
+	sheets   = [sheet_to_dict(s) for s in sheets]
 	response = {"tag": tag, "sheets": sheets}
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response
+
 
 def get_aliyot_by_parasha_api(request, parasha):
 	response = {"ref":[]};

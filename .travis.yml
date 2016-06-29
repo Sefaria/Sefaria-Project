@@ -8,6 +8,7 @@ cache: pip
 services:
   - mongodb
 
+
 addons:
   sauce_connect:
     username: "sefaria"
@@ -48,11 +49,19 @@ before_script:
   - python manage.py syncdb --noinput
   - python manage.py runserver 2> server.error.log > server.log &
 
+  # Wait for server to come up
+  - while ! nc -z localhost 8000; do sleep 0.1; done;
+
+  # Prime the cache
+  - GET http://localhost:8000/api/texts/Genesis.1 > /dev/null &
+  - GET http://localhost:8000/api/preview/Zohar > /dev/null &
+
 script:
- - 'py.test -vv -m "not deep and not failing"'
- - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then cd reader/browsertest && python run_tests_on_travis.py "Build - ${TRAVIS_BUILD_NUMBER}"; else true; fi;'
+ - 'py.test -m "not deep and not failing"'
+ - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then cd reader/browsertest && python run_tests_on_travis.py "Build - ${TRAVIS_BUILD_NUMBER}" 2> selenium.error.log; else true; fi;'
 
 after_failure:
+- cat $TRAVIS_BUILD_DIR/reader/browsertest/selenium.error.log
 - cat $TRAVIS_BUILD_DIR/server.error.log
 
 notifications:

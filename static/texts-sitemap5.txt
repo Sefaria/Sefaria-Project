@@ -18623,7 +18623,7 @@ http://www.sefaria.org/Haamek_Davar_on_Exodus.40.36
 http://www.sefaria.org/Haamek_Davar_on_Exodus.40.37
 http://www.sefaria.org/Haamek_Davar_on_Exodus.40.38
 http://www.sefaria.org/Chizkuni_on_Genesis.2.15
-http://www.sefaria.org/Hadran_for_Tanach
+http://www.sefaria.org/Hadran_for_Tanakh
 http://www.sefaria.org/Haamek_Davar_on_Numbers.1.1
 http://www.sefaria.org/Haamek_Davar_on_Numbers.1.2
 http://www.sefaria.org/Haamek_Davar_on_Numbers.1.3

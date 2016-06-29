@@ -299,6 +299,11 @@ class AbstractMongoSet(collections.Iterable):
         for rec in self:
             rec.save()
 
+    def remove(self, condition_callback):
+        self._read_records()
+        self.records = [r for r in self.records if not condition_callback(r)]
+        self.max = len(self.records)
+        return self
 
 def get_subclasses(c):
     subclasses = c.__subclasses__()

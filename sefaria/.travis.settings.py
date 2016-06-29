@@ -1,5 +1,4 @@
-# An example of settings needed in a local_settings.py file which is ignored by git.
-# copy this file to sefaria/local_settings.py and provide local info to run.
+# local settings used by travis CI builds
 import os
 import os.path
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
@@ -66,10 +65,16 @@ SEFARIA_DB_USER = ''
 SEFARIA_DB_PASSWORD = ''
 
 # ElasticSearch server
-SEARCH_HOST = "http://search.sefaria.org:788"
+SEARCH_HOST = "http://search.sefaria.org"
 SEARCH_ADMIN = "http://search.sefaria.org"
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
 SEARCH_INDEX_NAME = 'sefaria'  # name of the ElasticSearch index to use
+
+DJANGO_HOST  = "http://localhost:8000" # Where is Django running
+
+# Node Server
+USE_NODE = False
+NODE_HOST = "http://localhost:4040"
 
 SEFARIA_DATA_PATH = '{}/data'.format(HOME_DIR)  # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export'  # used for exporting texts

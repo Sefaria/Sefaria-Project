@@ -10,5 +10,5 @@ test = sys.argv[1]
 klass = getattr(basic_tests, test)
 assert klass
 
-t = Trial(tests=[klass]).run()
+t = Trial(tests=[klass], verbose=True).run()
 print t.results()

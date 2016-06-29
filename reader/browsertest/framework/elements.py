@@ -9,6 +9,7 @@ import httplib
 import base64
 import json
 import traceback
+import sys
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -93,7 +94,25 @@ class AtomicTest(object):
             # Filters load slower than the main page
             WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".filterSet > .textRange")))
         else:
-            WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".textColumn")))
+            WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".textColumn .textRange .segment")))
+        return self
+
+    def load_text_toc(self, ref):
+        if isinstance(ref, basestring):
+            ref = Ref(ref)
+        assert isinstance(ref, Ref)
+        url = self.base_url + "/" + ref.url()
+        self.driver.get(url)
+        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".tocContent > :not(.loadingMessage)")))
+        return self
+
+    def click_text_toc_section(self, ref):
+        if isinstance(ref, basestring):
+            ref = Ref(ref)
+        assert isinstance(ref, Ref)
+        p1 = self.driver.find_element_by_css_selector('.sectionLink[data-ref^="{}"]'.format(ref.url()))
+        p1.click()
+        WebDriverWait(self.driver, TEMPER).until(title_contains(ref.normal()))
         return self
 
     #todo:
@@ -107,13 +126,34 @@ class AtomicTest(object):
         segment = self.driver.find_element_by_css_selector('.segment[data-ref="{}"]'.format(ref.normal()))
         segment.click()
         # Todo: put a data-* attribute on .filterSet, for the multi-panel case
-        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".filterSet")))
+        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".textFilter")))
+        return self
 
     def scroll_to_segment(self, ref):
         if isinstance(ref, basestring):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         #todo
+        return self
+
+    # Basic navigation
+    def back(self):
+        # These may not work as expected...
+        self.driver.back()
+        return self
+
+    def forward(self):
+        # These may not work as expected...
+        self.driver.forward()
+        return self
+
+    def scroll_to_top(self):
+        """Scrolls the first text panel to the top"""
+        return self
+
+    def scroll_to_bottom(self):
+        """Scrolls the first text panel to the top"""
+        return self
 
     # Connections Panel
     def find_text_filter(self, name):
@@ -149,6 +189,13 @@ class AtomicTest(object):
         WebDriverWait(self.driver, TEMPER).until(title_contains("Sheet"))
 
 
+"""
+
+                    Test Running Infrastructure
+
+"""
+
+
 class TestResult(object):
     def __init__(self, test, cap, success, message=""):
         assert isinstance(test, AtomicTest) or inspect.isclass(cap)
@@ -163,7 +210,7 @@ class TestResult(object):
             "Pass" if self.success else "Fail",
             self.test.__class__.__name__,
             Trial.cap_to_string(self.cap),
-            ": {}".format(self.message) if self.message else ""
+            ": \n{}".format(self.message) if self.message else ""
         )
 
 
@@ -178,9 +225,8 @@ class ResultSet(object):
         assert (isinstance(t, TestResult) for t in self._test_results)
         self._indexed_tests = {}
 
-
     def __str__(self):
-        return "\n".join([str(r) for r in self._test_results])
+        return "\n".join([str(r) for r in self._test_results]) + "\n\n"
 
     def _aggregate(self):
         if not self._aggregated:
@@ -194,9 +240,9 @@ class ResultSet(object):
         caps = list({Trial.cap_to_short_string(res.cap) for res in self._test_results})
 
         def text_result(test, cap):
-            r = self._indexed_tests.get((test, cap), "N/A")
+            r = self._indexed_tests.get((test, cap), "s")
             if r is True:
-                return "Pass"
+                return "."
             if r is False:
                 return "Fail"
             return r
@@ -212,7 +258,7 @@ class ResultSet(object):
         return len([t for t in self._test_results if not t.success])
 
     def report(self):
-        ret = ""
+        ret = "\n"
 
         # http://stackoverflow.com/a/13214945/213042
         matrix = self._results_as_matrix()
@@ -225,7 +271,7 @@ class ResultSet(object):
         total_tests = len(self._test_results)
         passed_tests = self.number_passed()
         percentage_passed = (float(passed_tests) / total_tests) * 100
-        ret += "\n\n{}/{} - {:.0f}% passed".format(passed_tests, total_tests, percentage_passed)
+        ret += "\n\n{}/{} - {:.0f}% passed\n".format(passed_tests, total_tests, percentage_passed)
         return ret
 
     def include(self, result):
@@ -238,9 +284,15 @@ class ResultSet(object):
 
 
 class Trial(object):
+    """
+    Result Codes:
+    . - pass
+    F - Fail
+    A - Abort
+    """
     default_local_driver = webdriver.Chrome
 
-    def __init__(self, platform="local", build=None, tests=None, caps=None, parallel=None):
+    def __init__(self, platform="local", build=None, tests=None, caps=None, parallel=None, verbose=False):
         """
         :param caps: If local: webdriver classes, if remote, dictionaries of capabilities
         :param platform: "sauce", "bstack", "local", "travis"
@@ -268,6 +320,7 @@ class Trial(object):
             self.BASE_URL = REMOTE_URL
             self.caps = caps if caps else SAUCE_CAPS if platform == "sauce" else BS_CAPS
             self.tests = get_atomic_tests() if tests is None else tests
+        self.isVerbose = verbose
         self.platform = platform
         self.build = build
         self._results = ResultSet()
@@ -307,7 +360,8 @@ class Trial(object):
         :return:
         """
         name = "{} / {}".format(test_class.__name__, Trial.cap_to_string(cap))
-        print "{} - Starting".format(name)
+        sys.stdout.write("{} - Starting\n".format(name) if self.isVerbose else "")
+        sys.stdout.flush()
         assert issubclass(test_class, AtomicTest)
         test = test_class(driver, self.BASE_URL)
         try:
@@ -315,12 +369,18 @@ class Trial(object):
             test.run()
             driver.execute_script('"**** Exit {} ****"'.format(test))
         except Exception as e:
-            msg = getattr(e, "message", None) or getattr(e, "msg", None)
-            print "{} - Failed".format(name)
-            traceback.print_exc()
+            # msg = getattr(e, "message", None) or getattr(e, "msg", None)
+            msg = traceback.format_exc()
+            if self.isVerbose:
+                sys.stdout.write("{} - Failed\n".format(name))
+                sys.stdout.write(msg)
+            else:
+                sys.stdout.write("F")
+            sys.stdout.flush()
             return TestResult(test, cap, False, msg)
         else:
-            print "{} - Passed".format(name)
+            sys.stdout.write("{} - Passed".format(name) if self.isVerbose else ".")
+            sys.stdout.flush()
             return TestResult(test, cap, True)
 
     def _test_one(self, test, cap):
@@ -346,10 +406,15 @@ class Trial(object):
             if driver is not None:
                 driver.quit()
             name = "{} / {}".format(test.__name__, Trial.cap_to_string(cap))
-            msg = getattr(e, "message", None) or getattr(e, "msg", None)
-            print "{} - Aborted".format(name)
-            traceback.print_exc()
+            msg = traceback.format_exc()
+            if self.isVerbose:
+                sys.stdout.write("{} - Aborted\n".format(name))
+                sys.stdout.write(msg)
+            else:
+                sys.stdout.write("A")
+            sys.stdout.flush()
             return TestResult(test, cap, False, msg)
+
 
     def _test_on_all(self, test):
         """
@@ -357,6 +422,8 @@ class Trial(object):
         :param test:
         :return:
         """
+        sys.stdout.write("\n{}: ".format(test.__name__) if not self.isVerbose else "")
+        sys.stdout.flush()
         if self.parallel:
             p = Pool(self.thread_count)
             l = len(self.caps)

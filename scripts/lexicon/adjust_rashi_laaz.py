@@ -33,7 +33,7 @@ def flatten_text_to_lowest_refs(oref):
             for cnum, comment in enumerate(line, 1):
                 new_ref = Ref("{} {}.{}".format(oref.normal(), lnum, cnum)).normal()
                 flat_texts.append((new_ref, comment))
-    elif oref.index.commentaryCategories[0] == 'Tanach':
+    elif oref.index.commentaryCategories[0] == 'Tanakh':
         for cnum, comment in enumerate(ref_text, 1):
             new_ref = Ref("{}.{}".format(oref.normal(), cnum)).normal()
             flat_texts.append((new_ref, comment))

@@ -970,6 +970,9 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         else:
             return super(Version, self).ja()
 
+    def is_copyrighted(self):
+        return "Copyright" in getattr(self, "license", "")
+
 
 class VersionSet(abst.AbstractMongoSet):
     """
@@ -1063,7 +1066,7 @@ class TextChunk(AbstractTextRecord):
     """
     text_attr = "text"
 
-    def __init__(self, oref, lang="en", vtitle=None):
+    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False):
         """
         :param oref:
         :type oref: Ref
@@ -1094,6 +1097,8 @@ class TextChunk(AbstractTextRecord):
         if lang and vtitle:
             self._saveable = True
             v = Version().load({"title": self._oref.index.title, "language": lang, "versionTitle": vtitle}, self._oref.part_projection())
+            if exclude_copyrighted and v.is_copyrighted():
+                raise InputError("Can not provision copyrighted text. {} ({}/{})".format(oref.normal(), vtitle, lang))
             if v:
                 self._versions += [v]
                 self.text = self._original_text = self.trim_text(v.content_node(self._oref.index_node))
@@ -1106,10 +1111,14 @@ class TextChunk(AbstractTextRecord):
                 return
             if vset.count() == 1:
                 v = vset[0]
+                if exclude_copyrighted and v.is_copyrighted():
+                    raise InputError("Can not provision copyrighted text. {} ({}/{})".format(oref.normal(), v.versionTitle, v.language))
                 self._versions += [v]
                 self.text = self.trim_text(v.content_node(self._oref.index_node))
                 #todo: Should this instance, and the non-merge below, be made saveable?
             else:  # multiple versions available, merge
+                if exclude_copyrighted:
+                    vset.remove(Version.is_copyrighted)
                 merged_text, sources = vset.merge(self._oref.index_node)  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
                 self.text = self.trim_text(merged_text)
                 if len(set(sources)) == 1:
@@ -1457,7 +1466,7 @@ class TextFamily(object):
             for key, struct in oref.index.get_alt_structures().iteritems():
                 # Assuming these are in order, continue if it is before ours, break if we see one after
                 for n in struct.get_leaf_nodes():
-                    wholeRef = Ref(n.wholeRef)
+                    wholeRef = Ref(n.wholeRef).as_ranged_segment_ref()
                     if wholeRef.ending_ref().precedes(oref):
                         continue
                     if wholeRef.starting_ref().follows(oref):
@@ -2046,7 +2055,7 @@ class Ref(object):
         return getattr(self.index_node, "addressTypes", None) and len(self.index_node.addressTypes) and self.index_node.addressTypes[0] == "Talmud"
 
     def is_tanach(self):
-        return u"Tanach" in self.index.b_index.categories if self.is_commentary() else u"Tanach" in self.index.categories
+        return u"Tanakh" in self.index.b_index.categories if self.is_commentary() else u"Tanakh" in self.index.categories
 
     def is_bavli(self):
         """
@@ -2314,6 +2323,55 @@ class Ref(object):
         d = self._core_dict()
         d["sections"] = d["sections"][:-1] + [start]
         d["toSections"] = d["toSections"][:-1] + [end]
+        return Ref(_obj=d)
+
+    def as_ranged_segment_ref(self):
+        """
+        Expresses a section level (or higher) Ref as a ranged ref at segment level.
+
+        :param depth: Desired depth of the range. If not specified will drop to segemnt level
+        :return: Ref
+        """
+        # Only for section level or higher.
+        # If segment level, return self
+        # Only works for text that span a single jaggedArray
+
+        if self.is_segment_level():
+            return self
+
+        d = self._core_dict()
+
+        # create a temporary helper ref for finding the end of the range
+        if self.is_range():
+            current_ending_ref = self.ending_ref()
+        else:
+            current_ending_ref = self
+
+        # calculate the number of "paddings" required to get down to segment level
+        max_depth = self.index_node.depth - len(self.sections)
+
+        sec_padding = to_sec_padding = max_depth
+
+        while sec_padding > 0:
+            d['sections'].append(1)
+            sec_padding -= 1
+
+        state_ja = current_ending_ref.get_state_ja()
+
+        while to_sec_padding > 0:
+            size = state_ja.sub_array_length([i - 1 for i in current_ending_ref.sections])
+            if size > 0:
+                d['toSections'].append(size)
+            else:
+                d['toSections'].append(1)
+
+            # get the next level ending ref
+            temp_d = current_ending_ref._core_dict()
+            temp_d['sections'] = temp_d['toSections'][:] = d['toSections'][:]
+            current_ending_ref = Ref(_obj=temp_d)
+
+            to_sec_padding -= 1
+
         return Ref(_obj=d)
 
     def starting_ref(self):
@@ -3204,7 +3262,7 @@ class Ref(object):
 
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
-        fields = ["versionTitle", "versionSource", "language", "license", "versionNotes", "digitizedBySefaria"]
+        fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes", "digitizedBySefaria"]
         return [
             {f: getattr(v, f, "") for f in fields}
             for v in VersionSet(self.condition_query(), proj={f: 1 for f in fields})
@@ -3295,13 +3353,13 @@ class Ref(object):
             self._normal = self._get_normal("en")
         return self._normal
 
-    def text(self, lang="en", vtitle=None):
+    def text(self, lang="en", vtitle=None, exclude_copyrighted=False):
         """
         :param lang: "he" or "en"
         :param vtitle: optional. text title of the Version to get the text from
         :return: :class:`TextChunk` corresponding to this Ref
         """
-        return TextChunk(self, lang, vtitle)
+        return TextChunk(self, lang, vtitle, exclude_copyrighted=exclude_copyrighted)
 
     def url(self):
         """

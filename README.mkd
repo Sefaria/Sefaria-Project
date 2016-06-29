@@ -10,7 +10,7 @@ For general discussion about the project, please post to the [Sefaria Forum](htt
 
 You can post bugs or request/discuss features on [GitHub Issues](https://github.com/blockspeiser/Sefaria-Project/issues?direction=desc&page=1&sort=created&state=open). Tackling an issue marked as a "Starter Project" is a good way to sink your teeth into Sefaria.
 
-Our complete list of development tasks is stored on our [Engineering WorkFlowy](https://workflowy.com/shared/63b30672-66b5-744f-b3e2-1dd7da3e0822/). If you're interested in working on a project you see listed here, please email the [sefara-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
+If you're interested in working on a project you see listed here, please email the [sefara-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
 
 ***
 
@@ -52,9 +52,7 @@ On Fedora systems:
 
 After installing the Python development libraries, run `pip install -r requirements.txt` again.
 
-##### Pip and Virtualenv for Windows Users:
-
-Use instructions [here](http://www.tylerbutler.com/2012/05/how-to-install-python-pip-and-virtualenv-on-windows-with-powershell/) and then make sure that the scripts sub folder of the python installation directory is also in PATH.
+On Windows systems, use instructions [here](http://www.tylerbutler.com/2012/05/how-to-install-python-pip-and-virtualenv-on-windows-with-powershell/) and then make sure that the scripts sub folder of the python installation directory is also in PATH.
 
 #### Create a local settings file:
 
@@ -62,21 +60,20 @@ Use instructions [here](http://www.tylerbutler.com/2012/05/how-to-install-python
     cp local_settings_example.py local_settings.py
     vim local_settings.py
     
-Replace the placeholder values with values with those matching your environment. Choose a name for you local database (`sefaria` will be the default created by `mongorestore` below). You can leave `SEFARIA_DB_USER` ad `SEFARIA_DB_PASSWORD` blank if you don't need to run authentication on mongo.
+Replace the placeholder values with values with those matching your environment. You can name your local database (`sefaria` will be the default created by `mongorestore` below). You can leave `SEFARIA_DB_USER` ad `SEFARIA_DB_PASSWORD` blank if you don't need to run authentication on Mongo.
 
 #### Create a log directory:
-create a directory called "log" under the project folder. Make sure that the server user has write access to it by using a command such as chmod 777 (only on the log directory!!)
+Create a directory called "log" under the project folder. Make sure that the server user has write access to it by using a command such as chmod 777.
 
-
-#### Get mongod running:
+#### Get Mongo running:
 
 If you don't already have it, [install MongoDB](http://docs.mongodb.org/manual/installation/). Our current data dump requires MongoDB version 2.6 or later. To get Mongo running:
 
-    mongod
+    sudo mongod
 
 #### Put some texts in your database:
 
-A MongoDB dump of our database is available http://dev.sefaria.org/static/dump.tar.gz . Download this content, then from the parent directory which contains `dump` run:
+A MongoDB dump of our database is available at http://dev.sefaria.org/static/dump.tar.gz . Download this content, then from the parent directory which contains `dump` run:
 
     mongorestore --drop
 
@@ -94,19 +91,29 @@ Django auth features run on a separate database. To init this database and set u
     python manage.py runserver
 
 You can also make it publicly available by specifying 0.0.0.0 for the host:
-    
+
     python manage.py runserver 0.0.0.0:8000
 
-## Exploring the Code
+#### (Optional) Get Node running for server side rendering
 
-Some of the most important code is found in:
+Sefaria uses React.js. To render HTML server-side, we use a Node.js server. For development, the site is fully functional without server side rendering. For deploying in a production environemnet however server side HTML is very important for bots and SEO. To install node and npm, see [here](https://nodejs.org/en/download/). On Debian systems you can do:
 
-- `static/js/reader.js` - JS for reader app
-- `static/js/sheets.js` - JS for source sheet builder
-- `static/js/util.js` - JS shared across apps
-- `sefaria/reader/views.py` - view methods for almost all API calls
-- `sefaria/sheets.py` - backend for source sheets
-- `sefaria/model/` - Class based resource and logical models for almost all Sefaria data
+    sudo apt-get install nodejs
+    sudo apt-get install npm
+
+Now download the required Javascript libraries and install some global tools for development with the `setup` script.
+
+    npm install
+    sudo npm run setup
+
+Create a local settings file for node and tell it what port to run on and where to find the Django server. The port should match the `NODE_HOST` variable set in Django's `local_settings.py`.
+
+    cp node/local_settings_example.json node/local_settings.json
+    vim node/local_settings.json
+
+For development, you can run the Node server using nodemon with:
+
+    npm start
 
 ## Command Line Interface
 

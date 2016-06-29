@@ -676,8 +676,10 @@ $(function() {
 		
 		if ("after" in params) {
 			window.location = params["after"];
-		}else if ("next" in params){
+		}else if ("next" in params) {
 			window.location = params["next"];
+		}else if($.cookie('s2') == "true") {
+			window.location = window.location.href.replace("edit/", "");
 		} else {
 			sjs.clearNewText();
 			sjs._direction = 0;
@@ -1278,7 +1280,7 @@ sjs.lexicon = {
 
 	enabledCategories : {
 		'en' :  ['Mishnah'],
-		'he' : ['Tanach']
+		'he' : ['Tanakh']
 	},
 
 
@@ -1306,7 +1308,7 @@ sjs.lexicon = {
 		/*if (params['url_enabled']){*/
 		switch (lang){
 			case 'he':
-				if(currentText.categories[0] == 'Tanach' &&
+				if(currentText.categories[0] == 'Tanakh' &&
 					!(currentText.categories[1] == 'Targum' || currentText.categories[1] == 'Commentary')){
 					return true;
 				}
@@ -1758,8 +1760,8 @@ function buildView(data) {
 	}
 	if (!sjs._$basetext.hasClass("bilingual")) $("#layoutToggle").show();
 	
-	// Texts that default to paragraph view - Tanach excluding Psalms and Talmud
-	if (!(data.type in {Tanach:1, Talmud:1}) || data.book in {Psalms:1}) {
+	// Texts that default to paragraph view - Tanakh excluding Psalms and Talmud
+	if (!(data.type in {Tanakh:1, Talmud:1}) || data.book in {Psalms:1}) {
 		$("#layoutToggle .toggleOption").removeClass("active");
 		$("#block").addClass("active");
 		sjs._$basetext.addClass("lines");
@@ -3554,7 +3556,7 @@ sjs.showNewText = function () {
 				return;
 			} else {
 				var text = sjs.makePlainText(sjs.editing.sct);
-				sjs._$newVersion.val(text)
+				sjs._$newVersion.val(text);
 				sjs.padEditorText(sjs.editing.pad);
 				sjs._$newVersion.trigger("keyup");				
 			}
@@ -3565,11 +3567,11 @@ sjs.showNewText = function () {
 	// Autocomplete version title with existing, autofill source for existing versions
 	$.getJSON("/api/texts/versions/" + sjs.editing.indexTitle, function(data) {
 		if ("error" in data) { return; }
-		map = {};
-		titles = [];
+		var map = {};
+		var titles = [];
 		for (var i = 0; i < data.length; i++) {
-			titles.push(data[i].title);
-			map[data[i].title] = data[i].source;
+			titles.push(data[i].versionTitle);
+			map[data[i].versionTitle] = data[i].versionSource;
 		}
 
 		$("#versionTitle").autocomplete({source: titles, select: function(e, ui) {

@@ -7,6 +7,140 @@
 
 {% block content %}
 
+{% if S2 %}
+<div id="profilePage" class="static">
+	<div class="inner">
+		<div id="profileTop">
+			<img id="profileImage" src="{{ profile.gravatar_url }}" />
+			
+			<h1 id="profileName">{{ profile.first_name }} {{ profile.last_name }}</h1>
+
+			{% if profile.position or profile.organization %}
+			<div id="profileTagline">
+				<span id="position">{{ profile.position }}</span>
+				<span id="at">{% if profile.organization and profile.position %}at{% endif %}</span>
+				<span id="organization">{{ profile.organization}}</span>
+			</div>
+			{% endif %}	
+
+			<div id="profileSnippets">
+
+				{% if profile.website %}
+				<div id="profileWebsite">
+					<a href="{{ profile.website|normalize_url }}" target="_blank">{{ profile.website|prettify_url }}</a>
+				</div>
+				{% endif %}
+
+				{% if profile.location %}
+				<div id="profileLocation">
+					{{ profile.location }}
+				</div>
+				{% endif %}
+
+				{% if profile.jewish_education|length %}
+					{% for line in profile.jewish_education %}
+						<div class="jewishEducationLine">{{ line }}</div>
+					{% endfor %}
+				{% endif %}
+
+				{% if profile.public_email %}
+				<div id="profileEmail">
+					<a href="mailto:{{ profile.public_email|urlencode }}" target="_blank">{{ profile.public_email }}</a>
+				</div>
+				{% endif %}
+
+				{% if profile.facebook %}
+				<div id="profileFacebook">
+					<a href="{{ profile.facebook|normalize_url }}" target="_blank">Facebook</a>
+				</div>
+				{% endif %}
+
+				{% if profile.twitter %}
+				<div id="profileTwittr">
+					<a href="http://www.twitter.com/{{ profile.twitter }}" target="_blank">Twitter</a>
+				</div>
+				{% endif %}
+
+				{% if profile.linkedin %}
+				<div id="profileLinkedIn">
+					<a href="{{ profile.linkedin|normalize_url }}" target="_blank">LinkedIn</a>
+				</div>
+				{% endif %}
+
+			</div>
+
+			<div id="buttons">
+				{% if profile.id != request.user.id %}
+					<div id="messageMe" class="button white">
+						<span class="en">Message</span>
+						<span class="he">שלח הודעה</span>
+					</div>
+					<div id="followMe" class="{% if following %}following{% else %}follow{% endif %} button blue">
+						<span class="en">
+                            <span class="en follow">Follow</span>
+                            <span class="en state following">Following</span>
+                            <span class="en unfollow">Unfollow</span>
+                        </span>
+                        <span class="he">
+                            <span class="he follow">עקוב</span>
+                            <span class="he state following">עוקב</span>
+                            <span class="he unfollow">הפסק לעקוב</span>
+                        </span>
+					</div>
+				{% endif %}
+				{% if profile.id == request.user.id %}
+					<a id="editProfile" href="/settings/profile" class="button">Edit Profile</a>
+				{% endif %}
+			</div>
+		</div>
+
+		{% if profile.bio %}
+		<div id="bio" class="section">
+			{% autoescape off %}
+			{{ profile.bio }}
+			{% endautoescape %}
+		</div>
+		{% endif %}
+
+		{% if sheets.count %}
+		<div id="profileSheets" class="section">
+			<h2>Source Sheets | {{ sheets.count }}</h2>
+			
+			<ul id="pinnedSheets" class="sheetsBox">
+				{% for id in profile.pinned_sheets %}
+				<li class="sheet">{{ id|sheet_link }}</li>
+				{% endfor %}
+			</ul>
+
+			<ul class="sheetsBox">
+				{% for sheet in sheets %}
+					{% if sheet.id not in profile.pinned_sheets %}
+						<li class="sheet">{{ sheet.id|sheet_link }}</li>
+					{% endif %}
+				{% endfor %}
+			</ul>
+		</div>
+		{% endif %}
+
+		{% if notes|length %}
+		<div id="profileNotes" class="section">
+			<h2>Notes - {{ notes|length }}</h2>
+			{% include "elements/activity_feed.html" with activity=notes single=1 %}
+		</div>
+		{% endif %}
+
+		{% if activity|length %}
+		<div id="profileActivity" class="section">
+			<h2>Activity</h2>
+			{% include "elements/activity_feed.html" with activity=activity|slice:":3" single=1 hide_more_link=1 %}
+			<a id="moreActivity" class="page-link" href="/activity/{{ profile.slug }}/">More Activity &rsaquo;</a>
+		</div>
+		{% endif %}
+	</div>
+</div>
+
+
+{% else %}
 <div id="profile" class="container">
 	<div class="row">
 	<div id="profileLeft" class="span4">
@@ -235,78 +369,189 @@
 
 {% include "elements/login_prompt.html" with msg="To send a message or follow, please log in." %}
 
+{% endif %}
+
 {% endblock %}
 
 {% block js %}
-	<link rel="stylesheet" href="/static/owl-carousel/owl.carousel.css">
-	<link rel="stylesheet" href="/static/owl-carousel/owl.theme.css">
-	<script src="/static/owl-carousel/owl.carousel.js"></script>
-	<link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
-	<script src="/static/js/jquery.autosize.js"></script>
-	<script>
+	{% if S2 %}
+		<script>
 		$(function(){
+
+			/*$("#followMe").on("mouseenter", function(){
+				if ($(this).hasClass("following")) {
+					$(this).text("Unfollow");
+				}
+			}).on("mouseleave", function() {
+				if ($(this).hasClass("following")) {
+					$(this).text("Following");
+				} else {
+					$(this).text("Follow");
+				}
+			});*/
 
 			$("#followMe").click(function(){
 				{% if request.user.is_authenticated %}		
-					var $fc = $("#followersCount .number");
-					var count = parseInt($fc.text());
 					if ($(this).hasClass("following")) {
 						var action = "unfollow";
-						$(this).removeClass("following");
-						$fc.text(count-1);
+						$(this).removeClass("following").addClass('follow');
 					} else {
 						var action = "follow";
-						$(this).addClass("following");
-						$fc.text(count+1).parent().show();
+						$(this).removeClass('follow').addClass("following");
 					}  
 					$.post("/api/" + action + "/{{ profile.id }}", {}, function(data) {
-						sjs.track.event("Following", "New Follow", "");
+						Sefaria.site.track.event("Following", "New Follow", "");
 					});
 				{% else %}
-					sjs.loginPrompt();
+					window.location = "/register?next=" + window.location.pathname;
 				{% endif %}
 			});
-			$("#followersCount").click(function(){
-				$.get("/api/followers/{{ profile.id }}", function(data){
-					console.log(data);
-					sjs.peopleList(data, "Followers");
+
+			// Messages carried o
+			var sjs = {};
+	    	sjs.composeMessage = function(recipient, name) {
+	    		$("#viewMessage").remove();
+	    		var composerHTML = "<div id='messageComposer' class='modal'>" +
+										"<div id='messageHeader'>Send a message to " + name + "</div>" +
+										"<textarea id='messageTextarea'></textarea>" +
+										"<div class='sendMessage button'>Send</div>" +
+										"<div class='cancel button white'>Cancel</div>" +
+									"</div>";
+
+				$(composerHTML).appendTo("body").show()
+					.position({of: window})
+					.draggable({cancel: "textarea"});
+				$("#overlay").show();
+				$("#messageTextarea").focus();
+				$(".sendMessage").click(function(e){
+					sjs.postMessage(recipient, $("#messageTextarea").val());
 				});
+				$("#messageComposer .cancel").click(function(e){
+					$("#messageComposer").remove();
+					$("#overlay").hide();
+				});
+			};
+			sjs.postMessage = function(recipient, message) {
+				if (!message) { return; }
+				var postJSON = JSON.stringify({ 
+					recipient: recipient,
+					message: message.escapeHtml()
+				});
+				$.post("/api/messages", {json: postJSON}, function(data) {
+					$("#messageComposer").remove();
+					alert("Message Sent");
+					Sefaria.site.track.event("Messages", "Message Sent", "");
+				});
+			};
+			sjs.viewMessage = function(sender, name, message) {
+				var messageHtml = "<div id='viewMessage' class='modal'>" +
+										"<div id='messageHeader'>Message from " + name + "</div>" +
+										"<div id='messageText'>" + message + "</div>" +
+										"<div class='messageReply button' data-recipient='" + sender +"'>Reply</div>" +
+										"<div class='cancel button white'>Close</div>" +
+									"</div>";				
+				$(messageHtml).appendTo("body").show()
+					.position({of: window})
+					.draggable({cancel: "#messageText"});
+				$("#overlay").show();
+				$("#viewMessage .cancel").click(function(e){
+					$("#viewMessage").remove();
+					$("#overlay").hide();
+				});
+
+			};
+			$("#messageMe").click(function() {
+				{% if request.user.is_authenticated %}
+				sjs.composeMessage({{ profile.id }}, "{{ profile.first_name }} {{profile.last_name }}");
+				{% else %}
+				window.location = "/register?next=" + window.location.pathname;
+				{% endif %}
 			});
-			$("#followeesCount").click(function(){
-				$.get("/api/followees/{{ profile.id }}", function(data){
-					console.log(data);
-					sjs.peopleList(data, "Following");
-				});
+			$("body, #notifications").on("click", ".messageReply", function() {
+				var recipient = parseInt($(this).attr("data-recipient"));
+				var name      = $(this).parent().find("a.userLink")[0].outerHTML;;
+				sjs.composeMessage(recipient, name);
+			});
+			$("#notifications").on("click", ".messageView", function() {
+				var recipient = parseInt($(this).attr("data-recipient"));
+				var name      = $(this).parent().find("a.userLink")[0].outerHTML;
+				var message   = $(this).parent().find(".messageText").html();
+				sjs.viewMessage(recipient, name, message);			
 			});
 
-			{% if profile.youtube %}
-			$.ajax({
-	        	type: "POST",
-		        url: "https://gdata.youtube.com/feeds/api/users/{{ profile.youtube }}/uploads?v=2&alt=jsonc&max-results=12",
-		        data: "{}",
-		        contentType: "application/json; charset=utf-8",
-		        dataType: "jsonp",
-		        success: function(result) {        
-		            if (result.error) {
-		            	$("#youtube").html("Couldn't load YouTube Channel: {{ profile.youtube }}").show();
-		            	return;
-		            }
-		            var data = result.data;
-		            var html = ""
-		            for (var i = 0; i < data.items.length; i++) {
-		            	html += "<div class='video'>" +
-		            				"<a href='" + data.items[i].player.default +"' target='_blank'>" +
-		            					"<img src='" + data.items[i].thumbnail.hqDefault +"' />" +
-		            					"<div class='videoTitle'>" + data.items[i].title + "</div>" +
-		            				"</a>" +
-		            			"</div>";
-		            }
-		            html += "<div class='video'><br><br>See more videos on " +
-		            	"<a href='https://www.youtube.com/user/{{ profile.youtube }}' target='_blank'>YouTube &raquo;</a>.";
-		            $("#youtube").html(html).owlCarousel({items: 3});
-				}
-			});
-			{% endif %}
 		});
-	</script>
+		</script>
+	{% else %}
+		<link rel="stylesheet" href="/static/owl-carousel/owl.carousel.css">
+		<link rel="stylesheet" href="/static/owl-carousel/owl.theme.css">
+		<script src="/static/owl-carousel/owl.carousel.js"></script>
+		<link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
+		<script src="/static/js/jquery.autosize.js"></script>
+		<script>
+			$(function(){
+
+				$("#followMe").click(function(){
+					{% if request.user.is_authenticated %}		
+						var $fc = $("#followersCount .number");
+						var count = parseInt($fc.text());
+						if ($(this).hasClass("following")) {
+							var action = "unfollow";
+							$(this).removeClass("following");
+							$fc.text(count-1);
+						} else {
+							var action = "follow";
+							$(this).addClass("following");
+							$fc.text(count+1).parent().show();
+						}  
+						$.post("/api/" + action + "/{{ profile.id }}", {}, function(data) {
+							sjs.track.event("Following", "New Follow", "");
+						});
+					{% else %}
+						sjs.loginPrompt();
+					{% endif %}
+				});
+				$("#followersCount").click(function(){
+					$.get("/api/followers/{{ profile.id }}", function(data){
+						console.log(data);
+						sjs.peopleList(data, "Followers");
+					});
+				});
+				$("#followeesCount").click(function(){
+					$.get("/api/followees/{{ profile.id }}", function(data){
+						console.log(data);
+						sjs.peopleList(data, "Following");
+					});
+				});
+
+				{% if profile.youtube %}
+				$.ajax({
+		        	type: "POST",
+			        url: "https://gdata.youtube.com/feeds/api/users/{{ profile.youtube }}/uploads?v=2&alt=jsonc&max-results=12",
+			        data: "{}",
+			        contentType: "application/json; charset=utf-8",
+			        dataType: "jsonp",
+			        success: function(result) {        
+			            if (result.error) {
+			            	$("#youtube").html("Couldn't load YouTube Channel: {{ profile.youtube }}").show();
+			            	return;
+			            }
+			            var data = result.data;
+			            var html = ""
+			            for (var i = 0; i < data.items.length; i++) {
+			            	html += "<div class='video'>" +
+			            				"<a href='" + data.items[i].player.default +"' target='_blank'>" +
+			            					"<img src='" + data.items[i].thumbnail.hqDefault +"' />" +
+			            					"<div class='videoTitle'>" + data.items[i].title + "</div>" +
+			            				"</a>" +
+			            			"</div>";
+			            }
+			            html += "<div class='video'><br><br>See more videos on " +
+			            	"<a href='https://www.youtube.com/user/{{ profile.youtube }}' target='_blank'>YouTube &raquo;</a>.";
+			            $("#youtube").html(html).owlCarousel({items: 3});
+					}
+				});
+				{% endif %}
+			});
+		</script>
+	{% endif %}
 {% endblock %}

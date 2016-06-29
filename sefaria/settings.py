@@ -91,7 +91,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "sefaria.system.context_processors.language_settings",
 	"sefaria.system.context_processors.notifications",
     "sefaria.system.context_processors.calendar_links",
-
+    "sefaria.system.context_processors.header_html",
 )
 
 MIDDLEWARE_CLASSES = (

@@ -4,9 +4,6 @@ Writes to MongoDB Collection:
 """
 import re
 from . import abstract as abst
-from . import text
-from . import history
-from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
 
@@ -38,12 +35,13 @@ class Lexicon(abst.AbstractMongoRecord):
     collection = 'lexicon'
     required_attrs = [
         "name",
+        'language',
+        'to_language',
+        'text_categories'
     ]
 
     optional_attrs = [
         'title',
-        'language',
-        'to_language',
         'pub_location',
         'pub_date',
         'editor',
@@ -127,5 +125,76 @@ class LexiconEntrySet(abst.AbstractMongoSet):
             for rec in self.raw_records:
                 self.records.append(LexiconEntrySubClassMapping.instance_from_record_factory(rec))
             self.max = len(self.records)
+
+
+class LexiconLookupAggregator(object):
+
+    @classmethod
+    def _split_input(cls, input_str):
+        input_str = re.sub(ur"[:\u05c3\u05be\u05c0.]", " ", input_str)
+        return [s.strip() for s in input_str.split()]
+
+    @classmethod
+    def _create_ngrams(cls, input_words, n):
+        gram_list = []
+        for k in range(1, n + 1):
+            gram_list += [" ".join(input_words[i:i + k]) for i in xrange(len(input_words) - k + 1)]
+        return gram_list
+
+    @classmethod
+    def _single_lookup(cls, input_word, **kwargs):
+        from sefaria.utils.hebrew import is_hebrew, strip_cantillation, has_cantillation
+        from sefaria.model import Ref
+
+        lookup_ref = kwargs.get("lookup_ref", None)
+        wform_pkey = 'form'
+        if is_hebrew(input_word):
+            input_word = strip_cantillation(input_word)
+            if not has_cantillation(input_word, detect_vowels=True):
+                wform_pkey = 'c_form'
+
+        query_obj = {wform_pkey: input_word}
+        if lookup_ref:
+            nref = Ref(lookup_ref).normal()
+            query_obj["refs"] = {'$regex': '^{}'.format(nref)}
+        form = WordForm().load(query_obj)
+        if not form and lookup_ref:
+            del query_obj["refs"]
+            form = WordForm().load(query_obj)
+        if form:
+            result = []
+            headword_query = []
+            for lookup in form.lookups:
+                headword_query.append({'headword': lookup['headword']})
+                # TODO: if we want the 'lookups' in wf to be a dict we can pass as is to the lexiconentry, we need to change the key 'lexicon' to 'parent_lexicon' in word forms
+            return headword_query
+        else:
+            return []
+
+
+    @classmethod
+    def _ngram_lookup(cls, input_str, **kwargs):
+        words = cls._split_input(input_str)
+        input_length = len(words)
+        queries = []
+        for i in reversed(range(input_length)):
+            ngrams = cls._create_ngrams(words, i)
+            for ng in ngrams:
+                res = cls._single_lookup(ng, **kwargs)
+                if res:
+                    queries += res
+        return queries
+
+    @classmethod
+    def lexicon_lookup(cls, input_str, **kwargs):
+        results = cls._single_lookup(input_str, **kwargs)
+        if not kwargs.get('never_split', None) and (len(results) == 0 or kwargs.get("always_split", None)):
+            ngram_results = cls._ngram_lookup(input_str, **kwargs)
+            results += ngram_results
+        if len(results):
+            return LexiconEntrySet({"$or": results})
+        else:
+            return None
+
 
 

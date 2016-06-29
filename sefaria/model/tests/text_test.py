@@ -216,7 +216,7 @@ def test_text_helpers():
     assert u'Rashi on Genesis' not in res
 
     cats = model.library.get_text_categories()
-    assert u'Tanach' in cats
+    assert u'Tanakh' in cats
     assert u'Torah' in cats
     assert u'Prophets' in cats
     assert u'Commentary' in cats

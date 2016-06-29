@@ -7,6 +7,8 @@
 {% block title %}
 	{% if single %}
 		Revision History of {{ ref }} ({{ version }})</h3>
+	{% elif for_user %}
+		{{ profile.full_name }}'s Activity on Sefaria
 	{% else %}
 		Sefaria Activity
 	{% endif %}
@@ -14,31 +16,40 @@
 
 {% block content %}
 
-<div id="activityContent">
-	{% if single %}
-		<h1>Revision History of <a href="/{{ref}}">{{ ref }}</a></h1>
-		<h3>Version: {{ version }}</h3>
-		{% include "elements/activity_filter.html" %}
+<div id="activityPage" class="container static">
+    <div class="inner">
+        {% if single %}
+		    <h1>Revision History of <a href="/{{ref}}">{{ ref }}</a></h1>
+		    <h2>{{ version }}</h2>
+        {% elif for_user %}
+            <h1>{{ profile.id|user_link }}'s Activity on Sefaria</h1>
+        {% else %}
+            <h1> Recent Activity on Sefaria</h1>
+        {% endif %}
+        <div class="activityFilterSection">
+            <select id="activityFilter">
+                <option value=""{% if not filter_type %} selected {% endif %}>All Activity</option>
+                <option value="translate" {% if filter_type == "translate" %} selected {% endif %}>Translations</option>
+                <option value="publish_sheet"{% if filter_type == "publish_sheet" %} selected {% endif %}>Source Sheets</option>
+                <option value="add_text"{% if filter_type == "add_text" %} selected {% endif %}>New Texts</option>
+                <option value="edit_text"{% if filter_type == "edit_text" %} selected {% endif %}>Edits</option>
+                <option value="add_note"{% if filter_type == "add_note" %} selected {% endif %}>Notes</option>
+                <option value="review"{% if filter_type == "review" %} selected {% endif %}>Reviews</option>
+                <option value="index_change"{% if filter_type == "index_change" %} selected {% endif %}>Text Info</option>
+                <option value="revert_text"{% if filter_type == "revert_text" %} selected {% endif %}>Reversions</option>
+                <option value="flagged"{% if filter_type == "flagged" %} selected {% endif %}>Flagged</option>
+            </select>
+        </div>
 
-	{% else %}
-		<h1> Recent Activity on Sefaria</h1>
-		{% include "elements/activity_filter.html" %}
+        <div class="section">
+            <div class="main-text">
+                <div id="activityFeed">
+                    {% include "elements/activity_feed.html" %}
+                </div>
+            </div>
+        </div>
 
-		<div id="contributors">
-			<h4>Top Contributors</h4>
-			{% cache 900 leaderboards %}
-			{% include "elements/leaderboard.html" with leaders=leaders1 title="Today" %}
-			{% include "elements/leaderboard.html" with leaders=leaders7 title="This week" %}
-			{% include "elements/leaderboard.html" with leaders=leaders30 title="This month" %}	
-			{% include "elements/leaderboard.html" with leaders=leaders title="All time" %}
-			{% endcache %}
-		</div>
-	{% endif %}
-	
-	<div id="activityFeed">
-		{% include "elements/activity_feed.html" %}
-	</div>
-	<div class="clear"></div>
+    </div>
 </div>
 {% endblock %}
 
@@ -84,4 +95,11 @@
 	    	$(this).closest("li").find(".indexDetails").show();
 	    })
 	</script>
+    <script>
+        document.getElementById('activityFilter').onchange = function() {
+            var filter_type = this.value;
+            filtered_url = (filter_type != "") ? "?type="+filter_type : "?";
+            window.location = filtered_url;
+        };
+    </script>
 {% endblock %}

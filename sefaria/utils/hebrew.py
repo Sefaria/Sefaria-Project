@@ -379,7 +379,7 @@ def hebrew_term(s):
 	"""
 	categories = {
 		"Torah":                u"תורה",
-		"Tanach":               u'תנ"ך',
+		"Tanakh":               u'תנ"ך',
 		"Tanakh":               u'תנ"ך',
 		"Prophets":             u"נביאים",
 		"Writings":             u"כתובים",

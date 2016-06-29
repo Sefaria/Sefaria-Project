@@ -34,9 +34,12 @@ from sefaria.datatype.jagged_array import JaggedTextArray
 # noinspection PyUnresolvedReferences
 from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
+from sefaria.system.decorators import catch_error_as_http
 from sefaria.utils.hebrew import is_hebrew
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats
 from sefaria.clean import remove_old_counts
+from sefaria.model import *
+
 if USE_VARNISH:
     from sefaria.system.sf_varnish import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts
 
@@ -172,7 +175,26 @@ def subscribe(request, email):
         return jsonResponse({"error": "Sorry, there was an error."})
 
 
+def data_js(request):
+    """
+    Javascript populating dynamic data like book lists, toc.
+    """
+    return render_to_response("js/data.js", {}, RequestContext(request), mimetype= "text/javascript")    
+
+
+def sefaria_js(request):
+    """
+    Packaged Sefaria.js.
+    """
+    # TODO
+    attrs = {}
+    return render_to_response("js/sefaria.js", attrs, RequestContext(request), mimetype= "text/javascript")    
+
+
 def linker_js(request):
+    """
+    Javascript of Linker plugin.
+    """
     attrs = {
         "book_titles": json.dumps(model.library.full_title_list("en", with_commentary=True, with_commentators=False)
                       + model.library.full_title_list("he", with_commentary=True, with_commentators=False))
@@ -485,8 +507,57 @@ def core_link_stats(request):
 
 
 def run_tests(request):
+    # This was never fully developed, methinks
     from subprocess import call
     from local_settings import DEBUG
     if not DEBUG:
         return
     call(["/var/bin/run_tests.sh"])
+
+
+@catch_error_as_http
+def text_download_api(request, format, title, lang, versionTitle):
+    from sefaria.export import text_is_copyright, make_json, make_text, prepare_merged_text_for_export, prepare_text_for_export, export_merged_csv, export_version_csv
+
+    assert lang in ["en", "he"]
+    assert format in ["json", "csv", "txt"]
+    merged = versionTitle == "merged"
+
+    index = library.get_index(title)
+    version_query = {"title": title, "language": lang, "versionTitle": versionTitle}
+
+    if format == "csv" and not merged:
+        version = Version().load(version_query)
+        assert version, "Can not find version of {} in {}: {}".format(title, lang, versionTitle)
+        assert not version.is_copyrighted(), "Cowardly refusing to export copyrighted text."
+        content = export_version_csv(index, [version])
+
+    elif format == "csv" and merged:
+        content = export_merged_csv(index, lang)
+
+    elif format == "json" and not merged:
+        version_object = db.texts.find_one(version_query)
+        assert version_object, "Can not find version of {} in {}: {}".format(title, lang, versionTitle)
+        assert not text_is_copyright(version_object), "Cowardly refusing to export copyrighted text."
+        content = make_json(prepare_text_for_export(version_object))
+
+    elif format == "json" and merged:
+        content = make_json(prepare_merged_text_for_export(title, lang=lang))
+
+    elif format == "txt" and not merged:
+        version_object = db.texts.find_one(version_query)
+        assert version_object, "Can not find version of {} in {}: {}".format(title, lang, versionTitle)
+        assert not text_is_copyright(version_object), "Cowardly refusing to export copyrighted text."
+        content = make_text(prepare_text_for_export(version_object))
+
+    elif format == "txt" and merged:
+        content = make_text(prepare_merged_text_for_export(title, lang=lang))
+
+    content_types = {
+        "json": "application/json; charset=utf-8",
+        "csv": "text/csv; charset=utf-8",
+        "txt": "text/plain; charset=utf-8"
+    }
+    response = HttpResponse(content, content_type=content_types[format])
+    response["Content-Disposition"] = "attachment"
+    return response

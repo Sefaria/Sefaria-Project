@@ -7,12 +7,18 @@ from random import choice
 from pprint import pprint
 import json
 import urlparse
+import urllib2
+import urllib
 import dateutil.parser
+import base64
+import zlib
 from bson.json_util import dumps
 import p929
+import socket
 
 from django.views.decorators.cache import cache_page
 from django.template import RequestContext
+from django.template.loader import render_to_string
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.http import Http404, HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -24,7 +30,7 @@ from django.contrib.auth.models import User
 from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
-from sefaria.model.user_profile import user_link, user_started_text
+from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError
 # noinspection PyUnresolvedReferences
@@ -32,7 +38,7 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.summaries import flatten_toc, get_or_make_summary_node, REORDER_RULES
-from sefaria.sheets import get_sheets_for_ref
+from sefaria.sheets import get_sheets_for_ref, get_public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -40,10 +46,7 @@ from sefaria.datatype.jagged_array import JaggedArray
 import sefaria.utils.calendars
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
-try:
-    from sefaria.settings import USE_VARNISH
-except ImportError:
-    USE_VARNISH = False
+from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST
 if USE_VARNISH:
     from sefaria.system.sf_varnish import invalidate_ref, invalidate_linked
 
@@ -84,8 +87,11 @@ def reader(request, tref, lang=None, version=None):
     if (not getattr(oref.index_node, "depth", None)):
         return text_toc(request, oref)
 
-    if request.flavour == "mobile" or request.COOKIES.get('s2'):
+    if not request.COOKIES.get('s1'):
         return s2(request, ref=tref, lang=lang, version=version)
+
+
+    # TODO Everything below is S1 and will be removed
 
     # BANDAID - for spanning refs, return the first section
     oref = oref.padded_ref()
@@ -136,7 +142,7 @@ def reader(request, tref, lang=None, version=None):
         description_text = "Unknown Text."
 
     initJSON    = json.dumps(text)
-    lines       = request.GET.get("layout", None) or "lines" if "error" in text or text["type"] not in ('Tanach', 'Talmud') or text["book"] == "Psalms" else "block"
+    lines       = request.GET.get("layout", None) or "lines" if "error" in text or text["type"] not in ('Tanakh', 'Talmud') or text["book"] == "Psalms" else "block"
     layout      = request.GET.get("layout") if request.GET.get("layout") in ("heLeft", "heRight") else "heLeft"
     sidebarLang = request.GET.get('sidebarLang', None) or request.COOKIES.get('sidebarLang', "all")
     sidebarLang = {"all": "sidebarAll", "he": "sidebarHebrew", "en": "sidebarEnglish"}.get(sidebarLang, "sidebarAll")
@@ -172,129 +178,303 @@ def esi_account_box(request):
     return render_to_response('elements/accountBox.html', {}, RequestContext(request))
 
 
+def switch_to_s1(request):
+    """Set the S1 cookie then redirect to /"""
+    next = request.GET.get("next", "/")
+    response = redirect(next)
+    response.set_cookie("s1", "true")
+    return response
+
+
 def switch_to_s2(request):
     """Set the S2 cookie then redirect to /texts"""
-
-    response = redirect("/texts")
-    response.set_cookie("s2", "true");
+    next = request.GET.get("next", "/texts")
+    response = redirect(next)
+    response.set_cookie("s1", "")
     return response
+
+
+def render_react_component(component, props):
+    """
+    Asks the Node Server to render `component` with `props`.
+    `props` may either be JSON (to save reencoding) or a dictionary.
+    Returns HTML.
+    """
+    if not USE_NODE:
+        return render_to_string("elements/loading.html")
+
+    from sefaria.settings import NODE_TIMEOUT, NODE_TIMEOUT_MONITOR
+
+    propsJSON = json.dumps(props)
+    cache_key = "todo" # zlib.compress(propsJSON)
+    url = NODE_HOST + "/" + component + "/" + cache_key
+
+
+    encoded_args = urllib.urlencode({
+        "propsJSON": propsJSON,
+    })
+    try:
+        response = urllib2.urlopen(url, encoded_args, NODE_TIMEOUT)
+        html = response.read()
+        return html
+    except (urllib2.URLError, socket.timeout) as e:
+        # Catch timeouts, however they may come.  Write to file NODE_TIMEOUT_MONITOR, which forever monitors to restart process
+        if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
+            logger.exception("Node timeout: Fell back to client-side rendering.")
+            with open(NODE_TIMEOUT_MONITOR, "a") as myfile:
+                myfile.write("Node timeout: Fell back to client-side rendering. \nRequest Props:\n")
+                myfile.write(propsJSON)
+            return render_to_string("elements/loading.html")
+        else:
+            raise
+    except Exception as e:
+        # If anything else goes wrong with Node, just fall back to client-side rendering
+        logger.exception("Fell back to client-side rendering.")
+        return render_to_string("elements/loading.html")
+
+
+def make_panel_dict(oref, version, language, filter, mode):
+    """
+    Returns a dictionary corresponding to the React panel state,
+    additionally setting `text` field with textual content.
+    """
+    if oref.is_book_level():
+        panel = {
+            "menuOpen": "book toc",
+            "bookRef": oref.normal(),
+            "textTocHtml": make_toc_html(oref),
+        }
+    else:
+        oref = oref.first_available_section_ref()
+        panel = {
+            "mode": mode,
+            "ref": oref.normal(),
+            "refs": [oref.normal()],
+            "version": version,
+            "versionLanguage": language,
+            "filter": filter,
+        }
+        try:
+            text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True).contents()
+        except NoVersionFoundError:
+            text = {}
+
+        text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+        text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+        panel["text"] = text
+
+        if oref.is_segment_level():
+            panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
+
+    return panel
+
+
+def make_panel_dicts(oref, version, language, filter, multi_panel):
+    """
+    Returns an array of panel dictionaries.
+    Depending on whether `multi_panel` is True, connections set in `filter` are displayed in either 1 or 2 panels.
+    """
+    panels = []
+    if filter and multi_panel:
+        panels += [make_panel_dict(oref, version, language, filter, "Text")]
+        panels += [make_panel_dict(oref, version, language, filter, "Connections")]
+    elif filter and not multi_panel:
+        panels += [make_panel_dict(oref, version, language, filter, "TextAndConnections")]
+    else:
+        panels += [make_panel_dict(oref, version, language, filter, "Text")]
+
+    return panels
+
+
+def s2_props(request):
+    """
+    Returns a dictionary of props that all S2 pages get based on the request.
+    """ 
+    request_context = RequestContext(request)
+    return {
+        "multiPanel": request.flavour != "mobile" and not "mobile" in request.GET,
+        "initialPath": request.get_full_path(),
+        "recentlyViewed": request.COOKIES.get("recentlyViewed", None),
+        "loggedIn": request.user.is_authenticated(),
+        "interfaceLang": request_context.get("interfaceLang"),
+        "initialSettings": {
+            "language":      request_context.get("contentLang"),
+            "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),
+            "layoutTalmud":  request.COOKIES.get("layoutTalmud", "continuous"),
+            "layoutTanakh":  request.COOKIES.get("layoutTanakh", "segmented"),
+            "color":         request.COOKIES.get("color", "light"),
+            "fontSize":      request.COOKIES.get("fontSize", 62.5),
+        },
+    }
 
 
 def s2(request, ref, version=None, lang=None):
     """
-    New interfaces in development
+    Reader App.
     """
     try:
         oref = Ref(ref)
     except InputError:
         raise Http404
-    max_panels = 4
+   
+    props = s2_props(request)
+
     panels = []
+    multi_panel = props["multiPanel"]
+    # Handle first panel which has a different signature in params & URL (`version` and `lang` if set come from URL).
+    version = version.replace(u"_", " ") if version else version
+    filter = request.GET.get("with").replace("_", " ").split("+") if request.GET.get("with") else None
+    filter = [] if filter == ["all"] else filter
 
-    # TODO clean up generation of initial panels objects. 
-    # Currently these get generated in reader/views.py, then regenerated in s2.html then regenerated again in ReaderApp.
-
-    # Handle first panel
-    panel_1 = {}
-    if version and lang:
-        panel_1["version"] = version.replace(u"_", u" ")
-        panel_1["language"] = lang
-    if oref.is_book_level(): #oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
-        panel_1["initialMenu"] = "text toc"
-        oref = oref.first_available_section_ref()
-        # If there's a version specified, should we use Version.first_section_ref()?
-    else:
-        panel_1["initialMenu"] = ""
-    try:
-        text = TextFamily(oref, version=panel_1.get("version"), lang=panel_1.get("language"), commentary=False, context=True, pad=True, alts=True).contents()
-    except NoVersionFoundError:
+    if version and not Version().load({"versionTitle": version, "language": lang}):
         raise Http404
-        
-    text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-    text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
 
-    panel_1["ref"] = oref.normal()
-    if oref.is_segment_level():
-        panel_1["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
-    panel_1["text"] = text
-    panel_1["filter"] = request.GET.get("with").replace("_"," ").split("+") if request.GET.get("with") else None
+    panels += make_panel_dicts(oref, version, lang, filter, multi_panel)
 
-    panels += [panel_1]
-
-    for i in range(2, max_panels + 1):
+    # Handle any panels after 1 which are identified with params like `p2`, `v2`, `l2`.
+    i = 2
+    while True:
         ref = request.GET.get("p{}".format(i))
         if not ref:
             break
         try:
             oref = Ref(ref)
         except InputError:
-            continue # Stop processing all panels?
-            #raise Http404
+            i += 1
+            continue  # Stop processing all panels?
+            # raise Http404
+        
+        version  = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
+        language = request.GET.get("l{}".format(i))
+        filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
+        filter   = [] if filter == ["all"] else filter
 
-        panel = {}
-        panel["version"] = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
-        panel["language"] = request.GET.get("l{}".format(i))
-        # Can we replace the below with a Ref method?
-        if oref.sections == [] and (oref.index.title == oref.normal() or getattr(oref.index_node, "depth", 0) > 1):
-            panel["initialMenu"] = "text toc"
-            oref = oref.first_available_section_ref()
-        else:
-            panel["initialMenu"] = ""
-        try:
-            text = TextFamily(oref, version=panel["version"], lang=panel["language"], commentary=False, context=True, pad=True, alts=True).contents()
-        except NoVersionFoundError:
-            continue # Stop processing all panels?
-        text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-        text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+        if version and not Version().load({"versionTitle": version, "language": language}):
+            i += 1
+            continue  # Stop processing all panels?
+            # raise Http404
 
-        panel["ref"] = oref.normal()
-        if oref.is_segment_level():
-            panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
-        panel["text"] = text
-        panel["filter"] = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
+        panels += make_panel_dicts(oref, version, language, filter, multi_panel)
+        i += 1
 
-        panels += [panel]
-
+    props.update({
+        "headerMode":                  False,
+        "initialRefs":                 panels[0].get("refs", []),
+        "initialFilter":               panels[0].get("filter", None),
+        "initialBookRef":              panels[0].get("bookRef", None),
+        "initialPanels":               panels,
+        "initialPanelCap":             len(panels),
+        "initialQuery":                None,
+        "initialSearchFilters":        None,
+        "initialSheetsTag":            None,
+        "initialNavigationCategories": None,
+    })
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
-            "panels": json.dumps(panels)
-        }, RequestContext(request))
+        "propsJSON":      propsJSON,
+        "html":           html,
+        "ref":            oref.normal(),
+    }, RequestContext(request))
 
 
 def s2_texts_category(request, cats):
     """
-    Listing of texts in a category.
+    List of texts in a category.
     """
-    print cats
     cats       = cats.split("/")
     toc        = library.get_toc()
     cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
-    print cat_toc
     if cat_toc is None:
         return s2_texts(request)
 
+    props = s2_props(request)
+    props.update({
+        "initialMenu": "navigation",
+        "initialNavigationCategories": cats,
+    })
+    html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
-                                    "initialMenu": "navigation",
-                                    "initialNavigationCategories": json.dumps(cats),
-                                }, RequestContext(request))
+        "propsJSON": json.dumps(props),
+        "html":      html,
+    }, RequestContext(request))
 
 
 def s2_search(request):
+    """
+    Search or Search Results page.
+    """
     search_filters = request.GET.get("filters").split("|") if request.GET.get("filters") else []
 
+    props = s2_props(request)
+    props.update({
+        "initialMenu": "search",
+        "initialQuery": urllib.unquote(request.GET.get("q")) if request.GET.get("q") else "",
+        "initialSearchFilters": search_filters,
+    })
+    html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
-            "initialMenu": "search",
-            "query": request.GET.get("q") or "",
-            "searchFilters": json.dumps(search_filters)
-        }, RequestContext(request))
+        "propsJSON": json.dumps(props),
+        "html":      html,
+    }, RequestContext(request))
+
+
+def s2_sheets(request):
+    """
+    Source Sheets Home Page.
+    """
+    props = s2_props(request)
+    props.update({
+        "initialMenu": "sheets",
+        "topSheets": [sheet_to_dict(s) for s in get_top_sheets()],
+        "tagList": make_tag_list(sort_by="count"),
+        "trendingTags": recent_public_tags(days=14, ntags=18)
+    })
+    html = render_react_component("ReaderApp", props)
+    return render_to_response('s2.html', {
+        "propsJSON":      json.dumps(props),
+        "html":           html,
+    }, RequestContext(request))
+
+
+def s2_sheets_by_tag(request, tag):
+    """
+    Page of sheets by tag.
+    Currently used to for "My Sheets" and  "All Sheets" as well.
+    """
+    props = s2_props(request)
+    props.update({
+        "initialMenu":     "sheets",
+        "initialSheetsTag": tag,
+    })
+    if tag == "My Sheets":
+        props["userSheets"]   = user_sheets(request.user.id)["sheets"]
+        props["userTags"]     = user_tags(request.user.id)
+    elif tag == "All Sheets":
+        props["publicSheets"] = [sheet_to_dict(s) for s in get_public_sheets(0)] #TODO Pagination
+    else:
+        props["tagSheets"]    = [sheet_to_dict(s) for s in get_sheets_by_tag(tag)]
+
+    html = render_react_component("ReaderApp", props)
+    return render_to_response('s2.html', {
+        "propsJSON":      json.dumps(props),
+        "html":           html,
+    }, RequestContext(request))
 
 
 def s2_page(request, page):
     """
-    View into an S2 page
+    View for any S2 page that can descripted with the `menuOpen` param in React
     """
+    props = s2_props(request)
+    props.update({
+        "initialMenu": page,
+    })
+    html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
-                                    "initialMenu": page
-                                }, RequestContext(request))
+        "propsJSON":      json.dumps(props),
+        "html":           html,
+    }, RequestContext(request))
 
 
 def s2_home(request):
@@ -310,21 +490,9 @@ def s2_account(request):
 
 
 def s2_notifications(request):
+    # TODO Server Side rendering
     return s2_page(request, "notifications")
 
-
-def s2_sheets(request):
-    return s2_page(request, "sheets")
-
-
-def s2_sheets_by_tag(request, tag):
-    """
-    Standalone page for new sheets list
-    """
-    return render_to_response('s2.html', {
-                                    "initialMenu": "sheets",
-                                    "initialSheetsTag": tag,
-                                }, RequestContext(request))
 
 @ensure_csrf_cookie
 def edit_text(request, ref=None, lang=None, version=None):
@@ -345,6 +513,8 @@ def edit_text(request, ref=None, lang=None, version=None):
                 text = TextFamily(Ref(ref), lang=lang, version=version).contents()
                 text["mode"] = request.path.split("/")[1]
                 mode = text["mode"].capitalize()
+                text["edit_lang"] = lang
+                text["edit_version"] = version
                 initJSON = json.dumps(text)
         except:
             index = library.get_index(ref)
@@ -359,8 +529,8 @@ def edit_text(request, ref=None, lang=None, version=None):
 
     return render_to_response('edit_text.html',
                              {'titles': titles,
-                             'initJSON': initJSON,
-                             'page_title': page_title,
+                              'initJSON': initJSON,
+                              'page_title': page_title,
                              },
                              RequestContext(request))
 
@@ -498,7 +668,7 @@ def make_alt_toc_html(alt, index):
         he_icon = '<i class="schema-node-control fa ' + ('fa-angle-left' if linked else 'fa-angle-down') + '"></i>'
         html    = '<a href="' + urlquote(url) + '"' if linked else "<div "
         html   += ' class="schema-node-toc depth' + str(depth) + ' ' + linked + ' ' + default + '" >'
-        wrap_counts  = lambda counts: counts if list_depth(counts) == 2 else wrap_counts([counts])
+        wrap_counts  = lambda counts: counts if list_depth(counts) >= 2 else wrap_counts([counts])
         # wrap counts to ensure they are as though at section level, handles segment level refs
         if not default and depth > 0:
             html += '<span class="schema-node-title">'
@@ -644,7 +814,7 @@ def text_toc(request, oref):
     """
     Page representing a single text, showing its Table of Contents and related info.
     """
-    if request.flavour == "mobile" or request.COOKIES.get('s2'):
+    if not request.COOKIES.get('s1'):
         return s2(request, ref=oref.normal())
 
     index         = oref.index
@@ -755,8 +925,9 @@ def texts_list(request):
     """
     Page listing every text in the library.
     """
-    if request.flavour == "mobile" or request.COOKIES.get('s2'):
+    if not request.COOKIES.get('s1'):
         return s2_texts(request)
+
     return render_to_response('texts.html',
                              {},
                              RequestContext(request))
@@ -766,7 +937,11 @@ def texts_category_list(request, cats):
     """
     Page listing every text in category
     """
-    if request.flavour == "mobile" or request.COOKIES.get('s2'):
+    if "Tanach" in cats:
+        cats = cats.replace("Tanach", "Tanakh")
+        return redirect("/texts/%s" % cats)
+
+    if not request.COOKIES.get('s1'):
         return s2_texts_category(request, cats)
     
     cats       = cats.split("/")
@@ -798,11 +973,24 @@ def texts_category_list(request, cats):
 
 @ensure_csrf_cookie
 def search(request):
-    if request.flavour == "mobile" or request.COOKIES.get('s2'):
+    if not request.COOKIES.get('s1'):
         return s2_search(request)
+
     return render_to_response('search.html',
                              {},
                              RequestContext(request))
+
+
+def interface_language_redirect(request, language):
+    """Set the interfaceLang cooki"""
+    next = request.GET.get("next", "/?home")
+    response = redirect(next)
+    response.set_cookie("interfaceLang", language)
+    if request.user.is_authenticated():
+        p = UserProfile(id=request.user.id)
+        p.settings["interface_language"] = language
+        p.save()
+    return response
 
 
 #todo: is this used elsewhere? move it?
@@ -1314,16 +1502,9 @@ def versions_api(request, tref):
     API for retrieving available text versions list of a ref.
     """
     oref = model.Ref(tref)
-    versions = model.VersionSet({"title": oref.book})
-    results = []
-    for v in versions:
-        results.append({
-            "title": v.versionTitle,
-            "source": v.versionSource,
-            "langauge": v.language
-        })
+    versions = oref.version_list()
 
-    return jsonResponse(results, callback=request.GET.get("callback", None))
+    return jsonResponse(versions, callback=request.GET.get("callback", None))
 
 @catch_error_as_json
 def version_status_api(request):
@@ -1388,22 +1569,14 @@ def visualize_toc(request):
     return render_to_response('visual_toc.html', {}, RequestContext(request))
 
 
-def visualize_torah_quant(request):
-    return render_to_response('visual_torah_quant.html', {}, RequestContext(request))
-
-
-def visualize_steve(request):
-    return render_to_response('visual_steve.html', {}, RequestContext(request))
+def visualize_parasha_colors(request):
+    return render_to_response('visual_parasha_colors.html', {}, RequestContext(request))
 
 
 def visualize_rashi_interlinks(request):
     level = request.GET.get("level", 1)
     json_file = "../static/files/torah_rashi_torah.json" if level == 1 else "../static/files/tanach_rashi_tanach.json"
     return render_to_response('visualize_links_via_rashi.html', {"json_file": json_file}, RequestContext(request))
-
-
-def visualize_yoni(request):
-    return render_to_response('visualize_yoni.html', {}, RequestContext(request))
 
 
 @catch_error_as_json
@@ -1502,29 +1675,28 @@ def flag_text_api(request, title, lang, version):
 
 @catch_error_as_json
 def dictionary_api(request, word):
-    lookup_ref=request.GET.get("lookup_ref", None)
-    wform_pkey = 'form'
-    if is_hebrew(word):
-        word = strip_cantillation(word)
-        if not has_cantillation(word, detect_vowels=True):
-            wform_pkey = 'c_form'
-
-    query_obj = {wform_pkey: word}
-    if lookup_ref:
-        nref = Ref(lookup_ref).normal()
-        query_obj["refs"] = {'$regex': '^{}'.format(nref)}
-    form = WordForm().load(query_obj)
-    if not form:
-        del query_obj["refs"]
-        form = WordForm().load(query_obj)
-    if form:
-        result = []
-        for lookup in form.lookups:
-            #TODO: if we want the 'lookups' in wf to be a dict we can pass as is to the lexiconentry, we need to change the key 'lexicon' to 'parent_lxicon' in word forms
-            ls = LexiconEntrySet({'headword': lookup['headword']})
-            for l in ls:
-                result.append(l.contents())
-        return jsonResponse(result)
+    """
+    Looks for lexicon entries for the given string.
+    If the string is more than one word, this will look for substring matches when not finding for the original input
+    Optional attributes:
+    'lookup_ref' to fine tune the search
+    'never_split' to limit lookup to only the actual input string
+    'always_split' to look for substring matches regardless of results for original input
+    :param request:
+    :param word:
+    :return:
+    """
+    kwargs = {}
+    for key in ["lookup_ref", "never_split", "always_split"]:
+        if request.GET.get(key, None):
+            kwargs[key] = request.GET.get(key)
+    result = []
+    ls = LexiconLookupAggregator.lexicon_lookup(word, **kwargs)
+    if ls:
+        for l in ls:
+            result.append(l.contents())
+        if len(result):
+            return jsonResponse(result)
     else:
         return jsonResponse({"error": "No information found for given word."})
 
@@ -1570,7 +1742,10 @@ def notifications_read_api(request):
                 continue
             notification.mark_read().save()
 
-        return jsonResponse({"status": "ok"})
+        return jsonResponse({
+                                "status": "ok", 
+                                "unreadCount": unread_notifications_count_for_user(request.user.id)
+                            })
 
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})
@@ -1773,6 +1948,44 @@ def global_activity(request, page=1):
 
 
 @ensure_csrf_cookie
+def user_activity(request, slug, page=1):
+    """
+    Recent Activity page for a single user.
+    """
+    page = int(page) if page else 1
+    page_size = 100
+
+    try:
+        profile = UserProfile(slug=slug)
+    except Exception, e:
+        raise Http404
+
+
+    if page > 40:
+        generic_response = { "title": "Activity Unavailable", "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>." }
+        return render_to_response('static/generic.html', generic_response, RequestContext(request))
+
+    q              = {"user": profile.id}
+    filter_type    = request.GET.get("type", None)
+    activity, page = get_maximal_collapsed_activity(query=q, page_size=page_size, page=page, filter_type=filter_type)
+
+    next_page = page + 1 if page else None
+    next_page = "/activity/%d" % next_page if next_page else None
+    next_page = "%s?type=%s" % (next_page, filter_type) if next_page and filter_type else next_page
+
+    email = request.user.email if request.user.is_authenticated() else False
+    return render_to_response('activity.html',
+                             {'activity': activity,
+                                'filter_type': filter_type,
+                                'profile': profile,
+                                'for_user': True,
+                                'email': email,
+                                'next_page': next_page,
+                                },
+                             RequestContext(request))
+
+
+@ensure_csrf_cookie
 def segment_history(request, tref, lang, version, page=1):
     """
     View revision history for the text segment named by ref / lang / version.
@@ -1930,11 +2143,18 @@ def my_profile(request):
     return redirect("/profile/%s" % UserProfile(id=request.user.id).slug)
 
 
+def interrupting_messages_read_api(request, message):
+    if not request.user.is_authenticated():
+        return jsonResponse({"error": "You must be logged in to use this API"})
+    profile = UserProfile(id=request.user.id)
+    profile.mark_interrupting_message_read(message)
+    return jsonResponse({"status": "ok"})
+
 @login_required
 @ensure_csrf_cookie
 def edit_profile(request):
     """
-    Page for managing a user's account settings.
+    Page for editing a user's profile.
     """
     profile = UserProfile(id=request.user.id)
     sheets  = db.sheets.find({"owner": profile.id, "status": "public"}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
@@ -1969,9 +2189,10 @@ def home(request):
     Homepage
     """
     recent = request.COOKIES.get("recentlyViewed", None)
-    if recent and not "home" in request.GET and request.COOKIES.get('s2'):
-        recent = json.loads(urlparse.unquote(recent))
-        return redirect("/%s" % recent[0]["ref"])
+    if recent and not "home" in request.GET and not request.COOKIES.get('s1'):
+        # recent = json.loads(urlparse.unquote(recent))
+        #return redirect("/%s" % recent[0]["ref"])
+        return redirect("/texts")
 
     if request.flavour == "mobile":
         return s2_page(request, "home")
@@ -1984,7 +2205,7 @@ def home(request):
     p929_ref           = "%s %s" % (p929_chapter.book_name, p929_chapter.book_chapter)
     metrics            = db.metrics.find().sort("timestamp", -1).limit(1)[0]
 
-    return render_to_response('static/s2_home.html' if request.COOKIES.get('s2') else 'static/home.html',
+    return render_to_response('static/s2_home.html' if not request.COOKIES.get('s1') else 'static/home.html',
                              {
                               "metrics": metrics,
                               "daf_today": daf_today,

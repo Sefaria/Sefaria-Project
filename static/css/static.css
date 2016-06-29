@@ -1,0 +1,1542 @@
+.wrapper{
+  background-color: #F9F9F7;
+}
+.container{
+  width: 100%;
+}
+/* always wait for fonts to load before show text, applies to Google Web Fonts. What about Adobe? */
+.static .wf-loading {
+  display: none;
+}
+.hebrew .static.biReady{
+  direction:rtl;
+}
+
+.static {
+  color: #333333;
+  font-size: 15px;
+  background-color: #F9F9F7;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.static .inner {
+  width: 90%;
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 124px 0 100px;
+}
+.static h1 {
+  color: #333;
+  position: relative;
+  font-weight: lighter;
+  letter-spacing: 1px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  text-align: center;
+  font-size: 26px;
+  margin: 0 0 80px 0;
+  height: auto;
+}
+.static h2 {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: lighter;
+  font-size: 15px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #999;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+.static h3 {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: normal;
+  text-transform: uppercase;
+  color: #aaa;
+  margin-bottom: 10px;
+  margin-top: 40px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+.static p {
+  margin: initial;
+  font-size: 18px;
+  line-height: 1.5;
+}
+.static p a {
+  text-decoration: underline;
+}
+.static .section {
+  margin-bottom: 30px;
+}
+.static .sans .en, .static.sans .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.static .sans .he, .static.sans .he  {
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+.static input {
+  padding: 20px 20px;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 4px;
+  box-shadow: none;
+  border: 1px solid #bbb;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #999;
+  font-size: 14px;
+  background-color: white;
+}
+}
+.static input:focus {
+  outline: none;
+}
+.static a {
+  color: #333;
+}
+.static a.button, .static .button a, .static a .button {
+  color: white;
+  text-decoration: none;
+}
+.static a.button.white, .static .button.white a, .static a .button.white {
+  color: #333;
+}
+.static a.button.transparent {
+  color: #666;
+}
+.static label {
+   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+   color: #999;
+   letter-spacing: 1px;
+   font-size: 16px;
+   height: 18px;
+   margin-bottom: 10px;
+   position: relative;
+}
+.static label .sub {
+  font-size: 12px;
+  margin-left: 4px;
+  color: #999;
+  letter-spacing: normal;
+  white-space: nowrap;
+}
+.static .en {
+  font-family: "adobe-garamond-pro", Georgia, serif;  
+}
+.static .he {
+  font-family: "Taamey Frank", "Times New Roman", serif;
+}
+.english .static .he {
+  display: none;
+}
+.hebrew .static .en {
+  display: none;
+}
+.static .page-title{
+  margin-bottom: 50px;
+}
+.static .row{
+
+}
+.static .error {
+  color: red;
+}
+.static .inner div.single-button a.button{
+  margin: auto;
+}
+.static .inner .button {
+  /*all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
+  border-radius: 4px;
+  padding: 16px 24px;
+  cursor: pointer;
+  font-size: 15px;
+  letter-spacing: 1px;
+  box-sizing: border-box;
+  text-align: center;
+}
+.static .inner .button.big {
+  width: 250px;
+}
+.static .inner .button.blue {
+  background-color: #212E50;
+  border: 1px solid #212E50;
+  color: white;
+}
+.static .inner .button .he{
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+.static .inner .button .en{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.static h1 .en, .static  h2 .en, .static h3 .en, .static h4 .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.static h1 .he, .static  h2 .he, .static h3 .he, .static h4 .he {
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+.static img.fullWidth {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 30px 0;
+  border: 1px solid #ddd;
+}
+.static p.tagline {
+  font-style: italic;
+  margin-bottom: 25px;
+}
+.static-text {
+  margin: 0;
+  text-align: justify
+}
+
+#homePage {
+  overflow: hidden;
+  color: #333;
+}
+#homePage .en {
+  font-family: "adobe-garamond-pro", Georgia, serif;  
+}
+#homePage .he {
+  font-family: "Taamey Frank", "Times New Roman", serif;
+}
+#homePage .button .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#homePage .button .he {
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+#homePage .section {
+  margin-bottom: 0;
+}
+#homePage #homeCover {
+  color: white;
+  background-color: #212E50;
+  background-image: url("/static/img/landing.png");
+  background-size: cover;
+  background-position: center;
+  height: 560px;
+  padding: 157px 0;
+  box-sizing: border-box;
+  text-align: center;
+}
+#homePage #homeCover h1 {
+  color: white;
+  font-weight: normal;
+  font-size: 49px;
+  height: 70px;
+  margin-bottom: 30px;
+}
+#homePage #homeCover .sub {
+  font-size: 22px;
+  font-style: italic;
+  margin: 0;
+}
+#homePage #homeCover a {
+  color: white;
+  font-style: normal;
+  font-size: 21px;
+}
+#homePage #homeCover .button {
+  margin-top: 80px;
+  text-transform: uppercase;
+  padding: 16px 34px;
+}
+#homePage .section {
+  overflow: hidden;
+  padding: 100px 0;
+}
+#homePage .sectionInner {
+  width: 720px;
+  max-width: 94%;
+  margin: auto; 
+}
+#homePage .section:nth-child(odd) {
+  background-color: white;
+}
+#homePage .textBox {
+  display: inline-block;
+  width: 350px;
+}
+#homePage .imageBox {
+  display: inline-block;
+  width: 300px;
+}
+#homePage .imageBox.bordered {
+  border: 1px solid #ccc;
+}
+#homePage .imageBox.bordered img {
+  display: block;
+}
+#homePage .textLeft .textBox {
+  float: left;
+}
+#homePage .textLeft .imageBox {
+  float: right;
+}
+#homePage .textRight .textBox {
+  float: right;
+}
+#homePage .textRight .imageBox {
+  float: left;
+}
+#homePage .section a .button {
+  display: block;
+  width: 240px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+#homePage .section .button .fa {
+  color: #ccc;
+  font-size: 25px;
+  /*margin: 0 3px;
+  position: absolute;
+  left: 11px;
+  top: 10px;*/
+}
+#homePage .section.center {
+  text-align: center;
+}
+#homePage .section.center .button {
+  margin: 0 auto;
+}
+#homePage h2 {
+  margin: 0 0 12px 0;
+  padding: 0;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-style: italic;
+  font-size: 28px;
+  font-weight: normal;
+  letter-spacing: 1px;
+  text-transform: none;
+  border: none;
+  color:  #666;
+}
+#homePage .description {
+  margin: 26px 0 34px 0;
+  color: #999;
+  font-size: 17px;
+  font-style: italic;
+  line-height: 1.2;
+}
+#homePage .dedication {
+  margin: -12px 0 34px;
+  color: #999;
+  font-size: 17px;
+  font-style: italic;
+  line-height: 1.2;
+}
+#homePage .section .button {
+  margin: 0;
+  position: relative;
+}
+#homePage #homeBlog .blogTag {
+  text-transform: uppercase;
+  color: #999;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+  font-size: 15px;
+  font-weight: lighter;
+}
+#homePage #homeBlog .blogTag .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#homePage #homeBlog .blogTag .he {
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+#homePage #homeBlog .blogText {
+  font-size: 18px;
+  margin: 40px 0 40px;
+  line-height: 1.2;
+  text-align: justify;
+}
+#homePage a {
+  color: #999;
+  font-size: 16px;
+}
+#homePage a.refLink {
+  color: #333;
+  font-size: 16px;
+  padding: 12px 0px 15px;
+}
+#homePage #homeProgress {
+  text-align: center;
+}
+#homeProgress h2 {
+  font-style: normal;
+  font-size: 17px;
+  font-weight: lighter;
+  color: #999;
+  margin-bottom: 20px;
+}
+#homeProgress h2 .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  text-transform: uppercase;
+  font-size: 14px;
+}
+#homeProgress h2 .he {
+  font-family: "Open Sans Hebrew", sans-serif;
+  font-size: 13px;
+}
+#homeProgress .stat {
+  display: inline-block;
+  width: 32.9%;
+  padding: 20px 0;
+  text-align: center;
+  font-size: 14px;
+  letter-spacing: 1px;
+  box-sizing: border-box;
+}
+#homeProgress .stat .statIcon,
+#homeProgress .stat .wordCount {
+  display: block;
+}
+#homeProgress img.statIcon {
+  margin: 20px auto;
+  text-align: center;
+}
+#homeProgress .fa.statIcon {
+  line-height: 70px;
+  font-size: 63px;
+  color: #ccc;
+  margin-bottom: 8px;
+}
+#homeProgress .stat .wordCount {
+  font-size: 28px;
+  margin: 0px 0;
+}
+#homeProgress .stat .en {
+  color: #999;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#homeProgress .stat .he {
+  color: #999;
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+#homeProgress #moreMetrics {
+  display: block;
+  margin-top: 50px;
+}
+#homeHelp .description {
+  margin: 30px 0 40px;
+}
+#homeConnect h2 {
+  margin-bottom: 30px;
+}
+#homeConnect #mailingListTitle {
+  margin-bottom: 40px;
+  color: #999;
+  font-size: 14px;
+}
+#homeConnect #mailingListTitle .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#homeConnect #mailingListTitle .he {
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+#homeConnect #mailingListEmail {
+  padding: 14px 24px;
+  margin: -4px 8px 0 0;
+  width: 240px;
+  font-size: 16px;
+}
+#homeConnect #mailingListEmail::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#homeConnect #mailingListEmail::-moz-placeholder { /* Firefox 19+ */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#homeConnect #mailingListEmail:-ms-input-placeholder { /* IE 10+ */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#homeConnect #mailingListEmail:-moz-placeholder { /* Firefox 18- */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#homeConnect #subscribeMsg {
+  margin-top: 40px;
+  font-size: 20px;
+  display: none;
+}
+#homePage #homeMobile .button{
+  display: flex;
+  display: -webkit-flex
+  flex-direction: row;
+  -webkit-flex-direction: row;
+  padding: 12px 14px;
+  align-items: center;
+  -webkit-align-items: center;
+  -webkit-align-content: center; /* Safari */
+  align-content:         center;
+  -webkit-justify-content: space-between; /* Safari */
+  justify-content:         space-between;
+}
+#homePage #homeMobile a .button i:before
+{
+  text-decoration: none;
+  display: inline-block; /*so this does not inherit the underline from the parent a*/
+}
+#homePage #homeMobile .button .en {
+  margin-left: 15px;
+  margin-right: auto;
+}
+#homePage #homeMobile .button .he{
+  margin-right: 15px;
+  margin-left: auto;
+}
+#profilePage {
+}
+#profileTop {
+  text-align: center;
+}
+#profileImage {
+  border: 1px solid #E6E5E6;
+  width: 200px;
+  height: 200px;
+}
+#profileName {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #333;
+  height: auto;
+  margin: 20px 0 24px;
+  font-weight: lighter;
+  font-size: 40px;
+}
+#profileTagline {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  margin-bottom: 24px;
+  font-size: 18px;
+  color: #666;
+}
+#profileSnippets > div {
+  display: inline-block;
+  color: #999;
+  margin: 2px 7px;
+  font-size: 14px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: lighter;
+}
+#profileSnippets a {
+  color: #999
+}
+#profilePage #buttons {
+  margin: 24px 0 50px;
+}
+#profilePage .sections {
+  margin-bottom: 50px;
+}
+#profilePage #bio {
+  font-size: 22px;
+}
+#profilePage #bio,
+#profilePage #bio p {
+  font-size: 16px;
+  line-height: 1.3;
+}
+#profilePage #bio a {
+  color: #333;
+}
+#profilePage ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+#profilePage li {
+}
+#profilePage .sheet {
+  margin: 26px 0;
+  font-size: 18px;
+  color: #333;
+}
+#profilePage .sheet a {
+  color: #333;
+}
+#activityList{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #666;
+  padding: 0;
+}
+#profileActivity a {
+  color: #333;
+  font-weight: normal;
+}
+/*#profilePage #moreActivity {
+  display: block;
+  margin-top: 30px;
+  font-size: 15px;
+}*/
+#profilePage  #followMe span{
+  font-size: inherit;
+}
+#profilePage  .button span.en{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#profilePage  .button span.he{
+  font-family: "Open Sans Hebrew", sans-serif;
+  font-size: inherit;
+}
+#profilePage #followMe.follow span.following{
+  display: none;
+}
+#profilePage #followMe.following span.follow{
+  display: none;
+}
+#profilePage #followMe span.unfollow{
+  display:none;
+}
+#profilePage #followMe.following:hover span.unfollow{
+  display:inherit;
+}
+#profilePage #followMe.following:hover span.following{
+  display:none;
+}
+#activityList .topline {
+  font-weight: normal;
+}
+#activityList .text.en, #activityList .text{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#activityList .text.he{
+  font-family: "Taamey Frank", "Times New Roman", serif;
+}
+#activityList .time {
+  color: #ccc;
+}
+#activityList li > :not(:first-child){
+  margin-top:5px;
+}
+#activityList li{
+  margin-bottom: 15px;
+  list-style-type: none;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+}
+#activityList + a.page-link{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 14px;
+}
+
+.registrationContent {
+  text-align: center;
+  margin: 1% auto 0;
+  width: 320px;
+}
+
+.registrationContent h1 span.en{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.registrationContent label {
+  display: none;
+}
+.registrationContent input {
+  padding: 12px 20px;
+  height: initial;
+  margin: 1% 0px;
+  cursor: pointer;
+  border-radius: 4px;
+  box-shadow: none;
+  border: 1px solid #bbb;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #999;
+  font-size: 14px;
+}
+.registrationContent ::placeholder{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif; 
+  color: #999;
+  font-size: 14px;
+}
+.registrationContent ::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #999;
+  font-size: 14px;
+  font-style: normal;
+}
+.registrationContent ::-moz-placeholder { /* Firefox 19+ */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #999;
+  font-size: 14px;
+}
+.registrationContent :-ms-input-placeholder { /* IE 10+ */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #999;
+  font-size: 14px;
+  font-style: normal;
+}
+.registrationContent :-moz-placeholder { /* Firefox 18- */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #999;
+  font-size: 14px;
+  font-style: normal;
+}
+/* Override Chrome's yellow autofill. Change the white to any color ;) */
+.registrationContent input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px white inset;
+}
+.registrationContent button {
+  all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
+  display: block;
+  width: 100%;
+  color: white;
+  background-color: #212E50;
+  border: 1px solid #212E50;
+  border-radius: 4px;
+  padding: 12px 0px;
+  margin-top: 30px;
+  cursor: pointer;
+  font-size: 15px;
+  letter-spacing: 1px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  box-sizing: border-box;
+  text-align: center;
+}
+.registrationContent button:hover {
+  background-color: #212E50;
+  color: #999;
+}
+.registrationContent a {
+  display: block;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  font-style: normal;
+}
+.registrationContent a.registration-links{
+  margin-top: 20px;
+}
+.registrationContent a .en, .registrationContent button .en{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.registrationContent a .he, .registrationContent button .he{
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+/*#login.registrationContent #resetLink{
+  margin: 20px 0;
+  color: #999;
+  font-size: 14px;
+  font-style: normal;
+}*/
+#visualizationsPage {
+  text-align: left;
+}
+#footer #siteLanguageToggle {
+  color: #999;
+  margin-top: 15px;
+  font-size: 13px;
+}
+#footer #siteLanguageToggle #siteLanguageToggleLabel {
+  display: block;
+}
+#footer a#siteLanguageEnglish,
+#footer a#siteLanguageHebrew {
+  cursor: pointer;
+  color: #666;
+  display: inline;
+  margin: 0 3px;
+  font-size: 13px;
+}
+#footer #siteLanguageEnglish:hover,
+#footer #siteLanguageHebrew:hover {
+  text-decoration: underline;
+}
+#footer a#siteLanguageHebrew {
+  font-size: 14px;
+}
+.static div.single-button{
+  margin: 5% 0;
+}
+.static div.single-button.center{
+  text-align: center;
+}
+#donatePage #donateOptions .donateOption {
+    margin-bottom: 35px;
+}
+#donatePage .faq p.question{
+  font-weight: bold;
+}
+#donatePage .faq p.answer{
+  margin-left: 40px;
+  text-indent: -20px;
+}
+#donatePage .faq p.question:before{
+  content: "Q)";
+}
+#donatePage .faq p.answer:before{
+  content: "A)";
+}
+.hebrew #donatePage .faq p.answer{
+  margin-right: 40px;
+  text-indent: -20px;
+}
+.hebrew #donatePage .faq p.question:before{
+  content: "ש)";
+}
+.hebrew #donatePage .faq p.answer:before{
+  content: "ת)";
+}
+
+
+#supportersPage{
+  text-align: center;
+}
+#supportersPage .leading-supporters p.tagline:first-child{
+  text-align: center;
+  max-width: 500px;
+  margin: auto;
+}
+#supportersPage .leading-supporters p.tagline:last-child{
+  margin-top: 20px;
+}
+#supportersPage .supporters p.tagline:first-child{
+  margin-bottom: 20px;
+}
+#supportersPage h2{
+    margin-top: 25px;
+}
+#supportersPage h2 span{
+  font-size: 1.3em;
+}
+#supportersPage .donate-link{
+  margin-top:20px;
+}
+#aboutPage {
+  margin: 0;
+  width: 100%;
+}
+#aboutPage .section {
+  margin-bottom: 60px;
+}
+#aboutPage p {
+  font-size: 18px;
+  margin-bottom: 30px;
+}
+#aboutPage p.first {
+  font-style: italic;
+}
+#aboutPage .year {
+  margin-top: 30px;
+  font-size: 18px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#aboutPage .year.first {
+  margin-top: 0;
+}
+#aboutPage .historyItem {
+  font-size: 18px;
+  margin: 14px 0;
+  line-height: 1.2;
+}
+#donatePage pre{
+  all: initial;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  display: block;
+  unicode-bidi: embed;
+  white-space: pre;
+  font-style: italic;
+  font-size: 1.2em;
+}
+.static-text .static-content-note {
+  margin: 60px 0;
+}
+.static-text .static-content-not > p:first-child {
+  font-weight: bold;
+}
+#linkExplorerPage {
+  padding-top: 80px;
+}
+#linkerPage p, #supportersPage p{
+  font-size: 16px;
+  color: #666;
+}
+#linkerPage .linkerOption {
+  margin: 50px 0;
+}
+#teamPage h2{
+  font-size: 16px;
+  letter-spacing: 2px;
+  color: #999;
+  text-align: center;
+  padding-bottom: 40px;
+}
+#teamPage .teamMember, #teamPage .teamBoardMember {
+  font-size: 20px;
+  line-height: 1.2em;
+  display: inline-block;
+  width: 100%;
+  border-bottom: 1px solid  #ddd;
+  margin-bottom: 35px;
+  padding-bottom: 35px;
+  display: flex;
+  display: -webkit-flex
+}
+#teamPage .teamBoardMember{
+  border-bottom: none;
+  margin-bottom: 10px;
+}
+#teamPage .teamMember .teamMemberImage{
+  display: inline-block;
+  /*float: left;*/
+}
+#teamPage .teamMember .teamMemberDetails, #teamPage .teamBoardMember .teamMemberDetails{
+  display: inline-block;
+  white-space:nowrap;
+  max-width: 65%;
+  margin: 0 20px;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#teamPage .teamBoardMember .teamMemberDetails{
+  margin: 0;
+}
+#teamPage .teamMember .teamMemberImage img{
+  border: 1px solid #E6E5E6;
+  width: 170px;
+  height: 170px;
+  vertical-align:middle;
+}
+#teamPage .teamMember .teamName, #teamPage .teamBoardMember .teamName{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  margin-bottom: 20px;
+  font-size: 25px;
+  color: #555;
+}
+#teamPage .teamMember .teamTitle, #teamPage .teamBoardMember .teamTitle{
+
+}
+#teamPage .teamMember .teamEmail{
+  color: #999;
+}
+#teamPage .teamMember .teamBio {
+  margin-top: 20px;
+  white-space: normal;
+}
+#editProfilePage {
+  color: #666;
+}
+#editProfilePage .inner {
+  position: relative; 
+}
+#saveCancelButtons {
+  position: absolute;
+  top: 127px;
+  right: 0px;
+}
+#saveCancelButtons .button {
+  padding: 10px 16px;
+}
+#editProfilePage #profileBox,
+#editProfilePage #contactBox,
+#editProfilePage #sheetsBox,
+#editProfilePage #aboutBox {
+  text-align: left;
+  margin-bottom: 60px;
+  display: flex;
+  display: -webkit-flex;
+  justify-content: space-between;
+  -webkit-justify-content:space-between;
+  flex-flow: row wrap;
+}
+#editProfilePage #sheetsBox{
+  flex-direction: column;
+  text-align: center;
+}
+#editProfilePage #aboutBox div, #editProfilePage #contactBox input{
+  border: 1px solid #bbb;
+}
+
+/*.editProfileContentLeft {
+  width: 48%;
+  min-width: 300px;
+  margin: 0 auto 0 0;
+
+}
+.editProfileContentRight {
+  width: 48%;
+  min-width: 300px;
+  margin: 0 0 0 auto;
+}*/
+
+#editProfilePage h2 {
+  text-align: center;
+}
+#editProfilePage .field label{
+  padding-bottom: 10px;
+  display: block;
+}
+#editProfilePage input {
+  padding: 15px 12px;
+  border: none;
+}
+#editProfilePage #profilePictureBox {
+  /*width: 100%;*/
+}
+#editProfilePage #profilePictureBox img {
+  vertical-align: top;
+  float: left;
+  width: 80px;
+  height: 80px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
+#editProfilePage #aboutBox {
+  /*margin-bottom: 12px;*/
+}
+#editProfilePage #bio {
+  width: 100%;
+  min-height: 100px;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 3px;
+  padding: 10px 14px;
+  font-size: 18px;
+  background-color: white;
+}
+#editProfilePage .field {
+  margin-bottom: 20px;
+  width: 48%;
+  min-width: 300px;
+}
+#editProfilePage .field input {
+  width: 100%;
+  color: #333;
+  background-color: white;
+  box-sizing: border-box;
+}
+#editProfilePage ul {
+  list-style-type: none;
+  padding: 0px;
+  margin: 0px;
+}
+#editProfilePage #jewishEducation li {
+  position: relative;
+  margin: 8px 0;
+}
+#editProfilePage #jewishEducation li:first-child .remove {
+  display: none;
+}
+#editProfilePage #jewishEducation label{
+  display: inline-block;
+}
+#editProfilePage #addEducation {
+  font-size: 12px;
+  font-style: italic;
+  color: #555;
+  margin-left: 24px;
+  margin-top: 4px;
+  cursor: pointer;
+}
+#editProfilePage #addEducation:hover {
+  text-decoration: underline;
+}
+#editProfilePage #jewishEducation .remove {
+  position: absolute;
+  right: 5px;
+  top: 15px;
+  cursor: pointer;
+}
+#editProfilePage #sheetsBox #pinnedSheetsMessage {
+  margin-bottom: 4px;
+  font-style: italic;
+}
+#editProfilePage .sheetSet {
+  margin: 14px 0;
+}
+#editProfilePage #sheetsBox ul {
+  background: white;
+  border-radius: 3px;
+  border: none;
+  margin: 0;
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+}
+#editProfilePage #sheetsBox li {
+  margin: 6px 0;
+}
+#editProfilePage #pinnedSheets ul {
+  min-height: 36px;
+}
+#accountSettingsPage .inner{
+  position: relative;
+}
+#accountSettingsPage .toggleOption {
+  font-size: 14px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.hebrew #accountSettingsPage.static.biReady .toggleOption:first-child{
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+  border-right: 1px solid #999;
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
+}
+.hebrew #accountSettingsPage.static.biReady .toggleOption:last-child{
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+.static .doubleOption .toggleOption {
+  width: 50%;
+}
+.static .tripleOption .toggleOption {
+  width: 33.3%;
+}
+.static .toggleOption {
+  background-color: white;
+  color: #999;
+}
+.static .toggleOption.active {
+  color: #333;
+  background-color: white;
+}
+#personPage h1 {
+  margin-bottom: 40px;
+}
+#personPage h2 {
+  text-align: center;
+  border-bottom: none;
+  margin-bottom: 40px;
+}
+#personPage p {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 20px;
+  line-height: 1.1em;
+}
+#personPage #bio{
+  color: #666;
+}
+#personPage a,
+#peoplePage a,
+#talmudicPeoplePage a{
+  text-decoration: none;
+}
+#peoplePage .authors-row{
+  display: flex;
+  display: -webkit-flex
+}
+#peoplePage .author a, #talmudicPeoplePage .author a, #personPage a{
+  color: #666;
+}
+#peoplePage .author, #talmudicPeoplePage .author{
+  margin-left: 0;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 20px;
+}
+#peoplePage .author{
+  width: 50%;
+  min-width: 320px;
+}
+#peoplePage .authors-row{
+  padding-bottom: 5px;
+}
+#peoplePage .authors-row:first-of-type{
+  padding-top: 10px;
+}
+#talmudicPeoplePage .generations-row{
+  display: flex;
+  display: -webkit-flex
+}
+#talmudicPeoplePage .talmudic-generation{
+  width: 50%;
+  min-width: 320px;
+}
+#talmudicPeoplePage h4{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #ccc;
+  padding-bottom: 10px;
+}
+#talmudicPeoplePage p.author{
+  padding-bottom: 5px;
+}
+#talmudicPeoplePage p.author:first-of-type{
+  padding-top: 10px;
+}
+#personPage #periodNameLine, #personPage #yearLine{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: normal;
+  text-transform: uppercase;
+  color: #aaa;
+  padding-bottom: 15px;
+}
+#personPage #external_links i{
+  padding: 0 5px;
+}
+#personPage #external_links a{
+  padding: 0 5px;
+}
+#personPage div.person_tooltip {
+    position: absolute;
+    text-align: center;
+    padding: 6px;
+    font: 12px sans-serif;
+    background: lightsteelblue;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
+}
+#activityPage h2{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 25px;
+  font-style: italic;
+  color: #aaa;
+  text-align: center;
+  border: none;
+  text-transform: none;
+}
+#activityPage #activityFeed {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #666;
+}
+#activityPage #activityFeed a {
+  color: #333;
+  font-weight: normal;
+}
+#activityPage #activityFeed #moreActivity {
+  display: block;
+  margin-top: 30px;
+  font-size: 15px;
+}
+#activityPage #activityFeed .topline {
+  font-weight: normal;
+}
+#activityPage #activityFeed .text.en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#activityPage #activityFeed .text.he {
+  font-family: "Taamey Frank", "Times New Roman", serif;
+}
+#activityPage #activityList .time {
+  color: #ccc;
+}
+#activityPage .activityFilterSection{
+  text-align: center;
+  margin: 30px 0;
+  padding-bottom: 30px;
+
+}
+#activityPage select{
+  min-width: 165px;
+  background-color: #ffffff;
+  height: 3em;
+  padding: 0 15px;
+  letter-spacing: 1px;
+  border-radius: 3px;
+  border-color: #ccc;
+  font-size: 14px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  /*-webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;*/
+}
+
+
+#iosPage p {
+  margin-bottom: 30px;
+}
+#iosPage a {
+  text-decoration: underline;
+}
+#connectPage {
+  text-align: center;
+}
+#jobs h2.anchorable {
+  padding-top: 50px;
+}
+
+#footer {
+  background-color: white;
+  border-top: 1px solid #F4F4F4;
+  overflow: hidden;
+  padding: 18px 40px;
+  text-align: left;
+}
+#footer .section {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+#footer .header {
+  font-weight: bold;
+  font-size: 15px;
+  margin-bottom: 3px;
+}
+#footer a {
+  display: block;
+}
+#footer.hebrew {
+  direction: rtl;
+  text-align: right;
+}
+#footer.english .he {
+  display: none;
+}
+#footer.english .en {
+  display: inline;
+}
+#footer.hebrew .he {
+  display: inline;
+  font-size: 120%;
+  text-align: right;
+}
+#footer.hebrew .en {
+  display: none;
+}
+#footerInner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+#footer .section {
+  display: inline-block;
+  vertical-align: top;
+  width: 160px;
+}
+#footer.english .section {
+  text-align: left;  
+}
+#footer.hebrew .section {
+  text-align: right;
+}
+#footer .section .header {
+  color: #666;
+  margin-bottom: 12px;
+  font-weight: normal;
+  font-size: 13px;
+}
+#footer .section.last {
+  float: right;
+  text-align: right;
+  width: 210px;
+  border-left: 1px solid #EAEAEA;
+}
+#footer.hebrew .section.last {
+  float: left;
+  text-align: left;
+  border-left: none;
+  border-right: 1px solid #EAEAEA;
+}
+#footer .section a {
+  color: #aaa;
+  font-size: 14px;
+  margin: 2px 0;
+}
+#footer .fa {
+  margin: 0 3px;
+}
+#helpPage .section {
+  margin-bottom: 60px;
+}
+#translationRequestsPage .translationRequest{
+  background-color: inherit;
+  text-align: justify;
+  /*display: block;*/
+  border-bottom: 1px solid #eee;
+  padding: 20px 0 20px 0;
+  margin: 0;
+  display: flex;
+  display: -webkit-flex;
+  justify-content: space-between;
+  -webkit-justify-content:space-between;
+  align-items: center;
+  -webkit-align-items: center;
+}
+#translationRequestsPage .translationRequest > div{
+  all: initial;
+}
+#translationRequestsPage .translationRequest .requestRank,
+#translationRequestsPage .translationRequest .requestText,
+#translationRequestsPage .translationRequest .requestCountBox{
+  display: inline-block;
+  vertical-align: middle;
+}
+#translationRequestsPage .translationRequest span{
+  font-size: 1.3em;
+}
+#translationRequestsPage .translationRequest .requestRank{
+  display: inline-block;
+}
+#translationRequestsPage .translationRequest .requestCountBox{
+  display: inline-block;
+  text-align: right;
+}
+#translationRequestsPage .translationRequest .requestText{
+  display: inline-block;
+  width: 80%
+}
+#translationRequestsPage .translationRequest .requestText > div{
+  display: block;
+}
+.translationRequest .requestRef a {
+  float: none;
+  display: inline;
+  width: 100%;
+  line-height: 5px;
+}
+#translationRequestsPage .translationRequest .requestText .requestCompleter span{
+  font-size: 0.8em;
+}
+#translationRequestsPage .translationRequest .requestFeatured {
+    float: none;
+    cursor: pointer;
+    /*color: #FFCC00;*/
+    font-size: 16px;
+    vertical-align: middle;
+}
+#translationRequestsPage .translationRequest .requestButton {
+    width: 20px;
+    padding: 10px;
+    display: inline;
+    vertical-align: middle;
+}
+#metricsPage .chart {
+  margin-bottom: 80px;
+  border: 1px solid #ddd;
+}
+#metricsPage .chartLabel {
+  text-align: center;
+  display: block;
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#digitizedBySefaria p {
+  margin-bottom: 20px;
+}
+#digitizedBySefaria #texts {
+  margin-top: 40px;
+  padding: 0;
+}
+#digitizedBySefaria .sub {
+  color: #666;
+  font-size: 13px;
+}
+#digitizedBySefaria ul {
+  list-style-type: none
+}
+#digitizedBySefaria li {
+  margin-bottom: 12px;
+}
+#digitizedBySefaria li a {
+  font-size: 18px;
+}
+.static.legal iframe {
+  width: 100%;
+  height: 600px;
+  border: 1px solid #aaa;
+}
+#legalTabs a {
+  padding: 4px 8px;
+  margin-right: 4px;
+  background-color: #eee;
+  border: 1px solid #aaa;
+  border-bottom: none;
+  font-size: 15px;
+  display: inline-block;
+}
+#legalTabs a.current {
+  background-color: white;
+}
+
+#groupsPage {
+    margin: 70px auto;
+    text-align: center;
+}
+
+#groupsPage #groups {
+    margin-top: 40px;
+}
+
+#groupsPage .group {
+    width: 220px;
+    height: 220px;
+    margin: 10px;
+    border: 1px solid #ddd;
+    display: inline-block;
+    position: relative;
+    text-align: center;
+    line-height: 200px;
+    overflow: hidden;
+}
+
+#groupsPage .group:hover {
+    border: 1px solid #08c;
+}
+
+
+#groupsPage .groupName {
+    position: absolute;
+    width: 220px;
+    bottom: 10px;
+    font-size: 14px;
+    line-height: 14px;
+    color: #555;
+    text-align: center;
+    display: block;
+}
+
+#groupsPage .groupSettings {
+    display: none;
+    cursor: pointer;
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    height: 20px;
+    line-height: 20px;
+    font-size: 18px;
+    color: black;
+}
+
+#groupsPage .group:hover .groupSettings {
+    display: block;
+}
+
+#groupsPage .groupSettings:hover {
+    color: #08c;
+}
+
+#groupsPage .group img.groupCover {
+}
+
+#groupsPage .group img.groupHeader {
+    display: none;
+}
+
+#groupsPage .group img {
+    width: 92%;
+}
+
+#editGroupModal {
+    max-height: 70%;
+    min-width: 400px;
+    max-width: 100%;
+    overflow-y: scroll;
+    text-align: left;
+}
+
+#editGroupModal h1 {
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+#editGroupModal .imageBox {
+    margin-bottom: 30px;
+}
+
+#editGroupModal .left {
+    display: block;
+}
+
+#editGroupModal input {
+    width: 92%;
+}
+
+#editGroupModal img {
+    vertical-align: top;
+    max-width: 600px;
+}
+
+#editGroupModal #saveGroup {
+    display: none;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+}

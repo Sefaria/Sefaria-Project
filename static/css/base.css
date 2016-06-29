@@ -537,6 +537,7 @@ body.hebrew #home #homeConnect .followButton .fa {
 
 #aboutPage {
   margin: 70px auto;
+  width: 600px;
 }
 
 body.hebrew #aboutPage .span5 {
@@ -551,7 +552,7 @@ body.hebrew #aboutPage .span5 {
 	float: left;
 }
 
-.registrationContent {
+/*.registrationContent {
 	width: 320px;
 	margin: 100px auto;
 }
@@ -604,7 +605,7 @@ body.hebrew #aboutPage .span5 {
 #message {
 	text-align: center;	
 	margin-top: 100px;
-}
+}*/
 
 #textsPage {
 	max-width: 100%;
@@ -3383,7 +3384,6 @@ text-align: left;width: 250px;display: inline-block;}
 
 body.hebrew #footer {
 	direction: rtl;
-
 }
 body.english #footer .he {
 	display: none;
