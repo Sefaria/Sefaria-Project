@@ -250,16 +250,14 @@ var ReaderApp = React.createClass({
     if (!Sefaria.site) {
       return false;
     }
-
-    var headerPanel = this.state.header.menuOpen || !this.state.panels.length && this.state.header.mode === "Header";
+    /*
+    var headerPanel = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
     var panels = headerPanel ? [this.state.header] : this.state.panels;
-
-    // Have all refs been loaded?
-    if (!panels.every(function (panel) {
-      return !panel.refs.length || Sefaria.ref(panel.refs.slice(-1)[0]);
-    })) {
+     // Have all refs been loaded?
+    if (!panels.every(panel => (!panel.refs.length) || Sefaria.ref(panel.refs.slice(-1)[0]))) {
       return false;
     }
+    */
     return true;
   },
   trackPageview: function trackPageview() {
@@ -275,7 +273,7 @@ var ReaderApp = React.createClass({
       if (!panel.refs.length || panel.mode === "Connections") {
         return "";
       }
-      var data = Sefaria.ref(panel.refs.slice(-1)[0]);
+      var data = Sefaria.index(Sefaria.parseRef(panel.refs.slice(-1)[0]).book);
       return data.categories[0] === "Commentary" ? data.categories[1] + " Commentary" : data.categories[0];
     }).filter(function (r) {
       return !!r;
@@ -543,7 +541,6 @@ var ReaderApp = React.createClass({
     }.bind(this), intentDelay, this._refState());
   },
   updateHistoryState: function updateHistoryState(replace) {
-    debugger;
     if (!this.shouldHistoryUpdate()) {
       return;
     }
