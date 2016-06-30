@@ -4,6 +4,8 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 if (typeof require !== 'undefined') {
   var INBROWSER = false,
       React = require('react'),
@@ -269,13 +271,20 @@ var ReaderApp = React.createClass({
     var panels = headerPanel ? [this.state.header] : this.state.panels;
 
     // Get top level categories
-    var primaryCats;
-    primaryCats = panels.map(function (panel) {
-      return panel.refs.length ? Sefaria.ref(panel.refs.slice(-1)[0]).categories[0] : "";
+    var primaryCats = panels.map(function (panel) {
+      return panel.refs.length && panel.mode !== "Connections" ? Sefaria.ref(panel.refs.slice(-1)[0]).categories[0] : "";
     }).filter(function (r) {
       return !!r;
-    }).join(", ");
-    Sefaria.site.track.primary_category(primaryCats);
+    }).join(" | ");
+    Sefaria.site.track.primaryCategory(primaryCats);
+
+    // Get panel content languages (use same criterion as top level categories)
+    var contentLanguages = panels.map(function (panel) {
+      return panel.refs.length && panel.mode !== "Connections" ? panel.settings.language : "";
+    }).filter(function (r) {
+      return !!r;
+    }).join(" | ");
+    Sefaria.site.track.contentLanguage(contentLanguages);
 
     var url = window.location.pathname + window.location.search;
     Sefaria.site.track.pageview(url);
@@ -507,23 +516,46 @@ var ReaderApp = React.createClass({
 
     return hist;
   },
+  // These two methods to check scroll intent have similar implementations on the panel level.  Refactor?
+  _refState: function _refState() {
+    var _ref;
+
+    // Return a single flat list of all the refs across all panels
+    var panels = this.props.multiPanel ? this.state.panels : [this.state.header];
+    return (_ref = []).concat.apply(_ref, _toConsumableArray(panels.map(function (p) {
+      return p.refs || [];
+    })));
+  },
+  checkScrollIntentAndTrack: function checkScrollIntentAndTrack() {
+    // Record current state of panel refs, and check if it has changed after some delay.  If it remains the same, track analytics.
+    var intentDelay = 3000; // Number of milliseconds to demonstrate intent
+
+    window.setTimeout(function (initialRefs) {
+      if (initialRefs.compare(this._refState())) {
+        this.trackPageview();
+      }
+    }.bind(this), intentDelay, this._refState());
+  },
   updateHistoryState: function updateHistoryState(replace) {
     if (!this.shouldHistoryUpdate()) {
       return;
     }
     var hist = this.makeHistoryState();
     if (replace) {
-      //console.log(hist);
-
       history.replaceState(hist.state, hist.title, hist.url);
+
+      if (this.state.initialAnalyticsTracked) {
+        this.checkScrollIntentAndTrack();
+      }
+      //console.log(hist);
     } else {
         if (window.location.pathname + window.location.search == hist.url) {
           return;
         } // Never push history with the same URL
         history.pushState(hist.state, hist.title, hist.url);
 
-        //console.log(hist);
         this.trackPageview();
+        //console.log(hist);
       }
 
     $("title").html(hist.title);
@@ -1011,7 +1043,8 @@ var ReaderApp = React.createClass({
       registerAvailableFilters: this.updateAvailableFiltersInHeader,
       setUnreadNotificationsCount: this.setUnreadNotificationsCount,
       headerMode: this.props.headerMode,
-      panelsOpen: panelStates.length }) : null;
+      panelsOpen: panelStates.length,
+      analyticsInitialized: this.state.initialAnalyticsTracked }) : null;
 
     var panels = [];
     for (var i = 0; i < panelStates.length; i++) {
@@ -1069,7 +1102,9 @@ var ReaderApp = React.createClass({
           closePanel: closePanel,
           panelsOpen: panelStates.length,
           masterPanelLanguage: panel.mode === "Connections" ? panelStates[i - 1].settings.language : panel.settings.language,
-          layoutWidth: width })
+          layoutWidth: width,
+          analyticsInitialized: this.state.initialAnalyticsTracked
+        })
       ));
     }
     var boxClasses = classNames({ wrapBoxScroll: wrapBoxScroll });
@@ -1115,7 +1150,8 @@ var Header = React.createClass({
     registerAvailableFilters: React.PropTypes.func,
     setUnreadNotificationsCount: React.PropTypes.func,
     headerMesssage: React.PropTypes.string,
-    panelsOpen: React.PropTypes.number
+    panelsOpen: React.PropTypes.number,
+    analyticsInitialized: React.PropTypes.bool
   },
   getInitialState: function getInitialState() {
     return this.props.initialState;
@@ -1295,7 +1331,8 @@ var Header = React.createClass({
       updateSearchFilter: this.props.updateSearchFilter,
       registerAvailableFilters: this.props.registerAvailableFilters,
       setUnreadNotificationsCount: this.props.setUnreadNotificationsCount,
-      hideNavHeader: true }) : null;
+      hideNavHeader: true,
+      analyticsInitialized: this.props.analyticsInitialized }) : null;
 
     var notificationCount = Sefaria.notificationCount || 0;
     var notifcationsClasses = classNames({ notifications: 1, unread: notificationCount > 0 });
@@ -1441,7 +1478,8 @@ var ReaderPanel = React.createClass({
     panelsOpen: React.PropTypes.number,
     layoutWidth: React.PropTypes.number,
     setTextListHightlight: React.PropTypes.func,
-    setSelectedWords: React.PropTypes.func
+    setSelectedWords: React.PropTypes.func,
+    analyticsInitialized: React.PropTypes.bool
   },
   getInitialState: function getInitialState() {
     // When this component is managed by a parent, all it takes is initialState
@@ -1514,7 +1552,7 @@ var ReaderPanel = React.createClass({
   },
   componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
     this.setHeadroom();
-    if (!this.state.initialAnalyticsTracked || !prevState.refs.compare(this.state.refs)) {
+    if (this.props.analyticsInitialized && (!this.state.initialAnalyticsTracked || !prevState.refs.compare(this.state.refs))) {
       this.trackPanelOpens();
     }
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
@@ -1733,7 +1771,7 @@ var ReaderPanel = React.createClass({
     };
     if (!Sefaria._uid && mode in loginRequired) {
       mode = "Login";
-    };
+    }
     var state = { connectionsMode: mode };
     if (mode === "Connections") {
       state["filter"] = [];
@@ -1759,20 +1797,32 @@ var ReaderPanel = React.createClass({
       mySheetSort: sort
     });
   },
+  checkScrollIntentAndTrack: function checkScrollIntentAndTrack(ref) {
+    // Record current state of panel refs, and check if it has changed after some delay.  If it remains the same, track analytics.
+    var intentDelay = 3000; // Number of milliseconds to demonstrate intent
+
+    window.setTimeout(function (initialRefs) {
+      if (initialRefs.compare(this.state.refs)) {
+        Sefaria.site.track.open(ref);
+      }
+    }.bind(this), intentDelay, this.state.refs.slice());
+  },
   trackPanelOpens: function trackPanelOpens() {
-    debugger;
     if (this.state.mode === "Connections") {
       return;
     }
     this.tracked = this.tracked || [];
     // Do a little dance to avoid tracking something we've already just tracked
     // e.g. when refs goes from ["Genesis 5"] to ["Genesis 4", "Genesis 5"] don't track 5 again
+    //todo: now that we're tracking intent, do we want to relax the "don't track returns" logic here?
     for (var i = 0; i < this.state.refs.length; i++) {
       if (Sefaria.util.inArray(this.state.refs[i], this.tracked) == -1) {
         if (Sefaria.site) {
-          Sefaria.site.track.open(this.state.refs[i]);
           if (!this.state.initialAnalyticsTracked) {
+            Sefaria.site.track.open(this.state.refs[i]);
             this.setState({ initialAnalyticsTracked: true });
+          } else {
+            this.checkScrollIntentAndTrack(this.state.refs[i]);
           }
         }
         this.tracked.push(this.state.refs[i]);
@@ -1828,7 +1878,7 @@ var ReaderPanel = React.createClass({
     var items = [];
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       items.push(React.createElement(TextColumn, {
-        srefs: this.state.refs,
+        srefs: this.state.refs.slice(),
         version: this.state.version,
         versionLanguage: this.state.versionLanguage,
         highlightedRefs: this.state.highlightedRefs,
@@ -1856,7 +1906,7 @@ var ReaderPanel = React.createClass({
       var data = this.currentData();
       var canEditText = data && langMode === "hebrew" && data.heVersionStatus !== "locked" || langMode === "english" && data.versionStatus !== "locked" || Sefaria.is_moderator && langMode !== "bilingual";
       items.push(React.createElement(ConnectionsPanel, {
-        srefs: this.state.mode === "Connections" ? this.state.refs : this.state.highlightedRefs,
+        srefs: this.state.mode === "Connections" ? this.state.refs.slice() : this.state.highlightedRefs.slice(),
         filter: this.state.filter || [],
         mode: this.state.connectionsMode || "Connections",
         recentFilters: this.state.recentFilters,
@@ -5018,7 +5068,7 @@ var TextColumn = React.createClass({
   },
   adjustTextListHighlight: function adjustTextListHighlight() {
     // When scrolling while the TextList is open, update which segment should be highlighted.
-    if (this.props.multipanel && this.props.layoutWidth == 100) {
+    if (this.props.multiPanel && this.props.layoutWidth == 100) {
       return; // Hacky - don't move around highlighted segment when scrolling a single panel,
     }
     // but we do want to keep the highlightedRefs value in the panel

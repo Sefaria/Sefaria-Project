@@ -2189,8 +2189,11 @@ Sefaria.site = {
         var text = Sefaria.parseRef(ref).book;
         Sefaria.site.track.event("Reader", "Open Text", text);
     },
-    primary_category(category_name) {
+    primaryCategory(category_name) {
         ga('set', 'contentGroup1', category_name);
+    },
+    contentLanguage(language) {
+        ga('set', 'contentGroup5', language);
     },
     ui: function(label) {
         // Track some action in the Reader UI

@@ -256,12 +256,17 @@ var ReaderApp = React.createClass({
       var panels = headerPanel ? [this.state.header] : this.state.panels;
 
       // Get top level categories
-      var primaryCats;
-      primaryCats = panels.map(panel => (panel.refs.length)? Sefaria.ref(panel.refs.slice(-1)[0]).categories[0]: "")
+      var primaryCats = panels.map(panel => (panel.refs.length && panel.mode !== "Connections")? Sefaria.ref(panel.refs.slice(-1)[0]).categories[0]: "")
                           .filter(r => !!r)
                           .join(" | ");
-      Sefaria.site.track.primary_category(primaryCats);
+      Sefaria.site.track.primaryCategory(primaryCats);
 
+      // Get panel content languages (use same criterion as top level categories)
+      var contentLanguages = panels.map(panel => (panel.refs.length && panel.mode !== "Connections")? panel.settings.language :"")
+                          .filter(r => !!r)
+                          .join(" | ");    
+      Sefaria.site.track.contentLanguage(contentLanguages);
+    
       var url = window.location.pathname + window.location.search;
       Sefaria.site.track.pageview(url);
 
@@ -286,7 +291,7 @@ var ReaderApp = React.createClass({
       var nextPanels = [this.state.header];
     } else {
       var prevPanels = history.state.panels || [];
-      var nextPanels = this.state.panels; 
+      var nextPanels = this.state.panels;
     }
 
     for (var i = 0; i < prevPanels.length; i++) {
@@ -506,6 +511,23 @@ var ReaderApp = React.createClass({
 
     return hist;
   },
+  // These two methods to check scroll intent have similar implementations on the panel level.  Refactor?
+  _refState: function() {
+    // Return a single flat list of all the refs across all panels
+    var panels = (this.props.multiPanel)? this.state.panels : [this.state.header];
+    return [].concat(...panels.map(p => p.refs || []))
+  },
+  checkScrollIntentAndTrack: function() {
+    // Record current state of panel refs, and check if it has changed after some delay.  If it remains the same, track analytics.
+    var intentDelay = 3000;  // Number of milliseconds to demonstrate intent
+    console.log("Setting scroll intent check");
+    window.setTimeout(function(initialRefs){
+      console.log("Checking scroll intent");
+      if (initialRefs.compare(this._refState())) {
+        this.trackPageview();
+      }
+    }.bind(this), intentDelay, this._refState());
+  },
   updateHistoryState: function(replace) {
     if (!this.shouldHistoryUpdate()) { 
       return; 
@@ -514,12 +536,13 @@ var ReaderApp = React.createClass({
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
       console.log("Replace History - " + hist.url);
+      if (this.state.initialAnalyticsTracked) { this.checkScrollIntentAndTrack(); }
       //console.log(hist);
     } else {
       if ((window.location.pathname + window.location.search) == hist.url) { return; } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
-      this.trackPageview();
       console.log("Push History - " + hist.url);
+      this.trackPageview();
       //console.log(hist);
     }
 
@@ -1667,7 +1690,7 @@ var ReaderPanel = React.createClass({
     };
     if (!Sefaria._uid && mode in loginRequired) {
       mode = "Login";
-    };
+    }
     var state = {connectionsMode: mode};
     if (mode === "Connections") { 
       state["filter"] = [];
@@ -1693,16 +1716,32 @@ var ReaderPanel = React.createClass({
       mySheetSort: sort,
     });
   },
+  checkScrollIntentAndTrack: function(ref) {
+    // Record current state of panel refs, and check if it has changed after some delay.  If it remains the same, track analytics.
+    var intentDelay = 3000;  // Number of milliseconds to demonstrate intent
+    console.log("Setting panel scroll intent check");
+    window.setTimeout(function(initialRefs){
+      console.log("Checking panel scroll intent");
+      if (initialRefs.compare(this.state.refs)) {
+          Sefaria.site.track.open(ref);
+      }
+    }.bind(this), intentDelay, this.state.refs.slice());
+  },
   trackPanelOpens: function() {
     if (this.state.mode === "Connections") { return; }
     this.tracked = this.tracked || [];
     // Do a little dance to avoid tracking something we've already just tracked
     // e.g. when refs goes from ["Genesis 5"] to ["Genesis 4", "Genesis 5"] don't track 5 again
+    //todo: now that we're tracking intent, do we want to relax the "don't track returns" logic here?
     for (var i = 0; i < this.state.refs.length; i++) {
       if (Sefaria.util.inArray(this.state.refs[i], this.tracked) == -1) {
         if (Sefaria.site) {
-          Sefaria.site.track.open(this.state.refs[i]);
-          if (!this.state.initialAnalyticsTracked) { this.setState({initialAnalyticsTracked: true}); }
+          if (!this.state.initialAnalyticsTracked) {
+            Sefaria.site.track.open(this.state.refs[i]);
+            this.setState({initialAnalyticsTracked: true});
+          } else {
+            this.checkScrollIntentAndTrack(this.state.refs[i]);
+          }
         }
         this.tracked.push(this.state.refs[i]);
       }
@@ -4022,7 +4061,7 @@ var TextColumn = React.createClass({
   adjustTextListHighlight: function() {
     console.log("atlh");
     // When scrolling while the TextList is open, update which segment should be highlighted.
-    if (this.props.multipanel && this.props.layoutWidth == 100) { 
+    if (this.props.multiPanel && this.props.layoutWidth == 100) {
       return; // Hacky - don't move around highlighted segment when scrolling a single panel,
     }
     // but we do want to keep the highlightedRefs value in the panel 
