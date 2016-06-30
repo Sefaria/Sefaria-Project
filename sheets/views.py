@@ -798,6 +798,7 @@ def sheet_to_html_string(sheet):
 	Create the html string of sheet with sheet_id.
 	"""
 	sheet["sources"] = annotate_user_links(sheet["sources"])
+	sheet = resolve_language_of_sources(sheet)
 
 	try:
 		owner = User.objects.get(id=sheet["owner"])
@@ -827,6 +828,14 @@ def sheet_to_html_string(sheet):
 
 	return render_to_string('gdocs_sheet.html', context).encode('utf-8')
 
+
+
+def resolve_language_of_sources(sheet):
+	for source in sheet['sources']:
+		if not source.setdefault('options', {}).get('sourceLanguage'):
+			source['options']['sourceLanguage'] = sheet['options'].get(
+				'language', 'bilingual')
+	return sheet
 
 @gauth_required(scope='https://www.googleapis.com/auth/drive.file', ajax=True)
 def export_to_drive(request, credential, sheet_id):

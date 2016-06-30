@@ -97,6 +97,9 @@
 				{% if "text" in source %}
 					<li class="source sheetItem {{ source.options.sourceLayout }} {{ source.options.sourceLanguage }} {{ source.options.sourceLangLayout }} {{ source.options.indented }}">
 						<div class="customTitle">{{ source.customTitle }}</div>
+
+						<!-- Do not render if language is english -->
+						{% if source.options.sourceLanguage == "bilingual" or source.options.sourceLanguage == "hebrew" %}
 						<div class="he">
 							<div class="title">
 								<span class="he">{{ source.heRef|ref_link }}</span>
@@ -117,6 +120,10 @@
 							{% endif %}
 
 						</div>
+						{% endif %}
+
+						<!-- Do not render if language is hebrew -->
+						{% if source.options.sourceLanguage == "bilingual" or source.options.sourceLanguage == "english" %}
 						<div class="en">
 							<div class="title">
 								<span class="en">{{ source.ref|ref_link }}</span>
@@ -137,6 +144,7 @@
 							{% endif %}
 
 						</div>
+						{% endif %}
 						<div class="clear"></div>
 
 					</li>
