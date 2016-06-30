@@ -212,6 +212,7 @@
   background-color: #212E50;
   background-image: url("/static/img/landing.png");
   background-size: cover;
+  background-position: center;
   height: 560px;
   padding: 157px 0;
   box-sizing: border-box;
@@ -286,10 +287,10 @@
 #homePage .section .button .fa {
   color: #ccc;
   font-size: 25px;
-  margin: 0 3px;
+  /*margin: 0 3px;
   position: absolute;
   left: 11px;
-  top: 10px;
+  top: 10px;*/
 }
 #homePage .section.center {
   text-align: center;
@@ -454,6 +455,32 @@
   font-size: 20px;
   display: none;
 }
+#homePage #homeMobile .button{
+  display: flex;
+  display: -webkit-flex
+  flex-direction: row;
+  -webkit-flex-direction: row;
+  padding: 12px 14px;
+  align-items: center;
+  -webkit-align-items: center;
+  -webkit-align-content: center; /* Safari */
+  align-content:         center;
+  -webkit-justify-content: space-between; /* Safari */
+  justify-content:         space-between;
+}
+#homePage #homeMobile a .button i:before
+{
+  text-decoration: none;
+  display: inline-block; /*so this does not inherit the underline from the parent a*/
+}
+#homePage #homeMobile .button .en {
+  margin-left: 15px;
+  margin-right: auto;
+}
+#homePage #homeMobile .button .he{
+  margin-right: 15px;
+  margin-left: auto;
+}
 #profilePage {
 }
 #profileTop {
@@ -524,6 +551,7 @@
 #activityList{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #666;
+  padding: 0;
 }
 #profileActivity a {
   color: #333;
@@ -895,28 +923,49 @@
 }
 #editProfilePage #profileBox,
 #editProfilePage #contactBox,
-#editProfilePage #sheetsBox {
+#editProfilePage #sheetsBox,
+#editProfilePage #aboutBox {
   text-align: left;
   margin-bottom: 60px;
+  display: flex;
+  display: -webkit-flex;
+  justify-content: space-between;
+  -webkit-justify-content:space-between;
+  flex-flow: row wrap;
 }
-.editProfileContentLeft {
-  float: left;
-  width: 310px;
-  margin-right: 0px;
+#editProfilePage #sheetsBox{
+  flex-direction: column;
+  text-align: center;
+}
+#editProfilePage #aboutBox div, #editProfilePage #contactBox input{
+  border: 1px solid #bbb;
+}
+
+/*.editProfileContentLeft {
+  width: 48%;
+  min-width: 300px;
+  margin: 0 auto 0 0;
+
 }
 .editProfileContentRight {
-  width: 310px;
-  float: right;
-}
+  width: 48%;
+  min-width: 300px;
+  margin: 0 0 0 auto;
+}*/
+
 #editProfilePage h2 {
   text-align: center;
+}
+#editProfilePage .field label{
+  padding-bottom: 10px;
+  display: block;
 }
 #editProfilePage input {
   padding: 15px 12px;
   border: none;
 }
 #editProfilePage #profilePictureBox {
-  width: 100%;
+  /*width: 100%;*/
 }
 #editProfilePage #profilePictureBox img {
   vertical-align: top;
@@ -927,7 +976,7 @@
   margin-bottom: 8px;
 }
 #editProfilePage #aboutBox {
-  margin-bottom: 12px;
+  /*margin-bottom: 12px;*/
 }
 #editProfilePage #bio {
   width: 100%;
@@ -941,12 +990,14 @@
 }
 #editProfilePage .field {
   margin-bottom: 20px;
+  width: 48%;
+  min-width: 300px;
 }
 #editProfilePage .field input {
   width: 100%;
   color: #333;
   background-color: white;
-  /*box-sizing: border-box;*/
+  box-sizing: border-box;
 }
 #editProfilePage ul {
   list-style-type: none;
@@ -976,8 +1027,8 @@
 }
 #editProfilePage #jewishEducation .remove {
   position: absolute;
-  right: 6px;
-  top: 7px;
+  right: 5px;
+  top: 15px;
   cursor: pointer;
 }
 #editProfilePage #sheetsBox #pinnedSheetsMessage {
@@ -1053,7 +1104,8 @@
   color: #666;
 }
 #personPage a,
-#peoplePage a {
+#peoplePage a,
+#talmudicPeoplePage a{
   text-decoration: none;
 }
 #peoplePage .authors-row{
@@ -1145,10 +1197,10 @@
 #activityPage #activityFeed .topline {
   font-weight: normal;
 }
-#activityPage #activityFeed .text.en {
+#activityPage #activityFeed .text.ver-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
-#activityPage #activityFeed .text.he {
+#activityPage #activityFeed .text.ver-he {
   font-family: "Taamey Frank", "Times New Roman", serif;
 }
 #activityPage #activityList .time {
@@ -1165,8 +1217,20 @@
   background-color: #ffffff;
   height: 3em;
   padding: 0 15px;
-  letter-spacing: 1px
+  letter-spacing: 1px;
+  border-radius: 3px;
+  border-color: #ccc;
+  font-size: 14px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  /*-webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;*/
 }
+
+
 #iosPage p {
   margin-bottom: 30px;
 }
@@ -1269,9 +1333,11 @@
   padding: 20px 0 20px 0;
   margin: 0;
   display: flex;
-  display: -webkit-flex
+  display: -webkit-flex;
   justify-content: space-between;
   -webkit-justify-content:space-between;
+  align-items: center;
+  -webkit-align-items: center;
 }
 #translationRequestsPage .translationRequest > div{
   all: initial;
@@ -1473,4 +1539,100 @@
     position: absolute;
     top: 5px;
     left: 5px;
+}
+
+#visualGardenPage .control-results-containe{
+  display: flex;
+  display: -webkit-flex;
+  align-items: flex-start;
+  -webkit-align-items: flex-start;
+}
+#visualGardenPage #results-container .he {
+  font-family: 'Taamey Frank', 'Times New Roman', serif;
+}
+#visualGardenPage .en {
+  font-family: adobe-garamond-pro, Georgia, serif;
+}
+#visualGardenPage h1 {
+  font-size: 36px;
+  border: none;
+}
+/* Controls need LTR to present right, hebrew 'reset' block wants RTL on top charts, but not on filter charts */
+#visualGardenPage #controls {
+  width: 320px;
+  float: left;
+  direction: ltr;
+}
+body.hebrew #visualGardenPage .reset {
+  direction: rtl;
+  float: right;
+}
+body.hebrew #visualGardenPage .filter-title .reset {
+  float: none;
+  direction: ltr;
+}
+/* ^^ */
+
+#visualGardenPage #sort-label {
+  display: inline-block;
+  vertical-align: top;
+}
+
+#visualGardenPage #results .result {
+  margin: 10px 0;
+}
+#visualGardenPage #results .result-ref {
+  font-weight: bold;
+}
+#visualGardenPage #results .result-byline {
+  font-size: .8em;
+}
+#visualGardenPage #results .result-text {
+  margin: 5px 10px 0;
+}
+#visualGardenPage #sort-container,
+#visualGardenPage #results #data-count {
+  text-align: center;
+  float: none;
+  padding: 5px 0;
+}
+
+#visualGardenPage .filter-title {
+  margin-left: 10px;
+}
+
+#visualGardenPage .tags-list.dc-chart g.row text {
+  fill: black;
+}
+
+#visualGardenPage .tags-list.dc-chart .axis path,
+#visualGardenPage .tags-list.dc-chart .axis line {
+  stroke: none
+}
+
+#visualGardenPage #results-table .dc-table-column ._0 {
+  width: 220px;
+}
+#visualGardenPage #results-table .dc-table-column._1,
+#visualGardenPage #results-table .dc-table-column._2,
+#visualGardenPage #results-table .dc-table-column._3 {
+  width: 170px;
+}
+
+#visualGardenPage #results-table .dc-table-column._4 {
+  width: 30px;
+}
+
+#visualGardenPage #map-chart {
+    margin-left: 10px;
+    margin-bottom: 25px;
+}
+
+#visualGardenPage #map-chart path {
+  stroke-width: 1;
+  stroke: black;
+}
+#visualGardenPage #map-chart .selected path {
+  stroke-width: 1;
+  stroke: white;
 }
