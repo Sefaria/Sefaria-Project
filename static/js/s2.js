@@ -1774,7 +1774,7 @@ var ReaderPanel = React.createClass({
     }
     var state = { connectionsMode: mode };
     if (mode === "Connections") {
-      state["filter"] = [];
+      this.setFilter();
     }
     this.conditionalSetState(state);
   },
