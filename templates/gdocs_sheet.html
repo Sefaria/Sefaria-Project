@@ -90,7 +90,69 @@
 		{% endif %} -->
 
 		<ol id="sources">
-			{% include "sheet.html" with sources=sheet.sources %}
+			{% with "sheet.html" as sheet_template %}
+			{% autoescape off %}
+			{% for source in sheet.sources %}
+				{% if "text" in source %}
+					<li class="source sheetItem {{ source.options.sourceLayout }} {{ source.options.sourceLanguage }} {{ source.options.sourceLangLayout }} {{ source.options.indented }}">
+						<div class="customTitle">{{ source.customTitle }}</div>
+						<div class="he">
+							<div class="title">
+								<span class="he">{{ source.heRef|ref_link }}</span>
+							</div>
+							<div class="text">
+								<div class="he">{{ source.text.he }}</div>
+							</div>
+						</div>
+						<div class="en">
+							<div class="title">
+								<span class="en">{{ source.ref|ref_link }}</span>
+							</div>
+							<div class="text">
+								<div class="en">{{ source.text.en }}</div>
+							</div>
+						</div>
+						<div class="clear"></div>
+
+					</li>
+				{% elif "outsideBiText" in source %}
+					<li class="outsideBiWrapper">
+						<div class="outsideBi sheetItem">
+							<div class="text">
+								<div class="he">{{ source.outsideBiText.he }}</div>
+								<div class="en">{{ source.outsideBiText.en }}</div>
+								<div class="clear"></div>
+							</div>
+						</div>
+					</li>
+				{% elif "comment" in source %}
+					<div class="commentWrapper sheetItem">
+						<div class="comment">
+							{{ source.comment }}
+						</div>
+					</div>
+
+				{% elif "outsideText" in source %}
+					<li class="outsideWrapper sheetItem">
+						<div class="outside">
+							{{ source.outsideText }}
+						</div>
+					</li>
+
+
+				{% elif "media" in source %}
+					<li class="mediaWrapper sheetItem">
+						<div class="outside">
+							Loading Media...
+						</div>
+					</li>
+
+
+				{% endif %}
+
+			{% endfor %}
+			{% endautoescape %}
+			{% endwith %}
 		</ol>
 
 		<!-- <div id="printFooter">
