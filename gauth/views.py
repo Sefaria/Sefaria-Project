@@ -28,11 +28,14 @@ def index(request):
     FLOW = flow_from_clientsecrets(
         CLIENT_SECRETS,
         scope=request.session.get('gauth_scope', ''),
-        # approval_prompt='force',
         redirect_uri=request.build_absolute_uri(reverse('gauth_callback')))
 
+    FLOW.params['access_type'] = 'offline'
+    FLOW.params['approval_prompt'] = 'force'  # Properly gets refresh token
+    FLOW.params['include_granted_scopes'] = 'true'  # incremental authorization
     FLOW.params['state'] = xsrfutil.generate_token(settings.SECRET_KEY,
                                                    request.user)
+
     authorize_url = FLOW.step1_get_authorize_url()
     flow_storage = Storage(FlowModel, 'id', request.user, 'flow')
     flow_storage.put(FLOW)
