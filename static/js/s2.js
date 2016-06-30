@@ -272,7 +272,11 @@ var ReaderApp = React.createClass({
 
     // Get top level categories
     var primaryCats = panels.map(function (panel) {
-      return panel.refs.length && panel.mode !== "Connections" ? Sefaria.ref(panel.refs.slice(-1)[0]).categories[0] : "";
+      if (!panel.refs.length || panel.mode === "Connections") {
+        return "";
+      }
+      var data = Sefaria.ref(panel.refs.slice(-1)[0]);
+      return data.categories[0] === "Commentary" ? data.categories[1] + " Commentary" : data.categories[0];
     }).filter(function (r) {
       return !!r;
     }).join(" | ");

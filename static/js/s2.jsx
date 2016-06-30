@@ -256,7 +256,11 @@ var ReaderApp = React.createClass({
       var panels = headerPanel ? [this.state.header] : this.state.panels;
 
       // Get top level categories
-      var primaryCats = panels.map(panel => (panel.refs.length && panel.mode !== "Connections")? Sefaria.ref(panel.refs.slice(-1)[0]).categories[0]: "")
+      var primaryCats = panels.map(function(panel) {
+                            if (!panel.refs.length || panel.mode === "Connections") { return ""; }
+                            var data = Sefaria.ref(panel.refs.slice(-1)[0]);
+                            return (data.categories[0] === "Commentary")? data.categories[1] + " Commentary": data.categories[0];
+                          })
                           .filter(r => !!r)
                           .join(" | ");
       Sefaria.site.track.primaryCategory(primaryCats);
