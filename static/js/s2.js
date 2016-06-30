@@ -305,12 +305,14 @@ var ReaderApp = React.createClass({
       return true;
     }
 
+    var prevPanels, nextPanels;
     if (this.props.multiPanel) {
-      var prevPanels = [history.state.header];
-      var nextPanels = [this.state.header];
+      var headerPanel = this.state.header.menuOpen || !this.state.panels.length && this.state.header.mode === "Header";
+      prevPanels = headerPanel ? [history.state.header] : history.state.panels;
+      nextPanels = headerPanel ? [this.state.header] : this.state.panels;
     } else {
-      var prevPanels = history.state.panels || [];
-      var nextPanels = this.state.panels;
+      prevPanels = [history.state.header];
+      nextPanels = [this.state.header];
     }
 
     for (var i = 0; i < prevPanels.length; i++) {
@@ -541,6 +543,7 @@ var ReaderApp = React.createClass({
     }.bind(this), intentDelay, this._refState());
   },
   updateHistoryState: function updateHistoryState(replace) {
+    debugger;
     if (!this.shouldHistoryUpdate()) {
       return;
     }
