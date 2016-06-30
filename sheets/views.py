@@ -30,6 +30,7 @@ from sefaria.sheets import *
 from sefaria.model.user_profile import *
 from sefaria.model.group import Group, GroupSet
 from sefaria.system.exceptions import InputError
+from sefaria.utils.util import strip_tags
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
 # noinspection PyUnresolvedReferences
@@ -841,7 +842,7 @@ def export_to_drive(request, credential, sheet_id):
 		return jsonResponse({'error': {'message': sheet["error"]}})
 
 	file_metadata = {
-		'name': sheet['title'].strip(),
+		'name': strip_tags(sheet['title'].strip()),
 		'mimeType': 'application/vnd.google-apps.document'
 	}
 
