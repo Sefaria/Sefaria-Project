@@ -93,6 +93,7 @@
 			{% with "sheet.html" as sheet_template %}
 			{% autoescape off %}
 			{% for source in sheet.sources %}
+
 				{% if "text" in source %}
 					<li class="source sheetItem {{ source.options.sourceLayout }} {{ source.options.sourceLanguage }} {{ source.options.sourceLangLayout }} {{ source.options.indented }}">
 						<div class="customTitle">{{ source.customTitle }}</div>
@@ -100,17 +101,41 @@
 							<div class="title">
 								<span class="he">{{ source.heRef|ref_link }}</span>
 							</div>
+
+							<!-- Box the source -->
+							{% if sheet.options.boxed %}
+							<table border="1"><tr><td>
+							{% endif %}
+
 							<div class="text">
 								<div class="he">{{ source.text.he }}</div>
 							</div>
+
+							<!-- End box the source -->
+							{% if sheet.options.boxed %}
+							</td></tr></table>
+							{% endif %}
+
 						</div>
 						<div class="en">
 							<div class="title">
 								<span class="en">{{ source.ref|ref_link }}</span>
 							</div>
+
+							<!-- Box the source -->
+							{% if sheet.options.boxed %}
+							<table border="1"><tr><td>
+							{% endif %}
+
 							<div class="text">
 								<div class="en">{{ source.text.en }}</div>
 							</div>
+
+							<!-- End box the source -->
+							{% if sheet.options.boxed %}
+							</td></tr></table>
+							{% endif %}
+
 						</div>
 						<div class="clear"></div>
 
@@ -118,11 +143,23 @@
 				{% elif "outsideBiText" in source %}
 					<li class="outsideBiWrapper">
 						<div class="outsideBi sheetItem">
+
+							<!-- Box the source -->
+							{% if sheet.options.boxed %}
+							<table border="1"><tr><td>
+							{% endif %}
+
 							<div class="text">
 								<div class="he">{{ source.outsideBiText.he }}</div>
 								<div class="en">{{ source.outsideBiText.en }}</div>
 								<div class="clear"></div>
 							</div>
+
+							<!-- End box the source -->
+							{% if sheet.options.boxed %}
+							</td></tr></table>
+							{% endif %}
+
 						</div>
 					</li>
 				{% elif "comment" in source %}
@@ -131,23 +168,30 @@
 							{{ source.comment }}
 						</div>
 					</div>
-
 				{% elif "outsideText" in source %}
 					<li class="outsideWrapper sheetItem">
+
+						<!-- Box the source -->
+						{% if sheet.options.boxed %}
+						<table border="1"><tr><td>
+						{% endif %}
+
 						<div class="outside">
 							{{ source.outsideText }}
 						</div>
+
+						<!-- End box the source -->
+						{% if sheet.options.boxed %}
+						</td></tr></table>
+						{% endif %}
+
 					</li>
-
-
 				{% elif "media" in source %}
 					<li class="mediaWrapper sheetItem">
 						<div class="outside">
 							Loading Media...
 						</div>
 					</li>
-
-
 				{% endif %}
 
 			{% endfor %}
