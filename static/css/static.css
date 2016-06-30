@@ -1197,10 +1197,10 @@
 #activityPage #activityFeed .topline {
   font-weight: normal;
 }
-#activityPage #activityFeed .text.en {
+#activityPage #activityFeed .text.ver-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
-#activityPage #activityFeed .text.he {
+#activityPage #activityFeed .text.ver-he {
   font-family: "Taamey Frank", "Times New Roman", serif;
 }
 #activityPage #activityList .time {

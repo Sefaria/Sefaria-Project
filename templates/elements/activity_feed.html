@@ -39,7 +39,7 @@
 	    	{% endif %}
 	    	</span>
             <div class="versionLine">Version: {{ event.version }} ({{ event.language|lang_code }})</div>
-	    	<div class="text {{ event.language }}">
+	    	<div class="text ver-{{ event.language }}">
 	    		{% autoescape off %}{{ event.diff_html }}{% endautoescape %}
 	    	</div>
 
