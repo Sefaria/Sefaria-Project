@@ -6,11 +6,7 @@
 
 <head>
 	<title>
-		{% if title %}
-			{{ title|striptags|strip_html_entities }} | Sefaria Source Sheet Builder
-		{% else %}
-			Sefaria Source Sheet Builder
-		{% endif %}
+		{{ title | striptags | strip_html_entities }}
 	</title>
 
 	<link rel="stylesheet" href="/static/js/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
@@ -18,7 +14,7 @@
 	<link rel="stylesheet" href="/static/css/common.css">
 	<link rel="stylesheet" href="/static/css/sheets.css">
 	<link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
-	<link rel="stylesheet" href="/static/css/sheets-print.css" media="print" />
+	<link rel="stylesheet" href="/static/css/sheets-print.css">
 </head>
 
 <body>
