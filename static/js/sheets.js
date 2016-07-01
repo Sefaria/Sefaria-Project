@@ -1327,9 +1327,8 @@ $(function() {
 			$("#addcustomTextDiv").on("click", ".button", function (e) {
 				var $target = $("#addInterface").prev(".sheetItem");
 				if ($(e.target).prev(".flexContainer").find(".contentToAdd:visible").length == 1) {
-					var $contentToAdd = $(e.target).prev(".flexContainer").find(".contentToAdd:visible");
 					source = {
-						outsideText: ($contentToAdd.hasClass('he') ? "<div class='he'>" : "<div class='en'>") + $contentToAdd.html() + "</div>",
+						outsideText: $(e.target).prev(".flexContainer").find(".contentToAdd:visible").html(),
 						isNew: true
 					};
 				}
