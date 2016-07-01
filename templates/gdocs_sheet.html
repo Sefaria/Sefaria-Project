@@ -98,6 +98,11 @@
 					<li class="source sheetItem {{ source.options.sourceLayout }} {{ source.options.sourceLanguage }} {{ source.options.sourceLangLayout }} {{ source.options.indented }}">
 						<div class="customTitle">{{ source.customTitle }}</div>
 
+						<!-- Create borderless table to emulate two-columns for sideBySide layout -->
+						{% if source.options.sourceLanguage == "bilingual" and source.options.sourceLayout == "sideBySide" %}
+						<table border="0"><tr><td>
+						{% endif %}
+
 						<!-- Do not render if language is english -->
 						{% if source.options.sourceLanguage == "bilingual" or source.options.sourceLanguage == "hebrew" %}
 						<div class="he">
@@ -122,6 +127,11 @@
 						</div>
 						{% endif %}
 
+						<!-- End of first column of sideBySide table. Start of second column. -->
+						{% if source.options.sourceLanguage == "bilingual" and source.options.sourceLayout == "sideBySide" %}
+						</td><td>
+						{% endif %}
+
 						<!-- Do not render if language is hebrew -->
 						{% if source.options.sourceLanguage == "bilingual" or source.options.sourceLanguage == "english" %}
 						<div class="en">
@@ -144,6 +154,11 @@
 							{% endif %}
 
 						</div>
+						{% endif %}
+
+						<!-- End of sideBySide table -->
+						{% if source.options.sourceLanguage == "bilingual" and source.options.sourceLayout == "sideBySide" %}
+						</td></tr></table>
 						{% endif %}
 						<div class="clear"></div>
 
