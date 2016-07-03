@@ -1626,10 +1626,10 @@ var ReaderPanel = React.createClass({
     };
     if (!Sefaria._uid && mode in loginRequired) {
       mode = "Login";
-    };
+    }
     var state = {connectionsMode: mode};
     if (mode === "Connections") { 
-      state["filter"] = [];
+      this.setFilter();
     }
     this.conditionalSetState(state);
   },
