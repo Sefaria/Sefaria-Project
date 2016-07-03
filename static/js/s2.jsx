@@ -742,11 +742,9 @@ var ReaderApp = React.createClass({
     } else {
       panel = this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"});
     }
-    
-    this.setState({
-      panels: [panel],
-      header: {menuOpen: null}
-    });
+
+    this.setHeaderState({menuOpen: null});
+    this.setState({panels: [panel]});
   },
   openPanelAt: function(n, ref, version, versionLanguage) {
     // Open a new panel after `n` with the new ref
@@ -762,7 +760,8 @@ var ReaderApp = React.createClass({
 
     var newPanels = this.state.panels.slice();
     newPanels.splice(n+1, 0, panel);
-    this.setState({panels: newPanels, header: {menuOpen: null}});
+    this.setState({panels: newPanels});
+    this.setHeaderState({menuOpen: null});
   },
   openPanelAtEnd: function(ref, version, versionLanguage) {
     this.openPanelAt(this.state.panels.length+1, ref, version, versionLanguage);
