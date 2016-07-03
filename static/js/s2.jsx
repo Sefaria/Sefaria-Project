@@ -1191,8 +1191,6 @@ var Header = React.createClass({
     if (Sefaria.isRef(query)) {
       this.handleRefClick(query);
       if (Sefaria.site) { Sefaria.site.track.ui("Nav Query"); }
-      if (this.props.headerMode) { return; }
-      this.showDesktop();
     } else {
       this.showSearch(query);
     }
