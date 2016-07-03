@@ -814,7 +814,6 @@ var ReaderApp = React.createClass({
   },
   setSelectedWords: function(n, words){
     //console.log(this.state.panels[n].refs);
-    words = (typeof words !== "undefined" && words.length) ?  words : "";
     var next = this.state.panels[n+1];
     if (next && !next.menuOpen) {
       this.state.panels[n+1].selectedWords = words;
@@ -1507,9 +1506,10 @@ var ReaderPanel = React.createClass({
     words = (typeof words !== "undefined" && words.length) ?  words : "";
     words = words.trim();
     this.replaceHistory = false;
-    this.conditionalSetState({'selectedWords':  words});
     if (this.props.multiPanel) {
       this.props.setSelectedWords(words);
+    }else{
+      this.conditionalSetState({'selectedWords':  words});
     }
   },
   closeMenus: function() {
@@ -5234,42 +5234,46 @@ var LexiconPanel = React.createClass({
   },
   getInitialState: function() {
     return {
-      resultsLoaded: false
+      entries: [],
+      loaded: false
     };
   },
   componentDidMount: function(){
-    console.log("component did mount");
-    this.getLookups();
-  },
-  componentDidUpdate: function(prevProps, prevState){
-    console.log("component did update");
-    if (prevProps.selectedWords != this.props.selectedWords){
-      this.getLookups();
+    console.log("component will mount: ", this.props.selectedWords);
+    if(this.props.selectedWords){
+      this.getLookups(this.props.selectedWords, this.props.oref);
     }
   },
-  getLookups: function(){
-    if(!this.shouldActivate()){
-       this.setState({
-            resultsLoaded: false,
-            entries: []
-          });
+  componentWillReceiveProps: function(nextProps){
+    console.log("component will receive props: ", nextProps.selectedWords);
+    if(this.props.selectedWords != nextProps.selectedWords){
+      this.clearLookups();
     }
-    Sefaria.lexicon(this.props.selectedWords, this.props.oref.ref, function(data) {
-        console.log(data);
-        if (this.isMounted()) {
-          this.setState({
-            resultsLoaded: true,
-            entries: data
-          });
-        }
-    }.bind(this));
+    this.getLookups(nextProps.selectedWords, nextProps.oref);
   },
-  shouldActivate: function(){
-    console.log("selected: ", this.props.selectedWords)
-    if(!this.props.selectedWords){
+  clearLookups: function(){
+    this.setState({
+      loaded: false,
+      entries: []
+    });
+  },
+  getLookups: function(words, oref){
+    if(this.shouldActivate(words)){
+      console.log('getting data: ', words, oref.ref);
+      Sefaria.lexicon(words, oref.ref, function(data) {
+        this.setState({
+          loaded: true,
+          entries: data
+        });
+        console.log('gotten data from Sefaria.js, state re-set: ', this, data);
+      }.bind(this));
+    }
+  },
+  shouldActivate: function(selectedWords){
+    if(!selectedWords){
       return false;
     }
-    var wordList = this.props.selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
+    var wordList = selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
     var inputLength = wordList.length;
     return (inputLength <= 3);
   },
@@ -5277,25 +5281,30 @@ var LexiconPanel = React.createClass({
     var ref_cats = this.props.oref.categories.join(", ");
     var enEmpty = "No results found.";
     var heEmpty = "לא נמצאו תוצאות";
-    if(!this.shouldActivate()){
+    if(!this.shouldActivate(this.props.selectedWords)){
+      //console.log("not rendering lexicon");
       return false;
     }
     var content;
-    if(!this.state.resultsLoaded) {
+    if(!this.state.loaded) {
+      console.log("lexicon not yet loaded");
       content = (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..."/>);
-    }else if("error" in this.state.entries){
-      content = (<LoadingMessage message={enEmpty} heMessage={heEmpty} />);
-    }else if(this.state.entries.length == 0 && this.props.selecctedWords == ""){
-      return false;
+    }else if(this.state.entries.length == 0) {
+      if (this.props.selectedWords.length == 0) {
+        //console.log("empty words: nothing to render");
+        return false;
+      } else {
+        //console.log("no results");
+        content = (<LoadingMessage message={enEmpty} heMessage={heEmpty}/>);
+      }
     }else{
+      console.log("results to render: ", this.state.entries);
       var entries = this.state.entries;
-      content =  entries ? entries.filter(e => e['parent_lexicon_details']['text_categories'].indexOf(ref_cats) > -1).map(function(entry, i) {
+      content =  entries.filter(e => e['parent_lexicon_details']['text_categories'].indexOf(ref_cats) > -1).map(function(entry, i) {
             return (<LexiconEntry data={entry} key={i} />)
-          }) : (<LoadingMessage message={enEmpty} heMessage={heEmpty} />);
+          });
       content = content.length ? content : <LoadingMessage message={enEmpty} heMessage={heEmpty} />;
     }
-    /*var header = (<div className="lexicon-header"><h4>{this.props.selectedWords}</h4></div>);*/
-    console.log("rendering: ", entries);
     return (
         <div className="lexicon-content">
           <div className="lexicon-results">
@@ -5303,7 +5312,6 @@ var LexiconPanel = React.createClass({
           </div>
         </div>
       );
-
   }
 });
 

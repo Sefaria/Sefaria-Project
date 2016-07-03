@@ -448,6 +448,7 @@ Sefaria = extend(Sefaria, {
   lexicon: function(words, ref, cb){
     // Returns a list of lexicon entries for the given words
     ref = typeof ref !== "undefined" ? ref : null;
+    words = typeof words !== "undefined" ? words : "";
     var cache_key = ref ? words + "|" + ref : words;
     /*if (typeof ref != 'undefined'){
       cache_key += "|" + ref
@@ -455,21 +456,24 @@ Sefaria = extend(Sefaria, {
     if (!cb) {
       return this._lexiconLookups[cache_key] || [];
     }
-    if (words in this._lexiconLookups) {
-      cb(this._lexiconLookups[cache_key]);
-    } else if(words == ""){
-        return cb([]);
-    } else {
+    if (cache_key in this._lexiconLookups) {
+        console.log("data from cache: ", this._lexiconLookups[cache_key]);
+        cb(this._lexiconLookups[cache_key]);
+    } else if (words.length > 0) {
       var url = "/api/words/" + encodeURIComponent(words)+"?never_split=1";
       if(ref){
         url+="&lookup_ref="+ref;
       }
       //console.log(url);
       this._api(url, function(data) {
-        this._lexiconLookups[cache_key] = data;
-        cb(data);
+        this._lexiconLookups[cache_key] = ("error" in data) ? [] : data;
+        console.log("state changed from ajax: ", data);
+        cb(this._lexiconLookups[cache_key]);
       }.bind(this));
+    }else{
+        return cb([]);
     }
+      
   },
   _links: {},
   links: function(ref, cb) {
