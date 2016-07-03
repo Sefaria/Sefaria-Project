@@ -254,17 +254,18 @@ def make_panel_dict(oref, version, language, filter, mode):
             "versionLanguage": language,
             "filter": filter,
         }
-        try:
-            text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True).contents()
-        except NoVersionFoundError:
-            text = {}
+        if mode != "Connections":
+            try:
+                text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True).contents()
+            except NoVersionFoundError:
+                text = {}
 
-        text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-        text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
-        panel["text"] = text
+            text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+            text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+            panel["text"] = text
 
-        if oref.is_segment_level():
-            panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
+            if oref.is_segment_level():
+                panel["highlightedRefs"] = [subref.normal() for subref in oref.range_list()]
 
     return panel
 
@@ -275,10 +276,11 @@ def make_panel_dicts(oref, version, language, filter, multi_panel):
     Depending on whether `multi_panel` is True, connections set in `filter` are displayed in either 1 or 2 panels.
     """
     panels = []
-    if filter and multi_panel:
+    # filter may have value [], meaning "all".  Therefore we test filter with "is not None".
+    if filter is not None and multi_panel:
         panels += [make_panel_dict(oref, version, language, filter, "Text")]
         panels += [make_panel_dict(oref, version, language, filter, "Connections")]
-    elif filter and not multi_panel:
+    elif filter is not None and not multi_panel:
         panels += [make_panel_dict(oref, version, language, filter, "TextAndConnections")]
     else:
         panels += [make_panel_dict(oref, version, language, filter, "Text")]
@@ -360,7 +362,7 @@ def s2(request, ref, version=None, lang=None):
     props.update({
         "headerMode":                  False,
         "initialRefs":                 panels[0].get("refs", []),
-        "initialFilter":               panels[0].get("filter", None),
+        "initialFilter":               panels[0].get("filter", None),   # used only for mobile, TextAndConnections case.
         "initialBookRef":              panels[0].get("bookRef", None),
         "initialPanels":               panels,
         "initialPanelCap":             len(panels),

@@ -121,14 +121,6 @@ var ReaderApp = React.createClass({
           p.settings.language = p.versionLanguage == "he" ? "hebrew" : "english";
         }
         panels.push(p);
-        if (this.props.initialFilter) {
-          panels.push({
-            refs: this.props.initialRefs,
-            filter: this.props.initialFilter,
-            mode: "Connections",
-            settings: Sefaria.util.clone(defaultPanelSettings)
-          });
-        }
       }
       for (var i = panels.length; i < this.props.initialPanels.length; i++) {
         var panel;
