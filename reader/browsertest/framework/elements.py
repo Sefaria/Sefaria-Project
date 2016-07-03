@@ -40,6 +40,9 @@ class AtomicTest(object):
         if not self.multi_panel and not self.single_panel:
             raise Exception("Tests must run on at least one of mobile or desktop")
 
+        #set cookie to avoid popup interruption
+        self.driver.add_cookie({"name": "welcomeToS2LoggedOut", "value": True})
+
     def run(self):
         raise Exception("AtomicTest.run() needs to be defined for each test.")
 
