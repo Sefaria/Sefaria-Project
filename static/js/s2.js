@@ -4213,11 +4213,11 @@ var PartnerSheetListing = React.createClass({
     }, this);
 
     return React.createElement(
-      'a',
-      { className: 'sheet userSheet', href: url, key: url },
+      'div',
+      { className: 'sheet userSheet' },
       React.createElement(
-        'div',
-        { className: 'sheetTitle' },
+        'a',
+        { className: 'sheetTitle', href: url, key: url },
         title
       ),
       React.createElement(
