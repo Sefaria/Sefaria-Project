@@ -42,7 +42,7 @@ class AtomicTest(object):
 
     def set_modal_cookie(self):
         #set cookie to avoid popup interruption
-        self.driver.add_cookie({"name": "welcomeToS2LoggedOut", "value": True})
+        self.driver.add_cookie({"name": "welcomeToS2LoggedOut", "value": "true"})
 
     def run(self):
         raise Exception("AtomicTest.run() needs to be defined for each test.")
