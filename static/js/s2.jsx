@@ -3418,10 +3418,10 @@ var PartnerSheetListing = React.createClass({
           return(<SheetTagLink setSheetTag={this.props.setSheetTag} tag={tag} key={tag} />);
     },this);
 
-    return (<a className="sheet userSheet" href={url} key={url}>
-                <div className="sheetTitle">{title}</div>
+    return (<div className="sheet userSheet">
+                <a className="sheetTitle" href={url} key={url}>{title}</a>
                 <div>{sheet.ownerName} · {sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
-              </a>);
+              </div>);
 
   }
 });
