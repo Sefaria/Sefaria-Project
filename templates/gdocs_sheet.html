@@ -138,8 +138,22 @@
 							{% endif %}
 
 							<div class="text">
-								<div class="he">{{ source.outsideBiText.he }}</div>
-								<div class="en">{{ source.outsideBiText.en }}</div>
+								{% if sheet.options.layout == "stacked" %}
+									<div class="he">{{ source.outsideBiText.he }}</div>
+									<div class="en">{{ source.outsideBiText.en }}</div>
+								{% else %}
+									<table border="0"><tr><td>
+									{% if sheet.options.langLayout == "heRight"}
+										<div class="en">{{ source.outsideBiText.en }}</div>
+										</td><td>
+										<div class="he">{{ source.outsideBiText.he }}</div>
+									{% else %}
+										<div class="he">{{ source.outsideBiText.he }}</div>
+										</td><td>
+										<div class="en">{{ source.outsideBiText.en }}</div>
+									{% endif %}
+									</td></tr></table>
+								{% endif %}
 								<div class="clear"></div>
 							</div>
 
