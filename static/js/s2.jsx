@@ -23,6 +23,7 @@ var ReaderApp = React.createClass({
     initialRefs:                 React.PropTypes.array,
     initialFilter:               React.PropTypes.array,
     initialMenu:                 React.PropTypes.string,
+    initialPartner:              React.PropTypes.string,
     initialQuery:                React.PropTypes.string,
     initialSearchFilters:        React.PropTypes.array,
     initialSheetsTag:            React.PropTypes.string,
@@ -41,6 +42,7 @@ var ReaderApp = React.createClass({
       initialRefs:                 [],
       initialFilter:               null,
       initialMenu:                 null,
+      initialPartner:              null,
       initialQuery:                null,
       initialSearchFilters:        [],
       initialSheetsTag:            null,
@@ -98,6 +100,7 @@ var ReaderApp = React.createClass({
         appliedSearchFilters: this.props.initialSearchFilters,
         navigationCategories: this.props.initialNavigationCategories,
         sheetsTag: this.props.initialSheetsTag,
+        partner: this.props.initialPartner,
         settings: Sefaria.util.clone(defaultPanelSettings)
       };
       header = this.makePanelState(headerState);
@@ -344,7 +347,11 @@ var ReaderApp = React.createClass({
             hist.mode  = "search";
             break;
           case "sheets":
-            if (states[i].navigationSheetTag) {
+            if (states[i].sheetsPartner) {
+                hist.url   = "partners/" + state.sheetsPartner.replace(/\s/g,"_");
+                hist.title = state.sheetsPartner + " | Sefaria Source Sheets";
+                hist.mode  = "sheets tag";
+            } else if (states[i].navigationSheetTag) {
               if (states[i].navigationSheetTag == "My Sheets") {
                 hist.url   = "sheets/private";
                 hist.title = "My Sheets | Sefaria Source Sheets";
@@ -496,6 +503,7 @@ var ReaderApp = React.createClass({
       menuOpen:             state.menuOpen             || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag:   state.sheetsTag            || null,
+      sheetsPartner:        state.partner              || null,
       searchQuery:          state.searchQuery          || null,
       appliedSearchFilters: state.appliedSearchFilters || [],
       searchFiltersValid:   state.searchFiltersValid   || false,
@@ -1358,6 +1366,7 @@ var ReaderPanel = React.createClass({
       menuOpen:             this.props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home"
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag:   this.props.initialSheetsTag || null,
+      sheetsPartner:        this.props.initialPartner || null,
       searchQuery:          this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
       searchFiltersValid:   false,
@@ -1529,7 +1538,7 @@ var ReaderPanel = React.createClass({
       // searchQuery: null,
       // appliedSearchFilters: [],
       navigationCategories: null,
-      navigationSheetTag: null
+      navigationSheetTag: null,
     });
   },
   setNavigationCategories: function(categories) {
@@ -1839,6 +1848,7 @@ var ReaderPanel = React.createClass({
                     hideNavHeader={this.props.hideNavHeader}
                     toggleLanguage={this.toggleLanguage}
                     tag={this.state.navigationSheetTag}
+                    partner={this.state.sheetsPartner}
                     tagSort={this.state.tagSort}
                     mySheetSort={this.state.mySheetSort}
                     setMySheetSort={this.setMySheetSort}
@@ -3176,6 +3186,12 @@ var SheetsNav = React.createClass({
       var content = (<AllSheetsPage
                         hideNavHeader={this.props.hideNavHeader} />);
 
+    } else if (this.props.tag == "sefaria-partners") {
+      var content = (<PartnerSheetsPage
+                        hideNavHeader={this.props.hideNavHeader}
+                        multiPanel={this.props.multiPanel}
+                        partner={this.props.partner} />);
+
     } else if (this.props.tag) {
       var content = (<TagSheetsPage 
                         tag={this.props.tag}
@@ -3342,6 +3358,71 @@ var SheetsHomePage = React.createClass({
                 <TwoOrThreeBox content={tagList} width={this.props.width} />
               </div>
              </div>);
+  }
+});
+
+var PartnerSheetsPage = React.createClass({
+  componentDidMount: function() {
+    this.ensureData();
+  },
+  getSheetsFromCache: function() {
+    return  Sefaria.sheets.partnerSheets(this.props.partner);
+  },
+  getSheetsFromAPI: function() {
+     Sefaria.sheets.partnerSheets(this.props.partner, this.onDataLoad);
+  },
+  onDataLoad: function(data) {
+    this.forceUpdate();
+  },
+  ensureData: function() {
+    if (!this.getSheetsFromCache()) { this.getSheetsFromAPI(); }
+  },
+
+    render: function() {
+    var sheets = this.getSheetsFromCache();
+
+
+    sheets = sheets ? sheets.map(function(sheet) {
+      return (<PartnerSheetListing sheet={sheet}  />);
+    }.bind(this)) : (<LoadingMessage />);
+
+ /*   sheets = sheets ? sheets.map(function (sheet) {
+      return (<PublicSheetListing sheet={sheet} />);
+    }) : (<LoadingMessage />);
+   */
+    return (<div className="content sheetList">
+                      <div className="contentInner">
+                        {this.props.hideNavHeader ? (<h1>
+                          <span className="en">{this.props.partner}</span>
+                          <span className="he">{this.props.partner}</span>
+                        </h1>) : null}
+                        {sheets}
+                      </div>
+                    </div>);
+  }
+
+
+})
+
+var PartnerSheetListing = React.createClass({
+  propTypes: {
+    sheet:      React.PropTypes.object.isRequired,
+  },
+  render: function() {
+    var sheet = this.props.sheet;
+    var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
+    var url = "/sheets/" + sheet.id;
+
+    if (sheet.tags === undefined) sheet.tags = [];
+      var tagString = sheet.tags.map(function (tag) {
+          return(<SheetTagLink setSheetTag={this.props.setSheetTag} tag={tag} key={tag} />);
+    },this);
+
+    return (<div className="sheet userSheet">
+                <a className="sheetTitle" href={url} key={url}>{title}</a>
+                <div>{sheet.ownerName} · {sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
+              </div>);
+
   }
 });
 

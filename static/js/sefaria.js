@@ -1051,6 +1051,25 @@ Sefaria = extend(Sefaria, {
         }
       return sheets;
     },
+    _partnerSheets: {},
+    partnerSheets: function(partner, callback) {
+      // Returns a list of source sheets belonging to partner org
+      // Member of group will get all sheets. Others only public facing ones.
+      var sheets = this._partnerSheets[partner];
+      if (sheets) {
+        if (callback) { callback(sheets); }
+      } else {
+          // TODO Build out API. Currently never gets called because cache is always populated via static django page. But if we want to add to /sheets this needs to be built out
+          /*
+        var url = ;
+         Sefaria._api(url, function(data) {
+            this._partnerSheets[partner] = data.sheets;
+            if (callback) { callback(data.sheets); }
+          }.bind(this));
+          */
+        }
+      return sheets;
+    },
     _userSheets: {},
     userSheets: function(uid, callback, sortBy) {
       // Returns a list of source sheets belonging to `uid`
@@ -1073,7 +1092,6 @@ Sefaria = extend(Sefaria, {
       if (!offset) offset = 0;
       if (!numberToRetrieve) numberToRetrieve = 50;
       // Returns a list of public sheets
-      // TODO Pagination!
       var sheets = this._publicSheets["offset"+offset+"num"+numberToRetrieve];
       if (sheets) {
         if (callback) { callback(sheets); }
@@ -1423,6 +1441,9 @@ Sefaria.unpackDataFromProps = function(props) {
   }
   if (props.userTags) {
     Sefaria.sheets._userTagList = props.userTags;
+  }
+  if (props.partnerSheets) {
+    Sefaria.sheets._partnerSheets[props.initialPartner] = props.partnerSheets;
   }
   if (props.publicSheets) {
     Sefaria.sheets._publicSheets = props.publicSheets;

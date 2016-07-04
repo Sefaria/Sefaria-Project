@@ -438,6 +438,28 @@ def s2_sheets(request):
         "html":           html,
     }, RequestContext(request))
 
+def s2_group_sheets(request, partner, authenticated):
+    props = s2_props(request)
+    props.update({
+        "initialMenu":     "sheets",
+        "initialSheetsTag": "sefaria-partners",
+        "initialPartner": partner,
+    })
+    if authenticated == True:
+        query = {"status": {"$in": ["unlisted", "public"]}, "group": partner}
+    else:
+        query = {"status": "public", "group": partner}
+
+    sheets = db.sheets.find(query).sort([["title", 1]])
+
+    props["partnerSheets"] = [sheet_to_dict(s) for s in sheets]
+
+    html = render_react_component("ReaderApp", props)
+    return render_to_response('s2.html', {
+        "propsJSON": json.dumps(props),
+        "html": html,
+    }, RequestContext(request))
+
 
 def s2_sheets_by_tag(request, tag):
     """

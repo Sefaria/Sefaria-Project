@@ -30,6 +30,7 @@ var ReaderApp = React.createClass({
     initialRefs: React.PropTypes.array,
     initialFilter: React.PropTypes.array,
     initialMenu: React.PropTypes.string,
+    initialPartner: React.PropTypes.string,
     initialQuery: React.PropTypes.string,
     initialSearchFilters: React.PropTypes.array,
     initialSheetsTag: React.PropTypes.string,
@@ -48,6 +49,7 @@ var ReaderApp = React.createClass({
       initialRefs: [],
       initialFilter: null,
       initialMenu: null,
+      initialPartner: null,
       initialQuery: null,
       initialSearchFilters: [],
       initialSheetsTag: null,
@@ -105,6 +107,7 @@ var ReaderApp = React.createClass({
         appliedSearchFilters: this.props.initialSearchFilters,
         navigationCategories: this.props.initialNavigationCategories,
         sheetsTag: this.props.initialSheetsTag,
+        partner: this.props.initialPartner,
         settings: Sefaria.util.clone(defaultPanelSettings)
       };
       header = this.makePanelState(headerState);
@@ -262,8 +265,8 @@ var ReaderApp = React.createClass({
         if (!prev.navigationCategories || !next.navigationCategories) {
           return true; // They are not equal and one is null
         } else if (!prev.navigationCategories.compare(next.navigationCategories)) {
-            return true; // both are set, compare arrays
-          }
+          return true; // both are set, compare arrays
+        }
       }
     }
     return false;
@@ -337,7 +340,11 @@ var ReaderApp = React.createClass({
             hist.mode = "search";
             break;
           case "sheets":
-            if (states[i].navigationSheetTag) {
+            if (states[i].sheetsPartner) {
+              hist.url = "partners/" + state.sheetsPartner.replace(/\s/g, "_");
+              hist.title = state.sheetsPartner + " | Sefaria Source Sheets";
+              hist.mode = "sheets tag";
+            } else if (states[i].navigationSheetTag) {
               if (states[i].navigationSheetTag == "My Sheets") {
                 hist.url = "sheets/private";
                 hist.title = "My Sheets | Sefaria Source Sheets";
@@ -436,14 +443,14 @@ var ReaderApp = React.createClass({
           hist.title += " & " + histories[i].title; // TODO this doesn't trim title properly
         }
       } else {
-          var next = "&p=" + histories[i].url;
-          next = next.replace("?", "&").replace(/=/g, i + 1 + "=");
-          hist.url += next;
-          if (histories[i].versionLanguage && histories[i].version) {
-            hist.url += "&l" + (i + 1) + "=" + histories[i].versionLanguage + "&v" + (i + 1) + "=" + histories[i].version.replace(/\s/g, "_");
-          }
-          hist.title += " & " + histories[i].title;
+        var next = "&p=" + histories[i].url;
+        next = next.replace("?", "&").replace(/=/g, i + 1 + "=");
+        hist.url += next;
+        if (histories[i].versionLanguage && histories[i].version) {
+          hist.url += "&l" + (i + 1) + "=" + histories[i].versionLanguage + "&v" + (i + 1) + "=" + histories[i].version.replace(/\s/g, "_");
         }
+        hist.title += " & " + histories[i].title;
+      }
       if (histories[i].lang) {
         hist.url += "&lang" + (i + 1) + "=" + histories[i].lang;
       }
@@ -463,16 +470,16 @@ var ReaderApp = React.createClass({
 
       history.replaceState(hist.state, hist.title, hist.url);
     } else {
-        if (window.location.pathname + window.location.search == hist.url) {
-          return;
-        } // Never push history with the same URL
-        history.pushState(hist.state, hist.title, hist.url);
+      if (window.location.pathname + window.location.search == hist.url) {
+        return;
+      } // Never push history with the same URL
+      history.pushState(hist.state, hist.title, hist.url);
 
-        //console.log(hist);
-        if (Sefaria.site) {
-          Sefaria.site.track.pageview(hist.url);
-        }
+      //console.log(hist);
+      if (Sefaria.site) {
+        Sefaria.site.track.pageview(hist.url);
       }
+    }
 
     $("title").html(hist.title);
     this.replaceHistory = false;
@@ -491,6 +498,7 @@ var ReaderApp = React.createClass({
       menuOpen: state.menuOpen || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag: state.sheetsTag || null,
+      sheetsPartner: state.partner || null,
       searchQuery: state.searchQuery || null,
       appliedSearchFilters: state.appliedSearchFilters || [],
       searchFiltersValid: state.searchFiltersValid || false,
@@ -1415,6 +1423,7 @@ var ReaderPanel = React.createClass({
       menuOpen: this.props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home"
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag: this.props.initialSheetsTag || null,
+      sheetsPartner: this.props.initialPartner || null,
       searchQuery: this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
       searchFiltersValid: false,
@@ -1904,6 +1913,7 @@ var ReaderPanel = React.createClass({
         hideNavHeader: this.props.hideNavHeader,
         toggleLanguage: this.toggleLanguage,
         tag: this.state.navigationSheetTag,
+        partner: this.state.sheetsPartner,
         tagSort: this.state.tagSort,
         mySheetSort: this.state.mySheetSort,
         setMySheetSort: this.setMySheetSort,
@@ -3094,11 +3104,11 @@ var ReaderTextTableOfContents = React.createClass({
     if ($root.find(".tocSection").length) {// nested simple text
       //$root.find(".tocSection").each(shrink); // Don't bother with these for now
     } else if ($root.find(".schema-node-toc").length) {
-        // complex text or alt struct
-        $root.find(".schema-node-toc, .schema-node-contents").each(shrink);
-      } else {
-        $root.find(".tocLevel").each(shrink); // Simple text, no nesting
-      }
+      // complex text or alt struct
+      $root.find(".schema-node-toc, .schema-node-contents").each(shrink);
+    } else {
+      $root.find(".tocLevel").each(shrink); // Simple text, no nesting
+    }
   },
   onVersionSelectChange: function onVersionSelectChange(event) {
     if (event.target.value == 0) {
@@ -3831,6 +3841,11 @@ var SheetsNav = React.createClass({
     } else if (this.props.tag == "All Sheets") {
       var content = React.createElement(AllSheetsPage, {
         hideNavHeader: this.props.hideNavHeader });
+    } else if (this.props.tag == "sefaria-partners") {
+      var content = React.createElement(PartnerSheetsPage, {
+        hideNavHeader: this.props.hideNavHeader,
+        multiPanel: this.props.multiPanel,
+        partner: this.props.partner });
     } else if (this.props.tag) {
       var content = React.createElement(TagSheetsPage, {
         tag: this.props.tag,
@@ -4117,6 +4132,108 @@ var SheetsHomePage = React.createClass({
           )
         ),
         React.createElement(TwoOrThreeBox, { content: tagList, width: this.props.width })
+      )
+    );
+  }
+});
+
+var PartnerSheetsPage = React.createClass({
+  displayName: 'PartnerSheetsPage',
+
+  componentDidMount: function componentDidMount() {
+    this.ensureData();
+  },
+  getSheetsFromCache: function getSheetsFromCache() {
+    return Sefaria.sheets.partnerSheets(this.props.partner);
+  },
+  getSheetsFromAPI: function getSheetsFromAPI() {
+    Sefaria.sheets.partnerSheets(this.props.partner, this.onDataLoad);
+  },
+  onDataLoad: function onDataLoad(data) {
+    this.forceUpdate();
+  },
+  ensureData: function ensureData() {
+    if (!this.getSheetsFromCache()) {
+      this.getSheetsFromAPI();
+    }
+  },
+
+  render: function render() {
+    var sheets = this.getSheetsFromCache();
+
+    sheets = sheets ? sheets.map(function (sheet) {
+      return React.createElement(PartnerSheetListing, { sheet: sheet });
+    }.bind(this)) : React.createElement(LoadingMessage, null);
+
+    /*   sheets = sheets ? sheets.map(function (sheet) {
+         return (<PublicSheetListing sheet={sheet} />);
+       }) : (<LoadingMessage />);
+      */
+    return React.createElement(
+      'div',
+      { className: 'content sheetList' },
+      React.createElement(
+        'div',
+        { className: 'contentInner' },
+        this.props.hideNavHeader ? React.createElement(
+          'h1',
+          null,
+          React.createElement(
+            'span',
+            { className: 'en' },
+            this.props.partner
+          ),
+          React.createElement(
+            'span',
+            { className: 'he' },
+            this.props.partner
+          )
+        ) : null,
+        sheets
+      )
+    );
+  }
+
+});
+
+var PartnerSheetListing = React.createClass({
+  displayName: 'PartnerSheetListing',
+
+  propTypes: {
+    sheet: React.PropTypes.object.isRequired
+  },
+  render: function render() {
+    var sheet = this.props.sheet;
+    var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
+    var url = "/sheets/" + sheet.id;
+
+    if (sheet.tags === undefined) sheet.tags = [];
+    var tagString = sheet.tags.map(function (tag) {
+      return React.createElement(SheetTagLink, { setSheetTag: this.props.setSheetTag, tag: tag, key: tag });
+    }, this);
+
+    return React.createElement(
+      'div',
+      { className: 'sheet userSheet' },
+      React.createElement(
+        'a',
+        { className: 'sheetTitle', href: url, key: url },
+        title
+      ),
+      React.createElement(
+        'div',
+        null,
+        sheet.ownerName,
+        ' · ',
+        sheet.views,
+        ' Views · ',
+        sheet.modified,
+        ' · ',
+        React.createElement(
+          'span',
+          { className: 'tagString' },
+          tagString
+        )
       )
     );
   }
@@ -4888,18 +5005,18 @@ var TextColumn = React.createClass({
         //console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
-        //console.log("scroll to highlighted")
-        // scroll to highlighted segment
-        this.scrollToHighlighted();
-        this.scrolledToHighlight = true;
-        this.initialScrollTopSet = true;
-      } else if (!this.initialScrollTopSet) {
-        //console.log("initial scroll to 30")
-        // initial value set below 0 so you can scroll up for previous
-        var node = ReactDOM.findDOMNode(this);
-        node.scrollTop = 30;
-        this.initialScrollTopSet = true;
-      }
+      //console.log("scroll to highlighted")
+      // scroll to highlighted segment
+      this.scrollToHighlighted();
+      this.scrolledToHighlight = true;
+      this.initialScrollTopSet = true;
+    } else if (!this.initialScrollTopSet) {
+      //console.log("initial scroll to 30")
+      // initial value set below 0 so you can scroll up for previous
+      var node = ReactDOM.findDOMNode(this);
+      node.scrollTop = 30;
+      this.initialScrollTopSet = true;
+    }
     // This fixes loading of next content when current content is short in viewport,
     // but breaks loading highlighted ref, jumping back up to top of section
     // this.adjustInfiniteScroll();
