@@ -95,73 +95,38 @@
 			{% for source in sheet.sources %}
 
 				{% if "text" in source %}
-					<li class="source sheetItem {{ source.options.sourceLayout }} {{ source.options.sourceLanguage }} {{ source.options.sourceLangLayout }} {{ source.options.indented }}">
+					<li class="source sheetItem {{ source.options.indented }}">
 						<div class="customTitle">{{ source.customTitle }}</div>
 
-						<!-- Create borderless table to emulate two-columns for sideBySide layout -->
-						{% if source.options.sourceLanguage == "bilingual" and source.options.sourceLayout == "sideBySide" %}
-						<table border="0"><tr><td>
-						{% endif %}
-
-						<!-- Do not render if language is english -->
-						{% if source.options.sourceLanguage == "bilingual" or source.options.sourceLanguage == "hebrew" %}
-						<div class="he">
-							<div class="title">
-								<span class="he">{{ source.heRef|ref_link }}</span>
-							</div>
-
-							<!-- Box the source -->
-							{% if sheet.options.boxed %}
-							<table border="1"><tr><td>
+						{% if source.options.sourceLanguage == "hebrew" %}
+							{% include gdocs_text_source with source=source lang="he" %}
+						{% elif source.options.sourceLanguage == "english" %}
+							{% include gdocs_text_source with source=source lang="en" %}
+						{% else %}
+							{% if source.options.sourceLayout == "stacked" %}
+								{% if source.options.sourceLangLayout == "heRight" %}
+									{% include gdocs_text_source with source=source lang="en" %}
+									{% include gdocs_text_source with source=source lang="he" %}
+								{% else %}
+									{% include gdocs_text_source with source=source lang="he" %}
+									{% include gdocs_text_source with source=source lang="en" %}
+								{% endif %}
+							{% else %}
+								<table border="0"><tr><td>
+								{% if source.options.sourceLangLayout == "heRight" %}
+									{% include gdocs_text_source with source=source lang="en" %}
+									</td><td>
+									{% include gdocs_text_source with source=source lang="he" %}
+								{% else %}
+									{% include gdocs_text_source with source=source lang="he" %}
+									</td><td>
+									{% include gdocs_text_source with source=source lang="en" %}
+								{% endif %}
+								</td></tr></table>
 							{% endif %}
-
-							<div class="text">
-								<div class="he">{{ source.text.he }}</div>
-							</div>
-
-							<!-- End box the source -->
-							{% if sheet.options.boxed %}
-							</td></tr></table>
-							{% endif %}
-
-						</div>
 						{% endif %}
 
-						<!-- End of first column of sideBySide table. Start of second column. -->
-						{% if source.options.sourceLanguage == "bilingual" and source.options.sourceLayout == "sideBySide" %}
-						</td><td>
-						{% endif %}
-
-						<!-- Do not render if language is hebrew -->
-						{% if source.options.sourceLanguage == "bilingual" or source.options.sourceLanguage == "english" %}
-						<div class="en">
-							<div class="title">
-								<span class="en">{{ source.ref|ref_link }}</span>
-							</div>
-
-							<!-- Box the source -->
-							{% if sheet.options.boxed %}
-							<table border="1"><tr><td>
-							{% endif %}
-
-							<div class="text">
-								<div class="en">{{ source.text.en }}</div>
-							</div>
-
-							<!-- End box the source -->
-							{% if sheet.options.boxed %}
-							</td></tr></table>
-							{% endif %}
-
-						</div>
-						{% endif %}
-
-						<!-- End of sideBySide table -->
-						{% if source.options.sourceLanguage == "bilingual" and source.options.sourceLayout == "sideBySide" %}
-						</td></tr></table>
-						{% endif %}
 						<div class="clear"></div>
-
 					</li>
 				{% elif "outsideBiText" in source %}
 					<li class="outsideBiWrapper">

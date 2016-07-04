@@ -1,0 +1,31 @@
+{% load sefaria_tags %}
+
+<div class="{{ lang }}">
+  <div class="title">
+    {% if lang == "he" %}
+    <span class="he">{{ source.heRef|ref_link }}</span>
+    {% elif lang == "en" %}
+    <span class="en">{{ source.ref|ref_link }}</span>
+    {% endif %}
+  </div>
+
+  {% if source.options.boxed %}
+  <!-- Box the source -->
+  <table border="1"><tr><td>
+  {% endif %}
+
+  <div class="text">
+    <div class="{{ lang }}">
+      {% if lang == "he" %}
+        {{ source.text.he }
+      {% elif lang == "en" %}
+        {{ source.text.en }
+      {% endif %}
+    </div>
+  </div>
+
+  {% if source.options.boxed %}
+  </td></tr></table>
+  <!-- End box the source -->
+  {% endif %}
+</div>
