@@ -637,7 +637,6 @@ var ReaderApp = React.createClass({
     this.setState({windowWidth: $(window).outerWidth()});
   },
   handleNavigationClick: function(ref, version, versionLanguage, options) {
-    this.saveOpenPanelsToRecentlyViewed();
     this.openPanel(ref, version, versionLanguage, options);
   },
   handleSegmentClick: function(n, ref) {
@@ -948,11 +947,12 @@ var ReaderApp = React.createClass({
     }
   },
   showSearch: function(query) {
-    var updates = {menuOpen: "search", searchQuery: query, searchFiltersValid:  false};
+    this.saveOpenPanelsToRecentlyViewed();
+    var panel = this.makePanelState({menuOpen: "search", searchQuery: query, searchFiltersValid:  false});
     if (this.props.multiPanel) {
-      this.setHeaderState(updates);
+      this.setState({header: panel})
     } else {
-      this.setPanelState(0, updates);
+      this.setState({panels: [panel]});
     }
   },
   showSheets: function() {
