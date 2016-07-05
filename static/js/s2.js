@@ -269,7 +269,7 @@ var ReaderApp = React.createClass({
       if (!ref || panel.mode === "Connections") {
         return "";
       }
-      var data = Sefaria.index(Sefaria.parseRef(ref).book);
+      var data = Sefaria.index(Sefaria.parseRef(ref).index);
       return data.categories[0] === "Commentary" ? data.categories[1] + " Commentary" : data.categories[0];
     }).filter(function (r) {
       return !!r;
@@ -381,7 +381,7 @@ var ReaderApp = React.createClass({
             break;
           case "text toc":
             var ref = state.refs.slice(-1)[0];
-            var bookTitle = ref ? Sefaria.parseRef(ref).book : "404";
+            var bookTitle = ref ? Sefaria.parseRef(ref).index : "404";
             hist.title = bookTitle + " | Sefaria";
             hist.url = bookTitle.replace(/ /g, "_");
             hist.mode = "text toc";
