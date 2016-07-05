@@ -840,6 +840,9 @@ def resolve_options_of_sources(sheet):
 		if not options.get('sourceLayout'):
 			source['options']['sourceLayout'] = sheet['options'].get(
 				'layout', 'sideBySide')
+		if not options.get('sourceLangLayout'):
+			source['options']['sourceLangLayout'] = sheet['options'].get(
+				'langLayout', 'heRight')
 	return sheet
 
 
