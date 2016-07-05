@@ -8,7 +8,7 @@
 .static .wf-loading {
   display: none;
 }
-.hebrew .static.biReady{
+.interface-hebrew .static.biReady{
   direction:rtl;
 }
 
@@ -68,10 +68,10 @@
 .static .section {
   margin-bottom: 30px;
 }
-.static .sans .en, .static.sans .en {
+.static .sans .int-en, .static.sans .int-en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.static .sans .he, .static.sans .he  {
+.static .sans .int-he, .static.sans .int-he  {
   font-family: "Open Sans Hebrew", sans-serif;
 }
 .static input {
@@ -119,16 +119,16 @@
   letter-spacing: normal;
   white-space: nowrap;
 }
-.static .en {
+.static .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;  
 }
-.static .he {
+.static .int-he {
   font-family: "Taamey Frank", "Times New Roman", serif;
 }
-.english .static .he {
+.interface-english .static .int-he {
   display: none;
 }
-.hebrew .static .en {
+.interface-hebrew .static .int-en {
   display: none;
 }
 .static .page-title{
@@ -161,16 +161,16 @@
   border: 1px solid #212E50;
   color: white;
 }
-.static .inner .button .he{
+.static .inner .button .int-he{
   font-family: "Open Sans Hebrew", sans-serif;
 }
-.static .inner .button .en{
+.static .inner .button .int-en{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.static h1 .en, .static  h2 .en, .static h3 .en, .static h4 .en {
+.static h1 .int-en, .static  h2 .int-en, .static h3 .int-en, .static h4 .int-en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.static h1 .he, .static  h2 .he, .static h3 .he, .static h4 .he {
+.static h1 .int-he, .static  h2 .int-he, .static h3 .int-he, .static h4 .int-he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
 .static img.fullWidth {
@@ -192,16 +192,16 @@
   overflow: hidden;
   color: #333;
 }
-#homePage .en {
+#homePage .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;  
 }
-#homePage .he {
+#homePage .int-he {
   font-family: "Taamey Frank", "Times New Roman", serif;
 }
-#homePage .button .en {
+#homePage .button .int-en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-#homePage .button .he {
+#homePage .button .int-he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
 #homePage .section {
@@ -336,10 +336,10 @@
   font-size: 15px;
   font-weight: lighter;
 }
-#homePage #homeBlog .blogTag .en {
+#homePage #homeBlog .blogTag .int-en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-#homePage #homeBlog .blogTag .he {
+#homePage #homeBlog .blogTag .int-he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
 #homePage #homeBlog .blogText {
@@ -367,12 +367,12 @@
   color: #999;
   margin-bottom: 20px;
 }
-#homeProgress h2 .en {
+#homeProgress h2 .int-en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   font-size: 14px;
 }
-#homeProgress h2 .he {
+#homeProgress h2 .int-he {
   font-family: "Open Sans Hebrew", sans-serif;
   font-size: 13px;
 }
@@ -403,11 +403,11 @@
   font-size: 28px;
   margin: 0px 0;
 }
-#homeProgress .stat .en {
+#homeProgress .stat .int-en {
   color: #999;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-#homeProgress .stat .he {
+#homeProgress .stat .int-he {
   color: #999;
   font-family: "Open Sans Hebrew", sans-serif;
 }
@@ -426,10 +426,10 @@
   color: #999;
   font-size: 14px;
 }
-#homeConnect #mailingListTitle .en {
+#homeConnect #mailingListTitle .int-en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-#homeConnect #mailingListTitle .he {
+#homeConnect #mailingListTitle .int-he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
 #homeConnect #mailingListEmail {
@@ -473,11 +473,11 @@
   text-decoration: none;
   display: inline-block; /*so this does not inherit the underline from the parent a*/
 }
-#homePage #homeMobile .button .en {
+#homePage #homeMobile .button .int-en {
   margin-left: 15px;
   margin-right: auto;
 }
-#homePage #homeMobile .button .he{
+#homePage #homeMobile .button .int-he{
   margin-right: 15px;
   margin-left: auto;
 }
@@ -565,10 +565,10 @@
 #profilePage  #followMe span{
   font-size: inherit;
 }
-#profilePage  .button span.en{
+#profilePage  .button span.int-en{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-#profilePage  .button span.he{
+#profilePage  .button span.int-he{
   font-family: "Open Sans Hebrew", sans-serif;
   font-size: inherit;
 }
@@ -590,10 +590,10 @@
 #activityList .topline {
   font-weight: normal;
 }
-#activityList .text.en, #activityList .text{
+#activityList .text.int-en, #activityList .text{
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
-#activityList .text.he{
+#activityList .text.int-he{
   font-family: "Taamey Frank", "Times New Roman", serif;
 }
 #activityList .time {
@@ -619,7 +619,7 @@
   width: 320px;
 }
 
-.registrationContent h1 span.en{
+.registrationContent h1 span.int-en{
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .registrationContent label {
@@ -702,10 +702,10 @@
 .registrationContent a.registration-links{
   margin-top: 20px;
 }
-.registrationContent a .en, .registrationContent button .en{
+.registrationContent a .int-en, .registrationContent button .int-en{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.registrationContent a .he, .registrationContent button .he{
+.registrationContent a .int-he, .registrationContent button .int-he{
   font-family: "Open Sans Hebrew", sans-serif;
 }
 /*#login.registrationContent #resetLink{
@@ -1267,18 +1267,18 @@
   direction: rtl;
   text-align: right;
 }
-#footer.english .he {
+#footer.interface-english .int-he {
   display: none;
 }
-#footer.english .en {
+#footer.interface-english .int-en {
   display: inline;
 }
-#footer.hebrew .he {
+#footer.hebrew .int-he {
   display: inline;
   font-size: 120%;
   text-align: right;
 }
-#footer.hebrew .en {
+#footer.hebrew .int-en {
   display: none;
 }
 #footerInner {
@@ -1290,10 +1290,10 @@
   vertical-align: top;
   width: 160px;
 }
-#footer.english .section {
+#footer.interface-english .section {
   text-align: left;  
 }
-#footer.hebrew .section {
+#footer.interface-hebrew .section {
   text-align: right;
 }
 #footer .section .header {
@@ -1547,10 +1547,10 @@
   align-items: flex-start;
   -webkit-align-items: flex-start;
 }
-#visualGardenPage #results-container .he {
+#visualGardenPage #results-container .int-he {
   font-family: 'Taamey Frank', 'Times New Roman', serif;
 }
-#visualGardenPage .en {
+#visualGardenPage .int-en {
   font-family: adobe-garamond-pro, Georgia, serif;
 }
 #visualGardenPage h1 {
@@ -1563,11 +1563,11 @@
   float: left;
   direction: ltr;
 }
-body.hebrew #visualGardenPage .reset {
+body.interface-hebrew #visualGardenPage .reset {
   direction: rtl;
   float: right;
 }
-body.hebrew #visualGardenPage .filter-title .reset {
+body.interface-hebrew #visualGardenPage .filter-title .reset {
   float: none;
   direction: ltr;
 }

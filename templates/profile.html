@@ -72,16 +72,16 @@
 			<div id="buttons">
 				{% if profile.id != request.user.id %}
 					<div id="messageMe" class="button white">
-						<span class="en">Message</span>
-						<span class="he">שלח הודעה</span>
+						<span class="int-en">Message</span>
+						<span class="int-he">שלח הודעה</span>
 					</div>
 					<div id="followMe" class="{% if following %}following{% else %}follow{% endif %} button blue">
-						<span class="en">
+						<span class="int-en">
                             <span class="en follow">Follow</span>
                             <span class="en state following">Following</span>
                             <span class="en unfollow">Unfollow</span>
                         </span>
-                        <span class="he">
+                        <span class="int-he">
                             <span class="he follow">עקוב</span>
                             <span class="he state following">עוקב</span>
                             <span class="he unfollow">הפסק לעקוב</span>

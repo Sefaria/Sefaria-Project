@@ -7,8 +7,8 @@
 <div id="register" class="biReady registrationContent static">
     <div class="inner">
         <h1>
-          <span class="en">Create Your Account</span>
-          <span class="he">צור חשבון</span>
+          <span class="int-en">Create Your Account</span>
+          <span class="int-he">צור חשבון</span>
         </h1>
         <form id="register-form" action="{% url register %}" method="post" autocomplete="false">
         {% csrf_token %}
@@ -17,13 +17,13 @@
             <input type="hidden" name="next" value="{{ next }}" />
         {% endif %}
         <button type="submit" class="sans">
-            <span class="en">Create Account</span>
-            <span class="he">צור חשבון</span>
+            <span class="int-en">Create Account</span>
+            <span class="int-he">צור חשבון</span>
         </button>
         </form>
         <a class="registration-links" href="{% url login %}{% if next %}?next={{ next }}{% endif %}">
-          <span class="en">Already have an account? Log in</span>
-          <span class="he">יש לך חשבון כבר? התחבר</span>
+          <span class="int-en">Already have an account? Log in</span>
+          <span class="int-he">יש לך חשבון כבר? התחבר</span>
         </a>
     </div>
 </div>

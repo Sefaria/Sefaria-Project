@@ -8,12 +8,12 @@
     <div id="login" class="biReady registrationContent static">
         <div class="inner">
             <p id="message">
-                <span class="en">You are already logged in as </span>
-                <span class="he">הנך מחובר כבר בתור</span>
+                <span class="int-en">You are already logged in as </span>
+                <span class="int-he">הנך מחובר כבר בתור</span>
                 {{ user.email }}.
                 <a href="{% url logout %}">
-                    <span class="en">Logout.</span>
-                    <span class="he">התנתק.</span>
+                    <span class="int-en">Logout.</span>
+                    <span class="int-he">התנתק.</span>
                 </a>
             </p>
         </div>
@@ -25,13 +25,13 @@
         <div class="inner">
             {% if message %}<p id="message">{{ message }}</p>{% endif %}
             <h1>
-                <span class="en">Login to Sefaria</span>
-                <span class="he">התחבר לספאריה</span>
+                <span class="int-en">Login to Sefaria</span>
+                <span class="int-he">התחבר לספאריה</span>
             </h1>
             {% if form.errors %}
             <p class="error">
-                <span class="en">Your username and password didn't match. Please try again.</span>
-                <span class="he">בעיה בשם המשתמש או בסיסמא, אנא נסה שוב.</span>
+                <span class="int-en">Your username and password didn't match. Please try again.</span>
+                <span class="int-he">בעיה בשם המשתמש או בסיסמא, אנא נסה שוב.</span>
             </p>
             {% endif %}
 
@@ -48,18 +48,18 @@
                 </p>
 
                 <button type="submit" class="sans">
-                    <span class="en">Login</span>
-                    <span class="he">התחבר</span>
+                    <span class="int-en">Login</span>
+                    <span class="int-he">התחבר</span>
                 </button>
                 <a class="registration-links" href="{% url password_reset %}" id="resetLink">
-                    <span class="en">Forgot your password?</span>
-                    <span class="he">שכחתי את הסיסמא שלי</span>
+                    <span class="int-en">Forgot your password?</span>
+                    <span class="int-he">שכחתי את הסיסמא שלי</span>
                 </a>
                 <input type="hidden" name="next" value="{{ next }}" />
             </form>
             <a class="registration-links" href="{% url register %}{% if next %}?next={{ next }}{% endif %}">
-                <span class="en">Create a new account</span>
-                <span class="he">חדש? צור חשבון משתמש חדש</span>
+                <span class="int-en">Create a new account</span>
+                <span class="int-he">חדש? צור חשבון משתמש חדש</span>
 
             </a>
 	    </div>
