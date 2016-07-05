@@ -104,23 +104,23 @@
 							{% include "gdocs_text_source.html" with source=source lang="en" boxed=sheet.options.boxed %}
 						{% else %}
 							{% if source.options.sourceLayout == "stacked" %}
-								{% if source.options.sourceLangLayout == "heRight" %}
-									{% include "gdocs_text_source.html" with source=source lang="en" boxed=sheet.options.boxed %}
+								{% if source.options.sourceLangLayout == "heLeft" %}
 									{% include "gdocs_text_source.html" with source=source lang="he" boxed=sheet.options.boxed %}
+									{% include "gdocs_text_source.html" with source=source lang="en" boxed=sheet.options.boxed %}
 								{% else %}
-									{% include "gdocs_text_source.html" with source=source lang="he" boxed=sheet.options.boxed %}
 									{% include "gdocs_text_source.html" with source=source lang="en" boxed=sheet.options.boxed %}
+									{% include "gdocs_text_source.html" with source=source lang="he" boxed=sheet.options.boxed %}
 								{% endif %}
 							{% else %}
 								<table border="0"><tr><td>
-								{% if source.options.sourceLangLayout == "heRight" %}
-									{% include "gdocs_text_source.html" with source=source lang="en" boxed=sheet.options.boxed %}
-									</td><td>
+								{% if source.options.sourceLangLayout == "heLeft" %}
 									{% include "gdocs_text_source.html" with source=source lang="he" boxed=sheet.options.boxed %}
+									</td><td>
+									{% include "gdocs_text_source.html" with source=source lang="en" boxed=sheet.options.boxed %}
 								{% else %}
-									{% include "gdocs_text_source.html" with source=source lang="he" boxed=sheet.options.boxed %}
-									</td><td>
 									{% include "gdocs_text_source.html" with source=source lang="en" boxed=sheet.options.boxed %}
+									</td><td>
+									{% include "gdocs_text_source.html" with source=source lang="he" boxed=sheet.options.boxed %}
 								{% endif %}
 								</td></tr></table>
 							{% endif %}
@@ -143,14 +143,14 @@
 									<div class="en">{{ source.outsideBiText.en }}</div>
 								{% else %}
 									<table border="0"><tr><td>
-									{% if sheet.options.langLayout == "heRight" %}
-										<div class="en">{{ source.outsideBiText.en }}</div>
-										</td><td>
+									{% if sheet.options.langLayout == "heLeft" %}
 										<div class="he">{{ source.outsideBiText.he }}</div>
+										</td><td>
+										<div class="en">{{ source.outsideBiText.en }}</div>
 									{% else %}
-										<div class="he">{{ source.outsideBiText.he }}</div>
-										</td><td>
 										<div class="en">{{ source.outsideBiText.en }}</div>
+										</td><td>
+										<div class="he">{{ source.outsideBiText.he }}</div>
 									{% endif %}
 									</td></tr></table>
 								{% endif %}
