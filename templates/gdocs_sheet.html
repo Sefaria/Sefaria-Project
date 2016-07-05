@@ -99,28 +99,28 @@
 						<div class="customTitle">{{ source.customTitle }}</div>
 
 						{% if source.options.sourceLanguage == "hebrew" %}
-							{% include "gdocs_text_source.html" with source=source lang="he" %}
+							{% include "gdocs_text_source.html" with source=source lang="he" boxed=sheet.options.boxed %}
 						{% elif source.options.sourceLanguage == "english" %}
-							{% include "gdocs_text_source.html" with source=source lang="en" %}
+							{% include "gdocs_text_source.html" with source=source lang="en" boxed=sheet.options.boxed %}
 						{% else %}
 							{% if source.options.sourceLayout == "stacked" %}
 								{% if source.options.sourceLangLayout == "heRight" %}
-									{% include "gdocs_text_source.html" with source=source lang="en" %}
-									{% include "gdocs_text_source.html" with source=source lang="he" %}
+									{% include "gdocs_text_source.html" with source=source lang="en" boxed=sheet.options.boxed %}
+									{% include "gdocs_text_source.html" with source=source lang="he" boxed=sheet.options.boxed %}
 								{% else %}
-									{% include "gdocs_text_source.html" with source=source lang="he" %}
-									{% include "gdocs_text_source.html" with source=source lang="en" %}
+									{% include "gdocs_text_source.html" with source=source lang="he" boxed=sheet.options.boxed %}
+									{% include "gdocs_text_source.html" with source=source lang="en" boxed=sheet.options.boxed %}
 								{% endif %}
 							{% else %}
 								<table border="0"><tr><td>
 								{% if source.options.sourceLangLayout == "heRight" %}
-									{% include "gdocs_text_source.html" with source=source lang="en" %}
+									{% include "gdocs_text_source.html" with source=source lang="en" boxed=sheet.options.boxed %}
 									</td><td>
-									{% include "gdocs_text_source.html" with source=source lang="he" %}
+									{% include "gdocs_text_source.html" with source=source lang="he" boxed=sheet.options.boxed %}
 								{% else %}
-									{% include "gdocs_text_source.html" with source=source lang="he" %}
+									{% include "gdocs_text_source.html" with source=source lang="he" boxed=sheet.options.boxed %}
 									</td><td>
-									{% include "gdocs_text_source.html" with source=source lang="en" %}
+									{% include "gdocs_text_source.html" with source=source lang="en" boxed=sheet.options.boxed %}
 								{% endif %}
 								</td></tr></table>
 							{% endif %}
