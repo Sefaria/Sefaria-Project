@@ -762,14 +762,14 @@
 #donatePage .faq p.answer:before{
   content: "A)";
 }
-.hebrew #donatePage .faq p.answer{
+.interface-hebrew #donatePage .faq p.answer{
   margin-right: 40px;
   text-indent: -20px;
 }
-.hebrew #donatePage .faq p.question:before{
+.interface-hebrew #donatePage .faq p.question:before{
   content: "ש)";
 }
-.hebrew #donatePage .faq p.answer:before{
+.interface-hebrew #donatePage .faq p.answer:before{
   content: "ת)";
 }
 
@@ -1060,14 +1060,14 @@
   font-size: 14px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.hebrew #accountSettingsPage.static.biReady .toggleOption:first-child{
+.interface-hebrew #accountSettingsPage.static.biReady .toggleOption:first-child{
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
   border-right: 1px solid #999;
   border-top-left-radius: 0px;
   border-bottom-left-radius: 0px;
 }
-.hebrew #accountSettingsPage.static.biReady .toggleOption:last-child{
+.interface-hebrew #accountSettingsPage.static.biReady .toggleOption:last-child{
   border-top-left-radius: 4px;
   border-bottom-left-radius: 4px;
   border-top-right-radius: 0px;
@@ -1263,7 +1263,7 @@
 #footer a {
   display: block;
 }
-#footer.hebrew {
+#footer.interface-hebrew {
   direction: rtl;
   text-align: right;
 }
@@ -1273,12 +1273,12 @@
 #footer.interface-english .int-en {
   display: inline;
 }
-#footer.hebrew .int-he {
+#footer.interface-hebrew .int-he {
   display: inline;
   font-size: 120%;
   text-align: right;
 }
-#footer.hebrew .int-en {
+#footer.interface-hebrew .int-en {
   display: none;
 }
 #footerInner {
@@ -1308,7 +1308,7 @@
   width: 210px;
   border-left: 1px solid #EAEAEA;
 }
-#footer.hebrew .section.last {
+#footer.interface-hebrew .section.last {
   float: left;
   text-align: left;
   border-left: none;
