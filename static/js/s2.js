@@ -6701,8 +6701,8 @@ var LexiconPanel = React.createClass({
   componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
     if (this.props.selectedWords != nextProps.selectedWords) {
       this.clearLookups();
+      this.getLookups(nextProps.selectedWords, nextProps.oref);
     }
-    this.getLookups(nextProps.selectedWords, nextProps.oref);
   },
   clearLookups: function clearLookups() {
     this.setState({
@@ -6717,6 +6717,10 @@ var LexiconPanel = React.createClass({
           loaded: true,
           entries: data
         });
+
+        var action = this.state.entries.length == 0 ? "Open No Result" : "Open";
+        action += " / " + oref.categories.join("/") + "/" + oref.book;
+        Sefaria.site.track.event("Lexicon", action, words);
       }.bind(this));
     }
   },
