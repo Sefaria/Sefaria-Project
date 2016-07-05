@@ -265,10 +265,11 @@ var ReaderApp = React.createClass({
 
     // Get top level categories
     var primaryCats = panels.map(function (panel) {
-      if (!panel.refs.length || panel.mode === "Connections") {
+      var ref = panel.refs.length ? panel.refs.slice(-1)[0] : panel.bookRef;
+      if (!ref || panel.mode === "Connections") {
         return "";
       }
-      var data = Sefaria.index(Sefaria.parseRef(panel.refs.slice(-1)[0]).book);
+      var data = Sefaria.index(Sefaria.parseRef(ref).book);
       return data.categories[0] === "Commentary" ? data.categories[1] + " Commentary" : data.categories[0];
     }).filter(function (r) {
       return !!r;
@@ -277,7 +278,7 @@ var ReaderApp = React.createClass({
 
     // Get panel content languages (use same criterion as top level categories)
     var contentLanguages = panels.map(function (panel) {
-      return panel.refs.length && panel.mode !== "Connections" ? panel.settings.language : "";
+      return (panel.refs.length || panel.bookRef) && panel.mode !== "Connections" ? panel.settings.language : "";
     }).filter(function (r) {
       return !!r;
     }).join(" | ");
@@ -957,7 +958,7 @@ var ReaderApp = React.createClass({
     this.saveOpenPanelsToRecentlyViewed();
     var panel = this.makePanelState({ menuOpen: "search", searchQuery: query, searchFiltersValid: false });
     if (this.props.multiPanel) {
-      this.setState({ header: panel });
+      this.setState({ header: panel, panels: [] });
     } else {
       this.setState({ panels: [panel] });
     }
@@ -1255,6 +1256,9 @@ var Header = React.createClass({
   submitSearch: function submitSearch(query, skipNormalization) {
     var override = query.match(this._searchOverrideRegex());
     if (override) {
+      if (Sefaria.site) {
+        Sefaria.site.track.event("Search", "Search Box Navigation - Book Override", override[1]);
+      }
       this.showSearch(override[1]);
       return;
     }
@@ -1269,11 +1273,15 @@ var Header = React.createClass({
       }
     }
     if (Sefaria.isRef(query)) {
-      this.handleRefClick(query);
+      var action = index ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
       if (Sefaria.site) {
-        Sefaria.site.track.ui("Nav Query");
+        Sefaria.site.track.event("Search", action, query);
       }
+      this.handleRefClick(query);
     } else {
+      if (Sefaria.site) {
+        Sefaria.site.track.event("Search", "Search Box Search", query);
+      }
       this.showSearch(query);
     }
   },
@@ -7826,14 +7834,13 @@ var SearchResultList = React.createClass({
       type: "sheet",
       size: this.initialQuerySize,
       success: function (data) {
-        //debugger;
         this.updateRunningQuery("sheet", null);
-        if (this.isMounted()) {
-          this.setState({
-            hits: extend(this.state.hits, { "sheet": data.hits.hits }),
-            totals: extend(this.state.totals, { "sheet": data.hits.total })
-          });
-        }
+        this.setState({
+          hits: extend(this.state.hits, { "sheet": data.hits.hits }),
+          totals: extend(this.state.totals, { "sheet": data.hits.total })
+        });
+        Sefaria.site.track.event("Search", "Query: sheet", props.query, data.hits.total);
+
         if (isCompletionStep) {
           this._loadRemainder("sheet", this.initialQuerySize, data.hits.total, data.hits.hits);
         }
@@ -7848,24 +7855,24 @@ var SearchResultList = React.createClass({
       applied_filters: request_applied,
       size: this.initialQuerySize,
       success: function (data) {
-        //debugger;
         this.updateRunningQuery("text", null);
-        if (this.isMounted()) {
-          var hitArray = this._process_text_hits(data.hits.hits);
-          this.setState({
-            hits: extend(this.state.hits, { "text": hitArray }),
-            totals: extend(this.state.totals, { "text": data.hits.total })
-          });
-          if (data.aggregations) {
-            if (data.aggregations.category) {
-              var ftree = this._buildFilterTree(data.aggregations.category.buckets);
-              var orphans = this._applyFilters(ftree, this.props.appliedFilters);
-              this.props.registerAvailableFilters(ftree.availableFilters, ftree.registry, orphans);
-            }
+        var hitArray = this._process_text_hits(data.hits.hits);
+        this.setState({
+          hits: extend(this.state.hits, { "text": hitArray }),
+          totals: extend(this.state.totals, { "text": data.hits.total })
+        });
+        var filter_label = request_applied && request_applied.length > 0 ? " - " + request_applied.join("|") : "";
+        var query_label = props.query + filter_label;
+        Sefaria.site.track.event("Search", "Query: text", query_label, data.hits.total);
+        if (data.aggregations) {
+          if (data.aggregations.category) {
+            var ftree = this._buildFilterTree(data.aggregations.category.buckets);
+            var orphans = this._applyFilters(ftree, this.props.appliedFilters);
+            this.props.registerAvailableFilters(ftree.availableFilters, ftree.registry, orphans);
           }
-          if (isCompletionStep) {
-            this._loadRemainder("text", this.initialQuerySize, data.hits.total, hitArray);
-          }
+        }
+        if (isCompletionStep) {
+          this._loadRemainder("text", this.initialQuerySize, data.hits.total, hitArray);
         }
       }.bind(this),
       error: this._handle_error
@@ -8489,6 +8496,7 @@ var SearchTextResult = React.createClass({
     if (this.props.onResultClick) {
       event.preventDefault();
       var s = this.props.data._source;
+      Sefaria.site.track.event("Search", "Search Result Text Click", this.props.query + ' - ' + s.ref + '/' + s.version + '/' + s.lang);
       this.props.onResultClick(s.ref, s.version, s.lang, { "highlight": this.props.query }); //highlight not yet handled, above in ReaderApp.handleNavigationClick()
     }
   },
@@ -8584,7 +8592,22 @@ var SearchSheetResult = React.createClass({
     query: React.PropTypes.string,
     data: React.PropTypes.object
   },
-
+  handleSheetClick: function handleSheetClick(e) {
+    var href = e.target.getAttribute("href");
+    e.preventDefault();
+    var s = this.props.data._source;
+    Sefaria.site.track.event("Search", "Search Result Sheet Click", this.props.query + ' - ' + s.sheetId, { hitCallback: function hitCallback() {
+        return window.location = href;
+      } });
+  },
+  handleProfileClick: function handleProfileClick(e) {
+    var href = e.target.getAttribute("href");
+    e.preventDefault();
+    var s = this.props.data._source;
+    Sefaria.site.track.event("Search", "Search Result Sheet Owner Click", this.props.query + ' - ' + s.sheetId + ' - ' + s.owner_name, { hitCallback: function hitCallback() {
+        return window.location = href;
+      } });
+  },
   render: function render() {
     var data = this.props.data;
     var s = data._source;
@@ -8605,7 +8628,7 @@ var SearchSheetResult = React.createClass({
         { className: 'result_img_box' },
         React.createElement(
           'a',
-          { href: s.profile_url },
+          { href: s.profile_url, onClick: this.handleProfileClick },
           React.createElement('img', { className: 'owner_image', src: s.owner_image })
         )
       ),
@@ -8614,12 +8637,12 @@ var SearchSheetResult = React.createClass({
         { className: 'result_text_box' },
         React.createElement(
           'a',
-          { href: s.profile_url, className: 'owner_name' },
+          { href: s.profile_url, onClick: this.handleProfileClick, className: 'owner_name' },
           s.owner_name
         ),
         React.createElement(
           'a',
-          { className: 'result-title', href: href },
+          { className: 'result-title', href: href, onClick: this.handleSheetClick },
           clean_title
         ),
         React.createElement(

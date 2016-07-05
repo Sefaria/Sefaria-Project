@@ -2198,9 +2198,11 @@ Sefaria.hebrew = {
 Sefaria.site = { 
   track: {
     // Helper functions for event tracking (with Google Analytics and Mixpanel)
-    event: function(category, action, label) {
+    event: function(...args) {
+        // category, action, label, value, options
+        // https://developers.google.com/analytics/devguides/collection/analyticsjs/command-queue-reference#send
         // Generic event tracker
-        ga('send', 'event', category, action, label);
+        ga('send', 'event', ...args);
         //mixpanel.track(category + " " + action, {label: label});
         //console.log([category, action, label].join(" / "));
     },
@@ -2220,19 +2222,8 @@ Sefaria.site = {
     contentLanguage(language) {
         ga('set', 'contentGroup5', language);
     },
-    ui: function(label) {
-        // Track some action in the Reader UI
-        Sefaria.site.track.event("Reader", "UI", label);
-    },
-    action: function(label) {
-        // Track an action from the Reader
-        Sefaria.site.track.event("Reader", "Action", label);     
-    },
     sheets: function(action, label) {
         Sefaria.site.track.event("Sheets", action, label);
-    },
-    search: function(query) {
-        Sefaria.site.track.event("Search", "Search", query);
     },
     exploreUrl: function(url) {
         Sefaria.site.track.event("Explorer", "Open", url);

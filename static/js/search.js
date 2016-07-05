@@ -402,7 +402,7 @@ $.extend(Sefaria.search, {
 
             $(".searchInput").blur();
 
-            Sefaria.site.track.search(this.query);
+            Sefaria.site.track.event("Search","Search",this.query);
         }
     }
 );
