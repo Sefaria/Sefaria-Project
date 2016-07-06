@@ -63,7 +63,7 @@
         {% include "header.html" %}
     {% endif %}
     <div class="wrapper">
-        <div id="content" class="interface-{{ interfaceLang }}">
+        <div id="content" {% if S2 or request.flavor == "mobile "%}class="interface-{{ interfaceLang }}" {% else %} class="{{ interfaceLang }}" {% endif %}>
             {% if not S2 and not request.flavour == "mobile" %}
                 {% include "header.html" %}
                 {% include "elements/login_prompt.html" with msg="Please log in to edit." %}
