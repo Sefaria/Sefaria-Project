@@ -1039,8 +1039,7 @@ var ReaderApp = React.createClass({
           messageName={Sefaria.interruptingMessage.name}
           messageHTML={Sefaria.interruptingMessage.html}
           onClose={this.rerender} />) : null;
-
-    var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel});
+    var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel, [`interface-${this.props.interfaceLang}`]: true});
     return (<div className={classes}>
               {header}
               {panels}
@@ -2299,18 +2298,18 @@ var ReaderNavigationMenu = React.createClass({
       var sheetsStyle = {"borderColor": Sefaria.palette.categoryColor("Sheets")};
       var resources = [(<a className="resourcesLink" style={sheetsStyle} href="/sheets" onClick={this.props.openMenu.bind(null, "sheets")}>
                         <img src="/static/img/sheet-icon.png" />
-                        <span className="en">Source Sheets</span>
-                        <span className="he">דפי מקורות</span>
+                        <span className="int-en">Source Sheets</span>
+                        <span className="int-he">דפי מקורות</span>
                       </a>),
                      (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/visualizations">
                         <img src="/static/img/visualizations-icon.png" />
-                        <span className="en">Visualizations</span>
-                        <span className="he">חזותיים</span>
+                        <span className="int-en">Visualizations</span>
+                        <span className="int-he">חזותיים</span>
                       </a>),
                     (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/people">
                         <img src="/static/img/authors-icon.png" />
-                        <span className="en">Authors</span>
-                        <span className="he">רשימת מחברים</span>
+                        <span className="int-en">Authors</span>
+                        <span className="int-he">רשימת מחברים</span>
                       </a>)];
       resources = (<div className="readerNavCalendar"><TwoOrThreeBox content={resources} width={this.width} /></div>);
 
@@ -2350,8 +2349,8 @@ var ReaderNavigationMenu = React.createClass({
 
       var title = (<h1>
                     <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
-                    <span className="en">The Sefaria Library</span>
-                    <span className="he">האוסף של ספאריה</span>
+                    <span className="int-en">The Sefaria Library</span>
+                    <span className="int-he">האוסף של ספאריה</span>
                   </h1>);
 
       var classes = classNames({readerNavMenu:1, noHeader: !this.props.hideHeader, compare: this.props.compare, home: this.props.home });
@@ -2385,8 +2384,8 @@ var ReaderNavigationMenuSection = React.createClass({
       <div className="readerNavSection">
         
         {this.props.title ? (<h2>
-          <span className="en">{this.props.title}</span>
-          <span className="he">{this.props.heTitle}</span>
+          <span className="int-en">{this.props.title}</span>
+          <span className="int-he">{this.props.heTitle}</span>
         </h2>) : null }
         {this.props.content}
       </div>

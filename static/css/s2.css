@@ -390,7 +390,7 @@ body.dark {
 }
 .textColumn .loadingMessage.base.next.final {
 }
-.he {
+.he, .int-he {
   font-size: 120%;
 }
 .readerPanel .he {
@@ -399,6 +399,9 @@ body.dark {
   text-align: right;
 }
 .readerPanel.hebrew {
+  direction: rtl;
+}
+.interface-hebrew .readerPanel .readerNavMenu{
   direction: rtl;
 }
 .readerPanel.english .he {
@@ -497,7 +500,7 @@ body.dark {
 /* Adjusting for 17px scrollbars, to keep content centered */
 .multiPanel .english .readerNavMenu .content, .multiPanel .bilingual .readerNavMenu .content {
 }
-.multiPanel .hebrew .readerNavMenu .content {
+.interface-hebrew.multiPanel .readerNavMenu .content {
   padding-right: 40px;
 }
 .multiPanel .readerNavMenu .content {
@@ -616,10 +619,10 @@ h1 .languageToggle .he {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 22px;
 }
-.readerNavMenu h1 .en {
+.readerNavMenu h1 .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
-.readerNavMenu h1 .he {
+.readerNavMenu h1 .int-he {
   font-family: "Taamey Frank", "Times New Roman", serif;
 }
 @media (max-width: 450px) {
@@ -3008,3 +3011,17 @@ color: #999;
 .tagString a:last-child:after {
 content: "";
 }
+/*** Interface lang - merge with static.css? ***/
+.readerApp.interface-hebrew .int-en{
+  display: none;
+}
+.readerApp.interface-english .int-he{
+  display: none;
+}
+.int-he{
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+.int-en{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+/***  ******************************************* ***/
