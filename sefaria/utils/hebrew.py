@@ -396,6 +396,7 @@ def hebrew_term(s):
 		"Kabbalah":             u"קבלה",
 		"Halakha":              u"הלכה",
 		"Halakhah":             u"הלכה",
+		"Law":					u"הלכה",
 		"Midrash":              u"מדרש",
 		"Aggadic Midrash":      u"מדרש אגדה",
 		"Halachic Midrash":     u"מדרש הלכה",
