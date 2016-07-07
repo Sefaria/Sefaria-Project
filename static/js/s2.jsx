@@ -2444,12 +2444,19 @@ var BlockLink = React.createClass({
   propTypes: {
     title:    React.PropTypes.string,
     heTitle:  React.PropTypes.string,
-    target:   React.PropTypes.string
+    target:   React.PropTypes.string,
+    interfaceLink: React.PropTypes.bool
   },
-  render: function() { 
+  getDefaultProps: function() {
+    return {
+      interfaceLink: false
+    };
+  },
+  render: function() {
+    let interfaceClass = this.props.interfaceLink ? 'int-' : '';
     return (<a className="blockLink" href={this.props.target}>
-              <span className="en">{this.props.title}</span>
-              <span className="he">{this.props.heTitle}</span>
+              <span className={`${interfaceClass}en`}>{this.props.title}</span>
+              <span className={`${interfaceClass}he`}>{this.props.heTitle}</span>
            </a>);
   }
 });
@@ -6820,57 +6827,57 @@ var AccountPanel = React.createClass({
   render: function() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
     var accountContent = [
-      (<BlockLink target="/my/profile" title="Profile" heTitle="פרופיל"/>),
-      (<BlockLink target="/sheets/private" title="My Source Sheets" heTitle="דפי מקורות" />),
-      (<BlockLink target="/coming-soon?my-notes" title="My Notes" heTitle="רשומות" />),
-      (<BlockLink target="/coming-soon?reading-history" title="Reading History" heTitle="היסטוריה קריאה" />),
-      (<BlockLink target="/settings/account" title="Settings" heTitle="הגדרות" />),
-      (<BlockLink target="/logout" title="Log Out" heTitle="ניתוק" />)
+      (<BlockLink interfaceLink={true} target="/my/profile" title="Profile" heTitle="פרופיל"/>),
+      (<BlockLink interfaceLink={true} target="/sheets/private" title="My Source Sheets" heTitle="דפי מקורות" />),
+      (<BlockLink interfaceLink={true} target="/coming-soon?my-notes" title="My Notes" heTitle="רשומות" />),
+      (<BlockLink interfaceLink={true} target="/coming-soon?reading-history" title="Reading History" heTitle="היסטוריה קריאה" />),
+      (<BlockLink interfaceLink={true} target="/settings/account" title="Settings" heTitle="הגדרות" />),
+      (<BlockLink interfaceLink={true} target="/logout" title="Log Out" heTitle="ניתוק" />)
     ];
     accountContent = (<TwoOrThreeBox content={accountContent} width={width} />);
 
     var learnContent = [
-      (<BlockLink target="/about" title="About" heTitle="אודות" />),
-      (<BlockLink target="/help" title="Help" heTitle="עזרה" />),
-      (<BlockLink target="http://blog.sefaria.org" title="Blog" heTitle="בלוג" />),
-      (<BlockLink target="/faq" title="FAQ" heTitle="שאלות נפוצות" />),
-      (<BlockLink target="/educators" title="Educators" heTitle="מחנכים" />),
-      (<BlockLink target="/team" title="Team" heTitle="צוות" />)
+      (<BlockLink interfaceLink={true} target="/about" title="About" heTitle="אודות" />),
+      (<BlockLink interfaceLink={true} target="/help" title="Help" heTitle="עזרה" />),
+      (<BlockLink interfaceLink={true} target="http://blog.sefaria.org" title="Blog" heTitle="בלוג" />),
+      (<BlockLink interfaceLink={true} target="/faq" title="FAQ" heTitle="שאלות נפוצות" />),
+      (<BlockLink interfaceLink={true} target="/educators" title="Educators" heTitle="מחנכים" />),
+      (<BlockLink interfaceLink={true} target="/team" title="Team" heTitle="צוות" />)
     ];
     learnContent = (<TwoOrThreeBox content={learnContent} width={width} />);
 
     var contributeContent = [
-      (<BlockLink target="/activity" title="Recent Activity" heTitle="פעילות אחרונה" />),
-      (<BlockLink target="/metrics" title="Metrics" heTitle="מדדים" />),
-      (<BlockLink target="/contribute" title="Contribute" heTitle="הצטרפות לעשיה" />),
-      (<BlockLink target="/donate" title="Donate" heTitle="תרומות" />),
-      (<BlockLink target="/supporters" title="Supporters" heTitle="תומכים" />),
-      (<BlockLink target="/jobs" title="Jobs" heTitle="דרושים" />),
+      (<BlockLink interfaceLink={true} target="/activity" title="Recent Activity" heTitle="פעילות אחרונה" />),
+      (<BlockLink interfaceLink={true} target="/metrics" title="Metrics" heTitle="מדדים" />),
+      (<BlockLink interfaceLink={true} target="/contribute" title="Contribute" heTitle="הצטרפות לעשיה" />),
+      (<BlockLink interfaceLink={true} target="/donate" title="Donate" heTitle="תרומות" />),
+      (<BlockLink interfaceLink={true} target="/supporters" title="Supporters" heTitle="תומכים" />),
+      (<BlockLink interfaceLink={true} target="/jobs" title="Jobs" heTitle="דרושים" />),
     ];
     contributeContent = (<TwoOrThreeBox content={contributeContent} width={width} />);
 
     var connectContent = [
-      (<BlockLink target="https://groups.google.com/forum/?fromgroups#!forum/sefaria" title="Forum" heTitle="פורום" />),
-      (<BlockLink target="http://www.facebook.com/sefaria.org" title="Facebook" heTitle="פייסבוק" />),
-      (<BlockLink target="http://twitter.com/SefariaProject" title="Twitter" heTitle="טוויטר" />),      
-      (<BlockLink target="http://www.youtube.com/user/SefariaProject" title="YouTube" heTitle="יוטיוב" />),
-      (<BlockLink target="http://www.github.com/Sefaria" title="GitHub" heTitle="גיטהאב" />),
-      (<BlockLink target="mailto:hello@sefaria.org" title="Email" heTitle='אימייל' />)
+      (<BlockLink interfaceLink={true} target="https://groups.google.com/forum/?fromgroups#!forum/sefaria" title="Forum" heTitle="פורום" />),
+      (<BlockLink interfaceLink={true} target="http://www.facebook.com/sefaria.org" title="Facebook" heTitle="פייסבוק" />),
+      (<BlockLink interfaceLink={true} target="http://twitter.com/SefariaProject" title="Twitter" heTitle="טוויטר" />),
+      (<BlockLink interfaceLink={true} target="http://www.youtube.com/user/SefariaProject" title="YouTube" heTitle="יוטיוב" />),
+      (<BlockLink interfaceLink={true} target="http://www.github.com/Sefaria" title="GitHub" heTitle="גיטהאב" />),
+      (<BlockLink interfaceLink={true} target="mailto:hello@sefaria.org" title="Email" heTitle='אימייל' />)
     ];
     connectContent = (<TwoOrThreeBox content={connectContent} width={width} />);
 
     var classes = {accountPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
-    classes[this.props.interfaceLang] = 1;
+    /*classes[this.props.interfaceLang] = 1;*/
     var classStr = classNames(classes);
     return (
       <div className={classStr}>
         <div className="content">
           <div className="contentInner">
             <h1>
-              <span className="en">Account</span>
-              <span className="he">חשבון משתמש</span>
+              <span className="int-en">Account</span>
+              <span className="int-he">חשבון משתמש</span>
             </h1>
-           <ReaderNavigationMenuSection content={accountContent} />
+           <ReaderNavigationMenuSection content={accountContent} inter />
            <ReaderNavigationMenuSection title="Learn" heTitle="לימוד" content={learnContent} />
            <ReaderNavigationMenuSection title="Contribute" heTitle="עשייה" content={contributeContent} />
            <ReaderNavigationMenuSection title="Connect" heTitle="התחברות" content={connectContent} />
@@ -6937,15 +6944,15 @@ var NotificationsPanel = React.createClass({
   },
   render: function() {
     var classes = {notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
-    classes[this.props.interfaceLang] = 1;
+    /*classes[this.props.interfaceLang] = 1;*/
     var classStr = classNames(classes);
     return (
       <div className={classStr}>
         <div className="content">
           <div className="contentInner">
             <h1>
-              <span className="en">Notifications</span>
-              <span className="he">התראות</span>
+              <span className="int-en">Notifications</span>
+              <span className="int-he">התראות</span>
             </h1>
             { Sefaria.loggedIn ? 
               (<div className="notificationsList" dangerouslySetInnerHTML={ {__html: Sefaria.notificationsHtml } }></div>) :

@@ -438,11 +438,11 @@ body.dark {
 .systemPanel.hebrew .content .en {
   display: none;
 }
-.systemPanel.english .content .en {
+.interace-english .systemPanel .content .int-en {
   display: inline;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.systemPanel.hebrew .content .he {
+.interface-hebrew .systemPanel .content .int-he {
   display: inline;
   font-family: "Open Sans Hebrew", sans-serif;
 }
