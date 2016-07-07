@@ -352,6 +352,8 @@ def hebrew_plural(s):
 	known = {
 		"Daf":      "Dappim",
 		"Mitzvah":  "Mitzvot",
+		"Negative Mitzvah": "Negative Mitzvot",
+		"Positive Mitzvah": "Positive Mitzvot",
 		"Mitsva":   "Mitzvot",
 		"Mesechet": "Mesechtot",
 		"Perek":    "Perokim",
@@ -439,6 +441,7 @@ def hebrew_term(s):
 		"Maharshal":		u'מהרש"ל',
 		"Gur Aryeh":		u'גור אריה',
 		"Tur and Commentaries": u'טור ומפרשים'
+
 	}
 
 	pseudo_categories = {
@@ -466,6 +469,10 @@ def hebrew_term(s):
 		"Chapters":         u"פרקים",
 		"Perek":            u"פרק",
 		"Line":             u"שורה",
+		"Negative Mitzvah": u"מצות לא תעשה",
+		"Positive Mitzvah": u"מצות עשה",
+		"Negative Mitzvot": u"מצוות לא תעשה",
+		"Positive Mitzvot": u"מצוות עשה",
 		"Daf":              u"דף",
 		"Paragraph":        u"פסקה",
 		"Parsha":           u"פרשה",
