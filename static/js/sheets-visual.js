@@ -34,9 +34,9 @@ function resizeZoomContainer() {
     }
 
     if (zoomScale > 1) {
-        marginOffset = 0
+        marginOffset = 0;
     } else {
-        marginOffset = parseFloat($("header").css("height"));
+        marginOffset = 53;
     }
 
     $("#container").css({
