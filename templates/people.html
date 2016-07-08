@@ -36,8 +36,8 @@
                     <h3>
                         <span class="int-en">{{ era.name_en }}</span>
                         <span class="int-he">{{ era.name_he }}</span>
-                        <span class="subtitle en"> {{ era.years_en }}</span>
-                        <span class="subtitle he"> {{ era.years_he }}</span>
+                        <span class="subtitle int-en"> {{ era.years_en }}</span>
+                        <span class="subtitle int-he"> {{ era.years_he }}</span>
                     </h3>
                     {% for r in era.people|partition_by:"2" %}
                         <div class="authors-row">

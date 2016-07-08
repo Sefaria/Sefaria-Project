@@ -150,8 +150,8 @@ def person_link(person):
 	"""
 	link = u'''
 		 <a href="/person/{}">
-			 <span class='en'>{}</span>
-			 <span class='he'>{}</span>
+			 <span class="int-en">{}</span>
+			 <span class="int-he">{}</span>
 		 </a>
 	'''.format(person.key, person.primary_name("en"), person.primary_name("he"))
 	return mark_safe(link)

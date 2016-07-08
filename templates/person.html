@@ -22,24 +22,24 @@
 <div id="personPage" class="biReady container static">
     <div class="inner">
         <h1>
-            <span class='en'>{{ primary_name.en }}</span>
-            <span class='he'>{{ primary_name.he }}</span>
+            <span class="int-en">{{ primary_name.en }}</span>
+            <span class="int-he">{{ primary_name.he }}</span>
         </h1>
         {% if time_period_name.en or time_period_name.he %}
             <h2 id="periodNameLine">
-                <span class='en'>{{ time_period_name.en }}</span>
-                <span class='he'>{{ time_period_name.he }}</span>
+                <span class="int-en">{{ time_period_name.en }}</span>
+                <span class="int-he">{{ time_period_name.he }}</span>
             </h2>
         {% endif %}
         <h2 id="yearLine">
-            <span class='en'>{{ time_period.en }}</span>
-            <span class='he'>{{ time_period.he }}</span>
+            <span class="int-en">{{ time_period.en }}</span>
+            <span class="int-he">{{ time_period.he }}</span>
         </h2>
         <div class="section">
             {% if enBio or heBio %}
             <p id="bio">
-                <span class='en'>{{ enBio }}</span>
-                <span class='he'>{{ heBio }}</span>
+                <span class="int-en">{{ enBio }}</span>
+                <span class="int-he">{{ heBio }}</span>
             </p>
             {% endif %}
         </div>
@@ -47,8 +47,8 @@
         <div class="section">
             <div id="external_links">
                 <h3>
-                    <span class='en'>Learn More</span>
-                    <span class='he'>להרחבה</span>
+                    <span class="int-en">Learn More</span>
+                    <span class="int-he">להרחבה</span>
                 </h3>
                 {% if enWikiLink and heWikiLink %}
                     <p>
@@ -78,8 +78,8 @@
             <div id="relationships">
                  {% for k, rel_type in relationships.items %}
                  <h3>
-                     <span class='en'>{{ rel_type.en }}</span>
-                     <span class='he'>{{ rel_type.he }}</span>
+                     <span class="int-en">{{ rel_type.en }}</span>
+                     <span class="int-he">{{ rel_type.he }}</span>
                  </h3>
                      {% for person in rel_type.people %}
                          <p>
@@ -91,8 +91,8 @@
             {% if indexes|length %}
             <div id="indexes">
                 <h3>
-                     <span class='en'>Works</span>
-                     <span class='he'>ספרים</span>
+                     <span class="int-en">Works</span>
+                     <span class="int-he">ספרים</span>
                 </h3>
                 {% for indx in indexes %}
                     <p>
@@ -103,8 +103,8 @@
             {% endif %}
             <div id="person-graphic-column">
                 <h3>
-                    <span class='en'>Map</span>
-                    <span class='he'>מפה</span>
+                    <span class="int-en">Map</span>
+                    <span class="int-he">מפה</span>
                 </h3>
                 {% if places %}
                     <div id="place-map"></div>
@@ -193,8 +193,8 @@
             .attr("stroke", "black")
             .attr("stroke-width", 1)
             .on("mouseover", function(d) {
-                var text = "<div><span class='en'>" + d.properties.en_name + "</span>" +
-                        "<span class='he'>" + d.properties.he_name + "</span></div>";
+                var text = "<div><span class="int-en">" + d.properties.en_name + "</span>" +
+                        "<span class="int-he">" + d.properties.he_name + "</span></div>";
                 text += "<div class='en'>";
                 for (var i = 0; i < d.properties.en_events.length; i++) {
                    text += "<div>" + d.properties.en_events[i] + "</div>";
