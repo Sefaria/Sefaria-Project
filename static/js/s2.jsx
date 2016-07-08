@@ -1028,7 +1028,7 @@ var ReaderApp = React.createClass({
     }
     var boxClasses = classNames({wrapBoxScroll: wrapBoxScroll});
     var boxWidth = wrapBoxScroll ? this.state.windowWidth + "px" : "100%";
-    var boxStyle = {width: boxWidth, direction: this.state.layoutOrientation};
+    var boxStyle = {width: boxWidth};
     panels = panels.length ? 
               (<div id="panelWrapBox" className={boxClasses} style={boxStyle}>
                 {panels}

@@ -1205,8 +1205,9 @@ Sefaria = extend(Sefaria, {
       "Maharsha":             'מהרשא',
       "Mishneh Torah":        "משנה תורה",
       "Shulchan Arukh":       "שולחן ערוך",
-      "Sheets":               "א sheets",
-      "Notes":                "א notes"
+      "Sheets":               "דפי מקורות",
+      "Notes":                "הערות",
+      "Community":            "קהילה"
     };
     return cat in categories ? categories[cat] : cat;
   },

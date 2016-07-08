@@ -47,6 +47,12 @@ body.dark {
   height: 100%;
   top: 0;
 }
+.interface-hebrew #panelWrapBox{
+  direction: rtl;
+}
+.interface-english #panelWrapBox{
+  direction: ltr;
+}
 #panelWrapBox {
   position: relative;
   padding-top: 54px;
@@ -367,6 +373,7 @@ body.dark {
 .multiPanel .english .textColumn, .multiPanel .bilingual .textColumn {
   padding-left: 17px;
 }
+
 .multiPanel .hebrew .textColumn {
   padding-right: 17px;
 }
@@ -398,9 +405,12 @@ body.dark {
   direction: rtl;
   text-align: right;
 }
-.readerPanel.hebrew {
+/*.readerPanel.hebrew {
   direction: rtl;
-}
+}*/
+/*.readerPanel.english {
+  direction: ltr;
+}*/
 .interface-hebrew .readerPanel .readerNavMenu{
   direction: rtl;
 }
@@ -416,6 +426,7 @@ body.dark {
 }
 .readerPanel.hebrew .he .enInHe {
   font-size: 83%;
+  unicode-bidi: isolate;
 }
 .readerPanel.hebrew .en {
   display: none;
@@ -1834,6 +1845,12 @@ a.resourcesLink {
 .bilingual .textRange.basetext .title .he {
   display: none;
 }
+.interface-hebrew .readerPanel.english .textRange, .interface-hebrew .readerPanel.english .categoryFilterGroup{
+  direction: ltr;
+}
+.interface-english .readerPanel.hebrew .textRange, .interface-english .readerPanel.hebrew .categoryFilterGroup{
+  direction: rtl;
+}
 .basetext .text {
   padding: 30px 44px;
   background-color: inherit;
@@ -3017,6 +3034,12 @@ content: "";
 }
 .readerApp.interface-english .int-he{
   display: none;
+}
+.readerApp.interface-hebrew .readerPanel{
+  direction: rtl;
+}
+.readerApp.interface-english .readerPanel{
+  direction: ltr;
 }
 .int-he{
   font-family: "Open Sans Hebrew", sans-serif;
