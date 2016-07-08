@@ -125,6 +125,12 @@
 .static .int-he {
   font-family: "Taamey Frank", "Times New Roman", serif;
 }
+.static .control-elem .int-en{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.static .control-elem .int-he{
+  font-family: "Open Sans Hebrew", sans-serif;
+}
 .interface-english .static .int-he {
   display: none;
 }
@@ -1636,3 +1642,5 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   stroke-width: 1;
   stroke: white;
 }
+
+

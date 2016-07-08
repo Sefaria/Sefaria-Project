@@ -21,11 +21,11 @@
 		</div>
 	</div>
 	<div id="emailNotifications" class="section">
-		<label>
+		<label class="control-elem">
             <span class="int-en">Email Frequency (Maximum)</span>
 			<span class="int-he">תדירות שליחת אימייל (מקסימלית)</span>
         </label>
-		<div class="toggleSet tripleOption">
+		<div class="toggleSet tripleOption control-elem">
 			<div data-value="daily" class="toggleOption {% if profile.settings.email_notifications == "daily" %} active{% endif %}">
                 <span class="int-en">Daily</span>
 			    <span class="int-he">יומית</span>
@@ -41,11 +41,11 @@
 		</div>
 	</div>
 	<div id="siteLanguage" class="section">
-		<label>
+		<label class="control-elem">
             <span class="int-en">Site Language</span>
 			<span class="int-he">שפת ממשק</span>
         </label>
-		<div class="toggleSet doubleOption">
+		<div class="toggleSet doubleOption control-elem">
 			<div data-value="english" class="toggleOption {% if profile.settings.interface_language == "english" %} active{% endif %}">English</div><!--
 			--><div data-value="hebrew" class="toggleOption {% if profile.settings.interface_language == "hebrew" %} active{% endif %}">עברית</div>
 		</div>
