@@ -34,9 +34,9 @@ function resizeZoomContainer() {
     }
 
     if (zoomScale > 1) {
-        marginOffset = 0
+        marginOffset = 0;
     } else {
-        marginOffset = 53 //parseFloat($(".headerInner").css("height"));
+        marginOffset = 53;
     }
 
     $("#container").css({
@@ -120,7 +120,6 @@ $(".sheetItem").resizable({
 
         var changeTop = ui.position.top - ui.originalPosition.top - marginOffset; // find change in top
         var newTop = ui.originalPosition.top + changeTop / zoomScale; // adjust new top by our zoomScale
-        console.log(marginOffset);
 
         ui.position.left = newLeft;
         ui.position.top = newTop;
