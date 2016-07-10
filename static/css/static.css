@@ -114,10 +114,15 @@
 }
 .static label .sub {
   font-size: 12px;
-  margin-left: 4px;
   color: #999;
   letter-spacing: normal;
   white-space: nowrap;
+}
+.static label .int-en .sub{
+  margin-left: 4px;
+}
+.static label .int-he .sub{
+  margin-right: 4px;
 }
 .static .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;  
@@ -931,7 +936,7 @@
 #editProfilePage #contactBox,
 #editProfilePage #sheetsBox,
 #editProfilePage #aboutBox {
-  text-align: left;
+  /*text-align: left;*/
   margin-bottom: 60px;
   display: flex;
   display: -webkit-flex;
@@ -1022,20 +1027,40 @@
 }
 #editProfilePage #addEducation {
   font-size: 12px;
-  font-style: italic;
+  /*font-style: italic;*/
   color: #555;
-  margin-left: 24px;
   margin-top: 4px;
   cursor: pointer;
+  width: 100%;
+  border-radius: 4px;
+  padding: 15px 0px;
+  border: 1px solid #bbb;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 #editProfilePage #addEducation:hover {
   text-decoration: underline;
+  /*background-color: #bbb;*/
+}
+#editProfilePage #addEducation i{
+  padding: 0 5px;
+}
+#editProfilePage #addEducation:hover i:before{
+  display: inline-block;
+  text-decoration: none;
 }
 #editProfilePage #jewishEducation .remove {
   position: absolute;
-  right: 5px;
   top: 15px;
   cursor: pointer;
+}
+.interface-hebrew #editProfilePage #jewishEducation .remove{
+  left: 5px;
+}
+.interface-english #editProfilePage #jewishEducation .remove{
+  right: 5px;
 }
 #editProfilePage #sheetsBox #pinnedSheetsMessage {
   margin-bottom: 4px;
