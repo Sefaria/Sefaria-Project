@@ -1,3 +1,4 @@
+/** font-family: "Open Sans Hebrew", sans-serif; => font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;***/
 .wrapper{
   background-color: #F9F9F7;
 }
@@ -128,7 +129,7 @@
   font-family: "adobe-garamond-pro", Georgia, serif;  
 }
 .static .int-he {
-  font-family: "Taamey Frank", "Times New Roman", serif;
+  font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 .static .control-elem .int-en{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -207,7 +208,7 @@
   font-family: "adobe-garamond-pro", Georgia, serif;  
 }
 #homePage .int-he {
-  font-family: "Taamey Frank", "Times New Roman", serif;
+  font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 #homePage .button .int-en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -240,6 +241,9 @@
   font-size: 22px;
   font-style: italic;
   margin: 0;
+}
+#homePage #homeCover .sub .int-he{
+  font-style: normal;
 }
 #homePage #homeCover a {
   color: white;
@@ -321,12 +325,18 @@
   border: none;
   color:  #666;
 }
+#homePage h2 .int-he{
+  font-style: normal;
+}
 #homePage .description {
   margin: 26px 0 34px 0;
   color: #999;
   font-size: 17px;
   font-style: italic;
   line-height: 1.2;
+}
+#homePage .description .int-he{
+  font-style: normal;
 }
 #homePage .dedication {
   margin: -12px 0 34px;
@@ -779,9 +789,11 @@
 }
 .interface-hebrew #donatePage .faq p.question:before{
   content: "ש)";
+  font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 .interface-hebrew #donatePage .faq p.answer:before{
   content: "ת)";
+  font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 
 
