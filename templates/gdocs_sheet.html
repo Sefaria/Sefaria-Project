@@ -15,8 +15,13 @@
 	{% include "css/sheets-print.css" %}
 	</style>
 	<style>
-		#sheet {
-			font-family: 'Times New Roman', 'Georgia', serif;
+		#sheet,
+		#sheet #bsdHeader,
+		#sheet #title,
+		#sheet #author,
+		#sheet #sources .source,
+		#sheet .en {
+			font-family: "Times New Roman", serif; /* for some reason, removing Georgia makes this work... */
 		}
 	</style>
 </head>
@@ -41,7 +46,7 @@
 		</div> -->
 
 		{% autoescape off %}
-		<h1 style="text-align:center">{{ title|striptags|strip_html_entities }}</h1>
+		<h1 id="title" style="text-align:center">{{ title|striptags|strip_html_entities }}</h1>
 		{% endautoescape %}
 
 		{% if sheet.attribution %}
