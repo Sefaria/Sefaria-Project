@@ -193,14 +193,14 @@
             .attr("stroke", "black")
             .attr("stroke-width", 1)
             .on("mouseover", function(d) {
-                var text = "<div><span class="int-en">" + d.properties.en_name + "</span>" +
-                        "<span class="int-he">" + d.properties.he_name + "</span></div>";
-                text += "<div class='en'>";
+                var text = "<div><span class='int-en'>" + d.properties.en_name + "</span>" +
+                        "<span class='int-he'>" + d.properties.he_name + "</span></div>";
+                text += "<div class='int-en'>";
                 for (var i = 0; i < d.properties.en_events.length; i++) {
                    text += "<div>" + d.properties.en_events[i] + "</div>";
                 }
                 text += "</div>";
-                text += "<div class='he'>";
+                text += "<div class='int-he'>";
                 for (var i = 0; i < d.properties.he_events.length; i++) {
                    text += "<div>" + d.properties.he_events[i] + "</div>";
                 }

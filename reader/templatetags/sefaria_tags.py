@@ -137,8 +137,8 @@ def text_toc_link(indx):
 	he = indx.nodes.primary_title("he") if not indx.is_commentary() else indx.heTitle
 	link = u'''
 		<a href="/{}">
-			<span class='en'>{}</span>
-			<span class='he'>{}</span>
+			<span class="int-en">{}</span>
+			<span class="int-he">{}</span>
 		</a>
 	'''.format(indx.title, en, he)
 	return mark_safe(link)
