@@ -513,6 +513,10 @@ body {
 	border-left: solid 6px transparent;
 }
 
+.sheetItem p span {
+	white-space: pre-wrap;
+}
+
 #sheet #sources .sheetItem .sourceNumber.en {
 	position: absolute;
 	width: 50px;

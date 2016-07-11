@@ -23,6 +23,7 @@ var ReaderApp = React.createClass({
     initialRefs:                 React.PropTypes.array,
     initialFilter:               React.PropTypes.array,
     initialMenu:                 React.PropTypes.string,
+    initialPartner:              React.PropTypes.string,
     initialQuery:                React.PropTypes.string,
     initialSearchFilters:        React.PropTypes.array,
     initialSheetsTag:            React.PropTypes.string,
@@ -41,6 +42,7 @@ var ReaderApp = React.createClass({
       initialRefs:                 [],
       initialFilter:               null,
       initialMenu:                 null,
+      initialPartner:              null,
       initialQuery:                null,
       initialSearchFilters:        [],
       initialSheetsTag:            null,
@@ -98,6 +100,7 @@ var ReaderApp = React.createClass({
         appliedSearchFilters: this.props.initialSearchFilters,
         navigationCategories: this.props.initialNavigationCategories,
         sheetsTag: this.props.initialSheetsTag,
+        partner: this.props.initialPartner,
         settings: Sefaria.util.clone(defaultPanelSettings)
       };
       header = this.makePanelState(headerState);
@@ -114,14 +117,6 @@ var ReaderApp = React.createClass({
           p.settings.language = (p.versionLanguage == "he") ? "hebrew" : "english";
         }
         panels.push(p);
-        if (this.props.initialFilter) {
-          panels.push({
-            refs: this.props.initialRefs,
-            filter: this.props.initialFilter,
-            mode: "Connections",
-            settings: Sefaria.util.clone(defaultPanelSettings)
-          });
-        }
       }
       for (var i = panels.length; i < this.props.initialPanels.length; i++) {
         var panel;
@@ -352,7 +347,11 @@ var ReaderApp = React.createClass({
             hist.mode  = "search";
             break;
           case "sheets":
-            if (states[i].navigationSheetTag) {
+            if (states[i].sheetsPartner) {
+                hist.url   = "partners/" + state.sheetsPartner.replace(/\s/g,"_");
+                hist.title = state.sheetsPartner + " | Sefaria Source Sheets";
+                hist.mode  = "sheets tag";
+            } else if (states[i].navigationSheetTag) {
               if (states[i].navigationSheetTag == "My Sheets") {
                 hist.url   = "sheets/private";
                 hist.title = "My Sheets | Sefaria Source Sheets";
@@ -504,6 +503,7 @@ var ReaderApp = React.createClass({
       menuOpen:             state.menuOpen             || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories: state.navigationCategories || [],
       navigationSheetTag:   state.sheetsTag            || null,
+      sheetsPartner:        state.partner              || null,
       searchQuery:          state.searchQuery          || null,
       appliedSearchFilters: state.appliedSearchFilters || [],
       searchFiltersValid:   state.searchFiltersValid   || false,
@@ -742,11 +742,9 @@ var ReaderApp = React.createClass({
     } else {
       panel = this.makePanelState({refs: [ref], version: version, versionLanguage: versionLanguage, mode: "Text"});
     }
-    
-    this.setState({
-      panels: [panel],
-      header: {menuOpen: null}
-    });
+
+    this.setHeaderState({menuOpen: null});
+    this.setState({panels: [panel]});
   },
   openPanelAt: function(n, ref, version, versionLanguage) {
     // Open a new panel after `n` with the new ref
@@ -762,7 +760,8 @@ var ReaderApp = React.createClass({
 
     var newPanels = this.state.panels.slice();
     newPanels.splice(n+1, 0, panel);
-    this.setState({panels: newPanels, header: {menuOpen: null}});
+    this.setState({panels: newPanels});
+    this.setHeaderState({menuOpen: null});
   },
   openPanelAtEnd: function(ref, version, versionLanguage) {
     this.openPanelAt(this.state.panels.length+1, ref, version, versionLanguage);
@@ -823,7 +822,6 @@ var ReaderApp = React.createClass({
   },
   setSelectedWords: function(n, words){
     //console.log(this.state.panels[n].refs);
-    words = (typeof words !== "undefined" && words.length) ?  words : "";
     var next = this.state.panels[n+1];
     if (next && !next.menuOpen) {
       this.state.panels[n+1].selectedWords = words;
@@ -1191,8 +1189,6 @@ var Header = React.createClass({
     if (Sefaria.isRef(query)) {
       this.handleRefClick(query);
       if (Sefaria.site) { Sefaria.site.track.ui("Nav Query"); }
-      if (this.props.headerMode) { return; }
-      this.showDesktop();
     } else {
       this.showSearch(query);
     }
@@ -1370,6 +1366,7 @@ var ReaderPanel = React.createClass({
       menuOpen:             this.props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home"
       navigationCategories: this.props.initialNavigationCategories || [],
       navigationSheetTag:   this.props.initialSheetsTag || null,
+      sheetsPartner:        this.props.initialPartner || null,
       searchQuery:          this.props.initialQuery || null,
       appliedSearchFilters: this.props.initialAppliedSearchFilters || [],
       searchFiltersValid:   false,
@@ -1518,9 +1515,10 @@ var ReaderPanel = React.createClass({
     words = (typeof words !== "undefined" && words.length) ?  words : "";
     words = words.trim();
     this.replaceHistory = false;
-    this.conditionalSetState({'selectedWords':  words});
     if (this.props.multiPanel) {
       this.props.setSelectedWords(words);
+    }else{
+      this.conditionalSetState({'selectedWords':  words});
     }
   },
   closeMenus: function() {
@@ -1540,7 +1538,7 @@ var ReaderPanel = React.createClass({
       // searchQuery: null,
       // appliedSearchFilters: [],
       navigationCategories: null,
-      navigationSheetTag: null
+      navigationSheetTag: null,
     });
   },
   setNavigationCategories: function(categories) {
@@ -1626,10 +1624,10 @@ var ReaderPanel = React.createClass({
     };
     if (!Sefaria._uid && mode in loginRequired) {
       mode = "Login";
-    };
+    }
     var state = {connectionsMode: mode};
     if (mode === "Connections") { 
-      state["filter"] = [];
+      this.setFilter();
     }
     this.conditionalSetState(state);
   },
@@ -1850,6 +1848,7 @@ var ReaderPanel = React.createClass({
                     hideNavHeader={this.props.hideNavHeader}
                     toggleLanguage={this.toggleLanguage}
                     tag={this.state.navigationSheetTag}
+                    partner={this.state.sheetsPartner}
                     tagSort={this.state.tagSort}
                     mySheetSort={this.state.mySheetSort}
                     setMySheetSort={this.setMySheetSort}
@@ -3187,6 +3186,12 @@ var SheetsNav = React.createClass({
       var content = (<AllSheetsPage
                         hideNavHeader={this.props.hideNavHeader} />);
 
+    } else if (this.props.tag == "sefaria-partners") {
+      var content = (<PartnerSheetsPage
+                        hideNavHeader={this.props.hideNavHeader}
+                        multiPanel={this.props.multiPanel}
+                        partner={this.props.partner} />);
+
     } else if (this.props.tag) {
       var content = (<TagSheetsPage 
                         tag={this.props.tag}
@@ -3353,6 +3358,71 @@ var SheetsHomePage = React.createClass({
                 <TwoOrThreeBox content={tagList} width={this.props.width} />
               </div>
              </div>);
+  }
+});
+
+var PartnerSheetsPage = React.createClass({
+  componentDidMount: function() {
+    this.ensureData();
+  },
+  getSheetsFromCache: function() {
+    return  Sefaria.sheets.partnerSheets(this.props.partner);
+  },
+  getSheetsFromAPI: function() {
+     Sefaria.sheets.partnerSheets(this.props.partner, this.onDataLoad);
+  },
+  onDataLoad: function(data) {
+    this.forceUpdate();
+  },
+  ensureData: function() {
+    if (!this.getSheetsFromCache()) { this.getSheetsFromAPI(); }
+  },
+
+    render: function() {
+    var sheets = this.getSheetsFromCache();
+
+
+    sheets = sheets ? sheets.map(function(sheet) {
+      return (<PartnerSheetListing sheet={sheet}  />);
+    }.bind(this)) : (<LoadingMessage />);
+
+ /*   sheets = sheets ? sheets.map(function (sheet) {
+      return (<PublicSheetListing sheet={sheet} />);
+    }) : (<LoadingMessage />);
+   */
+    return (<div className="content sheetList">
+                      <div className="contentInner">
+                        {this.props.hideNavHeader ? (<h1>
+                          <span className="en">{this.props.partner}</span>
+                          <span className="he">{this.props.partner}</span>
+                        </h1>) : null}
+                        {sheets}
+                      </div>
+                    </div>);
+  }
+
+
+})
+
+var PartnerSheetListing = React.createClass({
+  propTypes: {
+    sheet:      React.PropTypes.object.isRequired,
+  },
+  render: function() {
+    var sheet = this.props.sheet;
+    var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
+    var url = "/sheets/" + sheet.id;
+
+    if (sheet.tags === undefined) sheet.tags = [];
+      var tagString = sheet.tags.map(function (tag) {
+          return(<SheetTagLink setSheetTag={this.props.setSheetTag} tag={tag} key={tag} />);
+    },this);
+
+    return (<div className="sheet userSheet">
+                <a className="sheetTitle" href={url} key={url}>{title}</a>
+                <div>{sheet.ownerName} · {sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
+              </div>);
+
   }
 });
 
@@ -5245,42 +5315,46 @@ var LexiconPanel = React.createClass({
   },
   getInitialState: function() {
     return {
-      resultsLoaded: false
+      entries: [],
+      loaded: false
     };
   },
   componentDidMount: function(){
-    console.log("component did mount");
-    this.getLookups();
-  },
-  componentDidUpdate: function(prevProps, prevState){
-    console.log("component did update");
-    if (prevProps.selectedWords != this.props.selectedWords){
-      this.getLookups();
+    console.log("component will mount: ", this.props.selectedWords);
+    if(this.props.selectedWords){
+      this.getLookups(this.props.selectedWords, this.props.oref);
     }
   },
-  getLookups: function(){
-    if(!this.shouldActivate()){
-       this.setState({
-            resultsLoaded: false,
-            entries: []
-          });
+  componentWillReceiveProps: function(nextProps){
+    console.log("component will receive props: ", nextProps.selectedWords);
+    if(this.props.selectedWords != nextProps.selectedWords){
+      this.clearLookups();
     }
-    Sefaria.lexicon(this.props.selectedWords, this.props.oref.ref, function(data) {
-        console.log(data);
-        if (this.isMounted()) {
-          this.setState({
-            resultsLoaded: true,
-            entries: data
-          });
-        }
-    }.bind(this));
+    this.getLookups(nextProps.selectedWords, nextProps.oref);
   },
-  shouldActivate: function(){
-    console.log("selected: ", this.props.selectedWords)
-    if(!this.props.selectedWords){
+  clearLookups: function(){
+    this.setState({
+      loaded: false,
+      entries: []
+    });
+  },
+  getLookups: function(words, oref){
+    if(this.shouldActivate(words)){
+      console.log('getting data: ', words, oref.ref);
+      Sefaria.lexicon(words, oref.ref, function(data) {
+        this.setState({
+          loaded: true,
+          entries: data
+        });
+        console.log('gotten data from Sefaria.js, state re-set: ', this, data);
+      }.bind(this));
+    }
+  },
+  shouldActivate: function(selectedWords){
+    if(!selectedWords){
       return false;
     }
-    var wordList = this.props.selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
+    var wordList = selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
     var inputLength = wordList.length;
     return (inputLength <= 3);
   },
@@ -5288,25 +5362,30 @@ var LexiconPanel = React.createClass({
     var ref_cats = this.props.oref.categories.join(", ");
     var enEmpty = "No results found.";
     var heEmpty = "לא נמצאו תוצאות";
-    if(!this.shouldActivate()){
+    if(!this.shouldActivate(this.props.selectedWords)){
+      //console.log("not rendering lexicon");
       return false;
     }
     var content;
-    if(!this.state.resultsLoaded) {
+    if(!this.state.loaded) {
+      console.log("lexicon not yet loaded");
       content = (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..."/>);
-    }else if("error" in this.state.entries){
-      content = (<LoadingMessage message={enEmpty} heMessage={heEmpty} />);
-    }else if(this.state.entries.length == 0 && this.props.selecctedWords == ""){
-      return false;
+    }else if(this.state.entries.length == 0) {
+      if (this.props.selectedWords.length == 0) {
+        //console.log("empty words: nothing to render");
+        return false;
+      } else {
+        //console.log("no results");
+        content = (<LoadingMessage message={enEmpty} heMessage={heEmpty}/>);
+      }
     }else{
+      console.log("results to render: ", this.state.entries);
       var entries = this.state.entries;
-      content =  entries ? entries.filter(e => e['parent_lexicon_details']['text_categories'].indexOf(ref_cats) > -1).map(function(entry, i) {
+      content =  entries.filter(e => e['parent_lexicon_details']['text_categories'].indexOf(ref_cats) > -1).map(function(entry, i) {
             return (<LexiconEntry data={entry} key={i} />)
-          }) : (<LoadingMessage message={enEmpty} heMessage={heEmpty} />);
+          });
       content = content.length ? content : <LoadingMessage message={enEmpty} heMessage={heEmpty} />;
     }
-    /*var header = (<div className="lexicon-header"><h4>{this.props.selectedWords}</h4></div>);*/
-    console.log("rendering: ", entries);
     return (
         <div className="lexicon-content">
           <div className="lexicon-results">
@@ -5314,7 +5393,6 @@ var LexiconPanel = React.createClass({
           </div>
         </div>
       );
-
   }
 });
 

@@ -40,6 +40,10 @@ class AtomicTest(object):
         if not self.multi_panel and not self.single_panel:
             raise Exception("Tests must run on at least one of mobile or desktop")
 
+    def set_modal_cookie(self):
+        #set cookie to avoid popup interruption
+        self.driver.add_cookie({"name": "welcomeToS2LoggedOut", "value": "true"})
+
     def run(self):
         raise Exception("AtomicTest.run() needs to be defined for each test.")
 
@@ -47,12 +51,14 @@ class AtomicTest(object):
     def s2(self):
         self.driver.get(self.base_url + "/s2")
         WebDriverWait(self.driver, TEMPER).until(title_contains("Texts"))
+        self.set_modal_cookie()
         return self
 
     # TOC
     def load_toc(self):
         self.driver.get(self.base_url + "/texts")
         WebDriverWait(self.driver, TEMPER).until(title_contains("Texts"))
+        self.set_modal_cookie()
         return self
 
     def click_toc_category(self, category_name):
@@ -95,6 +101,7 @@ class AtomicTest(object):
             WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".filterSet > .textRange")))
         else:
             WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".textColumn .textRange .segment")))
+        self.set_modal_cookie()
         return self
 
     def load_text_toc(self, ref):
@@ -104,6 +111,7 @@ class AtomicTest(object):
         url = self.base_url + "/" + ref.url()
         self.driver.get(url)
         WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".tocContent > :not(.loadingMessage)")))
+        self.set_modal_cookie()
         return self
 
     def click_text_toc_section(self, ref):
@@ -173,6 +181,8 @@ class AtomicTest(object):
             url += "?q={}".format(query)
         self.driver.get(url)
         WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".results-count")))
+        self.set_modal_cookie()
+        return self
 
     def search_for(self, query):
         elem = self.driver.find_element_by_css_selector("input.search")
@@ -187,8 +197,9 @@ class AtomicTest(object):
         url = self.base_url + "/sheets"
         self.driver.get(url)
         WebDriverWait(self.driver, TEMPER).until(title_contains("Sheet"))
-
-
+        self.set_modal_cookie()
+        return self
+    
 """
 
                     Test Running Infrastructure

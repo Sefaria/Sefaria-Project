@@ -21,7 +21,7 @@ from django.contrib.auth.models import Group as DjangoGroup
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 
-from reader.views import s2_sheets, s2_sheets_by_tag
+from reader.views import s2_sheets, s2_sheets_by_tag, s2_group_sheets
 
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse, HttpResponse
@@ -418,9 +418,13 @@ def partner_page(request, partner):
 		raise Http404
 
 	if request.user.is_authenticated() and group.name in [g.name for g in request.user.groups.all()]:
+		if not request.COOKIES.get('s1'):
+			return s2_group_sheets(request, group.name, True)
 		in_group = True
 		query = {"status": {"$in": ["unlisted","public"]}, "group": group.name}
 	else:
+		if not request.COOKIES.get('s1'):
+			return s2_group_sheets(request, group.name, False)
 		in_group = False
 		query = {"status": "public", "group": group.name}
 

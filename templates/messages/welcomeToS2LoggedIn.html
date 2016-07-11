@@ -20,9 +20,11 @@
     #welcomeToS2LoggedIn .iconic {
         text-align: left;
         margin: 30px;
+        display: flex;
+        align-items: flex-start;
     }
     #welcomeToS2LoggedIn .icon {
-        float: left;
+        box-sizing: border-box;
         margin-right: 20px;
     }
     #welcomeToS2LoggedIn .button {
@@ -34,9 +36,9 @@
 
     <p class="first">After nearly a year of research, collecting user feedback and extensive user testing, we are excited to unveil a completely redesigned Sefaria.</p>
 
-    <p class="iconic"><i class="fa fa-bars icon"></i> In the library menu (top left), you can explore Sefaria’s library, including community source sheets and other learning resources.</p>
+    <p class="iconic"><i class="fa fa-bars icon"></i><span>In the library menu (top left), you can explore Sefaria’s library, including community source sheets and other learning resources.</span> </p>
 
-    <p class="iconic"><img class="icon" src="/static/img/user-64.png">In your account (top right), you can access your source sheets, notes, update your profile and more.</p>
+    <p class="iconic"><img class="icon" src="/static/img/user-64.png"><span>In your account (top right), you can access your source sheets, notes, update your profile and more.</span></p>
 
     <div class="button white">Let's Go!</div>
 </div>

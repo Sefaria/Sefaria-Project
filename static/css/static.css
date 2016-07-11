@@ -1197,10 +1197,10 @@
 #activityPage #activityFeed .topline {
   font-weight: normal;
 }
-#activityPage #activityFeed .text.en {
+#activityPage #activityFeed .text.ver-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
-#activityPage #activityFeed .text.he {
+#activityPage #activityFeed .text.ver-he {
   font-family: "Taamey Frank", "Times New Roman", serif;
 }
 #activityPage #activityList .time {
@@ -1539,4 +1539,100 @@
     position: absolute;
     top: 5px;
     left: 5px;
+}
+
+#visualGardenPage .control-results-containe{
+  display: flex;
+  display: -webkit-flex;
+  align-items: flex-start;
+  -webkit-align-items: flex-start;
+}
+#visualGardenPage #results-container .he {
+  font-family: 'Taamey Frank', 'Times New Roman', serif;
+}
+#visualGardenPage .en {
+  font-family: adobe-garamond-pro, Georgia, serif;
+}
+#visualGardenPage h1 {
+  font-size: 36px;
+  border: none;
+}
+/* Controls need LTR to present right, hebrew 'reset' block wants RTL on top charts, but not on filter charts */
+#visualGardenPage #controls {
+  width: 320px;
+  float: left;
+  direction: ltr;
+}
+body.hebrew #visualGardenPage .reset {
+  direction: rtl;
+  float: right;
+}
+body.hebrew #visualGardenPage .filter-title .reset {
+  float: none;
+  direction: ltr;
+}
+/* ^^ */
+
+#visualGardenPage #sort-label {
+  display: inline-block;
+  vertical-align: top;
+}
+
+#visualGardenPage #results .result {
+  margin: 10px 0;
+}
+#visualGardenPage #results .result-ref {
+  font-weight: bold;
+}
+#visualGardenPage #results .result-byline {
+  font-size: .8em;
+}
+#visualGardenPage #results .result-text {
+  margin: 5px 10px 0;
+}
+#visualGardenPage #sort-container,
+#visualGardenPage #results #data-count {
+  text-align: center;
+  float: none;
+  padding: 5px 0;
+}
+
+#visualGardenPage .filter-title {
+  margin-left: 10px;
+}
+
+#visualGardenPage .tags-list.dc-chart g.row text {
+  fill: black;
+}
+
+#visualGardenPage .tags-list.dc-chart .axis path,
+#visualGardenPage .tags-list.dc-chart .axis line {
+  stroke: none
+}
+
+#visualGardenPage #results-table .dc-table-column ._0 {
+  width: 220px;
+}
+#visualGardenPage #results-table .dc-table-column._1,
+#visualGardenPage #results-table .dc-table-column._2,
+#visualGardenPage #results-table .dc-table-column._3 {
+  width: 170px;
+}
+
+#visualGardenPage #results-table .dc-table-column._4 {
+  width: 30px;
+}
+
+#visualGardenPage #map-chart {
+    margin-left: 10px;
+    margin-bottom: 25px;
+}
+
+#visualGardenPage #map-chart path {
+  stroke-width: 1;
+  stroke: black;
+}
+#visualGardenPage #map-chart .selected path {
+  stroke-width: 1;
+  stroke: white;
 }

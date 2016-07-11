@@ -74,34 +74,34 @@ def make_text(doc):
     version = Version({"chapter": chapter})
 
     index = library.get_index(doc["title"])
-    text = "\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], doc["versionSource"]])    
+    text = u"\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], doc["versionSource"]])
 
     if "versions" in doc:
         if not len(doc["versions"]):
             return None # Occurs when text versions don't actually have content
-        text += "\nThis file contains merged sections from the following text versions:"
+        text += u"\nThis file contains merged sections from the following text versions:"
         for v in doc["versions"]:
-            text += "\n-%s\n-%s" % (v[0], v[1])
+            text += u"\n-%s\n-%s" % (v[0], v[1])
 
     def make_node(node, depth, **kwargs):
         if not node.children:
-            content = "\n\n%s" % node.primary_title(doc["language"])
+            content = u"\n\n%s\n\n" % node.primary_title(doc["language"])
             content += flatten(version.content_node(node), node.sectionNames)
-            return "\n\n%s" % content
+            return content
         else:
-            return "\n\n%s" % node.primary_title(doc["language"])
+            return u"\n\n%s" % node.primary_title(doc["language"])
 
     def flatten(text, sectionNames):
-        text = text or ""
+        text = text or u""
         if len(sectionNames) == 1:
             text = [t if t else "" for t in text]
             # Bandaid for mismatch between text structure, join recursively if text
             # elements are lists instead of strings.
-            return "\n".join([t if isinstance(t, basestring) else "\n".join(t) for t in text])
-        flat = ""
+            return u"\n".join([t if isinstance(t, basestring) else u"\n".join(t) for t in text])
+        flat = u""
         for i in range(len(text)):
             section = section_to_daf(i + 1) if sectionNames[0] == "Daf" else str(i + 1)
-            flat += "\n\n%s %s\n\n%s" % (sectionNames[0], section, flatten(text[i], sectionNames[1:]))
+            flat += u"\n\n%s %s\n\n%s" % (sectionNames[0], section, flatten(text[i], sectionNames[1:]))
 
         return flat
 
@@ -253,14 +253,20 @@ def prepare_merged_text_for_export(title, lang=None):
         doc["text"] = text_doc["chapter"]  # TODO: sort complex according to Index
         doc["versions"] = [(text_doc["versionTitle"], text_doc["versionSource"])]
     else:
-        texts = []
-        sources = []
-        for text in text_docs:
-            texts.append(text["chapter"])
-            sources.append((text["versionTitle"], text["versionSource"]))
+        index = library.get_index(title)
+        sourceset = set()
 
-        merged, merged_sources = merge_texts(texts, sources)
-        merged_sources = list(set(merged_sources))
+        def merge_visitor(node, *texts, **kwargs):
+            merged, merged_sources = merge_texts(texts, kwargs.get("sources"))
+            sourceset.update(merged_sources)
+            return merged
+
+        merged = index.nodes.visit_content(merge_visitor,
+                                   *[text["chapter"] for text in text_docs],
+                                   sources=[(text["versionTitle"], text["versionSource"]) for text in text_docs]
+                                   )
+
+        merged_sources = list(sourceset)
 
         doc.update({
             "text": merged,

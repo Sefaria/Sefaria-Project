@@ -35,13 +35,14 @@ sjs.current.nextNode = sjs.current.nextNode || 1;
 sjs.lastEdit = null;
 
 $(window).on("beforeunload", function() {
-	if (sjs._uid && !(sjs.current.id) && $("#empty").length === 0) {
-		return "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.";
-	}	
-	else if ($("#lastSaved").text() == "Saving...") {
-		return "Your Source Sheet has unsaved changes. Please wait for the autosave to finish.";
+	if (!($("#save").text() == "Saving...")) {
+		if (sjs._uid && !(sjs.current.id) && $("#empty").length === 0) {
+			return "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.";
+		}
+		else if ($("#lastSaved").text() == "Saving...") {
+			return "Your Source Sheet has unsaved changes. Please wait for the autosave to finish.";
+		}
 	}
-
 
 });
 
@@ -2788,7 +2789,7 @@ function buildSource($target, source, appendOrInsert) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideWrapper");
 		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
-							"<div class='outside " + (sjs.loading ? "" : "new") + "'>" + source.outsideText + "</div>" +
+							"<div class='outside " + (sjs.loading ? "" : "new ") + (isHebrew(source.outsideText.stripHtml()) ? "he" : "en") + "'>" + source.outsideText + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
 						  "</li>";
 		outsideHtml = appendInlineAddButton(outsideHtml);

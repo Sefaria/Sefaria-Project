@@ -448,6 +448,7 @@ Sefaria = extend(Sefaria, {
   lexicon: function(words, ref, cb){
     // Returns a list of lexicon entries for the given words
     ref = typeof ref !== "undefined" ? ref : null;
+    words = typeof words !== "undefined" ? words : "";
     var cache_key = ref ? words + "|" + ref : words;
     /*if (typeof ref != 'undefined'){
       cache_key += "|" + ref
@@ -455,21 +456,24 @@ Sefaria = extend(Sefaria, {
     if (!cb) {
       return this._lexiconLookups[cache_key] || [];
     }
-    if (words in this._lexiconLookups) {
-      cb(this._lexiconLookups[cache_key]);
-    } else if(words == ""){
-        return cb([]);
-    } else {
+    if (cache_key in this._lexiconLookups) {
+        console.log("data from cache: ", this._lexiconLookups[cache_key]);
+        cb(this._lexiconLookups[cache_key]);
+    } else if (words.length > 0) {
       var url = "/api/words/" + encodeURIComponent(words)+"?never_split=1";
       if(ref){
         url+="&lookup_ref="+ref;
       }
       //console.log(url);
       this._api(url, function(data) {
-        this._lexiconLookups[cache_key] = data;
-        cb(data);
+        this._lexiconLookups[cache_key] = ("error" in data) ? [] : data;
+        console.log("state changed from ajax: ", data);
+        cb(this._lexiconLookups[cache_key]);
       }.bind(this));
+    }else{
+        return cb([]);
     }
+      
   },
   _links: {},
   links: function(ref, cb) {
@@ -1047,6 +1051,25 @@ Sefaria = extend(Sefaria, {
         }
       return sheets;
     },
+    _partnerSheets: {},
+    partnerSheets: function(partner, callback) {
+      // Returns a list of source sheets belonging to partner org
+      // Member of group will get all sheets. Others only public facing ones.
+      var sheets = this._partnerSheets[partner];
+      if (sheets) {
+        if (callback) { callback(sheets); }
+      } else {
+          // TODO Build out API. Currently never gets called because cache is always populated via static django page. But if we want to add to /sheets this needs to be built out
+          /*
+        var url = ;
+         Sefaria._api(url, function(data) {
+            this._partnerSheets[partner] = data.sheets;
+            if (callback) { callback(data.sheets); }
+          }.bind(this));
+          */
+        }
+      return sheets;
+    },
     _userSheets: {},
     userSheets: function(uid, callback, sortBy) {
       // Returns a list of source sheets belonging to `uid`
@@ -1069,7 +1092,6 @@ Sefaria = extend(Sefaria, {
       if (!offset) offset = 0;
       if (!numberToRetrieve) numberToRetrieve = 50;
       // Returns a list of public sheets
-      // TODO Pagination!
       var sheets = this._publicSheets["offset"+offset+"num"+numberToRetrieve];
       if (sheets) {
         if (callback) { callback(sheets); }
@@ -1419,6 +1441,9 @@ Sefaria.unpackDataFromProps = function(props) {
   }
   if (props.userTags) {
     Sefaria.sheets._userTagList = props.userTags;
+  }
+  if (props.partnerSheets) {
+    Sefaria.sheets._partnerSheets[props.initialPartner] = props.partnerSheets;
   }
   if (props.publicSheets) {
     Sefaria.sheets._publicSheets = props.publicSheets;
