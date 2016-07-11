@@ -3,9 +3,9 @@
 <div class="{{ lang }}">
   <div class="title">
     {% if lang == "he" %}
-    <span class="he">{{ source.heRef|ref_link }}</span>
+    <span class="he">{{ source.heRef|ref_link|absolute_link }}</span>
     {% elif lang == "en" %}
-    <span class="en">{{ source.ref|ref_link }}</span>
+    <span class="en">{{ source.ref|ref_link|absolute_link }}</span>
     {% endif %}
   </div>
 

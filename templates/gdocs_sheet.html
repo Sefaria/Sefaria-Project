@@ -64,21 +64,21 @@
 		</div>
 		{% elif assigner_id %}
 		<div id="author">
-			<div id="assignmentAttribution">Assignment by {{ assigner_id|user_link }}</div>
+			<div id="assignmentAttribution">Assignment by {{ assigner_id|user_link|absolute_link }}</div>
 			{% if author %}
-			Completed by {{ sheet.owner|user_link }}
+			Completed by {{ sheet.owner|user_link|absolute_link }}
 			{% endif %}
 	    </div>
 		{% elif sheet.assigner_id %}
 		<div id="author">
-			<div id="assignmentAttribution">Assignment by {{ sheet.assigner_id|user_link }}</div>
+			<div id="assignmentAttribution">Assignment by {{ sheet.assigner_id|user_link|absolute_link }}</div>
 			{% if author %}
-			Completed by {{ sheet.owner|user_link }}
+			Completed by {{ sheet.owner|user_link|absolute_link }}
 	    {% endif %}
 	    </div>
 		{% elif author %}
 		<div id="author">
-			Source Sheet by {{ sheet.owner|user_link }}
+			Source Sheet by {{ sheet.owner|user_link|absolute_link }}
 			{% if sheet.via %}
 			<div id="via">Based on <a href="/sheets/{{ sheet.via }}">a sheet</a> by {{ sheet.viaOwner|user_link }}</div>
 			{% endif %}
@@ -226,7 +226,7 @@
 
 	{% if author %}
 	<div id="bottomAuthor">
-		Source Sheet created on Sefaria by {{ sheet.owner|user_link }}
+		Source Sheet created on Sefaria by {{ sheet.owner|user_link|absolute_link }}
 		{% if sheet.via %}
 		<div id="bottomVia">Based on <a href="/sheets/{{ sheet.via }}">a sheet</a> by {{ sheet.viaOwner|user_link }}</div>
 		{% endif %}
