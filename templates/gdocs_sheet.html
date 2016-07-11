@@ -80,7 +80,7 @@
 		<div id="author">
 			Source Sheet by {{ sheet.owner|user_link|absolute_link }}
 			{% if sheet.via %}
-			<div id="via">Based on <a href="/sheets/{{ sheet.via }}">a sheet</a> by {{ sheet.viaOwner|user_link }}</div>
+			<div id="via">Based on {{ sheet.via|sheet_via_absolute_link }} by {{ sheet.viaOwner|user_link|absolute_link }}</div>
 			{% endif %}
 		</div>
 		{% endif %}
@@ -228,7 +228,7 @@
 	<div id="bottomAuthor">
 		Source Sheet created on Sefaria by {{ sheet.owner|user_link|absolute_link }}
 		{% if sheet.via %}
-		<div id="bottomVia">Based on <a href="/sheets/{{ sheet.via }}">a sheet</a> by {{ sheet.viaOwner|user_link }}</div>
+		<div id="bottomVia">Based on {{ sheet.via|sheet_via_absolute_link }} by {{ sheet.viaOwner|user_link|absolute_link }}</div>
 		{% endif %}
 	</div>
 	{% endif %}
