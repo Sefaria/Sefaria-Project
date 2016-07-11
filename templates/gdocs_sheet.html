@@ -141,7 +141,7 @@
 						<!-- <div class="clear"></div> -->
 					</li>
 				{% elif "outsideBiText" in source %}
-					<li class="outsideBiWrapper">
+					<li class="outsideBiWrapper {{ source.options.indented }}">
 						<div class="outsideBi sheetItem">
 
 							<!-- Box the source -->
@@ -177,13 +177,13 @@
 						</div>
 					</li>
 				{% elif "comment" in source %}
-					<div class="commentWrapper sheetItem">
+					<div class="commentWrapper sheetItem {{ source.options.indented }}">
 						<div class="comment">
 							{{ source.comment }}
 						</div>
 					</div>
 				{% elif "outsideText" in source %}
-					<li class="outsideWrapper sheetItem">
+					<li class="outsideWrapper sheetItem {{ source.options.indented }}">
 
 						<!-- Box the source -->
 						{% if sheet.options.boxed %}
@@ -201,7 +201,7 @@
 
 					</li>
 				<!-- {% elif "media" in source %}
-					<li class="mediaWrapper sheetItem">
+					<li class="mediaWrapper sheetItem {{ source.options.indented }}">
 						<div class="outside">
 							Loading Media...
 						</div>
