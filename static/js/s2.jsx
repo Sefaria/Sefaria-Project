@@ -4741,14 +4741,14 @@ var ConnectionsPanelHeader = React.createClass({
   },
   render: function() {
     return (<div className="connectionsPanelHeader">
-              <div className="rightButtons">
-                <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
-                <ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} interfaceLang={this.props.interfaceLang} />
-               </div>
               <ConnectionsPanelTabs
                 activeTab={this.props.activeTab}
                 setConnectionsMode={this.props.setConnectionsMode}
                 interfaceLang={this.props.interfaceLang}/>
+              <div className="rightButtons">
+                <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
+                <ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} interfaceLang={this.props.interfaceLang} />
+              </div>
             </div>);
   }
 });
@@ -4769,8 +4769,8 @@ var ConnectionsPanelTabs = React.createClass({
       var active  = item["en"] === this.props.activeTab;
       var classes = classNames({connectionsPanelTab: 1, sans: 1, active: active});
       return (<div className={classes} onClick={tabClick} key={item["en"]}>
-                <span className="en">{item["en"]}</span>
-                <span className="he">{item["he"]}</span>
+                <span className="int-en">{item["en"]}</span>
+                <span className="int-he">{item["he"]}</span>
               </div>);
     }.bind(this));
 
@@ -5550,9 +5550,9 @@ var ToolsButton = React.createClass({
 
     return (
       <div className="toolsButton sans" onClick={this.props.onClick}>
+        <div className="int-en">{this.props.en}</div>
+        <div className="int-he">{this.props.he}</div>
         {icon}
-        <div className="en">{this.props.en}</div>
-        <div className="he">{this.props.he}</div>
       </div>)
   }
 });
@@ -5666,14 +5666,14 @@ var AddToSourceSheetPanel = React.createClass({
           (<div>
             <input className="newSheetInput" placeholder="Title your Sheet"/>
             <div className="button white small" onClick={this.createSheet} >
-              <span className="en">Create</span>
-              <span className="he">צור חדש</span>
+              <span className="int-en">Create</span>
+              <span className="int-he">צור חדש</span>
             </div>
            </div>)
           :
           (<div className="button white" onClick={this.openNewSheet}>
-              <span className="en">Start a Source Sheet</span>
-              <span className="he">צור דף מקורות חדש</span>
+              <span className="int-en">Start a Source Sheet</span>
+              <span className="int-he">צור דף מקורות חדש</span>
           </div>);
     var classes = classNames({addToSourceSheetPanel: 1, textList: 1, fullPanel: this.props.fullPanel});
     return (
@@ -5683,8 +5683,8 @@ var AddToSourceSheetPanel = React.createClass({
             {createSheet}
             <div className="sourceSheetSelector">{sheetsContent}</div>
             <div className="button" onClick={this.addToSourceSheet}>
-              <span className="en">Add to Sheet</span>
-              <span className="he">הוסף לדף המקורות</span>
+              <span className="int-en">Add to Sheet</span>
+              <span className="int-he">הוסף לדף המקורות</span>
             </div>
           </div>
         </div>
@@ -5801,27 +5801,27 @@ var AddNotePanel = React.createClass({
                   <div className="noteSharingToggle">
                     <div className={privateClasses} onClick={this.setPrivate}>
 
-                      <span className="en"><i className="fa fa-lock"></i> Private</span>
-                      <span className="he"><i className="fa fa-lock"></i>רשומה פרטית</span>
+                      <span className="int-en"><i className="fa fa-lock"></i> Private</span>
+                      <span className="int-he"><i className="fa fa-lock"></i>רשומה פרטית</span>
                     </div>
                     <div className={publicClasses} onClick={this.setPublic}>
-                      <span className="en">Public</span>
-                      <span className="he">רשומה כללית</span>
+                      <span className="int-en">Public</span>
+                      <span className="int-he">רשומה כללית</span>
                     </div>
                   </div>
                   <div className="line"></div>
                   <div className="button fillWidth" onClick={this.saveNote}>
-                    <span className="en">{this.props.noteId ? "Save" : "Add Note"}</span>
-                    <span className="he">{this.props.noteId ? "שמור": "הוסף רשומה"}</span>
+                    <span className="int-en">{this.props.noteId ? "Save" : "Add Note"}</span>
+                    <span className="int-he">{this.props.noteId ? "שמור": "הוסף רשומה"}</span>
                   </div>
                   <div className="button white fillWidth" onClick={this.cancel}>
-                    <span className="en">Cancel</span>
-                    <span className="he">בטל</span>
+                    <span className="int-en">Cancel</span>
+                    <span className="int-he">בטל</span>
                   </div>
                   {this.props.noteId ? 
                     (<div className="deleteNote" onClick={this.deleteNote}>
-                      <span className="en">Delete Note</span>
-                      <span className="he">מחק רשומה</span>
+                      <span className="int-en">Delete Note</span>
+                      <span className="int-he">מחק רשומה</span>
                      </div>): null }
 
                 </div>

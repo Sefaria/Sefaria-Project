@@ -2078,6 +2078,13 @@ a.resourcesLink {
 .textRange .actionLinks .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
+.connectionsPanelHeader{
+  display: flex;
+  justify-content: space-between;
+}
+.interface-hebrew .connectionsPanelHeader{
+  direction: rtl;
+}
 .connectionsPanelHeader .languageToggle,
 .connectionsHeader .readerNavMenuCloseButton.arrow {
   font-size: 24px;
@@ -2496,12 +2503,14 @@ a.resourcesLink {
   letter-spacing: 1px;
   padding: 20px 26px;
   margin: 10px 0;
+  display: flex;
+  justify-content: space-between;
 }
 .toolsButton .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .toolsButton .toolsButtonIcon {
-  float: right;
+  /*float: right;*/
   color: #ccc;
   font-size: 22px;
 }
@@ -2510,9 +2519,9 @@ a.resourcesLink {
   height: 22px;
   opacity: 0.2;
 }
-.hebrew .toolsButton .toolsButtonIcon {
+/*.hebrew .toolsButton .toolsButtonIcon {
   float: left;
-}
+}*/
 .sharePanel input {
   width: 100%;
   box-sizing: border-box;
