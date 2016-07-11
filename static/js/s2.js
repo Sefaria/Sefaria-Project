@@ -916,6 +916,7 @@ var ReaderApp = React.createClass({
     var comparePanel = this.makePanelState({
       menuOpen: "compare"
     });
+    Sefaria.site.track.event("Tools", "Compare Click");
     this.state.panels[n] = comparePanel;
     this.setState({ panels: this.state.panels });
   },
@@ -1774,9 +1775,10 @@ var ReaderPanel = React.createClass({
       "Add to Source Sheet": 1,
       "Add Note": 1,
       "My Notes": 1,
-      "Add Connections": 1,
-      "Add Translation": 1
+      "Add Connection": 1,
+      "Add Translation": 1 // Is this used?
     };
+    Sefaria.site.track.event("Tools", mode + " Click");
     if (!Sefaria._uid && mode in loginRequired) {
       mode = "Login";
     }
@@ -6718,7 +6720,7 @@ var LexiconPanel = React.createClass({
           entries: data
         });
 
-        var action = this.state.entries.length == 0 ? "Open No Result" : "Open";
+        var action = data.length == 0 ? "Open No Result" : "Open";
         action += " / " + oref.categories.join("/") + "/" + oref.book;
         Sefaria.site.track.event("Lexicon", action, words);
       }.bind(this));
@@ -6928,18 +6930,25 @@ var ToolsPanel = React.createClass({
   },
   render: function render() {
     var editText = this.props.canEditText ? function () {
-      var path = "/edit/" + this.props.srefs[0];
+      var refString = this.props.srefs[0];
       if (this.props.version) {
-        path += "/" + this.props.versionLanguage + "/" + this.props.version;
+        refString += "/" + this.props.versionLanguage + "/" + this.props.version;
       }
+      var path = "/edit/" + refString;
       var nextParam = "?next=" + Sefaria.util.currentPath();
       path += nextParam;
-      window.location = path;
+      Sefaria.site.track.event("Tools", "Edit Text Click", refString, { hitCallback: function hitCallback() {
+          return window.location = path;
+        } });
     }.bind(this) : null;
 
     var addTranslation = function () {
+      var _this4 = this;
+
       var nextParam = "?next=" + Sefaria.util.currentPath();
-      window.location = "/translate/" + this.props.srefs[0] + nextParam;
+      Sefaria.site.track.event("Tools", "Add Translation Click", this.props.srefs[0], { hitCallback: function hitCallback() {
+          return window.location = "/translate/" + _this4.props.srefs[0] + nextParam;
+        } });
     }.bind(this);
 
     var classes = classNames({ toolsPanel: 1, textList: 1, fullPanel: this.props.fullPanel });
@@ -7115,6 +7124,7 @@ var AddToSourceSheetPanel = React.createClass({
     this.setState({ showNewSheetInput: true });
   },
   confirmAdd: function confirmAdd() {
+    Sefaria.site.track.event("Tools", "Add to Source Sheet Save", this.props.srefs.join("/"));
     this.setState({ confirm: true });
   },
   render: function render() {
@@ -7305,6 +7315,7 @@ var AddNotePanel = React.createClass({
         } else {
           Sefaria.addPrivateNote(data);
         }
+        Sefaria.site.track.event("Tools", "Note Save " + (this.state.isPrivate ? "Private" : "Public"), this.props.srefs.join("/"));
         this.props.setConnectionsMode("My Notes");
       } else {
         alert("Sorry, there was a problem saving your note.");
@@ -7730,10 +7741,10 @@ var SearchResultList = React.createClass({
     });
   },
   _abortRunningQueries: function _abortRunningQueries() {
-    var _this4 = this;
+    var _this5 = this;
 
     this.state.types.forEach(function (t) {
-      return _this4._abortRunningQuery(t);
+      return _this5._abortRunningQuery(t);
     });
   },
   _abortRunningQuery: function _abortRunningQuery(type) {
@@ -7916,18 +7927,18 @@ var SearchResultList = React.createClass({
     return newHits;
   },
   _buildFilterTree: function _buildFilterTree(aggregation_buckets) {
-    var _this5 = this;
+    var _this6 = this;
 
     //returns object w/ keys 'availableFilters', 'registry'
     //Add already applied filters w/ empty doc count?
     var rawTree = {};
 
     this.props.appliedFilters.forEach(function (fkey) {
-      return _this5._addAvailableFilter(rawTree, fkey, { "docCount": 0 });
+      return _this6._addAvailableFilter(rawTree, fkey, { "docCount": 0 });
     });
 
     aggregation_buckets.forEach(function (f) {
-      return _this5._addAvailableFilter(rawTree, f["key"], { "docCount": f["doc_count"] });
+      return _this6._addAvailableFilter(rawTree, f["key"], { "docCount": f["doc_count"] });
     });
     this._aggregate(rawTree);
     return this._build(rawTree);
@@ -8139,7 +8150,7 @@ var SearchResultList = React.createClass({
     this.setState({ "activeTab": "text" });
   },
   render: function render() {
-    var _this6 = this;
+    var _this7 = this;
 
     if (!this.props.query) {
       // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
@@ -8153,15 +8164,15 @@ var SearchResultList = React.createClass({
       results = this.state.hits.text.slice(0, this.state.displayedUntil["text"]).map(function (result) {
         return React.createElement(SearchTextResult, {
           data: result,
-          query: _this6.props.query,
+          query: _this7.props.query,
           key: result._id,
-          onResultClick: _this6.props.onResultClick });
+          onResultClick: _this7.props.onResultClick });
       });
     } else if (tab == "sheet") {
       results = this.state.hits.sheet.slice(0, this.state.displayedUntil["sheet"]).map(function (result) {
         return React.createElement(SearchSheetResult, {
           data: result,
-          query: _this6.props.query,
+          query: _this7.props.query,
           key: result._id });
       });
     }
@@ -8823,7 +8834,7 @@ var InterruptingMessage = React.createClass({
   markAsRead: function markAsRead() {
     Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function (data) {});
     cookie(this.props.messageName, true, { "path": "/" });
-    Sefaria.site.track.event("Interrupting Message", "read", this.props.messageName);
+    Sefaria.site.track.event("Interrupting Message", "read", this.props.messageName, { nonInteraction: true });
     Sefaria.interruptingMessage = null;
   },
   render: function render() {
