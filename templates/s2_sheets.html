@@ -28,6 +28,21 @@
         background-color:#f8f8f8;
     }
 
+    .clearfix:before,
+    .clearfix:after {
+      content: " ";
+      display: table;
+    }
+    .clearfix:after {
+      clear: both;
+    }
+    .pull-right {
+      float: right !important;
+    }
+    .pull-left {
+      float: left !important;
+    }
+
 {% endblock %}
 
 {% block content %}
@@ -353,10 +368,16 @@
                 </div>
                 <div class="button">Add to Sheet</div>
             </div>
-            <div id="addmediaDiv">
-                <div class="inlineAddDesc">Add Image, Youtube Video, or MP3</div>
-                <input id="inlineAddMediaInput" placeholder="Paste URL"><br/>
-                <div class="button">Add to Sheet</div>
+            <div id="addmediaDiv" class="clearfix">
+                <div class="pull-left">
+                    <div class="inlineAddDesc">Add Image, Youtube Video, or MP3</div>
+                    <input id="inlineAddMediaInput" placeholder="Paste URL"><br/>
+                    <div class="button">Add to Sheet</div>
+                </div>
+                <div class="pull-right">
+                    <div class="inlineAddDesc">Upload an Image</div>
+                    <input id="addmediaFileSelector" type="file">
+                </div>
             </div>
 
 
