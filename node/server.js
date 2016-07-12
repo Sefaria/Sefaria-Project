@@ -18,6 +18,8 @@ var server = express();
 server.use(bodyParser.urlencoded({ extended: false, limit: '50mb' }));
 server.use(bodyParser.json({limit: '50mb'}));
 
+var log = settings.DEBUG ? console.log : function() {};
+
 var renderReaderApp = function(props, data, timer) {
   // Returns HTML of ReaderApp component given `props` and `data`
   if ("recentlyViewed" in props) {
@@ -27,10 +29,10 @@ var renderReaderApp = function(props, data, timer) {
   data.loggedIn = props.loggedIn;
   SefariaReact.setData(data);
   SefariaReact.unpackDataFromProps(props);
-  console.log("Time to set data: %dms", timer.elapsed());
+  log("Time to set data: %dms", timer.elapsed());
 
   var html  = ReactDOMServer.renderToString(ReaderApp(props));
-  console.log("Time to render: %dms", timer.elapsed());
+  log("Time to render: %dms", timer.elapsed());
   
   return html;
 };
@@ -42,19 +44,19 @@ server.post('/ReaderApp/:cachekey', function(req, res) {
   };
   var props = JSON.parse(req.body.propsJSON);
   // var cacheKey = req.params.cachekey 
-  console.log(props.initialRefs || props.initialMenu);
-  console.log("Time to props: %dms", timer.elapsed());
+  log(props.initialRefs || props.initialMenu);
+  log("Time to props: %dms", timer.elapsed());
 
   request(settings.DJANGO_HOST + "/data.js", function(error, response, body) {
     if (!error && response.statusCode == 200) {
-      console.log("Time to get data.js: %dms", timer.elapsed());
+      log("Time to get data.js: %dms", timer.elapsed());
       eval(body);
-      console.log("Time to eval data.js: %dms", timer.elapsed());
+      log("Time to eval data.js: %dms", timer.elapsed());
       var html = renderReaderApp(props, data, timer);
       res.end(html);
-      console.log("Time to complete: %dms", timer.elapsed());  
+      log("Time to complete: %dms", timer.elapsed());  
     } else {
-      console.log(error);
+      log(error);
       res.end("There was an error accessing /data.js.");
     }
   });
