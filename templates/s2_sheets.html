@@ -340,12 +340,12 @@
             <div id="addsourceDiv">
                 <div id="inlineAddDialogTitle" class="inlineAddDesc">Select a text</div>
                 <div class="blockContainer">
-                    <input id="inlineAdd" placeholder="Search for a Text or Commentator"/>
+                    <input id="inlineAdd" class="inlineAddTextInput" placeholder="Search for a Text or Commentator"/>
                     <div class="buttonContainer">
                         <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
                             <div id="inlineAddSourceOK" class='button disabled'>Add Source</div>
                         </div>
-                        <div id="inlineAddOr"> or </div>
+                        <div class="inlineAddOr"> or </div>
                         <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
                             <div id="inlineAddBrowse" class='button'>Browse Sources</div>
                         </div>
@@ -368,19 +368,23 @@
                 </div>
                 <div class="button">Add to Sheet</div>
             </div>
-            <div id="addmediaDiv" class="clearfix">
-                <div class="pull-left" style="width:60%">
-                    <div class="inlineAddDesc">Add Image, Youtube Video, or MP3</div>
-                    <input id="inlineAddMediaInput" placeholder="Paste URL"><br/>
-                    <div class="button">Add to Sheet</div>
-                </div>
-                <div class="pull-right" style="width:40%">
-                    <div class="inlineAddDesc">Upload an Image</div>
-                    <label for="addmediaFileSelector" class="button">
-                      <i class="fa fa-upload" aria-hidden="true"></i>
-                      Choose a file...
-                    </label>
-                    <input id="addmediaFileSelector" type="file" style="display:none">
+            <div id="addmediaDiv">
+                <div class="inlineAddDesc">Add Image, Youtube Video, or MP3</div>
+                <div class="blockContainer">
+                    <input id="inlineAddMediaInput" class="inlineAddTextInput" placeholder="Paste URL">
+                    <div class="buttonContainer">
+                        <div class="inlineAddSourceByttons">
+                            <div class="button">Add to Sheet</div>
+                        </div>
+                        <div class="inlineAddOr"> or </div>
+                        <div class="inlineAddSourceByttons">
+                            <label for="addmediaFileSelector" class="button">
+                                <i class="fa fa-upload" aria-hidden="true"></i>
+                                Choose a file...
+                            </label>
+                            <input id="addmediaFileSelector" type="file" style="display:none">
+                        </div>
+                    </div>
                 </div>
             </div>
 
