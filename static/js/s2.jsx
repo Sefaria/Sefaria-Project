@@ -281,6 +281,7 @@ var ReaderApp = React.createClass({
     // If there's no history or the number or basic state of panels has changed
     if (!history.state
         || (!history.state.panels && !history.state.header)
+        || (!history.state.panels && this.state.panels)
         || (history.state.panels && (history.state.panels.length !== this.state.panels.length))
         || (history.state.header && (history.state.header.menuOpen !== this.state.header.menuOpen))
       ) {
@@ -581,8 +582,8 @@ var ReaderApp = React.createClass({
       settings:             state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
       displaySettingsOpen:  false,
       tagSort:              state.tagSort              || "count",
-      mySheetSort:          state.mySheetSort          || "date"
-
+      mySheetSort:          state.mySheetSort          || "date",
+      initialAnalyticsTracked: state.initialAnalyticsTracked || false
     };
     if (this.state && panel.refs.length && !panel.version) {
       var oRef = Sefaria.ref(panel.refs[0]);
@@ -653,7 +654,6 @@ var ReaderApp = React.createClass({
     }
     this.setTextListHighlight(n, [textRef]);
     this.openPanelAt(n, citationRef);
-    Sefaria.site.track.event("Reader", "Citation Click", citationRef);
   },
   handleRecentClick: function(pos, ref, version, versionLanguage) {
     // Click on an item in your Recently Viewed
@@ -1245,12 +1245,14 @@ var Header = React.createClass({
     var override = query.match(this._searchOverrideRegex());
     if (override) {
       if (Sefaria.site) { Sefaria.site.track.event("Search", "Search Box Navigation - Book Override", override[1]); }
+      this.closeSearchAutocomplete();
       this.showSearch(override[1]);
       return;
     }
 
+    var index;
     if (query in Sefaria.booksDict) {
-      var index = Sefaria.index(query);
+      index = Sefaria.index(query);
       if (!index && !skipNormalization) {
         Sefaria.normalizeTitle(query, function(title) {
           this.submitSearch(title, true)
@@ -1261,11 +1263,16 @@ var Header = React.createClass({
     if (Sefaria.isRef(query)) {
       var action = index? "Search Box Navigation - Book": "Search Box Navigation - Citation";
       if (Sefaria.site) { Sefaria.site.track.event("Search", action, query); }
+      this.clearSearchBox();
       this.handleRefClick(query);
     } else {
       if (Sefaria.site) { Sefaria.site.track.event("Search", "Search Box Search", query); }
+      this.closeSearchAutocomplete();
       this.showSearch(query);
     }
+  },
+  closeSearchAutocomplete: function() {
+    $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   },
   clearSearchBox: function() {
     $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
@@ -1460,6 +1467,9 @@ var ReaderPanel = React.createClass({
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
     this.setHeadroom();
+    if (this.props.analyticsInitialized && !this.state.initialAnalyticsTracked) {
+      this.trackPanelEvents();
+    }
   },
   componentWillUnmount: function() {
     window.removeEventListener("resize", this.setWidth);
@@ -1485,8 +1495,12 @@ var ReaderPanel = React.createClass({
   },
   componentDidUpdate: function(prevProps, prevState) {
     this.setHeadroom();
-    if (this.props.analyticsInitialized && (!this.state.initialAnalyticsTracked || !prevState.refs.compare(this.state.refs))) {
-      this.trackPanelOpens();
+    if (this.props.analyticsInitialized &&
+         (!this.state.initialAnalyticsTracked ||
+          !prevState.refs.compare(this.state.refs)
+         )
+    ) {
+      this.trackPanelEvents();
     }
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
       this.setWidth();
@@ -1611,6 +1625,7 @@ var ReaderPanel = React.createClass({
   openMenu: function(menu) {
     this.conditionalSetState({
       menuOpen: menu,
+      initialAnalyticsTracked: false,
       // searchQuery: null,
       // appliedSearchFilters: [],
       navigationCategories: null,
@@ -1700,6 +1715,7 @@ var ReaderPanel = React.createClass({
     };
     Sefaria.site.track.event("Tools", mode + " Click");
     if (!Sefaria._uid && mode in loginRequired) {
+      Sefaria.site.track.event("Tools", "Prompt Login");
       mode = "Login";
     }
     var state = {connectionsMode: mode};
@@ -1738,24 +1754,36 @@ var ReaderPanel = React.createClass({
       }
     }.bind(this), intentDelay, this.state.refs.slice());
   },
-  trackPanelOpens: function() {
+  trackPanelEvents: function () {
     if (this.state.mode === "Connections") { return; }
     this.tracked = this.tracked || [];
+
+    if (!this.state.initialAnalyticsTracked && this.state.menuOpen === "book toc") {
+      Sefaria.site.track.event("Reader", "Open Book TOC", this.state.bookRef);
+      this.setState({initialAnalyticsTracked: true});
+      return;
+    }
+
+    var currentRef = this.currentRef();
+    if (!currentRef) { return; }
+
+    if (!this.state.initialAnalyticsTracked && this.state.menuOpen === "text toc") {
+      Sefaria.site.track.event("Reader", "Open Text TOC", currentRef);
+      this.setState({initialAnalyticsTracked: true});
+      return;
+    }
+
     // Do a little dance to avoid tracking something we've already just tracked
     // e.g. when refs goes from ["Genesis 5"] to ["Genesis 4", "Genesis 5"] don't track 5 again
     //todo: now that we're tracking intent, do we want to relax the "don't track returns" logic here?
-    for (var i = 0; i < this.state.refs.length; i++) {
-      if (Sefaria.util.inArray(this.state.refs[i], this.tracked) == -1) {
-        if (Sefaria.site) {
-          if (!this.state.initialAnalyticsTracked) {
-            Sefaria.site.track.open(this.state.refs[i]);
-            this.setState({initialAnalyticsTracked: true});
-          } else {
-            this.checkScrollIntentAndTrack(this.state.refs[i]);
-          }
-        }
-        this.tracked.push(this.state.refs[i]);
+    if (Sefaria.util.inArray(currentRef, this.tracked) == -1) {
+      if (!this.state.initialAnalyticsTracked) {
+        Sefaria.site.track.open(currentRef);
+        this.setState({initialAnalyticsTracked: true});
+      } else {
+        this.checkScrollIntentAndTrack(currentRef);
       }
+      this.tracked.push(currentRef);
     }
   },
   currentMode: function() {
@@ -4652,10 +4680,10 @@ var TextSegment = React.createClass({
       var ref = Sefaria.humanRef($(event.target).attr("data-ref"));
       this.props.onCitationClick(ref, this.props.sref);
       event.stopPropagation();
-      if (Sefaria.site) { Sefaria.site.track.event("Reader", "Citation Link Click", ref); }
+      Sefaria.site.track.event("Reader", "Citation Link Click", ref);
     } else if (this.props.onSegmentClick) {
       this.props.onSegmentClick(this.props.sref);
-      if (Sefaria.site) { Sefaria.site.track.event("Reader", "Text Segment Click", this.props.sref); }
+      Sefaria.site.track.event("Reader", "Text Segment Click", this.props.sref);
     }
   },
   render: function() {    
