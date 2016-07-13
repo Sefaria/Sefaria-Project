@@ -300,7 +300,7 @@
             var email = $("#mailingListEmail").val();
             if (Sefaria.util.isValidEmailAddress(email)) {
                 Sefaria.site.track.event("Home", "Subscribe from Homepage", "");
-                $("#subscribeMsg").html("<i>Subscribing...</i>");
+                $("#subscribeMsg").html("<i>Subscribing...</i>").show();
                 $.post("/api/subscribe/" + email, function(data) {
                     if ("error" in data) {
                         $("#subscribeMsg").text(data.error).show();
