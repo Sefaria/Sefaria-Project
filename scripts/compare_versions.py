@@ -12,31 +12,35 @@ import sys
 import codecs
 import re
 import diff_match_patch
+import argparse
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, p)
 from sefaria.local_settings import *
 os.environ['DJANGO_SETTINGS_MODULE'] = 'sefaria.settings'
 from sefaria.model import *
 
-tractates = library.get_indexes_in_category('Mishnah')
 
-
-def get_relevant_books():
+def get_relevant_books(book_list, version_list):
     """
-    As not all tractates have had the Vilna edition uploaded yet, get those tractates for which the version has
-    been uploaded.
+    :param book_list: List of book indexes of interest
+    :param version_list: List or tuple size 2 of versions to compare
     :return: List of tractates for which the Vilna edition has been uploaded.
     """
 
+    candidate = False
     relevant = []
 
-    for book in tractates:
+    for book in book_list:
 
         ref = Ref(book)
         for version in ref.version_list():
-            if version['versionTitle'] == 'Vilna Mishna':
+            if version['versionTitle'] == version_list[0]:
+                candidate = True
+
+        for version in ref.version_list():
+            if candidate and version['versionTitle'] == version_list[1]:
                 relevant.append(book)
-                break
+
     return relevant
 
 
@@ -148,8 +152,9 @@ class TestSuite:
     Class to get data and run a series of tests on them.
     """
 
-    def __init__(self, test_list, lang, versions, html=False, output_file=None):
+    def __init__(self, book_list, test_list, lang, versions, html=False, output_file=None):
         """
+        :param name
         :param test_list: A list of TestMeta objects
         :param output_file: File to write results. If not set, script will generate its own files for each
         book.
@@ -157,7 +162,10 @@ class TestSuite:
         :param versions: Names of versions to compare.
         """
 
-        self.texts = get_relevant_books()
+        if len(versions) != 2:
+            raise AttributeError("Must have 2 versions to compare!")
+        self.versions = versions
+        self.texts = get_relevant_books(book_list, self.versions)
         self.tests = test_list
         self.output = output_file
         if not self.output:
@@ -165,9 +173,6 @@ class TestSuite:
         else:
             self.new_file = False
         self.lang = lang
-        if len(versions) != 2:
-            raise AttributeError("Must have 2 versions to compare!")
-        self.versions = versions
         self.html = html
 
     def html_header(self):
@@ -274,9 +279,9 @@ class TestSuite:
             self.html_footer()
 
 
-class CompareNumberOfMishnayot(ComparisonTest):
+class CompareNumberOfSegments(ComparisonTest):
     """
-    Compares number of mishnayot between two versions.
+    Compares number of Segments between two versions.
     """
 
     name = u'Mishna Count Test'
@@ -334,18 +339,14 @@ class CompareStrings(ComparisonTest):
 
     name = u'Exact String Match Test'
 
-    def run_test(self, mishna):
+    def run_test(self, reference):
 
         # instantiate result
-        result = TestResult(mishna.uid(), [], False)
+        result = TestResult(reference.uid(), [], False)
 
         # get TextChunks
-        v1 = TextChunk(mishna, self.language, self.v1).text
-        v2 = TextChunk(mishna, self.language, self.v2).text
-
-        # strip out non hebrew letter characters or spaces
-        v1 = re.sub(u'[^א-ת^ ^"^\(^\)]+', u'', v1)
-        v2 = re.sub(u'[^א-ת^ ^"^\(^\)]+', u'', v2)
+        v1 = TextChunk(reference, self.language, self.v1).text
+        v2 = TextChunk(reference, self.language, self.v2).text
 
         # remove multiple spaces
         v1 = re.sub(u' +', u' ', v1)
@@ -361,11 +362,36 @@ class CompareStrings(ComparisonTest):
 
         return result
 
+tests = {
+    'CompareNumberOfSegments': CompareNumberOfSegments, 'CompareNumberOfWords': CompareNumberOfWords,
+    'CompareStrings': CompareStrings,
+         }
 
-#output_file = codecs.open('Mishna version test.html', 'w', 'utf-8')
-tests = [CompareNumberOfMishnayot, CompareNumberOfWords, CompareStrings]
-versions = ['Wikisource Mishna', 'Vilna Mishna']
-testrunner = TestSuite(tests, 'he', versions, True)
-testrunner.run_tests()
-#output_file.close()
+available_tests = ['CompareNumberOfSegments', 'CompareNumberOfWords', 'CompareStrings']
 
+if __name__ == '__main__':
+    terminal = argparse.ArgumentParser()
+    terminal.add_argument('name', help='Name of Book or Category')
+    terminal.add_argument('versions', help='Versions to compare separated by a semicolon: versionA;versionB')
+    terminal.add_argument('-t', '--tests', help='Tests to run, separated by a semicolon. Default runs all tests'
+                                                'List of available tests: {}'.format(' '.join(available_tests)),
+                          default=';'.join(available_tests))
+    terminal.add_argument('-l', '--language', help='en or he', default='he')
+    terminal.add_argument("-c", "--category", help='Add this flag to iterate over a category', action="store_true",
+                          default=False)
+    terminal.add_argument("-com", "--commentary", default=None,
+                          help='Specify commentator name for iterating over a commentary in a category. This gets'
+                               'appended to the index name, so be sure to add spaces and conjoining words as necessary'
+                               'E.g. for Rashi on Tanakh, set this to "Rashi on "')
+
+    arguments = terminal.parse_args()
+    versions = arguments.versions.split(';')
+    tests_to_run = [tests[test] for test in arguments.tests.split(';')]
+    if arguments.category:
+        books = library.get_indexes_in_category(arguments.name)
+    else:
+        books = [arguments.name]
+    if arguments.commentary:
+        books = [arguments.commentary + book for book in books]
+    testRunner = TestSuite(books, tests_to_run, arguments.language, versions, True)
+    testRunner.run_tests()
