@@ -32,7 +32,7 @@ from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
-from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError
+from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DuplicateRecordError
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
@@ -1369,7 +1369,11 @@ def links_api(request, link_id_or_ref=None):
             #todo: this seems goofy.  It's at least a bit more expensive than need be.
             res = []
             for i in j:
-                res.append(post_single_link(request, i))
+                try:
+                    res.append(post_single_link(request, i))
+                except DuplicateRecordError as e:
+                    res.append({"error": unicode(e)})
+
             return jsonResponse(res)
 
         else:
