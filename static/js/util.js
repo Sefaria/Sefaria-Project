@@ -1290,7 +1290,7 @@ sjs.sheetTagger = {
 					'	<div class="title">Tag this Sheet</div>' +
 					'	<ul id="tags"></ul>' +
 					'	<div class="sub"></div>' +
-					'	<div class="button">Save</div>' +
+					'	<div class="button ok">Save</div>' +
 					'</div>';
 		$(html).appendTo("body");
 
