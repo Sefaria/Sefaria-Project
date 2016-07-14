@@ -1536,9 +1536,6 @@
 
 #editGroupModal #saveGroup {
     display: none;
-    position: absolute;
-    top: 5px;
-    left: 5px;
 }
 
 #visualGardenPage .control-results-containe{
