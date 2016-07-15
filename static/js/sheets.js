@@ -2585,6 +2585,9 @@ function buildSheet(data){
 
 	if (data.title) {
 		$("#title").html(data.title);
+		if (isHebrew(data.title.stripHtml())) {
+			$("#title").addClass("heTitle");
+		}
 	} else {
 		$("#title").text("Untitled Source Sheet");
 	}

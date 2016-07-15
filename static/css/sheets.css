@@ -412,6 +412,10 @@ body {
 	line-height: normal;
 }
 
+#title.heTitle {
+	direction: rtl;
+}
+
 #author {
 	text-align: center;
 	font-style: italic;
