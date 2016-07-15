@@ -3356,3 +3356,56 @@ var afterAction = function() {
 		$("#fileControlMsg").hide();
 	}
 };
+
+// ------------------ Upload locally stored images to Imgur ------------------
+
+var imgurClientId = "f409a1105c5e8af";
+
+var addmediaChooseFile = function() {
+  var file = this.files[0];
+
+  if (file == null)
+    return;
+
+  if (/\.(jpe?g|png|gif)$/i.test(file.name)) {
+    var reader = new FileReader();
+
+    reader.addEventListener("load", function() {
+      addmediaUploadImageToImgur(reader.result);
+    }, false);
+
+    reader.addEventListener("onerror", function() {
+      sjs.alert.message(reader.error);
+    }, false);
+
+    reader.readAsDataURL(file);
+  } else {
+      sjs.alert.message("Could not add image. Please make sure that the file you attempted to upload is a JPEG, PNG, or GIF");
+  }
+};
+
+var addmediaUploadImageToImgur = function(imageData) {
+  $.ajax({
+    url: "https://api.imgur.com/3/image",
+    type: "POST",
+    headers: {
+      Authorization: "Client-ID " + imgurClientId,
+      Accept: "application/json"
+    },
+    data: {
+      image: imageData.replace(/data:image\/(jpe?g|png|gif);base64,/, ""),
+      type: "base64"
+    },
+    success: function(result) {
+			var imageUrl = "https://i.imgur.com/" + result.data.id + ".png";
+      $("#inlineAddMediaInput").val(imageUrl);
+      $("#addmediaDiv").find(".button").first().trigger("click");
+			$("#inlineAddMediaInput").val("");
+    },
+    error: function(result) {
+      sjs.alert.message(result.responseJSON.data.error);
+    }
+  });
+};
+
+$("#addmediaFileSelector").change(addmediaChooseFile);
