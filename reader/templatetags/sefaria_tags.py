@@ -487,3 +487,8 @@ def partition_vertical(thelist, n):
 @register.filter
 def date_string_to_date(dateString):
     return(datetime.strptime(dateString, "%Y-%m-%dT%H:%M:%S.%f"))
+
+@register.filter(is_safe=True)
+def sheet_via_absolute_link(sheet_id):
+    return mark_safe(absolute_link(
+		'<a href="/sheets/{}">a sheet</a>'.format(sheet_id)))

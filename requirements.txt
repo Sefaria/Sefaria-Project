@@ -22,3 +22,5 @@ geojson
 django-recaptcha
 unicodecsv
 multiprocessing
+oauth2client==2.0.2
+google-api-python-client==1.5.0
