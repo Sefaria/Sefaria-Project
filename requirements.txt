@@ -1,3 +1,4 @@
+setuptools>=18.5
 selenium
 django==1.4.5
 pymongo==2.9
