@@ -263,27 +263,55 @@ var ReaderApp = React.createClass({
     var headerPanel = this.state.header.menuOpen || !this.state.panels.length && this.state.header.mode === "Header";
     var panels = headerPanel ? [this.state.header] : this.state.panels;
 
-    // Get top level categories
-    var primaryCats = panels.map(function (panel) {
+    Sefaria.site.track.setNumberOfPanels(panels.length.toString());
+
+    // refs
+    var refs = panels.map(function (panel) {
       var ref = panel.refs.length ? panel.refs.slice(-1)[0] : panel.bookRef;
       if (!ref || panel.mode === "Connections") {
         return "";
       }
-      var data = Sefaria.index(Sefaria.parseRef(ref).index);
-      return data.categories[0] === "Commentary" ? data.categories[1] + " Commentary" : data.categories[0];
+      return ref;
     }).filter(function (r) {
       return !!r;
-    }).join(" | ");
-    Sefaria.site.track.primaryCategory(primaryCats);
+    });
+    Sefaria.site.track.setRef(refs.join(" | "));
 
-    // Get panel content languages (use same criterion as top level categories)
+    // Book name (Index record primary name)
+    var bookNames = refs.map(function (ref) {
+      return Sefaria.parseRef(ref).index;
+    });
+    Sefaria.site.track.setBookName(bookNames.join(" | "));
+
+    // Indexes
+    var indexes = bookNames.map(function (b) {
+      return Sefaria.index(b);
+    });
+
+    // categories
+    var primaryCats = indexes.map(function (i) {
+      return i.categories[0] === "Commentary" ? i.categories[1] + " Commentary" : i.categories[0];
+    });
+    Sefaria.site.track.setPrimaryCategory(primaryCats.join(" | "));
+
+    var secondaryCats = indexes.map(function (i) {
+      return i.categories[0] === "Commentary" ? i.categories.length > 2 ? i.categories[2] : "" : i.categories.length > 1 ? i.categories[1] : "";
+    });
+    Sefaria.site.track.setSecondaryCategory(secondaryCats.join(" | "));
+
+    // panel content languages (use same criterion as refs, top level categories, etc)
     var contentLanguages = panels.map(function (panel) {
       return (panel.refs.length || panel.bookRef) && panel.mode !== "Connections" ? panel.settings.language : "";
     }).filter(function (r) {
       return !!r;
-    }).join(" | ");
-    Sefaria.site.track.contentLanguage(contentLanguages);
+    });
+    Sefaria.site.track.setContentLanguage(contentLanguages.join(" | "));
 
+    // Set Versions
+
+    // Set Page Type
+
+    // After setting the dimensions, post the hit
     var url = window.location.pathname + window.location.search;
     Sefaria.site.track.pageview(url);
 
@@ -1541,9 +1569,11 @@ var ReaderPanel = React.createClass({
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
     this.setHeadroom();
+    /*
     if (this.props.analyticsInitialized && !this.state.initialAnalyticsTracked) {
       this.trackPanelEvents();
     }
+    */
   },
   componentWillUnmount: function componentWillUnmount() {
     window.removeEventListener("resize", this.setWidth);
@@ -1569,9 +1599,15 @@ var ReaderPanel = React.createClass({
   },
   componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
     this.setHeadroom();
-    if (this.props.analyticsInitialized && (!this.state.initialAnalyticsTracked || !prevState.refs.compare(this.state.refs))) {
+    /*
+    if (this.props.analyticsInitialized &&
+         (!this.state.initialAnalyticsTracked ||
+          !prevState.refs.compare(this.state.refs)
+         )
+    ) {
       this.trackPanelEvents();
     }
+    */
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
       this.setWidth();
     }
@@ -1818,52 +1854,49 @@ var ReaderPanel = React.createClass({
       mySheetSort: sort
     });
   },
-  checkScrollIntentAndTrack: function checkScrollIntentAndTrack(ref) {
+  /*
+  checkScrollIntentAndTrack: function(ref) {
     // Record current state of panel refs, and check if it has changed after some delay.  If it remains the same, track analytics.
-    var intentDelay = 3000; // Number of milliseconds to demonstrate intent
-
-    window.setTimeout(function (initialRefs) {
+    var intentDelay = 3000;  // Number of milliseconds to demonstrate intent
+    console.log("Setting panel scroll intent check");
+    window.setTimeout(function(initialRefs){
+      console.log("Checking panel scroll intent");
       if (initialRefs.compare(this.state.refs)) {
-        Sefaria.site.track.open(ref);
+          Sefaria.site.track.open(ref);
       }
     }.bind(this), intentDelay, this.state.refs.slice());
   },
-  trackPanelEvents: function trackPanelEvents() {
-    if (this.state.mode === "Connections") {
-      return;
-    }
+  */
+  /*
+  trackPanelEvents: function () {
+    if (this.state.mode === "Connections") { return; }
     this.tracked = this.tracked || [];
-
-    if (!this.state.initialAnalyticsTracked && this.state.menuOpen === "book toc") {
+     if (!this.state.initialAnalyticsTracked && this.state.menuOpen === "book toc") {
       Sefaria.site.track.event("Reader", "Open Book TOC", this.state.bookRef);
-      this.setState({ initialAnalyticsTracked: true });
+      this.setState({initialAnalyticsTracked: true});
       return;
     }
-
-    var currentRef = this.currentRef();
-    if (!currentRef) {
-      return;
-    }
-
-    if (!this.state.initialAnalyticsTracked && this.state.menuOpen === "text toc") {
+     var currentRef = this.currentRef();
+    if (!currentRef) { return; }
+     if (!this.state.initialAnalyticsTracked && this.state.menuOpen === "text toc") {
       Sefaria.site.track.event("Reader", "Open Text TOC", currentRef);
-      this.setState({ initialAnalyticsTracked: true });
+      this.setState({initialAnalyticsTracked: true});
       return;
     }
-
-    // Do a little dance to avoid tracking something we've already just tracked
+     // Do a little dance to avoid tracking something we've already just tracked
     // e.g. when refs goes from ["Genesis 5"] to ["Genesis 4", "Genesis 5"] don't track 5 again
     //todo: now that we're tracking intent, do we want to relax the "don't track returns" logic here?
     if (Sefaria.util.inArray(currentRef, this.tracked) == -1) {
       if (!this.state.initialAnalyticsTracked) {
         Sefaria.site.track.open(currentRef);
-        this.setState({ initialAnalyticsTracked: true });
+        this.setState({initialAnalyticsTracked: true});
       } else {
         this.checkScrollIntentAndTrack(currentRef);
       }
       this.tracked.push(currentRef);
     }
   },
+  */
   currentMode: function currentMode() {
     return this.state.mode;
   },

@@ -251,23 +251,44 @@ var ReaderApp = React.createClass({
       var headerPanel = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
       var panels = headerPanel ? [this.state.header] : this.state.panels;
 
-      // Get top level categories
-      var primaryCats = panels.map(function(panel) {
-                            var ref = (panel.refs.length)? panel.refs.slice(-1)[0] : panel.bookRef;
-                            if (!ref || panel.mode === "Connections") { return ""; }
-                            var data = Sefaria.index(Sefaria.parseRef(ref).index);
-                            return (data.categories[0] === "Commentary")? data.categories[1] + " Commentary": data.categories[0];
-                          })
-                          .filter(r => !!r)
-                          .join(" | ");
-      Sefaria.site.track.primaryCategory(primaryCats);
+      Sefaria.site.track.setNumberOfPanels(panels.length.toString());
 
-      // Get panel content languages (use same criterion as top level categories)
+      // refs
+      var refs =  panels.map(function(panel) {
+                    var ref = (panel.refs.length)? panel.refs.slice(-1)[0] : panel.bookRef;
+                    if (!ref || panel.mode === "Connections") { return ""; }
+                    return ref;
+                  })
+                  .filter(r => !!r);
+      Sefaria.site.track.setRef(refs.join(" | "));
+
+      // Book name (Index record primary name)
+      var bookNames = refs.map(ref => Sefaria.parseRef(ref).index);
+      Sefaria.site.track.setBookName(bookNames.join(" | "));
+
+      // Indexes
+      var indexes = bookNames.map(b => Sefaria.index(b));
+
+      // categories
+      var primaryCats = indexes.map(i => (i.categories[0] === "Commentary")? i.categories[1] + " Commentary": i.categories[0]);
+      Sefaria.site.track.setPrimaryCategory(primaryCats.join(" | "));
+
+      var secondaryCats = indexes.map(i => (i.categories[0] === "Commentary")?
+          ((i.categories.length > 2)?i.categories[2]:""):
+          ((i.categories.length > 1)?i.categories[1]:"")
+      );
+      Sefaria.site.track.setSecondaryCategory(secondaryCats.join(" | "));
+
+      // panel content languages (use same criterion as refs, top level categories, etc)
       var contentLanguages = panels.map(panel => ((panel.refs.length || panel.bookRef) && panel.mode !== "Connections")? panel.settings.language :"")
-                          .filter(r => !!r)
-                          .join(" | ");    
-      Sefaria.site.track.contentLanguage(contentLanguages);
-    
+                          .filter(r => !!r);
+      Sefaria.site.track.setContentLanguage(contentLanguages.join(" | "));
+
+      // Set Versions
+
+      // Set Page Type
+
+      // After setting the dimensions, post the hit
       var url = window.location.pathname + window.location.search;
       Sefaria.site.track.pageview(url);
 
@@ -1467,9 +1488,11 @@ var ReaderPanel = React.createClass({
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
     this.setHeadroom();
+    /*
     if (this.props.analyticsInitialized && !this.state.initialAnalyticsTracked) {
       this.trackPanelEvents();
     }
+    */
   },
   componentWillUnmount: function() {
     window.removeEventListener("resize", this.setWidth);
@@ -1495,6 +1518,7 @@ var ReaderPanel = React.createClass({
   },
   componentDidUpdate: function(prevProps, prevState) {
     this.setHeadroom();
+    /*
     if (this.props.analyticsInitialized &&
          (!this.state.initialAnalyticsTracked ||
           !prevState.refs.compare(this.state.refs)
@@ -1502,6 +1526,7 @@ var ReaderPanel = React.createClass({
     ) {
       this.trackPanelEvents();
     }
+    */
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
       this.setWidth();
     }
@@ -1743,6 +1768,7 @@ var ReaderPanel = React.createClass({
       mySheetSort: sort,
     });
   },
+  /*
   checkScrollIntentAndTrack: function(ref) {
     // Record current state of panel refs, and check if it has changed after some delay.  If it remains the same, track analytics.
     var intentDelay = 3000;  // Number of milliseconds to demonstrate intent
@@ -1754,6 +1780,8 @@ var ReaderPanel = React.createClass({
       }
     }.bind(this), intentDelay, this.state.refs.slice());
   },
+  */
+  /*
   trackPanelEvents: function () {
     if (this.state.mode === "Connections") { return; }
     this.tracked = this.tracked || [];
@@ -1786,6 +1814,7 @@ var ReaderPanel = React.createClass({
       this.tracked.push(currentRef);
     }
   },
+  */
   currentMode: function() {
     return this.state.mode;
   },

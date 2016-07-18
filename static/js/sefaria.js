@@ -2224,11 +2224,30 @@ Sefaria.site = {
         var text = Sefaria.parseRef(ref).book;
         Sefaria.site.track.event("Reader", "Open Text", text, {nonInteraction: true});
     },
-    primaryCategory(category_name) {
+    setPrimaryCategory(category_name) {
         ga('set', 'contentGroup1', category_name);
     },
-    contentLanguage(language) {
+    setSecondaryCategory(category_name) {
+        ga('set', 'contentGroup2', category_name);
+    },
+    setContentLanguage(language) {
         ga('set', 'contentGroup5', language);
+    },
+    setNumberOfPanels(val) {
+        ga('set', 'dimension1', val);
+    },
+    setBookName(val) {
+        ga('set', 'dimension2', val);
+        ga('set', 'contentGroup3', val);
+    },
+    setRef(val) {
+        ga('set', 'dimension3', val);
+    },
+    setVersionTitle(val) {
+        ga('set', 'dimension4', val);
+    },
+    setPageType(val) {
+        ga('set', 'dimension5', val);
     },
     sheets: function(action, label) {
         Sefaria.site.track.event("Sheets", action, label);
