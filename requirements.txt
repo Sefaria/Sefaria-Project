@@ -1,4 +1,4 @@
-setuptools>=18.5
+html5lib==0.9999999
 selenium
 django==1.4.5
 pymongo==2.9
