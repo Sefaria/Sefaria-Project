@@ -682,14 +682,15 @@ def make_alt_toc_html(alt, index):
     def node_line(node, depth, **kwargs):
         if depth == 0 and node.has_children():
             return ""
+        html    = ""
         refs            = getattr(node, "refs", False)
         includeSections = getattr(node, "includeSections", False)
-        linked  = "linked" if not refs and not includeSections else ""
+        linked  = "linked" if (not refs and not includeSections and getattr(node, "wholeRef", None)) else ""
         default = "default" if node.is_default() else ""
-        url     = "/" + Ref(node.wholeRef).url()
+        url     = "/" + Ref(node.wholeRef).url() if linked else None
         en_icon = '<i class="schema-node-control fa ' + ('fa-angle-right' if linked else 'fa-angle-down') + '"></i>'
         he_icon = '<i class="schema-node-control fa ' + ('fa-angle-left' if linked else 'fa-angle-down') + '"></i>'
-        html    = '<a href="' + urlquote(url) + '"' if linked else "<div "
+        html   += '<a href="' + urlquote(url) + '"' if linked else "<div "
         html   += ' class="schema-node-toc depth' + str(depth) + ' ' + linked + ' ' + default + '" >'
         wrap_counts  = lambda counts: counts if list_depth(counts) >= 2 else wrap_counts([counts])
         # wrap counts to ensure they are as though at section level, handles segment level refs
