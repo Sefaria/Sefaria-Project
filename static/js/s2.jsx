@@ -2870,7 +2870,7 @@ var ReaderTextTableOfContents = React.createClass({
         if (v == defaultVersionObject) {
           continue;
         }
-        if (this.props.versionLanguage == v.language && this.props.version == v.versionTitle) {
+        if (this.state.currentVersion.language == v.language && this.state.currentVersion.versionTitle == v.versionTitle) {
           selectedOption = i+1;
         }
         var versionString = v.versionTitle + " (" + v.language + ")";  // Can not inline this, because of https://github.com/facebook/react-devtools/issues/248
