@@ -265,8 +265,8 @@ var ReaderApp = React.createClass({
         if (!prev.navigationCategories || !next.navigationCategories) {
           return true; // They are not equal and one is null
         } else if (!prev.navigationCategories.compare(next.navigationCategories)) {
-          return true; // both are set, compare arrays
-        }
+            return true; // both are set, compare arrays
+          }
       }
     }
     return false;
@@ -443,14 +443,14 @@ var ReaderApp = React.createClass({
           hist.title += " & " + histories[i].title; // TODO this doesn't trim title properly
         }
       } else {
-        var next = "&p=" + histories[i].url;
-        next = next.replace("?", "&").replace(/=/g, i + 1 + "=");
-        hist.url += next;
-        if (histories[i].versionLanguage && histories[i].version) {
-          hist.url += "&l" + (i + 1) + "=" + histories[i].versionLanguage + "&v" + (i + 1) + "=" + histories[i].version.replace(/\s/g, "_");
+          var next = "&p=" + histories[i].url;
+          next = next.replace("?", "&").replace(/=/g, i + 1 + "=");
+          hist.url += next;
+          if (histories[i].versionLanguage && histories[i].version) {
+            hist.url += "&l" + (i + 1) + "=" + histories[i].versionLanguage + "&v" + (i + 1) + "=" + histories[i].version.replace(/\s/g, "_");
+          }
+          hist.title += " & " + histories[i].title;
         }
-        hist.title += " & " + histories[i].title;
-      }
       if (histories[i].lang) {
         hist.url += "&lang" + (i + 1) + "=" + histories[i].lang;
       }
@@ -470,16 +470,16 @@ var ReaderApp = React.createClass({
 
       history.replaceState(hist.state, hist.title, hist.url);
     } else {
-      if (window.location.pathname + window.location.search == hist.url) {
-        return;
-      } // Never push history with the same URL
-      history.pushState(hist.state, hist.title, hist.url);
+        if (window.location.pathname + window.location.search == hist.url) {
+          return;
+        } // Never push history with the same URL
+        history.pushState(hist.state, hist.title, hist.url);
 
-      //console.log(hist);
-      if (Sefaria.site) {
-        Sefaria.site.track.pageview(hist.url);
+        //console.log(hist);
+        if (Sefaria.site) {
+          Sefaria.site.track.pageview(hist.url);
+        }
       }
-    }
 
     $("title").html(hist.title);
     this.replaceHistory = false;
@@ -2998,7 +2998,7 @@ var ReaderTextTableOfContents = React.createClass({
     window.removeEventListener('resize', this.shrinkWrap);
   },
   componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
-    if (this.props.settingsLanguage != prevProps.settingsLanguage) {
+    if (this.props.settingsLanguage != prevProps.settingsLanguage || this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage) {
       this.loadVersions();
     }
     this.bindToggles();
@@ -3019,7 +3019,7 @@ var ReaderTextTableOfContents = React.createClass({
       return;
     }
     if (Sefaria.ref(ref)) {
-      Sefaria.text(ref, { context: 1, version: this.state.version, language: this.state.versionLanguage }, this.loadVersionsDataFromText);
+      Sefaria.text(ref, { context: 1, version: this.props.version, language: this.props.versionLanguage }, this.loadVersionsDataFromText);
     } else {
       Sefaria.versions(ref, function (d) {
         this.setState({ versions: d, versionsLoaded: true });
@@ -3104,11 +3104,11 @@ var ReaderTextTableOfContents = React.createClass({
     if ($root.find(".tocSection").length) {// nested simple text
       //$root.find(".tocSection").each(shrink); // Don't bother with these for now
     } else if ($root.find(".schema-node-toc").length) {
-      // complex text or alt struct
-      $root.find(".schema-node-toc, .schema-node-contents").each(shrink);
-    } else {
-      $root.find(".tocLevel").each(shrink); // Simple text, no nesting
-    }
+        // complex text or alt struct
+        $root.find(".schema-node-toc, .schema-node-contents").each(shrink);
+      } else {
+        $root.find(".tocLevel").each(shrink); // Simple text, no nesting
+      }
   },
   onVersionSelectChange: function onVersionSelectChange(event) {
     if (event.target.value == 0) {
@@ -3352,7 +3352,7 @@ var ReaderTextTableOfContents = React.createClass({
         if (v == defaultVersionObject) {
           continue;
         }
-        if (this.props.versionLanguage == v.language && this.props.version == v.versionTitle) {
+        if (this.state.currentVersion.language == v.language && this.state.currentVersion.versionTitle == v.versionTitle) {
           selectedOption = i + 1;
         }
         var versionString = v.versionTitle + " (" + v.language + ")"; // Can not inline this, because of https://github.com/facebook/react-devtools/issues/248
@@ -5005,18 +5005,18 @@ var TextColumn = React.createClass({
         //console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
-      //console.log("scroll to highlighted")
-      // scroll to highlighted segment
-      this.scrollToHighlighted();
-      this.scrolledToHighlight = true;
-      this.initialScrollTopSet = true;
-    } else if (!this.initialScrollTopSet) {
-      //console.log("initial scroll to 30")
-      // initial value set below 0 so you can scroll up for previous
-      var node = ReactDOM.findDOMNode(this);
-      node.scrollTop = 30;
-      this.initialScrollTopSet = true;
-    }
+        //console.log("scroll to highlighted")
+        // scroll to highlighted segment
+        this.scrollToHighlighted();
+        this.scrolledToHighlight = true;
+        this.initialScrollTopSet = true;
+      } else if (!this.initialScrollTopSet) {
+        //console.log("initial scroll to 30")
+        // initial value set below 0 so you can scroll up for previous
+        var node = ReactDOM.findDOMNode(this);
+        node.scrollTop = 30;
+        this.initialScrollTopSet = true;
+      }
     // This fixes loading of next content when current content is short in viewport,
     // but breaks loading highlighted ref, jumping back up to top of section
     // this.adjustInfiniteScroll();
