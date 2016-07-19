@@ -2636,7 +2636,10 @@ var ReaderTextTableOfContents = React.createClass({
     window.removeEventListener('resize', this.shrinkWrap);
   },
   componentDidUpdate: function(prevProps, prevState) {
-    if (this.props.settingsLanguage != prevProps.settingsLanguage) {
+    if ((this.props.settingsLanguage != prevProps.settingsLanguage) ||
+        (this.props.version != prevProps.version) ||
+        (this.props.versionLanguage != prevProps.versionLanguage)
+    ) {
       this.loadVersions();
     }
     this.bindToggles();
@@ -2659,7 +2662,7 @@ var ReaderTextTableOfContents = React.createClass({
     if (Sefaria.ref(ref)) {
       Sefaria.text(
         ref,
-        {context: 1, version: this.state.version, language: this.state.versionLanguage},
+        {context: 1, version: this.props.version, language: this.props.versionLanguage},
         this.loadVersionsDataFromText);
     } else {
       Sefaria.versions(ref, function(d) {this.setState({ versions: d, versionsLoaded: true})}.bind(this));
