@@ -38,7 +38,7 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.summaries import flatten_toc, get_or_make_summary_node, REORDER_RULES
-from sefaria.sheets import get_sheets_for_ref, get_public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list
+from sefaria.sheets import get_sheets_for_ref, get_public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list, partner_sheets
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -445,14 +445,8 @@ def s2_group_sheets(request, partner, authenticated):
         "initialSheetsTag": "sefaria-partners",
         "initialPartner": partner,
     })
-    if authenticated == True:
-        query = {"status": {"$in": ["unlisted", "public"]}, "group": partner}
-    else:
-        query = {"status": "public", "group": partner}
 
-    sheets = db.sheets.find(query).sort([["title", 1]])
-
-    props["partnerSheets"] = [sheet_to_dict(s) for s in sheets]
+    props["partnerSheets"] = partner_sheets(partner,authenticated)["sheets"]
 
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {

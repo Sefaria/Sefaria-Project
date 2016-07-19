@@ -212,6 +212,8 @@ urlpatterns += patterns('sheets.views',
     (r'^api/groups$', 'groups_api'),
     (r'^partners/(?P<partner>[^/]+)$', 'partner_page'),
     (r'^partners/(?P<partner>[^/]+)/tags/(?P<tag>.+)$', 'partner_sheets_tag'),
+    (r'^api/partners/(?P<partner>[^/]+)$', 'private_sheet_list_api'),
+    (r'^api/partners/tag-list/(?P<partner>[^/]+)$', 'group_tag_list_api'),
 )
 
 # Redirects for setting interface language
