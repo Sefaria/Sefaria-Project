@@ -2253,7 +2253,7 @@ Sefaria.site = {
     },
     setSidebars(val) {
         ga('set', 'dimension6', val);
-    }
+    },
     sheets: function(action, label) {
         Sefaria.site.track.event("Sheets", action, label);
     },
