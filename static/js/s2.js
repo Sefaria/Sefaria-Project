@@ -3167,7 +3167,7 @@ var ReaderTextTableOfContents = React.createClass({
     window.removeEventListener('resize', this.shrinkWrap);
   },
   componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
-    if (this.props.settingsLanguage != prevProps.settingsLanguage) {
+    if (this.props.settingsLanguage != prevProps.settingsLanguage || this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage) {
       this.loadVersions();
     }
     this.bindToggles();
@@ -3188,7 +3188,7 @@ var ReaderTextTableOfContents = React.createClass({
       return;
     }
     if (Sefaria.ref(ref)) {
-      Sefaria.text(ref, { context: 1, version: this.state.version, language: this.state.versionLanguage }, this.loadVersionsDataFromText);
+      Sefaria.text(ref, { context: 1, version: this.props.version, language: this.props.versionLanguage }, this.loadVersionsDataFromText);
     } else {
       Sefaria.versions(ref, function (d) {
         this.setState({ versions: d, versionsLoaded: true });
@@ -3521,7 +3521,7 @@ var ReaderTextTableOfContents = React.createClass({
         if (v == defaultVersionObject) {
           continue;
         }
-        if (this.props.versionLanguage == v.language && this.props.version == v.versionTitle) {
+        if (this.state.currentVersion.language == v.language && this.state.currentVersion.versionTitle == v.versionTitle) {
           selectedOption = i + 1;
         }
         var versionString = v.versionTitle + " (" + v.language + ")"; // Can not inline this, because of https://github.com/facebook/react-devtools/issues/248
