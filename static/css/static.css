@@ -1240,10 +1240,15 @@
 #connectPage {
   text-align: center;
 }
-#jobs h2.anchorable {
-  padding-top: 50px;
+#jobsPage h1 {
+  margin-bottom: 0px;
 }
-
+#jobsPage h2 {
+  font-size: 22px;
+}
+#jobsPage h2.anchorable {
+  padding-top: 90px;
+}
 #footer {
   background-color: white;
   border-top: 1px solid #F4F4F4;
