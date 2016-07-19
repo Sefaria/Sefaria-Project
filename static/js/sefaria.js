@@ -2218,12 +2218,14 @@ Sefaria.site = {
         ga('set', 'page', url);
         ga('send', 'pageview');
     },
+    /*
     open: function(ref) {
         // Track opening a specific text ref
         Sefaria.site.track.event("Reader", "Open", ref, {nonInteraction: true});
         var text = Sefaria.parseRef(ref).book;
         Sefaria.site.track.event("Reader", "Open Text", text, {nonInteraction: true});
     },
+    */
     setPrimaryCategory(category_name) {
         ga('set', 'contentGroup1', category_name);
     },
@@ -2249,6 +2251,9 @@ Sefaria.site = {
     setPageType(val) {
         ga('set', 'dimension5', val);
     },
+    setSidebars(val) {
+        ga('set', 'dimension6', val);
+    }
     sheets: function(action, label) {
         Sefaria.site.track.event("Sheets", action, label);
     },

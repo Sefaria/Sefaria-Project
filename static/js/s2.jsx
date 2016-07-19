@@ -250,26 +250,33 @@ var ReaderApp = React.createClass({
 
       var headerPanel = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
       var panels = headerPanel ? [this.state.header] : this.state.panels;
+      var textPanels = panels.filter(panel => (panel.refs.length || panel.bookRef) && panel.mode !== "Connections");
+      var connectionPanels = panels.filter(panel => panel.mode == "Connections");
 
-      Sefaria.site.track.setNumberOfPanels(panels.length.toString());
+      // Set Page Type
+      // Todo: More specificity for sheets - browsing, reading, writing
+      if (panels.length < 1) { debugger; }
+      else { Sefaria.site.track.setPageType(panels[0].menuOpen || panels[0].mode); }
 
-      // refs
-      var refs =  panels.map(function(panel) {
-                    var ref = (panel.refs.length)? panel.refs.slice(-1)[0] : panel.bookRef;
-                    if (!ref || panel.mode === "Connections") { return ""; }
-                    return ref;
-                  })
-                  .filter(r => !!r);
+      // Number of panels as e.g. "2" meaning 2 text panels or "3.2" meaning 3 text panels and 2 connection panels
+      if (connectionPanels.length == 0) {
+        Sefaria.site.track.setNumberOfPanels(textPanels.length.toString());
+      } else {
+        Sefaria.site.track.setNumberOfPanels(`${textPanels.length}.${connectionPanels.length}`);
+      }
+
+      // refs - per text panel
+      var refs =  textPanels.map(panel => (panel.refs.length) ? panel.refs.slice(-1)[0] : panel.bookRef);
       Sefaria.site.track.setRef(refs.join(" | "));
 
-      // Book name (Index record primary name)
+      // Book name (Index record primary name) - per text panel
       var bookNames = refs.map(ref => Sefaria.parseRef(ref).index);
       Sefaria.site.track.setBookName(bookNames.join(" | "));
 
-      // Indexes
+      // Indexes - per text panel
       var indexes = bookNames.map(b => Sefaria.index(b));
 
-      // categories
+      // categories - per text panel
       var primaryCats = indexes.map(i => (i.categories[0] === "Commentary")? i.categories[1] + " Commentary": i.categories[0]);
       Sefaria.site.track.setPrimaryCategory(primaryCats.join(" | "));
 
@@ -279,14 +286,19 @@ var ReaderApp = React.createClass({
       );
       Sefaria.site.track.setSecondaryCategory(secondaryCats.join(" | "));
 
-      // panel content languages (use same criterion as refs, top level categories, etc)
-      var contentLanguages = panels.map(panel => ((panel.refs.length || panel.bookRef) && panel.mode !== "Connections")? panel.settings.language :"")
-                          .filter(r => !!r);
+      // panel content languages - per text panel
+      var contentLanguages = textPanels.map(panel => panel.settings.language);
       Sefaria.site.track.setContentLanguage(contentLanguages.join(" | "));
 
-      // Set Versions
+      // Set Versions - per text panel
+      var versionTitles = textPanels.map(p => p.version?`${p.version}(${p.versionLanguage})`:"default version");
+      Sefaria.site.track.setVersionTitle(versionTitles.join(" | "));
 
-      // Set Page Type
+      // Set Sidebar usages
+      // todo: handle toolbar selections
+      var sidebars = connectionPanels.map(panel => state.filter.length ? state.filter.join("+") : "all");
+      Sefaria.site.track.setSidebars(sidebars.join(" | "));
+
 
       // After setting the dimensions, post the hit
       var url = window.location.pathname + window.location.search;
