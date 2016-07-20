@@ -4771,10 +4771,10 @@ var ConnectionsPanel = React.createClass({
 
     } else if (this.props.mode === "Add Connection") {
       var url  = "/s1?next=" + window.location.pathname;
-      var link = (<a href={url}>old Sefaria</a>);
+      var link = (<a href={url}><span className="int-en">old Sefaria</span><span className="int-he">ממשק הישן</span></a>);
       content = (<div className="toolsMessage sans">
-                    <span className="en">We&apos;re still working on updating this feature for the new Sefaria. In the meantime, to add a connection please use the {link}.</span>
-                    <span className="he">We&apos;re still working on updating this feature for the new Sefaria. In the meantime, to add a connection please use the {link}.</span>
+                    <span className="int-en">We&apos;re still working on updating this feature for the new Sefaria. In the meantime, to add a connection please use the {link}.</span>
+                    <span className="int-he">האפשרות הזו עדיין בבניה בממשק החדש. בינתיים ניתן להשתמש ב{link}.</span>
                   </div>);
 
     } else if (this.props.mode === "Login") {
@@ -5951,16 +5951,16 @@ var LoginPanel = React.createClass({
                 <div className="contentInner">
 
                   <div className="loginPanelMessage">
-                    <span className="en">You must be logged in to use this feature.</span>
-                    <span className="he">עליך להיות מחובר בכדי להשתמש באפשרות זו.</span>
+                    <span className="int-en">You must be logged in to use this feature.</span>
+                    <span className="int-he">עליך להיות מחובר בכדי להשתמש באפשרות זו.</span>
                   </div>
                   <a className="button" href={"/login" + nextParam}>
-                    <span className="en">Log In</span>
-                    <span className="he">התחבר</span>
+                    <span className="int-en">Log In</span>
+                    <span className="int-he">התחבר</span>
                   </a>
                   <a className="button" href={"/register" + nextParam}>
-                    <span className="en">Sign Up</span>
-                    <span className="he">הרשם</span>
+                    <span className="int-en">Sign Up</span>
+                    <span className="int-he">הרשם</span>
                   </a>
 
                 </div>
