@@ -2233,32 +2233,32 @@ Sefaria.site = {
         ga('set', 'page', url);
         ga('send', 'pageview');
     },
-    setPrimaryCategory(category_name) {
+    setPrimaryCategory: function(category_name) {
         ga('set', 'contentGroup1', category_name);
     },
-    setSecondaryCategory(category_name) {
+    setSecondaryCategory: function(category_name) {
         ga('set', 'contentGroup2', category_name);
     },
-    setContentLanguage(language) {
+    setContentLanguage: function(language) {
         ga('set', 'contentGroup5', language);
     },
-    setNumberOfPanels(val) {
+    setNumberOfPanels: function(val) {
         ga('set', 'dimension1', val);
     },
-    setBookName(val) {
+    setBookName: function(val) {
         ga('set', 'dimension2', val);
         ga('set', 'contentGroup3', val);
     },
-    setRef(val) {
+    setRef: function(val) {
         ga('set', 'dimension3', val);
     },
-    setVersionTitle(val) {
+    setVersionTitle: function(val) {
         ga('set', 'dimension4', val);
     },
-    setPageType(val) {
+    setPageType: function(val) {
         ga('set', 'dimension5', val);
     },
-    setSidebars(val) {
+    setSidebars: function(val) {
         ga('set', 'dimension6', val);
     },
     sheets: function(action, label) {
