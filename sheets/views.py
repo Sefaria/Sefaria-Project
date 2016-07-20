@@ -572,6 +572,16 @@ def user_sheet_list_api_with_sort(request, user_id, sort_by="date"):
 		return jsonResponse({"error": "You are not authorized to view that."})
 	return jsonResponse(user_sheets(user_id,sort_by), callback=request.GET.get("callback", None))
 
+def private_sheet_list_api(request, partner):
+	partner = partner.replace("-", " ").replace("_", " ")
+	group   = Group().load({"name": partner})
+	if not group:
+		raise Http404
+	if request.user.is_authenticated() and group.name in [g.name for g in request.user.groups.all()]:
+		return jsonResponse(partner_sheets(partner, True), callback=request.GET.get("callback", None))
+	else:
+		return jsonResponse(partner_sheets(partner, False), callback=request.GET.get("callback", None))
+
 
 def public_sheet_list_api(request):
 	return jsonResponse(sheet_list(), callback=request.GET.get("callback", None))
@@ -719,6 +729,16 @@ def user_tag_list_api(request, user_id):
 	#if int(user_id) != request.user.id:
 		#return jsonResponse({"error": "You are not authorized to view that."})
 	response = sheet_tag_counts({ "owner": int(user_id) })
+	response = jsonResponse(response, callback=request.GET.get("callback", None))
+	response["Cache-Control"] = "max-age=3600"
+	return response
+
+def group_tag_list_api(request, partner):
+	"""
+	API to retrieve the list of public tags ordered by count.
+	"""
+	partner = partner.replace("-", " ").replace("_", " ")
+	response = sheet_tag_counts({ "group": partner })
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response

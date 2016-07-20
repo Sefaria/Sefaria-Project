@@ -3530,6 +3530,12 @@ var SheetsHomePage = React.createClass({
 });
 
 var PartnerSheetsPage = React.createClass({
+  getInitialState: function() {
+    return {
+      showYourSheetTags: false,
+      sheetFilterTag: null
+    };
+  },
   componentDidMount: function() {
     this.ensureData();
   },
@@ -3539,31 +3545,76 @@ var PartnerSheetsPage = React.createClass({
   getSheetsFromAPI: function() {
      Sefaria.sheets.partnerSheets(this.props.partner, this.onDataLoad);
   },
+  getTagsFromCache: function() {
+    return Sefaria.sheets.groupTagList(this.props.partner)
+  },
+  getTagsFromAPI: function() {
+    Sefaria.sheets.partnerSheets(this.props.partner, this.onDataLoad);
+  },
   onDataLoad: function(data) {
     this.forceUpdate();
   },
   ensureData: function() {
     if (!this.getSheetsFromCache()) { this.getSheetsFromAPI(); }
+    if (!this.getTagsFromCache())   { this.getTagsFromAPI(); }
   },
+  toggleSheetTags: function() {
+    this.state.showYourSheetTags ? this.setState({showYourSheetTags: false}) : this.setState({showYourSheetTags: true});
+  },
+  filterYourSheetsByTag: function (tag) {
+    if (tag.tag == this.state.sheetFilterTag) {
+       this.setState({sheetFilterTag: null, showYourSheetTags: false});
+    } else {
+      this.setState({sheetFilterTag: tag.tag, showYourSheetTags: false});
+    }
+  },
+
 
     render: function() {
     var sheets = this.getSheetsFromCache();
+    var groupTagList = this.getTagsFromCache();
 
-
+    groupTagList = groupTagList ? groupTagList.map(function (tag) {
+        var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
+        var classes = classNames({navButton: 1, sheetButton: 1, active: this.state.sheetFilterTag == tag.tag});
+        return (<div className={classes} onClick={filterThisTag} key={tag.tag}>{tag.tag} ({tag.count})</div>);
+      }.bind(this)) : null;
+      
+    sheets = sheets && this.state.sheetFilterTag ? sheets.filter(function(sheet) {
+      return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
+    }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function(sheet) {
-      return (<PartnerSheetListing sheet={sheet}  />);
+      return (<PartnerSheetListing sheet={sheet} multiPanel={this.props.multiPanel} setSheetTag={this.props.setSheetTag} />);
     }.bind(this)) : (<LoadingMessage />);
 
- /*   sheets = sheets ? sheets.map(function (sheet) {
-      return (<PublicSheetListing sheet={sheet} />);
-    }) : (<LoadingMessage />);
-   */
+
     return (<div className="content sheetList">
                       <div className="contentInner">
                         {this.props.hideNavHeader ? (<h1>
                           <span className="en">{this.props.partner}</span>
                           <span className="he">{this.props.partner}</span>
                         </h1>) : null}
+
+                        {this.props.hideNavHeader ?
+                         (<h2 className="splitHeader">
+                            <span className="en" onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
+                            <span className="he" onClick={this.toggleSheetTags}>סנן לפי תווית<i className="fa fa-angle-down"></i></span>{/*
+                            <span className="en actionText">Sort By:
+                              <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
+                               <option value="date">Recent</option>
+                               <option value="views">Most Viewed</option>
+                             </select> <i className="fa fa-angle-down"></i></span>
+                            <span className="he actionText">סנן לפי:
+                              <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
+                               <option value="date">הכי חדש</option>
+                               <option value="views">הכי נצפה</option>
+                             </select> <i className="fa fa-angle-down"></i></span>
+                             */}
+
+                          </h2>) : null }
+
+                        {this.state.showYourSheetTags ? <TwoOrThreeBox content={groupTagList} width={this.props.width} /> : null}
+
                         {sheets}
                       </div>
                     </div>);
