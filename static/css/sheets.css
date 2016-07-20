@@ -577,7 +577,7 @@ body {
 	left: 23px !important;
 	margin-left: 0 !important;
 	top: 32px !important;
-	background-color: #F9F9F7 !important;
+	background-color: transparent !important;
 
 }
 
@@ -1980,4 +1980,8 @@ a.tagit-close {
 	text-shadow: 0 1px 0 #fff;
 	top: 15px;
 	content: "X"
+}
+
+.moveSourceUp img, .moveSourceDown img  {
+    width:16px;
 }
