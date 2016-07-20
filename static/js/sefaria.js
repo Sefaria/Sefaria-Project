@@ -2221,11 +2221,11 @@ Sefaria.hebrew = {
 Sefaria.site = { 
   track: {
     // Helper functions for event tracking (with Google Analytics and Mixpanel)
-    event: function(...args) {
+    event: function(category, action, label, value, options) {
         // category, action, label, value, options
         // https://developers.google.com/analytics/devguides/collection/analyticsjs/command-queue-reference#send
         // Generic event tracker
-        ga('send', 'event', ...args);
+        ga('send', 'event', category, action, label, value, options);
         //mixpanel.track(category + " " + action, {label: label});
         //console.log([category, action, label].join(" / "));
     },
