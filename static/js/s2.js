@@ -3270,6 +3270,10 @@ var ReaderTextTableOfContents = React.createClass({
   versionDlLink: function versionDlLink() {
     return '/download/version/' + this.props.title + ' - ' + this.state.dlVersionLanguage + ' - ' + this.state.dlVersionTitle + '.' + this.state.dlVersionFormat;
   },
+  recordDownload: function recordDownload() {
+    Sefaria.site.track.event("Reader", "Version Download", this.props.title + ' / ' + this.state.dlVersionTitle + ' / ' + this.state.dlVersionLanguage + ' / ' + this.state.dlVersionFormat);
+    return true;
+  },
   isBookToc: function isBookToc() {
     return this.props.mode == "book toc";
   },
@@ -3577,7 +3581,7 @@ var ReaderTextTableOfContents = React.createClass({
       ),
       dlReady ? React.createElement(
         'a',
-        { href: this.versionDlLink(), download: true },
+        { onClick: this.recordDownload, href: this.versionDlLink(), download: true },
         downloadButton
       ) : downloadButton
     );

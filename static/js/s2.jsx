@@ -2867,6 +2867,10 @@ var ReaderTextTableOfContents = React.createClass({
   versionDlLink: function() {
     return `/download/version/${this.props.title} - ${this.state.dlVersionLanguage} - ${this.state.dlVersionTitle}.${this.state.dlVersionFormat}`;
   },
+  recordDownload: function() {
+    Sefaria.site.track.event("Reader", "Version Download", `${this.props.title} / ${this.state.dlVersionTitle} / ${this.state.dlVersionLanguage} / ${this.state.dlVersionFormat}`);
+    return true;
+  },
   isBookToc: function() {
     return (this.props.mode == "book toc")
   },
@@ -3013,7 +3017,7 @@ var ReaderTextTableOfContents = React.createClass({
           <option key="csv" value="csv" >CSV</option>
           <option key="json" value="json" >JSON</option>
         </select>
-        {dlReady?<a href={this.versionDlLink()} download>{downloadButton}</a>:downloadButton}
+        {dlReady?<a onClick={this.recordDownload} href={this.versionDlLink()} download>{downloadButton}</a>:downloadButton}
       </div>
     );
 
