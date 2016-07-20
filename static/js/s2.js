@@ -245,14 +245,6 @@ var ReaderApp = React.createClass({
     if (!Sefaria.site) {
       return false;
     }
-    /*
-    var headerPanel = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
-    var panels = headerPanel ? [this.state.header] : this.state.panels;
-     // Have all refs been loaded?
-    if (!panels.every(panel => (!panel.refs.length) || Sefaria.ref(panel.refs.slice(-1)[0]))) {
-      return false;
-    }
-    */
     return true;
   },
   trackPageview: function trackPageview() {
@@ -807,16 +799,19 @@ var ReaderApp = React.createClass({
   selectVersion: function selectVersion(n, versionName, versionLanguage) {
     // Set the version for panel `n`.
     var panel = this.state.panels[n];
+    var oRef = Sefaria.ref(panel.refs[0]);
+
     if (versionName && versionLanguage) {
       panel.version = versionName;
       panel.versionLanguage = versionLanguage;
       panel.settings.language = panel.versionLanguage == "he" ? "hebrew" : "english";
 
-      var oRef = Sefaria.ref(panel.refs[0]);
       this.setCachedVersion(oRef.indexTitle, panel.versionLanguage, panel.version);
+      Sefaria.site.track.event("Reader", "Choose Version", oRef.indexTitle + ' / ' + panel.version + ' / ' + panel.versionLanguage);
     } else {
       panel.version = null;
       panel.versionLanguage = null;
+      Sefaria.site.track.event("Reader", "Choose Version", oRef.indexTitle + ' / default version / ' + panel.settings.language);
     }
 
     if (this.state.panels.length > n + 1 && this.state.panels[n + 1].mode == "Connections") {
@@ -1589,11 +1584,6 @@ var ReaderPanel = React.createClass({
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
     this.setHeadroom();
-    /*
-    if (this.props.analyticsInitialized && !this.state.initialAnalyticsTracked) {
-      this.trackPanelEvents();
-    }
-    */
   },
   componentWillUnmount: function componentWillUnmount() {
     window.removeEventListener("resize", this.setWidth);
@@ -1619,15 +1609,6 @@ var ReaderPanel = React.createClass({
   },
   componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
     this.setHeadroom();
-    /*
-    if (this.props.analyticsInitialized &&
-         (!this.state.initialAnalyticsTracked ||
-          !prevState.refs.compare(this.state.refs)
-         )
-    ) {
-      this.trackPanelEvents();
-    }
-    */
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
       this.setWidth();
     }
@@ -1874,49 +1855,6 @@ var ReaderPanel = React.createClass({
       mySheetSort: sort
     });
   },
-  /*
-  checkScrollIntentAndTrack: function(ref) {
-    // Record current state of panel refs, and check if it has changed after some delay.  If it remains the same, track analytics.
-    var intentDelay = 3000;  // Number of milliseconds to demonstrate intent
-    console.log("Setting panel scroll intent check");
-    window.setTimeout(function(initialRefs){
-      console.log("Checking panel scroll intent");
-      if (initialRefs.compare(this.state.refs)) {
-          Sefaria.site.track.open(ref);
-      }
-    }.bind(this), intentDelay, this.state.refs.slice());
-  },
-  */
-  /*
-  trackPanelEvents: function () {
-    if (this.state.mode === "Connections") { return; }
-    this.tracked = this.tracked || [];
-     if (!this.state.initialAnalyticsTracked && this.state.menuOpen === "book toc") {
-      Sefaria.site.track.event("Reader", "Open Book TOC", this.state.bookRef);
-      this.setState({initialAnalyticsTracked: true});
-      return;
-    }
-     var currentRef = this.currentRef();
-    if (!currentRef) { return; }
-     if (!this.state.initialAnalyticsTracked && this.state.menuOpen === "text toc") {
-      Sefaria.site.track.event("Reader", "Open Text TOC", currentRef);
-      this.setState({initialAnalyticsTracked: true});
-      return;
-    }
-     // Do a little dance to avoid tracking something we've already just tracked
-    // e.g. when refs goes from ["Genesis 5"] to ["Genesis 4", "Genesis 5"] don't track 5 again
-    //todo: now that we're tracking intent, do we want to relax the "don't track returns" logic here?
-    if (Sefaria.util.inArray(currentRef, this.tracked) == -1) {
-      if (!this.state.initialAnalyticsTracked) {
-        Sefaria.site.track.open(currentRef);
-        this.setState({initialAnalyticsTracked: true});
-      } else {
-        this.checkScrollIntentAndTrack(currentRef);
-      }
-      this.tracked.push(currentRef);
-    }
-  },
-  */
   currentMode: function currentMode() {
     return this.state.mode;
   },
