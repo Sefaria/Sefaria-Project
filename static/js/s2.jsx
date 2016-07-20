@@ -3433,7 +3433,7 @@ var PartnerSheetsPage = React.createClass({
                         {this.props.hideNavHeader ?
                          (<h2 className="splitHeader">
                             <span className="en" onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
-                            <span className="he" onClick={this.toggleSheetTags}>סנן לפי תווית<i className="fa fa-angle-down"></i></span>
+                            <span className="he" onClick={this.toggleSheetTags}>סנן לפי תווית<i className="fa fa-angle-down"></i></span>{/*
                             <span className="en actionText">Sort By:
                               <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
                                <option value="date">Recent</option>
@@ -3444,6 +3444,7 @@ var PartnerSheetsPage = React.createClass({
                                <option value="date">הכי חדש</option>
                                <option value="views">הכי נצפה</option>
                              </select> <i className="fa fa-angle-down"></i></span>
+                             */}
 
                           </h2>) : null }
 
