@@ -18,6 +18,8 @@
 
     {% if S2 or request.flavour == "mobile" %}
         <link rel="stylesheet" href="/static/css/s2.css">
+        <link rel="stylesheet" href="/static/css/s2-print.css" media="print" />
+
         {% block exclude_block_on_source_sheets %}
             <link rel="stylesheet" href="/static/css/static.css">
         {% endblock %}
