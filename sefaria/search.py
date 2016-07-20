@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 from pyelasticsearch import ElasticSearch
 
 from sefaria.model import *
+from sefaria.model.text import AbstractIndex
 from sefaria.model.user_profile import user_link, public_user_data
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
@@ -105,6 +106,27 @@ def delete_text(oref, version, lang):
         es.delete("merged", 'text', id)
     except Exception, e:
         logger.error(u"ERROR deleting {} / {} / {} : {}".format(oref.normal(), version, lang, e))
+
+
+def delete_version(index, version, lang):
+    assert isinstance(index, AbstractIndex)
+
+    refs = []
+
+    if Ref(index.title).is_bavli():
+        refs += index.all_section_refs()
+    refs += index.all_segment_refs()
+
+    for ref in refs:
+        delete_text(ref, version, lang)
+
+
+def index_full_version(index, version, lang):
+    assert isinstance(index, AbstractIndex)
+
+    for ref in index.all_section_refs():
+        index_text(ref, version=version, lang=lang)
+        index_text(ref, lang=lang, merged=True)
 
 
 def delete_sheet(id):

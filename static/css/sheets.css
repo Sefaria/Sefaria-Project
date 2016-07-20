@@ -412,6 +412,10 @@ body {
 	line-height: normal;
 }
 
+#title.heTitle {
+	direction: rtl;
+}
+
 #author {
 	text-align: center;
 	font-style: italic;
@@ -1688,7 +1692,7 @@ img {
 	display:none;
 }
 
-#inlineAdd {
+.inlineAddTextInput {
 	width: 320px;
 	height: 32px;
 	margin: 0;
@@ -1696,10 +1700,9 @@ img {
 	font-size:14px;
 	padding-left: 12px;
 	padding-right: 12px;
-
 }
 
-#inlineAddOr {
+.inlineAddOr {
 	display:inline-block;
 	color: #999;
     margin: 6px;
@@ -1785,10 +1788,7 @@ img {
 	text-align: right;
 }
 #inlineAddMediaInput{
-	width:100%;
-	margin-bottom:40px;
-	height:32px;
-	font-size:14px;
+	width: 280px;
 }
 
 .s2AddedBy {

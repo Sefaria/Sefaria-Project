@@ -53,6 +53,7 @@
   font-weight: normal;
   text-transform: uppercase;
   color: #aaa;
+  letter-spacing: 1px;
   margin-bottom: 10px;
   margin-top: 40px;
   padding-bottom: 15px;
@@ -86,7 +87,6 @@
   color: #999;
   font-size: 14px;
   background-color: white;
-}
 }
 .static input:focus {
   outline: none;
@@ -1272,8 +1272,6 @@
   -moz-box-sizing: border-box;
   box-sizing: border-box;*/
 }
-
-
 #iosPage p {
   margin-bottom: 30px;
 }
@@ -1283,10 +1281,25 @@
 #connectPage {
   text-align: center;
 }
-#jobs h2.anchorable {
-  padding-top: 50px;
+#jobsPage {
+  font-size: 18px
 }
-
+#jobsPage h1 {
+  margin-bottom: 0px;
+}
+#jobsPage h2 {
+  font-size: 22px;
+}
+#jobsPage h2.anchorable {
+  padding-top: 90px;
+}
+#jobsPage h3 {
+  font-size: 16px;
+  font-weight: lighter;
+}
+#jobsPage li {
+  margin: 14px 0;
+}
 #footer {
   background-color: white;
   border-top: 1px solid #F4F4F4;
@@ -1579,9 +1592,6 @@
 
 #editGroupModal #saveGroup {
     display: none;
-    position: absolute;
-    top: 5px;
-    left: 5px;
 }
 
 #visualGardenPage .control-results-containe{

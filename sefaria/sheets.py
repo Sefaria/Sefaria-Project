@@ -49,6 +49,18 @@ def user_sheets(user_id, sort_by="date"):
 	}
 	return response
 
+def partner_sheets(partner, authenticated):
+    if authenticated == True:
+        query = {"status": {"$in": ["unlisted", "public"]}, "group": partner}
+    else:
+        query = {"status": "public", "group": partner}
+
+    sheets = db.sheets.find(query).sort([["title", 1]])
+    response = {
+        "sheets": [sheet_to_dict(s) for s in sheets],
+    }
+    return response
+
 
 def sheet_to_dict(sheet):
 	"""

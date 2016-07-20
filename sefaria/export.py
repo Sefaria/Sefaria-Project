@@ -17,6 +17,8 @@ from collections import Counter
 from copy import deepcopy
 
 from sefaria.model import *
+from sefaria.model.text import AbstractIndex
+
 from sefaria.utils.talmud import section_to_daf
 from sefaria.system.exceptions import InputError
 from summaries import ORDER
@@ -458,7 +460,7 @@ def export_all():
 
 
 def export_version_csv(index, version_list):
-    assert isinstance(index, Index)
+    assert isinstance(index, AbstractIndex)
     assert isinstance(version_list, list) or isinstance(version_list, VersionSet)
     assert all(isinstance(v, Version) for v in version_list)
 

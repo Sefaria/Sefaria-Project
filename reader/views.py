@@ -32,13 +32,13 @@ from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
-from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError
+from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DuplicateRecordError
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.summaries import flatten_toc, get_or_make_summary_node, REORDER_RULES
-from sefaria.sheets import get_sheets_for_ref, get_public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list
+from sefaria.sheets import get_sheets_for_ref, get_public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, make_tag_list, partner_sheets
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -445,14 +445,8 @@ def s2_group_sheets(request, partner, authenticated):
         "initialSheetsTag": "sefaria-partners",
         "initialPartner": partner,
     })
-    if authenticated == True:
-        query = {"status": {"$in": ["unlisted", "public"]}, "group": partner}
-    else:
-        query = {"status": "public", "group": partner}
 
-    sheets = db.sheets.find(query).sort([["title", 1]])
-
-    props["partnerSheets"] = [sheet_to_dict(s) for s in sheets]
+    props["partnerSheets"] = partner_sheets(partner,authenticated)["sheets"]
 
     html = render_react_component("ReaderApp", props)
     return render_to_response('s2.html', {
@@ -683,14 +677,15 @@ def make_alt_toc_html(alt, index):
     def node_line(node, depth, **kwargs):
         if depth == 0 and node.has_children():
             return ""
+        html    = ""
         refs            = getattr(node, "refs", False)
         includeSections = getattr(node, "includeSections", False)
-        linked  = "linked" if not refs and not includeSections else ""
+        linked  = "linked" if (not refs and not includeSections and getattr(node, "wholeRef", None)) else ""
         default = "default" if node.is_default() else ""
-        url     = "/" + Ref(node.wholeRef).url()
+        url     = "/" + Ref(node.wholeRef).url() if linked else None
         en_icon = '<i class="schema-node-control fa ' + ('fa-angle-right' if linked else 'fa-angle-down') + '"></i>'
         he_icon = '<i class="schema-node-control fa ' + ('fa-angle-left' if linked else 'fa-angle-down') + '"></i>'
-        html    = '<a href="' + urlquote(url) + '"' if linked else "<div "
+        html   += '<a href="' + urlquote(url) + '"' if linked else "<div "
         html   += ' class="schema-node-toc depth' + str(depth) + ' ' + linked + ' ' + default + '" >'
         wrap_counts  = lambda counts: counts if list_depth(counts) >= 2 else wrap_counts([counts])
         # wrap counts to ensure they are as though at section level, handles segment level refs
@@ -1369,7 +1364,11 @@ def links_api(request, link_id_or_ref=None):
             #todo: this seems goofy.  It's at least a bit more expensive than need be.
             res = []
             for i in j:
-                res.append(post_single_link(request, i))
+                try:
+                    res.append(post_single_link(request, i))
+                except DuplicateRecordError as e:
+                    res.append({"error": unicode(e)})
+
             return jsonResponse(res)
 
         else:

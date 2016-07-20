@@ -134,6 +134,8 @@ if __name__ == '__main__':
     parser.add_argument("-k", "--apikey", help="non default api key", default=SEFARIA_BOT_API_KEY)
     parser.add_argument("-d", "--destination_server", help="override destination server", default='http://eph.sefaria.org')
     parser.add_argument("-l", "--links", default=0, type=int, help="Enter '1' to move manual links on this text as well, '2' to move auto links")
+    parser.add_argument("-c", "--commentator", default=None, help="Name of commentator with conjoining word if"
+                                                                  "necessary. E.g. for Rashi on Tanakh, set to 'Rashi on '")
 
     args = parser.parse_args()
     print args
@@ -147,6 +149,8 @@ if __name__ == '__main__':
                 version_arr.append({'language': lang_vtitle[0], "versionTitle": lang_vtitle[1]})
             args.versionlist = version_arr
     titles = library.get_indexes_in_category(args.category)
+    if args.commentator:
+        titles = [args.commentator + title for title in titles]
     print titles
     for title in titles:
         copier = ServerTextCopier(args.destination_server, args.apikey, title, args.noindex, args.versionlist, args.links)
