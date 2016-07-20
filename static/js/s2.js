@@ -327,7 +327,7 @@ var ReaderApp = React.createClass({
     // Set Sidebar usages
     // todo: handle toolbar selections
     var sidebars = connectionPanels.map(function (panel) {
-      return state.filter.length ? state.filter.join("+") : "all";
+      return panel.filter.length ? panel.filter.join("+") : "all";
     });
     Sefaria.site.track.setSidebars(sidebars.join(" | "));
 
@@ -4329,6 +4329,12 @@ var SheetsHomePage = React.createClass({
 var PartnerSheetsPage = React.createClass({
   displayName: 'PartnerSheetsPage',
 
+  getInitialState: function getInitialState() {
+    return {
+      showYourSheetTags: false,
+      sheetFilterTag: null
+    };
+  },
   componentDidMount: function componentDidMount() {
     this.ensureData();
   },
@@ -4338,6 +4344,12 @@ var PartnerSheetsPage = React.createClass({
   getSheetsFromAPI: function getSheetsFromAPI() {
     Sefaria.sheets.partnerSheets(this.props.partner, this.onDataLoad);
   },
+  getTagsFromCache: function getTagsFromCache() {
+    return Sefaria.sheets.groupTagList(this.props.partner);
+  },
+  getTagsFromAPI: function getTagsFromAPI() {
+    Sefaria.sheets.partnerSheets(this.props.partner, this.onDataLoad);
+  },
   onDataLoad: function onDataLoad(data) {
     this.forceUpdate();
   },
@@ -4345,19 +4357,45 @@ var PartnerSheetsPage = React.createClass({
     if (!this.getSheetsFromCache()) {
       this.getSheetsFromAPI();
     }
+    if (!this.getTagsFromCache()) {
+      this.getTagsFromAPI();
+    }
+  },
+  toggleSheetTags: function toggleSheetTags() {
+    this.state.showYourSheetTags ? this.setState({ showYourSheetTags: false }) : this.setState({ showYourSheetTags: true });
+  },
+  filterYourSheetsByTag: function filterYourSheetsByTag(tag) {
+    if (tag.tag == this.state.sheetFilterTag) {
+      this.setState({ sheetFilterTag: null, showYourSheetTags: false });
+    } else {
+      this.setState({ sheetFilterTag: tag.tag, showYourSheetTags: false });
+    }
   },
 
   render: function render() {
     var sheets = this.getSheetsFromCache();
+    var groupTagList = this.getTagsFromCache();
 
+    groupTagList = groupTagList ? groupTagList.map(function (tag) {
+      var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
+      var classes = classNames({ navButton: 1, sheetButton: 1, active: this.state.sheetFilterTag == tag.tag });
+      return React.createElement(
+        'div',
+        { className: classes, onClick: filterThisTag, key: tag.tag },
+        tag.tag,
+        ' (',
+        tag.count,
+        ')'
+      );
+    }.bind(this)) : null;
+
+    sheets = sheets && this.state.sheetFilterTag ? sheets.filter(function (sheet) {
+      return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
+    }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function (sheet) {
-      return React.createElement(PartnerSheetListing, { sheet: sheet });
+      return React.createElement(PartnerSheetListing, { sheet: sheet, multiPanel: this.props.multiPanel, setSheetTag: this.props.setSheetTag });
     }.bind(this)) : React.createElement(LoadingMessage, null);
 
-    /*   sheets = sheets ? sheets.map(function (sheet) {
-         return (<PublicSheetListing sheet={sheet} />);
-       }) : (<LoadingMessage />);
-      */
     return React.createElement(
       'div',
       { className: 'content sheetList' },
@@ -4378,6 +4416,23 @@ var PartnerSheetsPage = React.createClass({
             this.props.partner
           )
         ) : null,
+        this.props.hideNavHeader ? React.createElement(
+          'h2',
+          { className: 'splitHeader' },
+          React.createElement(
+            'span',
+            { className: 'en', onClick: this.toggleSheetTags },
+            'Filter By Tag ',
+            React.createElement('i', { className: 'fa fa-angle-down' })
+          ),
+          React.createElement(
+            'span',
+            { className: 'he', onClick: this.toggleSheetTags },
+            'סנן לפי תווית',
+            React.createElement('i', { className: 'fa fa-angle-down' })
+          )
+        ) : null,
+        this.state.showYourSheetTags ? React.createElement(TwoOrThreeBox, { content: groupTagList, width: this.props.width }) : null,
         sheets
       )
     );

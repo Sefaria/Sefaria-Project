@@ -296,9 +296,8 @@ var ReaderApp = React.createClass({
 
       // Set Sidebar usages
       // todo: handle toolbar selections
-      var sidebars = connectionPanels.map(panel => state.filter.length ? state.filter.join("+") : "all");
+      var sidebars = connectionPanels.map(panel => panel.filter.length ? panel.filter.join("+") : "all");
       Sefaria.site.track.setSidebars(sidebars.join(" | "));
-
 
       // After setting the dimensions, post the hit
       var url = window.location.pathname + window.location.search;
