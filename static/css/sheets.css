@@ -517,6 +517,10 @@ body {
 	border-left: solid 6px transparent;
 }
 
+.sheetItem table {
+	max-width:691px;
+}
+
 .sheetItem p span {
 	white-space: pre-wrap;
 }

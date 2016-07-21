@@ -674,14 +674,21 @@ def import_versions(csv_filename, columns):
 
     for column in columns:
         # Create version
-        v = Version({
-            "chapter": index_node.create_skeleton(),
+        v = Version().load({
             "title": index_title,
             "versionTitle": rows[1][column],
-            "language": rows[2][column],            # Language
-            "versionSource": rows[3][column],       # Version Source
-            "versionNotes": rows[4][column],        # Version Notes
-        }).save()
+            "language": rows[2][column]
+        })
+
+        if v is None:
+            v = Version({
+                "chapter": index_node.create_skeleton(),
+                "title": index_title,
+                "versionTitle": rows[1][column],
+                "language": rows[2][column],            # Language
+                "versionSource": rows[3][column],       # Version Source
+                "versionNotes": rows[4][column],        # Version Notes
+            }).save()
 
         # Populate it
         for row in rows[5:]:

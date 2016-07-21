@@ -120,7 +120,7 @@
             resultsDir = dir == "DESC" ? d3.descending : d3.ascending;
             resultsDim && resultsDim.dispose();
             // The 20000 here is to coerce all of the numbers into numbers that will sort correctly as strings.
-            // Digging down into dc.datagrid, into d3.nest, into d3.map, the interger keys turn into strings
+            // Digging down into dc.datagrid, into d3.nest, into d3.map, the integer keys turn into strings
             resultsDim = stopx.dimension(function(d) { return 20000 + d[field]; });
             resultsAccessor = function (d) { return 20000 + d[field]; };
         }

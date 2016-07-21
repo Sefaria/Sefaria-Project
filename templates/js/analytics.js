@@ -8,7 +8,9 @@
     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
     ga('create', '{{ GOOGLE_ANALYTICS_CODE }}', 'auto');  // Replace with your property ID.
-    ga('send', 'pageview');
+    // Send first pageview after S2 is loaded, so that more data can be added.
+    // ga('send', 'pageview');
+
 
     window.onerror = function(msg, url, lineNumber) {
         ga('send', 'event', 'Javascript Errors',  msg, url + ':' + lineNumber);

@@ -43,7 +43,6 @@ $(window).on("beforeunload", function() {
 			return "Your Source Sheet has unsaved changes. Please wait for the autosave to finish.";
 		}
 	}
-
 });
 
 var oldOnError = window.onerror || function(){};
@@ -56,7 +55,7 @@ window.onerror = function (errorMsg, url, lineNumber) {
  	oldOnError(errorMsg, url, lineNumber);
 	errorWarning(errorMsg, url, lineNumber);
 	return false;
-}
+};
 
 $(function() {
 

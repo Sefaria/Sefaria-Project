@@ -29,6 +29,14 @@
 	margin: 0 5mm 0 10mm;
 }
 
+.sheetItem table {
+	max-width: 100%;
+}
+
+.activeSource {
+	border:0
+}
+
 #sheetHeader {
 	margin: 0;
 }
