@@ -449,7 +449,7 @@ body.dark {
 .systemPanel.hebrew .content .en {
   display: none;
 }
-.interace-english .systemPanel .content .int-en {
+.interface-english .systemPanel .content .int-en {
   display: inline;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
@@ -2652,6 +2652,8 @@ a.resourcesLink {
   background-color: transparent;
   padding: 40px 0 30px;
   position: relative;
+  display: flex;
+  justify-content: space-between;
 }
 .myNotesPanel.textList .note {
   border-top: 1px solid #ccc;
@@ -2661,11 +2663,7 @@ a.resourcesLink {
   border-top: none;
 }
 .myNotesPanel .noteButtons {
-  text-align: right;
   visibility: hidden;
-  position: absolute;
-  top: 44px;
-  right: -40px;
 }
 .myNotesPanel.textList .note:first-child .noteButtons {
   top: 14px;

@@ -5267,8 +5267,10 @@ var Note = React.createClass({
      
      return (<div className="note">
                 {authorInfo}
-                <div className="noteTitle">{this.props.title}</div>
-                <span className="noteText" dangerouslySetInnerHTML={{__html:this.props.text}}></span>
+                <div className="note-content">
+                  <div className="noteTitle">{this.props.title}</div>
+                  <span className="noteText" dangerouslySetInnerHTML={{__html:this.props.text}}></span>
+                </div>
                 {buttons}
               </div>);
   }
@@ -5826,7 +5828,7 @@ var AddToSourceSheetPanel = React.createClass({
     }.bind(this)) : <LoadingMessage />;
     sheetsContent     = sheets && sheets.length == 0 ? 
                           (<div className="sheet"><span className="en">You don&rsquo;t have any Source Sheets yet.</span><span className="he">טרם יצרת דפי מקורות</span></div>) :
-                          sheetsContent; 
+                          sheetsContent;
     var createSheet = this.state.showNewSheetInput ? 
           (<div>
             <input className="newSheetInput" placeholder="Title your Sheet"/>

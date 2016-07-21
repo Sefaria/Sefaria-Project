@@ -4,6 +4,8 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 if (typeof require !== 'undefined') {
@@ -1155,7 +1157,7 @@ var ReaderApp = React.createClass({
     }
     var boxClasses = classNames({ wrapBoxScroll: wrapBoxScroll });
     var boxWidth = wrapBoxScroll ? this.state.windowWidth + "px" : "100%";
-    var boxStyle = { width: boxWidth, direction: this.state.layoutOrientation };
+    var boxStyle = { width: boxWidth };
     panels = panels.length ? React.createElement(
       'div',
       { id: 'panelWrapBox', className: boxClasses, style: boxStyle },
@@ -1166,8 +1168,7 @@ var ReaderApp = React.createClass({
       messageName: Sefaria.interruptingMessage.name,
       messageHTML: Sefaria.interruptingMessage.html,
       onClose: this.rerender }) : null;
-
-    var classes = classNames({ readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel });
+    var classes = classNames(_defineProperty({ readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel }, 'interface-' + this.props.interfaceLang, true));
     return React.createElement(
       'div',
       { className: classes },
@@ -2596,12 +2597,12 @@ var ReaderNavigationMenu = React.createClass({
         React.createElement('img', { src: '/static/img/sheet-icon.png' }),
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           'Source Sheets'
         ),
         React.createElement(
           'span',
-          { className: 'he' },
+          { className: 'int-he' },
           'דפי מקורות'
         )
       ), React.createElement(
@@ -2610,12 +2611,12 @@ var ReaderNavigationMenu = React.createClass({
         React.createElement('img', { src: '/static/img/visualizations-icon.png' }),
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           'Visualizations'
         ),
         React.createElement(
           'span',
-          { className: 'he' },
+          { className: 'int-he' },
           'חזותיים'
         )
       ), React.createElement(
@@ -2624,12 +2625,12 @@ var ReaderNavigationMenu = React.createClass({
         React.createElement('img', { src: '/static/img/authors-icon.png' }),
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           'Authors'
         ),
         React.createElement(
           'span',
-          { className: 'he' },
+          { className: 'int-he' },
           'רשימת מחברים'
         )
       )];
@@ -2683,12 +2684,12 @@ var ReaderNavigationMenu = React.createClass({
         React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           'The Sefaria Library'
         ),
         React.createElement(
           'span',
-          { className: 'he' },
+          { className: 'int-he' },
           'האוסף של ספאריה'
         )
       );
@@ -2737,12 +2738,12 @@ var ReaderNavigationMenuSection = React.createClass({
         null,
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           this.props.title
         ),
         React.createElement(
           'span',
-          { className: 'he' },
+          { className: 'int-he' },
           this.props.heTitle
         )
       ) : null,
@@ -2825,20 +2826,27 @@ var BlockLink = React.createClass({
   propTypes: {
     title: React.PropTypes.string,
     heTitle: React.PropTypes.string,
-    target: React.PropTypes.string
+    target: React.PropTypes.string,
+    interfaceLink: React.PropTypes.bool
+  },
+  getDefaultProps: function getDefaultProps() {
+    return {
+      interfaceLink: false
+    };
   },
   render: function render() {
+    var interfaceClass = this.props.interfaceLink ? 'int-' : '';
     return React.createElement(
       'a',
       { className: 'blockLink', href: this.props.target },
       React.createElement(
         'span',
-        { className: 'en' },
+        { className: interfaceClass + 'en' },
         this.props.title
       ),
       React.createElement(
         'span',
-        { className: 'he' },
+        { className: interfaceClass + 'he' },
         this.props.heTitle
       )
     );
@@ -6016,22 +6024,31 @@ var ConnectionsPanel = React.createClass({
       var link = React.createElement(
         'a',
         { href: url },
-        'old Sefaria'
+        React.createElement(
+          'span',
+          { className: 'int-en' },
+          'old Sefaria'
+        ),
+        React.createElement(
+          'span',
+          { className: 'int-he' },
+          'ממשק הישן'
+        )
       );
       content = React.createElement(
         'div',
         { className: 'toolsMessage sans' },
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           'We\'re still working on updating this feature for the new Sefaria. In the meantime, to add a connection please use the ',
           link,
           '.'
         ),
         React.createElement(
           'span',
-          { className: 'he' },
-          'We\'re still working on updating this feature for the new Sefaria. In the meantime, to add a connection please use the ',
+          { className: 'int-he' },
+          'האפשרות הזו עדיין בבניה בממשק החדש. בינתיים ניתן להשתמש ב',
           link,
           '.'
         )
@@ -6057,16 +6074,16 @@ var ConnectionsPanelHeader = React.createClass({
     return React.createElement(
       'div',
       { className: 'connectionsPanelHeader' },
+      React.createElement(ConnectionsPanelTabs, {
+        activeTab: this.props.activeTab,
+        setConnectionsMode: this.props.setConnectionsMode,
+        interfaceLang: this.props.interfaceLang }),
       React.createElement(
         'div',
         { className: 'rightButtons' },
         React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
         React.createElement(ReaderNavigationMenuCloseButton, { icon: 'arrow', onClick: this.props.closePanel, interfaceLang: this.props.interfaceLang })
-      ),
-      React.createElement(ConnectionsPanelTabs, {
-        activeTab: this.props.activeTab,
-        setConnectionsMode: this.props.setConnectionsMode,
-        interfaceLang: this.props.interfaceLang })
+      )
     );
   }
 });
@@ -6092,12 +6109,12 @@ var ConnectionsPanelTabs = React.createClass({
         { className: classes, onClick: tabClick, key: item["en"] },
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           item["en"]
         ),
         React.createElement(
           'span',
-          { className: 'he' },
+          { className: 'int-he' },
           item["he"]
         )
       );
@@ -6480,10 +6497,14 @@ var Note = React.createClass({
       authorInfo,
       React.createElement(
         'div',
-        { className: 'noteTitle' },
-        this.props.title
+        { className: 'note-content' },
+        React.createElement(
+          'div',
+          { className: 'noteTitle' },
+          this.props.title
+        ),
+        React.createElement('span', { className: 'noteText', dangerouslySetInnerHTML: { __html: this.props.text } })
       ),
-      React.createElement('span', { className: 'noteText', dangerouslySetInnerHTML: { __html: this.props.text } }),
       buttons
     );
   }
@@ -7080,17 +7101,17 @@ var ToolsButton = React.createClass({
     return React.createElement(
       'div',
       { className: 'toolsButton sans', onClick: this.props.onClick },
-      icon,
       React.createElement(
         'div',
-        { className: 'en' },
+        { className: 'int-en' },
         this.props.en
       ),
       React.createElement(
         'div',
-        { className: 'he' },
+        { className: 'int-he' },
         this.props.he
-      )
+      ),
+      icon
     );
   }
 });
@@ -7238,12 +7259,12 @@ var AddToSourceSheetPanel = React.createClass({
         { className: 'button white small', onClick: this.createSheet },
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           'Create'
         ),
         React.createElement(
           'span',
-          { className: 'he' },
+          { className: 'int-he' },
           'צור חדש'
         )
       )
@@ -7252,12 +7273,12 @@ var AddToSourceSheetPanel = React.createClass({
       { className: 'button white', onClick: this.openNewSheet },
       React.createElement(
         'span',
-        { className: 'en' },
+        { className: 'int-en' },
         'Start a Source Sheet'
       ),
       React.createElement(
         'span',
-        { className: 'he' },
+        { className: 'int-he' },
         'צור דף מקורות חדש'
       )
     );
@@ -7282,12 +7303,12 @@ var AddToSourceSheetPanel = React.createClass({
             { className: 'button', onClick: this.addToSourceSheet },
             React.createElement(
               'span',
-              { className: 'en' },
+              { className: 'int-en' },
               'Add to Sheet'
             ),
             React.createElement(
               'span',
-              { className: 'he' },
+              { className: 'int-he' },
               'הוסף לדף המקורות'
             )
           )
@@ -7445,13 +7466,13 @@ var AddNotePanel = React.createClass({
               { className: privateClasses, onClick: this.setPrivate },
               React.createElement(
                 'span',
-                { className: 'en' },
+                { className: 'int-en' },
                 React.createElement('i', { className: 'fa fa-lock' }),
                 ' Private'
               ),
               React.createElement(
                 'span',
-                { className: 'he' },
+                { className: 'int-he' },
                 React.createElement('i', { className: 'fa fa-lock' }),
                 'רשומה פרטית'
               )
@@ -7461,12 +7482,12 @@ var AddNotePanel = React.createClass({
               { className: publicClasses, onClick: this.setPublic },
               React.createElement(
                 'span',
-                { className: 'en' },
+                { className: 'int-en' },
                 'Public'
               ),
               React.createElement(
                 'span',
-                { className: 'he' },
+                { className: 'int-he' },
                 'רשומה כללית'
               )
             )
@@ -7477,12 +7498,12 @@ var AddNotePanel = React.createClass({
             { className: 'button fillWidth', onClick: this.saveNote },
             React.createElement(
               'span',
-              { className: 'en' },
+              { className: 'int-en' },
               this.props.noteId ? "Save" : "Add Note"
             ),
             React.createElement(
               'span',
-              { className: 'he' },
+              { className: 'int-he' },
               this.props.noteId ? "שמור" : "הוסף רשומה"
             )
           ),
@@ -7491,12 +7512,12 @@ var AddNotePanel = React.createClass({
             { className: 'button white fillWidth', onClick: this.cancel },
             React.createElement(
               'span',
-              { className: 'en' },
+              { className: 'int-en' },
               'Cancel'
             ),
             React.createElement(
               'span',
-              { className: 'he' },
+              { className: 'int-he' },
               'בטל'
             )
           ),
@@ -7505,12 +7526,12 @@ var AddNotePanel = React.createClass({
             { className: 'deleteNote', onClick: this.deleteNote },
             React.createElement(
               'span',
-              { className: 'en' },
+              { className: 'int-en' },
               'Delete Note'
             ),
             React.createElement(
               'span',
-              { className: 'he' },
+              { className: 'int-he' },
               'מחק רשומה'
             )
           ) : null
@@ -7606,12 +7627,12 @@ var LoginPanel = React.createClass({
             { className: 'loginPanelMessage' },
             React.createElement(
               'span',
-              { className: 'en' },
+              { className: 'int-en' },
               'You must be logged in to use this feature.'
             ),
             React.createElement(
               'span',
-              { className: 'he' },
+              { className: 'int-he' },
               'עליך להיות מחובר בכדי להשתמש באפשרות זו.'
             )
           ),
@@ -7620,12 +7641,12 @@ var LoginPanel = React.createClass({
             { className: 'button', href: "/login" + nextParam },
             React.createElement(
               'span',
-              { className: 'en' },
+              { className: 'int-en' },
               'Log In'
             ),
             React.createElement(
               'span',
-              { className: 'he' },
+              { className: 'int-he' },
               'התחבר'
             )
           ),
@@ -7634,12 +7655,12 @@ var LoginPanel = React.createClass({
             { className: 'button', href: "/register" + nextParam },
             React.createElement(
               'span',
-              { className: 'en' },
+              { className: 'int-en' },
               'Sign Up'
             ),
             React.createElement(
               'span',
-              { className: 'he' },
+              { className: 'int-he' },
               'הרשם'
             )
           )
@@ -8749,20 +8770,20 @@ var AccountPanel = React.createClass({
   },
   render: function render() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
-    var accountContent = [React.createElement(BlockLink, { target: '/my/profile', title: 'Profile', heTitle: 'פרופיל' }), React.createElement(BlockLink, { target: '/sheets/private', title: 'My Source Sheets', heTitle: 'דפי מקורות' }), React.createElement(BlockLink, { target: '/coming-soon?my-notes', title: 'My Notes', heTitle: 'רשומות' }), React.createElement(BlockLink, { target: '/coming-soon?reading-history', title: 'Reading History', heTitle: 'היסטוריה קריאה' }), React.createElement(BlockLink, { target: '/settings/account', title: 'Settings', heTitle: 'הגדרות' }), React.createElement(BlockLink, { target: '/logout', title: 'Log Out', heTitle: 'ניתוק' })];
+    var accountContent = [React.createElement(BlockLink, { interfaceLink: true, target: '/my/profile', title: 'Profile', heTitle: 'פרופיל' }), React.createElement(BlockLink, { interfaceLink: true, target: '/sheets/private', title: 'My Source Sheets', heTitle: 'דפי מקורות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/coming-soon?my-notes', title: 'My Notes', heTitle: 'רשומות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/coming-soon?reading-history', title: 'Reading History', heTitle: 'היסטוריה קריאה' }), React.createElement(BlockLink, { interfaceLink: true, target: '/settings/account', title: 'Settings', heTitle: 'הגדרות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/logout', title: 'Log Out', heTitle: 'ניתוק' })];
     accountContent = React.createElement(TwoOrThreeBox, { content: accountContent, width: width });
 
-    var learnContent = [React.createElement(BlockLink, { target: '/about', title: 'About', heTitle: 'אודות' }), React.createElement(BlockLink, { target: '/help', title: 'Help', heTitle: 'עזרה' }), React.createElement(BlockLink, { target: 'http://blog.sefaria.org', title: 'Blog', heTitle: 'בלוג' }), React.createElement(BlockLink, { target: '/faq', title: 'FAQ', heTitle: 'שאלות נפוצות' }), React.createElement(BlockLink, { target: '/educators', title: 'Educators', heTitle: 'מחנכים' }), React.createElement(BlockLink, { target: '/team', title: 'Team', heTitle: 'צוות' })];
+    var learnContent = [React.createElement(BlockLink, { interfaceLink: true, target: '/about', title: 'About', heTitle: 'אודות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/help', title: 'Help', heTitle: 'עזרה' }), React.createElement(BlockLink, { interfaceLink: true, target: 'http://blog.sefaria.org', title: 'Blog', heTitle: 'בלוג' }), React.createElement(BlockLink, { interfaceLink: true, target: '/faq', title: 'FAQ', heTitle: 'שאלות נפוצות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/educators', title: 'Educators', heTitle: 'מחנכים' }), React.createElement(BlockLink, { interfaceLink: true, target: '/team', title: 'Team', heTitle: 'צוות' })];
     learnContent = React.createElement(TwoOrThreeBox, { content: learnContent, width: width });
 
-    var contributeContent = [React.createElement(BlockLink, { target: '/activity', title: 'Recent Activity', heTitle: 'פעילות אחרונה' }), React.createElement(BlockLink, { target: '/metrics', title: 'Metrics', heTitle: 'מדדים' }), React.createElement(BlockLink, { target: '/contribute', title: 'Contribute', heTitle: 'הצטרפות לעשיה' }), React.createElement(BlockLink, { target: '/donate', title: 'Donate', heTitle: 'תרומות' }), React.createElement(BlockLink, { target: '/supporters', title: 'Supporters', heTitle: 'תומכים' }), React.createElement(BlockLink, { target: '/jobs', title: 'Jobs', heTitle: 'דרושים' })];
+    var contributeContent = [React.createElement(BlockLink, { interfaceLink: true, target: '/activity', title: 'Recent Activity', heTitle: 'פעילות אחרונה' }), React.createElement(BlockLink, { interfaceLink: true, target: '/metrics', title: 'Metrics', heTitle: 'מדדים' }), React.createElement(BlockLink, { interfaceLink: true, target: '/contribute', title: 'Contribute', heTitle: 'הצטרפות לעשיה' }), React.createElement(BlockLink, { interfaceLink: true, target: '/donate', title: 'Donate', heTitle: 'תרומות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/supporters', title: 'Supporters', heTitle: 'תומכים' }), React.createElement(BlockLink, { interfaceLink: true, target: '/jobs', title: 'Jobs', heTitle: 'דרושים' })];
     contributeContent = React.createElement(TwoOrThreeBox, { content: contributeContent, width: width });
 
-    var connectContent = [React.createElement(BlockLink, { target: 'https://groups.google.com/forum/?fromgroups#!forum/sefaria', title: 'Forum', heTitle: 'פורום' }), React.createElement(BlockLink, { target: 'http://www.facebook.com/sefaria.org', title: 'Facebook', heTitle: 'פייסבוק' }), React.createElement(BlockLink, { target: 'http://twitter.com/SefariaProject', title: 'Twitter', heTitle: 'טוויטר' }), React.createElement(BlockLink, { target: 'http://www.youtube.com/user/SefariaProject', title: 'YouTube', heTitle: 'יוטיוב' }), React.createElement(BlockLink, { target: 'http://www.github.com/Sefaria', title: 'GitHub', heTitle: 'גיטהאב' }), React.createElement(BlockLink, { target: 'mailto:hello@sefaria.org', title: 'Email', heTitle: 'אימייל' })];
+    var connectContent = [React.createElement(BlockLink, { interfaceLink: true, target: 'https://groups.google.com/forum/?fromgroups#!forum/sefaria', title: 'Forum', heTitle: 'פורום' }), React.createElement(BlockLink, { interfaceLink: true, target: 'http://www.facebook.com/sefaria.org', title: 'Facebook', heTitle: 'פייסבוק' }), React.createElement(BlockLink, { interfaceLink: true, target: 'http://twitter.com/SefariaProject', title: 'Twitter', heTitle: 'טוויטר' }), React.createElement(BlockLink, { interfaceLink: true, target: 'http://www.youtube.com/user/SefariaProject', title: 'YouTube', heTitle: 'יוטיוב' }), React.createElement(BlockLink, { interfaceLink: true, target: 'http://www.github.com/Sefaria', title: 'GitHub', heTitle: 'גיטהאב' }), React.createElement(BlockLink, { interfaceLink: true, target: 'mailto:hello@sefaria.org', title: 'Email', heTitle: 'אימייל' })];
     connectContent = React.createElement(TwoOrThreeBox, { content: connectContent, width: width });
 
     var classes = { accountPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
-    classes[this.props.interfaceLang] = 1;
+    /*classes[this.props.interfaceLang] = 1;*/
     var classStr = classNames(classes);
     return React.createElement(
       'div',
@@ -8778,16 +8799,16 @@ var AccountPanel = React.createClass({
             null,
             React.createElement(
               'span',
-              { className: 'en' },
+              { className: 'int-en' },
               'Account'
             ),
             React.createElement(
               'span',
-              { className: 'he' },
+              { className: 'int-he' },
               'חשבון משתמש'
             )
           ),
-          React.createElement(ReaderNavigationMenuSection, { content: accountContent }),
+          React.createElement(ReaderNavigationMenuSection, { content: accountContent, inter: true }),
           React.createElement(ReaderNavigationMenuSection, { title: 'Learn', heTitle: 'לימוד', content: learnContent }),
           React.createElement(ReaderNavigationMenuSection, { title: 'Contribute', heTitle: 'עשייה', content: contributeContent }),
           React.createElement(ReaderNavigationMenuSection, { title: 'Connect', heTitle: 'התחברות', content: connectContent })
@@ -8855,7 +8876,7 @@ var NotificationsPanel = React.createClass({
   },
   render: function render() {
     var classes = { notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
-    classes[this.props.interfaceLang] = 1;
+    /*classes[this.props.interfaceLang] = 1;*/
     var classStr = classNames(classes);
     return React.createElement(
       'div',
@@ -8871,12 +8892,12 @@ var NotificationsPanel = React.createClass({
             null,
             React.createElement(
               'span',
-              { className: 'en' },
+              { className: 'int-en' },
               'Notifications'
             ),
             React.createElement(
               'span',
-              { className: 'he' },
+              { className: 'int-he' },
               'התראות'
             )
           ),
