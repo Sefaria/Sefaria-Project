@@ -1,7 +1,10 @@
 import json
 from datetime import datetime, timedelta
+import httplib2
+from StringIO import StringIO
 
 from django.template import RequestContext
+from django.template.loader import render_to_string
 from django.shortcuts import render_to_response, redirect
 from django.http import Http404
 
@@ -15,6 +18,9 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Group as DjangoGroup
 
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseUpload
+
 from reader.views import s2_sheets, s2_sheets_by_tag, s2_group_sheets
 
 # noinspection PyUnresolvedReferences
@@ -24,10 +30,13 @@ from sefaria.sheets import *
 from sefaria.model.user_profile import *
 from sefaria.model.group import Group, GroupSet
 from sefaria.system.exceptions import InputError
+from sefaria.utils.util import strip_tags
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
 # noinspection PyUnresolvedReferences
 import sefaria.model.dependencies
+
+from gauth.decorators import gauth_required
 
 
 def annotate_user_links(sources):
@@ -80,16 +89,16 @@ def can_edit(user, sheet):
 	Returns true if user can edit sheet.
 	"""
 	if sheet["owner"] == user.id:
-		return True		
+		return True
 	if "collaboration" not in sheet["options"]:
 		return False
 	if sheet["options"]["collaboration"] == "anyone-can-edit":
-		return True		
+		return True
 	if sheet["options"]["collaboration"] == "group-can-edit":
 		if "group" in sheet:
 			if sheet["group"] in [group.name for group in user.groups.all()]:
 				return True
-					
+
 	return False
 
 
@@ -140,7 +149,7 @@ def make_sheet_class_string(sheet):
 
 	if sheet["status"] == "public":
 		classes.append("public")
-   
+
 
 	return " ".join(classes)
 
@@ -153,7 +162,7 @@ def view_sheet(request, sheet_id):
 	sheet = get_sheet(sheet_id)
 	if "error" in sheet:
 		return HttpResponse(sheet["error"])
-	
+
 	sheet["sources"] = annotate_user_links(sheet["sources"])
 
 	# Count this as a view
@@ -180,7 +189,7 @@ def view_sheet(request, sheet_id):
 	return render_to_response('sheets.html' if request.COOKIES.get('s1') else 's2_sheets.html', {"sheetJSON": json.dumps(sheet),
 												"sheet": sheet,
 												"sheet_class": sheet_class,
-												"can_edit": can_edit_flag, 
+												"can_edit": can_edit_flag,
 												"can_add": can_add_flag,
 												"title": sheet["title"],
 												"author": author,
@@ -209,7 +218,7 @@ def view_visual_sheet(request, sheet_id):
 	sheet = get_sheet(sheet_id)
 	if "error" in sheet:
 		return HttpResponse(sheet["error"])
-	
+
 	sheet["sources"] = annotate_user_links(sheet["sources"])
 
 	# Count this as a view
@@ -233,10 +242,10 @@ def view_visual_sheet(request, sheet_id):
 	viewer_is_liker = request.user.id in likes
 
 
-	return render_to_response('sheets_visual.html',{"sheetJSON": json.dumps(sheet), 
+	return render_to_response('sheets_visual.html',{"sheetJSON": json.dumps(sheet),
 													"sheet": sheet,
 													"sheet_class": sheet_class,
-													"can_edit": can_edit_flag, 
+													"can_edit": can_edit_flag,
 													"can_add": can_add_flag,
 													"title": sheet["title"],
 													"author": author,
@@ -258,7 +267,7 @@ def assigned_sheet(request, assignment_id):
 	sheet = get_sheet(assignment_id)
 	if "error" in sheet:
 		return HttpResponse(sheet["error"])
-	
+
 	sheet["sources"] = annotate_user_links(sheet["sources"])
 
 	# Remove keys from we don't want transferred
@@ -285,7 +294,7 @@ def assigned_sheet(request, assignment_id):
 												"assigner_id": assigner_id,
 												"new_sheet": True,
 												"sheet_class": sheet_class,
-												"can_edit": can_edit_flag, 
+												"can_edit": can_edit_flag,
 												"can_add": can_add_flag,
 												"title": sheet["title"],
 												"is_owner": True,
@@ -299,7 +308,7 @@ def assigned_sheet(request, assignment_id):
 
 def delete_sheet_api(request, sheet_id):
 	"""
-	Deletes sheet with id, only if the requester is the sheet owner. 
+	Deletes sheet with id, only if the requester is the sheet owner.
 	"""
 	import sefaria.search as search
 	id = int(sheet_id)
@@ -324,7 +333,7 @@ def sheets_list(request, type=None):
 	"""
 	if not type:
 		# Sheet Splash page
-		
+
 		if request.flavour == "mobile":
 			return s2_sheets(request)
 
@@ -352,7 +361,7 @@ def sheets_list(request, type=None):
 										"your_tags":   your_tags,
 										"collapse_private": collapse,
 										"groups": get_user_groups(request.user)
-									}, 
+									},
 									RequestContext(request))
 
 	response = { "status": 0 }
@@ -457,7 +466,7 @@ def groups_api(request):
 	elif request.method == "DELETE":
 		GroupSet(group).delete()
 		return jsonResponse({"status": "ok"})
-	
+
 	else:
 		return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -477,7 +486,7 @@ def sheets_tags_list(request):
 		return s2_sheets(request)
 
 	tags_list = make_tag_list()
-	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))	
+	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))
 
 
 def sheets_tag(request, tag, public=True, group=None):
@@ -497,7 +506,7 @@ def sheets_tag(request, tag, public=True, group=None):
 
 	in_group = request.user.is_authenticated() and group in [g.name for g in request.user.groups.all()]
 	groupCover = Group().load({"name": group}).coverUrl if Group().load({"name": group}) else None
-	
+
 	return render_to_response('tag.html', {
 											"tag": tag,
 											"sheets": sheets,
@@ -505,9 +514,9 @@ def sheets_tag(request, tag, public=True, group=None):
 											"group": group,
 											"groupCover": groupCover,
 											"in_group": in_group,
-										 }, RequestContext(request))	
+										 }, RequestContext(request))
 
-	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))	
+	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))
 
 
 @login_required
@@ -537,7 +546,7 @@ def sheet_list_api(request):
 	if request.method == "POST":
 		if not request.user.is_authenticated():
 			return jsonResponse({"error": "You must be logged in to save."})
-		
+
 		j = request.POST.get("json")
 		if not j:
 			return jsonResponse({"error": "No JSON given in post data."})
@@ -548,9 +557,9 @@ def sheet_list_api(request):
 			if "error" not in existing  and \
 				not can_edit(request.user, existing) and \
 				not can_add(request.user, existing):
-				
+
 				return jsonResponse({"error": "You don't have permission to edit this sheet."})
-		
+
 		responseSheet = save_sheet(sheet, request.user.id)
 		if "rebuild" in responseSheet and responseSheet["rebuild"]:
 			# Don't bother adding user links if this data won't be used to rebuild the sheet
@@ -602,7 +611,7 @@ def sheet_api(request, sheet_id):
 def check_sheet_modified_api(request, sheet_id, timestamp):
 	"""
 	Check if sheet_id has been modified since timestamp.
-	If modified, return the new sheet. 
+	If modified, return the new sheet.
 	"""
 	sheet_id = int(sheet_id)
 	callback=request.GET.get("callback", None)
@@ -637,7 +646,7 @@ def add_source_to_sheet_api(request, sheet_id):
 
 def copy_source_to_sheet_api(request, sheet_id):
 	"""
-	API to copy a source from one sheet to another. 
+	API to copy a source from one sheet to another.
 	"""
 	copy_sheet = request.POST.get("sheet")
 	copy_source = request.POST.get("source")
@@ -658,7 +667,7 @@ def add_ref_to_sheet_api(request, sheet_id):
 @login_required
 def update_sheet_tags_api(request, sheet_id):
 	"""
-	API to update tags for sheet_id. 
+	API to update tags for sheet_id.
 	"""
 	tags = json.loads(request.POST.get("tags"))
 	return jsonResponse(update_sheet_tags(int(sheet_id), tags))
@@ -666,14 +675,14 @@ def update_sheet_tags_api(request, sheet_id):
 def visual_sheet_api(request, sheet_id):
 	"""
 	API for visual source sheet layout
-	"""	
+	"""
 	if not request.user.is_authenticated():
 		return {"error": "You must be logged in to save a sheet layout."}
 	if request.method != "POST":
 		return jsonResponse({"error": "Unsupported HTTP method."})
-		
-	visualNodes = json.loads(request.POST.get("visualNodes"))	
-	zoomLevel =  json.loads(request.POST.get("zoom"))	
+
+	visualNodes = json.loads(request.POST.get("visualNodes"))
+	zoomLevel =  json.loads(request.POST.get("zoom"))
 	add_visual_data(int(sheet_id), visualNodes, zoomLevel)
 	return jsonResponse({"status": "ok"})
 
@@ -762,7 +771,7 @@ def all_sheets_api(request, limiter, offset=0):
 		public = db.sheets.find(query).sort([["dateModified", -1]])
 	else:
 		public = db.sheets.find(query).sort([["dateModified", -1]]).skip(offset).limit(limiter)
-	
+
 	sheets   = [sheet_to_dict(s) for s in public]
 	response = {"sheets": sheets}
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
@@ -806,3 +815,88 @@ def make_sheet_from_text_api(request, ref, sources=None):
 	sources = sources.replace("_", " ").split("+") if sources else None
 	sheet = make_sheet_from_text(ref, sources=sources, uid=request.user.id, generatedBy=None, title=None)
 	return redirect("/sheets/%d" % sheet["id"])
+
+
+def sheet_to_html_string(sheet):
+	"""
+	Create the html string of sheet with sheet_id.
+	"""
+	sheet["sources"] = annotate_user_links(sheet["sources"])
+	sheet = resolve_options_of_sources(sheet)
+
+	try:
+		owner = User.objects.get(id=sheet["owner"])
+		author = owner.first_name + " " + owner.last_name
+	except User.DoesNotExist:
+		author = "Someone Mysterious"
+
+	sheet_group = (Group().load({"name": sheet["group"]})
+				   if "group" in sheet and sheet["group"] != "None" else None)
+
+	context = {
+		"sheetJSON": json.dumps(sheet),
+		"sheet": sheet,
+		"sheet_class": make_sheet_class_string(sheet),
+		"can_edit": False,
+		"can_add": False,
+		"title": sheet["title"],
+		"author": author,
+		"is_owner": False,
+		"is_public": sheet["status"] == "public",
+		"owner_groups": None,
+		"sheet_group":  sheet_group,
+		"like_count": len(sheet.get("likes", [])),
+		"viewer_is_liker": False,
+		"assignments_from_sheet": assignments_from_sheet(sheet['id']),
+	}
+
+	return render_to_string('gdocs_sheet.html', context).encode('utf-8')
+
+
+def resolve_options_of_sources(sheet):
+	for source in sheet['sources']:
+		if 'text' not in source:
+			continue
+		options = source.setdefault('options', {})
+		if not options.get('sourceLanguage'):
+			source['options']['sourceLanguage'] = sheet['options'].get(
+				'language', 'bilingual')
+		if not options.get('sourceLayout'):
+			source['options']['sourceLayout'] = sheet['options'].get(
+				'layout', 'sideBySide')
+		if not options.get('sourceLangLayout'):
+			source['options']['sourceLangLayout'] = sheet['options'].get(
+				'langLayout', 'heRight')
+	return sheet
+
+
+@gauth_required(scope='https://www.googleapis.com/auth/drive.file', ajax=True)
+def export_to_drive(request, credential, sheet_id):
+	"""
+	Export a sheet to Google Drive.
+	"""
+
+	http = credential.authorize(httplib2.Http())
+	service = build('drive', 'v3', http=http)
+
+	sheet = get_sheet(sheet_id)
+	if 'error' in sheet:
+		return jsonResponse({'error': {'message': sheet["error"]}})
+
+	file_metadata = {
+		'name': strip_tags(sheet['title'].strip()),
+		'mimeType': 'application/vnd.google-apps.document'
+	}
+
+	html_string = sheet_to_html_string(sheet)
+
+	media = MediaIoBaseUpload(
+		StringIO(html_string),
+		mimetype='text/html',
+		resumable=True)
+
+	new_file = service.files().create(body=file_metadata,
+									  media_body=media,
+									  fields='webViewLink').execute()
+
+	return jsonResponse(new_file)

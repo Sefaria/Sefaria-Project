@@ -192,7 +192,7 @@ body {
 	font-size: 17px;
 	border: 1px solid #ccc;
 	z-index: 5;
-	width: 220px;
+	min-width: 220px;
 	top: -20px;
 	right: auto;
 	left: 50px;
