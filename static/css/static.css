@@ -37,7 +37,7 @@
 .static .control-elem .int-he{
   font-family: "Open Sans Hebrew", sans-serif;
 }
-.static .sans .int-en, .static.sans .int-en {
+.static .sans .int-en, .static.sans .int-en, .static .sans {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .static .sans .int-he, .static.sans .int-he  {
@@ -496,7 +496,6 @@
   height: 200px;
 }
 #profileName {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #333;
   height: auto;
   margin: 20px 0 24px;
@@ -504,7 +503,6 @@
   font-size: 40px;
 }
 #profileTagline {
-  font-family: "adobe-garamond-pro", Georgia, serif;
   margin-bottom: 24px;
   font-size: 18px;
   color: #666;
@@ -514,7 +512,6 @@
   color: #999;
   margin: 2px 7px;
   font-size: 14px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: lighter;
 }
 #profileSnippets a {
@@ -570,10 +567,8 @@
   font-size: inherit;
 }
 #profilePage  .button span.int-en{
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #profilePage  .button span.int-he{
-  font-family: "Open Sans Hebrew", sans-serif;
   font-size: inherit;
 }
 #profilePage #followMe.follow span.following{
@@ -625,6 +620,9 @@
 
 .registrationContent h1 span.int-en{
   font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.registrationContent h1 span.int-he{
+  font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 .registrationContent label {
   display: none;

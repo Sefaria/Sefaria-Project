@@ -13,7 +13,7 @@
 		<div id="profileTop">
 			<img id="profileImage" src="{{ profile.gravatar_url }}" />
 			
-			<h1 id="profileName">{{ profile.first_name }} {{ profile.last_name }}</h1>
+			<h1 id="profileName" class="sans">{{ profile.first_name }} {{ profile.last_name }}</h1>
 
 			{% if profile.position or profile.organization %}
 			<div id="profileTagline">
@@ -23,7 +23,7 @@
 			</div>
 			{% endif %}	
 
-			<div id="profileSnippets">
+			<div id="profileSnippets" class="sans">
 
 				{% if profile.website %}
 				<div id="profileWebsite">
@@ -71,11 +71,11 @@
 
 			<div id="buttons">
 				{% if profile.id != request.user.id %}
-					<div id="messageMe" class="button white">
+					<div id="messageMe" class="button white control-elem">
 						<span class="int-en">Message</span>
 						<span class="int-he">שלח הודעה</span>
 					</div>
-					<div id="followMe" class="{% if following %}following{% else %}follow{% endif %} button blue">
+					<div id="followMe" class="{% if following %}following{% else %}follow{% endif %} button blue control-elem">
 						<span class="int-en">
                             <span class="en follow">Follow</span>
                             <span class="en state following">Following</span>
