@@ -618,10 +618,10 @@
   width: 320px;
 }
 
-.registrationContent h1 span.int-en{
+.registrationContent h1 .int-en{
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
-.registrationContent h1 span.int-he{
+.registrationContent h1 .int-he{
   font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 .registrationContent label {
@@ -637,7 +637,6 @@
   border: 1px solid #bbb;
   width: 100%;
   box-sizing: border-box;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   font-size: 14px;
 }
@@ -686,7 +685,6 @@
   cursor: pointer;
   font-size: 15px;
   letter-spacing: 1px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   box-sizing: border-box;
   text-align: center;
 }
@@ -705,10 +703,8 @@
   margin-top: 20px;
 }
 .registrationContent a .int-en, .registrationContent button .int-en{
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .registrationContent a .int-he, .registrationContent button .int-he{
-  font-family: "Open Sans Hebrew", sans-serif;
 }
 /*#login.registrationContent #resetLink{
   margin: 20px 0;
@@ -818,7 +814,6 @@
 #aboutPage .year {
   margin-top: 30px;
   font-size: 18px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #aboutPage .year.first {
   margin-top: 0;
@@ -830,7 +825,6 @@
 }
 #donatePage pre{
   all: initial;
-  font-family: "adobe-garamond-pro", Georgia, serif;
   display: block;
   unicode-bidi: embed;
   white-space: pre;
@@ -884,7 +878,6 @@
   white-space:nowrap;
   max-width: 65%;
   margin: 0 20px;
-  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #teamPage .teamBoardMember .teamMemberDetails{
   margin: 0;
@@ -896,7 +889,6 @@
   vertical-align:middle;
 }
 #teamPage .teamMember .teamName, #teamPage .teamBoardMember .teamName{
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   margin-bottom: 20px;
   font-size: 25px;
   color: #555;
@@ -1082,7 +1074,6 @@
 }
 #accountSettingsPage .toggleOption {
   font-size: 14px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .interface-hebrew #accountSettingsPage.static.biReady .toggleOption:first-child{
   border-top-right-radius: 4px;
@@ -1120,7 +1111,6 @@
   margin-bottom: 40px;
 }
 #personPage p {
-  font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 20px;
   line-height: 1.1em;
 }
@@ -1141,7 +1131,6 @@
 }
 #peoplePage .author, #talmudicPeoplePage .author{
   margin-left: 0;
-  font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 20px;
 }
 #peoplePage .author{
@@ -1163,7 +1152,6 @@
   min-width: 320px;
 }
 #talmudicPeoplePage h4{
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #ccc;
   padding-bottom: 10px;
 }
@@ -1206,7 +1194,6 @@
   text-transform: none;
 }
 #activityPage #activityFeed {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #666;
 }
 #activityPage #activityFeed a {
@@ -1245,7 +1232,6 @@
   border-radius: 3px;
   border-color: #ccc;
   font-size: 14px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   /*-webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
