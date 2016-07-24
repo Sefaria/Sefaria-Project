@@ -1367,15 +1367,15 @@ var Header = React.createClass({
                          </div>);
     var loggedOutLinks = (<div className="accountLinks">
                            <a className="login" href={"/register" + nextParam}>
-                             <span className="en">Sign up</span>
-                             <span className="he">הירשם</span>
+                             <span className="int-en">Sign up</span>
+                             <span className="int-he">הרשם</span>
                            </a>
                            <a className="login" href={"/login" + nextParam}>
-                             <span className="en">Log in</span>
-                             <span className="he">כניסה</span>
+                             <span className="int-en">Log in</span>
+                             <span className="int-he">התחבר</span>
                            </a>
                          </div>);
-
+    var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "הקלד לחיפוש";
     return (<div className="header">
               <div className="headerInner">
                 <div className="left">
@@ -1387,7 +1387,7 @@ var Header = React.createClass({
                 </div>
                 <span className="searchBox">
                   <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
-                  <input className="search" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
+                  <input className="search" placeholder={langSearchPlaceholder} onKeyUp={this.handleSearchKeyUp} />
                 </span>
                 <a className="home" href="/?home" ><img src="/static/img/sefaria.svg" /></a>
               </div>
@@ -6126,7 +6126,6 @@ var SearchPage = React.createClass({
                     <div className="contentInner">
                       <div className="searchContentFrame">
                           <h1 classNames={isQueryHebrew?"hebrewQuery":"englishQuery"}>
-                            <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
                             &ldquo;{ this.props.query }&rdquo;
                           </h1>
                           <div className="searchControlsBox">
@@ -6756,8 +6755,8 @@ var SearchFilters = React.createClass({
         {total_with_commas}
       </div>
       <div className="type-button-title">
-        <span className="en">{(total != 1) ? en_plural : en_singular}</span>
-        <span className="he">{(total != 1) ? he_plural : he_singular}</span>
+        <span className="int-en">{(total != 1) ? en_plural : en_singular}</span>
+        <span className="int-he">{(total != 1) ? he_plural : he_singular}</span>
       </div>
     </div>;
   },
@@ -6776,17 +6775,17 @@ var SearchFilters = React.createClass({
     );
 
     var selected_filters = (<div className="results-count">
-          <span className="en">
+          <span className="int-en">
             {(!!this.props.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("en").join(", ")):""}
           </span>
-          <span className="he">
+          <span className="int-he">
             {(!!this.props.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("he").join(", ")):""}
           </span>
       </div>);
     var filter_panel = (<div>
       <div className="searchFilterToggle" onClick={this.toggleFilterView}>
-        <span className="en">Filter by Text   </span>
-        <span className="he">סנן לפי כותר   </span>
+        <span className="int-en">Filter by Text   </span>
+        <span className="int-he">סנן לפי כותר   </span>
         <i className={(this.state.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down"} />
       </div>
       <div className="searchFilterBoxes" style={{display: this.state.displayFilters?"block":"none"}}>
@@ -6860,10 +6859,10 @@ var SearchFilter = React.createClass({
       <li onClick={this.handleFocusCategory}>
         <input type="checkbox" id={this.props.filter.path} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
         <label onClick={this.handleFilterClick} for={this.props.filter.path}><span></span></label>
-        <span className="en"><span className="filter-title">{this.props.filter.title}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
-        <span className="he" dir="rtl"><span className="filter-title">{this.props.filter.heTitle}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
-        {this.props.isInFocus?<span className="en"><i className="in-focus-arrow fa fa-caret-right"/></span>:""}
-        {this.props.isInFocus?<span className="he"><i className="in-focus-arrow fa fa-caret-left"/></span>:""}
+        <span className="int-en"><span className="filter-title">{this.props.filter.title}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
+        <span className="int-he" dir="rtl"><span className="filter-title">{this.props.filter.heTitle}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
+        {this.props.isInFocus?<span className="int-en"><i className="in-focus-arrow fa fa-caret-right"/></span>:""}
+        {this.props.isInFocus?<span className="int-he"><i className="in-focus-arrow fa fa-caret-left"/></span>:""}
       </li>);
   }
 });
@@ -6916,10 +6915,10 @@ var SearchTextResult = React.createClass({
 
         var more_results_indicator = (!(data.duplicates)) ? "" :
                 <div className='similar-trigger-box' onClick={this.toggleDuplicates}>
-                    <span className='similar-title he'>
+                    <span className='similar-title int-he'>
                         { data.duplicates.length } {(data.duplicates.length > 1) ? " גרסאות נוספות" : " גרסה נוספת"}
                     </span>
-                    <span className='similar-title en'>
+                    <span className='similar-title int-en'>
                         { data.duplicates.length } more version{(data.duplicates.length > 1) ? "s" : null}
                     </span>
                     {more_results_caret}

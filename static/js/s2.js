@@ -1421,13 +1421,13 @@ var Header = React.createClass({
         { className: 'login', href: "/register" + nextParam },
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           'Sign up'
         ),
         React.createElement(
           'span',
-          { className: 'he' },
-          'הירשם'
+          { className: 'int-he' },
+          'הרשם'
         )
       ),
       React.createElement(
@@ -1435,17 +1435,17 @@ var Header = React.createClass({
         { className: 'login', href: "/login" + nextParam },
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           'Log in'
         ),
         React.createElement(
           'span',
-          { className: 'he' },
-          'כניסה'
+          { className: 'int-he' },
+          'התחבר'
         )
       )
     );
-
+    var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "הקלד לחיפוש";
     return React.createElement(
       'div',
       { className: 'header' },
@@ -1475,7 +1475,7 @@ var Header = React.createClass({
           'span',
           { className: 'searchBox' },
           React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.handleSearchButtonClick }),
-          React.createElement('input', { className: 'search', placeholder: 'Search', onKeyUp: this.handleSearchKeyUp })
+          React.createElement('input', { className: 'search', placeholder: langSearchPlaceholder, onKeyUp: this.handleSearchKeyUp })
         ),
         React.createElement(
           'a',
@@ -7725,7 +7725,6 @@ var SearchPage = React.createClass({
             React.createElement(
               'h1',
               { classNames: isQueryHebrew ? "hebrewQuery" : "englishQuery" },
-              React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
               '“',
               this.props.query,
               '”'
@@ -8389,12 +8388,12 @@ var SearchFilters = React.createClass({
         { className: 'type-button-title' },
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           total != 1 ? en_plural : en_singular
         ),
         React.createElement(
           'span',
-          { className: 'he' },
+          { className: 'int-he' },
           total != 1 ? he_plural : he_singular
         )
       )
@@ -8419,12 +8418,12 @@ var SearchFilters = React.createClass({
       { className: 'results-count' },
       React.createElement(
         'span',
-        { className: 'en' },
+        { className: 'int-en' },
         !!this.props.appliedFilters.length && !!this.props.total ? this.getSelectedTitles("en").join(", ") : ""
       ),
       React.createElement(
         'span',
-        { className: 'he' },
+        { className: 'int-he' },
         !!this.props.appliedFilters.length && !!this.props.total ? this.getSelectedTitles("he").join(", ") : ""
       )
     );
@@ -8436,12 +8435,12 @@ var SearchFilters = React.createClass({
         { className: 'searchFilterToggle', onClick: this.toggleFilterView },
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           'Filter by Text   '
         ),
         React.createElement(
           'span',
-          { className: 'he' },
+          { className: 'int-he' },
           'סנן לפי כותר   '
         ),
         React.createElement('i', { className: this.state.displayFilters ? "fa fa-caret-down fa-angle-down" : "fa fa-caret-down" })
@@ -8535,7 +8534,7 @@ var SearchFilter = React.createClass({
       ),
       React.createElement(
         'span',
-        { className: 'en' },
+        { className: 'int-en' },
         React.createElement(
           'span',
           { className: 'filter-title' },
@@ -8552,7 +8551,7 @@ var SearchFilter = React.createClass({
       ),
       React.createElement(
         'span',
-        { className: 'he', dir: 'rtl' },
+        { className: 'int-he', dir: 'rtl' },
         React.createElement(
           'span',
           { className: 'filter-title' },
@@ -8569,12 +8568,12 @@ var SearchFilter = React.createClass({
       ),
       this.props.isInFocus ? React.createElement(
         'span',
-        { className: 'en' },
+        { className: 'int-en' },
         React.createElement('i', { className: 'in-focus-arrow fa fa-caret-right' })
       ) : "",
       this.props.isInFocus ? React.createElement(
         'span',
-        { className: 'he' },
+        { className: 'int-he' },
         React.createElement('i', { className: 'in-focus-arrow fa fa-caret-left' })
       ) : ""
     );
@@ -8630,14 +8629,14 @@ var SearchTextResult = React.createClass({
       { className: 'similar-trigger-box', onClick: this.toggleDuplicates },
       React.createElement(
         'span',
-        { className: 'similar-title he' },
+        { className: 'similar-title int-he' },
         data.duplicates.length,
         ' ',
         data.duplicates.length > 1 ? " גרסאות נוספות" : " גרסה נוספת"
       ),
       React.createElement(
         'span',
-        { className: 'similar-title en' },
+        { className: 'similar-title int-en' },
         data.duplicates.length,
         ' more version',
         data.duplicates.length > 1 ? "s" : null
