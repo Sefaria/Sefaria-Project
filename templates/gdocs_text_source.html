@@ -14,15 +14,11 @@
   <table border="1"><tr><td>
   {% endif %}
 
-  <div class="text">
-    <div class="{{ lang }}">
       {% if lang == "he" %}
         {{ source.text.he }}
       {% elif lang == "en" %}
         {{ source.text.en }}
       {% endif %}
-    </div>
-  </div>
 
   {% if boxed %}
   </td></tr></table>

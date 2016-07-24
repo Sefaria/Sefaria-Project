@@ -3256,7 +3256,7 @@ function exportToDrive() {
 			if ("error" in data) {
 				sjs.alert.message(data.error.message);
 			} else {
-				sjs.alert.message("Source Sheet exported to Google Drive.<br><br><a href='" + data.webViewLink + "'>Open in Google Drive &raquo;</a>");
+				sjs.alert.message("Source Sheet exported to Google Drive.<br><br><a href='" + data.webViewLink + "' target='_blank'>Open in Google Drive &raquo;</a>");
 			}
 		},
 		statusCode: {
