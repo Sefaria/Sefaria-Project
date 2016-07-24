@@ -28,7 +28,7 @@
                 <span class="int-he">חקור 3,000 שנה של טקסטים יהודיים בעברית ובתרגום לאנגלית <a href="/about">קרא עוד&rsaquo;</a></span></span>
             </div>
             <a href="/Genesis.1" class="inAppLink">
-                <div class="button white">
+                <div class="button white control-elem">
                     <span class="int-en">Get Started</span>
                     <span class="int-he">צא לדרך</span>
                 </div>
@@ -47,7 +47,7 @@
                         <span class="int-he">למידה בספאריה הוא תהליך פשוט, יפיפה ורב עוצמה. מצאו פרשנויות, יחסים אינטרטקסטואליים ותרגומים ברחבי ספריית הטקסטים החינמית והמתרחבת שלנו.</span>
                     </div>
                     <a href="/texts">
-                        <div class="button white">
+                        <div class="button white control-elem">
                             <span class="int-en">Explore the Library &rsaquo;</span>
                             <span class="int-he">גלה את הספרייה &rsaquo; </span>
                         </div>
@@ -93,14 +93,14 @@
                         <span class="int-he">הספריה המלאה של ספאריה, יחד עם כל הלינקים והקשרים, זמינים בסמארטפון. אפליקציית האנדרואיד של ספאריה עכשיו זמינה בחינם בחנות Google Play.</span>
                     </div>
                     <a href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria" target="_blank">
-                        <div class="button white">
+                        <div class="button white control-elem">
                             <i class="fa fa-android"></i>
                             <span class="int-en">Get Android App &rsaquo;</span>
                             <span class="int-he">הורדה לאנדרואיד &rsaquo;</span>
                         </div>
                     </a>
                     <a href="/ios" id="iOSButton">
-                        <div class="button white">
+                        <div class="button white control-elem">
                             <i class="fa fa-apple"></i>
                             <span class="int-en">Get iOS App &rsaquo;</span>
                             <span class="int-he">הורדה לאייפון &rsaquo;</span>
@@ -128,13 +128,13 @@
                         <span class="int-he">אתם יכולים לשלב מקורות מהספריה שלנו, יחד עם מקורות חיצוניים, ולהוסיף הערות, תמונות וסרטונים.</span>
                     </div>
                     <a href="/sheets/new">
-                        <div class="button">
+                        <div class="button control-elem">
                             <span class="int-en">Start a Sheet &rsaquo;</span>
                             <span class="int-he">צור דף מקורות &rsaquo;</span>
                         </div>
                     </a>
                     <a href="/sheets" class="inAppLink">
-                        <div class="button white">
+                        <div class="button white control-elem">
                             <span class="int-en">Explore Sheets &rsaquo;</span>
                             <span class="int-he">סייר בדפי המקורות &rsaquo;</span>
                         </div>
@@ -161,7 +161,7 @@
                         <span class="int-he">יותר מ-30,000 קשרים בין התלמוד לתנ"ך מוצגים באינפוגרפיקה דינאמית</span>
                     </div>
                     <a href="/explore">
-                        <div class="button white">
+                        <div class="button white control-elem">
                             <span class="int-en">Explore Connections &rsaquo;</span>
                             <span class="int-he">גרף הקשרים &rsaquo;</span>
                         </div>
@@ -200,48 +200,57 @@
         
         <div id="homeProgress" class="section center">
             <div class="sectionInner"> 
-                <h2>
+                <h3 class="sans">
                     <span class="int-en">Our Progress</span>
-                    <span class="int-he"></span>
-                </h2>
+                    <span class="int-he">ספאריה במספרים</span>
+                </h3>
                 <p class="stat">
                     <img class="statIcon" src="/static/img/progress-contributors.png">
                     <span class="wordCount">{{ metrics.contributors|intcomma }}</span>
-                    <span class="int-en">Contributors</span>
-                    <span class="int-he">משתמשים שתרמו טקסטים</span>
+                    <span class="stat-name sans">
+                        <span class="int-en">Contributors</span>
+                        <span class="int-he">משתמשים שתרמו טקסטים</span>
+                    </span>
                 </p>
 
                 <p class="stat">
                     <img class="statIcon" src="/static/img/progress-sheets.png">
                     <span class="wordCount">{{ metrics.sheets|intcomma }}</span>
-                    <span class="int-en">Source Sheets</span>
-                    <span class="int-he">דפי מקורות</span>
+                    <span class="stat-name sans">
+                        <span class="int-en">Source Sheets</span>
+                        <span class="int-he">דפי מקורות</span>
+                    </span>
                 </p>
 
                 <p class="stat">
                     <img class="statIcon" src="/static/img/progress-connections.png">
                     <span class="wordCount">{{ metrics.links|intcomma }}</span>
-                    <span class="int-en">Connections</span>
-                    <span class="int-he">הפניות וקישורים</span>
+                    <span class="stat-name sans">
+                        <span class="int-en">Connections</span>
+                        <span class="int-he">הפניות וקישורים</span>
+                    </span>
                 </p>
 
                 <p class="stat">
                     <img class="statIcon" src="/static/img/progress-translation.png">
                     <span class="wordCount">{{ metrics.transWords|intcomma }}</span>
-                    <span class="int-en">Words of Translation</span>
-                    <span class="int-he">מלים מתורגמות</span>
-
+                    <span class="stat-name sans">
+                        <span class="int-en">Words of Translation</span>
+                        <span class="int-he">מלים מתורגמות</span>
+                    </span>
                 </p>
 
                 <p class="stat">
                     <img class="statIcon" src="/static/img/progress-words.png">
                     <span class="wordCount">{{ metrics.heWords|add:metrics.transWords|intcomma }}</span>
-                    <span class="int-en">Total Words</span>
-                    <span class="int-he">מילים במאגר</span>
+                    <span class="stat-name sans">
+                        <span class="int-en">Total Words</span>
+                        <span class="int-he">מילים במאגר</span>
+                    </span>
                 </p>
 
                 <a href="/metrics" id="moreMetrics">
-                    <div class="button white">
+                    <div class="button white control-elem">
                         <span class="int-en">More Metrics &rsaquo;</span>
                         <span class="int-he">מדדים נוספים &rsaquo;</span>
                     </div>
@@ -260,7 +269,7 @@
                     <span class="int-he">פרויקט ספאריה פתוח לקהל הרחב (open source) ללא מטרות רווח. תמכו בנו באמצעות תרומה פטורה ממס.</span>
                 </div>
                 <a href="/donate">
-                    <div class="button">
+                    <div class="button control-elem">
                         <span class="int-en">Make a Donation</span>
                         <span class="int-he">לתמיכה ע"י תרומה</span>
                     </div>
@@ -275,12 +284,12 @@
                     <span class="int-he">השארו מחוברים</span>
                 </h2>
                 <div id="mailingListBox">
-                    <div id="mailingListTitle">
+                    <div id="mailingListTitle" class="sans">
                         <span class="int-en">Subscribe to our mailing list</span>
                         <span class="int-he">הצטרפו לרשימת הדיוור שלנו</span>
                     </div>
                     <input id="mailingListEmail" placeholder="Email Address | כתובת אימייל">
-                    <span id="subscribe" class="button">
+                    <span id="subscribe" class="button control-elem">
                         <span class="int-en">Subscribe</span>
                         <span class="int-he">הרשמו</span>
                     </span>
