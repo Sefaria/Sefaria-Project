@@ -261,11 +261,11 @@ var ReaderApp = React.createClass({
       Sefaria.site.track.setRef(refs.join(" | "));
 
       // Book name (Index record primary name) - per text panel
-      var bookNames = refs.map(ref => Sefaria.parseRef(ref).index);
+      var bookNames = refs.map(ref => Sefaria.parseRef(ref).index).filter(b => !!b);
       Sefaria.site.track.setBookName(bookNames.join(" | "));
 
       // Indexes - per text panel
-      var indexes = bookNames.map(b => Sefaria.index(b));
+      var indexes = bookNames.map(b => Sefaria.index(b)).filter(i => !!i);
 
       // categories - per text panel
       var primaryCats = indexes.map(i => (i.categories[0] === "Commentary")? i.categories[1] + " Commentary": i.categories[0]);
