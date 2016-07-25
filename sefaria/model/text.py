@@ -2329,7 +2329,7 @@ class Ref(object):
         """
         Expresses a section level (or higher) Ref as a ranged ref at segment level.
 
-        :param depth: Desired depth of the range. If not specified will drop to segemnt level
+        :param depth: Desired depth of the range. If not specified will drop to segment level
         :return: Ref
         """
         # Only for section level or higher.
@@ -2839,6 +2839,33 @@ class Ref(object):
 
         return self._first_spanned_ref
 
+    def starting_refs_of_span(self):
+        """
+            >>> Ref("Zohar 1:3b:12-3:12b:1").stating_refs_of_span()
+            [Ref("Zohar 1:3b:12"),Ref("Zohar 2"),Ref("Zohar 3")]
+            >>> Ref("Zohar 1:3b:12-1:4b:12").stating_refs_of_span()
+            [Ref("Zohar 1:3b:12"),Ref("Zohar 1:4a"),Ref("Zohar 1:4b")]
+            >>> Ref("Genesis 12:1-14:3").stating_refs_of_span()
+            [Ref("Genesis 12:1"), Ref("Genesis 13"), Ref("Genesis 14")]
+
+        :return:
+        """
+        if not self.is_spanning():
+            return self
+
+        results = []
+
+        start = self.sections[self.range_index()]
+        end = self.toSections[self.range_index()] + 1
+        for i, n in enumerate(range(start, end)):
+            d = self._core_dict()
+            if i != 0:
+                d["sections"] = self.sections[0:self.range_index()] + [self.sections[self.range_index()] + i]
+            d["toSections"] = d["sections"][:]
+            results += [Ref(_obj=d)]
+
+        return results
+
     def split_spanning_ref(self):
         """
         Return list of non-spanning :class:`Ref` objects which completely cover the area of this Ref
@@ -3325,6 +3352,30 @@ class Ref(object):
                 break
 
         return normal
+
+    def normal_section(self, section_index, lang="en"):
+        """
+        Return the display form of the section value at depth `section_index`
+        Does not support ranges
+        :param section_index: 0 based
+        :param lang:
+        :return:
+        """
+        assert not self.is_range()
+        assert len(self.sections) > section_index
+        return self.index_node.address_class(section_index).toStr(lang, self.sections[section_index])
+
+    def normal_last_section(self, lang="en"):
+        """
+        Return the display form of the last section
+        Does not support ranges
+        :param lang:
+        :return:
+        """
+        length = len(self.sections)
+        if length == 0:
+            return ""
+        return self.normal_section(length - 1, lang)
 
     def he_normal(self):
         """
