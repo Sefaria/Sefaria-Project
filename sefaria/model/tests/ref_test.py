@@ -329,9 +329,9 @@ class Test_Ref(object):
 
     def test_stating_refs_of_span(self):
         assert Ref("Zohar 1:3b:12-3:12b:1").starting_refs_of_span() == [Ref("Zohar 1:3b:12"), Ref("Zohar 2"), Ref("Zohar 3")]
-        assert Ref("Zohar 1:3b:12-1:4b:12").starting_refs_of_span() == [Ref("Zohar 1:3b:12"), Ref("Zohar 1:4a"), Ref("Zohar 1:4b")]
         assert Ref("Genesis 12:1-14:3").starting_refs_of_span() == [Ref("Genesis 12:1"), Ref("Genesis 13"), Ref("Genesis 14")]
-
+        assert Ref("Zohar 1:3b:12-1:4b:12").starting_refs_of_span() == [Ref("Zohar 1:3b:12")]
+        assert Ref("Zohar 1:3b:12-1:4b:12").starting_refs_of_span(True) == [Ref("Zohar 1:3b:12"), Ref("Zohar 1:4a"), Ref("Zohar 1:4b")]
 
     def test_as_ranged_segment_ref(self):
         assert Ref('Genesis').as_ranged_segment_ref() == Ref('Genesis.1.1-50.26')

@@ -775,34 +775,32 @@ def make_simple_toc_html(he_toc, en_toc, labels, addresses, oref, zoom=1, offset
     en_toc = [] if isinstance(en_toc, int) else en_toc
     assert(len(he_toc) == len(en_toc))
     length = len(he_toc)
-    assert(list_depth(he_toc, deep=True) == list_depth(en_toc, deep=True))
     depth = list_depth(he_toc, deep=True)
+    assert(depth == list_depth(en_toc, deep=True))
 
-    offset = 0
-    if offset_ref is not None:
-        refs = offset_ref.split_spanning_ref()
-        first, last = refs[0], refs[-1]
-        offset_lines = (first.normal().rsplit(":", 1)[1] if first.is_segment_level() else "",
-                        last.normal().rsplit(":", 1)[1] if last.is_segment_level() else "")
-        toc_refs = offset_ref.starting_refs_of_span()
-        offset = first.sections[-2] - 1 if first.is_segment_level() else first.sections[-1] - 1
 
-    # todo: have this use the address classes in schema.py
+    # todo: have this use the address classes in schema.py,
+    # todo: handle Talmud in less convenient places in Address list?
     talmudBase = (len(addresses) > 0 and addresses[0] == "Talmud")
 
     html = ""
     if depth == zoom + 1:
         # We're at the terminal level, list sections links
+        offsets = [offset_ref.sections[i] - 1 if (offset_ref and len(offset_ref.sections) > i) else 0
+                   for i in range(len(oref.index_node.sectionNames))]
         for i in range(length):
             klass = "he%s en%s" % (toc_availability_class(he_toc[i]), toc_availability_class(en_toc[i]))
             if klass == "heNone enNone":
                 continue # Don't display sections with no content
+
             if oref.is_segment_level():
                 section_oref = oref.context_ref()
             elif (oref.is_section_level() or depth == 1) and zoom != 0:
                 section_oref = oref
             else:
-                section_oref = oref.subref(i + offset + 1)
+                offset_index = -2 if len(offsets) > 1 else -1
+                section_oref = oref.subref(i + offsets[offset_index] + 1)
+
             en_section   = section_oref.normal_last_section()
             he_section   = encode_hebrew_daf(en_section) if talmudBase else encode_hebrew_numeral(int(en_section), punctuation=False)
             section_html = u"<span class='en'>{}</span><span class='he'>{}</span>".format(en_section, he_section)
@@ -824,17 +822,29 @@ def make_simple_toc_html(he_toc, en_toc, labels, addresses, oref, zoom=1, offset
             html = sectionName + html
     else:
         # We're above terminal level, list sections and recur
+        if offset_ref is not None:
+            refs = offset_ref.split_spanning_ref()
+            first, last = refs[0], refs[-1]
+            offset_lines = (first.normal().rsplit(":", 1)[1] if first.is_segment_level() else "",
+                            last.normal().rsplit(":", 1)[1] if last.is_segment_level() else "")
+            toc_refs = offset_ref.starting_refs_of_span() # The starting refs for the toc jagged arrays
+            context_refs = toc_refs[:]
+            context_refs[0] = context_refs[0].context_ref(depth - 1)
+            assert length == len(toc_refs)
+
         for i in range(length):
-            # section_offset = offset_ref if i == 0 else
-            # section_offset_lines = None
-            # if offset_lines and i == 0:
-            #     section_offset_lines = (offset_lines[0], None)
-            # elif offset_lines and i == length - 1:
-            #     section_offset_lines = (None, offset_lines[1])
-            subref = oref.subref(i + 1) if offset_ref is None else toc_refs[i]
+            section_offset_lines = None
+            if offset_lines and i == 0:
+                section_offset_lines = (offset_lines[0], None)
+            elif offset_lines and i == length - 1:
+                section_offset_lines = (None, offset_lines[1])
+
+            subref = oref.subref(i + 1) if offset_ref is None else context_refs[i]
+
             section_html = make_simple_toc_html(
                 he_toc[i], en_toc[i], labels[1:], addresses[1:], subref,
-                zoom=zoom, offset_ref=toc_refs[i] if offset_ref is not None else None
+                zoom=zoom, offset_ref=toc_refs[i] if offset_ref is not None else None,
+                offset_lines=section_offset_lines
             )
             if section_html:
                 section = subref.normal_last_section()

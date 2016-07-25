@@ -2839,28 +2839,32 @@ class Ref(object):
 
         return self._first_spanned_ref
 
-    def starting_refs_of_span(self):
+    def starting_refs_of_span(self, deep_range=False):
         """
             >>> Ref("Zohar 1:3b:12-3:12b:1").stating_refs_of_span()
             [Ref("Zohar 1:3b:12"),Ref("Zohar 2"),Ref("Zohar 3")]
-            >>> Ref("Zohar 1:3b:12-1:4b:12").stating_refs_of_span()
+            >>> Ref("Zohar 1:3b:12-1:4b:12").stating_refs_of_span(True)
             [Ref("Zohar 1:3b:12"),Ref("Zohar 1:4a"),Ref("Zohar 1:4b")]
+            >>> Ref("Zohar 1:3b:12-1:4b:12").stating_refs_of_span(False)
+            [Ref("Zohar 1:3b:12")]
             >>> Ref("Genesis 12:1-14:3").stating_refs_of_span()
             [Ref("Genesis 12:1"), Ref("Genesis 13"), Ref("Genesis 14")]
 
+        :param deep_range: Default: False.  If True, returns list of refs at whatever level the range is.  If False, only returns refs for the 0th index, whether ranged or not.
         :return:
         """
         if not self.is_spanning():
             return self
+        level = 0 if not deep_range else self.range_index()
 
         results = []
 
-        start = self.sections[self.range_index()]
-        end = self.toSections[self.range_index()] + 1
+        start = self.sections[level]
+        end = self.toSections[level] + 1
         for i, n in enumerate(range(start, end)):
             d = self._core_dict()
             if i != 0:
-                d["sections"] = self.sections[0:self.range_index()] + [self.sections[self.range_index()] + i]
+                d["sections"] = self.sections[0:level] + [self.sections[level] + i]
             d["toSections"] = d["sections"][:]
             results += [Ref(_obj=d)]
 
