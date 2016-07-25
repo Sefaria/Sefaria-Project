@@ -92,6 +92,10 @@ class Test_Jagged_Text_Array(object):
             ["Third first", "Third second"]
         ])
 
+        assert ja.JaggedTextArray(threeby).subarray([1, 1, 1], [1, 1, 2]) == ja.JaggedTextArray(
+            ["2:2", "2:3"],
+        )
+
     def test_set_element(self):
         j = ja.JaggedTextArray(twoby).set_element([1,1], "Foobar")
         assert j.get_element([1, 1]) == "Foobar"

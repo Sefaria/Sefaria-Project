@@ -601,7 +601,9 @@ def make_toc_html(oref, zoom=1):
     else:
         state = StateNode(index.title)
         he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
-        html = make_simple_toc_html(he_counts, en_counts, index.nodes.sectionNames, index.nodes.addressTypes, index.title, zoom=zoom)
+        if getattr(index, "TOC_display_depth", None):
+            zoom = index.TOC_display_depth
+        html = make_simple_toc_html(he_counts, en_counts, index.nodes.sectionNames, index.nodes.addressTypes, Ref(index.title), zoom=zoom)
 
     if index.has_alt_structures():
         default_name   = index.nodes.sectionNames[0] if not index.is_complex() else "Contents"
@@ -655,9 +657,12 @@ def make_complex_toc_html(oref):
             html += '<div class="schema-node-contents ' + ('open' if focused or default else 'closed') + '">'
             node_state = kwargs["vs"].state_node(node)
             #Todo, handle Talmud and other address types, as well as commentary
-            zoom = 0 if node.depth == 1 else 1
+            if getattr(node, "TOC_display_depth", None):
+                zoom = node.TOC_display_depth
+            else:
+                zoom = 0 if node.depth == 1 else 1
             he_counts, en_counts = node_state.var("he", "availableTexts"), node_state.var("en", "availableTexts")
-            content = make_simple_toc_html(he_counts, en_counts, node.sectionNames, node.addressTypes, node.full_title(), zoom=zoom)
+            content = make_simple_toc_html(he_counts, en_counts, node.sectionNames, node.addressTypes, node.ref(), zoom=zoom)
             content = content or "<div class='emptyMessage'>No text here.</div>"
             html += content + '</div>'
         html += "</a>" if linked else "</div>"
@@ -720,18 +725,25 @@ def make_alt_toc_html(alt, index):
             target_ref   = Ref(node.wholeRef)
             state        = kwargs["vs"].state_node(target_ref.index_node)  # "Binders" would need the slower - StateNode(snode=target_ref.index_node)
             he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
+            """
             refs         = target_ref.split_spanning_ref()
             first, last  = refs[0], refs[-1]
-            offset       = first.sections[-2]-1 if first.is_segment_level() else first.sections[-1]-1
-            offset_lines = (first.normal().rsplit(":", 1)[1] if first.is_segment_level() else "", 
+            offset_lines = (first.normal().rsplit(":", 1)[1] if first.is_segment_level() else "",
                             last.normal().rsplit(":", 1)[1] if last.is_segment_level() else "")
+            """
             he           = wrap_counts(JaggedArray(he_counts).subarray_with_ref(target_ref).array())
             en           = wrap_counts(JaggedArray(en_counts).subarray_with_ref(target_ref).array())
-            depth        = len(target_ref.index_node.sectionNames) - 2 if len(target_ref.index_node.sectionNames) > 1 else 0
-            sectionNames = first.index_node.sectionNames[depth:]
-            addressTypes = first.index_node.addressTypes[depth:]
-            ref          = first.context_ref(level=2) if first.is_segment_level() else first.context_ref()
-            content = make_simple_toc_html(he, en, sectionNames, addressTypes, ref.url(), offset=offset, offset_lines=offset_lines)
+            if len(target_ref.index_node.sectionNames) <= 1:
+                index_of_range = 0
+            elif target_ref.range_depth() < 2: # ranged at segment level or not at all
+                index_of_range = 1
+            else: # Handling both section and supersection level ranges
+                index_of_range = target_ref.range_index()
+            sectionNames = target_ref.index_node.sectionNames[index_of_range:]
+            addressTypes = target_ref.index_node.addressTypes[index_of_range:]
+            #ref          = first.context_ref(level=2) if first.is_segment_level() else first.context_ref()
+            base_oref = target_ref.context_ref(level=target_ref.range_depth())
+            content = make_simple_toc_html(he, en, sectionNames, addressTypes, base_oref, offset_ref=target_ref)
             html += "<div class='schema-node-contents open'>" + content + "</div>"
 
         html += "</a>" if linked else "</div>"
@@ -742,7 +754,7 @@ def make_alt_toc_html(alt, index):
     return html
 
 
-def make_simple_toc_html(he_toc, en_toc, labels, addresses, ref, zoom=1, offset=0, offset_lines=None):
+def make_simple_toc_html(he_toc, en_toc, labels, addresses, oref, zoom=1, offset_ref=None, offset_lines=None):
     """
     Returns HTML Table of Contents corresponding to jagged count arrays he_toc and en_toc.
     Runs recursively.
@@ -750,19 +762,30 @@ def make_simple_toc_html(he_toc, en_toc, labels, addresses, ref, zoom=1, offset=
     :param en_toc - jagged int array of available counts in english
     :param labels - list of section names for levels corresponding to toc
     :param addresses - list of address types, from Index record
-    :param ref - text to prepend to final links. Starts with text title, recursively adding sections.
+    :param oref - :class:`Ref` - the context for this level of the text toc
     :param zoom - sets how many levels of final depth to summarize
-    (e.g., 1 will hide verses and only show chapter level)
-    :param offset - int to add to each listed section
+    (e.g., 1 will hide segments and only show section level)
+    :param offset_ref - :class:`Ref` of the first segment/section #was: int to add to each listed section (in the first super-section, if depth 3)
     :param offset_lines - tuple of strings to be appended to the URL of the first and last
     section (allows pointing to spans inside a section).
     """
+    # todo: refactor ref argument to take an object instead of a string
+    assert isinstance(oref, Ref)
     he_toc = [] if isinstance(he_toc, int) else he_toc
     en_toc = [] if isinstance(en_toc, int) else en_toc
     assert(len(he_toc) == len(en_toc))
     length = len(he_toc)
     assert(list_depth(he_toc, deep=True) == list_depth(en_toc, deep=True))
     depth = list_depth(he_toc, deep=True)
+
+    offset = 0
+    if offset_ref is not None:
+        refs = offset_ref.split_spanning_ref()
+        first, last = refs[0], refs[-1]
+        offset_lines = (first.normal().rsplit(":", 1)[1] if first.is_segment_level() else "",
+                        last.normal().rsplit(":", 1)[1] if last.is_segment_level() else "")
+        toc_refs = offset_ref.starting_refs_of_span()
+        offset = first.sections[-2] - 1 if first.is_segment_level() else first.sections[-1] - 1
 
     # todo: have this use the address classes in schema.py
     talmudBase = (len(addresses) > 0 and addresses[0] == "Talmud")
@@ -774,16 +797,23 @@ def make_simple_toc_html(he_toc, en_toc, labels, addresses, ref, zoom=1, offset=
             klass = "he%s en%s" % (toc_availability_class(he_toc[i]), toc_availability_class(en_toc[i]))
             if klass == "heNone enNone":
                 continue # Don't display sections with no content
-            en_section   = section_to_daf(i+offset+1) if talmudBase else str(i+offset+1)
+            if oref.is_segment_level():
+                section_oref = oref.context_ref()
+            elif (oref.is_section_level() or depth == 1) and zoom != 0:
+                section_oref = oref
+            else:
+                section_oref = oref.subref(i + offset + 1)
+            en_section   = section_oref.normal_last_section()
             he_section   = encode_hebrew_daf(en_section) if talmudBase else encode_hebrew_numeral(int(en_section), punctuation=False)
-            section_html = "<span class='en'>%s</span><span class='he'>%s</span>" % (en_section, he_section)
-            path = "%s.%s" % (ref, en_section)
+            section_html = u"<span class='en'>{}</span><span class='he'>{}</span>".format(en_section, he_section)
+            path = section_oref.url()
+            #path = "%s.%s" % (ref, en_section)
             if offset_lines and i == 0 and offset_lines[0]:
                 path += "." + offset_lines[0]
             elif offset_lines and (i+1) == length and offset_lines[1]:
                 path += "." + offset_lines[1]
             if zoom > 1:  # Make links point to first available content
-                available = Ref(ref + "." + en_section).first_available_section_ref()
+                available = section_oref.first_available_section_ref()
                 path = available.url() if available else path
             html += '<a class="sectionLink %s" href="/%s">%s</a>' % (klass, urlquote(path), section_html)
         if html:
@@ -795,9 +825,19 @@ def make_simple_toc_html(he_toc, en_toc, labels, addresses, ref, zoom=1, offset=
     else:
         # We're above terminal level, list sections and recur
         for i in range(length):
-            section = section_to_daf(i + 1) if talmudBase else str(i + 1)
-            section_html = make_simple_toc_html(he_toc[i], en_toc[i], labels[1:], addresses[1:], ref + "." + section, zoom=zoom)
+            # section_offset = offset_ref if i == 0 else
+            # section_offset_lines = None
+            # if offset_lines and i == 0:
+            #     section_offset_lines = (offset_lines[0], None)
+            # elif offset_lines and i == length - 1:
+            #     section_offset_lines = (None, offset_lines[1])
+            subref = oref.subref(i + 1) if offset_ref is None else toc_refs[i]
+            section_html = make_simple_toc_html(
+                he_toc[i], en_toc[i], labels[1:], addresses[1:], subref,
+                zoom=zoom, offset_ref=toc_refs[i] if offset_ref is not None else None
+            )
             if section_html:
+                section = subref.normal_last_section()
                 he_section = encode_hebrew_daf(section) if talmudBase else encode_hebrew_numeral(int(section), punctuation=False)
                 html += "<div class='tocSection'>"
                 html += "<div class='sectionName'>"
