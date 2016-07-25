@@ -287,12 +287,16 @@ var ReaderApp = React.createClass({
     // Book name (Index record primary name) - per text panel
     var bookNames = refs.map(function (ref) {
       return Sefaria.parseRef(ref).index;
+    }).filter(function (b) {
+      return !!b;
     });
     Sefaria.site.track.setBookName(bookNames.join(" | "));
 
     // Indexes - per text panel
     var indexes = bookNames.map(function (b) {
       return Sefaria.index(b);
+    }).filter(function (i) {
+      return !!i;
     });
 
     // categories - per text panel
