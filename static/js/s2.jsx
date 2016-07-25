@@ -7050,7 +7050,6 @@ var AccountPanel = React.createClass({
     connectContent = (<TwoOrThreeBox content={connectContent} width={width} />);
 
     var classes = {accountPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
-    /*classes[this.props.interfaceLang] = 1;*/
     var classStr = classNames(classes);
     return (
       <div className={classStr}>
@@ -7060,7 +7059,7 @@ var AccountPanel = React.createClass({
               <span className="int-en">Account</span>
               <span className="int-he">חשבון משתמש</span>
             </h1>
-           <ReaderNavigationMenuSection content={accountContent} inter />
+           <ReaderNavigationMenuSection content={accountContent} />
            <ReaderNavigationMenuSection title="Learn" heTitle="לימוד" content={learnContent} />
            <ReaderNavigationMenuSection title="Contribute" heTitle="עשייה" content={contributeContent} />
            <ReaderNavigationMenuSection title="Connect" heTitle="התחברות" content={connectContent} />
@@ -7127,7 +7126,6 @@ var NotificationsPanel = React.createClass({
   },
   render: function() {
     var classes = {notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
-    /*classes[this.props.interfaceLang] = 1;*/
     var classStr = classNames(classes);
     return (
       <div className={classStr}>
