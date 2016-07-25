@@ -783,6 +783,12 @@ def make_simple_toc_html(he_toc, en_toc, labels, addresses, oref, zoom=1, offset
     # todo: handle Talmud in less convenient places in Address list?
     talmudBase = (len(addresses) > 0 and addresses[0] == "Talmud")
 
+    if offset_ref is not None and offset_lines is None:
+        refs = offset_ref.split_spanning_ref()
+        first, last = refs[0], refs[-1]
+        offset_lines = (first.normal().rsplit(":", 1)[1] if first.is_segment_level() else "",
+                        last.normal().rsplit(":", 1)[1] if last.is_segment_level() else "")
+
     html = ""
     if depth == zoom + 1:
         # We're at the terminal level, list sections links
@@ -823,11 +829,7 @@ def make_simple_toc_html(he_toc, en_toc, labels, addresses, oref, zoom=1, offset
     else:
         # We're above terminal level, list sections and recur
         if offset_ref is not None:
-            refs = offset_ref.split_spanning_ref()
-            first, last = refs[0], refs[-1]
-            offset_lines = (first.normal().rsplit(":", 1)[1] if first.is_segment_level() else "",
-                            last.normal().rsplit(":", 1)[1] if last.is_segment_level() else "")
-            toc_refs = offset_ref.starting_refs_of_span() # The starting refs for the toc jagged arrays
+            toc_refs = offset_ref.starting_refs_of_span()  # The starting refs for the toc jagged arrays
             context_refs = toc_refs[:]
             context_refs[0] = context_refs[0].context_ref(depth - 1)
             assert length == len(toc_refs)
