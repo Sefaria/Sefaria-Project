@@ -2552,7 +2552,7 @@ var BlockLink = React.createClass({
     };
   },
   render: function() {
-    let interfaceClass = this.props.interfaceLink ? 'int-' : '';
+    var interfaceClass = this.props.interfaceLink ? 'int-' : '';
     return (<a className="blockLink" href={this.props.target}>
               <span className={`${interfaceClass}en`}>{this.props.title}</span>
               <span className={`${interfaceClass}he`}>{this.props.heTitle}</span>
