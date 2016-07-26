@@ -43,7 +43,6 @@ $(window).on("beforeunload", function() {
 			return "Your Source Sheet has unsaved changes. Please wait for the autosave to finish.";
 		}
 	}
-
 });
 
 var oldOnError = window.onerror || function(){};
@@ -56,7 +55,7 @@ window.onerror = function (errorMsg, url, lineNumber) {
  	oldOnError(errorMsg, url, lineNumber);
 	errorWarning(errorMsg, url, lineNumber);
 	return false;
-}
+};
 
 $(function() {
 
@@ -1104,9 +1103,11 @@ $(function() {
 
 		var ownerControls = "<div id='sourceControls' class='sideControls'>" +
 								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
+								"<div class='removeSource' title='Remove'><img src='/static/img/remove.png'></div>" +
 								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
 								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
-								"<div class='removeSource' title='Remove'><img src='/static/img/remove.png'></div>" +
+								"<div class='moveSourceUp' title='Move Source Up'><img src='/static/img/triangle-up.svg'></div>" +
+								"<div class='moveSourceDown' title='Move Source Down'><img src='/static/img/triangle-down.svg'></div>" +
 							"</div>";
 
 		var adderControls = "<div id='sourceControls' class='sideControls'>" +
@@ -1121,9 +1122,11 @@ $(function() {
 
 		var ownerSimpleControls = "<div id='sourceControls' class='sideControls'>" +
 								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
+								"<div class='removeSource' title='Remove'><img src='/static/img/remove.png'></div>" +
 								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
 								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
-								"<div class='removeSource' title='Remove'><img src='/static/img/remove.png'></div>" +
+								"<div class='moveSourceUp' title='Move Source Up'><img src='/static/img/triangle-up.svg'></div>" +
+								"<div class='moveSourceDown' title='Move Source Down'><img src='/static/img/triangle-down.svg'></div>" +
 							"</div>";
 
 

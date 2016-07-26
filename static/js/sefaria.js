@@ -31,7 +31,8 @@ Sefaria = extend(Sefaria, {
       q = q.trim().toFirstCapital();
       if (q in Sefaria._parseRef) { return Sefaria._parseRef[q]; }
       
-      var response = {book: false, 
+      var response = {book: false,
+                      index: false,
                       sections: [],
                       toSections: [],
                       ref: ""};               
@@ -42,15 +43,21 @@ Sefaria = extend(Sefaria, {
 
       var toSplit = q.split("-");
       var first   = toSplit[0];
-      
-      for (var i = first.length; i >= 0; i--) {
-          var book   = first.slice(0, i);
-          var bookOn = book.split(" on ");
+
+      var book, bookOn, index, nums, i;
+      for (i = first.length; i >= 0; i--) {
+          book   = first.slice(0, i);
+          bookOn = book.split(" on ");
           if (book in Sefaria.booksDict || 
               (bookOn.length == 2 && bookOn[0] in Sefaria.booksDict && bookOn[1] in Sefaria.booksDict)) { 
-              var nums = first.slice(i+1);
+              nums = first.slice(i+1);
               break;
           }
+      }
+      // Get the root index name. (For complex works, this may be different than `book`)
+      for (i = book.length; i >= 0; i--) {
+          index = book.slice(0,i);
+          if (this.index(index)) { break; }
       }
       if (!book) { 
           Sefaria._parseRef[q] = {"error": "Unknown book."};
@@ -62,6 +69,7 @@ Sefaria = extend(Sefaria, {
           return Sefaria._parseRef[q];
       }
 
+      response.index      = index;
       response.book       = book;
       response.sections   = nums ? nums.split(" ") : [];
       response.toSections = nums ? nums.split(" ") : [];
@@ -1051,22 +1059,37 @@ Sefaria = extend(Sefaria, {
         }
       return sheets;
     },
+    _groupTagList: null,
+    groupTagList: function(partner, callback) {
+      // Returns a list of all public source sheet tags, ordered by populartiy
+      var tags = this._groupTagList;
+      if (tags) {
+        if (callback) { callback(tags); }
+      } else {
+        var url = "/api/partners/tag-list/"+partner;
+         Sefaria._api(url, function(data) {
+            this._groupTagList = data;
+             if (callback) { callback(data); }
+          }.bind(this));
+        }
+      return tags;
+    },
+
     _partnerSheets: {},
-    partnerSheets: function(partner, callback) {
+    partnerSheets: function(partner, callback, sortBy) {
       // Returns a list of source sheets belonging to partner org
       // Member of group will get all sheets. Others only public facing ones.
+      sortBy = typeof sortBy == "undefined" ? "date" : sortBy;
       var sheets = this._partnerSheets[partner];
       if (sheets) {
         if (callback) { callback(sheets); }
       } else {
-          // TODO Build out API. Currently never gets called because cache is always populated via static django page. But if we want to add to /sheets this needs to be built out
-          /*
-        var url = ;
+        var url = "/api/partners/"+partner;
          Sefaria._api(url, function(data) {
             this._partnerSheets[partner] = data.sheets;
             if (callback) { callback(data.sheets); }
           }.bind(this));
-          */
+
         }
       return sheets;
     },
@@ -1460,7 +1483,7 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.topSheets) {
     Sefaria.sheets._topSheets = props.topSheets;
   }
-}
+};
 
 Sefaria.search.FilterNode.prototype = {
   append : function(child) {
@@ -2000,8 +2023,7 @@ Sefaria.util = {
             }   
         }
     }
-
-}
+};
 Sefaria.setup =function() {
     Sefaria.util.setupPrototypes();
     Sefaria.util.setupJQuery();
@@ -2199,34 +2221,45 @@ Sefaria.hebrew = {
 Sefaria.site = { 
   track: {
     // Helper functions for event tracking (with Google Analytics and Mixpanel)
-    event: function(category, action, label) {
-        // Generic event tracker
-        ga('send', 'event', category, action, label);
+    event: function(category, action, label, value, options) {
+        // https://developers.google.com/analytics/devguides/collection/analyticsjs/command-queue-reference#send
+        ga('send', 'event', category, action, label, value, options);
         //mixpanel.track(category + " " + action, {label: label});
-        //console.log([category, action, label].join(" / "));
     },
     pageview: function(url) {
-        ga('send', 'pageview', url);
+        ga('set', 'page', url);
+        ga('send', 'pageview');
     },
-    open: function(ref) {
-        // Track opening a specific text ref
-        Sefaria.site.track.event("Reader", "Open", ref);
-        var text = Sefaria.parseRef(ref).book;
-        Sefaria.site.track.event("Reader", "Open Text", text);
+    setPrimaryCategory: function(category_name) {
+        ga('set', 'contentGroup1', category_name);
     },
-    ui: function(label) {
-        // Track some action in the Reader UI
-        Sefaria.site.track.event("Reader", "UI", label);
+    setSecondaryCategory: function(category_name) {
+        ga('set', 'contentGroup2', category_name);
     },
-    action: function(label) {
-        // Track an action from the Reader
-        Sefaria.site.track.event("Reader", "Action", label);     
+    setContentLanguage: function(language) {
+        ga('set', 'contentGroup5', language);
+    },
+    setNumberOfPanels: function(val) {
+        ga('set', 'dimension1', val);
+    },
+    setBookName: function(val) {
+        ga('set', 'dimension2', val);
+        ga('set', 'contentGroup3', val);
+    },
+    setRef: function(val) {
+        ga('set', 'dimension3', val);
+    },
+    setVersionTitle: function(val) {
+        ga('set', 'dimension4', val);
+    },
+    setPageType: function(val) {
+        ga('set', 'dimension5', val);
+    },
+    setSidebars: function(val) {
+        ga('set', 'dimension6', val);
     },
     sheets: function(action, label) {
         Sefaria.site.track.event("Sheets", action, label);
-    },
-    search: function(query) {
-        Sefaria.site.track.event("Search", "Search", query);
     },
     exploreUrl: function(url) {
         Sefaria.site.track.event("Explorer", "Open", url);

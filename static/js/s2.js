@@ -4,6 +4,8 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 if (typeof require !== 'undefined') {
   var INBROWSER = false,
       React = require('react'),
@@ -161,7 +163,8 @@ var ReaderApp = React.createClass({
       defaultPanelSettings: Sefaria.util.clone(defaultPanelSettings),
       layoutOrientation: layoutOrientation,
       path: this.props.initialPath,
-      panelCap: this.props.initialPanelCap
+      panelCap: this.props.initialPanelCap,
+      initialAnalyticsTracked: false
     };
   },
   componentDidMount: function componentDidMount() {
@@ -187,6 +190,11 @@ var ReaderApp = React.createClass({
       //console.log("Skipping history update - just popped")
       this.justPopped = false;
       return;
+    }
+
+    // Set initial page view (deferred from analytics.js instanciation)
+    if (!this.state.initialAnalyticsTracked) {
+      this.trackPageview();
     }
 
     // If a new panel has been added, and the panels extend beyond the viewable area, check horizontal scroll
@@ -233,20 +241,116 @@ var ReaderApp = React.createClass({
       this.setContainerMode();
     }
   },
+  _canTrackPageview: function _canTrackPageview() {
+    if (!Sefaria.site) {
+      return false;
+    }
+    return true;
+  },
+  trackPageview: function trackPageview() {
+    if (!this._canTrackPageview()) {
+      return;
+    }
+
+    var headerPanel = this.state.header.menuOpen || !this.state.panels.length && this.state.header.mode === "Header";
+    var panels = headerPanel ? [this.state.header] : this.state.panels;
+    var textPanels = panels.filter(function (panel) {
+      return (panel.refs.length || panel.bookRef) && panel.mode !== "Connections";
+    });
+    var connectionPanels = panels.filter(function (panel) {
+      return panel.mode == "Connections";
+    });
+
+    // Set Page Type
+    // Todo: More specificity for sheets - browsing, reading, writing
+    if (panels.length < 1) {
+      debugger;
+    } else {
+      Sefaria.site.track.setPageType(panels[0].menuOpen || panels[0].mode);
+    }
+
+    // Number of panels as e.g. "2" meaning 2 text panels or "3.2" meaning 3 text panels and 2 connection panels
+    if (connectionPanels.length == 0) {
+      Sefaria.site.track.setNumberOfPanels(textPanels.length.toString());
+    } else {
+      Sefaria.site.track.setNumberOfPanels(textPanels.length + '.' + connectionPanels.length);
+    }
+
+    // refs - per text panel
+    var refs = textPanels.map(function (panel) {
+      return panel.refs.length ? panel.refs.slice(-1)[0] : panel.bookRef;
+    });
+    Sefaria.site.track.setRef(refs.join(" | "));
+
+    // Book name (Index record primary name) - per text panel
+    var bookNames = refs.map(function (ref) {
+      return Sefaria.parseRef(ref).index;
+    }).filter(function (b) {
+      return !!b;
+    });
+    Sefaria.site.track.setBookName(bookNames.join(" | "));
+
+    // Indexes - per text panel
+    var indexes = bookNames.map(function (b) {
+      return Sefaria.index(b);
+    }).filter(function (i) {
+      return !!i;
+    });
+
+    // categories - per text panel
+    var primaryCats = indexes.map(function (i) {
+      return i.categories[0] === "Commentary" ? i.categories[1] + " Commentary" : i.categories[0];
+    });
+    Sefaria.site.track.setPrimaryCategory(primaryCats.join(" | "));
+
+    var secondaryCats = indexes.map(function (i) {
+      return i.categories[0] === "Commentary" ? i.categories.length > 2 ? i.categories[2] : "" : i.categories.length > 1 ? i.categories[1] : "";
+    });
+    Sefaria.site.track.setSecondaryCategory(secondaryCats.join(" | "));
+
+    // panel content languages - per text panel
+    var contentLanguages = textPanels.map(function (panel) {
+      return panel.settings.language;
+    });
+    Sefaria.site.track.setContentLanguage(contentLanguages.join(" | "));
+
+    // Set Versions - per text panel
+    var versionTitles = textPanels.map(function (p) {
+      return p.version ? p.version + '(' + p.versionLanguage + ')' : "default version";
+    });
+    Sefaria.site.track.setVersionTitle(versionTitles.join(" | "));
+
+    // Set Sidebar usages
+    // todo: handle toolbar selections
+    var sidebars = connectionPanels.map(function (panel) {
+      return panel.filter.length ? panel.filter.join("+") : "all";
+    });
+    Sefaria.site.track.setSidebars(sidebars.join(" | "));
+
+    // After setting the dimensions, post the hit
+    var url = window.location.pathname + window.location.search;
+    Sefaria.site.track.pageview(url);
+
+    if (!this.state.initialAnalyticsTracked) {
+      this.setState({ initialAnalyticsTracked: true });
+    }
+  },
   shouldHistoryUpdate: function shouldHistoryUpdate() {
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
     // If there's no history or the number or basic state of panels has changed
-    if (!history.state || !history.state.panels && !history.state.header || history.state.panels && history.state.panels.length !== this.state.panels.length || history.state.header && history.state.header.menuOpen !== this.state.header.menuOpen) {
+    if (!history.state || !history.state.panels && !history.state.header || !history.state.panels && this.state.panels || history.state.panels && history.state.panels.length !== this.state.panels.length || history.state.header && history.state.header.menuOpen !== this.state.header.menuOpen) {
       return true;
     }
 
+    var prevPanels, nextPanels;
     if (this.props.multiPanel) {
-      var prevPanels = [history.state.header];
-      var nextPanels = [this.state.header];
+      var headerPanel = this.state.header.menuOpen || !this.state.panels.length && this.state.header.mode === "Header";
+      prevPanels = headerPanel ? [history.state.header] : history.state.panels;
+      nextPanels = headerPanel ? [this.state.header] : this.state.panels;
     } else {
-      var prevPanels = history.state.panels || [];
-      var nextPanels = this.state.panels;
+      prevPanels = [history.state.header];
+      nextPanels = [this.state.header];
     }
 
     for (var i = 0; i < prevPanels.length; i++) {
@@ -265,8 +369,8 @@ var ReaderApp = React.createClass({
         if (!prev.navigationCategories || !next.navigationCategories) {
           return true; // They are not equal and one is null
         } else if (!prev.navigationCategories.compare(next.navigationCategories)) {
-          return true; // both are set, compare arrays
-        }
+            return true; // both are set, compare arrays
+          }
       }
     }
     return false;
@@ -321,7 +425,7 @@ var ReaderApp = React.createClass({
             break;
           case "text toc":
             var ref = state.refs.slice(-1)[0];
-            var bookTitle = ref ? Sefaria.parseRef(ref).book : "404";
+            var bookTitle = ref ? Sefaria.parseRef(ref).index : "404";
             hist.title = bookTitle + " | Sefaria";
             hist.url = bookTitle.replace(/ /g, "_");
             hist.mode = "text toc";
@@ -443,14 +547,14 @@ var ReaderApp = React.createClass({
           hist.title += " & " + histories[i].title; // TODO this doesn't trim title properly
         }
       } else {
-        var next = "&p=" + histories[i].url;
-        next = next.replace("?", "&").replace(/=/g, i + 1 + "=");
-        hist.url += next;
-        if (histories[i].versionLanguage && histories[i].version) {
-          hist.url += "&l" + (i + 1) + "=" + histories[i].versionLanguage + "&v" + (i + 1) + "=" + histories[i].version.replace(/\s/g, "_");
+          var next = "&p=" + histories[i].url;
+          next = next.replace("?", "&").replace(/=/g, i + 1 + "=");
+          hist.url += next;
+          if (histories[i].versionLanguage && histories[i].version) {
+            hist.url += "&l" + (i + 1) + "=" + histories[i].versionLanguage + "&v" + (i + 1) + "=" + histories[i].version.replace(/\s/g, "_");
+          }
+          hist.title += " & " + histories[i].title;
         }
-        hist.title += " & " + histories[i].title;
-      }
       if (histories[i].lang) {
         hist.url += "&lang" + (i + 1) + "=" + histories[i].lang;
       }
@@ -460,26 +564,47 @@ var ReaderApp = React.createClass({
 
     return hist;
   },
+  // These two methods to check scroll intent have similar implementations on the panel level.  Refactor?
+  _refState: function _refState() {
+    var _ref;
+
+    // Return a single flat list of all the refs across all panels
+    var panels = this.props.multiPanel ? this.state.panels : [this.state.header];
+    return (_ref = []).concat.apply(_ref, _toConsumableArray(panels.map(function (p) {
+      return p.refs || [];
+    })));
+  },
+  checkScrollIntentAndTrack: function checkScrollIntentAndTrack() {
+    // Record current state of panel refs, and check if it has changed after some delay.  If it remains the same, track analytics.
+    var intentDelay = 3000; // Number of milliseconds to demonstrate intent
+
+    window.setTimeout(function (initialRefs) {
+      if (initialRefs.compare(this._refState())) {
+        this.trackPageview();
+      }
+    }.bind(this), intentDelay, this._refState());
+  },
   updateHistoryState: function updateHistoryState(replace) {
     if (!this.shouldHistoryUpdate()) {
       return;
     }
     var hist = this.makeHistoryState();
     if (replace) {
-      //console.log(hist);
-
       history.replaceState(hist.state, hist.title, hist.url);
-    } else {
-      if (window.location.pathname + window.location.search == hist.url) {
-        return;
-      } // Never push history with the same URL
-      history.pushState(hist.state, hist.title, hist.url);
 
-      //console.log(hist);
-      if (Sefaria.site) {
-        Sefaria.site.track.pageview(hist.url);
+      if (this.state.initialAnalyticsTracked) {
+        this.checkScrollIntentAndTrack();
       }
-    }
+      //console.log(hist);
+    } else {
+        if (window.location.pathname + window.location.search == hist.url) {
+          return;
+        } // Never push history with the same URL
+        history.pushState(hist.state, hist.title, hist.url);
+
+        this.trackPageview();
+        //console.log(hist);
+      }
 
     $("title").html(hist.title);
     this.replaceHistory = false;
@@ -509,8 +634,8 @@ var ReaderApp = React.createClass({
       settings: state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
       displaySettingsOpen: false,
       tagSort: state.tagSort || "count",
-      mySheetSort: state.mySheetSort || "date"
-
+      mySheetSort: state.mySheetSort || "date",
+      initialAnalyticsTracked: state.initialAnalyticsTracked || false
     };
     if (this.state && panel.refs.length && !panel.version) {
       var oRef = Sefaria.ref(panel.refs[0]);
@@ -565,7 +690,6 @@ var ReaderApp = React.createClass({
     this.setState({ windowWidth: $(window).outerWidth() });
   },
   handleNavigationClick: function handleNavigationClick(ref, version, versionLanguage, options) {
-    this.saveOpenPanelsToRecentlyViewed();
     this.openPanel(ref, version, versionLanguage, options);
   },
   handleSegmentClick: function handleSegmentClick(n, ref) {
@@ -581,7 +705,6 @@ var ReaderApp = React.createClass({
     }
     this.setTextListHighlight(n, [textRef]);
     this.openPanelAt(n, citationRef);
-    Sefaria.site.track.event("Reader", "Citation Click", citationRef);
   },
   handleRecentClick: function handleRecentClick(pos, ref, version, versionLanguage) {
     // Click on an item in your Recently Viewed
@@ -680,16 +803,19 @@ var ReaderApp = React.createClass({
   selectVersion: function selectVersion(n, versionName, versionLanguage) {
     // Set the version for panel `n`.
     var panel = this.state.panels[n];
+    var oRef = Sefaria.ref(panel.refs[0]);
+
     if (versionName && versionLanguage) {
       panel.version = versionName;
       panel.versionLanguage = versionLanguage;
       panel.settings.language = panel.versionLanguage == "he" ? "hebrew" : "english";
 
-      var oRef = Sefaria.ref(panel.refs[0]);
       this.setCachedVersion(oRef.indexTitle, panel.versionLanguage, panel.version);
+      Sefaria.site.track.event("Reader", "Choose Version", oRef.indexTitle + ' / ' + panel.version + ' / ' + panel.versionLanguage);
     } else {
       panel.version = null;
       panel.versionLanguage = null;
+      Sefaria.site.track.event("Reader", "Choose Version", oRef.indexTitle + ' / default version / ' + panel.settings.language);
     }
 
     if (this.state.panels.length > n + 1 && this.state.panels[n + 1].mode == "Connections") {
@@ -836,6 +962,7 @@ var ReaderApp = React.createClass({
     var comparePanel = this.makePanelState({
       menuOpen: "compare"
     });
+    Sefaria.site.track.event("Tools", "Compare Click");
     this.state.panels[n] = comparePanel;
     this.setState({ panels: this.state.panels });
   },
@@ -875,11 +1002,12 @@ var ReaderApp = React.createClass({
     }
   },
   showSearch: function showSearch(query) {
-    var updates = { menuOpen: "search", searchQuery: query, searchFiltersValid: false };
+    this.saveOpenPanelsToRecentlyViewed();
+    var panel = this.makePanelState({ menuOpen: "search", searchQuery: query, searchFiltersValid: false });
     if (this.props.multiPanel) {
-      this.setHeaderState(updates);
+      this.setState({ header: panel, panels: [] });
     } else {
-      this.setPanelState(0, updates);
+      this.setState({ panels: [panel] });
     }
   },
   showSheets: function showSheets() {
@@ -965,7 +1093,8 @@ var ReaderApp = React.createClass({
       registerAvailableFilters: this.updateAvailableFiltersInHeader,
       setUnreadNotificationsCount: this.setUnreadNotificationsCount,
       headerMode: this.props.headerMode,
-      panelsOpen: panelStates.length }) : null;
+      panelsOpen: panelStates.length,
+      analyticsInitialized: this.state.initialAnalyticsTracked }) : null;
 
     var panels = [];
     for (var i = 0; i < panelStates.length; i++) {
@@ -1023,7 +1152,9 @@ var ReaderApp = React.createClass({
           closePanel: closePanel,
           panelsOpen: panelStates.length,
           masterPanelLanguage: panel.mode === "Connections" ? panelStates[i - 1].settings.language : panel.settings.language,
-          layoutWidth: width })
+          layoutWidth: width,
+          analyticsInitialized: this.state.initialAnalyticsTracked
+        })
       ));
     }
     var boxClasses = classNames({ wrapBoxScroll: wrapBoxScroll });
@@ -1049,7 +1180,6 @@ var ReaderApp = React.createClass({
       interruptingMessage
     );
   }
-
 });
 
 var Header = React.createClass({
@@ -1070,7 +1200,8 @@ var Header = React.createClass({
     registerAvailableFilters: React.PropTypes.func,
     setUnreadNotificationsCount: React.PropTypes.func,
     headerMesssage: React.PropTypes.string,
-    panelsOpen: React.PropTypes.number
+    panelsOpen: React.PropTypes.number,
+    analyticsInitialized: React.PropTypes.bool
   },
   getInitialState: function getInitialState() {
     return this.props.initialState;
@@ -1172,12 +1303,17 @@ var Header = React.createClass({
   submitSearch: function submitSearch(query, skipNormalization) {
     var override = query.match(this._searchOverrideRegex());
     if (override) {
+      if (Sefaria.site) {
+        Sefaria.site.track.event("Search", "Search Box Navigation - Book Override", override[1]);
+      }
+      this.closeSearchAutocomplete();
       this.showSearch(override[1]);
       return;
     }
 
+    var index;
     if (query in Sefaria.booksDict) {
-      var index = Sefaria.index(query);
+      index = Sefaria.index(query);
       if (!index && !skipNormalization) {
         Sefaria.normalizeTitle(query, function (title) {
           this.submitSearch(title, true);
@@ -1186,13 +1322,22 @@ var Header = React.createClass({
       }
     }
     if (Sefaria.isRef(query)) {
-      this.handleRefClick(query);
+      var action = index ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
       if (Sefaria.site) {
-        Sefaria.site.track.ui("Nav Query");
+        Sefaria.site.track.event("Search", action, query);
       }
+      this.clearSearchBox();
+      this.handleRefClick(query);
     } else {
+      if (Sefaria.site) {
+        Sefaria.site.track.event("Search", "Search Box Search", query);
+      }
+      this.closeSearchAutocomplete();
       this.showSearch(query);
     }
+  },
+  closeSearchAutocomplete: function closeSearchAutocomplete() {
+    $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   },
   clearSearchBox: function clearSearchBox() {
     $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
@@ -1246,7 +1391,8 @@ var Header = React.createClass({
       updateSearchFilter: this.props.updateSearchFilter,
       registerAvailableFilters: this.props.registerAvailableFilters,
       setUnreadNotificationsCount: this.props.setUnreadNotificationsCount,
-      hideNavHeader: true }) : null;
+      hideNavHeader: true,
+      analyticsInitialized: this.props.analyticsInitialized }) : null;
 
     var notificationCount = Sefaria.notificationCount || 0;
     var notifcationsClasses = classNames({ notifications: 1, unread: notificationCount > 0 });
@@ -1392,12 +1538,14 @@ var ReaderPanel = React.createClass({
     panelsOpen: React.PropTypes.number,
     layoutWidth: React.PropTypes.number,
     setTextListHightlight: React.PropTypes.func,
-    setSelectedWords: React.PropTypes.func
+    setSelectedWords: React.PropTypes.func,
+    analyticsInitialized: React.PropTypes.bool
   },
   getInitialState: function getInitialState() {
     // When this component is managed by a parent, all it takes is initialState
     if (this.props.initialState) {
       var state = this.clonePanel(this.props.initialState);
+      state["initialAnalyticsTracked"] = false;
       return state;
     }
 
@@ -1432,15 +1580,14 @@ var ReaderPanel = React.createClass({
       orphanSearchFilters: [],
       displaySettingsOpen: false,
       tagSort: "count",
-      mySheetSort: "date"
-
+      mySheetSort: "date",
+      initialAnalyticsTracked: false
     };
   },
   componentDidMount: function componentDidMount() {
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
     this.setHeadroom();
-    this.trackPanelOpens();
   },
   componentWillUnmount: function componentWillUnmount() {
     window.removeEventListener("resize", this.setWidth);
@@ -1466,9 +1613,6 @@ var ReaderPanel = React.createClass({
   },
   componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
     this.setHeadroom();
-    if (prevState.refs.compare(this.state.refs)) {
-      this.trackPanelOpens();
-    }
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
       this.setWidth();
     }
@@ -1596,6 +1740,7 @@ var ReaderPanel = React.createClass({
   openMenu: function openMenu(menu) {
     this.conditionalSetState({
       menuOpen: menu,
+      initialAnalyticsTracked: false,
       // searchQuery: null,
       // appliedSearchFilters: [],
       navigationCategories: null,
@@ -1681,10 +1826,12 @@ var ReaderPanel = React.createClass({
       "Add to Source Sheet": 1,
       "Add Note": 1,
       "My Notes": 1,
-      "Add Connections": 1,
-      "Add Translation": 1
+      "Add Connection": 1,
+      "Add Translation": 1 // Is this used?
     };
+    Sefaria.site.track.event("Tools", mode + " Click");
     if (!Sefaria._uid && mode in loginRequired) {
+      Sefaria.site.track.event("Tools", "Prompt Login");
       mode = "Login";
     }
     var state = { connectionsMode: mode };
@@ -1711,22 +1858,6 @@ var ReaderPanel = React.createClass({
     this.conditionalSetState({
       mySheetSort: sort
     });
-  },
-  trackPanelOpens: function trackPanelOpens() {
-    if (this.state.mode === "Connections") {
-      return;
-    }
-    this.tracked = this.tracked || [];
-    // Do a little dance to avoid tracking something we've already just tracked
-    // e.g. when refs goes from ["Genesis 5"] to ["Genesis 4", "Genesis 5"] don't track 5 again
-    for (var i = 0; i < this.state.refs.length; i++) {
-      if (Sefaria.util.inArray(this.state.refs[i], this.tracked) == -1) {
-        if (Sefaria.site) {
-          Sefaria.site.track.open(this.state.refs[i]);
-        }
-        this.tracked.push(this.state.refs[i]);
-      }
-    }
   },
   currentMode: function currentMode() {
     return this.state.mode;
@@ -1777,7 +1908,7 @@ var ReaderPanel = React.createClass({
     var items = [];
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       items.push(React.createElement(TextColumn, {
-        srefs: this.state.refs,
+        srefs: this.state.refs.slice(),
         version: this.state.version,
         versionLanguage: this.state.versionLanguage,
         highlightedRefs: this.state.highlightedRefs,
@@ -1805,7 +1936,7 @@ var ReaderPanel = React.createClass({
       var data = this.currentData();
       var canEditText = data && langMode === "hebrew" && data.heVersionStatus !== "locked" || langMode === "english" && data.versionStatus !== "locked" || Sefaria.is_moderator && langMode !== "bilingual";
       items.push(React.createElement(ConnectionsPanel, {
-        srefs: this.state.mode === "Connections" ? this.state.refs : this.state.highlightedRefs,
+        srefs: this.state.mode === "Connections" ? this.state.refs.slice() : this.state.highlightedRefs.slice(),
         filter: this.state.filter || [],
         mode: this.state.connectionsMode || "Connections",
         recentFilters: this.state.recentFilters,
@@ -2998,7 +3129,7 @@ var ReaderTextTableOfContents = React.createClass({
     window.removeEventListener('resize', this.shrinkWrap);
   },
   componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
-    if (this.props.settingsLanguage != prevProps.settingsLanguage) {
+    if (this.props.settingsLanguage != prevProps.settingsLanguage || this.props.version != prevProps.version || this.props.versionLanguage != prevProps.versionLanguage) {
       this.loadVersions();
     }
     this.bindToggles();
@@ -3019,7 +3150,7 @@ var ReaderTextTableOfContents = React.createClass({
       return;
     }
     if (Sefaria.ref(ref)) {
-      Sefaria.text(ref, { context: 1, version: this.state.version, language: this.state.versionLanguage }, this.loadVersionsDataFromText);
+      Sefaria.text(ref, { context: 1, version: this.props.version, language: this.props.versionLanguage }, this.loadVersionsDataFromText);
     } else {
       Sefaria.versions(ref, function (d) {
         this.setState({ versions: d, versionsLoaded: true });
@@ -3104,11 +3235,11 @@ var ReaderTextTableOfContents = React.createClass({
     if ($root.find(".tocSection").length) {// nested simple text
       //$root.find(".tocSection").each(shrink); // Don't bother with these for now
     } else if ($root.find(".schema-node-toc").length) {
-      // complex text or alt struct
-      $root.find(".schema-node-toc, .schema-node-contents").each(shrink);
-    } else {
-      $root.find(".tocLevel").each(shrink); // Simple text, no nesting
-    }
+        // complex text or alt struct
+        $root.find(".schema-node-toc, .schema-node-contents").each(shrink);
+      } else {
+        $root.find(".tocLevel").each(shrink); // Simple text, no nesting
+      }
   },
   onVersionSelectChange: function onVersionSelectChange(event) {
     if (event.target.value == 0) {
@@ -3142,6 +3273,10 @@ var ReaderTextTableOfContents = React.createClass({
   },
   versionDlLink: function versionDlLink() {
     return '/download/version/' + this.props.title + ' - ' + this.state.dlVersionLanguage + ' - ' + this.state.dlVersionTitle + '.' + this.state.dlVersionFormat;
+  },
+  recordDownload: function recordDownload() {
+    Sefaria.site.track.event("Reader", "Version Download", this.props.title + ' / ' + this.state.dlVersionTitle + ' / ' + this.state.dlVersionLanguage + ' / ' + this.state.dlVersionFormat);
+    return true;
   },
   isBookToc: function isBookToc() {
     return this.props.mode == "book toc";
@@ -3352,7 +3487,7 @@ var ReaderTextTableOfContents = React.createClass({
         if (v == defaultVersionObject) {
           continue;
         }
-        if (this.props.versionLanguage == v.language && this.props.version == v.versionTitle) {
+        if (this.state.currentVersion.language == v.language && this.state.currentVersion.versionTitle == v.versionTitle) {
           selectedOption = i + 1;
         }
         var versionString = v.versionTitle + " (" + v.language + ")"; // Can not inline this, because of https://github.com/facebook/react-devtools/issues/248
@@ -3450,7 +3585,7 @@ var ReaderTextTableOfContents = React.createClass({
       ),
       dlReady ? React.createElement(
         'a',
-        { href: this.versionDlLink(), download: true },
+        { onClick: this.recordDownload, href: this.versionDlLink(), download: true },
         downloadButton
       ) : downloadButton
     );
@@ -4140,6 +4275,12 @@ var SheetsHomePage = React.createClass({
 var PartnerSheetsPage = React.createClass({
   displayName: 'PartnerSheetsPage',
 
+  getInitialState: function getInitialState() {
+    return {
+      showYourSheetTags: false,
+      sheetFilterTag: null
+    };
+  },
   componentDidMount: function componentDidMount() {
     this.ensureData();
   },
@@ -4149,6 +4290,12 @@ var PartnerSheetsPage = React.createClass({
   getSheetsFromAPI: function getSheetsFromAPI() {
     Sefaria.sheets.partnerSheets(this.props.partner, this.onDataLoad);
   },
+  getTagsFromCache: function getTagsFromCache() {
+    return Sefaria.sheets.groupTagList(this.props.partner);
+  },
+  getTagsFromAPI: function getTagsFromAPI() {
+    Sefaria.sheets.partnerSheets(this.props.partner, this.onDataLoad);
+  },
   onDataLoad: function onDataLoad(data) {
     this.forceUpdate();
   },
@@ -4156,19 +4303,45 @@ var PartnerSheetsPage = React.createClass({
     if (!this.getSheetsFromCache()) {
       this.getSheetsFromAPI();
     }
+    if (!this.getTagsFromCache()) {
+      this.getTagsFromAPI();
+    }
+  },
+  toggleSheetTags: function toggleSheetTags() {
+    this.state.showYourSheetTags ? this.setState({ showYourSheetTags: false }) : this.setState({ showYourSheetTags: true });
+  },
+  filterYourSheetsByTag: function filterYourSheetsByTag(tag) {
+    if (tag.tag == this.state.sheetFilterTag) {
+      this.setState({ sheetFilterTag: null, showYourSheetTags: false });
+    } else {
+      this.setState({ sheetFilterTag: tag.tag, showYourSheetTags: false });
+    }
   },
 
   render: function render() {
     var sheets = this.getSheetsFromCache();
+    var groupTagList = this.getTagsFromCache();
 
+    groupTagList = groupTagList ? groupTagList.map(function (tag) {
+      var filterThisTag = this.filterYourSheetsByTag.bind(this, tag);
+      var classes = classNames({ navButton: 1, sheetButton: 1, active: this.state.sheetFilterTag == tag.tag });
+      return React.createElement(
+        'div',
+        { className: classes, onClick: filterThisTag, key: tag.tag },
+        tag.tag,
+        ' (',
+        tag.count,
+        ')'
+      );
+    }.bind(this)) : null;
+
+    sheets = sheets && this.state.sheetFilterTag ? sheets.filter(function (sheet) {
+      return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
+    }.bind(this)) : sheets;
     sheets = sheets ? sheets.map(function (sheet) {
-      return React.createElement(PartnerSheetListing, { sheet: sheet });
+      return React.createElement(PartnerSheetListing, { sheet: sheet, multiPanel: this.props.multiPanel, setSheetTag: this.props.setSheetTag });
     }.bind(this)) : React.createElement(LoadingMessage, null);
 
-    /*   sheets = sheets ? sheets.map(function (sheet) {
-         return (<PublicSheetListing sheet={sheet} />);
-       }) : (<LoadingMessage />);
-      */
     return React.createElement(
       'div',
       { className: 'content sheetList' },
@@ -4189,6 +4362,23 @@ var PartnerSheetsPage = React.createClass({
             this.props.partner
           )
         ) : null,
+        this.props.hideNavHeader ? React.createElement(
+          'h2',
+          { className: 'splitHeader' },
+          React.createElement(
+            'span',
+            { className: 'en', onClick: this.toggleSheetTags },
+            'Filter By Tag ',
+            React.createElement('i', { className: 'fa fa-angle-down' })
+          ),
+          React.createElement(
+            'span',
+            { className: 'he', onClick: this.toggleSheetTags },
+            'סנן לפי תווית',
+            React.createElement('i', { className: 'fa fa-angle-down' })
+          )
+        ) : null,
+        this.state.showYourSheetTags ? React.createElement(TwoOrThreeBox, { content: groupTagList, width: this.props.width }) : null,
         sheets
       )
     );
@@ -5005,18 +5195,18 @@ var TextColumn = React.createClass({
         //console.log(top)
       }
     } else if (!this.scrolledToHighlight && $(ReactDOM.findDOMNode(this)).find(".segment.highlight").length) {
-      //console.log("scroll to highlighted")
-      // scroll to highlighted segment
-      this.scrollToHighlighted();
-      this.scrolledToHighlight = true;
-      this.initialScrollTopSet = true;
-    } else if (!this.initialScrollTopSet) {
-      //console.log("initial scroll to 30")
-      // initial value set below 0 so you can scroll up for previous
-      var node = ReactDOM.findDOMNode(this);
-      node.scrollTop = 30;
-      this.initialScrollTopSet = true;
-    }
+        //console.log("scroll to highlighted")
+        // scroll to highlighted segment
+        this.scrollToHighlighted();
+        this.scrolledToHighlight = true;
+        this.initialScrollTopSet = true;
+      } else if (!this.initialScrollTopSet) {
+        //console.log("initial scroll to 30")
+        // initial value set below 0 so you can scroll up for previous
+        var node = ReactDOM.findDOMNode(this);
+        node.scrollTop = 30;
+        this.initialScrollTopSet = true;
+      }
     // This fixes loading of next content when current content is short in viewport,
     // but breaks loading highlighted ref, jumping back up to top of section
     // this.adjustInfiniteScroll();
@@ -5075,7 +5265,7 @@ var TextColumn = React.createClass({
   },
   adjustTextListHighlight: function adjustTextListHighlight() {
     // When scrolling while the TextList is open, update which segment should be highlighted.
-    if (this.props.multipanel && this.props.layoutWidth == 100) {
+    if (this.props.multiPanel && this.props.layoutWidth == 100) {
       return; // Hacky - don't move around highlighted segment when scrolling a single panel,
     }
     // but we do want to keep the highlightedRefs value in the panel
@@ -5646,14 +5836,10 @@ var TextSegment = React.createClass({
       var ref = Sefaria.humanRef($(event.target).attr("data-ref"));
       this.props.onCitationClick(ref, this.props.sref);
       event.stopPropagation();
-      if (Sefaria.site) {
-        Sefaria.site.track.event("Reader", "Citation Link Click", ref);
-      }
+      Sefaria.site.track.event("Reader", "Citation Link Click", ref);
     } else if (this.props.onSegmentClick) {
       this.props.onSegmentClick(this.props.sref);
-      if (Sefaria.site) {
-        Sefaria.site.track.event("Reader", "Text Segment Click", this.props.sref);
-      }
+      Sefaria.site.track.event("Reader", "Text Segment Click", this.props.sref);
     }
   },
   render: function render() {
@@ -6592,8 +6778,8 @@ var LexiconPanel = React.createClass({
   componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
     if (this.props.selectedWords != nextProps.selectedWords) {
       this.clearLookups();
+      this.getLookups(nextProps.selectedWords, nextProps.oref);
     }
-    this.getLookups(nextProps.selectedWords, nextProps.oref);
   },
   clearLookups: function clearLookups() {
     this.setState({
@@ -6608,6 +6794,10 @@ var LexiconPanel = React.createClass({
           loaded: true,
           entries: data
         });
+
+        var action = data.length == 0 ? "Open No Result" : "Open";
+        action += " / " + oref.categories.join("/") + "/" + oref.book;
+        Sefaria.site.track.event("Lexicon", action, words);
       }.bind(this));
     }
   },
@@ -6815,18 +7005,25 @@ var ToolsPanel = React.createClass({
   },
   render: function render() {
     var editText = this.props.canEditText ? function () {
-      var path = "/edit/" + this.props.srefs[0];
+      var refString = this.props.srefs[0];
       if (this.props.version) {
-        path += "/" + this.props.versionLanguage + "/" + this.props.version;
+        refString += "/" + this.props.versionLanguage + "/" + this.props.version;
       }
+      var path = "/edit/" + refString;
       var nextParam = "?next=" + Sefaria.util.currentPath();
       path += nextParam;
-      window.location = path;
+      Sefaria.site.track.event("Tools", "Edit Text Click", refString, { hitCallback: function hitCallback() {
+          return window.location = path;
+        } });
     }.bind(this) : null;
 
     var addTranslation = function () {
+      var _this4 = this;
+
       var nextParam = "?next=" + Sefaria.util.currentPath();
-      window.location = "/translate/" + this.props.srefs[0] + nextParam;
+      Sefaria.site.track.event("Tools", "Add Translation Click", this.props.srefs[0], { hitCallback: function hitCallback() {
+          return window.location = "/translate/" + _this4.props.srefs[0] + nextParam;
+        } });
     }.bind(this);
 
     var classes = classNames({ toolsPanel: 1, textList: 1, fullPanel: this.props.fullPanel });
@@ -7002,6 +7199,7 @@ var AddToSourceSheetPanel = React.createClass({
     this.setState({ showNewSheetInput: true });
   },
   confirmAdd: function confirmAdd() {
+    Sefaria.site.track.event("Tools", "Add to Source Sheet Save", this.props.srefs.join("/"));
     this.setState({ confirm: true });
   },
   render: function render() {
@@ -7192,6 +7390,7 @@ var AddNotePanel = React.createClass({
         } else {
           Sefaria.addPrivateNote(data);
         }
+        Sefaria.site.track.event("Tools", "Note Save " + (this.state.isPrivate ? "Private" : "Public"), this.props.srefs.join("/"));
         this.props.setConnectionsMode("My Notes");
       } else {
         alert("Sorry, there was a problem saving your note.");
@@ -7617,10 +7816,10 @@ var SearchResultList = React.createClass({
     });
   },
   _abortRunningQueries: function _abortRunningQueries() {
-    var _this4 = this;
+    var _this5 = this;
 
     this.state.types.forEach(function (t) {
-      return _this4._abortRunningQuery(t);
+      return _this5._abortRunningQuery(t);
     });
   },
   _abortRunningQuery: function _abortRunningQuery(type) {
@@ -7725,14 +7924,13 @@ var SearchResultList = React.createClass({
       type: "sheet",
       size: this.initialQuerySize,
       success: function (data) {
-        //debugger;
         this.updateRunningQuery("sheet", null);
-        if (this.isMounted()) {
-          this.setState({
-            hits: extend(this.state.hits, { "sheet": data.hits.hits }),
-            totals: extend(this.state.totals, { "sheet": data.hits.total })
-          });
-        }
+        this.setState({
+          hits: extend(this.state.hits, { "sheet": data.hits.hits }),
+          totals: extend(this.state.totals, { "sheet": data.hits.total })
+        });
+        Sefaria.site.track.event("Search", "Query: sheet", props.query, data.hits.total);
+
         if (isCompletionStep) {
           this._loadRemainder("sheet", this.initialQuerySize, data.hits.total, data.hits.hits);
         }
@@ -7747,24 +7945,24 @@ var SearchResultList = React.createClass({
       applied_filters: request_applied,
       size: this.initialQuerySize,
       success: function (data) {
-        //debugger;
         this.updateRunningQuery("text", null);
-        if (this.isMounted()) {
-          var hitArray = this._process_text_hits(data.hits.hits);
-          this.setState({
-            hits: extend(this.state.hits, { "text": hitArray }),
-            totals: extend(this.state.totals, { "text": data.hits.total })
-          });
-          if (data.aggregations) {
-            if (data.aggregations.category) {
-              var ftree = this._buildFilterTree(data.aggregations.category.buckets);
-              var orphans = this._applyFilters(ftree, this.props.appliedFilters);
-              this.props.registerAvailableFilters(ftree.availableFilters, ftree.registry, orphans);
-            }
+        var hitArray = this._process_text_hits(data.hits.hits);
+        this.setState({
+          hits: extend(this.state.hits, { "text": hitArray }),
+          totals: extend(this.state.totals, { "text": data.hits.total })
+        });
+        var filter_label = request_applied && request_applied.length > 0 ? " - " + request_applied.join("|") : "";
+        var query_label = props.query + filter_label;
+        Sefaria.site.track.event("Search", "Query: text", query_label, data.hits.total);
+        if (data.aggregations) {
+          if (data.aggregations.category) {
+            var ftree = this._buildFilterTree(data.aggregations.category.buckets);
+            var orphans = this._applyFilters(ftree, this.props.appliedFilters);
+            this.props.registerAvailableFilters(ftree.availableFilters, ftree.registry, orphans);
           }
-          if (isCompletionStep) {
-            this._loadRemainder("text", this.initialQuerySize, data.hits.total, hitArray);
-          }
+        }
+        if (isCompletionStep) {
+          this._loadRemainder("text", this.initialQuerySize, data.hits.total, hitArray);
         }
       }.bind(this),
       error: this._handle_error
@@ -7804,18 +8002,18 @@ var SearchResultList = React.createClass({
     return newHits;
   },
   _buildFilterTree: function _buildFilterTree(aggregation_buckets) {
-    var _this5 = this;
+    var _this6 = this;
 
     //returns object w/ keys 'availableFilters', 'registry'
     //Add already applied filters w/ empty doc count?
     var rawTree = {};
 
     this.props.appliedFilters.forEach(function (fkey) {
-      return _this5._addAvailableFilter(rawTree, fkey, { "docCount": 0 });
+      return _this6._addAvailableFilter(rawTree, fkey, { "docCount": 0 });
     });
 
     aggregation_buckets.forEach(function (f) {
-      return _this5._addAvailableFilter(rawTree, f["key"], { "docCount": f["doc_count"] });
+      return _this6._addAvailableFilter(rawTree, f["key"], { "docCount": f["doc_count"] });
     });
     this._aggregate(rawTree);
     return this._build(rawTree);
@@ -8027,7 +8225,7 @@ var SearchResultList = React.createClass({
     this.setState({ "activeTab": "text" });
   },
   render: function render() {
-    var _this6 = this;
+    var _this7 = this;
 
     if (!this.props.query) {
       // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
@@ -8041,15 +8239,15 @@ var SearchResultList = React.createClass({
       results = this.state.hits.text.slice(0, this.state.displayedUntil["text"]).map(function (result) {
         return React.createElement(SearchTextResult, {
           data: result,
-          query: _this6.props.query,
+          query: _this7.props.query,
           key: result._id,
-          onResultClick: _this6.props.onResultClick });
+          onResultClick: _this7.props.onResultClick });
       });
     } else if (tab == "sheet") {
       results = this.state.hits.sheet.slice(0, this.state.displayedUntil["sheet"]).map(function (result) {
         return React.createElement(SearchSheetResult, {
           data: result,
-          query: _this6.props.query,
+          query: _this7.props.query,
           key: result._id });
       });
     }
@@ -8388,6 +8586,7 @@ var SearchTextResult = React.createClass({
     if (this.props.onResultClick) {
       event.preventDefault();
       var s = this.props.data._source;
+      Sefaria.site.track.event("Search", "Search Result Text Click", this.props.query + ' - ' + s.ref + '/' + s.version + '/' + s.lang);
       this.props.onResultClick(s.ref, s.version, s.lang, { "highlight": this.props.query }); //highlight not yet handled, above in ReaderApp.handleNavigationClick()
     }
   },
@@ -8483,7 +8682,22 @@ var SearchSheetResult = React.createClass({
     query: React.PropTypes.string,
     data: React.PropTypes.object
   },
-
+  handleSheetClick: function handleSheetClick(e) {
+    var href = e.target.getAttribute("href");
+    e.preventDefault();
+    var s = this.props.data._source;
+    Sefaria.site.track.event("Search", "Search Result Sheet Click", this.props.query + ' - ' + s.sheetId, { hitCallback: function hitCallback() {
+        return window.location = href;
+      } });
+  },
+  handleProfileClick: function handleProfileClick(e) {
+    var href = e.target.getAttribute("href");
+    e.preventDefault();
+    var s = this.props.data._source;
+    Sefaria.site.track.event("Search", "Search Result Sheet Owner Click", this.props.query + ' - ' + s.sheetId + ' - ' + s.owner_name, { hitCallback: function hitCallback() {
+        return window.location = href;
+      } });
+  },
   render: function render() {
     var data = this.props.data;
     var s = data._source;
@@ -8504,7 +8718,7 @@ var SearchSheetResult = React.createClass({
         { className: 'result_img_box' },
         React.createElement(
           'a',
-          { href: s.profile_url },
+          { href: s.profile_url, onClick: this.handleProfileClick },
           React.createElement('img', { className: 'owner_image', src: s.owner_image })
         )
       ),
@@ -8513,12 +8727,12 @@ var SearchSheetResult = React.createClass({
         { className: 'result_text_box' },
         React.createElement(
           'a',
-          { href: s.profile_url, className: 'owner_name' },
+          { href: s.profile_url, onClick: this.handleProfileClick, className: 'owner_name' },
           s.owner_name
         ),
         React.createElement(
           'a',
-          { className: 'result-title', href: href },
+          { className: 'result-title', href: href, onClick: this.handleSheetClick },
           clean_title
         ),
         React.createElement(
@@ -8695,7 +8909,7 @@ var InterruptingMessage = React.createClass({
   markAsRead: function markAsRead() {
     Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function (data) {});
     cookie(this.props.messageName, true, { "path": "/" });
-    Sefaria.site.track.event("Interrupting Message", "read", this.props.messageName);
+    Sefaria.site.track.event("Interrupting Message", "read", this.props.messageName, { nonInteraction: true });
     Sefaria.interruptingMessage = null;
   },
   render: function render() {

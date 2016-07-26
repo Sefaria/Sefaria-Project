@@ -213,6 +213,8 @@ urlpatterns += patterns('sheets.views',
     (r'^api/groups$', 'groups_api'),
     (r'^partners/(?P<partner>[^/]+)$', 'partner_page'),
     (r'^partners/(?P<partner>[^/]+)/tags/(?P<tag>.+)$', 'partner_sheets_tag'),
+    (r'^api/partners/(?P<partner>[^/]+)$', 'private_sheet_list_api'),
+    (r'^api/partners/tag-list/(?P<partner>[^/]+)$', 'group_tag_list_api'),
 )
 
 # Redirects for setting interface language
@@ -302,6 +304,7 @@ urlpatterns += patterns('',
     (r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Guide-to-Contributing')),
     (r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions')),
     (r'^textmap/?$', lambda x: HttpResponseRedirect('/static/files/Sefaria-Text-Map-June-2016.pdf')),
+    (r'^workshop/?$', lambda x: HttpResponseRedirect('/static/files/Sefaria_SummerMeeting_2016.pdf')),
 )
 
 # Packaged JavaScript

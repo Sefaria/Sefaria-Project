@@ -31,7 +31,7 @@ lang_codes = {
 }
 
 
-def make_path(doc, format):
+def make_path(doc, format, extension=None):
     """
     Returns the full path and file name for exporting 'doc' in 'format'.
     """
@@ -43,7 +43,7 @@ def make_path(doc, format):
                                             doc["title"],
                                             lang_codes[doc["language"]],
                                             remove_illegal_file_chars(doc["versionTitle"]),
-                                            format)
+                                            extension or format)
     return path
 
 
@@ -113,14 +113,134 @@ def make_text(doc):
     return text
 
 
+def make_cltk_full(doc):
+    index = library.get_index(doc["title"])
+    chapter = doc.get("original_text", doc["text"])
+    version = Version({"chapter": chapter})
+    sec_name_count = {}
+    def make_node(node,depth,**kwargs):
+        content = {
+            "title": node.primary_title("en")
+        }
+        if not node.children:
+            content["content"] = version.content_node(node)
+            content["section_names"] = node.sectionNames
+        return content
+
+    def traverse_to_cltk(old_js, **kwargs):
+        new_js = {}
+        if not "nodes" in old_js:
+            content_list = []
+            if "content" in old_js:
+                #Beginning of jagged array
+                content_list = old_js["content"]
+                section_names = tuple(old_js["section_names"])
+                try:
+                    sec_name_count[section_names] += 1
+                except KeyError:
+                    sec_name_count[section_names] = 1
+            elif type(old_js) == list:
+                #Traversing jagged array
+                content_list = old_js
+            for i,content in enumerate(content_list):
+                if type(content) == list:
+                    temp = traverse_to_cltk(content,**kwargs)
+                    if len(temp.keys()) > 0:
+                        new_js[str(i)] = temp
+                elif content != "":
+                    new_js[str(i)] = content
+
+        else:
+            for i,childJs in enumerate(old_js["nodes"]):
+                currNode = old_js["nodes"][i]
+                new_js[str(i) + "_" + currNode["title"]] = traverse_to_cltk(currNode,**kwargs)
+
+        return new_js
+
+    temp_doc = index.nodes.traverse_to_json(make_node)
+    cltk_doc = {"text":traverse_to_cltk(temp_doc)}
+    best_sec_names = []
+    best_count = 0
+    for sec_names in sec_name_count:
+        if sec_name_count[sec_names] > best_count:
+            best_count = sec_name_count[sec_names]
+            best_sec_names = sec_names
+
+    cltk_doc["meta"] = '-'.join(best_sec_names)
+    cltk_doc["work"] = doc["title"]
+    return json.dumps(cltk_doc, indent=4, encoding='utf-8', ensure_ascii=False)
+
+
+def make_cltk_flat(doc):
+    index = library.get_index(doc["title"])
+    chapter = doc.get("original_text", doc["text"])
+    version = Version({"chapter": chapter})
+    sec_name_count = {}
+    def make_node(node,depth,**kwargs):
+        content = {
+            "title": node.primary_title("en")
+        }
+        if not node.children:
+            content["content"] = version.content_node(node)
+            content["section_names"] = node.sectionNames
+        return content
+
+    def traverse_to_cltk(old_js,title=u"",section_names=None, **kwargs):
+        new_js = {}
+        title_begin = title if title == u"" else u"{}, ".format(title)
+        if not "nodes" in old_js:
+            content_list = []
+            if "content" in old_js:
+                #Beginning of jagged array
+                content_list = old_js["content"]
+                section_names = old_js["section_names"]
+                try:
+                    sec_name_count[tuple(section_names)] += 1
+                except KeyError:
+                    sec_name_count[tuple(section_names)] = 1
+            elif type(old_js) == list:
+                #Traversing jagged array
+                content_list = old_js
+                section_names = section_names[1:]
+
+            for i,content in enumerate(content_list):
+                curr_section = u"" if len(section_names) == 0 else u"_{}".format(section_names[0])
+                temp_title = u"{}{}{}".format(title_begin,str(i),curr_section)
+                if type(content) == list:
+                    new_js.update(traverse_to_cltk(content,temp_title,section_names,**kwargs))
+                elif content != u"":
+                    new_js[temp_title] = content
+
+        else:
+            for i,childJs in enumerate(old_js["nodes"]):
+                curr_node = old_js["nodes"][i]
+                new_js.update(traverse_to_cltk(curr_node,u"{}{}_{}".format(title_begin,str(i),curr_node["title"]),**kwargs))
+
+        return new_js
+
+    temp_doc = index.nodes.traverse_to_json(make_node)
+    cltk_doc = {"text":traverse_to_cltk(temp_doc)}
+    best_sec_names = []
+    best_count = 0
+    for sec_names in sec_name_count:
+        if sec_name_count[sec_names] > best_count:
+            best_count = sec_name_count[sec_names]
+            best_sec_names = sec_names
+
+    cltk_doc["meta"] = '-'.join(best_sec_names)
+    cltk_doc["work"] = doc["title"]
+    return json.dumps(cltk_doc, indent=4, encoding='utf-8', ensure_ascii=False)
 """
 List of export formats, consisting of a name and function.
-The name is used as a top level directory and file suffix.
+The name is used as a top level directory and file suffix, unless there are three elements.
+With 3 elements, the first is the top level and the third is the file suffix
 The function takes a document and returns the text to output.
 """
 export_formats = (
     ('json', make_json),
     ('txt', make_text),
+    ('cltk-full',make_cltk_full,'json'), #cltk format with fully nested structure
+    ('cltk-flat',make_cltk_flat,'json')  #cltk format, flattened
 )
 
 
@@ -145,7 +265,7 @@ def write_text_doc_to_disk(doc=None):
         if not out:
             print "Skipping %s - no content" % doc["title"]
             return
-        path = make_path(doc, format[0])
+        path = make_path(doc, format[0],extension=format[2] if len(format) == 3 else None)
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
         with open(path, "w") as f:
@@ -554,14 +674,21 @@ def import_versions(csv_filename, columns):
 
     for column in columns:
         # Create version
-        v = Version({
-            "chapter": index_node.create_skeleton(),
+        v = Version().load({
             "title": index_title,
             "versionTitle": rows[1][column],
-            "language": rows[2][column],            # Language
-            "versionSource": rows[3][column],       # Version Source
-            "versionNotes": rows[4][column],        # Version Notes
-        }).save()
+            "language": rows[2][column]
+        })
+
+        if v is None:
+            v = Version({
+                "chapter": index_node.create_skeleton(),
+                "title": index_title,
+                "versionTitle": rows[1][column],
+                "language": rows[2][column],            # Language
+                "versionSource": rows[3][column],       # Version Source
+                "versionNotes": rows[4][column],        # Version Notes
+            }).save()
 
         # Populate it
         for row in rows[5:]:

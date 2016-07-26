@@ -360,6 +360,7 @@ def hebrew_plural(s):
 		"Siman":    "Simanim",
 		"Seif":     "Seifim",
 		"Se'if":    "Se'ifim",
+		"Seif Katan": "Seifim Katanim",
 		"Mishnah":  "Mishnayot",
 		"Mishna":   "Mishnayot",
 		"Chelek":   "Chelekim",
