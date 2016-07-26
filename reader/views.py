@@ -601,8 +601,8 @@ def make_toc_html(oref, zoom=1):
     else:
         state = StateNode(index.title)
         he_counts, en_counts = state.var("he", "availableTexts"), state.var("en", "availableTexts")
-        if getattr(index, "TOC_display_depth", None):
-            zoom = index.TOC_display_depth
+        if getattr(index, "toc_zoom", None):
+            zoom = index.toc_zoom
         html = make_simple_toc_html(he_counts, en_counts, index.nodes.sectionNames, index.nodes.addressTypes, Ref(index.title), zoom=zoom)
 
     if index.has_alt_structures():
@@ -657,8 +657,8 @@ def make_complex_toc_html(oref):
             html += '<div class="schema-node-contents ' + ('open' if focused or default else 'closed') + '">'
             node_state = kwargs["vs"].state_node(node)
             #Todo, handle Talmud and other address types, as well as commentary
-            if getattr(node, "TOC_display_depth", None):
-                zoom = node.TOC_display_depth
+            if getattr(node, "toc_zoom", None):
+                zoom = node.toc_zoom
             else:
                 zoom = 0 if node.depth == 1 else 1
             he_counts, en_counts = node_state.var("he", "availableTexts"), node_state.var("en", "availableTexts")
