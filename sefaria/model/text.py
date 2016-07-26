@@ -3357,29 +3357,35 @@ class Ref(object):
 
         return normal
 
-    def normal_section(self, section_index, lang="en"):
+    def normal_section(self, section_index, lang="en", **kwargs):
         """
         Return the display form of the section value at depth `section_index`
         Does not support ranges
         :param section_index: 0 based
         :param lang:
+        :param kwargs:
+            dotted=<bool> - Use dotted form for Hebrew talmud?,
+            punctuation=<bool> - Use geresh for Hebrew numbers?
         :return:
         """
         assert not self.is_range()
         assert len(self.sections) > section_index
-        return self.index_node.address_class(section_index).toStr(lang, self.sections[section_index])
+        return self.index_node.address_class(section_index).toStr(lang, self.sections[section_index], **kwargs)
 
-    def normal_last_section(self, lang="en"):
+    def normal_last_section(self, lang="en", **kwargs):
         """
         Return the display form of the last section
         Does not support ranges
         :param lang:
+        :param kwargs:
+            dotted=<bool> - Use dotted form for Hebrew talmud?,
+            punctuation=<bool> - Use geresh for Hebrew numbers?
         :return:
         """
         length = len(self.sections)
         if length == 0:
             return ""
-        return self.normal_section(length - 1, lang)
+        return self.normal_section(length - 1, lang, **kwargs)
 
     def he_normal(self):
         """
