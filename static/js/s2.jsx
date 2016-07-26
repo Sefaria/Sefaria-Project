@@ -7277,8 +7277,8 @@ var LoadingMessage = React.createClass({
     var heMessage = this.props.heMessage || "טוען מידע...";
     var classes = "loadingMessage " + (this.props.className || "");
     return (<div className={classes}>
-              <span className="en">{message}</span>
-              <span className="he">{heMessage}</span>
+              <span className="int-en">{message}</span>
+              <span className="int-he">{heMessage}</span>
             </div>);
   }
 });

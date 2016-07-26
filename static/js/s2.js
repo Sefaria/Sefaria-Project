@@ -9078,12 +9078,12 @@ var LoadingMessage = React.createClass({
       { className: classes },
       React.createElement(
         'span',
-        { className: 'en' },
+        { className: 'int-en' },
         message
       ),
       React.createElement(
         'span',
-        { className: 'he' },
+        { className: 'int-he' },
         heMessage
       )
     );
