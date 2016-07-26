@@ -4,8 +4,6 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 if (typeof require !== 'undefined') {
@@ -1172,7 +1170,10 @@ var ReaderApp = React.createClass({
       messageName: Sefaria.interruptingMessage.name,
       messageHTML: Sefaria.interruptingMessage.html,
       onClose: this.rerender }) : null;
-    var classes = classNames(_defineProperty({ readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel }, 'interface-' + this.props.interfaceLang, true));
+    var classDict = { readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel };
+    var interfaceLangClass = 'interface-' + this.props.interfaceLang;
+    classDict[interfaceLangClass] = true;
+    var classes = classNames(classDict);
     return React.createElement(
       'div',
       { className: classes },
@@ -8773,7 +8774,7 @@ var AccountPanel = React.createClass({
   },
   render: function render() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
-    var accountContent = [React.createElement(BlockLink, { interfaceLink: true, target: '/my/profile', title: 'Profile', heTitle: 'פרופיל' }), React.createElement(BlockLink, { interfaceLink: true, target: '/sheets/private', title: 'My Source Sheets', heTitle: 'דפי מקורות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/coming-soon?my-notes', title: 'My Notes', heTitle: 'רשומות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/coming-soon?reading-history', title: 'Reading History', heTitle: 'היסטוריה קריאה' }), React.createElement(BlockLink, { interfaceLink: true, target: '/settings/account', title: 'Settings', heTitle: 'הגדרות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/logout', title: 'Log Out', heTitle: 'ניתוק' })];
+    var accountContent = [React.createElement(BlockLink, { interfaceLink: true, target: '/my/profile', title: 'Profile', heTitle: 'פרופיל' }), React.createElement(BlockLink, { interfaceLink: true, target: '/sheets/private', title: 'My Source Sheets', heTitle: 'דפי מקורות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/coming-soon?my-notes', title: 'My Notes', heTitle: 'רשומות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/coming-soon?reading-history', title: 'Reading History', heTitle: 'היסטורית קריאה' }), React.createElement(BlockLink, { interfaceLink: true, target: '/settings/account', title: 'Settings', heTitle: 'הגדרות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/logout', title: 'Log Out', heTitle: 'ניתוק' })];
     accountContent = React.createElement(TwoOrThreeBox, { content: accountContent, width: width });
 
     var learnContent = [React.createElement(BlockLink, { interfaceLink: true, target: '/about', title: 'About', heTitle: 'אודות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/help', title: 'Help', heTitle: 'עזרה' }), React.createElement(BlockLink, { interfaceLink: true, target: 'http://blog.sefaria.org', title: 'Blog', heTitle: 'בלוג' }), React.createElement(BlockLink, { interfaceLink: true, target: '/faq', title: 'FAQ', heTitle: 'שאלות נפוצות' }), React.createElement(BlockLink, { interfaceLink: true, target: '/educators', title: 'Educators', heTitle: 'מחנכים' }), React.createElement(BlockLink, { interfaceLink: true, target: '/team', title: 'Team', heTitle: 'צוות' })];
@@ -8786,7 +8787,6 @@ var AccountPanel = React.createClass({
     connectContent = React.createElement(TwoOrThreeBox, { content: connectContent, width: width });
 
     var classes = { accountPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
-    /*classes[this.props.interfaceLang] = 1;*/
     var classStr = classNames(classes);
     return React.createElement(
       'div',
@@ -8811,7 +8811,7 @@ var AccountPanel = React.createClass({
               'חשבון משתמש'
             )
           ),
-          React.createElement(ReaderNavigationMenuSection, { content: accountContent, inter: true }),
+          React.createElement(ReaderNavigationMenuSection, { content: accountContent }),
           React.createElement(ReaderNavigationMenuSection, { title: 'Learn', heTitle: 'לימוד', content: learnContent }),
           React.createElement(ReaderNavigationMenuSection, { title: 'Contribute', heTitle: 'עשייה', content: contributeContent }),
           React.createElement(ReaderNavigationMenuSection, { title: 'Connect', heTitle: 'התחברות', content: connectContent })
@@ -8879,7 +8879,6 @@ var NotificationsPanel = React.createClass({
   },
   render: function render() {
     var classes = { notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
-    /*classes[this.props.interfaceLang] = 1;*/
     var classStr = classNames(classes);
     return React.createElement(
       'div',

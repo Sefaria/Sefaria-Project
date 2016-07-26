@@ -1135,7 +1135,10 @@ var ReaderApp = React.createClass({
           messageName={Sefaria.interruptingMessage.name}
           messageHTML={Sefaria.interruptingMessage.html}
           onClose={this.rerender} />) : null;
-    var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel, [`interface-${this.props.interfaceLang}`]: true});
+    var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};
+    var interfaceLangClass = `interface-${this.props.interfaceLang}`;
+    classDict[interfaceLangClass] = true
+    var classes = classNames(classDict);
     return (<div className={classes}>
               {header}
               {panels}
