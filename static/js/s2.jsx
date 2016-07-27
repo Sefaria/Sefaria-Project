@@ -2890,7 +2890,7 @@ var ReaderTextTableOfContents = React.createClass({
   render: function() {
     var tocHtml = Sefaria.textTocHtml(this.props.title);
 
-    tocHtml = tocHtml || '<div class="loadingMessage"><span class="en">Loading...</span><span class="he">טוען...</span></div>';
+    tocHtml = tocHtml || '<div class="loadingMessage"><span class="int-en">Loading...</span><span class="int-he">טוען...</span></div>';
 
     var title     = this.props.title;
     var heTitle   = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
@@ -2923,8 +2923,8 @@ var ReaderTextTableOfContents = React.createClass({
       );
 
       versionBlocks = <div className="versionBlocks">
-        {(!!heVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="en">Hebrew Versions</span><span className="he">בעברית</span></div><div>{heVersionBlocks}</div></div>:""}
-        {(!!enVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="en">English Versions</span><span className="he">באנגלית</span></div><div>{enVersionBlocks}</div></div>:""}
+        {(!!heVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="int-en">Hebrew Versions</span><span className="int-he">בעברית</span></div><div>{heVersionBlocks}</div></div>:""}
+        {(!!enVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="int-en">English Versions</span><span className="int-he">באנגלית</span></div><div>{enVersionBlocks}</div></div>:""}
         <div style={{clear: "both"}}></div>
       </div>;
 
@@ -3007,15 +3007,15 @@ var ReaderTextTableOfContents = React.createClass({
     var dlReady = (this.state.dlVersionTitle && this.state.dlVersionFormat && this.state.dlVersionLanguage);
     var downloadButton = <div className="versionDownloadButton">
         <div className="downloadButtonInner">
-          <span className="en">Download</span>
-          <span className="he">להורדה</span>
+          <span className="int-en">Download</span>
+          <span className="int-he">הורדה</span>
         </div>
       </div>;
     var downloadSection = (
       <div className="dlSection">
         <div className="dlSectionTitle">
-          <span className="en">Download Text</span>
-          <span className="he">להורדת טקסט</span>
+          <span className="int-en">Download Text</span>
+          <span className="int-he">הורדת הטקסט</span>
         </div>
         <select className="dlVersionSelect dlVersionTitleSelect" value={(this.state.dlVersionTitle && this.state.dlVersionLanguage)?this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage:""} onChange={this.onDlVersionSelect}>
           {dl_versions}
@@ -3043,8 +3043,8 @@ var ReaderTextTableOfContents = React.createClass({
                   </div>
                   <div className="readerTextToc readerTextTocHeader">
                     <div className="readerTextTocBox">
-                      <span className="en">Table of Contents</span>
-                      <span className="he">תוכן העניינים</span>
+                      <span className="int-en">Table of Contents</span>
+                      <span className="int-he">תוכן העניינים</span>
                     </div>
                   </div>
                 </div>

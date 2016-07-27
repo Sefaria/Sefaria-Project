@@ -1016,6 +1016,12 @@ a.resourcesLink {
 .readerTextTableOfContents .content .sectionLink  .he {
   font-family: "Open Sans Hebrew", sans-serif;
 }
+.interface-hebrew .readerTextTableOfContents .content #structToggles{
+  direction: rtl;
+}
+.interface-english .readerTextTableOfContents .content #structToggles{
+  direction: ltr;
+}
 .readerTextTableOfContents .content #structToggles {
   margin-bottom: 20px;
   text-align: center;
@@ -1848,11 +1854,20 @@ a.resourcesLink {
 .bilingual .textRange.basetext .title .he {
   display: none;
 }
-.interface-hebrew .readerPanel.english .textRange, .interface-hebrew .readerPanel.english .categoryFilterGroup,
-.interface-hebrew .readerPanel.bilingual .categoryFilterGroup{
+.interface-hebrew .readerPanel.english .textRange,
+.interface-hebrew .readerPanel.english .categoryFilterGroup,
+.interface-hebrew .readerPanel.bilingual .categoryFilterGroup,
+.interface-hebrew .readerPanel.english .tocContent,
+.interface-hebrew .readerPanel.bilingual .tocContent,
+.interface-hebrew .readerPanel.english .dlVersionSelect,
+.interface-hebrew .readerPanel.bilingual .dlVersionSelect,
+.interface-hebrew .readerPanel.hebrew .dlVersionSelect
+{
   direction: ltr;
 }
-.interface-english .readerPanel.hebrew .textRange, .interface-english .readerPanel.hebrew .categoryFilterGroup{
+.interface-english .readerPanel.hebrew .textRange,
+.interface-english .readerPanel.hebrew .categoryFilterGroup,
+.interface-english .readerPanel.hebrew .tocContent{
   direction: rtl;
 }
 .basetext .text {

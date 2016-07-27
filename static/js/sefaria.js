@@ -877,16 +877,16 @@ Sefaria = extend(Sefaria, {
                             "</div>";
       var $html = $("<div>" + html + "</div>");
       var commentaryToggleHtml = "<div class='altStructToggle'>" +
-                                    "<span class='en'>Commentary</span>" +
-                                    "<span class='he'>מפרשים</span>" +
+                                    "<span class='int-en'>Commentary</span>" +
+                                    "<span class='int-he'>מפרשים</span>" +
                                   "</div>";      
       if ($html.find("#structToggles").length) {
         $html.find("#structToggles").append("<span class='toggleDivider'>|</span>" + commentaryToggleHtml);  
       } else {
         var togglesHtml = "<div id='structToggles'>" +
                             "<div class='altStructToggle active'>" +
-                                "<span class='en'>Text</span>" +
-                                "<span class='he'>טקסט</span>" +
+                                "<span class='int-en'>Text</span>" +
+                                "<span class='int-he'>טקסט</span>" +
                               "</div>" + 
                               "<span class='toggleDivider'>|</span>" + commentaryToggleHtml +
                           "</div>";

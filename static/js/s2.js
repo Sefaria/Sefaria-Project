@@ -3301,7 +3301,7 @@ var ReaderTextTableOfContents = React.createClass({
 
     var tocHtml = Sefaria.textTocHtml(this.props.title);
 
-    tocHtml = tocHtml || '<div class="loadingMessage"><span class="en">Loading...</span><span class="he">טוען...</span></div>';
+    tocHtml = tocHtml || '<div class="loadingMessage"><span class="int-en">Loading...</span><span class="int-he">טוען...</span></div>';
 
     var title = this.props.title;
     var heTitle = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
@@ -3360,12 +3360,12 @@ var ReaderTextTableOfContents = React.createClass({
             { className: 'versionLanguageHeader' },
             React.createElement(
               'span',
-              { className: 'en' },
+              { className: 'int-en' },
               'Hebrew Versions'
             ),
             React.createElement(
               'span',
-              { className: 'he' },
+              { className: 'int-he' },
               'בעברית'
             )
           ),
@@ -3383,12 +3383,12 @@ var ReaderTextTableOfContents = React.createClass({
             { className: 'versionLanguageHeader' },
             React.createElement(
               'span',
-              { className: 'en' },
+              { className: 'int-en' },
               'English Versions'
             ),
             React.createElement(
               'span',
-              { className: 'he' },
+              { className: 'int-he' },
               'באנגלית'
             )
           ),
@@ -3536,13 +3536,13 @@ var ReaderTextTableOfContents = React.createClass({
         { className: 'downloadButtonInner' },
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           'Download'
         ),
         React.createElement(
           'span',
-          { className: 'he' },
-          'להורדה'
+          { className: 'int-he' },
+          'הורדה'
         )
       )
     );
@@ -3554,13 +3554,13 @@ var ReaderTextTableOfContents = React.createClass({
         { className: 'dlSectionTitle' },
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           'Download Text'
         ),
         React.createElement(
           'span',
-          { className: 'he' },
-          'להורדת טקסט'
+          { className: 'int-he' },
+          'הורדת הטקסט'
         )
       ),
       React.createElement(
@@ -3628,12 +3628,12 @@ var ReaderTextTableOfContents = React.createClass({
               { className: 'readerTextTocBox' },
               React.createElement(
                 'span',
-                { className: 'en' },
+                { className: 'int-en' },
                 'Table of Contents'
               ),
               React.createElement(
                 'span',
-                { className: 'he' },
+                { className: 'int-he' },
                 'תוכן העניינים'
               )
             )
@@ -4022,12 +4022,12 @@ var SheetsNav = React.createClass({
           null,
           React.createElement(
             'span',
-            { className: 'en' },
+            { className: 'int-en' },
             enTitle
           ),
           React.createElement(
             'span',
-            { className: 'he' },
+            { className: 'int-he' },
             heTitle
           )
         )
@@ -4101,12 +4101,12 @@ var SheetsHomePage = React.createClass({
         { className: 'type-button-title' },
         React.createElement(
           'span',
-          { className: 'en' },
+          { className: 'int-en' },
           en
         ),
         React.createElement(
           'span',
-          { className: 'he' },
+          { className: 'int-he' },
           he
         )
       )
@@ -4139,13 +4139,13 @@ var SheetsHomePage = React.createClass({
       { className: 'yourSheetsLink navButton', onClick: this.showYourSheets },
       React.createElement(
         'span',
-        { className: 'en' },
+        { className: 'int-en' },
         'My Source Sheets ',
         React.createElement('i', { className: 'fa fa-chevron-right' })
       ),
       React.createElement(
         'span',
-        { className: 'he' },
+        { className: 'int-he' },
         'דפי המקורות שלי ',
         React.createElement('i', { className: 'fa fa-chevron-left' })
       )
@@ -4162,12 +4162,12 @@ var SheetsHomePage = React.createClass({
           null,
           React.createElement(
             'span',
-            { className: 'en' },
+            { className: 'int-en' },
             'Source Sheets'
           ),
           React.createElement(
             'span',
-            { className: 'he' },
+            { className: 'int-he' },
             'דפי מקורות'
           )
         ) : null,
@@ -4177,23 +4177,23 @@ var SheetsHomePage = React.createClass({
           { className: 'splitHeader' },
           React.createElement(
             'span',
-            { className: 'en' },
+            { className: 'int-en' },
             'Public Sheets'
           ),
           React.createElement(
             'span',
-            { className: 'en actionText', onClick: this.showAllSheets },
+            { className: 'int-en actionText', onClick: this.showAllSheets },
             'See All ',
             React.createElement('i', { className: 'fa fa-angle-right' })
           ),
           React.createElement(
             'span',
-            { className: 'he' },
+            { className: 'int-he' },
             'דפי מקורות פומביים'
           ),
           React.createElement(
             'span',
-            { className: 'he actionText', onClick: this.showAllSheets },
+            { className: 'int-he actionText', onClick: this.showAllSheets },
             'צפה בהכל ',
             React.createElement('i', { className: 'fa fa-angle-left' })
           )
@@ -4202,12 +4202,12 @@ var SheetsHomePage = React.createClass({
           null,
           React.createElement(
             'span',
-            { className: 'en' },
+            { className: 'int-en' },
             'Public Sheets'
           ),
           React.createElement(
             'span',
-            { className: 'he' },
+            { className: 'int-he' },
             'דפי מקורות פומביים'
           )
         ),
@@ -4221,12 +4221,12 @@ var SheetsHomePage = React.createClass({
           null,
           React.createElement(
             'span',
-            { className: 'en' },
+            { className: 'int-en' },
             'Trending Tags'
           ),
           React.createElement(
             'span',
-            { className: 'he' },
+            { className: 'int-he' },
             'תוויות פופולריות'
           )
         ),
@@ -4236,12 +4236,12 @@ var SheetsHomePage = React.createClass({
           { className: 'tagsHeader' },
           React.createElement(
             'span',
-            { className: 'en' },
+            { className: 'int-en' },
             'All Tags'
           ),
           React.createElement(
             'span',
-            { className: 'he' },
+            { className: 'int-he' },
             'כל התוויות'
           ),
           React.createElement(
@@ -4362,12 +4362,12 @@ var PartnerSheetsPage = React.createClass({
           null,
           React.createElement(
             'span',
-            { className: 'en' },
+            { className: 'int-en' },
             this.props.partner
           ),
           React.createElement(
             'span',
-            { className: 'he' },
+            { className: 'int-he' },
             this.props.partner
           )
         ) : null,
@@ -4376,13 +4376,13 @@ var PartnerSheetsPage = React.createClass({
           { className: 'splitHeader' },
           React.createElement(
             'span',
-            { className: 'en', onClick: this.toggleSheetTags },
+            { className: 'int-en', onClick: this.toggleSheetTags },
             'Filter By Tag ',
             React.createElement('i', { className: 'fa fa-angle-down' })
           ),
           React.createElement(
             'span',
-            { className: 'he', onClick: this.toggleSheetTags },
+            { className: 'int-he', onClick: this.toggleSheetTags },
             'סנן לפי תווית',
             React.createElement('i', { className: 'fa fa-angle-down' })
           )
@@ -4478,12 +4478,12 @@ var TagSheetsPage = React.createClass({
           null,
           React.createElement(
             'span',
-            { className: 'en' },
+            { className: 'int-en' },
             this.props.tag
           ),
           React.createElement(
             'span',
-            { className: 'he' },
+            { className: 'int-he' },
             this.props.tag
           )
         ) : null,
@@ -4577,12 +4577,12 @@ var AllSheetsPage = React.createClass({
           null,
           React.createElement(
             'span',
-            { className: 'en' },
+            { className: 'int-en' },
             'All Sheets'
           ),
           React.createElement(
             'span',
-            { className: 'he' },
+            { className: 'int-he' },
             'כל דפי המקורות'
           )
         ) : null,
@@ -4645,7 +4645,11 @@ var SheetTagButton = React.createClass({
       { href: '/sheets/tags/' + this.props.tag, className: 'navButton', onClick: this.handleTagClick },
       this.props.tag,
       ' (',
-      this.props.count,
+      React.createElement(
+        'span',
+        { className: 'enInHe' },
+        this.props.count
+      ),
       ')'
     );
   }
@@ -4741,12 +4745,12 @@ var MySheetsPage = React.createClass({
           null,
           React.createElement(
             'span',
-            { className: 'en' },
+            { className: 'int-en' },
             'My Source Sheets'
           ),
           React.createElement(
             'span',
-            { className: 'he' },
+            { className: 'int-he' },
             'דפי המקורות שלי'
           )
         ) : null,
@@ -4758,12 +4762,12 @@ var MySheetsPage = React.createClass({
             { className: 'button white', href: '/sheets/new' },
             React.createElement(
               'span',
-              { className: 'en' },
+              { className: 'int-en' },
               'Create a Source Sheet'
             ),
             React.createElement(
               'span',
-              { className: 'he' },
+              { className: 'int-he' },
               'צור דף מקורות חדש'
             )
           )
@@ -4773,19 +4777,19 @@ var MySheetsPage = React.createClass({
           { className: 'splitHeader' },
           React.createElement(
             'span',
-            { className: 'en', onClick: this.toggleSheetTags },
+            { className: 'int-en', onClick: this.toggleSheetTags },
             'Filter By Tag ',
             React.createElement('i', { className: 'fa fa-angle-down' })
           ),
           React.createElement(
             'span',
-            { className: 'he', onClick: this.toggleSheetTags },
+            { className: 'int-he', onClick: this.toggleSheetTags },
             'סנן לפי תווית',
             React.createElement('i', { className: 'fa fa-angle-down' })
           ),
           React.createElement(
             'span',
-            { className: 'en actionText' },
+            { className: 'int-en actionText' },
             'Sort By:',
             React.createElement(
               'select',
@@ -4806,7 +4810,7 @@ var MySheetsPage = React.createClass({
           ),
           React.createElement(
             'span',
-            { className: 'he actionText' },
+            { className: 'int-he actionText' },
             'סנן לפי:',
             React.createElement(
               'select',
