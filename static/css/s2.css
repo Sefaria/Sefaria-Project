@@ -1848,7 +1848,8 @@ a.resourcesLink {
 .bilingual .textRange.basetext .title .he {
   display: none;
 }
-.interface-hebrew .readerPanel.english .textRange, .interface-hebrew .readerPanel.english .categoryFilterGroup{
+.interface-hebrew .readerPanel.english .textRange, .interface-hebrew .readerPanel.english .categoryFilterGroup,
+.interface-hebrew .readerPanel.bilingual .categoryFilterGroup{
   direction: ltr;
 }
 .interface-english .readerPanel.hebrew .textRange, .interface-english .readerPanel.hebrew .categoryFilterGroup{
