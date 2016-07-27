@@ -1566,12 +1566,21 @@
 #visualGardenPage h1 {
   font-size: 36px;
   border: none;
+  margin: 0;
 }
 /* Controls need LTR to present right, hebrew 'reset' block wants RTL on top charts, but not on filter charts */
 #visualGardenPage #controls {
   width: 320px;
   float: left;
   direction: ltr;
+}
+#visualGardenPage #horizon-controls {
+  display: flex;
+}
+#visualGardenPage #data-count {
+  float: none;
+  text-align: center;
+  margin: 0 0 30px 0;
 }
 body.hebrew #visualGardenPage .reset {
   direction: rtl;
@@ -1600,9 +1609,7 @@ body.hebrew #visualGardenPage .filter-title .reset {
 #visualGardenPage #results .result-text {
   margin: 5px 10px 0;
 }
-#visualGardenPage #sort-container,
-#visualGardenPage #results #data-count {
-  text-align: center;
+#visualGardenPage #sort-container {
   float: none;
   padding: 5px 0;
 }

@@ -27,6 +27,7 @@
 {% block css %}
     #visualGardenPage.static .inner{
         max-width:1200px;
+        padding-top: 82px;
     }
     #languageToggle {
         display: inline;
@@ -43,7 +44,9 @@
             <span class='en'>{{ title }}</span>
             <span class='he'>{{ heTitle }}</span>
         </h1>
+        <div id="data-count"></div>
         <div class="section control-results-container">
+            <div id="horizon-controls"></div>
             <div id="controls">
                 <div id="timeline-chart">
                     <div style="height: 30px;">
@@ -78,8 +81,6 @@
 
             </div>
             <div id="results">
-                <div id="data-count">
-                </div>
                 <div id="sort-container">
                     <label for="sort-select" id="sort-label">
                         <span class="en">Sort By:</span>
@@ -107,6 +108,19 @@
         var config = {{ config }};
         var places = {{ places }};
         var stops = {{ stops }};
+
+        var layout = "horizontal"; // todo: put this into config
+        var filterControlBoxId = (layout=="horizontal")?"horizon-controls":"controls";
+
+        // From colorbrewer
+        var color_scales = [
+         ["#fcfbfd","#efedf5","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#54278f","#3f007d"], // Purples
+         ["#f7fbff","#deebf7","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#08519c","#08306b"], // Blues
+         ["#f7fcf5","#e5f5e0","#c7e9c0","#a1d99b","#74c476","#41ab5d","#238b45","#006d2c","#00441b"], // Greens
+         ["#fff5eb","#fee6ce","#fdd0a2","#fdae6b","#fd8d3c","#f16913","#d94801","#a63603","#7f2704"], // Oranges
+         ["#fff5f0","#fee0d2","#fcbba1","#fc9272","#fb6a4a","#ef3b2c","#cb181d","#a50f15","#67000d"],  // Reds
+        ];
+
         stops.forEach(function (d) {
             d.start = (d.start == null || d.start == "") ? null : +d.start; // coerce to number, if it's a number
             d.end = (d.end == null || d.end == "") ? null : +d.end;
@@ -198,7 +212,7 @@
                       '<strong>%total-count</strong><span class="he"> תוצאות </span><span class="en"> Records </span>' +
                       ' | <a href=\'javascript:dc.filterAll(); dc.renderAll();\'\'>' +
                       '<span class="he">אפס הכל</span><span class="en">Reset All</span></a>',
-                all: '<span class="en">All records selected. Please click on the graph to apply filters.</span>'+
+                all: '<span class="en">All records selected. Please click on the graphs to apply filters.</span>'+
                         '<span class="he">כל התוצאות מוצגות. אנא לחץ על הגרף כדי לסנן</span>'
             });
 
@@ -247,7 +261,7 @@
         timeline.xAxis().ticks(5);
 
         // Filters
-        var maxRows = 25;
+        var maxRows = 9;
         function addFilterElement(config, indx, filter_id) {
             var elem = $('<div id="' + filter_id +'" class="tags-list"> ' +
                 '<div class="filter-title">' +
@@ -267,7 +281,7 @@
                   '</a> ' +
                 '</div> ' +
             '</div>');
-            $("#controls").append(elem);
+            $("#" + filterControlBoxId).append(elem);
             return elem
         }
         function createFilterGroup(filterConfig, key, filterDim) {
@@ -318,6 +332,7 @@
             var chartSize = group.all().length > maxRows ? maxRows : group.all().length;
             var filterHeight = 40 + 20 * chartSize;
             var filter_chart = dc.rowChart("#" + filter_id);
+            var filter_num = +filter_id.split("-")[1];
             filter_chart
                 .width(260)
                 .height(filterHeight)
@@ -328,11 +343,16 @@
                 .rowsCap(maxRows)
                 .othersGrouper(false)
                 .dimension(dim)
-                .ordering(function(d){ return -d.value })
-                .elasticX(true)
+                .ordering(function(d) { return -d.value })
+                .elasticX(false)
                 .transitionDuration(1000)
-                .colors(d3.scale.category10())
-                .label(function (d) { return d.key });
+                .colors(color_scales[(filter_num % color_scales.length)][5])  // d3.scale.ordinal().range(color_scales[(filter_num % color_scales.length)].reverse()))
+                .label(function (d) { return d.key })
+                .on('preRedraw', function(chart) {
+                    var newChartSize = chart.group().all().length > maxRows ? maxRows : chart.group().all().length;
+                    var newFilterHeight = 40 + 20 * newChartSize;
+                    chart.height(newFilterHeight);  //function(d) { debugger; return filterHeight; })
+                });
             if (filterConfig["logic"] == "AND") {
                 filter_chart
                     .filterHandler (function (dimension, filters) {
