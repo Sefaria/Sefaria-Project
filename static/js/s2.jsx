@@ -3330,8 +3330,8 @@ var SheetsNav = React.createClass({
                     <CategoryColorLine category="Sheets" />
                     <ReaderNavigationMenuMenuButton onClick={this.props.openNav} />
                     <h2>
-                      <span className="en">{enTitle}</span>
-                      <span className="he">{heTitle}</span>
+                      <span className="int-en">{enTitle}</span>
+                      <span className="int-he">{heTitle}</span>
                     </h2>
                   </div>)}
               {content}
@@ -3390,8 +3390,8 @@ var SheetsHomePage = React.createClass({
 
       return <div className={classes} onClick={on_click}>
       <div className="type-button-title">
-        <span className="en">{en}</span>
-        <span className="he">{he}</span>
+        <span className="int-en">{en}</span>
+        <span className="int-he">{he}</span>
       </div>
     </div>;
   },
@@ -3412,28 +3412,28 @@ var SheetsHomePage = React.createClass({
 
     var yourSheetsButton  = Sefaria._uid ? 
       (<div className="yourSheetsLink navButton" onClick={this.showYourSheets}>
-        <span className="en">My Source Sheets <i className="fa fa-chevron-right"></i></span>
-        <span className="he">דפי המקורות שלי <i className="fa fa-chevron-left"></i></span>
+        <span className="int-en">My Source Sheets <i className="fa fa-chevron-right"></i></span>
+        <span className="int-he">דפי המקורות שלי <i className="fa fa-chevron-left"></i></span>
        </div>) : null;
 
     return (<div className="content">
               <div className="contentInner">
                 {this.props.hideNavHeader ? (<h1>
-                  <span className="en">Source Sheets</span>
-                  <span className="he">דפי מקורות</span>
+                  <span className="int-en">Source Sheets</span>
+                  <span className="int-he">דפי מקורות</span>
                 </h1>) : null}
                 { this.props.multiPanel ? null : yourSheetsButton }
 
                 { this.props.multiPanel ?
                   (<h2 className="splitHeader">
-                    <span className="en">Public Sheets</span>
-                    <span className="en actionText" onClick={this.showAllSheets}>See All <i className="fa fa-angle-right"></i></span>
-                    <span className="he">דפי מקורות פומביים</span>
-                    <span className="he actionText" onClick={this.showAllSheets}>צפה בהכל <i className="fa fa-angle-left"></i></span>
+                    <span className="int-en">Public Sheets</span>
+                    <span className="int-en actionText" onClick={this.showAllSheets}>See All <i className="fa fa-angle-right"></i></span>
+                    <span className="int-he">דפי מקורות פומביים</span>
+                    <span className="int-he actionText" onClick={this.showAllSheets}>צפה בהכל <i className="fa fa-angle-left"></i></span>
                   </h2>) : 
                   (<h2>
-                      <span className="en">Public Sheets</span>
-                      <span className="he">דפי מקורות פומביים</span>
+                      <span className="int-en">Public Sheets</span>
+                      <span className="int-he">דפי מקורות פומביים</span>
                    </h2>)}
 
                 <div className="topSheetsBox">
@@ -3442,16 +3442,16 @@ var SheetsHomePage = React.createClass({
 
                 { this.props.multiPanel ? null : 
                   (<h2>
-                     <span className="en">Trending Tags</span>
-                    <span className="he">תוויות פופולריות</span>
+                     <span className="int-en">Trending Tags</span>
+                    <span className="int-he">תוויות פופולריות</span>
                    </h2>)}
 
                 { this.props.multiPanel ? null : (<TwoOrThreeBox content={trendingTags} width={this.props.width} /> )}
 
                 { this.props.multiPanel ? (
                     <h2 className="tagsHeader">
-                      <span className="en">All Tags</span>
-                      <span className="he">כל התוויות</span>
+                      <span className="int-en">All Tags</span>
+                      <span className="int-he">כל התוויות</span>
                       <div className="actionText">
                         <div className="type-buttons">
                           {this._type_sheet_button("Most Used", "הכי בשימוש", () => this.changeSort("count"), (this.props.tagSort == "count"))}
@@ -3535,14 +3535,14 @@ var PartnerSheetsPage = React.createClass({
     return (<div className="content sheetList">
                       <div className="contentInner">
                         {this.props.hideNavHeader ? (<h1>
-                          <span className="en">{this.props.partner}</span>
-                          <span className="he">{this.props.partner}</span>
+                          <span className="int-en">{this.props.partner}</span>
+                          <span className="int-he">{this.props.partner}</span>
                         </h1>) : null}
 
                         {this.props.hideNavHeader ?
                          (<h2 className="splitHeader">
-                            <span className="en" onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
-                            <span className="he" onClick={this.toggleSheetTags}>סנן לפי תווית<i className="fa fa-angle-down"></i></span>{/*
+                            <span className="int-en" onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
+                            <span className="int-he" onClick={this.toggleSheetTags}>סנן לפי תווית<i className="fa fa-angle-down"></i></span>{/*
                             <span className="en actionText">Sort By:
                               <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
                                <option value="date">Recent</option>
@@ -3618,8 +3618,8 @@ var TagSheetsPage = React.createClass({
     return (<div className="content sheetList">
                       <div className="contentInner">
                         {this.props.hideNavHeader ? (<h1>
-                          <span className="en">{this.props.tag}</span>
-                          <span className="he">{this.props.tag}</span>
+                          <span className="int-en">{this.props.tag}</span>
+                          <span className="int-he">{this.props.tag}</span>
                         </h1>) : null}
                         {sheets}
                       </div>
@@ -3700,8 +3700,8 @@ var AllSheetsPage = React.createClass({
     return (<div className="content sheetList">
                       <div className="contentInner">
                         {this.props.hideNavHeader ? (<h1>
-                          <span className="en">All Sheets</span>
-                          <span className="he">כל דפי המקורות</span>
+                          <span className="int-en">All Sheets</span>
+                          <span className="int-he">כל דפי המקורות</span>
                         </h1>) : null}
                         {sheets}
                       </div>
@@ -3739,7 +3739,7 @@ var SheetTagButton = React.createClass({
     this.props.setSheetTag(this.props.tag);
   },
   render: function() {
-    return (<a href={`/sheets/tags/${this.props.tag}`} className="navButton" onClick={this.handleTagClick}>{this.props.tag} ({this.props.count})</a>);
+    return (<a href={`/sheets/tags/${this.props.tag}`} className="navButton" onClick={this.handleTagClick}>{this.props.tag} (<span className="enInHe">{this.props.count}</span>)</a>);
   }
 });
 
@@ -3814,27 +3814,27 @@ var MySheetsPage = React.createClass({
               <div className="contentInner">
                 {this.props.hideNavHeader ? 
                   (<h1>
-                    <span className="en">My Source Sheets</span>
-                    <span className="he">דפי המקורות שלי</span>
+                    <span className="int-en">My Source Sheets</span>
+                    <span className="int-he">דפי המקורות שלי</span>
                   </h1>) : null}
                 {this.props.hideNavHeader ? 
                   (<div className="sheetsNewButton">
                     <a className="button white" href="/sheets/new">
-                        <span className="en">Create a Source Sheet</span>
-                        <span className="he">צור דף מקורות חדש</span>
+                        <span className="int-en">Create a Source Sheet</span>
+                        <span className="int-he">צור דף מקורות חדש</span>
                     </a>
                   </div>) : null }
 
                 {this.props.hideNavHeader ?
                  (<h2 className="splitHeader">
-                    <span className="en" onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
-                    <span className="he" onClick={this.toggleSheetTags}>סנן לפי תווית<i className="fa fa-angle-down"></i></span>
-                    <span className="en actionText">Sort By:
+                    <span className="int-en" onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
+                    <span className="int-he" onClick={this.toggleSheetTags}>סנן לפי תווית<i className="fa fa-angle-down"></i></span>
+                    <span className="int-en actionText">Sort By:
                       <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
                        <option value="date">Recent</option>
                        <option value="views">Most Viewed</option>
                      </select> <i className="fa fa-angle-down"></i></span>
-                    <span className="he actionText">סנן לפי:
+                    <span className="int-he actionText">סנן לפי:
                       <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
                        <option value="date">הכי חדש</option>
                        <option value="views">הכי נצפה</option>

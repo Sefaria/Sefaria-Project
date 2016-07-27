@@ -426,6 +426,8 @@ body.dark {
 }
 .readerPanel.hebrew .he .enInHe {
   font-size: 83%;
+}
+.enInHe{
   unicode-bidi: isolate;
 }
 .readerPanel.hebrew .en {
@@ -858,6 +860,7 @@ a.resourcesLink {
   cursor: pointer;
   vertical-align: middle;
   text-align: center;
+  unicode-bidi: plaintext;
 }
 @media (max-width: 450px) {
   .readerNavMenu .refLink,
