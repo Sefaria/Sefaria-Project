@@ -2217,12 +2217,12 @@ a {
 						{% endif %}
 
 					</li>
-				<!-- {% elif "media" in source %}
+				 {% elif "media" in source %}
 					<li class="mediaWrapper sheetItem {{ source.options.indented }}">
 						<div class="outside">
-							Loading Media...
+							<img class="addedMedia" src="{{source.media}}" />
 						</div>
-					</li> -->
+					</li>
 				{% endif %}
 
 			{% endfor %}
