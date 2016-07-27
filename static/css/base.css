@@ -7,7 +7,7 @@
 html, body {
 	height: 100%;
 	width: 100%;
-  font-family: "Montserrat", "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
+  font-family: "Montserrat", "Alef", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 p {
@@ -39,32 +39,33 @@ p {
 	margin: 0;
 	padding: 0px 2%;
 }
-
-body.hebrew .biReady {
+#content.hebrew .biReady {
 	direction: rtl;
 }
-body.english .biReady .he {
+#content.english .biReady .he {
 	display: none;
 }
-body.english .biReady .en {
+#content.english .biReady .en {
 	display: inline;
 }
-body.hebrew .biReady .he {
+#content.hebrew .biReady .he {
 	display: inline;
 	font-size: 120%;
 	text-align: right;
 }
-body.hebrew .biReady .he .enInHe {
+#content.hebrew .biReady .he .enInHe {
   font-size: 83%;
 }
-body.hebrew .biReady .en {
+#content.hebrew .biReady .en {
 	display: none;
 }
-body.hebrew .biReady p,
-body.hebrew .biReady #bites h3 {
+#content.hebrew .biReady p,
+#content.hebrew .biReady #bites h3 {
 	text-align: right;
 }
-
+#content.hebrew .hideInHebrewMode {
+  display: none !important;
+}
 #home {
     color: #1C3039;
     text-align: center;
@@ -133,7 +134,7 @@ body.hebrew #home #homeTitle #homeTitleBox {
     text-align: left;
 }
 
-body.hebrew #home .homeColumn {
+body.hebrew #home .homeColumn, #content.hebrew #home .homeColumn {
     text-align: right;
 }
 
@@ -354,6 +355,10 @@ body.hebrew #home .homeColumn {
     margin: 6px;
 }
 
+#content.hebrew .biReady p.statsCircle {
+    text-align: center;
+}
+
 #home .statsCircle.grey1 {
     background-color: #EFF1F1;
     color: #33454D;
@@ -479,16 +484,20 @@ body.hebrew #home #homeConnect .followButton .fa {
 #home #announcement {
   border: none;
   border-radius: 10px;
-  padding: 15px 40px;
+  padding: 15px 20px;
   background-color: white;
-  width: 440px;
+  width: 500px;
   text-align: left;
   z-index: 50;
 }
 
 #home #announcement .btn {
-  float: right;
-  margin-top: 6px;
+  float: left;
+  margin-top: 0px;
+  margin: 0 20px;
+}
+#home #announcement p {
+  margin-bottom: 0;
 }
 .hebrew #home #announcement h3 {
   text-align: right;
@@ -528,6 +537,7 @@ body.hebrew #home #homeConnect .followButton .fa {
 
 #aboutPage {
   margin: 70px auto;
+  width: 600px;
 }
 
 body.hebrew #aboutPage .span5 {
@@ -542,7 +552,7 @@ body.hebrew #aboutPage .span5 {
 	float: left;
 }
 
-.registrationContent {
+/*.registrationContent {
 	width: 320px;
 	margin: 100px auto;
 }
@@ -595,7 +605,7 @@ body.hebrew #aboutPage .span5 {
 #message {
 	text-align: center;	
 	margin-top: 100px;
-}
+}*/
 
 #textsPage {
 	max-width: 100%;
@@ -900,6 +910,12 @@ body.hebrew #aboutPage .span5 {
     font-size: 20px;
 }
 
+#textTocPage #textTocCommentaries,
+#textTocPage #textVersions {
+  padding-top: 80px;
+  margin-top: -80px;
+}
+
 #textTocPage #dateline {
     clear: both;
     width: 100%;
@@ -1131,8 +1147,8 @@ body.hebrew #aboutPage .span5 {
 		content: "Show ";
 	}
 
-		#activityContent #contributors h4:after {
-		content: ' â–¼';
+	#activityContent #contributors h4:after {
+		content: ' ▾';
 	}
 
 	#activityContent div#contributors .board {
@@ -1470,11 +1486,11 @@ body.hebrew #aboutPage .span5 {
 #sheetTags {
 	max-width: 900px;
 	margin: 28px auto;
-	-webkit-column-count:3; /* Chrome, Safari, Opera */
-	-moz-column-count:3; /* Firefox */
+	-webkit-column-count: 3;/* Chrome, Safari, Opera */
+	-moz-column-count:3;/* Firefox */
 	column-count:3;
-	-webkit-column-gap:40px; /* Chrome, Safari, Opera */
-	-moz-column-gap:40px; /* Firefox */
+	-webkit-column-gap:40px;/* Chrome, Safari, Opera */
+	-moz-column-gap:40px;/* Firefox */
 	column-gap:20px;
 }
 
@@ -1494,14 +1510,13 @@ body.hebrew #aboutPage .span5 {
 }
 
 #sheetTags .tag {
-	margin-bottom: 20px;
+	margin-bottom: 16px;
 	-webkit-column-break-inside: avoid;
 	break-inside: avoid;
 }
 
 #sheetTags .tagName {
 	font-size: 16px;
-	font-weight: bold;
 	color: #555;
 	margin-bottom: 3px;
 }
@@ -3243,21 +3258,31 @@ text-align: left;width: 250px;display: inline-block;}
 	vertical-align: bottom;
 }
 
+#supportersPage {
+  text-align: center;
+}
+
 #supportersPage h1 {
-	text-align: left;
+  border: none;
+  margin-bottom: 40px;
+}
+
+#supportersPage h2 {
+  border: none;
+  margin-bottom: 20px;
+}
+
+#supportersPage .btn {
+  margin-top: 30px;
 }
 
 #strategy #donateButton {
 	margin: 10px 0 60px;
 }
 
-#supporters {
-	-webkit-column-count:2; /* Chrome, Safari, Opera */
-	-moz-column-count:3; /* Firefox */
-	column-count:3;
-	-webkit-column-gap:40px; /* Chrome, Safari, Opera */
-	-moz-column-gap:40px; /* Firefox */
-	column-gap:20px;
+.supporters {
+  margin-bottom: 40px;
+  text-align: center;
 }
 
 #supportersPage .supporter {
@@ -3265,10 +3290,9 @@ text-align: left;width: 250px;display: inline-block;}
 	line-height: 1.6;
 }
 
-#supportersMessage {
-	margin-top: -12px;
-	font-weight: bold;
-	margin-bottom: 28px;
+.supportersMessage {
+	font-style: italic;
+	margin-bottom: 40px;
 }
 
 #teamPage h1 {
@@ -3360,7 +3384,6 @@ text-align: left;width: 250px;display: inline-block;}
 
 body.hebrew #footer {
 	direction: rtl;
-
 }
 body.english #footer .he {
 	display: none;

@@ -8,7 +8,7 @@ from datetime import datetime
 
 from sefaria.model import *
 from sefaria.system.database import db
-from sefaria.summaries import get_toc, flatten_toc
+from sefaria.summaries import flatten_toc
 from settings import STATICFILES_DIRS
 
 
@@ -61,7 +61,7 @@ def generate_texts_toc_sitemap():
 	"""
 	Creates a sitemap for each text table of contents page.
 	"""
-	titles = flatten_toc(get_toc())
+	titles = flatten_toc(library.get_toc())
 	urls = ["http://www.sefaria.org/" + Ref(title).url() for title in titles]
 	write_urls(urls, "text-toc-sitemap.txt")
 
@@ -70,7 +70,7 @@ def generate_categories_sitemap():
 	"""
 	Creates sitemap for each category page.
 	"""
-	toc   = get_toc()
+	toc   = library.get_toc()
 	def cat_paths(toc):
 		paths = []
 		for t in toc:

@@ -6,21 +6,23 @@
 	var sjs = sjs || {};
 
 	$.extend(sjs, {
-		_email:        "{{ request.user.email|default:'null' }}",
-		_uid:          {{ request.user.id|default:"null" }},
-		books:         {{ titlesJSON|default:"[]" }},
-        booksDict:     {}, // populated below
-        calendar:      {
-                            parasha: "{{ parasha_ref }}",
-                            parashaName: "{{ parasha_name }}",
-                            haftara: "{{ haftara_ref }}",
-                            daf_yomi: "{{ daf_yomi_ref }}"
-                       },
-		toc:           {{ toc_json|default:"null" }},
-		searchBaseUrl: '{{ SEARCH_URL|default:"http://localhost:9200" }}',
-		searchIndex:   '{{ SEARCH_INDEX_NAME }}',
-		loggedIn:      {% if user.is_authenticated %}true{% else %}false{% endif %},
-		is_moderator:  {% if user.is_staff %}true{% else %}false{% endif %},
+		_email:             "{{ request.user.email|default:'null' }}",
+		_uid:               {{ request.user.id|default:"null" }},
+		books:              {{ titlesJSON|default:"[]" }},
+        booksDict:          {}, // populated below
+        calendar:           {
+                                 parasha: "{{ parasha_ref }}",
+                                 parashaName: "{{ parasha_name }}",
+                                 haftara: "{{ haftara_ref }}",
+                                 daf_yomi: "{{ daf_yomi_ref }}"
+                            },
+		toc:                {{ toc_json|default:"null" }},
+		searchBaseUrl:      '{{ SEARCH_URL|default:"http://localhost:9200" }}',
+		searchIndex:        '{{ SEARCH_INDEX_NAME }}',
+		loggedIn:           {% if user.is_authenticated %}true{% else %}false{% endif %},
+		is_moderator:       {% if user.is_staff %}true{% else %}false{% endif %},
+        notificationCount:  {{ notifications_count|default:'0' }},
+        notifications:      {{ notifications_json|default:'[]' }},
 		help: {
 			videos: {
 				intro:       "TaUB0jd0dzI",
@@ -282,7 +284,9 @@
                 html += "<div id='structureDropdown'>" +
                     "<span id='browseBy'>Browse by </span>" +
                         "<select>" +
-                            "<option value='default' " + ((sjs.navPanel._structure == "default")?"selected ":"") + ">" + hebrewPlural(schema_node.sectionNames.slice(-2)[0]) +"</option>";
+                            "<option value='default' " + ((sjs.navPanel._structure == "default")?"selected ":"") + ">" +
+                                (schema_node.sectionNames ? hebrewPlural(schema_node.sectionNames.slice(-2)[0]) : "Primary Structure") +
+                            "</option>";
                             for(var n in this._preview.alts) {
                                 html += "<option value='" + n + "' " + ((sjs.navPanel._structure == n)?"selected ":"") + ">" + n + "</option>";
                             }
@@ -617,8 +621,9 @@
 			$("#languageToggle .toggleOption").removeClass("active");
 			$(this).addClass("active");
 
-			$("body").removeClass("english hebrew bilingual")
-				.addClass(mode);
+			$("body, #content").removeClass("english hebrew bilingual")
+				.addClass(mode)
+                .trigger("languageChange");
 			return false;
 		};
 		$("#hebrew, #english, #bilingual").click(sjs.changeContentLang);
@@ -850,6 +855,22 @@
 	    })
 	    $("#rightButtons").click(function(e){e.stopPropagation();});
 	    $(window).click(sjs.hideOptionsBar);
+
+		// browser check -- 
+		// this attempts to create an element and add css3 text shadow to it to it
+		// these are only supported in recent firefox, chrome, safari & ie > 9
+
+		$("#sefaria").css("text-shadow", "2px 2px #ff0000");
+		var sefariaSupportedBrowser = !!$("#alertMessage").css("text-shadow");
+		$("#sefaria").css("text-shadow", "");
+
+		if (sefariaSupportedBrowser == false) {
+		$("#alertMessage").html('<strong>Warning:</strong> Your browser is out of date and unsupported by Sefaria<br/>Please use a more up to date browser or download one <a href="http://browsehappy.com/" target="_blank">here</a>.').show();
+		}
+
 	});
 {% endautoescape %}
+
+
+
 </script>

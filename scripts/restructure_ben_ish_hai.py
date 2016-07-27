@@ -9,12 +9,15 @@ for v in vs:
     v.save()
 
 # Prep VersionState
-v = VersionState("Ben Ish Hai")
-v.content["intro"] = {}
-v.refresh()
+
+vs = VersionState("Ben Ish Hai")
+flags = vs.flags
+vs.delete()
 
 # Index
-intro = JaggedArrayNode()
+i = library.get_index("Ben Ish Hai")
+
+intro = JaggedArrayNode(index=i)
 intro.add_title("Introduction", "en", primary=True)
 intro.add_title(u"הקדמה", "he", primary=True)
 intro.key = "intro"
@@ -22,10 +25,10 @@ intro.depth = 1
 intro.sectionNames = ["Paragraph"]
 intro.addressTypes = ["Integer"]
 
-i = get_index("Ben Ish Chai")
 i.nodes.children.insert(0, intro)
 i.save()
 
 # Refresh VersionState
-v = VersionState("Ben Ish Hai")
-v.refresh()
+vs = VersionState("Ben Ish Hai")
+vs.flags = flags
+vs.save()

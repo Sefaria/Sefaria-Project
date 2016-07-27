@@ -1,13 +1,16 @@
 """
 Djagno Context Processors, for decorating all HTTP request with common data.
 """
+import json
 from datetime import datetime
 
+from django.template.loader import render_to_string
+
 from sefaria.settings import *
-from sefaria.model import library, NotificationSet
-from sefaria.model.user_profile import unread_notifications_count_for_user
-from sefaria.summaries import get_toc, get_toc_json
+from sefaria.model import library
+from sefaria.model.user_profile import UserProfile
 from sefaria.utils import calendars
+from reader.views import render_react_component
 
 
 def global_settings(request):
@@ -20,6 +23,7 @@ def global_settings(request):
         "OFFLINE":                OFFLINE,
         "GLOBAL_WARNING":         GLOBAL_WARNING,
         "GLOBAL_WARNING_MESSAGE": GLOBAL_WARNING_MESSAGE,
+        "S2":                     not request.COOKIES.get('s1', False),
         #"USE_VARNISH":            USE_VARNISH,
         #"VARNISH_ADDR":           VARNISH_ADDR,
         #"USE_VARNISH_ESI":        USE_VARNISH_ESI
@@ -31,7 +35,7 @@ def titles_json(request):
 
 
 def toc(request):
-    return {"toc": get_toc(), "toc_json": get_toc_json()}
+    return {"toc": library.get_toc(), "toc_json": library.get_toc_json()}
 
 
 def embed_page(request):
@@ -52,21 +56,69 @@ def language_settings(request):
     content = 'english' if content not in ('english', 'hebrew', 'bilingual') else content
 
     # INTERFACE
-    # Pull language setting from cookie or Accept-Lanugage header or default to english
-    interface = request.COOKIES.get('interfaceLang') or request.LANGUAGE_CODE or 'english'
-    interface = 'hebrew' if interface in ('he', 'he-il') else interface
-    # Don't allow languages other than what we currently handle
-    interface = 'english' if interface not in ('english', 'hebrew') else interface
+    interface = None
+    if request.user.is_authenticated():
+        profile = UserProfile(id=request.user.id)
+        interface = profile.settings["interface_language"] if "interface_language" in profile.settings else None 
+    if not interface: 
+        # Pull language setting from cookie or Accept-Lanugage header or default to english
+        interface = request.COOKIES.get('interfaceLang') or request.LANGUAGE_CODE or 'english'
+        interface = 'hebrew' if interface in ('he', 'he-il') else interface
+        # Don't allow languages other than what we currently handle
+        interface = 'english' if interface not in ('english', 'hebrew') else interface
 
     return {"contentLang": content, "interfaceLang": interface}
 
 
 def notifications(request):
     if not request.user.is_authenticated():
+        if request.COOKIES.get("_ga", None) and not request.COOKIES.get("welcomeToS2LoggedOut", None):
+            # Welcome returning visitors only to the new Sefaria. TODO this should be removed after some time.
+            interrupting_message_json = json.dumps({
+                "name": "welcomeToS2LoggedOut",
+                "html": render_to_string("messages/welcomeToS2LoggedOut.html")
+            })
+        else:
+            interrupting_message_json = "null"
+        return {"interrupting_message_json": interrupting_message_json}
+    
+    profile = UserProfile(id=request.user.id)
+    notifications = profile.recent_notifications()
+    notifications_json = "[" + ",".join([n.to_JSON() for n in notifications]) + "]"
+    interrupting_message = profile.interrupting_message()
+    if interrupting_message:
+        interrupting_message_json = json.dumps({"name": interrupting_message, "html": render_to_string("messages/%s.html" % interrupting_message)})
+    else:
+        interrupting_message_json = "null"
+    return {
+                "notifications": notifications, 
+                "notifications_json": notifications_json,
+                "notifications_html": notifications.to_HTML(),
+                "notifications_count": profile.unread_notification_count(),
+                "interrupting_message_json": interrupting_message_json,
+            }
+
+
+LOGGED_OUT_HEADER = None
+LOGGED_IN_HEADER  = None
+def header_html(request):
+    """
+    Uses React to prerender a logged in and and logged out header for use in pages that extend `base.html`.
+    Cached in memory -- restarting Django is necessary for catch any HTML changes to header.
+    """
+    if request.path == "/data.js":
         return {}
-    notifications = NotificationSet().recent_for_user(request.user.id)
-    unread_count  = unread_notifications_count_for_user(request.user.id)
-    return {"notifications": notifications, "notifications_count": unread_count }
+    global LOGGED_OUT_HEADER, LOGGED_IN_HEADER
+    if USE_NODE:
+        LOGGED_OUT_HEADER = LOGGED_OUT_HEADER or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": False})
+        LOGGED_IN_HEADER = LOGGED_IN_HEADER or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": True})
+    else:
+        LOGGED_OUT_HEADER = ""
+        LOGGED_IN_HEADER = ""
+    return {
+        "logged_in_header": LOGGED_IN_HEADER,
+        "logged_out_header": LOGGED_OUT_HEADER,
+    }
 
 
 def calendar_links(request):
@@ -78,11 +130,11 @@ def calendar_links(request):
     daf_yomi_link = "<a href='/%s'>%s</a>" % (daf["url"], daf["name"])
 
     return {
-            "parasha_link":  parasha_link, 
-            "haftara_link":  haftara_link,
-            "daf_yomi_link": daf_yomi_link,
-            "parasha_ref":   parasha["ref"],
-            "parasha_name": parasha["parasha"],
-            "haftara_ref":   parasha["haftara"][0],
-            "daf_yomi_ref":  daf["url"]
-        }
+                "parasha_link":  parasha_link, 
+                "haftara_link":  haftara_link,
+                "daf_yomi_link": daf_yomi_link,
+                "parasha_ref":   parasha["ref"],
+                "parasha_name":  parasha["parasha"],
+                "haftara_ref":   parasha["haftara"][0],
+                "daf_yomi_ref":  daf["url"]
+            }

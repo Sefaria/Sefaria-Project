@@ -4,7 +4,16 @@
 <ul id="activityList">
 {% for event in activity %}
     <li>
-    	{% if "text" in event.rev_type %}
+        {% if event.rev_type == "delete index" %}
+            <span class="topline">{{ event.user|user_link }} deleted the text <i>{{ event.title }}</i>.
+            </span>
+
+        {% elif event.rev_type == "delete text" %}
+            <span class="topline">{{ event.user|user_link }} deleted a text version of <b>{{ event.title|ref_link }}</b>.
+            </span>
+    	   <div class="versionLine">Version: {{ event.version }} ({{ event.language|lang_code }})</div>
+
+        {% elif "text" in event.rev_type %}
 	    	
             {% if email and single and not forloop.first %}
 	    		<div class="btn btn-mini revert" data-revert="/api/revert/{{ event.ref|url_safe }}/{{ lang }}/{{ version|url_safe }}/{{ event.revision }}">Revert to This</div>
@@ -30,7 +39,7 @@
 	    	{% endif %}
 	    	</span>
             <div class="versionLine">Version: {{ event.version }} ({{ event.language|lang_code }})</div>
-	    	<div class="text {{ event.language }}">
+	    	<div class="text ver-{{ event.language }}">
 	    		{% autoescape off %}{{ event.diff_html }}{% endautoescape %}
 	    	</div>
 
@@ -48,6 +57,10 @@
 	    	between {% filter ref_link %}{% firstof event.new.refs.0 event.old.refs.0 %}{% endfilter %} and {% filter ref_link %}{% firstof event.new.refs.1  event.old.refs.1 %}{% endfilter %}.
 	    	{% if event.method == "API" %} (via API) {% endif %}
             </span>
+            <div class="versionLine">
+            {% if event.rev_type == "add link" and event.new.generated_by == "add_commentary_links" %}(automatic commentary link){% endif %}
+            {% if event.rev_type == "add link" and event.new.generated_by == "add_links_from_text" %}(automatic citation link){% endif %}
+            </div>
 
 
 	    {% elif "note" in event.rev_type %}
@@ -102,8 +115,6 @@
             <span class="topline">{{ event.user|user_link }} published a new Source Sheet, {{ event.sheet|sheet_link }}.
             </span>
 
-
-
         {% endif %}
 
 
@@ -125,6 +136,6 @@
     {% endif %}
 {% endfor %}
 </ul>
-{% if not single and next_page %}
-    <a id="older" href="{{ next_page }}">Older Activity &raquo;</a>
+{% if next_page and not hide_more_link %}
+    <a class="page-link" id="older" href="{{ next_page }}">Older Activity &raquo;</a>
 {% endif %}

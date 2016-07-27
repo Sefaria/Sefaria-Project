@@ -8,7 +8,7 @@ import dateutil.parser
 import urllib
 import math
 from urlparse import urlparse
-
+from datetime import datetime
 from django import template
 from django.template.defaultfilters import stringfilter
 from django.utils.safestring import mark_safe
@@ -17,7 +17,8 @@ from django.db.models.query import QuerySet
 from django.contrib.sites.models import Site
 
 from sefaria.sheets import get_sheet
-from sefaria.utils.users import user_link as ulink
+from sefaria.model.user_profile import user_link as ulink
+from sefaria.model.user_profile import user_name as uname
 from sefaria.utils.util import strip_tags as strip_tags_func
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term
 from sefaria.utils.hebrew import hebrew_term as translate_hebrew_term
@@ -114,7 +115,7 @@ def he_parasha(value):
 @register.filter(is_safe=True)
 def version_link(v):
 	"""
-	Return an <a> tag linking to the first availabe text of a particular version.
+	Return an <a> tag linking to the first available text of a particular version.
 	"""
 	try:
 		section_ref = v.first_section_ref() or v.get_index().nodes.first_leaf().first_section_ref()
@@ -122,9 +123,9 @@ def version_link(v):
 		try:
 			section_ref = v.get_index().nodes.first_leaf().first_section_ref()
 		except:  # Better if we knew how this may fail...
-			return mark_safe(u'<a href="/{}.1/{}/{}">{}</a>'.format(v.title, v.language, v.versionTitle.replace(" ", "_"), v.versionTitle))
+			return mark_safe(u'<a href="/{}.1/{}/{}">{}</a>'.format(v.title, v.language, urllib.quote(v.versionTitle.replace(" ", "_").encode("utf-8")), v.versionTitle))
 
-	link = u'<a href="/{}/{}/{}">{}</a>'.format(section_ref.url(), v.language, v.versionTitle.replace(" ", "_"), v.versionTitle)
+	link = u'<a href="/{}/{}/{}">{}</a>'.format(section_ref.url(), v.language, urllib.quote(v.versionTitle.replace(" ", "_").encode("utf-8")), v.versionTitle)
 	return mark_safe(link)
 
 @register.filter(is_safe=True)
@@ -190,9 +191,15 @@ def normalize_url(value):
 		value = 'http://' + value
 	return value
 
+
 @register.filter(is_safe=True)
 def user_link(uid):
 	return mark_safe(ulink(uid))
+
+
+@register.filter(is_safe=True)
+def user_name(uid):
+	return mark_safe(uname(uid))
 
 
 @register.filter(is_safe=True)
@@ -209,7 +216,7 @@ def lang_code(code):
 def text_category(text):
 	"""Returns the top level category for text"""
 	try:
-		i = m.get_index(text)
+		i = m.library.get_index(text)
 		result = mark_safe(getattr(i, "categories", ["[no cats]"])[0])
 	except:
 		result = "[text not found]"
@@ -231,6 +238,16 @@ def strip_tags(value):
 	Returns the given HTML with all tags stripped.
 	"""
 	return mark_safe(strip_tags_func(value))
+
+
+@register.filter(is_safe=True)
+def escape_quotes(value):
+	"""
+	Returns the given HTML with single and double quotes escpaed with \ for a JS context
+	"""
+	value = value.replace("'", "\\'")
+	value = value.replace('"', '\\"')
+	return mark_safe(value)
 
 
 @register.filter(is_safe=True)
@@ -466,3 +483,7 @@ def partition_vertical(thelist, n):
 	for i, val in enumerate(thelist):
 		newlists[i%n].append(val)
 	return newlists
+
+@register.filter
+def date_string_to_date(dateString):
+    return(datetime.strptime(dateString, "%Y-%m-%dT%H:%M:%S.%f"))

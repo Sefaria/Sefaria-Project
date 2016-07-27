@@ -15,45 +15,44 @@
 
 {% block content %}
 
-    
-<div id="peoplePage" class="container doc biReady">
-    <h1>
-        <span class="en">Authors</span>
-        <span class="he">מחברים</span>
-    </h1>
+<div id="peoplePage" class="biReady container static">
+    <div class="inner">
+        <h1>
+            <span class="en">Authors</span>
+            <span class="he">מחברים</span>
+        </h1>
+        <div class="section">
+            <div class="authors-row">
+                <div class="author">
+                    <span class="en"><a href="/people/Talmud">People in the Talmud</a> </span>
+                    <span class="he"><a href="/people/Talmud">אנשים בתלמוד</a></span>
+                </div>
 
+            </div>
 
-    <div class="row">
-        <span class="author span4">
-            <span class="en"><a href="/people/Talmud">People in the Talmud</a> </span>
-            <span class="he"><a href="/people/Talmud">אנשים בתלמוד</a></span>
-        </span>
-    </div>
+            {% for era in eras %}
 
-    {% for era in eras %}
+                <div class="era">
+                    <h3>
+                        <span class="en">{{ era.name_en }}</span>
+                        <span class="he">{{ era.name_he }}</span>
+                        <span class="subtitle en"> {{ era.years_en }}</span>
+                        <span class="subtitle he"> {{ era.years_he }}</span>
+                    </h3>
+                    {% for r in era.people|partition_by:"2" %}
+                        <div class="authors-row">
+                            {%  for person in r %}
+                                <p class="author">
+                                   {{ person|person_link }}
+                                </p>
+                            {%  endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
 
-    <div class="row">
-        <span class="span12">
-            <h2>
-                <span class="en">{{ era.name_en }} <span class="subtitle"> {{ era.years_en }}</span> </span>
-                <span class="he">{{ era.name_he }} <span class="subtitle"> {{ era.years_he }}</span> </span>
-            </h2>
-        </span>
-    </div>
-
-    {% for r in era.people|partition_by:"3" %}
-        <div class="row">
-            {%  for person in r %}
-                <span class="author span4">
-                   {{ person|person_link }}
-                </span>
-            {%  endfor %}
+            {% endfor %}
         </div>
-    {% endfor %}
-
-
-    {% endfor %}
-
+    </div>
 </div>
 
 {% endblock %}

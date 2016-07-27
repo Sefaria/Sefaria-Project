@@ -4,6 +4,7 @@ import pytest
 import sefaria.summaries as s
 import sefaria.model as model
 import sefaria.system.cache as scache
+from sefaria.system.exceptions import BookNameError
 from sefaria.utils.testing_utils import *
 
 #create, update, delete, change categories
@@ -15,7 +16,7 @@ from sefaria.utils.testing_utils import *
 """ SOME SETUP """
 
 text_titles = model.VersionSet({}).distinct('title')
-s.update_table_of_contents()
+model.library.rebuild_toc()
 scache.delete_cache_elem('toc_cache')
 
 
@@ -24,12 +25,12 @@ scache.delete_cache_elem('toc_cache')
 
 class Test_Toc(object):
     def test_toc_integrity(self):
-        toc = s.get_toc()
+        model.library.rebuild_toc()
+        toc = model.library.get_toc()
         self.recur_toc_integrity(toc)
 
-
     def recur_toc_integrity(self, toc, depth=0):
-         for toc_elem in toc:
+        for toc_elem in toc:
             if 'category' in toc_elem:
                 #verify proper category node (including that it doesnt have a title attr)
                 self.verify_category_node_integrity(toc_elem, depth)
@@ -52,6 +53,30 @@ class Test_Toc(object):
         assert 'category' not in node
         assert isinstance(node['sparseness'], int)
         #do we need to assert that the title is not equal to any category name?
+
+    @pytest.mark.deep
+    def test_new_index_title_change(self):
+        new_index = model.Index({
+            "title": "New Toc Title Test",
+            "heTitle": u"פםעעפם",
+            "titleVariants": [],
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Philosophy"]
+        })
+        verify_title_existence_in_toc(new_index.title, None)
+        new_index.save()
+        verify_title_existence_in_toc(new_index.title, new_index.categories)
+        # title change
+        old_title = new_index.title
+        new_title = "Bob is your Uncle"
+        new_index.title = new_title
+        new_index.save()
+        verify_title_existence_in_toc(old_title, None)
+        verify_title_existence_in_toc(new_title, new_index.categories)
+        new_index.delete()
+        verify_title_existence_in_toc(new_title, None)
+        verify_title_existence_in_toc(old_title, None)
+
 
     def test_index_add_delete(self):
         #test that the index
@@ -97,12 +122,12 @@ class Test_Toc(object):
     def test_index_attr_change(self):
         indx = model.Index().load({"title": "Or HaChaim"})
         verify_title_existence_in_toc(indx.title, None)
-        verify_title_existence_in_toc(indx.title+' on Genesis', ['Tanach', 'Commentary', 'Torah', 'Genesis'])
+        verify_title_existence_in_toc(indx.title+' on Genesis', ['Tanakh', 'Commentary', 'Or HaChaim'])
         indx.titleVariants.append("Or HaChaim HaKadosh")
         #indx.nodes.add_title("Or HaChaim HaKadosh", "en")
         indx.save()
         verify_title_existence_in_toc(indx.title, None)
-        verify_title_existence_in_toc(indx.title+' on Genesis', ['Tanach', 'Commentary', 'Torah', 'Genesis'])
+        verify_title_existence_in_toc(indx.title+' on Genesis', ['Tanakh', 'Commentary', 'Or HaChaim'])
 
         indx2 = model.Index().load({"title": "Sefer Kuzari"}) #Was Tanya, but Tanya has a hebrew title clash problem, momentarily.
         verify_title_existence_in_toc(indx2.title, indx2.categories)
@@ -118,6 +143,13 @@ class Test_Toc(object):
 
     @pytest.mark.deep
     def test_index_title_change(self):
+        try:
+            i = model.library.get_index("The Likutei Moharan")
+            if i:
+                i.delete()
+        except BookNameError:
+            pass
+
         old_title = 'Likutei Moharan'
         new_title = 'The Likutei Moharan'
         toc_location = ['Chasidut']
@@ -144,14 +176,14 @@ class Test_Toc(object):
         new_title = 'Sforno New'
         i = model.Index().load({"title": old_title})
         verify_title_existence_in_toc(old_title, None)
-        verify_title_existence_in_toc(old_title+' on Genesis', ['Tanach', 'Commentary', 'Torah', 'Genesis'])
+        verify_title_existence_in_toc(old_title+' on Genesis', ['Tanakh', 'Commentary', 'Sforno'])
         i.title = new_title
         i.save()
         #old title not there
         verify_title_existence_in_toc(old_title, None)
         #new one not either since it's just a commentator name
         verify_title_existence_in_toc(new_title, None)
-        verify_title_existence_in_toc(new_title+' on Genesis', ['Tanach', 'Commentary', 'Torah', 'Genesis'])
+        verify_title_existence_in_toc(new_title+' on Genesis', ['Tanakh', 'Commentary', 'Sforno New'])
         #do testing: make sure new title is in the old place in the toc and that the old title is removed
         i.title = old_title
         i.save()
@@ -159,4 +191,4 @@ class Test_Toc(object):
         verify_title_existence_in_toc(new_title, None)
         #new one in it's place
         verify_title_existence_in_toc(old_title, None)
-        verify_title_existence_in_toc(old_title+' on Genesis', ['Tanach', 'Commentary', 'Torah', 'Genesis'])
+        verify_title_existence_in_toc(old_title+' on Genesis', ['Tanakh', 'Commentary', 'Sforno'])

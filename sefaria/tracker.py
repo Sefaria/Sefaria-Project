@@ -7,7 +7,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 import sefaria.model as model
-from sefaria.utils.users import is_user_staff
 from sefaria.system.exceptions import InputError
 try:
     from sefaria.settings import USE_VARNISH
@@ -28,7 +27,7 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     :return:
     """
     chunk = model.TextChunk(oref, lang, vtitle)
-    if getattr(chunk.version(), "status", "") == "locked" and not is_user_staff(user):
+    if getattr(chunk.version(), "status", "") == "locked" and not model.user_profile.is_user_staff(user):
         raise InputError("This text has been locked against further edits.")
     action = kwargs.get("type") or "edit" if chunk.text else "add"
     old_text = chunk.text
@@ -44,12 +43,12 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
             if oref.prev_section_ref():
                 invalidate_ref(oref.prev_section_ref(), lang=lang, version=vtitle, purge=True)
         if not kwargs.get("skip_links", None):
-            from sefaria.helper.link import add_commentary_links, add_links_from_text, rebuild_commentary_links
+            from sefaria.helper.link import add_and_delete_invalid_commentary_links, add_links_from_text
             # Commentaries generate links to their base text automatically
             if oref.type == "Commentary":
-                rebuild_commentary_links(oref.normal(), user, **kwargs)
+                add_and_delete_invalid_commentary_links(oref, user, **kwargs)
             # scan text for links to auto add
-            add_links_from_text(oref.normal(), lang, chunk.text, chunk.full_version._id, user, **kwargs)
+            add_links_from_text(oref, lang, chunk.text, chunk.full_version._id, user, **kwargs)
 
             if USE_VARNISH:
                 invalidate_linked(oref)

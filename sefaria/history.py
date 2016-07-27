@@ -1,9 +1,8 @@
 """
 history.py - managing the revision/activity history.
 
-Write to MongoDB collection: history
+Writes to MongoDB collection: history
 """
-
 from datetime import datetime
 from diff_match_patch import diff_match_patch
 from bson.code import Code
@@ -21,7 +20,8 @@ def get_activity(query={}, page_size=100, page=1, filter_type=None, initial_skip
     """
     query.update(filter_type_to_query(filter_type))
     skip = initial_skip + (page - 1) * page_size
-    activity = list(db.history.find(query).sort([["date", -1]]).skip(skip).limit(page_size))
+    projection = { "revert_patch": 0 }
+    activity = list(db.history.find(query, projection).sort([["date", -1]]).skip(skip).limit(page_size))
 
     for i in range(len(activity)):
         a = activity[i]
@@ -33,16 +33,17 @@ def get_activity(query={}, page_size=100, page=1, filter_type=None, initial_skip
     return activity
 
 
-def text_history(oref, version, lang, filter_type=None):
+def text_history(oref, version, lang, filter_type=None, page=1):
     """
     Return a complete list of changes to a segment of text (identified by ref/version/lang)
     """
     regex_list = oref.regex(as_list=True)
-    ref_clauses = [{"ref": {"$regex": r}} for r in regex_list]
-    query = {"$or": ref_clauses, "version": version, "language": lang}
+    text_ref_clauses = [{"ref": {"$regex": r}, "version": version, "language": lang} for r in regex_list]
+    link_ref_clauses = [{"new.refs": {"$regex": r}} for r in regex_list]
+    query = {"$or": text_ref_clauses + link_ref_clauses}
     query.update(filter_type_to_query(filter_type))
 
-    return get_activity(query, page_size=0, page=1, filter_type=filter_type)
+    return get_activity(query, page_size=100, page=page, filter_type=filter_type)
 
 
 def filter_type_to_query(filter_type):
@@ -184,6 +185,34 @@ def next_revision_num():
     last_rev = db.history.find().sort([['revision', -1]]).limit(1)
     revision = last_rev.next()["revision"] + 1 if last_rev.count() else 1
     return revision
+
+
+def record_index_deletion(title, uid):
+    """
+    Records the deletion of an index record.
+    """
+    log = {
+        "user": uid,
+        "title": title,
+        "date": datetime.now(),
+        "rev_type": "delete index",
+    }
+    db.history.save(log)
+
+
+def record_version_deletion(title, version, lang, uid):
+    """
+    Records the deletion of a text version.
+    """
+    log = {
+        "user": uid,
+        "title": title,
+        "version": version,
+        "language": lang,
+        "date": datetime.now(),
+        "rev_type": "delete text",
+    }
+    db.history.save(log)
 
 
 def record_sheet_publication(sheet_id, uid):

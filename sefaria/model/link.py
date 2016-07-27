@@ -11,6 +11,7 @@ from sefaria.system.database import db
 from . import abstract as abst
 from . import text
 
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -53,7 +54,8 @@ class Link(abst.AbstractMongoRecord):
     def _pre_save(self):
         if getattr(self, "_id", None) is None:
             # Don't bother saving a connection that already exists, or that has a more precise link already
-            samelink = Link().load({"refs": self.refs})
+            # will also find the same link with the two refs reversed
+            samelink = Link().load({"$or": [{"refs": self.refs}, {"refs": [self.refs[1], self.refs[0]]}]})
 
             if samelink:
                 if not self.auto and self.type and not samelink.type:
@@ -65,6 +67,7 @@ class Link(abst.AbstractMongoRecord):
                     samelink.auto = self.auto
                     samelink.generated_by = self.generated_by
                     samelink.source_text_oid = self.source_text_oid
+                    samelink.refs = self.refs  #in case the refs are reversed. switch them around
                     samelink.save()
                     raise DuplicateRecordError(u"Updated existing link with auto generation data {} - {}".format(self.refs[0], self.refs[1]))
 
@@ -186,19 +189,20 @@ class LinkSet(abst.AbstractMongoSet):
 
 
 def process_index_title_change_in_links(indx, **kwargs):
+    #TODO: think about these functions in commentary refactor
+    print "Cascading Links {} to {}".format(kwargs['old'], kwargs['new'])
     if indx.is_commentary():
         pattern = r'^{} on '.format(re.escape(kwargs["old"]))
     else:
-        commentators = text.IndexSet({"categories.0": "Commentary"}).distinct("title")
-        pattern = ur"(^{} \d)|(^({}) on {} \d)".format(re.escape(kwargs["old"]), "|".join(commentators), re.escape(kwargs["old"]))
-        #pattern = r'(^{} \d)|( on {} \d)'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
+        pattern = text.Ref(indx.title).base_text_and_commentary_regex()
+        pattern = pattern.replace(re.escape(indx.title), re.escape(kwargs["old"]))
     links = LinkSet({"refs": {"$regex": pattern}})
     for l in links:
         l.refs = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search(pattern, r) else r for r in l.refs]
         try:
             l.save()
         except InputError: #todo: this belongs in a better place - perhaps in abstract
-            logger.warning("Deleting link that failed to save: {} {}".format(l.refs[0], l.refs[1]))
+            logger.warning("Deleting link that failed to save: {} - {}".format(l.refs[0], l.refs[1]))
             l.delete()
 
 
@@ -242,6 +246,38 @@ def get_link_counts(cat1, cat2):
 
     link_counts[key] = result
     return result
+
+
+def get_category_category_linkset(cat1, cat2):
+    """
+    Return LinkSet of links between the given book and category.
+    :param book: String
+    :param cat: String
+    :return:
+    """
+    queries = []
+    titles = []
+    regexes = []
+    clauses = []
+
+    for i, cat in enumerate([cat1, cat2]):
+        queries += [{"$and": [{"categories": cat}, {"categories": {"$ne": "Commentary"}}, {"categories": {"$ne": "Commentary2"}}, {"categories": {"$ne": "Targum"}}]}]
+        titles += [text.IndexSet(queries[i]).distinct("title")]
+        if len(titles[i]) == 0:
+            raise IndexError("No results for {}".format(queries[i]))
+
+        regexes += [[]]
+        for t in titles[i]:
+            regexes[i] += text.Ref(t).regex(as_list=True)
+
+        clauses += [[]]
+        for rgx in regexes[i]:
+            if cat1 == cat2:
+                clauses[i] += [{"refs.{}".format(i): {"$regex": rgx}}]
+            else:
+                clauses[i] += [{"refs": {"$regex": rgx}}]
+
+    return LinkSet({"$and": [{"$or": clauses[0]}, {"$or": clauses[1]}]})
 
 
 def get_book_category_linkset(book, cat):

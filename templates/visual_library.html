@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+
+{% block title %}Visualizing the Sefaria Library{% if lang %} ({{ lang }}){% endif %}{% endblock %}
+{% block ogimage %}<meta property="og:image" content="/static/img/sunburst.png"/>{% endblock %}
+{% block head %}
+    {% if not OFFLINE %}
+    <script src="https://use.typekit.net/aeg8div.js"></script>
+    <script>try{Typekit.load({ async: true });}catch(e){}</script>
+    <script src="//ajax.googleapis.com/ajax/libs/webfont/1.5.10/webfont.js"></script>
+    <script>
+      WebFont.load({
+        google: {
+          families: ['Montserrat:400,700', 'Open Sans Hebrew:400,700:latin,hebrew' ]
+        }
+      });
+    </script>
+    {% endif %}
+    <script src="http://d3js.org/d3.v3.js"></script>
+{%  endblock %}
+
+{% block css %}
+    #controls {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        width: 100%;
+        padding: 0 20px;
+        box-sizing: border-box;
+    }
+    #title, #subtitle  {
+        text-align: left;
+        font-size: 20px;
+    }
+    #title {
+        float: left;
+        padding-right: 15px;
+    }
+    #subtitle {
+    }
+    #content {
+        padding-top: 0;
+    }
+    #chart {
+        width: 960px;
+        margin: 0 auto;
+    }
+    #chart path {
+        stroke: #fff;
+    }
+    #rightbox {
+        float: right;
+    }
+    #clicktozoom, #langselect {
+        float: right;
+        clear: both;
+        font-size: 10px;
+        margin-bottom: 10px;
+    }
+    #explanation {
+        clear: left;
+        padding-top: 10px;
+        height: 5px;
+        width: 300px;
+        color: #666;
+    }
+    #languageToggle {
+        display: none;
+    }
+{% endblock %}
+
+{% block content %}
+
+<div id="visualLibraryPage" class="container doc">
+    <div id="controls">
+        <div id="rightbox">
+            <div id="langselect"></div>
+            <div id="clicktozoom">Click Graph to Zoom</div>
+        </div>
+        <div id="title"></div>
+        <div id="subtitle"></div>
+        <div id="explanation" style="visibility: hidden;">
+            <div id="text-title"></div>
+            <div id="word-count"></div>
+        </div>
+    </div>
+    <div id="chart"></div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+    <script>
+    {% autoescape off %}
+    var lang = "{{ lang }}";
+    var cats = {{ cats }};
+    var tree;
+    var focus;
+
+    var width = 960,
+        height = 700,
+        radius = Math.min(width, height) / 2,
+        color = d3.scale.category20c();
+
+    d3.select("#title").text(get_title());
+    d3.select("#langselect").html(
+            ((lang != "he")?"&nbsp;<a href='/visualize/library/he'>(he)</a>&nbsp;":"") +
+            ((lang != "en")?"&nbsp;<a href='/visualize/library/en'>(en)</a>&nbsp;":"") +
+            ((lang)?"<a href='/visualize/library'>(he+en)</a>":"")
+    );
+    var svg = d3.select("#chart").append("svg")
+        .attr("width", width)
+        .attr("height", height)
+      .append("g")
+        .attr("transform", "translate(" + width / 2 + "," + (height / 2) + ")");
+
+    var x = d3.scale.linear()
+        .range([0, 2 * Math.PI]);
+
+    var y = d3.scale.sqrt()
+        .range([0, radius]);
+
+    var partition = d3.layout.partition()
+        .sort(null)
+        .value(function(d) { return d.size; });
+
+    var arc = d3.svg.arc()
+        .startAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, x(d.x))); })
+        .endAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, x(d.x + d.dx))); })
+        .innerRadius(function(d) { return Math.max(0, y(d.y)); })
+        .outerRadius(function(d) { return Math.max(0, y(d.y + d.dy)); });
+
+    var dataurl  =  "/api/texts/version-status/tree/" + lang;
+    d3.json(dataurl, function(error, data) {
+        if (error) throw error;
+        tree = data;
+        render();
+        if (cats.length > 0) {
+            d3.select("#" + get_path_id(cats)).each(changeState);
+            replaceHistory();
+        }
+    });
+
+    function render() {
+        var path = svg.datum(tree).selectAll("path")
+          .data(partition.nodes)
+        .enter().append("path")
+          // .attr("display", function(d) { return d.depth ? null : "none"; }) // hide inner ring
+          .attr("id", get_node_id)
+          .attr("d", arc)
+          .on("click", click)
+          .on("mouseover", mouseover)
+          .style("stroke", "#fff")
+          .style("fill", function(d) { return color((d.children ? d : d.parent).name); })
+          .style("fill-rule", "evenodd")
+        .append("title")
+          .text(function (d) { return d.name; })
+          ;
+    }
+    function click(d) {
+        if (!(d.children)) {
+            return;
+        }
+        changeState(d);
+        pushHistory();
+    }
+    function changeState(d) {
+      svg.transition()
+          .duration(750)
+          .tween("scale", function() {
+            var xd = d3.interpolate(x.domain(), [d.x, d.x + d.dx]),
+                yd = d3.interpolate(y.domain(), [d.y, 1]),
+                yr = d3.interpolate(y.range(), [d.y ? 20 : 0, radius]);
+            return function(t) { x.domain(xd(t)); y.domain(yd(t)).range(yr(t)); };
+          })
+        .selectAll("path")
+          .attrTween("d", function(d) { return function() { return arc(d); }; });
+      focus = d;
+      cats = d.path;
+      d3.select("#subtitle").html("<a href='" + get_cat_or_text_url() + "'>" + get_subtitle() + '</a>');
+    }
+
+    function mouseover(d) {
+        d3.select("#explanation")
+          .style("visibility", "");
+        d3.select("#text-title")
+          .text(d.name);
+        d3.select("#word-count")
+          .text(d.value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") +" words"); //regex adds commas in the number
+    }
+
+    function get_title() {
+        return "Sefaria" + (lang ? lang == "en" ? " English" : " Hebrew" : "") + " Library";
+    }
+    function get_subtitle() {
+        return cats.join(" > ")
+    }
+    function get_cat_or_text_url() {
+        if (focus.type == "category") {
+            return "/texts/" + cats.join("/");
+        }
+        else if (focus.type == "index") {
+            return "/" + focus.name.replace(/\s/g,"_");
+        }
+        return "";
+    }
+    function get_pagetitle() {
+        return get_title() + (get_subtitle()?": " + get_subtitle():"")
+    }
+    function get_visualize_url() {
+        return "/visualize/library/" + (lang ? lang + "/" : "") + cats.join("/").replace(/\s/g,"_")
+    }
+    function get_path_id(path) {
+        if (path.length == 0) {
+            return "library-root";
+        }
+        return path.join("-").replace(/\s/g,"_")
+    }
+    function get_node_id(d) {
+        return get_path_id(d.path);
+    }
+    function _historyObject() {
+        return {
+            object: {
+                cats: cats
+            },
+            url: get_visualize_url(),
+            title: get_pagetitle()
+        }
+    }
+    function replaceHistory() {
+        var args = _historyObject();
+        //console.log("replaceHistory",args.object, args.title, args.url);
+        history.replaceState(args.object, args.title, args.url);
+
+    }
+
+    function pushHistory() {
+        var args = _historyObject();
+        //console.log("pushHistory",args.object, args.title, args.url);
+        history.pushState(args.object, args.title, args.url);
+    }
+
+    function handleStateChange(event) {
+        //console.log("popHistory", event.state);
+        cats = event.state.cats;
+        d3.select("#" + get_path_id(cats)).each(changeState);
+    }
+
+    window.addEventListener('popstate', handleStateChange);
+
+    d3.select(self.frameElement).style("height", height + "px");
+    {% endautoescape %}
+    </script>
+{% endblock %}

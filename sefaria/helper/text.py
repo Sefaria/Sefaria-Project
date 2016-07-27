@@ -1,4 +1,4 @@
-# coding=utf-8
+# encoding=utf-8
 import re
 
 import sefaria.summaries as summaries
@@ -18,7 +18,7 @@ def add_spelling(category, old, new, lang="en"):
     """
     indxs = library.get_indexes_in_category(category)
     for ind in indxs:
-        i = get_index(ind)
+        i = library.get_index(ind)
         print
         assert isinstance(i, Index)
         schema = i.nodes
@@ -60,7 +60,6 @@ def create_commentator_and_commentary_version(commentator_name, existing_book, l
                 }
     ).save()
 
-
 def rename_category(old, new):
     """
     Walk through all index records, replacing every category instance
@@ -74,8 +73,7 @@ def rename_category(old, new):
         i.categories = [new if cat == old else cat for cat in i.categories]
         i.save()
 
-    summaries.update_summaries()
-
+    library.rebuild_toc()
 
 def resize_text(title, new_structure, upsize_in_place=False):
     # todo: Needs to be converted to objects, but no usages seen in the wild.
@@ -122,10 +120,10 @@ def resize_text(title, new_structure, upsize_in_place=False):
     # TODO Rewrite any existing Links
     # TODO Rewrite any exisitng History items
 
-    summaries.update_summaries_on_change(title)
-    scache.reset_texts_cache()
+    library.refresh_index_record_in_cache(index)
 
     return True
+
 
 def merge_indices(title1, title2):
     """
@@ -257,7 +255,7 @@ def modify_text_by_function(title, vtitle, lang, func, uid, **kwargs):
     Walks ever segment contained in title, calls func on the text and saves the result.
     """
     from sefaria.tracker import modify_text
-    section_refs = VersionStateSet({"title": title}).all_refs()
+    section_refs = library.get_index(title).all_section_refs()
     for section_ref in section_refs:
         section = section_ref.text(vtitle=vtitle, lang=lang)
         segment_refs = section_ref.subrefs(len(section.text) if section.text else 0)
@@ -268,29 +266,83 @@ def modify_text_by_function(title, vtitle, lang, func, uid, **kwargs):
                     modify_text(uid, segment_refs[i], vtitle, lang, text, **kwargs)
 
 
-def replace_roman_numerals(text):
+def split_text_section(oref, lang, old_version_title, new_version_title):
+    """
+    Splits the text in `old_version_title` so that the content covered by `oref` now appears in `new_version_title`.
+    Rewrites history for affected content. 
+
+    NOTE: `oref` cannot be ranging (until we implement saving ranging refs on TextChunk). Spanning refs are handled recursively.
+    """
+    if oref.is_spanning():
+        for span in oref.split_spanning_ref():
+            split_text_section(span, lang, old_version_title, new_version_title)
+        return
+
+    old_chunk = TextChunk(oref, lang=lang, vtitle=old_version_title)
+    new_chunk = TextChunk(oref, lang=lang, vtitle=new_version_title)
+
+    # Copy content to new version
+    new_chunk.versionSource = old_chunk.version().versionSource
+    new_chunk.text = old_chunk.text
+    new_chunk.save()
+
+    # Rewrite History
+    ref_regex_queries = [{"ref": {"$regex": r}, "version": old_version_title, "language": lang} for r in oref.regex(as_list=True)]
+    query = {"$or": ref_regex_queries}
+    db.history.update(query, {"$set": {"version": new_version_title}}, upsert=False, multi=True)
+
+    # Remove content from old version
+    old_chunk.text = JaggedTextArray(old_chunk.text).constant_mask(constant="").array()
+    old_chunk.save()
+
+
+def find_and_replace_in_text(title, vtitle, lang, find_string, replace_string, uid):
+    """
+    Replaces all instances of `find_string` with `replace_string` in the text specified by `title` / `vtitle` / `lang`.
+    Changes are attributed to the user with `uid`. 
+    """
+    def replacer(text):
+        return text.replace(find_string, replace_string)
+
+    modify_text_by_function(title, vtitle, lang, replacer, uid)
+
+
+def replace_roman_numerals(text, allow_lowercase=False):
     """
     Replaces any roman numerals in 'text' with digits.
     Currently only looks for a roman numeral followed by a comma or period, then a space, then a digit.
     e.g. (Isa. Iv. 10) --> (Isa. 4:10)
+
+    WARNING: we've seen e.g., "(v. 15)" used to mean "Verse 15". If run with allow_lowercase=True, this will
+    be rewritten as "(5:15)". 
     """
     import roman
-    regex = re.compile(" (M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))([.,] )(\d)", re.I)
+    flag  = re.I if allow_lowercase else 0
+    regex = re.compile("([( ])(M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))([.,] ?)(\d)", flag)
     def replace_roman_numerals_in_match(m):
-        s = m.group(1)
+        s = m.group(2)
         s = s.upper()
         try:
             if s:
-                return " %s:%s" % (roman.fromRoman(s), m.group(6))
+                return "%s%s:%s" % (m.group(1), roman.fromRoman(s), m.group(7))
+            else:
+                return m.group(0)
         except:
             return m.group(0)
 
     return re.sub(regex, replace_roman_numerals_in_match, text)
 
 
+def replace_roman_numerals_including_lowercase(text):
+    """
+    Returns `text` with Roman numerals replaced by Arabic numerals, including Roman numerals in lowercase.
+    """
+    return replace_roman_numerals(text, allow_lowercase=True)
+
+
 def make_versions_csv():
     """
-    Returns a CSV of all version in the DB.
+    Returns a CSV of all text versions in the DB.
     """
     import csv
     import io
@@ -315,6 +367,148 @@ def make_versions_csv():
         writer.writerow([unicode(getattr(v, f, "")).encode("utf-8") for f in fields])
 
     return output.getvalue()
+
+
+def get_core_link_stats():
+    import csv
+    import io
+    from sefaria.model.link import get_category_category_linkset
+    output = io.BytesIO()
+    writer = csv.writer(output)
+    titles = [
+        "Category 1",
+        "Category 2",
+        "Count"
+    ]
+    writer.writerow(titles)
+    sets = [
+        ("Tanakh", "Tanakh"),
+        ("Tanakh", "Bavli"),
+        ("Bavli", "Tosefta"),
+        ("Tosefta", "Mishnah"),
+        ("Bavli", "Yerushalmi"),
+        ("Bavli", "Bavli"),
+        ("Bavli", "Mishneh Torah"),
+        ("Bavli", "Shulchan Arukh"),
+        ("Bavli", "Midrash"),
+        ("Bavli", "Mishnah")
+    ]
+    for set in sets:
+        writer.writerow([set[0], set[1], get_category_category_linkset(set[0], set[1]).count()])
+
+    return output.getvalue()
+
+
+def get_library_stats():
+    def aggregate_stats(toc_node, path):
+        simple_nodes = []
+        for x in toc_node:
+            node_name = x.get("category", None) or x.get("title", None)
+            node_path = path + [node_name]
+            simple_node = {
+                "name": node_name,
+                "path": " ".join(node_path)
+            }
+            if "category" in x:
+                simple_node["type"] = "category"
+                simple_node["children"] = aggregate_stats(x["contents"], node_path)
+                simple_node["en_version_count"] = reduce(lambda x, v: x + v["en_version_count"], simple_node["children"], 0)
+                simple_node["he_version_count"] = reduce(lambda x, v: x + v["he_version_count"], simple_node["children"], 0)
+                simple_node["en_index_count"] = reduce(lambda x, v: x + v["en_index_count"], simple_node["children"], 0)
+                simple_node["he_index_count"] = reduce(lambda x, v: x + v["he_index_count"], simple_node["children"], 0)
+                simple_node["en_word_count"] = reduce(lambda x, v: x + v["en_word_count"], simple_node["children"], 0)
+                simple_node["he_word_count"] = reduce(lambda x, v: x + v["he_word_count"], simple_node["children"], 0)
+                simple_node["all_index_count"] = reduce(lambda x, v: x + v["all_index_count"], simple_node["children"], 0)
+                simple_node["all_word_count"] = simple_node["en_word_count"] + simple_node["he_word_count"]
+                simple_node["all_version_count"] = simple_node["en_version_count"] + simple_node["he_version_count"]
+
+            elif "title" in x:
+                query = {"title": x["title"]}
+                simple_node["type"] = "index"
+                simple_node["children"] = [{
+                       "name": u"{} ({})".format(v.versionTitle, v.language),
+                       "path": " ".join(node_path + [u"{} ({})".format(v.versionTitle, v.language)]),
+                       "size": v.word_count(),
+                       "type": "version",
+                       "language": v.language,
+                       "en_version_count": 1 if v.language == "en" else 0,
+                       "he_version_count": 1 if v.language == "he" else 0,
+                       "en_word_count": v.word_count() if v.language == "en" else 0,
+                       "he_word_count": v.word_count() if v.language == "he" else 0,
+                   } for v in VersionSet(query)]
+                simple_node["en_version_count"] = reduce(lambda x, v: x + v["en_version_count"], simple_node["children"], 0)
+                simple_node["he_version_count"] = reduce(lambda x, v: x + v["he_version_count"], simple_node["children"], 0)
+                simple_node["en_index_count"] = 1 if any(v["language"] == "en" for v in simple_node["children"]) else 0
+                simple_node["he_index_count"] = 1 if any(v["language"] == "he" for v in simple_node["children"]) else 0
+                simple_node["en_word_count"] = reduce(lambda x, v: x + v["en_word_count"], simple_node["children"], 0)
+                simple_node["he_word_count"] = reduce(lambda x, v: x + v["he_word_count"], simple_node["children"], 0)
+                simple_node["all_word_count"] = simple_node["en_word_count"] + simple_node["he_word_count"]
+                simple_node["all_index_count"] = 1
+                simple_node["all_version_count"] = simple_node["en_version_count"] + simple_node["he_version_count"]
+
+            simple_nodes.append(simple_node)
+        return simple_nodes
+    tree = aggregate_stats(library.get_toc(), [])
+
+    import csv
+    import io
+    from operator import sub
+    output = io.BytesIO()
+    writer = csv.writer(output)
+    titles = [
+        "Category",
+        "#Titles (all)",
+        "#Titles (he)",
+        "#Titles (en)",
+        "#Versions (all)",
+        "#Versions (he)",
+        "#Versions (en)",
+        "#Words (all)",
+        "#Words (he)",
+        "#Words (en)"
+    ]
+    writer.writerow(titles)
+    fields = [
+        "path",
+        "all_index_count",
+        "he_index_count",
+        "en_index_count",
+        "all_version_count",
+        "he_version_count",
+        "en_version_count",
+        "all_word_count",
+        "he_word_count",
+        "en_word_count",
+    ]
+
+    with_commentary = ["Tanakh", "Mishnah", "Talmud", "Halakhah"]
+    for n in tree:
+        row = [n.get(field) for field in fields]
+        if n["name"] in with_commentary:
+            if n["name"] == "Tanakh":
+                cn = filter(lambda x: x["name"] == "Commentary", n["children"])[0]
+                c_row = [cn.get(field) for field in fields]
+                tn = filter(lambda x: x["name"] == "Targum", n["children"])[0]
+                t_row = [tn.get(field) for field in fields]
+                row[1:] = map(sub, map(sub, row[1:], c_row[1:]), t_row[1:])
+                writer.writerow(row)
+                writer.writerow(c_row)
+                writer.writerow(t_row)
+            else:
+                cn = filter(lambda x: x["name"] == "Commentary", n["children"])[0]
+                c_row = [cn.get(field) for field in fields]
+                row[1:] = map(sub, row[1:], c_row[1:])
+                writer.writerow(row)
+                writer.writerow(c_row)
+        else:
+            writer.writerow(row)
+
+    return output.getvalue()
+
+
+
+
+
 
 
 

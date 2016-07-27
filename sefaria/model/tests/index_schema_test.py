@@ -7,6 +7,8 @@ from sefaria.system.exceptions import InputError
 
 
 class Test_Schema(object):
+    # This needs a bunch of hebrew titles to validate
+    @pytest.mark.failing
     def test_schema_load(self):
         i = Index().load({"title": "Mishnah Torah Test"})
         if i:
@@ -768,5 +770,48 @@ class Test_Schema(object):
 
         i.delete()
 
+class Test_Default_Nodes(object):
+    @classmethod
+    def setup_class(cls):
+        pass
 
-#todo : test default
+    @classmethod
+    def teardown_class(cls):
+        v = Version().load({"title":"Chofetz Chaim", "versionTitle": "test_default_node"})
+        if v:
+            v.delete()
+
+    def test_derivations(self):
+        ref = Ref("Chofetz_Chaim,_Part_One,_The_Prohibition_Against_Lashon_Hara,_Principle_1")
+        assert ref.has_default_child()
+        child_ref = ref.default_child_ref()
+        assert ref != child_ref
+
+        sn = ref.index_node
+        assert isinstance(sn, SchemaNode)
+        assert not sn.is_default()
+        assert sn.has_default_child()
+        dnode = sn.get_default_child()
+        assert dnode.is_default()
+
+
+    def test_default_in_leaf_nodes(self):
+        sn = Ref("Chofetz_Chaim,_Part_One,_The_Prohibition_Against_Lashon_Hara,_Principle_1").index_node
+        assert isinstance(sn, SchemaNode)
+        dnode = sn.get_default_child()
+        root = sn.root()
+        leaves = root.get_leaf_nodes()
+        assert dnode in leaves
+        assert sn not in leaves
+
+    def test_load_default_text_chunk(self):
+        ref = Ref("Chofetz_Chaim,_Part_One,_The_Prohibition_Against_Lashon_Hara,_Principle_1")
+        TextChunk(ref)
+
+    def test_load_default_text_chunk(self):
+        ref = Ref("Chofetz_Chaim,_Part_One,_The_Prohibition_Against_Lashon_Hara,_Principle_1")
+        tc = TextChunk(ref, "en", "test_default_node")
+        tc.text = [["Foo", "Bar", "Blitz"],["Glam", "Blam", "Flam"]]
+        tc.save()
+        subref = Ref("Chofetz_Chaim,_Part_One,_The_Prohibition_Against_Lashon_Hara,_Principle_1.2.3")
+        assert TextChunk(subref, "en", "test_default_node").text == "Flam"

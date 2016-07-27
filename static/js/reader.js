@@ -84,7 +84,9 @@ sjs.Init.all = function() {
 			sjs.showNewText();	
 			break;
 		case "edit":
-			sjs.langMode = sjs.current.text.length ? 'en' : 'he';
+			if(!sjs.langMode){
+				sjs.langMode = sjs.current.text.length ? 'en' : 'he';
+			}
 			sjs.editText(sjs.current);
 			break;
 		case "translate":
@@ -160,7 +162,6 @@ sjs.Init.handlers = function() {
 		sjs.lexicon.reset();
 
 		lowlightOff();
-		sjs.selected = null;
 		$(".expanded").each(function(){ sjs.expandSource($(this)); });
 		sjs.hideSources();
 		if (sjs.current.mode == "view") {
@@ -390,6 +391,7 @@ sjs.Init.handlers = function() {
 	sjs.switchSidebarMode = function(e) {
 		// Switches the content of the sidebar, according to the present targets
 		// data-sidebar attribute
+		console.log("ssm")
 		if (sjs.current._loadSourcesFromDiscussion) {
 			sjs.alert.loadingSidebar();
 			$(".sidebarMode").removeClass("active");
@@ -674,6 +676,10 @@ $(function() {
 		
 		if ("after" in params) {
 			window.location = params["after"];
+		}else if ("next" in params) {
+			window.location = params["next"];
+		}else if($.cookie('s2') == "true") {
+			window.location = window.location.href.replace("edit/", "");
 		} else {
 			sjs.clearNewText();
 			sjs._direction = 0;
@@ -835,8 +841,7 @@ $(function() {
 		}
 
 		lowlightOn(v[0], v[1]);
-		selected = sjs.setSelected(v[0], v[1]);
-		$("#noteAnchor").html("Note on " + selected);
+		$("#noteAnchor").html("Note on " + sjs.selected);
 		sjs.selected_verses = v;
 	
 		// Selecting a verse for add source
@@ -848,7 +853,7 @@ $(function() {
 		} 
 
 		// add Verse Controls menu
-		if (!isTouchDevice()) {
+		if ($(window).width() > 669) {
 			$(".verseControls").remove();
 			var offset = $(this).offset();
 			var left = sjs._$basetext.offset().left + sjs._$basetext.outerWidth();
@@ -984,11 +989,11 @@ $(function() {
 			$.getJSON("/api/sheets/user/" + sjs._uid, function(data) {
 				$("#sheets").empty();
 				var sheets = "";
+				sheets += '<li class="sheet new"><i>Start a New Source Sheet</i></li>';
 				for (i = 0; i < data.sheets.length; i++) {
 					sheets += '<li class="sheet" data-id="'+data.sheets[i].id+'">'+
 						$("<div/>").html(data.sheets[i].title).text() + "</li>";
 				}
-				sheets += '<li class="sheet new"><i>Start a New Source Sheet</i></li>'
 				$("#sheets").html(sheets);
 				$("#addToSheetModal").position({of:$(window)});
 				$(".sheet").click(function(){
@@ -1043,6 +1048,15 @@ $(function() {
 		}
 
 		function addToSheetCallback(data) {
+			if(data["views"]){ //this is only passed on "new source sheet"
+				//add the new sheet to the list
+				$( "#sheets .new" ).after( '<li class="sheet" data-id="'+data.id+'">'+data.title.stripHtml() + "</li>" );
+				$(".sheet").click(function(){
+					$(".sheet").removeClass("selected");
+					$(this).addClass("selected");
+					return false;
+				})
+			}
 			sjs.flags.saving = false;
 			$("#addToSheetModal").hide();
 			if ("error" in data) {
@@ -1234,7 +1248,7 @@ $(function() {
 			return;
 		}
 
-		var url = "/api/texts/" + sjs.current.book + "/" + lang + "/" + version;
+		var url = "/api/texts/" + sjs.current.indexTitle + "/" + lang + "/" + version;
 
 		$.ajax({
 			url: url,
@@ -1266,7 +1280,7 @@ sjs.lexicon = {
 
 	enabledCategories : {
 		'en' :  ['Mishnah'],
-		'he' : ['Tanach']
+		'he' : ['Tanakh']
 	},
 
 
@@ -1292,12 +1306,26 @@ sjs.lexicon = {
 	isLexiconEnabled: function (currentText, lang, params){
 		//console.log(currentText);
 		/*if (params['url_enabled']){*/
-		if(sjs.lexicon.enabledCategories[lang].indexOf(currentText.categories[0]) > -1) {
+		switch (lang){
+			case 'he':
+				if(currentText.categories[0] == 'Tanakh' &&
+					!(currentText.categories[1] == 'Targum' || currentText.categories[1] == 'Commentary')){
+					return true;
+				}
+				break;
+			case 'en':
+				if(currentText.categories[0] == 'Mishnah' &&
+					!(currentText.categories[1] == 'Commentary')){
+					return true;
+				}
+				break;
+		}
+		/*if(sjs.lexicon.enabledCategories[lang].indexOf(currentText.categories[0]) > -1) {
 			return true;
-		}/*else if('commentator' in currentText && currentText['commentator'] == 'Rashi' && lang == 'he'){//hack. find better way
+		}else if('commentator' in currentText && currentText['commentator'] == 'Rashi' && lang == 'he'){//hack. find better way
 			return true;
+		}
 		}*/
-		/*}*/
 		return false;
 	},
 
@@ -1715,6 +1743,7 @@ function buildView(data) {
 	$("#about").removeClass("empty");
 	$(".open").remove();	
 	sjs.clearNewText();
+	sjs.selected = null;
 
 	sjs.cache.save(data);
 	sjs.current = data;
@@ -1731,8 +1760,8 @@ function buildView(data) {
 	}
 	if (!sjs._$basetext.hasClass("bilingual")) $("#layoutToggle").show();
 	
-	// Texts that default to paragraph view - Tanach excluding Psalms and Talmud
-	if (!(data.type in {Tanach:1, Talmud:1}) || data.book in {Psalms:1}) {
+	// Texts that default to paragraph view - Tanakh excluding Psalms and Talmud
+	if (!(data.type in {Tanakh:1, Talmud:1}) || data.book in {Psalms:1}) {
 		$("#layoutToggle .toggleOption").removeClass("active");
 		$("#block").addClass("active");
 		sjs._$basetext.addClass("lines");
@@ -1747,7 +1776,8 @@ function buildView(data) {
 		"<i>No text available.</i>";
 	var params = getUrlVars();
 	var hideNumbers = (data.categories[0] == "Talmud" && data.categories[1] == "Bavli") ||
-						data.categories[0] == "Liturgy";
+						data.categories[0] == "Liturgy" ||
+						data.title == "Sefer Mitzvot Gadol";
     hideNumbers  = "showNumbers" in params ? false : hideNumbers;
 	var basetext = basetextHtml(data.text, data.he, "", data.alts, data.sectionNames[data.sectionNames.length - 1], hideNumbers);
 	if (!basetext) {
@@ -1845,6 +1875,11 @@ function buildView(data) {
 		$("#prev").addClass("inactive");
 	}
 
+	/// Add Basetext to DOM
+	$basetext.html(basetext);
+	sjs._$verses = $basetext.find(".verse");
+	sjs._$commentary = $commentaryBox.find(".commentary");
+
 	if (data.connectionsLoadNeeded) {
 		var loadingHtml = "<div class='loadingMessage'>" +
 							"<span class='en'>Loading...</span>" +
@@ -1857,11 +1892,6 @@ function buildView(data) {
 	} else {
 		buildCommentary(data);
 	}
-	
-	/// Add Basetext to DOM
-	$basetext.html(basetext);
-	sjs._$verses = $basetext.find(".verse");
-	sjs._$commentary = $commentaryBox.find(".commentary");
 	
 	$basetext.show();
 	$sourcesBox.show();	
@@ -2008,7 +2038,11 @@ function buildCommentary(data) {
 	if (data.sectionRef !== sjs.current.sectionRef) { 
 		return; // API call returned after navigating away
 	} else {
-		sjs.current = data;
+		sjs.current.commentary            = data.commentary;
+		sjs.current.notes                 = data.notes;
+		sjs.current.sheets                = data.sheets;
+		sjs.current.layer                 = data.layer;
+		sjs.current.connectionsLoadNeeded = false;
 	}
 	if ($("body").hasClass("editMode")) { 
 		return; // API call returned after switching modes
@@ -2061,7 +2095,7 @@ function buildCommentary(data) {
 	}
 
 	// Highligh highlighted commentaries
-	if (sjs._$verses.hasClass("lowlight")) {
+	if (sjs._$verses && sjs._$verses.hasClass("lowlight")) {
 		var first = parseInt(sjs._$verses.not(".lowlight").first().attr("data-num"));
 		var last  = parseInt(sjs._$verses.not(".lowlight").last().attr("data-num"));
 		lowlightOn(first, last);	
@@ -2242,7 +2276,7 @@ function sortCommentary(a,b) {
 
 	// Sort commentaries according to their order
 	if (a.cnum != 0 && b.cnum != 0) {
-		return (a.cnum > b.cnum) ? 1 : -1; 
+		return (a.cnum > b.cnum) ? 1 : -1;
 	}
 
 	// Sort connections on the same source according to the order of the source text
@@ -2399,7 +2433,7 @@ function sourcesHtml(commentary, selected, selectedEnd) {
 
 
 function aboutHtml(data) {
-	// Retuns HTML for the About Text panel according to data.
+	// Returns HTML for the About Text panel according to data.
 	data = data || sjs.current;
 
 	if (!(data.versionTitle || data.heVersionTitle || data.sources || data.heSources)) { 
@@ -2434,7 +2468,7 @@ function aboutHtml(data) {
 		"Public Domain": "http://en.wikipedia.org/wiki/Public_domain",
 		"CC0":           "http://creativecommons.org/publicdomain/zero/1.0/",
 		"CC-BY":         "http://creativecommons.org/licenses/by/3.0/",
-		"CC-BY-SA":      "http://creativecommons.org/licenses/by-sa/3.0/",
+		"CC-BY-SA":      "http://creativecommons.org/licenses/by-sa/3.0/"
 	};
 
 	var aboutVersionHtml = function(version) {
@@ -2442,11 +2476,11 @@ function aboutHtml(data) {
 		var html = '';
 		if (version.sources && version.sources.unique().length > 1) {
 		// This text is merged from multiples sources
-			uniqueSources = version.sources.unique()
+			uniqueSources = version.sources.unique();
 			html += '<div class="version '+version.lang+'"><span id="mergeMessage">This page includes merged sections from multiple text versions:</span>'
 			for (i = 0; i < uniqueSources.length; i++ ) {
 				html += '<div class="mergeSource">' +
-					'<a href="/' + makeRef(data) + '/'+version.lang+'/' + uniqueSources[i].replace(/ /g, "_") + '">' + 
+					'<a href="/' + makeRef(data) + '/'+version.lang+'/' + encodeURI(uniqueSources[i].replace(/ /g, "_")) + '">' + 
 					uniqueSources[i] + '</a></div>';
 			}
 			html += "</div>";
@@ -2491,8 +2525,8 @@ function aboutHtml(data) {
 	var html = '<h2><center>About this Text</center></h2>' +  aboutVersionHtml(heVersion) + aboutVersionHtml(enVersion);
 
 	// Build a list of alternate versions
-	var versionsHtml = '';
-	var versionsLang = {};
+	var versionsHtml = {};
+	//var versionsLang = {};
 	var mergeSources = [];
 	if ("sources" in data) { mergeSources = mergeSources.concat(data.sources); }
 	if ("heSources" in data) { mergeSources = mergeSources.concat(data.heSources); }
@@ -2500,18 +2534,27 @@ function aboutHtml(data) {
 	for (i = 0; i < data.versions.length; i++ ) {
 		var v = data.versions[i];
 		// Don't include versions used as primary en/he
-		if (v.versionTitle === data.versionTitle || v.versionTitle === data.heVersionTitle) { continue; }
+		if ((v.versionTitle === data.versionTitle && v.language == 'en') || (v.versionTitle === data.heVersionTitle && v.language == 'he')) { continue; }
 		if ($.inArray(v.versionTitle, mergeSources) > -1 ) { continue; }
-		versionsHtml += '<div class="alternateVersion ' + v.language + '">' + 
+        if(!(v.language in versionsHtml)){
+            versionsHtml[v.language] = '';
+        }
+		versionsHtml[v.language] += '<div class="alternateVersion ' + v.language + '">' +
 							'<a href="/' + makeRef(data) + '/' + v.language + '/' + encodeURI(v.versionTitle.replace(/ /g, "_")) + '">' +
 							v.versionTitle + '</a></div>';
-		versionsLang[v.language] = true;
+		//versionsLang[v.language] = true;
 	}
+	if (Object.keys(versionsHtml).length) {
+		var langClass = Object.keys(versionsHtml).join(" ");
+		html += '<div id="versionsList" class="'+langClass+'"><i>Other versions of this text:</i>';
 
-	if (versionsHtml) {
-		var langClass = Object.keys(versionsLang).join(" ");
-		html += '<div id="versionsList" class="'+langClass+'"><i>Other versions of this text:</i>' + versionsHtml + '</div>';
-	}
+
+        for(var i = 0; i < Object.keys(versionsHtml).length; i++){
+			var lang = Object.keys(versionsHtml)[i];
+            html += '<div class="alternate-versions ' + lang + '">' + versionsHtml[lang] + '</div>';
+        }
+        html += '</div>';
+    }
 
 	return html;
 }
@@ -2650,6 +2693,8 @@ sjs.updateUrlParams = function() {
 	
 	if (sjs.sourcesFilter !== "all") {
 		params["with"] = sjs.sourcesFilter.replace(/ /g, "_");
+	} else {
+		delete params["with"];
 	}
 	if      ($("body").hasClass("sidebarHebrew"))  { params["sidebarLang"] = "he" }
 	else if ($("body").hasClass("sidebarEnglish")) { params["sidebarLang"] = "en" }	
@@ -3466,11 +3511,18 @@ sjs.showNewText = function () {
 	$('#versionTitle').val(sjs.editing.versionTitle);
 
 	// Text Area
-	$("#newVersion").unbind().bind("textchange", checkTextDirection)
+	$("#newVersion").unbind()
 		.show()
 		.autosize();
 	sjs.textSync.init($("#newVersion"));
-	$("#language").unbind().change(updateTextDirection);
+	if (!sjs.editing.versionTitle) {
+		$("#newVersion").bind("textchange", checkTextDirection);
+	}
+
+	// Language Toggle
+	$("#language").val(sjs.langMode)
+		.unbind()
+		.change(updateTextDirection);
 	
 	// Special handing of Original Translation // Sefara Community Translation
 	sjs.editing.sct = (sjs.current.versionTitle === "Sefaria Community Translation" ? sjs.current.text : null);
@@ -3504,7 +3556,7 @@ sjs.showNewText = function () {
 				return;
 			} else {
 				var text = sjs.makePlainText(sjs.editing.sct);
-				sjs._$newVersion.val(text)
+				sjs._$newVersion.val(text);
 				sjs.padEditorText(sjs.editing.pad);
 				sjs._$newVersion.trigger("keyup");				
 			}
@@ -3515,11 +3567,11 @@ sjs.showNewText = function () {
 	// Autocomplete version title with existing, autofill source for existing versions
 	$.getJSON("/api/texts/versions/" + sjs.editing.indexTitle, function(data) {
 		if ("error" in data) { return; }
-		map = {};
-		titles = [];
+		var map = {};
+		var titles = [];
 		for (var i = 0; i < data.length; i++) {
-			titles.push(data[i].title);
-			map[data[i].title] = data[i].source;
+			titles.push(data[i].versionTitle);
+			map[data[i].versionTitle] = data[i].versionSource;
 		}
 
 		$("#versionTitle").autocomplete({source: titles, select: function(e, ui) {
@@ -3564,7 +3616,6 @@ sjs.editText = function(data) {
 	if (!sjs._uid) {
 		return sjs.loginPrompt();
 	}
-
 	if ((sjs.langMode === 'en' && "sources" in data) || 
 		(sjs.langMode === 'he' && "heSources" in data)) {
 		sjs.alert.message("You are viewing a page that includes mutliple text versions. To edit, please first select a single version in the About Text panel.");
@@ -3599,6 +3650,9 @@ sjs.editText = function(data) {
 
 	var text = sjs.makePlainText(sjs.editing.text);
 	sjs._$newVersion.val(text).trigger("autosize").trigger('keyup');
+	if (sjs.langMode === 'he') {
+		$("#newVersion").css("direction", "rtl");
+	}
 };
 
 
@@ -3616,12 +3670,15 @@ sjs.addThis = function(e) {
 	sjs.editCurrent(e);
 	var n = parseInt($(this).attr("data-num"));
 	if (n) {
-		if (sjs.editing.compareText || sjs.editing.compareText.length) {
+		if (lang !== "he" && (sjs.editing.compareText || sjs.editing.compareText.length)) {
 			sjs.toggleShowOriginal();
 		}
 		sjs._$newVersion.trigger("autosize");
-		var $top = $(".syncTextNumbers .verse").eq(n-1)
+		var $top = lang == "he" ? $(".textSyncNumbers .segmentLabel").eq(n-1) : $(".newTextCompare .verse").eq(n-1);
+		// TODO this doesn't seem to be working to scroll english text with a compareText
 		if ($top.length) {
+			//console.log("Scrolling to " + n);
+			//console.log($top);
 			var top = $top.position().top - 100;
 			$("html, body").animate({scrollTop: top, duation: 200});
 
@@ -4126,7 +4183,9 @@ function saveText(text) {
 				} else {
 					window.location = params["after"];
 				}
-			} else {
+			} else if("next" in params){
+				window.location = params["next"];
+			}else {
 				hardRefresh(ref);
 				sjs.editing = {};
 				sjs.alert.message("Text saved.");
@@ -4146,6 +4205,7 @@ function lowlightOn(n, m) {
 	m = m || n;
 	n = parseInt(n);
 	m = parseInt(m);
+	sjs.setSelected(n, m);
 	$c = $();
 	for (var i = n; i <= m; i++ ) {
 		$c = $c.add(sjs._$commentaryViewPort.find(".commentary[data-vref~="+ i + "]"));
@@ -4166,12 +4226,12 @@ function lowlightOff() {
 	if ($(".lowlight").length == 0) { return; }
 	$(".lowlight").removeClass("lowlight");
 	$(".verseControls").remove();
-	sjs.selected = null;
 	$("#noteAnchor").html("Note on " + sjs.current.sectionRef);
 	if ("commentary" in sjs.current) {
 		sjs.setSourcesCount();
 		sjs.setSourcesPanel();
 	}
+	sjs.selected = null;
 }
 
 
@@ -4222,9 +4282,3 @@ function hardRefresh(ref) {
 	actuallyGet(parseRef(ref));	
 }
 
-
-// -------- Special Case for IE ----------------
-if ($.browser.msie) {
-	$("#unsupported").show();
-	$.isReady = true;
-}

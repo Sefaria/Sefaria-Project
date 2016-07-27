@@ -388,7 +388,7 @@ class JaggedArray(object):
     def flatten_to_array(self, _cur=None):
         if _cur is None:
             if isinstance(self._store, basestring):
-                return self._store
+                return [self._store]
             return self.flatten_to_array(_cur=self._store)
 
         flat = []
@@ -445,7 +445,7 @@ class JaggedTextArray(JaggedArray):
         return self.w_count if self.w_count else 0
 
     def _wcnt(self, jta):
-        """ Returns the number of characters in an undecorated jagged array """
+        """ Returns the number of words in an undecorated jagged array """
         if isinstance(jta, basestring):
             return len(jta.split(" "))
         elif isinstance(jta, list):
@@ -473,7 +473,7 @@ class JaggedTextArray(JaggedArray):
 
         if _cur is None:
             if isinstance(self._store, basestring):
-                return self._store
+                return [self._store]
             return self.flatten_to_array(_cur=self._store)
 
         flat = []

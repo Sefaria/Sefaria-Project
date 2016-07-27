@@ -62,7 +62,7 @@ for term in terms:
     })
 
 for name, struct in structs.items():
-    i = get_index(name)
+    i = library.get_index(name)
     obj = deserialize_tree(struct, index=i, struct_class=TitledTreeNode)
     obj.title_group = i.nodes.title_group
     obj.validate()

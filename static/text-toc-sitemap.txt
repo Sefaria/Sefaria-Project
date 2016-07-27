@@ -964,7 +964,7 @@ http://www.sefaria.org/Ana_BeKhoach
 http://www.sefaria.org/Shir_HaKavod
 http://www.sefaria.org/Yedid_Nefesh
 http://www.sefaria.org/Hadran
-http://www.sefaria.org/Hadran_for_Tanach
+http://www.sefaria.org/Hadran_for_Tanakh
 http://www.sefaria.org/Hallel
 http://www.sefaria.org/Ketubah_Text
 http://www.sefaria.org/Perek_Shirah

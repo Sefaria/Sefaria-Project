@@ -5,15 +5,29 @@
 
 {% block title %}{{ title }}{% endblock %}
 {% block head %}
-<script src="http://d3js.org/d3.v3.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.12/crossfilter.js"></script>
-<script src="/static/js/dc.js"></script>
-<script src="/static/js/dc.cloud.js"></script>
-<link rel="stylesheet" href="/static/css/dc.css" />
+    {% if not OFFLINE %}
+    <script src="https://use.typekit.net/aeg8div.js"></script>
+    <script>try{Typekit.load({ async: true });}catch(e){}</script>
+    <script src="//ajax.googleapis.com/ajax/libs/webfont/1.5.10/webfont.js"></script>
+    <script>
+      WebFont.load({
+        google: {
+          families: ['Montserrat:400,700', 'Open Sans Hebrew:400,700:latin,hebrew' ]
+        }
+      });
+    </script>
+    {% endif %}
+    <script src="http://d3js.org/d3.v3.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.12/crossfilter.js"></script>
+    <script src="/static/js/dc.js"></script>
+    <link rel="stylesheet" href="/static/css/dc.css" />
 
 {%  endblock %}
 
 {% block css %}
+    #visualGardenPage.static .inner{
+        max-width:1200px;
+    }
     #languageToggle {
         display: inline;
     }
@@ -23,75 +37,64 @@
 {% endblock %}
 
 {% block content %}
-
-
-
-
-
-<div id="visualGardenPage" class="container doc biReady">
-
-    <div>
-        <div id="controls">
-            <div id="timeline-chart">
-                <div style="height: 30px;">
-                    <span class='reset' style='display: none;'>
-                        <span class="en">Current filter:</span>
-                        <span class="he">מסונן לפי:</span>
-                        <span class='filter'></span>
-                    </span>
-                    <a class='reset'
-                      href='javascript:timeline.filterAll();dc.redrawAll();'
-                      style='display: none;'>
-                        <span class="en">reset</span>
-                        <span class="he">&nbsp;אפס</span>
-                    </a>
+<div id="visualGardenPage" class="container static biReady">
+    <div class="inner">
+        <h1>
+            <span class='en'>{{ title }}</span>
+            <span class='he'>{{ heTitle }}</span>
+        </h1>
+        <div class="section control-results-container">
+            <div id="controls">
+                <div id="timeline-chart">
+                    <div style="height: 30px;">
+                        <span class='reset' style='display: none;'>
+                            <span class="en">Current filter:</span>
+                            <span class="he">מסונן לפי:</span>
+                            <span class='filter'></span>
+                        </span>
+                        <a class='reset'
+                          href='javascript:timeline.filterAll();dc.redrawAll();'
+                          style='display: none;'>
+                            <span class="en">reset</span>
+                            <span class="he">&nbsp;אפס</span>
+                        </a>
+                    </div>
                 </div>
-            </div>
-            <div id="map-chart">
-                <div style="height: 30px;">
-                    <span class='reset' style='display: none;'>
-                        <span class="en">Current filter:</span>
-                        <span class="he">מסונן לפי:</span>
-                        <span class='filter'></span>
-                    </span>
-                    <a class='reset'
-                      href='javascript:mapchart.filterAll();dc.redrawAll();'
-                      style='display: none;'>
-                        <span class="en">reset</span>
-                        <span class="he">&nbsp;אפס</span>
-                    </a>
+                <div id="map-chart">
+                    <div style="height: 30px;">
+                        <span class='reset' style='display: none;'>
+                            <span class="en">Current filter:</span>
+                            <span class="he">מסונן לפי:</span>
+                            <span class='filter'></span>
+                        </span>
+                        <a class='reset'
+                          href='javascript:mapchart.filterAll();dc.redrawAll();'
+                          style='display: none;'>
+                            <span class="en">reset</span>
+                            <span class="he">&nbsp;אפס</span>
+                        </a>
+                    </div>
                 </div>
+
             </div>
-            <div id="tags-list">
-                <div style="height: 30px;">
-                    <span class='reset' style='display: none;'>
-                        <span class="en">Current filter:</span>
-                        <span class="he">מסונן לפי:</span>
-                        <span class='filter'></span>
-                    </span>
-                    <a class='reset'
-                      href='javascript:tagslist.filterAll();dc.redrawAll();'
-                      style='display: none;'>
-                        <span class="en">reset</span>
-                        <span class="he">&nbsp;אפס</span>
-                    </a>
+            <div id="results">
+                <div id="data-count">
+                </div>
+                <div id="sort-container">
+                    <label for="sort-select" id="sort-label">
+                        <span class="en">Sort By:</span>
+                        <span class="he">מיין לפי:</span>
+                    </label>
+                    <select name="sort-select" id="sort-select" size=1 style="direction: ltr;">
+
+                    </select>
+                </div>
+                <div id="results-container">
+                    <table id="results-content">
+                    </table>
                 </div>
             </div>
         </div>
-        <div id="results">
-            <h1>
-                <span class='en'>{{ title }}</span>
-                <span class='he'>{{ heTitle }}</span>
-            </h1>
-            <div id="data-count">
-            </div>
-            <div id="results-container">
-                <table id="results-content">
-                </table>
-            </div>
-
-        </div>
-
     </div>
 </div>
 
@@ -101,43 +104,91 @@
     <script>
     {% autoescape off %}
         d3.geo.tile=function(){function t(){var t=Math.max(Math.log(n)/Math.LN2-8,0),h=Math.round(t+e),o=Math.pow(2,t-h+8),u=[(r[0]-n/2)/o,(r[1]-n/2)/o],l=[],c=d3.range(Math.max(0,Math.floor(-u[0])),Math.max(0,Math.ceil(a[0]/o-u[0]))),M=d3.range(Math.max(0,Math.floor(-u[1])),Math.max(0,Math.ceil(a[1]/o-u[1])));return M.forEach(function(t){c.forEach(function(a){l.push([a,t,h])})}),l.translate=u,l.scale=o,l}var a=[960,500],n=256,r=[a[0]/2,a[1]/2],e=0;return t.size=function(n){return arguments.length?(a=n,t):a},t.scale=function(a){return arguments.length?(n=a,t):n},t.translate=function(a){return arguments.length?(r=a,t):r},t.zoomDelta=function(a){return arguments.length?(e=+a,t):e},t};
-        var timeline = dc.barChart("#timeline-chart");
-        //var tagslist = dc.rowChart("#tags-list");
-        var tagslist = dc.wordCloud("#tags-list");
-        var results = dc.dataGrid("#results-content");
-        var datacount = dc.dataCount("#data-count");
-
-        var stops = {{ stops }};
+        var config = {{ config }};
         var places = {{ places }};
-
-        // We catch null years, and filter them out from the year group.
-        // Otherwise, they show up at year 0.
-        // https://github.com/dc-js/dc.js/wiki/FAQ#fake-groups
-
+        var stops = {{ stops }};
         stops.forEach(function (d) {
             d.start = (d.start == null || d.start == "") ? null : +d.start; // coerce to number, if it's a number
             d.end = (d.end == null || d.end == "") ? null : +d.end;
         });
-
-        function remove_null_year(source_group) {
-            return {
-                all:function () {
-                    return source_group.all().filter(function(d) {
-                        return d.key != null;
-                    });
-                }
-            };
-        }
-
         var stopx = crossfilter(stops);
         var all = stopx.groupAll();
-        var yearDim = stopx.dimension(function(d) { return d.start; }); //!!Using start as the year.
-        var yearGroup = yearDim.group();
-        var filteredYearGroup = remove_null_year(yearGroup);
-        //var refDim = stopx.dimension(function(d) {return d.ref; });
-        var weightDim = stopx.dimension(function(d) {return d.weight; });
+
+
+        // Sorting
+        function set_sort_vars(field, dir, datatype) {
+            resultsDir = dir == "DESC" ? d3.descending : d3.ascending;
+            resultsDim && resultsDim.dispose();
+            // The 20000 here is to coerce all of the numbers into numbers that will sort correctly as strings.
+            // Digging down into dc.datagrid, into d3.nest, into d3.map, the integer keys turn into strings
+            resultsDim = stopx.dimension(function(d) { return 20000 + d[field]; });
+            resultsAccessor = function (d) { return 20000 + d[field]; };
+        }
+
+        function resort(field, dir, datatype) {
+            set_sort_vars(field, dir, datatype);
+            results.dimension(resultsDim)
+                .order(resultsDir)
+                .sortBy(resultsAccessor)
+                .group(resultsAccessor)
+                .redraw();
+        }
+
+        // build sort options in dom
+        // E.g:  <option value="1" selected="selected" data-attr='start' data-dir="ASC" data-type="Int">Date (Asc)</option>
+        var option_value = 1,
+            default_sort_field,
+            default_sort_dir,
+            default_sort_type;
+
+        function addSortOption(key, dir) {
+            var sortconfig = config.sorts[key];
+            var select = $("#sort-select");
+            var option = $(document.createElement('option'));
+            option.attr("value", option_value)
+                .attr("data-attr", key)
+                .attr("data-dir", dir)
+                .attr("data-type", sortconfig.datatype);
+            if(sortconfig.default && sortconfig.default == dir) {
+                option.attr("selected", "selected");
+                default_sort_field = key;
+                default_sort_dir = dir;
+                default_sort_type = sortconfig.datatype;
+            }
+            option.append(sortconfig.en + " (" + dir.charAt(0).toUpperCase() + dir.substr(1).toLowerCase() +")");
+            select.append(option);
+            option_value++;
+        }
+
+        Object.keys(config.sorts).forEach(function(key, index) {
+            addSortOption(key, "ASC");
+            addSortOption(key, "DESC");
+        });
+
+        // Initial sort
+        if(default_sort_field) {
+            set_sort_vars(default_sort_field, default_sort_dir, default_sort_type);
+        } else {
+            $("#sort-container").hide();
+        }
+
+        $('#sort-select').change(function(){
+            var opt = $(this).find(":selected");
+            resort(opt.attr("data-attr"), opt.attr("data-dir"), opt.attr("data-type"));
+        });
+        // End sorting //
+
+        // Core Charts - Timeline, Map, Count, Results
+        var timeline = dc.barChart("#timeline-chart");
+        var mapchart = dc.geoChoroplethChart("#map-chart");
+        var datacount = dc.dataCount("#data-count");
+        var results = dc.dataGrid("#results-content");
+
+
         var placeDim = stopx.dimension(function(d) { return d.placeKey; });
         var placeGroup = placeDim.group();
+
+        var resultsDim, resultsAccessor, resultsDir;
 
         datacount
             .dimension(stopx)
@@ -152,9 +203,30 @@
             });
 
 
+
+
+        //Timeline
         var tl_extent = d3.extent(stops, function (d) { return d.start; });
+        var timeline_bin_size = config.timeline_bin_size || Math.floor((tl_extent[1] - tl_extent[0]) / 20);
         tl_extent[0] -= 50;
         tl_extent[1] += 50;
+
+        var yearDim = stopx.dimension(function(d) { return d.start; }); //!!Using start as the year.
+        var yearGroup = yearDim.group(function(d) { return Math.floor(d / timeline_bin_size) * timeline_bin_size });
+
+        // Catch null years, and filter them out from the year group.
+        // Otherwise, they show up at year 0.
+        // https://github.com/dc-js/dc.js/wiki/FAQ#fake-groups
+        function remove_null_year(source_group) {
+            return {
+                all:function () {
+                    return source_group.all().filter(function(d) {
+                        return d.key != null;
+                    });
+                }
+            };
+        }
+        var filteredYearGroup = remove_null_year(yearGroup);
 
         timeline
             .width(280)
@@ -163,113 +235,142 @@
             .dimension(yearDim)
             .group(filteredYearGroup)
             .elasticY(true)
-            .xUnits(function(start, end, xDomain) { return Math.abs(end - start) / 40; }) // years in the domain / 40
+            .xUnits(function(start, end, xDomain) { return (end - start) / timeline_bin_size; }) //return  60; }) //Math.abs(end - start) / 10; }) // years in the domain / 40
             .round(dc.round.floor)
-            .y(d3.scale.pow().domain([0, timeline.yAxisMax()]).range([140,0]).exponent(.5))
             .x(d3.scale.linear().domain(tl_extent));
+
+        if (config.timeline_scale == "log") {
+            timeline.y(d3.scale.pow().domain([0, timeline.yAxisMax()]).range([140,0]).exponent(.5));
+        }
+
         timeline.yAxis().ticks(5, d3.format("d"));
-        timeline.xAxis().tickFormat(d3.format("d"));
+        timeline.xAxis().ticks(5);
 
-
-        // tags chart
-        var separator = "~";
-        var tag_dim = stopx.dimension(function (d) { return d.tags.default.join(separator) || "" });  //hack into a string
-        var tag_group = tag_dim.group();
-
-        tagslist
-            .size([280,280])
-            .dimension(tag_dim)
-            .maxLength(50)
-            .maxWords(500)
-            .group(tag_group)
-            .lumper(separator)
-            .valueAccessor(function(d) {
-                return d.tags.default.join(separator);
-            })
-            .splitAt(RegExp(separator,"g"))  //.splitAt(RegExp(separator,"g"))
-        ;
-
-
-        /*
-        function reduceAdd(p, v) {
-            v.tags.default.forEach (function(val, idx) {
-                p[val] = (p[val] || 0) + 1; //increment counts
-            });
-            return p;
+        // Filters
+        var maxRows = 25;
+        function addFilterElement(config, indx, filter_id) {
+            var elem = $('<div id="' + filter_id +'" class="tags-list"> ' +
+                '<div class="filter-title">' +
+                  '<span>' + config.en + '</span>' +
+                  //'<span class="he">' + config.he + '</span>' +
+                //'</div>' +
+                //'<div style="height: 30px;"> ' +
+                  '<span class="reset" style="display: none;"> ' +
+                    '<span>: </span>' +
+                    //'<span class="en">Current filter:</span> ' +
+                    //'<span class="he">מסונן לפי:</span> ' +
+                    '<span class="filter"></span> ' +
+                  '</span> ' +
+                  '<a class="reset" href="javascript:filter_charts[' + indx +'].filterAll();dc.redrawAll();" style="display: none;"> ' +
+                    '<span class="en">reset</span> ' +
+                    '<span class="he">&nbsp;אפס</span> ' +
+                  '</a> ' +
+                '</div> ' +
+            '</div>');
+            $("#controls").append(elem);
+            return elem
         }
-
-        function reduceRemove(p, v) {
-            v.tags.default.forEach (function(val, idx) {
-                p[val] = (p[val] || 0) - 1; //decrement counts
-            });
-            return p;
-        }
-
-        function reduceInitial() {
-            return [];
-        }
-
-
-        var tags = stopx.dimension(function (d) { return d.tags.default || [] });
-        //var tags2 = stopx.dimension(function (d) { return d.tags.default || [] });
-        var groupall = tags.groupAll();
-        var tagsGroup = groupall.reduce(reduceAdd, reduceRemove, reduceInitial).value();
-        tagsGroup.all = function() {
-            var newObject = [];
-            for (var key in this) {
-                if (this.hasOwnProperty(key) && this[key] && key != "all" && key != "top") {
-                    newObject.push({
-                        key: key,
-                        value: this[key]
-                    });
-                }
+        function createFilterGroup(filterConfig, key, filterDim) {
+            if (filterConfig["logic"] != "AND") {
+                return filterDim.group();
             }
-            return newObject;
-        };
-        tagsGroup.top = function(k) {
-            all = this.all();
-            var top = crossfilter.heapselect(all, 0, all.length, k);
-            return crossfilter.heap.sort(top, 0, top.length);
-        };
 
-        tagslist
-            .width(260)
-            .height(500)
-            .renderLabel(true)
-            .labelOffsetY(10)
-            .gap(2)
-            .group(tagsGroup)
-            .rowsCap(25)
-            .othersGrouper(false)
-            //.dimension(tags2)
-            .dimension(tags)
-            .ordering(function(d){ return -d.value })
-            .elasticX(true)
-            .transitionDuration(1000)
-            .colors(d3.scale.category10())
-            .label(function (d) { return d.key })
-            .on("filtered", function(c,f) {
-                //tags2.filter(f)
-            })
-            .filterHandler (function (dimension, filters) {
-                dimension.filter(null);
-                dimension.filterFunction(function (d) {
-                    for (var i=0; i < filters.length; i++) {
-                        if (d.indexOf(filters[i]) <0) return false;
-                    }
-                    return true;
+            function reduceAdd(p, v) {
+                v.tags[key].forEach (function(val, idx) {
+                    p[val] = (p[val] || 0) + 1; //increment counts
                 });
+                return p;
+            }
 
+            function reduceRemove(p, v) {
+                v.tags[key].forEach (function(val, idx) {
+                    p[val] = (p[val] || 0) - 1; //decrement counts
+                });
+                return p;
+            }
 
+            function reduceInitial() {
+                return [];
+            }
 
-                return filters;
+            var groupall = filterDim.groupAll();
+            var filterGroup = groupall.reduce(reduceAdd, reduceRemove, reduceInitial).value();
+            filterGroup.all = function() {
+                var newObject = [];
+                for (var key in this) {
+                    if (this.hasOwnProperty(key) && this[key] && key != "all" && key != "top") {
+                        newObject.push({
+                            key: key,
+                            value: this[key]
+                        });
+                    }
+                }
+                return newObject;
+            };
+            filterGroup.top = function(k) {
+                all = this.all();
+                var top = crossfilter.heapselect(all, 0, all.length, k);
+                return crossfilter.heap.sort(top, 0, top.length);
+            };
+            return filterGroup;
+        }
+        function createFilterChart(filterConfig, filter_id, dim, group) {
+            var chartSize = group.all().length > maxRows ? maxRows : group.all().length;
+            var filterHeight = 40 + 20 * chartSize;
+            var filter_chart = dc.rowChart("#" + filter_id);
+            filter_chart
+                .width(260)
+                .height(filterHeight)
+                .renderLabel(true)
+                .labelOffsetY(10)
+                .gap(2)
+                .group(group)
+                .rowsCap(maxRows)
+                .othersGrouper(false)
+                .dimension(dim)
+                .ordering(function(d){ return -d.value })
+                .elasticX(true)
+                .transitionDuration(1000)
+                .colors(d3.scale.category10())
+                .label(function (d) { return d.key });
+            if (filterConfig["logic"] == "AND") {
+                filter_chart
+                    .filterHandler (function (dimension, filters) {
+                        dimension.filter(null);
+                        dimension.filterFunction(function (d) {
+                            for (var i=0; i < filters.length; i++) {
+                                if (d.indexOf(filters[i]) <0) return false;
+                            }
+                            return true;
+                        });
+                        return filters;
+                    });
+            }
+            filter_chart.xAxis().tickFormat(d3.format("d"));
+            return filter_chart;
+        }
+
+        var filter_charts = [];
+        var filter_keys = config.filter_order.length ? config.filter_order : Object.keys(config.filters);
+        filter_keys.forEach(function(key, index) {
+            var indx = filter_charts.length;
+            var filter_id = "filter-" + indx;
+            var filterConfig = config.filters[key];
+            var filterElem = addFilterElement(filterConfig, indx, filter_id);
+            var filterDim = stopx.dimension(function (d) {
+                var tags = d.tags[key];
+                if (tags && tags.length == 1 && tags[0] == "") {
+                    return ["Undefined"];  // todo: config default value
+                }
+                return tags || ["Undefined"];
             });
-        tagslist.xAxis().tickFormat(d3.format("d"));
-        */
+            var filterGroup = createFilterGroup(filterConfig, key, filterDim);
+            filter_charts.push(createFilterChart(filterConfig, filter_id, filterDim, filterGroup));
+        });
 
 
-        //Maps!
-        //Unit projection, for getting bounding box of our data
+        // Map
+        // Unit projection, for getting bounding box of our data
         var projection = d3.geo.mercator()
             .scale(1)
             .translate([0, 0]);
@@ -289,7 +390,6 @@
             .translate(t)
         ;
 
-        var mapchart = dc.geoChoroplethChart("#map-chart");
         var valueDomain = [0, placeGroup.top(1)[0].value];
         var maxPointRadius = Math.min(width, height) / 30,
             minPointRadius = maxPointRadius / 2;
@@ -342,32 +442,50 @@
             });
 
         results
-            .dimension(weightDim)
-            .order(d3.descending)
-            .group(function (d) { return d.weight; })
+            .dimension(resultsDim)
+            .group(resultsAccessor)
+            .order(resultsDir)
+            .sortBy(resultsAccessor)
+            //.keyAccessor(resultsAccessor)
+            //.ordering(resultsAccessor)
             .htmlGroup(function (d) {return "";})
             .html(function(data) {
                 return "<div class='result'>" +
                             "<div class='result-ref'>" +
-                                "<span class='en'>" + (data.title ? data.title : data.ref) + "</span>" +
-                                "<span class='he'>" + (data.heTitle ? data.heTitle : data.heRef) + "</span>" +
+                                "<span class='en'>" +
+                                    (data.ref ? "<a href='/" + data.ref + (data.enVersionTitle ? "/en/" + data.enVersionTitle:"") + "'>" : "") +
+                                        (data.title ? data.title : data.ref) +
+                                    (data.ref ? "</a>" : "") +
+                                "</span>" +
+                                "<span class='he'>" +
+                                    (data.ref ? "<a href='/" + data.ref + (data.heVersionTitle ? "/he/" + data.heVersionTitle:"") + "'>" : "") +
+                                        (data.heTitle ? data.heTitle : data.heRef) +
+                                    (data.ref ? "</a>" : "") +
+                                "</span>" +
                             "</div>" +
                             "<div class='result-byline'>" +
-                                "<span class='en'>" + (data.authorsEn ? (data.authorsEn + ", ") : "") + (data.placeNameEn ? data.placeNameEn : "") + (data.timePeriodEn ? data.timePeriodEn : "") + "</span>" +
-                                "<span class='he'>" + (data.authorsHe ? (data.authorsHe + ", ") : "") + (data.placeNameHe ? data.placeNameHe : (data.placeNameEn ? data.placeNameEn : "")) + (data.timePeriodHe ? data.timePeriodHe : "") + "</span>" +
+                                "<span class='en'>" +
+                                    (data.authorsEn ? (data.authorsEn + ", ") : "") +
+                                    (data.enSubtitle ? (data.enSubtitle + "  ") : "") +
+                                    (data.placeNameEn ? data.placeNameEn : "") +
+                                    (data.timePeriodEn ? data.timePeriodEn : "") +
+                                "</span>" +
+                                "<span class='he'>" +
+                                    (data.authorsHe ? (data.authorsHe + ", ") : "") +
+                                    (data.heSubtitle ? (data.heSubtitle + "  ") : "") +
+                                    (data.placeNameHe ? data.placeNameHe : (data.placeNameEn ? data.placeNameEn : "")) +
+                                    (data.timePeriodHe ? data.timePeriodHe : "") +
+                                "</span>" +
                             "</div>" +
                             "<div class='result-text'>" +
-                                "<span class='en'>" + data.enText + "</span>" +
-                                "<span class='he'>" + data.heText + "</span>" +
+                                "<span class='en'>" + (data.enText ? data.enText : data.heText) + "</span>" +
+                                "<span class='he'>" + (data.heText ? data.heText : data.enText) + "</span>" +
                             "</div>" +
                         "</div>"
             })
-            .on('renderlet', function (table) {
-              table.selectAll('.dc-table-group').classed('info', true);
-            });
+            ;
 
         dc.renderAll();
-
 
     {% endautoescape %}
     </script>

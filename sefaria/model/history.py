@@ -155,6 +155,7 @@ class HistorySet(abst.AbstractMongoSet):
 
 
 def process_index_title_change_in_history(indx, **kwargs):
+    print "Cascading History {} to {}".format(kwargs['old'], kwargs['new'])
     """
     Update all history entries which reference 'old' to 'new'.
     """
@@ -162,26 +163,31 @@ def process_index_title_change_in_history(indx, **kwargs):
         pattern = ur'{} on '.format(re.escape(kwargs["old"]))
         title_pattern = ur'(^{}$)|({} on)'.format(re.escape(kwargs["old"]), re.escape(kwargs["old"]))
     else:
-        commentators = text.IndexSet({"categories.0": "Commentary"}).distinct("title")
-        pattern = ur"(^{} \d)|(^({}) on {} \d)".format(re.escape(kwargs["old"]), "|".join(commentators), re.escape(kwargs["old"]))
-        title_pattern = ur'(^{}$)|(^({}) on {})'.format(re.escape(kwargs["old"]), "|".join(commentators), re.escape(kwargs["old"]))
+        pattern = text.Ref(indx.title).base_text_and_commentary_regex()
+        pattern = pattern.replace(re.escape(indx.title), re.escape(kwargs["old"]))
+        commentators = text.library.get_commentary_version_titles_on_book(kwargs["old"], with_commentary2=True)
+        title_pattern = ur'(^{}$)|(^({}) on {}$)'.format(re.escape(kwargs["old"]), "|".join(commentators), re.escape(kwargs["old"]))
 
     text_hist = HistorySet({"ref": {"$regex": pattern}})
+    print "Cascading Text History {} to {}".format(kwargs['old'], kwargs['new'])
     for h in text_hist:
         h.ref = h.ref.replace(kwargs["old"], kwargs["new"], 1)
         h.save()
 
     link_hist = HistorySet({"new.refs": {"$regex": pattern}})
+    print "Cascading Link History {} to {}".format(kwargs['old'], kwargs['new'])
     for h in link_hist:
         h.new["refs"] = [r.replace(kwargs["old"], kwargs["new"], 1) for r in h.new["refs"]]
         h.save()
 
     note_hist = HistorySet({"new.ref": {"$regex": pattern}})
+    print "Cascading Note History {} to {}".format(kwargs['old'], kwargs['new'])
     for h in note_hist:
         h.new["ref"] = h.new["ref"].replace(kwargs["old"], kwargs["new"], 1)
         h.save()
 
     title_hist = HistorySet({"title": {"$regex": title_pattern}})
+    print "Cascading Index History {} to {}".format(kwargs['old'], kwargs['new'])
     for h in title_hist:
         h.title = h.title.replace(kwargs["old"], kwargs["new"], 1)
         h.save()

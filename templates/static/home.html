@@ -183,7 +183,7 @@
             </h2>
             <img src="/static/img/explorer-in-laptop.png" />
             <div class="description">
-                <span class="en">Visually explore connections between Talmud and Tanach.</span>
+                <span class="en">Visually explore connections between Talmud and Tanakh.</span>
                 <span class="he">תרשים המראה את ציטוטי המקרא בתלמוד הבבלי</span>
             </div>
         </a>
@@ -243,11 +243,11 @@
         </a>
 
         <p id="metricsMessage">
-            <span class="en">Our scope is Torah in the broadest sense, from Tanach to Talmud to Zohar to modern texts and all the volumes of commentary inbetween.</span>
+            <span class="en">Our scope is Torah in the broadest sense, from Tanakh to Talmud to Zohar to modern texts and all the volumes of commentary inbetween.</span>
             <span class="he">ספאריה שואפת לכלול את התורה במובנה הרחב- מהתלמוד ועד הזוהר, מהתנ"ך ועד טקסטים בני ימינו.</span>
         </p>
 
-        <a href="https://github.com/blockspeiser/Sefaria-Project/wiki" target="_blank" class="btn btn-large grey">
+        <a href="https://github.com/Sefaria/Sefaria-Project/wiki" target="_blank" class="btn btn-large grey">
             <span class="en">Get Involved</span>
             <span class="he">הצטרף לעשייה</span>
         </a>
@@ -289,7 +289,7 @@
                 <div id="subscribeMsg">&nbsp;</div>
             </div>
 
-            <a href="http://github.com/blockspeiser/Sefaria-Project" class="followButton btn btn-large lightblue bordered">
+            <a href="http://github.com/Sefaria/Sefaria-Project" class="followButton btn btn-large lightblue bordered">
                 <i class="fa fa-github"></i>
                 <span class="en">Fork us on GitHub</span>
                 <span class="he">זלגו חופשי מגיטהאב</span>
@@ -315,9 +315,9 @@
     </a>
 
     <div id="announcement" class="modal">
-        <a href="#" class="btn btn-large purple">
-            <span class="en">Read More</span>
-            <span class="he">עוד</span>
+        <a href="/donate" class="btn btn-large purple">
+            <span class="en"></span>
+            <span class="he"></span>
         </a>
         <h3>
             <span class="en"></span>
@@ -382,7 +382,10 @@
             });
             
             // Announcement
-            if ($("#announcement h3 .en").text() && $(window).width() > 600) {
+            if ($("#announcement p .en").text() && $(window).width() > 830) {
+                if (!$("#announcement h3 .he").text()) {
+                    $("#announcement").addClass("hideInHebrewMode");
+                }
                 $("#announcement").show()
                     .position({my: "center top+15", at: "center bottom", of: $("#sub")})
                     .hide()

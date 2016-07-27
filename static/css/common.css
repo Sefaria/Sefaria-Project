@@ -77,7 +77,7 @@
   padding: 0;
   background-color: white;
   border-bottom: 1px solid #ddd;
-  vertical-align: middle
+  vertical-align: middle;
   -moz-user-select: none; 
   -khtml-user-select: none; 
   -webkit-user-select: none; 
@@ -373,6 +373,7 @@ body.embeded #top {
 
 #navToc .previewLink .en,
 #navToc .previewLink .he {
+  display: block;
   height: 24px;
   line-height: 24px;
   white-space: nowrap;
@@ -527,6 +528,21 @@ body.embeded #top {
   float: right;
 }
 
+#alertMessage {
+position:fixed;
+width:100%;
+display:none;
+z-index:101;
+text-align:center;
+background-color: #f2dede;
+border-color: #eed3d7;
+color: #b94a48;
+border: 1px solid #fbeed5;
+margin-bottom: 18px;
+text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+
+}
+
 #top .topButton .ui-icon {
   display: inline-block;
   vertical-align: -25%;
@@ -639,9 +655,7 @@ body.embeded #top {
   -webkit-user-select: auto;
 }
 
-.notification.unread {
-  background-color: #E7EDF3;
-}
+.notification.unread {background-color: #eee;}
 
 .notification+.notification  {
   border-top: 1px solid #999;
@@ -740,75 +754,6 @@ body.embeded #top {
 }
 #gardenPage .ui-accordion .ui-accordion-header a {
   display: inline;
-}
-
-#visualGardenPage h1 {
-  font-size: 36px;
-  border: none;
-}
-/* Controls need LTR to present right, but hebrew filter text still wants RTL */
-#visualGardenPage #controls {
-  width: 320px;
-  float: left;
-  direction: ltr;
-}
-body.hebrew #visualGardenPage .reset {
-  direction: rtl;
-  float: right
-}
-/* ^^ */
-
-#visualGardenPage #results .result {
-  margin: 10px 0;
-}
-#visualGardenPage #results .result-ref {
-  font-weight: bold;
-}
-#visualGardenPage #results .result-byline {
-  font-size: .8em;
-}
-#visualGardenPage #results .result-text {
-  margin: 5px 10px 0;
-}
-#visualGardenPage #results #data-count {
-  text-align: center;
-  float: none;
-  padding: 5px 0;
-}
-
-#visualGardenPage #tags-list.dc-chart g.row text {
-  fill: black;
-}
-
-#visualGardenPage #tags-list.dc-chart .axis path,
-#visualGardenPage #tags-list.dc-chart .axis line {
-stroke: none
-}
-
-#visualGardenPage #results-table .dc-table-column ._0 {
-  width: 220px;
-}
-#visualGardenPage #results-table .dc-table-column._1,
-#visualGardenPage #results-table .dc-table-column._2,
-#visualGardenPage #results-table .dc-table-column._3 {
-  width: 170px;
-}
-
-#visualGardenPage #results-table .dc-table-column._4 {
-  width: 30px;
-}
-
-#visualGardenPage #map-chart {
-    margin-left: 10px;
-}
-
-#visualGardenPage #map-chart path {
-  stroke-width: 1;
-  stroke: black;
-}
-#visualGardenPage #map-chart .selected path {
-  stroke-width: 1;
-  stroke: white;
 }
 
 #editButtons {
@@ -1016,7 +961,7 @@ stroke: none
 }
 
 /****   Person    ****/
-
+/*
 
 #personPage #periodNameLine {
   text-align: center;
@@ -1037,7 +982,6 @@ stroke: none
 
 .hebrew #personPage {
   direction: rtl;
-  /* font-size: 145%; */
 }
 
 div.person_tooltip {
@@ -1158,7 +1102,7 @@ div.person_tooltip {
     clear: both;
   }
 
-}
+}*/
 /****        Search         ****/
 
 #gotoBox {

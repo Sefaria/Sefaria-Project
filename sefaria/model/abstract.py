@@ -124,21 +124,14 @@ class AbstractMongoRecord(object):
             self._prepare_second_save()
             getattr(db, self.collection).save(props, w=1)
 
-        # Not sure about the order of these notifications firing.
         if self.track_pkeys and not is_new_obj:
             for key, old_value in self.pkeys_orig_values.items():
                 if old_value != getattr(self, key):
                     notify(self, "attributeChange", attr=key, old=old_value, new=getattr(self, key))
 
-        ''' Not yet used
-        self._post_save()
-        '''
+        notify(self, "save", orig_vals=self.pkeys_orig_values, is_new=is_new_obj)
 
-        notify(self, "save", orig_vals=self.pkeys_orig_values)
-        if is_new_obj:
-            notify(self, "create")
-
-        #Set new values as pkey_orig_values so that future changes will be caught
+        # Set new values as pkey_orig_values so that future changes will be caught
         if self.track_pkeys:
             for pkey in self.pkeys:
                 self.pkeys_orig_values[pkey] = getattr(self, pkey, None)
@@ -147,18 +140,10 @@ class AbstractMongoRecord(object):
 
     def delete(self):
         if self.is_new():
-            raise InputError("Can not delete {} that doesn't exist in database.".format(type(self).__name__))
-
-        #if self.track_pkeys:
-        #    for pkey in self.pkeys:
-        #        self.pkeys_orig_values[pkey] = getattr(self, pkey)
+            raise InputError(u"Can not delete {} that doesn't exist in database.".format(type(self).__name__))
 
         getattr(db, self.collection).remove({"_id": self._id})
         notify(self, "delete")
-
-        #if self.track_pkeys:
-        #    for key, old_value in self.pkeys_orig_values.items():
-        #        notify(self, "attributeChange", attr=key, old=old_value, new=None)
 
     def delete_by_query(self, query):
         r = self.load(query)
@@ -238,11 +223,6 @@ class AbstractMongoRecord(object):
     def _pre_save(self):
         pass
 
-    ''' Not yet used.
-    def _post_save(self, *args, **kwargs):
-        pass
-    '''
-
     def same_record(self, other):
         if getattr(self, "_id", None) and getattr(other, "_id", None):
             return ObjectId(self._id) == ObjectId(other._id)
@@ -319,6 +299,11 @@ class AbstractMongoSet(collections.Iterable):
         for rec in self:
             rec.save()
 
+    def remove(self, condition_callback):
+        self._read_records()
+        self.records = [r for r in self.records if not condition_callback(r)]
+        self.max = len(self.records)
+        return self
 
 def get_subclasses(c):
     subclasses = c.__subclasses__()
@@ -424,7 +409,7 @@ def notify(inst, action, **kwargs):
         "create": []
     }
     assert inst
-    assert action in actions_reqs.keys()
+    assert action in actions_reqs
 
     for arg in actions_reqs[action]:
         if not kwargs.get(arg, None):

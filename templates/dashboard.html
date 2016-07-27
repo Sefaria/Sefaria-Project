@@ -20,7 +20,8 @@
 	<div id="moderatorMsg">
 	You are logged in as a moderator. <br>
 	You can edit text flags by clicking a cell. <br>
-	<a class="btn btn-mini" href="/admin/rebuild/counts-toc">Rebuild Table of Contents</a>
+	<a class="btn btn-mini" id="rebuildCount" href="#">Rebuild Text Count</a>
+	<a class="btn btn-mini" href="/admin/delete/orphaned-counts">Delete Orphaned Counts</a>
 	</div>
 	{% endif %}
 
@@ -183,6 +184,12 @@ $(document).ready(function()
 				var title = $(this).parent("tr").attr("data-title");
 				var flag = $(this).attr("data-flag");
 				$.post("/api/counts/" + title + "?update=1&flag=" + flag + "&val=" + val, {}, function(){});
+			});
+			$("#rebuildCount").click(function() {
+				var title = prompt("Text Title:");
+				if (title) {
+					window.location = "/admin/reset/counts/" + title;
+				}
 			});
         {% endif %}
     } 

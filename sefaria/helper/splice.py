@@ -3,7 +3,6 @@ from sefaria.system.exceptions import InputError
 from sefaria.search import delete_text, index_text
 from sefaria.sheets import get_sheets_for_ref, get_sheet, save_sheet
 from sefaria.system.database import db
-from sefaria.summaries import update_summaries_on_change
 
 class Splicer(object):
     """
@@ -11,14 +10,14 @@ class Splicer(object):
 
     Sample usage for merge:
         splicer = Splicer()
-        splicer.splice_this_into_next("Shabbat 7b:11")
+        splicer.splice_this_into_next(Ref("Shabbat 7b:11"))
         splicer.report()  # optional, to check what it will do
         splicer.execute()
     A merge can be setup with method splice_this_into_next, splice_next_into_this, splice_prev_into_this, or splice_this_into_prev
 
     Sample usage for inserting a blank segment:
         splicer = Splicer()
-        splicer.insert_blank_segment_after("Shabbat 7b:11")
+        splicer.insert_blank_segment_after(Ref("Shabbat 7b:11"))
         splicer.report()  # optional, to check what it will do
         splicer.execute()
 
@@ -502,7 +501,7 @@ class Splicer(object):
     def _find_sheets(self):
         def _get_sheets_with_ref(oref):
             ref_re = oref.regex()
-            sheets = db.sheets.find({"included_refs": {"$regex": ref_re}}, {"id": 1})
+            sheets = db.sheets.find({"sources.ref": {"$regex": ref_re}}, {"id": 1})
             return [s["id"] for s in sheets]
 
         self._sheets_to_update += _get_sheets_with_ref(self.section_ref)
@@ -607,9 +606,9 @@ class Splicer(object):
             VersionState(vt).refresh()
 
     def _update_summaries(self):
-        update_summaries_on_change(self.first_ref.index.title, recount=False)
+        library.update_index_in_toc(self.first_ref.index.title)
         for vt in self.commentary_titles:
-            update_summaries_on_change(vt, recount=False)
+            library.update_index_in_toc(vt)
 
     def __eq__(self, other):
         return self._mode == other._mode and self.first_ref == other.first_ref and self.second_ref == other.second_ref

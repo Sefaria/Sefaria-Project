@@ -144,10 +144,8 @@ Version
 .. autoclass:: VersionSet
 
 
-get_index, Index, and CommentaryIndex 
--------------------------------------
-
-.. autofunction:: get_index
+Index, and CommentaryIndex
+--------------------------
 
 .. autoclass:: Index
 

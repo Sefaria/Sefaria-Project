@@ -1,23 +1,16 @@
-//  search-utils.js should be loaded before this file.
-//  Intention is for this file to be retired, and for search-utils to be the center of back end search logic
+//  library.js should be loaded before this file.
+//  Intention is for this file to be retired, and for library to be the center of back end search logic
 
-sjs = sjs || {};
+Sefaria = Sefaria || {};
 
-sjs.pageSize = 100;
+Sefaria.pageSize = 100;
 
-$.extend(sjs, {
+$.extend(Sefaria, {
     currentPage: "search",
     currentFacet: null,
 
-    //FilterTree object - for category filters
-    FilterNode: function() {
-        this.children = [];
-        this.parent = null;
-        this.selected = 0; //0 - not selected, 1 - selected, 2 - partially selected
-    },
-
     FilterTree: function() {
-        sjs.FilterNode.call(this); //Inherits from FilterNode
+        Sefaria.search.FilterNode.call(this); //Inherits from FilterNode
         this.path = "_root";
         this.title = "All Sources";
         this.heTitle = "כל המקורות";
@@ -27,8 +20,8 @@ $.extend(sjs, {
     }
 });
 
-sjs.search = sjs.search || {};
-$.extend(sjs.search, {
+Sefaria.search = Sefaria.search || {};
+$.extend(Sefaria.search, {
         filters_rendered: false,
         filter_tree: {},
         query_context: 1,
@@ -55,8 +48,8 @@ $.extend(sjs.search, {
             }
 
             var state = event.state;
-            sjs.search.clear_available_filters();
-            sjs.search.filter_tree = new sjs.FilterTree();
+            Sefaria.search.clear_available_filters();
+            Sefaria.search.filter_tree = new Sefaria.FilterTree();
 
             if ("lang" in state) {
                 if (state["lang"] == "he") {
@@ -69,32 +62,32 @@ $.extend(sjs.search, {
                 }
             }
             if (!("q" in state)) {
-                sjs.search.show_empty();
+                Sefaria.search.show_empty();
                 return;
             }
 
             if ("page" in state) {
-                sjs.search.page = parseInt(vars["page"])
+                Sefaria.search.page = parseInt(vars["page"])
             }
             /*
              if ("pctx" in state) {
-             sjs.search.set_presentation_context(parseInt(state["pctx"]));
+             Sefaria.search.set_presentation_context(parseInt(state["pctx"]));
              }
              if ("qctx" in state) {
-             sjs.search.set_query_context(state["qctx"]);
+             Sefaria.search.set_query_context(state["qctx"]);
              }
              */
             if ("q" in state) {
                 var query = state["q"].replace(/\+/g, " ");
                 $(".searchInput").val(query);
-                sjs.search.query = query;
+                Sefaria.search.query = query;
             }
 
             if ("filters" in state) {
-                var f = state["filters"].split("|")
-                sjs.search.filter_tree.setAppliedFilters(f);
+                var f = state["filters"].split("|");
+                Sefaria.search.filter_tree.setAppliedFilters(f);
             }
-            sjs.search.post();
+            Sefaria.search.post();
         },
         get_lang: function () {
             if ($("body").hasClass("english")) {
@@ -105,7 +98,7 @@ $.extend(sjs.search, {
             }
         },
         updateUrlParams: function (push) {
-            //Note that this is different than sjs.updateUrlParams, which is used for the reader
+            //Note that this is different than Sefaria.updateUrlParams, which is used for the reader
             var params = {};
             params["lang"] = this.get_lang();
 
@@ -283,11 +276,11 @@ $.extend(sjs.search, {
 
                 $("#searchFilters .filter").change(function (e) {
                     if (this.checked) {
-                        sjs.search.filter_tree.getChild(this.id).setSelected(true);
+                        Sefaria.search.filter_tree.getChild(this.id).setSelected(true);
                     } else {
-                        sjs.search.filter_tree.getChild(this.id).setUnselected(true);
+                        Sefaria.search.filter_tree.getChild(this.id).setUnselected(true);
                     }
-                    sjs.search.post(true, true)
+                    Sefaria.search.post(true, true)
                 });
                 $(".filter-parent span").click(function (e) {  // If text is clicked, propgate click to checkbox
                     $(this).closest("li").find(".filter").first().trigger('click');
@@ -318,8 +311,8 @@ $.extend(sjs.search, {
         },
 
         show_empty: function () {
-            sjs.search.$results.empty();
-            sjs.search.$results.append("<div id='search-instructions' class='well'>" +
+            Sefaria.search.$results.empty();
+            Sefaria.search.$results.append("<div id='search-instructions' class='well'>" +
                 "<span class='en'>Enter a word or words to search for in the box above. Enclose phrases with quotes.  You can enter your search in either Hebrew or English.  After submitting a search, you can filter your search to specific categories or books.</span>" +
                 "<span class='he'>" +
                 'הקלידו מילה/ים לחיפוש בתיבה מעל. ניתן להקליד ביטויים ע"י הקפתם במרכאות. החיפוש יכול להיעשות באנגלית או בעברית. אחרי ביצוע החיפוש, ניתן לסנן את התוצאות לקטגוריות או ספרים מסויימים.'
@@ -342,7 +335,7 @@ $.extend(sjs.search, {
                 }
             }
             var results = this.resultsHtml(this.hits.hits);
-            if (this.hits.hits.length == (hold_results ? sjs.pageSize : sjs.pageSize * (this.page + 1))) {
+            if (this.hits.hits.length == (hold_results ? Sefaria.pageSize : Sefaria.pageSize * (this.page + 1))) {
                 results += "<div class='moreResults'><span class='en'>More results</span><span class='he'>תוצאות נוספות</span></div>"
             }
             this.$desc.text(this.get_description_line());
@@ -352,32 +345,32 @@ $.extend(sjs.search, {
             });
             $(".moreResults").click(function () {
                 $(".moreResults").off("click").css("color", "grey");
-                sjs.search.page = sjs.search.page + 1;
-                sjs.search.post(true, false, false, true);
+                Sefaria.search.page = Sefaria.search.page + 1;
+                Sefaria.search.post(true, false, false, true);
             });
         },
         query_object: function () {
-            return sjs.library.search.get_query_object(this.query, !this.filters_rendered, this.filter_tree.hasAppliedFilters() && this.filter_tree.getAppliedFilters())
+            return Sefaria.search.get_query_object(this.query, !this.filters_rendered, this.filter_tree.hasAppliedFilters() && this.filter_tree.getAppliedFilters())
         },
         post: function (updateurl, push, leave_alive, hold_results) {
-            if (sjs.search.active_post && !(leave_alive)) {
-                sjs.search.active_post.abort(); //Kill any earlier query
+            if (Sefaria.search.active_post && !(leave_alive)) {
+                Sefaria.search.active_post.abort(); //Kill any earlier query
             }
 
             this.$header.html("Searching <img src='/static/img/ajax-loader.gif' />");
 
             var qobj = this.query_object();
 
-            var url = sjs.library.search.baseUrl;
+            var url = Sefaria.search.baseUrl;
             if (!hold_results)
-                url += "?size=" + ((this.page + 1) * sjs.pageSize);
+                url += "?size=" + ((this.page + 1) * Sefaria.pageSize);
             else {
-                url += "?size=" + sjs.pageSize;
+                url += "?size=" + Sefaria.pageSize;
                 if (this.page) {
-                    url += "&from=" + (this.page * sjs.pageSize);
+                    url += "&from=" + (this.page * Sefaria.pageSize);
                 }
             }
-            sjs.search.active_post = $.ajax({
+            Sefaria.search.active_post = $.ajax({
                 url: url,
                 type: 'POST',
                 data: JSON.stringify(qobj),
@@ -385,14 +378,14 @@ $.extend(sjs.search, {
                 processData: false,
                 dataType: 'json',
                 success: function (data) {
-                    sjs.search.hits = data.hits;
-                    if (data.aggregations) {
-                        //sjs.search.aggs = data.aggregations;
-                        sjs.search.filter_tree.updateAvailableFilters(data.aggregations.category.buckets);
+                    Sefaria.search.hits = data.hits;
+                    if (data.aggregations && data.aggregations.category) {
+                        //Sefaria.search.aggs = data.aggregations;
+                        Sefaria.search.filter_tree.updateAvailableFilters(data.aggregations.category.buckets);
                     }
-                    sjs.search.render(hold_results);
-                    if (updateurl) sjs.search.updateUrlParams(push);
-                    sjs.search.active_post = false;
+                    Sefaria.search.render(hold_results);
+                    if (updateurl) Sefaria.search.updateUrlParams(push);
+                    Sefaria.search.active_post = false;
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     if (textStatus == "abort") {
@@ -402,14 +395,14 @@ $.extend(sjs.search, {
                         "<b>Sefaria Search encountered an error.</b><br />" +
                         "This feature is still in development. We're currently working to make our search experience both robust and useful. Please try your search again later." +
                         "</div>";
-                    sjs.search.$results.html(html);
-                    sjs.search.active_post = false;
+                    Sefaria.search.$results.html(html);
+                    Sefaria.search.active_post = false;
                 }
             });
 
             $(".searchInput").blur();
 
-            sjs.track.search(this.query);
+            Sefaria.site.track.event("Search","Search",this.query);
         }
     }
 );
@@ -417,31 +410,13 @@ $.extend(sjs.search, {
 /* Working with filter trees:
 1) Add all Available Filters with addAvailableFilter
 2) _build
+*/
 
- */
-sjs.FilterNode.prototype = {
+$.extend(Sefaria.search.FilterNode.prototype, {
+    //Extend the 'set...' methods to also mutate DOM
     $el : function() {
         var selector = ".filter#" + this.getId();
         return $(selector);
-    },
-    append : function(child) {
-        this.children.push(child);
-        child.parent = this;
-    },
-    hasChildren: function() {
-        return (this.children.length > 0);
-    },
-    getId: function() {
-        return this.path.replace(new RegExp("[/',()]", 'g'),"-").replace(new RegExp(" ", 'g'),"_");
-    },
-    isSelected: function() {
-        return (this.selected == 1);
-    },
-    isPartial: function() {
-        return (this.selected == 2);
-    },
-    isUnselected: function() {
-        return (this.selected == 0);
     },
     setSelected : function(propogateParent, noPropogateChild) {
         //default is to propogate children and not parents.
@@ -481,59 +456,6 @@ sjs.FilterNode.prototype = {
         this.$el().prop('checked', false);
         if(this.parent) this.parent._deriveState();
     },
-
-    _deriveState: function() {
-        //Always called from children, so we can assume at least one
-        var potentialState = this.children[0].selected;
-        if (potentialState == 2) {
-            this.setPartial();
-            return
-        }
-        for (var i = 1; i < this.children.length; i++) {
-            if (this.children[i].selected != potentialState) {
-                this.setPartial();
-                return
-            }
-        }
-        //Don't use setters, so as to avoid looping back through children.
-        if(potentialState == 1) {
-            this.setSelected(true, true);
-        } else {
-            this.setUnselected(true, true);
-        }
-    },
-
-    hasAppliedFilters: function() {
-        return (this.getAppliedFilters().length > 0)
-    },
-
-    getAppliedFilters: function() {
-        if (this.isUnselected()) {
-            return [];
-        }
-        if (this.isSelected()) {
-            return[this.path];
-        }
-        var results = [];
-        for (var i = 0; i < this.children.length; i++) {
-            results = results.concat(this.children[i].getAppliedFilters());
-        }
-        return results;
-    },
-    getSelectedTitles: function(lang) {
-        if (this.isUnselected()) {
-            return [];
-        }
-        if (this.isSelected()) {
-            return[(lang == "en")?this.title:this.heTitle];
-        }
-        var results = [];
-        for (var i = 0; i < this.children.length; i++) {
-            results = results.concat(this.children[i].getSelectedTitles(lang));
-        }
-        return results;
-    },
-
     toHtml: function() {
         var html = '<li'
             + (this.hasChildren()?" class='filter-parent'":"")
@@ -554,16 +476,14 @@ sjs.FilterNode.prototype = {
         html += ' </li> ';
         return html;
     }
-};
-
-
-sjs.FilterTree.prototype = Object.create(sjs.FilterNode.prototype);
-sjs.FilterTree.prototype.constructor = sjs.FilterTree;
-$.extend(sjs.FilterTree.prototype, {
+});
+Sefaria.FilterTree.prototype = Object.create(Sefaria.search.FilterNode.prototype);
+Sefaria.FilterTree.prototype.constructor = Sefaria.FilterTree;
+$.extend(Sefaria.FilterTree.prototype, {
 
     setUnselected: function(propogateParent, noPropogateChild) {
-        sjs.search.filter_tree.orphanFilters = [];
-        sjs.FilterNode.prototype.setUnselected.call(this, propogateParent, noPropogateChild);
+        Sefaria.search.filter_tree.orphanFilters = [];
+        Sefaria.search.FilterNode.prototype.setUnselected.call(this, propogateParent, noPropogateChild);
     },
     updateAvailableFilters: function(filters) {
         this.orphanFilters = this.getAppliedFilters();
@@ -628,7 +548,7 @@ $.extend(sjs.FilterTree.prototype, {
     },
 
     _build: function() {
-        //Aggregate counts, then sort rawTree into FilterNodes and add Hebrew using sjs.toc as reference
+        //Aggregate counts, then sort rawTree into FilterNodes and add Hebrew using Sefaria.toc as reference
         //Nod to http://stackoverflow.com/a/17546800/213042
         this._aggregate();
         this.doc_count = this.rawTree.doc_count;
@@ -638,7 +558,7 @@ $.extend(sjs.FilterTree.prototype, {
         var path = [];
 
         //Manually add base commentary branch
-        var commentaryNode = new sjs.FilterNode();
+        var commentaryNode = new Sefaria.search.FilterNode();
         var rnode = ftree.rawTree["Commentary"];
         if (rnode) {
             $.extend(commentaryNode, {
@@ -652,14 +572,14 @@ $.extend(sjs.FilterTree.prototype, {
 
         //End commentary base hack
 
-        for(var j = 0; j < sjs.toc.length; j++) {
-            var b = walk(sjs.toc[j]);
+        for(var j = 0; j < Sefaria.toc.length; j++) {
+            var b = walk(Sefaria.toc[j]);
             if (b) this.append(b)
         }
         if (rnode) this.append(commentaryNode);
 
         function walk(branch, parentNode) {
-            var node = new sjs.FilterNode();
+            var node = new Sefaria.search.FilterNode();
 
             if("category" in branch) { // Category node
                 if(branch["category"] == "Commentary") { // Special case commentary
@@ -773,44 +693,43 @@ $(function() {
 
     $("#languageToggle").show();
     $("#languageToggle #bilingual").hide();
-	$("#hebrew, #english").on("click", function() { sjs.search.updateUrlParams(true); });
+	$("#hebrew, #english").on("click", function() { Sefaria.search.updateUrlParams(true); });
 
-    window.addEventListener('popstate', sjs.search.handleStateChange);
+    window.addEventListener('popstate', Sefaria.search.handleStateChange);
 
 	var vars = getUrlVars();
-    sjs.search.filter_tree = new sjs.FilterTree();
+    Sefaria.search.filter_tree = new Sefaria.FilterTree();
 
     if (!("q" in vars)) {  //empty page
-        sjs.search.show_empty();
-        sjs.search.updateUrlParams();
+        Sefaria.search.show_empty();
+        Sefaria.search.updateUrlParams();
         return
     }
-
-    var query = vars["q"].replace(/\+/g, " ");
+    var query = decodeURIComponent(vars["q"]).replace(/\+/g, " ");
     $(".searchInput").val(query);
-    sjs.search.query = query;
+    Sefaria.search.query = query;
 
     if ("lang" in vars) {
         if (vars["lang"] == "he") { $("body").addClass("hebrew"); $("body").removeClass("english"); }
         else if (vars["lang"] == "en") { $("body").addClass("english"); $("body").removeClass("hebrew"); }
     }
     if ("page" in vars) {
-        sjs.search.page = parseInt(vars["page"])
+        Sefaria.search.page = parseInt(vars["page"])
     }
     /*
     if ("pctx" in vars) {
-        sjs.search.set_presentation_context(parseInt(vars["pctx"]));
+        Sefaria.search.set_presentation_context(parseInt(vars["pctx"]));
     }
     if ("qctx" in vars) {
-        sjs.search.set_query_context(vars["qctx"]);
+        Sefaria.search.set_query_context(vars["qctx"]);
     }
     */
 
     if ("filters" in vars) {
         var f = vars["filters"].split("|");
-        sjs.search.filter_tree.setAppliedFilters(f);
+        Sefaria.search.filter_tree.setAppliedFilters(f);
     }
 
-    sjs.search.post(true);
+    Sefaria.search.post(true);
 
 });

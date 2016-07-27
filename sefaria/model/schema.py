@@ -8,7 +8,7 @@ try:
     import re2 as re
     re.set_fallback_notification(re.FALLBACK_WARNING)
 except ImportError:
-    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines")
+    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/Sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
     import re
 
 import regex
@@ -240,6 +240,7 @@ class TreeNode(object):
     def _init_defaults(self):
         self.children = []  # Is this enough?  Do we need a dict for addressing?
         self.parent = None
+        self._leaf_nodes = []
 
     def validate(self):
         for k in self.required_param_keys:
@@ -267,12 +268,14 @@ class TreeNode(object):
         node.append(self)
         return self
 
+    # todo: replace with a direct call to self.children for speed
     def has_children(self):
         """
         :return bool: True if this node has children
         """
         return bool(self.children)
 
+    # todo: replace with a direct call to `not self.children for speed`
     def is_leaf(self):
         return not self.children
 
@@ -286,27 +289,27 @@ class TreeNode(object):
             return None
 
     def root(self):
-        if self.is_root():
+        if not self.parent:
             return self
         return self.parent.root()
 
     def first_child(self):
-        if not self.has_children():
+        if not self.children:
             return None
         return self.children[0]
 
     def last_child(self):
-        if not self.has_children():
+        if not self.children:
             return None
         return self.children[-1]
 
     def first_leaf(self):
-        if self.is_leaf():
+        if not self.children: # is leaf
             return self
         return self.first_child().first_leaf()
 
     def last_leaf(self):
-        if self.is_leaf():
+        if not self.children: # is leaf
             return self
         return self.last_child().last_leaf()
 
@@ -347,6 +350,7 @@ class TreeNode(object):
     def prev_leaf(self):
         return self._prev_in_list(self.root().get_leaf_nodes())
 
+    # todo: replace with `not self.parent` for speed
     def is_root(self):
         return not self.parent
 
@@ -359,26 +363,19 @@ class TreeNode(object):
 
     def traverse_to_string(self, callback, depth=0, **kwargs):
         st = callback(self, depth, **kwargs)
-        if self.has_children():
-            for child in self.children:
-                st += child.traverse_to_string(callback, depth + 1, **kwargs)
+        st += "".join([child.traverse_to_string(callback, depth + 1, **kwargs) for child in self.children])
         return st
 
     def traverse_to_json(self, callback, depth=0, **kwargs):
         js = callback(self, depth, **kwargs)
-        if self.has_children():
-            if self.children:
-                js["nodes"] = []
-            for child in self.children:
-                js["nodes"].append(child.traverse_to_json(callback, depth + 1, **kwargs))
+        if self.children:
+            js["nodes"] = [child.traverse_to_json(callback, depth + 1, **kwargs) for child in self.children]
         return js
 
     def serialize(self, **kwargs):
         d = {}
-        if self.has_children():
-            d["nodes"] = []
-            for n in self.children:
-                d["nodes"].append(n.serialize(**kwargs))
+        if self.children:
+            d["nodes"] = [n.serialize(**kwargs) for n in self.children]
 
         #Only output nodeType and nodeParameters if there is at least one param. This seems like it may not remain a good measure.
         params = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if getattr(self, k, None) is not None}
@@ -401,13 +398,16 @@ class TreeNode(object):
         return new_node
 
     def get_leaf_nodes(self):
-        if self.is_leaf():
-            return [self]
-        else:
-            nodes = []
-            for node in self.children:
-                nodes += node.get_leaf_nodes()
-            return nodes
+        if not self._leaf_nodes:
+            if not self.children:
+                self._leaf_nodes = [self]
+            else:
+                for node in self.children:
+                    if not node.children:
+                        self._leaf_nodes += [node]
+                    else:
+                        self._leaf_nodes += node.get_leaf_nodes()
+        return self._leaf_nodes
 
 
 class TitledTreeNode(TreeNode):
@@ -482,12 +482,11 @@ class TitledTreeNode(TreeNode):
         alone_node_titles = [title["text"] for title in self.get_titles() if title["lang"] == lang and title.get("presentation") == "alone" or title.get("presentation") == "both"]
         node_title_list += alone_node_titles
 
-        if self.has_children():
-            for child in self.children:
-                if child.is_default():
-                    thisnode = child
-                else:
-                    title_dict.update(child.title_dict(lang, node_title_list))
+        for child in self.children:
+            if child.default:
+                thisnode = child
+            else:
+                title_dict.update(child.title_dict(lang, node_title_list))
 
         for title in node_title_list:
             title_dict[title] = thisnode
@@ -519,6 +518,7 @@ class TitledTreeNode(TreeNode):
                 self._full_title[lang] = self.primary_title(lang)
         return self._full_title[lang]
 
+    # todo: replace with a direct call to self.default for speed
     def is_default(self):
         """
         Is this node a default node, meaning, do references to its parent cascade to this node?
@@ -596,7 +596,7 @@ class TitledTreeNode(TreeNode):
     def validate(self):
         super(TitledTreeNode, self).validate()
 
-        if any((c in '-') for c in self.title_group.primary_title("en")):
+        if '-' in self.title_group.primary_title("en"):
             raise InputError("Primary English title may not contain hyphens.")
 
         if not self.default and not self.sharedTitle and not self.get_titles():
@@ -608,7 +608,7 @@ class TitledTreeNode(TreeNode):
         if not self.default and not self.primary_title("en"):
             raise IndexSchemaError("Schema node {} missing primary English title".format(self))
 
-        if self.has_children() and len([c for c in self.children if c.default]) > 1:
+        if self.children and len([c for c in self.children if c.default]) > 1:
             raise IndexSchemaError("Schema Structure Node {} has more than one default child.".format(self.key))
 
         if self.sharedTitle and Term().load({"name": self.sharedTitle}).titles != self.get_titles():
@@ -667,6 +667,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
         }
         """
         super(NumberedTitledTreeNode, self).__init__(serial, **kwargs)
+        self._regexes = {}
         self._init_address_classes()
 
     def _init_address_classes(self):
@@ -691,10 +692,9 @@ class NumberedTitledTreeNode(TitledTreeNode):
     def address_class(self, depth):
         return self._addressTypes[depth]
 
-    # todo: accept 'anchored' arguement, and return Regex object.
     def full_regex(self, title, lang, anchored=True, compiled=True, **kwargs):
         """
-        :return: Regex object. If for_js == True, returns the Regex string
+        :return: Regex object. If kwargs[for_js] == True, returns the Regex string
         :param for_js: Defaults to False
         :param match_range: Defaults to False
 
@@ -730,12 +730,15 @@ class NumberedTitledTreeNode(TitledTreeNode):
         Different address type / language combinations produce different internal regexes in the innermost portions of the above, where the comments say 'digits'.
 
         """
-        reg = ur"^" if anchored else ""
-        reg += regex.escape(title) + self.after_title_delimiter_re
-        addr_regex = self.address_regex(lang, **kwargs)
-        reg += ur'(?:(?:' + addr_regex + ur')|(?:[\[({]' + addr_regex + ur'[\])}]))'  # Match expressions with internal parenthesis around the address portion
-        reg += ur"(?=\W|$)" if not kwargs.get("for_js") else ur"(?=[.,:;?! })\]<]|$)"
-        return regex.compile(reg, regex.VERBOSE) if compiled else reg
+        key = (title, lang, anchored, compiled, kwargs.get("for_js"), kwargs.get("match_range"), kwargs.get("strict"))
+        if not self._regexes.get(key):
+            reg = ur"^" if anchored else ""
+            reg += regex.escape(title) + self.after_title_delimiter_re
+            addr_regex = self.address_regex(lang, **kwargs)
+            reg += ur'(?:(?:' + addr_regex + ur')|(?:[\[({]' + addr_regex + ur'[\])}]))'  # Match expressions with internal parenthesis around the address portion
+            reg += ur"(?=\W|$)" if not kwargs.get("for_js") else ur"(?=[.,:;?! })\]<]|$)"
+            self._regexes[key] = regex.compile(reg, regex.VERBOSE) if compiled else reg
+        return self._regexes[key]
 
     def address_regex(self, lang, **kwargs):
         group = "a0" if not kwargs.get("for_js") else None
@@ -809,11 +812,11 @@ class ArrayMapNode(NumberedTitledTreeNode):
                 refs         = text.Ref(self.wholeRef).split_spanning_ref()
                 first, last  = refs[0], refs[-1]
                 offset       = first.sections[-2]-1 if first.is_segment_level() else first.sections[-1]-1
-                depth        = len(first.index.nodes.sectionNames) - len(first.section_ref().sections)
+                depth        = len(first.index_node.sectionNames) - len(first.section_ref().sections)
 
                 d["refs"] = [r.normal() for r in refs]
-                d["addressTypes"] = d.get("addressTypes", []) + first.index.nodes.addressTypes[depth:]
-                d["sectionNames"] = d.get("sectionNames", []) + first.index.nodes.sectionNames[depth:]
+                d["addressTypes"] = d.get("addressTypes", []) + first.index_node.addressTypes[depth:]
+                d["sectionNames"] = d.get("sectionNames", []) + first.index_node.sectionNames[depth:]
                 d["depth"] += 1
                 d["offset"] = offset
 
@@ -876,8 +879,8 @@ class SchemaNode(TitledTreeNode):
     def __init__(self, serial=None, **kwargs):
         """
         Construct a SchemaNode
-        :param index: The Index object that this tree is rooted in.
         :param serial: The serialized form of this subtree
+        :param kwargs: "index": The Index object that this tree is rooted in.
         :return:
         """
         super(SchemaNode, self).__init__(serial, **kwargs)
@@ -959,7 +962,7 @@ class SchemaNode(TitledTreeNode):
             res["heTitleVariants"] = self.full_titles("he")
         if self.index.has_alt_structures():
             res['alts'] = {}
-            if not self.has_children(): #preload text and pass it down to the preview generation
+            if not self.children: #preload text and pass it down to the preview generation
                 from . import text
                 he_text_ja = text.TextChunk(self.ref(), "he").ja()
                 en_text_ja = text.TextChunk(self.ref(), "en").ja()
@@ -977,7 +980,7 @@ class SchemaNode(TitledTreeNode):
         """
         d = super(SchemaNode, self).serialize(**kwargs)
         d["key"] = self.key
-        if self.checkFirst:
+        if getattr(self, "checkFirst", None) is not None:
             d["checkFirst"] = self.checkFirst
         return d
 
@@ -1016,13 +1019,12 @@ class SchemaNode(TitledTreeNode):
         return text.Ref(_obj=d)
 
     def first_section_ref(self):
-        if not self.is_leaf():
+        if self.children:
             return self.ref()
-
         return self.ref().padded_ref()
 
     def last_section_ref(self):
-        if not self.is_leaf():
+        if self.children:
             return self.ref()
 
         from . import version_state

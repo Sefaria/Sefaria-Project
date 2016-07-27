@@ -95,5 +95,5 @@ def import_from_csv(filename, action="status", category="all"):
 				print "Still no Hebrew:  %s" % i["title"]
 
 	if action in ("post", "update"):
-		summaries.update_summaries()
-		summaries.save_toc_to_db()
+		from sefaria.model import library
+		library.rebuild_toc()

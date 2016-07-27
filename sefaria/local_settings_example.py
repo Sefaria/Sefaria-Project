@@ -53,6 +53,8 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
 )
 
+DJANGO_HOST  = "http://localhost:8000" # Where is Django running
+
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 1025
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -67,11 +69,17 @@ SEFARIA_DB_PASSWORD = 'your mongo password'
 # ElasticSearch server
 SEARCH_HOST = "http://localhost:9200"
 SEARCH_ADMIN = "http://localhost:9200"
-SEARCH_INDEX_ON_SAVE = True # Whether to send texts and source sheet to Search Host for indexing after save
-SEARCH_INDEX_NAME = 'sefaria' # name of the ElasticSearch index to use
+SEARCH_INDEX_ON_SAVE = True  # Whether to send texts and source sheet to Search Host for indexing after save
+SEARCH_INDEX_NAME = 'sefaria'  # name of the ElasticSearch index to use
+
+# Node Server
+USE_NODE = False
+NODE_HOST = "http://localhost:4040"
+NODE_TIMEOUT = 10
+NODE_TIMEOUT_MONITOR = relative_to_abs_path("../log/forever/timeouts")
 
 SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
-SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts 
+SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts
 
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 MIXPANEL_CODE = 'you mixpanel code here'

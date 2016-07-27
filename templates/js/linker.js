@@ -135,8 +135,8 @@
             [].forEach.call(heElems, function(e) {e.style.display = "Block"});
             [].forEach.call(enElems, function(e) {e.style.display = "None"});
         }
-        enBox.textContent = source.en;
-        heBox.textContent = source.he;
+        enBox.innerHTML = source.en;
+        heBox.innerHTML = source.he;
         enTitle.textContent = source.ref;
         heTitle.textContent = source.heRef;
 

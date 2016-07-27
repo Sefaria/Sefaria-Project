@@ -34,9 +34,9 @@ function resizeZoomContainer() {
     }
 
     if (zoomScale > 1) {
-        marginOffset = 0
+        marginOffset = 0;
     } else {
-        marginOffset = parseFloat($("header").css("height"));
+        marginOffset = 53;
     }
 
     $("#container").css({
@@ -172,8 +172,7 @@ $(".sheetItem").resizable({
     }
 
     if ($(this).hasClass("mediaWrapper")) {
-
-        var mediaSource = sjs.current.sources[$(this).prevAll(".sheetItem").length].media;
+        var mediaSource = sjs.current.sources[($(this).prevAll(".sheetItem").length)+($(this).prevAll(".outsideBiWrapper").length)].media;
         var mediaLink;
 
         if (mediaSource.match(/\.(jpeg|jpg|gif|png)$/i) != null) {

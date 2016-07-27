@@ -6,6 +6,7 @@ from sefaria.system.exceptions import InputError
 
 from urlparse import urlparse
 from httplib import HTTPConnection
+import urllib
 
 import logging
 logger = logging.getLogger(__name__)
@@ -30,20 +31,25 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
         oref = oref.section_ref()
 
     if version:
-        version = version.replace(" ", "_")
+        version = urllib.quote(version.replace(" ", "_").encode("utf-8"))
     if purge:
         # Purge this section level ref, so that immediate responses will return good results
         purge_url("{}/api/texts/{}".format(FRONT_END_URL, oref.url()))
         if version and lang:
-            purge_url("{}/api/texts/{}/{}/{}".format(FRONT_END_URL, oref.url(), lang, version))
+            try:
+                purge_url(u"{}/api/texts/{}/{}/{}".format(FRONT_END_URL, oref.url(), lang, version))
+            except Exception as e:
+                logger.exception(e)
         # Hacky to add these
         purge_url("{}/api/texts/{}?commentary=1&sheets=1".format(FRONT_END_URL, oref.url()))
         purge_url("{}/api/texts/{}?sheets=1".format(FRONT_END_URL, oref.url()))
         purge_url("{}/api/texts/{}?commentary=0".format(FRONT_END_URL, oref.url()))
         purge_url("{}/api/texts/{}?commentary=0&pad=0".format(FRONT_END_URL, oref.url()))
         if version and lang:
-            purge_url("{}/api/texts/{}/{}/{}?commentary=0".format(FRONT_END_URL, oref.url(), lang, version))
-
+            try:
+                purge_url(u"{}/api/texts/{}/{}/{}?commentary=0".format(FRONT_END_URL, oref.url(), lang, version))
+            except Exception as e:
+                logger.exception(e)
         purge_url("{}/api/links/{}".format(FRONT_END_URL, oref.url()))
         purge_url("{}/api/links/{}?with_text=0".format(FRONT_END_URL, oref.url()))
         purge_url("{}/api/links/{}?with_text=1".format(FRONT_END_URL, oref.url()))
@@ -90,6 +96,15 @@ def invalidate_index(indx):
     purge_url("{}/api/index/{}".format(FRONT_END_URL, url))
     purge_url("{}/api/v2/raw/index/{}".format(FRONT_END_URL, url))
     purge_url("{}/api/v2/index/{}".format(FRONT_END_URL, url))
+
+
+def invalidate_title(title):
+    title = title.replace(" ", "_").replace(":", ".")
+    invalidate_index(title)
+    invalidate_counts(title)
+    manager.run("ban", 'obj.http.url ~ "/api/texts/{}"'.format(title), secret=secret)
+    manager.run("ban", 'obj.http.url ~ "/api/links/{}"'.format(title), secret=secret)
+
 
 #PyPi version of python-varnish has broken purge function.  We use this instead.
 def purge_url(url):

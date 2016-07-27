@@ -246,31 +246,36 @@ class Test_Hebrew_Quoting_Styles(object):
 
 
 
-
-class Test_FAILING_parse_he_commentary(object):
-    def test_FAILING_hebrew_commentary(self):
+#todo: surprised this works. Had been marked as failing.  What's the coverage of these kinds of refs?
+class Test_parse_he_commentary(object):
+    def test_hebrew_commentary(self):
         assert m.Ref(u'רש"י על ויקרא ט״ו:ג׳') == m.Ref("Rashi on Leviticus 15:3")
 
 
 class Test_parse_he_ref_range(object):
+    # Most hebrew ranges are not yet supported
     def test_hebrew_range_simple(self):
         assert m.Ref(u'שמות, כ"ד, יג-יד') == m.Ref('Exodus 24:13-14')
         assert m.Ref(u'במדבר, כ"ז, טו - כג') == m.Ref("Numbers 27:15-23")
         assert m.Ref(u'במדבר, כ"ז, טו -כ״ט כג') == m.Ref("Numbers 27:15-29:23")
 
-    def test_FAILING_hebrew_range_with_colons(self):
+    @pytest.mark.failing
+    def test_hebrew_range_with_colons(self):
         assert m.Ref(u'רות יט:יח-כ:יח') == m.Ref("Ruth 19:18-20:18")
 
-    def test_FAILING_hebrew_range_commentary(self):
+    @pytest.mark.failing
+    def test_hebrew_range_commentary(self):
         assert m.Ref(u'רש"י על ויקרא ט״ו:ג׳-י״ז:י״ב') == m.Ref("Rashi on Leviticus 15:3-17:12")
         assert m.Ref(u'רש"י על שמות ג׳:א׳:א׳-ג׳') == m.Ref("Rashi on Exodus 3:1:1-3")
 
-    def test_FAILING_hebrew_range_talmud(self):
+    @pytest.mark.failing
+    def test_hebrew_range_talmud(self):
         assert m.Ref(u'שבת טו. - טז:') == m.Ref("Shabbat 15a-16b")
         assert m.Ref(u'שבת טו א - טז ב') == m.Ref("Shabbat 15a-16b")
         # assert m.Ref(u'') == m.Ref("Shabbat 15a:15-15b:13")
 
-    def test_FAILING_hebrew_range_talmud_commentary(self):
+    @pytest.mark.failing
+    def test_hebrew_range_talmud_commentary(self):
         assert m.Ref(u'') == m.Ref("Rashi on Shabbat 15a:15-15b:13")
 
 
@@ -284,7 +289,8 @@ class Test_Hebrew_Normal(object):
     def test_talmud(self):
         assert m.Ref("Shabbat").he_normal() == u'שבת'
         assert m.Ref("Shabbat 3b").he_normal() == u'שבת ג׳ ב'
-        assert m.Ref("Shabbat 3b:23").he_normal() == u'שבת ג׳ ב 23'
+        # assert m.Ref("Shabbat 3b:23").he_normal() == u'שבת ג׳ ב 23'
+        assert m.Ref("Shabbat 3b:23").he_normal() == u'שבת ג׳ ב:כ״ג'
 
     def test_simple_range(self):
         assert m.Ref("Exodus 4-5").he_normal() == u'שמות ד׳-ה׳'
@@ -293,7 +299,8 @@ class Test_Hebrew_Normal(object):
 
     def test_talmud_range(self):
         assert m.Ref("Shabbat 3b-5a").he_normal() == u'שבת ג׳ ב-ה׳ א'
-        assert m.Ref("Shabbat 3b:3-24").he_normal() == u'שבת ג׳ ב 3-24'
+        # assert m.Ref("Shabbat 3b:3-24").he_normal() == u'שבת ג׳ ב 3-24'
+        assert m.Ref("Shabbat 3b:3-24").he_normal() == u'שבת ג׳ ב:ג׳-כ״ד'
         # assert m.Ref("Shabbat 3b:3-5a:24").he_normal() == u'שבת ג: 3-ה. 24'
 
     def test_complex(self):

@@ -1,5 +1,5 @@
-from datetime import datetime, timedelta
 import json
+from datetime import datetime, timedelta
 from urlparse import urlparse
 from collections import defaultdict
 from random import choice
@@ -24,21 +24,24 @@ import sefaria.model as model
 import sefaria.system.cache as scache
 
 from sefaria.client.util import jsonResponse, subscribe_to_announce
-from sefaria.summaries import update_summaries, save_toc_to_db
 from sefaria.forms import NewUserForm
-from sefaria.settings import MAINTENANCE_MESSAGE
-from sefaria.model.user_profile import UserProfile
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH
+from sefaria.model.user_profile import UserProfile, user_links
 from sefaria.model.group import GroupSet
 from sefaria.model.translation_request import count_completed_translation_requests
 from sefaria.export import export_all as start_export_all
 from sefaria.datatype.jagged_array import JaggedTextArray
-
 # noinspection PyUnresolvedReferences
-from sefaria.utils.users import user_links
 from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
+from sefaria.system.decorators import catch_error_as_http
 from sefaria.utils.hebrew import is_hebrew
-from sefaria.helper.text import make_versions_csv
+from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats
+from sefaria.clean import remove_old_counts
+from sefaria.model import *
+
+if USE_VARNISH:
+    from sefaria.system.sf_varnish import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts
 
 import logging
 logger = logging.getLogger(__name__)
@@ -60,6 +63,9 @@ def register(request):
             UserProfile(id=user.id).assign_slug().save()
             if "noredirect" in request.POST:
                 return HttpResponse("ok")
+            elif "new?assignment=" in request.POST.get("next",""):
+                next = request.POST.get("next", "")
+                return HttpResponseRedirect(next)
             else:
                 next = request.POST.get("next", "/") + "?welcome=to-sefaria"
                 return HttpResponseRedirect(next)
@@ -163,13 +169,32 @@ def accounts(request):
 
 
 def subscribe(request, email):
-    if subscribe_to_announce(email):
+    if subscribe_to_announce(email, direct_sign_up=True):
         return jsonResponse({"status": "ok"})
     else:
         return jsonResponse({"error": "Sorry, there was an error."})
 
 
+def data_js(request):
+    """
+    Javascript populating dynamic data like book lists, toc.
+    """
+    return render_to_response("js/data.js", {}, RequestContext(request), mimetype= "text/javascript")    
+
+
+def sefaria_js(request):
+    """
+    Packaged Sefaria.js.
+    """
+    # TODO
+    attrs = {}
+    return render_to_response("js/sefaria.js", attrs, RequestContext(request), mimetype= "text/javascript")    
+
+
 def linker_js(request):
+    """
+    Javascript of Linker plugin.
+    """
     attrs = {
         "book_titles": json.dumps(model.library.full_title_list("en", with_commentary=True, with_commentators=False)
                       + model.library.full_title_list("he", with_commentary=True, with_commentators=False))
@@ -231,16 +256,29 @@ def bulktext_api(request, refs):
         resp['Access-Control-Allow-Origin'] = '*'
         return resp
 
+
 @staff_member_required
 def reset_cache(request):
-    scache.reset_texts_cache()
+    model.library.rebuild()
     global user_links
     user_links = {}
     return HttpResponseRedirect("/?m=Cache-Reset")
 
+
+@staff_member_required
+def reset_index_cache_for_text(request, title):
+    index = model.library.get_index(title)
+    model.library.refresh_index_record_in_cache(index)
+    scache.delete_cache_elem(scache.generate_text_toc_cache_key(title))
+    if USE_VARNISH:
+        invalidate_title(title)
+    return HttpResponseRedirect("/%s?m=Cache-Reset" % model.Ref(title).url())
+
+
 """@staff_member_required
 def view_cached_elem(request, title):
     return HttpResponse(get_template_cache('texts_list'), status=200)
+
 
 @staff_member_required
 def del_cached_elem(request, title):
@@ -250,14 +288,30 @@ def del_cached_elem(request, title):
 
 
 @staff_member_required
-def reset_counts(request):
-    model.refresh_all_states()
-    return HttpResponseRedirect("/?m=Counts-Rebuilt")
+def reset_counts(request, title=None):
+    if title:
+        try:
+            i = model.library.get_index(title)
+        except:
+            return HttpResponseRedirect("/dashboard?m=Unknown-Book")
+        vs = model.VersionState(index=i)
+        vs.refresh()
+        return HttpResponseRedirect("/%s?m=Counts-Rebuilt" % model.Ref(i.title).url())
+    else:
+        model.refresh_all_states()
+        return HttpResponseRedirect("/?m=Counts-Rebuilt")
+
+
+@staff_member_required
+def delete_orphaned_counts(request):
+    remove_old_counts()
+    scache.delete_template_cache("texts_dashboard")
+    return HttpResponseRedirect("/dashboard?m=Orphaned-counts-deleted")
 
 
 @staff_member_required
 def rebuild_toc(request):
-    update_summaries()
+    model.library.rebuild_toc()
     return HttpResponseRedirect("/?m=TOC-Rebuilt")
 
 
@@ -268,9 +322,41 @@ def rebuild_counts_and_toc(request):
 
 
 @staff_member_required
-def save_toc(request):
-    save_toc_to_db()
-    return HttpResponseRedirect("/?m=TOC-Saved")
+def reset_varnish(request, tref):
+    if USE_VARNISH:
+        oref = model.Ref(tref)
+        if oref.is_book_level():
+            invalidate_index(oref.index)
+            invalidate_counts(oref.index)
+        invalidate_ref(oref)
+        return HttpResponseRedirect("/?m=Varnish-Reset-For-{}".format(oref.url()))
+    return HttpResponseRedirect("/?m=Varnish-Not-Enabled")
+
+
+@staff_member_required
+def reset_ref(request, tref):
+    """
+    resets cache, versionstate, toc, varnish, & book TOC template
+    :param tref:
+    :return:
+    """
+    oref = model.Ref(tref)
+    if oref.is_book_level():
+        model.library.refresh_index_record_in_cache(oref.index)
+        vs = model.VersionState(index=oref.index)
+        vs.refresh()
+        model.library.update_index_in_toc(oref.index)
+        scache.delete_cache_elem(scache.generate_text_toc_cache_key(oref.index.title))
+        if USE_VARNISH:
+            invalidate_index(oref.index)
+            invalidate_counts(oref.index)
+            invalidate_ref(oref)
+        return HttpResponseRedirect("/{}?m=Reset-Index".format(oref.url()))
+    elif USE_VARNISH:
+        invalidate_ref(oref)
+        return HttpResponseRedirect("/{}?m=Reset-Ref".format(oref.url()))
+    else:
+        return HttpResponseRedirect("/?m=Nothing-to-Reset")
 
 
 @staff_member_required
@@ -316,7 +402,6 @@ def create_commentator_version(request, commentator, book, lang, vtitle, vsource
     from sefaria.helper.text import create_commentator_and_commentary_version
     ht = request.GET.get("heTitle", None)
     create_commentator_and_commentary_version(commentator, book, lang, vtitle, vsource, ht)
-    scache.reset_texts_cache()
     return HttpResponseRedirect("/add/%s" % commentator)
 
 
@@ -411,3 +496,68 @@ def sheet_stats(request):
 @staff_member_required
 def versions_csv(request):
     return HttpResponse(make_versions_csv(), content_type="text/csv")
+
+
+def library_stats(request):
+    return HttpResponse(get_library_stats(), content_type="text/csv")
+
+
+def core_link_stats(request):
+    return HttpResponse(get_core_link_stats(), content_type="text/csv")
+
+
+def run_tests(request):
+    # This was never fully developed, methinks
+    from subprocess import call
+    from local_settings import DEBUG
+    if not DEBUG:
+        return
+    call(["/var/bin/run_tests.sh"])
+
+
+@catch_error_as_http
+def text_download_api(request, format, title, lang, versionTitle):
+    from sefaria.export import text_is_copyright, make_json, make_text, prepare_merged_text_for_export, prepare_text_for_export, export_merged_csv, export_version_csv
+
+    assert lang in ["en", "he"]
+    assert format in ["json", "csv", "txt"]
+    merged = versionTitle == "merged"
+
+    index = library.get_index(title)
+    version_query = {"title": title, "language": lang, "versionTitle": versionTitle}
+
+    if format == "csv" and not merged:
+        version = Version().load(version_query)
+        assert version, "Can not find version of {} in {}: {}".format(title, lang, versionTitle)
+        assert not version.is_copyrighted(), "Cowardly refusing to export copyrighted text."
+        content = export_version_csv(index, [version])
+
+    elif format == "csv" and merged:
+        content = export_merged_csv(index, lang)
+
+    elif format == "json" and not merged:
+        version_object = db.texts.find_one(version_query)
+        assert version_object, "Can not find version of {} in {}: {}".format(title, lang, versionTitle)
+        assert not text_is_copyright(version_object), "Cowardly refusing to export copyrighted text."
+        content = make_json(prepare_text_for_export(version_object))
+
+    elif format == "json" and merged:
+        content = make_json(prepare_merged_text_for_export(title, lang=lang))
+
+    elif format == "txt" and not merged:
+        version_object = db.texts.find_one(version_query)
+        assert version_object, "Can not find version of {} in {}: {}".format(title, lang, versionTitle)
+        assert not text_is_copyright(version_object), "Cowardly refusing to export copyrighted text."
+        content = make_text(prepare_text_for_export(version_object))
+
+    elif format == "txt" and merged:
+        content = make_text(prepare_merged_text_for_export(title, lang=lang))
+
+    content_types = {
+        "json": "application/json; charset=utf-8",
+        "csv": "text/csv; charset=utf-8",
+        "txt": "text/plain; charset=utf-8"
+    }
+    response = HttpResponse(content, content_type=content_types[format])
+    response["Content-Disposition"] = "attachment"
+    return response

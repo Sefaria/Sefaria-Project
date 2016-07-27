@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 from . import abstract as abst
 from . import text
 from . import link
-from text import VersionSet, AbstractIndex, AbstractSchemaContent, IndexSet, library, get_index, Ref
+from text import VersionSet, AbstractIndex, AbstractSchemaContent, IndexSet, library, Ref
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedIntArray
 from sefaria.system.exceptions import InputError, BookNameError
 from sefaria.system.cache import delete_template_cache
@@ -93,7 +93,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
     lang_map = {lang: "_" + lang for lang in langs}
     lang_keys = lang_map.values()
 
-    def __init__(self, index=None, attrs=None):
+    def __init__(self, index=None, attrs=None, proj=None):
         """
         :param index: Index record or name of Index
         :type index: text.Index|text.CommentaryIndex|string
@@ -104,14 +104,14 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         if not index:  # so that basic model tests can run
             if getattr(self, "title", None):
                 try:
-                    self.index = get_index(self.title)
+                    self.index = library.get_index(self.title)
                 except BookNameError as e:
                     logger.warning(u"Failed to load Index for VersionState - {}: {} (Normal on Index name change)".format(self.title, e))
             return
 
         if not isinstance(index, AbstractIndex):
             try:
-                index = get_index(index)
+                index = library.get_index(index)
             except BookNameError as e:
                 logger.warning("Failed to load Index for VersionState {}: {}".format(index, e))
 
@@ -119,10 +119,11 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         self._versions = {}
         self.is_new_state = False
 
-        if not self.load({"title": index.title}):
+        if not self.load({"title": index.title}, proj=proj):
+            if not getattr(self, "flags", None):  # allow flags to be set in initial attrs
+                self.flags = {}
             self.content = self.index.nodes.create_content(lambda n: {})
             self.title = index.title
-            self.flags = {}
             self.refresh()
             self.is_new_state = True  # variable naming: don't override 'is_new' - a method of the superclass
 
@@ -340,52 +341,63 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
 class VersionStateSet(abst.AbstractMongoSet):
     recordClass = VersionState
 
-    def all_refs(self):
-        refs = []
-        for vs in self:
-            try:
-                content_nodes = vs.index.nodes.get_leaf_nodes()
-            except Exception as e:
-                logger.warning(u"Failed to find VersionState Index while generating references for {}. {}".format(vs.title, e.message))
-                continue
-            for c in content_nodes:
-                try:
-                    state_ja = vs.state_node(c).ja("all")
-                    for indxs in state_ja.non_empty_sections():
-                        sections = [a + 1 for a in indxs]
-                        refs += [Ref(
-                            _obj={
-                                "index": vs.index,
-                                "book": vs.index.nodes.full_title("en"),
-                                "type": vs.index.categories[0],
-                                "index_node": c,
-                                "sections": sections,
-                                "toSections": sections
-                            }
-                        )]
-                except Exception as e:
-                    logger.warning(u"Failed to generate references for {}, section {}. {}".format(c.full_title("en"), ".".join([str(s) for s in sections]) if sections else "-", e.message))
-        return refs
-
 
 class StateNode(object):
     lang_map = {lang: "_" + lang for lang in ["he", "en", "all"]}
     lang_keys = lang_map.values()
-
+    meta_proj = {'content._all.completenessPercent': 1,
+         'content._all.percentAvailable': 1,
+         'content._all.percentAvailableInvalid': 1,
+         'content._all.sparseness': 1,
+         'content._all.textComplete': 1,
+         'content._en.completenessPercent': 1,
+         'content._en.percentAvailable': 1,
+         'content._en.percentAvailableInvalid': 1,
+         'content._en.sparseness': 1,
+         'content._en.textComplete': 1,
+         'content._he.completenessPercent': 1,
+         'content._he.percentAvailable': 1,
+         'content._he.percentAvailableInvalid': 1,
+         'content._he.sparseness': 1,
+         'content._he.textComplete': 1,
+         'flags': 1,
+         'linksCount': 1,
+         'title': 1}
     #todo: self.snode could be a SchemaNode, but get_available_counts_dict() assumes JaggedArrayNode
-    def __init__(self, title=None, snode=None, _obj=None):
+    def __init__(self, title=None, snode=None, _obj=None, meta=False, hint=None):
+        """
+        :param title:
+        :param snode:
+        :param _obj:
+        :param meta: If true, returns only the overview information, and not the detailed counts
+        :param hint: hint - a list of (lang, key) tuples of pieces of VersionState to return
+        :return:
+        """
         if title:
             snode = library.get_schema_node(title)
             if not snode:
                 snode = library.get_schema_node(title, with_commentary=True)
             if not snode:
                 raise InputError(u"Can not resolve name: {}".format(title))
+            if snode.is_default():
+                snode = snode.parent
+        if snode:
+            proj = None
+            if meta:
+                if snode.parent:
+                    raise Exception("StateNode.meta() only supported for Index roots.  Called with {} / {}".format(title, snode.primary_title("en")))
+                proj = self.meta_proj
+            if hint:
+                hint_proj = {}
+                base = [VersionState.content_attr] + snode.version_address()
+                for l, k in hint:
+                    hint_proj[".".join(base + [self.lang_map[l]] + [k])] = 1
+                if proj:
+                    proj.update(hint_proj)
+                else:
+                    proj = hint_proj
             self.snode = snode
-            self.versionState = VersionState(snode.index.title)
-            self.d = self.versionState.content_node(snode)
-        elif snode:
-            self.snode = snode
-            self.versionState = VersionState(snode.index.title)
+            self.versionState = VersionState(snode.index.title, proj=proj)
             self.d = self.versionState.content_node(snode)
         elif _obj:
             self.d = _obj
@@ -418,7 +430,10 @@ class StateNode(object):
         return d
 
     def var(self, lang, key):
-        return self.d[self.lang_map[lang]][key]
+        try:
+            return self.d[self.lang_map[lang]][key]
+        except Exception as e:
+            raise e.__class__(u"Failed in StateNode.var(), in node: {}, language: {}, key: {}".format(self.snode.primary_title("en"), lang, key))
 
     def ja(self, lang, key="availableTexts"):
         """
@@ -473,10 +488,8 @@ def refresh_all_states():
                 VersionState(index).refresh()
         except Exception as e:
             logger.warning(u"Got exception rebuilding state for {}: {}".format(index.title, e))
-            
 
-    import sefaria.summaries as summaries
-    summaries.update_summaries()
+    library.rebuild_toc()
 
 
 def process_index_delete_in_version_state(indx, **kwargs):
@@ -490,8 +503,8 @@ def process_index_title_change_in_version_state(indx, **kwargs):
     if indx.is_commentary():  # and "commentaryBook" not in d:  # looks useless
         commentator_re = "^(%s) on " % kwargs["old"]
     else:
-        commentators = IndexSet({"categories.0": "Commentary"}).distinct("title")
-        commentator_re = r"^({}) on {}".format("|".join(commentators), kwargs["old"])
+        commentators = text.library.get_commentary_version_titles_on_book(kwargs["old"], with_commentary2=True)
+        commentator_re = r"^({}) on {}$".format("|".join(commentators), kwargs["old"])
     old_titles = VersionStateSet({"title": {"$regex": commentator_re}}).distinct("title")
     old_new = [(title, title.replace(kwargs["old"], kwargs["new"], 1)) for title in old_titles]
     for pair in old_new:
@@ -501,4 +514,5 @@ def process_index_title_change_in_version_state(indx, **kwargs):
 def create_version_state_on_index_creation(indx, **kwargs):
     if indx.is_commentary():
         return
+    # If it's already there, this should be harmless
     VersionState(indx.title).save()

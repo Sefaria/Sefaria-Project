@@ -308,7 +308,7 @@ def encode_hebrew_daf(daf):
 
 
 def strip_nikkud(rawString):
-	return rawString.replace(r"[\u0591-\u05C7]", "");
+	return rawString.replace(r"[\u0591-\u05C7]", "")
 
 
 #todo: rewrite to handle edge case of hebrew words in english texts, and latin characters in Hebrew text
@@ -317,12 +317,14 @@ def is_hebrew(s):
 		return True
 	return False
 
+
 def strip_cantillation(text, strip_vowels=False):
 	if strip_vowels:
 		strip_regex = re.compile(ur"[\u0591-\u05bd\u05bf-\u05c5\u05c7]", re.UNICODE)
 	else:
 		strip_regex = re.compile(ur"[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]", re.UNICODE)
 	return strip_regex.sub('', text)
+
 
 def has_cantillation(text, detect_vowels=False):
 	if detect_vowels:
@@ -332,6 +334,16 @@ def has_cantillation(text, detect_vowels=False):
 	return bool(rgx.search(text))
 
 
+def gematria(string):
+	"""Returns the gematria of `str`, ignore any characters in string that have now gematria (like spaces)"""
+	total = 0
+	for letter in string:
+		try:
+			total += heb_to_int(letter)
+		except:
+			pass
+	return total
+
 
 def hebrew_plural(s):
 	"""
@@ -340,12 +352,15 @@ def hebrew_plural(s):
 	known = {
 		"Daf":      "Dappim",
 		"Mitzvah":  "Mitzvot",
+		"Negative Mitzvah": "Negative Mitzvot",
+		"Positive Mitzvah": "Positive Mitzvot",
 		"Mitsva":   "Mitzvot",
 		"Mesechet": "Mesechtot",
 		"Perek":    "Perokim",
 		"Siman":    "Simanim",
 		"Seif":     "Seifim",
 		"Se'if":    "Se'ifim",
+		"Seif Katan": "Seifim Katanim",
 		"Mishnah":  "Mishnayot",
 		"Mishna":   "Mishnayot",
 		"Chelek":   "Chelekim",
@@ -367,7 +382,7 @@ def hebrew_term(s):
 	"""
 	categories = {
 		"Torah":                u"תורה",
-		"Tanach":               u'תנ"ך',
+		"Tanakh":               u'תנ"ך',
 		"Tanakh":               u'תנ"ך',
 		"Prophets":             u"נביאים",
 		"Writings":             u"כתובים",
@@ -382,12 +397,13 @@ def hebrew_term(s):
 		"Kabbalah":             u"קבלה",
 		"Halakha":              u"הלכה",
 		"Halakhah":             u"הלכה",
+		"Law":					u"הלכה",
 		"Midrash":              u"מדרש",
 		"Aggadic Midrash":      u"מדרש אגדה",
 		"Halachic Midrash":     u"מדרש הלכה",
 		"Midrash Rabbah":       u"מדרש רבה",
 		"Responsa":             u'שו"ת',
-		"Other":                u"אחר",
+		"Other":                u"שונות",
 		"Siddur":               u"סידור",
 		"Liturgy":              u"תפילה",
 		"Piyutim":              u"פיוטים",
@@ -395,7 +411,7 @@ def hebrew_term(s):
 		"Chasidut":             u"חסידות",
 		"Parshanut":            u"פרשנות",
 		"Philosophy":           u"מחשבת ישראל",
-		"Maharal":	            u'מהר"ל מפראג',
+		"Maharal":              u'מהר"ל מפראג',
 		"Apocrypha":            u"ספרים חיצונים",
 		"Seder Zeraim":         u"סדר זרעים",
 		"Seder Moed":           u"סדר מועד",
@@ -407,10 +423,12 @@ def hebrew_term(s):
 		"Dictionary":           u"מילון",
 		"Early Jewish Thought": u"מחשבת ישראל קדומה",
 		"Minor Tractates":      u"מסכתות קטנות",
-		"Rosh":		            u'רא"ש',
-		"Maharsha":	            u'מהרשא',
-		"Rashba":	            u'רשב"א',
-		"Rambam":	            u'רמב"ם',
+		"Rosh":                 u'רא"ש',
+		"Maharsha":             u'מהרשא',
+		"Rashba":	        u'רשב"א',
+		"Maharam Shif":		u'מהר"ם שיף',
+		"Rambam":	        u'רמב"ם',
+		"Yad Ramah":		u"יד רמה",
 		"Radbaz":		u'רדב"ז',
 		"Tosafot Yom Tov":      u"תוספות יום טוב",
 		"Chidushei Halachot":   u"חידושי הלכות",
@@ -419,8 +437,12 @@ def hebrew_term(s):
 		"Korban Netanel":       u"קרבן נתנאל",
 		"Pilpula Charifta":     u"פילפולא חריפתא",
 		"Divrey Chamudot":      u"דברי חמודות",
-		"Maadaney Yom Tov":     u"מעדני יום טוב",
+		"Maadaney Yom Tov":     u"מעדני יום טב",
+		"Shita Mekubetzet":     u'שיטה מקובצת',
 		"Modern Works":		u"יצירות מודרניות",
+		"Maharshal":		u'מהרש"ל',
+		"Gur Aryeh":		u'גור אריה',
+		"Tur and Commentaries": u'טור ומפרשים'
 
 	}
 
@@ -446,9 +468,13 @@ def hebrew_term(s):
 
 	section_names = {
 		"Chapter":          u"פרק",
-		"Chapters":	    u"פרקים",
+		"Chapters":         u"פרקים",
 		"Perek":            u"פרק",
 		"Line":             u"שורה",
+		"Negative Mitzvah": u"מצות לא תעשה",
+		"Positive Mitzvah": u"מצות עשה",
+		"Negative Mitzvot": u"מצוות לא תעשה",
+		"Positive Mitzvot": u"מצוות עשה",
 		"Daf":              u"דף",
 		"Paragraph":        u"פסקה",
 		"Parsha":           u"פרשה",
@@ -472,8 +498,9 @@ def hebrew_term(s):
 		"Massechet":        u"מסכת",
 		"Letter":           u"אות",
 		"Halacha":          u"הלכה",
+		"Piska":            u"פסקה",
 		"Seif Katan":       u"סעיף קטן",
-		"Se'if Katan":	    u"סעיף קטן",
+		"Se'if Katan":      u"סעיף קטן",
 		"Volume":           u"כרך",
 		"Book":             u"ספר",
 		"Shar":             u"שער",
@@ -486,17 +513,24 @@ def hebrew_term(s):
 		"Tosefta":          u"תוספתא",
 		"Halakhah":         u"הלכה",
 		"Kovetz":           u"קובץ",
-		"Path":             u"נתיבה",
+		"Path":             u"נתיב",
 		"Parshah":          u"פרשה",
 		"Midrash":          u"מדרש",
 		"Mitzvah":          u"מצוה",
 		"Tefillah":         u"תפילה",
 		"Torah":            u"תורה",
-		"Perush":	        u"פירוש",
-		"Peirush":	        u"פירוש",
-		"Aliyah":	        u"עלייה",
+		"Perush":           u"פירוש",
+		"Peirush":          u"פירוש",
+		"Aliyah":           u"עלייה",
 		"Tikkun":           u"תיקון",
-		"Tikkunim":         u"תיקונים"
+		"Tikkunim":         u"תיקונים",
+		"Hilchot":          u"הילכות",
+		"Topic":            u"נושא",
+		"Contents":         u"תוכן",
+		"Article":	    u"סעיף",
+		"Shoresh":	u"שורש",
+		"Story":	u"סיפור",
+		"Remez":	u"רמז"
 	}
 
 	words = dict(categories.items() + pseudo_categories.items() + section_names.items())
@@ -506,22 +540,11 @@ def hebrew_term(s):
 
 	# If s is a text title, look for a stored Hebrew title
 	try:
-		from sefaria.model import get_index, IndexSet
+		from sefaria.model import library, IndexSet
 		from sefaria.system.exceptions import BookNameError
-		i = get_index(s)
+		i = library.get_index(s)
 		return i.get_title("he")
 	except BookNameError:
 		pass
 
 	return s
-
-
-# def main():
-
-# 	t = u"ההתשסטו"
-# 	return [index for index, (f, s) in enumerate(zip(t, t[1:])) if f < s and heb_to_int(s) >= 100]
-
-# t = u"ההתשסטו"
-
-# if __name__ == '__main__':
-# 	print main().__repr__()

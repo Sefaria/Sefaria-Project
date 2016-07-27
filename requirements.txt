@@ -1,3 +1,4 @@
+html5lib==0.9999999
 selenium
 django==1.4.5
 pymongo==2.9
@@ -21,3 +22,4 @@ python-varnish
 geojson
 django-recaptcha
 unicodecsv
+multiprocessing

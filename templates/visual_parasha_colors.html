@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+
+{% block title %}Visualizing the Parshiot{% if lang %} ({{ lang }}){% endif %}{% endblock %}
+{% block ogimage %}<meta property="og:image" content="/static/img/sunburst.png"/>{% endblock %}
+{% block head %}
+    {% if not OFFLINE %}
+    <script src="https://use.typekit.net/aeg8div.js"></script>
+    <script>try{Typekit.load({ async: true });}catch(e){}</script>
+    <script src="//ajax.googleapis.com/ajax/libs/webfont/1.5.10/webfont.js"></script>
+    <script>
+      WebFont.load({
+        google: {
+          families: ['Montserrat:400,700', 'Open Sans Hebrew:400,700:latin,hebrew' ]
+        }
+      });
+    </script>
+    {% endif %}
+    <script src="http://d3js.org/d3.v3.js"></script>
+{%  endblock %}
+
+{% block css %}
+  #languageToggle {
+    display: inline-block;
+  }
+  #bilingual {
+    display: none;
+  }
+  #visualPage {
+    margin: 20px auto;
+    max-width: 1000px;
+    text-align: center;
+  }
+  body.hebrew #visualPage {
+    font-family: "Taamey Frank", "Times New Roman", serif;
+  }r
+  body.english #visualTocPage,
+  body.bilingual #visualTocPage {
+    font-family: "adobe-garamond-pro", Georgia, serif;
+  }
+  #parashaData {
+    position: absolute;
+    top: 290px;
+    line-height: 1.5;
+    width: 300px;
+    left: 50%;
+    margin-left: -140px;
+  }
+
+  #parashaData #name {
+    font-size: 28px;
+    font-style: normal;
+  }
+
+  path {
+    cursor: pointer;
+  }
+
+{% endblock %}
+
+
+{% block content %}
+
+<div id="visualPage" class="container doc">
+  <div id="parashaData">
+    <div id="name">The Parshiot</div>
+    <div id="verses">In verses, words, letters & gematria.</div>
+    <div id="words">Colored by multiplying gemtaria by 18 and converting to hexidecimal.</div>
+    <div id="letters"></div>
+    <div id="gematria"><i>Hover over any section.</i></div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+    {% autoescape off %}
+
+    <script>
+    var width = 960,
+        height = 600,
+        radius = Math.min(width, height) / 2;
+
+    var pie = d3.layout.pie()
+        .value(function(d) { return d.words; })
+        .sort(null);
+
+    var arc = d3.svg.arc()
+        .innerRadius(radius - 120)
+        .outerRadius(radius - 20);
+
+    var svg = d3.select("#visualPage").append("svg")
+        .attr("width", width)
+        .attr("height", height)
+      .append("g")
+        .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+    d3.csv("/static/files/torah_quant_by_parasha.csv", function(data) {
+      // Convert strings to numbers.
+      data.forEach(function(d) {
+        d.letters = +d.letters;
+        d.words = +d.words;
+        d.verses = +d.verses;
+        d.gematria = +d.gematria;
+      });
+
+      var path = svg.datum(data).selectAll("path")
+          .data(pie)
+        .enter().append("path")
+          .attr("fill", function(d, i) { return d.data.gematria18Hex;})
+          .attr("d", arc)
+          .attr("data", function(d, i) { return JSON.stringify(d.data) });
+    });
+
+    $("path").live("mouseenter", function() {
+      var d = JSON.parse($(this).attr("data"));
+      $("#name").html(d.ref.replace("Parashat ", ""));
+      $("#letters").html(numberWithCommas(d.letters) + " Letters");
+      $("#words").html(numberWithCommas(d.words) + " Words");
+      $("#verses").html(numberWithCommas(d.verses) + " Verses");
+      $("#gematria").html(numberWithCommas(d.gematria) + " Gematria");
+    });
+
+    </script>
+
+    {% endautoescape %}
+{% endblock %}

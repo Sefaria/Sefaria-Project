@@ -1,14 +1,16 @@
+# coding=utf-8
 
+import copy
 from itertools import groupby
 from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
-from sefaria.utils.users import user_name
 from . import abstract as abst
 from . import text
 from . import place
 from . import time
 from . import person
 from . import link
+from . import user_profile
 
 import logging
 logger = logging.getLogger(__name__)
@@ -25,11 +27,60 @@ class Garden(abst.AbstractMongoRecord):
     required_attrs = [
         'key',
         'title',
-        'heTitle'
+        'heTitle',
+        'config'
     ]
     optional_attrs = [
-
     ]
+
+    default_config = {
+        "timeline_scale": "log",  # log / linear
+        "timeline_bin_size": None,  # Number of years in a bin.  Defaults to ~20 bins in the extent
+        "filter_order" : [],
+        "filters": {
+            "default": {
+                "en": "Tags",
+                "he": u"תגיות",
+                "logic": "AND"  # AND / OR
+            }
+        },
+        "sorts": {
+            "start": {
+                "en": "Date",
+                "he": u"תאריך",
+                "datatype": "Int",  #Int, Str
+                "default": "ASC"
+            }
+        }
+    }
+
+    def _set_derived_attributes(self):
+        if getattr(self, "config", None) is None:
+            self.config = copy.deepcopy(self.default_config)
+
+    def updateConfig(self, config_dict):
+        self.config.update(config_dict)
+
+    def updateFilter(self, filterkey, filterdict):
+        if self.config["filters"].get(filterkey):
+            self.config["filters"][filterkey].update(filterdict)
+        else:
+            self.config["filters"][filterkey] = filterdict
+
+    def removeFilter(self, filterkey):
+        try:
+            del self.config["filters"][filterkey]
+        except KeyError:
+            pass
+
+    def updateSort(self, field, sortdict):
+        self.config["sorts"][field] = sortdict
+
+    def removeSort(self, field):
+        try:
+            del self.config["sorts"][field]
+        except KeyError:
+            pass
 
     def stopSet(self, sort=None):
         if not sort:
@@ -95,14 +146,28 @@ class Garden(abst.AbstractMongoRecord):
         return [i.contents() for i in self.stopSet()]
 
     def add_stop(self, attrs):
+        if not attrs.get("tags"):
+            attrs["tags"] = {"default": []}
+
         # Check for existing stop, based on Ref.
         if attrs.get("ref"):
+            if attrs.get("enText") is None:
+                try:
+                    attrs["enText"] = text.TextChunk(text.Ref(attrs["ref"]), "en", attrs.get("enVersionTitle")).as_string()
+                except Exception:
+                    pass
+            if attrs.get("heText") is None:
+                try:
+                    attrs["heText"] = text.TextChunk(text.Ref(attrs["ref"]), "he", attrs.get("heVersionTitle")).as_string()
+                except Exception:
+                    pass
+
             existing = GardenStop().load({"ref": attrs["ref"], "garden": self.key})
             if existing:
                 existing.weight += 1
 
                 # Merge tags
-                if not getattr(existing, "tags"):
+                if not getattr(existing, "tags", None):
                     existing.tags = attrs.get("tags")
                 else:
                     for typ, tags in attrs.get("tags", {}).iteritems():
@@ -112,6 +177,11 @@ class Garden(abst.AbstractMongoRecord):
                             for tag in tags:
                                 if tag not in existing.tags[typ]:
                                     existing.tags[typ].append(tag)
+
+                if attrs.get("enText") and not getattr(existing, "enText", None):
+                    existing.enText = attrs.get("enText")
+                if attrs.get("heText") and not getattr(existing, "heText", None):
+                    existing.enText = attrs.get("heText")
 
                 existing.save()
                 return
@@ -134,6 +204,7 @@ class Garden(abst.AbstractMongoRecord):
             logger.warning(u"Failed to add relationship to Garden {}. {}".format(self.title, e))
 
     def import_sheets_by_user(self, user_id):
+        self.updateSort("weight", {"type": "Int", "en": "Weight", "he": u"משקל"})
         sheet_list = db.sheets.find({"owner": int(user_id), "status": {"$ne": 5}})
         for sheet in sheet_list:
             self.import_sheet(sheet["id"])
@@ -141,6 +212,8 @@ class Garden(abst.AbstractMongoRecord):
     def import_sheets_by_tag(self, tag):
         from sefaria.sheets import get_sheets_by_tag
 
+        self.updateFilter("Sheet Author", {"en": "Sheet Author", "he": u"מחבר דף"})
+        self.updateSort("weight", {"type": "Int", "en": "Weight", "he": u"משקל"})
         sheet_list = get_sheets_by_tag(tag)
         for sheet in sheet_list:
             self.import_sheet(sheet["id"], remove_tags=[tag])
@@ -174,6 +247,9 @@ class Garden(abst.AbstractMongoRecord):
     def import_search(self, q):
         from sefaria.search import query
         res = query(q)
+
+        self.updateFilter("default", {"en": "Categories", "he": u"קטגוריות"})
+
         for hit in res["hits"]["hits"]:
             tags = {"default": hit["_source"]["path"].split("/")}
             stop = {
@@ -188,7 +264,10 @@ class Garden(abst.AbstractMongoRecord):
                 stop["heText"] = u" ".join(hit["highlight"]["content"])
             self.add_stop(stop)
 
-    def import_ref_list(self, reflist):
+    def import_ref_list(self, reflist, defaults=None):
+        if defaults is None:
+            defaults = {}
+        self.updateFilter("default", {"en": "Categories", "he": u"קטגוריות"})
         for ref in reflist:
             if isinstance(ref, basestring):
                 try:
@@ -198,10 +277,17 @@ class Garden(abst.AbstractMongoRecord):
             if not isinstance(ref, text.Ref):
                 continue
 
-            self.add_stop({
+            stop_dict = {
                 "type": "inside_source",
                 "ref": ref.normal(),
-            })
+                "tags": {"default": ref.index.categories}
+            }
+
+            if defaults.get("tags") is not None:
+                stop_dict["tags"].update(defaults["tags"])
+            stop_dict.update({k:v for k,v in defaults.items() if k != "tags"})
+
+            self.add_stop(stop_dict)
         return self
 
     def import_sheet(self, sheet_id, remove_tags=None):
@@ -250,7 +336,7 @@ class Garden(abst.AbstractMongoRecord):
         tags = getattr(sheet, "tags", [])
         if remove_tags:
             tags = [t for t in tags if t not in remove_tags]
-        process_sources(sheet.sources, {"default": tags, "Sheet Author": [user_name(sheet.owner)]})
+        process_sources(sheet.sources, {"default": tags, "Sheet Author": [user_profile.user_name(sheet.owner)]})
         return self
 
 
@@ -275,7 +361,9 @@ class GardenStop(abst.AbstractMongoRecord):
         'title',
         'heTitle',
         'enVersionTitle',
-        'heVersionTitle',
+        'heVersionTitle',  # will we use this?
+        'enSubtitle',
+        'heSubtitle',
         'enText',
         'heText',
         'tags',  # dictionary of lists
@@ -385,6 +473,10 @@ class GardenStop(abst.AbstractMongoRecord):
     def _normalize(self):
         if self.is_key_changed("ref"):
             self._derive_metadata()
+        if getattr(self, "start", None):
+            self.start = int(self.start)
+        if getattr(self, "end", None):
+            self.end = int(self.end)
 
     def time_period(self):
         if not getattr(self, "start", False):

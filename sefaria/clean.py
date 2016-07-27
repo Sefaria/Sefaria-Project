@@ -21,12 +21,11 @@ def remove_refs_with_false():
 """
 Detect any links that contain Refs we can't understand.
 """
-def broken_links(auto_links = False, manual_links = False, delete_links = False, check_text_exists=False):
-    links = model.LinkSet()
+def broken_links(tref=None, auto_links = False, manual_links = False, delete_links = False, check_text_exists=False):
+    links = model.LinkSet(model.Ref(tref)) if tref else model.LinkSet()
     broken_links_list = []
     for link in links:
         errors = [0,0,0,0]
-        second = False
         try:
             rf1 = model.Ref(link.refs[0])
             errors[0] = 1
@@ -45,7 +44,7 @@ def broken_links(auto_links = False, manual_links = False, delete_links = False,
             else:
                 if manual_links is False:
                     continue
-            link_type = "auto" if link.auto else "manual"
+            link_type = "auto - {}".format(link.generated_by) if link.auto else "manual"
             error_code = sum(errors)
             if error_code == 0:
                 error_msg = "Ref 1 is bad"
@@ -74,28 +73,23 @@ def remove_old_counts():
     """
     Deletes counts documents which no longer correspond to a text or category.
     """
-    # counts = model.CountSet()
     # If there are counts documents save in the DB with invalid titles,
     # instantiation of the Count will cause a BookNameError.
     # But in this code instantiation happens in the line 'for count in counts'
     # How do we catch that? Additionally, we need access to the bad title after
     # The error has occurred. How would we get that? Reverting to direct DB call for now.
-    counts = db.vstate.find()
+    counts = db.vstate.find({}, {"title": 1})
     for count in counts:
         if count.get("title", None):
+            print "Checking " + count["title"]
             try:
-                model.get_index(count["title"])
+                i = model.library.get_index(count["title"])
+                if i.is_commentary() and model.VersionSet({"title": i.title}).count() == 0:
+                    print u"Old count for Commentary with no content: %s" % count["title"]
+                    db.vstate.remove({"_id": count["_id"]})                    
             except BookNameError:
                 print u"Old count: %s" % count["title"]
-                #count.delete()
                 db.vstate.remove({"_id": count["_id"]})
-        else:
-            #TODO incomplete for Category Counts. 
-            continue
-            categories = count.categories
-            i = model.IndexSet({"$and": [{'categories.0': categories[0]}, {"categories": {"$all": categories}}, {"categories": {"$size": len(categories)}} ]})
-            if not i.count():
-                print "Old category %s" % " > ".join(categories)
 
 
 def remove_trailing_empty_segments():

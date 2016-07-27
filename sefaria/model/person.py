@@ -74,6 +74,11 @@ class Person(abst.AbstractMongoRecord):
                 "end": self.deathYear,
                 "endIsApprox": getattr(self, "deathYearIsApprox", False)
             })
+        elif getattr(self, "birthYear", None) and getattr(self, "era", "CO"):
+            return time.TimePeriod({
+                "start": self.birthYear,
+                "startIsApprox": getattr(self, "birthYearIsApprox", False),
+            })
         elif getattr(self, "generation", None):
             return time.TimePeriod().load({"symbol": self.generation})
         elif getattr(self, "era", None):

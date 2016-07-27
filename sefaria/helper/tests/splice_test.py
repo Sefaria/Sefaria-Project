@@ -86,6 +86,7 @@ def test_page_spanning_range():
     assert n._needs_rewrite(Ref("Chagigah 20b:14-21a:1"))
     assert n._rewrite(Ref("Chagigah 20b:14-21a:1")) == Ref("Chagigah 20b:13-21a:1")
 
+@pytest.mark.deep
 def test_report():
     n = Splicer().splice_next_into_this(Ref("Shabbat 25b:11"))
     n.report()
@@ -95,12 +96,14 @@ def test_es_cleanup():
     n._report = True
     n._clean_elastisearch()
 
+@pytest.mark.deep
 def test_sheet_cleanup():
     n = Splicer().splice_next_into_this(Ref("Shabbat 25b:11"))
     n._report = True
     n._find_sheets()
     n._clean_sheets()
 
+@pytest.mark.deep
 def test_insert():
     n = Splicer().insert_blank_segment_after(Ref("Shabbat 25b:11"))
     n.report()

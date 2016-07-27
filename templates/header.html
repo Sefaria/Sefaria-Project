@@ -1,5 +1,16 @@
-{% load sefaria_tags %}
+{% if S2 or request.flavour == "mobile" %}
 
+	{% autoescape off %}
+	{% if request.user.is_authenticated %}
+	<div id="s2" class="headerOnly">{{ logged_in_header }}</div>
+	{% else %}
+	<div id="s2" class="headerOnly">{{ logged_out_header }}</div>
+	{% endif %}
+	{% endautoescape %}
+
+{% else %}
+
+{% load sefaria_tags %}
 <header id="top" class=''>
 	<div id="right" class="">
 		<div id="showOptions" class="">≡</div>
@@ -23,10 +34,11 @@
 				
 			</div>
 		
-			<div id="editButtons" style="display:none;">
+            <div id="editButtons" style="display:none;">
 				<span id="addVersionSave" class='btn btn-primary'>Save</span>
 				<span id='addVersionCancel' class='btn'>Cancel</span>
 			</div>
+
 		</div>
 	</div>
 
@@ -48,8 +60,14 @@
 	<span id="breadcrumbs"></span>
 	
 	<div class="clear"></div>
+
 </header>
 
+<div class="alert alert-error alert-dismissible" role="alert" id="alertMessage"></div>
+
+				
+				
+				
 <div id="navPanel">
 	<div id="navPanelTexts" data-intro="Browse all available texts by category here." data-step="1">
 
@@ -106,6 +124,9 @@
 	<div class="navLine"></div>
 
 	<div id="navPanelLinks">
+		{% if request.user.is_staff %}
+		<a href="/s2"><i class="fa fa-flash navLinkIcon"></i> Switch to S2</a>
+		{% endif %}
 		<a href="/"><i class="fa fa-home navLinkIcon"></i> Home</a>
 		<a href="/sheets"><i class="fa fa-file-text-o navLinkIcon"></i> Source Sheets</a>
 		<a href="/explore"><i class="fa fa-link navLinkIcon"></i> Link Explorer</a>				
@@ -145,7 +166,7 @@
 			<i class="fa fa-facebook"></i> Facebook</a> / 
 		<a href="http://www.twitter.com/SefariaProject" target="_blank">
 			<i class="fa fa-twitter"></i> Twitter</a> /
-		<a href="https://github.com/blockspeiser/Sefaria-Project" target="_blank">
+		<a href="https://github.com/Sefaria/Sefaria-Project" target="_blank">
 			<i class="fa fa-github"></i> GitHub</a>
 
 		<div class="navLine"></div>
@@ -182,18 +203,20 @@
 	</div>
 </div>
 
-{% if GLOBAL_WARNING %}
-	{% autoescape off %}
-	<div id="globalWarning">
-		<i class='fa fa-times' onClick="$('#globalWarning').remove();"></i>
-		<i class="fa fa-warning"></i> 
-		{{ GLOBAL_WARNING_MESSAGE }}</div>
-	{% endautoescape %}
-{% endif %}
-
 <div id="topMessage"></div>
 
 <div id="overlay"></div>
 
 <link rel="stylesheet" type="text/css" href="/static/css/keyboard.css">
 <link rel="stylesheet" type="text/css" href="/static/css/tooltipster.css" />
+
+{% endif %}
+
+{% if GLOBAL_WARNING %}
+	{% autoescape off %}
+	<div id="globalWarning">
+		<i class='fa fa-times' onClick="$('#globalWarning').remove();"></i>
+		<i class="fa fa-warning"></i>
+		{{ GLOBAL_WARNING_MESSAGE }}</div>
+	{% endautoescape %}
+{% endif %}

@@ -35,7 +35,7 @@ class Count(abst.AbstractMongoRecord):
 
         if getattr(self, "title", None):
             try:
-                indx = text.get_index(self.title)
+                indx = text.library.get_index(self.title)
                 attrs = indx.contents()
                 #del attrs["_id"]
                 self.index_attr_keys = attrs.keys()

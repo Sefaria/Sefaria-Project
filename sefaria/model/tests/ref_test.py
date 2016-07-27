@@ -32,14 +32,12 @@ class Test_Ref(object):
         assert Ref(u"Sanhedrin 2a") != Ref(u"Sanhedrin")
         assert Ref(u"Sanhedrin 2a") == Ref(u"Sanhedrin 2")
 
+    # This test runs for 90% of this suite's time, and passes.  Seems pretty trivial.  Can we trim it?
+    @pytest.mark.deep
     def test_each_title(object):
         for lang in ["en", "he"]:
             for t in library.full_title_list(lang, False):
                 assert library.all_titles_regex(lang).match(t), u"'{}' doesn't resolve".format(t)
-    '''
-    def test_map(self):
-        assert Ref("Me'or Einayim 16") == Ref("Me'or Einayim, Yitro")
-    '''
 
     def test_comma(self):
         assert Ref("Me'or Einayim 24") == Ref("Me'or Einayim, 24")
@@ -143,7 +141,7 @@ class Test_Ref(object):
         assert Ref("Rashi on Genesis 5:32:2").next_section_ref().normal() == "Rashi on Genesis 6:2"
         assert Ref("Mekhilta 35.3").next_section_ref() is None
         # This will start to fail when we fill in this text
-        assert Ref("Mekhilta 23:19").next_section_ref().normal() == "Mekhilta 31:12"
+        assert Ref("Mekhilta d'Rabbi Yishmael 23:19").next_section_ref().normal() == "Mekhilta d'Rabbi Yishmael 31:12"
 
     def test_complex_next_ref(self): #at time of test we only had complex commentaries stable to test with
         assert Ref('Pesach Haggadah, Kadesh').next_section_ref().normal() == 'Pesach Haggadah, Urchatz'
@@ -164,7 +162,7 @@ class Test_Ref(object):
         assert Ref("Rashi on Genesis 6:2:1").prev_section_ref().normal() == "Rashi on Genesis 5:32"
         assert Ref("Mekhilta 12:1").prev_section_ref() is None
         # This will start to fail when we fill in this text
-        assert Ref("Mekhilta 31:12").prev_section_ref().normal() == "Mekhilta 23:19"
+        assert Ref("Mekhilta d'Rabbi Yishmael 31:12").prev_section_ref().normal() == "Mekhilta d'Rabbi Yishmael 23:19"
 
     def test_complex_prev_ref(self):
         assert Ref('Pesach Haggadah, Urchatz').prev_section_ref().normal() == 'Pesach Haggadah, Kadesh'
@@ -182,7 +180,7 @@ class Test_Ref(object):
         assert Ref("Exodus 3:22").next_segment_ref() == Ref("Exodus 4:1")
         assert Ref("Rashi on Exodus 3:1:1").next_segment_ref() == Ref("Rashi on Exodus 3:1:2")
         assert Ref("Rashi on Exodus 2:25:1").next_segment_ref() == Ref("Rashi on Exodus 3:1:1")
-        assert Ref("Rashi on Exodus 3:19:2").next_segment_ref() == Ref("Rashi on Exodus 3:21:1")
+        assert Ref("Rashi on Exodus 3:19:2").next_segment_ref() == Ref("Rashi on Exodus 3:22:1")
         assert Ref("Shabbat 5b:12").next_segment_ref() == Ref("Shabbat 5b:13")
         assert Ref("Shabbat 5b:38").next_segment_ref() == Ref("Shabbat 6a:1")
         assert Ref("Rashi on Shabbat 5b:34:4").next_segment_ref() == Ref("Rashi on Shabbat 5b:34:5")
@@ -195,7 +193,7 @@ class Test_Ref(object):
         assert Ref("Exodus 4:1").prev_segment_ref() == Ref("Exodus 3:22")
         assert Ref("Rashi on Exodus 3:1:2").prev_segment_ref() == Ref("Rashi on Exodus 3:1:1")
         assert Ref("Rashi on Exodus 3:1:1").prev_segment_ref() == Ref("Rashi on Exodus 2:25:1")
-        assert Ref("Rashi on Exodus 3:21:1").prev_segment_ref() == Ref("Rashi on Exodus 3:19:2")
+        assert Ref("Rashi on Exodus 3:22:1").prev_segment_ref() == Ref("Rashi on Exodus 3:19:2")
         assert Ref("Shabbat 5b:13").prev_segment_ref() == Ref("Shabbat 5b:12")
         assert Ref("Shabbat 6a:1").prev_segment_ref() == Ref("Shabbat 5b:38")
         assert Ref("Rashi on Shabbat 5b:34:5").prev_segment_ref() == Ref("Rashi on Shabbat 5b:34:4")
@@ -281,6 +279,11 @@ class Test_Ref(object):
         assert Ref("Rashi on Exodus 5:3-6:7").split_spanning_ref() == [Ref('Rashi on Exodus 5:3'), Ref('Rashi on Exodus 5:4'), Ref('Rashi on Exodus 5:5'), Ref('Rashi on Exodus 5:6'), Ref('Rashi on Exodus 5:7'), Ref('Rashi on Exodus 5:8'), Ref('Rashi on Exodus 5:9'), Ref('Rashi on Exodus 5:10'), Ref('Rashi on Exodus 5:11'), Ref('Rashi on Exodus 5:12'), Ref('Rashi on Exodus 5:13'), Ref('Rashi on Exodus 5:14'), Ref('Rashi on Exodus 5:15'), Ref('Rashi on Exodus 5:16'), Ref('Rashi on Exodus 5:17'), Ref('Rashi on Exodus 5:18'), Ref('Rashi on Exodus 5:19'), Ref('Rashi on Exodus 5:20'), Ref('Rashi on Exodus 5:21'), Ref('Rashi on Exodus 5:22'), Ref('Rashi on Exodus 5:23'), Ref('Rashi on Exodus 6:1'), Ref('Rashi on Exodus 6:2'), Ref('Rashi on Exodus 6:3'), Ref('Rashi on Exodus 6:4'), Ref('Rashi on Exodus 6:5'), Ref('Rashi on Exodus 6:6'), Ref('Rashi on Exodus 6:7')]
         assert Ref('Targum Neofiti 5-7').split_spanning_ref() == [Ref('Targum Neofiti 5'), Ref('Targum Neofiti 6'), Ref('Targum Neofiti 7')]
 
+    def test_spanning_with_empty_first_ref(self):
+        r = Ref("Rashi on Genesis 21:2:3-7:3")
+        refs = r.split_spanning_ref()
+        assert refs[0] == Ref("Rashi on Genesis 21:3")
+
     def test_first_spanned_ref(self):
         tests = [
             Ref("Exodus 15:3 - 17:12"),
@@ -293,17 +296,50 @@ class Test_Ref(object):
             first = ref.first_spanned_ref()
             assert first == ref.split_spanning_ref()[0]
 
-    def test_FAILING_split_spanning_ref_expanded(self):
+    @pytest.mark.failing
+    def test_split_spanning_ref_expanded(self):
         assert Ref("Leviticus 15:3 - 17:12").split_spanning_ref(True) == [Ref('Leviticus 15:3-33'), Ref('Leviticus 16:1-34'), Ref('Leviticus 17:1-12')]
 
-    def test_range_refs(self):
+    def test_range_list(self):
         assert Ref("Leviticus 15:12-17").range_list() ==  [Ref('Leviticus 15:12'), Ref('Leviticus 15:13'), Ref('Leviticus 15:14'), Ref('Leviticus 15:15'), Ref('Leviticus 15:16'), Ref('Leviticus 15:17')]
         assert Ref("Shabbat 15b:5-8").range_list() ==  [Ref('Shabbat 15b:5'), Ref('Shabbat 15b:6'), Ref('Shabbat 15b:7'), Ref('Shabbat 15b:8')]
 
-        with pytest.raises(InputError):
-            Ref("Shabbat 15a:13-15b:2").range_list()
-        with pytest.raises(InputError):
-            Ref("Exodus 15:12-16:1").range_list()
+        assert Ref("Exodus 15:25-16:2").range_list() == [
+                             Ref('Exodus 15:25'),
+                             Ref('Exodus 15:26'),
+                             Ref('Exodus 15:27'),
+                             Ref('Exodus 16:1'),
+                             Ref('Exodus 16:2')]
+
+        assert Ref("Shabbat 15a:54-15b:2").range_list() == [Ref('Shabbat 15a:54'),
+                                                        Ref('Shabbat 15a:55'),
+                                                        Ref('Shabbat 15b:1'),
+                                                        Ref('Shabbat 15b:2')]
+
+    def test_range_list_first_and_last_segment(self):
+        assert Ref("Shabbat 15a:54-15b:1").range_list() == [Ref('Shabbat 15a:54'),
+                                                            Ref('Shabbat 15a:55'),
+                                                            Ref('Shabbat 15b:1')]
+        assert Ref("Shabbat 15a:55-15b:1").range_list() == [Ref('Shabbat 15a:55'),
+                                                            Ref('Shabbat 15b:1')]
+        assert Ref("Shabbat 15a:55-15b:2").range_list() == [Ref('Shabbat 15a:55'),
+                                                            Ref('Shabbat 15b:1'), Ref('Shabbat 15b:2')]
+        assert Ref("Exodus 15:25-16:1").range_list() == [Ref('Exodus 15:25'), Ref('Exodus 15:26'), Ref('Exodus 15:27'),
+                                                         Ref('Exodus 16:1')]
+
+    def test_as_ranged_segment_ref(self):
+        assert Ref('Genesis').as_ranged_segment_ref() == Ref('Genesis.1.1-50.26')
+        assert Ref('Shabbat.3a.1').as_ranged_segment_ref() == Ref('Shabbat.3a.1')
+        assert Ref('Rashi on Shabbat.3b').as_ranged_segment_ref() == Ref('Rashi on Shabbat.3b.1.1-3b.46.1')
+        assert Ref('Tur, Orach Chaim.57-59').as_ranged_segment_ref() == Ref('Tur, Orach Chaim.57.1-59.1')
+        # empty at the end
+        assert Ref('Tosafot on Bava Metzia.2a').as_ranged_segment_ref() == Ref('Tosafot on Bava Metzia.2a.1.1-2a.36.1')
+        # empty at the beginning
+        assert Ref('Tosafot on Bava Metzia.3a').as_ranged_segment_ref() == Ref('Tosafot on Bava Metzia.3a.1.1-3a.39.1')
+        assert Ref('Genesis.1-14').as_ranged_segment_ref() == Ref('Genesis.1.1-14.24')
+        assert Ref('Pesach Haggadah, Karpas').as_ranged_segment_ref() == Ref('Pesach Haggadah, Karpas.1-4')
+        assert Ref('Marbeh_Lisaper_on_Pesach_Haggadah,_'
+                   'Karpas').as_ranged_segment_ref() == Ref('Marbeh_Lisaper_on_Pesach_Haggadah,_Karpas.1.1-1.2')
 
     def test_subref(self):
         assert Ref("Exodus").subref(5) == Ref("Exodus 5")
@@ -320,7 +356,6 @@ class Test_Ref(object):
         assert Ref("Rashi on Exodus 5").subref([5,5]) == Ref("Rashi on Exodus 5:5:5")
         assert Ref("Rashi on Exodus").subref([5,5,5]) == Ref("Rashi on Exodus 5:5:5")
 
-
     def test_all_subrefs(self):
         assert Ref("Genesis").all_subrefs()[49] == Ref("Genesis 50")
         assert Ref("Genesis 40").all_subrefs()[22] == Ref("Genesis 40:23")
@@ -334,7 +369,6 @@ class Test_Ref(object):
 
     def test_spanning_ref_regex(self):
         assert Ref("Exodus 4:30-6:2").regex() == u'^Exodus( 4:30$| 4:30:| 4:30 \\d| 4:31$| 4:31:| 4:31 \\d| 5$| 5:| 5 \\d| 6:1$| 6:1:| 6:1 \\d| 6:2$| 6:2:| 6:2 \\d)'
-
 
     #todo: devise a better test of version_list()
     def test_version_list(self):
@@ -391,6 +425,25 @@ class Test_Ref(object):
 
 
 class Test_Cache(object):
+    def test_index_flush_from_cache(self):
+        r1 = Ref("Genesis 1")
+        r2 = Ref("Exodus 3")
+        Ref.remove_index_from_cache("Genesis")
+        assert r1 is not Ref("Genesis 1")
+        assert r2 is Ref("Exodus 3")
+        Ref.remove_index_from_cache("Genesis")
+
+        r1 = Ref("Rashi on Genesis 1")
+        r2 = Ref("Rashi on Exodus 3")
+        Ref.remove_index_from_cache("Rashi on Genesis")
+        assert r1 is not Ref("Rashi on Genesis 1")
+        assert r2 is Ref("Rashi on Exodus 3")
+
+    def test_flush_index_not_found(self):
+        Ref("Genesis 1")
+        Ref.remove_index_from_cache("Genesis")
+        Ref.remove_index_from_cache("Genesis")
+
     def test_cache_identity(self):
         assert Ref("Ramban on Genesis 1") is Ref("Ramban on Genesis 1")
         assert Ref(u"שבת ד' כב.") is Ref(u"שבת ד' כב.")
@@ -646,7 +699,8 @@ class Test_Talmud_at_Second_Place(object):
         assert Ref("Zohar, Lech Lecha")
         assert Ref("Zohar, Bo")
 
-    def test_FAILING_range_short_form(self):
+    @pytest.mark.failing
+    def test_range_short_form(self):
         assert Ref("Zohar 2.15a - 15b").sections[1] == 29
         assert Ref("Zohar 2.15a - 15b").toSections[1] == 30
         assert Ref("Zohar 2.15a - b").sections[1] == 29
