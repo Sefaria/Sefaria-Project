@@ -11,15 +11,15 @@
      </div>
      <div class="requestText">
         <div class="requestRef">
-            <span class="en">{{ trans_request.ref|ref_link }}</span>
-            <span class="he">{{ trans_request.ref|he_ref_link }}</span>
+            <span class="int-en">{{ trans_request.ref|ref_link }}</span>
+            <span class="int-he">{{ trans_request.ref|he_ref_link }}</span>
         </div>
         {% if trans_request.completer %}
             <div class="requestCompleter">
-                <span class="en">
+                <span class="int-en">
                     Completed by {{ trans_request.completer|user_link }}
                 </span>
-                <span class="he">
+                <span class="int-he">
                     Completed by {{ trans_request.completer|user_link }}
                 </span>
             </div>

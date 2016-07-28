@@ -619,8 +619,8 @@ def make_toc_html(oref, zoom=1):
         for item in items:
             toggle += "<span class='toggleDivider'>|</span>" if item[0] != default_struct else ""
             toggle += "<div class='altStructToggle" + (" active" if item[0] == default_struct else "") + "'>"
-            toggle +=   "<span class='en'>" + item[0] + "</span>" 
-            toggle +=   "<span class='he'>" + hebrew_term(item[0]) + "</span>" 
+            toggle +=   "<span class='int-en'>" + item[0] + "</span>"
+            toggle +=   "<span class='int-he'>" + hebrew_term(item[0]) + "</span>"
             toggle += "</div>"
             tocs   += "<div class='altStruct' " + ("style='display:none'" if item[0] != default_struct else "") + ">" + item[1] + "</div>"
 

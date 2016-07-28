@@ -34,7 +34,6 @@ urlpatterns = patterns('reader.views',
     (r'^api/counts/(?P<title>.+)$', 'counts_api'),
     (r'^api/preview/(?P<title>.+)$', 'text_preview_api'),
     (r'^api/toc-html/(?P<title>.+)$', 'text_toc_html_fragment'),
-    (r'^api/toc-html/(?P<title>.+)$', 'text_toc_html_fragment'),
 )
 
 # Reviews API

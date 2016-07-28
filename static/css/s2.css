@@ -47,6 +47,12 @@ body.dark {
   height: 100%;
   top: 0;
 }
+.interface-hebrew #panelWrapBox{
+  direction: rtl;
+}
+.interface-english #panelWrapBox{
+  direction: ltr;
+}
 #panelWrapBox {
   position: relative;
   padding-top: 54px;
@@ -367,6 +373,7 @@ body.dark {
 .multiPanel .english .textColumn, .multiPanel .bilingual .textColumn {
   padding-left: 17px;
 }
+
 .multiPanel .hebrew .textColumn {
   padding-right: 17px;
 }
@@ -390,7 +397,7 @@ body.dark {
 }
 .textColumn .loadingMessage.base.next.final {
 }
-.he {
+.he, .int-he {
   font-size: 120%;
 }
 .readerPanel .he {
@@ -398,7 +405,13 @@ body.dark {
   direction: rtl;
   text-align: right;
 }
-.readerPanel.hebrew {
+/*.readerPanel.hebrew {
+  direction: rtl;
+}*/
+/*.readerPanel.english {
+  direction: ltr;
+}*/
+.interface-hebrew .readerPanel .readerNavMenu{
   direction: rtl;
 }
 .readerPanel.english .he {
@@ -413,6 +426,9 @@ body.dark {
 }
 .readerPanel.hebrew .he .enInHe {
   font-size: 83%;
+}
+.enInHe{
+  unicode-bidi: isolate;
 }
 .readerPanel.hebrew .en {
   display: none;
@@ -435,11 +451,11 @@ body.dark {
 .systemPanel.hebrew .content .en {
   display: none;
 }
-.systemPanel.english .content .en {
+.interface-english .systemPanel .content .int-en {
   display: inline;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.systemPanel.hebrew .content .he {
+.interface-hebrew .systemPanel .content .int-he {
   display: inline;
   font-family: "Open Sans Hebrew", sans-serif;
 }
@@ -497,7 +513,7 @@ body.dark {
 /* Adjusting for 17px scrollbars, to keep content centered */
 .multiPanel .english .readerNavMenu .content, .multiPanel .bilingual .readerNavMenu .content {
 }
-.multiPanel .hebrew .readerNavMenu .content {
+.interface-hebrew.multiPanel .readerNavMenu .content {
   padding-right: 40px;
 }
 .multiPanel .readerNavMenu .content {
@@ -616,10 +632,10 @@ h1 .languageToggle .he {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 22px;
 }
-.readerNavMenu h1 .en {
+.readerNavMenu h1 .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
-.readerNavMenu h1 .he {
+.readerNavMenu h1 .int-he {
   font-family: "Taamey Frank", "Times New Roman", serif;
 }
 @media (max-width: 450px) {
@@ -753,7 +769,7 @@ a.resourcesLink {
   vertical-align: middle;
   margin: 0;
   box-sizing: border-box;
-  padding:  10px 8px;
+  padding:  8px 8px;
 }
 .blockLink:hover {
   color: #333;
@@ -844,6 +860,7 @@ a.resourcesLink {
   cursor: pointer;
   vertical-align: middle;
   text-align: center;
+  unicode-bidi: plaintext;
 }
 @media (max-width: 450px) {
   .readerNavMenu .refLink,
@@ -998,6 +1015,12 @@ a.resourcesLink {
 }
 .readerTextTableOfContents .content .sectionLink  .he {
   font-family: "Open Sans Hebrew", sans-serif;
+}
+.interface-hebrew .readerTextTableOfContents .content #structToggles{
+  direction: rtl;
+}
+.interface-english .readerTextTableOfContents .content #structToggles{
+  direction: ltr;
 }
 .readerTextTableOfContents .content #structToggles {
   margin-bottom: 20px;
@@ -1831,6 +1854,22 @@ a.resourcesLink {
 .bilingual .textRange.basetext .title .he {
   display: none;
 }
+.interface-hebrew .readerPanel.english .textRange,
+.interface-hebrew .readerPanel.english .categoryFilterGroup,
+.interface-hebrew .readerPanel.bilingual .categoryFilterGroup,
+.interface-hebrew .readerPanel.english .tocContent,
+.interface-hebrew .readerPanel.bilingual .tocContent,
+.interface-hebrew .readerPanel.english .dlVersionSelect,
+.interface-hebrew .readerPanel.bilingual .dlVersionSelect,
+.interface-hebrew .readerPanel.hebrew .dlVersionSelect
+{
+  direction: ltr;
+}
+.interface-english .readerPanel.hebrew .textRange,
+.interface-english .readerPanel.hebrew .categoryFilterGroup,
+.interface-english .readerPanel.hebrew .tocContent{
+  direction: rtl;
+}
 .basetext .text {
   padding: 30px 44px;
   background-color: inherit;
@@ -2057,6 +2096,13 @@ a.resourcesLink {
 }
 .textRange .actionLinks .he {
   font-family: "Open Sans Hebrew", sans-serif;
+}
+.connectionsPanelHeader{
+  display: flex;
+  justify-content: space-between;
+}
+.interface-hebrew .connectionsPanelHeader{
+  direction: rtl;
 }
 .connectionsPanelHeader .languageToggle,
 .connectionsHeader .readerNavMenuCloseButton.arrow {
@@ -2476,12 +2522,14 @@ a.resourcesLink {
   letter-spacing: 1px;
   padding: 20px 26px;
   margin: 10px 0;
+  display: flex;
+  justify-content: space-between;
 }
 .toolsButton .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .toolsButton .toolsButtonIcon {
-  float: right;
+  /*float: right;*/
   color: #ccc;
   font-size: 22px;
 }
@@ -2490,9 +2538,9 @@ a.resourcesLink {
   height: 22px;
   opacity: 0.2;
 }
-.hebrew .toolsButton .toolsButtonIcon {
+/*.hebrew .toolsButton .toolsButtonIcon {
   float: left;
-}
+}*/
 .sharePanel input {
   width: 100%;
   box-sizing: border-box;
@@ -2623,6 +2671,8 @@ a.resourcesLink {
   background-color: transparent;
   padding: 40px 0 30px;
   position: relative;
+  display: flex;
+  justify-content: space-between;
 }
 .myNotesPanel.textList .note {
   border-top: 1px solid #ccc;
@@ -2632,11 +2682,7 @@ a.resourcesLink {
   border-top: none;
 }
 .myNotesPanel .noteButtons {
-  text-align: right;
   visibility: hidden;
-  position: absolute;
-  top: 44px;
-  right: -40px;
 }
 .myNotesPanel.textList .note:first-child .noteButtons {
   top: 14px;
@@ -3008,3 +3054,23 @@ color: #999;
 .tagString a:last-child:after {
 content: "";
 }
+/*** Interface lang - merge with static.css? ***/
+.readerApp.interface-hebrew .int-en{
+  display: none;
+}
+.readerApp.interface-english .int-he{
+  display: none;
+}
+.readerApp.interface-hebrew .readerPanel{
+  direction: rtl;
+}
+.readerApp.interface-english .readerPanel{
+  direction: ltr;
+}
+.int-he{
+  font-family: "Open Sans Hebrew", sans-serif;
+}
+.int-en{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+/***  ******************************************* ***/
