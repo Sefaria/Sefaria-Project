@@ -1574,7 +1574,7 @@
   float: left;
   direction: ltr;
 }
-#visualGardenPage #horizon-controls {
+#visualGardenPage #top-controls {
   display: flex;
 }
 #visualGardenPage #data-count {

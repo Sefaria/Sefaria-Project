@@ -41,7 +41,8 @@ class Garden(abst.AbstractMongoRecord):
             "default": {
                 "en": "Tags",
                 "he": u"תגיות",
-                "logic": "AND"  # AND / OR
+                "logic": "AND",  # AND / OR
+                "position": "SIDE"  # SIDE / TOP
             }
         },
         "sorts": {
