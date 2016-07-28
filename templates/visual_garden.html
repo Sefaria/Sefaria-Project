@@ -56,7 +56,7 @@
                             <span class='filter'></span>
                         </span>
                         <a class='reset'
-                          href='javascript:timeline.filterAll();dc.redrawAll();'
+                          href='javascript:timeline.filterAll();redraw_garden();'
                           style='display: none;'>
                             <span class="en">reset</span>
                             <span class="he">&nbsp;אפס</span>
@@ -71,7 +71,7 @@
                             <span class='filter'></span>
                         </span>
                         <a class='reset'
-                          href='javascript:mapchart.filterAll();dc.redrawAll();'
+                          href='javascript:mapchart.filterAll();redraw_garden();'
                           style='display: none;'>
                             <span class="en">reset</span>
                             <span class="he">&nbsp;אפס</span>
@@ -130,6 +130,11 @@
 
 
         // Sorting
+        function redraw_garden() {
+            // Some sort of bug prevents height() resetting from taking in some redraw cases.  A double call takes care of business.
+            dc.redrawAll();
+            dc.redrawAll();
+        }
         function set_sort_vars(field, dir, datatype) {
             resultsDir = dir == "DESC" ? d3.descending : d3.ascending;
             resultsDim && resultsDim.dispose();
@@ -210,7 +215,7 @@
             .html({
                 some: '<strong>%filter-count</strong><span class="he"> מוצגות מתוך </span><span class="en"> selected out of </span>' +
                       '<strong>%total-count</strong><span class="he"> תוצאות </span><span class="en"> Records </span>' +
-                      ' | <a href=\'javascript:dc.filterAll(); dc.renderAll();\'\'>' +
+                      ' | <a href=\'javascript:dc.filterAll(); redraw_garden();\'\'>' +
                       '<span class="he">אפס הכל</span><span class="en">Reset All</span></a>',
                 all: '<span class="en">All records selected. Please click on the graphs to apply filters.</span>'+
                         '<span class="he">כל התוצאות מוצגות. אנא לחץ על הגרף כדי לסנן</span>'
@@ -275,7 +280,7 @@
                     //'<span class="he">מסונן לפי:</span> ' +
                     '<span class="filter"></span> ' +
                   '</span> ' +
-                  '<a class="reset" href="javascript:filter_charts[' + indx +'].filterAll();dc.redrawAll();" style="display: none;"> ' +
+                  '<a class="reset" href="javascript:filter_charts[' + indx +'].filterAll();redraw_garden();" style="display: none;"> ' +
                     '<span class="en">reset</span> ' +
                     '<span class="he">&nbsp;אפס</span> ' +
                   '</a> ' +
@@ -328,6 +333,11 @@
             };
             return filterGroup;
         }
+        function setFilterChartHeight(chart) {
+            var newChartSize = chart.group().all().length > maxRows ? maxRows : chart.group().all().length;
+            var newFilterHeight = 40 + 20 * newChartSize;
+            chart.height(newFilterHeight);  //function(d) { debugger; return filterHeight; })
+        }
         function createFilterChart(filterConfig, filter_id, dim, group) {
             var chartSize = group.all().length > maxRows ? maxRows : group.all().length;
             var filterHeight = 40 + 20 * chartSize;
@@ -348,11 +358,7 @@
                 .transitionDuration(1000)
                 .colors(color_scales[(filter_num % color_scales.length)][5])  // d3.scale.ordinal().range(color_scales[(filter_num % color_scales.length)].reverse()))
                 .label(function (d) { return d.key })
-                .on('preRedraw', function(chart) {
-                    var newChartSize = chart.group().all().length > maxRows ? maxRows : chart.group().all().length;
-                    var newFilterHeight = 40 + 20 * newChartSize;
-                    chart.height(newFilterHeight);  //function(d) { debugger; return filterHeight; })
-                });
+                .on('preRedraw', setFilterChartHeight);
             if (filterConfig["logic"] == "AND") {
                 filter_chart
                     .filterHandler (function (dimension, filters) {
