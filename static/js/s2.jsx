@@ -1590,7 +1590,7 @@ var ReaderPanel = React.createClass({
     // Return to the original text in the ReaderPanel contents
     this.conditionalSetState({highlightedRefs: [], mode: "Text"});
   },  
-  showBaseText: function(ref, replaceHistory) {
+  showBaseText: function(ref, replaceHistory, version=null, versionLanguage=null) {
     // Set the current primary text
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
     if (!ref) { return; }
@@ -1601,8 +1601,8 @@ var ReaderPanel = React.createClass({
       filter: [],
       recentFilters: [],
       menuOpen: null,
-      version: null,
-      versionLanguage: null
+      version: version,
+      versionLanguage: versionLanguage
     });
   },
   updateTextColumn: function(refs) {
@@ -2804,7 +2804,7 @@ var ReaderTextTableOfContents = React.createClass({
       ref = decodeURIComponent(ref);
       ref = Sefaria.humanRef(ref);
       this.props.close();
-      this.props.showBaseText(ref);
+      this.props.showBaseText(ref, false, this.props.version, this.props.versionLanguage);
       e.preventDefault();
     }
   },
