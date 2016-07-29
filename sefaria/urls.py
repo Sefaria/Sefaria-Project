@@ -364,7 +364,7 @@ urlpatterns += patterns('',
 )
 
 # Google API OAuth 2.0
-urlpatterns += patterns('gauth.views',
+urlpatterns += patterns('sefaria.gauth.views',
     (r'^gauth$', 'index', {}, 'gauth_index'),
     (r'^gauth/callback$', 'auth_return', {}, 'gauth_callback'),
 )

@@ -124,7 +124,7 @@ INSTALLED_APPS = (
     'emailusernames',
     'reader',
     'sheets',
-    'gauth',
+    'sefaria.gauth',
     'captcha',
     'django_mobile',
     'django.contrib.admin',

@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 from oauth2client.contrib.django_orm import Storage
 
-from gauth.models import CredentialsModel
+from sefaria.gauth.models import CredentialsModel
 
 
 def gauth_required(scope, ajax=False):

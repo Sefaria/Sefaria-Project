@@ -36,7 +36,7 @@ from sefaria.utils.util import strip_tags
 # noinspection PyUnresolvedReferences
 import sefaria.model.dependencies
 
-from gauth.decorators import gauth_required
+from sefaria.gauth.decorators import gauth_required
 
 
 def annotate_user_links(sources):
