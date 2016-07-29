@@ -3252,6 +3252,9 @@ function copySheet() {
 }
 
 function exportToDrive() {
+	$("#overlay").show();
+	sjs.alert.message("Syncing with Google Docs...");
+
 	$.ajax({
 	  type: "POST",
 	  url: "/api/sheets/" + sjs.current.id + "/export_to_drive",
