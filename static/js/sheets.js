@@ -2575,9 +2575,6 @@ function autoSave() {
 
 
 function saveSheet(sheet, reload) {
- 	if (sheet.sources.length == 0) {
- 		return;
- 	}
  	stopPolling();
  	var postJSON = JSON.stringify(sheet);
 	$.post("/api/sheets/", {"json": postJSON}, function(data) {

@@ -140,10 +140,6 @@ body {
 	display: block;
 }
 
-#save {
-	display: none;
-}
-
 #controls {
 	position: fixed;
 	top: 80px;
