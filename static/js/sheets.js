@@ -922,6 +922,9 @@ $(function() {
 	// ---------- Delete Sheet ----------------
 	$("#deleteSheet").click(deleteSheet);
 
+	// ---------- Export Sheet to Google Drive ----------------
+	$("#exportToDrive").click(exportToDrive);
+
 
 	// ------- Sheet Tags --------------
 	sjs.sheetTagger.init(sjs.current.id, sjs.current.tags);
@@ -2037,7 +2040,30 @@ $(function() {
 		promptToPublish();
 	}
 
-}); // ------------------ End DOM Ready  ------------------ 
+	// ------ Check fragment identifier for state re-init'ing -------------
+	var fragIdent = (function(hash) {
+		hash = hash.substring(hash.indexOf('#') + 1);
+
+		if (hash.length === 0)
+			return {};
+
+		var fragments = hash.split('&');
+
+		var obj = {};
+		for (var i = 0; i < fragments.length; i++) {
+			var keyVal = fragments[i].split('=');
+			obj[keyVal[0]] = keyVal[1];
+		}
+		return obj;
+	}(window.location.hash));
+
+	switch (fragIdent.onload) {
+		case "exportToDrive":
+			exportToDrive();
+			break;
+	}
+
+}); // ------------------ End DOM Ready  ------------------
 
 
 function addSource(q, source, appendOrInsert) {
@@ -3225,8 +3251,29 @@ function copySheet() {
 
 }
 
+function exportToDrive() {
+	$("#overlay").show();
+	sjs.alert.message("Syncing with Google Docs...");
 
-function showEmebed() { 
+	$.ajax({
+	  type: "POST",
+	  url: "/api/sheets/" + sjs.current.id + "/export_to_drive",
+	  success: function(data) {
+			if ("error" in data) {
+				sjs.alert.message(data.error.message);
+			} else {
+				sjs.alert.message("Source Sheet exported to Google Drive.<br><br><a href='" + data.webViewLink + "' target='_blank'>Open in Google Drive &raquo;</a>");
+			}
+		},
+		statusCode: {
+			401: function() {
+				window.location.href = "/gauth?next=" + encodeURIComponent(window.location.pathname + "#onload=exportToDrive");
+			}
+		}
+	});
+}
+
+function showEmebed() {
 	$("#embedSheetModal").show().position({of: window})
 			.find("textarea").focus()
 		.end()
@@ -3268,7 +3315,7 @@ sjs.elokaRE   = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(א[\u
 
 
 sjs.divineSubs = {
-					"noSub": "יהוה", 
+					"noSub": "יהוה",
 					"yy": "יי",
 					"ykvk": "יקוק",
 					"h": "ה'"
@@ -3280,8 +3327,8 @@ sjs.divineSubs = {
 function substituteDivineNames(text) {
 	// Returns 'text' with divine names substituted according to the current
 	// setting in sjs.current.options.divineNames
-	if (!sjs.current.options.divineNames || sjs.current.options.divineNames === "noSub") { 
-		return text; 
+	if (!sjs.current.options.divineNames || sjs.current.options.divineNames === "noSub") {
+		return text;
 	}
 	var sub = sjs.divineSubs[sjs.current.options.divineNames];
 	text = text.replace(sjs.divineRE, "$1$2"+sub);

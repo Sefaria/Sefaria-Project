@@ -1,4 +1,16 @@
-html {
+{% load cache %}
+{% load humanize %}
+{% load sefaria_tags %}
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{{ title|striptags|strip_html_entities }}</title>
+	<base href="localhost:8000">
+
+	<style>
+	html {
 }
 
 body {
@@ -517,10 +529,6 @@ body {
 	border-left: solid 6px transparent;
 }
 
-.sheetItem table {
-	max-width:691px;
-}
-
 .sheetItem p span {
 	white-space: pre-wrap;
 }
@@ -581,7 +589,7 @@ body {
 	left: 23px !important;
 	margin-left: 0 !important;
 	top: 32px !important;
-	background-color: transparent !important;
+	background-color: #F9F9F7 !important;
 
 }
 
@@ -660,13 +668,6 @@ body {
 	position: relative;
 }
 
-
-
-.text .en,
-.text .he {
-	min-height: 20px;
-}
-
 #sheet .en {
 	direction: ltr;
 }
@@ -675,22 +676,6 @@ body {
 	text-align: right;
 	font-family: "Times New Roman", Serif;
 	font-size: 24px;
-}
-
-/* Allows line height to change with font-size */
-.source .text .he span,
-.source .text .en span,
-#title span,
-.comment span,
-.outside span,
-.outsideBi .text .he span,
-.outsideBi .text .en span  {
-	display: inline-block;
-}
-
-.source .text .he .segment,
-.source .text .en .segment {
-	display: inline;
 }
 
 #sheet.english .en {
@@ -791,18 +776,18 @@ body {
 }
 
 .indented-1 {
-	padding-left: 100px !important;
-	padding-right: 100px !important;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
 }
 
 .indented-2 {
-	padding-left: 130px !important;
-	padding-right: 130px !important;
+	padding-left: 30px !important;
+	padding-right: 30px !important;
 }
 
 .indented-3 {
-	padding-left: 160px !important;
-	padding-right: 160px !important;
+	padding-left: 60px !important;
+	padding-right: 60px !important;
 }
 
 
@@ -1985,7 +1970,338 @@ a.tagit-close {
 	top: 15px;
 	content: "X"
 }
-
-.moveSourceUp img, .moveSourceDown img  {
-    width:16px;
+	</style>
+	<style>
+	#top,
+#textTocLink,
+#likes,
+#error,
+#controls,
+.controls,
+.openLink,
+#belowSheet,
+#bottomAuthor,
+.sheetsEditNavTop,
+.inlineAddButton,
+.header,
+#addInterface
+{
+	display: none !important;
+	border: 0;
 }
+
+#sheet {
+	padding: 0;
+	margin: 0 5mm;
+	width: auto;
+	min-height: 0px;
+	box-shadow: none;
+	zoom: 80%;
+}
+
+#sheet.numbered {
+	margin: 0 5mm 0 10mm;
+}
+
+#sheetHeader {
+	margin: 0;
+}
+
+#bsdHeader {
+	top: 0;
+	right: 0;
+}
+
+.source {
+    /*page-break-inside: avoid;*/
+}
+
+a {
+	color: black;
+}
+
+#printFooter {
+	display: block;
+}
+
+@page
+{
+    size: auto;
+    margin: 18mm 15mm;
+}
+	</style>
+	<style>
+		#sheet,
+		#sheet #bsdHeader,
+		#sheet #title,
+		#sheet #author,
+		#sheet #sources li,
+		#sheet .en {
+			font-family: "Times New Roman", serif; /* for some reason, removing Georgia makes this work... */
+		}
+        .sheetItem {
+            padding: 0;
+        }
+	</style>
+	<style>
+		#sheet,
+		#sheet #bsdHeader,
+		#sheet #title,
+		#sheet #author,
+		#sheet #sources li,
+		#sheet .en {
+			font-family: "Times New Roman", serif; /* for some reason, removing Georgia makes this work... */
+		}
+        * {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        table td {
+            padding: 0 10px !important;
+        }
+	</style>
+	<!-- {% if sheet.options.numbered %}
+	<style>
+		#sources {
+			list-style-type: decimal;
+		}
+	</style>
+	{% endif %} -->
+</head>
+<body>
+
+	<!-- <div id="link"></div> -->
+	<!-- <div id="error"></div> -->
+
+	<div id="sheet" class="{{ sheet_class|default:'bilingual' }}">
+		{% if sheet.options.bsd %}
+		<div id="bsdHeader">בס"ד</div>
+		{% endif %}
+
+		<!-- <div id="sheetHeader" {% if sheet_group == None %}style="display:none"{% endif %}>
+			{% if sheet_group %}
+			<a href="/partners/{{ sheet_group.name|url_safe }}">
+				<img id="partnerLogo" src="{{ sheet_group.headerUrl }}" />
+			</a>
+			{% else %}
+				<img id="partnerLogo" style="display:none;" />
+			{% endif %}
+		</div> -->
+
+		{% autoescape off %}
+		<h1 id="title" style="text-align:center">{{ title|striptags|strip_html_entities }}</h1>
+		{% endautoescape %}
+
+		{% if sheet.attribution %}
+		<div id="author">{% autoescape off %}{{ sheet.attribution }}{% endautoescape %}</div>
+		{% elif assigner_id %}
+		<div id="author">
+			<div id="assignmentAttribution">Assignment by {{ assigner_id|user_link|absolute_link }}</div>
+			{% if author %}
+			Completed by {{ sheet.owner|user_link|absolute_link }}
+			{% endif %}
+	    </div>
+		{% elif sheet.assigner_id %}
+		<div id="author">
+			<div id="assignmentAttribution">Assignment by {{ sheet.assigner_id|user_link|absolute_link }}</div>
+			{% if author %}
+			Completed by {{ sheet.owner|user_link|absolute_link }}
+	    {% endif %}
+	    </div>
+		{% elif author %}
+		<div id="author">
+			Source Sheet by {{ sheet.owner|user_link|absolute_link }}
+			{% if sheet.via %}
+			<div id="via">Based on {{ sheet.via|sheet_via_absolute_link }} by {{ sheet.viaOwner|user_link|absolute_link }}</div>
+			{% endif %}
+		</div>
+		{% endif %}
+
+		<ol id="sources">
+			{% with "sheet.html" as sheet_template %}
+			{% autoescape off %}
+			{% for source in sheet.sources %}
+
+				{% if "text" in source %}
+					<li class="source sheetItem {{ source.options.indented }}">
+						<div class="customTitle">{{ source.customTitle }}</div>
+
+						{% if source.options.sourceLanguage == "hebrew" %}
+							{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
+						{% elif source.options.sourceLanguage == "english" %}
+							{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
+						{% else %}
+							{% if source.options.sourceLayout == "stacked" %}
+								{% if source.options.sourceLangLayout == "heLeft" %}
+									{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
+									{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
+								{% else %}
+									{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
+									{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
+								{% endif %}
+							{% else %}
+								<table border="0"><tr><td>
+								{% if source.options.sourceLangLayout == "heLeft" %}
+									{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
+									</td><td>
+									{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
+								{% else %}
+									{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
+									</td><td>
+									{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
+								{% endif %}
+								</td></tr></table>
+							{% endif %}
+						{% endif %}
+
+						<!-- <div class="clear"></div> -->
+					</li>
+				{% elif "outsideBiText" in source %}
+					<li class="outsideBiWrapper {{ source.options.indented }}">
+						<div class="outsideBi sheetItem">
+
+							<!-- Box the source -->
+							{% if sheet.options.boxed %}
+							<table border="1"><tr><td>
+							{% endif %}
+
+							<div class="text">
+								{% if sheet.options.layout == "stacked" %}
+									<div class="he">{{ source.outsideBiText.he }}</div>
+									<div class="en">{{ source.outsideBiText.en }}</div>
+								{% else %}
+									<table border="0"><tr><td>
+									{% if sheet.options.langLayout == "heLeft" %}
+										<div class="he">{{ source.outsideBiText.he }}</div>
+										</td><td>
+										<div class="en">{{ source.outsideBiText.en }}</div>
+									{% else %}
+										<div class="en">{{ source.outsideBiText.en }}</div>
+										</td><td>
+										<div class="he">{{ source.outsideBiText.he }}</div>
+									{% endif %}
+									</td></tr></table>
+								{% endif %}
+								<!-- <div class="clear"></div> -->
+							</div>
+
+							<!-- End box the source -->
+							{% if sheet.options.boxed %}
+							</td></tr></table>
+							{% endif %}
+
+						</div>
+					</li>
+				{% elif "comment" in source %}
+					<div class="commentWrapper sheetItem {{ source.options.indented }}">
+						<div class="comment">
+							{{ source.comment }}
+						</div>
+					</div>
+				{% elif "outsideText" in source %}
+					<li class="outsideWrapper sheetItem {{ source.options.indented }}">
+
+						<!-- Box the source -->
+						{% if sheet.options.boxed %}
+						<table border="1"><tr><td>
+						{% endif %}
+
+						<div class="outside">
+							{{ source.outsideText }}
+						</div>
+
+						<!-- End box the source -->
+						{% if sheet.options.boxed %}
+						</td></tr></table>
+						{% endif %}
+
+					</li>
+				 {% elif "media" in source %}
+					<li class="mediaWrapper sheetItem {{ source.options.indented }}">
+						<div class="outside">
+							<img class="addedMedia" src="{{source.media}}" />
+						</div>
+					</li>
+				{% endif %}
+
+			{% endfor %}
+			{% endautoescape %}
+			{% endwith %}
+		</ol>
+
+		<!-- <div id="printFooter">
+			<img src="/static/img/fb-og-image.png">
+			<div>
+				Made with the Sefaria Source Sheet Builder<br>
+				www.sefaria.org/sheets
+			</div>
+		</div> -->
+	</div>
+
+	<br><br>
+
+	{% if author %}
+	<div id="bottomAuthor">
+		Source Sheet created on Sefaria by {{ sheet.owner|user_link|absolute_link }}
+		{% if sheet.via %}
+		<div id="bottomVia">Based on {{ sheet.via|sheet_via_absolute_link }} by {{ sheet.viaOwner|user_link|absolute_link }}</div>
+		{% endif %}
+	</div>
+	{% endif %}
+
+	<!-- <div id="belowSheet"></div> -->
+
+	<!--
+	Footer depends on full bootstrap grid, which isn't loaded in sheets.html
+	{% include "elements/footer.html" %}
+	-->
+
+	<!--
+	<script type="text/javascript" src="/static/js/jquery.scrollTo-1.4.2-min.js"></script>
+	<script type="text/javascript" src="/static/js/jquery.easing.1.3.js"></script>
+	<script type="text/javascript" src="/static/js/jquery-tooltip/jquery.tooltip.js"></script>
+	<script src="/static/js/jquery.tag-it.min.js"></script>
+
+
+	{% include "js/headers.js" %}
+
+	<script type="text/javascript">
+	{% autoescape off %}
+		var sjs = sjs || {};
+
+		$.extend(sjs, {
+			current: {{ sheetJSON|default:"null" }},
+			assignment_id: {{ assignment_id|default:"null" }},
+			assigner_id: {{ assigner_id|default:"null" }},
+			can_edit: {% if can_edit %}true{% else %}false{% endif %},
+	        can_add: {% if can_add %}true{% else %}false{% endif %},
+			is_owner: {% if is_owner %}true{% else %}false{% endif %},
+			editing: {},
+			ref: {},
+			loading: 0,
+			autosave: false,
+			changes: false,
+			{% if user.id %}
+			_fullname: "{{ user.first_name }} {{ user.last_name }}",
+			_userLink: "{{ user.id|user_link }}"
+			{% endif %}
+		});
+	{% endautoescape %}
+	</script>
+	{% if can_edit or can_add %}
+	<script src="/static/ckeditor/ckeditor.js"></script>
+	<script src="/static/ckeditor/adapters/jquery.js"></script>
+	{% endif %}
+	<script src="/static/js/sheets.js"></script>
+
+	    <script>
+	    var backToS1 = function() {
+	      $.cookie("s2", "", {path: "/"});
+	      window.location = "/";
+	    }
+	    $("#backToOldSefaria").click(backToS1);
+	    </script>
+	-->
+</body>
+</html>
