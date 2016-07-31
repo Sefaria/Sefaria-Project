@@ -1568,6 +1568,9 @@
   border: none;
   margin: 0;
 }
+#visualGardenPage h2 {
+  text-align: center;
+}
 /* Controls need LTR to present right, hebrew 'reset' block wants RTL on top charts, but not on filter charts */
 #visualGardenPage #controls {
   width: 320px;

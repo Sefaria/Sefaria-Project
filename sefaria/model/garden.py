@@ -31,6 +31,8 @@ class Garden(abst.AbstractMongoRecord):
         'config'
     ]
     optional_attrs = [
+        "subtitle",
+        "heSubtitle"
     ]
 
     default_config = {

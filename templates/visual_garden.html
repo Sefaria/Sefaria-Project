@@ -44,6 +44,10 @@
             <span class='en'>{{ title }}</span>
             <span class='he'>{{ heTitle }}</span>
         </h1>
+        <h2>
+            <span class='en'>{% autoescape off %}{{ subtitle }}{% endautoescape %}</span>
+            <span class='he'>{% autoescape off %}{{ heSubtitle }}{% endautoescape %}</span>
+        </h2>
         <div id="data-count"></div>
         <div class="section control-results-container">
             <div id="top-controls"></div>
