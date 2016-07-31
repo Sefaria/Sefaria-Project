@@ -1580,6 +1580,10 @@
 #visualGardenPage #top-controls {
   display: flex;
 }
+#visualGardenPage #top-filter-control {
+  text-align: center;
+  font-size: 28px;
+}
 #visualGardenPage #data-count {
   float: none;
   text-align: center;
