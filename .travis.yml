@@ -47,7 +47,7 @@ before_script:
 
   # Create the user db, and run the django server, redirecting output to log files
   - python manage.py syncdb --noinput
-  - python manage.py runserver --insecure 2> server.error.log > server.log &
+  - python manage.py runserver 2> server.error.log > server.log &
 
   # Wait for server to come up
   - while ! nc -z localhost 8000; do sleep 0.1; done;
