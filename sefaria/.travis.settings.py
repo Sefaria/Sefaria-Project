@@ -100,6 +100,8 @@ USE_VARNISH_ESI = False
 # Prevent modification of Index records
 DISABLE_INDEX_SAVE = False
 RECAPTCHA_PUBLIC_KEY = "Dummy"
+RECAPTCHA_PRIVATE_KEY = "Dummy"
+
 
 """ to use logging, in any module:
 # import the logging library
