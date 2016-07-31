@@ -1611,7 +1611,7 @@ body.hebrew #visualGardenPage .filter-title .reset {
 }
 #visualGardenPage #sort-container {
   float: none;
-  padding: 5px 0;
+  padding: 25px 0 5px;
 }
 
 #visualGardenPage .filter-title {

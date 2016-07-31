@@ -288,10 +288,9 @@
             return elem
         }
         function createFilterGroup(filterConfig, key, filterDim) {
-            if (filterConfig["logic"] != "AND") {
+            if (filterConfig["logic"] == "OR") {
                 return filterDim.group();
             }
-
             function reduceAdd(p, v) {
                 v.tags[key].forEach (function(val, idx) {
                     p[val] = (p[val] || 0) + 1; //increment counts
@@ -324,10 +323,16 @@
                 }
                 return newObject;
             };
+
             filterGroup.top = function(k) {
                 all = this.all();
+                /*
                 var top = crossfilter.heapselect(all, 0, all.length, k);
                 return crossfilter.heap.sort(top, 0, top.length);
+                */
+                all.sort(function(a, b) {return b.value - a.value});
+                return all.slice(0,k)
+
             };
             return filterGroup;
         }
