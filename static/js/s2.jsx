@@ -317,8 +317,8 @@ var ReaderApp = React.createClass({
       prevPanels = headerPanel ? [history.state.header] : history.state.panels;
       nextPanels = headerPanel ? [this.state.header] : this.state.panels;
     } else {
-      prevPanels = [history.state.header];
-      nextPanels = [this.state.header];
+      prevPanels = history.state.panels;
+      nextPanels = this.state.panels;
     }
 
     for (var i = 0; i < prevPanels.length; i++) {
@@ -339,7 +339,8 @@ var ReaderApp = React.createClass({
           (prev.versionLanguage !== next.versionLanguage) ||
           (prev.searchQuery != next.searchQuery) ||
           (prev.appliedSearchFilters && next.appliedSearchFilters && (prev.appliedSearchFilters.length !== next.appliedSearchFilters.length)) ||
-          (prev.appliedSearchFilters && next.appliedSearchFilters && !(prev.appliedSearchFilters.compare(next.appliedSearchFilters))))
+          (prev.appliedSearchFilters && next.appliedSearchFilters && !(prev.appliedSearchFilters.compare(next.appliedSearchFilters))) ||
+          (prev.settings.language != next.settings.language))
           {
          return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
@@ -1718,6 +1719,7 @@ var ReaderPanel = React.createClass({
     cookie(option, value, {path: "/"});
     if (option === "language") {
       cookie("contentLang", value, {path: "/"});
+      this.replaceHistory = true;
       this.props.setDefaultOption && this.props.setDefaultOption(option, value);
     }
     this.conditionalSetState(state);
