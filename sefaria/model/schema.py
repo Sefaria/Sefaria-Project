@@ -48,7 +48,7 @@ class TitleGroup(object):
         :param lang: "en" or "he"
         :return: The primary title string or None
         """
-        if self._primary_title.get(lang) is None:
+        if not self._primary_title.get(lang):
             for t in self.titles:
                 if t.get("lang") == lang and t.get("primary"):
                     self._primary_title[lang] = t.get("text")
