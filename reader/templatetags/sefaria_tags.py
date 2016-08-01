@@ -137,8 +137,8 @@ def text_toc_link(indx):
 	he = indx.nodes.primary_title("he") if not indx.is_commentary() else indx.heTitle
 	link = u'''
 		<a href="/{}">
-			<span class='en'>{}</span>
-			<span class='he'>{}</span>
+			<span class="int-en">{}</span>
+			<span class="int-he">{}</span>
 		</a>
 	'''.format(indx.title, en, he)
 	return mark_safe(link)
@@ -150,8 +150,8 @@ def person_link(person):
 	"""
 	link = u'''
 		 <a href="/person/{}">
-			 <span class='en'>{}</span>
-			 <span class='he'>{}</span>
+			 <span class="int-en">{}</span>
+			 <span class="int-he">{}</span>
 		 </a>
 	'''.format(person.key, person.primary_name("en"), person.primary_name("he"))
 	return mark_safe(link)
@@ -487,3 +487,8 @@ def partition_vertical(thelist, n):
 @register.filter
 def date_string_to_date(dateString):
     return(datetime.strptime(dateString, "%Y-%m-%dT%H:%M:%S.%f"))
+
+@register.filter(is_safe=True)
+def sheet_via_absolute_link(sheet_id):
+    return mark_safe(absolute_link(
+		'<a href="/sheets/{}">a sheet</a>'.format(sheet_id)))

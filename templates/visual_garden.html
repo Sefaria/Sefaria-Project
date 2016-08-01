@@ -56,30 +56,30 @@
                 <div id="timeline-chart">
                     <div style="height: 30px;">
                         <span class='reset' style='display: none;'>
-                            <span class="en">Current filter:</span>
-                            <span class="he">מסונן לפי:</span>
+                            <span class="int-en">Current filter:</span>
+                            <span class="int-he">מסונן לפי:</span>
                             <span class='filter'></span>
                         </span>
                         <a class='reset'
                           href='javascript:timeline.filterAll();redraw_garden();'
                           style='display: none;'>
-                            <span class="en">reset</span>
-                            <span class="he">&nbsp;אפס</span>
+                            <span class="int-en">reset</span>
+                            <span class="int-he">&nbsp;אפס</span>
                         </a>
                     </div>
                 </div>
                 <div id="map-chart">
                     <div style="height: 30px;">
                         <span class='reset' style='display: none;'>
-                            <span class="en">Current filter:</span>
-                            <span class="he">מסונן לפי:</span>
+                            <span class="int-en">Current filter:</span>
+                            <span class="int-he">מסונן לפי:</span>
                             <span class='filter'></span>
                         </span>
                         <a class='reset'
                           href='javascript:mapchart.filterAll();redraw_garden();'
                           style='display: none;'>
-                            <span class="en">reset</span>
-                            <span class="he">&nbsp;אפס</span>
+                            <span class="int-en">reset</span>
+                            <span class="int-he">&nbsp;אפס</span>
                         </a>
                     </div>
                 </div>
@@ -88,8 +88,8 @@
             <div id="results">
                 <div id="sort-container">
                     <label for="sort-select" id="sort-label">
-                        <span class="en">Sort By:</span>
-                        <span class="he">מיין לפי:</span>
+                        <span class="int-en">Sort By:</span>
+                        <span class="int-he">מיין לפי:</span>
                     </label>
                     <select name="sort-select" id="sort-select" size=1 style="direction: ltr;">
 
@@ -218,12 +218,12 @@
             .dimension(stopx)
             .group(all)
             .html({
-                some: '<strong>%filter-count</strong><span class="he"> מוצגות מתוך </span><span class="en"> selected out of </span>' +
-                      '<strong>%total-count</strong><span class="he"> תוצאות </span><span class="en"> Records </span>' +
+                some: '<strong>%filter-count</strong><span class="int-he"> מוצגות מתוך </span><span class="int-en"> selected out of </span>' +
+                      '<strong>%total-count</strong><span class="int-he"> תוצאות </span><span class="int-en"> Records </span>' +
                       ' | <a href=\'javascript:dc.filterAll(); redraw_garden();\'\'>' +
-                      '<span class="he">אפס הכל</span><span class="en">Reset All</span></a>',
-                all: '<span class="en">All records selected. Please click on the graphs to apply filters.</span>'+
-                        '<span class="he">כל התוצאות מוצגות. אנא לחץ על הגרף כדי לסנן</span>'
+                      '<span class="int-he">אפס הכל</span><span class="int-en">Reset All</span></a>',
+                all: '<span class="int-en">All records selected. Please click on the graphs to apply filters.</span>'+
+                        '<span class="int-he">כל התוצאות מוצגות. אנא לחץ על הגרף כדי לסנן</span>'
             });
 
 
@@ -285,8 +285,8 @@
                     '<span class="filter"></span> ' +
                   '</span> ' +
                   '<a class="reset" href="javascript:filter_charts[' + indx +'].filterAll();redraw_garden();" style="display: none;"> ' +
-                    '<span class="en">reset</span> ' +
-                    '<span class="he">&nbsp;אפס</span> ' +
+                    '<span class="int-en">reset</span> ' +
+                    '<span class="int-he">&nbsp;אפס</span> ' +
                   '</a> ' +
                 '</div> ' +
             '</div>');

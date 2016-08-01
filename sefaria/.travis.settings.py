@@ -4,7 +4,7 @@ import os.path
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
@@ -99,6 +99,9 @@ USE_VARNISH_ESI = False
 
 # Prevent modification of Index records
 DISABLE_INDEX_SAVE = False
+RECAPTCHA_PUBLIC_KEY = "Dummy"
+RECAPTCHA_PRIVATE_KEY = "Dummy"
+
 
 """ to use logging, in any module:
 # import the logging library

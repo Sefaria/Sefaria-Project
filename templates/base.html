@@ -18,6 +18,8 @@
 
     {% if S2 or request.flavour == "mobile" %}
         <link rel="stylesheet" href="/static/css/s2.css">
+        <link rel="stylesheet" href="/static/css/s2-print.css" media="print" />
+
         {% block exclude_block_on_source_sheets %}
             <link rel="stylesheet" href="/static/css/static.css">
         {% endblock %}
@@ -44,7 +46,7 @@
     <script>try{Typekit.load({ async: true });}catch(e){}</script>
     <script>
       {% if S2 %}
-      var families = ['Open Sans Hebrew:400,700:latin,hebrew' ];
+      var families = ['Open Sans Hebrew:400,700:latin,hebrew', 'Montserrat:400,700', 'Alef:400,700:latin,hebrew' ];
       {% else %}
       var families = ['Montserrat:400,700', 'Alef:400,700:latin,hebrew' ]
       {% endif %}
@@ -63,7 +65,7 @@
         {% include "header.html" %}
     {% endif %}
     <div class="wrapper">
-        <div id="content" class="{{ interfaceLang }}">
+        <div id="content" {% if S2 or request.flavor == "mobile "%}class="interface-{{ interfaceLang }}" {% else %} class="{{ interfaceLang }}" {% endif %}>
             {% if not S2 and not request.flavour == "mobile" %}
                 {% include "header.html" %}
                 {% include "elements/login_prompt.html" with msg="Please log in to edit." %}
