@@ -2332,6 +2332,7 @@ var ReaderNavigationMenu = React.createClass({
         "Musar",
         "Responsa",
         "Apocrypha",
+        "Modern Works",
         "Other"
       ];
       categories = categories.map(function(cat) {
