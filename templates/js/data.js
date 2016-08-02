@@ -20,7 +20,7 @@ var data = {
   notificationCount:   {{ notifications_count|default:'0' }},
   notifications:       {{ notifications_json|default:'[]' }},
   notificationsHtml:   "{{ notifications_html|escape_quotes }}",
-  interruptingMessage: {{ interrupting_message_json }},
+  interruptingMessage: {{ interrupting_message_json|default:'null' }},
   _email:              "{{ request.user.email|default:'' }}",
   _uid:                {{ request.user.id|default:"null" }}
 };
