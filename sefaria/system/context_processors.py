@@ -71,6 +71,9 @@ def language_settings(request):
 
 
 def notifications(request):
+    if not request.user.is_authenticated():
+        return {}
+    
     profile = UserProfile(id=request.user.id)
     notifications = profile.recent_notifications()
     notifications_json = "[" + ",".join([n.to_JSON() for n in notifications]) + "]"
