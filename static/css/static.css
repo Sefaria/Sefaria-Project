@@ -1615,7 +1615,16 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   display: inline-block;
   vertical-align: top;
 }
-
+#visualGardenPage #sort-container {
+  display: inline-block;
+}
+#visualGardenPage #paging {
+  display: inline-block;
+  padding-left: 30px;
+}
+#visualGardenPage #paging input {
+  padding: 3px;
+}
 #visualGardenPage #results .result {
   margin: 10px 0;
 }
@@ -1626,7 +1635,15 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-size: .8em;
 }
 #visualGardenPage #results .result-text {
-  margin: 5px 10px 0;
+  margin: 0 10px 0;
+}
+#visualGardenPage #results .result-text span {
+  display: block;
+  margin: 5px 0 0;
+}
+#visualGardenPage #results .result-text span.he,
+#visualGardenPage #results .result-text span.int-he {
+   direction: rtl;
 }
 #visualGardenPage #sort-container {
   float: none;

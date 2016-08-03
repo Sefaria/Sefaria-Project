@@ -5,23 +5,10 @@
 
 {% block title %}{{ title }}{% endblock %}
 {% block head %}
-    {% if not OFFLINE %}
-    <script src="https://use.typekit.net/aeg8div.js"></script>
-    <script>try{Typekit.load({ async: true });}catch(e){}</script>
-    <script src="//ajax.googleapis.com/ajax/libs/webfont/1.5.10/webfont.js"></script>
-    <script>
-      WebFont.load({
-        google: {
-          families: ['Montserrat:400,700', 'Open Sans Hebrew:400,700:latin,hebrew' ]
-        }
-      });
-    </script>
-    {% endif %}
     <script src="http://d3js.org/d3.v3.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.12/crossfilter.js"></script>
     <script src="/static/js/dc.js"></script>
     <link rel="stylesheet" href="/static/css/dc.css" />
-
 {%  endblock %}
 
 {% block css %}
@@ -41,12 +28,12 @@
 <div id="visualGardenPage" class="container static biReady">
     <div class="inner">
         <h1>
-            <span class='en'>{{ title }}</span>
-            <span class='he'>{{ heTitle }}</span>
+            <span class='int-en'>{{ title }}</span>
+            <span class='int-he'>{{ heTitle }}</span>
         </h1>
         <h2>
-            <span class='en'>{% autoescape off %}{{ subtitle }}{% endautoescape %}</span>
-            <span class='he'>{% autoescape off %}{{ heSubtitle }}{% endautoescape %}</span>
+            <span class='int-en'>{% autoescape off %}{{ subtitle }}{% endautoescape %}</span>
+            <span class='int-he'>{% autoescape off %}{{ heSubtitle }}{% endautoescape %}</span>
         </h2>
         <div id="data-count"></div>
         <div class="section control-results-container">
@@ -94,6 +81,11 @@
                     <select name="sort-select" id="sort-select" size=1 style="direction: ltr;">
 
                     </select>
+                </div>
+                <div id="paging">
+                    Showing <span id="begin"></span>-<span id="end"></span> of <span id="size"></span>.
+                    <input id="prev" class="btn" type="Button" value="Prev" onclick="javascript:prev_page()" />
+                    <input id="next" class="btn" type="button" value="Next" onclick="javascript:next_page()"/>
                 </div>
                 <div id="results-container">
                     <table id="results-content">
@@ -513,29 +505,30 @@
             .sortBy(resultsAccessor)
             //.keyAccessor(resultsAccessor)
             //.ordering(resultsAccessor)
+            .on("postRedraw", update_pagination)
             .htmlGroup(function (d) {return "";})
             .html(function(data) {
                 return "<div class='result'>" +
                             "<div class='result-ref'>" +
-                                "<span class='en'>" +
+                                "<span class='int-en'>" +
                                     (data.ref ? "<a href='/" + data.ref + (data.enVersionTitle ? "/en/" + data.enVersionTitle:"") + "'>" : "") +
                                         (data.title ? data.title : data.ref) +
                                     (data.ref ? "</a>" : "") +
                                 "</span>" +
-                                "<span class='he'>" +
+                                "<span class='int-he'>" +
                                     (data.ref ? "<a href='/" + data.ref + (data.heVersionTitle ? "/he/" + data.heVersionTitle:"") + "'>" : "") +
                                         (data.heTitle ? data.heTitle : data.heRef) +
                                     (data.ref ? "</a>" : "") +
                                 "</span>" +
                             "</div>" +
                             "<div class='result-byline'>" +
-                                "<span class='en'>" +
+                                "<span class='int-en'>" +
                                     (data.authorsEn ? (data.authorsEn + ", ") : "") +
                                     (data.enSubtitle ? (data.enSubtitle + "  ") : "") +
                                     (data.placeNameEn ? data.placeNameEn : "") +
                                     (data.timePeriodEn ? data.timePeriodEn : "") +
                                 "</span>" +
-                                "<span class='he'>" +
+                                "<span class='int-he'>" +
                                     (data.authorsHe ? (data.authorsHe + ", ") : "") +
                                     (data.heSubtitle ? (data.heSubtitle + "  ") : "") +
                                     (data.placeNameHe ? data.placeNameHe : (data.placeNameEn ? data.placeNameEn : "")) +
@@ -543,12 +536,59 @@
                                 "</span>" +
                             "</div>" +
                             "<div class='result-text'>" +
-                                "<span class='en'>" + (data.enText ? data.enText : data.heText) + "</span>" +
                                 "<span class='he'>" + (data.heText ? data.heText : data.enText) + "</span>" +
+                                "<span class='en'>" + (data.enText ? data.enText : data.heText) + "</span>" +
                             "</div>" +
                         "</div>"
             })
             ;
+
+        // Pagination
+        var ofs = 0, pag = 20, total = 0;
+        function display_pagination() {
+            if (total != stopx.groupAll().value()) {
+                reset_page();
+                return;
+            }
+            if (total == 0) {
+                $("#paging").hide();
+            } else {
+                $("#paging").show();
+            }
+            d3.select('#begin')
+              .text(ofs);
+            d3.select('#end')
+              .text(Math.min(total,ofs+pag-1));
+            d3.select('#prev')
+              .attr('disabled', ofs-pag < 0 ? 'true' : null);
+            d3.select('#next')
+              .attr('disabled', ofs+pag >= total ? 'true' : null);
+            d3.select('#size').text(total);
+        }
+        function update_pagination() {
+            results.beginSlice(ofs);
+            results.endSlice(ofs+pag);
+            display_pagination();
+        }
+        function reset_page() {
+            total = stopx.groupAll().value();
+            ofs = 0;
+            update_pagination();
+            results.redraw();
+        }
+        function next_page() {
+            ofs += pag;
+            update_pagination();
+            results.redraw();
+        }
+        function prev_page() {
+            ofs -= pag;
+            update_pagination();
+            results.redraw();
+        }
+        display_pagination();
+
+        // End pagination
 
         dc.renderAll();
 
