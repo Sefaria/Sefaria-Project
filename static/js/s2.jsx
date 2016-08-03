@@ -4750,6 +4750,9 @@ var TextSegment = React.createClass({
                      highlight: this.props.highlight,
                      heOnly: !this.props.en,
                      enOnly: !this.props.he });
+    if(!this.props.en && !this.props.he){
+        return false;
+    }
     return (
       <span className={classes} onClick={this.handleClick} data-ref={this.props.sref}>
         {segmentNumber}

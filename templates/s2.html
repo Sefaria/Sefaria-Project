@@ -63,6 +63,7 @@
       var props = {{ propsJSON }};
 
       Sefaria.unpackDataFromProps(props);
+      console.log("initial props: ", props);
 
       var container = document.getElementById('s2');
       var component = React.createElement(ReaderApp, props);
