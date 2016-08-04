@@ -494,8 +494,9 @@
                     .attr("y", function(d) { return d[1]; });
             })
             .geoPath().pointRadius(function(feature, index) {
-                var v = placeGroup.all().filter(function(item) { return item.key === feature.id; })[0].value;
-                return (v == 0)? 0 : pointScale(v);
+                var r = placeGroup.all().filter(function(item) { return item.key === feature.id; });
+                if (r.length == 0) {console.log("No match for " + feature.id); return 0;}
+                return (r[0].value == 0)? 0 : pointScale(r[0].value);
             });
 
         results
