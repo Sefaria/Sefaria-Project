@@ -5,6 +5,13 @@ from sefaria.model import *
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import list_depth
 
+def test_text_index_map():
+    r = Ref("Shabbat 8b")
+    tc = TextChunk(r,"he")
+    ind_list,ref_list = tc.text_index_map()
+    print len(ind_list), len(ref_list)
+    #make sure the last element in ind_last (start index of last segment) + the last of the last segment == len of the whole string
+    assert ind_list[-1]+len(TextChunk(r.all_subrefs()[-1],"he").as_string().split(" ")) == len(tc.as_string().split(" "))
 
 def test_verse_chunk():
     chunks = [
