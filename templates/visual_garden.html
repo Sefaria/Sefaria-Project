@@ -266,7 +266,7 @@
         function addFilterElement(config, indx, filter_id) {
             var elem = $('<div id="' + filter_id +'" class="tags-list"> ' +
                 '<div class="filter-title">' +
-                  '<span>' + config.en + '</span>' +
+                  '<span class="filter-title-en">' + config.en + '</span>' +
                   //'<span class="he">' + config.he + '</span>' +
                 //'</div>' +
                 //'<div style="height: 30px;"> ' +
@@ -277,7 +277,7 @@
                     '<span class="filter"></span> ' +
                   '</span> ' +
                   '<a class="reset" href="javascript:filter_charts[' + indx +'].filterAll();redraw_garden();" style="display: none;"> ' +
-                    '<span class="int-en">reset</span> ' +
+                    '<span class="int-en">(reset)</span> ' +
                     '<span class="int-he">&nbsp;אפס</span> ' +
                   '</a> ' +
                 '</div> ' +
