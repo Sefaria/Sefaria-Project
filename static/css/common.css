@@ -4,6 +4,7 @@
 .categoryFilter {
     -webkit-tap-hightlight-color: rgba(0,0,0,0);
 }
+html, body {font-family: 'Alef' !important}
 
 @font-face {
   font-family: 'Rashi Script';

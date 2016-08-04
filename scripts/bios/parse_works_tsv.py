@@ -72,18 +72,17 @@ with open("Torah Commentators - Bios - Works.tsv") as tsv:
             continue
         current_authors = set(getattr(i, "authors", []) or [])
         sheet_authors = set([a.strip() for a in l[1].split(",") if Person().load({"key": a.strip()})])
-        if current_authors != sheet_authors:
-            needs_save = True
+        needs_save = current_authors != sheet_authors
         sheet_authors = list(sheet_authors)
         if i.is_commentary():
             #todo: Do we handle extended info for commentaries?
-            try:
-                c = i.c_index
-            except Exception as e:
-                print u"Failed to get commentary index for {}. {}".format(l[0],e)
-                continue
-            setattr(c, "authors", sheet_authors)
             if needs_save:
+                try:
+                    c = i.c_index
+                except Exception as e:
+                    print u"Failed to get commentary index for {}. {}".format(l[0], e)
+                    continue
+                setattr(c, "authors", sheet_authors)
                 print "= - {}".format(l[0])
                 c.save()
             else:
