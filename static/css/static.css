@@ -1645,6 +1645,10 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 #visualGardenPage #results .result-text span.int-he {
    direction: rtl;
 }
+#visualGardenPage #results .result-text span.he {
+ font-family: "Taamey Frank","Times New Roman",serif;
+}
+
 #visualGardenPage #sort-container {
   float: none;
   padding: 25px 0 5px;
