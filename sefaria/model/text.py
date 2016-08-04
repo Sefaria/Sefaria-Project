@@ -1343,6 +1343,23 @@ class TextChunk(AbstractTextRecord):
         else:
             raise Exception("Called TextChunk.version() on merged TextChunk.")
 
+    def text_index_map(self):
+        """
+        Primarily used for depth-2 texts in order to get index/ref pairs relative to the full text string
+         indexes are the word index in the full text string
+        :return: (list,list) - index_list, ref_list
+        """
+        ind_list = []
+        ref_list = self._oref.all_subrefs()
+
+        total_len = 0
+        for i,segment in enumerate(self.text):
+            ind_list.append(total_len)
+            total_len += len(segment.split(" "))
+
+        return ind_list,ref_list
+
+
 
 # Mirrors the construction of the old get_text() method.
 # The TextFamily.contents() method will return a dictionary in the same format that was provided by get_text().
