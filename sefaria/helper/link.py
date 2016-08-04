@@ -253,8 +253,15 @@ def rebuild_links_from_text(title, user):
 def create_link_cluster(refs, user, link_type="", attrs=None):
     for i, ref in enumerate(refs):
         for j in range(i + 1, len(refs)):
+            ref_strings = [refs[i].normal(), refs[j].normal()]
+
+            # Hacky avoidance of Tur <-> SA links
+            exceptions = ["Tur", "Shulchan Arukh"]
+            if all([any([ref.startswith(name) for ref in ref_strings]) for name in exceptions]):
+                continue
+
             d = {
-                "refs": [refs[i].normal(), refs[j].normal()],
+                "refs": ref_strings,
                 "type": link_type
                 }
             if attrs:
