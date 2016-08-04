@@ -72,15 +72,7 @@ def language_settings(request):
 
 def notifications(request):
     if not request.user.is_authenticated():
-        if request.COOKIES.get("_ga", None) and not request.COOKIES.get("welcomeToS2LoggedOut", None):
-            # Welcome returning visitors only to the new Sefaria. TODO this should be removed after some time.
-            interrupting_message_json = json.dumps({
-                "name": "welcomeToS2LoggedOut",
-                "html": render_to_string("messages/welcomeToS2LoggedOut.html")
-            })
-        else:
-            interrupting_message_json = "null"
-        return {"interrupting_message_json": interrupting_message_json}
+        return {}
     
     profile = UserProfile(id=request.user.id)
     notifications = profile.recent_notifications()

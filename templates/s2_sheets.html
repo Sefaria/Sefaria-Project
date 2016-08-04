@@ -46,6 +46,10 @@
 					<div class="optionItem" id="copySheet">
 						<img src="/static/img/copy.png"> Copy Sheet</div>
 					{% endif %}
+					{% if user.email %}
+					<div class="optionItem" id="exportToDrive">
+						<i class="fa fa-google"></i> Export to Google Drive</div>
+					{% endif %}
 					<div class="optionItem" id="embedSheet">
 						<img src="/static/img/embed.png"> Embed Sheet</div>
 					{% if is_owner %}
@@ -696,4 +700,3 @@ Footer depends on full bootstrap grid, which isn't loaded in sheets.html
 {% endblock %}
 
 {% block footer %}{% endblock %}
-

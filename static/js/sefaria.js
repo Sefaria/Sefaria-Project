@@ -877,16 +877,16 @@ Sefaria = extend(Sefaria, {
                             "</div>";
       var $html = $("<div>" + html + "</div>");
       var commentaryToggleHtml = "<div class='altStructToggle'>" +
-                                    "<span class='en'>Commentary</span>" +
-                                    "<span class='he'>מפרשים</span>" +
+                                    "<span class='int-en'>Commentary</span>" +
+                                    "<span class='int-he'>מפרשים</span>" +
                                   "</div>";      
       if ($html.find("#structToggles").length) {
         $html.find("#structToggles").append("<span class='toggleDivider'>|</span>" + commentaryToggleHtml);  
       } else {
         var togglesHtml = "<div id='structToggles'>" +
                             "<div class='altStructToggle active'>" +
-                                "<span class='en'>Text</span>" +
-                                "<span class='he'>טקסט</span>" +
+                                "<span class='int-en'>Text</span>" +
+                                "<span class='int-he'>טקסט</span>" +
                               "</div>" + 
                               "<span class='toggleDivider'>|</span>" + commentaryToggleHtml +
                           "</div>";
@@ -1228,8 +1228,9 @@ Sefaria = extend(Sefaria, {
       "Maharsha":             'מהרשא',
       "Mishneh Torah":        "משנה תורה",
       "Shulchan Arukh":       "שולחן ערוך",
-      "Sheets":               "א sheets",
-      "Notes":                "א notes"
+      "Sheets":               "דפי מקורות",
+      "Notes":                "הערות",
+      "Community":            "קהילה"
     };
     return cat in categories ? categories[cat] : cat;
   },
@@ -1447,7 +1448,7 @@ Sefaria = extend(Sefaria, {
 });
 
 Sefaria.unpackDataFromProps = function(props) {
-  // Populate local cache with various data passed as a rider on props. 
+  // Populate local cache with various data passed as a rider on props.
   var initialPanels = props.initialPanels || [];
   for (var i = 0; i < initialPanels.length; i++) {
       var panel = initialPanels[i];

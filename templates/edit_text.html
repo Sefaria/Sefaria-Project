@@ -39,15 +39,15 @@
 		<div class="screen" style="left:5000%">
 			<div class="basetext {{ layout }} {{ lines }} {{ contentLang }} {% if not hasSidebar %}noCommentary{% endif %}">
 				<div class="sectionTitle">
-					<span class="en">{{ text.ref }}</span>
-					<span class="he">{{ text.heTitle|default:"" }}</span>
+					<span class="int-en">{{ text.ref }}</span>
+					<span class="int-he">{{ text.heTitle|default:"" }}</span>
 				</div>
 				<span class="spacer"></span>
 				{% autoescape off %}
 				{% for line in zipped_text %}
 					<span class="verse">
-						<span class="en">{{ line.0 }}</span>
-						<span class="he">{{ line.1 }}</span>
+						<span class="int-en">{{ line.0 }}</span>
+						<span class="int-he">{{ line.1 }}</span>
 						<span class="clear"></span>
 					</span>
 				{% endfor %}

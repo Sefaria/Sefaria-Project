@@ -317,8 +317,8 @@ var ReaderApp = React.createClass({
       prevPanels = headerPanel ? [history.state.header] : history.state.panels;
       nextPanels = headerPanel ? [this.state.header] : this.state.panels;
     } else {
-      prevPanels = [history.state.header];
-      nextPanels = [this.state.header];
+      prevPanels = history.state.panels;
+      nextPanels = this.state.panels;
     }
 
     for (var i = 0; i < prevPanels.length; i++) {
@@ -339,7 +339,8 @@ var ReaderApp = React.createClass({
           (prev.versionLanguage !== next.versionLanguage) ||
           (prev.searchQuery != next.searchQuery) ||
           (prev.appliedSearchFilters && next.appliedSearchFilters && (prev.appliedSearchFilters.length !== next.appliedSearchFilters.length)) ||
-          (prev.appliedSearchFilters && next.appliedSearchFilters && !(prev.appliedSearchFilters.compare(next.appliedSearchFilters))))
+          (prev.appliedSearchFilters && next.appliedSearchFilters && !(prev.appliedSearchFilters.compare(next.appliedSearchFilters))) ||
+          (prev.settings.language != next.settings.language))
           {
          return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
@@ -1124,7 +1125,7 @@ var ReaderApp = React.createClass({
     }
     var boxClasses = classNames({wrapBoxScroll: wrapBoxScroll});
     var boxWidth = wrapBoxScroll ? this.state.windowWidth + "px" : "100%";
-    var boxStyle = {width: boxWidth, direction: this.state.layoutOrientation};
+    var boxStyle = {width: boxWidth};
     panels = panels.length ? 
               (<div id="panelWrapBox" className={boxClasses} style={boxStyle}>
                 {panels}
@@ -1135,8 +1136,10 @@ var ReaderApp = React.createClass({
           messageName={Sefaria.interruptingMessage.name}
           messageHTML={Sefaria.interruptingMessage.html}
           onClose={this.rerender} />) : null;
-
-    var classes = classNames({readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel});
+    var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};
+    var interfaceLangClass = `interface-${this.props.interfaceLang}`;
+    classDict[interfaceLangClass] = true
+    var classes = classNames(classDict);
     return (<div className={classes}>
               {header}
               {panels}
@@ -1368,15 +1371,15 @@ var Header = React.createClass({
                          </div>);
     var loggedOutLinks = (<div className="accountLinks">
                            <a className="login" href={"/register" + nextParam}>
-                             <span className="en">Sign up</span>
-                             <span className="he">הירשם</span>
+                             <span className="int-en">Sign up</span>
+                             <span className="int-he">הרשם</span>
                            </a>
                            <a className="login" href={"/login" + nextParam}>
-                             <span className="en">Log in</span>
-                             <span className="he">כניסה</span>
+                             <span className="int-en">Log in</span>
+                             <span className="int-he">התחבר</span>
                            </a>
                          </div>);
-
+    var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "הקלד לחיפוש";
     return (<div className="header">
               <div className="headerInner">
                 <div className="left">
@@ -1388,7 +1391,7 @@ var Header = React.createClass({
                 </div>
                 <span className="searchBox">
                   <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
-                  <input className="search" placeholder="Search" onKeyUp={this.handleSearchKeyUp} />
+                  <input className="search" placeholder={langSearchPlaceholder} onKeyUp={this.handleSearchKeyUp} />
                 </span>
                 <a className="home" href="/?home" ><img src="/static/img/sefaria.svg" /></a>
               </div>
@@ -1588,7 +1591,7 @@ var ReaderPanel = React.createClass({
     // Return to the original text in the ReaderPanel contents
     this.conditionalSetState({highlightedRefs: [], mode: "Text"});
   },  
-  showBaseText: function(ref, replaceHistory) {
+  showBaseText: function(ref, replaceHistory, version=null, versionLanguage=null) {
     // Set the current primary text
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
     if (!ref) { return; }
@@ -1599,8 +1602,8 @@ var ReaderPanel = React.createClass({
       filter: [],
       recentFilters: [],
       menuOpen: null,
-      version: null,
-      versionLanguage: null
+      version: version,
+      versionLanguage: versionLanguage
     });
   },
   updateTextColumn: function(refs) {
@@ -1716,6 +1719,7 @@ var ReaderPanel = React.createClass({
     cookie(option, value, {path: "/"});
     if (option === "language") {
       cookie("contentLang", value, {path: "/"});
+      this.replaceHistory = true;
       this.props.setDefaultOption && this.props.setDefaultOption(option, value);
     }
     this.conditionalSetState(state);
@@ -2330,6 +2334,7 @@ var ReaderNavigationMenu = React.createClass({
         "Musar",
         "Responsa",
         "Apocrypha",
+        "Modern Works",
         "Other"
       ];
       categories = categories.map(function(cat) {
@@ -2395,18 +2400,18 @@ var ReaderNavigationMenu = React.createClass({
       var sheetsStyle = {"borderColor": Sefaria.palette.categoryColor("Sheets")};
       var resources = [(<a className="resourcesLink" style={sheetsStyle} href="/sheets" onClick={this.props.openMenu.bind(null, "sheets")}>
                         <img src="/static/img/sheet-icon.png" />
-                        <span className="en">Source Sheets</span>
-                        <span className="he">דפי מקורות</span>
+                        <span className="int-en">Source Sheets</span>
+                        <span className="int-he">דפי מקורות</span>
                       </a>),
                      (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/visualizations">
                         <img src="/static/img/visualizations-icon.png" />
-                        <span className="en">Visualizations</span>
-                        <span className="he">חזותיים</span>
+                        <span className="int-en">Visualizations</span>
+                        <span className="int-he">חזותיים</span>
                       </a>),
                     (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/people">
                         <img src="/static/img/authors-icon.png" />
-                        <span className="en">Authors</span>
-                        <span className="he">רשימת מחברים</span>
+                        <span className="int-en">Authors</span>
+                        <span className="int-he">רשימת מחברים</span>
                       </a>)];
       resources = (<div className="readerNavCalendar"><TwoOrThreeBox content={resources} width={this.width} /></div>);
 
@@ -2446,8 +2451,8 @@ var ReaderNavigationMenu = React.createClass({
 
       var title = (<h1>
                     <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
-                    <span className="en">The Sefaria Library</span>
-                    <span className="he">האוסף של ספאריה</span>
+                    <span className="int-en">The Sefaria Library</span>
+                    <span className="int-he">האוסף של ספאריה</span>
                   </h1>);
 
       var classes = classNames({readerNavMenu:1, noHeader: !this.props.hideHeader, compare: this.props.compare, home: this.props.home });
@@ -2481,8 +2486,8 @@ var ReaderNavigationMenuSection = React.createClass({
       <div className="readerNavSection">
         
         {this.props.title ? (<h2>
-          <span className="en">{this.props.title}</span>
-          <span className="he">{this.props.heTitle}</span>
+          <span className="int-en">{this.props.title}</span>
+          <span className="int-he">{this.props.heTitle}</span>
         </h2>) : null }
         {this.props.content}
       </div>
@@ -2541,12 +2546,19 @@ var BlockLink = React.createClass({
   propTypes: {
     title:    React.PropTypes.string,
     heTitle:  React.PropTypes.string,
-    target:   React.PropTypes.string
+    target:   React.PropTypes.string,
+    interfaceLink: React.PropTypes.bool
   },
-  render: function() { 
+  getDefaultProps: function() {
+    return {
+      interfaceLink: false
+    };
+  },
+  render: function() {
+    var interfaceClass = this.props.interfaceLink ? 'int-' : '';
     return (<a className="blockLink" href={this.props.target}>
-              <span className="en">{this.props.title}</span>
-              <span className="he">{this.props.heTitle}</span>
+              <span className={`${interfaceClass}en`}>{this.props.title}</span>
+              <span className={`${interfaceClass}he`}>{this.props.heTitle}</span>
            </a>);
   }
 });
@@ -2795,7 +2807,7 @@ var ReaderTextTableOfContents = React.createClass({
       ref = decodeURIComponent(ref);
       ref = Sefaria.humanRef(ref);
       this.props.close();
-      this.props.showBaseText(ref);
+      this.props.showBaseText(ref, false, this.props.version, this.props.versionLanguage);
       e.preventDefault();
     }
   },
@@ -2881,7 +2893,7 @@ var ReaderTextTableOfContents = React.createClass({
   render: function() {
     var tocHtml = Sefaria.textTocHtml(this.props.title);
 
-    tocHtml = tocHtml || '<div class="loadingMessage"><span class="en">Loading...</span><span class="he">טוען...</span></div>';
+    tocHtml = tocHtml || '<div class="loadingMessage"><span class="int-en">Loading...</span><span class="int-he">טוען...</span></div>';
 
     var title     = this.props.title;
     var heTitle   = Sefaria.index(title) ? Sefaria.index(title).heTitle : title;
@@ -2914,8 +2926,8 @@ var ReaderTextTableOfContents = React.createClass({
       );
 
       versionBlocks = <div className="versionBlocks">
-        {(!!heVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="en">Hebrew Versions</span><span className="he">בעברית</span></div><div>{heVersionBlocks}</div></div>:""}
-        {(!!enVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="en">English Versions</span><span className="he">באנגלית</span></div><div>{enVersionBlocks}</div></div>:""}
+        {(!!heVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="int-en">Hebrew Versions</span><span className="int-he">בעברית</span></div><div>{heVersionBlocks}</div></div>:""}
+        {(!!enVersionBlocks.length)?<div className="versionLanguageBlock"><div className="versionLanguageHeader"><span className="int-en">English Versions</span><span className="int-he">באנגלית</span></div><div>{enVersionBlocks}</div></div>:""}
         <div style={{clear: "both"}}></div>
       </div>;
 
@@ -2998,15 +3010,15 @@ var ReaderTextTableOfContents = React.createClass({
     var dlReady = (this.state.dlVersionTitle && this.state.dlVersionFormat && this.state.dlVersionLanguage);
     var downloadButton = <div className="versionDownloadButton">
         <div className="downloadButtonInner">
-          <span className="en">Download</span>
-          <span className="he">להורדה</span>
+          <span className="int-en">Download</span>
+          <span className="int-he">הורדה</span>
         </div>
       </div>;
     var downloadSection = (
       <div className="dlSection">
         <div className="dlSectionTitle">
-          <span className="en">Download Text</span>
-          <span className="he">להורדת טקסט</span>
+          <span className="int-en">Download Text</span>
+          <span className="int-he">הורדת הטקסט</span>
         </div>
         <select className="dlVersionSelect dlVersionTitleSelect" value={(this.state.dlVersionTitle && this.state.dlVersionLanguage)?this.state.dlVersionTitle + "/" + this.state.dlVersionLanguage:""} onChange={this.onDlVersionSelect}>
           {dl_versions}
@@ -3034,8 +3046,8 @@ var ReaderTextTableOfContents = React.createClass({
                   </div>
                   <div className="readerTextToc readerTextTocHeader">
                     <div className="readerTextTocBox">
-                      <span className="en">Table of Contents</span>
-                      <span className="he">תוכן העניינים</span>
+                      <span className="int-en">Table of Contents</span>
+                      <span className="int-he">תוכן העניינים</span>
                     </div>
                   </div>
                 </div>
@@ -3321,8 +3333,8 @@ var SheetsNav = React.createClass({
                     <CategoryColorLine category="Sheets" />
                     <ReaderNavigationMenuMenuButton onClick={this.props.openNav} />
                     <h2>
-                      <span className="en">{enTitle}</span>
-                      <span className="he">{heTitle}</span>
+                      <span className="int-en">{enTitle}</span>
+                      <span className="int-he">{heTitle}</span>
                     </h2>
                   </div>)}
               {content}
@@ -3381,8 +3393,8 @@ var SheetsHomePage = React.createClass({
 
       return <div className={classes} onClick={on_click}>
       <div className="type-button-title">
-        <span className="en">{en}</span>
-        <span className="he">{he}</span>
+        <span className="int-en">{en}</span>
+        <span className="int-he">{he}</span>
       </div>
     </div>;
   },
@@ -3403,28 +3415,28 @@ var SheetsHomePage = React.createClass({
 
     var yourSheetsButton  = Sefaria._uid ? 
       (<div className="yourSheetsLink navButton" onClick={this.showYourSheets}>
-        <span className="en">My Source Sheets <i className="fa fa-chevron-right"></i></span>
-        <span className="he">דפי המקורות שלי <i className="fa fa-chevron-left"></i></span>
+        <span className="int-en">My Source Sheets <i className="fa fa-chevron-right"></i></span>
+        <span className="int-he">דפי המקורות שלי <i className="fa fa-chevron-left"></i></span>
        </div>) : null;
 
     return (<div className="content">
               <div className="contentInner">
                 {this.props.hideNavHeader ? (<h1>
-                  <span className="en">Source Sheets</span>
-                  <span className="he">דפי מקורות</span>
+                  <span className="int-en">Source Sheets</span>
+                  <span className="int-he">דפי מקורות</span>
                 </h1>) : null}
                 { this.props.multiPanel ? null : yourSheetsButton }
 
                 { this.props.multiPanel ?
                   (<h2 className="splitHeader">
-                    <span className="en">Public Sheets</span>
-                    <span className="en actionText" onClick={this.showAllSheets}>See All <i className="fa fa-angle-right"></i></span>
-                    <span className="he">דפי מקורות פומביים</span>
-                    <span className="he actionText" onClick={this.showAllSheets}>צפה בהכל <i className="fa fa-angle-left"></i></span>
+                    <span className="int-en">Public Sheets</span>
+                    <span className="int-en actionText" onClick={this.showAllSheets}>See All <i className="fa fa-angle-right"></i></span>
+                    <span className="int-he">דפי מקורות פומביים</span>
+                    <span className="int-he actionText" onClick={this.showAllSheets}>צפה בהכל <i className="fa fa-angle-left"></i></span>
                   </h2>) : 
                   (<h2>
-                      <span className="en">Public Sheets</span>
-                      <span className="he">דפי מקורות פומביים</span>
+                      <span className="int-en">Public Sheets</span>
+                      <span className="int-he">דפי מקורות פומביים</span>
                    </h2>)}
 
                 <div className="topSheetsBox">
@@ -3433,16 +3445,16 @@ var SheetsHomePage = React.createClass({
 
                 { this.props.multiPanel ? null : 
                   (<h2>
-                     <span className="en">Trending Tags</span>
-                    <span className="he">תוויות פופולריות</span>
+                     <span className="int-en">Trending Tags</span>
+                    <span className="int-he">תוויות פופולריות</span>
                    </h2>)}
 
                 { this.props.multiPanel ? null : (<TwoOrThreeBox content={trendingTags} width={this.props.width} /> )}
 
                 { this.props.multiPanel ? (
                     <h2 className="tagsHeader">
-                      <span className="en">All Tags</span>
-                      <span className="he">כל התוויות</span>
+                      <span className="int-en">All Tags</span>
+                      <span className="int-he">כל התוויות</span>
                       <div className="actionText">
                         <div className="type-buttons">
                           {this._type_sheet_button("Most Used", "הכי בשימוש", () => this.changeSort("count"), (this.props.tagSort == "count"))}
@@ -3526,14 +3538,14 @@ var PartnerSheetsPage = React.createClass({
     return (<div className="content sheetList">
                       <div className="contentInner">
                         {this.props.hideNavHeader ? (<h1>
-                          <span className="en">{this.props.partner}</span>
-                          <span className="he">{this.props.partner}</span>
+                          <span className="int-en">{this.props.partner}</span>
+                          <span className="int-he">{this.props.partner}</span>
                         </h1>) : null}
 
                         {this.props.hideNavHeader ?
                          (<h2 className="splitHeader">
-                            <span className="en" onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
-                            <span className="he" onClick={this.toggleSheetTags}>סנן לפי תווית<i className="fa fa-angle-down"></i></span>{/*
+                            <span className="int-en" onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
+                            <span className="int-he" onClick={this.toggleSheetTags}>סנן לפי תווית<i className="fa fa-angle-down"></i></span>{/*
                             <span className="en actionText">Sort By:
                               <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
                                <option value="date">Recent</option>
@@ -3609,8 +3621,8 @@ var TagSheetsPage = React.createClass({
     return (<div className="content sheetList">
                       <div className="contentInner">
                         {this.props.hideNavHeader ? (<h1>
-                          <span className="en">{this.props.tag}</span>
-                          <span className="he">{this.props.tag}</span>
+                          <span className="int-en">{this.props.tag}</span>
+                          <span className="int-he">{this.props.tag}</span>
                         </h1>) : null}
                         {sheets}
                       </div>
@@ -3691,8 +3703,8 @@ var AllSheetsPage = React.createClass({
     return (<div className="content sheetList">
                       <div className="contentInner">
                         {this.props.hideNavHeader ? (<h1>
-                          <span className="en">All Sheets</span>
-                          <span className="he">כל דפי המקורות</span>
+                          <span className="int-en">All Sheets</span>
+                          <span className="int-he">כל דפי המקורות</span>
                         </h1>) : null}
                         {sheets}
                       </div>
@@ -3730,7 +3742,7 @@ var SheetTagButton = React.createClass({
     this.props.setSheetTag(this.props.tag);
   },
   render: function() {
-    return (<a href={`/sheets/tags/${this.props.tag}`} className="navButton" onClick={this.handleTagClick}>{this.props.tag} ({this.props.count})</a>);
+    return (<a href={`/sheets/tags/${this.props.tag}`} className="navButton" onClick={this.handleTagClick}>{this.props.tag} (<span className="enInHe">{this.props.count}</span>)</a>);
   }
 });
 
@@ -3805,27 +3817,27 @@ var MySheetsPage = React.createClass({
               <div className="contentInner">
                 {this.props.hideNavHeader ? 
                   (<h1>
-                    <span className="en">My Source Sheets</span>
-                    <span className="he">דפי המקורות שלי</span>
+                    <span className="int-en">My Source Sheets</span>
+                    <span className="int-he">דפי המקורות שלי</span>
                   </h1>) : null}
                 {this.props.hideNavHeader ? 
                   (<div className="sheetsNewButton">
                     <a className="button white" href="/sheets/new">
-                        <span className="en">Create a Source Sheet</span>
-                        <span className="he">צור דף מקורות חדש</span>
+                        <span className="int-en">Create a Source Sheet</span>
+                        <span className="int-he">צור דף מקורות חדש</span>
                     </a>
                   </div>) : null }
 
                 {this.props.hideNavHeader ?
                  (<h2 className="splitHeader">
-                    <span className="en" onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
-                    <span className="he" onClick={this.toggleSheetTags}>סנן לפי תווית<i className="fa fa-angle-down"></i></span>
-                    <span className="en actionText">Sort By:
+                    <span className="int-en" onClick={this.toggleSheetTags}>Filter By Tag <i className="fa fa-angle-down"></i></span>
+                    <span className="int-he" onClick={this.toggleSheetTags}>סנן לפי תווית<i className="fa fa-angle-down"></i></span>
+                    <span className="int-en actionText">Sort By:
                       <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
                        <option value="date">Recent</option>
                        <option value="views">Most Viewed</option>
                      </select> <i className="fa fa-angle-down"></i></span>
-                    <span className="he actionText">סנן לפי:
+                    <span className="int-he actionText">סנן לפי:
                       <select value={this.props.mySheetSort} onChange={this.changeSortYourSheets}>
                        <option value="date">הכי חדש</option>
                        <option value="views">הכי נצפה</option>
@@ -4739,6 +4751,9 @@ var TextSegment = React.createClass({
                      highlight: this.props.highlight,
                      heOnly: !this.props.en,
                      enOnly: !this.props.he });
+    if(!this.props.en && !this.props.he){
+        return false;
+    }
     return (
       <span className={classes} onClick={this.handleClick} data-ref={this.props.sref}>
         {segmentNumber}
@@ -4865,10 +4880,10 @@ var ConnectionsPanel = React.createClass({
 
     } else if (this.props.mode === "Add Connection") {
       var url  = "/s1?next=" + window.location.pathname;
-      var link = (<a href={url}>old Sefaria</a>);
+      var link = (<a href={url}><span className="int-en">old Sefaria</span><span className="int-he">ממשק הישן</span></a>);
       content = (<div className="toolsMessage sans">
-                    <span className="en">We&apos;re still working on updating this feature for the new Sefaria. In the meantime, to add a connection please use the {link}.</span>
-                    <span className="he">We&apos;re still working on updating this feature for the new Sefaria. In the meantime, to add a connection please use the {link}.</span>
+                    <span className="int-en">We&apos;re still working on updating this feature for the new Sefaria. In the meantime, to add a connection please use the {link}.</span>
+                    <span className="int-he">האפשרות הזו עדיין בבניה בממשק החדש. בינתיים ניתן להשתמש ב{link}.</span>
                   </div>);
 
     } else if (this.props.mode === "Login") {
@@ -4889,14 +4904,14 @@ var ConnectionsPanelHeader = React.createClass({
   },
   render: function() {
     return (<div className="connectionsPanelHeader">
-              <div className="rightButtons">
-                <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
-                <ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} interfaceLang={this.props.interfaceLang} />
-               </div>
               <ConnectionsPanelTabs
                 activeTab={this.props.activeTab}
                 setConnectionsMode={this.props.setConnectionsMode}
                 interfaceLang={this.props.interfaceLang}/>
+              <div className="rightButtons">
+                <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
+                <ReaderNavigationMenuCloseButton icon="arrow" onClick={this.props.closePanel} interfaceLang={this.props.interfaceLang} />
+              </div>
             </div>);
   }
 });
@@ -4917,8 +4932,8 @@ var ConnectionsPanelTabs = React.createClass({
       var active  = item["en"] === this.props.activeTab;
       var classes = classNames({connectionsPanelTab: 1, sans: 1, active: active});
       return (<div className={classes} onClick={tabClick} key={item["en"]}>
-                <span className="en">{item["en"]}</span>
-                <span className="he">{item["he"]}</span>
+                <span className="int-en">{item["en"]}</span>
+                <span className="int-he">{item["he"]}</span>
               </div>);
     }.bind(this));
 
@@ -5261,8 +5276,10 @@ var Note = React.createClass({
      
      return (<div className="note">
                 {authorInfo}
-                <div className="noteTitle">{this.props.title}</div>
-                <span className="noteText" dangerouslySetInnerHTML={{__html:this.props.text}}></span>
+                <div className="note-content">
+                  <div className="noteTitle">{this.props.title}</div>
+                  <span className="noteText" dangerouslySetInnerHTML={{__html:this.props.text}}></span>
+                </div>
                 {buttons}
               </div>);
   }
@@ -5708,9 +5725,9 @@ var ToolsButton = React.createClass({
 
     return (
       <div className="toolsButton sans" onClick={this.props.onClick}>
+        <div className="int-en">{this.props.en}</div>
+        <div className="int-he">{this.props.he}</div>
         {icon}
-        <div className="en">{this.props.en}</div>
-        <div className="he">{this.props.he}</div>
       </div>)
   }
 });
@@ -5820,19 +5837,19 @@ var AddToSourceSheetPanel = React.createClass({
     }.bind(this)) : <LoadingMessage />;
     sheetsContent     = sheets && sheets.length == 0 ? 
                           (<div className="sheet"><span className="en">You don&rsquo;t have any Source Sheets yet.</span><span className="he">טרם יצרת דפי מקורות</span></div>) :
-                          sheetsContent; 
+                          sheetsContent;
     var createSheet = this.state.showNewSheetInput ? 
           (<div>
             <input className="newSheetInput" placeholder="Title your Sheet"/>
             <div className="button white small" onClick={this.createSheet} >
-              <span className="en">Create</span>
-              <span className="he">צור חדש</span>
+              <span className="int-en">Create</span>
+              <span className="int-he">צור חדש</span>
             </div>
            </div>)
           :
           (<div className="button white" onClick={this.openNewSheet}>
-              <span className="en">Start a Source Sheet</span>
-              <span className="he">צור דף מקורות חדש</span>
+              <span className="int-en">Start a Source Sheet</span>
+              <span className="int-he">צור דף מקורות חדש</span>
           </div>);
     var classes = classNames({addToSourceSheetPanel: 1, textList: 1, fullPanel: this.props.fullPanel});
     return (
@@ -5842,8 +5859,8 @@ var AddToSourceSheetPanel = React.createClass({
             {createSheet}
             <div className="sourceSheetSelector">{sheetsContent}</div>
             <div className="button" onClick={this.addToSourceSheet}>
-              <span className="en">Add to Sheet</span>
-              <span className="he">הוסף לדף המקורות</span>
+              <span className="int-en">Add to Sheet</span>
+              <span className="int-he">הוסף לדף המקורות</span>
             </div>
           </div>
         </div>
@@ -5961,27 +5978,27 @@ var AddNotePanel = React.createClass({
                   <div className="noteSharingToggle">
                     <div className={privateClasses} onClick={this.setPrivate}>
 
-                      <span className="en"><i className="fa fa-lock"></i> Private</span>
-                      <span className="he"><i className="fa fa-lock"></i>רשומה פרטית</span>
+                      <span className="int-en"><i className="fa fa-lock"></i> Private</span>
+                      <span className="int-he"><i className="fa fa-lock"></i>רשומה פרטית</span>
                     </div>
                     <div className={publicClasses} onClick={this.setPublic}>
-                      <span className="en">Public</span>
-                      <span className="he">רשומה כללית</span>
+                      <span className="int-en">Public</span>
+                      <span className="int-he">רשומה כללית</span>
                     </div>
                   </div>
                   <div className="line"></div>
                   <div className="button fillWidth" onClick={this.saveNote}>
-                    <span className="en">{this.props.noteId ? "Save" : "Add Note"}</span>
-                    <span className="he">{this.props.noteId ? "שמור": "הוסף רשומה"}</span>
+                    <span className="int-en">{this.props.noteId ? "Save" : "Add Note"}</span>
+                    <span className="int-he">{this.props.noteId ? "שמור": "הוסף רשומה"}</span>
                   </div>
                   <div className="button white fillWidth" onClick={this.cancel}>
-                    <span className="en">Cancel</span>
-                    <span className="he">בטל</span>
+                    <span className="int-en">Cancel</span>
+                    <span className="int-he">בטל</span>
                   </div>
                   {this.props.noteId ? 
                     (<div className="deleteNote" onClick={this.deleteNote}>
-                      <span className="en">Delete Note</span>
-                      <span className="he">מחק רשומה</span>
+                      <span className="int-en">Delete Note</span>
+                      <span className="int-he">מחק רשומה</span>
                      </div>): null }
 
                 </div>
@@ -6057,16 +6074,16 @@ var LoginPanel = React.createClass({
                 <div className="contentInner">
 
                   <div className="loginPanelMessage">
-                    <span className="en">You must be logged in to use this feature.</span>
-                    <span className="he">עליך להיות מחובר בכדי להשתמש באפשרות זו.</span>
+                    <span className="int-en">You must be logged in to use this feature.</span>
+                    <span className="int-he">עליך להיות מחובר בכדי להשתמש באפשרות זו.</span>
                   </div>
                   <a className="button" href={"/login" + nextParam}>
-                    <span className="en">Log In</span>
-                    <span className="he">התחבר</span>
+                    <span className="int-en">Log In</span>
+                    <span className="int-he">התחבר</span>
                   </a>
                   <a className="button" href={"/register" + nextParam}>
-                    <span className="en">Sign Up</span>
-                    <span className="he">הרשם</span>
+                    <span className="int-en">Sign Up</span>
+                    <span className="int-he">הרשם</span>
                   </a>
 
                 </div>
@@ -6118,7 +6135,6 @@ var SearchPage = React.createClass({
                     <div className="contentInner">
                       <div className="searchContentFrame">
                           <h1 classNames={isQueryHebrew?"hebrewQuery":"englishQuery"}>
-                            <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
                             &ldquo;{ this.props.query }&rdquo;
                           </h1>
                           <div className="searchControlsBox">
@@ -6748,8 +6764,8 @@ var SearchFilters = React.createClass({
         {total_with_commas}
       </div>
       <div className="type-button-title">
-        <span className="en">{(total != 1) ? en_plural : en_singular}</span>
-        <span className="he">{(total != 1) ? he_plural : he_singular}</span>
+        <span className="int-en">{(total != 1) ? en_plural : en_singular}</span>
+        <span className="int-he">{(total != 1) ? he_plural : he_singular}</span>
       </div>
     </div>;
   },
@@ -6768,17 +6784,17 @@ var SearchFilters = React.createClass({
     );
 
     var selected_filters = (<div className="results-count">
-          <span className="en">
+          <span className="int-en">
             {(!!this.props.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("en").join(", ")):""}
           </span>
-          <span className="he">
+          <span className="int-he">
             {(!!this.props.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("he").join(", ")):""}
           </span>
       </div>);
     var filter_panel = (<div>
       <div className="searchFilterToggle" onClick={this.toggleFilterView}>
-        <span className="en">Filter by Text   </span>
-        <span className="he">סנן לפי כותר   </span>
+        <span className="int-en">Filter by Text   </span>
+        <span className="int-he">סנן לפי כותר   </span>
         <i className={(this.state.displayFilters) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down"} />
       </div>
       <div className="searchFilterBoxes" style={{display: this.state.displayFilters?"block":"none"}}>
@@ -6852,10 +6868,10 @@ var SearchFilter = React.createClass({
       <li onClick={this.handleFocusCategory}>
         <input type="checkbox" id={this.props.filter.path} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
         <label onClick={this.handleFilterClick} for={this.props.filter.path}><span></span></label>
-        <span className="en"><span className="filter-title">{this.props.filter.title}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
-        <span className="he" dir="rtl"><span className="filter-title">{this.props.filter.heTitle}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
-        {this.props.isInFocus?<span className="en"><i className="in-focus-arrow fa fa-caret-right"/></span>:""}
-        {this.props.isInFocus?<span className="he"><i className="in-focus-arrow fa fa-caret-left"/></span>:""}
+        <span className="int-en"><span className="filter-title">{this.props.filter.title}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
+        <span className="int-he" dir="rtl"><span className="filter-title">{this.props.filter.heTitle}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
+        {this.props.isInFocus?<span className="int-en"><i className="in-focus-arrow fa fa-caret-right"/></span>:""}
+        {this.props.isInFocus?<span className="int-he"><i className="in-focus-arrow fa fa-caret-left"/></span>:""}
       </li>);
   }
 });
@@ -6908,10 +6924,10 @@ var SearchTextResult = React.createClass({
 
         var more_results_indicator = (!(data.duplicates)) ? "" :
                 <div className='similar-trigger-box' onClick={this.toggleDuplicates}>
-                    <span className='similar-title he'>
+                    <span className='similar-title int-he'>
                         { data.duplicates.length } {(data.duplicates.length > 1) ? " גרסאות נוספות" : " גרסה נוספת"}
                     </span>
-                    <span className='similar-title en'>
+                    <span className='similar-title int-en'>
                         { data.duplicates.length } more version{(data.duplicates.length > 1) ? "s" : null}
                     </span>
                     {more_results_caret}
@@ -7003,55 +7019,54 @@ var AccountPanel = React.createClass({
   render: function() {
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
     var accountContent = [
-      (<BlockLink target="/my/profile" title="Profile" heTitle="פרופיל"/>),
-      (<BlockLink target="/sheets/private" title="My Source Sheets" heTitle="דפי מקורות" />),
-      (<BlockLink target="/coming-soon?my-notes" title="My Notes" heTitle="רשומות" />),
-      (<BlockLink target="/coming-soon?reading-history" title="Reading History" heTitle="היסטוריה קריאה" />),
-      (<BlockLink target="/settings/account" title="Settings" heTitle="הגדרות" />),
-      (<BlockLink target="/logout" title="Log Out" heTitle="ניתוק" />)
+      (<BlockLink interfaceLink={true} target="/my/profile" title="Profile" heTitle="פרופיל"/>),
+      (<BlockLink interfaceLink={true} target="/sheets/private" title="My Source Sheets" heTitle="דפי מקורות" />),
+      (<BlockLink interfaceLink={true} target="/coming-soon?my-notes" title="My Notes" heTitle="רשומות" />),
+      (<BlockLink interfaceLink={true} target="/coming-soon?reading-history" title="Reading History" heTitle="היסטורית קריאה" />),
+      (<BlockLink interfaceLink={true} target="/settings/account" title="Settings" heTitle="הגדרות" />),
+      (<BlockLink interfaceLink={true} target="/logout" title="Log Out" heTitle="ניתוק" />)
     ];
     accountContent = (<TwoOrThreeBox content={accountContent} width={width} />);
 
     var learnContent = [
-      (<BlockLink target="/about" title="About" heTitle="אודות" />),
-      (<BlockLink target="/help" title="Help" heTitle="עזרה" />),
-      (<BlockLink target="http://blog.sefaria.org" title="Blog" heTitle="בלוג" />),
-      (<BlockLink target="/faq" title="FAQ" heTitle="שאלות נפוצות" />),
-      (<BlockLink target="/educators" title="Educators" heTitle="מחנכים" />),
-      (<BlockLink target="/team" title="Team" heTitle="צוות" />)
+      (<BlockLink interfaceLink={true} target="/about" title="About" heTitle="אודות" />),
+      (<BlockLink interfaceLink={true} target="/help" title="Help" heTitle="עזרה" />),
+      (<BlockLink interfaceLink={true} target="http://blog.sefaria.org" title="Blog" heTitle="בלוג" />),
+      (<BlockLink interfaceLink={true} target="/faq" title="FAQ" heTitle="שאלות נפוצות" />),
+      (<BlockLink interfaceLink={true} target="/educators" title="Educators" heTitle="מחנכים" />),
+      (<BlockLink interfaceLink={true} target="/team" title="Team" heTitle="צוות" />)
     ];
     learnContent = (<TwoOrThreeBox content={learnContent} width={width} />);
 
     var contributeContent = [
-      (<BlockLink target="/activity" title="Recent Activity" heTitle="פעילות אחרונה" />),
-      (<BlockLink target="/metrics" title="Metrics" heTitle="מדדים" />),
-      (<BlockLink target="/contribute" title="Contribute" heTitle="הצטרפות לעשיה" />),
-      (<BlockLink target="/donate" title="Donate" heTitle="תרומות" />),
-      (<BlockLink target="/supporters" title="Supporters" heTitle="תומכים" />),
-      (<BlockLink target="/jobs" title="Jobs" heTitle="דרושים" />),
+      (<BlockLink interfaceLink={true} target="/activity" title="Recent Activity" heTitle="פעילות אחרונה" />),
+      (<BlockLink interfaceLink={true} target="/metrics" title="Metrics" heTitle="מדדים" />),
+      (<BlockLink interfaceLink={true} target="/contribute" title="Contribute" heTitle="הצטרפות לעשיה" />),
+      (<BlockLink interfaceLink={true} target="/donate" title="Donate" heTitle="תרומות" />),
+      (<BlockLink interfaceLink={true} target="/supporters" title="Supporters" heTitle="תומכים" />),
+      (<BlockLink interfaceLink={true} target="/jobs" title="Jobs" heTitle="דרושים" />),
     ];
     contributeContent = (<TwoOrThreeBox content={contributeContent} width={width} />);
 
     var connectContent = [
-      (<BlockLink target="https://groups.google.com/forum/?fromgroups#!forum/sefaria" title="Forum" heTitle="פורום" />),
-      (<BlockLink target="http://www.facebook.com/sefaria.org" title="Facebook" heTitle="פייסבוק" />),
-      (<BlockLink target="http://twitter.com/SefariaProject" title="Twitter" heTitle="טוויטר" />),      
-      (<BlockLink target="http://www.youtube.com/user/SefariaProject" title="YouTube" heTitle="יוטיוב" />),
-      (<BlockLink target="http://www.github.com/Sefaria" title="GitHub" heTitle="גיטהאב" />),
-      (<BlockLink target="mailto:hello@sefaria.org" title="Email" heTitle='אימייל' />)
+      (<BlockLink interfaceLink={true} target="https://groups.google.com/forum/?fromgroups#!forum/sefaria" title="Forum" heTitle="פורום" />),
+      (<BlockLink interfaceLink={true} target="http://www.facebook.com/sefaria.org" title="Facebook" heTitle="פייסבוק" />),
+      (<BlockLink interfaceLink={true} target="http://twitter.com/SefariaProject" title="Twitter" heTitle="טוויטר" />),
+      (<BlockLink interfaceLink={true} target="http://www.youtube.com/user/SefariaProject" title="YouTube" heTitle="יוטיוב" />),
+      (<BlockLink interfaceLink={true} target="http://www.github.com/Sefaria" title="GitHub" heTitle="גיטהאב" />),
+      (<BlockLink interfaceLink={true} target="mailto:hello@sefaria.org" title="Email" heTitle='אימייל' />)
     ];
     connectContent = (<TwoOrThreeBox content={connectContent} width={width} />);
 
     var classes = {accountPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
-    classes[this.props.interfaceLang] = 1;
     var classStr = classNames(classes);
     return (
       <div className={classStr}>
         <div className="content">
           <div className="contentInner">
             <h1>
-              <span className="en">Account</span>
-              <span className="he">חשבון משתמש</span>
+              <span className="int-en">Account</span>
+              <span className="int-he">חשבון משתמש</span>
             </h1>
            <ReaderNavigationMenuSection content={accountContent} />
            <ReaderNavigationMenuSection title="Learn" heTitle="לימוד" content={learnContent} />
@@ -7120,15 +7135,14 @@ var NotificationsPanel = React.createClass({
   },
   render: function() {
     var classes = {notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
-    classes[this.props.interfaceLang] = 1;
     var classStr = classNames(classes);
     return (
       <div className={classStr}>
         <div className="content">
           <div className="contentInner">
             <h1>
-              <span className="en">Notifications</span>
-              <span className="he">התראות</span>
+              <span className="int-en">Notifications</span>
+              <span className="int-he">התראות</span>
             </h1>
             { Sefaria.loggedIn ? 
               (<div className="notificationsList" dangerouslySetInnerHTML={ {__html: Sefaria.notificationsHtml } }></div>) :
@@ -7269,8 +7283,8 @@ var LoadingMessage = React.createClass({
     var heMessage = this.props.heMessage || "טוען מידע...";
     var classes = "loadingMessage " + (this.props.className || "");
     return (<div className={classes}>
-              <span className="en">{message}</span>
-              <span className="he">{heMessage}</span>
+              <span className="int-en">{message}</span>
+              <span className="int-he">{heMessage}</span>
             </div>);
   }
 });

@@ -48,6 +48,7 @@ logger = logging.getLogger(__name__)
 
 
 def register(request):
+    request_context = RequestContext(request)
     if request.user.is_authenticated():
         return HttpResponseRedirect("/login")
 
@@ -60,7 +61,9 @@ def register(request):
             user = authenticate(email=form.cleaned_data['email'],
                                 password=form.cleaned_data['password1'])
             auth_login(request, user)
-            UserProfile(id=user.id).assign_slug().save()
+            p = UserProfile(id=user.id).assign_slug()
+            p.settings["interface_language"] = request_context.get("interfaceLang")
+            p.save()
             if "noredirect" in request.POST:
                 return HttpResponse("ok")
             elif "new?assignment=" in request.POST.get("next",""):
