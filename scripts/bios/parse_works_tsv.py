@@ -42,8 +42,6 @@ eras = {
 }
 
 
-commentaries_handled = []
-
 with open("Torah Commentators - Bios - Works.tsv") as tsv:
     indexes_handled = []
     next(tsv)
@@ -62,9 +60,6 @@ with open("Torah Commentators - Bios - Works.tsv") as tsv:
     next(tsv)
     next(tsv)
     for l in csv.reader(tsv, dialect="excel-tab"):
-        needs_save = False
-        if l[1] in commentaries_handled:
-            continue
         try:
             i = library.get_index(l[0])
         except Exception as e:
@@ -87,8 +82,6 @@ with open("Torah Commentators - Bios - Works.tsv") as tsv:
                 c.save()
             else:
                 print "-"
-            if Person().load({"key": l[1].strip()}):
-                commentaries_handled.append(l[1])
             continue
 
         setattr(i, "authors", sheet_authors)
