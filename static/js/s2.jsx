@@ -566,7 +566,6 @@ var ReaderApp = React.createClass({
     }
     var hist = this.makeHistoryState();
     if (replace) {
-      debugger;
       history.replaceState(hist.state, hist.title, hist.url);
       console.log("Replace History - " + hist.url);
       if (this.state.initialAnalyticsTracked) { this.checkScrollIntentAndTrack(); }
