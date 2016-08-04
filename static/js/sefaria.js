@@ -1448,7 +1448,7 @@ Sefaria = extend(Sefaria, {
 });
 
 Sefaria.unpackDataFromProps = function(props) {
-  // Populate local cache with various data passed as a rider on props. 
+  // Populate local cache with various data passed as a rider on props.
   var initialPanels = props.initialPanels || [];
   for (var i = 0; i < initialPanels.length; i++) {
       var panel = initialPanels[i];

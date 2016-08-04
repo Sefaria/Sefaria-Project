@@ -405,14 +405,20 @@ body.dark {
   direction: rtl;
   text-align: right;
 }
+.interface-hebrew .readerPanel .en{
+  direction: ltr;
+}
 /*.readerPanel.hebrew {
   direction: rtl;
 }*/
 /*.readerPanel.english {
   direction: ltr;
 }*/
-.interface-hebrew .readerPanel .readerNavMenu{
+.interface-hebrew .readerPanel .readerNavMenu, .readerPanel.hebrew .readerNavSection, .readerPanel.hebrew .readerNavMenu .category{
   direction: rtl;
+}
+.interface-english .readerPanel .readerNavMenu, .readerPanel.english .readerNavSection, .readerPanel.english .readerNavMenu .category{
+  direction: ltr;
 }
 .readerPanel.english .he {
   display: none;
