@@ -344,7 +344,7 @@
         function setFilterChartHeight(chart) {
             var newChartSize = chart.group().all().length > numberFilterRows ? numberFilterRows : chart.group().all().length;
             var newFilterHeight = 40 + 20 * newChartSize;
-            chart.height(newFilterHeight);  //function(d) { debugger; return filterHeight; })
+            chart.height(newFilterHeight);
             chart.rowsCap(numberFilterRows);
         }
         function createFilterChart(filterConfig, filter_id, dim, group) {
@@ -367,7 +367,8 @@
                 .transitionDuration(1000)
                 .colors(color_scales[(filter_num % color_scales.length)][5])  // d3.scale.ordinal().range(color_scales[(filter_num % color_scales.length)].reverse()))
                 .label(function (d) { return d.key })
-                .on('preRedraw', setFilterChartHeight);
+                .on('preRedraw', setFilterChartHeight)
+                .on('filtered', redraw_garden);
             if (filterConfig["logic"] == "AND") {
                 filter_chart
                     .filterHandler (function (dimension, filters) {
