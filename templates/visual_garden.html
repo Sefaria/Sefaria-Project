@@ -37,8 +37,7 @@
         </h2>
         <div id="data-count"></div>
         <div class="section control-results-container">
-            <div id="top-controls">
-            </div>
+            <div id="top-controls"></div>
             <div id="controls">
                 <div id="timeline-chart">
                     <div style="height: 30px;">
@@ -110,7 +109,7 @@
         var config = {{ config }};
         var places = {{ places }};
         var stops = {{ stops }};
-        var startingFilterRows = 9;  // Rows presented when top level filters are in collapsed mode
+        var startingFilterRows = config.filter_rows ? config.filter_rows: 9;  // Rows presented when top level filters are in collapsed mode
         var numberFilterRows = startingFilterRows;
         var filtersExpanded = false;
 

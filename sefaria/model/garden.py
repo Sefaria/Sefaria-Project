@@ -38,7 +38,8 @@ class Garden(abst.AbstractMongoRecord):
     default_config = {
         "timeline_scale": "log",  # log / linear
         "timeline_bin_size": None,  # Number of years in a bin.  Defaults to ~20 bins in the extent
-        "filter_order" : [],
+        "filter_order": [],
+        "filter_rows": 9,  # Number of rows in row filters
         "filters": {
             "default": {
                 "en": "Tags",

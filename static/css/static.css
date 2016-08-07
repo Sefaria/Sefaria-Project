@@ -1652,6 +1652,14 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 #visualGardenPage #results .result-text span.he {
  font-family: "Taamey Frank","Times New Roman",serif;
 }
+#visualGardenPage #results:after { /* Clearfix, for footer */
+	visibility: hidden;
+	display: block;
+	font-size: 0;
+	content: " ";
+	clear: both;
+	height: 0;
+}
 
 #visualGardenPage #sort-container {
   float: none;
