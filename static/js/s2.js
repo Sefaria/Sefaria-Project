@@ -349,8 +349,8 @@ var ReaderApp = React.createClass({
       prevPanels = headerPanel ? [history.state.header] : history.state.panels;
       nextPanels = headerPanel ? [this.state.header] : this.state.panels;
     } else {
-      prevPanels = [history.state.header];
-      nextPanels = [this.state.header];
+      prevPanels = history.state.panels;
+      nextPanels = this.state.panels;
     }
 
     for (var i = 0; i < prevPanels.length; i++) {
@@ -362,7 +362,7 @@ var ReaderApp = React.createClass({
         return true;
       }
 
-      if (prev.mode !== next.mode || prev.menuOpen !== next.menuOpen || next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0] || next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0] || (next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter) || next.mode === "Connections" && !prev.refs.compare(next.refs) || prev.navigationSheetTag !== next.navigationSheetTag || prev.version !== next.version || prev.versionLanguage !== next.versionLanguage || prev.searchQuery != next.searchQuery || prev.appliedSearchFilters && next.appliedSearchFilters && prev.appliedSearchFilters.length !== next.appliedSearchFilters.length || prev.appliedSearchFilters && next.appliedSearchFilters && !prev.appliedSearchFilters.compare(next.appliedSearchFilters)) {
+      if (prev.mode !== next.mode || prev.menuOpen !== next.menuOpen || next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0] || next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0] || (next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter) || next.mode === "Connections" && !prev.refs.compare(next.refs) || prev.navigationSheetTag !== next.navigationSheetTag || prev.version !== next.version || prev.versionLanguage !== next.versionLanguage || prev.searchQuery != next.searchQuery || prev.appliedSearchFilters && next.appliedSearchFilters && prev.appliedSearchFilters.length !== next.appliedSearchFilters.length || prev.appliedSearchFilters && next.appliedSearchFilters && !prev.appliedSearchFilters.compare(next.appliedSearchFilters) || prev.settings.language != next.settings.language) {
         return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
         // Handle array comparison, !== could mean one is null or both are arrays
@@ -1822,6 +1822,7 @@ var ReaderPanel = React.createClass({
     cookie(option, value, { path: "/" });
     if (option === "language") {
       cookie("contentLang", value, { path: "/" });
+      this.replaceHistory = true;
       this.props.setDefaultOption && this.props.setDefaultOption(option, value);
     }
     this.conditionalSetState(state);
@@ -5914,6 +5915,9 @@ var TextSegment = React.createClass({
       highlight: this.props.highlight,
       heOnly: !this.props.en,
       enOnly: !this.props.he });
+    if (!this.props.en && !this.props.he) {
+      return false;
+    }
     return React.createElement(
       'span',
       { className: classes, onClick: this.handleClick, 'data-ref': this.props.sref },
