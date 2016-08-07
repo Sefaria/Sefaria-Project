@@ -82,14 +82,19 @@
 
                     </select>
                 </div>
-                <div id="paging">
-                    Showing <span id="begin"></span>-<span id="end"></span> of <span id="size"></span>.
-                    <input id="prev" class="btn" type="Button" value="Prev" onclick="javascript:prev_page()" />
-                    <input id="next" class="btn" type="button" value="Next" onclick="javascript:next_page()"/>
+                <div class="paging-block top-paging-block">
+                    Showing <span class="paging-begin"></span>-<span class="paging-end"></span> of <span class="paging-size"></span>.
+                    <input class="prev-btn btn" type="button" value="Prev" onclick="javascript:prev_page()" />
+                    <input class="next-btn btn" type="button" value="Next" onclick="javascript:next_page()"/>
                 </div>
                 <div id="results-container">
                     <table id="results-content">
                     </table>
+                </div>
+                <div class="paging-block bottom-paging-block">
+                    Showing <span class="paging-begin"></span>-<span class="paging-end"></span> of <span class="paging-size"></span>.
+                    <input class="prev-btn btn" type="button" value="Prev" onclick="javascript:prev_page(); window.scrollTo(0,0);" />
+                    <input class="next-btn btn" type="button" value="Next" onclick="javascript:next_page(); window.scrollTo(0,0);"/>
                 </div>
             </div>
         </div>
@@ -552,19 +557,19 @@
                 return;
             }
             if (total == 0) {
-                $("#paging").hide();
+                $(".paging-block").hide();
             } else {
-                $("#paging").show();
+                $(".paging-block").show();
             }
-            d3.select('#begin')
+            d3.selectAll('.paging-begin')
               .text(ofs);
-            d3.select('#end')
+            d3.selectAll('.paging-end')
               .text(Math.min(total,ofs+pag-1));
-            d3.select('#prev')
+            d3.selectAll('.prev-btn')
               .attr('disabled', ofs-pag < 0 ? 'true' : null);
-            d3.select('#next')
+            d3.selectAll('.next-btn')
               .attr('disabled', ofs+pag >= total ? 'true' : null);
-            d3.select('#size').text(total);
+            d3.selectAll('.paging-size').text(total);
         }
         function update_pagination() {
             results.beginSlice(ofs);

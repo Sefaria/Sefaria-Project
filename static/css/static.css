@@ -1618,12 +1618,16 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 #visualGardenPage #sort-container {
   display: inline-block;
 }
-#visualGardenPage #paging {
+#visualGardenPage .top-paging-block {
   display: inline-block;
   padding-left: 30px;
 }
-#visualGardenPage #paging input {
+#visualGardenPage .paging-block input {
   padding: 3px;
+}
+#visualGardenPage .bottom-paging-block {
+  padding-top: 35px;
+  float: right;
 }
 #visualGardenPage #results .result {
   margin: 10px 0;
