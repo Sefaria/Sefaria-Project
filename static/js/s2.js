@@ -112,7 +112,7 @@ var ReaderApp = React.createClass({
         partner: this.props.initialPartner,
         settings: Sefaria.util.clone(defaultPanelSettings)
       };
-      header = this.makePanelState(headerState);
+      header = this.makePanelState(headerState);debugger;
       if (this.props.initialRefs.length) {
         var p = {
           refs: this.props.initialRefs,
@@ -120,9 +120,9 @@ var ReaderApp = React.createClass({
           menuOpen: this.props.initialPanels[0].menuOpen,
           version: this.props.initialPanels.length ? this.props.initialPanels[0].version : null,
           versionLanguage: this.props.initialPanels.length ? this.props.initialPanels[0].versionLanguage : null,
-          settings: Sefaria.util.clone(defaultPanelSettings)
+          settings: "settings" in this.props.initialPanels[0] ? extend(Sefaria.util.clone(defaultPanelSettings), this.props.initialPanels[0].settings) : Sefaria.util.clone(defaultPanelSettings)
         };
-        if (p.versionLanguage) {
+        if (p.versionLanguage && !"settings" in this.props.initialPanels[0]) {
           p.settings.language = p.versionLanguage == "he" ? "hebrew" : "english";
         }
         panels.push(p);
@@ -131,14 +131,14 @@ var ReaderApp = React.createClass({
         var panel;
         if (this.props.initialPanels[i].menuOpen == "book toc") {
           panel = {
-            settings: Sefaria.util.clone(defaultPanelSettings),
             menuOpen: this.props.initialPanels[i].menuOpen,
-            bookRef: this.props.initialPanels[i].bookRef
+            bookRef: this.props.initialPanels[i].bookRef,
+            settings: "settings" in this.props.initialPanels[i] ? extend(Sefaria.util.clone(defaultPanelSettings), this.props.initialPanels[i].settings) : Sefaria.util.clone(defaultPanelSettings)
           };
         } else {
           panel = this.clonePanel(this.props.initialPanels[i]);
           panel.settings = Sefaria.util.clone(defaultPanelSettings);
-          if (panel.versionLanguage) {
+          if (panel.versionLanguage && !"settings" in this.props.initialPanels[i]) {
             panel.settings.language = panel.versionLanguage == "he" ? "hebrew" : "english";
           }
         }
