@@ -112,7 +112,7 @@ var ReaderApp = React.createClass({
         partner: this.props.initialPartner,
         settings: Sefaria.util.clone(defaultPanelSettings)
       };
-      header = this.makePanelState(headerState);debugger;
+      header = this.makePanelState(headerState);
       if (this.props.initialRefs.length) {
         var p = {
           refs: this.props.initialRefs,
