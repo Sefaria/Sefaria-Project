@@ -2915,6 +2915,8 @@ def visual_garden_page(request, g):
     template_vars = {
         'title': g.title,
         'heTitle': g.heTitle,
+        'subtitle': getattr(g, "subtitle", ""),
+        'heSubtitle': getattr(g, "heSubtitle", ""),
         'key': g.key,
         'stopCount': g.stopSet().count(),
         'stops': json.dumps(g.stopData()),

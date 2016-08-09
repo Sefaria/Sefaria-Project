@@ -461,7 +461,7 @@
 }
 #homePage #homeMobile .button{
   display: flex;
-  display: -webkit-flex
+  display: -webkit-flex;
   flex-direction: row;
   -webkit-flex-direction: row;
   padding: 12px 14px;
@@ -640,7 +640,7 @@
   color: #999;
   font-size: 14px;
 }
-.registrationContent ::placeholder{
+.registrationContent ::placeholder {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif; 
   color: #999;
   font-size: 14px;
@@ -1576,6 +1576,10 @@
 #visualGardenPage h1 {
   font-size: 36px;
   border: none;
+  margin: 0;
+}
+#visualGardenPage h2 {
+  text-align: center;
 }
 /* Controls need LTR to present right, hebrew 'reset' block wants RTL on top charts, but not on filter charts */
 #visualGardenPage #controls {
@@ -1583,6 +1587,20 @@
   float: left;
   direction: ltr;
 }
+
+#visualGardenPage #top-controls {
+  display: flex;
+}
+#visualGardenPage #top-filter-control {
+  text-align: center;
+  font-size: 28px;
+}
+#visualGardenPage #data-count {
+  float: none;
+  text-align: center;
+  margin: 0 0 30px 0;
+}
+
 body.interface-hebrew #visualGardenPage .reset {
   direction: rtl;
   float: right;
@@ -1597,7 +1615,20 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   display: inline-block;
   vertical-align: top;
 }
-
+#visualGardenPage #sort-container {
+  display: inline-block;
+}
+#visualGardenPage .top-paging-block {
+  display: inline-block;
+  padding-left: 30px;
+}
+#visualGardenPage .paging-block input {
+  padding: 3px;
+}
+#visualGardenPage .bottom-paging-block {
+  padding-top: 35px;
+  float: right;
+}
 #visualGardenPage #results .result {
   margin: 10px 0;
 }
@@ -1608,17 +1639,39 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-size: .8em;
 }
 #visualGardenPage #results .result-text {
-  margin: 5px 10px 0;
+  margin: 0 10px 0;
 }
-#visualGardenPage #sort-container,
-#visualGardenPage #results #data-count {
-  text-align: center;
+#visualGardenPage #results .result-text span {
+  display: block;
+  margin: 5px 0 0;
+}
+#visualGardenPage #results .result-text span.he,
+#visualGardenPage #results .result-text span.int-he {
+   direction: rtl;
+}
+#visualGardenPage #results .result-text span.he {
+ font-family: "Taamey Frank","Times New Roman",serif;
+}
+#visualGardenPage #results:after { /* Clearfix, for footer */
+	visibility: hidden;
+	display: block;
+	font-size: 0;
+	content: " ";
+	clear: both;
+	height: 0;
+}
+
+#visualGardenPage #sort-container {
   float: none;
-  padding: 5px 0;
+  padding: 25px 0 5px;
 }
 
 #visualGardenPage .filter-title {
   margin-left: 10px;
+}
+
+#visualGardenPage .filter-title .filter-title-en {
+  font-weight: bold;
 }
 
 #visualGardenPage .tags-list.dc-chart g.row text {

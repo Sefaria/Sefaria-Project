@@ -8,7 +8,7 @@ class Test_Ref(object):
     def test_short_names(self):
         ref = Ref(u"Exo. 3:1")
         assert ref.book == u"Exodus"
-        assert Ref("Prov. 3.19")
+        assert Ref("Prov. 3.19") == Ref("Proverbs 3:19")
         assert Ref("Exo. 3.19")
         assert Ref("Prov 3.20")
         assert Ref("Exo 3.20")

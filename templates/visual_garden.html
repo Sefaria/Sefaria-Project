@@ -5,28 +5,16 @@
 
 {% block title %}{{ title }}{% endblock %}
 {% block head %}
-    {% if not OFFLINE %}
-    <script src="https://use.typekit.net/aeg8div.js"></script>
-    <script>try{Typekit.load({ async: true });}catch(e){}</script>
-    <script src="//ajax.googleapis.com/ajax/libs/webfont/1.5.10/webfont.js"></script>
-    <script>
-      WebFont.load({
-        google: {
-          families: ['Montserrat:400,700', 'Open Sans Hebrew:400,700:latin,hebrew' ]
-        }
-      });
-    </script>
-    {% endif %}
     <script src="http://d3js.org/d3.v3.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.12/crossfilter.js"></script>
     <script src="/static/js/dc.js"></script>
     <link rel="stylesheet" href="/static/css/dc.css" />
-
 {%  endblock %}
 
 {% block css %}
     #visualGardenPage.static .inner{
         max-width:1200px;
+        padding-top: 82px;
     }
     #languageToggle {
         display: inline;
@@ -40,10 +28,16 @@
 <div id="visualGardenPage" class="container static biReady">
     <div class="inner">
         <h1>
-            <span class='en'>{{ title }}</span>
-            <span class='he'>{{ heTitle }}</span>
+            <span class='int-en'>{{ title }}</span>
+            <span class='int-he'>{{ heTitle }}</span>
         </h1>
+        <h2>
+            <span class='int-en'>{% autoescape off %}{{ subtitle }}{% endautoescape %}</span>
+            <span class='int-he'>{% autoescape off %}{{ heSubtitle }}{% endautoescape %}</span>
+        </h2>
+        <div id="data-count"></div>
         <div class="section control-results-container">
+            <div id="top-controls"></div>
             <div id="controls">
                 <div id="timeline-chart">
                     <div style="height: 30px;">
@@ -53,7 +47,7 @@
                             <span class='filter'></span>
                         </span>
                         <a class='reset'
-                          href='javascript:timeline.filterAll();dc.redrawAll();'
+                          href='javascript:timeline.filterAll();redraw_garden();'
                           style='display: none;'>
                             <span class="int-en">reset</span>
                             <span class="int-he">&nbsp;אפס</span>
@@ -68,7 +62,7 @@
                             <span class='filter'></span>
                         </span>
                         <a class='reset'
-                          href='javascript:mapchart.filterAll();dc.redrawAll();'
+                          href='javascript:mapchart.filterAll();redraw_garden();'
                           style='display: none;'>
                             <span class="int-en">reset</span>
                             <span class="int-he">&nbsp;אפס</span>
@@ -78,8 +72,6 @@
 
             </div>
             <div id="results">
-                <div id="data-count">
-                </div>
                 <div id="sort-container">
                     <label for="sort-select" id="sort-label">
                         <span class="int-en">Sort By:</span>
@@ -89,9 +81,19 @@
 
                     </select>
                 </div>
+                <div class="paging-block top-paging-block">
+                    Showing <span class="paging-begin"></span>-<span class="paging-end"></span> of <span class="paging-size"></span>.
+                    <input class="prev-btn btn" type="button" value="Prev" onclick="javascript:prev_page()" />
+                    <input class="next-btn btn" type="button" value="Next" onclick="javascript:next_page()"/>
+                </div>
                 <div id="results-container">
                     <table id="results-content">
                     </table>
+                </div>
+                <div class="paging-block bottom-paging-block">
+                    Showing <span class="paging-begin"></span>-<span class="paging-end"></span> of <span class="paging-size"></span>.
+                    <input class="prev-btn btn" type="button" value="Prev" onclick="javascript:prev_page(); window.scrollTo(0,0);" />
+                    <input class="next-btn btn" type="button" value="Next" onclick="javascript:next_page(); window.scrollTo(0,0);"/>
                 </div>
             </div>
         </div>
@@ -103,10 +105,24 @@
 {% block js %}
     <script>
     {% autoescape off %}
+        $("#content").removeClass("interface-hebrew").addClass("interface-english") // Force LTR presentation
         d3.geo.tile=function(){function t(){var t=Math.max(Math.log(n)/Math.LN2-8,0),h=Math.round(t+e),o=Math.pow(2,t-h+8),u=[(r[0]-n/2)/o,(r[1]-n/2)/o],l=[],c=d3.range(Math.max(0,Math.floor(-u[0])),Math.max(0,Math.ceil(a[0]/o-u[0]))),M=d3.range(Math.max(0,Math.floor(-u[1])),Math.max(0,Math.ceil(a[1]/o-u[1])));return M.forEach(function(t){c.forEach(function(a){l.push([a,t,h])})}),l.translate=u,l.scale=o,l}var a=[960,500],n=256,r=[a[0]/2,a[1]/2],e=0;return t.size=function(n){return arguments.length?(a=n,t):a},t.scale=function(a){return arguments.length?(n=a,t):n},t.translate=function(a){return arguments.length?(r=a,t):r},t.zoomDelta=function(a){return arguments.length?(e=+a,t):e},t};
         var config = {{ config }};
         var places = {{ places }};
         var stops = {{ stops }};
+        var startingFilterRows = config.filter_rows ? config.filter_rows: 9;  // Rows presented when top level filters are in collapsed mode
+        var numberFilterRows = startingFilterRows;
+        var filtersExpanded = false;
+
+        // From colorbrewer
+        var color_scales = [
+         ["#fcfbfd","#efedf5","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#54278f","#3f007d"], // Purples
+         ["#f7fbff","#deebf7","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#08519c","#08306b"], // Blues
+         ["#f7fcf5","#e5f5e0","#c7e9c0","#a1d99b","#74c476","#41ab5d","#238b45","#006d2c","#00441b"], // Greens
+         ["#fff5eb","#fee6ce","#fdd0a2","#fdae6b","#fd8d3c","#f16913","#d94801","#a63603","#7f2704"], // Oranges
+         ["#fff5f0","#fee0d2","#fcbba1","#fc9272","#fb6a4a","#ef3b2c","#cb181d","#a50f15","#67000d"],  // Reds
+        ];
+
         stops.forEach(function (d) {
             d.start = (d.start == null || d.start == "") ? null : +d.start; // coerce to number, if it's a number
             d.end = (d.end == null || d.end == "") ? null : +d.end;
@@ -116,6 +132,11 @@
 
 
         // Sorting
+        function redraw_garden() {
+            // Some sort of bug prevents height() resetting from taking in some redraw cases.  A double call takes care of business.
+            dc.redrawAll();
+            dc.redrawAll();
+        }
         function set_sort_vars(field, dir, datatype) {
             resultsDir = dir == "DESC" ? d3.descending : d3.ascending;
             resultsDim && resultsDim.dispose();
@@ -196,9 +217,9 @@
             .html({
                 some: '<strong>%filter-count</strong><span class="int-he"> מוצגות מתוך </span><span class="int-en"> selected out of </span>' +
                       '<strong>%total-count</strong><span class="int-he"> תוצאות </span><span class="int-en"> Records </span>' +
-                      ' | <a href=\'javascript:dc.filterAll(); dc.renderAll();\'\'>' +
+                      ' | <a href=\'javascript:dc.filterAll(); redraw_garden();\'\'>' +
                       '<span class="int-he">אפס הכל</span><span class="int-en">Reset All</span></a>',
-                all: '<span class="int-en">All records selected. Please click on the graph to apply filters.</span>'+
+                all: '<span class="int-en">All records selected. Please click on the graphs to apply filters.</span>'+
                         '<span class="int-he">כל התוצאות מוצגות. אנא לחץ על הגרף כדי לסנן</span>'
             });
 
@@ -247,11 +268,10 @@
         timeline.xAxis().ticks(5);
 
         // Filters
-        var maxRows = 25;
         function addFilterElement(config, indx, filter_id) {
             var elem = $('<div id="' + filter_id +'" class="tags-list"> ' +
                 '<div class="filter-title">' +
-                  '<span>' + config.en + '</span>' +
+                  '<span class="filter-title-en">' + config.en + '</span>' +
                   //'<span class="he">' + config.he + '</span>' +
                 //'</div>' +
                 //'<div style="height: 30px;"> ' +
@@ -259,22 +279,22 @@
                     '<span>: </span>' +
                     //'<span class="en">Current filter:</span> ' +
                     //'<span class="he">מסונן לפי:</span> ' +
-                    '<span class="filter"></span> ' +
+                    '<!-- <span class="filter"></span> -->' +
                   '</span> ' +
-                  '<a class="reset" href="javascript:filter_charts[' + indx +'].filterAll();dc.redrawAll();" style="display: none;"> ' +
-                    '<span class="int-en">reset</span> ' +
+                  '<a class="reset" href="javascript:filter_charts[' + indx +'].filterAll();redraw_garden();" style="display: none;"> ' +
+                    '<span class="int-en">(reset)</span> ' +
                     '<span class="int-he">&nbsp;אפס</span> ' +
                   '</a> ' +
                 '</div> ' +
             '</div>');
-            $("#controls").append(elem);
+            var filterControlBoxId = (config["position"] == "TOP")?"top-controls":"controls";
+            $("#" + filterControlBoxId).append(elem);
             return elem
         }
         function createFilterGroup(filterConfig, key, filterDim) {
-            if (filterConfig["logic"] != "AND") {
+            if (filterConfig["logic"] == "OR") {
                 return filterDim.group();
             }
-
             function reduceAdd(p, v) {
                 v.tags[key].forEach (function(val, idx) {
                     p[val] = (p[val] || 0) + 1; //increment counts
@@ -307,17 +327,31 @@
                 }
                 return newObject;
             };
+
             filterGroup.top = function(k) {
                 all = this.all();
+                /*
                 var top = crossfilter.heapselect(all, 0, all.length, k);
                 return crossfilter.heap.sort(top, 0, top.length);
+                */
+                all.sort(function(a, b) {return b.value - a.value});
+                return all.slice(0,k)
+
             };
             return filterGroup;
         }
+
+        function setFilterChartHeight(chart) {
+            var newChartSize = chart.group().all().length > numberFilterRows ? numberFilterRows : chart.group().all().length;
+            var newFilterHeight = 40 + 20 * newChartSize;
+            chart.height(newFilterHeight);
+            chart.rowsCap(numberFilterRows);
+        }
         function createFilterChart(filterConfig, filter_id, dim, group) {
-            var chartSize = group.all().length > maxRows ? maxRows : group.all().length;
+            var chartSize = group.all().length > numberFilterRows ? numberFilterRows : group.all().length;
             var filterHeight = 40 + 20 * chartSize;
             var filter_chart = dc.rowChart("#" + filter_id);
+            var filter_num = +filter_id.split("-")[1];
             filter_chart
                 .width(260)
                 .height(filterHeight)
@@ -325,14 +359,16 @@
                 .labelOffsetY(10)
                 .gap(2)
                 .group(group)
-                .rowsCap(maxRows)
+                .rowsCap(numberFilterRows)
                 .othersGrouper(false)
                 .dimension(dim)
-                .ordering(function(d){ return -d.value })
-                .elasticX(true)
+                .ordering(function(d) { return -d.value })
+                .elasticX(false)
                 .transitionDuration(1000)
-                .colors(d3.scale.category10())
-                .label(function (d) { return d.key });
+                .colors(color_scales[(filter_num % color_scales.length)][5])  // d3.scale.ordinal().range(color_scales[(filter_num % color_scales.length)].reverse()))
+                .label(function (d) { return d.key })
+                .on('preRedraw', setFilterChartHeight)
+                .on('filtered', redraw_garden);
             if (filterConfig["logic"] == "AND") {
                 filter_chart
                     .filterHandler (function (dimension, filters) {
@@ -368,6 +404,33 @@
             filter_charts.push(createFilterChart(filterConfig, filter_id, filterDim, filterGroup));
         });
 
+        // Controls to exand / collapse top filters
+        if ($("#top-controls").html().length > 0) {
+            $("#top-controls").after(
+                    '<div id="top-filter-control"><div id="pull-down-control"><i class="fa fa-caret-down"></i></div><div style="display: none;" id="pull-up-control"><i class="fa fa-caret-up"></i></div></div>'
+            );
+            $("#top-filter-control").click(toggleFilters);
+        }
+        function toggleFilters() {
+            ((filtersExpanded)?collapseFilters:expandFilters)();
+        }
+        function expandFilters() {
+            filtersExpanded = true;
+            var lengths = filter_charts.map(function(chart) { return chart.group().all().length; });
+            numberFilterRows = Math.max.apply(Math, lengths);
+            filter_charts.forEach(setFilterChartHeight);
+            redraw_garden();
+            $("#pull-down-control").hide();
+            $("#pull-up-control").show();
+        }
+        function collapseFilters() {
+            filtersExpanded = false;
+            numberFilterRows = startingFilterRows;
+            filter_charts.forEach(setFilterChartHeight);
+            redraw_garden();
+            $("#pull-down-control").show();
+            $("#pull-up-control").hide();
+        }
 
         // Map
         // Unit projection, for getting bounding box of our data
@@ -437,8 +500,9 @@
                     .attr("y", function(d) { return d[1]; });
             })
             .geoPath().pointRadius(function(feature, index) {
-                var v = placeGroup.all().filter(function(item) { return item.key === feature.id; })[0].value;
-                return (v == 0)? 0 : pointScale(v);
+                var r = placeGroup.all().filter(function(item) { return item.key === feature.id; });
+                if (r.length == 0) {console.log("No match for " + feature.id); return 0;}
+                return (r[0].value == 0)? 0 : pointScale(r[0].value);
             });
 
         results
@@ -448,29 +512,30 @@
             .sortBy(resultsAccessor)
             //.keyAccessor(resultsAccessor)
             //.ordering(resultsAccessor)
+            .on("postRedraw", update_pagination)
             .htmlGroup(function (d) {return "";})
             .html(function(data) {
                 return "<div class='result'>" +
                             "<div class='result-ref'>" +
-                                "<span class='en'>" +
+                                "<span class='int-en'>" +
                                     (data.ref ? "<a href='/" + data.ref + (data.enVersionTitle ? "/en/" + data.enVersionTitle:"") + "'>" : "") +
                                         (data.title ? data.title : data.ref) +
                                     (data.ref ? "</a>" : "") +
                                 "</span>" +
-                                "<span class='he'>" +
+                                "<span class='int-he'>" +
                                     (data.ref ? "<a href='/" + data.ref + (data.heVersionTitle ? "/he/" + data.heVersionTitle:"") + "'>" : "") +
                                         (data.heTitle ? data.heTitle : data.heRef) +
                                     (data.ref ? "</a>" : "") +
                                 "</span>" +
                             "</div>" +
                             "<div class='result-byline'>" +
-                                "<span class='en'>" +
+                                "<span class='int-en'>" +
                                     (data.authorsEn ? (data.authorsEn + ", ") : "") +
                                     (data.enSubtitle ? (data.enSubtitle + "  ") : "") +
                                     (data.placeNameEn ? data.placeNameEn : "") +
                                     (data.timePeriodEn ? data.timePeriodEn : "") +
                                 "</span>" +
-                                "<span class='he'>" +
+                                "<span class='int-he'>" +
                                     (data.authorsHe ? (data.authorsHe + ", ") : "") +
                                     (data.heSubtitle ? (data.heSubtitle + "  ") : "") +
                                     (data.placeNameHe ? data.placeNameHe : (data.placeNameEn ? data.placeNameEn : "")) +
@@ -478,12 +543,59 @@
                                 "</span>" +
                             "</div>" +
                             "<div class='result-text'>" +
-                                "<span class='en'>" + (data.enText ? data.enText : data.heText) + "</span>" +
                                 "<span class='he'>" + (data.heText ? data.heText : data.enText) + "</span>" +
+                                "<span class='en'>" + (data.enText ? data.enText : data.heText) + "</span>" +
                             "</div>" +
                         "</div>"
             })
             ;
+
+        // Pagination
+        var ofs = 0, pag = 100, total = 0;
+        function display_pagination() {
+            if (total != stopx.groupAll().value()) {
+                reset_page();
+                return;
+            }
+            if (total == 0) {
+                $(".paging-block").hide();
+            } else {
+                $(".paging-block").show();
+            }
+            d3.selectAll('.paging-begin')
+              .text(ofs);
+            d3.selectAll('.paging-end')
+              .text(Math.min(total,ofs+pag-1));
+            d3.selectAll('.prev-btn')
+              .attr('disabled', ofs-pag < 0 ? 'true' : null);
+            d3.selectAll('.next-btn')
+              .attr('disabled', ofs+pag >= total ? 'true' : null);
+            d3.selectAll('.paging-size').text(total);
+        }
+        function update_pagination() {
+            results.beginSlice(ofs);
+            results.endSlice(ofs+pag);
+            display_pagination();
+        }
+        function reset_page() {
+            total = stopx.groupAll().value();
+            ofs = 0;
+            update_pagination();
+            results.redraw();
+        }
+        function next_page() {
+            ofs += pag;
+            update_pagination();
+            results.redraw();
+        }
+        function prev_page() {
+            ofs -= pag;
+            update_pagination();
+            results.redraw();
+        }
+        display_pagination();
+
+        // End pagination
 
         dc.renderAll();
 
