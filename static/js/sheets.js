@@ -2309,61 +2309,66 @@ function readSheet() {
 		sheet.options.divineNames   = $(".divineNamesOption .fa-check").not(".hidden").parent().attr("id");
 	}
 
-	
+	if (sjs.is_owner) {
+		switch ($("#sharingModal input[type='radio'][name='sharingOptions']:checked").val() || $("#sharingType").data("sharing")) {
 
-	switch ($("#sharingModal input[type='radio'][name='sharingOptions']:checked").val() || $("#sharingType").data("sharing")){
+			case 'private':
+				sheet.options.collaboration = "none";
+				sheet["status"] = "unlisted";
+				break;
 
-		case 'private':
-			sheet.options.collaboration = "none";
-			sheet["status"] = "unlisted";
-			break;
+			case 'public':
+				sheet.options.collaboration = "none";
+				sheet["status"] = "public";
+				sjs.track.sheets("Make Public Click");
+				break;
 
-		case 'public':
-			sheet.options.collaboration = "none";
-			sheet["status"] = "public";
-			sjs.track.sheets("Make Public Click");
-			break;
+			case 'publicAdd':
+				sheet.options.collaboration = "anyone-can-add";
+				sheet["status"] = "public";
+				sjs.track.sheets("Make Public Click");
+				sjs.track.sheets("Anyone Can Add Click");
+				break;
 
-		case 'publicAdd':
-			sheet.options.collaboration = "anyone-can-add";
-			sheet["status"] = "public";
-			sjs.track.sheets("Make Public Click");
-			sjs.track.sheets("Anyone Can Add Click");
-			break;
+			case 'groupAdd':
+				sheet.options.collaboration = "group-can-add";
+				sheet["status"] = "unlisted";
+				sjs.track.sheets("Group Can Add Click");
+				break;
 
-		case 'groupAdd':
-			sheet.options.collaboration = "group-can-add";
-			sheet["status"] = "unlisted";
-			sjs.track.sheets("Group Can Add Click");
-			break;
+			case 'privateAdd':
+				sheet.options.collaboration = "anyone-can-add";
+				sheet["status"] = "unlisted";
+				sjs.track.sheets("Anyone Can Add Click");
+				break;
 
-		case 'privateAdd':
-			sheet.options.collaboration = "anyone-can-add";
-			sheet["status"] = "unlisted";
-			sjs.track.sheets("Anyone Can Add Click");
-			break;
+			case 'publicEdit':
+				sheet.options.collaboration = "anyone-can-edit";
+				sheet["status"] = "public";
+				sjs.track.sheets("Make Public Click");
+				sjs.track.sheets("Anyone Can Edit Click");
+				break;
 
-		case 'publicEdit':
-			sheet.options.collaboration = "anyone-can-edit";
-			sheet["status"] = "public";
-			sjs.track.sheets("Make Public Click");
-			sjs.track.sheets("Anyone Can Edit Click");
-			break;
+			case 'privateEdit':
+				sheet.options.collaboration = "anyone-can-edit";
+				sheet["status"] = "unlisted";
+				sjs.track.sheets("Anyone Can Edit Click");
+				break;
 
-		case 'privateEdit':
-			sheet.options.collaboration = "anyone-can-edit";		
-			sheet["status"] = "unlisted";
-			sjs.track.sheets("Anyone Can Edit Click");
-			break;
+			case 'groupEdit':
+				sheet.options.collaboration = "group-can-edit";
+				sheet["status"] = "unlisted";
+				sjs.track.sheets("Group Can Edit Click");
+				break;
 
-		case 'groupEdit':
-			sheet.options.collaboration = "group-can-edit";		
-			sheet["status"] = "unlisted";
-			sjs.track.sheets("Group Can Edit Click");
-			break;		
-		
+		}
 	}
-	
+
+	else {
+		sheet.options.collaboration = sjs.current.options.collaboration;
+		sheet["status"] = sjs.current.status;
+	}
+
 	var group = $(".groupOption .fa-check").not(".hidden").parent().attr("data-group") || $("#sourceSheetGroupSelect").val();
 
 	if (group === undefined && sjs.current && sjs.current.group !== "None") {
