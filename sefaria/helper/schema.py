@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from sefaria.model import *
-
+from sefaria.system.database import db
 
 """
                                                     IN PROCESS & UNTESTED
@@ -49,10 +49,10 @@ def attach_branch(new_node, parent_node, place=0):
     # Update Index schema and save
     parent_node.children.insert(place, new_node)
     new_node.parent = parent_node
-    index.save()
 
-    # Refresh VersionState
-    refresh_version_state(index.title)
+    flags = delete_version_states(index.title)
+    index.save()
+    refresh_version_states(index.title, flags)
 
 
 def remove_branch(node):
@@ -78,9 +78,10 @@ def remove_branch(node):
         v.save()
 
     parent.children = [n for n in parent.children if n.key != node.key]
-    index.save()
 
-    refresh_version_state(index.title)
+    flags = delete_version_states(index.title)
+    index.save()
+    refresh_version_states(index.title, flags)
 
 
 def reorder_children(parent_node, new_order):
@@ -95,6 +96,45 @@ def reorder_children(parent_node, new_order):
     assert set(child_dict.keys()) == set(new_order)
     parent_node.children = [child_dict[k] for k in new_order]
     parent_node.index.save()
+
+
+def convert_simple_index_to_complex(index):
+    """
+    The target complex text will have a 'default' node.
+    All refs to this text should remain good.
+    :param index:
+    :return:
+    """
+    from sefaria.model.schema import TitleGroup
+
+    assert isinstance(index, Index)
+
+    ja_node = index.nodes
+    assert isinstance(ja_node, JaggedArrayNode)
+
+    # Repair all version
+    vs = [v for v in index.versionSet()]
+    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
+    for v in vs + vsc:
+        assert isinstance(v, Version)
+        v.chapter = {"default": v.chapter}
+        v.save()
+
+    # Build new schema
+    new_parent = SchemaNode()
+    new_parent.title_group = ja_node.title_group
+    new_parent.key = ja_node.key
+    ja_node.title_group = TitleGroup()
+    ja_node.key = "default"
+    ja_node.default = True
+
+    # attach to index record
+    new_parent.append(ja_node)
+    index.nodes = new_parent
+
+    flags = delete_version_states(index.title)
+    index.save()
+    refresh_version_states(index.title, flags)
 
 
 def change_parent(node, new_parent, place=0):
@@ -127,6 +167,8 @@ def change_parent(node, new_parent, place=0):
     new_parent.children.insert(place, node)
     node.parent = new_parent
     new_normal_form = node.ref().normal()
+
+    flags = delete_version_states(index.title)
     index.save()
 
     for link in linkset:
@@ -134,12 +176,31 @@ def change_parent(node, new_parent, place=0):
         link.save()
     # todo: commentary linkset
 
-    refresh_version_state(index.title)
+    refresh_version_states(index.title, flags)
 
 
-def refresh_version_state(base_title):
+def delete_version_states(base_title):
+    d = {}
+
+    vs = db.vstate.find_one({"title": base_title})
+    if vs:
+        d[base_title] = vs["flags"]
+        db.vstate.remove({"_id": vs["_id"]})
+
+    vtitles = library.get_commentary_version_titles_on_book(base_title) + [base_title]
+    for title in vtitles:
+        vs = db.vstate.find_one({"title": title})
+        if vs:
+            d[title] = vs["flags"]
+            db.vstate.remove({"_id": vs["_id"]})
+
+    return d
+
+
+def refresh_version_states(base_title, flag_dict):
     """
-    VersionState is *not* altered on Index save.  It is only created on Index creation.
+    ** VersionState is *not* altered on Index save.  It is only created on Index creation.
+    ^ It now seems that VersionState is referenced on Index save
 
     VersionState is *not* automatically updated on Version save.
     The VersionState update on version save happens in texts_api().
@@ -147,10 +208,10 @@ def refresh_version_state(base_title):
     VersionState.refresh() assumes the structure of content has not changed.
     To regenerate VersionState, we save the flags, delete the old one, and regenerate a new one.
 
+    :param flag_dict: comes from delete_version_states()
     """
+    VersionState(base_title, {"flags": flag_dict.get(base_title)})
+
     vtitles = library.get_commentary_version_titles_on_book(base_title) + [base_title]
     for title in vtitles:
-        vs = VersionState(title)
-        flags = vs.flags
-        vs.delete()
-        VersionState(title, {"flags": flags})
+        VersionState(title, {"flags": flag_dict.get(title)})
