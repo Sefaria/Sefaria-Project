@@ -1961,17 +1961,25 @@ a.resourcesLink {
 }
 .segment {
 }
-.segment.heOnly {
+.segment.heOnly{
   text-align: right;
+  direction: rtl;
 }
-.segment.enOnly {
+.segment.enOnly{
   text-align: left;
+  direction: ltr;
 }
-.segment.heOnly .en {
+.segment.heOnly .en{
   display: none;
 }
-.segment.enOnly .he {
+.segment.enOnly .he{
   display: none;
+}
+.segment.heOnly .he{
+  display: initial;
+}
+.segment.enOnly .en{
+  display: initial;
 }
 .segment .segmentNumber,
 .segment .linkCount,
