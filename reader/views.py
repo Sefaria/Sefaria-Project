@@ -247,6 +247,7 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
         }
     else:
         oref = oref.first_available_section_ref()
+        panelDisplayLanguage = kwargs.get("panelDisplayLanguage", None)
         panel = {
             "mode": mode,
             "ref": oref.normal(),
@@ -255,8 +256,12 @@ def make_panel_dict(oref, version, language, filter, mode, **kwargs):
             "versionLanguage": language,
             "filter": filter,
         }
-        if kwargs.get("panelDisplayLanguage", None):
-            panel["settings"] = {"language" : short_to_long_lang_code(kwargs.get("panelDisplayLanguage"))}
+        if panelDisplayLanguage:
+            panel["settings"] = {"language" : short_to_long_lang_code(panelDisplayLanguage)}
+            # so the connections panel doesnt act on the version NOT currently on display
+            if mode == "Connections" and panelDisplayLanguage != language:
+                panel["version"] = None
+                panel["versionLanguage"] = None
         if mode != "Connections":
             try:
                 text = TextFamily(oref, version=panel["version"], lang=panel["versionLanguage"], commentary=False, context=True, pad=True, alts=True).contents()

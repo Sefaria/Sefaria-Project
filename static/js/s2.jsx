@@ -764,12 +764,20 @@ var ReaderApp = React.createClass({
     //console.log(state)
 
     // When the driving panel changes language, carry that to the dependent panel
+    // However, when carrying a language change to the Tools Panel, do not carry over an incorrect version
     var langChange  = state.settings && state.settings.language !== this.state.panels[n].settings.language;
     var next        = this.state.panels[n+1];
     if (langChange && next && next.mode === "Connections") {
+        /*debugger;*/
         next.settings.language = state.settings.language;
+        if(next.settings.language.substring(0,2) != this.state.panels[n].versionLanguage){
+            next.versionLanguage = null;
+            next.version = null;
+        }else{
+            next.versionLanguage = this.state.panels[n].versionLanguage;
+            next.version = this.state.panels[n].version;
+        }
     }
-
     this.state.panels[n] = extend(this.state.panels[n], state);
     this.setState({panels: this.state.panels});
   },
@@ -5670,7 +5678,7 @@ var ToolsPanel = React.createClass({
         refString += "/" + this.props.versionLanguage + "/" + this.props.version;
       }
       var path = "/edit/" + refString;
-      var nextParam = "?next=" + Sefaria.util.currentPath();    
+      var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
       path += nextParam;
       Sefaria.site.track.event("Tools", "Edit Text Click", refString,
           {hitCallback: () =>  window.location = path}
