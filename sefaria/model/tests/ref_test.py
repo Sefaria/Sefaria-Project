@@ -8,7 +8,7 @@ class Test_Ref(object):
     def test_short_names(self):
         ref = Ref(u"Exo. 3:1")
         assert ref.book == u"Exodus"
-        assert Ref("Prov. 3.19")
+        assert Ref("Prov. 3.19") == Ref("Proverbs 3:19")
         assert Ref("Exo. 3.19")
         assert Ref("Prov 3.20")
         assert Ref("Exo 3.20")
@@ -343,7 +343,7 @@ class Test_Ref(object):
         # empty at the beginning
         assert Ref('Tosafot on Bava Metzia.3a').as_ranged_segment_ref() == Ref('Tosafot on Bava Metzia.3a.1.1-3a.39.1')
         assert Ref('Genesis.1-14').as_ranged_segment_ref() == Ref('Genesis.1.1-14.24')
-        assert Ref('Pesach Haggadah, Karpas').as_ranged_segment_ref() == Ref('Pesach Haggadah, Karpas.1-4')
+        #assert Ref('Pesach Haggadah, Karpas').as_ranged_segment_ref() == Ref('Pesach Haggadah, Karpas.1-4')
         assert Ref('Marbeh_Lisaper_on_Pesach_Haggadah,_'
                    'Karpas').as_ranged_segment_ref() == Ref('Marbeh_Lisaper_on_Pesach_Haggadah,_Karpas.1.1-1.2')
 
