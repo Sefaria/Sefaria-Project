@@ -229,3 +229,13 @@ def count_by_regex(some_file, regex):
             else:
                 result[item] += 1
     return result
+
+
+def short_to_long_lang_code(code):
+    if code in ("bi", "he-en", "en-he"):
+        code = "bilingual"
+    elif code in ('he', 'he-il'):
+        code = 'hebrew'
+    elif code in ("en"):
+        code = "english"
+    return code
