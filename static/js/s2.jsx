@@ -1376,7 +1376,7 @@ var Header = React.createClass({
 
     var notificationCount = Sefaria.notificationCount || 0;
     var notifcationsClasses = classNames({notifications: 1, unread: notificationCount > 0});
-    var nextParam = "?next=" + Sefaria.util.currentPath();
+    var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
     var headerMessage = this.props.headerMessage ?
                           (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
                           null;
@@ -5682,6 +5682,7 @@ var ToolsPanel = React.createClass({
     var editText  = this.props.canEditText ? function() {
         var refString = this.props.srefs[0];
         var currentPath = Sefaria.util.currentPath();
+        debugger;
         var currentLangParam;
         if (this.props.version) {
         refString += "/" + encodeURIComponent(this.props.versionLanguage) + "/" + encodeURIComponent(this.props.version);
