@@ -1,6 +1,6 @@
 ## New Interfaces for Jewish Texts
 
-Sefaria is creating interfaces, apps (like a source sheet builder) and infrastructure (like an API and a structured dataset) for Jewish texts and textual learning. Our demo is up at www.sefaria.org.
+Sefaria is creating interfaces, apps (like a source sheet builder) and infrastructure (like an API and a structured dataset) for Jewish texts and textual learning. Our website is up at www.sefaria.org.
 
 You can find outputs of our entire database in [Sefaria-Export](https://github.com/Sefaria/Sefaria-Export).
 
