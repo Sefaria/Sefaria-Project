@@ -504,7 +504,6 @@ var ReaderApp = React.createClass({
     hist = (headerPanel)
         ? {state: {header: states[0]}, url: url, title: title}
         : {state: {panels: states}, url: url, title: title};
-
     for (var i = 1; i < histories.length; i++) {
       if (histories[i-1].mode === "Text" && histories[i].mode === "Connections") {
         if (i == 1) {
@@ -521,7 +520,15 @@ var ReaderApp = React.createClass({
         } else {
           var replacer = "&p" + i + "=";
           hist.url    = hist.url.replace(RegExp(replacer + ".*"), "");
-          hist.url   += replacer + histories[i].url + "&w" + i + "=" + histories[i].sources; //.replace("with=", "with" + i + "=").replace("?", "&");
+          hist.url   += replacer + histories[i].url;
+          if(histories[i-1].versionLanguage && histories[i-1].version) {
+          hist.url += "&l" + (i) + "=" + histories[i-1].versionLanguage +
+                      "&v" + (i) + "=" + histories[i-1].version.replace(/\s/g,"_");
+          }
+          if(histories[i-1].lang) {
+            hist.url += "&lang" + (i) + "=" + histories[i-1].lang;
+          }
+          hist.url   += "&w" + i + "=" + histories[i].sources; //.replace("with=", "with" + i + "=").replace("?", "&");
           hist.title += " & " + histories[i].title; // TODO this doesn't trim title properly
         }
       } else {
@@ -1369,7 +1376,7 @@ var Header = React.createClass({
 
     var notificationCount = Sefaria.notificationCount || 0;
     var notifcationsClasses = classNames({notifications: 1, unread: notificationCount > 0});
-    var nextParam = "?next=" + Sefaria.util.currentPath();
+    var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
     var headerMessage = this.props.headerMessage ?
                           (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
                           null;
@@ -5673,16 +5680,19 @@ var ToolsPanel = React.createClass({
   },
   render: function() {
     var editText  = this.props.canEditText ? function() {
-      var refString = this.props.srefs[0];
-      if (this.props.version) {
-        refString += "/" + this.props.versionLanguage + "/" + this.props.version;
-      }
-      var path = "/edit/" + refString;
-      var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
-      path += nextParam;
-      Sefaria.site.track.event("Tools", "Edit Text Click", refString,
+        var refString = this.props.srefs[0];
+        var currentPath = Sefaria.util.currentPath();
+        debugger;
+        var currentLangParam;
+        if (this.props.version) {
+        refString += "/" + encodeURIComponent(this.props.versionLanguage) + "/" + encodeURIComponent(this.props.version);
+        }
+        var path = "/edit/" + refString;
+        var nextParam = "?next=" + encodeURIComponent(currentPath);
+        path += nextParam;
+        Sefaria.site.track.event("Tools", "Edit Text Click", refString,
           {hitCallback: () =>  window.location = path}
-      );
+        );
     }.bind(this) : null;
     
     var addTranslation = function() {
