@@ -1690,9 +1690,11 @@ var ReaderPanel = React.createClass({
   },
   toggleLanguage: function() {
     if (this.state.settings.language == "hebrew") {
-      this.setOption("language", "english");
+        this.setOption("language", "english");
+        if (Sefaria.site) { Sefaria.site.track.event("Reader", "Change Language", "english");}
     } else {
-      this.setOption("language", "hebrew");
+        this.setOption("language", "hebrew");
+        if (Sefaria.site) { Sefaria.site.track.event("Reader", "Change Language", "hebrew");}
     }
   },
   openCommentary: function(commentator) {
