@@ -8,7 +8,7 @@ import sefaria.tracker as tracker
 def test_add_commentary_links():
     #test simple adding links
     title = 'Rashi on Genesis'
-    desired_link_count = 2027
+    desired_link_count = LinkSet({"refs": {"$regex": Ref(title).regex()},"auto": True, "generated_by": "add_commentary_links"}).count()
     found = add_commentary_links(Ref(title), 1)
     assert len(found) == desired_link_count
 
@@ -28,8 +28,8 @@ def test_add_commentary_links_default_node():
 def test_add_delete_commentary_links():
     #test that there are the same number of links before and after
     title = 'Rashi on Genesis'
-    desired_link_count = 2027
     regex = Ref(title).regex()
+    desired_link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
     add_and_delete_invalid_commentary_links(Ref(title), 1)
     ls = LinkSet({"refs": {"$regex": regex}, "generated_by": "add_commentary_links"})
     link_count = ls.count()
@@ -49,7 +49,7 @@ def test_add_delete_commentary_links_complex():
 
 def test_add_remove_links_with_text_save():
     title = 'Rashi on Genesis'
-    desired_link_count = 2027
+    desired_link_count = LinkSet({"refs": {"$regex": Ref(title).regex()},"auto": True, "generated_by": "add_commentary_links"}).count()
     regex = Ref(title).regex()
     tref = 'Rashi on Genesis 18:22'
     oref = Ref(tref)
