@@ -67,13 +67,13 @@ Create a directory called "log" under the project folder. Make sure that the ser
 
 #### Get Mongo running:
 
-If you don't already have it, [install MongoDB](http://docs.mongodb.org/manual/installation/). Our current data dump requires MongoDB version 2.6 or later. To get Mongo running:
+If you don't already have it, [install MongoDB](http://docs.mongodb.org/manual/installation/). Our current data dump requires MongoDB version 2.6 or later. After installing Mongo, run the mongo daemon with:
 
     sudo mongod
 
 #### Put some texts in your database:
 
-A MongoDB dump of our database is available at http://dev.sefaria.org/static/dump.tar.gz . Download this content, then from the parent directory which contains `dump` run:
+A MongoDB dump of our database is available at http://dev.sefaria.org/static/dump.tar.gz . Download and unzip this content, then from the parent directory which contains `dump` run:
 
     mongorestore --drop
 
