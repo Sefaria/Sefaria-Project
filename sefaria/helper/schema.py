@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from sefaria.model import *
-from sefaria.system.database import db
 
 """
                                                     IN PROCESS & UNTESTED
@@ -44,16 +43,15 @@ def attach_branch(new_node, parent_node, place=0):
     for v in vs + vsc:
         pc = v.content_node(parent_node)
         pc[new_node.key] = new_node.create_skeleton()
-        v.save()
+        v.save(override_dependencies=True)
 
     # Update Index schema and save
     parent_node.children.insert(place, new_node)
     new_node.parent = parent_node
 
-    flags = delete_version_states(index.title)
-    index.save()
-    refresh_version_states(index.title, flags)
-
+    index.save(override_dependencies=True)
+    library.rebuild()
+    refresh_version_state(index.title)
 
 def remove_branch(node):
     """
@@ -75,14 +73,13 @@ def remove_branch(node):
         assert isinstance(v, Version)
         pc = v.content_node(parent)
         del pc[node.key]
-        v.save()
+        v.save(override_dependencies=True)
 
     parent.children = [n for n in parent.children if n.key != node.key]
 
-    flags = delete_version_states(index.title)
-    index.save()
-    refresh_version_states(index.title, flags)
-
+    index.save(override_dependencies=True)
+    library.rebuild()
+    refresh_version_state(index.title)
 
 def reorder_children(parent_node, new_order):
     """
@@ -118,7 +115,7 @@ def convert_simple_index_to_complex(index):
     for v in vs + vsc:
         assert isinstance(v, Version)
         v.chapter = {"default": v.chapter}
-        v.save()
+        v.save(override_dependencies=True)
 
     # Build new schema
     new_parent = SchemaNode()
@@ -132,9 +129,9 @@ def convert_simple_index_to_complex(index):
     new_parent.append(ja_node)
     index.nodes = new_parent
 
-    flags = delete_version_states(index.title)
-    index.save()
-    refresh_version_states(index.title, flags)
+    index.save(override_dependencies=True)
+    library.rebuild()
+    refresh_version_state(index.title)
 
 
 def change_parent(node, new_parent, place=0):
@@ -161,57 +158,37 @@ def change_parent(node, new_parent, place=0):
         content = old_parent_content.pop(node.key)
         new_parent_content = v.content_node(new_parent)
         new_parent_content[node.key] = content
-        v.save()
+        v.save(override_dependencies=True)
 
     old_parent.children = [n for n in old_parent.children if n.key != node.key]
     new_parent.children.insert(place, node)
     node.parent = new_parent
     new_normal_form = node.ref().normal()
 
-    flags = delete_version_states(index.title)
-    index.save()
+    index.save(override_dependencies=True)
+    library.rebuild()
 
     for link in linkset:
         link.refs = [ref.replace(old_normal_form, new_normal_form) for ref in link.refs]
         link.save()
     # todo: commentary linkset
 
-    refresh_version_states(index.title, flags)
+    refresh_version_state(index.title)
 
 
-def delete_version_states(base_title):
-    d = {}
-
-    vs = db.vstate.find_one({"title": base_title})
-    if vs:
-        d[base_title] = vs["flags"]
-        db.vstate.remove({"_id": vs["_id"]})
-
-    vtitles = library.get_commentary_version_titles_on_book(base_title) + [base_title]
-    for title in vtitles:
-        vs = db.vstate.find_one({"title": title})
-        if vs:
-            d[title] = vs["flags"]
-            db.vstate.remove({"_id": vs["_id"]})
-
-    return d
-
-
-def refresh_version_states(base_title, flag_dict):
+def refresh_version_state(base_title):
     """
     ** VersionState is *not* altered on Index save.  It is only created on Index creation.
     ^ It now seems that VersionState is referenced on Index save
 
     VersionState is *not* automatically updated on Version save.
     The VersionState update on version save happens in texts_api().
-
     VersionState.refresh() assumes the structure of content has not changed.
     To regenerate VersionState, we save the flags, delete the old one, and regenerate a new one.
-
-    :param flag_dict: comes from delete_version_states()
     """
-    VersionState(base_title, {"flags": flag_dict.get(base_title)})
-
     vtitles = library.get_commentary_version_titles_on_book(base_title) + [base_title]
     for title in vtitles:
-        VersionState(title, {"flags": flag_dict.get(title)})
+        vs = VersionState(title)
+        flags = vs.flags
+        vs.delete()
+        VersionState(title, {"flags": flags})

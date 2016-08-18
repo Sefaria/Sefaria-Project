@@ -175,10 +175,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return u"{}().load({{'title': '{}'}})".format(self.__class__.__name__, self.title)
 
-    def save(self):
+    def save(self, override_dependencies=False):
         if DISABLE_INDEX_SAVE:
             raise InputError("Index saving has been disabled on this system.")
-        return super(Index, self).save()
+        return super(Index, self).save(override_dependencies=override_dependencies)
 
     def _set_derived_attributes(self):
         if getattr(self, "schema", None):

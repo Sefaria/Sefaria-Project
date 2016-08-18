@@ -97,10 +97,11 @@ class AbstractMongoRecord(object):
         self.load_from_dict(attrs)
         return self.save()
 
-    def save(self):
+    def save(self, override_dependencies=False):
         """
         Save the object to the Mongo data store.
         On completion, will emit a 'save' notification.  If a tracked attribute has changed, will emit an 'attributeChange' notification.
+        if override_dependencies is set to True, no notifcations will be emitted.
         :return: the object
         """
         is_new_obj = self.is_new()
@@ -124,12 +125,13 @@ class AbstractMongoRecord(object):
             self._prepare_second_save()
             getattr(db, self.collection).save(props, w=1)
 
-        if self.track_pkeys and not is_new_obj:
+        if self.track_pkeys and not is_new_obj and not override_dependencies:
             for key, old_value in self.pkeys_orig_values.items():
                 if old_value != getattr(self, key):
                     notify(self, "attributeChange", attr=key, old=old_value, new=getattr(self, key))
 
-        notify(self, "save", orig_vals=self.pkeys_orig_values, is_new=is_new_obj)
+        if not override_dependencies:
+            notify(self, "save", orig_vals=self.pkeys_orig_values, is_new=is_new_obj)
 
         # Set new values as pkey_orig_values so that future changes will be caught
         if self.track_pkeys:
