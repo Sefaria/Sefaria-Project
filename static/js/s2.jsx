@@ -1284,7 +1284,10 @@ var Header = React.createClass({
   hideTestMessage: function() { 
     this.props.setCentralState({showTestMessage: false});
   },
-  submitSearch: function(query, skipNormalization) {
+  submitSearch: function(query, skipNormalization, originalQuery) {
+    // originalQuery is used to handle an edge case - when a varient of a commentator name is passed - e.g. "Rasag".
+    // the name gets normalized, but is ultimately not a ref, so becomes a regular search.
+    // We want to search for the original query, not the normalized name
     var override = query.match(this._searchOverrideRegex());
     if (override) {
       if (Sefaria.site) { Sefaria.site.track.event("Search", "Search Box Navigation - Book Override", override[1]); }
@@ -1298,7 +1301,7 @@ var Header = React.createClass({
       index = Sefaria.index(query);
       if (!index && !skipNormalization) {
         Sefaria.normalizeTitle(query, function(title) {
-          this.submitSearch(title, true)
+          this.submitSearch(title, true, query)
         }.bind(this));
         return;
       }
@@ -1311,7 +1314,7 @@ var Header = React.createClass({
     } else {
       if (Sefaria.site) { Sefaria.site.track.event("Search", "Search Box Search", query); }
       this.closeSearchAutocomplete();
-      this.showSearch(query);
+      this.showSearch(originalQuery || query);
     }
   },
   closeSearchAutocomplete: function() {
