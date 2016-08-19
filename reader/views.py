@@ -1148,8 +1148,14 @@ def texts_api(request, tref, lang=None, version=None):
         # TODO: what if pad is false and the ref is of an entire book?
         # Should next_section_ref return None in that case?
         oref               = oref.padded_ref() if pad else oref
-        text["next"]       = oref.next_section_ref().normal() if oref.next_section_ref() else None
-        text["prev"]       = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+        try:
+            text["next"]       = oref.next_section_ref().normal() if oref.next_section_ref() else None
+            text["prev"]       = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+        except AttributeError as e:
+            # There are edge cases where the TextFamily call above works on a default node, but the next section call here does not.
+            oref = oref.default_child_ref()
+            text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+            text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
         text["commentary"] = text.get("commentary", [])
         text["sheets"]     = get_sheets_for_ref(tref) if int(request.GET.get("sheets", 0)) else []
 
