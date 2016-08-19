@@ -357,6 +357,13 @@ body.dark {
 .dark .readerContent {
   color: white;
 }
+.readerContent .readerError {
+  padding: 100px 150px;
+}
+.readerContent .readerError .readerErrorText {
+  padding-top: 20px;
+  font-size: .8em;
+}
 .textColumn {
   width: 100%;
   height: 100%;
