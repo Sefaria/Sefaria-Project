@@ -175,10 +175,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return u"{}().load({{'title': '{}'}})".format(self.__class__.__name__, self.title)
 
-    def save(self):
+    def save(self, override_dependencies=False):
         if DISABLE_INDEX_SAVE:
             raise InputError("Index saving has been disabled on this system.")
-        return super(Index, self).save()
+        return super(Index, self).save(override_dependencies=override_dependencies)
 
     def _set_derived_attributes(self):
         if getattr(self, "schema", None):
@@ -1342,6 +1342,25 @@ class TextChunk(AbstractTextRecord):
             return self._versions[0]
         else:
             raise Exception("Called TextChunk.version() on merged TextChunk.")
+
+    def text_index_map(self,tokenizer):
+        """
+        Primarily used for depth-2 texts in order to get index/ref pairs relative to the full text string
+         indexes are the word index in word_list
+
+        tokenizer: f(str)->list(str) - function to split up text
+        :return: (list,list,list) - index_list, ref_list, word_list
+        """
+        ind_list = []
+        ref_list = self._oref.all_subrefs()
+
+        total_len = 0
+        for i,segment in enumerate(self.text):
+            ind_list.append(total_len)
+            total_len += len(tokenizer(segment))
+
+        return ind_list,ref_list
+
 
 
 # Mirrors the construction of the old get_text() method.

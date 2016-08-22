@@ -125,8 +125,10 @@ Sefaria = extend(Sefaria, {
   },
   isRef: function(ref) {
     // Returns true if `ref` appears to be a ref relative to known books in Sefaria.books
-    q = Sefaria.parseRef(ref);
-    return ("book" in q && q.book);
+    var q = Sefaria.parseRef(ref);
+    // We check for Index here in order not to allow a bare commentator name. Something like "Ramban" will return a book, but no Index.
+    // After commentary refactor, we can take off the index check, below.
+    return ("book" in q && q.book && "index" in q && q.index);
   },
   titlesInText: function(text) {
     // Returns an array of the known book titles that appear in text.
@@ -1448,7 +1450,7 @@ Sefaria = extend(Sefaria, {
 });
 
 Sefaria.unpackDataFromProps = function(props) {
-  // Populate local cache with various data passed as a rider on props. 
+  // Populate local cache with various data passed as a rider on props.
   var initialPanels = props.initialPanels || [];
   for (var i = 0; i < initialPanels.length; i++) {
       var panel = initialPanels[i];

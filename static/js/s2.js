@@ -120,9 +120,9 @@ var ReaderApp = React.createClass({
           menuOpen: this.props.initialPanels[0].menuOpen,
           version: this.props.initialPanels.length ? this.props.initialPanels[0].version : null,
           versionLanguage: this.props.initialPanels.length ? this.props.initialPanels[0].versionLanguage : null,
-          settings: Sefaria.util.clone(defaultPanelSettings)
+          settings: "settings" in this.props.initialPanels[0] ? extend(Sefaria.util.clone(defaultPanelSettings), this.props.initialPanels[0].settings) : Sefaria.util.clone(defaultPanelSettings)
         };
-        if (p.versionLanguage) {
+        if (p.versionLanguage && !"settings" in this.props.initialPanels[0]) {
           p.settings.language = p.versionLanguage == "he" ? "hebrew" : "english";
         }
         panels.push(p);
@@ -131,14 +131,14 @@ var ReaderApp = React.createClass({
         var panel;
         if (this.props.initialPanels[i].menuOpen == "book toc") {
           panel = {
-            settings: Sefaria.util.clone(defaultPanelSettings),
             menuOpen: this.props.initialPanels[i].menuOpen,
-            bookRef: this.props.initialPanels[i].bookRef
+            bookRef: this.props.initialPanels[i].bookRef,
+            settings: "settings" in this.props.initialPanels[i] ? extend(Sefaria.util.clone(defaultPanelSettings), this.props.initialPanels[i].settings) : Sefaria.util.clone(defaultPanelSettings)
           };
         } else {
           panel = this.clonePanel(this.props.initialPanels[i]);
           panel.settings = Sefaria.util.clone(defaultPanelSettings);
-          if (panel.versionLanguage) {
+          if (panel.versionLanguage && !"settings" in this.props.initialPanels[i]) {
             panel.settings.language = panel.versionLanguage == "he" ? "hebrew" : "english";
           }
         }
@@ -349,8 +349,8 @@ var ReaderApp = React.createClass({
       prevPanels = headerPanel ? [history.state.header] : history.state.panels;
       nextPanels = headerPanel ? [this.state.header] : this.state.panels;
     } else {
-      prevPanels = [history.state.header];
-      nextPanels = [this.state.header];
+      prevPanels = history.state.panels;
+      nextPanels = this.state.panels;
     }
 
     for (var i = 0; i < prevPanels.length; i++) {
@@ -362,7 +362,7 @@ var ReaderApp = React.createClass({
         return true;
       }
 
-      if (prev.mode !== next.mode || prev.menuOpen !== next.menuOpen || next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0] || next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0] || (next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter) || next.mode === "Connections" && !prev.refs.compare(next.refs) || prev.navigationSheetTag !== next.navigationSheetTag || prev.version !== next.version || prev.versionLanguage !== next.versionLanguage || prev.searchQuery != next.searchQuery || prev.appliedSearchFilters && next.appliedSearchFilters && prev.appliedSearchFilters.length !== next.appliedSearchFilters.length || prev.appliedSearchFilters && next.appliedSearchFilters && !prev.appliedSearchFilters.compare(next.appliedSearchFilters)) {
+      if (prev.mode !== next.mode || prev.menuOpen !== next.menuOpen || next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0] || next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0] || (next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter) || next.mode === "Connections" && !prev.refs.compare(next.refs) || prev.navigationSheetTag !== next.navigationSheetTag || prev.version !== next.version || prev.versionLanguage !== next.versionLanguage || prev.searchQuery != next.searchQuery || prev.appliedSearchFilters && next.appliedSearchFilters && prev.appliedSearchFilters.length !== next.appliedSearchFilters.length || prev.appliedSearchFilters && next.appliedSearchFilters && !prev.appliedSearchFilters.compare(next.appliedSearchFilters) || prev.settings.language != next.settings.language) {
         return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
         // Handle array comparison, !== could mean one is null or both are arrays
@@ -791,12 +791,20 @@ var ReaderApp = React.createClass({
     //console.log(state)
 
     // When the driving panel changes language, carry that to the dependent panel
+    // However, when carrying a language change to the Tools Panel, do not carry over an incorrect version
     var langChange = state.settings && state.settings.language !== this.state.panels[n].settings.language;
     var next = this.state.panels[n + 1];
     if (langChange && next && next.mode === "Connections") {
+      /*debugger;*/
       next.settings.language = state.settings.language;
+      if (next.settings.language.substring(0, 2) != this.state.panels[n].versionLanguage) {
+        next.versionLanguage = null;
+        next.version = null;
+      } else {
+        next.versionLanguage = this.state.panels[n].versionLanguage;
+        next.version = this.state.panels[n].version;
+      }
     }
-
     this.state.panels[n] = extend(this.state.panels[n], state);
     this.setState({ panels: this.state.panels });
   },
@@ -1822,6 +1830,7 @@ var ReaderPanel = React.createClass({
     cookie(option, value, { path: "/" });
     if (option === "language") {
       cookie("contentLang", value, { path: "/" });
+      this.replaceHistory = true;
       this.props.setDefaultOption && this.props.setDefaultOption(option, value);
     }
     this.conditionalSetState(state);
@@ -5914,6 +5923,9 @@ var TextSegment = React.createClass({
       highlight: this.props.highlight,
       heOnly: !this.props.en,
       enOnly: !this.props.he });
+    if (!this.props.en && !this.props.he) {
+      return false;
+    }
     return React.createElement(
       'span',
       { className: classes, onClick: this.handleClick, 'data-ref': this.props.sref },
@@ -7039,7 +7051,7 @@ var ToolsPanel = React.createClass({
         refString += "/" + this.props.versionLanguage + "/" + this.props.version;
       }
       var path = "/edit/" + refString;
-      var nextParam = "?next=" + Sefaria.util.currentPath();
+      var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
       path += nextParam;
       Sefaria.site.track.event("Tools", "Edit Text Click", refString, { hitCallback: function hitCallback() {
           return window.location = path;

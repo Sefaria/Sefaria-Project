@@ -692,6 +692,8 @@ def import_versions(csv_filename, columns):
 
         # Populate it
         for row in rows[5:]:
-            tc = TextChunk(Ref(row[0]), v.language, v.versionTitle)
+            ref = Ref(row[0])
+            print "Saving: {}".format(ref.normal())
+            tc = TextChunk(ref, v.language, v.versionTitle)
             tc.text = row[column]
             tc.save()

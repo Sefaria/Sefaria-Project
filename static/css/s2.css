@@ -357,6 +357,13 @@ body.dark {
 .dark .readerContent {
   color: white;
 }
+.readerContent .readerError {
+  padding: 100px 150px;
+}
+.readerContent .readerError .readerErrorText {
+  padding-top: 20px;
+  font-size: .8em;
+}
 .textColumn {
   width: 100%;
   height: 100%;
@@ -405,14 +412,20 @@ body.dark {
   direction: rtl;
   text-align: right;
 }
+.interface-hebrew .readerPanel .en{
+  direction: ltr;
+}
 /*.readerPanel.hebrew {
   direction: rtl;
 }*/
 /*.readerPanel.english {
   direction: ltr;
 }*/
-.interface-hebrew .readerPanel .readerNavMenu{
+.interface-hebrew .readerPanel .readerNavMenu, .readerPanel.hebrew .readerNavSection, .readerPanel.hebrew .readerNavMenu .category{
   direction: rtl;
+}
+.interface-english .readerPanel .readerNavMenu, .readerPanel.english .readerNavSection, .readerPanel.english .readerNavMenu .category{
+  direction: ltr;
 }
 .readerPanel.english .he {
   display: none;
@@ -1957,17 +1970,25 @@ a.resourcesLink {
 }
 .segment {
 }
-.segment.heOnly {
+.segment.heOnly{
   text-align: right;
+  direction: rtl;
 }
-.segment.enOnly {
+.segment.enOnly{
   text-align: left;
+  direction: ltr;
 }
-.segment.heOnly .en {
+.segment.heOnly .en{
   display: none;
 }
-.segment.enOnly .he {
+.segment.enOnly .he{
   display: none;
+}
+.segment.heOnly .he{
+  display: initial;
+}
+.segment.enOnly .en{
+  display: initial;
 }
 .segment .segmentNumber,
 .segment .linkCount,

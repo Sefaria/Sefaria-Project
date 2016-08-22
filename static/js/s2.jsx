@@ -111,9 +111,9 @@ var ReaderApp = React.createClass({
           menuOpen: this.props.initialPanels[0].menuOpen,
           version: this.props.initialPanels.length ? this.props.initialPanels[0].version : null,
           versionLanguage: this.props.initialPanels.length ? this.props.initialPanels[0].versionLanguage : null,
-          settings: Sefaria.util.clone(defaultPanelSettings)
+          settings: ("settings" in this.props.initialPanels[0]) ? extend(Sefaria.util.clone(defaultPanelSettings), this.props.initialPanels[0].settings) : Sefaria.util.clone(defaultPanelSettings)
         };
-        if (p.versionLanguage) {
+        if (p.versionLanguage && !"settings" in this.props.initialPanels[0]) {
           p.settings.language = (p.versionLanguage == "he") ? "hebrew" : "english";
         }
         panels.push(p);
@@ -122,14 +122,14 @@ var ReaderApp = React.createClass({
         var panel;
         if (this.props.initialPanels[i].menuOpen == "book toc") {
           panel = {
-              settings: Sefaria.util.clone(defaultPanelSettings),
               menuOpen: this.props.initialPanels[i].menuOpen,
-              bookRef:  this.props.initialPanels[i].bookRef
+              bookRef:  this.props.initialPanels[i].bookRef,
+              settings: ("settings" in this.props.initialPanels[i]) ? extend(Sefaria.util.clone(defaultPanelSettings), this.props.initialPanels[i].settings) : Sefaria.util.clone(defaultPanelSettings)
           };
         } else {
           panel = this.clonePanel(this.props.initialPanels[i]);
           panel.settings = Sefaria.util.clone(defaultPanelSettings);
-          if (panel.versionLanguage) {
+          if (panel.versionLanguage && !"settings" in this.props.initialPanels[i]) {
             panel.settings.language = (panel.versionLanguage == "he") ? "hebrew" : "english";
           }
         }
@@ -317,8 +317,8 @@ var ReaderApp = React.createClass({
       prevPanels = headerPanel ? [history.state.header] : history.state.panels;
       nextPanels = headerPanel ? [this.state.header] : this.state.panels;
     } else {
-      prevPanels = [history.state.header];
-      nextPanels = [this.state.header];
+      prevPanels = history.state.panels;
+      nextPanels = this.state.panels;
     }
 
     for (var i = 0; i < prevPanels.length; i++) {
@@ -339,7 +339,8 @@ var ReaderApp = React.createClass({
           (prev.versionLanguage !== next.versionLanguage) ||
           (prev.searchQuery != next.searchQuery) ||
           (prev.appliedSearchFilters && next.appliedSearchFilters && (prev.appliedSearchFilters.length !== next.appliedSearchFilters.length)) ||
-          (prev.appliedSearchFilters && next.appliedSearchFilters && !(prev.appliedSearchFilters.compare(next.appliedSearchFilters))))
+          (prev.appliedSearchFilters && next.appliedSearchFilters && !(prev.appliedSearchFilters.compare(next.appliedSearchFilters))) ||
+          (prev.settings.language != next.settings.language))
           {
          return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
@@ -503,7 +504,6 @@ var ReaderApp = React.createClass({
     hist = (headerPanel)
         ? {state: {header: states[0]}, url: url, title: title}
         : {state: {panels: states}, url: url, title: title};
-
     for (var i = 1; i < histories.length; i++) {
       if (histories[i-1].mode === "Text" && histories[i].mode === "Connections") {
         if (i == 1) {
@@ -520,7 +520,15 @@ var ReaderApp = React.createClass({
         } else {
           var replacer = "&p" + i + "=";
           hist.url    = hist.url.replace(RegExp(replacer + ".*"), "");
-          hist.url   += replacer + histories[i].url + "&w" + i + "=" + histories[i].sources; //.replace("with=", "with" + i + "=").replace("?", "&");
+          hist.url   += replacer + histories[i].url;
+          if(histories[i-1].versionLanguage && histories[i-1].version) {
+          hist.url += "&l" + (i) + "=" + histories[i-1].versionLanguage +
+                      "&v" + (i) + "=" + histories[i-1].version.replace(/\s/g,"_");
+          }
+          if(histories[i-1].lang) {
+            hist.url += "&lang" + (i) + "=" + histories[i-1].lang;
+          }
+          hist.url   += "&w" + i + "=" + histories[i].sources; //.replace("with=", "with" + i + "=").replace("?", "&");
           hist.title += " & " + histories[i].title; // TODO this doesn't trim title properly
         }
       } else {
@@ -763,12 +771,20 @@ var ReaderApp = React.createClass({
     //console.log(state)
 
     // When the driving panel changes language, carry that to the dependent panel
+    // However, when carrying a language change to the Tools Panel, do not carry over an incorrect version
     var langChange  = state.settings && state.settings.language !== this.state.panels[n].settings.language;
     var next        = this.state.panels[n+1];
     if (langChange && next && next.mode === "Connections") {
+        /*debugger;*/
         next.settings.language = state.settings.language;
+        if(next.settings.language.substring(0,2) != this.state.panels[n].versionLanguage){
+            next.versionLanguage = null;
+            next.version = null;
+        }else{
+            next.versionLanguage = this.state.panels[n].versionLanguage;
+            next.version = this.state.panels[n].version;
+        }
     }
-
     this.state.panels[n] = extend(this.state.panels[n], state);
     this.setState({panels: this.state.panels});
   },
@@ -1268,7 +1284,10 @@ var Header = React.createClass({
   hideTestMessage: function() { 
     this.props.setCentralState({showTestMessage: false});
   },
-  submitSearch: function(query, skipNormalization) {
+  submitSearch: function(query, skipNormalization, originalQuery) {
+    // originalQuery is used to handle an edge case - when a varient of a commentator name is passed - e.g. "Rasag".
+    // the name gets normalized, but is ultimately not a ref, so becomes a regular search.
+    // We want to search for the original query, not the normalized name
     var override = query.match(this._searchOverrideRegex());
     if (override) {
       if (Sefaria.site) { Sefaria.site.track.event("Search", "Search Box Navigation - Book Override", override[1]); }
@@ -1282,7 +1301,7 @@ var Header = React.createClass({
       index = Sefaria.index(query);
       if (!index && !skipNormalization) {
         Sefaria.normalizeTitle(query, function(title) {
-          this.submitSearch(title, true)
+          this.submitSearch(title, true, query)
         }.bind(this));
         return;
       }
@@ -1291,11 +1310,11 @@ var Header = React.createClass({
       var action = index? "Search Box Navigation - Book": "Search Box Navigation - Citation";
       if (Sefaria.site) { Sefaria.site.track.event("Search", action, query); }
       this.clearSearchBox();
-      this.handleRefClick(query);
+      this.handleRefClick(query);  //todo: pass an onError function through here to the panel onError function which redirects to search
     } else {
       if (Sefaria.site) { Sefaria.site.track.event("Search", "Search Box Search", query); }
       this.closeSearchAutocomplete();
-      this.showSearch(query);
+      this.showSearch(originalQuery || query);
     }
   },
   closeSearchAutocomplete: function() {
@@ -1360,7 +1379,7 @@ var Header = React.createClass({
 
     var notificationCount = Sefaria.notificationCount || 0;
     var notifcationsClasses = classNames({notifications: 1, unread: notificationCount > 0});
-    var nextParam = "?next=" + Sefaria.util.currentPath();
+    var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
     var headerMessage = this.props.headerMessage ?
                           (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
                           null;
@@ -1427,6 +1446,7 @@ var ReaderPanel = React.createClass({
     onRecentClick:               React.PropTypes.func,
     onSearchResultClick:         React.PropTypes.func,
     onUpdate:                    React.PropTypes.func,
+    onError:                     React.PropTypes.func,
     closePanel:                  React.PropTypes.func,
     closeMenus:                  React.PropTypes.func,
     setConnectionsFilter:        React.PropTypes.func,
@@ -1533,6 +1553,13 @@ var ReaderPanel = React.createClass({
     } else {
       this.setState(state);
     }
+  },
+  onError:  function(message) {
+    if (this.props.onError) {
+      this.props.onError(message);
+      return;
+    }
+    this.setState({"error": message})
   },
   clonePanel: function(panel) {
     // Set aside self-referential objects before cloning
@@ -1674,9 +1701,11 @@ var ReaderPanel = React.createClass({
   },
   toggleLanguage: function() {
     if (this.state.settings.language == "hebrew") {
-      this.setOption("language", "english");
+        this.setOption("language", "english");
+        if (Sefaria.site) { Sefaria.site.track.event("Reader", "Change Language", "english");}
     } else {
-      this.setOption("language", "hebrew");
+        this.setOption("language", "hebrew");
+        if (Sefaria.site) { Sefaria.site.track.event("Reader", "Change Language", "hebrew");}
     }
   },
   openCommentary: function(commentator) {
@@ -1718,6 +1747,7 @@ var ReaderPanel = React.createClass({
     cookie(option, value, {path: "/"});
     if (option === "language") {
       cookie("contentLang", value, {path: "/"});
+      this.replaceHistory = true;
       this.props.setDefaultOption && this.props.setDefaultOption(option, value);
     }
     this.conditionalSetState(state);
@@ -1800,6 +1830,21 @@ var ReaderPanel = React.createClass({
     return this.state.settings[option];  
   },
   render: function() {
+    if (this.state.error) {
+      return (
+          <div className="readerContent">
+            <div className="readerError">
+              <span className="int-en">Something went wrong! Please use the back button or the menus above to get back on track.</span>
+              <span className="int-he"></span>
+              <div className="readerErrorText">
+                <span className="int-en">Error Message: </span>
+                <span className="int-he"></span>
+                {this.state.error}
+              </div>
+            </div>
+          </div>
+        );
+    }
     var items = [];
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       items.push(<TextColumn
@@ -1995,6 +2040,7 @@ var ReaderPanel = React.createClass({
           closeMenus={this.closeMenus}
           openDisplaySettings={this.openDisplaySettings}
           currentLayout={this.currentLayout}
+          onError={this.onError}
           connectionsMode={this.state.filter.length && this.state.connectionsMode === "Connections" ? "Connection Text" : this.state.connectionsMode}
           closePanel={this.props.closePanel}
           toggleLanguage={this.toggleLanguage}
@@ -2034,6 +2080,7 @@ var ReaderControls = React.createClass({
     currentCategory:         React.PropTypes.func.isRequired,
     currentBook:             React.PropTypes.func.isRequired,
     currentLayout:           React.PropTypes.func.isRequired,
+    onError:                 React.PropTypes.func.isRequired,
     closePanel:              React.PropTypes.func,
     toggleLanguage:          React.PropTypes.func,
     currentRef:              React.PropTypes.string,
@@ -2062,7 +2109,13 @@ var ReaderControls = React.createClass({
 
     if (title && !oref) {
       // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-      Sefaria.text(title, {context: 1}, function() { if (this.isMounted()) { this.setState({}); } }.bind(this));
+      Sefaria.text(title, {context: 1}, function(data) {
+        if ("error" in data) {
+          this.props.onError(data.error);
+          return;
+        }
+        if (this.isMounted()) { this.setState({}); }
+      }.bind(this));
     }
 
     var versionTitle = this.props.version ? this.props.version.replace(/_/g," "):"";
@@ -4749,6 +4802,9 @@ var TextSegment = React.createClass({
                      highlight: this.props.highlight,
                      heOnly: !this.props.en,
                      enOnly: !this.props.he });
+    if(!this.props.en && !this.props.he){
+        return false;
+    }
     return (
       <span className={classes} onClick={this.handleClick} data-ref={this.props.sref}>
         {segmentNumber}
@@ -5660,16 +5716,19 @@ var ToolsPanel = React.createClass({
   },
   render: function() {
     var editText  = this.props.canEditText ? function() {
-      var refString = this.props.srefs[0];
-      if (this.props.version) {
-        refString += "/" + this.props.versionLanguage + "/" + this.props.version;
-      }
-      var path = "/edit/" + refString;
-      var nextParam = "?next=" + Sefaria.util.currentPath();    
-      path += nextParam;
-      Sefaria.site.track.event("Tools", "Edit Text Click", refString,
+        var refString = this.props.srefs[0];
+        var currentPath = Sefaria.util.currentPath();
+        debugger;
+        var currentLangParam;
+        if (this.props.version) {
+        refString += "/" + encodeURIComponent(this.props.versionLanguage) + "/" + encodeURIComponent(this.props.version);
+        }
+        var path = "/edit/" + refString;
+        var nextParam = "?next=" + encodeURIComponent(currentPath);
+        path += nextParam;
+        Sefaria.site.track.event("Tools", "Edit Text Click", refString,
           {hitCallback: () =>  window.location = path}
-      );
+        );
     }.bind(this) : null;
     
     var addTranslation = function() {
