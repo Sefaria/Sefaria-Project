@@ -1009,6 +1009,8 @@ a.resourcesLink {
   background-color: white;
   color: #666;
   cursor: pointer;
+  padding: 0px 6px;
+  box-sizing: border-box;
 }
 .readerTextTableOfContents .content .sectionLink .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
