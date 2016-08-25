@@ -639,6 +639,7 @@ var ReaderApp = React.createClass({
         layoutDefault: "segmented",
         layoutTalmud:  "continuous",
         layoutTanakh:  "segmented",
+        biLayout:      "stacked",
         color:         "light",
         fontSize:      62.5
       };
@@ -774,13 +775,12 @@ var ReaderApp = React.createClass({
     // However, when carrying a language change to the Tools Panel, do not carry over an incorrect version
     var langChange  = state.settings && state.settings.language !== this.state.panels[n].settings.language;
     var next        = this.state.panels[n+1];
-    if (langChange && next && next.mode === "Connections") {
-        /*debugger;*/
+    if (langChange && next && next.mode === "Connections" && state.settings.language !== "bilingual") {
         next.settings.language = state.settings.language;
-        if(next.settings.language.substring(0,2) != this.state.panels[n].versionLanguage){
+        if (next.settings.language.substring(0,2) != this.state.panels[n].versionLanguage){
             next.versionLanguage = null;
             next.version = null;
-        }else{
+        } else {
             next.versionLanguage = this.state.panels[n].versionLanguage;
             next.version = this.state.panels[n].version;
         }
@@ -891,11 +891,13 @@ var ReaderApp = React.createClass({
     panel.menuOpen       = null;
     panel.mode           = panel.mode || "Connections";
     if(parentPanel){
-      panel.filter           = parentPanel.filter;
+      panel.filter          = parentPanel.filter;
       panel.recentFilters   = parentPanel.recentFilters;
       panel.version         = parentPanel.version;
       panel.versionLanguage = parentPanel.versionLanguage;
     }
+    panel.settings          = panel.settings ? state.settings : Sefaria.util.clone(this.getDefaultPanelSettings()),
+    panel.settings.language = panel.settings.language == "hebrew" ? "hebrew" : "english"; // Don't let connections panels be bilingual
     newPanels[n] = this.makePanelState(panel);
     this.setState({panels: newPanels});
   },
@@ -1491,6 +1493,7 @@ var ReaderPanel = React.createClass({
         layoutDefault: "segmented",
         layoutTalmud:  "continuous",
         layoutTanakh:  "segmented",
+        biLayout:      "stacked",
         color:         "light",
         fontSize:      62.5
       },
@@ -1824,6 +1827,9 @@ var ReaderPanel = React.createClass({
     return (Sefaria.index(book) ? Sefaria.index(book).categories[0] : null);
   },
   currentLayout: function() {
+    if (this.state.settings.language == "bilingual") {
+      return this.width > 500 ? this.state.settings.biLayout : "stacked";
+    }
     var category = this.currentCategory();
     if (!category) { return "layoutDefault"; }
     var option = category === "Tanakh" || category === "Talmud" ? "layout" + category : "layoutDefault";
@@ -2055,7 +2061,8 @@ var ReaderPanel = React.createClass({
                                               settings={this.state.settings}
                                               multiPanel={this.props.multiPanel}
                                               setOption={this.setOption}
-                                              currentLayout={this.currentLayout} 
+                                              currentLayout={this.currentLayout}
+                                              width={this.width} 
                                               menuOpen={this.state.menuOpen} />) : null}
         {this.state.displaySettingsOpen ? (<div className="mask" onClick={this.closeDisplaySettings}></div>) : null}
 
@@ -2174,6 +2181,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
     currentLayout: React.PropTypes.func.isRequired,
     menuOpen:      React.PropTypes.string.isRequired,
     multiPanel:    React.PropTypes.bool.isRequired,
+    width:         React.PropTypes.number.isRequired,
     settings:      React.PropTypes.object.isRequired,
   },
   render: function() {
@@ -2193,13 +2201,25 @@ var ReaderDisplayOptionsMenu = React.createClass({
       {name: "continuous", fa: "align-justify" },
       {name: "segmented", fa: "align-left" },
     ];
+    var biLayoutOptions = [
+      {name: "stacked", content: "<img src='/static/img/stacked.png' />"},
+      {name: "heLeft", content: "<img src='/static/img/backs.png' />"},
+      {name: "heRight", content: "<img src='/static/img/faces.png' />"}
+    ];
     var layoutToggle = this.props.settings.language !== "bilingual" ? 
       (<ToggleSet
           name="layout"
           options={layoutOptions}
           setOption={this.props.setOption}
           currentLayout={this.props.currentLayout}
-          settings={this.props.settings} />) : null;
+          settings={this.props.settings} />) : 
+      (this.props.width > 500 ? 
+        <ToggleSet
+          name="biLayout"
+          options={biLayoutOptions}
+          setOption={this.props.setOption}
+          currentLayout={this.props.currentLayout}
+          settings={this.props.settings} /> : null);
 
     var colorOptions = [
       {name: "light", content: "" },
@@ -4442,6 +4462,7 @@ var TextRange = React.createClass({
           prevProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
           prevProps.settings.layoutTanakh !== this.props.settings.layoutTanakh ||
           prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
+          prevProps.settings.biLayout !== this.props.settings.biLayout ||
           prevProps.settings.fontSize !== this.props.settings.fontSize ||
           prevProps.layoutWidth !== this.props.layoutWidth) {
             // Rerender in case version has changed
@@ -4811,6 +4832,7 @@ var TextSegment = React.createClass({
         {linkCount}
         <span className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></span>
         <span className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></span>
+        <div className="clearFix"></div>
       </span>
     );
   }
