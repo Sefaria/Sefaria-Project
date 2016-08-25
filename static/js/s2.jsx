@@ -775,13 +775,12 @@ var ReaderApp = React.createClass({
     // However, when carrying a language change to the Tools Panel, do not carry over an incorrect version
     var langChange  = state.settings && state.settings.language !== this.state.panels[n].settings.language;
     var next        = this.state.panels[n+1];
-    if (langChange && next && next.mode === "Connections") {
-        /*debugger;*/
+    if (langChange && next && next.mode === "Connections" && state.settings.language !== "bilingual") {
         next.settings.language = state.settings.language;
-        if(next.settings.language.substring(0,2) != this.state.panels[n].versionLanguage){
+        if (next.settings.language.substring(0,2) != this.state.panels[n].versionLanguage){
             next.versionLanguage = null;
             next.version = null;
-        }else{
+        } else {
             next.versionLanguage = this.state.panels[n].versionLanguage;
             next.version = this.state.panels[n].version;
         }
@@ -892,11 +891,13 @@ var ReaderApp = React.createClass({
     panel.menuOpen       = null;
     panel.mode           = panel.mode || "Connections";
     if(parentPanel){
-      panel.filter           = parentPanel.filter;
+      panel.filter          = parentPanel.filter;
       panel.recentFilters   = parentPanel.recentFilters;
       panel.version         = parentPanel.version;
       panel.versionLanguage = parentPanel.versionLanguage;
     }
+    panel.settings          = panel.settings ? state.settings : Sefaria.util.clone(this.getDefaultPanelSettings()),
+    panel.settings.language = panel.settings.language == "hebrew" ? "hebrew" : "english"; // Don't let connections panels be bilingual
     newPanels[n] = this.makePanelState(panel);
     this.setState({panels: newPanels});
   },
