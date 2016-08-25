@@ -639,6 +639,7 @@ var ReaderApp = React.createClass({
         layoutDefault: "segmented",
         layoutTalmud:  "continuous",
         layoutTanakh:  "segmented",
+        biLayout:      "stacked",
         color:         "light",
         fontSize:      62.5
       };
@@ -1491,6 +1492,7 @@ var ReaderPanel = React.createClass({
         layoutDefault: "segmented",
         layoutTalmud:  "continuous",
         layoutTanakh:  "segmented",
+        biLayout:      "stacked",
         color:         "light",
         fontSize:      62.5
       },
@@ -1824,6 +1826,9 @@ var ReaderPanel = React.createClass({
     return (Sefaria.index(book) ? Sefaria.index(book).categories[0] : null);
   },
   currentLayout: function() {
+    if (this.state.settings.language == "bilingual") {
+      return this.state.settings.biLayout;
+    }
     var category = this.currentCategory();
     if (!category) { return "layoutDefault"; }
     var option = category === "Tanakh" || category === "Talmud" ? "layout" + category : "layoutDefault";
@@ -2193,13 +2198,24 @@ var ReaderDisplayOptionsMenu = React.createClass({
       {name: "continuous", fa: "align-justify" },
       {name: "segmented", fa: "align-left" },
     ];
+    var biLayoutOptions = [
+      {name: "stacked", content: "<img src='/static/img/stacked.png' />"},
+      {name: "heLeft", content: "<img src='/static/img/backs.png' />"},
+      {name: "heRight", content: "<img src='/static/img/faces.png' />"}
+    ];
     var layoutToggle = this.props.settings.language !== "bilingual" ? 
       (<ToggleSet
           name="layout"
           options={layoutOptions}
           setOption={this.props.setOption}
           currentLayout={this.props.currentLayout}
-          settings={this.props.settings} />) : null;
+          settings={this.props.settings} />) : 
+      (<ToggleSet
+          name="biLayout"
+          options={biLayoutOptions}
+          setOption={this.props.setOption}
+          currentLayout={this.props.currentLayout}
+          settings={this.props.settings} />);
 
     var colorOptions = [
       {name: "light", content: "" },
@@ -4442,6 +4458,7 @@ var TextRange = React.createClass({
           prevProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
           prevProps.settings.layoutTanakh !== this.props.settings.layoutTanakh ||
           prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
+          prevProps.settings.biLayout !== this.props.settings.biLayout ||
           prevProps.settings.fontSize !== this.props.settings.fontSize ||
           prevProps.layoutWidth !== this.props.layoutWidth) {
             // Rerender in case version has changed
@@ -4811,6 +4828,7 @@ var TextSegment = React.createClass({
         {linkCount}
         <span className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></span>
         <span className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></span>
+        <div className="clearFix"></div>
       </span>
     );
   }
