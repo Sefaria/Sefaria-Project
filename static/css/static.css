@@ -1122,10 +1122,6 @@
 #talmudicPeoplePage a{
   text-decoration: none;
 }
-#peoplePage .authors-row{
-  display: flex;
-  display: -webkit-flex
-}
 #peoplePage .author a, #talmudicPeoplePage .author a, #personPage a{
   color: #666;
 }
@@ -1133,23 +1129,31 @@
   margin-left: 0;
   font-size: 20px;
 }
-#peoplePage .author{
-  width: 50%;
-  min-width: 320px;
+#peoplePage .author {
+  width: 49%;
+  display: inline-block;
+  box-sizing: border-box;
+}
+@media screen and (max-width: 700px) {
+  #peoplePage .author {
+    width: 100%
+  }
 }
 #peoplePage .authors-row{
   padding-bottom: 5px;
 }
-#peoplePage .authors-row:first-of-type{
+#peoplePage .authors-row:first-of-type {
   padding-top: 10px;
 }
-#talmudicPeoplePage .generations-row{
-  display: flex;
-  display: -webkit-flex
+#talmudicPeoplePage .talmudic-generation {
+  width: 49%;
+  display: inline-block;
+  vertical-align: top;
 }
-#talmudicPeoplePage .talmudic-generation{
-  width: 50%;
-  min-width: 320px;
+@media screen and (max-width: 700px) {
+  #talmudicPeoplePage .talmudic-generation {
+    width: 100%
+  }
 }
 #talmudicPeoplePage h4{
   color: #ccc;

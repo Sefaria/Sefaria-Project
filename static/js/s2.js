@@ -2767,7 +2767,7 @@ var ReaderNavigationMenu = React.createClass({
       var title = React.createElement(
         'h1',
         null,
-        React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }),
+        this.props.multiPanel ? React.createElement(LanguageToggleButton, { toggleLanguage: this.props.toggleLanguage }) : null,
         React.createElement(
           'span',
           { className: 'int-en' },
