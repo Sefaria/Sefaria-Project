@@ -1828,7 +1828,7 @@ var ReaderPanel = React.createClass({
   },
   currentLayout: function() {
     if (this.state.settings.language == "bilingual") {
-      return this.state.settings.biLayout;
+      return this.width > 500 ? this.state.settings.biLayout : "stacked";
     }
     var category = this.currentCategory();
     if (!category) { return "layoutDefault"; }
@@ -2061,7 +2061,8 @@ var ReaderPanel = React.createClass({
                                               settings={this.state.settings}
                                               multiPanel={this.props.multiPanel}
                                               setOption={this.setOption}
-                                              currentLayout={this.currentLayout} 
+                                              currentLayout={this.currentLayout}
+                                              width={this.width} 
                                               menuOpen={this.state.menuOpen} />) : null}
         {this.state.displaySettingsOpen ? (<div className="mask" onClick={this.closeDisplaySettings}></div>) : null}
 
@@ -2180,6 +2181,7 @@ var ReaderDisplayOptionsMenu = React.createClass({
     currentLayout: React.PropTypes.func.isRequired,
     menuOpen:      React.PropTypes.string.isRequired,
     multiPanel:    React.PropTypes.bool.isRequired,
+    width:         React.PropTypes.number.isRequired,
     settings:      React.PropTypes.object.isRequired,
   },
   render: function() {
@@ -2211,12 +2213,13 @@ var ReaderDisplayOptionsMenu = React.createClass({
           setOption={this.props.setOption}
           currentLayout={this.props.currentLayout}
           settings={this.props.settings} />) : 
-      (<ToggleSet
+      (this.props.width > 500 ? 
+        <ToggleSet
           name="biLayout"
           options={biLayoutOptions}
           setOption={this.props.setOption}
           currentLayout={this.props.currentLayout}
-          settings={this.props.settings} />);
+          settings={this.props.settings} /> : null);
 
     var colorOptions = [
       {name: "light", content: "" },
