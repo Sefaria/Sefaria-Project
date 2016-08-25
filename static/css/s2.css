@@ -3088,3 +3088,14 @@ content: "";
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 /***  ******************************************* ***/
+
+.searchBox .keyboardInputInitiator {
+    opacity: 0;
+    width: 13px;
+    height: 13px;
+    padding: 2px;
+    background-color: #eee;
+    border-radius: 3px;
+    border: 1px solid #aaa;
+    position: initial;
+}

@@ -1238,6 +1238,13 @@ var Header = React.createClass({
       }.bind(this)
     });
   },
+  showVirtualKeyboardIcon: function(show){
+      if(this.props.interfaceLang == 'english'){
+          var opacity = show ? 1 : 0;
+          console.log("opacity: ", opacity);
+          $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({"opacity": opacity});
+      }
+  },
   showDesktop: function() {
     if (this.props.panelsOpen == 0) {
       var json = cookie("recentlyViewed");
@@ -1395,6 +1402,10 @@ var Header = React.createClass({
                            </a>
                          </div>);
     var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "הקלד לחיפוש";
+    var vkClassActivator = this.props.interfaceLang == 'english' ? " keyboardInput" : "";
+      /*var interfaceLangClass = `interface-${this.props.interfaceLang}`;
+    classDict[interfaceLangClass] = true
+    var classes = classNames(classDict);*/
     return (<div className="header">
               <div className="headerInner">
                 <div className="left">
@@ -1406,7 +1417,12 @@ var Header = React.createClass({
                 </div>
                 <span className="searchBox">
                   <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
-                  <input className="search" placeholder={langSearchPlaceholder} onKeyUp={this.handleSearchKeyUp} />
+                  <input className={"search"+ vkClassActivator}
+                         placeholder={langSearchPlaceholder}
+                         onKeyUp={this.handleSearchKeyUp}
+                         onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
+                         onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
+                  />
                 </span>
                 <a className="home" href="/?home" ><img src="/static/img/sefaria.svg" /></a>
               </div>
