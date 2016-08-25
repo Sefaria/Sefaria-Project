@@ -609,11 +609,11 @@ body.dark {
   float: right;
   text-align: right;
 }
-.readerNavTop .readerOptions img {
-
-}
 .sefariaLogo img {
   width: 110px;
+}
+.readerNavTop .sefariaLogo img {
+  vertical-align: middle;
 }
 .readerNavMenu h1 {
   text-align: center;
@@ -1608,6 +1608,9 @@ a.resourcesLink {
   color: white;
   border-color: #444;
 }
+.dark .readerControls .readerTextToc .readerTextTocBox {
+  color: white;
+}
 .readerControls.connectionsHeader {
   background-color: #EDEDED;
 }
@@ -1698,8 +1701,7 @@ a.resourcesLink {
   max-width: 60%;
   vertical-align: middle;
   color: #333;
-}
-
+}`
 .readerControls .readerTextToc .readerTextVersion {
   font-style: italic;
   color: #999;
@@ -1717,7 +1719,9 @@ a.resourcesLink {
 }
 .readerOptions img {
   height: 16px;
-  opacity: 0.2;
+}
+.dark .readerOptions img {
+
 }
 .readerOptionsPanel {
   position: absolute;
@@ -2109,14 +2113,14 @@ a.resourcesLink {
   visibility: hidden;
 }
 .singlePanel .readerPanel.english .segment .segmentNumber {
-  left: -21px;
+  left: -30px;
 }
 .singlePanel .readerPanel.hebrew .segment .segmentNumber,
 .singlePanel .readerPanel.bilingual .segment .segmentNumber {
   right: -28px;
 }
 .singlePanel .readerPanel.english .segment .linkCount {
-  right: -30px;
+  right: -37px;
 }
 .singlePanel .readerPanel.hebrew .segment .linkCount,
 .singlePanel .readerPanel.bilingual .segment .linkCount {
@@ -2813,14 +2817,16 @@ a.resourcesLink {
   text-align: center;
   text-transform: uppercase;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  margin-top: 18px;
-  margin-bottom: 2px;
 }
 #s2Loading {
   text-align: center;
   background-color: #F9F9F7;
   height: 100%;
   color: #666;
+}
+#s2Loading .sefariaLogo {
+  margin-top: 18px;
+  margin-bottom: 2px;
 }
 #s2Loading .loadingMessage {
   position: absolute;

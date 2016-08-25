@@ -2521,7 +2521,7 @@ var ReaderNavigationMenu = React.createClass({
       recentlyViewed = recentlyViewed ? <TwoOrThreeBox content={recentlyViewed} width={this.width} /> : null;
 
       var title = (<h1>
-                    <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
+                    { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
                     <span className="int-en">The Sefaria Library</span>
                     <span className="int-he">האוסף של ספאריה</span>
                   </h1>);
