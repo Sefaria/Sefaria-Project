@@ -3194,7 +3194,7 @@ body #keyboardInputMaster tbody tr td table{
 }
 
 body #keyboardInputMaster tbody tr td table tbody tr td{
-    border: 0.5px solid #ccc;
+    border: 0.5px solid #eee;
     background: white;
     font-family: "Open Sans Hebrew", sans-serif;
     min-width: 15px;
@@ -3208,6 +3208,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td{
 body #keyboardInputMaster tbody tr td table tbody tr td:hover,
 body #keyboardInputMaster tbody tr td table tbody tr td:active,
 body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
-    border: 1px solid #ccc;
-    background: #ccc;
+    border: 1px solid #eee;
+    background: #eee;
 }
