@@ -1291,7 +1291,10 @@ var Header = React.createClass({
   hideTestMessage: function() { 
     this.props.setCentralState({showTestMessage: false});
   },
-  submitSearch: function(query, skipNormalization) {
+  submitSearch: function(query, skipNormalization, originalQuery) {
+    // originalQuery is used to handle an edge case - when a varient of a commentator name is passed - e.g. "Rasag".
+    // the name gets normalized, but is ultimately not a ref, so becomes a regular search.
+    // We want to search for the original query, not the normalized name
     var override = query.match(this._searchOverrideRegex());
     if (override) {
       if (Sefaria.site) { Sefaria.site.track.event("Search", "Search Box Navigation - Book Override", override[1]); }
@@ -1305,7 +1308,7 @@ var Header = React.createClass({
       index = Sefaria.index(query);
       if (!index && !skipNormalization) {
         Sefaria.normalizeTitle(query, function(title) {
-          this.submitSearch(title, true)
+          this.submitSearch(title, true, query)
         }.bind(this));
         return;
       }
@@ -1314,11 +1317,11 @@ var Header = React.createClass({
       var action = index? "Search Box Navigation - Book": "Search Box Navigation - Citation";
       if (Sefaria.site) { Sefaria.site.track.event("Search", action, query); }
       this.clearSearchBox();
-      this.handleRefClick(query);
+      this.handleRefClick(query);  //todo: pass an onError function through here to the panel onError function which redirects to search
     } else {
       if (Sefaria.site) { Sefaria.site.track.event("Search", "Search Box Search", query); }
       this.closeSearchAutocomplete();
-      this.showSearch(query);
+      this.showSearch(originalQuery || query);
     }
   },
   closeSearchAutocomplete: function() {
@@ -1459,6 +1462,7 @@ var ReaderPanel = React.createClass({
     onRecentClick:               React.PropTypes.func,
     onSearchResultClick:         React.PropTypes.func,
     onUpdate:                    React.PropTypes.func,
+    onError:                     React.PropTypes.func,
     closePanel:                  React.PropTypes.func,
     closeMenus:                  React.PropTypes.func,
     setConnectionsFilter:        React.PropTypes.func,
@@ -1565,6 +1569,13 @@ var ReaderPanel = React.createClass({
     } else {
       this.setState(state);
     }
+  },
+  onError:  function(message) {
+    if (this.props.onError) {
+      this.props.onError(message);
+      return;
+    }
+    this.setState({"error": message})
   },
   clonePanel: function(panel) {
     // Set aside self-referential objects before cloning
@@ -1835,6 +1846,21 @@ var ReaderPanel = React.createClass({
     return this.state.settings[option];  
   },
   render: function() {
+    if (this.state.error) {
+      return (
+          <div className="readerContent">
+            <div className="readerError">
+              <span className="int-en">Something went wrong! Please use the back button or the menus above to get back on track.</span>
+              <span className="int-he"></span>
+              <div className="readerErrorText">
+                <span className="int-en">Error Message: </span>
+                <span className="int-he"></span>
+                {this.state.error}
+              </div>
+            </div>
+          </div>
+        );
+    }
     var items = [];
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       items.push(<TextColumn
@@ -2030,6 +2056,7 @@ var ReaderPanel = React.createClass({
           closeMenus={this.closeMenus}
           openDisplaySettings={this.openDisplaySettings}
           currentLayout={this.currentLayout}
+          onError={this.onError}
           connectionsMode={this.state.filter.length && this.state.connectionsMode === "Connections" ? "Connection Text" : this.state.connectionsMode}
           closePanel={this.props.closePanel}
           toggleLanguage={this.toggleLanguage}
@@ -2069,6 +2096,7 @@ var ReaderControls = React.createClass({
     currentCategory:         React.PropTypes.func.isRequired,
     currentBook:             React.PropTypes.func.isRequired,
     currentLayout:           React.PropTypes.func.isRequired,
+    onError:                 React.PropTypes.func.isRequired,
     closePanel:              React.PropTypes.func,
     toggleLanguage:          React.PropTypes.func,
     currentRef:              React.PropTypes.string,
@@ -2097,7 +2125,13 @@ var ReaderControls = React.createClass({
 
     if (title && !oref) {
       // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-      Sefaria.text(title, {context: 1}, function() { if (this.isMounted()) { this.setState({}); } }.bind(this));
+      Sefaria.text(title, {context: 1}, function(data) {
+        if ("error" in data) {
+          this.props.onError(data.error);
+          return;
+        }
+        if (this.isMounted()) { this.setState({}); }
+      }.bind(this));
     }
 
     var versionTitle = this.props.version ? this.props.version.replace(/_/g," "):"";
