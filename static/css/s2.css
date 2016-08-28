@@ -3146,11 +3146,68 @@ content: "";
 
 .searchBox .keyboardInputInitiator {
     opacity: 0;
-    width: 13px;
-    height: 13px;
-    padding: 2px;
-    background-color: #eee;
+    width: 16px;
+    height: 15px;
+    padding: 4px 7px;
+    background-color: #fff;
     border-radius: 3px;
     border: 1px solid #aaa;
     position: initial;
+    vertical-align: text-bottom;
+}
+
+body #keyboardInputMaster {
+    opacity: 1;
+    top: 60px !important;
+    background-color: #F9F9F7;
+    border: 1.5px solid #999;
+    padding: 5px;
+    box-shadow: none;
+}
+
+body #keyboardInputMaster thead{
+    display: none;
+}
+
+body #keyboardInputMaster:before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 30px;
+  border-bottom: 10px solid #999;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+}
+
+body #keyboardInputMaster:after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 31px;
+  border-bottom: 9px solid #f9f9f9;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+}
+
+body #keyboardInputMaster tbody tr td table{
+    border-spacing: 2px 2px;
+}
+
+body #keyboardInputMaster tbody tr td table tbody tr td{
+    border: 0.5px solid #ccc;
+    background: white;
+    font-family: "Open Sans Hebrew", sans-serif;
+    min-width: 15px;
+    vertical-align: middle;
+    padding: 2px 8px;
+    text-align: center;
+
+
+}
+
+body #keyboardInputMaster tbody tr td table tbody tr td:hover,
+body #keyboardInputMaster tbody tr td table tbody tr td:active,
+body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
+    border: 1px solid #ccc;
+    background: #ccc;
 }

@@ -1242,7 +1242,7 @@ var Header = React.createClass({
   },
   showVirtualKeyboardIcon: function(show){
       if(this.props.interfaceLang == 'english'){
-          var opacity = show ? 1 : 0;
+          var opacity = show ? 0.4 : 0;
           console.log("opacity: ", opacity);
           $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({"opacity": opacity});
       }
