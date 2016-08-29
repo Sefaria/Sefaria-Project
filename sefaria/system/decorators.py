@@ -24,7 +24,8 @@ def catch_error_as_json(func):
             result = func(*args, **kwargs)
         except exps.InputError as e:
             logger.warning(u"An exception occurred processing request for '{}' while running {}. Caught as JSON".format(args[0].path, func.__name__), exc_info=True)
-            return jsonResponse({"error": unicode(e)})
+            request = args[0]
+            return jsonResponse({"error": unicode(e)}, callback=request.GET.get("callback", None))
         return result
     return wrapper
 
