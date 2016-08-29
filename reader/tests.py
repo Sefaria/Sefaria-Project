@@ -159,7 +159,7 @@ class ApiTest(SefariaTestCase):
         self.assertTrue(len(data["he"]) > 0)
         self.assertTrue(len(data["commentary"]) > 0)
         self.assertEqual(data["book"],       "Genesis")
-        self.assertEqual(data["categories"], ["Tanach", "Torah"])
+        self.assertEqual(data["categories"], ["Tanakh", "Torah"])
         self.assertEqual(data["sections"],   [1])
         self.assertEqual(data["toSections"], [1])
 
@@ -183,7 +183,7 @@ class ApiTest(SefariaTestCase):
         self.assertTrue(len(data["commentary"]) > 0)
         self.assertEqual(data["book"],        "Rashi on Genesis")
         self.assertEqual(data["commentator"], "Rashi")
-        self.assertEqual(data["categories"],  ['Commentary', 'Tanach', 'Rashi'])
+        self.assertEqual(data["categories"],  ['Commentary', 'Tanakh', 'Rashi'])
         self.assertEqual(data["sections"],    [2,3])
         self.assertEqual(data["toSections"],  [2,3])
 
@@ -236,7 +236,7 @@ class ApiTest(SefariaTestCase):
         data = json.loads(response.content)
         self.assertEqual(data["title"],        "Job")
         self.assertEqual(data["sectionNames"], ["Chapter", "Verse"])
-        self.assertEqual(data["categories"],   ["Tanach", "Writings"])
+        self.assertEqual(data["categories"],   ["Tanakh", "Writings"])
 
     def text_api_get_commentator_index(self):
         response = c.get('/api/index/Rashi')
@@ -250,7 +250,7 @@ class ApiTest(SefariaTestCase):
         self.assertEqual(200, response.status_code)  
         data = json.loads(response.content)
         self.assertTrue(len(data) > 10)
-        self.assertTrue(data[0]["category"] == "Tanach")
+        self.assertTrue(data[0]["category"] == "Tanakh")
         self.assertTrue(data[0]["contents"][0]["category"] == "Torah")
         self.assertTrue(len(data[0]["contents"][0]["contents"]) == 5)
         self.assertTrue(data[-1]["category"] == "Other")
@@ -691,7 +691,7 @@ class PostCommentatorNameChange(SefariaTestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertIn("categories", data)
-        self.assertEqual(["Commentary", "Tanach", "Ploni"], data["categories"])
+        self.assertEqual(["Commentary", "Tanakh", "Ploni"], data["categories"])
 
         # Post some text
         text = {
@@ -886,7 +886,7 @@ class PostTextTest(SefariaTestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertIn("categories", data)
-        self.assertEqual(["Commentary", "Tanach", "Ploni"], data["categories"])
+        self.assertEqual(["Commentary", "Tanakh", "Ploni"], data["categories"])
 
         # Post some text
         text = {

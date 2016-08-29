@@ -1,0 +1,2307 @@
+{% load cache %}
+{% load humanize %}
+{% load sefaria_tags %}
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{{ title|striptags|strip_html_entities }}</title>
+	<base href="localhost:8000">
+
+	<style>
+	html {
+}
+
+body {
+	overflow-x: visible;
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+}
+
+#right {
+	width: 510px;
+}
+
+#languageToggle,
+#sheetLayoutToggle {
+	display: inline-block;
+}
+
+#fileControls {
+	text-align: right;
+	line-height: 8px;
+	position: fixed;
+    bottom: 0;
+	z-index: 100;
+	background-color: #ccc;
+    height: 50px;
+    left: 0;
+    width: 100%;
+	border-top: 1px solid #777;
+}
+
+#fileControlMsg {
+	text-align: center;
+    margin-top: 20px;
+}
+
+#fileControls .btn {
+	position: relative;
+	right: 20px;
+	top:17px
+}
+
+#link {
+	display: none;
+	position: absolute;
+	top: 30px;
+	left: 20px;
+	color: #555;
+	font-style: italic;
+	font-size: 16px;
+}
+
+#error {
+	display: none;
+	position: fixed;
+	z-index: 100;
+	top: 50px;
+	left: 50%;
+	width: 40%;
+	margin-left: -20%;
+	text-align: center;
+	font-size: 22px;
+	padding: 5px 0;
+	border-radius: 5px;
+	background-color: #d9edf7;
+	border: 1px solid #bce8f1;
+	color: #31708f;
+}
+
+#lastSaved {
+	position: fixed;
+	z-index: 100;
+	top: 47px;
+	right: 8px;
+	text-align: center;
+	font-size: 12px;
+	padding: 7px 5px;
+	border-radius: 5px;
+	color: #888;
+	background-color: #eee;
+}
+
+.sheetsMenuBarItem #lastSaved {
+		position: relative;
+	top:0;
+	right:0;
+	background-color: transparent;
+
+
+}
+
+#sheet {
+	background: white;
+	width: 770px;
+	min-height: 980px;
+	padding: 60px 40px;
+	margin: 150px auto 56px;
+	box-shadow: 0px 0px 2px #777;
+	font-family: "Times New Roman", "Georgia", serif;
+
+
+	width:850px;
+	padding:60px 0px;
+
+}
+
+#sheet.s2Sheet {
+}
+
+#sheet.paperless {
+	box-shadow: none;
+	margin-top: 50px;
+}
+
+#sheetHeader {
+	text-align: right;
+	padding-bottom: 10px;
+	padding-left: inherit;
+	margin-bottom: 6px;
+	width: 100%;
+	margin-top: -40px;
+	margin-left: -40px;
+}
+
+#sheetHeader #partnerLogo {
+	max-width: 90%;
+}
+
+#bsdHeader {
+	display: none;
+	direction: rtl;
+	font-family: 'Times New Roman', serif;
+	font-size: 18px;
+	position: relative;
+	top: -40px;
+	right: 40px;
+
+}
+
+#sheet.bsd #bsdHeader {
+	display: block;
+}
+
+#save {
+	display: none;
+}
+
+#controls {
+	position: fixed;
+	top: 80px;
+	left: 16px;
+	left: 50%;
+	margin-left: -455px;
+	z-index: 25;
+	text-align: left;
+}
+
+#controls .circleButton {
+	display: block;
+	text-align: center;
+	margin-bottom: 10px;
+	cursor: pointer;
+	color: white;
+	background-color: #06c;
+	position: relative;
+	font-size: 18px;
+	width: 60px;
+	height: 60px;
+	line-height: 60px;
+	vertical-align: middle;
+	border-radius: 50%;
+	box-shadow: 0 0 4px rgba(0,0,0,.14),0 4px 8px rgba(0,0,0,.28);
+}
+
+#controls .circleButton:hover {
+	background-color: #08c;
+}
+
+#controls .circleButton > .fa {
+	position: relative;
+	top: 2px;
+}
+
+.optionsMenu {
+	color: black;
+	position: absolute;
+	text-align: left;
+	display: none;
+	font-style: normal;
+	text-shadow: none;
+	padding: 6px 0px 3px 0px;
+	background: white;
+	font-size: 17px;
+	border: 1px solid #ccc;
+	z-index: 5;
+	min-width: 220px;
+	top: -20px;
+	right: auto;
+	left: 50px;
+	line-height: 1.2;
+}
+
+.optionsMenu img, .addInterfaceButton img {
+	margin-right: 5px;
+	margin-bottom: 3px;
+
+}
+
+.sheetsMenuBarItem .optionsMenu i {
+	color: #999;
+}
+
+.sheetsMenuBarItem .optionsMenu, .sheetsMenuBarItem .subMenu {
+	background-color: #f2f2f2;
+}
+
+#addButton:hover .optionsMenu, #options:hover .optionsMenu {
+	display: block;
+}
+
+.optionHeader {
+	font-weight: bold;
+	margin-left: 12px;
+}
+
+.optionItem, .optionLink, .languageToggleOption div, .layoutToggleOption div, .sideBySideToggleOption div, .optionTitle {
+	padding: 10px 12px;
+	cursor: pointer;
+	white-space: nowrap;
+}
+.optionItem:hover,
+.optionTitle:hover, .optionLink:hover, .languageToggleOption div:hover, .layoutToggleOption div:hover .sideBySideToggleOption div:hover {
+	background: #08c;
+	color:white;
+}
+
+#assignable {
+	margin:10px;
+}
+
+#assignedSheets,#assignedSheets .title  {
+	margin: 20px 0;
+}
+
+#assignmentURLLink {
+	width:100%;
+	cursor: text;
+	text-align: center;
+	display: none;
+}
+#StopCollectingAssignmentsButton {
+	margin-top:8px;
+	width:100%;
+}
+
+#assignmentsModal .btn {
+	margin-top: 5px;
+}
+
+.subMenu {
+	display: none;
+	position: absolute;
+	background: white;
+	top: 0px;
+	left: 220px;
+	border: 1px solid #ccc;
+	box-shadow: 1px 1px 1px #555;
+
+}
+.optionGroup {
+	position: relative;
+}
+
+.optionGroup .optionTitle .fa-caret-right {
+	position: absolute;
+	right: 6px;
+	top: 15px;
+}
+
+.optionGroup:hover .subMenu {
+	display: block;
+}
+
+.line {
+	height: 1px;
+	width: 100%;
+	background: #ddd;
+	margin: 2px 0px;
+}
+
+.s2Modal .line {
+	width: 460px;
+	margin-left:-40px;
+}
+
+.optionsMenu .fa {
+	margin-right: 8px;
+	font-size: 13px;
+}
+
+.hidden {
+	visibility: hidden;
+}
+
+#addSourceModal {
+	padding: 18px;
+	text-align: center;
+	z-index: 100;
+}
+
+#addDialogTitle {
+	font-size: 19px;
+	width: 520px;
+	margin-bottom: 15px;
+	padding: 0;
+	position: relative;
+
+}
+
+#closeAddSource {
+	position: absolute;
+	top: 5px;
+	right: 5px;
+	cursor: pointer;
+	font-size: 22px;
+}
+
+#add {
+	width: 520px;
+	font-size: 17px;
+	border-radius: 3px;
+}
+
+#addEg {
+	font-style: italic;
+	font-size: 14px;
+	margin-top: 0px;
+}
+
+#addOr {
+	margin: 14px;
+	font-size: 24px;
+	text-align: center;
+	font-style: italic;
+}
+
+#addBrowseBox {
+	text-align: center;
+}
+
+#addBrowse {
+}
+
+#addSourceOK {
+	position: absolute;
+	right: 0px;
+	bottom: -43px;
+}
+
+#textPreview, #inlineTextPreview  {
+	position: absolute;
+	padding: 4px;
+	background: white;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	z-index: 101;
+	width: 600px;
+}
+#inlineTextPreview .en {
+	font-family: "adobe-garamond-pro", Georgia, serif
+}
+
+#inlineTextPreview .he {
+	font-family: "Taamey Frank", "Times New Roman", serif
+}
+
+
+#textPreview .previewLine, #inlineTextPreview .previewLine {
+	display: inline;
+}
+
+#textPreview .previewNumber, #inlineTextPreview .previewNumber {
+	font-weight: bold;
+	font-variant: small-caps;
+}
+
+#textPreview .he, #textPreview .en, #inlineTextPreview .en, #inlineTextPreview .he {
+	padding: 10px;
+}
+
+#textPreview .he , #inlineTextPreview .he {
+	direction: rtl;
+}
+
+#textPreview .previewNoText, #inlineTextPreview .previewNoText {
+	direction: ltr;
+}
+
+#textPreview .previewWarn, #inlineTextPreview .previewWarn {
+	color: #B94A48;
+	padding: 20px;
+}
+
+#textPreview .previewWarn .btn {
+	float: right;
+}
+
+#title {
+	font-size: 36px;
+	min-height: 40px;
+	margin-bottom: 6px;
+	text-align: center;
+	line-height: normal;
+}
+
+#title.heTitle {
+	direction: rtl;
+}
+
+#author {
+	text-align: center;
+	font-style: italic;
+	margin-bottom: 10px;
+	color: #999;
+}
+
+
+#via {
+	font-size: 13px;
+}
+
+#bottomAuthor {
+	text-align: center;
+	font-style: italic;
+	color: #999;
+}
+
+#bottomAuthor a, #via a {
+	color: #333;
+}
+
+#bottomVia {
+	font-size: 13px;
+}
+
+#likeLink {
+	color: black;
+	text-decoration: none;
+}
+
+#likes {
+	display: none;
+	text-align: center;
+}
+
+#s2LikeContainer {
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	color: #666;
+	font-size:12px;
+	height:26px;
+	width:52px;
+	border: 1px solid #ccc;
+	padding: 4px 10px;
+	border-radius: 3px;
+
+}
+
+#sheet.public #likes {
+	display: block;
+}
+
+#likeInfo {
+	cursor: pointer;
+}
+
+#likeInfo:hover {
+	text-decoration: underline;
+}
+
+.titleSub {
+	font-size: 20px;
+	margin-left: 11px;
+	color: #555;
+}
+
+#sources {
+	font-size: 20px;
+	margin: 0px;
+	padding: 0px;
+	list-style-type: none;
+}
+
+#sources {
+	margin-top: 40px;
+}
+
+#sheet #sources .sheetItem .sourceNumber {
+	display: none;
+	font-size: 15px;
+}
+
+#sheet.numbered.hebrew #sources .sheetItem .sourceNumber.en {
+	display: none;
+}
+
+#sheet.numbered.english #sources .sheetItem .sourceNumber.he {
+	display: none;
+}
+
+#sheet.numbered #sources .sheetItem .sourceNumber {
+	display: block;
+}
+
+.sheetItem {
+	position: relative;
+	padding: 32px 76px;
+	border: solid 1px transparent;
+	border-left: solid 6px transparent;
+}
+
+.sheetItem p span {
+	white-space: pre-wrap;
+}
+
+#sheet #sources .sheetItem .sourceNumber.en {
+	position: absolute;
+	width: 50px;
+	text-align: right;
+	top: 35px;
+	left: 6px;
+}
+
+#sheet #sources .sheetItem .sourceNumber.he {
+	position: absolute;
+	width: 50px;
+	text-align: left;
+	top: 37px;
+	right: 6px;
+}
+
+#sheet .sourceControlsOpen {
+	background-color: #F9F9F7;
+	z-index: 2;
+	border-top:solid 1px #F2F2F2;
+	border-bottom:solid 1px #F2F2F2;
+}
+
+#sourceControls {
+	text-align: center;
+	position: absolute;
+	bottom: 7px;
+	width: 300px;
+	background-color: #eee;
+	left: 50%;
+	margin-left: -150px;
+}
+
+.sourceControlsTop #sourceControls {
+	bottom: auto;
+	top: 7px;
+}
+
+#sourceControls div {
+	display: inline-block;
+	margin: 0 5px;
+	font-size: 15px;
+	cursor: pointer;
+	background-color: #F9F9F7 !important;
+}
+
+#sourceControls div:hover {
+	color: #08c;
+	background-color: #F9F9F7 !important;
+
+}
+.sideControls {
+	width: 16px !important;
+	left: 23px !important;
+	margin-left: 0 !important;
+	top: 32px !important;
+	background-color: #F9F9F7 !important;
+
+}
+
+#sourceControls.sideControls div:hover {
+	color: #999;
+	background-color: #F9F9F7 !important;
+
+}
+
+.tooltipster-default {
+	background-color: #999 !important;
+	color: #fff;
+	margin-left:5px;
+}
+
+
+
+.sideControls div {
+	display: block !important
+}
+
+.sideControls div img {
+	margin: 3px 0;
+}
+
+
+.source {
+	position: relative;
+}
+
+.source .title, .source .customTitle, .outside .title {
+	font-size: 18px;
+	font-weight: bold;
+	display: inline-block;
+	line-height: 24px;
+}
+
+.source .title {
+	cursor: pointer;
+	width: 100%;
+	margin: 0;
+}
+
+.source .title:hover {
+	text-decoration: underline;
+}
+
+.source .title a {
+	color: black;
+}
+
+.source .title .ui-icon-extlink {
+	vertical-align: -3px;
+}
+
+.source .customTitle {
+	display: none;
+	width: 100%;
+	text-align: center;
+}
+
+.source .openLink {
+	font-size: 13px;
+	letter-spacing: 1px;
+	margin: 0 12px;
+	color: #222;
+}
+
+.source .openLink .ui-icon {
+	display: inline-block;
+}
+
+.text {
+	font-size: 19px;
+	line-height: 1.3;
+	position: relative;
+}
+
+#sheet .en {
+	direction: ltr;
+}
+#sheet .he {
+	direction: rtl;
+	text-align: right;
+	font-family: "Times New Roman", Serif;
+	font-size: 24px;
+}
+
+#sheet.english .en {
+	display: block;
+}
+
+#sheet.hebrew .he {
+	display: block;
+}
+
+#sheet.english .he {
+	display: none;
+}
+
+#sheet.hebrew .en {
+	display: none;
+}
+
+#sheet.bilingual .source > .he,
+#sheet.bilingual .outsideBi .he {
+	display: block;
+	float: right;
+	width: 48%;
+	position: relative;
+	top: -2px;
+
+}
+#sheet.bilingual .source > .en,
+#sheet.bilingual .outsideBi .en {
+	display: block;
+	float: left;
+	width: 48%;
+}
+
+#sheet.bilingual.sideBySide.heLeft .source > .he,
+#sheet.bilingual.sideBySide.heLeft .outsideBi .he {
+	float: left;
+}
+
+#sheet.bilingual.sideBySide.heLeft .source > .en,
+#sheet.bilingual.sideBySide.heLeft .outsideBi .en {
+	float: right;
+}
+
+
+#sheet.bilingual.stacked .source > .en,
+#sheet.bilingual.stacked .source > .he,
+#sheet.bilingual.stacked .outsideBi .en,
+#sheet.bilingual.stacked .outsideBi .he {
+	float: none;
+	width: 100%;
+	margin-bottom: 12px;
+}
+
+.verse .clear {
+	display: none;
+}
+
+#sheet.bilingual .verse .clear {
+	display: block;
+}
+
+.source .text.open {
+	max-height: 266px;
+	overflow-y: scroll;
+	overflow-x: hidden;
+	padding: 10px 15px 10px 0px;
+}
+
+.source .text .verse.highlight {
+	font-weight: bold;
+}
+
+#sheet.boxed .sourceControlsOpen {
+	background-color: #F9F9F7;
+}
+
+#sheet.boxed .text,
+#sheet.boxed .outside  {
+	border: 1px solid #333;
+	padding: 4px;
+	background-color: white;
+}
+
+#sheet.boxed #sources {
+	list-style-position: outside;
+}
+
+#sheet.boxed .sourceControlsOpen .text,
+#sheet.boxed .sourceControlsOpen .outside {
+	background-color: inherit;
+}
+
+#sources .sortPlaceholder {
+	min-height: 60px;
+	margin: 20px 0;
+	background-color: #DAE83F;
+}
+
+.indented-1 {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+}
+
+.indented-2 {
+	padding-left: 30px !important;
+	padding-right: 30px !important;
+}
+
+.indented-3 {
+	padding-left: 60px !important;
+	padding-right: 60px !important;
+}
+
+
+.comment, .oldComment {
+	font-size: 17px;
+	min-height: 30px;
+	padding-top:4px;
+}
+
+.outsideBi {
+	/* Fix webkit bug for extra spacing below numbered li with floats */
+	display: inline-block;
+	vertical-align: top;
+	width: 100%;
+}
+
+.addedBy {
+	margin-top: 3px;
+	font-size: 13px;
+	font-style: italic;
+	color: #555;
+}
+
+.placeholder {
+	background: #f3f3f3;
+	margin-top: 22px;
+	border-radius: 5px;
+}
+
+.inEditMode {
+	outline-color: rgb(91, 157, 217);
+	outline-style: auto;
+	outline-width: 5px;
+}
+
+#belowSheet {
+	height: 100px;
+}
+
+#tooltip {
+	position: absolute;
+	z-index: 3000;
+	margin-left: -80px;
+	margin-top: 2px;
+	border-radius: 5px;
+	-moz-border-radius: 5px;
+	border: 1px solid #444;
+	background-color: #eee;
+	padding: 4px 8px;
+}
+
+#tooltip h3, #tooltip div {
+	font-size: 17px;
+	margin: 0;
+ }
+
+#addToSheetModal {
+	width: 400px;
+}
+
+#addParashaToSheetModal {
+	width:500px;
+}
+#addParashaToSheetModal .header {
+	font-weight: bold;
+	padding-bottom: 10px;
+}
+
+#addParashaToSheetModal .cancel {
+	padding-top: 10px;
+}
+
+#addParashaToSheetModal li {
+	width:150px;
+	display:inline;
+	float:left;
+	padding: 2px 0 2px 0;
+}
+
+#addToSheetModal .header {
+	font-size: 22px;
+}
+
+#embedSheetModal {
+	width: 400px;
+}
+
+#embedSheetModal .header {
+	font-size: 22px;
+}
+
+#embedSheetModal textarea {
+	width: 100%;
+	margin-top: 0;
+	height: 80px;
+	padding: 8px;
+}
+
+#embedSheetModal .sub {
+	margin: 0 0 8px;
+	font-size: 13px;
+}
+
+#embedSheetModal .content {
+	margin: 30px auto;
+}
+
+#publishPromptModal {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	margin-top: -73px;
+	margin-left: -285px;
+	max-width: 96%;
+	width: 550px;
+}
+
+#publishPromptModal .header {
+	font-size: 24px;
+	font-weight: bold;
+}
+
+#publishPromptModal p {
+	font-size: 18px;
+	margin: 14px 0;
+}
+
+#sheetList {
+	list-style-type: none;
+	background-color: white;
+	border-radius: 5px;
+	padding: 8px 0;
+	border: 1px solid #ccc;
+	margin: 13px 20px;
+	max-height: 300px;
+	overflow: auto;
+}
+
+#sheetList .sheet {
+	text-align: left;
+	cursor: pointer;
+	padding: 2px 10px;
+}
+
+#sheetList .sheet.selected {
+	background-color: #08C;
+	color: white;
+}
+
+#sheetLoading {
+	font-weight: bold;
+	font-size: 17px;
+}
+
+.textIcon {
+	font-size: 20px;
+	font-weight: bold;
+	margin: 3px;
+	font-family: sans-serif;
+	cursor: pointer;
+}
+
+#empty {
+	display: none;
+	text-align: center;
+	border-radius: 10px;
+	padding: 15px 25px;
+	font-size: 19px;
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+	border: 1px solid #aaa;
+	background-color: #eee;
+}
+
+#empty .fa-times {
+	float: right;
+	cursor: pointer;
+}
+#empty .icon-remove:hover {
+	color: #08c;
+}
+
+#empty #howItWorks {
+	display: none;
+	text-align: left;
+	padding-top: 20px;
+	border-top: 1px solid #aaa;
+	margin-top: 20px;
+}
+
+#empty h1 {
+	font-size: 32px;
+	margin-bottom: 16px;
+	text-align: center;
+}
+
+#empty h3 {
+	margin: 10px 0;
+	font-size: 18px;
+
+}
+
+#empty ul {
+	list-style-type: decimal;
+}
+
+#empty ul b {
+	font-size: 22px;
+}
+
+#empty li {
+	margin: 8px 0;
+}
+
+#empty #cite {
+	font-size: 18px;
+	margin-left: 20px;
+	margin-top: 4px;
+	color: #005580;
+}
+
+#empty .controls {
+	font-size: 17px;
+	padding: 0px 5px 2px 3px;
+	margin: 0 4px;
+	background: white;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+}
+
+#empty #loginWarning {
+	margin-top: 24px;
+	color: #B94A48;
+	font-size: 17px;
+}
+
+#printFooter {
+	display: none;
+	margin: 50px 0 0;
+	padding-top: 8px;
+	text-align: center;
+	border-top: 1px solid #ddd;
+	page-break-inside: avoid;
+}
+
+#printFooter img {
+	width: 56px;
+	height: 56px;
+}
+
+#printFooter div {
+	display: inline-block;
+	text-align: left;
+	font-size: 14px;
+	position: relative;
+	left: -5px;
+	top: -14px;
+}
+
+.cke_editable {
+	position: relative;
+	z-index: 20;
+}
+
+.clear {
+	clear: both;
+}
+
+
+a {
+	color: #08C;
+	text-decoration: none;
+}
+a:hover {
+  color: #005580;
+  text-decoration: underline;
+}
+a:focus {
+  outline: thin dotted #333;
+  outline: 5px auto -webkit-focus-ring-color;
+  outline-offset: -2px;
+}
+a:hover,
+a:active {
+  outline: 0;
+}
+
+
+.btn-primary a {
+	color: white;
+}
+
+.btn-primary:hover a {
+	text-decoration: none;
+}
+
+
+@media screen and (max-width: 870px) {
+	body {
+		background-color: white !important;
+	}
+
+	#sheet {
+		width: auto;
+		padding: 0px 20px;
+		margin: 100px auto 70px;
+		box-shadow: none;
+	}
+	#sheet.s2Sheet {
+	width:auto;
+	padding: 0px;
+	}
+
+
+	#addSourceModal {
+		width: 80%;
+	}
+
+	#sheetHeader {
+		width: 100%;
+		margin-left: 0;
+	}
+
+	#controls {
+		margin-left: 0;
+		left: 0;
+	}
+
+	#rightButtons #controls {
+		position: static;
+		display: block;
+		width: auto;
+		padding: 0px;
+		background-color: transparent;
+		box-shadow: none;
+		border: none;
+	}
+
+	#empty iframe {
+		width: 100%;
+		height: auto;
+	}
+
+	#lastSaved, .sheetsEditNavTop, .inlineAddButton, #addInterface, #sourceControls {
+		display: none;
+	}
+
+}
+
+@media screen and (max-width: 520px) {
+	#sheet {
+		padding: 0 6px;
+	}
+	#sheet .sheetItem {
+		padding: 32px 16px;
+	}
+	#sheet #sources .sheetItem .sourceNumber.en {
+		left: -2px;
+		text-align: left;
+	}
+	#sheet #sources .sheetItem .sourceNumber.he {
+		right: -2px;
+		text-align: right;
+	}
+	#sheet.bilingual.sideBySide .en {
+		text-align: left !important;
+		width: 100%;
+	}
+	#sheet.bilingual.sideBySide .he {
+		text-align: right !important;
+		width: 100%;
+	}
+	#controls {
+		display: none;
+	}
+
+	#sheet .sheetItem .media {
+		position: relative;
+		padding-bottom: 56.25%; /* 16:9 */
+	}
+
+	#sheet .sheetItem .media iframe {
+
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+	}
+
+}
+
+body.embeded #controls {
+	display: none;
+}
+
+body.embeded #sheet {
+	width: auto;
+	padding: 20px;
+	margin: 0;
+	box-shadow: none;
+}
+
+.label {
+	display: inline-block;
+	padding: 2px 4px;
+	font-weight: bold;
+	font-size: 15px;
+	color: #ffffff;
+	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+	white-space: nowrap;
+	vertical-align: baseline;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	background-color: #3a87ad;
+}
+
+
+/* Twitter Bootstrap Forms */
+
+button,
+input,
+select,
+textarea {
+  margin: 0;
+  font-size: 100%;
+  vertical-align: middle;
+}
+label,
+input,
+button,
+select,
+textarea {
+  font-size: 13px;
+  font-weight: normal;
+  line-height: 18px;
+}
+button,
+input {
+*overflow: visible;
+line-height: normal;
+}
+button::-moz-focus-inner,
+input::-moz-focus-inner {
+  padding: 0;
+  border: 0;
+}
+button,
+input[type="button"],
+input[type="reset"],
+input[type="submit"] {
+  cursor: pointer;
+  -webkit-appearance: button;
+}
+input[type="search"] {
+  -webkit-appearance: textfield;
+  -webkit-box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+}
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+textarea {
+  overflow: auto;
+  vertical-align: top;
+}
+input,
+textarea,
+select
+{
+  display: inline-block;
+  height: 18px;
+  padding: 4px;
+  margin-bottom: 9px;
+  font-size: 13px;
+  line-height: 18px;
+  border: 1px solid #cccccc;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+input,
+textarea {
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  -webkit-transition: border linear 0.2s, box-shadow linear 0.2s;
+  -moz-transition: border linear 0.2s, box-shadow linear 0.2s;
+  -ms-transition: border linear 0.2s, box-shadow linear 0.2s;
+  -o-transition: border linear 0.2s, box-shadow linear 0.2s;
+  transition: border linear 0.2s, box-shadow linear 0.2s;
+}
+input:focus,
+textarea:focus {
+  border-color: rgba(82, 168, 236, 0.8);
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+  -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+  outline: 0;
+  outline: thin dotted \9;
+  /* IE6-9 */
+
+}
+input[type="file"]:focus,
+input[type="radio"]:focus,
+input[type="checkbox"]:focus,
+select:focus {
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+  outline: thin dotted #333;
+  outline: 5px auto -webkit-focus-ring-color;
+  outline-offset: -2px;
+}
+
+select,
+input[type="file"] {
+  height: 28px;
+  /* In IE7, the height of the select element cannot be changed by height, only font-size */
+
+  *margin-top: 4px;
+  /* For IE7, add top margin to align select with labels */
+
+  line-height: 28px;
+}
+
+img {
+	vertical-align: middle;
+}
+
+/* overrides for layout option by source */
+#sheet .source.sheetItem.sideBySide > .en {
+	float: left;
+	display: block;
+	width: 48%;
+
+}
+
+#sheet .source.sheetItem.sideBySide > .he {
+	float: right;
+	display: block;
+	width: 48%;
+}
+
+
+#sheet .source.sheetItem.sideBySide.heLeft > .en {
+	float: right;
+	display: block;
+	width: 48%;
+}
+
+#sheet .source.sheetItem.sideBySide.heLeft > .he {
+	float: left;
+	display: block;
+	width: 48%;
+}
+
+#sheet .source.sheetItem.sideBySide.heRight > .he {
+	float: right;
+	display: block;
+	width: 48%;
+
+}
+
+#sheet .source.sheetItem.sideBySide.heRight > .en {
+	float: left;
+	display: block;
+	width: 48%;
+
+}
+
+
+
+#sheet .source.sheetItem.stacked > .en,
+#sheet .source.sheetItem.stacked > .he {
+	float: none;
+	width: 100%;
+	margin-bottom: 12px;
+}
+
+
+#sheet .source.bilingual .en,
+#sheet .source.bilingual .he,
+#sheet .source.english .en,
+#sheet .source.hebrew .he {
+	display: block;
+}
+
+#sheet .source.english > .he,
+#sheet.numbered #sources .source.english > .sourceNumber.he
+{
+	display: none;
+}
+
+#sheet .source.hebrew > .en,
+#sheet.numbered #sources .source.hebrew > .sourceNumber.en
+{
+	display: none;
+}
+
+
+#resetToDefaults {
+	margin-top:10px;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.disabled {
+	pointer-events: none;
+	opacity: .3;
+}
+
+#overrideLayoutModal .ok {
+	margin-top: 25px;
+}
+
+#overrideLayoutModal .header {
+	margin: 15px 0px 25px;
+}
+
+#sharingModal {
+	width:500px;
+}
+
+#sharingModal .radio {
+	text-align:left;
+	margin: 8px 8px 18px;
+}
+
+.sharingLabel {
+	font-weight:bold;
+	vertical-align: top;
+}
+
+.sharingDesc {
+	padding-left: 72px;
+	display:block;
+	margin-top: -22px;
+}
+
+.iconHolder {
+	width:38px;
+	display:inline-block;
+	padding: 0 5px 15px 10px;
+}
+
+.fa-onTop {
+	margin-left:-5px;
+}
+
+.alertBox {
+	z-index:101;
+}
+
+.addedMedia {
+	max-width: 100%;
+}
+
+.media {
+	text-align:center;
+}
+
+#addMediaInput {
+	margin-top:10px;
+	width: 300px;
+}
+.optionItem a, .optionLink a, .languageToggleOption div a, .layoutToggleOption div a, .sideBySideToggleOption div a {
+ color: inherit;
+}
+
+
+.sheetsEditNavTop {
+    position: fixed;
+    width: 100%;
+    background-color: #f2f2f2;
+    border-bottom: 1px solid #E2E2E1;
+    box-sizing: border-box;
+    direction: ltr;
+    z-index: 21;
+    padding: 7px 30px 6px 10px;
+    font-size: 16px;
+    color: #333;
+    top: 54px;
+}
+
+.sheetsEditNavTop .optionsMenu {
+	color: #333;
+}
+
+#sheet p {
+	font-size: inherit;
+	line-height: inherit;
+	margin: inherit;
+  	font-family: inherit;
+}
+
+.sheetsMenuBarItem {
+	display: inline-block;
+	padding: 10px 20px;
+	font-size: 16px;
+	border: 1px solid transparent;
+
+}
+
+.sheetsMenuBarItem:hover {
+	position: relative;
+}
+
+.sheetsMenuBarItem:hover:after {
+  content: ' ';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: -10px;
+  z-index: 6;
+}
+
+#fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu {
+	display: block;
+	top:45px;
+	left:20px;
+	background-color: #F9F9F7;
+}
+
+#insertMenu:hover .optionsMenu {
+	width:240px;
+}
+
+#ckeTopMenu .cke_top, #ckeTopMenu .cke_shared{
+	border: #f2f2f2 solid 1px;
+	background: #f2f2f2;
+	-moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+	width:100%;
+}
+
+#ckeTopMenu .cke_inner {
+    padding: 0 7px;
+	background: #f2f2f2;
+	position: relative;
+	margin-bottom: -8px;
+	border-bottom: 1px solid #E2E2E1;
+
+
+}
+
+#ckeTopMenu .cke_inner:after {
+  	content: '';
+  	position: absolute;
+  	top: -1px;
+	left:-20px;
+	right:-20px;
+	border-top: 1px solid #E2E2E1;
+}
+
+.activeSource {
+	background-color: #F9F9F7;
+	border-left:solid 6px #212e50;
+	border-top:solid 1px #F2F2F2;
+	border-bottom:solid 1px #F2F2F2;
+}
+
+.inlineAddButton {
+    text-align: center;
+    width: 100%;
+    padding: 0;
+    bottom: -53px;
+	position: relative;
+    font-size: 30px;
+	z-index: 3;
+}
+
+
+.inlineAddButtonIcon::before {
+	content: url("../img/add icon.png");
+}
+
+
+.inlineAddButtonIcon.active {
+	content: url("../img/add icon active.png");
+}
+
+#sourceLayoutLanguageMenuItems {
+	display: none;
+}
+
+#addInterface {
+	width:100%;
+	background-color: #f2f2f2;
+	padding: 40px 0 60px 0;
+	text-align: center;
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	font-size: 14px;
+	border-top: 1px #ccc solid;
+	border-bottom: 1px #ccc solid;
+}
+
+#addInterface .buttonBar {
+	width: 702px;
+	margin: 20px 74px;
+	display:flex;
+}
+
+
+.contentDiv > div {
+	display: none;
+}
+
+.contentToAdd {
+	min-height:120px;
+	flex:1;
+	margin:30px;
+	background-color: #fff;
+	display: flex;
+  	flex-direction: column;
+  	justify-content: flex-start;
+}
+.sourceConnection{
+	width: 346px;
+	border: 1px solid #eee;
+	border-radius: 5px;
+	padding: 12px 0;
+	margin-bottom:6px;
+	display: inline-block;
+	background-color: #fff;
+	color: #999;
+}
+.sourceConnection:nth-child(odd) {
+	margin-right:6px;
+}
+
+#connectionsToAdd {
+    width: 702px;
+    margin: 0 74px 40px 74px;
+}
+
+.sourceConnection.active {
+	border: 1px solid #999;
+	color: #333;
+}
+
+.addInterfaceButton:first-of-type {
+	border-left: 1px solid #cecece;
+
+}
+.addInterfaceButton:last-of-type {
+	border-right: 1px solid #cecece;
+}
+
+.addInterfaceButton{
+	width: 106px;
+	color: #999;
+	margin: 0;
+	padding: 12px 12px;
+	border-right: 1px solid #cecece;
+	border-top: 1px solid #cecece;
+	border-bottom: 1px solid #cecece;
+	display: inline-block;
+	background-color: #fff;
+
+	flex:1;
+  	flex-direction: column;
+  	justify-content: flex-start;
+
+}
+
+.addInterfaceButton.active {
+	border-bottom: 3px solid #6c6c6c;
+	color: black;
+	padding: 12px 12px 10px 12px;
+
+}
+
+.inlineAddDesc {
+    text-transform: uppercase;
+	color: #999;
+	font-size:12px;
+	margin: 40px 0;
+
+}
+
+.flexContainer {
+	display:flex;
+}
+
+#connectionButton {
+	display:none;
+}
+
+.inlineAddTextInput {
+	width: 320px;
+	height: 32px;
+	margin: 0;
+	float:left;
+	font-size:14px;
+	padding-left: 12px;
+	padding-right: 12px;
+}
+
+.inlineAddOr {
+	display:inline-block;
+	color: #999;
+    margin: 6px;
+
+}
+.inlineAddSourceByttons {
+	display:inline-block;
+}
+#sheet .button, .sheetsEditNavTop .button, .modal .button {
+	background-color: #212e50;
+	border-color: #212e50;
+	padding: 12px 24px;
+}
+.sheetsEditNavTop .button {
+    padding: 5px 12px;
+}
+
+#customTextLanguageToggle {
+	float: right;
+    margin-top: -65px;
+    margin-right: 67px;
+	height:30px;
+	width:160px;
+
+}
+
+#customTextLanguageToggle .toggleOption {
+	height: 30px;
+	line-height: inherit;
+	width: 50px;
+}
+
+#customTextLanguageToggle .toggleOption img {
+	height: 16px;
+	width: 16px;
+    margin-bottom: 13px;
+}
+
+#customTextContainer, #addmediaDiv, #addcommentDiv, #addsourceDiv{
+	width: 702px;
+    margin: 0 74px 0 74px;
+}
+.blockContainer {
+	display: inline-block;
+	width:100%;
+}
+
+#customTextContainer{
+	margin-bottom: 40px;
+}
+
+#addsourceDiv .buttonContainer{
+	float:right;
+}
+
+#addcommentDiv .contentToAdd {
+	margin-bottom:40px;
+}
+
+
+.contentToAdd {
+	padding: 10px;
+	border: 1px solid #cecece;
+	border-radius: 5px;
+	margin: 0;
+	text-align:left;
+}
+
+.contentToAdd:nth-child(even) {
+	margin-left:6px;
+}
+
+
+.contentToAdd > * {
+	margin:0 !important;
+}
+
+
+.customTextEditables.en {
+	font-family: "Times New Roman", "Georgia", serif;
+}
+.customTextEditables.he {
+	text-align: right;
+}
+#inlineAddMediaInput{
+	width: 280px;
+}
+
+.s2AddedBy {
+	font-size:inherit;
+	font-style: inherit;
+	color:#999;
+	font-weight:bold;
+	display:inline;
+	float:left;
+	margin-right: 7px;
+}
+
+a.userLink{
+	color:#333;
+}
+
+
+.s2AddedBy a.userLink{
+	color:#999;
+}
+
+
+.commentIcon {
+	color:#999;
+	font-size: .75em;
+	float:left;
+	margin-right: 7px;
+}
+.sheetsEditNavTop #save, .sheetsEditNavTop #share  {
+	float: right;
+    margin: 5px 0 0 0;
+	border-radius: 3px;
+	font-weight: 300;
+	font-size: 12px;
+	height: 30px;
+}
+.sheetsEditNavTop #save img, .sheetsEditNavTop #share img  {
+    margin-bottom: 2px;
+    margin-right: 2px;
+
+}
+
+
+#shareURL {
+	cursor: text;
+	background-color: #fff;
+    font-style: italic;
+    width: 100%;
+    box-sizing: border-box;
+    height: 30px;
+}
+
+#shareWithOthers .content .inputHeader {
+	margin: 30px 0 15px 0;
+}
+
+#shareWithOthers .content select {
+	width: 100%;
+}
+
+#shareWithOthers {
+	text-align: center;
+	width:400px;
+}
+
+#sharingDesc {
+    color: #999;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 30px;
+    margin-top: 10px;
+}
+
+#assignmentDirections {
+	margin: 30px 0;
+	text-align: center;
+}
+
+#assignedSheets .button {
+	background-color: #fff;
+	border:#ccc;
+	width:100%;
+}
+#assignedSheets {
+	display: none;
+}
+
+#assignedSheets .button a {
+	text-decoration: none;
+}
+
+.s2Modal {
+	padding: 30px;
+	background-color: #F9F9F7;
+	border: 1px solid #999;
+	border-radius: 6px;
+	width: 400px;
+}
+.s2Modal .title {
+	font-size: 20px;
+	margin: 0;
+	text-align: center;
+}
+
+.s2Modal .content {
+	color: #999;
+	text-align: left;
+}
+
+.s2Modal .ok.button {
+	margin: 0 auto;
+}
+
+.s2Modal input, .s2Modal textarea {
+	margin-bottom: 0;
+	background-color: #fff;
+	height:40px;
+	padding: 20px 10px;
+    box-sizing: border-box;
+}
+
+.s2Modal select {
+	background-color: #fff;
+    box-sizing: border-box;
+}
+
+.s2Modal .center {
+	text-align: center;
+}
+
+#panelWrapBox {
+	display: none;
+}
+
+#tags {
+	border: 1px solid #aaaaaa;
+	background: #ffffff;
+	color: #222222;
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+
+.ui-widget-content {
+	border: 1px solid #d3d3d3;
+    background: #e6e6e6;
+    font-weight: normal;
+}
+
+.ui-icon-close {
+    background-position: -80px -128px;
+}
+
+ul.tagit li.tagit-choice .tagit-close .text-icon {
+	display:block;
+}
+
+.ui-icon {
+    width: 16px;
+    height: 16px;
+}
+.ui-icon {
+    display: block;
+    text-indent: -99999px;
+    overflow: hidden;
+    background-repeat: no-repeat;
+}
+
+.ui-autocomplete .ui-menu-item a.ui-state-focus {
+  background-color: #fff;
+}
+
+ul.tagit li.tagit-choice {
+    color: #333;
+	background-color: #F9F9F7;
+	border-radius: 2px;
+}
+
+a.tagit-close {
+	color: #999;
+	text-decoration: none;
+}
+
+.close-button:after {
+	color: #999;
+	font: 14px/100% arial, sans-serif;
+	position: absolute;
+	right: 15px;
+	text-decoration: none;
+	text-shadow: 0 1px 0 #fff;
+	top: 15px;
+	content: "X"
+}
+	</style>
+	<style>
+	#top,
+#textTocLink,
+#likes,
+#error,
+#controls,
+.controls,
+.openLink,
+#belowSheet,
+#bottomAuthor,
+.sheetsEditNavTop,
+.inlineAddButton,
+.header,
+#addInterface
+{
+	display: none !important;
+	border: 0;
+}
+
+#sheet {
+	padding: 0;
+	margin: 0 5mm;
+	width: auto;
+	min-height: 0px;
+	box-shadow: none;
+	zoom: 80%;
+}
+
+#sheet.numbered {
+	margin: 0 5mm 0 10mm;
+}
+
+#sheetHeader {
+	margin: 0;
+}
+
+#bsdHeader {
+	top: 0;
+	right: 0;
+}
+
+.source {
+    /*page-break-inside: avoid;*/
+}
+
+a {
+	color: black;
+}
+
+#printFooter {
+	display: block;
+}
+
+@page
+{
+    size: auto;
+    margin: 18mm 15mm;
+}
+	</style>
+	<style>
+		#sheet,
+		#sheet #bsdHeader,
+		#sheet #title,
+		#sheet #author,
+		#sheet #sources li,
+		#sheet .en {
+			font-family: "Times New Roman", serif; /* for some reason, removing Georgia makes this work... */
+		}
+        .sheetItem {
+            padding: 0;
+        }
+	</style>
+	<style>
+		#sheet,
+		#sheet #bsdHeader,
+		#sheet #title,
+		#sheet #author,
+		#sheet #sources li,
+		#sheet .en {
+			font-family: "Times New Roman", serif; /* for some reason, removing Georgia makes this work... */
+		}
+        * {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        table td {
+            padding: 0 10px !important;
+        }
+	</style>
+	<!-- {% if sheet.options.numbered %}
+	<style>
+		#sources {
+			list-style-type: decimal;
+		}
+	</style>
+	{% endif %} -->
+</head>
+<body>
+
+	<!-- <div id="link"></div> -->
+	<!-- <div id="error"></div> -->
+
+	<div id="sheet" class="{{ sheet_class|default:'bilingual' }}">
+		{% if sheet.options.bsd %}
+		<div id="bsdHeader">בס"ד</div>
+		{% endif %}
+
+		<!-- <div id="sheetHeader" {% if sheet_group == None %}style="display:none"{% endif %}>
+			{% if sheet_group %}
+			<a href="/partners/{{ sheet_group.name|url_safe }}">
+				<img id="partnerLogo" src="{{ sheet_group.headerUrl }}" />
+			</a>
+			{% else %}
+				<img id="partnerLogo" style="display:none;" />
+			{% endif %}
+		</div> -->
+
+		{% autoescape off %}
+		<h1 id="title" style="text-align:center">{{ title|striptags|strip_html_entities }}</h1>
+		{% endautoescape %}
+
+		{% if sheet.attribution %}
+		<div id="author">{% autoescape off %}{{ sheet.attribution }}{% endautoescape %}</div>
+		{% elif assigner_id %}
+		<div id="author">
+			<div id="assignmentAttribution">Assignment by {{ assigner_id|user_link|absolute_link }}</div>
+			{% if author %}
+			Completed by {{ sheet.owner|user_link|absolute_link }}
+			{% endif %}
+	    </div>
+		{% elif sheet.assigner_id %}
+		<div id="author">
+			<div id="assignmentAttribution">Assignment by {{ sheet.assigner_id|user_link|absolute_link }}</div>
+			{% if author %}
+			Completed by {{ sheet.owner|user_link|absolute_link }}
+	    {% endif %}
+	    </div>
+		{% elif author %}
+		<div id="author">
+			Source Sheet by {{ sheet.owner|user_link|absolute_link }}
+			{% if sheet.via %}
+			<div id="via">Based on {{ sheet.via|sheet_via_absolute_link }} by {{ sheet.viaOwner|user_link|absolute_link }}</div>
+			{% endif %}
+		</div>
+		{% endif %}
+
+		<ol id="sources">
+			{% with "sheet.html" as sheet_template %}
+			{% autoescape off %}
+			{% for source in sheet.sources %}
+
+				{% if "text" in source %}
+					<li class="source sheetItem {{ source.options.indented }}">
+						<div class="customTitle">{{ source.customTitle }}</div>
+
+						{% if source.options.sourceLanguage == "hebrew" %}
+							{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
+						{% elif source.options.sourceLanguage == "english" %}
+							{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
+						{% else %}
+							{% if source.options.sourceLayout == "stacked" %}
+								{% if source.options.sourceLangLayout == "heLeft" %}
+									{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
+									{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
+								{% else %}
+									{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
+									{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
+								{% endif %}
+							{% else %}
+								<table border="0"><tr><td>
+								{% if source.options.sourceLangLayout == "heLeft" %}
+									{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
+									</td><td>
+									{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
+								{% else %}
+									{% include "gdocs_text_source.html" with lang="en" source=source boxed=sheet.options.boxed %}
+									</td><td>
+									{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
+								{% endif %}
+								</td></tr></table>
+							{% endif %}
+						{% endif %}
+
+						<!-- <div class="clear"></div> -->
+					</li>
+				{% elif "outsideBiText" in source %}
+					<li class="outsideBiWrapper {{ source.options.indented }}">
+						<div class="outsideBi sheetItem">
+
+							<!-- Box the source -->
+							{% if sheet.options.boxed %}
+							<table border="1"><tr><td>
+							{% endif %}
+
+							<div class="text">
+								{% if sheet.options.layout == "stacked" %}
+									<div class="he">{{ source.outsideBiText.he }}</div>
+									<div class="en">{{ source.outsideBiText.en }}</div>
+								{% else %}
+									<table border="0"><tr><td>
+									{% if sheet.options.langLayout == "heLeft" %}
+										<div class="he">{{ source.outsideBiText.he }}</div>
+										</td><td>
+										<div class="en">{{ source.outsideBiText.en }}</div>
+									{% else %}
+										<div class="en">{{ source.outsideBiText.en }}</div>
+										</td><td>
+										<div class="he">{{ source.outsideBiText.he }}</div>
+									{% endif %}
+									</td></tr></table>
+								{% endif %}
+								<!-- <div class="clear"></div> -->
+							</div>
+
+							<!-- End box the source -->
+							{% if sheet.options.boxed %}
+							</td></tr></table>
+							{% endif %}
+
+						</div>
+					</li>
+				{% elif "comment" in source %}
+					<div class="commentWrapper sheetItem {{ source.options.indented }}">
+						<div class="comment">
+							{{ source.comment }}
+						</div>
+					</div>
+				{% elif "outsideText" in source %}
+					<li class="outsideWrapper sheetItem {{ source.options.indented }}">
+
+						<!-- Box the source -->
+						{% if sheet.options.boxed %}
+						<table border="1"><tr><td>
+						{% endif %}
+
+						<div class="outside">
+							{{ source.outsideText }}
+						</div>
+
+						<!-- End box the source -->
+						{% if sheet.options.boxed %}
+						</td></tr></table>
+						{% endif %}
+
+					</li>
+				 {% elif "media" in source %}
+					<li class="mediaWrapper sheetItem {{ source.options.indented }}">
+						<div class="outside">
+							<img class="addedMedia" src="{{source.media}}" />
+						</div>
+					</li>
+				{% endif %}
+
+			{% endfor %}
+			{% endautoescape %}
+			{% endwith %}
+		</ol>
+
+		<!-- <div id="printFooter">
+			<img src="/static/img/fb-og-image.png">
+			<div>
+				Made with the Sefaria Source Sheet Builder<br>
+				www.sefaria.org/sheets
+			</div>
+		</div> -->
+	</div>
+
+	<br><br>
+
+	{% if author %}
+	<div id="bottomAuthor">
+		Source Sheet created on Sefaria by {{ sheet.owner|user_link|absolute_link }}
+		{% if sheet.via %}
+		<div id="bottomVia">Based on {{ sheet.via|sheet_via_absolute_link }} by {{ sheet.viaOwner|user_link|absolute_link }}</div>
+		{% endif %}
+	</div>
+	{% endif %}
+
+	<!-- <div id="belowSheet"></div> -->
+
+	<!--
+	Footer depends on full bootstrap grid, which isn't loaded in sheets.html
+	{% include "elements/footer.html" %}
+	-->
+
+	<!--
+	<script type="text/javascript" src="/static/js/jquery.scrollTo-1.4.2-min.js"></script>
+	<script type="text/javascript" src="/static/js/jquery.easing.1.3.js"></script>
+	<script type="text/javascript" src="/static/js/jquery-tooltip/jquery.tooltip.js"></script>
+	<script src="/static/js/jquery.tag-it.min.js"></script>
+
+
+	{% include "js/headers.js" %}
+
+	<script type="text/javascript">
+	{% autoescape off %}
+		var sjs = sjs || {};
+
+		$.extend(sjs, {
+			current: {{ sheetJSON|default:"null" }},
+			assignment_id: {{ assignment_id|default:"null" }},
+			assigner_id: {{ assigner_id|default:"null" }},
+			can_edit: {% if can_edit %}true{% else %}false{% endif %},
+	        can_add: {% if can_add %}true{% else %}false{% endif %},
+			is_owner: {% if is_owner %}true{% else %}false{% endif %},
+			editing: {},
+			ref: {},
+			loading: 0,
+			autosave: false,
+			changes: false,
+			{% if user.id %}
+			_fullname: "{{ user.first_name }} {{ user.last_name }}",
+			_userLink: "{{ user.id|user_link }}"
+			{% endif %}
+		});
+	{% endautoescape %}
+	</script>
+	{% if can_edit or can_add %}
+	<script src="/static/ckeditor/ckeditor.js"></script>
+	<script src="/static/ckeditor/adapters/jquery.js"></script>
+	{% endif %}
+	<script src="/static/js/sheets.js"></script>
+
+	    <script>
+	    var backToS1 = function() {
+	      $.cookie("s2", "", {path: "/"});
+	      window.location = "/";
+	    }
+	    $("#backToOldSefaria").click(backToS1);
+	    </script>
+	-->
+</body>
+</html>

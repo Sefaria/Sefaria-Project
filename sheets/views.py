@@ -1,8 +1,10 @@
 import json
-from bson.son import SON
 from datetime import datetime, timedelta
+import httplib2
+from StringIO import StringIO
 
 from django.template import RequestContext
+from django.template.loader import render_to_string
 from django.shortcuts import render_to_response, redirect
 from django.http import Http404
 
@@ -16,7 +18,10 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Group as DjangoGroup
 
-from reader.views import s2_sheets, s2_sheets_by_tag
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseUpload
+
+from reader.views import s2_sheets, s2_sheets_by_tag, s2_group_sheets
 
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse, HttpResponse
@@ -25,10 +30,13 @@ from sefaria.sheets import *
 from sefaria.model.user_profile import *
 from sefaria.model.group import Group, GroupSet
 from sefaria.system.exceptions import InputError
+from sefaria.utils.util import strip_tags
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
 # noinspection PyUnresolvedReferences
 import sefaria.model.dependencies
+
+from sefaria.gauth.decorators import gauth_required
 
 
 def annotate_user_links(sources):
@@ -43,7 +51,7 @@ def annotate_user_links(sources):
 
 	return sources
 
-
+@login_required
 @ensure_csrf_cookie
 def new_sheet(request):
 	"""
@@ -66,7 +74,7 @@ def new_sheet(request):
 	hide_video    = db.sheets.find(query).count() > 2
 
 
-	return render_to_response('s2_sheets.html' if request.COOKIES.get('s2') else 'sheets.html', {"can_edit": True,
+	return render_to_response('sheets.html' if request.COOKIES.get('s1') else 's2_sheets.html', {"can_edit": True,
 												"new_sheet": True,
 												"is_owner": True,
 												"hide_video": hide_video,
@@ -81,16 +89,16 @@ def can_edit(user, sheet):
 	Returns true if user can edit sheet.
 	"""
 	if sheet["owner"] == user.id:
-		return True		
+		return True
 	if "collaboration" not in sheet["options"]:
 		return False
 	if sheet["options"]["collaboration"] == "anyone-can-edit":
-		return True		
+		return True
 	if sheet["options"]["collaboration"] == "group-can-edit":
 		if "group" in sheet:
 			if sheet["group"] in [group.name for group in user.groups.all()]:
 				return True
-					
+
 	return False
 
 
@@ -141,7 +149,7 @@ def make_sheet_class_string(sheet):
 
 	if sheet["status"] == "public":
 		classes.append("public")
-   
+
 
 	return " ".join(classes)
 
@@ -154,7 +162,7 @@ def view_sheet(request, sheet_id):
 	sheet = get_sheet(sheet_id)
 	if "error" in sheet:
 		return HttpResponse(sheet["error"])
-	
+
 	sheet["sources"] = annotate_user_links(sheet["sources"])
 
 	# Count this as a view
@@ -178,10 +186,10 @@ def view_sheet(request, sheet_id):
 	viewer_is_liker = request.user.id in likes
 
 
-	return render_to_response('s2_sheets.html' if request.COOKIES.get('s2') else 'sheets.html', {"sheetJSON": json.dumps(sheet),
+	return render_to_response('sheets.html' if request.COOKIES.get('s1') else 's2_sheets.html', {"sheetJSON": json.dumps(sheet),
 												"sheet": sheet,
 												"sheet_class": sheet_class,
-												"can_edit": can_edit_flag, 
+												"can_edit": can_edit_flag,
 												"can_add": can_add_flag,
 												"title": sheet["title"],
 												"author": author,
@@ -210,7 +218,7 @@ def view_visual_sheet(request, sheet_id):
 	sheet = get_sheet(sheet_id)
 	if "error" in sheet:
 		return HttpResponse(sheet["error"])
-	
+
 	sheet["sources"] = annotate_user_links(sheet["sources"])
 
 	# Count this as a view
@@ -234,10 +242,10 @@ def view_visual_sheet(request, sheet_id):
 	viewer_is_liker = request.user.id in likes
 
 
-	return render_to_response('sheets_visual.html',{"sheetJSON": json.dumps(sheet), 
+	return render_to_response('sheets_visual.html',{"sheetJSON": json.dumps(sheet),
 													"sheet": sheet,
 													"sheet_class": sheet_class,
-													"can_edit": can_edit_flag, 
+													"can_edit": can_edit_flag,
 													"can_add": can_add_flag,
 													"title": sheet["title"],
 													"author": author,
@@ -259,7 +267,7 @@ def assigned_sheet(request, assignment_id):
 	sheet = get_sheet(assignment_id)
 	if "error" in sheet:
 		return HttpResponse(sheet["error"])
-	
+
 	sheet["sources"] = annotate_user_links(sheet["sources"])
 
 	# Remove keys from we don't want transferred
@@ -280,13 +288,13 @@ def assigned_sheet(request, assignment_id):
 	like_count      = len(likes)
 	viewer_is_liker = request.user.id in likes
 
-	return render_to_response('s2_sheets.html' if request.COOKIES.get('s2') else 'sheets.html', {"sheetJSON": json.dumps(sheet),
+	return render_to_response('sheets.html' if request.COOKIES.get('s1') else 's2_sheets.html', {"sheetJSON": json.dumps(sheet),
 												"sheet": sheet,
 												"assignment_id": assignment_id,
 												"assigner_id": assigner_id,
 												"new_sheet": True,
 												"sheet_class": sheet_class,
-												"can_edit": can_edit_flag, 
+												"can_edit": can_edit_flag,
 												"can_add": can_add_flag,
 												"title": sheet["title"],
 												"is_owner": True,
@@ -300,8 +308,9 @@ def assigned_sheet(request, assignment_id):
 
 def delete_sheet_api(request, sheet_id):
 	"""
-	Deletes sheet with id, only if the requester is the sheet owner. 
+	Deletes sheet with id, only if the requester is the sheet owner.
 	"""
+	import sefaria.search as search
 	id = int(sheet_id)
 	sheet = db.sheets.find_one({"id": id})
 	if not sheet:
@@ -311,55 +320,10 @@ def delete_sheet_api(request, sheet_id):
 		return jsonResponse({"error": "Only the sheet owner may delete a sheet."})
 
 	db.sheets.remove({"id": id})
+	search.delete_sheet(id)
 
 	return jsonResponse({"status": "ok"})
 
-
-def sheet_tag_counts(query):
-	"""
-	Returns tags ordered by count for sheets matching query.
-	"""
-	tags = db.sheets.aggregate([
-		{"$match": query },
-		{"$unwind": "$tags"},
-		{"$group": {"_id": "$tags", "count": {"$sum": 1}}},
-		{"$sort": SON([("count", -1), ("_id", -1)])},
-		{"$project": { "_id": 0, "tag": "$_id", "count": "$count" }}
-	])
-	return tags["result"]
-
-
-def order_tags_for_user(tag_counts, uid):
-	"""
-	Returns of list of tag/count dicts order according to user's preference,
-	Adds empty tags if any appear in user's sort list but not in tags passed in
-	"""
-	profile   = UserProfile(id=uid)
-	tag_order = getattr(profile, "tag_order", None)
-	if tag_order:
-		empty_tags = tag_order[:]
-		tags = [tag_count["tag"] for tag_count in tag_counts]		
-		empty_tags = [tag for tag in tag_order if tag not in tags]
-		
-		for tag in empty_tags:
-			tag_counts.append({"tag": tag, "count": 0})
-		try:
-			tag_counts = sorted(tag_counts, key=lambda x: tag_order.index(x["tag"]))
-		except:
-			pass
-
-	return tag_counts
-
-
-def recent_public_tags(days=14, ntags=10):
-	"""
-	Returns list of tag/counts on public sheets modified in the last 'days'.
-	"""
-	cutoff      = datetime.now() - timedelta(days=days)
-	query       = {"status": "public", "dateModified": { "$gt": cutoff.isoformat() } }
-	tags        = sheet_tag_counts(query)[:ntags]
-
-	return tags
 
 
 def sheets_list(request, type=None):
@@ -369,8 +333,11 @@ def sheets_list(request, type=None):
 	"""
 	if not type:
 		# Sheet Splash page
-		
+
 		if request.flavour == "mobile":
+			return s2_sheets(request)
+
+		elif not request.COOKIES.get('s1'):
 			return s2_sheets(request)
 
 		query       = {"status": "public"}
@@ -394,18 +361,31 @@ def sheets_list(request, type=None):
 										"your_tags":   your_tags,
 										"collapse_private": collapse,
 										"groups": get_user_groups(request.user)
-									}, 
+									},
 									RequestContext(request))
 
 	response = { "status": 0 }
 
 	if type == "public":
+		if request.flavour == "mobile":
+			return s2_sheets_by_tag(request,"All Sheets")
+
+		elif not request.COOKIES.get('s1'):
+			return s2_sheets_by_tag(request,"All Sheets")
+
 		query              = {"status": "public"}
 		response["title"]  = "Public Source Sheets"
 		response["public"] = True
 		tags               = recent_public_tags()
 
 	elif type == "private":
+		if request.flavour == "mobile":
+			return s2_sheets_by_tag(request,"My Sheets")
+
+		elif not request.COOKIES.get('s1'):
+			return s2_sheets_by_tag(request,"My Sheets")
+
+
 		query              = {"owner": request.user.id or -1 }
 		response["title"]  = "Your Source Sheets"
 		response["groups"] = get_user_groups(request.user)
@@ -438,9 +418,13 @@ def partner_page(request, partner):
 		raise Http404
 
 	if request.user.is_authenticated() and group.name in [g.name for g in request.user.groups.all()]:
+		if not request.COOKIES.get('s1'):
+			return s2_group_sheets(request, group.name, True)
 		in_group = True
 		query = {"status": {"$in": ["unlisted","public"]}, "group": group.name}
 	else:
+		if not request.COOKIES.get('s1'):
+			return s2_group_sheets(request, group.name, False)
 		in_group = False
 		query = {"status": "public", "group": group.name}
 
@@ -482,7 +466,7 @@ def groups_api(request):
 	elif request.method == "DELETE":
 		GroupSet(group).delete()
 		return jsonResponse({"status": "ok"})
-	
+
 	else:
 		return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -495,8 +479,14 @@ def sheets_tags_list(request):
 	"""
 	View public sheets organized by tags.
 	"""
+	if request.flavour == "mobile":
+		return s2_sheets(request)
+
+	elif not request.COOKIES.get('s1'):
+		return s2_sheets(request)
+
 	tags_list = make_tag_list()
-	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))	
+	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))
 
 
 def sheets_tag(request, tag, public=True, group=None):
@@ -506,6 +496,8 @@ def sheets_tag(request, tag, public=True, group=None):
 	if public:
 		if request.flavour == "mobile":
 			return s2_sheets_by_tag(request, tag)
+		elif not request.COOKIES.get('s1'):
+			return s2_sheets_by_tag(request, tag)
 		sheets = get_sheets_by_tag(tag)
 	elif group:
 		sheets = get_sheets_by_tag(tag, group=group)
@@ -514,7 +506,7 @@ def sheets_tag(request, tag, public=True, group=None):
 
 	in_group = request.user.is_authenticated() and group in [g.name for g in request.user.groups.all()]
 	groupCover = Group().load({"name": group}).coverUrl if Group().load({"name": group}) else None
-	
+
 	return render_to_response('tag.html', {
 											"tag": tag,
 											"sheets": sheets,
@@ -522,9 +514,9 @@ def sheets_tag(request, tag, public=True, group=None):
 											"group": group,
 											"groupCover": groupCover,
 											"in_group": in_group,
-										 }, RequestContext(request))	
+										 }, RequestContext(request))
 
-	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))	
+	return render_to_response('sheet_tags.html', {"tags_list": tags_list, }, RequestContext(request))
 
 
 @login_required
@@ -554,27 +546,20 @@ def sheet_list_api(request):
 	if request.method == "POST":
 		if not request.user.is_authenticated():
 			return jsonResponse({"error": "You must be logged in to save."})
-		
+
 		j = request.POST.get("json")
 		if not j:
 			return jsonResponse({"error": "No JSON given in post data."})
 		sheet = json.loads(j)
-
-
-		#Temp code to throw error in case someone has old sourcesheet code running in browser when backend migration from subsources to indent occurs
-		#Todo remove me by 3/21/16
-		if "sources" in sheet:
-			if "subsources" in sheet["sources"]:
-				return jsonResponse({"error": "There's been an error. Please refresh the page."})
 
 		if "id" in sheet:
 			existing = get_sheet(sheet["id"])
 			if "error" not in existing  and \
 				not can_edit(request.user, existing) and \
 				not can_add(request.user, existing):
-				
+
 				return jsonResponse({"error": "You don't have permission to edit this sheet."})
-		
+
 		responseSheet = save_sheet(sheet, request.user.id)
 		if "rebuild" in responseSheet and responseSheet["rebuild"]:
 			# Don't bother adding user links if this data won't be used to rebuild the sheet
@@ -590,6 +575,25 @@ def user_sheet_list_api(request, user_id):
 	if int(user_id) != request.user.id:
 		return jsonResponse({"error": "You are not authorized to view that."})
 	return jsonResponse(sheet_list(user_id), callback=request.GET.get("callback", None))
+
+def user_sheet_list_api_with_sort(request, user_id, sort_by="date"):
+	if int(user_id) != request.user.id:
+		return jsonResponse({"error": "You are not authorized to view that."})
+	return jsonResponse(user_sheets(user_id,sort_by), callback=request.GET.get("callback", None))
+
+def private_sheet_list_api(request, partner):
+	partner = partner.replace("-", " ").replace("_", " ")
+	group   = Group().load({"name": partner})
+	if not group:
+		raise Http404
+	if request.user.is_authenticated() and group.name in [g.name for g in request.user.groups.all()]:
+		return jsonResponse(partner_sheets(partner, True), callback=request.GET.get("callback", None))
+	else:
+		return jsonResponse(partner_sheets(partner, False), callback=request.GET.get("callback", None))
+
+
+def public_sheet_list_api(request):
+	return jsonResponse(sheet_list(), callback=request.GET.get("callback", None))
 
 
 def sheet_api(request, sheet_id):
@@ -607,7 +611,7 @@ def sheet_api(request, sheet_id):
 def check_sheet_modified_api(request, sheet_id, timestamp):
 	"""
 	Check if sheet_id has been modified since timestamp.
-	If modified, return the new sheet. 
+	If modified, return the new sheet.
 	"""
 	sheet_id = int(sheet_id)
 	callback=request.GET.get("callback", None)
@@ -642,7 +646,7 @@ def add_source_to_sheet_api(request, sheet_id):
 
 def copy_source_to_sheet_api(request, sheet_id):
 	"""
-	API to copy a source from one sheet to another. 
+	API to copy a source from one sheet to another.
 	"""
 	copy_sheet = request.POST.get("sheet")
 	copy_source = request.POST.get("source")
@@ -663,7 +667,7 @@ def add_ref_to_sheet_api(request, sheet_id):
 @login_required
 def update_sheet_tags_api(request, sheet_id):
 	"""
-	API to update tags for sheet_id. 
+	API to update tags for sheet_id.
 	"""
 	tags = json.loads(request.POST.get("tags"))
 	return jsonResponse(update_sheet_tags(int(sheet_id), tags))
@@ -671,14 +675,14 @@ def update_sheet_tags_api(request, sheet_id):
 def visual_sheet_api(request, sheet_id):
 	"""
 	API for visual source sheet layout
-	"""	
+	"""
 	if not request.user.is_authenticated():
 		return {"error": "You must be logged in to save a sheet layout."}
 	if request.method != "POST":
 		return jsonResponse({"error": "Unsupported HTTP method."})
-		
-	visualNodes = json.loads(request.POST.get("visualNodes"))	
-	zoomLevel =  json.loads(request.POST.get("zoom"))	
+
+	visualNodes = json.loads(request.POST.get("visualNodes"))
+	zoomLevel =  json.loads(request.POST.get("zoom"))
 	add_visual_data(int(sheet_id), visualNodes, zoomLevel)
 	return jsonResponse({"status": "ok"})
 
@@ -717,12 +721,34 @@ def sheet_likers_api(request, sheet_id):
 	return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
-def tag_list_api(request):
+def tag_list_api(request, sort_by="count"):
 	"""
 	API to retrieve the list of public tags ordered by count.
 	"""
-	response = sheet_tag_counts({"status": "public"})
-	response =  jsonResponse(response, callback=request.GET.get("callback", None))
+	response = sheet_tag_counts({"status": "public"}, sort_by)
+	response = jsonResponse(response, callback=request.GET.get("callback", None))
+	response["Cache-Control"] = "max-age=3600"
+	return response
+
+
+def user_tag_list_api(request, user_id):
+	"""
+	API to retrieve the list of public tags ordered by count.
+	"""
+	#if int(user_id) != request.user.id:
+		#return jsonResponse({"error": "You are not authorized to view that."})
+	response = sheet_tag_counts({ "owner": int(user_id) })
+	response = jsonResponse(response, callback=request.GET.get("callback", None))
+	response["Cache-Control"] = "max-age=3600"
+	return response
+
+def group_tag_list_api(request, partner):
+	"""
+	API to retrieve the list of public tags ordered by count.
+	"""
+	partner = partner.replace("-", " ").replace("_", " ")
+	response = sheet_tag_counts({ "group": partner })
+	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response
 
@@ -737,20 +763,33 @@ def trending_tags_api(request):
 	return response
 
 
+def all_sheets_api(request, limiter, offset=0):
+	limiter = int(limiter)
+	offset = int(offset)
+	query = {"status": "public"}
+	if limiter==0:
+		public = db.sheets.find(query).sort([["dateModified", -1]])
+	else:
+		public = db.sheets.find(query).sort([["dateModified", -1]]).skip(offset).limit(limiter)
+
+	sheets   = [sheet_to_dict(s) for s in public]
+	response = {"sheets": sheets}
+	response = jsonResponse(response, callback=request.GET.get("callback", None))
+	response["Cache-Control"] = "max-age=3600"
+	return response
+
+
 def sheets_by_tag_api(request, tag):
 	"""
-	API to retrieve the list of peopke who like sheet_id.
+	API to get a list of sheets by `tag`.
 	"""
-	sheets = get_sheets_by_tag(tag, public=True)
-	sheets = [{"title": s["title"], "id": s["id"], "owner": s["owner"], "views": s["views"]} for s in sheets]
-	for sheet in sheets:
-		profile                = UserProfile(id=sheet["owner"])
-		sheet["ownerName"]     = profile.full_name
-		sheet["ownerImageUrl"] = profile.gravatar_url_small
+	sheets   = get_sheets_by_tag(tag, public=True)
+	sheets   = [sheet_to_dict(s) for s in sheets]
 	response = {"tag": tag, "sheets": sheets}
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response
+
 
 def get_aliyot_by_parasha_api(request, parasha):
 	response = {"ref":[]};
@@ -776,3 +815,88 @@ def make_sheet_from_text_api(request, ref, sources=None):
 	sources = sources.replace("_", " ").split("+") if sources else None
 	sheet = make_sheet_from_text(ref, sources=sources, uid=request.user.id, generatedBy=None, title=None)
 	return redirect("/sheets/%d" % sheet["id"])
+
+
+def sheet_to_html_string(sheet):
+	"""
+	Create the html string of sheet with sheet_id.
+	"""
+	sheet["sources"] = annotate_user_links(sheet["sources"])
+	sheet = resolve_options_of_sources(sheet)
+
+	try:
+		owner = User.objects.get(id=sheet["owner"])
+		author = owner.first_name + " " + owner.last_name
+	except User.DoesNotExist:
+		author = "Someone Mysterious"
+
+	sheet_group = (Group().load({"name": sheet["group"]})
+				   if "group" in sheet and sheet["group"] != "None" else None)
+
+	context = {
+		"sheetJSON": json.dumps(sheet),
+		"sheet": sheet,
+		"sheet_class": make_sheet_class_string(sheet),
+		"can_edit": False,
+		"can_add": False,
+		"title": sheet["title"],
+		"author": author,
+		"is_owner": False,
+		"is_public": sheet["status"] == "public",
+		"owner_groups": None,
+		"sheet_group":  sheet_group,
+		"like_count": len(sheet.get("likes", [])),
+		"viewer_is_liker": False,
+		"assignments_from_sheet": assignments_from_sheet(sheet['id']),
+	}
+
+	return render_to_string('gdocs_sheet.html', context).encode('utf-8')
+
+
+def resolve_options_of_sources(sheet):
+	for source in sheet['sources']:
+		if 'text' not in source:
+			continue
+		options = source.setdefault('options', {})
+		if not options.get('sourceLanguage'):
+			source['options']['sourceLanguage'] = sheet['options'].get(
+				'language', 'bilingual')
+		if not options.get('sourceLayout'):
+			source['options']['sourceLayout'] = sheet['options'].get(
+				'layout', 'sideBySide')
+		if not options.get('sourceLangLayout'):
+			source['options']['sourceLangLayout'] = sheet['options'].get(
+				'langLayout', 'heRight')
+	return sheet
+
+
+@gauth_required(scope='https://www.googleapis.com/auth/drive.file', ajax=True)
+def export_to_drive(request, credential, sheet_id):
+	"""
+	Export a sheet to Google Drive.
+	"""
+
+	http = credential.authorize(httplib2.Http())
+	service = build('drive', 'v3', http=http)
+
+	sheet = get_sheet(sheet_id)
+	if 'error' in sheet:
+		return jsonResponse({'error': {'message': sheet["error"]}})
+
+	file_metadata = {
+		'name': strip_tags(sheet['title'].strip()),
+		'mimeType': 'application/vnd.google-apps.document'
+	}
+
+	html_string = sheet_to_html_string(sheet)
+
+	media = MediaIoBaseUpload(
+		StringIO(html_string),
+		mimetype='text/html',
+		resumable=True)
+
+	new_file = service.files().create(body=file_metadata,
+									  media_body=media,
+									  fields='webViewLink').execute()
+
+	return jsonResponse(new_file)

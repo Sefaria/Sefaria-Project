@@ -382,8 +382,8 @@ def get_core_link_stats():
     ]
     writer.writerow(titles)
     sets = [
-        ("Tanach", "Tanach"),
-        ("Tanach", "Bavli"),
+        ("Tanakh", "Tanakh"),
+        ("Tanakh", "Bavli"),
         ("Bavli", "Tosefta"),
         ("Tosefta", "Mishnah"),
         ("Bavli", "Yerushalmi"),
@@ -481,11 +481,11 @@ def get_library_stats():
         "en_word_count",
     ]
 
-    with_commentary = ["Tanach", "Mishnah", "Talmud", "Halakhah"]
+    with_commentary = ["Tanakh", "Mishnah", "Talmud", "Halakhah"]
     for n in tree:
         row = [n.get(field) for field in fields]
         if n["name"] in with_commentary:
-            if n["name"] == "Tanach":
+            if n["name"] == "Tanakh":
                 cn = filter(lambda x: x["name"] == "Commentary", n["children"])[0]
                 c_row = [cn.get(field) for field in fields]
                 tn = filter(lambda x: x["name"] == "Targum", n["children"])[0]

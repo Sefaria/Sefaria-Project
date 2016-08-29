@@ -1,6 +1,16 @@
-{% load sefaria_tags %}
+{% if S2 or request.flavour == "mobile" %}
 
-{% if not S2 and not request.flavour == "mobile" %}
+	{% autoescape off %}
+	{% if request.user.is_authenticated %}
+	<div id="s2" class="headerOnly">{{ logged_in_header }}</div>
+	{% else %}
+	<div id="s2" class="headerOnly">{{ logged_out_header }}</div>
+	{% endif %}
+	{% endautoescape %}
+
+{% else %}
+
+{% load sefaria_tags %}
 <header id="top" class=''>
 	<div id="right" class="">
 		<div id="showOptions" class="">≡</div>
@@ -24,10 +34,11 @@
 				
 			</div>
 		
-			<div id="editButtons" style="display:none;">
+            <div id="editButtons" style="display:none;">
 				<span id="addVersionSave" class='btn btn-primary'>Save</span>
 				<span id='addVersionCancel' class='btn'>Cancel</span>
 			</div>
+
 		</div>
 	</div>
 
@@ -165,8 +176,6 @@
 	</div>
 </div>
 
-{% endif %}
-
 <div id="helpModal" class="modal">
 	<div id="helpClose" class="ui-icon ui-icon-closethick"></div>
 
@@ -194,18 +203,20 @@
 	</div>
 </div>
 
-{% if GLOBAL_WARNING %}
-	{% autoescape off %}
-	<div id="globalWarning">
-		<i class='fa fa-times' onClick="$('#globalWarning').remove();"></i>
-		<i class="fa fa-warning"></i> 
-		{{ GLOBAL_WARNING_MESSAGE }}</div>
-	{% endautoescape %}
-{% endif %}
-
 <div id="topMessage"></div>
 
 <div id="overlay"></div>
 
 <link rel="stylesheet" type="text/css" href="/static/css/keyboard.css">
 <link rel="stylesheet" type="text/css" href="/static/css/tooltipster.css" />
+
+{% endif %}
+
+{% if GLOBAL_WARNING %}
+	{% autoescape off %}
+	<div id="globalWarning">
+		<i class='fa fa-times' onClick="$('#globalWarning').remove();"></i>
+		<i class="fa fa-warning"></i>
+		{{ GLOBAL_WARNING_MESSAGE }}</div>
+	{% endautoescape %}
+{% endif %}

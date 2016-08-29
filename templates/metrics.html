@@ -8,13 +8,26 @@
 
 {% block content %}
 
-<div id="metricsContent">
-	<h1>Sefaria Metrics</h1>
+{% if S2 %}
+<div id="metricsPage" class="static">
+	<div class="inner">
+		<h1>Metrics</h1>
+		<div id="metricsBox">
+			Loading...
+		</div>
+	</div>
 </div>
+{% else %}
+<div id="metricsContent">
+	<h1>Metrics</h1>
+	<div id="metricsBox"></div>
+</div>
+{% endif %}
+
 {% endblock %}
 
 {% block js %} 
-<script src="/static/js/Chart.min.js" charset="utf-8"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script>
 	var metrics = {% autoescape off %}{{ metrics_json }}{% endautoescape %};
 	
@@ -22,7 +35,7 @@
 		metrics[i]["totalWords"] = metrics[i]["heWords"] + metrics[i]["transWords"];
 	}
 
-	var show = {
+	var titles = {
 			"totalWords": "Total Words in Library",
 			"heWords": "Words in Hebrew & Aramaic",
 			"transWords": "Words in Translation",
@@ -32,12 +45,14 @@
 			"sheets": "Number of Source Sheets"
 	};
 
-	var makeData = function(field) {
-		data = [];
-		for (var i = 0; i < metrics.length; i++) {
-			data.push(metrics[i][field]);
-		}
-		return data;
+	var types = {
+			"totalWords": "Words",
+			"heWords": "Words",
+			"transWords": "Words",
+			"sctWords": "Words",
+			"contributors": "Contributors",
+			"links": "Links",
+			"sheets": "Source Sheets"
 	};
 
 	var labels = [];
@@ -48,134 +63,51 @@
 		var month = months[a.getMonth()];
 		var date = a.getDate();
 
-		if (date == 1) {
-			labels.push(month);
-		} else {
-			labels.push("");
+		labels.push(month + " " + date + ", " + a.getFullYear());
+	}
+
+	var makeData = function(field) {
+		var data = [['Day', types[field]]];
+		for (var i = 0; i < metrics.length; i++) {
+			data.push([labels[i], metrics[i][field]]);
 		}
-
-	}
-
-	var options = {
-					
-		//Boolean - If we show the scale above the chart data			
-		scaleOverlay : true,
-		
-		//Boolean - If we want to override with a hard coded scale
-		scaleOverride : false,
-		
-		//** Required if scaleOverride is true **
-		//Number - The number of steps in a hard coded scale
-		scaleSteps : null,
-		//Number - The value jump in the hard coded scale
-		scaleStepWidth : null,
-		//Number - The scale starting value
-		scaleStartValue : null,
-
-		//String - Colour of the scale line	
-		scaleLineColor : "rgba(0,0,0,.1)",
-		
-		//Number - Pixel width of the scale line	
-		scaleLineWidth : 1,
-
-		//Boolean - Whether to show labels on the scale	
-		scaleShowLabels : true,
-		
-		//Interpolated JS string - can access value
-		scaleLabel : "<%=value%>",
-		
-		//String - Scale label font declaration for the scale label
-		scaleFontFamily : "'Arial'",
-		
-		//Number - Scale label font size in pixels	
-		scaleFontSize : 12,
-		
-		//String - Scale label font weight style	
-		scaleFontStyle : "normal",
-		
-		//String - Scale label font colour	
-		scaleFontColor : "#666",	
-		
-		///Boolean - Whether grid lines are shown across the chart
-		scaleShowGridLines : true,
-		
-		//String - Colour of the grid lines
-		scaleGridLineColor : "rgba(0,0,0,.05)",
-		
-		//Number - Width of the grid lines
-		scaleGridLineWidth : 1,	
-		
-		//Boolean - Whether the line is curved between points
-		bezierCurve : true,
-		
-		//Boolean - Whether to show a dot for each point
-		pointDot : false,
-		
-		//Number - Radius of each point dot in pixels
-		pointDotRadius : 3,
-		
-		//Number - Pixel width of point dot stroke
-		pointDotStrokeWidth : 1,
-		
-		//Boolean - Whether to show a stroke for datasets
-		datasetStroke : true,
-		
-		//Number - Pixel width of dataset stroke
-		datasetStrokeWidth : 2,
-		
-		//Boolean - Whether to fill the dataset with a colour
-		datasetFill : true,
-		
-		//Boolean - Whether to animate the chart
-		animation : true,
-
-		//Number - Number of animation steps
-		animationSteps : 30,
-		
-		//String - Animation easing effect
-		animationEasing : "easeOutQuart",
-
-		//Function - Fires when the animation is complete
-		onAnimationComplete : null
-		
-	}
+		return data;
+	};
 
 	var makeChart = function(field) {
 		var data = makeData(field);
-		var html = '<div class="chart">' +
-						'<div class="chartLabel">' + show[field] + '</div>' +
-						'<canvas id="' + field + '" width="' + (metrics.length + 100) + '" height="300"></canvas>' +
-					'</div>';
+		var data = google.visualization.arrayToDataTable(data);
 
-		$("#metricsContent").append(html);
-
-		var chartData = {
-			labels: labels,
-			datasets: [
-				{
-					fillColor : "rgba(151,187,205,0.5)",
-					strokeColor : "rgba(151,187,205,1)",
-					pointColor : "rgba(151,187,205,1)",
-					pointStrokeColor : "#fff",
-					data : data
-				}
-			]
+		var options = {
+		  title: titles[field],
+		  curveType: 'function',
+		  legend: 'none',
+		  colors: ["#4871bf"],
+		  hAxis: {
+	         baselineColor: '#fff',
+	         gridlineColor: '#fff',
+	         textPosition: 'none'
+		  }
 		};
 
-		//Get context with jQuery - using jQuery's .get() method.
-		var ctx = $("#" + field).get(0).getContext("2d");
-		//This will get the first returned node in the jQuery collection.
-		var chart = new Chart(ctx);
+		$("#metricsBox").append("<div id='" + field + "' class='chart'></div>");
+		var chart = new google.visualization.LineChart(document.getElementById(field));
 
-		chart.Line(chartData, options);
+		chart.draw(data, options);
 	};
 
-	$(function() {
-		for (var field in show) {
-    		if (show.hasOwnProperty(field)) {
+	var makeCharts = function() {
+		$("#metricsBox").empty();
+		for (var field in titles) {
+    		if (titles.hasOwnProperty(field)) {
        			makeChart(field);
     		}
 		}
+	};
+
+	$(function() {
+		google.charts.load('current', {'packages':['corechart']});
+		google.charts.setOnLoadCallback(makeCharts);
 	});
 </script>
 {% endblock %}

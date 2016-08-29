@@ -2,7 +2,6 @@
 
 from sefaria.model import *
 
-
 """
                                                     IN PROCESS & UNTESTED
 
@@ -44,16 +43,15 @@ def attach_branch(new_node, parent_node, place=0):
     for v in vs + vsc:
         pc = v.content_node(parent_node)
         pc[new_node.key] = new_node.create_skeleton()
-        v.save()
+        v.save(override_dependencies=True)
 
     # Update Index schema and save
     parent_node.children.insert(place, new_node)
     new_node.parent = parent_node
-    index.save()
 
-    # Refresh VersionState
+    index.save(override_dependencies=True)
+    library.rebuild()
     refresh_version_state(index.title)
-
 
 def remove_branch(node):
     """
@@ -75,13 +73,13 @@ def remove_branch(node):
         assert isinstance(v, Version)
         pc = v.content_node(parent)
         del pc[node.key]
-        v.save()
+        v.save(override_dependencies=True)
 
     parent.children = [n for n in parent.children if n.key != node.key]
-    index.save()
 
+    index.save(override_dependencies=True)
+    library.rebuild()
     refresh_version_state(index.title)
-
 
 def reorder_children(parent_node, new_order):
     """
@@ -95,6 +93,45 @@ def reorder_children(parent_node, new_order):
     assert set(child_dict.keys()) == set(new_order)
     parent_node.children = [child_dict[k] for k in new_order]
     parent_node.index.save()
+
+
+def convert_simple_index_to_complex(index):
+    """
+    The target complex text will have a 'default' node.
+    All refs to this text should remain good.
+    :param index:
+    :return:
+    """
+    from sefaria.model.schema import TitleGroup
+
+    assert isinstance(index, Index)
+
+    ja_node = index.nodes
+    assert isinstance(ja_node, JaggedArrayNode)
+
+    # Repair all version
+    vs = [v for v in index.versionSet()]
+    vsc = [v for v in library.get_commentary_versions_on_book(index.title)]
+    for v in vs + vsc:
+        assert isinstance(v, Version)
+        v.chapter = {"default": v.chapter}
+        v.save(override_dependencies=True)
+
+    # Build new schema
+    new_parent = SchemaNode()
+    new_parent.title_group = ja_node.title_group
+    new_parent.key = ja_node.key
+    ja_node.title_group = TitleGroup()
+    ja_node.key = "default"
+    ja_node.default = True
+
+    # attach to index record
+    new_parent.append(ja_node)
+    index.nodes = new_parent
+
+    index.save(override_dependencies=True)
+    library.rebuild()
+    refresh_version_state(index.title)
 
 
 def change_parent(node, new_parent, place=0):
@@ -121,13 +158,15 @@ def change_parent(node, new_parent, place=0):
         content = old_parent_content.pop(node.key)
         new_parent_content = v.content_node(new_parent)
         new_parent_content[node.key] = content
-        v.save()
+        v.save(override_dependencies=True)
 
     old_parent.children = [n for n in old_parent.children if n.key != node.key]
     new_parent.children.insert(place, node)
     node.parent = new_parent
     new_normal_form = node.ref().normal()
-    index.save()
+
+    index.save(override_dependencies=True)
+    library.rebuild()
 
     for link in linkset:
         link.refs = [ref.replace(old_normal_form, new_normal_form) for ref in link.refs]
@@ -139,14 +178,13 @@ def change_parent(node, new_parent, place=0):
 
 def refresh_version_state(base_title):
     """
-    VersionState is *not* altered on Index save.  It is only created on Index creation.
+    ** VersionState is *not* altered on Index save.  It is only created on Index creation.
+    ^ It now seems that VersionState is referenced on Index save
 
     VersionState is *not* automatically updated on Version save.
     The VersionState update on version save happens in texts_api().
-
     VersionState.refresh() assumes the structure of content has not changed.
     To regenerate VersionState, we save the flags, delete the old one, and regenerate a new one.
-
     """
     vtitles = library.get_commentary_version_titles_on_book(base_title) + [base_title]
     for title in vtitles:

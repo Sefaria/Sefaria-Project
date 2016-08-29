@@ -1,22 +1,18 @@
 {% if OFFLINE %}
-  var _gaq = [];
+    function ga(){}
 {% else %}
-  // GOOGLE ANALYTICS
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', '{{ GOOGLE_ANALYTICS_CODE }}']);
-  _gaq.push(['_trackPageview']);
+    // GOOGLE ANALYTICS
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-  var siteVersion = "{% if S2 %}S2{% else %}S1{% endif %}";
-  _gaq.push('_setCustomVar', 1, "Site Version", siteVersion, 3);
+    ga('create', '{{ GOOGLE_ANALYTICS_CODE }}', 'auto');  // Replace with your property ID.
+    // Send first pageview after S2 is loaded, so that more data can be added.
+    // ga('send', 'pageview');
 
 
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
-  window.onerror = function(msg, url, lineNumber) {
-    _gaq.push(['_trackEvent', 'Javascript Errors', msg, url + ':' + lineNumber]);
-  };
+    window.onerror = function(msg, url, lineNumber) {
+        ga('send', 'event', 'Javascript Errors',  msg, url + ':' + lineNumber);
+    };
 {% endif %}

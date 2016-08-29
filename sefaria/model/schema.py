@@ -15,7 +15,7 @@ import regex
 from . import abstract as abst
 
 from sefaria.system.exceptions import InputError, IndexSchemaError
-from sefaria.utils.hebrew import decode_hebrew_numeral, encode_hebrew_numeral, hebrew_term
+from sefaria.utils.hebrew import decode_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term
 
 """
                 -----------------------------------------
@@ -48,7 +48,7 @@ class TitleGroup(object):
         :param lang: "en" or "he"
         :return: The primary title string or None
         """
-        if self._primary_title.get(lang) is None:
+        if not self._primary_title.get(lang):
             for t in self.titles:
                 if t.get("lang") == lang and t.get("primary"):
                     self._primary_title[lang] = t.get("text")
@@ -1052,6 +1052,8 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
     - Structure Nodes whose children can be addressed by Integer or other :class:`AddressType`
     - Content Nodes that define the schema for JaggedArray stored content
     """
+    optional_param_keys = ["lengths", "toc_zoom"]
+
     def __init__(self, serial=None, **kwargs):
         # call SchemaContentNode.__init__, then the additional parts from NumberedTitledTreeNode.__init__
         super(JaggedArrayNode, self).__init__(serial, **kwargs)
@@ -1183,12 +1185,13 @@ class AddressType(object):
     def format_count(self, name, number):
         return {name: number}
 
-    @staticmethod
-    def toStr(lang, i):
+    @classmethod
+    def toStr(cls, lang, i, **kwargs):
         if lang == "en":
             return str(i)
         elif lang == "he":
-            return encode_hebrew_numeral(i)
+            punctuation = kwargs.get("punctuation", True)
+            return encode_hebrew_numeral(i, punctuation=punctuation)
 
 
 class AddressTalmud(AddressType):
@@ -1254,22 +1257,30 @@ class AddressTalmud(AddressType):
 
             #if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):
 
-    @staticmethod
-    def toStr(lang, i):
+    @classmethod
+    def toStr(cls, lang, i, **kwargs):
         i += 1
-        daf = i / 2
+        daf_num = i / 2
+        daf = ""
+
+        if i > daf_num * 2:
+            en_daf = "%db" % daf_num
+        else:
+            en_daf = "%da" % daf_num
 
         if lang == "en":
-            if i > daf * 2:
-                daf = "%db" % daf
-            else:
-                daf = "%da" % daf
+            daf = en_daf
 
         elif lang == "he":
-            if i > daf * 2:
-                daf = ("%s " % encode_hebrew_numeral(daf)) + u"\u05D1"
+            dotted = kwargs.get("dotted")
+            if dotted:
+                daf = encode_hebrew_daf(en_daf)
             else:
-                daf = ("%s " % encode_hebrew_numeral(daf)) + u"\u05D0"
+                punctuation = kwargs.get("punctuation", True)
+                if i > daf_num * 2:
+                    daf = ("%s " % encode_hebrew_numeral(daf_num, punctuation=punctuation)) + u"\u05D1"
+                else:
+                    daf = ("%s " % encode_hebrew_numeral(daf_num, punctuation=punctuation)) + u"\u05D0"
 
         return daf
 
@@ -1306,22 +1317,18 @@ class AddressInteger(AddressType):
         elif lang == "he":
             return decode_hebrew_numeral(s)
 
-    def toStr(self, lang, i):
-        if lang == "en":
-            return str(i)
-        if lang == "he":
-            return encode_hebrew_numeral(i)
 
 
 class AddressAliyah(AddressInteger):
     en_map = [u"First", u"Second", u"Third", u"Fourth", u"Fifth", u"Sixth", u"Seventh"]
     he_map = [u"ראשון", u"שני", u"שלישי", u"רביעי", u"חמישי", u"שישי", u"שביעי"]
 
-    def toStr(self, lang, i):
+    @classmethod
+    def toStr(cls, lang, i, **kwargs):
         if lang == "en":
-            return self.en_map[i - 1]
+            return cls.en_map[i - 1]
         if lang == "he":
-            return self.he_map[i - 1]
+            return cls.he_map[i - 1]
 
 
 class AddressPerek(AddressInteger):

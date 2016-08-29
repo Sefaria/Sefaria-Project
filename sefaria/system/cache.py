@@ -85,12 +85,19 @@ def set_cache_elem(key, value, duration = 600000):
 
 
 def delete_cache_elem(key):
+    if isinstance(key, (list, tuple)):
+        try:
+            return cache.delete_many(key)
+        except (AttributeError, NameError, TypeError):
+            retval = False
+            for k in key:
+                retval = retval or cache.delete(key)
+            return retval
     return cache.delete(key)
 
 
 def get_template_cache(fragment_name='', *args):
     cache_key = 'template.cache.%s.%s' % (fragment_name, hashlib.md5(u':'.join([arg for arg in args])).hexdigest())
-    print cache_key
     return get_cache_elem(cache_key)
 
 
@@ -100,6 +107,9 @@ def delete_template_cache(fragment_name='', *args):
 
 def generate_text_toc_cache_key(index_name):
     index_name = index_name.replace("_", " ")
-    key = cache_get_key(*['make_toc_html', index_name], **{'zoom' : 1})
-    return key
+    keys = []
+    keys.append(cache_get_key(*['make_toc_html', index_name])) #without optional kwargs - fix for s2
+    for zoom in [0,1,2]: #most commonly used values
+        keys.append(cache_get_key(*['make_toc_html', index_name], **{'zoom' : zoom}))
+    return keys
 
