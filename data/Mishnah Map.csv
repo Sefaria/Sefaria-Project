@@ -651,7 +651,7 @@ Yevamot,13,7,7,109a,49,109a,57
 Yevamot,13,8,8,110a,28,110a,32
 Yevamot,13,9,11,111a,38,111b,12
 Yevamot,13,12,13,111b,21,111b,28
-Yevamot,14,1,9,112b,9,112b,52
+Yevamot,14,1,4,112b,9,112b,52
 Yevamot,15,1,1,114b,25,114b,32
 Yevamot,15,2,2,116b,16,116b,20
 Yevamot,15,3,3,116b,54,117a,5
@@ -1357,8 +1357,8 @@ Sanhedrin,6,1,1,43a,56,43a,57
 Sanhedrin,6,2,2,43b,6,43b,16
 Sanhedrin,6,3,3,44b,53,44b,55
 Sanhedrin,6,4,4,45a,33,45a,37
-Sanhedrin,6,5,5,45b,62,45b,70
-Sanhedrin,6,6,8,46a,37,46b,2
+Sanhedrin,6,4,4,45b,62,45b,70
+Sanhedrin,6,4,6,46a,37,46b,2
 Sanhedrin,7,1,1,49b,1,49b,5
 Sanhedrin,7,2,2,52a,12,52a,19
 Sanhedrin,7,3,3,52b,25,52b,29
