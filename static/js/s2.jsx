@@ -330,6 +330,7 @@ var ReaderApp = React.createClass({
 
       if ((prev.mode !== next.mode) ||
           (prev.menuOpen !== next.menuOpen) ||
+          (prev.menuOpen === "book toc" && prev.bookRef !== next.bookRef) ||
           (next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0]) || 
           (next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0]) || 
           ((next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter)) ||
