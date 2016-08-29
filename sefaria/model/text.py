@@ -104,6 +104,18 @@ class AbstractIndex(object):
             seg_refs += sec_ref.all_subrefs()
         return seg_refs
 
+    def all_top_section_refs(self):
+        """Returns a list of refs one step below root"""
+        section_refs = self.all_section_refs()
+        tally = {}
+        refs = []
+        for oref in section_refs:
+            top_ref = oref.top_section_ref()
+            if not top_ref.normal() in tally:
+                tally[top_ref.normal()] = 1
+                refs.append(top_ref)
+        return refs
+
     def author_objects(self):
         from . import person
         return [person.Person().load({"key": k}) for k in getattr(self, "authors", []) if person.Person().load({"key": k})]
