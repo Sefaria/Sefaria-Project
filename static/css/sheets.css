@@ -1985,3 +1985,7 @@ a.tagit-close {
 .moveSourceUp img, .moveSourceDown img  {
     width:16px;
 }
+
+#sheet.hebrew .outsideWrapper .en, #sheet.english .outsideWrapper .en .outsideWrapper .he {
+	display: block;
+}  /* TODO add ability to set outside text source formatting from menu bar like real sources to remove need for this. Allow overrides to occur like real source texts */
