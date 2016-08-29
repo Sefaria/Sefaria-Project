@@ -3,14 +3,15 @@ html {
 
 body {
 	overflow-x: visible;
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
 }
 
 #right {
-	width: 510px;	
+	width: 510px;
 }
 
-#languageToggle, 
-#sheetLayoutToggle { 
+#languageToggle,
+#sheetLayoutToggle {
 	display: inline-block;
 }
 
@@ -78,15 +79,31 @@ body {
 	background-color: #eee;
 }
 
+.sheetsMenuBarItem #lastSaved {
+		position: relative;
+	top:0;
+	right:0;
+	background-color: transparent;
+
+
+}
 
 #sheet {
 	background: white;
 	width: 770px;
 	min-height: 980px;
 	padding: 60px 40px;
-	margin: 110px auto 56px; 
-	box-shadow: 0px 0px 6px #777;
+	margin: 150px auto 56px;
+	box-shadow: 0px 0px 2px #777;
 	font-family: "Times New Roman", "Georgia", serif;
+
+
+	width:850px;
+	padding:60px 0px;
+
+}
+
+#sheet.s2Sheet {
 }
 
 #sheet.paperless {
@@ -105,7 +122,7 @@ body {
 }
 
 #sheetHeader #partnerLogo {
-	max-width: 100%;
+	max-width: 90%;
 }
 
 #bsdHeader {
@@ -115,14 +132,12 @@ body {
 	font-size: 18px;
 	position: relative;
 	top: -40px;
+	right: 40px;
+
 }
 
 #sheet.bsd #bsdHeader {
 	display: block;
-}
-
-#save {
-	display: none;
 }
 
 #controls {
@@ -173,19 +188,29 @@ body {
 	font-size: 17px;
 	border: 1px solid #ccc;
 	z-index: 5;
-	width: 220px;
+	min-width: 220px;
 	top: -20px;
 	right: auto;
 	left: 50px;
 	line-height: 1.2;
 }
 
-#addButton:hover .optionsMenu, #options:hover .optionsMenu {
-	display: block;
+.optionsMenu img, .addInterfaceButton img {
+	margin-right: 5px;
+	margin-bottom: 3px;
+
 }
 
-.optionTitle {
-	padding: 5px 12px;
+.sheetsMenuBarItem .optionsMenu i {
+	color: #999;
+}
+
+.sheetsMenuBarItem .optionsMenu, .sheetsMenuBarItem .subMenu {
+	background-color: #f2f2f2;
+}
+
+#addButton:hover .optionsMenu, #options:hover .optionsMenu {
+	display: block;
 }
 
 .optionHeader {
@@ -193,8 +218,8 @@ body {
 	margin-left: 12px;
 }
 
-.optionItem, .optionLink, .languageToggleOption div, .layoutToggleOption div, .sideBySideToggleOption div {
-	padding: 5px 12px;
+.optionItem, .optionLink, .languageToggleOption div, .layoutToggleOption div, .sideBySideToggleOption div, .optionTitle {
+	padding: 10px 12px;
 	cursor: pointer;
 	white-space: nowrap;
 }
@@ -208,13 +233,19 @@ body {
 	margin:10px;
 }
 
-#assignedSheets {
-	margin: 10px 10px 0 10px;
+#assignedSheets,#assignedSheets .title  {
+	margin: 20px 0;
 }
 
 #assignmentURLLink {
-	width:300px;
+	width:100%;
+	cursor: text;
 	text-align: center;
+	display: none;
+}
+#StopCollectingAssignmentsButton {
+	margin-top:8px;
+	width:100%;
 }
 
 #assignmentsModal .btn {
@@ -238,7 +269,7 @@ body {
 .optionGroup .optionTitle .fa-caret-right {
 	position: absolute;
 	right: 6px;
-	top: 5px;
+	top: 15px;
 }
 
 .optionGroup:hover .subMenu {
@@ -250,6 +281,11 @@ body {
 	width: 100%;
 	background: #ddd;
 	margin: 2px 0px;
+}
+
+.s2Modal .line {
+	width: 460px;
+	margin-left:-40px;
 }
 
 .optionsMenu .fa {
@@ -316,7 +352,7 @@ body {
 	bottom: -43px;
 }
 
-#textPreview {
+#textPreview, #inlineTextPreview  {
 	position: absolute;
 	padding: 4px;
 	background: white;
@@ -325,29 +361,37 @@ body {
 	z-index: 101;
 	width: 600px;
 }
+#inlineTextPreview .en {
+	font-family: "adobe-garamond-pro", Georgia, serif
+}
 
-#textPreview .previewLine {
+#inlineTextPreview .he {
+	font-family: "Taamey Frank", "Times New Roman", serif
+}
+
+
+#textPreview .previewLine, #inlineTextPreview .previewLine {
 	display: inline;
 }
 
-#textPreview .previewNumber {
+#textPreview .previewNumber, #inlineTextPreview .previewNumber {
 	font-weight: bold;
 	font-variant: small-caps;
 }
 
-#textPreview .he, #textPreview .en {
+#textPreview .he, #textPreview .en, #inlineTextPreview .en, #inlineTextPreview .he {
 	padding: 10px;
 }
 
-#textPreview .he {
+#textPreview .he , #inlineTextPreview .he {
 	direction: rtl;
 }
 
-#textPreview .previewNoText {
+#textPreview .previewNoText, #inlineTextPreview .previewNoText {
 	direction: ltr;
 }
 
-#textPreview .previewWarn {
+#textPreview .previewWarn, #inlineTextPreview .previewWarn {
 	color: #B94A48;
 	padding: 20px;
 }
@@ -355,7 +399,7 @@ body {
 #textPreview .previewWarn .btn {
 	float: right;
 }
-	
+
 #title {
 	font-size: 36px;
 	min-height: 40px;
@@ -364,11 +408,17 @@ body {
 	line-height: normal;
 }
 
+#title.heTitle {
+	direction: rtl;
+}
+
 #author {
 	text-align: center;
 	font-style: italic;
-	margin-bottom: 4px;
+	margin-bottom: 10px;
+	color: #999;
 }
+
 
 #via {
 	font-size: 13px;
@@ -377,6 +427,11 @@ body {
 #bottomAuthor {
 	text-align: center;
 	font-style: italic;
+	color: #999;
+}
+
+#bottomAuthor a, #via a {
+	color: #333;
 }
 
 #bottomVia {
@@ -391,6 +446,18 @@ body {
 #likes {
 	display: none;
 	text-align: center;
+}
+
+#s2LikeContainer {
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	color: #666;
+	font-size:12px;
+	height:26px;
+	width:52px;
+	border: 1px solid #ccc;
+	padding: 4px 10px;
+	border-radius: 3px;
+
 }
 
 #sheet.public #likes {
@@ -418,7 +485,7 @@ body {
 	list-style-type: none;
 }
 
-#sources { 
+#sources {
 	margin-top: 40px;
 }
 
@@ -441,7 +508,17 @@ body {
 
 .sheetItem {
 	position: relative;
-	padding: 32px 32px;
+	padding: 32px 76px;
+	border: solid 1px transparent;
+	border-left: solid 6px transparent;
+}
+
+.sheetItem table {
+	max-width:691px;
+}
+
+.sheetItem p span {
+	white-space: pre-wrap;
 }
 
 #sheet #sources .sheetItem .sourceNumber.en {
@@ -449,7 +526,7 @@ body {
 	width: 50px;
 	text-align: right;
 	top: 35px;
-	left: -32px;
+	left: 6px;
 }
 
 #sheet #sources .sheetItem .sourceNumber.he {
@@ -457,20 +534,14 @@ body {
 	width: 50px;
 	text-align: left;
 	top: 37px;
-	right: -32px;
-}
-
-#sheet.boxed #sources .sheetItem .sourceNumber {
-	top: 17px;
-}
-
-#sheet #sources .sheetItem.hasCustom .sourceNumber {
-	top: 56px;
+	right: 6px;
 }
 
 #sheet .sourceControlsOpen {
-	background-color: #eee;
+	background-color: #F9F9F7;
 	z-index: 2;
+	border-top:solid 1px #F2F2F2;
+	border-bottom:solid 1px #F2F2F2;
 }
 
 #sourceControls {
@@ -493,11 +564,45 @@ body {
 	margin: 0 5px;
 	font-size: 15px;
 	cursor: pointer;
+	background-color: #F9F9F7 !important;
 }
 
 #sourceControls div:hover {
 	color: #08c;
+	background-color: #F9F9F7 !important;
+
 }
+.sideControls {
+	width: 16px !important;
+	left: 23px !important;
+	margin-left: 0 !important;
+	top: 32px !important;
+	background-color: transparent !important;
+
+}
+
+#sourceControls.sideControls div:hover {
+	color: #999;
+	background-color: #F9F9F7 !important;
+
+}
+
+.tooltipster-default {
+	background-color: #999 !important;
+	color: #fff;
+	margin-left:5px;
+}
+
+
+
+.sideControls div {
+	display: block !important
+}
+
+.sideControls div img {
+	margin: 3px 0;
+}
+
 
 .source {
 	position: relative;
@@ -575,7 +680,7 @@ body {
 .comment span,
 .outside span,
 .outsideBi .text .he span,
-.outsideBi .text .en span,  {
+.outsideBi .text .en span  {
 	display: inline-block;
 }
 
@@ -608,7 +713,7 @@ body {
 	position: relative;
 	top: -2px;
 
-} 
+}
 #sheet.bilingual .source > .en,
 #sheet.bilingual .outsideBi .en {
 	display: block;
@@ -627,9 +732,9 @@ body {
 }
 
 
-#sheet.bilingual.stacked .source > .en, 
+#sheet.bilingual.stacked .source > .en,
 #sheet.bilingual.stacked .source > .he,
-#sheet.bilingual.stacked .outsideBi .en, 
+#sheet.bilingual.stacked .outsideBi .en,
 #sheet.bilingual.stacked .outsideBi .he {
 	float: none;
 	width: 100%;
@@ -643,7 +748,7 @@ body {
 #sheet.bilingual .verse .clear {
 	display: block;
 }
- 
+
 .source .text.open {
 	max-height: 266px;
 	overflow-y: scroll;
@@ -655,22 +760,13 @@ body {
 	font-weight: bold;
 }
 
-#sheet.boxed .source,
-#sheet.boxed .outsideWrapper,
-#sheet.boxed .outsideBiWrapper {
-	margin: 32px 0;
-	border: 1px solid #888;
-	padding: 12px 24px 0px 24px;
-	background-color: #eee;
-}
-
 #sheet.boxed .sourceControlsOpen {
-	background-color: #ddd;
+	background-color: #F9F9F7;
 }
 
 #sheet.boxed .text,
 #sheet.boxed .outside  {
-	border: 1px solid #888;
+	border: 1px solid #333;
 	padding: 4px;
 	background-color: white;
 }
@@ -691,24 +787,25 @@ body {
 }
 
 .indented-1 {
-	margin-left: 30px !important;
-	margin-right: 30px !important;
+	padding-left: 100px !important;
+	padding-right: 100px !important;
 }
 
 .indented-2 {
-	margin-left: 60px !important;
-	margin-right: 60px !important;
+	padding-left: 130px !important;
+	padding-right: 130px !important;
 }
 
 .indented-3 {
-	margin-left: 90px !important;
-	margin-right: 90px !important;
+	padding-left: 160px !important;
+	padding-right: 160px !important;
 }
 
 
-.comment {
+.comment, .oldComment {
 	font-size: 17px;
 	min-height: 30px;
+	padding-top:4px;
 }
 
 .outsideBi {
@@ -753,10 +850,10 @@ body {
 	padding: 4px 8px;
 }
 
-#tooltip h3, #tooltip div { 
+#tooltip h3, #tooltip div {
 	font-size: 17px;
 	margin: 0;
- }	
+ }
 
 #addToSheetModal {
 	width: 400px;
@@ -794,9 +891,9 @@ body {
 }
 
 #embedSheetModal textarea {
-	width: 90%;
-	margin-top: 8px;
-	height: 40px;
+	width: 100%;
+	margin-top: 0;
+	height: 80px;
 	padding: 8px;
 }
 
@@ -805,6 +902,9 @@ body {
 	font-size: 13px;
 }
 
+#embedSheetModal .content {
+	margin: 30px auto;
+}
 
 #publishPromptModal {
 	position: fixed;
@@ -836,7 +936,7 @@ body {
 	max-height: 300px;
 	overflow: auto;
 }
- 
+
 #sheetList .sheet {
 	text-align: left;
 	cursor: pointer;
@@ -859,8 +959,8 @@ body {
 	margin: 3px;
 	font-family: sans-serif;
 	cursor: pointer;
-}	
-	
+}
+
 #empty {
 	display: none;
 	text-align: center;
@@ -964,7 +1064,7 @@ body {
 
 .clear {
 	clear: both;
-}	
+}
 
 
 a {
@@ -1006,6 +1106,11 @@ a:active {
 		margin: 100px auto 70px;
 		box-shadow: none;
 	}
+	#sheet.s2Sheet {
+	width:auto;
+	padding: 0px;
+	}
+
 
 	#addSourceModal {
 		width: 80%;
@@ -1019,10 +1124,6 @@ a:active {
 	#controls {
 		margin-left: 0;
 		left: 0;
-	}
-
-	#bsdHeader {
-		right: 0px;
 	}
 
 	#rightButtons #controls {
@@ -1039,6 +1140,11 @@ a:active {
 		width: 100%;
 		height: auto;
 	}
+
+	#lastSaved, .sheetsEditNavTop, .inlineAddButton, #addInterface, #sourceControls {
+		display: none;
+	}
+
 }
 
 @media screen and (max-width: 520px) {
@@ -1055,12 +1161,6 @@ a:active {
 	#sheet #sources .sheetItem .sourceNumber.he {
 		right: -2px;
 		text-align: right;
-	}
-	#sheet.boxed #sources .sheetItem .sourceNumber.en {
-		left: 6px;
-	}
-	#sheet.boxed #sources .sheetItem .sourceNumber.he {
-		right: 6px;
 	}
 	#sheet.bilingual.sideBySide .en {
 		text-align: left !important;
@@ -1227,7 +1327,9 @@ input[type="file"] {
   line-height: 28px;
 }
 
-
+img {
+	vertical-align: middle;
+}
 
 /* overrides for layout option by source */
 #sheet .source.sheetItem.sideBySide > .en {
@@ -1244,26 +1346,26 @@ input[type="file"] {
 }
 
 
-#sheet .source.sheetItem.sideBySide.hebLeft > .en {
+#sheet .source.sheetItem.sideBySide.heLeft > .en {
 	float: right;
 	display: block;
 	width: 48%;
 }
 
-#sheet .source.sheetItem.sideBySide.hebLeft > .he {
+#sheet .source.sheetItem.sideBySide.heLeft > .he {
 	float: left;
 	display: block;
 	width: 48%;
 }
 
-#sheet .source.sheetItem.sideBySide.hebRight > .he {
+#sheet .source.sheetItem.sideBySide.heRight > .he {
 	float: right;
 	display: block;
 	width: 48%;
 
 }
 
-#sheet .source.sheetItem.sideBySide.hebRight > .en {
+#sheet .source.sheetItem.sideBySide.heRight > .en {
 	float: left;
 	display: block;
 	width: 48%;
@@ -1272,8 +1374,8 @@ input[type="file"] {
 
 
 
-#sheet .source.sheetItem.stacked > .en, 
-#sheet .source.sheetItem.stacked > .he {	
+#sheet .source.sheetItem.stacked > .en,
+#sheet .source.sheetItem.stacked > .he {
 	float: none;
 	width: 100%;
 	margin-bottom: 12px;
@@ -1285,7 +1387,7 @@ input[type="file"] {
 #sheet .source.english .en,
 #sheet .source.hebrew .he {
 	display: block;
-} 
+}
 
 #sheet .source.english > .he,
 #sheet.numbered #sources .source.english > .sourceNumber.he
@@ -1306,7 +1408,7 @@ input[type="file"] {
 	cursor: pointer;
 }
 
-.disabled { 
+.disabled {
 	pointer-events: none;
 	opacity: .3;
 }
@@ -1378,7 +1480,14 @@ input[type="file"] {
     box-sizing: border-box;
     direction: ltr;
     z-index: 21;
-    padding: 13px 20px;
+    padding: 7px 30px 6px 10px;
+    font-size: 16px;
+    color: #333;
+    top: 54px;
+}
+
+.sheetsEditNavTop .optionsMenu {
+	color: #333;
 }
 
 #sheet p {
@@ -1390,22 +1499,34 @@ input[type="file"] {
 
 .sheetsMenuBarItem {
 	display: inline-block;
-	margin: 10px 20px;
+	padding: 10px 20px;
+	font-size: 16px;
+	border: 1px solid transparent;
+
+}
+
+.sheetsMenuBarItem:hover {
+	position: relative;
+}
+
+.sheetsMenuBarItem:hover:after {
+  content: ' ';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: -10px;
+  z-index: 6;
 }
 
 #fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu {
 	display: block;
-	top:40px;
-}
-#fileMenu:hover .optionsMenu {
-	left:40px;
-}
-#formatMenu:hover .optionsMenu {
-	left:100px;
+	top:45px;
+	left:20px;
+	background-color: #F9F9F7;
 }
 
 #insertMenu:hover .optionsMenu {
-	left:190px;
 	width:240px;
 }
 
@@ -1415,5 +1536,452 @@ input[type="file"] {
 	-moz-box-shadow: none;
     -webkit-box-shadow: none;
     box-shadow: none;
+	width:100%;
+}
 
+#ckeTopMenu .cke_inner {
+    padding: 0 7px;
+	background: #f2f2f2;
+	position: relative;
+	margin-bottom: -8px;
+	border-bottom: 1px solid #E2E2E1;
+
+
+}
+
+#ckeTopMenu .cke_inner:after {
+  	content: '';
+  	position: absolute;
+  	top: -1px;
+	left:-20px;
+	right:-20px;
+	border-top: 1px solid #E2E2E1;
+}
+
+.activeSource {
+	background-color: #F9F9F7;
+	border-left:solid 6px #212e50;
+	border-top:solid 1px #F2F2F2;
+	border-bottom:solid 1px #F2F2F2;
+}
+
+.inlineAddButton {
+    text-align: center;
+    width: 100%;
+    padding: 0;
+    bottom: -53px;
+	position: relative;
+    font-size: 30px;
+	z-index: 3;
+}
+
+
+.inlineAddButtonIcon::before {
+	content: url("../img/add icon.png");
+}
+
+
+.inlineAddButtonIcon.active {
+	content: url("../img/add icon active.png");
+}
+
+#sourceLayoutLanguageMenuItems {
+	display: none;
+}
+
+#addInterface {
+	width:100%;
+	background-color: #f2f2f2;
+	padding: 40px 0 60px 0;
+	text-align: center;
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	font-size: 14px;
+	border-top: 1px #ccc solid;
+	border-bottom: 1px #ccc solid;
+}
+
+#addInterface .buttonBar {
+	width: 702px;
+	margin: 20px 74px;
+	display:flex;
+}
+
+
+.contentDiv > div {
+	display: none;
+}
+
+.contentToAdd {
+	min-height:120px;
+	flex:1;
+	margin:30px;
+	background-color: #fff;
+	display: flex;
+  	flex-direction: column;
+  	justify-content: flex-start;
+}
+.sourceConnection{
+	width: 346px;
+	border: 1px solid #eee;
+	border-radius: 5px;
+	padding: 12px 0;
+	margin-bottom:6px;
+	display: inline-block;
+	background-color: #fff;
+	color: #999;
+}
+.sourceConnection:nth-child(odd) {
+	margin-right:6px;
+}
+
+#connectionsToAdd {
+    width: 702px;
+    margin: 0 74px 40px 74px;
+}
+
+.sourceConnection.active {
+	border: 1px solid #999;
+	color: #333;
+}
+
+.addInterfaceButton:first-of-type {
+	border-left: 1px solid #cecece;
+
+}
+.addInterfaceButton:last-of-type {
+	border-right: 1px solid #cecece;
+}
+
+.addInterfaceButton{
+	width: 106px;
+	color: #999;
+	margin: 0;
+	padding: 12px 12px;
+	border-right: 1px solid #cecece;
+	border-top: 1px solid #cecece;
+	border-bottom: 1px solid #cecece;
+	display: inline-block;
+	background-color: #fff;
+
+	flex:1;
+  	flex-direction: column;
+  	justify-content: flex-start;
+
+}
+
+.addInterfaceButton.active {
+	border-bottom: 3px solid #6c6c6c;
+	color: black;
+	padding: 12px 12px 10px 12px;
+
+}
+
+.inlineAddDesc {
+    text-transform: uppercase;
+	color: #999;
+	font-size:12px;
+	margin: 40px 0;
+
+}
+
+.flexContainer {
+	display:flex;
+}
+
+#connectionButton {
+	display:none;
+}
+
+.inlineAddTextInput {
+	width: 320px;
+	height: 32px;
+	margin: 0;
+	float:left;
+	font-size:14px;
+	padding-left: 12px;
+	padding-right: 12px;
+}
+
+.inlineAddOr {
+	display:inline-block;
+	color: #999;
+    margin: 6px;
+
+}
+.inlineAddSourceByttons {
+	display:inline-block;
+}
+#sheet .button, .sheetsEditNavTop .button, .modal .button {
+	background-color: #212e50;
+	border-color: #212e50;
+	padding: 12px 24px;
+}
+.sheetsEditNavTop .button {
+    padding: 5px 12px;
+}
+
+#customTextLanguageToggle {
+	float: right;
+    margin-top: -65px;
+    margin-right: 67px;
+	height:30px;
+	width:160px;
+
+}
+
+#customTextLanguageToggle .toggleOption {
+	height: 30px;
+	line-height: inherit;
+	width: 50px;
+}
+
+#customTextLanguageToggle .toggleOption img {
+	height: 16px;
+	width: 16px;
+    margin-bottom: 13px;
+}
+
+#customTextContainer, #addmediaDiv, #addcommentDiv, #addsourceDiv{
+	width: 702px;
+    margin: 0 74px 0 74px;
+}
+.blockContainer {
+	display: inline-block;
+	width:100%;
+}
+
+#customTextContainer{
+	margin-bottom: 40px;
+}
+
+#addsourceDiv .buttonContainer{
+	float:right;
+}
+
+#addcommentDiv .contentToAdd {
+	margin-bottom:40px;
+}
+
+
+.contentToAdd {
+	padding: 10px;
+	border: 1px solid #cecece;
+	border-radius: 5px;
+	margin: 0;
+	text-align:left;
+}
+
+.contentToAdd:nth-child(even) {
+	margin-left:6px;
+}
+
+
+.contentToAdd > * {
+	margin:0 !important;
+}
+
+
+.customTextEditables.en {
+	font-family: "Times New Roman", "Georgia", serif;
+}
+.customTextEditables.he {
+	text-align: right;
+}
+#inlineAddMediaInput{
+	width: 280px;
+}
+
+.s2AddedBy {
+	font-size:inherit;
+	font-style: inherit;
+	color:#999;
+	font-weight:bold;
+	display:inline;
+	float:left;
+	margin-right: 7px;
+}
+
+a.userLink{
+	color:#333;
+}
+
+
+.s2AddedBy a.userLink{
+	color:#999;
+}
+
+
+.commentIcon {
+	color:#999;
+	font-size: .75em;
+	float:left;
+	margin-right: 7px;
+}
+.sheetsEditNavTop #save, .sheetsEditNavTop #share  {
+	float: right;
+    margin: 5px 0 0 0;
+	border-radius: 3px;
+	font-weight: 300;
+	font-size: 12px;
+	height: 30px;
+}
+.sheetsEditNavTop #save img, .sheetsEditNavTop #share img  {
+    margin-bottom: 2px;
+    margin-right: 2px;
+
+}
+
+
+#shareURL {
+	cursor: text;
+	background-color: #fff;
+    font-style: italic;
+    width: 100%;
+    box-sizing: border-box;
+    height: 30px;
+}
+
+#shareWithOthers .content .inputHeader {
+	margin: 30px 0 15px 0;
+}
+
+#shareWithOthers .content select {
+	width: 100%;
+}
+
+#shareWithOthers {
+	text-align: center;
+	width:400px;
+}
+
+#sharingDesc {
+    color: #999;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 30px;
+    margin-top: 10px;
+}
+
+#assignmentDirections {
+	margin: 30px 0;
+	text-align: center;
+}
+
+#assignedSheets .button {
+	background-color: #fff;
+	border:#ccc;
+	width:100%;
+}
+#assignedSheets {
+	display: none;
+}
+
+#assignedSheets .button a {
+	text-decoration: none;
+}
+
+.s2Modal {
+	padding: 30px;
+	background-color: #F9F9F7;
+	border: 1px solid #999;
+	border-radius: 6px;
+	width: 400px;
+}
+.s2Modal .title {
+	font-size: 20px;
+	margin: 0;
+	text-align: center;
+}
+
+.s2Modal .content {
+	color: #999;
+	text-align: left;
+}
+
+.s2Modal .ok.button {
+	margin: 0 auto;
+}
+
+.s2Modal input, .s2Modal textarea {
+	margin-bottom: 0;
+	background-color: #fff;
+	height:40px;
+	padding: 20px 10px;
+    box-sizing: border-box;
+}
+
+.s2Modal select {
+	background-color: #fff;
+    box-sizing: border-box;
+}
+
+.s2Modal .center {
+	text-align: center;
+}
+
+#panelWrapBox {
+	display: none;
+}
+
+#tags {
+	border: 1px solid #aaaaaa;
+	background: #ffffff;
+	color: #222222;
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+
+.ui-widget-content {
+	border: 1px solid #d3d3d3;
+    background: #e6e6e6;
+    font-weight: normal;
+}
+
+.ui-icon-close {
+    background-position: -80px -128px;
+}
+
+ul.tagit li.tagit-choice .tagit-close .text-icon {
+	display:block;
+}
+
+.ui-icon {
+    width: 16px;
+    height: 16px;
+}
+.ui-icon {
+    display: block;
+    text-indent: -99999px;
+    overflow: hidden;
+    background-repeat: no-repeat;
+}
+
+.ui-autocomplete .ui-menu-item a.ui-state-focus {
+  background-color: #fff;
+}
+
+ul.tagit li.tagit-choice {
+    color: #333;
+	background-color: #F9F9F7;
+	border-radius: 2px;
+}
+
+a.tagit-close {
+	color: #999;
+	text-decoration: none;
+}
+
+.close-button:after {
+	color: #999;
+	font: 14px/100% arial, sans-serif;
+	position: absolute;
+	right: 15px;
+	text-decoration: none;
+	text-shadow: 0 1px 0 #fff;
+	top: 15px;
+	content: "X"
+}
+
+.moveSourceUp img, .moveSourceDown img  {
+    width:16px;
 }

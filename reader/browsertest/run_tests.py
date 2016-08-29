@@ -9,4 +9,11 @@ build = sys.argv[1]
 
 t = Trial(platform="sauce", build=build)
 t.run()
-print t.results().report()
+results = t.results()
+
+print results.report()
+fails = results.number_failed()
+if fails > 0:
+    sys.stderr.write(str(results))
+    sys.stderr.flush()
+sys.exit(fails)

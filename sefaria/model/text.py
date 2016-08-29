@@ -181,10 +181,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return u"{}().load({{'title': '{}'}})".format(self.__class__.__name__, self.title)
 
-    def save(self):
+    def save(self, override_dependencies=False):
         if DISABLE_INDEX_SAVE:
             raise InputError("Index saving has been disabled on this system.")
-        return super(Index, self).save()
+        return super(Index, self).save(override_dependencies=override_dependencies)
 
     def _set_derived_attributes(self):
         if getattr(self, "schema", None):
@@ -926,6 +926,9 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         else:
             return super(Version, self).ja()
 
+    def is_copyrighted(self):
+        return "Copyright" in getattr(self, "license", "")
+
 
 class VersionSet(abst.AbstractMongoSet):
     """
@@ -1019,7 +1022,7 @@ class TextChunk(AbstractTextRecord):
     """
     text_attr = "text"
 
-    def __init__(self, oref, lang="en", vtitle=None):
+    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False):
         """
         :param oref:
         :type oref: Ref
@@ -1050,6 +1053,8 @@ class TextChunk(AbstractTextRecord):
         if lang and vtitle:
             self._saveable = True
             v = Version().load({"title": self._oref.index.title, "language": lang, "versionTitle": vtitle}, self._oref.part_projection())
+            if exclude_copyrighted and v.is_copyrighted():
+                raise InputError("Can not provision copyrighted text. {} ({}/{})".format(oref.normal(), vtitle, lang))
             if v:
                 self._versions += [v]
                 self.text = self._original_text = self.trim_text(v.content_node(self._oref.index_node))
@@ -1062,10 +1067,14 @@ class TextChunk(AbstractTextRecord):
                 return
             if vset.count() == 1:
                 v = vset[0]
+                if exclude_copyrighted and v.is_copyrighted():
+                    raise InputError("Can not provision copyrighted text. {} ({}/{})".format(oref.normal(), v.versionTitle, v.language))
                 self._versions += [v]
                 self.text = self.trim_text(v.content_node(self._oref.index_node))
                 #todo: Should this instance, and the non-merge below, be made saveable?
             else:  # multiple versions available, merge
+                if exclude_copyrighted:
+                    vset.remove(Version.is_copyrighted)
                 merged_text, sources = vset.merge(self._oref.index_node)  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
                 self.text = self.trim_text(merged_text)
                 if len(set(sources)) == 1:
@@ -1290,6 +1299,25 @@ class TextChunk(AbstractTextRecord):
         else:
             raise Exception("Called TextChunk.version() on merged TextChunk.")
 
+    def text_index_map(self,tokenizer):
+        """
+        Primarily used for depth-2 texts in order to get index/ref pairs relative to the full text string
+         indexes are the word index in word_list
+
+        tokenizer: f(str)->list(str) - function to split up text
+        :return: (list,list,list) - index_list, ref_list, word_list
+        """
+        ind_list = []
+        ref_list = self._oref.all_subrefs()
+
+        total_len = 0
+        for i,segment in enumerate(self.text):
+            ind_list.append(total_len)
+            total_len += len(tokenizer(segment))
+
+        return ind_list,ref_list
+
+
 
 # Mirrors the construction of the old get_text() method.
 # The TextFamily.contents() method will return a dictionary in the same format that was provided by get_text().
@@ -1413,7 +1441,7 @@ class TextFamily(object):
             for key, struct in oref.index.get_alt_structures().iteritems():
                 # Assuming these are in order, continue if it is before ours, break if we see one after
                 for n in struct.get_leaf_nodes():
-                    wholeRef = Ref(n.wholeRef)
+                    wholeRef = Ref(n.wholeRef).as_ranged_segment_ref()
                     if wholeRef.ending_ref().precedes(oref):
                         continue
                     if wholeRef.starting_ref().follows(oref):
@@ -1988,7 +2016,7 @@ class Ref(object):
         return getattr(self.index_node, "addressTypes", None) and len(self.index_node.addressTypes) and self.index_node.addressTypes[0] == "Talmud"
 
     def is_tanach(self):
-        return u"Tanach" in self.index.b_index.categories if self.is_commentary() else u"Tanach" in self.index.categories
+        return u"Tanakh" in self.index.b_index.categories if self.is_commentary() else u"Tanakh" in self.index.categories
 
     def is_bavli(self):
         #//TODO: mark for commentary refactor?
@@ -2260,6 +2288,55 @@ class Ref(object):
         d = self._core_dict()
         d["sections"] = d["sections"][:-1] + [start]
         d["toSections"] = d["toSections"][:-1] + [end]
+        return Ref(_obj=d)
+
+    def as_ranged_segment_ref(self):
+        """
+        Expresses a section level (or higher) Ref as a ranged ref at segment level.
+
+        :param depth: Desired depth of the range. If not specified will drop to segment level
+        :return: Ref
+        """
+        # Only for section level or higher.
+        # If segment level, return self
+        # Only works for text that span a single jaggedArray
+
+        if self.is_segment_level():
+            return self
+
+        d = self._core_dict()
+
+        # create a temporary helper ref for finding the end of the range
+        if self.is_range():
+            current_ending_ref = self.ending_ref()
+        else:
+            current_ending_ref = self
+
+        # calculate the number of "paddings" required to get down to segment level
+        max_depth = self.index_node.depth - len(self.sections)
+
+        sec_padding = to_sec_padding = max_depth
+
+        while sec_padding > 0:
+            d['sections'].append(1)
+            sec_padding -= 1
+
+        state_ja = current_ending_ref.get_state_ja()
+
+        while to_sec_padding > 0:
+            size = state_ja.sub_array_length([i - 1 for i in current_ending_ref.sections])
+            if size > 0:
+                d['toSections'].append(size)
+            else:
+                d['toSections'].append(1)
+
+            # get the next level ending ref
+            temp_d = current_ending_ref._core_dict()
+            temp_d['sections'] = temp_d['toSections'][:] = d['toSections'][:]
+            current_ending_ref = Ref(_obj=temp_d)
+
+            to_sec_padding -= 1
+
         return Ref(_obj=d)
 
     def starting_ref(self):
@@ -2728,6 +2805,37 @@ class Ref(object):
 
         return self._first_spanned_ref
 
+    def starting_refs_of_span(self, deep_range=False):
+        """
+            >>> Ref("Zohar 1:3b:12-3:12b:1").stating_refs_of_span()
+            [Ref("Zohar 1:3b:12"),Ref("Zohar 2"),Ref("Zohar 3")]
+            >>> Ref("Zohar 1:3b:12-1:4b:12").stating_refs_of_span(True)
+            [Ref("Zohar 1:3b:12"),Ref("Zohar 1:4a"),Ref("Zohar 1:4b")]
+            >>> Ref("Zohar 1:3b:12-1:4b:12").stating_refs_of_span(False)
+            [Ref("Zohar 1:3b:12")]
+            >>> Ref("Genesis 12:1-14:3").stating_refs_of_span()
+            [Ref("Genesis 12:1"), Ref("Genesis 13"), Ref("Genesis 14")]
+
+        :param deep_range: Default: False.  If True, returns list of refs at whatever level the range is.  If False, only returns refs for the 0th index, whether ranged or not.
+        :return:
+        """
+        if not self.is_spanning():
+            return self
+        level = 0 if not deep_range else self.range_index()
+
+        results = []
+
+        start = self.sections[level]
+        end = self.toSections[level] + 1
+        for i, n in enumerate(range(start, end)):
+            d = self._core_dict()
+            if i != 0:
+                d["sections"] = self.sections[0:level] + [self.sections[level] + i]
+            d["toSections"] = d["sections"][:]
+            results += [Ref(_obj=d)]
+
+        return results
+
     def split_spanning_ref(self):
         """
         Return list of non-spanning :class:`Ref` objects which completely cover the area of this Ref
@@ -2796,7 +2904,7 @@ class Ref(object):
                 return [self]
             if self.is_spanning():
                 for oref in self.split_spanning_ref():
-                    results += oref.range_list() if oref.is_range() else oref.all_subrefs()
+                    results += oref.range_list() if oref.is_range() else [oref] if oref.is_segment_level() else oref.all_subrefs()
             else:
                 for s in range(self.sections[-1], self.toSections[-1] + 1):
                     d = self._core_dict()
@@ -2835,7 +2943,7 @@ class Ref(object):
             patterns.append("%s$" % sections)   # exact match
             if self.index_node.has_titled_continuation():
                 patterns.append(u"{}({}).".format(sections, u"|".join(self.index_node.title_separators)))
-            elif self.index_node.has_numeric_continuation():
+            if self.index_node.has_numeric_continuation():
                 patterns.append("%s:" % sections)   # more granualar, exact match followed by :
                 patterns.append("%s \d" % sections) # extra granularity following space
 
@@ -3093,7 +3201,13 @@ class Ref(object):
             d.update({"language": lang})
 
         condition_addr = self.storage_address()
-        if not self.sections:
+        if not isinstance(self.index_node, JaggedArrayNode):
+            # This will also return versions with no content in this Ref location - since on the version, there is a dictionary present.
+            # We could enter the dictionary and check each array, but it's not clear that it's neccesary.
+            d.update({
+                condition_addr: {"$exists": True}
+            })
+        elif not self.sections:
             d.update({
                 condition_addr: {"$exists": True, "$elemMatch": {"$nin": ["", [], 0]}}  # any non-empty element will do
             })
@@ -3137,13 +3251,11 @@ class Ref(object):
 
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
-        vlist = []
-        for v in VersionSet(self.condition_query(), proj={"versionTitle": 1, "language": 1}):
-            vlist.append({
-                "versionTitle": v.versionTitle,
-                 "language": v.language
-            })
-        return vlist
+        fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes", "digitizedBySefaria"]
+        return [
+            {f: getattr(v, f, "") for f in fields}
+            for v in VersionSet(self.condition_query(), proj={f: 1 for f in fields})
+        ]
 
     """ String Representations """
     def __str__(self):
@@ -3203,6 +3315,36 @@ class Ref(object):
 
         return normal
 
+    def normal_section(self, section_index, lang="en", **kwargs):
+        """
+        Return the display form of the section value at depth `section_index`
+        Does not support ranges
+        :param section_index: 0 based
+        :param lang:
+        :param kwargs:
+            dotted=<bool> - Use dotted form for Hebrew talmud?,
+            punctuation=<bool> - Use geresh for Hebrew numbers?
+        :return:
+        """
+        assert not self.is_range()
+        assert len(self.sections) > section_index
+        return self.index_node.address_class(section_index).toStr(lang, self.sections[section_index], **kwargs)
+
+    def normal_last_section(self, lang="en", **kwargs):
+        """
+        Return the display form of the last section
+        Does not support ranges
+        :param lang:
+        :param kwargs:
+            dotted=<bool> - Use dotted form for Hebrew talmud?,
+            punctuation=<bool> - Use geresh for Hebrew numbers?
+        :return:
+        """
+        length = len(self.sections)
+        if length == 0:
+            return ""
+        return self.normal_section(length - 1, lang, **kwargs)
+
     def he_normal(self):
         """
         :return string: Normal Hebrew string form
@@ -3230,13 +3372,13 @@ class Ref(object):
             self._normal = self._get_normal("en")
         return self._normal
 
-    def text(self, lang="en", vtitle=None):
+    def text(self, lang="en", vtitle=None, exclude_copyrighted=False):
         """
         :param lang: "he" or "en"
         :param vtitle: optional. text title of the Version to get the text from
         :return: :class:`TextChunk` corresponding to this Ref
         """
-        return TextChunk(self, lang, vtitle)
+        return TextChunk(self, lang, vtitle, exclude_copyrighted=exclude_copyrighted)
 
     def url(self):
         """

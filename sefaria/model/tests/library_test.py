@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import pytest
 from sefaria.model.text import library, Ref, Index, CommentaryIndex
 
 
@@ -157,7 +158,8 @@ class Test_he_get_refs_in_text(object):
         assert ref[0].sections[0] == 1
         assert len(ref[0].sections) == 1
 
-    def test_FAILING_huge_second_addr(self):
+    @pytest.mark.failing
+    def test_huge_second_addr(self):
         st = u"""וכן הוא בב"ר (ילקוט שמעוני אסתר א, תתרמו) א"ר לוי בגדי כהונה"""
         ref = library.get_refs_in_string(st)[0]
         assert ref.sections[0] == 1

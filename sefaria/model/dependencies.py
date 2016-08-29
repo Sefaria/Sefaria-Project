@@ -2,7 +2,7 @@
 dependencies.py -- list cross model dependencies and subscribe listeners to changes.
 """
 
-from . import abstract, link, note, history, schema, text, layer, version_state, translation_request, time, person, garden
+from . import abstract, link, note, history, schema, text, layer, version_state, translation_request, time, person, garden, library
 
 from abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache
@@ -32,10 +32,20 @@ subscribe(text.process_index_delete_in_versions,                        text.Ind
 subscribe(translation_request.process_index_delete_in_translation_requests, text.Index, "delete")
 subscribe(text.process_index_delete_in_toc,                             text.Index, "delete")
 
+
 # Process in ES
+# todo: handle index name change in ES
+def process_version_title_change_in_search(ver, **kwargs):
+    from sefaria.search import delete_version, index_full_version
+    index = library.get_index(ver.title)
+    delete_version(index, kwargs.get("old"), ver.language)
+    index_full_version(index, kwargs.get("new"), ver.language)
+
 
 # Version Title Change
 subscribe(history.process_version_title_change_in_history,              text.Version, "attributeChange", "versionTitle")
+subscribe(process_version_title_change_in_search,                       text.Version, "attributeChange", "versionTitle")
+
 subscribe(text.process_version_save_in_cache,                           text.Version, "save")
 subscribe(text.process_version_delete_in_cache,                         text.Version, "delete")
 
@@ -75,5 +85,6 @@ subscribe(cascade_delete(garden.GardenStopRelationSet, "garden", "key"),   garde
 # todo: notes? reviews?
 # todo: Scheme name change in Index
 # todo: term change in nodes
+
 
 

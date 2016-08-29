@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 # indentation and inclusion of duplicate categories (like "Seder Moed")
 # is for readability only. The table of contents will follow this structure.
 ORDER = [
-    "Tanach",
+    "Tanakh",
         "Torah",
             "Genesis",
             "Exodus",

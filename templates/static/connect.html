@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Sefaria: Newsletter, Social Media and More{% endblock %}
+
+{% block content %}
+<div id="connectPage" class="static">
+    <div class="inner">
+        <h1>
+            <span class="int-en">Stay in Touch</span>
+            <span class="int-he"></span>
+        </h1>
+
+        <div id="homeConnect" class="section center">
+            <div class="sectionInner">
+
+                <div id="mailingListBox">
+                    <div id="mailingListTitle">
+                        <span class="int-en">Subscribe to our mailing list</span>
+                        <span class="int-he">הצטרפו לרשימת התפוצה</span>
+                    </div>
+                    <input id="mailingListEmail" placeholder="Email">
+                    <span id="subscribe" class="button">
+                        <span class="int-en">Subscribe</span>
+                        <span class="int-he">הרשמו</span>
+                    </span>
+                    <div id="subscribeMsg">&nbsp;</div>
+                </div>
+
+
+            <a href="http://www.facebook.com/sefaria.org" target="_blank">
+                <div class="button white">
+                    <i class="fa fa-facebook-official"></i>
+                    <span class='en'>Facebook</span>
+                    <span class='he'>פייסבוק</span>
+                </div>
+
+            </a>
+
+            <a href="http://twitter.com/SefariaProject" target="_blank">
+                <div class="button white">
+                    <i class="fa fa-twitter"></i>
+                    <span class='en'>Twitter</span>
+                    <span class="int-he">טוויטר</span>
+                </div>
+            </a>
+
+            <a href="https://github.com/Sefaria" target="_blank">
+                <div class="button white">
+                    <i class="fa fa-github"></i>
+                    <span class="int-en">GitHub</span>
+                    <span class="int-he">גיטהאב</span>
+                </div>
+            </a>
+
+            <!--
+            <a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria" target="_blank">
+                <div class="button white">
+                    <span class="int-en">Forum</span>
+                    <span class="int-he">פורום</span>
+                </div>
+            </a>
+
+            <a href="mailto:hello@sefaria.org" target="_blank">
+                <div class="button white">
+                    <span class="int-en">Email</span>
+                    <span class="int-he">דוא"ל</span>
+                </div>
+            </a>
+            -->
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block js  %}
+    <script>
+    $(function() {
+        // Email List
+        $("#subscribe").click(function() {
+            var email = $("#mailingListEmail").val();
+            if (Sefaria.util.isValidEmailAddress(email)) {
+                Sefaria.site.track.event("Home", "Subscribe from Homepage", "");
+                $("#subscribeMsg").html("<i>Subscribing...</i>");
+                $.post("/api/subscribe/" + email, function(data) {
+                    if ("error" in data) {
+                        $("#subscribeMsg").text(data.error);
+                    } else {
+                        $("#subscribeMsg").text("Subscribed! Welcome to our list.");
+                    }
+                }).error(function(data) {
+                    $("#subscribeMsg").text("Sorry, there was an error.");
+                })
+            } else {
+                $("#subscribeMsg").text("Sorry, that's not a valid email address.");
+            }
+        });
+        $("#mailingListEmail").keyup(function(e){
+            if (e.keyCode === 13) {
+                $("#subscribe").trigger("click");   
+            }
+        });
+    });
+    </script>
+{% endblock %}

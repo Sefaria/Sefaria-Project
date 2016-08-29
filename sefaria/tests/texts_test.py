@@ -38,5 +38,5 @@ def test_get_text_categories():
 
 
 def test_get_book_link_collection():
-    res = get_book_link_collection("Shabbat", "Tanach")
+    res = get_book_link_collection("Shabbat", "Tanakh")
     assert len(res) > 650

@@ -3,8 +3,20 @@ import pytest
 
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
+import re
 from sefaria.utils.util import list_depth
 
+def test_text_index_map():
+    r = Ref("Shabbat 8b")
+    tc = TextChunk(r,"he")
+
+    def tokenizer(str):
+        return re.split(r"\s+",str)
+
+    ind_list,ref_list = tc.text_index_map(tokenizer)
+    print len(ind_list), len(ref_list)
+    #make sure the last element in ind_last (start index of last segment) + the last of the last segment == len of the whole string
+    assert ind_list[-1]+len(tokenizer(TextChunk(r.all_subrefs()[-1],"he").as_string())) == len(tokenizer(tc.as_string()))
 
 def test_verse_chunk():
     chunks = [

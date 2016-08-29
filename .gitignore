@@ -33,13 +33,13 @@ Icon?
 Thumbs.db
 .idea
 
-# Apache Config  #
-#############
+# Apache Config #
+#################
 .htaccess
 .htpasswd
 
 # Redis Dumps #
-##############
+###############
 dump.rdb
 
 # Node Modules #
@@ -50,32 +50,39 @@ dump.rdb
 #####################
 /.idea
 
-# Sefaria Local Settings file #
-######################
+# Sefaria Local Settings files #
+################################
 /sefaria/local_settings.py
+/node/local_settings.json
 
-# Symlink needed for Djano admin
+# Symlink needed for Djano admin #
+##################################
 /static/admin
 
 #  Virtualenv Files #
+#####################
 venv/
 
-
 # Partner files #
+#################
 /static/partner
 
-# Enviornment Specific Mongo Dumps
-system.users.bson
-
-# Robots.txt
+# Robots.txt #
+##############
 /static/robots.txt
 
-# Backed up Data
+# Backed up Data # 
+##################
 /data/backup
 
-#Logs
+# Logs #
+########
 /logs
 /log
 
-#Docs
+# Docs #
+########
 /doc/_build
+
+# Client secrets for Google OAuth 2.0
+client_secrets.json

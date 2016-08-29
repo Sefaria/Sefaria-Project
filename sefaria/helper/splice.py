@@ -79,7 +79,7 @@ class Splicer(object):
         self._ready = True
         return self
 
-    # It's a little counter-intuitive, but these are equivalent to their liguistic converse.
+    # It's a little counter-intuitive, but these are equivalent to their linguistic converse.
     def splice_next_into_this(self, ref):
         return self.splice_this_into_next(ref)
 

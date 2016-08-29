@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% block exclude_block_on_source_sheets %}{% endblock %}
 {% load cache %}
 {% load humanize %}
 {% load sefaria_tags %}
@@ -13,10 +13,15 @@
 {% endblock %}
 
 {% block head %}
-    <meta property="og:title" content="Sefaria.org : a Living Library of Jewish Texts Online"/>
+    {% if title %}
+        <meta property="og:title" content="{{ title|striptags|strip_html_entities }} | Sefaria Source Sheet Builder"/>
+    {% else %}
+        <meta property="og:title" content="Sefaria Source Sheet Builder"/>
+    {% endif %}
     <meta property="og:type" content="website"/>
     <meta property="og:url" content="http://www.sefaria.org"/>
     <meta property="og:image" content="http://www.sefaria.org/static/img/fb-og-image.png"/>
+    <link rel="stylesheet" type="text/css" href="/static/css/tooltipster.css" />
 
 
 {% endblock %}
@@ -40,14 +45,32 @@
     <div class="sheetsEditNavTop">
         <div class="sheetsMenuBarItem" id="fileMenu">File
 			<div class="optionsMenu">
+				{% if not new_sheet %}
+					{% if user.email %}
+					<div class="optionItem" id="copySheet">
+						<img src="/static/img/copy.png"> Copy Sheet</div>
+					{% endif %}
+					{% if user.email %}
+					<div class="optionItem" id="exportToDrive">
+						<i class="fa fa-google"></i> Export to Google Drive</div>
+					{% endif %}
+					<div class="optionItem" id="embedSheet">
+						<img src="/static/img/embed.png"> Embed Sheet</div>
+					{% if is_owner %}
+					<div class="optionItem" id="deleteSheet">
+						<img src="/static/img/delete.png"> Delete Sheet</div>
+					{% endif %}
+
+					{% if user.email %}
+					<div class="line"></div>
+					<div class="optionItem" id="editTags">
+						<img src="/static/img/edittags.png"> Edit Sheet Tags</div>
+					{% endif %}
 				{% if is_owner %}
-				<div class="optionGroup">
-					<div class="optionTitle" id="sharingModalTrigger"><i class="fa fa-share-alt"></i> Sharing </div>
-				</div>
 	    			{% if not sheet.assigner_id %}
 
                     <div class="optionGroup">
-                        <div class="optionTitle" id="assignmentsModalTrigger"><i class="fa fa-edit"></i> Assignments</div>
+                        <div class="optionTitle" id="assignmentsModalTrigger"><img src="/static/img/assignment.png"> Assignments</div>
                     </div>
 
 
@@ -55,54 +78,22 @@
 
 				{% endif %}
 
-				{% if owner_groups %}
-				<div class="optionGroup">
-					<div class="optionTitle"><i class="fa fa-group"></i> Group <i class='fa fa-caret-right'></i></div>
-					<div class="subMenu">
-						<div class="optionItem groupOption" data-group="None">
-							<i class="fa fa-check"></i> <i>None</i></div>
-						{% for group in owner_groups %}
-						<div class="optionItem groupOption" data-group="{{ group.name }}" data-image="{{ group.headerUrl }}">
-							<i class="fa fa-check hidden"></i> {{ group.name }}</div>
-						{% endfor %}
-					</div>
-				</div>
+
+
 				{% endif %}
-
-				{% if not new_sheet %}
-					<div class="line"></div>
-					{% if user.email %}
-					<div class="optionItem" id="copySheet">
-						<i class="fa fa-copy"></i> Copy Sheet</div>
-					{% endif %}
-					<div class="optionItem" id="embedSheet">
-						<i class="fa fa-code"></i> Embed Sheet</div>
-					{% if is_owner %}
-					<div class="optionItem" id="deleteSheet">
-						<i class="fa fa-trash-o"></i> Delete Sheet</div>
-					{% endif %}
-
-					{% if user.email %}
-					<div class="line"></div>
-					<div class="optionItem" id="editTags">
-						<i class="fa fa-pencil"></i> Edit Sheet Tags</div>
-					{% endif %}
-				{% endif %}
-
-				<div class="line"></div>
-				<div class="optionItem" id="visualize">
-					<a href="/sheets/visual/{{sheet.id}}"><i class="fa fa-picture-o"></i>Visualize</a></div>
 
 				<div class="line"></div>
 
 				<div class="optionItem" id="print">
-					<i class="fa fa-print"></i>Print</div>
+					<img src="/static/img/print.png"> Print</div>
+                <div class="optionItem" id="visualize">
+					<a href="/sheets/visual/{{sheet.id}}"><i class="fa fa-picture-o"></i>Visualize</a></div>
 			</div>
         </div>
         <div class="sheetsMenuBarItem" id="formatMenu">Format
 			<div class="optionsMenu">
 				<div class="optionGroup">
-					<div class="optionTitle"><i class="fa fa-cloud"></i> Divine Names <i class='fa fa-caret-right'></i></div>
+					<div class="optionTitle"><img src="/static/img/divine.png"> Divine Names <i class='fa fa-caret-right'></i></div>
 					<div class="subMenu">
 						<div class="optionItem divineNamesOption" id="noSub">
 							<i class="fa fa-check"></i> <i>No substitution</i></div>
@@ -122,40 +113,91 @@
 					<i class="fa fa-check hidden"></i> בס"ד</div>
 
                 <div class="line"></div>
+            {% if can_edit or can_add %}
 
-                <div class="optionGroup">
-					<div class="optionTitle"><i class="fa"></i> Sheet Language <i class='fa fa-caret-right'></i></div>
-					<div class="subMenu languageToggleOption">
-						<div class="english">
-							<i class="fa fa-check hidden"></i> English</div>
-						<div class="hebrew">
-							<i class="fa fa-check hidden"></i> Hebrew</div>
-						<div class="bilingual">
-							<i class="fa fa-check hidden"></i> Bilingual</span></div>
-					</div>
-				</div>
+				<div class="optionItem" id="resetText">
+					<img src="/static/img/reset%20text.png"> Reset Source Text</div>
 
-
-                <div class="optionGroup disabled" id="layoutToggleGroup">
-					<div class="optionTitle"><i class="fa"></i> Sheet Layout <i class='fa fa-caret-right'></i></div>
-					<div class="subMenu layoutToggleOption">
-						<div class="stacked">
-							<i class="fa fa-check hidden"></i> Stacked</div>
-						<div class="sideBySide">
-							<i class="fa fa-check hidden"></i> Side-by-Side</div>
-					</div>
-				</div>
+				<div class="optionItem" id="addSourceTitle">
+					 <i class="fa fa-pencil"></i> Add Source Title</div>
+            {% endif %}
+                <div class="line"></div>
+                <div id="sheetLayoutLanguageMenuItems">
+                    <div class="optionGroup" id="languageToggleGroup">
+                        <div class="optionTitle"><i class="fa fa-file-o hidden"></i> Sheet Language <i class='fa fa-caret-right'></i></div>
+                        <div class="subMenu languageToggleOption">
+                            <div class="english">
+                                <i class="fa fa-check hidden"></i> English</div>
+                            <div class="hebrew">
+                                <i class="fa fa-check hidden"></i> Hebrew</div>
+                            <div class="bilingual">
+                                <i class="fa fa-check hidden"></i> Bilingual</div>
+                        </div>
+                    </div>
 
 
-                <div class="optionGroup disabled" id="sideBySideToggleGroup">
-					<div class="optionTitle"><i class="fa"></i> Side-by-Side Layout <i class='fa fa-caret-right'></i></div>
-					<div class="subMenu sideBySideToggleOption">
-						<div class="heLeft">
-							<i class="fa fa-check hidden"></i> Hebrew Left</div>
-						<div class="heRight">
-							<i class="fa fa-check hidden"></i> Hebrew Right</div>
-					</div>
-				</div>
+                    <div class="optionGroup disabled" id="layoutToggleGroup">
+                        <div class="optionTitle"><i class="fa fa-file-o hidden"></i> Sheet Layout <i class='fa fa-caret-right'></i></div>
+                        <div class="subMenu layoutToggleOption">
+                            <div class="stacked">
+                                <i class="fa fa-check hidden"></i> Stacked</div>
+                            <div class="sideBySide">
+                                <i class="fa fa-check hidden"></i> Side-by-Side</div>
+                        </div>
+                    </div>
+
+
+                    <div class="optionGroup disabled" id="sideBySideToggleGroup">
+                        <div class="optionTitle"><i class="fa fa-file-o hidden"></i> Side-by-Side Layout <i class='fa fa-caret-right'></i></div>
+                        <div class="subMenu sideBySideToggleOption">
+                            <div class="heLeft">
+                                <i class="fa fa-check hidden"></i> Hebrew Left</div>
+                            <div class="heRight">
+                                <i class="fa fa-check hidden"></i> Hebrew Right</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="sourceLayoutLanguageMenuItems">
+                    <div class="optionGroup">
+                        <div class="optionTitle"><i class="fa fa-file-o hidden"></i> Source Language <i class='fa fa-caret-right'></i></div>
+                        <div class="subMenu languageToggleOption">
+                            <div class="english">
+                                <i class="fa fa-check hidden"></i> English</div>
+                            <div class="hebrew">
+                                <i class="fa fa-check hidden"></i> Hebrew</div>
+                            <div class="bilingual">
+                                <i class="fa fa-check hidden"></i> Bilingual</div>
+                        </div>
+                    </div>
+
+
+                    <div class="optionGroup disabled" id="layoutToggleGroup">
+                        <div class="optionTitle"><i class="fa fa-file-o hidden"></i> Source Layout <i class='fa fa-caret-right'></i></div>
+                        <div class="subMenu layoutToggleOption">
+                            <div class="stacked">
+                                <i class="fa fa-check hidden"></i> Stacked</div>
+                            <div class="sideBySide">
+                                <i class="fa fa-check hidden"></i> Side-by-Side</div>
+                        </div>
+                    </div>
+
+
+                    <div class="optionGroup disabled" id="sideBySideToggleGroup">
+                        <div class="optionTitle"><i class="fa fa-file-o hidden"></i> Side-by-Side Layout <i class='fa fa-caret-right'></i></div>
+                        <div class="subMenu sideBySideToggleOption">
+                            <div class="heLeft">
+                                <i class="fa fa-check hidden"></i> Hebrew Left</div>
+                            <div class="heRight">
+                                <i class="fa fa-check hidden"></i> Hebrew Right</div>
+                        </div>
+                    </div>
+
+                    <div class="optionGroup" id="resetSourceTogglesToSheetGroup">
+                        <div class="optionTitle"><i class="fa fa-file-o hidden"></i> Reset to Sheet Default</div>
+                    </div>
+
+                </div>
 
 
             </div>
@@ -164,47 +206,52 @@
             {% if can_edit or can_add %}
         <div class="sheetsMenuBarItem" id="insertMenu">Insert
 			<div class="optionsMenu">
-				<div class="optionItem" id="addSource"><i class='fa fa-link'></i> Source</div>
+				<div class="optionItem" id="addSourceMenu"><img src="/static/img/source.png"> Source</div>
    				{% if is_owner %}
-                <div class="optionItem" id="addParashaToSheetModalTrigger"><i class='fa fa-book'></i> Parasha</div>
+                <div class="optionItem" id="addParashaToSheetModalTrigger"><img src="/static/img/parasha.png"> Parasha</div>
 				{% endif %}
-                <div class="optionItem" id="addBiOutside"><i class='fa fa-columns'></i> Outside Text (Bilingual)</div>
-				<div class="optionItem" id="addOutside"><i class='fa fa-file-o'></i> Outside Text</div>
-				<div class="optionItem" id="addComment"><i class='fa fa-comment'></i> Comment</div>
-				<div class="optionItem" id="addMedia"><i class='fa fa-youtube-play'></i> Media</div>
+                <div class="optionItem" id="addCustomMenu"><img src="/static/img/custom%20text.png"> Text</div>
+				<div class="optionItem" id="addCommentMenu"><img src="/static/img/comment.png"> Comment</div>
+				<div class="optionItem" id="addMediaMenu"><img src="/static/img/media.png"> Media</div>
             </div>
         </div>
             {% endif %}
 
-    <div id="ckeTopMenu"></div>
-    </div>
-<div id="link"></div>
-<div id="error"></div>
-<div id="controls">
-    <div>
-     <span id="lastSaved">
+    <div class="sheetsMenuBarItem">
+             <span id="lastSaved">
         {% if sheet.dateModified %}
                     {% if can_edit or can_add %}
                         Last Saved: {{sheet.dateModified|date_string_to_date|naturaltime}}
                     {% endif %}
         {% endif %}
      </span>
+
+    </div>
+	{% if new_sheet %}
+        <span id="save" class="button"><i class="fa fa-floppy-o"></i> Save</span>
+	{% endif %}
+
+    {% if is_owner and not new_sheet %}
+        <span id="share" class="button"><img src="/static/img/share.png"> Share</span>
+	{% endif %}
+
+        <div id="ckeTopMenu"></div>
+
+    </div>
+<div id="link"></div>
+<div id="error"></div>
+<div id="controls">
+    <div>
     </div>
 </div>
 
 <div id="sheet" class="{{ sheet_class|default:'bilingual' }}">
-	{% if new_sheet %}
+    {% if not user.email %}
 	<div id="fileControls">
 
         <div id="fileControlMsg">
-            {% if not user.email %}
-                Take a spin! But you'll need to <a href="/login?next=/sheets/new">login</a> or <a href="/register?next=/sheets/new">register</a> to save your work.
-            {% else %}
-                Add a source, a comment, or some other media using the buttons above.
-
-            {% endif %}
+                Like this? <a href="/login?next=/sheets/new">Login</a> or <a href="/register?next=/sheets/new">register</a> to create your own source sheet.
         </div>
-        <span id="save" class="btn btn-large btn-success">Save</span>
 	</div>
 	{% endif %}
 
@@ -254,24 +301,98 @@
 	{% endif %}
 	{% if not new_sheet %}
 	<div id="likes">
-		<span id="likeInfoBox" {% if like_count == 0%}style="display:none"{% endif %}>
-			<span id="likeInfo">
-				<span id="likeCount">{{ like_count }}</span>
-				like<span id="likePlural" {% if like_count == 1%}style="display:none"{% endif %}>s</span></span>
-			 ·
-		</span>
-		{% if viewer_is_liker %}
-			<a href="#" id="likeLink" class="liked">Unlike</a>
-		{% else %}
-			<a href="#" id="likeLink">Like</a>
-		{% endif %}
+		<span id="s2LikeContainer">
+            <span id="likeInfoBox" {% if like_count == 0%}style="display:none"{% endif %}>
+                <span id="likeInfo">
+                    <span id="likeCount">{{ like_count }}</span>
+                    like<span id="likePlural" {% if like_count == 1%}style="display:none"{% endif %}>s</span></span>
+                 ·
+            </span>
+            {% if viewer_is_liker %}
+                <a href="#" id="likeLink" class="liked">Unlike</a>
+            {% else %}
+                <a href="#" id="likeLink">Like</a>
+            {% endif %}
+        </span>
 	</div>
 	{% endif %}
 
 	<ol id="sources">
 		{% include "sheet.html" with sources=sheet.sources %}
 	</ol>
-	<div id="sheetLoading" style="display:none">Loading...</div>
+    {% if can_edit or can_add %}
+    <div id="addInterface">
+        <div class="buttonBar">
+            <div class="addInterfaceButton" id="sourceButton"><img src="/static/img/source.png"> Source</div><!--
+         --><div class="addInterfaceButton" id="connectionButton"><img src="/static/img/connection.png"> Connection</div><!--
+         --><div class="addInterfaceButton" id="customTextButton"><img src="/static/img/custom%20text.png"> Text</div><!--
+         --><div class="addInterfaceButton" id="mediaButton"><img src="/static/img/media.png"> Media</div><!--
+         --><div class="addInterfaceButton" id="commentButton"><img src="/static/img/comment.png">  Comment</div>
+        </div>
+        <div class="contentDiv">
+            <div id="addsourceDiv">
+                <div id="inlineAddDialogTitle" class="inlineAddDesc">Select a text</div>
+                <div class="blockContainer">
+                    <input id="inlineAdd" class="inlineAddTextInput" placeholder="Search for a Text or Commentator"/>
+                    <div class="buttonContainer">
+                        <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
+                            <div id="inlineAddSourceOK" class='button disabled'>Add Source</div>
+                        </div>
+                        <div class="inlineAddOr"> or </div>
+                        <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
+                            <div id="inlineAddBrowse" class='button'>Browse Sources</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div id="addconnectionDiv">
+                <div class="inlineAddDesc">Select connected texts</div>
+                <div id="connectionsToAdd"></div>
+                <div class="button">Add to Sheet</div>
+            </div>
+            <div id="addcustomTextDiv">
+                <div class="inlineAddDesc">Write or paste text</div>
+                <div id="customTextLanguageToggle" class="toggle"><span id="englishCustomText" class="toggleOption"><img src="/static/img/english.png"></span><span id="bilingualCustomText" class="toggleOption active"><img src="/static/img/bilingual.png"></span><span id="hebrewCustomText" class="toggleOption"><img src="/static/img/hebrew.png"></span></div>
+
+                <div id="customTextContainer" class="flexContainer">
+                    <div class="contentToAdd en customTextEditables" tabindex="0">English</div>
+                    <div class="contentToAdd he customTextEditables" tabindex="0">עברית</div>
+                </div>
+                <div class="button">Add to Sheet</div>
+            </div>
+            <div id="addmediaDiv">
+                <div class="inlineAddDesc">Add Image, Youtube Video, or MP3</div>
+                <div class="blockContainer">
+                    <input id="inlineAddMediaInput" class="inlineAddTextInput" placeholder="Paste URL">
+                    <div class="buttonContainer">
+                        <div class="inlineAddSourceByttons">
+                            <div class="button">Add to Sheet</div>
+                        </div>
+                        <div class="inlineAddOr"> or </div>
+                        <div class="inlineAddSourceByttons">
+                            <label for="addmediaFileSelector" class="button">
+                                <i class="fa fa-upload" aria-hidden="true"></i>
+                                Upload an Image
+                            </label>
+                            <input id="addmediaFileSelector" type="file" style="display:none">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <div id="addcommentDiv">
+                <div class="inlineAddDesc">Comment on this section</div>
+                <div class="contentToAdd" tabindex="0"></div>
+                <div class="button">Add to Sheet</div>
+            </div>
+        </div>
+    </div>
+	{% endif %}
+
+    <div id="sheetLoading" style="display:none">Loading...</div>
 
 	{% if new_sheet and not hide_video %}
 	<div id="empty" class="well">
@@ -320,7 +441,7 @@
 <div id="belowSheet"></div>
 
 
-<div id="addSourceModal" class="modal">
+<div id="addSourceModal" class="modal s2Modal">
 			<div id="closeAddSource" class="icon-remove"></div>
 			<div id="addDialogTitle" class="dialogTitle">Enter a text or commentator name:</div>
 			<input id="add" />
@@ -331,138 +452,76 @@
 			</div>
 </div>
 
-<div id="addMediaModal" class="modal">
+<div id="addMediaModal" class="modal s2Modal">
 			<div class="header">Enter the URL of your image, YouTube video, or mp3 file:</div>
 			<input id="addMediaInput" placeholder="http://" />
 			<div id="mediaPreview"></div>
-			<div class='btn btn-primary ok'>Add</div>
+			<div class='btn ok'>Add</div>
 </div>
 
 
-<div id="assignmentsModal" class="modal">
-
-        <div class="header">
-            <h3>Assignments:</h3>
-            Assignments allow you to create a template that your students can fill out on their own.
+<div id="assignmentsModal" class="modal s2Modal">
+        <span class="close-button"></span>
+        <div class="title">Assignments</div>
+        <div class="content" id="assignmentDirections">
+        Assignments allow you to create a template that your students can fill out on their own.
         </div>
-        <div class='btn btn-success' id="makeSheetAssignableButton">Make this sheet assignable</div>
-        <div class='btn btn-danger' id="StopCollectingAssignmentsButton">Stop Collecting Assignments</div>
+        <input id="assignmentURLLink" value="{{ request.META.HTTP_HOST }}/sheets/new?assignment={{sheet.id}}" />
+        <div class='button' id="makeSheetAssignableButton">Assign this Sheet</div>
+        <div class='button' id="StopCollectingAssignmentsButton">Stop Collecting Assignments</div>
         <br/>
                     <div id="assignedSheets">
-                            <div id="assignedSheetsShareURL">
-                                <div class="line"></div>
-                                Students can complete their assignment at this link:<br/>
-                                <input id="assignmentURLLink" value="{{ request.META.HTTP_HOST }}/sheets/new?assignment={{sheet.id}}" />
-                            </div>
                                 <div class="line"></div>
 
-                                <strong>Saved Assignments:</strong>
+                                <div class="title">Saved Assignments:</div>
         						{% for assignment_sheet in assignments_from_sheet %}
-                                <div class="optionLink" ><a href="./{{ assignment_sheet.id }}" target="_blank">{{ assignment_sheet.owner|user_name }}</a></div>
+                                <a href="./{{ assignment_sheet.id }}" target="_blank"><div class="button white" >{{ assignment_sheet.owner|user_name }}</div></a>
 
                                 {% empty %}
-                                    <br/><em>Your student's saved assignments will be viewable here.</em>
+                                    <em>Your student's saved assignments will be viewable here.</em>
                                 {% endfor %}
                     </div>
-        <div class='btn btn-primary ok'>Ok</div>
 
 </div>
 
+<div id="shareWithOthers" class="modal s2Modal">
+    <span class="close-button"></span>
+    <div class="title">Share with Others</div>
 
+    <div class="content">
+        <div class="inputHeader"><img src="/static/img/shareablelink.png"> Sharable Link</div>
+        <input id="shareURL" value="{{ request.META.HTTP_HOST }}/sheets/{{sheet.id}}" readonly="readonly"/>
+    </div>
 
+    <div class="content">
+        <div class="inputHeader"><i class='fa fa-unlock-alt'></i> Access</div>
+        <select id="sourceSheetShareSelect">
+          <option value="private">Private</option>
+          <option value="public">Listed for Sefaria Users</option>
+          <option value="publicAdd">Anyone can Add</option>
+          <option value="privateAdd">Anyone can Add - Unlisted</option>
+          <option value="publicEdit">Anyone can Edit</option>
+          <option value="privateEdit">Anyone can Edit - Unlisted</option>
+        </select>
+    </div>
 
-<div id="sharingModal" class="modal">
-	<div class="header">Sharing & Collaboration</div>
+   {% if owner_groups %}
+    <div class="content">
+        <div class="inputHeader"><i class='fa fa-group'></i> Group</div>
+        <select id="sourceSheetGroupSelect">
+            <option value="None">None</option>
 
-	<div class="radio">
-	  <label>
-		<input type="radio" name="sharingOptions" id="sharePrivate" value="private">
-		<span class="iconHolder"><i class="fa fa-user fa-2x fa-pull-left"></i></span>
-		<span class="sharingLabel">Private</span>
-		<span class="sharingDesc">Only people with the direct link can view the source sheet.</span>
-	  </label>
-	</div>
-
-
-	<div class="radio groupSharing">
-	  <label>
-		<input type="radio" name="sharingOptions" id="shareGroup" value="group">
-		<span class="iconHolder"><i class="fa fa-group fa-2x fa-pull-left"></i></span>
-		<span class="sharingLabel">Listed for Group Members</span>
-		<span class="sharingDesc">Anyone in <span class="groupName">your group</span> can find and view your source sheet.</span>
-	  </label>
-	</div>
-
-
-	<div class="radio">
-	  <label>
-		<input type="radio" name="sharingOptions" id="sharePublic" value="public">
-		<span class="iconHolder"><i class="fa fa-globe fa-2x fa-pull-left"></i></span>
-		<span class="sharingLabel">Listed for Sefaria Users</span>
-		<span class="sharingDesc">Anyone browsing Sefaria can find and view your source sheet.</span>
-	  </label>
-	</div>
-
-	<div class="radio groupSharing">
-	  <label>
-		<input type="radio" name="sharingOptions" id="shareGroupAdd" value="groupAdd">
-		<span class="iconHolder"><i class="fa fa-group fa-2x fa-pull-left"></i> <i class="fa fa-plus-circle fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Group Members can Add</span>
-		<span class="sharingDesc">Anyone in <span class="groupName">your group</span> can find and view and add sources & comments to your sheet.</span>
-	  </label>
-	</div>
-
-	<div class="radio">
-	  <label>
-		<input type="radio" name="sharingOptions" id="sharePublicAdd" value="publicAdd">
-		<span class="iconHolder"><i class="fa fa-globe fa-2x fa-pull-left"></i> <i class="fa fa-plus-circle fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Anyone can Add</span>
-		<span class="sharingDesc">Anyone browsing Sefaria can find and view and add sources & comments to your sheet.</span>
-	  </label>
-	</div>
-
-	<div class="radio individualSharing">
-	  <label>
-		<input type="radio" name="sharingOptions" id="sharePrivateAdd" value="privateAdd">
-		<span class="iconHolder"><i class="fa fa-link fa-2x fa-pull-left"></i> <i class="fa fa-plus-circle fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Anyone can Add - Unlisted</span>
-		<span class="sharingDesc">Anyone with the link to your sheet can view and add sources & comments.</span>
-	  </label>
-	</div>
-
-	<div class="radio groupSharing">
-	  <label>
-		<input type="radio" name="sharingOptions" id="shareGroupEdit" value="groupEdit">
-		<span class="iconHolder"><i class="fa fa-group fa-2x fa-pull-left"></i> <i class="fa fa-pencil fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Group Members can Edit</span>
-		<span class="sharingDesc">Anyone in <span class="groupName">your group</span> can make any change to your source sheet.</span>
-	  </label>
-	</div>
-
-	<div class="radio">
-	  <label>
-		<input type="radio" name="sharingOptions" id="sharePublicEdit" value="publicEdit">
-		<span class="iconHolder"><i class="fa fa-globe fa-2x fa-pull-left"></i> <i class="fa fa-pencil fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Anyone can Edit</span>
-		<span class="sharingDesc">Anyone browsing Sefaria can make any change to your source sheet.</span>
-	  </label>
-	</div>
-
-	<div class="radio individualSharing">
-	  <label>
-		<input type="radio" name="sharingOptions" id="sharePrivateEdit" value="privateEdit">
-		<span class="iconHolder"><i class="fa fa-link fa-2x fa-pull-left"></i> <i class="fa fa-pencil fa-pull-left fa-onTop"></i></span>
-		<span class="sharingLabel">Anyone can Edit - Unlisted</span>
-		<span class="sharingDesc">Anyone with the link to your sheet can make any change. The sheet will not be publicly listed.</span>
-	  </label>
-	</div>
-
-
-	<div class="btn ok">Save</div>
+    		{% for group in owner_groups %}
+              <option value="{{ group.name }}" data-group="{{ group.name }}" data-image="{{ group.headerUrl }}">{{ group.name }}</option>
+			{% endfor %}
+        </select>
+    </div>
+	{% endif %}
+    <div id="sharingDesc"></div><span id="sharingType" data-sharing=""></span>
+    <div class="ok button">Save</div>
 </div>
 
-
-<div id="addToSheetModal" class="modal">
+<div id="addToSheetModal" class="modal s2Modal">
 	<div class="header">Add <span class="sourceName"></span> to a Source Sheet</div>
 	<ul id="sheetList">
 	</ul>
@@ -472,14 +531,14 @@
 	</div>
 </div>
 
-<div id="embedSheetModal" class="gradient modal">
-	<div class="header">Copy and paste the embed code below:</div>
+<div id="embedSheetModal" class="gradient modal s2Modal">
+    <span class="close-button"></span>
+	<div class="title">Embed Sheet</div>
+    <div class="content center">Copy and paste the embed code below. Adjust the values of width and height to best fit your design.</div>
 	<textarea><iframe src="{{ request.build_absolute_uri }}?embed=1" width="600px" height="600px"></iframe></textarea>
-	<div class="sub">Adjust the values of width and height to best fit your design.</div>
-	<div class="btn ok">OK</div>
 </div>
 
-<div id="addParashaToSheetModal" class="modal">
+<div id="addParashaToSheetModal" class="modal s2Modal">
 	<div class="header">Add a Parasha to a Source Sheet</div>
         <ol>
             <li class="parshahToAdd">Bereshit</li>
@@ -542,8 +601,9 @@
 	</div>
 </div>
 
+<div id="overlay"></div>
 
-<div id="overrideLayoutModal" class="modal">
+<div id="overrideLayoutModal" class="modal s2Modal">
 	<div class="header">Change this source's layout:</div>
 
 		<span id="biLayoutToggleSource" class="toggle"><span id="hebLeftSource" class="toggleOption"><img src="/static/img/backs.png"></span><span id="hebRightSource" class="toggleOption"><img src="/static/img/faces.png"></span></span>
@@ -560,7 +620,7 @@
 </div>
 
 
-<div id="publishPromptModal" class="modal">
+<div id="publishPromptModal" class="modal s2Modal">
 	<div id="prompt">
 		<div class="header">Would you like to make your Source Sheet public?</div>
 
@@ -598,6 +658,7 @@ Footer depends on full bootstrap grid, which isn't loaded in sheets.html
 <script type="text/javascript" src="/static/js/jquery.easing.1.3.js"></script>
 <script type="text/javascript" src="/static/js/jquery-tooltip/jquery.tooltip.js"></script>
 <script src="/static/js/jquery.tag-it.min.js"></script>
+<script src="/static/js/util.js"></script>
 
 
 {% include "js/headers.js" %}
@@ -641,4 +702,3 @@ Footer depends on full bootstrap grid, which isn't loaded in sheets.html
 {% endblock %}
 
 {% block footer %}{% endblock %}
-

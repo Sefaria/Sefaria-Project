@@ -4,6 +4,7 @@ from rauth import OAuth2Service
 from datetime import datetime
 
 from django.http import HttpResponse
+from django.core.mail import EmailMultiAlternatives
 
 from sefaria import local_settings as sls
 

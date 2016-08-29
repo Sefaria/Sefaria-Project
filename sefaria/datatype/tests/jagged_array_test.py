@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sefaria.datatype.jagged_array as ja
+import pytest
 
 
 def setup_module(module):
@@ -91,6 +92,10 @@ class Test_Jagged_Text_Array(object):
             ["Third first", "Third second"]
         ])
 
+        assert ja.JaggedTextArray(threeby).subarray([1, 1, 1], [1, 1, 2]) == ja.JaggedTextArray(
+            ["2:2", "2:3"],
+        )
+
     def test_set_element(self):
         j = ja.JaggedTextArray(twoby).set_element([1,1], "Foobar")
         assert j.get_element([1, 1]) == "Foobar"
@@ -173,7 +178,8 @@ class Test_Jagged_Text_Array(object):
         assert ja.JaggedTextArray(twoby).sections() == [[0],[1],[2]]
         assert ja.JaggedTextArray(threeby).sections() == [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]]
 
-    def test_FAILING_IN_SUITE_trim_ending_whitespace(self):
+    @pytest.mark.failing
+    def test_trim_ending_whitespace(self):
         # Note - this test can fail when run in the full suite, because earlier test data bleeds through.
         # See warning at top of jagged_array.py
         #do no harm
@@ -217,7 +223,7 @@ class Test_Jagged_Text_Array(object):
     def test_resize(self):
         assert ja.JaggedTextArray(twoby).resize(1).resize(-1) == ja.JaggedTextArray(twoby)
 
-    def test_flatten(self):
+    def test_flatten_to_array(self):
         assert ja.JaggedTextArray(threeby).flatten_to_array() == [
             "Part 1 Line 1:1", "This is the first second", "First third",
             "Chapter 2, Verse 1", "2:2", "2:3",
@@ -229,6 +235,10 @@ class Test_Jagged_Text_Array(object):
             "Chapter 2, Verse 1", "2:2", "2:3",
             "Third first", "Third second", "Third third"
         ]
+
+    def test_flatten_to_string(self):
+        assert ja.JaggedTextArray("Test").flatten_to_string() == "Test"
+        assert ja.JaggedTextArray(["Test", "More", "Test"]).flatten_to_string() == "Test More Test"
 
     def test_next_prev(self):
         sparse_ja = ja.JaggedTextArray([["","",""],["","foo","","bar",""],["","",""]])
@@ -248,5 +258,5 @@ class Test_Depth_0(object):
         assert not j.is_empty()
         assert j.verse_count() == 1
         assert j.mask() == ja.JaggedIntArray(1)
-        assert j.flatten_to_array() == "Fee Fi Fo Fum"
+        assert j.flatten_to_array() == ["Fee Fi Fo Fum"]
 

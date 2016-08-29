@@ -4,18 +4,27 @@
 
 {% block content %}
 
-<div id="register" class="registrationContent">
-  <h1>Create an Account</h1>
-  <form action="{% url register %}" method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    {% if next %}
-    	<input type="hidden" name="next" value="{{ next }}" />
-   	{% endif %}
-    <button type="submit" class="btn btn-primary btn-large">Create Account</button>
-  </form>
-  <div class="clearfix"></div>
-  <a href="{% url login %}{% if next %}?next={{ next }}{% endif %}">I have an account already.</a>
-
+<div id="register" class="biReady registrationContent static">
+    <div class="inner">
+        <h1>
+          <span class="int-en">Create Your Account</span>
+          <span class="int-he">צור חשבון</span>
+        </h1>
+        <form id="register-form" action="{% url register %}" method="post" autocomplete="false">
+        {% csrf_token %}
+        {{ form.as_p }}
+        {% if next %}
+            <input type="hidden" name="next" value="{{ next }}" />
+        {% endif %}
+        <button type="submit" class="control-elem">
+            <span class="int-en">Create Account</span>
+            <span class="int-he">צור חשבון</span>
+        </button>
+        </form>
+        <a class="registration-links control-elem" href="{% url login %}{% if next %}?next={{ next }}{% endif %}">
+          <span class="int-en">Already have an account? Log in</span>
+          <span class="int-he">יש לך חשבון כבר? התחבר</span>
+        </a>
+    </div>
 </div>
 {% endblock %}

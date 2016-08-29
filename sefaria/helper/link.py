@@ -389,11 +389,18 @@ def rebuild_links_from_text(title, user):
 # --------------------------------------------------------------------------------- #
 
 
-def create_link_cluster(refs, user, link_type="", attrs=None):
+def create_link_cluster(refs, user, link_type="", attrs=None, exception_pairs=None):
+    total = 0
     for i, ref in enumerate(refs):
         for j in range(i + 1, len(refs)):
+            ref_strings = [refs[i].normal(), refs[j].normal()]
+
+            # If this link matches an exception pair, skip it.
+            if all([any([r.startswith(name) for r in ref_strings]) for pair in exception_pairs for name in pair]):
+                continue
+
             d = {
-                "refs": [refs[i].normal(), refs[j].normal()],
+                "refs": ref_strings,
                 "type": link_type
                 }
             if attrs:
@@ -401,5 +408,7 @@ def create_link_cluster(refs, user, link_type="", attrs=None):
             try:
                 tracker.add(user, Link, d)
                 print u"Created {} - {}".format(d["refs"][0], d["refs"][1])
+                total += 1
             except Exception as e:
                 print u"Exception: {}".format(e)
+    return total

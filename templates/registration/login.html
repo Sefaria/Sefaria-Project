@@ -5,35 +5,64 @@
 {% block content %}
 
 {% if user.email %}
-	<p id="message">You are already logged in as {{ user.email }}.
-	<a href="{% url logout %}">Logout.</a>
-	</p>
+    <div id="login" class="biReady registrationContent static">
+        <div class="inner">
+            <p id="message">
+                <span class="int-en">You are already logged in as </span>
+                <span class="int-he">הנך מחובר כבר בתור</span>
+                {{ user.email }}.
+                <a href="{% url logout %}">
+                    <span class="int-en">Logout.</span>
+                    <span class="int-he">התנתק.</span>
+                </a>
+            </p>
+        </div>
+    </div>
 
 {% else %}
-	<div id="login" class="registrationContent">
-	{% if message %}<p id="message">{{ message }}</p>{% endif %}
-	<h1>Login to Sefaria</h1>
-	{% if form.errors %}
-	<p class="error">Your username and password didn't match. Please try again.</p>
-	{% endif %}
 
-	<form method="post" action="{% url login %}">
-		{% csrf_token %}
+	<div id="login" class="biReady registrationContent static">
+        <div class="inner">
+            {% if message %}<p id="message">{{ message }}</p>{% endif %}
+            <h1>
+                <span class="int-en">Login to Sefaria</span>
+                <span class="int-he">התחבר לספאריה</span>
+            </h1>
+            {% if form.errors %}
+            <p class="error">
+                <span class="int-en">Your username and password didn't match. Please try again.</span>
+                <span class="int-he">בעיה בשם המשתמש או בסיסמא, אנא נסה שוב.</span>
+            </p>
+            {% endif %}
 
-		<p>
-			{{ form.email.label_tag }}
-		    <td>{{ form.email }}</td>
-		</p>
-		<p>
-			{{ form.password.label_tag }}
-		    <td>{{ form.password }}</td>
-		</p>
+            <form id="login-form" method="post" action="{% url login %}">
+                {% csrf_token %}
 
-		<button type="submit" class="btn btn-primary btn-large">Login</button> <a href="{% url password_reset %}" id="resetLink">Forgot your password?</a>
-		<input type="hidden" name="next" value="{{ next }}" />
-	</form>
-	<div class="clearfix"></div>
-	<a href="{% url register %}{% if next %}?next={{ next }}{% endif %}">Create a new account.</a>
-	</div>
+                <p>
+                    {{ form.email.label_tag }}
+                    <td>{{ form.email }}</td>
+                </p>
+                <p>
+                    {{ form.password.label_tag }}
+                    <td>{{ form.password }}</td>
+                </p>
+
+                <button type="submit" class="control-elem">
+                    <span class="int-en">Login</span>
+                    <span class="int-he">התחבר</span>
+                </button>
+                <a class="registration-links control-elem" href="{% url password_reset %}" id="resetLink">
+                    <span class="int-en">Forgot your password?</span>
+                    <span class="int-he">שכחתי את הסיסמא שלי</span>
+                </a>
+                <input type="hidden" name="next" value="{{ next }}" />
+            </form>
+            <a class="registration-links control-elem" href="{% url register %}{% if next %}?next={{ next }}{% endif %}">
+                <span class="int-en">Create a new account</span>
+                <span class="int-he">חדש? צור חשבון משתמש חדש</span>
+
+            </a>
+	    </div>
+    </div>
 {% endif %}
 {% endblock %}

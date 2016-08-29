@@ -1,0 +1,32 @@
+.header, .leftButtons, .rightButtons, .loadingMessage, .fa {
+  display: none;
+}
+#s2 {
+  position: static;
+  height: auto;
+}
+#panelWrapBox {
+  height: auto;
+  padding-top: 0;
+}
+.readerPanelBox {
+  position: static;
+  width: 100% !important;
+  left: 0% !important;
+  height: auto;
+}
+.readerControls {
+  position: static;
+}
+.textColumn {
+  overflow-y: visible;
+  padding: 0 !important;
+}
+.textRange.basetext {
+  max-width: none;
+  padding: 0;
+}
+@page {
+  size: auto;
+  margin: 18mm 20mm;
+} 

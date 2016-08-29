@@ -44,8 +44,8 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
 
     if with_text:
         text             = TextFamily(linkRef, context=0, commentary=False)
-        com["text"]      = JaggedTextArray(text.text).flatten_to_array()
-        com["he"]        = JaggedTextArray(text.he).flatten_to_array()
+        com["text"]      = text.text if isinstance(text.text, basestring) else JaggedTextArray(text.text).flatten_to_array()
+        com["he"]        = text.he if isinstance(text.he, basestring) else JaggedTextArray(text.he).flatten_to_array()
 
     # if the the link is commentary, strip redundant info (e.g. "Rashi on Genesis 4:2" -> "Rashi")
     if com["type"] == "commentary":
