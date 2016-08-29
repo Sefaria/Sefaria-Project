@@ -1857,10 +1857,10 @@ var ReaderPanel = React.createClass({
           <div className="readerContent">
             <div className="readerError">
               <span className="int-en">Something went wrong! Please use the back button or the menus above to get back on track.</span>
-              <span className="int-he"></span>
+              <span className="int-he">ארעה תקלה במערכת. אנא חזרו לתפריט הראשי או אחורנית על ידי שימוש בכפתורי התפריט או החזור.</span>
               <div className="readerErrorText">
                 <span className="int-en">Error Message: </span>
-                <span className="int-he"></span>
+                <span className="int-he">שגיאה:</span>
                 {this.state.error}
               </div>
             </div>
