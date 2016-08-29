@@ -1411,9 +1411,6 @@ var Header = React.createClass({
                          </div>);
     var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "הקלד לחיפוש";
     var vkClassActivator = this.props.interfaceLang == 'english' ? " keyboardInput" : "";
-      /*var interfaceLangClass = `interface-${this.props.interfaceLang}`;
-    classDict[interfaceLangClass] = true
-    var classes = classNames(classDict);*/
     return (<div className="header">
               <div className="headerInner">
                 <div className="left">
