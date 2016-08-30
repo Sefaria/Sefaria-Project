@@ -3153,16 +3153,18 @@ content: "";
     border-radius: 3px;
     border: 1px solid #aaa;
     position: initial;
-    vertical-align: text-bottom;
+    vertical-align: middle;
 }
 
 body #keyboardInputMaster {
     opacity: 1;
     top: 53px !important;
+    left:70px !important;
     background-color: #F9F9F7;
-    border: 1.5px solid #999;
+    border: 1px solid #ccc;
     padding: 5px;
     box-shadow: none;
+    border-radius: 0.3em;
 }
 
 body #keyboardInputMaster thead{
@@ -3174,7 +3176,7 @@ body #keyboardInputMaster:before {
   position: absolute;
   top: -10px;
   left: 30px;
-  border-bottom: 10px solid #999;
+  border-bottom: 10px solid #ccc;
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
 }
@@ -3196,12 +3198,13 @@ body #keyboardInputMaster tbody tr td table{
 body #keyboardInputMaster tbody tr td table tbody tr td{
     border: 0.5px solid #eee;
     background: white;
-    font-family: "Open Sans Hebrew", sans-serif;
+    font-family: "Open Sans Hebrew","proxima-nova", sans-serif;
     min-width: 15px;
     vertical-align: middle;
     padding: 2px 8px;
     text-align: center;
-
+    font-size: 14px;
+    color: #333;
 
 }
 
