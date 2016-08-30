@@ -104,6 +104,18 @@ class AbstractIndex(object):
             seg_refs += sec_ref.all_subrefs()
         return seg_refs
 
+    def all_top_section_refs(self):
+        """Returns a list of refs one step below root"""
+        section_refs = self.all_section_refs()
+        tally = {}
+        refs = []
+        for oref in section_refs:
+            top_ref = oref.top_section_ref()
+            if not top_ref.normal() in tally:
+                tally[top_ref.normal()] = 1
+                refs.append(top_ref)
+        return refs
+
     def author_objects(self):
         from . import person
         return [person.Person().load({"key": k}) for k in getattr(self, "authors", []) if person.Person().load({"key": k})]
@@ -120,6 +132,34 @@ class AbstractIndex(object):
     def publication_time_period(self):
         return None
 
+    def contents_with_content_counts(self):
+        """
+        Returns the `contents` dictionary with each node annotated with section lengths info
+        from version_state.
+        """
+        contents = self.contents(v2=True)
+        vstate   = self.versionState()
+
+        def simplify_version_state(vstate_node):
+            return aggregate_available_texts(vstate_node["_all"]["availableTexts"])
+
+        def aggregate_available_texts(available):
+            """Returns a jagged arrary of ints that counts the number of segments in each section,
+            (by throwing out the number of versions of each segment)""" 
+            if len(available) == 0 or type(available[0]) is int:
+                return len(available)
+            else:
+                return [aggregate_available_texts(x) for x in available]
+
+        def annotate_schema(schema, vstate):
+            if "nodes" in schema:
+                for node in schema["nodes"]:
+                    annotate_schema(node, vstate[node["key"]])
+            else:
+                schema["content_counts"] = simplify_version_state(vstate)
+
+        annotate_schema(contents["schema"], vstate.content)
+        return contents
 
 
 class Index(abst.AbstractMongoRecord, AbstractIndex):
@@ -570,6 +610,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             self.maps[i]["to"] = nref
 
     def toc_contents(self):
+        """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
         firstSection = Ref(self.title).first_available_section_ref()
         toc_contents_dict = {
             "title": self.get_title(),
@@ -592,6 +633,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                     pass
 
         return toc_contents_dict
+
 
 class IndexSet(abst.AbstractMongoSet):
     """
