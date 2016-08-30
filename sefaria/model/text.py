@@ -533,7 +533,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             raise InputError("Text title may contain only simple English characters.")
 
         # Disallow special characters in text titles
-        if any((c in '.-\\/') for c in self.title):
+        if any((c in ':.-\\/') for c in self.title):
             raise InputError("Text title may not contain periods, hyphens or slashes.")
 
         # Disallow special character in categories
