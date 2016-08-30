@@ -36,7 +36,10 @@ for book in library.get_indexes_in_category('Torah'):
     title = 'Harchev Davar on {}'.format(book)
     index = library.get_index(title)
     index.categories = ['Commentary2', 'Tanakh', 'Haamek Davar']
-    del index.sectionNames
+    try:
+        del index.sectionNames
+    except AttributeError:
+        pass
     index.save()
     clean_segment_layer(title)
     index.versionState().refresh()
