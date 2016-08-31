@@ -95,12 +95,12 @@ class AtomicTest(object):
             url += "?with={}".format(filter)
         self.driver.get(url)
         if filter == "all":
-            WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".categoryFilter")))
+            WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".categoryFilter")))
         elif filter is not None:
             # Filters load slower than the main page
-            WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".filterSet > .textRange")))
+            WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".filterSet > .textRange")))
         else:
-            WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".textColumn .textRange .segment")))
+            WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".textColumn .textRange .segment")))
         self.set_modal_cookie()
         return self
 
@@ -110,7 +110,7 @@ class AtomicTest(object):
         assert isinstance(ref, Ref)
         url = self.base_url + "/" + ref.url()
         self.driver.get(url)
-        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".tocContent > :not(.loadingMessage)")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".tocContent > :not(.loadingMessage)")))
         self.set_modal_cookie()
         return self
 
@@ -134,7 +134,7 @@ class AtomicTest(object):
         segment = self.driver.find_element_by_css_selector('.segment[data-ref="{}"]'.format(ref.normal()))
         segment.click()
         # Todo: put a data-* attribute on .filterSet, for the multi-panel case
-        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".textFilter")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".textFilter")))
         return self
 
     def scroll_to_segment(self, ref):
@@ -180,7 +180,7 @@ class AtomicTest(object):
         if query is not None:
             url += "?q={}".format(query)
         self.driver.get(url)
-        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".results-count")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".type-button-total")))
         self.set_modal_cookie()
         return self
 
@@ -189,7 +189,7 @@ class AtomicTest(object):
         elem.send_keys(query)
         elem.send_keys(Keys.RETURN)
         # todo: does this work for a second search?
-        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".result")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".result")))
         return self
 
     #Source Sheets
@@ -388,6 +388,7 @@ class Trial(object):
             else:
                 sys.stdout.write("F")
             sys.stdout.flush()
+            driver.execute_script("sauce: break")
             return TestResult(test, cap, False, msg)
         else:
             sys.stdout.write("{} - Passed".format(name) if self.isVerbose else ".")

@@ -81,6 +81,7 @@ class LoadAndVerifyIndepenedentTOC(AtomicTest):
 
        # self.load_text_toc("Numbers").click_text_toc_section("Numbers 12").back().click_text_toc_section("Numbers 3").back()
 
+
 class LoadSearchFromURL(AtomicTest):
     suite_key = "Search"
     every_build = True
