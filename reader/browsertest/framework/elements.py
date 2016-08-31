@@ -401,8 +401,8 @@ class Trial(object):
             else:
                 sys.stdout.write("F")
             sys.stdout.flush()
-            if self.platform == "sauce":
-                driver.execute_script("sauce: break")
+            #if self.platform == "sauce":
+            #    driver.execute_script("sauce: break")
             return TestResult(test, cap, False, msg)
         else:
             sys.stdout.write("{} - Passed".format(name) if self.isVerbose else ".")
