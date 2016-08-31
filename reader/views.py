@@ -17,15 +17,18 @@ import p929
 import socket
 
 from django.views.decorators.cache import cache_page
-from django.template import RequestContext
+from django.template import RequestContext, loader
 from django.template.loader import render_to_string
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.http import Http404, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.utils.http import urlquote
 from django.utils.encoding import iri_to_uri
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect, requires_csrf_token
 from django.contrib.auth.models import User
+from django import http
+
+
 
 from sefaria.model import *
 from sefaria.workflows import *
@@ -2941,3 +2944,14 @@ def visual_garden_page(request, g):
     }
 
     return render_to_response('visual_garden.html', template_vars, RequestContext(request))
+
+@requires_csrf_token
+def custom_server_error(request, template_name='500.html'):
+    """
+    500 error handler.
+
+    Templates: `500.html`
+    Context: None
+    """
+    t = loader.get_template(template_name) # You need to create a 500.html template.
+    return http.HttpResponseServerError(t.render(RequestContext(request, {'request_path': request.path})))
