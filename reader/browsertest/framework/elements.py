@@ -155,11 +155,24 @@ class AtomicTest(object):
         self.driver.forward()
         return self
 
-    def scroll_to_top(self):
+    # Scrolling
+    def scroll_window_down(self, pixels):
+        self.driver.execute_script("window.scrollBy(0,{});".format(pixels))
+        return self
+
+    def scroll_window_up(self, pixels):
+        self.driver.execute_script("window.scrollBy(0,{});".format(-pixels))
+        return self
+
+    def scroll_window_to_bottom(self):
+        self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        return self
+
+    def scroll_panel_to_top(self):
         """Scrolls the first text panel to the top"""
         return self
 
-    def scroll_to_bottom(self):
+    def scroll_panel_to_bottom(self):
         """Scrolls the first text panel to the top"""
         return self
 
@@ -237,7 +250,7 @@ class ResultSet(object):
         self._indexed_tests = {}
 
     def __str__(self):
-        return "\n".join([str(r) for r in self._test_results]) + "\n\n"
+        return "\n" + "\n".join([str(r) for r in self._test_results]) + "\n\n"
 
     def _aggregate(self):
         if not self._aggregated:
@@ -388,7 +401,8 @@ class Trial(object):
             else:
                 sys.stdout.write("F")
             sys.stdout.flush()
-            driver.execute_script("sauce: break")
+            if self.platform == "sauce":
+                driver.execute_script("sauce: break")
             return TestResult(test, cap, False, msg)
         else:
             sys.stdout.write("{} - Passed".format(name) if self.isVerbose else ".")

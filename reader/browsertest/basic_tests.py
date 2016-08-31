@@ -1,7 +1,8 @@
 from framework import AtomicTest
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support.expected_conditions import title_contains, staleness_of, element_to_be_clickable, visibility_of_element_located
+from selenium.webdriver.support.ui import WebDriverWait, Select
+from selenium.webdriver.support.expected_conditions import title_contains, staleness_of, element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located
+
 from selenium.webdriver.common.keys import Keys
 
 TEMPER = 10
@@ -80,6 +81,28 @@ class LoadAndVerifyIndepenedentTOC(AtomicTest):
             self.load_text_toc(title)
 
        # self.load_text_toc("Numbers").click_text_toc_section("Numbers 12").back().click_text_toc_section("Numbers 3").back()
+
+
+class PresenceOfDownloadButtonOnTOC(AtomicTest):
+    suite_key = "Reader"
+    every_build = True
+
+    def run(self):
+        # Load Shabbat TOC and scroll to bottom
+        self.load_text_toc("Shabbat").scroll_window_to_bottom()
+
+        # Check that DL Button is visible and not clickable
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".downloadButtonInner")))
+        WebDriverWait(self.driver, TEMPER).until(invisibility_of_element_located((By.CSS_SELECTOR, '.dlVersionFormatSelect + a')))
+
+        # Select version and format
+        s1 = Select(self.driver.find_element_by_css_selector('.dlVersionTitleSelect'))
+        s1.select_by_value("Wikisource Talmud Bavli/he")
+        s2 = Select(self.driver.find_element_by_css_selector('.dlVersionFormatSelect'))
+        s2.select_by_value("csv")
+
+        # Check that DL button is clickable
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.dlVersionFormatSelect + a')))
 
 
 class LoadSearchFromURL(AtomicTest):
