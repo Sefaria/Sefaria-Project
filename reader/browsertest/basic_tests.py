@@ -39,7 +39,7 @@ class RecentInToc(AtomicTest):
 
     def run(self):
         self.s2().click_toc_category("Tanakh").click_toc_text("Psalms")
-        self.load_toc().click_toc_recent("Psalms 1", until=title_contains("Psalms"))
+        self.load_toc().click_toc_recent("Psalms 1")
 
 
 class LoadRefAndClickSegment(AtomicTest):

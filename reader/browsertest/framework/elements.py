@@ -50,33 +50,46 @@ class AtomicTest(object):
     # Component methods
     def s2(self):
         self.driver.get(self.base_url + "/s2")
-        WebDriverWait(self.driver, TEMPER).until(title_contains("Texts"))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerNavCategory")))
         self.set_modal_cookie()
         return self
 
     # TOC
     def load_toc(self):
         self.driver.get(self.base_url + "/texts")
-        WebDriverWait(self.driver, TEMPER).until(title_contains("Texts"))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerNavCategory")))
         self.set_modal_cookie()
         return self
 
     def click_toc_category(self, category_name):
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, '.readerNavCategory[data-cat="{}"]'.format(category_name)))
+        )
         self.driver.find_element_by_css_selector('.readerNavCategory[data-cat="{}"]'.format(category_name)).click()
-        WebDriverWait(self.driver, TEMPER).until(title_contains(category_name))
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, '.refLink'))
+        )
         return self
 
     def click_toc_text(self, text_name):
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, '.refLink[data-ref^="{}"]'.format(text_name)))
+        )
         p1 = self.driver.find_element_by_css_selector('.refLink[data-ref^="{}"]'.format(text_name))
         p1.click()
-        WebDriverWait(self.driver, TEMPER).until(title_contains(text_name))
+
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, '.segment'))
+        )
         return self
 
-    def click_toc_recent(self, tref, until=None):
+    def click_toc_recent(self, tref):
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, '.recentItem[data-ref="{}"]'.format(tref)))
+        )
         recent = self.driver.find_element_by_css_selector('.recentItem[data-ref="{}"]'.format(tref))
         recent.click()
-        until = title_contains(tref) if until is None else until
-        WebDriverWait(self.driver, TEMPER).until(until)
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.segment')))
 
     # Text Panel
     # Todo: handle the case when the loaded page has different URL - because of scroll
@@ -120,7 +133,9 @@ class AtomicTest(object):
         assert isinstance(ref, Ref)
         p1 = self.driver.find_element_by_css_selector('.sectionLink[data-ref^="{}"]'.format(ref.url()))
         p1.click()
-        WebDriverWait(self.driver, TEMPER).until(title_contains(ref.normal()))
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, '.segment'))
+        )
         return self
 
     #todo:
@@ -184,7 +199,10 @@ class AtomicTest(object):
         f = self.find_text_filter(name)
         assert f, "Can not find text filter {}".format(name)
         f.click()
-        WebDriverWait(self.driver, TEMPER).until(title_contains("with {}".format(name)))
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, '.recentFilterSet'))
+        )
+        #WebDriverWait(self.driver, TEMPER).until(title_contains("with {}".format(name)))
         return self
 
     # Search
@@ -207,9 +225,8 @@ class AtomicTest(object):
 
     #Source Sheets
     def load_sheets(self):
-        url = self.base_url + "/sheets"
-        self.driver.get(url)
-        WebDriverWait(self.driver, TEMPER).until(title_contains("Sheet"))
+        self.driver.get(self.base_url + "/sheets")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".sheet")))
         self.set_modal_cookie()
         return self
     
