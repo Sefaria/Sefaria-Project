@@ -362,7 +362,7 @@ var ReaderApp = React.createClass({
         return true;
       }
 
-      if (prev.mode !== next.mode || prev.menuOpen !== next.menuOpen || next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0] || next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0] || (next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter) || next.mode === "Connections" && !prev.refs.compare(next.refs) || prev.navigationSheetTag !== next.navigationSheetTag || prev.version !== next.version || prev.versionLanguage !== next.versionLanguage || prev.searchQuery != next.searchQuery || prev.appliedSearchFilters && next.appliedSearchFilters && prev.appliedSearchFilters.length !== next.appliedSearchFilters.length || prev.appliedSearchFilters && next.appliedSearchFilters && !prev.appliedSearchFilters.compare(next.appliedSearchFilters) || prev.settings.language != next.settings.language) {
+      if (prev.mode !== next.mode || prev.menuOpen !== next.menuOpen || prev.menuOpen === "book toc" && prev.bookRef !== next.bookRef || next.mode === "Text" && prev.refs.slice(-1)[0] !== next.refs.slice(-1)[0] || next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0] || (next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter) || next.mode === "Connections" && !prev.refs.compare(next.refs) || prev.navigationSheetTag !== next.navigationSheetTag || prev.version !== next.version || prev.versionLanguage !== next.versionLanguage || prev.searchQuery != next.searchQuery || prev.appliedSearchFilters && next.appliedSearchFilters && prev.appliedSearchFilters.length !== next.appliedSearchFilters.length || prev.appliedSearchFilters && next.appliedSearchFilters && !prev.appliedSearchFilters.compare(next.appliedSearchFilters) || prev.settings.language != next.settings.language) {
         return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
         // Handle array comparison, !== could mean one is null or both are arrays
@@ -1271,6 +1271,16 @@ var Header = React.createClass({
       }.bind(this)
     });
   },
+  showVirtualKeyboardIcon: function showVirtualKeyboardIcon(show) {
+    if (document.getElementById('keyboardInputMaster')) {
+      //if keyboard is open, ignore.
+      return; //this prevents the icon from flashing on every key stroke.
+    }
+    if (this.props.interfaceLang == 'english') {
+      var opacity = show ? 0.4 : 0;
+      $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({ "opacity": opacity });
+    }
+  },
   showDesktop: function showDesktop() {
     if (this.props.panelsOpen == 0) {
       var json = cookie("recentlyViewed");
@@ -1469,6 +1479,7 @@ var Header = React.createClass({
       )
     );
     var langSearchPlaceholder = this.props.interfaceLang == 'english' ? "Search" : "הקלד לחיפוש";
+    var vkClassActivator = this.props.interfaceLang == 'english' ? " keyboardInput" : "";
     return React.createElement(
       'div',
       { className: 'header' },
@@ -1498,7 +1509,12 @@ var Header = React.createClass({
           'span',
           { className: 'searchBox' },
           React.createElement(ReaderNavigationMenuSearchButton, { onClick: this.handleSearchButtonClick }),
-          React.createElement('input', { className: 'search', placeholder: langSearchPlaceholder, onKeyUp: this.handleSearchKeyUp })
+          React.createElement('input', { className: "search" + vkClassActivator,
+            placeholder: langSearchPlaceholder,
+            onKeyUp: this.handleSearchKeyUp,
+            onFocus: this.showVirtualKeyboardIcon.bind(this, true),
+            onBlur: this.showVirtualKeyboardIcon.bind(this, false)
+          })
         ),
         React.createElement(
           'a',
@@ -1959,7 +1975,11 @@ var ReaderPanel = React.createClass({
             { className: 'int-en' },
             'Something went wrong! Please use the back button or the menus above to get back on track.'
           ),
-          React.createElement('span', { className: 'int-he' }),
+          React.createElement(
+            'span',
+            { className: 'int-he' },
+            'ארעה תקלה במערכת. אנא חזרו לתפריט הראשי או אחורנית על ידי שימוש בכפתורי התפריט או החזור.'
+          ),
           React.createElement(
             'div',
             { className: 'readerErrorText' },
@@ -1968,7 +1988,11 @@ var ReaderPanel = React.createClass({
               { className: 'int-en' },
               'Error Message: '
             ),
-            React.createElement('span', { className: 'int-he' }),
+            React.createElement(
+              'span',
+              { className: 'int-he' },
+              'שגיאה:'
+            ),
             this.state.error
           )
         )

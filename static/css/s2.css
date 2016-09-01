@@ -3142,20 +3142,18 @@ content: "";
 .int-en{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-/***  ******************************************* ***/
 
 .searchBox .keyboardInputInitiator {
     opacity: 0;
     width: 16px;
-    height: 15px;
+    height: 16px;
     padding: 4px 7px;
     background-color: #fff;
     border-radius: 3px;
     border: 1px solid #aaa;
     position: initial;
-    vertical-align: middle;
+    vertical-align: -7px;
 }
-
 body #keyboardInputMaster {
     opacity: 1;
     top: 53px !important;
@@ -3166,11 +3164,9 @@ body #keyboardInputMaster {
     box-shadow: none;
     border-radius: 0.3em;
 }
-
 body #keyboardInputMaster thead{
     display: none;
 }
-
 body #keyboardInputMaster:before {
   content: '';
   position: absolute;
@@ -3180,7 +3176,6 @@ body #keyboardInputMaster:before {
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
 }
-
 body #keyboardInputMaster:after {
   content: '';
   position: absolute;
@@ -3190,11 +3185,9 @@ body #keyboardInputMaster:after {
   border-left: 9px solid transparent;
   border-right: 9px solid transparent;
 }
-
 body #keyboardInputMaster tbody tr td table{
     border-spacing: 2px 2px;
 }
-
 body #keyboardInputMaster tbody tr td table tbody tr td{
     border: 0.5px solid #eee;
     background: white;
@@ -3207,7 +3200,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td{
     color: #333;
 
 }
-
 body #keyboardInputMaster tbody tr td table tbody tr td:hover,
 body #keyboardInputMaster tbody tr td table tbody tr td:active,
 body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
