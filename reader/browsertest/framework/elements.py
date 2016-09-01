@@ -154,13 +154,6 @@ class AtomicTest(object):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".textFilter")))
         return self
 
-    def scroll_to_segment(self, ref):
-        if isinstance(ref, basestring):
-            ref = Ref(ref)
-        assert isinstance(ref, Ref)
-        #todo
-        return self
-
     # Basic navigation
     def back(self):
         # These may not work as expected...
@@ -185,13 +178,43 @@ class AtomicTest(object):
         self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         return self
 
-    def scroll_panel_to_top(self):
-        """Scrolls the first text panel to the top"""
+    def scroll_panel_down(self, pixels):
+        #todo: untested
+        #todo: handle multiple panels
+        self.driver.execute_script(
+            "var a = $('.content'); a.scrollTop(a.scrollTop() + {});".format(pixels)
+        )
+        return self
+
+    def scroll_panel_up(self, pixels):
+        #todo: untested
+        #todo: handle multiple panels
+        self.driver.execute_script(
+            "var a = $('.content'); a.scrollTop(a.scrollTop() - {});".format(pixels)
+        )
         return self
 
     def scroll_panel_to_bottom(self):
-        """Scrolls the first text panel to the top"""
+        #todo: handle multiple panels
+        self.driver.execute_script(
+            "var a = $('.content'); a.scrollTop(a.prop('scrollHeight'));"
+        )
         return self
+
+    def scroll_panel_to_top(self):
+        """Scrolls the first text panel to the top"""
+        #todo
+        return self
+
+    def scroll_to_segment(self, ref):
+        if isinstance(ref, basestring):
+            ref = Ref(ref)
+        assert isinstance(ref, Ref)
+        #todo
+        return self
+
+
+
 
     # Connections Panel
     def find_text_filter(self, name):

@@ -89,10 +89,19 @@ class PresenceOfDownloadButtonOnTOC(AtomicTest):
 
     def run(self):
         # Load Shabbat TOC and scroll to bottom
-        self.load_text_toc("Shabbat").scroll_window_to_bottom()
+        self.load_text_toc("Shabbat").scroll_panel_to_bottom()
 
         # Check that DL Button is visible and not clickable
-        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".downloadButtonInner")))
+        visible = self.driver.execute_script(
+            'var butt = $(".downloadButtonInner"); ' +\
+            'var butt_bot = butt.offset().top + butt.height(); ' +\
+            'var win_height = $(window).height(); ' +\
+            'return win_height > butt_bot;'
+        )
+        assert visible, "Download button below page"
+        # This isn't sufficient - it only checks if it's visible in the DOM
+        #WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".downloadButtonInner")))
+
         WebDriverWait(self.driver, TEMPER).until(invisibility_of_element_located((By.CSS_SELECTOR, '.dlVersionFormatSelect + a')))
 
         # Select version and format
