@@ -146,7 +146,9 @@ class AtomicTest(object):
         if isinstance(ref, basestring):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
-        segment = self.driver.find_element_by_css_selector('.segment[data-ref="{}"]'.format(ref.normal()))
+        selector = '.segment[data-ref="{}"]'.format(ref.normal())
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, selector)))
+        segment = self.driver.find_element_by_css_selector(selector)
         segment.click()
         # Todo: put a data-* attribute on .filterSet, for the multi-panel case
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".textFilter")))
