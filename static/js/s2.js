@@ -2161,7 +2161,7 @@ var ReaderPanel = React.createClass({
     classes[this.state.settings.language] = 1;
     classes = classNames(classes);
     var style = { "fontSize": this.state.settings.fontSize + "%" };
-    var hideReaderControls = this.state.mode === "TextAndConnections" || this.props.hideNavHeader;
+    var hideReaderControls = this.state.mode === "TextAndConnections" || this.state.menuOpen === "text toc" || this.state.menuOpen === "book toc" || this.props.hideNavHeader;
 
     return React.createElement(
       'div',
